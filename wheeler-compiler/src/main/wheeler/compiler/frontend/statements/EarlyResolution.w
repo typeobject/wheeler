@@ -2,8 +2,11 @@
 
 module wheeler.compiler.early_statement_resolution;
 
+import wheeler.compiler.class_constants;
 import wheeler.compiler.local_resolution;
+import wheeler.compiler.loop_forms;
 import wheeler.compiler.resolved_statements;
+import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 
 classical class EarlyStatementResolution {
@@ -57,6 +60,25 @@ classical class EarlyStatementResolution {
     }
 
     return STATEMENT_IF_HELPER_CALL_RETURN_BASE;
+  }
+
+  private long comparisonReturnToken(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    long statementStart,
+    long opcode
+  ) {
+    long comparisonToken = statementStart + 5;
+    if (lessThanGuard(opcode)) {
+      comparisonToken = statementStart + 4;
+    }
+
+    long comparisonWidth = 1;
+    if (utf8Scalar(source, tokenStarts[comparisonToken]) == PUNCTUATION_MINUS) {
+      comparisonWidth = 2;
+    }
+
+    return comparisonToken + comparisonWidth + 3;
   }
 
   private long comparisonGuardBase(long opcode) {
@@ -117,6 +139,64 @@ classical class EarlyStatementResolution {
 
     if (helperGuard(opcode)) {
       return helperGuardBase(opcode) + sourceLocal;
+    }
+
+    if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED) {
+      long equalityReturnedToken = comparisonReturnToken(
+        source,
+        tokenStarts,
+        statementStart,
+        opcode
+      );
+      long equalityReturnedLocal = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        equalityReturnedToken,
+        true
+      );
+      if (-1 < equalityReturnedLocal) {
+        return STATEMENT_IF_SIGNED_EQ_RETURN_LOCAL_BASE + sourceLocal;
+      }
+
+      if (loopOperandNamed(source, tokenStarts, equalityReturnedToken)) {
+        if (
+          classConstantHasType(source, tokenStarts, tokenLengths, equalityReturnedToken, true)
+        ) {} else {
+          return -1;
+        }
+      }
+    }
+
+    if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_LONG_NAMED) {
+      long orderingReturnedToken = comparisonReturnToken(
+        source,
+        tokenStarts,
+        statementStart,
+        opcode
+      );
+      long orderingReturnedLocal = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        orderingReturnedToken,
+        true
+      );
+      if (-1 < orderingReturnedLocal) {
+        return STATEMENT_IF_SIGNED_LT_RETURN_LOCAL_BASE + sourceLocal;
+      }
+
+      if (loopOperandNamed(source, tokenStarts, orderingReturnedToken)) {
+        if (
+          classConstantHasType(source, tokenStarts, tokenLengths, orderingReturnedToken, true)
+        ) {} else {
+          return -1;
+        }
+      }
     }
 
     return comparisonGuardBase(opcode) + sourceLocal;

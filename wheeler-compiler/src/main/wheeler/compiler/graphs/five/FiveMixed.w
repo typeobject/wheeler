@@ -3,7 +3,7 @@
 module wheeler.compiler.graphs.five_mixed;
 
 import wheeler.compiler.compiler_core;
-import wheeler.compiler.imported_helpers;
+import wheeler.compiler.graphs.direct.mixed_four;
 import wheeler.compiler.module_linker;
 
 classical class CompilerFiveMixed {
@@ -11,123 +11,6 @@ classical class CompilerFiveMixed {
 
   /// Carries private mixed five-module compilation bounds.
   public record FiveMixedCompilation(long length, long codeStart) {}
-
-  private FiveMixedCompilation compileHelperChainAndDirectConstants(
-    borrow utf8 linkedHelperSource,
-    borrow utf8 firstDirectSource,
-    borrow utf8 secondDirectSource,
-    borrow utf8 thirdDirectSource,
-    borrow utf8 rootSource,
-    borrow mut bytes output
-  ) {
-    LinkPlan helperPlan = planResolvedHelperImport(
-      linkedHelperSource,
-      rootSource,
-      /* expectedImportCount= */ FOUR_IMPORTS
-    );
-    if (helperPlan.valid) {} else {
-      return new FiveMixedCompilation(0, 0);
-    }
-
-    region helperArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    bytes helperBytes = allocateBytes(helperArena, helperPlan.linkedLength);
-    long helperWritten = writeConstantImport(
-      linkedHelperSource,
-      rootSource,
-      helperPlan,
-      helperBytes
-    );
-    assert(helperWritten == helperPlan.linkedLength);
-    utf8 helperLinkedRoot = freezeUtf8(helperBytes);
-
-    LinkPlan firstPlan = planConstantImport(
-      firstDirectSource,
-      helperLinkedRoot,
-      /* expectedImportCount= */ FOUR_IMPORTS
-    );
-    if (firstPlan.valid) {} else {
-      drop(helperLinkedRoot);
-      drop(helperArena);
-      return new FiveMixedCompilation(0, 0);
-    }
-
-    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    bytes firstBytes = allocateBytes(firstArena, firstPlan.linkedLength);
-    long firstWritten = writeConstantImport(
-      firstDirectSource,
-      helperLinkedRoot,
-      firstPlan,
-      firstBytes
-    );
-    assert(firstWritten == firstPlan.linkedLength);
-    utf8 firstLinkedRoot = freezeUtf8(firstBytes);
-
-    LinkPlan secondPlan = planConstantImport(
-      secondDirectSource,
-      firstLinkedRoot,
-      /* expectedImportCount= */ FOUR_IMPORTS
-    );
-    if (secondPlan.valid) {} else {
-      drop(firstLinkedRoot);
-      drop(firstArena);
-      drop(helperLinkedRoot);
-      drop(helperArena);
-      return new FiveMixedCompilation(0, 0);
-    }
-
-    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    bytes secondBytes = allocateBytes(secondArena, secondPlan.linkedLength);
-    long secondWritten = writeConstantImport(
-      secondDirectSource,
-      firstLinkedRoot,
-      secondPlan,
-      secondBytes
-    );
-    assert(secondWritten == secondPlan.linkedLength);
-    utf8 secondLinkedRoot = freezeUtf8(secondBytes);
-
-    LinkPlan thirdPlan = planConstantImport(
-      thirdDirectSource,
-      secondLinkedRoot,
-      /* expectedImportCount= */ FOUR_IMPORTS
-    );
-    if (thirdPlan.valid) {} else {
-      drop(secondLinkedRoot);
-      drop(secondArena);
-      drop(firstLinkedRoot);
-      drop(firstArena);
-      drop(helperLinkedRoot);
-      drop(helperArena);
-      return new FiveMixedCompilation(0, 0);
-    }
-
-    region finalArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    bytes finalBytes = allocateBytes(finalArena, thirdPlan.linkedLength);
-    long finalWritten = writeConstantImport(
-      thirdDirectSource,
-      secondLinkedRoot,
-      thirdPlan,
-      finalBytes
-    );
-    assert(finalWritten == thirdPlan.linkedLength);
-    utf8 linkedRoot = freezeUtf8(finalBytes);
-    CoreCompilation core = compileMinimalCoreWithHelperOwner(
-      linkedRoot,
-      output,
-      helperPlan.linkedOwnerStart,
-      helperPlan.linkedOwnerLength,
-      helperPlan.importedHelperCount
-    );
-    drop(linkedRoot);
-    drop(finalArena);
-    drop(secondLinkedRoot);
-    drop(secondArena);
-    drop(firstLinkedRoot);
-    drop(firstArena);
-    drop(helperLinkedRoot);
-    drop(helperArena);
-    return new FiveMixedCompilation(core.length, core.codeStart);
-  }
 
   /// Compiles one exact planned chain beside three direct imports.
   public FiveMixedCompilation compileFiveChainAndDirectsIfOrdered(
@@ -159,23 +42,18 @@ classical class CompilerFiveMixed {
     assert(dependentWritten == dependentPlan.linkedLength);
     utf8 linkedDependentSource = freezeUtf8(dependentBytes);
 
-    LinkPlan helperProbe = planResolvedHelperImport(
+    MixedFourCompilation mixed = compileMixedFourDirectGraph(
       linkedDependentSource,
+      firstDirectSource,
+      secondDirectSource,
+      thirdDirectSource,
       rootSource,
-      /* expectedImportCount= */ FOUR_IMPORTS
+      output
     );
-    if (helperProbe.valid) {
-      FiveMixedCompilation helperCompilation = compileHelperChainAndDirectConstants(
-        linkedDependentSource,
-        firstDirectSource,
-        secondDirectSource,
-        thirdDirectSource,
-        rootSource,
-        output
-      );
+    if (0 < mixed.length) {
       drop(linkedDependentSource);
       drop(dependentArena);
-      return helperCompilation;
+      return new FiveMixedCompilation(mixed.length, mixed.codeStart);
     }
 
     LinkPlan rootPlan = planResolvedConstantImport(

@@ -599,6 +599,25 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalHelperSourceTypesByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/backend/types/HelperSourceTypes.w",
+        "wheeler.compiler.helper_source_types",
+        "compiler/syntax/intrinsics/BorrowedIntrinsicKinds.w",
+        "compiler/ir/ResolvedStatements.w",
+        "compiler/syntax/returns/ResolvedReturnCallKinds.w",
+        "compiler/ir/TypeCodes.w",
+        "compiler/syntax/calls/VoidCallKinds.w");
+    assertEquals(
+        "wheeler.compiler.helper_source_types::firstSource",
+        decoded.functions().get(10).name());
+    assertEquals(
+        "wheeler.compiler.helper_source_types::helperFirstSourceType",
+        decoded.functions().get(14).name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalVoidCallKindsByteForByte() throws Exception {
     Program decoded = assertCompilerLibrary(
         "compiler/syntax/calls/VoidCallKinds.w",

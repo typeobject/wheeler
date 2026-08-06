@@ -401,9 +401,19 @@ classical class ReturnCodegen {
         return writeUnsignedLittleEndian(output, cursor, returnTarget, U64);
       }
 
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
+      long resultOpcode = OPCODE_LOCAL_CONST;
+      if (resolvedEarlyLocalReturn(opcode)) {
+        resultOpcode = OPCODE_LOCAL_MOVE;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, resultOpcode, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
-      cursor = writeSignedLittleEndian(output, cursor, secondaryOperand, U64);
+      if (resolvedEarlyLocalReturn(opcode)) {
+        cursor = writeUnsignedLittleEndian(output, cursor, secondaryOperand, U64);
+      } else {
+        cursor = writeSignedLittleEndian(output, cursor, secondaryOperand, U64);
+      }
+
       cursor = writeInstructionHeader(output, cursor, OPCODE_RETURN_VALUE, FORM_UNARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
       cursor = writeInstructionHeader(output, cursor, OPCODE_JUMP, FORM_UNARY);

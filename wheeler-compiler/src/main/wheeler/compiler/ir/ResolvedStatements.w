@@ -153,6 +153,10 @@ classical class ResolvedStatements {
   public const long STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_BASE = 28416;
   /// Starts resolved parameter less-than guards returning checked division.
   public const long STATEMENT_IF_SIGNED_LT_RETURN_DIV_BASE = 28672;
+  /// Starts resolved equality guards returning a prior signed local.
+  public const long STATEMENT_IF_SIGNED_EQ_RETURN_LOCAL_BASE = 28928;
+  /// Starts resolved less-than guards returning a prior signed local.
+  public const long STATEMENT_IF_SIGNED_LT_RETURN_LOCAL_BASE = 29184;
   /// Starts resolved scalar helper returns forwarding a two-argument call result.
   public const long STATEMENT_RETURN_HELPER_CALL_TWO_BASE = 65536;
   /// Starts resolved scalar helper returns forwarding a three-argument call result.

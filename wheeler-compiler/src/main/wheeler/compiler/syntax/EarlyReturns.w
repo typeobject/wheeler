@@ -25,13 +25,7 @@ classical class EarlyReturnForms {
   ) {
     if (signedResult) {
       if (loopOperandNamed(source, tokenStarts, returnToken)) {
-        if (
-          classConstantHasType(source, tokenStarts, tokenLengths, returnToken, true)
-        ) {
-          return 1;
-        }
-
-        return -1;
+        return 1;
       }
 
       long width = signedNumberWidth(source, tokenKinds, tokenStarts, returnToken);

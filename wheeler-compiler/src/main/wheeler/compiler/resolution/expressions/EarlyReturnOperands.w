@@ -79,6 +79,31 @@ classical class EarlyReturnOperands {
     return new EarlyReturnOperand(0, false, false);
   }
 
+  /// Returns the token carrying one scalar comparison-guard result.
+  public long earlyComparisonReturnToken(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    long statementStart,
+    long opcode
+  ) {
+    long comparisonToken = statementStart + 5;
+    if (resolvedEarlyLessReturn(opcode)) {
+      comparisonToken = statementStart + 4;
+    }
+
+    long comparisonWidth = 1;
+    if (utf8Scalar(source, tokenStarts[comparisonToken]) == PUNCTUATION_MINUS) {
+      comparisonWidth = 2;
+    }
+
+    long returnToken = comparisonToken + comparisonWidth + 3;
+    if (resolvedEarlyComputedReturn(opcode)) {
+      returnToken += 2;
+    }
+
+    return returnToken;
+  }
+
   /// Resolves the scalar literal returned by one early guard.
   public EarlyReturnOperand resolveEarlyReturnSecondaryOperand(
     borrow utf8 source,
@@ -91,22 +116,7 @@ classical class EarlyReturnOperands {
     if (resolvedEarlySignedReturn(opcode)) {
       long returnToken = statementStart + 9;
       if (resolvedEarlyComparisonReturn(opcode)) {
-        long comparisonToken = statementStart + 5;
-        if (resolvedEarlyLessReturn(opcode)) {
-          comparisonToken = statementStart + 4;
-        }
-
-        long comparisonWidth = 1;
-        if (loopOperandNamed(source, tokenStarts, comparisonToken) == false) {
-          if (utf8Scalar(source, tokenStarts[comparisonToken]) == PUNCTUATION_MINUS) {
-            comparisonWidth = 2;
-          }
-        }
-
-        returnToken = comparisonToken + comparisonWidth + 3;
-        if (resolvedEarlyComputedReturn(opcode)) {
-          returnToken += 2;
-        }
+        returnToken = earlyComparisonReturnToken(source, tokenStarts, statementStart, opcode);
       }
 
       return signedReturnOperand(source, tokenStarts, tokenLengths, returnToken);

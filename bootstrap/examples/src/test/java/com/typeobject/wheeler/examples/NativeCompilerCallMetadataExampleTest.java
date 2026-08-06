@@ -64,6 +64,36 @@ final class NativeCompilerCallMetadataExampleTest {
   }
 
   @Test
+  void compilesEarlyPriorLocalReturnsByteForByte() throws Exception {
+    String source = """
+        module example.early_local_return;
+        classical class EarlyLocalReturn {
+          public long select(long opcode, long fallback) {
+            if (opcode == 1) {
+              return fallback;
+            }
+
+            if (opcode < 3) {
+              return fallback;
+            }
+
+            return opcode;
+          }
+        }
+        """;
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] actual = NativeModuleCompilerHarness.compile(compiler, List.of(), source);
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("EarlyLocalReturn.w", source),
+        "example.early_local_return");
+    assertArrayEquals(new BytecodeWriter().write(expected), actual);
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(),
+        source.replace("return fallback;", "return missing;"));
+  }
+
+  @Test
   void compilesResolvedReturnCallKindsByteForByte() throws Exception {
     Program decoded = NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary(
         "compiler/syntax/returns/ResolvedReturnCallKinds.w",

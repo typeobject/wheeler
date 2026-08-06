@@ -16,6 +16,7 @@ import wheeler.compiler.loop_forms;
 import wheeler.compiler.named_literal_comparison_kinds;
 import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.operands;
+import wheeler.compiler.resolved_early_result_kinds;
 import wheeler.compiler.resolved_local_loop_forms;
 import wheeler.compiler.resolved_local_loop_kinds;
 import wheeler.compiler.resolved_local_loop_operands;
@@ -200,6 +201,19 @@ classical class SecondaryOperands {
         previousStarts,
         previousCount,
         statementStart + 11,
+        true
+      );
+    }
+
+    if (resolvedEarlyLocalReturn(opcode)) {
+      long returnToken = earlyComparisonReturnToken(source, tokenStarts, statementStart, opcode);
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        returnToken,
         true
       );
     }

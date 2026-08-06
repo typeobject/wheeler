@@ -724,7 +724,8 @@ classical class ModuleLinker {
     );
   }
 
-  private long copyAscii(
+  /// Copies one validated ASCII source range without interpretation.
+  public long copyLinkedAscii(
     borrow utf8 source,
     long start,
     long length,
@@ -751,7 +752,7 @@ classical class ModuleLinker {
     long outputStart
   ) {
     if (plan.privatizeExports) {} else {
-      return copyAscii(
+      return copyLinkedAscii(
         importedSource,
         plan.importedStart,
         plan.importedLength,
@@ -777,7 +778,7 @@ classical class ModuleLinker {
           if (
             tokenHash(importedSource, tokenStarts, tokenLengths, tokenCursor) == TOKEN_PUBLIC
           ) {
-            outputCursor = copyAscii(
+            outputCursor = copyLinkedAscii(
               importedSource,
               sourceCursor,
               tokenStart - sourceCursor,
@@ -796,7 +797,7 @@ classical class ModuleLinker {
     }
 
     if (privatized == plan.exportedCount) {
-      outputCursor = copyAscii(
+      outputCursor = copyLinkedAscii(
         importedSource,
         sourceCursor,
         importedEnd - sourceCursor,
@@ -814,7 +815,8 @@ classical class ModuleLinker {
     return outputCursor;
   }
 
-  private long copyRootAscii(
+  /// Copies one root range while removing canonical imported-module qualifiers.
+  public long copyLinkedRootAscii(
     borrow utf8 importedSource,
     long moduleStart,
     long moduleLength,
@@ -871,7 +873,7 @@ classical class ModuleLinker {
       return -1;
     }
 
-    long cursor = copyRootAscii(
+    long cursor = copyLinkedRootAscii(
       importedSource,
       plan.importedModuleStart,
       plan.importedModuleLength,
@@ -890,7 +892,7 @@ classical class ModuleLinker {
       return -1;
     }
 
-    return copyRootAscii(
+    return copyLinkedRootAscii(
       importedSource,
       plan.importedModuleStart,
       plan.importedModuleLength,
