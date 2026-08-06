@@ -109,8 +109,7 @@ imported-constant `compiler/ir/InstructionForms.w`, imported-constant
 `compiler/syntax/BooleanDeclarationKinds.w`, `compiler/syntax/IdentifierStarts.w`,
 `compiler/syntax/tokens/CompilerTokenLimits.w`, `compiler/syntax/tokens/KeywordTokens.w`, `compiler/syntax/tokens/SourceScalars.w`,
 `compiler/syntax/helpers/HelperAbi.w`, imported-constant `compiler/syntax/helpers/HelperSignatures.w`,
-imported-constant `compiler/syntax/helpers/HelperValueKinds.w`, imported-constant
-`compiler/syntax/EarlyReturnKinds.w`, imported-constant
+imported-constant `compiler/syntax/EarlyReturnKinds.w`, imported-constant
 `compiler/syntax/EarlyReturnResultKinds.w`, `compiler/syntax/LoopKinds.w`, imported-constant
 `compiler/syntax/calls/CallArgumentSources.w`, imported-constant
 `compiler/syntax/calls/OneArgumentCalls.w`, imported-constant
