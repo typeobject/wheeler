@@ -5,6 +5,7 @@ module wheeler.compiler.compiler_graph_seven;
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.seven.chain;
 import wheeler.compiler.graphs.seven.executors.asymmetric;
+import wheeler.compiler.graphs.seven.executors.dags;
 import wheeler.compiler.graphs.seven.executors.extended_fork;
 import wheeler.compiler.graphs.seven.executors.long_chains;
 import wheeler.compiler.graphs.seven.executors.nested_branches;
@@ -506,6 +507,22 @@ classical class CompilerGraphSeven {
         output
       );
       return new SevenGraphCompilation(asymmetric.length, asymmetric.codeStart);
+    }
+
+    if (plan.topology == SEVEN_PLAN_SHARED_DIAMOND_AND_DIRECTS) {
+      SevenDagCompilation sharedDiamond = compileSevenSharedDiamondAndDirects(
+        plan,
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
+        sixthImportedSource,
+        seventhImportedSource,
+        rootSource,
+        output
+      );
+      return new SevenGraphCompilation(sharedDiamond.length, sharedDiamond.codeStart);
     }
 
     assert(plan.topology == SEVEN_PLAN_DIRECT);

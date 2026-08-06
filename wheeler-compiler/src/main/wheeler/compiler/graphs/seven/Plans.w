@@ -6,6 +6,7 @@ import wheeler.compiler.graphs.matrix;
 import wheeler.compiler.graphs.seven.plan_shapes;
 import wheeler.compiler.graphs.seven.shape_asymmetric;
 import wheeler.compiler.graphs.seven.shape_chains;
+import wheeler.compiler.graphs.seven.shape_dags;
 import wheeler.compiler.graphs.seven.shape_forks;
 import wheeler.compiler.graphs.seven.shape_nested;
 import wheeler.compiler.graphs.seven_plan_kinds;
@@ -240,6 +241,11 @@ classical class SevenGraphPlans {
       mixedWideFork = rootCount == THREE_IMPORTS;
     }
 
+    boolean mixedSharedDiamond = false;
+    if (edgeCount == FOUR_EDGES) {
+      mixedSharedDiamond = rootCount == FOUR_IMPORTS;
+    }
+
     boolean mixedFiveLeafFork = false;
     if (edgeCount == FIVE_EDGES) {
       mixedFiveLeafFork = rootCount == TWO_IMPORTS;
@@ -267,6 +273,10 @@ classical class SevenGraphPlans {
     }
 
     if (mixedFiveLeafFork) {
+      valid = true;
+    }
+
+    if (mixedSharedDiamond) {
       valid = true;
     }
 
@@ -371,6 +381,10 @@ classical class SevenGraphPlans {
           if (result.valid) {} else {
             result = asymmetricNestedForkAndDirectsPlan(graph, rootDirect);
           }
+        }
+
+        if (mixedSharedDiamond) {
+          result = sharedDiamondAndDirectsPlan(graph, rootDirect);
         }
 
         if (mixedFiveLeafFork) {
