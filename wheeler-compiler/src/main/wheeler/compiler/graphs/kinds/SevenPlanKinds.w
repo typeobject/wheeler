@@ -51,4 +51,6 @@ classical class SevenPlanKinds {
   public const long SEVEN_PLAN_EXTENDED_FORK_AND_DIRECTS = 23;
   /// Names one long branch joined with one leaf beside two direct imports.
   public const long SEVEN_PLAN_LONG_BRANCH_FORK_AND_DIRECTS = 24;
+  /// Names one asymmetric nested fork beside two direct root imports.
+  public const long SEVEN_PLAN_ASYMMETRIC_NESTED_FORK_AND_DIRECTS = 25;
 }

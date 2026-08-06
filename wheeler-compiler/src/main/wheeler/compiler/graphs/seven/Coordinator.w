@@ -491,6 +491,22 @@ classical class CompilerGraphSeven {
       return new SevenGraphCompilation(longBranch.length, longBranch.codeStart);
     }
 
+    if (plan.topology == SEVEN_PLAN_ASYMMETRIC_NESTED_FORK_AND_DIRECTS) {
+      SevenNestedCompilation asymmetric = compileSevenAsymmetricNestedForkAndDirects(
+        plan,
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
+        sixthImportedSource,
+        seventhImportedSource,
+        rootSource,
+        output
+      );
+      return new SevenGraphCompilation(asymmetric.length, asymmetric.codeStart);
+    }
+
     assert(plan.topology == SEVEN_PLAN_DIRECT);
     return new SevenGraphCompilation(0, 0);
   }

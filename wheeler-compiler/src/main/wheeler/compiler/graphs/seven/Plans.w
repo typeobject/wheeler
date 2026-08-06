@@ -367,6 +367,9 @@ classical class SevenGraphPlans {
             result = unevenNestedForkAndDirectsPlan(graph, rootDirect);
           }
 
+          if (result.valid) {} else {
+            result = asymmetricNestedForkAndDirectsPlan(graph, rootDirect);
+          }
         }
 
         if (mixedFiveLeafFork) {
