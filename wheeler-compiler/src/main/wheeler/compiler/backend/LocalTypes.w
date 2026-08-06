@@ -36,7 +36,7 @@ import wheeler.compiler.void_call_kinds;
 
 classical class LocalTypes {
   /// Bounds the temporary local window emitted by one source statement.
-  private const long MAX_STATEMENT_LOCALS = 6;
+  private const long MAX_STATEMENT_LOCALS = 9;
 
   /// Writes one validated canonical local type code.
   public long writeLocalType(borrow mut bytes output, long cursor, long type) {
@@ -63,7 +63,8 @@ classical class LocalTypes {
     long resultType,
     long firstSourceType,
     long secondSourceType,
-    long thirdSourceType
+    long thirdSourceType,
+    long fourthSourceType
   ) {
     long voidArity = voidCallArity(opcode);
     if (voidArity == 0) {
@@ -187,6 +188,18 @@ classical class LocalTypes {
 
     long arity = returnHelperCallArity(opcode);
     if (arity == 0) {
+      return writeLocalType(output, cursor, resultType);
+    }
+
+    if (arity == 4) {
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, secondSourceType);
+      cursor = writeLocalType(output, cursor, thirdSourceType);
+      cursor = writeLocalType(output, cursor, fourthSourceType);
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, secondSourceType);
+      cursor = writeLocalType(output, cursor, thirdSourceType);
+      cursor = writeLocalType(output, cursor, fourthSourceType);
       return writeLocalType(output, cursor, resultType);
     }
 
@@ -315,6 +328,16 @@ classical class LocalTypes {
     }
 
     if (returnHelperCallArity(opcode) == 0) {
+      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+    }
+
+    if (returnHelperCallArity(opcode) == 4) {
+      long fourArgumentLocal = 0;
+      while (fourArgumentLocal < 8) limit MAX_STATEMENT_LOCALS {
+        cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+        fourArgumentLocal += 1;
+      }
+
       return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
     }
 

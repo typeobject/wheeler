@@ -7,12 +7,15 @@ import wheeler.compiler.resolved_statements;
 classical class ResolvedReturnCallKinds {
   private const long RESOLVED_SOURCE_COUNT = 256;
   private const long RESOLVED_SOURCE_SQUARE = 65536;
+  private const long RESOLVED_SOURCE_CUBE = 16777216;
   private const long RETURN_HELPER_CALL_END = STATEMENT_RETURN_HELPER_CALL_BASE
     + RESOLVED_SOURCE_COUNT;
   private const long RETURN_HELPER_CALL_TWO_END = STATEMENT_RETURN_HELPER_CALL_TWO_BASE
     + RESOLVED_SOURCE_COUNT * RESOLVED_SOURCE_COUNT;
   private const long RETURN_HELPER_CALL_THREE_END = STATEMENT_RETURN_HELPER_CALL_THREE_BASE
-    + RESOLVED_SOURCE_SQUARE * RESOLVED_SOURCE_COUNT;
+    + RESOLVED_SOURCE_CUBE;
+  private const long RETURN_HELPER_CALL_FOUR_END = STATEMENT_RETURN_HELPER_CALL_FOUR_BASE
+    + RESOLVED_SOURCE_CUBE * RESOLVED_SOURCE_COUNT;
   /// Removes the aligned two-argument opcode column from its first source.
   public const long RETURN_HELPER_CALL_TWO_SOURCE_OFFSET = 256;
 
@@ -42,7 +45,15 @@ classical class ResolvedReturnCallKinds {
       return false;
     }
 
-    return opcode < RETURN_HELPER_CALL_THREE_END;
+    if (opcode < RETURN_HELPER_CALL_THREE_END) {
+      return true;
+    }
+
+    if (opcode < STATEMENT_RETURN_HELPER_CALL_FOUR_BASE) {
+      return false;
+    }
+
+    return opcode < RETURN_HELPER_CALL_FOUR_END;
   }
 
   /// Returns the call arity, or minus one when the opcode is not this family.
@@ -75,6 +86,14 @@ classical class ResolvedReturnCallKinds {
       return 3;
     }
 
+    if (opcode < STATEMENT_RETURN_HELPER_CALL_FOUR_BASE) {
+      return -1;
+    }
+
+    if (opcode < RETURN_HELPER_CALL_FOUR_END) {
+      return 4;
+    }
+
     return -1;
   }
 
@@ -88,8 +107,13 @@ classical class ResolvedReturnCallKinds {
       return opcode / RESOLVED_SOURCE_COUNT;
     }
 
-    long packed = opcode - STATEMENT_RETURN_HELPER_CALL_THREE_BASE;
-    return packed / RESOLVED_SOURCE_SQUARE;
+    if (opcode < RETURN_HELPER_CALL_THREE_END) {
+      long packedThree = opcode - STATEMENT_RETURN_HELPER_CALL_THREE_BASE;
+      return packedThree / RESOLVED_SOURCE_SQUARE;
+    }
+
+    long packedFour = opcode - STATEMENT_RETURN_HELPER_CALL_FOUR_BASE;
+    return packedFour / RESOLVED_SOURCE_CUBE;
   }
 
   /// Returns the second source local of one resolved multi-argument helper call.
@@ -98,14 +122,32 @@ classical class ResolvedReturnCallKinds {
       return opcode % RESOLVED_SOURCE_COUNT;
     }
 
-    long packed = opcode - STATEMENT_RETURN_HELPER_CALL_THREE_BASE;
-    long quotient = packed / RESOLVED_SOURCE_COUNT;
-    return quotient % RESOLVED_SOURCE_COUNT;
+    if (opcode < RETURN_HELPER_CALL_THREE_END) {
+      long packedThree = opcode - STATEMENT_RETURN_HELPER_CALL_THREE_BASE;
+      long quotientThree = packedThree / RESOLVED_SOURCE_COUNT;
+      return quotientThree % RESOLVED_SOURCE_COUNT;
+    }
+
+    long packedFour = opcode - STATEMENT_RETURN_HELPER_CALL_FOUR_BASE;
+    long quotientFour = packedFour / RESOLVED_SOURCE_SQUARE;
+    return quotientFour % RESOLVED_SOURCE_COUNT;
   }
 
   /// Returns the third source local of one resolved three-argument helper call.
   public long returnHelperCallThirdSource(long opcode) {
-    long packed = opcode - STATEMENT_RETURN_HELPER_CALL_THREE_BASE;
+    if (opcode < RETURN_HELPER_CALL_THREE_END) {
+      long packedThree = opcode - STATEMENT_RETURN_HELPER_CALL_THREE_BASE;
+      return packedThree % RESOLVED_SOURCE_COUNT;
+    }
+
+    long packedFour = opcode - STATEMENT_RETURN_HELPER_CALL_FOUR_BASE;
+    long quotientFour = packedFour / RESOLVED_SOURCE_COUNT;
+    return quotientFour % RESOLVED_SOURCE_COUNT;
+  }
+
+  /// Returns the fourth source local of one resolved four-argument helper call.
+  public long returnHelperCallFourthSource(long opcode) {
+    long packed = opcode - STATEMENT_RETURN_HELPER_CALL_FOUR_BASE;
     return packed % RESOLVED_SOURCE_COUNT;
   }
 }

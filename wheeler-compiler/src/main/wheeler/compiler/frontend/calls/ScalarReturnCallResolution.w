@@ -1,4 +1,4 @@
-//! Resolves zero- through three-argument scalar calls in final returns.
+//! Resolves zero- through four-argument scalar calls in final returns.
 
 module wheeler.compiler.scalar_return_call_resolution;
 
@@ -10,6 +10,7 @@ import wheeler.compiler.statement_kinds;
 classical class ScalarReturnCallResolution {
   private const long RETURN_SOURCE_COUNT = 256;
   private const long RETURN_SOURCE_SQUARE = 65536;
+  private const long RETURN_SOURCE_CUBE = 16777216;
 
   /// Carries one resolved return opcode and whether this owner applies.
   public record ResolvedScalarReturnCall(long opcode, boolean applies) {}
@@ -97,8 +98,26 @@ classical class ScalarReturnCallResolution {
       return new ResolvedScalarReturnCall(-1, true);
     }
 
-    long threeArgumentOpcode = STATEMENT_RETURN_HELPER_CALL_THREE_BASE + first
-      * RETURN_SOURCE_SQUARE + second * RETURN_SOURCE_COUNT + third;
-    return new ResolvedScalarReturnCall(threeArgumentOpcode, true);
+    if (utf8Scalar(source, tokenStarts[statementStart + 8]) == PUNCTUATION_COMMA) {} else {
+      long threeArgumentOpcode = STATEMENT_RETURN_HELPER_CALL_THREE_BASE + first
+        * RETURN_SOURCE_SQUARE + second * RETURN_SOURCE_COUNT + third;
+      return new ResolvedScalarReturnCall(threeArgumentOpcode, true);
+    }
+
+    long fourth = resolvedArgument(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      statementStart + 9
+    );
+    if (fourth < 0) {
+      return new ResolvedScalarReturnCall(-1, true);
+    }
+
+    long fourArgumentOpcode = STATEMENT_RETURN_HELPER_CALL_FOUR_BASE + first * RETURN_SOURCE_CUBE
+      + second * RETURN_SOURCE_SQUARE + third * RETURN_SOURCE_COUNT + fourth;
+    return new ResolvedScalarReturnCall(fourArgumentOpcode, true);
   }
 }

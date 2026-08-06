@@ -252,7 +252,8 @@ classical class Codegen {
     long callFunction,
     long firstSourceType,
     long secondSourceType,
-    long thirdSourceType
+    long thirdSourceType,
+    long fourthSourceType
   ) {
     long voidCallCursor = writeVoidCallStatement(
       output,
@@ -294,7 +295,8 @@ classical class Codegen {
       callFunction,
       firstSourceType,
       secondSourceType,
-      thirdSourceType
+      thirdSourceType,
+      fourthSourceType
     );
     if (-1 < returnCursor) {
       return returnCursor;
@@ -402,6 +404,7 @@ classical class Codegen {
       localBase,
       instructionBase,
       callFunction,
+      TYPE_SIGNED,
       TYPE_SIGNED,
       TYPE_SIGNED,
       TYPE_SIGNED

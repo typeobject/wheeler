@@ -67,6 +67,9 @@ final class NativeCompilerImportedHelperExampleTest {
           public long choose(long[4] values, long index, long fallback) {
             return values[index];
           }
+          public long chooseFour(long[4] values, long index, long fallback, long spare) {
+            return values[index];
+          }
         }
         """;
     String root = """
@@ -78,6 +81,9 @@ final class NativeCompilerImportedHelperExampleTest {
           }
           public long relayThree(long[4] values, long index, long fallback) {
             return choose(values, index, fallback);
+          }
+          public long relayFour(long[4] values, long index, long fallback, long spare) {
+            return chooseFour(values, index, fallback, spare);
           }
         }
         """;

@@ -1,8 +1,10 @@
 package com.typeobject.wheeler.examples;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
+import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import java.util.List;
 import java.util.Map;
@@ -63,11 +65,11 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
           public long directWidth(borrow utf8 value, long index) {
             return utf8Width(value, index);
           }
-          private long select(borrow utf8 value, long index, long fallback) {
+          private long select(borrow utf8 value, long index, long fallback, long spare) {
             return utf8Scalar(value, index);
           }
-          public long relay(borrow utf8 value, long index, long fallback) {
-            return select(value, index, fallback);
+          public long relay(borrow utf8 value, long index, long fallback, long spare) {
+            return select(value, index, fallback, spare);
           }
           public long dummy() { return 0; }
         }
@@ -78,6 +80,9 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
     byte[] actual = NativeModuleCompilerHarness.compile(
         NativeModuleCompilerHarness.program(), List.of(), source);
     assertArrayEquals(expected, actual);
+    var relay = new BytecodeReader().read(actual).functions().get(6);
+    assertEquals(13, relay.localCount());
+    assertEquals(10, relay.forward().size());
 
     NativeModuleCompilerHarness.assertTrap(
         NativeModuleCompilerHarness.program(),
@@ -87,6 +92,12 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
         NativeModuleCompilerHarness.program(),
         List.of(),
         source.replace("long index", "borrow utf8 index"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace(
+            "return select(value, index, fallback, spare);",
+            "return select(value, index, fallback, spare, spare);"));
   }
 
   @Test
