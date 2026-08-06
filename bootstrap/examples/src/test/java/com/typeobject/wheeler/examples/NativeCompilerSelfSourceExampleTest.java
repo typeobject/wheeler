@@ -618,6 +618,35 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalBorrowedIntrinsicShapesByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/frontend/intrinsics/BorrowedIntrinsicShapes.w",
+        "wheeler.compiler.borrowed_intrinsic_shapes",
+        "compiler/syntax/intrinsics/BorrowedIntrinsicKinds.w");
+    assertEquals(
+        "wheeler.compiler.borrowed_intrinsic_shapes::borrowedMutation",
+        decoded.functions().getFirst().name());
+    assertEquals(
+        "wheeler.compiler.borrowed_intrinsic_shapes::borrowedIntrinsicInstructionCount",
+        decoded.functions().get(6).name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
+  void compilesCanonicalCallArgumentOpcodesByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/backend/calls/CallArguments.w",
+        "wheeler.compiler.call_arguments",
+        "compiler/ir/Opcodes.w",
+        "compiler/ir/StorageOpcodes.w",
+        "compiler/ir/TypeCodes.w");
+    assertEquals(
+        "wheeler.compiler.call_arguments::callArgumentOpcode",
+        decoded.functions().getFirst().name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalVoidCallSourceWidthsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/calls/VoidCallSourceWidths.w",

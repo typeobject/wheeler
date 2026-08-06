@@ -157,19 +157,55 @@ classical class BorrowedIntrinsicShapes {
 
   /// Returns the encoded width for one resolved borrowed intrinsic, or minus one.
   public long borrowedIntrinsicCodeLength(long opcode) {
+    if (opcode == STATEMENT_SET_WORD_NAMED) {
+      return -1;
+    }
+
+    if (opcode == STATEMENT_SET_BYTE_NAMED) {
+      return -1;
+    }
+
+    if (opcode == STATEMENT_MAP_PUT_NAMED) {
+      return -1;
+    }
+
+    if (opcode == STATEMENT_RETURN_UTF8_SCALAR_NAMED) {
+      return -1;
+    }
+
+    if (opcode == STATEMENT_RETURN_UTF8_WIDTH_NAMED) {
+      return -1;
+    }
+
+    if (opcode == STATEMENT_RETURN_MAP_GET_NAMED) {
+      return -1;
+    }
+
+    if (opcode == STATEMENT_RETURN_MAP_HAS_NAMED) {
+      return -1;
+    }
+
+    if (opcode == STATEMENT_LOCAL_MAP_GET_NAMED) {
+      return -1;
+    }
+
+    if (opcode == STATEMENT_LOCAL_MAP_HAS_NAMED) {
+      return -1;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BUFFER_GET_NAMED) {
+      return -1;
+    }
+
+    if (opcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {
+      return -1;
+    }
+
+    if (opcode == STATEMENT_LOCAL_UTF8_WIDTH_NAMED) {
+      return -1;
+    }
+
     if (borrowedMutation(opcode)) {
-      if (opcode == STATEMENT_SET_WORD_NAMED) {
-        return -1;
-      }
-
-      if (opcode == STATEMENT_SET_BYTE_NAMED) {
-        return -1;
-      }
-
-      if (opcode == STATEMENT_MAP_PUT_NAMED) {
-        return -1;
-      }
-
       return 104;
     }
 
@@ -182,22 +218,6 @@ classical class BorrowedIntrinsicShapes {
     }
 
     if (directIndexedIntrinsic(opcode)) {
-      if (opcode == STATEMENT_RETURN_UTF8_SCALAR_NAMED) {
-        return -1;
-      }
-
-      if (opcode == STATEMENT_RETURN_UTF8_WIDTH_NAMED) {
-        return -1;
-      }
-
-      if (opcode == STATEMENT_RETURN_MAP_GET_NAMED) {
-        return -1;
-      }
-
-      if (opcode == STATEMENT_RETURN_MAP_HAS_NAMED) {
-        return -1;
-      }
-
       return 96;
     }
 
@@ -206,26 +226,6 @@ classical class BorrowedIntrinsicShapes {
     }
 
     if (indexedRead(opcode)) {
-      if (opcode == STATEMENT_LOCAL_MAP_GET_NAMED) {
-        return -1;
-      }
-
-      if (opcode == STATEMENT_LOCAL_MAP_HAS_NAMED) {
-        return -1;
-      }
-
-      if (opcode == STATEMENT_LOCAL_BUFFER_GET_NAMED) {
-        return -1;
-      }
-
-      if (opcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {
-        return -1;
-      }
-
-      if (opcode == STATEMENT_LOCAL_UTF8_WIDTH_NAMED) {
-        return -1;
-      }
-
       return 104;
     }
 
