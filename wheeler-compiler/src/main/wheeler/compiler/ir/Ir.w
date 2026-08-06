@@ -19,15 +19,11 @@ classical class CompilerIr {
     long kind,
     long statementCount,
     long resultStatement,
-    SourceRange firstCallTargetName,
-    long firstCallStatement,
-    long firstCallFunction,
-    SourceRange secondCallTargetName,
-    long secondCallStatement,
-    long secondCallFunction,
-    SourceRange thirdCallTargetName,
-    long thirdCallStatement,
-    long thirdCallFunction
+    long[8] callTargetStarts,
+    long[8] callTargetLengths,
+    long[8] callStatements,
+    long[8] callFunctions,
+    long callCount
   ) {}
 
   /// Defines immutable `MinimalProgram` values for this module.
@@ -174,16 +170,22 @@ classical class CompilerIr {
       HELPER_VOID,
       0,
       0,
-      new SourceRange(0, 0),
-      -1,
-      -1,
-      new SourceRange(0, 0),
-      -1,
-      -1,
-      new SourceRange(0, 0),
-      -1,
-      -1
+      emptyHelperCallOffsets(),
+      emptyHelperCallOffsets(),
+      emptyHelperCallIdentities(),
+      emptyHelperCallIdentities(),
+      0
     );
+  }
+
+  /// Returns one empty helper-call offset column.
+  public long[8] emptyHelperCallOffsets() {
+    return new long[8](0, 0, 0, 0, 0, 0, 0, 0);
+  }
+
+  /// Returns one empty helper-call statement or function column.
+  public long[8] emptyHelperCallIdentities() {
+    return new long[8](-1, -1, -1, -1, -1, -1, -1, -1);
   }
 
   /// Returns the sole empty opcode column used before a parse succeeds.

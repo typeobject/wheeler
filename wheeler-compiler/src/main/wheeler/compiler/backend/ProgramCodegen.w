@@ -43,7 +43,7 @@ classical class ProgramCodegen {
   private const long RESULT_SLOT_TWO_ARGUMENT_LOCALS = 7;
   private const long RESULT_SLOT_TWO_ARGUMENT_CODE_LENGTH = 208;
   private const long MAX_RESULT_ARGUMENT_LOCALS = 4;
-  private const long MAX_HELPER_CALLS = 2;
+  private const long MAX_ENTRY_HELPER_CALLS = 2;
   private const long LOGICAL_ASSERTION_LOCALS = 3;
 
   private boolean resultCall(long opcode) {
@@ -527,27 +527,21 @@ classical class ProgramCodegen {
     long[64] secondaryOperands,
     long count,
     long localBase,
-    long firstCallStatement,
-    long firstCallFunction,
-    long secondCallStatement,
-    long secondCallFunction,
-    long thirdCallStatement,
-    long thirdCallFunction
+    long[8] callStatements,
+    long[8] callFunctions,
+    long callCount
   ) {
     long index = 0;
     long instructionBase = 0;
     while (index < count) limit MAX_MINIMAL_STATEMENTS {
       long callFunction = -1;
-      if (index == firstCallStatement) {
-        callFunction = firstCallFunction;
-      }
+      long call = 0;
+      while (call < callCount) limit MAX_SCALAR_HELPER_CALLS {
+        if (index == callStatements[call]) {
+          callFunction = callFunctions[call];
+        }
 
-      if (index == secondCallStatement) {
-        callFunction = secondCallFunction;
-      }
-
-      if (index == thirdCallStatement) {
-        callFunction = thirdCallFunction;
+        call += 1;
       }
 
       cursor = writeStatement(
@@ -734,12 +728,9 @@ classical class ProgramCodegen {
       helperAt(program, 0).secondaryOperands,
       helperAt(program, 0).statementCount,
       helperLocalBase,
-      helperAt(program, 0).firstCallStatement,
-      helperAt(program, 0).firstCallFunction,
-      helperAt(program, 0).secondCallStatement,
-      helperAt(program, 0).secondCallFunction,
-      helperAt(program, 0).thirdCallStatement,
-      helperAt(program, 0).thirdCallFunction
+      helperAt(program, 0).callStatements,
+      helperAt(program, 0).callFunctions,
+      helperAt(program, 0).callCount
     );
     if (HELPER_REVERSIBLE < helperAt(program, 0).kind) {
       return cursor;
@@ -751,7 +742,7 @@ classical class ProgramCodegen {
   private long writeVoidHelperEntry(borrow mut bytes output, long cursor, MinimalProgram program) {
     long instructionBase = 0;
     long helperCall = 0;
-    while (helperCall < program.helperCallCount) limit MAX_HELPER_CALLS {
+    while (helperCall < program.helperCallCount) limit MAX_ENTRY_HELPER_CALLS {
       cursor = writeInstructionHeader(output, cursor, OPCODE_CALL, INSTRUCTION_FORM_UNARY);
       cursor = writeUnsignedLittleEndian(output, cursor, /* function= */ 0, ENCODING_WIDTH_U64);
       helperCall += 1;
@@ -774,7 +765,7 @@ classical class ProgramCodegen {
 
     if (helperAt(program, 0).kind == HELPER_REVERSIBLE) {
       long helperUncall = 0;
-      while (helperUncall < program.helperCallCount) limit MAX_HELPER_CALLS {
+      while (helperUncall < program.helperCallCount) limit MAX_ENTRY_HELPER_CALLS {
         cursor = writeInstructionHeader(output, cursor, OPCODE_UNCALL, INSTRUCTION_FORM_UNARY);
         cursor = writeUnsignedLittleEndian(
           output,
@@ -835,12 +826,9 @@ classical class ProgramCodegen {
         program.statementSecondaryOperands,
         program.statementCount,
         0,
-        -1,
-        -1,
-        -1,
-        -1,
-        -1,
-        -1
+        emptyHelperCallIdentities(),
+        emptyHelperCallIdentities(),
+        0
       );
     }
 
@@ -857,12 +845,9 @@ classical class ProgramCodegen {
           body.secondaryOperands,
           body.statementCount,
           parameterCountForHelper(body.kind),
-          body.firstCallStatement,
-          body.firstCallFunction,
-          body.secondCallStatement,
-          body.secondCallFunction,
-          body.thirdCallStatement,
-          body.thirdCallFunction
+          body.callStatements,
+          body.callFunctions,
+          body.callCount
         );
         helper += 1;
       }
@@ -890,12 +875,9 @@ classical class ProgramCodegen {
         program.statementSecondaryOperands,
         program.statementCount,
         0,
-        -1,
-        -1,
-        -1,
-        -1,
-        -1,
-        -1
+        emptyHelperCallIdentities(),
+        emptyHelperCallIdentities(),
+        0
       );
     }
 

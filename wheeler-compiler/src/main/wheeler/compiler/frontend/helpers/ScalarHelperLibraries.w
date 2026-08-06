@@ -263,12 +263,10 @@ classical class ScalarHelperLibraries {
       return invalidHelper();
     }
 
-    SourceRange firstCallTarget = new SourceRange(0, 0);
-    SourceRange secondCallTarget = new SourceRange(0, 0);
-    SourceRange thirdCallTarget = new SourceRange(0, 0);
-    long firstCallStatement = -1;
-    long secondCallStatement = -1;
-    long thirdCallStatement = -1;
+    region callArena = new region(/* bytes= */ 192, /* allocations= */ 3);
+    words callTargetStartWork = allocate(callArena, MAX_SCALAR_HELPER_CALLS);
+    words callTargetLengthWork = allocate(callArena, MAX_SCALAR_HELPER_CALLS);
+    words callStatementWork = allocate(callArena, MAX_SCALAR_HELPER_CALLS);
     long callCount = 0;
     long sourceStatement = 0;
     while (sourceStatement < statements.count) limit MAX_MINIMAL_STATEMENTS {
@@ -294,23 +292,10 @@ classical class ScalarHelperLibraries {
       }
 
       if (helperCall) {
-        SourceRange target = new SourceRange(
-          tokenStarts[targetToken],
-          tokenLengths[targetToken]
-        );
-        if (callCount == 0) {
-          firstCallTarget = target;
-          firstCallStatement = sourceStatement;
-        }
-
-        if (callCount == 1) {
-          secondCallTarget = target;
-          secondCallStatement = sourceStatement;
-        }
-
-        if (callCount == 2) {
-          thirdCallTarget = target;
-          thirdCallStatement = sourceStatement;
+        if (callCount < MAX_SCALAR_HELPER_CALLS) {
+          set(callTargetStartWork, callCount, tokenStarts[targetToken]);
+          set(callTargetLengthWork, callCount, tokenLengths[targetToken]);
+          set(callStatementWork, callCount, sourceStatement);
         }
 
         callCount += 1;
@@ -319,7 +304,11 @@ classical class ScalarHelperLibraries {
       sourceStatement += 1;
     }
 
-    if (callCount < 4) {} else {
+    if (callCount < MAX_SCALAR_HELPER_CALLS + 1) {} else {
+      drop(callStatementWork);
+      drop(callTargetLengthWork);
+      drop(callTargetStartWork);
+      drop(callArena);
       return invalidHelper();
     }
 
@@ -346,8 +335,48 @@ classical class ScalarHelperLibraries {
       statements.count
     );
     if (scalarSequenceValid(sequence, kind)) {} else {
+      drop(callStatementWork);
+      drop(callTargetLengthWork);
+      drop(callTargetStartWork);
+      drop(callArena);
       return invalidHelper();
     }
+
+    long[8] callTargetStarts = new long[8](
+      callTargetStartWork[0],
+      callTargetStartWork[1],
+      callTargetStartWork[2],
+      callTargetStartWork[3],
+      callTargetStartWork[4],
+      callTargetStartWork[5],
+      callTargetStartWork[6],
+      callTargetStartWork[7]
+    );
+    long[8] callTargetLengths = new long[8](
+      callTargetLengthWork[0],
+      callTargetLengthWork[1],
+      callTargetLengthWork[2],
+      callTargetLengthWork[3],
+      callTargetLengthWork[4],
+      callTargetLengthWork[5],
+      callTargetLengthWork[6],
+      callTargetLengthWork[7]
+    );
+    long[8] callStatements = new long[8](
+      callStatementWork[0],
+      callStatementWork[1],
+      callStatementWork[2],
+      callStatementWork[3],
+      callStatementWork[4],
+      callStatementWork[5],
+      callStatementWork[6],
+      callStatementWork[7]
+    );
+    long[8] callFunctions = emptyHelperCallIdentities();
+    drop(callStatementWork);
+    drop(callTargetLengthWork);
+    drop(callTargetStartWork);
+    drop(callArena);
 
     HelperBody body = new HelperBody(
       new SourceRange(tokenStarts[nameToken], tokenLengths[nameToken]),
@@ -357,15 +386,11 @@ classical class ScalarHelperLibraries {
       kind,
       sequence.count,
       sequence.count - 1,
-      firstCallTarget,
-      firstCallStatement,
-      -1,
-      secondCallTarget,
-      secondCallStatement,
-      -1,
-      thirdCallTarget,
-      thirdCallStatement,
-      -1
+      callTargetStarts,
+      callTargetLengths,
+      callStatements,
+      callFunctions,
+      callCount
     );
     return new ParsedScalarHelper(body, statements.end + 1, true);
   }

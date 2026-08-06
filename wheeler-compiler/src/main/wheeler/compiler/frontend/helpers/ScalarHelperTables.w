@@ -9,13 +9,8 @@ import wheeler.compiler.ir;
 import wheeler.compiler.resolved_return_call_kinds;
 
 classical class ScalarHelperTables {
-  /// Carries three bounded call targets resolved against one helper table.
-  public record ResolvedCalls(
-    long firstFunction,
-    long secondFunction,
-    long thirdFunction,
-    boolean valid
-  ) {}
+  /// Carries bounded call targets resolved against one helper table.
+  public record ResolvedCalls(long[8] functions, boolean valid) {}
 
   /// Checks whether one helper returns a Boolean scalar.
   public boolean booleanHelperKind(long kind) {
@@ -370,135 +365,73 @@ classical class ScalarHelperTables {
     HelperBody twentyThird,
     long helperCount
   ) {
-    boolean firstForwarding = caller.firstCallStatement == caller.resultStatement;
-    boolean secondForwarding = caller.secondCallStatement == caller.resultStatement;
-    boolean thirdForwarding = caller.thirdCallStatement == caller.resultStatement;
-    long firstArgumentCount = 1;
-    if (firstForwarding) {
-      firstArgumentCount = returnHelperCallArity(caller.opcodes[caller.firstCallStatement]);
-    }
-
-    long secondArgumentCount = 1;
-    if (secondForwarding) {
-      secondArgumentCount = returnHelperCallArity(caller.opcodes[caller.secondCallStatement]);
-    }
-
-    long thirdArgumentCount = 1;
-    if (thirdForwarding) {
-      thirdArgumentCount = returnHelperCallArity(caller.opcodes[caller.thirdCallStatement]);
-    }
-
-    long firstFunction = resolveCallFunction(
-      source,
-      caller,
-      caller.firstCallTargetName,
-      firstForwarding,
-      firstArgumentCount,
-      first,
-      second,
-      third,
-      fourth,
-      fifth,
-      sixth,
-      seventh,
-      eighth,
-      ninth,
-      tenth,
-      eleventh,
-      twelfth,
-      thirteenth,
-      fourteenth,
-      fifteenth,
-      sixteenth,
-      seventeenth,
-      eighteenth,
-      nineteenth,
-      twentieth,
-      twentyFirst,
-      twentySecond,
-      twentyThird,
-      helperCount
-    );
-    long secondFunction = resolveCallFunction(
-      source,
-      caller,
-      caller.secondCallTargetName,
-      secondForwarding,
-      secondArgumentCount,
-      first,
-      second,
-      third,
-      fourth,
-      fifth,
-      sixth,
-      seventh,
-      eighth,
-      ninth,
-      tenth,
-      eleventh,
-      twelfth,
-      thirteenth,
-      fourteenth,
-      fifteenth,
-      sixteenth,
-      seventeenth,
-      eighteenth,
-      nineteenth,
-      twentieth,
-      twentyFirst,
-      twentySecond,
-      twentyThird,
-      helperCount
-    );
-    long thirdFunction = resolveCallFunction(
-      source,
-      caller,
-      caller.thirdCallTargetName,
-      thirdForwarding,
-      thirdArgumentCount,
-      first,
-      second,
-      third,
-      fourth,
-      fifth,
-      sixth,
-      seventh,
-      eighth,
-      ninth,
-      tenth,
-      eleventh,
-      twelfth,
-      thirteenth,
-      fourteenth,
-      fifteenth,
-      sixteenth,
-      seventeenth,
-      eighteenth,
-      nineteenth,
-      twentieth,
-      twentyFirst,
-      twentySecond,
-      twentyThird,
-      helperCount
-    );
+    region callArena = new region(/* bytes= */ 64, /* allocations= */ 1);
+    words functionWork = allocate(callArena, MAX_SCALAR_HELPER_CALLS);
     boolean valid = true;
-    if (0 < caller.firstCallTargetName.length) {
-      valid = -1 < firstFunction;
-    }
+    long call = 0;
+    while (call < caller.callCount) limit MAX_SCALAR_HELPER_CALLS {
+      if (valid) {
+        long callStatement = caller.callStatements[call];
+        boolean forwarding = callStatement == caller.resultStatement;
+        long argumentCount = 1;
+        if (forwarding) {
+          argumentCount = returnHelperCallArity(caller.opcodes[callStatement]);
+        }
 
-    if (valid) {
-      if (0 < caller.secondCallTargetName.length) {
-        valid = -1 < secondFunction;
+        long function = resolveCallFunction(
+          source,
+          caller,
+          new SourceRange(caller.callTargetStarts[call], caller.callTargetLengths[call]),
+          forwarding,
+          argumentCount,
+          first,
+          second,
+          third,
+          fourth,
+          fifth,
+          sixth,
+          seventh,
+          eighth,
+          ninth,
+          tenth,
+          eleventh,
+          twelfth,
+          thirteenth,
+          fourteenth,
+          fifteenth,
+          sixteenth,
+          seventeenth,
+          eighteenth,
+          nineteenth,
+          twentieth,
+          twentyFirst,
+          twentySecond,
+          twentyThird,
+          helperCount
+        );
+        if (-1 < function) {
+          set(functionWork, call, function);
+        } else {
+          valid = false;
+        }
       }
+
+      call += 1;
     }
 
-    if (valid) {
-      if (0 < caller.thirdCallTargetName.length) {
-        valid = -1 < thirdFunction;
-      }
-    }
-
-    return new ResolvedCalls(firstFunction, secondFunction, thirdFunction, valid);
+    long[8] functions = new long[8](
+      functionWork[0],
+      functionWork[1],
+      functionWork[2],
+      functionWork[3],
+      functionWork[4],
+      functionWork[5],
+      functionWork[6],
+      functionWork[7]
+    );
+    drop(functionWork);
+    drop(callArena);
+    return new ResolvedCalls(functions, valid);
   }
 
   /// Installs resolved call identities in one immutable helper body.
@@ -511,15 +444,11 @@ classical class ScalarHelperTables {
       body.kind,
       body.statementCount,
       body.resultStatement,
-      body.firstCallTargetName,
-      body.firstCallStatement,
-      calls.firstFunction,
-      body.secondCallTargetName,
-      body.secondCallStatement,
-      calls.secondFunction,
-      body.thirdCallTargetName,
-      body.thirdCallStatement,
-      calls.thirdFunction
+      body.callTargetStarts,
+      body.callTargetLengths,
+      body.callStatements,
+      calls.functions,
+      body.callCount
     );
   }
 }
