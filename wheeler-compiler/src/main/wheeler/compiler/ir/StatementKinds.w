@@ -253,6 +253,8 @@ classical class StatementKinds {
   public const long STATEMENT_RETURN_HELPER_CALL_NAMED = 890;
   /// Parameter less-than guard returning a checked remainder.
   public const long STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED = 891;
+  /// Scalar helper-call guard forwarding another one-argument Boolean call.
+  public const long STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_NAMED = 892;
   /// Checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Checked global subtraction.

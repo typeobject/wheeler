@@ -46,6 +46,18 @@ classical class SecondaryOperands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_NAMED) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 11,
+        true
+      );
+    }
+
     EarlyReturnOperand earlyReturn = resolveEarlyReturnSecondaryOperand(
       source,
       tokenStarts,

@@ -535,13 +535,22 @@ classical class ProgramCodegen {
     long instructionBase = 0;
     while (index < count) limit MAX_MINIMAL_STATEMENTS {
       long callFunction = -1;
+      long secondCallFunction = -1;
       long call = 0;
       while (call < callCount) limit MAX_SCALAR_HELPER_CALLS {
         if (index == callStatements[call]) {
-          callFunction = callFunctions[call];
+          if (callFunction < 0) {
+            callFunction = callFunctions[call];
+          } else {
+            secondCallFunction = callFunctions[call];
+          }
         }
 
         call += 1;
+      }
+
+      if (-1 < secondCallFunction) {
+        callFunction = callFunction * MAX_SCALAR_HELPERS + secondCallFunction;
       }
 
       cursor = writeStatement(

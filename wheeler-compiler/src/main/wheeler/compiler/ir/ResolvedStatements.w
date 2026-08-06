@@ -149,6 +149,8 @@ classical class ResolvedStatements {
   public const long STATEMENT_RETURN_HELPER_CALL_ZERO = 27904;
   /// Starts resolved parameter less-than guards returning checked remainder.
   public const long STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_BASE = 28160;
+  /// Starts resolved helper-call guards forwarding another one-argument Boolean call.
+  public const long STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_BASE = 28416;
   /// Starts resolved scalar helper returns forwarding a two-argument call result.
   public const long STATEMENT_RETURN_HELPER_CALL_TWO_BASE = 65536;
   /// Starts resolved bounded signed-local while loops.

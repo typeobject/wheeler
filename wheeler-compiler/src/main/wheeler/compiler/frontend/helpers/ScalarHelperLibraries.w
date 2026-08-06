@@ -285,6 +285,11 @@ classical class ScalarHelperLibraries {
         helperCall = true;
       }
 
+      boolean forwardingGuard = sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_NAMED;
+      if (forwardingGuard) {
+        helperCall = true;
+      }
+
       long targetToken = statementStarts[sourceStatement] + 2;
       if (sourceOpcode == STATEMENT_RETURN_HELPER_CALL_NAMED) {
         helperCall = true;
@@ -295,6 +300,17 @@ classical class ScalarHelperLibraries {
         if (callCount < MAX_SCALAR_HELPER_CALLS) {
           set(callTargetStartWork, callCount, tokenStarts[targetToken]);
           set(callTargetLengthWork, callCount, tokenLengths[targetToken]);
+          set(callStatementWork, callCount, sourceStatement);
+        }
+
+        callCount += 1;
+      }
+
+      if (forwardingGuard) {
+        long returnTargetToken = statementStarts[sourceStatement] + 9;
+        if (callCount < MAX_SCALAR_HELPER_CALLS) {
+          set(callTargetStartWork, callCount, tokenStarts[returnTargetToken]);
+          set(callTargetLengthWork, callCount, tokenLengths[returnTargetToken]);
           set(callStatementWork, callCount, sourceStatement);
         }
 

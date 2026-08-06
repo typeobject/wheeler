@@ -13,6 +13,8 @@ import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
 
 classical class EarlyReturnForms {
+  private const long HELPER_FORWARD_RETURN_WIDTH = 15;
+
   private long scalarReturnWidth(
     borrow utf8 source,
     borrow mut words tokenKinds,
@@ -142,6 +144,66 @@ classical class EarlyReturnForms {
 
     if (helperGuardResultSigned(sourceOpcode)) {
       knownForm = true;
+    }
+
+    if (sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_NAMED) {
+      if (tokenKinds[statementStart + 9] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 10,
+          PUNCTUATION_OPEN_PAREN
+        )
+      ) {} else {
+        return -1;
+      }
+
+      if (tokenKinds[statementStart + 11] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 12,
+          PUNCTUATION_CLOSE_PAREN
+        )
+      ) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 13,
+          PUNCTUATION_SEMICOLON
+        )
+      ) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 14,
+          PUNCTUATION_CLOSE_BRACE
+        )
+      ) {
+        return HELPER_FORWARD_RETURN_WIDTH;
+      }
+
+      return -1;
     }
 
     if (knownForm) {} else {

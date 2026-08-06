@@ -164,6 +164,10 @@ classical class Statements {
       helperGuard = true;
     }
 
+    if (statementKind == STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_NAMED) {
+      helperGuard = true;
+    }
+
     if (helperGuard) {
       return earlyHelperReturnWidth(
         source,

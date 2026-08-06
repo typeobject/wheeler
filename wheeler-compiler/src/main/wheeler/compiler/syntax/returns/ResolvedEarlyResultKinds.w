@@ -25,6 +25,18 @@ classical class ResolvedEarlyResultKinds {
   /// Ends resolved remainder ordering guards.
   private const long SIGNED_LT_RETURN_REMAINDER_END = STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_BASE
     + RESOLVED_SOURCE_COUNT;
+  /// Ends resolved helper guards forwarding another call.
+  private const long HELPER_FORWARD_RETURN_END = STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_BASE
+    + RESOLVED_SOURCE_COUNT;
+
+  /// Checks whether an opcode forwards a call result behind a helper-call guard.
+  public boolean resolvedEarlyHelperForwardingReturn(long opcode) {
+    if (opcode < STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_BASE) {
+      return false;
+    }
+
+    return opcode < HELPER_FORWARD_RETURN_END;
+  }
 
   /// Checks whether an opcode guards one resolved helper call.
   public boolean resolvedEarlyHelperReturn(long opcode) {
@@ -40,7 +52,11 @@ classical class ResolvedEarlyResultKinds {
       return false;
     }
 
-    return opcode < HELPER_RETURN_LONG_END;
+    if (opcode < HELPER_RETURN_LONG_END) {
+      return true;
+    }
+
+    return resolvedEarlyHelperForwardingReturn(opcode);
   }
 
   /// Checks whether one resolved guard returns a signed value.

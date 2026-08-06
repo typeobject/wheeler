@@ -140,6 +140,10 @@ classical class LocalStatements {
       earlyHelperReturn = true;
     }
 
+    if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_NAMED) {
+      earlyHelperReturn = true;
+    }
+
     if (earlyHelperReturn) {
       long earlyArgumentLocal = resolvePriorDeclaration(
         source,
@@ -154,6 +158,10 @@ classical class LocalStatements {
         long helperReturnBase = STATEMENT_IF_HELPER_CALL_RETURN_BASE;
         if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_LONG_NAMED) {
           helperReturnBase = STATEMENT_IF_HELPER_CALL_RETURN_LONG_BASE;
+        }
+
+        if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_NAMED) {
+          helperReturnBase = STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_BASE;
         }
 
         return helperReturnBase + earlyArgumentLocal;

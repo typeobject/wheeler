@@ -31,6 +31,10 @@ classical class EarlyReturnKinds {
       return true;
     }
 
+    if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_NAMED) {
+      return true;
+    }
+
     if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_TRUE_NAMED) {
       return true;
     }

@@ -222,6 +222,12 @@ classical class StatementOpcodes {
           return STATEMENT_IF_HELPER_CALL_RETURN_FALSE_NAMED;
         }
 
+        if (
+          utf8Scalar(source, tokenStarts[statementStart + 10]) == PUNCTUATION_OPEN_PAREN
+        ) {
+          return STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_NAMED;
+        }
+
         return STATEMENT_IF_HELPER_CALL_RETURN_LONG_NAMED;
       }
 

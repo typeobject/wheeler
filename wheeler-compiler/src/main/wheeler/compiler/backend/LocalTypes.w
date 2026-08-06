@@ -67,6 +67,15 @@ classical class LocalTypes {
       return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
     }
 
+    if (resolvedEarlyHelperForwardingReturn(opcode)) {
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+    }
+
     if (resolvedEarlyHelperReturn(opcode)) {
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);

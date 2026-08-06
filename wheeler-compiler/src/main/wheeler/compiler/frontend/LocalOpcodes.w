@@ -37,8 +37,16 @@ import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.two_argument_call_kinds;
 
 classical class LocalOpcodes {
+  private const long EARLY_FORWARD_LOCAL_COUNT = 6;
+  private const long EARLY_FORWARD_CODE_LENGTH = 232;
+  private const long EARLY_FORWARD_INSTRUCTION_COUNT = 9;
+
   /// Returns the typed-local width required by one parsed statement.
   public long statementLocalCount(long opcode) {
+    if (resolvedEarlyHelperForwardingReturn(opcode)) {
+      return EARLY_FORWARD_LOCAL_COUNT;
+    }
+
     if (resolvedEarlyHelperReturn(opcode)) {
       return 4;
     }
@@ -441,6 +449,10 @@ classical class LocalOpcodes {
 
   /// Returns the encoded byte width of one parsed statement.
   public long statementCodeLength(long opcode) {
+    if (resolvedEarlyHelperForwardingReturn(opcode)) {
+      return EARLY_FORWARD_CODE_LENGTH;
+    }
+
     if (resolvedEarlyHelperReturn(opcode)) {
       return 168;
     }
@@ -686,6 +698,10 @@ classical class LocalOpcodes {
 
   /// Returns the instruction count emitted by one parsed statement.
   public long statementInstructionCount(long opcode) {
+    if (resolvedEarlyHelperForwardingReturn(opcode)) {
+      return EARLY_FORWARD_INSTRUCTION_COUNT;
+    }
+
     if (resolvedEarlyHelperReturn(opcode)) {
       return 7;
     }

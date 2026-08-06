@@ -65,7 +65,7 @@ and one entry. It also emits the canonical unqualified `$library` halt entry for
 entryless library. `frontend/helpers/ScalarHelperTables.w` owns bounded helper lookup, duplicate checks, and call resolution. `ScalarHelperLibraries.w` parses members. `ScalarHelperParsing.w` assembles declarations. `ScalarHelperCallResolution.w` resolves one member, `ScalarHelperResolution.w` validates the complete resolved table, and `ScalarHelperPrograms.w` constructs the IR. That path accepts zero or one general helper, or two through twenty-three explicitly
 public or private zero- through sixteen-parameter scalar helpers. Signed-parameter Boolean and signed helpers may
 contain bounded equality or less-than guards, computed signed-local preludes, and up to sixty-four same-module or direct imported Boolean calls with typed
-early returns. Sixty-four calls may span all twenty-two helpers from seven direct owners, filling the 256-local window without crossing the 512-instruction ceiling; call sixty-five fails closed. A final Boolean return may forward one zero-, one-, or two-argument helper call. A signed less-than guard may
+early returns. Sixty-four calls may span all twenty-two helpers from seven direct owners, filling the 256-local window without crossing the 512-instruction ceiling; call sixty-five fails closed. A final Boolean return may forward one zero-, one-, or two-argument helper call. A Boolean helper-call guard may return another one-argument call over the same or a different prior local; thirty-two pairs fill the call table. A signed less-than guard may
 return its parameter minus or modulo one scalar. A twenty-fourth helper fails
 before publication. The checked-in `compiler/backend/EncodingWidths.w`, `compiler/graphs/kinds/FivePlanKinds.w`, `compiler/graphs/kinds/SixGraphKinds.w`,
 `compiler/graphs/kinds/SevenPlanKinds.w`, `compiler/ir/Opcodes.w`,
@@ -122,8 +122,8 @@ imported-constant `compiler/syntax/helpers/HelperValueKinds.w`, imported-constan
 `compiler/syntax/returns/ResolvedEarlyResultKinds.w`, imported-function
 `compiler/syntax/returns/EarlyComparisonForms.w`, `compiler/syntax/returns/ResolvedLocalReturns.w`,
 and imported-constant `compiler/syntax/returns/ResolvedReturnCallKinds.w` modules compile byte for byte with stage 0.
-`StatementKinds.w` owns 128 unresolved statement identities. `LoopKinds.w` owns six loop-form
-identities. `ResolvedStatements.w` owns seventy-nine resolved columns. `Tokens.w` now sticks to
+`StatementKinds.w` owns 129 unresolved statement identities. `LoopKinds.w` owns six loop-form
+identities. `ResolvedStatements.w` owns eighty resolved columns. `Tokens.w` now sticks to
 lexical work instead of running a parser-IR registry from the back room. Sixty-nine real self-source modules beat sixty-one motivational slides. One of them now owns conditional base mapping instead of leaving it in the parser's coat pocket. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,
