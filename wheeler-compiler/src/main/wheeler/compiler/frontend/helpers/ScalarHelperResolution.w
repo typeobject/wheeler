@@ -3,6 +3,7 @@
 module wheeler.compiler.scalar_helper_resolution;
 
 import wheeler.compiler.ir;
+import wheeler.compiler.resolved_helper_validity;
 import wheeler.compiler.scalar_helper_call_resolution;
 import wheeler.compiler.scalar_helper_parsing;
 import wheeler.compiler.scalar_helper_tables;
@@ -776,138 +777,35 @@ classical class ScalarHelperResolution {
       twentyThirdBody,
       helperCount
     );
-    if (firstResolved.valid) {} else {
+    if (
+      resolvedHelpersValid(
+        helperCount,
+        firstResolved,
+        secondResolved,
+        thirdResolved,
+        fourthResolved,
+        fifthResolved,
+        sixthResolved,
+        seventhResolved,
+        eighthResolved,
+        ninthResolved,
+        tenthResolved,
+        eleventhResolved,
+        twelfthResolved,
+        thirteenthResolved,
+        fourteenthResolved,
+        fifteenthResolved,
+        sixteenthResolved,
+        seventeenthResolved,
+        eighteenthResolved,
+        nineteenthResolved,
+        twentiethResolved,
+        twentyFirstResolved,
+        twentySecondResolved,
+        twentyThirdResolved
+      )
+    ) {} else {
       return invalidResolvedTable();
-    }
-
-    if (secondResolved.valid) {} else {
-      return invalidResolvedTable();
-    }
-
-    if (2 < helperCount) {
-      if (thirdResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (3 < helperCount) {
-      if (fourthResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (4 < helperCount) {
-      if (fifthResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (5 < helperCount) {
-      if (sixthResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (6 < helperCount) {
-      if (seventhResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (7 < helperCount) {
-      if (eighthResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (8 < helperCount) {
-      if (ninthResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (9 < helperCount) {
-      if (tenthResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (10 < helperCount) {
-      if (eleventhResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (11 < helperCount) {
-      if (twelfthResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (12 < helperCount) {
-      if (thirteenthResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (13 < helperCount) {
-      if (fourteenthResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (14 < helperCount) {
-      if (fifteenthResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (15 < helperCount) {
-      if (sixteenthResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (16 < helperCount) {
-      if (seventeenthResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (17 < helperCount) {
-      if (eighteenthResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (18 < helperCount) {
-      if (nineteenthResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (19 < helperCount) {
-      if (twentiethResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (20 < helperCount) {
-      if (twentyFirstResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (21 < helperCount) {
-      if (twentySecondResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
-    }
-
-    if (22 < helperCount) {
-      if (twentyThirdResolved.valid) {} else {
-        return invalidResolvedTable();
-      }
     }
 
     firstBody = firstResolved.body;
