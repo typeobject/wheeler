@@ -10,6 +10,7 @@ import wheeler.compiler.ir;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.statement_kinds;
+import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
 import wheeler.compiler.void_call_widths;
@@ -333,6 +334,48 @@ classical class ScalarHelperTables {
     if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
       if (candidate.kind == HELPER_BOOLEAN) {
         return candidate.parameterCount == 0;
+      }
+
+      return false;
+    }
+
+    if (twoArgumentBooleanSignedCall(opcode)) {
+      if (candidate.kind == HELPER_BOOLEAN_SIGNED_TWO) {
+        if (candidate.parameterCount == 2) {
+          if (candidate.parameterTypes[0] == TYPE_SIGNED) {
+            return candidate.parameterTypes[1] == TYPE_SIGNED;
+          }
+
+          return false;
+        }
+      }
+
+      return false;
+    }
+
+    if (twoArgumentBooleanCall(opcode)) {
+      if (candidate.kind == HELPER_BOOLEAN_TWO) {
+        if (candidate.parameterCount == 2) {
+          if (candidate.parameterTypes[0] == TYPE_BOOLEAN) {
+            return candidate.parameterTypes[1] == TYPE_BOOLEAN;
+          }
+
+          return false;
+        }
+      }
+
+      return false;
+    }
+
+    if (twoArgumentCallStatement(opcode)) {
+      if (candidate.kind == HELPER_SIGNED_TWO) {
+        if (candidate.parameterCount == 2) {
+          if (candidate.parameterTypes[0] == TYPE_SIGNED) {
+            return candidate.parameterTypes[1] == TYPE_SIGNED;
+          }
+
+          return false;
+        }
       }
 
       return false;
