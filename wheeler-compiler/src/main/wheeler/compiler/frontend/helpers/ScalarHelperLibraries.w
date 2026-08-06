@@ -3,6 +3,7 @@
 module wheeler.compiler.scalar_helper_libraries;
 
 import wheeler.compiler.body_parser;
+import wheeler.compiler.borrowed_intrinsic_returns;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.early_comparison_forms;
@@ -25,6 +26,7 @@ import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
+import wheeler.compiler.type_codes;
 
 classical class ScalarHelperLibraries {
   /// Carries one complete scalar helper and the following declaration token.
@@ -49,6 +51,10 @@ classical class ScalarHelperLibraries {
     }
 
     if (resolvedReturnHelperCall(opcode)) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
       return true;
     }
 
@@ -79,8 +85,53 @@ classical class ScalarHelperLibraries {
     return false;
   }
 
-  private boolean scalarSequenceValid(StatementSequence sequence, long kind) {
+  private boolean intrinsicSourcesValid(
+    StatementSequence sequence,
+    long[16] parameterTypes,
+    long parameterCount
+  ) {
+    long opcode = sequence.opcodes[sequence.count - 1];
+    if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {} else {
+      return true;
+    }
+
+    long sourceLocal = sequence.operands[sequence.count - 1];
+    if (sourceLocal < 0) {
+      return false;
+    }
+
+    if (sourceLocal < parameterCount) {} else {
+      return false;
+    }
+
+    long sourceType = parameterTypes[sourceLocal];
+    boolean buffer = sourceType == TYPE_UTF8_BORROW;
+    if (sourceType == TYPE_BYTE_VIEW) {
+      buffer = true;
+    }
+
+    if (sourceType == TYPE_BYTES_BORROW) {
+      buffer = true;
+    }
+
+    if (sourceType == TYPE_WORDS_BORROW) {
+      buffer = true;
+    }
+
+    return buffer;
+  }
+
+  private boolean scalarSequenceValid(
+    StatementSequence sequence,
+    long kind,
+    long[16] parameterTypes,
+    long parameterCount
+  ) {
     if (0 < sequence.count) {} else {
+      return false;
+    }
+
+    if (intrinsicSourcesValid(sequence, parameterTypes, parameterCount)) {} else {
       return false;
     }
 
@@ -373,7 +424,15 @@ classical class ScalarHelperLibraries {
       statementStarts,
       statements.count
     );
-    if (scalarSequenceValid(sequence, kind)) {} else {
+    long[16] parameterTypes = parsedHelperParameterTypes(
+      source,
+      tokenKinds,
+      tokenStarts,
+      tokenLengths,
+      start,
+      parameterCount
+    );
+    if (scalarSequenceValid(sequence, kind, parameterTypes, parameterCount)) {} else {
       drop(callStatementWork);
       drop(callTargetLengthWork);
       drop(callTargetStartWork);
@@ -397,14 +456,7 @@ classical class ScalarHelperLibraries {
       sequence.secondaryOperands,
       kind,
       parameterCount,
-      parsedHelperParameterTypes(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        start,
-        parameterCount
-      ),
+      parameterTypes,
       sequence.count,
       sequence.count - 1,
       callTargetStarts,

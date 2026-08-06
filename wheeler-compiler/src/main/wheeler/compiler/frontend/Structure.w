@@ -3,6 +3,7 @@
 module wheeler.compiler.structure;
 
 import wheeler.compiler.boolean_tokens;
+import wheeler.compiler.borrowed_intrinsic_returns;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.keyword_tokens;
@@ -232,6 +233,38 @@ classical class Structure {
         )
       ) {
         return returnWidth + 2;
+      }
+
+      return -1;
+    }
+
+    if (statementKind == STATEMENT_RETURN_BUFFER_LENGTH_NAMED) {
+      if (tokenKinds[statementStart + 3] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 4,
+          PUNCTUATION_CLOSE_PAREN
+        )
+      ) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 5,
+          PUNCTUATION_SEMICOLON
+        )
+      ) {
+        return 6;
       }
 
       return -1;

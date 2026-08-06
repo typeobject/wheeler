@@ -2,6 +2,7 @@
 
 module wheeler.compiler.local_types;
 
+import wheeler.compiler.borrowed_intrinsic_returns;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_comparison_forms;
@@ -61,6 +62,11 @@ classical class LocalTypes {
     long firstSourceType,
     long secondSourceType
   ) {
+    if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      return writeLocalType(output, cursor, resultType);
+    }
+
     long arity = returnHelperCallArity(opcode);
     if (arity == 0) {
       return writeLocalType(output, cursor, resultType);
@@ -86,6 +92,11 @@ classical class LocalTypes {
   /// Writes canonical local type codes for one parsed statement.
   public long writeStatementLocalTypes(borrow mut bytes output, long cursor, long opcode) {
     long count = statementLocalCount(opcode);
+    if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
+      cursor = writeLocalType(output, cursor, TYPE_BYTES_BORROW);
+      return writeLocalType(output, cursor, TYPE_SIGNED);
+    }
+
     if (returnHelperCallArity(opcode) == 0) {
       return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
     }

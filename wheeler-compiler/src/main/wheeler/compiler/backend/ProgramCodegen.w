@@ -2,6 +2,7 @@
 
 module wheeler.compiler.program_codegen;
 
+import wheeler.compiler.borrowed_intrinsic_returns;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.codegen;
@@ -572,6 +573,10 @@ classical class ProgramCodegen {
       long secondSourceType = TYPE_SIGNED;
       if (typedHelper) {
         long opcode = opcodes[index];
+        if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
+          firstSourceType = sequenceLocalType(parameterTypes, parameterCount, operands[index]);
+        }
+
         if (returnHelperCallArity(opcode) == 1) {
           firstSourceType = sequenceLocalType(
             parameterTypes,

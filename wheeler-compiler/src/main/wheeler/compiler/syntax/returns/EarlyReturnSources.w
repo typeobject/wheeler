@@ -7,15 +7,15 @@ import wheeler.compiler.resolved_statements;
 classical class EarlyReturnSources {
   /// Returns the argument source for one resolved helper-call guard.
   public long earlyHelperReturnSource(long opcode) {
-    if (STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_BASE < opcode + 1) {
-      return opcode - STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_BASE;
-    }
-
     if (opcode < STATEMENT_IF_HELPER_CALL_RETURN_LONG_BASE) {
       return opcode - STATEMENT_IF_HELPER_CALL_RETURN_BASE;
     }
 
-    return opcode - STATEMENT_IF_HELPER_CALL_RETURN_LONG_BASE;
+    if (opcode < STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_BASE) {
+      return opcode - STATEMENT_IF_HELPER_CALL_RETURN_LONG_BASE;
+    }
+
+    return opcode - STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_BASE;
   }
 
   /// Returns the signed source local for one resolved comparison guard.

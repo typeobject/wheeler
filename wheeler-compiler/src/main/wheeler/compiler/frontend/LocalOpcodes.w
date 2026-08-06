@@ -2,6 +2,7 @@
 
 module wheeler.compiler.local_opcodes;
 
+import wheeler.compiler.borrowed_intrinsic_returns;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_comparison_forms;
@@ -129,6 +130,10 @@ classical class LocalOpcodes {
 
     if (resolvedReturnHelperCall(opcode)) {
       return 3;
+    }
+
+    if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
+      return 2;
     }
 
     if (resolvedLocalReturn(opcode)) {
@@ -537,6 +542,10 @@ classical class LocalOpcodes {
       return 104;
     }
 
+    if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
+      return 64;
+    }
+
     if (resolvedLocalReturn(opcode)) {
       return 40;
     }
@@ -728,6 +737,10 @@ classical class LocalOpcodes {
 
     if (twoArgumentCallStatement(opcode)) {
       return 6;
+    }
+
+    if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
+      return 3;
     }
 
     long length = statementCodeLength(opcode);

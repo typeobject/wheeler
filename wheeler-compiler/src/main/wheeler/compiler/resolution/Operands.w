@@ -4,6 +4,7 @@ module wheeler.compiler.operands;
 
 import wheeler.compiler.assertion_resolution;
 import wheeler.compiler.boolean_tokens;
+import wheeler.compiler.borrowed_intrinsic_returns;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.class_constants;
@@ -159,6 +160,18 @@ classical class Operands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (sourceOpcode == STATEMENT_RETURN_BUFFER_LENGTH_NAMED) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        true
+      );
+    }
+
     EarlyReturnOperand earlyReturn = resolveEarlyReturnOperand(
       source,
       tokenStarts,

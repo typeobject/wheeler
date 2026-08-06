@@ -598,8 +598,8 @@ final class NativeCompilerSelfSourceExampleTest {
     assertEquals(
         "wheeler.compiler.early_return_kinds::earlyReturnStatement",
         decoded.functions().getFirst().name());
-    assertEquals(44, decoded.functions().getFirst().localCount());
-    assertEquals(74, decoded.functions().getFirst().forward().size());
+    assertEquals(48, decoded.functions().getFirst().localCount());
+    assertEquals(81, decoded.functions().getFirst().forward().size());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 
@@ -655,9 +655,17 @@ final class NativeCompilerSelfSourceExampleTest {
         "compiler/syntax/returns/ResolvedEarlyResultKinds.w",
         "wheeler.compiler.resolved_early_result_kinds");
     assertEquals(
-        "wheeler.compiler.resolved_early_result_kinds::resolvedEarlyHelperReturn",
+        "wheeler.compiler.resolved_early_result_kinds::resolvedEarlyHelperForwardingReturn",
         decoded.functions().getFirst().name());
     assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
+  void compilesCanonicalBorrowedIntrinsicReturnsByteForByte() throws Exception {
+    Program decoded = assertCompilerLibrary(
+        "compiler/syntax/intrinsics/BorrowedIntrinsicReturns.w",
+        "wheeler.compiler.borrowed_intrinsic_returns");
+    assertEquals("$library", decoded.functions().getFirst().name());
   }
 
   @Test

@@ -2,6 +2,7 @@
 
 module wheeler.compiler.compiler_core;
 
+import wheeler.compiler.borrowed_intrinsic_returns;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.encoding;
@@ -259,6 +260,10 @@ classical class CompilerCore {
       long opcode = body.opcodes[statement];
       long firstType = TYPE_SIGNED;
       long secondType = TYPE_SIGNED;
+      if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
+        firstType = helperLocalType(body, body.operands[statement]);
+      }
+
       if (resolvedReturnHelperCall(opcode)) {
         if (returnHelperCallArity(opcode) == 1) {
           firstType = helperLocalType(body, returnHelperCallFirstSource(opcode));

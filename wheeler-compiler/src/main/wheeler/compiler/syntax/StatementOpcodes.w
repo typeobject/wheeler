@@ -3,6 +3,7 @@
 module wheeler.compiler.statement_opcodes;
 
 import wheeler.compiler.boolean_tokens;
+import wheeler.compiler.borrowed_intrinsic_returns;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.identifier_starts;
 import wheeler.compiler.keyword_tokens;
@@ -85,6 +86,10 @@ classical class StatementOpcodes {
       if (identifierStart(returnedScalar)) {
         long returnOperator = utf8Scalar(source, tokenStarts[statementStart + 2]);
         if (returnOperator == PUNCTUATION_OPEN_PAREN) {
+          if (returnedHash == TOKEN_BUFFER_LENGTH) {
+            return STATEMENT_RETURN_BUFFER_LENGTH_NAMED;
+          }
+
           return STATEMENT_RETURN_HELPER_CALL_NAMED;
         }
 
