@@ -432,6 +432,10 @@ classical class StatementOpcodes {
             return STATEMENT_LOCAL_UTF8_SCALAR_NAMED;
           }
 
+          if (initializerHash == TOKEN_UTF8_WIDTH) {
+            return STATEMENT_LOCAL_UTF8_WIDTH_NAMED;
+          }
+
           long callArgument = utf8Scalar(source, tokenStarts[statementStart + 5]);
           if (callArgument == PUNCTUATION_CLOSE_PAREN) {
             return STATEMENT_LOCAL_CALL_NAMED;

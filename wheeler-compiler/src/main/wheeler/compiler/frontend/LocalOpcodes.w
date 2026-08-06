@@ -144,6 +144,14 @@ classical class LocalOpcodes {
       return 4;
     }
 
+    if (opcode == STATEMENT_LOCAL_UTF8_WIDTH_NAMED) {
+      return 4;
+    }
+
+    if (opcode == STATEMENT_LOCAL_UTF8_WIDTH) {
+      return 4;
+    }
+
     if (opcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {
       return 4;
     }
@@ -409,6 +417,14 @@ classical class LocalOpcodes {
       return localBase + 3;
     }
 
+    if (opcode == STATEMENT_LOCAL_UTF8_WIDTH_NAMED) {
+      return localBase + 3;
+    }
+
+    if (opcode == STATEMENT_LOCAL_UTF8_WIDTH) {
+      return localBase + 3;
+    }
+
     if (opcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {
       return localBase + 3;
     }
@@ -599,6 +615,10 @@ classical class LocalOpcodes {
     }
 
     if (opcode == STATEMENT_LOCAL_UTF8_SCALAR) {
+      return 104;
+    }
+
+    if (opcode == STATEMENT_LOCAL_UTF8_WIDTH) {
       return 104;
     }
 
@@ -808,6 +828,10 @@ classical class LocalOpcodes {
     }
 
     if (opcode == STATEMENT_LOCAL_UTF8_SCALAR) {
+      return 4;
+    }
+
+    if (opcode == STATEMENT_LOCAL_UTF8_WIDTH) {
       return 4;
     }
 

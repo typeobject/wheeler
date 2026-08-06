@@ -60,6 +60,10 @@ classical class LocalResolution {
         return true;
       }
 
+      if (opcode == STATEMENT_LOCAL_UTF8_WIDTH_NAMED) {
+        return true;
+      }
+
       if (opcode == STATEMENT_LOCAL_BUFFER_GET_NAMED) {
         return true;
       }

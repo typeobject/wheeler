@@ -53,6 +53,10 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
             long scalar = utf8Scalar(value, index);
             return scalar;
           }
+          public long width(borrow utf8 value, long index) {
+            long width = utf8Width(value, index);
+            return width;
+          }
           public long dummy() { return 0; }
         }
         """;

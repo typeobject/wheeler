@@ -21,6 +21,10 @@ classical class BorrowedIntrinsicSyntax {
       return true;
     }
 
+    if (kind == STATEMENT_LOCAL_UTF8_WIDTH_NAMED) {
+      return true;
+    }
+
     return kind == STATEMENT_LOCAL_BUFFER_GET_NAMED;
   }
 
@@ -221,6 +225,10 @@ classical class BorrowedIntrinsicSyntax {
     }
 
     if (kind == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {
+      return localUtf8ScalarWidth(source, tokenKinds, tokenStarts, statementStart);
+    }
+
+    if (kind == STATEMENT_LOCAL_UTF8_WIDTH_NAMED) {
       return localUtf8ScalarWidth(source, tokenKinds, tokenStarts, statementStart);
     }
 

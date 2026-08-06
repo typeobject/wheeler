@@ -134,7 +134,12 @@ classical class ScalarHelperLibraries {
         }
       }
 
-      if (opcode == STATEMENT_LOCAL_UTF8_SCALAR) {
+      boolean utf8IndexedRead = opcode == STATEMENT_LOCAL_UTF8_SCALAR;
+      if (opcode == STATEMENT_LOCAL_UTF8_WIDTH) {
+        utf8IndexedRead = true;
+      }
+
+      if (utf8IndexedRead) {
         long utf8Local = sequence.operands[statement];
         if (utf8Local < 0) {
           return false;
@@ -255,6 +260,10 @@ classical class ScalarHelperLibraries {
         }
 
         if (earlyOpcode == STATEMENT_LOCAL_UTF8_SCALAR) {
+          signedPrelude = true;
+        }
+
+        if (earlyOpcode == STATEMENT_LOCAL_UTF8_WIDTH) {
           signedPrelude = true;
         }
 

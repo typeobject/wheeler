@@ -47,7 +47,12 @@ classical class BorrowedIntrinsicResolution {
       return new ResolvedBorrowedIntrinsic(-1, true);
     }
 
-    if (sourceOpcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {
+    boolean utf8IndexedRead = sourceOpcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED;
+    if (sourceOpcode == STATEMENT_LOCAL_UTF8_WIDTH_NAMED) {
+      utf8IndexedRead = true;
+    }
+
+    if (utf8IndexedRead) {
       long utf8Source = resolvePriorDeclaration(
         source,
         tokenStarts,
@@ -68,7 +73,12 @@ classical class BorrowedIntrinsicResolution {
       );
       if (-1 < utf8Source) {
         if (-1 < scalarIndex) {
-          return new ResolvedBorrowedIntrinsic(STATEMENT_LOCAL_UTF8_SCALAR, true);
+          long resolvedOpcode = STATEMENT_LOCAL_UTF8_SCALAR;
+          if (sourceOpcode == STATEMENT_LOCAL_UTF8_WIDTH_NAMED) {
+            resolvedOpcode = STATEMENT_LOCAL_UTF8_WIDTH;
+          }
+
+          return new ResolvedBorrowedIntrinsic(resolvedOpcode, true);
         }
       }
 

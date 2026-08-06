@@ -59,14 +59,24 @@ classical class BorrowedIntrinsicCodegen {
       return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
     }
 
-    if (opcode == STATEMENT_LOCAL_UTF8_SCALAR) {
+    boolean utf8IndexedRead = opcode == STATEMENT_LOCAL_UTF8_SCALAR;
+    if (opcode == STATEMENT_LOCAL_UTF8_WIDTH) {
+      utf8IndexedRead = true;
+    }
+
+    if (utf8IndexedRead) {
+      long readOpcode = OPCODE_UTF8_SCALAR;
+      if (opcode == STATEMENT_LOCAL_UTF8_WIDTH) {
+        readOpcode = OPCODE_UTF8_WIDTH;
+      }
+
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, secondaryOperand, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_UTF8_SCALAR, FORM_TERNARY);
+      cursor = writeInstructionHeader(output, cursor, readOpcode, FORM_TERNARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);

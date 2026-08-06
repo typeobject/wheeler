@@ -19,4 +19,8 @@ classical class BorrowedIntrinsicKinds {
   public const long STATEMENT_LOCAL_BUFFER_GET_NAMED = 896;
   /// Names a resolved local initialized from one borrowed buffer element.
   public const long STATEMENT_LOCAL_BUFFER_GET = 131075;
+  /// Names a local declaration initialized from one borrowed UTF-8 width.
+  public const long STATEMENT_LOCAL_UTF8_WIDTH_NAMED = 897;
+  /// Names a resolved local initialized from one borrowed UTF-8 width.
+  public const long STATEMENT_LOCAL_UTF8_WIDTH = 131076;
 }

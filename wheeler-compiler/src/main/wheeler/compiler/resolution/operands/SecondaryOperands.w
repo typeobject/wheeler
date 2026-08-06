@@ -59,6 +59,18 @@ classical class SecondaryOperands {
       );
     }
 
+    if (sourceOpcode == STATEMENT_LOCAL_UTF8_WIDTH_NAMED) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 7,
+        true
+      );
+    }
+
     if (sourceOpcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {
       return resolvePriorDeclaration(
         source,
