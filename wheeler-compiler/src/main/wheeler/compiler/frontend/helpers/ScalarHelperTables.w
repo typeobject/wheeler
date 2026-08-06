@@ -10,7 +10,7 @@ import wheeler.compiler.resolved_return_call_kinds;
 
 classical class ScalarHelperTables {
   /// Carries bounded call targets resolved against one helper table.
-  public record ResolvedCalls(long[8] functions, boolean valid) {}
+  public record ResolvedCalls(long[64] functions, boolean valid) {}
 
   /// Checks whether one helper returns a Boolean scalar.
   public boolean booleanHelperKind(long kind) {
@@ -365,7 +365,7 @@ classical class ScalarHelperTables {
     HelperBody twentyThird,
     long helperCount
   ) {
-    region callArena = new region(/* bytes= */ 64, /* allocations= */ 1);
+    region callArena = new region(/* bytes= */ 512, /* allocations= */ 1);
     words functionWork = allocate(callArena, MAX_SCALAR_HELPER_CALLS);
     boolean valid = true;
     long call = 0;
@@ -419,16 +419,7 @@ classical class ScalarHelperTables {
       call += 1;
     }
 
-    long[8] functions = new long[8](
-      functionWork[0],
-      functionWork[1],
-      functionWork[2],
-      functionWork[3],
-      functionWork[4],
-      functionWork[5],
-      functionWork[6],
-      functionWork[7]
-    );
+    long[64] functions = freezeHelperCallColumn(functionWork);
     drop(functionWork);
     drop(callArena);
     return new ResolvedCalls(functions, valid);

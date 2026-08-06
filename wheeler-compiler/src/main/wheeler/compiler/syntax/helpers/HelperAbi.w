@@ -100,7 +100,7 @@ classical class HelperAbi {
   /// Names the exclusive end of accepted scalar helper parameter counts.
   public const long SCALAR_HELPER_PARAMETER_END = 17;
   /// Caps same-module calls in one bounded scalar helper body.
-  public const long MAX_SCALAR_HELPER_CALLS = 8;
+  public const long MAX_SCALAR_HELPER_CALLS = 64;
   /// Caps scalar helpers in one bounded entryless library.
   public const long MAX_SCALAR_HELPERS = 23;
   /// Caps helpers owned by one direct executable dependency.

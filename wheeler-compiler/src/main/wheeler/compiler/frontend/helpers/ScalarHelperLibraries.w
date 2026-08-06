@@ -263,7 +263,7 @@ classical class ScalarHelperLibraries {
       return invalidHelper();
     }
 
-    region callArena = new region(/* bytes= */ 192, /* allocations= */ 3);
+    region callArena = new region(/* bytes= */ 1536, /* allocations= */ 3);
     words callTargetStartWork = allocate(callArena, MAX_SCALAR_HELPER_CALLS);
     words callTargetLengthWork = allocate(callArena, MAX_SCALAR_HELPER_CALLS);
     words callStatementWork = allocate(callArena, MAX_SCALAR_HELPER_CALLS);
@@ -342,37 +342,10 @@ classical class ScalarHelperLibraries {
       return invalidHelper();
     }
 
-    long[8] callTargetStarts = new long[8](
-      callTargetStartWork[0],
-      callTargetStartWork[1],
-      callTargetStartWork[2],
-      callTargetStartWork[3],
-      callTargetStartWork[4],
-      callTargetStartWork[5],
-      callTargetStartWork[6],
-      callTargetStartWork[7]
-    );
-    long[8] callTargetLengths = new long[8](
-      callTargetLengthWork[0],
-      callTargetLengthWork[1],
-      callTargetLengthWork[2],
-      callTargetLengthWork[3],
-      callTargetLengthWork[4],
-      callTargetLengthWork[5],
-      callTargetLengthWork[6],
-      callTargetLengthWork[7]
-    );
-    long[8] callStatements = new long[8](
-      callStatementWork[0],
-      callStatementWork[1],
-      callStatementWork[2],
-      callStatementWork[3],
-      callStatementWork[4],
-      callStatementWork[5],
-      callStatementWork[6],
-      callStatementWork[7]
-    );
-    long[8] callFunctions = emptyHelperCallIdentities();
+    long[64] callTargetStarts = freezeHelperCallColumn(callTargetStartWork);
+    long[64] callTargetLengths = freezeHelperCallColumn(callTargetLengthWork);
+    long[64] callStatements = freezeHelperCallColumn(callStatementWork);
+    long[64] callFunctions = emptyHelperCallIdentities();
     drop(callStatementWork);
     drop(callTargetLengthWork);
     drop(callTargetStartWork);

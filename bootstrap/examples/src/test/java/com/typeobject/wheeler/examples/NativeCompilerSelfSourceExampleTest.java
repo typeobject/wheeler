@@ -221,9 +221,22 @@ final class NativeCompilerSelfSourceExampleTest {
         "examples.final_call");
     assertArrayEquals(new BytecodeWriter().write(expectedEightCalls), eightCallWriter.hostOutput());
 
+    String sixtyFourCalls = source.replace(
+        "return base(opcode);",
+        "if (base(opcode)) { return true; }\n    ".repeat(63)
+            + "return base(opcode);");
+    VirtualMachine sixtyFourCallWriter = nativeWriter(compiler, sixtyFourCalls);
+    CompilerMachineRunner.runWithoutRewindHistory(sixtyFourCallWriter);
+    Program expectedSixtyFourCalls = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("FinalCall.w", sixtyFourCalls),
+        "examples.final_call");
+    assertArrayEquals(
+        new BytecodeWriter().write(expectedSixtyFourCalls),
+        sixtyFourCallWriter.hostOutput());
+
     assertNoPublication(
         compiler,
-        eightCalls.replace(
+        sixtyFourCalls.replace(
             "return base(opcode);",
             "if (base(opcode)) { return true; }\n"
                 + "    return base(opcode);"));

@@ -527,8 +527,8 @@ classical class ProgramCodegen {
     long[64] secondaryOperands,
     long count,
     long localBase,
-    long[8] callStatements,
-    long[8] callFunctions,
+    long[64] callStatements,
+    long[64] callFunctions,
     long callCount
   ) {
     long index = 0;
