@@ -6,6 +6,7 @@ import wheeler.compiler.driver;
 
 classical class NativeModuleCompiler {
   private const long FRAME_LENGTH_WIDTH = 4;
+  private const long NO_IMPORTED_MODULES = 0;
   private const long SINGLE_MODULE_COUNT = 1;
   private const long PAIR_MODULE_COUNT = 2;
   private const long TRIPLE_MODULE_COUNT = 3;
@@ -46,6 +47,23 @@ classical class NativeModuleCompiler {
       setByte(output, cursor, input[inputStart + cursor]);
       cursor += 1;
     }
+  }
+
+  private void publishZero(borrow byteview input, borrow mut bytes output) {
+    long rootStart = FRAME_LENGTH_WIDTH;
+    rootLength = bufferLength(input) - rootStart;
+    assert(0 < rootLength);
+    assert(rootLength < MAX_FRAME_SOURCE_BYTES + 1);
+
+    region arena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    bytes rootBytes = allocateBytes(arena, rootLength);
+    copyFrame(input, rootStart, rootBytes);
+    utf8 rootSource = freezeUtf8(rootBytes);
+    Compilation compiled = compileMinimal(rootSource, output);
+    artifactLength = compiled.length;
+    published = 1;
+    drop(rootSource);
+    drop(arena);
   }
 
   private void publishOne(borrow byteview input, borrow mut bytes output) {
@@ -485,34 +503,38 @@ classical class NativeModuleCompiler {
     drop(arena);
   }
 
-  /// Compiles a canonical frame containing one through seven imported modules.
+  /// Compiles a canonical frame containing zero through seven imported modules.
   ///
   /// - Effects: Mutates fixture state and caller-owned byte output.
   entry void main(borrow byteview input, borrow mut bytes output) {
     assert(FRAME_LENGTH_WIDTH < bufferLength(input));
     moduleCount = framedLength(input, 0);
-    if (moduleCount == SINGLE_MODULE_COUNT) {
-      publishOne(input, output);
+    if (moduleCount == NO_IMPORTED_MODULES) {
+      publishZero(input, output);
     } else {
-      if (moduleCount == PAIR_MODULE_COUNT) {
-        publishTwo(input, output);
+      if (moduleCount == SINGLE_MODULE_COUNT) {
+        publishOne(input, output);
       } else {
-        if (moduleCount == TRIPLE_MODULE_COUNT) {
-          publishThree(input, output);
+        if (moduleCount == PAIR_MODULE_COUNT) {
+          publishTwo(input, output);
         } else {
-          if (moduleCount == QUADRUPLE_MODULE_COUNT) {
-            publishFour(input, output);
+          if (moduleCount == TRIPLE_MODULE_COUNT) {
+            publishThree(input, output);
           } else {
-            if (moduleCount == QUINTUPLE_MODULE_COUNT) {
-              publishFive(input, output);
+            if (moduleCount == QUADRUPLE_MODULE_COUNT) {
+              publishFour(input, output);
             } else {
-              if (moduleCount == SEXTUPLE_MODULE_COUNT) {
-                publishSix(input, output);
+              if (moduleCount == QUINTUPLE_MODULE_COUNT) {
+                publishFive(input, output);
               } else {
-                if (moduleCount == SEPTUPLE_MODULE_COUNT) {
-                  publishSeven(input, output);
+                if (moduleCount == SEXTUPLE_MODULE_COUNT) {
+                  publishSix(input, output);
                 } else {
-                  assert(published == 1);
+                  if (moduleCount == SEPTUPLE_MODULE_COUNT) {
+                    publishSeven(input, output);
+                  } else {
+                    assert(published == 1);
+                  }
                 }
               }
             }

@@ -10,6 +10,7 @@ import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,24 @@ import org.junit.jupiter.api.Test;
 class NativeModuleHeaderExampleTest {
   private static final int OUTPUT_CAPACITY = 1_024;
   private static final int MAX_NATIVE_IMPORTS = 64;
+
+  @Test
+  void compilesAZeroImportFrameByteForByte() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    String source = CompilerSources.read("compiler/backend/EncodingWidths.w");
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("compiler/backend/EncodingWidths.w", source),
+            "wheeler.compiler.encoding_widths"));
+    assertArrayEquals(
+        expected,
+        NativeModuleCompilerHarness.compile(compiler, List.of(), source));
+
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(),
+        source.replace("module wheeler.compiler.encoding_widths;", "module ;"));
+  }
 
   @Test
   void acceptsSortedDirectImportsWithoutChangingRootArtifactIdentity() throws Exception {
