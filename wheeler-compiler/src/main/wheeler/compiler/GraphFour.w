@@ -10,6 +10,7 @@ import wheeler.compiler.compiler_graph_four_nested;
 import wheeler.compiler.graphs.four_structures;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.module_linker;
+import wheeler.compiler.multiple_imported_helpers;
 
 classical class CompilerGraphFour {
   /// Carries private four-module compilation bounds.
@@ -421,7 +422,15 @@ classical class CompilerGraphFour {
       /* expectedImportCount= */ 4
     );
     if (firstPlan.valid) {} else {
-      assert(0 == 1);
+      CoreCompilation compiledHelpers = compileFourHelperOwners(
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        rootSource,
+        output
+      );
+      return new FourGraphCompilation(compiledHelpers.length, compiledHelpers.codeStart);
     }
 
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);

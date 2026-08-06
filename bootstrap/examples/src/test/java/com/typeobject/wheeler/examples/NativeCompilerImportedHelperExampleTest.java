@@ -237,15 +237,82 @@ final class NativeCompilerImportedHelperExampleTest {
         compiler,
         List.of(alpha, beta, gamma.replace("public boolean gamma0", "private boolean gamma0")),
         root);
+  }
 
-    String delta = helperOwner("example.delta", "Delta", "delta", 1);
-    String fourOwnerRoot = String.join("\n",
+  @Test
+  void compilesFourDirectHelperOwnersByteForByte() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    String alpha = helperOwner("example.alpha", "Alpha", "alpha", 6);
+    String beta = helperOwner("example.beta", "Beta", "beta", 6);
+    String delta = helperOwner("example.delta", "Delta", "delta", 5);
+    String gamma = helperOwner("example.gamma", "Gamma", "gamma", 5);
+    String root = String.join("\n",
         "module example.use_four;",
         "import example.alpha;",
         "import example.beta;",
         "import example.delta;",
         "import example.gamma;",
         "classical class UseFour {",
+        "  public boolean accepted(long value) {",
+        "    if (alpha0(value)) { return true; }",
+        "    if (beta0(value)) { return false; }",
+        "    if (delta0(value)) { return true; }",
+        "    return gamma0(value);",
+        "  }",
+        "}",
+        "");
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of(
+            "Alpha.w", alpha,
+            "Beta.w", beta,
+            "Delta.w", delta,
+            "Gamma.w", gamma,
+            "UseFour.w", root),
+        "example.use_four");
+    byte[] expectedArtifact = new BytecodeWriter().write(expected);
+    List<List<String>> orders = List.of(
+        List.of(alpha, beta, delta, gamma),
+        List.of(beta, delta, gamma, alpha),
+        List.of(delta, gamma, alpha, beta),
+        List.of(gamma, alpha, beta, delta),
+        List.of(gamma, delta, beta, alpha),
+        List.of(delta, beta, alpha, gamma),
+        List.of(beta, alpha, gamma, delta),
+        List.of(alpha, gamma, delta, beta));
+    for (List<String> order : orders) {
+      assertArrayEquals(expectedArtifact, NativeModuleCompilerHarness.compile(compiler, order, root));
+    }
+
+    Program decoded = new BytecodeReader().read(expectedArtifact);
+    assertEquals("example.alpha::alpha0", decoded.functions().getFirst().name());
+    assertEquals("example.alpha::alpha5", decoded.functions().get(5).name());
+    assertEquals("example.beta::beta0", decoded.functions().get(6).name());
+    assertEquals("example.beta::beta5", decoded.functions().get(11).name());
+    assertEquals("example.delta::delta0", decoded.functions().get(12).name());
+    assertEquals("example.delta::delta4", decoded.functions().get(16).name());
+    assertEquals("example.gamma::gamma0", decoded.functions().get(17).name());
+    assertEquals("example.gamma::gamma4", decoded.functions().get(21).name());
+    assertEquals("example.use_four::accepted", decoded.functions().get(22).name());
+    assertEquals("$library", decoded.functions().getLast().name());
+
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(
+            alpha,
+            beta,
+            delta,
+            gamma.replace("public boolean gamma0", "private boolean gamma0")),
+        root);
+
+    String fiveOwnerRoot = String.join("\n",
+        "module example.use_five;",
+        "import example.alpha;",
+        "import example.beta;",
+        "import example.delta;",
+        "import example.epsilon;",
+        "import example.gamma;",
+        "classical class UseFive {",
         "  public boolean accepted(long value) { return alpha0(value); }",
         "}",
         "");
@@ -254,9 +321,10 @@ final class NativeCompilerImportedHelperExampleTest {
         List.of(
             helperOwner("example.alpha", "Alpha", "alpha", 1),
             helperOwner("example.beta", "Beta", "beta", 1),
-            delta,
+            helperOwner("example.delta", "Delta", "delta", 1),
+            helperOwner("example.epsilon", "Epsilon", "epsilon", 1),
             helperOwner("example.gamma", "Gamma", "gamma", 1)),
-        fourOwnerRoot);
+        fiveOwnerRoot);
   }
 
   @Test

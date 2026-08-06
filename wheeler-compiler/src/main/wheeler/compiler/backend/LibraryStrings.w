@@ -22,14 +22,16 @@ classical class LibraryStrings {
     long valid
   ) {}
 
-  /// Assigns the two bounded imported helper groups to their canonical modules.
+  /// Assigns bounded imported helper groups to their canonical modules.
   public record HelperOwners(
     SourceRange firstModule,
     long firstHelperCount,
     SourceRange secondModule,
     long secondHelperCount,
     SourceRange thirdModule,
-    long thirdHelperCount
+    long thirdHelperCount,
+    SourceRange fourthModule,
+    long fourthHelperCount
   ) {}
 
   private long libraryScalar(long index) {
@@ -91,6 +93,13 @@ classical class LibraryStrings {
         helper < owners.firstHelperCount + owners.secondHelperCount + owners.thirdHelperCount
       ) {
         return owners.thirdModule;
+      }
+
+      if (
+        helper < owners.firstHelperCount + owners.secondHelperCount + owners.thirdHelperCount
+          + owners.fourthHelperCount
+      ) {
+        return owners.fourthModule;
       }
     }
 
@@ -237,7 +246,7 @@ classical class LibraryStrings {
     }
 
     long importedHelperCount = owners.firstHelperCount + owners.secondHelperCount
-      + owners.thirdHelperCount;
+      + owners.thirdHelperCount + owners.fourthHelperCount;
     if (importedHelperCount < program.helperCount + 1) {} else {
       valid = 0;
     }
@@ -256,6 +265,12 @@ classical class LibraryStrings {
 
     if (0 < owners.thirdHelperCount) {
       if (0 < owners.thirdModule.length) {} else {
+        valid = 0;
+      }
+    }
+
+    if (0 < owners.fourthHelperCount) {
+      if (0 < owners.fourthModule.length) {} else {
         valid = 0;
       }
     }

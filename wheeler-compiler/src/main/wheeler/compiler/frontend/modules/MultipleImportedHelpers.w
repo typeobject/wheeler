@@ -86,6 +86,136 @@ classical class MultipleImportedHelpers {
     );
   }
 
+  private LinkPlan fourHelperPlanAt(
+    long source,
+    borrow utf8 firstSource,
+    borrow utf8 secondSource,
+    borrow utf8 thirdSource,
+    borrow utf8 fourthSource,
+    borrow utf8 rootSource
+  ) {
+    if (source == 0) {
+      return planResolvedHelperImport(firstSource, rootSource, /* expectedImportCount= */ 4);
+    }
+
+    if (source == 1) {
+      return planResolvedHelperImport(secondSource, rootSource, /* expectedImportCount= */ 4);
+    }
+
+    if (source == 2) {
+      return planResolvedHelperImport(thirdSource, rootSource, /* expectedImportCount= */ 4);
+    }
+
+    return planResolvedHelperImport(fourthSource, rootSource, /* expectedImportCount= */ 4);
+  }
+
+  private long writeFourHelperAt(
+    long source,
+    borrow utf8 firstSource,
+    borrow utf8 secondSource,
+    borrow utf8 thirdSource,
+    borrow utf8 fourthSource,
+    borrow utf8 rootSource,
+    LinkPlan plan,
+    borrow mut bytes output
+  ) {
+    if (source == 0) {
+      return writeConstantImport(firstSource, rootSource, plan, output);
+    }
+
+    if (source == 1) {
+      return writeConstantImport(secondSource, rootSource, plan, output);
+    }
+
+    if (source == 2) {
+      return writeConstantImport(thirdSource, rootSource, plan, output);
+    }
+
+    return writeConstantImport(fourthSource, rootSource, plan, output);
+  }
+
+  private long importRank(
+    long source,
+    long firstStart,
+    long secondStart,
+    long thirdStart,
+    long fourthStart
+  ) {
+    long selected = firstStart;
+    if (source == 1) {
+      selected = secondStart;
+    }
+
+    if (source == 2) {
+      selected = thirdStart;
+    }
+
+    if (source == 3) {
+      selected = fourthStart;
+    }
+
+    long rank = 0;
+    if (firstStart < selected) {
+      rank += 1;
+    }
+
+    if (secondStart < selected) {
+      rank += 1;
+    }
+
+    if (thirdStart < selected) {
+      rank += 1;
+    }
+
+    if (fourthStart < selected) {
+      rank += 1;
+    }
+
+    return rank;
+  }
+
+  private long sourceAtRank(long rank, long firstRank, long secondRank, long thirdRank) {
+    if (firstRank == rank) {
+      return 0;
+    }
+
+    if (secondRank == rank) {
+      return 1;
+    }
+
+    if (thirdRank == rank) {
+      return 2;
+    }
+
+    return 3;
+  }
+
+  private CoreCompilation compileFourOwnedHelpers(
+    borrow utf8 source,
+    borrow mut bytes output,
+    LinkPlan firstPlan,
+    LinkPlan secondPlan,
+    LinkPlan thirdPlan,
+    LinkPlan fourthPlan
+  ) {
+    return compileMinimalCoreWithFourHelperImports(
+      source,
+      output,
+      firstPlan.linkedOwnerStart,
+      firstPlan.linkedOwnerLength,
+      firstPlan.importedHelperCount,
+      secondPlan.linkedOwnerStart,
+      secondPlan.linkedOwnerLength,
+      secondPlan.importedHelperCount,
+      thirdPlan.linkedOwnerStart,
+      thirdPlan.linkedOwnerLength,
+      thirdPlan.importedHelperCount,
+      fourthPlan.linkedOwnerStart,
+      fourthPlan.linkedOwnerLength,
+      fourthPlan.importedHelperCount
+    );
+  }
+
   /// Links two direct helper modules and preserves both canonical function owners.
   public CoreCompilation compileTwoHelperOwners(
     borrow utf8 firstSource,
@@ -327,6 +457,211 @@ classical class MultipleImportedHelpers {
     drop(earliestArena);
     drop(middleLinkedSource);
     drop(middleArena);
+    drop(latestLinkedSource);
+    drop(latestArena);
+    return compiled;
+  }
+
+  /// Links four direct helper modules in root-import order, independent of frame order.
+  public CoreCompilation compileFourHelperOwners(
+    borrow utf8 firstSource,
+    borrow utf8 secondSource,
+    borrow utf8 thirdSource,
+    borrow utf8 fourthSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    LinkPlan firstInputPlan = fourHelperPlanAt(
+      0,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      rootSource
+    );
+    LinkPlan secondInputPlan = fourHelperPlanAt(
+      1,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      rootSource
+    );
+    LinkPlan thirdInputPlan = fourHelperPlanAt(
+      2,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      rootSource
+    );
+    LinkPlan fourthInputPlan = fourHelperPlanAt(
+      3,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      rootSource
+    );
+    if (firstInputPlan.valid) {} else {
+      assert(0 == 1);
+    }
+
+    if (secondInputPlan.valid) {} else {
+      assert(0 == 1);
+    }
+
+    if (thirdInputPlan.valid) {} else {
+      assert(0 == 1);
+    }
+
+    if (fourthInputPlan.valid) {} else {
+      assert(0 == 1);
+    }
+
+    long firstRank = importRank(
+      0,
+      firstInputPlan.linkedOwnerStart,
+      secondInputPlan.linkedOwnerStart,
+      thirdInputPlan.linkedOwnerStart,
+      fourthInputPlan.linkedOwnerStart
+    );
+    long secondRank = importRank(
+      1,
+      firstInputPlan.linkedOwnerStart,
+      secondInputPlan.linkedOwnerStart,
+      thirdInputPlan.linkedOwnerStart,
+      fourthInputPlan.linkedOwnerStart
+    );
+    long thirdRank = importRank(
+      2,
+      firstInputPlan.linkedOwnerStart,
+      secondInputPlan.linkedOwnerStart,
+      thirdInputPlan.linkedOwnerStart,
+      fourthInputPlan.linkedOwnerStart
+    );
+    long latest = sourceAtRank(3, firstRank, secondRank, thirdRank);
+    long third = sourceAtRank(2, firstRank, secondRank, thirdRank);
+    long second = sourceAtRank(1, firstRank, secondRank, thirdRank);
+    long earliest = sourceAtRank(0, firstRank, secondRank, thirdRank);
+
+    LinkPlan latestPlan = fourHelperPlanAt(
+      latest,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      rootSource
+    );
+    region latestArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    bytes latestBytes = allocateBytes(latestArena, latestPlan.linkedLength);
+    long latestWritten = writeFourHelperAt(
+      latest,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      rootSource,
+      latestPlan,
+      latestBytes
+    );
+    assert(latestWritten == latestPlan.linkedLength);
+    utf8 latestLinkedSource = freezeUtf8(latestBytes);
+
+    LinkPlan thirdPlan = fourHelperPlanAt(
+      third,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      latestLinkedSource
+    );
+    if (thirdPlan.valid) {} else {
+      assert(0 == 1);
+    }
+
+    region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    bytes thirdBytes = allocateBytes(thirdArena, thirdPlan.linkedLength);
+    long thirdWritten = writeFourHelperAt(
+      third,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      latestLinkedSource,
+      thirdPlan,
+      thirdBytes
+    );
+    assert(thirdWritten == thirdPlan.linkedLength);
+    utf8 thirdLinkedSource = freezeUtf8(thirdBytes);
+
+    LinkPlan secondPlan = fourHelperPlanAt(
+      second,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      thirdLinkedSource
+    );
+    if (secondPlan.valid) {} else {
+      assert(0 == 1);
+    }
+
+    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    bytes secondBytes = allocateBytes(secondArena, secondPlan.linkedLength);
+    long secondWritten = writeFourHelperAt(
+      second,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      thirdLinkedSource,
+      secondPlan,
+      secondBytes
+    );
+    assert(secondWritten == secondPlan.linkedLength);
+    utf8 secondLinkedSource = freezeUtf8(secondBytes);
+
+    LinkPlan earliestPlan = fourHelperPlanAt(
+      earliest,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      secondLinkedSource
+    );
+    if (earliestPlan.valid) {} else {
+      assert(0 == 1);
+    }
+
+    region earliestArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    bytes earliestBytes = allocateBytes(earliestArena, earliestPlan.linkedLength);
+    long earliestWritten = writeFourHelperAt(
+      earliest,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      secondLinkedSource,
+      earliestPlan,
+      earliestBytes
+    );
+    assert(earliestWritten == earliestPlan.linkedLength);
+    utf8 linkedSource = freezeUtf8(earliestBytes);
+    CoreCompilation compiled = compileFourOwnedHelpers(
+      linkedSource,
+      output,
+      earliestPlan,
+      secondPlan,
+      thirdPlan,
+      latestPlan
+    );
+    drop(linkedSource);
+    drop(earliestArena);
+    drop(secondLinkedSource);
+    drop(secondArena);
+    drop(thirdLinkedSource);
+    drop(thirdArena);
     drop(latestLinkedSource);
     drop(latestArena);
     return compiled;
