@@ -374,6 +374,7 @@ classical class ScalarHelperLibraries {
       sequence.secondaryOperands,
       kind,
       parameterCount,
+      scalarHelperParameterTypes(kind, parameterCount),
       sequence.count,
       sequence.count - 1,
       callTargetStarts,

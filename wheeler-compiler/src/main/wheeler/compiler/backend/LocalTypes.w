@@ -36,14 +36,20 @@ classical class LocalTypes {
   /// Bounds the temporary local window emitted by one source statement.
   private const long MAX_STATEMENT_LOCALS = 6;
 
+  /// Writes one validated canonical local type code.
+  public long writeLocalType(borrow mut bytes output, long cursor, long type) {
+    assert(0 < type);
+    return writeUnsignedLittleEndian(output, cursor, type, 4);
+  }
+
   /// Writes one canonical signed local type code.
   public long writeSignedLocalType(borrow mut bytes output, long cursor) {
-    return writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
+    return writeLocalType(output, cursor, TYPE_SIGNED);
   }
 
   /// Writes one canonical Boolean local type code.
   public long writeBooleanLocalType(borrow mut bytes output, long cursor) {
-    return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
+    return writeLocalType(output, cursor, TYPE_BOOLEAN);
   }
 
   /// Writes canonical local type codes for one parsed statement.

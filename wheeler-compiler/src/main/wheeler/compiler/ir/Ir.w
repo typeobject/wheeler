@@ -4,6 +4,8 @@ module wheeler.compiler.ir;
 
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.helper_abi;
+import wheeler.compiler.helper_signatures;
+import wheeler.compiler.type_codes;
 
 classical class CompilerIr {
 
@@ -18,6 +20,7 @@ classical class CompilerIr {
     long[64] secondaryOperands,
     long kind,
     long parameterCount,
+    long[16] parameterTypes,
     long statementCount,
     long resultStatement,
     long[64] callTargetStarts,
@@ -161,6 +164,41 @@ classical class CompilerIr {
     return program.twentyThirdHelper;
   }
 
+  /// Builds the canonical bounded parameter-type column for one scalar helper.
+  public long[16] scalarHelperParameterTypes(long kind, long parameterCount) {
+    long parameterType = TYPE_SIGNED;
+    if (booleanParameterHelper(kind)) {
+      parameterType = TYPE_BOOLEAN;
+    }
+
+    return new long[16](
+      scalarHelperParameterType(parameterType, parameterCount, 0),
+      scalarHelperParameterType(parameterType, parameterCount, 1),
+      scalarHelperParameterType(parameterType, parameterCount, 2),
+      scalarHelperParameterType(parameterType, parameterCount, 3),
+      scalarHelperParameterType(parameterType, parameterCount, 4),
+      scalarHelperParameterType(parameterType, parameterCount, 5),
+      scalarHelperParameterType(parameterType, parameterCount, 6),
+      scalarHelperParameterType(parameterType, parameterCount, 7),
+      scalarHelperParameterType(parameterType, parameterCount, 8),
+      scalarHelperParameterType(parameterType, parameterCount, 9),
+      scalarHelperParameterType(parameterType, parameterCount, 10),
+      scalarHelperParameterType(parameterType, parameterCount, 11),
+      scalarHelperParameterType(parameterType, parameterCount, 12),
+      scalarHelperParameterType(parameterType, parameterCount, 13),
+      scalarHelperParameterType(parameterType, parameterCount, 14),
+      scalarHelperParameterType(parameterType, parameterCount, 15)
+    );
+  }
+
+  private long scalarHelperParameterType(long type, long count, long index) {
+    if (index < count) {
+      return type;
+    }
+
+    return 0;
+  }
+
   /// Returns one absent helper used to fill a bounded helper table.
   public HelperBody emptyHelperBody() {
     return new HelperBody(
@@ -170,6 +208,7 @@ classical class CompilerIr {
       emptyStatementOperands(),
       HELPER_VOID,
       0,
+      scalarHelperParameterTypes(HELPER_VOID, 0),
       0,
       0,
       emptyHelperCallOffsets(),

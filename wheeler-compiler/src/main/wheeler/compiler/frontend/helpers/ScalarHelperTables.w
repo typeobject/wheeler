@@ -434,6 +434,7 @@ classical class ScalarHelperTables {
       body.secondaryOperands,
       body.kind,
       body.parameterCount,
+      body.parameterTypes,
       body.statementCount,
       body.resultStatement,
       body.callTargetStarts,
