@@ -271,12 +271,13 @@ classical class CompilerCore {
   /// Compiles one bounded bootstrap source into caller-owned artifact storage.
   public CoreCompilation compileMinimalCore(borrow utf8 source, borrow mut bytes output) {
     SourceRange noImportedModule = new SourceRange(0, 0);
-    return compileMinimalCoreOwned(
-      source,
-      output,
+    HelperOwners owners = new HelperOwners(
       noImportedModule,
-      /* importedHelperCount= */ 0
+      /* firstHelperCount= */ 0,
+      noImportedModule,
+      /* secondHelperCount= */ 0
     );
+    return compileMinimalCoreOwned(source, output, owners);
   }
 
   /// Compiles one flattened source while preserving its imported helper owner.
@@ -291,14 +292,46 @@ classical class CompilerCore {
     assert(importedModuleStart + importedModuleLength < bufferLength(source) + 1);
     assert(0 < importedHelperCount);
     SourceRange importedModule = new SourceRange(importedModuleStart, importedModuleLength);
-    return compileMinimalCoreOwned(source, output, importedModule, importedHelperCount);
+    SourceRange noSecondModule = new SourceRange(0, 0);
+    HelperOwners owners = new HelperOwners(
+      importedModule,
+      importedHelperCount,
+      noSecondModule,
+      /* secondHelperCount= */ 0
+    );
+    return compileMinimalCoreOwned(source, output, owners);
+  }
+
+  /// Compiles one flattened source while preserving two imported helper owners.
+  public CoreCompilation compileMinimalCoreWithHelperImports(
+    borrow utf8 source,
+    borrow mut bytes output,
+    long firstModuleStart,
+    long firstModuleLength,
+    long firstHelperCount,
+    long secondModuleStart,
+    long secondModuleLength,
+    long secondHelperCount
+  ) {
+    assert(0 < firstModuleLength);
+    assert(firstModuleStart + firstModuleLength < bufferLength(source) + 1);
+    assert(0 < firstHelperCount);
+    assert(0 < secondModuleLength);
+    assert(secondModuleStart + secondModuleLength < bufferLength(source) + 1);
+    assert(0 < secondHelperCount);
+    HelperOwners owners = new HelperOwners(
+      new SourceRange(firstModuleStart, firstModuleLength),
+      firstHelperCount,
+      new SourceRange(secondModuleStart, secondModuleLength),
+      secondHelperCount
+    );
+    return compileMinimalCoreOwned(source, output, owners);
   }
 
   private CoreCompilation compileMinimalCoreOwned(
     borrow utf8 source,
     borrow mut bytes output,
-    SourceRange importedModule,
-    long importedHelperCount
+    HelperOwners owners
   ) {
     region arena = new region(/* bytes= */ 50208, /* allocations= */ 5);
     words tokenKinds = allocate(arena, MAX_COMPILER_TOKENS);
@@ -316,13 +349,7 @@ classical class CompilerCore {
     );
     SourceRange moduleName = new SourceRange(moduleRange[0], moduleRange[1]);
     StringTablePlan strings = planStringTable(source, program, moduleName);
-    LibraryStringPlan libraryStrings = planLibraryStrings(
-      source,
-      program,
-      moduleName,
-      importedModule,
-      importedHelperCount
-    );
+    LibraryStringPlan libraryStrings = planLibraryStrings(source, program, moduleName, owners);
     if (1 < program.helperCount) {
       if (libraryStrings.valid == 0) {
         assert(0 == 1);
@@ -503,8 +530,7 @@ classical class CompilerCore {
         source,
         program,
         moduleName,
-        importedModule,
-        importedHelperCount,
+        owners,
         libraryStrings
       );
     } else {

@@ -129,6 +129,66 @@ final class NativeCompilerImportedHelperExampleTest {
   }
 
   @Test
+  void compilesTwoDirectHelperOwnersByteForByte() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    String alpha = helperOwner("example.alpha", "Alpha", "alpha", 11);
+    String beta = helperOwner("example.beta", "Beta", "beta", 11);
+    String root = String.join("\n",
+        "module example.use_both;",
+        "import example.alpha;",
+        "import example.beta;",
+        "classical class UseBoth {",
+        "  public boolean accepted(long value) {",
+        "    if (alpha0(value)) {",
+        "      return true;",
+        "    }",
+        "",
+        "    return beta0(value);",
+        "  }",
+        "}",
+        "");
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("Alpha.w", alpha, "Beta.w", beta, "UseBoth.w", root),
+        "example.use_both");
+    byte[] expectedArtifact = new BytecodeWriter().write(expected);
+    byte[] artifact = NativeModuleCompilerHarness.compile(
+        compiler,
+        List.of(alpha, beta),
+        root);
+    assertArrayEquals(expectedArtifact, artifact);
+    assertArrayEquals(
+        expectedArtifact,
+        NativeModuleCompilerHarness.compile(compiler, List.of(beta, alpha), root));
+    Program decoded = new BytecodeReader().read(artifact);
+    assertEquals("example.alpha::alpha0", decoded.functions().getFirst().name());
+    assertEquals("example.alpha::alpha10", decoded.functions().get(10).name());
+    assertEquals("example.beta::beta0", decoded.functions().get(11).name());
+    assertEquals("example.beta::beta10", decoded.functions().get(21).name());
+    assertEquals("example.use_both::accepted", decoded.functions().get(22).name());
+    assertEquals("$library", decoded.functions().getLast().name());
+
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(alpha.replace("public boolean alpha0", "private boolean alpha0"), beta),
+        root);
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(alpha, helperOwner("example.beta", "Beta", "beta", 12)),
+        root);
+    String threeOwnerRoot = root.replace(
+        "import example.beta;",
+        "import example.beta;\nimport example.gamma;");
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(
+            alpha,
+            beta,
+            helperOwner("example.gamma", "Gamma", "gamma", 1)),
+        threeOwnerRoot);
+  }
+
+  @Test
   void compilesCanonicalImportedComparisonHelpersByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     String constants = CompilerSources.read("compiler/ir/ResolvedStatements.w");
@@ -169,6 +229,27 @@ final class NativeCompilerImportedHelperExampleTest {
         compiler,
         List.of(constants, privateDependency),
         root);
+  }
+
+  private static String helperOwner(
+      String module,
+      String className,
+      String prefix,
+      int count) {
+    StringBuilder source = new StringBuilder("module ")
+        .append(module)
+        .append(";\nclassical class ")
+        .append(className)
+        .append(" {\n");
+    for (int index = 0; index < count; index += 1) {
+      source.append("  public boolean ")
+          .append(prefix)
+          .append(index)
+          .append("(long value) {\n    return value == ")
+          .append(index)
+          .append(";\n  }\n\n");
+    }
+    return source.append("}\n").toString();
   }
 
   private static String splitDependency(int count) {

@@ -11,6 +11,7 @@ import wheeler.compiler.graphs.small_structures;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.imported_helpers;
 import wheeler.compiler.module_linker;
+import wheeler.compiler.multiple_imported_helpers;
 
 classical class CompilerGraphs {
   /// Carries private graph-compilation bounds across the driver boundary.
@@ -206,7 +207,13 @@ classical class CompilerGraphs {
       /* expectedImportCount= */ 2
     );
     if (firstPlan.valid) {} else {
-      assert(0 == 1);
+      CoreCompilation compiledHelpers = compileTwoHelperOwners(
+        firstImportedSource,
+        secondImportedSource,
+        rootSource,
+        output
+      );
+      return new GraphCompilation(compiledHelpers.length, compiledHelpers.codeStart);
     }
 
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);

@@ -22,6 +22,14 @@ classical class LibraryStrings {
     long valid
   ) {}
 
+  /// Assigns the two bounded imported helper groups to their canonical modules.
+  public record HelperOwners(
+    SourceRange firstModule,
+    long firstHelperCount,
+    SourceRange secondModule,
+    long secondHelperCount
+  ) {}
+
   private long libraryScalar(long index) {
     if (index == 0) {
       return 36;
@@ -64,14 +72,17 @@ classical class LibraryStrings {
 
   private SourceRange candidateModule(
     SourceRange rootModule,
-    SourceRange importedModule,
-    long importedHelperCount,
+    HelperOwners owners,
     long candidate
   ) {
     long helper = candidate - FIRST_HELPER;
     if (-1 < helper) {
-      if (helper < importedHelperCount) {
-        return importedModule;
+      if (helper < owners.firstHelperCount) {
+        return owners.firstModule;
+      }
+
+      if (helper < owners.firstHelperCount + owners.secondHelperCount) {
+        return owners.secondModule;
       }
     }
 
@@ -81,8 +92,7 @@ classical class LibraryStrings {
   private long candidateLength(
     MinimalProgram program,
     SourceRange rootModule,
-    SourceRange importedModule,
-    long importedHelperCount,
+    HelperOwners owners,
     long candidate
   ) {
     if (candidate == CLASS_NAME) {
@@ -94,12 +104,7 @@ classical class LibraryStrings {
     }
 
     HelperBody helper = candidateHelper(program, candidate);
-    SourceRange moduleName = candidateModule(
-      rootModule,
-      importedModule,
-      importedHelperCount,
-      candidate
-    );
+    SourceRange moduleName = candidateModule(rootModule, owners, candidate);
     long length = helper.name.length;
     if (0 < moduleName.length) {
       length += moduleName.length + 2;
@@ -112,8 +117,7 @@ classical class LibraryStrings {
     borrow utf8 source,
     MinimalProgram program,
     SourceRange rootModule,
-    SourceRange importedModule,
-    long importedHelperCount,
+    HelperOwners owners,
     long candidate,
     long index
   ) {
@@ -125,12 +129,7 @@ classical class LibraryStrings {
       return libraryScalar(index);
     }
 
-    SourceRange moduleName = candidateModule(
-      rootModule,
-      importedModule,
-      importedHelperCount,
-      candidate
-    );
+    SourceRange moduleName = candidateModule(rootModule, owners, candidate);
     if (index < moduleName.length) {
       return utf8Scalar(source, moduleName.start + index);
     }
@@ -153,25 +152,12 @@ classical class LibraryStrings {
     borrow utf8 source,
     MinimalProgram program,
     SourceRange rootModule,
-    SourceRange importedModule,
-    long importedHelperCount,
+    HelperOwners owners,
     long left,
     long right
   ) {
-    long leftLength = candidateLength(
-      program,
-      rootModule,
-      importedModule,
-      importedHelperCount,
-      left
-    );
-    long rightLength = candidateLength(
-      program,
-      rootModule,
-      importedModule,
-      importedHelperCount,
-      right
-    );
+    long leftLength = candidateLength(program, rootModule, owners, left);
+    long rightLength = candidateLength(program, rootModule, owners, right);
     long limit = leftLength;
     if (rightLength < limit) {
       limit = rightLength;
@@ -179,20 +165,12 @@ classical class LibraryStrings {
 
     long index = 0;
     while (index < limit) limit 1024 {
-      long difference = candidateScalar(
+      long difference = candidateScalar(source, program, rootModule, owners, left, index)
+        - candidateScalar(
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
-        left,
-        index
-      ) - candidateScalar(
-        source,
-        program,
-        rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         right,
         index
       );
@@ -210,8 +188,7 @@ classical class LibraryStrings {
     borrow utf8 source,
     MinimalProgram program,
     SourceRange rootModule,
-    SourceRange importedModule,
-    long importedHelperCount,
+    HelperOwners owners,
     long candidate,
     long stringCount
   ) {
@@ -220,15 +197,7 @@ classical class LibraryStrings {
     while (other < stringCount) limit MAX_STRING_COUNT {
       if (other == candidate) {} else {
         if (
-          compareCandidates(
-            source,
-            program,
-            rootModule,
-            importedModule,
-            importedHelperCount,
-            other,
-            candidate
-          ) < 0
+          compareCandidates(source, program, rootModule, owners, other, candidate) < 0
         ) {
           index += 1;
         }
@@ -245,8 +214,7 @@ classical class LibraryStrings {
     borrow utf8 source,
     MinimalProgram program,
     SourceRange rootModule,
-    SourceRange importedModule,
-    long importedHelperCount
+    HelperOwners owners
   ) {
     long stringCount = program.helperCount + 2;
     long valid = 1;
@@ -260,12 +228,19 @@ classical class LibraryStrings {
       valid = 0;
     }
 
+    long importedHelperCount = owners.firstHelperCount + owners.secondHelperCount;
     if (importedHelperCount < program.helperCount + 1) {} else {
       valid = 0;
     }
 
-    if (0 < importedHelperCount) {
-      if (0 < importedModule.length) {} else {
+    if (0 < owners.firstHelperCount) {
+      if (0 < owners.firstModule.length) {} else {
+        valid = 0;
+      }
+    }
+
+    if (0 < owners.secondHelperCount) {
+      if (0 < owners.secondModule.length) {} else {
         valid = 0;
       }
     }
@@ -275,15 +250,7 @@ classical class LibraryStrings {
       long right = left + 1;
       while (right < stringCount) limit MAX_STRING_COUNT {
         if (
-          compareCandidates(
-            source,
-            program,
-            rootModule,
-            importedModule,
-            importedHelperCount,
-            left,
-            right
-          ) == 0
+          compareCandidates(source, program, rootModule, owners, left, right) == 0
         ) {
           valid = 0;
         }
@@ -297,13 +264,7 @@ classical class LibraryStrings {
     long encodedLength = 4 + stringCount * 4;
     long candidate = 0;
     while (candidate < stringCount) limit MAX_STRING_COUNT {
-      encodedLength += candidateLength(
-        program,
-        rootModule,
-        importedModule,
-        importedHelperCount,
-        candidate
-      );
+      encodedLength += candidateLength(program, rootModule, owners, candidate);
       candidate += 1;
     }
 
@@ -311,8 +272,7 @@ classical class LibraryStrings {
       source,
       program,
       rootModule,
-      importedModule,
-      importedHelperCount,
+      owners,
       FIRST_HELPER,
       stringCount
     );
@@ -320,8 +280,7 @@ classical class LibraryStrings {
       source,
       program,
       rootModule,
-      importedModule,
-      importedHelperCount,
+      owners,
       FIRST_HELPER + 1,
       stringCount
     );
@@ -351,8 +310,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 2,
         stringCount
       );
@@ -363,8 +321,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 3,
         stringCount
       );
@@ -375,8 +332,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 4,
         stringCount
       );
@@ -387,8 +343,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 5,
         stringCount
       );
@@ -399,8 +354,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 6,
         stringCount
       );
@@ -411,8 +365,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 7,
         stringCount
       );
@@ -423,8 +376,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 8,
         stringCount
       );
@@ -435,8 +387,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 9,
         stringCount
       );
@@ -447,8 +398,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 10,
         stringCount
       );
@@ -459,8 +409,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 11,
         stringCount
       );
@@ -471,8 +420,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 12,
         stringCount
       );
@@ -483,8 +431,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 13,
         stringCount
       );
@@ -495,8 +442,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 14,
         stringCount
       );
@@ -507,8 +453,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 15,
         stringCount
       );
@@ -519,8 +464,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 16,
         stringCount
       );
@@ -531,8 +475,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 17,
         stringCount
       );
@@ -543,8 +486,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 18,
         stringCount
       );
@@ -555,8 +497,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 19,
         stringCount
       );
@@ -567,8 +508,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 20,
         stringCount
       );
@@ -579,8 +519,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 21,
         stringCount
       );
@@ -591,8 +530,7 @@ classical class LibraryStrings {
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         FIRST_HELPER + 22,
         stringCount
       );
@@ -624,22 +562,13 @@ classical class LibraryStrings {
       twentyThirdIndex
     );
     return new LibraryStringPlan(
-      candidateIndex(
-        source,
-        program,
-        rootModule,
-        importedModule,
-        importedHelperCount,
-        CLASS_NAME,
-        stringCount
-      ),
+      candidateIndex(source, program, rootModule, owners, CLASS_NAME, stringCount),
       helperIndices,
       candidateIndex(
         source,
         program,
         rootModule,
-        importedModule,
-        importedHelperCount,
+        owners,
         entryCandidate(program),
         stringCount
       ),
@@ -677,36 +606,21 @@ classical class LibraryStrings {
     borrow utf8 source,
     MinimalProgram program,
     SourceRange rootModule,
-    SourceRange importedModule,
-    long importedHelperCount,
+    HelperOwners owners,
     LibraryStringPlan plan
   ) {
     cursor = writeUnsignedLittleEndian(output, cursor, plan.stringCount, 4);
     long stringIndex = 0;
     while (stringIndex < plan.stringCount) limit MAX_STRING_COUNT {
       long candidate = candidateForIndex(program, plan, stringIndex);
-      long length = candidateLength(
-        program,
-        rootModule,
-        importedModule,
-        importedHelperCount,
-        candidate
-      );
+      long length = candidateLength(program, rootModule, owners, candidate);
       cursor = writeUnsignedLittleEndian(output, cursor, length, 4);
       long scalar = 0;
       while (scalar < length) limit 1024 {
         setByte(
           output,
           cursor,
-          candidateScalar(
-            source,
-            program,
-            rootModule,
-            importedModule,
-            importedHelperCount,
-            candidate,
-            scalar
-          )
+          candidateScalar(source, program, rootModule, owners, candidate, scalar)
         );
         cursor += 1;
         scalar += 1;
