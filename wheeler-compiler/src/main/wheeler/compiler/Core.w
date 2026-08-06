@@ -21,6 +21,7 @@ import wheeler.compiler.opcodes;
 import wheeler.compiler.parser;
 import wheeler.compiler.program_codegen;
 import wheeler.compiler.resolved_long_operations;
+import wheeler.compiler.result_slot_codegen;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.string_table;
 import wheeler.compiler.tokens;

@@ -84,8 +84,7 @@ and result slot. `RESULT_FILL_CONSTANT` carries result slot and immediate.
 `RESULT_FILL_BINARY_SOURCES` replaces that immediate with a second preserved source.
 `RETURN_RESULT_SLOT` carries the same slot. Stable Java opcode identities live in
 `OpcodeIds`, while `InstructionForm` owns roles. The verifier reports the opcode and canonical role for bad local types, references, windows, descriptors, tags, indices, limits, and storage operands. One registry label serves verifier diagnostics and disassembly, so the Turkish locale cannot rename `limit` while nobody is looking. The stage-0 readability gate parses the Wheeler-native opcode and instruction-form registries. It rejects any consumed identity or operand count that differs from `OpcodeIds` and `InstructionForm`. `compiler/ir/InstructionForms.w` is the sole native operand-count owner.
-`compiler/verification/ResultSlotVerifier.w` owns native slot-transition operand checks.
-The general instruction verifier already has enough dishes in the sink. Wheeler-native
+`compiler/verification/ResultSlotVerifier.w` owns native slot-transition operand checks. `compiler/backend/results/ResultSlotCodegen.w` owns native reversible entry shapes. The general verifier and program emitter already have enough dishes in their respective sinks. Wheeler-native
 emitters use named nullary through quinary form constants and one named operand width. Numeric arities no longer decorate emission sites like lost screws on a workbench.
 
 Unknown executable opcodes always fail. A valid byte length locates the next record, but it cannot make skipped behavior safe. Wheeler has no runtime vendor-opcode registration.

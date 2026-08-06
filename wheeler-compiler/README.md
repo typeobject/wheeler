@@ -52,6 +52,8 @@ The package keeps responsibilities narrow:
 - `compiler/graphs/six/SixPlans.w` extracts and validates the rooted six-module graph.
 - `compiler/graphs/six/Structures.w` owns exact six-module classification and role order.
 - `compiler/Driver.w` keeps one small stable API over the graph compilers and core.
+- `compiler/backend/results/ResultSlotCodegen.w` owns reversible result-slot entry encoding.
+- `compiler/backend/ProgramCodegen.w` emits ordinary helper bodies and package entry code.
 - `compiler/verification` owns complete check-before-publication artifact validation.
 
 `wheeler.package.yaml`, its exact lock, and the canonical workspace sources define the
