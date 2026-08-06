@@ -103,6 +103,22 @@ classical class StatementOpcodes {
             return STATEMENT_RETURN_BUFFER_LENGTH_NAMED;
           }
 
+          if (returnedHash == TOKEN_UTF8_SCALAR) {
+            return STATEMENT_RETURN_UTF8_SCALAR_NAMED;
+          }
+
+          if (returnedHash == TOKEN_UTF8_WIDTH) {
+            return STATEMENT_RETURN_UTF8_WIDTH_NAMED;
+          }
+
+          if (returnedHash == TOKEN_MAP_GET) {
+            return STATEMENT_RETURN_MAP_GET_NAMED;
+          }
+
+          if (returnedHash == TOKEN_MAP_HAS) {
+            return STATEMENT_RETURN_MAP_HAS_NAMED;
+          }
+
           return STATEMENT_RETURN_HELPER_CALL_NAMED;
         }
 

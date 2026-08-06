@@ -29,6 +29,22 @@ classical class BorrowedIntrinsicSyntax {
       return true;
     }
 
+    if (kind == STATEMENT_RETURN_UTF8_SCALAR_NAMED) {
+      return true;
+    }
+
+    if (kind == STATEMENT_RETURN_UTF8_WIDTH_NAMED) {
+      return true;
+    }
+
+    if (kind == STATEMENT_RETURN_MAP_GET_NAMED) {
+      return true;
+    }
+
+    if (kind == STATEMENT_RETURN_MAP_HAS_NAMED) {
+      return true;
+    }
+
     if (kind == STATEMENT_LOCAL_BUFFER_LENGTH_NAMED) {
       return true;
     }
@@ -119,6 +135,47 @@ classical class BorrowedIntrinsicSyntax {
       punctuationAt(source, tokenKinds, tokenStarts, statementStart + 5, PUNCTUATION_SEMICOLON)
     ) {
       return 6;
+    }
+
+    return -1;
+  }
+
+  private long returnIndexedIntrinsicWidth(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    long statementStart
+  ) {
+    if (tokenKinds[statementStart + 3] == 1) {} else {
+      return -1;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 4, PUNCTUATION_COMMA)
+    ) {} else {
+      return -1;
+    }
+
+    if (tokenKinds[statementStart + 5] == 1) {} else {
+      return -1;
+    }
+
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        statementStart + 6,
+        PUNCTUATION_CLOSE_PAREN
+      )
+    ) {} else {
+      return -1;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 7, PUNCTUATION_SEMICOLON)
+    ) {
+      return 8;
     }
 
     return -1;
@@ -372,6 +429,23 @@ classical class BorrowedIntrinsicSyntax {
 
     if (kind == STATEMENT_RETURN_BUFFER_GET_NAMED) {
       return returnBufferGetWidth(source, tokenKinds, tokenStarts, statementStart);
+    }
+
+    boolean returnIndexedIntrinsic = kind == STATEMENT_RETURN_UTF8_SCALAR_NAMED;
+    if (kind == STATEMENT_RETURN_UTF8_WIDTH_NAMED) {
+      returnIndexedIntrinsic = true;
+    }
+
+    if (kind == STATEMENT_RETURN_MAP_GET_NAMED) {
+      returnIndexedIntrinsic = true;
+    }
+
+    if (kind == STATEMENT_RETURN_MAP_HAS_NAMED) {
+      returnIndexedIntrinsic = true;
+    }
+
+    if (returnIndexedIntrinsic) {
+      return returnIndexedIntrinsicWidth(source, tokenKinds, tokenStarts, statementStart);
     }
 
     if (kind == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {

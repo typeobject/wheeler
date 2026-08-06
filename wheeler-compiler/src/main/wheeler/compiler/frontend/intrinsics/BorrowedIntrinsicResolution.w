@@ -104,6 +104,60 @@ classical class BorrowedIntrinsicResolution {
       return new ResolvedBorrowedIntrinsic(-1, true);
     }
 
+    boolean directIndexedIntrinsic = sourceOpcode == STATEMENT_RETURN_UTF8_SCALAR_NAMED;
+    if (sourceOpcode == STATEMENT_RETURN_UTF8_WIDTH_NAMED) {
+      directIndexedIntrinsic = true;
+    }
+
+    if (sourceOpcode == STATEMENT_RETURN_MAP_GET_NAMED) {
+      directIndexedIntrinsic = true;
+    }
+
+    if (sourceOpcode == STATEMENT_RETURN_MAP_HAS_NAMED) {
+      directIndexedIntrinsic = true;
+    }
+
+    if (directIndexedIntrinsic) {
+      long directIntrinsicSource = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3,
+        true
+      );
+      long directIntrinsicIndex = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 5,
+        true
+      );
+      if (-1 < directIntrinsicSource) {
+        if (-1 < directIntrinsicIndex) {
+          long directOpcode = STATEMENT_RETURN_UTF8_SCALAR;
+          if (sourceOpcode == STATEMENT_RETURN_UTF8_WIDTH_NAMED) {
+            directOpcode = STATEMENT_RETURN_UTF8_WIDTH;
+          }
+
+          if (sourceOpcode == STATEMENT_RETURN_MAP_GET_NAMED) {
+            directOpcode = STATEMENT_RETURN_MAP_GET;
+          }
+
+          if (sourceOpcode == STATEMENT_RETURN_MAP_HAS_NAMED) {
+            directOpcode = STATEMENT_RETURN_MAP_HAS;
+          }
+
+          return new ResolvedBorrowedIntrinsic(directOpcode, true);
+        }
+      }
+
+      return new ResolvedBorrowedIntrinsic(-1, true);
+    }
+
     if (sourceOpcode == STATEMENT_LOCAL_BUFFER_GET_NAMED) {
       long bufferSource = resolvePriorDeclaration(
         source,

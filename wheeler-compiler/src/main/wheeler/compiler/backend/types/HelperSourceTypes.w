@@ -57,6 +57,22 @@ classical class HelperSourceTypes {
       return sequenceLocalType(parameterTypes, parameterCount, operand);
     }
 
+    if (opcode == STATEMENT_RETURN_UTF8_SCALAR) {
+      return sequenceLocalType(parameterTypes, parameterCount, operand);
+    }
+
+    if (opcode == STATEMENT_RETURN_UTF8_WIDTH) {
+      return sequenceLocalType(parameterTypes, parameterCount, operand);
+    }
+
+    if (opcode == STATEMENT_RETURN_MAP_GET) {
+      return sequenceLocalType(parameterTypes, parameterCount, operand);
+    }
+
+    if (opcode == STATEMENT_RETURN_MAP_HAS) {
+      return sequenceLocalType(parameterTypes, parameterCount, operand);
+    }
+
     if (opcode == STATEMENT_LOCAL_UTF8_WIDTH) {
       return sequenceLocalType(parameterTypes, parameterCount, operand);
     }
@@ -126,6 +142,22 @@ classical class HelperSourceTypes {
     }
 
     if (opcode == STATEMENT_RETURN_BUFFER_GET) {
+      return sequenceLocalType(parameterTypes, parameterCount, secondaryOperand);
+    }
+
+    if (opcode == STATEMENT_RETURN_UTF8_SCALAR) {
+      return sequenceLocalType(parameterTypes, parameterCount, secondaryOperand);
+    }
+
+    if (opcode == STATEMENT_RETURN_UTF8_WIDTH) {
+      return sequenceLocalType(parameterTypes, parameterCount, secondaryOperand);
+    }
+
+    if (opcode == STATEMENT_RETURN_MAP_GET) {
+      return sequenceLocalType(parameterTypes, parameterCount, secondaryOperand);
+    }
+
+    if (opcode == STATEMENT_RETURN_MAP_HAS) {
       return sequenceLocalType(parameterTypes, parameterCount, secondaryOperand);
     }
 

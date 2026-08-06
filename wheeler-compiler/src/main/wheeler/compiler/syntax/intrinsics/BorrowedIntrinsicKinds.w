@@ -49,4 +49,20 @@ classical class BorrowedIntrinsicKinds {
   public const long STATEMENT_RETURN_BUFFER_GET_NAMED = 907;
   /// Names a resolved signed return of one indexed buffer or fixed-array element.
   public const long STATEMENT_RETURN_BUFFER_GET = 131341;
+  /// Names a signed return of one borrowed UTF-8 scalar.
+  public const long STATEMENT_RETURN_UTF8_SCALAR_NAMED = 908;
+  /// Names a resolved signed return of one borrowed UTF-8 scalar.
+  public const long STATEMENT_RETURN_UTF8_SCALAR = 131342;
+  /// Names a signed return of one borrowed UTF-8 width.
+  public const long STATEMENT_RETURN_UTF8_WIDTH_NAMED = 909;
+  /// Names a resolved signed return of one borrowed UTF-8 width.
+  public const long STATEMENT_RETURN_UTF8_WIDTH = 131343;
+  /// Names a signed return of one signed-map entry.
+  public const long STATEMENT_RETURN_MAP_GET_NAMED = 910;
+  /// Names a resolved signed return of one signed-map entry.
+  public const long STATEMENT_RETURN_MAP_GET = 131344;
+  /// Names a Boolean return of signed-map membership.
+  public const long STATEMENT_RETURN_MAP_HAS_NAMED = 911;
+  /// Names a resolved Boolean return of signed-map membership.
+  public const long STATEMENT_RETURN_MAP_HAS = 131345;
 }

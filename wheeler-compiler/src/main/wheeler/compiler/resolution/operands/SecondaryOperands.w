@@ -122,6 +122,31 @@ classical class SecondaryOperands {
       );
     }
 
+    boolean directIndexedIntrinsic = sourceOpcode == STATEMENT_RETURN_UTF8_SCALAR_NAMED;
+    if (sourceOpcode == STATEMENT_RETURN_UTF8_WIDTH_NAMED) {
+      directIndexedIntrinsic = true;
+    }
+
+    if (sourceOpcode == STATEMENT_RETURN_MAP_GET_NAMED) {
+      directIndexedIntrinsic = true;
+    }
+
+    if (sourceOpcode == STATEMENT_RETURN_MAP_HAS_NAMED) {
+      directIndexedIntrinsic = true;
+    }
+
+    if (directIndexedIntrinsic) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 5,
+        true
+      );
+    }
+
     if (sourceOpcode == STATEMENT_LOCAL_BUFFER_GET_NAMED) {
       return resolvePriorDeclaration(
         source,

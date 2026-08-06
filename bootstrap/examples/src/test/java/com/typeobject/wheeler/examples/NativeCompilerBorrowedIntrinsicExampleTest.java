@@ -57,6 +57,12 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
             long width = utf8Width(value, index);
             return width;
           }
+          public long directScalar(borrow utf8 value, long index) {
+            return utf8Scalar(value, index);
+          }
+          public long directWidth(borrow utf8 value, long index) {
+            return utf8Width(value, index);
+          }
           public long dummy() { return 0; }
         }
         """;
@@ -126,6 +132,12 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
           public boolean contains(borrow mut longmap values, long key) {
             boolean present = mapHas(values, key);
             return present;
+          }
+          public long directLookup(borrow mut longmap values, long key) {
+            return mapGet(values, key);
+          }
+          public boolean directContains(borrow mut longmap values, long key) {
+            return mapHas(values, key);
           }
           public long dummy() { return 0; }
         }

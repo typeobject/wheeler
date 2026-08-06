@@ -850,6 +850,22 @@ classical class LocalStatements {
       return -1 < operand;
     }
 
+    if (opcode == STATEMENT_RETURN_UTF8_SCALAR) {
+      return -1 < operand;
+    }
+
+    if (opcode == STATEMENT_RETURN_UTF8_WIDTH) {
+      return -1 < operand;
+    }
+
+    if (opcode == STATEMENT_RETURN_MAP_GET) {
+      return -1 < operand;
+    }
+
+    if (opcode == STATEMENT_RETURN_MAP_HAS) {
+      return -1 < operand;
+    }
+
     if (opcode == STATEMENT_LOCAL_UTF8_WIDTH) {
       return -1 < operand;
     }

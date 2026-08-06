@@ -63,6 +63,18 @@ classical class ScalarHelperLibraries {
       return true;
     }
 
+    if (opcode == STATEMENT_RETURN_UTF8_SCALAR) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_UTF8_WIDTH) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_MAP_GET) {
+      return true;
+    }
+
     return returnLocalPairStatement(opcode);
   }
 
@@ -87,7 +99,7 @@ classical class ScalarHelperLibraries {
       return resolvedSignedLocalReturn(opcode) == false;
     }
 
-    return false;
+    return opcode == STATEMENT_RETURN_MAP_HAS;
   }
 
   private boolean intrinsicSourcesValid(
@@ -164,6 +176,14 @@ classical class ScalarHelperLibraries {
         mapRead = true;
       }
 
+      if (opcode == STATEMENT_RETURN_MAP_GET) {
+        mapRead = true;
+      }
+
+      if (opcode == STATEMENT_RETURN_MAP_HAS) {
+        mapRead = true;
+      }
+
       if (mapRead) {
         long mapLocal = sequence.operands[statement];
         if (mapLocal < 0) {
@@ -237,6 +257,14 @@ classical class ScalarHelperLibraries {
 
       boolean utf8IndexedRead = opcode == STATEMENT_LOCAL_UTF8_SCALAR;
       if (opcode == STATEMENT_LOCAL_UTF8_WIDTH) {
+        utf8IndexedRead = true;
+      }
+
+      if (opcode == STATEMENT_RETURN_UTF8_SCALAR) {
+        utf8IndexedRead = true;
+      }
+
+      if (opcode == STATEMENT_RETURN_UTF8_WIDTH) {
         utf8IndexedRead = true;
       }
 

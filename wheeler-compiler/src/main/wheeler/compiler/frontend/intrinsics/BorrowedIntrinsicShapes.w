@@ -69,6 +69,38 @@ classical class BorrowedIntrinsicShapes {
     return opcode == STATEMENT_LOCAL_UTF8_WIDTH;
   }
 
+  private boolean directIndexedIntrinsic(long opcode) {
+    if (opcode == STATEMENT_RETURN_UTF8_SCALAR_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_UTF8_SCALAR) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_UTF8_WIDTH_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_UTF8_WIDTH) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_MAP_GET_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_MAP_GET) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_MAP_HAS_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_RETURN_MAP_HAS;
+  }
+
   /// Returns the local width for one borrowed intrinsic, or minus one.
   public long borrowedIntrinsicLocalCount(long opcode) {
     if (borrowedMutation(opcode)) {
@@ -84,6 +116,10 @@ classical class BorrowedIntrinsicShapes {
     }
 
     if (opcode == STATEMENT_RETURN_BUFFER_GET) {
+      return 3;
+    }
+
+    if (directIndexedIntrinsic(opcode)) {
       return 3;
     }
 
@@ -142,6 +178,26 @@ classical class BorrowedIntrinsicShapes {
     }
 
     if (opcode == STATEMENT_RETURN_BUFFER_GET) {
+      return 96;
+    }
+
+    if (directIndexedIntrinsic(opcode)) {
+      if (opcode == STATEMENT_RETURN_UTF8_SCALAR_NAMED) {
+        return -1;
+      }
+
+      if (opcode == STATEMENT_RETURN_UTF8_WIDTH_NAMED) {
+        return -1;
+      }
+
+      if (opcode == STATEMENT_RETURN_MAP_GET_NAMED) {
+        return -1;
+      }
+
+      if (opcode == STATEMENT_RETURN_MAP_HAS_NAMED) {
+        return -1;
+      }
+
       return 96;
     }
 

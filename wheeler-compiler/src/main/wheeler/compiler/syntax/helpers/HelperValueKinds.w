@@ -61,6 +61,22 @@ classical class HelperValueKinds {
       return true;
     }
 
+    if (opcode == STATEMENT_RETURN_UTF8_SCALAR_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_UTF8_WIDTH_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_MAP_GET_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_MAP_HAS_NAMED) {
+      return true;
+    }
+
     if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH_NAMED) {
       return true;
     }
