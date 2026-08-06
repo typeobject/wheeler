@@ -29,6 +29,7 @@ classical class SevenGraphPlans {
   private const long SIX_EDGES = 6;
   private const long SIX_IMPORTS = 6;
   private const long SEVEN_IMPORTS = 7;
+  private const long EIGHT_EDGES = 8;
 
   private SevenGraphPlan invalidPlan() {
     return new SevenGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, false);
@@ -256,6 +257,11 @@ classical class SevenGraphPlans {
       mixedSharedDiamondSide = rootCount == THREE_IMPORTS;
     }
 
+    boolean serialDiamonds = false;
+    if (edgeCount == EIGHT_EDGES) {
+      serialDiamonds = rootCount == SINGLE_IMPORT;
+    }
+
     boolean valid = direct;
     if (structured) {
       valid = true;
@@ -286,6 +292,10 @@ classical class SevenGraphPlans {
     }
 
     if (mixedSharedDiamondSide) {
+      valid = true;
+    }
+
+    if (serialDiamonds) {
       valid = true;
     }
 
@@ -394,6 +404,10 @@ classical class SevenGraphPlans {
 
         if (mixedSharedDiamond) {
           result = sharedDiamondAndDirectsPlan(graph, rootDirect);
+        }
+
+        if (serialDiamonds) {
+          result = serialDiamondsPlan(graph, rootDirect);
         }
 
         if (mixedSharedDiamondSide) {

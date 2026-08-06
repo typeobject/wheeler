@@ -57,4 +57,6 @@ classical class SevenPlanKinds {
   public const long SEVEN_PLAN_SHARED_DIAMOND_AND_DIRECTS = 26;
   /// Names one shared diamond with a side leaf beside two direct imports.
   public const long SEVEN_PLAN_SHARED_DIAMOND_SIDE_AND_DIRECTS = 27;
+  /// Names two serial shared diamonds spanning all seven imported modules.
+  public const long SEVEN_PLAN_SERIAL_DIAMONDS = 28;
 }
