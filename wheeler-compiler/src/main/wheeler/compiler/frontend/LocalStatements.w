@@ -41,6 +41,8 @@ import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
+import wheeler.compiler.void_call_kinds;
+import wheeler.compiler.void_call_resolution;
 
 classical class LocalStatements {
   private const long RETURN_HELPER_CALL_SOURCE_COUNT = 256;
@@ -204,6 +206,19 @@ classical class LocalStatements {
         previousCount,
         opcode
       );
+    }
+
+    ResolvedVoidCall voidCall = resolveVoidCall(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      statementStart,
+      opcode
+    );
+    if (voidCall.applies) {
+      return voidCall.opcode;
     }
 
     ResolvedBorrowedIntrinsic intrinsic = resolveBorrowedIntrinsic(

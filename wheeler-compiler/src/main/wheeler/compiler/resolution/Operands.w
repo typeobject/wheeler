@@ -39,6 +39,7 @@ import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
+import wheeler.compiler.void_call_kinds;
 
 classical class Operands {
   /// Selects the typed opcode used for operand resolution.
@@ -160,6 +161,34 @@ classical class Operands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (sourceOpcode == STATEMENT_CALL_VOID_ZERO_NAMED) {
+      return 0;
+    }
+
+    if (sourceOpcode == STATEMENT_CALL_VOID_ONE_NAMED) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 2,
+        true
+      );
+    }
+
+    if (sourceOpcode == STATEMENT_CALL_VOID_TWO_NAMED) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 2,
+        true
+      );
+    }
+
     if (sourceOpcode == STATEMENT_SET_WORD_NAMED) {
       return resolvePriorDeclaration(
         source,

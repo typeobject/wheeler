@@ -8,6 +8,7 @@ import wheeler.compiler.helper_signatures;
 import wheeler.compiler.ir;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.type_codes;
+import wheeler.compiler.void_call_kinds;
 
 classical class ScalarHelperTables {
   /// Carries bounded call targets resolved against one helper table.
@@ -47,11 +48,13 @@ classical class ScalarHelperTables {
     return TYPE_SIGNED;
   }
 
-  private boolean forwardingCallParametersMatch(
+  private boolean callParametersMatch(
     HelperBody caller,
     HelperBody candidate,
     long opcode,
-    long argumentCount
+    long argumentCount,
+    long firstSource,
+    long secondSource
   ) {
     if (candidate.parameterCount == argumentCount) {} else {
       return false;
@@ -61,9 +64,13 @@ classical class ScalarHelperTables {
       return true;
     }
 
-    long firstSource = returnHelperCallFirstSource(opcode);
-    if (argumentCount == 2) {
-      firstSource -= RETURN_HELPER_CALL_TWO_SOURCE_OFFSET;
+    if (voidCallStatement(opcode)) {} else {
+      firstSource = returnHelperCallFirstSource(opcode);
+      if (argumentCount == 2) {
+        firstSource -= RETURN_HELPER_CALL_TWO_SOURCE_OFFSET;
+      }
+
+      secondSource = returnHelperCallSecondSource(opcode);
     }
 
     if (callerLocalType(caller, firstSource) == candidate.parameterTypes[0]) {} else {
@@ -74,7 +81,6 @@ classical class ScalarHelperTables {
       return true;
     }
 
-    long secondSource = returnHelperCallSecondSource(opcode);
     return callerLocalType(caller, secondSource) == candidate.parameterTypes[1];
   }
 
@@ -311,6 +317,8 @@ classical class ScalarHelperTables {
     boolean forwarding,
     long callOpcode,
     long argumentCount,
+    long firstSource,
+    long secondSource,
     HelperBody first,
     HelperBody second,
     HelperBody third,
@@ -385,15 +393,39 @@ classical class ScalarHelperTables {
 
           if (sameResultKind) {
             if (
-              forwardingCallParametersMatch(caller, candidate, callOpcode, argumentCount)
+              callParametersMatch(
+                caller,
+                candidate,
+                callOpcode,
+                argumentCount,
+                firstSource,
+                secondSource
+              )
             ) {
               found = helper;
             }
           }
         } else {
-          if (candidate.kind == HELPER_BOOLEAN_SIGNED_ONE) {
-            if (signedCallParameters(candidate, 1)) {
-              found = helper;
+          if (voidCallStatement(callOpcode)) {
+            if (candidate.kind == HELPER_VOID) {
+              if (
+                callParametersMatch(
+                  caller,
+                  candidate,
+                  callOpcode,
+                  argumentCount,
+                  firstSource,
+                  secondSource
+                )
+              ) {
+                found = helper;
+              }
+            }
+          } else {
+            if (candidate.kind == HELPER_BOOLEAN_SIGNED_ONE) {
+              if (signedCallParameters(candidate, 1)) {
+                found = helper;
+              }
             }
           }
         }
@@ -441,10 +473,15 @@ classical class ScalarHelperTables {
     while (call < caller.callCount) limit MAX_SCALAR_HELPER_CALLS {
       if (valid) {
         long callStatement = caller.callStatements[call];
-        boolean forwarding = callStatement == caller.resultStatement;
+        long callOpcode = caller.opcodes[callStatement];
+        boolean forwarding = resolvedReturnHelperCall(callOpcode);
         long argumentCount = 1;
         if (forwarding) {
-          argumentCount = returnHelperCallArity(caller.opcodes[callStatement]);
+          argumentCount = returnHelperCallArity(callOpcode);
+        }
+
+        if (voidCallStatement(callOpcode)) {
+          argumentCount = voidCallArity(callOpcode);
         }
 
         long function = resolveCallFunction(
@@ -452,8 +489,10 @@ classical class ScalarHelperTables {
           caller,
           new SourceRange(caller.callTargetStarts[call], caller.callTargetLengths[call]),
           forwarding,
-          caller.opcodes[callStatement],
+          callOpcode,
           argumentCount,
+          caller.operands[callStatement],
+          caller.secondaryOperands[callStatement],
           first,
           second,
           third,

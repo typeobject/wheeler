@@ -27,6 +27,7 @@ import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
 import wheeler.compiler.type_codes;
+import wheeler.compiler.void_call_kinds;
 
 classical class ScalarHelperLibraries {
   /// Carries one complete scalar helper and the following declaration token.
@@ -267,6 +268,10 @@ classical class ScalarHelperLibraries {
           write = true;
         }
 
+        if (voidCallStatement(voidOpcode)) {
+          write = true;
+        }
+
         if (write) {} else {
           return false;
         }
@@ -343,6 +348,10 @@ classical class ScalarHelperLibraries {
         }
 
         if (earlyOpcode == STATEMENT_SET_BYTE) {
+          signedPrelude = true;
+        }
+
+        if (voidCallStatement(earlyOpcode)) {
           signedPrelude = true;
         }
 
@@ -537,6 +546,11 @@ classical class ScalarHelperLibraries {
       }
 
       long targetToken = statementStarts[sourceStatement] + 2;
+      if (voidCallSourceStatement(sourceOpcode)) {
+        helperCall = true;
+        targetToken = statementStarts[sourceStatement];
+      }
+
       if (sourceOpcode == STATEMENT_RETURN_HELPER_CALL_NAMED) {
         helperCall = true;
         targetToken = statementStarts[sourceStatement] + 1;

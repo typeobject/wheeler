@@ -5,6 +5,7 @@ module wheeler.compiler.helper_source_types;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.type_codes;
+import wheeler.compiler.void_call_kinds;
 
 classical class HelperSourceTypes {
   private long sequenceLocalType(long[16] parameterTypes, long parameterCount, long local) {
@@ -24,6 +25,10 @@ classical class HelperSourceTypes {
     long[16] parameterTypes,
     long parameterCount
   ) {
+    if (0 < voidCallArity(opcode)) {
+      return sequenceLocalType(parameterTypes, parameterCount, operand);
+    }
+
     if (opcode == STATEMENT_SET_WORD) {
       return sequenceLocalType(parameterTypes, parameterCount, operand);
     }
@@ -78,6 +83,10 @@ classical class HelperSourceTypes {
     long[16] parameterTypes,
     long parameterCount
   ) {
+    if (voidCallArity(opcode) == 2) {
+      return sequenceLocalType(parameterTypes, parameterCount, secondaryOperand);
+    }
+
     if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
       return sequenceLocalType(parameterTypes, parameterCount, secondaryOperand);
     }

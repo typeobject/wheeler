@@ -37,6 +37,7 @@ import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.type_codes;
+import wheeler.compiler.void_call_codegen;
 
 classical class Codegen {
   /// Aliases named instruction forms for compact emitter calls.
@@ -256,6 +257,21 @@ classical class Codegen {
     long firstSourceType,
     long secondSourceType
   ) {
+    long voidCallCursor = writeVoidCallStatement(
+      output,
+      cursor,
+      opcode,
+      operand,
+      secondaryOperand,
+      localBase,
+      callFunction,
+      firstSourceType,
+      secondSourceType
+    );
+    if (-1 < voidCallCursor) {
+      return voidCallCursor;
+    }
+
     long intrinsicCursor = writeBorrowedIntrinsicStatement(
       output,
       cursor,

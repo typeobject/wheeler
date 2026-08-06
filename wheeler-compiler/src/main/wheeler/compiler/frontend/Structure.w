@@ -19,6 +19,8 @@ import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
+import wheeler.compiler.void_call_kinds;
+import wheeler.compiler.void_call_syntax;
 
 classical class Structure {
   /// Returns the first source offset inside the bounded entry body.
@@ -237,6 +239,16 @@ classical class Structure {
       }
 
       return -1;
+    }
+
+    if (voidCallSourceStatement(statementKind)) {
+      return voidCallStatementWidth(
+        source,
+        tokenKinds,
+        tokenStarts,
+        statementStart,
+        statementKind
+      );
     }
 
     if (borrowedIntrinsicSourceStatement(statementKind)) {

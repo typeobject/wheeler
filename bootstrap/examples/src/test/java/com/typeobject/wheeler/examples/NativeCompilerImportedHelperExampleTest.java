@@ -15,6 +15,42 @@ import org.junit.jupiter.api.Test;
 /** Differential evidence for bounded native imported scalar helpers. */
 final class NativeCompilerImportedHelperExampleTest {
   @Test
+  void compilesImportedPrimitiveLoanVoidCallsByteForByte() throws Exception {
+    String dependency = """
+        module example.sinks;
+        classical class Sinks {
+          public void accept(borrow mut bytes values) {}
+          public void locate(borrow mut words values, long index) {}
+        }
+        """;
+    String root = """
+        module example.use_sinks;
+        import example.sinks;
+        classical class UseSinks {
+          private void relay(borrow mut bytes output, borrow mut words values, long index) {
+            accept(output);
+            locate(values, index);
+          }
+          private long dummy() { return 0; }
+        }
+        """;
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] actual = NativeModuleCompilerHarness.compile(compiler, List.of(dependency), root);
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("Sinks.w", dependency, "UseSinks.w", root), "example.use_sinks");
+    assertArrayEquals(new BytecodeWriter().write(expected), actual);
+
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(dependency.replace("public void accept", "private void accept")),
+        root);
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(dependency),
+        root.replace("accept(output);", "accept(values);"));
+  }
+
+  @Test
   void compilesEveryTwentyThreeHelperOwnerSplitByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     for (int importedCount = 1; importedCount < 23; importedCount += 1) {

@@ -124,6 +124,17 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
             set(values, index, element);
           }
           private void idle() {}
+          private void inspect(borrow mut bytes values) {}
+          private void locate(borrow mut words values, long index) {}
+          private void relay(borrow mut bytes output, borrow mut words values, long index) {
+            idle();
+            inspect(output);
+            locate(values, index);
+          }
+          private long dispatch(borrow mut bytes output, long index) {
+            inspect(output);
+            return index;
+          }
         }
         """;
     byte[] expected = new BytecodeWriter().write(
@@ -143,6 +154,18 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
         NativeModuleCompilerHarness.program(),
         List.of(),
         source.replace("private long dummy() { return 0; }", "private long dummy() {}"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace("inspect(output);", "inspect(values);"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace("inspect(output);", "inspect();"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace("idle();", "dummy();"));
   }
 
   @Test

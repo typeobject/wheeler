@@ -32,6 +32,7 @@ import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.type_codes;
+import wheeler.compiler.void_call_kinds;
 
 classical class LocalTypes {
   /// Bounds the temporary local window emitted by one source statement.
@@ -62,6 +63,23 @@ classical class LocalTypes {
     long firstSourceType,
     long secondSourceType
   ) {
+    long voidArity = voidCallArity(opcode);
+    if (voidArity == 0) {
+      return cursor;
+    }
+
+    if (voidArity == 1) {
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      return writeLocalType(output, cursor, firstSourceType);
+    }
+
+    if (voidArity == 2) {
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, secondSourceType);
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      return writeLocalType(output, cursor, secondSourceType);
+    }
+
     if (opcode == STATEMENT_SET_WORD) {
       cursor = writeLocalType(output, cursor, firstSourceType);
       cursor = writeLocalType(output, cursor, TYPE_SIGNED);

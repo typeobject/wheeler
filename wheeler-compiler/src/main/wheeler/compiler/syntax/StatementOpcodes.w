@@ -10,6 +10,7 @@ import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
+import wheeler.compiler.void_call_kinds;
 
 classical class StatementOpcodes {
   /// Maps one statement token to its bounded parser opcode.
@@ -697,6 +698,24 @@ classical class StatementOpcodes {
     }
 
     long operator = utf8Scalar(source, tokenStarts[statementStart + 1]);
+    if (operator == PUNCTUATION_OPEN_PAREN) {
+      long firstArgument = utf8Scalar(source, tokenStarts[statementStart + 2]);
+      if (firstArgument == PUNCTUATION_CLOSE_PAREN) {
+        return STATEMENT_CALL_VOID_ZERO_NAMED;
+      }
+
+      long argumentEnd = utf8Scalar(source, tokenStarts[statementStart + 3]);
+      if (argumentEnd == PUNCTUATION_CLOSE_PAREN) {
+        return STATEMENT_CALL_VOID_ONE_NAMED;
+      }
+
+      if (argumentEnd == PUNCTUATION_COMMA) {
+        return STATEMENT_CALL_VOID_TWO_NAMED;
+      }
+
+      return -1;
+    }
+
     if (operator == PUNCTUATION_ASSIGN) {
       long assignedScalar = utf8Scalar(source, tokenStarts[statementStart + 2]);
       if (identifierStart(assignedScalar)) {
