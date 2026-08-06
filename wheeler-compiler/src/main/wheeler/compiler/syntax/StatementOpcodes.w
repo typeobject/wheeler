@@ -10,7 +10,6 @@ import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
-import wheeler.compiler.void_call_kinds;
 import wheeler.compiler.void_call_source_kinds;
 
 classical class StatementOpcodes {

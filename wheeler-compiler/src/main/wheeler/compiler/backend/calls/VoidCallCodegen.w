@@ -6,6 +6,7 @@ import wheeler.compiler.call_arguments;
 import wheeler.compiler.encoding;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.void_call_kinds;
+import wheeler.compiler.void_call_widths;
 
 classical class VoidCallCodegen {
   private const long FORM_UNARY = INSTRUCTION_FORM_UNARY;

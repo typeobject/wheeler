@@ -9,6 +9,7 @@ import wheeler.compiler.ir;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
+import wheeler.compiler.void_call_widths;
 
 classical class ScalarHelperTables {
   /// Carries bounded call targets resolved against one helper table.

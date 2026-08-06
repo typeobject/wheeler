@@ -4,7 +4,6 @@ module wheeler.compiler.void_call_syntax;
 
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
-import wheeler.compiler.void_call_kinds;
 import wheeler.compiler.void_call_source_kinds;
 
 classical class VoidCallSyntax {

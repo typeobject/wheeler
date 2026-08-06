@@ -36,7 +36,7 @@ import wheeler.compiler.resolved_statements;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.two_argument_call_kinds;
-import wheeler.compiler.void_call_kinds;
+import wheeler.compiler.void_call_widths;
 
 classical class LocalOpcodes {
   private const long EARLY_FORWARD_LOCAL_COUNT = 6;

@@ -114,7 +114,7 @@ imported-constant `compiler/syntax/EarlyReturnKinds.w`, imported-constant
 `compiler/syntax/calls/CallArgumentSources.w`, imported-constant
 `compiler/syntax/calls/OneArgumentCalls.w`, imported-constant
 `compiler/syntax/calls/TwoArgumentCallKinds.w`,
-`compiler/syntax/calls/VoidCallSourceKinds.w`, imported-constant
+`compiler/syntax/calls/VoidCallKinds.w`, `compiler/syntax/calls/VoidCallSourceKinds.w`, imported-constant
 `compiler/syntax/returns/EarlyReturnSources.w`, imported-constant
 `compiler/syntax/returns/NamedBooleanReturnKinds.w`, imported-constant
 `compiler/syntax/returns/NamedReturnArithmeticKinds.w`, imported-constant
@@ -126,7 +126,7 @@ imported-constant `compiler/syntax/EarlyReturnKinds.w`, imported-constant
 modules compile byte for byte with stage 0.
 `StatementKinds.w` owns 129 unresolved statement identities. `LoopKinds.w` owns six loop-form
 identities. `ResolvedStatements.w` owns eighty-two resolved columns. `BorrowedIntrinsicKinds.w`
-owns separate source and resolved `bufferLength`, `utf8Scalar`, `utf8Width`, indexed-buffer, and mutable-buffer statement identities. `VoidCallSourceKinds.w` owns and classifies unresolved ordinary void calls; `VoidCallKinds.w` owns their resolved forms and widths. Focused frontend syntax, typed resolution, register-shape, call-argument, and backend codegen owners validate, size, resolve, and emit the canonical forms. `backend/calls/ScalarValueCallCodegen.w` owns scalar value-call emission, leaving the general code generator to coordinate rather than collect another staircase. `Tokens.w` now sticks to
+owns separate source and resolved `bufferLength`, `utf8Scalar`, `utf8Width`, indexed-buffer, and mutable-buffer statement identities. `VoidCallSourceKinds.w` owns and classifies unresolved ordinary void calls; `VoidCallKinds.w` owns their resolved identities and arity; `VoidCallWidths.w` owns local, instruction, and encoded widths. Focused frontend syntax, typed resolution, register-shape, call-argument, and backend codegen owners validate, size, resolve, and emit the canonical forms. `backend/calls/ScalarValueCallCodegen.w` owns scalar value-call emission, leaving the general code generator to coordinate rather than collect another staircase. `Tokens.w` now sticks to
 lexical work instead of running a parser-IR registry from the back room. Real self-source modules beat motivational slides. One of them now owns conditional base mapping instead of leaving it in the parser's coat pocket. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,

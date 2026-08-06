@@ -598,6 +598,17 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalVoidCallKindsByteForByte() throws Exception {
+    Program decoded = assertCompilerLibrary(
+        "compiler/syntax/calls/VoidCallKinds.w",
+        "wheeler.compiler.void_call_kinds");
+    assertEquals(
+        "wheeler.compiler.void_call_kinds::voidCallStatement",
+        decoded.functions().getFirst().name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalEarlyReturnKindsByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     String dependency = CompilerSources.read("compiler/ir/StatementKinds.w");

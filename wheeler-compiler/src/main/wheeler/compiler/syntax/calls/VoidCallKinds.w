@@ -1,8 +1,6 @@
-//! Names bounded source and resolved ordinary void-call forms.
+//! Names and classifies resolved ordinary void-call forms.
 
 module wheeler.compiler.void_call_kinds;
-
-import wheeler.compiler.void_call_source_kinds;
 
 classical class VoidCallKinds {
   /// Names a resolved zero-argument void call.
@@ -15,6 +13,9 @@ classical class VoidCallKinds {
   public const long STATEMENT_CALL_VOID_THREE_BASE = 131082;
   /// Names the bounded local-source column width encoded in a call identity.
   public const long VOID_CALL_LOCAL_SOURCE_COUNT = 256;
+  /// Ends the resolved three-argument source-local column.
+  private const long VOID_CALL_THREE_LIMIT = STATEMENT_CALL_VOID_THREE_BASE
+    + VOID_CALL_LOCAL_SOURCE_COUNT;
 
   /// Reports whether one identity is a resolved void call.
   public boolean voidCallStatement(long kind) {
@@ -30,11 +31,11 @@ classical class VoidCallKinds {
       return true;
     }
 
-    if (STATEMENT_CALL_VOID_THREE_BASE - 1 < kind) {
-      return kind < STATEMENT_CALL_VOID_THREE_BASE + VOID_CALL_LOCAL_SOURCE_COUNT;
+    if (kind < STATEMENT_CALL_VOID_THREE_BASE) {
+      return false;
     }
 
-    return false;
+    return kind < VOID_CALL_THREE_LIMIT;
   }
 
   /// Returns the exact argument count for one resolved void call.
@@ -51,79 +52,15 @@ classical class VoidCallKinds {
       return 2;
     }
 
-    if (STATEMENT_CALL_VOID_THREE_BASE - 1 < kind) {
-      if (kind < STATEMENT_CALL_VOID_THREE_BASE + VOID_CALL_LOCAL_SOURCE_COUNT) {
-        return 3;
-      }
+    if (kind < STATEMENT_CALL_VOID_THREE_BASE) {
+      return -1;
+    }
+
+    if (kind < VOID_CALL_THREE_LIMIT) {
+      return 3;
     }
 
     return -1;
   }
 
-  /// Returns the canonical local width for one resolved void call.
-  public long voidCallLocalCount(long kind) {
-    long arity = voidCallArity(kind);
-    if (kind == STATEMENT_CALL_VOID_ZERO_NAMED) {
-      arity = 0;
-    }
-
-    if (kind == STATEMENT_CALL_VOID_ONE_NAMED) {
-      arity = 1;
-    }
-
-    if (kind == STATEMENT_CALL_VOID_TWO_NAMED) {
-      arity = 2;
-    }
-
-    if (kind == STATEMENT_CALL_VOID_THREE_NAMED) {
-      arity = 3;
-    }
-
-    if (-1 < arity) {
-      return arity * 2;
-    }
-
-    return -1;
-  }
-
-  /// Returns the canonical encoded width for one resolved void call.
-  public long voidCallCodeLength(long kind) {
-    long arity = voidCallArity(kind);
-    if (arity == 0) {
-      return 16;
-    }
-
-    if (arity == 1) {
-      return 80;
-    }
-
-    if (arity == 2) {
-      return 128;
-    }
-
-    if (arity == 3) {
-      return 176;
-    }
-
-    return -1;
-  }
-
-  /// Returns the third source local encoded in a resolved three-argument call.
-  public long voidCallThirdSource(long kind) {
-    if (voidCallArity(kind) == 3) {
-      return kind - STATEMENT_CALL_VOID_THREE_BASE;
-    }
-
-    return -1;
-  }
-
-  /// Returns the canonical instruction count for one resolved void call.
-  public long voidCallInstructionCount(long kind) {
-    long arity = voidCallArity(kind);
-    if (-1 < arity) {
-      return arity * 2 + 1;
-    }
-
-    return -1;
-  }
 }

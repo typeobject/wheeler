@@ -39,7 +39,6 @@ import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
-import wheeler.compiler.void_call_kinds;
 import wheeler.compiler.void_call_source_kinds;
 
 classical class Operands {
