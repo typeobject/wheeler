@@ -7,6 +7,7 @@ import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -376,11 +377,78 @@ final class NativeCompilerImportedHelperExampleTest {
             epsilon,
             gamma.replace("public boolean gamma0", "private boolean gamma0")),
         root);
+  }
 
-    String zeta = helperOwner("example.zeta", "Zeta", "zeta", 1);
-    String sixOwnerRoot = root
-        .replace("module example.use_five;", "module example.use_six;")
-        .replace("import example.gamma;", "import example.gamma;\nimport example.zeta;");
+  @Test
+  void compilesSixDirectHelperOwnersByteForByte() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    String alpha = helperOwner("example.alpha", "Alpha", "alpha", 4);
+    String beta = helperOwner("example.beta", "Beta", "beta", 4);
+    String delta = helperOwner("example.delta", "Delta", "delta", 4);
+    String epsilon = helperOwner("example.epsilon", "Epsilon", "epsilon", 4);
+    String gamma = helperOwner("example.gamma", "Gamma", "gamma", 3);
+    String zeta = helperOwner("example.zeta", "Zeta", "zeta", 3);
+    String root = String.join("\n",
+        "module example.use_six;",
+        "import example.alpha;",
+        "import example.beta;",
+        "import example.delta;",
+        "import example.epsilon;",
+        "import example.gamma;",
+        "import example.zeta;",
+        "classical class UseSix {",
+        "  public boolean accepted(long value) {",
+        "    if (alpha0(value)) { return true; }",
+        "    if (beta0(value)) { return false; }",
+        "    if (delta0(value)) { return true; }",
+        "    if (epsilon0(value)) { return false; }",
+        "    if (gamma0(value)) { return true; }",
+        "    return zeta0(value);",
+        "  }",
+        "}",
+        "");
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of(
+            "Alpha.w", alpha,
+            "Beta.w", beta,
+            "Delta.w", delta,
+            "Epsilon.w", epsilon,
+            "Gamma.w", gamma,
+            "Zeta.w", zeta,
+            "UseSix.w", root),
+        "example.use_six");
+    byte[] expectedArtifact = new BytecodeWriter().write(expected);
+    for (List<String> order : cyclicOrders(List.of(alpha, beta, delta, epsilon, gamma, zeta))) {
+      assertArrayEquals(expectedArtifact, NativeModuleCompilerHarness.compile(compiler, order, root));
+    }
+
+    Program decoded = new BytecodeReader().read(expectedArtifact);
+    assertEquals("example.alpha::alpha3", decoded.functions().get(3).name());
+    assertEquals("example.beta::beta0", decoded.functions().get(4).name());
+    assertEquals("example.delta::delta0", decoded.functions().get(8).name());
+    assertEquals("example.epsilon::epsilon0", decoded.functions().get(12).name());
+    assertEquals("example.gamma::gamma0", decoded.functions().get(16).name());
+    assertEquals("example.zeta::zeta0", decoded.functions().get(19).name());
+    assertEquals("example.zeta::zeta2", decoded.functions().get(21).name());
+    assertEquals("example.use_six::accepted", decoded.functions().get(22).name());
+    assertEquals("$library", decoded.functions().getLast().name());
+
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(
+            alpha,
+            beta,
+            delta,
+            epsilon,
+            gamma,
+            zeta.replace("public boolean zeta0", "private boolean zeta0")),
+        root);
+
+    String eta = helperOwner("example.eta", "Eta", "eta", 1);
+    String sevenOwnerRoot = root
+        .replace("module example.use_six;", "module example.use_seven;")
+        .replace("import example.epsilon;", "import example.epsilon;\nimport example.eta;");
     NativeModuleCompilerHarness.assertTrap(
         compiler,
         List.of(
@@ -388,9 +456,10 @@ final class NativeCompilerImportedHelperExampleTest {
             helperOwner("example.beta", "Beta", "beta", 1),
             helperOwner("example.delta", "Delta", "delta", 1),
             helperOwner("example.epsilon", "Epsilon", "epsilon", 1),
+            eta,
             helperOwner("example.gamma", "Gamma", "gamma", 1),
-            zeta),
-        sixOwnerRoot);
+            helperOwner("example.zeta", "Zeta", "zeta", 1)),
+        sevenOwnerRoot);
   }
 
   @Test
@@ -434,6 +503,22 @@ final class NativeCompilerImportedHelperExampleTest {
         compiler,
         List.of(constants, privateDependency),
         root);
+  }
+
+  private static List<List<String>> cyclicOrders(List<String> sources) {
+    List<List<String>> orders = new ArrayList<>();
+    for (int shift = 0; shift < sources.size(); shift += 1) {
+      List<String> forward = new ArrayList<>();
+      List<String> reverse = new ArrayList<>();
+      for (int offset = 0; offset < sources.size(); offset += 1) {
+        forward.add(sources.get((shift + offset) % sources.size()));
+        reverse.add(sources.get(
+            (shift - offset + sources.size()) % sources.size()));
+      }
+      orders.add(List.copyOf(forward));
+      orders.add(List.copyOf(reverse));
+    }
+    return List.copyOf(orders);
   }
 
   private static String helperOwner(

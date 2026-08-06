@@ -14,6 +14,7 @@ import wheeler.compiler.graphs.six.uneven;
 import wheeler.compiler.graphs.six_graph_kinds;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.module_linker;
+import wheeler.compiler.six_imported_helpers;
 
 classical class CompilerGraphSix {
   private const long SIX_IMPORTS = 6;
@@ -36,7 +37,20 @@ classical class CompilerGraphSix {
       rootSource,
       /* expectedImportCount= */ SIX_IMPORTS
     );
-    assert(firstPlan.valid);
+    if (firstPlan.valid) {} else {
+      CoreCompilation compiledHelpers = compileSixHelperOwners(
+        firstImportedSource,
+        secondImportedSource,
+        thirdImportedSource,
+        fourthImportedSource,
+        fifthImportedSource,
+        sixthImportedSource,
+        rootSource,
+        output
+      );
+      return new SixGraphCompilation(compiledHelpers.length, compiledHelpers.codeStart);
+    }
+
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes firstBytes = allocateBytes(firstArena, firstPlan.linkedLength);
     long firstWritten = writeConstantImport(
