@@ -2,6 +2,7 @@
 
 module wheeler.compiler.multiple_imported_helpers;
 
+import wheeler.compiler.canonical_helper_linking;
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.helper_owners;
 import wheeler.compiler.imported_helpers;
@@ -56,14 +57,14 @@ classical class MultipleImportedHelpers {
     borrow mut bytes output
   ) {
     if (source == 0) {
-      return writeConstantImport(firstSource, rootSource, plan, output);
+      return writeCanonicalHelperImport(firstSource, rootSource, plan, output);
     }
 
     if (source == 1) {
-      return writeConstantImport(secondSource, rootSource, plan, output);
+      return writeCanonicalHelperImport(secondSource, rootSource, plan, output);
     }
 
-    return writeConstantImport(thirdSource, rootSource, plan, output);
+    return writeCanonicalHelperImport(thirdSource, rootSource, plan, output);
   }
 
   private CoreCompilation compileThreeOwnedHelpers(
@@ -129,18 +130,18 @@ classical class MultipleImportedHelpers {
     borrow mut bytes output
   ) {
     if (source == 0) {
-      return writeConstantImport(firstSource, rootSource, plan, output);
+      return writeCanonicalHelperImport(firstSource, rootSource, plan, output);
     }
 
     if (source == 1) {
-      return writeConstantImport(secondSource, rootSource, plan, output);
+      return writeCanonicalHelperImport(secondSource, rootSource, plan, output);
     }
 
     if (source == 2) {
-      return writeConstantImport(thirdSource, rootSource, plan, output);
+      return writeCanonicalHelperImport(thirdSource, rootSource, plan, output);
     }
 
-    return writeConstantImport(fourthSource, rootSource, plan, output);
+    return writeCanonicalHelperImport(fourthSource, rootSource, plan, output);
   }
 
   private long importRank(
@@ -269,9 +270,9 @@ classical class MultipleImportedHelpers {
     bytes laterBytes = allocateBytes(laterArena, laterPlan.linkedLength);
     long laterWritten = 0;
     if (firstIsEarlier) {
-      laterWritten = writeConstantImport(secondSource, rootSource, laterPlan, laterBytes);
+      laterWritten = writeCanonicalHelperImport(secondSource, rootSource, laterPlan, laterBytes);
     } else {
-      laterWritten = writeConstantImport(firstSource, rootSource, laterPlan, laterBytes);
+      laterWritten = writeCanonicalHelperImport(firstSource, rootSource, laterPlan, laterBytes);
     }
 
     assert(laterWritten == laterPlan.linkedLength);
@@ -299,14 +300,14 @@ classical class MultipleImportedHelpers {
     bytes earlierBytes = allocateBytes(earlierArena, earlierPlan.linkedLength);
     long earlierWritten = 0;
     if (firstIsEarlier) {
-      earlierWritten = writeConstantImport(
+      earlierWritten = writeCanonicalHelperImport(
         firstSource,
         laterLinkedSource,
         earlierPlan,
         earlierBytes
       );
     } else {
-      earlierWritten = writeConstantImport(
+      earlierWritten = writeCanonicalHelperImport(
         secondSource,
         laterLinkedSource,
         earlierPlan,

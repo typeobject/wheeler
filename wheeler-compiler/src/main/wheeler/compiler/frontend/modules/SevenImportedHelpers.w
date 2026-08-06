@@ -2,6 +2,7 @@
 
 module wheeler.compiler.seven_imported_helpers;
 
+import wheeler.compiler.canonical_helper_linking;
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.helper_owners;
 import wheeler.compiler.helper_source_order;
@@ -61,30 +62,30 @@ classical class SevenImportedHelpers {
     borrow mut bytes output
   ) {
     if (source == 0) {
-      return writeConstantImport(firstSource, rootSource, plan, output);
+      return writeCanonicalHelperImport(firstSource, rootSource, plan, output);
     }
 
     if (source == 1) {
-      return writeConstantImport(secondSource, rootSource, plan, output);
+      return writeCanonicalHelperImport(secondSource, rootSource, plan, output);
     }
 
     if (source == 2) {
-      return writeConstantImport(thirdSource, rootSource, plan, output);
+      return writeCanonicalHelperImport(thirdSource, rootSource, plan, output);
     }
 
     if (source == 3) {
-      return writeConstantImport(fourthSource, rootSource, plan, output);
+      return writeCanonicalHelperImport(fourthSource, rootSource, plan, output);
     }
 
     if (source == 4) {
-      return writeConstantImport(fifthSource, rootSource, plan, output);
+      return writeCanonicalHelperImport(fifthSource, rootSource, plan, output);
     }
 
     if (source == 5) {
-      return writeConstantImport(sixthSource, rootSource, plan, output);
+      return writeCanonicalHelperImport(sixthSource, rootSource, plan, output);
     }
 
-    return writeConstantImport(seventhSource, rootSource, plan, output);
+    return writeCanonicalHelperImport(seventhSource, rootSource, plan, output);
   }
 
   private HelperOwner owner(LinkPlan plan) {
