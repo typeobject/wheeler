@@ -198,12 +198,23 @@ final class NativeCompilerSelfSourceExampleTest {
     assertEquals(4, decoded.functions().get(1).localCount());
     assertEquals(4, decoded.functions().get(1).forward().size());
     assertNoPublication(compiler, source.replace("return base(opcode);", "return missing(opcode);"));
+    String threeCalls = source.replace(
+        "return base(opcode);",
+        "if (base(opcode)) { return true; }\n"
+            + "    if (base(opcode)) { return false; }\n"
+            + "    return base(opcode);");
+    VirtualMachine threeCallWriter = nativeWriter(compiler, threeCalls);
+    CompilerMachineRunner.runWithoutRewindHistory(threeCallWriter);
+    Program expectedThreeCalls = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("FinalCall.w", threeCalls),
+        "examples.final_call");
+    assertArrayEquals(new BytecodeWriter().write(expectedThreeCalls), threeCallWriter.hostOutput());
+
     assertNoPublication(
         compiler,
-        source.replace(
+        threeCalls.replace(
             "return base(opcode);",
             "if (base(opcode)) { return true; }\n"
-                + "    if (base(opcode)) { return false; }\n"
                 + "    return base(opcode);"));
   }
 

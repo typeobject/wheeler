@@ -580,6 +580,9 @@ classical class HelperPrograms {
         -1,
         new SourceRange(0, 0),
         -1,
+        -1,
+        new SourceRange(0, 0),
+        -1,
         -1
       ),
       emptyHelperBody(),

@@ -24,7 +24,10 @@ classical class CompilerIr {
     long firstCallFunction,
     SourceRange secondCallTargetName,
     long secondCallStatement,
-    long secondCallFunction
+    long secondCallFunction,
+    SourceRange thirdCallTargetName,
+    long thirdCallStatement,
+    long thirdCallFunction
   ) {}
 
   /// Defines immutable `MinimalProgram` values for this module.
@@ -171,6 +174,9 @@ classical class CompilerIr {
       HELPER_VOID,
       0,
       0,
+      new SourceRange(0, 0),
+      -1,
+      -1,
       new SourceRange(0, 0),
       -1,
       -1,

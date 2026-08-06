@@ -265,8 +265,10 @@ classical class ScalarHelperLibraries {
 
     SourceRange firstCallTarget = new SourceRange(0, 0);
     SourceRange secondCallTarget = new SourceRange(0, 0);
+    SourceRange thirdCallTarget = new SourceRange(0, 0);
     long firstCallStatement = -1;
     long secondCallStatement = -1;
+    long thirdCallStatement = -1;
     long callCount = 0;
     long sourceStatement = 0;
     while (sourceStatement < statements.count) limit MAX_MINIMAL_STATEMENTS {
@@ -299,9 +301,16 @@ classical class ScalarHelperLibraries {
         if (callCount == 0) {
           firstCallTarget = target;
           firstCallStatement = sourceStatement;
-        } else {
+        }
+
+        if (callCount == 1) {
           secondCallTarget = target;
           secondCallStatement = sourceStatement;
+        }
+
+        if (callCount == 2) {
+          thirdCallTarget = target;
+          thirdCallStatement = sourceStatement;
         }
 
         callCount += 1;
@@ -310,7 +319,7 @@ classical class ScalarHelperLibraries {
       sourceStatement += 1;
     }
 
-    if (callCount < 3) {} else {
+    if (callCount < 4) {} else {
       return invalidHelper();
     }
 
@@ -353,6 +362,9 @@ classical class ScalarHelperLibraries {
       -1,
       secondCallTarget,
       secondCallStatement,
+      -1,
+      thirdCallTarget,
+      thirdCallStatement,
       -1
     );
     return new ParsedScalarHelper(body, statements.end + 1, true);

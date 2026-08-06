@@ -9,8 +9,13 @@ import wheeler.compiler.ir;
 import wheeler.compiler.resolved_return_call_kinds;
 
 classical class ScalarHelperTables {
-  /// Carries two bounded call targets resolved against one helper table.
-  public record ResolvedCalls(long firstFunction, long secondFunction, boolean valid) {}
+  /// Carries three bounded call targets resolved against one helper table.
+  public record ResolvedCalls(
+    long firstFunction,
+    long secondFunction,
+    long thirdFunction,
+    boolean valid
+  ) {}
 
   /// Checks whether one helper returns a Boolean scalar.
   public boolean booleanHelperKind(long kind) {
@@ -367,6 +372,7 @@ classical class ScalarHelperTables {
   ) {
     boolean firstForwarding = caller.firstCallStatement == caller.resultStatement;
     boolean secondForwarding = caller.secondCallStatement == caller.resultStatement;
+    boolean thirdForwarding = caller.thirdCallStatement == caller.resultStatement;
     long firstArgumentCount = 1;
     if (firstForwarding) {
       firstArgumentCount = returnHelperCallArity(caller.opcodes[caller.firstCallStatement]);
@@ -375,6 +381,11 @@ classical class ScalarHelperTables {
     long secondArgumentCount = 1;
     if (secondForwarding) {
       secondArgumentCount = returnHelperCallArity(caller.opcodes[caller.secondCallStatement]);
+    }
+
+    long thirdArgumentCount = 1;
+    if (thirdForwarding) {
+      thirdArgumentCount = returnHelperCallArity(caller.opcodes[caller.thirdCallStatement]);
     }
 
     long firstFunction = resolveCallFunction(
@@ -439,6 +450,37 @@ classical class ScalarHelperTables {
       twentyThird,
       helperCount
     );
+    long thirdFunction = resolveCallFunction(
+      source,
+      caller,
+      caller.thirdCallTargetName,
+      thirdForwarding,
+      thirdArgumentCount,
+      first,
+      second,
+      third,
+      fourth,
+      fifth,
+      sixth,
+      seventh,
+      eighth,
+      ninth,
+      tenth,
+      eleventh,
+      twelfth,
+      thirteenth,
+      fourteenth,
+      fifteenth,
+      sixteenth,
+      seventeenth,
+      eighteenth,
+      nineteenth,
+      twentieth,
+      twentyFirst,
+      twentySecond,
+      twentyThird,
+      helperCount
+    );
     boolean valid = true;
     if (0 < caller.firstCallTargetName.length) {
       valid = -1 < firstFunction;
@@ -450,7 +492,13 @@ classical class ScalarHelperTables {
       }
     }
 
-    return new ResolvedCalls(firstFunction, secondFunction, valid);
+    if (valid) {
+      if (0 < caller.thirdCallTargetName.length) {
+        valid = -1 < thirdFunction;
+      }
+    }
+
+    return new ResolvedCalls(firstFunction, secondFunction, thirdFunction, valid);
   }
 
   /// Installs resolved call identities in one immutable helper body.
@@ -468,7 +516,10 @@ classical class ScalarHelperTables {
       calls.firstFunction,
       body.secondCallTargetName,
       body.secondCallStatement,
-      calls.secondFunction
+      calls.secondFunction,
+      body.thirdCallTargetName,
+      body.thirdCallStatement,
+      calls.thirdFunction
     );
   }
 }
