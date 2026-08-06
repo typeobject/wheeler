@@ -9,6 +9,7 @@ import wheeler.compiler.graphs.seven.shape_chains;
 import wheeler.compiler.graphs.seven.shape_dags;
 import wheeler.compiler.graphs.seven.shape_forks;
 import wheeler.compiler.graphs.seven.shape_nested;
+import wheeler.compiler.graphs.seven.shape_serial_dags;
 import wheeler.compiler.graphs.seven_plan_kinds;
 import wheeler.compiler.module_headers;
 

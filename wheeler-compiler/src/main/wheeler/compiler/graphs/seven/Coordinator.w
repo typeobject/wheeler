@@ -10,6 +10,7 @@ import wheeler.compiler.graphs.seven.executors.extended_fork;
 import wheeler.compiler.graphs.seven.executors.long_chains;
 import wheeler.compiler.graphs.seven.executors.nested_branches;
 import wheeler.compiler.graphs.seven.executors.separate_branches;
+import wheeler.compiler.graphs.seven.executors.serial_dags;
 import wheeler.compiler.graphs.seven.fork;
 import wheeler.compiler.graphs.seven.mixed;
 import wheeler.compiler.graphs.seven.nested;
@@ -542,7 +543,7 @@ classical class CompilerGraphSeven {
     }
 
     if (plan.topology == SEVEN_PLAN_SERIAL_DIAMONDS) {
-      SevenDagCompilation serialDiamonds = compileSevenSerialDiamonds(
+      SevenSerialDagCompilation serialDiamonds = compileSevenSerialDiamonds(
         plan,
         firstImportedSource,
         secondImportedSource,
