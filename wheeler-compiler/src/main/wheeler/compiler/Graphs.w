@@ -9,6 +9,7 @@ import wheeler.compiler.compiler_graph_seven;
 import wheeler.compiler.compiler_graph_six;
 import wheeler.compiler.graphs.small_structures;
 import wheeler.compiler.graphs.sources;
+import wheeler.compiler.helper_owners;
 import wheeler.compiler.imported_helpers;
 import wheeler.compiler.module_linker;
 import wheeler.compiler.multiple_imported_helpers;
@@ -27,12 +28,15 @@ classical class CompilerGraphs {
     borrow mut bytes output,
     LinkPlan plan
   ) {
-    CoreCompilation compiled = compileMinimalCoreWithHelperImport(
-      source,
-      output,
+    HelperOwner imported = importedHelperOwner(
       plan.linkedOwnerStart,
       plan.linkedOwnerLength,
       plan.importedHelperCount
+    );
+    CoreCompilation compiled = compileMinimalCoreWithHelperOwners(
+      source,
+      output,
+      oneHelperOwner(imported)
     );
     return new GraphCompilation(compiled.length, compiled.codeStart);
   }

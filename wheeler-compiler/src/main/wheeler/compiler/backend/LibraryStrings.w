@@ -4,6 +4,7 @@ module wheeler.compiler.library_strings;
 
 import wheeler.compiler.encoding;
 import wheeler.compiler.helper_abi;
+import wheeler.compiler.helper_owners;
 import wheeler.compiler.ir;
 
 classical class LibraryStrings {
@@ -20,18 +21,6 @@ classical class LibraryStrings {
     long stringCount,
     long encodedLength,
     long valid
-  ) {}
-
-  /// Assigns bounded imported helper groups to their canonical modules.
-  public record HelperOwners(
-    SourceRange firstModule,
-    long firstHelperCount,
-    SourceRange secondModule,
-    long secondHelperCount,
-    SourceRange thirdModule,
-    long thirdHelperCount,
-    SourceRange fourthModule,
-    long fourthHelperCount
   ) {}
 
   private long libraryScalar(long index) {
@@ -79,28 +68,9 @@ classical class LibraryStrings {
     HelperOwners owners,
     long candidate
   ) {
-    long helper = candidate - FIRST_HELPER;
-    if (-1 < helper) {
-      if (helper < owners.firstHelperCount) {
-        return owners.firstModule;
-      }
-
-      if (helper < owners.firstHelperCount + owners.secondHelperCount) {
-        return owners.secondModule;
-      }
-
-      if (
-        helper < owners.firstHelperCount + owners.secondHelperCount + owners.thirdHelperCount
-      ) {
-        return owners.thirdModule;
-      }
-
-      if (
-        helper < owners.firstHelperCount + owners.secondHelperCount + owners.thirdHelperCount
-          + owners.fourthHelperCount
-      ) {
-        return owners.fourthModule;
-      }
+    SourceRange importedModule = importedHelperModule(owners, candidate - FIRST_HELPER);
+    if (0 < importedModule.length) {
+      return importedModule;
     }
 
     return rootModule;
@@ -245,34 +215,8 @@ classical class LibraryStrings {
       valid = 0;
     }
 
-    long importedHelperCount = owners.firstHelperCount + owners.secondHelperCount
-      + owners.thirdHelperCount + owners.fourthHelperCount;
-    if (importedHelperCount < program.helperCount + 1) {} else {
+    if (importedHelperCount(owners) < program.helperCount + 1) {} else {
       valid = 0;
-    }
-
-    if (0 < owners.firstHelperCount) {
-      if (0 < owners.firstModule.length) {} else {
-        valid = 0;
-      }
-    }
-
-    if (0 < owners.secondHelperCount) {
-      if (0 < owners.secondModule.length) {} else {
-        valid = 0;
-      }
-    }
-
-    if (0 < owners.thirdHelperCount) {
-      if (0 < owners.thirdModule.length) {} else {
-        valid = 0;
-      }
-    }
-
-    if (0 < owners.fourthHelperCount) {
-      if (0 < owners.fourthModule.length) {} else {
-        valid = 0;
-      }
     }
 
     long left = 0;

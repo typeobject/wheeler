@@ -3,6 +3,7 @@
 module wheeler.compiler.multiple_imported_helpers;
 
 import wheeler.compiler.compiler_core;
+import wheeler.compiler.helper_owners;
 import wheeler.compiler.imported_helpers;
 import wheeler.compiler.module_linker;
 
@@ -13,16 +14,17 @@ classical class MultipleImportedHelpers {
     LinkPlan firstPlan,
     LinkPlan secondPlan
   ) {
-    return compileMinimalCoreWithHelperImports(
-      source,
-      output,
+    HelperOwner first = importedHelperOwner(
       firstPlan.linkedOwnerStart,
       firstPlan.linkedOwnerLength,
-      firstPlan.importedHelperCount,
+      firstPlan.importedHelperCount
+    );
+    HelperOwner second = importedHelperOwner(
       secondPlan.linkedOwnerStart,
       secondPlan.linkedOwnerLength,
       secondPlan.importedHelperCount
     );
+    return compileMinimalCoreWithHelperOwners(source, output, twoHelperOwners(first, second));
   }
 
   private LinkPlan helperPlanAt(
@@ -71,18 +73,25 @@ classical class MultipleImportedHelpers {
     LinkPlan secondPlan,
     LinkPlan thirdPlan
   ) {
-    return compileMinimalCoreWithThreeHelperImports(
-      source,
-      output,
+    HelperOwner first = importedHelperOwner(
       firstPlan.linkedOwnerStart,
       firstPlan.linkedOwnerLength,
-      firstPlan.importedHelperCount,
+      firstPlan.importedHelperCount
+    );
+    HelperOwner second = importedHelperOwner(
       secondPlan.linkedOwnerStart,
       secondPlan.linkedOwnerLength,
-      secondPlan.importedHelperCount,
+      secondPlan.importedHelperCount
+    );
+    HelperOwner third = importedHelperOwner(
       thirdPlan.linkedOwnerStart,
       thirdPlan.linkedOwnerLength,
       thirdPlan.importedHelperCount
+    );
+    return compileMinimalCoreWithHelperOwners(
+      source,
+      output,
+      threeHelperOwners(first, second, third)
     );
   }
 
@@ -198,21 +207,30 @@ classical class MultipleImportedHelpers {
     LinkPlan thirdPlan,
     LinkPlan fourthPlan
   ) {
-    return compileMinimalCoreWithFourHelperImports(
-      source,
-      output,
+    HelperOwner first = importedHelperOwner(
       firstPlan.linkedOwnerStart,
       firstPlan.linkedOwnerLength,
-      firstPlan.importedHelperCount,
+      firstPlan.importedHelperCount
+    );
+    HelperOwner second = importedHelperOwner(
       secondPlan.linkedOwnerStart,
       secondPlan.linkedOwnerLength,
-      secondPlan.importedHelperCount,
+      secondPlan.importedHelperCount
+    );
+    HelperOwner third = importedHelperOwner(
       thirdPlan.linkedOwnerStart,
       thirdPlan.linkedOwnerLength,
-      thirdPlan.importedHelperCount,
+      thirdPlan.importedHelperCount
+    );
+    HelperOwner fourth = importedHelperOwner(
       fourthPlan.linkedOwnerStart,
       fourthPlan.linkedOwnerLength,
       fourthPlan.importedHelperCount
+    );
+    return compileMinimalCoreWithHelperOwners(
+      source,
+      output,
+      fourHelperOwners(first, second, third, fourth)
     );
   }
 
