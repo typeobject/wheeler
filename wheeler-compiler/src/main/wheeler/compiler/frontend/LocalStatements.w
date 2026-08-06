@@ -7,6 +7,8 @@ import wheeler.compiler.call_forms;
 import wheeler.compiler.call_resolution;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.conditionals;
+import wheeler.compiler.early_return_kinds;
+import wheeler.compiler.early_statement_resolution;
 import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.local_loop_resolution;
 import wheeler.compiler.local_opcodes;
@@ -131,110 +133,16 @@ classical class LocalStatements {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
-    boolean earlyHelperReturn = opcode == STATEMENT_IF_HELPER_CALL_RETURN_TRUE_NAMED;
-    if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_FALSE_NAMED) {
-      earlyHelperReturn = true;
-    }
-
-    if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_LONG_NAMED) {
-      earlyHelperReturn = true;
-    }
-
-    if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_NAMED) {
-      earlyHelperReturn = true;
-    }
-
-    if (earlyHelperReturn) {
-      long earlyArgumentLocal = resolvePriorDeclaration(
+    if (earlyReturnStatement(opcode)) {
+      return resolveEarlyStatementOpcode(
         source,
         tokenStarts,
         tokenLengths,
+        statementStart,
         previousStarts,
         previousCount,
-        statementStart + 4,
-        true
+        opcode
       );
-      if (-1 < earlyArgumentLocal) {
-        long helperReturnBase = STATEMENT_IF_HELPER_CALL_RETURN_BASE;
-        if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_LONG_NAMED) {
-          helperReturnBase = STATEMENT_IF_HELPER_CALL_RETURN_LONG_BASE;
-        }
-
-        if (opcode == STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_NAMED) {
-          helperReturnBase = STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_BASE;
-        }
-
-        return helperReturnBase + earlyArgumentLocal;
-      }
-
-      return -1;
-    }
-
-    boolean earlyComparisonReturn = opcode == STATEMENT_IF_SIGNED_EQ_RETURN_TRUE_NAMED;
-    if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_FALSE_NAMED) {
-      earlyComparisonReturn = true;
-    }
-
-    if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED) {
-      earlyComparisonReturn = true;
-    }
-
-    boolean earlyLessReturn = opcode == STATEMENT_IF_SIGNED_LT_RETURN_TRUE_NAMED;
-    if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_FALSE_NAMED) {
-      earlyLessReturn = true;
-    }
-
-    if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_LONG_NAMED) {
-      earlyLessReturn = true;
-    }
-
-    if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED) {
-      earlyLessReturn = true;
-    }
-
-    if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED) {
-      earlyLessReturn = true;
-    }
-
-    if (earlyLessReturn) {
-      earlyComparisonReturn = true;
-    }
-
-    if (earlyComparisonReturn) {
-      long earlySourceLocal = resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 2,
-        true
-      );
-      if (-1 < earlySourceLocal) {
-        long comparisonReturnBase = STATEMENT_IF_SIGNED_EQ_RETURN_BASE;
-        if (opcode == STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED) {
-          comparisonReturnBase = STATEMENT_IF_SIGNED_EQ_RETURN_LONG_BASE;
-        }
-
-        if (earlyLessReturn) {
-          comparisonReturnBase = STATEMENT_IF_SIGNED_LT_RETURN_BASE;
-          if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_LONG_NAMED) {
-            comparisonReturnBase = STATEMENT_IF_SIGNED_LT_RETURN_LONG_BASE;
-          }
-
-          if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED) {
-            comparisonReturnBase = STATEMENT_IF_SIGNED_LT_RETURN_SUB_BASE;
-          }
-
-          if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_NAMED) {
-            comparisonReturnBase = STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_BASE;
-          }
-        }
-
-        return comparisonReturnBase + earlySourceLocal;
-      }
-
-      return -1;
     }
 
     if (opcode == STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED) {
