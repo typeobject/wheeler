@@ -115,7 +115,7 @@ imported-constant `compiler/syntax/EarlyReturnKinds.w`, imported-constant
 `compiler/syntax/calls/CallArgumentSources.w`, imported-constant
 `compiler/syntax/calls/OneArgumentCalls.w`, imported-constant
 `compiler/syntax/calls/TwoArgumentCallKinds.w`,
-`compiler/syntax/calls/VoidCallKinds.w`, `compiler/syntax/calls/VoidCallSourceKinds.w`, `compiler/syntax/calls/VoidCallWidths.w`, imported-constant
+`compiler/syntax/calls/VoidCallKinds.w`, `compiler/syntax/calls/VoidCallSourceKinds.w`, mixed-owner `compiler/syntax/calls/VoidCallSourceWidths.w`, `compiler/syntax/calls/VoidCallWidths.w`, imported-constant
 `compiler/syntax/returns/EarlyReturnSources.w`, imported-constant
 `compiler/syntax/returns/NamedBooleanReturnKinds.w`, imported-constant
 `compiler/syntax/returns/NamedReturnArithmeticKinds.w`, imported-constant

@@ -618,6 +618,19 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalVoidCallSourceWidthsByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/calls/VoidCallSourceWidths.w",
+        "wheeler.compiler.void_call_source_widths",
+        "compiler/syntax/calls/VoidCallKinds.w",
+        "compiler/syntax/calls/VoidCallSourceKinds.w");
+    assertEquals(
+        "wheeler.compiler.void_call_source_widths::voidCallLocalCount",
+        decoded.functions().get(4).name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalVoidCallKindsByteForByte() throws Exception {
     Program decoded = assertCompilerLibrary(
         "compiler/syntax/calls/VoidCallKinds.w",
