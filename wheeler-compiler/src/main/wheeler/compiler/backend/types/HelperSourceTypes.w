@@ -6,7 +6,6 @@ import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
-import wheeler.compiler.void_call_widths;
 
 classical class HelperSourceTypes {
   private long sequenceLocalType(long[16] parameterTypes, long parameterCount, long local) {

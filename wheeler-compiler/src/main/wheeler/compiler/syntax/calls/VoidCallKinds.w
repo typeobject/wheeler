@@ -38,6 +38,19 @@ classical class VoidCallKinds {
     return kind < STATEMENT_CALL_VOID_THREE_LIMIT;
   }
 
+  /// Returns the third source local encoded in a resolved three-argument call.
+  public long voidCallThirdSource(long kind) {
+    if (kind < STATEMENT_CALL_VOID_THREE_BASE) {
+      return -1;
+    }
+
+    if (kind < STATEMENT_CALL_VOID_THREE_LIMIT) {
+      return kind - STATEMENT_CALL_VOID_THREE_BASE;
+    }
+
+    return -1;
+  }
+
   /// Returns the exact argument count for one resolved void call.
   public long voidCallArity(long kind) {
     if (kind == STATEMENT_CALL_VOID_ZERO) {

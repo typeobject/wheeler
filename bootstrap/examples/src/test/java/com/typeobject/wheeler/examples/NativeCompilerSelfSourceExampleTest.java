@@ -606,6 +606,9 @@ final class NativeCompilerSelfSourceExampleTest {
     assertEquals(
         "wheeler.compiler.void_call_kinds::voidCallStatement",
         decoded.functions().getFirst().name());
+    assertEquals(
+        "wheeler.compiler.void_call_kinds::voidCallThirdSource",
+        decoded.functions().get(1).name());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 
@@ -620,10 +623,10 @@ final class NativeCompilerSelfSourceExampleTest {
         decoded.functions().getFirst().name());
     assertEquals(
         "wheeler.compiler.void_call_widths::voidCallCodeLength",
-        decoded.functions().get(2).name());
+        decoded.functions().get(3).name());
     assertEquals(
-        1,
-        decoded.functions().get(2).forward().stream()
+        2,
+        decoded.functions().get(3).forward().stream()
             .filter(instruction -> instruction.opcode() == Opcode.CALL_VALUE)
             .findFirst()
             .orElseThrow()

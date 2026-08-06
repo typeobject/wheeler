@@ -27,19 +27,6 @@ classical class VoidCallWidths {
     return -1;
   }
 
-  /// Returns the third source local encoded in a resolved three-argument call.
-  public long voidCallThirdSource(long kind) {
-    if (kind < STATEMENT_CALL_VOID_THREE_BASE) {
-      return -1;
-    }
-
-    if (kind < STATEMENT_CALL_VOID_THREE_LIMIT) {
-      return kind - STATEMENT_CALL_VOID_THREE_BASE;
-    }
-
-    return -1;
-  }
-
   /// Returns the canonical instruction count for one resolved void call.
   public long voidCallInstructionCount(long kind) {
     long arity = voidCallArity(kind);
