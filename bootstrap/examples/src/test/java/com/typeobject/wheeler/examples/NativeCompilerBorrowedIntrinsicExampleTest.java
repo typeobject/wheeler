@@ -123,6 +123,9 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
           private void word(borrow mut words values, long index, long element) {
             set(values, index, element);
           }
+          private void mapping(borrow mut longmap values, long key, long element) {
+            put(values, key, element);
+          }
           private void idle() {}
           private void inspect(borrow mut bytes values) {}
           private void locate(borrow mut words values, long index) {}
@@ -186,6 +189,10 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
             setByte(values, index, element);
             return element;
           }
+          public long mapping(borrow mut longmap values, long key, long element) {
+            put(values, key, element);
+            return element;
+          }
           public long dummy() { return 0; }
         }
         """;
@@ -204,6 +211,10 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
         NativeModuleCompilerHarness.program(),
         List.of(),
         source.replace("borrow mut bytes values", "borrow byteview values"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace("borrow mut longmap values", "borrow mut region values"));
   }
 
   @Test

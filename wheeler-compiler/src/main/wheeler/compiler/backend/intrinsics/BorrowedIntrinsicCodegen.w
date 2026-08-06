@@ -43,12 +43,20 @@ classical class BorrowedIntrinsicCodegen {
       borrowedWrite = true;
     }
 
+    if (opcode == STATEMENT_MAP_PUT) {
+      borrowedWrite = true;
+    }
+
     if (borrowedWrite) {
       long writeIndex = secondaryOperand / INTRINSIC_LOCAL_SOURCE_COUNT;
       long writeValue = secondaryOperand % INTRINSIC_LOCAL_SOURCE_COUNT;
       long writeOpcode = OPCODE_WORDS_SET;
       if (opcode == STATEMENT_SET_BYTE) {
         writeOpcode = OPCODE_BYTES_SET;
+      }
+
+      if (opcode == STATEMENT_MAP_PUT) {
+        writeOpcode = OPCODE_MAP_PUT;
       }
 
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);

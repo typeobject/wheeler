@@ -17,6 +17,10 @@ classical class BorrowedIntrinsicSyntax {
       return true;
     }
 
+    if (kind == STATEMENT_MAP_PUT_NAMED) {
+      return true;
+    }
+
     if (kind == STATEMENT_RETURN_BUFFER_LENGTH_NAMED) {
       return true;
     }
@@ -292,6 +296,10 @@ classical class BorrowedIntrinsicSyntax {
     }
 
     if (kind == STATEMENT_SET_BYTE_NAMED) {
+      return borrowedWriteWidth(source, tokenKinds, tokenStarts, statementStart);
+    }
+
+    if (kind == STATEMENT_MAP_PUT_NAMED) {
       return borrowedWriteWidth(source, tokenKinds, tokenStarts, statementStart);
     }
 

@@ -37,6 +37,10 @@ classical class HelperSourceTypes {
       return sequenceLocalType(parameterTypes, parameterCount, operand);
     }
 
+    if (opcode == STATEMENT_MAP_PUT) {
+      return sequenceLocalType(parameterTypes, parameterCount, operand);
+    }
+
     if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
       return sequenceLocalType(parameterTypes, parameterCount, operand);
     }

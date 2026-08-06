@@ -194,19 +194,16 @@ classical class Operands {
       );
     }
 
-    if (sourceOpcode == STATEMENT_SET_WORD_NAMED) {
-      return resolvePriorDeclaration(
-        source,
-        tokenStarts,
-        tokenLengths,
-        previousStarts,
-        previousCount,
-        statementStart + 2,
-        true
-      );
+    boolean borrowedMutation = sourceOpcode == STATEMENT_SET_WORD_NAMED;
+    if (sourceOpcode == STATEMENT_SET_BYTE_NAMED) {
+      borrowedMutation = true;
     }
 
-    if (sourceOpcode == STATEMENT_SET_BYTE_NAMED) {
+    if (sourceOpcode == STATEMENT_MAP_PUT_NAMED) {
+      borrowedMutation = true;
+    }
+
+    if (borrowedMutation) {
       return resolvePriorDeclaration(
         source,
         tokenStarts,

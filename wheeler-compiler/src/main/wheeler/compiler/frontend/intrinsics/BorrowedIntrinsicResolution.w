@@ -24,6 +24,10 @@ classical class BorrowedIntrinsicResolution {
       borrowedWrite = true;
     }
 
+    if (sourceOpcode == STATEMENT_MAP_PUT_NAMED) {
+      borrowedWrite = true;
+    }
+
     if (borrowedWrite) {
       long writeOwner = resolvePriorDeclaration(
         source,
@@ -58,6 +62,10 @@ classical class BorrowedIntrinsicResolution {
             long resolvedWrite = STATEMENT_SET_WORD;
             if (sourceOpcode == STATEMENT_SET_BYTE_NAMED) {
               resolvedWrite = STATEMENT_SET_BYTE;
+            }
+
+            if (sourceOpcode == STATEMENT_MAP_PUT_NAMED) {
+              resolvedWrite = STATEMENT_MAP_PUT;
             }
 
             return new ResolvedBorrowedIntrinsic(resolvedWrite, true);

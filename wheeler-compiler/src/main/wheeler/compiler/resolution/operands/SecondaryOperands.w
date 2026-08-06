@@ -78,6 +78,10 @@ classical class SecondaryOperands {
       borrowedWrite = true;
     }
 
+    if (sourceOpcode == STATEMENT_MAP_PUT_NAMED) {
+      borrowedWrite = true;
+    }
+
     if (borrowedWrite) {
       long writeIndex = resolvePriorDeclaration(
         source,

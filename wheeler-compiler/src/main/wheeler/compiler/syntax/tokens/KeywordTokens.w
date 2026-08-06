@@ -71,6 +71,8 @@ classical class KeywordTokens {
   public const long TOKEN_SET = 113762;
   /// Names the stable token hash for intrinsic `setByte`.
   public const long TOKEN_SET_BYTE = 105063682186;
+  /// Names the stable token hash for intrinsic `put`.
+  public const long TOKEN_PUT = 111375;
   /// Names the stable token hash for `return`.
   public const long TOKEN_RETURN = 3360570672;
 }

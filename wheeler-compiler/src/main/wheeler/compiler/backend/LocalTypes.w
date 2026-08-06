@@ -102,6 +102,12 @@ classical class LocalTypes {
       return writeLocalType(output, cursor, TYPE_SIGNED);
     }
 
+    if (opcode == STATEMENT_MAP_PUT) {
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, TYPE_SIGNED);
+      return writeLocalType(output, cursor, TYPE_SIGNED);
+    }
+
     if (opcode == STATEMENT_LOCAL_BUFFER_GET) {
       cursor = writeLocalType(output, cursor, firstSourceType);
       cursor = writeLocalType(output, cursor, secondSourceType);
@@ -167,6 +173,12 @@ classical class LocalTypes {
 
     if (opcode == STATEMENT_SET_BYTE) {
       cursor = writeLocalType(output, cursor, TYPE_BYTES_BORROW);
+      cursor = writeLocalType(output, cursor, TYPE_SIGNED);
+      return writeLocalType(output, cursor, TYPE_SIGNED);
+    }
+
+    if (opcode == STATEMENT_MAP_PUT) {
+      cursor = writeLocalType(output, cursor, TYPE_LONG_MAP_BORROW);
       cursor = writeLocalType(output, cursor, TYPE_SIGNED);
       return writeLocalType(output, cursor, TYPE_SIGNED);
     }

@@ -104,6 +104,10 @@ classical class ScalarHelperLibraries {
         borrowedWrite = true;
       }
 
+      if (opcode == STATEMENT_MAP_PUT) {
+        borrowedWrite = true;
+      }
+
       if (borrowedWrite) {
         long writeOwner = sequence.operands[statement];
         if (writeOwner < 0) {
@@ -117,6 +121,10 @@ classical class ScalarHelperLibraries {
         long requiredOwnerType = TYPE_WORDS_BORROW;
         if (opcode == STATEMENT_SET_BYTE) {
           requiredOwnerType = TYPE_BYTES_BORROW;
+        }
+
+        if (opcode == STATEMENT_MAP_PUT) {
+          requiredOwnerType = TYPE_LONG_MAP_BORROW;
         }
 
         if (parameterTypes[writeOwner] == requiredOwnerType) {} else {
@@ -268,6 +276,10 @@ classical class ScalarHelperLibraries {
           write = true;
         }
 
+        if (voidOpcode == STATEMENT_MAP_PUT) {
+          write = true;
+        }
+
         if (voidCallStatement(voidOpcode)) {
           write = true;
         }
@@ -348,6 +360,10 @@ classical class ScalarHelperLibraries {
         }
 
         if (earlyOpcode == STATEMENT_SET_BYTE) {
+          signedPrelude = true;
+        }
+
+        if (earlyOpcode == STATEMENT_MAP_PUT) {
           signedPrelude = true;
         }
 

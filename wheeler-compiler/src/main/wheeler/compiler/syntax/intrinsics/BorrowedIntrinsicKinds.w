@@ -1,4 +1,4 @@
-//! Owns bounded source and resolved identities for borrowed intrinsic reads.
+//! Owns bounded source and resolved identities for borrowed intrinsic operations.
 
 module wheeler.compiler.borrowed_intrinsic_kinds;
 
@@ -33,4 +33,8 @@ classical class BorrowedIntrinsicKinds {
   public const long STATEMENT_SET_BYTE_NAMED = 899;
   /// Names a resolved mutable byte-loan element write.
   public const long STATEMENT_SET_BYTE = 131078;
+  /// Names a mutable signed-map entry write.
+  public const long STATEMENT_MAP_PUT_NAMED = 904;
+  /// Names a resolved mutable signed-map entry write.
+  public const long STATEMENT_MAP_PUT = 131338;
 }

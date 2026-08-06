@@ -29,6 +29,10 @@ classical class StatementOpcodes {
       return STATEMENT_SET_BYTE_NAMED;
     }
 
+    if (keyword == TOKEN_PUT) {
+      return STATEMENT_MAP_PUT_NAMED;
+    }
+
     if (keyword == TOKEN_WHILE) {
       return STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED;
     }

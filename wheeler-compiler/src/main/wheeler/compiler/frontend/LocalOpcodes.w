@@ -66,6 +66,14 @@ classical class LocalOpcodes {
       return 3;
     }
 
+    if (opcode == STATEMENT_MAP_PUT_NAMED) {
+      return 3;
+    }
+
+    if (opcode == STATEMENT_MAP_PUT) {
+      return 3;
+    }
+
     if (resolvedEarlyHelperForwardingReturn(opcode)) {
       return EARLY_FORWARD_LOCAL_COUNT;
     }
@@ -553,6 +561,10 @@ classical class LocalOpcodes {
       return 104;
     }
 
+    if (opcode == STATEMENT_MAP_PUT) {
+      return 104;
+    }
+
     if (resolvedEarlyHelperForwardingReturn(opcode)) {
       return EARLY_FORWARD_CODE_LENGTH;
     }
@@ -832,6 +844,10 @@ classical class LocalOpcodes {
     }
 
     if (opcode == STATEMENT_SET_BYTE) {
+      return 4;
+    }
+
+    if (opcode == STATEMENT_MAP_PUT) {
       return 4;
     }
 
