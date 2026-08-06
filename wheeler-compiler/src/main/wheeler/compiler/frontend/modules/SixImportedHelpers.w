@@ -4,9 +4,9 @@ module wheeler.compiler.six_imported_helpers;
 
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.helper_owners;
+import wheeler.compiler.helper_source_order;
 import wheeler.compiler.imported_helpers;
 import wheeler.compiler.module_linker;
-import wheeler.compiler.six_helper_order;
 
 classical class SixImportedHelpers {
   private LinkPlan helperPlanAt(
@@ -201,16 +201,23 @@ classical class SixImportedHelpers {
       assert(0 == 1);
     }
 
-    SixHelperOrder order = orderSixHelperPlans(
-      firstInputPlan,
-      secondInputPlan,
-      thirdInputPlan,
-      fourthInputPlan,
-      fifthInputPlan,
-      sixthInputPlan
+    long[7] ownerStarts = new long[7](
+      firstInputPlan.linkedOwnerStart,
+      secondInputPlan.linkedOwnerStart,
+      thirdInputPlan.linkedOwnerStart,
+      fourthInputPlan.linkedOwnerStart,
+      fifthInputPlan.linkedOwnerStart,
+      sixthInputPlan.linkedOwnerStart,
+      0
     );
+    long firstOwner = helperSourceAtRank(0, ownerStarts, 6);
+    long secondOwner = helperSourceAtRank(1, ownerStarts, 6);
+    long thirdOwner = helperSourceAtRank(2, ownerStarts, 6);
+    long fourthOwner = helperSourceAtRank(3, ownerStarts, 6);
+    long fifthOwner = helperSourceAtRank(4, ownerStarts, 6);
+    long sixthOwner = helperSourceAtRank(5, ownerStarts, 6);
     LinkPlan sixthPlan = helperPlanAt(
-      order.sixth,
+      sixthOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -222,7 +229,7 @@ classical class SixImportedHelpers {
     region sixthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes sixthBytes = allocateBytes(sixthArena, sixthPlan.linkedLength);
     long sixthWritten = writeHelperAt(
-      order.sixth,
+      sixthOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -237,7 +244,7 @@ classical class SixImportedHelpers {
     utf8 sixthLinkedSource = freezeUtf8(sixthBytes);
 
     LinkPlan fifthPlan = helperPlanAt(
-      order.fifth,
+      fifthOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -253,7 +260,7 @@ classical class SixImportedHelpers {
     region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes fifthBytes = allocateBytes(fifthArena, fifthPlan.linkedLength);
     long fifthWritten = writeHelperAt(
-      order.fifth,
+      fifthOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -268,7 +275,7 @@ classical class SixImportedHelpers {
     utf8 fifthLinkedSource = freezeUtf8(fifthBytes);
 
     LinkPlan fourthPlan = helperPlanAt(
-      order.fourth,
+      fourthOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -284,7 +291,7 @@ classical class SixImportedHelpers {
     region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes fourthBytes = allocateBytes(fourthArena, fourthPlan.linkedLength);
     long fourthWritten = writeHelperAt(
-      order.fourth,
+      fourthOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -299,7 +306,7 @@ classical class SixImportedHelpers {
     utf8 fourthLinkedSource = freezeUtf8(fourthBytes);
 
     LinkPlan thirdPlan = helperPlanAt(
-      order.third,
+      thirdOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -315,7 +322,7 @@ classical class SixImportedHelpers {
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes thirdBytes = allocateBytes(thirdArena, thirdPlan.linkedLength);
     long thirdWritten = writeHelperAt(
-      order.third,
+      thirdOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -330,7 +337,7 @@ classical class SixImportedHelpers {
     utf8 thirdLinkedSource = freezeUtf8(thirdBytes);
 
     LinkPlan secondPlan = helperPlanAt(
-      order.second,
+      secondOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -346,7 +353,7 @@ classical class SixImportedHelpers {
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes secondBytes = allocateBytes(secondArena, secondPlan.linkedLength);
     long secondWritten = writeHelperAt(
-      order.second,
+      secondOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -361,7 +368,7 @@ classical class SixImportedHelpers {
     utf8 secondLinkedSource = freezeUtf8(secondBytes);
 
     LinkPlan firstPlan = helperPlanAt(
-      order.first,
+      firstOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -377,7 +384,7 @@ classical class SixImportedHelpers {
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes firstBytes = allocateBytes(firstArena, firstPlan.linkedLength);
     long firstWritten = writeHelperAt(
-      order.first,
+      firstOwner,
       firstSource,
       secondSource,
       thirdSource,

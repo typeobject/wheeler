@@ -4,9 +4,9 @@ module wheeler.compiler.seven_imported_helpers;
 
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.helper_owners;
+import wheeler.compiler.helper_source_order;
 import wheeler.compiler.imported_helpers;
 import wheeler.compiler.module_linker;
-import wheeler.compiler.seven_helper_order;
 
 classical class SevenImportedHelpers {
   private LinkPlan helperPlanAt(
@@ -235,17 +235,24 @@ classical class SevenImportedHelpers {
       assert(0 == 1);
     }
 
-    SevenHelperOrder order = orderSevenHelperPlans(
-      firstInputPlan,
-      secondInputPlan,
-      thirdInputPlan,
-      fourthInputPlan,
-      fifthInputPlan,
-      sixthInputPlan,
-      seventhInputPlan
+    long[7] ownerStarts = new long[7](
+      firstInputPlan.linkedOwnerStart,
+      secondInputPlan.linkedOwnerStart,
+      thirdInputPlan.linkedOwnerStart,
+      fourthInputPlan.linkedOwnerStart,
+      fifthInputPlan.linkedOwnerStart,
+      sixthInputPlan.linkedOwnerStart,
+      seventhInputPlan.linkedOwnerStart
     );
+    long firstOwner = helperSourceAtRank(0, ownerStarts, 7);
+    long secondOwner = helperSourceAtRank(1, ownerStarts, 7);
+    long thirdOwner = helperSourceAtRank(2, ownerStarts, 7);
+    long fourthOwner = helperSourceAtRank(3, ownerStarts, 7);
+    long fifthOwner = helperSourceAtRank(4, ownerStarts, 7);
+    long sixthOwner = helperSourceAtRank(5, ownerStarts, 7);
+    long seventhOwner = helperSourceAtRank(6, ownerStarts, 7);
     LinkPlan seventhPlan = helperPlanAt(
-      order.seventh,
+      seventhOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -262,7 +269,7 @@ classical class SevenImportedHelpers {
     region seventhArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes seventhBytes = allocateBytes(seventhArena, seventhPlan.linkedLength);
     long seventhWritten = writeHelperAt(
-      order.seventh,
+      seventhOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -278,7 +285,7 @@ classical class SevenImportedHelpers {
     utf8 seventhLinkedSource = freezeUtf8(seventhBytes);
 
     LinkPlan sixthPlan = helperPlanAt(
-      order.sixth,
+      sixthOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -295,7 +302,7 @@ classical class SevenImportedHelpers {
     region sixthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes sixthBytes = allocateBytes(sixthArena, sixthPlan.linkedLength);
     long sixthWritten = writeHelperAt(
-      order.sixth,
+      sixthOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -311,7 +318,7 @@ classical class SevenImportedHelpers {
     utf8 sixthLinkedSource = freezeUtf8(sixthBytes);
 
     LinkPlan fifthPlan = helperPlanAt(
-      order.fifth,
+      fifthOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -328,7 +335,7 @@ classical class SevenImportedHelpers {
     region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes fifthBytes = allocateBytes(fifthArena, fifthPlan.linkedLength);
     long fifthWritten = writeHelperAt(
-      order.fifth,
+      fifthOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -344,7 +351,7 @@ classical class SevenImportedHelpers {
     utf8 fifthLinkedSource = freezeUtf8(fifthBytes);
 
     LinkPlan fourthPlan = helperPlanAt(
-      order.fourth,
+      fourthOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -361,7 +368,7 @@ classical class SevenImportedHelpers {
     region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes fourthBytes = allocateBytes(fourthArena, fourthPlan.linkedLength);
     long fourthWritten = writeHelperAt(
-      order.fourth,
+      fourthOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -377,7 +384,7 @@ classical class SevenImportedHelpers {
     utf8 fourthLinkedSource = freezeUtf8(fourthBytes);
 
     LinkPlan thirdPlan = helperPlanAt(
-      order.third,
+      thirdOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -394,7 +401,7 @@ classical class SevenImportedHelpers {
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes thirdBytes = allocateBytes(thirdArena, thirdPlan.linkedLength);
     long thirdWritten = writeHelperAt(
-      order.third,
+      thirdOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -410,7 +417,7 @@ classical class SevenImportedHelpers {
     utf8 thirdLinkedSource = freezeUtf8(thirdBytes);
 
     LinkPlan secondPlan = helperPlanAt(
-      order.second,
+      secondOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -427,7 +434,7 @@ classical class SevenImportedHelpers {
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes secondBytes = allocateBytes(secondArena, secondPlan.linkedLength);
     long secondWritten = writeHelperAt(
-      order.second,
+      secondOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -443,7 +450,7 @@ classical class SevenImportedHelpers {
     utf8 secondLinkedSource = freezeUtf8(secondBytes);
 
     LinkPlan firstPlan = helperPlanAt(
-      order.first,
+      firstOwner,
       firstSource,
       secondSource,
       thirdSource,
@@ -460,7 +467,7 @@ classical class SevenImportedHelpers {
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes firstBytes = allocateBytes(firstArena, firstPlan.linkedLength);
     long firstWritten = writeHelperAt(
-      order.first,
+      firstOwner,
       firstSource,
       secondSource,
       thirdSource,

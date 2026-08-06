@@ -4,6 +4,7 @@ module wheeler.compiler.wide_imported_helpers;
 
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.helper_owners;
+import wheeler.compiler.helper_source_order;
 import wheeler.compiler.imported_helpers;
 import wheeler.compiler.module_linker;
 
@@ -64,81 +65,6 @@ classical class WideImportedHelpers {
     }
 
     return writeConstantImport(fifthSource, rootSource, plan, output);
-  }
-
-  private long importRank(
-    long source,
-    long firstStart,
-    long secondStart,
-    long thirdStart,
-    long fourthStart,
-    long fifthStart
-  ) {
-    long selected = firstStart;
-    if (source == 1) {
-      selected = secondStart;
-    }
-
-    if (source == 2) {
-      selected = thirdStart;
-    }
-
-    if (source == 3) {
-      selected = fourthStart;
-    }
-
-    if (source == 4) {
-      selected = fifthStart;
-    }
-
-    long rank = 0;
-    if (firstStart < selected) {
-      rank += 1;
-    }
-
-    if (secondStart < selected) {
-      rank += 1;
-    }
-
-    if (thirdStart < selected) {
-      rank += 1;
-    }
-
-    if (fourthStart < selected) {
-      rank += 1;
-    }
-
-    if (fifthStart < selected) {
-      rank += 1;
-    }
-
-    return rank;
-  }
-
-  private long sourceAtRank(
-    long rank,
-    long firstRank,
-    long secondRank,
-    long thirdRank,
-    long fourthRank
-  ) {
-    if (firstRank == rank) {
-      return 0;
-    }
-
-    if (secondRank == rank) {
-      return 1;
-    }
-
-    if (thirdRank == rank) {
-      return 2;
-    }
-
-    if (fourthRank == rank) {
-      return 3;
-    }
-
-    return 4;
   }
 
   private HelperOwner owner(LinkPlan plan) {
@@ -243,43 +169,20 @@ classical class WideImportedHelpers {
       assert(0 == 1);
     }
 
-    long firstRank = importRank(
+    long[7] ownerStarts = new long[7](
+      firstInputPlan.linkedOwnerStart,
+      secondInputPlan.linkedOwnerStart,
+      thirdInputPlan.linkedOwnerStart,
+      fourthInputPlan.linkedOwnerStart,
+      fifthInputPlan.linkedOwnerStart,
       0,
-      firstInputPlan.linkedOwnerStart,
-      secondInputPlan.linkedOwnerStart,
-      thirdInputPlan.linkedOwnerStart,
-      fourthInputPlan.linkedOwnerStart,
-      fifthInputPlan.linkedOwnerStart
+      0
     );
-    long secondRank = importRank(
-      1,
-      firstInputPlan.linkedOwnerStart,
-      secondInputPlan.linkedOwnerStart,
-      thirdInputPlan.linkedOwnerStart,
-      fourthInputPlan.linkedOwnerStart,
-      fifthInputPlan.linkedOwnerStart
-    );
-    long thirdRank = importRank(
-      2,
-      firstInputPlan.linkedOwnerStart,
-      secondInputPlan.linkedOwnerStart,
-      thirdInputPlan.linkedOwnerStart,
-      fourthInputPlan.linkedOwnerStart,
-      fifthInputPlan.linkedOwnerStart
-    );
-    long fourthRank = importRank(
-      3,
-      firstInputPlan.linkedOwnerStart,
-      secondInputPlan.linkedOwnerStart,
-      thirdInputPlan.linkedOwnerStart,
-      fourthInputPlan.linkedOwnerStart,
-      fifthInputPlan.linkedOwnerStart
-    );
-    long fifth = sourceAtRank(4, firstRank, secondRank, thirdRank, fourthRank);
-    long fourth = sourceAtRank(3, firstRank, secondRank, thirdRank, fourthRank);
-    long third = sourceAtRank(2, firstRank, secondRank, thirdRank, fourthRank);
-    long second = sourceAtRank(1, firstRank, secondRank, thirdRank, fourthRank);
-    long first = sourceAtRank(0, firstRank, secondRank, thirdRank, fourthRank);
+    long fifth = helperSourceAtRank(4, ownerStarts, 5);
+    long fourth = helperSourceAtRank(3, ownerStarts, 5);
+    long third = helperSourceAtRank(2, ownerStarts, 5);
+    long second = helperSourceAtRank(1, ownerStarts, 5);
+    long first = helperSourceAtRank(0, ownerStarts, 5);
 
     LinkPlan fifthPlan = helperPlanAt(
       fifth,
