@@ -3,7 +3,7 @@
 module wheeler.compiler.statement_opcodes;
 
 import wheeler.compiler.boolean_tokens;
-import wheeler.compiler.borrowed_intrinsic_returns;
+import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.identifier_starts;
 import wheeler.compiler.keyword_tokens;
@@ -422,6 +422,10 @@ classical class StatementOpcodes {
           );
           if (initializerHash == TOKEN_BUFFER_LENGTH) {
             return STATEMENT_LOCAL_BUFFER_LENGTH_NAMED;
+          }
+
+          if (initializerHash == TOKEN_UTF8_SCALAR) {
+            return STATEMENT_LOCAL_UTF8_SCALAR_NAMED;
           }
 
           long callArgument = utf8Scalar(source, tokenStarts[statementStart + 5]);

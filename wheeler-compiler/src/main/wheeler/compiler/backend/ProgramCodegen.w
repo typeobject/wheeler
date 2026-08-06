@@ -2,7 +2,6 @@
 
 module wheeler.compiler.program_codegen;
 
-import wheeler.compiler.borrowed_intrinsic_returns;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.codegen;
@@ -11,6 +10,7 @@ import wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_signatures;
+import wheeler.compiler.helper_source_types;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_types;
@@ -21,7 +21,6 @@ import wheeler.compiler.resolved_local_copy_kinds;
 import wheeler.compiler.resolved_local_pair_assertions;
 import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.resolved_long_operations;
-import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
@@ -522,16 +521,6 @@ classical class ProgramCodegen {
     return cursor;
   }
 
-  private long sequenceLocalType(long[16] parameterTypes, long parameterCount, long local) {
-    if (local < 0) {} else {
-      if (local < parameterCount) {
-        return parameterTypes[local];
-      }
-    }
-
-    return TYPE_SIGNED;
-  }
-
   private long writeSequence(
     borrow mut bytes output,
     long cursor,
@@ -573,34 +562,18 @@ classical class ProgramCodegen {
       long secondSourceType = TYPE_SIGNED;
       if (typedHelper) {
         long opcode = opcodes[index];
-        if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
-          firstSourceType = sequenceLocalType(parameterTypes, parameterCount, operands[index]);
-        }
-
-        if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
-          firstSourceType = sequenceLocalType(parameterTypes, parameterCount, operands[index]);
-        }
-
-        if (returnHelperCallArity(opcode) == 1) {
-          firstSourceType = sequenceLocalType(
-            parameterTypes,
-            parameterCount,
-            returnHelperCallFirstSource(opcode)
-          );
-        }
-
-        if (returnHelperCallArity(opcode) == 2) {
-          firstSourceType = sequenceLocalType(
-            parameterTypes,
-            parameterCount,
-            returnHelperCallFirstSource(opcode) - RETURN_HELPER_CALL_TWO_SOURCE_OFFSET
-          );
-          secondSourceType = sequenceLocalType(
-            parameterTypes,
-            parameterCount,
-            returnHelperCallSecondSource(opcode)
-          );
-        }
+        firstSourceType = helperFirstSourceType(
+          opcode,
+          operands[index],
+          parameterTypes,
+          parameterCount
+        );
+        secondSourceType = helperSecondSourceType(
+          opcode,
+          secondaryOperands[index],
+          parameterTypes,
+          parameterCount
+        );
 
         cursor = writeHelperStatement(
           output,

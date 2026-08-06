@@ -3,7 +3,7 @@
 module wheeler.compiler.local_statements;
 
 import wheeler.compiler.assertion_resolution;
-import wheeler.compiler.borrowed_intrinsic_returns;
+import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.call_resolution;
 import wheeler.compiler.class_constants;
@@ -203,6 +203,34 @@ classical class LocalStatements {
         previousCount,
         opcode
       );
+    }
+
+    if (opcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {
+      long utf8Source = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 5,
+        true
+      );
+      long scalarIndex = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 7,
+        true
+      );
+      if (-1 < utf8Source) {
+        if (-1 < scalarIndex) {
+          return STATEMENT_LOCAL_UTF8_SCALAR;
+        }
+      }
+
+      return -1;
     }
 
     if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH_NAMED) {
@@ -839,6 +867,10 @@ classical class LocalStatements {
 
   /// Checks whether a resolved statement operand names a valid prior local.
   public boolean sequenceOperandValid(long opcode, long operand) {
+    if (opcode == STATEMENT_LOCAL_UTF8_SCALAR) {
+      return -1 < operand;
+    }
+
     if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
       return -1 < operand;
     }

@@ -2,7 +2,7 @@
 
 module wheeler.compiler.helper_value_kinds;
 
-import wheeler.compiler.borrowed_intrinsic_returns;
+import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.statement_kinds;
 
 classical class HelperValueKinds {
@@ -40,6 +40,10 @@ classical class HelperValueKinds {
       return true;
     }
 
-    return opcode == STATEMENT_LOCAL_BUFFER_LENGTH_NAMED;
+    if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED;
   }
 }

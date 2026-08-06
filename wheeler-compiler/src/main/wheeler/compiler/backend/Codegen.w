@@ -261,6 +261,7 @@ classical class Codegen {
       cursor,
       opcode,
       operand,
+      secondaryOperand,
       localBase
     );
     if (-1 < intrinsicCursor) {

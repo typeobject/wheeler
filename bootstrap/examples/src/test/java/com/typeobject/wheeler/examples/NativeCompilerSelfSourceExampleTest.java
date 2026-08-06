@@ -661,10 +661,10 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
-  void compilesCanonicalBorrowedIntrinsicReturnsByteForByte() throws Exception {
+  void compilesCanonicalBorrowedIntrinsicKindsByteForByte() throws Exception {
     Program decoded = assertCompilerLibrary(
-        "compiler/syntax/intrinsics/BorrowedIntrinsicReturns.w",
-        "wheeler.compiler.borrowed_intrinsic_returns");
+        "compiler/syntax/intrinsics/BorrowedIntrinsicKinds.w",
+        "wheeler.compiler.borrowed_intrinsic_kinds");
     assertEquals("$library", decoded.functions().getFirst().name());
   }
 

@@ -63,6 +63,8 @@ classical class KeywordTokens {
   public const long TOKEN_BOOLEAN = 90259024936;
   /// Names the stable token hash for intrinsic `bufferLength`.
   public const long TOKEN_BUFFER_LENGTH = 2588713963992550214;
+  /// Names the stable token hash for intrinsic `utf8Scalar`.
+  public const long TOKEN_UTF8_SCALAR = 3195229610631869;
   /// Names the stable token hash for `return`.
   public const long TOKEN_RETURN = 3360570672;
 }

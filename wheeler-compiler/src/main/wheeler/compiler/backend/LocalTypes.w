@@ -2,7 +2,7 @@
 
 module wheeler.compiler.local_types;
 
-import wheeler.compiler.borrowed_intrinsic_returns;
+import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_comparison_forms;
@@ -62,6 +62,13 @@ classical class LocalTypes {
     long firstSourceType,
     long secondSourceType
   ) {
+    if (opcode == STATEMENT_LOCAL_UTF8_SCALAR) {
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, secondSourceType);
+      cursor = writeLocalType(output, cursor, TYPE_SIGNED);
+      return writeLocalType(output, cursor, TYPE_SIGNED);
+    }
+
     if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
       cursor = writeLocalType(output, cursor, firstSourceType);
       return writeLocalType(output, cursor, resultType);
@@ -98,6 +105,13 @@ classical class LocalTypes {
   /// Writes canonical local type codes for one parsed statement.
   public long writeStatementLocalTypes(borrow mut bytes output, long cursor, long opcode) {
     long count = statementLocalCount(opcode);
+    if (opcode == STATEMENT_LOCAL_UTF8_SCALAR) {
+      cursor = writeLocalType(output, cursor, TYPE_UTF8_BORROW);
+      cursor = writeLocalType(output, cursor, TYPE_SIGNED);
+      cursor = writeLocalType(output, cursor, TYPE_SIGNED);
+      return writeLocalType(output, cursor, TYPE_SIGNED);
+    }
+
     if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
       cursor = writeLocalType(output, cursor, TYPE_BYTES_BORROW);
       return writeLocalType(output, cursor, TYPE_SIGNED);

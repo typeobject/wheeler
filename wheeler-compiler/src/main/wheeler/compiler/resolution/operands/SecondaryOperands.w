@@ -3,6 +3,7 @@
 module wheeler.compiler.secondary_operands;
 
 import wheeler.compiler.boolean_tokens;
+import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.class_constants;
@@ -46,6 +47,18 @@ classical class SecondaryOperands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (sourceOpcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 7,
+        true
+      );
+    }
+
     if (sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_NAMED) {
       return resolvePriorDeclaration(
         source,

@@ -2,7 +2,7 @@
 
 module wheeler.compiler.local_resolution;
 
-import wheeler.compiler.borrowed_intrinsic_returns;
+import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
@@ -53,6 +53,10 @@ classical class LocalResolution {
   private boolean declarationMatches(long opcode, boolean signed) {
     if (signed) {
       if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH_NAMED) {
+        return true;
+      }
+
+      if (opcode == STATEMENT_LOCAL_UTF8_SCALAR_NAMED) {
         return true;
       }
 

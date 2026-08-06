@@ -1,0 +1,79 @@
+//! Selects canonical source types for typed helper statements.
+
+module wheeler.compiler.helper_source_types;
+
+import wheeler.compiler.borrowed_intrinsic_kinds;
+import wheeler.compiler.resolved_return_call_kinds;
+import wheeler.compiler.type_codes;
+
+classical class HelperSourceTypes {
+  private long sequenceLocalType(long[16] parameterTypes, long parameterCount, long local) {
+    if (local < 0) {} else {
+      if (local < parameterCount) {
+        return parameterTypes[local];
+      }
+    }
+
+    return TYPE_SIGNED;
+  }
+
+  /// Returns the canonical first source type for one typed statement.
+  public long helperFirstSourceType(
+    long opcode,
+    long operand,
+    long[16] parameterTypes,
+    long parameterCount
+  ) {
+    if (opcode == STATEMENT_LOCAL_UTF8_SCALAR) {
+      return sequenceLocalType(parameterTypes, parameterCount, operand);
+    }
+
+    if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
+      return sequenceLocalType(parameterTypes, parameterCount, operand);
+    }
+
+    if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
+      return sequenceLocalType(parameterTypes, parameterCount, operand);
+    }
+
+    if (returnHelperCallArity(opcode) == 1) {
+      return sequenceLocalType(
+        parameterTypes,
+        parameterCount,
+        returnHelperCallFirstSource(opcode)
+      );
+    }
+
+    if (returnHelperCallArity(opcode) == 2) {
+      return sequenceLocalType(
+        parameterTypes,
+        parameterCount,
+        returnHelperCallFirstSource(opcode) - RETURN_HELPER_CALL_TWO_SOURCE_OFFSET
+      );
+    }
+
+    return TYPE_SIGNED;
+  }
+
+  /// Returns the canonical second source type for one typed statement.
+  public long helperSecondSourceType(
+    long opcode,
+    long secondaryOperand,
+    long[16] parameterTypes,
+    long parameterCount
+  ) {
+    if (opcode == STATEMENT_LOCAL_UTF8_SCALAR) {
+      return sequenceLocalType(parameterTypes, parameterCount, secondaryOperand);
+    }
+
+    if (returnHelperCallArity(opcode) == 2) {
+      return sequenceLocalType(
+        parameterTypes,
+        parameterCount,
+        returnHelperCallSecondSource(opcode)
+      );
+    }
+
+    return TYPE_SIGNED;
+  }
+}

@@ -40,6 +40,40 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
   }
 
   @Test
+  void compilesBorrowedUtf8ScalarLocalByteForByte() throws Exception {
+    String source = """
+        module example.borrowed_utf8_scalar;
+        classical class BorrowedUtf8Scalar {
+          public long scalar(borrow utf8 value, long index) {
+            long scalar = utf8Scalar(value, index);
+            return scalar;
+          }
+          public long second(borrow utf8 value) {
+            long index = 1;
+            long scalar = utf8Scalar(value, index);
+            return scalar;
+          }
+          public long dummy() { return 0; }
+        }
+        """;
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("BorrowedUtf8Scalar.w", source), "example.borrowed_utf8_scalar"));
+    byte[] actual = NativeModuleCompilerHarness.compile(
+        NativeModuleCompilerHarness.program(), List.of(), source);
+    assertArrayEquals(expected, actual);
+
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace("borrow utf8 value", "borrow byteview value"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace("long index", "borrow utf8 index"));
+  }
+
+  @Test
   void compilesBorrowedLengthLocalByteForByte() throws Exception {
     String source = """
         module example.borrowed_intrinsic_local;

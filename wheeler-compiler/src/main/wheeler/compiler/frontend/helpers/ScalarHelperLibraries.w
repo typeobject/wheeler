@@ -3,7 +3,7 @@
 module wheeler.compiler.scalar_helper_libraries;
 
 import wheeler.compiler.body_parser;
-import wheeler.compiler.borrowed_intrinsic_returns;
+import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.early_comparison_forms;
@@ -98,6 +98,32 @@ classical class ScalarHelperLibraries {
         bufferLength = true;
       }
 
+      if (opcode == STATEMENT_LOCAL_UTF8_SCALAR) {
+        long utf8Local = sequence.operands[statement];
+        if (utf8Local < 0) {
+          return false;
+        }
+
+        if (utf8Local < parameterCount) {} else {
+          return false;
+        }
+
+        if (parameterTypes[utf8Local] == TYPE_UTF8_BORROW) {} else {
+          return false;
+        }
+
+        long indexLocal = sequence.secondaryOperands[statement];
+        if (indexLocal < 0) {
+          return false;
+        }
+
+        if (indexLocal < parameterCount) {
+          if (parameterTypes[indexLocal] == TYPE_SIGNED) {} else {
+            return false;
+          }
+        }
+      }
+
       if (bufferLength) {
         long sourceLocal = sequence.operands[statement];
         if (sourceLocal < 0) {
@@ -180,11 +206,19 @@ classical class ScalarHelperLibraries {
         }
       } else {
         boolean signedPrelude = resolvedLocalLongBinary(earlyOpcode);
+        if (earlyOpcode == STATEMENT_LOCAL_LONG) {
+          signedPrelude = true;
+        }
+
         if (resolvedLocalLongPair(earlyOpcode)) {
           signedPrelude = true;
         }
 
         if (earlyOpcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
+          signedPrelude = true;
+        }
+
+        if (earlyOpcode == STATEMENT_LOCAL_UTF8_SCALAR) {
           signedPrelude = true;
         }
 

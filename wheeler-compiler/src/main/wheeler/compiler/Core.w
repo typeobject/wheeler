@@ -2,7 +2,6 @@
 
 module wheeler.compiler.compiler_core;
 
-import wheeler.compiler.borrowed_intrinsic_returns;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.encoding;
@@ -10,6 +9,7 @@ import wheeler.compiler.encoding_widths;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_owners;
 import wheeler.compiler.helper_signatures;
+import wheeler.compiler.helper_source_types;
 import wheeler.compiler.ir;
 import wheeler.compiler.library_strings;
 import wheeler.compiler.local_opcodes;
@@ -20,7 +20,6 @@ import wheeler.compiler.opcodes;
 import wheeler.compiler.parser;
 import wheeler.compiler.program_codegen;
 import wheeler.compiler.resolved_long_operations;
-import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.string_table;
 import wheeler.compiler.tokens;
@@ -235,16 +234,6 @@ classical class CompilerCore {
     return cursor;
   }
 
-  private long helperLocalType(HelperBody body, long local) {
-    if (local < 0) {} else {
-      if (local < body.parameterCount) {
-        return body.parameterTypes[local];
-      }
-    }
-
-    return TYPE_SIGNED;
-  }
-
   private long writeHelperSequenceLocalTypes(
     borrow mut bytes output,
     long cursor,
@@ -258,29 +247,18 @@ classical class CompilerCore {
     long statement = 0;
     while (statement < body.statementCount) limit MAX_MINIMAL_STATEMENTS {
       long opcode = body.opcodes[statement];
-      long firstType = TYPE_SIGNED;
-      long secondType = TYPE_SIGNED;
-      if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
-        firstType = helperLocalType(body, body.operands[statement]);
-      }
-
-      if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
-        firstType = helperLocalType(body, body.operands[statement]);
-      }
-
-      if (resolvedReturnHelperCall(opcode)) {
-        if (returnHelperCallArity(opcode) == 1) {
-          firstType = helperLocalType(body, returnHelperCallFirstSource(opcode));
-        }
-
-        if (returnHelperCallArity(opcode) == 2) {
-          firstType = helperLocalType(
-            body,
-            returnHelperCallFirstSource(opcode) - RETURN_HELPER_CALL_TWO_SOURCE_OFFSET
-          );
-          secondType = helperLocalType(body, returnHelperCallSecondSource(opcode));
-        }
-      }
+      long firstType = helperFirstSourceType(
+        opcode,
+        body.operands[statement],
+        body.parameterTypes,
+        body.parameterCount
+      );
+      long secondType = helperSecondSourceType(
+        opcode,
+        body.secondaryOperands[statement],
+        body.parameterTypes,
+        body.parameterCount
+      );
 
       long callCursor = writeHelperCallLocalTypes(
         output,

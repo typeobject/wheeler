@@ -1,8 +1,8 @@
-//! Owns bounded source and resolved identities for borrowed intrinsic returns.
+//! Owns bounded source and resolved identities for borrowed intrinsic reads.
 
-module wheeler.compiler.borrowed_intrinsic_returns;
+module wheeler.compiler.borrowed_intrinsic_kinds;
 
-classical class BorrowedIntrinsicReturns {
+classical class BorrowedIntrinsicKinds {
   /// Names a signed return of an intrinsic borrowed-buffer length.
   public const long STATEMENT_RETURN_BUFFER_LENGTH_NAMED = 893;
   /// Names a local declaration initialized from an intrinsic borrowed-buffer length.
@@ -11,4 +11,8 @@ classical class BorrowedIntrinsicReturns {
   public const long STATEMENT_RETURN_BUFFER_LENGTH = 131072;
   /// Names a resolved local initialized from one intrinsic borrowed-buffer length.
   public const long STATEMENT_LOCAL_BUFFER_LENGTH = 131073;
+  /// Names a local declaration initialized from one borrowed UTF-8 scalar.
+  public const long STATEMENT_LOCAL_UTF8_SCALAR_NAMED = 895;
+  /// Names a resolved local initialized from one borrowed UTF-8 scalar.
+  public const long STATEMENT_LOCAL_UTF8_SCALAR = 131074;
 }
