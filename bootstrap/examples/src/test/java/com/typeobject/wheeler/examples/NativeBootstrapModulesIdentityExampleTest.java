@@ -59,8 +59,11 @@ final class NativeBootstrapModulesIdentityExampleTest {
 
     assertTrue(source.contains("private const long MAX_LOCAL_MODULES = 512;"));
     assertTrue(source.contains("requireMetadata(parsedModules < MAX_LOCAL_MODULES, source);"));
-    assertTrue(source.contains("private const long MAX_IMPORTS = 1536;"));
+    assertTrue(source.contains("private const long MAX_IMPORTS = 3072;"));
     assertTrue(source.contains("requireMetadata(parsedImports < MAX_IMPORTS, source);"));
+    assertTrue(source.contains("private const long MAX_MANIFEST_BYTES = 262144;"));
+    assertTrue(source.contains(
+        "requireMetadata(bufferLength(source) < MAX_MANIFEST_BYTES + 1, source);"));
   }
 
   @Test
@@ -159,7 +162,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
     assertLargeNoIdentity(program, sixtyFiveExternals.canonicalBytes());
 
     String text = imported.canonicalText();
-    assertNoIdentity(program, new byte[131_073]);
+    assertNoIdentity(program, new byte[262_145]);
     assertNoIdentity(program, text.replace(
         "  - \"wheeler.core\"\n  - \"wheeler.runtime\"",
         "  - \"wheeler.runtime\"\n  - \"wheeler.core\"")
