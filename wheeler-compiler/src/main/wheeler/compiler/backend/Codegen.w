@@ -288,7 +288,11 @@ classical class Codegen {
       callFunction,
       firstSourceType,
       secondSourceType,
-      thirdSourceType
+      thirdSourceType,
+      fourthSourceType,
+      fifthSourceType,
+      sixthSourceType,
+      seventhSourceType
     );
     if (-1 < voidCallCursor) {
       return voidCallCursor;

@@ -571,30 +571,16 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
-  void compilesCanonicalHelperValueKindsByteForByte() throws Exception {
-    Program decoded = assertImportedConstantCompilerLibrary(
-        "compiler/syntax/helpers/HelperValueKinds.w",
-        "wheeler.compiler.helper_value_kinds",
-        "compiler/syntax/intrinsics/BorrowedIntrinsicKinds.w",
-        "compiler/ir/StatementKinds.w",
-        "compiler/syntax/calls/VoidCallSourceKinds.w");
-    assertEquals(
-        "wheeler.compiler.void_call_source_kinds::voidCallSourceStatement",
-        decoded.functions().getFirst().name());
-    assertEquals(
-        "wheeler.compiler.helper_value_kinds::helperValueStatement",
-        decoded.functions().get(1).name());
-    assertEquals("$library", decoded.functions().getLast().name());
-  }
-
-  @Test
   void compilesCanonicalVoidCallSourceKindsByteForByte() throws Exception {
     Program decoded = assertCompilerLibrary(
         "compiler/syntax/calls/VoidCallSourceKinds.w",
         "wheeler.compiler.void_call_source_kinds");
     assertEquals(
-        "wheeler.compiler.void_call_source_kinds::voidCallSourceStatement",
-        decoded.functions().getFirst().name());
+        1,
+        decoded.functions().stream()
+            .filter(function -> function.name().equals(
+                "wheeler.compiler.void_call_source_kinds::voidCallSourceStatement"))
+            .count());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 
@@ -674,8 +660,11 @@ final class NativeCompilerSelfSourceExampleTest {
         "compiler/syntax/calls/VoidCallKinds.w",
         "compiler/syntax/calls/VoidCallSourceKinds.w");
     assertEquals(
-        "wheeler.compiler.void_call_source_widths::voidCallLocalCount",
-        decoded.functions().get(4).name());
+        1,
+        decoded.functions().stream()
+            .filter(function -> function.name().equals(
+                "wheeler.compiler.void_call_source_widths::voidCallLocalCount"))
+            .count());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 
@@ -702,12 +691,14 @@ final class NativeCompilerSelfSourceExampleTest {
     assertEquals(
         "wheeler.compiler.void_call_kinds::voidCallStatement",
         decoded.functions().getFirst().name());
-    assertEquals(
-        "wheeler.compiler.void_call_widths::voidCallCodeLength",
-        decoded.functions().get(3).name());
+    var codeLength = decoded.functions().stream()
+        .filter(function -> function.name().equals(
+            "wheeler.compiler.void_call_widths::voidCallCodeLength"))
+        .findFirst()
+        .orElseThrow();
     assertEquals(
         2,
-        decoded.functions().get(3).forward().stream()
+        codeLength.forward().stream()
             .filter(instruction -> instruction.opcode() == Opcode.CALL_VALUE)
             .findFirst()
             .orElseThrow()

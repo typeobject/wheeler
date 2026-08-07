@@ -48,6 +48,9 @@ import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
+import wheeler.compiler.void_call_kinds;
+import wheeler.compiler.void_call_resolution;
+import wheeler.compiler.void_call_source_forms;
 import wheeler.compiler.void_call_source_kinds;
 import wheeler.compiler.wide_local_call_resolution;
 import wheeler.compiler.wide_local_calls;
@@ -78,6 +81,10 @@ classical class Operands {
     }
 
     if (wideLocalCallStatement(opcode)) {
+      ambiguousTypedStatement = true;
+    }
+
+    if (anyVoidCallSourceStatement(opcode)) {
       ambiguousTypedStatement = true;
     }
 
@@ -193,6 +200,18 @@ classical class Operands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (3 < voidCallArity(opcode)) {
+      return resolveVoidCallFirstSources(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart,
+        opcode
+      );
+    }
+
     if (earlyUtf8Call(opcode)) {
       return resolveEarlyUtf8CallOperand(
         source,

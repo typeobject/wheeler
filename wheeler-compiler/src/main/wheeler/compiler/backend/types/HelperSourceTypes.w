@@ -12,6 +12,7 @@ import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
+import wheeler.compiler.void_call_operands;
 import wheeler.compiler.wide_local_calls;
 import wheeler.compiler.wide_return_sources;
 
@@ -320,38 +321,42 @@ classical class HelperSourceTypes {
     }
 
     long selected = -1;
-    if (wideLocalCallStatement(opcode)) {
-      selected = wideLocalCallSource(opcode, operand, secondaryOperand, source);
+    if (voidCallStatement(opcode)) {
+      selected = voidCallSource(opcode, operand, secondaryOperand, source);
     } else {
-      if (source == 0) {
-        selected = firstSource(opcode, operand);
-      }
-
-      if (source == 1) {
-        selected = secondSource(opcode, secondaryOperand);
-        if (4 < returnHelperCallArity(opcode)) {
-          selected = wideReturnSecondSource(operand);
+      if (wideLocalCallStatement(opcode)) {
+        selected = wideLocalCallSource(opcode, operand, secondaryOperand, source);
+      } else {
+        if (source == 0) {
+          selected = firstSource(opcode, operand);
         }
-      }
 
-      if (source == 2) {
-        selected = thirdSource(opcode, operand);
-      }
+        if (source == 1) {
+          selected = secondSource(opcode, secondaryOperand);
+          if (4 < returnHelperCallArity(opcode)) {
+            selected = wideReturnSecondSource(operand);
+          }
+        }
 
-      if (source == 3) {
-        selected = fourthSource(opcode, operand);
-      }
+        if (source == 2) {
+          selected = thirdSource(opcode, operand);
+        }
 
-      if (source == 4) {
-        selected = fifthSource(opcode, secondaryOperand);
-      }
+        if (source == 3) {
+          selected = fourthSource(opcode, operand);
+        }
 
-      if (source == 5) {
-        selected = sixthSource(opcode, secondaryOperand);
-      }
+        if (source == 4) {
+          selected = fifthSource(opcode, secondaryOperand);
+        }
 
-      if (source == 6) {
-        selected = seventhSource(opcode, secondaryOperand);
+        if (source == 5) {
+          selected = sixthSource(opcode, secondaryOperand);
+        }
+
+        if (source == 6) {
+          selected = seventhSource(opcode, secondaryOperand);
+        }
       }
     }
 

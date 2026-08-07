@@ -20,6 +20,7 @@ import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
+import wheeler.compiler.void_call_source_forms;
 import wheeler.compiler.void_call_source_kinds;
 import wheeler.compiler.void_call_syntax;
 import wheeler.compiler.wide_local_calls;
@@ -324,7 +325,7 @@ classical class Structure {
       );
     }
 
-    if (voidCallSourceStatement(statementKind)) {
+    if (anyVoidCallSourceStatement(statementKind)) {
       return voidCallStatementWidth(
         source,
         tokenKinds,

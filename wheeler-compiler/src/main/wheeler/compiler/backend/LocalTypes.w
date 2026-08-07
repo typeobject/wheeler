@@ -92,25 +92,46 @@ classical class LocalTypes {
       return cursor;
     }
 
-    if (voidArity == 1) {
-      cursor = writeLocalType(output, cursor, firstSourceType);
-      return writeLocalType(output, cursor, firstSourceType);
-    }
+    if (0 < voidArity) {
+      long voidArgument = 0;
+      while (voidArgument < voidArity) limit MAX_VOID_CALL_ARGUMENTS {
+        cursor = writeLocalType(
+          output,
+          cursor,
+          callSourceType(
+            voidArgument,
+            firstSourceType,
+            secondSourceType,
+            thirdSourceType,
+            fourthSourceType,
+            fifthSourceType,
+            sixthSourceType,
+            seventhSourceType
+          )
+        );
+        voidArgument += 1;
+      }
 
-    if (voidArity == 2) {
-      cursor = writeLocalType(output, cursor, firstSourceType);
-      cursor = writeLocalType(output, cursor, secondSourceType);
-      cursor = writeLocalType(output, cursor, firstSourceType);
-      return writeLocalType(output, cursor, secondSourceType);
-    }
+      voidArgument = 0;
+      while (voidArgument < voidArity) limit MAX_VOID_CALL_ARGUMENTS {
+        cursor = writeLocalType(
+          output,
+          cursor,
+          callSourceType(
+            voidArgument,
+            firstSourceType,
+            secondSourceType,
+            thirdSourceType,
+            fourthSourceType,
+            fifthSourceType,
+            sixthSourceType,
+            seventhSourceType
+          )
+        );
+        voidArgument += 1;
+      }
 
-    if (voidArity == 3) {
-      cursor = writeLocalType(output, cursor, firstSourceType);
-      cursor = writeLocalType(output, cursor, secondSourceType);
-      cursor = writeLocalType(output, cursor, thirdSourceType);
-      cursor = writeLocalType(output, cursor, firstSourceType);
-      cursor = writeLocalType(output, cursor, secondSourceType);
-      return writeLocalType(output, cursor, thirdSourceType);
+      return cursor;
     }
 
     if (opcode == STATEMENT_SET_WORD) {

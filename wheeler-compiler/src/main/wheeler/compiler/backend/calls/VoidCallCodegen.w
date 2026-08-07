@@ -6,7 +6,7 @@ import wheeler.compiler.call_arguments;
 import wheeler.compiler.encoding;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.void_call_kinds;
-import wheeler.compiler.void_call_widths;
+import wheeler.compiler.void_call_operands;
 
 classical class VoidCallCodegen {
   private const long FORM_UNARY = INSTRUCTION_FORM_UNARY;
@@ -42,13 +42,17 @@ classical class VoidCallCodegen {
     borrow mut bytes output,
     long cursor,
     long opcode,
-    long firstSource,
-    long secondSource,
+    long operand,
+    long secondaryOperand,
     long localBase,
     long function,
     long firstType,
     long secondType,
-    long thirdType
+    long thirdType,
+    long fourthType,
+    long fifthType,
+    long sixthType,
+    long seventhType
   ) {
     long arity = voidCallArity(opcode);
     if (arity < 0) {
@@ -61,28 +65,38 @@ classical class VoidCallCodegen {
       return writeUnsignedLittleEndian(output, cursor, function, U64);
     }
 
-    cursor = writeEvaluatedArgument(output, cursor, localBase, firstSource);
-    if (1 < arity) {
-      cursor = writeEvaluatedArgument(output, cursor, localBase + 1, secondSource);
-    }
-
-    if (arity == 3) {
+    long argument = 0;
+    while (argument < arity) limit MAX_VOID_CALL_ARGUMENTS {
       cursor = writeEvaluatedArgument(
         output,
         cursor,
-        localBase + 2,
-        voidCallThirdSource(opcode)
+        localBase + argument,
+        voidCallSource(opcode, operand, secondaryOperand, argument)
       );
+      argument += 1;
     }
 
     long argumentBase = localBase + arity;
-    cursor = writeCallArgument(output, cursor, argumentBase, localBase, firstType);
-    if (1 < arity) {
-      cursor = writeCallArgument(output, cursor, argumentBase + 1, localBase + 1, secondType);
-    }
-
-    if (arity == 3) {
-      cursor = writeCallArgument(output, cursor, argumentBase + 2, localBase + 2, thirdType);
+    argument = 0;
+    while (argument < arity) limit MAX_VOID_CALL_ARGUMENTS {
+      long type = callSourceType(
+        argument,
+        firstType,
+        secondType,
+        thirdType,
+        fourthType,
+        fifthType,
+        sixthType,
+        seventhType
+      );
+      cursor = writeCallArgument(
+        output,
+        cursor,
+        argumentBase + argument,
+        localBase + argument,
+        type
+      );
+      argument += 1;
     }
 
     cursor = writeInstructionHeader(output, cursor, OPCODE_CALL_VOID, FORM_TERNARY);

@@ -204,6 +204,111 @@ final class NativeCompilerBorrowedSignatureExampleTest {
   }
 
   @Test
+  void reborrowsFourThroughSevenVoidArgumentsByteForByte() throws Exception {
+    String source = """
+        module example.borrowed_void_calls;
+        classical class BorrowedVoidCalls {
+          private void acceptFour(
+            borrow utf8 text,
+            borrow byteview input,
+            borrow mut bytes output,
+            long fallback
+          ) {}
+          public long forwardFour(
+            borrow utf8 text,
+            borrow byteview input,
+            borrow mut bytes output,
+            long fallback
+          ) {
+            acceptFour(text, input, output, fallback);
+            return fallback;
+          }
+          private void acceptFive(
+            borrow utf8 text,
+            borrow byteview input,
+            borrow mut bytes output,
+            borrow mut words values,
+            long fallback
+          ) {}
+          public long forwardFive(
+            borrow utf8 text,
+            borrow byteview input,
+            borrow mut bytes output,
+            borrow mut words values,
+            long fallback
+          ) {
+            acceptFive(text, input, output, values, fallback);
+            return fallback;
+          }
+          private void acceptSix(
+            borrow utf8 text,
+            borrow byteview input,
+            borrow mut bytes output,
+            borrow mut words values,
+            borrow mut longmap table,
+            long fallback
+          ) {}
+          public long forwardSix(
+            borrow utf8 text,
+            borrow byteview input,
+            borrow mut bytes output,
+            borrow mut words values,
+            borrow mut longmap table,
+            long fallback
+          ) {
+            acceptSix(text, input, output, values, table, fallback);
+            return fallback;
+          }
+          private void acceptSeven(
+            borrow utf8 text,
+            borrow byteview input,
+            borrow mut bytes output,
+            borrow mut words values,
+            borrow mut longmap table,
+            borrow mut region arena,
+            long fallback
+          ) {}
+          public long forwardSeven(
+            borrow utf8 text,
+            borrow byteview input,
+            borrow mut bytes output,
+            borrow mut words values,
+            borrow mut longmap table,
+            borrow mut region arena,
+            long fallback
+          ) {
+            acceptSeven(text, input, output, values, table, arena, fallback);
+            return fallback;
+          }
+        }
+        """;
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("BorrowedVoidCalls.w", source), "example.borrowed_void_calls"));
+    byte[] actual = NativeModuleCompilerHarness.compile(
+        NativeModuleCompilerHarness.program(), List.of(), source);
+    assertArrayEquals(expected, actual);
+
+    var decoded = new BytecodeReader().read(actual);
+    assertEquals(13, decoded.functions().get(1).localCount());
+    assertEquals(16, decoded.functions().get(3).localCount());
+    assertEquals(19, decoded.functions().get(5).localCount());
+    assertEquals(22, decoded.functions().get(7).localCount());
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace(
+            "acceptSeven(text, input, output, values, table, arena, fallback)",
+            "acceptSeven(text, input, output, values, table, arena, fallback, fallback)"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace(
+            "acceptSix(text, input, output, values, table, fallback)",
+            "acceptSix(text, input, output, table, values, fallback)"));
+  }
+
+  @Test
   void compilesBorrowedUtf8AndMutableBytesParametersByteForByte() throws Exception {
     String source = """
         module example.borrowed_signatures;

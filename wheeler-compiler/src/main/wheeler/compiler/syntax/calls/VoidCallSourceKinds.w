@@ -11,6 +11,14 @@ classical class VoidCallSourceKinds {
   public const long STATEMENT_CALL_VOID_TWO_NAMED = 902;
   /// Names a source three-argument void call over prior locals.
   public const long STATEMENT_CALL_VOID_THREE_NAMED = 903;
+  /// Names a source four-argument void call over prior locals.
+  public const long STATEMENT_CALL_VOID_FOUR_NAMED = 922;
+  /// Names a source five-argument void call over prior locals.
+  public const long STATEMENT_CALL_VOID_FIVE_NAMED = 923;
+  /// Names a source six-argument void call over prior locals.
+  public const long STATEMENT_CALL_VOID_SIX_NAMED = 924;
+  /// Names a source seven-argument void call over prior locals.
+  public const long STATEMENT_CALL_VOID_SEVEN_NAMED = 925;
 
   /// Reports whether one identity is an unresolved void call.
   public boolean voidCallSourceStatement(long kind) {
@@ -28,4 +36,5 @@ classical class VoidCallSourceKinds {
 
     return kind == STATEMENT_CALL_VOID_THREE_NAMED;
   }
+
 }

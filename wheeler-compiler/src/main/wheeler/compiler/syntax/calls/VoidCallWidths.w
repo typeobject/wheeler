@@ -24,6 +24,22 @@ classical class VoidCallWidths {
       return 176;
     }
 
+    if (arity == 4) {
+      return 224;
+    }
+
+    if (arity == 5) {
+      return 272;
+    }
+
+    if (arity == 6) {
+      return 320;
+    }
+
+    if (arity == MAX_VOID_CALL_ARGUMENTS) {
+      return 368;
+    }
+
     return -1;
   }
 
@@ -43,7 +59,23 @@ classical class VoidCallWidths {
     }
 
     if (arity == 3) {
-      return 7;
+      return MAX_VOID_CALL_ARGUMENTS;
+    }
+
+    if (arity == 4) {
+      return 9;
+    }
+
+    if (arity == 5) {
+      return 11;
+    }
+
+    if (arity == 6) {
+      return 13;
+    }
+
+    if (arity == MAX_VOID_CALL_ARGUMENTS) {
+      return 15;
     }
 
     return -1;

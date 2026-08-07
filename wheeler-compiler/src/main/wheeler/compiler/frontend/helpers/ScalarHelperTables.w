@@ -16,6 +16,7 @@ import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
+import wheeler.compiler.void_call_operands;
 import wheeler.compiler.void_call_widths;
 import wheeler.compiler.wide_local_calls;
 import wheeler.compiler.wide_return_sources;
@@ -56,6 +57,27 @@ classical class ScalarHelperTables {
     long wideFirstSources = firstSource;
     long wideLastSources = secondSource;
     if (argumentCount == 0) {
+      return true;
+    }
+
+    if (voidCallStatement(opcode)) {
+      long voidArgument = 0;
+      while (voidArgument < argumentCount) limit MAX_VOID_CALL_ARGUMENTS {
+        long voidSource = voidCallSource(
+          opcode,
+          wideFirstSources,
+          wideLastSources,
+          voidArgument
+        );
+        if (
+          callerLocalType(caller, voidSource) == candidate.parameterTypes[voidArgument]
+        ) {} else {
+          return false;
+        }
+
+        voidArgument += 1;
+      }
+
       return true;
     }
 

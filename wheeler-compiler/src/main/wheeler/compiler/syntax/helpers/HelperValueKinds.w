@@ -3,10 +3,8 @@
 module wheeler.compiler.helper_value_kinds;
 
 import wheeler.compiler.borrowed_intrinsic_kinds;
-import wheeler.compiler.call_forms;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.void_call_source_kinds;
-import wheeler.compiler.wide_local_calls;
 
 classical class HelperValueKinds {
   /// Checks for one bounded helper value statement.
@@ -27,6 +25,22 @@ classical class HelperValueKinds {
       return true;
     }
 
+    if (opcode == STATEMENT_CALL_VOID_FOUR_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_CALL_VOID_FIVE_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_CALL_VOID_SIX_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_CALL_VOID_SEVEN_NAMED) {
+      return true;
+    }
+
     if (opcode == STATEMENT_SET_WORD_NAMED) {
       return true;
     }
@@ -39,7 +53,23 @@ classical class HelperValueKinds {
       return true;
     }
 
-    if (wideLocalCallStatement(opcode)) {
+    if (opcode == STATEMENT_LOCAL_CALL_THREE_LOCALS_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_CALL_FOUR_LOCALS_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_CALL_FIVE_LOCALS_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_CALL_SIX_LOCALS_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_CALL_SEVEN_LOCALS_NAMED) {
       return true;
     }
 

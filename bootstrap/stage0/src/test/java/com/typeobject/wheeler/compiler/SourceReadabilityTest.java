@@ -147,8 +147,8 @@ class SourceReadabilityTest {
       }
     }
     var allStatements = statementIdentities(allSources.toString());
-    assertEquals(283, allStatements.size());
-    assertEquals(283, new java.util.HashSet<>(allStatements.values()).size());
+    assertEquals(291, allStatements.size());
+    assertEquals(291, new java.util.HashSet<>(allStatements.values()).size());
   }
 
   @Test

@@ -34,6 +34,7 @@ import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
+import wheeler.compiler.void_call_source_forms;
 import wheeler.compiler.void_call_source_kinds;
 
 classical class ScalarHelperLibraries {
@@ -864,7 +865,7 @@ classical class ScalarHelperLibraries {
       }
 
       long targetToken = statementStarts[sourceStatement] + 2;
-      if (voidCallSourceStatement(sourceOpcode)) {
+      if (anyVoidCallSourceStatement(sourceOpcode)) {
         helperCall = true;
         targetToken = statementStarts[sourceStatement];
       }

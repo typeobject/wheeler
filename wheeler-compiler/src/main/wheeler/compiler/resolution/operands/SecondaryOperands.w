@@ -34,6 +34,8 @@ import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
+import wheeler.compiler.void_call_kinds;
+import wheeler.compiler.void_call_resolution;
 import wheeler.compiler.void_call_source_kinds;
 import wheeler.compiler.wide_local_call_resolution;
 import wheeler.compiler.wide_local_calls;
@@ -74,6 +76,18 @@ classical class SecondaryOperands {
 
     if (packedWideLocalCall(opcode)) {
       return resolveWideLocalLastSources(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart,
+        opcode
+      );
+    }
+
+    if (3 < voidCallArity(opcode)) {
+      return resolveVoidCallLastSources(
         source,
         tokenStarts,
         tokenLengths,
