@@ -155,6 +155,7 @@ Compatibility wrappers are not retained. During migration the driver may dispatc
 - [x] `graphs/Matrix.w` records bounded edges, roots, root order, reachability, privacy, sharing, and leaf-first order.
 - [x] Checked plan accessors expose every node, edge, root rank, privacy bit, and sharing bit.
 - [x] `graphs/Sources.w` provides one counted seven-slot selector over the complete physical source window.
+- [x] `graphs/plans/PlanSources.w` binds source copying to a validated plan and node.
 - [x] Two- through seven-module planners validate exact graph facts before topology dispatch.
 - [x] Every admitted legacy topology has differential frame-order evidence.
 - [x] `graphs/TwoRedundant.w` handles one chain whose leaf remains a direct root import.

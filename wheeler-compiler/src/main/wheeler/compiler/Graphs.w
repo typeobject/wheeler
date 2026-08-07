@@ -10,6 +10,7 @@ import wheeler.compiler.compiler_graph_six;
 import wheeler.compiler.graphs.direct.mixed_three;
 import wheeler.compiler.graphs.direct.mixed_two;
 import wheeler.compiler.graphs.matrix;
+import wheeler.compiler.graphs.plan_sources;
 import wheeler.compiler.graphs.small_plan_sources;
 import wheeler.compiler.graphs.small_structures;
 import wheeler.compiler.graphs.sources;
@@ -231,9 +232,9 @@ classical class CompilerGraphs {
     }
 
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFirst = copySelectedSource(
+    utf8 plannedFirst = copyPlannedSource(
+      plan,
       plannedNodeAt(plan, 0),
-      GRAPH_SOURCE_COUNT_TWO,
       firstImportedSource,
       secondImportedSource,
       secondImportedSource,
@@ -244,9 +245,9 @@ classical class CompilerGraphs {
       firstArena
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedSecond = copySelectedSource(
+    utf8 plannedSecond = copyPlannedSource(
+      plan,
       plannedNodeAt(plan, 1),
-      GRAPH_SOURCE_COUNT_TWO,
       firstImportedSource,
       secondImportedSource,
       secondImportedSource,
@@ -627,9 +628,9 @@ classical class CompilerGraphs {
     borrow mut bytes output
   ) {
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFirst = copySelectedSource(
+    utf8 plannedFirst = copyPlannedSource(
+      plan,
       threeFirstSource(plan),
-      GRAPH_SOURCE_COUNT_THREE,
       firstSource,
       secondSource,
       thirdSource,
@@ -640,9 +641,9 @@ classical class CompilerGraphs {
       firstArena
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedSecond = copySelectedSource(
+    utf8 plannedSecond = copyPlannedSource(
+      plan,
       threeSecondSource(plan),
-      GRAPH_SOURCE_COUNT_THREE,
       firstSource,
       secondSource,
       thirdSource,
@@ -653,9 +654,9 @@ classical class CompilerGraphs {
       secondArena
     );
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedThird = copySelectedSource(
+    utf8 plannedThird = copyPlannedSource(
+      plan,
       threeThirdSource(plan),
-      GRAPH_SOURCE_COUNT_THREE,
       firstSource,
       secondSource,
       thirdSource,

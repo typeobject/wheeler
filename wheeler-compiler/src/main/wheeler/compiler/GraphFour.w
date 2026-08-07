@@ -10,6 +10,7 @@ import wheeler.compiler.compiler_graph_four_nested;
 import wheeler.compiler.graphs.four_plan_sources;
 import wheeler.compiler.graphs.four_structures;
 import wheeler.compiler.graphs.matrix;
+import wheeler.compiler.graphs.plan_sources;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.module_linker;
 import wheeler.compiler.multiple_imported_helpers;
@@ -246,9 +247,9 @@ classical class CompilerGraphFour {
     borrow mut bytes output
   ) {
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFirst = copySelectedSource(
+    utf8 plannedFirst = copyPlannedSource(
+      plan,
       sources.first,
-      GRAPH_SOURCE_COUNT_FOUR,
       firstSource,
       secondSource,
       thirdSource,
@@ -259,9 +260,9 @@ classical class CompilerGraphFour {
       firstArena
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedSecond = copySelectedSource(
+    utf8 plannedSecond = copyPlannedSource(
+      plan,
       sources.second,
-      GRAPH_SOURCE_COUNT_FOUR,
       firstSource,
       secondSource,
       thirdSource,
@@ -272,9 +273,9 @@ classical class CompilerGraphFour {
       secondArena
     );
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedThird = copySelectedSource(
+    utf8 plannedThird = copyPlannedSource(
+      plan,
       sources.third,
-      GRAPH_SOURCE_COUNT_FOUR,
       firstSource,
       secondSource,
       thirdSource,
@@ -285,9 +286,9 @@ classical class CompilerGraphFour {
       thirdArena
     );
     region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFourth = copySelectedSource(
+    utf8 plannedFourth = copyPlannedSource(
+      plan,
       sources.fourth,
-      GRAPH_SOURCE_COUNT_FOUR,
       firstSource,
       secondSource,
       thirdSource,
