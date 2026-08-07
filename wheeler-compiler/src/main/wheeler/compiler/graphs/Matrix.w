@@ -151,6 +151,34 @@ classical class BoundedGraphMatrix {
     return power;
   }
 
+  private boolean writeDirectRootOrder(
+    borrow mut words rootRanks,
+    long nodeCount,
+    borrow mut words order
+  ) {
+    long rank = 0;
+    while (rank < nodeCount) limit MAX_GRAPH_NODES {
+      long selected = -1;
+      long node = 0;
+      while (node < nodeCount) limit MAX_GRAPH_NODES {
+        if (rootRanks[node] == rank) {
+          selected = node;
+        }
+
+        node += 1;
+      }
+
+      if (selected < 0) {
+        return false;
+      }
+
+      set(order, rank, selected);
+      rank += 1;
+    }
+
+    return true;
+  }
+
   /// Records exact edges, root visibility, role order, privacy, and shared dependencies.
   public BoundedGraphPlan planBoundedGraph(
     borrow mut words graph,
@@ -227,16 +255,15 @@ classical class BoundedGraphMatrix {
         sharedBits += sourcePower;
       }
 
-      long orderPower = 1;
-      long position = 0;
-      while (position < source) limit MAX_GRAPH_NODES {
-        orderPower = orderPower * ORDER_RADIX;
-        position += 1;
+      long rootOrderPower = 1;
+      long rootPosition = 0;
+      while (rootPosition < source) limit MAX_GRAPH_NODES {
+        rootOrderPower = rootOrderPower * ORDER_RADIX;
+        rootPosition += 1;
       }
 
-      orderCode += order[source] * orderPower;
       if (rootDirect[source] == 1) {
-        rootOrderCode += (rootRanks[source] + 1) * orderPower;
+        rootOrderCode += (rootRanks[source] + 1) * rootOrderPower;
       }
 
       source += 1;
@@ -261,6 +288,22 @@ classical class BoundedGraphMatrix {
       }
 
       rank += 1;
+    }
+
+    if (edgeCount == 0) {
+      if (rootCount == nodeCount) {
+        if (writeDirectRootOrder(rootRanks, nodeCount, order)) {} else {
+          return invalidPlan();
+        }
+      }
+    }
+
+    long position = 0;
+    long orderPower = 1;
+    while (position < nodeCount) limit MAX_GRAPH_NODES {
+      orderCode += order[position] * orderPower;
+      orderPower = orderPower * ORDER_RADIX;
+      position += 1;
     }
 
     return new BoundedGraphPlan(

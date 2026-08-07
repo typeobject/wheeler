@@ -3,8 +3,6 @@
 module wheeler.compiler.graphs.two_redundant;
 
 import wheeler.compiler.compiler_core;
-import wheeler.compiler.graphs.small_structures;
-import wheeler.compiler.graphs.sources;
 import wheeler.compiler.helper_owners;
 import wheeler.compiler.imported_helpers;
 import wheeler.compiler.module_linker;
@@ -39,38 +37,11 @@ classical class RedundantTwoGraph {
 
   /// Compiles a chain after retaining the same leaf as one direct root import.
   public RedundantTwoCompilation compileRedundantTwoGraph(
-    SmallGraphStructure structure,
-    borrow utf8 firstSource,
-    borrow utf8 secondSource,
+    borrow utf8 leafSource,
+    borrow utf8 dependentSource,
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    region leafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 leafSource = copySelectedSource(
-      structure.first,
-      GRAPH_SOURCE_COUNT_TWO,
-      firstSource,
-      secondSource,
-      secondSource,
-      secondSource,
-      secondSource,
-      secondSource,
-      secondSource,
-      leafArena
-    );
-    region dependentArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 dependentSource = copySelectedSource(
-      structure.second,
-      GRAPH_SOURCE_COUNT_TWO,
-      firstSource,
-      secondSource,
-      secondSource,
-      secondSource,
-      secondSource,
-      secondSource,
-      secondSource,
-      dependentArena
-    );
     LinkPlan dependencyPlan = planPrivateConstantImport(
       leafSource,
       dependentSource,
@@ -150,10 +121,6 @@ classical class RedundantTwoGraph {
     drop(rootArena);
     drop(linkedDependency);
     drop(linkedDependencyArena);
-    drop(dependentSource);
-    drop(dependentArena);
-    drop(leafSource);
-    drop(leafArena);
     return compiled;
   }
 }

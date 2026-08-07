@@ -14,9 +14,6 @@ classical class SmallGraphStructures {
   public const long SMALL_STRUCTURE_FORK = 3;
   /// Names one chain edge beside one unrelated direct import.
   public const long SMALL_STRUCTURE_CHAIN_AND_DIRECT = 4;
-  /// Names one chain whose leaf and dependent are both direct root imports.
-  public const long SMALL_STRUCTURE_CHAIN_AND_DIRECT_LEAF = 5;
-
   private const long TWO_MODULES = 2;
   private const long THREE_MODULES = 3;
   private const long SINGLE_IMPORT = 1;
@@ -29,6 +26,10 @@ classical class SmallGraphStructures {
     long third,
     boolean valid
   ) {}
+
+  private BoundedGraphPlan invalidTwoPlan() {
+    return new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, 0, false);
+  }
 
   private boolean graphEdge(borrow utf8 source, borrow utf8 dependentSource, long moduleCount) {
     HeaderDependency dependency = moduleDependency(source, dependentSource);
@@ -61,39 +62,6 @@ classical class SmallGraphStructures {
     }
 
     return dependency.importsCandidate;
-  }
-
-  private boolean writeDirectRootOrder(
-    borrow mut words rootRanks,
-    long moduleCount,
-    borrow mut words order
-  ) {
-    long position = 0;
-    while (position < moduleCount) limit THREE_MODULES {
-      long selected = -1;
-      long selectedRank = moduleCount;
-      long node = 0;
-      while (node < moduleCount) limit THREE_MODULES {
-        long rank = rootRanks[node];
-        if (position < rank + 1) {
-          if (rank < selectedRank) {
-            selected = node;
-            selectedRank = rank;
-          }
-        }
-
-        node += 1;
-      }
-
-      if (selected < 0) {
-        return false;
-      }
-
-      set(order, position, selected);
-      position += 1;
-    }
-
-    return true;
   }
 
   private long recordEdge(
@@ -161,40 +129,8 @@ classical class SmallGraphStructures {
     return true;
   }
 
-  private SmallGraphStructure orderedTwo(
-    borrow mut words graph,
-    borrow mut words rootDirect,
-    borrow mut words order,
-    long edgeCount,
-    long rootCount
-  ) {
-    if (edgeCount == 0) {
-      if (rootCount == TWO_MODULES) {
-        return new SmallGraphStructure(SMALL_STRUCTURE_DIRECT, order[0], order[1], 0, true);
-      }
-    }
-
-    if (edgeCount == SINGLE_IMPORT) {
-      if (rootCount == SINGLE_IMPORT) {
-        return new SmallGraphStructure(SMALL_STRUCTURE_CHAIN, order[0], order[1], 0, true);
-      }
-
-      if (rootCount == TWO_MODULES) {
-        return new SmallGraphStructure(
-          SMALL_STRUCTURE_CHAIN_AND_DIRECT_LEAF,
-          order[0],
-          order[1],
-          0,
-          true
-        );
-      }
-    }
-
-    return new SmallGraphStructure(0, 0, 0, 0, false);
-  }
-
-  /// Selects one exact rooted two-module topology.
-  public SmallGraphStructure planTwoStructure(
+  /// Produces one complete canonical two-module graph plan.
+  public BoundedGraphPlan planTwoGraph(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
     borrow utf8 rootSource
@@ -227,43 +163,25 @@ classical class SmallGraphStructures {
     rootCount += recordRoot(rootDirect, 1, rootEdge(secondRoot, TWO_MODULES));
     set(rootRanks, 0, firstRoot.candidateImportRank);
     set(rootRanks, 1, secondRoot.candidateImportRank);
-    boolean directLeaf = edgeCount == SINGLE_IMPORT;
-    if (directLeaf) {
-      directLeaf = rootCount == TWO_MODULES;
+    boolean redundantLeaf = edgeCount == SINGLE_IMPORT;
+    if (redundantLeaf) {
+      redundantLeaf = rootCount == TWO_MODULES;
     }
 
     boolean valid = edgeCount + rootCount == TWO_MODULES;
-    if (directLeaf) {
+    if (redundantLeaf) {
       valid = true;
     }
 
     if (valid) {
-      if (directLeaf) {} else {
+      if (redundantLeaf) {} else {
         valid = rootsAreSinks(graph, rootDirect, TWO_MODULES);
       }
     }
 
+    BoundedGraphPlan result = invalidTwoPlan();
     if (valid) {
-      BoundedGraphPlan graphPlan = planBoundedGraph(
-        graph,
-        rootDirect,
-        rootRanks,
-        TWO_MODULES,
-        order,
-        reachable
-      );
-      valid = graphPlan.valid;
-    }
-
-    if (valid) {
-      if (edgeCount == 0) {
-        valid = writeDirectRootOrder(rootRanks, TWO_MODULES, order);
-      }
-    }
-
-    SmallGraphStructure result = new SmallGraphStructure(0, 0, 0, 0, false);
-    if (valid) {
-      result = orderedTwo(graph, rootDirect, order, edgeCount, rootCount);
+      result = planBoundedGraph(graph, rootDirect, rootRanks, TWO_MODULES, order, reachable);
     }
 
     drop(reachable);
@@ -457,12 +375,6 @@ classical class SmallGraphStructures {
         reachable
       );
       valid = graphPlan.valid;
-    }
-
-    if (valid) {
-      if (edgeCount == 0) {
-        valid = writeDirectRootOrder(rootRanks, THREE_MODULES, order);
-      }
     }
 
     SmallGraphStructure result = new SmallGraphStructure(0, 0, 0, 0, false);

@@ -9,6 +9,7 @@ import wheeler.compiler.compiler_graph_seven;
 import wheeler.compiler.compiler_graph_six;
 import wheeler.compiler.graphs.direct.mixed_three;
 import wheeler.compiler.graphs.direct.mixed_two;
+import wheeler.compiler.graphs.matrix;
 import wheeler.compiler.graphs.small_structures;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.graphs.two_redundant;
@@ -147,52 +148,6 @@ classical class CompilerGraphs {
     return compiled;
   }
 
-  private GraphCompilation compilePlannedTwoChain(
-    SmallGraphStructure structure,
-    borrow utf8 firstSource,
-    borrow utf8 secondSource,
-    borrow utf8 rootSource,
-    borrow mut bytes output
-  ) {
-    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFirst = copySelectedSource(
-      structure.first,
-      GRAPH_SOURCE_COUNT_TWO,
-      firstSource,
-      secondSource,
-      secondSource,
-      secondSource,
-      secondSource,
-      secondSource,
-      secondSource,
-      firstArena
-    );
-    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedSecond = copySelectedSource(
-      structure.second,
-      GRAPH_SOURCE_COUNT_TWO,
-      firstSource,
-      secondSource,
-      secondSource,
-      secondSource,
-      secondSource,
-      secondSource,
-      secondSource,
-      secondArena
-    );
-    GraphCompilation compiled = compileConstantChain(
-      plannedFirst,
-      plannedSecond,
-      rootSource,
-      output
-    );
-    drop(plannedSecond);
-    drop(secondArena);
-    drop(plannedFirst);
-    drop(firstArena);
-    return compiled;
-  }
-
   private GraphCompilation compileTwoDirectImports(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,
@@ -262,60 +217,69 @@ classical class CompilerGraphs {
     return compiled;
   }
 
-  /// Compiles one root with two direct modules or one two-edge constant chain.
+  /// Compiles one complete validated two-module graph without topology dispatch.
   public GraphCompilation compileGraphWithConstantImports(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    SmallGraphStructure structure = planTwoStructure(
-      firstImportedSource,
-      secondImportedSource,
-      rootSource
-    );
-    if (structure.valid) {} else {
+    BoundedGraphPlan plan = planTwoGraph(firstImportedSource, secondImportedSource, rootSource);
+    if (plan.valid) {} else {
       assert(0 == 1);
     }
 
-    if (structure.topology == SMALL_STRUCTURE_CHAIN) {
-      return compilePlannedTwoChain(
-        structure,
-        firstImportedSource,
-        secondImportedSource,
-        rootSource,
-        output
-      );
-    }
-
-    if (structure.topology == SMALL_STRUCTURE_CHAIN_AND_DIRECT_LEAF) {
-      RedundantTwoCompilation redundantCompiled = compileRedundantTwoGraph(
-        structure,
-        firstImportedSource,
-        secondImportedSource,
-        rootSource,
-        output
-      );
-      return new GraphCompilation(redundantCompiled.length, redundantCompiled.codeStart);
-    }
-
-    assert(structure.topology == SMALL_STRUCTURE_DIRECT);
-    if (structure.first == 0) {
-      return compileTwoDirectImports(
-        firstImportedSource,
-        secondImportedSource,
-        rootSource,
-        output
-      );
-    }
-
-    assert(structure.first == 1);
-    return compileTwoDirectImports(
-      secondImportedSource,
+    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 plannedFirst = copySelectedSource(
+      plannedNodeAt(plan, 0),
+      GRAPH_SOURCE_COUNT_TWO,
       firstImportedSource,
-      rootSource,
-      output
+      secondImportedSource,
+      secondImportedSource,
+      secondImportedSource,
+      secondImportedSource,
+      secondImportedSource,
+      secondImportedSource,
+      firstArena
     );
+    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 plannedSecond = copySelectedSource(
+      plannedNodeAt(plan, 1),
+      GRAPH_SOURCE_COUNT_TWO,
+      firstImportedSource,
+      secondImportedSource,
+      secondImportedSource,
+      secondImportedSource,
+      secondImportedSource,
+      secondImportedSource,
+      secondImportedSource,
+      secondArena
+    );
+    GraphCompilation compiled = new GraphCompilation(0, 0);
+    if (plan.edgeCount == 0) {
+      assert(plan.rootCount == GRAPH_SOURCE_COUNT_TWO);
+      compiled = compileTwoDirectImports(plannedFirst, plannedSecond, rootSource, output);
+    } else {
+      assert(plan.edgeCount == 1);
+      if (plan.rootCount == 1) {
+        compiled = compileConstantChain(plannedFirst, plannedSecond, rootSource, output);
+      } else {
+        assert(plan.rootCount == GRAPH_SOURCE_COUNT_TWO);
+        RedundantTwoCompilation redundant = compileRedundantTwoGraph(
+          plannedFirst,
+          plannedSecond,
+          rootSource,
+          output
+        );
+        compiled = new GraphCompilation(redundant.length, redundant.codeStart);
+      }
+    }
+
+    drop(plannedSecond);
+    drop(secondArena);
+    drop(plannedFirst);
+    drop(firstArena);
+    return compiled;
   }
 
   private GraphCompilation compileThreeConstantChainIfOrdered(
