@@ -5,6 +5,7 @@ module wheeler.compiler.seven_imported_helpers;
 import wheeler.compiler.canonical_helper_linking;
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.helper_owners;
+import wheeler.compiler.helper_source_network;
 import wheeler.compiler.helper_source_order;
 import wheeler.compiler.imported_helpers;
 import wheeler.compiler.module_linker;
@@ -236,22 +237,92 @@ classical class SevenImportedHelpers {
       assert(0 == 1);
     }
 
-    long[7] ownerStarts = new long[7](
-      firstInputPlan.linkedOwnerStart,
-      secondInputPlan.linkedOwnerStart,
-      thirdInputPlan.linkedOwnerStart,
-      fourthInputPlan.linkedOwnerStart,
-      fifthInputPlan.linkedOwnerStart,
-      sixthInputPlan.linkedOwnerStart,
-      seventhInputPlan.linkedOwnerStart
+    long[7] ownerKeys = new long[7](
+      firstInputPlan.linkedOwnerStart * SOURCE_PACK_SCALE,
+      secondInputPlan.linkedOwnerStart * SOURCE_PACK_SCALE + 1,
+      thirdInputPlan.linkedOwnerStart * SOURCE_PACK_SCALE + 2,
+      fourthInputPlan.linkedOwnerStart * SOURCE_PACK_SCALE + 3,
+      fifthInputPlan.linkedOwnerStart * SOURCE_PACK_SCALE + 4,
+      sixthInputPlan.linkedOwnerStart * SOURCE_PACK_SCALE + 5,
+      seventhInputPlan.linkedOwnerStart * SOURCE_PACK_SCALE + 6
     );
-    long firstOwner = helperSourceAtRank(0, ownerStarts, 7);
-    long secondOwner = helperSourceAtRank(1, ownerStarts, 7);
-    long thirdOwner = helperSourceAtRank(2, ownerStarts, 7);
-    long fourthOwner = helperSourceAtRank(3, ownerStarts, 7);
-    long fifthOwner = helperSourceAtRank(4, ownerStarts, 7);
-    long sixthOwner = helperSourceAtRank(5, ownerStarts, 7);
-    long seventhOwner = helperSourceAtRank(6, ownerStarts, 7);
+    long firstOwnerKey = helperSourceKeyAtRank(
+      0,
+      ownerKeys[0],
+      ownerKeys[1],
+      ownerKeys[2],
+      ownerKeys[3],
+      ownerKeys[4],
+      ownerKeys[5],
+      ownerKeys[6]
+    );
+    long firstOwner = firstOwnerKey % SOURCE_PACK_SCALE;
+    long secondOwnerKey = helperSourceKeyAtRank(
+      1,
+      ownerKeys[0],
+      ownerKeys[1],
+      ownerKeys[2],
+      ownerKeys[3],
+      ownerKeys[4],
+      ownerKeys[5],
+      ownerKeys[6]
+    );
+    long secondOwner = secondOwnerKey % SOURCE_PACK_SCALE;
+    long thirdOwnerKey = helperSourceKeyAtRank(
+      2,
+      ownerKeys[0],
+      ownerKeys[1],
+      ownerKeys[2],
+      ownerKeys[3],
+      ownerKeys[4],
+      ownerKeys[5],
+      ownerKeys[6]
+    );
+    long thirdOwner = thirdOwnerKey % SOURCE_PACK_SCALE;
+    long fourthOwnerKey = helperSourceKeyAtRank(
+      3,
+      ownerKeys[0],
+      ownerKeys[1],
+      ownerKeys[2],
+      ownerKeys[3],
+      ownerKeys[4],
+      ownerKeys[5],
+      ownerKeys[6]
+    );
+    long fourthOwner = fourthOwnerKey % SOURCE_PACK_SCALE;
+    long fifthOwnerKey = helperSourceKeyAtRank(
+      4,
+      ownerKeys[0],
+      ownerKeys[1],
+      ownerKeys[2],
+      ownerKeys[3],
+      ownerKeys[4],
+      ownerKeys[5],
+      ownerKeys[6]
+    );
+    long fifthOwner = fifthOwnerKey % SOURCE_PACK_SCALE;
+    long sixthOwnerKey = helperSourceKeyAtRank(
+      5,
+      ownerKeys[0],
+      ownerKeys[1],
+      ownerKeys[2],
+      ownerKeys[3],
+      ownerKeys[4],
+      ownerKeys[5],
+      ownerKeys[6]
+    );
+    long sixthOwner = sixthOwnerKey % SOURCE_PACK_SCALE;
+    long seventhOwnerKey = helperSourceKeyAtRank(
+      6,
+      ownerKeys[0],
+      ownerKeys[1],
+      ownerKeys[2],
+      ownerKeys[3],
+      ownerKeys[4],
+      ownerKeys[5],
+      ownerKeys[6]
+    );
+    long seventhOwner = seventhOwnerKey % SOURCE_PACK_SCALE;
     LinkPlan seventhPlan = helperPlanAt(
       seventhOwner,
       firstSource,

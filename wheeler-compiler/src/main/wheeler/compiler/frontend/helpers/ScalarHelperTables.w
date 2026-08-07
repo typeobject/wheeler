@@ -325,6 +325,19 @@ classical class ScalarHelperTables {
   }
 
   private boolean localScalarCallMatches(HelperBody candidate, long opcode) {
+    // Keep the exact signed form ahead of Boolean-shaped rejection paths.
+    if (twoArgumentSignedResultCall(opcode)) {
+      if (candidate.kind == HELPER_SIGNED_TWO) {
+        if (candidate.parameterCount == 2) {
+          if (candidate.parameterTypes[0] == TYPE_SIGNED) {
+            return candidate.parameterTypes[1] == TYPE_SIGNED;
+          }
+        }
+      }
+
+      return false;
+    }
+
     if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
       if (candidate.kind == HELPER_SIGNED) {
         return candidate.parameterCount == 0;
@@ -393,20 +406,6 @@ classical class ScalarHelperTables {
               return candidate.parameterTypes[2] == TYPE_SIGNED;
             }
           }
-        }
-      }
-
-      return false;
-    }
-
-    if (twoArgumentCallStatement(opcode)) {
-      if (candidate.kind == HELPER_SIGNED_TWO) {
-        if (candidate.parameterCount == 2) {
-          if (candidate.parameterTypes[0] == TYPE_SIGNED) {
-            return candidate.parameterTypes[1] == TYPE_SIGNED;
-          }
-
-          return false;
         }
       }
 
