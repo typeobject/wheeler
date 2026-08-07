@@ -4,6 +4,7 @@ module wheeler.compiler.scalar_value_call_codegen;
 
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.encoding;
+import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.statement_kinds;
@@ -11,6 +12,10 @@ import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.two_argument_call_kinds;
 
 classical class ScalarValueCallCodegen {
+  private const long FOUR_ARGUMENT_CALL_ARITY = 4;
+  private const long FOUR_ARGUMENT_CALL_BASE_OFFSET = 4;
+  private const long FOUR_ARGUMENT_CALL_RESULT_OFFSET = 8;
+  private const long FOUR_ARGUMENT_CALL_FINAL_OFFSET = 9;
   private const long FORM_BINARY = INSTRUCTION_FORM_BINARY;
   private const long FORM_QUATERNARY = INSTRUCTION_FORM_QUATERNARY;
   private const long U64 = INSTRUCTION_OPERAND_WIDTH;
@@ -50,6 +55,71 @@ classical class ScalarValueCallCodegen {
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
     return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+  }
+
+  private long writeFourLocalArgumentCall(
+    borrow mut bytes output,
+    long cursor,
+    long opcode,
+    long firstSource,
+    long secondSource,
+    long localBase,
+    long callFunction
+  ) {
+    long thirdSource = fourArgumentCallThirdSource(opcode);
+    long fourthSource = fourArgumentCallFourthSource(opcode);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, firstSource, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, secondSource, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, thirdSource, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, fourthSource, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 4, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 5, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 6, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 7, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_CALL_VALUE, FORM_QUATERNARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, callFunction, U64);
+    cursor = writeUnsignedLittleEndian(
+      output,
+      cursor,
+      localBase + FOUR_ARGUMENT_CALL_BASE_OFFSET,
+      U64
+    );
+    cursor = writeUnsignedLittleEndian(output, cursor, FOUR_ARGUMENT_CALL_ARITY, U64);
+    cursor = writeUnsignedLittleEndian(
+      output,
+      cursor,
+      localBase + FOUR_ARGUMENT_CALL_RESULT_OFFSET,
+      U64
+    );
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(
+      output,
+      cursor,
+      localBase + FOUR_ARGUMENT_CALL_FINAL_OFFSET,
+      U64
+    );
+    return writeUnsignedLittleEndian(
+      output,
+      cursor,
+      localBase + FOUR_ARGUMENT_CALL_RESULT_OFFSET,
+      U64
+    );
   }
 
   private long writeThreeLocalArgumentCall(
@@ -100,6 +170,18 @@ classical class ScalarValueCallCodegen {
     long localBase,
     long callFunction
   ) {
+    if (fourArgumentCallStatement(opcode)) {
+      return writeFourLocalArgumentCall(
+        output,
+        cursor,
+        opcode,
+        operand,
+        secondaryOperand,
+        localBase,
+        callFunction
+      );
+    }
+
     if (threeArgumentCallStatement(opcode)) {
       return writeThreeLocalArgumentCall(
         output,

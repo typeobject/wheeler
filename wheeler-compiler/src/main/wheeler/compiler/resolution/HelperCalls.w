@@ -3,6 +3,7 @@
 module wheeler.compiler.helper_calls;
 
 import wheeler.compiler.call_forms;
+import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.ir;
 import wheeler.compiler.one_argument_calls;
@@ -123,6 +124,10 @@ classical class HelperCalls {
 
     if (helperKind == HELPER_SIGNED_THREE) {
       return threeArgumentCallStatement(opcode);
+    }
+
+    if (helperKind == HELPER_SIGNED_FOUR) {
+      return fourArgumentCallStatement(opcode);
     }
 
     return false;

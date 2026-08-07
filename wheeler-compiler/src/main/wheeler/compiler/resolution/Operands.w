@@ -12,6 +12,7 @@ import wheeler.compiler.conditionals;
 import wheeler.compiler.early_return_kinds;
 import wheeler.compiler.early_return_operands;
 import wheeler.compiler.expression_operands;
+import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
@@ -66,7 +67,7 @@ classical class Operands {
       ambiguousTypedStatement = true;
     }
 
-    if (threeArgumentCallStatement(opcode)) {
+    if (wideLocalCallStatement(opcode)) {
       ambiguousTypedStatement = true;
     }
 
@@ -511,7 +512,7 @@ classical class Operands {
       );
     }
 
-    if (threeArgumentCallStatement(opcode)) {
+    if (wideLocalCallStatement(opcode)) {
       return resolvePriorDeclaration(
         source,
         tokenStarts,
@@ -798,7 +799,7 @@ classical class Operands {
       return statementStart + 5;
     }
 
-    if (threeArgumentCallStatement(opcode)) {
+    if (wideLocalCallStatement(opcode)) {
       return threeArgumentFirstToken(statementStart);
     }
 

@@ -7,6 +7,7 @@ import wheeler.compiler.call_forms;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.early_return_kinds;
+import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.named_local_update_kinds;
@@ -99,7 +100,7 @@ classical class LocalResolution {
         return true;
       }
 
-      if (threeArgumentCallStatement(opcode)) {
+      if (wideLocalCallStatement(opcode)) {
         return true;
       }
 

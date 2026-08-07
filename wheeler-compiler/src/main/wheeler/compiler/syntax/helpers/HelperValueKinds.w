@@ -29,6 +29,10 @@ classical class HelperValueKinds {
       return true;
     }
 
+    if (opcode == STATEMENT_LOCAL_CALL_FOUR_LOCALS_NAMED) {
+      return true;
+    }
+
     if (opcode < STATEMENT_LOCAL_CALL_NAMED) {
       return false;
     }

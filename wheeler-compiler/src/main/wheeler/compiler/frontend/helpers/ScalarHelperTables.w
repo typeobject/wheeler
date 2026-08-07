@@ -4,6 +4,7 @@ module wheeler.compiler.scalar_helper_tables;
 
 import wheeler.compiler.call_forms;
 import wheeler.compiler.encoding;
+import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_signatures;
 import wheeler.compiler.ir;
@@ -362,6 +363,22 @@ classical class ScalarHelperTables {
           }
 
           return false;
+        }
+      }
+
+      return false;
+    }
+
+    if (fourArgumentCallStatement(opcode)) {
+      if (candidate.kind == HELPER_SIGNED_FOUR) {
+        if (candidate.parameterCount == 4) {
+          if (candidate.parameterTypes[0] == TYPE_SIGNED) {
+            if (candidate.parameterTypes[1] == TYPE_SIGNED) {
+              if (candidate.parameterTypes[2] == TYPE_SIGNED) {
+                return candidate.parameterTypes[3] == TYPE_SIGNED;
+              }
+            }
+          }
         }
       }
 

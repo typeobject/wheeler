@@ -7,6 +7,7 @@ import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.borrowed_intrinsic_syntax;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
+import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.named_boolean_return_kinds;
 import wheeler.compiler.named_comparison_kinds;
@@ -533,7 +534,7 @@ classical class Structure {
       }
     }
 
-    if (threeArgumentCallStatement(statementKind)) {
+    if (wideLocalCallStatement(statementKind)) {
       if (tokenKinds[statementStart + 1] == 1) {} else {
         return -1;
       }
@@ -588,17 +589,39 @@ classical class Structure {
         return -1;
       }
 
+      long wideCloseToken = thirdToken + 1;
+      if (fourArgumentCallStatement(statementKind)) {
+        if (
+          punctuationAt(source, tokenKinds, tokenStarts, wideCloseToken, PUNCTUATION_COMMA) == false
+        ) {
+          return -1;
+        }
+
+        long fourthToken = fourArgumentCallFourthToken(statementStart);
+        if (tokenKinds[fourthToken] == 1) {} else {
+          return -1;
+        }
+
+        wideCloseToken = fourthToken + 1;
+      }
+
       if (
-        punctuationAt(source, tokenKinds, tokenStarts, thirdToken + 1, PUNCTUATION_CLOSE_PAREN)
+        punctuationAt(source, tokenKinds, tokenStarts, wideCloseToken, PUNCTUATION_CLOSE_PAREN)
           == false
       ) {
         return -1;
       }
 
       if (
-        punctuationAt(source, tokenKinds, tokenStarts, thirdToken + 2, PUNCTUATION_SEMICOLON)
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          wideCloseToken + 1,
+          PUNCTUATION_SEMICOLON
+        )
       ) {
-        return 12;
+        return wideCloseToken - statementStart + 2;
       }
 
       return -1;

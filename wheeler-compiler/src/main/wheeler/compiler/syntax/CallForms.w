@@ -2,6 +2,7 @@
 
 module wheeler.compiler.call_forms;
 
+import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
@@ -30,6 +31,15 @@ classical class CallForms {
     return firstToken + firstWidth + 1;
   }
 
+  /// Checks for either bounded wide-local call identity.
+  public boolean wideLocalCallStatement(long opcode) {
+    if (threeArgumentCallStatement(opcode)) {
+      return true;
+    }
+
+    return fourArgumentCallStatement(opcode);
+  }
+
   /// Checks whether one statement initializes a local from a scalar helper.
   public boolean scalarResultCallStatement(long opcode) {
     if (opcode == STATEMENT_LOCAL_CALL_NAMED) {
@@ -48,7 +58,7 @@ classical class CallForms {
       return true;
     }
 
-    return threeArgumentCallStatement(opcode);
+    return wideLocalCallStatement(opcode);
   }
 
 }

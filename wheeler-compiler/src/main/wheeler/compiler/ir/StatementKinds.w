@@ -259,6 +259,8 @@ classical class StatementKinds {
   public const long STATEMENT_IF_SIGNED_LT_RETURN_DIV_NAMED = 912;
   /// Signed local initialized by three prior-local helper arguments.
   public const long STATEMENT_LOCAL_CALL_THREE_LOCALS_NAMED = 913;
+  /// Signed local initialized by four prior-local helper arguments.
+  public const long STATEMENT_LOCAL_CALL_FOUR_LOCALS_NAMED = 914;
   /// Checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Checked global subtraction.

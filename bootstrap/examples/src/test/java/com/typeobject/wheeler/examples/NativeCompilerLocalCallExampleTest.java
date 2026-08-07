@@ -39,7 +39,15 @@ final class NativeCompilerLocalCallExampleTest {
             return left;
           }
 
+          public long selectFour(long first, long second, long third, long fourth) {
+            return fourth;
+          }
+
           public boolean threeReady(long left, long middle, long right) {
+            return false;
+          }
+
+          public boolean fourReady(long first, long second, long third, long fourth) {
             return false;
           }
         }
@@ -67,6 +75,11 @@ final class NativeCompilerLocalCallExampleTest {
             long result = selectThree(value, value, value);
             return result;
           }
+
+          public long selectedFour(long value) {
+            long result = selectFour(value, value, value, value);
+            return result;
+          }
         }
         """;
     Program compiler = NativeModuleCompilerHarness.program();
@@ -76,12 +89,15 @@ final class NativeCompilerLocalCallExampleTest {
         "example.local_value_root");
     assertArrayEquals(new BytecodeWriter().write(expected), actual);
     Program decoded = new BytecodeReader().read(actual);
-    assertEquals(1, firstCallTarget(decoded, 6));
-    assertEquals(2, firstCallTarget(decoded, 7));
-    assertEquals(3, firstCallTarget(decoded, 8));
-    assertEquals(4, firstCallTarget(decoded, 9));
-    assertEquals(10, decoded.functions().get(9).localCount());
-    assertEquals(10, decoded.functions().get(9).forward().size());
+    assertEquals(1, firstCallTarget(decoded, 8));
+    assertEquals(2, firstCallTarget(decoded, 9));
+    assertEquals(3, firstCallTarget(decoded, 10));
+    assertEquals(4, firstCallTarget(decoded, 11));
+    assertEquals(5, firstCallTarget(decoded, 12));
+    assertEquals(10, decoded.functions().get(11).localCount());
+    assertEquals(10, decoded.functions().get(11).forward().size());
+    assertEquals(12, decoded.functions().get(12).localCount());
+    assertEquals(12, decoded.functions().get(12).forward().size());
 
     NativeModuleCompilerHarness.assertTrap(
         compiler,
@@ -99,6 +115,24 @@ final class NativeCompilerLocalCallExampleTest {
         compiler,
         List.of(dependency),
         root.replace("selectThree(value, value, value)", "selectThree(value, value, 0)"));
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(dependency),
+        root.replace(
+            "selectFour(value, value, value, value)",
+            "fourReady(value, value, value, value)"));
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(dependency),
+        root.replace(
+            "selectFour(value, value, value, value)",
+            "selectFour(value, value, value)"));
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(dependency),
+        root.replace(
+            "selectFour(value, value, value, value)",
+            "selectFour(value, value, value, 0)"));
   }
 
   private static long firstCallTarget(Program program, int function) {

@@ -9,6 +9,7 @@ import wheeler.compiler.call_forms;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_return_operands;
+import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
@@ -328,7 +329,7 @@ classical class SecondaryOperands {
       }
     }
 
-    if (threeArgumentCallStatement(opcode)) {
+    if (wideLocalCallStatement(opcode)) {
       return resolvePriorDeclaration(
         source,
         tokenStarts,

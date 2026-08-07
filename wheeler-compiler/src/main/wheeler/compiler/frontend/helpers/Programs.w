@@ -7,6 +7,7 @@ import wheeler.compiler.call_forms;
 import wheeler.compiler.class_layouts;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_calls;
 import wheeler.compiler.helper_signatures;
@@ -45,7 +46,7 @@ classical class HelperPrograms {
       return true;
     }
 
-    if (threeArgumentCallStatement(opcode)) {
+    if (wideLocalCallStatement(opcode)) {
       return true;
     }
 
@@ -216,7 +217,7 @@ classical class HelperPrograms {
           }
         }
 
-        if (threeArgumentCallStatement(opcode)) {
+        if (wideLocalCallStatement(opcode)) {
           if (
             resultSlotSourceDeclared(sequence, statement, sequence.operands[statement])
           ) {} else {
@@ -229,10 +230,25 @@ classical class HelperPrograms {
             return false;
           }
 
-          if (
-            resultSlotSourceDeclared(sequence, statement, threeArgumentThirdSource(opcode))
-          ) {} else {
+          long wideThirdSource = threeArgumentThirdSource(opcode);
+          if (fourArgumentCallStatement(opcode)) {
+            wideThirdSource = fourArgumentCallThirdSource(opcode);
+          }
+
+          if (resultSlotSourceDeclared(sequence, statement, wideThirdSource)) {} else {
             return false;
+          }
+
+          if (fourArgumentCallStatement(opcode)) {
+            if (
+              resultSlotSourceDeclared(
+                sequence,
+                statement,
+                fourArgumentCallFourthSource(opcode)
+              )
+            ) {} else {
+              return false;
+            }
           }
         }
 

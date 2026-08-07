@@ -6,6 +6,7 @@ import wheeler.compiler.borrowed_intrinsic_shapes;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_comparison_forms;
+import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.named_boolean_return_kinds;
 import wheeler.compiler.named_literal_comparison_kinds;
@@ -41,6 +42,10 @@ import wheeler.compiler.void_call_source_widths;
 import wheeler.compiler.void_call_widths;
 
 classical class LocalOpcodes {
+  private const long FOUR_LOCAL_CALL_LOCAL_COUNT = 10;
+  private const long FOUR_LOCAL_CALL_RESULT_OFFSET = 9;
+  private const long FOUR_LOCAL_CALL_CODE_LENGTH = 256;
+  private const long FOUR_LOCAL_CALL_INSTRUCTION_COUNT = 10;
   private const long EARLY_FORWARD_LOCAL_COUNT = 6;
   private const long EARLY_FORWARD_CODE_LENGTH = 232;
   private const long EARLY_FORWARD_INSTRUCTION_COUNT = 9;
@@ -95,6 +100,10 @@ classical class LocalOpcodes {
 
     if (oneArgumentCallStatement(opcode)) {
       return 4;
+    }
+
+    if (fourArgumentCallStatement(opcode)) {
+      return FOUR_LOCAL_CALL_LOCAL_COUNT;
     }
 
     if (threeArgumentCallStatement(opcode)) {
@@ -423,6 +432,10 @@ classical class LocalOpcodes {
       return localBase + 3;
     }
 
+    if (fourArgumentCallStatement(opcode)) {
+      return localBase + FOUR_LOCAL_CALL_RESULT_OFFSET;
+    }
+
     if (threeArgumentCallStatement(opcode)) {
       return localBase + 7;
     }
@@ -532,6 +545,10 @@ classical class LocalOpcodes {
 
     if (oneArgumentCallStatement(opcode)) {
       return 112;
+    }
+
+    if (fourArgumentCallStatement(opcode)) {
+      return FOUR_LOCAL_CALL_CODE_LENGTH;
     }
 
     if (threeArgumentCallStatement(opcode)) {
@@ -791,6 +808,10 @@ classical class LocalOpcodes {
 
     if (oneArgumentCallStatement(opcode)) {
       return 4;
+    }
+
+    if (fourArgumentCallStatement(opcode)) {
+      return FOUR_LOCAL_CALL_INSTRUCTION_COUNT;
     }
 
     if (threeArgumentCallStatement(opcode)) {

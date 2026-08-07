@@ -500,6 +500,13 @@ classical class StatementOpcodes {
                   if (
                     identifierStart(utf8Scalar(source, tokenStarts[secondComma + 1]))
                   ) {
+                    long thirdComma = secondComma + 2;
+                    if (
+                      utf8Scalar(source, tokenStarts[thirdComma]) == PUNCTUATION_COMMA
+                    ) {
+                      return STATEMENT_LOCAL_CALL_FOUR_LOCALS_NAMED;
+                    }
+
                     return STATEMENT_LOCAL_CALL_THREE_LOCALS_NAMED;
                   }
                 }

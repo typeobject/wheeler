@@ -4,6 +4,7 @@ module wheeler.compiler.call_resolution;
 
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
+import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.scalar_references;
@@ -334,6 +335,69 @@ classical class CallResolution {
     return -1;
   }
 
+  private long resolveFourArgumentCall(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart,
+    borrow mut words previousStarts,
+    long previousCount,
+    long opcode
+  ) {
+    if (opcode == STATEMENT_LOCAL_CALL_FOUR_LOCALS_NAMED) {} else {
+      return opcode;
+    }
+
+    long first = resolvePriorDeclaration(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      threeArgumentFirstToken(statementStart),
+      true
+    );
+    long second = resolvePriorDeclaration(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      threeArgumentSecondToken(statementStart),
+      true
+    );
+    long third = resolvePriorDeclaration(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      threeArgumentThirdToken(statementStart),
+      true
+    );
+    long fourth = resolvePriorDeclaration(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      fourArgumentCallFourthToken(statementStart),
+      true
+    );
+    if (-1 < first) {
+      if (-1 < second) {
+        if (-1 < third) {
+          if (-1 < fourth) {
+            return STATEMENT_LOCAL_CALL_FOUR_LOCALS_BASE + third * LOCAL_VALUE_CALL_SOURCE_COUNT
+              + fourth;
+          }
+        }
+      }
+    }
+
+    return -1;
+  }
+
   /// Resolves every named argument in one scalar helper call.
   public long resolveCallOpcode(
     borrow utf8 source,
@@ -346,6 +410,18 @@ classical class CallResolution {
   ) {
     if (oneArgumentCallStatement(opcode)) {
       return resolveOneArgumentCall(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        previousStarts,
+        previousCount,
+        opcode
+      );
+    }
+
+    if (fourArgumentCallStatement(opcode)) {
+      return resolveFourArgumentCall(
         source,
         tokenStarts,
         tokenLengths,

@@ -11,6 +11,7 @@ import wheeler.compiler.class_constants;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_return_kinds;
 import wheeler.compiler.early_statement_resolution;
+import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.local_loop_resolution;
 import wheeler.compiler.local_opcodes;
@@ -195,7 +196,7 @@ classical class LocalStatements {
       );
     }
 
-    if (threeArgumentCallStatement(opcode)) {
+    if (wideLocalCallStatement(opcode)) {
       return resolveCallOpcode(
         source,
         tokenStarts,

@@ -36,7 +36,7 @@ import wheeler.compiler.void_call_kinds;
 
 classical class LocalTypes {
   /// Bounds the temporary local window emitted by one source statement.
-  private const long MAX_STATEMENT_LOCALS = 9;
+  private const long MAX_STATEMENT_LOCALS = 10;
 
   /// Writes one validated canonical local type code.
   public long writeLocalType(borrow mut bytes output, long cursor, long type) {
