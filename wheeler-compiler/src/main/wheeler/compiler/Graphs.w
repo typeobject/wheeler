@@ -193,44 +193,12 @@ classical class CompilerGraphs {
     return compiled;
   }
 
-  /// Compiles one root with two direct modules or one two-edge constant chain.
-  public GraphCompilation compileGraphWithConstantImports(
+  private GraphCompilation compileTwoDirectImports(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    SmallGraphStructure structure = planTwoStructure(
-      firstImportedSource,
-      secondImportedSource,
-      rootSource
-    );
-    if (structure.valid) {} else {
-      assert(0 == 1);
-    }
-
-    if (structure.topology == SMALL_STRUCTURE_CHAIN) {
-      return compilePlannedTwoChain(
-        structure,
-        firstImportedSource,
-        secondImportedSource,
-        rootSource,
-        output
-      );
-    }
-
-    if (structure.topology == SMALL_STRUCTURE_CHAIN_AND_DIRECT_LEAF) {
-      RedundantTwoCompilation redundantCompiled = compileRedundantTwoGraph(
-        structure,
-        firstImportedSource,
-        secondImportedSource,
-        rootSource,
-        output
-      );
-      return new GraphCompilation(redundantCompiled.length, redundantCompiled.codeStart);
-    }
-
-    assert(structure.topology == SMALL_STRUCTURE_DIRECT);
     MixedTwoCompilation mixed = compileMixedTwoDirectGraph(
       firstImportedSource,
       secondImportedSource,
@@ -292,6 +260,62 @@ classical class CompilerGraphs {
     drop(firstLinkedSource);
     drop(firstArena);
     return compiled;
+  }
+
+  /// Compiles one root with two direct modules or one two-edge constant chain.
+  public GraphCompilation compileGraphWithConstantImports(
+    borrow utf8 firstImportedSource,
+    borrow utf8 secondImportedSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    SmallGraphStructure structure = planTwoStructure(
+      firstImportedSource,
+      secondImportedSource,
+      rootSource
+    );
+    if (structure.valid) {} else {
+      assert(0 == 1);
+    }
+
+    if (structure.topology == SMALL_STRUCTURE_CHAIN) {
+      return compilePlannedTwoChain(
+        structure,
+        firstImportedSource,
+        secondImportedSource,
+        rootSource,
+        output
+      );
+    }
+
+    if (structure.topology == SMALL_STRUCTURE_CHAIN_AND_DIRECT_LEAF) {
+      RedundantTwoCompilation redundantCompiled = compileRedundantTwoGraph(
+        structure,
+        firstImportedSource,
+        secondImportedSource,
+        rootSource,
+        output
+      );
+      return new GraphCompilation(redundantCompiled.length, redundantCompiled.codeStart);
+    }
+
+    assert(structure.topology == SMALL_STRUCTURE_DIRECT);
+    if (structure.first == 0) {
+      return compileTwoDirectImports(
+        firstImportedSource,
+        secondImportedSource,
+        rootSource,
+        output
+      );
+    }
+
+    assert(structure.first == 1);
+    return compileTwoDirectImports(
+      secondImportedSource,
+      firstImportedSource,
+      rootSource,
+      output
+    );
   }
 
   private GraphCompilation compileThreeConstantChainIfOrdered(

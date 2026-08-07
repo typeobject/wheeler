@@ -159,7 +159,8 @@ Compatibility wrappers are not retained. During migration the driver may dispatc
 - [x] `graphs/TwoRedundant.w` handles one chain whose leaf remains a direct root import.
 - [x] Shared helper planning drops an exact private prefix against an existing public or private declaration.
 - [ ] One source table owns physical and linked source slots.
-- [ ] Root-import rank is part of the generic graph plan.
+- [x] Header dependency facts carry validated candidate import rank, and small direct plans use it.
+- [ ] Root-import rank is part of the complete generic graph plan.
 - [ ] One executor handles direct, chain, fork, branch, redundant-edge, and shared-DAG plans.
 - [ ] Mixed constant and helper owners use the same executor.
 - [ ] Every legacy topology matches byte for byte through the generic path.

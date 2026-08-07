@@ -47,8 +47,7 @@ classical class SmallGraphStructures {
     return dependency.importsCandidate;
   }
 
-  private boolean rootEdge(borrow utf8 source, borrow utf8 rootSource, long moduleCount) {
-    HeaderDependency dependency = moduleDependency(source, rootSource);
+  private boolean rootEdge(HeaderDependency dependency, long moduleCount) {
     if (dependency.valid) {} else {
       return false;
     }
@@ -62,6 +61,39 @@ classical class SmallGraphStructures {
     }
 
     return dependency.importsCandidate;
+  }
+
+  private boolean writeDirectRootOrder(
+    borrow mut words rootRanks,
+    long moduleCount,
+    borrow mut words order
+  ) {
+    long position = 0;
+    while (position < moduleCount) limit THREE_MODULES {
+      long selected = -1;
+      long selectedRank = moduleCount;
+      long node = 0;
+      while (node < moduleCount) limit THREE_MODULES {
+        long rank = rootRanks[node];
+        if (position < rank + 1) {
+          if (rank < selectedRank) {
+            selected = node;
+            selectedRank = rank;
+          }
+        }
+
+        node += 1;
+      }
+
+      if (selected < 0) {
+        return false;
+      }
+
+      set(order, position, selected);
+      position += 1;
+    }
+
+    return true;
   }
 
   private long recordEdge(
@@ -138,7 +170,7 @@ classical class SmallGraphStructures {
   ) {
     if (edgeCount == 0) {
       if (rootCount == TWO_MODULES) {
-        return new SmallGraphStructure(SMALL_STRUCTURE_DIRECT, 0, 1, 0, true);
+        return new SmallGraphStructure(SMALL_STRUCTURE_DIRECT, order[0], order[1], 0, true);
       }
     }
 
@@ -167,9 +199,10 @@ classical class SmallGraphStructures {
     borrow utf8 secondSource,
     borrow utf8 rootSource
   ) {
-    region arena = new region(/* bytes= */ 80, /* allocations= */ 4);
+    region arena = new region(/* bytes= */ 96, /* allocations= */ 5);
     words graph = allocate(arena, 4);
     words rootDirect = allocate(arena, TWO_MODULES);
+    words rootRanks = allocate(arena, TWO_MODULES);
     words order = allocate(arena, TWO_MODULES);
     words reachable = allocate(arena, TWO_MODULES);
     long edgeCount = 0;
@@ -187,9 +220,13 @@ classical class SmallGraphStructures {
       0,
       graphEdge(secondSource, firstSource, TWO_MODULES)
     );
+    HeaderDependency firstRoot = moduleDependency(firstSource, rootSource);
+    HeaderDependency secondRoot = moduleDependency(secondSource, rootSource);
     long rootCount = 0;
-    rootCount += recordRoot(rootDirect, 0, rootEdge(firstSource, rootSource, TWO_MODULES));
-    rootCount += recordRoot(rootDirect, 1, rootEdge(secondSource, rootSource, TWO_MODULES));
+    rootCount += recordRoot(rootDirect, 0, rootEdge(firstRoot, TWO_MODULES));
+    rootCount += recordRoot(rootDirect, 1, rootEdge(secondRoot, TWO_MODULES));
+    set(rootRanks, 0, firstRoot.candidateImportRank);
+    set(rootRanks, 1, secondRoot.candidateImportRank);
     boolean directLeaf = edgeCount == SINGLE_IMPORT;
     if (directLeaf) {
       directLeaf = rootCount == TWO_MODULES;
@@ -217,6 +254,12 @@ classical class SmallGraphStructures {
       valid = graphPlan.valid;
     }
 
+    if (valid) {
+      if (edgeCount == 0) {
+        valid = writeDirectRootOrder(rootRanks, TWO_MODULES, order);
+      }
+    }
+
     SmallGraphStructure result = new SmallGraphStructure(0, 0, 0, 0, false);
     if (valid) {
       result = orderedTwo(graph, rootDirect, order, edgeCount, rootCount);
@@ -224,6 +267,7 @@ classical class SmallGraphStructures {
 
     drop(reachable);
     drop(order);
+    drop(rootRanks);
     drop(rootDirect);
     drop(graph);
     drop(arena);
@@ -291,7 +335,13 @@ classical class SmallGraphStructures {
   ) {
     if (edgeCount == 0) {
       if (rootCount == THREE_MODULES) {
-        return new SmallGraphStructure(SMALL_STRUCTURE_DIRECT, 0, 1, 2, true);
+        return new SmallGraphStructure(
+          SMALL_STRUCTURE_DIRECT,
+          order[0],
+          order[1],
+          order[2],
+          true
+        );
       }
     }
 
@@ -374,16 +424,23 @@ classical class SmallGraphStructures {
     borrow utf8 thirdSource,
     borrow utf8 rootSource
   ) {
-    region arena = new region(/* bytes= */ 144, /* allocations= */ 4);
+    region arena = new region(/* bytes= */ 168, /* allocations= */ 5);
     words graph = allocate(arena, 9);
     words rootDirect = allocate(arena, THREE_MODULES);
+    words rootRanks = allocate(arena, THREE_MODULES);
     words order = allocate(arena, THREE_MODULES);
     words reachable = allocate(arena, THREE_MODULES);
     long edgeCount = recordThreeEdges(graph, firstSource, secondSource, thirdSource);
+    HeaderDependency firstRoot = moduleDependency(firstSource, rootSource);
+    HeaderDependency secondRoot = moduleDependency(secondSource, rootSource);
+    HeaderDependency thirdRoot = moduleDependency(thirdSource, rootSource);
     long rootCount = 0;
-    rootCount += recordRoot(rootDirect, 0, rootEdge(firstSource, rootSource, THREE_MODULES));
-    rootCount += recordRoot(rootDirect, 1, rootEdge(secondSource, rootSource, THREE_MODULES));
-    rootCount += recordRoot(rootDirect, 2, rootEdge(thirdSource, rootSource, THREE_MODULES));
+    rootCount += recordRoot(rootDirect, 0, rootEdge(firstRoot, THREE_MODULES));
+    rootCount += recordRoot(rootDirect, 1, rootEdge(secondRoot, THREE_MODULES));
+    rootCount += recordRoot(rootDirect, 2, rootEdge(thirdRoot, THREE_MODULES));
+    set(rootRanks, 0, firstRoot.candidateImportRank);
+    set(rootRanks, 1, secondRoot.candidateImportRank);
+    set(rootRanks, 2, thirdRoot.candidateImportRank);
     boolean valid = edgeCount + rootCount == THREE_MODULES;
     if (valid) {
       valid = rootsAreSinks(graph, rootDirect, THREE_MODULES);
@@ -400,6 +457,12 @@ classical class SmallGraphStructures {
       valid = graphPlan.valid;
     }
 
+    if (valid) {
+      if (edgeCount == 0) {
+        valid = writeDirectRootOrder(rootRanks, THREE_MODULES, order);
+      }
+    }
+
     SmallGraphStructure result = new SmallGraphStructure(0, 0, 0, 0, false);
     if (valid) {
       result = orderedThree(graph, rootDirect, order, edgeCount, rootCount);
@@ -407,6 +470,7 @@ classical class SmallGraphStructures {
 
     drop(reachable);
     drop(order);
+    drop(rootRanks);
     drop(rootDirect);
     drop(graph);
     drop(arena);

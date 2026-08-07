@@ -12,7 +12,12 @@ classical class ModuleHeaders {
   private const long HEADER_DEPENDENCY_ARENA_BYTES = 196640;
 
   /// Carries exact direct-import membership for two validated module headers.
-  public record HeaderDependency(long importCount, boolean importsCandidate, boolean valid) {}
+  public record HeaderDependency(
+    long importCount,
+    long candidateImportRank,
+    boolean importsCandidate,
+    boolean valid
+  ) {}
 
   private long qualifiedNameEnd(
     borrow utf8 source,
@@ -317,6 +322,7 @@ classical class ModuleHeaders {
     }
 
     long importCount = 0;
+    long candidateImportRank = -1;
     boolean importsCandidate = false;
     if (valid) {
       long moduleEnd = qualifiedNameEnd(
@@ -352,6 +358,7 @@ classical class ModuleHeaders {
               importLength
             ) == 0
           ) {
+            candidateImportRank = importCount;
             importsCandidate = true;
           }
 
@@ -373,6 +380,6 @@ classical class ModuleHeaders {
     drop(candidateStarts);
     drop(candidateKinds);
     drop(arena);
-    return new HeaderDependency(importCount, importsCandidate, valid);
+    return new HeaderDependency(importCount, candidateImportRank, importsCandidate, valid);
   }
 }
