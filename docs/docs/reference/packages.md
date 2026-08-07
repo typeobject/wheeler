@@ -33,6 +33,8 @@ workspace:
 members:
   - name: "wheeler-compiler"
     path: "wheeler-compiler"
+  - name: "wheeler-conformance"
+    path: "wheeler-conformance"
   - name: "wheeler-core"
     path: "wheeler-core"
   - name: "wheeler-examples"
@@ -45,7 +47,7 @@ members:
 
 The workspace codec sorts members by canonical member name. Names and logical paths must be unique, and member roots cannot nest. Paths use `/`, reject absolute paths and `.` or `..` components, and contain only portable letters, digits, `_`, `-`, and `.`. The local workspace adapter also rejects symbolic-link components, members outside the physical workspace root, missing package manifests, and package profiles that differ from the workspace profile.
 
-`wheeler check` processes members and their targets in canonical order. `wheeler build` isolates member outputs under `<output>/<member-name>/` so equal target names cannot collide. The checked-in root [`wheeler.workspace.yaml`](../../../wheeler.workspace.yaml) contains the core, compiler, package codec, runtime, and executable example packages.
+`wheeler check` processes members and their targets in canonical order. `wheeler build` isolates member outputs under `<output>/<member-name>/` so equal target names cannot collide. The checked-in root [`wheeler.workspace.yaml`](../../../wheeler.workspace.yaml) contains the core, compiler, package codec, runtime, executable conformance, and readable example packages. Conformance programs and examples are separate members because an identity parser is evidence, not a beginner exercise.
 
 ## Package manifest
 
@@ -408,7 +410,7 @@ Archive signatures and registry namespace authorization are separate layers. Con
 
 ## Wheeler-native manifest slice
 
-The Wheeler-written codecs live under canonical `wheeler.packages`. Its entryless library locks `wheeler.compiler` for the shared scanner and `wheeler.core` for binary and SHA-256 tools. Executable roots remain in `wheeler-examples`, which consumes every required exact archive. Fixtures may read canonical source for differential compilation, but package-codec authority stays in the canonical library.
+The Wheeler-written codecs live under canonical `wheeler.packages`. Its entryless library locks `wheeler.compiler` for the shared scanner and `wheeler.core` for binary and SHA-256 tools. Executable package-codec probes live in `wheeler-conformance`, which consumes every required exact archive. `wheeler-examples` keeps only the readable application portfolio and the dependencies those programs actually use. Fixtures may read canonical source for differential compilation, but package-codec authority stays in the canonical library.
 
 `crypto/ContentIdentity.w` owns the common metadata boundary: at most 4,096 immutable input bytes become one strict UTF-8 owner, and a caller invokes complete 32-byte SHA-256 publication only after its codec accepts the structure. Snapshot, lock, manifest, and workspace fixtures share this path instead of keeping four nearly identical copies. Copy-pasted trust code is still copy-pasted code, even when each copy has a very serious comment.
 

@@ -17,7 +17,7 @@ import java.util.Map;
 /** Shared binary-frame harness for Wheeler-native module compiler fixtures. */
 final class NativeModuleCompilerHarness {
   private static final Path FIXTURE = Path.of(
-      "../wheeler-examples/src/main/wheeler/native/compiler/NativeModuleCompiler.w");
+      "../wheeler-conformance/src/main/wheeler/compiler/NativeModuleCompiler.w");
   private static final int OUTPUT_CAPACITY = 32_768;
 
   private NativeModuleCompilerHarness() {}
@@ -27,7 +27,7 @@ final class NativeModuleCompilerHarness {
     modules.put("Binary.w", CoreSources.read("encoding/Binary.w"));
     modules.put("NativeModuleCompiler.w", Files.readString(FIXTURE));
     return new WheelerCompiler().compileModuleFiles(
-        modules, "examples.compiler.native_module_compiler");
+        modules, "wheeler.conformance.compiler.native_module_compiler");
   }
 
   static byte[] compile(Program compiler, String imported, String root) {

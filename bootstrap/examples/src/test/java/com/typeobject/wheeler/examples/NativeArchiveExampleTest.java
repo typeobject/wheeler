@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 class NativeArchiveExampleTest {
   @Test
   void wheelerInspectsOuterAndEntryDigestCheckedArchive() throws Exception {
-    Path root = Path.of("src/main/wheeler/native");
+    Path root = Path.of("../wheeler-conformance/src/main/wheeler/packages");
     Program inspector = new WheelerCompiler().compileModuleFiles(
         Map.ofEntries(
             Map.entry("Archive.w", PackageSources.read("packages/archive/Archive.w")),
@@ -36,7 +36,7 @@ class NativeArchiveExampleTest {
             Map.entry("Scanner.w", CompilerSources.read("lexer/Scanner.w")),
             Map.entry("Semver.w", PackageSources.read("packages/resolution/Semver.w")),
             Map.entry("Sha256.w", CoreSources.read("crypto/Sha256.w"))),
-        "examples.packages.archive_main");
+        "wheeler.conformance.packages.archive_main");
     String manifestText = """
         schema: 1
         package:

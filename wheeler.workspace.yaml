@@ -5,6 +5,8 @@ workspace:
 members:
   - name: "wheeler-compiler"
     path: "wheeler-compiler"
+  - name: "wheeler-conformance"
+    path: "wheeler-conformance"
   - name: "wheeler-core"
     path: "wheeler-core"
   - name: "wheeler-examples"

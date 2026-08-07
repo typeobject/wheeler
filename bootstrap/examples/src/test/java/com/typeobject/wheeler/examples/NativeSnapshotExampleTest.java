@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 /** Differential tests for the Wheeler-native immutable repository snapshot codec. */
 final class NativeSnapshotExampleTest {
   private static final Path FIXTURE = Path.of(
-      "src/main/wheeler/native/packages/NativeSnapshot.w");
+      "../wheeler-conformance/src/main/wheeler/packages/NativeSnapshot.w");
 
   @Test
   void parsesCanonicalSnapshotsIntoBoundedCallerTables() throws Exception {
@@ -90,7 +90,7 @@ final class NativeSnapshotExampleTest {
             "ManifestTokens.w", PackageSources.read("packages/manifest/ManifestTokens.w"),
             "LineEmitter.w", PackageSources.read("packages/manifest/LineEmitter.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w")),
-        "examples.packages.snapshot");
+        "wheeler.conformance.packages.snapshot");
   }
 
   private static VirtualMachine vm(Program program, byte[] source) {

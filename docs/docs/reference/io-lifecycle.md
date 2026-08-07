@@ -53,7 +53,7 @@ Cancellation does not reap an operation and never claims rollback. Malformed pro
 
 The native transition table rejects second completion, completion before resource release, progress beyond declared work, mismatched terminal/cancellation pairs, second reap, and scope closure with any unreaped row. Late cancellation may strengthen only the matching relation: success becomes completion-won, known failure becomes failure-won, and independent uncertainty becomes uncertainty-after-cancellation. It does not rewrite history into cancellation-before-effect because that would be lying with extra steps.
 
-[`NativeIoLifecycle.w`](../../wheeler-examples/src/main/wheeler/native/NativeIoLifecycle.w) executes success, cancellation-before-effect, partial cancellation, uncertainty, late cancellation, capacity failure, exact reaping, closure, and complete VM rewind.
+[`NativeIoLifecycle.w`](../../wheeler-conformance/src/main/wheeler/io/NativeIoLifecycle.w) executes success, cancellation-before-effect, partial cancellation, uncertainty, late cancellation, capacity failure, exact reaping, closure, and complete VM rewind.
 
 ## Positional memory-file oracle
 

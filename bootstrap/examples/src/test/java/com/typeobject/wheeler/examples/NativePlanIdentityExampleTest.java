@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 /** Differential tests for Wheeler-native canonical build-plan identities. */
 final class NativePlanIdentityExampleTest {
   private static final Path FIXTURE = Path.of(
-      "src/main/wheeler/native/packages/NativePlanIdentity.w");
+      "../wheeler-conformance/src/main/wheeler/packages/identity/NativePlanIdentity.w");
 
   @Test
   void validatesBeforePublishingTheCanonicalPlanIdentity() throws Exception {
@@ -79,7 +79,7 @@ final class NativePlanIdentityExampleTest {
             "Binary.w", CoreSources.read("encoding/Binary.w"),
             "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
-        "examples.packages.plan_identity");
+        "wheeler.conformance.packages.plan_identity");
   }
 
   private static VirtualMachine vm(Program program, byte[] source) {

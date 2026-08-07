@@ -270,7 +270,7 @@ The repository includes:
 - exact offline locked builds, sealed-plan execution, explicit grants, and atomic output publication.
 - a Tree-sitter grammar, corpus, highlighting, and executable examples.
 
-The examples cover reversible state, typed aggregate values, bounded and recursive control, classical modules, coherent reuse, QFT with a generated adjoint, a bounded hybrid optimizer, circuit normalization, and static error-correction structure.
+The examples cover reversible state, typed aggregate values, bounded and recursive control, classical modules, coherent reuse, QFT with a generated adjoint, a bounded hybrid optimizer, circuit normalization, and static error-correction structure. Executable bootstrap, identity, compiler, package, and runtime probes live in a separate conformance package. They were useful examples only of how long a directory name can postpone an architectural decision.
 
 Large areas are still unfinished. They include borrowing, mutable slices, and compiler-scale region storage. The project also needs a standard library, self-hosted tools, and native Java-free execution. Dynamic target control, richer coherent arithmetic, complete application fixtures, and the full proof system remain open.
 
@@ -311,6 +311,7 @@ When software crosses classical, reversible, quantum, and external-effect bounda
 - [First-principles tutorials](tutorials/index.mdx)
 - [Language profile](reference/language-profile.md)
 - [Executable examples](examples.md)
+- [Executable conformance programs](conformance.md)
 - [Bytecode format](reference/bytecode.md) and [virtual machine](reference/virtual-machine.md)
 - [Quantum targets](reference/quantum-targets.md)
 - [Hybrid runs, history, and replay](reference/hybrid-runs.md)

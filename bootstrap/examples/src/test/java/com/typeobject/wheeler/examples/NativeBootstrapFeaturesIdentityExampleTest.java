@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 
 /** Differential tests for Wheeler-native bootstrap feature-manifest identities. */
 final class NativeBootstrapFeaturesIdentityExampleTest {
-  private static final Path ROOT = Path.of("src/main/wheeler/native/bootstrap");
+  private static final Path ROOT = Path.of("../wheeler-conformance/src/main/wheeler/bootstrap");
 
   @Test
   void requiresTheCompleteClosedVocabularyBeforePublishing() throws Exception {
@@ -56,7 +56,7 @@ final class NativeBootstrapFeaturesIdentityExampleTest {
             "BootstrapSyntax.w", Files.readString(ROOT.resolve("BootstrapSyntax.w")),
             "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
-        "examples.bootstrap.features_identity");
+        "wheeler.conformance.bootstrap.features_identity");
   }
 
   private static VirtualMachine vm(Program program, byte[] source) {

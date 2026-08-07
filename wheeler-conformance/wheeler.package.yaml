@@ -1,0 +1,227 @@
+schema: 1
+package:
+  name: "wheeler.conformance"
+  version: "0.1.0"
+  profile: "bootstrap-1"
+targets:
+  - kind: "deployable"
+    name: "nativearchive"
+    root: "src/main/wheeler/packages/NativeArchive.w"
+    module: "wheeler.conformance.packages.archive_main"
+    sources:
+      - "src/main/wheeler/packages/NativeArchive.w"
+    test: false
+  - kind: "deployable"
+    name: "nativearchiveidentity"
+    root: "src/main/wheeler/packages/identity/NativeArchiveIdentity.w"
+    module: "wheeler.conformance.packages.archive_identity"
+    sources:
+      - "src/main/wheeler/packages/identity/NativeArchiveIdentity.w"
+    test: false
+  - kind: "deployable"
+    name: "nativeartifactsetidentity"
+    root: "src/main/wheeler/bootstrap/NativeArtifactSetIdentity.w"
+    module: "wheeler.conformance.bootstrap.artifact_set_identity"
+    sources:
+      - "src/main/wheeler/bootstrap/BootstrapSyntax.w"
+      - "src/main/wheeler/bootstrap/NativeArtifactSetIdentity.w"
+    test: false
+  - kind: "deployable"
+    name: "nativebootstrapfeaturesidentity"
+    root: "src/main/wheeler/bootstrap/NativeBootstrapFeaturesIdentity.w"
+    module: "wheeler.conformance.bootstrap.features_identity"
+    sources:
+      - "src/main/wheeler/bootstrap/BootstrapSyntax.w"
+      - "src/main/wheeler/bootstrap/NativeBootstrapFeaturesIdentity.w"
+    test: false
+  - kind: "deployable"
+    name: "nativebootstrapmanifestidentity"
+    root: "src/main/wheeler/bootstrap/NativeBootstrapManifestIdentity.w"
+    module: "wheeler.conformance.bootstrap.manifest_identity"
+    sources:
+      - "src/main/wheeler/bootstrap/BootstrapSyntax.w"
+      - "src/main/wheeler/bootstrap/NativeBootstrapManifestIdentity.w"
+    test: false
+  - kind: "deployable"
+    name: "nativebootstrapmodulesidentity"
+    root: "src/main/wheeler/bootstrap/NativeBootstrapModulesIdentity.w"
+    module: "wheeler.conformance.bootstrap.modules_identity"
+    sources:
+      - "src/main/wheeler/bootstrap/BootstrapSyntax.w"
+      - "src/main/wheeler/bootstrap/NativeBootstrapModulesIdentity.w"
+    test: false
+  - kind: "deployable"
+    name: "nativebytecodecodec"
+    root: "src/main/wheeler/compiler/NativeBytecodeCodec.w"
+    module: "wheeler.conformance.compiler.native_bytecode_codec"
+    sources:
+      - "src/main/wheeler/compiler/NativeBytecodeCodec.w"
+    test: false
+  - kind: "deployable"
+    name: "nativebytecodeidentity"
+    root: "src/main/wheeler/compiler/NativeBytecodeIdentity.w"
+    module: "wheeler.conformance.compiler.native_bytecode_identity"
+    sources:
+      - "src/main/wheeler/compiler/NativeBytecodeIdentity.w"
+    test: false
+  - kind: "deployable"
+    name: "nativecompileridentity"
+    root: "src/main/wheeler/compiler/NativeCompilerIdentity.w"
+    module: "wheeler.conformance.compiler.native_compiler_identity"
+    sources:
+      - "src/main/wheeler/compiler/NativeCompilerIdentity.w"
+    test: false
+  - kind: "deployable"
+    name: "nativecompilerlimitsidentity"
+    root: "src/main/wheeler/bootstrap/NativeCompilerLimitsIdentity.w"
+    module: "wheeler.conformance.bootstrap.compiler_limits_identity"
+    sources:
+      - "src/main/wheeler/bootstrap/BootstrapSyntax.w"
+      - "src/main/wheeler/bootstrap/NativeCompilerLimitsIdentity.w"
+    test: false
+  - kind: "deployable"
+    name: "nativecompileroptionsidentity"
+    root: "src/main/wheeler/bootstrap/NativeCompilerOptionsIdentity.w"
+    module: "wheeler.conformance.bootstrap.compiler_options_identity"
+    sources:
+      - "src/main/wheeler/bootstrap/BootstrapSyntax.w"
+      - "src/main/wheeler/bootstrap/NativeCompilerOptionsIdentity.w"
+    test: false
+  - kind: "deployable"
+    name: "nativedurabilityreceipts"
+    root: "src/main/wheeler/io/NativeDurabilityReceipts.w"
+    module: "wheeler.conformance.io.durability_receipts"
+    sources:
+      - "src/main/wheeler/io/NativeDurabilityReceipts.w"
+    test: false
+  - kind: "deployable"
+    name: "nativeiolifecycle"
+    root: "src/main/wheeler/io/NativeIoLifecycle.w"
+    module: "wheeler.conformance.io.io_lifecycle"
+    sources:
+      - "src/main/wheeler/io/NativeIoLifecycle.w"
+    test: false
+  - kind: "deployable"
+    name: "nativelock"
+    root: "src/main/wheeler/packages/NativeLock.w"
+    module: "wheeler.conformance.packages.lock_main"
+    sources:
+      - "src/main/wheeler/packages/NativeLock.w"
+    test: false
+  - kind: "deployable"
+    name: "nativelockidentity"
+    root: "src/main/wheeler/packages/identity/NativeLockIdentity.w"
+    module: "wheeler.conformance.packages.lock_identity"
+    sources:
+      - "src/main/wheeler/packages/identity/NativeLockIdentity.w"
+    test: false
+  - kind: "deployable"
+    name: "nativemanifest"
+    root: "src/main/wheeler/packages/NativeManifest.w"
+    module: "wheeler.conformance.packages.main"
+    sources:
+      - "src/main/wheeler/packages/NativeManifest.w"
+    test: false
+  - kind: "deployable"
+    name: "nativemanifestidentity"
+    root: "src/main/wheeler/packages/identity/NativeManifestIdentity.w"
+    module: "wheeler.conformance.packages.manifest_identity"
+    sources:
+      - "src/main/wheeler/packages/identity/NativeManifestIdentity.w"
+    test: false
+  - kind: "deployable"
+    name: "nativemodulecompiler"
+    root: "src/main/wheeler/compiler/NativeModuleCompiler.w"
+    module: "wheeler.conformance.compiler.native_module_compiler"
+    sources:
+      - "src/main/wheeler/compiler/NativeModuleCompiler.w"
+    test: false
+  - kind: "deployable"
+    name: "nativeplan"
+    root: "src/main/wheeler/packages/NativePlan.w"
+    module: "wheeler.conformance.packages.plan_main"
+    sources:
+      - "src/main/wheeler/packages/NativePlan.w"
+    test: false
+  - kind: "deployable"
+    name: "nativeplanidentity"
+    root: "src/main/wheeler/packages/identity/NativePlanIdentity.w"
+    module: "wheeler.conformance.packages.plan_identity"
+    sources:
+      - "src/main/wheeler/packages/identity/NativePlanIdentity.w"
+    test: false
+  - kind: "deployable"
+    name: "nativesha256"
+    root: "src/main/wheeler/crypto/NativeSha256.w"
+    module: "wheeler.conformance.crypto.sha256_main"
+    sources:
+      - "src/main/wheeler/crypto/NativeSha256.w"
+    test: false
+  - kind: "deployable"
+    name: "nativesnapshot"
+    root: "src/main/wheeler/packages/NativeSnapshot.w"
+    module: "wheeler.conformance.packages.snapshot"
+    sources:
+      - "src/main/wheeler/packages/NativeSnapshot.w"
+    test: false
+  - kind: "deployable"
+    name: "nativesnapshotidentity"
+    root: "src/main/wheeler/packages/identity/NativeSnapshotIdentity.w"
+    module: "wheeler.conformance.packages.snapshot_identity"
+    sources:
+      - "src/main/wheeler/packages/identity/NativeSnapshotIdentity.w"
+    test: false
+  - kind: "deployable"
+    name: "nativetoolchainidentity"
+    root: "src/main/wheeler/bootstrap/NativeToolchainIdentity.w"
+    module: "wheeler.conformance.bootstrap.toolchain_identity"
+    sources:
+      - "src/main/wheeler/bootstrap/BootstrapSyntax.w"
+      - "src/main/wheeler/bootstrap/NativeToolchainIdentity.w"
+    test: false
+  - kind: "deployable"
+    name: "nativeverifier"
+    root: "src/main/wheeler/compiler/NativeVerifier.w"
+    module: "wheeler.conformance.compiler.native_verifier"
+    sources:
+      - "src/main/wheeler/compiler/NativeVerifier.w"
+    test: false
+  - kind: "deployable"
+    name: "nativevm"
+    root: "src/main/wheeler/runtime/NativeVm.w"
+    module: "wheeler.conformance.runtime.native_vm"
+    sources:
+      - "src/main/wheeler/runtime/NativeVm.w"
+    test: false
+  - kind: "deployable"
+    name: "nativeworkspace"
+    root: "src/main/wheeler/packages/NativeWorkspace.w"
+    module: "wheeler.conformance.packages.workspace_main"
+    sources:
+      - "src/main/wheeler/packages/NativeWorkspace.w"
+    test: false
+  - kind: "deployable"
+    name: "nativeworkspaceidentity"
+    root: "src/main/wheeler/packages/identity/NativeWorkspaceIdentity.w"
+    module: "wheeler.conformance.packages.workspace_identity"
+    sources:
+      - "src/main/wheeler/packages/identity/NativeWorkspaceIdentity.w"
+    test: false
+dependencies:
+  - kind: "normal"
+    name: "wheeler.compiler"
+    version: "=0.1.0"
+  - kind: "normal"
+    name: "wheeler.core"
+    version: "=0.1.0"
+  - kind: "normal"
+    name: "wheeler.packages"
+    version: "=0.1.0"
+  - kind: "normal"
+    name: "wheeler.runtime"
+    version: "=0.1.0"
+capabilities:
+  - name: "build.read"
+    path: "src/main/wheeler/**"
+  - name: "build.write"
+    path: "build/**"

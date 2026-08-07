@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 /** Differential tests for Wheeler-native repository snapshot identities. */
 final class NativeSnapshotIdentityExampleTest {
   private static final Path FIXTURE = Path.of(
-      "src/main/wheeler/native/packages/NativeSnapshotIdentity.w");
+      "../wheeler-conformance/src/main/wheeler/packages/identity/NativeSnapshotIdentity.w");
 
   @Test
   void validatesBeforePublishingTheCanonicalSnapshotIdentity() throws Exception {
@@ -77,7 +77,7 @@ final class NativeSnapshotIdentityExampleTest {
             "ManifestTokens.w", PackageSources.read("packages/manifest/ManifestTokens.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
-        "examples.packages.snapshot_identity");
+        "wheeler.conformance.packages.snapshot_identity");
   }
 
   private static VirtualMachine vm(Program program, byte[] source) {

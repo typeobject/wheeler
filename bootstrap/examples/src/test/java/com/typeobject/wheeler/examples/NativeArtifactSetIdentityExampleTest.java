@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 /** Differential tests for bounded Wheeler-native bootstrap artifact-set identities. */
 final class NativeArtifactSetIdentityExampleTest {
   private static final Path FIXTURE = Path.of(
-      "src/main/wheeler/native/bootstrap/NativeArtifactSetIdentity.w");
+      "../wheeler-conformance/src/main/wheeler/bootstrap/NativeArtifactSetIdentity.w");
   private static final String PROFILE = "wheeler.artifact-set/1";
 
   @Test
@@ -79,7 +79,7 @@ final class NativeArtifactSetIdentityExampleTest {
             "NativeArtifactSetIdentity.w", Files.readString(FIXTURE),
             "BootstrapSyntax.w", Files.readString(FIXTURE.resolveSibling("BootstrapSyntax.w")),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
-        "examples.bootstrap.artifact_set_identity");
+        "wheeler.conformance.bootstrap.artifact_set_identity");
   }
 
   private static VirtualMachine vm(Program program, byte[] manifest) {

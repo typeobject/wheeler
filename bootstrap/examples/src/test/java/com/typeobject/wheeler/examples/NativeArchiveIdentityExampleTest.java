@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 /** Differential tests for Wheeler-native canonical package-archive identities. */
 final class NativeArchiveIdentityExampleTest {
   private static final Path FIXTURE = Path.of(
-      "src/main/wheeler/native/packages/NativeArchiveIdentity.w");
+      "../wheeler-conformance/src/main/wheeler/packages/identity/NativeArchiveIdentity.w");
 
   @Test
   void validatesBeforePublishingTheCanonicalArchiveIdentity() throws Exception {
@@ -80,7 +80,7 @@ final class NativeArchiveIdentityExampleTest {
             Map.entry("Scanner.w", CompilerSources.read("lexer/Scanner.w")),
             Map.entry("Semver.w", PackageSources.read("packages/resolution/Semver.w")),
             Map.entry("Sha256.w", CoreSources.read("crypto/Sha256.w"))),
-        "examples.packages.archive_identity");
+        "wheeler.conformance.packages.archive_identity");
   }
 
   private static VirtualMachine vm(Program program, byte[] source) {

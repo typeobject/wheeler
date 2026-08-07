@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 /** Differential tests for Wheeler-native package-manifest identities. */
 final class NativeManifestIdentityExampleTest {
   private static final Path FIXTURE = Path.of(
-      "src/main/wheeler/native/packages/NativeManifestIdentity.w");
+      "../wheeler-conformance/src/main/wheeler/packages/identity/NativeManifestIdentity.w");
   private static final String MANIFEST = """
       schema: 1
       package:
@@ -77,7 +77,7 @@ final class NativeManifestIdentityExampleTest {
             "Semver.w", PackageSources.read("packages/resolution/Semver.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
-        "examples.packages.manifest_identity");
+        "wheeler.conformance.packages.manifest_identity");
   }
 
   private static String twoTargets() {

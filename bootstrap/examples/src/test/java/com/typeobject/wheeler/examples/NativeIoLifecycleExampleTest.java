@@ -19,8 +19,8 @@ final class NativeIoLifecycleExampleTest {
         Map.of(
             "Lifecycle.w", RuntimeSources.read("runtime/io/Lifecycle.w"),
             "NativeIoLifecycle.w", Files.readString(
-                Path.of("src/main/wheeler/native/NativeIoLifecycle.w"))),
-        "examples.native.io_lifecycle");
+                Path.of("../wheeler-conformance/src/main/wheeler/io/NativeIoLifecycle.w"))),
+        "wheeler.conformance.io.io_lifecycle");
     VirtualMachine machine = new VirtualMachine(program);
     var initial = machine.snapshot();
 

@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 
 /** Differential tests for Wheeler-native bootstrap compiler-option identities. */
 final class NativeCompilerOptionsIdentityExampleTest {
-  private static final Path ROOT = Path.of("src/main/wheeler/native/bootstrap");
+  private static final Path ROOT = Path.of("../wheeler-conformance/src/main/wheeler/bootstrap");
 
   @Test
   void validatesCanonicalOptionsBeforePublishingTheirIdentity() throws Exception {
@@ -68,7 +68,7 @@ final class NativeCompilerOptionsIdentityExampleTest {
             "BootstrapSyntax.w", Files.readString(ROOT.resolve("BootstrapSyntax.w")),
             "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
-        "examples.bootstrap.compiler_options_identity");
+        "wheeler.conformance.bootstrap.compiler_options_identity");
   }
 
   private static VirtualMachine vm(Program program, byte[] source) {

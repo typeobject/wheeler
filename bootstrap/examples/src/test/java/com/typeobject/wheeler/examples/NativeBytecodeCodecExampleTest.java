@@ -22,9 +22,9 @@ final class NativeBytecodeCodecExampleTest {
     modules.put("Binary.w", CoreSources.read("encoding/Binary.w"));
     modules.put(
         "NativeBytecodeCodec.w",
-        Files.readString(Path.of("src/main/wheeler/native/NativeBytecodeCodec.w")));
+        Files.readString(Path.of("../wheeler-conformance/src/main/wheeler/compiler/NativeBytecodeCodec.w")));
     var codec = new WheelerCompiler().compileModuleFiles(
-        modules, "examples.compiler.native_bytecode_codec");
+        modules, "wheeler.conformance.compiler.native_bytecode_codec");
     WheelerCompiler compiler = new WheelerCompiler();
     byte[] artifact = compiler.compileToBytecode(
         "classical class CodecSubject { state long value = 2; "

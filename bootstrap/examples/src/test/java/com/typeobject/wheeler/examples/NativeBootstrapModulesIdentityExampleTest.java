@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 
 /** Differential tests for the bounded Wheeler-native bootstrap module closure. */
 final class NativeBootstrapModulesIdentityExampleTest {
-  private static final Path ROOT = Path.of("src/main/wheeler/native/bootstrap");
+  private static final Path ROOT = Path.of("../wheeler-conformance/src/main/wheeler/bootstrap");
   private static final String IDENTITY = "ab".repeat(32);
   private static final int DENSE_GRAPH_ROOT_EDGE_ADJUSTMENT = 63;
   private static final int DENSE_GRAPH_IMPORTS_PER_MODULE = 64;
@@ -333,7 +333,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
             "BootstrapSyntax.w", Files.readString(ROOT.resolve("BootstrapSyntax.w")),
             "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
-        "examples.bootstrap.modules_identity");
+        "wheeler.conformance.bootstrap.modules_identity");
   }
 
   private static VirtualMachine vm(Program program, byte[] source) {

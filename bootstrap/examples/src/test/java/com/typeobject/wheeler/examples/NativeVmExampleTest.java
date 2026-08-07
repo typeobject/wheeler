@@ -39,12 +39,15 @@ class NativeVmExampleTest {
     modules.put("Binary.w", CoreSources.read("encoding/Binary.w"));
     modules.put("Interpreter.w", RuntimeSources.read("runtime/Interpreter.w"));
     modules.put("MapInterpreter.w", RuntimeSources.read("runtime/MapInterpreter.w"));
-    modules.put("NativeVm.w", Files.readString(root.resolve("native/NativeVm.w")));
+    modules.put(
+        "NativeVm.w",
+        Files.readString(Path.of(
+            "../wheeler-conformance/src/main/wheeler/runtime/NativeVm.w")));
     modules.put("ResultSlots.w", RuntimeSources.read("runtime/ResultSlots.w"));
     modules.put("StorageInterpreter.w", RuntimeSources.read("runtime/StorageInterpreter.w"));
     modules.put("Utf8Interpreter.w", RuntimeSources.read("runtime/Utf8Interpreter.w"));
     Program interpreter = new WheelerCompiler().compileModuleFiles(
-        modules, "examples.runtime.native_vm");
+        modules, "wheeler.conformance.runtime.native_vm");
     WheelerCompiler compiler = new WheelerCompiler();
     byte[] update = compiler.compileToBytecode(
         "classical class NativeSubject { state long value = 7; "

@@ -22,7 +22,7 @@ final class NativeDurabilityReceiptExampleTest {
   private static final Path CORE = Path.of("../wheeler-core/src/main/wheeler");
   private static final Path RUNTIME = Path.of("../wheeler-runtime/src/main/wheeler");
   private static final Path FIXTURE = Path.of(
-      "src/main/wheeler/native/io/NativeDurabilityReceipts.w");
+      "../wheeler-conformance/src/main/wheeler/io/NativeDurabilityReceipts.w");
 
   @Test
   void wheelerReproducesTheClosedReceiptChain() throws Exception {
@@ -83,7 +83,7 @@ final class NativeDurabilityReceiptExampleTest {
             "NativeDurabilityReceipts.w", Files.readString(FIXTURE),
             "Receipts.w", Files.readString(RUNTIME.resolve("runtime/io/Receipts.w")),
             "Sha256.w", Files.readString(CORE.resolve("crypto/Sha256.w"))),
-        "examples.native.durability_receipts");
+        "wheeler.conformance.io.durability_receipts");
   }
 
   private static DurabilityReceipt[] chain(

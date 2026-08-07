@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 /** Differential tests for Wheeler-native compiler output identities. */
 final class NativeCompilerIdentityExampleTest {
   private static final Path FIXTURE = Path.of(
-      "src/main/wheeler/native/compiler/NativeCompilerIdentity.w");
+      "../wheeler-conformance/src/main/wheeler/compiler/NativeCompilerIdentity.w");
 
   @Test
   void compilesBeforePublishingTheVerifiedArtifactIdentity() throws Exception {
@@ -57,7 +57,7 @@ final class NativeCompilerIdentityExampleTest {
     modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     modules.put("NativeCompilerIdentity.w", Files.readString(FIXTURE));
     return new WheelerCompiler().compileModuleFiles(
-        modules, "examples.compiler.native_compiler_identity");
+        modules, "wheeler.conformance.compiler.native_compiler_identity");
   }
 
   private static VirtualMachine vm(Program program, String source) {

@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 class NativePlanExampleTest {
   @Test
   void wheelerInspectsOneDigestCheckedBuildNode() throws Exception {
-    Path root = Path.of("src/main/wheeler/native");
+    Path root = Path.of("../wheeler-conformance/src/main/wheeler/packages");
     Program inspector = new WheelerCompiler().compileModuleFiles(
         Map.of(
             "Binary.w", CoreSources.read("encoding/Binary.w"),
@@ -35,7 +35,7 @@ class NativePlanExampleTest {
             "Plan.w", PackageSources.read("packages/resolution/Plan.w"),
             "PlanIdentity.w", PackageSources.read("packages/resolution/PlanIdentity.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
-        "examples.packages.plan_main");
+        "wheeler.conformance.packages.plan_main");
     Node node = Node.create(
         "demo.plan",
         "1.2.3",

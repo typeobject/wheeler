@@ -17,13 +17,13 @@ import org.junit.jupiter.api.Test;
 class NativeVerifierExampleTest {
   @Test
   void wheelerVerifiesACanonicalBinaryArtifactAndRewinds() throws Exception {
-    Path root = Path.of("src/main/wheeler/native");
+    Path root = Path.of("../wheeler-conformance/src/main/wheeler/compiler");
     var modules = new LinkedHashMap<>(
         CompilerSources.moduleClosure("wheeler.compiler.verifier"));
     modules.put("Binary.w", CoreSources.read("encoding/Binary.w"));
     modules.put("NativeVerifier.w", Files.readString(root.resolve("NativeVerifier.w")));
     var verifier = new WheelerCompiler().compileModuleFiles(
-        modules, "examples.compiler.native_verifier");
+        modules, "wheeler.conformance.compiler.native_verifier");
     WheelerCompiler compiler = new WheelerCompiler();
     byte[] artifact = compiler.compileToBytecode(
         "classical class NativeSubject { state long value = 4; "

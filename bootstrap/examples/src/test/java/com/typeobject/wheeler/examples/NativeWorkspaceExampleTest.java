@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 class NativeWorkspaceExampleTest {
   @Test
   void wheelerParsesAndCanonicalizesABoundedWorkspace() throws Exception {
-    Path root = Path.of("src/main/wheeler/native");
+    Path root = Path.of("../wheeler-conformance/src/main/wheeler/packages");
     Program program = new WheelerCompiler().compileModuleFiles(
         Map.of(
             "LineEmitter.w", PackageSources.read("packages/manifest/LineEmitter.w"),
@@ -28,7 +28,7 @@ class NativeWorkspaceExampleTest {
             "Paths.w", PackageSources.read("packages/workspace/Paths.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
             "Workspace.w", PackageSources.read("packages/workspace/Workspace.w")),
-        "examples.packages.workspace_main");
+        "wheeler.conformance.packages.workspace_main");
     String canonical = """
         schema: 1
         workspace:

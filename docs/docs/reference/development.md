@@ -117,11 +117,11 @@ Bootstrap core has no runtime dependencies. Source parsing does not depend on a 
 
 The Wheeler compiler source has one home: `wheeler-compiler/src/main/wheeler`. Its package exposes a `compiler` tool and an entryless `library`.
 
-`wheeler-examples` uses that library through its exact committed lock. Workspace commands rebuild the matching archive from the canonical compiler member in memory, and tests resolve source fixtures through that root. The examples tree keeps no duplicate compiler source.
+`wheeler-conformance` uses that library through its exact committed lock. `wheeler-examples` depends on the compiler only for the shared scanner used by its lexer demonstration. Workspace commands rebuild matching archives from canonical members in memory, and tests resolve source fixtures through those roots. Neither executable tree keeps duplicate compiler source.
 
 The first allocation-free library, binary-encoding, and SHA-256 modules live only under `wheeler-core/src/main/wheeler`. `wheeler.compiler`, `WorkQueue.w`, and other consumers reach them through the lock-verified `wheeler.core` workspace archive.
 
-The bounded interpreter follows the same rule under `wheeler-runtime/src/main/wheeler`, where it locks compiler verification and core primitives. Package codecs live under `wheeler-package/src/main/wheeler`. Its entryless `wheeler.packages` library uses core SHA-256, while the examples contain only executable consumers.
+The bounded interpreter follows the same rule under `wheeler-runtime/src/main/wheeler`, where it locks compiler verification and core primitives. Package codecs live under `wheeler-package/src/main/wheeler`. Its entryless `wheeler.packages` library uses core SHA-256, while package-format executables live in `wheeler-conformance`. The examples directory may now resume being self-explanatory.
 
 Hosted bootstrap CI builds the full workspace with both Temurin and Zulu JDK 26. It verifies each emitted `.wbc`, writes a canonical `wheeler.artifact-set/1` manifest inside each closed output tree, and compares the downloaded trees byte for byte.
 

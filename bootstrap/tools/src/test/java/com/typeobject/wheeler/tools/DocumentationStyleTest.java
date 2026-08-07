@@ -17,7 +17,9 @@ final class DocumentationStyleTest {
       Path.of("CONTRIBUTING.md"),
       Path.of("bootstrap/README.md"),
       Path.of("docs/README.md"),
-      Path.of("wheeler-compiler/README.md"));
+      Path.of("wheeler-compiler/README.md"),
+      Path.of("wheeler-conformance/README.md"),
+      Path.of("wheeler-examples/README.md"));
   private static final Pattern FILLER = Pattern.compile(
       "\\b(?:let(?:'|’)s explore|delve|cutting-edge|unparalleled|game-changer|seamless|"
           + "it is important to note|it is worth noting)\\b",

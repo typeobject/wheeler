@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 /** Differential tests for Wheeler-native workspace-manifest identities. */
 final class NativeWorkspaceIdentityExampleTest {
   private static final Path FIXTURE = Path.of(
-      "src/main/wheeler/native/packages/NativeWorkspaceIdentity.w");
+      "../wheeler-conformance/src/main/wheeler/packages/identity/NativeWorkspaceIdentity.w");
 
   @Test
   void validatesBeforePublishingTheCanonicalWorkspaceIdentity() throws Exception {
@@ -60,7 +60,7 @@ final class NativeWorkspaceIdentityExampleTest {
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
             "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
-        "examples.packages.workspace_identity");
+        "wheeler.conformance.packages.workspace_identity");
   }
 
   private static String workspace(int members) {

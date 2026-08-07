@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 
 /** Differential tests for Wheeler-native recovery-manifest validation and identity. */
 final class NativeBootstrapManifestIdentityExampleTest {
-  private static final Path ROOT = Path.of("src/main/wheeler/native/bootstrap");
+  private static final Path ROOT = Path.of("../wheeler-conformance/src/main/wheeler/bootstrap");
   private static final String A = "00".repeat(32);
   private static final String B = "11".repeat(32);
   private static final String C = "22".repeat(32);
@@ -88,7 +88,7 @@ final class NativeBootstrapManifestIdentityExampleTest {
             "BootstrapSyntax.w", Files.readString(ROOT.resolve("BootstrapSyntax.w")),
             "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
-        "examples.bootstrap.manifest_identity");
+        "wheeler.conformance.bootstrap.manifest_identity");
   }
 
   private static VirtualMachine vm(Program program, byte[] source) {

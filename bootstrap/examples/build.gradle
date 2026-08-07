@@ -7,6 +7,7 @@ dependencies {
 }
 
 def repository = rootProject.repositoryRoot
+def conformanceRoot = new File(repository, 'wheeler-conformance')
 def wheelerRoot = new File(repository, 'wheeler-examples')
 tasks.named('test') {
     workingDir wheelerRoot
@@ -15,9 +16,14 @@ tasks.named('test') {
         fileTree(new File(repository, 'wheeler-compiler/src/main/wheeler')) {
             include '**/*.w'
         },
+        fileTree(new File(conformanceRoot, 'src/main/wheeler')) {
+            include '**/*.w'
+        },
         fileTree(new File(repository, 'wheeler-core/src/main/wheeler')) { include '**/*.w' },
         fileTree(new File(repository, 'wheeler-package/src/main/wheeler')) { include '**/*.w' },
         fileTree(new File(repository, 'wheeler-runtime/src/main/wheeler')) { include '**/*.w' },
+        new File(conformanceRoot, 'wheeler.package.yaml'),
+        new File(conformanceRoot, 'wheeler.package.lock.yaml'),
         new File(wheelerRoot, 'wheeler.package.yaml'),
         new File(wheelerRoot, 'wheeler.package.lock.yaml'))
         .withPathSensitivity(PathSensitivity.RELATIVE)

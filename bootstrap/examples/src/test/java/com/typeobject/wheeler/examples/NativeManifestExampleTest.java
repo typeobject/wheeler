@@ -50,7 +50,7 @@ class NativeManifestExampleTest {
 
   @Test
   void wheelerParsesTheSameCanonicalManifestAsStageZero() throws Exception {
-    Path root = Path.of("src/main/wheeler/native");
+    Path root = Path.of("../wheeler-conformance/src/main/wheeler/packages");
     Program program = new WheelerCompiler().compileModuleFiles(
         Map.of(
             "ManifestEmitter.w", PackageSources.read("packages/manifest/ManifestEmitter.w"),
@@ -61,7 +61,7 @@ class NativeManifestExampleTest {
             "Paths.w", PackageSources.read("packages/workspace/Paths.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
             "Semver.w", PackageSources.read("packages/resolution/Semver.w")),
-        "examples.packages.main");
+        "wheeler.conformance.packages.main");
     assertEquals(MANIFEST, new com.typeobject.wheeler.packageformat.PackageManifestParser()
         .parse(MANIFEST).canonicalText());
     VirtualMachine machine = vm(program, MANIFEST);

@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 class NativeLockExampleTest {
   @Test
   void wheelerParsesAndCanonicalizesABoundedLock() throws Exception {
-    Path root = Path.of("src/main/wheeler/native");
+    Path root = Path.of("../wheeler-conformance/src/main/wheeler/packages");
     Program program = new WheelerCompiler().compileModuleFiles(
         Map.of(
             "Lock.w", PackageSources.read("packages/resolution/Lock.w"),
@@ -28,7 +28,7 @@ class NativeLockExampleTest {
             "NativeLock.w", Files.readString(root.resolve("NativeLock.w")),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
             "Semver.w", PackageSources.read("packages/resolution/Semver.w")),
-        "examples.packages.lock_main");
+        "wheeler.conformance.packages.lock_main");
     String a = "a".repeat(64);
     String b = "b".repeat(64);
     String c = "c".repeat(64);

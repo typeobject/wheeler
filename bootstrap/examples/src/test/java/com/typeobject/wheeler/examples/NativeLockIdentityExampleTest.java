@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 /** Differential tests for Wheeler-native dependency-lock identities. */
 final class NativeLockIdentityExampleTest {
   private static final Path FIXTURE = Path.of(
-      "src/main/wheeler/native/packages/NativeLockIdentity.w");
+      "../wheeler-conformance/src/main/wheeler/packages/identity/NativeLockIdentity.w");
   private static final String A = "a".repeat(64);
   private static final String B = "b".repeat(64);
   private static final String C = "c".repeat(64);
@@ -71,7 +71,7 @@ final class NativeLockIdentityExampleTest {
             "ManifestTokens.w", PackageSources.read("packages/manifest/ManifestTokens.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
-        "examples.packages.lock_identity");
+        "wheeler.conformance.packages.lock_identity");
   }
 
   private static String lock(int count) {

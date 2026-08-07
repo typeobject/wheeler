@@ -50,12 +50,12 @@ class NativeSha256ExampleTest {
   }
 
   private static Program program() throws Exception {
-    Path root = Path.of("src/main/wheeler/native");
+    Path root = Path.of("../wheeler-conformance/src/main/wheeler/crypto");
     return new WheelerCompiler().compileModuleFiles(
         Map.of(
             "NativeSha256.w", Files.readString(root.resolve("NativeSha256.w")),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
-        "examples.crypto.sha256_main");
+        "wheeler.conformance.crypto.sha256_main");
   }
 
   private static void assertDigest(

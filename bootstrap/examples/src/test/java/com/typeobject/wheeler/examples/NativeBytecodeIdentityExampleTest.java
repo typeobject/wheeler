@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 /** Differential tests for Wheeler-native canonical bytecode identities. */
 final class NativeBytecodeIdentityExampleTest {
   private static final Path FIXTURE = Path.of(
-      "src/main/wheeler/native/compiler/NativeBytecodeIdentity.w");
+      "../wheeler-conformance/src/main/wheeler/compiler/NativeBytecodeIdentity.w");
 
   @Test
   void verifiesBeforePublishingTheCanonicalArtifactIdentity() throws Exception {
@@ -54,7 +54,7 @@ final class NativeBytecodeIdentityExampleTest {
     modules.put("NativeBytecodeIdentity.w", Files.readString(FIXTURE));
     modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     return new WheelerCompiler().compileModuleFiles(
-        modules, "examples.compiler.native_bytecode_identity");
+        modules, "wheeler.conformance.compiler.native_bytecode_identity");
   }
 
   private static VirtualMachine vm(Program program, byte[] source) {

@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 
 /** Differential and rewind tests for Wheeler-native toolchain provenance identities. */
 final class NativeToolchainIdentityExampleTest {
-  private static final Path ROOT = Path.of("src/main/wheeler/native/bootstrap");
+  private static final Path ROOT = Path.of("../wheeler-conformance/src/main/wheeler/bootstrap");
 
   @Test
   void acceptsOnlyCanonicalClosedToolchainProvenance() throws Exception {
@@ -70,7 +70,7 @@ final class NativeToolchainIdentityExampleTest {
             "BootstrapSyntax.w", Files.readString(ROOT.resolve("BootstrapSyntax.w")),
             "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
-        "examples.bootstrap.toolchain_identity");
+        "wheeler.conformance.bootstrap.toolchain_identity");
   }
 
   private static VirtualMachine vm(Program program, byte[] source) {
