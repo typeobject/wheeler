@@ -2,9 +2,9 @@
 
 module wheeler.compiler.assignment_call_syntax;
 
+import wheeler.compiler.assignment_call_arities;
 import wheeler.compiler.assignment_call_columns;
 import wheeler.compiler.assignment_call_identities;
-import wheeler.compiler.assignment_call_kinds;
 import wheeler.compiler.identifier_starts;
 import wheeler.compiler.source_scalars;
 

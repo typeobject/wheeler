@@ -2,8 +2,8 @@
 
 module wheeler.compiler.local_types;
 
+import wheeler.compiler.assignment_call_arities;
 import wheeler.compiler.assignment_call_identities;
-import wheeler.compiler.assignment_call_kinds;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_arguments;
 import wheeler.compiler.call_forms;

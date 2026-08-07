@@ -106,6 +106,18 @@ final class NativeCompilerCallMetadataExampleTest {
   }
 
   @Test
+  void compilesCanonicalAssignmentCallAritiesByteForByte() throws Exception {
+    Program decoded = NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary(
+        "compiler/syntax/calls/assignment/AssignmentCallArities.w",
+        "wheeler.compiler.assignment_call_arities",
+        "compiler/syntax/calls/assignment/AssignmentCallIdentities.w");
+    assertEquals(
+        "wheeler.compiler.assignment_call_arities::assignmentCallArity",
+        decoded.functions().getFirst().name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalAssignmentCallColumnsByteForByte() throws Exception {
     Program decoded = NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary(
         "compiler/syntax/calls/assignment/AssignmentCallColumns.w",

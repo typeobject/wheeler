@@ -2,7 +2,7 @@
 
 module wheeler.compiler.local_opcodes;
 
-import wheeler.compiler.assignment_call_kinds;
+import wheeler.compiler.assignment_call_widths;
 import wheeler.compiler.borrowed_intrinsic_shapes;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;

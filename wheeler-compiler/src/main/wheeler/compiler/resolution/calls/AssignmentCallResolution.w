@@ -2,6 +2,7 @@
 
 module wheeler.compiler.assignment_call_resolution;
 
+import wheeler.compiler.assignment_call_arities;
 import wheeler.compiler.assignment_call_identities;
 import wheeler.compiler.assignment_call_kinds;
 import wheeler.compiler.assignment_call_syntax;

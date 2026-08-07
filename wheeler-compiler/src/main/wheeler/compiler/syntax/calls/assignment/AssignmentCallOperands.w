@@ -2,8 +2,8 @@
 
 module wheeler.compiler.assignment_call_operands;
 
+import wheeler.compiler.assignment_call_arities;
 import wheeler.compiler.assignment_call_identities;
-import wheeler.compiler.assignment_call_kinds;
 
 classical class AssignmentCallOperands {
   private const long ASSIGNMENT_CALL_TRAILING_SOURCE = 4;
