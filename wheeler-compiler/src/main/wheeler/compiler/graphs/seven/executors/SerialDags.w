@@ -150,8 +150,9 @@ classical class SevenSerialDagGraphs {
     borrow mut bytes output
   ) {
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 firstSharedSource = copySelectedSevenSource(
+    utf8 firstSharedSource = copySelectedSource(
       plan.first,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -162,8 +163,9 @@ classical class SevenSerialDagGraphs {
       firstArena
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 firstMiddleSource = copySelectedSevenSource(
+    utf8 firstMiddleSource = copySelectedSource(
       plan.second,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -174,8 +176,9 @@ classical class SevenSerialDagGraphs {
       secondArena
     );
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 secondMiddleSource = copySelectedSevenSource(
+    utf8 secondMiddleSource = copySelectedSource(
       plan.third,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -186,8 +189,9 @@ classical class SevenSerialDagGraphs {
       thirdArena
     );
     region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 secondSharedSource = copySelectedSevenSource(
+    utf8 secondSharedSource = copySelectedSource(
       plan.fourth,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -198,8 +202,9 @@ classical class SevenSerialDagGraphs {
       fourthArena
     );
     region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 thirdMiddleSource = copySelectedSevenSource(
+    utf8 thirdMiddleSource = copySelectedSource(
       plan.fifth,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -210,8 +215,9 @@ classical class SevenSerialDagGraphs {
       fifthArena
     );
     region sixthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 fourthMiddleSource = copySelectedSevenSource(
+    utf8 fourthMiddleSource = copySelectedSource(
       plan.sixth,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -222,8 +228,9 @@ classical class SevenSerialDagGraphs {
       sixthArena
     );
     region seventhArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 dependentSource = copySelectedSevenSource(
+    utf8 dependentSource = copySelectedSource(
       plan.seventh,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,

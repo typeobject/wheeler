@@ -83,8 +83,9 @@ classical class SevenConstantChain {
     assert(plan.topology == SEVEN_PLAN_CHAIN);
 
     region leafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 leafSource = copySelectedSevenSource(
+    utf8 leafSource = copySelectedSource(
       plan.first,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -95,8 +96,9 @@ classical class SevenConstantChain {
       leafArena
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 orderedSecondSource = copySelectedSevenSource(
+    utf8 orderedSecondSource = copySelectedSource(
       plan.second,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -117,8 +119,9 @@ classical class SevenConstantChain {
     drop(leafArena);
 
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 orderedThirdSource = copySelectedSevenSource(
+    utf8 orderedThirdSource = copySelectedSource(
       plan.third,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -143,8 +146,9 @@ classical class SevenConstantChain {
     drop(linkedSecondArena);
 
     region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 orderedFourthSource = copySelectedSevenSource(
+    utf8 orderedFourthSource = copySelectedSource(
       plan.fourth,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -169,8 +173,9 @@ classical class SevenConstantChain {
     drop(linkedThirdArena);
 
     region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 orderedFifthSource = copySelectedSevenSource(
+    utf8 orderedFifthSource = copySelectedSource(
       plan.fifth,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -195,8 +200,9 @@ classical class SevenConstantChain {
     drop(linkedFourthArena);
 
     region sixthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 orderedSixthSource = copySelectedSevenSource(
+    utf8 orderedSixthSource = copySelectedSource(
       plan.sixth,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -221,8 +227,9 @@ classical class SevenConstantChain {
     drop(linkedFifthArena);
 
     region seventhArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 orderedSeventhSource = copySelectedSevenSource(
+    utf8 orderedSeventhSource = copySelectedSource(
       plan.seventh,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,

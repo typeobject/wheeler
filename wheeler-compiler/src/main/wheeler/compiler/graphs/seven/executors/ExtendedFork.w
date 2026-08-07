@@ -116,8 +116,9 @@ classical class SevenExtendedForkGraphs {
     borrow mut bytes output
   ) {
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 chainLeafSource = copySelectedSevenSource(
+    utf8 chainLeafSource = copySelectedSource(
       plan.first,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -128,8 +129,9 @@ classical class SevenExtendedForkGraphs {
       firstArena
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 middleSource = copySelectedSevenSource(
+    utf8 middleSource = copySelectedSource(
       plan.second,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -140,8 +142,9 @@ classical class SevenExtendedForkGraphs {
       secondArena
     );
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 firstLeafSource = copySelectedSevenSource(
+    utf8 firstLeafSource = copySelectedSource(
       plan.third,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -152,8 +155,9 @@ classical class SevenExtendedForkGraphs {
       thirdArena
     );
     region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 secondLeafSource = copySelectedSevenSource(
+    utf8 secondLeafSource = copySelectedSource(
       plan.fourth,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -164,8 +168,9 @@ classical class SevenExtendedForkGraphs {
       fourthArena
     );
     region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 dependentSource = copySelectedSevenSource(
+    utf8 dependentSource = copySelectedSource(
       plan.fifth,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -176,8 +181,9 @@ classical class SevenExtendedForkGraphs {
       fifthArena
     );
     region sixthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 firstDirectSource = copySelectedSevenSource(
+    utf8 firstDirectSource = copySelectedSource(
       plan.sixth,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -188,8 +194,9 @@ classical class SevenExtendedForkGraphs {
       sixthArena
     );
     region seventhArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 secondDirectSource = copySelectedSevenSource(
+    utf8 secondDirectSource = copySelectedSource(
       plan.seventh,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -331,8 +338,9 @@ classical class SevenExtendedForkGraphs {
     borrow mut bytes output
   ) {
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 chainLeafSource = copySelectedSevenSource(
+    utf8 chainLeafSource = copySelectedSource(
       plan.first,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -343,8 +351,9 @@ classical class SevenExtendedForkGraphs {
       firstArena
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 firstMiddleSource = copySelectedSevenSource(
+    utf8 firstMiddleSource = copySelectedSource(
       plan.second,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -355,8 +364,9 @@ classical class SevenExtendedForkGraphs {
       secondArena
     );
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 secondMiddleSource = copySelectedSevenSource(
+    utf8 secondMiddleSource = copySelectedSource(
       plan.third,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -367,8 +377,9 @@ classical class SevenExtendedForkGraphs {
       thirdArena
     );
     region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 sideLeafSource = copySelectedSevenSource(
+    utf8 sideLeafSource = copySelectedSource(
       plan.fourth,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -379,8 +390,9 @@ classical class SevenExtendedForkGraphs {
       fourthArena
     );
     region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 dependentSource = copySelectedSevenSource(
+    utf8 dependentSource = copySelectedSource(
       plan.fifth,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -391,8 +403,9 @@ classical class SevenExtendedForkGraphs {
       fifthArena
     );
     region sixthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 firstDirectSource = copySelectedSevenSource(
+    utf8 firstDirectSource = copySelectedSource(
       plan.sixth,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -403,8 +416,9 @@ classical class SevenExtendedForkGraphs {
       sixthArena
     );
     region seventhArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 secondDirectSource = copySelectedSevenSource(
+    utf8 secondDirectSource = copySelectedSource(
       plan.seventh,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,

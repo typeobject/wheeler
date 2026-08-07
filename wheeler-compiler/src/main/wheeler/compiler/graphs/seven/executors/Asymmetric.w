@@ -116,8 +116,9 @@ classical class SevenAsymmetricGraphs {
     borrow mut bytes output
   ) {
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 chainLeafSource = copySelectedSevenSource(
+    utf8 chainLeafSource = copySelectedSource(
       plan.first,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -128,8 +129,9 @@ classical class SevenAsymmetricGraphs {
       firstArena
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 branchMiddleSource = copySelectedSevenSource(
+    utf8 branchMiddleSource = copySelectedSource(
       plan.second,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -140,8 +142,9 @@ classical class SevenAsymmetricGraphs {
       secondArena
     );
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 sideLeafSource = copySelectedSevenSource(
+    utf8 sideLeafSource = copySelectedSource(
       plan.third,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -152,8 +155,9 @@ classical class SevenAsymmetricGraphs {
       thirdArena
     );
     region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 junctionSource = copySelectedSevenSource(
+    utf8 junctionSource = copySelectedSource(
       plan.fourth,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -164,8 +168,9 @@ classical class SevenAsymmetricGraphs {
       fourthArena
     );
     region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 dependentSource = copySelectedSevenSource(
+    utf8 dependentSource = copySelectedSource(
       plan.fifth,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -176,8 +181,9 @@ classical class SevenAsymmetricGraphs {
       fifthArena
     );
     region sixthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 firstDirectSource = copySelectedSevenSource(
+    utf8 firstDirectSource = copySelectedSource(
       plan.sixth,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,
@@ -188,8 +194,9 @@ classical class SevenAsymmetricGraphs {
       sixthArena
     );
     region seventhArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 secondDirectSource = copySelectedSevenSource(
+    utf8 secondDirectSource = copySelectedSource(
       plan.seventh,
+      GRAPH_SOURCE_COUNT_SEVEN,
       firstSource,
       secondSource,
       thirdSource,

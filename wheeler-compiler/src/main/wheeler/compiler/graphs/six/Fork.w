@@ -65,24 +65,28 @@ classical class SixConstantFork {
     assert(plan.topology == SIX_PLAN_FORK);
 
     region dependentArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 dependentSource = copySelectedSixSource(
+    utf8 dependentSource = copySelectedSource(
       plan.sixth,
+      GRAPH_SOURCE_COUNT_SIX,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
       sixthSource,
+      sixthSource,
       dependentArena
     );
     region firstLeafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 firstLeafSource = copySelectedSixSource(
+    utf8 firstLeafSource = copySelectedSource(
       plan.first,
+      GRAPH_SOURCE_COUNT_SIX,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
+      sixthSource,
       sixthSource,
       firstLeafArena
     );
@@ -100,13 +104,15 @@ classical class SixConstantFork {
       /* bytes= */ MAX_LINKED_SOURCE_BYTES,
       /* allocations= */ 1
     );
-    utf8 secondLeafSource = copySelectedSixSource(
+    utf8 secondLeafSource = copySelectedSource(
       plan.second,
+      GRAPH_SOURCE_COUNT_SIX,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
+      sixthSource,
       sixthSource,
       secondLeafArena
     );
@@ -121,13 +127,15 @@ classical class SixConstantFork {
     drop(firstLinkedArena);
 
     region thirdLeafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 thirdLeafSource = copySelectedSixSource(
+    utf8 thirdLeafSource = copySelectedSource(
       plan.third,
+      GRAPH_SOURCE_COUNT_SIX,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
+      sixthSource,
       sixthSource,
       thirdLeafArena
     );
@@ -145,13 +153,15 @@ classical class SixConstantFork {
       /* bytes= */ MAX_LINKED_SOURCE_BYTES,
       /* allocations= */ 1
     );
-    utf8 fourthLeafSource = copySelectedSixSource(
+    utf8 fourthLeafSource = copySelectedSource(
       plan.fourth,
+      GRAPH_SOURCE_COUNT_SIX,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
+      sixthSource,
       sixthSource,
       fourthLeafArena
     );
@@ -166,13 +176,15 @@ classical class SixConstantFork {
     drop(thirdLinkedArena);
 
     region fifthLeafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 fifthLeafSource = copySelectedSixSource(
+    utf8 fifthLeafSource = copySelectedSource(
       plan.fifth,
+      GRAPH_SOURCE_COUNT_SIX,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
+      sixthSource,
       sixthSource,
       fifthLeafArena
     );

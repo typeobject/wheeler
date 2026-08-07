@@ -170,52 +170,67 @@ classical class CompilerGraphFive {
     borrow mut bytes output
   ) {
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFirst = copySelectedFiveSource(
+    utf8 plannedFirst = copySelectedSource(
       plan.first,
+      GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
+      fifthSource,
+      fifthSource,
       fifthSource,
       firstArena
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedSecond = copySelectedFiveSource(
+    utf8 plannedSecond = copySelectedSource(
       plan.second,
+      GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
+      fifthSource,
+      fifthSource,
       fifthSource,
       secondArena
     );
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedThird = copySelectedFiveSource(
+    utf8 plannedThird = copySelectedSource(
       plan.third,
+      GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
+      fifthSource,
+      fifthSource,
       fifthSource,
       thirdArena
     );
     region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFourth = copySelectedFiveSource(
+    utf8 plannedFourth = copySelectedSource(
       plan.fourth,
+      GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
+      fifthSource,
+      fifthSource,
       fourthArena
     );
     region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFifth = copySelectedFiveSource(
+    utf8 plannedFifth = copySelectedSource(
       plan.fifth,
+      GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
+      fifthSource,
+      fifthSource,
       fifthSource,
       fifthArena
     );

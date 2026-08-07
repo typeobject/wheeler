@@ -175,68 +175,80 @@ classical class CompilerGraphSix {
     borrow mut bytes output
   ) {
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFirst = copySelectedSixSource(
+    utf8 plannedFirst = copySelectedSource(
       plan.first,
+      GRAPH_SOURCE_COUNT_SIX,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
+      sixthSource,
       sixthSource,
       firstArena
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedSecond = copySelectedSixSource(
+    utf8 plannedSecond = copySelectedSource(
       plan.second,
+      GRAPH_SOURCE_COUNT_SIX,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
+      sixthSource,
       sixthSource,
       secondArena
     );
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedThird = copySelectedSixSource(
+    utf8 plannedThird = copySelectedSource(
       plan.third,
+      GRAPH_SOURCE_COUNT_SIX,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
+      sixthSource,
       sixthSource,
       thirdArena
     );
     region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFourth = copySelectedSixSource(
+    utf8 plannedFourth = copySelectedSource(
       plan.fourth,
+      GRAPH_SOURCE_COUNT_SIX,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
+      sixthSource,
       sixthSource,
       fourthArena
     );
     region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFifth = copySelectedSixSource(
+    utf8 plannedFifth = copySelectedSource(
       plan.fifth,
+      GRAPH_SOURCE_COUNT_SIX,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
       sixthSource,
+      sixthSource,
       fifthArena
     );
     region sixthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedSixth = copySelectedSixSource(
+    utf8 plannedSixth = copySelectedSource(
       plan.sixth,
+      GRAPH_SOURCE_COUNT_SIX,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
+      sixthSource,
       sixthSource,
       sixthArena
     );

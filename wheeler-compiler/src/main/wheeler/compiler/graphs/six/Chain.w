@@ -81,24 +81,28 @@ classical class SixConstantChain {
     assert(plan.topology == SIX_PLAN_CHAIN);
 
     region leafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 leafSource = copySelectedSixSource(
+    utf8 leafSource = copySelectedSource(
       plan.first,
+      GRAPH_SOURCE_COUNT_SIX,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
       sixthSource,
+      sixthSource,
       leafArena
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 orderedSecondSource = copySelectedSixSource(
+    utf8 orderedSecondSource = copySelectedSource(
       plan.second,
+      GRAPH_SOURCE_COUNT_SIX,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
+      sixthSource,
       sixthSource,
       secondArena
     );
@@ -113,13 +117,15 @@ classical class SixConstantChain {
     drop(leafArena);
 
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 orderedThirdSource = copySelectedSixSource(
+    utf8 orderedThirdSource = copySelectedSource(
       plan.third,
+      GRAPH_SOURCE_COUNT_SIX,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
+      sixthSource,
       sixthSource,
       thirdArena
     );
@@ -138,13 +144,15 @@ classical class SixConstantChain {
     drop(linkedSecondArena);
 
     region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 orderedFourthSource = copySelectedSixSource(
+    utf8 orderedFourthSource = copySelectedSource(
       plan.fourth,
+      GRAPH_SOURCE_COUNT_SIX,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
+      sixthSource,
       sixthSource,
       fourthArena
     );
@@ -163,13 +171,15 @@ classical class SixConstantChain {
     drop(linkedThirdArena);
 
     region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 orderedFifthSource = copySelectedSixSource(
+    utf8 orderedFifthSource = copySelectedSource(
       plan.fifth,
+      GRAPH_SOURCE_COUNT_SIX,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
+      sixthSource,
       sixthSource,
       fifthArena
     );
@@ -188,13 +198,15 @@ classical class SixConstantChain {
     drop(linkedFourthArena);
 
     region sixthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 orderedSixthSource = copySelectedSixSource(
+    utf8 orderedSixthSource = copySelectedSource(
       plan.sixth,
+      GRAPH_SOURCE_COUNT_SIX,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
+      sixthSource,
       sixthSource,
       sixthArena
     );

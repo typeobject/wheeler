@@ -32,6 +32,7 @@ The package keeps responsibilities narrow:
 - `compiler/graphs/FiveStructures.w` records exact five-module structure and source order.
 - `compiler/graphs/Plans.w` maps exact five-module structure to executor identities.
 - `compiler/graphs/Matrix.w` records canonical edges, roots, order, visibility, and sharing facts.
+- `compiler/graphs/Sources.w` owns the sole two- through seven-source selector. Smaller frames pad inactive shared loans but pass their exact count, so invalid indexes still trap rather than selecting a convincing bystander.
 - `compiler/graphs/five/FiveFork.w` owns the five-module four-leaf fork.
 - `compiler/graphs/five/FiveBranches.w` owns a three-leaf fork beside a direct import.
 - `compiler/graphs/direct/MixedThree.w` owns one helper beside two direct constant owners. `compiler/graphs/direct/MixedFour.w` owns one or two helper owners beside the remaining constants, and `frontend/modules/CanonicalHelperLinking.w` keeps every constant declaration ahead of every function. `compiler/graphs/five/FiveMixed.w` uses that path after resolving one private chain edge. A class body is ordered syntax, not a sack of declarations.

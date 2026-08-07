@@ -243,38 +243,54 @@ classical class CompilerGraphFour {
     borrow mut bytes output
   ) {
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFirst = copySelectedFourSource(
+    utf8 plannedFirst = copySelectedSource(
       structure.first,
+      GRAPH_SOURCE_COUNT_FOUR,
       firstSource,
       secondSource,
       thirdSource,
+      fourthSource,
+      fourthSource,
+      fourthSource,
       fourthSource,
       firstArena
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedSecond = copySelectedFourSource(
+    utf8 plannedSecond = copySelectedSource(
       structure.second,
+      GRAPH_SOURCE_COUNT_FOUR,
       firstSource,
       secondSource,
       thirdSource,
+      fourthSource,
+      fourthSource,
+      fourthSource,
       fourthSource,
       secondArena
     );
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedThird = copySelectedFourSource(
+    utf8 plannedThird = copySelectedSource(
       structure.third,
+      GRAPH_SOURCE_COUNT_FOUR,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
+      fourthSource,
+      fourthSource,
+      fourthSource,
       thirdArena
     );
     region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFourth = copySelectedFourSource(
+    utf8 plannedFourth = copySelectedSource(
       structure.fourth,
+      GRAPH_SOURCE_COUNT_FOUR,
       firstSource,
       secondSource,
       thirdSource,
+      fourthSource,
+      fourthSource,
+      fourthSource,
       fourthSource,
       fourthArena
     );

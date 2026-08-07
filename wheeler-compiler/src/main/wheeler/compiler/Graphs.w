@@ -153,16 +153,28 @@ classical class CompilerGraphs {
     borrow mut bytes output
   ) {
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFirst = copySelectedTwoSource(
+    utf8 plannedFirst = copySelectedSource(
       structure.first,
+      GRAPH_SOURCE_COUNT_TWO,
       firstSource,
+      secondSource,
+      secondSource,
+      secondSource,
+      secondSource,
+      secondSource,
       secondSource,
       firstArena
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedSecond = copySelectedTwoSource(
+    utf8 plannedSecond = copySelectedSource(
       structure.second,
+      GRAPH_SOURCE_COUNT_TWO,
       firstSource,
+      secondSource,
+      secondSource,
+      secondSource,
+      secondSource,
+      secondSource,
       secondSource,
       secondArena
     );
@@ -509,26 +521,41 @@ classical class CompilerGraphs {
     borrow mut bytes output
   ) {
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFirst = copySelectedThreeSource(
+    utf8 plannedFirst = copySelectedSource(
       structure.first,
+      GRAPH_SOURCE_COUNT_THREE,
       firstSource,
       secondSource,
+      thirdSource,
+      thirdSource,
+      thirdSource,
+      thirdSource,
       thirdSource,
       firstArena
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedSecond = copySelectedThreeSource(
+    utf8 plannedSecond = copySelectedSource(
       structure.second,
+      GRAPH_SOURCE_COUNT_THREE,
       firstSource,
       secondSource,
+      thirdSource,
+      thirdSource,
+      thirdSource,
+      thirdSource,
       thirdSource,
       secondArena
     );
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedThird = copySelectedThreeSource(
+    utf8 plannedThird = copySelectedSource(
       structure.third,
+      GRAPH_SOURCE_COUNT_THREE,
       firstSource,
       secondSource,
+      thirdSource,
+      thirdSource,
+      thirdSource,
+      thirdSource,
       thirdSource,
       thirdArena
     );

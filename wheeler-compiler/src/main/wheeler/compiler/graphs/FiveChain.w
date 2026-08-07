@@ -80,22 +80,28 @@ classical class CompilerFiveChain {
     assert(plan.topology == FIVE_PLAN_CHAIN);
 
     region leafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 leafSource = copySelectedFiveSource(
+    utf8 leafSource = copySelectedSource(
       plan.first,
+      GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
+      fifthSource,
+      fifthSource,
       leafArena
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 orderedSecondSource = copySelectedFiveSource(
+    utf8 orderedSecondSource = copySelectedSource(
       plan.second,
+      GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
+      fifthSource,
+      fifthSource,
       fifthSource,
       secondArena
     );
@@ -110,12 +116,15 @@ classical class CompilerFiveChain {
     drop(leafArena);
 
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 orderedThirdSource = copySelectedFiveSource(
+    utf8 orderedThirdSource = copySelectedSource(
       plan.third,
+      GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
+      fifthSource,
+      fifthSource,
       fifthSource,
       thirdArena
     );
@@ -134,12 +143,15 @@ classical class CompilerFiveChain {
     drop(linkedSecondArena);
 
     region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 orderedFourthSource = copySelectedFiveSource(
+    utf8 orderedFourthSource = copySelectedSource(
       plan.fourth,
+      GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
+      fifthSource,
+      fifthSource,
       fifthSource,
       fourthArena
     );
@@ -158,12 +170,15 @@ classical class CompilerFiveChain {
     drop(linkedThirdArena);
 
     region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 orderedFifthSource = copySelectedFiveSource(
+    utf8 orderedFifthSource = copySelectedSource(
       plan.fifth,
+      GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
+      fifthSource,
+      fifthSource,
       fifthSource,
       fifthArena
     );

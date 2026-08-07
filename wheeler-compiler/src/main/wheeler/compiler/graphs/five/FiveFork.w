@@ -64,22 +64,28 @@ classical class CompilerFiveFork {
     assert(plan.topology == FIVE_PLAN_FORK);
 
     region dependentArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 dependentSource = copySelectedFiveSource(
+    utf8 dependentSource = copySelectedSource(
       plan.fifth,
+      GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
       fifthSource,
+      fifthSource,
+      fifthSource,
       dependentArena
     );
     region firstLeafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 firstLeafSource = copySelectedFiveSource(
+    utf8 firstLeafSource = copySelectedSource(
       plan.first,
+      GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
+      fifthSource,
+      fifthSource,
       fifthSource,
       firstLeafArena
     );
@@ -97,12 +103,15 @@ classical class CompilerFiveFork {
       /* bytes= */ MAX_LINKED_SOURCE_BYTES,
       /* allocations= */ 1
     );
-    utf8 secondLeafSource = copySelectedFiveSource(
+    utf8 secondLeafSource = copySelectedSource(
       plan.second,
+      GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
+      fifthSource,
+      fifthSource,
       fifthSource,
       secondLeafArena
     );
@@ -117,12 +126,15 @@ classical class CompilerFiveFork {
     drop(firstLinkedArena);
 
     region thirdLeafArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 thirdLeafSource = copySelectedFiveSource(
+    utf8 thirdLeafSource = copySelectedSource(
       plan.third,
+      GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
+      fifthSource,
+      fifthSource,
       fifthSource,
       thirdLeafArena
     );
@@ -140,12 +152,15 @@ classical class CompilerFiveFork {
       /* bytes= */ MAX_LINKED_SOURCE_BYTES,
       /* allocations= */ 1
     );
-    utf8 fourthLeafSource = copySelectedFiveSource(
+    utf8 fourthLeafSource = copySelectedSource(
       plan.fourth,
+      GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
       thirdSource,
       fourthSource,
+      fifthSource,
+      fifthSource,
       fifthSource,
       fourthLeafArena
     );
