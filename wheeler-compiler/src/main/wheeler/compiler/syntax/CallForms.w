@@ -9,6 +9,7 @@ import wheeler.compiler.statement_kinds;
 import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
+import wheeler.compiler.wide_local_calls;
 
 classical class CallForms {
   /// Returns the first argument token in a two-argument scalar call.
@@ -31,13 +32,17 @@ classical class CallForms {
     return firstToken + firstWidth + 1;
   }
 
-  /// Checks for either bounded wide-local call identity.
+  /// Checks for a bounded three- through seven-local call identity.
   public boolean wideLocalCallStatement(long opcode) {
     if (threeArgumentCallStatement(opcode)) {
       return true;
     }
 
-    return fourArgumentCallStatement(opcode);
+    if (fourArgumentCallStatement(opcode)) {
+      return true;
+    }
+
+    return packedWideLocalCall(opcode);
   }
 
   /// Checks whether one statement initializes a local from a scalar helper.

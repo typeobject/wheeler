@@ -11,6 +11,8 @@ import wheeler.compiler.opcodes;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.two_argument_call_kinds;
+import wheeler.compiler.type_codes;
+import wheeler.compiler.wide_local_calls;
 
 classical class ScalarValueCallCodegen {
   private const long FOUR_ARGUMENT_CALL_ARITY = 4;
@@ -205,6 +207,69 @@ classical class ScalarValueCallCodegen {
     return writeUnsignedLittleEndian(output, cursor, localBase + 6, U64);
   }
 
+  private long writePackedWideLocalCall(
+    borrow mut bytes output,
+    long cursor,
+    long opcode,
+    long operand,
+    long secondaryOperand,
+    long localBase,
+    long callFunction,
+    long firstSourceType,
+    long secondSourceType,
+    long thirdSourceType,
+    long fourthSourceType,
+    long fifthSourceType,
+    long sixthSourceType,
+    long seventhSourceType
+  ) {
+    long arity = wideLocalCallArity(opcode);
+    long argument = 0;
+    while (argument < arity) limit MAX_WIDE_LOCAL_CALL_ARGUMENTS {
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + argument, U64);
+      cursor = writeUnsignedLittleEndian(
+        output,
+        cursor,
+        wideLocalCallSource(opcode, operand, secondaryOperand, argument),
+        U64
+      );
+      argument += 1;
+    }
+
+    argument = 0;
+    while (argument < arity) limit MAX_WIDE_LOCAL_CALL_ARGUMENTS {
+      long sourceType = callSourceType(
+        argument,
+        firstSourceType,
+        secondSourceType,
+        thirdSourceType,
+        fourthSourceType,
+        fifthSourceType,
+        sixthSourceType,
+        seventhSourceType
+      );
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        callArgumentOpcode(sourceType),
+        FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + arity + argument, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + argument, U64);
+      argument += 1;
+    }
+
+    cursor = writeInstructionHeader(output, cursor, OPCODE_CALL_VALUE, FORM_QUATERNARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, callFunction, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + arity, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, arity, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + arity * 2, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + arity * 2 + 1, U64);
+    return writeUnsignedLittleEndian(output, cursor, localBase + arity * 2, U64);
+  }
+
   /// Writes one bounded scalar value call, or reports that it owns no opcode.
   public long writeScalarValueCallStatement(
     borrow mut bytes output,
@@ -217,8 +282,30 @@ classical class ScalarValueCallCodegen {
     long firstSourceType,
     long secondSourceType,
     long thirdSourceType,
-    long fourthSourceType
+    long fourthSourceType,
+    long fifthSourceType,
+    long sixthSourceType,
+    long seventhSourceType
   ) {
+    if (packedWideLocalCall(opcode)) {
+      return writePackedWideLocalCall(
+        output,
+        cursor,
+        opcode,
+        operand,
+        secondaryOperand,
+        localBase,
+        callFunction,
+        firstSourceType,
+        secondSourceType,
+        thirdSourceType,
+        fourthSourceType,
+        fifthSourceType,
+        sixthSourceType,
+        seventhSourceType
+      );
+    }
+
     if (fourArgumentCallStatement(opcode)) {
       return writeFourLocalArgumentCall(
         output,
@@ -331,5 +418,33 @@ classical class ScalarValueCallCodegen {
     }
 
     return -1;
+  }
+
+  /// Writes one scalar-only value call from the untyped entry profile.
+  public long writeSignedScalarValueCallStatement(
+    borrow mut bytes output,
+    long cursor,
+    long opcode,
+    long operand,
+    long secondaryOperand,
+    long localBase,
+    long callFunction
+  ) {
+    return writeScalarValueCallStatement(
+      output,
+      cursor,
+      opcode,
+      operand,
+      secondaryOperand,
+      localBase,
+      callFunction,
+      TYPE_SIGNED,
+      TYPE_SIGNED,
+      TYPE_SIGNED,
+      TYPE_SIGNED,
+      TYPE_SIGNED,
+      TYPE_SIGNED,
+      TYPE_SIGNED
+    );
   }
 }

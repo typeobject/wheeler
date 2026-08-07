@@ -3,6 +3,7 @@
 module wheeler.compiler.local_types;
 
 import wheeler.compiler.borrowed_intrinsic_kinds;
+import wheeler.compiler.call_arguments;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_comparison_forms;
@@ -38,47 +39,11 @@ import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
+import wheeler.compiler.wide_local_calls;
 
 classical class LocalTypes {
   /// Bounds the temporary local window emitted by one source statement.
-  private const long MAX_STATEMENT_LOCALS = 15;
-
-  private long wideSourceType(
-    long index,
-    long firstSourceType,
-    long secondSourceType,
-    long thirdSourceType,
-    long fourthSourceType,
-    long fifthSourceType,
-    long sixthSourceType,
-    long seventhSourceType
-  ) {
-    if (index == 0) {
-      return firstSourceType;
-    }
-
-    if (index == 1) {
-      return secondSourceType;
-    }
-
-    if (index == 2) {
-      return thirdSourceType;
-    }
-
-    if (index == 3) {
-      return fourthSourceType;
-    }
-
-    if (index == 4) {
-      return fifthSourceType;
-    }
-
-    if (index == 5) {
-      return sixthSourceType;
-    }
-
-    return seventhSourceType;
-  }
+  private const long MAX_STATEMENT_LOCALS = 16;
 
   /// Writes one validated canonical local type code.
   public long writeLocalType(borrow mut bytes output, long cursor, long type) {
@@ -265,6 +230,10 @@ classical class LocalTypes {
       arity = 4;
     }
 
+    if (packedWideLocalCall(opcode)) {
+      arity = wideLocalCallArity(opcode);
+    }
+
     if (arity == 0) {
       return writeLocalType(output, cursor, resultType);
     }
@@ -283,7 +252,7 @@ classical class LocalTypes {
     if (4 < arity) {
       long argument = 0;
       while (argument < arity) limit MAX_FORWARDED_SCALAR_ARGUMENTS {
-        long sourceType = wideSourceType(
+        long sourceType = callSourceType(
           argument,
           firstSourceType,
           secondSourceType,
@@ -299,7 +268,7 @@ classical class LocalTypes {
 
       argument = 0;
       while (argument < arity) limit MAX_FORWARDED_SCALAR_ARGUMENTS {
-        long transferType = wideSourceType(
+        long transferType = callSourceType(
           argument,
           firstSourceType,
           secondSourceType,
@@ -313,7 +282,12 @@ classical class LocalTypes {
         argument += 1;
       }
 
-      return writeLocalType(output, cursor, resultType);
+      cursor = writeLocalType(output, cursor, resultType);
+      if (packedWideLocalCall(opcode)) {
+        return writeLocalType(output, cursor, resultType);
+      }
+
+      return cursor;
     }
 
     if (arity == 4) {

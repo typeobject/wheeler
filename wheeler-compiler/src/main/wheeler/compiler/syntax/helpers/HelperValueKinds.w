@@ -3,8 +3,10 @@
 module wheeler.compiler.helper_value_kinds;
 
 import wheeler.compiler.borrowed_intrinsic_kinds;
+import wheeler.compiler.call_forms;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.void_call_source_kinds;
+import wheeler.compiler.wide_local_calls;
 
 classical class HelperValueKinds {
   /// Checks for one bounded helper value statement.
@@ -37,11 +39,7 @@ classical class HelperValueKinds {
       return true;
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_THREE_LOCALS_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_LOCAL_CALL_FOUR_LOCALS_NAMED) {
+    if (wideLocalCallStatement(opcode)) {
       return true;
     }
 

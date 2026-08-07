@@ -256,46 +256,59 @@ classical class CompilerCore {
     long statement = 0;
     while (statement < body.statementCount) limit MAX_MINIMAL_STATEMENTS {
       long opcode = body.opcodes[statement];
-      long firstType = helperFirstSourceType(
-        opcode,
-        body.operands[statement],
-        body.parameterTypes,
-        body.parameterCount
-      );
-      long secondType = helperSecondSourceType(
+      long firstType = helperSourceType(
         opcode,
         body.operands[statement],
         body.secondaryOperands[statement],
+        0,
         body.parameterTypes,
         body.parameterCount
       );
-      long thirdType = helperThirdSourceType(
+      long secondType = helperSourceType(
         opcode,
         body.operands[statement],
+        body.secondaryOperands[statement],
+        1,
         body.parameterTypes,
         body.parameterCount
       );
-      long fourthType = helperFourthSourceType(
+      long thirdType = helperSourceType(
         opcode,
         body.operands[statement],
+        body.secondaryOperands[statement],
+        2,
         body.parameterTypes,
         body.parameterCount
       );
-      long fifthType = helperFifthSourceType(
+      long fourthType = helperSourceType(
         opcode,
+        body.operands[statement],
         body.secondaryOperands[statement],
+        3,
         body.parameterTypes,
         body.parameterCount
       );
-      long sixthType = helperSixthSourceType(
+      long fifthType = helperSourceType(
         opcode,
+        body.operands[statement],
         body.secondaryOperands[statement],
+        4,
         body.parameterTypes,
         body.parameterCount
       );
-      long seventhType = helperSeventhSourceType(
+      long sixthType = helperSourceType(
         opcode,
+        body.operands[statement],
         body.secondaryOperands[statement],
+        5,
+        body.parameterTypes,
+        body.parameterCount
+      );
+      long seventhType = helperSourceType(
+        opcode,
+        body.operands[statement],
+        body.secondaryOperands[statement],
+        6,
         body.parameterTypes,
         body.parameterCount
       );

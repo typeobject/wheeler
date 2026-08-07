@@ -7,7 +7,6 @@ import wheeler.compiler.call_forms;
 import wheeler.compiler.class_layouts;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
-import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_calls;
 import wheeler.compiler.helper_signatures;
@@ -24,9 +23,9 @@ import wheeler.compiler.resolved_statements;
 import wheeler.compiler.sequences;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
-import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
+import wheeler.compiler.wide_local_calls;
 
 classical class HelperPrograms {
   private const long LOGICAL_ASSERTION_LOCALS = 3;
@@ -218,37 +217,20 @@ classical class HelperPrograms {
         }
 
         if (wideLocalCallStatement(opcode)) {
-          if (
-            resultSlotSourceDeclared(sequence, statement, sequence.operands[statement])
-          ) {} else {
-            return false;
-          }
-
-          if (
-            resultSlotSourceDeclared(sequence, statement, sequence.secondaryOperands[statement])
-          ) {} else {
-            return false;
-          }
-
-          long wideThirdSource = threeArgumentThirdSource(opcode);
-          if (fourArgumentCallStatement(opcode)) {
-            wideThirdSource = fourArgumentCallThirdSource(opcode);
-          }
-
-          if (resultSlotSourceDeclared(sequence, statement, wideThirdSource)) {} else {
-            return false;
-          }
-
-          if (fourArgumentCallStatement(opcode)) {
-            if (
-              resultSlotSourceDeclared(
-                sequence,
-                statement,
-                fourArgumentCallFourthSource(opcode)
-              )
-            ) {} else {
+          long argument = 0;
+          long arity = wideLocalCallArity(opcode);
+          while (argument < arity) limit MAX_WIDE_LOCAL_CALL_ARGUMENTS {
+            long callSource = wideLocalCallSource(
+              opcode,
+              sequence.operands[statement],
+              sequence.secondaryOperands[statement],
+              argument
+            );
+            if (resultSlotSourceDeclared(sequence, statement, callSource)) {} else {
               return false;
             }
+
+            argument += 1;
           }
         }
 

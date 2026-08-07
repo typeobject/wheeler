@@ -17,6 +17,7 @@ import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
 import wheeler.compiler.void_call_widths;
+import wheeler.compiler.wide_local_calls;
 import wheeler.compiler.wide_return_sources;
 
 classical class ScalarHelperTables {
@@ -55,6 +56,20 @@ classical class ScalarHelperTables {
     long wideFirstSources = firstSource;
     long wideLastSources = secondSource;
     if (argumentCount == 0) {
+      return true;
+    }
+
+    if (wideLocalCallStatement(opcode)) {
+      long argument = 0;
+      while (argument < argumentCount) limit MAX_WIDE_LOCAL_CALL_ARGUMENTS {
+        long source = wideLocalCallSource(opcode, wideFirstSources, wideLastSources, argument);
+        if (callerLocalType(caller, source) == candidate.parameterTypes[argument]) {} else {
+          return false;
+        }
+
+        argument += 1;
+      }
+
       return true;
     }
 
@@ -435,17 +450,10 @@ classical class ScalarHelperTables {
       return false;
     }
 
-    if (fourArgumentCallStatement(opcode)) {
-      if (candidate.kind == HELPER_SIGNED_FOUR) {
-        return candidate.parameterCount == 4;
-      }
-
-      return false;
-    }
-
-    if (threeArgumentCallStatement(opcode)) {
-      if (candidate.kind == HELPER_SIGNED_THREE) {
-        return candidate.parameterCount == 3;
+    if (wideLocalCallStatement(opcode)) {
+      long arity = wideLocalCallArity(opcode);
+      if (candidate.kind == signedScalarHelperKind(arity)) {
+        return candidate.parameterCount == arity;
       }
 
       return false;
@@ -691,8 +699,8 @@ classical class ScalarHelperTables {
           argumentCount = 3;
         }
 
-        if (fourArgumentCallStatement(callOpcode)) {
-          argumentCount = 4;
+        if (wideLocalCallStatement(callOpcode)) {
+          argumentCount = wideLocalCallArity(callOpcode);
         }
 
         if (forwarding) {

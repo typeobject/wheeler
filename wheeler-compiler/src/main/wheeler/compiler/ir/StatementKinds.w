@@ -267,6 +267,12 @@ classical class StatementKinds {
   public const long STATEMENT_DROP_OWNED_NAMED = 916;
   /// UTF-8 result frozen from one prior owned byte value.
   public const long STATEMENT_RETURN_FREEZE_UTF8_NAMED = 917;
+  /// Signed local initialized by five prior-local helper arguments.
+  public const long STATEMENT_LOCAL_CALL_FIVE_LOCALS_NAMED = 919;
+  /// Signed local initialized by six prior-local helper arguments.
+  public const long STATEMENT_LOCAL_CALL_SIX_LOCALS_NAMED = 920;
+  /// Signed local initialized by seven prior-local helper arguments.
+  public const long STATEMENT_LOCAL_CALL_SEVEN_LOCALS_NAMED = 921;
   /// Checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Checked global subtraction.

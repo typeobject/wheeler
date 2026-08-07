@@ -169,6 +169,12 @@ classical class ResolvedStatements {
   public const long STATEMENT_RETURN_HELPER_CALL_SIX = 29696;
   /// Names a resolved scalar helper return forwarding a seven-argument call result.
   public const long STATEMENT_RETURN_HELPER_CALL_SEVEN = 29952;
+  /// Names a resolved local initialized by a five-argument scalar call.
+  public const long STATEMENT_LOCAL_CALL_FIVE_LOCALS = 30208;
+  /// Names a resolved local initialized by a six-argument scalar call.
+  public const long STATEMENT_LOCAL_CALL_SIX_LOCALS = 30464;
+  /// Names a resolved local initialized by a seven-argument scalar call.
+  public const long STATEMENT_LOCAL_CALL_SEVEN_LOCALS = 30720;
   /// Starts resolved bounded signed-local while loops.
   public const long STATEMENT_LOCAL_WHILE_BASE = 18688;
   /// Starts resolved signed-local less-than assertions against literals.

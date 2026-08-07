@@ -339,7 +339,10 @@ classical class Codegen {
       firstSourceType,
       secondSourceType,
       thirdSourceType,
-      fourthSourceType
+      fourthSourceType,
+      fifthSourceType,
+      sixthSourceType,
+      seventhSourceType
     );
     if (-1 < valueCallCursor) {
       return valueCallCursor;
@@ -450,18 +453,14 @@ classical class Codegen {
       return writeUnsignedLittleEndian(output, cursor, localBase, U64);
     }
 
-    long valueCallCursor = writeScalarValueCallStatement(
+    long valueCallCursor = writeSignedScalarValueCallStatement(
       output,
       cursor,
       opcode,
       operand,
       secondaryOperand,
       localBase,
-      callFunction,
-      TYPE_SIGNED,
-      TYPE_SIGNED,
-      TYPE_SIGNED,
-      TYPE_SIGNED
+      callFunction
     );
     if (-1 < valueCallCursor) {
       return valueCallCursor;

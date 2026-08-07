@@ -63,43 +63,6 @@ classical class ReturnCallCodegen {
     return returnHelperCallFourthSource(opcode);
   }
 
-  private long callSourceType(
-    long index,
-    long firstSourceType,
-    long secondSourceType,
-    long thirdSourceType,
-    long fourthSourceType,
-    long fifthSourceType,
-    long sixthSourceType,
-    long seventhSourceType
-  ) {
-    if (index == 0) {
-      return firstSourceType;
-    }
-
-    if (index == 1) {
-      return secondSourceType;
-    }
-
-    if (index == 2) {
-      return thirdSourceType;
-    }
-
-    if (index == 3) {
-      return fourthSourceType;
-    }
-
-    if (index == 4) {
-      return fifthSourceType;
-    }
-
-    if (index == 5) {
-      return sixthSourceType;
-    }
-
-    return seventhSourceType;
-  }
-
   /// Writes one zero- through seven-argument final helper call, or reports another owner.
   public long writeReturnCall(
     borrow mut bytes output,

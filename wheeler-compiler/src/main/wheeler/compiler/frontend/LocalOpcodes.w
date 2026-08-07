@@ -7,7 +7,6 @@ import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_comparison_forms;
 import wheeler.compiler.early_utf8_call_forms;
-import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.named_boolean_return_kinds;
 import wheeler.compiler.named_literal_comparison_kinds;
@@ -39,16 +38,12 @@ import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
-import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.void_call_source_widths;
 import wheeler.compiler.void_call_widths;
+import wheeler.compiler.wide_local_calls;
 
 classical class LocalOpcodes {
-  private const long FOUR_LOCAL_CALL_LOCAL_COUNT = 10;
-  private const long FOUR_LOCAL_CALL_RESULT_OFFSET = 9;
-  private const long FOUR_LOCAL_CALL_CODE_LENGTH = 256;
-  private const long FOUR_LOCAL_CALL_INSTRUCTION_COUNT = 10;
   private const long EARLY_FORWARD_LOCAL_COUNT = 6;
   private const long EARLY_FORWARD_CODE_LENGTH = 232;
   private const long EARLY_FORWARD_INSTRUCTION_COUNT = 9;
@@ -120,12 +115,9 @@ classical class LocalOpcodes {
       return 4;
     }
 
-    if (fourArgumentCallStatement(opcode)) {
-      return FOUR_LOCAL_CALL_LOCAL_COUNT;
-    }
-
-    if (threeArgumentCallStatement(opcode)) {
-      return 8;
+    long wideLocalArity = wideLocalCallArity(opcode);
+    if (-1 < wideLocalArity) {
+      return wideLocalArity * 2 + 2;
     }
 
     if (twoArgumentCallStatement(opcode)) {
@@ -440,12 +432,9 @@ classical class LocalOpcodes {
       return localBase + 3;
     }
 
-    if (fourArgumentCallStatement(opcode)) {
-      return localBase + FOUR_LOCAL_CALL_RESULT_OFFSET;
-    }
-
-    if (threeArgumentCallStatement(opcode)) {
-      return localBase + 7;
+    long wideLocalArity = wideLocalCallArity(opcode);
+    if (-1 < wideLocalArity) {
+      return localBase + wideLocalArity * 2 + 1;
     }
 
     if (twoArgumentCallStatement(opcode)) {
@@ -570,12 +559,9 @@ classical class LocalOpcodes {
       return 112;
     }
 
-    if (fourArgumentCallStatement(opcode)) {
-      return FOUR_LOCAL_CALL_CODE_LENGTH;
-    }
-
-    if (threeArgumentCallStatement(opcode)) {
-      return 208;
+    long wideLocalArity = wideLocalCallArity(opcode);
+    if (-1 < wideLocalArity) {
+      return wideLocalArity * 48 + 64;
     }
 
     if (twoArgumentCallStatement(opcode)) {
@@ -833,12 +819,9 @@ classical class LocalOpcodes {
       return 4;
     }
 
-    if (fourArgumentCallStatement(opcode)) {
-      return FOUR_LOCAL_CALL_INSTRUCTION_COUNT;
-    }
-
-    if (threeArgumentCallStatement(opcode)) {
-      return 8;
+    long wideLocalArity = wideLocalCallArity(opcode);
+    if (-1 < wideLocalArity) {
+      return wideLocalArity * 2 + 2;
     }
 
     if (twoArgumentCallStatement(opcode)) {

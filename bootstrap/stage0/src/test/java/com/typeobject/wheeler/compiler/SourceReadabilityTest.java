@@ -134,10 +134,21 @@ class SourceReadabilityTest {
         "src/main/wheeler/compiler/ir/ResolvedStatements.w"));
 
     assertEquals(java.util.Map.of(), statementIdentities(tokens));
-    assertEquals(128, statementIdentities(kinds).size());
+    assertEquals(138, statementIdentities(kinds).size());
     assertEquals(6, statementIdentities(loopKinds).size());
-    assertEquals(79, statementIdentities(resolved).size());
-    assertEquals(213, statementIdentities(kinds + loopKinds + resolved).size());
+    assertEquals(91, statementIdentities(resolved).size());
+    assertEquals(235, statementIdentities(kinds + loopKinds + resolved).size());
+
+    Path root = Path.of("../wheeler-compiler/src/main/wheeler/compiler");
+    StringBuilder allSources = new StringBuilder();
+    try (var paths = Files.walk(root)) {
+      for (Path source : paths.filter(path -> path.toString().endsWith(".w")).sorted().toList()) {
+        allSources.append(Files.readString(source));
+      }
+    }
+    var allStatements = statementIdentities(allSources.toString());
+    assertEquals(283, allStatements.size());
+    assertEquals(283, new java.util.HashSet<>(allStatements.values()).size());
   }
 
   @Test
@@ -167,25 +178,28 @@ class SourceReadabilityTest {
     return java.util.Map.copyOf(result);
   }
 
-  private static java.util.Map<String, Integer> decimalIdentities(
+  private static java.util.Map<String, Long> decimalIdentities(
       Pattern declaration,
       String source) {
-    var result = new java.util.LinkedHashMap<String, Integer>();
+    var result = new java.util.LinkedHashMap<String, Long>();
     var matches = declaration.matcher(source);
     while (matches.find()) {
-      if (result.put(matches.group(1), Integer.parseInt(matches.group(2))) != null) {
-        throw new AssertionError("Duplicate scalar type " + matches.group(1));
+      long identity = Long.parseLong(matches.group(2));
+      if (identity <= Integer.MAX_VALUE) {
+        if (result.put(matches.group(1), identity) != null) {
+          throw new AssertionError("Duplicate scalar type " + matches.group(1));
+        }
       }
     }
     return java.util.Map.copyOf(result);
   }
 
-  private static java.util.Map<String, Integer> statementIdentities(String source) {
-    var result = new java.util.LinkedHashMap<String, Integer>();
+  private static java.util.Map<String, Long> statementIdentities(String source) {
+    var result = new java.util.LinkedHashMap<String, Long>();
     var matches = WHEELER_STATEMENT_IDENTITY.matcher(source);
     while (matches.find()) {
       String name = matches.group(1);
-      if (result.put(name, Integer.parseInt(matches.group(2))) != null) {
+      if (result.put(name, Long.parseLong(matches.group(2))) != null) {
         throw new AssertionError("Duplicate statement identity " + name);
       }
     }

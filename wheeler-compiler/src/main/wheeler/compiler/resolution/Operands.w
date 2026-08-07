@@ -49,6 +49,8 @@ import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.void_call_source_kinds;
+import wheeler.compiler.wide_local_call_resolution;
+import wheeler.compiler.wide_local_calls;
 import wheeler.compiler.wide_return_resolution;
 
 classical class Operands {
@@ -581,6 +583,18 @@ classical class Operands {
       );
     }
 
+    if (packedWideLocalCall(opcode)) {
+      return resolveWideLocalFirstSources(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart,
+        opcode
+      );
+    }
+
     if (wideLocalCallStatement(opcode)) {
       return resolvePriorDeclaration(
         source,
@@ -869,7 +883,7 @@ classical class Operands {
     }
 
     if (wideLocalCallStatement(opcode)) {
-      return threeArgumentFirstToken(statementStart);
+      return wideLocalCallArgumentToken(statementStart, 0);
     }
 
     if (twoArgumentCallStatement(opcode)) {

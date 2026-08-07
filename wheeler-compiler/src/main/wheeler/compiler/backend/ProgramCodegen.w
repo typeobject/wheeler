@@ -68,46 +68,59 @@ classical class ProgramCodegen {
       long seventhSourceType = TYPE_SIGNED;
       if (typedHelper) {
         long opcode = opcodes[index];
-        firstSourceType = helperFirstSourceType(
-          opcode,
-          operands[index],
-          parameterTypes,
-          parameterCount
-        );
-        secondSourceType = helperSecondSourceType(
+        firstSourceType = helperSourceType(
           opcode,
           operands[index],
           secondaryOperands[index],
+          0,
           parameterTypes,
           parameterCount
         );
-        thirdSourceType = helperThirdSourceType(
+        secondSourceType = helperSourceType(
           opcode,
           operands[index],
+          secondaryOperands[index],
+          1,
           parameterTypes,
           parameterCount
         );
-        fourthSourceType = helperFourthSourceType(
+        thirdSourceType = helperSourceType(
           opcode,
           operands[index],
+          secondaryOperands[index],
+          2,
           parameterTypes,
           parameterCount
         );
-        fifthSourceType = helperFifthSourceType(
+        fourthSourceType = helperSourceType(
           opcode,
+          operands[index],
           secondaryOperands[index],
+          3,
           parameterTypes,
           parameterCount
         );
-        sixthSourceType = helperSixthSourceType(
+        fifthSourceType = helperSourceType(
           opcode,
+          operands[index],
           secondaryOperands[index],
+          4,
           parameterTypes,
           parameterCount
         );
-        seventhSourceType = helperSeventhSourceType(
+        sixthSourceType = helperSourceType(
           opcode,
+          operands[index],
           secondaryOperands[index],
+          5,
+          parameterTypes,
+          parameterCount
+        );
+        seventhSourceType = helperSourceType(
+          opcode,
+          operands[index],
+          secondaryOperands[index],
+          6,
           parameterTypes,
           parameterCount
         );

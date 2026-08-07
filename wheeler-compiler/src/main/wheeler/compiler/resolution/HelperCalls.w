@@ -14,6 +14,7 @@ import wheeler.compiler.statements;
 import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
+import wheeler.compiler.wide_local_calls;
 
 classical class HelperCalls {
   /// Reports whether one statement is a zero-argument call to the named helper.
@@ -128,6 +129,18 @@ classical class HelperCalls {
 
     if (helperKind == HELPER_SIGNED_FOUR) {
       return fourArgumentCallStatement(opcode);
+    }
+
+    if (helperKind == HELPER_SIGNED_FIVE) {
+      return wideLocalCallArity(opcode) == 5;
+    }
+
+    if (helperKind == HELPER_SIGNED_SIX) {
+      return wideLocalCallArity(opcode) == 6;
+    }
+
+    if (helperKind == HELPER_SIGNED_SEVEN) {
+      return wideLocalCallArity(opcode) == 7;
     }
 
     return false;

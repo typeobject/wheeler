@@ -7,6 +7,44 @@ import wheeler.compiler.storage_opcodes;
 import wheeler.compiler.type_codes;
 
 classical class CallArguments {
+  /// Selects one type from the bounded scalar-call source column.
+  public long callSourceType(
+    long index,
+    long firstSourceType,
+    long secondSourceType,
+    long thirdSourceType,
+    long fourthSourceType,
+    long fifthSourceType,
+    long sixthSourceType,
+    long seventhSourceType
+  ) {
+    if (index == 0) {
+      return firstSourceType;
+    }
+
+    if (index == 1) {
+      return secondSourceType;
+    }
+
+    if (index == 2) {
+      return thirdSourceType;
+    }
+
+    if (index == 3) {
+      return fourthSourceType;
+    }
+
+    if (index == 4) {
+      return fifthSourceType;
+    }
+
+    if (index == 5) {
+      return sixthSourceType;
+    }
+
+    return seventhSourceType;
+  }
+
   /// Returns the reborrow or scalar move opcode for one argument type.
   public long callArgumentOpcode(long type) {
     if (type == TYPE_UTF8_BORROW) {

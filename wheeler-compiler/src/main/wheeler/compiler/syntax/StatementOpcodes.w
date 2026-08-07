@@ -12,6 +12,7 @@ import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
 import wheeler.compiler.void_call_source_kinds;
+import wheeler.compiler.wide_local_calls;
 
 classical class StatementOpcodes {
   /// Maps one statement token to its bounded parser opcode.
@@ -522,14 +523,7 @@ classical class StatementOpcodes {
                   if (
                     identifierStart(utf8Scalar(source, tokenStarts[secondComma + 1]))
                   ) {
-                    long thirdComma = secondComma + 2;
-                    if (
-                      utf8Scalar(source, tokenStarts[thirdComma]) == PUNCTUATION_COMMA
-                    ) {
-                      return STATEMENT_LOCAL_CALL_FOUR_LOCALS_NAMED;
-                    }
-
-                    return STATEMENT_LOCAL_CALL_THREE_LOCALS_NAMED;
+                    return namedWideLocalCallKind(source, tokenStarts, statementStart);
                   }
                 }
 

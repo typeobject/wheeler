@@ -115,6 +115,95 @@ final class NativeCompilerBorrowedSignatureExampleTest {
   }
 
   @Test
+  void reborrowsFiveThroughSevenPrimitiveArgumentsByteForByte() throws Exception {
+    String source = """
+        module example.borrowed_widest_calls;
+        classical class BorrowedWidestCalls {
+          private long acceptFive(
+            borrow utf8 text,
+            borrow byteview input,
+            borrow mut bytes output,
+            borrow mut words values,
+            long fallback
+          ) { return fallback; }
+          public long forwardFive(
+            borrow utf8 text,
+            borrow byteview input,
+            borrow mut bytes output,
+            borrow mut words values,
+            long fallback
+          ) {
+            long result = acceptFive(text, input, output, values, fallback);
+            return result;
+          }
+          private long acceptSix(
+            borrow utf8 text,
+            borrow byteview input,
+            borrow mut bytes output,
+            borrow mut words values,
+            borrow mut longmap table,
+            long fallback
+          ) { return fallback; }
+          public long forwardSix(
+            borrow utf8 text,
+            borrow byteview input,
+            borrow mut bytes output,
+            borrow mut words values,
+            borrow mut longmap table,
+            long fallback
+          ) {
+            long result = acceptSix(text, input, output, values, table, fallback);
+            return result;
+          }
+          private long acceptSeven(
+            borrow utf8 text,
+            borrow byteview input,
+            borrow mut bytes output,
+            borrow mut words values,
+            borrow mut longmap table,
+            borrow mut region arena,
+            long fallback
+          ) { return fallback; }
+          public long forwardSeven(
+            borrow utf8 text,
+            borrow byteview input,
+            borrow mut bytes output,
+            borrow mut words values,
+            borrow mut longmap table,
+            borrow mut region arena,
+            long fallback
+          ) {
+            long result = acceptSeven(text, input, output, values, table, arena, fallback);
+            return result;
+          }
+        }
+        """;
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("BorrowedWidestCalls.w", source), "example.borrowed_widest_calls"));
+    byte[] actual = NativeModuleCompilerHarness.compile(
+        NativeModuleCompilerHarness.program(), List.of(), source);
+    assertArrayEquals(expected, actual);
+
+    var decoded = new BytecodeReader().read(actual);
+    assertEquals(18, decoded.functions().get(1).localCount());
+    assertEquals(21, decoded.functions().get(3).localCount());
+    assertEquals(24, decoded.functions().get(5).localCount());
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace(
+            "acceptSeven(text, input, output, values, table, arena, fallback)",
+            "acceptSeven(text, input, output, values, table, arena, fallback, fallback)"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace(
+            "acceptSix(text, input, output, values, table, fallback)",
+            "acceptSix(text, input, output, table, values, fallback)"));
+  }
+
+  @Test
   void compilesBorrowedUtf8AndMutableBytesParametersByteForByte() throws Exception {
     String source = """
         module example.borrowed_signatures;

@@ -4,6 +4,7 @@ module wheeler.compiler.helper_source_types;
 
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_argument_sources;
+import wheeler.compiler.call_forms;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.one_argument_calls;
@@ -11,6 +12,7 @@ import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
+import wheeler.compiler.wide_local_calls;
 import wheeler.compiler.wide_return_sources;
 
 classical class HelperSourceTypes {
@@ -302,89 +304,57 @@ classical class HelperSourceTypes {
     return -1;
   }
 
-  /// Returns the canonical first source type for one typed statement.
-  public long helperFirstSourceType(
-    long opcode,
-    long operand,
-    long[16] parameterTypes,
-    long parameterCount
-  ) {
-    if (opcode == STATEMENT_SET_OWNED_BYTE) {
-      return TYPE_BYTES;
-    }
-
-    long selected = firstSource(opcode, operand);
-    return sequenceLocalType(parameterTypes, parameterCount, selected);
-  }
-
-  /// Returns the canonical third source type for one typed statement.
-  public long helperThirdSourceType(
-    long opcode,
-    long operand,
-    long[16] parameterTypes,
-    long parameterCount
-  ) {
-    long selected = thirdSource(opcode, operand);
-    return sequenceLocalType(parameterTypes, parameterCount, selected);
-  }
-
-  /// Returns the canonical second source type for one typed statement.
-  public long helperSecondSourceType(
+  /// Returns one canonical source type for a typed statement.
+  public long helperSourceType(
     long opcode,
     long operand,
     long secondaryOperand,
+    long source,
     long[16] parameterTypes,
     long parameterCount
   ) {
-    long selected = secondSource(opcode, secondaryOperand);
-    if (4 < returnHelperCallArity(opcode)) {
-      selected = wideReturnSecondSource(operand);
+    if (source == 0) {
+      if (opcode == STATEMENT_SET_OWNED_BYTE) {
+        return TYPE_BYTES;
+      }
     }
 
-    return sequenceLocalType(parameterTypes, parameterCount, selected);
-  }
+    long selected = -1;
+    if (wideLocalCallStatement(opcode)) {
+      selected = wideLocalCallSource(opcode, operand, secondaryOperand, source);
+    } else {
+      if (source == 0) {
+        selected = firstSource(opcode, operand);
+      }
 
-  /// Returns the canonical fourth source type for one typed statement.
-  public long helperFourthSourceType(
-    long opcode,
-    long operand,
-    long[16] parameterTypes,
-    long parameterCount
-  ) {
-    long selected = fourthSource(opcode, operand);
-    return sequenceLocalType(parameterTypes, parameterCount, selected);
-  }
+      if (source == 1) {
+        selected = secondSource(opcode, secondaryOperand);
+        if (4 < returnHelperCallArity(opcode)) {
+          selected = wideReturnSecondSource(operand);
+        }
+      }
 
-  /// Returns the canonical fifth source type for one typed statement.
-  public long helperFifthSourceType(
-    long opcode,
-    long operand,
-    long[16] parameterTypes,
-    long parameterCount
-  ) {
-    long selected = fifthSource(opcode, operand);
-    return sequenceLocalType(parameterTypes, parameterCount, selected);
-  }
+      if (source == 2) {
+        selected = thirdSource(opcode, operand);
+      }
 
-  /// Returns the canonical sixth source type for one typed statement.
-  public long helperSixthSourceType(
-    long opcode,
-    long operand,
-    long[16] parameterTypes,
-    long parameterCount
-  ) {
-    long selected = sixthSource(opcode, operand);
-    return sequenceLocalType(parameterTypes, parameterCount, selected);
-  }
+      if (source == 3) {
+        selected = fourthSource(opcode, operand);
+      }
 
-  /// Returns the canonical seventh source type for one typed statement.
-  public long helperSeventhSourceType(
-    long opcode,
-    long operand,
-    long[16] parameterTypes,
-    long parameterCount
-  ) {
-    long selected = seventhSource(opcode, operand);
+      if (source == 4) {
+        selected = fifthSource(opcode, secondaryOperand);
+      }
+
+      if (source == 5) {
+        selected = sixthSource(opcode, secondaryOperand);
+      }
+
+      if (source == 6) {
+        selected = seventhSource(opcode, secondaryOperand);
+      }
+    }
+
     return sequenceLocalType(parameterTypes, parameterCount, selected);
   }
 }

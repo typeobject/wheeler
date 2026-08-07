@@ -7,7 +7,6 @@ import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.borrowed_intrinsic_syntax;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
-import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.named_boolean_return_kinds;
 import wheeler.compiler.named_comparison_kinds;
@@ -19,11 +18,11 @@ import wheeler.compiler.owned_storage_forms;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
-import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.void_call_source_kinds;
 import wheeler.compiler.void_call_syntax;
+import wheeler.compiler.wide_local_calls;
 
 classical class Structure {
   private const long MAX_SCALAR_RETURN_ARGUMENTS = 7;
@@ -229,6 +228,10 @@ classical class Structure {
     long statementStart,
     long statementKind
   ) {
+    if (wideLocalCallStatement(statementKind)) {
+      return wideLocalCallWidth(source, tokenKinds, tokenStarts, statementStart, statementKind);
+    }
+
     if (statementKind == STATEMENT_RETURN_BOOLEAN) {
       long returned = tokenHash(source, tokenStarts, tokenLengths, statementStart + 1);
       boolean valid = returned == TOKEN_TRUE;
@@ -543,99 +546,6 @@ classical class Structure {
       ) {
         return 7;
       }
-    }
-
-    if (wideLocalCallStatement(statementKind)) {
-      if (tokenKinds[statementStart + 1] == 1) {} else {
-        return -1;
-      }
-
-      if (
-        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, PUNCTUATION_ASSIGN)
-          == false
-      ) {
-        return -1;
-      }
-
-      if (tokenKinds[statementStart + 3] == 1) {} else {
-        return -1;
-      }
-
-      if (
-        punctuationAt(
-          source,
-          tokenKinds,
-          tokenStarts,
-          statementStart + 4,
-          PUNCTUATION_OPEN_PAREN
-        ) == false
-      ) {
-        return -1;
-      }
-
-      long firstToken = threeArgumentFirstToken(statementStart);
-      long secondToken = threeArgumentSecondToken(statementStart);
-      long thirdToken = threeArgumentThirdToken(statementStart);
-      if (tokenKinds[firstToken] == 1) {} else {
-        return -1;
-      }
-
-      if (
-        punctuationAt(source, tokenKinds, tokenStarts, firstToken + 1, PUNCTUATION_COMMA) == false
-      ) {
-        return -1;
-      }
-
-      if (tokenKinds[secondToken] == 1) {} else {
-        return -1;
-      }
-
-      if (
-        punctuationAt(source, tokenKinds, tokenStarts, secondToken + 1, PUNCTUATION_COMMA) == false
-      ) {
-        return -1;
-      }
-
-      if (tokenKinds[thirdToken] == 1) {} else {
-        return -1;
-      }
-
-      long wideCloseToken = thirdToken + 1;
-      if (fourArgumentCallStatement(statementKind)) {
-        if (
-          punctuationAt(source, tokenKinds, tokenStarts, wideCloseToken, PUNCTUATION_COMMA) == false
-        ) {
-          return -1;
-        }
-
-        long fourthToken = fourArgumentCallFourthToken(statementStart);
-        if (tokenKinds[fourthToken] == 1) {} else {
-          return -1;
-        }
-
-        wideCloseToken = fourthToken + 1;
-      }
-
-      if (
-        punctuationAt(source, tokenKinds, tokenStarts, wideCloseToken, PUNCTUATION_CLOSE_PAREN)
-          == false
-      ) {
-        return -1;
-      }
-
-      if (
-        punctuationAt(
-          source,
-          tokenKinds,
-          tokenStarts,
-          wideCloseToken + 1,
-          PUNCTUATION_SEMICOLON
-        )
-      ) {
-        return wideCloseToken - statementStart + 2;
-      }
-
-      return -1;
     }
 
     if (twoArgumentCallStatement(statementKind)) {

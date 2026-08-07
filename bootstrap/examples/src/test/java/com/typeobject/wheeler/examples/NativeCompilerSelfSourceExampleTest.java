@@ -658,8 +658,11 @@ final class NativeCompilerSelfSourceExampleTest {
         "compiler/ir/StorageOpcodes.w",
         "compiler/ir/TypeCodes.w");
     assertEquals(
-        "wheeler.compiler.call_arguments::callArgumentOpcode",
+        "wheeler.compiler.call_arguments::callSourceType",
         decoded.functions().getFirst().name());
+    assertEquals(
+        "wheeler.compiler.call_arguments::callArgumentOpcode",
+        decoded.functions().get(1).name());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 
