@@ -63,21 +63,25 @@ classical class FiveGraphStructures {
     return dependency.importsCandidate;
   }
 
-  private boolean rootEdge(borrow utf8 source, borrow utf8 rootSource) {
+  private long rootRank(borrow utf8 source, borrow utf8 rootSource) {
     HeaderDependency dependency = moduleDependency(source, rootSource);
     if (dependency.valid) {} else {
-      return false;
+      return -1;
     }
 
     if (0 < dependency.importCount) {} else {
-      return false;
+      return -1;
     }
 
     if (dependency.importCount < MODULE_COUNT + 1) {} else {
-      return false;
+      return -1;
     }
 
-    return dependency.importsCandidate;
+    if (dependency.importsCandidate) {
+      return dependency.candidateImportRank;
+    }
+
+    return -1;
   }
 
   private long recordEdge(borrow mut words graph, long source, long dependent, boolean present) {
@@ -828,9 +832,10 @@ classical class FiveGraphStructures {
     borrow utf8 fifthSource,
     borrow utf8 rootSource
   ) {
-    region arena = new region(/* bytes= */ 360, /* allocations= */ 5);
+    region arena = new region(/* bytes= */ 400, /* allocations= */ 6);
     words graph = allocate(arena, 25);
     words rootDirect = allocate(arena, MODULE_COUNT);
+    words rootRanks = allocate(arena, MODULE_COUNT);
     words order = allocate(arena, MODULE_COUNT);
     words reachable = allocate(arena, MODULE_COUNT);
     words distances = allocate(arena, MODULE_COUNT);
@@ -842,12 +847,22 @@ classical class FiveGraphStructures {
       fourthSource,
       fifthSource
     );
+    long firstRootRank = rootRank(firstSource, rootSource);
+    long secondRootRank = rootRank(secondSource, rootSource);
+    long thirdRootRank = rootRank(thirdSource, rootSource);
+    long fourthRootRank = rootRank(fourthSource, rootSource);
+    long fifthRootRank = rootRank(fifthSource, rootSource);
+    set(rootRanks, 0, firstRootRank);
+    set(rootRanks, 1, secondRootRank);
+    set(rootRanks, 2, thirdRootRank);
+    set(rootRanks, 3, fourthRootRank);
+    set(rootRanks, 4, fifthRootRank);
     long rootCount = 0;
-    rootCount += recordRoot(rootDirect, 0, rootEdge(firstSource, rootSource));
-    rootCount += recordRoot(rootDirect, 1, rootEdge(secondSource, rootSource));
-    rootCount += recordRoot(rootDirect, 2, rootEdge(thirdSource, rootSource));
-    rootCount += recordRoot(rootDirect, 3, rootEdge(fourthSource, rootSource));
-    rootCount += recordRoot(rootDirect, 4, rootEdge(fifthSource, rootSource));
+    rootCount += recordRoot(rootDirect, 0, 0 < firstRootRank + 1);
+    rootCount += recordRoot(rootDirect, 1, 0 < secondRootRank + 1);
+    rootCount += recordRoot(rootDirect, 2, 0 < thirdRootRank + 1);
+    rootCount += recordRoot(rootDirect, 3, 0 < fourthRootRank + 1);
+    rootCount += recordRoot(rootDirect, 4, 0 < fifthRootRank + 1);
     boolean valid = edgeCount + rootCount == MODULE_COUNT;
     if (edgeCount == MODULE_COUNT) {
       valid = rootCount == SINGLE_IMPORT;
@@ -861,6 +876,7 @@ classical class FiveGraphStructures {
       BoundedGraphPlan graphPlan = planBoundedGraph(
         graph,
         rootDirect,
+        rootRanks,
         MODULE_COUNT,
         order,
         reachable
@@ -882,6 +898,7 @@ classical class FiveGraphStructures {
     drop(distances);
     drop(reachable);
     drop(order);
+    drop(rootRanks);
     drop(rootDirect);
     drop(graph);
     drop(arena);

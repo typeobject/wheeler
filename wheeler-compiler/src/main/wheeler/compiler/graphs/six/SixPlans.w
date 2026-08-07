@@ -131,33 +131,37 @@ classical class SixGraphPlans {
     return false;
   }
 
-  private boolean rootEdge(borrow utf8 source, borrow utf8 rootSource) {
+  private long rootRank(borrow utf8 source, borrow utf8 rootSource) {
     HeaderDependency dependency = moduleDependency(source, rootSource);
     if (dependency.valid) {} else {
-      return false;
+      return -1;
+    }
+
+    if (dependency.importsCandidate) {} else {
+      return -1;
     }
 
     if (dependency.importCount == SINGLE_IMPORT) {
-      return dependency.importsCandidate;
+      return dependency.candidateImportRank;
     }
 
     if (dependency.importCount == THREE_IMPORTS) {
-      return dependency.importsCandidate;
+      return dependency.candidateImportRank;
     }
 
     if (dependency.importCount == FOUR_IMPORTS) {
-      return dependency.importsCandidate;
+      return dependency.candidateImportRank;
     }
 
     if (dependency.importCount == FIVE_IMPORTS) {
-      return dependency.importsCandidate;
+      return dependency.candidateImportRank;
     }
 
     if (dependency.importCount == SIX_IMPORTS) {
-      return dependency.importsCandidate;
+      return dependency.candidateImportRank;
     }
 
-    return false;
+    return -1;
   }
 
   private void recordEdge(borrow mut words graph, long source, long dependent, boolean present) {
@@ -223,9 +227,10 @@ classical class SixGraphPlans {
     borrow utf8 sixthSource,
     borrow utf8 rootSource
   ) {
-    region arena = new region(/* bytes= */ 432, /* allocations= */ 4);
+    region arena = new region(/* bytes= */ 480, /* allocations= */ 5);
     words graph = allocate(arena, 36);
     words rootDirect = allocate(arena, MODULE_COUNT);
+    words rootRanks = allocate(arena, MODULE_COUNT);
     words order = allocate(arena, MODULE_COUNT);
     words reachable = allocate(arena, MODULE_COUNT);
     recordDirectedEdges(
@@ -237,15 +242,28 @@ classical class SixGraphPlans {
       fifthSource,
       sixthSource
     );
-    recordRoot(rootDirect, 0, rootEdge(firstSource, rootSource));
-    recordRoot(rootDirect, 1, rootEdge(secondSource, rootSource));
-    recordRoot(rootDirect, 2, rootEdge(thirdSource, rootSource));
-    recordRoot(rootDirect, 3, rootEdge(fourthSource, rootSource));
-    recordRoot(rootDirect, 4, rootEdge(fifthSource, rootSource));
-    recordRoot(rootDirect, 5, rootEdge(sixthSource, rootSource));
+    long firstRootRank = rootRank(firstSource, rootSource);
+    long secondRootRank = rootRank(secondSource, rootSource);
+    long thirdRootRank = rootRank(thirdSource, rootSource);
+    long fourthRootRank = rootRank(fourthSource, rootSource);
+    long fifthRootRank = rootRank(fifthSource, rootSource);
+    long sixthRootRank = rootRank(sixthSource, rootSource);
+    set(rootRanks, 0, firstRootRank);
+    set(rootRanks, 1, secondRootRank);
+    set(rootRanks, 2, thirdRootRank);
+    set(rootRanks, 3, fourthRootRank);
+    set(rootRanks, 4, fifthRootRank);
+    set(rootRanks, 5, sixthRootRank);
+    recordRoot(rootDirect, 0, 0 < firstRootRank + 1);
+    recordRoot(rootDirect, 1, 0 < secondRootRank + 1);
+    recordRoot(rootDirect, 2, 0 < thirdRootRank + 1);
+    recordRoot(rootDirect, 3, 0 < fourthRootRank + 1);
+    recordRoot(rootDirect, 4, 0 < fifthRootRank + 1);
+    recordRoot(rootDirect, 5, 0 < sixthRootRank + 1);
     BoundedGraphPlan graphPlan = planBoundedGraph(
       graph,
       rootDirect,
+      rootRanks,
       MODULE_COUNT,
       order,
       reachable
@@ -269,6 +287,7 @@ classical class SixGraphPlans {
 
     drop(reachable);
     drop(order);
+    drop(rootRanks);
     drop(rootDirect);
     drop(graph);
     drop(arena);

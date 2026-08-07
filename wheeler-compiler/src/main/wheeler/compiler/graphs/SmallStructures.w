@@ -247,6 +247,7 @@ classical class SmallGraphStructures {
       BoundedGraphPlan graphPlan = planBoundedGraph(
         graph,
         rootDirect,
+        rootRanks,
         TWO_MODULES,
         order,
         reachable
@@ -450,6 +451,7 @@ classical class SmallGraphStructures {
       BoundedGraphPlan graphPlan = planBoundedGraph(
         graph,
         rootDirect,
+        rootRanks,
         THREE_MODULES,
         order,
         reachable

@@ -69,41 +69,45 @@ classical class SevenGraphPlans {
     return false;
   }
 
-  private boolean rootEdge(borrow utf8 source, borrow utf8 rootSource) {
+  private long rootRank(borrow utf8 source, borrow utf8 rootSource) {
     HeaderDependency dependency = moduleDependency(source, rootSource);
     if (dependency.valid) {} else {
-      return false;
+      return -1;
+    }
+
+    if (dependency.importsCandidate) {} else {
+      return -1;
     }
 
     if (dependency.importCount == SINGLE_IMPORT) {
-      return dependency.importsCandidate;
+      return dependency.candidateImportRank;
     }
 
     if (dependency.importCount == TWO_IMPORTS) {
-      return dependency.importsCandidate;
+      return dependency.candidateImportRank;
     }
 
     if (dependency.importCount == THREE_IMPORTS) {
-      return dependency.importsCandidate;
+      return dependency.candidateImportRank;
     }
 
     if (dependency.importCount == FOUR_IMPORTS) {
-      return dependency.importsCandidate;
+      return dependency.candidateImportRank;
     }
 
     if (dependency.importCount == FIVE_IMPORTS) {
-      return dependency.importsCandidate;
+      return dependency.candidateImportRank;
     }
 
     if (dependency.importCount == SIX_IMPORTS) {
-      return dependency.importsCandidate;
+      return dependency.candidateImportRank;
     }
 
     if (dependency.importCount == SEVEN_IMPORTS) {
-      return dependency.importsCandidate;
+      return dependency.candidateImportRank;
     }
 
-    return false;
+    return -1;
   }
 
   private long recordEdge(borrow mut words graph, long source, long dependent, boolean present) {
@@ -190,9 +194,10 @@ classical class SevenGraphPlans {
     borrow utf8 seventhSource,
     borrow utf8 rootSource
   ) {
-    region arena = new region(/* bytes= */ 560, /* allocations= */ 4);
+    region arena = new region(/* bytes= */ 616, /* allocations= */ 5);
     words graph = allocate(arena, 49);
     words rootDirect = allocate(arena, MODULE_COUNT);
+    words rootRanks = allocate(arena, MODULE_COUNT);
     words order = allocate(arena, MODULE_COUNT);
     words reachable = allocate(arena, MODULE_COUNT);
     long edgeCount = recordDirectedEdges(
@@ -205,14 +210,28 @@ classical class SevenGraphPlans {
       sixthSource,
       seventhSource
     );
+    long firstRootRank = rootRank(firstSource, rootSource);
+    long secondRootRank = rootRank(secondSource, rootSource);
+    long thirdRootRank = rootRank(thirdSource, rootSource);
+    long fourthRootRank = rootRank(fourthSource, rootSource);
+    long fifthRootRank = rootRank(fifthSource, rootSource);
+    long sixthRootRank = rootRank(sixthSource, rootSource);
+    long seventhRootRank = rootRank(seventhSource, rootSource);
+    set(rootRanks, 0, firstRootRank);
+    set(rootRanks, 1, secondRootRank);
+    set(rootRanks, 2, thirdRootRank);
+    set(rootRanks, 3, fourthRootRank);
+    set(rootRanks, 4, fifthRootRank);
+    set(rootRanks, 5, sixthRootRank);
+    set(rootRanks, 6, seventhRootRank);
     long rootCount = 0;
-    rootCount += recordRoot(rootDirect, 0, rootEdge(firstSource, rootSource));
-    rootCount += recordRoot(rootDirect, 1, rootEdge(secondSource, rootSource));
-    rootCount += recordRoot(rootDirect, 2, rootEdge(thirdSource, rootSource));
-    rootCount += recordRoot(rootDirect, 3, rootEdge(fourthSource, rootSource));
-    rootCount += recordRoot(rootDirect, 4, rootEdge(fifthSource, rootSource));
-    rootCount += recordRoot(rootDirect, 5, rootEdge(sixthSource, rootSource));
-    rootCount += recordRoot(rootDirect, 6, rootEdge(seventhSource, rootSource));
+    rootCount += recordRoot(rootDirect, 0, 0 < firstRootRank + 1);
+    rootCount += recordRoot(rootDirect, 1, 0 < secondRootRank + 1);
+    rootCount += recordRoot(rootDirect, 2, 0 < thirdRootRank + 1);
+    rootCount += recordRoot(rootDirect, 3, 0 < fourthRootRank + 1);
+    rootCount += recordRoot(rootDirect, 4, 0 < fifthRootRank + 1);
+    rootCount += recordRoot(rootDirect, 5, 0 < sixthRootRank + 1);
+    rootCount += recordRoot(rootDirect, 6, 0 < seventhRootRank + 1);
     boolean direct = false;
     if (edgeCount == 0) {
       direct = rootCount == SEVEN_IMPORTS;
@@ -304,6 +323,7 @@ classical class SevenGraphPlans {
       BoundedGraphPlan graphPlan = planBoundedGraph(
         graph,
         rootDirect,
+        rootRanks,
         MODULE_COUNT,
         order,
         reachable
@@ -456,6 +476,7 @@ classical class SevenGraphPlans {
 
     drop(reachable);
     drop(order);
+    drop(rootRanks);
     drop(rootDirect);
     drop(graph);
     drop(arena);

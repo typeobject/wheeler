@@ -161,7 +161,7 @@ Compatibility wrappers are not retained. During migration the driver may dispatc
 - [ ] One source table owns physical and linked source slots.
 - [x] Header dependency facts carry validated candidate import rank, and small direct plans use it.
 - [x] Two- and three-module direct executors consume planned root order.
-- [ ] Root-import rank is part of the complete generic graph plan.
+- [x] The complete bounded graph plan validates and packs root-import rank.
 - [ ] One executor handles direct, chain, fork, branch, redundant-edge, and shared-DAG plans.
 - [ ] Mixed constant and helper owners use the same executor.
 - [ ] Every legacy topology matches byte for byte through the generic path.

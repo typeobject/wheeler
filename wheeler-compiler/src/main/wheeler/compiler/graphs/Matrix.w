@@ -15,10 +15,15 @@ classical class BoundedGraphMatrix {
     long edgeBits,
     long rootBits,
     long orderCode,
+    long rootOrderCode,
     long privateBits,
     long sharedBits,
     boolean valid
   ) {}
+
+  private BoundedGraphPlan invalidPlan() {
+    return new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, 0, false);
+  }
 
   private long incomingCount(borrow mut words graph, long nodeCount, long node) {
     long count = 0;
@@ -150,20 +155,21 @@ classical class BoundedGraphMatrix {
   public BoundedGraphPlan planBoundedGraph(
     borrow mut words graph,
     borrow mut words rootDirect,
+    borrow mut words rootRanks,
     long nodeCount,
     borrow mut words order,
     borrow mut words reachable
   ) {
     if (0 < nodeCount) {} else {
-      return new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, false);
+      return invalidPlan();
     }
 
     if (nodeCount < MAX_GRAPH_NODES + 1) {} else {
-      return new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, false);
+      return invalidPlan();
     }
 
     if (writeRootedTopologicalOrder(graph, rootDirect, nodeCount, order, reachable)) {} else {
-      return new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, false);
+      return invalidPlan();
     }
 
     long edgeCount = 0;
@@ -171,12 +177,33 @@ classical class BoundedGraphMatrix {
     long edgeBits = 0;
     long rootBits = 0;
     long orderCode = 0;
+    long rootOrderCode = 0;
     long privateBits = 0;
     long sharedBits = 0;
     long source = 0;
     while (source < nodeCount) limit MAX_GRAPH_NODES {
       long sourcePower = powerOfTwo(source);
       if (rootDirect[source] == 1) {
+        long rootRank = rootRanks[source];
+        if (0 < rootRank + 1) {} else {
+          return invalidPlan();
+        }
+
+        if (rootRank < nodeCount) {} else {
+          return invalidPlan();
+        }
+
+        long prior = 0;
+        while (prior < source) limit MAX_GRAPH_NODES {
+          if (rootDirect[prior] == 1) {
+            if (rootRanks[prior] == rootRank) {
+              return invalidPlan();
+            }
+          }
+
+          prior += 1;
+        }
+
         rootBits += sourcePower;
         rootCount += 1;
       } else {
@@ -208,7 +235,32 @@ classical class BoundedGraphMatrix {
       }
 
       orderCode += order[source] * orderPower;
+      if (rootDirect[source] == 1) {
+        rootOrderCode += (rootRanks[source] + 1) * orderPower;
+      }
+
       source += 1;
+    }
+
+    long rank = 0;
+    while (rank < rootCount) limit MAX_GRAPH_NODES {
+      boolean present = false;
+      source = 0;
+      while (source < nodeCount) limit MAX_GRAPH_NODES {
+        if (rootDirect[source] == 1) {
+          if (rootRanks[source] == rank) {
+            present = true;
+          }
+        }
+
+        source += 1;
+      }
+
+      if (present) {} else {
+        return invalidPlan();
+      }
+
+      rank += 1;
     }
 
     return new BoundedGraphPlan(
@@ -218,6 +270,7 @@ classical class BoundedGraphMatrix {
       edgeBits,
       rootBits,
       orderCode,
+      rootOrderCode,
       privateBits,
       sharedBits,
       true
