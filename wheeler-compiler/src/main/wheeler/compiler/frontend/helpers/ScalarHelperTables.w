@@ -2,7 +2,9 @@
 
 module wheeler.compiler.scalar_helper_tables;
 
-import wheeler.compiler.assignment_calls;
+import wheeler.compiler.assignment_call_identities;
+import wheeler.compiler.assignment_call_kinds;
+import wheeler.compiler.assignment_call_operands;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.encoding;

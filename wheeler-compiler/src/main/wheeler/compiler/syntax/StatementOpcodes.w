@@ -2,7 +2,7 @@
 
 module wheeler.compiler.statement_opcodes;
 
-import wheeler.compiler.assignment_calls;
+import wheeler.compiler.assignment_call_syntax;
 import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.compiler_token_limits;

@@ -2,7 +2,7 @@
 
 module wheeler.compiler.operand_resolution_opcode;
 
-import wheeler.compiler.assignment_calls;
+import wheeler.compiler.assignment_call_kinds;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;

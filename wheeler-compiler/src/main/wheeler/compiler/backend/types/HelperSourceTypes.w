@@ -2,7 +2,8 @@
 
 module wheeler.compiler.helper_source_types;
 
-import wheeler.compiler.assignment_calls;
+import wheeler.compiler.assignment_call_kinds;
+import wheeler.compiler.assignment_call_operands;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;

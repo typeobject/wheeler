@@ -3,8 +3,8 @@
 module wheeler.compiler.operands;
 
 import wheeler.compiler.assertion_resolution;
+import wheeler.compiler.assignment_call_kinds;
 import wheeler.compiler.assignment_call_resolution;
-import wheeler.compiler.assignment_calls;
 import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.borrowed_intrinsic_resolution;

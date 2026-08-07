@@ -2,7 +2,9 @@
 
 module wheeler.compiler.assignment_call_codegen;
 
-import wheeler.compiler.assignment_calls;
+import wheeler.compiler.assignment_call_identities;
+import wheeler.compiler.assignment_call_kinds;
+import wheeler.compiler.assignment_call_operands;
 import wheeler.compiler.call_arguments;
 import wheeler.compiler.encoding;
 import wheeler.compiler.opcodes;

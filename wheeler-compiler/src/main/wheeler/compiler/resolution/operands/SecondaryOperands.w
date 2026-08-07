@@ -2,8 +2,8 @@
 
 module wheeler.compiler.secondary_operands;
 
+import wheeler.compiler.assignment_call_kinds;
 import wheeler.compiler.assignment_call_resolution;
-import wheeler.compiler.assignment_calls;
 import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_argument_sources;

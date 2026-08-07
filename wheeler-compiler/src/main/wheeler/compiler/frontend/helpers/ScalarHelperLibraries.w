@@ -2,7 +2,7 @@
 
 module wheeler.compiler.scalar_helper_libraries;
 
-import wheeler.compiler.assignment_calls;
+import wheeler.compiler.assignment_call_kinds;
 import wheeler.compiler.body_parser;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_forms;

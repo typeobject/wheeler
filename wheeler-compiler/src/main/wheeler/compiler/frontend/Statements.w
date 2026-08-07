@@ -2,7 +2,8 @@
 
 module wheeler.compiler.statements;
 
-import wheeler.compiler.assignment_calls;
+import wheeler.compiler.assignment_call_kinds;
+import wheeler.compiler.assignment_call_syntax;
 import wheeler.compiler.boolean_declaration_kinds;
 import wheeler.compiler.boolean_declaration_widths;
 import wheeler.compiler.boolean_tokens;
