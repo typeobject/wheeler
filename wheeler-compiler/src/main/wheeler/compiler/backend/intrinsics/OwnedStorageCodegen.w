@@ -85,6 +85,57 @@ classical class OwnedStorageCodegen {
       cursor = writeInstructionHeader(
         output,
         cursor,
+        OPCODE_OWNED_MOVE,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(
+        output,
+        cursor,
+        /* destination= */ localBase,
+        INSTRUCTION_OPERAND_WIDTH
+      );
+      cursor = writeUnsignedLittleEndian(
+        output,
+        cursor,
+        /* source= */ operand,
+        INSTRUCTION_OPERAND_WIDTH
+      );
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_UTF8_FREEZE,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(
+        output,
+        cursor,
+        /* destination= */ localBase + 1,
+        INSTRUCTION_OPERAND_WIDTH
+      );
+      cursor = writeUnsignedLittleEndian(
+        output,
+        cursor,
+        /* owner= */ localBase,
+        INSTRUCTION_OPERAND_WIDTH
+      );
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_RETURN_VALUE,
+        INSTRUCTION_FORM_UNARY
+      );
+      return writeUnsignedLittleEndian(
+        output,
+        cursor,
+        /* result= */ localBase + 1,
+        INSTRUCTION_OPERAND_WIDTH
+      );
+    }
+
+    if (opcode == STATEMENT_RETURN_FREEZE_MOVED_UTF8) {
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
         OPCODE_UTF8_FREEZE,
         INSTRUCTION_FORM_BINARY
       );

@@ -103,6 +103,26 @@ classical class OwnedStorageOperands {
     long statementStart,
     long opcode
   ) {
+    if (opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED) {
+      OwnedBytesOperand frozenOwner = resolvePriorOwnedBytes(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3
+      );
+      if (frozenOwner.value < 0) {
+        return new ResolvedOwnedStorage(-1, true);
+      }
+
+      if (frozenOwner.moved) {
+        return new ResolvedOwnedStorage(STATEMENT_RETURN_FREEZE_MOVED_UTF8, true);
+      }
+
+      return new ResolvedOwnedStorage(opcode, true);
+    }
+
     if (opcode == STATEMENT_DROP_OWNED_NAMED) {
       OwnedBytesOperand owner = resolvePriorOwnedBytes(
         source,

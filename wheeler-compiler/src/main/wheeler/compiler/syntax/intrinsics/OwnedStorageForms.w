@@ -9,6 +9,8 @@ import wheeler.compiler.tokens;
 classical class OwnedStorageForms {
   /// Names resolved destruction after a mutation has already moved the owner.
   public const long STATEMENT_DROP_MOVED_OWNED = 131347;
+  /// Names a UTF-8 result from an owner already advanced by mutation.
+  public const long STATEMENT_RETURN_FREEZE_MOVED_UTF8 = 131348;
   /// Names the exact token width of `bytes name = allocateBytes(region, length);`.
   private const long BYTES_ALLOCATION_TOKEN_WIDTH = 10;
   /// Names the exact token width of `drop(name);`.
@@ -33,12 +35,18 @@ classical class OwnedStorageForms {
   private const long MOVED_OWNED_DROP_CODE_LENGTH = 16;
   /// Names direct destruction as one unary instruction.
   private const long MOVED_OWNED_DROP_INSTRUCTION_COUNT = 1;
-  /// Names one frozen UTF-8 result local.
-  private const long UTF8_FREEZE_RETURN_LOCAL_COUNT = 1;
-  /// Names one freeze and one return instruction.
-  private const long UTF8_FREEZE_RETURN_CODE_LENGTH = 40;
-  /// Names the freeze and return instruction count.
-  private const long UTF8_FREEZE_RETURN_INSTRUCTION_COUNT = 2;
+  /// Names an owned move and frozen UTF-8 result local.
+  private const long UTF8_FREEZE_RETURN_LOCAL_COUNT = 2;
+  /// Names one owned move, freeze, and return instruction.
+  private const long UTF8_FREEZE_RETURN_CODE_LENGTH = 64;
+  /// Names the owned move, freeze, and return instruction count.
+  private const long UTF8_FREEZE_RETURN_INSTRUCTION_COUNT = 3;
+  /// Names one result local after mutation has already moved the owner.
+  private const long MOVED_UTF8_FREEZE_RETURN_LOCAL_COUNT = 1;
+  /// Names one freeze and one return after owner-advancing mutation.
+  private const long MOVED_UTF8_FREEZE_RETURN_CODE_LENGTH = 40;
+  /// Names the moved-owner freeze and return instruction count.
+  private const long MOVED_UTF8_FREEZE_RETURN_INSTRUCTION_COUNT = 2;
 
   /// Checks whether one opcode belongs to the bounded owned-storage profile.
   public boolean ownedStorageStatement(long opcode) {
@@ -50,7 +58,11 @@ classical class OwnedStorageForms {
       return true;
     }
 
-    return opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED;
+    if (opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_RETURN_FREEZE_MOVED_UTF8;
   }
 
   /// Validates and sizes one bounded owned-storage source statement.
@@ -230,6 +242,10 @@ classical class OwnedStorageForms {
       return UTF8_FREEZE_RETURN_LOCAL_COUNT;
     }
 
+    if (opcode == STATEMENT_RETURN_FREEZE_MOVED_UTF8) {
+      return MOVED_UTF8_FREEZE_RETURN_LOCAL_COUNT;
+    }
+
     return -1;
   }
 
@@ -240,6 +256,10 @@ classical class OwnedStorageForms {
     }
 
     if (opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED) {
+      return 1;
+    }
+
+    if (opcode == STATEMENT_RETURN_FREEZE_MOVED_UTF8) {
       return 0;
     }
 
@@ -264,6 +284,10 @@ classical class OwnedStorageForms {
       return UTF8_FREEZE_RETURN_CODE_LENGTH;
     }
 
+    if (opcode == STATEMENT_RETURN_FREEZE_MOVED_UTF8) {
+      return MOVED_UTF8_FREEZE_RETURN_CODE_LENGTH;
+    }
+
     return -1;
   }
 
@@ -283,6 +307,10 @@ classical class OwnedStorageForms {
 
     if (opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED) {
       return UTF8_FREEZE_RETURN_INSTRUCTION_COUNT;
+    }
+
+    if (opcode == STATEMENT_RETURN_FREEZE_MOVED_UTF8) {
+      return MOVED_UTF8_FREEZE_RETURN_INSTRUCTION_COUNT;
     }
 
     return -1;

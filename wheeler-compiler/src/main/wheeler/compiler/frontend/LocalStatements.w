@@ -849,6 +849,10 @@ classical class LocalStatements {
       return -1 < operand;
     }
 
+    if (opcode == STATEMENT_RETURN_FREEZE_MOVED_UTF8) {
+      return -1 < operand;
+    }
+
     if (opcode == STATEMENT_SET_WORD) {
       return -1 < operand;
     }

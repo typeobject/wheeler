@@ -82,7 +82,15 @@ classical class ScalarHelperLibraries {
   }
 
   private boolean utf8Result(long opcode) {
-    return opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED;
+    if (opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_FREEZE_MOVED_UTF8) {
+      return true;
+    }
+
+    return resolvedReturnHelperCall(opcode);
   }
 
   private boolean booleanResult(long opcode) {
@@ -161,7 +169,12 @@ classical class ScalarHelperLibraries {
         activeBytes = localBase;
       }
 
-      if (opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED) {
+      boolean utf8Freeze = opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED;
+      if (opcode == STATEMENT_RETURN_FREEZE_MOVED_UTF8) {
+        utf8Freeze = true;
+      }
+
+      if (utf8Freeze) {
         if (sequence.operands[statement] == activeBytes) {} else {
           return false;
         }

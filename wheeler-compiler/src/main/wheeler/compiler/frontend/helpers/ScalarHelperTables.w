@@ -513,6 +513,10 @@ classical class ScalarHelperTables {
           }
 
           if (sameResultKind) {
+            sameResultKind = utf8ResultHelper(caller.kind) == utf8ResultHelper(candidate.kind);
+          }
+
+          if (sameResultKind) {
             if (
               callParametersMatch(
                 caller,

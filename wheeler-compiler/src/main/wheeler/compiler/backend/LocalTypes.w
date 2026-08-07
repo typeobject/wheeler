@@ -279,6 +279,11 @@ classical class LocalTypes {
     }
 
     if (opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED) {
+      cursor = writeLocalType(output, cursor, TYPE_BYTES);
+      return writeLocalType(output, cursor, TYPE_UTF8);
+    }
+
+    if (opcode == STATEMENT_RETURN_FREEZE_MOVED_UTF8) {
       return writeLocalType(output, cursor, TYPE_UTF8);
     }
 
