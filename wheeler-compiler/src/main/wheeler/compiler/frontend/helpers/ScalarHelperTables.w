@@ -101,7 +101,15 @@ classical class ScalarHelperTables {
         if (4 < argumentCount) {
           thirdSource = wideReturnThirdSource(wideFirstSources);
         } else {
-          thirdSource = returnHelperCallThirdSource(opcode);
+          if (threeArgumentCallStatement(opcode)) {
+            thirdSource = threeArgumentThirdSource(opcode);
+          } else {
+            if (fourArgumentCallStatement(opcode)) {
+              thirdSource = fourArgumentCallThirdSource(opcode);
+            } else {
+              thirdSource = returnHelperCallThirdSource(opcode);
+            }
+          }
         }
       }
     }
@@ -116,7 +124,11 @@ classical class ScalarHelperTables {
 
     long fourthSource = wideReturnFourthSource(wideFirstSources);
     if (argumentCount == 4) {
-      fourthSource = returnHelperCallFourthSource(opcode);
+      if (fourArgumentCallStatement(opcode)) {
+        fourthSource = fourArgumentCallFourthSource(opcode);
+      } else {
+        fourthSource = returnHelperCallFourthSource(opcode);
+      }
     }
 
     if (callerLocalType(caller, fourthSource) == candidate.parameterTypes[3]) {} else {
@@ -425,15 +437,7 @@ classical class ScalarHelperTables {
 
     if (fourArgumentCallStatement(opcode)) {
       if (candidate.kind == HELPER_SIGNED_FOUR) {
-        if (candidate.parameterCount == 4) {
-          if (candidate.parameterTypes[0] == TYPE_SIGNED) {
-            if (candidate.parameterTypes[1] == TYPE_SIGNED) {
-              if (candidate.parameterTypes[2] == TYPE_SIGNED) {
-                return candidate.parameterTypes[3] == TYPE_SIGNED;
-              }
-            }
-          }
-        }
+        return candidate.parameterCount == 4;
       }
 
       return false;
@@ -441,13 +445,7 @@ classical class ScalarHelperTables {
 
     if (threeArgumentCallStatement(opcode)) {
       if (candidate.kind == HELPER_SIGNED_THREE) {
-        if (candidate.parameterCount == 3) {
-          if (candidate.parameterTypes[0] == TYPE_SIGNED) {
-            if (candidate.parameterTypes[1] == TYPE_SIGNED) {
-              return candidate.parameterTypes[2] == TYPE_SIGNED;
-            }
-          }
-        }
+        return candidate.parameterCount == 3;
       }
 
       return false;
@@ -598,21 +596,17 @@ classical class ScalarHelperTables {
           } else {
             if (scalarResultCallStatement(callOpcode)) {
               if (localScalarCallMatches(candidate, callOpcode)) {
-                if (2 < argumentCount) {
+                if (
+                  callParametersMatch(
+                    caller,
+                    candidate,
+                    callOpcode,
+                    argumentCount,
+                    firstSource,
+                    secondSource
+                  )
+                ) {
                   found = helper;
-                } else {
-                  if (
-                    callParametersMatch(
-                      caller,
-                      candidate,
-                      callOpcode,
-                      argumentCount,
-                      firstSource,
-                      secondSource
-                    )
-                  ) {
-                    found = helper;
-                  }
                 }
               }
             } else {

@@ -5,8 +5,10 @@ module wheeler.compiler.helper_source_types;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.early_utf8_call_forms;
+import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_return_call_kinds;
+import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
 import wheeler.compiler.wide_return_sources;
@@ -115,6 +117,14 @@ classical class HelperSourceTypes {
       return operand;
     }
 
+    if (threeArgumentCallStatement(opcode)) {
+      return operand;
+    }
+
+    if (fourArgumentCallStatement(opcode)) {
+      return operand;
+    }
+
     long returnArity = returnHelperCallArity(opcode);
     if (4 < returnArity) {
       return wideReturnFirstSource(operand);
@@ -141,6 +151,14 @@ classical class HelperSourceTypes {
   }
 
   private long thirdSource(long opcode, long operand) {
+    if (threeArgumentCallStatement(opcode)) {
+      return threeArgumentThirdSource(opcode);
+    }
+
+    if (fourArgumentCallStatement(opcode)) {
+      return fourArgumentCallThirdSource(opcode);
+    }
+
     long directSource = voidCallThirdSource(opcode);
     long returnArity = returnHelperCallArity(opcode);
     if (4 < returnArity) {
@@ -213,6 +231,14 @@ classical class HelperSourceTypes {
       return operand;
     }
 
+    if (threeArgumentCallStatement(opcode)) {
+      return operand;
+    }
+
+    if (fourArgumentCallStatement(opcode)) {
+      return operand;
+    }
+
     long returnArity = returnHelperCallArity(opcode);
     if (4 < returnArity) {
       return wideReturnSecondSource(operand);
@@ -235,6 +261,10 @@ classical class HelperSourceTypes {
   }
 
   private long fourthSource(long opcode, long operand) {
+    if (fourArgumentCallStatement(opcode)) {
+      return fourArgumentCallFourthSource(opcode);
+    }
+
     long returnArity = returnHelperCallArity(opcode);
     if (4 < returnArity) {
       return wideReturnFourthSource(operand);

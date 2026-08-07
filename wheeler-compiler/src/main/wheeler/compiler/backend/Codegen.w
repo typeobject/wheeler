@@ -337,7 +337,9 @@ classical class Codegen {
       localBase,
       callFunction,
       firstSourceType,
-      secondSourceType
+      secondSourceType,
+      thirdSourceType,
+      fourthSourceType
     );
     if (-1 < valueCallCursor) {
       return valueCallCursor;
@@ -456,6 +458,8 @@ classical class Codegen {
       secondaryOperand,
       localBase,
       callFunction,
+      TYPE_SIGNED,
+      TYPE_SIGNED,
       TYPE_SIGNED,
       TYPE_SIGNED
     );

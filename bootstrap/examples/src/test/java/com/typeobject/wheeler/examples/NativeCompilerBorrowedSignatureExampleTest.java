@@ -60,6 +60,61 @@ final class NativeCompilerBorrowedSignatureExampleTest {
   }
 
   @Test
+  void reborrowsThreeAndFourPrimitiveArgumentsByteForByte() throws Exception {
+    String source = """
+        module example.borrowed_wide_calls;
+        classical class BorrowedWideCalls {
+          private long acceptThree(borrow utf8 text, borrow mut bytes output, long value) {
+            return value;
+          }
+          public long forwardThree(borrow utf8 text, borrow mut bytes output, long value) {
+            long result = acceptThree(text, output, value);
+            return result;
+          }
+          private long acceptFour(
+            borrow utf8 text,
+            borrow byteview input,
+            borrow mut words values,
+            long fallback
+          ) {
+            return fallback;
+          }
+          public long forwardFour(
+            borrow utf8 text,
+            borrow byteview input,
+            borrow mut words values,
+            long fallback
+          ) {
+            long result = acceptFour(text, input, values, fallback);
+            return result;
+          }
+        }
+        """;
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("BorrowedWideCalls.w", source), "example.borrowed_wide_calls"));
+    byte[] actual = NativeModuleCompilerHarness.compile(
+        NativeModuleCompilerHarness.program(), List.of(), source);
+    assertArrayEquals(expected, actual);
+
+    var decoded = new BytecodeReader().read(actual);
+    assertEquals(12, decoded.functions().get(1).localCount());
+    assertEquals(15, decoded.functions().get(3).localCount());
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace(
+            "acceptThree(text, output, value)",
+            "acceptThree(output, text, value)"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace(
+            "acceptFour(text, input, values, fallback)",
+            "acceptFour(text, values, input, fallback)"));
+  }
+
+  @Test
   void compilesBorrowedUtf8AndMutableBytesParametersByteForByte() throws Exception {
     String source = """
         module example.borrowed_signatures;

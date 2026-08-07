@@ -8,6 +8,7 @@ import wheeler.compiler.conditionals;
 import wheeler.compiler.early_comparison_forms;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.encoding;
+import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.named_comparison_kinds;
@@ -33,6 +34,7 @@ import wheeler.compiler.resolved_local_updates;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
+import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
@@ -255,6 +257,14 @@ classical class LocalTypes {
       arity = 2;
     }
 
+    if (threeArgumentCallStatement(opcode)) {
+      arity = 3;
+    }
+
+    if (fourArgumentCallStatement(opcode)) {
+      arity = 4;
+    }
+
     if (arity == 0) {
       return writeLocalType(output, cursor, resultType);
     }
@@ -315,7 +325,12 @@ classical class LocalTypes {
       cursor = writeLocalType(output, cursor, secondSourceType);
       cursor = writeLocalType(output, cursor, thirdSourceType);
       cursor = writeLocalType(output, cursor, fourthSourceType);
-      return writeLocalType(output, cursor, resultType);
+      cursor = writeLocalType(output, cursor, resultType);
+      if (fourArgumentCallStatement(opcode)) {
+        return writeLocalType(output, cursor, resultType);
+      }
+
+      return cursor;
     }
 
     if (arity == 3) {
@@ -325,7 +340,12 @@ classical class LocalTypes {
       cursor = writeLocalType(output, cursor, firstSourceType);
       cursor = writeLocalType(output, cursor, secondSourceType);
       cursor = writeLocalType(output, cursor, thirdSourceType);
-      return writeLocalType(output, cursor, resultType);
+      cursor = writeLocalType(output, cursor, resultType);
+      if (threeArgumentCallStatement(opcode)) {
+        return writeLocalType(output, cursor, resultType);
+      }
+
+      return cursor;
     }
 
     if (arity == 2) {
