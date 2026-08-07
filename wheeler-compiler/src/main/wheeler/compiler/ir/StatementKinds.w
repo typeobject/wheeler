@@ -265,6 +265,8 @@ classical class StatementKinds {
   public const long STATEMENT_LOCAL_BYTES_ALLOCATE_NAMED = 915;
   /// Explicit destruction of one prior owned value.
   public const long STATEMENT_DROP_OWNED_NAMED = 916;
+  /// UTF-8 result frozen from one prior owned byte value.
+  public const long STATEMENT_RETURN_FREEZE_UTF8_NAMED = 917;
   /// Checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Checked global subtraction.

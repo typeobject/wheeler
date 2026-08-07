@@ -148,6 +148,18 @@ classical class OwnedStorageOperands {
       return owner.value;
     }
 
+    if (opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED) {
+      OwnedBytesOperand frozenOwner = resolvePriorOwnedBytes(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 3
+      );
+      return frozenOwner.value;
+    }
+
     return resolvePriorDeclaration(
       source,
       tokenStarts,

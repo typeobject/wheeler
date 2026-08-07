@@ -71,6 +71,10 @@ classical class Parser {
       return true;
     }
 
+    if (returnType == TOKEN_UTF8) {
+      return true;
+    }
+
     return returnType == TOKEN_VOID;
   }
 

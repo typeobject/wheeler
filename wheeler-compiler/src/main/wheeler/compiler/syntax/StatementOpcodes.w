@@ -116,6 +116,10 @@ classical class StatementOpcodes {
             return STATEMENT_RETURN_BUFFER_LENGTH_NAMED;
           }
 
+          if (returnedHash == TOKEN_FREEZE_UTF8) {
+            return STATEMENT_RETURN_FREEZE_UTF8_NAMED;
+          }
+
           if (returnedHash == TOKEN_UTF8_SCALAR) {
             return STATEMENT_RETURN_UTF8_SCALAR_NAMED;
           }

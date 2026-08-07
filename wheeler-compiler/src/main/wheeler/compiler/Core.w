@@ -249,6 +249,10 @@ classical class CompilerCore {
       resultType = TYPE_BOOLEAN;
     }
 
+    if (utf8ResultHelper(body.kind)) {
+      resultType = TYPE_UTF8;
+    }
+
     long statement = 0;
     while (statement < body.statementCount) limit MAX_MINIMAL_STATEMENTS {
       long opcode = body.opcodes[statement];
@@ -662,7 +666,11 @@ classical class CompilerCore {
           if (booleanResultHelper(typedBody.kind)) {
             cursor = writeBooleanLocalType(output, cursor);
           } else {
-            cursor = writeSignedLocalType(output, cursor);
+            if (utf8ResultHelper(typedBody.kind)) {
+              cursor = writeLocalType(output, cursor, TYPE_UTF8);
+            } else {
+              cursor = writeSignedLocalType(output, cursor);
+            }
           }
         }
 
@@ -729,7 +737,11 @@ classical class CompilerCore {
           if (booleanResultHelper(helperAt(program, 0).kind)) {
             cursor = writeBooleanLocalType(output, cursor);
           } else {
-            cursor = writeSignedLocalType(output, cursor);
+            if (utf8ResultHelper(helperAt(program, 0).kind)) {
+              cursor = writeLocalType(output, cursor, TYPE_UTF8);
+            } else {
+              cursor = writeSignedLocalType(output, cursor);
+            }
           }
         }
 

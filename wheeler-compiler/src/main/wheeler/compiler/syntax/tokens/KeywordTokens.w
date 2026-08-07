@@ -55,6 +55,8 @@ classical class KeywordTokens {
   public const long TOKEN_ALLOCATE_BYTES = 7757814110573215534;
   /// Names the stable token hash for `drop`.
   public const long TOKEN_DROP = 3092207;
+  /// Names the stable token hash for intrinsic `freezeUtf8`.
+  public const long TOKEN_FREEZE_UTF8 = 2796943039232680;
   /// Names the stable token hash for `byteview`.
   public const long TOKEN_BYTEVIEW = 2807042004909;
   /// Names the stable token hash for `words`.

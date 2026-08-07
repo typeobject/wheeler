@@ -79,6 +79,10 @@ classical class HelperAbi {
   public const long HELPER_SIGNED_SIXTEEN = 48;
   /// Names a 16-signed-parameter Boolean-result helper.
   public const long HELPER_BOOLEAN_SIGNED_SIXTEEN = 80;
+  /// Names a two-parameter UTF-8 owner-result helper.
+  public const long HELPER_UTF8_TWO = 81;
+  /// Names a ten-parameter UTF-8 owner-result helper.
+  public const long HELPER_UTF8_TEN = 82;
   /// Names a zero-argument reversible signed result-slot helper.
   public const long HELPER_REVERSIBLE_SIGNED = 10;
   /// Names a one-parameter reversible signed result-slot helper.

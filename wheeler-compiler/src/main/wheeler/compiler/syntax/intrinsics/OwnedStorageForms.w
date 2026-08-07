@@ -13,6 +13,8 @@ classical class OwnedStorageForms {
   private const long BYTES_ALLOCATION_TOKEN_WIDTH = 10;
   /// Names the exact token width of `drop(name);`.
   private const long OWNED_DROP_TOKEN_WIDTH = 5;
+  /// Names the exact token width of `return freezeUtf8(name);`.
+  private const long UTF8_FREEZE_RETURN_TOKEN_WIDTH = 6;
   /// Names the local frame for two allocation sources and one owned result.
   private const long BYTES_ALLOCATION_LOCAL_COUNT = 3;
   /// Names the allocated owner after canonical source moves.
@@ -31,6 +33,12 @@ classical class OwnedStorageForms {
   private const long MOVED_OWNED_DROP_CODE_LENGTH = 16;
   /// Names direct destruction as one unary instruction.
   private const long MOVED_OWNED_DROP_INSTRUCTION_COUNT = 1;
+  /// Names one frozen UTF-8 result local.
+  private const long UTF8_FREEZE_RETURN_LOCAL_COUNT = 1;
+  /// Names one freeze and one return instruction.
+  private const long UTF8_FREEZE_RETURN_CODE_LENGTH = 40;
+  /// Names the freeze and return instruction count.
+  private const long UTF8_FREEZE_RETURN_INSTRUCTION_COUNT = 2;
 
   /// Checks whether one opcode belongs to the bounded owned-storage profile.
   public boolean ownedStorageStatement(long opcode) {
@@ -38,7 +46,11 @@ classical class OwnedStorageForms {
       return true;
     }
 
-    return opcode == STATEMENT_DROP_OWNED_NAMED;
+    if (opcode == STATEMENT_DROP_OWNED_NAMED) {
+      return true;
+    }
+
+    return opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED;
   }
 
   /// Validates and sizes one bounded owned-storage source statement.
@@ -155,6 +167,48 @@ classical class OwnedStorageForms {
       }
     }
 
+    if (opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED) {
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 2,
+          PUNCTUATION_OPEN_PAREN
+        )
+      ) {} else {
+        return -1;
+      }
+
+      if (tokenKinds[statementStart + 3] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 4,
+          PUNCTUATION_CLOSE_PAREN
+        )
+      ) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 5,
+          PUNCTUATION_SEMICOLON
+        )
+      ) {
+        return UTF8_FREEZE_RETURN_TOKEN_WIDTH;
+      }
+    }
+
     return -1;
   }
 
@@ -172,6 +226,10 @@ classical class OwnedStorageForms {
       return 0;
     }
 
+    if (opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED) {
+      return UTF8_FREEZE_RETURN_LOCAL_COUNT;
+    }
+
     return -1;
   }
 
@@ -179,6 +237,10 @@ classical class OwnedStorageForms {
   public long ownedStorageResultOffset(long opcode) {
     if (opcode == STATEMENT_LOCAL_BYTES_ALLOCATE_NAMED) {
       return BYTES_ALLOCATION_RESULT_OFFSET;
+    }
+
+    if (opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED) {
+      return 0;
     }
 
     return -1;
@@ -198,6 +260,10 @@ classical class OwnedStorageForms {
       return MOVED_OWNED_DROP_CODE_LENGTH;
     }
 
+    if (opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED) {
+      return UTF8_FREEZE_RETURN_CODE_LENGTH;
+    }
+
     return -1;
   }
 
@@ -213,6 +279,10 @@ classical class OwnedStorageForms {
 
     if (opcode == STATEMENT_DROP_MOVED_OWNED) {
       return MOVED_OWNED_DROP_INSTRUCTION_COUNT;
+    }
+
+    if (opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED) {
+      return UTF8_FREEZE_RETURN_INSTRUCTION_COUNT;
     }
 
     return -1;

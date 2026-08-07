@@ -81,6 +81,10 @@ classical class ScalarHelperLibraries {
     return returnLocalPairStatement(opcode);
   }
 
+  private boolean utf8Result(long opcode) {
+    return opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED;
+  }
+
   private boolean booleanResult(long opcode) {
     if (opcode == STATEMENT_RETURN_BOOLEAN) {
       return true;
@@ -155,6 +159,14 @@ classical class ScalarHelperLibraries {
         }
 
         activeBytes = localBase;
+      }
+
+      if (opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED) {
+        if (sequence.operands[statement] == activeBytes) {} else {
+          return false;
+        }
+
+        activeBytes = -1;
       }
 
       boolean ownedDrop = opcode == STATEMENT_DROP_OWNED_NAMED;
@@ -477,10 +489,15 @@ classical class ScalarHelperLibraries {
 
     long result = sequence.count - 1;
     boolean booleanHelper = booleanHelperKind(kind);
+    boolean utf8Helper = utf8ResultHelper(kind);
 
     boolean validResult = signedResult(sequence.opcodes[result]);
     if (booleanHelper) {
       validResult = booleanResult(sequence.opcodes[result]);
+    }
+
+    if (utf8Helper) {
+      validResult = utf8Result(sequence.opcodes[result]);
     }
 
     if (validResult) {} else {
@@ -609,8 +626,10 @@ classical class ScalarHelperLibraries {
     long returnType = tokenHash(source, tokenStarts, tokenLengths, returnTypeToken);
     if (returnType == TOKEN_LONG) {} else {
       if (returnType == TOKEN_BOOLEAN) {} else {
-        if (returnType == TOKEN_VOID) {} else {
-          return invalidHelper();
+        if (returnType == TOKEN_UTF8) {} else {
+          if (returnType == TOKEN_VOID) {} else {
+            return invalidHelper();
+          }
         }
       }
     }
@@ -718,6 +737,10 @@ classical class ScalarHelperLibraries {
 
     if (returnType == TOKEN_VOID) {
       kind = HELPER_VOID;
+    }
+
+    if (returnType == TOKEN_UTF8) {
+      kind = utf8ScalarHelperKind(parameterCount);
     }
 
     if (-1 < kind) {} else {

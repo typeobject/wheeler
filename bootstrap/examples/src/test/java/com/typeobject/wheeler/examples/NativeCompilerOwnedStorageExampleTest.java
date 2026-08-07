@@ -88,6 +88,38 @@ final class NativeCompilerOwnedStorageExampleTest {
         "drop(output);\n    setByte(output, index, value);"));
   }
 
+  @Test
+  void freezesAnAdvancedOwnerIntoUtf8() throws Exception {
+    String source = """
+        module example.native_owned_storage;
+        classical class NativeOwnedStorage {
+          public utf8 freezeBytes(borrow mut region arena, long index) {
+            bytes output = allocateBytes(arena, index);
+            setByte(output, index, index);
+            return freezeUtf8(output);
+          }
+        }
+        """;
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("NativeOwnedStorage.w", source),
+            "example.native_owned_storage"));
+    byte[] actual = NativeModuleCompilerHarness.compile(
+        NativeModuleCompilerHarness.program(), List.of(), source);
+    assertArrayEquals(expected, actual);
+
+    var body = new BytecodeReader().read(actual).functions().getFirst();
+    assertEquals(ValueType.UTF8, body.resultType());
+    assertEquals(9, body.localCount());
+    assertEquals(ValueType.UTF8, body.localType(8));
+    assertEquals(Opcode.UTF8_FREEZE, body.forward().get(7).opcode());
+    assertEquals(Opcode.RETURN_VALUE, body.forward().get(8).opcode());
+
+    assertRejected(source.replace("public utf8 freezeBytes", "public long freezeBytes"));
+    assertRejected(source.replace("long index)", "long index, long extra)"));
+    assertRejected(source.replace("freezeUtf8(output)", "freezeUtf8(arena)"));
+  }
+
   private static void assertRejected(String source) throws Exception {
     NativeModuleCompilerHarness.assertTrap(
         NativeModuleCompilerHarness.program(), List.of(), source);

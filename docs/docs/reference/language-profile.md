@@ -331,7 +331,7 @@ A region declares hard byte and live-object limits. The VM also caps total live 
 
 A `words` element costs eight bytes. A `bytes` element costs one byte, and `setByte` accepts values from 0 through 255. Both allocation forms start with zero-filled storage.
 
-Allocation and access trap before mutation on invalid length, exhausted bytes or objects, bad handles, the wrong storage kind, invalid byte values, dropped owners, or an out-of-range index. An owned `setByte` advances the owner to the write's destination local. A following mutation or `drop` consumes that current local. The owner does not fork merely because the source spelling stays put.
+Allocation and access trap before mutation on invalid length, exhausted bytes or objects, bad handles, the wrong storage kind, invalid byte values, dropped owners, or an out-of-range index. An owned `setByte` advances the owner to the write's destination local. A following mutation or `drop` consumes that current local. The owner does not fork merely because the source spelling stays put. `freezeUtf8` consumes the current byte owner and returns one immutable UTF-8 owner. The recovery compiler currently admits that result on the two- and ten-parameter helper signatures required by bounded graph-source copying. Other arities fail before publication.
 
 Buffers must be dropped before their region. Dropping a buffer returns its byte and object charge and releases visible content. Rewind data keeps only what is needed until commit.
 

@@ -17,6 +17,10 @@ classical class HelperValueKinds {
       return true;
     }
 
+    if (opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED) {
+      return true;
+    }
+
     if (voidCallSourceStatement(opcode)) {
       return true;
     }

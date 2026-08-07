@@ -27,6 +27,10 @@ classical class HelperSignatures {
       return 2;
     }
 
+    if (helperKind == HELPER_UTF8_TWO) {
+      return 2;
+    }
+
     if (helperKind == HELPER_BOOLEAN_TWO) {
       return 2;
     }
@@ -96,6 +100,10 @@ classical class HelperSignatures {
     }
 
     if (helperKind == HELPER_SIGNED_TEN) {
+      return 10;
+    }
+
+    if (helperKind == HELPER_UTF8_TEN) {
       return 10;
     }
 
@@ -300,6 +308,19 @@ classical class HelperSignatures {
     return -1;
   }
 
+  /// Returns one admitted UTF-8 owner-result kind for an exact parameter count.
+  public long utf8ScalarHelperKind(long parameterCount) {
+    if (parameterCount == 2) {
+      return HELPER_UTF8_TWO;
+    }
+
+    if (parameterCount == 10) {
+      return HELPER_UTF8_TEN;
+    }
+
+    return -1;
+  }
+
   /// Checks whether one helper uses generated inverse code.
   public boolean reversibleHelper(long helperKind) {
     if (helperKind == HELPER_REVERSIBLE) {
@@ -328,6 +349,15 @@ classical class HelperSignatures {
     }
 
     return helperKind == HELPER_REVERSIBLE_SIGNED_TWO;
+  }
+
+  /// Checks whether one helper returns an owned UTF-8 value.
+  public boolean utf8ResultHelper(long helperKind) {
+    if (helperKind == HELPER_UTF8_TWO) {
+      return true;
+    }
+
+    return helperKind == HELPER_UTF8_TEN;
   }
 
   /// Checks whether one helper returns a Boolean value.

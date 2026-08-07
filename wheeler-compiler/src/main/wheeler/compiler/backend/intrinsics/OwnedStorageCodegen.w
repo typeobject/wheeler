@@ -81,6 +81,39 @@ classical class OwnedStorageCodegen {
       );
     }
 
+    if (opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED) {
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_UTF8_FREEZE,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(
+        output,
+        cursor,
+        /* destination= */ localBase,
+        INSTRUCTION_OPERAND_WIDTH
+      );
+      cursor = writeUnsignedLittleEndian(
+        output,
+        cursor,
+        /* owner= */ operand,
+        INSTRUCTION_OPERAND_WIDTH
+      );
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_RETURN_VALUE,
+        INSTRUCTION_FORM_UNARY
+      );
+      return writeUnsignedLittleEndian(
+        output,
+        cursor,
+        /* result= */ localBase,
+        INSTRUCTION_OPERAND_WIDTH
+      );
+    }
+
     if (opcode == STATEMENT_DROP_MOVED_OWNED) {
       cursor = writeInstructionHeader(
         output,
