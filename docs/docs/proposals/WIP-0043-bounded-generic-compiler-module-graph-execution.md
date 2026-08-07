@@ -160,6 +160,7 @@ Compatibility wrappers are not retained. During migration the driver may dispatc
 - [x] Shared helper planning drops an exact private prefix against an existing public or private declaration.
 - [ ] One source table owns physical and linked source slots.
 - [x] Header dependency facts carry validated candidate import rank, and small direct plans use it.
+- [x] Two- and three-module direct executors consume planned root order.
 - [ ] Root-import rank is part of the complete generic graph plan.
 - [ ] One executor handles direct, chain, fork, branch, redundant-edge, and shared-DAG plans.
 - [ ] Mixed constant and helper owners use the same executor.

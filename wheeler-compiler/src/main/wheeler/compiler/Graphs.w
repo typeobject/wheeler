@@ -559,123 +559,13 @@ classical class CompilerGraphs {
     return compiled;
   }
 
-  private GraphCompilation compilePlannedThreeStructure(
-    SmallGraphStructure structure,
-    borrow utf8 firstSource,
-    borrow utf8 secondSource,
-    borrow utf8 thirdSource,
-    borrow utf8 rootSource,
-    borrow mut bytes output
-  ) {
-    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFirst = copySelectedSource(
-      structure.first,
-      GRAPH_SOURCE_COUNT_THREE,
-      firstSource,
-      secondSource,
-      thirdSource,
-      thirdSource,
-      thirdSource,
-      thirdSource,
-      thirdSource,
-      firstArena
-    );
-    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedSecond = copySelectedSource(
-      structure.second,
-      GRAPH_SOURCE_COUNT_THREE,
-      firstSource,
-      secondSource,
-      thirdSource,
-      thirdSource,
-      thirdSource,
-      thirdSource,
-      thirdSource,
-      secondArena
-    );
-    region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedThird = copySelectedSource(
-      structure.third,
-      GRAPH_SOURCE_COUNT_THREE,
-      firstSource,
-      secondSource,
-      thirdSource,
-      thirdSource,
-      thirdSource,
-      thirdSource,
-      thirdSource,
-      thirdArena
-    );
-    GraphCompilation compiled = new GraphCompilation(0, 0);
-    if (structure.topology == SMALL_STRUCTURE_CHAIN) {
-      compiled = compileThreeConstantChainIfOrdered(
-        plannedFirst,
-        plannedSecond,
-        plannedThird,
-        rootSource,
-        output
-      );
-    }
-
-    if (structure.topology == SMALL_STRUCTURE_FORK) {
-      compiled = compileConstantForkIfOrdered(
-        plannedFirst,
-        plannedSecond,
-        plannedThird,
-        rootSource,
-        output
-      );
-    }
-
-    if (structure.topology == SMALL_STRUCTURE_CHAIN_AND_DIRECT) {
-      compiled = compileMixedConstantsIfOrdered(
-        plannedFirst,
-        plannedSecond,
-        plannedThird,
-        rootSource,
-        output
-      );
-    }
-
-    drop(plannedThird);
-    drop(thirdArena);
-    drop(plannedSecond);
-    drop(secondArena);
-    drop(plannedFirst);
-    drop(firstArena);
-    assert(0 < compiled.length);
-    return compiled;
-  }
-
-  /// Compiles one root with one exact three-module constant tree plan.
-  public GraphCompilation compileGraphWithThreeConstantImports(
+  private GraphCompilation compileThreeDirectImports(
     borrow utf8 firstImportedSource,
     borrow utf8 secondImportedSource,
     borrow utf8 thirdImportedSource,
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    SmallGraphStructure structure = planThreeStructure(
-      firstImportedSource,
-      secondImportedSource,
-      thirdImportedSource,
-      rootSource
-    );
-    if (structure.valid) {} else {
-      assert(0 == 1);
-    }
-
-    if (structure.topology == SMALL_STRUCTURE_DIRECT) {} else {
-      return compilePlannedThreeStructure(
-        structure,
-        firstImportedSource,
-        secondImportedSource,
-        thirdImportedSource,
-        rootSource,
-        output
-      );
-    }
-
     MixedThreeCompilation mixed = compileMixedThreeDirectGraph(
       firstImportedSource,
       secondImportedSource,
@@ -761,6 +651,132 @@ classical class CompilerGraphs {
     drop(firstLinkedSource);
     drop(firstArena);
     return compiled;
+  }
+
+  private GraphCompilation compilePlannedThreeStructure(
+    SmallGraphStructure structure,
+    borrow utf8 firstSource,
+    borrow utf8 secondSource,
+    borrow utf8 thirdSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 plannedFirst = copySelectedSource(
+      structure.first,
+      GRAPH_SOURCE_COUNT_THREE,
+      firstSource,
+      secondSource,
+      thirdSource,
+      thirdSource,
+      thirdSource,
+      thirdSource,
+      thirdSource,
+      firstArena
+    );
+    region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 plannedSecond = copySelectedSource(
+      structure.second,
+      GRAPH_SOURCE_COUNT_THREE,
+      firstSource,
+      secondSource,
+      thirdSource,
+      thirdSource,
+      thirdSource,
+      thirdSource,
+      thirdSource,
+      secondArena
+    );
+    region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 plannedThird = copySelectedSource(
+      structure.third,
+      GRAPH_SOURCE_COUNT_THREE,
+      firstSource,
+      secondSource,
+      thirdSource,
+      thirdSource,
+      thirdSource,
+      thirdSource,
+      thirdSource,
+      thirdArena
+    );
+    GraphCompilation compiled = new GraphCompilation(0, 0);
+    if (structure.topology == SMALL_STRUCTURE_DIRECT) {
+      compiled = compileThreeDirectImports(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        rootSource,
+        output
+      );
+    }
+
+    if (structure.topology == SMALL_STRUCTURE_CHAIN) {
+      compiled = compileThreeConstantChainIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        rootSource,
+        output
+      );
+    }
+
+    if (structure.topology == SMALL_STRUCTURE_FORK) {
+      compiled = compileConstantForkIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        rootSource,
+        output
+      );
+    }
+
+    if (structure.topology == SMALL_STRUCTURE_CHAIN_AND_DIRECT) {
+      compiled = compileMixedConstantsIfOrdered(
+        plannedFirst,
+        plannedSecond,
+        plannedThird,
+        rootSource,
+        output
+      );
+    }
+
+    drop(plannedThird);
+    drop(thirdArena);
+    drop(plannedSecond);
+    drop(secondArena);
+    drop(plannedFirst);
+    drop(firstArena);
+    assert(0 < compiled.length);
+    return compiled;
+  }
+
+  /// Compiles one root with one exact three-module constant tree plan.
+  public GraphCompilation compileGraphWithThreeConstantImports(
+    borrow utf8 firstImportedSource,
+    borrow utf8 secondImportedSource,
+    borrow utf8 thirdImportedSource,
+    borrow utf8 rootSource,
+    borrow mut bytes output
+  ) {
+    SmallGraphStructure structure = planThreeStructure(
+      firstImportedSource,
+      secondImportedSource,
+      thirdImportedSource,
+      rootSource
+    );
+    if (structure.valid) {} else {
+      assert(0 == 1);
+    }
+
+    return compilePlannedThreeStructure(
+      structure,
+      firstImportedSource,
+      secondImportedSource,
+      thirdImportedSource,
+      rootSource,
+      output
+    );
   }
 
   /// Compiles one supported six-module scalar-constant graph and its root.
