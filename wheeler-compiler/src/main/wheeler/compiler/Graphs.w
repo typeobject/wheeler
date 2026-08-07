@@ -11,6 +11,7 @@ import wheeler.compiler.graphs.direct.mixed_three;
 import wheeler.compiler.graphs.direct.mixed_two;
 import wheeler.compiler.graphs.matrix;
 import wheeler.compiler.graphs.plan_sources;
+import wheeler.compiler.graphs.shared.three_direct_leaf;
 import wheeler.compiler.graphs.small_plan_sources;
 import wheeler.compiler.graphs.small_structures;
 import wheeler.compiler.graphs.sources;
@@ -688,23 +689,34 @@ classical class CompilerGraphs {
         );
       } else {
         assert(plan.edgeCount == GRAPH_SOURCE_COUNT_TWO);
-        assert(plan.rootCount == 1);
-        if (plannedEdge(plan, threeFirstSource(plan), threeThirdSource(plan))) {
-          compiled = compileConstantForkIfOrdered(
+        if (plan.rootCount == GRAPH_SOURCE_COUNT_THREE) {
+          ThreeDirectLeafCompilation shared = compileThreeDirectLeafGraph(
             plannedFirst,
             plannedSecond,
             plannedThird,
             rootSource,
             output
           );
+          compiled = new GraphCompilation(shared.length, shared.codeStart);
         } else {
-          compiled = compileThreeConstantChainIfOrdered(
-            plannedFirst,
-            plannedSecond,
-            plannedThird,
-            rootSource,
-            output
-          );
+          assert(plan.rootCount == 1);
+          if (plannedEdge(plan, threeFirstSource(plan), threeThirdSource(plan))) {
+            compiled = compileConstantForkIfOrdered(
+              plannedFirst,
+              plannedSecond,
+              plannedThird,
+              rootSource,
+              output
+            );
+          } else {
+            compiled = compileThreeConstantChainIfOrdered(
+              plannedFirst,
+              plannedSecond,
+              plannedThird,
+              rootSource,
+              output
+            );
+          }
         }
       }
     }

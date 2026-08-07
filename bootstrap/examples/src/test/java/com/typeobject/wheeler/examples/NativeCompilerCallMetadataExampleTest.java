@@ -130,6 +130,29 @@ final class NativeCompilerCallMetadataExampleTest {
   }
 
   @Test
+  void linksOneSharedLeafIntoTwoDirectConstantsByteForByte() throws Exception {
+    String ids = "module example.ids; classical class Ids { public const long BASE = 20; }";
+    String first = "module example.first; import example.ids; classical class First { "
+        + "public const long LEFT = BASE + 1; }";
+    String second = "module example.second; import example.ids; classical class Second { "
+        + "public const long RIGHT = BASE + 1; }";
+    String root = "module example.root; import example.first; import example.ids; "
+        + "import example.second; classical class Root { state long outcome = 0; "
+        + "entry void main() { outcome = LEFT; outcome += RIGHT; assert(outcome == 42); } }";
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileModuleFiles(
+            Map.of("First.w", first, "Ids.w", ids, "Root.w", root, "Second.w", second),
+            "example.root"));
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] forward = NativeModuleCompilerHarness.compile(
+        compiler, List.of(first, ids, second), root);
+    byte[] reverse = NativeModuleCompilerHarness.compile(
+        compiler, List.of(second, ids, first), root);
+    assertArrayEquals(expected, forward);
+    assertArrayEquals(expected, reverse);
+  }
+
+  @Test
   void compilesCanonicalAssignmentCallLocalWidthsByteForByte() throws Exception {
     Program decoded = NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary(
         "compiler/syntax/calls/assignment/AssignmentCallLocalWidths.w",

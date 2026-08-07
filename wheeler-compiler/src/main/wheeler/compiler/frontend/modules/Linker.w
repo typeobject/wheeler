@@ -431,7 +431,8 @@ classical class ModuleLinker {
     long expectedImportCount,
     boolean allowResolvedImports,
     boolean privatizeExports,
-    boolean deduplicateSharedPrefix
+    boolean deduplicateSharedPrefix,
+    boolean trailingSharedDeclarations
   ) {
     region scratch = new region(/* bytes= */ LINKER_SCRATCH_ARENA_BYTES, /* allocations= */ 8);
     words importedKinds = allocate(scratch, MAX_COMPILER_TOKENS);
@@ -516,6 +517,7 @@ classical class ModuleLinker {
 
                 if (selectedImport.valid) {
                   long firstDeclaration = importedBody + 4;
+                  long sharedRootInsertion = -1;
                   long memberStart = classMemberStart(
                     importedSource,
                     importedKinds,
@@ -527,6 +529,17 @@ classical class ModuleLinker {
                   if (deduplicateSharedPrefix) {
                     long rootFirstDeclaration = rootBody + 4;
                     long rootMemberStart = rootCount - 1;
+                    if (trailingSharedDeclarations) {
+                      rootMemberStart = classMemberStart(
+                        rootSource,
+                        rootKinds,
+                        rootStarts,
+                        rootLengths,
+                        rootFirstDeclaration,
+                        rootCount
+                      );
+                    }
+
                     long sharedEnd = sharedPrivatePrefixEnd(
                       importedSource,
                       importedKinds,
@@ -543,6 +556,7 @@ classical class ModuleLinker {
                     );
                     if (-1 < sharedEnd) {
                       firstDeclaration = sharedEnd;
+                      sharedRootInsertion = rootStarts[rootMemberStart];
                     } else {
                       firstDeclaration = memberStart;
                     }
@@ -585,6 +599,12 @@ classical class ModuleLinker {
                             long importedStart = importedStarts[firstDeclaration];
                             long importedLength = importedStarts[memberStart] - importedStart;
                             long rootInsertion = rootStarts[rootBody + 3] + 1;
+                            if (trailingSharedDeclarations) {
+                              if (-1 < sharedRootInsertion) {
+                                rootInsertion = sharedRootInsertion;
+                              }
+                            }
+
                             long qualifications = qualificationCount(
                               importedSource,
                               importedModule[0],
@@ -656,7 +676,8 @@ classical class ModuleLinker {
       expectedImportCount,
       false,
       false,
-      false
+      false,
+      /* trailingSharedDeclarations= */ false
     );
   }
 
@@ -672,7 +693,8 @@ classical class ModuleLinker {
       expectedImportCount,
       false,
       true,
-      false
+      false,
+      /* trailingSharedDeclarations= */ false
     );
   }
 
@@ -688,7 +710,8 @@ classical class ModuleLinker {
       expectedImportCount,
       true,
       true,
-      false
+      false,
+      /* trailingSharedDeclarations= */ false
     );
   }
 
@@ -704,7 +727,8 @@ classical class ModuleLinker {
       expectedImportCount,
       true,
       true,
-      true
+      true,
+      /* trailingSharedDeclarations= */ false
     );
   }
 
@@ -720,7 +744,25 @@ classical class ModuleLinker {
       expectedImportCount,
       true,
       false,
-      true
+      true,
+      /* trailingSharedDeclarations= */ false
+    );
+  }
+
+  /// Plans one shared public dependency after every existing constant declaration.
+  public LinkPlan planTrailingSharedResolvedPublicConstantImport(
+    borrow utf8 importedSource,
+    borrow utf8 rootSource,
+    long expectedImportCount
+  ) {
+    return planConstantImportMode(
+      importedSource,
+      rootSource,
+      expectedImportCount,
+      true,
+      false,
+      true,
+      /* trailingSharedDeclarations= */ true
     );
   }
 
@@ -736,7 +778,8 @@ classical class ModuleLinker {
       expectedImportCount,
       true,
       false,
-      false
+      false,
+      /* trailingSharedDeclarations= */ false
     );
   }
 

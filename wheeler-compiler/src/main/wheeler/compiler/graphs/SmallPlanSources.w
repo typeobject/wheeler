@@ -56,8 +56,52 @@ classical class SmallPlanSources {
     return 1;
   }
 
+  private long threeSharedLeaf(BoundedGraphPlan plan) {
+    long node = 0;
+    while (node < GRAPH_SOURCE_COUNT_THREE) limit GRAPH_SOURCE_COUNT_THREE {
+      if (plannedOutgoingCount(plan, node) == GRAPH_SOURCE_COUNT_TWO) {
+        return node;
+      }
+
+      node += 1;
+    }
+
+    return -1;
+  }
+
+  private long threeRootOtherAt(BoundedGraphPlan plan, long excluded, long ordinal) {
+    long found = 0;
+    long rank = 0;
+    while (rank < plan.rootCount) limit GRAPH_SOURCE_COUNT_THREE {
+      long node = 0;
+      while (node < GRAPH_SOURCE_COUNT_THREE) limit GRAPH_SOURCE_COUNT_THREE {
+        if (plannedRootRankAt(plan, node) == rank) {
+          if (node == excluded) {} else {
+            if (found == ordinal) {
+              return node;
+            }
+
+            found += 1;
+          }
+        }
+
+        node += 1;
+      }
+
+      rank += 1;
+    }
+
+    return -1;
+  }
+
   /// Selects the first canonical role from one complete three-module plan.
   public long threeFirstSource(BoundedGraphPlan plan) {
+    if (plan.rootCount == GRAPH_SOURCE_COUNT_THREE) {
+      if (plan.edgeCount == GRAPH_SOURCE_COUNT_TWO) {
+        return threeSharedLeaf(plan);
+      }
+    }
+
     if (plan.edgeCount == 1) {
       return threeSingleEdgeSource(plan);
     }
@@ -67,6 +111,12 @@ classical class SmallPlanSources {
 
   /// Selects the second canonical role from one complete three-module plan.
   public long threeSecondSource(BoundedGraphPlan plan) {
+    if (plan.rootCount == GRAPH_SOURCE_COUNT_THREE) {
+      if (plan.edgeCount == GRAPH_SOURCE_COUNT_TWO) {
+        return threeRootOtherAt(plan, threeSharedLeaf(plan), 0);
+      }
+    }
+
     if (plan.edgeCount == 1) {
       return threeSingleEdgeDependent(plan);
     }
@@ -76,6 +126,12 @@ classical class SmallPlanSources {
 
   /// Selects the final canonical role from one complete three-module plan.
   public long threeThirdSource(BoundedGraphPlan plan) {
+    if (plan.rootCount == GRAPH_SOURCE_COUNT_THREE) {
+      if (plan.edgeCount == GRAPH_SOURCE_COUNT_TWO) {
+        return threeRootOtherAt(plan, threeSharedLeaf(plan), 1);
+      }
+    }
+
     if (plan.edgeCount == 1) {
       return GRAPH_SOURCE_COUNT_THREE - threeSingleEdgeSource(plan) - threeSingleEdgeDependent(
         plan

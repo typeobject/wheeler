@@ -159,6 +159,7 @@ Compatibility wrappers are not retained. During migration the driver may dispatc
 - [x] Two- through seven-module planners validate exact graph facts before topology dispatch.
 - [x] Every admitted legacy topology has differential frame-order evidence.
 - [x] `graphs/TwoRedundant.w` handles one chain whose leaf remains a direct root import.
+- [x] `graphs/shared/ThreeDirectLeaf.w` handles one public constant leaf shared by two direct constant dependents.
 - [x] Shared helper planning drops an exact private prefix against an existing public or private declaration.
 - [ ] One source table owns physical and linked source slots.
 - [x] Header dependency facts carry validated candidate import rank, and small direct plans use it.

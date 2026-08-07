@@ -217,6 +217,25 @@ classical class SmallGraphStructures {
     return count;
   }
 
+  private boolean sharedDirectLeaf(borrow mut words graph) {
+    long sharedCount = 0;
+    long node = 0;
+    while (node < THREE_MODULES) limit THREE_MODULES {
+      long outgoing = outgoingCount(graph, THREE_MODULES, node);
+      if (outgoing == TWO_MODULES) {
+        sharedCount += 1;
+      } else {
+        if (outgoing == 0) {} else {
+          return false;
+        }
+      }
+
+      node += 1;
+    }
+
+    return sharedCount == 1;
+  }
+
   /// Produces one complete canonical three-module graph plan.
   public BoundedGraphPlan planThreeGraph(
     borrow utf8 firstSource,
@@ -241,9 +260,24 @@ classical class SmallGraphStructures {
     set(rootRanks, 0, firstRoot.candidateImportRank);
     set(rootRanks, 1, secondRoot.candidateImportRank);
     set(rootRanks, 2, thirdRoot.candidateImportRank);
+    boolean sharedLeaf = edgeCount == TWO_MODULES;
+    if (sharedLeaf) {
+      sharedLeaf = rootCount == THREE_MODULES;
+    }
+
+    if (sharedLeaf) {
+      sharedLeaf = sharedDirectLeaf(graph);
+    }
+
     boolean valid = edgeCount + rootCount == THREE_MODULES;
+    if (sharedLeaf) {
+      valid = true;
+    }
+
     if (valid) {
-      valid = rootsAreSinks(graph, rootDirect, THREE_MODULES);
+      if (sharedLeaf) {} else {
+        valid = rootsAreSinks(graph, rootDirect, THREE_MODULES);
+      }
     }
 
     BoundedGraphPlan result = invalidPlan();
