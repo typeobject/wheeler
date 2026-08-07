@@ -15,7 +15,7 @@ classical class OwnedUtf8CopyLoops {
   /// Packs one owner and source local into the primary operand.
   public const long COPY_LOOP_SOURCE_SCALE = 256;
   /// Packs one condition local and literal limit into the secondary operand.
-  public const long COPY_LOOP_LIMIT_SCALE = 32768;
+  public const long COPY_LOOP_LIMIT_SCALE = 65536;
   /// Names the exact source width of the admitted copy loop.
   private const long COPY_LOOP_TOKEN_WIDTH = 29;
   /// Names the loop's owner plus ten scalar and borrowed temporaries.

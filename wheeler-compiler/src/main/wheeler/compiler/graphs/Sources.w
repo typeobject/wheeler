@@ -3,8 +3,8 @@
 module wheeler.compiler.graphs.sources;
 
 classical class BoundedGraphSources {
-  private const long MAX_SOURCE_BYTES = 16384;
-  private const long SOURCE_BYTE_LIMIT = 16385;
+  private const long MAX_SOURCE_BYTES = 32768;
+  private const long SOURCE_BYTE_LIMIT = 32769;
   /// Names a two-source graph frame.
   public const long GRAPH_SOURCE_COUNT_TWO = 2;
   /// Names a three-source graph frame.

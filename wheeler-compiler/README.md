@@ -153,8 +153,10 @@ mismatched module names, unsupported four-module DAGs, unsupported five-module g
 six- and seven-module graphs, and eight or more root imports fail closed. General symbol
 resolution remains future work. Entry and helper bodies
 admit at most sixty-four statements. Scanner metadata admits 4,096 tokens across a 32,768-byte
-physical or linked source window. Linked graph arenas admit 32,768 bytes. A four-helper differential
-crosses the former 16 KiB line, and a padded two-import source pins the new refusal boundary. The
+physical or linked source window. Linked graph arenas and the counted source selector admit the same
+32,768 bytes. Its copy loop uses a sixteen-bit packed limit field. Byte 32,769 traps before mutation.
+A four-helper differential crosses the former 16 KiB line, and a padded two-import source pins the
+new refusal boundary. The
 current slice covers typed signed and Boolean locals,
 assertions, assignments, checked scalar operations, calls, results, and narrow explicitly limited
 loops.
