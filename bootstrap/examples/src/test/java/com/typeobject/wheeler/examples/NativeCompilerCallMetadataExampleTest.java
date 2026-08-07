@@ -130,6 +130,45 @@ final class NativeCompilerCallMetadataExampleTest {
   }
 
   @Test
+  void compilesCanonicalAssignmentCallLocalWidthsByteForByte() throws Exception {
+    Program decoded = NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary(
+        "compiler/syntax/calls/assignment/AssignmentCallLocalWidths.w",
+        "wheeler.compiler.assignment_call_local_widths",
+        "compiler/syntax/calls/assignment/AssignmentCallArities.w",
+        "compiler/syntax/calls/assignment/AssignmentCallIdentities.w");
+    assertEquals(
+        "wheeler.compiler.assignment_call_local_widths::assignmentCallLocalCount",
+        decoded.functions().get(1).name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
+  void compilesCanonicalAssignmentCallInstructionWidthsByteForByte() throws Exception {
+    Program decoded = NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary(
+        "compiler/syntax/calls/assignment/AssignmentCallInstructionWidths.w",
+        "wheeler.compiler.assignment_call_instruction_widths",
+        "compiler/syntax/calls/assignment/AssignmentCallArities.w",
+        "compiler/syntax/calls/assignment/AssignmentCallIdentities.w");
+    assertEquals(
+        "wheeler.compiler.assignment_call_instruction_widths::assignmentCallInstructionCount",
+        decoded.functions().get(1).name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
+  void compilesCanonicalAssignmentCallCodeWidthsByteForByte() throws Exception {
+    Program decoded = NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary(
+        "compiler/syntax/calls/assignment/AssignmentCallCodeWidths.w",
+        "wheeler.compiler.assignment_call_code_widths",
+        "compiler/syntax/calls/assignment/AssignmentCallArities.w",
+        "compiler/syntax/calls/assignment/AssignmentCallIdentities.w");
+    assertEquals(
+        "wheeler.compiler.assignment_call_code_widths::assignmentCallCodeLength",
+        decoded.functions().get(1).name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalAssignmentCallIdentitiesByteForByte() throws Exception {
     Program decoded = NativeCompilerSelfSourceExampleTest.assertCompilerLibrary(
         "compiler/syntax/calls/assignment/AssignmentCallIdentities.w",
