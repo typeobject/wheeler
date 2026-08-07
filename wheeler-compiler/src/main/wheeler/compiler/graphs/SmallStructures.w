@@ -1,4 +1,4 @@
-//! Builds exact rooted plans for two- and three-module constant graphs.
+//! Builds complete bounded plans for two- and three-module graphs.
 
 module wheeler.compiler.graphs.small_structures;
 
@@ -6,28 +6,11 @@ import wheeler.compiler.graphs.matrix;
 import wheeler.compiler.module_headers;
 
 classical class SmallGraphStructures {
-  /// Names a graph whose modules are all direct root imports.
-  public const long SMALL_STRUCTURE_DIRECT = 1;
-  /// Names one full chain.
-  public const long SMALL_STRUCTURE_CHAIN = 2;
-  /// Names one two-leaf fork.
-  public const long SMALL_STRUCTURE_FORK = 3;
-  /// Names one chain edge beside one unrelated direct import.
-  public const long SMALL_STRUCTURE_CHAIN_AND_DIRECT = 4;
   private const long TWO_MODULES = 2;
   private const long THREE_MODULES = 3;
   private const long SINGLE_IMPORT = 1;
 
-  /// Carries one exact small topology and its canonical execution order.
-  public record SmallGraphStructure(
-    long topology,
-    long first,
-    long second,
-    long third,
-    boolean valid
-  ) {}
-
-  private BoundedGraphPlan invalidTwoPlan() {
+  private BoundedGraphPlan invalidPlan() {
     return new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, 0, false);
   }
 
@@ -86,17 +69,6 @@ classical class SmallGraphStructures {
     }
 
     return 0;
-  }
-
-  private long incomingCount(borrow mut words graph, long moduleCount, long node) {
-    long count = 0;
-    long other = 0;
-    while (other < moduleCount) limit THREE_MODULES {
-      count += graph[other * moduleCount + node];
-      other += 1;
-    }
-
-    return count;
   }
 
   private long outgoingCount(borrow mut words graph, long moduleCount, long node) {
@@ -179,7 +151,7 @@ classical class SmallGraphStructures {
       }
     }
 
-    BoundedGraphPlan result = invalidTwoPlan();
+    BoundedGraphPlan result = invalidPlan();
     if (valid) {
       result = planBoundedGraph(graph, rootDirect, rootRanks, TWO_MODULES, order, reachable);
     }
@@ -245,99 +217,8 @@ classical class SmallGraphStructures {
     return count;
   }
 
-  private SmallGraphStructure orderedThree(
-    borrow mut words graph,
-    borrow mut words rootDirect,
-    borrow mut words order,
-    long edgeCount,
-    long rootCount
-  ) {
-    if (edgeCount == 0) {
-      if (rootCount == THREE_MODULES) {
-        return new SmallGraphStructure(
-          SMALL_STRUCTURE_DIRECT,
-          order[0],
-          order[1],
-          order[2],
-          true
-        );
-      }
-    }
-
-    if (edgeCount == SINGLE_IMPORT) {
-      if (rootCount == TWO_MODULES) {
-        long leaf = -1;
-        long dependent = -1;
-        long direct = -1;
-        long node = 0;
-        while (node < THREE_MODULES) limit THREE_MODULES {
-          if (outgoingCount(graph, THREE_MODULES, node) == SINGLE_IMPORT) {
-            leaf = node;
-          }
-
-          node += 1;
-        }
-
-        node = 0;
-        while (node < THREE_MODULES) limit THREE_MODULES {
-          if (graph[leaf * THREE_MODULES + node] == 1) {
-            dependent = node;
-          }
-
-          node += 1;
-        }
-
-        node = 0;
-        while (node < THREE_MODULES) limit THREE_MODULES {
-          if (rootDirect[node] == 1) {
-            if (node == dependent) {} else {
-              direct = node;
-            }
-          }
-
-          node += 1;
-        }
-
-        return new SmallGraphStructure(
-          SMALL_STRUCTURE_CHAIN_AND_DIRECT,
-          leaf,
-          dependent,
-          direct,
-          true
-        );
-      }
-    }
-
-    if (edgeCount == TWO_MODULES) {
-      if (rootCount == SINGLE_IMPORT) {
-        long finalNode = order[2];
-        if (incomingCount(graph, THREE_MODULES, finalNode) == TWO_MODULES) {
-          return new SmallGraphStructure(
-            SMALL_STRUCTURE_FORK,
-            order[0],
-            order[1],
-            finalNode,
-            true
-          );
-        }
-
-        if (incomingCount(graph, THREE_MODULES, finalNode) == SINGLE_IMPORT) {
-          return new SmallGraphStructure(
-            SMALL_STRUCTURE_CHAIN,
-            order[0],
-            order[1],
-            finalNode,
-            true
-          );
-        }
-      }
-    }
-
-    return new SmallGraphStructure(0, 0, 0, 0, false);
-  }
-
-  /// Selects one exact rooted three-module topology.
-  public SmallGraphStructure planThreeStructure(
+  /// Produces one complete canonical three-module graph plan.
+  public BoundedGraphPlan planThreeGraph(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
     borrow utf8 thirdSource,
@@ -365,21 +246,9 @@ classical class SmallGraphStructures {
       valid = rootsAreSinks(graph, rootDirect, THREE_MODULES);
     }
 
+    BoundedGraphPlan result = invalidPlan();
     if (valid) {
-      BoundedGraphPlan graphPlan = planBoundedGraph(
-        graph,
-        rootDirect,
-        rootRanks,
-        THREE_MODULES,
-        order,
-        reachable
-      );
-      valid = graphPlan.valid;
-    }
-
-    SmallGraphStructure result = new SmallGraphStructure(0, 0, 0, 0, false);
-    if (valid) {
-      result = orderedThree(graph, rootDirect, order, edgeCount, rootCount);
+      result = planBoundedGraph(graph, rootDirect, rootRanks, THREE_MODULES, order, reachable);
     }
 
     drop(reachable);

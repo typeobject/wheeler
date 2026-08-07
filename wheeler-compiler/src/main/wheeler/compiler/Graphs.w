@@ -617,8 +617,84 @@ classical class CompilerGraphs {
     return compiled;
   }
 
-  private GraphCompilation compilePlannedThreeStructure(
-    SmallGraphStructure structure,
+  private long threeSingleEdgeSource(BoundedGraphPlan plan) {
+    if (plannedEdge(plan, 0, 1)) {
+      return 0;
+    }
+
+    if (plannedEdge(plan, 0, 2)) {
+      return 0;
+    }
+
+    if (plannedEdge(plan, 1, 0)) {
+      return 1;
+    }
+
+    if (plannedEdge(plan, 1, 2)) {
+      return 1;
+    }
+
+    if (plannedEdge(plan, 2, 0)) {
+      return 2;
+    }
+
+    assert(plannedEdge(plan, 2, 1));
+    return 2;
+  }
+
+  private long threeSingleEdgeDependent(BoundedGraphPlan plan) {
+    if (plannedEdge(plan, 0, 1)) {
+      return 1;
+    }
+
+    if (plannedEdge(plan, 0, 2)) {
+      return 2;
+    }
+
+    if (plannedEdge(plan, 1, 0)) {
+      return 0;
+    }
+
+    if (plannedEdge(plan, 1, 2)) {
+      return 2;
+    }
+
+    if (plannedEdge(plan, 2, 0)) {
+      return 0;
+    }
+
+    assert(plannedEdge(plan, 2, 1));
+    return 1;
+  }
+
+  private long threeFirstSource(BoundedGraphPlan plan) {
+    if (plan.edgeCount == 1) {
+      return threeSingleEdgeSource(plan);
+    }
+
+    return plannedNodeAt(plan, 0);
+  }
+
+  private long threeSecondSource(BoundedGraphPlan plan) {
+    if (plan.edgeCount == 1) {
+      return threeSingleEdgeDependent(plan);
+    }
+
+    return plannedNodeAt(plan, 1);
+  }
+
+  private long threeThirdSource(BoundedGraphPlan plan) {
+    if (plan.edgeCount == 1) {
+      return GRAPH_SOURCE_COUNT_THREE - threeSingleEdgeSource(plan) - threeSingleEdgeDependent(
+        plan
+      );
+    }
+
+    return plannedNodeAt(plan, 2);
+  }
+
+  private GraphCompilation compilePlannedThreeGraph(
+    BoundedGraphPlan plan,
     borrow utf8 firstSource,
     borrow utf8 secondSource,
     borrow utf8 thirdSource,
@@ -627,7 +703,7 @@ classical class CompilerGraphs {
   ) {
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedFirst = copySelectedSource(
-      structure.first,
+      threeFirstSource(plan),
       GRAPH_SOURCE_COUNT_THREE,
       firstSource,
       secondSource,
@@ -640,7 +716,7 @@ classical class CompilerGraphs {
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedSecond = copySelectedSource(
-      structure.second,
+      threeSecondSource(plan),
       GRAPH_SOURCE_COUNT_THREE,
       firstSource,
       secondSource,
@@ -653,7 +729,7 @@ classical class CompilerGraphs {
     );
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedThird = copySelectedSource(
-      structure.third,
+      threeThirdSource(plan),
       GRAPH_SOURCE_COUNT_THREE,
       firstSource,
       secondSource,
@@ -665,7 +741,8 @@ classical class CompilerGraphs {
       thirdArena
     );
     GraphCompilation compiled = new GraphCompilation(0, 0);
-    if (structure.topology == SMALL_STRUCTURE_DIRECT) {
+    if (plan.edgeCount == 0) {
+      assert(plan.rootCount == GRAPH_SOURCE_COUNT_THREE);
       compiled = compileThreeDirectImports(
         plannedFirst,
         plannedSecond,
@@ -673,36 +750,37 @@ classical class CompilerGraphs {
         rootSource,
         output
       );
-    }
-
-    if (structure.topology == SMALL_STRUCTURE_CHAIN) {
-      compiled = compileThreeConstantChainIfOrdered(
-        plannedFirst,
-        plannedSecond,
-        plannedThird,
-        rootSource,
-        output
-      );
-    }
-
-    if (structure.topology == SMALL_STRUCTURE_FORK) {
-      compiled = compileConstantForkIfOrdered(
-        plannedFirst,
-        plannedSecond,
-        plannedThird,
-        rootSource,
-        output
-      );
-    }
-
-    if (structure.topology == SMALL_STRUCTURE_CHAIN_AND_DIRECT) {
-      compiled = compileMixedConstantsIfOrdered(
-        plannedFirst,
-        plannedSecond,
-        plannedThird,
-        rootSource,
-        output
-      );
+    } else {
+      if (plan.edgeCount == 1) {
+        assert(plan.rootCount == GRAPH_SOURCE_COUNT_TWO);
+        compiled = compileMixedConstantsIfOrdered(
+          plannedFirst,
+          plannedSecond,
+          plannedThird,
+          rootSource,
+          output
+        );
+      } else {
+        assert(plan.edgeCount == GRAPH_SOURCE_COUNT_TWO);
+        assert(plan.rootCount == 1);
+        if (plannedEdge(plan, threeFirstSource(plan), threeThirdSource(plan))) {
+          compiled = compileConstantForkIfOrdered(
+            plannedFirst,
+            plannedSecond,
+            plannedThird,
+            rootSource,
+            output
+          );
+        } else {
+          compiled = compileThreeConstantChainIfOrdered(
+            plannedFirst,
+            plannedSecond,
+            plannedThird,
+            rootSource,
+            output
+          );
+        }
+      }
     }
 
     drop(plannedThird);
@@ -723,18 +801,18 @@ classical class CompilerGraphs {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    SmallGraphStructure structure = planThreeStructure(
+    BoundedGraphPlan plan = planThreeGraph(
       firstImportedSource,
       secondImportedSource,
       thirdImportedSource,
       rootSource
     );
-    if (structure.valid) {} else {
+    if (plan.valid) {} else {
       assert(0 == 1);
     }
 
-    return compilePlannedThreeStructure(
-      structure,
+    return compilePlannedThreeGraph(
+      plan,
       firstImportedSource,
       secondImportedSource,
       thirdImportedSource,
