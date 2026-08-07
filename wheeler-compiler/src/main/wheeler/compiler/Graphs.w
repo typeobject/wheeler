@@ -8,6 +8,7 @@ import wheeler.compiler.compiler_graph_four;
 import wheeler.compiler.compiler_graph_seven;
 import wheeler.compiler.compiler_graph_six;
 import wheeler.compiler.graphs.direct.mixed_three;
+import wheeler.compiler.graphs.direct.mixed_two;
 import wheeler.compiler.graphs.small_structures;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.helper_owners;
@@ -218,6 +219,16 @@ classical class CompilerGraphs {
     }
 
     assert(structure.topology == SMALL_STRUCTURE_DIRECT);
+    MixedTwoCompilation mixed = compileMixedTwoDirectGraph(
+      firstImportedSource,
+      secondImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < mixed.length) {
+      return new GraphCompilation(mixed.length, mixed.codeStart);
+    }
+
     LinkPlan firstPlan = planConstantImport(
       firstImportedSource,
       rootSource,
