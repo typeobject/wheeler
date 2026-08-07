@@ -177,6 +177,16 @@ final class NativeCompilerCallMetadataExampleTest {
   }
 
   @Test
+  void compilesCanonicalVoidCallSourceFormsByteForByte() throws Exception {
+    Program decoded = NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary(
+        "compiler/syntax/calls/void/VoidCallSourceForms.w",
+        "wheeler.compiler.void_call_source_forms",
+        "compiler/syntax/calls/VoidCallKinds.w",
+        "compiler/syntax/calls/VoidCallSourceKinds.w");
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesResolvedReturnCallKindsByteForByte() throws Exception {
     Program decoded = NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary(
         "compiler/syntax/returns/ResolvedReturnCallKinds.w",

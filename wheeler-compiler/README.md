@@ -124,8 +124,19 @@ mixed-owner `compiler/syntax/helpers/HelperValueKinds.w`, imported-constant
 `compiler/syntax/EarlyReturnResultKinds.w`, `compiler/syntax/LoopKinds.w`, imported-constant
 `compiler/syntax/calls/CallArgumentSources.w`, imported-constant
 `compiler/syntax/calls/OneArgumentCalls.w`, imported-constant
-`compiler/syntax/calls/TwoArgumentCallKinds.w`,
-`compiler/syntax/calls/VoidCallKinds.w`, `compiler/syntax/calls/VoidCallSourceKinds.w`, mixed-owner `compiler/syntax/calls/VoidCallSourceWidths.w`, `compiler/syntax/calls/VoidCallWidths.w`, imported-constant
+`compiler/syntax/calls/TwoArgumentCallKinds.w`, imported-constant
+`compiler/syntax/calls/FourArgumentCalls.w`,
+`compiler/syntax/calls/assignment/AssignmentCallArities.w`,
+`compiler/syntax/calls/assignment/AssignmentCallCodeWidths.w`,
+`compiler/syntax/calls/assignment/AssignmentCallColumns.w`,
+`compiler/syntax/calls/assignment/AssignmentCallIdentities.w`,
+`compiler/syntax/calls/assignment/AssignmentCallInstructionWidths.w`,
+`compiler/syntax/calls/assignment/AssignmentCallLocalWidths.w`,
+`compiler/syntax/calls/ThreeArgumentCalls.w`, `compiler/syntax/calls/VoidCallKinds.w`,
+`compiler/syntax/calls/VoidCallSourceKinds.w`, mixed-owner
+`compiler/syntax/calls/VoidCallSourceWidths.w`, imported-function
+`compiler/syntax/calls/void/VoidCallSourceForms.w`, `compiler/syntax/calls/VoidCallWidths.w`,
+imported-constant
 `compiler/syntax/returns/EarlyReturnSources.w`, imported-constant
 `compiler/syntax/returns/NamedBooleanReturnKinds.w`, imported-constant
 `compiler/syntax/returns/NamedReturnArithmeticKinds.w`, imported-constant
@@ -138,7 +149,7 @@ and imported-constant `compiler/syntax/returns/ResolvedReturnCallKinds.w` module
 byte with stage 0.
 `StatementKinds.w` owns 138 unresolved statement identities. `LoopKinds.w` owns six loop-form
 identities. `ResolvedStatements.w` owns ninety-one resolved columns. `BorrowedIntrinsicKinds.w`
-owns separate source and resolved `bufferLength`, `utf8Scalar`, `utf8Width`, indexed-buffer, and mutable-buffer statement identities. `VoidCallSourceKinds.w` owns and classifies unresolved ordinary void calls. `VoidCallKinds.w` owns their resolved identities, arity, and third-source decoding. `VoidCallSourceWidths.w` owns source/local widths. `VoidCallWidths.w` owns resolved instruction and encoded widths. `syntax/calls/assignment/AssignmentCallIdentities.w` owns the disjoint source and target columns for zero- through seven-argument assignment calls. `AssignmentCallArities.w`, `AssignmentCallColumns.w`, and `AssignmentCallKinds.w` own arity, column mapping, and shape. `AssignmentCallLocalWidths.w`, `AssignmentCallInstructionWidths.w`, and `AssignmentCallCodeWidths.w` own the three width units. `AssignmentCallSyntax.w` and `AssignmentCallOperands.w` own measurement and source decoding. Focused resolution and codegen owners enforce exact prior primitive types and canonical reborrows. `backend/mutations/MutationCodegen.w` owns ordinary local mutation emission. Focused frontend syntax, typed resolution, register-shape, call-argument, and backend codegen owners validate, size, resolve, and emit the canonical forms. `backend/calls/ScalarValueCallCodegen.w` owns scalar value-call emission, leaving the general code generator to coordinate rather than collect another staircase. `Tokens.w` now sticks to
+owns separate source and resolved `bufferLength`, `utf8Scalar`, `utf8Width`, indexed-buffer, and mutable-buffer statement identities. `VoidCallSourceKinds.w` owns and classifies unresolved ordinary void calls. `syntax/calls/void/VoidCallSourceForms.w` aggregates all eight source arities and compiles natively with both executable identity owners. `VoidCallKinds.w` owns resolved identities, arity, and third-source decoding. `VoidCallSourceWidths.w` owns source/local widths. `VoidCallWidths.w` owns resolved instruction and encoded widths. `syntax/calls/assignment/AssignmentCallIdentities.w` owns the disjoint source and target columns for zero- through seven-argument assignment calls. `AssignmentCallArities.w`, `AssignmentCallColumns.w`, and `AssignmentCallKinds.w` own arity, column mapping, and shape. `AssignmentCallLocalWidths.w`, `AssignmentCallInstructionWidths.w`, and `AssignmentCallCodeWidths.w` own the three width units. `AssignmentCallSyntax.w` and `AssignmentCallOperands.w` own measurement and source decoding. Focused resolution and codegen owners enforce exact prior primitive types and canonical reborrows. `backend/mutations/MutationCodegen.w` owns ordinary local mutation emission. Focused frontend syntax, typed resolution, register-shape, call-argument, and backend codegen owners validate, size, resolve, and emit the canonical forms. `backend/calls/ScalarValueCallCodegen.w` owns scalar value-call emission, leaving the general code generator to coordinate rather than collect another staircase. `Tokens.w` now sticks to
 lexical work instead of running a parser-IR registry from the back room. Real self-source modules beat motivational slides. One of them now owns conditional base mapping instead of leaving it in the parser's coat pocket. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. `compileMinimalWithConstantImport`,
