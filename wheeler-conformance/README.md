@@ -9,6 +9,7 @@ The package groups source by the contract under test:
 
 - `bootstrap/` validates evidence vocabularies, closures, toolchains, and fixed-point metadata.
 - `compiler/` drives native compilation, bytecode identity, canonical re-encoding, and verification.
+  Its module frame admits zero through seven dependencies and at most 32,768 bytes per source.
 - `crypto/` pins Wheeler-native SHA-256 behavior.
 - `io/` exercises lifecycle and durability contracts.
 - `packages/` validates manifests, locks, plans, archives, snapshots, and workspaces.

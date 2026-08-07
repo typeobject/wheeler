@@ -14,7 +14,7 @@ classical class NativeModuleCompiler {
   private const long QUINTUPLE_MODULE_COUNT = 5;
   private const long SEXTUPLE_MODULE_COUNT = 6;
   private const long SEPTUPLE_MODULE_COUNT = 7;
-  private const long MAX_FRAME_SOURCE_BYTES = 16384;
+  private const long MAX_FRAME_SOURCE_BYTES = 32768;
 
   state long moduleCount = 0;
   state long importedLength = 0;
@@ -55,7 +55,7 @@ classical class NativeModuleCompiler {
     assert(0 < rootLength);
     assert(rootLength < MAX_FRAME_SOURCE_BYTES + 1);
 
-    region arena = new region(/* bytes= */ 16384, /* allocations= */ 1);
+    region arena = new region(/* bytes= */ 32768, /* allocations= */ 1);
     bytes rootBytes = allocateBytes(arena, rootLength);
     copyFrame(input, rootStart, rootBytes);
     utf8 rootSource = freezeUtf8(rootBytes);
@@ -77,7 +77,7 @@ classical class NativeModuleCompiler {
     rootLength = bufferLength(input) - rootStart;
     assert(rootLength < MAX_FRAME_SOURCE_BYTES + 1);
 
-    region arena = new region(/* bytes= */ 32768, /* allocations= */ 2);
+    region arena = new region(/* bytes= */ 65536, /* allocations= */ 2);
     bytes importedBytes = allocateBytes(arena, importedLength);
     bytes rootBytes = allocateBytes(arena, rootLength);
     copyFrame(input, firstStart, importedBytes);
@@ -109,7 +109,7 @@ classical class NativeModuleCompiler {
     rootLength = bufferLength(input) - rootStart;
     assert(rootLength < MAX_FRAME_SOURCE_BYTES + 1);
 
-    region arena = new region(/* bytes= */ 49152, /* allocations= */ 3);
+    region arena = new region(/* bytes= */ 98304, /* allocations= */ 3);
     bytes firstBytes = allocateBytes(arena, importedLength);
     bytes secondBytes = allocateBytes(arena, secondImportedLength);
     bytes rootBytes = allocateBytes(arena, rootLength);
@@ -156,7 +156,7 @@ classical class NativeModuleCompiler {
     rootLength = bufferLength(input) - rootStart;
     assert(rootLength < MAX_FRAME_SOURCE_BYTES + 1);
 
-    region arena = new region(/* bytes= */ 65536, /* allocations= */ 4);
+    region arena = new region(/* bytes= */ 131072, /* allocations= */ 4);
     bytes firstBytes = allocateBytes(arena, importedLength);
     bytes secondBytes = allocateBytes(arena, secondImportedLength);
     bytes thirdBytes = allocateBytes(arena, thirdImportedLength);
@@ -214,7 +214,7 @@ classical class NativeModuleCompiler {
     rootLength = bufferLength(input) - rootStart;
     assert(rootLength < MAX_FRAME_SOURCE_BYTES + 1);
 
-    region arena = new region(/* bytes= */ 81920, /* allocations= */ 5);
+    region arena = new region(/* bytes= */ 163840, /* allocations= */ 5);
     bytes firstBytes = allocateBytes(arena, importedLength);
     bytes secondBytes = allocateBytes(arena, secondImportedLength);
     bytes thirdBytes = allocateBytes(arena, thirdImportedLength);
@@ -283,7 +283,7 @@ classical class NativeModuleCompiler {
     rootLength = bufferLength(input) - rootStart;
     assert(rootLength < MAX_FRAME_SOURCE_BYTES + 1);
 
-    region arena = new region(/* bytes= */ 98304, /* allocations= */ 6);
+    region arena = new region(/* bytes= */ 196608, /* allocations= */ 6);
     bytes firstBytes = allocateBytes(arena, importedLength);
     bytes secondBytes = allocateBytes(arena, secondImportedLength);
     bytes thirdBytes = allocateBytes(arena, thirdImportedLength);
@@ -363,7 +363,7 @@ classical class NativeModuleCompiler {
     rootLength = bufferLength(input) - rootStart;
     assert(rootLength < MAX_FRAME_SOURCE_BYTES + 1);
 
-    region arena = new region(/* bytes= */ 114688, /* allocations= */ 7);
+    region arena = new region(/* bytes= */ 229376, /* allocations= */ 7);
     bytes firstBytes = allocateBytes(arena, importedLength);
     bytes secondBytes = allocateBytes(arena, secondImportedLength);
     bytes thirdBytes = allocateBytes(arena, thirdImportedLength);
@@ -454,7 +454,7 @@ classical class NativeModuleCompiler {
     rootLength = bufferLength(input) - rootStart;
     assert(rootLength < MAX_FRAME_SOURCE_BYTES + 1);
 
-    region arena = new region(/* bytes= */ 131072, /* allocations= */ 8);
+    region arena = new region(/* bytes= */ 262144, /* allocations= */ 8);
     bytes firstBytes = allocateBytes(arena, importedLength);
     bytes secondBytes = allocateBytes(arena, secondImportedLength);
     bytes thirdBytes = allocateBytes(arena, thirdImportedLength);
