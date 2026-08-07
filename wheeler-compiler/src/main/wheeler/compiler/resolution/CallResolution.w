@@ -4,9 +4,11 @@ module wheeler.compiler.call_resolution;
 
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
+import wheeler.compiler.local_resolution;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.scalar_references;
 import wheeler.compiler.statement_kinds;
+import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.two_argument_call_kinds;
 
 classical class CallResolution {
@@ -281,6 +283,57 @@ classical class CallResolution {
     );
   }
 
+  private long resolveThreeArgumentCall(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart,
+    borrow mut words previousStarts,
+    long previousCount,
+    long opcode
+  ) {
+    if (opcode == STATEMENT_LOCAL_CALL_THREE_LOCALS_NAMED) {} else {
+      return opcode;
+    }
+
+    long first = resolvePriorDeclaration(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      threeArgumentFirstToken(statementStart),
+      true
+    );
+    long second = resolvePriorDeclaration(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      threeArgumentSecondToken(statementStart),
+      true
+    );
+    long third = resolvePriorDeclaration(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      threeArgumentThirdToken(statementStart),
+      true
+    );
+    if (-1 < first) {
+      if (-1 < second) {
+        if (-1 < third) {
+          return STATEMENT_LOCAL_CALL_THREE_LOCALS_BASE + third;
+        }
+      }
+    }
+
+    return -1;
+  }
+
   /// Resolves every named argument in one scalar helper call.
   public long resolveCallOpcode(
     borrow utf8 source,
@@ -293,6 +346,18 @@ classical class CallResolution {
   ) {
     if (oneArgumentCallStatement(opcode)) {
       return resolveOneArgumentCall(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        previousStarts,
+        previousCount,
+        opcode
+      );
+    }
+
+    if (threeArgumentCallStatement(opcode)) {
+      return resolveThreeArgumentCall(
         source,
         tokenStarts,
         tokenLengths,

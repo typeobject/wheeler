@@ -10,6 +10,7 @@ import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.statements;
+import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
 
@@ -118,6 +119,10 @@ classical class HelperCalls {
 
     if (helperKind == HELPER_SIGNED_TWO) {
       return twoArgumentSignedResultCall(opcode);
+    }
+
+    if (helperKind == HELPER_SIGNED_THREE) {
+      return threeArgumentCallStatement(opcode);
     }
 
     return false;

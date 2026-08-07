@@ -37,6 +37,7 @@ import wheeler.compiler.resolved_local_updates;
 import wheeler.compiler.return_expressions;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
+import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.void_call_source_kinds;
@@ -62,6 +63,10 @@ classical class Operands {
     }
 
     if (twoArgumentCallSecondNamed(opcode)) {
+      ambiguousTypedStatement = true;
+    }
+
+    if (threeArgumentCallStatement(opcode)) {
       ambiguousTypedStatement = true;
     }
 
@@ -506,6 +511,18 @@ classical class Operands {
       );
     }
 
+    if (threeArgumentCallStatement(opcode)) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        threeArgumentFirstToken(statementStart),
+        true
+      );
+    }
+
     if (twoArgumentCallFirstNamed(opcode)) {
       boolean pairSignedArgument = true;
       if (twoArgumentBooleanCall(opcode)) {
@@ -779,6 +796,10 @@ classical class Operands {
 
     if (oneArgumentCallStatement(opcode)) {
       return statementStart + 5;
+    }
+
+    if (threeArgumentCallStatement(opcode)) {
+      return threeArgumentFirstToken(statementStart);
     }
 
     if (twoArgumentCallStatement(opcode)) {

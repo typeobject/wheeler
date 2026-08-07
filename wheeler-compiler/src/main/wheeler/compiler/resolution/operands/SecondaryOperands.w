@@ -24,6 +24,7 @@ import wheeler.compiler.return_expressions;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
+import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.void_call_source_kinds;
@@ -325,6 +326,18 @@ classical class SecondaryOperands {
           }
         }
       }
+    }
+
+    if (threeArgumentCallStatement(opcode)) {
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        threeArgumentSecondToken(statementStart),
+        true
+      );
     }
 
     if (twoArgumentCallStatement(opcode)) {

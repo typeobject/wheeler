@@ -14,6 +14,7 @@ import wheeler.compiler.named_long_operations;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
+import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
 
@@ -95,6 +96,10 @@ classical class LocalResolution {
       }
 
       if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+        return true;
+      }
+
+      if (threeArgumentCallStatement(opcode)) {
         return true;
       }
 

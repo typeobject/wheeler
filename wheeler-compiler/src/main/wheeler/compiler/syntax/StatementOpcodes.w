@@ -495,6 +495,15 @@ classical class StatementOpcodes {
             );
             if (firstArgumentNamed) {
               if (secondArgumentNamed) {
+                long secondComma = commaToken + 2;
+                if (utf8Scalar(source, tokenStarts[secondComma]) == PUNCTUATION_COMMA) {
+                  if (
+                    identifierStart(utf8Scalar(source, tokenStarts[secondComma + 1]))
+                  ) {
+                    return STATEMENT_LOCAL_CALL_THREE_LOCALS_NAMED;
+                  }
+                }
+
                 return STATEMENT_LOCAL_CALL_TWO_LOCALS_NAMED;
               }
 

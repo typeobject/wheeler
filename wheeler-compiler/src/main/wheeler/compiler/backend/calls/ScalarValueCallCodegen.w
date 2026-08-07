@@ -7,6 +7,7 @@ import wheeler.compiler.encoding;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.statement_kinds;
+import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.two_argument_call_kinds;
 
 classical class ScalarValueCallCodegen {
@@ -51,6 +52,44 @@ classical class ScalarValueCallCodegen {
     return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
   }
 
+  private long writeThreeLocalArgumentCall(
+    borrow mut bytes output,
+    long cursor,
+    long opcode,
+    long firstSource,
+    long secondSource,
+    long localBase,
+    long callFunction
+  ) {
+    long thirdSource = threeArgumentThirdSource(opcode);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, firstSource, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, secondSource, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, thirdSource, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 4, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 5, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_CALL_VALUE, FORM_QUATERNARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, callFunction, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* argumentCount= */ 3, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 6, U64);
+    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 7, U64);
+    return writeUnsignedLittleEndian(output, cursor, localBase + 6, U64);
+  }
+
   /// Writes one bounded scalar value call, or reports that it owns no opcode.
   public long writeScalarValueCallStatement(
     borrow mut bytes output,
@@ -61,6 +100,18 @@ classical class ScalarValueCallCodegen {
     long localBase,
     long callFunction
   ) {
+    if (threeArgumentCallStatement(opcode)) {
+      return writeThreeLocalArgumentCall(
+        output,
+        cursor,
+        opcode,
+        operand,
+        secondaryOperand,
+        localBase,
+        callFunction
+      );
+    }
+
     if (twoArgumentCallStatement(opcode)) {
       long firstArgumentOpcode = OPCODE_LOCAL_CONST;
       if (twoArgumentCallFirstNamed(opcode)) {

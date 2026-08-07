@@ -10,6 +10,7 @@ import wheeler.compiler.ir;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.statement_kinds;
+import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
@@ -361,6 +362,20 @@ classical class ScalarHelperTables {
           }
 
           return false;
+        }
+      }
+
+      return false;
+    }
+
+    if (threeArgumentCallStatement(opcode)) {
+      if (candidate.kind == HELPER_SIGNED_THREE) {
+        if (candidate.parameterCount == 3) {
+          if (candidate.parameterTypes[0] == TYPE_SIGNED) {
+            if (candidate.parameterTypes[1] == TYPE_SIGNED) {
+              return candidate.parameterTypes[2] == TYPE_SIGNED;
+            }
+          }
         }
       }
 

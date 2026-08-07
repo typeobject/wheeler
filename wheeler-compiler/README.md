@@ -126,7 +126,7 @@ imported-constant `compiler/syntax/EarlyReturnKinds.w`, imported-constant
 `compiler/syntax/returns/EarlyComparisonForms.w`, `compiler/syntax/returns/ResolvedLocalReturns.w`,
 and imported-constant `compiler/syntax/returns/ResolvedReturnCallKinds.w` modules compile byte for
 byte with stage 0.
-`StatementKinds.w` owns 130 unresolved statement identities. `LoopKinds.w` owns six loop-form
+`StatementKinds.w` owns 131 unresolved statement identities. `LoopKinds.w` owns six loop-form
 identities. `ResolvedStatements.w` owns eighty-five resolved columns. `BorrowedIntrinsicKinds.w`
 owns separate source and resolved `bufferLength`, `utf8Scalar`, `utf8Width`, indexed-buffer, and mutable-buffer statement identities. `VoidCallSourceKinds.w` owns and classifies unresolved ordinary void calls; `VoidCallKinds.w` owns their resolved identities, arity, and third-source decoding; `VoidCallSourceWidths.w` owns source/local widths; `VoidCallWidths.w` owns resolved instruction and encoded widths. Focused frontend syntax, typed resolution, register-shape, call-argument, and backend codegen owners validate, size, resolve, and emit the canonical forms. `backend/calls/ScalarValueCallCodegen.w` owns scalar value-call emission, leaving the general code generator to coordinate rather than collect another staircase. `Tokens.w` now sticks to
 lexical work instead of running a parser-IR registry from the back room. Real self-source modules beat motivational slides. One of them now owns conditional base mapping instead of leaving it in the parser's coat pocket. The bar has retained counsel. A modular source may carry up to sixty-four sorted unique direct imports.

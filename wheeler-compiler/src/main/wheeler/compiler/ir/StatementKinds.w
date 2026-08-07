@@ -257,6 +257,8 @@ classical class StatementKinds {
   public const long STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_NAMED = 892;
   /// Parameter less-than guard returning checked division.
   public const long STATEMENT_IF_SIGNED_LT_RETURN_DIV_NAMED = 912;
+  /// Signed local initialized by three prior-local helper arguments.
+  public const long STATEMENT_LOCAL_CALL_THREE_LOCALS_NAMED = 913;
   /// Checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Checked global subtraction.

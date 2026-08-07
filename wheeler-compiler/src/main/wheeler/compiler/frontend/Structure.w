@@ -17,6 +17,7 @@ import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
+import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.void_call_source_kinds;
@@ -530,6 +531,77 @@ classical class Structure {
       ) {
         return 7;
       }
+    }
+
+    if (threeArgumentCallStatement(statementKind)) {
+      if (tokenKinds[statementStart + 1] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, PUNCTUATION_ASSIGN)
+          == false
+      ) {
+        return -1;
+      }
+
+      if (tokenKinds[statementStart + 3] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          statementStart + 4,
+          PUNCTUATION_OPEN_PAREN
+        ) == false
+      ) {
+        return -1;
+      }
+
+      long firstToken = threeArgumentFirstToken(statementStart);
+      long secondToken = threeArgumentSecondToken(statementStart);
+      long thirdToken = threeArgumentThirdToken(statementStart);
+      if (tokenKinds[firstToken] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, firstToken + 1, PUNCTUATION_COMMA) == false
+      ) {
+        return -1;
+      }
+
+      if (tokenKinds[secondToken] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, secondToken + 1, PUNCTUATION_COMMA) == false
+      ) {
+        return -1;
+      }
+
+      if (tokenKinds[thirdToken] == 1) {} else {
+        return -1;
+      }
+
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, thirdToken + 1, PUNCTUATION_CLOSE_PAREN)
+          == false
+      ) {
+        return -1;
+      }
+
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, thirdToken + 2, PUNCTUATION_SEMICOLON)
+      ) {
+        return 12;
+      }
+
+      return -1;
     }
 
     if (twoArgumentCallStatement(statementKind)) {

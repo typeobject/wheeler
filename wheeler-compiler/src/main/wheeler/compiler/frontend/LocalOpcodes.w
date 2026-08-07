@@ -35,6 +35,7 @@ import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
+import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.void_call_source_widths;
 import wheeler.compiler.void_call_widths;
@@ -94,6 +95,10 @@ classical class LocalOpcodes {
 
     if (oneArgumentCallStatement(opcode)) {
       return 4;
+    }
+
+    if (threeArgumentCallStatement(opcode)) {
+      return 8;
     }
 
     if (twoArgumentCallStatement(opcode)) {
@@ -418,6 +423,10 @@ classical class LocalOpcodes {
       return localBase + 3;
     }
 
+    if (threeArgumentCallStatement(opcode)) {
+      return localBase + 7;
+    }
+
     if (twoArgumentCallStatement(opcode)) {
       return localBase + 5;
     }
@@ -523,6 +532,10 @@ classical class LocalOpcodes {
 
     if (oneArgumentCallStatement(opcode)) {
       return 112;
+    }
+
+    if (threeArgumentCallStatement(opcode)) {
+      return 208;
     }
 
     if (twoArgumentCallStatement(opcode)) {
@@ -778,6 +791,10 @@ classical class LocalOpcodes {
 
     if (oneArgumentCallStatement(opcode)) {
       return 4;
+    }
+
+    if (threeArgumentCallStatement(opcode)) {
+      return 8;
     }
 
     if (twoArgumentCallStatement(opcode)) {

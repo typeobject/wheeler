@@ -23,6 +23,7 @@ import wheeler.compiler.resolved_statements;
 import wheeler.compiler.sequences;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
+import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
 
@@ -41,6 +42,10 @@ classical class HelperPrograms {
     }
 
     if (opcode == STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED) {
+      return true;
+    }
+
+    if (threeArgumentCallStatement(opcode)) {
       return true;
     }
 
@@ -206,6 +211,26 @@ classical class HelperPrograms {
         if (twoArgumentCallSecondNamed(opcode)) {
           if (
             resultSlotSourceDeclared(sequence, statement, sequence.secondaryOperands[statement])
+          ) {} else {
+            return false;
+          }
+        }
+
+        if (threeArgumentCallStatement(opcode)) {
+          if (
+            resultSlotSourceDeclared(sequence, statement, sequence.operands[statement])
+          ) {} else {
+            return false;
+          }
+
+          if (
+            resultSlotSourceDeclared(sequence, statement, sequence.secondaryOperands[statement])
+          ) {} else {
+            return false;
+          }
+
+          if (
+            resultSlotSourceDeclared(sequence, statement, threeArgumentThirdSource(opcode))
           ) {} else {
             return false;
           }

@@ -633,6 +633,18 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalThreeArgumentCallKindsByteForByte() throws Exception {
+    Program decoded = assertImportedConstantCompilerLibrary(
+        "compiler/syntax/calls/ThreeArgumentCalls.w",
+        "wheeler.compiler.three_argument_calls",
+        "compiler/ir/StatementKinds.w");
+    assertEquals(
+        "wheeler.compiler.three_argument_calls::threeArgumentCallStatement",
+        decoded.functions().getFirst().name());
+    assertEquals("$library", decoded.functions().getLast().name());
+  }
+
+  @Test
   void compilesCanonicalCallArgumentOpcodesByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/backend/calls/CallArguments.w",

@@ -34,6 +34,14 @@ final class NativeCompilerLocalCallExampleTest {
           public long sum(long left, long right) {
             return left + right;
           }
+
+          public long selectThree(long left, long middle, long right) {
+            return left;
+          }
+
+          public boolean threeReady(long left, long middle, long right) {
+            return false;
+          }
         }
         """;
     String root = """
@@ -54,6 +62,11 @@ final class NativeCompilerLocalCallExampleTest {
             long result = sum(value, value);
             return result;
           }
+
+          public long selected(long value) {
+            long result = selectThree(value, value, value);
+            return result;
+          }
         }
         """;
     Program compiler = NativeModuleCompilerHarness.program();
@@ -63,14 +76,29 @@ final class NativeCompilerLocalCallExampleTest {
         "example.local_value_root");
     assertArrayEquals(new BytecodeWriter().write(expected), actual);
     Program decoded = new BytecodeReader().read(actual);
-    assertEquals(1, firstCallTarget(decoded, 4));
-    assertEquals(2, firstCallTarget(decoded, 5));
-    assertEquals(3, firstCallTarget(decoded, 6));
+    assertEquals(1, firstCallTarget(decoded, 6));
+    assertEquals(2, firstCallTarget(decoded, 7));
+    assertEquals(3, firstCallTarget(decoded, 8));
+    assertEquals(4, firstCallTarget(decoded, 9));
+    assertEquals(10, decoded.functions().get(9).localCount());
+    assertEquals(10, decoded.functions().get(9).forward().size());
 
     NativeModuleCompilerHarness.assertTrap(
         compiler,
         List.of(dependency),
         root.replace("identity(value)", "skipped(value)"));
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(dependency),
+        root.replace("selectThree(value, value, value)", "threeReady(value, value, value)"));
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(dependency),
+        root.replace("selectThree(value, value, value)", "selectThree(value, value)"));
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(dependency),
+        root.replace("selectThree(value, value, value)", "selectThree(value, value, 0)"));
   }
 
   private static long firstCallTarget(Program program, int function) {

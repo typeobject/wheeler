@@ -5,6 +5,7 @@ module wheeler.compiler.call_forms;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
+import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
 
@@ -43,7 +44,11 @@ classical class CallForms {
       return true;
     }
 
-    return twoArgumentCallStatement(opcode);
+    if (twoArgumentCallStatement(opcode)) {
+      return true;
+    }
+
+    return threeArgumentCallStatement(opcode);
   }
 
 }

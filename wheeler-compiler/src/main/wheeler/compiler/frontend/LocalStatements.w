@@ -40,6 +40,7 @@ import wheeler.compiler.scalar_return_call_resolution;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
+import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.void_call_resolution;
@@ -183,6 +184,18 @@ classical class LocalStatements {
     }
 
     if (oneArgumentCallStatement(opcode)) {
+      return resolveCallOpcode(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        previousStarts,
+        previousCount,
+        opcode
+      );
+    }
+
+    if (threeArgumentCallStatement(opcode)) {
       return resolveCallOpcode(
         source,
         tokenStarts,
