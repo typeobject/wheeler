@@ -58,7 +58,7 @@ class MinimalCompilerVerifierExampleTest {
         """;
     var modules = new LinkedHashMap<>(
         CompilerSources.moduleClosure("wheeler.compiler.verifier"));
-    modules.put("Binary.w", Files.readString(CoreSources.path("encoding/Binary.w")));
+    CoreSources.addBinaryClosure(modules);
     modules.put("VerifierTest.w", root);
     Program program = new WheelerCompiler().compileModuleFiles(
         modules, "examples.compiler.verifiertest");

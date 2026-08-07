@@ -36,7 +36,7 @@ class NativeVmExampleTest {
     modules.put(
         "AggregateInterpreter.w",
         RuntimeSources.read("runtime/AggregateInterpreter.w"));
-    modules.put("Binary.w", CoreSources.read("encoding/Binary.w"));
+    CoreSources.addBinaryClosure(modules);
     modules.put("Interpreter.w", RuntimeSources.read("runtime/Interpreter.w"));
     modules.put("MapInterpreter.w", RuntimeSources.read("runtime/MapInterpreter.w"));
     modules.put(
@@ -902,7 +902,7 @@ class NativeVmExampleTest {
 
   private static byte[] compileInWheeler(String source) throws Exception {
     Map<String, String> modules = CompilerSources.minimalCompilerModules();
-    modules.put("Binary.w", CoreSources.read("encoding/Binary.w"));
+    CoreSources.addBinaryClosure(modules);
     Program compiler = new WheelerCompiler().compileModuleFiles(
         modules, "wheeler.compiler.main");
     VirtualMachine machine = new VirtualMachine(

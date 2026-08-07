@@ -55,12 +55,14 @@ classical class ScalarHelperTables {
     }
 
     if (voidCallStatement(opcode)) {} else {
-      firstSource = returnHelperCallFirstSource(opcode);
-      if (argumentCount == 2) {
-        firstSource -= RETURN_HELPER_CALL_TWO_SOURCE_OFFSET;
-      }
+      if (resolvedReturnHelperCall(opcode)) {
+        firstSource = returnHelperCallFirstSource(opcode);
+        if (argumentCount == 2) {
+          firstSource -= RETURN_HELPER_CALL_TWO_SOURCE_OFFSET;
+        }
 
-      secondSource = returnHelperCallSecondSource(opcode);
+        secondSource = returnHelperCallSecondSource(opcode);
+      }
     }
 
     if (callerLocalType(caller, firstSource) == candidate.parameterTypes[0]) {} else {
@@ -328,11 +330,7 @@ classical class ScalarHelperTables {
     // Keep the exact signed form ahead of Boolean-shaped rejection paths.
     if (twoArgumentSignedResultCall(opcode)) {
       if (candidate.kind == HELPER_SIGNED_TWO) {
-        if (candidate.parameterCount == 2) {
-          if (candidate.parameterTypes[0] == TYPE_SIGNED) {
-            return candidate.parameterTypes[1] == TYPE_SIGNED;
-          }
-        }
+        return candidate.parameterCount == 2;
       }
 
       return false;
@@ -559,7 +557,22 @@ classical class ScalarHelperTables {
           } else {
             if (scalarResultCallStatement(callOpcode)) {
               if (localScalarCallMatches(candidate, callOpcode)) {
-                found = helper;
+                if (2 < argumentCount) {
+                  found = helper;
+                } else {
+                  if (
+                    callParametersMatch(
+                      caller,
+                      candidate,
+                      callOpcode,
+                      argumentCount,
+                      firstSource,
+                      secondSource
+                    )
+                  ) {
+                    found = helper;
+                  }
+                }
               }
             } else {
               if (candidate.kind == HELPER_BOOLEAN_SIGNED_ONE) {
@@ -619,6 +632,26 @@ classical class ScalarHelperTables {
         long callOpcode = caller.opcodes[callStatement];
         boolean forwarding = resolvedReturnHelperCall(callOpcode);
         long argumentCount = 1;
+        if (callOpcode == STATEMENT_LOCAL_CALL_NAMED) {
+          argumentCount = 0;
+        }
+
+        if (callOpcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
+          argumentCount = 0;
+        }
+
+        if (twoArgumentCallStatement(callOpcode)) {
+          argumentCount = 2;
+        }
+
+        if (threeArgumentCallStatement(callOpcode)) {
+          argumentCount = 3;
+        }
+
+        if (fourArgumentCallStatement(callOpcode)) {
+          argumentCount = 4;
+        }
+
         if (forwarding) {
           argumentCount = returnHelperCallArity(callOpcode);
         }

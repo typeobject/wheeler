@@ -78,6 +78,7 @@ final class NativePlanIdentityExampleTest {
             "PlanIdentity.w", PackageSources.read("packages/resolution/PlanIdentity.w"),
             "Binary.w", CoreSources.read("encoding/Binary.w"),
             "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
+            "FixedBinary.w", CoreSources.read("encoding/FixedBinary.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
         "wheeler.conformance.packages.plan_identity");
   }

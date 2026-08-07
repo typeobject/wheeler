@@ -49,7 +49,7 @@ final class NativeBytecodeIdentityExampleTest {
   private static Program program() throws Exception {
     var modules = new LinkedHashMap<>(
         CompilerSources.moduleClosure("wheeler.compiler.codec"));
-    modules.put("Binary.w", CoreSources.read("encoding/Binary.w"));
+    CoreSources.addBinaryClosure(modules);
     modules.put("ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"));
     modules.put("NativeBytecodeIdentity.w", Files.readString(FIXTURE));
     modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));

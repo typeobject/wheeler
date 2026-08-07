@@ -24,7 +24,7 @@ final class NativeModuleCompilerHarness {
 
   static Program program() throws Exception {
     Map<String, String> modules = CompilerSources.compilerDriverModules();
-    modules.put("Binary.w", CoreSources.read("encoding/Binary.w"));
+    CoreSources.addBinaryClosure(modules);
     modules.put("NativeModuleCompiler.w", Files.readString(FIXTURE));
     return new WheelerCompiler().compileModuleFiles(
         modules, "wheeler.conformance.compiler.native_module_compiler");

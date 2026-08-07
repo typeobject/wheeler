@@ -378,17 +378,84 @@ classical class InstructionVerifier {
       return 0;
     }
 
-    long resultSlotInstruction = verifyResultSlotInstruction(
-      artifact,
-      cursor,
-      opcode,
-      localCount,
-      activeTypes,
-      activeResultType,
-      activeResultSlot
-    );
-    if (-1 < resultSlotInstruction) {
-      return resultSlotInstruction;
+    if (opcode < OPCODE_RESULT_FILL_CONSTANT) {} else {
+      if (OPCODE_RESULT_FILL_BINARY_SOURCES < opcode) {} else {
+        if (resultSlotBodyValid(activeResultSlot)) {} else {
+          return 0;
+        }
+
+        if (activeResultType == TYPE_SIGNED) {} else {
+          return 0;
+        }
+
+        if (1 < localCount) {} else {
+          return 0;
+        }
+
+        long expectedResultSlot = localCount - 2;
+        long verifiedResultSlot = resultSlotOperand(artifact, cursor);
+        if (verifiedResultSlot == first) {} else {
+          return 0;
+        }
+
+        if (verifiedResultSlot == expectedResultSlot) {} else {
+          return 0;
+        }
+
+        if (localHasType(artifact, activeTypes, verifiedResultSlot, TYPE_BOOLEAN)) {} else {
+          return 0;
+        }
+
+        long payloadSlot = verifiedResultSlot + 1;
+        if (localHasType(artifact, activeTypes, payloadSlot, TYPE_SIGNED)) {} else {
+          return 0;
+        }
+
+        if (opcode == OPCODE_RETURN_RESULT_SLOT) {
+          return 1;
+        }
+
+        if (opcode == OPCODE_RESULT_FILL_CONSTANT) {
+          return 1;
+        }
+
+        long verifiedSource = resultSlotSourceOperand(artifact, cursor);
+        if (resultSlotSourcePrecedes(verifiedResultSlot, verifiedSource)) {} else {
+          return 0;
+        }
+
+        if (localHasType(artifact, activeTypes, verifiedSource, TYPE_SIGNED)) {} else {
+          return 0;
+        }
+
+        if (opcode == OPCODE_RESULT_FILL_SOURCE) {
+          return 1;
+        }
+
+        long operation = resultSlotOperationOperand(artifact, cursor);
+        if (operation < OPCODE_LOCAL_ADD) {
+          return 0;
+        }
+
+        if (OPCODE_LOCAL_AND < operation) {
+          return 0;
+        }
+
+        if (opcode == OPCODE_RESULT_FILL_BINARY) {
+          return 1;
+        }
+
+        long rightSource = resultSlotRightSourceOperand(artifact, cursor);
+        if (resultSlotSourcePrecedes(verifiedResultSlot, rightSource)) {} else {
+          return 0;
+        }
+
+        if (localHasType(artifact, activeTypes, rightSource, TYPE_SIGNED)) {
+          return 1;
+        }
+
+        return 0;
+      }
     }
 
     if (opcode == OPCODE_EXPECT_EQ) {

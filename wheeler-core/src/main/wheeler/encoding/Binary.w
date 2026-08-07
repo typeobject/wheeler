@@ -2,6 +2,8 @@
 
 module wheeler.core.encoding.binary;
 
+import wheeler.core.encoding.fixed_binary;
+
 classical class Binary {
   private const long SIGNED_LOW_BYTES = 7;
   private const long SIGNED_HIGH_BIT = 127;
@@ -10,6 +12,14 @@ classical class Binary {
 
   /// Reads `unsigned` from a bounded canonical input.
   public long readUnsigned(borrow byteview source, long offset, long width) {
+    if (width == 4) {
+      return readUnsignedFour(source, offset);
+    }
+
+    if (width == 8) {
+      return readUnsignedEight(source, offset);
+    }
+
     long result = 0;
     long multiplier = 1;
     long cursor = 0;

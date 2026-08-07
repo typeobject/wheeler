@@ -187,8 +187,27 @@ classical class LocalTypes {
     }
 
     long arity = returnHelperCallArity(opcode);
+    if (oneArgumentCallStatement(opcode)) {
+      arity = 1;
+    }
+
+    if (twoArgumentCallStatement(opcode)) {
+      arity = 2;
+    }
+
     if (arity == 0) {
       return writeLocalType(output, cursor, resultType);
+    }
+
+    if (arity == 1) {
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, resultType);
+      if (oneArgumentCallStatement(opcode)) {
+        return writeLocalType(output, cursor, resultType);
+      }
+
+      return cursor;
     }
 
     if (arity == 4) {
@@ -218,7 +237,12 @@ classical class LocalTypes {
       cursor = writeLocalType(output, cursor, secondSourceType);
       cursor = writeLocalType(output, cursor, firstSourceType);
       cursor = writeLocalType(output, cursor, secondSourceType);
-      return writeLocalType(output, cursor, resultType);
+      cursor = writeLocalType(output, cursor, resultType);
+      if (twoArgumentCallStatement(opcode)) {
+        return writeLocalType(output, cursor, resultType);
+      }
+
+      return cursor;
     }
 
     if (resolvedReturnHelperCall(opcode)) {

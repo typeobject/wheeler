@@ -302,6 +302,21 @@ classical class Codegen {
       return returnCursor;
     }
 
+    long valueCallCursor = writeScalarValueCallStatement(
+      output,
+      cursor,
+      opcode,
+      operand,
+      secondaryOperand,
+      localBase,
+      callFunction,
+      firstSourceType,
+      secondSourceType
+    );
+    if (-1 < valueCallCursor) {
+      return valueCallCursor;
+    }
+
     return writeStatement(
       output,
       cursor,
@@ -390,7 +405,9 @@ classical class Codegen {
       operand,
       secondaryOperand,
       localBase,
-      callFunction
+      callFunction,
+      TYPE_SIGNED,
+      TYPE_SIGNED
     );
     if (-1 < valueCallCursor) {
       return valueCallCursor;

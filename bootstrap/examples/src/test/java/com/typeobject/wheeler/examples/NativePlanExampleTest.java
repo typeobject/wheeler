@@ -31,6 +31,7 @@ class NativePlanExampleTest {
     Program inspector = new WheelerCompiler().compileModuleFiles(
         Map.of(
             "Binary.w", CoreSources.read("encoding/Binary.w"),
+            "FixedBinary.w", CoreSources.read("encoding/FixedBinary.w"),
             "NativePlan.w", Files.readString(root.resolve("NativePlan.w")),
             "Plan.w", PackageSources.read("packages/resolution/Plan.w"),
             "PlanIdentity.w", PackageSources.read("packages/resolution/PlanIdentity.w"),

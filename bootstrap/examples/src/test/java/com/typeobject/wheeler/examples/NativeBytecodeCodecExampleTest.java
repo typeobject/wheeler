@@ -19,7 +19,7 @@ final class NativeBytecodeCodecExampleTest {
       throws Exception {
     var modules = new LinkedHashMap<>(
         CompilerSources.moduleClosure("wheeler.compiler.codec"));
-    modules.put("Binary.w", CoreSources.read("encoding/Binary.w"));
+    CoreSources.addBinaryClosure(modules);
     modules.put(
         "NativeBytecodeCodec.w",
         Files.readString(Path.of("../wheeler-conformance/src/main/wheeler/compiler/NativeBytecodeCodec.w")));

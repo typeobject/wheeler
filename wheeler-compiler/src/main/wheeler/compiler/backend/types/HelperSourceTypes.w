@@ -3,6 +3,7 @@
 module wheeler.compiler.helper_source_types;
 
 import wheeler.compiler.borrowed_intrinsic_kinds;
+import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
@@ -95,6 +96,10 @@ classical class HelperSourceTypes {
       return operand;
     }
 
+    if (twoArgumentCallFirstNamed(opcode)) {
+      return operand;
+    }
+
     long returnArity = returnHelperCallArity(opcode);
     long helperSource = returnHelperCallFirstSource(opcode);
     long pairSource = helperSource - RETURN_HELPER_CALL_TWO_SOURCE_OFFSET;
@@ -175,6 +180,10 @@ classical class HelperSourceTypes {
     }
 
     if (opcode == STATEMENT_LOCAL_UTF8_SCALAR) {
+      return operand;
+    }
+
+    if (twoArgumentCallSecondNamed(opcode)) {
       return operand;
     }
 

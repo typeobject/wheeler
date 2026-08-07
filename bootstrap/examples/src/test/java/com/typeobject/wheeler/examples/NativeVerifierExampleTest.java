@@ -20,7 +20,7 @@ class NativeVerifierExampleTest {
     Path root = Path.of("../wheeler-conformance/src/main/wheeler/compiler");
     var modules = new LinkedHashMap<>(
         CompilerSources.moduleClosure("wheeler.compiler.verifier"));
-    modules.put("Binary.w", CoreSources.read("encoding/Binary.w"));
+    CoreSources.addBinaryClosure(modules);
     modules.put("NativeVerifier.w", Files.readString(root.resolve("NativeVerifier.w")));
     var verifier = new WheelerCompiler().compileModuleFiles(
         modules, "wheeler.conformance.compiler.native_verifier");

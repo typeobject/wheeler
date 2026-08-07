@@ -72,6 +72,7 @@ final class NativeArchiveIdentityExampleTest {
             Map.entry("Archive.w", PackageSources.read("packages/archive/Archive.w")),
             Map.entry("Binary.w", CoreSources.read("encoding/Binary.w")),
             Map.entry("ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w")),
+            Map.entry("FixedBinary.w", CoreSources.read("encoding/FixedBinary.w")),
             Map.entry("LineEmitter.w", PackageSources.read("packages/manifest/LineEmitter.w")),
             Map.entry("Manifest.w", PackageSources.read("packages/manifest/Manifest.w")),
             Map.entry("ManifestTokens.w", PackageSources.read("packages/manifest/ManifestTokens.w")),

@@ -52,7 +52,7 @@ final class NativeCompilerIdentityExampleTest {
 
   private static Program program() throws Exception {
     Map<String, String> modules = CompilerSources.compilerDriverModules();
-    modules.put("Binary.w", CoreSources.read("encoding/Binary.w"));
+    CoreSources.addBinaryClosure(modules);
     modules.put("ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"));
     modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     modules.put("NativeCompilerIdentity.w", Files.readString(FIXTURE));

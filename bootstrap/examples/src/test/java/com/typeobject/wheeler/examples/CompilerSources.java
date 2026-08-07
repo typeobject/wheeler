@@ -157,7 +157,7 @@ final class CompilerSources {
   /** Compiles the complete bounded self-hosting compiler fixture. */
   static Program minimalCompilerProgram() throws IOException {
     Map<String, String> sources = minimalCompilerModules();
-    sources.put("Binary.w", CoreSources.read("encoding/Binary.w"));
+    CoreSources.addBinaryClosure(sources);
     return new WheelerCompiler().compileModuleFiles(sources, "wheeler.compiler.main");
   }
 
