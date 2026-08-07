@@ -379,6 +379,58 @@ classical class BoundedGraphMatrix {
     return selected % 2 == 1;
   }
 
+  /// Counts validated incoming edges for one node.
+  public long plannedIncomingCount(BoundedGraphPlan plan, long node) {
+    assert(plan.valid);
+    assert(0 < node + 1);
+    assert(node < plan.nodeCount);
+    long count = 0;
+    long source = 0;
+    while (source < plan.nodeCount) limit MAX_GRAPH_NODES {
+      if (plannedEdge(plan, source, node)) {
+        count += 1;
+      }
+
+      source += 1;
+    }
+
+    return count;
+  }
+
+  /// Counts validated outgoing edges for one node.
+  public long plannedOutgoingCount(BoundedGraphPlan plan, long node) {
+    assert(plan.valid);
+    assert(0 < node + 1);
+    assert(node < plan.nodeCount);
+    long count = 0;
+    long dependent = 0;
+    while (dependent < plan.nodeCount) limit MAX_GRAPH_NODES {
+      if (plannedEdge(plan, node, dependent)) {
+        count += 1;
+      }
+
+      dependent += 1;
+    }
+
+    return count;
+  }
+
+  /// Selects the unique source of one single-incoming node.
+  public long plannedSingleSource(BoundedGraphPlan plan, long dependent) {
+    assert(plannedIncomingCount(plan, dependent) == 1);
+    long source = 0;
+    while (source < plan.nodeCount) limit MAX_GRAPH_NODES {
+      if (plannedEdge(plan, source, dependent)) {
+        return source;
+      }
+
+      source += 1;
+    }
+
+    assert(source == 0);
+    return 0;
+  }
+
   /// Writes leaves followed by the root-visible dependent for one complete fork.
   public boolean writeForkOrder(
     borrow mut words graph,

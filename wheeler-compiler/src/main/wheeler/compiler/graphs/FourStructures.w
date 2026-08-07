@@ -1,4 +1,4 @@
-//! Builds exact rooted plans for four-module constant graphs.
+//! Builds complete bounded plans for four-module constant graphs.
 
 module wheeler.compiler.graphs.four_structures;
 
@@ -6,40 +6,15 @@ import wheeler.compiler.graphs.matrix;
 import wheeler.compiler.module_headers;
 
 classical class FourGraphStructures {
-  /// Names four direct root imports.
-  public const long FOUR_STRUCTURE_DIRECT = 1;
-  /// Names one four-module full chain.
-  public const long FOUR_STRUCTURE_CHAIN = 2;
-  /// Names one three-leaf fork.
-  public const long FOUR_STRUCTURE_FORK = 3;
-  /// Names one two-leaf fork below a parent.
-  public const long FOUR_STRUCTURE_FORK_THEN_PARENT = 4;
-  /// Names one fork with an intermediate module on one arm.
-  public const long FOUR_STRUCTURE_UNEVEN_FORK = 5;
-  /// Names one two-leaf fork beside a direct import.
-  public const long FOUR_STRUCTURE_FORK_AND_DIRECT = 6;
-  /// Names two independent chain edges.
-  public const long FOUR_STRUCTURE_TWO_CHAINS = 7;
-  /// Names one three-module chain beside a direct import.
-  public const long FOUR_STRUCTURE_CHAIN_AND_DIRECT = 8;
-  /// Names one chain edge beside two direct imports.
-  public const long FOUR_STRUCTURE_CHAIN_AND_DIRECTS = 9;
-  /// Names one shared-dependency diamond.
-  public const long FOUR_STRUCTURE_SHARED_DIAMOND = 10;
-
   private const long MODULE_COUNT = 4;
-  private const long SINGLE_IMPORT = 1;
-  private const long THREE_IMPORTS = 3;
+  private const long MAX_DIRECT_IMPORTS = 4;
+  private const long SHARED_DIAMOND_EDGES = 4;
+  private const long SHARED_DIAMOND_DEGREE = 2;
+  private const long SHARED_DIAMOND_PATH = 2;
 
-  /// Carries one exact topology and its deterministic leaf-first source order.
-  public record FourGraphStructure(
-    long topology,
-    long first,
-    long second,
-    long third,
-    long fourth,
-    boolean valid
-  ) {}
+  private BoundedGraphPlan invalidPlan() {
+    return new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, 0, false);
+  }
 
   private boolean graphEdge(borrow utf8 source, borrow utf8 dependentSource) {
     HeaderDependency dependency = moduleDependency(source, dependentSource);
@@ -51,7 +26,7 @@ classical class FourGraphStructures {
       return false;
     }
 
-    if (dependency.importCount < THREE_IMPORTS + 1) {} else {
+    if (dependency.importCount < MAX_DIRECT_IMPORTS) {} else {
       return false;
     }
 
@@ -68,7 +43,7 @@ classical class FourGraphStructures {
       return -1;
     }
 
-    if (dependency.importCount < MODULE_COUNT + 1) {} else {
+    if (dependency.importCount < MAX_DIRECT_IMPORTS + 1) {} else {
       return -1;
     }
 
@@ -111,8 +86,8 @@ classical class FourGraphStructures {
     return count;
   }
 
-  private long recordRoot(borrow mut words rootDirect, long source, boolean present) {
-    if (present) {
+  private long recordRoot(borrow mut words rootDirect, long source, long rank) {
+    if (0 < rank + 1) {
       set(rootDirect, source, 1);
       return 1;
     }
@@ -122,10 +97,10 @@ classical class FourGraphStructures {
 
   private long incomingCount(borrow mut words graph, long node) {
     long count = 0;
-    long other = 0;
-    while (other < MODULE_COUNT) limit MODULE_COUNT {
-      count += graph[other * MODULE_COUNT + node];
-      other += 1;
+    long source = 0;
+    while (source < MODULE_COUNT) limit MODULE_COUNT {
+      count += graph[source * MODULE_COUNT + node];
+      source += 1;
     }
 
     return count;
@@ -133,85 +108,28 @@ classical class FourGraphStructures {
 
   private long outgoingCount(borrow mut words graph, long node) {
     long count = 0;
-    long other = 0;
-    while (other < MODULE_COUNT) limit MODULE_COUNT {
-      count += graph[node * MODULE_COUNT + other];
-      other += 1;
+    long dependent = 0;
+    while (dependent < MODULE_COUNT) limit MODULE_COUNT {
+      count += graph[node * MODULE_COUNT + dependent];
+      dependent += 1;
     }
 
     return count;
   }
 
-  private long maximumIncoming(borrow mut words graph) {
-    long maximum = 0;
-    long node = 0;
-    while (node < MODULE_COUNT) limit MODULE_COUNT {
-      long count = incomingCount(graph, node);
-      if (maximum < count) {
-        maximum = count;
-      }
-
-      node += 1;
-    }
-
-    return maximum;
-  }
-
-  private long maximumOutgoing(borrow mut words graph) {
-    long maximum = 0;
-    long node = 0;
-    while (node < MODULE_COUNT) limit MODULE_COUNT {
-      long count = outgoingCount(graph, node);
-      if (maximum < count) {
-        maximum = count;
-      }
-
-      node += 1;
-    }
-
-    return maximum;
-  }
-
-  private long incomingDegreeCount(borrow mut words graph, long degree) {
-    long count = 0;
-    long node = 0;
-    while (node < MODULE_COUNT) limit MODULE_COUNT {
-      if (incomingCount(graph, node) == degree) {
-        count += 1;
-      }
-
-      node += 1;
-    }
-
-    return count;
-  }
-
-  private long outgoingDegreeCount(borrow mut words graph, long degree) {
-    long count = 0;
-    long node = 0;
-    while (node < MODULE_COUNT) limit MODULE_COUNT {
-      if (outgoingCount(graph, node) == degree) {
-        count += 1;
-      }
-
-      node += 1;
-    }
-
-    return count;
-  }
-
-  private long rootIncoming(borrow mut words graph, borrow mut words rootDirect) {
-    long count = 0;
+  private boolean rootsAreSinks(borrow mut words graph, borrow mut words rootDirect) {
     long node = 0;
     while (node < MODULE_COUNT) limit MODULE_COUNT {
       if (rootDirect[node] == 1) {
-        count += incomingCount(graph, node);
+        if (outgoingCount(graph, node) == 0) {} else {
+          return false;
+        }
       }
 
       node += 1;
     }
 
-    return count;
+    return true;
   }
 
   private long longestPath(
@@ -245,375 +163,49 @@ classical class FourGraphStructures {
     return longest;
   }
 
-  private boolean rootsAreSinks(borrow mut words graph, borrow mut words rootDirect) {
-    long node = 0;
-    while (node < MODULE_COUNT) limit MODULE_COUNT {
-      if (rootDirect[node] == 1) {
-        if (outgoingCount(graph, node) == 0) {} else {
-          return false;
-        }
-      }
-
-      node += 1;
-    }
-
-    return true;
-  }
-
-  private long topology(
+  private boolean sharedDiamond(
     borrow mut words graph,
-    borrow mut words rootDirect,
-    long edgeCount,
-    long rootCount,
-    long longest
+    borrow mut words order,
+    borrow mut words distances
   ) {
-    long maximumIncoming = maximumIncoming(graph);
-    long maximumOutgoing = maximumOutgoing(graph);
-    if (edgeCount == 0) {
-      if (rootCount == MODULE_COUNT) {
-        return FOUR_STRUCTURE_DIRECT;
-      }
-    }
-
-    if (edgeCount == 1) {
-      if (rootCount == THREE_IMPORTS) {
-        return FOUR_STRUCTURE_CHAIN_AND_DIRECTS;
-      }
-    }
-
-    if (edgeCount == 2) {
-      if (rootCount == 2) {
-        if (maximumIncoming == 2) {
-          return FOUR_STRUCTURE_FORK_AND_DIRECT;
-        }
-
-        if (maximumIncoming == 1) {
-          if (maximumOutgoing == 1) {
-            if (longest == 2) {
-              return FOUR_STRUCTURE_CHAIN_AND_DIRECT;
-            }
-
-            if (longest == 1) {
-              return FOUR_STRUCTURE_TWO_CHAINS;
-            }
-          }
-        }
-      }
-    }
-
-    if (edgeCount == 3) {
-      if (rootCount == SINGLE_IMPORT) {
-        if (maximumIncoming == THREE_IMPORTS) {
-          if (longest == 1) {
-            return FOUR_STRUCTURE_FORK;
-          }
-        }
-
-        if (maximumIncoming == 2) {
-          if (longest == 2) {
-            if (rootIncoming(graph, rootDirect) == 1) {
-              return FOUR_STRUCTURE_FORK_THEN_PARENT;
-            }
-
-            if (rootIncoming(graph, rootDirect) == 2) {
-              return FOUR_STRUCTURE_UNEVEN_FORK;
-            }
-          }
-        }
-
-        if (maximumIncoming == 1) {
-          if (maximumOutgoing == 1) {
-            if (longest == THREE_IMPORTS) {
-              return FOUR_STRUCTURE_CHAIN;
-            }
-          }
-        }
-      }
-    }
-
-    if (edgeCount == MODULE_COUNT) {
-      if (rootCount == SINGLE_IMPORT) {
-        if (maximumIncoming == 2) {
-          if (maximumOutgoing == 2) {
-            if (incomingDegreeCount(graph, 2) == 1) {
-              if (outgoingDegreeCount(graph, 2) == 1) {
-                if (longest == 2) {
-                  return FOUR_STRUCTURE_SHARED_DIAMOND;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return 0;
-  }
-
-  private long sourceOf(borrow mut words graph, long dependent) {
-    long source = 0;
-    while (source < MODULE_COUNT) limit MODULE_COUNT {
-      if (graph[source * MODULE_COUNT + dependent] == 1) {
-        return source;
-      }
-
-      source += 1;
-    }
-
-    return -1;
-  }
-
-  private long rootWithIncoming(borrow mut words graph, borrow mut words rootDirect, long degree) {
+    long incomingTwo = 0;
+    long outgoingTwo = 0;
     long node = 0;
     while (node < MODULE_COUNT) limit MODULE_COUNT {
-      if (rootDirect[node] == 1) {
-        if (incomingCount(graph, node) == degree) {
-          return node;
-        }
+      long incoming = incomingCount(graph, node);
+      long outgoing = outgoingCount(graph, node);
+      if (incoming < SHARED_DIAMOND_DEGREE + 1) {} else {
+        return false;
+      }
+
+      if (outgoing < SHARED_DIAMOND_DEGREE + 1) {} else {
+        return false;
+      }
+
+      if (incoming == SHARED_DIAMOND_DEGREE) {
+        incomingTwo += 1;
+      }
+
+      if (outgoing == SHARED_DIAMOND_DEGREE) {
+        outgoingTwo += 1;
       }
 
       node += 1;
     }
 
-    return -1;
+    if (incomingTwo == 1) {} else {
+      return false;
+    }
+
+    if (outgoingTwo == 1) {} else {
+      return false;
+    }
+
+    return longestPath(graph, order, distances) == SHARED_DIAMOND_PATH;
   }
 
-  private FourGraphStructure orderUnevenFork(borrow mut words graph, borrow mut words rootDirect) {
-    long dependent = rootWithIncoming(graph, rootDirect, 2);
-    long middle = -1;
-    long node = 0;
-    while (node < MODULE_COUNT) limit MODULE_COUNT {
-      if (rootDirect[node] == 0) {
-        if (incomingCount(graph, node) == 1) {
-          if (outgoingCount(graph, node) == 1) {
-            middle = node;
-          }
-        }
-      }
-
-      node += 1;
-    }
-
-    long leaf = sourceOf(graph, middle);
-    long otherLeaf = -1;
-    node = 0;
-    while (node < MODULE_COUNT) limit MODULE_COUNT {
-      if (graph[node * MODULE_COUNT + dependent] == 1) {
-        if (node == middle) {} else {
-          otherLeaf = node;
-        }
-      }
-
-      node += 1;
-    }
-
-    return new FourGraphStructure(
-      FOUR_STRUCTURE_UNEVEN_FORK,
-      leaf,
-      middle,
-      otherLeaf,
-      dependent,
-      true
-    );
-  }
-
-  private FourGraphStructure orderForkAndDirect(
-    borrow mut words graph,
-    borrow mut words rootDirect
-  ) {
-    long dependent = rootWithIncoming(graph, rootDirect, 2);
-    long firstLeaf = -1;
-    long secondLeaf = -1;
-    long direct = -1;
-    long node = 0;
-    while (node < MODULE_COUNT) limit MODULE_COUNT {
-      if (graph[node * MODULE_COUNT + dependent] == 1) {
-        if (firstLeaf < 0) {
-          firstLeaf = node;
-        } else {
-          secondLeaf = node;
-        }
-      }
-
-      if (rootDirect[node] == 1) {
-        if (node == dependent) {} else {
-          direct = node;
-        }
-      }
-
-      node += 1;
-    }
-
-    return new FourGraphStructure(
-      FOUR_STRUCTURE_FORK_AND_DIRECT,
-      firstLeaf,
-      secondLeaf,
-      dependent,
-      direct,
-      true
-    );
-  }
-
-  private FourGraphStructure orderTwoChains(borrow mut words graph, borrow mut words rootDirect) {
-    long firstDependent = -1;
-    long secondDependent = -1;
-    long node = 0;
-    while (node < MODULE_COUNT) limit MODULE_COUNT {
-      if (rootDirect[node] == 1) {
-        if (firstDependent < 0) {
-          firstDependent = node;
-        } else {
-          secondDependent = node;
-        }
-      }
-
-      node += 1;
-    }
-
-    long firstLeaf = sourceOf(graph, firstDependent);
-    long secondLeaf = sourceOf(graph, secondDependent);
-    return new FourGraphStructure(
-      FOUR_STRUCTURE_TWO_CHAINS,
-      firstLeaf,
-      firstDependent,
-      secondLeaf,
-      secondDependent,
-      true
-    );
-  }
-
-  private FourGraphStructure orderChainAndDirect(
-    borrow mut words graph,
-    borrow mut words rootDirect
-  ) {
-    long dependent = rootWithIncoming(graph, rootDirect, 1);
-    long middle = sourceOf(graph, dependent);
-    long leaf = sourceOf(graph, middle);
-    long direct = -1;
-    long node = 0;
-    while (node < MODULE_COUNT) limit MODULE_COUNT {
-      if (rootDirect[node] == 1) {
-        if (node == dependent) {} else {
-          direct = node;
-        }
-      }
-
-      node += 1;
-    }
-
-    return new FourGraphStructure(
-      FOUR_STRUCTURE_CHAIN_AND_DIRECT,
-      leaf,
-      middle,
-      dependent,
-      direct,
-      true
-    );
-  }
-
-  private FourGraphStructure orderChainAndDirects(
-    borrow mut words graph,
-    borrow mut words rootDirect
-  ) {
-    long dependent = rootWithIncoming(graph, rootDirect, 1);
-    long leaf = sourceOf(graph, dependent);
-    long firstDirect = -1;
-    long secondDirect = -1;
-    long node = 0;
-    while (node < MODULE_COUNT) limit MODULE_COUNT {
-      if (rootDirect[node] == 1) {
-        if (node == dependent) {} else {
-          if (firstDirect < 0) {
-            firstDirect = node;
-          } else {
-            secondDirect = node;
-          }
-        }
-      }
-
-      node += 1;
-    }
-
-    return new FourGraphStructure(
-      FOUR_STRUCTURE_CHAIN_AND_DIRECTS,
-      leaf,
-      dependent,
-      firstDirect,
-      secondDirect,
-      true
-    );
-  }
-
-  private FourGraphStructure orderSharedDiamond(
-    borrow mut words graph,
-    borrow mut words rootDirect
-  ) {
-    long leaf = -1;
-    long join = rootWithIncoming(graph, rootDirect, 2);
-    long firstDependent = -1;
-    long secondDependent = -1;
-    long node = 0;
-    while (node < MODULE_COUNT) limit MODULE_COUNT {
-      if (outgoingCount(graph, node) == 2) {
-        leaf = node;
-      }
-
-      if (graph[node * MODULE_COUNT + join] == 1) {
-        if (firstDependent < 0) {
-          firstDependent = node;
-        } else {
-          secondDependent = node;
-        }
-      }
-
-      node += 1;
-    }
-
-    return new FourGraphStructure(
-      FOUR_STRUCTURE_SHARED_DIAMOND,
-      leaf,
-      firstDependent,
-      secondDependent,
-      join,
-      true
-    );
-  }
-
-  private FourGraphStructure executionOrder(
-    long selected,
-    borrow mut words graph,
-    borrow mut words rootDirect,
-    borrow mut words order
-  ) {
-    if (selected == FOUR_STRUCTURE_UNEVEN_FORK) {
-      return orderUnevenFork(graph, rootDirect);
-    }
-
-    if (selected == FOUR_STRUCTURE_FORK_AND_DIRECT) {
-      return orderForkAndDirect(graph, rootDirect);
-    }
-
-    if (selected == FOUR_STRUCTURE_TWO_CHAINS) {
-      return orderTwoChains(graph, rootDirect);
-    }
-
-    if (selected == FOUR_STRUCTURE_CHAIN_AND_DIRECT) {
-      return orderChainAndDirect(graph, rootDirect);
-    }
-
-    if (selected == FOUR_STRUCTURE_CHAIN_AND_DIRECTS) {
-      return orderChainAndDirects(graph, rootDirect);
-    }
-
-    if (selected == FOUR_STRUCTURE_SHARED_DIAMOND) {
-      return orderSharedDiamond(graph, rootDirect);
-    }
-
-    return new FourGraphStructure(selected, order[0], order[1], order[2], order[3], true);
-  }
-
-  /// Selects one exact rooted four-module topology before source rewriting.
-  public FourGraphStructure planFourStructure(
+  /// Produces one complete canonical four-module graph plan.
+  public BoundedGraphPlan planFourGraph(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
     borrow utf8 thirdSource,
@@ -643,46 +235,33 @@ classical class FourGraphStructures {
     set(rootRanks, 2, thirdRootRank);
     set(rootRanks, 3, fourthRootRank);
     long rootCount = 0;
-    rootCount += recordRoot(rootDirect, 0, 0 < firstRootRank + 1);
-    rootCount += recordRoot(rootDirect, 1, 0 < secondRootRank + 1);
-    rootCount += recordRoot(rootDirect, 2, 0 < thirdRootRank + 1);
-    rootCount += recordRoot(rootDirect, 3, 0 < fourthRootRank + 1);
+    rootCount += recordRoot(rootDirect, 0, firstRootRank);
+    rootCount += recordRoot(rootDirect, 1, secondRootRank);
+    rootCount += recordRoot(rootDirect, 2, thirdRootRank);
+    rootCount += recordRoot(rootDirect, 3, fourthRootRank);
     boolean valid = edgeCount + rootCount == MODULE_COUNT;
-    if (edgeCount == MODULE_COUNT) {
-      valid = rootCount == SINGLE_IMPORT;
+    if (edgeCount == SHARED_DIAMOND_EDGES) {
+      valid = rootCount == 1;
     }
 
     if (valid) {
       valid = rootsAreSinks(graph, rootDirect);
     }
 
+    BoundedGraphPlan result = invalidPlan();
     if (valid) {
-      BoundedGraphPlan graphPlan = planBoundedGraph(
-        graph,
-        rootDirect,
-        rootRanks,
-        MODULE_COUNT,
-        order,
-        reachable
-      );
-      valid = graphPlan.valid;
+      result = planBoundedGraph(graph, rootDirect, rootRanks, MODULE_COUNT, order, reachable);
+      valid = result.valid;
     }
 
-    long selected = 0;
     if (valid) {
-      selected = topology(
-        graph,
-        rootDirect,
-        edgeCount,
-        rootCount,
-        longestPath(graph, order, distances)
-      );
-      valid = 0 < selected;
+      if (edgeCount == SHARED_DIAMOND_EDGES) {
+        valid = sharedDiamond(graph, order, distances);
+      }
     }
 
-    FourGraphStructure result = new FourGraphStructure(0, 0, 0, 0, 0, false);
-    if (valid) {
-      result = executionOrder(selected, graph, rootDirect, order);
+    if (valid) {} else {
+      result = invalidPlan();
     }
 
     drop(distances);
