@@ -74,26 +74,37 @@ final class NativeCompilerBorrowedSignatureExampleTest {
             return true;
           }
           public boolean inspect(borrow utf8 source) { return true; }
-          public boolean forwardText(borrow utf8 source) { return inspect(source); }
+          public boolean forwardText(borrow utf8 source) {
+            boolean result = inspect(source);
+            return result;
+          }
           public boolean acceptBytes(borrow mut bytes value) { return true; }
-          public boolean forwardBytes(borrow mut bytes value) { return acceptBytes(value); }
+          public boolean forwardBytes(borrow mut bytes value) {
+            boolean result = acceptBytes(value);
+            return result;
+          }
           public boolean acceptMap(borrow mut longmap value) { return true; }
           public boolean forwardMap(borrow mut longmap value) { return acceptMap(value); }
           public boolean acceptRegion(borrow mut region value) { return true; }
           public boolean forwardRegion(borrow mut region value) { return acceptRegion(value); }
-          public boolean acceptView(borrow byteview value) { return true; }
-          public boolean forwardView(borrow byteview value) { return acceptView(value); }
+          public long acceptView(borrow byteview value) { return 11; }
+          public long forwardView(borrow byteview value) {
+            long result = acceptView(value);
+            return result;
+          }
           public boolean acceptWords(borrow mut words value) { return true; }
           public boolean forwardWords(borrow mut words value) { return acceptWords(value); }
           public boolean acceptMixed(long value, borrow utf8 text) { return true; }
           public boolean forwardMixed(long value, borrow utf8 text) {
-            return acceptMixed(value, text);
+            boolean result = acceptMixed(value, text);
+            return result;
           }
           public boolean acceptPair(borrow utf8 text, borrow mut bytes output) {
             return true;
           }
           public boolean forwardPair(borrow utf8 text, borrow mut bytes output) {
-            return acceptPair(text, output);
+            boolean result = acceptPair(text, output);
+            return result;
           }
         }
         """;
@@ -125,7 +136,21 @@ final class NativeCompilerBorrowedSignatureExampleTest {
     NativeModuleCompilerHarness.assertTrap(
         NativeModuleCompilerHarness.program(),
         List.of(),
-        source.replace("return acceptBytes(value);", "return inspect(value);"));
+        source.replace(
+            "boolean result = acceptBytes(value);",
+            "boolean result = inspect(value);"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace(
+            "long result = acceptView(value);",
+            "long result = ignoreText(value);"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace(
+            "boolean result = acceptPair(text, output);",
+            "boolean result = acceptMixed(text, output);"));
     NativeModuleCompilerHarness.assertTrap(
         NativeModuleCompilerHarness.program(),
         List.of(),

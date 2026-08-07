@@ -354,13 +354,7 @@ classical class ScalarHelperTables {
 
     if (twoArgumentBooleanSignedCall(opcode)) {
       if (candidate.kind == HELPER_BOOLEAN_SIGNED_TWO) {
-        if (candidate.parameterCount == 2) {
-          if (candidate.parameterTypes[0] == TYPE_SIGNED) {
-            return candidate.parameterTypes[1] == TYPE_SIGNED;
-          }
-
-          return false;
-        }
+        return candidate.parameterCount == 2;
       }
 
       return false;
@@ -419,11 +413,7 @@ classical class ScalarHelperTables {
     }
 
     if (oneArgumentBooleanSignedCall(opcode)) {
-      if (candidate.kind == HELPER_BOOLEAN_SIGNED_ONE) {
-        return candidate.parameterTypes[0] == TYPE_SIGNED;
-      }
-
-      return false;
+      return candidate.kind == HELPER_BOOLEAN_SIGNED_ONE;
     }
 
     if (oneArgumentBooleanCall(opcode)) {
@@ -435,9 +425,7 @@ classical class ScalarHelperTables {
     }
 
     if (oneArgumentCallStatement(opcode)) {
-      if (candidate.kind == HELPER_SIGNED_ONE) {
-        return candidate.parameterTypes[0] == TYPE_SIGNED;
-      }
+      return candidate.kind == HELPER_SIGNED_ONE;
     }
 
     return false;
