@@ -5,6 +5,7 @@ module wheeler.compiler.statement_opcodes;
 import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.identifier_starts;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.source_scalars;
@@ -341,6 +342,10 @@ classical class StatementOpcodes {
 
           if (returned == TOKEN_FALSE) {
             return STATEMENT_IF_SIGNED_EQ_RETURN_FALSE_NAMED;
+          }
+
+          if (utf8Scalar(source, tokenStarts[bodyStart + 2]) == PUNCTUATION_OPEN_PAREN) {
+            return STATEMENT_IF_EQ_RETURN_UTF8_CALL_NAMED;
           }
 
           return STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED;

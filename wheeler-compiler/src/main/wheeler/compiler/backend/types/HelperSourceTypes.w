@@ -4,6 +4,7 @@ module wheeler.compiler.helper_source_types;
 
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_argument_sources;
+import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.type_codes;
@@ -24,6 +25,10 @@ classical class HelperSourceTypes {
   }
 
   private long firstSource(long opcode, long operand) {
+    if (earlyUtf8Call(opcode)) {
+      return operand / EARLY_UTF8_CALL_SOURCE_SCALE;
+    }
+
     long callArity = voidCallArity(opcode);
     if (callArity == 1) {
       return operand;
@@ -147,6 +152,10 @@ classical class HelperSourceTypes {
   }
 
   private long secondSource(long opcode, long operand) {
+    if (earlyUtf8Call(opcode)) {
+      return operand % EARLY_UTF8_CALL_SOURCE_SCALE;
+    }
+
     long callArity = voidCallArity(opcode);
     if (callArity == 2) {
       return operand;

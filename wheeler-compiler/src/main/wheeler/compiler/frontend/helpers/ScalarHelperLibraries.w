@@ -8,6 +8,7 @@ import wheeler.compiler.call_forms;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.early_comparison_forms;
+import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.encoding;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_parameter_types;
@@ -18,7 +19,10 @@ import wheeler.compiler.local_opcodes;
 import wheeler.compiler.named_comparison_kinds;
 import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.owned_storage_forms;
+import wheeler.compiler.owned_utf8_copy_loops;
 import wheeler.compiler.resolved_early_result_kinds;
+import wheeler.compiler.resolved_less_than_assertions;
+import wheeler.compiler.resolved_local_copy_kinds;
 import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.resolved_long_operations;
 import wheeler.compiler.resolved_return_call_kinds;
@@ -150,12 +154,10 @@ classical class ScalarHelperLibraries {
           return false;
         }
 
-        if (lengthSource < parameterCount) {} else {
-          return false;
-        }
-
-        if (parameterTypes[lengthSource] == TYPE_SIGNED) {} else {
-          return false;
+        if (lengthSource < parameterCount) {
+          if (parameterTypes[lengthSource] == TYPE_SIGNED) {} else {
+            return false;
+          }
         }
 
         activeBytes = statementResultLocal(opcode, localBase);
@@ -163,6 +165,15 @@ classical class ScalarHelperLibraries {
 
       if (opcode == STATEMENT_SET_OWNED_BYTE) {
         if (sequence.operands[statement] == activeBytes) {} else {
+          return false;
+        }
+
+        activeBytes = localBase;
+      }
+
+      if (ownedUtf8CopyLoop(opcode)) {
+        long copyOwner = sequence.operands[statement] / COPY_LOOP_SOURCE_SCALE;
+        if (copyOwner == activeBytes) {} else {
           return false;
         }
 
@@ -217,6 +228,17 @@ classical class ScalarHelperLibraries {
       boolean bufferLength = opcode == STATEMENT_RETURN_BUFFER_LENGTH;
       if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
         bufferLength = true;
+      }
+
+      if (ownedUtf8CopyLoop(opcode)) {
+        long copySource = sequence.operands[statement] % COPY_LOOP_SOURCE_SCALE;
+        if (copySource < parameterCount) {} else {
+          return false;
+        }
+
+        if (parameterTypes[copySource] == TYPE_UTF8_BORROW) {} else {
+          return false;
+        }
       }
 
       boolean borrowedWrite = opcode == STATEMENT_SET_WORD;
@@ -521,19 +543,33 @@ classical class ScalarHelperLibraries {
     while (statement < result) limit MAX_MINIMAL_STATEMENTS {
       long earlyOpcode = sequence.opcodes[statement];
       boolean earlyReturn = resolvedEarlyComparisonReturn(earlyOpcode);
+      if (earlyUtf8Call(earlyOpcode)) {
+        if (utf8Helper) {} else {
+          return false;
+        }
+
+        earlyReturn = true;
+      }
+
       if (resolvedEarlyHelperReturn(earlyOpcode)) {
         earlyReturn = true;
       }
 
       if (earlyReturn) {
-        boolean signedEarlyReturn = resolvedEarlySignedReturn(earlyOpcode);
-        if (booleanHelper) {
-          if (signedEarlyReturn) {
+        if (earlyUtf8Call(earlyOpcode)) {} else {
+          if (utf8Helper) {
             return false;
           }
-        } else {
-          if (signedEarlyReturn == false) {
-            return false;
+
+          boolean signedEarlyReturn = resolvedEarlySignedReturn(earlyOpcode);
+          if (booleanHelper) {
+            if (signedEarlyReturn) {
+              return false;
+            }
+          } else {
+            if (signedEarlyReturn == false) {
+              return false;
+            }
           }
         }
       } else {
@@ -543,6 +579,18 @@ classical class ScalarHelperLibraries {
         }
 
         if (resolvedLocalLongPair(earlyOpcode)) {
+          signedPrelude = true;
+        }
+
+        if (resolvedLocalLessThanAssertion(earlyOpcode)) {
+          signedPrelude = true;
+        }
+
+        if (resolvedLiteralLessThanAssertion(earlyOpcode)) {
+          signedPrelude = true;
+        }
+
+        if (resolvedLocalLongAssertion(earlyOpcode)) {
           signedPrelude = true;
         }
 
@@ -591,6 +639,10 @@ classical class ScalarHelperLibraries {
         }
 
         if (earlyOpcode == STATEMENT_LOCAL_BYTES_ALLOCATE_NAMED) {
+          signedPrelude = true;
+        }
+
+        if (ownedUtf8CopyLoop(earlyOpcode)) {
           signedPrelude = true;
         }
 
@@ -820,6 +872,11 @@ classical class ScalarHelperLibraries {
       if (sourceOpcode == STATEMENT_RETURN_HELPER_CALL_NAMED) {
         helperCall = true;
         targetToken = statementStarts[sourceStatement] + 1;
+      }
+
+      if (sourceOpcode == STATEMENT_IF_EQ_RETURN_UTF8_CALL_NAMED) {
+        helperCall = true;
+        targetToken = earlyUtf8CallTargetToken(statementStarts[sourceStatement]);
       }
 
       if (scalarResultCallStatement(sourceOpcode)) {

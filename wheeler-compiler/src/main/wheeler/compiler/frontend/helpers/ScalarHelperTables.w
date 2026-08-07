@@ -3,6 +3,7 @@
 module wheeler.compiler.scalar_helper_tables;
 
 import wheeler.compiler.call_forms;
+import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.encoding;
 import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.helper_abi;
@@ -54,14 +55,19 @@ classical class ScalarHelperTables {
       return true;
     }
 
-    if (voidCallStatement(opcode)) {} else {
-      if (resolvedReturnHelperCall(opcode)) {
-        firstSource = returnHelperCallFirstSource(opcode);
-        if (argumentCount == 2) {
-          firstSource -= RETURN_HELPER_CALL_TWO_SOURCE_OFFSET;
-        }
+    if (earlyUtf8Call(opcode)) {
+      firstSource = firstSource / EARLY_UTF8_CALL_SOURCE_SCALE;
+      secondSource = secondSource % EARLY_UTF8_CALL_SOURCE_SCALE;
+    } else {
+      if (voidCallStatement(opcode)) {} else {
+        if (resolvedReturnHelperCall(opcode)) {
+          firstSource = returnHelperCallFirstSource(opcode);
+          if (argumentCount == 2) {
+            firstSource -= RETURN_HELPER_CALL_TWO_SOURCE_OFFSET;
+          }
 
-        secondSource = returnHelperCallSecondSource(opcode);
+          secondSource = returnHelperCallSecondSource(opcode);
+        }
       }
     }
 
@@ -623,6 +629,10 @@ classical class ScalarHelperTables {
         long callStatement = caller.callStatements[call];
         long callOpcode = caller.opcodes[callStatement];
         boolean forwarding = resolvedReturnHelperCall(callOpcode);
+        if (earlyUtf8Call(callOpcode)) {
+          forwarding = true;
+        }
+
         long argumentCount = 1;
         if (callOpcode == STATEMENT_LOCAL_CALL_NAMED) {
           argumentCount = 0;
@@ -636,6 +646,10 @@ classical class ScalarHelperTables {
           argumentCount = 2;
         }
 
+        if (earlyUtf8Call(callOpcode)) {
+          argumentCount = 2;
+        }
+
         if (threeArgumentCallStatement(callOpcode)) {
           argumentCount = 3;
         }
@@ -645,7 +659,11 @@ classical class ScalarHelperTables {
         }
 
         if (forwarding) {
-          argumentCount = returnHelperCallArity(callOpcode);
+          if (earlyUtf8Call(callOpcode)) {
+            argumentCount = 2;
+          } else {
+            argumentCount = returnHelperCallArity(callOpcode);
+          }
         }
 
         if (voidCallStatement(callOpcode)) {

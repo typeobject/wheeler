@@ -9,6 +9,7 @@ import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_return_forms;
 import wheeler.compiler.early_return_kinds;
+import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.helper_value_kinds;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.loop_forms;
@@ -155,6 +156,10 @@ classical class Statements {
     long statementStart
   ) {
     long statementKind = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (statementKind == STATEMENT_IF_EQ_RETURN_UTF8_CALL_NAMED) {
+      return earlyUtf8CallWidth(source, tokenKinds, tokenStarts, tokenLengths, statementStart);
+    }
+
     boolean helperGuard = statementKind == STATEMENT_IF_HELPER_CALL_RETURN_TRUE_NAMED;
     if (statementKind == STATEMENT_IF_HELPER_CALL_RETURN_FALSE_NAMED) {
       helperGuard = true;

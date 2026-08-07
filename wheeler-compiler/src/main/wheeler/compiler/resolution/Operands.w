@@ -12,6 +12,8 @@ import wheeler.compiler.class_constants;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_return_kinds;
 import wheeler.compiler.early_return_operands;
+import wheeler.compiler.early_utf8_call_forms;
+import wheeler.compiler.early_utf8_call_resolution;
 import wheeler.compiler.expression_operands;
 import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.ir;
@@ -33,6 +35,8 @@ import wheeler.compiler.named_return_comparison_operands;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.owned_storage_forms;
 import wheeler.compiler.owned_storage_operands;
+import wheeler.compiler.owned_utf8_copy_loops;
+import wheeler.compiler.owned_utf8_copy_resolution;
 import wheeler.compiler.resolved_local_assignments;
 import wheeler.compiler.resolved_local_loop_forms;
 import wheeler.compiler.resolved_local_loop_kinds;
@@ -138,6 +142,10 @@ classical class Operands {
       ambiguousTypedStatement = true;
     }
 
+    if (opcode == STATEMENT_IF_EQ_RETURN_UTF8_CALL_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
     if (opcode == STATEMENT_SET_BYTE_NAMED) {
       ambiguousTypedStatement = true;
     }
@@ -178,6 +186,17 @@ classical class Operands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (earlyUtf8Call(opcode)) {
+      return resolveEarlyUtf8CallOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        previousStarts,
+        previousCount
+      );
+    }
+
     if (sourceOpcode == STATEMENT_CALL_VOID_ZERO_NAMED) {
       return 0;
     }
@@ -474,6 +493,17 @@ classical class Operands {
 
         return -1;
       }
+    }
+
+    if (ownedUtf8CopyLoop(opcode)) {
+      return resolveOwnedUtf8CopyOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        previousStarts,
+        previousCount
+      );
     }
 
     if (resolvedLocalWhile(opcode)) {

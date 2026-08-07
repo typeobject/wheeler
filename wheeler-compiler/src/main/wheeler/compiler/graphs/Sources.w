@@ -21,10 +21,9 @@ classical class BoundedGraphSources {
 
   private utf8 copySource(borrow utf8 source, borrow mut region arena) {
     long length = bufferLength(source);
-    assert(0 < length);
     assert(length < SOURCE_BYTE_LIMIT);
-    bytes copied = allocateBytes(arena, length);
     long cursor = 0;
+    bytes copied = allocateBytes(arena, length);
     while (cursor < length) limit MAX_SOURCE_BYTES {
       setByte(copied, cursor, utf8Scalar(source, cursor));
       cursor += 1;
@@ -46,12 +45,7 @@ classical class BoundedGraphSources {
     borrow utf8 seventhSource,
     borrow mut region arena
   ) {
-    assert(0 < sourceCount);
     assert(sourceCount < GRAPH_SOURCE_COUNT_LIMIT);
-    if (index < 0) {
-      assert(index == 0);
-    }
-
     assert(index < sourceCount);
 
     if (index == 0) {

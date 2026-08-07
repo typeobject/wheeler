@@ -4,6 +4,8 @@ module wheeler.compiler.codegen;
 
 import wheeler.compiler.borrowed_intrinsic_codegen;
 import wheeler.compiler.conditionals;
+import wheeler.compiler.early_utf8_call_codegen;
+import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.encoding;
 import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.local_opcodes;
@@ -11,6 +13,8 @@ import wheeler.compiler.loop_codegen;
 import wheeler.compiler.named_long_operations;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.owned_storage_codegen;
+import wheeler.compiler.owned_utf8_copy_codegen;
+import wheeler.compiler.owned_utf8_copy_loops;
 import wheeler.compiler.resolved_boolean_literal_assertions;
 import wheeler.compiler.resolved_boolean_literal_comparisons;
 import wheeler.compiler.resolved_less_than_assertions;
@@ -256,6 +260,21 @@ classical class Codegen {
     long thirdSourceType,
     long fourthSourceType
   ) {
+    long earlyUtf8Cursor = writeEarlyUtf8Call(
+      output,
+      cursor,
+      opcode,
+      operand,
+      localBase,
+      instructionBase,
+      callFunction,
+      firstSourceType,
+      secondSourceType
+    );
+    if (-1 < earlyUtf8Cursor) {
+      return earlyUtf8Cursor;
+    }
+
     long voidCallCursor = writeVoidCallStatement(
       output,
       cursor,
@@ -341,6 +360,18 @@ classical class Codegen {
     long instructionBase,
     long callFunction
   ) {
+    if (ownedUtf8CopyLoop(opcode)) {
+      return writeOwnedUtf8CopyLoop(
+        output,
+        cursor,
+        opcode,
+        operand,
+        secondaryOperand,
+        localBase,
+        instructionBase
+      );
+    }
+
     if (resolvedLocalWhile(opcode)) {
       return writeLocalWhile(
         output,

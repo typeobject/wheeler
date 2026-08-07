@@ -6,6 +6,7 @@ import wheeler.compiler.borrowed_intrinsic_shapes;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_comparison_forms;
+import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.named_boolean_return_kinds;
@@ -16,6 +17,7 @@ import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.named_signed_return_kinds;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.owned_storage_forms;
+import wheeler.compiler.owned_utf8_copy_loops;
 import wheeler.compiler.resolved_boolean_literal_assertions;
 import wheeler.compiler.resolved_boolean_literal_comparisons;
 import wheeler.compiler.resolved_early_result_kinds;
@@ -53,6 +55,11 @@ classical class LocalOpcodes {
 
   /// Returns the typed-local width required by one parsed statement.
   public long statementLocalCount(long opcode) {
+    long earlyUtf8Locals = earlyUtf8CallLocalCount(opcode);
+    if (-1 < earlyUtf8Locals) {
+      return earlyUtf8Locals;
+    }
+
     long voidCallLocals = voidCallLocalCount(opcode);
     if (-1 < voidCallLocals) {
       return voidCallLocals;
@@ -82,6 +89,11 @@ classical class LocalOpcodes {
 
     if (resolvedEarlyComparisonReturn(opcode)) {
       return 4;
+    }
+
+    long copyLoopLocals = ownedUtf8CopyLocalCount(opcode);
+    if (-1 < copyLoopLocals) {
+      return copyLoopLocals;
     }
 
     if (resolvedLocalWhile(opcode)) {
@@ -508,6 +520,11 @@ classical class LocalOpcodes {
 
   /// Returns the encoded byte width of one parsed statement.
   public long statementCodeLength(long opcode) {
+    long earlyUtf8Length = earlyUtf8CallCodeLength(opcode);
+    if (-1 < earlyUtf8Length) {
+      return earlyUtf8Length;
+    }
+
     long voidCallLength = voidCallCodeLength(opcode);
     if (-1 < voidCallLength) {
       return voidCallLength;
@@ -537,6 +554,11 @@ classical class LocalOpcodes {
 
     if (resolvedEarlyComparisonReturn(opcode)) {
       return 160;
+    }
+
+    long copyLoopLength = ownedUtf8CopyCodeLength(opcode);
+    if (-1 < copyLoopLength) {
+      return copyLoopLength;
     }
 
     if (resolvedLocalWhile(opcode)) {
@@ -788,6 +810,11 @@ classical class LocalOpcodes {
 
   /// Returns the instruction count emitted by one parsed statement.
   public long statementInstructionCount(long opcode) {
+    long earlyUtf8Instructions = earlyUtf8CallInstructionCount(opcode);
+    if (-1 < earlyUtf8Instructions) {
+      return earlyUtf8Instructions;
+    }
+
     long voidCallInstructions = voidCallInstructionCount(opcode);
     if (-1 < voidCallInstructions) {
       return voidCallInstructions;
@@ -817,6 +844,11 @@ classical class LocalOpcodes {
 
     if (resolvedEarlyComparisonReturn(opcode)) {
       return 7;
+    }
+
+    long copyLoopInstructions = ownedUtf8CopyInstructionCount(opcode);
+    if (-1 < copyLoopInstructions) {
+      return copyLoopInstructions;
     }
 
     if (resolvedLocalWhile(opcode)) {

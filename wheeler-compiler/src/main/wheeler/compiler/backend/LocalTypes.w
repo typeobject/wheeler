@@ -6,12 +6,14 @@ import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_comparison_forms;
+import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.encoding;
 import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.named_comparison_kinds;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.owned_storage_forms;
+import wheeler.compiler.owned_utf8_copy_loops;
 import wheeler.compiler.resolved_boolean_literal_assertions;
 import wheeler.compiler.resolved_boolean_literal_comparisons;
 import wheeler.compiler.resolved_early_result_kinds;
@@ -67,6 +69,17 @@ classical class LocalTypes {
     long thirdSourceType,
     long fourthSourceType
   ) {
+    if (earlyUtf8Call(opcode)) {
+      cursor = writeSignedLocalType(output, cursor);
+      cursor = writeSignedLocalType(output, cursor);
+      cursor = writeBooleanLocalType(output, cursor);
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, secondSourceType);
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, secondSourceType);
+      return writeLocalType(output, cursor, TYPE_UTF8);
+    }
+
     long voidArity = voidCallArity(opcode);
     if (voidArity == 0) {
       return cursor;
@@ -455,6 +468,20 @@ classical class LocalTypes {
       }
 
       return writeUnsignedLittleEndian(output, cursor, comparisonResultType, 4);
+    }
+
+    if (ownedUtf8CopyLoop(opcode)) {
+      cursor = writeLocalType(output, cursor, TYPE_BYTES);
+      cursor = writeSignedLocalType(output, cursor);
+      cursor = writeSignedLocalType(output, cursor);
+      cursor = writeSignedLocalType(output, cursor);
+      cursor = writeSignedLocalType(output, cursor);
+      cursor = writeBooleanLocalType(output, cursor);
+      cursor = writeSignedLocalType(output, cursor);
+      cursor = writeLocalType(output, cursor, TYPE_UTF8_BORROW);
+      cursor = writeSignedLocalType(output, cursor);
+      cursor = writeSignedLocalType(output, cursor);
+      return writeSignedLocalType(output, cursor);
     }
 
     if (resolvedLocalWhile(opcode)) {

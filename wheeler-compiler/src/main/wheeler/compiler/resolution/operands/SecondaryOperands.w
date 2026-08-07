@@ -9,6 +9,8 @@ import wheeler.compiler.call_forms;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_return_operands;
+import wheeler.compiler.early_utf8_call_forms;
+import wheeler.compiler.early_utf8_call_resolution;
 import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.local_opcodes;
@@ -19,6 +21,8 @@ import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.operands;
 import wheeler.compiler.owned_storage_forms;
 import wheeler.compiler.owned_storage_operands;
+import wheeler.compiler.owned_utf8_copy_loops;
+import wheeler.compiler.owned_utf8_copy_resolution;
 import wheeler.compiler.resolved_early_result_kinds;
 import wheeler.compiler.resolved_local_loop_forms;
 import wheeler.compiler.resolved_local_loop_kinds;
@@ -53,6 +57,17 @@ classical class SecondaryOperands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (earlyUtf8Call(opcode)) {
+      return resolveEarlyUtf8CallOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        previousStarts,
+        previousCount
+      );
+    }
+
     boolean wideVoidCall = sourceOpcode == STATEMENT_CALL_VOID_TWO_NAMED;
     if (sourceOpcode == STATEMENT_CALL_VOID_THREE_NAMED) {
       wideVoidCall = true;
@@ -243,6 +258,17 @@ classical class SecondaryOperands {
     );
     if (earlyReturn.applies) {
       return earlyReturn.value;
+    }
+
+    if (ownedUtf8CopyLoop(opcode)) {
+      return resolveOwnedUtf8CopySecondaryOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        previousStarts,
+        previousCount
+      );
     }
 
     if (resolvedLocalWhile(opcode)) {

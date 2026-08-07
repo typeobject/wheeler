@@ -8,6 +8,7 @@ import wheeler.compiler.helper_abi;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_statements;
+import wheeler.compiler.operand_validity;
 import wheeler.compiler.operands;
 import wheeler.compiler.secondary_operands;
 import wheeler.compiler.statement_kinds;
@@ -338,7 +339,16 @@ classical class StatementSequences {
 
     long statement = 0;
     while (statement < count) limit MAX_MINIMAL_STATEMENTS {
-      if (sequenceOperandValid(opcodes[statement], operands[statement]) == false) {
+      FocusedOperandValidity focused = focusedOperandValidity(
+        opcodes[statement],
+        operands[statement]
+      );
+      boolean operandValid = focused.valid;
+      if (focused.applies == false) {
+        operandValid = sequenceOperandValid(opcodes[statement], operands[statement]);
+      }
+
+      if (operandValid == false) {
         return new StatementSequence(count, opcodes, operands, secondaryOperands, false);
       }
 

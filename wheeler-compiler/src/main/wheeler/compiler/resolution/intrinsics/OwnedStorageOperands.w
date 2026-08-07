@@ -7,6 +7,7 @@ import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.owned_storage_forms;
+import wheeler.compiler.owned_utf8_copy_loops;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
@@ -79,7 +80,36 @@ classical class OwnedStorageOperands {
             }
           }
 
-          localBase += statementLocalCount(previousOpcode);
+          boolean copyLoop = previousOpcode == STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED;
+          if (copyLoop) {
+            copyLoop = ownedUtf8CopyLoopCandidate(
+              source,
+              tokenStarts,
+              tokenLengths,
+              previousStart
+            );
+          }
+
+          if (copyLoop) {
+            if (0 < matchCount) {
+              if (
+                sameTokenText(
+                  source,
+                  tokenStarts,
+                  tokenLengths,
+                  ownedUtf8CopyOwnerToken(previousStart),
+                  assertedName
+                )
+              ) {
+                matchedLocal = localBase;
+                moved = true;
+              }
+            }
+
+            localBase += COPY_LOOP_FRAME_WIDTH;
+          } else {
+            localBase += statementLocalCount(previousOpcode);
+          }
         }
       }
 

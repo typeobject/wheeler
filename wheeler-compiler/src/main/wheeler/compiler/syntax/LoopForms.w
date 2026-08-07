@@ -5,6 +5,7 @@ module wheeler.compiler.loop_forms;
 import wheeler.compiler.identifier_starts;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.loop_kinds;
+import wheeler.compiler.owned_utf8_copy_loops;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
@@ -106,6 +107,17 @@ classical class LoopForms {
     borrow mut words tokenLengths,
     long statementStart
   ) {
+    long copyWidth = ownedUtf8CopyLoopWidth(
+      source,
+      tokenKinds,
+      tokenStarts,
+      tokenLengths,
+      statementStart
+    );
+    if (-1 < copyWidth) {
+      return copyWidth;
+    }
+
     if (
       punctuationAt(
         source,

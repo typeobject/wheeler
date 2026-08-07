@@ -7,12 +7,14 @@ import wheeler.compiler.call_forms;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.early_return_kinds;
+import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.named_local_update_kinds;
 import wheeler.compiler.named_long_operations;
 import wheeler.compiler.one_argument_calls;
+import wheeler.compiler.owned_utf8_copy_loops;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.three_argument_calls;
@@ -27,12 +29,22 @@ classical class LocalResolution {
     long statementStart,
     long opcode
   ) {
+    if (opcode == STATEMENT_IF_EQ_RETURN_UTF8_CALL_NAMED) {
+      return EARLY_UTF8_CALL_LOCAL_COUNT;
+    }
+
     long earlyReturnLocals = sourceEarlyReturnLocalCount(opcode);
     if (-1 < earlyReturnLocals) {
       return earlyReturnLocals;
     }
 
     if (opcode == STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED) {
+      if (
+        ownedUtf8CopyLoopCandidate(source, tokenStarts, tokenLengths, statementStart)
+      ) {
+        return COPY_LOOP_FRAME_WIDTH;
+      }
+
       return 6;
     }
 

@@ -11,6 +11,8 @@ import wheeler.compiler.class_constants;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_return_kinds;
 import wheeler.compiler.early_statement_resolution;
+import wheeler.compiler.early_utf8_call_forms;
+import wheeler.compiler.early_utf8_call_resolution;
 import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.local_loop_resolution;
@@ -139,6 +141,17 @@ classical class LocalStatements {
     long previousCount
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (opcode == STATEMENT_IF_EQ_RETURN_UTF8_CALL_NAMED) {
+      return resolveEarlyUtf8CallOpcode(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        previousStarts,
+        previousCount
+      );
+    }
+
     if (earlyReturnStatement(opcode)) {
       return resolveEarlyStatementOpcode(
         source,

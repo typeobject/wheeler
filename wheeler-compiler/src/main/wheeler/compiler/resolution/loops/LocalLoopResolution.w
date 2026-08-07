@@ -6,6 +6,8 @@ import wheeler.compiler.class_constants;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.loop_kinds;
+import wheeler.compiler.owned_utf8_copy_loops;
+import wheeler.compiler.owned_utf8_copy_resolution;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.tokens;
 
@@ -19,6 +21,17 @@ classical class LocalLoopResolution {
     borrow mut words previousStarts,
     long previousCount
   ) {
+    if (ownedUtf8CopyLoopCandidate(source, tokenStarts, tokenLengths, statementStart)) {
+      return resolveOwnedUtf8CopyOpcode(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        previousStarts,
+        previousCount
+      );
+    }
+
     long whileTargetName = whileTargetToken(source, tokenStarts, statementStart);
     long whileTarget = resolvePriorDeclaration(
       source,
