@@ -68,7 +68,7 @@ classical class ScalarHelperParsing {
     );
   }
 
-  /// Parses two through twenty-three scalar helper declarations in source order.
+  /// Parses one through twenty-three scalar helper declarations in source order.
   public ScalarHelperTable parseScalarHelpers(
     borrow utf8 source,
     borrow mut words tokenKinds,
@@ -94,20 +94,28 @@ classical class ScalarHelperParsing {
       return invalidTable();
     }
 
-    ParsedScalarHelper second = parseScalarHelper(
-      source,
-      tokenKinds,
-      tokenStarts,
-      tokenLengths,
-      statementStarts,
-      first.nextToken
-    );
-    if (second.valid) {} else {
-      return invalidTable();
+    long helperCount = 1;
+    long classClose = first.nextToken;
+    ParsedScalarHelper second = invalidHelper();
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
+    ) {
+      second = parseScalarHelper(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStarts,
+        classClose
+      );
+      if (second.valid) {} else {
+        return invalidTable();
+      }
+
+      helperCount = 2;
+      classClose = second.nextToken;
     }
 
-    long helperCount = 2;
-    long classClose = second.nextToken;
     ParsedScalarHelper third = invalidHelper();
     ParsedScalarHelper fourth = invalidHelper();
     ParsedScalarHelper fifth = invalidHelper();

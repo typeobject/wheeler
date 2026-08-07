@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
+import com.typeobject.wheeler.core.bytecode.Program;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -174,6 +175,40 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
         NativeModuleCompilerHarness.program(),
         List.of(),
         source.replace("long key", "borrow utf8 key"));
+  }
+
+  @Test
+  void compilesOneFixedArrayHelperByteForByte() throws Exception {
+    String source = """
+        module example.one_fixed_array_helper;
+        classical class OneFixedArrayHelper {
+          public long lookup(long[7] values, long index, long fallback) {
+            return values[index];
+          }
+        }
+        """;
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("OneFixedArrayHelper.w", source), "example.one_fixed_array_helper"));
+    byte[] actual = NativeModuleCompilerHarness.compile(
+        NativeModuleCompilerHarness.program(), List.of(), source);
+    assertArrayEquals(expected, actual);
+
+    Program decoded = new BytecodeReader().read(actual);
+    assertEquals("example.one_fixed_array_helper::lookup", decoded.functions().getFirst().name());
+    assertEquals("$library", decoded.functions().getLast().name());
+    assertEquals(2, decoded.functions().size());
+
+    for (String visibility : List.of("private ", "")) {
+      String variant = source.replace("public long lookup", visibility + "long lookup");
+      byte[] variantExpected = new BytecodeWriter().write(
+          new WheelerCompiler().compileLibraryModuleFiles(
+              Map.of("OneFixedArrayHelper.w", variant), "example.one_fixed_array_helper"));
+      assertArrayEquals(
+          variantExpected,
+          NativeModuleCompilerHarness.compile(
+              NativeModuleCompilerHarness.program(), List.of(), variant));
+    }
   }
 
   @Test

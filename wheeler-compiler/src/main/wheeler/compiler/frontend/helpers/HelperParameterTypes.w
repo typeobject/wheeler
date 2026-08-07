@@ -131,7 +131,7 @@ classical class HelperParameterTypes {
     long signatureStart,
     long index
   ) {
-    long cursor = signatureStart + 4;
+    long cursor = signatureStart + 3;
     long parameter = 0;
     while (parameter < index) limit MAX_SCALAR_HELPER_PARAMETERS {
       HelperParameter skipped = parseHelperParameter(

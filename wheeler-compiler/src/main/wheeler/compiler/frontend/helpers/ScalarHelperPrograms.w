@@ -8,7 +8,7 @@ import wheeler.compiler.scalar_helper_parsing;
 import wheeler.compiler.scalar_helper_resolution;
 
 classical class ScalarHelperPrograms {
-  /// Builds one resolved library from two through twenty-three scalar helpers.
+  /// Builds one resolved library from one through twenty-three scalar helpers.
   public MinimalProgramResult parseScalarHelperLibrary(
     borrow utf8 source,
     borrow mut words tokenKinds,

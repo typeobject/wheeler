@@ -1,4 +1,4 @@
-//! Parses bounded entryless libraries with several scalar helpers.
+//! Parses each member of a bounded entryless scalar-helper library.
 
 module wheeler.compiler.scalar_helper_libraries;
 
@@ -477,14 +477,17 @@ classical class ScalarHelperLibraries {
     borrow mut words statementStarts,
     long start
   ) {
+    long returnTypeToken = start;
     long visibility = tokenHash(source, tokenStarts, tokenLengths, start);
-    if (visibility == TOKEN_PUBLIC) {} else {
-      if (visibility == TOKEN_PRIVATE) {} else {
-        return invalidHelper();
+    if (visibility == TOKEN_PUBLIC) {
+      returnTypeToken += 1;
+    } else {
+      if (visibility == TOKEN_PRIVATE) {
+        returnTypeToken += 1;
       }
     }
 
-    long returnType = tokenHash(source, tokenStarts, tokenLengths, start + 1);
+    long returnType = tokenHash(source, tokenStarts, tokenLengths, returnTypeToken);
     if (returnType == TOKEN_LONG) {} else {
       if (returnType == TOKEN_BOOLEAN) {} else {
         if (returnType == TOKEN_VOID) {} else {
@@ -493,7 +496,7 @@ classical class ScalarHelperLibraries {
       }
     }
 
-    long nameToken = start + 2;
+    long nameToken = returnTypeToken + 1;
     if (tokenKinds[nameToken] == 1) {} else {
       return invalidHelper();
     }
@@ -507,13 +510,19 @@ classical class ScalarHelperLibraries {
     }
 
     if (
-      punctuationAt(source, tokenKinds, tokenStarts, start + 3, PUNCTUATION_OPEN_PAREN)
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        returnTypeToken + 2,
+        PUNCTUATION_OPEN_PAREN
+      )
     ) {} else {
       return invalidHelper();
     }
 
     long parameterCount = 0;
-    long parameterCursor = start + 4;
+    long parameterCursor = returnTypeToken + 3;
     while (
       punctuationAt(source, tokenKinds, tokenStarts, parameterCursor, PUNCTUATION_CLOSE_PAREN)
         == false
@@ -551,7 +560,7 @@ classical class ScalarHelperLibraries {
           tokenKinds,
           tokenStarts,
           tokenLengths,
-          start,
+          returnTypeToken,
           priorParameter
         );
         if (prior.valid) {} else {
@@ -709,7 +718,7 @@ classical class ScalarHelperLibraries {
           tokenKinds,
           tokenStarts,
           tokenLengths,
-          start,
+          returnTypeToken,
           parameter
         );
         assert(resolvedParameter.valid);
@@ -730,7 +739,7 @@ classical class ScalarHelperLibraries {
       tokenKinds,
       tokenStarts,
       tokenLengths,
-      start,
+      returnTypeToken,
       parameterCount
     );
     if (scalarSequenceValid(sequence, kind, parameterTypes, parameterCount)) {} else {
