@@ -11,6 +11,7 @@ import wheeler.compiler.conditionals;
 import wheeler.compiler.early_return_operands;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.early_utf8_call_resolution;
+import wheeler.compiler.five_argument_returns;
 import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.local_opcodes;
@@ -27,6 +28,7 @@ import wheeler.compiler.resolved_early_result_kinds;
 import wheeler.compiler.resolved_local_loop_forms;
 import wheeler.compiler.resolved_local_loop_kinds;
 import wheeler.compiler.resolved_local_loop_operands;
+import wheeler.compiler.resolved_statements;
 import wheeler.compiler.return_expressions;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
@@ -57,6 +59,36 @@ classical class SecondaryOperands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (opcode == STATEMENT_RETURN_HELPER_CALL_FIVE) {
+      long fourth = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 9,
+        true
+      );
+      long fifth = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 11,
+        true
+      );
+      if (fourth < 0) {
+        return -1;
+      }
+
+      if (fifth < 0) {
+        return -1;
+      }
+
+      return packFiveReturnLastSources(fourth, fifth);
+    }
+
     if (earlyUtf8Call(opcode)) {
       return resolveEarlyUtf8CallOperand(
         source,

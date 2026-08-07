@@ -163,6 +163,8 @@ classical class ResolvedStatements {
   public const long STATEMENT_RETURN_HELPER_CALL_THREE_BASE = 16777216;
   /// Starts resolved scalar helper returns forwarding a four-argument call result.
   public const long STATEMENT_RETURN_HELPER_CALL_FOUR_BASE = 33554432;
+  /// Names a resolved scalar helper return forwarding a five-argument call result.
+  public const long STATEMENT_RETURN_HELPER_CALL_FIVE = 29440;
   /// Starts resolved bounded signed-local while loops.
   public const long STATEMENT_LOCAL_WHILE_BASE = 18688;
   /// Starts resolved signed-local less-than assertions against literals.

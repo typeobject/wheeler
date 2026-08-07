@@ -5,6 +5,7 @@ module wheeler.compiler.helper_source_types;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.early_utf8_call_forms;
+import wheeler.compiler.five_argument_returns;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.type_codes;
@@ -115,8 +116,11 @@ classical class HelperSourceTypes {
     }
 
     long returnArity = returnHelperCallArity(opcode);
+    if (returnArity == 5) {
+      return fiveReturnFirstSource(operand);
+    }
+
     long helperSource = returnHelperCallFirstSource(opcode);
-    long pairSource = helperSource - RETURN_HELPER_CALL_TWO_SOURCE_OFFSET;
     if (returnArity == 1) {
       return helperSource;
     }
@@ -130,15 +134,19 @@ classical class HelperSourceTypes {
     }
 
     if (returnArity == 2) {
-      return pairSource;
+      return helperSource - RETURN_HELPER_CALL_TWO_SOURCE_OFFSET;
     }
 
     return -1;
   }
 
-  private long thirdSource(long opcode) {
+  private long thirdSource(long opcode, long operand) {
     long directSource = voidCallThirdSource(opcode);
     long returnArity = returnHelperCallArity(opcode);
+    if (returnArity == 5) {
+      return fiveReturnThirdSource(operand);
+    }
+
     long helperSource = returnHelperCallThirdSource(opcode);
     if (returnArity == 3) {
       return helperSource;
@@ -206,6 +214,10 @@ classical class HelperSourceTypes {
     }
 
     long returnArity = returnHelperCallArity(opcode);
+    if (returnArity == 5) {
+      return fiveReturnSecondSource(operand);
+    }
+
     long helperSource = returnHelperCallSecondSource(opcode);
     if (returnArity == 2) {
       return helperSource;
@@ -222,11 +234,23 @@ classical class HelperSourceTypes {
     return -1;
   }
 
-  private long fourthSource(long opcode) {
+  private long fourthSource(long opcode, long operand) {
     long returnArity = returnHelperCallArity(opcode);
+    if (returnArity == 5) {
+      return fiveReturnFourthSource(operand);
+    }
+
     long helperSource = returnHelperCallFourthSource(opcode);
     if (returnArity == 4) {
       return helperSource;
+    }
+
+    return -1;
+  }
+
+  private long fifthSource(long opcode, long operand) {
+    if (returnHelperCallArity(opcode) == 5) {
+      return fiveReturnFifthSource(operand);
     }
 
     return -1;
@@ -248,25 +272,51 @@ classical class HelperSourceTypes {
   }
 
   /// Returns the canonical third source type for one typed statement.
-  public long helperThirdSourceType(long opcode, long[16] parameterTypes, long parameterCount) {
-    long selected = thirdSource(opcode);
+  public long helperThirdSourceType(
+    long opcode,
+    long operand,
+    long[16] parameterTypes,
+    long parameterCount
+  ) {
+    long selected = thirdSource(opcode, operand);
     return sequenceLocalType(parameterTypes, parameterCount, selected);
   }
 
   /// Returns the canonical second source type for one typed statement.
   public long helperSecondSourceType(
     long opcode,
+    long operand,
     long secondaryOperand,
     long[16] parameterTypes,
     long parameterCount
   ) {
     long selected = secondSource(opcode, secondaryOperand);
+    if (returnHelperCallArity(opcode) == 5) {
+      selected = fiveReturnSecondSource(operand);
+    }
+
     return sequenceLocalType(parameterTypes, parameterCount, selected);
   }
 
   /// Returns the canonical fourth source type for one typed statement.
-  public long helperFourthSourceType(long opcode, long[16] parameterTypes, long parameterCount) {
-    long selected = fourthSource(opcode);
+  public long helperFourthSourceType(
+    long opcode,
+    long operand,
+    long[16] parameterTypes,
+    long parameterCount
+  ) {
+    long selected = fourthSource(opcode, operand);
+    return sequenceLocalType(parameterTypes, parameterCount, selected);
+  }
+
+  /// Returns the canonical fifth source type for one typed statement.
+  public long helperFifthSourceType(
+    long opcode,
+    long operand,
+    long[16] parameterTypes,
+    long parameterCount
+  ) {
+    long selected = fifthSource(opcode, operand);
     return sequenceLocalType(parameterTypes, parameterCount, selected);
   }
 }

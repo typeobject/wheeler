@@ -1,4 +1,4 @@
-//! Resolves zero- through four-argument scalar calls in final returns.
+//! Resolves zero- through five-argument scalar calls in final returns.
 
 module wheeler.compiler.scalar_return_call_resolution;
 
@@ -116,8 +116,24 @@ classical class ScalarReturnCallResolution {
       return new ResolvedScalarReturnCall(-1, true);
     }
 
-    long fourArgumentOpcode = STATEMENT_RETURN_HELPER_CALL_FOUR_BASE + first * RETURN_SOURCE_CUBE
-      + second * RETURN_SOURCE_SQUARE + third * RETURN_SOURCE_COUNT + fourth;
-    return new ResolvedScalarReturnCall(fourArgumentOpcode, true);
+    if (utf8Scalar(source, tokenStarts[statementStart + 10]) == PUNCTUATION_COMMA) {} else {
+      long fourArgumentOpcode = STATEMENT_RETURN_HELPER_CALL_FOUR_BASE + first * RETURN_SOURCE_CUBE
+        + second * RETURN_SOURCE_SQUARE + third * RETURN_SOURCE_COUNT + fourth;
+      return new ResolvedScalarReturnCall(fourArgumentOpcode, true);
+    }
+
+    long fifth = resolvedArgument(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      statementStart + 11
+    );
+    if (fifth < 0) {
+      return new ResolvedScalarReturnCall(-1, true);
+    }
+
+    return new ResolvedScalarReturnCall(STATEMENT_RETURN_HELPER_CALL_FIVE, true);
   }
 }

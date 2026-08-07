@@ -18,6 +18,8 @@ classical class ResolvedReturnCallKinds {
     + RESOLVED_SOURCE_CUBE * RESOLVED_SOURCE_COUNT;
   /// Removes the aligned two-argument opcode column from its first source.
   public const long RETURN_HELPER_CALL_TWO_SOURCE_OFFSET = 256;
+  /// Caps final scalar-result forwarding without coupling it to helper parameter capacity.
+  public const long MAX_FORWARDED_SCALAR_ARGUMENTS = 5;
 
   /// Checks whether one resolved return forwards a scalar helper call.
   public boolean resolvedReturnHelperCall(long opcode) {
@@ -30,6 +32,10 @@ classical class ResolvedReturnCallKinds {
     }
 
     if (opcode == STATEMENT_RETURN_HELPER_CALL_ZERO) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_HELPER_CALL_FIVE) {
       return true;
     }
 
@@ -68,6 +74,10 @@ classical class ResolvedReturnCallKinds {
 
     if (opcode == STATEMENT_RETURN_HELPER_CALL_ZERO) {
       return 0;
+    }
+
+    if (opcode == STATEMENT_RETURN_HELPER_CALL_FIVE) {
+      return 5;
     }
 
     if (opcode < STATEMENT_RETURN_HELPER_CALL_TWO_BASE) {
@@ -133,7 +143,7 @@ classical class ResolvedReturnCallKinds {
     return quotientFour % RESOLVED_SOURCE_COUNT;
   }
 
-  /// Returns the third source local of one resolved three-argument helper call.
+  /// Returns the third source local of one resolved wide helper call.
   public long returnHelperCallThirdSource(long opcode) {
     long packedThree = opcode - STATEMENT_RETURN_HELPER_CALL_THREE_BASE;
     if (packedThree < RESOLVED_SOURCE_CUBE) {

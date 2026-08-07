@@ -66,11 +66,23 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
           public long directWidth(borrow utf8 value, long index) {
             return utf8Width(value, index);
           }
-          private long select(borrow utf8 value, long index, long fallback, long spare) {
+          private long select(
+            borrow utf8 value,
+            long index,
+            long fallback,
+            long spare,
+            long extra
+          ) {
             return utf8Scalar(value, index);
           }
-          public long relay(borrow utf8 value, long index, long fallback, long spare) {
-            return select(value, index, fallback, spare);
+          public long relay(
+            borrow utf8 value,
+            long index,
+            long fallback,
+            long spare,
+            long extra
+          ) {
+            return select(value, index, fallback, spare, extra);
           }
           public long dummy() { return 0; }
         }
@@ -82,8 +94,8 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
         NativeModuleCompilerHarness.program(), List.of(), source);
     assertArrayEquals(expected, actual);
     var relay = new BytecodeReader().read(actual).functions().get(6);
-    assertEquals(13, relay.localCount());
-    assertEquals(10, relay.forward().size());
+    assertEquals(16, relay.localCount());
+    assertEquals(12, relay.forward().size());
 
     NativeModuleCompilerHarness.assertTrap(
         NativeModuleCompilerHarness.program(),
@@ -97,8 +109,14 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
         NativeModuleCompilerHarness.program(),
         List.of(),
         source.replace(
-            "return select(value, index, fallback, spare);",
-            "return select(value, index, fallback, spare, spare);"));
+            "return select(value, index, fallback, spare, extra);",
+            "return select(index, value, fallback, spare, extra);"));
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(),
+        List.of(),
+        source.replace(
+            "return select(value, index, fallback, spare, extra);",
+            "return select(value, index, fallback, spare, extra, extra);"));
   }
 
   @Test

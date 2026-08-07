@@ -39,7 +39,7 @@ import wheeler.compiler.void_call_kinds;
 
 classical class LocalTypes {
   /// Bounds the temporary local window emitted by one source statement.
-  private const long MAX_STATEMENT_LOCALS = 10;
+  private const long MAX_STATEMENT_LOCALS = 11;
 
   /// Writes one validated canonical local type code.
   public long writeLocalType(borrow mut bytes output, long cursor, long type) {
@@ -67,7 +67,8 @@ classical class LocalTypes {
     long firstSourceType,
     long secondSourceType,
     long thirdSourceType,
-    long fourthSourceType
+    long fourthSourceType,
+    long fifthSourceType
   ) {
     if (earlyUtf8Call(opcode)) {
       cursor = writeSignedLocalType(output, cursor);
@@ -228,6 +229,20 @@ classical class LocalTypes {
       }
 
       return cursor;
+    }
+
+    if (arity == 5) {
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, secondSourceType);
+      cursor = writeLocalType(output, cursor, thirdSourceType);
+      cursor = writeLocalType(output, cursor, fourthSourceType);
+      cursor = writeLocalType(output, cursor, fifthSourceType);
+      cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, secondSourceType);
+      cursor = writeLocalType(output, cursor, thirdSourceType);
+      cursor = writeLocalType(output, cursor, fourthSourceType);
+      cursor = writeLocalType(output, cursor, fifthSourceType);
+      return writeLocalType(output, cursor, resultType);
     }
 
     if (arity == 4) {
@@ -400,31 +415,14 @@ classical class LocalTypes {
       return writeLocalType(output, cursor, TYPE_SIGNED);
     }
 
-    if (returnHelperCallArity(opcode) == 0) {
-      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
-    }
-
-    if (returnHelperCallArity(opcode) == 4) {
-      long fourArgumentLocal = 0;
-      while (fourArgumentLocal < 8) limit MAX_STATEMENT_LOCALS {
+    long returnCallArity = returnHelperCallArity(opcode);
+    if (-1 < returnCallArity) {
+      long argumentLocal = 0;
+      while (argumentLocal < returnCallArity * 2) limit MAX_STATEMENT_LOCALS {
         cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
-        fourArgumentLocal += 1;
+        argumentLocal += 1;
       }
 
-      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
-    }
-
-    if (returnHelperCallArity(opcode) == 2) {
-      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
-      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
-      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
-      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
-      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
-    }
-
-    if (resolvedReturnHelperCall(opcode)) {
-      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
-      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
       return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
     }
 

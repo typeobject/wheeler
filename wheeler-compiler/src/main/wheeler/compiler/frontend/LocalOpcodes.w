@@ -164,24 +164,9 @@ classical class LocalOpcodes {
       return 1;
     }
 
-    if (returnHelperCallArity(opcode) == 0) {
-      return 1;
-    }
-
-    if (returnHelperCallArity(opcode) == 4) {
-      return 9;
-    }
-
-    if (returnHelperCallArity(opcode) == 3) {
-      return 7;
-    }
-
-    if (returnHelperCallArity(opcode) == 2) {
-      return 5;
-    }
-
-    if (resolvedReturnHelperCall(opcode)) {
-      return 3;
+    long returnCallArity = returnHelperCallArity(opcode);
+    if (-1 < returnCallArity) {
+      return returnCallArity * 2 + 1;
     }
 
     if (resolvedLocalReturn(opcode)) {
@@ -629,24 +614,9 @@ classical class LocalOpcodes {
       return 40;
     }
 
-    if (returnHelperCallArity(opcode) == 0) {
-      return 56;
-    }
-
-    if (returnHelperCallArity(opcode) == 4) {
-      return 248;
-    }
-
-    if (returnHelperCallArity(opcode) == 3) {
-      return 200;
-    }
-
-    if (returnHelperCallArity(opcode) == 2) {
-      return 152;
-    }
-
-    if (resolvedReturnHelperCall(opcode)) {
-      return 104;
+    long returnCallArity = returnHelperCallArity(opcode);
+    if (-1 < returnCallArity) {
+      return 56 + returnCallArity * 48;
     }
 
     if (resolvedLocalReturn(opcode)) {
@@ -875,8 +845,9 @@ classical class LocalOpcodes {
       return 6;
     }
 
-    if (returnHelperCallArity(opcode) == 4) {
-      return 10;
+    long returnCallArity = returnHelperCallArity(opcode);
+    if (-1 < returnCallArity) {
+      return returnCallArity * 2 + 2;
     }
 
     long length = statementCodeLength(opcode);

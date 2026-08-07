@@ -26,7 +26,7 @@ import wheeler.compiler.void_call_source_kinds;
 import wheeler.compiler.void_call_syntax;
 
 classical class Structure {
-  private const long MAX_SCALAR_RETURN_ARGUMENTS = 4;
+  private const long MAX_SCALAR_RETURN_ARGUMENTS = 5;
 
   /// Returns the first source offset inside the bounded entry body.
   public long minimalBodyStart(

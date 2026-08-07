@@ -264,16 +264,34 @@ classical class CompilerCore {
       );
       long secondType = helperSecondSourceType(
         opcode,
+        body.operands[statement],
         body.secondaryOperands[statement],
         body.parameterTypes,
         body.parameterCount
       );
-      long thirdType = helperThirdSourceType(opcode, body.parameterTypes, body.parameterCount);
-      long fourthType = helperFourthSourceType(opcode, body.parameterTypes, body.parameterCount);
+      long thirdType = helperThirdSourceType(
+        opcode,
+        body.operands[statement],
+        body.parameterTypes,
+        body.parameterCount
+      );
+      long fourthType = helperFourthSourceType(
+        opcode,
+        body.secondaryOperands[statement],
+        body.parameterTypes,
+        body.parameterCount
+      );
+      long fifthType = helperFifthSourceType(
+        opcode,
+        body.secondaryOperands[statement],
+        body.parameterTypes,
+        body.parameterCount
+      );
       firstType = canonicalProgramType(program, firstType);
       secondType = canonicalProgramType(program, secondType);
       thirdType = canonicalProgramType(program, thirdType);
       fourthType = canonicalProgramType(program, fourthType);
+      fifthType = canonicalProgramType(program, fifthType);
 
       long callCursor = writeHelperCallLocalTypes(
         output,
@@ -283,7 +301,8 @@ classical class CompilerCore {
         firstType,
         secondType,
         thirdType,
-        fourthType
+        fourthType,
+        fifthType
       );
       if (-1 < callCursor) {
         cursor = callCursor;

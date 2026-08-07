@@ -5,6 +5,7 @@ module wheeler.compiler.scalar_helper_tables;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.encoding;
+import wheeler.compiler.five_argument_returns;
 import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_signatures;
@@ -51,6 +52,8 @@ classical class ScalarHelperTables {
       return false;
     }
 
+    long fiveFirstSources = firstSource;
+    long fiveLastSources = secondSource;
     if (argumentCount == 0) {
       return true;
     }
@@ -61,12 +64,17 @@ classical class ScalarHelperTables {
     } else {
       if (voidCallStatement(opcode)) {} else {
         if (resolvedReturnHelperCall(opcode)) {
-          firstSource = returnHelperCallFirstSource(opcode);
-          if (argumentCount == 2) {
-            firstSource -= RETURN_HELPER_CALL_TWO_SOURCE_OFFSET;
-          }
+          if (argumentCount == 5) {
+            firstSource = fiveReturnFirstSource(fiveFirstSources);
+            secondSource = fiveReturnSecondSource(fiveFirstSources);
+          } else {
+            firstSource = returnHelperCallFirstSource(opcode);
+            if (argumentCount == 2) {
+              firstSource -= RETURN_HELPER_CALL_TWO_SOURCE_OFFSET;
+            }
 
-          secondSource = returnHelperCallSecondSource(opcode);
+            secondSource = returnHelperCallSecondSource(opcode);
+          }
         }
       }
     }
@@ -90,7 +98,11 @@ classical class ScalarHelperTables {
     long thirdSource = voidCallThirdSource(opcode);
     if (2 < argumentCount) {
       if (voidCallStatement(opcode)) {} else {
-        thirdSource = returnHelperCallThirdSource(opcode);
+        if (argumentCount == 5) {
+          thirdSource = fiveReturnThirdSource(fiveFirstSources);
+        } else {
+          thirdSource = returnHelperCallThirdSource(opcode);
+        }
       }
     }
 
@@ -102,8 +114,21 @@ classical class ScalarHelperTables {
       return true;
     }
 
-    long fourthSource = returnHelperCallFourthSource(opcode);
-    return callerLocalType(caller, fourthSource) == candidate.parameterTypes[3];
+    long fourthSource = fiveReturnFourthSource(fiveLastSources);
+    if (argumentCount == 4) {
+      fourthSource = returnHelperCallFourthSource(opcode);
+    }
+
+    if (callerLocalType(caller, fourthSource) == candidate.parameterTypes[3]) {} else {
+      return false;
+    }
+
+    if (argumentCount == 4) {
+      return true;
+    }
+
+    long fifthSource = fiveReturnFifthSource(fiveLastSources);
+    return callerLocalType(caller, fifthSource) == candidate.parameterTypes[4];
   }
 
   /// Compares two helper names in one source.

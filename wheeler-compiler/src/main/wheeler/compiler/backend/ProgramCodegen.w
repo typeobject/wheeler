@@ -63,6 +63,7 @@ classical class ProgramCodegen {
       long secondSourceType = TYPE_SIGNED;
       long thirdSourceType = TYPE_SIGNED;
       long fourthSourceType = TYPE_SIGNED;
+      long fifthSourceType = TYPE_SIGNED;
       if (typedHelper) {
         long opcode = opcodes[index];
         firstSourceType = helperFirstSourceType(
@@ -73,12 +74,29 @@ classical class ProgramCodegen {
         );
         secondSourceType = helperSecondSourceType(
           opcode,
+          operands[index],
           secondaryOperands[index],
           parameterTypes,
           parameterCount
         );
-        thirdSourceType = helperThirdSourceType(opcode, parameterTypes, parameterCount);
-        fourthSourceType = helperFourthSourceType(opcode, parameterTypes, parameterCount);
+        thirdSourceType = helperThirdSourceType(
+          opcode,
+          operands[index],
+          parameterTypes,
+          parameterCount
+        );
+        fourthSourceType = helperFourthSourceType(
+          opcode,
+          secondaryOperands[index],
+          parameterTypes,
+          parameterCount
+        );
+        fifthSourceType = helperFifthSourceType(
+          opcode,
+          secondaryOperands[index],
+          parameterTypes,
+          parameterCount
+        );
 
         cursor = writeHelperStatement(
           output,
@@ -92,7 +110,8 @@ classical class ProgramCodegen {
           firstSourceType,
           secondSourceType,
           thirdSourceType,
-          fourthSourceType
+          fourthSourceType,
+          fifthSourceType
         );
       } else {
         cursor = writeStatement(
