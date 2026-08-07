@@ -15,6 +15,7 @@ import wheeler.compiler.named_long_operations;
 import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.named_signed_return_kinds;
 import wheeler.compiler.one_argument_calls;
+import wheeler.compiler.owned_storage_forms;
 import wheeler.compiler.resolved_boolean_literal_assertions;
 import wheeler.compiler.resolved_boolean_literal_comparisons;
 import wheeler.compiler.resolved_early_result_kinds;
@@ -60,6 +61,11 @@ classical class LocalOpcodes {
     long intrinsicLocals = borrowedIntrinsicLocalCount(opcode);
     if (-1 < intrinsicLocals) {
       return intrinsicLocals;
+    }
+
+    long storageLocals = ownedStorageLocalCount(opcode);
+    if (-1 < storageLocals) {
+      return storageLocals;
     }
 
     if (resolvedEarlyHelperForwardingReturn(opcode)) {
@@ -412,6 +418,11 @@ classical class LocalOpcodes {
       return localBase + intrinsicResult;
     }
 
+    long storageResult = ownedStorageResultOffset(opcode);
+    if (-1 < storageResult) {
+      return localBase + storageResult;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
       return localBase + 1;
     }
@@ -505,6 +516,11 @@ classical class LocalOpcodes {
     long intrinsicLength = borrowedIntrinsicCodeLength(opcode);
     if (-1 < intrinsicLength) {
       return intrinsicLength;
+    }
+
+    long storageLength = ownedStorageCodeLength(opcode);
+    if (-1 < storageLength) {
+      return storageLength;
     }
 
     if (resolvedEarlyHelperForwardingReturn(opcode)) {
@@ -780,6 +796,11 @@ classical class LocalOpcodes {
     long intrinsicInstructions = borrowedIntrinsicInstructionCount(opcode);
     if (-1 < intrinsicInstructions) {
       return intrinsicInstructions;
+    }
+
+    long storageInstructions = ownedStorageInstructionCount(opcode);
+    if (-1 < storageInstructions) {
+      return storageInstructions;
     }
 
     if (resolvedEarlyHelperForwardingReturn(opcode)) {

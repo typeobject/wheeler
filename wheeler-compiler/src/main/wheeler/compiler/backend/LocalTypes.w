@@ -257,6 +257,16 @@ classical class LocalTypes {
   /// Writes canonical local type codes for one parsed statement.
   public long writeStatementLocalTypes(borrow mut bytes output, long cursor, long opcode) {
     long count = statementLocalCount(opcode);
+    if (opcode == STATEMENT_LOCAL_BYTES_ALLOCATE_NAMED) {
+      cursor = writeLocalType(output, cursor, TYPE_REGION_BORROW);
+      cursor = writeLocalType(output, cursor, TYPE_SIGNED);
+      return writeLocalType(output, cursor, TYPE_BYTES);
+    }
+
+    if (opcode == STATEMENT_DROP_OWNED_NAMED) {
+      return writeLocalType(output, cursor, TYPE_BYTES);
+    }
+
     if (opcode == STATEMENT_SET_WORD) {
       cursor = writeLocalType(output, cursor, TYPE_WORDS_BORROW);
       cursor = writeLocalType(output, cursor, TYPE_SIGNED);

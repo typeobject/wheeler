@@ -33,6 +33,19 @@ classical class StatementOpcodes {
       return STATEMENT_MAP_PUT_NAMED;
     }
 
+    if (keyword == TOKEN_DROP) {
+      return STATEMENT_DROP_OWNED_NAMED;
+    }
+
+    if (keyword == TOKEN_BYTES) {
+      long bytesInitializer = tokenHash(source, tokenStarts, tokenLengths, statementStart + 3);
+      if (bytesInitializer == TOKEN_ALLOCATE_BYTES) {
+        return STATEMENT_LOCAL_BYTES_ALLOCATE_NAMED;
+      }
+
+      return -1;
+    }
+
     if (keyword == TOKEN_WHILE) {
       return STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED;
     }

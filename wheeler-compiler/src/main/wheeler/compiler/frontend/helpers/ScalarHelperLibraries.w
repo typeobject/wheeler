@@ -104,11 +104,74 @@ classical class ScalarHelperLibraries {
     return opcode == STATEMENT_RETURN_MAP_HAS;
   }
 
+  private boolean ownedStorageValid(
+    StatementSequence sequence,
+    long[16] parameterTypes,
+    long parameterCount
+  ) {
+    long activeBytes = -1;
+    long localBase = parameterCount;
+    long statement = 0;
+    while (statement < sequence.count) limit MAX_MINIMAL_STATEMENTS {
+      long opcode = sequence.opcodes[statement];
+      if (opcode == STATEMENT_LOCAL_BYTES_ALLOCATE_NAMED) {
+        if (activeBytes < 0) {} else {
+          return false;
+        }
+
+        long regionSource = sequence.operands[statement];
+        long lengthSource = sequence.secondaryOperands[statement];
+        if (-1 < regionSource) {} else {
+          return false;
+        }
+
+        if (regionSource < parameterCount) {} else {
+          return false;
+        }
+
+        if (parameterTypes[regionSource] == TYPE_REGION_BORROW) {} else {
+          return false;
+        }
+
+        if (-1 < lengthSource) {} else {
+          return false;
+        }
+
+        if (lengthSource < parameterCount) {} else {
+          return false;
+        }
+
+        if (parameterTypes[lengthSource] == TYPE_SIGNED) {} else {
+          return false;
+        }
+
+        activeBytes = statementResultLocal(opcode, localBase);
+      }
+
+      if (opcode == STATEMENT_DROP_OWNED_NAMED) {
+        if (sequence.operands[statement] == activeBytes) {} else {
+          return false;
+        }
+
+        activeBytes = -1;
+      }
+
+      localBase += statementLocalCount(opcode);
+      statement += 1;
+    }
+
+    return activeBytes < 0;
+  }
+
   private boolean intrinsicSourcesValid(
     StatementSequence sequence,
     long[16] parameterTypes,
     long parameterCount
   ) {
+    if (ownedStorageValid(sequence, parameterTypes, parameterCount)) {} else {
+      return false;
+    }
+
     long statement = 0;
     while (statement < sequence.count) limit MAX_MINIMAL_STATEMENTS {
       long opcode = sequence.opcodes[statement];
@@ -358,6 +421,14 @@ classical class ScalarHelperLibraries {
           write = true;
         }
 
+        if (voidOpcode == STATEMENT_LOCAL_BYTES_ALLOCATE_NAMED) {
+          write = true;
+        }
+
+        if (voidOpcode == STATEMENT_DROP_OWNED_NAMED) {
+          write = true;
+        }
+
         if (write) {} else {
           return false;
         }
@@ -450,6 +521,14 @@ classical class ScalarHelperLibraries {
         }
 
         if (voidCallStatement(earlyOpcode)) {
+          signedPrelude = true;
+        }
+
+        if (earlyOpcode == STATEMENT_LOCAL_BYTES_ALLOCATE_NAMED) {
+          signedPrelude = true;
+        }
+
+        if (earlyOpcode == STATEMENT_DROP_OWNED_NAMED) {
           signedPrelude = true;
         }
 

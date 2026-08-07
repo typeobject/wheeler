@@ -10,6 +10,7 @@ import wheeler.compiler.local_opcodes;
 import wheeler.compiler.loop_codegen;
 import wheeler.compiler.named_long_operations;
 import wheeler.compiler.opcodes;
+import wheeler.compiler.owned_storage_codegen;
 import wheeler.compiler.resolved_boolean_literal_assertions;
 import wheeler.compiler.resolved_boolean_literal_comparisons;
 import wheeler.compiler.resolved_less_than_assertions;
@@ -350,6 +351,18 @@ classical class Codegen {
         localBase,
         instructionBase
       );
+    }
+
+    long storageCursor = writeOwnedStorageStatement(
+      output,
+      cursor,
+      opcode,
+      operand,
+      secondaryOperand,
+      localBase
+    );
+    if (-1 < storageCursor) {
+      return storageCursor;
     }
 
     if (resolvedLocalAssignment(opcode)) {

@@ -261,6 +261,10 @@ classical class StatementKinds {
   public const long STATEMENT_LOCAL_CALL_THREE_LOCALS_NAMED = 913;
   /// Signed local initialized by four prior-local helper arguments.
   public const long STATEMENT_LOCAL_CALL_FOUR_LOCALS_NAMED = 914;
+  /// Owned bytes allocated from a prior mutable region loan.
+  public const long STATEMENT_LOCAL_BYTES_ALLOCATE_NAMED = 915;
+  /// Explicit destruction of one prior owned value.
+  public const long STATEMENT_DROP_OWNED_NAMED = 916;
   /// Checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Checked global subtraction.

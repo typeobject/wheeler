@@ -9,6 +9,7 @@ import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.helper_parser;
 import wheeler.compiler.ir;
+import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.named_local_assignment_kinds;
 import wheeler.compiler.named_local_update_kinds;
 import wheeler.compiler.scalar_helper_libraries;
@@ -22,6 +23,56 @@ import wheeler.compiler.structure;
 import wheeler.compiler.tokens;
 
 classical class Parser {
+
+  private boolean entryDeclarationExists(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long count
+  ) {
+    long token = 0;
+    while (token + 2 < count) limit MAX_COMPILER_TOKENS {
+      if (tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_ENTRY) {
+        if (tokenHash(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID) {
+          if (tokenHash(source, tokenStarts, tokenLengths, token + 2) == TOKEN_MAIN) {
+            return true;
+          }
+        }
+      }
+
+      token += 1;
+    }
+
+    return false;
+  }
+
+  private boolean scalarMemberStartsAt(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long memberStart
+  ) {
+    long returnTypeToken = memberStart;
+    long first = tokenHash(source, tokenStarts, tokenLengths, returnTypeToken);
+    if (first == TOKEN_PUBLIC) {
+      returnTypeToken += 1;
+    } else {
+      if (first == TOKEN_PRIVATE) {
+        returnTypeToken += 1;
+      }
+    }
+
+    long returnType = tokenHash(source, tokenStarts, tokenLengths, returnTypeToken);
+    if (returnType == TOKEN_LONG) {
+      return true;
+    }
+
+    if (returnType == TOKEN_BOOLEAN) {
+      return true;
+    }
+
+    return returnType == TOKEN_VOID;
+  }
 
   private MinimalProgramResult minimalProgramValue(
     borrow mut words tokenStarts,
@@ -457,6 +508,16 @@ classical class Parser {
               return new MinimalProgramResult.Value(scalarHelperCandidate);
             }
             case MinimalProgramResult.Error(long scalarHelperOffset) {}
+          }
+
+          if (
+            scalarMemberStartsAt(source, tokenStarts, tokenLengths, layout.memberStart)
+          ) {
+            if (
+              entryDeclarationExists(source, tokenStarts, tokenLengths, count) == false
+            ) {
+              return scalarHelpers;
+            }
           }
 
           MinimalProgramResult entry = minimalEntryProgram(

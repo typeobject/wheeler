@@ -51,6 +51,10 @@ classical class KeywordTokens {
   public const long TOKEN_UTF8 = 3600241;
   /// Names the stable token hash for `bytes`.
   public const long TOKEN_BYTES = 94224491;
+  /// Names the stable token hash for intrinsic `allocateBytes`.
+  public const long TOKEN_ALLOCATE_BYTES = 7757814110573215534;
+  /// Names the stable token hash for `drop`.
+  public const long TOKEN_DROP = 3092207;
   /// Names the stable token hash for `byteview`.
   public const long TOKEN_BYTEVIEW = 2807042004909;
   /// Names the stable token hash for `words`.

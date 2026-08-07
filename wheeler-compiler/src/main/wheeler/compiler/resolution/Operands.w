@@ -30,6 +30,8 @@ import wheeler.compiler.named_long_operations;
 import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.named_return_comparison_operands;
 import wheeler.compiler.one_argument_calls;
+import wheeler.compiler.owned_storage_forms;
+import wheeler.compiler.owned_storage_operands;
 import wheeler.compiler.resolved_local_assignments;
 import wheeler.compiler.resolved_local_loop_forms;
 import wheeler.compiler.resolved_local_loop_kinds;
@@ -197,6 +199,18 @@ classical class Operands {
         previousCount,
         statementStart + 2,
         true
+      );
+    }
+
+    if (ownedStorageStatement(sourceOpcode)) {
+      return ownedStorageOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart,
+        sourceOpcode
       );
     }
 

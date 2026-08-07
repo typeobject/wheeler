@@ -9,6 +9,14 @@ import wheeler.compiler.void_call_source_kinds;
 classical class HelperValueKinds {
   /// Checks for one bounded helper value statement.
   public boolean helperValueStatement(long opcode) {
+    if (opcode == STATEMENT_LOCAL_BYTES_ALLOCATE_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_DROP_OWNED_NAMED) {
+      return true;
+    }
+
     if (voidCallSourceStatement(opcode)) {
       return true;
     }

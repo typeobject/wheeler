@@ -17,6 +17,8 @@ import wheeler.compiler.loop_forms;
 import wheeler.compiler.named_literal_comparison_kinds;
 import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.operands;
+import wheeler.compiler.owned_storage_forms;
+import wheeler.compiler.owned_storage_operands;
 import wheeler.compiler.resolved_early_result_kinds;
 import wheeler.compiler.resolved_local_loop_forms;
 import wheeler.compiler.resolved_local_loop_kinds;
@@ -74,6 +76,18 @@ classical class SecondaryOperands {
 
     if (sourceOpcode == STATEMENT_CALL_VOID_ONE_NAMED) {
       return 0;
+    }
+
+    if (ownedStorageStatement(sourceOpcode)) {
+      return ownedStorageSecondaryOperand(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart,
+        sourceOpcode
+      );
     }
 
     boolean borrowedWrite = sourceOpcode == STATEMENT_SET_WORD_NAMED;

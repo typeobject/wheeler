@@ -15,6 +15,7 @@ import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.named_return_comparison_operands;
 import wheeler.compiler.named_signed_return_kinds;
 import wheeler.compiler.one_argument_calls;
+import wheeler.compiler.owned_storage_forms;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
@@ -308,6 +309,16 @@ classical class Structure {
       }
 
       return -1;
+    }
+
+    if (ownedStorageStatement(statementKind)) {
+      return ownedStorageStatementWidth(
+        source,
+        tokenKinds,
+        tokenStarts,
+        statementStart,
+        statementKind
+      );
     }
 
     if (voidCallSourceStatement(statementKind)) {
