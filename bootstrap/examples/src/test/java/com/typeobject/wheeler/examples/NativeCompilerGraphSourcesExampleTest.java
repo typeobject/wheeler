@@ -131,6 +131,89 @@ final class NativeCompilerGraphSourcesExampleTest {
   }
 
   @Test
+  void copiesOnlyNodesFromTheValidatedPlan() throws Exception {
+    String matrix = CompilerSources.read("compiler/graphs/Matrix.w");
+    String sources = CompilerSources.read("compiler/graphs/Sources.w");
+    String planned = CompilerSources.read("compiler/graphs/plans/PlanSources.w");
+    String root = """
+        module example.planned_graph_source;
+
+        import wheeler.compiler.graphs.matrix;
+        import wheeler.compiler.graphs.plan_sources;
+
+        classical class PlannedGraphSource {
+          entry void main(borrow utf8 source, borrow mut bytes output) {
+            region planArena = new region(/* bytes= */ 96, /* allocations= */ 5);
+            words graph = allocate(planArena, 4);
+            words rootDirect = allocate(planArena, 2);
+            words rootRanks = allocate(planArena, 2);
+            words order = allocate(planArena, 2);
+            words reachable = allocate(planArena, 2);
+            set(rootDirect, 0, 1);
+            set(rootDirect, 1, 1);
+            set(rootRanks, 0, 1);
+            set(rootRanks, 1, 0);
+            BoundedGraphPlan plan = planBoundedGraph(
+              graph,
+              rootDirect,
+              rootRanks,
+              2,
+              order,
+              reachable
+            );
+            region sourceArena = new region(/* bytes= */ 4, /* allocations= */ 1);
+            utf8 copied = copyPlannedSource(
+              plan,
+              plannedNodeAt(plan, 0),
+              source,
+              source,
+              source,
+              source,
+              source,
+              source,
+              source,
+              sourceArena
+            );
+            assert(bufferLength(copied) == 4);
+            setByte(output, 0, 1);
+            drop(copied);
+            drop(sourceArena);
+            drop(reachable);
+            drop(order);
+            drop(rootRanks);
+            drop(rootDirect);
+            drop(graph);
+            drop(planArena);
+          }
+        }
+        """;
+    Map<String, String> modules = Map.of(
+        "Matrix.w", matrix,
+        "PlanSources.w", planned,
+        "PlannedGraphSource.w", root,
+        "Sources.w", sources);
+    Program copier = new WheelerCompiler().compileModuleFiles(
+        modules, "example.planned_graph_source");
+    byte[] input = "plan".getBytes(StandardCharsets.UTF_8);
+    VirtualMachine accepted = new VirtualMachine(copier, input, 1);
+
+    accepted.run();
+
+    assertArrayEquals(new byte[] {1}, accepted.hostOutput());
+
+    Program invalidNode = new WheelerCompiler().compileModuleFiles(
+        Map.of(
+            "Matrix.w", matrix,
+            "PlanSources.w", planned,
+            "PlannedGraphSource.w", root.replace("plannedNodeAt(plan, 0)", "2"),
+            "Sources.w", sources),
+        "example.planned_graph_source");
+    VirtualMachine rejected = new VirtualMachine(invalidNode, input, 1);
+    assertThrows(VmTrap.class, rejected::run);
+    assertArrayEquals(new byte[1], rejected.hostOutput());
+  }
+
+  @Test
   void copiesTheCompletePhysicalSourceWindow() throws Exception {
     String sources = CompilerSources.read("compiler/graphs/Sources.w");
     String root = """
