@@ -109,6 +109,8 @@ Inactive source slots are not candidates. They may be padded with shared loans a
 
 No linked source outlives its arena. The final artifact borrows no source storage. Failure drops temporary owners and leaves caller output unchanged.
 
+`graphs/plans/SourceTable.w` uses one 229,376-byte arena and one seven-word length column. Each node owns one fixed 32,768-byte slot. The active length, not stale tail storage, defines the source. Initialization validates every active input before the first write. Replacement validates the complete frozen source before mutation and clears the replaced slot's former tail.
+
 ## Visibility and duplicates
 
 A direct root import retains its public declarations even when it is also a transitive dependency. The dependent receives private access to the same declarations. The executor drops the private copy only when the complete constant declaration matches the public declaration token for token after the visibility keyword.
@@ -161,7 +163,7 @@ Compatibility wrappers are not retained. During migration the driver may dispatc
 - [x] `graphs/TwoRedundant.w` handles one chain whose leaf remains a direct root import.
 - [x] `graphs/shared/ThreeDirectLeaf.w` handles one public constant leaf shared by two direct constant dependents.
 - [x] Shared helper planning drops an exact private prefix against an existing public or private declaration.
-- [ ] One source table owns physical and linked source slots.
+- [x] `graphs/plans/SourceTable.w` owns physical and linked source slots in one counted fixed-slot arena.
 - [x] Header dependency facts carry validated candidate import rank, and small direct plans use it.
 - [x] Two- through four-module executors consume every admitted plan without topology identities.
 - [x] `graphs/SmallPlanSources.w` and `graphs/FourPlanSources.w` own canonical role selection outside the drivers.
