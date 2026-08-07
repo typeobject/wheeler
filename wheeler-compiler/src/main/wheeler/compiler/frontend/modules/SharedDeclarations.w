@@ -125,9 +125,13 @@ classical class SharedDeclarations {
         return false;
       }
 
-      if (
-        tokenHash(rootSource, rootStarts, rootLengths, rootDeclaration) == TOKEN_PRIVATE
-      ) {
+      long visibility = tokenHash(rootSource, rootStarts, rootLengths, rootDeclaration);
+      boolean shareable = visibility == TOKEN_PRIVATE;
+      if (visibility == TOKEN_PUBLIC) {
+        shareable = true;
+      }
+
+      if (shareable) {
         if (
           declarationTokensEqual(
             importedSource,

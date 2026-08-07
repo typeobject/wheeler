@@ -11,6 +11,7 @@ import wheeler.compiler.graphs.direct.mixed_three;
 import wheeler.compiler.graphs.direct.mixed_two;
 import wheeler.compiler.graphs.small_structures;
 import wheeler.compiler.graphs.sources;
+import wheeler.compiler.graphs.two_redundant;
 import wheeler.compiler.helper_owners;
 import wheeler.compiler.imported_helpers;
 import wheeler.compiler.module_linker;
@@ -216,6 +217,17 @@ classical class CompilerGraphs {
         rootSource,
         output
       );
+    }
+
+    if (structure.topology == SMALL_STRUCTURE_CHAIN_AND_DIRECT_LEAF) {
+      RedundantTwoCompilation redundantCompiled = compileRedundantTwoGraph(
+        structure,
+        firstImportedSource,
+        secondImportedSource,
+        rootSource,
+        output
+      );
+      return new GraphCompilation(redundantCompiled.length, redundantCompiled.codeStart);
     }
 
     assert(structure.topology == SMALL_STRUCTURE_DIRECT);

@@ -8,6 +8,7 @@ import wheeler.compiler.helper_abi;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.module_headers;
 import wheeler.compiler.module_linker;
+import wheeler.compiler.shared_declarations;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 
@@ -181,11 +182,11 @@ classical class ImportedHelpers {
     return invalidFacts();
   }
 
-  /// Plans one resolved dependency containing constants followed by scalar helpers.
-  public LinkPlan planResolvedHelperImport(
+  private LinkPlan planResolvedHelperImportMode(
     borrow utf8 importedSource,
     borrow utf8 rootSource,
-    long expectedImportCount
+    long expectedImportCount,
+    boolean sharedConstants
   ) {
     region scratch = new region(/* bytes= */ IMPORTED_HELPER_ARENA_BYTES, /* allocations= */ 8);
     words importedKinds = allocate(scratch, MAX_COMPILER_TOKENS);
@@ -266,6 +267,38 @@ classical class ImportedHelpers {
                   importedCount
                 );
                 long closeToken = importedCount - 1;
+                long rootMemberStart = -1;
+                if (sharedConstants) {
+                  long rootFirstDeclaration = rootBody + 4;
+                  rootMemberStart = classMemberStart(
+                    rootSource,
+                    rootKinds,
+                    rootStarts,
+                    rootLengths,
+                    rootFirstDeclaration,
+                    rootCount
+                  );
+                  long sharedEnd = sharedPrivatePrefixEnd(
+                    importedSource,
+                    importedKinds,
+                    importedStarts,
+                    importedLengths,
+                    firstDeclaration,
+                    memberStart,
+                    rootSource,
+                    rootKinds,
+                    rootStarts,
+                    rootLengths,
+                    rootFirstDeclaration,
+                    rootMemberStart
+                  );
+                  if (sharedEnd == memberStart) {
+                    firstDeclaration = memberStart;
+                  } else {
+                    firstDeclaration = closeToken + 1;
+                  }
+                }
+
                 if (firstDeclaration < memberStart + 1) {
                   if (memberStart < closeToken) {
                     if (
@@ -329,6 +362,10 @@ classical class ImportedHelpers {
                               long importedStart = importedStarts[firstDeclaration];
                               long importedLength = importedStarts[closeToken] - importedStart;
                               long rootInsertion = rootStarts[rootBody + 3] + 1;
+                              if (sharedConstants) {
+                                rootInsertion = rootStarts[rootMemberStart];
+                              }
+
                               long removed = qualifications * (
                                 importedModule[1] + QUALIFICATION_SEPARATOR_BYTES
                               );
@@ -376,5 +413,23 @@ classical class ImportedHelpers {
     drop(importedKinds);
     drop(scratch);
     return result;
+  }
+
+  /// Plans one resolved dependency containing constants followed by scalar helpers.
+  public LinkPlan planResolvedHelperImport(
+    borrow utf8 importedSource,
+    borrow utf8 rootSource,
+    long expectedImportCount
+  ) {
+    return planResolvedHelperImportMode(importedSource, rootSource, expectedImportCount, false);
+  }
+
+  /// Plans one helper dependency after dropping an identical private constant prefix.
+  public LinkPlan planSharedResolvedHelperImport(
+    borrow utf8 importedSource,
+    borrow utf8 rootSource,
+    long expectedImportCount
+  ) {
+    return planResolvedHelperImportMode(importedSource, rootSource, expectedImportCount, true);
   }
 }

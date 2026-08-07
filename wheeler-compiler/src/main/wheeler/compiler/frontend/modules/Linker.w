@@ -708,6 +708,22 @@ classical class ModuleLinker {
     );
   }
 
+  /// Plans one public dependency after dropping an identical private declaration prefix.
+  public LinkPlan planSharedResolvedPublicConstantImport(
+    borrow utf8 importedSource,
+    borrow utf8 rootSource,
+    long expectedImportCount
+  ) {
+    return planConstantImportMode(
+      importedSource,
+      rootSource,
+      expectedImportCount,
+      true,
+      false,
+      true
+    );
+  }
+
   /// Plans one module after every import in its header has been resolved.
   public LinkPlan planResolvedConstantImport(
     borrow utf8 importedSource,

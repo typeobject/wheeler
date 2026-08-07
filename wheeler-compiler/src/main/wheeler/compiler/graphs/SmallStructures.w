@@ -12,8 +12,10 @@ classical class SmallGraphStructures {
   public const long SMALL_STRUCTURE_CHAIN = 2;
   /// Names one two-leaf fork.
   public const long SMALL_STRUCTURE_FORK = 3;
-  /// Names one chain edge beside one direct import.
+  /// Names one chain edge beside one unrelated direct import.
   public const long SMALL_STRUCTURE_CHAIN_AND_DIRECT = 4;
+  /// Names one chain whose leaf and dependent are both direct root imports.
+  public const long SMALL_STRUCTURE_CHAIN_AND_DIRECT_LEAF = 5;
 
   private const long TWO_MODULES = 2;
   private const long THREE_MODULES = 3;
@@ -144,6 +146,16 @@ classical class SmallGraphStructures {
       if (rootCount == SINGLE_IMPORT) {
         return new SmallGraphStructure(SMALL_STRUCTURE_CHAIN, order[0], order[1], 0, true);
       }
+
+      if (rootCount == TWO_MODULES) {
+        return new SmallGraphStructure(
+          SMALL_STRUCTURE_CHAIN_AND_DIRECT_LEAF,
+          order[0],
+          order[1],
+          0,
+          true
+        );
+      }
     }
 
     return new SmallGraphStructure(0, 0, 0, 0, false);
@@ -178,9 +190,20 @@ classical class SmallGraphStructures {
     long rootCount = 0;
     rootCount += recordRoot(rootDirect, 0, rootEdge(firstSource, rootSource, TWO_MODULES));
     rootCount += recordRoot(rootDirect, 1, rootEdge(secondSource, rootSource, TWO_MODULES));
+    boolean directLeaf = edgeCount == SINGLE_IMPORT;
+    if (directLeaf) {
+      directLeaf = rootCount == TWO_MODULES;
+    }
+
     boolean valid = edgeCount + rootCount == TWO_MODULES;
+    if (directLeaf) {
+      valid = true;
+    }
+
     if (valid) {
-      valid = rootsAreSinks(graph, rootDirect, TWO_MODULES);
+      if (directLeaf) {} else {
+        valid = rootsAreSinks(graph, rootDirect, TWO_MODULES);
+      }
     }
 
     if (valid) {

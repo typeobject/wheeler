@@ -169,6 +169,76 @@ final class NativeCompilerCallMetadataExampleTest {
   }
 
   @Test
+  void compilesRedundantDirectLeafGraphByteForByte() throws Exception {
+    String identities = CompilerSources.read(
+        "compiler/syntax/calls/assignment/AssignmentCallIdentities.w");
+    String arities = CompilerSources.read(
+        "compiler/syntax/calls/assignment/AssignmentCallArities.w");
+    String root = """
+        module example.redundant_direct_leaf;
+        import wheeler.compiler.assignment_call_arities;
+        import wheeler.compiler.assignment_call_identities;
+        classical class RedundantDirectLeaf {
+          public long arity(long opcode) {
+            return assignmentCallArity(opcode);
+          }
+        }
+        """;
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of(
+                "AssignmentCallIdentities.w", identities,
+                "AssignmentCallArities.w", arities,
+                "RedundantDirectLeaf.w", root),
+            "example.redundant_direct_leaf"));
+    Program compiler = NativeModuleCompilerHarness.program();
+    assertArrayEquals(
+        expected,
+        NativeModuleCompilerHarness.compile(compiler, List.of(arities, identities), root));
+    assertArrayEquals(
+        expected,
+        NativeModuleCompilerHarness.compile(compiler, List.of(identities, arities), root));
+  }
+
+  @Test
+  void compilesRedundantDirectConstantLeafGraphByteForByte() throws Exception {
+    String leaf = """
+        module example.constants;
+        classical class Constants {
+          public const long BASE = 40;
+        }
+        """;
+    String dependent = """
+        module example.derived;
+        import example.constants;
+        classical class Derived {
+          public const long RESULT = BASE + 2;
+        }
+        """;
+    String root = """
+        module example.redundant_constants;
+        import example.constants;
+        import example.derived;
+        classical class RedundantConstants {
+          public long value() {
+            return RESULT;
+          }
+        }
+        """;
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("Constants.w", leaf, "Derived.w", dependent, "Root.w", root),
+            "example.redundant_constants"));
+    Program compiler = NativeModuleCompilerHarness.program();
+    assertArrayEquals(
+        expected,
+        NativeModuleCompilerHarness.compile(compiler, List.of(leaf, dependent), root));
+    assertArrayEquals(
+        expected,
+        NativeModuleCompilerHarness.compile(compiler, List.of(dependent, leaf), root));
+  }
+
+  @Test
   void compilesCanonicalAssignmentCallIdentitiesByteForByte() throws Exception {
     Program decoded = NativeCompilerSelfSourceExampleTest.assertCompilerLibrary(
         "compiler/syntax/calls/assignment/AssignmentCallIdentities.w",
