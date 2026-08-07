@@ -10,6 +10,7 @@ import wheeler.compiler.compiler_graph_six;
 import wheeler.compiler.graphs.direct.mixed_three;
 import wheeler.compiler.graphs.direct.mixed_two;
 import wheeler.compiler.graphs.matrix;
+import wheeler.compiler.graphs.small_plan_sources;
 import wheeler.compiler.graphs.small_structures;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.graphs.two_redundant;
@@ -615,82 +616,6 @@ classical class CompilerGraphs {
     drop(firstLinkedSource);
     drop(firstArena);
     return compiled;
-  }
-
-  private long threeSingleEdgeSource(BoundedGraphPlan plan) {
-    if (plannedEdge(plan, 0, 1)) {
-      return 0;
-    }
-
-    if (plannedEdge(plan, 0, 2)) {
-      return 0;
-    }
-
-    if (plannedEdge(plan, 1, 0)) {
-      return 1;
-    }
-
-    if (plannedEdge(plan, 1, 2)) {
-      return 1;
-    }
-
-    if (plannedEdge(plan, 2, 0)) {
-      return 2;
-    }
-
-    assert(plannedEdge(plan, 2, 1));
-    return 2;
-  }
-
-  private long threeSingleEdgeDependent(BoundedGraphPlan plan) {
-    if (plannedEdge(plan, 0, 1)) {
-      return 1;
-    }
-
-    if (plannedEdge(plan, 0, 2)) {
-      return 2;
-    }
-
-    if (plannedEdge(plan, 1, 0)) {
-      return 0;
-    }
-
-    if (plannedEdge(plan, 1, 2)) {
-      return 2;
-    }
-
-    if (plannedEdge(plan, 2, 0)) {
-      return 0;
-    }
-
-    assert(plannedEdge(plan, 2, 1));
-    return 1;
-  }
-
-  private long threeFirstSource(BoundedGraphPlan plan) {
-    if (plan.edgeCount == 1) {
-      return threeSingleEdgeSource(plan);
-    }
-
-    return plannedNodeAt(plan, 0);
-  }
-
-  private long threeSecondSource(BoundedGraphPlan plan) {
-    if (plan.edgeCount == 1) {
-      return threeSingleEdgeDependent(plan);
-    }
-
-    return plannedNodeAt(plan, 1);
-  }
-
-  private long threeThirdSource(BoundedGraphPlan plan) {
-    if (plan.edgeCount == 1) {
-      return GRAPH_SOURCE_COUNT_THREE - threeSingleEdgeSource(plan) - threeSingleEdgeDependent(
-        plan
-      );
-    }
-
-    return plannedNodeAt(plan, 2);
   }
 
   private GraphCompilation compilePlannedThreeGraph(
