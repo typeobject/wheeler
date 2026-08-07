@@ -259,7 +259,9 @@ classical class Codegen {
     long secondSourceType,
     long thirdSourceType,
     long fourthSourceType,
-    long fifthSourceType
+    long fifthSourceType,
+    long sixthSourceType,
+    long seventhSourceType
   ) {
     long earlyUtf8Cursor = writeEarlyUtf8Call(
       output,
@@ -318,7 +320,9 @@ classical class Codegen {
       secondSourceType,
       thirdSourceType,
       fourthSourceType,
-      fifthSourceType
+      fifthSourceType,
+      sixthSourceType,
+      seventhSourceType
     );
     if (-1 < returnCursor) {
       return returnCursor;
@@ -468,6 +472,8 @@ classical class Codegen {
       localBase,
       instructionBase,
       callFunction,
+      TYPE_SIGNED,
+      TYPE_SIGNED,
       TYPE_SIGNED,
       TYPE_SIGNED,
       TYPE_SIGNED,

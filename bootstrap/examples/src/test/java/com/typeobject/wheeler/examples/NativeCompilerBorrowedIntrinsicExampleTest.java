@@ -71,7 +71,9 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
             long index,
             long fallback,
             long spare,
-            long extra
+            long extra,
+            long sixth,
+            long seventh
           ) {
             return utf8Scalar(value, index);
           }
@@ -80,9 +82,11 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
             long index,
             long fallback,
             long spare,
-            long extra
+            long extra,
+            long sixth,
+            long seventh
           ) {
-            return select(value, index, fallback, spare, extra);
+            return select(value, index, fallback, spare, extra, sixth, seventh);
           }
           public long dummy() { return 0; }
         }
@@ -94,8 +98,8 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
         NativeModuleCompilerHarness.program(), List.of(), source);
     assertArrayEquals(expected, actual);
     var relay = new BytecodeReader().read(actual).functions().get(6);
-    assertEquals(16, relay.localCount());
-    assertEquals(12, relay.forward().size());
+    assertEquals(22, relay.localCount());
+    assertEquals(16, relay.forward().size());
 
     NativeModuleCompilerHarness.assertTrap(
         NativeModuleCompilerHarness.program(),
@@ -109,14 +113,14 @@ final class NativeCompilerBorrowedIntrinsicExampleTest {
         NativeModuleCompilerHarness.program(),
         List.of(),
         source.replace(
-            "return select(value, index, fallback, spare, extra);",
-            "return select(index, value, fallback, spare, extra);"));
+            "return select(value, index, fallback, spare, extra, sixth, seventh);",
+            "return select(index, value, fallback, spare, extra, sixth, seventh);"));
     NativeModuleCompilerHarness.assertTrap(
         NativeModuleCompilerHarness.program(),
         List.of(),
         source.replace(
-            "return select(value, index, fallback, spare, extra);",
-            "return select(value, index, fallback, spare, extra, extra);"));
+            "return select(value, index, fallback, spare, extra, sixth, seventh);",
+            "return select(value, index, fallback, spare, extra, sixth, seventh, seventh);"));
   }
 
   @Test

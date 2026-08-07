@@ -39,7 +39,44 @@ import wheeler.compiler.void_call_kinds;
 
 classical class LocalTypes {
   /// Bounds the temporary local window emitted by one source statement.
-  private const long MAX_STATEMENT_LOCALS = 11;
+  private const long MAX_STATEMENT_LOCALS = 15;
+
+  private long wideSourceType(
+    long index,
+    long firstSourceType,
+    long secondSourceType,
+    long thirdSourceType,
+    long fourthSourceType,
+    long fifthSourceType,
+    long sixthSourceType,
+    long seventhSourceType
+  ) {
+    if (index == 0) {
+      return firstSourceType;
+    }
+
+    if (index == 1) {
+      return secondSourceType;
+    }
+
+    if (index == 2) {
+      return thirdSourceType;
+    }
+
+    if (index == 3) {
+      return fourthSourceType;
+    }
+
+    if (index == 4) {
+      return fifthSourceType;
+    }
+
+    if (index == 5) {
+      return sixthSourceType;
+    }
+
+    return seventhSourceType;
+  }
 
   /// Writes one validated canonical local type code.
   public long writeLocalType(borrow mut bytes output, long cursor, long type) {
@@ -68,7 +105,9 @@ classical class LocalTypes {
     long secondSourceType,
     long thirdSourceType,
     long fourthSourceType,
-    long fifthSourceType
+    long fifthSourceType,
+    long sixthSourceType,
+    long seventhSourceType
   ) {
     if (earlyUtf8Call(opcode)) {
       cursor = writeSignedLocalType(output, cursor);
@@ -231,17 +270,39 @@ classical class LocalTypes {
       return cursor;
     }
 
-    if (arity == 5) {
-      cursor = writeLocalType(output, cursor, firstSourceType);
-      cursor = writeLocalType(output, cursor, secondSourceType);
-      cursor = writeLocalType(output, cursor, thirdSourceType);
-      cursor = writeLocalType(output, cursor, fourthSourceType);
-      cursor = writeLocalType(output, cursor, fifthSourceType);
-      cursor = writeLocalType(output, cursor, firstSourceType);
-      cursor = writeLocalType(output, cursor, secondSourceType);
-      cursor = writeLocalType(output, cursor, thirdSourceType);
-      cursor = writeLocalType(output, cursor, fourthSourceType);
-      cursor = writeLocalType(output, cursor, fifthSourceType);
+    if (4 < arity) {
+      long argument = 0;
+      while (argument < arity) limit MAX_FORWARDED_SCALAR_ARGUMENTS {
+        long sourceType = wideSourceType(
+          argument,
+          firstSourceType,
+          secondSourceType,
+          thirdSourceType,
+          fourthSourceType,
+          fifthSourceType,
+          sixthSourceType,
+          seventhSourceType
+        );
+        cursor = writeLocalType(output, cursor, sourceType);
+        argument += 1;
+      }
+
+      argument = 0;
+      while (argument < arity) limit MAX_FORWARDED_SCALAR_ARGUMENTS {
+        long transferType = wideSourceType(
+          argument,
+          firstSourceType,
+          secondSourceType,
+          thirdSourceType,
+          fourthSourceType,
+          fifthSourceType,
+          sixthSourceType,
+          seventhSourceType
+        );
+        cursor = writeLocalType(output, cursor, transferType);
+        argument += 1;
+      }
+
       return writeLocalType(output, cursor, resultType);
     }
 

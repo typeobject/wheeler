@@ -94,13 +94,13 @@ final class NativeCompilerCallMetadataExampleTest {
   }
 
   @Test
-  void compilesFiveArgumentReturnPackingByteForByte() throws Exception {
+  void compilesWideReturnPackingByteForByte() throws Exception {
     Program decoded = NativeCompilerSelfSourceExampleTest.assertCompilerLibrary(
-        "compiler/resolution/returns/FiveArgumentReturns.w",
-        "wheeler.compiler.five_argument_returns");
+        "compiler/resolution/returns/WideReturnSources.w",
+        "wheeler.compiler.wide_return_sources");
 
     assertEquals(
-        "wheeler.compiler.five_argument_returns::packFiveReturnFirstSources",
+        "wheeler.compiler.wide_return_sources::packWideReturnFirstSources",
         decoded.functions().getFirst().name());
     assertEquals("$library", decoded.functions().getLast().name());
   }

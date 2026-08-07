@@ -5,7 +5,6 @@ module wheeler.compiler.scalar_helper_tables;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.encoding;
-import wheeler.compiler.five_argument_returns;
 import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_signatures;
@@ -18,6 +17,7 @@ import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
 import wheeler.compiler.void_call_widths;
+import wheeler.compiler.wide_return_sources;
 
 classical class ScalarHelperTables {
   /// Carries bounded call targets resolved against one helper table.
@@ -52,8 +52,8 @@ classical class ScalarHelperTables {
       return false;
     }
 
-    long fiveFirstSources = firstSource;
-    long fiveLastSources = secondSource;
+    long wideFirstSources = firstSource;
+    long wideLastSources = secondSource;
     if (argumentCount == 0) {
       return true;
     }
@@ -64,9 +64,9 @@ classical class ScalarHelperTables {
     } else {
       if (voidCallStatement(opcode)) {} else {
         if (resolvedReturnHelperCall(opcode)) {
-          if (argumentCount == 5) {
-            firstSource = fiveReturnFirstSource(fiveFirstSources);
-            secondSource = fiveReturnSecondSource(fiveFirstSources);
+          if (4 < argumentCount) {
+            firstSource = wideReturnFirstSource(wideFirstSources);
+            secondSource = wideReturnSecondSource(wideFirstSources);
           } else {
             firstSource = returnHelperCallFirstSource(opcode);
             if (argumentCount == 2) {
@@ -98,8 +98,8 @@ classical class ScalarHelperTables {
     long thirdSource = voidCallThirdSource(opcode);
     if (2 < argumentCount) {
       if (voidCallStatement(opcode)) {} else {
-        if (argumentCount == 5) {
-          thirdSource = fiveReturnThirdSource(fiveFirstSources);
+        if (4 < argumentCount) {
+          thirdSource = wideReturnThirdSource(wideFirstSources);
         } else {
           thirdSource = returnHelperCallThirdSource(opcode);
         }
@@ -114,7 +114,7 @@ classical class ScalarHelperTables {
       return true;
     }
 
-    long fourthSource = fiveReturnFourthSource(fiveLastSources);
+    long fourthSource = wideReturnFourthSource(wideFirstSources);
     if (argumentCount == 4) {
       fourthSource = returnHelperCallFourthSource(opcode);
     }
@@ -127,8 +127,26 @@ classical class ScalarHelperTables {
       return true;
     }
 
-    long fifthSource = fiveReturnFifthSource(fiveLastSources);
-    return callerLocalType(caller, fifthSource) == candidate.parameterTypes[4];
+    long fifthSource = wideReturnFifthSource(wideLastSources);
+    if (callerLocalType(caller, fifthSource) == candidate.parameterTypes[4]) {} else {
+      return false;
+    }
+
+    if (argumentCount == 5) {
+      return true;
+    }
+
+    long sixthSource = wideReturnSixthSource(wideLastSources);
+    if (callerLocalType(caller, sixthSource) == candidate.parameterTypes[5]) {} else {
+      return false;
+    }
+
+    if (argumentCount == 6) {
+      return true;
+    }
+
+    long seventhSource = wideReturnSeventhSource(wideLastSources);
+    return callerLocalType(caller, seventhSource) == candidate.parameterTypes[6];
   }
 
   /// Compares two helper names in one source.

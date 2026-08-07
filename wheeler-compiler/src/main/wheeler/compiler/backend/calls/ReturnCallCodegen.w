@@ -4,10 +4,9 @@ module wheeler.compiler.return_call_codegen;
 
 import wheeler.compiler.call_arguments;
 import wheeler.compiler.encoding;
-import wheeler.compiler.five_argument_returns;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.resolved_return_call_kinds;
-import wheeler.compiler.resolved_statements;
+import wheeler.compiler.wide_return_sources;
 
 classical class ReturnCallCodegen {
   private const long FORM_UNARY = INSTRUCTION_FORM_UNARY;
@@ -16,24 +15,32 @@ classical class ReturnCallCodegen {
   private const long U64 = INSTRUCTION_OPERAND_WIDTH;
 
   private long callSource(long opcode, long operand, long secondaryOperand, long index) {
-    if (opcode == STATEMENT_RETURN_HELPER_CALL_FIVE) {
+    if (4 < returnHelperCallArity(opcode)) {
       if (index == 0) {
-        return fiveReturnFirstSource(operand);
+        return wideReturnFirstSource(operand);
       }
 
       if (index == 1) {
-        return fiveReturnSecondSource(operand);
+        return wideReturnSecondSource(operand);
       }
 
       if (index == 2) {
-        return fiveReturnThirdSource(operand);
+        return wideReturnThirdSource(operand);
       }
 
       if (index == 3) {
-        return fiveReturnFourthSource(secondaryOperand);
+        return wideReturnFourthSource(operand);
       }
 
-      return fiveReturnFifthSource(secondaryOperand);
+      if (index == 4) {
+        return wideReturnFifthSource(secondaryOperand);
+      }
+
+      if (index == 5) {
+        return wideReturnSixthSource(secondaryOperand);
+      }
+
+      return wideReturnSeventhSource(secondaryOperand);
     }
 
     if (index == 0) {
@@ -62,7 +69,9 @@ classical class ReturnCallCodegen {
     long secondSourceType,
     long thirdSourceType,
     long fourthSourceType,
-    long fifthSourceType
+    long fifthSourceType,
+    long sixthSourceType,
+    long seventhSourceType
   ) {
     if (index == 0) {
       return firstSourceType;
@@ -80,10 +89,18 @@ classical class ReturnCallCodegen {
       return fourthSourceType;
     }
 
-    return fifthSourceType;
+    if (index == 4) {
+      return fifthSourceType;
+    }
+
+    if (index == 5) {
+      return sixthSourceType;
+    }
+
+    return seventhSourceType;
   }
 
-  /// Writes one zero- through five-argument final helper call, or reports another owner.
+  /// Writes one zero- through seven-argument final helper call, or reports another owner.
   public long writeReturnCall(
     borrow mut bytes output,
     long cursor,
@@ -96,7 +113,9 @@ classical class ReturnCallCodegen {
     long secondSourceType,
     long thirdSourceType,
     long fourthSourceType,
-    long fifthSourceType
+    long fifthSourceType,
+    long sixthSourceType,
+    long seventhSourceType
   ) {
     long arity = returnHelperCallArity(opcode);
     if (arity < 0) {
@@ -125,7 +144,9 @@ classical class ReturnCallCodegen {
         secondSourceType,
         thirdSourceType,
         fourthSourceType,
-        fifthSourceType
+        fifthSourceType,
+        sixthSourceType,
+        seventhSourceType
       );
       cursor = writeInstructionHeader(
         output,

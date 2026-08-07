@@ -15,7 +15,6 @@ import wheeler.compiler.early_return_operands;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.early_utf8_call_resolution;
 import wheeler.compiler.expression_operands;
-import wheeler.compiler.five_argument_returns;
 import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
@@ -43,7 +42,6 @@ import wheeler.compiler.resolved_local_loop_forms;
 import wheeler.compiler.resolved_local_loop_kinds;
 import wheeler.compiler.resolved_local_loop_operands;
 import wheeler.compiler.resolved_local_updates;
-import wheeler.compiler.resolved_statements;
 import wheeler.compiler.return_expressions;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
@@ -51,6 +49,7 @@ import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.void_call_source_kinds;
+import wheeler.compiler.wide_return_resolution;
 
 classical class Operands {
   /// Selects the typed opcode used for operand resolution.
@@ -475,43 +474,15 @@ classical class Operands {
     }
 
     if (sourceOpcode == STATEMENT_RETURN_HELPER_CALL_NAMED) {
-      if (opcode == STATEMENT_RETURN_HELPER_CALL_FIVE) {
-        long first = resolvePriorDeclaration(
+      if (wideReturnCall(opcode)) {
+        return resolveWideReturnFirstSources(
           source,
           tokenStarts,
           tokenLengths,
           previousStarts,
           previousCount,
-          statementStart + 3,
-          true
+          statementStart
         );
-        long second = resolvePriorDeclaration(
-          source,
-          tokenStarts,
-          tokenLengths,
-          previousStarts,
-          previousCount,
-          statementStart + 5,
-          true
-        );
-        long third = resolvePriorDeclaration(
-          source,
-          tokenStarts,
-          tokenLengths,
-          previousStarts,
-          previousCount,
-          statementStart + 7,
-          true
-        );
-        if (-1 < first) {
-          if (-1 < second) {
-            if (-1 < third) {
-              return packFiveReturnFirstSources(first, second, third);
-            }
-          }
-        }
-
-        return -1;
       }
 
       return 0;

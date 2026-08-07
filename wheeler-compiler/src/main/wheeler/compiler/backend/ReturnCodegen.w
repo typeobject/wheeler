@@ -54,7 +54,9 @@ classical class ReturnCodegen {
     long secondSourceType,
     long thirdSourceType,
     long fourthSourceType,
-    long fifthSourceType
+    long fifthSourceType,
+    long sixthSourceType,
+    long seventhSourceType
   ) {
     long returnCallCursor = writeReturnCall(
       output,
@@ -68,7 +70,9 @@ classical class ReturnCodegen {
       secondSourceType,
       thirdSourceType,
       fourthSourceType,
-      fifthSourceType
+      fifthSourceType,
+      sixthSourceType,
+      seventhSourceType
     );
     if (-1 < returnCallCursor) {
       return returnCallCursor;

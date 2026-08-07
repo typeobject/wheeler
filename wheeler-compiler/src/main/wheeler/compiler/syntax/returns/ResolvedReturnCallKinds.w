@@ -19,7 +19,7 @@ classical class ResolvedReturnCallKinds {
   /// Removes the aligned two-argument opcode column from its first source.
   public const long RETURN_HELPER_CALL_TWO_SOURCE_OFFSET = 256;
   /// Caps final scalar-result forwarding without coupling it to helper parameter capacity.
-  public const long MAX_FORWARDED_SCALAR_ARGUMENTS = 5;
+  public const long MAX_FORWARDED_SCALAR_ARGUMENTS = 7;
 
   /// Checks whether one resolved return forwards a scalar helper call.
   public boolean resolvedReturnHelperCall(long opcode) {
@@ -36,6 +36,14 @@ classical class ResolvedReturnCallKinds {
     }
 
     if (opcode == STATEMENT_RETURN_HELPER_CALL_FIVE) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_HELPER_CALL_SIX) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_RETURN_HELPER_CALL_SEVEN) {
       return true;
     }
 
@@ -78,6 +86,14 @@ classical class ResolvedReturnCallKinds {
 
     if (opcode == STATEMENT_RETURN_HELPER_CALL_FIVE) {
       return 5;
+    }
+
+    if (opcode == STATEMENT_RETURN_HELPER_CALL_SIX) {
+      return 6;
+    }
+
+    if (opcode == STATEMENT_RETURN_HELPER_CALL_SEVEN) {
+      return 7;
     }
 
     if (opcode < STATEMENT_RETURN_HELPER_CALL_TWO_BASE) {
