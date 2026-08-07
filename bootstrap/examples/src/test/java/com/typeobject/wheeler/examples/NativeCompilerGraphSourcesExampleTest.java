@@ -61,6 +61,76 @@ final class NativeCompilerGraphSourcesExampleTest {
   }
 
   @Test
+  void exposesOneCompleteValidatedGraphPlan() throws Exception {
+    String matrix = CompilerSources.read("compiler/graphs/Matrix.w");
+    String root = """
+        module example.graph_plan_access;
+
+        import wheeler.compiler.graphs.matrix;
+
+        classical class GraphPlanAccess {
+          entry void main() {
+            region arena = new region(/* bytes= */ 96, /* allocations= */ 5);
+            words graph = allocate(arena, 4);
+            words rootDirect = allocate(arena, 2);
+            words rootRanks = allocate(arena, 2);
+            words order = allocate(arena, 2);
+            words reachable = allocate(arena, 2);
+            set(graph, 1, 1);
+            set(rootDirect, 1, 1);
+            set(rootRanks, 0, -1);
+            set(rootRanks, 1, 0);
+            BoundedGraphPlan plan = planBoundedGraph(
+              graph,
+              rootDirect,
+              rootRanks,
+              2,
+              order,
+              reachable
+            );
+            assert(plan.valid);
+            assert(plannedNodeAt(plan, 0) == 0);
+            assert(plannedNodeAt(plan, 1) == 1);
+            assert(plannedRootRankAt(plan, 0) == -1);
+            assert(plannedRootRankAt(plan, 1) == 0);
+            assert(plannedRootDirect(plan, 0) == false);
+            assert(plannedRootDirect(plan, 1));
+            assert(plannedPrivate(plan, 0));
+            assert(plannedPrivate(plan, 1) == false);
+            assert(plannedShared(plan, 0) == false);
+            assert(plannedEdge(plan, 0, 1));
+            assert(plannedEdge(plan, 1, 0) == false);
+
+            set(graph, 1, 0);
+            set(rootDirect, 0, 1);
+            set(rootRanks, 0, 0);
+            BoundedGraphPlan duplicateRank = planBoundedGraph(
+              graph,
+              rootDirect,
+              rootRanks,
+              2,
+              order,
+              reachable
+            );
+            assert(duplicateRank.valid == false);
+            drop(reachable);
+            drop(order);
+            drop(rootRanks);
+            drop(rootDirect);
+            drop(graph);
+            drop(arena);
+          }
+        }
+        """;
+    Program accessor = new WheelerCompiler().compileModuleFiles(
+        Map.of("Matrix.w", matrix, "GraphPlanAccess.w", root),
+        "example.graph_plan_access");
+    VirtualMachine machine = new VirtualMachine(accessor);
+
+    machine.run();
+  }
+
+  @Test
   void copiesTheCompletePhysicalSourceWindow() throws Exception {
     String sources = CompilerSources.read("compiler/graphs/Sources.w");
     String root = """

@@ -277,6 +277,65 @@ classical class BoundedGraphMatrix {
     );
   }
 
+  private long planDigit(BoundedGraphPlan plan, long packed, long index) {
+    assert(plan.valid);
+    assert(0 < index + 1);
+    assert(index < plan.nodeCount);
+    long shifted = packed;
+    long cursor = 0;
+    while (cursor < index) limit MAX_GRAPH_NODES {
+      shifted = shifted / ORDER_RADIX;
+      cursor += 1;
+    }
+
+    return shifted % ORDER_RADIX;
+  }
+
+  private boolean planBit(BoundedGraphPlan plan, long bits, long index) {
+    assert(plan.valid);
+    assert(0 < index + 1);
+    assert(index < plan.nodeCount);
+    long selected = bits / powerOfTwo(index);
+    return selected % 2 == 1;
+  }
+
+  /// Selects one node from the validated leaf-first order.
+  public long plannedNodeAt(BoundedGraphPlan plan, long position) {
+    return planDigit(plan, plan.orderCode, position);
+  }
+
+  /// Selects one root-header import rank, or negative one for a private node.
+  public long plannedRootRankAt(BoundedGraphPlan plan, long node) {
+    return planDigit(plan, plan.rootOrderCode, node) - 1;
+  }
+
+  /// Reports whether the root imports one node directly.
+  public boolean plannedRootDirect(BoundedGraphPlan plan, long node) {
+    return planBit(plan, plan.rootBits, node);
+  }
+
+  /// Reports whether one node remains private to its dependents.
+  public boolean plannedPrivate(BoundedGraphPlan plan, long node) {
+    return planBit(plan, plan.privateBits, node);
+  }
+
+  /// Reports whether one dependency feeds more than one dependent.
+  public boolean plannedShared(BoundedGraphPlan plan, long node) {
+    return planBit(plan, plan.sharedBits, node);
+  }
+
+  /// Reports whether one validated dependency edge is present.
+  public boolean plannedEdge(BoundedGraphPlan plan, long source, long dependent) {
+    assert(plan.valid);
+    assert(0 < source + 1);
+    assert(source < plan.nodeCount);
+    assert(0 < dependent + 1);
+    assert(dependent < plan.nodeCount);
+    long edge = source * plan.nodeCount + dependent;
+    long selected = plan.edgeBits / powerOfTwo(edge);
+    return selected % 2 == 1;
+  }
+
   /// Writes leaves followed by the root-visible dependent for one complete fork.
   public boolean writeForkOrder(
     borrow mut words graph,
