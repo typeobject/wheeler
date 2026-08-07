@@ -57,7 +57,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
   void pinsTheNativeImportCapacityGuard() throws Exception {
     String source = Files.readString(ROOT.resolve("NativeBootstrapModulesIdentity.w"));
 
-    assertTrue(source.contains("private const long MAX_LOCAL_MODULES = 256;"));
+    assertTrue(source.contains("private const long MAX_LOCAL_MODULES = 512;"));
     assertTrue(source.contains("requireMetadata(parsedModules < MAX_LOCAL_MODULES, source);"));
     assertTrue(source.contains("private const long MAX_IMPORTS = 1536;"));
     assertTrue(source.contains("requireMetadata(parsedImports < MAX_IMPORTS, source);"));
@@ -146,7 +146,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
     BootstrapModuleManifest twoHundredFiftySixModules = generatedChainGraph(256);
     assertLargeIdentity(program, twoHundredFiftySixModules, 256, 0, 255);
     BootstrapModuleManifest twoHundredFiftySevenModules = generatedChainGraph(257);
-    assertLargeNoIdentity(program, twoHundredFiftySevenModules.canonicalBytes());
+    assertLargeIdentity(program, twoHundredFiftySevenModules, 257, 0, 256);
     BootstrapModuleManifest fiveHundredTwelveImports = generatedDenseGraph(512);
     assertLargeIdentity(program, fiveHundredTwelveImports, 9, 64, 512);
     BootstrapModuleManifest fiveHundredSeventySixImports = generatedDenseGraph(576);

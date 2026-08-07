@@ -6,12 +6,12 @@ import wheeler.conformance.bootstrap.syntax;
 import wheeler.crypto.content_identity;
 
 classical class NativeBootstrapModulesIdentity {
-  private const long MAX_LOCAL_MODULES = 256;
+  private const long MAX_LOCAL_MODULES = 512;
   private const long MAX_EXTERNAL_MODULES = 64;
   private const long MAX_IMPORTS_PER_MODULE = 64;
   private const long MAX_IMPORTS = 1536;
   private const long MAX_MANIFEST_BYTES = 131072;
-  private const long MODULE_ARENA_BYTES = 786432;
+  private const long MODULE_ARENA_BYTES = 2359296;
 
   state long moduleCount = 0;
   state long externalCount = 0;
@@ -246,7 +246,7 @@ classical class NativeBootstrapModulesIdentity {
     return -1;
   }
 
-  /// Publishes SHA-256 for up to 256 rooted modules and sixty-four externals.
+  /// Publishes SHA-256 for up to 512 rooted modules and sixty-four externals.
   ///
   /// - Effects: Mutates fixture state and caller-owned identity output.
   entry void main(borrow byteview source, borrow mut bytes identity) {
