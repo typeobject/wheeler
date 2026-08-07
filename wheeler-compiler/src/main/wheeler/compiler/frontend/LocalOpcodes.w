@@ -2,6 +2,7 @@
 
 module wheeler.compiler.local_opcodes;
 
+import wheeler.compiler.assignment_calls;
 import wheeler.compiler.borrowed_intrinsic_shapes;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.conditionals;
@@ -53,6 +54,11 @@ classical class LocalOpcodes {
     long earlyUtf8Locals = earlyUtf8CallLocalCount(opcode);
     if (-1 < earlyUtf8Locals) {
       return earlyUtf8Locals;
+    }
+
+    long assignmentCallLocals = assignmentCallLocalCount(opcode);
+    if (-1 < assignmentCallLocals) {
+      return assignmentCallLocals;
     }
 
     long voidCallLocals = voidCallLocalCount(opcode);
@@ -494,6 +500,11 @@ classical class LocalOpcodes {
 
   /// Returns the encoded byte width of one parsed statement.
   public long statementCodeLength(long opcode) {
+    long assignmentCallLength = assignmentCallCodeLength(opcode);
+    if (-1 < assignmentCallLength) {
+      return assignmentCallLength;
+    }
+
     long earlyUtf8Length = earlyUtf8CallCodeLength(opcode);
     if (-1 < earlyUtf8Length) {
       return earlyUtf8Length;
@@ -766,6 +777,11 @@ classical class LocalOpcodes {
 
   /// Returns the instruction count emitted by one parsed statement.
   public long statementInstructionCount(long opcode) {
+    long assignmentCallInstructions = assignmentCallInstructionCount(opcode);
+    if (-1 < assignmentCallInstructions) {
+      return assignmentCallInstructions;
+    }
+
     long earlyUtf8Instructions = earlyUtf8CallInstructionCount(opcode);
     if (-1 < earlyUtf8Instructions) {
       return earlyUtf8Instructions;

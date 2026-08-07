@@ -2,6 +2,7 @@
 
 module wheeler.compiler.statements;
 
+import wheeler.compiler.assignment_calls;
 import wheeler.compiler.boolean_declaration_kinds;
 import wheeler.compiler.boolean_declaration_widths;
 import wheeler.compiler.boolean_tokens;
@@ -156,6 +157,16 @@ classical class Statements {
     long statementStart
   ) {
     long statementKind = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (assignmentCallSourceStatement(statementKind)) {
+      return assignmentCallWidth(
+        source,
+        tokenKinds,
+        tokenStarts,
+        statementStart,
+        statementKind
+      );
+    }
+
     if (statementKind == STATEMENT_IF_EQ_RETURN_UTF8_CALL_NAMED) {
       return earlyUtf8CallWidth(source, tokenKinds, tokenStarts, tokenLengths, statementStart);
     }

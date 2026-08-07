@@ -135,6 +135,104 @@ final class NativeCompilerLocalCallExampleTest {
             "selectFour(value, value, value, 0)"));
   }
 
+  @Test
+  void assignsZeroThroughSevenTypedCallArgumentsByteForByte() throws Exception {
+    String source = """
+        module example.assigned_calls;
+        classical class AssignedCalls {
+          public long zero() {
+            return 0;
+          }
+
+          public long one(long first) {
+            return first;
+          }
+
+          public long two(long first, long second) {
+            return first;
+          }
+
+          public long three(long first, long second, long third) {
+            return first;
+          }
+
+          public long four(long first, long second, long third, long fourth) {
+            return first;
+          }
+
+          public long five(long first, long second, long third, long fourth, long fifth) {
+            return first;
+          }
+
+          public long six(
+            long first,
+            long second,
+            long third,
+            long fourth,
+            long fifth,
+            long sixth
+          ) {
+            return first;
+          }
+
+          public long seven(
+            borrow utf8 text,
+            borrow byteview view,
+            borrow mut bytes octets,
+            borrow mut words values,
+            borrow mut region arena,
+            borrow mut longmap table,
+            long seed
+          ) {
+            return seed;
+          }
+
+          public long assignAll(
+            borrow utf8 text,
+            borrow byteview view,
+            borrow mut bytes octets,
+            borrow mut words values,
+            borrow mut region arena,
+            borrow mut longmap table,
+            long seed
+          ) {
+            long result = seed;
+            result = zero();
+            result = one(seed);
+            result = two(seed, seed);
+            result = three(seed, seed, seed);
+            result = four(seed, seed, seed, seed);
+            result = five(seed, seed, seed, seed, seed);
+            result = six(seed, seed, seed, seed, seed, seed);
+            result = seven(text, view, octets, values, arena, table, seed);
+            return result;
+          }
+        }
+        """;
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] actual = NativeModuleCompilerHarness.compile(compiler, List.of(), source);
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("AssignedCalls.w", source), "example.assigned_calls");
+    assertArrayEquals(new BytecodeWriter().write(expected), actual);
+
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(),
+        source.replace(
+            "seven(text, view, octets, values, arena, table, seed)",
+            "seven(text, view, values, octets, arena, table, seed)"));
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(),
+        source.replace(
+            "seven(text, view, octets, values, arena, table, seed)",
+            "seven(text, view, octets, values, arena, table, seed, seed)"));
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(),
+        source.replace("long result = seed;", "boolean result = false;"));
+  }
+
   private static long firstCallTarget(Program program, int function) {
     return program.functions().get(function).forward().stream()
         .filter(instruction -> instruction.opcode() == Opcode.CALL_VALUE)

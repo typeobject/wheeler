@@ -2,6 +2,7 @@
 
 module wheeler.compiler.statement_opcodes;
 
+import wheeler.compiler.assignment_calls;
 import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.compiler_token_limits;
@@ -774,6 +775,11 @@ classical class StatementOpcodes {
     if (operator == PUNCTUATION_ASSIGN) {
       long assignedScalar = utf8Scalar(source, tokenStarts[statementStart + 2]);
       if (identifierStart(assignedScalar)) {
+        long assignmentCall = namedAssignmentCallKind(source, tokenStarts, statementStart);
+        if (-1 < assignmentCall) {
+          return assignmentCall;
+        }
+
         return STATEMENT_ASSIGN_LOCAL_NAMED;
       }
 

@@ -34,7 +34,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
   void validatesThePhysicalBoundedCompilerClosure() throws Exception {
     BootstrapModuleManifest manifest = CompilerSources.bootstrapModuleManifest();
 
-    assertEquals(109_132, manifest.canonicalBytes().length);
+    assertEquals(112_757, manifest.canonicalBytes().length);
     VirtualMachine machine = vm(program(), manifest.canonicalBytes());
     long transitions = 0;
     while (machine.status() != MachineStatus.HALTED
@@ -43,13 +43,13 @@ final class NativeBootstrapModulesIdentityExampleTest {
       transitions += 1;
     }
 
-    assertEquals(38_927_587, transitions);
+    assertEquals(40_385_642, transitions);
     assertEquals(MachineStatus.HALTED, machine.status());
     assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(manifest.canonicalBytes()),
         machine.hostOutput());
-    assertEquals(239, machine.global("moduleCount"));
+    assertEquals(245, machine.global("moduleCount"));
     assertEquals(2, machine.global("externalCount"));
-    assertEquals(1_259, machine.global("importCount"));
+    assertEquals(1_308, machine.global("importCount"));
     assertEquals(1, machine.global("published"));
   }
 
@@ -59,7 +59,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
 
     assertTrue(source.contains("private const long MAX_LOCAL_MODULES = 256;"));
     assertTrue(source.contains("requireMetadata(parsedModules < MAX_LOCAL_MODULES, source);"));
-    assertTrue(source.contains("private const long MAX_IMPORTS = 1280;"));
+    assertTrue(source.contains("private const long MAX_IMPORTS = 1536;"));
     assertTrue(source.contains("requireMetadata(parsedImports < MAX_IMPORTS, source);"));
   }
 

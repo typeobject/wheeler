@@ -2,6 +2,7 @@
 
 module wheeler.compiler.scalar_helper_libraries;
 
+import wheeler.compiler.assignment_calls;
 import wheeler.compiler.body_parser;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_forms;
@@ -12,20 +13,18 @@ import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.encoding;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_parameter_types;
+import wheeler.compiler.helper_result_kinds;
 import wheeler.compiler.helper_signatures;
 import wheeler.compiler.ir;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.named_comparison_kinds;
-import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.owned_storage_forms;
 import wheeler.compiler.owned_utf8_copy_loops;
 import wheeler.compiler.resolved_early_result_kinds;
 import wheeler.compiler.resolved_less_than_assertions;
 import wheeler.compiler.resolved_local_copy_kinds;
-import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.resolved_long_operations;
-import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.scalar_helper_tables;
 import wheeler.compiler.sequences;
 import wheeler.compiler.source_scalars;
@@ -44,82 +43,6 @@ classical class ScalarHelperLibraries {
   /// Returns one invalid helper parse sentinel.
   public ParsedScalarHelper invalidHelper() {
     return new ParsedScalarHelper(emptyHelperBody(), 0, false);
-  }
-
-  private boolean signedResult(long opcode) {
-    if (opcode == STATEMENT_RETURN_LONG) {
-      return true;
-    }
-
-    if (resolvedSignedLocalReturn(opcode)) {
-      return true;
-    }
-
-    if (returnLocalBinaryStatement(opcode)) {
-      return true;
-    }
-
-    if (resolvedReturnHelperCall(opcode)) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_RETURN_BUFFER_LENGTH) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_RETURN_BUFFER_GET) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_RETURN_UTF8_SCALAR) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_RETURN_UTF8_WIDTH) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_RETURN_MAP_GET) {
-      return true;
-    }
-
-    return returnLocalPairStatement(opcode);
-  }
-
-  private boolean utf8Result(long opcode) {
-    if (opcode == STATEMENT_RETURN_FREEZE_UTF8_NAMED) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_RETURN_FREEZE_MOVED_UTF8) {
-      return true;
-    }
-
-    return resolvedReturnHelperCall(opcode);
-  }
-
-  private boolean booleanResult(long opcode) {
-    if (opcode == STATEMENT_RETURN_BOOLEAN) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_RETURN_BOOLEAN_NOT_NAMED) {
-      return true;
-    }
-
-    if (returnComparisonStatement(opcode)) {
-      return true;
-    }
-
-    if (resolvedReturnHelperCall(opcode)) {
-      return true;
-    }
-
-    if (resolvedLocalReturn(opcode)) {
-      return resolvedSignedLocalReturn(opcode) == false;
-    }
-
-    return opcode == STATEMENT_RETURN_MAP_HAS;
   }
 
   private boolean ownedStorageValid(
@@ -527,13 +450,13 @@ classical class ScalarHelperLibraries {
     boolean booleanHelper = booleanHelperKind(kind);
     boolean utf8Helper = utf8ResultHelper(kind);
 
-    boolean validResult = signedResult(sequence.opcodes[result]);
+    boolean validResult = signedHelperResult(sequence.opcodes[result]);
     if (booleanHelper) {
-      validResult = booleanResult(sequence.opcodes[result]);
+      validResult = booleanHelperResult(sequence.opcodes[result]);
     }
 
     if (utf8Helper) {
-      validResult = utf8Result(sequence.opcodes[result]);
+      validResult = utf8HelperResult(sequence.opcodes[result]);
     }
 
     if (validResult) {} else {
@@ -576,6 +499,10 @@ classical class ScalarHelperLibraries {
       } else {
         boolean signedPrelude = resolvedLocalLongBinary(earlyOpcode);
         if (earlyOpcode == STATEMENT_LOCAL_LONG) {
+          signedPrelude = true;
+        }
+
+        if (resolvedLocalLongCopy(earlyOpcode)) {
           signedPrelude = true;
         }
 
@@ -656,6 +583,10 @@ classical class ScalarHelperLibraries {
         }
 
         if (scalarResultCallStatement(earlyOpcode)) {
+          signedPrelude = true;
+        }
+
+        if (assignmentCallStatement(earlyOpcode)) {
           signedPrelude = true;
         }
 
@@ -883,6 +814,11 @@ classical class ScalarHelperLibraries {
       if (scalarResultCallStatement(sourceOpcode)) {
         helperCall = true;
         targetToken = statementStarts[sourceStatement] + 3;
+      }
+
+      if (assignmentCallSourceStatement(sourceOpcode)) {
+        helperCall = true;
+        targetToken = statementStarts[sourceStatement] + 2;
       }
 
       if (helperCall) {

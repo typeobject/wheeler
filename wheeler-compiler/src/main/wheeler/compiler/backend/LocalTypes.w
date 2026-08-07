@@ -2,6 +2,7 @@
 
 module wheeler.compiler.local_types;
 
+import wheeler.compiler.assignment_calls;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_arguments;
 import wheeler.compiler.call_forms;
@@ -231,6 +232,49 @@ classical class LocalTypes {
     if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
       cursor = writeLocalType(output, cursor, firstSourceType);
       cursor = writeLocalType(output, cursor, TYPE_SIGNED);
+      return writeLocalType(output, cursor, TYPE_SIGNED);
+    }
+
+    long assignmentArity = assignmentCallArity(opcode);
+    if (-1 < assignmentArity) {
+      long assignmentArgument = 0;
+      while (assignmentArgument < assignmentArity) limit MAX_ASSIGNMENT_CALL_ARGUMENTS {
+        cursor = writeLocalType(
+          output,
+          cursor,
+          callSourceType(
+            assignmentArgument,
+            firstSourceType,
+            secondSourceType,
+            thirdSourceType,
+            fourthSourceType,
+            fifthSourceType,
+            sixthSourceType,
+            seventhSourceType
+          )
+        );
+        assignmentArgument += 1;
+      }
+
+      assignmentArgument = 0;
+      while (assignmentArgument < assignmentArity) limit MAX_ASSIGNMENT_CALL_ARGUMENTS {
+        cursor = writeLocalType(
+          output,
+          cursor,
+          callSourceType(
+            assignmentArgument,
+            firstSourceType,
+            secondSourceType,
+            thirdSourceType,
+            fourthSourceType,
+            fifthSourceType,
+            sixthSourceType,
+            seventhSourceType
+          )
+        );
+        assignmentArgument += 1;
+      }
+
       return writeLocalType(output, cursor, TYPE_SIGNED);
     }
 

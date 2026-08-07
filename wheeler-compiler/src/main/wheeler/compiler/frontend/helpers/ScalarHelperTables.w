@@ -2,6 +2,7 @@
 
 module wheeler.compiler.scalar_helper_tables;
 
+import wheeler.compiler.assignment_calls;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.encoding;
@@ -57,6 +58,27 @@ classical class ScalarHelperTables {
     long wideFirstSources = firstSource;
     long wideLastSources = secondSource;
     if (argumentCount == 0) {
+      return true;
+    }
+
+    if (assignmentCallStatement(opcode)) {
+      long assignmentArgument = 0;
+      while (assignmentArgument < argumentCount) limit MAX_ASSIGNMENT_CALL_ARGUMENTS {
+        long assignmentSource = assignmentCallSource(
+          opcode,
+          wideFirstSources,
+          wideLastSources,
+          assignmentArgument
+        );
+        if (
+          callerLocalType(caller, assignmentSource) == candidate.parameterTypes[assignmentArgument]
+        ) {} else {
+          return false;
+        }
+
+        assignmentArgument += 1;
+      }
+
       return true;
     }
 
@@ -426,6 +448,15 @@ classical class ScalarHelperTables {
 
   private boolean localScalarCallMatches(HelperBody candidate, long opcode) {
     // Keep the exact signed form ahead of Boolean-shaped rejection paths.
+    if (assignmentCallStatement(opcode)) {
+      long assignmentArity = assignmentCallArity(opcode);
+      if (candidate.kind == signedScalarHelperKind(assignmentArity)) {
+        return candidate.parameterCount == assignmentArity;
+      }
+
+      return false;
+    }
+
     if (twoArgumentSignedResultCall(opcode)) {
       if (candidate.kind == HELPER_SIGNED_TWO) {
         return candidate.parameterCount == 2;
@@ -624,7 +655,12 @@ classical class ScalarHelperTables {
               }
             }
           } else {
-            if (scalarResultCallStatement(callOpcode)) {
+            boolean scalarCall = scalarResultCallStatement(callOpcode);
+            if (assignmentCallStatement(callOpcode)) {
+              scalarCall = true;
+            }
+
+            if (scalarCall) {
               if (localScalarCallMatches(candidate, callOpcode)) {
                 if (
                   callParametersMatch(
@@ -735,6 +771,10 @@ classical class ScalarHelperTables {
 
         if (voidCallStatement(callOpcode)) {
           argumentCount = voidCallArity(callOpcode);
+        }
+
+        if (assignmentCallStatement(callOpcode)) {
+          argumentCount = assignmentCallArity(callOpcode);
         }
 
         long function = resolveCallFunction(

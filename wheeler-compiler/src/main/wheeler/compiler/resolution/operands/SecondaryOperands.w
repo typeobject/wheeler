@@ -2,6 +2,8 @@
 
 module wheeler.compiler.secondary_operands;
 
+import wheeler.compiler.assignment_call_resolution;
+import wheeler.compiler.assignment_calls;
 import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_argument_sources;
@@ -18,6 +20,7 @@ import wheeler.compiler.local_resolution;
 import wheeler.compiler.loop_forms;
 import wheeler.compiler.named_literal_comparison_kinds;
 import wheeler.compiler.named_return_arithmetic_kinds;
+import wheeler.compiler.operand_resolution_opcode;
 import wheeler.compiler.operands;
 import wheeler.compiler.owned_storage_forms;
 import wheeler.compiler.owned_storage_operands;
@@ -62,6 +65,18 @@ classical class SecondaryOperands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (assignmentCallStatement(opcode)) {
+      return resolveAssignmentCallLastSources(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart,
+        opcode
+      );
+    }
+
     if (wideReturnCall(opcode)) {
       return resolveWideReturnLastSources(
         source,

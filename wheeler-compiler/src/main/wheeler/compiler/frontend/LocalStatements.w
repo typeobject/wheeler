@@ -3,6 +3,8 @@
 module wheeler.compiler.local_statements;
 
 import wheeler.compiler.assertion_resolution;
+import wheeler.compiler.assignment_call_resolution;
+import wheeler.compiler.assignment_calls;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.borrowed_intrinsic_resolution;
 import wheeler.compiler.call_forms;
@@ -51,86 +53,6 @@ import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.void_call_resolution;
 
 classical class LocalStatements {
-  private long namedLongLiteralBase(long opcode) {
-    if (opcode == STATEMENT_LOCAL_LONG_ADD_NAMED) {
-      return STATEMENT_LOCAL_LONG_ADD_BASE;
-    }
-
-    if (opcode == STATEMENT_LOCAL_LONG_ADD_LOCALS_NAMED) {
-      return STATEMENT_LOCAL_LONG_ADD_BASE;
-    }
-
-    if (opcode == STATEMENT_LOCAL_LONG_SUB_NAMED) {
-      return STATEMENT_LOCAL_LONG_SUB_BASE;
-    }
-
-    if (opcode == STATEMENT_LOCAL_LONG_SUB_LOCALS_NAMED) {
-      return STATEMENT_LOCAL_LONG_SUB_BASE;
-    }
-
-    if (opcode == STATEMENT_LOCAL_LONG_XOR_NAMED) {
-      return STATEMENT_LOCAL_LONG_XOR_BASE;
-    }
-
-    if (opcode == STATEMENT_LOCAL_LONG_XOR_LOCALS_NAMED) {
-      return STATEMENT_LOCAL_LONG_XOR_BASE;
-    }
-
-    if (opcode == STATEMENT_LOCAL_LONG_MUL_NAMED) {
-      return STATEMENT_LOCAL_LONG_MUL_BASE;
-    }
-
-    if (opcode == STATEMENT_LOCAL_LONG_MUL_LOCALS_NAMED) {
-      return STATEMENT_LOCAL_LONG_MUL_BASE;
-    }
-
-    if (opcode == STATEMENT_LOCAL_LONG_DIV_NAMED) {
-      return STATEMENT_LOCAL_LONG_DIV_BASE;
-    }
-
-    if (opcode == STATEMENT_LOCAL_LONG_DIV_LOCALS_NAMED) {
-      return STATEMENT_LOCAL_LONG_DIV_BASE;
-    }
-
-    if (opcode == STATEMENT_LOCAL_LONG_MOD_NAMED) {
-      return STATEMENT_LOCAL_LONG_MOD_BASE;
-    }
-
-    if (opcode == STATEMENT_LOCAL_LONG_MOD_LOCALS_NAMED) {
-      return STATEMENT_LOCAL_LONG_MOD_BASE;
-    }
-
-    return STATEMENT_LOCAL_LONG_AND_BASE;
-  }
-
-  private long namedLongPairBase(long opcode) {
-    if (opcode == STATEMENT_LOCAL_LONG_ADD_LOCALS_NAMED) {
-      return STATEMENT_LOCAL_LONG_ADD_LOCALS_BASE;
-    }
-
-    if (opcode == STATEMENT_LOCAL_LONG_SUB_LOCALS_NAMED) {
-      return STATEMENT_LOCAL_LONG_SUB_LOCALS_BASE;
-    }
-
-    if (opcode == STATEMENT_LOCAL_LONG_XOR_LOCALS_NAMED) {
-      return STATEMENT_LOCAL_LONG_XOR_LOCALS_BASE;
-    }
-
-    if (opcode == STATEMENT_LOCAL_LONG_MUL_LOCALS_NAMED) {
-      return STATEMENT_LOCAL_LONG_MUL_LOCALS_BASE;
-    }
-
-    if (opcode == STATEMENT_LOCAL_LONG_DIV_LOCALS_NAMED) {
-      return STATEMENT_LOCAL_LONG_DIV_LOCALS_BASE;
-    }
-
-    if (opcode == STATEMENT_LOCAL_LONG_MOD_LOCALS_NAMED) {
-      return STATEMENT_LOCAL_LONG_MOD_LOCALS_BASE;
-    }
-
-    return STATEMENT_LOCAL_LONG_AND_LOCALS_BASE;
-  }
-
   /// Resolves named signed operations into opcodes carrying local indices.
   public long sequenceStatementOpcode(
     borrow utf8 source,
@@ -172,6 +94,18 @@ classical class LocalStatements {
         statementStart,
         previousStarts,
         previousCount
+      );
+    }
+
+    if (assignmentCallSourceStatement(opcode)) {
+      return resolveAssignmentCallOpcode(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart,
+        opcode
       );
     }
 

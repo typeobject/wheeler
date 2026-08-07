@@ -2,6 +2,7 @@
 
 module wheeler.compiler.codegen;
 
+import wheeler.compiler.assignment_call_codegen;
 import wheeler.compiler.borrowed_intrinsic_codegen;
 import wheeler.compiler.conditionals;
 import wheeler.compiler.early_utf8_call_codegen;
@@ -10,6 +11,7 @@ import wheeler.compiler.encoding;
 import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.loop_codegen;
+import wheeler.compiler.mutation_codegen;
 import wheeler.compiler.named_long_operations;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.owned_storage_codegen;
@@ -19,7 +21,6 @@ import wheeler.compiler.resolved_boolean_literal_assertions;
 import wheeler.compiler.resolved_boolean_literal_comparisons;
 import wheeler.compiler.resolved_less_than_assertions;
 import wheeler.compiler.resolved_literal_comparison_kinds;
-import wheeler.compiler.resolved_local_assignments;
 import wheeler.compiler.resolved_local_conditional_kinds;
 import wheeler.compiler.resolved_local_conditional_operands;
 import wheeler.compiler.resolved_local_conditional_sources;
@@ -31,7 +32,6 @@ import wheeler.compiler.resolved_local_literal_comparison_sources;
 import wheeler.compiler.resolved_local_literal_comparisons;
 import wheeler.compiler.resolved_local_loop_kinds;
 import wheeler.compiler.resolved_local_pair_assertions;
-import wheeler.compiler.resolved_local_updates;
 import wheeler.compiler.resolved_long_operations;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.return_codegen;
@@ -332,6 +332,26 @@ classical class Codegen {
       return returnCursor;
     }
 
+    long assignmentCallCursor = writeAssignmentCallStatement(
+      output,
+      cursor,
+      opcode,
+      operand,
+      secondaryOperand,
+      localBase,
+      callFunction,
+      firstSourceType,
+      secondSourceType,
+      thirdSourceType,
+      fourthSourceType,
+      fifthSourceType,
+      sixthSourceType,
+      seventhSourceType
+    );
+    if (-1 < assignmentCallCursor) {
+      return assignmentCallCursor;
+    }
+
     long valueCallCursor = writeScalarValueCallStatement(
       output,
       cursor,
@@ -411,50 +431,9 @@ classical class Codegen {
       return storageCursor;
     }
 
-    if (resolvedLocalAssignment(opcode)) {
-      long assignmentRightOpcode = OPCODE_LOCAL_CONST;
-      if (resolvedLocalAssignmentNamed(opcode)) {
-        assignmentRightOpcode = OPCODE_LOCAL_MOVE;
-      }
-
-      cursor = writeInstructionHeader(output, cursor, assignmentRightOpcode, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeScalarOperand(output, cursor, assignmentRightOpcode, operand);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(
-        output,
-        cursor,
-        resolvedLocalAssignmentTarget(opcode),
-        U64
-      );
-      return writeUnsignedLittleEndian(output, cursor, localBase, U64);
-    }
-
-    if (resolvedLocalUpdate(opcode)) {
-      long updateTarget = resolvedLocalUpdateTarget(opcode);
-      long updateRightOpcode = OPCODE_LOCAL_CONST;
-      if (resolvedLocalUpdateNamed(opcode)) {
-        updateRightOpcode = OPCODE_LOCAL_MOVE;
-      }
-
-      cursor = writeInstructionHeader(output, cursor, updateRightOpcode, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeScalarOperand(output, cursor, updateRightOpcode, operand);
-      long updateOpcode = OPCODE_LOCAL_ADD;
-      if (STATEMENT_LOCAL_UPDATE_SUB_LITERAL_BASE - 1 < opcode) {
-        if (opcode < STATEMENT_LOCAL_UPDATE_XOR_LITERAL_BASE) {
-          updateOpcode = OPCODE_LOCAL_SUB;
-        }
-      }
-
-      if (STATEMENT_LOCAL_UPDATE_XOR_LITERAL_BASE - 1 < opcode) {
-        updateOpcode = OPCODE_LOCAL_XOR;
-      }
-
-      cursor = writeInstructionHeader(output, cursor, updateOpcode, FORM_TERNARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, updateTarget, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, updateTarget, U64);
-      return writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    long mutationCursor = writeMutationStatement(output, cursor, opcode, operand, localBase);
+    if (-1 < mutationCursor) {
+      return mutationCursor;
     }
 
     long valueCallCursor = writeSignedScalarValueCallStatement(
