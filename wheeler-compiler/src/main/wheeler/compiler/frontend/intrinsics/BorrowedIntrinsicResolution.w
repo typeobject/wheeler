@@ -4,6 +4,7 @@ module wheeler.compiler.borrowed_intrinsic_resolution;
 
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.local_resolution;
+import wheeler.compiler.owned_storage_operands;
 
 classical class BorrowedIntrinsicResolution {
   /// Carries one resolved intrinsic opcode and whether this owner applies.
@@ -94,6 +95,20 @@ classical class BorrowedIntrinsicResolution {
       return new BorrowedIntrinsicOperand(-1, false);
     }
 
+    if (sourceOpcode == STATEMENT_SET_BYTE_NAMED) {
+      OwnedBytesOperand owner = resolvePriorOwnedBytes(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + tokenOffset
+      );
+      if (-1 < owner.value) {
+        return new BorrowedIntrinsicOperand(owner.value, true);
+      }
+    }
+
     long value = resolvePriorDeclaration(
       source,
       tokenStarts,
@@ -126,6 +141,44 @@ classical class BorrowedIntrinsicResolution {
     }
 
     if (borrowedWrite) {
+      if (sourceOpcode == STATEMENT_SET_BYTE_NAMED) {
+        OwnedBytesOperand ownedWrite = resolvePriorOwnedBytes(
+          source,
+          tokenStarts,
+          tokenLengths,
+          previousStarts,
+          previousCount,
+          statementStart + 2
+        );
+        if (-1 < ownedWrite.value) {
+          long ownedIndex = resolvePriorDeclaration(
+            source,
+            tokenStarts,
+            tokenLengths,
+            previousStarts,
+            previousCount,
+            statementStart + 4,
+            true
+          );
+          long ownedValue = resolvePriorDeclaration(
+            source,
+            tokenStarts,
+            tokenLengths,
+            previousStarts,
+            previousCount,
+            statementStart + 6,
+            true
+          );
+          if (-1 < ownedIndex) {
+            if (-1 < ownedValue) {
+              return new ResolvedBorrowedIntrinsic(STATEMENT_SET_OWNED_BYTE, true);
+            }
+          }
+
+          return new ResolvedBorrowedIntrinsic(-1, true);
+        }
+      }
+
       long writeOwner = resolvePriorDeclaration(
         source,
         tokenStarts,

@@ -33,6 +33,8 @@ classical class BorrowedIntrinsicKinds {
   public const long STATEMENT_SET_BYTE_NAMED = 899;
   /// Names a resolved mutable byte-loan element write.
   public const long STATEMENT_SET_BYTE = 131078;
+  /// Names a mutable byte write that advances one owned value.
+  public const long STATEMENT_SET_OWNED_BYTE = 131346;
   /// Names a mutable signed-map entry write.
   public const long STATEMENT_MAP_PUT_NAMED = 904;
   /// Names a resolved mutable signed-map entry write.

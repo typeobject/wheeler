@@ -22,6 +22,10 @@ classical class BorrowedIntrinsicShapes {
       return true;
     }
 
+    if (opcode == STATEMENT_SET_OWNED_BYTE) {
+      return true;
+    }
+
     if (opcode == STATEMENT_MAP_PUT_NAMED) {
       return true;
     }

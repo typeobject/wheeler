@@ -17,6 +17,7 @@ import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.named_comparison_kinds;
 import wheeler.compiler.named_return_arithmetic_kinds;
+import wheeler.compiler.owned_storage_forms;
 import wheeler.compiler.resolved_early_result_kinds;
 import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.resolved_long_operations;
@@ -148,7 +149,20 @@ classical class ScalarHelperLibraries {
         activeBytes = statementResultLocal(opcode, localBase);
       }
 
-      if (opcode == STATEMENT_DROP_OWNED_NAMED) {
+      if (opcode == STATEMENT_SET_OWNED_BYTE) {
+        if (sequence.operands[statement] == activeBytes) {} else {
+          return false;
+        }
+
+        activeBytes = localBase;
+      }
+
+      boolean ownedDrop = opcode == STATEMENT_DROP_OWNED_NAMED;
+      if (opcode == STATEMENT_DROP_MOVED_OWNED) {
+        ownedDrop = true;
+      }
+
+      if (ownedDrop) {
         if (sequence.operands[statement] == activeBytes) {} else {
           return false;
         }
@@ -185,6 +199,10 @@ classical class ScalarHelperLibraries {
         borrowedWrite = true;
       }
 
+      if (opcode == STATEMENT_SET_OWNED_BYTE) {
+        borrowedWrite = true;
+      }
+
       if (opcode == STATEMENT_MAP_PUT) {
         borrowedWrite = true;
       }
@@ -195,21 +213,27 @@ classical class ScalarHelperLibraries {
           return false;
         }
 
-        if (writeOwner < parameterCount) {} else {
-          return false;
-        }
+        if (opcode == STATEMENT_SET_OWNED_BYTE) {
+          if (parameterCount < writeOwner) {} else {
+            return false;
+          }
+        } else {
+          if (writeOwner < parameterCount) {} else {
+            return false;
+          }
 
-        long requiredOwnerType = TYPE_WORDS_BORROW;
-        if (opcode == STATEMENT_SET_BYTE) {
-          requiredOwnerType = TYPE_BYTES_BORROW;
-        }
+          long requiredOwnerType = TYPE_WORDS_BORROW;
+          if (opcode == STATEMENT_SET_BYTE) {
+            requiredOwnerType = TYPE_BYTES_BORROW;
+          }
 
-        if (opcode == STATEMENT_MAP_PUT) {
-          requiredOwnerType = TYPE_LONG_MAP_BORROW;
-        }
+          if (opcode == STATEMENT_MAP_PUT) {
+            requiredOwnerType = TYPE_LONG_MAP_BORROW;
+          }
 
-        if (parameterTypes[writeOwner] == requiredOwnerType) {} else {
-          return false;
+          if (parameterTypes[writeOwner] == requiredOwnerType) {} else {
+            return false;
+          }
         }
 
         long packedSources = sequence.secondaryOperands[statement];
@@ -413,6 +437,10 @@ classical class ScalarHelperLibraries {
           write = true;
         }
 
+        if (voidOpcode == STATEMENT_SET_OWNED_BYTE) {
+          write = true;
+        }
+
         if (voidOpcode == STATEMENT_MAP_PUT) {
           write = true;
         }
@@ -426,6 +454,10 @@ classical class ScalarHelperLibraries {
         }
 
         if (voidOpcode == STATEMENT_DROP_OWNED_NAMED) {
+          write = true;
+        }
+
+        if (voidOpcode == STATEMENT_DROP_MOVED_OWNED) {
           write = true;
         }
 
@@ -516,6 +548,10 @@ classical class ScalarHelperLibraries {
           signedPrelude = true;
         }
 
+        if (earlyOpcode == STATEMENT_SET_OWNED_BYTE) {
+          signedPrelude = true;
+        }
+
         if (earlyOpcode == STATEMENT_MAP_PUT) {
           signedPrelude = true;
         }
@@ -529,6 +565,10 @@ classical class ScalarHelperLibraries {
         }
 
         if (earlyOpcode == STATEMENT_DROP_OWNED_NAMED) {
+          signedPrelude = true;
+        }
+
+        if (earlyOpcode == STATEMENT_DROP_MOVED_OWNED) {
           signedPrelude = true;
         }
 

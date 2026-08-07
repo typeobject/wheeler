@@ -2,15 +2,24 @@
 
 module wheeler.compiler.owned_storage_operands;
 
+import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.local_resolution;
+import wheeler.compiler.owned_storage_forms;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
 
 classical class OwnedStorageOperands {
-  private long resolvePriorOwnedBytes(
+  /// Carries the current owner local and whether a mutation has advanced it.
+  public record OwnedBytesOperand(long value, boolean moved) {}
+
+  /// Carries one resolved owned-storage opcode and whether this owner applies.
+  public record ResolvedOwnedStorage(long opcode, boolean applies) {}
+
+  /// Resolves the current local for one bounded owned byte value.
+  public OwnedBytesOperand resolvePriorOwnedBytes(
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
@@ -19,16 +28,17 @@ classical class OwnedStorageOperands {
     long assertedName
   ) {
     if (previousCount < 0) {
-      return -1;
+      return new OwnedBytesOperand(-1, false);
     }
 
     if (MAX_HELPER_RESOLUTION_STARTS < previousCount) {
-      return -1;
+      return new OwnedBytesOperand(-1, false);
     }
 
     long localBase = 0;
     long matchedLocal = -1;
     long matchCount = 0;
+    boolean moved = false;
     long previous = 0;
     while (previous < previousCount) limit MAX_HELPER_RESOLUTION_STARTS {
       long previousStart = previousStarts[previous];
@@ -48,6 +58,24 @@ classical class OwnedStorageOperands {
             ) {
               matchedLocal = statementResultLocal(previousOpcode, localBase);
               matchCount += 1;
+              moved = false;
+            }
+          }
+
+          if (previousOpcode == STATEMENT_SET_BYTE_NAMED) {
+            if (0 < matchCount) {
+              if (
+                sameTokenText(
+                  source,
+                  tokenStarts,
+                  tokenLengths,
+                  previousStart + 2,
+                  assertedName
+                )
+              ) {
+                matchedLocal = localBase;
+                moved = true;
+              }
             }
           }
 
@@ -59,10 +87,43 @@ classical class OwnedStorageOperands {
     }
 
     if (matchCount == 1) {
-      return matchedLocal;
+      return new OwnedBytesOperand(matchedLocal, moved);
     }
 
-    return -1;
+    return new OwnedBytesOperand(-1, false);
+  }
+
+  /// Resolves an owned drop after any canonical owner-advancing mutations.
+  public ResolvedOwnedStorage resolveOwnedStorageOpcode(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    borrow mut words previousStarts,
+    long previousCount,
+    long statementStart,
+    long opcode
+  ) {
+    if (opcode == STATEMENT_DROP_OWNED_NAMED) {
+      OwnedBytesOperand owner = resolvePriorOwnedBytes(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        statementStart + 2
+      );
+      if (owner.value < 0) {
+        return new ResolvedOwnedStorage(-1, true);
+      }
+
+      if (owner.moved) {
+        return new ResolvedOwnedStorage(STATEMENT_DROP_MOVED_OWNED, true);
+      }
+
+      return new ResolvedOwnedStorage(opcode, true);
+    }
+
+    return new ResolvedOwnedStorage(-1, false);
   }
 
   /// Resolves the region or owned-value operand of one owned-storage statement.
@@ -76,7 +137,7 @@ classical class OwnedStorageOperands {
     long opcode
   ) {
     if (opcode == STATEMENT_DROP_OWNED_NAMED) {
-      return resolvePriorOwnedBytes(
+      OwnedBytesOperand owner = resolvePriorOwnedBytes(
         source,
         tokenStarts,
         tokenLengths,
@@ -84,6 +145,7 @@ classical class OwnedStorageOperands {
         previousCount,
         statementStart + 2
       );
+      return owner.value;
     }
 
     return resolvePriorDeclaration(

@@ -11,6 +11,7 @@ import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.named_comparison_kinds;
 import wheeler.compiler.one_argument_calls;
+import wheeler.compiler.owned_storage_forms;
 import wheeler.compiler.resolved_boolean_literal_assertions;
 import wheeler.compiler.resolved_boolean_literal_comparisons;
 import wheeler.compiler.resolved_early_result_kinds;
@@ -100,6 +101,12 @@ classical class LocalTypes {
 
     if (opcode == STATEMENT_SET_BYTE) {
       cursor = writeLocalType(output, cursor, firstSourceType);
+      cursor = writeLocalType(output, cursor, TYPE_SIGNED);
+      return writeLocalType(output, cursor, TYPE_SIGNED);
+    }
+
+    if (opcode == STATEMENT_SET_OWNED_BYTE) {
+      cursor = writeLocalType(output, cursor, TYPE_BYTES);
       cursor = writeLocalType(output, cursor, TYPE_SIGNED);
       return writeLocalType(output, cursor, TYPE_SIGNED);
     }
@@ -267,6 +274,10 @@ classical class LocalTypes {
       return writeLocalType(output, cursor, TYPE_BYTES);
     }
 
+    if (opcode == STATEMENT_DROP_MOVED_OWNED) {
+      return cursor;
+    }
+
     if (opcode == STATEMENT_SET_WORD) {
       cursor = writeLocalType(output, cursor, TYPE_WORDS_BORROW);
       cursor = writeLocalType(output, cursor, TYPE_SIGNED);
@@ -275,6 +286,12 @@ classical class LocalTypes {
 
     if (opcode == STATEMENT_SET_BYTE) {
       cursor = writeLocalType(output, cursor, TYPE_BYTES_BORROW);
+      cursor = writeLocalType(output, cursor, TYPE_SIGNED);
+      return writeLocalType(output, cursor, TYPE_SIGNED);
+    }
+
+    if (opcode == STATEMENT_SET_OWNED_BYTE) {
+      cursor = writeLocalType(output, cursor, TYPE_BYTES);
       cursor = writeLocalType(output, cursor, TYPE_SIGNED);
       return writeLocalType(output, cursor, TYPE_SIGNED);
     }

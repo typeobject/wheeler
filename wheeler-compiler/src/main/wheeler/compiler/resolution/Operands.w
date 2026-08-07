@@ -4,6 +4,7 @@ module wheeler.compiler.operands;
 
 import wheeler.compiler.assertion_resolution;
 import wheeler.compiler.boolean_tokens;
+import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.borrowed_intrinsic_resolution;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
@@ -134,6 +135,14 @@ classical class Operands {
     }
 
     if (opcode == STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
+    if (opcode == STATEMENT_SET_BYTE_NAMED) {
+      ambiguousTypedStatement = true;
+    }
+
+    if (opcode == STATEMENT_DROP_OWNED_NAMED) {
       ambiguousTypedStatement = true;
     }
 

@@ -43,6 +43,10 @@ classical class BorrowedIntrinsicCodegen {
       borrowedWrite = true;
     }
 
+    if (opcode == STATEMENT_SET_OWNED_BYTE) {
+      borrowedWrite = true;
+    }
+
     if (opcode == STATEMENT_MAP_PUT) {
       borrowedWrite = true;
     }
@@ -55,11 +59,20 @@ classical class BorrowedIntrinsicCodegen {
         writeOpcode = OPCODE_BYTES_SET;
       }
 
+      if (opcode == STATEMENT_SET_OWNED_BYTE) {
+        writeOpcode = OPCODE_BYTES_SET;
+      }
+
       if (opcode == STATEMENT_MAP_PUT) {
         writeOpcode = OPCODE_MAP_PUT;
       }
 
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      long ownerMoveOpcode = OPCODE_LOCAL_MOVE;
+      if (opcode == STATEMENT_SET_OWNED_BYTE) {
+        ownerMoveOpcode = OPCODE_OWNED_MOVE;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, ownerMoveOpcode, FORM_BINARY);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
       cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);

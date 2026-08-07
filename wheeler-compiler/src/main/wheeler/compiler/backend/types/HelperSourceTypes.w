@@ -45,6 +45,10 @@ classical class HelperSourceTypes {
       return operand;
     }
 
+    if (opcode == STATEMENT_SET_OWNED_BYTE) {
+      return operand;
+    }
+
     if (opcode == STATEMENT_MAP_PUT) {
       return operand;
     }
@@ -226,6 +230,10 @@ classical class HelperSourceTypes {
     long[16] parameterTypes,
     long parameterCount
   ) {
+    if (opcode == STATEMENT_SET_OWNED_BYTE) {
+      return TYPE_BYTES;
+    }
+
     long selected = firstSource(opcode, operand);
     return sequenceLocalType(parameterTypes, parameterCount, selected);
   }

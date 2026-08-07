@@ -4,6 +4,7 @@ module wheeler.compiler.owned_storage_codegen;
 
 import wheeler.compiler.encoding;
 import wheeler.compiler.opcodes;
+import wheeler.compiler.owned_storage_forms;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.storage_opcodes;
 
@@ -76,6 +77,21 @@ classical class OwnedStorageCodegen {
         output,
         cursor,
         /* length= */ localBase + 1,
+        INSTRUCTION_OPERAND_WIDTH
+      );
+    }
+
+    if (opcode == STATEMENT_DROP_MOVED_OWNED) {
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_BUFFER_DROP,
+        INSTRUCTION_FORM_UNARY
+      );
+      return writeUnsignedLittleEndian(
+        output,
+        cursor,
+        /* owner= */ operand,
         INSTRUCTION_OPERAND_WIDTH
       );
     }

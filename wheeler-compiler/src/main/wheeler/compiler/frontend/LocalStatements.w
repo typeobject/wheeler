@@ -25,6 +25,8 @@ import wheeler.compiler.named_local_conditional_kinds;
 import wheeler.compiler.named_local_update_kinds;
 import wheeler.compiler.named_long_operations;
 import wheeler.compiler.one_argument_calls;
+import wheeler.compiler.owned_storage_forms;
+import wheeler.compiler.owned_storage_operands;
 import wheeler.compiler.resolved_less_than_assertions;
 import wheeler.compiler.resolved_local_assignments;
 import wheeler.compiler.resolved_local_conditional_kinds;
@@ -218,6 +220,19 @@ classical class LocalStatements {
         previousCount,
         opcode
       );
+    }
+
+    ResolvedOwnedStorage ownedStorage = resolveOwnedStorageOpcode(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      statementStart,
+      opcode
+    );
+    if (ownedStorage.applies) {
+      return ownedStorage.opcode;
     }
 
     ResolvedVoidCall voidCall = resolveVoidCall(
@@ -826,11 +841,19 @@ classical class LocalStatements {
       return -1 < operand;
     }
 
+    if (opcode == STATEMENT_DROP_MOVED_OWNED) {
+      return -1 < operand;
+    }
+
     if (opcode == STATEMENT_SET_WORD) {
       return -1 < operand;
     }
 
     if (opcode == STATEMENT_SET_BYTE) {
+      return -1 < operand;
+    }
+
+    if (opcode == STATEMENT_SET_OWNED_BYTE) {
       return -1 < operand;
     }
 

@@ -7,6 +7,8 @@ import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
 
 classical class OwnedStorageForms {
+  /// Names resolved destruction after a mutation has already moved the owner.
+  public const long STATEMENT_DROP_MOVED_OWNED = 131347;
   /// Names the exact token width of `bytes name = allocateBytes(region, length);`.
   private const long BYTES_ALLOCATION_TOKEN_WIDTH = 10;
   /// Names the exact token width of `drop(name);`.
@@ -25,6 +27,10 @@ classical class OwnedStorageForms {
   private const long OWNED_DROP_CODE_LENGTH = 40;
   /// Names the explicit destruction instruction count.
   private const long OWNED_DROP_INSTRUCTION_COUNT = 2;
+  /// Names direct destruction after a mutation has already moved the owner.
+  private const long MOVED_OWNED_DROP_CODE_LENGTH = 16;
+  /// Names direct destruction as one unary instruction.
+  private const long MOVED_OWNED_DROP_INSTRUCTION_COUNT = 1;
 
   /// Checks whether one opcode belongs to the bounded owned-storage profile.
   public boolean ownedStorageStatement(long opcode) {
@@ -162,6 +168,10 @@ classical class OwnedStorageForms {
       return OWNED_DROP_LOCAL_COUNT;
     }
 
+    if (opcode == STATEMENT_DROP_MOVED_OWNED) {
+      return 0;
+    }
+
     return -1;
   }
 
@@ -184,6 +194,10 @@ classical class OwnedStorageForms {
       return OWNED_DROP_CODE_LENGTH;
     }
 
+    if (opcode == STATEMENT_DROP_MOVED_OWNED) {
+      return MOVED_OWNED_DROP_CODE_LENGTH;
+    }
+
     return -1;
   }
 
@@ -195,6 +209,10 @@ classical class OwnedStorageForms {
 
     if (opcode == STATEMENT_DROP_OWNED_NAMED) {
       return OWNED_DROP_INSTRUCTION_COUNT;
+    }
+
+    if (opcode == STATEMENT_DROP_MOVED_OWNED) {
+      return MOVED_OWNED_DROP_INSTRUCTION_COUNT;
     }
 
     return -1;
