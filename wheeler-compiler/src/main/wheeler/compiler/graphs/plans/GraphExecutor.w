@@ -1,26 +1,38 @@
-//! Executes every validated bounded constant graph through one source table.
+//! Executes every validated bounded graph through one source table.
 
-module wheeler.compiler.graphs.constant_executor;
+module wheeler.compiler.graphs.executor;
 
+import wheeler.compiler.canonical_helper_linking;
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.matrix;
 import wheeler.compiler.graphs.source_table;
+import wheeler.compiler.helper_owners;
+import wheeler.compiler.imported_helpers;
 import wheeler.compiler.module_linker;
 
-classical class BoundedConstantPlanExecutor {
+classical class BoundedGraphPlanExecutor {
   private const long MAX_GRAPH_NODES = 7;
   private const long MAX_LINKED_SOURCE_BYTES = 32768;
-  private const long ROOT_ORDER_ARENA_BYTES = 56;
+  private const long ROOT_METADATA_ARENA_BYTES = 224;
   private const long SOURCE_BYTE_LIMIT = 32769;
 
-  /// Carries one bounded constant-plan execution result.
-  public record ConstantPlanExecution(long length, long codeStart) {}
+  /// Carries one bounded graph-plan execution result.
+  public record GraphPlanExecution(long length, long codeStart) {}
 
-  private ConstantPlanExecution failedExecution() {
-    return new ConstantPlanExecution(0, 0);
+  private record RootDependencyLink(
+    long length,
+    long ownerStart,
+    long ownerLength,
+    long helperCount,
+    boolean helper,
+    boolean valid
+  ) {}
+
+  private GraphPlanExecution failedExecution() {
+    return new GraphPlanExecution(0, 0);
   }
 
-  private boolean genericConstantPlan(BoundedGraphPlan plan) {
+  private boolean genericGraphPlan(BoundedGraphPlan plan) {
     return plan.valid;
   }
 
@@ -176,7 +188,7 @@ classical class BoundedConstantPlanExecutor {
     return -1;
   }
 
-  private long linkRootDependency(
+  private RootDependencyLink linkRootDependency(
     BoundedGraphPlan plan,
     long dependencyNode,
     long tableCount,
@@ -207,27 +219,116 @@ classical class BoundedConstantPlanExecutor {
       );
     }
 
+    boolean helper = false;
+    if (link.valid) {} else {
+      link = planResolvedHelperImport(dependencySource, rootSource, plan.rootCount);
+      helper = link.valid;
+    }
+
+    if (link.valid) {} else {
+      link = planSharedResolvedHelperImport(dependencySource, rootSource, plan.rootCount);
+      helper = link.valid;
+    }
+
     if (link.valid) {} else {
       drop(rootSource);
       drop(rootArena);
       drop(dependencySource);
       drop(dependencyArena);
-      return -1;
+      return new RootDependencyLink(0, 0, 0, 0, false, false);
     }
 
     region linkedArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes linkedBytes = allocateBytes(linkedArena, link.linkedLength);
-    long linkedLength = writeConstantImport(dependencySource, rootSource, link, linkedBytes);
+    long linkedLength = 0;
+    if (helper) {
+      linkedLength = writeCanonicalHelperImport(dependencySource, rootSource, link, linkedBytes);
+    } else {
+      linkedLength = writeConstantImport(dependencySource, rootSource, link, linkedBytes);
+    }
+
     assert(linkedLength == link.linkedLength);
     utf8 linkedSource = freezeUtf8(linkedBytes);
     long replacementLength = writeRootSource(linkedSource, rootStorage);
+    RootDependencyLink result = new RootDependencyLink(
+      replacementLength,
+      link.linkedOwnerStart,
+      link.linkedOwnerLength,
+      link.importedHelperCount,
+      helper,
+      true
+    );
     drop(linkedSource);
     drop(linkedArena);
     drop(rootSource);
     drop(rootArena);
     drop(dependencySource);
     drop(dependencyArena);
-    return replacementLength;
+    return result;
+  }
+
+  private boolean rootDependencyIsHelper(
+    BoundedGraphPlan plan,
+    long node,
+    long tableCount,
+    borrow mut bytes storage,
+    borrow mut words lengths,
+    borrow mut bytes rootStorage,
+    long rootLength
+  ) {
+    region dependencyArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
+    utf8 dependencySource = copyExecutionSource(
+      node,
+      tableCount,
+      storage,
+      lengths,
+      dependencyArena
+    );
+    region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 rootSource = copyRootSource(rootStorage, rootLength, rootArena);
+    LinkPlan helper = planResolvedHelperImport(dependencySource, rootSource, plan.rootCount);
+    if (helper.valid) {} else {
+      helper = planSharedResolvedHelperImport(dependencySource, rootSource, plan.rootCount);
+    }
+
+    boolean result = helper.valid;
+    drop(rootSource);
+    drop(rootArena);
+    drop(dependencySource);
+    drop(dependencyArena);
+    return result;
+  }
+
+  private void sortOwnerColumns(
+    borrow mut words starts,
+    borrow mut words lengths,
+    borrow mut words counts,
+    long ownerCount
+  ) {
+    long index = 1;
+    while (index < ownerCount) limit MAX_GRAPH_NODES {
+      long cursor = index;
+      while (0 < cursor) limit MAX_GRAPH_NODES {
+        if (starts[cursor] < starts[cursor - 1]) {
+          long start = starts[cursor];
+          long length = lengths[cursor];
+          long count = counts[cursor];
+          set(starts, cursor, starts[cursor - 1]);
+          set(lengths, cursor, lengths[cursor - 1]);
+          set(counts, cursor, counts[cursor - 1]);
+          set(starts, cursor - 1, start);
+          set(lengths, cursor - 1, length);
+          set(counts, cursor - 1, count);
+        }
+
+        cursor -= 1;
+      }
+
+      index += 1;
+    }
   }
 
   private boolean rootDependencyReady(
@@ -251,8 +352,8 @@ classical class BoundedConstantPlanExecutor {
     return true;
   }
 
-  /// Executes one validated two- through seven-module constant graph.
-  public ConstantPlanExecution executeConstantPlan(
+  /// Executes one validated two- through seven-module graph.
+  public GraphPlanExecution executeGraphPlan(
     BoundedGraphPlan plan,
     borrow utf8 firstSource,
     borrow utf8 secondSource,
@@ -264,7 +365,7 @@ classical class BoundedConstantPlanExecutor {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    if (genericConstantPlan(plan)) {} else {
+    if (genericGraphPlan(plan)) {} else {
       return failedExecution();
     }
 
@@ -319,17 +420,28 @@ classical class BoundedConstantPlanExecutor {
     );
     bytes rootStorage = allocateBytes(rootStorageArena, MAX_LINKED_SOURCE_BYTES);
     long rootLength = writeRootSource(rootSource, rootStorage);
-    region rootOrderArena = new region(/* bytes= */ ROOT_ORDER_ARENA_BYTES, /* allocations= */ 1);
-    words linkedRoots = allocate(rootOrderArena, MAX_GRAPH_NODES);
+    region rootMetadataArena = new region(
+      /* bytes= */ ROOT_METADATA_ARENA_BYTES,
+      /* allocations= */ 4
+    );
+    words linkedRoots = allocate(rootMetadataArena, MAX_GRAPH_NODES);
+    words ownerStarts = allocate(rootMetadataArena, MAX_GRAPH_NODES);
+    words ownerLengths = allocate(rootMetadataArena, MAX_GRAPH_NODES);
+    words ownerCounts = allocate(rootMetadataArena, MAX_GRAPH_NODES);
+    long helperOwnerCount = 0;
     long linkedRootCount = 0;
     while (linkedRootCount < plan.rootCount) limit MAX_GRAPH_NODES {
       long selectedRootNode = -1;
+      boolean selectedIsHelper = false;
       long rootRank = 0;
       while (rootRank < plan.rootCount) limit MAX_GRAPH_NODES {
         long candidateRootNode = rootNodeAt(plan, rootRank);
         if (0 < candidateRootNode + 1) {} else {
+          drop(ownerCounts);
+          drop(ownerLengths);
+          drop(ownerStarts);
           drop(linkedRoots);
-          drop(rootOrderArena);
+          drop(rootMetadataArena);
           drop(rootStorage);
           drop(rootStorageArena);
           drop(lengths);
@@ -340,8 +452,24 @@ classical class BoundedConstantPlanExecutor {
 
         if (linkedRoots[candidateRootNode] == 0) {
           if (rootDependencyReady(plan, candidateRootNode, linkedRoots)) {
-            if (selectedRootNode < 0) {
+            boolean candidateIsHelper = rootDependencyIsHelper(
+              plan,
+              candidateRootNode,
+              tableCount,
+              storage,
+              lengths,
+              rootStorage,
+              rootLength
+            );
+            if (candidateIsHelper) {
               selectedRootNode = candidateRootNode;
+              selectedIsHelper = true;
+            } else {
+              if (selectedRootNode < 0) {
+                if (selectedIsHelper == false) {
+                  selectedRootNode = candidateRootNode;
+                }
+              }
             }
           }
         }
@@ -350,8 +478,11 @@ classical class BoundedConstantPlanExecutor {
       }
 
       if (0 < selectedRootNode + 1) {} else {
+        drop(ownerCounts);
+        drop(ownerLengths);
+        drop(ownerStarts);
         drop(linkedRoots);
-        drop(rootOrderArena);
+        drop(rootMetadataArena);
         drop(rootStorage);
         drop(rootStorageArena);
         drop(lengths);
@@ -360,7 +491,7 @@ classical class BoundedConstantPlanExecutor {
         return failedExecution();
       }
 
-      long nextRootLength = linkRootDependency(
+      RootDependencyLink rootLink = linkRootDependency(
         plan,
         selectedRootNode,
         tableCount,
@@ -369,11 +500,14 @@ classical class BoundedConstantPlanExecutor {
         rootStorage,
         rootLength
       );
-      if (0 < nextRootLength + 1) {
-        rootLength = nextRootLength;
+      if (rootLink.valid) {
+        rootLength = rootLink.length;
       } else {
+        drop(ownerCounts);
+        drop(ownerLengths);
+        drop(ownerStarts);
         drop(linkedRoots);
-        drop(rootOrderArena);
+        drop(rootMetadataArena);
         drop(rootStorage);
         drop(rootStorageArena);
         drop(lengths);
@@ -382,16 +516,33 @@ classical class BoundedConstantPlanExecutor {
         return failedExecution();
       }
 
+      if (rootLink.helper) {
+        set(ownerStarts, helperOwnerCount, rootLink.ownerStart);
+        set(ownerLengths, helperOwnerCount, rootLink.ownerLength);
+        set(ownerCounts, helperOwnerCount, rootLink.helperCount);
+        helperOwnerCount += 1;
+      }
+
       set(linkedRoots, selectedRootNode, 1);
       linkedRootCount += 1;
     }
 
+    sortOwnerColumns(ownerStarts, ownerLengths, ownerCounts, helperOwnerCount);
+    HelperOwners owners = helperOwnersFromColumns(
+      ownerStarts,
+      ownerLengths,
+      ownerCounts,
+      helperOwnerCount
+    );
+    drop(ownerCounts);
+    drop(ownerLengths);
+    drop(ownerStarts);
     drop(linkedRoots);
-    drop(rootOrderArena);
+    drop(rootMetadataArena);
     region finalArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 finalSource = copyRootSource(rootStorage, rootLength, finalArena);
-    CoreCompilation core = compileMinimalCore(finalSource, output);
-    ConstantPlanExecution executed = new ConstantPlanExecution(core.length, core.codeStart);
+    CoreCompilation core = compileMinimalCoreWithHelperOwners(finalSource, output, owners);
+    GraphPlanExecution executed = new GraphPlanExecution(core.length, core.codeStart);
     drop(finalSource);
     drop(finalArena);
     drop(rootStorage);

@@ -106,6 +106,46 @@ classical class HelperOwnersTable {
     return new HelperOwners(7, first, second, third, fourth, fifth, sixth, seventh);
   }
 
+  private HelperOwner columnOwnerAt(
+    borrow mut words starts,
+    borrow mut words lengths,
+    borrow mut words counts,
+    long ownerCount,
+    long index
+  ) {
+    if (index < ownerCount) {
+      assert(0 < lengths[index]);
+      assert(0 < counts[index]);
+      return importedHelperOwner(starts[index], lengths[index], counts[index]);
+    }
+
+    return noHelperOwner();
+  }
+
+  /// Constructs one validated owner table from three exact seven-word columns.
+  public HelperOwners helperOwnersFromColumns(
+    borrow mut words starts,
+    borrow mut words lengths,
+    borrow mut words counts,
+    long ownerCount
+  ) {
+    assert(bufferLength(starts) == MAX_IMPORTED_HELPER_OWNERS);
+    assert(bufferLength(lengths) == MAX_IMPORTED_HELPER_OWNERS);
+    assert(bufferLength(counts) == MAX_IMPORTED_HELPER_OWNERS);
+    assert(-1 < ownerCount);
+    assert(ownerCount < MAX_IMPORTED_HELPER_OWNERS + 1);
+    return new HelperOwners(
+      ownerCount,
+      columnOwnerAt(starts, lengths, counts, ownerCount, 0),
+      columnOwnerAt(starts, lengths, counts, ownerCount, 1),
+      columnOwnerAt(starts, lengths, counts, ownerCount, 2),
+      columnOwnerAt(starts, lengths, counts, ownerCount, 3),
+      columnOwnerAt(starts, lengths, counts, ownerCount, 4),
+      columnOwnerAt(starts, lengths, counts, ownerCount, 5),
+      columnOwnerAt(starts, lengths, counts, ownerCount, 6)
+    );
+  }
+
   /// Selects one bounded owner slot.
   public HelperOwner helperOwnerAt(HelperOwners owners, long index) {
     if (index == 0) {

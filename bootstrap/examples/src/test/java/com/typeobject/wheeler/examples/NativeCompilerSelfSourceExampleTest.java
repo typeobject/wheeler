@@ -597,18 +597,6 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
-  void compilesCanonicalHelperSourceOrderByteForByte() throws Exception {
-    Program decoded = assertImportedConstantCompilerLibrary(
-        "compiler/frontend/modules/HelperSourceOrder.w",
-        "wheeler.compiler.helper_source_order",
-        "compiler/frontend/order/HelperSourceNetwork.w");
-    assertEquals(
-        "wheeler.compiler.helper_source_order::helperSourceKeyAtRank",
-        decoded.functions().get(2).name());
-    assertEquals("$library", decoded.functions().getLast().name());
-  }
-
-  @Test
   void compilesCanonicalCallArgumentOpcodesByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/backend/calls/CallArguments.w",
