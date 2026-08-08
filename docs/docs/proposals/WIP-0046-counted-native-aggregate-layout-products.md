@@ -127,7 +127,7 @@ No `wheeler.bootstrap.yaml` may be added before that evidence exists.
 - [ ] Every malformed directory and table boundary has atomic rejection evidence.
 - [x] `AggregateIdentities.w` binds package, module, artifact, counts, and validated rows under `wheeler-aggregate-module-product-1`. An independent Java digest matches the native result, and an invalid row publishes no bytes.
 - [ ] Closure-wide aggregate identities bind header-ranked dependency aggregate identities.
-- [ ] Counted closure windows publish one source-local aggregate product at a time.
+- [x] `CountedAggregateLayouts.w` appends one validated artifact at a time into 4,096 aggregate, 8,192 case, and 16,384 member rows. It rejects duplicate module owners and rebases case and member windows without source.
 - [ ] Recursive and mutually recursive nominal layouts resolve or fail closed.
 - [ ] Ownership and loan projections verify against aggregate products.
 - [ ] Imported callable bodies relocate aggregate type references without dependency source.

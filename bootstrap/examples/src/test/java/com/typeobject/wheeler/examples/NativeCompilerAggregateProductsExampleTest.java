@@ -38,6 +38,12 @@ final class NativeCompilerAggregateProductsExampleTest {
     assertEquals(4, machine.global("lastKind"));
     assertEquals(3, machine.global("arrayLength"));
     assertEquals(1, machine.global("firstOwner"));
+    assertEquals(2, machine.global("closureModuleCount"));
+    assertEquals(6, machine.global("closureAggregateCount"));
+    assertEquals(4, machine.global("closureCaseCount"));
+    assertEquals(8, machine.global("closureMemberCount"));
+    assertEquals(3, machine.global("secondModuleOwner"));
+    assertEquals(2, machine.global("secondVariantFirstCase"));
     assertEquals(32, machine.hostOutput().length);
     assertEquals(expectedIdentity(artifact), HexFormat.of().formatHex(machine.hostOutput()));
   }
@@ -74,11 +80,14 @@ final class NativeCompilerAggregateProductsExampleTest {
         "wheeler.compiler.closure.aggregate_identities"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.compiled_aggregate_layouts"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.counted_aggregate_layouts"));
     sources.put("AggregateProductsExample.w", """
         module example.aggregate_products;
 
         import wheeler.compiler.closure.aggregate_identities;
         import wheeler.compiler.closure.compiled_aggregate_layouts;
+        import wheeler.compiler.closure.counted_aggregate_layouts;
 
         classical class AggregateProductsExample {
           state long aggregateCount = 0;
@@ -89,6 +98,12 @@ final class NativeCompilerAggregateProductsExampleTest {
           state long lastKind = 0;
           state long arrayLength = 0;
           state long firstOwner = 0;
+          state long closureModuleCount = 0;
+          state long closureAggregateCount = 0;
+          state long closureCaseCount = 0;
+          state long closureMemberCount = 0;
+          state long secondModuleOwner = 0;
+          state long secondVariantFirstCase = 0;
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
@@ -127,6 +142,43 @@ final class NativeCompilerAggregateProductsExampleTest {
               members,
               output
             );
+            region closureRows = new region(/* bytes= */ 1085440, /* allocations= */ 4);
+            words processed = allocate(closureRows, /* length= */ 512);
+            words closureAggregates = allocate(closureRows, /* length= */ 36864);
+            words closureCases = allocate(closureRows, /* length= */ 32768);
+            words closureMembers = allocate(closureRows, /* length= */ 65536);
+            CountedAggregateLayoutPlan firstClosure = appendCompiledAggregateLayouts(
+              source,
+              bufferLength(source),
+              /* owner= */ 1,
+              0,
+              0,
+              0,
+              0,
+              processed,
+              closureAggregates,
+              closureCases,
+              closureMembers
+            );
+            CountedAggregateLayoutPlan secondClosure = appendCompiledAggregateLayouts(
+              source,
+              bufferLength(source),
+              /* owner= */ 3,
+              firstClosure.moduleCount,
+              firstClosure.aggregateCount,
+              firstClosure.caseCount,
+              firstClosure.memberCount,
+              processed,
+              closureAggregates,
+              closureCases,
+              closureMembers
+            );
+            closureModuleCount = secondClosure.moduleCount;
+            closureAggregateCount = secondClosure.aggregateCount;
+            closureCaseCount = secondClosure.caseCount;
+            closureMemberCount = secondClosure.memberCount;
+            secondModuleOwner = closureAggregates[4096 + 3];
+            secondVariantFirstCase = closureAggregates[16384 + 5];
             aggregateCount = plan.aggregateCount;
             caseCount = plan.caseCount;
             memberCount = plan.memberCount;
@@ -137,6 +189,11 @@ final class NativeCompilerAggregateProductsExampleTest {
             firstOwner = aggregates[64];
             published = 1;
             setOutputLength(output, 32);
+            drop(closureMembers);
+            drop(closureCases);
+            drop(closureAggregates);
+            drop(processed);
+            drop(closureRows);
             drop(moduleIdentity);
             drop(packageIdentity);
             drop(members);
