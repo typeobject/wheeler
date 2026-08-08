@@ -36,7 +36,8 @@ classical class LinkedLocalTypes {
     return 0;
   }
 
-  private long linkedTypeCode(
+  /// Rewrites one source-local primitive or nominal code to its final descriptor row.
+  public long linkedTypeCode(
     long sourceCode,
     long moduleOwner,
     long aggregateCount,
