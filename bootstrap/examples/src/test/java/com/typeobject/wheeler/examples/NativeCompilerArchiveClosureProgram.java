@@ -74,6 +74,7 @@ final class NativeCompilerArchiveClosureProgram {
           state long callableParameterCount = 0;
           state long borrowedParameterCount = 0;
           state long mutableParameterCount = 0;
+          state long resultSlotCallableCount = 0;
           state long rootLocalCallables = 0;
           state long rootImportedCallables = 0;
           state long maxImportedCallables = 0;
@@ -125,7 +126,7 @@ final class NativeCompilerArchiveClosureProgram {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 3095584, /* allocations= */ 67);
+            region columns = new region(/* bytes= */ 3128352, /* allocations= */ 68);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -182,6 +183,7 @@ final class NativeCompilerArchiveClosureProgram {
             words callableResultTypeStarts = allocate(columns, /* length= */ 4096);
             words callableResultTypeLengths = allocate(columns, /* length= */ 4096);
             words callableEffects = allocate(columns, /* length= */ 4096);
+            words callableResultSlotWidths = allocate(columns, /* length= */ 4096);
             words parameterTypeStarts = allocate(columns, MAX_SYMBOLS);
             words parameterTypeLengths = allocate(columns, MAX_SYMBOLS);
             words parameterModes = allocate(columns, MAX_SYMBOLS);
@@ -320,6 +322,7 @@ final class NativeCompilerArchiveClosureProgram {
                   callableResultTypeStarts,
                   callableResultTypeLengths,
                   callableEffects,
+                  callableResultSlotWidths,
                   parameterTypeStarts,
                   parameterTypeLengths,
                   parameterModes
@@ -394,7 +397,7 @@ final class NativeCompilerArchiveClosureProgram {
                   }
                 }
                 if (closure.moduleCount == 3) {
-                  if (callables.callableCount == 5) {
+                  if (callables.callableCount == 6) {
                     CompiledCallableBody compiledCallable = compileCallableBodyProduct(
                       archive,
                       callableSignatureStarts[0],
@@ -561,6 +564,13 @@ final class NativeCompilerArchiveClosureProgram {
                   }
                   parameter += 1;
                 }
+                long slotCallable = 0;
+                while (slotCallable < callables.callableCount) limit 4096 {
+                  if (callableResultSlotWidths[slotCallable] == 2) {
+                    resultSlotCallableCount += 1;
+                  }
+                  slotCallable += 1;
+                }
                 rootLocalCallables = moduleCallableCounts[closure.rootModule];
                 rootImportedCallables = moduleImportedCallableCounts[closure.rootModule];
                 maxImportedCallables = largestImportedCallables;
@@ -651,6 +661,7 @@ final class NativeCompilerArchiveClosureProgram {
             drop(parameterModes);
             drop(parameterTypeLengths);
             drop(parameterTypeStarts);
+            drop(callableResultSlotWidths);
             drop(callableEffects);
             drop(callableResultTypeLengths);
             drop(callableResultTypeStarts);

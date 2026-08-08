@@ -14,7 +14,7 @@ import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 
 classical class CountedModuleCallables {
-  private const long CALLABLE_ARENA_BYTES = 865000;
+  private const long CALLABLE_ARENA_BYTES = 898000;
   private const long MAX_CALLABLES = 4096;
   private const long MAX_CALLABLES_PER_MODULE = 64;
   private const long MAX_DIRECT_IMPORTS = 64;
@@ -116,6 +116,7 @@ classical class CountedModuleCallables {
     borrow mut words callableResultTypeStarts,
     borrow mut words callableResultTypeLengths,
     borrow mut words callableEffects,
+    borrow mut words callableResultSlotWidths,
     borrow mut words parameterTypeStarts,
     borrow mut words parameterTypeLengths,
     borrow mut words parameterModes,
@@ -322,6 +323,16 @@ classical class CountedModuleCallables {
           set(callableResultTypeStarts, callableIndex, archiveSourceStart + resultTypeStart);
           set(callableResultTypeLengths, callableIndex, resultTypeEnd - resultTypeStart);
           set(callableEffects, callableIndex, header.effects);
+          long resultSlotWidth = 0;
+          if (header.effects / 2 % 2 == 1) {
+            if (
+              tokenHash(source, tokenStarts, tokenLengths, header.resultTypeToken) == TOKEN_VOID
+            ) {} else {
+              resultSlotWidth = 2;
+            }
+          }
+
+          set(callableResultSlotWidths, callableIndex, resultSlotWidth);
           set(parameterTotal, 0, nextParameter);
           callableCount += 1;
         }
@@ -357,6 +368,7 @@ classical class CountedModuleCallables {
     borrow mut words callableResultTypeStarts,
     borrow mut words callableResultTypeLengths,
     borrow mut words callableEffects,
+    borrow mut words callableResultSlotWidths,
     borrow mut words parameterTypeStarts,
     borrow mut words parameterTypeLengths,
     borrow mut words parameterModes
@@ -429,6 +441,10 @@ classical class CountedModuleCallables {
       return false;
     }
 
+    if (bufferLength(callableResultSlotWidths) == MAX_CALLABLES) {} else {
+      return false;
+    }
+
     if (bufferLength(parameterTypeStarts) == MAX_CLOSURE_PARAMETERS) {} else {
       return false;
     }
@@ -468,6 +484,7 @@ classical class CountedModuleCallables {
     borrow mut words callableResultTypeStarts,
     borrow mut words callableResultTypeLengths,
     borrow mut words callableEffects,
+    borrow mut words callableResultSlotWidths,
     borrow mut words parameterTypeStarts,
     borrow mut words parameterTypeLengths,
     borrow mut words parameterModes
@@ -494,6 +511,7 @@ classical class CountedModuleCallables {
         callableResultTypeStarts,
         callableResultTypeLengths,
         callableEffects,
+        callableResultSlotWidths,
         parameterTypeStarts,
         parameterTypeLengths,
         parameterModes
@@ -511,7 +529,7 @@ classical class CountedModuleCallables {
     words activeLengths = allocate(slotArena, ACTIVE_SOURCE_SLOT_COUNT);
     words live = allocate(slotArena, ACTIVE_SOURCE_SLOT_COUNT);
     assert(initializeActiveSourceSlots(storage, owners, generations, activeLengths, live));
-    region callableArena = new region(/* bytes= */ CALLABLE_ARENA_BYTES, /* allocations= */ 23);
+    region callableArena = new region(/* bytes= */ CALLABLE_ARENA_BYTES, /* allocations= */ 24);
     words scratchFirstCallables = allocate(callableArena, MAX_LOCAL_MODULES);
     words scratchCallableCounts = allocate(callableArena, MAX_LOCAL_MODULES);
     words scratchImportedCounts = allocate(callableArena, MAX_LOCAL_MODULES);
@@ -529,6 +547,7 @@ classical class CountedModuleCallables {
     words scratchResultTypeStarts = allocate(callableArena, MAX_CALLABLES);
     words scratchResultTypeLengths = allocate(callableArena, MAX_CALLABLES);
     words scratchEffects = allocate(callableArena, MAX_CALLABLES);
+    words scratchResultSlotWidths = allocate(callableArena, MAX_CALLABLES);
     words scratchParameterTypeStarts = allocate(callableArena, MAX_CLOSURE_PARAMETERS);
     words scratchParameterTypeLengths = allocate(callableArena, MAX_CLOSURE_PARAMETERS);
     words scratchParameterModes = allocate(callableArena, MAX_CLOSURE_PARAMETERS);
@@ -656,6 +675,7 @@ classical class CountedModuleCallables {
         scratchResultTypeStarts,
         scratchResultTypeLengths,
         scratchEffects,
+        scratchResultSlotWidths,
         scratchParameterTypeStarts,
         scratchParameterTypeLengths,
         scratchParameterModes,
@@ -711,6 +731,7 @@ classical class CountedModuleCallables {
       set(callableResultTypeStarts, callable, scratchResultTypeStarts[callable]);
       set(callableResultTypeLengths, callable, scratchResultTypeLengths[callable]);
       set(callableEffects, callable, scratchEffects[callable]);
+      set(callableResultSlotWidths, callable, scratchResultSlotWidths[callable]);
       callable += 1;
     }
 
@@ -735,6 +756,7 @@ classical class CountedModuleCallables {
     drop(scratchParameterModes);
     drop(scratchParameterTypeLengths);
     drop(scratchParameterTypeStarts);
+    drop(scratchResultSlotWidths);
     drop(scratchEffects);
     drop(scratchResultTypeLengths);
     drop(scratchResultTypeStarts);

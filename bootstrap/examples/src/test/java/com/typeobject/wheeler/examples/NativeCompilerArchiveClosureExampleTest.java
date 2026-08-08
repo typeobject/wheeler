@@ -54,6 +54,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("callableParameterCount") > 1_000);
     assertTrue(machine.global("borrowedParameterCount") > 0);
     assertTrue(machine.global("mutableParameterCount") > 0);
+    assertEquals(0, machine.global("resultSlotCallableCount"));
     assertTrue(machine.global("firstCallableResultTypeLength") > 0);
     assertEquals(1, machine.global("rootLocalCallables"));
     assertTrue(machine.global("rootImportedCallables") > 0);
@@ -222,10 +223,11 @@ final class NativeCompilerArchiveClosureExampleTest {
         new BytecodeReader().read(compiledModule).functions(),
         new BytecodeReader().read(machine.hostOutput()).functions());
     assertArrayEquals(compiledModule, machine.hostOutput());
-    assertEquals(5, machine.global("callableCount"));
-    assertEquals(4, machine.global("callableParameterCount"));
+    assertEquals(6, machine.global("callableCount"));
+    assertEquals(5, machine.global("callableParameterCount"));
     assertEquals(3, machine.global("borrowedParameterCount"));
     assertEquals(1, machine.global("mutableParameterCount"));
+    assertEquals(1, machine.global("resultSlotCallableCount"));
     assertEquals(1, machine.global("rootLocalCallables"));
     assertEquals(1, machine.global("rootImportedCallables"));
     assertEquals(1, machine.global("maxImportedCallables"));
