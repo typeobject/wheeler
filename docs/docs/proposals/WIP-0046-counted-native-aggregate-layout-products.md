@@ -133,7 +133,8 @@ No `wheeler.bootstrap.yaml` may be added before that evidence exists.
 - [x] `AggregateTypeResolution.w` resolves source-local nominal member type codes to the unique owner and type row. Unknown descriptor IDs fail before publication.
 - [ ] Recursive and mutually recursive nominal layouts receive stage-0 lowering support and closure evidence.
 - [x] `AggregateLoanVerifier.w` checks bounded move, shared-loan, mutable-loan, and release events against aggregate member ownership. It rejects unbalanced or escaping loans and publishes final owners only after the complete stream.
-- [ ] Callable body verification derives projection events from canonical instructions and binds the result to the body identity.
+- [x] `InstructionOwnershipProducts.w` derives owner creation, move, drop, shared-loan, and function-boundary release rows from canonical instructions. Invalid instruction ranges publish nothing.
+- [ ] Callable body verification maps those local rows to aggregate projections and binds the result to the body identity.
 - [ ] Imported callable bodies relocate aggregate type references without dependency source.
 - [ ] The complete physical compiler closure compiles from scalar, callable, and aggregate products.
 
