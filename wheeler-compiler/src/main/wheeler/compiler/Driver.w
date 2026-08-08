@@ -10,6 +10,7 @@ import wheeler.compiler.closure.module_manifest;
 import wheeler.compiler.closure.module_symbols;
 import wheeler.compiler.closure.package_target;
 import wheeler.compiler.closure.plan;
+import wheeler.compiler.closure.scalar_module_identities;
 import wheeler.compiler.closure.schedule;
 import wheeler.compiler.closure.small_executor;
 import wheeler.compiler.compiler_core;

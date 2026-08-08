@@ -21,6 +21,8 @@ final class NativeCompilerArchiveClosureProgram {
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.package_target"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.plan"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.schedule"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.scalar_module_identities"));
     sources.put("ArchiveClosureExample.w", """
         module example.archive_closure;
 
@@ -31,6 +33,7 @@ final class NativeCompilerArchiveClosureProgram {
         import wheeler.compiler.closure.module_symbols;
         import wheeler.compiler.closure.package_target;
         import wheeler.compiler.closure.plan;
+        import wheeler.compiler.closure.scalar_module_identities;
         import wheeler.compiler.closure.schedule;
         import wheeler.compiler.closure.symbol_identities;
 
@@ -63,6 +66,9 @@ final class NativeCompilerArchiveClosureProgram {
           state long packageIdentityPrefix = 0;
           state long firstSymbolIdentityPrefix = 0;
           state long lastSymbolIdentityPrefix = 0;
+          state long firstModuleIdentityPrefix = 0;
+          state long lastModuleIdentityPrefix = 0;
+          state long moduleIdentitiesPublished = 0;
           state long lastSymbolValue = 0;
           state long lastSymbolResolved = 0;
           state long published = 0;
@@ -91,7 +97,7 @@ final class NativeCompilerArchiveClosureProgram {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 1928192, /* allocations= */ 42);
+            region columns = new region(/* bytes= */ 1944576, /* allocations= */ 43);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -133,6 +139,7 @@ final class NativeCompilerArchiveClosureProgram {
             words symbolResolved = allocate(columns, MAX_SYMBOLS);
             bytes packageIdentity = allocateBytes(columns, /* length= */ 32);
             bytes symbolIdentities = allocateBytes(columns, MAX_SYMBOLS * 32);
+            bytes moduleIdentities = allocateBytes(columns, MAX_MODULES * 32);
             bytes expected = allocateBytes(columns, /* length= */ 256);
             ArchiveSourceIndexResult indexed = indexArchiveSources(
               archive,
@@ -249,6 +256,25 @@ final class NativeCompilerArchiveClosureProgram {
                   packageIdentity,
                   symbolIdentities
                 );
+                ScalarModuleIdentityPlan scalarIdentities = publishScalarModuleIdentities(
+                  archive,
+                  manifest,
+                  closure,
+                  leafFirstOrder,
+                  identityStarts,
+                  moduleProductNameStarts,
+                  moduleProductNameLengths,
+                  firstImports,
+                  directImportCounts,
+                  edgeTargets,
+                  moduleFirstSymbols,
+                  moduleSymbolCounts,
+                  packageIdentity,
+                  symbolIdentities,
+                  symbolValues,
+                  symbolResolved,
+                  moduleIdentities
+                );
                 classifyClosureExecutableOwners(
                   archive,
                   manifest,
@@ -349,6 +375,18 @@ final class NativeCompilerArchiveClosureProgram {
                   + symbolIdentities[finalIdentity + 1] * 65536
                   + symbolIdentities[finalIdentity + 2] * 256
                   + symbolIdentities[finalIdentity + 3];
+                if (scalarIdentities.valid) {
+                  long rootModuleIdentity = closure.rootModule * 32;
+                  firstModuleIdentityPrefix = moduleIdentities[0] * 16777216
+                    + moduleIdentities[1] * 65536
+                    + moduleIdentities[2] * 256
+                    + moduleIdentities[3];
+                  lastModuleIdentityPrefix = moduleIdentities[rootModuleIdentity] * 16777216
+                    + moduleIdentities[rootModuleIdentity + 1] * 65536
+                    + moduleIdentities[rootModuleIdentity + 2] * 256
+                    + moduleIdentities[rootModuleIdentity + 3];
+                  moduleIdentitiesPublished = 1;
+                }
                 lastSymbolValue = symbolValues[symbols.symbolCount - 1];
                 lastSymbolResolved = symbolResolved[symbols.symbolCount - 1];
                 published = 1;
@@ -363,6 +401,7 @@ final class NativeCompilerArchiveClosureProgram {
               }
             }
             drop(expected);
+            drop(moduleIdentities);
             drop(symbolIdentities);
             drop(packageIdentity);
             drop(symbolResolved);

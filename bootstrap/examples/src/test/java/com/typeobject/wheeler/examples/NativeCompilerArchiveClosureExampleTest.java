@@ -47,8 +47,9 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("executableCount") > 0);
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
-    assertEquals(989, machine.global("symbolCount"));
+    assertEquals(995, machine.global("symbolCount"));
     assertTrue(machine.global("resolvedSymbolCount") > 800);
+    assertEquals(0, machine.global("moduleIdentitiesPublished"));
     assertTrue(machine.global("maxImportedSymbols") > 0);
     assertEquals(manifest.modules().size(), machine.global("symbolGeneration"));
     assertEquals(identityPrefix(archive), machine.global("packageIdentityPrefix"));
@@ -196,6 +197,10 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(41, machine.global("lastSymbolValue"));
     assertEquals(1, machine.global("maxImportedSymbols"));
     assertEquals(257, machine.global("symbolGeneration"));
+    long[] modulePrefixes = scalarModuleIdentityPrefixes(fixture);
+    assertEquals(modulePrefixes[0], machine.global("firstModuleIdentityPrefix"));
+    assertEquals(modulePrefixes[1], machine.global("lastModuleIdentityPrefix"));
+    assertEquals(1, machine.global("moduleIdentitiesPublished"));
   }
 
   @Test
@@ -438,6 +443,57 @@ final class NativeCompilerArchiveClosureExampleTest {
     return digestPrefix(sha256.digest(input.toByteArray()));
   }
 
+  private static long[] scalarModuleIdentityPrefixes(
+      NativeCompilerProductFixtures.Fixture fixture) throws Exception {
+    MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+    byte[] packageIdentity = sha256.digest(fixture.archive());
+    byte[] dependencyIdentity = null;
+    long firstPrefix = 0;
+    for (int index = 0; index < fixture.manifest().modules().size(); index++) {
+      BootstrapModuleManifest.Module module = fixture.manifest().modules().get(index);
+      String symbolName = "V%03d".formatted(index);
+      ByteArrayOutputStream input = new ByteArrayOutputStream();
+      input.writeBytes("wheeler-scalar-module-product-1".getBytes(StandardCharsets.US_ASCII));
+      input.writeBytes(packageIdentity);
+      input.writeBytes(HexFormat.of().parseHex(module.identity()));
+      writeU16(input, module.name().length());
+      input.writeBytes(module.name().getBytes(StandardCharsets.US_ASCII));
+      writeU16(input, dependencyIdentity == null ? 0 : 1);
+      if (dependencyIdentity != null) {
+        input.writeBytes(dependencyIdentity);
+      }
+      writeU16(input, 1);
+      input.writeBytes(symbolIdentity(fixture, module, symbolName));
+      input.write(1);
+      long value = 41;
+      for (int octet = 0; octet < 8; octet++) {
+        input.write((int) (value >>> octet * 8) & 0xff);
+      }
+      dependencyIdentity = sha256.digest(input.toByteArray());
+      if (index == 0) {
+        firstPrefix = digestPrefix(dependencyIdentity);
+      }
+    }
+    return new long[] {firstPrefix, digestPrefix(dependencyIdentity)};
+  }
+
+  private static byte[] symbolIdentity(
+      NativeCompilerProductFixtures.Fixture fixture,
+      BootstrapModuleManifest.Module module,
+      String symbolName) throws Exception {
+    MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+    ByteArrayOutputStream input = new ByteArrayOutputStream();
+    input.writeBytes("wheeler-module-symbol-1".getBytes(StandardCharsets.US_ASCII));
+    input.writeBytes(sha256.digest(fixture.archive()));
+    input.writeBytes(HexFormat.of().parseHex(module.identity()));
+    input.write(1);
+    input.write(1);
+    input.write(1);
+    writeU32(input, symbolName.length());
+    input.writeBytes(symbolName.getBytes(StandardCharsets.US_ASCII));
+    return sha256.digest(input.toByteArray());
+  }
+
   private static long digestPrefix(byte[] digest) {
     return (long) (digest[0] & 0xff) << 24
         | (long) (digest[1] & 0xff) << 16
@@ -527,6 +583,11 @@ final class NativeCompilerArchiveClosureExampleTest {
         | (source[offset + 1] & 0xff) << 8
         | (source[offset + 2] & 0xff) << 16
         | (source[offset + 3] & 0xff) << 24;
+  }
+
+  private static void writeU16(ByteArrayOutputStream output, int value) {
+    output.write(value & 0xff);
+    output.write(value >>> 8 & 0xff);
   }
 
   private static void writeU32(ByteArrayOutputStream output, int value) {

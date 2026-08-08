@@ -101,6 +101,8 @@ SHA-256(
 
 Source offsets are evidence ranges, not identities. Declaration order breaks no tie. Equal names in different owners remain different symbols.
 
+A resolved scalar module product uses domain `wheeler-scalar-module-product-1`. It binds the package archive identity, source identity, canonical module name, direct local dependency-product identities in header rank, and each local symbol identity, resolution bit, and signed value in declaration order. Leaf-first publication requires every dependency identity to exist first. An external edge fails closed until its locked package product identity is available.
+
 ## Name resolution
 
 Unqualified lookup checks the local product first, then public symbols from direct imports in dependent-header rank. One candidate resolves. No candidate is unresolved. Several candidates are ambiguous even when their declarations happen to be byte-identical.
@@ -164,7 +166,7 @@ The seven-frame executor remains differential conformance evidence until step 9.
 - [x] Each local edge records its completed dependency's public-symbol count at header rank.
 - [x] A 257-module chain publishes 257 symbols, root import count one, peak source count one, and root generation 257.
 - [x] One module publishes exactly 256 scalar declarations. Declaration 257 fails before publication.
-- [x] The 230-module physical compiler closure publishes 989 scalar declarations and reaches generation 230.
+- [x] The 231-module physical compiler closure publishes 995 scalar declarations and reaches generation 231.
 - [x] Malformed constant syntax leaves product and completion publication untouched.
 - [x] `SymbolIdentities.w` gives every scalar product a package-archive-, module-source-, kind-, visibility-, type-, and name-bound SHA-256 identity after complete range validation. Chain endpoints match an independent Java digest.
 - [x] Literal and same-module scalar expressions publish values through the existing bounded evaluator.
@@ -173,7 +175,9 @@ The seven-frame executor remains differential conformance evidence until step 9.
 - [x] Two equal unqualified names remain an unresolved ambiguity. A qualified reference selects one exact module product.
 - [x] `CountedConstantExecutor.w` compiles an executable root from counted products without `BoundedGraphPlan` or dependency source. A 257-module forwarding closure is byte-identical to the corresponding stage-0 normalized root compilation.
 - [x] `ProductRootSource.w` removes only the root header and substitutes resolved signed, Boolean, unqualified, and qualified product values. It neither copies nor scans dependency source.
-- [ ] Stable compiled module identities publish.
+- [x] `ScalarModuleIdentities.w` publishes package-, source-, module-, dependency-, symbol-, resolution-, and value-bound identities after one complete local leaf-first pass. Independent Java digests match both endpoints of a 257-module chain.
+- [x] External edges leave scalar module identity publication untouched until locked external product identities exist.
+- [ ] Stable compiled body identities publish.
 - [ ] Ambiguity, privacy, type, and unresolved diagnostics carry stable candidate identities.
 - [x] Counted scalar closures compile without a seven-node plan.
 - [ ] Callable products compile.
