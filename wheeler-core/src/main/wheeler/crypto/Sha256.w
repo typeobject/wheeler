@@ -3,6 +3,8 @@
 module wheeler.crypto.sha256;
 
 classical class Sha256 {
+  private const long MAX_SHA256_BLOCKS = 262145;
+
   private long byteShiftPower(long exponent) {
     if (exponent == 0) {
       return 1;
@@ -178,7 +180,7 @@ classical class Sha256 {
     set(hash, 7, 1541459225);
     long totalLength = paddedLength(inputLength);
     long blockStart = 0;
-    while (blockStart < totalLength) limit 4096 {
+    while (blockStart < totalLength) limit MAX_SHA256_BLOCKS {
       boolean fullInputBlock = false;
       if (blockStart < inputLength) {
         if (63 < inputLength - blockStart) {

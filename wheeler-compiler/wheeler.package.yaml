@@ -17,6 +17,7 @@ targets:
       - "src/main/wheeler/compiler/GraphSix.w"
       - "src/main/wheeler/compiler/Graphs.w"
       - "src/main/wheeler/compiler/backend"
+      - "src/main/wheeler/compiler/closure"
       - "src/main/wheeler/compiler/graphs"
       - "src/main/wheeler/compiler/frontend"
       - "src/main/wheeler/compiler/ir"

@@ -2,6 +2,7 @@
 
 module wheeler.compiler.driver;
 
+import wheeler.compiler.closure.archive_sources;
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.compiler_graphs;
 
