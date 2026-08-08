@@ -13,7 +13,7 @@
 
 ## Summary
 
-The native compiler shall link counted module products instead of flattening a closure into one larger source. Each completed module publishes bounded declarations, types, values, callable signatures, and compiled bodies. Dependents consume those facts through validated import edges. The source lease is then destroyed. WIP-0046 owns aggregate layouts, ownership projections, and aggregate loan checks.
+The native compiler shall link counted module products instead of flattening a closure into one larger source. Each completed module publishes bounded declarations, types, values, and callable signatures. Dependents consume those facts through validated import edges. The source lease is then destroyed. WIP-0046 owns aggregate layouts, ownership projections, and aggregate loan checks. WIP-0047 owns callable bytecode products and relocation.
 
 WIP-0044 owns package evidence, closure planning, source leases, and leaf-first order. This WIP owns the semantic product transferred across an edge. The separation matters. A 512-module limit is useful. A 512-source concatenation is not.
 
@@ -41,7 +41,7 @@ Raising the linked-source byte limit would postpone the failure and make the boo
 - Resolve constants without copying dependency source.
 - Carry callable signatures, ownership, and result-slot layouts across arbitrary depth.
 - Hand aggregate type references to the counted products specified by WIP-0046.
-- Compile each body against exact product identities.
+- Hand completed signature products to the bytecode product and relocation work in WIP-0047.
 - Publish a final `.wbc` only after every selected product verifies.
 
 ## Non-goals
@@ -166,7 +166,7 @@ The seven-frame executor remains differential conformance evidence until step 9.
 - [x] Each local edge records its completed dependency's public-symbol count at header rank.
 - [x] A 257-module chain publishes 257 symbols, root import count one, peak source count one, and root generation 257.
 - [x] One module publishes exactly 256 scalar declarations. Declaration 257 fails before publication.
-- [x] The 241-module physical compiler closure publishes 1,067 scalar declarations and reaches generation 241.
+- [x] The 242-module physical compiler closure publishes 1,073 scalar declarations and reaches generation 242.
 - [x] Malformed constant syntax leaves product and completion publication untouched.
 - [x] `SymbolIdentities.w` gives every scalar product a package-archive-, module-source-, kind-, visibility-, type-, and name-bound SHA-256 identity after complete range validation. Chain endpoints match an independent Java digest.
 - [x] Literal and same-module scalar expressions publish values through the existing bounded evaluator.
@@ -179,10 +179,10 @@ The seven-frame executor remains differential conformance evidence until step 9.
 - [x] External edges leave scalar module identity publication untouched until locked external product identities exist.
 - [x] `CompiledCallableBodies.w` compiles one source-local callable or every callable owned by one module to canonical `.wbc` and hashes the exact artifact. Owner, borrowed, mutable-loan, and local-call products match stage 0 byte for byte without reading dependency source.
 - [x] Reusing artifact storage clears the complete destination first. Canonical alignment padding cannot retain a prior product byte.
-- [ ] Imported calls resolve to compiled callable body products.
+- [ ] WIP-0047 resolves imported calls to compiled callable bytecode products.
 - [x] `ModuleCallables.w` publishes owner, visibility, canonical name, complete signature range, forward/reverse body range, and parameter count after one complete staged-source pass.
 - [x] Private callable products stay local. Direct edges count only public dependency callables in header rank.
-- [x] The physical compiler closure publishes 1,026 callable signatures with peak active source count one.
+- [x] The physical compiler closure publishes 1,030 callable signatures with peak active source count one.
 - [x] Canonical result and parameter type ranges, owner or loan mode, and effect bits publish in counted columns. A fixture distinguishes owner, `borrow`, and `borrow mut` parameters.
 - [x] `CallableIdentities.w` publishes package-, source-, visibility-, effect-, name-, result-, parameter-type-, and loan-bound signature identities. Independent Java digests match a leaf and root product. An invalid loan mode publishes nothing.
 - [x] Reversible value products publish the fixed two-local result-slot width. Void and ordinary value products publish zero.
