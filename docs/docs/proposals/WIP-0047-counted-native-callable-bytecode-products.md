@@ -103,7 +103,7 @@ Callable bytecode products do not set a bootstrap bit. Promotion still requires 
 - [x] `CompiledFunctionProducts.w` validates canonical directories, function descriptors, type windows, contiguous code, and instruction framing.
 - [x] Unknown opcodes and noncontiguous function code trap before publication.
 - [x] Native function, instruction, and maximum-local counts match independent Java program objects.
-- [ ] Function products receive stable body identities bound to signature, dependency, aggregate, and ownership products.
+- [x] `FunctionProductIdentities.w` binds signature, ordered direct dependencies, aggregate product, ownership product, exact local types, forward code, inverse code, flags, parameters, and locals under `wheeler-callable-body-product-1`. An independent Java digest matches.
 - [ ] Local call operands relocate by stable signature identity.
 - [ ] Imported call operands resolve privacy, ambiguity, arity, type, and effect rules.
 - [ ] Aggregate descriptor operands relocate through WIP-0046 identities.
