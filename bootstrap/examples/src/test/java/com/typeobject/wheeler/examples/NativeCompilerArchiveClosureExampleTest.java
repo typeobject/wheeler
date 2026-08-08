@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
+import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
@@ -48,8 +49,8 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("executableCount") > 0);
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
-    assertEquals(1_016, machine.global("symbolCount"));
-    assertEquals(1_009, machine.global("callableCount"));
+    assertEquals(1_017, machine.global("symbolCount"));
+    assertEquals(1_013, machine.global("callableCount"));
     assertTrue(machine.global("callableParameterCount") > 1_000);
     assertTrue(machine.global("borrowedParameterCount") > 0);
     assertTrue(machine.global("mutableParameterCount") > 0);
@@ -202,16 +203,28 @@ final class NativeCompilerArchiveClosureExampleTest {
   @Test
   void indexesCallableProductsAcrossAChain() throws Exception {
     NativeCompilerProductFixtures.Fixture fixture = NativeCompilerProductFixtures.callableChain();
+    String compiledModuleSource = "module wheeler.callable.product; "
+        + "classical class CallableProduct { "
+        + "private void clear(borrow mut bytes output) {} "
+        + "private boolean inspect(borrow byteview source) { return true; } "
+        + "public boolean readable(borrow byteview source) { return inspect(source); } }";
+    byte[] compiledModule = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("CallableProduct.w", compiledModuleSource),
+            "wheeler.callable.product"));
     Program program = NativeCompilerArchiveClosureProgram.program();
     VirtualMachine machine = VirtualMachine.withBinaryInput(
         program,
         framed(fixture.archive(), fixture.manifest().canonicalBytes()),
-        1);
+        compiledModule.length);
     runClosure(machine, program);
-    assertArrayEquals(new byte[] {1}, machine.hostOutput());
-    assertEquals(4, machine.global("callableCount"));
-    assertEquals(3, machine.global("callableParameterCount"));
-    assertEquals(2, machine.global("borrowedParameterCount"));
+    assertEquals(
+        new BytecodeReader().read(compiledModule).functions(),
+        new BytecodeReader().read(machine.hostOutput()).functions());
+    assertArrayEquals(compiledModule, machine.hostOutput());
+    assertEquals(5, machine.global("callableCount"));
+    assertEquals(4, machine.global("callableParameterCount"));
+    assertEquals(3, machine.global("borrowedParameterCount"));
     assertEquals(1, machine.global("mutableParameterCount"));
     assertEquals(1, machine.global("rootLocalCallables"));
     assertEquals(1, machine.global("rootImportedCallables"));
@@ -257,17 +270,10 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(
         identityPrefix(compiledCallable),
         machine.global("compiledCallableBodyIdentityPrefix"));
-    String compiledBorrowedSource = "module wheeler.callable.product; "
-        + "classical class CallableProduct { "
-        + "public boolean readable(borrow byteview source) { return true; } }";
-    byte[] compiledBorrowed = new BytecodeWriter().write(
-        new WheelerCompiler().compileLibraryModuleFiles(
-            Map.of("CallableProduct.w", compiledBorrowedSource),
-            "wheeler.callable.product"));
-    assertEquals(compiledBorrowed.length, machine.global("compiledBorrowedBodyLength"));
+    assertEquals(compiledModule.length, machine.global("compiledCallableModuleLength"));
     assertEquals(
-        identityPrefix(compiledBorrowed),
-        machine.global("compiledBorrowedBodyIdentityPrefix"));
+        identityPrefix(compiledModule),
+        machine.global("compiledCallableModuleIdentityPrefix"));
   }
 
   @Test

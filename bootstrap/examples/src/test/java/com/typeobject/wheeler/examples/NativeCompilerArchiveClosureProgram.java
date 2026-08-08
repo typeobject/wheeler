@@ -89,8 +89,8 @@ final class NativeCompilerArchiveClosureProgram {
           state long invalidCallableIdentityRejected = 0;
           state long compiledCallableBodyLength = 0;
           state long compiledCallableBodyIdentityPrefix = 0;
-          state long compiledBorrowedBodyLength = 0;
-          state long compiledBorrowedBodyIdentityPrefix = 0;
+          state long compiledCallableModuleLength = 0;
+          state long compiledCallableModuleIdentityPrefix = 0;
           state long packageIdentityPrefix = 0;
           state long firstSymbolIdentityPrefix = 0;
           state long lastSymbolIdentityPrefix = 0;
@@ -394,7 +394,7 @@ final class NativeCompilerArchiveClosureProgram {
                   }
                 }
                 if (closure.moduleCount == 3) {
-                  if (callables.callableCount == 4) {
+                  if (callables.callableCount == 5) {
                     CompiledCallableBody compiledCallable = compileCallableBodyProduct(
                       archive,
                       callableSignatureStarts[0],
@@ -410,17 +410,21 @@ final class NativeCompilerArchiveClosureProgram {
                       + compiledCallableIdentity[1] * 65536
                       + compiledCallableIdentity[2] * 256
                       + compiledCallableIdentity[3];
-                    CompiledCallableBody compiledBorrowed = compileCallableBodyProduct(
+                    CompiledCallableBody compiledModule = compileCallableModuleProduct(
                       archive,
-                      callableSignatureStarts[2],
-                      callableSignatureLengths[2],
-                      callableBodyStarts[2],
-                      callableBodyLengths[2],
+                      /* owner= */ 1,
+                      /* firstCallable= */ 1,
+                      /* callableCount= */ 3,
+                      callableOwners,
+                      callableSignatureStarts,
+                      callableSignatureLengths,
+                      callableBodyStarts,
+                      callableBodyLengths,
                       compiledCallableArtifact,
                       compiledCallableIdentity
                     );
-                    compiledBorrowedBodyLength = compiledBorrowed.length;
-                    compiledBorrowedBodyIdentityPrefix = compiledCallableIdentity[0]
+                    compiledCallableModuleLength = compiledModule.length;
+                    compiledCallableModuleIdentityPrefix = compiledCallableIdentity[0]
                         * 16777216
                       + compiledCallableIdentity[1] * 65536
                       + compiledCallableIdentity[2] * 256
@@ -618,7 +622,18 @@ final class NativeCompilerArchiveClosureProgram {
                 if (constantExecution.attempted) {
                   setOutputLength(output, constantExecution.length);
                 } else {
-                  setByte(output, 0, 1);
+                  if (0 < compiledCallableModuleLength) {
+                    long artifactByte = 0;
+                    while (
+                      artifactByte < compiledCallableModuleLength
+                    ) limit 32768 {
+                      setByte(output, artifactByte, compiledCallableArtifact[artifactByte]);
+                      artifactByte += 1;
+                    }
+                    setOutputLength(output, compiledCallableModuleLength);
+                  } else {
+                    setByte(output, 0, 1);
+                  }
                 }
               }
               case ArchiveSourceIndexResult.Error(long offset) {
