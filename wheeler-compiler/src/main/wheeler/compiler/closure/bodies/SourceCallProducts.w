@@ -254,6 +254,70 @@ classical class SourceCallProducts {
     return target;
   }
 
+  /// Resolves one exact signature from a packed local or locked external view.
+  public long resolvePackedTypedCallableProduct(
+    borrow utf8 localNames,
+    borrow utf8 externalNames,
+    borrow mut words requestRows,
+    long dependencyRank,
+    long productCount,
+    borrow mut words dependencyRows,
+    borrow mut words localCallableRows,
+    borrow mut words localParameterRows,
+    borrow mut words externalCallableRows,
+    borrow mut words externalParameterRows
+  ) {
+    assert(-1 < dependencyRank);
+    assert(-1 < productCount);
+    assert(productCount < MAX_CALLABLES + 1);
+    assert(bufferLength(dependencyRows) == 8192);
+    assert(bufferLength(requestRows) == REQUEST_ROWS);
+    assert(bufferLength(localCallableRows) == CALLABLE_SIGNATURE_ROWS);
+    assert(bufferLength(localParameterRows) == PARAMETER_SIGNATURE_ROWS);
+    assert(bufferLength(externalCallableRows) == CALLABLE_SIGNATURE_ROWS);
+    assert(bufferLength(externalParameterRows) == PARAMETER_SIGNATURE_ROWS);
+    long arity = requestRows[2];
+    assert(-1 < arity);
+    assert(arity < MAX_CALLABLE_PARAMETERS + 1);
+    long target = -1;
+    long product = 0;
+    while (product < productCount) limit MAX_CALLABLES {
+      if (dependencyRows[product] == dependencyRank) {
+        long encoded = dependencyRows[4096 + product];
+        boolean matches = false;
+        if (-1 < encoded) {
+          assert(encoded < MAX_CALLABLES);
+          matches = typedCallableMatches(
+            localNames,
+            requestRows,
+            localCallableRows,
+            localParameterRows,
+            encoded
+          );
+        } else {
+          long external = 0 - encoded - 1;
+          assert(external < MAX_CALLABLES);
+          matches = typedCallableMatches(
+            externalNames,
+            requestRows,
+            externalCallableRows,
+            externalParameterRows,
+            external
+          );
+        }
+
+        if (matches) {
+          assert(target == -1);
+          target = encoded;
+        }
+      }
+
+      product += 1;
+    }
+
+    return target;
+  }
+
   /// Publishes imported call sites after local shadowing and ambiguity checks.
   public long resolveSourceCallProducts(
     borrow utf8 body,

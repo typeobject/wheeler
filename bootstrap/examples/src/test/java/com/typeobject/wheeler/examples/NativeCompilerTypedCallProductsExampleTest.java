@@ -24,6 +24,8 @@ final class NativeCompilerTypedCallProductsExampleTest {
 
     assertEquals(1, machine.global("target"));
     assertEquals(1, machine.global("rankedTarget"));
+    assertEquals(1, machine.global("packedLocalTarget"));
+    assertEquals(-1, machine.global("packedExternalTarget"));
     assertEquals(1, machine.global("published"));
   }
 
@@ -69,14 +71,19 @@ final class NativeCompilerTypedCallProductsExampleTest {
         classical class TypedCallProductsExample {
           state long target = -2;
           state long rankedTarget = -2;
+          state long packedLocalTarget = -2;
+          state long packedExternalTarget = -2;
           state long published = 0;
 
           entry void main(borrow utf8 names) {
-            region rows = new region(/* bytes= */ 492584, /* allocations= */ 4);
+            region rows = new region(/* bytes= */ 1016872, /* allocations= */ 7);
             words request = allocate(rows, /* length= */ 133);
             words callables = allocate(rows, /* length= */ 24576);
             words parameters = allocate(rows, /* length= */ 32768);
             words dependencyRanks = allocate(rows, /* length= */ 4096);
+            words dependencyProducts = allocate(rows, /* length= */ 8192);
+            words externalCallables = allocate(rows, /* length= */ 24576);
+            words externalParameters = allocate(rows, /* length= */ 32768);
             set(request, 0, 0);
             set(request, 1, 8);
             set(request, 2, 1);
@@ -100,6 +107,14 @@ final class NativeCompilerTypedCallProductsExampleTest {
             set(parameters, 1, 8);
             set(parameters, 16384, 0);
             set(parameters, 16385, 0);
+            set(externalCallables, 0, 0);
+            set(externalCallables, 4096, 8);
+            set(externalCallables, 8192, 1);
+            set(externalCallables, 12288, 3);
+            set(externalCallables, 16384, 1);
+            set(externalCallables, 20480, 0);
+            set(externalParameters, 0, 8);
+            set(externalParameters, 16384, 0);
             set(dependencyRanks, 0, 0);
             set(dependencyRanks, 1, 1);
             target = resolveTypedCallableProduct(names, request, 0, 2, callables, parameters);
@@ -113,7 +128,38 @@ final class NativeCompilerTypedCallProductsExampleTest {
               parameters,
               dependencyRanks
             );
+            set(dependencyProducts, 0, 0);
+            set(dependencyProducts, 4096, 1);
+            set(dependencyProducts, 1, 1);
+            set(dependencyProducts, 4097, -1);
+            packedLocalTarget = resolvePackedTypedCallableProduct(
+              names,
+              names,
+              request,
+              0,
+              2,
+              dependencyProducts,
+              callables,
+              parameters,
+              externalCallables,
+              externalParameters
+            );
+            packedExternalTarget = resolvePackedTypedCallableProduct(
+              names,
+              names,
+              request,
+              1,
+              2,
+              dependencyProducts,
+              callables,
+              parameters,
+              externalCallables,
+              externalParameters
+            );
             published = 1;
+            drop(externalParameters);
+            drop(externalCallables);
+            drop(dependencyProducts);
             drop(dependencyRanks);
             drop(parameters);
             drop(callables);
