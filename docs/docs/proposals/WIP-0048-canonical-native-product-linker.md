@@ -112,7 +112,8 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
 - [x] `LinkedInstructionCode.w` emits closure-ordered code and rebases validated local call targets by module function base.
 - [x] Validated imported-target rows rewrite final function IDs atomically after local emission.
 - [x] `CallableFunctionRows.w` maps callable and imported signature identities to unique final function rows with bounded open addressing. Duplicate or missing identities publish nothing.
-- [ ] Aggregate and local-type relocations rewrite final descriptor IDs.
+- [x] `AggregateDescriptorRows.w` assigns per-kind final IDs in closure order and resolves stable module identity, kind, and source-type triples. Duplicate or missing products publish nothing.
+- [ ] Local-type windows rewrite final aggregate descriptor IDs.
 - [ ] Canonical string, type, global, and function sections emit.
 - [ ] Header, directory, alignment, and optional sections emit.
 - [ ] The complete output verifies before identity publication.
