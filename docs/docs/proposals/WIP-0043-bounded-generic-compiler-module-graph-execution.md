@@ -19,9 +19,9 @@ The first bound remains seven imported modules and 32,768 bytes per physical or 
 
 ## Problem
 
-The current compiler validates graph facts before linking, but execution is still spread across direct, chain, fork, nested, mixed, and shared-DAG owners. The implementation is deterministic and tested. It is not complete.
+The old compiler validated graph facts before linking, then spread execution across direct, chain, fork, nested, mixed, and shared-DAG owners. A new legal edge pattern needed a classifier identity and an executor path. The redundant two-module chain was the last small example: the leaf fed its dependent while both remained direct root imports.
 
-A new legal edge pattern still needs a classifier identity and an executor path. The redundant two-module chain is the latest example: the leaf feeds its dependent while both remain direct root imports. It required exact public/private declaration deduplication and a focused executor despite using no new linking primitive.
+Pure constant graphs no longer have that defect. One executor now accepts every rooted acyclic plan from two through seven imported modules. The remaining work is executable-member metadata: direct helper owners and one constant-fed helper chain still use structural fallbacks.
 
 This does not scale to the physical compiler closure. Real module graphs contain redundant direct edges, shared dependencies, independent branches, constants beside functions, and imports retained for their own public API. A closed list of picturesque trees cannot become a module system by acquiring more pictures.
 
@@ -156,25 +156,24 @@ Compatibility wrappers are not retained. During migration the driver may dispatc
 
 - [x] `graphs/Matrix.w` records bounded edges, roots, root order, reachability, privacy, sharing, and leaf-first order.
 - [x] Checked plan accessors expose every node, edge, root rank, privacy bit, and sharing bit.
-- [x] `graphs/Sources.w` provides one counted seven-slot selector over the complete physical source window.
-- [x] `graphs/plans/PlanSources.w` binds table initialization, replacement, and copying to a validated plan and node.
-- [x] Two- through seven-module planners validate exact graph facts before topology dispatch.
+- [x] `graphs/plans/SourceTable.w` provides one counted seven-slot table over the complete physical source window.
+- [x] Two- through seven-module planners validate exact graph facts without topology classification.
 - [x] Every admitted legacy topology has differential frame-order evidence.
 - [x] `graphs/TwoRedundant.w` handles one chain whose leaf remains a direct root import.
-- [x] `graphs/shared/ThreeDirectLeaf.w` handles one public constant leaf shared by two direct constant dependents.
+- [x] `graphs/plans/ConstantExecutor.w` handles one public constant leaf shared by two direct constant dependents.
 - [x] Shared helper planning drops an exact private prefix against an existing public or private declaration.
 - [x] `graphs/plans/SourceTable.w` owns physical and linked source slots in one counted fixed-slot arena.
-- [x] Two- through four-module drivers select every canonical role from the table. The old planned-loan selector is deleted.
+- [x] The generic executor selects every source from the counted table. Planned-loan and planned-source wrappers are deleted.
 - [x] `graphs/plans/ConstantExecutor.w` executes every validated two- through seven-module constant graph by leaf-first edges and dependency-aware root-import rank. This includes forests, redundant direct edges, the three-root shared leaf, and both admitted shared diamonds. Exact private-prefix comparison removes repeated leaves.
 - [x] Header dependency facts carry validated candidate import rank, and small direct plans use it.
-- [x] Two- through seven-module constant executors consume every admitted constant plan without topology identities.
-- [x] Five-module execution retains only direct helper owners and the constant-fed helper chain as structural fallbacks. Ten topology executors are deleted.
-- [x] `graphs/SmallPlanSources.w` and `graphs/FourPlanSources.w` own canonical role selection outside the drivers.
+- [x] One constant executor handles direct, chain, fork, branch, redundant-edge, dense-DAG, and shared-DAG plans from two through seven modules.
+- [x] Every legacy constant topology matches stage 0 byte for byte through the generic path.
+- [x] The five-, six-, and seven-module topology registries, classifiers, role selectors, and executors are deleted.
+- [x] The four-module topology executors and planned-source selectors are deleted.
 - [x] The complete bounded graph plan validates and packs root-import rank.
-- [ ] One executor handles direct, chain, fork, branch, redundant-edge, and shared-DAG plans.
+- [x] New dense three- and four-module DAGs, shared five-module DAGs, and redundant six- and seven-module DAGs execute without new topology identities.
 - [ ] Mixed constant and helper owners use the same executor.
-- [ ] Every legacy topology matches byte for byte through the generic path.
-- [ ] Topology-specific executors and identities are deleted.
+- [ ] `ConstantExecutor.w` consumes planned executable-owner metadata instead of structural helper fallbacks.
 - [ ] The imported-module bound is raised beyond seven.
 
 ## Acceptance

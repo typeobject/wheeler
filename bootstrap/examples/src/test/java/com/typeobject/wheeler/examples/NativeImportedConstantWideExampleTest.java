@@ -1,6 +1,8 @@
 package com.typeobject.wheeler.examples;
 
 import static com.typeobject.wheeler.examples.NativeImportedConstantGraphSupport.assertEveryOrderMatchesStageZero;
+import static com.typeobject.wheeler.examples.NativeImportedConstantGraphSupport.assertOrdersMatchStageZero;
+import static com.typeobject.wheeler.examples.NativeImportedConstantGraphSupport.rotationsAndReversals;
 import static com.typeobject.wheeler.examples.NativeModuleCompilerHarness.assertTrap;
 import static com.typeobject.wheeler.examples.NativeModuleCompilerHarness.program;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -298,7 +300,7 @@ class NativeImportedConstantWideExampleTest {
   }
 
   @Test
-  void rejectsAnUnsupportedFiveModuleGraphBeforePublication() throws Exception {
+  void linksAnArbitrarySharedFiveModuleDag() throws Exception {
     String alpha = "module examples.alpha; classical class Alpha { "
         + "public const long ALPHA = 2; }";
     String beta = "module examples.beta; classical class Beta { "
@@ -311,7 +313,15 @@ class NativeImportedConstantWideExampleTest {
         + "classical class Epsilon { public const long ANSWER = DELTA + GAMMA; }";
     String root = "module examples.root; import examples.epsilon; classical class Root { "
         + "state long outcome = 0; entry void main() { outcome += ANSWER; } }";
-    assertTrap(program(), List.of(alpha, beta, gamma, delta, epsilon), root);
+    List<String> imported = List.of(alpha, beta, gamma, delta, epsilon);
+    byte[] artifact = assertOrdersMatchStageZero(
+        imported,
+        root,
+        rotationsAndReversals(imported)
+    );
+    VirtualMachine machine = new VirtualMachine(new BytecodeReader().read(artifact));
+    machine.run();
+    assertEquals(10, machine.global("outcome"));
   }
 
   @Test
@@ -334,6 +344,33 @@ class NativeImportedConstantWideExampleTest {
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(41, machine.global("outcome"));
+  }
+
+  @Test
+  void linksAnArbitraryRedundantSixModuleDag() throws Exception {
+    List<String> imported = List.of(
+        "module examples.alpha; classical class Alpha { public const long ALPHA = 1; }",
+        "module examples.beta; import examples.alpha; classical class Beta { "
+            + "public const long BETA = ALPHA + 1; }",
+        "module examples.gamma; import examples.beta; classical class Gamma { "
+            + "public const long GAMMA = BETA + 1; }",
+        "module examples.delta; import examples.gamma; classical class Delta { "
+            + "public const long DELTA = GAMMA + 1; }",
+        "module examples.epsilon; import examples.delta; classical class Epsilon { "
+            + "public const long EPSILON = DELTA + 1; }",
+        "module examples.zeta; import examples.alpha; import examples.epsilon; "
+            + "classical class Zeta { public const long ZETA = ALPHA + EPSILON; }");
+    String root = "module examples.root; import examples.zeta; classical class Root { "
+        + "state long outcome = 0; entry void main() { outcome += ZETA; } }";
+
+    byte[] artifact = assertOrdersMatchStageZero(
+        imported,
+        root,
+        rotationsAndReversals(imported)
+    );
+    VirtualMachine machine = new VirtualMachine(new BytecodeReader().read(artifact));
+    machine.run();
+    assertEquals(6, machine.global("outcome"));
   }
 
   @Test

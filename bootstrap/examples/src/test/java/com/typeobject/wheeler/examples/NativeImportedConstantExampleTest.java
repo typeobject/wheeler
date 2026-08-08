@@ -1,5 +1,7 @@
 package com.typeobject.wheeler.examples;
 
+import static com.typeobject.wheeler.examples.NativeImportedConstantGraphSupport.assertOrdersMatchStageZero;
+import static com.typeobject.wheeler.examples.NativeImportedConstantGraphSupport.rotationsAndReversals;
 import static com.typeobject.wheeler.examples.NativeModuleCompilerHarness.assertTrap;
 import static com.typeobject.wheeler.examples.NativeModuleCompilerHarness.compile;
 import static com.typeobject.wheeler.examples.NativeModuleCompilerHarness.program;
@@ -124,6 +126,27 @@ class NativeImportedConstantExampleTest {
   }
 
   @Test
+  void linksAnArbitraryDenseThreeModuleDag() throws Exception {
+    List<String> imported = List.of(
+        "module examples.alpha; classical class Alpha { public const long ALPHA = 1; }",
+        "module examples.beta; import examples.alpha; classical class Beta { "
+            + "public const long BETA = ALPHA + 1; }",
+        "module examples.gamma; import examples.alpha; import examples.beta; "
+            + "classical class Gamma { public const long GAMMA = ALPHA + BETA; }");
+    String root = "module examples.root; import examples.gamma; classical class Root { "
+        + "state long outcome = 0; entry void main() { outcome += GAMMA; } }";
+
+    byte[] artifact = assertOrdersMatchStageZero(
+        imported,
+        root,
+        rotationsAndReversals(imported)
+    );
+    VirtualMachine machine = new VirtualMachine(new BytecodeReader().read(artifact));
+    machine.run();
+    assertEquals(3, machine.global("outcome"));
+  }
+
+  @Test
   void linksFourDirectConstantModulesIndependentOfInputOrder() throws Exception {
     Program compiler = program();
     String alpha = "module examples.alpha; classical class Alpha { "
@@ -159,6 +182,29 @@ class NativeImportedConstantExampleTest {
     VirtualMachine program = new VirtualMachine(new BytecodeReader().read(artifact));
     program.run();
     assertEquals(42, program.global("outcome"));
+  }
+
+  @Test
+  void linksAnArbitraryDenseFourModuleDag() throws Exception {
+    List<String> imported = List.of(
+        "module examples.alpha; classical class Alpha { public const long ALPHA = 1; }",
+        "module examples.beta; classical class Beta { public const long BETA = 2; }",
+        "module examples.gamma; import examples.alpha; import examples.beta; "
+            + "classical class Gamma { public const long GAMMA = ALPHA + BETA; }",
+        "module examples.delta; import examples.alpha; import examples.beta; "
+            + "import examples.gamma; classical class Delta { "
+            + "public const long DELTA = ALPHA + BETA + GAMMA; }");
+    String root = "module examples.root; import examples.delta; classical class Root { "
+        + "state long outcome = 0; entry void main() { outcome += DELTA; } }";
+
+    byte[] artifact = assertOrdersMatchStageZero(
+        imported,
+        root,
+        rotationsAndReversals(imported)
+    );
+    VirtualMachine machine = new VirtualMachine(new BytecodeReader().read(artifact));
+    machine.run();
+    assertEquals(6, machine.global("outcome"));
   }
 
   @Test
@@ -755,7 +801,7 @@ class NativeImportedConstantExampleTest {
   }
 
   @Test
-  void rejectsInaccessibleMismatchedAndNonconstantImportsBeforePublication() throws Exception {
+  void rejectsMalformedImportsAndAcceptsRedundantDagEdges() throws Exception {
     Program compiler = program();
     String root = "module examples.root; import examples.constants; "
         + "classical class Root { entry void main() { long value = ANSWER; } }";
@@ -873,10 +919,12 @@ class NativeImportedConstantExampleTest {
         + "public const long GAMMA = ALPHA + BETA; }";
     String shortcutDelta = "module examples.delta; import examples.gamma; "
         + "classical class Delta { public const long DELTA = GAMMA + 1; }";
-    assertTrap(
-        compiler,
+    String shortcutRoot = "module examples.root; import examples.delta; "
+        + "classical class Root { entry void main() { long value = DELTA; } }";
+    assertOrdersMatchStageZero(
         List.of(shortcutGamma, shortcutAlpha, shortcutDelta, shortcutBeta),
-        "module examples.root; import examples.delta; classical class Root { "
-            + "entry void main() { long value = DELTA; } }");
+        shortcutRoot,
+        List.of(List.of(shortcutGamma, shortcutAlpha, shortcutDelta, shortcutBeta))
+    );
   }
 }

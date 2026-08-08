@@ -1,14 +1,11 @@
-//! Builds closed plans for supported six-module constant graphs.
+//! Builds complete plans for bounded six-module graphs.
 
 module wheeler.compiler.graphs.six.plans;
 
 import wheeler.compiler.graphs.matrix;
-import wheeler.compiler.graphs.six.structures;
-import wheeler.compiler.graphs.six_graph_kinds;
 import wheeler.compiler.module_headers;
 
 classical class SixGraphPlans {
-
   private const long MODULE_COUNT = 6;
   private const long SINGLE_IMPORT = 1;
   private const long TWO_IMPORTS = 2;
@@ -17,125 +14,33 @@ classical class SixGraphPlans {
   private const long FIVE_IMPORTS = 5;
   private const long SIX_IMPORTS = 6;
 
-  /// Carries one validated topology and its leaf-to-root source order.
-  public record SixGraphPlan(
-    long topology,
-    long first,
-    long second,
-    long third,
-    long fourth,
-    long fifth,
-    long sixth,
-    BoundedGraphPlan bounded,
-    boolean valid
-  ) {}
-
-  private SixGraphPlan invalidPlan() {
-    BoundedGraphPlan bounded = new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, 0, false);
-    return new SixGraphPlan(0, 0, 0, 0, 0, 0, 0, bounded, false);
-  }
-
-  private SixGraphPlan orderedPlan(
-    long topology,
-    SixGraphStructure structure,
-    BoundedGraphPlan bounded
-  ) {
-    return new SixGraphPlan(
-      topology,
-      structure.first,
-      structure.second,
-      structure.third,
-      structure.fourth,
-      structure.fifth,
-      structure.sixth,
-      bounded,
-      true
-    );
-  }
-
-  private long publicTopology(long structure) {
-    if (structure == SIX_STRUCTURE_DIRECT) {
-      return SIX_PLAN_DIRECT;
-    }
-
-    if (structure == SIX_STRUCTURE_CHAIN) {
-      return SIX_PLAN_CHAIN;
-    }
-
-    if (structure == SIX_STRUCTURE_FORK) {
-      return SIX_PLAN_FORK;
-    }
-
-    if (structure == SIX_STRUCTURE_CHAIN_AND_DIRECTS) {
-      return SIX_PLAN_CHAIN_AND_DIRECTS;
-    }
-
-    if (structure == SIX_STRUCTURE_FORK_AND_DIRECTS) {
-      return SIX_PLAN_FORK_AND_DIRECTS;
-    }
-
-    if (structure == SIX_STRUCTURE_PAIRS_AND_DIRECTS) {
-      return SIX_PLAN_PAIRS_AND_DIRECTS;
-    }
-
-    if (structure == SIX_STRUCTURE_LONG_CHAIN_AND_DIRECTS) {
-      return SIX_PLAN_LONG_CHAIN_AND_DIRECTS;
-    }
-
-    if (structure == SIX_STRUCTURE_DEEP_CHAIN_AND_DIRECTS) {
-      return SIX_PLAN_DEEP_CHAIN_AND_DIRECTS;
-    }
-
-    if (structure == SIX_STRUCTURE_THREE_LEAF_FORK_AND_DIRECTS) {
-      return SIX_PLAN_THREE_LEAF_FORK_AND_DIRECTS;
-    }
-
-    if (structure == SIX_STRUCTURE_NESTED_FORK_AND_DIRECTS) {
-      return SIX_PLAN_NESTED_FORK_AND_DIRECTS;
-    }
-
-    if (structure == SIX_STRUCTURE_UNEVEN_TREE_AND_DIRECTS) {
-      return SIX_PLAN_UNEVEN_TREE_AND_DIRECTS;
-    }
-
-    if (structure == SIX_STRUCTURE_FORK_CHAIN_AND_DIRECT) {
-      return SIX_PLAN_FORK_CHAIN_AND_DIRECT;
-    }
-
-    if (structure == SIX_STRUCTURE_THREE_CHAINS) {
-      return SIX_PLAN_THREE_CHAINS;
-    }
-
-    if (structure == SIX_STRUCTURE_LONG_AND_SHORT_CHAINS) {
-      return SIX_PLAN_LONG_AND_SHORT_CHAINS;
-    }
-
-    return 0;
-  }
-
   private boolean graphEdge(borrow utf8 source, borrow utf8 dependentSource) {
     HeaderDependency dependency = moduleDependency(source, dependentSource);
     if (dependency.valid) {} else {
       return false;
     }
 
+    if (dependency.importsCandidate) {} else {
+      return false;
+    }
+
     if (dependency.importCount == SINGLE_IMPORT) {
-      return dependency.importsCandidate;
+      return true;
     }
 
     if (dependency.importCount == TWO_IMPORTS) {
-      return dependency.importsCandidate;
+      return true;
     }
 
     if (dependency.importCount == THREE_IMPORTS) {
-      return dependency.importsCandidate;
+      return true;
     }
 
-    if (dependency.importCount == FIVE_IMPORTS) {
-      return dependency.importsCandidate;
+    if (dependency.importCount == FOUR_IMPORTS) {
+      return true;
     }
 
-    return false;
+    return dependency.importCount == FIVE_IMPORTS;
   }
 
   private long rootRank(borrow utf8 source, borrow utf8 rootSource) {
@@ -149,6 +54,10 @@ classical class SixGraphPlans {
     }
 
     if (dependency.importCount == SINGLE_IMPORT) {
+      return dependency.candidateImportRank;
+    }
+
+    if (dependency.importCount == TWO_IMPORTS) {
       return dependency.candidateImportRank;
     }
 
@@ -218,14 +127,14 @@ classical class SixGraphPlans {
     recordEdge(graph, 5, 4, graphEdge(sixthSource, fifthSource));
   }
 
-  private void recordRoot(borrow mut words rootDirect, long source, boolean present) {
-    if (present) {
+  private void recordRoot(borrow mut words rootDirect, long source, long rank) {
+    if (0 < rank + 1) {
       set(rootDirect, source, 1);
     }
   }
 
-  /// Selects one supported six-module topology independent of source order.
-  public SixGraphPlan planSixConstantGraph(
+  /// Selects every rooted acyclic six-module graph admitted by the matrix bound.
+  public BoundedGraphPlan planSixConstantGraph(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
     borrow utf8 thirdSource,
@@ -249,25 +158,25 @@ classical class SixGraphPlans {
       fifthSource,
       sixthSource
     );
-    long firstRootRank = rootRank(firstSource, rootSource);
-    long secondRootRank = rootRank(secondSource, rootSource);
-    long thirdRootRank = rootRank(thirdSource, rootSource);
-    long fourthRootRank = rootRank(fourthSource, rootSource);
-    long fifthRootRank = rootRank(fifthSource, rootSource);
-    long sixthRootRank = rootRank(sixthSource, rootSource);
-    set(rootRanks, 0, firstRootRank);
-    set(rootRanks, 1, secondRootRank);
-    set(rootRanks, 2, thirdRootRank);
-    set(rootRanks, 3, fourthRootRank);
-    set(rootRanks, 4, fifthRootRank);
-    set(rootRanks, 5, sixthRootRank);
-    recordRoot(rootDirect, 0, 0 < firstRootRank + 1);
-    recordRoot(rootDirect, 1, 0 < secondRootRank + 1);
-    recordRoot(rootDirect, 2, 0 < thirdRootRank + 1);
-    recordRoot(rootDirect, 3, 0 < fourthRootRank + 1);
-    recordRoot(rootDirect, 4, 0 < fifthRootRank + 1);
-    recordRoot(rootDirect, 5, 0 < sixthRootRank + 1);
-    BoundedGraphPlan graphPlan = planBoundedGraph(
+    long firstRank = rootRank(firstSource, rootSource);
+    long secondRank = rootRank(secondSource, rootSource);
+    long thirdRank = rootRank(thirdSource, rootSource);
+    long fourthRank = rootRank(fourthSource, rootSource);
+    long fifthRank = rootRank(fifthSource, rootSource);
+    long sixthRank = rootRank(sixthSource, rootSource);
+    set(rootRanks, 0, firstRank);
+    set(rootRanks, 1, secondRank);
+    set(rootRanks, 2, thirdRank);
+    set(rootRanks, 3, fourthRank);
+    set(rootRanks, 4, fifthRank);
+    set(rootRanks, 5, sixthRank);
+    recordRoot(rootDirect, 0, firstRank);
+    recordRoot(rootDirect, 1, secondRank);
+    recordRoot(rootDirect, 2, thirdRank);
+    recordRoot(rootDirect, 3, fourthRank);
+    recordRoot(rootDirect, 4, fifthRank);
+    recordRoot(rootDirect, 5, sixthRank);
+    BoundedGraphPlan result = planBoundedGraph(
       graph,
       rootDirect,
       rootRanks,
@@ -275,23 +184,6 @@ classical class SixGraphPlans {
       order,
       reachable
     );
-    SixGraphPlan result = invalidPlan();
-    if (graphPlan.valid) {
-      SixGraphStructure structure = selectSixGraphStructure(
-        graph,
-        rootDirect,
-        graphPlan.edgeCount,
-        graphPlan.rootCount,
-        order
-      );
-      if (structure.valid) {
-        long topology = publicTopology(structure.topology);
-        if (0 < topology) {
-          result = orderedPlan(topology, structure, graphPlan);
-        }
-      }
-    }
-
     drop(reachable);
     drop(order);
     drop(rootRanks);

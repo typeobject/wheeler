@@ -9,10 +9,8 @@ classical class SmallGraphStructures {
   private const long TWO_MODULES = 2;
   private const long THREE_MODULES = 3;
   private const long SINGLE_IMPORT = 1;
-
-  private BoundedGraphPlan invalidPlan() {
-    return new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, 0, false);
-  }
+  private const long TWO_IMPORTS = 2;
+  private const long THREE_IMPORTS = 3;
 
   private boolean graphEdge(borrow utf8 source, borrow utf8 dependentSource, long moduleCount) {
     HeaderDependency dependency = moduleDependency(source, dependentSource);
@@ -20,34 +18,49 @@ classical class SmallGraphStructures {
       return false;
     }
 
-    if (0 < dependency.importCount) {} else {
+    if (dependency.importsCandidate) {} else {
       return false;
     }
 
-    if (dependency.importCount < moduleCount) {} else {
-      return false;
+    if (dependency.importCount == SINGLE_IMPORT) {
+      return true;
     }
 
-    return dependency.importsCandidate;
+    if (moduleCount == THREE_MODULES) {
+      return dependency.importCount == TWO_IMPORTS;
+    }
+
+    return false;
   }
 
-  private boolean rootEdge(HeaderDependency dependency, long moduleCount) {
+  private long rootRank(borrow utf8 source, borrow utf8 rootSource, long moduleCount) {
+    HeaderDependency dependency = moduleDependency(source, rootSource);
     if (dependency.valid) {} else {
-      return false;
+      return -1;
     }
 
-    if (0 < dependency.importCount) {} else {
-      return false;
+    if (dependency.importsCandidate) {} else {
+      return -1;
     }
 
-    if (dependency.importCount < moduleCount + 1) {} else {
-      return false;
+    if (dependency.importCount == SINGLE_IMPORT) {
+      return dependency.candidateImportRank;
     }
 
-    return dependency.importsCandidate;
+    if (dependency.importCount == TWO_IMPORTS) {
+      return dependency.candidateImportRank;
+    }
+
+    if (moduleCount == THREE_MODULES) {
+      if (dependency.importCount == THREE_IMPORTS) {
+        return dependency.candidateImportRank;
+      }
+    }
+
+    return -1;
   }
 
-  private long recordEdge(
+  private void recordEdge(
     borrow mut words graph,
     long moduleCount,
     long source,
@@ -56,52 +69,16 @@ classical class SmallGraphStructures {
   ) {
     if (present) {
       set(graph, source * moduleCount + dependent, 1);
-      return 1;
     }
-
-    return 0;
   }
 
-  private long recordRoot(borrow mut words rootDirect, long source, boolean present) {
-    if (present) {
+  private void recordRoot(borrow mut words rootDirect, long source, long rank) {
+    if (0 < rank + 1) {
       set(rootDirect, source, 1);
-      return 1;
     }
-
-    return 0;
   }
 
-  private long outgoingCount(borrow mut words graph, long moduleCount, long node) {
-    long count = 0;
-    long other = 0;
-    while (other < moduleCount) limit THREE_MODULES {
-      count += graph[node * moduleCount + other];
-      other += 1;
-    }
-
-    return count;
-  }
-
-  private boolean rootsAreSinks(
-    borrow mut words graph,
-    borrow mut words rootDirect,
-    long moduleCount
-  ) {
-    long node = 0;
-    while (node < moduleCount) limit THREE_MODULES {
-      if (rootDirect[node] == 1) {
-        if (outgoingCount(graph, moduleCount, node) == 0) {} else {
-          return false;
-        }
-      }
-
-      node += 1;
-    }
-
-    return true;
-  }
-
-  /// Produces one complete canonical two-module graph plan.
+  /// Produces every rooted acyclic two-module plan admitted by the matrix bound.
   public BoundedGraphPlan planTwoGraph(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
@@ -113,49 +90,22 @@ classical class SmallGraphStructures {
     words rootRanks = allocate(arena, TWO_MODULES);
     words order = allocate(arena, TWO_MODULES);
     words reachable = allocate(arena, TWO_MODULES);
-    long edgeCount = 0;
-    edgeCount += recordEdge(
+    recordEdge(graph, TWO_MODULES, 0, 1, graphEdge(firstSource, secondSource, TWO_MODULES));
+    recordEdge(graph, TWO_MODULES, 1, 0, graphEdge(secondSource, firstSource, TWO_MODULES));
+    long firstRank = rootRank(firstSource, rootSource, TWO_MODULES);
+    long secondRank = rootRank(secondSource, rootSource, TWO_MODULES);
+    set(rootRanks, 0, firstRank);
+    set(rootRanks, 1, secondRank);
+    recordRoot(rootDirect, 0, firstRank);
+    recordRoot(rootDirect, 1, secondRank);
+    BoundedGraphPlan result = planBoundedGraph(
       graph,
+      rootDirect,
+      rootRanks,
       TWO_MODULES,
-      0,
-      1,
-      graphEdge(firstSource, secondSource, TWO_MODULES)
+      order,
+      reachable
     );
-    edgeCount += recordEdge(
-      graph,
-      TWO_MODULES,
-      1,
-      0,
-      graphEdge(secondSource, firstSource, TWO_MODULES)
-    );
-    HeaderDependency firstRoot = moduleDependency(firstSource, rootSource);
-    HeaderDependency secondRoot = moduleDependency(secondSource, rootSource);
-    long rootCount = 0;
-    rootCount += recordRoot(rootDirect, 0, rootEdge(firstRoot, TWO_MODULES));
-    rootCount += recordRoot(rootDirect, 1, rootEdge(secondRoot, TWO_MODULES));
-    set(rootRanks, 0, firstRoot.candidateImportRank);
-    set(rootRanks, 1, secondRoot.candidateImportRank);
-    boolean redundantLeaf = edgeCount == SINGLE_IMPORT;
-    if (redundantLeaf) {
-      redundantLeaf = rootCount == TWO_MODULES;
-    }
-
-    boolean valid = edgeCount + rootCount == TWO_MODULES;
-    if (redundantLeaf) {
-      valid = true;
-    }
-
-    if (valid) {
-      if (redundantLeaf) {} else {
-        valid = rootsAreSinks(graph, rootDirect, TWO_MODULES);
-      }
-    }
-
-    BoundedGraphPlan result = invalidPlan();
-    if (valid) {
-      result = planBoundedGraph(graph, rootDirect, rootRanks, TWO_MODULES, order, reachable);
-    }
-
     drop(reachable);
     drop(order);
     drop(rootRanks);
@@ -165,78 +115,57 @@ classical class SmallGraphStructures {
     return result;
   }
 
-  private long recordThreeEdges(
+  private void recordThreeEdges(
     borrow mut words graph,
     borrow utf8 firstSource,
     borrow utf8 secondSource,
     borrow utf8 thirdSource
   ) {
-    long count = 0;
-    count += recordEdge(
+    recordEdge(
       graph,
       THREE_MODULES,
       0,
       1,
       graphEdge(firstSource, secondSource, THREE_MODULES)
     );
-    count += recordEdge(
+    recordEdge(
       graph,
       THREE_MODULES,
       0,
       2,
       graphEdge(firstSource, thirdSource, THREE_MODULES)
     );
-    count += recordEdge(
+    recordEdge(
       graph,
       THREE_MODULES,
       1,
       0,
       graphEdge(secondSource, firstSource, THREE_MODULES)
     );
-    count += recordEdge(
+    recordEdge(
       graph,
       THREE_MODULES,
       1,
       2,
       graphEdge(secondSource, thirdSource, THREE_MODULES)
     );
-    count += recordEdge(
+    recordEdge(
       graph,
       THREE_MODULES,
       2,
       0,
       graphEdge(thirdSource, firstSource, THREE_MODULES)
     );
-    count += recordEdge(
+    recordEdge(
       graph,
       THREE_MODULES,
       2,
       1,
       graphEdge(thirdSource, secondSource, THREE_MODULES)
     );
-    return count;
   }
 
-  private boolean sharedDirectLeaf(borrow mut words graph) {
-    long sharedCount = 0;
-    long node = 0;
-    while (node < THREE_MODULES) limit THREE_MODULES {
-      long outgoing = outgoingCount(graph, THREE_MODULES, node);
-      if (outgoing == TWO_MODULES) {
-        sharedCount += 1;
-      } else {
-        if (outgoing == 0) {} else {
-          return false;
-        }
-      }
-
-      node += 1;
-    }
-
-    return sharedCount == 1;
-  }
-
-  /// Produces one complete canonical three-module graph plan.
+  /// Produces every rooted acyclic three-module plan admitted by the matrix bound.
   public BoundedGraphPlan planThreeGraph(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
@@ -249,42 +178,24 @@ classical class SmallGraphStructures {
     words rootRanks = allocate(arena, THREE_MODULES);
     words order = allocate(arena, THREE_MODULES);
     words reachable = allocate(arena, THREE_MODULES);
-    long edgeCount = recordThreeEdges(graph, firstSource, secondSource, thirdSource);
-    HeaderDependency firstRoot = moduleDependency(firstSource, rootSource);
-    HeaderDependency secondRoot = moduleDependency(secondSource, rootSource);
-    HeaderDependency thirdRoot = moduleDependency(thirdSource, rootSource);
-    long rootCount = 0;
-    rootCount += recordRoot(rootDirect, 0, rootEdge(firstRoot, THREE_MODULES));
-    rootCount += recordRoot(rootDirect, 1, rootEdge(secondRoot, THREE_MODULES));
-    rootCount += recordRoot(rootDirect, 2, rootEdge(thirdRoot, THREE_MODULES));
-    set(rootRanks, 0, firstRoot.candidateImportRank);
-    set(rootRanks, 1, secondRoot.candidateImportRank);
-    set(rootRanks, 2, thirdRoot.candidateImportRank);
-    boolean sharedLeaf = edgeCount == TWO_MODULES;
-    if (sharedLeaf) {
-      sharedLeaf = rootCount == THREE_MODULES;
-    }
-
-    if (sharedLeaf) {
-      sharedLeaf = sharedDirectLeaf(graph);
-    }
-
-    boolean valid = edgeCount + rootCount == THREE_MODULES;
-    if (sharedLeaf) {
-      valid = true;
-    }
-
-    if (valid) {
-      if (sharedLeaf) {} else {
-        valid = rootsAreSinks(graph, rootDirect, THREE_MODULES);
-      }
-    }
-
-    BoundedGraphPlan result = invalidPlan();
-    if (valid) {
-      result = planBoundedGraph(graph, rootDirect, rootRanks, THREE_MODULES, order, reachable);
-    }
-
+    recordThreeEdges(graph, firstSource, secondSource, thirdSource);
+    long firstRank = rootRank(firstSource, rootSource, THREE_MODULES);
+    long secondRank = rootRank(secondSource, rootSource, THREE_MODULES);
+    long thirdRank = rootRank(thirdSource, rootSource, THREE_MODULES);
+    set(rootRanks, 0, firstRank);
+    set(rootRanks, 1, secondRank);
+    set(rootRanks, 2, thirdRank);
+    recordRoot(rootDirect, 0, firstRank);
+    recordRoot(rootDirect, 1, secondRank);
+    recordRoot(rootDirect, 2, thirdRank);
+    BoundedGraphPlan result = planBoundedGraph(
+      graph,
+      rootDirect,
+      rootRanks,
+      THREE_MODULES,
+      order,
+      reachable
+    );
     drop(reachable);
     drop(order);
     drop(rootRanks);

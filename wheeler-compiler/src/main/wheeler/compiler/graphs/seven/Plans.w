@@ -1,43 +1,19 @@
-//! Builds closed plans for supported seven-module constant graphs.
+//! Builds complete plans for bounded seven-module graphs.
 
 module wheeler.compiler.graphs.seven.plans;
 
 import wheeler.compiler.graphs.matrix;
-import wheeler.compiler.graphs.seven.plan_shapes;
-import wheeler.compiler.graphs.seven.shape_asymmetric;
-import wheeler.compiler.graphs.seven.shape_chains;
-import wheeler.compiler.graphs.seven.shape_dags;
-import wheeler.compiler.graphs.seven.shape_forks;
-import wheeler.compiler.graphs.seven.shape_nested;
-import wheeler.compiler.graphs.seven.shape_serial_dags;
-import wheeler.compiler.graphs.seven_plan_kinds;
 import wheeler.compiler.module_headers;
 
 classical class SevenGraphPlans {
-
   private const long MODULE_COUNT = 7;
-  private const long SINGLE_EDGE = 1;
   private const long SINGLE_IMPORT = 1;
-  private const long TWO_DIRECTS = 2;
-  private const long TWO_EDGES = 2;
   private const long TWO_IMPORTS = 2;
-  private const long THREE_EDGES = 3;
   private const long THREE_IMPORTS = 3;
-  private const long FOUR_EDGES = 4;
   private const long FOUR_IMPORTS = 4;
-  private const long FIVE_EDGES = 5;
   private const long FIVE_IMPORTS = 5;
-  private const long SIX_EDGES = 6;
   private const long SIX_IMPORTS = 6;
   private const long SEVEN_IMPORTS = 7;
-  private const long EIGHT_EDGES = 8;
-
-  /// Carries one legacy role order beside its complete validated graph plan.
-  public record SevenBoundedGraphPlan(SevenGraphPlan legacy, BoundedGraphPlan bounded) {}
-
-  private SevenGraphPlan invalidPlan() {
-    return new SevenGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, false);
-  }
 
   private boolean graphEdge(borrow utf8 source, borrow utf8 dependentSource) {
     HeaderDependency dependency = moduleDependency(source, dependentSource);
@@ -45,31 +21,31 @@ classical class SevenGraphPlans {
       return false;
     }
 
+    if (dependency.importsCandidate) {} else {
+      return false;
+    }
+
     if (dependency.importCount == SINGLE_IMPORT) {
-      return dependency.importsCandidate;
+      return true;
     }
 
     if (dependency.importCount == TWO_IMPORTS) {
-      return dependency.importsCandidate;
+      return true;
     }
 
     if (dependency.importCount == THREE_IMPORTS) {
-      return dependency.importsCandidate;
+      return true;
     }
 
     if (dependency.importCount == FOUR_IMPORTS) {
-      return dependency.importsCandidate;
+      return true;
     }
 
     if (dependency.importCount == FIVE_IMPORTS) {
-      return dependency.importsCandidate;
+      return true;
     }
 
-    if (dependency.importCount == SIX_IMPORTS) {
-      return dependency.importsCandidate;
-    }
-
-    return false;
+    return dependency.importCount == SIX_IMPORTS;
   }
 
   private long rootRank(borrow utf8 source, borrow utf8 rootSource) {
@@ -113,16 +89,13 @@ classical class SevenGraphPlans {
     return -1;
   }
 
-  private long recordEdge(borrow mut words graph, long source, long dependent, boolean present) {
+  private void recordEdge(borrow mut words graph, long source, long dependent, boolean present) {
     if (present) {
       set(graph, source * MODULE_COUNT + dependent, 1);
-      return 1;
     }
-
-    return 0;
   }
 
-  private long recordDirectedEdges(
+  private void recordDirectedEdges(
     borrow mut words graph,
     borrow utf8 firstSource,
     borrow utf8 secondSource,
@@ -132,62 +105,58 @@ classical class SevenGraphPlans {
     borrow utf8 sixthSource,
     borrow utf8 seventhSource
   ) {
-    long count = 0;
-    count += recordEdge(graph, 0, 1, graphEdge(firstSource, secondSource));
-    count += recordEdge(graph, 0, 2, graphEdge(firstSource, thirdSource));
-    count += recordEdge(graph, 0, 3, graphEdge(firstSource, fourthSource));
-    count += recordEdge(graph, 0, 4, graphEdge(firstSource, fifthSource));
-    count += recordEdge(graph, 0, 5, graphEdge(firstSource, sixthSource));
-    count += recordEdge(graph, 0, 6, graphEdge(firstSource, seventhSource));
-    count += recordEdge(graph, 1, 0, graphEdge(secondSource, firstSource));
-    count += recordEdge(graph, 1, 2, graphEdge(secondSource, thirdSource));
-    count += recordEdge(graph, 1, 3, graphEdge(secondSource, fourthSource));
-    count += recordEdge(graph, 1, 4, graphEdge(secondSource, fifthSource));
-    count += recordEdge(graph, 1, 5, graphEdge(secondSource, sixthSource));
-    count += recordEdge(graph, 1, 6, graphEdge(secondSource, seventhSource));
-    count += recordEdge(graph, 2, 0, graphEdge(thirdSource, firstSource));
-    count += recordEdge(graph, 2, 1, graphEdge(thirdSource, secondSource));
-    count += recordEdge(graph, 2, 3, graphEdge(thirdSource, fourthSource));
-    count += recordEdge(graph, 2, 4, graphEdge(thirdSource, fifthSource));
-    count += recordEdge(graph, 2, 5, graphEdge(thirdSource, sixthSource));
-    count += recordEdge(graph, 2, 6, graphEdge(thirdSource, seventhSource));
-    count += recordEdge(graph, 3, 0, graphEdge(fourthSource, firstSource));
-    count += recordEdge(graph, 3, 1, graphEdge(fourthSource, secondSource));
-    count += recordEdge(graph, 3, 2, graphEdge(fourthSource, thirdSource));
-    count += recordEdge(graph, 3, 4, graphEdge(fourthSource, fifthSource));
-    count += recordEdge(graph, 3, 5, graphEdge(fourthSource, sixthSource));
-    count += recordEdge(graph, 3, 6, graphEdge(fourthSource, seventhSource));
-    count += recordEdge(graph, 4, 0, graphEdge(fifthSource, firstSource));
-    count += recordEdge(graph, 4, 1, graphEdge(fifthSource, secondSource));
-    count += recordEdge(graph, 4, 2, graphEdge(fifthSource, thirdSource));
-    count += recordEdge(graph, 4, 3, graphEdge(fifthSource, fourthSource));
-    count += recordEdge(graph, 4, 5, graphEdge(fifthSource, sixthSource));
-    count += recordEdge(graph, 4, 6, graphEdge(fifthSource, seventhSource));
-    count += recordEdge(graph, 5, 0, graphEdge(sixthSource, firstSource));
-    count += recordEdge(graph, 5, 1, graphEdge(sixthSource, secondSource));
-    count += recordEdge(graph, 5, 2, graphEdge(sixthSource, thirdSource));
-    count += recordEdge(graph, 5, 3, graphEdge(sixthSource, fourthSource));
-    count += recordEdge(graph, 5, 4, graphEdge(sixthSource, fifthSource));
-    count += recordEdge(graph, 5, 6, graphEdge(sixthSource, seventhSource));
-    count += recordEdge(graph, 6, 0, graphEdge(seventhSource, firstSource));
-    count += recordEdge(graph, 6, 1, graphEdge(seventhSource, secondSource));
-    count += recordEdge(graph, 6, 2, graphEdge(seventhSource, thirdSource));
-    count += recordEdge(graph, 6, 3, graphEdge(seventhSource, fourthSource));
-    count += recordEdge(graph, 6, 4, graphEdge(seventhSource, fifthSource));
-    count += recordEdge(graph, 6, 5, graphEdge(seventhSource, sixthSource));
-    return count;
+    recordEdge(graph, 0, 1, graphEdge(firstSource, secondSource));
+    recordEdge(graph, 0, 2, graphEdge(firstSource, thirdSource));
+    recordEdge(graph, 0, 3, graphEdge(firstSource, fourthSource));
+    recordEdge(graph, 0, 4, graphEdge(firstSource, fifthSource));
+    recordEdge(graph, 0, 5, graphEdge(firstSource, sixthSource));
+    recordEdge(graph, 0, 6, graphEdge(firstSource, seventhSource));
+    recordEdge(graph, 1, 0, graphEdge(secondSource, firstSource));
+    recordEdge(graph, 1, 2, graphEdge(secondSource, thirdSource));
+    recordEdge(graph, 1, 3, graphEdge(secondSource, fourthSource));
+    recordEdge(graph, 1, 4, graphEdge(secondSource, fifthSource));
+    recordEdge(graph, 1, 5, graphEdge(secondSource, sixthSource));
+    recordEdge(graph, 1, 6, graphEdge(secondSource, seventhSource));
+    recordEdge(graph, 2, 0, graphEdge(thirdSource, firstSource));
+    recordEdge(graph, 2, 1, graphEdge(thirdSource, secondSource));
+    recordEdge(graph, 2, 3, graphEdge(thirdSource, fourthSource));
+    recordEdge(graph, 2, 4, graphEdge(thirdSource, fifthSource));
+    recordEdge(graph, 2, 5, graphEdge(thirdSource, sixthSource));
+    recordEdge(graph, 2, 6, graphEdge(thirdSource, seventhSource));
+    recordEdge(graph, 3, 0, graphEdge(fourthSource, firstSource));
+    recordEdge(graph, 3, 1, graphEdge(fourthSource, secondSource));
+    recordEdge(graph, 3, 2, graphEdge(fourthSource, thirdSource));
+    recordEdge(graph, 3, 4, graphEdge(fourthSource, fifthSource));
+    recordEdge(graph, 3, 5, graphEdge(fourthSource, sixthSource));
+    recordEdge(graph, 3, 6, graphEdge(fourthSource, seventhSource));
+    recordEdge(graph, 4, 0, graphEdge(fifthSource, firstSource));
+    recordEdge(graph, 4, 1, graphEdge(fifthSource, secondSource));
+    recordEdge(graph, 4, 2, graphEdge(fifthSource, thirdSource));
+    recordEdge(graph, 4, 3, graphEdge(fifthSource, fourthSource));
+    recordEdge(graph, 4, 5, graphEdge(fifthSource, sixthSource));
+    recordEdge(graph, 4, 6, graphEdge(fifthSource, seventhSource));
+    recordEdge(graph, 5, 0, graphEdge(sixthSource, firstSource));
+    recordEdge(graph, 5, 1, graphEdge(sixthSource, secondSource));
+    recordEdge(graph, 5, 2, graphEdge(sixthSource, thirdSource));
+    recordEdge(graph, 5, 3, graphEdge(sixthSource, fourthSource));
+    recordEdge(graph, 5, 4, graphEdge(sixthSource, fifthSource));
+    recordEdge(graph, 5, 6, graphEdge(sixthSource, seventhSource));
+    recordEdge(graph, 6, 0, graphEdge(seventhSource, firstSource));
+    recordEdge(graph, 6, 1, graphEdge(seventhSource, secondSource));
+    recordEdge(graph, 6, 2, graphEdge(seventhSource, thirdSource));
+    recordEdge(graph, 6, 3, graphEdge(seventhSource, fourthSource));
+    recordEdge(graph, 6, 4, graphEdge(seventhSource, fifthSource));
+    recordEdge(graph, 6, 5, graphEdge(seventhSource, sixthSource));
   }
 
-  private long recordRoot(borrow mut words rootDirect, long source, boolean present) {
-    if (present) {
+  private void recordRoot(borrow mut words rootDirect, long source, long rank) {
+    if (0 < rank + 1) {
       set(rootDirect, source, 1);
-      return 1;
     }
-
-    return 0;
   }
 
-  private SevenBoundedGraphPlan structuredBoundedGraph(
+  /// Selects every rooted acyclic seven-module graph admitted by the matrix bound.
+  public BoundedGraphPlan planSevenBoundedGraph(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
     borrow utf8 thirdSource,
@@ -203,7 +172,7 @@ classical class SevenGraphPlans {
     words rootRanks = allocate(arena, MODULE_COUNT);
     words order = allocate(arena, MODULE_COUNT);
     words reachable = allocate(arena, MODULE_COUNT);
-    long edgeCount = recordDirectedEdges(
+    recordDirectedEdges(
       graph,
       firstSource,
       secondSource,
@@ -213,324 +182,41 @@ classical class SevenGraphPlans {
       sixthSource,
       seventhSource
     );
-    long firstRootRank = rootRank(firstSource, rootSource);
-    long secondRootRank = rootRank(secondSource, rootSource);
-    long thirdRootRank = rootRank(thirdSource, rootSource);
-    long fourthRootRank = rootRank(fourthSource, rootSource);
-    long fifthRootRank = rootRank(fifthSource, rootSource);
-    long sixthRootRank = rootRank(sixthSource, rootSource);
-    long seventhRootRank = rootRank(seventhSource, rootSource);
-    set(rootRanks, 0, firstRootRank);
-    set(rootRanks, 1, secondRootRank);
-    set(rootRanks, 2, thirdRootRank);
-    set(rootRanks, 3, fourthRootRank);
-    set(rootRanks, 4, fifthRootRank);
-    set(rootRanks, 5, sixthRootRank);
-    set(rootRanks, 6, seventhRootRank);
-    long rootCount = 0;
-    rootCount += recordRoot(rootDirect, 0, 0 < firstRootRank + 1);
-    rootCount += recordRoot(rootDirect, 1, 0 < secondRootRank + 1);
-    rootCount += recordRoot(rootDirect, 2, 0 < thirdRootRank + 1);
-    rootCount += recordRoot(rootDirect, 3, 0 < fourthRootRank + 1);
-    rootCount += recordRoot(rootDirect, 4, 0 < fifthRootRank + 1);
-    rootCount += recordRoot(rootDirect, 5, 0 < sixthRootRank + 1);
-    rootCount += recordRoot(rootDirect, 6, 0 < seventhRootRank + 1);
-    boolean direct = false;
-    if (edgeCount == 0) {
-      direct = rootCount == SEVEN_IMPORTS;
-    }
-
-    boolean structured = false;
-    if (edgeCount == SIX_EDGES) {
-      structured = rootCount == SINGLE_IMPORT;
-    }
-
-    boolean mixedChain = false;
-    if (edgeCount == SINGLE_EDGE) {
-      mixedChain = rootCount == SIX_IMPORTS;
-    }
-
-    boolean mixedFork = false;
-    if (edgeCount == TWO_EDGES) {
-      mixedFork = rootCount == FIVE_IMPORTS;
-    }
-
-    boolean mixedThreeChains = false;
-    if (edgeCount == THREE_EDGES) {
-      mixedThreeChains = rootCount == FOUR_IMPORTS;
-    }
-
-    boolean mixedWideFork = false;
-    if (edgeCount == FOUR_EDGES) {
-      mixedWideFork = rootCount == THREE_IMPORTS;
-    }
-
-    boolean mixedSharedDiamond = false;
-    if (edgeCount == FOUR_EDGES) {
-      mixedSharedDiamond = rootCount == FOUR_IMPORTS;
-    }
-
-    boolean mixedFiveLeafFork = false;
-    if (edgeCount == FIVE_EDGES) {
-      mixedFiveLeafFork = rootCount == TWO_IMPORTS;
-    }
-
-    boolean mixedSharedDiamondSide = false;
-    if (edgeCount == FIVE_EDGES) {
-      mixedSharedDiamondSide = rootCount == THREE_IMPORTS;
-    }
-
-    boolean serialDiamonds = false;
-    if (edgeCount == EIGHT_EDGES) {
-      serialDiamonds = rootCount == SINGLE_IMPORT;
-    }
-
-    boolean valid = direct;
-    if (structured) {
-      valid = true;
-    }
-
-    if (mixedChain) {
-      valid = true;
-    }
-
-    if (mixedFork) {
-      valid = true;
-    }
-
-    if (mixedThreeChains) {
-      valid = true;
-    }
-
-    if (mixedWideFork) {
-      valid = true;
-    }
-
-    if (mixedFiveLeafFork) {
-      valid = true;
-    }
-
-    if (mixedSharedDiamond) {
-      valid = true;
-    }
-
-    if (mixedSharedDiamondSide) {
-      valid = true;
-    }
-
-    if (serialDiamonds) {
-      valid = true;
-    }
-
-    BoundedGraphPlan graphPlan = new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, 0, false);
-    if (valid) {
-      graphPlan = planBoundedGraph(
-        graph,
-        rootDirect,
-        rootRanks,
-        MODULE_COUNT,
-        order,
-        reachable
-      );
-      valid = graphPlan.valid;
-    }
-
-    SevenGraphPlan result = invalidPlan();
-    if (valid) {
-      if (direct) {
-        result = new SevenGraphPlan(
-          SEVEN_PLAN_DIRECT,
-          order[0],
-          order[1],
-          order[2],
-          order[3],
-          order[4],
-          order[5],
-          order[6],
-          true
-        );
-      } else {
-        if (mixedChain) {
-          result = chainAndDirectsPlan(graph, rootDirect);
-        }
-
-        if (mixedFork) {
-          result = forkAndDirectsPlan(graph, rootDirect);
-          if (result.valid) {} else {
-            result = pairsAndDirectsPlan(graph, rootDirect);
-          }
-
-          if (result.valid) {} else {
-            result = longChainAndDirectsPlan(graph, rootDirect);
-          }
-        }
-
-        if (mixedThreeChains) {
-          result = threeChainsAndDirectPlan(graph, rootDirect);
-          if (result.valid) {} else {
-            result = threeLeafForkAndDirectsPlan(graph, rootDirect);
-          }
-
-          if (result.valid) {} else {
-            result = nestedForkAndDirectsPlan(graph, rootDirect);
-          }
-
-          if (result.valid) {} else {
-            result = fourChainAndDirectsPlan(graph, rootDirect);
-          }
-
-          if (result.valid) {} else {
-            result = longShortChainsAndDirectsPlan(graph, rootDirect);
-          }
-
-          if (result.valid) {} else {
-            result = forkChainAndDirectsPlan(graph, rootDirect);
-          }
-        }
-
-        if (mixedWideFork) {
-          result = wideForkAndDirectsPlan(graph, rootDirect);
-          if (result.valid) {} else {
-            result = pairedNestedChainsAndDirectsPlan(graph, rootDirect);
-          }
-
-          if (result.valid) {} else {
-            result = extendedForkAndDirectsPlan(graph, rootDirect);
-          }
-
-          if (result.valid) {} else {
-            result = twoLongChainsAndDirectPlan(graph, rootDirect);
-          }
-
-          if (result.valid) {} else {
-            result = longBranchForkAndDirectsPlan(graph, rootDirect);
-          }
-
-          if (result.valid) {} else {
-            result = fiveChainAndDirectsPlan(graph, rootDirect);
-          }
-
-          if (result.valid) {} else {
-            result = nestedThreeForkAndDirectsPlan(graph, rootDirect);
-          }
-
-          if (result.valid) {} else {
-            result = deepNestedForkAndDirectsPlan(graph, rootDirect);
-          }
-
-          if (result.valid) {} else {
-            result = unevenNestedForkAndDirectsPlan(graph, rootDirect);
-          }
-
-          if (result.valid) {} else {
-            result = asymmetricNestedForkAndDirectsPlan(graph, rootDirect);
-          }
-        }
-
-        if (mixedSharedDiamond) {
-          result = sharedDiamondAndDirectsPlan(graph, rootDirect);
-        }
-
-        if (serialDiamonds) {
-          result = serialDiamondsPlan(graph, rootDirect);
-        }
-
-        if (mixedSharedDiamondSide) {
-          result = sharedDiamondSideAndDirectsPlan(graph, rootDirect);
-        }
-
-        if (mixedFiveLeafFork) {
-          result = fiveLeafForkAndDirectPlan(graph, rootDirect);
-          if (result.valid) {} else {
-            result = sixChainAndDirectPlan(graph, rootDirect);
-          }
-        }
-
-        boolean chain = writeChainOrder(graph, rootDirect, MODULE_COUNT, order);
-        if (chain) {
-          result = new SevenGraphPlan(
-            SEVEN_PLAN_CHAIN,
-            order[0],
-            order[1],
-            order[2],
-            order[3],
-            order[4],
-            order[5],
-            order[6],
-            true
-          );
-        } else {
-          boolean fork = writeForkOrder(graph, rootDirect, MODULE_COUNT, order);
-          if (fork) {
-            result = new SevenGraphPlan(
-              SEVEN_PLAN_FORK,
-              order[0],
-              order[1],
-              order[2],
-              order[3],
-              order[4],
-              order[5],
-              order[6],
-              true
-            );
-          }
-        }
-      }
-    }
-
+    long firstRank = rootRank(firstSource, rootSource);
+    long secondRank = rootRank(secondSource, rootSource);
+    long thirdRank = rootRank(thirdSource, rootSource);
+    long fourthRank = rootRank(fourthSource, rootSource);
+    long fifthRank = rootRank(fifthSource, rootSource);
+    long sixthRank = rootRank(sixthSource, rootSource);
+    long seventhRank = rootRank(seventhSource, rootSource);
+    set(rootRanks, 0, firstRank);
+    set(rootRanks, 1, secondRank);
+    set(rootRanks, 2, thirdRank);
+    set(rootRanks, 3, fourthRank);
+    set(rootRanks, 4, fifthRank);
+    set(rootRanks, 5, sixthRank);
+    set(rootRanks, 6, seventhRank);
+    recordRoot(rootDirect, 0, firstRank);
+    recordRoot(rootDirect, 1, secondRank);
+    recordRoot(rootDirect, 2, thirdRank);
+    recordRoot(rootDirect, 3, fourthRank);
+    recordRoot(rootDirect, 4, fifthRank);
+    recordRoot(rootDirect, 5, sixthRank);
+    recordRoot(rootDirect, 6, seventhRank);
+    BoundedGraphPlan result = planBoundedGraph(
+      graph,
+      rootDirect,
+      rootRanks,
+      MODULE_COUNT,
+      order,
+      reachable
+    );
     drop(reachable);
     drop(order);
     drop(rootRanks);
     drop(rootDirect);
     drop(graph);
     drop(arena);
-    return new SevenBoundedGraphPlan(result, graphPlan);
-  }
-
-  /// Selects one complete seven-module graph before source rewriting.
-  public SevenBoundedGraphPlan planSevenBoundedGraph(
-    borrow utf8 firstSource,
-    borrow utf8 secondSource,
-    borrow utf8 thirdSource,
-    borrow utf8 fourthSource,
-    borrow utf8 fifthSource,
-    borrow utf8 sixthSource,
-    borrow utf8 seventhSource,
-    borrow utf8 rootSource
-  ) {
-    return structuredBoundedGraph(
-      firstSource,
-      secondSource,
-      thirdSource,
-      fourthSource,
-      fifthSource,
-      sixthSource,
-      seventhSource,
-      rootSource
-    );
-  }
-
-  /// Selects one supported seven-module topology before source rewriting.
-  public SevenGraphPlan planSevenConstantGraph(
-    borrow utf8 firstSource,
-    borrow utf8 secondSource,
-    borrow utf8 thirdSource,
-    borrow utf8 fourthSource,
-    borrow utf8 fifthSource,
-    borrow utf8 sixthSource,
-    borrow utf8 seventhSource,
-    borrow utf8 rootSource
-  ) {
-    SevenBoundedGraphPlan planned = planSevenBoundedGraph(
-      firstSource,
-      secondSource,
-      thirdSource,
-      fourthSource,
-      fifthSource,
-      sixthSource,
-      seventhSource,
-      rootSource
-    );
-    return planned.legacy;
+    return result;
   }
 }

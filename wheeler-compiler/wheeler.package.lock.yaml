@@ -1,10 +1,10 @@
 schema: 3
-root: "be31ea5d6dd3b76f4c56bd01a917535f2d35b374a4b3c80251d0dfc233a4cbf3"
+root: "10e2b8e156d131a89d61b7f205ecd77fbedf49a5490649424960aabf224e11e2"
 packages:
   - name: "wheeler.core"
     version: "0.1.0"
     repository: "ee9855ff0d7866533c49b81a7eeb7d1a2cac9d7efbd300c583d29e699516efb0"
-    snapshot: "070cd44c7eb536634f6e1b9230ce539ce9afb0b1ad4ac9aa1c0844b5a8837b58"
+    snapshot: "5b69243d8b2078a54967bf1067f7da6d790e0c028202ee32379d37c4a754d2ce"
     archive: "dc182929d5fb3dc432896d1a1981a1c72c1d497d1c592de01e0b1c958dffbee8"
     manifest: "262c8c86b121fb4fd5ba1c1c0297ba1cd2abdb3ac7f01e2b0e914f6daff42f0c"
     dependencies: []

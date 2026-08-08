@@ -5,6 +5,7 @@ module wheeler.compiler.compiler_graph_five;
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.constant_executor;
 import wheeler.compiler.graphs.five_mixed;
+import wheeler.compiler.graphs.matrix;
 import wheeler.compiler.graphs.plans;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.module_linker;
@@ -149,8 +150,54 @@ classical class CompilerGraphFive {
     return new FiveGraphCompilation(compiled.length, compiled.codeStart);
   }
 
+  private long singleEdgeSource(BoundedGraphPlan plan) {
+    long node = 0;
+    while (node < FIVE_IMPORTS) limit FIVE_IMPORTS {
+      if (plannedOutgoingCount(plan, node) == 1) {
+        return node;
+      }
+
+      node += 1;
+    }
+
+    return -1;
+  }
+
+  private long singleEdgeDependent(BoundedGraphPlan plan) {
+    long node = 0;
+    while (node < FIVE_IMPORTS) limit FIVE_IMPORTS {
+      if (plannedIncomingCount(plan, node) == 1) {
+        return node;
+      }
+
+      node += 1;
+    }
+
+    return -1;
+  }
+
+  private long otherRootAt(BoundedGraphPlan plan, long dependent, long rank) {
+    long node = 0;
+    long found = 0;
+    while (node < FIVE_IMPORTS) limit FIVE_IMPORTS {
+      if (plannedRootDirect(plan, node)) {
+        if (node == dependent) {} else {
+          if (found == rank) {
+            return node;
+          }
+
+          found += 1;
+        }
+      }
+
+      node += 1;
+    }
+
+    return -1;
+  }
+
   private FiveGraphCompilation compileFiveHelperChain(
-    FiveGraphPlan plan,
+    BoundedGraphPlan plan,
     borrow utf8 firstSource,
     borrow utf8 secondSource,
     borrow utf8 thirdSource,
@@ -159,9 +206,13 @@ classical class CompilerGraphFive {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
+    long source = singleEdgeSource(plan);
+    long dependent = singleEdgeDependent(plan);
+    assert(0 < source + 1);
+    assert(0 < dependent + 1);
     region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedFirst = copySelectedSource(
-      plan.first,
+      source,
       GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
@@ -174,7 +225,7 @@ classical class CompilerGraphFive {
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedSecond = copySelectedSource(
-      plan.second,
+      dependent,
       GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
@@ -187,7 +238,7 @@ classical class CompilerGraphFive {
     );
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedThird = copySelectedSource(
-      plan.third,
+      otherRootAt(plan, dependent, 0),
       GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
@@ -200,7 +251,7 @@ classical class CompilerGraphFive {
     );
     region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedFourth = copySelectedSource(
-      plan.fourth,
+      otherRootAt(plan, dependent, 1),
       GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
@@ -213,7 +264,7 @@ classical class CompilerGraphFive {
     );
     region fifthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 plannedFifth = copySelectedSource(
-      plan.fifth,
+      otherRootAt(plan, dependent, 2),
       GRAPH_SOURCE_COUNT_FIVE,
       firstSource,
       secondSource,
@@ -259,7 +310,7 @@ classical class CompilerGraphFive {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    FiveGraphPlan plan = planFiveConstantGraph(
+    BoundedGraphPlan plan = planFiveConstantGraph(
       firstSource,
       secondSource,
       thirdSource,
@@ -272,7 +323,7 @@ classical class CompilerGraphFive {
     }
 
     ConstantPlanExecution execution = executeConstantPlan(
-      plan.bounded,
+      plan,
       firstSource,
       secondSource,
       thirdSource,
@@ -287,7 +338,7 @@ classical class CompilerGraphFive {
       return new FiveGraphCompilation(execution.length, execution.codeStart);
     }
 
-    if (plan.bounded.edgeCount == 0) {
+    if (plan.edgeCount == 0) {
       return compileFiveDirectConstants(
         firstSource,
         secondSource,
@@ -299,8 +350,8 @@ classical class CompilerGraphFive {
       );
     }
 
-    if (plan.bounded.edgeCount == 1) {
-      if (plan.bounded.rootCount == 4) {
+    if (plan.edgeCount == 1) {
+      if (plan.rootCount == 4) {
         return compileFiveHelperChain(
           plan,
           firstSource,
