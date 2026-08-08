@@ -50,7 +50,7 @@ final class NativeCompilerFunctionProductsExampleTest {
         .mapToLong(instruction -> instruction.encodedLength())
         .sum() * 2;
     assertEquals(linkedCodeBytes, machine.global("linkedCodeBytes"));
-    assertEquals(product.functions().size(), machine.global("secondLinkedTarget"));
+    assertEquals(0, machine.global("secondLinkedTarget"));
     assertEquals(1, machine.global("localRelocationCount"));
     assertEquals(0, machine.global("firstLocalTarget"));
     assertEquals(1, machine.global("importedRelocationCount"));
@@ -267,9 +267,10 @@ final class NativeCompilerFunctionProductsExampleTest {
               secondWindow.firstInstruction + secondWindow.instructionCount;
             secondFunctionOwner = closureFunctions[secondWindow.firstFunction];
             secondInstructionFunction = closureInstructions[secondWindow.firstInstruction];
-            region linkedRows = new region(/* bytes= */ 4202496, /* allocations= */ 3);
+            region linkedRows = new region(/* bytes= */ 5251072, /* allocations= */ 4);
             words artifactStarts = allocate(linkedRows, /* length= */ 512);
             words artifactLengths = allocate(linkedRows, /* length= */ 512);
+            words importedTargets = allocate(linkedRows, /* length= */ 131072);
             bytes linkedCode = allocateBytes(linkedRows, /* length= */ 4194304);
             set(artifactLengths, 3, bufferLength(source));
             set(artifactLengths, 4, bufferLength(source));
@@ -284,6 +285,24 @@ final class NativeCompilerFunctionProductsExampleTest {
               moduleFunctionCounts,
               closureFunctions,
               closureInstructions,
+              linkedCode
+            );
+            long importedInstruction = secondWindow.firstInstruction;
+            long importedInstructionEnd =
+              secondWindow.firstInstruction + secondWindow.instructionCount;
+            while (importedInstruction < importedInstructionEnd) limit 4096 {
+              if (closureInstructions[524288 + importedInstruction] == 514) {
+                set(importedTargets, 0, importedInstruction);
+                set(importedTargets, 65536, MALFORMED_LINK_TARGET);
+              }
+              importedInstruction += 1;
+            }
+            rewriteImportedInstructionTargets(
+              secondWindow.firstFunction + secondWindow.functionCount,
+              secondWindow.firstInstruction + secondWindow.instructionCount,
+              closureInstructions,
+              /* relocationCount= */ 1,
+              importedTargets,
               linkedCode
             );
             long linkedInstruction = secondWindow.firstInstruction;
@@ -408,6 +427,7 @@ final class NativeCompilerFunctionProductsExampleTest {
             drop(relocationIdentity);
             drop(signatureIdentity);
             drop(linkedCode);
+            drop(importedTargets);
             drop(artifactLengths);
             drop(artifactStarts);
             drop(linkedRows);
@@ -423,6 +443,7 @@ final class NativeCompilerFunctionProductsExampleTest {
           }
         }
         """.replace("SECOND_OWNER", duplicateOwner ? "7" : "8")
+            .replace("MALFORMED_LINK_TARGET", malformedRelocation ? "99" : "0")
             .replace(
                 "MALFORMED_RELOCATION",
                 malformedRelocation ? "set(importedRows, 4096, 9);" : "")

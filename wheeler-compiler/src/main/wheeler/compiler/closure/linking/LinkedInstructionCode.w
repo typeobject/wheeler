@@ -12,8 +12,10 @@ classical class LinkedInstructionCode {
   private const long MAX_ARTIFACTS = 512;
   private const long MAX_CLOSURE_FUNCTIONS = 4096;
   private const long MAX_CLOSURE_INSTRUCTIONS = 131072;
+  private const long MAX_IMPORTED_RELOCATIONS = 65536;
   private const long MAX_LINKED_CODE_BYTES = 4194304;
   private const long MAX_MODULES = 512;
+  private const long RELOCATION_ROWS = 131072;
 
   private boolean isCall(long opcode) {
     boolean call = false;
@@ -57,6 +59,58 @@ classical class LinkedInstructionCode {
       remaining = (remaining - octet) / 256;
       index += 1;
     }
+  }
+
+  /// Rewrites imported call operands after validating every final function target.
+  public void rewriteImportedInstructionTargets(
+    long functionCount,
+    long instructionCount,
+    borrow mut words closureInstructionRows,
+    long relocationCount,
+    borrow mut words relocationRows,
+    borrow mut bytes output
+  ) {
+    assert(-1 < functionCount);
+    assert(functionCount < MAX_CLOSURE_FUNCTIONS + 1);
+    assert(-1 < instructionCount);
+    assert(instructionCount < MAX_CLOSURE_INSTRUCTIONS + 1);
+    assert(bufferLength(closureInstructionRows) == CLOSURE_INSTRUCTION_ROWS);
+    assert(-1 < relocationCount);
+    assert(relocationCount < MAX_IMPORTED_RELOCATIONS + 1);
+    assert(bufferLength(relocationRows) == RELOCATION_ROWS);
+    assert(bufferLength(output) == MAX_LINKED_CODE_BYTES);
+
+    long relocation = 0;
+    long previousInstruction = -1;
+    while (relocation < relocationCount) limit MAX_IMPORTED_RELOCATIONS {
+      long instruction = relocationRows[relocation];
+      long target = relocationRows[65536 + relocation];
+      assert(previousInstruction < instruction);
+      assert(instruction < instructionCount);
+      assert(-1 < target);
+      assert(target < functionCount);
+      assert(isCall(closureInstructionRows[524288 + instruction]));
+      previousInstruction = instruction;
+      relocation += 1;
+    }
+
+    long outputCursor = 0;
+    long instructionCursor = 0;
+    relocation = 0;
+    while (instructionCursor < instructionCount) limit MAX_CLOSURE_INSTRUCTIONS {
+      if (relocation < relocationCount) {
+        if (relocationRows[relocation] == instructionCursor) {
+          writeSigned(relocationRows[65536 + relocation], output, outputCursor + 8);
+          relocation += 1;
+        }
+      }
+
+      outputCursor += closureInstructionRows[786432 + instructionCursor];
+      assert(outputCursor < MAX_LINKED_CODE_BYTES + 1);
+      instructionCursor += 1;
+    }
+
+    assert(relocation == relocationCount);
   }
 
   /// Emits one linked code-section product after validating all artifact ranges.
