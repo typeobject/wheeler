@@ -10,8 +10,12 @@ import wheeler.compiler.tokens;
 
 classical class SourceCallProducts {
   private const long CALL_ROWS = 1024;
+  private const long CALLABLE_SIGNATURE_ROWS = 24576;
   private const long MAX_CALLABLES = 4096;
+  private const long MAX_CALLABLE_PARAMETERS = 64;
   private const long MAX_CALLS_PER_BODY = 256;
+  private const long PARAMETER_SIGNATURE_ROWS = 32768;
+  private const long REQUEST_ROWS = 133;
   private const long TOKEN_ARENA_BYTES = 98320;
 
   private long closingParen(
@@ -101,6 +105,86 @@ classical class SourceCallProducts {
         ) {
           assert(target == -1);
           target = callable;
+        }
+      }
+
+      offset += 1;
+    }
+
+    return target;
+  }
+
+  private boolean typedParametersMatch(
+    borrow mut words requestRows,
+    long arity,
+    borrow mut words callableRows,
+    borrow mut words parameterRows,
+    long callable
+  ) {
+    long firstParameter = callableRows[20480 + callable];
+    assert(-1 < firstParameter);
+    assert(arity < 16384 - firstParameter + 1);
+    long parameter = 0;
+    while (parameter < arity) limit MAX_CALLABLE_PARAMETERS {
+      if (requestRows[5 + parameter] != parameterRows[firstParameter + parameter]) {
+        return false;
+      }
+
+      if (
+        requestRows[69 + parameter] != parameterRows[16384 + firstParameter + parameter]
+      ) {
+        return false;
+      }
+
+      parameter += 1;
+    }
+
+    return true;
+  }
+
+  /// Resolves one exact callable signature from a public dependency-product view.
+  public long resolveTypedCallableProduct(
+    borrow utf8 names,
+    borrow mut words requestRows,
+    long firstCallable,
+    long callableCount,
+    borrow mut words callableRows,
+    borrow mut words parameterRows
+  ) {
+    assert(bufferLength(requestRows) == REQUEST_ROWS);
+    assert(bufferLength(callableRows) == CALLABLE_SIGNATURE_ROWS);
+    assert(bufferLength(parameterRows) == PARAMETER_SIGNATURE_ROWS);
+    assert(-1 < firstCallable);
+    assert(-1 < callableCount);
+    assert(callableCount < MAX_CALLABLES - firstCallable + 1);
+    long arity = requestRows[2];
+    assert(-1 < arity);
+    assert(arity < MAX_CALLABLE_PARAMETERS + 1);
+    long target = -1;
+    long offset = 0;
+    while (offset < callableCount) limit MAX_CALLABLES {
+      long callable = firstCallable + offset;
+      if (callableRows[8192 + callable] == arity) {
+        if (callableRows[12288 + callable] == requestRows[3]) {
+          if (callableRows[16384 + callable] == requestRows[4]) {
+            if (
+              sameName(
+                names,
+                requestRows[0],
+                requestRows[1],
+                names,
+                callableRows[callable],
+                callableRows[4096 + callable]
+              )
+            ) {
+              if (
+                typedParametersMatch(requestRows, arity, callableRows, parameterRows, callable)
+              ) {
+                assert(target == -1);
+                target = callable;
+              }
+            }
+          }
         }
       }
 

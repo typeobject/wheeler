@@ -107,7 +107,8 @@ Callable bytecode products do not set a bootstrap bit. Promotion still requires 
 - [x] `LocalCallRelocations.w` resolves every source-local call and uncall operand to a validated function and copies its stable signature identity. Unknown local targets publish no relocations or body identity.
 - [x] `ImportedCallRelocations.w` distinguishes cross-module calls in a linked product, requires a public target, and copies its stable signature identity. Private targets publish nothing.
 - [x] `SourceCallProducts.w` resolves bounded unqualified imported names and arities before linking. Local products shadow imports, and equal imported name/arity products remain ambiguous.
-- [ ] Pre-link imported calls resolve qualification, parameter types, loan modes, result types, and effects from dependency products.
+- [x] Exact pre-link matches require ordered parameter types and loan modes, result type, and effect product equality. Equal exact candidates remain ambiguous.
+- [ ] Qualified pre-link calls bind the written dependency rank before exact signature matching.
 - [ ] Aggregate descriptor operands relocate through WIP-0046 identities.
 - [ ] Closure-wide function and instruction windows append one artifact at a time.
 - [ ] The canonical linker emits a multi-module `.wbc` without dependency source.
