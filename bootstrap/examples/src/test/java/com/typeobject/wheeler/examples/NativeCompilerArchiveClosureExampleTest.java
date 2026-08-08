@@ -47,9 +47,14 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("executableCount") > 0);
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
-    assertEquals(965, machine.global("symbolCount"));
+    assertEquals(968, machine.global("symbolCount"));
     assertTrue(machine.global("maxImportedSymbols") > 0);
     assertEquals(manifest.modules().size(), machine.global("symbolGeneration"));
+    assertEquals(identityPrefix(archive), machine.global("packageIdentityPrefix"));
+    assertTrue(machine.global("firstSymbolIdentityPrefix") != 0);
+    assertTrue(
+        machine.global("firstSymbolIdentityPrefix")
+            != machine.global("lastSymbolIdentityPrefix"));
     assertEquals(0, machine.global("compilerTarget"));
     int rootEntry = Math.toIntExact(machine.global("rootEntry"));
     EntryRange rootRange = entryRange(archive, rootEntry);
@@ -170,6 +175,13 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(1, machine.global("rootImportedSymbols"));
     assertEquals(1, machine.global("maxImportedSymbols"));
     assertEquals(257, machine.global("symbolGeneration"));
+    assertEquals(identityPrefix(fixture.archive()), machine.global("packageIdentityPrefix"));
+    assertEquals(
+        symbolIdentityPrefix(fixture, "chain.n000", "VALUE"),
+        machine.global("firstSymbolIdentityPrefix"));
+    assertEquals(
+        symbolIdentityPrefix(fixture, "chain.n256", "VALUE"),
+        machine.global("lastSymbolIdentityPrefix"));
   }
 
   @Test
@@ -267,6 +279,9 @@ final class NativeCompilerArchiveClosureExampleTest {
           state long rootImportedSymbols = 0;
           state long maxImportedSymbols = 0;
           state long symbolGeneration = 0;
+          state long packageIdentityPrefix = 0;
+          state long firstSymbolIdentityPrefix = 0;
+          state long lastSymbolIdentityPrefix = 0;
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
@@ -293,7 +308,7 @@ final class NativeCompilerArchiveClosureExampleTest {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 1100000, /* allocations= */ 36);
+            region columns = new region(/* bytes= */ 1650000, /* allocations= */ 38);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -329,6 +344,8 @@ final class NativeCompilerArchiveClosureExampleTest {
             words symbolKinds = allocate(columns, MAX_SYMBOLS);
             words symbolVisibilities = allocate(columns, MAX_SYMBOLS);
             words symbolTypes = allocate(columns, MAX_SYMBOLS);
+            bytes packageIdentity = allocateBytes(columns, /* length= */ 32);
+            bytes symbolIdentities = allocateBytes(columns, MAX_SYMBOLS * 32);
             bytes expected = allocateBytes(columns, /* length= */ 256);
             ArchiveSourceIndexResult indexed = indexArchiveSources(
               archive,
@@ -426,6 +443,21 @@ final class NativeCompilerArchiveClosureExampleTest {
                   symbolVisibilities,
                   symbolTypes
                 );
+                publishCountedSymbolIdentities(
+                  archive,
+                  manifest,
+                  closure,
+                  symbols.symbolCount,
+                  identityStarts,
+                  symbolOwners,
+                  symbolStarts,
+                  symbolLengths,
+                  symbolKinds,
+                  symbolVisibilities,
+                  symbolTypes,
+                  packageIdentity,
+                  symbolIdentities
+                );
                 classifyClosureExecutableOwners(
                   archive,
                   manifest,
@@ -483,6 +515,19 @@ final class NativeCompilerArchiveClosureExampleTest {
                 rootImportedSymbols = moduleImportedSymbolCounts[closure.rootModule];
                 maxImportedSymbols = largestImportedSymbols;
                 symbolGeneration = symbols.finalGeneration;
+                packageIdentityPrefix = packageIdentity[0] * 16777216
+                  + packageIdentity[1] * 65536
+                  + packageIdentity[2] * 256
+                  + packageIdentity[3];
+                firstSymbolIdentityPrefix = symbolIdentities[0] * 16777216
+                  + symbolIdentities[1] * 65536
+                  + symbolIdentities[2] * 256
+                  + symbolIdentities[3];
+                long finalIdentity = (symbols.symbolCount - 1) * 32;
+                lastSymbolIdentityPrefix = symbolIdentities[finalIdentity] * 16777216
+                  + symbolIdentities[finalIdentity + 1] * 65536
+                  + symbolIdentities[finalIdentity + 2] * 256
+                  + symbolIdentities[finalIdentity + 3];
                 published = 1;
                 setByte(output, 0, 1);
               }
@@ -491,6 +536,8 @@ final class NativeCompilerArchiveClosureExampleTest {
               }
             }
             drop(expected);
+            drop(symbolIdentities);
+            drop(packageIdentity);
             drop(symbolTypes);
             drop(symbolVisibilities);
             drop(symbolKinds);
@@ -608,6 +655,36 @@ final class NativeCompilerArchiveClosureExampleTest {
             """),
         sources);
     return new ChainFixture(archive, manifest);
+  }
+
+  private static long identityPrefix(byte[] source) throws Exception {
+    return digestPrefix(MessageDigest.getInstance("SHA-256").digest(source));
+  }
+
+  private static long symbolIdentityPrefix(
+      ChainFixture fixture, String moduleName, String symbolName) throws Exception {
+    BootstrapModuleManifest.Module module = fixture.manifest().modules().stream()
+        .filter(candidate -> candidate.name().equals(moduleName))
+        .findFirst()
+        .orElseThrow();
+    MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+    ByteArrayOutputStream input = new ByteArrayOutputStream();
+    input.writeBytes("wheeler-module-symbol-1".getBytes(StandardCharsets.US_ASCII));
+    input.writeBytes(sha256.digest(fixture.archive()));
+    input.writeBytes(HexFormat.of().parseHex(module.identity()));
+    input.write(1);
+    input.write(1);
+    input.write(1);
+    writeU32(input, symbolName.length());
+    input.writeBytes(symbolName.getBytes(StandardCharsets.US_ASCII));
+    return digestPrefix(sha256.digest(input.toByteArray()));
+  }
+
+  private static long digestPrefix(byte[] digest) {
+    return (long) (digest[0] & 0xff) << 24
+        | (long) (digest[1] & 0xff) << 16
+        | (long) (digest[2] & 0xff) << 8
+        | digest[3] & 0xffL;
   }
 
   private static byte[] constantSource(int count) {
