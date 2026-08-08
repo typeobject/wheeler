@@ -1,4 +1,4 @@
-//! Executes direct and linear constant plans through one counted source table.
+//! Executes rooted constant forests through one counted source table.
 
 module wheeler.compiler.graphs.constant_executor;
 
@@ -18,37 +18,12 @@ classical class BoundedConstantPlanExecutor {
     return new ConstantPlanExecution(0, 0);
   }
 
-  private boolean directOrLinear(BoundedGraphPlan plan) {
+  private boolean directOrForest(BoundedGraphPlan plan) {
     if (plan.valid) {} else {
       return false;
     }
 
-    if (plan.edgeCount == 0) {
-      return plan.rootCount == plan.nodeCount;
-    }
-
-    if (plan.edgeCount == plan.nodeCount - 1) {} else {
-      return false;
-    }
-
-    if (plan.rootCount == 1) {} else {
-      return false;
-    }
-
-    long node = 0;
-    while (node < plan.nodeCount) limit MAX_GRAPH_NODES {
-      if (plannedIncomingCount(plan, node) < 2) {} else {
-        return false;
-      }
-
-      if (plannedOutgoingCount(plan, node) < 2) {} else {
-        return false;
-      }
-
-      node += 1;
-    }
-
-    return true;
+    return plan.edgeCount + plan.rootCount == plan.nodeCount;
   }
 
   private boolean initializeExecutionTable(
@@ -253,7 +228,7 @@ classical class BoundedConstantPlanExecutor {
     return replaced;
   }
 
-  /// Executes one direct or full-chain two- through four-module constant plan.
+  /// Executes one rooted two- through four-module constant forest.
   public ConstantPlanExecution executeConstantPlan(
     BoundedGraphPlan plan,
     borrow utf8 firstSource,
@@ -263,7 +238,7 @@ classical class BoundedConstantPlanExecutor {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    if (directOrLinear(plan)) {} else {
+    if (directOrForest(plan)) {} else {
       return failedExecution();
     }
 

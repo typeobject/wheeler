@@ -165,7 +165,7 @@ Compatibility wrappers are not retained. During migration the driver may dispatc
 - [x] Shared helper planning drops an exact private prefix against an existing public or private declaration.
 - [x] `graphs/plans/SourceTable.w` owns physical and linked source slots in one counted fixed-slot arena.
 - [x] Two- through four-module drivers select every canonical role from the table. The old planned-loan selector is deleted.
-- [x] `graphs/plans/ConstantExecutor.w` executes every direct and full-chain two- through four-module constant plan by leaf-first edges and root-import rank.
+- [x] `graphs/plans/ConstantExecutor.w` executes every rooted two- through four-module constant forest by leaf-first edges and root-import rank.
 - [x] Header dependency facts carry validated candidate import rank, and small direct plans use it.
 - [x] Two- through four-module executors consume every admitted plan without topology identities.
 - [x] `graphs/SmallPlanSources.w` and `graphs/FourPlanSources.w` own canonical role selection outside the drivers.
