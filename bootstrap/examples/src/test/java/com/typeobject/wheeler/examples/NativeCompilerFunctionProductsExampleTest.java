@@ -146,7 +146,11 @@ final class NativeCompilerFunctionProductsExampleTest {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.imported_call_relocations"));
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.instruction_ownership_products"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.local_call_relocations"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.ownership_product_identities"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.relocation_identities"));
     sources.put("FunctionProductsExample.w", """
@@ -156,7 +160,9 @@ final class NativeCompilerFunctionProductsExampleTest {
         import wheeler.compiler.closure.counted_function_products;
         import wheeler.compiler.closure.function_product_identities;
         import wheeler.compiler.closure.imported_call_relocations;
+        import wheeler.compiler.closure.instruction_ownership_products;
         import wheeler.compiler.closure.local_call_relocations;
+        import wheeler.compiler.closure.ownership_product_identities;
         import wheeler.compiler.closure.relocation_identities;
 
         classical class FunctionProductsExample {
@@ -176,9 +182,10 @@ final class NativeCompilerFunctionProductsExampleTest {
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 203904, /* allocations= */ 7);
+            region rows = new region(/* bytes= */ 531584, /* allocations= */ 8);
             words functions = allocate(rows, /* length= */ 640);
             words instructions = allocate(rows, /* length= */ 24576);
+            words ownershipEvents = allocate(rows, /* length= */ 40960);
             bytes signatureIdentity = allocateBytes(rows, /* length= */ 32);
             bytes relocationIdentity = allocateBytes(rows, /* length= */ 32);
             bytes aggregateIdentity = allocateBytes(rows, /* length= */ 32);
@@ -188,7 +195,6 @@ final class NativeCompilerFunctionProductsExampleTest {
             while (identityByte < 32) limit 32 {
               setByte(signatureIdentity, identityByte, 1);
               setByte(aggregateIdentity, identityByte, 2);
-              setByte(ownershipIdentity, identityByte, 3);
               setByte(dependencyIdentities, identityByte, 4);
               identityByte += 1;
             }
@@ -197,6 +203,18 @@ final class NativeCompilerFunctionProductsExampleTest {
               bufferLength(source),
               functions,
               instructions
+            );
+            long ownershipEventCount = deriveInstructionOwnershipProducts(
+              source,
+              plan.instructionCount,
+              instructions,
+              ownershipEvents
+            );
+            publishOwnershipProductIdentity(
+              /* function= */ 1,
+              ownershipEventCount,
+              ownershipEvents,
+              ownershipIdentity
             );
             region closure = new region(/* bytes= */ 7741440, /* allocations= */ 4);
             words moduleFirstFunctions = allocate(closure, /* length= */ 512);
@@ -340,6 +358,7 @@ final class NativeCompilerFunctionProductsExampleTest {
             drop(moduleFunctionCounts);
             drop(moduleFirstFunctions);
             drop(closure);
+            drop(ownershipEvents);
             drop(instructions);
             drop(functions);
             drop(rows);
@@ -379,8 +398,7 @@ final class NativeCompilerFunctionProductsExampleTest {
     input.writeBytes(identity);
     Arrays.fill(identity, (byte) 2);
     input.writeBytes(identity);
-    Arrays.fill(identity, (byte) 3);
-    input.writeBytes(identity);
+    input.writeBytes(expectedOwnershipIdentity(artifact, 1));
     input.writeBytes(expectedRelocationIdentity(artifact));
     writeLong(input, 1);
     Arrays.fill(identity, (byte) 4);
@@ -398,6 +416,93 @@ final class NativeCompilerFunctionProductsExampleTest {
     writeLong(input, typeCount);
     return HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(input.toByteArray()));
+  }
+
+  private static byte[] expectedOwnershipIdentity(byte[] artifact, int wantedFunction)
+      throws Exception {
+    int functionsStart = sectionStart(artifact, 5);
+    int codeStart = sectionStart(artifact, 6);
+    ByteBuffer bytes = ByteBuffer.wrap(artifact).order(ByteOrder.LITTLE_ENDIAN);
+    int functionCount = bytes.getInt(functionsStart);
+    int globalInstruction = 0;
+    int selectedCount = 0;
+    ByteArrayOutputStream records = new ByteArrayOutputStream();
+    for (int function = 0; function < functionCount; function++) {
+      int descriptor = functionsStart + 4 + function * 40;
+      int forwardOffset = bytes.getInt(descriptor + 12);
+      int forwardLength = bytes.getInt(descriptor + 16);
+      int inverseOffset = bytes.getInt(descriptor + 20);
+      int inverseLength = bytes.getInt(descriptor + 24);
+      long[] borrowDestinations = new long[4096];
+      long[] borrowSources = new long[4096];
+      int borrowCount = 0;
+      int[] starts = {codeStart + forwardOffset, codeStart + inverseOffset};
+      int[] lengths = {forwardLength, inverseLength};
+      for (int direction = 0; direction < 2; direction++) {
+        int cursor = starts[direction];
+        int end = cursor + lengths[direction];
+        while (cursor < end) {
+          int opcode = Short.toUnsignedInt(bytes.getShort(cursor));
+          int kind = ownershipKind(opcode);
+          if (kind != 0 && function == wantedFunction) {
+            long destination = bytes.getLong(cursor + 8);
+            long source = -1;
+            if (kind == 1 || kind == 2) {
+              source = bytes.getLong(cursor + 16);
+            } else if (kind == 4) {
+              source = destination;
+              destination = -1;
+            }
+            writeLong(records, kind);
+            writeLong(records, globalInstruction);
+            writeLong(records, destination);
+            writeLong(records, source);
+            selectedCount += 1;
+            if (kind == 2) {
+              borrowDestinations[borrowCount] = destination;
+              borrowSources[borrowCount] = source;
+              borrowCount += 1;
+            }
+          }
+          globalInstruction += 1;
+          cursor += bytes.getInt(cursor + 4);
+        }
+      }
+      if (function == wantedFunction) {
+        while (borrowCount > 0) {
+          borrowCount -= 1;
+          writeLong(records, 3);
+          writeLong(records, globalInstruction);
+          writeLong(records, borrowDestinations[borrowCount]);
+          writeLong(records, borrowSources[borrowCount]);
+          selectedCount += 1;
+        }
+      }
+    }
+    ByteArrayOutputStream input = new ByteArrayOutputStream();
+    input.writeBytes("wheeler-callable-ownership-product-1"
+        .getBytes(StandardCharsets.US_ASCII));
+    writeLong(input, selectedCount);
+    input.writeBytes(records.toByteArray());
+    return MessageDigest.getInstance("SHA-256").digest(input.toByteArray());
+  }
+
+  private static int ownershipKind(int opcode) {
+    if (opcode == 0x0540) {
+      return 1;
+    }
+    if (opcode == 0x0554 || opcode == 0x0555 || opcode == 0x0556 || opcode == 0x0557) {
+      return 2;
+    }
+    if (opcode == 0x0545 || opcode == 0x0546) {
+      return 4;
+    }
+    if (opcode == 0x0500 || opcode == 0x0510 || opcode == 0x0520 || opcode == 0x0530
+        || opcode == 0x0541 || opcode == 0x0542 || opcode == 0x0547 || opcode == 0x054f
+        || opcode == 0x0553) {
+      return 5;
+    }
+    return 0;
   }
 
   private static byte[] expectedRelocationIdentity(byte[] artifact) throws Exception {

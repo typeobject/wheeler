@@ -24,6 +24,7 @@ import wheeler.compiler.closure.local_call_relocations;
 import wheeler.compiler.closure.module_callables;
 import wheeler.compiler.closure.module_manifest;
 import wheeler.compiler.closure.module_symbols;
+import wheeler.compiler.closure.ownership_product_identities;
 import wheeler.compiler.closure.package_target;
 import wheeler.compiler.closure.plan;
 import wheeler.compiler.closure.relocation_identities;
