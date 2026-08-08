@@ -48,6 +48,10 @@ final class NativeCompilerAggregateProductsExampleTest {
     assertEquals(0, machine.global("finalFirstOwner"));
     assertEquals(2, machine.global("dependencyCount"));
     assertEquals(0, machine.global("wrapperTypeTarget"));
+    assertEquals(3, machine.global("aggregateRelocationCount"));
+    assertEquals(0, machine.global("firstRelocatedAggregate"));
+    assertEquals(1, machine.global("firstRelocatedKind"));
+    assertEquals(1, machine.global("relocationIdentityMatches"));
     assertEquals(32, machine.hostOutput().length);
     assertEquals(expectedIdentity(artifact), HexFormat.of().formatHex(machine.hostOutput()));
   }
@@ -89,6 +93,17 @@ final class NativeCompilerAggregateProductsExampleTest {
     byte[] artifact = aggregateArtifact();
     VirtualMachine machine = VirtualMachine.withBinaryInput(
         decoder(false, false, true, false), artifact, 32);
+
+    assertThrows(VmTrap.class, machine::run);
+    assertEquals(0, machine.global("published"));
+    assertEquals("00".repeat(32), HexFormat.of().formatHex(machine.hostOutput()));
+  }
+
+  @Test
+  void rejectsUnknownAggregateOperandsBeforePublication() throws Exception {
+    byte[] artifact = aggregateArtifact();
+    putLong(artifact, firstAggregateInstruction(artifact) + 16, 99);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(decoder(), artifact, 32);
 
     assertThrows(VmTrap.class, machine::run);
     assertEquals(0, machine.global("published"));
@@ -194,9 +209,13 @@ final class NativeCompilerAggregateProductsExampleTest {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.aggregate_loan_verifier"));
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.aggregate_operand_relocations"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.aggregate_type_resolution"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.compiled_aggregate_layouts"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.compiled_function_products"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.counted_aggregate_layouts"));
     sources.put("AggregateProductsExample.w", """
@@ -205,8 +224,10 @@ final class NativeCompilerAggregateProductsExampleTest {
         import wheeler.compiler.closure.aggregate_dependency_products;
         import wheeler.compiler.closure.aggregate_identities;
         import wheeler.compiler.closure.aggregate_loan_verifier;
+        import wheeler.compiler.closure.aggregate_operand_relocations;
         import wheeler.compiler.closure.aggregate_type_resolution;
         import wheeler.compiler.closure.compiled_aggregate_layouts;
+        import wheeler.compiler.closure.compiled_function_products;
         import wheeler.compiler.closure.counted_aggregate_layouts;
 
         classical class AggregateProductsExample {
@@ -228,6 +249,10 @@ final class NativeCompilerAggregateProductsExampleTest {
           state long finalFirstOwner = 1;
           state long dependencyCount = 0;
           state long wrapperTypeTarget = -1;
+          state long aggregateRelocationCount = 0;
+          state long firstRelocatedAggregate = -1;
+          state long firstRelocatedKind = -1;
+          state long relocationIdentityMatches = 0;
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
@@ -304,6 +329,35 @@ final class NativeCompilerAggregateProductsExampleTest {
               members,
               aggregateIdentity
             );
+            region operandRows = new region(/* bytes= */ 431104, /* allocations= */ 4);
+            words functions = allocate(operandRows, /* length= */ 640);
+            words instructions = allocate(operandRows, /* length= */ 24576);
+            words aggregateRelocations = allocate(operandRows, /* length= */ 12288);
+            bytes aggregateRelocationIdentities = allocateBytes(
+              operandRows,
+              /* length= */ 131072
+            );
+            CompiledFunctionPlan functionPlan = indexCompiledFunctionProducts(
+              source,
+              bufferLength(source),
+              functions,
+              instructions
+            );
+            aggregateRelocationCount = resolveAggregateOperandRelocations(
+              source,
+              functionPlan.instructionCount,
+              instructions,
+              plan.aggregateCount,
+              aggregates,
+              aggregateIdentity,
+              aggregateRelocations,
+              aggregateRelocationIdentities
+            );
+            firstRelocatedAggregate = aggregateRelocations[4096];
+            firstRelocatedKind = aggregateRelocations[8192];
+            if (aggregateRelocationIdentities[0] == aggregateIdentity[0]) {
+              relocationIdentityMatches = 1;
+            }
             region closureRows = new region(/* bytes= */ 1085440, /* allocations= */ 4);
             words processed = allocate(closureRows, /* length= */ 512);
             words closureAggregates = allocate(closureRows, /* length= */ 36864);
@@ -408,6 +462,11 @@ final class NativeCompilerAggregateProductsExampleTest {
             drop(closureAggregates);
             drop(processed);
             drop(closureRows);
+            drop(aggregateRelocationIdentities);
+            drop(aggregateRelocations);
+            drop(instructions);
+            drop(functions);
+            drop(operandRows);
             drop(externalIdentities);
             drop(localIdentities);
             drop(externalPublished);
@@ -551,6 +610,34 @@ final class NativeCompilerAggregateProductsExampleTest {
     for (int octet = 0; octet < 8; octet++) {
       output.write((int) (value >>> (octet * 8)) & 0xff);
     }
+  }
+
+  private static int firstAggregateInstruction(byte[] artifact) {
+    ByteBuffer bytes = ByteBuffer.wrap(artifact).order(ByteOrder.LITTLE_ENDIAN);
+    int codeStart = sectionStart(artifact, 6);
+    int codeLength = Math.toIntExact(bytes.getLong(sectionDirectory(artifact, 6) + 16));
+    int cursor = codeStart;
+    while (cursor < codeStart + codeLength) {
+      int opcode = Short.toUnsignedInt(bytes.getShort(cursor));
+      if (opcode == 0x0500 || opcode == 0x0510 || opcode == 0x0520
+          || opcode == 0x0530) {
+        return cursor;
+      }
+      cursor += bytes.getInt(cursor + 4);
+    }
+    throw new AssertionError("missing aggregate construction instruction");
+  }
+
+  private static int sectionDirectory(byte[] artifact, int wantedType) {
+    ByteBuffer bytes = ByteBuffer.wrap(artifact).order(ByteOrder.LITTLE_ENDIAN);
+    int sections = bytes.getInt(24);
+    for (int index = 0; index < sections; index++) {
+      int directory = 40 + index * 32;
+      if (bytes.getInt(directory) == wantedType) {
+        return directory;
+      }
+    }
+    throw new AssertionError("missing section " + wantedType);
   }
 
   private static byte[] aggregateArtifact() {

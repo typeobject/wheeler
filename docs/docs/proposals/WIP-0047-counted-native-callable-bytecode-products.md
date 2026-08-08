@@ -110,7 +110,7 @@ Callable bytecode products do not set a bootstrap bit. Promotion still requires 
 - [x] `SourceCallProducts.w` resolves bounded unqualified imported names and arities before linking. Local products shadow imports, and equal imported name/arity products remain ambiguous.
 - [x] Exact pre-link matches require ordered parameter types and loan modes, result type, and effect product equality. Equal exact candidates remain ambiguous.
 - [x] Qualified pre-link calls bind the written dependency rank before exact signature matching.
-- [ ] Aggregate descriptor operands relocate through WIP-0046 identities.
+- [x] `AggregateOperandRelocations.w` resolves record, fixed-array, slice, and variant construction operands to unique WIP-0046 rows and copies the aggregate module-product identity.
 - [x] `CountedFunctionProducts.w` appends one validated artifact at a time, rebases instruction owners, preserves artifact ranks, and rejects duplicate module owners before publication.
 - [ ] The canonical linker emits a multi-module `.wbc` without dependency source.
 - [ ] Linked local, imported, reversible, result-slot, aggregate, owner, and loan fixtures match stage 0 byte for byte.
