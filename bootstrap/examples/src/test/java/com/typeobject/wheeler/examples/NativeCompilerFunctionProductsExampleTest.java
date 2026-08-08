@@ -39,6 +39,11 @@ final class NativeCompilerFunctionProductsExampleTest {
     assertEquals(product.functions().size(), machine.global("functionCount"));
     assertEquals(instructions, machine.global("instructionCount"));
     assertEquals(maxLocals, machine.global("maxLocalCount"));
+    assertEquals(product.functions().size() * 2, machine.global("closureFunctionCount"));
+    assertEquals(instructions * 2, machine.global("closureInstructionCount"));
+    assertEquals(7, machine.global("firstFunctionOwner"));
+    assertEquals(8, machine.global("secondFunctionOwner"));
+    assertEquals(product.functions().size(), machine.global("secondInstructionFunction"));
     assertEquals(1, machine.global("localRelocationCount"));
     assertEquals(0, machine.global("firstLocalTarget"));
     assertEquals(1, machine.global("importedRelocationCount"));
@@ -56,6 +61,15 @@ final class NativeCompilerFunctionProductsExampleTest {
     artifact[codeStart] = (byte) 0xff;
     artifact[codeStart + 1] = (byte) 0xff;
     VirtualMachine machine = VirtualMachine.withBinaryInput(decoder(), artifact, 32);
+
+    assertThrows(VmTrap.class, machine::run);
+    assertEquals(0, machine.global("published"));
+  }
+
+  @Test
+  void rejectsDuplicateModuleFunctionProductsBeforePublication() throws Exception {
+    byte[] artifact = new BytecodeWriter().write(product());
+    VirtualMachine machine = VirtualMachine.withBinaryInput(decoder(false, true), artifact, 32);
 
     assertThrows(VmTrap.class, machine::run);
     assertEquals(0, machine.global("published"));
@@ -99,11 +113,17 @@ final class NativeCompilerFunctionProductsExampleTest {
   }
 
   private static Program decoder(boolean privateTarget) throws Exception {
+    return decoder(privateTarget, false);
+  }
+
+  private static Program decoder(boolean privateTarget, boolean duplicateOwner) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.compiled_function_products"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.counted_function_products"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.function_product_identities"));
     sources.putAll(CompilerSources.moduleClosure(
@@ -114,6 +134,7 @@ final class NativeCompilerFunctionProductsExampleTest {
         module example.function_products;
 
         import wheeler.compiler.closure.compiled_function_products;
+        import wheeler.compiler.closure.counted_function_products;
         import wheeler.compiler.closure.function_product_identities;
         import wheeler.compiler.closure.imported_call_relocations;
         import wheeler.compiler.closure.local_call_relocations;
@@ -122,6 +143,11 @@ final class NativeCompilerFunctionProductsExampleTest {
           state long functionCount = 0;
           state long instructionCount = 0;
           state long maxLocalCount = 0;
+          state long closureFunctionCount = 0;
+          state long closureInstructionCount = 0;
+          state long firstFunctionOwner = -1;
+          state long secondFunctionOwner = -1;
+          state long secondInstructionFunction = -1;
           state long firstOpcode = 0;
           state long localRelocationCount = 0;
           state long firstLocalTarget = -1;
@@ -151,6 +177,45 @@ final class NativeCompilerFunctionProductsExampleTest {
               functions,
               instructions
             );
+            region closure = new region(/* bytes= */ 7741440, /* allocations= */ 4);
+            words moduleFirstFunctions = allocate(closure, /* length= */ 512);
+            words moduleFunctionCounts = allocate(closure, /* length= */ 512);
+            words closureFunctions = allocate(closure, /* length= */ 49152);
+            words closureInstructions = allocate(closure, /* length= */ 917504);
+            CountedFunctionWindow window = appendFunctionProduct(
+              /* moduleOwner= */ 7,
+              /* artifactRank= */ 3,
+              plan.functionCount,
+              plan.instructionCount,
+              functions,
+              instructions,
+              /* closureFunctionCount= */ 0,
+              /* closureInstructionCount= */ 0,
+              moduleFirstFunctions,
+              moduleFunctionCounts,
+              closureFunctions,
+              closureInstructions
+            );
+            firstFunctionOwner = closureFunctions[window.firstFunction];
+            CountedFunctionWindow secondWindow = appendFunctionProduct(
+              /* moduleOwner= */ SECOND_OWNER,
+              /* artifactRank= */ 4,
+              plan.functionCount,
+              plan.instructionCount,
+              functions,
+              instructions,
+              window.firstFunction + window.functionCount,
+              window.firstInstruction + window.instructionCount,
+              moduleFirstFunctions,
+              moduleFunctionCounts,
+              closureFunctions,
+              closureInstructions
+            );
+            closureFunctionCount = secondWindow.firstFunction + secondWindow.functionCount;
+            closureInstructionCount =
+              secondWindow.firstInstruction + secondWindow.instructionCount;
+            secondFunctionOwner = closureFunctions[secondWindow.firstFunction];
+            secondInstructionFunction = closureInstructions[secondWindow.firstInstruction];
             region relocations = new region(/* bytes= */ 198656, /* allocations= */ 3);
             bytes signatureIdentities = allocateBytes(relocations, /* length= */ 2048);
             words relocationRows = allocate(relocations, /* length= */ 8192);
@@ -234,14 +299,20 @@ final class NativeCompilerFunctionProductsExampleTest {
             drop(ownershipIdentity);
             drop(aggregateIdentity);
             drop(signatureIdentity);
+            drop(closureInstructions);
+            drop(closureFunctions);
+            drop(moduleFunctionCounts);
+            drop(moduleFirstFunctions);
+            drop(closure);
             drop(instructions);
             drop(functions);
             drop(rows);
           }
         }
-        """.replace(
-            "PRIVATE_TARGET",
-            privateTarget ? "set(functionVisibilities, 0, 0);" : ""));
+        """.replace("SECOND_OWNER", duplicateOwner ? "7" : "8")
+            .replace(
+                "PRIVATE_TARGET",
+                privateTarget ? "set(functionVisibilities, 0, 0);" : ""));
     return new WheelerCompiler().compileModuleFiles(sources, "example.function_products");
   }
 

@@ -110,7 +110,7 @@ Callable bytecode products do not set a bootstrap bit. Promotion still requires 
 - [x] Exact pre-link matches require ordered parameter types and loan modes, result type, and effect product equality. Equal exact candidates remain ambiguous.
 - [x] Qualified pre-link calls bind the written dependency rank before exact signature matching.
 - [ ] Aggregate descriptor operands relocate through WIP-0046 identities.
-- [ ] Closure-wide function and instruction windows append one artifact at a time.
+- [x] `CountedFunctionProducts.w` appends one validated artifact at a time, rebases instruction owners, preserves artifact ranks, and rejects duplicate module owners before publication.
 - [ ] The canonical linker emits a multi-module `.wbc` without dependency source.
 - [ ] Linked local, imported, reversible, result-slot, aggregate, owner, and loan fixtures match stage 0 byte for byte.
 - [ ] The complete physical compiler closure compiles from semantic products.
