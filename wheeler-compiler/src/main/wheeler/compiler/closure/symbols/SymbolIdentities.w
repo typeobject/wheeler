@@ -87,7 +87,7 @@ classical class CountedSymbolIdentities {
     borrow mut bytes packageIdentity,
     borrow mut bytes symbolIdentities
   ) {
-    requireMetadata(0 < symbolCount, manifest);
+    requireMetadata(-1 < symbolCount, manifest);
     requireMetadata(symbolCount < MAX_CLOSURE_SYMBOLS + 1, manifest);
     requireMetadata(bufferLength(packageIdentity) == SYMBOL_IDENTITY_BYTES, manifest);
     requireMetadata(bufferLength(symbolIdentities) == SYMBOL_IDENTITY_STORAGE_BYTES, manifest);

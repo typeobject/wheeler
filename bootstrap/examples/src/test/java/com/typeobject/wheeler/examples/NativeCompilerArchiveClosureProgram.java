@@ -17,6 +17,7 @@ final class NativeCompilerArchiveClosureProgram {
         "wheeler.compiler.closure.archive_module_sources"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.counted_constant_executor"));
+    sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.module_callables"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.module_symbols"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.package_target"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.plan"));
@@ -29,6 +30,7 @@ final class NativeCompilerArchiveClosureProgram {
         import wheeler.compiler.closure.archive_module_sources;
         import wheeler.compiler.closure.archive_sources;
         import wheeler.compiler.closure.counted_constant_executor;
+        import wheeler.compiler.closure.module_callables;
         import wheeler.compiler.closure.module_manifest;
         import wheeler.compiler.closure.module_symbols;
         import wheeler.compiler.closure.package_target;
@@ -63,6 +65,14 @@ final class NativeCompilerArchiveClosureProgram {
           state long rootImportedSymbols = 0;
           state long maxImportedSymbols = 0;
           state long symbolGeneration = 0;
+          state long callableCount = 0;
+          state long rootLocalCallables = 0;
+          state long rootImportedCallables = 0;
+          state long maxImportedCallables = 0;
+          state long callableGeneration = 0;
+          state long firstCallableSignatureLength = 0;
+          state long firstCallableBodyLength = 0;
+          state long lastCallableParameterCount = 0;
           state long packageIdentityPrefix = 0;
           state long firstSymbolIdentityPrefix = 0;
           state long lastSymbolIdentityPrefix = 0;
@@ -97,7 +107,7 @@ final class NativeCompilerArchiveClosureProgram {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 1944576, /* allocations= */ 43);
+            region columns = new region(/* bytes= */ 2276352, /* allocations= */ 56);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -137,6 +147,19 @@ final class NativeCompilerArchiveClosureProgram {
             words symbolTypes = allocate(columns, MAX_SYMBOLS);
             words symbolValues = allocate(columns, MAX_SYMBOLS);
             words symbolResolved = allocate(columns, MAX_SYMBOLS);
+            words moduleFirstCallables = allocate(columns, MAX_MODULES);
+            words moduleCallableCounts = allocate(columns, MAX_MODULES);
+            words moduleImportedCallableCounts = allocate(columns, MAX_MODULES);
+            words edgeCallableCounts = allocate(columns, MAX_IMPORTS);
+            words callableOwners = allocate(columns, /* length= */ 4096);
+            words callableVisibilities = allocate(columns, /* length= */ 4096);
+            words callableNameStarts = allocate(columns, /* length= */ 4096);
+            words callableNameLengths = allocate(columns, /* length= */ 4096);
+            words callableSignatureStarts = allocate(columns, /* length= */ 4096);
+            words callableSignatureLengths = allocate(columns, /* length= */ 4096);
+            words callableBodyStarts = allocate(columns, /* length= */ 4096);
+            words callableBodyLengths = allocate(columns, /* length= */ 4096);
+            words callableParameterCounts = allocate(columns, /* length= */ 4096);
             bytes packageIdentity = allocateBytes(columns, /* length= */ 32);
             bytes symbolIdentities = allocateBytes(columns, MAX_SYMBOLS * 32);
             bytes moduleIdentities = allocateBytes(columns, MAX_MODULES * 32);
@@ -241,6 +264,30 @@ final class NativeCompilerArchiveClosureProgram {
                   symbolValues,
                   symbolResolved
                 );
+                CountedModuleCallablePlan callables = indexCountedModuleCallables(
+                  archive,
+                  manifest,
+                  closure,
+                  edgeTargets,
+                  firstImports,
+                  directImportCounts,
+                  leafFirstOrder,
+                  archiveSourceStarts,
+                  archiveSourceLengths,
+                  moduleFirstCallables,
+                  moduleCallableCounts,
+                  moduleImportedCallableCounts,
+                  edgeCallableCounts,
+                  callableOwners,
+                  callableVisibilities,
+                  callableNameStarts,
+                  callableNameLengths,
+                  callableSignatureStarts,
+                  callableSignatureLengths,
+                  callableBodyStarts,
+                  callableBodyLengths,
+                  callableParameterCounts
+                );
                 publishCountedSymbolIdentities(
                   archive,
                   manifest,
@@ -331,6 +378,18 @@ final class NativeCompilerArchiveClosureProgram {
 
                   executableModule += 1;
                 }
+                long largestImportedCallables = 0;
+                long callableModule = 0;
+                while (callableModule < closure.moduleCount) limit MAX_MODULES {
+                  if (
+                    largestImportedCallables
+                      < moduleImportedCallableCounts[callableModule]
+                  ) {
+                    largestImportedCallables = moduleImportedCallableCounts[callableModule];
+                  }
+
+                  callableModule += 1;
+                }
                 long parsedResolvedSymbols = 0;
                 long resolvedSymbol = 0;
                 while (resolvedSymbol < symbols.symbolCount) limit MAX_SYMBOLS {
@@ -362,19 +421,35 @@ final class NativeCompilerArchiveClosureProgram {
                 rootImportedSymbols = moduleImportedSymbolCounts[closure.rootModule];
                 maxImportedSymbols = largestImportedSymbols;
                 symbolGeneration = symbols.finalGeneration;
+                callableCount = callables.callableCount;
+                rootLocalCallables = moduleCallableCounts[closure.rootModule];
+                rootImportedCallables = moduleImportedCallableCounts[closure.rootModule];
+                maxImportedCallables = largestImportedCallables;
+                callableGeneration = callables.finalGeneration;
+                if (0 < callables.callableCount) {
+                  firstCallableSignatureLength = callableSignatureLengths[0];
+                  firstCallableBodyLength = callableBodyLengths[0];
+                  lastCallableParameterCount = callableParameterCounts[
+                    callables.callableCount - 1
+                  ];
+                }
                 packageIdentityPrefix = packageIdentity[0] * 16777216
                   + packageIdentity[1] * 65536
                   + packageIdentity[2] * 256
                   + packageIdentity[3];
-                firstSymbolIdentityPrefix = symbolIdentities[0] * 16777216
-                  + symbolIdentities[1] * 65536
-                  + symbolIdentities[2] * 256
-                  + symbolIdentities[3];
-                long finalIdentity = (symbols.symbolCount - 1) * 32;
-                lastSymbolIdentityPrefix = symbolIdentities[finalIdentity] * 16777216
-                  + symbolIdentities[finalIdentity + 1] * 65536
-                  + symbolIdentities[finalIdentity + 2] * 256
-                  + symbolIdentities[finalIdentity + 3];
+                if (0 < symbols.symbolCount) {
+                  firstSymbolIdentityPrefix = symbolIdentities[0] * 16777216
+                    + symbolIdentities[1] * 65536
+                    + symbolIdentities[2] * 256
+                    + symbolIdentities[3];
+                  long finalIdentity = (symbols.symbolCount - 1) * 32;
+                  lastSymbolIdentityPrefix = symbolIdentities[finalIdentity] * 16777216
+                    + symbolIdentities[finalIdentity + 1] * 65536
+                    + symbolIdentities[finalIdentity + 2] * 256
+                    + symbolIdentities[finalIdentity + 3];
+                  lastSymbolValue = symbolValues[symbols.symbolCount - 1];
+                  lastSymbolResolved = symbolResolved[symbols.symbolCount - 1];
+                }
                 if (scalarIdentities.valid) {
                   long rootModuleIdentity = closure.rootModule * 32;
                   firstModuleIdentityPrefix = moduleIdentities[0] * 16777216
@@ -387,8 +462,6 @@ final class NativeCompilerArchiveClosureProgram {
                     + moduleIdentities[rootModuleIdentity + 3];
                   moduleIdentitiesPublished = 1;
                 }
-                lastSymbolValue = symbolValues[symbols.symbolCount - 1];
-                lastSymbolResolved = symbolResolved[symbols.symbolCount - 1];
                 published = 1;
                 if (constantExecution.attempted) {
                   setOutputLength(output, constantExecution.length);
@@ -404,6 +477,19 @@ final class NativeCompilerArchiveClosureProgram {
             drop(moduleIdentities);
             drop(symbolIdentities);
             drop(packageIdentity);
+            drop(callableParameterCounts);
+            drop(callableBodyLengths);
+            drop(callableBodyStarts);
+            drop(callableSignatureLengths);
+            drop(callableSignatureStarts);
+            drop(callableNameLengths);
+            drop(callableNameStarts);
+            drop(callableVisibilities);
+            drop(callableOwners);
+            drop(edgeCallableCounts);
+            drop(moduleImportedCallableCounts);
+            drop(moduleCallableCounts);
+            drop(moduleFirstCallables);
             drop(symbolResolved);
             drop(symbolValues);
             drop(symbolTypes);

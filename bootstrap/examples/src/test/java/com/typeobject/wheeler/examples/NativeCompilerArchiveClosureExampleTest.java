@@ -47,7 +47,13 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("executableCount") > 0);
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
-    assertEquals(995, machine.global("symbolCount"));
+    assertEquals(1_004, machine.global("symbolCount"));
+    assertEquals(1_001, machine.global("callableCount"));
+    assertEquals(1, machine.global("rootLocalCallables"));
+    assertTrue(machine.global("rootImportedCallables") > 0);
+    assertTrue(machine.global("maxImportedCallables") > 0);
+    assertEquals(manifest.modules().size(), machine.global("callableGeneration"));
+    assertEquals(2, machine.global("lastCallableParameterCount"));
     assertTrue(machine.global("resolvedSymbolCount") > 800);
     assertEquals(0, machine.global("moduleIdentitiesPublished"));
     assertTrue(machine.global("maxImportedSymbols") > 0);
@@ -184,6 +190,26 @@ final class NativeCompilerArchiveClosureExampleTest {
   }
 
   @Test
+  void indexesCallableProductsAcrossAChain() throws Exception {
+    NativeCompilerProductFixtures.Fixture fixture = NativeCompilerProductFixtures.callableChain();
+    Program program = NativeCompilerArchiveClosureProgram.program();
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        program,
+        framed(fixture.archive(), fixture.manifest().canonicalBytes()),
+        1);
+    runClosure(machine, program);
+    assertArrayEquals(new byte[] {1}, machine.hostOutput());
+    assertEquals(4, machine.global("callableCount"));
+    assertEquals(1, machine.global("rootLocalCallables"));
+    assertEquals(1, machine.global("rootImportedCallables"));
+    assertEquals(1, machine.global("maxImportedCallables"));
+    assertEquals(3, machine.global("callableGeneration"));
+    assertTrue(machine.global("firstCallableSignatureLength") > 0);
+    assertTrue(machine.global("firstCallableBodyLength") > 0);
+    assertEquals(0, machine.global("lastCallableParameterCount"));
+  }
+
+  @Test
   void resolvesTwoHundredFiftySixImportedConstantProducts() throws Exception {
     NativeCompilerProductFixtures.Fixture fixture = NativeCompilerProductFixtures.forwardingChain(257);
     VirtualMachine machine = VirtualMachine.withBinaryInput(
@@ -250,6 +276,10 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(256, machine.global("resolvedSymbolCount"));
     assertEquals(41, machine.global("lastSymbolValue"));
     assertEquals(257, machine.global("symbolGeneration"));
+    assertEquals(1, machine.global("callableCount"));
+    assertEquals(1, machine.global("rootLocalCallables"));
+    assertEquals(0, machine.global("rootImportedCallables"));
+    assertEquals(257, machine.global("callableGeneration"));
   }
 
   @Test

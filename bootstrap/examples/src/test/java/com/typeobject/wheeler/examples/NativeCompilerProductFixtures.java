@@ -56,6 +56,26 @@ final class NativeCompilerProductFixtures {
     return fixture("demo.ambiguity", "src/Root.w", "ambiguity.root", "src", sources);
   }
 
+  static Fixture callableChain() throws Exception {
+    Map<String, byte[]> sources = new LinkedHashMap<>();
+    sources.put("src/Leaf.w", bytes(
+        "module callable.leaf; classical class Leaf { "
+            + "public long identity(long value) { return value; } }"));
+    sources.put("src/Middle.w", bytes(
+        "module callable.middle; import callable.leaf; classical class Middle { "
+            + "private long hidden(long value) { return value; } "
+            + "public boolean positive(long value) { return value < 1; } }"));
+    sources.put("src/Root.w", bytes(
+        "module callable.root; import callable.middle; classical class Root { "
+            + "entry void main() {} }"));
+    return fixture(
+        "demo.callables",
+        "src/Root.w",
+        "callable.root",
+        "src",
+        sources);
+  }
+
   static Fixture executableQualifiedValues() throws Exception {
     Map<String, byte[]> sources = new LinkedHashMap<>();
     sources.put("src/Values.w", bytes(

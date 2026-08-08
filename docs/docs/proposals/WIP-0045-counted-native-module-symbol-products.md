@@ -119,7 +119,7 @@ A dependent edge receives the completed dependency's public-symbol count only af
 
 ## Callable and aggregate phases
 
-Callable products add parameter and result types, loan modes, effects, helper identity, body range, local limits, result-slot layout, and compiled body identity. Aggregate products add ordered field or case identities and exact layout. Fixed-array length is part of type identity.
+Callable products add parameter and result types, loan modes, effects, helper identity, body range, local limits, result-slot layout, and compiled body identity. `ModuleCallables.w` starts this phase with validated canonical signature and complete forward/reverse body ranges. The ranges are archive evidence, not transferred source or callable identity. Aggregate products add ordered field or case identities and exact layout. Fixed-array length is part of type identity.
 
 Primitive owners transfer through unqualified parameters. `borrow T` and `borrow mut T` remain nonescaping loans. A product cannot erase a loan, manufacture an owner, or derive an aggregate layout from a host type.
 
@@ -166,7 +166,7 @@ The seven-frame executor remains differential conformance evidence until step 9.
 - [x] Each local edge records its completed dependency's public-symbol count at header rank.
 - [x] A 257-module chain publishes 257 symbols, root import count one, peak source count one, and root generation 257.
 - [x] One module publishes exactly 256 scalar declarations. Declaration 257 fails before publication.
-- [x] The 231-module physical compiler closure publishes 995 scalar declarations and reaches generation 231.
+- [x] The 232-module physical compiler closure publishes 1,004 scalar declarations and reaches generation 232.
 - [x] Malformed constant syntax leaves product and completion publication untouched.
 - [x] `SymbolIdentities.w` gives every scalar product a package-archive-, module-source-, kind-, visibility-, type-, and name-bound SHA-256 identity after complete range validation. Chain endpoints match an independent Java digest.
 - [x] Literal and same-module scalar expressions publish values through the existing bounded evaluator.
@@ -178,6 +178,10 @@ The seven-frame executor remains differential conformance evidence until step 9.
 - [x] `ScalarModuleIdentities.w` publishes package-, source-, module-, dependency-, symbol-, resolution-, and value-bound identities after one complete local leaf-first pass. Independent Java digests match both endpoints of a 257-module chain.
 - [x] External edges leave scalar module identity publication untouched until locked external product identities exist.
 - [ ] Stable compiled body identities publish.
+- [x] `ModuleCallables.w` publishes owner, visibility, canonical name, complete signature range, forward/reverse body range, and parameter count after one complete staged-source pass.
+- [x] Private callable products stay local. Direct edges count only public dependency callables in header rank.
+- [x] The physical compiler closure publishes 1,001 callable signatures with peak active source count one.
+- [ ] Parsed callable type, loan, effect, result-slot, and local-limit columns publish.
 - [ ] Ambiguity, privacy, type, and unresolved diagnostics carry stable candidate identities.
 - [x] Counted scalar closures compile without a seven-node plan.
 - [ ] Callable products compile.
