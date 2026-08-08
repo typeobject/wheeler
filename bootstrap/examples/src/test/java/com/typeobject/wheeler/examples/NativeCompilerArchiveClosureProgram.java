@@ -66,13 +66,18 @@ final class NativeCompilerArchiveClosureProgram {
           state long maxImportedSymbols = 0;
           state long symbolGeneration = 0;
           state long callableCount = 0;
+          state long callableParameterCount = 0;
+          state long borrowedParameterCount = 0;
+          state long mutableParameterCount = 0;
           state long rootLocalCallables = 0;
           state long rootImportedCallables = 0;
           state long maxImportedCallables = 0;
           state long callableGeneration = 0;
           state long firstCallableSignatureLength = 0;
           state long firstCallableBodyLength = 0;
+          state long firstCallableResultTypeLength = 0;
           state long lastCallableParameterCount = 0;
+          state long lastCallableEffects = 0;
           state long packageIdentityPrefix = 0;
           state long firstSymbolIdentityPrefix = 0;
           state long lastSymbolIdentityPrefix = 0;
@@ -107,7 +112,7 @@ final class NativeCompilerArchiveClosureProgram {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 2276352, /* allocations= */ 56);
+            region columns = new region(/* bytes= */ 2800640, /* allocations= */ 63);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -160,6 +165,13 @@ final class NativeCompilerArchiveClosureProgram {
             words callableBodyStarts = allocate(columns, /* length= */ 4096);
             words callableBodyLengths = allocate(columns, /* length= */ 4096);
             words callableParameterCounts = allocate(columns, /* length= */ 4096);
+            words callableFirstParameters = allocate(columns, /* length= */ 4096);
+            words callableResultTypeStarts = allocate(columns, /* length= */ 4096);
+            words callableResultTypeLengths = allocate(columns, /* length= */ 4096);
+            words callableEffects = allocate(columns, /* length= */ 4096);
+            words parameterTypeStarts = allocate(columns, MAX_SYMBOLS);
+            words parameterTypeLengths = allocate(columns, MAX_SYMBOLS);
+            words parameterModes = allocate(columns, MAX_SYMBOLS);
             bytes packageIdentity = allocateBytes(columns, /* length= */ 32);
             bytes symbolIdentities = allocateBytes(columns, MAX_SYMBOLS * 32);
             bytes moduleIdentities = allocateBytes(columns, MAX_MODULES * 32);
@@ -286,7 +298,14 @@ final class NativeCompilerArchiveClosureProgram {
                   callableSignatureLengths,
                   callableBodyStarts,
                   callableBodyLengths,
-                  callableParameterCounts
+                  callableParameterCounts,
+                  callableFirstParameters,
+                  callableResultTypeStarts,
+                  callableResultTypeLengths,
+                  callableEffects,
+                  parameterTypeStarts,
+                  parameterTypeLengths,
+                  parameterModes
                 );
                 publishCountedSymbolIdentities(
                   archive,
@@ -422,6 +441,17 @@ final class NativeCompilerArchiveClosureProgram {
                 maxImportedSymbols = largestImportedSymbols;
                 symbolGeneration = symbols.finalGeneration;
                 callableCount = callables.callableCount;
+                callableParameterCount = callables.parameterCount;
+                long parameter = 0;
+                while (parameter < callables.parameterCount) limit MAX_SYMBOLS {
+                  if (0 < parameterModes[parameter]) {
+                    borrowedParameterCount += 1;
+                  }
+                  if (parameterModes[parameter] == 2) {
+                    mutableParameterCount += 1;
+                  }
+                  parameter += 1;
+                }
                 rootLocalCallables = moduleCallableCounts[closure.rootModule];
                 rootImportedCallables = moduleImportedCallableCounts[closure.rootModule];
                 maxImportedCallables = largestImportedCallables;
@@ -429,9 +459,11 @@ final class NativeCompilerArchiveClosureProgram {
                 if (0 < callables.callableCount) {
                   firstCallableSignatureLength = callableSignatureLengths[0];
                   firstCallableBodyLength = callableBodyLengths[0];
+                  firstCallableResultTypeLength = callableResultTypeLengths[0];
                   lastCallableParameterCount = callableParameterCounts[
                     callables.callableCount - 1
                   ];
+                  lastCallableEffects = callableEffects[callables.callableCount - 1];
                 }
                 packageIdentityPrefix = packageIdentity[0] * 16777216
                   + packageIdentity[1] * 65536
@@ -477,6 +509,13 @@ final class NativeCompilerArchiveClosureProgram {
             drop(moduleIdentities);
             drop(symbolIdentities);
             drop(packageIdentity);
+            drop(parameterModes);
+            drop(parameterTypeLengths);
+            drop(parameterTypeStarts);
+            drop(callableEffects);
+            drop(callableResultTypeLengths);
+            drop(callableResultTypeStarts);
+            drop(callableFirstParameters);
             drop(callableParameterCounts);
             drop(callableBodyLengths);
             drop(callableBodyStarts);

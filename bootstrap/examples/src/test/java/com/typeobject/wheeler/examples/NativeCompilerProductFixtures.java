@@ -63,8 +63,8 @@ final class NativeCompilerProductFixtures {
             + "public long identity(long value) { return value; } }"));
     sources.put("src/Middle.w", bytes(
         "module callable.middle; import callable.leaf; classical class Middle { "
-            + "private long hidden(long value) { return value; } "
-            + "public boolean positive(long value) { return value < 1; } }"));
+            + "private void hidden(borrow mut bytes output) {} "
+            + "public boolean readable(borrow byteview source) { return true; } }"));
     sources.put("src/Root.w", bytes(
         "module callable.root; import callable.middle; classical class Root { "
             + "entry void main() {} }"));

@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.module_callables;
 
 import wheeler.compiler.closure.active_source_slots;
+import wheeler.compiler.closure.callable_signature_products;
 import wheeler.compiler.closure.manifest_syntax;
 import wheeler.compiler.closure.plan;
 import wheeler.compiler.compiler_token_limits;
@@ -13,13 +14,12 @@ import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 
 classical class CountedModuleCallables {
-  private const long CALLABLE_ARENA_BYTES = 340000;
+  private const long CALLABLE_ARENA_BYTES = 865000;
   private const long MAX_CALLABLES = 4096;
   private const long MAX_CALLABLES_PER_MODULE = 64;
   private const long MAX_DIRECT_IMPORTS = 64;
   private const long MAX_IMPORTS = 3072;
   private const long MAX_LOCAL_MODULES = 512;
-  private const long MAX_PARAMETERS = 64;
   private const long TOKEN_ARENA_BYTES = 98320;
   private const long TOKEN_RECORD = 3360058449;
 
@@ -27,6 +27,7 @@ classical class CountedModuleCallables {
   public record CountedModuleCallablePlan(
     long moduleCount,
     long callableCount,
+    long parameterCount,
     long peakActiveSources,
     long finalGeneration
   ) {}
@@ -93,51 +94,6 @@ classical class CountedModuleCallables {
     return -1;
   }
 
-  private long parameterCount(
-    borrow utf8 source,
-    borrow mut words tokenKinds,
-    borrow mut words tokenStarts,
-    long open,
-    long close
-  ) {
-    if (open + 1 == close) {
-      return 0;
-    }
-
-    long count = 1;
-    long depth = 1;
-    long cursor = open + 1;
-    while (cursor < close) limit MAX_COMPILER_TOKENS {
-      if (
-        punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_OPEN_PAREN)
-      ) {
-        depth += 1;
-      }
-
-      if (
-        punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_CLOSE_PAREN)
-      ) {
-        depth -= 1;
-      }
-
-      if (depth == 1) {
-        if (
-          punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_COMMA)
-        ) {
-          count += 1;
-        }
-      }
-
-      cursor += 1;
-    }
-
-    if (count < MAX_PARAMETERS + 1) {
-      return count;
-    }
-
-    return -1;
-  }
-
   private long indexSourceCallables(
     borrow utf8 source,
     long archiveSourceStart,
@@ -155,7 +111,15 @@ classical class CountedModuleCallables {
     borrow mut words callableSignatureLengths,
     borrow mut words callableBodyStarts,
     borrow mut words callableBodyLengths,
-    borrow mut words callableParameterCounts
+    borrow mut words callableParameterCounts,
+    borrow mut words callableFirstParameters,
+    borrow mut words callableResultTypeStarts,
+    borrow mut words callableResultTypeLengths,
+    borrow mut words callableEffects,
+    borrow mut words parameterTypeStarts,
+    borrow mut words parameterTypeLengths,
+    borrow mut words parameterModes,
+    borrow mut words parameterTotal
   ) {
     long tokenCount = scanSemanticTokens(source, tokenKinds, tokenStarts, tokenLengths);
     if (0 < tokenCount) {} else {
@@ -294,6 +258,35 @@ classical class CountedModuleCallables {
             return -1;
           }
 
+          CallableHeader header = callableHeader(
+            source,
+            tokenStarts,
+            tokenLengths,
+            declarationStart,
+            nameToken
+          );
+          if (header.valid) {} else {
+            return -1;
+          }
+
+          long nextParameter = writeParameterProducts(
+            source,
+            archiveSourceStart,
+            tokenKinds,
+            tokenStarts,
+            tokenLengths,
+            firstParen,
+            closeParameters,
+            parameters,
+            parameterTotal[0],
+            parameterTypeStarts,
+            parameterTypeLengths,
+            parameterModes
+          );
+          if (-1 < nextParameter) {} else {
+            return -1;
+          }
+
           if (callableCount < MAX_CALLABLES_PER_MODULE) {} else {
             return -1;
           }
@@ -322,6 +315,14 @@ classical class CountedModuleCallables {
           set(callableBodyStarts, callableIndex, archiveSourceStart + bodyStart);
           set(callableBodyLengths, callableIndex, bodyEnd - bodyStart);
           set(callableParameterCounts, callableIndex, parameters);
+          set(callableFirstParameters, callableIndex, parameterTotal[0]);
+          long resultTypeStart = tokenStarts[header.resultTypeToken];
+          long finalResultType = nameToken - 1;
+          long resultTypeEnd = tokenStarts[finalResultType] + tokenLengths[finalResultType];
+          set(callableResultTypeStarts, callableIndex, archiveSourceStart + resultTypeStart);
+          set(callableResultTypeLengths, callableIndex, resultTypeEnd - resultTypeStart);
+          set(callableEffects, callableIndex, header.effects);
+          set(parameterTotal, 0, nextParameter);
           callableCount += 1;
         }
 
@@ -351,7 +352,14 @@ classical class CountedModuleCallables {
     borrow mut words callableSignatureLengths,
     borrow mut words callableBodyStarts,
     borrow mut words callableBodyLengths,
-    borrow mut words callableParameterCounts
+    borrow mut words callableParameterCounts,
+    borrow mut words callableFirstParameters,
+    borrow mut words callableResultTypeStarts,
+    borrow mut words callableResultTypeLengths,
+    borrow mut words callableEffects,
+    borrow mut words parameterTypeStarts,
+    borrow mut words parameterTypeLengths,
+    borrow mut words parameterModes
   ) {
     if (bufferLength(moduleFirstCallables) == MAX_LOCAL_MODULES) {} else {
       return false;
@@ -401,7 +409,35 @@ classical class CountedModuleCallables {
       return false;
     }
 
-    return bufferLength(callableParameterCounts) == MAX_CALLABLES;
+    if (bufferLength(callableParameterCounts) == MAX_CALLABLES) {} else {
+      return false;
+    }
+
+    if (bufferLength(callableFirstParameters) == MAX_CALLABLES) {} else {
+      return false;
+    }
+
+    if (bufferLength(callableResultTypeStarts) == MAX_CALLABLES) {} else {
+      return false;
+    }
+
+    if (bufferLength(callableResultTypeLengths) == MAX_CALLABLES) {} else {
+      return false;
+    }
+
+    if (bufferLength(callableEffects) == MAX_CALLABLES) {} else {
+      return false;
+    }
+
+    if (bufferLength(parameterTypeStarts) == MAX_CLOSURE_PARAMETERS) {} else {
+      return false;
+    }
+
+    if (bufferLength(parameterTypeLengths) == MAX_CLOSURE_PARAMETERS) {} else {
+      return false;
+    }
+
+    return bufferLength(parameterModes) == MAX_CLOSURE_PARAMETERS;
   }
 
   /// Stages each source once and publishes callable products after the complete pass.
@@ -427,7 +463,14 @@ classical class CountedModuleCallables {
     borrow mut words callableSignatureLengths,
     borrow mut words callableBodyStarts,
     borrow mut words callableBodyLengths,
-    borrow mut words callableParameterCounts
+    borrow mut words callableParameterCounts,
+    borrow mut words callableFirstParameters,
+    borrow mut words callableResultTypeStarts,
+    borrow mut words callableResultTypeLengths,
+    borrow mut words callableEffects,
+    borrow mut words parameterTypeStarts,
+    borrow mut words parameterTypeLengths,
+    borrow mut words parameterModes
   ) {
     requireMetadata(0 < plan.moduleCount, manifest);
     requireMetadata(plan.moduleCount < MAX_LOCAL_MODULES + 1, manifest);
@@ -446,7 +489,14 @@ classical class CountedModuleCallables {
         callableSignatureLengths,
         callableBodyStarts,
         callableBodyLengths,
-        callableParameterCounts
+        callableParameterCounts,
+        callableFirstParameters,
+        callableResultTypeStarts,
+        callableResultTypeLengths,
+        callableEffects,
+        parameterTypeStarts,
+        parameterTypeLengths,
+        parameterModes
       ),
       manifest
     );
@@ -461,7 +511,7 @@ classical class CountedModuleCallables {
     words activeLengths = allocate(slotArena, ACTIVE_SOURCE_SLOT_COUNT);
     words live = allocate(slotArena, ACTIVE_SOURCE_SLOT_COUNT);
     assert(initializeActiveSourceSlots(storage, owners, generations, activeLengths, live));
-    region callableArena = new region(/* bytes= */ CALLABLE_ARENA_BYTES, /* allocations= */ 15);
+    region callableArena = new region(/* bytes= */ CALLABLE_ARENA_BYTES, /* allocations= */ 23);
     words scratchFirstCallables = allocate(callableArena, MAX_LOCAL_MODULES);
     words scratchCallableCounts = allocate(callableArena, MAX_LOCAL_MODULES);
     words scratchImportedCounts = allocate(callableArena, MAX_LOCAL_MODULES);
@@ -475,6 +525,14 @@ classical class CountedModuleCallables {
     words scratchBodyStarts = allocate(callableArena, MAX_CALLABLES);
     words scratchBodyLengths = allocate(callableArena, MAX_CALLABLES);
     words scratchParameterCounts = allocate(callableArena, MAX_CALLABLES);
+    words scratchFirstParameters = allocate(callableArena, MAX_CALLABLES);
+    words scratchResultTypeStarts = allocate(callableArena, MAX_CALLABLES);
+    words scratchResultTypeLengths = allocate(callableArena, MAX_CALLABLES);
+    words scratchEffects = allocate(callableArena, MAX_CALLABLES);
+    words scratchParameterTypeStarts = allocate(callableArena, MAX_CLOSURE_PARAMETERS);
+    words scratchParameterTypeLengths = allocate(callableArena, MAX_CLOSURE_PARAMETERS);
+    words scratchParameterModes = allocate(callableArena, MAX_CLOSURE_PARAMETERS);
+    words parameterTotal = allocate(callableArena, 1);
     words processed = allocate(callableArena, MAX_LOCAL_MODULES);
     words moduleRangeScratch = allocate(callableArena, 2);
     long callableCount = 0;
@@ -593,7 +651,15 @@ classical class CountedModuleCallables {
         scratchSignatureLengths,
         scratchBodyStarts,
         scratchBodyLengths,
-        scratchParameterCounts
+        scratchParameterCounts,
+        scratchFirstParameters,
+        scratchResultTypeStarts,
+        scratchResultTypeLengths,
+        scratchEffects,
+        scratchParameterTypeStarts,
+        scratchParameterTypeLengths,
+        scratchParameterModes,
+        parameterTotal
       );
       requireMetadata(-1 < localCallables, manifest);
       callableCount += localCallables;
@@ -641,17 +707,38 @@ classical class CountedModuleCallables {
       set(callableBodyStarts, callable, scratchBodyStarts[callable]);
       set(callableBodyLengths, callable, scratchBodyLengths[callable]);
       set(callableParameterCounts, callable, scratchParameterCounts[callable]);
+      set(callableFirstParameters, callable, scratchFirstParameters[callable]);
+      set(callableResultTypeStarts, callable, scratchResultTypeStarts[callable]);
+      set(callableResultTypeLengths, callable, scratchResultTypeLengths[callable]);
+      set(callableEffects, callable, scratchEffects[callable]);
       callable += 1;
+    }
+
+    long parameter = 0;
+    while (parameter < parameterTotal[0]) limit MAX_CLOSURE_PARAMETERS {
+      set(parameterTypeStarts, parameter, scratchParameterTypeStarts[parameter]);
+      set(parameterTypeLengths, parameter, scratchParameterTypeLengths[parameter]);
+      set(parameterModes, parameter, scratchParameterModes[parameter]);
+      parameter += 1;
     }
 
     CountedModuleCallablePlan result = new CountedModuleCallablePlan(
       plan.moduleCount,
       callableCount,
+      parameterTotal[0],
       /* peakActiveSources= */ 1,
       finalGeneration
     );
     drop(moduleRangeScratch);
     drop(processed);
+    drop(parameterTotal);
+    drop(scratchParameterModes);
+    drop(scratchParameterTypeLengths);
+    drop(scratchParameterTypeStarts);
+    drop(scratchEffects);
+    drop(scratchResultTypeLengths);
+    drop(scratchResultTypeStarts);
+    drop(scratchFirstParameters);
     drop(scratchParameterCounts);
     drop(scratchBodyLengths);
     drop(scratchBodyStarts);

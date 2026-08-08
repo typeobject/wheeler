@@ -47,8 +47,12 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("executableCount") > 0);
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
-    assertEquals(1_004, machine.global("symbolCount"));
-    assertEquals(1_001, machine.global("callableCount"));
+    assertEquals(1_007, machine.global("symbolCount"));
+    assertEquals(1_003, machine.global("callableCount"));
+    assertTrue(machine.global("callableParameterCount") > 1_000);
+    assertTrue(machine.global("borrowedParameterCount") > 0);
+    assertTrue(machine.global("mutableParameterCount") > 0);
+    assertTrue(machine.global("firstCallableResultTypeLength") > 0);
     assertEquals(1, machine.global("rootLocalCallables"));
     assertTrue(machine.global("rootImportedCallables") > 0);
     assertTrue(machine.global("maxImportedCallables") > 0);
@@ -200,13 +204,18 @@ final class NativeCompilerArchiveClosureExampleTest {
     runClosure(machine, program);
     assertArrayEquals(new byte[] {1}, machine.hostOutput());
     assertEquals(4, machine.global("callableCount"));
+    assertEquals(3, machine.global("callableParameterCount"));
+    assertEquals(2, machine.global("borrowedParameterCount"));
+    assertEquals(1, machine.global("mutableParameterCount"));
     assertEquals(1, machine.global("rootLocalCallables"));
     assertEquals(1, machine.global("rootImportedCallables"));
     assertEquals(1, machine.global("maxImportedCallables"));
     assertEquals(3, machine.global("callableGeneration"));
     assertTrue(machine.global("firstCallableSignatureLength") > 0);
     assertTrue(machine.global("firstCallableBodyLength") > 0);
+    assertTrue(machine.global("firstCallableResultTypeLength") > 0);
     assertEquals(0, machine.global("lastCallableParameterCount"));
+    assertEquals(1, machine.global("lastCallableEffects"));
   }
 
   @Test
