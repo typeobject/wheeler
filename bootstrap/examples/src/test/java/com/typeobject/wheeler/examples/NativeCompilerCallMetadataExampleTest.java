@@ -130,6 +130,27 @@ final class NativeCompilerCallMetadataExampleTest {
   }
 
   @Test
+  void linksOneRedundantDirectConstantLeafByteForByte() throws Exception {
+    String ids = "module example.ids; classical class Ids { public const long BASE = 41; }";
+    String answer = "module example.answer; import example.ids; classical class Answer { "
+        + "public const long ANSWER = BASE + 1; }";
+    String root = "module example.root; import example.answer; import example.ids; "
+        + "classical class Root { state long outcome = 0; entry void main() { "
+        + "outcome = ANSWER; assert(outcome == 42); } }";
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileModuleFiles(
+            Map.of("Answer.w", answer, "Ids.w", ids, "Root.w", root),
+            "example.root"));
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] forward = NativeModuleCompilerHarness.compile(
+        compiler, List.of(answer, ids), root);
+    byte[] reverse = NativeModuleCompilerHarness.compile(
+        compiler, List.of(ids, answer), root);
+    assertArrayEquals(expected, forward);
+    assertArrayEquals(expected, reverse);
+  }
+
+  @Test
   void linksOneSharedLeafIntoTwoDirectConstantsByteForByte() throws Exception {
     String ids = "module example.ids; classical class Ids { public const long BASE = 20; }";
     String first = "module example.first; import example.ids; classical class First { "

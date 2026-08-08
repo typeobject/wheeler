@@ -1,4 +1,4 @@
-//! Executes bounded constant forests and single-root DAGs through one source table.
+//! Executes every validated bounded constant graph through one source table.
 
 module wheeler.compiler.graphs.constant_executor;
 
@@ -10,6 +10,7 @@ import wheeler.compiler.module_linker;
 classical class BoundedConstantPlanExecutor {
   private const long MAX_GRAPH_NODES = 7;
   private const long MAX_LINKED_SOURCE_BYTES = 32768;
+  private const long ROOT_ORDER_ARENA_BYTES = 56;
 
   /// Carries one bounded constant-plan execution result.
   public record ConstantPlanExecution(long length, long codeStart) {}
@@ -19,15 +20,7 @@ classical class BoundedConstantPlanExecutor {
   }
 
   private boolean genericConstantPlan(BoundedGraphPlan plan) {
-    if (plan.valid) {} else {
-      return false;
-    }
-
-    if (plan.rootCount == 1) {
-      return true;
-    }
-
-    return plan.edgeCount + plan.rootCount == plan.nodeCount;
+    return plan.valid;
   }
 
   private boolean initializeExecutionTable(
@@ -212,6 +205,14 @@ classical class BoundedConstantPlanExecutor {
     utf8 rootSource = copyExecutionSource(rootNode, tableCount, storage, lengths, rootArena);
     LinkPlan link = planResolvedConstantImport(dependencySource, rootSource, plan.rootCount);
     if (link.valid) {} else {
+      link = planTrailingSharedResolvedPublicConstantImport(
+        dependencySource,
+        rootSource,
+        plan.rootCount
+      );
+    }
+
+    if (link.valid) {} else {
       drop(rootSource);
       drop(rootArena);
       drop(dependencySource);
@@ -240,7 +241,28 @@ classical class BoundedConstantPlanExecutor {
     return replaced;
   }
 
-  /// Executes one rooted two- through four-module constant forest or single-root DAG.
+  private boolean rootDependencyReady(
+    BoundedGraphPlan plan,
+    long node,
+    borrow mut words linkedRoots
+  ) {
+    long dependency = 0;
+    while (dependency < plan.nodeCount) limit MAX_GRAPH_NODES {
+      if (plannedEdge(plan, dependency, node)) {
+        if (plannedRootDirect(plan, dependency)) {
+          if (linkedRoots[dependency] == 1) {} else {
+            return false;
+          }
+        }
+      }
+
+      dependency += 1;
+    }
+
+    return true;
+  }
+
+  /// Executes one validated two- through four-module constant graph.
   public ConstantPlanExecution executeConstantPlan(
     BoundedGraphPlan plan,
     borrow utf8 firstSource,
@@ -298,10 +320,37 @@ classical class BoundedConstantPlanExecutor {
     }
 
     long rootNode = plan.nodeCount;
-    long rank = 0;
-    while (rank < plan.rootCount) limit MAX_GRAPH_NODES {
-      long rootDependencyNode = rootNodeAt(plan, rank);
-      if (0 < rootDependencyNode + 1) {} else {
+    region rootOrderArena = new region(/* bytes= */ ROOT_ORDER_ARENA_BYTES, /* allocations= */ 1);
+    words linkedRoots = allocate(rootOrderArena, MAX_GRAPH_NODES);
+    long linkedRootCount = 0;
+    while (linkedRootCount < plan.rootCount) limit MAX_GRAPH_NODES {
+      long selectedRootNode = -1;
+      long rootRank = 0;
+      while (rootRank < plan.rootCount) limit MAX_GRAPH_NODES {
+        long candidateRootNode = rootNodeAt(plan, rootRank);
+        if (0 < candidateRootNode + 1) {} else {
+          drop(linkedRoots);
+          drop(rootOrderArena);
+          drop(lengths);
+          drop(storage);
+          drop(tableArena);
+          return failedExecution();
+        }
+
+        if (linkedRoots[candidateRootNode] == 0) {
+          if (rootDependencyReady(plan, candidateRootNode, linkedRoots)) {
+            if (selectedRootNode < 0) {
+              selectedRootNode = candidateRootNode;
+            }
+          }
+        }
+
+        rootRank += 1;
+      }
+
+      if (0 < selectedRootNode + 1) {} else {
+        drop(linkedRoots);
+        drop(rootOrderArena);
         drop(lengths);
         drop(storage);
         drop(tableArena);
@@ -309,17 +358,22 @@ classical class BoundedConstantPlanExecutor {
       }
 
       if (
-        linkRootDependency(plan, rootDependencyNode, rootNode, tableCount, storage, lengths)
+        linkRootDependency(plan, selectedRootNode, rootNode, tableCount, storage, lengths)
       ) {} else {
+        drop(linkedRoots);
+        drop(rootOrderArena);
         drop(lengths);
         drop(storage);
         drop(tableArena);
         return failedExecution();
       }
 
-      rank += 1;
+      set(linkedRoots, selectedRootNode, 1);
+      linkedRootCount += 1;
     }
 
+    drop(linkedRoots);
+    drop(rootOrderArena);
     region finalArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 finalSource = copyExecutionSource(rootNode, tableCount, storage, lengths, finalArena);
     CoreCompilation core = compileMinimalCore(finalSource, output);
