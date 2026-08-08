@@ -105,7 +105,8 @@ Callable bytecode products do not set a bootstrap bit. Promotion still requires 
 - [x] Native function, instruction, and maximum-local counts match independent Java program objects.
 - [x] `FunctionProductIdentities.w` binds signature, ordered direct dependencies, aggregate product, ownership product, exact local types, forward code, inverse code, flags, parameters, and locals under `wheeler-callable-body-product-1`. An independent Java digest matches.
 - [x] `LocalCallRelocations.w` resolves every source-local call and uncall operand to a validated function and copies its stable signature identity. Unknown local targets publish no relocations or body identity.
-- [ ] Imported call operands resolve privacy, ambiguity, arity, type, and effect rules.
+- [x] `ImportedCallRelocations.w` distinguishes cross-module calls in a linked product, requires a public target, and copies its stable signature identity. Private targets publish nothing.
+- [ ] Pre-link imported call operands resolve ambiguity, arity, type, and effect rules from dependency products.
 - [ ] Aggregate descriptor operands relocate through WIP-0046 identities.
 - [ ] Closure-wide function and instruction windows append one artifact at a time.
 - [ ] The canonical linker emits a multi-module `.wbc` without dependency source.

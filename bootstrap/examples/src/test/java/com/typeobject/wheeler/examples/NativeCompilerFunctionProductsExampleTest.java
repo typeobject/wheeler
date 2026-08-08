@@ -41,6 +41,8 @@ final class NativeCompilerFunctionProductsExampleTest {
     assertEquals(maxLocals, machine.global("maxLocalCount"));
     assertEquals(1, machine.global("localRelocationCount"));
     assertEquals(0, machine.global("firstLocalTarget"));
+    assertEquals(1, machine.global("importedRelocationCount"));
+    assertEquals(0, machine.global("firstImportedTarget"));
     assertEquals(product.functions().getFirst().forward().getFirst().opcode().code(),
         machine.global("firstOpcode"));
     assertEquals(1, machine.global("published"));
@@ -57,6 +59,16 @@ final class NativeCompilerFunctionProductsExampleTest {
 
     assertThrows(VmTrap.class, machine::run);
     assertEquals(0, machine.global("published"));
+  }
+
+  @Test
+  void rejectsPrivateCrossModuleTargetsBeforePublication() throws Exception {
+    byte[] artifact = new BytecodeWriter().write(product());
+    VirtualMachine machine = VirtualMachine.withBinaryInput(decoder(true), artifact, 32);
+
+    assertThrows(VmTrap.class, machine::run);
+    assertEquals(0, machine.global("published"));
+    assertEquals("00".repeat(32), HexFormat.of().formatHex(machine.hostOutput()));
   }
 
   @Test
@@ -83,6 +95,10 @@ final class NativeCompilerFunctionProductsExampleTest {
   }
 
   private static Program decoder() throws Exception {
+    return decoder(false);
+  }
+
+  private static Program decoder(boolean privateTarget) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
@@ -91,12 +107,15 @@ final class NativeCompilerFunctionProductsExampleTest {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.function_product_identities"));
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.imported_call_relocations"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.local_call_relocations"));
     sources.put("FunctionProductsExample.w", """
         module example.function_products;
 
         import wheeler.compiler.closure.compiled_function_products;
         import wheeler.compiler.closure.function_product_identities;
+        import wheeler.compiler.closure.imported_call_relocations;
         import wheeler.compiler.closure.local_call_relocations;
 
         classical class FunctionProductsExample {
@@ -106,6 +125,8 @@ final class NativeCompilerFunctionProductsExampleTest {
           state long firstOpcode = 0;
           state long localRelocationCount = 0;
           state long firstLocalTarget = -1;
+          state long importedRelocationCount = 0;
+          state long firstImportedTarget = -1;
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
@@ -159,6 +180,29 @@ final class NativeCompilerFunctionProductsExampleTest {
             if (0 < localRelocationCount) {
               firstLocalTarget = relocationRows[4096];
             }
+            region imported = new region(/* bytes= */ 230400, /* allocations= */ 4);
+            words functionOwners = allocate(imported, /* length= */ 64);
+            words functionVisibilities = allocate(imported, /* length= */ 64);
+            words importedRows = allocate(imported, /* length= */ 12288);
+            bytes importedIdentities = allocateBytes(imported, /* length= */ 131072);
+            set(functionOwners, 0, 0);
+            set(functionOwners, 1, 1);
+            set(functionVisibilities, 0, 1);
+            PRIVATE_TARGET
+            importedRelocationCount = resolveImportedCallRelocations(
+              source,
+              plan.functionCount,
+              plan.instructionCount,
+              instructions,
+              functionOwners,
+              functionVisibilities,
+              signatureIdentities,
+              importedRows,
+              importedIdentities
+            );
+            if (0 < importedRelocationCount) {
+              firstImportedTarget = importedRows[4096];
+            }
             publishFunctionProductIdentity(
               source,
               bufferLength(source),
@@ -177,6 +221,11 @@ final class NativeCompilerFunctionProductsExampleTest {
             firstOpcode = instructions[12288];
             published = 1;
             setOutputLength(output, 32);
+            drop(importedIdentities);
+            drop(importedRows);
+            drop(functionVisibilities);
+            drop(functionOwners);
+            drop(imported);
             drop(relocationIdentities);
             drop(relocationRows);
             drop(signatureIdentities);
@@ -190,7 +239,9 @@ final class NativeCompilerFunctionProductsExampleTest {
             drop(rows);
           }
         }
-        """);
+        """.replace(
+            "PRIVATE_TARGET",
+            privateTarget ? "set(functionVisibilities, 0, 0);" : ""));
     return new WheelerCompiler().compileModuleFiles(sources, "example.function_products");
   }
 
@@ -251,14 +302,21 @@ final class NativeCompilerFunctionProductsExampleTest {
   }
 
   private static Program product() {
-    String source = """
-        module fixture.function_products;
+    String helper = """
+        module fixture.function_helper;
 
-        classical class FunctionProducts {
-          long identity(long value) {
+        classical class FunctionHelper {
+          public long identity(long value) {
             return value;
           }
+        }
+        """;
+    String root = """
+        module fixture.function_products;
 
+        import fixture.function_helper;
+
+        classical class FunctionProducts {
           entry void main() {
             long value = identity(7);
             assert(value == 7);
@@ -266,7 +324,7 @@ final class NativeCompilerFunctionProductsExampleTest {
         }
         """;
     return new WheelerCompiler().compileModuleFiles(
-        Map.of("FunctionProducts.w", source),
+        Map.of("FunctionHelper.w", helper, "FunctionProducts.w", root),
         "fixture.function_products");
   }
 
