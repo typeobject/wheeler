@@ -9,7 +9,7 @@ final class OwnedStore {
   static final int MAX_REGIONS = 65_535;
   static final int MAX_BUFFERS = 65_535;
   static final long MAX_REGION_BYTES = 1L << 30;
-  static final long MAX_TOTAL_LIVE_BYTES = 16L * 1024 * 1024;
+  static final long MAX_TOTAL_LIVE_BYTES = 32L * 1024 * 1024;
 
   record Change(
       int previousRegionCount,
