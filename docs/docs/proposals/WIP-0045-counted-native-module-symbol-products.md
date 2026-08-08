@@ -166,7 +166,7 @@ The seven-frame executor remains differential conformance evidence until step 9.
 - [x] Each local edge records its completed dependency's public-symbol count at header rank.
 - [x] A 257-module chain publishes 257 symbols, root import count one, peak source count one, and root generation 257.
 - [x] One module publishes exactly 256 scalar declarations. Declaration 257 fails before publication.
-- [x] The 234-module physical compiler closure publishes 1,011 scalar declarations and reaches generation 234.
+- [x] The 235-module physical compiler closure publishes 1,016 scalar declarations and reaches generation 235.
 - [x] Malformed constant syntax leaves product and completion publication untouched.
 - [x] `SymbolIdentities.w` gives every scalar product a package-archive-, module-source-, kind-, visibility-, type-, and name-bound SHA-256 identity after complete range validation. Chain endpoints match an independent Java digest.
 - [x] Literal and same-module scalar expressions publish values through the existing bounded evaluator.
@@ -177,16 +177,17 @@ The seven-frame executor remains differential conformance evidence until step 9.
 - [x] `ProductRootSource.w` removes only the root header and substitutes resolved signed, Boolean, unqualified, and qualified product values. It neither copies nor scans dependency source.
 - [x] `ScalarModuleIdentities.w` publishes package-, source-, module-, dependency-, symbol-, resolution-, and value-bound identities after one complete local leaf-first pass. Independent Java digests match both endpoints of a 257-module chain.
 - [x] External edges leave scalar module identity publication untouched until locked external product identities exist.
-- [ ] Stable compiled body identities publish.
+- [x] `CompiledCallableBodies.w` compiles source-local owner and borrowed callable products to canonical `.wbc` and hashes the exact artifact. Both products match stage 0 byte for byte without reading dependency source.
+- [ ] Imported calls resolve to compiled callable body products.
 - [x] `ModuleCallables.w` publishes owner, visibility, canonical name, complete signature range, forward/reverse body range, and parameter count after one complete staged-source pass.
 - [x] Private callable products stay local. Direct edges count only public dependency callables in header rank.
-- [x] The physical compiler closure publishes 1,008 callable signatures with peak active source count one.
+- [x] The physical compiler closure publishes 1,009 callable signatures with peak active source count one.
 - [x] Canonical result and parameter type ranges, owner or loan mode, and effect bits publish in counted columns. A fixture distinguishes owner, `borrow`, and `borrow mut` parameters.
 - [x] `CallableIdentities.w` publishes package-, source-, visibility-, effect-, name-, result-, parameter-type-, and loan-bound signature identities. Independent Java digests match a leaf and root product. An invalid loan mode publishes nothing.
 - [ ] Result-slot and local-limit columns publish.
 - [ ] Ambiguity, privacy, type, and unresolved diagnostics carry stable candidate identities.
 - [x] Counted scalar closures compile without a seven-node plan.
-- [ ] Callable products compile.
+- [ ] Callable products with imported calls compile. Source-local owner and borrowed products compile.
 - [ ] Aggregate products compile.
 - [ ] The complete physical compiler closure compiles.
 

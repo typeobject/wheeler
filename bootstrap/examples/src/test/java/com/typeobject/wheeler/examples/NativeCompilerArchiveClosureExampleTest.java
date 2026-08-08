@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
+import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
@@ -47,8 +48,8 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("executableCount") > 0);
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
-    assertEquals(1_011, machine.global("symbolCount"));
-    assertEquals(1_008, machine.global("callableCount"));
+    assertEquals(1_016, machine.global("symbolCount"));
+    assertEquals(1_009, machine.global("callableCount"));
     assertTrue(machine.global("callableParameterCount") > 1_000);
     assertTrue(machine.global("borrowedParameterCount") > 0);
     assertTrue(machine.global("mutableParameterCount") > 0);
@@ -245,6 +246,28 @@ final class NativeCompilerArchiveClosureExampleTest {
         machine.global("lastCallableIdentityPrefix"));
     assertEquals(1, machine.global("callableIdentitiesPublished"));
     assertEquals(1, machine.global("invalidCallableIdentityRejected"));
+    String compiledCallableSource = "module wheeler.callable.product; "
+        + "classical class CallableProduct { "
+        + "public long identity(long value) { return value; } }";
+    byte[] compiledCallable = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("CallableProduct.w", compiledCallableSource),
+            "wheeler.callable.product"));
+    assertEquals(compiledCallable.length, machine.global("compiledCallableBodyLength"));
+    assertEquals(
+        identityPrefix(compiledCallable),
+        machine.global("compiledCallableBodyIdentityPrefix"));
+    String compiledBorrowedSource = "module wheeler.callable.product; "
+        + "classical class CallableProduct { "
+        + "public boolean readable(borrow byteview source) { return true; } }";
+    byte[] compiledBorrowed = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("CallableProduct.w", compiledBorrowedSource),
+            "wheeler.callable.product"));
+    assertEquals(compiledBorrowed.length, machine.global("compiledBorrowedBodyLength"));
+    assertEquals(
+        identityPrefix(compiledBorrowed),
+        machine.global("compiledBorrowedBodyIdentityPrefix"));
   }
 
   @Test

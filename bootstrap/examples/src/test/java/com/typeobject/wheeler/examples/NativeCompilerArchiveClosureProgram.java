@@ -17,6 +17,8 @@ final class NativeCompilerArchiveClosureProgram {
         "wheeler.compiler.closure.archive_module_sources"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.callable_identities"));
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.compiled_callable_bodies"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.counted_constant_executor"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.module_callables"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.module_symbols"));
@@ -31,6 +33,7 @@ final class NativeCompilerArchiveClosureProgram {
         import wheeler.compiler.closure.archive_module_sources;
         import wheeler.compiler.closure.archive_sources;
         import wheeler.compiler.closure.callable_identities;
+        import wheeler.compiler.closure.compiled_callable_bodies;
         import wheeler.compiler.closure.counted_constant_executor;
         import wheeler.compiler.closure.module_callables;
         import wheeler.compiler.closure.module_manifest;
@@ -84,6 +87,10 @@ final class NativeCompilerArchiveClosureProgram {
           state long lastCallableIdentityPrefix = 0;
           state long callableIdentitiesPublished = 0;
           state long invalidCallableIdentityRejected = 0;
+          state long compiledCallableBodyLength = 0;
+          state long compiledCallableBodyIdentityPrefix = 0;
+          state long compiledBorrowedBodyLength = 0;
+          state long compiledBorrowedBodyIdentityPrefix = 0;
           state long packageIdentityPrefix = 0;
           state long firstSymbolIdentityPrefix = 0;
           state long lastSymbolIdentityPrefix = 0;
@@ -118,7 +125,7 @@ final class NativeCompilerArchiveClosureProgram {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 3062784, /* allocations= */ 65);
+            region columns = new region(/* bytes= */ 3095584, /* allocations= */ 67);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -183,6 +190,8 @@ final class NativeCompilerArchiveClosureProgram {
             bytes moduleIdentities = allocateBytes(columns, MAX_MODULES * 32);
             bytes callableIdentities = allocateBytes(columns, /* length= */ 131072);
             bytes rejectedCallableIdentities = allocateBytes(columns, /* length= */ 131072);
+            bytes compiledCallableArtifact = allocateBytes(columns, /* length= */ 32768);
+            bytes compiledCallableIdentity = allocateBytes(columns, /* length= */ 32);
             bytes expected = allocateBytes(columns, /* length= */ 256);
             ArchiveSourceIndexResult indexed = indexArchiveSources(
               archive,
@@ -384,6 +393,40 @@ final class NativeCompilerArchiveClosureProgram {
                     }
                   }
                 }
+                if (closure.moduleCount == 3) {
+                  if (callables.callableCount == 4) {
+                    CompiledCallableBody compiledCallable = compileCallableBodyProduct(
+                      archive,
+                      callableSignatureStarts[0],
+                      callableSignatureLengths[0],
+                      callableBodyStarts[0],
+                      callableBodyLengths[0],
+                      compiledCallableArtifact,
+                      compiledCallableIdentity
+                    );
+                    compiledCallableBodyLength = compiledCallable.length;
+                    compiledCallableBodyIdentityPrefix = compiledCallableIdentity[0]
+                        * 16777216
+                      + compiledCallableIdentity[1] * 65536
+                      + compiledCallableIdentity[2] * 256
+                      + compiledCallableIdentity[3];
+                    CompiledCallableBody compiledBorrowed = compileCallableBodyProduct(
+                      archive,
+                      callableSignatureStarts[2],
+                      callableSignatureLengths[2],
+                      callableBodyStarts[2],
+                      callableBodyLengths[2],
+                      compiledCallableArtifact,
+                      compiledCallableIdentity
+                    );
+                    compiledBorrowedBodyLength = compiledBorrowed.length;
+                    compiledBorrowedBodyIdentityPrefix = compiledCallableIdentity[0]
+                        * 16777216
+                      + compiledCallableIdentity[1] * 65536
+                      + compiledCallableIdentity[2] * 256
+                      + compiledCallableIdentity[3];
+                  }
+                }
                 ScalarModuleIdentityPlan scalarIdentities = publishScalarModuleIdentities(
                   archive,
                   manifest,
@@ -583,6 +626,8 @@ final class NativeCompilerArchiveClosureProgram {
               }
             }
             drop(expected);
+            drop(compiledCallableIdentity);
+            drop(compiledCallableArtifact);
             drop(rejectedCallableIdentities);
             drop(callableIdentities);
             drop(moduleIdentities);
