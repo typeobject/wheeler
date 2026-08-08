@@ -76,6 +76,17 @@ final class NativeCompilerFunctionProductsExampleTest {
   }
 
   @Test
+  void rejectsInconsistentRelocationTablesBeforePublication() throws Exception {
+    byte[] artifact = new BytecodeWriter().write(product());
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        decoder(false, false, true), artifact, 32);
+
+    assertThrows(VmTrap.class, machine::run);
+    assertEquals(0, machine.global("published"));
+    assertEquals("00".repeat(32), HexFormat.of().formatHex(machine.hostOutput()));
+  }
+
+  @Test
   void rejectsPrivateCrossModuleTargetsBeforePublication() throws Exception {
     byte[] artifact = new BytecodeWriter().write(product());
     VirtualMachine machine = VirtualMachine.withBinaryInput(decoder(true), artifact, 32);
@@ -113,10 +124,16 @@ final class NativeCompilerFunctionProductsExampleTest {
   }
 
   private static Program decoder(boolean privateTarget) throws Exception {
-    return decoder(privateTarget, false);
+    return decoder(privateTarget, false, false);
   }
 
   private static Program decoder(boolean privateTarget, boolean duplicateOwner) throws Exception {
+    return decoder(privateTarget, duplicateOwner, false);
+  }
+
+  private static Program decoder(
+      boolean privateTarget, boolean duplicateOwner, boolean malformedRelocation)
+      throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
@@ -130,6 +147,8 @@ final class NativeCompilerFunctionProductsExampleTest {
         "wheeler.compiler.closure.imported_call_relocations"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.local_call_relocations"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.relocation_identities"));
     sources.put("FunctionProductsExample.w", """
         module example.function_products;
 
@@ -138,6 +157,7 @@ final class NativeCompilerFunctionProductsExampleTest {
         import wheeler.compiler.closure.function_product_identities;
         import wheeler.compiler.closure.imported_call_relocations;
         import wheeler.compiler.closure.local_call_relocations;
+        import wheeler.compiler.closure.relocation_identities;
 
         classical class FunctionProductsExample {
           state long functionCount = 0;
@@ -156,10 +176,11 @@ final class NativeCompilerFunctionProductsExampleTest {
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 203872, /* allocations= */ 6);
+            region rows = new region(/* bytes= */ 203904, /* allocations= */ 7);
             words functions = allocate(rows, /* length= */ 640);
             words instructions = allocate(rows, /* length= */ 24576);
             bytes signatureIdentity = allocateBytes(rows, /* length= */ 32);
+            bytes relocationIdentity = allocateBytes(rows, /* length= */ 32);
             bytes aggregateIdentity = allocateBytes(rows, /* length= */ 32);
             bytes ownershipIdentity = allocateBytes(rows, /* length= */ 32);
             bytes dependencyIdentities = allocateBytes(rows, /* length= */ 2048);
@@ -268,16 +289,30 @@ final class NativeCompilerFunctionProductsExampleTest {
             if (0 < importedRelocationCount) {
               firstImportedTarget = importedRows[4096];
             }
+            MALFORMED_RELOCATION
+            publishRelocationIdentity(
+              /* function= */ 1,
+              plan.instructionCount,
+              instructions,
+              localRelocationCount,
+              relocationRows,
+              relocationIdentities,
+              importedRelocationCount,
+              importedRows,
+              importedIdentities,
+              relocationIdentity
+            );
             publishFunctionProductIdentity(
               source,
               bufferLength(source),
               functions,
-              0,
+              1,
               signatureIdentity,
               /* dependencyCount= */ 1,
               dependencyIdentities,
               aggregateIdentity,
               ownershipIdentity,
+              relocationIdentity,
               output
             );
             functionCount = plan.functionCount;
@@ -298,6 +333,7 @@ final class NativeCompilerFunctionProductsExampleTest {
             drop(dependencyIdentities);
             drop(ownershipIdentity);
             drop(aggregateIdentity);
+            drop(relocationIdentity);
             drop(signatureIdentity);
             drop(closureInstructions);
             drop(closureFunctions);
@@ -311,6 +347,9 @@ final class NativeCompilerFunctionProductsExampleTest {
         }
         """.replace("SECOND_OWNER", duplicateOwner ? "7" : "8")
             .replace(
+                "MALFORMED_RELOCATION",
+                malformedRelocation ? "set(importedRows, 4096, 9);" : "")
+            .replace(
                 "PRIVATE_TARGET",
                 privateTarget ? "set(functionVisibilities, 0, 0);" : ""));
     return new WheelerCompiler().compileModuleFiles(sources, "example.function_products");
@@ -321,7 +360,7 @@ final class NativeCompilerFunctionProductsExampleTest {
     int codeStart = sectionStart(artifact, 6);
     ByteBuffer bytes = ByteBuffer.wrap(artifact).order(ByteOrder.LITTLE_ENDIAN);
     int functionCount = bytes.getInt(functionsStart);
-    int descriptor = functionsStart + 4;
+    int descriptor = functionsStart + 4 + 40;
     long flags = Integer.toUnsignedLong(bytes.getInt(descriptor + 8));
     int forwardOffset = bytes.getInt(descriptor + 12);
     int forwardLength = bytes.getInt(descriptor + 16);
@@ -342,6 +381,7 @@ final class NativeCompilerFunctionProductsExampleTest {
     input.writeBytes(identity);
     Arrays.fill(identity, (byte) 3);
     input.writeBytes(identity);
+    input.writeBytes(expectedRelocationIdentity(artifact));
     writeLong(input, 1);
     Arrays.fill(identity, (byte) 4);
     input.writeBytes(identity);
@@ -358,6 +398,30 @@ final class NativeCompilerFunctionProductsExampleTest {
     writeLong(input, typeCount);
     return HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(input.toByteArray()));
+  }
+
+  private static byte[] expectedRelocationIdentity(byte[] artifact) throws Exception {
+    int codeStart = sectionStart(artifact, 6);
+    int callStart = firstCallInstruction(artifact);
+    ByteBuffer bytes = ByteBuffer.wrap(artifact).order(ByteOrder.LITTLE_ENDIAN);
+    int instruction = 0;
+    int cursor = codeStart;
+    while (cursor < callStart) {
+      instruction += 1;
+      cursor += bytes.getInt(cursor + 4);
+    }
+    ByteArrayOutputStream input = new ByteArrayOutputStream();
+    input.writeBytes("wheeler-callable-relocation-product-1"
+        .getBytes(StandardCharsets.US_ASCII));
+    writeLong(input, 1);
+    writeLong(input, instruction);
+    writeLong(input, 0);
+    writeLong(input, 1);
+    writeLong(input, 0);
+    byte[] targetIdentity = new byte[32];
+    Arrays.fill(targetIdentity, (byte) 1);
+    input.writeBytes(targetIdentity);
+    return MessageDigest.getInstance("SHA-256").digest(input.toByteArray());
   }
 
   private static byte[] digest(byte[] bytes, int start, int length) throws Exception {

@@ -52,6 +52,7 @@ classical class FunctionProductIdentities {
     borrow byteview dependencyIdentities,
     borrow byteview aggregateIdentity,
     borrow byteview ownershipIdentity,
+    borrow byteview relocationIdentity,
     borrow mut bytes identity
   ) {
     assert(0 < artifactLength);
@@ -65,6 +66,7 @@ classical class FunctionProductIdentities {
     assert(bufferLength(dependencyIdentities) == DEPENDENCY_IDENTITY_BYTES);
     assert(bufferLength(aggregateIdentity) == IDENTITY_BYTES);
     assert(bufferLength(ownershipIdentity) == IDENTITY_BYTES);
+    assert(bufferLength(relocationIdentity) == IDENTITY_BYTES);
     assert(bufferLength(identity) == IDENTITY_BYTES);
 
     long forwardStart = functionRows[128 + function];
@@ -111,6 +113,7 @@ classical class FunctionProductIdentities {
     cursor = copyIdentity(signatureIdentity, input, cursor);
     cursor = copyIdentity(aggregateIdentity, input, cursor);
     cursor = copyIdentity(ownershipIdentity, input, cursor);
+    cursor = copyIdentity(relocationIdentity, input, cursor);
     cursor = writeSigned(dependencyCount, input, cursor);
     long dependencyByte = 0;
     while (dependencyByte < dependencyCount * IDENTITY_BYTES) limit DEPENDENCY_IDENTITY_BYTES {
