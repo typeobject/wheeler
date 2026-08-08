@@ -148,7 +148,7 @@ These are independent capacities. Sixteen thousand symbols do not allocate sixte
 1. Index scalar declaration products from counted closure sources.
 2. Give every product and symbol a stable identity.
 3. Resolve imported constant references from products.
-4. Compile arbitrary counted constant closures without `BoundedGraphPlan`.
+4. Compile arbitrary counted scalar closures without `BoundedGraphPlan`.
 5. Add callable signatures and body products.
 6. Add records, variants, fixed arrays, and aggregate layouts.
 7. Add full ownership and loan checking across imported calls.
@@ -164,16 +164,18 @@ The seven-frame executor remains differential conformance evidence until step 9.
 - [x] Each local edge records its completed dependency's public-symbol count at header rank.
 - [x] A 257-module chain publishes 257 symbols, root import count one, peak source count one, and root generation 257.
 - [x] One module publishes exactly 256 scalar declarations. Declaration 257 fails before publication.
-- [x] The 228-module physical compiler closure publishes 983 scalar declarations and reaches generation 228.
+- [x] The 230-module physical compiler closure publishes 989 scalar declarations and reaches generation 230.
 - [x] Malformed constant syntax leaves product and completion publication untouched.
 - [x] `SymbolIdentities.w` gives every scalar product a package-archive-, module-source-, kind-, visibility-, type-, and name-bound SHA-256 identity after complete range validation. Chain endpoints match an independent Java digest.
 - [x] Literal and same-module scalar expressions publish values through the existing bounded evaluator.
 - [x] `ImportedConstantValues.w` packs direct public products in header and declaration order. The existing bounded evaluator resolves arithmetic, comparison, Boolean, unqualified, and qualified imported expressions from that table.
 - [x] Exact direct-import forwarding crosses a 257-module chain. The final value remains 41 without retaining dependency source.
 - [x] Two equal unqualified names remain an unresolved ambiguity. A qualified reference selects one exact module product.
+- [x] `CountedConstantExecutor.w` compiles an executable root from counted products without `BoundedGraphPlan` or dependency source. A 257-module forwarding closure is byte-identical to the corresponding stage-0 normalized root compilation.
+- [x] `ProductRootSource.w` removes only the root header and substitutes resolved signed, Boolean, unqualified, and qualified product values. It neither copies nor scans dependency source.
 - [ ] Stable compiled module identities publish.
 - [ ] Ambiguity, privacy, type, and unresolved diagnostics carry stable candidate identities.
-- [ ] Arbitrary counted constant closures compile without a seven-node plan.
+- [x] Counted scalar closures compile without a seven-node plan.
 - [ ] Callable products compile.
 - [ ] Aggregate products compile.
 - [ ] The complete physical compiler closure compiles.

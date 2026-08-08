@@ -56,7 +56,46 @@ final class NativeCompilerProductFixtures {
     return fixture("demo.ambiguity", "src/Root.w", "ambiguity.root", "src", sources);
   }
 
+  static Fixture executableQualifiedValues() throws Exception {
+    Map<String, byte[]> sources = new LinkedHashMap<>();
+    sources.put("src/Values.w", bytes(
+        "module product.values; classical class Values { "
+            + "public const long NEGATIVE = -42; public const boolean READY = true; }"));
+    sources.put("src/Root.w", bytes(
+        "module product.root; import product.values; classical class Root { "
+            + "state long outcome = 0; entry void main() { "
+            + "outcome += product.values::NEGATIVE; assert(product.values::READY); } }"));
+    return fixture(
+        "demo.qualified.values",
+        "src/Root.w",
+        "product.root",
+        "src",
+        sources);
+  }
+
+  static Fixture executableForwardingChain(int dependencyCount) throws Exception {
+    Map<String, byte[]> sources = forwardingSources(dependencyCount);
+    String imported = "forward.n%03d".formatted(dependencyCount - 1);
+    sources.put("src/forward/Root.w", bytes((
+        "module forward.root; import %s; classical class Root { "
+            + "state long outcome = 0; entry void main() { outcome += V%03d; } }")
+                .formatted(imported, dependencyCount - 1)));
+    return fixture(
+        "demo.forward.executable",
+        "src/forward/Root.w",
+        "forward.root",
+        "src/forward",
+        sources);
+  }
+
   static Fixture forwardingChain(int count) throws Exception {
+    Map<String, byte[]> sources = forwardingSources(count);
+    String root = "src/forward/n%03d.w".formatted(count - 1);
+    String module = "forward.n%03d".formatted(count - 1);
+    return fixture("demo.forward", root, module, "src/forward", sources);
+  }
+
+  private static Map<String, byte[]> forwardingSources(int count) {
     Map<String, byte[]> sources = new LinkedHashMap<>();
     for (int index = 0; index < count; index++) {
       String name = "forward.n%03d".formatted(index);
@@ -67,9 +106,7 @@ final class NativeCompilerProductFixtures {
           "module %s;%s classical class Node%03d { public const long V%03d = %s; }"
               .formatted(name, imported, index, index, expression)));
     }
-    String root = "src/forward/n%03d.w".formatted(count - 1);
-    String module = "forward.n%03d".formatted(count - 1);
-    return fixture("demo.forward", root, module, "src/forward", sources);
+    return sources;
   }
 
   private static Fixture fixture(
@@ -109,12 +146,15 @@ final class NativeCompilerProductFixtures {
         """.formatted(packageName, root, rootModule, selector);
     byte[] archive = new PackageArchive().encode(
         new PackageManifestParser().parse(packageText), sources);
-    return new Fixture(archive, manifest);
+    return new Fixture(archive, manifest, Map.copyOf(sources));
   }
 
   private static byte[] bytes(String source) {
     return source.getBytes(StandardCharsets.UTF_8);
   }
 
-  record Fixture(byte[] archive, BootstrapModuleManifest manifest) {}
+  record Fixture(
+      byte[] archive,
+      BootstrapModuleManifest manifest,
+      Map<String, byte[]> sources) {}
 }

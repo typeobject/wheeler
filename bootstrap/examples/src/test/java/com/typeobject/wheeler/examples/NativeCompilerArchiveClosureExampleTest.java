@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 final class NativeCompilerArchiveClosureExampleTest {
   @Test
   void joinsEveryPhysicalCompilerModuleToItsDigestCheckedArchiveRange() throws Exception {
-    Program program = program();
+    Program program = NativeCompilerArchiveClosureProgram.program();
     byte[] archive = CompilerSources.packageArchive();
     BootstrapModuleManifest manifest = CompilerSources.bootstrapModuleManifest();
     VirtualMachine machine = VirtualMachine.withBinaryInput(
@@ -47,7 +47,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("executableCount") > 0);
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
-    assertEquals(983, machine.global("symbolCount"));
+    assertEquals(989, machine.global("symbolCount"));
     assertTrue(machine.global("resolvedSymbolCount") > 800);
     assertTrue(machine.global("maxImportedSymbols") > 0);
     assertEquals(manifest.modules().size(), machine.global("symbolGeneration"));
@@ -89,7 +89,7 @@ final class NativeCompilerArchiveClosureExampleTest {
 
   @Test
   void rejectsNoncanonicalPackageMetadataWrongTargetAndMalformedSymbols() throws Exception {
-    Program closureProgram = program();
+    Program closureProgram = NativeCompilerArchiveClosureProgram.program();
     byte[] source = "module demo.main; classical class Main {}"
         .getBytes(StandardCharsets.UTF_8);
     byte[] manifest = smallManifest(source);
@@ -129,7 +129,7 @@ final class NativeCompilerArchiveClosureExampleTest {
 
   @Test
   void indexesTwoHundredFiftySixScalarProductsAndRejectsTheNext() throws Exception {
-    Program closureProgram = program();
+    Program closureProgram = NativeCompilerArchiveClosureProgram.program();
     byte[] exactSource = constantSource(256);
     VirtualMachine exact = VirtualMachine.withBinaryInput(
         closureProgram,
@@ -158,7 +158,7 @@ final class NativeCompilerArchiveClosureExampleTest {
   void resolvesGeneralExpressionsAcrossImportedProducts() throws Exception {
     NativeCompilerProductFixtures.Fixture fixture = NativeCompilerProductFixtures.expressions();
     VirtualMachine machine = VirtualMachine.withBinaryInput(
-        program(),
+        NativeCompilerArchiveClosureProgram.program(),
         framed(fixture.archive(), fixture.manifest().canonicalBytes()),
         1);
     CompilerMachineRunner.runWithoutRewindHistory(machine);
@@ -172,7 +172,7 @@ final class NativeCompilerArchiveClosureExampleTest {
   void leavesAnAmbiguousUnqualifiedProductUnresolved() throws Exception {
     NativeCompilerProductFixtures.Fixture fixture = NativeCompilerProductFixtures.ambiguous();
     VirtualMachine machine = VirtualMachine.withBinaryInput(
-        program(),
+        NativeCompilerArchiveClosureProgram.program(),
         framed(fixture.archive(), fixture.manifest().canonicalBytes()),
         1);
     CompilerMachineRunner.runWithoutRewindHistory(machine);
@@ -186,7 +186,7 @@ final class NativeCompilerArchiveClosureExampleTest {
   void resolvesTwoHundredFiftySixImportedConstantProducts() throws Exception {
     NativeCompilerProductFixtures.Fixture fixture = NativeCompilerProductFixtures.forwardingChain(257);
     VirtualMachine machine = VirtualMachine.withBinaryInput(
-        program(),
+        NativeCompilerArchiveClosureProgram.program(),
         framed(fixture.archive(), fixture.manifest().canonicalBytes()),
         1);
     CompilerMachineRunner.runWithoutRewindHistory(machine);
@@ -199,10 +199,59 @@ final class NativeCompilerArchiveClosureExampleTest {
   }
 
   @Test
+  void compilesQualifiedBooleanAndNegativeProducts() throws Exception {
+    NativeCompilerProductFixtures.Fixture fixture =
+        NativeCompilerProductFixtures.executableQualifiedValues();
+    byte[] expected = new WheelerCompiler().compileToBytecode(
+        "classical class Root { state long outcome = 0; "
+            + "entry void main() { outcome += -42; assert(true); } }");
+    Program compiler = NativeCompilerArchiveClosureProgram.program();
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        compiler,
+        framed(fixture.archive(), fixture.manifest().canonicalBytes()),
+        expected.length);
+    try {
+      CompilerMachineRunner.runWithoutRewindHistory(machine);
+    } catch (VmTrap trap) {
+      throw new AssertionError(
+          machine.snapshot().selectedFrames().stream()
+              .map(frame -> compiler.function(frame.functionId()).name()
+                  + "@" + frame.programCounter())
+              .toList()
+              .toString(),
+          trap);
+    }
+    assertArrayEquals(expected, machine.hostOutput());
+    assertEquals(2, machine.global("symbolCount"));
+    assertEquals(2, machine.global("resolvedSymbolCount"));
+    assertEquals(1, machine.global("lastSymbolValue"));
+  }
+
+  @Test
+  void compilesA257ModuleExecutableDirectlyFromCountedProducts() throws Exception {
+    NativeCompilerProductFixtures.Fixture fixture =
+        NativeCompilerProductFixtures.executableForwardingChain(256);
+    byte[] expected = new WheelerCompiler().compileToBytecode(
+        "classical class Root { state long outcome = 0; "
+            + "entry void main() { outcome += 41; } }");
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        NativeCompilerArchiveClosureProgram.program(),
+        framed(fixture.archive(), fixture.manifest().canonicalBytes()),
+        expected.length);
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+    assertArrayEquals(expected, machine.hostOutput());
+    assertEquals(257, machine.global("moduleCount"));
+    assertEquals(256, machine.global("symbolCount"));
+    assertEquals(256, machine.global("resolvedSymbolCount"));
+    assertEquals(41, machine.global("lastSymbolValue"));
+    assertEquals(257, machine.global("symbolGeneration"));
+  }
+
+  @Test
   void plansAndClassifiesAChainOfTwoHundredFiftySevenModules() throws Exception {
     ChainFixture fixture = chainFixture(257);
     VirtualMachine machine = VirtualMachine.withBinaryInput(
-        program(),
+        NativeCompilerArchiveClosureProgram.program(),
         framed(fixture.archive(), fixture.manifest().canonicalBytes()),
         1);
 
@@ -278,376 +327,6 @@ final class NativeCompilerArchiveClosureExampleTest {
     return new WheelerCompiler().compileModuleFiles(
         sources,
         "example.closure_classifier");
-  }
-
-  private static Program program() throws Exception {
-    Map<String, String> sources = new LinkedHashMap<>();
-    CoreSources.addBinaryClosure(sources);
-    sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
-    sources.putAll(CompilerSources.moduleClosure(
-        "wheeler.compiler.closure.archive_module_sources"));
-    sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.module_symbols"));
-    sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.package_target"));
-    sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.plan"));
-    sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.schedule"));
-    sources.put("ArchiveClosureExample.w", """
-        module example.archive_closure;
-
-        import wheeler.compiler.closure.archive_module_sources;
-        import wheeler.compiler.closure.archive_sources;
-        import wheeler.compiler.closure.module_manifest;
-        import wheeler.compiler.closure.module_symbols;
-        import wheeler.compiler.closure.package_target;
-        import wheeler.compiler.closure.plan;
-        import wheeler.compiler.closure.schedule;
-        import wheeler.compiler.closure.symbol_identities;
-
-        classical class ArchiveClosureExample {
-          private const long MAX_ARCHIVE_BYTES = 16777216;
-          private const long MAX_EXTERNALS = 64;
-          private const long MAX_IMPORTS = 3072;
-          private const long MAX_MANIFEST_BYTES = 262144;
-          private const long MAX_MODULES = 512;
-          private const long MAX_SYMBOLS = 16384;
-
-          state long moduleCount = 0;
-          state long importCount = 0;
-          state long archiveEntryCount = 0;
-          state long rootEntry = 0;
-          state long rootDataStart = 0;
-          state long rootDataLength = 0;
-          state long rootOrder = 0;
-          state long rootExecutable = 0;
-          state long executableCount = 0;
-          state long peakActiveSources = 0;
-          state long rootGeneration = 0;
-          state long compilerTarget = -1;
-          state long symbolCount = 0;
-          state long resolvedSymbolCount = 0;
-          state long rootLocalSymbols = 0;
-          state long rootImportedSymbols = 0;
-          state long maxImportedSymbols = 0;
-          state long symbolGeneration = 0;
-          state long packageIdentityPrefix = 0;
-          state long firstSymbolIdentityPrefix = 0;
-          state long lastSymbolIdentityPrefix = 0;
-          state long lastSymbolValue = 0;
-          state long lastSymbolResolved = 0;
-          state long published = 0;
-
-          entry void main(borrow byteview source, borrow mut bytes output) {
-            long archiveLength = source[0]
-              + source[1] * 256
-              + source[2] * 65536
-              + source[3] * 16777216;
-            assert(archiveLength < MAX_ARCHIVE_BYTES + 1);
-            long manifestLength = bufferLength(source) - archiveLength - 4;
-            assert(0 < manifestLength);
-            assert(manifestLength < MAX_MANIFEST_BYTES + 1);
-            region inputArena = new region(/* bytes= */ 17039360, /* allocations= */ 2);
-            bytes archive = allocateBytes(inputArena, archiveLength);
-            bytes manifest = allocateBytes(inputArena, manifestLength);
-            long cursor = 0;
-            while (cursor < archiveLength) limit MAX_ARCHIVE_BYTES {
-              setByte(archive, cursor, source[cursor + 4]);
-              cursor += 1;
-            }
-
-            cursor = 0;
-            while (cursor < manifestLength) limit MAX_MANIFEST_BYTES {
-              setByte(manifest, cursor, source[archiveLength + cursor + 4]);
-              cursor += 1;
-            }
-
-            region columns = new region(/* bytes= */ 1920000, /* allocations= */ 40);
-            words archivePathStarts = allocate(columns, MAX_MODULES);
-            words archivePathLengths = allocate(columns, MAX_MODULES);
-            words archiveDataStarts = allocate(columns, MAX_MODULES);
-            words archiveDataLengths = allocate(columns, MAX_MODULES);
-            words externalStarts = allocate(columns, MAX_EXTERNALS);
-            words externalLengths = allocate(columns, MAX_EXTERNALS);
-            words moduleStarts = allocate(columns, MAX_MODULES);
-            words moduleLengths = allocate(columns, MAX_MODULES);
-            words sourceStarts = allocate(columns, MAX_MODULES);
-            words sourceLengths = allocate(columns, MAX_MODULES);
-            words identityStarts = allocate(columns, MAX_MODULES);
-            words edgeOwners = allocate(columns, MAX_IMPORTS);
-            words edgeStarts = allocate(columns, MAX_IMPORTS);
-            words edgeLengths = allocate(columns, MAX_IMPORTS);
-            words edgeTargets = allocate(columns, MAX_IMPORTS);
-            words moduleEntries = allocate(columns, MAX_MODULES);
-            words archiveSourceStarts = allocate(columns, MAX_MODULES);
-            words archiveSourceLengths = allocate(columns, MAX_MODULES);
-            words firstImports = allocate(columns, MAX_MODULES);
-            words directImportCounts = allocate(columns, MAX_MODULES);
-            words importRanks = allocate(columns, MAX_IMPORTS);
-            words leafFirstOrder = allocate(columns, MAX_MODULES);
-            words executableOwners = allocate(columns, MAX_MODULES);
-            words moduleSlots = allocate(columns, MAX_MODULES);
-            words moduleGenerations = allocate(columns, MAX_MODULES);
-            words moduleFirstSymbols = allocate(columns, MAX_MODULES);
-            words moduleSymbolCounts = allocate(columns, MAX_MODULES);
-            words moduleImportedSymbolCounts = allocate(columns, MAX_MODULES);
-            words edgeSymbolCounts = allocate(columns, MAX_IMPORTS);
-            words symbolOwners = allocate(columns, MAX_SYMBOLS);
-            words symbolStarts = allocate(columns, MAX_SYMBOLS);
-            words symbolLengths = allocate(columns, MAX_SYMBOLS);
-            words symbolKinds = allocate(columns, MAX_SYMBOLS);
-            words symbolVisibilities = allocate(columns, MAX_SYMBOLS);
-            words symbolTypes = allocate(columns, MAX_SYMBOLS);
-            words symbolValues = allocate(columns, MAX_SYMBOLS);
-            words symbolResolved = allocate(columns, MAX_SYMBOLS);
-            bytes packageIdentity = allocateBytes(columns, /* length= */ 32);
-            bytes symbolIdentities = allocateBytes(columns, MAX_SYMBOLS * 32);
-            bytes expected = allocateBytes(columns, /* length= */ 256);
-            ArchiveSourceIndexResult indexed = indexArchiveSources(
-              archive,
-              archivePathStarts,
-              archivePathLengths,
-              archiveDataStarts,
-              archiveDataLengths
-            );
-            match (indexed) {
-              case ArchiveSourceIndexResult.Value(ArchiveSourceIndex archiveIndex) {
-                BootstrapModuleManifestPlan manifestPlan = parseBootstrapModuleManifest(
-                  manifest,
-                  expected,
-                  externalStarts,
-                  externalLengths,
-                  moduleStarts,
-                  moduleLengths,
-                  sourceStarts,
-                  sourceLengths,
-                  identityStarts,
-                  edgeOwners,
-                  edgeStarts,
-                  edgeLengths,
-                  edgeTargets
-                );
-                long selectedCompilerTarget = -1;
-                CompilerToolTargetResult selectedTarget = validateCompilerToolTarget(
-                  archive,
-                  archiveIndex,
-                  manifest,
-                  manifestPlan,
-                  moduleStarts,
-                  moduleLengths,
-                  sourceStarts,
-                  sourceLengths
-                );
-                match (selectedTarget) {
-                  case CompilerToolTargetResult.Value(CompilerToolTarget target) {
-                    selectedCompilerTarget = target.target;
-                  }
-                  case CompilerToolTargetResult.Error(long targetOffset) {
-                    assert(targetOffset < 0);
-                  }
-                }
-                assert(-1 < selectedCompilerTarget);
-                ArchiveModuleSourcePlan plan = joinArchiveModuleSources(
-                  archive,
-                  archiveIndex,
-                  archivePathStarts,
-                  archivePathLengths,
-                  archiveDataStarts,
-                  archiveDataLengths,
-                  manifest,
-                  manifestPlan,
-                  sourceStarts,
-                  sourceLengths,
-                  identityStarts,
-                  moduleEntries
-                );
-                CountedClosurePlan closure = planClosureStructure(
-                  archive,
-                  manifest,
-                  manifestPlan,
-                  edgeOwners,
-                  edgeTargets,
-                  moduleEntries,
-                  archiveDataStarts,
-                  archiveDataLengths,
-                  archiveSourceStarts,
-                  archiveSourceLengths,
-                  firstImports,
-                  directImportCounts,
-                  importRanks,
-                  leafFirstOrder
-                );
-                CountedModuleSymbolPlan symbols = indexCountedModuleSymbols(
-                  archive,
-                  manifest,
-                  closure,
-                  edgeTargets,
-                  firstImports,
-                  directImportCounts,
-                  importRanks,
-                  leafFirstOrder,
-                  archiveSourceStarts,
-                  archiveSourceLengths,
-                  moduleFirstSymbols,
-                  moduleSymbolCounts,
-                  moduleImportedSymbolCounts,
-                  edgeSymbolCounts,
-                  symbolOwners,
-                  symbolStarts,
-                  symbolLengths,
-                  symbolKinds,
-                  symbolVisibilities,
-                  symbolTypes,
-                  symbolValues,
-                  symbolResolved
-                );
-                publishCountedSymbolIdentities(
-                  archive,
-                  manifest,
-                  closure,
-                  symbols.symbolCount,
-                  identityStarts,
-                  symbolOwners,
-                  symbolStarts,
-                  symbolLengths,
-                  symbolKinds,
-                  symbolVisibilities,
-                  symbolTypes,
-                  packageIdentity,
-                  symbolIdentities
-                );
-                classifyClosureExecutableOwners(
-                  archive,
-                  manifest,
-                  closure,
-                  moduleStarts,
-                  moduleLengths,
-                  archiveSourceStarts,
-                  archiveSourceLengths,
-                  executableOwners
-                );
-                ClosureSourceSchedule schedule = stageClosureSources(
-                  archive,
-                  manifest,
-                  closure,
-                  leafFirstOrder,
-                  archiveSourceStarts,
-                  archiveSourceLengths,
-                  moduleSlots,
-                  moduleGenerations
-                );
-                long selectedRootEntry = moduleEntries[plan.rootModule];
-                long executableModule = 0;
-                long parsedExecutables = 0;
-                long largestImportedSymbols = 0;
-                while (executableModule < closure.moduleCount) limit MAX_MODULES {
-                  parsedExecutables += executableOwners[executableModule];
-                  if (
-                    largestImportedSymbols < moduleImportedSymbolCounts[executableModule]
-                  ) {
-                    largestImportedSymbols = moduleImportedSymbolCounts[executableModule];
-                  }
-
-                  executableModule += 1;
-                }
-                long parsedResolvedSymbols = 0;
-                long resolvedSymbol = 0;
-                while (resolvedSymbol < symbols.symbolCount) limit MAX_SYMBOLS {
-                  parsedResolvedSymbols += symbolResolved[resolvedSymbol];
-                  resolvedSymbol += 1;
-                }
-
-                long selectedRootOrder = 0;
-                while (
-                  leafFirstOrder[selectedRootOrder] != closure.rootModule
-                ) limit MAX_MODULES {
-                  selectedRootOrder += 1;
-                }
-                moduleCount = plan.moduleCount;
-                importCount = manifestPlan.importCount;
-                archiveEntryCount = plan.archiveEntryCount;
-                rootEntry = selectedRootEntry;
-                rootDataStart = archiveDataStarts[selectedRootEntry];
-                rootDataLength = archiveDataLengths[selectedRootEntry];
-                rootOrder = selectedRootOrder;
-                rootExecutable = executableOwners[closure.rootModule];
-                executableCount = parsedExecutables;
-                peakActiveSources = schedule.peakActiveSources;
-                rootGeneration = moduleGenerations[closure.rootModule];
-                compilerTarget = selectedCompilerTarget;
-                symbolCount = symbols.symbolCount;
-                resolvedSymbolCount = parsedResolvedSymbols;
-                rootLocalSymbols = moduleSymbolCounts[closure.rootModule];
-                rootImportedSymbols = moduleImportedSymbolCounts[closure.rootModule];
-                maxImportedSymbols = largestImportedSymbols;
-                symbolGeneration = symbols.finalGeneration;
-                packageIdentityPrefix = packageIdentity[0] * 16777216
-                  + packageIdentity[1] * 65536
-                  + packageIdentity[2] * 256
-                  + packageIdentity[3];
-                firstSymbolIdentityPrefix = symbolIdentities[0] * 16777216
-                  + symbolIdentities[1] * 65536
-                  + symbolIdentities[2] * 256
-                  + symbolIdentities[3];
-                long finalIdentity = (symbols.symbolCount - 1) * 32;
-                lastSymbolIdentityPrefix = symbolIdentities[finalIdentity] * 16777216
-                  + symbolIdentities[finalIdentity + 1] * 65536
-                  + symbolIdentities[finalIdentity + 2] * 256
-                  + symbolIdentities[finalIdentity + 3];
-                lastSymbolValue = symbolValues[symbols.symbolCount - 1];
-                lastSymbolResolved = symbolResolved[symbols.symbolCount - 1];
-                published = 1;
-                setByte(output, 0, 1);
-              }
-              case ArchiveSourceIndexResult.Error(long offset) {
-                assert(offset < 0);
-              }
-            }
-            drop(expected);
-            drop(symbolIdentities);
-            drop(packageIdentity);
-            drop(symbolResolved);
-            drop(symbolValues);
-            drop(symbolTypes);
-            drop(symbolVisibilities);
-            drop(symbolKinds);
-            drop(symbolLengths);
-            drop(symbolStarts);
-            drop(symbolOwners);
-            drop(edgeSymbolCounts);
-            drop(moduleImportedSymbolCounts);
-            drop(moduleSymbolCounts);
-            drop(moduleFirstSymbols);
-            drop(moduleGenerations);
-            drop(moduleSlots);
-            drop(executableOwners);
-            drop(leafFirstOrder);
-            drop(importRanks);
-            drop(directImportCounts);
-            drop(firstImports);
-            drop(archiveSourceLengths);
-            drop(archiveSourceStarts);
-            drop(moduleEntries);
-            drop(edgeTargets);
-            drop(edgeLengths);
-            drop(edgeStarts);
-            drop(edgeOwners);
-            drop(identityStarts);
-            drop(sourceLengths);
-            drop(sourceStarts);
-            drop(moduleLengths);
-            drop(moduleStarts);
-            drop(externalLengths);
-            drop(externalStarts);
-            drop(archiveDataLengths);
-            drop(archiveDataStarts);
-            drop(archivePathLengths);
-            drop(archivePathStarts);
-            drop(columns);
-            drop(manifest);
-            drop(archive);
-            drop(inputArena);
-          }
-        }
-        """);
-    return new WheelerCompiler().compileModuleFiles(sources, "example.archive_closure");
   }
 
   private static byte[] framed(byte[] archive, byte[] manifest) {

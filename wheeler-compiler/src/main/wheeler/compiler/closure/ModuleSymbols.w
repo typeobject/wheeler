@@ -42,6 +42,8 @@ classical class CountedModuleSymbols {
   private boolean columnsValid(
     borrow mut words moduleFirstSymbols,
     borrow mut words moduleSymbolCounts,
+    borrow mut words moduleProductNameStarts,
+    borrow mut words moduleProductNameLengths,
     borrow mut words moduleImportedSymbolCounts,
     borrow mut words edgeSymbolCounts,
     borrow mut words symbolOwners,
@@ -58,6 +60,14 @@ classical class CountedModuleSymbols {
     }
 
     if (bufferLength(moduleSymbolCounts) == MAX_LOCAL_MODULES) {} else {
+      return false;
+    }
+
+    if (bufferLength(moduleProductNameStarts) == MAX_LOCAL_MODULES) {} else {
+      return false;
+    }
+
+    if (bufferLength(moduleProductNameLengths) == MAX_LOCAL_MODULES) {} else {
       return false;
     }
 
@@ -364,6 +374,8 @@ classical class CountedModuleSymbols {
     borrow mut words sourceLengths,
     borrow mut words moduleFirstSymbols,
     borrow mut words moduleSymbolCounts,
+    borrow mut words moduleProductNameStarts,
+    borrow mut words moduleProductNameLengths,
     borrow mut words moduleImportedSymbolCounts,
     borrow mut words edgeSymbolCounts,
     borrow mut words symbolOwners,
@@ -382,6 +394,8 @@ classical class CountedModuleSymbols {
       columnsValid(
         moduleFirstSymbols,
         moduleSymbolCounts,
+        moduleProductNameStarts,
+        moduleProductNameLengths,
         moduleImportedSymbolCounts,
         edgeSymbolCounts,
         symbolOwners,
@@ -586,6 +600,8 @@ classical class CountedModuleSymbols {
     while (publishedModule < plan.moduleCount) limit MAX_LOCAL_MODULES {
       set(moduleFirstSymbols, publishedModule, scratchFirstSymbols[publishedModule]);
       set(moduleSymbolCounts, publishedModule, scratchSymbolCounts[publishedModule]);
+      set(moduleProductNameStarts, publishedModule, scratchModuleNameStarts[publishedModule]);
+      set(moduleProductNameLengths, publishedModule, scratchModuleNameLengths[publishedModule]);
       set(moduleImportedSymbolCounts, publishedModule, scratchImportedCounts[publishedModule]);
       publishedModule += 1;
     }
