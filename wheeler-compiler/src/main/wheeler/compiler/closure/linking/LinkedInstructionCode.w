@@ -61,15 +61,17 @@ classical class LinkedInstructionCode {
     }
   }
 
-  /// Rewrites imported call operands after validating every final function target.
-  public void rewriteImportedInstructionTargets(
+  /// Rewrites imported call operands at a caller-selected code-section offset.
+  public void rewriteImportedInstructionTargetsAt(
     long functionCount,
     long instructionCount,
     borrow mut words closureInstructionRows,
     long relocationCount,
     borrow mut words relocationRows,
-    borrow mut bytes output
+    borrow mut bytes output,
+    long outputStart
   ) {
+    assert(-1 < outputStart);
     assert(-1 < functionCount);
     assert(functionCount < MAX_CLOSURE_FUNCTIONS + 1);
     assert(-1 < instructionCount);
@@ -78,7 +80,7 @@ classical class LinkedInstructionCode {
     assert(-1 < relocationCount);
     assert(relocationCount < MAX_IMPORTED_RELOCATIONS + 1);
     assert(bufferLength(relocationRows) == RELOCATION_ROWS);
-    assert(bufferLength(output) == MAX_LINKED_CODE_BYTES);
+    assert(outputStart < bufferLength(output) + 1);
 
     long relocation = 0;
     long previousInstruction = -1;
@@ -94,7 +96,7 @@ classical class LinkedInstructionCode {
       relocation += 1;
     }
 
-    long outputCursor = 0;
+    long outputCursor = outputStart;
     long instructionCursor = 0;
     relocation = 0;
     while (instructionCursor < instructionCount) limit MAX_CLOSURE_INSTRUCTIONS {
@@ -106,11 +108,32 @@ classical class LinkedInstructionCode {
       }
 
       outputCursor += closureInstructionRows[786432 + instructionCursor];
-      assert(outputCursor < MAX_LINKED_CODE_BYTES + 1);
+      assert(outputCursor < bufferLength(output) + 1);
       instructionCursor += 1;
     }
 
     assert(relocation == relocationCount);
+  }
+
+  /// Rewrites imported targets in the historical fixed-width code buffer.
+  public void rewriteImportedInstructionTargets(
+    long functionCount,
+    long instructionCount,
+    borrow mut words closureInstructionRows,
+    long relocationCount,
+    borrow mut words relocationRows,
+    borrow mut bytes output
+  ) {
+    assert(bufferLength(output) == MAX_LINKED_CODE_BYTES);
+    rewriteImportedInstructionTargetsAt(
+      functionCount,
+      instructionCount,
+      closureInstructionRows,
+      relocationCount,
+      relocationRows,
+      output,
+      /* outputStart= */ 0
+    );
   }
 
   /// Emits one linked code-section product at a caller-selected section offset.

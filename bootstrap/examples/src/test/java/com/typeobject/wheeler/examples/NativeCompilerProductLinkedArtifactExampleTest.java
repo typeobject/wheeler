@@ -27,35 +27,49 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
   }
 
   private static byte[] artifact() {
+    String dependency = """
+        module fixture.product_linked_helper;
+
+        classical class ProductLinkedHelper {
+          public long helper(long value) {
+            return value;
+          }
+        }
+        """;
     String source = """
         module fixture.product_linked_artifact;
+
+        import fixture.product_linked_helper;
 
         classical class ProductLinkedArtifact {
           state long marker = -9;
 
           record Pair(long left, boolean ready) {}
 
-          rev long helper(long value) {
+          rev long local(long value) {
             long result = value + 0;
             return result;
           }
 
-          theorem helperInverse proves inverse(helper);
+          theorem localInverse proves inverse(local);
 
           entry void main() {
-            Pair pair = new Pair(helper(marker), true);
+            Pair pair = new Pair(helper(local(marker)), true);
             assert(pair.ready);
           }
         }
         """;
     Program program = new WheelerCompiler().compileModuleFiles(
-        Map.of("ProductLinkedArtifact.w", source), "fixture.product_linked_artifact");
+        Map.of("ProductLinkedHelper.w", dependency, "ProductLinkedArtifact.w", source),
+        "fixture.product_linked_artifact");
     return new BytecodeWriter().write(program);
   }
 
   private static Program program() throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.callable_function_rows"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.compiled_function_names"));
     sources.putAll(CompilerSources.moduleClosure(
@@ -86,10 +100,12 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
         "wheeler.compiler.closure.linked_proof_section"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.linked_string_section"));
+    sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.opcodes"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.verifier"));
     sources.put("ProductLinkedArtifactExample.w", """
         module example.product_linked_artifact;
 
+        import wheeler.compiler.closure.callable_function_rows;
         import wheeler.compiler.closure.compiled_function_names;
         import wheeler.compiler.closure.compiled_function_products;
         import wheeler.compiler.closure.compiled_global_products;
@@ -105,13 +121,15 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
         import wheeler.compiler.closure.linked_manifest_section;
         import wheeler.compiler.closure.linked_proof_section;
         import wheeler.compiler.closure.linked_string_section;
+        import wheeler.compiler.opcodes;
         import wheeler.compiler.verifier;
+        import wheeler.core.encoding.binary;
 
         classical class ProductLinkedArtifactExample {
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 18414080, /* allocations= */ 26);
+            region rows = new region(/* bytes= */ 20445696, /* allocations= */ 34);
             words artifactStarts = allocate(rows, /* length= */ 512);
             words artifactLengths = allocate(rows, /* length= */ 512);
             words localFunctions = allocate(rows, /* length= */ 640);
@@ -135,6 +153,14 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
             words finalDescriptors = allocate(rows, /* length= */ 4096);
             words globals = allocate(rows, /* length= */ 20480);
             words proofs = allocate(rows, /* length= */ 24576);
+            words importedRelocations = allocate(rows, /* length= */ 131072);
+            bytes functionIdentities = allocateBytes(rows, /* length= */ 131072);
+            bytes relocationIdentities = allocateBytes(rows, /* length= */ 131072);
+            words hashSlots = allocate(rows, /* length= */ 8192);
+            words hashFunctions = allocate(rows, /* length= */ 8192);
+            words callableFunctionRows = allocate(rows, /* length= */ 4096);
+            words callableRowsPublished = allocate(rows, /* length= */ 4096);
+            words identityTargets = allocate(rows, /* length= */ 65536);
             words sectionTypes = allocate(rows, /* length= */ 64);
             words sectionStarts = allocate(rows, /* length= */ 64);
             words sectionLengths = allocate(rows, /* length= */ 64);
@@ -212,10 +238,21 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
               closureFunctions,
               closureInstructions
             );
+            assert(functionWindow.functionCount == 3);
+            set(closureFunctions, 1, 1);
+            set(closureFunctions, 2, 1);
+            set(moduleFunctionCounts, 0, 1);
+            set(moduleFirstFunctions, 1, 1);
+            set(moduleFunctionCounts, 1, 2);
+            aggregate = 0;
+            while (aggregate < aggregatePlan.aggregateCount) limit 4096 {
+              set(aggregates, 4096 + aggregate, 1);
+              aggregate += 1;
+            }
             long globalCount = appendCompiledGlobalProducts(
               source,
               bufferLength(source),
-              /* moduleOwner= */ 0,
+              /* moduleOwner= */ 1,
               /* moduleStringBase= */ 0,
               stringPlan.stringCount,
               /* closureGlobalCount= */ 0,
@@ -259,6 +296,91 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
               stagedCode,
               /* outputStart= */ 0
             );
+            long identityFunction = 0;
+            while (identityFunction < functionWindow.functionCount) limit 4096 {
+              setByte(
+                functionIdentities,
+                identityFunction * 32,
+                identityFunction + 1
+              );
+              identityFunction += 1;
+            }
+            long importedCount = 0;
+            long instruction = 0;
+            while (instruction < functionWindow.instructionCount) limit 131072 {
+              long opcode = closureInstructions[524288 + instruction];
+              boolean importedCall = false;
+              if (opcode == OPCODE_CALL) {
+                importedCall = true;
+              }
+              if (opcode == OPCODE_UNCALL) {
+                importedCall = true;
+              }
+              if (opcode == OPCODE_CALL_VALUE) {
+                importedCall = true;
+              }
+              if (opcode == OPCODE_CALL_VOID) {
+                importedCall = true;
+              }
+              if (opcode == OPCODE_CALL_RESULT_SLOT) {
+                importedCall = true;
+              }
+              if (opcode == OPCODE_UNCALL_RESULT_SLOT) {
+                importedCall = true;
+              }
+              if (importedCall) {
+                if (0 < closureInstructions[instruction]) {
+                  long instructionStart = closureInstructions[393216 + instruction];
+                  long sourceTarget = readUnsigned(source, instructionStart + 8, 8);
+                  set(importedRelocations, importedCount, instruction);
+                  long identityByte = 0;
+                  while (identityByte < 32) limit 32 {
+                    setByte(
+                      relocationIdentities,
+                      importedCount * 32 + identityByte,
+                      functionIdentities[sourceTarget * 32 + identityByte]
+                    );
+                    identityByte += 1;
+                  }
+                  importedCount += 1;
+                }
+              }
+              instruction += 1;
+            }
+            assert(importedCount == 2);
+            mapCallableFunctionRows(
+              functionWindow.functionCount,
+              functionIdentities,
+              functionWindow.functionCount,
+              functionIdentities,
+              hashSlots,
+              hashFunctions,
+              callableFunctionRows,
+              callableRowsPublished
+            );
+            resolveImportedIdentityFunctionTargets(
+              importedCount,
+              relocationIdentities,
+              functionWindow.functionCount,
+              functionIdentities,
+              hashSlots,
+              hashFunctions,
+              identityTargets
+            );
+            long imported = 0;
+            while (imported < importedCount) limit 4096 {
+              set(importedRelocations, 65536 + imported, identityTargets[imported]);
+              imported += 1;
+            }
+            rewriteImportedInstructionTargetsAt(
+              functionWindow.functionCount,
+              functionWindow.instructionCount,
+              closureInstructions,
+              importedCount,
+              importedRelocations,
+              stagedCode,
+              /* outputStart= */ 0
+            );
             long linkedTypeCount = emitLinkedLocalTypes(
               source,
               bufferLength(source),
@@ -294,6 +416,8 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
               finalStrings,
               finalFunctionNames
             );
+            set(moduleFirstFunctions, 0, 0);
+            set(moduleFunctionCounts, 0, 3);
             set(sectionTypes, 0, 1);
             set(sectionStarts, 0, 0);
             long manifestBytes = emitLinkedManifestSection(
@@ -405,6 +529,14 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
             drop(sectionLengths);
             drop(sectionStarts);
             drop(sectionTypes);
+            drop(identityTargets);
+            drop(callableRowsPublished);
+            drop(callableFunctionRows);
+            drop(hashFunctions);
+            drop(hashSlots);
+            drop(relocationIdentities);
+            drop(functionIdentities);
+            drop(importedRelocations);
             drop(proofs);
             drop(globals);
             drop(finalDescriptors);

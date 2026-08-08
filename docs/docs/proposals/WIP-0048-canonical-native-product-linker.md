@@ -126,7 +126,9 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
 - [x] A local-call, global, and aggregate fixture flows through counted strings, globals, layouts, functions, types, code, manifest, and container emission and matches stage 0 byte for byte.
 - [x] `CompiledProofProducts.w` rebases counted certificate names and subjects; `LinkedProofSection.w` emits canonical split arguments.
 - [x] The complete reversible result-slot and optional proof product fixture matches stage 0 byte for byte.
-- [ ] A complete imported-call product fixture matches stage 0 byte for byte.
+- [x] A complete mixed-owner fixture applies validated imported relocation rows and matches stage 0 byte for byte.
+- [x] The complete mixed-owner fixture resolves relocation identity bytes through `CallableFunctionRows.w`; numeric source targets select fixture identities but never final rows.
+- [ ] Physical callable signature identities feed the same complete pipeline.
 - [ ] The complete physical compiler closure emits without dependency source.
 
 ## Rejected alternatives
