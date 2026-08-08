@@ -128,7 +128,8 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
 - [x] `CompiledProofProducts.w` rebases counted certificate names and subjects; `LinkedProofSection.w` emits canonical split arguments.
 - [x] The complete reversible result-slot and optional proof product fixture matches stage 0 byte for byte.
 - [x] A complete mixed-owner fixture applies validated imported relocation rows and matches stage 0 byte for byte.
-- [x] The complete mixed-owner fixture resolves relocation identity bytes through `CallableFunctionRows.w`; numeric source targets select fixture identities but never final rows.
+- [x] `IdentityRelocationEmitter.w` resolves all relocation identities to final rows before changing one code operand.
+- [x] The complete mixed-owner fixture uses that production boundary; numeric source targets select fixture identities but never final rows.
 - [ ] Physical callable signature identities feed the same complete pipeline.
 - [ ] The complete physical compiler closure emits without dependency source.
 

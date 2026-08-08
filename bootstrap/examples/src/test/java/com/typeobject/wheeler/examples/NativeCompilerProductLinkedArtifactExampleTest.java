@@ -87,6 +87,8 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.counted_function_products"));
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.identity_relocation_emitter"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.linked_instruction_code"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.linked_local_types"));
@@ -103,6 +105,7 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
         import wheeler.compiler.closure.compiled_string_products;
         import wheeler.compiler.closure.counted_aggregate_layouts;
         import wheeler.compiler.closure.counted_function_products;
+        import wheeler.compiler.closure.identity_relocation_emitter;
         import wheeler.compiler.closure.linked_instruction_code;
         import wheeler.compiler.closure.linked_local_types;
         import wheeler.compiler.opcodes;
@@ -341,28 +344,19 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
               callableFunctionRows,
               callableRowsPublished
             );
-            resolveImportedIdentityFunctionTargets(
-              importedCount,
-              relocationIdentities,
-              functionWindow.functionCount,
-              functionIdentities,
-              hashSlots,
-              hashFunctions,
-              identityTargets
-            );
-            long imported = 0;
-            while (imported < importedCount) limit 4096 {
-              set(importedRelocations, 65536 + imported, identityTargets[imported]);
-              imported += 1;
-            }
-            rewriteImportedInstructionTargetsAt(
+            rewriteImportedIdentityRelocations(
               functionWindow.functionCount,
               functionWindow.instructionCount,
               closureInstructions,
               importedCount,
               importedRelocations,
+              relocationIdentities,
+              functionIdentities,
+              hashSlots,
+              hashFunctions,
+              identityTargets,
               stagedCode,
-              /* outputStart= */ 0
+              /* codeStart= */ 0
             );
             long linkedTypeCount = emitLinkedLocalTypes(
               source,
