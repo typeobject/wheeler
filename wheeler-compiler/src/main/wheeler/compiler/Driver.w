@@ -5,6 +5,7 @@ module wheeler.compiler.driver;
 import wheeler.compiler.closure.active_source_slots;
 import wheeler.compiler.closure.archive_module_sources;
 import wheeler.compiler.closure.archive_sources;
+import wheeler.compiler.closure.callable_identities;
 import wheeler.compiler.closure.counted_constant_executor;
 import wheeler.compiler.closure.module_callables;
 import wheeler.compiler.closure.module_manifest;

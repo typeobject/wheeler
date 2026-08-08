@@ -47,8 +47,8 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("executableCount") > 0);
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
-    assertEquals(1_007, machine.global("symbolCount"));
-    assertEquals(1_003, machine.global("callableCount"));
+    assertEquals(1_011, machine.global("symbolCount"));
+    assertEquals(1_008, machine.global("callableCount"));
     assertTrue(machine.global("callableParameterCount") > 1_000);
     assertTrue(machine.global("borrowedParameterCount") > 0);
     assertTrue(machine.global("mutableParameterCount") > 0);
@@ -58,6 +58,11 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("maxImportedCallables") > 0);
     assertEquals(manifest.modules().size(), machine.global("callableGeneration"));
     assertEquals(2, machine.global("lastCallableParameterCount"));
+    assertEquals(1, machine.global("callableIdentitiesPublished"));
+    assertTrue(machine.global("firstCallableIdentityPrefix") != 0);
+    assertTrue(
+        machine.global("firstCallableIdentityPrefix")
+            != machine.global("lastCallableIdentityPrefix"));
     assertTrue(machine.global("resolvedSymbolCount") > 800);
     assertEquals(0, machine.global("moduleIdentitiesPublished"));
     assertTrue(machine.global("maxImportedSymbols") > 0);
@@ -216,6 +221,30 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("firstCallableResultTypeLength") > 0);
     assertEquals(0, machine.global("lastCallableParameterCount"));
     assertEquals(1, machine.global("lastCallableEffects"));
+    assertEquals(
+        callableIdentityPrefix(
+            fixture,
+            "callable.leaf",
+            "identity",
+            1,
+            0,
+            "long",
+            List.of("long"),
+            List.of(0)),
+        machine.global("firstCallableIdentityPrefix"));
+    assertEquals(
+        callableIdentityPrefix(
+            fixture,
+            "callable.root",
+            "main",
+            0,
+            1,
+            "void",
+            List.of(),
+            List.of()),
+        machine.global("lastCallableIdentityPrefix"));
+    assertEquals(1, machine.global("callableIdentitiesPublished"));
+    assertEquals(1, machine.global("invalidCallableIdentityRejected"));
   }
 
   @Test
@@ -531,6 +560,40 @@ final class NativeCompilerArchiveClosureExampleTest {
     writeU32(input, symbolName.length());
     input.writeBytes(symbolName.getBytes(StandardCharsets.US_ASCII));
     return sha256.digest(input.toByteArray());
+  }
+
+  private static long callableIdentityPrefix(
+      NativeCompilerProductFixtures.Fixture fixture,
+      String moduleName,
+      String name,
+      int visibility,
+      int effects,
+      String resultType,
+      List<String> parameterTypes,
+      List<Integer> parameterModes) throws Exception {
+    BootstrapModuleManifest.Module module = fixture.manifest().modules().stream()
+        .filter(candidate -> candidate.name().equals(moduleName))
+        .findFirst()
+        .orElseThrow();
+    MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+    ByteArrayOutputStream input = new ByteArrayOutputStream();
+    input.writeBytes("wheeler-callable-signature-1".getBytes(StandardCharsets.US_ASCII));
+    input.writeBytes(sha256.digest(fixture.archive()));
+    input.writeBytes(HexFormat.of().parseHex(module.identity()));
+    input.write(visibility);
+    input.write(effects);
+    writeU16(input, name.length());
+    input.writeBytes(name.getBytes(StandardCharsets.US_ASCII));
+    writeU16(input, resultType.length());
+    input.writeBytes(resultType.getBytes(StandardCharsets.US_ASCII));
+    writeU16(input, parameterTypes.size());
+    for (int index = 0; index < parameterTypes.size(); index++) {
+      String type = parameterTypes.get(index);
+      input.write(parameterModes.get(index));
+      writeU16(input, type.length());
+      input.writeBytes(type.getBytes(StandardCharsets.US_ASCII));
+    }
+    return digestPrefix(sha256.digest(input.toByteArray()));
   }
 
   private static long digestPrefix(byte[] digest) {

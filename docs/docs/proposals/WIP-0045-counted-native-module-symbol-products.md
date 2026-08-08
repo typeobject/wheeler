@@ -119,7 +119,7 @@ A dependent edge receives the completed dependency's public-symbol count only af
 
 ## Callable and aggregate phases
 
-Callable products add parameter and result types, loan modes, effects, helper identity, body range, local limits, result-slot layout, and compiled body identity. `ModuleCallables.w` starts this phase with validated canonical signature and complete forward/reverse body ranges. `CallableSignatureProducts.w` separates canonical result and parameter type ranges, owner, shared-loan, mutable-loan modes, and entry, reversible, coherent, or test effects. Fixed-array brackets and lengths remain in the exact type range. The ranges are archive evidence, not transferred source or callable identity. Aggregate products add ordered field or case identities and exact layout. Fixed-array length is part of type identity.
+Callable products add parameter and result types, loan modes, effects, helper identity, body range, local limits, result-slot layout, and compiled body identity. Signature identity uses domain `wheeler-callable-signature-1` and binds the package archive, owner source, visibility, effects, name, result type, and ordered parameter types and loan modes. Parameter names, archive offsets, and body bytes are not part of signature identity. `ModuleCallables.w` starts this phase with validated canonical signature and complete forward/reverse body ranges. `CallableSignatureProducts.w` separates canonical result and parameter type ranges, owner, shared-loan, mutable-loan modes, and entry, reversible, coherent, or test effects. Fixed-array brackets and lengths remain in the exact type range. The ranges are archive evidence, not transferred source or callable identity. Aggregate products add ordered field or case identities and exact layout. Fixed-array length is part of type identity.
 
 Primitive owners transfer through unqualified parameters. `borrow T` and `borrow mut T` remain nonescaping loans. A product cannot erase a loan, manufacture an owner, or derive an aggregate layout from a host type.
 
@@ -166,7 +166,7 @@ The seven-frame executor remains differential conformance evidence until step 9.
 - [x] Each local edge records its completed dependency's public-symbol count at header rank.
 - [x] A 257-module chain publishes 257 symbols, root import count one, peak source count one, and root generation 257.
 - [x] One module publishes exactly 256 scalar declarations. Declaration 257 fails before publication.
-- [x] The 233-module physical compiler closure publishes 1,007 scalar declarations and reaches generation 233.
+- [x] The 234-module physical compiler closure publishes 1,011 scalar declarations and reaches generation 234.
 - [x] Malformed constant syntax leaves product and completion publication untouched.
 - [x] `SymbolIdentities.w` gives every scalar product a package-archive-, module-source-, kind-, visibility-, type-, and name-bound SHA-256 identity after complete range validation. Chain endpoints match an independent Java digest.
 - [x] Literal and same-module scalar expressions publish values through the existing bounded evaluator.
@@ -180,8 +180,9 @@ The seven-frame executor remains differential conformance evidence until step 9.
 - [ ] Stable compiled body identities publish.
 - [x] `ModuleCallables.w` publishes owner, visibility, canonical name, complete signature range, forward/reverse body range, and parameter count after one complete staged-source pass.
 - [x] Private callable products stay local. Direct edges count only public dependency callables in header rank.
-- [x] The physical compiler closure publishes 1,003 callable signatures with peak active source count one.
+- [x] The physical compiler closure publishes 1,008 callable signatures with peak active source count one.
 - [x] Canonical result and parameter type ranges, owner or loan mode, and effect bits publish in counted columns. A fixture distinguishes owner, `borrow`, and `borrow mut` parameters.
+- [x] `CallableIdentities.w` publishes package-, source-, visibility-, effect-, name-, result-, parameter-type-, and loan-bound signature identities. Independent Java digests match a leaf and root product. An invalid loan mode publishes nothing.
 - [ ] Result-slot and local-limit columns publish.
 - [ ] Ambiguity, privacy, type, and unresolved diagnostics carry stable candidate identities.
 - [x] Counted scalar closures compile without a seven-node plan.

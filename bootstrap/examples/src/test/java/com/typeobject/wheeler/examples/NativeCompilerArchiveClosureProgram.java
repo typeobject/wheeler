@@ -15,6 +15,7 @@ final class NativeCompilerArchiveClosureProgram {
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.archive_module_sources"));
+    sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.callable_identities"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.counted_constant_executor"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.module_callables"));
@@ -29,6 +30,7 @@ final class NativeCompilerArchiveClosureProgram {
 
         import wheeler.compiler.closure.archive_module_sources;
         import wheeler.compiler.closure.archive_sources;
+        import wheeler.compiler.closure.callable_identities;
         import wheeler.compiler.closure.counted_constant_executor;
         import wheeler.compiler.closure.module_callables;
         import wheeler.compiler.closure.module_manifest;
@@ -78,6 +80,10 @@ final class NativeCompilerArchiveClosureProgram {
           state long firstCallableResultTypeLength = 0;
           state long lastCallableParameterCount = 0;
           state long lastCallableEffects = 0;
+          state long firstCallableIdentityPrefix = 0;
+          state long lastCallableIdentityPrefix = 0;
+          state long callableIdentitiesPublished = 0;
+          state long invalidCallableIdentityRejected = 0;
           state long packageIdentityPrefix = 0;
           state long firstSymbolIdentityPrefix = 0;
           state long lastSymbolIdentityPrefix = 0;
@@ -112,7 +118,7 @@ final class NativeCompilerArchiveClosureProgram {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 2800640, /* allocations= */ 63);
+            region columns = new region(/* bytes= */ 3062784, /* allocations= */ 65);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -175,6 +181,8 @@ final class NativeCompilerArchiveClosureProgram {
             bytes packageIdentity = allocateBytes(columns, /* length= */ 32);
             bytes symbolIdentities = allocateBytes(columns, MAX_SYMBOLS * 32);
             bytes moduleIdentities = allocateBytes(columns, MAX_MODULES * 32);
+            bytes callableIdentities = allocateBytes(columns, /* length= */ 131072);
+            bytes rejectedCallableIdentities = allocateBytes(columns, /* length= */ 131072);
             bytes expected = allocateBytes(columns, /* length= */ 256);
             ArchiveSourceIndexResult indexed = indexArchiveSources(
               archive,
@@ -322,6 +330,60 @@ final class NativeCompilerArchiveClosureProgram {
                   packageIdentity,
                   symbolIdentities
                 );
+                boolean callableIdentityPublication = publishCallableIdentities(
+                  archive,
+                  manifest,
+                  closure.moduleCount,
+                  callables.callableCount,
+                  identityStarts,
+                  callableOwners,
+                  callableVisibilities,
+                  callableNameStarts,
+                  callableNameLengths,
+                  callableResultTypeStarts,
+                  callableResultTypeLengths,
+                  callableEffects,
+                  callableFirstParameters,
+                  callableParameterCounts,
+                  parameterTypeStarts,
+                  parameterTypeLengths,
+                  parameterModes,
+                  packageIdentity,
+                  callableIdentities
+                );
+                if (closure.moduleCount == 3) {
+                  if (0 < callables.parameterCount) {
+                    long savedMode = parameterModes[0];
+                    set(parameterModes, 0, 3);
+                    boolean invalidCallableIdentity = publishCallableIdentities(
+                      archive,
+                      manifest,
+                      closure.moduleCount,
+                      callables.callableCount,
+                      identityStarts,
+                      callableOwners,
+                      callableVisibilities,
+                      callableNameStarts,
+                      callableNameLengths,
+                      callableResultTypeStarts,
+                      callableResultTypeLengths,
+                      callableEffects,
+                      callableFirstParameters,
+                      callableParameterCounts,
+                      parameterTypeStarts,
+                      parameterTypeLengths,
+                      parameterModes,
+                      packageIdentity,
+                      rejectedCallableIdentities
+                    );
+                    set(parameterModes, 0, savedMode);
+                    if (invalidCallableIdentity == false) {
+                      if (rejectedCallableIdentities[0] == 0) {
+                        invalidCallableIdentityRejected = 1;
+                      }
+                    }
+                  }
+                }
                 ScalarModuleIdentityPlan scalarIdentities = publishScalarModuleIdentities(
                   archive,
                   manifest,
@@ -482,6 +544,21 @@ final class NativeCompilerArchiveClosureProgram {
                   lastSymbolValue = symbolValues[symbols.symbolCount - 1];
                   lastSymbolResolved = symbolResolved[symbols.symbolCount - 1];
                 }
+                if (callableIdentityPublication) {
+                  if (0 < callables.callableCount) {
+                    long finalCallableIdentity = (callables.callableCount - 1) * 32;
+                    firstCallableIdentityPrefix = callableIdentities[0] * 16777216
+                      + callableIdentities[1] * 65536
+                      + callableIdentities[2] * 256
+                      + callableIdentities[3];
+                    lastCallableIdentityPrefix = callableIdentities[finalCallableIdentity]
+                        * 16777216
+                      + callableIdentities[finalCallableIdentity + 1] * 65536
+                      + callableIdentities[finalCallableIdentity + 2] * 256
+                      + callableIdentities[finalCallableIdentity + 3];
+                  }
+                  callableIdentitiesPublished = 1;
+                }
                 if (scalarIdentities.valid) {
                   long rootModuleIdentity = closure.rootModule * 32;
                   firstModuleIdentityPrefix = moduleIdentities[0] * 16777216
@@ -506,6 +583,8 @@ final class NativeCompilerArchiveClosureProgram {
               }
             }
             drop(expected);
+            drop(rejectedCallableIdentities);
+            drop(callableIdentities);
             drop(moduleIdentities);
             drop(symbolIdentities);
             drop(packageIdentity);
