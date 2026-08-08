@@ -7,6 +7,7 @@ import wheeler.compiler.compiler_graph_four_branches;
 import wheeler.compiler.compiler_graph_four_dag;
 import wheeler.compiler.compiler_graph_four_mixed;
 import wheeler.compiler.compiler_graph_four_nested;
+import wheeler.compiler.graphs.constant_executor;
 import wheeler.compiler.graphs.four_plan_sources;
 import wheeler.compiler.graphs.four_structures;
 import wheeler.compiler.graphs.matrix;
@@ -558,6 +559,19 @@ classical class CompilerGraphFour {
     );
     if (plan.valid) {} else {
       assert(0 == 1);
+    }
+
+    ConstantPlanExecution execution = executeConstantPlan(
+      plan,
+      firstImportedSource,
+      secondImportedSource,
+      thirdImportedSource,
+      fourthImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < execution.length) {
+      return new FourGraphCompilation(execution.length, execution.codeStart);
     }
 
     FourSourceOrder sources = planFourSources(plan);

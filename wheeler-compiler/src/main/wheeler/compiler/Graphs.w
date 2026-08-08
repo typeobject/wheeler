@@ -7,6 +7,7 @@ import wheeler.compiler.compiler_graph_five;
 import wheeler.compiler.compiler_graph_four;
 import wheeler.compiler.compiler_graph_seven;
 import wheeler.compiler.compiler_graph_six;
+import wheeler.compiler.graphs.constant_executor;
 import wheeler.compiler.graphs.direct.mixed_three;
 import wheeler.compiler.graphs.direct.mixed_two;
 import wheeler.compiler.graphs.matrix;
@@ -231,6 +232,19 @@ classical class CompilerGraphs {
     BoundedGraphPlan plan = planTwoGraph(firstImportedSource, secondImportedSource, rootSource);
     if (plan.valid) {} else {
       assert(0 == 1);
+    }
+
+    ConstantPlanExecution execution = executeConstantPlan(
+      plan,
+      firstImportedSource,
+      secondImportedSource,
+      secondImportedSource,
+      secondImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < execution.length) {
+      return new GraphCompilation(execution.length, execution.codeStart);
     }
 
     region sourceTableArena = new region(
@@ -641,6 +655,19 @@ classical class CompilerGraphs {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
+    ConstantPlanExecution execution = executeConstantPlan(
+      plan,
+      firstSource,
+      secondSource,
+      thirdSource,
+      thirdSource,
+      rootSource,
+      output
+    );
+    if (0 < execution.length) {
+      return new GraphCompilation(execution.length, execution.codeStart);
+    }
+
     region sourceTableArena = new region(
       /* bytes= */ SOURCE_TABLE_ARENA_BYTES,
       /* allocations= */ 2
