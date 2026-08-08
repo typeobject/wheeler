@@ -451,6 +451,7 @@ classical class CompilerGraphSix {
       fourthSource,
       fifthSource,
       sixthSource,
+      sixthSource,
       rootSource,
       output
     );

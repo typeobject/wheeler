@@ -3,6 +3,7 @@
 module wheeler.compiler.compiler_graph_seven;
 
 import wheeler.compiler.compiler_core;
+import wheeler.compiler.graphs.constant_executor;
 import wheeler.compiler.graphs.seven.chain;
 import wheeler.compiler.graphs.seven.executors.asymmetric;
 import wheeler.compiler.graphs.seven.executors.dags;
@@ -122,7 +123,7 @@ classical class CompilerGraphSeven {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    SevenGraphPlan plan = planSevenConstantGraph(
+    SevenBoundedGraphPlan planned = planSevenBoundedGraph(
       firstImportedSource,
       secondImportedSource,
       thirdImportedSource,
@@ -132,7 +133,24 @@ classical class CompilerGraphSeven {
       seventhImportedSource,
       rootSource
     );
+    SevenGraphPlan plan = planned.legacy;
     assert(plan.valid);
+    ConstantPlanExecution execution = executeConstantPlan(
+      planned.bounded,
+      firstImportedSource,
+      secondImportedSource,
+      thirdImportedSource,
+      fourthImportedSource,
+      fifthImportedSource,
+      sixthImportedSource,
+      seventhImportedSource,
+      rootSource,
+      output
+    );
+    if (0 < execution.length) {
+      return new SevenGraphCompilation(execution.length, execution.codeStart);
+    }
+
     if (plan.topology == SEVEN_PLAN_DIRECT) {
       return compileSevenDirectConstants(
         firstImportedSource,

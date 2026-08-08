@@ -109,7 +109,7 @@ Inactive source slots are not candidates. They may be padded with shared loans a
 
 No linked source outlives its arena. The final artifact borrows no source storage. Failure drops temporary owners and leaves caller output unchanged.
 
-`graphs/plans/SourceTable.w` uses one 229,376-byte arena and one seven-word length column. Each node owns one fixed 32,768-byte slot. The active length, not stale tail storage, defines the source. Initialization validates every active input before the first write. Replacement validates the complete frozen source before mutation and clears the replaced slot's former tail.
+`graphs/plans/SourceTable.w` uses one 229,376-byte arena and one seven-word length column. Each imported node owns one fixed 32,768-byte slot. The active length, not stale tail storage, defines the source. Initialization validates every active input before the first write. Replacement validates the complete frozen source before mutation and clears the replaced slot's former tail. The executor carries the synthetic root in a separate fixed buffer, so seven imported modules do not weaken the table's count-eight rejection.
 
 ## Visibility and duplicates
 
@@ -165,9 +165,9 @@ Compatibility wrappers are not retained. During migration the driver may dispatc
 - [x] Shared helper planning drops an exact private prefix against an existing public or private declaration.
 - [x] `graphs/plans/SourceTable.w` owns physical and linked source slots in one counted fixed-slot arena.
 - [x] Two- through four-module drivers select every canonical role from the table. The old planned-loan selector is deleted.
-- [x] `graphs/plans/ConstantExecutor.w` executes every validated two- through six-module constant graph by leaf-first edges and dependency-aware root-import rank. This includes forests, redundant direct edges, the three-root shared leaf, and both admitted shared diamonds. Exact private-prefix comparison removes repeated leaves.
+- [x] `graphs/plans/ConstantExecutor.w` executes every validated two- through seven-module constant graph by leaf-first edges and dependency-aware root-import rank. This includes forests, redundant direct edges, the three-root shared leaf, and both admitted shared diamonds. Exact private-prefix comparison removes repeated leaves.
 - [x] Header dependency facts carry validated candidate import rank, and small direct plans use it.
-- [x] Two- through six-module constant executors consume every admitted constant plan without topology identities.
+- [x] Two- through seven-module constant executors consume every admitted constant plan without topology identities.
 - [x] `graphs/SmallPlanSources.w` and `graphs/FourPlanSources.w` own canonical role selection outside the drivers.
 - [x] The complete bounded graph plan validates and packs root-import rank.
 - [ ] One executor handles direct, chain, fork, branch, redundant-edge, and shared-DAG plans.

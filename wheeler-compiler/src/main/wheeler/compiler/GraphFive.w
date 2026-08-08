@@ -397,6 +397,7 @@ classical class CompilerGraphFive {
       fourthSource,
       fifthSource,
       fifthSource,
+      fifthSource,
       rootSource,
       output
     );

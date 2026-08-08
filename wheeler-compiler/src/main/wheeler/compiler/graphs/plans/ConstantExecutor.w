@@ -11,6 +11,7 @@ classical class BoundedConstantPlanExecutor {
   private const long MAX_GRAPH_NODES = 7;
   private const long MAX_LINKED_SOURCE_BYTES = 32768;
   private const long ROOT_ORDER_ARENA_BYTES = 56;
+  private const long SOURCE_BYTE_LIMIT = 32769;
 
   /// Carries one bounded constant-plan execution result.
   public record ConstantPlanExecution(long length, long codeStart) {}
@@ -31,86 +32,22 @@ classical class BoundedConstantPlanExecutor {
     borrow utf8 fourthSource,
     borrow utf8 fifthSource,
     borrow utf8 sixthSource,
-    borrow utf8 rootSource,
+    borrow utf8 seventhSource,
     borrow mut bytes storage,
     borrow mut words lengths
   ) {
-    if (plan.nodeCount == 2) {
-      return initializeSourceTable(
-        3,
-        firstSource,
-        secondSource,
-        rootSource,
-        rootSource,
-        rootSource,
-        rootSource,
-        rootSource,
-        storage,
-        lengths
-      );
-    }
-
-    if (plan.nodeCount == 3) {
-      return initializeSourceTable(
-        4,
-        firstSource,
-        secondSource,
-        thirdSource,
-        rootSource,
-        rootSource,
-        rootSource,
-        rootSource,
-        storage,
-        lengths
-      );
-    }
-
-    if (plan.nodeCount == 4) {
-      return initializeSourceTable(
-        5,
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        rootSource,
-        rootSource,
-        rootSource,
-        storage,
-        lengths
-      );
-    }
-
-    if (plan.nodeCount == 5) {
-      return initializeSourceTable(
-        6,
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        rootSource,
-        rootSource,
-        storage,
-        lengths
-      );
-    }
-
-    if (plan.nodeCount == 6) {
-      return initializeSourceTable(
-        7,
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        sixthSource,
-        rootSource,
-        storage,
-        lengths
-      );
-    }
-
-    return false;
+    return initializeSourceTable(
+      plan.nodeCount,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      seventhSource,
+      storage,
+      lengths
+    );
   }
 
   private utf8 copyExecutionSource(
@@ -124,6 +61,31 @@ classical class BoundedConstantPlanExecutor {
     bytes copied = allocateBytes(arena, length);
     long written = copySourceTableSlot(node, tableCount, storage, lengths, copied);
     assert(written == length);
+    return freezeUtf8(copied);
+  }
+
+  private long writeRootSource(borrow utf8 source, borrow mut bytes storage) {
+    long length = bufferLength(source);
+    assert(length < SOURCE_BYTE_LIMIT);
+    long cursor = 0;
+    while (cursor < length) limit MAX_LINKED_SOURCE_BYTES {
+      assert(utf8Width(source, cursor) == 1);
+      setByte(storage, cursor, utf8Scalar(source, cursor));
+      cursor += 1;
+    }
+
+    return length;
+  }
+
+  private utf8 copyRootSource(borrow mut bytes storage, long length, borrow mut region arena) {
+    assert(length < SOURCE_BYTE_LIMIT);
+    bytes copied = allocateBytes(arena, length);
+    long cursor = 0;
+    while (cursor < length) limit MAX_LINKED_SOURCE_BYTES {
+      setByte(copied, cursor, storage[cursor]);
+      cursor += 1;
+    }
+
     return freezeUtf8(copied);
   }
 
@@ -214,13 +176,14 @@ classical class BoundedConstantPlanExecutor {
     return -1;
   }
 
-  private boolean linkRootDependency(
+  private long linkRootDependency(
     BoundedGraphPlan plan,
     long dependencyNode,
-    long rootNode,
     long tableCount,
     borrow mut bytes storage,
-    borrow mut words lengths
+    borrow mut words lengths,
+    borrow mut bytes rootStorage,
+    long rootLength
   ) {
     region dependencyArena = new region(
       /* bytes= */ MAX_LINKED_SOURCE_BYTES,
@@ -234,7 +197,7 @@ classical class BoundedConstantPlanExecutor {
       dependencyArena
     );
     region rootArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 rootSource = copyExecutionSource(rootNode, tableCount, storage, lengths, rootArena);
+    utf8 rootSource = copyRootSource(rootStorage, rootLength, rootArena);
     LinkPlan link = planResolvedConstantImport(dependencySource, rootSource, plan.rootCount);
     if (link.valid) {} else {
       link = planTrailingSharedResolvedPublicConstantImport(
@@ -249,7 +212,7 @@ classical class BoundedConstantPlanExecutor {
       drop(rootArena);
       drop(dependencySource);
       drop(dependencyArena);
-      return false;
+      return -1;
     }
 
     region linkedArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
@@ -257,20 +220,14 @@ classical class BoundedConstantPlanExecutor {
     long linkedLength = writeConstantImport(dependencySource, rootSource, link, linkedBytes);
     assert(linkedLength == link.linkedLength);
     utf8 linkedSource = freezeUtf8(linkedBytes);
-    boolean replaced = replaceSourceTableSlot(
-      rootNode,
-      tableCount,
-      linkedSource,
-      storage,
-      lengths
-    );
+    long replacementLength = writeRootSource(linkedSource, rootStorage);
     drop(linkedSource);
     drop(linkedArena);
     drop(rootSource);
     drop(rootArena);
     drop(dependencySource);
     drop(dependencyArena);
-    return replaced;
+    return replacementLength;
   }
 
   private boolean rootDependencyReady(
@@ -294,7 +251,7 @@ classical class BoundedConstantPlanExecutor {
     return true;
   }
 
-  /// Executes one validated two- through four-module constant graph.
+  /// Executes one validated two- through seven-module constant graph.
   public ConstantPlanExecution executeConstantPlan(
     BoundedGraphPlan plan,
     borrow utf8 firstSource,
@@ -303,6 +260,7 @@ classical class BoundedConstantPlanExecutor {
     borrow utf8 fourthSource,
     borrow utf8 fifthSource,
     borrow utf8 sixthSource,
+    borrow utf8 seventhSource,
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
@@ -321,7 +279,7 @@ classical class BoundedConstantPlanExecutor {
       fourthSource,
       fifthSource,
       sixthSource,
-      rootSource,
+      seventhSource,
       storage,
       lengths
     );
@@ -332,7 +290,7 @@ classical class BoundedConstantPlanExecutor {
       return failedExecution();
     }
 
-    long tableCount = plan.nodeCount + 1;
+    long tableCount = plan.nodeCount;
     long position = 0;
     while (position < plan.nodeCount) limit MAX_GRAPH_NODES {
       long dependencyNode = plannedNodeAt(plan, position);
@@ -355,7 +313,12 @@ classical class BoundedConstantPlanExecutor {
       position += 1;
     }
 
-    long rootNode = plan.nodeCount;
+    region rootStorageArena = new region(
+      /* bytes= */ MAX_LINKED_SOURCE_BYTES,
+      /* allocations= */ 1
+    );
+    bytes rootStorage = allocateBytes(rootStorageArena, MAX_LINKED_SOURCE_BYTES);
+    long rootLength = writeRootSource(rootSource, rootStorage);
     region rootOrderArena = new region(/* bytes= */ ROOT_ORDER_ARENA_BYTES, /* allocations= */ 1);
     words linkedRoots = allocate(rootOrderArena, MAX_GRAPH_NODES);
     long linkedRootCount = 0;
@@ -367,6 +330,8 @@ classical class BoundedConstantPlanExecutor {
         if (0 < candidateRootNode + 1) {} else {
           drop(linkedRoots);
           drop(rootOrderArena);
+          drop(rootStorage);
+          drop(rootStorageArena);
           drop(lengths);
           drop(storage);
           drop(tableArena);
@@ -387,17 +352,30 @@ classical class BoundedConstantPlanExecutor {
       if (0 < selectedRootNode + 1) {} else {
         drop(linkedRoots);
         drop(rootOrderArena);
+        drop(rootStorage);
+        drop(rootStorageArena);
         drop(lengths);
         drop(storage);
         drop(tableArena);
         return failedExecution();
       }
 
-      if (
-        linkRootDependency(plan, selectedRootNode, rootNode, tableCount, storage, lengths)
-      ) {} else {
+      long nextRootLength = linkRootDependency(
+        plan,
+        selectedRootNode,
+        tableCount,
+        storage,
+        lengths,
+        rootStorage,
+        rootLength
+      );
+      if (0 < nextRootLength + 1) {
+        rootLength = nextRootLength;
+      } else {
         drop(linkedRoots);
         drop(rootOrderArena);
+        drop(rootStorage);
+        drop(rootStorageArena);
         drop(lengths);
         drop(storage);
         drop(tableArena);
@@ -411,11 +389,13 @@ classical class BoundedConstantPlanExecutor {
     drop(linkedRoots);
     drop(rootOrderArena);
     region finalArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 finalSource = copyExecutionSource(rootNode, tableCount, storage, lengths, finalArena);
+    utf8 finalSource = copyRootSource(rootStorage, rootLength, finalArena);
     CoreCompilation core = compileMinimalCore(finalSource, output);
     ConstantPlanExecution executed = new ConstantPlanExecution(core.length, core.codeStart);
     drop(finalSource);
     drop(finalArena);
+    drop(rootStorage);
+    drop(rootStorageArena);
     drop(lengths);
     drop(storage);
     drop(tableArena);

@@ -242,6 +242,7 @@ classical class CompilerGraphs {
       secondImportedSource,
       secondImportedSource,
       secondImportedSource,
+      secondImportedSource,
       rootSource,
       output
     );
@@ -661,6 +662,7 @@ classical class CompilerGraphs {
       plan,
       firstSource,
       secondSource,
+      thirdSource,
       thirdSource,
       thirdSource,
       thirdSource,

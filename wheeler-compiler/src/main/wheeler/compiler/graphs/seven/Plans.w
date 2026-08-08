@@ -32,6 +32,9 @@ classical class SevenGraphPlans {
   private const long SEVEN_IMPORTS = 7;
   private const long EIGHT_EDGES = 8;
 
+  /// Carries one legacy role order beside its complete validated graph plan.
+  public record SevenBoundedGraphPlan(SevenGraphPlan legacy, BoundedGraphPlan bounded) {}
+
   private SevenGraphPlan invalidPlan() {
     return new SevenGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, false);
   }
@@ -184,7 +187,7 @@ classical class SevenGraphPlans {
     return 0;
   }
 
-  private SevenGraphPlan structuredGraph(
+  private SevenBoundedGraphPlan structuredBoundedGraph(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
     borrow utf8 thirdSource,
@@ -319,8 +322,9 @@ classical class SevenGraphPlans {
       valid = true;
     }
 
+    BoundedGraphPlan graphPlan = new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, 0, false);
     if (valid) {
-      BoundedGraphPlan graphPlan = planBoundedGraph(
+      graphPlan = planBoundedGraph(
         graph,
         rootDirect,
         rootRanks,
@@ -480,7 +484,30 @@ classical class SevenGraphPlans {
     drop(rootDirect);
     drop(graph);
     drop(arena);
-    return result;
+    return new SevenBoundedGraphPlan(result, graphPlan);
+  }
+
+  /// Selects one complete seven-module graph before source rewriting.
+  public SevenBoundedGraphPlan planSevenBoundedGraph(
+    borrow utf8 firstSource,
+    borrow utf8 secondSource,
+    borrow utf8 thirdSource,
+    borrow utf8 fourthSource,
+    borrow utf8 fifthSource,
+    borrow utf8 sixthSource,
+    borrow utf8 seventhSource,
+    borrow utf8 rootSource
+  ) {
+    return structuredBoundedGraph(
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      seventhSource,
+      rootSource
+    );
   }
 
   /// Selects one supported seven-module topology before source rewriting.
@@ -494,7 +521,7 @@ classical class SevenGraphPlans {
     borrow utf8 seventhSource,
     borrow utf8 rootSource
   ) {
-    return structuredGraph(
+    SevenBoundedGraphPlan planned = planSevenBoundedGraph(
       firstSource,
       secondSource,
       thirdSource,
@@ -504,5 +531,6 @@ classical class SevenGraphPlans {
       seventhSource,
       rootSource
     );
+    return planned.legacy;
   }
 }
