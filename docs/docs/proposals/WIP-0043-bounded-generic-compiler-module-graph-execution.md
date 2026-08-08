@@ -168,6 +168,7 @@ Compatibility wrappers are not retained. During migration the driver may dispatc
 - [x] `graphs/plans/ConstantExecutor.w` executes every validated two- through seven-module constant graph by leaf-first edges and dependency-aware root-import rank. This includes forests, redundant direct edges, the three-root shared leaf, and both admitted shared diamonds. Exact private-prefix comparison removes repeated leaves.
 - [x] Header dependency facts carry validated candidate import rank, and small direct plans use it.
 - [x] Two- through seven-module constant executors consume every admitted constant plan without topology identities.
+- [x] Five-module execution retains only direct helper owners and the constant-fed helper chain as structural fallbacks. Ten topology executors are deleted.
 - [x] `graphs/SmallPlanSources.w` and `graphs/FourPlanSources.w` own canonical role selection outside the drivers.
 - [x] The complete bounded graph plan validates and packs root-import rank.
 - [ ] One executor handles direct, chain, fork, branch, redundant-edge, and shared-DAG plans.

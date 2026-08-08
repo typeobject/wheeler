@@ -4,18 +4,7 @@ module wheeler.compiler.compiler_graph_five;
 
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.constant_executor;
-import wheeler.compiler.graphs.five_branches;
-import wheeler.compiler.graphs.five_chain;
-import wheeler.compiler.graphs.five_dag;
-import wheeler.compiler.graphs.five_deep_mixed;
-import wheeler.compiler.graphs.five_fork;
-import wheeler.compiler.graphs.five_fork_mixed;
-import wheeler.compiler.graphs.five_long_mixed;
 import wheeler.compiler.graphs.five_mixed;
-import wheeler.compiler.graphs.five_nested_fork;
-import wheeler.compiler.graphs.five_nested_mixed;
-import wheeler.compiler.graphs.five_pairs;
-import wheeler.compiler.graphs.five_plan_kinds;
 import wheeler.compiler.graphs.plans;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.module_linker;
@@ -160,7 +149,7 @@ classical class CompilerGraphFive {
     return new FiveGraphCompilation(compiled.length, compiled.codeStart);
   }
 
-  private FiveGraphCompilation compilePlannedFiveStructure(
+  private FiveGraphCompilation compileFiveHelperChain(
     FiveGraphPlan plan,
     borrow utf8 firstSource,
     borrow utf8 secondSource,
@@ -235,123 +224,16 @@ classical class CompilerGraphFive {
       fifthSource,
       fifthArena
     );
-    FiveGraphCompilation compiled = new FiveGraphCompilation(0, 0);
-    if (plan.topology == FIVE_PLAN_FORK_AND_DIRECT) {
-      FiveBranchCompilation branch = compileForkAndDirectIfOrdered(
-        plannedFirst,
-        plannedSecond,
-        plannedThird,
-        plannedFourth,
-        plannedFifth,
-        rootSource,
-        output
-      );
-      compiled = new FiveGraphCompilation(branch.length, branch.codeStart);
-    }
-
-    if (plan.topology == FIVE_PLAN_FORK_AND_TWO_DIRECTS) {
-      FiveForkMixedCompilation mixedFork = compileFiveForkAndTwoDirectsIfOrdered(
-        plannedFirst,
-        plannedSecond,
-        plannedThird,
-        plannedFourth,
-        plannedFifth,
-        rootSource,
-        output
-      );
-      compiled = new FiveGraphCompilation(mixedFork.length, mixedFork.codeStart);
-    }
-
-    if (plan.topology == FIVE_PLAN_SHARED_DIAMOND) {
-      FiveDagCompilation dag = compileFiveSharedDiamondIfOrdered(
-        plannedFirst,
-        plannedSecond,
-        plannedThird,
-        plannedFourth,
-        plannedFifth,
-        rootSource,
-        output
-      );
-      compiled = new FiveGraphCompilation(dag.length, dag.codeStart);
-    }
-
-    if (plan.topology == FIVE_PLAN_NESTED_FORK) {
-      FiveNestedForkCompilation nestedFork = compileFiveNestedForkIfOrdered(
-        plannedFirst,
-        plannedSecond,
-        plannedThird,
-        plannedFourth,
-        plannedFifth,
-        rootSource,
-        output
-      );
-      compiled = new FiveGraphCompilation(nestedFork.length, nestedFork.codeStart);
-    }
-
-    if (plan.topology == FIVE_PLAN_NESTED_FORK_AND_DIRECT) {
-      FiveNestedMixedCompilation nestedMixed = compileFiveNestedForkAndDirectIfOrdered(
-        plannedFirst,
-        plannedSecond,
-        plannedThird,
-        plannedFourth,
-        plannedFifth,
-        rootSource,
-        output
-      );
-      compiled = new FiveGraphCompilation(nestedMixed.length, nestedMixed.codeStart);
-    }
-
-    if (plan.topology == FIVE_PLAN_DEEP_CHAIN_AND_DIRECT) {
-      FiveDeepMixedCompilation deepMixed = compileFiveDeepChainAndDirectIfOrdered(
-        plannedFirst,
-        plannedSecond,
-        plannedThird,
-        plannedFourth,
-        plannedFifth,
-        rootSource,
-        output
-      );
-      compiled = new FiveGraphCompilation(deepMixed.length, deepMixed.codeStart);
-    }
-
-    if (plan.topology == FIVE_PLAN_LONG_CHAIN_AND_DIRECTS) {
-      FiveLongMixedCompilation longMixed = compileFiveLongChainAndDirectsIfOrdered(
-        plannedFirst,
-        plannedSecond,
-        plannedThird,
-        plannedFourth,
-        plannedFifth,
-        rootSource,
-        output
-      );
-      compiled = new FiveGraphCompilation(longMixed.length, longMixed.codeStart);
-    }
-
-    if (plan.topology == FIVE_PLAN_PAIRS_AND_DIRECT) {
-      FivePairCompilation pairs = compileFivePairsAndDirectIfOrdered(
-        plannedFirst,
-        plannedSecond,
-        plannedThird,
-        plannedFourth,
-        plannedFifth,
-        rootSource,
-        output
-      );
-      compiled = new FiveGraphCompilation(pairs.length, pairs.codeStart);
-    }
-
-    if (plan.topology == FIVE_PLAN_CHAIN_AND_DIRECTS) {
-      FiveMixedCompilation mixed = compileFiveChainAndDirectsIfOrdered(
-        plannedFirst,
-        plannedSecond,
-        plannedThird,
-        plannedFourth,
-        plannedFifth,
-        rootSource,
-        output
-      );
-      compiled = new FiveGraphCompilation(mixed.length, mixed.codeStart);
-    }
+    FiveMixedCompilation mixed = compileFiveChainAndDirectsIfOrdered(
+      plannedFirst,
+      plannedSecond,
+      plannedThird,
+      plannedFourth,
+      plannedFifth,
+      rootSource,
+      output
+    );
+    FiveGraphCompilation compiled = new FiveGraphCompilation(mixed.length, mixed.codeStart);
 
     drop(plannedFifth);
     drop(fifthArena);
@@ -405,7 +287,7 @@ classical class CompilerGraphFive {
       return new FiveGraphCompilation(execution.length, execution.codeStart);
     }
 
-    if (plan.topology == FIVE_PLAN_DIRECT) {
+    if (plan.bounded.edgeCount == 0) {
       return compileFiveDirectConstants(
         firstSource,
         secondSource,
@@ -417,37 +299,23 @@ classical class CompilerGraphFive {
       );
     }
 
-    if (plan.topology == FIVE_PLAN_FORK) {
-      FiveForkCompilation fork = compileFiveConstantFork(
-        plan,
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        rootSource,
-        output
-      );
-      assert(0 < fork.length);
-      return new FiveGraphCompilation(fork.length, fork.codeStart);
+    if (plan.bounded.edgeCount == 1) {
+      if (plan.bounded.rootCount == 4) {
+        return compileFiveHelperChain(
+          plan,
+          firstSource,
+          secondSource,
+          thirdSource,
+          fourthSource,
+          fifthSource,
+          rootSource,
+          output
+        );
+      }
     }
 
-    if (plan.topology == FIVE_PLAN_CHAIN) {
-      FiveChainCompilation chain = compileFiveConstantChain(
-        plan,
-        firstSource,
-        secondSource,
-        thirdSource,
-        fourthSource,
-        fifthSource,
-        rootSource,
-        output
-      );
-      assert(0 < chain.length);
-      return new FiveGraphCompilation(chain.length, chain.codeStart);
-    }
-
-    return compilePlannedFiveStructure(
+    assert(INVALID_COMPILATION_LENGTH == VALID_COMPILATION_LENGTH);
+    return compileFiveHelperChain(
       plan,
       firstSource,
       secondSource,
