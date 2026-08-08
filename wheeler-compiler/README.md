@@ -28,6 +28,7 @@ The package keeps responsibilities narrow:
 - `compiler/closure/ModuleManifest.w` owns canonical bootstrap-module parsing, binding, cycle rejection, and rooted reachability.
 - `compiler/closure/ArchiveModuleSources.w` joins each local source path and identity to one immutable archive range before publication.
 - `compiler/closure/ClosurePlan.w` owns source ranges, import windows and ranks, leaf-first order, and executable-owner bits for up to 512 modules.
+- `compiler/closure/ActiveSourceSlots.w` owns eight generation-checked 32,768-byte linked-source leases and destroys bytes on release.
 - Focused backend statement, compiler-core, local-type, and scalar-encoding modules keep every physical compiler source below the 32,768-byte native ceiling and within 4,096 semantic tokens.
 - `compiler/graphs/plans/GraphExecutor.w` executes constants, direct helpers, mixed direct owners, private helper edges, and the constant-fed helper chain. Dense DAGs, forests, chains, and forks are graph data, not executor identities.
 - `compiler/graphs/plans/GraphExecutionOrder.w` selects dependency imports and ready roots without consulting frame order.
