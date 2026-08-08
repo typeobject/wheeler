@@ -120,8 +120,9 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
 - [x] `CompiledGlobalProducts.w` appends source-local global rows with split 64-bit initial values; `LinkedAggregateSections.w` emits final globals, records, arrays, slices, variants, cases, and fields.
 - [x] `CompiledFunctionNames.w` retains closure string references and resolves final function-name IDs.
 - [x] `LinkedManifestSection.w` resolves the root program name and rebases its entry through counted module function windows.
-- [ ] Header, directory, alignment, and optional sections emit.
-- [ ] The complete output verifies before identity publication.
+- [x] `LinkedContainer.w` emits format 1.0 headers, sorted directories, eight-byte alignment, zero padding, and bounded optional section types.
+- [x] The assembled container verifies its header, directory, extents, and padding before the caller publishes output length or identity.
+- [ ] The complete typed output passes the native semantic verifier before identity publication.
 - [ ] Linked fixture artifacts match stage 0 byte for byte.
 - [ ] The complete physical compiler closure emits without dependency source.
 
