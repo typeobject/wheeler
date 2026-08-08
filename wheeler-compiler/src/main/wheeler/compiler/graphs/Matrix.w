@@ -18,11 +18,12 @@ classical class BoundedGraphMatrix {
     long rootOrderCode,
     long privateBits,
     long sharedBits,
+    long executableBits,
     boolean valid
   ) {}
 
   private BoundedGraphPlan invalidPlan() {
-    return new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, 0, false);
+    return new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false);
   }
 
   private long incomingCount(borrow mut words graph, long nodeCount, long node) {
@@ -316,6 +317,41 @@ classical class BoundedGraphMatrix {
       rootOrderCode,
       privateBits,
       sharedBits,
+      /* executableBits= */ 0,
+      true
+    );
+  }
+
+  /// Records validated executable-owner kinds before graph execution begins.
+  public BoundedGraphPlan planExecutableOwners(
+    BoundedGraphPlan plan,
+    borrow mut words executableKinds
+  ) {
+    assert(plan.valid);
+    assert(bufferLength(executableKinds) == MAX_GRAPH_NODES);
+    long executableBits = 0;
+    long node = 0;
+    while (node < plan.nodeCount) limit MAX_GRAPH_NODES {
+      if (executableKinds[node] == 1) {
+        executableBits += powerOfTwo(node);
+      } else {
+        assert(executableKinds[node] == 0);
+      }
+
+      node += 1;
+    }
+
+    return new BoundedGraphPlan(
+      plan.nodeCount,
+      plan.edgeCount,
+      plan.rootCount,
+      plan.edgeBits,
+      plan.rootBits,
+      plan.orderCode,
+      plan.rootOrderCode,
+      plan.privateBits,
+      plan.sharedBits,
+      executableBits,
       true
     );
   }
@@ -365,6 +401,11 @@ classical class BoundedGraphMatrix {
   /// Reports whether one dependency feeds more than one dependent.
   public boolean plannedShared(BoundedGraphPlan plan, long node) {
     return planBit(plan, plan.sharedBits, node);
+  }
+
+  /// Reports whether one physical module owns executable helpers.
+  public boolean plannedExecutable(BoundedGraphPlan plan, long node) {
+    return planBit(plan, plan.executableBits, node);
   }
 
   /// Reports whether one validated dependency edge is present.

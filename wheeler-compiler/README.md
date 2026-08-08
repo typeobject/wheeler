@@ -24,7 +24,8 @@ The package keeps responsibilities narrow:
 - `compiler/graphs/SmallStructures.w`, `FourStructures.w`, `Plans.w`, `six/SixPlans.w`, and `seven/Plans.w` build complete rooted acyclic plans for two through seven modules.
 - `compiler/graphs/Matrix.w` records canonical edges, roots, root ranks, leaf-first order, visibility, and sharing facts.
 - `compiler/graphs/plans/SourceTable.w` owns seven fixed 32,768-byte source slots. Replacement validates before mutation and clears stale tails.
-- `compiler/graphs/plans/GraphExecutor.w` executes constants, direct helpers, mixed direct owners, redundant helper leaves, and the constant-fed helper chain. Dense DAGs, forests, chains, and forks are graph data, not executor identities.
+- `compiler/graphs/plans/GraphExecutor.w` executes constants, direct helpers, mixed direct owners, private helper edges, and the constant-fed helper chain. Dense DAGs, forests, chains, and forks are graph data, not executor identities.
+- `compiler/graphs/plans/GraphOwnerMetadata.w` carries exact executable-owner order and bounded private-owner name markers.
 - `compiler/Driver.w` keeps one small stable API over the graph compilers and core.
 - `compiler/backend/results/ResultSlotCodegen.w` owns reversible result-slot entry encoding.
 - `compiler/backend/ProgramCodegen.w` emits ordinary helper bodies and package entry code.
@@ -126,9 +127,9 @@ lexical work instead of running a parser-IR registry from the back room. Real se
 The header parser validates exact dotted names and rejects malformed, duplicate, unsorted,
 or excess imports before publication. The one- through seven-import entry points accept every rooted acyclic scalar-constant graph within the frame bound. The single-import path links directly. Two through seven imports use plans that record exact edges, direct roots, root ranks, reachability, visibility, sharing, and leaf-first order. `graphs/plans/GraphExecutor.w` consumes those facts through one counted source table.
 
-The graph executor also links direct helper sets, mixed direct constants and helpers, redundant direct helper leaves, and the constant-fed helper chain. It inserts later helper owners first, sorts owner metadata by root import position, and keeps every constant before every function. `backend/HelperOwners.w` freezes three seven-word columns into the owner table consumed by `compiler/Core.w`. The helper-arity linkers and source-order network are deleted.
+The graph executor also links direct helper sets, mixed direct constants and helpers, private helper chains and forks, and the constant-fed helper chain. The plan records executable-owner kinds before edge mutation. `graphs/plans/GraphOwnerMetadata.w` carries exact owner order through linked sources and writes inert name markers for owners private to the root. `backend/HelperOwners.w` freezes three seven-word columns for `compiler/Core.w`. The helper-arity linkers and source-order network are deleted.
 
-`graphs/plans/SourceTable.w` owns seven fixed 32,768-byte slots. Initialization validates all active sources before writing. Replacement validates before mutation and clears the old tail. The synthetic root has separate storage, so seven imports do not become an eight-node loophole. Exact duplicate declarations collapse once. A mismatch, non-direct helper-to-helper edge, eighth executable owner, twenty-third dependency helper, twenty-fourth total helper, or eight-module frame fails before publication. General symbol
+`graphs/plans/SourceTable.w` owns seven fixed 32,768-byte slots. Initialization validates all active sources before writing. Replacement validates before mutation and clears the old tail. The synthetic root has separate storage, so seven imports do not become an eight-node loophole. Exact duplicate declarations collapse once. A mismatch, shared or redundant executable edge, eighth executable owner, twenty-third dependency helper, twenty-fourth total helper, or eight-module frame fails before publication. General symbol
 resolution remains future work. Entry and helper bodies
 admit at most sixty-four statements. Scanner metadata admits 4,096 tokens across a 32,768-byte
 physical or linked source window. Linked graph arenas and the counted source selector admit the same

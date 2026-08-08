@@ -56,6 +56,145 @@ final class NativeCompilerMixedImportExampleTest {
   }
 
   @Test
+  void compilesTwoPrivateHelperEdgesAcrossEveryFrameOrder() throws Exception {
+    String alpha = """
+        module example.alpha;
+        classical class Alpha {
+          public boolean alpha(long value) { return value == 1; }
+        }
+        """;
+    String beta = """
+        module example.beta;
+        import example.alpha;
+        classical class Beta {
+          public boolean beta(long value) { return alpha(value); }
+        }
+        """;
+    String gamma = """
+        module example.gamma;
+        import example.beta;
+        classical class Gamma {
+          public boolean gamma(long value) { return beta(value); }
+        }
+        """;
+    String root = """
+        module example.helper_chain;
+        import example.gamma;
+        classical class HelperChain {
+          public boolean accepted(long value) { return gamma(value); }
+        }
+        """;
+
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of(
+                "Alpha.w", alpha,
+                "Beta.w", beta,
+                "Gamma.w", gamma,
+                "HelperChain.w", root),
+            "example.helper_chain"));
+    Program compiler = NativeModuleCompilerHarness.program();
+    List<String> imported = List.of(alpha, beta, gamma);
+    List<List<String>> orders =
+        NativeImportedConstantGraphSupport.rotationsAndReversals(imported);
+    for (List<String> order : orders) {
+      assertArrayEquals(expected, NativeModuleCompilerHarness.compile(compiler, order, root));
+    }
+  }
+
+  @Test
+  void ordersTwoPrivateHelperInputsByTheDependentHeader() throws Exception {
+    String alpha = "module example.alpha; classical class Alpha { "
+        + "public boolean alpha(long value) { return value == 1; } }";
+    String delta = "module example.delta; classical class Delta { "
+        + "public boolean delta(long value) { return value == 4; } }";
+    String gamma = """
+        module example.gamma;
+        import example.alpha;
+        import example.delta;
+        classical class Gamma {
+          public boolean gamma(long value) {
+            if (alpha(value)) { return true; }
+            return delta(value);
+          }
+        }
+        """;
+    String root = """
+        module example.helper_fork;
+        import example.gamma;
+        classical class HelperFork {
+          public boolean accepted(long value) { return gamma(value); }
+        }
+        """;
+    List<String> imported = List.of(alpha, delta, gamma);
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of(
+                "Alpha.w", alpha,
+                "Delta.w", delta,
+                "Gamma.w", gamma,
+                "HelperFork.w", root),
+            "example.helper_fork"));
+    Program compiler = NativeModuleCompilerHarness.program();
+    List<List<String>> orders =
+        NativeImportedConstantGraphSupport.rotationsAndReversals(imported);
+    for (List<String> order : orders) {
+      assertArrayEquals(expected, NativeModuleCompilerHarness.compile(compiler, order, root));
+    }
+  }
+
+  @Test
+  void linksPrivateConstantsBeforePrivateHelperInputs() throws Exception {
+    String alpha = "module example.alpha; classical class Alpha { "
+        + "public boolean alpha(long value) { return value == 1; } }";
+    String constants = "module example.constants; classical class Constants { "
+        + "public const long BASE = 9; }";
+    String gamma = """
+        module example.gamma;
+        import example.alpha;
+        import example.constants;
+        classical class Gamma {
+          public boolean gamma(long value) {
+            if (alpha(value)) { return true; }
+            return value == BASE;
+          }
+        }
+        """;
+    String root = "module example.mixed_chain; import example.gamma; "
+        + "classical class MixedChain { public boolean accepted(long value) { "
+        + "return gamma(value); } }";
+    List<String> imported = List.of(alpha, constants, gamma);
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of(
+                "Alpha.w", alpha,
+                "Constants.w", constants,
+                "Gamma.w", gamma,
+                "MixedChain.w", root),
+            "example.mixed_chain"));
+    Program compiler = NativeModuleCompilerHarness.program();
+    List<List<String>> orders =
+        NativeImportedConstantGraphSupport.rotationsAndReversals(imported);
+    for (List<String> order : orders) {
+      assertArrayEquals(expected, NativeModuleCompilerHarness.compile(compiler, order, root));
+    }
+  }
+
+  @Test
+  void rejectsARedundantExecutableLeafBeforePublication() throws Exception {
+    String alpha = "module example.alpha; classical class Alpha { "
+        + "public boolean alpha(long value) { return value == 1; } }";
+    String beta = "module example.beta; import example.alpha; classical class Beta { "
+        + "public boolean beta(long value) { return alpha(value); } }";
+    String root = "module example.redundant_helpers; import example.alpha; "
+        + "import example.beta; classical class RedundantHelpers { "
+        + "public boolean accepted(long value) { return beta(value); } }";
+
+    NativeModuleCompilerHarness.assertTrap(
+        NativeModuleCompilerHarness.program(), List.of(alpha, beta), root);
+  }
+
+  @Test
   void compilesThreeHelpersBesideFourConstantsAcrossSevenFrames() throws Exception {
     String alpha = "module example.alpha; classical class Alpha { "
         + "public boolean alpha(long value) { return value == 1; } }";

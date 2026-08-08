@@ -21,7 +21,7 @@ The first bound remains seven imported modules and 32,768 bytes per physical or 
 
 The old compiler validated graph facts before linking, then spread execution across direct, chain, fork, nested, mixed, and shared-DAG owners. A new legal edge pattern needed a classifier identity and an executor path. The redundant two-module chain was the last small example: the leaf fed its dependent while both remained direct root imports.
 
-Scalar constants and helpers no longer have that defect. One executor accepts every rooted acyclic constant plan from two through seven imported modules, every direct helper set, mixed direct constants and helpers, redundant direct helper leaves, and the constant-fed helper chain. The remaining graph work is arbitrary helper-to-helper dependency edges and executable-owner kinds recorded before root linking.
+Scalar constants and helpers no longer have that defect. One executor accepts every rooted acyclic constant plan from two through seven imported modules, every direct helper set, mixed direct constants and helpers, private helper chains and multi-input helper dependencies, and the constant-fed helper chain. The plan records executable-owner kinds before linking an edge. Shared and redundant executable dependencies remain open.
 
 This does not scale to the physical compiler closure. Real module graphs contain redundant direct edges, shared dependencies, independent branches, constants beside functions, and imports retained for their own public API. A closed list of picturesque trees cannot become a module system by acquiring more pictures.
 
@@ -65,6 +65,7 @@ GraphPlan {
     leaf_first_order[node_count]
     private_use[node_count]
     shared_use[node_count]
+    executable_owner[node_count]
 }
 ```
 
@@ -80,6 +81,7 @@ The plan is valid only when all of these hold:
 - every edge matches the dependent header.
 - source paths and physical frames are unique.
 - all counts and byte lengths fit before append.
+- every physical executable owner is classified before dependency linking.
 
 A redundant edge is ordinary graph data. It needs no topology identity.
 
@@ -97,7 +99,7 @@ For one dependency edge, the executor performs these steps:
 6. Insert executable members after every declaration.
 7. Freeze the complete linked source before advancing the table owner.
 
-The executor compiles the root only after processing every incoming edge. It orders helper owners by `root_import_rank`. A helper's physical frame, topological position, or completion order does not alter its function identity.
+The executor compiles the root only after processing every incoming edge. Constant-only edges run before executable edges. Multiple executable inputs are linked in reverse dependent-import rank so canonical source order survives insertion. `GraphOwnerMetadata.w` carries owner order through each source slot and writes inert canonical-name markers for owners private to the final root. A helper's physical frame, topological position, or completion order does not alter its function identity.
 
 The executor may use fixed seven-slot storage in the initial implementation. The public operation must still take a counted plan and one source table. Arity-shaped entry points are not the interface.
 
@@ -171,9 +173,11 @@ Compatibility wrappers are not retained. During migration the driver may dispatc
 - [x] The four-module topology executors and planned-source selectors are deleted.
 - [x] The complete bounded graph plan validates and packs root-import rank.
 - [x] New dense three- and four-module DAGs, shared five-module DAGs, and redundant six- and seven-module DAGs execute without new topology identities.
-- [x] Mixed direct constants and helpers, direct helper sets, redundant helper leaves, and the constant-fed helper chain use the graph executor. Three helper owners beside four constants match stage 0 across all fourteen seven-frame rotations.
+- [x] Mixed direct constants and helpers, direct helper sets, redundant constant leaves, and the constant-fed helper chain use the graph executor. Three helper owners beside four constants match stage 0 across all fourteen seven-frame rotations.
 - [x] The arity-shaped direct-helper linkers, source-order network, mixed coordinators, and structural fallbacks are deleted.
-- [ ] `BoundedGraphPlan` records executable-owner kinds before root linking.
+- [x] `BoundedGraphPlan` records executable-owner kinds before dependency linking.
+- [x] Private two-edge helper chains, two-input helper forks, and mixed private constant/helper inputs match stage 0 across every three-frame order.
+- [ ] Shared and redundant executable dependencies deduplicate exact helper members.
 - [ ] The imported-module bound is raised beyond seven.
 
 ## Acceptance
@@ -184,6 +188,7 @@ Compatibility wrappers are not retained. During migration the driver may dispatc
 - Shared identical declarations appear once.
 - Shared mismatched declarations fail before output.
 - Constants precede every executable member.
+- Private helper chains preserve every canonical owner identity.
 - Private transitive exports do not leak into the root.
 - Unsupported cycles, detached nodes, duplicate modules, and excess bounds fail before mutation.
 - No maintained graph executor dispatches on a topology identity.
