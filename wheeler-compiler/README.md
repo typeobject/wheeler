@@ -30,6 +30,7 @@ The package keeps responsibilities narrow:
 - `compiler/closure/ClosurePlan.w` owns source ranges, import windows and ranks, leaf-first order, and executable-owner bits for up to 512 modules.
 - `compiler/closure/ActiveSourceSlots.w` owns eight generation-checked 32,768-byte linked-source leases and destroys bytes on release.
 - `compiler/closure/ClosureSchedule.w` stages immutable sources in leaf-first order and publishes per-module slot generations after the complete pass.
+- `compiler/closure/SmallClosureExecutor.w` bridges exact seven-import counted fixtures to the differential graph executor during migration.
 - Focused backend statement, compiler-core, local-type, and scalar-encoding modules keep every physical compiler source below the 32,768-byte native ceiling and within 4,096 semantic tokens.
 - `compiler/graphs/plans/GraphExecutor.w` executes constants, direct helpers, mixed direct owners, private helper edges, and the constant-fed helper chain. Dense DAGs, forests, chains, and forks are graph data, not executor identities.
 - `compiler/graphs/plans/GraphExecutionOrder.w` selects dependency imports and ready roots without consulting frame order.
