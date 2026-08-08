@@ -35,9 +35,12 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
 
           record Pair(long left, boolean ready) {}
 
-          public long helper(long value) {
-            return value;
+          rev long helper(long value) {
+            long result = value + 0;
+            return result;
           }
+
+          theorem helperInverse proves inverse(helper);
 
           entry void main() {
             Pair pair = new Pair(helper(marker), true);
@@ -60,6 +63,8 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.compiled_global_products"));
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.compiled_proof_products"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.compiled_string_products"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.counted_aggregate_layouts"));
@@ -78,6 +83,8 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.linked_manifest_section"));
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.linked_proof_section"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.linked_string_section"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.verifier"));
     sources.put("ProductLinkedArtifactExample.w", """
@@ -86,6 +93,7 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
         import wheeler.compiler.closure.compiled_function_names;
         import wheeler.compiler.closure.compiled_function_products;
         import wheeler.compiler.closure.compiled_global_products;
+        import wheeler.compiler.closure.compiled_proof_products;
         import wheeler.compiler.closure.compiled_string_products;
         import wheeler.compiler.closure.counted_aggregate_layouts;
         import wheeler.compiler.closure.counted_function_products;
@@ -95,6 +103,7 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
         import wheeler.compiler.closure.linked_instruction_code;
         import wheeler.compiler.closure.linked_local_types;
         import wheeler.compiler.closure.linked_manifest_section;
+        import wheeler.compiler.closure.linked_proof_section;
         import wheeler.compiler.closure.linked_string_section;
         import wheeler.compiler.verifier;
 
@@ -102,7 +111,7 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 18217472, /* allocations= */ 25);
+            region rows = new region(/* bytes= */ 18414080, /* allocations= */ 26);
             words artifactStarts = allocate(rows, /* length= */ 512);
             words artifactLengths = allocate(rows, /* length= */ 512);
             words localFunctions = allocate(rows, /* length= */ 640);
@@ -125,6 +134,7 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
             words moduleStringBases = allocate(rows, /* length= */ 512);
             words finalDescriptors = allocate(rows, /* length= */ 4096);
             words globals = allocate(rows, /* length= */ 20480);
+            words proofs = allocate(rows, /* length= */ 24576);
             words sectionTypes = allocate(rows, /* length= */ 64);
             words sectionStarts = allocate(rows, /* length= */ 64);
             words sectionLengths = allocate(rows, /* length= */ 64);
@@ -219,6 +229,17 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
               functionWindow.firstFunction,
               functionWindow.functionCount,
               functionNames
+            );
+            long proofCount = appendCompiledProofProducts(
+              source,
+              bufferLength(source),
+              /* moduleOwner= */ 0,
+              /* moduleStringBase= */ 0,
+              stringPlan.stringCount,
+              functionWindow.firstFunction,
+              functionWindow.functionCount,
+              /* closureProofCount= */ 0,
+              proofs
             );
 
             region sections = new region(/* bytes= */ 2097152, /* allocations= */ 2);
@@ -351,10 +372,24 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
             }
             set(sectionLengths, 5, codeBytes);
             cursor += codeBytes;
+            assert(proofCount == 1);
+            set(sectionTypes, 6, 10);
+            set(sectionStarts, 6, cursor);
+            long proofBytes = emitLinkedProofSection(
+              proofCount,
+              functionWindow.functionCount,
+              stringPlan.closureStringCount,
+              proofs,
+              finalStrings,
+              stagedSections,
+              cursor
+            );
+            set(sectionLengths, 6, proofBytes);
+            cursor += proofBytes;
             long artifactBytes = emitCanonicalContainer(
               stagedSections,
               cursor,
-              /* sectionCount= */ 6,
+              /* sectionCount= */ 7,
               sectionTypes,
               sectionStarts,
               sectionLengths,
@@ -370,6 +405,7 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
             drop(sectionLengths);
             drop(sectionStarts);
             drop(sectionTypes);
+            drop(proofs);
             drop(globals);
             drop(finalDescriptors);
             drop(moduleStringBases);

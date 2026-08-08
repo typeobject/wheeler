@@ -124,7 +124,9 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
 - [x] The assembled container verifies its header, directory, extents, and padding before the caller publishes output length or identity.
 - [x] The complete product-linked fixture passes `verifyArtifact` before output-length publication and then passes the independent stage-0 reader.
 - [x] A local-call, global, and aggregate fixture flows through counted strings, globals, layouts, functions, types, code, manifest, and container emission and matches stage 0 byte for byte.
-- [ ] Imported-call, reversible result-slot, and optional-section product fixtures match stage 0 byte for byte.
+- [x] `CompiledProofProducts.w` rebases counted certificate names and subjects; `LinkedProofSection.w` emits canonical split arguments.
+- [x] The complete reversible result-slot and optional proof product fixture matches stage 0 byte for byte.
+- [ ] A complete imported-call product fixture matches stage 0 byte for byte.
 - [ ] The complete physical compiler closure emits without dependency source.
 
 ## Rejected alternatives
