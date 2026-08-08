@@ -115,7 +115,9 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
 - [x] `AggregateDescriptorRows.w` assigns per-kind final IDs in closure order and resolves stable module identity, kind, and source-type triples. Duplicate or missing products publish nothing.
 - [x] `LinkedLocalTypes.w` emits exact closure function type windows and rewrites nominal codes through owner-scoped final descriptor rows.
 - [x] `LinkedFunctionSection.w` emits exact function descriptors and final local-type rows after code and type extent validation.
-- [ ] Canonical string, aggregate-type, and global sections emit.
+- [x] `LinkedStringSection.w` sorts and deduplicates counted ASCII bootstrap names, emits canonical bytes, and publishes every source-to-final ID.
+- [ ] Source-local string sections feed counted name ranges into the linker.
+- [ ] Canonical aggregate-type and global sections emit.
 - [ ] Header, directory, alignment, and optional sections emit.
 - [ ] The complete output verifies before identity publication.
 - [ ] Linked fixture artifacts match stage 0 byte for byte.

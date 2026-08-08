@@ -27,6 +27,7 @@ import wheeler.compiler.closure.instruction_ownership_products;
 import wheeler.compiler.closure.linked_function_section;
 import wheeler.compiler.closure.linked_instruction_code;
 import wheeler.compiler.closure.linked_local_types;
+import wheeler.compiler.closure.linked_string_section;
 import wheeler.compiler.closure.local_call_relocations;
 import wheeler.compiler.closure.module_callables;
 import wheeler.compiler.closure.module_manifest;
