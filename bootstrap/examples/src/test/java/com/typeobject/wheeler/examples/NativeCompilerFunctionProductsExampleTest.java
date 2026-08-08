@@ -44,6 +44,13 @@ final class NativeCompilerFunctionProductsExampleTest {
     assertEquals(7, machine.global("firstFunctionOwner"));
     assertEquals(8, machine.global("secondFunctionOwner"));
     assertEquals(product.functions().size(), machine.global("secondInstructionFunction"));
+    long linkedCodeBytes = product.functions().stream()
+        .flatMap(function -> java.util.stream.Stream.concat(
+            function.forward().stream(), function.inverse().stream()))
+        .mapToLong(instruction -> instruction.encodedLength())
+        .sum() * 2;
+    assertEquals(linkedCodeBytes, machine.global("linkedCodeBytes"));
+    assertEquals(product.functions().size(), machine.global("secondLinkedTarget"));
     assertEquals(1, machine.global("localRelocationCount"));
     assertEquals(0, machine.global("firstLocalTarget"));
     assertEquals(1, machine.global("importedRelocationCount"));
@@ -148,6 +155,8 @@ final class NativeCompilerFunctionProductsExampleTest {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.instruction_ownership_products"));
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.linked_instruction_code"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.local_call_relocations"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.ownership_product_identities"));
@@ -161,6 +170,7 @@ final class NativeCompilerFunctionProductsExampleTest {
         import wheeler.compiler.closure.function_product_identities;
         import wheeler.compiler.closure.imported_call_relocations;
         import wheeler.compiler.closure.instruction_ownership_products;
+        import wheeler.compiler.closure.linked_instruction_code;
         import wheeler.compiler.closure.local_call_relocations;
         import wheeler.compiler.closure.ownership_product_identities;
         import wheeler.compiler.closure.relocation_identities;
@@ -174,6 +184,8 @@ final class NativeCompilerFunctionProductsExampleTest {
           state long firstFunctionOwner = -1;
           state long secondFunctionOwner = -1;
           state long secondInstructionFunction = -1;
+          state long linkedCodeBytes = 0;
+          state long secondLinkedTarget = -1;
           state long firstOpcode = 0;
           state long localRelocationCount = 0;
           state long firstLocalTarget = -1;
@@ -255,6 +267,48 @@ final class NativeCompilerFunctionProductsExampleTest {
               secondWindow.firstInstruction + secondWindow.instructionCount;
             secondFunctionOwner = closureFunctions[secondWindow.firstFunction];
             secondInstructionFunction = closureInstructions[secondWindow.firstInstruction];
+            region linkedRows = new region(/* bytes= */ 4202496, /* allocations= */ 3);
+            words artifactStarts = allocate(linkedRows, /* length= */ 512);
+            words artifactLengths = allocate(linkedRows, /* length= */ 512);
+            bytes linkedCode = allocateBytes(linkedRows, /* length= */ 4194304);
+            set(artifactLengths, 3, bufferLength(source));
+            set(artifactLengths, 4, bufferLength(source));
+            linkedCodeBytes = emitLinkedInstructionCode(
+              source,
+              bufferLength(source),
+              artifactStarts,
+              artifactLengths,
+              secondWindow.firstFunction + secondWindow.functionCount,
+              secondWindow.firstInstruction + secondWindow.instructionCount,
+              moduleFirstFunctions,
+              moduleFunctionCounts,
+              closureFunctions,
+              closureInstructions,
+              linkedCode
+            );
+            long linkedInstruction = secondWindow.firstInstruction;
+            long linkedCursor = linkedCodeBytes / 2;
+            long linkedInstructionEnd =
+              secondWindow.firstInstruction + secondWindow.instructionCount;
+            while (linkedInstruction < linkedInstructionEnd) limit 4096 {
+              long linkedOpcode = closureInstructions[524288 + linkedInstruction];
+              long linkedLength = closureInstructions[786432 + linkedInstruction];
+              if (linkedOpcode == 514) {
+                secondLinkedTarget = 0;
+                long targetByte = 0;
+                long multiplier = 1;
+                while (targetByte < 8) limit 8 {
+                  secondLinkedTarget +=
+                    (linkedCode[linkedCursor + 8 + targetByte] * multiplier);
+                  if (targetByte < 7) {
+                    multiplier = multiplier * 256;
+                  }
+                  targetByte += 1;
+                }
+              }
+              linkedCursor += linkedLength;
+              linkedInstruction += 1;
+            }
             region relocations = new region(/* bytes= */ 198656, /* allocations= */ 3);
             bytes signatureIdentities = allocateBytes(relocations, /* length= */ 2048);
             words relocationRows = allocate(relocations, /* length= */ 8192);
@@ -353,6 +407,10 @@ final class NativeCompilerFunctionProductsExampleTest {
             drop(aggregateIdentity);
             drop(relocationIdentity);
             drop(signatureIdentity);
+            drop(linkedCode);
+            drop(artifactLengths);
+            drop(artifactStarts);
+            drop(linkedRows);
             drop(closureInstructions);
             drop(closureFunctions);
             drop(moduleFunctionCounts);

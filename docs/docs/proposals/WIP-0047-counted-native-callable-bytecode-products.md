@@ -9,13 +9,13 @@
 | Area | Self-hosting, callable bodies, relocation, compiler products |
 | Depends on | WIP-0038, WIP-0041, WIP-0044, WIP-0045, WIP-0046 |
 | Supersedes | Callable bytecode relocation work in WIP-0045 |
-| Superseded by | None |
+| Superseded by | Final artifact emission moved to WIP-0048 |
 
 ## Summary
 
 The native compiler shall link callable bodies from canonical bytecode products. Each source-local `.wbc` product is decoded into bounded function descriptors, local type windows, and instruction ranges. Calls and type references are then relocated against completed scalar, callable, and aggregate identities. Dependency source is neither retained nor flattened.
 
-WIP-0045 owns source callable signatures and source-local compilation. WIP-0046 owns aggregate layouts and ownership products. This WIP owns the bytecode boundary between those products and the final linked `.wbc`.
+WIP-0045 owns source callable signatures and source-local compilation. WIP-0046 owns aggregate layouts and ownership products. This WIP owns validated callable products and relocation. WIP-0048 owns final ID assignment and canonical `.wbc` emission.
 
 ## Problem
 
@@ -113,8 +113,8 @@ Callable bytecode products do not set a bootstrap bit. Promotion still requires 
 - [x] `AggregateOperandRelocations.w` resolves record, fixed-array, slice, and variant construction operands to unique WIP-0046 rows and copies the aggregate module-product identity.
 - [x] `CompiledBodyArchive.w` copies validated source-local artifacts into a bounded 16 MiB closure archive and publishes stable artifact ranks. Duplicate module owners fail before copying.
 - [x] `CountedFunctionProducts.w` appends one validated artifact at a time, rebases instruction owners, preserves artifact ranks, and rejects duplicate module owners before publication.
-- [ ] The canonical linker emits a multi-module `.wbc` without dependency source.
-- [ ] Linked local, imported, reversible, result-slot, aggregate, owner, and loan fixtures match stage 0 byte for byte.
+- [x] `LinkedInstructionCode.w` emits closure-ordered instruction bytes and rebases local call targets by the owning module's final function base.
+- [ ] WIP-0048 emits the complete canonical multi-module `.wbc` and matches linked fixtures byte for byte.
 - [ ] The complete physical compiler closure compiles from semantic products.
 
 ## Rejected alternatives
