@@ -26,6 +26,7 @@ import wheeler.compiler.closure.plan;
 import wheeler.compiler.closure.scalar_module_identities;
 import wheeler.compiler.closure.schedule;
 import wheeler.compiler.closure.small_executor;
+import wheeler.compiler.closure.source_call_products;
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.compiler_graphs;
 
