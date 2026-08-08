@@ -30,22 +30,24 @@ final class NativeCompilerAggregateProductsExampleTest {
 
     machine.run();
 
-    assertEquals(3, machine.global("aggregateCount"));
+    assertEquals(4, machine.global("aggregateCount"));
     assertEquals(2, machine.global("caseCount"));
-    assertEquals(4, machine.global("memberCount"));
+    assertEquals(5, machine.global("memberCount"));
     assertEquals(1, machine.global("firstKind"));
-    assertEquals(2, machine.global("secondKind"));
+    assertEquals(1, machine.global("secondKind"));
+    assertEquals(2, machine.global("thirdKind"));
     assertEquals(4, machine.global("lastKind"));
     assertEquals(3, machine.global("arrayLength"));
     assertEquals(1, machine.global("firstOwner"));
     assertEquals(2, machine.global("closureModuleCount"));
-    assertEquals(6, machine.global("closureAggregateCount"));
+    assertEquals(8, machine.global("closureAggregateCount"));
     assertEquals(4, machine.global("closureCaseCount"));
-    assertEquals(8, machine.global("closureMemberCount"));
+    assertEquals(10, machine.global("closureMemberCount"));
     assertEquals(3, machine.global("secondModuleOwner"));
     assertEquals(2, machine.global("secondVariantFirstCase"));
     assertEquals(0, machine.global("finalFirstOwner"));
     assertEquals(2, machine.global("dependencyCount"));
+    assertEquals(0, machine.global("wrapperTypeTarget"));
     assertEquals(32, machine.hostOutput().length);
     assertEquals(expectedIdentity(artifact), HexFormat.of().formatHex(machine.hostOutput()));
   }
@@ -72,10 +74,21 @@ final class NativeCompilerAggregateProductsExampleTest {
   }
 
   @Test
+  void rejectsUnknownNominalMemberTypesBeforePublication() throws Exception {
+    byte[] artifact = aggregateArtifact();
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        decoder(false, false, false, true), artifact, 32);
+
+    assertThrows(VmTrap.class, machine::run);
+    assertEquals(0, machine.global("published"));
+    assertEquals("00".repeat(32), HexFormat.of().formatHex(machine.hostOutput()));
+  }
+
+  @Test
   void rejectsMissingExternalDependencyProductsBeforeIdentityPublication() throws Exception {
     byte[] artifact = aggregateArtifact();
     VirtualMachine machine = VirtualMachine.withBinaryInput(
-        decoder(false, false, true), artifact, 32);
+        decoder(false, false, true, false), artifact, 32);
 
     assertThrows(VmTrap.class, machine::run);
     assertEquals(0, machine.global("published"));
@@ -93,21 +106,22 @@ final class NativeCompilerAggregateProductsExampleTest {
   }
 
   private static Program decoder() throws Exception {
-    return decoder(false, false, false);
+    return decoder(false, false, false, false);
   }
 
   private static Program decoder(boolean invalidLayout) throws Exception {
-    return decoder(invalidLayout, false, false);
+    return decoder(invalidLayout, false, false, false);
   }
 
   private static Program decoder(boolean invalidLayout, boolean invalidLoan) throws Exception {
-    return decoder(invalidLayout, invalidLoan, false);
+    return decoder(invalidLayout, invalidLoan, false, false);
   }
 
   private static Program decoder(
       boolean invalidLayout,
       boolean invalidLoan,
-      boolean invalidDependency) throws Exception {
+      boolean invalidDependency,
+      boolean invalidType) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
@@ -118,6 +132,8 @@ final class NativeCompilerAggregateProductsExampleTest {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.aggregate_loan_verifier"));
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.aggregate_type_resolution"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.compiled_aggregate_layouts"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.counted_aggregate_layouts"));
@@ -127,6 +143,7 @@ final class NativeCompilerAggregateProductsExampleTest {
         import wheeler.compiler.closure.aggregate_dependency_products;
         import wheeler.compiler.closure.aggregate_identities;
         import wheeler.compiler.closure.aggregate_loan_verifier;
+        import wheeler.compiler.closure.aggregate_type_resolution;
         import wheeler.compiler.closure.compiled_aggregate_layouts;
         import wheeler.compiler.closure.counted_aggregate_layouts;
 
@@ -136,6 +153,7 @@ final class NativeCompilerAggregateProductsExampleTest {
           state long memberCount = 0;
           state long firstKind = 0;
           state long secondKind = 0;
+          state long thirdKind = 0;
           state long lastKind = 0;
           state long arrayLength = 0;
           state long firstOwner = 0;
@@ -147,6 +165,7 @@ final class NativeCompilerAggregateProductsExampleTest {
           state long secondVariantFirstCase = 0;
           state long finalFirstOwner = 1;
           state long dependencyCount = 0;
+          state long wrapperTypeTarget = -1;
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
@@ -258,14 +277,26 @@ final class NativeCompilerAggregateProductsExampleTest {
             closureAggregateCount = secondClosure.aggregateCount;
             closureCaseCount = secondClosure.caseCount;
             closureMemberCount = secondClosure.memberCount;
-            secondModuleOwner = closureAggregates[4096 + 3];
-            secondVariantFirstCase = closureAggregates[16384 + 5];
-            region ownershipRows = new region(/* bytes= */ 524288, /* allocations= */ 5);
+            secondModuleOwner = closureAggregates[4096 + 4];
+            secondVariantFirstCase = closureAggregates[16384 + 7];
+            region ownershipRows = new region(/* bytes= */ 655360, /* allocations= */ 6);
             words initialOwned = allocate(ownershipRows, /* length= */ 4096);
             words events = allocate(ownershipRows, /* length= */ 49152);
             words finalOwned = allocate(ownershipRows, /* length= */ 4096);
             words finalShared = allocate(ownershipRows, /* length= */ 4096);
             words finalMutable = allocate(ownershipRows, /* length= */ 4096);
+            words memberTypeTargets = allocate(ownershipRows, /* length= */ 16384);
+            INVALID_TYPE
+            resolveModuleAggregateMemberTypes(
+              0,
+              plan.aggregateCount,
+              0,
+              plan.memberCount,
+              closureAggregates,
+              closureMembers,
+              memberTypeTargets
+            );
+            wrapperTypeTarget = memberTypeTargets[2];
             set(initialOwned, 0, 1);
             set(events, 0, 2);
             set(events, 1, 4);
@@ -292,8 +323,9 @@ final class NativeCompilerAggregateProductsExampleTest {
             memberCount = plan.memberCount;
             firstKind = aggregates[0];
             secondKind = aggregates[1];
+            thirdKind = aggregates[2];
             lastKind = aggregates[plan.aggregateCount - 1];
-            arrayLength = aggregates[512 + 1];
+            arrayLength = aggregates[512 + 2];
             firstOwner = aggregates[64];
             long identityOutput = 0;
             while (identityOutput < 32) limit 32 {
@@ -302,6 +334,7 @@ final class NativeCompilerAggregateProductsExampleTest {
             }
             published = 1;
             setOutputLength(output, 32);
+            drop(memberTypeTargets);
             drop(finalMutable);
             drop(finalShared);
             drop(finalOwned);
@@ -337,7 +370,9 @@ final class NativeCompilerAggregateProductsExampleTest {
             "INVALID_LOAN",
             invalidLoan ? "set(events, 0, 4);" : "").replace(
             "INVALID_DEPENDENCY",
-            invalidDependency ? "set(externalPublished, 0, 0);" : ""));
+            invalidDependency ? "set(externalPublished, 0, 0);" : "").replace(
+            "INVALID_TYPE",
+            invalidType ? "set(closureMembers, 49152 + 2, 268436455);" : ""));
     return new WheelerCompiler().compileModuleFiles(sources, "example.aggregate_products");
   }
 
@@ -462,6 +497,7 @@ final class NativeCompilerAggregateProductsExampleTest {
 
         classical class AggregateProducts {
           record Pair(long left, boolean ready) {}
+          record Wrapper(Pair pair) {}
 
           variant Choice {
             case Empty();

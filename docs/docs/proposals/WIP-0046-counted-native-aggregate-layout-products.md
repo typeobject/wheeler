@@ -130,7 +130,8 @@ No `wheeler.bootstrap.yaml` may be added before that evidence exists.
 - [x] `AggregateDependencyProducts.w` packs direct identities in header rank and rejects missing local or locked external products before copying a byte.
 - [ ] The physical closure publisher feeds each completed module through the dependency packer and aggregate identity owner.
 - [x] `CountedAggregateLayouts.w` appends one validated artifact at a time into 4,096 aggregate, 8,192 case, and 16,384 member rows. It rejects duplicate module owners and rebases case and member windows without source.
-- [ ] Recursive and mutually recursive nominal layouts resolve or fail closed.
+- [x] `AggregateTypeResolution.w` resolves source-local nominal member type codes to the unique owner and type row. Unknown descriptor IDs fail before publication.
+- [ ] Recursive and mutually recursive nominal layouts receive stage-0 lowering support and closure evidence.
 - [x] `AggregateLoanVerifier.w` checks bounded move, shared-loan, mutable-loan, and release events against aggregate member ownership. It rejects unbalanced or escaping loans and publishes final owners only after the complete stream.
 - [ ] Callable body verification derives projection events from canonical instructions and binds the result to the body identity.
 - [ ] Imported callable bodies relocate aggregate type references without dependency source.
