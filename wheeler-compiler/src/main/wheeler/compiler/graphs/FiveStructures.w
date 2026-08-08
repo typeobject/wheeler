@@ -46,6 +46,9 @@ classical class FiveGraphStructures {
     boolean valid
   ) {}
 
+  /// Carries one legacy role order beside its complete validated graph plan.
+  public record FiveBoundedGraphStructure(FiveGraphStructure structure, BoundedGraphPlan plan) {}
+
   private boolean graphEdge(borrow utf8 source, borrow utf8 dependentSource) {
     HeaderDependency dependency = moduleDependency(source, dependentSource);
     if (dependency.valid) {} else {
@@ -823,8 +826,8 @@ classical class FiveGraphStructures {
     );
   }
 
-  /// Selects one exact rooted five-module topology before source rewriting.
-  public FiveGraphStructure planFiveStructure(
+  /// Selects one complete rooted five-module plan before source rewriting.
+  public FiveBoundedGraphStructure planFiveBoundedStructure(
     borrow utf8 firstSource,
     borrow utf8 secondSource,
     borrow utf8 thirdSource,
@@ -872,8 +875,9 @@ classical class FiveGraphStructures {
       valid = rootsAreSinks(graph, rootDirect);
     }
 
+    BoundedGraphPlan graphPlan = new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, 0, false);
     if (valid) {
-      BoundedGraphPlan graphPlan = planBoundedGraph(
+      graphPlan = planBoundedGraph(
         graph,
         rootDirect,
         rootRanks,
@@ -902,6 +906,26 @@ classical class FiveGraphStructures {
     drop(rootDirect);
     drop(graph);
     drop(arena);
-    return result;
+    return new FiveBoundedGraphStructure(result, graphPlan);
+  }
+
+  /// Selects one legacy five-module topology and role order.
+  public FiveGraphStructure planFiveStructure(
+    borrow utf8 firstSource,
+    borrow utf8 secondSource,
+    borrow utf8 thirdSource,
+    borrow utf8 fourthSource,
+    borrow utf8 fifthSource,
+    borrow utf8 rootSource
+  ) {
+    FiveBoundedGraphStructure bounded = planFiveBoundedStructure(
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      rootSource
+    );
+    return bounded.structure;
   }
 }

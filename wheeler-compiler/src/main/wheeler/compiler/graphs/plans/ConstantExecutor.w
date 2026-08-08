@@ -29,6 +29,8 @@ classical class BoundedConstantPlanExecutor {
     borrow utf8 secondSource,
     borrow utf8 thirdSource,
     borrow utf8 fourthSource,
+    borrow utf8 fifthSource,
+    borrow utf8 sixthSource,
     borrow utf8 rootSource,
     borrow mut bytes storage,
     borrow mut words lengths
@@ -72,6 +74,36 @@ classical class BoundedConstantPlanExecutor {
         fourthSource,
         rootSource,
         rootSource,
+        rootSource,
+        storage,
+        lengths
+      );
+    }
+
+    if (plan.nodeCount == 5) {
+      return initializeSourceTable(
+        6,
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        rootSource,
+        rootSource,
+        storage,
+        lengths
+      );
+    }
+
+    if (plan.nodeCount == 6) {
+      return initializeSourceTable(
+        7,
+        firstSource,
+        secondSource,
+        thirdSource,
+        fourthSource,
+        fifthSource,
+        sixthSource,
         rootSource,
         storage,
         lengths
@@ -269,6 +301,8 @@ classical class BoundedConstantPlanExecutor {
     borrow utf8 secondSource,
     borrow utf8 thirdSource,
     borrow utf8 fourthSource,
+    borrow utf8 fifthSource,
+    borrow utf8 sixthSource,
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
@@ -285,6 +319,8 @@ classical class BoundedConstantPlanExecutor {
       secondSource,
       thirdSource,
       fourthSource,
+      fifthSource,
+      sixthSource,
       rootSource,
       storage,
       lengths

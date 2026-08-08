@@ -4,6 +4,7 @@ module wheeler.compiler.graphs.plans;
 
 import wheeler.compiler.graphs.five_plan_kinds;
 import wheeler.compiler.graphs.five_structures;
+import wheeler.compiler.graphs.matrix;
 
 classical class CompilerGraphPlans {
 
@@ -15,14 +16,20 @@ classical class CompilerGraphPlans {
     long third,
     long fourth,
     long fifth,
+    BoundedGraphPlan bounded,
     boolean valid
   ) {}
 
   private FiveGraphPlan invalidPlan() {
-    return new FiveGraphPlan(0, 0, 0, 0, 0, 0, false);
+    BoundedGraphPlan bounded = new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, 0, false);
+    return new FiveGraphPlan(0, 0, 0, 0, 0, 0, bounded, false);
   }
 
-  private FiveGraphPlan orderedPlan(long topology, FiveGraphStructure structure) {
+  private FiveGraphPlan orderedPlan(
+    long topology,
+    FiveGraphStructure structure,
+    BoundedGraphPlan bounded
+  ) {
     return new FiveGraphPlan(
       topology,
       structure.first,
@@ -30,6 +37,7 @@ classical class CompilerGraphPlans {
       structure.third,
       structure.fourth,
       structure.fifth,
+      bounded,
       true
     );
   }
@@ -95,7 +103,7 @@ classical class CompilerGraphPlans {
     borrow utf8 fifthSource,
     borrow utf8 rootSource
   ) {
-    FiveGraphStructure structure = planFiveStructure(
+    FiveBoundedGraphStructure planned = planFiveBoundedStructure(
       firstSource,
       secondSource,
       thirdSource,
@@ -103,10 +111,11 @@ classical class CompilerGraphPlans {
       fifthSource,
       rootSource
     );
+    FiveGraphStructure structure = planned.structure;
     if (structure.valid) {
       long topology = publicTopology(structure.topology);
       if (0 < topology) {
-        return orderedPlan(topology, structure);
+        return orderedPlan(topology, structure, planned.plan);
       }
     }
 

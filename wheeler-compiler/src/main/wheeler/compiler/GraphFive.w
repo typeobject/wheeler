@@ -3,6 +3,7 @@
 module wheeler.compiler.compiler_graph_five;
 
 import wheeler.compiler.compiler_core;
+import wheeler.compiler.graphs.constant_executor;
 import wheeler.compiler.graphs.five_branches;
 import wheeler.compiler.graphs.five_chain;
 import wheeler.compiler.graphs.five_dag;
@@ -386,6 +387,21 @@ classical class CompilerGraphFive {
     );
     if (plan.valid) {} else {
       assert(INVALID_COMPILATION_LENGTH == VALID_COMPILATION_LENGTH);
+    }
+
+    ConstantPlanExecution execution = executeConstantPlan(
+      plan.bounded,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      fifthSource,
+      rootSource,
+      output
+    );
+    if (0 < execution.length) {
+      return new FiveGraphCompilation(execution.length, execution.codeStart);
     }
 
     if (plan.topology == FIVE_PLAN_DIRECT) {

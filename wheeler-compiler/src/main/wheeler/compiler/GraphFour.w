@@ -567,6 +567,8 @@ classical class CompilerGraphFour {
       secondImportedSource,
       thirdImportedSource,
       fourthImportedSource,
+      fourthImportedSource,
+      fourthImportedSource,
       rootSource,
       output
     );
