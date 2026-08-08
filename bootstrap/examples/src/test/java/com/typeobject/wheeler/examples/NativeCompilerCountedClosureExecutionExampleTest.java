@@ -242,9 +242,12 @@ final class NativeCompilerCountedClosureExecutionExampleTest {
               version: "1.0.0"
               profile: "bootstrap-1"
             targets:
-              - kind: "deployable"
-                name: "application"
+              - kind: "tool"
+                name: "compiler"
                 root: "src/Root.w"
+                module: "examples.root"
+                sources:
+                  - "src"
                 test: false
             dependencies: []
             capabilities: []
@@ -259,6 +262,8 @@ final class NativeCompilerCountedClosureExecutionExampleTest {
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.archive_module_sources"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.package_target"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.plan"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.small_executor"));
@@ -268,6 +273,7 @@ final class NativeCompilerCountedClosureExecutionExampleTest {
         import wheeler.compiler.closure.archive_module_sources;
         import wheeler.compiler.closure.archive_sources;
         import wheeler.compiler.closure.module_manifest;
+        import wheeler.compiler.closure.package_target;
         import wheeler.compiler.closure.plan;
         import wheeler.compiler.closure.small_executor;
         import wheeler.compiler.graphs.executor;
@@ -352,6 +358,26 @@ final class NativeCompilerCountedClosureExecutionExampleTest {
                   edgeLengths,
                   edgeTargets
                 );
+                long compilerTarget = -1;
+                CompilerToolTargetResult selectedTarget = validateCompilerToolTarget(
+                  archive,
+                  archiveIndex,
+                  manifest,
+                  manifestPlan,
+                  moduleStarts,
+                  moduleLengths,
+                  sourceStarts,
+                  sourceLengths
+                );
+                match (selectedTarget) {
+                  case CompilerToolTargetResult.Value(CompilerToolTarget target) {
+                    compilerTarget = target.target;
+                  }
+                  case CompilerToolTargetResult.Error(long targetOffset) {
+                    assert(targetOffset < 0);
+                  }
+                }
+                assert(-1 < compilerTarget);
                 ArchiveModuleSourcePlan joined = joinArchiveModuleSources(
                   archive,
                   archiveIndex,

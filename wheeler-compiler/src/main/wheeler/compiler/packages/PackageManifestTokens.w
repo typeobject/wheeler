@@ -1,6 +1,6 @@
 //! Classifies and compares package-manifest token ranges.
 
-module wheeler.packages.tokens;
+module wheeler.compiler.packages.manifest_tokens;
 
 classical class ManifestTokens {
   /// Computes the stable hash of one bounded token range.

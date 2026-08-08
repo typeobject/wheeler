@@ -2,9 +2,9 @@
 
 module wheeler.packages.workspace;
 
-import wheeler.packages.names;
-import wheeler.packages.paths;
-import wheeler.packages.tokens;
+import wheeler.compiler.packages.manifest_tokens;
+import wheeler.compiler.packages.names;
+import wheeler.compiler.packages.paths;
 
 classical class Workspace {
   /// Carries scalar ranges and counts for one validated workspace.

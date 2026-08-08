@@ -3,7 +3,7 @@
 module wheeler.conformance.packages.lock_main;
 
 import wheeler.lexer.scanner;
-import wheeler.packages.line_emitter;
+import wheeler.packages.emitter;
 import wheeler.packages.lock;
 
 classical class NativeLock {
@@ -82,7 +82,7 @@ classical class NativeLock {
         }
 
         edgeCount = lock.edgeCount;
-        emittedLength = emitCanonicalLines(source, starts, lengths, count, canonical);
+        emittedLength = emitCanonical(source, starts, lengths, count, canonical);
       }
       case LockResult.Error(long parseOffset) {
         assert(finalCursor == 1);

@@ -13,7 +13,7 @@ Stage 0 currently supports these operations:
 
 Physical and configured file repositories provide immutable publish and fetch transport. Locks bind repository and snapshot identities. Unlocked solving follows first-authoritative policy order. Package objects and complete verified build outputs use disposable XDG caches, and trusted snapshots carry detached Ed25519 signatures. Namespace delegation, yanks and advisories, identity-preserving network mirrors, complete recipe revisions, and complete Wheeler-native package execution remain future work.
 
-Package, workspace, and lock files use the canonical-YAML profile from [WIP-0009](../proposals/WIP-0009-wheeler-package-and-build-system.md#manifest-language). Stage 0 rejects duplicate or unknown keys, implicit types, aliases, tags, merge keys, invalid indentation, and unbounded structures. Wheeler-native recovery examples parse the files and emit the same canonical bytes. The retired extensionless records and parser are gone, and format sniffing remains unsupported.
+Package, workspace, and lock files use the canonical-YAML profile from [WIP-0009](../proposals/WIP-0009-wheeler-package-and-build-system.md#manifest-language). Stage 0 rejects duplicate or unknown keys, implicit types, aliases, tags, merge keys, invalid indentation, and unbounded structures. The Wheeler compiler owns package-manifest tokens, names, paths, semantic versions, parsing, and exact byte layout under `compiler/packages`. The package library imports those modules and does not carry a second parser. Wheeler-native recovery examples parse the files and emit the same canonical bytes. The retired extensionless records and parser are gone, and format sniffing remains unsupported.
 
 Stage 0 resolves XDG config, data, cache, and state paths. It diagnoses relative overrides, ignores them, and updates the ordered repository policy atomically. The default policy contains the stable `local` trust domain under the XDG data directory, and publication uses it unless the caller chooses another repository.
 
@@ -410,11 +410,11 @@ Archive signatures and registry namespace authorization are separate layers. Con
 
 ## Wheeler-native manifest slice
 
-The Wheeler-written codecs live under canonical `wheeler.packages`. Its entryless library locks `wheeler.compiler` for the shared scanner and `wheeler.core` for binary and SHA-256 tools. Executable package-codec probes live in `wheeler-conformance`, which consumes every required exact archive. `wheeler-examples` keeps only the readable application portfolio and the dependencies those programs actually use. Fixtures may read canonical source for differential compilation, but package-codec authority stays in the canonical library.
+The Wheeler-written resolver, archive, workspace, and lock codecs live under canonical `wheeler.packages`. Package-manifest grammar and validation live under `wheeler.compiler.packages`, where compiler closure selection can use them without a dependency cycle. The package library imports that single owner and `wheeler.core` binary and SHA-256 tools. Executable package-codec probes live in `wheeler-conformance`, which consumes every required exact archive. `wheeler-examples` keeps only the readable application portfolio and the dependencies those programs actually use. Fixtures may read canonical source for differential compilation. They do not own a codec.
 
 `crypto/ContentIdentity.w` owns the common metadata boundary: at most 4,096 immutable input bytes become one strict UTF-8 owner, and a caller invokes complete 32-byte SHA-256 publication only after its codec accepts the structure. Snapshot, lock, manifest, and workspace fixtures share this path instead of keeping four nearly identical copies. Copy-pasted trust code is still copy-pasted code, even when each copy has a very serious comment.
 
-`NativeManifest.w` imports `packages/manifest/Manifest.w`, the focused `ManifestTokens.w` comparison layer, and the shared scanner. It parses strict canonical YAML into four caller-owned tables:
+`NativeManifest.w` imports `compiler/packages/PackageManifest.w`, the focused `PackageManifestTokens.w` comparison layer, and the shared scanner. It parses strict canonical YAML into four caller-owned tables:
 
 - ten-word target rows.
 - two-word source-selector rows.
@@ -425,13 +425,13 @@ The result keeps quote-free ranges for package name, version, and profile, plus 
 
 Each modular target may have a bounded nonempty source list. Every selector is checked, and at least one selector must equal or contain the root. A nonmodular target uses the root as its only source. `deployable` and `tool` targets may be selected for tests. `library` targets may not. Dependency kinds remain `normal`, `development`, and `build`. `runtime` is not a dependency kind.
 
-`Names.w` checks lowercase dotted package and dependency names plus Java-style dotted root modules. `Paths.w` rejects absolute paths, trailing slashes, backslashes, empty parts, and `.` or `..`. `Semver.w` accepts bounded three-part releases, prerelease identifiers, and exact, caret, or tilde constraints. It rejects leading zeroes, malformed or overflowing parts, and empty identifiers. Build metadata is outside this slice.
+Compiler-owned `Names.w` checks lowercase dotted package and dependency names plus Java-style dotted root modules. `Paths.w` rejects absolute paths, trailing slashes, backslashes, empty parts, and `.` or `..`. `Semver.w` accepts bounded three-part releases, prerelease identifiers, and exact, caret, or tilde constraints. It rejects leading zeroes, malformed or overflowing parts, and empty identifiers. Build metadata is outside this slice.
 
 `ManifestEmitter.w` publishes the exact validated canonical bytes and emits no prefix after failure. The `demo.native` fixture covers two targets, a modular source pair, two dependencies, two capabilities, all three header ranges, and exact rewind. A generated manifest with empty dependency and capability sections fills all eight target slots and passes the independent stage-0 parser. A ninth target fails before publication.
 
 Wrong schemas or kinds, test-selected libraries, bad names or paths, unsorted selectors, and selector sets that miss the root also fail closed. The parser loops allow at most 512 targets, dependencies, or capabilities and 1,024 selectors under the 4,096-byte native recovery input profile.
 
-`NativeManifestIdentity.w` validates at most 1,024 binary input bytes through an owned strict-UTF-8 view before publishing Wheeler SHA-256. Its table admits one target and one row in each optional section. The canonical one-tool fixture matches the stage-0 manifest identity and rewinds exactly. A second target, malformed schema, or oversized input leaves the digest output empty. Wider stage-0 limits still need larger scanner, I/O, and caller tables.
+`NativeManifestIdentity.w` validates at most 1,024 binary input bytes through an owned strict-UTF-8 view before publishing Wheeler SHA-256. Its table admits one target and one row in each optional section. The canonical one-tool fixture matches the stage-0 manifest identity and rewinds exactly. A second target, malformed schema, or oversized input leaves the digest output empty. Wider stage-0 limits still need larger I/O and caller tables.
 
 ## Wheeler-native repository snapshot slice
 
@@ -449,7 +449,7 @@ The native slice does not yet verify Ed25519 envelopes, apply trusted-key policy
 
 The parser accepts canonical empty locks and any sorted package or dependency that fits those tables. It checks lowercase root, repository, snapshot, archive, and manifest identities plus releases. It rejects duplicates and unsorted names. After reading the full package table, it resolves every dependency edge, including forward references.
 
-Shared `LineEmitter.w` publishes the exact validated bytes, and the independent stage-0 lock parser accepts them. The executable fixture provides six package slots and sixteen edge slots. The two-package forward-edge case and generated empty and six-package cases pass. A seventh package, schema drift, uppercase hex, duplicate or unsorted package or dependency names, and an unknown target fail before publication.
+Shared `ManifestEmitter.w` publishes the exact validated bytes, and the independent stage-0 lock parser accepts them. The executable fixture provides six package slots and sixteen edge slots. The two-package forward-edge case and generated empty and six-package cases pass. A seventh package, schema drift, uppercase hex, duplicate or unsorted package or dependency names, and an unknown target fail before publication.
 
 The fixture remains below the VM history ceiling. Under the 4,096-byte recovery input profile, parser loops cap packages at 512 and edges at 1,024. Schema 3 allows 10,000 packages, which needs wider scanner and I/O limits.
 
@@ -459,7 +459,7 @@ The fixture remains below the VM history ceiling. Under the 4,096-byte recovery 
 
 `NativeWorkspace.w` and `packages/workspace/Workspace.w` parse a checked workspace and profile header into four caller-owned range tables. Names use the stage-0 lowercase dot and hyphen profile. Paths use nonempty dotted segments made from letters, digits, underscores, and hyphens.
 
-Names must arrive in lexical order. Each path must be unique and must not nest under a prior path. Shared `LineEmitter.w` writes exact canonical bytes with a final newline, and the independent stage-0 parser accepts them.
+Names must arrive in lexical order. Each path must be unique and must not nest under a prior path. Shared `ManifestEmitter.w` writes exact canonical bytes with a final newline, and the independent stage-0 parser accepts them.
 
 The executable fixture has sixteen slots. Five named members cover normal parsing, all sixteen pass in a generated differential case, and a seventeenth member fails before publication. Duplicate names, duplicate or nested paths, traversal, malformed names, capacity exhaustion, and noncanonical input order all fail closed.
 

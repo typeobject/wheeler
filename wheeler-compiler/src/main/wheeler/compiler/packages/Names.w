@@ -1,6 +1,6 @@
 //! Validates canonical package, module, and workspace names.
 
-module wheeler.packages.names;
+module wheeler.compiler.packages.names;
 
 classical class Names {
   private boolean lowercase(long scalar) {

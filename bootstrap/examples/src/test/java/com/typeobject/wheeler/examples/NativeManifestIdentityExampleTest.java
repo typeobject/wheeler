@@ -70,11 +70,11 @@ final class NativeManifestIdentityExampleTest {
         Map.of(
             "NativeManifestIdentity.w", Files.readString(FIXTURE),
             "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
-            "Manifest.w", PackageSources.read("packages/manifest/Manifest.w"),
-            "ManifestTokens.w", PackageSources.read("packages/manifest/ManifestTokens.w"),
-            "Names.w", PackageSources.read("packages/workspace/Names.w"),
-            "Paths.w", PackageSources.read("packages/workspace/Paths.w"),
-            "Semver.w", PackageSources.read("packages/resolution/Semver.w"),
+            "Manifest.w", CompilerSources.read("compiler/packages/PackageManifest.w"),
+            "ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w"),
+            "Names.w", CompilerSources.read("compiler/packages/Names.w"),
+            "Paths.w", CompilerSources.read("compiler/packages/Paths.w"),
+            "Semver.w", CompilerSources.read("compiler/packages/Semver.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
         "wheeler.conformance.packages.manifest_identity");

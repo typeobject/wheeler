@@ -2,9 +2,9 @@
 
 module wheeler.packages.lock;
 
-import wheeler.packages.names;
-import wheeler.packages.semver;
-import wheeler.packages.tokens;
+import wheeler.compiler.packages.manifest_tokens;
+import wheeler.compiler.packages.names;
+import wheeler.compiler.packages.semver;
 
 classical class Lock {
   /// Carries scalar ranges and collection counts for one validated lock.

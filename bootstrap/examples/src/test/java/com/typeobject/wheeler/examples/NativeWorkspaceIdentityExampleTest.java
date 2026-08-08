@@ -54,9 +54,9 @@ final class NativeWorkspaceIdentityExampleTest {
         Map.of(
             "NativeWorkspaceIdentity.w", Files.readString(FIXTURE),
             "Workspace.w", PackageSources.read("packages/workspace/Workspace.w"),
-            "Names.w", PackageSources.read("packages/workspace/Names.w"),
-            "Paths.w", PackageSources.read("packages/workspace/Paths.w"),
-            "ManifestTokens.w", PackageSources.read("packages/manifest/ManifestTokens.w"),
+            "Names.w", CompilerSources.read("compiler/packages/Names.w"),
+            "Paths.w", CompilerSources.read("compiler/packages/Paths.w"),
+            "ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
             "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),

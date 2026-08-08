@@ -1,11 +1,11 @@
 //! Parses bounded canonical-YAML package manifests.
 
-module wheeler.packages.manifest;
+module wheeler.compiler.packages.manifest;
 
-import wheeler.packages.names;
-import wheeler.packages.paths;
-import wheeler.packages.semver;
-import wheeler.packages.tokens;
+import wheeler.compiler.packages.manifest_tokens;
+import wheeler.compiler.packages.names;
+import wheeler.compiler.packages.paths;
+import wheeler.compiler.packages.semver;
 
 classical class Manifest {
   /// Number of words in one target row.

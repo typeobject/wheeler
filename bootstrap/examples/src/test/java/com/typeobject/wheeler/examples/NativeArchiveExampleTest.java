@@ -28,14 +28,16 @@ class NativeArchiveExampleTest {
             Map.entry("Archive.w", PackageSources.read("packages/archive/Archive.w")),
             Map.entry("Binary.w", CoreSources.read("encoding/Binary.w")),
             Map.entry("FixedBinary.w", CoreSources.read("encoding/FixedBinary.w")),
-            Map.entry("LineEmitter.w", PackageSources.read("packages/manifest/LineEmitter.w")),
-            Map.entry("Manifest.w", PackageSources.read("packages/manifest/Manifest.w")),
-            Map.entry("ManifestTokens.w", PackageSources.read("packages/manifest/ManifestTokens.w")),
-            Map.entry("Names.w", PackageSources.read("packages/workspace/Names.w")),
+            Map.entry(
+                "PackageCanonical.w",
+                CompilerSources.read("compiler/packages/PackageCanonical.w")),
+            Map.entry("Manifest.w", CompilerSources.read("compiler/packages/PackageManifest.w")),
+            Map.entry("ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w")),
+            Map.entry("Names.w", CompilerSources.read("compiler/packages/Names.w")),
             Map.entry("NativeArchive.w", Files.readString(root.resolve("NativeArchive.w"))),
-            Map.entry("Paths.w", PackageSources.read("packages/workspace/Paths.w")),
+            Map.entry("Paths.w", CompilerSources.read("compiler/packages/Paths.w")),
             Map.entry("Scanner.w", CompilerSources.read("lexer/Scanner.w")),
-            Map.entry("Semver.w", PackageSources.read("packages/resolution/Semver.w")),
+            Map.entry("Semver.w", CompilerSources.read("compiler/packages/Semver.w")),
             Map.entry("Sha256.w", CoreSources.read("crypto/Sha256.w"))),
         "wheeler.conformance.packages.archive_main");
     String manifestText = """

@@ -21,6 +21,7 @@ targets:
       - "src/main/wheeler/compiler/graphs"
       - "src/main/wheeler/compiler/frontend"
       - "src/main/wheeler/compiler/ir"
+      - "src/main/wheeler/compiler/packages"
       - "src/main/wheeler/compiler/resolution"
       - "src/main/wheeler/compiler/syntax"
       - "src/main/wheeler/compiler/verification/AggregateVerifier.w"

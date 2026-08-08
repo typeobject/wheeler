@@ -22,12 +22,12 @@ class NativeLockExampleTest {
     Program program = new WheelerCompiler().compileModuleFiles(
         Map.of(
             "Lock.w", PackageSources.read("packages/resolution/Lock.w"),
-            "LineEmitter.w", PackageSources.read("packages/manifest/LineEmitter.w"),
-            "ManifestTokens.w", PackageSources.read("packages/manifest/ManifestTokens.w"),
-            "Names.w", PackageSources.read("packages/workspace/Names.w"),
+            "ManifestEmitter.w", PackageSources.read("packages/manifest/ManifestEmitter.w"),
+            "ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w"),
+            "Names.w", CompilerSources.read("compiler/packages/Names.w"),
             "NativeLock.w", Files.readString(root.resolve("NativeLock.w")),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
-            "Semver.w", PackageSources.read("packages/resolution/Semver.w")),
+            "Semver.w", CompilerSources.read("compiler/packages/Semver.w")),
         "wheeler.conformance.packages.lock_main");
     String a = "a".repeat(64);
     String b = "b".repeat(64);

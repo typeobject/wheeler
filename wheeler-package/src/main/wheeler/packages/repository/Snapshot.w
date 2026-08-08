@@ -2,8 +2,8 @@
 
 module wheeler.packages.snapshot;
 
-import wheeler.packages.semver;
-import wheeler.packages.tokens;
+import wheeler.compiler.packages.manifest_tokens;
+import wheeler.compiler.packages.semver;
 
 classical class RepositorySnapshots {
   /// Names the number of words in one snapshot release row.

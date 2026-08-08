@@ -3,7 +3,7 @@
 module wheeler.conformance.packages.workspace_main;
 
 import wheeler.lexer.scanner;
-import wheeler.packages.line_emitter;
+import wheeler.packages.emitter;
 import wheeler.packages.workspace;
 
 classical class NativeWorkspace {
@@ -66,7 +66,7 @@ classical class NativeWorkspace {
         secondMemberPathLength = memberPathLengths[1];
         lastMemberNameLength = memberNameLengths[memberCount - 1];
         lastMemberPathLength = memberPathLengths[memberCount - 1];
-        emittedLength = emitCanonicalLines(source, starts, lengths, count, canonical);
+        emittedLength = emitCanonical(source, starts, lengths, count, canonical);
       }
       case WorkspaceResult.Error(long parseOffset) {
         assert(finalCursor == 1);

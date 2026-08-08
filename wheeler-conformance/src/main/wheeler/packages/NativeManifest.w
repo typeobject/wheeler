@@ -2,9 +2,9 @@
 
 module wheeler.conformance.packages.main;
 
+import wheeler.compiler.packages.manifest;
 import wheeler.lexer.scanner;
 import wheeler.packages.emitter;
-import wheeler.packages.manifest;
 
 classical class NativeManifest {
   state long nameLength = 0;

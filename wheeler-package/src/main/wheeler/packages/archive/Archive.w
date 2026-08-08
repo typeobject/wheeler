@@ -2,11 +2,11 @@
 
 module wheeler.packages.archive;
 
+import wheeler.compiler.packages.canonical;
+import wheeler.compiler.packages.manifest;
 import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
 import wheeler.lexer.scanner;
-import wheeler.packages.line_emitter;
-import wheeler.packages.manifest;
 
 classical class Archive {
   /// Defines immutable `ArchiveModel` values for this module.
@@ -270,7 +270,6 @@ classical class Archive {
     words sourceRows = allocate(arena, SOURCE_ROW_WIDTH * 2);
     words dependencyRows = allocate(arena, DEPENDENCY_ROW_WIDTH * 2);
     words capabilityRows = allocate(arena, CAPABILITY_ROW_WIDTH * 2);
-    bytes canonical = allocateBytes(arena, manifestLength);
     long tokenCount = 0;
     boolean valid = true;
     ScanResult scanned = scan(manifest, kinds, starts, lengths);
@@ -323,23 +322,8 @@ classical class Archive {
       }
     }
 
-    long emittedLength = 0;
     if (valid) {
-      emittedLength = emitCanonicalLines(manifest, starts, lengths, tokenCount, canonical);
-      if (emittedLength == manifestLength) {} else {
-        valid = false;
-      }
-    }
-
-    long compareCursor = 0;
-    while (compareCursor < manifestLength) limit 4096 {
-      if (valid) {
-        if (canonical[compareCursor] == source[manifestStart + compareCursor]) {} else {
-          valid = false;
-        }
-      }
-
-      compareCursor += 1;
+      valid = canonicalPackageManifest(manifest, kinds, starts, lengths, tokenCount);
     }
 
     if (targetCount == 1) {} else {
@@ -379,7 +363,6 @@ classical class Archive {
       }
     }
 
-    drop(canonical);
     drop(capabilityRows);
     drop(dependencyRows);
     drop(sourceRows);

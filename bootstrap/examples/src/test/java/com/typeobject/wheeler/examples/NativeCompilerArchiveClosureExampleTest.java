@@ -47,6 +47,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("executableCount") > 0);
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
+    assertEquals(0, machine.global("compilerTarget"));
     int rootEntry = Math.toIntExact(machine.global("rootEntry"));
     EntryRange rootRange = entryRange(archive, rootEntry);
     assertEquals("src/main/wheeler/MinimalCompiler.w", rootRange.path());
@@ -61,22 +62,7 @@ final class NativeCompilerArchiveClosureExampleTest {
 
     byte[] smallSource = "module demo.main;\n\nclassical class Main {}\n"
         .getBytes(StandardCharsets.UTF_8);
-    byte[] smallArchive = new PackageArchive().encode(
-        new PackageManifestParser().parse("""
-            schema: 1
-            package:
-              name: "demo.archive"
-              version: "1.0.0"
-              profile: "bootstrap-1"
-            targets:
-              - kind: "library"
-                name: "library"
-                root: "src/Main.w"
-                test: false
-            dependencies: []
-            capabilities: []
-            """),
-        Map.of("src/Main.w", smallSource));
+    byte[] smallArchive = smallArchive(smallSource, true);
     byte[] damagedManifest = smallManifest(smallSource);
     int identity = indexOf(damagedManifest, "identity: \"".getBytes(StandardCharsets.US_ASCII));
     int scalar = identity + "identity: \"".length();
@@ -90,6 +76,32 @@ final class NativeCompilerArchiveClosureExampleTest {
         () -> CompilerMachineRunner.runWithoutRewindHistory(rejected));
     assertArrayEquals(new byte[1], rejected.hostOutput());
     assertEquals(0, rejected.global("published"));
+  }
+
+  @Test
+  void rejectsNoncanonicalPackageMetadataAndTheWrongTargetKind() throws Exception {
+    byte[] source = "module demo.main; classical class Main {}"
+        .getBytes(StandardCharsets.UTF_8);
+    byte[] manifest = smallManifest(source);
+
+    byte[] noncanonical = smallArchive(source, true);
+    noncanonical[16 + "schema: 1".length()] = ' ';
+    repairOuterDigest(noncanonical);
+    VirtualMachine malformed = VirtualMachine.withBinaryInput(
+        program(), framed(noncanonical, manifest), 1);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(malformed));
+    assertEquals(0, malformed.global("published"));
+    assertEquals(-1, malformed.global("compilerTarget"));
+
+    VirtualMachine wrongKind = VirtualMachine.withBinaryInput(
+        program(), framed(smallArchive(source, false), manifest), 1);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(wrongKind));
+    assertEquals(0, wrongKind.global("published"));
+    assertEquals(-1, wrongKind.global("compilerTarget"));
   }
 
   @Test
@@ -167,6 +179,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.archive_module_sources"));
+    sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.package_target"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.plan"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.schedule"));
     sources.put("ArchiveClosureExample.w", """
@@ -175,6 +188,7 @@ final class NativeCompilerArchiveClosureExampleTest {
         import wheeler.compiler.closure.archive_module_sources;
         import wheeler.compiler.closure.archive_sources;
         import wheeler.compiler.closure.module_manifest;
+        import wheeler.compiler.closure.package_target;
         import wheeler.compiler.closure.plan;
         import wheeler.compiler.closure.schedule;
 
@@ -196,6 +210,7 @@ final class NativeCompilerArchiveClosureExampleTest {
           state long executableCount = 0;
           state long peakActiveSources = 0;
           state long rootGeneration = 0;
+          state long compilerTarget = -1;
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
@@ -273,6 +288,26 @@ final class NativeCompilerArchiveClosureExampleTest {
                   edgeLengths,
                   edgeTargets
                 );
+                long selectedCompilerTarget = -1;
+                CompilerToolTargetResult selectedTarget = validateCompilerToolTarget(
+                  archive,
+                  archiveIndex,
+                  manifest,
+                  manifestPlan,
+                  moduleStarts,
+                  moduleLengths,
+                  sourceStarts,
+                  sourceLengths
+                );
+                match (selectedTarget) {
+                  case CompilerToolTargetResult.Value(CompilerToolTarget target) {
+                    selectedCompilerTarget = target.target;
+                  }
+                  case CompilerToolTargetResult.Error(long targetOffset) {
+                    assert(targetOffset < 0);
+                  }
+                }
+                assert(-1 < selectedCompilerTarget);
                 ArchiveModuleSourcePlan plan = joinArchiveModuleSources(
                   archive,
                   archiveIndex,
@@ -347,6 +382,7 @@ final class NativeCompilerArchiveClosureExampleTest {
                 executableCount = parsedExecutables;
                 peakActiveSources = schedule.peakActiveSources;
                 rootGeneration = moduleGenerations[closure.rootModule];
+                compilerTarget = selectedCompilerTarget;
                 published = 1;
                 setByte(output, 0, 1);
               }
@@ -450,15 +486,56 @@ final class NativeCompilerArchiveClosureExampleTest {
               version: "1.0.0"
               profile: "bootstrap-1"
             targets:
-              - kind: "library"
-                name: "library"
+              - kind: "tool"
+                name: "compiler"
                 root: "src/chain/n256.w"
+                module: "chain.n256"
+                sources:
+                  - "src/chain"
                 test: false
             dependencies: []
             capabilities: []
             """),
         sources);
     return new ChainFixture(archive, manifest);
+  }
+
+  private static byte[] smallArchive(byte[] source, boolean compilerTarget) {
+    String target = compilerTarget
+        ? """
+              - kind: "tool"
+                name: "compiler"
+                root: "src/Main.w"
+                module: "demo.main"
+                sources:
+                  - "src/Main.w"
+                test: false
+            """
+        : """
+              - kind: "library"
+                name: "library"
+                root: "src/Main.w"
+                test: false
+            """;
+    return new PackageArchive().encode(
+        new PackageManifestParser().parse("""
+            schema: 1
+            package:
+              name: "demo.archive"
+              version: "1.0.0"
+              profile: "bootstrap-1"
+            targets:
+            %sdependencies: []
+            capabilities: []
+            """.formatted(target)),
+        Map.of("src/Main.w", source));
+  }
+
+  private static void repairOuterDigest(byte[] archive) throws Exception {
+    int payloadLength = archive.length - 32;
+    byte[] digest = MessageDigest.getInstance("SHA-256").digest(
+        java.util.Arrays.copyOf(archive, payloadLength));
+    System.arraycopy(digest, 0, archive, payloadLength, digest.length);
   }
 
   private static byte[] smallManifest(byte[] source) throws Exception {

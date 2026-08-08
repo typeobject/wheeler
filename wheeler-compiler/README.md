@@ -27,6 +27,8 @@ The package keeps responsibilities narrow:
 - `compiler/closure/ArchiveSources.w` validates up to 512 sorted package entries and publishes exact path/data offsets only after outer and per-entry SHA-256 checks.
 - `compiler/closure/ModuleManifest.w` owns canonical bootstrap-module parsing, binding, cycle rejection, and rooted reachability.
 - `compiler/closure/ArchiveModuleSources.w` joins each local source path and identity to one immutable archive range before publication.
+- `compiler/closure/PackageTarget.w` validates canonical package metadata and binds the `compiler` tool target to the bootstrap root before closure publication.
+- `compiler/packages` owns shared package-manifest syntax, names, paths, semantic versions, and canonical byte layout.
 - `compiler/closure/ClosurePlan.w` owns source ranges, import windows and ranks, leaf-first order, and executable-owner bits for up to 512 modules.
 - `compiler/closure/ActiveSourceSlots.w` owns eight generation-checked 32,768-byte linked-source leases and destroys bytes on release.
 - `compiler/closure/ClosureSchedule.w` stages immutable sources in leaf-first order and publishes per-module slot generations after the complete pass.

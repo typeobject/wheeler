@@ -73,8 +73,8 @@ final class NativeSnapshotIdentityExampleTest {
             "NativeSnapshotIdentity.w", Files.readString(FIXTURE),
             "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
             "Snapshot.w", PackageSources.read("packages/repository/Snapshot.w"),
-            "Semver.w", PackageSources.read("packages/resolution/Semver.w"),
-            "ManifestTokens.w", PackageSources.read("packages/manifest/ManifestTokens.w"),
+            "Semver.w", CompilerSources.read("compiler/packages/Semver.w"),
+            "ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
         "wheeler.conformance.packages.snapshot_identity");

@@ -3,7 +3,7 @@
 module wheeler.conformance.packages.snapshot;
 
 import wheeler.lexer.scanner;
-import wheeler.packages.line_emitter;
+import wheeler.packages.emitter;
 import wheeler.packages.snapshot;
 
 classical class NativeSnapshot {
@@ -47,7 +47,7 @@ classical class NativeSnapshot {
             + SNAPSHOT_VERSION_LENGTH];
         }
 
-        emittedLength = emitCanonicalLines(source, starts, lengths, count, canonical);
+        emittedLength = emitCanonical(source, starts, lengths, count, canonical);
       }
       case SnapshotResult.Error(long parseOffset) {
         diagnosticOffset = parseOffset;

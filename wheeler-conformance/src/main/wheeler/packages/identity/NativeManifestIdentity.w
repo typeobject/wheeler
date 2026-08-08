@@ -2,9 +2,9 @@
 
 module wheeler.conformance.packages.manifest_identity;
 
+import wheeler.compiler.packages.manifest;
 import wheeler.crypto.content_identity;
 import wheeler.lexer.scanner;
-import wheeler.packages.manifest;
 
 classical class NativeManifestIdentity {
   state long targetCount = 0;

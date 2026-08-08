@@ -434,12 +434,12 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
   - It rederives the node identity from the exact length-prefixed fields and rejects a forged identity, even when the payload digest is recomputed.
   - The run rewinds exactly. Multiple nodes, larger lists, Unicode, prereleases, and canonical re-encoding remain.
   - A payload digest checks bytes, while field validation checks meaning.
-- [x] `NativeWorkspace.w` and `packages/workspace/Workspace.w` parse bounded canonical-YAML workspaces into caller-owned name and path range tables. They check schema, keys, names, paths, lexical name order, path uniqueness, and pairwise nonnesting before exact publication through `LineEmitter.w`.
+- [x] `NativeWorkspace.w` and `packages/workspace/Workspace.w` parse bounded canonical-YAML workspaces into caller-owned name and path range tables. They check schema, keys, names, paths, lexical name order, path uniqueness, and pairwise nonnesting before exact publication through `ManifestEmitter.w`.
   - Five normal members and a generated sixteen-member limit pass the independent stage-0 parser.
   - A seventeenth member, bad schema or key, malformed name, duplicate or unsorted name, duplicate or nested path, and traversal fail before publication.
   - Rewind restores the input-effect baseline.
   - Native recovery still limits input to 4,096 bytes and the parser loop to 512 members, below the stage-0 limit of 10,000.
-- [x] `NativeLock.w`, `packages/resolution/Lock.w`, and `LineEmitter.w` parse canonical schema-3 YAML into caller-owned package columns, dependency windows, and flat edge tables.
+- [x] `NativeLock.w`, `packages/resolution/Lock.w`, and `ManifestEmitter.w` parse canonical schema-3 YAML into caller-owned package columns, dependency windows, and flat edge tables.
   - Empty, two-package forward-edge, and generated six-package locks publish exact bytes, rewind, and pass the stage-0 parser.
   - A seventh package exceeds the fixture table before publication.
   - The parser checks sorted unique names, valid versions, lowercase 64-nybble identities, and every dependency target against the full package set.

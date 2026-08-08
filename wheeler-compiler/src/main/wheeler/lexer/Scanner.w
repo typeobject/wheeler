@@ -3,8 +3,8 @@
 module wheeler.lexer.scanner;
 
 classical class Scanner {
-  /// Caps one physical or linked compiler source window.
-  private const long MAX_SCANNER_SOURCE_BYTES = 32768;
+  /// Caps one source or canonical package-metadata input.
+  private const long MAX_SCANNER_INPUT_BYTES = 262144;
 
   /// Defines immutable `ScanDiagnostic` values for this module.
   public record ScanDiagnostic(long code, long offset, long line, long column) {}
@@ -19,7 +19,7 @@ classical class Scanner {
     long cursor = 0;
     long line = 1;
     long column = 1;
-    while (cursor < offset) limit MAX_SCANNER_SOURCE_BYTES {
+    while (cursor < offset) limit MAX_SCANNER_INPUT_BYTES {
       long scalar = utf8Scalar(source, cursor);
       if (scalar == 10) {
         line += 1;
@@ -187,7 +187,7 @@ classical class Scanner {
   /// Returns the closing offset of one bounded ASCII literal.
   public long asciiLiteralEnd(borrow utf8 source, long cursor, long sourceLength) {
     cursor += utf8Width(source, cursor);
-    while (cursor < sourceLength) limit MAX_SCANNER_SOURCE_BYTES {
+    while (cursor < sourceLength) limit MAX_SCANNER_INPUT_BYTES {
       long scalar = utf8Scalar(source, cursor);
       if (scalar == 34) {
         return cursor + utf8Width(source, cursor);
@@ -235,7 +235,7 @@ classical class Scanner {
     long sourceLength = bufferLength(source);
     long count = 0;
     long cursor = 0;
-    while (cursor < sourceLength) limit MAX_SCANNER_SOURCE_BYTES {
+    while (cursor < sourceLength) limit MAX_SCANNER_INPUT_BYTES {
       long scalar = utf8Scalar(source, cursor);
       long width = utf8Width(source, cursor);
       long kind = tokenKind(scalar);
@@ -262,7 +262,7 @@ classical class Scanner {
           cursor += width;
           if (kind < 3) {
             boolean scanning = true;
-            while (scanning) limit MAX_SCANNER_SOURCE_BYTES {
+            while (scanning) limit MAX_SCANNER_INPUT_BYTES {
               if (cursor < sourceLength) {
                 long next = utf8Scalar(source, cursor);
                 if (continuesToken(kind, tokenKind(next))) {
@@ -277,7 +277,7 @@ classical class Scanner {
           } else {
             if (kind == 4) {
               boolean scanningComment = true;
-              while (scanningComment) limit MAX_SCANNER_SOURCE_BYTES {
+              while (scanningComment) limit MAX_SCANNER_INPUT_BYTES {
                 if (cursor < sourceLength) {
                   if (utf8Scalar(source, cursor) == 10) {
                     scanningComment = false;

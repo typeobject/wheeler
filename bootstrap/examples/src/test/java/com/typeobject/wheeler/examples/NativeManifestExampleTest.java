@@ -54,13 +54,13 @@ class NativeManifestExampleTest {
     Program program = new WheelerCompiler().compileModuleFiles(
         Map.of(
             "ManifestEmitter.w", PackageSources.read("packages/manifest/ManifestEmitter.w"),
-            "Manifest.w", PackageSources.read("packages/manifest/Manifest.w"),
-            "ManifestTokens.w", PackageSources.read("packages/manifest/ManifestTokens.w"),
-            "Names.w", PackageSources.read("packages/workspace/Names.w"),
+            "Manifest.w", CompilerSources.read("compiler/packages/PackageManifest.w"),
+            "ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w"),
+            "Names.w", CompilerSources.read("compiler/packages/Names.w"),
             "NativeManifest.w", Files.readString(root.resolve("NativeManifest.w")),
-            "Paths.w", PackageSources.read("packages/workspace/Paths.w"),
+            "Paths.w", CompilerSources.read("compiler/packages/Paths.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
-            "Semver.w", PackageSources.read("packages/resolution/Semver.w")),
+            "Semver.w", CompilerSources.read("compiler/packages/Semver.w")),
         "wheeler.conformance.packages.main");
     assertEquals(MANIFEST, new com.typeobject.wheeler.packageformat.PackageManifestParser()
         .parse(MANIFEST).canonicalText());

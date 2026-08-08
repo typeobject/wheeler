@@ -21,11 +21,11 @@ class NativeWorkspaceExampleTest {
     Path root = Path.of("../wheeler-conformance/src/main/wheeler/packages");
     Program program = new WheelerCompiler().compileModuleFiles(
         Map.of(
-            "LineEmitter.w", PackageSources.read("packages/manifest/LineEmitter.w"),
-            "ManifestTokens.w", PackageSources.read("packages/manifest/ManifestTokens.w"),
-            "Names.w", PackageSources.read("packages/workspace/Names.w"),
+            "ManifestEmitter.w", PackageSources.read("packages/manifest/ManifestEmitter.w"),
+            "ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w"),
+            "Names.w", CompilerSources.read("compiler/packages/Names.w"),
             "NativeWorkspace.w", Files.readString(root.resolve("NativeWorkspace.w")),
-            "Paths.w", PackageSources.read("packages/workspace/Paths.w"),
+            "Paths.w", CompilerSources.read("compiler/packages/Paths.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
             "Workspace.w", PackageSources.read("packages/workspace/Workspace.w")),
         "wheeler.conformance.packages.workspace_main");
