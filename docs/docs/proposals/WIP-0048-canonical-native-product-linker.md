@@ -118,6 +118,8 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
 - [x] `LinkedStringSection.w` sorts and deduplicates counted ASCII bootstrap names, emits canonical bytes, and publishes every source-to-final ID.
 - [x] `CompiledStringProducts.w` validates source-local string directories, sorted ASCII names, exact extents, and appends counted artifact ranges for linked emission.
 - [x] `CompiledGlobalProducts.w` appends source-local global rows with split 64-bit initial values; `LinkedAggregateSections.w` emits final globals, records, arrays, slices, variants, cases, and fields.
+- [x] `CompiledFunctionNames.w` retains closure string references and resolves final function-name IDs.
+- [x] `LinkedManifestSection.w` resolves the root program name and rebases its entry through counted module function windows.
 - [ ] Header, directory, alignment, and optional sections emit.
 - [ ] The complete output verifies before identity publication.
 - [ ] Linked fixture artifacts match stage 0 byte for byte.
