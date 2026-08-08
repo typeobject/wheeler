@@ -6,6 +6,7 @@ import wheeler.compiler.closure.active_source_slots;
 import wheeler.compiler.closure.archive_module_sources;
 import wheeler.compiler.closure.archive_sources;
 import wheeler.compiler.closure.module_manifest;
+import wheeler.compiler.closure.module_symbols;
 import wheeler.compiler.closure.package_target;
 import wheeler.compiler.closure.plan;
 import wheeler.compiler.closure.schedule;

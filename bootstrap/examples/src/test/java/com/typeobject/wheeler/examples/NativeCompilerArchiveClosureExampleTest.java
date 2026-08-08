@@ -47,6 +47,9 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("executableCount") > 0);
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
+    assertEquals(965, machine.global("symbolCount"));
+    assertTrue(machine.global("maxImportedSymbols") > 0);
+    assertEquals(manifest.modules().size(), machine.global("symbolGeneration"));
     assertEquals(0, machine.global("compilerTarget"));
     int rootEntry = Math.toIntExact(machine.global("rootEntry"));
     EntryRange rootRange = entryRange(archive, rootEntry);
@@ -79,7 +82,8 @@ final class NativeCompilerArchiveClosureExampleTest {
   }
 
   @Test
-  void rejectsNoncanonicalPackageMetadataAndTheWrongTargetKind() throws Exception {
+  void rejectsNoncanonicalPackageMetadataWrongTargetAndMalformedSymbols() throws Exception {
+    Program closureProgram = program();
     byte[] source = "module demo.main; classical class Main {}"
         .getBytes(StandardCharsets.UTF_8);
     byte[] manifest = smallManifest(source);
@@ -88,7 +92,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     noncanonical[16 + "schema: 1".length()] = ' ';
     repairOuterDigest(noncanonical);
     VirtualMachine malformed = VirtualMachine.withBinaryInput(
-        program(), framed(noncanonical, manifest), 1);
+        closureProgram, framed(noncanonical, manifest), 1);
     assertThrows(
         VmTrap.class,
         () -> CompilerMachineRunner.runWithoutRewindHistory(malformed));
@@ -96,12 +100,51 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(-1, malformed.global("compilerTarget"));
 
     VirtualMachine wrongKind = VirtualMachine.withBinaryInput(
-        program(), framed(smallArchive(source, false), manifest), 1);
+        closureProgram, framed(smallArchive(source, false), manifest), 1);
     assertThrows(
         VmTrap.class,
         () -> CompilerMachineRunner.runWithoutRewindHistory(wrongKind));
     assertEquals(0, wrongKind.global("published"));
     assertEquals(-1, wrongKind.global("compilerTarget"));
+
+    byte[] malformedSource = (
+        "module demo.main; classical class Main { public const long BAD = ; }")
+        .getBytes(StandardCharsets.UTF_8);
+    VirtualMachine malformedSymbols = VirtualMachine.withBinaryInput(
+        closureProgram,
+        framed(smallArchive(malformedSource, true), smallManifest(malformedSource)),
+        1);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(malformedSymbols));
+    assertEquals(0, malformedSymbols.global("published"));
+    assertEquals(0, malformedSymbols.global("symbolCount"));
+  }
+
+  @Test
+  void indexesTwoHundredFiftySixScalarProductsAndRejectsTheNext() throws Exception {
+    Program closureProgram = program();
+    byte[] exactSource = constantSource(256);
+    VirtualMachine exact = VirtualMachine.withBinaryInput(
+        closureProgram,
+        framed(smallArchive(exactSource, true), smallManifest(exactSource)),
+        1);
+    CompilerMachineRunner.runWithoutRewindHistory(exact);
+    assertArrayEquals(new byte[] {1}, exact.hostOutput());
+    assertEquals(256, exact.global("symbolCount"));
+    assertEquals(256, exact.global("rootLocalSymbols"));
+    assertEquals(1, exact.global("symbolGeneration"));
+
+    byte[] oversizedSource = constantSource(257);
+    VirtualMachine oversized = VirtualMachine.withBinaryInput(
+        closureProgram,
+        framed(smallArchive(oversizedSource, true), smallManifest(oversizedSource)),
+        1);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(oversized));
+    assertEquals(0, oversized.global("published"));
+    assertEquals(0, oversized.global("symbolCount"));
   }
 
   @Test
@@ -122,6 +165,11 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(0, machine.global("executableCount"));
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(257, machine.global("rootGeneration"));
+    assertEquals(257, machine.global("symbolCount"));
+    assertEquals(1, machine.global("rootLocalSymbols"));
+    assertEquals(1, machine.global("rootImportedSymbols"));
+    assertEquals(1, machine.global("maxImportedSymbols"));
+    assertEquals(257, machine.global("symbolGeneration"));
   }
 
   @Test
@@ -179,6 +227,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.archive_module_sources"));
+    sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.module_symbols"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.package_target"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.plan"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.schedule"));
@@ -188,6 +237,7 @@ final class NativeCompilerArchiveClosureExampleTest {
         import wheeler.compiler.closure.archive_module_sources;
         import wheeler.compiler.closure.archive_sources;
         import wheeler.compiler.closure.module_manifest;
+        import wheeler.compiler.closure.module_symbols;
         import wheeler.compiler.closure.package_target;
         import wheeler.compiler.closure.plan;
         import wheeler.compiler.closure.schedule;
@@ -198,6 +248,7 @@ final class NativeCompilerArchiveClosureExampleTest {
           private const long MAX_IMPORTS = 3072;
           private const long MAX_MANIFEST_BYTES = 262144;
           private const long MAX_MODULES = 512;
+          private const long MAX_SYMBOLS = 16384;
 
           state long moduleCount = 0;
           state long importCount = 0;
@@ -211,6 +262,11 @@ final class NativeCompilerArchiveClosureExampleTest {
           state long peakActiveSources = 0;
           state long rootGeneration = 0;
           state long compilerTarget = -1;
+          state long symbolCount = 0;
+          state long rootLocalSymbols = 0;
+          state long rootImportedSymbols = 0;
+          state long maxImportedSymbols = 0;
+          state long symbolGeneration = 0;
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
@@ -237,7 +293,7 @@ final class NativeCompilerArchiveClosureExampleTest {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 215000, /* allocations= */ 26);
+            region columns = new region(/* bytes= */ 1100000, /* allocations= */ 36);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -263,6 +319,16 @@ final class NativeCompilerArchiveClosureExampleTest {
             words executableOwners = allocate(columns, MAX_MODULES);
             words moduleSlots = allocate(columns, MAX_MODULES);
             words moduleGenerations = allocate(columns, MAX_MODULES);
+            words moduleFirstSymbols = allocate(columns, MAX_MODULES);
+            words moduleSymbolCounts = allocate(columns, MAX_MODULES);
+            words moduleImportedSymbolCounts = allocate(columns, MAX_MODULES);
+            words edgeSymbolCounts = allocate(columns, MAX_IMPORTS);
+            words symbolOwners = allocate(columns, MAX_SYMBOLS);
+            words symbolStarts = allocate(columns, MAX_SYMBOLS);
+            words symbolLengths = allocate(columns, MAX_SYMBOLS);
+            words symbolKinds = allocate(columns, MAX_SYMBOLS);
+            words symbolVisibilities = allocate(columns, MAX_SYMBOLS);
+            words symbolTypes = allocate(columns, MAX_SYMBOLS);
             bytes expected = allocateBytes(columns, /* length= */ 256);
             ArchiveSourceIndexResult indexed = indexArchiveSources(
               archive,
@@ -338,6 +404,28 @@ final class NativeCompilerArchiveClosureExampleTest {
                   importRanks,
                   leafFirstOrder
                 );
+                CountedModuleSymbolPlan symbols = indexCountedModuleSymbols(
+                  archive,
+                  manifest,
+                  closure,
+                  edgeTargets,
+                  firstImports,
+                  directImportCounts,
+                  importRanks,
+                  leafFirstOrder,
+                  archiveSourceStarts,
+                  archiveSourceLengths,
+                  moduleFirstSymbols,
+                  moduleSymbolCounts,
+                  moduleImportedSymbolCounts,
+                  edgeSymbolCounts,
+                  symbolOwners,
+                  symbolStarts,
+                  symbolLengths,
+                  symbolKinds,
+                  symbolVisibilities,
+                  symbolTypes
+                );
                 classifyClosureExecutableOwners(
                   archive,
                   manifest,
@@ -361,8 +449,15 @@ final class NativeCompilerArchiveClosureExampleTest {
                 long selectedRootEntry = moduleEntries[plan.rootModule];
                 long executableModule = 0;
                 long parsedExecutables = 0;
+                long largestImportedSymbols = 0;
                 while (executableModule < closure.moduleCount) limit MAX_MODULES {
                   parsedExecutables += executableOwners[executableModule];
+                  if (
+                    largestImportedSymbols < moduleImportedSymbolCounts[executableModule]
+                  ) {
+                    largestImportedSymbols = moduleImportedSymbolCounts[executableModule];
+                  }
+
                   executableModule += 1;
                 }
                 long selectedRootOrder = 0;
@@ -383,6 +478,11 @@ final class NativeCompilerArchiveClosureExampleTest {
                 peakActiveSources = schedule.peakActiveSources;
                 rootGeneration = moduleGenerations[closure.rootModule];
                 compilerTarget = selectedCompilerTarget;
+                symbolCount = symbols.symbolCount;
+                rootLocalSymbols = moduleSymbolCounts[closure.rootModule];
+                rootImportedSymbols = moduleImportedSymbolCounts[closure.rootModule];
+                maxImportedSymbols = largestImportedSymbols;
+                symbolGeneration = symbols.finalGeneration;
                 published = 1;
                 setByte(output, 0, 1);
               }
@@ -391,6 +491,16 @@ final class NativeCompilerArchiveClosureExampleTest {
               }
             }
             drop(expected);
+            drop(symbolTypes);
+            drop(symbolVisibilities);
+            drop(symbolKinds);
+            drop(symbolLengths);
+            drop(symbolStarts);
+            drop(symbolOwners);
+            drop(edgeSymbolCounts);
+            drop(moduleImportedSymbolCounts);
+            drop(moduleSymbolCounts);
+            drop(moduleFirstSymbols);
             drop(moduleGenerations);
             drop(moduleSlots);
             drop(executableOwners);
@@ -498,6 +608,16 @@ final class NativeCompilerArchiveClosureExampleTest {
             """),
         sources);
     return new ChainFixture(archive, manifest);
+  }
+
+  private static byte[] constantSource(int count) {
+    StringBuilder source = new StringBuilder(
+        "module demo.main; classical class Main {");
+    for (int index = 0; index < count; index++) {
+      source.append(" public const long C%03d = %d;".formatted(index, index));
+    }
+    source.append(" }");
+    return source.toString().getBytes(StandardCharsets.UTF_8);
   }
 
   private static byte[] smallArchive(byte[] source, boolean compilerTarget) {
