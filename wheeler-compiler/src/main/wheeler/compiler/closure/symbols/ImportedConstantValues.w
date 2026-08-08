@@ -1,42 +1,34 @@
-//! Resolves exact forwarded scalar values from completed direct dependency products.
+//! Packs direct public scalar products for bounded expression lookup.
 
 module wheeler.compiler.closure.imported_constant_values;
 
 import wheeler.compiler.constant_declarations;
-import wheeler.compiler.constant_expressions;
 
 classical class ImportedConstantValues {
-  private const long MODULE_SYMBOL_SIGNED = 1;
+  /// Names the complete packed direct-import lookup table size.
+  public const long IMPORTED_CONSTANT_ROWS = 114689;
+  private const long IMPORTED_CONSTANT_LIMIT = 16384;
+  private const long IMPORTED_CONSTANT_ROW_WIDTH = 7;
 
-  /// Resolves one exact unqualified expression token from direct public products.
-  public ExpressionResolution directImportedResolution(
-    borrow byteview archive,
-    borrow utf8 source,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long expressionStart,
-    long expressionEnd,
-    long expectedType,
+  /// Writes one dependent's direct public products in header and declaration order.
+  public long writeDirectImportedValues(
     long firstImport,
     long directImportCount,
     borrow mut words edgeTargets,
     borrow mut words moduleFirstSymbols,
     borrow mut words moduleSymbolCounts,
+    borrow mut words moduleNameStarts,
+    borrow mut words moduleNameLengths,
     borrow mut words symbolStarts,
     borrow mut words symbolLengths,
     borrow mut words symbolVisibilities,
     borrow mut words symbolTypes,
     borrow mut words symbolValues,
-    borrow mut words symbolResolved
+    borrow mut words symbolResolved,
+    borrow mut words importedRows
   ) {
-    if (expressionStart + 1 == expressionEnd) {} else {
-      return new ExpressionResolution(0, false, false, true);
-    }
-
-    long selectedValue = 0;
-    long selectedType = 0;
-    long selectedResolved = 0;
-    long candidates = 0;
+    assert(bufferLength(importedRows) == IMPORTED_CONSTANT_ROWS);
+    long importedCount = 0;
     long rank = 0;
     while (rank < directImportCount) limit 64 {
       long dependency = edgeTargets[firstImport + rank];
@@ -47,30 +39,16 @@ classical class ImportedConstantValues {
         while (offset < count) limit MAX_CLASS_CONSTANTS {
           long symbol = first + offset;
           if (symbolVisibilities[symbol] == 1) {
-            long nameLength = symbolLengths[symbol];
-            if (nameLength == tokenLengths[expressionStart]) {
-              boolean same = true;
-              long nameByte = 0;
-              while (nameByte < nameLength) limit 256 {
-                if (
-                  archive[symbolStarts[symbol] + nameByte] == utf8Scalar(
-                    source,
-                    tokenStarts[expressionStart] + nameByte
-                  )
-                ) {} else {
-                  same = false;
-                }
-
-                nameByte += 1;
-              }
-
-              if (same) {
-                candidates += 1;
-                selectedValue = symbolValues[symbol];
-                selectedType = symbolTypes[symbol];
-                selectedResolved = symbolResolved[symbol];
-              }
-            }
+            assert(importedCount < IMPORTED_CONSTANT_LIMIT);
+            long base = 1 + importedCount * IMPORTED_CONSTANT_ROW_WIDTH;
+            set(importedRows, base, symbolStarts[symbol]);
+            set(importedRows, base + 1, symbolLengths[symbol]);
+            set(importedRows, base + 2, symbolTypes[symbol]);
+            set(importedRows, base + 3, symbolValues[symbol]);
+            set(importedRows, base + 4, symbolResolved[symbol]);
+            set(importedRows, base + 5, moduleNameStarts[dependency]);
+            set(importedRows, base + 6, moduleNameLengths[dependency]);
+            importedCount += 1;
           }
 
           offset += 1;
@@ -80,25 +58,7 @@ classical class ImportedConstantValues {
       rank += 1;
     }
 
-    if (candidates == 1) {
-      if (selectedResolved == 1) {
-        if (selectedType == expectedType) {
-          return new ExpressionResolution(
-            selectedValue,
-            true,
-            selectedType == MODULE_SYMBOL_SIGNED,
-            true
-          );
-        }
-      }
-
-      return new ExpressionResolution(0, true, false, false);
-    }
-
-    if (candidates == 0) {
-      return new ExpressionResolution(0, false, false, true);
-    }
-
-    return new ExpressionResolution(0, true, false, false);
+    set(importedRows, 0, importedCount);
+    return importedCount;
   }
 }

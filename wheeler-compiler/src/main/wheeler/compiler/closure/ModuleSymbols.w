@@ -21,7 +21,7 @@ classical class CountedModuleSymbols {
   private const long MAX_IMPORTS = 3072;
   private const long MAX_LOCAL_MODULES = 512;
   private const long MAX_SOURCE_BYTES = 32768;
-  private const long SYMBOL_ARENA_BYTES = 1110000;
+  private const long SYMBOL_ARENA_BYTES = 2060000;
   private const long TOKEN_ARENA_BYTES = 98320;
 
   /// Names one scalar constant symbol.
@@ -180,11 +180,7 @@ classical class CountedModuleSymbols {
     long archiveStart,
     long module,
     long firstSymbol,
-    long firstImport,
-    long directImportCount,
-    borrow mut words edgeTargets,
-    borrow mut words moduleFirstSymbols,
-    borrow mut words moduleSymbolCounts,
+    borrow mut words importedRows,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
@@ -320,51 +316,17 @@ classical class CountedModuleSymbols {
         tokenLengths,
         evaluatedDeclaration
       );
-      ExpressionResolution resolution = evaluateConstantExpression(
+      ExpressionResolution resolution = evaluateConstantExpressionWithProducts(
         source,
         tokenStarts,
         tokenLengths,
         firstDeclaration,
         declaration,
-        evaluatedName
+        evaluatedName,
+        archive,
+        importedRows
       );
       long fact = firstSymbol + evaluatedSymbol;
-      if (resolution.valid == false) {
-        long expressionStart = constantExpressionStart(
-          source,
-          tokenStarts,
-          tokenLengths,
-          evaluatedDeclaration
-        );
-        long expressionEnd = constantDeclarationEnd(
-          source,
-          tokenStarts,
-          tokenLengths,
-          evaluatedDeclaration,
-          declaration
-        ) - 1;
-        resolution = directImportedResolution(
-          archive,
-          source,
-          tokenStarts,
-          tokenLengths,
-          expressionStart,
-          expressionEnd,
-          symbolTypes[fact],
-          firstImport,
-          directImportCount,
-          edgeTargets,
-          moduleFirstSymbols,
-          moduleSymbolCounts,
-          symbolStarts,
-          symbolLengths,
-          symbolVisibilities,
-          symbolTypes,
-          symbolValues,
-          symbolResolved
-        );
-      }
-
       if (resolution.found) {
         if (resolution.valid) {
           set(symbolValues, fact, resolution.value);
@@ -444,9 +406,11 @@ classical class CountedModuleSymbols {
     words activeLengths = allocate(slotArena, ACTIVE_SOURCE_SLOT_COUNT);
     words live = allocate(slotArena, ACTIVE_SOURCE_SLOT_COUNT);
     assert(initializeActiveSourceSlots(storage, owners, generations, activeLengths, live));
-    region symbolArena = new region(/* bytes= */ SYMBOL_ARENA_BYTES, /* allocations= */ 13);
+    region symbolArena = new region(/* bytes= */ SYMBOL_ARENA_BYTES, /* allocations= */ 16);
     words scratchFirstSymbols = allocate(symbolArena, MAX_LOCAL_MODULES);
     words scratchSymbolCounts = allocate(symbolArena, MAX_LOCAL_MODULES);
+    words scratchModuleNameStarts = allocate(symbolArena, MAX_LOCAL_MODULES);
+    words scratchModuleNameLengths = allocate(symbolArena, MAX_LOCAL_MODULES);
     words scratchImportedCounts = allocate(symbolArena, MAX_LOCAL_MODULES);
     words scratchEdgeCounts = allocate(symbolArena, MAX_IMPORTS);
     words scratchOwners = allocate(symbolArena, MAX_CLOSURE_SYMBOLS);
@@ -457,6 +421,7 @@ classical class CountedModuleSymbols {
     words scratchTypes = allocate(symbolArena, MAX_CLOSURE_SYMBOLS);
     words scratchValues = allocate(symbolArena, MAX_CLOSURE_SYMBOLS);
     words scratchResolved = allocate(symbolArena, MAX_CLOSURE_SYMBOLS);
+    words scratchImportedRows = allocate(symbolArena, IMPORTED_CONSTANT_ROWS);
     words processed = allocate(symbolArena, MAX_LOCAL_MODULES);
 
     long symbolCount = 0;
@@ -491,6 +456,23 @@ classical class CountedModuleSymbols {
         rank += 1;
       }
 
+      long packedImported = writeDirectImportedValues(
+        firstImports[module],
+        directImportCounts[module],
+        edgeTargets,
+        scratchFirstSymbols,
+        scratchSymbolCounts,
+        scratchModuleNameStarts,
+        scratchModuleNameLengths,
+        scratchStarts,
+        scratchLengths,
+        scratchVisibilities,
+        scratchTypes,
+        scratchValues,
+        scratchResolved,
+        scratchImportedRows
+      );
+      requireMetadata(packedImported == importedCount, manifest);
       long sourceStart = sourceStarts[module];
       long sourceLength = sourceLengths[module];
       requireMetadata(0 < sourceLength, manifest);
@@ -562,11 +544,7 @@ classical class CountedModuleSymbols {
         sourceStart,
         module,
         symbolCount,
-        firstImports[module],
-        directImportCounts[module],
-        edgeTargets,
-        scratchFirstSymbols,
-        scratchSymbolCounts,
+        scratchImportedRows,
         tokenKinds,
         tokenStarts,
         tokenLengths,
@@ -581,6 +559,8 @@ classical class CountedModuleSymbols {
         scratchResolved
       );
       requireMetadata(-1 < localSymbols, manifest);
+      set(scratchModuleNameStarts, module, sourceStart + moduleRange[0]);
+      set(scratchModuleNameLengths, module, moduleRange[1]);
       symbolCount += localSymbols;
       requireMetadata(symbolCount < MAX_CLOSURE_SYMBOLS + 1, manifest);
       set(scratchSymbolCounts, module, localSymbols);
@@ -636,6 +616,7 @@ classical class CountedModuleSymbols {
       finalGeneration
     );
     drop(processed);
+    drop(scratchImportedRows);
     drop(scratchResolved);
     drop(scratchValues);
     drop(scratchTypes);
@@ -646,6 +627,8 @@ classical class CountedModuleSymbols {
     drop(scratchOwners);
     drop(scratchEdgeCounts);
     drop(scratchImportedCounts);
+    drop(scratchModuleNameLengths);
+    drop(scratchModuleNameStarts);
     drop(scratchSymbolCounts);
     drop(scratchFirstSymbols);
     drop(symbolArena);

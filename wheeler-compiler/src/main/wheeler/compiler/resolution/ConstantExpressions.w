@@ -4,6 +4,7 @@ module wheeler.compiler.constant_expressions;
 
 import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.constant_declarations;
+import wheeler.compiler.product_constant_lookup;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 
@@ -62,6 +63,8 @@ classical class ConstantExpressions {
     long memberStart,
     long assertedName,
     long dependencyDepth,
+    borrow byteview importedNames,
+    borrow mut words importedRows,
     borrow mut words steps
   ) {
     if (MAX_CONSTANT_DEPENDENCY_DEPTH < dependencyDepth + 1) {
@@ -84,6 +87,8 @@ classical class ConstantExpressions {
           memberStart,
           cursor,
           dependencyDepth + 1,
+          importedNames,
+          importedRows,
           steps
         );
         return new ExpressionResolution(value.value, true, value.signed, value.valid);
@@ -103,7 +108,20 @@ classical class ConstantExpressions {
       cursor = next;
     }
 
-    return new ExpressionResolution(0, false, false, true);
+    ProductConstantResolution imported = lookupProductConstant(
+      source,
+      tokenStarts,
+      tokenLengths,
+      assertedName,
+      importedNames,
+      importedRows
+    );
+    return new ExpressionResolution(
+      imported.value,
+      imported.found,
+      imported.signed,
+      imported.valid
+    );
   }
 
   private ExpressionValue parseRotateRight32(
@@ -115,6 +133,8 @@ classical class ConstantExpressions {
     long cursor,
     long end,
     long dependencyDepth,
+    borrow byteview importedNames,
+    borrow mut words importedRows,
     borrow mut words steps
   ) {
     if (cursor + 4 < end) {} else {
@@ -136,6 +156,8 @@ classical class ConstantExpressions {
       cursor + 2,
       end,
       dependencyDepth,
+      importedNames,
+      importedRows,
       steps
     );
     if (value.valid) {} else {
@@ -163,6 +185,8 @@ classical class ConstantExpressions {
       value.next + 1,
       end,
       dependencyDepth,
+      importedNames,
+      importedRows,
       steps
     );
     if (amount.valid) {} else {
@@ -206,6 +230,8 @@ classical class ConstantExpressions {
     long cursor,
     long end,
     long dependencyDepth,
+    borrow byteview importedNames,
+    borrow mut words importedRows,
     borrow mut words steps
   ) {
     if (cursor < end) {} else {
@@ -226,6 +252,8 @@ classical class ConstantExpressions {
         cursor + 1,
         end,
         dependencyDepth,
+        importedNames,
+        importedRows,
         steps
       );
       if (nested.valid == false) {
@@ -270,6 +298,8 @@ classical class ConstantExpressions {
         cursor,
         end,
         dependencyDepth,
+        importedNames,
+        importedRows,
         steps
       );
     }
@@ -294,6 +324,24 @@ classical class ConstantExpressions {
       }
     }
 
+    ProductConstantExpression qualified = lookupQualifiedProductConstant(
+      source,
+      tokenStarts,
+      tokenLengths,
+      cursor,
+      end,
+      importedNames,
+      importedRows
+    );
+    if (qualified.found) {
+      return new ExpressionValue(
+        qualified.value,
+        qualified.next,
+        qualified.signed,
+        qualified.valid
+      );
+    }
+
     ExpressionResolution reference = findAndEvaluate(
       source,
       tokenStarts,
@@ -302,6 +350,8 @@ classical class ConstantExpressions {
       memberStart,
       cursor,
       dependencyDepth,
+      importedNames,
+      importedRows,
       steps
     );
     if (reference.found) {
@@ -320,6 +370,8 @@ classical class ConstantExpressions {
     long cursor,
     long end,
     long dependencyDepth,
+    borrow byteview importedNames,
+    borrow mut words importedRows,
     borrow mut words steps
   ) {
     if (cursor < end) {
@@ -333,6 +385,8 @@ classical class ConstantExpressions {
           cursor + 1,
           end,
           dependencyDepth,
+          importedNames,
+          importedRows,
           steps
         );
         if (operand.valid) {
@@ -359,6 +413,8 @@ classical class ConstantExpressions {
       cursor,
       end,
       dependencyDepth,
+      importedNames,
+      importedRows,
       steps
     );
   }
@@ -372,6 +428,8 @@ classical class ConstantExpressions {
     long cursor,
     long end,
     long dependencyDepth,
+    borrow byteview importedNames,
+    borrow mut words importedRows,
     borrow mut words steps
   ) {
     ExpressionValue left = parseUnary(
@@ -383,6 +441,8 @@ classical class ConstantExpressions {
       cursor,
       end,
       dependencyDepth,
+      importedNames,
+      importedRows,
       steps
     );
     boolean scanning = left.valid;
@@ -414,6 +474,8 @@ classical class ConstantExpressions {
             left.next + 1,
             end,
             dependencyDepth,
+            importedNames,
+            importedRows,
             steps
           );
           if (right.valid) {
@@ -461,6 +523,8 @@ classical class ConstantExpressions {
     long cursor,
     long end,
     long dependencyDepth,
+    borrow byteview importedNames,
+    borrow mut words importedRows,
     borrow mut words steps
   ) {
     ExpressionValue left = parseMultiplicative(
@@ -472,6 +536,8 @@ classical class ConstantExpressions {
       cursor,
       end,
       dependencyDepth,
+      importedNames,
+      importedRows,
       steps
     );
     boolean scanning = left.valid;
@@ -493,6 +559,8 @@ classical class ConstantExpressions {
             left.next + 1,
             end,
             dependencyDepth,
+            importedNames,
+            importedRows,
             steps
           );
           if (right.valid) {
@@ -533,6 +601,8 @@ classical class ConstantExpressions {
     long cursor,
     long end,
     long dependencyDepth,
+    borrow byteview importedNames,
+    borrow mut words importedRows,
     borrow mut words steps
   ) {
     ExpressionValue left = parseAdditive(
@@ -544,6 +614,8 @@ classical class ConstantExpressions {
       cursor,
       end,
       dependencyDepth,
+      importedNames,
+      importedRows,
       steps
     );
     while (left.valid) limit MAX_CONSTANT_EVALUATION_STEPS {
@@ -560,6 +632,8 @@ classical class ConstantExpressions {
             left.next + 1,
             end,
             dependencyDepth,
+            importedNames,
+            importedRows,
             steps
           );
           if (right.valid) {
@@ -595,6 +669,8 @@ classical class ConstantExpressions {
     long cursor,
     long end,
     long dependencyDepth,
+    borrow byteview importedNames,
+    borrow mut words importedRows,
     borrow mut words steps
   ) {
     ExpressionValue left = parseAnd(
@@ -606,6 +682,8 @@ classical class ConstantExpressions {
       cursor,
       end,
       dependencyDepth,
+      importedNames,
+      importedRows,
       steps
     );
     while (left.valid) limit MAX_CONSTANT_EVALUATION_STEPS {
@@ -622,6 +700,8 @@ classical class ConstantExpressions {
             left.next + 1,
             end,
             dependencyDepth,
+            importedNames,
+            importedRows,
             steps
           );
           if (right.valid) {
@@ -657,6 +737,8 @@ classical class ConstantExpressions {
     long cursor,
     long end,
     long dependencyDepth,
+    borrow byteview importedNames,
+    borrow mut words importedRows,
     borrow mut words steps
   ) {
     ExpressionValue left = parseXor(
@@ -668,6 +750,8 @@ classical class ConstantExpressions {
       cursor,
       end,
       dependencyDepth,
+      importedNames,
+      importedRows,
       steps
     );
     while (left.valid) limit MAX_CONSTANT_EVALUATION_STEPS {
@@ -684,6 +768,8 @@ classical class ConstantExpressions {
             left.next + 1,
             end,
             dependencyDepth,
+            importedNames,
+            importedRows,
             steps
           );
           if (right.valid) {
@@ -724,6 +810,8 @@ classical class ConstantExpressions {
     long cursor,
     long end,
     long dependencyDepth,
+    borrow byteview importedNames,
+    borrow mut words importedRows,
     borrow mut words steps
   ) {
     ExpressionValue left = parseComparison(
@@ -735,6 +823,8 @@ classical class ConstantExpressions {
       cursor,
       end,
       dependencyDepth,
+      importedNames,
+      importedRows,
       steps
     );
     while (left.valid) limit MAX_CONSTANT_EVALUATION_STEPS {
@@ -766,6 +856,8 @@ classical class ConstantExpressions {
             left.next + 2,
             end,
             dependencyDepth,
+            importedNames,
+            importedRows,
             steps
           );
           if (right.valid) {
@@ -801,6 +893,8 @@ classical class ConstantExpressions {
     long memberStart,
     long declarationStart,
     long dependencyDepth,
+    borrow byteview importedNames,
+    borrow mut words importedRows,
     borrow mut words steps
   ) {
     if (MAX_CONSTANT_DEPENDENCY_DEPTH < dependencyDepth) {
@@ -834,6 +928,8 @@ classical class ConstantExpressions {
       expressionStart,
       expressionEnd,
       dependencyDepth,
+      importedNames,
+      importedRows,
       steps
     );
     if (value.valid) {
@@ -853,14 +949,16 @@ classical class ConstantExpressions {
     return invalidExpression(value.next);
   }
 
-  /// Evaluates one named scalar constant from a complete declaration prefix.
-  public ExpressionResolution evaluateConstantExpression(
+  /// Evaluates one scalar constant against local declarations and packed import products.
+  public ExpressionResolution evaluateConstantExpressionWithProducts(
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
     long firstDeclaration,
     long memberStart,
-    long assertedName
+    long assertedName,
+    borrow byteview importedNames,
+    borrow mut words importedRows
   ) {
     region evaluation = new region(/* bytes= */ 8, /* allocations= */ 1);
     words steps = allocate(evaluation, 1);
@@ -873,10 +971,13 @@ classical class ConstantExpressions {
       memberStart,
       assertedName,
       0,
+      importedNames,
+      importedRows,
       steps
     );
     drop(steps);
     drop(evaluation);
     return result;
   }
+
 }

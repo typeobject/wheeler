@@ -96,6 +96,34 @@ classical class ClassConstants {
     return -1;
   }
 
+  private ExpressionResolution evaluateLocalConstant(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long firstDeclaration,
+    long memberStart,
+    long assertedName
+  ) {
+    region noImports = new region(/* bytes= */ 16, /* allocations= */ 2);
+    bytes importedNames = allocateBytes(noImports, 1);
+    words importedRows = allocate(noImports, 1);
+    set(importedRows, 0, 0);
+    ExpressionResolution result = evaluateConstantExpressionWithProducts(
+      source,
+      tokenStarts,
+      tokenLengths,
+      firstDeclaration,
+      memberStart,
+      assertedName,
+      importedNames,
+      importedRows
+    );
+    drop(importedRows);
+    drop(importedNames);
+    drop(noImports);
+    return result;
+  }
+
   private boolean expressionsValid(
     borrow utf8 source,
     borrow mut words tokenStarts,
@@ -106,7 +134,7 @@ classical class ClassConstants {
     long cursor = firstDeclaration;
     long count = 0;
     while (cursor < memberStart) limit MAX_CLASS_CONSTANTS {
-      ExpressionResolution resolution = evaluateConstantExpression(
+      ExpressionResolution resolution = evaluateLocalConstant(
         source,
         tokenStarts,
         tokenLengths,
@@ -278,7 +306,7 @@ classical class ClassConstants {
       return new ConstantResolution(0, false, false);
     }
 
-    ExpressionResolution resolution = evaluateConstantExpression(
+    ExpressionResolution resolution = evaluateLocalConstant(
       source,
       tokenStarts,
       tokenLengths,

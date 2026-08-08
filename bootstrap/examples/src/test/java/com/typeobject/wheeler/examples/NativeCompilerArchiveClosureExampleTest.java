@@ -47,7 +47,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("executableCount") > 0);
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
-    assertEquals(971, machine.global("symbolCount"));
+    assertEquals(983, machine.global("symbolCount"));
     assertTrue(machine.global("resolvedSymbolCount") > 800);
     assertTrue(machine.global("maxImportedSymbols") > 0);
     assertEquals(manifest.modules().size(), machine.global("symbolGeneration"));
@@ -155,8 +155,36 @@ final class NativeCompilerArchiveClosureExampleTest {
   }
 
   @Test
+  void resolvesGeneralExpressionsAcrossImportedProducts() throws Exception {
+    NativeCompilerProductFixtures.Fixture fixture = NativeCompilerProductFixtures.expressions();
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        program(),
+        framed(fixture.archive(), fixture.manifest().canonicalBytes()),
+        1);
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+    assertArrayEquals(new byte[] {1}, machine.hostOutput());
+    assertEquals(8, machine.global("symbolCount"));
+    assertEquals(8, machine.global("resolvedSymbolCount"));
+    assertEquals(1, machine.global("lastSymbolValue"));
+  }
+
+  @Test
+  void leavesAnAmbiguousUnqualifiedProductUnresolved() throws Exception {
+    NativeCompilerProductFixtures.Fixture fixture = NativeCompilerProductFixtures.ambiguous();
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        program(),
+        framed(fixture.archive(), fixture.manifest().canonicalBytes()),
+        1);
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+    assertArrayEquals(new byte[] {1}, machine.hostOutput());
+    assertEquals(3, machine.global("symbolCount"));
+    assertEquals(2, machine.global("resolvedSymbolCount"));
+    assertEquals(0, machine.global("lastSymbolResolved"));
+  }
+
+  @Test
   void resolvesTwoHundredFiftySixImportedConstantProducts() throws Exception {
-    ChainFixture fixture = forwardingChainFixture(257);
+    NativeCompilerProductFixtures.Fixture fixture = NativeCompilerProductFixtures.forwardingChain(257);
     VirtualMachine machine = VirtualMachine.withBinaryInput(
         program(),
         framed(fixture.archive(), fixture.manifest().canonicalBytes()),
@@ -304,6 +332,7 @@ final class NativeCompilerArchiveClosureExampleTest {
           state long firstSymbolIdentityPrefix = 0;
           state long lastSymbolIdentityPrefix = 0;
           state long lastSymbolValue = 0;
+          state long lastSymbolResolved = 0;
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
@@ -563,6 +592,7 @@ final class NativeCompilerArchiveClosureExampleTest {
                   + symbolIdentities[finalIdentity + 2] * 256
                   + symbolIdentities[finalIdentity + 3];
                 lastSymbolValue = symbolValues[symbols.symbolCount - 1];
+                lastSymbolResolved = symbolResolved[symbols.symbolCount - 1];
                 published = 1;
                 setByte(output, 0, 1);
               }
@@ -744,54 +774,6 @@ final class NativeCompilerArchiveClosureExampleTest {
     }
     source.append(" }");
     return source.toString().getBytes(StandardCharsets.UTF_8);
-  }
-
-  private static ChainFixture forwardingChainFixture(int count) throws Exception {
-    var modules = new ArrayList<BootstrapModuleManifest.Module>();
-    Map<String, byte[]> sources = new LinkedHashMap<>();
-    MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-    for (int index = 0; index < count; index++) {
-      String name = "forward.n%03d".formatted(index);
-      String path = "src/forward/n%03d.w".formatted(index);
-      String imported = index == 0 ? "" : " import forward.n%03d;".formatted(index - 1);
-      String expression = index == 0 ? "41" : "V%03d".formatted(index - 1);
-      byte[] source = (
-          "module %s;%s classical class Node%03d { public const long V%03d = %s; }"
-              .formatted(name, imported, index, index, expression))
-          .getBytes(StandardCharsets.UTF_8);
-      sources.put(path, source);
-      modules.add(new BootstrapModuleManifest.Module(
-          name,
-          path,
-          HexFormat.of().formatHex(sha256.digest(source)),
-          index == 0 ? List.of() : List.of("forward.n%03d".formatted(index - 1))));
-    }
-
-    BootstrapModuleManifest manifest = new BootstrapModuleManifest(
-        "bootstrap-1",
-        "forward.n%03d".formatted(count - 1),
-        List.of(),
-        modules);
-    byte[] archive = new PackageArchive().encode(
-        new PackageManifestParser().parse("""
-            schema: 1
-            package:
-              name: "demo.forward"
-              version: "1.0.0"
-              profile: "bootstrap-1"
-            targets:
-              - kind: "tool"
-                name: "compiler"
-                root: "src/forward/n256.w"
-                module: "forward.n256"
-                sources:
-                  - "src/forward"
-                test: false
-            dependencies: []
-            capabilities: []
-            """),
-        sources);
-    return new ChainFixture(archive, manifest);
   }
 
   private static byte[] smallArchive(byte[] source, boolean compilerTarget) {

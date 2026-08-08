@@ -164,13 +164,15 @@ The seven-frame executor remains differential conformance evidence until step 9.
 - [x] Each local edge records its completed dependency's public-symbol count at header rank.
 - [x] A 257-module chain publishes 257 symbols, root import count one, peak source count one, and root generation 257.
 - [x] One module publishes exactly 256 scalar declarations. Declaration 257 fails before publication.
-- [x] The 227-module physical compiler closure publishes 971 scalar declarations and reaches generation 227.
+- [x] The 228-module physical compiler closure publishes 983 scalar declarations and reaches generation 228.
 - [x] Malformed constant syntax leaves product and completion publication untouched.
 - [x] `SymbolIdentities.w` gives every scalar product a package-archive-, module-source-, kind-, visibility-, type-, and name-bound SHA-256 identity after complete range validation. Chain endpoints match an independent Java digest.
 - [x] Literal and same-module scalar expressions publish values through the existing bounded evaluator.
-- [x] `ImportedConstantValues.w` resolves exact unqualified direct-import forwarding from completed products through a 257-module chain. The final value remains 41 without retaining dependency source.
+- [x] `ImportedConstantValues.w` packs direct public products in header and declaration order. The existing bounded evaluator resolves arithmetic, comparison, Boolean, unqualified, and qualified imported expressions from that table.
+- [x] Exact direct-import forwarding crosses a 257-module chain. The final value remains 41 without retaining dependency source.
+- [x] Two equal unqualified names remain an unresolved ambiguity. A qualified reference selects one exact module product.
 - [ ] Stable compiled module identities publish.
-- [ ] General imported constant expressions, qualification, and ambiguity resolve from products.
+- [ ] Ambiguity, privacy, type, and unresolved diagnostics carry stable candidate identities.
 - [ ] Arbitrary counted constant closures compile without a seven-node plan.
 - [ ] Callable products compile.
 - [ ] Aggregate products compile.
