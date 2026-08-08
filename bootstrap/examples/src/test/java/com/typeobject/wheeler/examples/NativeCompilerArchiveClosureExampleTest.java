@@ -50,7 +50,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
     assertEquals(1_017, machine.global("symbolCount"));
-    assertEquals(1_013, machine.global("callableCount"));
+    assertEquals(1_014, machine.global("callableCount"));
     assertTrue(machine.global("callableParameterCount") > 1_000);
     assertTrue(machine.global("borrowedParameterCount") > 0);
     assertTrue(machine.global("mutableParameterCount") > 0);
@@ -219,9 +219,19 @@ final class NativeCompilerArchiveClosureExampleTest {
         framed(fixture.archive(), fixture.manifest().canonicalBytes()),
         compiledModule.length);
     runClosure(machine, program);
+    Program compiledModuleProgram = new BytecodeReader().read(compiledModule);
     assertEquals(
-        new BytecodeReader().read(compiledModule).functions(),
+        compiledModuleProgram.functions(),
         new BytecodeReader().read(machine.hostOutput()).functions());
+    assertEquals(
+        compiledModuleProgram.functions().size(),
+        machine.global("compiledCallableFunctionCount"));
+    assertEquals(
+        compiledModuleProgram.functions().stream()
+            .mapToInt(function -> function.localTypes().size())
+            .max()
+            .orElseThrow(),
+        machine.global("compiledCallableMaxLocalCount"));
     assertArrayEquals(compiledModule, machine.hostOutput());
     assertEquals(6, machine.global("callableCount"));
     assertEquals(5, machine.global("callableParameterCount"));

@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.compiled_callable_bodies;
 
 import wheeler.compiler.compiler_core;
+import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
 
 classical class CompiledCallableBodies {
@@ -14,7 +15,12 @@ classical class CompiledCallableBodies {
   private const long MAX_CALLABLE_SOURCE_BYTES = 32768;
 
   /// Reports the exact compiled callable artifact extent.
-  public record CompiledCallableBody(long length, long codeStart) {}
+  public record CompiledCallableBody(
+    long length,
+    long codeStart,
+    long functionCount,
+    long maxLocalCount
+  ) {}
 
   private long copyArchiveRange(
     borrow byteview archive,
@@ -37,6 +43,21 @@ classical class CompiledCallableBodies {
     return written;
   }
 
+  private long functionsSection(borrow byteview artifact) {
+    long sectionCount = readUnsigned(artifact, 24, 4);
+    long section = 0;
+    while (section < sectionCount) limit 64 {
+      long directory = 40 + section * 32;
+      if (readUnsigned(artifact, directory, 4) == 5) {
+        return readUnsigned(artifact, directory + 8, 8);
+      }
+
+      section += 1;
+    }
+
+    return -1;
+  }
+
   private CompiledCallableBody compileProductSource(
     bytes sourceBytes,
     borrow mut bytes artifact,
@@ -54,7 +75,28 @@ classical class CompiledCallableBodies {
     assert(compiled.length < MAX_CALLABLE_ARTIFACT_BYTES + 1);
     region hashArena = new region(/* bytes= */ 1200, /* allocations= */ 3);
     hashSha256Range(artifact, 0, compiled.length, identity, hashArena);
-    CompiledCallableBody result = new CompiledCallableBody(compiled.length, compiled.codeStart);
+    long functionsStart = functionsSection(artifact);
+    assert(-1 < functionsStart);
+    long functionCount = readUnsigned(artifact, functionsStart, 4);
+    assert(0 < functionCount);
+    long maxLocalCount = 0;
+    long function = 0;
+    while (function < functionCount) limit 65 {
+      long descriptor = functionsStart + 4 + function * 40;
+      long localCount = readUnsigned(artifact, descriptor + 32, 4);
+      if (maxLocalCount < localCount) {
+        maxLocalCount = localCount;
+      }
+
+      function += 1;
+    }
+
+    CompiledCallableBody result = new CompiledCallableBody(
+      compiled.length,
+      compiled.codeStart,
+      functionCount,
+      maxLocalCount
+    );
     drop(hashArena);
     drop(source);
     return result;

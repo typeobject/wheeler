@@ -92,6 +92,8 @@ final class NativeCompilerArchiveClosureProgram {
           state long compiledCallableBodyIdentityPrefix = 0;
           state long compiledCallableModuleLength = 0;
           state long compiledCallableModuleIdentityPrefix = 0;
+          state long compiledCallableFunctionCount = 0;
+          state long compiledCallableMaxLocalCount = 0;
           state long packageIdentityPrefix = 0;
           state long firstSymbolIdentityPrefix = 0;
           state long lastSymbolIdentityPrefix = 0;
@@ -427,6 +429,8 @@ final class NativeCompilerArchiveClosureProgram {
                       compiledCallableIdentity
                     );
                     compiledCallableModuleLength = compiledModule.length;
+                    compiledCallableFunctionCount = compiledModule.functionCount;
+                    compiledCallableMaxLocalCount = compiledModule.maxLocalCount;
                     compiledCallableModuleIdentityPrefix = compiledCallableIdentity[0]
                         * 16777216
                       + compiledCallableIdentity[1] * 65536
