@@ -116,7 +116,7 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
 - [x] `LinkedLocalTypes.w` emits exact closure function type windows and rewrites nominal codes through owner-scoped final descriptor rows.
 - [x] `LinkedFunctionSection.w` emits exact function descriptors and final local-type rows after code and type extent validation.
 - [x] `LinkedStringSection.w` sorts and deduplicates counted ASCII bootstrap names, emits canonical bytes, and publishes every source-to-final ID.
-- [ ] Source-local string sections feed counted name ranges into the linker.
+- [x] `CompiledStringProducts.w` validates source-local string directories, sorted ASCII names, exact extents, and appends counted artifact ranges for linked emission.
 - [ ] Canonical aggregate-type and global sections emit.
 - [ ] Header, directory, alignment, and optional sections emit.
 - [ ] The complete output verifies before identity publication.

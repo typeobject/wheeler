@@ -18,6 +18,7 @@ import wheeler.compiler.closure.compiled_aggregate_layouts;
 import wheeler.compiler.closure.compiled_body_archive;
 import wheeler.compiler.closure.compiled_callable_bodies;
 import wheeler.compiler.closure.compiled_function_products;
+import wheeler.compiler.closure.compiled_string_products;
 import wheeler.compiler.closure.counted_aggregate_layouts;
 import wheeler.compiler.closure.counted_constant_executor;
 import wheeler.compiler.closure.counted_function_products;
