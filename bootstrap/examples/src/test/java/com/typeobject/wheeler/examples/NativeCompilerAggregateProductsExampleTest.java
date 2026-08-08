@@ -99,10 +99,72 @@ final class NativeCompilerAggregateProductsExampleTest {
   void rejectsMalformedContainersBeforePublishingCounts() throws Exception {
     byte[] malformed = aggregateArtifact();
     malformed[0] = 0;
-    VirtualMachine machine = VirtualMachine.withBinaryInput(decoder(), malformed, 32);
+    assertRejected(malformed);
+  }
 
+  @Test
+  void rejectsMalformedDirectoriesAndLayoutExtentsAtomically() throws Exception {
+    byte[] artifact = aggregateArtifact();
+    List<byte[]> malformed = new ArrayList<>();
+
+    byte[] badFlags = artifact.clone();
+    putInt(badFlags, 44, 0);
+    malformed.add(badFlags);
+
+    byte[] duplicateType = artifact.clone();
+    putInt(duplicateType, 72, getInt(duplicateType, 40));
+    malformed.add(duplicateType);
+
+    byte[] outOfRange = artifact.clone();
+    putLong(outOfRange, 48, artifact.length + 8L);
+    malformed.add(outOfRange);
+
+    byte[] tooManyFields = artifact.clone();
+    int typesStart = sectionStart(tooManyFields, 3);
+    int globals = getInt(tooManyFields, typesStart);
+    int firstRecord = typesStart + 8 + globals * 16;
+    putInt(tooManyFields, firstRecord + 8, 257);
+    malformed.add(tooManyFields);
+
+    byte[] tooManyCases = artifact.clone();
+    int variantsStart = sectionStart(tooManyCases, 4);
+    putInt(tooManyCases, variantsStart + 12, 129);
+    malformed.add(tooManyCases);
+
+    for (byte[] candidate : malformed) {
+      assertRejected(candidate);
+    }
+  }
+
+  private static void assertRejected(byte[] artifact) throws Exception {
+    VirtualMachine machine = VirtualMachine.withBinaryInput(decoder(), artifact, 32);
     assertThrows(VmTrap.class, machine::run);
     assertEquals(0, machine.global("published"));
+    assertEquals("00".repeat(32), HexFormat.of().formatHex(machine.hostOutput()));
+  }
+
+  private static int sectionStart(byte[] artifact, int wantedType) {
+    ByteBuffer bytes = ByteBuffer.wrap(artifact).order(ByteOrder.LITTLE_ENDIAN);
+    int sections = bytes.getInt(24);
+    for (int index = 0; index < sections; index++) {
+      int directory = 40 + index * 32;
+      if (bytes.getInt(directory) == wantedType) {
+        return Math.toIntExact(bytes.getLong(directory + 8));
+      }
+    }
+    throw new AssertionError("missing section " + wantedType);
+  }
+
+  private static int getInt(byte[] bytes, int offset) {
+    return ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getInt(offset);
+  }
+
+  private static void putInt(byte[] bytes, int offset, int value) {
+    ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).putInt(offset, value);
+  }
+
+  private static void putLong(byte[] bytes, int offset, long value) {
+    ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).putLong(offset, value);
   }
 
   private static Program decoder() throws Exception {

@@ -124,7 +124,7 @@ No `wheeler.bootstrap.yaml` may be added before that evidence exists.
 - [x] Record, fixed-array, slice, variant, case, and member rows decode into bounded packed columns.
 - [x] Record, array, and variant fixtures execute through the native decoder.
 - [x] Malformed container magic traps before publication.
-- [ ] Every malformed directory and table boundary has atomic rejection evidence.
+- [x] Malformed flags, duplicate section types, out-of-range sections, oversized field tables, and oversized case tables trap with zero published counts and identity bytes.
 - [x] `AggregateIdentities.w` binds package, module, artifact, counts, and validated rows under `wheeler-aggregate-module-product-1`. An independent Java digest matches the native result, and an invalid row publishes no bytes.
 - [x] Aggregate module identities bind an ordered list of up to 64 direct dependency identities before layout counts and rows. The caller must supply header-rank order.
 - [x] `AggregateDependencyProducts.w` packs direct identities in header rank and rejects missing local or locked external products before copying a byte.
