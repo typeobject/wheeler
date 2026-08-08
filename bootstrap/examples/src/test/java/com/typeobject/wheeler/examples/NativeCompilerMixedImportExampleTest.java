@@ -181,7 +181,7 @@ final class NativeCompilerMixedImportExampleTest {
   }
 
   @Test
-  void rejectsARedundantExecutableLeafBeforePublication() throws Exception {
+  void compilesARedundantExecutableLeafInEitherFrameOrder() throws Exception {
     String alpha = "module example.alpha; classical class Alpha { "
         + "public boolean alpha(long value) { return value == 1; } }";
     String beta = "module example.beta; import example.alpha; classical class Beta { "
@@ -190,8 +190,121 @@ final class NativeCompilerMixedImportExampleTest {
         + "import example.beta; classical class RedundantHelpers { "
         + "public boolean accepted(long value) { return beta(value); } }";
 
-    NativeModuleCompilerHarness.assertTrap(
-        NativeModuleCompilerHarness.program(), List.of(alpha, beta), root);
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("Alpha.w", alpha, "Beta.w", beta, "Root.w", root),
+            "example.redundant_helpers"));
+    Program compiler = NativeModuleCompilerHarness.program();
+    assertArrayEquals(
+        expected,
+        NativeModuleCompilerHarness.compile(compiler, List.of(alpha, beta), root));
+    assertArrayEquals(
+        expected,
+        NativeModuleCompilerHarness.compile(compiler, List.of(beta, alpha), root));
+  }
+
+  @Test
+  void compilesOneSharedHelperLeafAcrossEveryFrameOrder() throws Exception {
+    String alpha = "module example.alpha; classical class Alpha { "
+        + "public boolean alpha(long value) { return value == 1; } }";
+    String beta = "module example.beta; import example.alpha; classical class Beta { "
+        + "public boolean beta(long value) { return alpha(value); } }";
+    String gamma = "module example.gamma; import example.alpha; classical class Gamma { "
+        + "public boolean gamma(long value) { return alpha(value); } }";
+    String root = """
+        module example.shared_helpers;
+        import example.beta;
+        import example.gamma;
+        classical class SharedHelpers {
+          public boolean accepted(long value) {
+            if (beta(value)) { return true; }
+            return gamma(value);
+          }
+        }
+        """;
+    List<String> imported = List.of(alpha, beta, gamma);
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of(
+                "Alpha.w", alpha,
+                "Beta.w", beta,
+                "Gamma.w", gamma,
+                "Root.w", root),
+            "example.shared_helpers"));
+    Program compiler = NativeModuleCompilerHarness.program();
+    List<List<String>> orders =
+        NativeImportedConstantGraphSupport.rotationsAndReversals(imported);
+    for (List<String> order : orders) {
+      assertArrayEquals(expected, NativeModuleCompilerHarness.compile(compiler, order, root));
+    }
+  }
+
+  @Test
+  void compilesASharedHelperDiamondAcrossFrameRotations() throws Exception {
+    List<String> imported = List.of(
+        "module examples.alpha; classical class Alpha { public boolean alpha(long value) { "
+            + "return value == 1; } }",
+        "module examples.beta; import examples.alpha; classical class Beta { "
+            + "public boolean beta(long value) { return alpha(value); } }",
+        "module examples.gamma; import examples.alpha; classical class Gamma { "
+            + "public boolean gamma(long value) { return alpha(value); } }",
+        "module examples.delta; import examples.beta; import examples.gamma; "
+            + "classical class Delta { public boolean delta(long value) { "
+            + "if (beta(value)) { return true; } return gamma(value); } }");
+    String root = "module examples.root; import examples.delta; classical class Root { "
+        + "public boolean accepted(long value) { return delta(value); } }";
+
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of(
+                "Alpha.w", imported.get(0),
+                "Beta.w", imported.get(1),
+                "Gamma.w", imported.get(2),
+                "Delta.w", imported.get(3),
+                "Root.w", root),
+            "examples.root"));
+    Program compiler = NativeModuleCompilerHarness.program();
+    List<List<String>> orders =
+        NativeImportedConstantGraphSupport.rotationsAndReversals(imported);
+    for (List<String> order : orders) {
+      assertArrayEquals(expected, NativeModuleCompilerHarness.compile(compiler, order, root));
+    }
+  }
+
+  @Test
+  void filtersANonprefixSharedHelperOwnerAcrossFrameRotations() throws Exception {
+    String zeta = "module example.zeta; classical class Zeta { "
+        + "public boolean zeta(long value) { return value == 9; } }";
+    String beta = "module example.beta; import example.zeta; classical class Beta { "
+        + "public boolean beta(long value) { return zeta(value); } }";
+    String alpha = "module example.alpha; classical class Alpha { "
+        + "public boolean alpha(long value) { return value == 1; } }";
+    String gamma = "module example.gamma; import example.alpha; import example.zeta; "
+        + "classical class Gamma { public boolean gamma(long value) { "
+        + "if (alpha(value)) { return true; } return zeta(value); } }";
+    String delta = "module example.delta; import example.beta; import example.gamma; "
+        + "classical class Delta { public boolean delta(long value) { "
+        + "if (beta(value)) { return true; } return gamma(value); } }";
+    String root = "module example.nonprefix_shared; import example.delta; "
+        + "classical class NonprefixShared { public boolean accepted(long value) { "
+        + "return delta(value); } }";
+    List<String> imported = List.of(zeta, beta, alpha, gamma, delta);
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of(
+                "Zeta.w", zeta,
+                "Beta.w", beta,
+                "Alpha.w", alpha,
+                "Gamma.w", gamma,
+                "Delta.w", delta,
+                "Root.w", root),
+            "example.nonprefix_shared"));
+    Program compiler = NativeModuleCompilerHarness.program();
+    List<List<String>> orders =
+        NativeImportedConstantGraphSupport.rotationsAndReversals(imported);
+    for (List<String> order : orders) {
+      assertArrayEquals(expected, NativeModuleCompilerHarness.compile(compiler, order, root));
+    }
   }
 
   @Test

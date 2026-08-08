@@ -2,68 +2,227 @@
 
 module wheeler.compiler.graphs.owner_metadata;
 
+import wheeler.compiler.graphs.matrix;
+
 classical class GraphOwnerMetadata {
   private const long MAX_GRAPH_NODES = 7;
   private const long MAX_LINKED_SOURCE_BYTES = 32768;
   private const long OWNER_MARKER_BYTES = 4;
   private const long SOURCE_BYTE_LIMIT = 32769;
 
-  /// Prepends one dependency's owner order to its dependent source order.
-  public boolean mergeOwnerOrders(
+  /// Marks dependency owners not yet present in one dependent source.
+  public long writeUniqueSlotOwners(
     long dependencyNode,
     long dependentNode,
     borrow mut words slotOwnerCounts,
-    borrow mut words slotOwnerNodes
+    borrow mut words slotOwnerNodes,
+    borrow mut words ownerKeep
   ) {
-    long dependencyCount = slotOwnerCounts[dependencyNode];
+    long kept = 0;
+    long owner = 0;
+    while (owner < slotOwnerCounts[dependencyNode]) limit MAX_GRAPH_NODES {
+      long candidate = slotOwnerNodes[dependencyNode * MAX_GRAPH_NODES + owner];
+      boolean present = false;
+      long dependentOwner = 0;
+      while (dependentOwner < slotOwnerCounts[dependentNode]) limit MAX_GRAPH_NODES {
+        if (
+          slotOwnerNodes[dependentNode * MAX_GRAPH_NODES + dependentOwner] == candidate
+        ) {
+          present = true;
+        }
+
+        dependentOwner += 1;
+      }
+
+      if (present) {
+        set(ownerKeep, owner, 0);
+      } else {
+        set(ownerKeep, owner, 1);
+        kept += 1;
+      }
+
+      owner += 1;
+    }
+
+    return kept;
+  }
+
+  /// Marks source owners not yet present in the synthetic root.
+  public long writeUniqueRootOwners(
+    long node,
+    borrow mut words slotOwnerCounts,
+    borrow mut words slotOwnerNodes,
+    borrow mut words rootOwnerCount,
+    borrow mut words rootOwnerNodes,
+    borrow mut words ownerKeep
+  ) {
+    long kept = 0;
+    long owner = 0;
+    while (owner < slotOwnerCounts[node]) limit MAX_GRAPH_NODES {
+      long candidate = slotOwnerNodes[node * MAX_GRAPH_NODES + owner];
+      boolean present = false;
+      long rootOwner = 0;
+      while (rootOwner < rootOwnerCount[0]) limit MAX_GRAPH_NODES {
+        if (rootOwnerNodes[rootOwner] == candidate) {
+          present = true;
+        }
+
+        rootOwner += 1;
+      }
+
+      if (present) {
+        set(ownerKeep, owner, 0);
+      } else {
+        set(ownerKeep, owner, 1);
+        kept += 1;
+      }
+
+      owner += 1;
+    }
+
+    return kept;
+  }
+
+  /// Counts helpers removed by one exact owner-identity filter.
+  public long removedOwnerHelperCount(
+    long node,
+    borrow mut words slotOwnerCounts,
+    borrow mut words slotOwnerNodes,
+    borrow mut words helperCounts,
+    borrow mut words ownerKeep
+  ) {
+    long removed = 0;
+    long owner = 0;
+    while (owner < slotOwnerCounts[node]) limit MAX_GRAPH_NODES {
+      if (ownerKeep[owner] == 0) {
+        removed += helperCounts[slotOwnerNodes[node * MAX_GRAPH_NODES + owner]];
+      }
+
+      owner += 1;
+    }
+
+    return removed;
+  }
+
+  /// Compresses one source owner row after exact helper-member filtering.
+  public void filterOwnerOrder(
+    long node,
+    borrow mut words slotOwnerCounts,
+    borrow mut words slotOwnerNodes,
+    borrow mut words ownerKeep
+  ) {
+    long written = 0;
+    long owner = 0;
+    while (owner < slotOwnerCounts[node]) limit MAX_GRAPH_NODES {
+      if (ownerKeep[owner] == 1) {
+        set(
+          slotOwnerNodes,
+          node * MAX_GRAPH_NODES + written,
+          slotOwnerNodes[node * MAX_GRAPH_NODES + owner]
+        );
+        written += 1;
+      }
+
+      owner += 1;
+    }
+
+    long kept = written;
+    while (written < slotOwnerCounts[node]) limit MAX_GRAPH_NODES {
+      set(slotOwnerNodes, node * MAX_GRAPH_NODES + written, 0);
+      written += 1;
+    }
+
+    set(slotOwnerCounts, node, kept);
+  }
+
+  /// Counts helpers imported ahead of one physical dependent's own members.
+  public long slotImportedHelperCount(
+    BoundedGraphPlan plan,
+    long node,
+    borrow mut words slotOwnerCounts,
+    borrow mut words slotOwnerNodes,
+    borrow mut words helperCounts
+  ) {
+    long count = 0;
+    long owner = 0;
+    while (owner < slotOwnerCounts[node]) limit MAX_GRAPH_NODES {
+      long ownerNode = slotOwnerNodes[node * MAX_GRAPH_NODES + owner];
+      if (plannedExecutable(plan, node)) {
+        if (ownerNode == node) {
+          return count;
+        }
+      }
+
+      count += helperCounts[ownerNode];
+      owner += 1;
+    }
+
+    return count;
+  }
+
+  /// Inserts one dependency's retained owners before the dependent's own members.
+  public boolean mergeUniqueOwnerOrders(
+    BoundedGraphPlan plan,
+    long dependencyNode,
+    long dependentNode,
+    borrow mut words slotOwnerCounts,
+    borrow mut words slotOwnerNodes,
+    borrow mut words ownerKeep
+  ) {
+    long kept = 0;
+    long owner = 0;
+    while (owner < slotOwnerCounts[dependencyNode]) limit MAX_GRAPH_NODES {
+      kept += ownerKeep[owner];
+      owner += 1;
+    }
+
     long dependentCount = slotOwnerCounts[dependentNode];
-    if (dependencyCount + dependentCount < MAX_GRAPH_NODES + 1) {} else {
+    if (kept + dependentCount < MAX_GRAPH_NODES + 1) {} else {
       return false;
     }
 
-    long dependency = 0;
-    while (dependency < dependencyCount) limit MAX_GRAPH_NODES {
-      long dependencyOwner = slotOwnerNodes[dependencyNode * MAX_GRAPH_NODES + dependency];
-      long dependent = 0;
-      while (dependent < dependentCount) limit MAX_GRAPH_NODES {
+    long insertAt = dependentCount;
+    if (plannedExecutable(plan, dependentNode)) {
+      if (0 < dependentCount) {
         if (
-          slotOwnerNodes[dependentNode * MAX_GRAPH_NODES + dependent] == dependencyOwner
+          slotOwnerNodes[dependentNode * MAX_GRAPH_NODES + dependentCount - 1] == dependentNode
         ) {
-          return false;
+          insertAt = dependentCount - 1;
         }
-
-        dependent += 1;
       }
-
-      dependency += 1;
     }
 
     long shifted = dependentCount;
-    while (0 < shifted) limit MAX_GRAPH_NODES {
+    while (insertAt < shifted) limit MAX_GRAPH_NODES {
       set(
         slotOwnerNodes,
-        dependentNode * MAX_GRAPH_NODES + dependencyCount + shifted - 1,
+        dependentNode * MAX_GRAPH_NODES + kept + shifted - 1,
         slotOwnerNodes[dependentNode * MAX_GRAPH_NODES + shifted - 1]
       );
       shifted -= 1;
     }
 
-    dependency = 0;
-    while (dependency < dependencyCount) limit MAX_GRAPH_NODES {
-      set(
-        slotOwnerNodes,
-        dependentNode * MAX_GRAPH_NODES + dependency,
-        slotOwnerNodes[dependencyNode * MAX_GRAPH_NODES + dependency]
-      );
-      dependency += 1;
+    long written = 0;
+    owner = 0;
+    while (owner < slotOwnerCounts[dependencyNode]) limit MAX_GRAPH_NODES {
+      if (ownerKeep[owner] == 1) {
+        set(
+          slotOwnerNodes,
+          dependentNode * MAX_GRAPH_NODES + insertAt + written,
+          slotOwnerNodes[dependencyNode * MAX_GRAPH_NODES + owner]
+        );
+        written += 1;
+      }
+
+      owner += 1;
     }
 
-    set(slotOwnerCounts, dependentNode, dependencyCount + dependentCount);
+    set(slotOwnerCounts, dependentNode, kept + dependentCount);
     return true;
   }
 
-  /// Prepends one linked root's exact owner order to the synthetic root order.
-  public boolean prependRootOwnerOrder(
+  /// Appends one linked root's exact owner order to the synthetic root order.
+  public boolean appendRootOwnerOrder(
     long node,
     borrow mut words slotOwnerCounts,
     borrow mut words slotOwnerNodes,
@@ -88,23 +247,28 @@ classical class GraphOwnerMetadata {
         target += 1;
       }
 
-      source += 1;
-    }
-
-    long shifted = existing;
-    while (0 < shifted) limit MAX_GRAPH_NODES {
-      set(rootOwnerNodes, added + shifted - 1, rootOwnerNodes[shifted - 1]);
-      shifted -= 1;
-    }
-
-    source = 0;
-    while (source < added) limit MAX_GRAPH_NODES {
-      set(rootOwnerNodes, source, slotOwnerNodes[node * MAX_GRAPH_NODES + source]);
+      set(rootOwnerNodes, existing + source, owner);
       source += 1;
     }
 
     set(rootOwnerCount, 0, added + existing);
     return true;
+  }
+
+  /// Counts helpers already linked before the root's own executable members.
+  public long rootImportedHelperCount(
+    borrow mut words rootOwnerCount,
+    borrow mut words rootOwnerNodes,
+    borrow mut words helperCounts
+  ) {
+    long count = 0;
+    long owner = 0;
+    while (owner < rootOwnerCount[0]) limit MAX_GRAPH_NODES {
+      count += helperCounts[rootOwnerNodes[owner]];
+      owner += 1;
+    }
+
+    return count;
   }
 
   /// Adds inert canonical-name markers for helper owners private to the root graph.

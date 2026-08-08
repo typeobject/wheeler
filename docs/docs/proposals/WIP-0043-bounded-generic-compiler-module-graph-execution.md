@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Accepted |
 | Owners | Wheeler compiler, linker, bootstrap, package, and conformance maintainers |
 | Created | 2026-08-07 |
 | Updated | 2026-08-07 |
@@ -21,7 +21,7 @@ The first bound remains seven imported modules and 32,768 bytes per physical or 
 
 The old compiler validated graph facts before linking, then spread execution across direct, chain, fork, nested, mixed, and shared-DAG owners. A new legal edge pattern needed a classifier identity and an executor path. The redundant two-module chain was the last small example: the leaf fed its dependent while both remained direct root imports.
 
-Scalar constants and helpers no longer have that defect. One executor accepts every rooted acyclic constant plan from two through seven imported modules, every direct helper set, mixed direct constants and helpers, private helper chains and multi-input helper dependencies, and the constant-fed helper chain. The plan records executable-owner kinds before linking an edge. Shared and redundant executable dependencies remain open.
+Scalar constants and helpers no longer have that defect. One executor accepts every rooted acyclic constant or scalar-helper plan from two through seven imported modules. Direct, mixed, private, shared, redundant, chain, fork, and diamond graphs use the same plan facts. The plan records executable-owner kinds before linking an edge.
 
 This does not scale to the physical compiler closure. Real module graphs contain redundant direct edges, shared dependencies, independent branches, constants beside functions, and imports retained for their own public API. A closed list of picturesque trees cannot become a module system by acquiring more pictures.
 
@@ -95,11 +95,11 @@ For one dependency edge, the executor performs these steps:
 2. Revalidate the selected module names against the plan.
 3. Resolve and insert the dependency's declaration prefix.
 4. Preserve or privatize exports according to `direct_root` and the dependent edge.
-5. Deduplicate a shared prefix only after exact token comparison.
-6. Insert executable members after every declaration.
+5. Deduplicate shared constants only after exact token comparison.
+6. Filter repeated helper groups only when the planned executable-owner identity is equal.
 7. Freeze the complete linked source before advancing the table owner.
 
-The executor compiles the root only after processing every incoming edge. Constant-only edges run before executable edges. Multiple executable inputs are linked in reverse dependent-import rank so canonical source order survives insertion. `GraphOwnerMetadata.w` carries owner order through each source slot and writes inert canonical-name markers for owners private to the final root. A helper's physical frame, topological position, or completion order does not alter its function identity.
+The executor compiles the root only after processing every incoming edge. Constant-only edges run before executable edges. Multiple executable inputs follow dependent-import rank. `GraphHelperMembers.w` removes repeated owner groups and rotates each retained group behind earlier dependencies. `GraphOwnerMetadata.w` carries owner order through each source slot and writes inert canonical-name markers for owners private to the final root. A helper's physical frame, topological position, or completion order does not alter its function identity.
 
 The executor may use fixed seven-slot storage in the initial implementation. The public operation must still take a counted plan and one source table. Arity-shaped entry points are not the interface.
 
@@ -117,7 +117,7 @@ No linked source outlives its arena. The final artifact borrows no source storag
 
 A direct root import retains its public declarations even when it is also a transitive dependency. The dependent receives private access to the same declarations. The executor drops the private copy only when the complete constant declaration matches the public declaration token for token after the visibility keyword.
 
-A same-name mismatch fails. A private name used directly by the root fails. Two unrelated public exports with the same name fail. Qualification removal occurs only for the selected module owner.
+A same-name mismatch fails. A private name used directly by the root fails. Two unrelated public exports with the same name fail. Qualification removal occurs only for the selected module owner. `GraphHelperMembers.w` filters repeated helper groups by planned physical owner identity, not spelling. Nonprefix sharing receives the same treatment as a leading shared leaf.
 
 Constants remain ahead of functions. Inserting a helper at the class opening brace after constants already exist is invalid, even if a later formatter could make the text look less guilty.
 
@@ -150,7 +150,7 @@ The source table and plan must reject count eight and byte 32,769 before allocat
 6. Execute mixed constant and helper owners in root-import order.
 7. Differentially compare every existing topology and frame rotation.
 8. Delete topology identities, classifiers, coordinators, and executors.
-9. Raise graph bounds only after the deletion.
+9. Defer larger graph transport and general symbol closure to WIP-0044.
 
 Compatibility wrappers are not retained. During migration the driver may dispatch old and new implementations in tests, but one implementation remains after parity.
 
@@ -177,8 +177,9 @@ Compatibility wrappers are not retained. During migration the driver may dispatc
 - [x] The arity-shaped direct-helper linkers, source-order network, mixed coordinators, and structural fallbacks are deleted.
 - [x] `BoundedGraphPlan` records executable-owner kinds before dependency linking.
 - [x] Private two-edge helper chains, two-input helper forks, and mixed private constant/helper inputs match stage 0 across every three-frame order.
-- [ ] Shared and redundant executable dependencies deduplicate exact helper members.
-- [ ] The imported-module bound is raised beyond seven.
+- [x] Redundant direct helpers, shared helper leaves, shared helper diamonds, and nonprefix shared owners retain each exact helper group once across frame rotations.
+- [x] Graph execution order, helper-member filtering, owner metadata, source storage, and execution have focused files below 1,000 lines.
+- [x] Raising graph transport beyond seven modules is split into WIP-0044.
 
 ## Acceptance
 

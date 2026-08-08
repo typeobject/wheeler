@@ -5,18 +5,19 @@ module wheeler.compiler.graphs.executor;
 import wheeler.compiler.canonical_helper_linking;
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.graphs.executable_owner_kinds;
+import wheeler.compiler.graphs.execution_order;
+import wheeler.compiler.graphs.helper_members;
 import wheeler.compiler.graphs.matrix;
 import wheeler.compiler.graphs.owner_metadata;
 import wheeler.compiler.graphs.source_table;
 import wheeler.compiler.helper_owners;
 import wheeler.compiler.imported_helpers;
-import wheeler.compiler.module_headers;
 import wheeler.compiler.module_linker;
 
 classical class BoundedGraphPlanExecutor {
   private const long MAX_GRAPH_NODES = 7;
   private const long MAX_LINKED_SOURCE_BYTES = 32768;
-  private const long OWNER_METADATA_ARENA_BYTES = 1392;
+  private const long OWNER_METADATA_ARENA_BYTES = 1472;
   private const long SOURCE_BYTE_LIMIT = 32769;
 
   /// Carries one bounded graph-plan execution result.
@@ -124,62 +125,6 @@ classical class BoundedGraphPlanExecutor {
     }
 
     return -1;
-  }
-
-  private long dependencyNodeAtRank(
-    BoundedGraphPlan plan,
-    long dependentNode,
-    long rank,
-    long tableCount,
-    borrow mut bytes storage,
-    borrow mut words lengths
-  ) {
-    long selected = -1;
-    long dependencyNode = 0;
-    while (dependencyNode < plan.nodeCount) limit MAX_GRAPH_NODES {
-      if (plannedEdge(plan, dependencyNode, dependentNode)) {
-        region dependencyArena = new region(
-          /* bytes= */ MAX_LINKED_SOURCE_BYTES,
-          /* allocations= */ 1
-        );
-        utf8 dependencySource = copyExecutionSource(
-          dependencyNode,
-          tableCount,
-          storage,
-          lengths,
-          dependencyArena
-        );
-        region dependentArena = new region(
-          /* bytes= */ MAX_LINKED_SOURCE_BYTES,
-          /* allocations= */ 1
-        );
-        utf8 dependentSource = copyExecutionSource(
-          dependentNode,
-          tableCount,
-          storage,
-          lengths,
-          dependentArena
-        );
-        HeaderDependency dependency = moduleDependency(dependencySource, dependentSource);
-        if (dependency.valid) {
-          if (dependency.importsCandidate) {
-            if (dependency.candidateImportRank == rank) {
-              assert(selected < 0);
-              selected = dependencyNode;
-            }
-          }
-        }
-
-        drop(dependentSource);
-        drop(dependentArena);
-        drop(dependencySource);
-        drop(dependencyArena);
-      }
-
-      dependencyNode += 1;
-    }
-
-    return selected;
   }
 
   private ExecutableOwnerProbe probeExecutableOwner(
@@ -292,57 +237,6 @@ classical class BoundedGraphPlanExecutor {
     return planExecutableOwners(plan, executableKinds);
   }
 
-  private boolean linearExecutableOwners(BoundedGraphPlan plan) {
-    long node = 0;
-    while (node < plan.nodeCount) limit MAX_GRAPH_NODES {
-      if (plannedExecutable(plan, node)) {
-        long outgoing = plannedOutgoingCount(plan, node);
-        if (1 < outgoing) {
-          return false;
-        }
-
-        if (plannedRootDirect(plan, node)) {
-          if (0 < outgoing) {
-            return false;
-          }
-        }
-      }
-
-      node += 1;
-    }
-
-    return true;
-  }
-
-  private void writeExecutableSources(
-    BoundedGraphPlan plan,
-    borrow mut words executableKinds,
-    borrow mut words executableSources
-  ) {
-    long node = 0;
-    while (node < plan.nodeCount) limit MAX_GRAPH_NODES {
-      set(executableSources, node, executableKinds[node]);
-      node += 1;
-    }
-
-    long position = 0;
-    while (position < plan.nodeCount) limit MAX_GRAPH_NODES {
-      long dependency = plannedNodeAt(plan, position);
-      if (executableSources[dependency] == 1) {
-        long dependent = 0;
-        while (dependent < plan.nodeCount) limit MAX_GRAPH_NODES {
-          if (plannedEdge(plan, dependency, dependent)) {
-            set(executableSources, dependent, 1);
-          }
-
-          dependent += 1;
-        }
-      }
-
-      position += 1;
-    }
-  }
-
   private boolean recordOwnHelperCount(
     BoundedGraphPlan plan,
     long node,
@@ -400,7 +294,11 @@ classical class BoundedGraphPlanExecutor {
     boolean executableSource,
     long tableCount,
     borrow mut bytes storage,
-    borrow mut words lengths
+    borrow mut words lengths,
+    borrow mut words slotOwnerCounts,
+    borrow mut words slotOwnerNodes,
+    borrow mut words helperCounts,
+    borrow mut words ownerKeep
   ) {
     region dependencyArena = new region(
       /* bytes= */ MAX_LINKED_SOURCE_BYTES,
@@ -413,6 +311,16 @@ classical class BoundedGraphPlanExecutor {
       lengths,
       dependencyArena
     );
+    region linkInputArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 linkInput = filterHelperOwners(
+      dependencySource,
+      dependencyNode,
+      slotOwnerCounts,
+      slotOwnerNodes,
+      helperCounts,
+      ownerKeep,
+      linkInputArena
+    );
     region dependentArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     utf8 dependentSource = copyExecutionSource(
       dependentNode,
@@ -424,20 +332,22 @@ classical class BoundedGraphPlanExecutor {
     long incomingCount = plannedIncomingCount(plan, dependentNode);
     LinkPlan link = new LinkPlan(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, false);
     if (executableSource) {
-      link = planResolvedHelperImport(dependencySource, dependentSource, incomingCount);
+      link = planResolvedHelperImport(linkInput, dependentSource, incomingCount);
       if (link.valid) {} else {
-        link = planSharedResolvedHelperImport(dependencySource, dependentSource, incomingCount);
+        link = planSharedResolvedHelperImport(linkInput, dependentSource, incomingCount);
       }
     } else {
-      link = planPrivateResolvedConstantImport(dependencySource, dependentSource, incomingCount);
+      link = planPrivateResolvedConstantImport(linkInput, dependentSource, incomingCount);
       if (link.valid) {} else {
-        link = planSharedResolvedConstantImport(dependencySource, dependentSource, incomingCount);
+        link = planSharedResolvedConstantImport(linkInput, dependentSource, incomingCount);
       }
     }
 
     if (link.valid) {} else {
       drop(dependentSource);
       drop(dependentArena);
+      drop(linkInput);
+      drop(linkInputArena);
       drop(dependencySource);
       drop(dependencyArena);
       return new DependencyLink(0, false);
@@ -447,14 +357,9 @@ classical class BoundedGraphPlanExecutor {
     bytes linkedBytes = allocateBytes(linkedArena, link.linkedLength);
     long linkedLength = 0;
     if (executableSource) {
-      linkedLength = writeCanonicalHelperImport(
-        dependencySource,
-        dependentSource,
-        link,
-        linkedBytes
-      );
+      linkedLength = writeCanonicalHelperImport(linkInput, dependentSource, link, linkedBytes);
     } else {
-      linkedLength = writeConstantImport(dependencySource, dependentSource, link, linkedBytes);
+      linkedLength = writeConstantImport(linkInput, dependentSource, link, linkedBytes);
     }
 
     assert(linkedLength == link.linkedLength);
@@ -470,6 +375,8 @@ classical class BoundedGraphPlanExecutor {
     drop(linkedArena);
     drop(dependentSource);
     drop(dependentArena);
+    drop(linkInput);
+    drop(linkInputArena);
     drop(dependencySource);
     drop(dependencyArena);
     long helperCount = 0;
@@ -480,17 +387,89 @@ classical class BoundedGraphPlanExecutor {
     return new DependencyLink(helperCount, replaced);
   }
 
-  private long rootNodeAt(BoundedGraphPlan plan, long rank) {
-    long node = 0;
-    while (node < plan.nodeCount) limit MAX_GRAPH_NODES {
-      if (plannedRootRankAt(plan, node) == rank) {
-        return node;
-      }
+  private void filterSourceOwners(
+    long node,
+    long tableCount,
+    borrow mut bytes storage,
+    borrow mut words lengths,
+    borrow mut words slotOwnerCounts,
+    borrow mut words slotOwnerNodes,
+    borrow mut words helperCounts,
+    borrow mut words ownerKeep
+  ) {
+    region sourceArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 source = copyExecutionSource(node, tableCount, storage, lengths, sourceArena);
+    region prunedArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 pruned = filterHelperOwners(
+      source,
+      node,
+      slotOwnerCounts,
+      slotOwnerNodes,
+      helperCounts,
+      ownerKeep,
+      prunedArena
+    );
+    assert(replaceSourceTableSlot(node, tableCount, pruned, storage, lengths));
+    drop(pruned);
+    drop(prunedArena);
+    drop(source);
+    drop(sourceArena);
+  }
 
-      node += 1;
+  private boolean appendLinkedSlotHelpers(
+    long node,
+    long prependedHelperCount,
+    long existingHelperCount,
+    long tableCount,
+    borrow mut bytes storage,
+    borrow mut words lengths
+  ) {
+    if (0 < existingHelperCount) {} else {
+      return true;
     }
 
-    return -1;
+    region sourceArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 source = copyExecutionSource(node, tableCount, storage, lengths, sourceArena);
+    region appendedArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 appended = appendPrependedHelpers(
+      source,
+      prependedHelperCount,
+      existingHelperCount,
+      appendedArena
+    );
+    assert(replaceSourceTableSlot(node, tableCount, appended, storage, lengths));
+    drop(appended);
+    drop(appendedArena);
+    drop(source);
+    drop(sourceArena);
+    return true;
+  }
+
+  private long appendLinkedRootHelpers(
+    borrow mut bytes rootStorage,
+    long rootLength,
+    long prependedHelperCount,
+    long existingHelperCount
+  ) {
+    if (0 < existingHelperCount) {} else {
+      return rootLength;
+    }
+
+    region sourceArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 source = copyRootSource(rootStorage, rootLength, sourceArena);
+    region appendedArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 appended = appendPrependedHelpers(
+      source,
+      prependedHelperCount,
+      existingHelperCount,
+      appendedArena
+    );
+    long result = writeRootSource(appended, rootStorage);
+    drop(appended);
+    drop(appendedArena);
+    drop(source);
+    drop(sourceArena);
+    return result;
   }
 
   private RootDependencyLink linkRootDependency(
@@ -572,27 +551,6 @@ classical class BoundedGraphPlanExecutor {
     return result;
   }
 
-  private boolean rootDependencyReady(
-    BoundedGraphPlan plan,
-    long node,
-    borrow mut words linkedRoots
-  ) {
-    long dependency = 0;
-    while (dependency < plan.nodeCount) limit MAX_GRAPH_NODES {
-      if (plannedEdge(plan, dependency, node)) {
-        if (plannedRootDirect(plan, dependency)) {
-          if (linkedRoots[dependency] == 1) {} else {
-            return false;
-          }
-        }
-      }
-
-      dependency += 1;
-    }
-
-    return true;
-  }
-
   /// Executes one supported validated two- through seven-module graph.
   public GraphPlanExecution executeGraphPlan(
     BoundedGraphPlan plan,
@@ -638,7 +596,7 @@ classical class BoundedGraphPlanExecutor {
     );
     bytes rootStorage = allocateBytes(rootStorageArena, MAX_LINKED_SOURCE_BYTES);
     long rootLength = writeRootSource(rootSource, rootStorage);
-    region ownerArena = new region(/* bytes= */ OWNER_METADATA_ARENA_BYTES, /* allocations= */ 15);
+    region ownerArena = new region(/* bytes= */ OWNER_METADATA_ARENA_BYTES, /* allocations= */ 16);
     words executableKinds = allocate(ownerArena, MAX_GRAPH_NODES);
     words executableSources = allocate(ownerArena, MAX_GRAPH_NODES);
     words helperCounts = allocate(ownerArena, MAX_GRAPH_NODES);
@@ -654,6 +612,7 @@ classical class BoundedGraphPlanExecutor {
     words ownerStarts = allocate(ownerArena, MAX_GRAPH_NODES);
     words ownerLengths = allocate(ownerArena, MAX_GRAPH_NODES);
     words ownerCounts = allocate(ownerArena, MAX_GRAPH_NODES);
+    words ownerKeep = allocate(ownerArena, MAX_GRAPH_NODES);
     long tableCount = plan.nodeCount;
     BoundedGraphPlan executablePlan = classifyExecutableOwners(
       plan,
@@ -669,7 +628,6 @@ classical class BoundedGraphPlanExecutor {
       slotOwnerCounts,
       slotOwnerNodes
     );
-    assert(linearExecutableOwners(executablePlan));
     writeExecutableSources(executablePlan, executableKinds, executableSources);
 
     boolean executableSource = false;
@@ -679,6 +637,9 @@ classical class BoundedGraphPlanExecutor {
     long incomingCount = 0;
     long reverseRank = 0;
     long dependencyRank = 0;
+    long edgeKeptOwnerCount = 0;
+    long edgeRemovedHelperCount = 0;
+    long edgeExistingHelperCount = 0;
     long position = 0;
     while (position < executablePlan.nodeCount) limit MAX_GRAPH_NODES {
       dependencyNode = plannedNodeAt(executablePlan, position);
@@ -693,7 +654,11 @@ classical class BoundedGraphPlanExecutor {
               /* executableSource= */ false,
               tableCount,
               storage,
-              lengths
+              lengths,
+              slotOwnerCounts,
+              slotOwnerNodes,
+              helperCounts,
+              ownerKeep
             );
             assert(dependencyLink.valid);
           }
@@ -711,7 +676,7 @@ classical class BoundedGraphPlanExecutor {
       incomingCount = plannedIncomingCount(executablePlan, dependentNode);
       reverseRank = 0;
       while (reverseRank < incomingCount) limit MAX_GRAPH_NODES {
-        dependencyRank = incomingCount - reverseRank - 1;
+        dependencyRank = reverseRank;
         dependencyNode = dependencyNodeAtRank(
           executablePlan,
           dependentNode,
@@ -723,29 +688,73 @@ classical class BoundedGraphPlanExecutor {
         assert(0 < dependencyNode + 1);
         if (executableSources[dependencyNode] == 1) {
           assert(0 < slotOwnerCounts[dependencyNode]);
-          assert(
-            mergeOwnerOrders(dependencyNode, dependentNode, slotOwnerCounts, slotOwnerNodes)
-          );
-          dependencyLink = linkDependency(
-            executablePlan,
+          edgeKeptOwnerCount = writeUniqueSlotOwners(
             dependencyNode,
             dependentNode,
-            /* executableSource= */ true,
-            tableCount,
-            storage,
-            lengths
+            slotOwnerCounts,
+            slotOwnerNodes,
+            ownerKeep
           );
-          assert(dependencyLink.valid);
-          assert(
-            recordOwnHelperCount(
+          edgeRemovedHelperCount = removedOwnerHelperCount(
+            dependencyNode,
+            slotOwnerCounts,
+            slotOwnerNodes,
+            helperCounts,
+            ownerKeep
+          );
+          edgeExistingHelperCount = slotImportedHelperCount(
+            executablePlan,
+            dependentNode,
+            slotOwnerCounts,
+            slotOwnerNodes,
+            helperCounts
+          );
+          if (0 < edgeKeptOwnerCount) {
+            dependencyLink = linkDependency(
               executablePlan,
               dependencyNode,
-              dependencyLink.helperCount,
+              dependentNode,
+              /* executableSource= */ true,
+              tableCount,
+              storage,
+              lengths,
               slotOwnerCounts,
               slotOwnerNodes,
-              helperCounts
-            )
-          );
+              helperCounts,
+              ownerKeep
+            );
+            assert(dependencyLink.valid);
+            assert(
+              recordOwnHelperCount(
+                executablePlan,
+                dependencyNode,
+                dependencyLink.helperCount + edgeRemovedHelperCount,
+                slotOwnerCounts,
+                slotOwnerNodes,
+                helperCounts
+              )
+            );
+            assert(
+              mergeUniqueOwnerOrders(
+                executablePlan,
+                dependencyNode,
+                dependentNode,
+                slotOwnerCounts,
+                slotOwnerNodes,
+                ownerKeep
+              )
+            );
+            assert(
+              appendLinkedSlotHelpers(
+                dependentNode,
+                dependencyLink.helperCount,
+                edgeExistingHelperCount,
+                tableCount,
+                storage,
+                lengths
+              )
+            );
+          }
         }
 
         reverseRank += 1;
@@ -754,6 +763,9 @@ classical class BoundedGraphPlanExecutor {
       position += 1;
     }
 
+    long rootKeptOwnerCount = 0;
+    long rootRemovedHelperCount = 0;
+    long existingHelperCount = 0;
     long linkedRootCount = 0;
     while (linkedRootCount < executablePlan.rootCount) limit MAX_GRAPH_NODES {
       long selectedRootNode = -1;
@@ -766,8 +778,10 @@ classical class BoundedGraphPlanExecutor {
           if (rootDependencyReady(executablePlan, candidateRootNode, linkedRoots)) {
             boolean candidateIsHelper = 0 < slotOwnerCounts[candidateRootNode];
             if (candidateIsHelper) {
-              selectedRootNode = candidateRootNode;
-              selectedIsHelper = true;
+              if (selectedIsHelper == false) {
+                selectedRootNode = candidateRootNode;
+                selectedIsHelper = true;
+              }
             } else {
               if (selectedRootNode < 0) {
                 if (selectedIsHelper == false) {
@@ -782,6 +796,38 @@ classical class BoundedGraphPlanExecutor {
       }
 
       assert(0 < selectedRootNode + 1);
+      rootKeptOwnerCount = writeUniqueRootOwners(
+        selectedRootNode,
+        slotOwnerCounts,
+        slotOwnerNodes,
+        rootOwnerCount,
+        rootOwnerNodes,
+        ownerKeep
+      );
+      rootRemovedHelperCount = removedOwnerHelperCount(
+        selectedRootNode,
+        slotOwnerCounts,
+        slotOwnerNodes,
+        helperCounts,
+        ownerKeep
+      );
+      if (0 < rootRemovedHelperCount) {
+        filterSourceOwners(
+          selectedRootNode,
+          tableCount,
+          storage,
+          lengths,
+          slotOwnerCounts,
+          slotOwnerNodes,
+          helperCounts,
+          ownerKeep
+        );
+        filterOwnerOrder(selectedRootNode, slotOwnerCounts, slotOwnerNodes, ownerKeep);
+      }
+
+      assert(rootKeptOwnerCount == slotOwnerCounts[selectedRootNode]);
+
+      existingHelperCount = rootImportedHelperCount(rootOwnerCount, rootOwnerNodes, helperCounts);
       executableSource = 0 < slotOwnerCounts[selectedRootNode];
       RootDependencyLink rootLink = linkRootDependency(
         executablePlan,
@@ -807,13 +853,19 @@ classical class BoundedGraphPlanExecutor {
             helperCounts
           )
         );
+        rootLength = appendLinkedRootHelpers(
+          rootStorage,
+          rootLength,
+          rootLink.helperCount,
+          existingHelperCount
+        );
         if (plannedExecutable(executablePlan, selectedRootNode)) {
           set(rootModuleStarts, selectedRootNode, rootLink.ownerStart);
           set(rootModuleLengths, selectedRootNode, rootLink.ownerLength);
         }
 
         assert(
-          prependRootOwnerOrder(
+          appendRootOwnerOrder(
             selectedRootNode,
             slotOwnerCounts,
             slotOwnerNodes,
@@ -861,6 +913,7 @@ classical class BoundedGraphPlanExecutor {
     GraphPlanExecution executed = new GraphPlanExecution(core.length, core.codeStart);
     drop(finalSource);
     drop(finalArena);
+    drop(ownerKeep);
     drop(ownerCounts);
     drop(ownerLengths);
     drop(ownerStarts);
