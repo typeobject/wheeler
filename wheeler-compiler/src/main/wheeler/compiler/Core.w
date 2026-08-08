@@ -4,6 +4,8 @@ module wheeler.compiler.compiler_core;
 
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.core_local_types;
+import wheeler.compiler.core_parsing;
 import wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
 import wheeler.compiler.fixed_array_types;
@@ -14,7 +16,7 @@ import wheeler.compiler.helper_source_types;
 import wheeler.compiler.ir;
 import wheeler.compiler.library_strings;
 import wheeler.compiler.local_opcodes;
-import wheeler.compiler.local_types;
+import wheeler.compiler.local_type_encoding;
 import wheeler.compiler.module_headers;
 import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.opcodes;
@@ -34,58 +36,6 @@ classical class CompilerCore {
 
   /// Carries the exact bounds of one verified compiler artifact.
   public record CoreCompilation(long length, long codeStart) {}
-
-  private long compactCompilerTokens(
-    borrow mut words tokenKinds,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long count
-  ) {
-    long readCursor = 0;
-    long writeCursor = 0;
-    while (readCursor < count) limit MAX_COMPILER_TOKENS {
-      long kind = tokenKinds[readCursor];
-      boolean emit = true;
-      if (kind == 4) {
-        emit = false;
-      }
-
-      if (kind == 5) {
-        emit = false;
-      }
-
-      if (emit) {
-        set(tokenKinds, writeCursor, kind);
-        set(tokenStarts, writeCursor, tokenStarts[readCursor]);
-        set(tokenLengths, writeCursor, tokenLengths[readCursor]);
-        writeCursor += 1;
-      }
-
-      readCursor += 1;
-    }
-
-    return writeCursor;
-  }
-
-  private long discardLeadingTokens(
-    borrow mut words tokenKinds,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long bodyStart,
-    long count
-  ) {
-    long readCursor = bodyStart;
-    long writeCursor = 0;
-    while (readCursor < count) limit MAX_COMPILER_TOKENS {
-      set(tokenKinds, writeCursor, tokenKinds[readCursor]);
-      set(tokenStarts, writeCursor, tokenStarts[readCursor]);
-      set(tokenLengths, writeCursor, tokenLengths[readCursor]);
-      readCursor += 1;
-      writeCursor += 1;
-    }
-
-    return writeCursor;
-  }
 
   private MinimalProgram requireMinimalProgram(
     borrow utf8 source,
@@ -221,128 +171,6 @@ classical class CompilerCore {
         }
       }
     }
-  }
-
-  private long writeSequenceLocalTypes(
-    borrow mut bytes output,
-    long cursor,
-    long[64] opcodes,
-    long count
-  ) {
-    long index = 0;
-    while (index < count) limit MAX_MINIMAL_STATEMENTS {
-      cursor = writeStatementLocalTypes(output, cursor, opcodes[index]);
-      index += 1;
-    }
-
-    return cursor;
-  }
-
-  private long writeHelperSequenceLocalTypes(
-    borrow mut bytes output,
-    long cursor,
-    MinimalProgram program,
-    HelperBody body
-  ) {
-    long resultType = TYPE_SIGNED;
-    if (booleanResultHelper(body.kind)) {
-      resultType = TYPE_BOOLEAN;
-    }
-
-    if (utf8ResultHelper(body.kind)) {
-      resultType = TYPE_UTF8;
-    }
-
-    long statement = 0;
-    while (statement < body.statementCount) limit MAX_MINIMAL_STATEMENTS {
-      long opcode = body.opcodes[statement];
-      long firstType = helperSourceType(
-        opcode,
-        body.operands[statement],
-        body.secondaryOperands[statement],
-        0,
-        body.parameterTypes,
-        body.parameterCount
-      );
-      long secondType = helperSourceType(
-        opcode,
-        body.operands[statement],
-        body.secondaryOperands[statement],
-        1,
-        body.parameterTypes,
-        body.parameterCount
-      );
-      long thirdType = helperSourceType(
-        opcode,
-        body.operands[statement],
-        body.secondaryOperands[statement],
-        2,
-        body.parameterTypes,
-        body.parameterCount
-      );
-      long fourthType = helperSourceType(
-        opcode,
-        body.operands[statement],
-        body.secondaryOperands[statement],
-        3,
-        body.parameterTypes,
-        body.parameterCount
-      );
-      long fifthType = helperSourceType(
-        opcode,
-        body.operands[statement],
-        body.secondaryOperands[statement],
-        4,
-        body.parameterTypes,
-        body.parameterCount
-      );
-      long sixthType = helperSourceType(
-        opcode,
-        body.operands[statement],
-        body.secondaryOperands[statement],
-        5,
-        body.parameterTypes,
-        body.parameterCount
-      );
-      long seventhType = helperSourceType(
-        opcode,
-        body.operands[statement],
-        body.secondaryOperands[statement],
-        6,
-        body.parameterTypes,
-        body.parameterCount
-      );
-      firstType = canonicalProgramType(program, firstType);
-      secondType = canonicalProgramType(program, secondType);
-      thirdType = canonicalProgramType(program, thirdType);
-      fourthType = canonicalProgramType(program, fourthType);
-      fifthType = canonicalProgramType(program, fifthType);
-      sixthType = canonicalProgramType(program, sixthType);
-      seventhType = canonicalProgramType(program, seventhType);
-
-      long callCursor = writeHelperCallLocalTypes(
-        output,
-        cursor,
-        opcode,
-        resultType,
-        firstType,
-        secondType,
-        thirdType,
-        fourthType,
-        fifthType,
-        sixthType,
-        seventhType
-      );
-      if (-1 < callCursor) {
-        cursor = callCursor;
-      } else {
-        cursor = writeStatementLocalTypes(output, cursor, opcode);
-      }
-
-      statement += 1;
-    }
-
-    return cursor;
   }
 
   private long boundedHelperLocalCount(HelperBody body) {

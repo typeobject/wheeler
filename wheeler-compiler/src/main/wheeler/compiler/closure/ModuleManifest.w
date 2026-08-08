@@ -214,17 +214,6 @@ classical class BootstrapModuleManifestParser {
     return -1;
   }
 
-  private boolean listed(
-    borrow byteview source,
-    borrow mut words starts,
-    borrow mut words lengths,
-    long count,
-    long candidate,
-    long candidateLength
-  ) {
-    return -1 < listedIndex(source, starts, lengths, count, candidate, candidateLength);
-  }
-
   private void validateGraph(
     borrow byteview source,
     long moduleCount,
@@ -553,9 +542,10 @@ classical class BootstrapModuleManifestParser {
         edgeStarts[edge],
         edgeLengths[edge]
       );
+      long externalTarget = -1;
       boolean resolved = -1 < localTarget;
       if (resolved == false) {
-        resolved = listed(
+        externalTarget = listedIndex(
           source,
           externalStarts,
           externalLengths,
@@ -563,11 +553,17 @@ classical class BootstrapModuleManifestParser {
           edgeStarts[edge],
           edgeLengths[edge]
         );
+        resolved = -1 < externalTarget;
       }
 
       requireMetadata(resolved, source);
       requireMetadata((localTarget == edgeOwners[edge]) == false, source);
-      set(edgeTargets, edge, localTarget);
+      long resolvedTarget = localTarget;
+      if (resolvedTarget < 0) {
+        resolvedTarget = 0 - externalTarget - 1;
+      }
+
+      set(edgeTargets, edge, resolvedTarget);
       edge += 1;
     }
 

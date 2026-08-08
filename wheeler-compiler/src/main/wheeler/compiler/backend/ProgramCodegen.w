@@ -11,7 +11,6 @@ import wheeler.compiler.helper_signatures;
 import wheeler.compiler.helper_source_types;
 import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
-import wheeler.compiler.local_types;
 import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.resolved_local_returns;
@@ -35,7 +34,8 @@ classical class ProgramCodegen {
     long localBase,
     long[64] callStatements,
     long[64] callFunctions,
-    long callCount
+    long callCount,
+    long defaultCallFunction
   ) {
     long index = 0;
     long instructionBase = 0;
@@ -57,6 +57,10 @@ classical class ProgramCodegen {
 
       if (-1 < secondCallFunction) {
         callFunction = callFunction * MAX_SCALAR_HELPERS + secondCallFunction;
+      }
+
+      if (callFunction < 0) {
+        callFunction = defaultCallFunction;
       }
 
       long firstSourceType = TYPE_SIGNED;
@@ -334,7 +338,8 @@ classical class ProgramCodegen {
       helperLocalBase,
       helperAt(program, 0).callStatements,
       helperAt(program, 0).callFunctions,
-      helperAt(program, 0).callCount
+      helperAt(program, 0).callCount,
+      -1
     );
     if (HELPER_REVERSIBLE < helperAt(program, 0).kind) {
       return cursor;
@@ -435,7 +440,8 @@ classical class ProgramCodegen {
         0,
         emptyHelperCallIdentities(),
         emptyHelperCallIdentities(),
-        0
+        0,
+        -1
       );
     }
 
@@ -457,7 +463,8 @@ classical class ProgramCodegen {
           body.parameterCount,
           body.callStatements,
           body.callFunctions,
-          body.callCount
+          body.callCount,
+          -1
         );
         if (body.kind == HELPER_VOID) {
           cursor = writeInstructionHeader(
@@ -499,6 +506,7 @@ classical class ProgramCodegen {
         0,
         emptyHelperCallIdentities(),
         emptyHelperCallIdentities(),
+        0,
         0
       );
     }

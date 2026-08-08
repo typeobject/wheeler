@@ -563,7 +563,7 @@ class MinimalCompilerResultExampleTest {
 
   private static Program assertDifferentialHalt(Program writerProgram, String source) {
     VirtualMachine writer = writer(writerProgram, source);
-    runWriter(writer, writerProgram);
+    runWriter(writer, writerProgram, source);
     byte[] expected = new WheelerCompiler().compileToBytecode(source);
     assertEquals(expected.length, writer.hostOutput().length);
     assertArrayEquals(expected, writer.hostOutput());
@@ -576,14 +576,17 @@ class MinimalCompilerResultExampleTest {
 
   private static void assertDifferentialTrap(Program writerProgram, String source) {
     VirtualMachine writer = writer(writerProgram, source);
-    runWriter(writer, writerProgram);
+    runWriter(writer, writerProgram, source);
     assertArrayEquals(new WheelerCompiler().compileToBytecode(source), writer.hostOutput());
 
     VirtualMachine artifact = new VirtualMachine(new BytecodeReader().read(writer.hostOutput()));
     assertThrows(VmTrap.class, artifact::run);
   }
 
-  private static void runWriter(VirtualMachine writer, Program writerProgram) {
+  private static void runWriter(
+      VirtualMachine writer,
+      Program writerProgram,
+      String source) {
     try {
       CompilerMachineRunner.runWithoutRewindHistory(writer);
     } catch (VmTrap trap) {
@@ -591,10 +594,22 @@ class MinimalCompilerResultExampleTest {
           "Wheeler compiler trapped at instruction "
               + writer.snapshot().selectedFrames().getLast().programCounter()
               + " (" + writerProgramInstruction(writer, writerProgram) + ")"
+              + ", frames " + writerProgramFrames(writer, writerProgram)
               + ", output cursor " + writer.global("finalCursor")
-              + ", and verification " + writer.global("verification"),
+              + ", verification " + writer.global("verification")
+              + ", and source " + source,
           trap);
     }
+  }
+
+  private static String writerProgramFrames(
+      VirtualMachine writer,
+      Program writerProgram) {
+    return writer.snapshot().selectedFrames().stream()
+        .map(frame -> writerProgram.function(frame.functionId()).name()
+            + "@" + frame.programCounter())
+        .toList()
+        .toString();
   }
 
   private static String writerProgramInstruction(VirtualMachine writer, Program writerProgram) {

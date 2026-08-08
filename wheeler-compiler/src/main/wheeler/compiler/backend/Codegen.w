@@ -3,50 +3,24 @@
 module wheeler.compiler.codegen;
 
 import wheeler.compiler.assignment_call_codegen;
-import wheeler.compiler.backend_scalar_encoding;
 import wheeler.compiler.borrowed_intrinsic_codegen;
-import wheeler.compiler.conditionals;
 import wheeler.compiler.early_utf8_call_codegen;
-import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.encoding;
-import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.local_opcodes;
-import wheeler.compiler.loop_codegen;
-import wheeler.compiler.mutation_codegen;
-import wheeler.compiler.named_long_operations;
+import wheeler.compiler.local_statement_encoding;
 import wheeler.compiler.opcodes;
-import wheeler.compiler.owned_storage_codegen;
-import wheeler.compiler.owned_utf8_copy_codegen;
-import wheeler.compiler.owned_utf8_copy_loops;
-import wheeler.compiler.resolved_boolean_literal_assertions;
-import wheeler.compiler.resolved_boolean_literal_comparisons;
-import wheeler.compiler.resolved_less_than_assertions;
-import wheeler.compiler.resolved_literal_comparison_kinds;
-import wheeler.compiler.resolved_local_conditional_kinds;
-import wheeler.compiler.resolved_local_conditional_operands;
-import wheeler.compiler.resolved_local_conditional_sources;
-import wheeler.compiler.resolved_local_copy_kinds;
-import wheeler.compiler.resolved_local_equality_kinds;
-import wheeler.compiler.resolved_local_inequality_kinds;
-import wheeler.compiler.resolved_local_less_than_kinds;
-import wheeler.compiler.resolved_local_literal_comparison_sources;
-import wheeler.compiler.resolved_local_literal_comparisons;
-import wheeler.compiler.resolved_local_loop_kinds;
-import wheeler.compiler.resolved_local_pair_assertions;
-import wheeler.compiler.resolved_long_operations;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.return_codegen;
 import wheeler.compiler.scalar_value_call_codegen;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
+import wheeler.compiler.structured_statement_encoding;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_codegen;
 
 classical class Codegen {
-  /// Aliases named instruction forms for compact emitter calls.
-  private const long FORM_UNARY = INSTRUCTION_FORM_UNARY;
+  /// Aliases the binary instruction form for global update emission.
   private const long FORM_BINARY = INSTRUCTION_FORM_BINARY;
-  private const long FORM_TERNARY = INSTRUCTION_FORM_TERNARY;
   /// Aliases the named instruction operand width for compact emitter calls.
   private const long U64 = INSTRUCTION_OPERAND_WIDTH;
 
@@ -69,23 +43,6 @@ classical class Codegen {
     }
 
     return OPCODE_XOR_CONST;
-  }
-
-  /// Maps a prior-local global update to its typed local operation.
-  public long localGlobalUpdateOpcode(long opcode) {
-    if (opcode == STATEMENT_UPDATE_ADD_LOCAL_NAMED) {
-      return OPCODE_LOCAL_ADD;
-    }
-
-    if (opcode == STATEMENT_UPDATE_SUB_LOCAL_NAMED) {
-      return OPCODE_LOCAL_SUB;
-    }
-
-    if (opcode == STATEMENT_UPDATE_XOR_LOCAL_NAMED) {
-      return OPCODE_LOCAL_XOR;
-    }
-
-    return opcode;
   }
 
   /// Maps a forward global opcode to its exact inverse opcode.
@@ -275,47 +232,6 @@ classical class Codegen {
     long instructionBase,
     long callFunction
   ) {
-    if (ownedUtf8CopyLoop(opcode)) {
-      return writeOwnedUtf8CopyLoop(
-        output,
-        cursor,
-        opcode,
-        operand,
-        secondaryOperand,
-        localBase,
-        instructionBase
-      );
-    }
-
-    if (resolvedLocalWhile(opcode)) {
-      return writeLocalWhile(
-        output,
-        cursor,
-        opcode,
-        operand,
-        secondaryOperand,
-        localBase,
-        instructionBase
-      );
-    }
-
-    long storageCursor = writeOwnedStorageStatement(
-      output,
-      cursor,
-      opcode,
-      operand,
-      secondaryOperand,
-      localBase
-    );
-    if (-1 < storageCursor) {
-      return storageCursor;
-    }
-
-    long mutationCursor = writeMutationStatement(output, cursor, opcode, operand, localBase);
-    if (-1 < mutationCursor) {
-      return mutationCursor;
-    }
-
     long valueCallCursor = writeSignedScalarValueCallStatement(
       output,
       cursor,
@@ -350,506 +266,30 @@ classical class Codegen {
       return returnCursor;
     }
 
-    if (opcode == STATEMENT_ASSERT_LITERAL_EQ) {
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeSignedLittleEndian(output, cursor, operand, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeSignedLittleEndian(output, cursor, secondaryOperand, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_EQ, FORM_TERNARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_EXPECT_TRUE, FORM_UNARY);
-      return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
-    }
-
-    if (opcode == STATEMENT_ASSERT_GLOBAL_CONSTANT) {
-      return writeGlobalLiteralAssertion(output, cursor, operand, localBase);
-    }
-
-    if (resolvedBooleanLiteralAssertion(opcode)) {
-      return writeLocalLiteralAssertion(
-        output,
-        cursor,
-        resolvedBooleanLiteralAssertionSource(opcode),
-        operand,
-        localBase,
-        OPCODE_LOCAL_EQ
-      );
-    }
-
-    if (resolvedLocalPairAssertion(opcode)) {
-      return writeLocalPairAssertion(
-        output,
-        cursor,
-        resolvedLocalPairAssertionSource(opcode),
-        operand,
-        localBase,
-        OPCODE_LOCAL_EQ
-      );
-    }
-
-    if (resolvedLocalLessThanAssertion(opcode)) {
-      return writeLocalPairAssertion(
-        output,
-        cursor,
-        opcode - STATEMENT_ASSERT_LONG_LT_BASE,
-        operand,
-        localBase,
-        OPCODE_LOCAL_LT
-      );
-    }
-
-    if (resolvedLiteralLessThanAssertion(opcode)) {
-      return writeLocalLiteralAssertion(
-        output,
-        cursor,
-        resolvedLiteralLessThanAssertionSource(opcode),
-        operand,
-        localBase,
-        OPCODE_LOCAL_LT
-      );
-    }
-
-    if (resolvedLiteralComparisonConditional(opcode)) {
-      long comparisonUpdateOpcode = OPCODE_LOCAL_ADD;
-      if (literalComparisonConditionalSubtract(opcode)) {
-        comparisonUpdateOpcode = OPCODE_LOCAL_SUB;
-      }
-
-      if (literalComparisonConditionalXor(opcode)) {
-        comparisonUpdateOpcode = OPCODE_LOCAL_XOR;
-      }
-
-      long guardComparisonOpcode = OPCODE_LOCAL_EQ;
-      if (literalComparisonConditionalLessThan(opcode)) {
-        guardComparisonOpcode = OPCODE_LOCAL_LT;
-      }
-
-      boolean comparisonAssignment = literalComparisonConditionalAssignment(opcode);
-      long comparisonEndInstruction = instructionBase + 9;
-      if (comparisonAssignment) {
-        comparisonEndInstruction = instructionBase + 7;
-      }
-
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(
-        output,
-        cursor,
-        resolvedLiteralComparisonConditionalSource(opcode),
-        U64
-      );
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeSignedLittleEndian(output, cursor, secondaryOperand, U64);
-      cursor = writeInstructionHeader(output, cursor, guardComparisonOpcode, FORM_TERNARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_JUMP_IF_ZERO, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, comparisonEndInstruction, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
-      cursor = writeSignedLittleEndian(output, cursor, operand, U64);
-      if (comparisonAssignment) {
-        cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_STORE_GLOBAL, FORM_BINARY);
-        cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, U64);
-        cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
-        cursor = writeInstructionHeader(output, cursor, OPCODE_JUMP, FORM_UNARY);
-        return writeUnsignedLittleEndian(output, cursor, comparisonEndInstruction, U64);
-      }
-
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_LOAD_GLOBAL, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 4, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, U64);
-      cursor = writeInstructionHeader(output, cursor, comparisonUpdateOpcode, FORM_TERNARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 4, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 4, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_STORE_GLOBAL, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 4, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_JUMP, FORM_UNARY);
-      return writeUnsignedLittleEndian(output, cursor, comparisonEndInstruction, U64);
-    }
-
-    if (resolvedLocalConditional(opcode)) {
-      long conditionLocal = resolvedLocalConditionalSource(opcode);
-      long conditionalOpcode = OPCODE_LOCAL_ADD;
-      if (resolvedLocalConditionalSubtract(opcode)) {
-        conditionalOpcode = OPCODE_LOCAL_SUB;
-      }
-
-      if (resolvedLocalConditionalXor(opcode)) {
-        conditionalOpcode = OPCODE_LOCAL_XOR;
-      }
-
-      boolean assignment = resolvedLocalConditionalAssignment(opcode);
-      long guardLocal = localBase;
-      long valueLocal = localBase + 1;
-      long globalLocal = localBase + 2;
-      long endInstruction = instructionBase + 7;
-      if (assignment) {
-        endInstruction = instructionBase + 5;
-      }
-
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, guardLocal, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, conditionLocal, U64);
-      if (resolvedLocalConditionalNegated(opcode)) {
-        cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
-        cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-        cursor = writeSignedLittleEndian(output, cursor, /* value= */ 1, U64);
-        cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_XOR, FORM_TERNARY);
-        cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
-        cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-        cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-        guardLocal = localBase + 2;
-        valueLocal = localBase + 3;
-        globalLocal = localBase + 4;
-        endInstruction = instructionBase + 9;
-        if (assignment) {
-          endInstruction = instructionBase + 7;
-        }
-      }
-
-      cursor = writeInstructionHeader(output, cursor, OPCODE_JUMP_IF_ZERO, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, guardLocal, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, endInstruction, U64);
-      long valueOpcode = OPCODE_LOCAL_CONST;
-      if (resolvedLocalConditionalValue(opcode)) {
-        valueOpcode = OPCODE_LOCAL_MOVE;
-      }
-
-      cursor = writeInstructionHeader(output, cursor, valueOpcode, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, valueLocal, U64);
-      cursor = writeSignedLittleEndian(output, cursor, operand, U64);
-      if (assignment) {
-        cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_STORE_GLOBAL, FORM_BINARY);
-        cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, U64);
-        cursor = writeUnsignedLittleEndian(output, cursor, valueLocal, U64);
-        cursor = writeInstructionHeader(output, cursor, OPCODE_JUMP, FORM_UNARY);
-        return writeUnsignedLittleEndian(output, cursor, endInstruction, U64);
-      }
-
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_LOAD_GLOBAL, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, globalLocal, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, U64);
-      cursor = writeInstructionHeader(output, cursor, conditionalOpcode, FORM_TERNARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, globalLocal, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, globalLocal, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, valueLocal, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_STORE_GLOBAL, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, globalLocal, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_JUMP, FORM_UNARY);
-      return writeUnsignedLittleEndian(output, cursor, endInstruction, U64);
-    }
-
-    if (opcode == STATEMENT_ASSERT_EQ) {
-      cursor = writeInstructionHeader(output, cursor, OPCODE_EXPECT_EQ, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, U64);
-      return writeSignedLittleEndian(output, cursor, operand, U64);
-    }
-
-    if (opcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_EXPECT_TRUE, FORM_UNARY);
-      return writeUnsignedLittleEndian(output, cursor, localBase, U64);
-    }
-
-    if (resolvedLocalLiteralComparison(opcode)) {
-      long literalComparisonOpcode = OPCODE_LOCAL_LT;
-      if (resolvedLocalLiteralEquality(opcode)) {
-        literalComparisonOpcode = OPCODE_LOCAL_EQ;
-      }
-
-      if (resolvedLocalLiteralInequality(opcode)) {
-        literalComparisonOpcode = OPCODE_LOCAL_EQ;
-      }
-
-      return writeLocalComparison(
-        output,
-        cursor,
-        resolvedLocalLiteralComparisonSource(opcode),
-        operand,
-        localBase,
-        OPCODE_LOCAL_CONST,
-        literalComparisonOpcode,
-        /* negated= */ resolvedLocalLiteralInequality(opcode)
-      );
-    }
-
-    if (resolvedBooleanLiteralComparison(opcode)) {
-      return writeLocalComparison(
-        output,
-        cursor,
-        resolvedBooleanLiteralComparisonSource(opcode),
-        operand,
-        localBase,
-        OPCODE_LOCAL_CONST,
-        OPCODE_LOCAL_EQ,
-        /* negated= */ resolvedBooleanLiteralInequality(opcode)
-      );
-    }
-
-    if (resolvedLocalEquality(opcode)) {
-      return writeLocalComparison(
-        output,
-        cursor,
-        resolvedLocalEqualitySource(opcode),
-        operand,
-        localBase,
-        OPCODE_LOCAL_MOVE,
-        OPCODE_LOCAL_EQ,
-        /* negated= */ false
-      );
-    }
-
-    if (resolvedLocalInequality(opcode)) {
-      return writeLocalComparison(
-        output,
-        cursor,
-        resolvedLocalInequalitySource(opcode),
-        operand,
-        localBase,
-        OPCODE_LOCAL_MOVE,
-        OPCODE_LOCAL_EQ,
-        /* negated= */ true
-      );
-    }
-
-    if (resolvedLocalLongLessThan(opcode)) {
-      return writeLocalComparison(
-        output,
-        cursor,
-        opcode - STATEMENT_LOCAL_LONG_LT_BASE,
-        operand,
-        localBase,
-        OPCODE_LOCAL_MOVE,
-        OPCODE_LOCAL_LT,
-        /* negated= */ false
-      );
-    }
-
-    if (resolvedLocalBooleanCopy(opcode)) {
-      long booleanSourceLocal = opcode - STATEMENT_LOCAL_BOOLEAN_COPY_BASE;
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, booleanSourceLocal, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      return writeUnsignedLittleEndian(output, cursor, localBase, U64);
-    }
-
-    if (resolvedLocalBooleanNot(opcode)) {
-      long negatedSourceLocal = opcode - STATEMENT_LOCAL_BOOLEAN_NOT_BASE;
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, negatedSourceLocal, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeSignedLittleEndian(output, cursor, /* value= */ 1, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_XOR, FORM_TERNARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
-      return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
-    }
-
-    if (resolvedLocalLongPair(opcode)) {
-      long pairSourceLocal = resolvedLocalLongPairSource(opcode);
-      long pairOpcode = OPCODE_LOCAL_ADD;
-      if (STATEMENT_LOCAL_LONG_SUB_LOCALS_BASE - 1 < opcode) {
-        pairOpcode = OPCODE_LOCAL_SUB;
-      }
-
-      if (STATEMENT_LOCAL_LONG_XOR_LOCALS_BASE - 1 < opcode) {
-        pairOpcode = OPCODE_LOCAL_XOR;
-      }
-
-      if (STATEMENT_LOCAL_LONG_MUL_LOCALS_BASE - 1 < opcode) {
-        pairOpcode = OPCODE_LOCAL_MUL;
-      }
-
-      if (STATEMENT_LOCAL_LONG_DIV_LOCALS_BASE - 1 < opcode) {
-        pairOpcode = OPCODE_LOCAL_DIV;
-      }
-
-      if (STATEMENT_LOCAL_LONG_MOD_LOCALS_BASE - 1 < opcode) {
-        pairOpcode = OPCODE_LOCAL_MOD;
-      }
-
-      if (STATEMENT_LOCAL_LONG_AND_LOCALS_BASE - 1 < opcode) {
-        pairOpcode = OPCODE_LOCAL_AND;
-      }
-
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, pairSourceLocal, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
-      cursor = writeInstructionHeader(output, cursor, pairOpcode, FORM_TERNARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
-      return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
-    }
-
-    if (resolvedLocalLongBinary(opcode)) {
-      long binarySourceLocal = resolvedLocalLongBinarySource(opcode);
-      long binaryOpcode = OPCODE_LOCAL_ADD;
-      if (STATEMENT_LOCAL_LONG_SUB_BASE - 1 < opcode) {
-        binaryOpcode = OPCODE_LOCAL_SUB;
-      }
-
-      if (STATEMENT_LOCAL_LONG_XOR_BASE - 1 < opcode) {
-        binaryOpcode = OPCODE_LOCAL_XOR;
-      }
-
-      if (STATEMENT_LOCAL_LONG_MUL_BASE - 1 < opcode) {
-        binaryOpcode = OPCODE_LOCAL_MUL;
-      }
-
-      if (STATEMENT_LOCAL_LONG_DIV_BASE - 1 < opcode) {
-        binaryOpcode = OPCODE_LOCAL_DIV;
-      }
-
-      if (STATEMENT_LOCAL_LONG_MOD_BASE - 1 < opcode) {
-        binaryOpcode = OPCODE_LOCAL_MOD;
-      }
-
-      if (STATEMENT_LOCAL_LONG_AND_BASE - 1 < opcode) {
-        binaryOpcode = OPCODE_LOCAL_AND;
-      }
-
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, binarySourceLocal, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeSignedLittleEndian(output, cursor, operand, U64);
-      cursor = writeInstructionHeader(output, cursor, binaryOpcode, FORM_TERNARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
-      return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
-    }
-
-    if (resolvedLocalLongCopy(opcode)) {
-      long sourceLocal = opcode - STATEMENT_LOCAL_LONG_COPY_BASE;
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, sourceLocal, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      return writeUnsignedLittleEndian(output, cursor, localBase, U64);
-    }
-
-    if (resolvedLocalLongAssertion(opcode)) {
-      return writeLocalLiteralAssertion(
-        output,
-        cursor,
-        opcode - STATEMENT_ASSERT_LOCAL_LONG_BASE,
-        operand,
-        localBase,
-        OPCODE_LOCAL_EQ
-      );
-    }
-
-    if (opcode == STATEMENT_ASSIGN_LOCAL_NAMED) {
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_STORE_GLOBAL, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, U64);
-      return writeUnsignedLittleEndian(output, cursor, localBase, U64);
-    }
-
-    long operandOpcode = OPCODE_LOCAL_CONST;
-    if (namedGlobalUpdate(opcode)) {
-      operandOpcode = OPCODE_LOCAL_MOVE;
-    }
-
-    cursor = writeInstructionHeader(output, cursor, operandOpcode, FORM_BINARY);
-    cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-    cursor = writeSignedLittleEndian(output, cursor, operand, U64);
-    if (opcode == STATEMENT_ASSERT_BOOLEAN) {
-      cursor = writeInstructionHeader(output, cursor, OPCODE_EXPECT_TRUE, FORM_UNARY);
-      return writeUnsignedLittleEndian(output, cursor, localBase, U64);
-    }
-
-    if (opcode == STATEMENT_ASSERT_BOOLEAN_NOT) {
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 1, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_XOR, FORM_TERNARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_EXPECT_TRUE, FORM_UNARY);
-      return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
-    }
-
-    if (opcode == STATEMENT_LOCAL_LONG) {
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      return writeUnsignedLittleEndian(output, cursor, localBase, U64);
-    }
-
-    if (opcode == STATEMENT_LOCAL_BOOLEAN) {
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      return writeUnsignedLittleEndian(output, cursor, localBase, U64);
-    }
-
-    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT) {
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 1, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_XOR, FORM_TERNARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
-      return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
-    }
-
-    if (opcode == STATEMENT_ASSIGN) {
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_STORE_GLOBAL, FORM_BINARY);
-      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, U64);
-      return writeUnsignedLittleEndian(output, cursor, localBase, U64);
-    }
-
-    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_LOAD_GLOBAL, FORM_BINARY);
-    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, U64);
-    cursor = writeInstructionHeader(
+    long structuredCursor = writeStructuredStatement(
       output,
       cursor,
-      localGlobalUpdateOpcode(opcode),
-      FORM_TERNARY
+      opcode,
+      operand,
+      secondaryOperand,
+      localBase,
+      instructionBase,
+      callFunction
     );
-    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-    cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_STORE_GLOBAL, FORM_BINARY);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, U64);
-    return writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+    if (-1 < structuredCursor) {
+      return structuredCursor;
+    }
+
+    return writeRemainingStatement(
+      output,
+      cursor,
+      opcode,
+      operand,
+      secondaryOperand,
+      localBase,
+      instructionBase,
+      callFunction
+    );
   }
 
 }

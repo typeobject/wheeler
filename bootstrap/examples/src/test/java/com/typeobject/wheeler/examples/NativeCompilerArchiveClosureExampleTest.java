@@ -3,6 +3,7 @@ package com.typeobject.wheeler.examples;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
@@ -14,8 +15,10 @@ import com.typeobject.wheeler.packageformat.PackageManifestParser;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -39,6 +42,9 @@ final class NativeCompilerArchiveClosureExampleTest {
         manifest.modules().stream().mapToLong(module -> module.imports().size()).sum(),
         machine.global("importCount"));
     assertEquals(readU32(archive, 12), machine.global("archiveEntryCount"));
+    assertEquals(manifest.modules().size() - 1, machine.global("rootOrder"));
+    assertEquals(1, machine.global("rootExecutable"));
+    assertTrue(machine.global("executableCount") > 0);
     int rootEntry = Math.toIntExact(machine.global("rootEntry"));
     EntryRange rootRange = entryRange(archive, rootEntry);
     assertEquals("src/main/wheeler/MinimalCompiler.w", rootRange.path());
@@ -84,18 +90,87 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(0, rejected.global("published"));
   }
 
+  @Test
+  void plansAndClassifiesAChainOfTwoHundredFiftySevenModules() throws Exception {
+    ChainFixture fixture = chainFixture(257);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        program(),
+        framed(fixture.archive(), fixture.manifest().canonicalBytes()),
+        1);
+
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+
+    assertArrayEquals(new byte[] {1}, machine.hostOutput());
+    assertEquals(257, machine.global("moduleCount"));
+    assertEquals(256, machine.global("importCount"));
+    assertEquals(256, machine.global("rootOrder"));
+    assertEquals(0, machine.global("rootExecutable"));
+    assertEquals(0, machine.global("executableCount"));
+  }
+
+  @Test
+  void classifiesEveryPhysicalCompilerSourceWithinTheNativeWindow() throws Exception {
+    Program classifier = classifierProgram();
+    for (BootstrapModuleManifest.Module module
+        : CompilerSources.bootstrapModuleManifest().modules()) {
+      String logicalPath = module.source().substring("src/main/wheeler/".length());
+      byte[] source = CompilerSources.read(logicalPath).getBytes(StandardCharsets.UTF_8);
+      VirtualMachine machine = VirtualMachine.withBinaryInput(classifier, source, 2);
+      CompilerMachineRunner.runWithoutRewindHistory(machine);
+      assertEquals(1, machine.hostOutput()[0], module.name());
+    }
+  }
+
+  private static Program classifierProgram() throws Exception {
+    Map<String, String> sources = new LinkedHashMap<>();
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.graphs.executable_owner_kinds"));
+    sources.put("ClosureClassifierExample.w", """
+        module example.closure_classifier;
+
+        import wheeler.compiler.graphs.executable_owner_kinds;
+
+        classical class ClosureClassifierExample {
+          entry void main(borrow byteview input, borrow mut bytes output) {
+            region arena = new region(/* bytes= */ 32768, /* allocations= */ 1);
+            bytes sourceBytes = allocateBytes(arena, bufferLength(input));
+            long cursor = 0;
+            while (cursor < bufferLength(input)) limit 32768 {
+              setByte(sourceBytes, cursor, input[cursor]);
+              cursor += 1;
+            }
+            utf8 source = freezeUtf8(sourceBytes);
+            ExecutableOwnerKind kind = classifyExecutableOwner(source);
+            if (kind.valid) {
+              setByte(output, 0, 1);
+            }
+            if (kind.executable) {
+              setByte(output, 1, 1);
+            }
+            drop(source);
+            drop(arena);
+          }
+        }
+        """);
+    return new WheelerCompiler().compileModuleFiles(
+        sources,
+        "example.closure_classifier");
+  }
+
   private static Program program() throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.archive_module_sources"));
+    sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.plan"));
     sources.put("ArchiveClosureExample.w", """
         module example.archive_closure;
 
         import wheeler.compiler.closure.archive_module_sources;
         import wheeler.compiler.closure.archive_sources;
         import wheeler.compiler.closure.module_manifest;
+        import wheeler.compiler.closure.plan;
 
         classical class ArchiveClosureExample {
           private const long MAX_ARCHIVE_BYTES = 16777216;
@@ -110,6 +185,9 @@ final class NativeCompilerArchiveClosureExampleTest {
           state long rootEntry = 0;
           state long rootDataStart = 0;
           state long rootDataLength = 0;
+          state long rootOrder = 0;
+          state long rootExecutable = 0;
+          state long executableCount = 0;
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
@@ -136,7 +214,7 @@ final class NativeCompilerArchiveClosureExampleTest {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 150000, /* allocations= */ 17);
+            region columns = new region(/* bytes= */ 205000, /* allocations= */ 24);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -153,6 +231,13 @@ final class NativeCompilerArchiveClosureExampleTest {
             words edgeLengths = allocate(columns, MAX_IMPORTS);
             words edgeTargets = allocate(columns, MAX_IMPORTS);
             words moduleEntries = allocate(columns, MAX_MODULES);
+            words archiveSourceStarts = allocate(columns, MAX_MODULES);
+            words archiveSourceLengths = allocate(columns, MAX_MODULES);
+            words firstImports = allocate(columns, MAX_MODULES);
+            words directImportCounts = allocate(columns, MAX_MODULES);
+            words importRanks = allocate(columns, MAX_IMPORTS);
+            words leafFirstOrder = allocate(columns, MAX_MODULES);
+            words executableOwners = allocate(columns, MAX_MODULES);
             bytes expected = allocateBytes(columns, /* length= */ 256);
             ArchiveSourceIndexResult indexed = indexArchiveSources(
               archive,
@@ -192,13 +277,54 @@ final class NativeCompilerArchiveClosureExampleTest {
                   identityStarts,
                   moduleEntries
                 );
+                CountedClosurePlan closure = planClosureStructure(
+                  archive,
+                  manifest,
+                  manifestPlan,
+                  edgeOwners,
+                  edgeTargets,
+                  moduleEntries,
+                  archiveDataStarts,
+                  archiveDataLengths,
+                  archiveSourceStarts,
+                  archiveSourceLengths,
+                  firstImports,
+                  directImportCounts,
+                  importRanks,
+                  leafFirstOrder
+                );
+                classifyClosureExecutableOwners(
+                  archive,
+                  manifest,
+                  closure,
+                  moduleStarts,
+                  moduleLengths,
+                  archiveSourceStarts,
+                  archiveSourceLengths,
+                  executableOwners
+                );
                 long selectedRootEntry = moduleEntries[plan.rootModule];
+                long executableModule = 0;
+                long parsedExecutables = 0;
+                while (executableModule < closure.moduleCount) limit MAX_MODULES {
+                  parsedExecutables += executableOwners[executableModule];
+                  executableModule += 1;
+                }
+                long selectedRootOrder = 0;
+                while (
+                  leafFirstOrder[selectedRootOrder] != closure.rootModule
+                ) limit MAX_MODULES {
+                  selectedRootOrder += 1;
+                }
                 moduleCount = plan.moduleCount;
                 importCount = manifestPlan.importCount;
                 archiveEntryCount = plan.archiveEntryCount;
                 rootEntry = selectedRootEntry;
                 rootDataStart = archiveDataStarts[selectedRootEntry];
                 rootDataLength = archiveDataLengths[selectedRootEntry];
+                rootOrder = selectedRootOrder;
+                rootExecutable = executableOwners[closure.rootModule];
+                executableCount = parsedExecutables;
                 published = 1;
                 setByte(output, 0, 1);
               }
@@ -207,6 +333,13 @@ final class NativeCompilerArchiveClosureExampleTest {
               }
             }
             drop(expected);
+            drop(executableOwners);
+            drop(leafFirstOrder);
+            drop(importRanks);
+            drop(directImportCounts);
+            drop(firstImports);
+            drop(archiveSourceLengths);
+            drop(archiveSourceStarts);
             drop(moduleEntries);
             drop(edgeTargets);
             drop(edgeLengths);
@@ -260,6 +393,50 @@ final class NativeCompilerArchiveClosureExampleTest {
     throw new IllegalArgumentException("No archive entry " + selected);
   }
 
+  private static ChainFixture chainFixture(int count) throws Exception {
+    var modules = new ArrayList<BootstrapModuleManifest.Module>();
+    Map<String, byte[]> sources = new LinkedHashMap<>();
+    MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+    for (int index = 0; index < count; index++) {
+      String name = "chain.n%03d".formatted(index);
+      String path = "src/chain/n%03d.w".formatted(index);
+      String imported = index == 0 ? "" : "\nimport chain.n%03d;".formatted(index - 1);
+      byte[] source = ("module " + name + ";" + imported
+          + "\n\nclassical class Node%03d {\n".formatted(index)
+          + "  public const long VALUE = %d;\n}\n".formatted(index))
+          .getBytes(StandardCharsets.UTF_8);
+      sources.put(path, source);
+      modules.add(new BootstrapModuleManifest.Module(
+          name,
+          path,
+          HexFormat.of().formatHex(sha256.digest(source)),
+          index == 0 ? List.of() : List.of("chain.n%03d".formatted(index - 1))));
+    }
+
+    BootstrapModuleManifest manifest = new BootstrapModuleManifest(
+        "bootstrap-1",
+        "chain.n%03d".formatted(count - 1),
+        List.of(),
+        modules);
+    byte[] archive = new PackageArchive().encode(
+        new PackageManifestParser().parse("""
+            schema: 1
+            package:
+              name: "demo.chain"
+              version: "1.0.0"
+              profile: "bootstrap-1"
+            targets:
+              - kind: "library"
+                name: "library"
+                root: "src/chain/n256.w"
+                test: false
+            dependencies: []
+            capabilities: []
+            """),
+        sources);
+    return new ChainFixture(archive, manifest);
+  }
+
   private static byte[] smallManifest(byte[] source) throws Exception {
     String identity = HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(source));
@@ -302,6 +479,8 @@ final class NativeCompilerArchiveClosureExampleTest {
     output.write(value >>> 16 & 0xff);
     output.write(value >>> 24 & 0xff);
   }
+
+  private record ChainFixture(byte[] archive, BootstrapModuleManifest manifest) {}
 
   private record EntryRange(String path, int dataStart, int dataLength) {}
 }
