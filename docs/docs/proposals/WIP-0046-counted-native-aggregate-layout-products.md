@@ -126,7 +126,8 @@ No `wheeler.bootstrap.yaml` may be added before that evidence exists.
 - [x] Malformed container magic traps before publication.
 - [ ] Every malformed directory and table boundary has atomic rejection evidence.
 - [x] `AggregateIdentities.w` binds package, module, artifact, counts, and validated rows under `wheeler-aggregate-module-product-1`. An independent Java digest matches the native result, and an invalid row publishes no bytes.
-- [ ] Closure-wide aggregate identities bind header-ranked dependency aggregate identities.
+- [x] Aggregate module identities bind an ordered list of up to 64 direct dependency identities before layout counts and rows. The caller must supply header-rank order.
+- [ ] The physical closure publisher rejects missing local or locked external dependency aggregate identities before calling the identity owner.
 - [x] `CountedAggregateLayouts.w` appends one validated artifact at a time into 4,096 aggregate, 8,192 case, and 16,384 member rows. It rejects duplicate module owners and rebases case and member windows without source.
 - [ ] Recursive and mutually recursive nominal layouts resolve or fail closed.
 - [x] `AggregateLoanVerifier.w` checks bounded move, shared-loan, mutable-loan, and release events against aggregate member ownership. It rejects unbalanced or escaping loans and publishes final owners only after the complete stream.

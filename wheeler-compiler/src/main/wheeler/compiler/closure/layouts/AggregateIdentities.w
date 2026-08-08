@@ -7,10 +7,12 @@ import wheeler.crypto.sha256;
 classical class AggregateIdentities {
   private const long AGGREGATE_ROWS = 576;
   private const long CASE_ROWS = 512;
+  private const long DEPENDENCY_IDENTITY_BYTES = 2048;
   private const long IDENTITY_BYTES = 32;
-  private const long IDENTITY_ARENA_BYTES = 18032;
-  private const long IDENTITY_INPUT_BYTES = 18000;
+  private const long IDENTITY_ARENA_BYTES = 20032;
+  private const long IDENTITY_INPUT_BYTES = 20000;
   private const long MAX_AGGREGATES_PER_MODULE = 64;
+  private const long MAX_DIRECT_DEPENDENCIES = 64;
   private const long MAX_CASES_PER_MODULE = 128;
   private const long MAX_MEMBERS_PER_MODULE = 256;
   private const long MEMBER_ROWS = 1024;
@@ -72,6 +74,8 @@ classical class AggregateIdentities {
     long artifactLength,
     borrow byteview packageIdentity,
     borrow byteview moduleIdentity,
+    long dependencyCount,
+    borrow byteview dependencyIdentities,
     long owner,
     long aggregateCount,
     long caseCount,
@@ -85,6 +89,9 @@ classical class AggregateIdentities {
     assert(artifactLength < bufferLength(artifact) + 1);
     assert(bufferLength(packageIdentity) == IDENTITY_BYTES);
     assert(bufferLength(moduleIdentity) == IDENTITY_BYTES);
+    assert(-1 < dependencyCount);
+    assert(dependencyCount < MAX_DIRECT_DEPENDENCIES + 1);
+    assert(bufferLength(dependencyIdentities) == DEPENDENCY_IDENTITY_BYTES);
     assert(bufferLength(aggregateRows) == AGGREGATE_ROWS);
     assert(bufferLength(caseRows) == CASE_ROWS);
     assert(bufferLength(memberRows) == MEMBER_ROWS);
@@ -108,6 +115,14 @@ classical class AggregateIdentities {
     cursor = copyIdentity(packageIdentity, input, cursor);
     cursor = copyIdentity(moduleIdentity, input, cursor);
     cursor = copyIdentity(artifactIdentity, input, cursor);
+    cursor = writeSigned(dependencyCount, input, cursor);
+    long dependencyByte = 0;
+    while (dependencyByte < dependencyCount * IDENTITY_BYTES) limit DEPENDENCY_IDENTITY_BYTES {
+      setByte(input, cursor + dependencyByte, dependencyIdentities[dependencyByte]);
+      dependencyByte += 1;
+    }
+
+    cursor += dependencyCount * IDENTITY_BYTES;
     cursor = writeSigned(aggregateCount, input, cursor);
     cursor = writeSigned(caseCount, input, cursor);
     cursor = writeSigned(memberCount, input, cursor);

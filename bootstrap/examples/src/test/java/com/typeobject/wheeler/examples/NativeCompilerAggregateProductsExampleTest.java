@@ -127,17 +127,19 @@ final class NativeCompilerAggregateProductsExampleTest {
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 16992, /* allocations= */ 6);
+            region rows = new region(/* bytes= */ 19040, /* allocations= */ 7);
             words aggregates = allocate(rows, /* length= */ 576);
             words cases = allocate(rows, /* length= */ 512);
             words members = allocate(rows, /* length= */ 1024);
             bytes packageIdentity = allocateBytes(rows, /* length= */ 32);
             bytes moduleIdentity = allocateBytes(rows, /* length= */ 32);
             bytes aggregateIdentity = allocateBytes(rows, /* length= */ 32);
+            bytes dependencyIdentities = allocateBytes(rows, /* length= */ 2048);
             long identityByte = 0;
             while (identityByte < 32) limit 32 {
               setByte(packageIdentity, identityByte, 1);
               setByte(moduleIdentity, identityByte, 2);
+              setByte(dependencyIdentities, identityByte, 3);
               identityByte += 1;
             }
             CompiledAggregatePlan plan = indexCompiledAggregateLayouts(
@@ -154,6 +156,8 @@ final class NativeCompilerAggregateProductsExampleTest {
               bufferLength(source),
               packageIdentity,
               moduleIdentity,
+              /* dependencyCount= */ 1,
+              dependencyIdentities,
               /* owner= */ 1,
               plan.aggregateCount,
               plan.caseCount,
@@ -253,6 +257,7 @@ final class NativeCompilerAggregateProductsExampleTest {
             drop(closureAggregates);
             drop(processed);
             drop(closureRows);
+            drop(dependencyIdentities);
             drop(aggregateIdentity);
             drop(moduleIdentity);
             drop(packageIdentity);
@@ -345,6 +350,10 @@ final class NativeCompilerAggregateProductsExampleTest {
     java.util.Arrays.fill(moduleIdentity, (byte) 2);
     input.writeBytes(moduleIdentity);
     input.writeBytes(MessageDigest.getInstance("SHA-256").digest(artifact));
+    writeLong(input, 1);
+    byte[] dependencyIdentity = new byte[32];
+    java.util.Arrays.fill(dependencyIdentity, (byte) 3);
+    input.writeBytes(dependencyIdentity);
     writeLong(input, aggregates.size());
     writeLong(input, cases.size());
     writeLong(input, members.size());
