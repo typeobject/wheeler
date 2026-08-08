@@ -79,6 +79,7 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
         "wheeler.compiler.closure.linked_manifest_section"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.linked_string_section"));
+    sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.verifier"));
     sources.put("ProductLinkedArtifactExample.w", """
         module example.product_linked_artifact;
 
@@ -95,6 +96,7 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
         import wheeler.compiler.closure.linked_local_types;
         import wheeler.compiler.closure.linked_manifest_section;
         import wheeler.compiler.closure.linked_string_section;
+        import wheeler.compiler.verifier;
 
         classical class ProductLinkedArtifactExample {
           state long published = 0;
@@ -358,6 +360,7 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
               sectionLengths,
               output
             );
+            assert(verifyArtifact(output, artifactBytes) == 1);
             published = 1;
             setOutputLength(output, artifactBytes);
 
