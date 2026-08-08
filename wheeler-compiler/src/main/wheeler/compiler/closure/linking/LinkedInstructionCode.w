@@ -113,8 +113,8 @@ classical class LinkedInstructionCode {
     assert(relocation == relocationCount);
   }
 
-  /// Emits one linked code-section product after validating all artifact ranges.
-  public long emitLinkedInstructionCode(
+  /// Emits one linked code-section product at a caller-selected section offset.
+  public long emitLinkedInstructionCodeAt(
     borrow byteview archive,
     long archiveBytes,
     borrow mut words artifactStarts,
@@ -125,8 +125,10 @@ classical class LinkedInstructionCode {
     borrow mut words moduleFunctionCounts,
     borrow mut words closureFunctionRows,
     borrow mut words closureInstructionRows,
-    borrow mut bytes output
+    borrow mut bytes output,
+    long outputStart
   ) {
+    assert(-1 < outputStart);
     assert(-1 < archiveBytes);
     assert(archiveBytes < MAX_ARTIFACT_BYTES + 1);
     assert(archiveBytes < bufferLength(archive) + 1);
@@ -140,7 +142,7 @@ classical class LinkedInstructionCode {
     assert(bufferLength(moduleFunctionCounts) == MAX_MODULES);
     assert(bufferLength(closureFunctionRows) == CLOSURE_FUNCTION_ROWS);
     assert(bufferLength(closureInstructionRows) == CLOSURE_INSTRUCTION_ROWS);
-    assert(bufferLength(output) == MAX_LINKED_CODE_BYTES);
+    assert(outputStart < bufferLength(output) + 1);
 
     long outputBytes = 0;
     long previousFunction = -1;
@@ -165,7 +167,8 @@ classical class LinkedInstructionCode {
       instruction += 1;
     }
 
-    long outputCursor = 0;
+    assert(outputBytes < bufferLength(output) - outputStart + 1);
+    long outputCursor = outputStart;
     instruction = 0;
     while (instruction < instructionCount) limit MAX_CLOSURE_INSTRUCTIONS {
       long selectedFunction = closureInstructionRows[instruction];
@@ -199,7 +202,38 @@ classical class LinkedInstructionCode {
       instruction += 1;
     }
 
-    assert(outputCursor == outputBytes);
+    assert(outputCursor == outputStart + outputBytes);
     return outputBytes;
+  }
+
+  /// Emits into the historical fixed-width section buffer.
+  public long emitLinkedInstructionCode(
+    borrow byteview archive,
+    long archiveBytes,
+    borrow mut words artifactStarts,
+    borrow mut words artifactLengths,
+    long functionCount,
+    long instructionCount,
+    borrow mut words moduleFirstFunctions,
+    borrow mut words moduleFunctionCounts,
+    borrow mut words closureFunctionRows,
+    borrow mut words closureInstructionRows,
+    borrow mut bytes output
+  ) {
+    assert(bufferLength(output) == MAX_LINKED_CODE_BYTES);
+    return emitLinkedInstructionCodeAt(
+      archive,
+      archiveBytes,
+      artifactStarts,
+      artifactLengths,
+      functionCount,
+      instructionCount,
+      moduleFirstFunctions,
+      moduleFunctionCounts,
+      closureFunctionRows,
+      closureInstructionRows,
+      output,
+      /* outputStart= */ 0
+    );
   }
 }

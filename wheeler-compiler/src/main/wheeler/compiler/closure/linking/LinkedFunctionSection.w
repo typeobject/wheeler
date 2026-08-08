@@ -22,8 +22,8 @@ classical class LinkedFunctionSection {
     assert(remaining == 0);
   }
 
-  /// Emits a complete function section after exact type and code extent validation.
-  public long emitLinkedFunctionSection(
+  /// Emits a complete function section at a caller-selected section offset.
+  public long emitLinkedFunctionSectionAt(
     long functionCount,
     borrow mut words closureFunctionRows,
     long stringCount,
@@ -31,8 +31,10 @@ classical class LinkedFunctionSection {
     long linkedTypeCount,
     borrow mut words linkedTypes,
     long linkedCodeBytes,
-    borrow mut bytes output
+    borrow mut bytes output,
+    long outputStart
   ) {
+    assert(-1 < outputStart);
     assert(0 < functionCount);
     assert(functionCount < MAX_CLOSURE_FUNCTIONS + 1);
     assert(bufferLength(closureFunctionRows) == CLOSURE_FUNCTION_ROWS);
@@ -43,7 +45,7 @@ classical class LinkedFunctionSection {
     assert(bufferLength(linkedTypes) == MAX_CLOSURE_LOCAL_TYPES);
     assert(-1 < linkedCodeBytes);
     assert(linkedCodeBytes < MAX_LINKED_CODE_BYTES + 1);
-    assert(bufferLength(output) == FUNCTION_SECTION_BYTES);
+    assert(outputStart < bufferLength(output) + 1);
 
     long expectedTypes = 0;
     long expectedCode = 0;
@@ -82,14 +84,14 @@ classical class LinkedFunctionSection {
     assert(expectedTypes == linkedTypeCount);
     assert(expectedCode == linkedCodeBytes);
     long sectionBytes = 4 + functionCount * 40 + linkedTypeCount * 4;
-    assert(sectionBytes < FUNCTION_SECTION_BYTES + 1);
+    assert(sectionBytes < bufferLength(output) - outputStart + 1);
 
-    writeUnsigned(functionCount, 4, output, 0);
+    writeUnsigned(functionCount, 4, output, outputStart);
     long codeOffset = 0;
     long typeOffset = 0;
     function = 0;
     while (function < functionCount) limit MAX_CLOSURE_FUNCTIONS {
-      long descriptor = 4 + function * 40;
+      long descriptor = outputStart + 4 + function * 40;
       long selectedFlags = closureFunctionRows[8192 + function];
       long selectedForwardLength = closureFunctionRows[20480 + function];
       long selectedInverseLength = closureFunctionRows[28672 + function];
@@ -116,7 +118,7 @@ classical class LinkedFunctionSection {
     }
 
     long type = 0;
-    long typeStart = 4 + functionCount * 40;
+    long typeStart = outputStart + 4 + functionCount * 40;
     while (type < linkedTypeCount) limit MAX_CLOSURE_LOCAL_TYPES {
       writeUnsigned(linkedTypes[type], 4, output, typeStart + type * 4);
       type += 1;
@@ -125,5 +127,30 @@ classical class LinkedFunctionSection {
     assert(codeOffset == linkedCodeBytes);
     assert(typeOffset == linkedTypeCount);
     return sectionBytes;
+  }
+
+  /// Emits into the historical fixed-width section buffer.
+  public long emitLinkedFunctionSection(
+    long functionCount,
+    borrow mut words closureFunctionRows,
+    long stringCount,
+    borrow mut words functionNameIds,
+    long linkedTypeCount,
+    borrow mut words linkedTypes,
+    long linkedCodeBytes,
+    borrow mut bytes output
+  ) {
+    assert(bufferLength(output) == FUNCTION_SECTION_BYTES);
+    return emitLinkedFunctionSectionAt(
+      functionCount,
+      closureFunctionRows,
+      stringCount,
+      functionNameIds,
+      linkedTypeCount,
+      linkedTypes,
+      linkedCodeBytes,
+      output,
+      /* outputStart= */ 0
+    );
   }
 }

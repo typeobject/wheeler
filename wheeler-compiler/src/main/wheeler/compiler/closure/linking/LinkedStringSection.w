@@ -56,16 +56,18 @@ classical class LinkedStringSection {
     assert(remaining == 0);
   }
 
-  /// Emits canonical ASCII bootstrap names and publishes each source-to-final ID.
-  public long emitLinkedStringSection(
+  /// Emits canonical ASCII bootstrap names at a caller-selected section offset.
+  public long emitLinkedStringSectionAt(
     borrow byteview archive,
     long archiveBytes,
     long stringCount,
     borrow mut words stringStarts,
     borrow mut words stringLengths,
     borrow mut words finalStringRows,
-    borrow mut bytes output
+    borrow mut bytes output,
+    long outputStart
   ) {
+    assert(-1 < outputStart);
     assert(-1 < archiveBytes);
     assert(archiveBytes < bufferLength(archive) + 1);
     assert(0 < stringCount);
@@ -73,7 +75,7 @@ classical class LinkedStringSection {
     assert(bufferLength(stringStarts) == MAX_STRINGS);
     assert(bufferLength(stringLengths) == MAX_STRINGS);
     assert(bufferLength(finalStringRows) == MAX_STRINGS);
-    assert(bufferLength(output) == MAX_STRING_BYTES);
+    assert(outputStart < bufferLength(output) + 1);
 
     long string = 0;
     while (string < stringCount) limit MAX_STRINGS {
@@ -186,8 +188,9 @@ classical class LinkedStringSection {
       unique += 1;
     }
 
-    writeUnsigned(uniqueCount, output, 0);
-    long cursor = 4;
+    assert(sectionBytes < bufferLength(output) - outputStart + 1);
+    writeUnsigned(uniqueCount, output, outputStart);
+    long cursor = outputStart + 4;
     unique = 0;
     while (unique < uniqueCount) limit MAX_STRINGS {
       long selectedString = sortedStrings[unique];
@@ -214,10 +217,33 @@ classical class LinkedStringSection {
       string += 1;
     }
 
-    assert(cursor == sectionBytes);
+    assert(cursor == outputStart + sectionBytes);
     drop(stagedRows);
     drop(sortedStrings);
     drop(staging);
     return sectionBytes;
+  }
+
+  /// Emits into the historical fixed-width section buffer.
+  public long emitLinkedStringSection(
+    borrow byteview archive,
+    long archiveBytes,
+    long stringCount,
+    borrow mut words stringStarts,
+    borrow mut words stringLengths,
+    borrow mut words finalStringRows,
+    borrow mut bytes output
+  ) {
+    assert(bufferLength(output) == MAX_STRING_BYTES);
+    return emitLinkedStringSectionAt(
+      archive,
+      archiveBytes,
+      stringCount,
+      stringStarts,
+      stringLengths,
+      finalStringRows,
+      output,
+      /* outputStart= */ 0
+    );
   }
 }
