@@ -3,6 +3,7 @@
 module wheeler.compiler.driver;
 
 import wheeler.compiler.closure.active_source_slots;
+import wheeler.compiler.closure.aggregate_dependency_products;
 import wheeler.compiler.closure.aggregate_identities;
 import wheeler.compiler.closure.aggregate_loan_verifier;
 import wheeler.compiler.closure.archive_module_sources;

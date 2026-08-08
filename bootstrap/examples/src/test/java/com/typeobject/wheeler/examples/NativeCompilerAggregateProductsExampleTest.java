@@ -45,6 +45,7 @@ final class NativeCompilerAggregateProductsExampleTest {
     assertEquals(3, machine.global("secondModuleOwner"));
     assertEquals(2, machine.global("secondVariantFirstCase"));
     assertEquals(0, machine.global("finalFirstOwner"));
+    assertEquals(2, machine.global("dependencyCount"));
     assertEquals(32, machine.hostOutput().length);
     assertEquals(expectedIdentity(artifact), HexFormat.of().formatHex(machine.hostOutput()));
   }
@@ -71,6 +72,17 @@ final class NativeCompilerAggregateProductsExampleTest {
   }
 
   @Test
+  void rejectsMissingExternalDependencyProductsBeforeIdentityPublication() throws Exception {
+    byte[] artifact = aggregateArtifact();
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        decoder(false, false, true), artifact, 32);
+
+    assertThrows(VmTrap.class, machine::run);
+    assertEquals(0, machine.global("published"));
+    assertEquals("00".repeat(32), HexFormat.of().formatHex(machine.hostOutput()));
+  }
+
+  @Test
   void rejectsMalformedContainersBeforePublishingCounts() throws Exception {
     byte[] malformed = aggregateArtifact();
     malformed[0] = 0;
@@ -81,17 +93,26 @@ final class NativeCompilerAggregateProductsExampleTest {
   }
 
   private static Program decoder() throws Exception {
-    return decoder(false, false);
+    return decoder(false, false, false);
   }
 
   private static Program decoder(boolean invalidLayout) throws Exception {
-    return decoder(invalidLayout, false);
+    return decoder(invalidLayout, false, false);
   }
 
   private static Program decoder(boolean invalidLayout, boolean invalidLoan) throws Exception {
+    return decoder(invalidLayout, invalidLoan, false);
+  }
+
+  private static Program decoder(
+      boolean invalidLayout,
+      boolean invalidLoan,
+      boolean invalidDependency) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.aggregate_dependency_products"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.aggregate_identities"));
     sources.putAll(CompilerSources.moduleClosure(
@@ -103,6 +124,7 @@ final class NativeCompilerAggregateProductsExampleTest {
     sources.put("AggregateProductsExample.w", """
         module example.aggregate_products;
 
+        import wheeler.compiler.closure.aggregate_dependency_products;
         import wheeler.compiler.closure.aggregate_identities;
         import wheeler.compiler.closure.aggregate_loan_verifier;
         import wheeler.compiler.closure.compiled_aggregate_layouts;
@@ -124,6 +146,7 @@ final class NativeCompilerAggregateProductsExampleTest {
           state long secondModuleOwner = 0;
           state long secondVariantFirstCase = 0;
           state long finalFirstOwner = 1;
+          state long dependencyCount = 0;
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
@@ -139,7 +162,6 @@ final class NativeCompilerAggregateProductsExampleTest {
             while (identityByte < 32) limit 32 {
               setByte(packageIdentity, identityByte, 1);
               setByte(moduleIdentity, identityByte, 2);
-              setByte(dependencyIdentities, identityByte, 3);
               identityByte += 1;
             }
             CompiledAggregatePlan plan = indexCompiledAggregateLayouts(
@@ -151,12 +173,46 @@ final class NativeCompilerAggregateProductsExampleTest {
               members
             );
             INVALID_LAYOUT
+            region dependencyProducts = new region(/* bytes= */ 55808, /* allocations= */ 7);
+            words firstImports = allocate(dependencyProducts, /* length= */ 512);
+            words directImports = allocate(dependencyProducts, /* length= */ 512);
+            words edgeTargets = allocate(dependencyProducts, /* length= */ 3072);
+            words localPublished = allocate(dependencyProducts, /* length= */ 512);
+            words externalPublished = allocate(dependencyProducts, /* length= */ 64);
+            bytes localIdentities = allocateBytes(dependencyProducts, /* length= */ 16384);
+            bytes externalIdentities = allocateBytes(dependencyProducts, /* length= */ 2048);
+            set(firstImports, 1, 0);
+            set(directImports, 1, 2);
+            set(edgeTargets, 0, 0);
+            set(edgeTargets, 1, -1);
+            set(localPublished, 0, 1);
+            set(externalPublished, 0, 1);
+            long dependencyIdentityByte = 0;
+            while (dependencyIdentityByte < 32) limit 32 {
+              setByte(localIdentities, dependencyIdentityByte, 4);
+              setByte(externalIdentities, dependencyIdentityByte, 5);
+              dependencyIdentityByte += 1;
+            }
+            INVALID_DEPENDENCY
+            dependencyCount = packAggregateDependencyIdentities(
+              /* moduleCount= */ 4,
+              /* externalCount= */ 1,
+              /* module= */ 1,
+              firstImports,
+              directImports,
+              edgeTargets,
+              localPublished,
+              externalPublished,
+              localIdentities,
+              externalIdentities,
+              dependencyIdentities
+            );
             publishAggregateModuleIdentity(
               source,
               bufferLength(source),
               packageIdentity,
               moduleIdentity,
-              /* dependencyCount= */ 1,
+              dependencyCount,
               dependencyIdentities,
               /* owner= */ 1,
               plan.aggregateCount,
@@ -257,6 +313,14 @@ final class NativeCompilerAggregateProductsExampleTest {
             drop(closureAggregates);
             drop(processed);
             drop(closureRows);
+            drop(externalIdentities);
+            drop(localIdentities);
+            drop(externalPublished);
+            drop(localPublished);
+            drop(edgeTargets);
+            drop(directImports);
+            drop(firstImports);
+            drop(dependencyProducts);
             drop(dependencyIdentities);
             drop(aggregateIdentity);
             drop(moduleIdentity);
@@ -271,7 +335,9 @@ final class NativeCompilerAggregateProductsExampleTest {
             "INVALID_LAYOUT",
             invalidLayout ? "set(aggregates, 0, 9);" : "").replace(
             "INVALID_LOAN",
-            invalidLoan ? "set(events, 0, 4);" : ""));
+            invalidLoan ? "set(events, 0, 4);" : "").replace(
+            "INVALID_DEPENDENCY",
+            invalidDependency ? "set(externalPublished, 0, 0);" : ""));
     return new WheelerCompiler().compileModuleFiles(sources, "example.aggregate_products");
   }
 
@@ -350,9 +416,11 @@ final class NativeCompilerAggregateProductsExampleTest {
     java.util.Arrays.fill(moduleIdentity, (byte) 2);
     input.writeBytes(moduleIdentity);
     input.writeBytes(MessageDigest.getInstance("SHA-256").digest(artifact));
-    writeLong(input, 1);
+    writeLong(input, 2);
     byte[] dependencyIdentity = new byte[32];
-    java.util.Arrays.fill(dependencyIdentity, (byte) 3);
+    java.util.Arrays.fill(dependencyIdentity, (byte) 4);
+    input.writeBytes(dependencyIdentity);
+    java.util.Arrays.fill(dependencyIdentity, (byte) 5);
     input.writeBytes(dependencyIdentity);
     writeLong(input, aggregates.size());
     writeLong(input, cases.size());
