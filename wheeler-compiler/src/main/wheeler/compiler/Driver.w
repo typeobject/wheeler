@@ -11,6 +11,7 @@ import wheeler.compiler.closure.aggregate_type_resolution;
 import wheeler.compiler.closure.archive_module_sources;
 import wheeler.compiler.closure.archive_sources;
 import wheeler.compiler.closure.callable_dependency_products;
+import wheeler.compiler.closure.callable_function_rows;
 import wheeler.compiler.closure.callable_identities;
 import wheeler.compiler.closure.compiled_aggregate_layouts;
 import wheeler.compiler.closure.compiled_body_archive;
