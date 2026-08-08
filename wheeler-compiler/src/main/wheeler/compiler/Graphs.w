@@ -14,6 +14,7 @@ import wheeler.compiler.graphs.plan_sources;
 import wheeler.compiler.graphs.shared.three_direct_leaf;
 import wheeler.compiler.graphs.small_plan_sources;
 import wheeler.compiler.graphs.small_structures;
+import wheeler.compiler.graphs.source_table;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.graphs.two_redundant;
 import wheeler.compiler.helper_owners;
@@ -232,10 +233,14 @@ classical class CompilerGraphs {
       assert(0 == 1);
     }
 
-    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFirst = copyPlannedSource(
+    region sourceTableArena = new region(
+      /* bytes= */ SOURCE_TABLE_ARENA_BYTES,
+      /* allocations= */ 2
+    );
+    bytes sourceStorage = allocateBytes(sourceTableArena, SOURCE_TABLE_BYTES);
+    words sourceLengths = allocate(sourceTableArena, SOURCE_TABLE_LENGTH_WORDS);
+    boolean initialized = initializePlannedSourceTable(
       plan,
-      plannedNodeAt(plan, 0),
       firstImportedSource,
       secondImportedSource,
       secondImportedSource,
@@ -243,21 +248,29 @@ classical class CompilerGraphs {
       secondImportedSource,
       secondImportedSource,
       secondImportedSource,
+      sourceStorage,
+      sourceLengths
+    );
+    assert(initialized);
+    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 plannedFirst = copyPlannedTableSource(
+      plan,
+      plannedNodeAt(plan, 0),
+      sourceStorage,
+      sourceLengths,
       firstArena
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedSecond = copyPlannedSource(
+    utf8 plannedSecond = copyPlannedTableSource(
       plan,
       plannedNodeAt(plan, 1),
-      firstImportedSource,
-      secondImportedSource,
-      secondImportedSource,
-      secondImportedSource,
-      secondImportedSource,
-      secondImportedSource,
-      secondImportedSource,
+      sourceStorage,
+      sourceLengths,
       secondArena
     );
+    drop(sourceLengths);
+    drop(sourceStorage);
+    drop(sourceTableArena);
     GraphCompilation compiled = new GraphCompilation(0, 0);
     if (plan.edgeCount == 0) {
       assert(plan.rootCount == GRAPH_SOURCE_COUNT_TWO);
@@ -628,10 +641,14 @@ classical class CompilerGraphs {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFirst = copyPlannedSource(
+    region sourceTableArena = new region(
+      /* bytes= */ SOURCE_TABLE_ARENA_BYTES,
+      /* allocations= */ 2
+    );
+    bytes sourceStorage = allocateBytes(sourceTableArena, SOURCE_TABLE_BYTES);
+    words sourceLengths = allocate(sourceTableArena, SOURCE_TABLE_LENGTH_WORDS);
+    boolean initialized = initializePlannedSourceTable(
       plan,
-      threeFirstSource(plan),
       firstSource,
       secondSource,
       thirdSource,
@@ -639,34 +656,37 @@ classical class CompilerGraphs {
       thirdSource,
       thirdSource,
       thirdSource,
+      sourceStorage,
+      sourceLengths
+    );
+    assert(initialized);
+    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 plannedFirst = copyPlannedTableSource(
+      plan,
+      threeFirstSource(plan),
+      sourceStorage,
+      sourceLengths,
       firstArena
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedSecond = copyPlannedSource(
+    utf8 plannedSecond = copyPlannedTableSource(
       plan,
       threeSecondSource(plan),
-      firstSource,
-      secondSource,
-      thirdSource,
-      thirdSource,
-      thirdSource,
-      thirdSource,
-      thirdSource,
+      sourceStorage,
+      sourceLengths,
       secondArena
     );
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedThird = copyPlannedSource(
+    utf8 plannedThird = copyPlannedTableSource(
       plan,
       threeThirdSource(plan),
-      firstSource,
-      secondSource,
-      thirdSource,
-      thirdSource,
-      thirdSource,
-      thirdSource,
-      thirdSource,
+      sourceStorage,
+      sourceLengths,
       thirdArena
     );
+    drop(sourceLengths);
+    drop(sourceStorage);
+    drop(sourceTableArena);
     GraphCompilation compiled = new GraphCompilation(0, 0);
     if (plan.edgeCount == 0) {
       assert(plan.rootCount == GRAPH_SOURCE_COUNT_THREE);

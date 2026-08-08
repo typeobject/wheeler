@@ -11,6 +11,7 @@ import wheeler.compiler.graphs.four_plan_sources;
 import wheeler.compiler.graphs.four_structures;
 import wheeler.compiler.graphs.matrix;
 import wheeler.compiler.graphs.plan_sources;
+import wheeler.compiler.graphs.source_table;
 import wheeler.compiler.graphs.sources;
 import wheeler.compiler.module_linker;
 import wheeler.compiler.multiple_imported_helpers;
@@ -246,10 +247,14 @@ classical class CompilerGraphFour {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFirst = copyPlannedSource(
+    region sourceTableArena = new region(
+      /* bytes= */ SOURCE_TABLE_ARENA_BYTES,
+      /* allocations= */ 2
+    );
+    bytes sourceStorage = allocateBytes(sourceTableArena, SOURCE_TABLE_BYTES);
+    words sourceLengths = allocate(sourceTableArena, SOURCE_TABLE_LENGTH_WORDS);
+    boolean initialized = initializePlannedSourceTable(
       plan,
-      sources.first,
       firstSource,
       secondSource,
       thirdSource,
@@ -257,47 +262,45 @@ classical class CompilerGraphFour {
       fourthSource,
       fourthSource,
       fourthSource,
+      sourceStorage,
+      sourceLengths
+    );
+    assert(initialized);
+    region firstArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
+    utf8 plannedFirst = copyPlannedTableSource(
+      plan,
+      sources.first,
+      sourceStorage,
+      sourceLengths,
       firstArena
     );
     region secondArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedSecond = copyPlannedSource(
+    utf8 plannedSecond = copyPlannedTableSource(
       plan,
       sources.second,
-      firstSource,
-      secondSource,
-      thirdSource,
-      fourthSource,
-      fourthSource,
-      fourthSource,
-      fourthSource,
+      sourceStorage,
+      sourceLengths,
       secondArena
     );
     region thirdArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedThird = copyPlannedSource(
+    utf8 plannedThird = copyPlannedTableSource(
       plan,
       sources.third,
-      firstSource,
-      secondSource,
-      thirdSource,
-      fourthSource,
-      fourthSource,
-      fourthSource,
-      fourthSource,
+      sourceStorage,
+      sourceLengths,
       thirdArena
     );
     region fourthArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
-    utf8 plannedFourth = copyPlannedSource(
+    utf8 plannedFourth = copyPlannedTableSource(
       plan,
       sources.fourth,
-      firstSource,
-      secondSource,
-      thirdSource,
-      fourthSource,
-      fourthSource,
-      fourthSource,
-      fourthSource,
+      sourceStorage,
+      sourceLengths,
       fourthArena
     );
+    drop(sourceLengths);
+    drop(sourceStorage);
+    drop(sourceTableArena);
     FourGraphCompilation compiled = new FourGraphCompilation(0, 0);
     if (plan.edgeCount == 0) {
       compiled = compileFourDirect(

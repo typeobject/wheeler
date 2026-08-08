@@ -284,7 +284,6 @@ final class NativeCompilerGraphSourcesExampleTest {
   @Test
   void copiesOnlyNodesFromTheValidatedPlan() throws Exception {
     String matrix = CompilerSources.read("compiler/graphs/Matrix.w");
-    String sources = CompilerSources.read("compiler/graphs/Sources.w");
     String planned = CompilerSources.read("compiler/graphs/plans/PlanSources.w");
     String table = CompilerSources.read("compiler/graphs/plans/SourceTable.w");
     String root = """
@@ -366,7 +365,6 @@ final class NativeCompilerGraphSourcesExampleTest {
         "Matrix.w", matrix,
         "PlanSources.w", planned,
         "PlannedGraphSource.w", root,
-        "Sources.w", sources,
         "SourceTable.w", table);
     Program copier = new WheelerCompiler().compileModuleFiles(
         modules, "example.planned_graph_source");
@@ -382,7 +380,6 @@ final class NativeCompilerGraphSourcesExampleTest {
             "Matrix.w", matrix,
             "PlanSources.w", planned,
             "PlannedGraphSource.w", root.replace("plannedNodeAt(plan, 0)", "2"),
-            "Sources.w", sources,
             "SourceTable.w", table),
         "example.planned_graph_source");
     VirtualMachine rejected = new VirtualMachine(invalidNode, input, 1);

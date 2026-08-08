@@ -157,13 +157,14 @@ Compatibility wrappers are not retained. During migration the driver may dispatc
 - [x] `graphs/Matrix.w` records bounded edges, roots, root order, reachability, privacy, sharing, and leaf-first order.
 - [x] Checked plan accessors expose every node, edge, root rank, privacy bit, and sharing bit.
 - [x] `graphs/Sources.w` provides one counted seven-slot selector over the complete physical source window.
-- [x] `graphs/plans/PlanSources.w` binds source copying to a validated plan and node.
+- [x] `graphs/plans/PlanSources.w` binds table initialization, replacement, and copying to a validated plan and node.
 - [x] Two- through seven-module planners validate exact graph facts before topology dispatch.
 - [x] Every admitted legacy topology has differential frame-order evidence.
 - [x] `graphs/TwoRedundant.w` handles one chain whose leaf remains a direct root import.
 - [x] `graphs/shared/ThreeDirectLeaf.w` handles one public constant leaf shared by two direct constant dependents.
 - [x] Shared helper planning drops an exact private prefix against an existing public or private declaration.
 - [x] `graphs/plans/SourceTable.w` owns physical and linked source slots in one counted fixed-slot arena.
+- [x] Two- through four-module drivers select every canonical role from the table. The old planned-loan selector is deleted.
 - [x] Header dependency facts carry validated candidate import rank, and small direct plans use it.
 - [x] Two- through four-module executors consume every admitted plan without topology identities.
 - [x] `graphs/SmallPlanSources.w` and `graphs/FourPlanSources.w` own canonical role selection outside the drivers.

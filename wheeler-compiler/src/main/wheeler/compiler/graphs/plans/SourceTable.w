@@ -9,6 +9,8 @@ classical class BoundedSourceTable {
   public const long SOURCE_TABLE_LENGTH_WORDS = 7;
   /// Names the complete fixed-slot source table byte capacity.
   public const long SOURCE_TABLE_BYTES = 229376;
+  /// Names the byte arena for one table and its seven-word length column.
+  public const long SOURCE_TABLE_ARENA_BYTES = 229432;
   private const long SOURCE_TABLE_COUNT_LIMIT = 8;
 
   private boolean tableStorageValid(borrow mut bytes storage, borrow mut words lengths) {
