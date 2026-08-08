@@ -44,6 +44,7 @@ final class NativeCompilerAggregateProductsExampleTest {
     assertEquals(8, machine.global("closureMemberCount"));
     assertEquals(3, machine.global("secondModuleOwner"));
     assertEquals(2, machine.global("secondVariantFirstCase"));
+    assertEquals(0, machine.global("finalFirstOwner"));
     assertEquals(32, machine.hostOutput().length);
     assertEquals(expectedIdentity(artifact), HexFormat.of().formatHex(machine.hostOutput()));
   }
@@ -52,6 +53,17 @@ final class NativeCompilerAggregateProductsExampleTest {
   void rejectsInvalidLayoutRowsBeforePublishingAnIdentity() throws Exception {
     byte[] artifact = aggregateArtifact();
     VirtualMachine machine = VirtualMachine.withBinaryInput(decoder(true), artifact, 32);
+
+    assertThrows(VmTrap.class, machine::run);
+    assertEquals(0, machine.global("published"));
+    assertEquals("00".repeat(32), HexFormat.of().formatHex(machine.hostOutput()));
+  }
+
+  @Test
+  void rejectsEscapingOrUnbalancedLoansBeforePublishing() throws Exception {
+    byte[] artifact = aggregateArtifact();
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        decoder(false, true), artifact, 32);
 
     assertThrows(VmTrap.class, machine::run);
     assertEquals(0, machine.global("published"));
@@ -69,15 +81,21 @@ final class NativeCompilerAggregateProductsExampleTest {
   }
 
   private static Program decoder() throws Exception {
-    return decoder(false);
+    return decoder(false, false);
   }
 
   private static Program decoder(boolean invalidLayout) throws Exception {
+    return decoder(invalidLayout, false);
+  }
+
+  private static Program decoder(boolean invalidLayout, boolean invalidLoan) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.aggregate_identities"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.aggregate_loan_verifier"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.compiled_aggregate_layouts"));
     sources.putAll(CompilerSources.moduleClosure(
@@ -86,6 +104,7 @@ final class NativeCompilerAggregateProductsExampleTest {
         module example.aggregate_products;
 
         import wheeler.compiler.closure.aggregate_identities;
+        import wheeler.compiler.closure.aggregate_loan_verifier;
         import wheeler.compiler.closure.compiled_aggregate_layouts;
         import wheeler.compiler.closure.counted_aggregate_layouts;
 
@@ -104,15 +123,17 @@ final class NativeCompilerAggregateProductsExampleTest {
           state long closureMemberCount = 0;
           state long secondModuleOwner = 0;
           state long secondVariantFirstCase = 0;
+          state long finalFirstOwner = 1;
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 16960, /* allocations= */ 5);
+            region rows = new region(/* bytes= */ 16992, /* allocations= */ 6);
             words aggregates = allocate(rows, /* length= */ 576);
             words cases = allocate(rows, /* length= */ 512);
             words members = allocate(rows, /* length= */ 1024);
             bytes packageIdentity = allocateBytes(rows, /* length= */ 32);
             bytes moduleIdentity = allocateBytes(rows, /* length= */ 32);
+            bytes aggregateIdentity = allocateBytes(rows, /* length= */ 32);
             long identityByte = 0;
             while (identityByte < 32) limit 32 {
               setByte(packageIdentity, identityByte, 1);
@@ -140,7 +161,7 @@ final class NativeCompilerAggregateProductsExampleTest {
               aggregates,
               cases,
               members,
-              output
+              aggregateIdentity
             );
             region closureRows = new region(/* bytes= */ 1085440, /* allocations= */ 4);
             words processed = allocate(closureRows, /* length= */ 512);
@@ -179,6 +200,33 @@ final class NativeCompilerAggregateProductsExampleTest {
             closureMemberCount = secondClosure.memberCount;
             secondModuleOwner = closureAggregates[4096 + 3];
             secondVariantFirstCase = closureAggregates[16384 + 5];
+            region ownershipRows = new region(/* bytes= */ 524288, /* allocations= */ 5);
+            words initialOwned = allocate(ownershipRows, /* length= */ 4096);
+            words events = allocate(ownershipRows, /* length= */ 49152);
+            words finalOwned = allocate(ownershipRows, /* length= */ 4096);
+            words finalShared = allocate(ownershipRows, /* length= */ 4096);
+            words finalMutable = allocate(ownershipRows, /* length= */ 4096);
+            set(initialOwned, 0, 1);
+            set(events, 0, 2);
+            set(events, 1, 4);
+            set(events, 2, 3);
+            set(events, 3, 5);
+            set(events, 4, 1);
+            set(events, 32768 + 2, 1);
+            INVALID_LOAN
+            verifyAggregateProjectionEvents(
+              secondClosure.aggregateCount,
+              secondClosure.memberCount,
+              closureAggregates,
+              closureMembers,
+              initialOwned,
+              events,
+              5,
+              finalOwned,
+              finalShared,
+              finalMutable
+            );
+            finalFirstOwner = finalOwned[0];
             aggregateCount = plan.aggregateCount;
             caseCount = plan.caseCount;
             memberCount = plan.memberCount;
@@ -187,13 +235,25 @@ final class NativeCompilerAggregateProductsExampleTest {
             lastKind = aggregates[plan.aggregateCount - 1];
             arrayLength = aggregates[512 + 1];
             firstOwner = aggregates[64];
+            long identityOutput = 0;
+            while (identityOutput < 32) limit 32 {
+              setByte(output, identityOutput, aggregateIdentity[identityOutput]);
+              identityOutput += 1;
+            }
             published = 1;
             setOutputLength(output, 32);
+            drop(finalMutable);
+            drop(finalShared);
+            drop(finalOwned);
+            drop(events);
+            drop(initialOwned);
+            drop(ownershipRows);
             drop(closureMembers);
             drop(closureCases);
             drop(closureAggregates);
             drop(processed);
             drop(closureRows);
+            drop(aggregateIdentity);
             drop(moduleIdentity);
             drop(packageIdentity);
             drop(members);
@@ -204,7 +264,9 @@ final class NativeCompilerAggregateProductsExampleTest {
         }
         """.replace(
             "INVALID_LAYOUT",
-            invalidLayout ? "set(aggregates, 0, 9);" : ""));
+            invalidLayout ? "set(aggregates, 0, 9);" : "").replace(
+            "INVALID_LOAN",
+            invalidLoan ? "set(events, 0, 4);" : ""));
     return new WheelerCompiler().compileModuleFiles(sources, "example.aggregate_products");
   }
 
