@@ -71,6 +71,8 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.callable_function_rows"));
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.canonical_product_emitter"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.compiled_function_names"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.compiled_function_products"));
@@ -85,27 +87,15 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.counted_function_products"));
     sources.putAll(CompilerSources.moduleClosure(
-        "wheeler.compiler.closure.linked_aggregate_sections"));
-    sources.putAll(CompilerSources.moduleClosure(
-        "wheeler.compiler.closure.linked_container"));
-    sources.putAll(CompilerSources.moduleClosure(
-        "wheeler.compiler.closure.linked_function_section"));
-    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.linked_instruction_code"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.linked_local_types"));
-    sources.putAll(CompilerSources.moduleClosure(
-        "wheeler.compiler.closure.linked_manifest_section"));
-    sources.putAll(CompilerSources.moduleClosure(
-        "wheeler.compiler.closure.linked_proof_section"));
-    sources.putAll(CompilerSources.moduleClosure(
-        "wheeler.compiler.closure.linked_string_section"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.opcodes"));
-    sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.verifier"));
     sources.put("ProductLinkedArtifactExample.w", """
         module example.product_linked_artifact;
 
         import wheeler.compiler.closure.callable_function_rows;
+        import wheeler.compiler.closure.canonical_product_emitter;
         import wheeler.compiler.closure.compiled_function_names;
         import wheeler.compiler.closure.compiled_function_products;
         import wheeler.compiler.closure.compiled_global_products;
@@ -113,16 +103,9 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
         import wheeler.compiler.closure.compiled_string_products;
         import wheeler.compiler.closure.counted_aggregate_layouts;
         import wheeler.compiler.closure.counted_function_products;
-        import wheeler.compiler.closure.linked_aggregate_sections;
-        import wheeler.compiler.closure.linked_container;
-        import wheeler.compiler.closure.linked_function_section;
         import wheeler.compiler.closure.linked_instruction_code;
         import wheeler.compiler.closure.linked_local_types;
-        import wheeler.compiler.closure.linked_manifest_section;
-        import wheeler.compiler.closure.linked_proof_section;
-        import wheeler.compiler.closure.linked_string_section;
         import wheeler.compiler.opcodes;
-        import wheeler.compiler.verifier;
         import wheeler.core.encoding.binary;
 
         classical class ProductLinkedArtifactExample {
@@ -394,132 +377,55 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
               linkedTypes
             );
 
-            long cursor = 24;
-            set(sectionTypes, 1, 2);
-            set(sectionStarts, 1, cursor);
-            long stringBytes = emitLinkedStringSectionAt(
+            assert(proofCount == 1);
+            set(moduleFirstFunctions, 0, 0);
+            set(moduleFunctionCounts, 0, 3);
+            CanonicalProductSections emitted = emitCanonicalProductSections(
+              source,
+              bufferLength(source),
+              /* rootModule= */ 0,
+              /* rootStringBase= */ 0,
+              stringPlan.stringCount,
               source,
               bufferLength(source),
               stringPlan.closureStringCount,
               stringStarts,
               stringLengths,
               finalStrings,
-              stagedSections,
-              cursor
-            );
-            set(sectionLengths, 1, stringBytes);
-            cursor += stringBytes;
-            resolveLinkedFunctionNameIds(
-              functionWindow.functionCount,
-              stringPlan.closureStringCount,
-              functionNames,
-              finalStrings,
-              finalFunctionNames
-            );
-            set(moduleFirstFunctions, 0, 0);
-            set(moduleFunctionCounts, 0, 3);
-            set(sectionTypes, 0, 1);
-            set(sectionStarts, 0, 0);
-            long manifestBytes = emitLinkedManifestSection(
-              source,
-              bufferLength(source),
-              /* rootModule= */ 0,
-              /* rootStringBase= */ 0,
-              stringPlan.stringCount,
-              stringPlan.closureStringCount,
-              finalStrings,
               moduleFirstFunctions,
               moduleFunctionCounts,
-              stagedSections,
-              /* outputStart= */ 0
-            );
-            set(sectionLengths, 0, manifestBytes);
-
-            set(sectionTypes, 2, 3);
-            set(sectionStarts, 2, cursor);
-            long typeBytes = emitLinkedTypeSection(
               globalCount,
               globals,
               aggregatePlan.aggregateCount,
-              stringPlan.closureStringCount,
-              moduleStringBases,
-              finalStrings,
-              aggregates,
-              members,
-              finalDescriptors,
-              stagedSections,
-              cursor
-            );
-            set(sectionLengths, 2, typeBytes);
-            cursor += typeBytes;
-
-            set(sectionTypes, 3, 4);
-            set(sectionStarts, 3, cursor);
-            long variantBytes = emitLinkedVariantSection(
-              aggregatePlan.aggregateCount,
               aggregatePlan.caseCount,
-              stringPlan.closureStringCount,
               moduleStringBases,
-              finalStrings,
               aggregates,
               cases,
               members,
               finalDescriptors,
-              stagedSections,
-              cursor
-            );
-            set(sectionLengths, 3, variantBytes);
-            cursor += variantBytes;
-
-            set(sectionTypes, 4, 5);
-            set(sectionStarts, 4, cursor);
-            long functionBytes = emitLinkedFunctionSectionAt(
               functionWindow.functionCount,
               closureFunctions,
-              stringPlan.closureStringCount,
+              functionNames,
               finalFunctionNames,
               linkedTypeCount,
               linkedTypes,
+              stagedCode,
               codeBytes,
-              stagedSections,
-              cursor
-            );
-            set(sectionLengths, 4, functionBytes);
-            cursor += functionBytes;
-
-            set(sectionTypes, 5, 6);
-            set(sectionStarts, 5, cursor);
-            long codeByte = 0;
-            while (codeByte < codeBytes) limit 4194304 {
-              setByte(stagedSections, cursor + codeByte, stagedCode[codeByte]);
-              codeByte += 1;
-            }
-            set(sectionLengths, 5, codeBytes);
-            cursor += codeBytes;
-            assert(proofCount == 1);
-            set(sectionTypes, 6, 10);
-            set(sectionStarts, 6, cursor);
-            long proofBytes = emitLinkedProofSection(
               proofCount,
-              functionWindow.functionCount,
-              stringPlan.closureStringCount,
               proofs,
-              finalStrings,
-              stagedSections,
-              cursor
+              sectionTypes,
+              sectionStarts,
+              sectionLengths,
+              stagedSections
             );
-            set(sectionLengths, 6, proofBytes);
-            cursor += proofBytes;
-            long artifactBytes = emitCanonicalContainer(
+            long artifactBytes = publishCanonicalProductContainer(
               stagedSections,
-              cursor,
-              /* sectionCount= */ 7,
+              emitted,
               sectionTypes,
               sectionStarts,
               sectionLengths,
               output
             );
-            assert(verifyArtifact(output, artifactBytes) == 1);
             published = 1;
             setOutputLength(output, artifactBytes);
 

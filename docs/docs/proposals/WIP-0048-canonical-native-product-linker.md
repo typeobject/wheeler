@@ -122,7 +122,8 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
 - [x] `LinkedManifestSection.w` resolves the root program name and rebases its entry through counted module function windows.
 - [x] `LinkedContainer.w` emits format 1.0 headers, sorted directories, eight-byte alignment, zero padding, and bounded optional section types.
 - [x] The assembled container verifies its header, directory, extents, and padding before the caller publishes output length or identity.
-- [x] The complete product-linked fixture passes `verifyArtifact` before output-length publication and then passes the independent stage-0 reader.
+- [x] `CanonicalProductEmitter.w` emits final semantic sections, returns an immutable section plan, and publishes a verified container in a separate lifetime after callers may drop large source and product windows.
+- [x] The complete product-linked fixture uses that production emitter, passes `verifyArtifact` before output-length publication, and then passes the independent stage-0 reader.
 - [x] A local-call, global, and aggregate fixture flows through counted strings, globals, layouts, functions, types, code, manifest, and container emission and matches stage 0 byte for byte.
 - [x] `CompiledProofProducts.w` rebases counted certificate names and subjects; `LinkedProofSection.w` emits canonical split arguments.
 - [x] The complete reversible result-slot and optional proof product fixture matches stage 0 byte for byte.
