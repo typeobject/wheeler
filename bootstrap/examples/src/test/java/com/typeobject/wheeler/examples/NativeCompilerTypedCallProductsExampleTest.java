@@ -18,17 +18,18 @@ final class NativeCompilerTypedCallProductsExampleTest {
 
   @Test
   void resolvesExactParameterLoanResultAndEffectProducts() throws Exception {
-    VirtualMachine machine = new VirtualMachine(program(false, false), NAMES);
+    VirtualMachine machine = new VirtualMachine(program(false, false, false), NAMES);
 
     machine.run();
 
     assertEquals(1, machine.global("target"));
+    assertEquals(1, machine.global("rankedTarget"));
     assertEquals(1, machine.global("published"));
   }
 
   @Test
   void rejectsARequestWithTheWrongLoanMode() throws Exception {
-    VirtualMachine machine = new VirtualMachine(program(true, false), NAMES);
+    VirtualMachine machine = new VirtualMachine(program(true, false, false), NAMES);
 
     machine.run();
 
@@ -37,14 +38,26 @@ final class NativeCompilerTypedCallProductsExampleTest {
   }
 
   @Test
+  void writtenDependencyRankCannotResolveAnotherDependency() throws Exception {
+    VirtualMachine machine = new VirtualMachine(program(false, false, true), NAMES);
+
+    machine.run();
+
+    assertEquals(1, machine.global("target"));
+    assertEquals(-1, machine.global("rankedTarget"));
+    assertEquals(1, machine.global("published"));
+  }
+
+  @Test
   void equalExactSignaturesRemainAmbiguous() throws Exception {
-    VirtualMachine machine = new VirtualMachine(program(false, true), NAMES);
+    VirtualMachine machine = new VirtualMachine(program(false, true, false), NAMES);
 
     assertThrows(VmTrap.class, machine::run);
     assertEquals(0, machine.global("published"));
   }
 
-  private static Program program(boolean wrongLoan, boolean ambiguous) throws Exception {
+  private static Program program(boolean wrongLoan, boolean ambiguous, boolean wrongRank)
+      throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_call_products"));
@@ -55,13 +68,15 @@ final class NativeCompilerTypedCallProductsExampleTest {
 
         classical class TypedCallProductsExample {
           state long target = -2;
+          state long rankedTarget = -2;
           state long published = 0;
 
           entry void main(borrow utf8 names) {
-            region rows = new region(/* bytes= */ 459816, /* allocations= */ 3);
+            region rows = new region(/* bytes= */ 492584, /* allocations= */ 4);
             words request = allocate(rows, /* length= */ 133);
             words callables = allocate(rows, /* length= */ 24576);
             words parameters = allocate(rows, /* length= */ 32768);
+            words dependencyRanks = allocate(rows, /* length= */ 4096);
             set(request, 0, 0);
             set(request, 1, 8);
             set(request, 2, 1);
@@ -85,8 +100,21 @@ final class NativeCompilerTypedCallProductsExampleTest {
             set(parameters, 1, 8);
             set(parameters, 16384, 0);
             set(parameters, 16385, 0);
+            set(dependencyRanks, 0, 0);
+            set(dependencyRanks, 1, 1);
             target = resolveTypedCallableProduct(names, request, 0, 2, callables, parameters);
+            rankedTarget = resolveRankedTypedCallableProduct(
+              names,
+              request,
+              DEPENDENCY_RANK,
+              0,
+              2,
+              callables,
+              parameters,
+              dependencyRanks
+            );
             published = 1;
+            drop(dependencyRanks);
             drop(parameters);
             drop(callables);
             drop(request);
@@ -94,7 +122,8 @@ final class NativeCompilerTypedCallProductsExampleTest {
           }
         }
         """.replace("REQUEST_LOAN", wrongLoan ? "1" : "0")
-            .replace("AMBIGUOUS_TYPE", ambiguous ? "8" : "7"));
+            .replace("AMBIGUOUS_TYPE", ambiguous ? "8" : "7")
+            .replace("DEPENDENCY_RANK", wrongRank ? "0" : "1"));
     return new WheelerCompiler().compileModuleFiles(sources, "example.typed_call_products");
   }
 }

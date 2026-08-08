@@ -142,6 +142,42 @@ classical class SourceCallProducts {
     return true;
   }
 
+  private boolean typedCallableMatches(
+    borrow utf8 names,
+    borrow mut words requestRows,
+    borrow mut words callableRows,
+    borrow mut words parameterRows,
+    long callable
+  ) {
+    long arity = requestRows[2];
+    if (callableRows[8192 + callable] != arity) {
+      return false;
+    }
+
+    if (callableRows[12288 + callable] != requestRows[3]) {
+      return false;
+    }
+
+    if (callableRows[16384 + callable] != requestRows[4]) {
+      return false;
+    }
+
+    if (
+      !sameName(
+        names,
+        requestRows[0],
+        requestRows[1],
+        names,
+        callableRows[callable],
+        callableRows[4096 + callable]
+      )
+    ) {
+      return false;
+    }
+
+    return typedParametersMatch(requestRows, arity, callableRows, parameterRows, callable);
+  }
+
   /// Resolves one exact callable signature from a public dependency-product view.
   public long resolveTypedCallableProduct(
     borrow utf8 names,
@@ -164,27 +200,51 @@ classical class SourceCallProducts {
     long offset = 0;
     while (offset < callableCount) limit MAX_CALLABLES {
       long callable = firstCallable + offset;
-      if (callableRows[8192 + callable] == arity) {
-        if (callableRows[12288 + callable] == requestRows[3]) {
-          if (callableRows[16384 + callable] == requestRows[4]) {
-            if (
-              sameName(
-                names,
-                requestRows[0],
-                requestRows[1],
-                names,
-                callableRows[callable],
-                callableRows[4096 + callable]
-              )
-            ) {
-              if (
-                typedParametersMatch(requestRows, arity, callableRows, parameterRows, callable)
-              ) {
-                assert(target == -1);
-                target = callable;
-              }
-            }
-          }
+      if (
+        typedCallableMatches(names, requestRows, callableRows, parameterRows, callable)
+      ) {
+        assert(target == -1);
+        target = callable;
+      }
+
+      offset += 1;
+    }
+
+    return target;
+  }
+
+  /// Resolves one exact signature from the dependency rank written at the call site.
+  public long resolveRankedTypedCallableProduct(
+    borrow utf8 names,
+    borrow mut words requestRows,
+    long dependencyRank,
+    long firstCallable,
+    long callableCount,
+    borrow mut words callableRows,
+    borrow mut words parameterRows,
+    borrow mut words callableDependencyRanks
+  ) {
+    assert(-1 < dependencyRank);
+    assert(bufferLength(requestRows) == REQUEST_ROWS);
+    assert(bufferLength(callableRows) == CALLABLE_SIGNATURE_ROWS);
+    assert(bufferLength(parameterRows) == PARAMETER_SIGNATURE_ROWS);
+    assert(bufferLength(callableDependencyRanks) == MAX_CALLABLES);
+    assert(-1 < firstCallable);
+    assert(-1 < callableCount);
+    assert(callableCount < MAX_CALLABLES - firstCallable + 1);
+    long arity = requestRows[2];
+    assert(-1 < arity);
+    assert(arity < MAX_CALLABLE_PARAMETERS + 1);
+    long target = -1;
+    long offset = 0;
+    while (offset < callableCount) limit MAX_CALLABLES {
+      long callable = firstCallable + offset;
+      if (callableDependencyRanks[callable] == dependencyRank) {
+        if (
+          typedCallableMatches(names, requestRows, callableRows, parameterRows, callable)
+        ) {
+          assert(target == -1);
+          target = callable;
         }
       }
 
