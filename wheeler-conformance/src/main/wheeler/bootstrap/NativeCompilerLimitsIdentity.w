@@ -2,7 +2,7 @@
 
 module wheeler.conformance.bootstrap.compiler_limits_identity;
 
-import wheeler.conformance.bootstrap.syntax;
+import wheeler.compiler.closure.manifest_syntax;
 import wheeler.crypto.content_identity;
 
 classical class NativeCompilerLimitsIdentity {

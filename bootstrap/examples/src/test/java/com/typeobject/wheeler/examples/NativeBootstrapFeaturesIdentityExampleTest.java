@@ -53,7 +53,7 @@ final class NativeBootstrapFeaturesIdentityExampleTest {
         Map.of(
             "NativeBootstrapFeaturesIdentity.w",
             Files.readString(ROOT.resolve("NativeBootstrapFeaturesIdentity.w")),
-            "BootstrapSyntax.w", Files.readString(ROOT.resolve("BootstrapSyntax.w")),
+            "ManifestSyntax.w", CompilerSources.read("compiler/closure/ManifestSyntax.w"),
             "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
         "wheeler.conformance.bootstrap.features_identity");

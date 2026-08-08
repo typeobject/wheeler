@@ -2,7 +2,7 @@
 
 module wheeler.conformance.bootstrap.artifact_set_identity;
 
-import wheeler.conformance.bootstrap.syntax;
+import wheeler.compiler.closure.manifest_syntax;
 import wheeler.crypto.sha256;
 
 classical class NativeArtifactSetIdentity {

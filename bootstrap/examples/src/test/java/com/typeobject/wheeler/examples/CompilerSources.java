@@ -5,6 +5,7 @@ import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.packageformat.BootstrapModuleManifest;
 import com.typeobject.wheeler.packageformat.BootstrapModuleManifest.Module;
+import com.typeobject.wheeler.packageformat.PackageArchive;
 import com.typeobject.wheeler.packageformat.PackageManifest;
 import com.typeobject.wheeler.packageformat.PackageManifestParser;
 import java.io.IOException;
@@ -72,12 +73,31 @@ final class CompilerSources {
     return Files.readString(path(logicalPath));
   }
 
+  /** Encodes the complete current compiler package without consulting build output. */
+  static byte[] packageArchive() throws Exception {
+    PackageManifest manifest = new PackageManifestParser().parse(
+        Files.readString(PACKAGE.resolve("wheeler.package.yaml")));
+    TreeSet<String> paths = new TreeSet<>();
+    for (PackageManifest.Target target : manifest.targets()) {
+      for (String logicalPath : targetPaths(target.name())) {
+        paths.add(SOURCE_PREFIX + logicalPath);
+      }
+    }
+
+    Map<String, byte[]> sources = new LinkedHashMap<>();
+    for (String path : paths) {
+      sources.put(path, Files.readAllBytes(PACKAGE.resolve(path)));
+    }
+    return new PackageArchive().encode(manifest, sources);
+  }
+
   /** Returns the complete bounded self-hosting compiler module set. */
   static Map<String, String> minimalCompilerModules() throws IOException {
     Map<String, String> modules = new LinkedHashMap<>();
     for (String logicalPath : minimalPaths()) {
       modules.put(logicalPath, read(logicalPath));
     }
+    modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     return modules;
   }
 

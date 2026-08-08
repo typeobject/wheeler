@@ -58,7 +58,7 @@ Expected behavior: A two-artifact manifest reproduces the stage-0 set identity. 
 
 ### `NativeBootstrapFeaturesIdentity.w`
 
-Files: [`NativeBootstrapFeaturesIdentity.w`](../../wheeler-conformance/src/main/wheeler/bootstrap/NativeBootstrapFeaturesIdentity.w) + [`BootstrapSyntax.w`](../../wheeler-conformance/src/main/wheeler/bootstrap/BootstrapSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
+Files: [`NativeBootstrapFeaturesIdentity.w`](../../wheeler-conformance/src/main/wheeler/bootstrap/NativeBootstrapFeaturesIdentity.w) + [`ManifestSyntax.w`](../../wheeler-compiler/src/main/wheeler/compiler/closure/ManifestSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
 
 Covers: Exact schema-1 canonical YAML, the complete ordered seventeen-feature `bootstrap-1` vocabulary, version 1 for every contract, complete SHA-256 publication, and exact rewind.
 
@@ -66,7 +66,7 @@ Expected behavior: The stage-0 feature manifest reproduces its identity. A renam
 
 ### `NativeBootstrapManifestIdentity.w`
 
-Files: [`NativeBootstrapManifestIdentity.w`](../../wheeler-conformance/src/main/wheeler/bootstrap/NativeBootstrapManifestIdentity.w) + [`BootstrapSyntax.w`](../../wheeler-conformance/src/main/wheeler/bootstrap/BootstrapSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
+Files: [`NativeBootstrapManifestIdentity.w`](../../wheeler-conformance/src/main/wheeler/bootstrap/NativeBootstrapManifestIdentity.w) + [`ManifestSyntax.w`](../../wheeler-compiler/src/main/wheeler/compiler/closure/ManifestSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
 
 Covers: Exact schema-2 canonical recovery YAML, twenty-one lowercase identities, bounded profile syntax, stage-1/stage-2 equality, diverse-output and diagnostic equality, genuinely distinct toolchain/compiler identities, complete SHA-256 publication, and exact rewind.
 
@@ -74,15 +74,15 @@ Expected behavior: Complete fixed-point and diverse-compilation evidence reprodu
 
 ### `NativeBootstrapModulesIdentity.w`
 
-Files: [`NativeBootstrapModulesIdentity.w`](../../wheeler-conformance/src/main/wheeler/bootstrap/NativeBootstrapModulesIdentity.w) + [`BootstrapSyntax.w`](../../wheeler-conformance/src/main/wheeler/bootstrap/BootstrapSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
+Files: [`NativeBootstrapModulesIdentity.w`](../../wheeler-conformance/src/main/wheeler/bootstrap/NativeBootstrapModulesIdentity.w) + [`ModuleManifest.w`](../../wheeler-compiler/src/main/wheeler/compiler/closure/ModuleManifest.w) + [`ManifestSyntax.w`](../../wheeler-compiler/src/main/wheeler/compiler/closure/ManifestSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
 
-Covers: One through 512 sorted local source modules, zero through sixty-four externals, a 3,072-import table, 262,144-byte manifests, unique paths, complete binding, rooted reachability, cycle rejection, bounded names and paths, lowercase source identities, exact schema bytes, SHA-256 publication, and rewind.
+Covers: The compiler-owned counted manifest parser over one through 512 sorted local source modules, zero through sixty-four externals, a 3,072-import table, 262,144-byte manifests, unique paths, complete binding, rooted reachability, cycle rejection, bounded names and paths, lowercase source identities, exact schema bytes, SHA-256 publication, and rewind.
 
-Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures plus a sixty-five-module star and 128-, 256-, and 257-module chains reproduce stage 0. The last chain crosses the former local-module ceiling. A sixty-six-module star exceeds the per-module import bound. Nine-, ten-, and thirteen-module DAGs over sixty-four externals pin the 512-, 576-, and 768-import boundaries. Sorted module and external tables use bounded binary lookup. Source guards pin the checks before a 513th module or 3,073rd edge is appended without commissioning long rejection fixtures. A cycle, unreachable module, duplicate path, sixty-fifth external, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 262,144 bytes publishes nothing. The current physical compiler closure has 203 modules, 1,114 imports, and 95,335 canonical bytes. The packaged executable reproduces its stage-0 identity in 33,485,583 transitions. The 512-module native table bound remains deliberately smaller than the 10,000-module schema and independently bounded by the manifest byte ceiling. Pretending otherwise would merely give the graph a fake moustache too.
+Expected behavior: Empty-import one-module, two-external one-module, and three-, five-, nine-, and seventeen-module rooted DAG closures plus a sixty-five-module star and 128-, 256-, and 257-module chains reproduce stage 0. The last chain crosses the former local-module ceiling. A sixty-six-module star exceeds the per-module import bound. Nine-, ten-, and thirteen-module DAGs over sixty-four externals pin the 512-, 576-, and 768-import boundaries. Sorted module and external tables use bounded binary lookup. Source guards pin the checks before a 513th module or 3,073rd edge is appended without commissioning long rejection fixtures. A cycle, unreachable module, duplicate path, sixty-fifth external, unsorted external, unbound import, mismatched root, uppercase digest, traversal path, or input beyond 262,144 bytes publishes nothing. The current physical compiler closure has 207 modules, 1,124 imports, and 96,686 canonical bytes. The packaged executable reproduces its stage-0 identity in 36,456,537 transitions. The 512-module native table bound remains deliberately smaller than the 10,000-module schema and independently bounded by the manifest byte ceiling. Pretending otherwise would merely give the graph a fake moustache too.
 
 ### `NativeCompilerLimitsIdentity.w`
 
-Files: [`NativeCompilerLimitsIdentity.w`](../../wheeler-conformance/src/main/wheeler/bootstrap/NativeCompilerLimitsIdentity.w) + [`BootstrapSyntax.w`](../../wheeler-conformance/src/main/wheeler/bootstrap/BootstrapSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
+Files: [`NativeCompilerLimitsIdentity.w`](../../wheeler-conformance/src/main/wheeler/bootstrap/NativeCompilerLimitsIdentity.w) + [`ManifestSyntax.w`](../../wheeler-compiler/src/main/wheeler/compiler/closure/ManifestSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
 
 Covers: Exact schema-1 canonical YAML, all ten required positive compiler ceilings, canonical decimal spelling, the 1,073,741,824 per-field maximum, complete SHA-256 publication, and exact rewind.
 
@@ -90,7 +90,7 @@ Expected behavior: The documented bootstrap limits reproduce the stage-0 identit
 
 ### `NativeCompilerOptionsIdentity.w`
 
-Files: [`NativeCompilerOptionsIdentity.w`](../../wheeler-conformance/src/main/wheeler/bootstrap/NativeCompilerOptionsIdentity.w) + [`BootstrapSyntax.w`](../../wheeler-conformance/src/main/wheeler/bootstrap/BootstrapSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
+Files: [`NativeCompilerOptionsIdentity.w`](../../wheeler-conformance/src/main/wheeler/bootstrap/NativeCompilerOptionsIdentity.w) + [`ManifestSyntax.w`](../../wheeler-compiler/src/main/wheeler/compiler/closure/ManifestSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
 
 Covers: Exact schema-1 canonical YAML, bounded canonical profile names, both source-map values, complete SHA-256 publication, malformed-option rejection, and exact rewind.
 
@@ -98,7 +98,7 @@ Expected behavior: `bootstrap-1` without source maps and `native.test_2` with so
 
 ### `NativeToolchainIdentity.w`
 
-Files: [`NativeToolchainIdentity.w`](../../wheeler-conformance/src/main/wheeler/bootstrap/NativeToolchainIdentity.w) + [`BootstrapSyntax.w`](../../wheeler-conformance/src/main/wheeler/bootstrap/BootstrapSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
+Files: [`NativeToolchainIdentity.w`](../../wheeler-conformance/src/main/wheeler/bootstrap/NativeToolchainIdentity.w) + [`ManifestSyntax.w`](../../wheeler-compiler/src/main/wheeler/compiler/closure/ManifestSyntax.w) + [`crypto/ContentIdentity.w`](../../wheeler-core/src/main/wheeler/crypto/ContentIdentity.w).
 
 Covers: Exact schema-1 canonical YAML, all three closed toolchain kinds, four lowercase SHA-256 provenance identities, complete publication, and exact rewind.
 
@@ -175,7 +175,7 @@ Expected behavior:
 - Empty, `abc`, 55/56/64-byte padding boundaries, and 100 arbitrary binary bytes match the JDK SHA-256 oracle.
 - Output is exactly 32 bytes and the empty-input run rewinds exactly.
 - Full 64-byte input blocks bypass padding-byte synthesis. The final partial block still uses the same checked padding relation.
-- SHA evidence receives 1,000,000 startup transitions plus 200 transitions per input byte. The current 95,335-byte compiler manifest hashes in 18,248,944 history-free transitions under its 20,067,000-transition budget. This checks linear work, not the patience of a progress bar.
+- SHA evidence receives 1,000,000 startup transitions plus 200 transitions per input byte. The current 96,686-byte compiler manifest hashes in 18,506,054 history-free transitions under its 20,337,200-transition budget. This checks linear work, not the patience of a progress bar.
 
 ### `NativeBytecodeCodec.w`
 

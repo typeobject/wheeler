@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -34,7 +35,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
   void validatesThePhysicalBoundedCompilerClosure() throws Exception {
     BootstrapModuleManifest manifest = CompilerSources.bootstrapModuleManifest();
 
-    assertEquals(95_335, manifest.canonicalBytes().length);
+    assertEquals(96_686, manifest.canonicalBytes().length);
     VirtualMachine machine = vm(program(), manifest.canonicalBytes());
     long transitions = 0;
     while (machine.status() != MachineStatus.HALTED
@@ -43,19 +44,19 @@ final class NativeBootstrapModulesIdentityExampleTest {
       transitions += 1;
     }
 
-    assertEquals(33_485_583, transitions);
+    assertEquals(36_456_537, transitions);
     assertEquals(MachineStatus.HALTED, machine.status());
     assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(manifest.canonicalBytes()),
         machine.hostOutput());
-    assertEquals(203, machine.global("moduleCount"));
+    assertEquals(207, machine.global("moduleCount"));
     assertEquals(3, machine.global("externalCount"));
-    assertEquals(1_114, machine.global("importCount"));
+    assertEquals(1_124, machine.global("importCount"));
     assertEquals(1, machine.global("published"));
   }
 
   @Test
   void pinsTheNativeImportCapacityGuard() throws Exception {
-    String source = Files.readString(ROOT.resolve("NativeBootstrapModulesIdentity.w"));
+    String source = CompilerSources.read("compiler/closure/ModuleManifest.w");
 
     assertTrue(source.contains("private const long MAX_LOCAL_MODULES = 512;"));
     assertTrue(source.contains("requireMetadata(parsedModules < MAX_LOCAL_MODULES, source);"));
@@ -329,13 +330,16 @@ final class NativeBootstrapModulesIdentityExampleTest {
   }
 
   private static Program program() throws Exception {
+    Map<String, String> sources = new LinkedHashMap<>();
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.module_manifest"));
+    sources.put(
+        "NativeBootstrapModulesIdentity.w",
+        Files.readString(ROOT.resolve("NativeBootstrapModulesIdentity.w")));
+    sources.put("ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"));
+    sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     return new WheelerCompiler().compileModuleFiles(
-        Map.of(
-            "NativeBootstrapModulesIdentity.w",
-            Files.readString(ROOT.resolve("NativeBootstrapModulesIdentity.w")),
-            "BootstrapSyntax.w", Files.readString(ROOT.resolve("BootstrapSyntax.w")),
-            "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
-            "Sha256.w", CoreSources.read("crypto/Sha256.w")),
+        sources,
         "wheeler.conformance.bootstrap.modules_identity");
   }
 

@@ -15,7 +15,7 @@
 
 The native compiler shall consume the canonical compiler package closure without an arity-shaped frame. WIP-0043 proved graph-complete execution for the seven-source recovery frame. This WIP replaces that transport bound with counted closure tables already validated by bootstrap evidence.
 
-The target is the physical compiler closure, not an intermediate collection of larger tuples. The current closure has 203 local modules and 1,114 imports. Native closure metadata already admits 512 local modules, sixty-four externals, 3,072 imports, and 262,144 canonical manifest bytes. The compiler shall use those facts instead of reconstructing another graph format.
+The target is the physical compiler closure, not an intermediate collection of larger tuples. The current closure has 207 local modules and 1,124 imports. Native closure metadata already admits 512 local modules, sixty-four externals, 3,072 imports, and 262,144 canonical manifest bytes. The compiler shall use those facts instead of reconstructing another graph format.
 
 ## Problem
 
@@ -148,8 +148,11 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 - [x] `compiler/closure/ArchiveSources.w` validates the outer archive digest, every entry digest, canonical sorted paths, complete framing, and exact path/data offsets before publishing any column.
 - [x] Archive source columns admit 512 entries. A 513th entry fails before hashing or mutation.
 - [x] Three-entry evidence checks physical path and payload offsets. Damaged outer evidence preserves caller columns.
-- [ ] Archive paths and source identities are joined to the validated bootstrap module manifest.
-- [ ] Counted node and import columns replace packed seven-node plan facts.
+- [x] `compiler/closure/ModuleManifest.w` owns canonical syntax, binding, root, cycle, and reachability validation. Conformance identity publication calls that owner.
+- [x] `ArchiveModuleSources.w` joins all 207 physical compiler modules to exact digest-matching archive ranges. A mismatched source identity leaves publication untouched.
+- [x] The manifest parser materializes counted module, external, import-owner, and resolved-target columns through 512 modules and 3,072 imports.
+- [x] Every physical compiler source is at most 32,768 bytes. Scalar backend encoding moved out of the former 37,755-byte `Codegen.w`.
+- [ ] Counted closure columns replace packed seven-node execution facts.
 - [ ] Active linked-source work slots carry checked generations.
 - [ ] The complete physical compiler closure compiles.
 
@@ -157,7 +160,7 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 
 - The counted closure executor reproduces every seven-frame differential byte for byte.
 - A 257-module chain crosses the former native closure boundary and publishes correctly.
-- The current 203-module compiler closure plans without truncation.
+- The current 207-module compiler closure plans without truncation.
 - Module and import order are invariant under archive-entry permutation.
 - Invalid archive, manifest, source identity, root, offset, cycle, or bound publishes nothing.
 - Active work slots cannot be read after release or stale generation.

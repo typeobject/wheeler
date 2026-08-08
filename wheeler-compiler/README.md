@@ -25,6 +25,9 @@ The package keeps responsibilities narrow:
 - `compiler/graphs/Matrix.w` records canonical edges, roots, root ranks, leaf-first order, visibility, and sharing facts.
 - `compiler/graphs/plans/SourceTable.w` owns seven fixed 32,768-byte source slots. Replacement validates before mutation and clears stale tails.
 - `compiler/closure/ArchiveSources.w` validates up to 512 sorted package entries and publishes exact path/data offsets only after outer and per-entry SHA-256 checks.
+- `compiler/closure/ModuleManifest.w` owns canonical bootstrap-module parsing, binding, cycle rejection, and rooted reachability.
+- `compiler/closure/ArchiveModuleSources.w` joins each local source path and identity to one immutable archive range before publication.
+- `compiler/backend/primitives/ScalarEncoding.w` keeps scalar encoding focused and every physical compiler source below the 32,768-byte native ceiling.
 - `compiler/graphs/plans/GraphExecutor.w` executes constants, direct helpers, mixed direct owners, private helper edges, and the constant-fed helper chain. Dense DAGs, forests, chains, and forks are graph data, not executor identities.
 - `compiler/graphs/plans/GraphExecutionOrder.w` selects dependency imports and ready roots without consulting frame order.
 - `compiler/graphs/plans/GraphHelperMembers.w` filters repeated executable owners and rotates retained helper groups into canonical order.

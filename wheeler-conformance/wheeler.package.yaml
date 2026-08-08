@@ -23,7 +23,6 @@ targets:
     root: "src/main/wheeler/bootstrap/NativeArtifactSetIdentity.w"
     module: "wheeler.conformance.bootstrap.artifact_set_identity"
     sources:
-      - "src/main/wheeler/bootstrap/BootstrapSyntax.w"
       - "src/main/wheeler/bootstrap/NativeArtifactSetIdentity.w"
     test: false
   - kind: "deployable"
@@ -31,7 +30,6 @@ targets:
     root: "src/main/wheeler/bootstrap/NativeBootstrapFeaturesIdentity.w"
     module: "wheeler.conformance.bootstrap.features_identity"
     sources:
-      - "src/main/wheeler/bootstrap/BootstrapSyntax.w"
       - "src/main/wheeler/bootstrap/NativeBootstrapFeaturesIdentity.w"
     test: false
   - kind: "deployable"
@@ -39,7 +37,6 @@ targets:
     root: "src/main/wheeler/bootstrap/NativeBootstrapManifestIdentity.w"
     module: "wheeler.conformance.bootstrap.manifest_identity"
     sources:
-      - "src/main/wheeler/bootstrap/BootstrapSyntax.w"
       - "src/main/wheeler/bootstrap/NativeBootstrapManifestIdentity.w"
     test: false
   - kind: "deployable"
@@ -47,7 +44,6 @@ targets:
     root: "src/main/wheeler/bootstrap/NativeBootstrapModulesIdentity.w"
     module: "wheeler.conformance.bootstrap.modules_identity"
     sources:
-      - "src/main/wheeler/bootstrap/BootstrapSyntax.w"
       - "src/main/wheeler/bootstrap/NativeBootstrapModulesIdentity.w"
     test: false
   - kind: "deployable"
@@ -76,7 +72,6 @@ targets:
     root: "src/main/wheeler/bootstrap/NativeCompilerLimitsIdentity.w"
     module: "wheeler.conformance.bootstrap.compiler_limits_identity"
     sources:
-      - "src/main/wheeler/bootstrap/BootstrapSyntax.w"
       - "src/main/wheeler/bootstrap/NativeCompilerLimitsIdentity.w"
     test: false
   - kind: "deployable"
@@ -84,7 +79,6 @@ targets:
     root: "src/main/wheeler/bootstrap/NativeCompilerOptionsIdentity.w"
     module: "wheeler.conformance.bootstrap.compiler_options_identity"
     sources:
-      - "src/main/wheeler/bootstrap/BootstrapSyntax.w"
       - "src/main/wheeler/bootstrap/NativeCompilerOptionsIdentity.w"
     test: false
   - kind: "deployable"
@@ -176,7 +170,6 @@ targets:
     root: "src/main/wheeler/bootstrap/NativeToolchainIdentity.w"
     module: "wheeler.conformance.bootstrap.toolchain_identity"
     sources:
-      - "src/main/wheeler/bootstrap/BootstrapSyntax.w"
       - "src/main/wheeler/bootstrap/NativeToolchainIdentity.w"
     test: false
   - kind: "deployable"

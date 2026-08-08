@@ -2,7 +2,9 @@
 
 module wheeler.compiler.driver;
 
+import wheeler.compiler.closure.archive_module_sources;
 import wheeler.compiler.closure.archive_sources;
+import wheeler.compiler.closure.module_manifest;
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.compiler_graphs;
 

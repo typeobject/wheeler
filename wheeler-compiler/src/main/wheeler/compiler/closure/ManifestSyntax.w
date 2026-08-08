@@ -1,8 +1,8 @@
-//! Shares strict bounded bootstrap metadata checks without inventing a JSON framework.
+//! Owns strict bounded syntax checks for bootstrap closure metadata.
 
-module wheeler.conformance.bootstrap.syntax;
+module wheeler.compiler.closure.manifest_syntax;
 
-classical class BootstrapSyntax {
+classical class ClosureManifestSyntax {
   /// Traps before publication when one metadata condition fails.
   public void requireMetadata(boolean condition, borrow byteview source) {
     if (condition == false) {
