@@ -125,7 +125,8 @@ No `wheeler.bootstrap.yaml` may be added before that evidence exists.
 - [x] Record, array, and variant fixtures execute through the native decoder.
 - [x] Malformed container magic traps before publication.
 - [ ] Every malformed directory and table boundary has atomic rejection evidence.
-- [ ] Aggregate product identities bind package, module, artifact, and dependency identities.
+- [x] `AggregateIdentities.w` binds package, module, artifact, counts, and validated rows under `wheeler-aggregate-module-product-1`. An independent Java digest matches the native result, and an invalid row publishes no bytes.
+- [ ] Closure-wide aggregate identities bind header-ranked dependency aggregate identities.
 - [ ] Counted closure windows publish one source-local aggregate product at a time.
 - [ ] Recursive and mutually recursive nominal layouts resolve or fail closed.
 - [ ] Ownership and loan projections verify against aggregate products.
