@@ -164,11 +164,13 @@ The seven-frame executor remains differential conformance evidence until step 9.
 - [x] Each local edge records its completed dependency's public-symbol count at header rank.
 - [x] A 257-module chain publishes 257 symbols, root import count one, peak source count one, and root generation 257.
 - [x] One module publishes exactly 256 scalar declarations. Declaration 257 fails before publication.
-- [x] The 225-module physical compiler closure publishes 968 scalar declarations and reaches generation 225.
+- [x] The 227-module physical compiler closure publishes 971 scalar declarations and reaches generation 227.
 - [x] Malformed constant syntax leaves product and completion publication untouched.
-- [x] Every scalar product receives a package-archive-, module-source-, kind-, visibility-, type-, and name-bound SHA-256 identity after complete range validation. Chain endpoints match an independent Java digest.
+- [x] `SymbolIdentities.w` gives every scalar product a package-archive-, module-source-, kind-, visibility-, type-, and name-bound SHA-256 identity after complete range validation. Chain endpoints match an independent Java digest.
+- [x] Literal and same-module scalar expressions publish values through the existing bounded evaluator.
+- [x] `ImportedConstantValues.w` resolves exact unqualified direct-import forwarding from completed products through a 257-module chain. The final value remains 41 without retaining dependency source.
 - [ ] Stable compiled module identities publish.
-- [ ] Imported constants resolve from products.
+- [ ] General imported constant expressions, qualification, and ambiguity resolve from products.
 - [ ] Arbitrary counted constant closures compile without a seven-node plan.
 - [ ] Callable products compile.
 - [ ] Aggregate products compile.

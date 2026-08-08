@@ -34,7 +34,7 @@ final class NativeCompilerArchiveClosureExampleTest {
         framed(archive, manifest.canonicalBytes()),
         1);
 
-    CompilerMachineRunner.runWithoutRewindHistory(machine);
+    runClosure(machine, program);
 
     assertArrayEquals(new byte[] {1}, machine.hostOutput());
     assertEquals(manifest.modules().size(), machine.global("moduleCount"));
@@ -47,7 +47,8 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("executableCount") > 0);
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
-    assertEquals(968, machine.global("symbolCount"));
+    assertEquals(971, machine.global("symbolCount"));
+    assertTrue(machine.global("resolvedSymbolCount") > 800);
     assertTrue(machine.global("maxImportedSymbols") > 0);
     assertEquals(manifest.modules().size(), machine.global("symbolGeneration"));
     assertEquals(identityPrefix(archive), machine.global("packageIdentityPrefix"));
@@ -138,6 +139,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertArrayEquals(new byte[] {1}, exact.hostOutput());
     assertEquals(256, exact.global("symbolCount"));
     assertEquals(256, exact.global("rootLocalSymbols"));
+    assertEquals(256, exact.global("resolvedSymbolCount"));
     assertEquals(1, exact.global("symbolGeneration"));
 
     byte[] oversizedSource = constantSource(257);
@@ -150,6 +152,22 @@ final class NativeCompilerArchiveClosureExampleTest {
         () -> CompilerMachineRunner.runWithoutRewindHistory(oversized));
     assertEquals(0, oversized.global("published"));
     assertEquals(0, oversized.global("symbolCount"));
+  }
+
+  @Test
+  void resolvesTwoHundredFiftySixImportedConstantProducts() throws Exception {
+    ChainFixture fixture = forwardingChainFixture(257);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        program(),
+        framed(fixture.archive(), fixture.manifest().canonicalBytes()),
+        1);
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+    assertArrayEquals(new byte[] {1}, machine.hostOutput());
+    assertEquals(257, machine.global("symbolCount"));
+    assertEquals(257, machine.global("resolvedSymbolCount"));
+    assertEquals(41, machine.global("lastSymbolValue"));
+    assertEquals(1, machine.global("maxImportedSymbols"));
+    assertEquals(257, machine.global("symbolGeneration"));
   }
 
   @Test
@@ -171,6 +189,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(257, machine.global("rootGeneration"));
     assertEquals(257, machine.global("symbolCount"));
+    assertEquals(257, machine.global("resolvedSymbolCount"));
     assertEquals(1, machine.global("rootLocalSymbols"));
     assertEquals(1, machine.global("rootImportedSymbols"));
     assertEquals(1, machine.global("maxImportedSymbols"));
@@ -253,6 +272,7 @@ final class NativeCompilerArchiveClosureExampleTest {
         import wheeler.compiler.closure.package_target;
         import wheeler.compiler.closure.plan;
         import wheeler.compiler.closure.schedule;
+        import wheeler.compiler.closure.symbol_identities;
 
         classical class ArchiveClosureExample {
           private const long MAX_ARCHIVE_BYTES = 16777216;
@@ -275,6 +295,7 @@ final class NativeCompilerArchiveClosureExampleTest {
           state long rootGeneration = 0;
           state long compilerTarget = -1;
           state long symbolCount = 0;
+          state long resolvedSymbolCount = 0;
           state long rootLocalSymbols = 0;
           state long rootImportedSymbols = 0;
           state long maxImportedSymbols = 0;
@@ -282,6 +303,7 @@ final class NativeCompilerArchiveClosureExampleTest {
           state long packageIdentityPrefix = 0;
           state long firstSymbolIdentityPrefix = 0;
           state long lastSymbolIdentityPrefix = 0;
+          state long lastSymbolValue = 0;
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
@@ -308,7 +330,7 @@ final class NativeCompilerArchiveClosureExampleTest {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 1650000, /* allocations= */ 38);
+            region columns = new region(/* bytes= */ 1920000, /* allocations= */ 40);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -344,6 +366,8 @@ final class NativeCompilerArchiveClosureExampleTest {
             words symbolKinds = allocate(columns, MAX_SYMBOLS);
             words symbolVisibilities = allocate(columns, MAX_SYMBOLS);
             words symbolTypes = allocate(columns, MAX_SYMBOLS);
+            words symbolValues = allocate(columns, MAX_SYMBOLS);
+            words symbolResolved = allocate(columns, MAX_SYMBOLS);
             bytes packageIdentity = allocateBytes(columns, /* length= */ 32);
             bytes symbolIdentities = allocateBytes(columns, MAX_SYMBOLS * 32);
             bytes expected = allocateBytes(columns, /* length= */ 256);
@@ -441,7 +465,9 @@ final class NativeCompilerArchiveClosureExampleTest {
                   symbolLengths,
                   symbolKinds,
                   symbolVisibilities,
-                  symbolTypes
+                  symbolTypes,
+                  symbolValues,
+                  symbolResolved
                 );
                 publishCountedSymbolIdentities(
                   archive,
@@ -492,6 +518,13 @@ final class NativeCompilerArchiveClosureExampleTest {
 
                   executableModule += 1;
                 }
+                long parsedResolvedSymbols = 0;
+                long resolvedSymbol = 0;
+                while (resolvedSymbol < symbols.symbolCount) limit MAX_SYMBOLS {
+                  parsedResolvedSymbols += symbolResolved[resolvedSymbol];
+                  resolvedSymbol += 1;
+                }
+
                 long selectedRootOrder = 0;
                 while (
                   leafFirstOrder[selectedRootOrder] != closure.rootModule
@@ -511,6 +544,7 @@ final class NativeCompilerArchiveClosureExampleTest {
                 rootGeneration = moduleGenerations[closure.rootModule];
                 compilerTarget = selectedCompilerTarget;
                 symbolCount = symbols.symbolCount;
+                resolvedSymbolCount = parsedResolvedSymbols;
                 rootLocalSymbols = moduleSymbolCounts[closure.rootModule];
                 rootImportedSymbols = moduleImportedSymbolCounts[closure.rootModule];
                 maxImportedSymbols = largestImportedSymbols;
@@ -528,6 +562,7 @@ final class NativeCompilerArchiveClosureExampleTest {
                   + symbolIdentities[finalIdentity + 1] * 65536
                   + symbolIdentities[finalIdentity + 2] * 256
                   + symbolIdentities[finalIdentity + 3];
+                lastSymbolValue = symbolValues[symbols.symbolCount - 1];
                 published = 1;
                 setByte(output, 0, 1);
               }
@@ -538,6 +573,8 @@ final class NativeCompilerArchiveClosureExampleTest {
             drop(expected);
             drop(symbolIdentities);
             drop(packageIdentity);
+            drop(symbolResolved);
+            drop(symbolValues);
             drop(symbolTypes);
             drop(symbolVisibilities);
             drop(symbolKinds);
@@ -657,6 +694,18 @@ final class NativeCompilerArchiveClosureExampleTest {
     return new ChainFixture(archive, manifest);
   }
 
+  private static void runClosure(VirtualMachine machine, Program program) {
+    try {
+      CompilerMachineRunner.runWithoutRewindHistory(machine);
+    } catch (VmTrap trap) {
+      var frames = machine.snapshot().selectedFrames().stream()
+          .map(frame -> program.function(frame.functionId()).name()
+              + "@" + frame.programCounter())
+          .toList();
+      throw new AssertionError("Counted closure trapped in " + frames, trap);
+    }
+  }
+
   private static long identityPrefix(byte[] source) throws Exception {
     return digestPrefix(MessageDigest.getInstance("SHA-256").digest(source));
   }
@@ -695,6 +744,54 @@ final class NativeCompilerArchiveClosureExampleTest {
     }
     source.append(" }");
     return source.toString().getBytes(StandardCharsets.UTF_8);
+  }
+
+  private static ChainFixture forwardingChainFixture(int count) throws Exception {
+    var modules = new ArrayList<BootstrapModuleManifest.Module>();
+    Map<String, byte[]> sources = new LinkedHashMap<>();
+    MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+    for (int index = 0; index < count; index++) {
+      String name = "forward.n%03d".formatted(index);
+      String path = "src/forward/n%03d.w".formatted(index);
+      String imported = index == 0 ? "" : " import forward.n%03d;".formatted(index - 1);
+      String expression = index == 0 ? "41" : "V%03d".formatted(index - 1);
+      byte[] source = (
+          "module %s;%s classical class Node%03d { public const long V%03d = %s; }"
+              .formatted(name, imported, index, index, expression))
+          .getBytes(StandardCharsets.UTF_8);
+      sources.put(path, source);
+      modules.add(new BootstrapModuleManifest.Module(
+          name,
+          path,
+          HexFormat.of().formatHex(sha256.digest(source)),
+          index == 0 ? List.of() : List.of("forward.n%03d".formatted(index - 1))));
+    }
+
+    BootstrapModuleManifest manifest = new BootstrapModuleManifest(
+        "bootstrap-1",
+        "forward.n%03d".formatted(count - 1),
+        List.of(),
+        modules);
+    byte[] archive = new PackageArchive().encode(
+        new PackageManifestParser().parse("""
+            schema: 1
+            package:
+              name: "demo.forward"
+              version: "1.0.0"
+              profile: "bootstrap-1"
+            targets:
+              - kind: "tool"
+                name: "compiler"
+                root: "src/forward/n256.w"
+                module: "forward.n256"
+                sources:
+                  - "src/forward"
+                test: false
+            dependencies: []
+            capabilities: []
+            """),
+        sources);
+    return new ChainFixture(archive, manifest);
   }
 
   private static byte[] smallArchive(byte[] source, boolean compilerTarget) {
