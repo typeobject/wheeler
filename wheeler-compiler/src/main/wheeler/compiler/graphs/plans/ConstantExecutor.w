@@ -1,4 +1,4 @@
-//! Executes rooted constant forests through one counted source table.
+//! Executes bounded constant forests and single-root DAGs through one source table.
 
 module wheeler.compiler.graphs.constant_executor;
 
@@ -18,9 +18,13 @@ classical class BoundedConstantPlanExecutor {
     return new ConstantPlanExecution(0, 0);
   }
 
-  private boolean directOrForest(BoundedGraphPlan plan) {
+  private boolean genericConstantPlan(BoundedGraphPlan plan) {
     if (plan.valid) {} else {
       return false;
+    }
+
+    if (plan.rootCount == 1) {
+      return true;
     }
 
     return plan.edgeCount + plan.rootCount == plan.nodeCount;
@@ -131,6 +135,14 @@ classical class BoundedConstantPlanExecutor {
       plannedIncomingCount(plan, dependentNode)
     );
     if (link.valid) {} else {
+      link = planSharedResolvedConstantImport(
+        dependencySource,
+        dependentSource,
+        plannedIncomingCount(plan, dependentNode)
+      );
+    }
+
+    if (link.valid) {} else {
       drop(dependentSource);
       drop(dependentArena);
       drop(dependencySource);
@@ -228,7 +240,7 @@ classical class BoundedConstantPlanExecutor {
     return replaced;
   }
 
-  /// Executes one rooted two- through four-module constant forest.
+  /// Executes one rooted two- through four-module constant forest or single-root DAG.
   public ConstantPlanExecution executeConstantPlan(
     BoundedGraphPlan plan,
     borrow utf8 firstSource,
@@ -238,7 +250,7 @@ classical class BoundedConstantPlanExecutor {
     borrow utf8 rootSource,
     borrow mut bytes output
   ) {
-    if (directOrForest(plan)) {} else {
+    if (genericConstantPlan(plan)) {} else {
       return failedExecution();
     }
 
