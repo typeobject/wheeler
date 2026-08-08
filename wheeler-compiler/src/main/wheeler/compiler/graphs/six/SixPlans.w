@@ -26,14 +26,20 @@ classical class SixGraphPlans {
     long fourth,
     long fifth,
     long sixth,
+    BoundedGraphPlan bounded,
     boolean valid
   ) {}
 
   private SixGraphPlan invalidPlan() {
-    return new SixGraphPlan(0, 0, 0, 0, 0, 0, 0, false);
+    BoundedGraphPlan bounded = new BoundedGraphPlan(0, 0, 0, 0, 0, 0, 0, 0, 0, false);
+    return new SixGraphPlan(0, 0, 0, 0, 0, 0, 0, bounded, false);
   }
 
-  private SixGraphPlan orderedPlan(long topology, SixGraphStructure structure) {
+  private SixGraphPlan orderedPlan(
+    long topology,
+    SixGraphStructure structure,
+    BoundedGraphPlan bounded
+  ) {
     return new SixGraphPlan(
       topology,
       structure.first,
@@ -42,6 +48,7 @@ classical class SixGraphPlans {
       structure.fourth,
       structure.fifth,
       structure.sixth,
+      bounded,
       true
     );
   }
@@ -280,7 +287,7 @@ classical class SixGraphPlans {
       if (structure.valid) {
         long topology = publicTopology(structure.topology);
         if (0 < topology) {
-          result = orderedPlan(topology, structure);
+          result = orderedPlan(topology, structure, graphPlan);
         }
       }
     }

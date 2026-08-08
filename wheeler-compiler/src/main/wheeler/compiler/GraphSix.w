@@ -3,6 +3,7 @@
 module wheeler.compiler.compiler_graph_six;
 
 import wheeler.compiler.compiler_core;
+import wheeler.compiler.graphs.constant_executor;
 import wheeler.compiler.graphs.six.chain;
 import wheeler.compiler.graphs.six.fork;
 import wheeler.compiler.graphs.six.mixed;
@@ -440,6 +441,21 @@ classical class CompilerGraphSix {
     );
     if (plan.valid) {} else {
       assert(0 == 1);
+    }
+
+    ConstantPlanExecution execution = executeConstantPlan(
+      plan.bounded,
+      firstSource,
+      secondSource,
+      thirdSource,
+      fourthSource,
+      fifthSource,
+      sixthSource,
+      rootSource,
+      output
+    );
+    if (0 < execution.length) {
+      return new SixGraphCompilation(execution.length, execution.codeStart);
     }
 
     if (plan.topology == SIX_PLAN_DIRECT) {
