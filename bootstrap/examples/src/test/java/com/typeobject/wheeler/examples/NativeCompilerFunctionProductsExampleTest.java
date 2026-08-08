@@ -39,6 +39,8 @@ final class NativeCompilerFunctionProductsExampleTest {
     assertEquals(product.functions().size(), machine.global("functionCount"));
     assertEquals(instructions, machine.global("instructionCount"));
     assertEquals(maxLocals, machine.global("maxLocalCount"));
+    assertEquals(1, machine.global("localRelocationCount"));
+    assertEquals(0, machine.global("firstLocalTarget"));
     assertEquals(product.functions().getFirst().forward().getFirst().opcode().code(),
         machine.global("firstOpcode"));
     assertEquals(1, machine.global("published"));
@@ -55,6 +57,18 @@ final class NativeCompilerFunctionProductsExampleTest {
 
     assertThrows(VmTrap.class, machine::run);
     assertEquals(0, machine.global("published"));
+  }
+
+  @Test
+  void rejectsUnknownLocalCallTargetsBeforePublication() throws Exception {
+    byte[] artifact = new BytecodeWriter().write(product());
+    int call = firstCallInstruction(artifact);
+    putLong(artifact, call + 8, 99);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(decoder(), artifact, 32);
+
+    assertThrows(VmTrap.class, machine::run);
+    assertEquals(0, machine.global("published"));
+    assertEquals("00".repeat(32), HexFormat.of().formatHex(machine.hostOutput()));
   }
 
   @Test
@@ -76,17 +90,22 @@ final class NativeCompilerFunctionProductsExampleTest {
         "wheeler.compiler.closure.compiled_function_products"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.function_product_identities"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.local_call_relocations"));
     sources.put("FunctionProductsExample.w", """
         module example.function_products;
 
         import wheeler.compiler.closure.compiled_function_products;
         import wheeler.compiler.closure.function_product_identities;
+        import wheeler.compiler.closure.local_call_relocations;
 
         classical class FunctionProductsExample {
           state long functionCount = 0;
           state long instructionCount = 0;
           state long maxLocalCount = 0;
           state long firstOpcode = 0;
+          state long localRelocationCount = 0;
+          state long firstLocalTarget = -1;
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
@@ -111,6 +130,35 @@ final class NativeCompilerFunctionProductsExampleTest {
               functions,
               instructions
             );
+            region relocations = new region(/* bytes= */ 198656, /* allocations= */ 3);
+            bytes signatureIdentities = allocateBytes(relocations, /* length= */ 2048);
+            words relocationRows = allocate(relocations, /* length= */ 8192);
+            bytes relocationIdentities = allocateBytes(relocations, /* length= */ 131072);
+            long localFunction = 0;
+            while (localFunction < plan.functionCount) limit 64 {
+              long signatureByte = 0;
+              while (signatureByte < 32) limit 32 {
+                setByte(
+                  signatureIdentities,
+                  localFunction * 32 + signatureByte,
+                  localFunction + 1
+                );
+                signatureByte += 1;
+              }
+              localFunction += 1;
+            }
+            localRelocationCount = resolveLocalCallRelocations(
+              source,
+              plan.functionCount,
+              plan.instructionCount,
+              instructions,
+              signatureIdentities,
+              relocationRows,
+              relocationIdentities
+            );
+            if (0 < localRelocationCount) {
+              firstLocalTarget = relocationRows[4096];
+            }
             publishFunctionProductIdentity(
               source,
               bufferLength(source),
@@ -129,6 +177,10 @@ final class NativeCompilerFunctionProductsExampleTest {
             firstOpcode = instructions[12288];
             published = 1;
             setOutputLength(output, 32);
+            drop(relocationIdentities);
+            drop(relocationRows);
+            drop(signatureIdentities);
+            drop(relocations);
             drop(dependencyIdentities);
             drop(ownershipIdentity);
             drop(aggregateIdentity);
@@ -218,6 +270,34 @@ final class NativeCompilerFunctionProductsExampleTest {
         "fixture.function_products");
   }
 
+  private static int firstCallInstruction(byte[] artifact) {
+    ByteBuffer bytes = ByteBuffer.wrap(artifact).order(ByteOrder.LITTLE_ENDIAN);
+    int codeStart = sectionStart(artifact, 6);
+    int codeLength = sectionLength(artifact, 6);
+    int cursor = codeStart;
+    while (cursor < codeStart + codeLength) {
+      int opcode = Short.toUnsignedInt(bytes.getShort(cursor));
+      if (opcode == 0x0200 || opcode == 0x0201 || opcode == 0x0202
+          || opcode == 0x0204 || opcode == 0x0205 || opcode == 0x0206) {
+        return cursor;
+      }
+      cursor += bytes.getInt(cursor + 4);
+    }
+    throw new AssertionError("missing call instruction");
+  }
+
+  private static int sectionLength(byte[] artifact, int wantedType) {
+    ByteBuffer bytes = ByteBuffer.wrap(artifact).order(ByteOrder.LITTLE_ENDIAN);
+    int sections = bytes.getInt(24);
+    for (int index = 0; index < sections; index++) {
+      int directory = 40 + index * 32;
+      if (bytes.getInt(directory) == wantedType) {
+        return Math.toIntExact(bytes.getLong(directory + 16));
+      }
+    }
+    throw new AssertionError("missing section " + wantedType);
+  }
+
   private static int sectionStart(byte[] artifact, int wantedType) {
     ByteBuffer bytes = ByteBuffer.wrap(artifact).order(ByteOrder.LITTLE_ENDIAN);
     int sections = bytes.getInt(24);
@@ -232,5 +312,9 @@ final class NativeCompilerFunctionProductsExampleTest {
 
   private static void putInt(byte[] bytes, int offset, int value) {
     ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).putInt(offset, value);
+  }
+
+  private static void putLong(byte[] bytes, int offset, long value) {
+    ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).putLong(offset, value);
   }
 }

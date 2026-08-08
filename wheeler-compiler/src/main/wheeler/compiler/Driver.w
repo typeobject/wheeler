@@ -16,6 +16,7 @@ import wheeler.compiler.closure.compiled_function_products;
 import wheeler.compiler.closure.counted_aggregate_layouts;
 import wheeler.compiler.closure.counted_constant_executor;
 import wheeler.compiler.closure.function_product_identities;
+import wheeler.compiler.closure.local_call_relocations;
 import wheeler.compiler.closure.module_callables;
 import wheeler.compiler.closure.module_manifest;
 import wheeler.compiler.closure.module_symbols;
