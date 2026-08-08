@@ -45,6 +45,8 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(manifest.modules().size() - 1, machine.global("rootOrder"));
     assertEquals(1, machine.global("rootExecutable"));
     assertTrue(machine.global("executableCount") > 0);
+    assertEquals(1, machine.global("peakActiveSources"));
+    assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
     int rootEntry = Math.toIntExact(machine.global("rootEntry"));
     EntryRange rootRange = entryRange(archive, rootEntry);
     assertEquals("src/main/wheeler/MinimalCompiler.w", rootRange.path());
@@ -106,6 +108,8 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(256, machine.global("rootOrder"));
     assertEquals(0, machine.global("rootExecutable"));
     assertEquals(0, machine.global("executableCount"));
+    assertEquals(1, machine.global("peakActiveSources"));
+    assertEquals(257, machine.global("rootGeneration"));
   }
 
   @Test
@@ -164,6 +168,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.archive_module_sources"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.plan"));
+    sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.schedule"));
     sources.put("ArchiveClosureExample.w", """
         module example.archive_closure;
 
@@ -171,6 +176,7 @@ final class NativeCompilerArchiveClosureExampleTest {
         import wheeler.compiler.closure.archive_sources;
         import wheeler.compiler.closure.module_manifest;
         import wheeler.compiler.closure.plan;
+        import wheeler.compiler.closure.schedule;
 
         classical class ArchiveClosureExample {
           private const long MAX_ARCHIVE_BYTES = 16777216;
@@ -188,6 +194,8 @@ final class NativeCompilerArchiveClosureExampleTest {
           state long rootOrder = 0;
           state long rootExecutable = 0;
           state long executableCount = 0;
+          state long peakActiveSources = 0;
+          state long rootGeneration = 0;
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
@@ -214,7 +222,7 @@ final class NativeCompilerArchiveClosureExampleTest {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 205000, /* allocations= */ 24);
+            region columns = new region(/* bytes= */ 215000, /* allocations= */ 26);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -238,6 +246,8 @@ final class NativeCompilerArchiveClosureExampleTest {
             words importRanks = allocate(columns, MAX_IMPORTS);
             words leafFirstOrder = allocate(columns, MAX_MODULES);
             words executableOwners = allocate(columns, MAX_MODULES);
+            words moduleSlots = allocate(columns, MAX_MODULES);
+            words moduleGenerations = allocate(columns, MAX_MODULES);
             bytes expected = allocateBytes(columns, /* length= */ 256);
             ArchiveSourceIndexResult indexed = indexArchiveSources(
               archive,
@@ -303,6 +313,16 @@ final class NativeCompilerArchiveClosureExampleTest {
                   archiveSourceLengths,
                   executableOwners
                 );
+                ClosureSourceSchedule schedule = stageClosureSources(
+                  archive,
+                  manifest,
+                  closure,
+                  leafFirstOrder,
+                  archiveSourceStarts,
+                  archiveSourceLengths,
+                  moduleSlots,
+                  moduleGenerations
+                );
                 long selectedRootEntry = moduleEntries[plan.rootModule];
                 long executableModule = 0;
                 long parsedExecutables = 0;
@@ -325,6 +345,8 @@ final class NativeCompilerArchiveClosureExampleTest {
                 rootOrder = selectedRootOrder;
                 rootExecutable = executableOwners[closure.rootModule];
                 executableCount = parsedExecutables;
+                peakActiveSources = schedule.peakActiveSources;
+                rootGeneration = moduleGenerations[closure.rootModule];
                 published = 1;
                 setByte(output, 0, 1);
               }
@@ -333,6 +355,8 @@ final class NativeCompilerArchiveClosureExampleTest {
               }
             }
             drop(expected);
+            drop(moduleGenerations);
+            drop(moduleSlots);
             drop(executableOwners);
             drop(leafFirstOrder);
             drop(importRanks);

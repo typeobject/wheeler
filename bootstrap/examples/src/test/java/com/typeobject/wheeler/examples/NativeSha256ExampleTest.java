@@ -33,7 +33,7 @@ class NativeSha256ExampleTest {
       transitions += 1;
     }
 
-    assertEquals(19_522_680, transitions);
+    assertEquals(19_596_060, transitions);
     assertEquals(MachineStatus.HALTED, machine.status());
     assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(input), machine.hostOutput());
   }

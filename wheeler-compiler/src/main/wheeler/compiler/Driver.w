@@ -7,6 +7,7 @@ import wheeler.compiler.closure.archive_module_sources;
 import wheeler.compiler.closure.archive_sources;
 import wheeler.compiler.closure.module_manifest;
 import wheeler.compiler.closure.plan;
+import wheeler.compiler.closure.schedule;
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.compiler_graphs;
 
