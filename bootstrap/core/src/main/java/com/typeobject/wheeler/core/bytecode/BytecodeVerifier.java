@@ -116,16 +116,12 @@ public final class BytecodeVerifier {
         fail("Noncanonical or duplicate record type " + record.name());
       }
       for (RecordType.Field field : record.fields()) {
-        if (field.type().kind() == ValueType.Kind.RECORD
-            && field.type().descriptorId() >= record.id()) {
-          fail("Record fields must reference an earlier record type: " + record.name());
-        }
+        verifyTypeReference(program, field.type(), record.name());
         if (field.type().kind() == ValueType.Kind.ARRAY) {
           verifyEmbeddedScalarArray(program, field.type(), record.name());
-        } else if (field.type().kind() == ValueType.Kind.VARIANT
-            || field.type().kind() == ValueType.Kind.SLICE
+        } else if (field.type().kind() == ValueType.Kind.SLICE
             || nonescaping(field.type())) {
-          fail("Record fields cannot reference this aggregate type: " + record.name());
+          fail("Record fields cannot borrow storage: " + record.name());
         }
       }
     }
@@ -147,10 +143,6 @@ public final class BytecodeVerifier {
           } else if (field.type().kind() == ValueType.Kind.SLICE
               || nonescaping(field.type())) {
             fail("Variant payloads cannot reference this aggregate type: " + variant.name());
-          }
-          if (field.type().kind() == ValueType.Kind.VARIANT
-              && field.type().descriptorId() >= variant.id()) {
-            fail("Variant payloads must reference an earlier variant type: " + variant.name());
           }
         }
       }

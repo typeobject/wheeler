@@ -45,20 +45,13 @@ final class SourceTypeLowerer {
 
   private static List<RecordType> records(SourceProgram source) {
     List<RecordType> result = new ArrayList<>();
-    Map<String, ValueType> types = scalars();
-    addArrayReferences(types, source.arrays());
-    Set<String> names = new HashSet<>();
+    Map<String, ValueType> types = declaredReferences(source);
     for (SourceModel.RecordDefinition record : source.records()) {
-      if (!names.add(record.name())) {
-        throw new CompilerException(record.line(), "duplicate record type: " + record.name());
-      }
       List<RecordType.Field> fields = record.fields().stream()
           .map(field -> new RecordType.Field(
               field.name(), resolve(field.type(), record.line(), types)))
           .toList();
-      RecordType descriptor = new RecordType(result.size(), record.name(), fields);
-      result.add(descriptor);
-      types.put(record.name(), ValueType.record(descriptor.id()));
+      result.add(new RecordType(result.size(), record.name(), fields));
     }
     return List.copyOf(result);
   }
@@ -66,9 +59,7 @@ final class SourceTypeLowerer {
   private static List<VariantType> variants(
       SourceProgram source, List<RecordType> records) {
     List<VariantType> result = new ArrayList<>();
-    Map<String, ValueType> types = scalars();
-    records.forEach(record -> types.put(record.name(), ValueType.record(record.id())));
-    addArrayReferences(types, source.arrays());
+    Map<String, ValueType> types = declaredReferences(source);
     for (SourceModel.VariantDefinition variant : source.variants()) {
       List<VariantType.Case> cases = variant.cases().stream()
           .map(variantCase -> new VariantType.Case(
@@ -78,9 +69,7 @@ final class SourceTypeLowerer {
                       field.name(), resolve(field.type(), variant.line(), types)))
                   .toList()))
           .toList();
-      VariantType descriptor = new VariantType(result.size(), variant.name(), cases);
-      result.add(descriptor);
-      types.put(variant.name(), ValueType.variant(descriptor.id()));
+      result.add(new VariantType(result.size(), variant.name(), cases));
     }
     return List.copyOf(result);
   }
@@ -88,9 +77,7 @@ final class SourceTypeLowerer {
   private static List<ArrayType> arrays(
       SourceProgram source, List<RecordType> records, List<VariantType> variants) {
     List<ArrayType> result = new ArrayList<>();
-    Map<String, ValueType> types = scalars();
-    records.forEach(record -> types.put(record.name(), ValueType.record(record.id())));
-    variants.forEach(variant -> types.put(variant.name(), ValueType.variant(variant.id())));
+    Map<String, ValueType> types = declaredReferences(source);
     for (SourceModel.ArrayDefinition array : source.arrays()) {
       ValueType element = resolve(array.elementType(), array.line(), types);
       ArrayType descriptor = new ArrayType(result.size(), element, array.length());
@@ -105,7 +92,7 @@ final class SourceTypeLowerer {
       List<RecordType> records,
       List<VariantType> variants,
       List<ArrayType> arrays) {
-    Map<String, ValueType> types = baseReferences(source, records, variants, arrays);
+    Map<String, ValueType> types = declaredReferences(source);
     List<SliceType> result = new ArrayList<>();
     for (SourceModel.SliceDefinition slice : source.slices()) {
       ValueType element = resolve(slice.elementType(), slice.line(), types);
@@ -149,11 +136,38 @@ final class SourceTypeLowerer {
     return result;
   }
 
-  private static void addArrayReferences(
-      Map<String, ValueType> types, List<SourceModel.ArrayDefinition> arrays) {
-    for (int index = 0; index < arrays.size(); index++) {
-      types.put(arrays.get(index).name(), ValueType.array(index));
+  private static Map<String, ValueType> declaredReferences(SourceProgram source) {
+    Map<String, ValueType> result = scalars();
+    Set<String> names = new HashSet<>();
+    for (int index = 0; index < source.records().size(); index++) {
+      SourceModel.RecordDefinition record = source.records().get(index);
+      addDeclared(result, names, record.name(), ValueType.record(index), record.line());
     }
+    for (int index = 0; index < source.variants().size(); index++) {
+      SourceModel.VariantDefinition variant = source.variants().get(index);
+      addDeclared(result, names, variant.name(), ValueType.variant(index), variant.line());
+    }
+    for (int index = 0; index < source.arrays().size(); index++) {
+      SourceModel.ArrayDefinition array = source.arrays().get(index);
+      addDeclared(result, names, array.name(), ValueType.array(index), array.line());
+    }
+    for (int index = 0; index < source.slices().size(); index++) {
+      SourceModel.SliceDefinition slice = source.slices().get(index);
+      addDeclared(result, names, slice.name(), ValueType.slice(index), slice.line());
+    }
+    return result;
+  }
+
+  private static void addDeclared(
+      Map<String, ValueType> references,
+      Set<String> names,
+      String name,
+      ValueType type,
+      int line) {
+    if (references.containsKey(name) || !names.add(name)) {
+      throw new CompilerException(line, "duplicate aggregate type: " + name);
+    }
+    references.put(name, type);
   }
 
   private static Map<String, ValueType> scalars() {

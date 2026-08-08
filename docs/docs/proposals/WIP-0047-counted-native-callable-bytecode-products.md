@@ -106,7 +106,7 @@ Callable bytecode products do not set a bootstrap bit. Promotion still requires 
 - [x] `FunctionProductIdentities.w` binds signature, ordered direct dependencies, aggregate product, ownership product, exact local types, forward code, inverse code, flags, parameters, and locals under `wheeler-callable-body-product-1`. An independent Java digest matches.
 - [x] `LocalCallRelocations.w` resolves every source-local call and uncall operand to a validated function and copies its stable signature identity. Unknown local targets publish no relocations or body identity.
 - [x] `ImportedCallRelocations.w` distinguishes cross-module calls in a linked product, requires a public target, and copies its stable signature identity. Private targets publish nothing.
-- [x] `RelocationIdentities.w` canonicalizes each function's ordered local and imported targets. Callable body identities bind that relocation identity; inconsistent tables publish nothing.
+- [x] `RelocationIdentities.w` canonicalizes each function's ordered local and imported targets. Callable body identities bind that relocation identity. Inconsistent tables publish nothing.
 - [x] `SourceCallProducts.w` resolves bounded unqualified imported names and arities before linking. Local products shadow imports, and equal imported name/arity products remain ambiguous.
 - [x] Exact pre-link matches require ordered parameter types and loan modes, result type, and effect product equality. Equal exact candidates remain ambiguous.
 - [x] Qualified pre-link calls bind the written dependency rank before exact signature matching.

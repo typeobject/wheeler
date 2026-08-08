@@ -121,7 +121,7 @@ class BytecodeVerifierTest {
   }
 
   @Test
-  void recordDescriptorsRejectForwardAndUnknownReferences() {
+  void recordDescriptorsAllowForwardReferencesAndRejectUnknownReferences() {
     RecordType forward = new RecordType(
         0,
         "Forward",
@@ -135,7 +135,16 @@ class BytecodeVerifierTest {
         "InvalidRecords", 0, List.of(), List.of(forward, later),
         List.of(), List.of(), List.of(), List.of(main), List.of());
 
-    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(invalid));
+    assertDoesNotThrow(() -> BytecodeVerifier.verify(invalid));
+
+    RecordType unknown = new RecordType(
+        0,
+        "Unknown",
+        List.of(new RecordType.Field("missing", ValueType.record(2))));
+    Program unknownReference = Program.classical(
+        "UnknownRecord", 0, List.of(), List.of(unknown, later),
+        List.of(), List.of(), List.of(), List.of(main), List.of());
+    assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(unknownReference));
 
     RecordType arrayRecord = new RecordType(
         0,
