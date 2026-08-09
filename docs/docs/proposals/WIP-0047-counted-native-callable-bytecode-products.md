@@ -111,6 +111,7 @@ Callable bytecode products do not set a bootstrap bit. Promotion still requires 
 - [x] Exact pre-link matches require ordered parameter types and loan modes, result type, and effect product equality. Equal exact candidates remain ambiguous.
 - [x] Qualified pre-link calls bind the written dependency rank before exact signature matching. Packed views resolve exact local and locked external products without dependency source.
 - [x] `AggregateOperandRelocations.w` resolves record, fixed-array, slice, and variant construction operands to unique WIP-0046 rows and copies the aggregate module-product identity.
+- [x] `ImportedCallableStubs.w` turns resolved primitive signature products into deterministic self-recursive compile-time stubs. Calls type-check without dependency bodies. `retainLocalFunctionProduct` validates the instruction prefix and excludes both stub and synthetic entry suffixes before counted body publication.
 - [x] `CompiledBodyArchive.w` copies validated source-local artifacts into a bounded 16 MiB closure archive and publishes stable artifact ranks. Duplicate module owners fail before copying.
 - [x] `CountedFunctionProducts.w` appends one validated artifact at a time, rebases instruction owners, preserves artifact ranks, and rejects duplicate module owners before publication.
 - [x] `LinkedInstructionCode.w` emits closure-ordered instruction bytes and rebases local call targets by the owning module's final function base.

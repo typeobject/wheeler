@@ -29,6 +29,7 @@ import wheeler.compiler.closure.counted_function_products;
 import wheeler.compiler.closure.function_product_identities;
 import wheeler.compiler.closure.identity_relocation_emitter;
 import wheeler.compiler.closure.imported_call_relocations;
+import wheeler.compiler.closure.imported_callable_stubs;
 import wheeler.compiler.closure.instruction_ownership_products;
 import wheeler.compiler.closure.linked_aggregate_sections;
 import wheeler.compiler.closure.linked_container;
