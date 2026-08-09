@@ -4,6 +4,7 @@ module wheeler.compiler.compiler_core;
 
 import wheeler.compiler.closure.aggregate_constructor_targets;
 import wheeler.compiler.closure.aggregate_expression_projection;
+import wheeler.compiler.closure.aggregate_expression_temporaries;
 import wheeler.compiler.closure.aggregate_frontend_bindings;
 import wheeler.compiler.closure.aggregate_instruction_composition;
 import wheeler.compiler.closure.aggregate_instruction_products;

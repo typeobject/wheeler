@@ -105,7 +105,8 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 - [x] WIP-0050 composes, archives, and links primitive and aggregate code from two immutable artifact ranks.
 - [x] `PrimitiveFrontendProducts.w` converts bounded scanner, statement, parameter, and local-width products into named value rows and distinct source and splice statement ordinals. Malformed statements leave caller rows untouched.
 - [x] `compileAggregateSourceModuleProductWithImports` consumes counted aggregate operations, local references, and carrier projections while producing its primitive body artifact.
-- [ ] The callable compiler invokes primitive frontend publication in the same transaction and adds expression-temporary rows.
+- [x] `AggregateExpressionTemporaries.w` appends source-ordered locals for nested operations while retaining the primitive frontend's named outer destination.
+- [ ] The callable compiler invokes primitive frontend publication in the same transaction.
 - [x] `LocalNominalReferences.w` indexes callable signature, parameter, local, and constructor uses of source-local record and variant names while excluding declaration bodies.
 - [x] `LocalNominalCarriers.w` rewrites sorted local nominal ranges to compact signed carriers and publishes exact old-to-new coordinates without partial source mutation.
 - [x] `LocalNominalCarrierProjections.w` classifies source-local carriers as value, constructor, or signature uses and binds value carriers to exact function-local coordinates atomically.
