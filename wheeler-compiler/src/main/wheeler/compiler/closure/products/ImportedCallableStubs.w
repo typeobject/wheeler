@@ -43,6 +43,42 @@ classical class ImportedCallableStubs {
     return value == 95;
   }
 
+  private boolean reservedPrefixAt(borrow byteview source, long start, long end) {
+    if (end - start < 17) {
+      return false;
+    }
+
+    long[17] expected = new long[17](
+      95,
+      95,
+      119,
+      104,
+      101,
+      101,
+      108,
+      101,
+      114,
+      95,
+      105,
+      109,
+      112,
+      111,
+      114,
+      116,
+      95
+    );
+    long prefixByte = 0;
+    while (prefixByte < 17) limit 17 {
+      if (source[start + prefixByte] != expected[prefixByte]) {
+        return false;
+      }
+
+      prefixByte += 1;
+    }
+
+    return true;
+  }
+
   private long writeStubName(long target, borrow mut bytes output, long cursor) {
     assert(-1 < target);
     assert(target < MAX_CALLABLES);
@@ -266,6 +302,11 @@ classical class ImportedCallableStubs {
     assert(bufferLength(callableResultTypeStarts) == MAX_CALLABLES);
     assert(bufferLength(callableResultTypeLengths) == MAX_CALLABLES);
     assert(bufferLength(output) == MAX_SOURCE_BYTES);
+    long reservedScan = sourceStart;
+    while (reservedScan < sourceStart + sourceLength) limit MAX_SOURCE_BYTES {
+      assert(reservedPrefixAt(sourceArchive, reservedScan, sourceStart + sourceLength) == false);
+      reservedScan += 1;
+    }
 
     region staging = new region(/* bytes= */ STAGING_BYTES, /* allocations= */ 4);
     bytes stagedSource = allocateBytes(staging, MAX_SOURCE_BYTES);

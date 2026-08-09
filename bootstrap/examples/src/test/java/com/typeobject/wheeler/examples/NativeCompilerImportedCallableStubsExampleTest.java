@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.examples;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
@@ -9,6 +10,7 @@ import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
+import com.typeobject.wheeler.core.vm.VmTrap;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -56,6 +58,24 @@ final class NativeCompilerImportedCallableStubsExampleTest {
     assertEquals(helper.id(), stubCall.operands().get(0));
   }
 
+  @Test
+  void rejectsGeneratedNameCollisionsBeforePublication() throws Exception {
+    String localSource = """
+        classical class Root {
+          public long __wheeler_import_1(long value) { return value; }
+          public long run(long value) { return dependency.helper(value); }
+        }
+        """;
+    String importedSignature = "public long helper(long value)";
+    byte[] input = (localSource + importedSignature).getBytes(StandardCharsets.US_ASCII);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        program(localSource, importedSignature), input, 32_768);
+
+    assertThrows(
+        VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
+    assertEquals(0, machine.global("published"));
+  }
+
   private static Program program(
       String localSource, String importedSignature) throws Exception {
     int callStart = localSource.indexOf("dependency.helper");
@@ -82,6 +102,7 @@ final class NativeCompilerImportedCallableStubsExampleTest {
         classical class ImportedCallableStubsExample {
           state long retainedFunctionCount = 0;
           state long excludedFunctionCount = 0;
+          state long published = 0;
 
           entry void main(borrow byteview input, borrow mut bytes output) {
             region rows = new region(/* bytes= */ 439328, /* allocations= */ 11);
@@ -137,6 +158,7 @@ final class NativeCompilerImportedCallableStubsExampleTest {
             );
             retainedFunctionCount = retained.functionCount;
             excludedFunctionCount = retained.excludedFunctionCount;
+            published = 1;
             setOutputLength(output, compiled.length);
             drop(identity);
             drop(instructionRows);

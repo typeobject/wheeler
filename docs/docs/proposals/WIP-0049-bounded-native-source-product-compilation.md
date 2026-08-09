@@ -157,7 +157,7 @@ Source-product compilation does not set the bootstrap bit. Promotion still requi
 - [x] `compileSourceModuleProductWithImports` compiles one complete primitive local class from local source and imported signatures.
 - [x] `compileCallableModuleProductWithImports` compiles counted primitive callable ranges.
 - [x] `retainLocalFunctionProduct` excludes stub and compiler-added function suffixes.
-- [x] Imported call ranges, including qualified spelling, rewrite to collision-free `__wheeler_import_<product-row>` stub names.
+- [x] Imported call ranges, including qualified spelling, rewrite to `__wheeler_import_<product-row>` stub names. Any local use of the reserved prefix fails before output mutation.
 - [ ] The native compiler core lowers local aggregate declarations.
 - [ ] Imported nominal declarations generate from WIP-0046 products.
 - [ ] Local ownership rows map to aggregate projections.

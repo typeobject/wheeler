@@ -151,7 +151,7 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 - [x] Package syntax, names, paths, semantic versions, and manifest parsing moved under `compiler/packages`. The package library consumes those compiler-owned modules instead of carrying another parser.
 - [x] Three-entry evidence checks physical path and payload offsets. Damaged outer evidence preserves caller columns.
 - [x] `compiler/closure/ModuleManifest.w` owns canonical syntax, binding, root, cycle, and reachability validation. Conformance identity publication calls that owner.
-- [x] `ArchiveModuleSources.w` joins all 235 physical compiler modules to exact digest-matching archive ranges. A mismatched source identity leaves publication untouched.
+- [x] `ArchiveModuleSources.w` joins all 270 physical compiler modules to exact digest-matching archive ranges. A mismatched source identity leaves publication untouched.
 - [x] The manifest parser materializes counted module, external, import-owner, and resolved-target columns through 512 modules and 3,072 imports.
 - [x] `ClosurePlan.w` publishes archive source ranges, first-import offsets, direct-import counts, import ranks, leaf-first order, and executable-owner bits only after complete validation.
 - [x] A 257-module chain plans and classifies with its root last. The complete physical compiler closure plans and classifies without truncation.
@@ -161,7 +161,7 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 - [ ] Callable closure columns replace packed seven-node execution facts. The small bridge remains a migration fixture, not the production executor.
 - [x] `ActiveSourceSlots.w` owns eight active linked sources, exact 32,768-byte publication, generation-checked leases, lowest-slot reuse, deterministic exhaustion, and byte destruction on release.
 - [x] `ClosureSchedule.w` stages every source in leaf-first order, transfers no archive loan, releases each lease after staging, and publishes per-module slot generations only after the complete pass. The 257-module chain reaches generation 257.
-- [x] WIP-0045 owns semantic module products. Scalar compilation transfers validated declarations and values instead of retaining linked source. The callable phase now publishes 1,121 physical compiler signature and body-range products. Typed signatures and compiled bodies remain.
+- [x] WIP-0045 owns semantic module products. Scalar compilation transfers validated declarations and values instead of retaining linked source. The callable phase publishes 1,121 typed physical compiler signatures and body ranges. WIP-0049 now compiles complete primitive local classes against imported signatures without dependency bodies.
 - [ ] The complete physical compiler closure compiles.
 
 ## Acceptance
