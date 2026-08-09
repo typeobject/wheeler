@@ -49,8 +49,8 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("executableCount") > 0);
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
-    assertEquals(1_409, machine.global("symbolCount"));
-    assertEquals(1_210, machine.global("callableCount"));
+    assertEquals(1_418, machine.global("symbolCount"));
+    assertEquals(1_212, machine.global("callableCount"));
     assertTrue(machine.global("callableParameterCount") > 1_000);
     assertTrue(machine.global("borrowedParameterCount") > 0);
     assertTrue(machine.global("mutableParameterCount") > 0);

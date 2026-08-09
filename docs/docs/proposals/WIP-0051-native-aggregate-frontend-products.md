@@ -111,7 +111,8 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 - [x] `CountedLocalNominalCarriers.w` converts value projections to closure coordinates, and `LinkedLocalTypes.w` rewrites the exact signed local slots to final descriptors.
 - [x] Carrier classification now precedes rewriting, and constructor names inside projected aggregate expressions remain untouched.
 - [x] `AggregateExpressionProjection.w` replaces each outer aggregate expression with one offset-stable scalar placeholder while suppressing nested expressions as one primitive statement.
-- [ ] The callable compiler removes primitive placeholder instructions and signature carriers before archival.
+- [x] `PrimitivePlaceholderProjection.w` removes one validated zero-local placeholder per aggregate statement, adjusts later splice ordinals and function lengths, and handles nested operations as one placeholder.
+- [ ] The callable compiler removes signature carriers before archival.
 - [ ] Aggregate-only statements are removed from primitive compilation without moving newlines.
 - [x] `SourceAggregateOperations.w` normalizes nested constructors, field chains, and postfix slice indexes into evaluation postorder and remaps their argument owners.
 - [ ] Record, variant, fixed-array, slice, ownership, and field-chain fixtures match stage 0 byte for byte.
