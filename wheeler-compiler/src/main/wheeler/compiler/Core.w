@@ -3,6 +3,7 @@
 module wheeler.compiler.compiler_core;
 
 import wheeler.compiler.closure.aggregate_instruction_products;
+import wheeler.compiler.closure.resolved_aggregate_operations;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.core_local_types;

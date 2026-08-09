@@ -6,7 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -30,7 +34,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
         }
         """;
     VirtualMachine machine = new VirtualMachine(program(),
-        source.getBytes(StandardCharsets.UTF_8), 40);
+        source.getBytes(StandardCharsets.UTF_8), 200);
 
     machine.run();
 
@@ -49,12 +53,16 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
     assertEquals("value", source.substring(
         Math.toIntExact(machine.global("memberStart")),
         Math.toIntExact(machine.global("memberEnd"))));
+    assertEquals(5, machine.global("loweredCount"));
+    assertEquals(200, machine.global("length"));
+    assertEquals(List.of(0x0500, 0x0510, 0x0501, 0x0521, 0x0530),
+        opcodes(machine.hostOutput()));
   }
 
   @Test
   void malformedConstructionPublishesNothing() throws Exception {
     VirtualMachine machine = new VirtualMachine(program(),
-        "new Pair(value".getBytes(StandardCharsets.UTF_8), 40);
+        "new Pair(value".getBytes(StandardCharsets.UTF_8), 200);
 
     machine.run();
 
@@ -66,10 +74,12 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
   private static Program program() throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
-        "wheeler.compiler.closure.source_aggregate_operations"));
+        "wheeler.compiler.closure.resolved_aggregate_operations"));
     sources.put("SourceAggregateOperationsExample.w", """
         module example.source_aggregate_operations;
 
+        import wheeler.compiler.closure.aggregate_instruction_products;
+        import wheeler.compiler.closure.resolved_aggregate_operations;
         import wheeler.compiler.closure.source_aggregate_operations;
 
         classical class SourceAggregateOperationsExample {
@@ -86,10 +96,13 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
           state long caseEnd = 0;
           state long memberStart = 0;
           state long memberEnd = 0;
+          state long loweredCount = 0;
+          state long length = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 16384, /* allocations= */ 1);
+            region products = new region(/* bytes= */ 28672, /* allocations= */ 2);
             words rows = allocate(products, /* length= */ 2048);
+            words resolved = allocate(products, /* length= */ 1536);
             set(rows, 0, 91);
             SourceAggregateOperationPlan plan = materializeSourceAggregateOperations(input, rows);
             operationCount = plan.operationCount;
@@ -106,13 +119,43 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               caseEnd = rows[769] + rows[1025];
               memberStart = rows[770];
               memberEnd = rows[770] + rows[1026];
-            }
-            if (plan.valid) {
+              set(resolved, 0, 0x0500);
+              set(resolved, 1, 0x0510);
+              set(resolved, 2, 0x0501);
+              set(resolved, 3, 0x0521);
+              set(resolved, 4, 0x0530);
+              set(resolved, 256, 3);
+              set(resolved, 257, 4);
+              set(resolved, 258, 5);
+              set(resolved, 259, 6);
+              set(resolved, 260, 9);
+              set(resolved, 512, 0);
+              set(resolved, 513, 1);
+              set(resolved, 514, 2);
+              set(resolved, 515, 7);
+              set(resolved, 516, 2);
+              set(resolved, 768, 10);
+              set(resolved, 769, 0);
+              set(resolved, 770, 0);
+              set(resolved, 771, 8);
+              set(resolved, 772, 7);
+              set(resolved, 1024, 1);
+              set(resolved, 1025, 11);
+              set(resolved, 1027, 0);
+              set(resolved, 1028, 8);
+              set(resolved, 1281, 1);
+              set(resolved, 1284, 10);
+              AggregateInstructionProductPlan product =
+                writeResolvedSourceAggregateInstructions(plan.operationCount, rows, resolved, output);
+              loweredCount = product.instructionCount;
+              length = product.length;
+              setOutputLength(output, product.length);
               assert(rows[0] != 91);
             } else {
               assert(rows[0] == 91);
+              setOutputLength(output, 0);
             }
-            setOutputLength(output, 0);
+            drop(resolved);
             drop(rows);
             drop(products);
           }
@@ -120,5 +163,18 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
         """);
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.source_aggregate_operations");
+  }
+
+  private static List<Integer> opcodes(byte[] code) {
+    ByteBuffer input = ByteBuffer.wrap(code).order(ByteOrder.LITTLE_ENDIAN);
+    List<Integer> result = new ArrayList<>();
+    while (input.hasRemaining()) {
+      result.add(Short.toUnsignedInt(input.getShort()));
+      int operands = Short.toUnsignedInt(input.getShort());
+      int length = input.getInt();
+      assertEquals(8 + operands * 8, length);
+      input.position(input.position() + operands * 8);
+    }
+    return List.copyOf(result);
   }
 }
