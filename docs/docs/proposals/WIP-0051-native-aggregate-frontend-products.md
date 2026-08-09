@@ -106,7 +106,8 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 - [x] `PrimitiveFrontendProducts.w` converts bounded scanner, statement, parameter, and local-width products into named value rows and distinct source and splice statement ordinals. Malformed statements leave caller rows untouched.
 - [ ] The callable compiler invokes primitive frontend publication in the same transaction as its body artifact and adds expression-temporary rows.
 - [x] `LocalNominalReferences.w` indexes callable signature, parameter, local, and constructor uses of source-local record and variant names while excluding declaration bodies.
-- [ ] Source-local nominal carriers are projected and removed with exact local-type coordinates.
+- [x] `LocalNominalCarriers.w` rewrites sorted local nominal ranges to compact signed carriers and publishes exact old-to-new coordinates without partial source mutation.
+- [ ] The callable compiler binds source-local carriers to exact local-type coordinates and removes them before archival.
 - [ ] Aggregate-only statements are removed from primitive compilation without moving newlines.
 - [x] `SourceAggregateOperations.w` normalizes nested constructors, field chains, and postfix slice indexes into evaluation postorder and remaps their argument owners.
 - [ ] Record, variant, fixed-array, slice, ownership, and field-chain fixtures match stage 0 byte for byte.
