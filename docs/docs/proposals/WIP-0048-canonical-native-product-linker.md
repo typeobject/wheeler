@@ -131,7 +131,7 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
 - [x] `IdentityRelocationEmitter.w` resolves all relocation identities to final rows before changing one code operand.
 - [x] The complete mixed-owner fixture uses that production boundary. numeric source targets select fixture identities but never final rows.
 - [ ] Physical callable signature identities feed the same complete pipeline.
-- [ ] WIP-0049 publishes one source-local artifact for every physical compiler module.
+- [ ] WIP-0049 publishes one source-local artifact for every physical compiler module. One physical scalar-dependent module now passes the counted archive-to-artifact path byte for byte. Publication still needs to cover the remaining closure.
 - [ ] The complete physical compiler closure emits without dependency source.
 
 ## Rejected alternatives

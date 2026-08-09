@@ -7,6 +7,8 @@ import java.util.Map;
 
 /** Builds the production counted archive-closure evidence program. */
 final class NativeCompilerArchiveClosureProgram {
+  static final int PHYSICAL_MODULE_OWNER = 172;
+
   private NativeCompilerArchiveClosureProgram() {}
 
   static Program program() throws Exception {
@@ -94,6 +96,8 @@ final class NativeCompilerArchiveClosureProgram {
           state long compiledCallableModuleIdentityPrefix = 0;
           state long compiledCallableFunctionCount = 0;
           state long compiledCallableMaxLocalCount = 0;
+          state long physicalModuleProductLength = 0;
+          state long physicalModuleProductFunctions = 0;
           state long packageIdentityPrefix = 0;
           state long firstSymbolIdentityPrefix = 0;
           state long lastSymbolIdentityPrefix = 0;
@@ -128,7 +132,7 @@ final class NativeCompilerArchiveClosureProgram {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 3128352, /* allocations= */ 68);
+            region columns = new region(/* bytes= */ 3175968, /* allocations= */ 71);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -189,6 +193,9 @@ final class NativeCompilerArchiveClosureProgram {
             words parameterTypeStarts = allocate(columns, MAX_SYMBOLS);
             words parameterTypeLengths = allocate(columns, MAX_SYMBOLS);
             words parameterModes = allocate(columns, MAX_SYMBOLS);
+            words physicalAggregates = allocate(columns, /* length= */ 832);
+            words physicalCalls = allocate(columns, /* length= */ 1024);
+            words physicalResultTypes = allocate(columns, /* length= */ 4096);
             bytes packageIdentity = allocateBytes(columns, /* length= */ 32);
             bytes symbolIdentities = allocateBytes(columns, MAX_SYMBOLS * 32);
             bytes moduleIdentities = allocateBytes(columns, MAX_MODULES * 32);
@@ -438,6 +445,40 @@ final class NativeCompilerArchiveClosureProgram {
                       + compiledCallableIdentity[3];
                   }
                 }
+                if (closure.moduleCount == 304) {
+                  long physicalFirstCallable = -1;
+                  long physicalCallableCount = 0;
+                  long physicalCallable = 0;
+                  while (physicalCallable < callables.callableCount) limit 4096 {
+                    if (callableOwners[physicalCallable] == PHYSICAL_MODULE_OWNER) {
+                      if (physicalFirstCallable < 0) {
+                        physicalFirstCallable = physicalCallable;
+                      }
+                      physicalCallableCount += 1;
+                    }
+                    physicalCallable += 1;
+                  }
+                  assert(-1 < physicalFirstCallable);
+                  CompiledCallableBody physicalModule = compileSourceModuleProductWithImports(
+                    archive,
+                    archiveSourceStarts[PHYSICAL_MODULE_OWNER],
+                    archiveSourceLengths[PHYSICAL_MODULE_OWNER],
+                    /* aggregateCount= */ 0,
+                    physicalAggregates,
+                    /* callCount= */ 0,
+                    physicalCalls,
+                    callableEffects,
+                    callableFirstParameters,
+                    callableParameterCounts,
+                    physicalResultTypes,
+                    parameterTypeStarts,
+                    parameterModes,
+                    compiledCallableArtifact,
+                    compiledCallableIdentity
+                  );
+                  physicalModuleProductLength = physicalModule.length;
+                  physicalModuleProductFunctions = physicalModule.functionCount;
+                }
                 ScalarModuleIdentityPlan scalarIdentities = publishScalarModuleIdentities(
                   archive,
                   manifest,
@@ -646,7 +687,16 @@ final class NativeCompilerArchiveClosureProgram {
                     }
                     setOutputLength(output, compiledCallableModuleLength);
                   } else {
-                    setByte(output, 0, 1);
+                    if (1 < bufferLength(output)) {
+                      long physicalByte = 0;
+                      while (physicalByte < physicalModuleProductLength) limit 32768 {
+                        setByte(output, physicalByte, compiledCallableArtifact[physicalByte]);
+                        physicalByte += 1;
+                      }
+                      setOutputLength(output, physicalModuleProductLength);
+                    } else {
+                      setByte(output, 0, 1);
+                    }
                   }
                 }
               }
@@ -662,6 +712,9 @@ final class NativeCompilerArchiveClosureProgram {
             drop(moduleIdentities);
             drop(symbolIdentities);
             drop(packageIdentity);
+            drop(physicalResultTypes);
+            drop(physicalCalls);
+            drop(physicalAggregates);
             drop(parameterModes);
             drop(parameterTypeLengths);
             drop(parameterTypeStarts);
@@ -728,7 +781,9 @@ final class NativeCompilerArchiveClosureProgram {
             drop(inputArena);
           }
         }
-        """);
+        """.replace(
+            "PHYSICAL_MODULE_OWNER",
+            Integer.toString(PHYSICAL_MODULE_OWNER)));
     return new WheelerCompiler().compileModuleFiles(sources, "example.archive_closure");
   }
 

@@ -62,6 +62,8 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(manifest.modules().size(), machine.global("callableGeneration"));
     assertEquals(2, machine.global("lastCallableParameterCount"));
     assertEquals(1, machine.global("callableIdentitiesPublished"));
+    assertTrue(machine.global("physicalModuleProductLength") > 0);
+    assertEquals(2, machine.global("physicalModuleProductFunctions"));
     assertTrue(machine.global("firstCallableIdentityPrefix") != 0);
     assertTrue(
         machine.global("firstCallableIdentityPrefix")
@@ -104,6 +106,31 @@ final class NativeCompilerArchiveClosureExampleTest {
         () -> CompilerMachineRunner.runWithoutRewindHistory(rejected));
     assertArrayEquals(new byte[1], rejected.hostOutput());
     assertEquals(0, rejected.global("published"));
+  }
+
+  @Test
+  void compilesOnePhysicalModuleProductByteForByte() throws Exception {
+    String source = CompilerSources.read("compiler/syntax/IdentifierStarts.w");
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of("IdentifierStarts.w", source),
+            "wheeler.compiler.identifier_starts"));
+    Program program = NativeCompilerArchiveClosureProgram.program();
+    byte[] archive = CompilerSources.packageArchive();
+    BootstrapModuleManifest manifest = CompilerSources.bootstrapModuleManifest();
+    assertEquals(
+        "wheeler.compiler.identifier_starts",
+        manifest.modules().get(NativeCompilerArchiveClosureProgram.PHYSICAL_MODULE_OWNER).name());
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        program,
+        framed(archive, manifest.canonicalBytes()),
+        expected.length);
+
+    runClosure(machine, program);
+
+    assertArrayEquals(expected, machine.hostOutput());
+    assertEquals(expected.length, machine.global("physicalModuleProductLength"));
+    assertEquals(2, machine.global("physicalModuleProductFunctions"));
   }
 
   @Test
