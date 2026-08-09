@@ -123,6 +123,7 @@ No `wheeler.bootstrap.yaml` may be added before that evidence exists.
 - [x] A Wheeler-native decoder validates canonical container directories.
 - [x] Record, fixed-array, slice, variant, case, and member rows decode into bounded packed columns.
 - [x] WIP-0050's `SourceAggregateProducts.w` publishes atomic record, variant, case, and member ranges, primitive codes, local nominal rows, and deduplicated scalar fixed-array descriptors before source release.
+- [x] `projectSourceAggregateLayouts` converts those products into decoder-compatible descriptor rows with per-kind local IDs, recursive type codes, synthetic structural-array members, and bounded source-string ranges.
 - [x] Record, array, and variant fixtures execute through the native decoder.
 - [x] Malformed container magic traps before publication.
 - [x] Malformed flags, duplicate section types, out-of-range sections, oversized field tables, and oversized case tables trap with zero published counts and identity bytes.

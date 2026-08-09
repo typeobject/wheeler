@@ -6,6 +6,7 @@ import wheeler.compiler.closure.aggregate_operand_projections;
 import wheeler.compiler.closure.aggregate_owner_projections;
 import wheeler.compiler.closure.imported_nominal_products;
 import wheeler.compiler.closure.imported_nominal_stubs;
+import wheeler.compiler.closure.source_aggregate_layouts;
 import wheeler.compiler.closure.source_aggregate_syntax;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.tokens;
@@ -530,4 +531,5 @@ classical class SourceAggregateProducts {
     drop(scratch);
     return new SourceAggregateProductPlan(aggregateCount, caseCount, memberCount, valid);
   }
+
 }

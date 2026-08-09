@@ -106,13 +106,13 @@ Scratch token, declaration, descriptor, and projection windows are independently
 ## Implementation status
 
 - [x] `SourceAggregateProducts.w` publishes atomic record, variant, case, and member source products. `SourceAggregateSyntax.w` owns shared bounded declaration, member, range, and structural-type parsing in a separate source-layout directory.
-- [x] Native evidence covers public and private records, variants, empty and populated cases, mutually recursive record and variant types, exact source ranges, and malformed-member nonpublication.
+- [x] Native evidence covers public and private records, variants, empty and populated cases, mutually recursive record and variant types, exact source ranges, and malformed-member nonpublication. `projectSourceAggregateLayouts` converts validated source products into descriptor-compatible local aggregate, case, member, structural-array, and source-string rows. Recursive member codes use per-kind local descriptor IDs.
 - [x] Primitive and recursive local nominal member types resolve before source release. Duplicate cases and unresolved types publish nothing.
 - [x] Scalar fixed-array member types publish deduplicated structural descriptors in encounter order. Invalid lengths, nonscalar elements, and nonescaping slice members publish nothing.
 - [x] `AggregateSourceProjection.w` blanks validated local record and variant declarations at stable offsets before primitive body compilation. Newlines remain in place, call offsets do not move, and invalid ranges publish nothing.
 - [ ] Source products cover nonescaping slice use outside aggregate storage.
 - [x] `ImportedNominalProducts.w` resolves qualified or unqualified nominal names from public WIP-0046 aggregate rows and counted artifact-string products. Qualification binds dependency rank. Equal unqualified matches remain ambiguous, and malformed string products fail closed.
-- [ ] The native compiler core emits aggregate descriptors and lowers aggregate source expressions.
+- [ ] The native compiler core places projected aggregate descriptors into source-local artifacts and lowers aggregate source expressions.
 - [x] `AggregateCodegen.w` emits canonical record, variant, fixed-array, and slice construction and projection forms. Native evidence covers every form and matches stage 0 for record construction and field projection. Invalid operands fail before a header byte is written.
 - [x] `compileAggregateSourceModuleProductWithImports` validates nominal scaffolding and projections, then compiles primitive body portions through nonretained signed carriers. It withholds nominal and exact function-local carrier projections until compilation succeeds. The carrier artifact contains no generated descriptor. Aggregate operations remain outside this path until native instruction lowering lands.
 - [x] `ImportedNominalStubs.w` emits collision-checked record and variant declarations in target-row order and publishes owner-scoped temporary source-code projections. Input arrival order cannot change names, descriptor order, or projections.
