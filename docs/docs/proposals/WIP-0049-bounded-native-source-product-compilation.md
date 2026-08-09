@@ -165,6 +165,7 @@ Source-product compilation does not set the bootstrap bit. Promotion still requi
 - [x] Imported nominal names resolve from public WIP-0046 rows and counted artifact-string products without dependency source.
 - [ ] Imported nominal compile declarations generate from those resolved products.
 - [x] Instruction-local create, move, loan, release, and drop owner rows map atomically to aggregate and member projections.
+- [x] Final callable local types consume validated temporary nominal projections.
 - [ ] Proof and result-slot products compile with imported callables.
 - [ ] Every physical compiler module publishes one source-local product artifact.
 - [ ] WIP-0048 emits the complete physical compiler closure from those products.

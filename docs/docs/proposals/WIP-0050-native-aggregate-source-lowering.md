@@ -115,7 +115,8 @@ Scratch token, declaration, descriptor, and projection windows are independently
 - [ ] The native compiler core emits aggregate descriptors and instructions.
 - [ ] Temporary nominal declarations publish aggregate projections.
 - [x] `AggregateOwnerProjections.w` maps create, move, loan, release, and drop event locals to unique aggregate and member rows. A move requires identical source and destination projections, and failure leaves caller rows untouched.
-- [ ] Callable local types and aggregate operands consume temporary nominal projections.
+- [x] `LinkedLocalTypes.w` consumes temporary owner, source-code, and aggregate-row projections before final descriptor emission. Missing, duplicate, or kind-inconsistent projections fail before publication.
+- [ ] Aggregate operands consume temporary nominal projections.
 - [ ] Generated aggregate scaffolding is excluded from retained products.
 - [ ] Aggregate-aware source-local artifacts match stage 0 byte for byte.
 

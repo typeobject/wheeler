@@ -12,6 +12,8 @@ classical class LinkedLocalTypes {
   private const long MAX_CLOSURE_FUNCTIONS = 4096;
   private const long MAX_CLOSURE_LOCAL_TYPES = 1048576;
   private const long MAX_MODULES = 512;
+  private const long MAX_PROJECTIONS = 16384;
+  private const long PROJECTION_ROWS = 49152;
   private const long TYPE_DESCRIPTOR_MASK = 268435455;
   private const long TYPE_KIND_MASK = 4026531840;
 
@@ -88,6 +90,50 @@ classical class LinkedLocalTypes {
     return linkedTag + finalDescriptorRows[selected];
   }
 
+  /// Resolves one temporary nominal descriptor through its stable aggregate projection.
+  public long linkedProjectedTypeCode(
+    long sourceCode,
+    long moduleOwner,
+    long aggregateCount,
+    borrow mut words closureAggregateRows,
+    borrow mut words finalDescriptorRows,
+    long projectionCount,
+    borrow mut words projectionRows
+  ) {
+    assert(-1 < projectionCount);
+    assert(projectionCount < MAX_PROJECTIONS + 1);
+    assert(bufferLength(projectionRows) == PROJECTION_ROWS);
+    long selected = -1;
+    long projection = 0;
+    while (projection < projectionCount) limit MAX_PROJECTIONS {
+      if (projectionRows[projection] == moduleOwner) {
+        if (projectionRows[16384 + projection] == sourceCode) {
+          assert(selected == -1);
+          selected = projectionRows[32768 + projection];
+        }
+      }
+
+      projection += 1;
+    }
+
+    if (selected < 0) {
+      return linkedTypeCode(
+        sourceCode,
+        moduleOwner,
+        aggregateCount,
+        closureAggregateRows,
+        finalDescriptorRows
+      );
+    }
+
+    assert(selected < aggregateCount);
+    long kind = aggregateKind(sourceCode);
+    assert(0 < kind);
+    assert(closureAggregateRows[selected] == kind);
+    long tag = sourceCode & TYPE_KIND_MASK;
+    return tag + finalDescriptorRows[selected];
+  }
+
   /// Emits exact function type windows after validating every source and descriptor range.
   public long emitLinkedLocalTypes(
     borrow byteview archive,
@@ -99,6 +145,8 @@ classical class LinkedLocalTypes {
     long aggregateCount,
     borrow mut words closureAggregateRows,
     borrow mut words finalDescriptorRows,
+    long projectionCount,
+    borrow mut words projectionRows,
     borrow mut words outputTypes
   ) {
     assert(-1 < archiveBytes);
@@ -112,6 +160,9 @@ classical class LinkedLocalTypes {
     assert(aggregateCount < MAX_AGGREGATES + 1);
     assert(bufferLength(closureAggregateRows) == CLOSURE_AGGREGATE_ROWS);
     assert(bufferLength(finalDescriptorRows) == MAX_AGGREGATES);
+    assert(-1 < projectionCount);
+    assert(projectionCount < MAX_PROJECTIONS + 1);
+    assert(bufferLength(projectionRows) == PROJECTION_ROWS);
     assert(bufferLength(outputTypes) == MAX_CLOSURE_LOCAL_TYPES);
 
     long typeCount = 0;
@@ -137,12 +188,14 @@ classical class LinkedLocalTypes {
           artifactStarts[artifactRank] + typeStart + localType * 4,
           4
         );
-        long validated = linkedTypeCode(
+        long validated = linkedProjectedTypeCode(
           sourceCode,
           owner,
           aggregateCount,
           closureAggregateRows,
-          finalDescriptorRows
+          finalDescriptorRows,
+          projectionCount,
+          projectionRows
         );
         assert(0 < validated);
         localType += 1;
@@ -169,12 +222,14 @@ classical class LinkedLocalTypes {
         set(
           outputTypes,
           outputType,
-          linkedTypeCode(
+          linkedProjectedTypeCode(
             selectedCode,
             selectedOwner,
             aggregateCount,
             closureAggregateRows,
-            finalDescriptorRows
+            finalDescriptorRows,
+            projectionCount,
+            projectionRows
           )
         );
         outputType += 1;
