@@ -162,7 +162,8 @@ Source-product compilation does not set the bootstrap bit. Promotion still requi
 - [x] WIP-0050 starts aggregate-aware lowering with atomic record, variant, case, and member products, including mutually recursive local nominal types and deduplicated scalar fixed arrays.
 - [x] Complete primitive bodies compile after validated local aggregate declarations are blanked at stable source offsets.
 - [ ] WIP-0050 completes local aggregate declaration and instruction lowering.
-- [ ] Imported nominal declarations generate from WIP-0046 products.
+- [x] Imported nominal names resolve from public WIP-0046 rows and counted artifact-string products without dependency source.
+- [ ] Imported nominal compile declarations generate from those resolved products.
 - [ ] Local ownership rows map to aggregate projections.
 - [ ] Proof and result-slot products compile with imported callables.
 - [ ] Every physical compiler module publishes one source-local product artifact.

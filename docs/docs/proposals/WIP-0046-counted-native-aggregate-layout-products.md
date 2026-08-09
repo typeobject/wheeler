@@ -137,7 +137,7 @@ No `wheeler.bootstrap.yaml` may be added before that evidence exists.
 - [x] `InstructionOwnershipProducts.w` derives owner creation, move, drop, shared-loan, and function-boundary release rows from canonical instructions. Invalid instruction ranges publish nothing.
 - [x] `OwnershipProductIdentities.w` binds each function's canonical instruction-derived rows into the callable body identity. An independent Java digest matches.
 - [ ] Callable body verification maps local owner rows to aggregate projections.
-- [ ] Imported callable bodies relocate aggregate type references without dependency source.
+- [x] `ImportedNominalProducts.w` resolves qualified and unqualified public nominal names from counted aggregate rows and artifact-string products without dependency source. Callable type relocation still remains.
 - [ ] WIP-0050 generates local and imported nominal compile scaffolding from these products.
 - [ ] The complete physical compiler closure compiles from scalar, callable, and aggregate products.
 

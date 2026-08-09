@@ -111,7 +111,7 @@ Scratch token, declaration, descriptor, and projection windows are independently
 - [x] Scalar fixed-array member types publish deduplicated structural descriptors in encounter order. Invalid lengths, nonscalar elements, and nonescaping slice members publish nothing.
 - [x] `AggregateSourceProjection.w` blanks validated local record and variant declarations at stable offsets before primitive body compilation. Newlines remain in place, call offsets do not move, and invalid ranges publish nothing.
 - [ ] Source products cover nonescaping slice use outside aggregate storage.
-- [ ] Imported nominal type ranges resolve from WIP-0046 products.
+- [x] `ImportedNominalProducts.w` resolves qualified or unqualified nominal names from public WIP-0046 aggregate rows and counted artifact-string products. Qualification binds dependency rank. Equal unqualified matches remain ambiguous, and malformed string products fail closed.
 - [ ] The native compiler core emits aggregate descriptors and instructions.
 - [ ] Temporary nominal declarations publish aggregate projections.
 - [ ] Callable local types and aggregate operands consume those projections.
