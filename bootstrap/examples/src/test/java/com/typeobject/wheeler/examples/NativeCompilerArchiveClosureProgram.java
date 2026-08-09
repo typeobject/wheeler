@@ -24,7 +24,11 @@ final class NativeCompilerArchiveClosureProgram {
       new PhysicalModule(
           294,
           "compiler/syntax/calls/VoidCallSourceKinds.w",
-          "wheeler.compiler.void_call_source_kinds"));
+          "wheeler.compiler.void_call_source_kinds"),
+      new PhysicalModule(
+          302,
+          "compiler/resolution/returns/WideReturnSources.w",
+          "wheeler.compiler.wide_return_sources"));
 
   private NativeCompilerArchiveClosureProgram() {}
 
