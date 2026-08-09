@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.compiled_callable_bodies;
 
 import wheeler.compiler.closure.aggregate_expression_projection;
+import wheeler.compiler.closure.aggregate_expression_temporaries;
 import wheeler.compiler.closure.aggregate_source_projection;
 import wheeler.compiler.closure.callable_type_products;
 import wheeler.compiler.closure.imported_callable_stubs;
@@ -368,11 +369,21 @@ classical class CompiledCallableBodies {
       stagedLocalCounts
     );
     assert(sourceValues.valid);
+    AggregateExpressionTemporaryPlan expressionValues = appendAggregateExpressionTemporaries(
+      operationCount,
+      operationRows,
+      sourceStatements.statementCount,
+      stagedStatements,
+      sourceValues.valueCount,
+      stagedValues,
+      stagedLocalCounts
+    );
+    assert(expressionValues.valid);
     LocalNominalCarrierProjectionPlan localProjectionPlan = publishLocalNominalCarrierProjections(
       originalUtf8,
       localNominalReferenceCount,
       localNominalReferenceRows,
-      sourceValues.valueCount,
+      expressionValues.valueCount,
       stagedValues,
       operationCount,
       operationRows,

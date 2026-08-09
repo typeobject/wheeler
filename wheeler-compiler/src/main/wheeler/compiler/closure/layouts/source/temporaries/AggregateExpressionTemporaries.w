@@ -138,35 +138,58 @@ classical class AggregateExpressionTemporaries {
           owner += 1;
         }
 
-        if (nested == false) {
-          valid = false;
-        }
-
-        long local = stagedLocalCounts[function];
-        if (local < 0) {
-          valid = false;
-        }
-
-        if (MAX_LOCALS < local + 1) {
-          valid = false;
-        }
-
-        if (MAX_VALUES < valueCount + temporaryCount + 1) {
-          valid = false;
-        } else {
-          long target = valueCount + temporaryCount;
-          set(stagedValues, target, function);
-          set(stagedValues, 1024 + target, operationRows[256 + operation]);
-          set(stagedValues, 2048 + target, operationRows[512 + operation]);
-          set(stagedValues, 3072 + target, local);
-          if (-1 < selectedStatement) {
-            set(stagedValues, 4096 + target, statementRows[8192 + selectedStatement]);
+        if (nested) {
+          long local = stagedLocalCounts[function];
+          if (local < 0) {
+            valid = false;
           }
 
-          set(stagedValues, 5120 + target, expressionStart);
-          set(stagedValues, 6144 + target, expressionLength);
-          set(stagedLocalCounts, function, local + 1);
-          temporaryCount += 1;
+          if (MAX_LOCALS < local + 1) {
+            valid = false;
+          }
+
+          if (MAX_VALUES < valueCount + temporaryCount + 1) {
+            valid = false;
+          } else {
+            long target = valueCount + temporaryCount;
+            set(stagedValues, target, function);
+            set(stagedValues, 1024 + target, operationRows[256 + operation]);
+            set(stagedValues, 2048 + target, operationRows[512 + operation]);
+            set(stagedValues, 3072 + target, local);
+            if (-1 < selectedStatement) {
+              set(stagedValues, 4096 + target, statementRows[8192 + selectedStatement]);
+            }
+
+            set(stagedValues, 5120 + target, expressionStart);
+            set(stagedValues, 6144 + target, expressionLength);
+            set(stagedLocalCounts, function, local + 1);
+            temporaryCount += 1;
+          }
+        } else {
+          long outerValue = -1;
+          long outerMatches = 0;
+          value = 0;
+          while (value < valueCount + temporaryCount) limit MAX_VALUES {
+            if (stagedValues[value] == function) {
+              long valueStart = stagedValues[5120 + value];
+              long valueEnd = valueStart + stagedValues[6144 + value];
+              if (valueStart < expressionStart + 1) {
+                if (expressionStart + expressionLength < valueEnd + 1) {
+                  outerValue = value;
+                  outerMatches += 1;
+                }
+              }
+            }
+
+            value += 1;
+          }
+
+          if (outerMatches != 1) {
+            valid = false;
+          } else {
+            set(stagedValues, 5120 + outerValue, expressionStart);
+            set(stagedValues, 6144 + outerValue, expressionLength);
+          }
         }
       }
 
