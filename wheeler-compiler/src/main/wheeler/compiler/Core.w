@@ -2,6 +2,7 @@
 
 module wheeler.compiler.compiler_core;
 
+import wheeler.compiler.aggregate_codegen;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.core_local_types;
