@@ -5,6 +5,7 @@ module wheeler.compiler.closure.compiled_callable_bodies;
 import wheeler.compiler.closure.aggregate_source_projection;
 import wheeler.compiler.closure.callable_type_products;
 import wheeler.compiler.closure.imported_callable_stubs;
+import wheeler.compiler.closure.imported_nominal_references;
 import wheeler.compiler.compiler_core;
 import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
