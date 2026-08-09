@@ -69,6 +69,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
     assertEquals(1, machine.global("aggregatesValid"));
     assertEquals(1, machine.global("targetsValidState"));
     assertEquals(1, machine.global("projectionsValidState"));
+    assertEquals(1, machine.global("operandsValidState"));
     assertEquals(0, machine.global("fieldTarget"));
     assertEquals(3, machine.global("arrayTarget"));
     assertEquals(
@@ -99,12 +100,15 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
         "wheeler.compiler.closure.aggregate_constructor_targets"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.aggregate_projection_targets"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.aggregate_resolved_operands"));
     sources.put("SourceAggregateOperationsExample.w", """
         module example.source_aggregate_operations;
 
         import wheeler.compiler.closure.aggregate_constructor_targets;
         import wheeler.compiler.closure.aggregate_instruction_products;
         import wheeler.compiler.closure.aggregate_projection_targets;
+        import wheeler.compiler.closure.aggregate_resolved_operands;
         import wheeler.compiler.closure.resolved_aggregate_operations;
         import wheeler.compiler.closure.source_aggregate_operations;
         import wheeler.compiler.closure.source_aggregate_products;
@@ -133,11 +137,12 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
           state long aggregatesValid = 0;
           state long targetsValidState = 0;
           state long projectionsValidState = 0;
+          state long operandsValidState = 0;
           state long fieldTarget = -1;
           state long arrayTarget = -1;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 108032, /* allocations= */ 10);
+            region products = new region(/* bytes= */ 122368, /* allocations= */ 14);
             words aggregates = allocate(products, /* length= */ 832);
             words cases = allocate(products, /* length= */ 640);
             words members = allocate(products, /* length= */ 2048);
@@ -147,6 +152,10 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             words ownerCases = allocate(products, /* length= */ 256);
             words rows = allocate(products, /* length= */ 2048);
             words arguments = allocate(products, /* length= */ 4096);
+            words argumentLocals = allocate(products, /* length= */ 1024);
+            words destinationLocals = allocate(products, /* length= */ 256);
+            words ownerLocals = allocate(products, /* length= */ 256);
+            words sliceDescriptors = allocate(products, /* length= */ 256);
             words resolved = allocate(products, /* length= */ 1536);
             set(rows, 0, 91);
             set(arguments, 0, 91);
@@ -158,6 +167,9 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             while (ownerRow < 256) limit 256 {
               set(ownerAggregates, ownerRow, -1);
               set(ownerCases, ownerRow, -1);
+              set(destinationLocals, ownerRow, -1);
+              set(ownerLocals, ownerRow, -1);
+              set(sliceDescriptors, ownerRow, -1);
               ownerRow += 1;
             }
             set(ownerAggregates, 2, 0);
@@ -165,6 +177,24 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             set(ownerAggregates, 5, 1);
             set(ownerCases, 5, 0);
             set(ownerAggregates, 6, 0);
+            set(destinationLocals, 0, 3);
+            set(destinationLocals, 1, 4);
+            set(destinationLocals, 2, 5);
+            set(destinationLocals, 3, 6);
+            set(destinationLocals, 4, 9);
+            set(destinationLocals, 5, 11);
+            set(destinationLocals, 6, 12);
+            set(ownerLocals, 2, 2);
+            set(ownerLocals, 3, 7);
+            set(ownerLocals, 5, 4);
+            set(ownerLocals, 6, 11);
+            set(sliceDescriptors, 4, 2);
+            set(argumentLocals, 0, 10);
+            set(argumentLocals, 1, 11);
+            set(argumentLocals, 2, 8);
+            set(argumentLocals, 3, 7);
+            set(argumentLocals, 4, 8);
+            set(argumentLocals, 5, 10);
             boolean targetsValid = resolveLocalAggregateConstructorTargets(
               input,
               plan.operationCount,
@@ -189,6 +219,19 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               ownerCases,
               projectionTargets
             );
+            boolean operandsValid = assembleAggregateResolvedOperands(
+              plan.operationCount,
+              rows,
+              plan.argumentCount,
+              arguments,
+              argumentLocals,
+              targets,
+              projectionTargets,
+              destinationLocals,
+              ownerLocals,
+              sliceDescriptors,
+              resolved
+            );
             operationCount = plan.operationCount;
             argumentCount = plan.argumentCount;
             if (aggregatesPlan.valid) {
@@ -200,10 +243,14 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             if (projectionsValid) {
               projectionsValidState = 1;
             }
+            if (operandsValid) {
+              operandsValidState = 1;
+            }
             if (plan.valid) {
               assert(aggregatesPlan.valid);
               assert(targetsValid);
               assert(projectionsValid);
+              assert(operandsValid);
               valid = 1;
               firstKind = rows[0];
               secondKind = rows[1];
@@ -222,41 +269,6 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               variantTarget = targets[257];
               fieldTarget = projectionTargets[258];
               arrayTarget = projectionTargets[259];
-              set(resolved, 0, targets[0]);
-              set(resolved, 1, targets[1]);
-              set(resolved, 2, projectionTargets[2]);
-              set(resolved, 3, projectionTargets[3]);
-              set(resolved, 4, 0x0530);
-              set(resolved, 5, projectionTargets[5]);
-              set(resolved, 6, projectionTargets[6]);
-              set(resolved, 256, 3);
-              set(resolved, 257, 4);
-              set(resolved, 258, 5);
-              set(resolved, 259, 6);
-              set(resolved, 260, 9);
-              set(resolved, 261, 11);
-              set(resolved, 262, 12);
-              set(resolved, 512, targets[256]);
-              set(resolved, 513, targets[257]);
-              set(resolved, 514, 2);
-              set(resolved, 515, 7);
-              set(resolved, 516, 2);
-              set(resolved, 517, 4);
-              set(resolved, 518, 11);
-              set(resolved, 768, 10);
-              set(resolved, 769, targets[513]);
-              set(resolved, 770, projectionTargets[770]);
-              set(resolved, 771, 8);
-              set(resolved, 772, 7);
-              set(resolved, 773, projectionTargets[517]);
-              set(resolved, 774, projectionTargets[774]);
-              set(resolved, 1024, 1);
-              set(resolved, 1025, 11);
-              set(resolved, 1027, 0);
-              set(resolved, 1028, 8);
-              set(resolved, 1029, projectionTargets[773]);
-              set(resolved, 1281, 1);
-              set(resolved, 1284, 10);
               AggregateInstructionProductPlan product =
                 writeResolvedSourceAggregateInstructions(plan.operationCount, rows, resolved, output);
               loweredCount = product.instructionCount;
@@ -270,6 +282,10 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               setOutputLength(output, 0);
             }
             drop(resolved);
+            drop(sliceDescriptors);
+            drop(ownerLocals);
+            drop(destinationLocals);
+            drop(argumentLocals);
             drop(arguments);
             drop(rows);
             drop(ownerCases);

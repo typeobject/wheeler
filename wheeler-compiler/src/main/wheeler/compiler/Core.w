@@ -5,6 +5,7 @@ module wheeler.compiler.compiler_core;
 import wheeler.compiler.closure.aggregate_constructor_targets;
 import wheeler.compiler.closure.aggregate_instruction_products;
 import wheeler.compiler.closure.aggregate_projection_targets;
+import wheeler.compiler.closure.aggregate_resolved_operands;
 import wheeler.compiler.closure.resolved_aggregate_operations;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
