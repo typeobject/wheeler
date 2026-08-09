@@ -25,22 +25,25 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
           variant Choice {
             case Some(Pair pair);
           }
+          record ArrayOwner(long[4] values) {}
           private long read(Pair pair, long[4] values, long index) {
             Pair made = new Pair(index);
             Choice selected = new Choice.Some(made);
             long member = pair.value;
             long element = values[index];
             long piece = slice(values, index, 2)[0];
-            return member + element + piece;
+            Pair payload = selected.pair;
+            long nested = payload.value;
+            return member + element + piece + nested;
           }
         }
         """;
     VirtualMachine machine = new VirtualMachine(program(),
-        source.getBytes(StandardCharsets.UTF_8), 200);
+        source.getBytes(StandardCharsets.UTF_8), 272);
 
     machine.run();
 
-    assertEquals(5, machine.global("operationCount"));
+    assertEquals(7, machine.global("operationCount"));
     assertEquals(1, machine.global("firstKind"));
     assertEquals(2, machine.global("secondKind"));
     assertEquals(3, machine.global("thirdKind"));
@@ -55,20 +58,24 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
     assertEquals("value", source.substring(
         Math.toIntExact(machine.global("memberStart")),
         Math.toIntExact(machine.global("memberEnd"))));
-    assertEquals(5, machine.global("loweredCount"));
-    assertEquals(200, machine.global("length"));
+    assertEquals(7, machine.global("loweredCount"));
+    assertEquals(272, machine.global("length"));
     assertEquals(0, machine.global("recordTarget"));
     assertEquals(1, machine.global("variantTarget"));
     assertEquals(1, machine.global("aggregatesValid"));
     assertEquals(1, machine.global("targetsValidState"));
-    assertEquals(List.of(0x0500, 0x0510, 0x0501, 0x0521, 0x0530),
+    assertEquals(1, machine.global("projectionsValidState"));
+    assertEquals(0, machine.global("fieldTarget"));
+    assertEquals(3, machine.global("arrayTarget"));
+    assertEquals(
+        List.of(0x0500, 0x0510, 0x0501, 0x0521, 0x0530, 0x0512, 0x0501),
         opcodes(machine.hostOutput()));
   }
 
   @Test
   void malformedConstructionPublishesNothing() throws Exception {
     VirtualMachine machine = new VirtualMachine(program(),
-        "new Pair(value".getBytes(StandardCharsets.UTF_8), 200);
+        "new Pair(value".getBytes(StandardCharsets.UTF_8), 272);
 
     machine.run();
 
@@ -86,11 +93,14 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
         "wheeler.compiler.closure.source_aggregate_products"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.aggregate_constructor_targets"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.aggregate_projection_targets"));
     sources.put("SourceAggregateOperationsExample.w", """
         module example.source_aggregate_operations;
 
         import wheeler.compiler.closure.aggregate_constructor_targets;
         import wheeler.compiler.closure.aggregate_instruction_products;
+        import wheeler.compiler.closure.aggregate_projection_targets;
         import wheeler.compiler.closure.resolved_aggregate_operations;
         import wheeler.compiler.closure.source_aggregate_operations;
         import wheeler.compiler.closure.source_aggregate_products;
@@ -115,19 +125,36 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
           state long variantTarget = -1;
           state long aggregatesValid = 0;
           state long targetsValidState = 0;
+          state long projectionsValidState = 0;
+          state long fieldTarget = -1;
+          state long arrayTarget = -1;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 62976, /* allocations= */ 6);
+            region products = new region(/* bytes= */ 75264, /* allocations= */ 9);
             words aggregates = allocate(products, /* length= */ 832);
             words cases = allocate(products, /* length= */ 640);
             words members = allocate(products, /* length= */ 2048);
             words targets = allocate(products, /* length= */ 768);
+            words projectionTargets = allocate(products, /* length= */ 1024);
+            words ownerAggregates = allocate(products, /* length= */ 256);
+            words ownerCases = allocate(products, /* length= */ 256);
             words rows = allocate(products, /* length= */ 2048);
             words resolved = allocate(products, /* length= */ 1536);
             set(rows, 0, 91);
             SourceAggregateProductPlan aggregatesPlan =
               materializeSourceAggregateProducts(input, aggregates, cases, members);
             SourceAggregateOperationPlan plan = materializeSourceAggregateOperations(input, rows);
+            long ownerRow = 0;
+            while (ownerRow < 256) limit 256 {
+              set(ownerAggregates, ownerRow, -1);
+              set(ownerCases, ownerRow, -1);
+              ownerRow += 1;
+            }
+            set(ownerAggregates, 2, 0);
+            set(ownerAggregates, 3, 3);
+            set(ownerAggregates, 5, 1);
+            set(ownerCases, 5, 0);
+            set(ownerAggregates, 6, 0);
             boolean targetsValid = resolveLocalAggregateConstructorTargets(
               input,
               plan.operationCount,
@@ -138,6 +165,20 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               cases,
               targets
             );
+            boolean projectionsValid = resolveLocalAggregateProjectionTargets(
+              input,
+              plan.operationCount,
+              rows,
+              aggregatesPlan.aggregateCount,
+              aggregates,
+              aggregatesPlan.caseCount,
+              cases,
+              aggregatesPlan.memberCount,
+              members,
+              ownerAggregates,
+              ownerCases,
+              projectionTargets
+            );
             operationCount = plan.operationCount;
             if (aggregatesPlan.valid) {
               aggregatesValid = 1;
@@ -145,9 +186,13 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             if (targetsValid) {
               targetsValidState = 1;
             }
+            if (projectionsValid) {
+              projectionsValidState = 1;
+            }
             if (plan.valid) {
               assert(aggregatesPlan.valid);
               assert(targetsValid);
+              assert(projectionsValid);
               valid = 1;
               firstKind = rows[0];
               secondKind = rows[1];
@@ -162,30 +207,41 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               memberEnd = rows[770] + rows[1026];
               recordTarget = targets[256];
               variantTarget = targets[257];
+              fieldTarget = projectionTargets[258];
+              arrayTarget = projectionTargets[259];
               set(resolved, 0, targets[0]);
               set(resolved, 1, targets[1]);
-              set(resolved, 2, 0x0501);
-              set(resolved, 3, 0x0521);
+              set(resolved, 2, projectionTargets[2]);
+              set(resolved, 3, projectionTargets[3]);
               set(resolved, 4, 0x0530);
+              set(resolved, 5, projectionTargets[5]);
+              set(resolved, 6, projectionTargets[6]);
               set(resolved, 256, 3);
               set(resolved, 257, 4);
               set(resolved, 258, 5);
               set(resolved, 259, 6);
               set(resolved, 260, 9);
+              set(resolved, 261, 11);
+              set(resolved, 262, 12);
               set(resolved, 512, targets[256]);
               set(resolved, 513, targets[257]);
               set(resolved, 514, 2);
               set(resolved, 515, 7);
               set(resolved, 516, 2);
+              set(resolved, 517, 4);
+              set(resolved, 518, 11);
               set(resolved, 768, 10);
               set(resolved, 769, targets[513]);
-              set(resolved, 770, 0);
+              set(resolved, 770, projectionTargets[770]);
               set(resolved, 771, 8);
               set(resolved, 772, 7);
+              set(resolved, 773, projectionTargets[517]);
+              set(resolved, 774, projectionTargets[774]);
               set(resolved, 1024, 1);
               set(resolved, 1025, 11);
               set(resolved, 1027, 0);
               set(resolved, 1028, 8);
+              set(resolved, 1029, projectionTargets[773]);
               set(resolved, 1281, 1);
               set(resolved, 1284, 10);
               AggregateInstructionProductPlan product =
@@ -200,6 +256,9 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             }
             drop(resolved);
             drop(rows);
+            drop(ownerCases);
+            drop(ownerAggregates);
+            drop(projectionTargets);
             drop(targets);
             drop(members);
             drop(cases);
