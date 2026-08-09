@@ -2,6 +2,8 @@
 
 module wheeler.compiler.closure.source_aggregate_layouts;
 
+import wheeler.compiler.closure.source_aggregate_strings;
+
 classical class SourceAggregateLayouts {
   private const long AGGREGATE_ROWS = 832;
   private const long CASE_ROWS = 640;

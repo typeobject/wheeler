@@ -83,6 +83,10 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
     assertEquals(2, machine.global("countedCaseCount"));
     assertEquals(7, machine.global("countedMemberCount"));
     assertEquals(1, machine.global("countedArrayMemberType"));
+    assertEquals(12, machine.global("archivedStringCount"));
+    assertEquals(55, machine.global("archivedStringBytes"));
+    assertEquals(78, machine.global("firstArchivedByte"));
+    assertEquals(4, machine.global("firstArchivedLength"));
   }
 
   @Test
@@ -156,6 +160,7 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
         import wheeler.compiler.closure.counted_aggregate_layouts;
         import wheeler.compiler.closure.source_aggregate_layouts;
         import wheeler.compiler.closure.source_aggregate_products;
+        import wheeler.compiler.closure.source_aggregate_strings;
 
         classical class SourceAggregateProductsExample {
           state long productValid = 0;
@@ -215,9 +220,13 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
           state long countedCaseCount = 0;
           state long countedMemberCount = 0;
           state long countedArrayMemberType = 0;
+          state long archivedStringCount = 0;
+          state long archivedStringBytes = 0;
+          state long firstArchivedByte = 0;
+          state long firstArchivedLength = 0;
 
           entry void main(borrow utf8 input) {
-            region rows = new region(/* bytes= */ 1149952, /* allocations= */ 12);
+            region rows = new region(/* bytes= */ 1547264, /* allocations= */ 16);
             words aggregates = allocate(rows, /* length= */ 832);
             words cases = allocate(rows, /* length= */ 640);
             words members = allocate(rows, /* length= */ 2048);
@@ -230,6 +239,10 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
             words closureAggregates = allocate(rows, /* length= */ 36864);
             words closureCases = allocate(rows, /* length= */ 32768);
             words closureMembers = allocate(rows, /* length= */ 65536);
+            bytes aggregateStringArchive = allocateBytes(rows, /* length= */ 4096);
+            words stringArtifactRanks = allocate(rows, /* length= */ 16384);
+            words archivedStringStarts = allocate(rows, /* length= */ 16384);
+            words archivedStringLengths = allocate(rows, /* length= */ 16384);
             set(aggregates, 64, 91);
             set(cases, 0, 61);
             set(members, 0, 73);
@@ -266,6 +279,23 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
               secondProjectedMemberType = projectedMembers[769];
               thirdProjectedMemberType = projectedMembers[770];
               arrayProjectedMemberType = projectedMembers[774];
+              SourceAggregateStringPlan archivedStrings = appendSourceAggregateStrings(
+                input,
+                /* artifactRank= */ 2,
+                projected.stringCount,
+                stringStarts,
+                stringLengths,
+                /* archiveBytes= */ 0,
+                /* closureStringCount= */ 0,
+                aggregateStringArchive,
+                stringArtifactRanks,
+                archivedStringStarts,
+                archivedStringLengths
+              );
+              archivedStringCount = archivedStrings.stringCount;
+              archivedStringBytes = archivedStrings.archiveBytes;
+              firstArchivedByte = aggregateStringArchive[0];
+              firstArchivedLength = archivedStringLengths[0];
               CountedAggregateLayoutPlan counted = appendProjectedAggregateLayouts(
                 /* owner= */ 7,
                 /* moduleCount= */ 0,
@@ -330,6 +360,10 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
             secondCaseNameStart = cases[129];
             firstCaseMemberCount = cases[512];
             secondCaseMemberCount = cases[513];
+            drop(archivedStringLengths);
+            drop(archivedStringStarts);
+            drop(stringArtifactRanks);
+            drop(aggregateStringArchive);
             drop(closureMembers);
             drop(closureCases);
             drop(closureAggregates);
