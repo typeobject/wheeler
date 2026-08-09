@@ -8,9 +8,34 @@ import java.util.Map;
 
 /** Builds the production counted archive-closure evidence program. */
 final class NativeCompilerArchiveClosureProgram {
-  static final List<Integer> PHYSICAL_MODULE_OWNERS = List.of(18, 172, 250, 290);
+  record PhysicalModule(int owner, String path, String name) {}
+
+  static final List<PhysicalModule> PHYSICAL_MODULES = List.of(
+      new PhysicalModule(
+          18, "compiler/syntax/booleans/BooleanTokens.w", "wheeler.compiler.boolean_tokens"),
+      new PhysicalModule(
+          172, "compiler/syntax/IdentifierStarts.w", "wheeler.compiler.identifier_starts"),
+      new PhysicalModule(
+          250,
+          "compiler/syntax/returns/ResolvedLocalReturns.w",
+          "wheeler.compiler.resolved_local_returns"),
+      new PhysicalModule(
+          290, "compiler/syntax/calls/VoidCallKinds.w", "wheeler.compiler.void_call_kinds"),
+      new PhysicalModule(
+          294,
+          "compiler/syntax/calls/VoidCallSourceKinds.w",
+          "wheeler.compiler.void_call_source_kinds"));
 
   private NativeCompilerArchiveClosureProgram() {}
+
+  private static String physicalOwnerRows() {
+    StringBuilder rows = new StringBuilder();
+    for (int index = 0; index < PHYSICAL_MODULES.size(); index++) {
+      rows.append("set(physicalOwners, ").append(index).append(", ")
+          .append(PHYSICAL_MODULES.get(index).owner()).append(");\n");
+    }
+    return rows.toString();
+  }
 
   static Program program() throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
@@ -99,6 +124,7 @@ final class NativeCompilerArchiveClosureProgram {
           state long compiledCallableMaxLocalCount = 0;
           state long physicalModuleProductLength = 0;
           state long physicalModuleProductFunctions = 0;
+          state long physicalModuleOwner = -1;
           state long packageIdentityPrefix = 0;
           state long firstSymbolIdentityPrefix = 0;
           state long lastSymbolIdentityPrefix = 0;
@@ -133,7 +159,7 @@ final class NativeCompilerArchiveClosureProgram {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 3176000, /* allocations= */ 72);
+            region columns = new region(/* bytes= */ 3176096, /* allocations= */ 72);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -197,11 +223,8 @@ final class NativeCompilerArchiveClosureProgram {
             words physicalAggregates = allocate(columns, /* length= */ 832);
             words physicalCalls = allocate(columns, /* length= */ 1024);
             words physicalResultTypes = allocate(columns, /* length= */ 4096);
-            words physicalOwners = allocate(columns, /* length= */ 4);
-            set(physicalOwners, 0, PHYSICAL_MODULE_OWNER_0);
-            set(physicalOwners, 1, PHYSICAL_MODULE_OWNER_1);
-            set(physicalOwners, 2, PHYSICAL_MODULE_OWNER_2);
-            set(physicalOwners, 3, PHYSICAL_MODULE_OWNER_3);
+            words physicalOwners = allocate(columns, /* length= */ 16);
+            PHYSICAL_MODULE_OWNERS
             bytes packageIdentity = allocateBytes(columns, /* length= */ 32);
             bytes symbolIdentities = allocateBytes(columns, MAX_SYMBOLS * 32);
             bytes moduleIdentities = allocateBytes(columns, MAX_MODULES * 32);
@@ -453,8 +476,9 @@ final class NativeCompilerArchiveClosureProgram {
                 }
                 if (closure.moduleCount == 304) {
                   long physicalProduct = 0;
-                  while (physicalProduct < 4) limit 4 {
+                  while (physicalProduct < PHYSICAL_MODULE_COUNT) limit 16 {
                     long physicalOwner = physicalOwners[physicalProduct];
+                    physicalModuleOwner = physicalOwner;
                     CompiledCallableBody physicalModule = compileSourceModuleProductWithImports(
                       archive,
                       archiveSourceStarts[physicalOwner],
@@ -787,10 +811,8 @@ final class NativeCompilerArchiveClosureProgram {
           }
         }
         """
-            .replace("PHYSICAL_MODULE_OWNER_0", Integer.toString(PHYSICAL_MODULE_OWNERS.get(0)))
-            .replace("PHYSICAL_MODULE_OWNER_1", Integer.toString(PHYSICAL_MODULE_OWNERS.get(1)))
-            .replace("PHYSICAL_MODULE_OWNER_2", Integer.toString(PHYSICAL_MODULE_OWNERS.get(2)))
-            .replace("PHYSICAL_MODULE_OWNER_3", Integer.toString(PHYSICAL_MODULE_OWNERS.get(3))));
+            .replace("PHYSICAL_MODULE_OWNERS", physicalOwnerRows())
+            .replace("PHYSICAL_MODULE_COUNT", Integer.toString(PHYSICAL_MODULES.size())));
     return new WheelerCompiler().compileModuleFiles(sources, "example.archive_closure");
   }
 

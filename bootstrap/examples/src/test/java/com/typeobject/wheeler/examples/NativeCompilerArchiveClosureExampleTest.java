@@ -110,35 +110,26 @@ final class NativeCompilerArchiveClosureExampleTest {
 
   @Test
   void compilesPhysicalModuleProductsByteForByte() throws Exception {
-    List<String> paths = List.of(
-        "compiler/syntax/booleans/BooleanTokens.w",
-        "compiler/syntax/IdentifierStarts.w",
-        "compiler/syntax/returns/ResolvedLocalReturns.w",
-        "compiler/syntax/calls/VoidCallKinds.w");
-    List<String> names = List.of(
-        "wheeler.compiler.boolean_tokens",
-        "wheeler.compiler.identifier_starts",
-        "wheeler.compiler.resolved_local_returns",
-        "wheeler.compiler.void_call_kinds");
     ByteArrayOutputStream expected = new ByteArrayOutputStream();
     long expectedFunctions = 0;
-    for (int product = 0; product < paths.size(); product++) {
-      String source = CompilerSources.read(paths.get(product));
-      String fileName = paths.get(product).substring(paths.get(product).lastIndexOf('/') + 1);
+    for (NativeCompilerArchiveClosureProgram.PhysicalModule module
+        : NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES) {
+      String source = CompilerSources.read(module.path());
+      String fileName = module.path().substring(module.path().lastIndexOf('/') + 1);
       byte[] artifact = new BytecodeWriter().write(
           new WheelerCompiler().compileLibraryModuleFiles(
-              Map.of(fileName, source), names.get(product)));
+              Map.of(fileName, source), module.name()));
       expected.writeBytes(artifact);
       expectedFunctions += new BytecodeReader().read(artifact).functions().size();
     }
     Program program = NativeCompilerArchiveClosureProgram.program();
     byte[] archive = CompilerSources.packageArchive();
     BootstrapModuleManifest manifest = CompilerSources.bootstrapModuleManifest();
-    for (int product = 0; product < names.size(); product++) {
-      assertEquals(
-          names.get(product),
-          manifest.modules().get(
-              NativeCompilerArchiveClosureProgram.PHYSICAL_MODULE_OWNERS.get(product)).name());
+    for (NativeCompilerArchiveClosureProgram.PhysicalModule module
+        : NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES) {
+      BootstrapModuleManifest.Module manifestModule = manifest.modules().get(module.owner());
+      assertEquals(module.name(), manifestModule.name());
+      assertEquals("src/main/wheeler/" + module.path(), manifestModule.source());
     }
     VirtualMachine machine = VirtualMachine.withBinaryInput(
         program,
@@ -571,7 +562,10 @@ final class NativeCompilerArchiveClosureExampleTest {
           .map(frame -> program.function(frame.functionId()).name()
               + "@" + frame.programCounter())
           .toList();
-      throw new AssertionError("Counted closure trapped in " + frames, trap);
+      throw new AssertionError(
+          "Counted closure trapped for physical owner "
+              + machine.global("physicalModuleOwner") + " in " + frames,
+          trap);
     }
   }
 
