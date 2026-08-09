@@ -40,7 +40,8 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
     assertEquals(3, machine.global("carrierTarget"));
     assertEquals(1, machine.global("localValueCarrierRole"));
     assertEquals(2, machine.global("localConstructorCarrierRole"));
-    assertEquals(1, machine.global("localValueCarrierLocal"));
+    assertEquals(2, machine.global("localValueCarrierLocal"));
+    assertEquals(2, machine.global("localValueProductLocal"));
     assertEquals(SOURCE.indexOf("Local item"), machine.global("firstSourceStatementStart"));
     Program product = new BytecodeReader().read(machine.hostOutput());
     assertEquals(2, product.functions().size());
@@ -94,10 +95,11 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
           state long localValueCarrierRole = 0;
           state long localConstructorCarrierRole = 0;
           state long localValueCarrierLocal = 0;
+          state long localValueProductLocal = 0;
           state long firstSourceStatementStart = 0;
 
           entry void main(borrow byteview input, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 1963552, /* allocations= */ 22);
+            region rows = new region(/* bytes= */ 2021408, /* allocations= */ 24);
             words localAggregates = allocate(rows, /* length= */ 832);
             words operations = allocate(rows, /* length= */ 2048);
             words localReferences = allocate(rows, /* length= */ 1536);
@@ -106,6 +108,8 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             words localCallableBodyStarts = allocate(rows, /* length= */ 4096);
             words localCallableBodyLengths = allocate(rows, /* length= */ 4096);
             words localStatements = allocate(rows, /* length= */ 24576);
+            words localValues = allocate(rows, /* length= */ 7168);
+            words localFunctionLocals = allocate(rows, /* length= */ 64);
             words references = allocate(rows, /* length= */ 256);
             words carrierFunctions = allocate(rows, /* length= */ 64);
             words carrierLocals = allocate(rows, /* length= */ 64);
@@ -125,6 +129,9 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             set(localAggregates, 0, 1);
             set(localAggregates, 512, %d);
             set(localAggregates, 768, %d);
+            set(operations, 0, 1);
+            set(operations, 256, %d);
+            set(operations, 512, 5);
             set(operations, 1280, %d);
             set(operations, 1536, 12);
             set(localReferences, 0, 0);
@@ -133,16 +140,7 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             set(localReferences, 513, %d);
             set(localReferences, 1024, 5);
             set(localReferences, 1025, 5);
-            set(localProjections, 0, 0);
-            set(localProjections, 1, 0);
-            set(localProjections, 512, 1);
-            set(localProjections, 513, 2);
-            set(localProjections, 1024, 0);
-            set(localProjections, 1536, 1);
-            set(localProjections, 2048, %d);
-            set(localProjections, 2049, %d);
-            set(localProjections, 2560, 5);
-            set(localProjections, 2561, 5);
+            set(localProjections, 0, 91);
             set(references, 0, %d);
             set(references, 64, 3);
             set(references, 128, 3);
@@ -165,6 +163,8 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
               localCallableBodyStarts,
               localCallableBodyLengths,
               localStatements,
+              localValues,
+              localFunctionLocals,
               /* moduleOwner= */ 9,
               /* firstRecordTypeId= */ 1,
               /* firstVariantTypeId= */ 0,
@@ -199,6 +199,7 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             localValueCarrierRole = localProjections[512];
             localConstructorCarrierRole = localProjections[513];
             localValueCarrierLocal = localProjections[1536];
+            localValueProductLocal = localValues[3073];
             firstSourceStatementStart = localStatements[16384];
             published = 1;
             setOutputLength(output, compiled.length);
@@ -216,6 +217,8 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             drop(carrierLocals);
             drop(carrierFunctions);
             drop(references);
+            drop(localFunctionLocals);
+            drop(localValues);
             drop(localStatements);
             drop(localCallableBodyLengths);
             drop(localCallableBodyStarts);
@@ -232,9 +235,8 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             callableBodyEnd - callableBodyStart,
             declarationStart,
             declarationEnd,
-            operationStart,
-            localValueReferenceStart,
             localConstructorReferenceStart,
+            operationStart,
             localValueReferenceStart,
             localConstructorReferenceStart,
             referenceStart,

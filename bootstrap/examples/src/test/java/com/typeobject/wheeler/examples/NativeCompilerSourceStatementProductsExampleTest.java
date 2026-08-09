@@ -36,6 +36,10 @@ final class NativeCompilerSourceStatementProductsExampleTest {
     assertEquals(1, machine.global("thirdOrdinal"));
     assertEquals(SOURCE.indexOf("Pair y = new Pair(x);"), machine.global("firstStart"));
     assertEquals("Pair y = new Pair(x);".length(), machine.global("firstLength"));
+    assertEquals(2, machine.global("valueCount"));
+    assertEquals(0, machine.global("parameterLocal"));
+    assertEquals(2, machine.global("destinationLocal"));
+    assertEquals(4, machine.global("firstFunctionLocals"));
   }
 
   @Test
@@ -74,12 +78,18 @@ final class NativeCompilerSourceStatementProductsExampleTest {
           state long thirdOrdinal = 0;
           state long firstStart = 0;
           state long firstLength = 0;
+          state long valueCount = 0;
+          state long parameterLocal = 0;
+          state long destinationLocal = 0;
+          state long firstFunctionLocals = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 262144, /* allocations= */ 3);
+            region products = new region(/* bytes= */ 320000, /* allocations= */ 5);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words statements = allocate(products, /* length= */ 24576);
+            words values = allocate(products, /* length= */ 7168);
+            words functionLocals = allocate(products, /* length= */ 64);
             set(bodyStarts, 0, %d);
             set(bodyLengths, 0, %d);
             set(bodyStarts, 1, %d);
@@ -96,6 +106,22 @@ final class NativeCompilerSourceStatementProductsExampleTest {
             );
             if (plan.valid) {
               valid = 1;
+              SourceValueProductPlan valuePlan = materializeSourceValueProducts(
+                input,
+                /* archiveSourceStart= */ 0,
+                /* firstCallable= */ 0,
+                /* callableCount= */ 2,
+                bodyStarts,
+                plan.statementCount,
+                statements,
+                values,
+                functionLocals
+              );
+              assert(valuePlan.valid);
+              valueCount = valuePlan.valueCount;
+              parameterLocal = values[3072];
+              destinationLocal = values[3073];
+              firstFunctionLocals = functionLocals[0];
             }
             statementCount = plan.statementCount;
             firstFunction = statements[0];
@@ -107,6 +133,8 @@ final class NativeCompilerSourceStatementProductsExampleTest {
             firstStart = statements[16384];
             firstLength = statements[20480];
             setOutputLength(output, 0);
+            drop(functionLocals);
+            drop(values);
             drop(statements);
             drop(bodyLengths);
             drop(bodyStarts);

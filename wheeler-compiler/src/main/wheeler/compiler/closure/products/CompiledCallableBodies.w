@@ -8,6 +8,7 @@ import wheeler.compiler.closure.callable_type_products;
 import wheeler.compiler.closure.imported_callable_stubs;
 import wheeler.compiler.closure.imported_nominal_carrier_projections;
 import wheeler.compiler.closure.imported_nominal_references;
+import wheeler.compiler.closure.local_nominal_carrier_projections;
 import wheeler.compiler.closure.local_nominal_carriers;
 import wheeler.compiler.closure.source_statement_products;
 import wheeler.compiler.compiler_core;
@@ -290,6 +291,8 @@ classical class CompiledCallableBodies {
     borrow mut words localCallableBodyStarts,
     borrow mut words localCallableBodyLengths,
     borrow mut words localStatementRows,
+    borrow mut words localValueRows,
+    borrow mut words localFunctionLocalCounts,
     long moduleOwner,
     long firstRecordTypeId,
     long firstVariantTypeId,
@@ -316,9 +319,12 @@ classical class CompiledCallableBodies {
     assert(-1 < sourceStart);
     assert(0 < sourceLength);
     assert(sourceLength < MAX_CALLABLE_SOURCE_BYTES + 1);
-    region sourceArena = new region(/* bytes= */ 1376256, /* allocations= */ 11);
+    region sourceArena = new region(/* bytes= */ 1466880, /* allocations= */ 14);
     bytes originalSource = allocateBytes(sourceArena, sourceLength);
     words stagedStatements = allocate(sourceArena, /* length= */ 24576);
+    words stagedValues = allocate(sourceArena, /* length= */ 7168);
+    words stagedLocalCounts = allocate(sourceArena, /* length= */ 64);
+    words stagedLocalProjections = allocate(sourceArena, /* length= */ 4096);
     bytes projectedSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
     bytes expressionSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
     bytes localCarrierSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
@@ -327,9 +333,12 @@ classical class CompiledCallableBodies {
     bytes carrierSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
     words stagedProjections = allocate(sourceArena, /* length= */ 49152);
     words stagedCarrierProjections = allocate(sourceArena, /* length= */ 65536);
+    assert(bufferLength(localNominalProjectionRows) == 4096);
     assert(bufferLength(nominalProjectionRows) == 49152);
     assert(bufferLength(carrierProjectionRows) == 65536);
     assert(bufferLength(localStatementRows) == 24576);
+    assert(bufferLength(localValueRows) == 7168);
+    assert(bufferLength(localFunctionLocalCounts) == 64);
     long originalByte = 0;
     while (originalByte < sourceLength) limit MAX_CALLABLE_SOURCE_BYTES {
       setByte(originalSource, originalByte, sourceArchive[sourceStart + originalByte]);
@@ -347,6 +356,29 @@ classical class CompiledCallableBodies {
       stagedStatements
     );
     assert(sourceStatements.valid);
+    SourceValueProductPlan sourceValues = materializeSourceValueProducts(
+      originalUtf8,
+      sourceStart,
+      firstLocalCallable,
+      localCallableCount,
+      localCallableBodyStarts,
+      sourceStatements.statementCount,
+      stagedStatements,
+      stagedValues,
+      stagedLocalCounts
+    );
+    assert(sourceValues.valid);
+    LocalNominalCarrierProjectionPlan localProjectionPlan = publishLocalNominalCarrierProjections(
+      originalUtf8,
+      localNominalReferenceCount,
+      localNominalReferenceRows,
+      sourceValues.valueCount,
+      stagedValues,
+      operationCount,
+      operationRows,
+      stagedLocalProjections
+    );
+    assert(localProjectionPlan.valid);
     drop(originalUtf8);
     ImportedNominalCarrierProjectionPlan carrierProjectionPlan
       = publishImportedNominalCarrierProjections(
@@ -380,7 +412,7 @@ classical class CompiledCallableBodies {
       expressionLength,
       localNominalReferenceCount,
       localNominalReferenceRows,
-      localNominalProjectionRows,
+      stagedLocalProjections,
       localCarrierRows,
       localCarrierSource
     );
@@ -453,6 +485,28 @@ classical class CompiledCallableBodies {
       projectionRow += 1;
     }
 
+    long localProjectionRow = 0;
+    while (localProjectionRow < 4096) limit 4096 {
+      set(
+        localNominalProjectionRows,
+        localProjectionRow,
+        stagedLocalProjections[localProjectionRow]
+      );
+      localProjectionRow += 1;
+    }
+
+    long valueRow = 0;
+    while (valueRow < 7168) limit 7168 {
+      set(localValueRows, valueRow, stagedValues[valueRow]);
+      valueRow += 1;
+    }
+
+    long localCountRow = 0;
+    while (localCountRow < 64) limit 64 {
+      set(localFunctionLocalCounts, localCountRow, stagedLocalCounts[localCountRow]);
+      localCountRow += 1;
+    }
+
     long statementRow = 0;
     while (statementRow < 24576) limit 24576 {
       set(localStatementRows, statementRow, stagedStatements[statementRow]);
@@ -471,6 +525,9 @@ classical class CompiledCallableBodies {
 
     drop(stagedCarrierProjections);
     drop(stagedProjections);
+    drop(stagedLocalProjections);
+    drop(stagedLocalCounts);
+    drop(stagedValues);
     drop(stagedStatements);
     drop(sourceArena);
     return result;
