@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.compiled_callable_bodies;
 
+import wheeler.compiler.closure.callable_type_products;
 import wheeler.compiler.closure.imported_callable_stubs;
 import wheeler.compiler.compiler_core;
 import wheeler.core.encoding.binary;
@@ -208,16 +209,14 @@ classical class CompiledCallableBodies {
     borrow byteview sourceArchive,
     long sourceStart,
     long sourceLength,
-    borrow byteview signatureArchive,
     long callCount,
     borrow mut words callRows,
-    borrow mut words signatureStarts,
-    borrow mut words signatureLengths,
-    borrow mut words callableNameStarts,
-    borrow mut words callableNameLengths,
+    borrow mut words callableEffects,
+    borrow mut words callableFirstParameters,
     borrow mut words callableParameterCounts,
-    borrow mut words callableResultTypeStarts,
-    borrow mut words callableResultTypeLengths,
+    borrow mut words callableResultTypes,
+    borrow mut words parameterTypes,
+    borrow mut words parameterModes,
     borrow mut bytes artifact,
     borrow mut bytes identity
   ) {
@@ -232,16 +231,14 @@ classical class CompiledCallableBodies {
       sourceArchive,
       sourceStart,
       sourceLength,
-      signatureArchive,
       callCount,
       callRows,
-      signatureStarts,
-      signatureLengths,
-      callableNameStarts,
-      callableNameLengths,
+      callableEffects,
+      callableFirstParameters,
       callableParameterCounts,
-      callableResultTypeStarts,
-      callableResultTypeLengths,
+      callableResultTypes,
+      parameterTypes,
+      parameterModes,
       stubSource
     );
     bytes exactSource = allocateBytes(sourceArena, product.length);
@@ -270,11 +267,12 @@ classical class CompiledCallableBodies {
     borrow mut words bodyLengths,
     long callCount,
     borrow mut words callRows,
-    borrow mut words callableNameStarts,
-    borrow mut words callableNameLengths,
+    borrow mut words callableEffects,
+    borrow mut words callableFirstParameters,
     borrow mut words callableParameterCounts,
-    borrow mut words callableResultTypeStarts,
-    borrow mut words callableResultTypeLengths,
+    borrow mut words callableResultTypes,
+    borrow mut words parameterTypes,
+    borrow mut words parameterModes,
     borrow mut bytes artifact,
     borrow mut bytes identity
   ) {
@@ -334,16 +332,14 @@ classical class CompiledCallableBodies {
       baseSource,
       /* sourceStart= */ 0,
       sourceLength,
-      archive,
       callCount,
       callRows,
-      signatureStarts,
-      signatureLengths,
-      callableNameStarts,
-      callableNameLengths,
+      callableEffects,
+      callableFirstParameters,
       callableParameterCounts,
-      callableResultTypeStarts,
-      callableResultTypeLengths,
+      callableResultTypes,
+      parameterTypes,
+      parameterModes,
       stubSource
     );
     bytes exactSource = allocateBytes(sourceArena, product.length);

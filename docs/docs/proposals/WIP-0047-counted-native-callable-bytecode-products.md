@@ -111,11 +111,11 @@ Callable bytecode products do not set a bootstrap bit. Promotion still requires 
 - [x] Exact pre-link matches require ordered parameter types and loan modes, result type, and effect product equality. Equal exact candidates remain ambiguous.
 - [x] Qualified pre-link calls bind the written dependency rank before exact signature matching. Packed views resolve exact local and locked external products without dependency source.
 - [x] `AggregateOperandRelocations.w` resolves record, fixed-array, slice, and variant construction operands to unique WIP-0046 rows and copies the aggregate module-product identity.
-- [x] `CompiledCallableBodies.w` compiles either counted callable ranges or a complete primitive local class against imported signature products by rewriting resolved call ranges to deterministic, collision-free, self-recursive stubs. Calls type-check without dependency bodies. `retainLocalFunctionProduct` validates the instruction prefix and excludes both stub and synthetic entry suffixes before counted body publication.
+- [x] `CompiledCallableBodies.w` compiles either counted callable ranges or a complete primitive local class against imported signature products by rewriting resolved call ranges to deterministic, collision-free, self-recursive stubs. Calls type-check from source-independent primitive type, loan, effect, and parameter-window products. Stub generation accepts no dependency-source argument. `retainLocalFunctionProduct` validates the instruction prefix and excludes both stub and synthetic entry suffixes before counted body publication.
 - [x] `CompiledBodyArchive.w` copies validated source-local artifacts into a bounded 16 MiB closure archive and publishes stable artifact ranks. Duplicate module owners fail before copying.
 - [x] `CountedFunctionProducts.w` appends one validated artifact at a time, rebases instruction owners, preserves artifact ranks, and rejects duplicate module owners before publication.
 - [x] `LinkedInstructionCode.w` emits closure-ordered instruction bytes and rebases local call targets by the owning module's final function base.
-- [ ] WIP-0048 emits the complete canonical multi-module `.wbc` and matches linked fixtures byte for byte.
+- [x] WIP-0048 emits complete canonical multi-module `.wbc` fixtures byte for byte, including mixed-owner calls, aggregates, globals, proofs, and reversible result slots.
 - [ ] WIP-0049 compiles every physical source-local body and excludes all compile-time scaffolding.
 - [ ] The complete physical compiler closure compiles from semantic products.
 
