@@ -156,6 +156,7 @@ Source-product compilation does not set the bootstrap bit. Promotion still requi
 - [x] `ImportedCallableStubs.w` generates deterministic primitive signature stubs.
 - [x] `compileSourceModuleProductWithImports` compiles one complete primitive local class from local source and imported products.
 - [x] `compileCallableModuleProductWithImports` compiles counted primitive callable ranges.
+- [x] Borrowed intrinsic results can feed later typed comparison values. Scalar helper validation now admits every declaration with a concrete result local instead of maintaining a second incomplete declaration whitelist.
 - [x] `retainLocalFunctionProduct` excludes stub and compiler-added function suffixes.
 - [x] Imported call ranges, including qualified spelling, rewrite to `__wheeler_import_<product-row>` stub names. Any local use of the reserved prefix fails before output mutation.
 - [x] `CallableTypeProducts.w` resolves primitive source ranges while local source is leased. Stub generation consumes only type codes, loan modes, effect masks, and parameter windows. Its API has no dependency-source argument.

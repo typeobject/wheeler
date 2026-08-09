@@ -23,6 +23,8 @@ import wheeler.compiler.owned_storage_forms;
 import wheeler.compiler.owned_utf8_copy_loops;
 import wheeler.compiler.resolved_early_result_kinds;
 import wheeler.compiler.resolved_less_than_assertions;
+import wheeler.compiler.resolved_literal_comparison_kinds;
+import wheeler.compiler.resolved_local_conditional_kinds;
 import wheeler.compiler.resolved_local_copy_kinds;
 import wheeler.compiler.resolved_long_operations;
 import wheeler.compiler.scalar_helper_tables;
@@ -497,100 +499,80 @@ classical class ScalarHelperLibraries {
           }
         }
       } else {
-        boolean signedPrelude = resolvedLocalLongBinary(earlyOpcode);
-        if (earlyOpcode == STATEMENT_LOCAL_LONG) {
-          signedPrelude = true;
+        boolean validPrelude = -1 < statementResultLocal(earlyOpcode, 0);
+        if (resolvedLocalLongBinary(earlyOpcode)) {
+          validPrelude = true;
         }
 
         if (resolvedLocalLongCopy(earlyOpcode)) {
-          signedPrelude = true;
+          validPrelude = true;
         }
 
         if (resolvedLocalLongPair(earlyOpcode)) {
-          signedPrelude = true;
-        }
-
-        if (resolvedLocalLessThanAssertion(earlyOpcode)) {
-          signedPrelude = true;
-        }
-
-        if (resolvedLiteralLessThanAssertion(earlyOpcode)) {
-          signedPrelude = true;
-        }
-
-        if (resolvedLocalLongAssertion(earlyOpcode)) {
-          signedPrelude = true;
-        }
-
-        if (earlyOpcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
-          signedPrelude = true;
-        }
-
-        if (earlyOpcode == STATEMENT_LOCAL_UTF8_SCALAR) {
-          signedPrelude = true;
-        }
-
-        if (earlyOpcode == STATEMENT_LOCAL_UTF8_WIDTH) {
-          signedPrelude = true;
-        }
-
-        if (earlyOpcode == STATEMENT_LOCAL_BUFFER_GET) {
-          signedPrelude = true;
-        }
-
-        if (earlyOpcode == STATEMENT_LOCAL_MAP_GET) {
-          signedPrelude = true;
-        }
-
-        if (earlyOpcode == STATEMENT_LOCAL_MAP_HAS) {
-          signedPrelude = true;
-        }
-
-        if (earlyOpcode == STATEMENT_SET_WORD) {
-          signedPrelude = true;
-        }
-
-        if (earlyOpcode == STATEMENT_SET_BYTE) {
-          signedPrelude = true;
-        }
-
-        if (earlyOpcode == STATEMENT_SET_OWNED_BYTE) {
-          signedPrelude = true;
-        }
-
-        if (earlyOpcode == STATEMENT_MAP_PUT) {
-          signedPrelude = true;
-        }
-
-        if (voidCallStatement(earlyOpcode)) {
-          signedPrelude = true;
-        }
-
-        if (earlyOpcode == STATEMENT_LOCAL_BYTES_ALLOCATE_NAMED) {
-          signedPrelude = true;
-        }
-
-        if (ownedUtf8CopyLoop(earlyOpcode)) {
-          signedPrelude = true;
-        }
-
-        if (earlyOpcode == STATEMENT_DROP_OWNED_NAMED) {
-          signedPrelude = true;
-        }
-
-        if (earlyOpcode == STATEMENT_DROP_MOVED_OWNED) {
-          signedPrelude = true;
+          validPrelude = true;
         }
 
         if (scalarResultCallStatement(earlyOpcode)) {
-          signedPrelude = true;
+          validPrelude = true;
         }
 
         if (assignmentCallStatement(earlyOpcode)) {
-          signedPrelude = true;
+          validPrelude = true;
         }
 
-        if (signedPrelude == false) {
+        if (resolvedLocalLessThanAssertion(earlyOpcode)) {
+          validPrelude = true;
+        }
+
+        if (resolvedLiteralLessThanAssertion(earlyOpcode)) {
+          validPrelude = true;
+        }
+
+        if (resolvedLocalLongAssertion(earlyOpcode)) {
+          validPrelude = true;
+        }
+
+        if (resolvedLiteralComparisonConditional(earlyOpcode)) {
+          validPrelude = true;
+        }
+
+        if (resolvedLocalConditional(earlyOpcode)) {
+          validPrelude = true;
+        }
+
+        if (earlyOpcode == STATEMENT_SET_WORD) {
+          validPrelude = true;
+        }
+
+        if (earlyOpcode == STATEMENT_SET_BYTE) {
+          validPrelude = true;
+        }
+
+        if (earlyOpcode == STATEMENT_SET_OWNED_BYTE) {
+          validPrelude = true;
+        }
+
+        if (earlyOpcode == STATEMENT_MAP_PUT) {
+          validPrelude = true;
+        }
+
+        if (voidCallStatement(earlyOpcode)) {
+          validPrelude = true;
+        }
+
+        if (ownedUtf8CopyLoop(earlyOpcode)) {
+          validPrelude = true;
+        }
+
+        if (earlyOpcode == STATEMENT_DROP_OWNED_NAMED) {
+          validPrelude = true;
+        }
+
+        if (earlyOpcode == STATEMENT_DROP_MOVED_OWNED) {
+          validPrelude = true;
+        }
+
+        if (validPrelude == false) {
           return false;
         }
       }

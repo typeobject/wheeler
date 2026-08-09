@@ -836,6 +836,28 @@ final class NativeCompilerSelfSourceExampleTest {
     assertEquals("$library", decoded.functions().get(2).name());
   }
 
+  @Test
+  void compilesBorrowedIntrinsicResultComparisonByteForByte() throws Exception {
+    String source = """
+        module examples.intrinsic_control;
+        classical class IntrinsicControl {
+          private boolean exact(borrow mut bytes storage) {
+            long length = bufferLength(storage);
+            boolean valid = length == 10;
+            return valid;
+          }
+        }
+        """;
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    VirtualMachine writer = nativeWriter(compiler, source);
+
+    CompilerMachineRunner.runWithoutRewindHistory(writer);
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("IntrinsicControl.w", source), "examples.intrinsic_control");
+    assertArrayEquals(new BytecodeWriter().write(expected), writer.hostOutput());
+  }
+
   static void assertNoPublication(Program compiler, String source) {
     VirtualMachine writer = nativeWriter(compiler, source);
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(writer));

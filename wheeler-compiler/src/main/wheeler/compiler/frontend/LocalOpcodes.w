@@ -473,6 +473,22 @@ classical class LocalOpcodes {
       return localBase + 3;
     }
 
+    if (resolvedLocalLiteralComparison(opcode)) {
+      if (resolvedLocalLiteralInequality(opcode)) {
+        return localBase + 5;
+      }
+
+      return localBase + 3;
+    }
+
+    if (resolvedBooleanLiteralComparison(opcode)) {
+      if (resolvedBooleanLiteralInequality(opcode)) {
+        return localBase + 5;
+      }
+
+      return localBase + 3;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN_EQ_NAMED) {
       return localBase + 3;
     }
