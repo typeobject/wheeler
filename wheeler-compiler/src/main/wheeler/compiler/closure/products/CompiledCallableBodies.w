@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.compiled_callable_bodies;
 
+import wheeler.compiler.closure.aggregate_constructor_targets;
 import wheeler.compiler.closure.aggregate_expression_projection;
 import wheeler.compiler.closure.aggregate_expression_temporaries;
 import wheeler.compiler.closure.aggregate_frontend_bindings;
@@ -282,6 +283,8 @@ classical class CompiledCallableBodies {
     long sourceLength,
     long aggregateCount,
     borrow mut words aggregateRows,
+    long localCaseCount,
+    borrow mut words localCaseRows,
     long operationCount,
     borrow mut words operationRows,
     long argumentCount,
@@ -301,6 +304,7 @@ classical class CompiledCallableBodies {
     borrow mut words localOwnerRows,
     borrow mut words localArgumentRows,
     borrow mut words localPlacementRows,
+    borrow mut words localConstructorTargetRows,
     long moduleOwner,
     long firstRecordTypeId,
     long firstVariantTypeId,
@@ -327,7 +331,7 @@ classical class CompiledCallableBodies {
     assert(-1 < sourceStart);
     assert(0 < sourceLength);
     assert(sourceLength < MAX_CALLABLE_SOURCE_BYTES + 1);
-    region sourceArena = new region(/* bytes= */ 1485312, /* allocations= */ 18);
+    region sourceArena = new region(/* bytes= */ 1491456, /* allocations= */ 19);
     bytes originalSource = allocateBytes(sourceArena, sourceLength);
     words stagedStatements = allocate(sourceArena, /* length= */ 24576);
     words stagedValues = allocate(sourceArena, /* length= */ 7168);
@@ -337,6 +341,7 @@ classical class CompiledCallableBodies {
     words stagedOwners = allocate(sourceArena, /* length= */ 256);
     words stagedArguments = allocate(sourceArena, /* length= */ 1024);
     words stagedPlacements = allocate(sourceArena, /* length= */ 768);
+    words stagedConstructorTargets = allocate(sourceArena, /* length= */ 768);
     bytes projectedSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
     bytes expressionSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
     bytes localCarrierSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
@@ -355,6 +360,7 @@ classical class CompiledCallableBodies {
     assert(bufferLength(localOwnerRows) == 256);
     assert(bufferLength(localArgumentRows) == 1024);
     assert(bufferLength(localPlacementRows) == 768);
+    assert(bufferLength(localConstructorTargetRows) == 768);
     long originalByte = 0;
     while (originalByte < sourceLength) limit MAX_CALLABLE_SOURCE_BYTES {
       setByte(originalSource, originalByte, sourceArchive[sourceStart + originalByte]);
@@ -410,6 +416,17 @@ classical class CompiledCallableBodies {
       stagedPlacements
     );
     assert(frontendBindings.valid);
+    boolean constructorTargetsValid = resolveLocalAggregateConstructorTargets(
+      originalUtf8,
+      operationCount,
+      operationRows,
+      aggregateCount,
+      aggregateRows,
+      localCaseCount,
+      localCaseRows,
+      stagedConstructorTargets
+    );
+    assert(constructorTargetsValid);
     LocalNominalCarrierProjectionPlan localProjectionPlan = publishLocalNominalCarrierProjections(
       originalUtf8,
       localNominalReferenceCount,
@@ -527,6 +544,16 @@ classical class CompiledCallableBodies {
       projectionRow += 1;
     }
 
+    long constructorTargetRow = 0;
+    while (constructorTargetRow < 768) limit 768 {
+      set(
+        localConstructorTargetRows,
+        constructorTargetRow,
+        stagedConstructorTargets[constructorTargetRow]
+      );
+      constructorTargetRow += 1;
+    }
+
     long bindingRow = 0;
     while (bindingRow < 256) limit 256 {
       set(localDestinationRows, bindingRow, stagedDestinations[bindingRow]);
@@ -586,6 +613,7 @@ classical class CompiledCallableBodies {
 
     drop(stagedCarrierProjections);
     drop(stagedProjections);
+    drop(stagedConstructorTargets);
     drop(stagedPlacements);
     drop(stagedArguments);
     drop(stagedOwners);
