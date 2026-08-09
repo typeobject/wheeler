@@ -163,7 +163,7 @@ Source-product compilation does not set the bootstrap bit. Promotion still requi
 - [x] Complete primitive bodies compile after validated local aggregate declarations are blanked at stable source offsets.
 - [ ] WIP-0050 completes local aggregate declaration and instruction lowering.
 - [x] Imported nominal names resolve from public WIP-0046 rows and counted artifact-string products without dependency source.
-- [ ] Imported nominal compile declarations generate from those resolved products.
+- [x] Imported nominal record and variant compile declarations generate in target-row order and publish owner-scoped temporary source-code projections.
 - [x] Instruction-local create, move, loan, release, and drop owner rows map atomically to aggregate and member projections.
 - [x] Final callable local types and aggregate construction operands consume validated temporary nominal projections.
 - [ ] Proof and result-slot products compile with imported callables.
