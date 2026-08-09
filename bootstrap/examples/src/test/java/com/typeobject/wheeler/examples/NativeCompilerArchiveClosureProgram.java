@@ -3,11 +3,12 @@ package com.typeobject.wheeler.examples;
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /** Builds the production counted archive-closure evidence program. */
 final class NativeCompilerArchiveClosureProgram {
-  static final int PHYSICAL_MODULE_OWNER = 172;
+  static final List<Integer> PHYSICAL_MODULE_OWNERS = List.of(18, 172, 250, 290);
 
   private NativeCompilerArchiveClosureProgram() {}
 
@@ -132,7 +133,7 @@ final class NativeCompilerArchiveClosureProgram {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 3175968, /* allocations= */ 71);
+            region columns = new region(/* bytes= */ 3176000, /* allocations= */ 72);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -196,6 +197,11 @@ final class NativeCompilerArchiveClosureProgram {
             words physicalAggregates = allocate(columns, /* length= */ 832);
             words physicalCalls = allocate(columns, /* length= */ 1024);
             words physicalResultTypes = allocate(columns, /* length= */ 4096);
+            words physicalOwners = allocate(columns, /* length= */ 4);
+            set(physicalOwners, 0, PHYSICAL_MODULE_OWNER_0);
+            set(physicalOwners, 1, PHYSICAL_MODULE_OWNER_1);
+            set(physicalOwners, 2, PHYSICAL_MODULE_OWNER_2);
+            set(physicalOwners, 3, PHYSICAL_MODULE_OWNER_3);
             bytes packageIdentity = allocateBytes(columns, /* length= */ 32);
             bytes symbolIdentities = allocateBytes(columns, MAX_SYMBOLS * 32);
             bytes moduleIdentities = allocateBytes(columns, MAX_MODULES * 32);
@@ -446,38 +452,41 @@ final class NativeCompilerArchiveClosureProgram {
                   }
                 }
                 if (closure.moduleCount == 304) {
-                  long physicalFirstCallable = -1;
-                  long physicalCallableCount = 0;
-                  long physicalCallable = 0;
-                  while (physicalCallable < callables.callableCount) limit 4096 {
-                    if (callableOwners[physicalCallable] == PHYSICAL_MODULE_OWNER) {
-                      if (physicalFirstCallable < 0) {
-                        physicalFirstCallable = physicalCallable;
+                  long physicalProduct = 0;
+                  while (physicalProduct < 4) limit 4 {
+                    long physicalOwner = physicalOwners[physicalProduct];
+                    CompiledCallableBody physicalModule = compileSourceModuleProductWithImports(
+                      archive,
+                      archiveSourceStarts[physicalOwner],
+                      archiveSourceLengths[physicalOwner],
+                      /* aggregateCount= */ 0,
+                      physicalAggregates,
+                      /* callCount= */ 0,
+                      physicalCalls,
+                      callableEffects,
+                      callableFirstParameters,
+                      callableParameterCounts,
+                      physicalResultTypes,
+                      parameterTypeStarts,
+                      parameterModes,
+                      compiledCallableArtifact,
+                      compiledCallableIdentity
+                    );
+                    if (1 < bufferLength(output)) {
+                      long productByte = 0;
+                      while (productByte < physicalModule.length) limit 32768 {
+                        setByte(
+                          output,
+                          physicalModuleProductLength + productByte,
+                          compiledCallableArtifact[productByte]
+                        );
+                        productByte += 1;
                       }
-                      physicalCallableCount += 1;
                     }
-                    physicalCallable += 1;
+                    physicalModuleProductLength += physicalModule.length;
+                    physicalModuleProductFunctions += physicalModule.functionCount;
+                    physicalProduct += 1;
                   }
-                  assert(-1 < physicalFirstCallable);
-                  CompiledCallableBody physicalModule = compileSourceModuleProductWithImports(
-                    archive,
-                    archiveSourceStarts[PHYSICAL_MODULE_OWNER],
-                    archiveSourceLengths[PHYSICAL_MODULE_OWNER],
-                    /* aggregateCount= */ 0,
-                    physicalAggregates,
-                    /* callCount= */ 0,
-                    physicalCalls,
-                    callableEffects,
-                    callableFirstParameters,
-                    callableParameterCounts,
-                    physicalResultTypes,
-                    parameterTypeStarts,
-                    parameterModes,
-                    compiledCallableArtifact,
-                    compiledCallableIdentity
-                  );
-                  physicalModuleProductLength = physicalModule.length;
-                  physicalModuleProductFunctions = physicalModule.functionCount;
                 }
                 ScalarModuleIdentityPlan scalarIdentities = publishScalarModuleIdentities(
                   archive,
@@ -688,11 +697,6 @@ final class NativeCompilerArchiveClosureProgram {
                     setOutputLength(output, compiledCallableModuleLength);
                   } else {
                     if (1 < bufferLength(output)) {
-                      long physicalByte = 0;
-                      while (physicalByte < physicalModuleProductLength) limit 32768 {
-                        setByte(output, physicalByte, compiledCallableArtifact[physicalByte]);
-                        physicalByte += 1;
-                      }
                       setOutputLength(output, physicalModuleProductLength);
                     } else {
                       setByte(output, 0, 1);
@@ -712,6 +716,7 @@ final class NativeCompilerArchiveClosureProgram {
             drop(moduleIdentities);
             drop(symbolIdentities);
             drop(packageIdentity);
+            drop(physicalOwners);
             drop(physicalResultTypes);
             drop(physicalCalls);
             drop(physicalAggregates);
@@ -781,9 +786,11 @@ final class NativeCompilerArchiveClosureProgram {
             drop(inputArena);
           }
         }
-        """.replace(
-            "PHYSICAL_MODULE_OWNER",
-            Integer.toString(PHYSICAL_MODULE_OWNER)));
+        """
+            .replace("PHYSICAL_MODULE_OWNER_0", Integer.toString(PHYSICAL_MODULE_OWNERS.get(0)))
+            .replace("PHYSICAL_MODULE_OWNER_1", Integer.toString(PHYSICAL_MODULE_OWNERS.get(1)))
+            .replace("PHYSICAL_MODULE_OWNER_2", Integer.toString(PHYSICAL_MODULE_OWNERS.get(2)))
+            .replace("PHYSICAL_MODULE_OWNER_3", Integer.toString(PHYSICAL_MODULE_OWNERS.get(3))));
     return new WheelerCompiler().compileModuleFiles(sources, "example.archive_closure");
   }
 

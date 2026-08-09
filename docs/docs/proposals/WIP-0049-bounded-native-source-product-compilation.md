@@ -170,7 +170,7 @@ Source-product compilation does not set the bootstrap bit. Promotion still requi
 - [x] Instruction-local create, move, loan, release, and drop owner rows map atomically to aggregate and member projections.
 - [x] Final callable local types consume validated temporary nominal projections and exact function-local carrier projections. Aggregate construction operands consume stable aggregate projections.
 - [ ] Proof and result-slot products compile with imported callables.
-- [ ] Every physical compiler module publishes one source-local product artifact. The counted physical closure now compiles `wheeler.compiler.identifier_starts` directly from its immutable local archive range, and the artifact matches stage 0 byte for byte. Closure-wide iteration remains.
+- [ ] Every physical compiler module publishes one source-local product artifact. The counted physical closure now compiles `wheeler.compiler.boolean_tokens`, `wheeler.compiler.identifier_starts`, `wheeler.compiler.resolved_local_returns`, and `wheeler.compiler.void_call_kinds` directly from immutable local archive ranges. Their ordered artifacts match stage 0 byte for byte. Closure-wide iteration remains.
 - [ ] WIP-0048 emits the complete physical compiler closure from those products.
 
 ## Acceptance

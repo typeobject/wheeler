@@ -63,7 +63,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(2, machine.global("lastCallableParameterCount"));
     assertEquals(1, machine.global("callableIdentitiesPublished"));
     assertTrue(machine.global("physicalModuleProductLength") > 0);
-    assertEquals(2, machine.global("physicalModuleProductFunctions"));
+    assertTrue(machine.global("physicalModuleProductFunctions") > 3);
     assertTrue(machine.global("firstCallableIdentityPrefix") != 0);
     assertTrue(
         machine.global("firstCallableIdentityPrefix")
@@ -109,28 +109,47 @@ final class NativeCompilerArchiveClosureExampleTest {
   }
 
   @Test
-  void compilesOnePhysicalModuleProductByteForByte() throws Exception {
-    String source = CompilerSources.read("compiler/syntax/IdentifierStarts.w");
-    byte[] expected = new BytecodeWriter().write(
-        new WheelerCompiler().compileLibraryModuleFiles(
-            Map.of("IdentifierStarts.w", source),
-            "wheeler.compiler.identifier_starts"));
+  void compilesPhysicalModuleProductsByteForByte() throws Exception {
+    List<String> paths = List.of(
+        "compiler/syntax/booleans/BooleanTokens.w",
+        "compiler/syntax/IdentifierStarts.w",
+        "compiler/syntax/returns/ResolvedLocalReturns.w",
+        "compiler/syntax/calls/VoidCallKinds.w");
+    List<String> names = List.of(
+        "wheeler.compiler.boolean_tokens",
+        "wheeler.compiler.identifier_starts",
+        "wheeler.compiler.resolved_local_returns",
+        "wheeler.compiler.void_call_kinds");
+    ByteArrayOutputStream expected = new ByteArrayOutputStream();
+    long expectedFunctions = 0;
+    for (int product = 0; product < paths.size(); product++) {
+      String source = CompilerSources.read(paths.get(product));
+      String fileName = paths.get(product).substring(paths.get(product).lastIndexOf('/') + 1);
+      byte[] artifact = new BytecodeWriter().write(
+          new WheelerCompiler().compileLibraryModuleFiles(
+              Map.of(fileName, source), names.get(product)));
+      expected.writeBytes(artifact);
+      expectedFunctions += new BytecodeReader().read(artifact).functions().size();
+    }
     Program program = NativeCompilerArchiveClosureProgram.program();
     byte[] archive = CompilerSources.packageArchive();
     BootstrapModuleManifest manifest = CompilerSources.bootstrapModuleManifest();
-    assertEquals(
-        "wheeler.compiler.identifier_starts",
-        manifest.modules().get(NativeCompilerArchiveClosureProgram.PHYSICAL_MODULE_OWNER).name());
+    for (int product = 0; product < names.size(); product++) {
+      assertEquals(
+          names.get(product),
+          manifest.modules().get(
+              NativeCompilerArchiveClosureProgram.PHYSICAL_MODULE_OWNERS.get(product)).name());
+    }
     VirtualMachine machine = VirtualMachine.withBinaryInput(
         program,
         framed(archive, manifest.canonicalBytes()),
-        expected.length);
+        expected.size());
 
     runClosure(machine, program);
 
-    assertArrayEquals(expected, machine.hostOutput());
-    assertEquals(expected.length, machine.global("physicalModuleProductLength"));
-    assertEquals(2, machine.global("physicalModuleProductFunctions"));
+    assertArrayEquals(expected.toByteArray(), machine.hostOutput());
+    assertEquals(expected.size(), machine.global("physicalModuleProductLength"));
+    assertEquals(expectedFunctions, machine.global("physicalModuleProductFunctions"));
   }
 
   @Test
