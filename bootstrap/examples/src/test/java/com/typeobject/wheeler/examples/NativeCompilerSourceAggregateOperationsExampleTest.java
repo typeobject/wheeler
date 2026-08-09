@@ -70,6 +70,14 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
     assertEquals(1, machine.global("targetsValidState"));
     assertEquals(1, machine.global("projectionsValidState"));
     assertEquals(1, machine.global("operandsValidState"));
+    assertEquals(8, machine.global("composedCount"));
+    assertEquals(280, machine.global("composedForwardLength"));
+    assertEquals(0, machine.global("firstArtifactSelector"));
+    assertEquals(1, machine.global("secondArtifactSelector"));
+    assertEquals(1, machine.global("closureFunctionCount"));
+    assertEquals(8, machine.global("closureInstructionCount"));
+    assertEquals(5, machine.global("primitiveArtifactRank"));
+    assertEquals(6, machine.global("aggregateArtifactRank"));
     assertEquals(0, machine.global("fieldTarget"));
     assertEquals(3, machine.global("arrayTarget"));
     assertEquals(
@@ -101,14 +109,20 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.aggregate_projection_targets"));
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.aggregate_instruction_composition"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.aggregate_resolved_operands"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.counted_function_products"));
     sources.put("SourceAggregateOperationsExample.w", """
         module example.source_aggregate_operations;
 
         import wheeler.compiler.closure.aggregate_constructor_targets;
+        import wheeler.compiler.closure.aggregate_instruction_composition;
         import wheeler.compiler.closure.aggregate_instruction_products;
         import wheeler.compiler.closure.aggregate_projection_targets;
         import wheeler.compiler.closure.aggregate_resolved_operands;
+        import wheeler.compiler.closure.counted_function_products;
         import wheeler.compiler.closure.resolved_aggregate_operations;
         import wheeler.compiler.closure.source_aggregate_operations;
         import wheeler.compiler.closure.source_aggregate_products;
@@ -132,6 +146,14 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
           state long firstArgumentEnd = 0;
           state long loweredCount = 0;
           state long length = 0;
+          state long composedCount = 0;
+          state long composedForwardLength = 0;
+          state long firstArtifactSelector = 0;
+          state long secondArtifactSelector = 0;
+          state long closureFunctionCount = 0;
+          state long closureInstructionCount = 0;
+          state long primitiveArtifactRank = -1;
+          state long aggregateArtifactRank = -1;
           state long recordTarget = -1;
           state long variantTarget = -1;
           state long aggregatesValid = 0;
@@ -142,7 +164,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
           state long arrayTarget = -1;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 122368, /* allocations= */ 14);
+            region products = new region(/* bytes= */ 564736, /* allocations= */ 20);
             words aggregates = allocate(products, /* length= */ 832);
             words cases = allocate(products, /* length= */ 640);
             words members = allocate(products, /* length= */ 2048);
@@ -157,6 +179,19 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             words ownerLocals = allocate(products, /* length= */ 256);
             words sliceDescriptors = allocate(products, /* length= */ 256);
             words resolved = allocate(products, /* length= */ 1536);
+            words primitiveFunctions = allocate(products, /* length= */ 640);
+            words primitiveInstructions = allocate(products, /* length= */ 24576);
+            words placements = allocate(products, /* length= */ 768);
+            words composedFunctions = allocate(products, /* length= */ 640);
+            words composedInstructions = allocate(products, /* length= */ 24576);
+            words artifactSelectors = allocate(products, /* length= */ 4096);
+            set(primitiveInstructions, 12288, 0x0001);
+            set(primitiveInstructions, 20480, 8);
+            long placedOperation = 0;
+            while (placedOperation < 7) limit 7 {
+              set(placements, 512 + placedOperation, 1);
+              placedOperation += 1;
+            }
             set(rows, 0, 91);
             set(arguments, 0, 91);
             SourceAggregateProductPlan aggregatesPlan =
@@ -271,6 +306,54 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               arrayTarget = projectionTargets[259];
               AggregateInstructionProductPlan product =
                 writeResolvedSourceAggregateInstructions(plan.operationCount, rows, resolved, output);
+              AggregateCompositionPlan composition = composeAggregateInstructionProducts(
+                /* functionCount= */ 1,
+                primitiveFunctions,
+                /* primitiveInstructionCount= */ 1,
+                primitiveInstructions,
+                plan.operationCount,
+                output,
+                product.length,
+                placements,
+                composedFunctions,
+                composedInstructions,
+                artifactSelectors
+              );
+              assert(composition.valid);
+              composedCount = composition.instructionCount;
+              composedForwardLength = composedFunctions[192];
+              firstArtifactSelector = artifactSelectors[0];
+              secondArtifactSelector = artifactSelectors[1];
+              region closure = new region(/* bytes= */ 7741440, /* allocations= */ 4);
+              words moduleFirstFunctions = allocate(closure, /* length= */ 512);
+              words moduleFunctionCounts = allocate(closure, /* length= */ 512);
+              words closureFunctions = allocate(closure, /* length= */ 49152);
+              words closureInstructions = allocate(closure, /* length= */ 917504);
+              CountedFunctionWindow window = appendComposedFunctionProduct(
+                /* moduleOwner= */ 0,
+                /* primitiveArtifactRank= */ 5,
+                /* aggregateArtifactRank= */ 6,
+                /* functionCount= */ 1,
+                composition.instructionCount,
+                composedFunctions,
+                composedInstructions,
+                artifactSelectors,
+                /* closureFunctionCount= */ 0,
+                /* closureInstructionCount= */ 0,
+                moduleFirstFunctions,
+                moduleFunctionCounts,
+                closureFunctions,
+                closureInstructions
+              );
+              closureFunctionCount = window.functionCount;
+              closureInstructionCount = window.instructionCount;
+              primitiveArtifactRank = closureInstructions[262144];
+              aggregateArtifactRank = closureInstructions[262145];
+              drop(closureInstructions);
+              drop(closureFunctions);
+              drop(moduleFunctionCounts);
+              drop(moduleFirstFunctions);
+              drop(closure);
               loweredCount = product.instructionCount;
               length = product.length;
               setOutputLength(output, product.length);
@@ -281,6 +364,12 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               assert(arguments[0] == 91);
               setOutputLength(output, 0);
             }
+            drop(artifactSelectors);
+            drop(composedInstructions);
+            drop(composedFunctions);
+            drop(placements);
+            drop(primitiveInstructions);
+            drop(primitiveFunctions);
             drop(resolved);
             drop(sliceDescriptors);
             drop(ownerLocals);

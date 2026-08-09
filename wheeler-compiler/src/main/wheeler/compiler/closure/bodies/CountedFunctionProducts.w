@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.counted_function_products;
 
 classical class CountedFunctionProducts {
+  private const long ARTIFACT_SELECTOR_ROWS = 4096;
   private const long CLOSURE_FUNCTION_ROWS = 49152;
   private const long CLOSURE_INSTRUCTION_ROWS = 917504;
   private const long LOCAL_FUNCTION_ROWS = 640;
@@ -137,5 +138,64 @@ classical class CountedFunctionProducts {
       closureInstructionCount,
       instructionCount
     );
+  }
+
+  /// Appends a validated two-artifact source-local instruction product.
+  public CountedFunctionWindow appendComposedFunctionProduct(
+    long moduleOwner,
+    long primitiveArtifactRank,
+    long aggregateArtifactRank,
+    long functionCount,
+    long instructionCount,
+    borrow mut words localFunctionRows,
+    borrow mut words localInstructionRows,
+    borrow mut words artifactSelectors,
+    long closureFunctionCount,
+    long closureInstructionCount,
+    borrow mut words moduleFirstFunctions,
+    borrow mut words moduleFunctionCounts,
+    borrow mut words closureFunctionRows,
+    borrow mut words closureInstructionRows
+  ) {
+    assert(-1 < primitiveArtifactRank);
+    assert(-1 < aggregateArtifactRank);
+    assert(primitiveArtifactRank != aggregateArtifactRank);
+    assert(bufferLength(artifactSelectors) == ARTIFACT_SELECTOR_ROWS);
+    long instruction = 0;
+    while (instruction < instructionCount) limit MAX_INSTRUCTIONS_PER_MODULE {
+      long selector = artifactSelectors[instruction];
+      assert(-1 < selector);
+      assert(selector < 2);
+      instruction += 1;
+    }
+
+    CountedFunctionWindow window = appendFunctionProduct(
+      moduleOwner,
+      primitiveArtifactRank,
+      functionCount,
+      instructionCount,
+      localFunctionRows,
+      localInstructionRows,
+      closureFunctionCount,
+      closureInstructionCount,
+      moduleFirstFunctions,
+      moduleFunctionCounts,
+      closureFunctionRows,
+      closureInstructionRows
+    );
+    instruction = 0;
+    while (instruction < instructionCount) limit MAX_INSTRUCTIONS_PER_MODULE {
+      if (artifactSelectors[instruction] == 1) {
+        set(
+          closureInstructionRows,
+          262144 + closureInstructionCount + instruction,
+          aggregateArtifactRank
+        );
+      }
+
+      instruction += 1;
+    }
+
+    return window;
   }
 }
