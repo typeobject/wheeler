@@ -8,6 +8,7 @@ import wheeler.compiler.closure.aggregate_instruction_composition;
 import wheeler.compiler.closure.aggregate_instruction_products;
 import wheeler.compiler.closure.aggregate_projection_targets;
 import wheeler.compiler.closure.aggregate_resolved_operands;
+import wheeler.compiler.closure.local_nominal_references;
 import wheeler.compiler.closure.primitive_frontend_products;
 import wheeler.compiler.closure.resolved_aggregate_operations;
 import wheeler.compiler.compiler_program_limits;

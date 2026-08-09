@@ -67,6 +67,9 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
     assertEquals(0, machine.global("recordTarget"));
     assertEquals(1, machine.global("variantTarget"));
     assertEquals(1, machine.global("aggregatesValid"));
+    assertEquals(6, machine.global("localNominalReferenceCount"));
+    assertEquals(0, machine.global("firstLocalNominalTarget"));
+    assertEquals(0, machine.global("lastLocalNominalTarget"));
     assertEquals(1, machine.global("targetsValidState"));
     assertEquals(1, machine.global("projectionsValidState"));
     assertEquals(1, machine.global("bindingsValidState"));
@@ -229,6 +232,8 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
         "wheeler.compiler.closure.compiled_body_archive"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.linked_instruction_code"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.local_nominal_references"));
     sources.put("SourceAggregateOperationsExample.w", """
         module example.source_aggregate_operations;
 
@@ -241,6 +246,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
         import wheeler.compiler.closure.compiled_body_archive;
         import wheeler.compiler.closure.counted_function_products;
         import wheeler.compiler.closure.linked_instruction_code;
+        import wheeler.compiler.closure.local_nominal_references;
         import wheeler.compiler.closure.resolved_aggregate_operations;
         import wheeler.compiler.closure.source_aggregate_operations;
         import wheeler.compiler.closure.source_aggregate_products;
@@ -277,6 +283,9 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
           state long recordTarget = -1;
           state long variantTarget = -1;
           state long aggregatesValid = 0;
+          state long localNominalReferenceCount = 0;
+          state long firstLocalNominalTarget = -1;
+          state long lastLocalNominalTarget = -1;
           state long targetsValidState = 0;
           state long projectionsValidState = 0;
           state long bindingsValidState = 0;
@@ -285,7 +294,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
           state long arrayTarget = -1;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 818688, /* allocations= */ 22);
+            region products = new region(/* bytes= */ 830976, /* allocations= */ 23);
             words aggregates = allocate(products, /* length= */ 832);
             words cases = allocate(products, /* length= */ 640);
             words members = allocate(products, /* length= */ 2048);
@@ -295,6 +304,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             words ownerCases = allocate(products, /* length= */ 256);
             words rows = allocate(products, /* length= */ 2048);
             words arguments = allocate(products, /* length= */ 4096);
+            words localNominalReferences = allocate(products, /* length= */ 1536);
             words valueRows = allocate(products, /* length= */ 7168);
             words statementRows = allocate(products, /* length= */ 24576);
             words argumentLocals = allocate(products, /* length= */ 1024);
@@ -318,6 +328,12 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               materializeSourceAggregateProducts(input, aggregates, cases, members);
             SourceAggregateOperationPlan plan =
               materializeSourceAggregateOperations(input, rows, arguments);
+            LocalNominalReferencePlan localNominals = materializeLocalNominalReferences(
+              input,
+              aggregatesPlan.aggregateCount,
+              aggregates,
+              localNominalReferences
+            );
             long frontendOperation = 0;
             while (frontendOperation < plan.operationCount) limit 256 {
               set(statementRows, 8192 + frontendOperation, frontendOperation);
@@ -446,6 +462,14 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             if (aggregatesPlan.valid) {
               aggregatesValid = 1;
             }
+            if (localNominals.valid) {
+              localNominalReferenceCount = localNominals.referenceCount;
+              if (0 < localNominals.referenceCount) {
+                firstLocalNominalTarget = localNominalReferences[0];
+                lastLocalNominalTarget =
+                  localNominalReferences[localNominals.referenceCount - 1];
+              }
+            }
             if (targetsValid) {
               targetsValidState = 1;
             }
@@ -460,6 +484,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             }
             if (plan.valid) {
               assert(aggregatesPlan.valid);
+              assert(localNominals.valid);
               assert(targetsValid);
               assert(projectionsValid);
               assert(bindings.valid);
@@ -614,6 +639,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             drop(argumentLocals);
             drop(statementRows);
             drop(valueRows);
+            drop(localNominalReferences);
             drop(arguments);
             drop(rows);
             drop(ownerCases);
