@@ -161,7 +161,7 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 - [ ] Callable closure columns replace packed seven-node execution facts. The small bridge remains a migration fixture, not the production executor.
 - [x] `ActiveSourceSlots.w` owns eight active linked sources, exact 32,768-byte publication, generation-checked leases, lowest-slot reuse, deterministic exhaustion, and byte destruction on release.
 - [x] `ClosureSchedule.w` stages every source in leaf-first order, transfers no archive loan, releases each lease after staging, and publishes per-module slot generations only after the complete pass. The 257-module chain reaches generation 257.
-- [x] WIP-0045 owns semantic module products. Scalar compilation transfers validated declarations and values instead of retaining linked source. The callable phase now publishes 1,119 physical compiler signature and body-range products. Typed signatures and compiled bodies remain.
+- [x] WIP-0045 owns semantic module products. Scalar compilation transfers validated declarations and values instead of retaining linked source. The callable phase now publishes 1,120 physical compiler signature and body-range products. Typed signatures and compiled bodies remain.
 - [ ] The complete physical compiler closure compiles.
 
 ## Acceptance

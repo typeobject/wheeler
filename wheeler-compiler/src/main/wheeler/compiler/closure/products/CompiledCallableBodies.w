@@ -203,7 +203,61 @@ classical class CompiledCallableBodies {
     return result;
   }
 
-  /// Compiles local bodies against imported signatures without copying dependency bodies.
+  /// Compiles a complete local class against imports without dependency source.
+  public CompiledCallableBody compileSourceModuleProductWithImports(
+    borrow byteview sourceArchive,
+    long sourceStart,
+    long sourceLength,
+    borrow byteview signatureArchive,
+    long callCount,
+    borrow mut words callRows,
+    borrow mut words signatureStarts,
+    borrow mut words signatureLengths,
+    borrow mut words callableNameStarts,
+    borrow mut words callableNameLengths,
+    borrow mut words callableParameterCounts,
+    borrow mut words callableResultTypeStarts,
+    borrow mut words callableResultTypeLengths,
+    borrow mut bytes artifact,
+    borrow mut bytes identity
+  ) {
+    assert(bufferLength(artifact) == MAX_CALLABLE_ARTIFACT_BYTES);
+    assert(bufferLength(identity) == IDENTITY_BYTES);
+    assert(-1 < sourceStart);
+    assert(0 < sourceLength);
+    assert(sourceLength < MAX_CALLABLE_SOURCE_BYTES + 1);
+    region sourceArena = new region(/* bytes= */ 65536, /* allocations= */ 2);
+    bytes stubSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
+    ImportedCallableStubPlan product = writeImportedCallableStubs(
+      sourceArchive,
+      sourceStart,
+      sourceLength,
+      signatureArchive,
+      callCount,
+      callRows,
+      signatureStarts,
+      signatureLengths,
+      callableNameStarts,
+      callableNameLengths,
+      callableParameterCounts,
+      callableResultTypeStarts,
+      callableResultTypeLengths,
+      stubSource
+    );
+    bytes exactSource = allocateBytes(sourceArena, product.length);
+    long sourceByte = 0;
+    while (sourceByte < product.length) limit MAX_CALLABLE_SOURCE_BYTES {
+      setByte(exactSource, sourceByte, stubSource[sourceByte]);
+      sourceByte += 1;
+    }
+
+    drop(stubSource);
+    CompiledCallableBody result = compileProductSource(exactSource, artifact, identity);
+    drop(sourceArena);
+    return result;
+  }
+
+  /// Compiles local callable ranges against imports without dependency source.
   public CompiledCallableBody compileCallableModuleProductWithImports(
     borrow byteview archive,
     long owner,

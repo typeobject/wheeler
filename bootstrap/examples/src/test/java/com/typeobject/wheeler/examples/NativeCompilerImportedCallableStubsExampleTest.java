@@ -18,13 +18,17 @@ import org.junit.jupiter.api.Test;
 final class NativeCompilerImportedCallableStubsExampleTest {
   @Test
   void compilesCallsAgainstSignatureOnlyRecursiveStubs() throws Exception {
-    String localSignature = "public long run(long value) ";
-    String localBody = "{ return helper(value); }";
+    String localSource = """
+        classical class Root {
+          public long run(long value) {
+            return helper(value);
+          }
+        }
+        """;
     String importedSignature = "public long helper(long value)";
-    byte[] input = (localSignature + localBody + importedSignature)
-        .getBytes(StandardCharsets.US_ASCII);
+    byte[] input = (localSource + importedSignature).getBytes(StandardCharsets.US_ASCII);
     VirtualMachine machine = VirtualMachine.withBinaryInput(
-        program(localSignature, localBody, importedSignature), input, 32_768);
+        program(localSource, importedSignature), input, 32_768);
 
     CompilerMachineRunner.runWithoutRewindHistory(machine);
 
@@ -33,11 +37,11 @@ final class NativeCompilerImportedCallableStubsExampleTest {
     Program product = new BytecodeReader().read(machine.hostOutput());
     assertEquals(3, product.functions().size());
     FunctionBody run = product.functions().stream()
-        .filter(function -> function.name().endsWith("::run"))
+        .filter(function -> function.name().endsWith("run"))
         .findFirst()
         .orElseThrow();
     FunctionBody helper = product.functions().stream()
-        .filter(function -> function.name().endsWith("::helper"))
+        .filter(function -> function.name().endsWith("helper"))
         .findFirst()
         .orElseThrow();
     Instruction importedCall = run.forward().stream()
@@ -53,9 +57,8 @@ final class NativeCompilerImportedCallableStubsExampleTest {
   }
 
   private static Program program(
-      String localSignature, String localBody, String importedSignature) throws Exception {
-    int localBodyStart = localSignature.length();
-    int importedSignatureStart = localBodyStart + localBody.length();
+      String localSource, String importedSignature) throws Exception {
+    int importedSignatureStart = localSource.length();
     int importedNameStart = importedSignatureStart + importedSignature.indexOf("helper");
     int importedResultStart = importedSignatureStart + importedSignature.indexOf("long");
     Map<String, String> sources = new LinkedHashMap<>();
@@ -79,13 +82,10 @@ final class NativeCompilerImportedCallableStubsExampleTest {
           state long excludedFunctionCount = 0;
 
           entry void main(borrow byteview input, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 537632, /* allocations= */ 14);
+            region rows = new region(/* bytes= */ 439328, /* allocations= */ 11);
             words calls = allocate(rows, /* length= */ 1024);
-            words owners = allocate(rows, /* length= */ 4096);
             words signatureStarts = allocate(rows, /* length= */ 4096);
             words signatureLengths = allocate(rows, /* length= */ 4096);
-            words bodyStarts = allocate(rows, /* length= */ 4096);
-            words bodyLengths = allocate(rows, /* length= */ 4096);
             words nameStarts = allocate(rows, /* length= */ 4096);
             words nameLengths = allocate(rows, /* length= */ 4096);
             words parameterCounts = allocate(rows, /* length= */ 4096);
@@ -95,31 +95,22 @@ final class NativeCompilerImportedCallableStubsExampleTest {
             words instructionRows = allocate(rows, /* length= */ 24576);
             bytes identity = allocateBytes(rows, /* length= */ 32);
             set(calls, 768, 1);
-            set(owners, 0, 0);
-            set(signatureStarts, 0, 0);
-            set(signatureLengths, 0, %d);
-            set(bodyStarts, 0, %d);
-            set(bodyLengths, 0, %d);
             set(signatureStarts, 1, %d);
             set(signatureLengths, 1, %d);
             set(nameStarts, 1, %d);
             set(nameLengths, 1, 6);
-            set(parameterCounts, 0, 1);
             set(parameterCounts, 1, 1);
             set(resultStarts, 1, %d);
             set(resultLengths, 1, 4);
-            CompiledCallableBody compiled = compileCallableModuleProductWithImports(
+            CompiledCallableBody compiled = compileSourceModuleProductWithImports(
               input,
-              /* owner= */ 0,
-              /* firstCallable= */ 0,
-              /* callableCount= */ 1,
-              owners,
-              signatureStarts,
-              signatureLengths,
-              bodyStarts,
-              bodyLengths,
+              /* sourceStart= */ 0,
+              /* sourceLength= */ %d,
+              input,
               /* callCount= */ 1,
               calls,
+              signatureStarts,
+              signatureLengths,
               nameStarts,
               nameLengths,
               parameterCounts,
@@ -151,23 +142,18 @@ final class NativeCompilerImportedCallableStubsExampleTest {
             drop(parameterCounts);
             drop(nameLengths);
             drop(nameStarts);
-            drop(bodyLengths);
-            drop(bodyStarts);
             drop(signatureLengths);
             drop(signatureStarts);
-            drop(owners);
             drop(calls);
             drop(rows);
           }
         }
         """.formatted(
-          localSignature.length(),
-          localBodyStart,
-          localBody.length(),
           importedSignatureStart,
           importedSignature.length(),
           importedNameStart,
-          importedResultStart
+          importedResultStart,
+          localSource.length()
         ));
     return new WheelerCompiler().compileModuleFiles(sources, "example.imported_callable_stubs");
   }
