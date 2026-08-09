@@ -16,7 +16,6 @@ import wheeler.compiler.closure.counted_local_nominal_carriers;
 import wheeler.compiler.closure.local_nominal_carrier_projections;
 import wheeler.compiler.closure.local_nominal_carriers;
 import wheeler.compiler.closure.local_nominal_references;
-import wheeler.compiler.closure.primitive_frontend_products;
 import wheeler.compiler.closure.primitive_placeholder_projection;
 import wheeler.compiler.closure.resolved_aggregate_operations;
 import wheeler.compiler.closure.source_callable_type_products;

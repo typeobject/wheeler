@@ -19,7 +19,7 @@ The join is temporary compiler evidence. Canonical `.wbc` 1.0 remains the only r
 
 ## Problem
 
-Aggregate source lowering now has counted products for declarations, constructors, arguments, fields, indexes, owners, operands, instructions, splice composition, archive ranks, and final linked bytes. The native evidence currently supplies local registers and splice coordinates as fixture data. A physical compiler module cannot do that. Its primitive frontend must publish the same data before source release.
+Aggregate source lowering has counted products for declarations, constructors, arguments, fields, indexes, owners, operands, instructions, splice composition, archive ranks, and final linked bytes. Complete callable-owned frontend products now derive local registers before source release. Decoded primitive placeholders derive exact splice coordinates after temporary source compilation. Neither coordinate comes from fixture data.
 
 Inferring registers from emitted byte offsets is not acceptable. It couples semantic lowering to an accidental encoder layout and fails when one source expression creates several temporaries. Re-reading dependency source is also forbidden.
 
@@ -103,7 +103,7 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 
 - [x] `AggregateFrontendBindings.w` validates counted frontend value and statement rows, distinguishes source order from splice order, and publishes destination, owner, argument, and placement products atomically.
 - [x] WIP-0050 composes, archives, and links primitive and aggregate code from two immutable artifact ranks.
-- [x] `PrimitiveFrontendProducts.w` converts bounded scanner, statement, parameter, and local-width products into named value rows and distinct source and splice statement ordinals. Malformed statements leave caller rows untouched.
+- [x] `SourceStatementProducts.w` scans complete callable ranges into named parameter, statement-result, statement-range, and local-count rows atomically. It replaced the incremental primitive-frontend fixture once aggregate-aware compilation consumed the complete product directly. Exact splice ordinals are derived later from decoded placeholder instructions.
 - [x] `compileAggregateSourceModuleProductWithImports` consumes counted aggregate operations, local references, and carrier projections while producing its primitive body artifact.
 - [x] `AggregateExpressionTemporaries.w` appends source-ordered locals for nested operations while retaining the primitive frontend's named outer destination.
 - [x] `AggregateFrontendBindings.w` derives operation functions from exact destination value products rather than trusting statement fixtures.
