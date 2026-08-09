@@ -9,6 +9,7 @@ import wheeler.compiler.closure.imported_callable_stubs;
 import wheeler.compiler.closure.imported_nominal_carrier_projections;
 import wheeler.compiler.closure.imported_nominal_references;
 import wheeler.compiler.closure.local_nominal_carriers;
+import wheeler.compiler.closure.source_statement_products;
 import wheeler.compiler.compiler_core;
 import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
@@ -284,6 +285,11 @@ classical class CompiledCallableBodies {
     borrow mut words localNominalReferenceRows,
     borrow mut words localNominalProjectionRows,
     borrow mut words localCarrierRows,
+    long firstLocalCallable,
+    long localCallableCount,
+    borrow mut words localCallableBodyStarts,
+    borrow mut words localCallableBodyLengths,
+    borrow mut words localStatementRows,
     long moduleOwner,
     long firstRecordTypeId,
     long firstVariantTypeId,
@@ -310,7 +316,9 @@ classical class CompiledCallableBodies {
     assert(-1 < sourceStart);
     assert(0 < sourceLength);
     assert(sourceLength < MAX_CALLABLE_SOURCE_BYTES + 1);
-    region sourceArena = new region(/* bytes= */ 1146880, /* allocations= */ 9);
+    region sourceArena = new region(/* bytes= */ 1376256, /* allocations= */ 11);
+    bytes originalSource = allocateBytes(sourceArena, sourceLength);
+    words stagedStatements = allocate(sourceArena, /* length= */ 24576);
     bytes projectedSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
     bytes expressionSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
     bytes localCarrierSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
@@ -321,6 +329,25 @@ classical class CompiledCallableBodies {
     words stagedCarrierProjections = allocate(sourceArena, /* length= */ 65536);
     assert(bufferLength(nominalProjectionRows) == 49152);
     assert(bufferLength(carrierProjectionRows) == 65536);
+    assert(bufferLength(localStatementRows) == 24576);
+    long originalByte = 0;
+    while (originalByte < sourceLength) limit MAX_CALLABLE_SOURCE_BYTES {
+      setByte(originalSource, originalByte, sourceArchive[sourceStart + originalByte]);
+      originalByte += 1;
+    }
+
+    utf8 originalUtf8 = freezeUtf8(originalSource);
+    SourceStatementProductPlan sourceStatements = materializeSourceStatementProducts(
+      originalUtf8,
+      sourceStart,
+      firstLocalCallable,
+      localCallableCount,
+      localCallableBodyStarts,
+      localCallableBodyLengths,
+      stagedStatements
+    );
+    assert(sourceStatements.valid);
+    drop(originalUtf8);
     ImportedNominalCarrierProjectionPlan carrierProjectionPlan
       = publishImportedNominalCarrierProjections(
       moduleOwner,
@@ -426,6 +453,12 @@ classical class CompiledCallableBodies {
       projectionRow += 1;
     }
 
+    long statementRow = 0;
+    while (statementRow < 24576) limit 24576 {
+      set(localStatementRows, statementRow, stagedStatements[statementRow]);
+      statementRow += 1;
+    }
+
     long carrierProjectionRow = 0;
     while (carrierProjectionRow < 65536) limit 65536 {
       set(
@@ -438,6 +471,7 @@ classical class CompiledCallableBodies {
 
     drop(stagedCarrierProjections);
     drop(stagedProjections);
+    drop(stagedStatements);
     drop(sourceArena);
     return result;
   }

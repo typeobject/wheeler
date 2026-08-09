@@ -108,7 +108,8 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 - [x] `AggregateExpressionTemporaries.w` appends source-ordered locals for nested operations while retaining the primitive frontend's named outer destination.
 - [x] `AggregateFrontendBindings.w` derives operation functions from exact destination value products rather than trusting statement fixtures.
 - [x] `AggregatePlaceholderPlacements.w` derives splice ordinals from exact compiled zero-local placeholders instead of accepting fixture ordinals.
-- [ ] The callable compiler invokes primitive frontend publication in the same transaction.
+- [x] `SourceStatementProducts.w` derives callable-owned source ranges and ordinals in the aggregate-aware compilation transaction, including nominal declarations that the primitive grammar cannot parse before projection.
+- [ ] The callable compiler publishes parameter and local value products in the same transaction.
 - [x] `LocalNominalReferences.w` indexes callable signature, parameter, local, and constructor uses of source-local record and variant names while excluding declaration bodies.
 - [x] `LocalNominalCarriers.w` rewrites sorted local nominal ranges to compact signed carriers and publishes exact old-to-new coordinates without partial source mutation.
 - [x] `LocalNominalCarrierProjections.w` classifies source-local carriers as value, constructor, or signature uses and binds value carriers to exact function-local coordinates atomically.
