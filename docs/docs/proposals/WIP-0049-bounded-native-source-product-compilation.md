@@ -164,7 +164,7 @@ Source-product compilation does not set the bootstrap bit. Promotion still requi
 - [ ] WIP-0050 completes local aggregate declaration and instruction lowering.
 - [x] Imported nominal names resolve from public WIP-0046 rows and counted artifact-string products without dependency source.
 - [ ] Imported nominal compile declarations generate from those resolved products.
-- [ ] Local ownership rows map to aggregate projections.
+- [x] Instruction-local create, move, loan, release, and drop owner rows map atomically to aggregate and member projections.
 - [ ] Proof and result-slot products compile with imported callables.
 - [ ] Every physical compiler module publishes one source-local product artifact.
 - [ ] WIP-0048 emits the complete physical compiler closure from those products.

@@ -114,7 +114,8 @@ Scratch token, declaration, descriptor, and projection windows are independently
 - [x] `ImportedNominalProducts.w` resolves qualified or unqualified nominal names from public WIP-0046 aggregate rows and counted artifact-string products. Qualification binds dependency rank. Equal unqualified matches remain ambiguous, and malformed string products fail closed.
 - [ ] The native compiler core emits aggregate descriptors and instructions.
 - [ ] Temporary nominal declarations publish aggregate projections.
-- [ ] Callable local types and aggregate operands consume those projections.
+- [x] `AggregateOwnerProjections.w` maps create, move, loan, release, and drop event locals to unique aggregate and member rows. A move requires identical source and destination projections, and failure leaves caller rows untouched.
+- [ ] Callable local types and aggregate operands consume temporary nominal projections.
 - [ ] Generated aggregate scaffolding is excluded from retained products.
 - [ ] Aggregate-aware source-local artifacts match stage 0 byte for byte.
 
