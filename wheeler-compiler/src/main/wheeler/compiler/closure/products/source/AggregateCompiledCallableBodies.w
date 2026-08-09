@@ -6,6 +6,7 @@ import wheeler.compiler.closure.aggregate_constructor_targets;
 import wheeler.compiler.closure.aggregate_expression_projection;
 import wheeler.compiler.closure.aggregate_expression_temporaries;
 import wheeler.compiler.closure.aggregate_frontend_bindings;
+import wheeler.compiler.closure.aggregate_indexed_owners;
 import wheeler.compiler.closure.aggregate_instruction_composition;
 import wheeler.compiler.closure.aggregate_instruction_products;
 import wheeler.compiler.closure.aggregate_placeholder_placements;
@@ -252,6 +253,23 @@ classical class AggregateCompiledCallableBodies {
       stagedOwnerCases
     );
     assert(sourceOwners.valid);
+    AggregateIndexedOwnerPlan indexedOwners = deriveAggregateIndexedOwners(
+      originalUtf8,
+      operationCount,
+      operationRows,
+      stagedDestinations,
+      stagedOwners,
+      stagedPlacements,
+      aggregateCount,
+      aggregateRows,
+      localCaseCount,
+      localCaseRows,
+      localMemberCount,
+      localMemberRows,
+      stagedOwnerAggregates,
+      stagedOwnerCases
+    );
+    assert(indexedOwners.valid);
     boolean projectionTargetsValid = resolveLocalAggregateProjectionTargets(
       originalUtf8,
       operationCount,
