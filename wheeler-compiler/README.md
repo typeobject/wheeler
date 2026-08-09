@@ -43,7 +43,7 @@ The package keeps responsibilities narrow:
 - `compiler/Driver.w` keeps one small stable API over the graph compilers and core.
 - `compiler/backend/results/ResultSlotCodegen.w` owns reversible result-slot entry encoding.
 - `compiler/backend/ProgramCodegen.w` emits ordinary helper bodies and package entry code.
-- `compiler/closure/layouts/source/instructions/SourceAggregateOperations.w` indexes bounded aggregate constructors and projections without publishing partial ranges. `ResolvedAggregateOperations.w` admits exact opcodes and operands according to each source kind.
+- `compiler/closure/layouts/source/instructions/SourceAggregateOperations.w` indexes bounded aggregate constructors and projections without publishing partial ranges. `AggregateConstructorTargets.w` resolves local descriptor and variant-case coordinates. `ResolvedAggregateOperations.w` admits exact opcodes and operands according to each source kind.
 - `compiler/backend/AggregateCodegen.w` emits validated canonical record, variant, fixed-array, and slice instruction forms. `compiler/closure/layouts/source/instructions/AggregateInstructionProducts.w` validates and lowers complete counted operation windows.
 - `compiler/verification` owns complete check-before-publication artifact validation.
 
