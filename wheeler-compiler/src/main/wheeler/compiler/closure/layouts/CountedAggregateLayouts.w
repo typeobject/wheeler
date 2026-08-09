@@ -34,6 +34,9 @@ classical class CountedAggregateLayouts {
     long aggregateCount,
     long caseCount,
     long memberCount,
+    long generatedAggregateCount,
+    long generatedCaseCount,
+    long generatedMemberCount,
     borrow mut words processedModules,
     borrow mut words closureAggregates,
     borrow mut words closureCases,
@@ -54,6 +57,12 @@ classical class CountedAggregateLayouts {
     assert(caseCount < MAX_CLOSURE_CASES + 1);
     assert(-1 < memberCount);
     assert(memberCount < MAX_CLOSURE_MEMBERS + 1);
+    assert(-1 < generatedAggregateCount);
+    assert(generatedAggregateCount < 65);
+    assert(-1 < generatedCaseCount);
+    assert(generatedCaseCount < 129);
+    assert(-1 < generatedMemberCount);
+    assert(generatedMemberCount < 257);
 
     region localRows = new region(/* bytes= */ 16896, /* allocations= */ 3);
     words aggregates = allocate(localRows, LOCAL_AGGREGATE_ROWS);
@@ -67,12 +76,40 @@ classical class CountedAggregateLayouts {
       cases,
       members
     );
-    assert(local.aggregateCount < MAX_CLOSURE_AGGREGATES - aggregateCount + 1);
-    assert(local.caseCount < MAX_CLOSURE_CASES - caseCount + 1);
-    assert(local.memberCount < MAX_CLOSURE_MEMBERS - memberCount + 1);
+    assert(generatedAggregateCount < local.aggregateCount + 1);
+    assert(generatedCaseCount < local.caseCount + 1);
+    assert(generatedMemberCount < local.memberCount + 1);
+    long retainedAggregateCount = local.aggregateCount - generatedAggregateCount;
+    long retainedCaseCount = local.caseCount - generatedCaseCount;
+    long retainedMemberCount = local.memberCount - generatedMemberCount;
+    assert(retainedAggregateCount < MAX_CLOSURE_AGGREGATES - aggregateCount + 1);
+    assert(retainedCaseCount < MAX_CLOSURE_CASES - caseCount + 1);
+    assert(retainedMemberCount < MAX_CLOSURE_MEMBERS - memberCount + 1);
+
+    long validatedAggregate = 0;
+    while (validatedAggregate < retainedAggregateCount) limit 64 {
+      long firstLocalCase = aggregates[256 + validatedAggregate];
+      long localCaseCount = aggregates[320 + validatedAggregate];
+      long firstLocalMember = aggregates[384 + validatedAggregate];
+      long localMemberCount = aggregates[448 + validatedAggregate];
+      assert(firstLocalCase < retainedCaseCount + 1);
+      assert(localCaseCount < retainedCaseCount - firstLocalCase + 1);
+      assert(firstLocalMember < retainedMemberCount + 1);
+      assert(localMemberCount < retainedMemberCount - firstLocalMember + 1);
+      validatedAggregate += 1;
+    }
+
+    long validatedCase = 0;
+    while (validatedCase < retainedCaseCount) limit 128 {
+      long firstCaseMember = cases[256 + validatedCase];
+      long caseMemberCount = cases[384 + validatedCase];
+      assert(firstCaseMember < retainedMemberCount + 1);
+      assert(caseMemberCount < retainedMemberCount - firstCaseMember + 1);
+      validatedCase += 1;
+    }
 
     long aggregate = 0;
-    while (aggregate < local.aggregateCount) limit 64 {
+    while (aggregate < retainedAggregateCount) limit 64 {
       long closureAggregate = aggregateCount + aggregate;
       set(closureAggregates, closureAggregate, aggregates[aggregate]);
       set(closureAggregates, 4096 + closureAggregate, owner);
@@ -91,7 +128,7 @@ classical class CountedAggregateLayouts {
     }
 
     long nextCase = 0;
-    while (nextCase < local.caseCount) limit 128 {
+    while (nextCase < retainedCaseCount) limit 128 {
       long closureCase = caseCount + nextCase;
       set(closureCases, closureCase, aggregateCount + cases[nextCase]);
       set(closureCases, 8192 + closureCase, cases[128 + nextCase]);
@@ -101,7 +138,7 @@ classical class CountedAggregateLayouts {
     }
 
     long member = 0;
-    while (member < local.memberCount) limit 256 {
+    while (member < retainedMemberCount) limit 256 {
       long closureMember = memberCount + member;
       set(closureMembers, closureMember, aggregateCount + members[member]);
       long localCase = members[256 + member];
@@ -117,9 +154,9 @@ classical class CountedAggregateLayouts {
     }
 
     set(processedModules, owner, 1);
-    long nextAggregateCount = aggregateCount + local.aggregateCount;
-    long nextCaseCount = caseCount + local.caseCount;
-    long nextMemberCount = memberCount + local.memberCount;
+    long nextAggregateCount = aggregateCount + retainedAggregateCount;
+    long nextCaseCount = caseCount + retainedCaseCount;
+    long nextMemberCount = memberCount + retainedMemberCount;
     drop(members);
     drop(cases);
     drop(aggregates);

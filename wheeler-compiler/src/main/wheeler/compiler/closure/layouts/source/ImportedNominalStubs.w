@@ -14,40 +14,72 @@ classical class ImportedNominalStubs {
   public record ImportedNominalStubPlan(long length, long stubCount, long projectionCount) {}
 
   private boolean reservedPrefixAt(borrow byteview source, long start, long end) {
-    if (end - start < 18) {
-      return false;
-    }
+    if (13 < end - start) {
+      long[14] generated = new long[14](
+        87,
+        104,
+        101,
+        101,
+        108,
+        101,
+        114,
+        78,
+        111,
+        109,
+        105,
+        110,
+        97,
+        108
+      );
+      long generatedOffset = 0;
+      boolean generatedMatch = true;
+      while (generatedOffset < 14) limit 14 {
+        if (source[start + generatedOffset] != generated[generatedOffset]) {
+          generatedMatch = false;
+        }
 
-    long[18] expected = new long[18](
-      95,
-      95,
-      119,
-      104,
-      101,
-      101,
-      108,
-      101,
-      114,
-      95,
-      110,
-      111,
-      109,
-      105,
-      110,
-      97,
-      108,
-      95
-    );
-    long offset = 0;
-    while (offset < 18) limit 18 {
-      if (source[start + offset] != expected[offset]) {
-        return false;
+        generatedOffset += 1;
       }
 
-      offset += 1;
+      if (generatedMatch) {
+        return true;
+      }
     }
 
-    return true;
+    if (17 < end - start) {
+      long[18] reserved = new long[18](
+        95,
+        95,
+        119,
+        104,
+        101,
+        101,
+        108,
+        101,
+        114,
+        95,
+        110,
+        111,
+        109,
+        105,
+        110,
+        97,
+        108,
+        95
+      );
+      long reservedOffset = 0;
+      while (reservedOffset < 18) limit 18 {
+        if (source[start + reservedOffset] != reserved[reservedOffset]) {
+          return false;
+        }
+
+        reservedOffset += 1;
+      }
+
+      return true;
+    }
+
+    return false;
   }
 
   private long writeRange(
@@ -75,9 +107,9 @@ classical class ImportedNominalStubs {
   private long writeName(long target, borrow mut bytes output, long cursor) {
     assert(-1 < target);
     assert(target < MAX_AGGREGATES);
-    assert(cursor < MAX_SOURCE_BYTES - 22);
-    writeAscii(output, cursor, "__wheeler_nominal_");
-    cursor += 18;
+    assert(cursor < MAX_SOURCE_BYTES - 18);
+    writeAscii(output, cursor, "WheelerNominal");
+    cursor += 14;
     long divisor = 1;
     while (divisor < target / 10 + 1) limit 4 {
       divisor = divisor * 10;

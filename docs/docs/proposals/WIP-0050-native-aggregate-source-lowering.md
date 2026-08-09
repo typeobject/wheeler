@@ -62,7 +62,7 @@ Resolution publishes a stable aggregate identity and kind. No final numeric desc
 
 ## Imported nominal scaffolding
 
-The temporary compiler source may need a declaration so the source-local type checker can admit an imported nominal signature. Such declarations use reserved collision-checked names derived from product rows. They carry only the shape needed for type checking.
+The temporary compiler source may need a declaration so the source-local type checker can admit an imported nominal signature. Such declarations use the grammar-valid reserved name `WheelerNominal<product-row>`. The internal `__wheeler_nominal_` namespace is also unavailable to authored declarations. Generated declarations carry only the shape needed for type checking.
 
 Each generated descriptor publishes a projection from its temporary owner, kind, and source-local ID to the imported aggregate identity. WIP-0048 resolves that identity to the final descriptor row. Temporary descriptors, members, cases, strings, functions, and instructions are excluded before body archival.
 
@@ -117,7 +117,7 @@ Scratch token, declaration, descriptor, and projection windows are independently
 - [x] `AggregateOwnerProjections.w` maps create, move, loan, release, and drop event locals to unique aggregate and member rows. A move requires identical source and destination projections, and failure leaves caller rows untouched.
 - [x] `LinkedLocalTypes.w` consumes temporary owner, source-code, and aggregate-row projections before final descriptor emission. Missing, duplicate, or kind-inconsistent projections fail before publication.
 - [x] `AggregateOperandProjections.w` maps temporary owner, kind, and type IDs to aggregate rows and stable product identities. Duplicate projections leave relocation rows and identities untouched.
-- [ ] Generated aggregate scaffolding is excluded from retained products.
+- [x] Counted aggregate archival accepts exact generated suffix counts, validates every retained case and member range before mutation, and excludes the generated aggregate, case, and member suffixes. Native evidence covers successful prefix retention and failure before publication.
 - [ ] Aggregate-aware source-local artifacts match stage 0 byte for byte.
 
 ## Acceptance

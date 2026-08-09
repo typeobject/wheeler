@@ -30,16 +30,19 @@ final class NativeCompilerImportedNominalStubsExampleTest {
     assertEquals(536_870_921, machine.global("secondSourceCode"));
     assertEquals(8, machine.global("secondTarget"));
     assertEquals(
-        "classical class Root { private record __wheeler_nominal_3(long value) {} "
-            + "private variant __wheeler_nominal_8 { case Value(long value); } }",
+        "classical class Root { private record WheelerNominal3(long value) {} "
+            + "private variant WheelerNominal8 { case Value(long value); } }",
         new String(machine.hostOutput(), StandardCharsets.US_ASCII));
   }
 
   @Test
   void rejectsReservedNominalNamesBeforePublication() throws Exception {
-    String source = "classical class Root { private long __wheeler_nominal_3 = 0; }";
-    VirtualMachine machine = machine(source);
+    assertReservedNameFails("classical class Root { private long WheelerNominal3 = 0; }");
+    assertReservedNameFails("classical class Root { private long __wheeler_nominal_3 = 0; }");
+  }
 
+  private static void assertReservedNameFails(String source) throws Exception {
+    VirtualMachine machine = machine(source);
     assertThrows(
         VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
     assertEquals(0, machine.global("published"));
