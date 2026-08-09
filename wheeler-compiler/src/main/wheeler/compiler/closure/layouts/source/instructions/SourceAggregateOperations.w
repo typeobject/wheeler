@@ -163,12 +163,15 @@ classical class SourceAggregateOperations {
   ) {
     assert(bufferLength(operationRows) == OPERATION_ROWS);
     assert(bufferLength(argumentRows) == ARGUMENT_ROWS);
-    region scratch = new region(/* bytes= */ 147456, /* allocations= */ 5);
+    region scratch = new region(/* bytes= */ 198656, /* allocations= */ 8);
     words tokenKinds = allocate(scratch, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(scratch, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(scratch, MAX_COMPILER_TOKENS);
     words stagedRows = allocate(scratch, OPERATION_ROWS);
     words stagedArguments = allocate(scratch, ARGUMENT_ROWS);
+    words normalizedRows = allocate(scratch, OPERATION_ROWS);
+    words normalizedArguments = allocate(scratch, ARGUMENT_ROWS);
+    words operationOrder = allocate(scratch, MAX_OPERATIONS);
     boolean valid = true;
     long tokenCount = 0;
     ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);
@@ -317,7 +320,7 @@ classical class SourceAggregateOperations {
             }
 
             operationCount += 1;
-            cursor = constructorClose + 1;
+            cursor += 1;
           }
         }
       } else {
@@ -430,6 +433,11 @@ classical class SourceAggregateOperations {
                   boolean typeRange = false;
                   if (indexClose + 1 < semanticCount) {
                     typeRange = tokenKinds[indexClose + 1] == 1;
+                    if (
+                      punctuationAt(source, tokenKinds, tokenStarts, indexClose + 1, 40)
+                    ) {
+                      typeRange = true;
+                    }
                   }
 
                   if (typeRange == false) {
@@ -469,7 +477,6 @@ classical class SourceAggregateOperations {
                     operationCount += 1;
                   }
 
-                  cursor = indexClose;
                 }
               }
             }
@@ -480,20 +487,127 @@ classical class SourceAggregateOperations {
       }
     }
 
+    long orderedOperation = 0;
+    while (orderedOperation < operationCount) limit MAX_OPERATIONS {
+      long selectedOperation = -1;
+      long selectedEnd = 0;
+      long selectedStart = 0;
+      long orderingCandidate = 0;
+      while (orderingCandidate < operationCount) limit MAX_OPERATIONS {
+        if (operationOrder[orderingCandidate] == 0) {
+          long candidateStart = stagedRows[1280 + orderingCandidate];
+          long candidateEnd = candidateStart + stagedRows[1536 + orderingCandidate];
+          boolean selectCandidate = selectedOperation < 0;
+          if (-1 < selectedOperation) {
+            if (candidateEnd < selectedEnd) {
+              selectCandidate = true;
+            }
+
+            if (candidateEnd == selectedEnd) {
+              if (selectedStart < candidateStart) {
+                selectCandidate = true;
+              }
+            }
+          }
+
+          if (selectCandidate) {
+            selectedOperation = orderingCandidate;
+            selectedEnd = candidateEnd;
+            selectedStart = candidateStart;
+          }
+        }
+
+        orderingCandidate += 1;
+      }
+
+      if (selectedOperation < 0) {
+        valid = false;
+      } else {
+        set(operationOrder, selectedOperation, orderedOperation + 1);
+        long column = 0;
+        while (column < 8) limit 8 {
+          set(
+            normalizedRows,
+            column * 256 + orderedOperation,
+            stagedRows[column * 256 + selectedOperation]
+          );
+          column += 1;
+        }
+      }
+
+      orderedOperation += 1;
+    }
+
+    long normalizedArgumentCount = 0;
+    orderedOperation = 0;
+    while (orderedOperation < operationCount) limit MAX_OPERATIONS {
+      long rawOperation = -1;
+      long rawCandidate = 0;
+      while (rawCandidate < operationCount) limit MAX_OPERATIONS {
+        if (operationOrder[rawCandidate] == orderedOperation + 1) {
+          rawOperation = rawCandidate;
+        }
+
+        rawCandidate += 1;
+      }
+
+      long firstNormalizedArgument = normalizedArgumentCount;
+      long expectedArgumentIndex = 0;
+      long rawArgument = 0;
+      while (rawArgument < argumentCount) limit MAX_ARGUMENTS {
+        if (stagedArguments[rawArgument] == rawOperation) {
+          if (stagedArguments[1024 + rawArgument] != expectedArgumentIndex) {
+            valid = false;
+          }
+
+          set(normalizedArguments, normalizedArgumentCount, orderedOperation);
+          set(
+            normalizedArguments,
+            1024 + normalizedArgumentCount,
+            stagedArguments[1024 + rawArgument]
+          );
+          set(
+            normalizedArguments,
+            2048 + normalizedArgumentCount,
+            stagedArguments[2048 + rawArgument]
+          );
+          set(
+            normalizedArguments,
+            3072 + normalizedArgumentCount,
+            stagedArguments[3072 + rawArgument]
+          );
+          normalizedArgumentCount += 1;
+          expectedArgumentIndex += 1;
+        }
+
+        rawArgument += 1;
+      }
+
+      set(normalizedRows, 1792 + orderedOperation, firstNormalizedArgument);
+      orderedOperation += 1;
+    }
+
+    if (normalizedArgumentCount != argumentCount) {
+      valid = false;
+    }
+
     if (valid) {
       long row = 0;
       while (row < OPERATION_ROWS) limit OPERATION_ROWS {
-        set(operationRows, row, stagedRows[row]);
+        set(operationRows, row, normalizedRows[row]);
         row += 1;
       }
 
       long argumentRow = 0;
       while (argumentRow < ARGUMENT_ROWS) limit ARGUMENT_ROWS {
-        set(argumentRows, argumentRow, stagedArguments[argumentRow]);
+        set(argumentRows, argumentRow, normalizedArguments[argumentRow]);
         argumentRow += 1;
       }
     }
 
+    drop(operationOrder);
+    drop(normalizedArguments);
+    drop(normalizedRows);
     drop(stagedArguments);
     drop(stagedRows);
     drop(tokenLengths);

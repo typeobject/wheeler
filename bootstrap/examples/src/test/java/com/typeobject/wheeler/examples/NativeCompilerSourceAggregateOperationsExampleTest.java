@@ -89,6 +89,26 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
   }
 
   @Test
+  void nestedConstructorsPublishInEvaluationOrder() throws Exception {
+    String source = "new Token(new Span(3, 8), true)";
+    VirtualMachine machine = new VirtualMachine(nestedProgram(),
+        source.getBytes(StandardCharsets.UTF_8), 1);
+
+    machine.run();
+
+    assertEquals(2, machine.global("operationCount"));
+    assertEquals(4, machine.global("argumentCount"));
+    assertEquals("Span", source.substring(
+        Math.toIntExact(machine.global("firstTypeStart")),
+        Math.toIntExact(machine.global("firstTypeEnd"))));
+    assertEquals("Token", source.substring(
+        Math.toIntExact(machine.global("secondTypeStart")),
+        Math.toIntExact(machine.global("secondTypeEnd"))));
+    assertEquals(0, machine.global("firstArgumentOwner"));
+    assertEquals(1, machine.global("thirdArgumentOwner"));
+  }
+
+  @Test
   void malformedConstructionPublishesNothing() throws Exception {
     VirtualMachine machine = new VirtualMachine(program(),
         "new Pair(value".getBytes(StandardCharsets.UTF_8), 280);
@@ -98,6 +118,51 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
     assertEquals(0, machine.global("operationCount"));
     assertEquals(0, machine.global("valid"));
     assertArrayEquals(new byte[0], machine.hostOutput());
+  }
+
+  private static Program nestedProgram() throws Exception {
+    Map<String, String> sources = new LinkedHashMap<>();
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.source_aggregate_operations"));
+    sources.put("NestedAggregateOperationsExample.w", """
+        module example.nested_aggregate_operations;
+
+        import wheeler.compiler.closure.source_aggregate_operations;
+
+        classical class NestedAggregateOperationsExample {
+          state long operationCount = 0;
+          state long argumentCount = 0;
+          state long firstTypeStart = 0;
+          state long firstTypeEnd = 0;
+          state long secondTypeStart = 0;
+          state long secondTypeEnd = 0;
+          state long firstArgumentOwner = -1;
+          state long thirdArgumentOwner = -1;
+
+          entry void main(borrow utf8 input, borrow mut bytes output) {
+            region products = new region(/* bytes= */ 49152, /* allocations= */ 2);
+            words operations = allocate(products, /* length= */ 2048);
+            words arguments = allocate(products, /* length= */ 4096);
+            SourceAggregateOperationPlan plan =
+              materializeSourceAggregateOperations(input, operations, arguments);
+            assert(plan.valid);
+            operationCount = plan.operationCount;
+            argumentCount = plan.argumentCount;
+            firstTypeStart = operations[256];
+            firstTypeEnd = operations[256] + operations[512];
+            secondTypeStart = operations[257];
+            secondTypeEnd = operations[257] + operations[513];
+            firstArgumentOwner = arguments[0];
+            thirdArgumentOwner = arguments[2];
+            setOutputLength(output, 0);
+            drop(arguments);
+            drop(operations);
+            drop(products);
+          }
+        }
+        """);
+    return new WheelerCompiler().compileModuleFiles(
+        sources, "example.nested_aggregate_operations");
   }
 
   private static Program program() throws Exception {

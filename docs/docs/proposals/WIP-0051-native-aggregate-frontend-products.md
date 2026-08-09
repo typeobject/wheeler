@@ -107,7 +107,7 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 - [ ] The primitive frontend publishes source and splice statement ordinals with its body artifact.
 - [ ] Source-local nominal carriers are projected and removed with exact local-type coordinates.
 - [ ] Aggregate-only statements are removed from primitive compilation without moving newlines.
-- [ ] Mixed and nested aggregate expressions publish postorder operation products.
+- [x] `SourceAggregateOperations.w` normalizes nested constructors and field chains into evaluation postorder and remaps their argument owners.
 - [ ] Record, variant, fixed-array, slice, ownership, and field-chain fixtures match stage 0 byte for byte.
 - [ ] Every physical compiler module publishes frontend products without dependency source.
 
