@@ -105,7 +105,7 @@ Scratch token, declaration, descriptor, and projection windows are independently
 
 ## Implementation status
 
-- [x] `SourceAggregateProducts.w` publishes atomic record, variant, case, and member source products.
+- [x] `SourceAggregateProducts.w` publishes atomic record, variant, case, and member source products. `SourceAggregateSyntax.w` owns shared bounded declaration, member, range, and structural-type parsing in a separate source-layout directory.
 - [x] Native evidence covers public and private records, variants, empty and populated cases, mutually recursive record and variant types, exact source ranges, and malformed-member nonpublication.
 - [x] Primitive and recursive local nominal member types resolve before source release. Duplicate cases and unresolved types publish nothing.
 - [x] Scalar fixed-array member types publish deduplicated structural descriptors in encounter order. Invalid lengths, nonscalar elements, and nonescaping slice members publish nothing.
