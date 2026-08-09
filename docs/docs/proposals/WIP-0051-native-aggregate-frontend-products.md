@@ -103,8 +103,8 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 
 - [x] `AggregateFrontendBindings.w` validates counted frontend value and statement rows, distinguishes source order from splice order, and publishes destination, owner, argument, and placement products atomically.
 - [x] WIP-0050 composes, archives, and links primitive and aggregate code from two immutable artifact ranks.
-- [ ] The primitive frontend publishes value rows for parameters, named locals, and expression temporaries.
-- [ ] The primitive frontend publishes source and splice statement ordinals with its body artifact.
+- [x] `PrimitiveFrontendProducts.w` converts bounded scanner, statement, parameter, and local-width products into named value rows and distinct source and splice statement ordinals. Malformed statements leave caller rows untouched.
+- [ ] The callable compiler invokes primitive frontend publication in the same transaction as its body artifact and adds expression-temporary rows.
 - [ ] Source-local nominal carriers are projected and removed with exact local-type coordinates.
 - [ ] Aggregate-only statements are removed from primitive compilation without moving newlines.
 - [x] `SourceAggregateOperations.w` normalizes nested constructors, field chains, and postfix slice indexes into evaluation postorder and remaps their argument owners.
