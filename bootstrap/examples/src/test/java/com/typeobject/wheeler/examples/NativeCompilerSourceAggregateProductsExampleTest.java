@@ -39,11 +39,29 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
     assertEquals(4, machine.global("firstTypeLength"));
     assertEquals(source.indexOf("boolean"), machine.global("thirdTypeStart"));
     assertEquals(7, machine.global("thirdTypeLength"));
+    assertEquals(0, machine.global("firstTypeKind"));
+    assertEquals(1, machine.global("firstTypeValue"));
+    assertEquals(1, machine.global("secondTypeKind"));
+    assertEquals(0, machine.global("secondTypeValue"));
+    assertEquals(0, machine.global("thirdTypeKind"));
+    assertEquals(2, machine.global("thirdTypeValue"));
   }
 
   @Test
   void leavesCallerRowsUntouchedWhenARecordMemberIsMalformed() throws Exception {
     String source = "classical class Root { public record Broken(long) {} }";
+    VirtualMachine machine = machine(source);
+
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+
+    assertEquals(0, machine.global("productValid"));
+    assertEquals(91, machine.global("firstNameStart"));
+    assertEquals(73, machine.global("firstMemberOwner"));
+  }
+
+  @Test
+  void rejectsUnresolvedMemberTypesBeforePublication() throws Exception {
+    String source = "classical class Root { public record Broken(Missing value) {} }";
     VirtualMachine machine = machine(source);
 
     CompilerMachineRunner.runWithoutRewindHistory(machine);
@@ -83,11 +101,17 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
           state long thirdTypeStart = 0;
           state long thirdTypeLength = 0;
           state long firstMemberOwner = 0;
+          state long firstTypeKind = 0;
+          state long firstTypeValue = 0;
+          state long secondTypeKind = 0;
+          state long secondTypeValue = 0;
+          state long thirdTypeKind = 0;
+          state long thirdTypeValue = 0;
 
           entry void main(borrow utf8 input) {
-            region rows = new region(/* bytes= */ 13312, /* allocations= */ 2);
+            region rows = new region(/* bytes= */ 17408, /* allocations= */ 2);
             words aggregates = allocate(rows, /* length= */ 384);
-            words members = allocate(rows, /* length= */ 1280);
+            words members = allocate(rows, /* length= */ 1792);
             set(aggregates, 0, 91);
             set(members, 0, 73);
             SourceAggregateProductPlan product = materializeSourceRecordProducts(
@@ -113,6 +137,12 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
             thirdTypeStart = members[770];
             thirdTypeLength = members[1026];
             firstMemberOwner = members[0];
+            firstTypeKind = members[1280];
+            firstTypeValue = members[1536];
+            secondTypeKind = members[1281];
+            secondTypeValue = members[1537];
+            thirdTypeKind = members[1282];
+            thirdTypeValue = members[1538];
             drop(members);
             drop(aggregates);
             drop(rows);

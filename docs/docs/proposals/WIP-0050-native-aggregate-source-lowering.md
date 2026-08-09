@@ -41,6 +41,8 @@ The member product has these fixed columns:
 3. name length
 4. type start
 5. type length
+6. resolved type kind
+7. primitive code or source-local aggregate row
 
 The first profile admits sixty-four aggregate declarations and 256 members per module. Duplicate aggregate names, duplicate member names, malformed members, unterminated declarations, and a bound breach fail before one caller row changes.
 
@@ -106,8 +108,8 @@ Scratch token, declaration, descriptor, and projection windows are independently
 
 - [x] `SourceAggregateProducts.w` publishes atomic recursive record and member source products.
 - [x] Native evidence covers public and private records, recursive member types, exact source ranges, and malformed-member nonpublication.
+- [x] Primitive and recursive local nominal record member types resolve before source release. Unresolved types publish nothing.
 - [ ] Source products cover variants, fixed arrays, and slices.
-- [ ] Primitive and local nominal type ranges resolve before source release.
 - [ ] Imported nominal type ranges resolve from WIP-0046 products.
 - [ ] The native compiler core emits aggregate descriptors and instructions.
 - [ ] Temporary nominal declarations publish aggregate projections.

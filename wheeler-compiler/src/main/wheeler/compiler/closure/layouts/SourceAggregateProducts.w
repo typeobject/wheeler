@@ -11,7 +11,7 @@ classical class SourceAggregateProducts {
   private const long AGGREGATE_ROWS = 384;
   private const long MAX_AGGREGATES = 64;
   private const long MAX_MEMBERS = 256;
-  private const long MEMBER_ROWS = 1280;
+  private const long MEMBER_ROWS = 1792;
   private const long TOKEN_RECORD = 3360058449;
 
   /// Reports the exact source-local record and member product extents.
@@ -29,6 +29,18 @@ classical class SourceAggregateProducts {
     }
 
     return utf8Scalar(source, tokenStarts[token]) == expected;
+  }
+
+  private long rangeHash(borrow utf8 source, long start, long length) {
+    long cursor = start;
+    long end = start + length;
+    long hash = 0;
+    while (cursor < end) limit 256 {
+      hash = (hash & TOKEN_HASH_INPUT_MASK) * 31 + utf8Scalar(source, cursor);
+      cursor += utf8Width(source, cursor);
+    }
+
+    return hash;
   }
 
   private boolean sameRange(
@@ -64,7 +76,7 @@ classical class SourceAggregateProducts {
   ) {
     assert(bufferLength(aggregateRows) == AGGREGATE_ROWS);
     assert(bufferLength(memberRows) == MEMBER_ROWS);
-    region scratch = new region(/* bytes= */ 111616, /* allocations= */ 5);
+    region scratch = new region(/* bytes= */ 115712, /* allocations= */ 5);
     words tokenKinds = allocate(scratch, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(scratch, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(scratch, MAX_COMPILER_TOKENS);
@@ -290,6 +302,81 @@ classical class SourceAggregateProducts {
       }
 
       cursor += 1;
+    }
+
+    long resolvedMember = 0;
+    while (resolvedMember < memberCount) limit MAX_MEMBERS {
+      long resolvedTypeStart = scratchMembers[768 + resolvedMember];
+      long resolvedTypeLength = scratchMembers[1024 + resolvedMember];
+      long localTarget = -1;
+      long candidateAggregate = 0;
+      while (candidateAggregate < aggregateCount) limit MAX_AGGREGATES {
+        if (
+          sameRange(
+            source,
+            resolvedTypeStart,
+            resolvedTypeLength,
+            scratchAggregates[candidateAggregate],
+            scratchAggregates[64 + candidateAggregate]
+          )
+        ) {
+          localTarget = candidateAggregate;
+        }
+
+        candidateAggregate += 1;
+      }
+
+      if (-1 < localTarget) {
+        set(scratchMembers, 1280 + resolvedMember, 1);
+        set(scratchMembers, 1536 + resolvedMember, localTarget);
+      } else {
+        long typeHash = rangeHash(source, resolvedTypeStart, resolvedTypeLength);
+        long primitiveType = -1;
+        if (typeHash == 3327612) {
+          primitiveType = 1;
+        }
+
+        if (typeHash == 90259024936) {
+          primitiveType = 2;
+        }
+
+        if (typeHash == 3360171764) {
+          primitiveType = 3;
+        }
+
+        if (typeHash == 113318569) {
+          primitiveType = 4;
+        }
+
+        if (typeHash == 94224491) {
+          primitiveType = 5;
+        }
+
+        if (typeHash == 99132996960) {
+          primitiveType = 6;
+        }
+
+        if (typeHash == 3600241) {
+          primitiveType = 7;
+        }
+
+        if (typeHash == 11018295213) {
+          primitiveType = 13;
+        }
+
+        if (typeHash == 2135970) {
+          primitiveType = 14;
+        }
+
+        if (primitiveType < 0) {
+          valid = false;
+        } else {
+          set(scratchMembers, 1280 + resolvedMember, 0);
+          set(scratchMembers, 1536 + resolvedMember, primitiveType);
+        }
+      }
+
+      resolvedMember += 1;
     }
 
     if (valid) {
