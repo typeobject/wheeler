@@ -180,8 +180,8 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
           state long secondCaseMemberCount = 0;
 
           entry void main(borrow utf8 input) {
-            region rows = new region(/* bytes= */ 27648, /* allocations= */ 3);
-            words aggregates = allocate(rows, /* length= */ 768);
+            region rows = new region(/* bytes= */ 28160, /* allocations= */ 3);
+            words aggregates = allocate(rows, /* length= */ 832);
             words cases = allocate(rows, /* length= */ 640);
             words members = allocate(rows, /* length= */ 2048);
             set(aggregates, 64, 91);

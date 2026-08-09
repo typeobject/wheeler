@@ -159,7 +159,8 @@ Source-product compilation does not set the bootstrap bit. Promotion still requi
 - [x] `retainLocalFunctionProduct` excludes stub and compiler-added function suffixes.
 - [x] Imported call ranges, including qualified spelling, rewrite to `__wheeler_import_<product-row>` stub names. Any local use of the reserved prefix fails before output mutation.
 - [x] `CallableTypeProducts.w` resolves primitive source ranges while local source is leased. Stub generation consumes only type codes, loan modes, effect masks, and parameter windows. Its API has no dependency-source argument.
-- [x] WIP-0050 starts aggregate-aware lowering with atomic record, variant, case, and member products, including mutually recursive local nominal type resolution and deduplicated scalar fixed-array descriptors.
+- [x] WIP-0050 starts aggregate-aware lowering with atomic record, variant, case, and member products, including mutually recursive local nominal types and deduplicated scalar fixed arrays.
+- [x] Complete primitive bodies compile after validated local aggregate declarations are blanked at stable source offsets.
 - [ ] WIP-0050 completes local aggregate declaration and instruction lowering.
 - [ ] Imported nominal declarations generate from WIP-0046 products.
 - [ ] Local ownership rows map to aggregate projections.

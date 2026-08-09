@@ -58,6 +58,48 @@ final class NativeCompilerImportedCallableStubsExampleTest {
   }
 
   @Test
+  void stripsLocalAggregateDeclarationsBeforePrimitiveBodyCompilation() throws Exception {
+    String localSource = """
+        classical class Root {
+          public record Pair(long value) {}
+          public long run(long value) {
+            return dependency.helper(value);
+          }
+        }
+        """;
+    byte[] input = localSource.getBytes(StandardCharsets.US_ASCII);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        program(localSource, "long"), input, 32_768);
+
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+
+    assertEquals(1, machine.global("retainedFunctionCount"));
+    assertEquals(2, machine.global("excludedFunctionCount"));
+    FunctionBody run = new BytecodeReader().read(machine.hostOutput()).functions().stream()
+        .filter(function -> function.name().endsWith("run"))
+        .findFirst()
+        .orElseThrow();
+    assertEquals(true, run.returnsValue());
+  }
+
+  @Test
+  void rejectsInvalidAggregateProjectionBeforePublication() throws Exception {
+    String localSource = """
+        classical class Root {
+          public record Pair(long value) {}
+          public long run(long value) { return dependency.helper(value); }
+        }
+        """;
+    byte[] input = localSource.getBytes(StandardCharsets.US_ASCII);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        program(localSource, "long", true), input, 32_768);
+
+    assertThrows(
+        VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
+    assertEquals(0, machine.global("published"));
+  }
+
+  @Test
   void rejectsGeneratedNameCollisionsBeforePublication() throws Exception {
     String localSource = """
         classical class Root {
@@ -86,9 +128,20 @@ final class NativeCompilerImportedCallableStubsExampleTest {
   }
 
   private static Program program(String localSource, String primitiveType) throws Exception {
+    return program(localSource, primitiveType, false);
+  }
+
+  private static Program program(
+      String localSource, String primitiveType, boolean invalidProjection) throws Exception {
     int callStart = localSource.indexOf("dependency.helper");
     int callLength = "dependency.helper".length();
     int primitiveTypeStart = localSource.indexOf(primitiveType);
+    int recordStart = localSource.indexOf("public record");
+    int recordEnd = recordStart < 0 ? 0 : localSource.indexOf('}', recordStart) + 1;
+    if (invalidProjection) {
+      recordEnd = recordStart;
+    }
+    int aggregateCount = recordStart < 0 ? 0 : 1;
     Map<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
@@ -114,7 +167,8 @@ final class NativeCompilerImportedCallableStubsExampleTest {
           state long published = 0;
 
           entry void main(borrow byteview input, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 930848, /* allocations= */ 14);
+            region rows = new region(/* bytes= */ 937504, /* allocations= */ 15);
+            words aggregates = allocate(rows, /* length= */ 832);
             words calls = allocate(rows, /* length= */ 1024);
             words effects = allocate(rows, /* length= */ 4096);
             words firstParameters = allocate(rows, /* length= */ 4096);
@@ -129,6 +183,9 @@ final class NativeCompilerImportedCallableStubsExampleTest {
             words functionRows = allocate(rows, /* length= */ 640);
             words instructionRows = allocate(rows, /* length= */ 24576);
             bytes identity = allocateBytes(rows, /* length= */ 32);
+            set(aggregates, 0, 1);
+            set(aggregates, 512, %d);
+            set(aggregates, 768, %d);
             set(calls, 0, %d);
             set(calls, 256, %d);
             set(calls, 768, 1);
@@ -162,6 +219,8 @@ final class NativeCompilerImportedCallableStubsExampleTest {
               input,
               /* sourceStart= */ 0,
               /* sourceLength= */ %d,
+              /* aggregateCount= */ %d,
+              aggregates,
               /* callCount= */ 1,
               calls,
               effects,
@@ -203,17 +262,21 @@ final class NativeCompilerImportedCallableStubsExampleTest {
             drop(firstParameters);
             drop(effects);
             drop(calls);
+            drop(aggregates);
             drop(rows);
           }
         }
         """.formatted(
+          recordStart,
+          recordEnd,
           callStart,
           callLength,
           primitiveTypeStart,
           primitiveTypeStart,
           primitiveTypeStart,
           primitiveTypeStart,
-          localSource.length()
+          localSource.length(),
+          aggregateCount
         ));
     return new WheelerCompiler().compileModuleFiles(sources, "example.imported_callable_stubs");
   }

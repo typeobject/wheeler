@@ -8,7 +8,7 @@ import wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
 
 classical class SourceAggregateProducts {
-  private const long AGGREGATE_ROWS = 768;
+  private const long AGGREGATE_ROWS = 832;
   private const long CASE_ROWS = 640;
   private const long MAX_AGGREGATES = 64;
   private const long MAX_CASES = 128;
@@ -260,6 +260,26 @@ classical class SourceAggregateProducts {
     return -1;
   }
 
+  private long declarationStart(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long declaration
+  ) {
+    if (0 < declaration) {
+      long modifier = tokenHash(source, tokenStarts, tokenLengths, declaration - 1);
+      if (modifier == TOKEN_PUBLIC) {
+        return tokenStarts[declaration - 1];
+      }
+
+      if (modifier == TOKEN_PRIVATE) {
+        return tokenStarts[declaration - 1];
+      }
+    }
+
+    return tokenStarts[declaration];
+  }
+
   private long declarationVisibility(
     borrow utf8 source,
     borrow mut words tokenStarts,
@@ -397,7 +417,7 @@ classical class SourceAggregateProducts {
     assert(bufferLength(aggregateRows) == AGGREGATE_ROWS);
     assert(bufferLength(caseRows) == CASE_ROWS);
     assert(bufferLength(memberRows) == MEMBER_ROWS);
-    region scratch = new region(/* bytes= */ 125952, /* allocations= */ 6);
+    region scratch = new region(/* bytes= */ 126464, /* allocations= */ 6);
     words tokenKinds = allocate(scratch, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(scratch, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(scratch, MAX_COMPILER_TOKENS);
@@ -539,7 +559,16 @@ classical class SourceAggregateProducts {
             448 + aggregateCount,
             declarationVisibility(source, tokenStarts, tokenLengths, cursor)
           );
-          set(scratchAggregates, 512 + aggregateCount, tokenStarts[cursor]);
+          set(
+            scratchAggregates,
+            512 + aggregateCount,
+            declarationStart(source, tokenStarts, tokenLengths, cursor)
+          );
+          set(
+            scratchAggregates,
+            768 + aggregateCount,
+            tokenStarts[recordClose + 2] + tokenLengths[recordClose + 2]
+          );
           aggregateCount += 1;
           cursor = recordClose + 2;
         } else {
@@ -722,7 +751,16 @@ classical class SourceAggregateProducts {
               448 + aggregateCount,
               declarationVisibility(source, tokenStarts, tokenLengths, cursor)
             );
-            set(scratchAggregates, 512 + aggregateCount, tokenStarts[cursor]);
+            set(
+              scratchAggregates,
+              512 + aggregateCount,
+              declarationStart(source, tokenStarts, tokenLengths, cursor)
+            );
+            set(
+              scratchAggregates,
+              768 + aggregateCount,
+              tokenStarts[variantClose] + tokenLengths[variantClose]
+            );
             aggregateCount += 1;
             cursor = variantClose;
           } else {
@@ -811,6 +849,11 @@ classical class SourceAggregateProducts {
                 set(scratchAggregates, 576 + aggregateCount, 0);
                 set(scratchAggregates, 640 + aggregateCount, structure.element);
                 set(scratchAggregates, 704 + aggregateCount, structure.length);
+                set(
+                  scratchAggregates,
+                  768 + aggregateCount,
+                  resolvedTypeStart + resolvedTypeLength
+                );
                 aggregateCount += 1;
               }
             }

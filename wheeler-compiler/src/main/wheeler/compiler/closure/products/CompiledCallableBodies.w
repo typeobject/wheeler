@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.compiled_callable_bodies;
 
+import wheeler.compiler.closure.aggregate_source_projection;
 import wheeler.compiler.closure.callable_type_products;
 import wheeler.compiler.closure.imported_callable_stubs;
 import wheeler.compiler.compiler_core;
@@ -209,6 +210,8 @@ classical class CompiledCallableBodies {
     borrow byteview sourceArchive,
     long sourceStart,
     long sourceLength,
+    long aggregateCount,
+    borrow mut words aggregateRows,
     long callCount,
     borrow mut words callRows,
     borrow mut words callableEffects,
@@ -225,12 +228,21 @@ classical class CompiledCallableBodies {
     assert(-1 < sourceStart);
     assert(0 < sourceLength);
     assert(sourceLength < MAX_CALLABLE_SOURCE_BYTES + 1);
-    region sourceArena = new region(/* bytes= */ 65536, /* allocations= */ 2);
-    bytes stubSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
-    ImportedCallableStubPlan product = writeImportedCallableStubs(
+    region sourceArena = new region(/* bytes= */ 98304, /* allocations= */ 3);
+    bytes projectedSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
+    long projectedLength = writeSourceWithoutAggregateDeclarations(
       sourceArchive,
       sourceStart,
       sourceLength,
+      aggregateCount,
+      aggregateRows,
+      projectedSource
+    );
+    bytes stubSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
+    ImportedCallableStubPlan product = writeImportedCallableStubs(
+      projectedSource,
+      /* sourceStart= */ 0,
+      projectedLength,
       callCount,
       callRows,
       callableEffects,
@@ -249,6 +261,7 @@ classical class CompiledCallableBodies {
     }
 
     drop(stubSource);
+    drop(projectedSource);
     CompiledCallableBody result = compileProductSource(exactSource, artifact, identity);
     drop(sourceArena);
     return result;

@@ -39,6 +39,7 @@ Source-local ranges are temporary parse evidence. They do not cross an import ed
 10. structural element kind
 11. structural element type
 12. fixed-array length
+13. declaration end
 
 Variant cases carry their aggregate owner, name range, first member, and member count. Members carry their aggregate owner, optional case owner, name range, type range, resolved type kind, and primitive code or source-local aggregate row.
 
@@ -108,6 +109,7 @@ Scratch token, declaration, descriptor, and projection windows are independently
 - [x] Native evidence covers public and private records, variants, empty and populated cases, mutually recursive record and variant types, exact source ranges, and malformed-member nonpublication.
 - [x] Primitive and recursive local nominal member types resolve before source release. Duplicate cases and unresolved types publish nothing.
 - [x] Scalar fixed-array member types publish deduplicated structural descriptors in encounter order. Invalid lengths, nonscalar elements, and nonescaping slice members publish nothing.
+- [x] `AggregateSourceProjection.w` blanks validated local record and variant declarations at stable offsets before primitive body compilation. Newlines remain in place, call offsets do not move, and invalid ranges publish nothing.
 - [ ] Source products cover nonescaping slice use outside aggregate storage.
 - [ ] Imported nominal type ranges resolve from WIP-0046 products.
 - [ ] The native compiler core emits aggregate descriptors and instructions.
