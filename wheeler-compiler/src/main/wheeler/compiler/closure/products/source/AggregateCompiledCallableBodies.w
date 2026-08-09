@@ -271,7 +271,8 @@ classical class AggregateCompiledCallableBodies {
       localMemberCount,
       localMemberRows,
       stagedOwnerAggregates,
-      stagedOwnerCases
+      stagedOwnerCases,
+      stagedSliceDescriptors
     );
     assert(indexedOwners.valid);
     boolean projectionTargetsValid = resolveLocalAggregateProjectionTargets(

@@ -64,7 +64,8 @@ classical class AggregateIndexedOwners {
     long memberCount,
     borrow mut words memberRows,
     borrow mut words ownerAggregateRows,
-    borrow mut words ownerCaseRows
+    borrow mut words ownerCaseRows,
+    borrow mut words sliceDescriptorRows
   ) {
     assert(-1 < operationCount);
     assert(operationCount < MAX_OPERATIONS + 1);
@@ -87,15 +88,18 @@ classical class AggregateIndexedOwners {
     assert(bufferLength(memberRows) == MEMBER_ROWS);
     assert(bufferLength(ownerAggregateRows) == OWNER_ROWS);
     assert(bufferLength(ownerCaseRows) == OWNER_ROWS);
+    assert(bufferLength(sliceDescriptorRows) == OWNER_ROWS);
 
-    region staging = new region(/* bytes= */ 12288, /* allocations= */ 3);
+    region staging = new region(/* bytes= */ 14336, /* allocations= */ 4);
     words stagedAggregates = allocate(staging, OWNER_ROWS);
     words stagedCases = allocate(staging, OWNER_ROWS);
+    words stagedSlices = allocate(staging, OWNER_ROWS);
     words stagedValueStructures = allocate(staging, VALUE_STRUCTURAL_ROWS);
     long row = 0;
     while (row < OWNER_ROWS) limit OWNER_ROWS {
       set(stagedAggregates, row, ownerAggregateRows[row]);
       set(stagedCases, row, ownerCaseRows[row]);
+      set(stagedSlices, row, sliceDescriptorRows[row]);
       row += 1;
     }
 
@@ -107,9 +111,11 @@ classical class AggregateIndexedOwners {
       valueRows,
       operationCount,
       operationRows,
+      destinationLocals,
       ownerLocals,
       placementRows,
       stagedAggregates,
+      stagedSlices,
       stagedValueStructures
     );
     boolean valid = structuralOwners.valid;
@@ -233,6 +239,7 @@ classical class AggregateIndexedOwners {
       while (row < OWNER_ROWS) limit OWNER_ROWS {
         set(ownerAggregateRows, row, stagedAggregates[row]);
         set(ownerCaseRows, row, stagedCases[row]);
+        set(sliceDescriptorRows, row, stagedSlices[row]);
         row += 1;
       }
 
@@ -244,6 +251,7 @@ classical class AggregateIndexedOwners {
     }
 
     drop(stagedValueStructures);
+    drop(stagedSlices);
     drop(stagedCases);
     drop(stagedAggregates);
     drop(staging);
@@ -267,9 +275,11 @@ classical class AggregateIndexedOwners {
     borrow mut words valueRows,
     long operationCount,
     borrow mut words operationRows,
+    borrow mut words destinationLocals,
     borrow mut words ownerLocals,
     borrow mut words placementRows,
     borrow mut words ownerAggregateRows,
+    borrow mut words sliceDescriptorRows,
     borrow mut words valueStructuralRows
   ) {
     assert(-1 < aggregateCount);
@@ -281,9 +291,11 @@ classical class AggregateIndexedOwners {
     assert(-1 < operationCount);
     assert(operationCount < MAX_OPERATIONS + 1);
     assert(bufferLength(operationRows) == OPERATION_ROWS);
+    assert(bufferLength(destinationLocals) == OWNER_ROWS);
     assert(bufferLength(ownerLocals) == OWNER_ROWS);
     assert(bufferLength(placementRows) == PLACEMENT_ROWS);
     assert(bufferLength(ownerAggregateRows) == OWNER_ROWS);
+    assert(bufferLength(sliceDescriptorRows) == OWNER_ROWS);
     assert(bufferLength(valueStructuralRows) == VALUE_STRUCTURAL_ROWS);
 
     region staging = new region(/* bytes= */ 10240, /* allocations= */ 2);
@@ -383,6 +395,33 @@ classical class AggregateIndexedOwners {
           } else {
             set(stagedOwners, operation, target);
           }
+        }
+      }
+
+      if (operationRows[operation] == 5) {
+        long sliceValue = -1;
+        long sliceMatches = 0;
+        value = 0;
+        while (value < valueCount) limit MAX_VALUES {
+          if (valueRows[value] == placementRows[operation]) {
+            if (valueRows[3072 + value] == destinationLocals[operation]) {
+              long sliceTarget = stagedStructures[value];
+              if (-1 < sliceTarget) {
+                if (aggregateRows[sliceTarget] == 3) {
+                  sliceValue = value;
+                  sliceMatches += 1;
+                }
+              }
+            }
+          }
+
+          value += 1;
+        }
+
+        if (sliceMatches != 1) {
+          valid = false;
+        } else {
+          set(sliceDescriptorRows, operation, stagedStructures[sliceValue]);
         }
       }
 

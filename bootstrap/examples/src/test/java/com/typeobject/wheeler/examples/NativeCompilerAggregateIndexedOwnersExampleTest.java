@@ -54,7 +54,7 @@ final class NativeCompilerAggregateIndexedOwnersExampleTest {
           state long indexedCase = 73;
 
           entry void main(borrow utf8 source) {
-            region rows = new region(/* bytes= */ 124416, /* allocations= */ 11);
+            region rows = new region(/* bytes= */ 126464, /* allocations= */ 12);
             words operations = allocate(rows, /* length= */ 2048);
             words destinations = allocate(rows, /* length= */ 256);
             words owners = allocate(rows, /* length= */ 256);
@@ -66,6 +66,7 @@ final class NativeCompilerAggregateIndexedOwnersExampleTest {
             words members = allocate(rows, /* length= */ 2048);
             words ownerAggregates = allocate(rows, /* length= */ 256);
             words ownerCases = allocate(rows, /* length= */ 256);
+            words sliceDescriptors = allocate(rows, /* length= */ 256);
             set(operations, 0, 3);
             set(operations, 1, 4);
             set(operations, 768, %d);
@@ -105,13 +106,15 @@ final class NativeCompilerAggregateIndexedOwnersExampleTest {
               /* memberCount= */ 1,
               members,
               ownerAggregates,
-              ownerCases
+              ownerCases,
+              sliceDescriptors
             );
             if (plan.valid) {
               valid = 1;
             }
             indexedOwner = ownerAggregates[1];
             indexedCase = ownerCases[1];
+            drop(sliceDescriptors);
             drop(ownerCases);
             drop(ownerAggregates);
             drop(members);
