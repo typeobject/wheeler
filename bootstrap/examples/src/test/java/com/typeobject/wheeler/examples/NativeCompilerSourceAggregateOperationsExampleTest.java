@@ -70,10 +70,14 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
     assertEquals(6, machine.global("localNominalReferenceCount"));
     assertEquals(0, machine.global("firstLocalNominalTarget"));
     assertEquals(0, machine.global("lastLocalNominalTarget"));
-    assertEquals(source.getBytes(StandardCharsets.UTF_8).length - 4,
+    assertEquals(source.getBytes(StandardCharsets.UTF_8).length - 2,
         machine.global("localCarrierLength"));
     assertEquals(108, machine.global("firstLocalCarrierByte"));
     assertEquals(108, machine.global("firstVariantCarrierByte"));
+    assertEquals(source.getBytes(StandardCharsets.UTF_8).length,
+        machine.global("expressionProjectionLength"));
+    assertEquals(48, machine.global("firstExpressionPlaceholder"));
+    assertEquals(32, machine.global("constructorCarrierByte"));
     assertEquals(4, machine.global("localValueCarrierCount"));
     assertEquals(2, machine.global("localConstructorCarrierCount"));
     assertEquals(0, machine.global("localSignatureCarrierCount"));
@@ -120,6 +124,8 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
         Math.toIntExact(machine.global("secondTypeEnd"))));
     assertEquals(0, machine.global("firstArgumentOwner"));
     assertEquals(1, machine.global("thirdArgumentOwner"));
+    assertEquals(48, machine.global("projectionFirstByte"));
+    assertEquals(32, machine.global("projectionNestedByte"));
   }
 
   @Test
@@ -171,9 +177,12 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_aggregate_operations"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.aggregate_expression_projection"));
     sources.put("NestedAggregateOperationsExample.w", """
         module example.nested_aggregate_operations;
 
+        import wheeler.compiler.closure.aggregate_expression_projection;
         import wheeler.compiler.closure.source_aggregate_operations;
 
         classical class NestedAggregateOperationsExample {
@@ -189,14 +198,34 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
           state long secondOwnerEnd = 0;
           state long firstArgumentOwner = -1;
           state long thirdArgumentOwner = -1;
+          state long projectionFirstByte = 0;
+          state long projectionNestedByte = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 49152, /* allocations= */ 2);
+            region products = new region(/* bytes= */ 114688, /* allocations= */ 4);
             words operations = allocate(products, /* length= */ 2048);
             words arguments = allocate(products, /* length= */ 4096);
+            bytes sourceBytes = allocateBytes(products, /* length= */ 32768);
+            bytes projectedSource = allocateBytes(products, /* length= */ 32768);
             SourceAggregateOperationPlan plan =
               materializeSourceAggregateOperations(input, operations, arguments);
             assert(plan.valid);
+            long sourceByte = 0;
+            while (sourceByte < bufferLength(input)) limit 32768 {
+              setByte(sourceBytes, sourceByte, utf8Scalar(input, sourceByte));
+              sourceByte += 1;
+            }
+            long projectionLength = writeSourceWithoutAggregateExpressions(
+              sourceBytes,
+              /* sourceStart= */ 0,
+              bufferLength(input),
+              plan.operationCount,
+              operations,
+              projectedSource
+            );
+            assert(projectionLength == bufferLength(input));
+            projectionFirstByte = projectedSource[0];
+            projectionNestedByte = projectedSource[operations[1280]];
             operationCount = plan.operationCount;
             argumentCount = plan.argumentCount;
             firstKind = operations[0];
@@ -210,6 +239,8 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             firstArgumentOwner = arguments[0];
             thirdArgumentOwner = arguments[2];
             setOutputLength(output, 0);
+            drop(projectedSource);
+            drop(sourceBytes);
             drop(arguments);
             drop(operations);
             drop(products);
@@ -246,6 +277,8 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.local_nominal_references"));
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.aggregate_expression_projection"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.local_nominal_carriers"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.local_nominal_carrier_projections"));
@@ -253,6 +286,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
         module example.source_aggregate_operations;
 
         import wheeler.compiler.closure.aggregate_constructor_targets;
+        import wheeler.compiler.closure.aggregate_expression_projection;
         import wheeler.compiler.closure.aggregate_frontend_bindings;
         import wheeler.compiler.closure.aggregate_instruction_composition;
         import wheeler.compiler.closure.aggregate_instruction_products;
@@ -306,6 +340,9 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
           state long localCarrierLength = 0;
           state long firstLocalCarrierByte = 0;
           state long firstVariantCarrierByte = 0;
+          state long expressionProjectionLength = 0;
+          state long firstExpressionPlaceholder = 0;
+          state long constructorCarrierByte = 0;
           state long localValueCarrierCount = 0;
           state long localConstructorCarrierCount = 0;
           state long localSignatureCarrierCount = 0;
@@ -321,7 +358,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
           state long arrayTarget = -1;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 1035776, /* allocations= */ 29);
+            region products = new region(/* bytes= */ 1068544, /* allocations= */ 30);
             words aggregates = allocate(products, /* length= */ 832);
             words cases = allocate(products, /* length= */ 640);
             words members = allocate(products, /* length= */ 2048);
@@ -334,6 +371,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             words localNominalReferences = allocate(products, /* length= */ 1536);
             words localCarrierRows = allocate(products, /* length= */ 2048);
             bytes localSourceStorage = allocateBytes(products, /* length= */ 32768);
+            bytes projectedExpressionSource = allocateBytes(products, /* length= */ 32768);
             bytes localCarrierSource = allocateBytes(products, /* length= */ 32768);
             words localCarrierProjections = allocate(products, /* length= */ 4096);
             words invalidCarrierProjections = allocate(products, /* length= */ 4096);
@@ -367,32 +405,35 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               aggregates,
               localNominalReferences
             );
-            long localSourceByte = 0;
-            while (localSourceByte < bufferLength(input)) limit 32768 {
-              setByte(localSourceStorage, localSourceByte, utf8Scalar(input, localSourceByte));
-              localSourceByte += 1;
-            }
-            LocalNominalCarrierPlan localCarriers = writeLocalNominalCarriers(
-              localSourceStorage,
-              bufferLength(input),
-              localNominals.referenceCount,
-              localNominalReferences,
-              localCarrierRows,
-              localCarrierSource
+            set(
+              localCarrierValues,
+              1024,
+              localNominalReferences[512] + localNominalReferences[1024] + 1
             );
-            set(localCarrierValues, 1024, localCarrierRows[512] + localCarrierRows[1024] + 1);
             set(localCarrierValues, 3072, 1);
-            set(localCarrierValues, 1025, localCarrierRows[513] + localCarrierRows[1025] + 1);
+            set(
+              localCarrierValues,
+              1025,
+              localNominalReferences[513] + localNominalReferences[1025] + 1
+            );
             set(localCarrierValues, 3073, 3);
-            set(localCarrierValues, 1026, localCarrierRows[515] + localCarrierRows[1027] + 1);
+            set(
+              localCarrierValues,
+              1026,
+              localNominalReferences[515] + localNominalReferences[1027] + 1
+            );
             set(localCarrierValues, 3074, 5);
-            set(localCarrierValues, 1027, localCarrierRows[517] + localCarrierRows[1029] + 1);
+            set(
+              localCarrierValues,
+              1027,
+              localNominalReferences[517] + localNominalReferences[1029] + 1
+            );
             set(localCarrierValues, 3075, 13);
             LocalNominalCarrierProjectionPlan localCarrierProjectionPlan =
               publishLocalNominalCarrierProjections(
                 input,
-                localCarriers.referenceCount,
-                localCarrierRows,
+                localNominals.referenceCount,
+                localNominalReferences,
                 /* valueCount= */ 4,
                 localCarrierValues,
                 plan.operationCount,
@@ -405,7 +446,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               publishLocalNominalCarrierProjections(
                 input,
                 /* referenceCount= */ 1,
-                localCarrierRows,
+                localNominalReferences,
                 /* valueCount= */ 4,
                 localCarrierValues,
                 plan.operationCount,
@@ -419,6 +460,29 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             }
             invalidCarrierProjectionSentinel = invalidCarrierProjections[0];
             set(localCarrierValues, 0, 0);
+            long localSourceByte = 0;
+            while (localSourceByte < bufferLength(input)) limit 32768 {
+              setByte(localSourceStorage, localSourceByte, utf8Scalar(input, localSourceByte));
+              localSourceByte += 1;
+            }
+            expressionProjectionLength = writeSourceWithoutAggregateExpressions(
+              localSourceStorage,
+              /* sourceStart= */ 0,
+              bufferLength(input),
+              plan.operationCount,
+              rows,
+              projectedExpressionSource
+            );
+            firstExpressionPlaceholder = projectedExpressionSource[rows[1280]];
+            LocalNominalCarrierPlan localCarriers = writeLocalNominalCarriers(
+              projectedExpressionSource,
+              bufferLength(input),
+              localNominals.referenceCount,
+              localNominalReferences,
+              localCarrierProjections,
+              localCarrierRows,
+              localCarrierSource
+            );
             long frontendOperation = 0;
             while (frontendOperation < plan.operationCount) limit 256 {
               set(statementRows, 8192 + frontendOperation, frontendOperation);
@@ -559,6 +623,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               localCarrierLength = localCarriers.length;
               firstLocalCarrierByte = localCarrierSource[localCarrierRows[1536]];
               firstVariantCarrierByte = localCarrierSource[localCarrierRows[1539]];
+              constructorCarrierByte = localCarrierSource[localCarrierRows[1538]];
             }
             if (localCarrierProjectionPlan.valid) {
               localValueCarrierCount = localCarrierProjectionPlan.valueCount;
@@ -742,6 +807,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             drop(invalidCarrierProjections);
             drop(localCarrierProjections);
             drop(localCarrierSource);
+            drop(projectedExpressionSource);
             drop(localSourceStorage);
             drop(localCarrierRows);
             drop(localNominalReferences);

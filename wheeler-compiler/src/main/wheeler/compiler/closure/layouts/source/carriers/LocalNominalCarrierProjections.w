@@ -3,11 +3,11 @@
 module wheeler.compiler.closure.local_nominal_carrier_projections;
 
 classical class LocalNominalCarrierProjections {
-  private const long CARRIER_ROWS = 2048;
   private const long MAX_OPERATIONS = 256;
   private const long MAX_REFERENCES = 512;
   private const long MAX_VALUES = 1024;
   private const long OPERATION_ROWS = 2048;
+  private const long REFERENCE_ROWS = 1536;
   private const long PROJECTION_ROWS = 4096;
   private const long VALUE_ROWS = 7168;
 
@@ -51,7 +51,7 @@ classical class LocalNominalCarrierProjections {
   public LocalNominalCarrierProjectionPlan publishLocalNominalCarrierProjections(
     borrow utf8 source,
     long referenceCount,
-    borrow mut words carrierRows,
+    borrow mut words referenceRows,
     long valueCount,
     borrow mut words valueRows,
     long operationCount,
@@ -60,7 +60,7 @@ classical class LocalNominalCarrierProjections {
   ) {
     assert(-1 < referenceCount);
     assert(referenceCount < MAX_REFERENCES + 1);
-    assert(bufferLength(carrierRows) == CARRIER_ROWS);
+    assert(bufferLength(referenceRows) == REFERENCE_ROWS);
     assert(-1 < valueCount);
     assert(valueCount < MAX_VALUES + 1);
     assert(bufferLength(valueRows) == VALUE_ROWS);
@@ -77,8 +77,8 @@ classical class LocalNominalCarrierProjections {
     long boundSignatures = 0;
     long reference = 0;
     while (reference < referenceCount) limit MAX_REFERENCES {
-      long originalStart = carrierRows[512 + reference];
-      long originalLength = carrierRows[1024 + reference];
+      long originalStart = referenceRows[512 + reference];
+      long originalLength = referenceRows[1024 + reference];
       long originalEnd = originalStart + originalLength;
       long role = 3;
       long function = -1;
@@ -173,13 +173,13 @@ classical class LocalNominalCarrierProjections {
         }
       }
 
-      set(stagedRows, reference, carrierRows[reference]);
+      set(stagedRows, reference, referenceRows[reference]);
       set(stagedRows, 512 + reference, role);
       set(stagedRows, 1024 + reference, function);
       set(stagedRows, 1536 + reference, local);
       set(stagedRows, 2048 + reference, originalStart);
       set(stagedRows, 2560 + reference, originalLength);
-      set(stagedRows, 3072 + reference, carrierRows[1536 + reference]);
+      set(stagedRows, 3072 + reference, -1);
       set(stagedRows, 3584 + reference, owner);
       reference += 1;
     }

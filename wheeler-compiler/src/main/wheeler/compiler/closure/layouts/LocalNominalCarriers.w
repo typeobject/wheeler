@@ -7,6 +7,7 @@ classical class LocalNominalCarriers {
   private const long MAX_AGGREGATES = 64;
   private const long MAX_REFERENCES = 512;
   private const long MAX_SOURCE_BYTES = 32768;
+  private const long PROJECTION_ROWS = 4096;
   private const long REFERENCE_ROWS = 1536;
 
   /// Reports compact carrier source and exact old-to-new reference coordinates.
@@ -44,6 +45,7 @@ classical class LocalNominalCarriers {
     long sourceLength,
     long referenceCount,
     borrow mut words referenceRows,
+    borrow mut words projectionRows,
     borrow mut words carrierRows,
     borrow mut bytes output
   ) {
@@ -53,6 +55,7 @@ classical class LocalNominalCarriers {
     assert(-1 < referenceCount);
     assert(referenceCount < MAX_REFERENCES + 1);
     assert(bufferLength(referenceRows) == REFERENCE_ROWS);
+    assert(bufferLength(projectionRows) == PROJECTION_ROWS);
     assert(bufferLength(carrierRows) == CARRIER_ROWS);
     assert(bufferLength(output) == MAX_SOURCE_BYTES);
     boolean valid = true;
@@ -63,6 +66,27 @@ classical class LocalNominalCarriers {
       long target = referenceRows[reference];
       long start = referenceRows[512 + reference];
       long length = referenceRows[1024 + reference];
+      long role = projectionRows[512 + reference];
+      if (projectionRows[reference] != target) {
+        valid = false;
+      }
+
+      if (projectionRows[2048 + reference] != start) {
+        valid = false;
+      }
+
+      if (projectionRows[2560 + reference] != length) {
+        valid = false;
+      }
+
+      if (role < 1) {
+        valid = false;
+      }
+
+      if (3 < role) {
+        valid = false;
+      }
+
       if (target < 0) {
         valid = false;
       }
@@ -92,17 +116,22 @@ classical class LocalNominalCarriers {
       }
 
       if (valid) {
-        long nameByte = 0;
-        while (nameByte < length) limit 256 {
-          if (identifierByte(source[start + nameByte], nameByte == 0) == false) {
-            valid = false;
-          }
+        if (role != 2) {
+          long nameByte = 0;
+          while (nameByte < length) limit 256 {
+            if (identifierByte(source[start + nameByte], nameByte == 0) == false) {
+              valid = false;
+            }
 
-          nameByte += 1;
+            nameByte += 1;
+          }
         }
       }
 
-      finalLength += 4 - length;
+      if (role != 2) {
+        finalLength += 4 - length;
+      }
+
       previousEnd = start + length;
       reference += 1;
     }
@@ -119,9 +148,16 @@ classical class LocalNominalCarriers {
       return new LocalNominalCarrierPlan(0, referenceCount, false);
     }
 
-    region staging = new region(/* bytes= */ 49152, /* allocations= */ 2);
+    region staging = new region(/* bytes= */ 81920, /* allocations= */ 3);
     bytes stagedSource = allocateBytes(staging, MAX_SOURCE_BYTES);
     words stagedRows = allocate(staging, CARRIER_ROWS);
+    words stagedProjections = allocate(staging, PROJECTION_ROWS);
+    long projectionRow = 0;
+    while (projectionRow < PROJECTION_ROWS) limit PROJECTION_ROWS {
+      set(stagedProjections, projectionRow, projectionRows[projectionRow]);
+      projectionRow += 1;
+    }
+
     long sourceCursor = 0;
     long outputCursor = 0;
     reference = 0;
@@ -137,12 +173,25 @@ classical class LocalNominalCarriers {
       set(stagedRows, 512 + reference, sourceStart);
       set(stagedRows, 1024 + reference, referenceRows[1024 + reference]);
       set(stagedRows, 1536 + reference, outputCursor);
-      setByte(stagedSource, outputCursor, 108);
-      setByte(stagedSource, outputCursor + 1, 111);
-      setByte(stagedSource, outputCursor + 2, 110);
-      setByte(stagedSource, outputCursor + 3, 103);
-      outputCursor += 4;
-      sourceCursor += referenceRows[1024 + reference];
+      set(stagedProjections, 3072 + reference, outputCursor);
+      long sourceLengthAtReference = referenceRows[1024 + reference];
+      if (projectionRows[512 + reference] == 2) {
+        long preserved = 0;
+        while (preserved < sourceLengthAtReference) limit 256 {
+          setByte(stagedSource, outputCursor, source[sourceCursor]);
+          outputCursor += 1;
+          sourceCursor += 1;
+          preserved += 1;
+        }
+      } else {
+        setByte(stagedSource, outputCursor, 108);
+        setByte(stagedSource, outputCursor + 1, 111);
+        setByte(stagedSource, outputCursor + 2, 110);
+        setByte(stagedSource, outputCursor + 3, 103);
+        outputCursor += 4;
+        sourceCursor += sourceLengthAtReference;
+      }
+
       reference += 1;
     }
 
@@ -168,8 +217,15 @@ classical class LocalNominalCarriers {
         set(carrierRows, row, stagedRows[row]);
         row += 1;
       }
+
+      row = 0;
+      while (row < PROJECTION_ROWS) limit PROJECTION_ROWS {
+        set(projectionRows, row, stagedProjections[row]);
+        row += 1;
+      }
     }
 
+    drop(stagedProjections);
     drop(stagedRows);
     drop(stagedSource);
     drop(staging);
