@@ -21,7 +21,7 @@ final class NativeCompilerImportedCallableStubsExampleTest {
     String localSource = """
         classical class Root {
           public long run(long value) {
-            return helper(value);
+            return dependency.helper(value);
           }
         }
         """;
@@ -41,7 +41,7 @@ final class NativeCompilerImportedCallableStubsExampleTest {
         .findFirst()
         .orElseThrow();
     FunctionBody helper = product.functions().stream()
-        .filter(function -> function.name().endsWith("helper"))
+        .filter(function -> function.name().endsWith("__wheeler_import_1"))
         .findFirst()
         .orElseThrow();
     Instruction importedCall = run.forward().stream()
@@ -58,6 +58,8 @@ final class NativeCompilerImportedCallableStubsExampleTest {
 
   private static Program program(
       String localSource, String importedSignature) throws Exception {
+    int callStart = localSource.indexOf("dependency.helper");
+    int callLength = "dependency.helper".length();
     int importedSignatureStart = localSource.length();
     int importedNameStart = importedSignatureStart + importedSignature.indexOf("helper");
     int importedResultStart = importedSignatureStart + importedSignature.indexOf("long");
@@ -94,6 +96,8 @@ final class NativeCompilerImportedCallableStubsExampleTest {
             words functionRows = allocate(rows, /* length= */ 640);
             words instructionRows = allocate(rows, /* length= */ 24576);
             bytes identity = allocateBytes(rows, /* length= */ 32);
+            set(calls, 0, %d);
+            set(calls, 256, %d);
             set(calls, 768, 1);
             set(signatureStarts, 1, %d);
             set(signatureLengths, 1, %d);
@@ -149,6 +153,8 @@ final class NativeCompilerImportedCallableStubsExampleTest {
           }
         }
         """.formatted(
+          callStart,
+          callLength,
           importedSignatureStart,
           importedSignature.length(),
           importedNameStart,

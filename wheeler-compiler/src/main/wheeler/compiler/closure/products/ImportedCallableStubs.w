@@ -43,6 +43,39 @@ classical class ImportedCallableStubs {
     return value == 95;
   }
 
+  private long writeStubName(long target, borrow mut bytes output, long cursor) {
+    assert(-1 < target);
+    assert(target < MAX_CALLABLES);
+    assert(cursor < MAX_SOURCE_BYTES - 21);
+    writeAscii(output, cursor, "__wheeler_import_");
+    cursor += 17;
+    long divisor = 1;
+    while (divisor < target / 10 + 1) limit 4 {
+      divisor = divisor * 10;
+    }
+
+    if (target < divisor) {
+      divisor = divisor / 10;
+    }
+
+    if (divisor == 0) {
+      divisor = 1;
+    }
+
+    boolean writing = true;
+    while (writing) limit 4 {
+      setByte(output, cursor, target / divisor % 10 + 48);
+      cursor += 1;
+      if (divisor == 1) {
+        writing = false;
+      } else {
+        divisor = divisor / 10;
+      }
+    }
+
+    return cursor;
+  }
+
   private boolean resultIsVoid(borrow byteview archive, long start, long length) {
     if (length != 4) {
       return false;
@@ -248,12 +281,35 @@ classical class ImportedCallableStubs {
       call += 1;
     }
 
-    long cursor = writeRange(
+    long cursor = 0;
+    long sourceCursor = sourceStart;
+    call = 0;
+    while (call < callCount) limit MAX_CALLS {
+      long callStart = sourceStart + callRows[call];
+      long callLength = callRows[256 + call];
+      long rewrittenTarget = callRows[768 + call];
+      assert(sourceCursor < callStart + 1);
+      assert(callStart < sourceStart + sourceLength);
+      assert(0 < callLength);
+      assert(callLength < sourceStart + sourceLength - callStart + 1);
+      cursor = writeRange(
+        sourceArchive,
+        sourceCursor,
+        callStart - sourceCursor,
+        stagedSource,
+        cursor
+      );
+      cursor = writeStubName(rewrittenTarget, stagedSource, cursor);
+      sourceCursor = callStart + callLength;
+      call += 1;
+    }
+
+    cursor = writeRange(
       sourceArchive,
-      sourceStart,
-      sourceLength,
+      sourceCursor,
+      sourceStart + sourceLength - sourceCursor,
       stagedSource,
-      /* cursor= */ 0
+      cursor
     );
     long closing = cursor;
     while (0 < closing) limit MAX_SOURCE_BYTES {
@@ -282,10 +338,20 @@ classical class ImportedCallableStubs {
         assert(cursor < MAX_SOURCE_BYTES);
         writeAscii(stagedSource, cursor, " ");
         cursor += 1;
+        assert(signatureStart < nameStart + 1);
+        assert(nameLength < signatureStart + signatureLength - nameStart + 1);
         cursor = writeRange(
           signatureArchive,
           signatureStart,
-          signatureLength,
+          nameStart - signatureStart,
+          stagedSource,
+          cursor
+        );
+        cursor = writeStubName(target, stagedSource, cursor);
+        cursor = writeRange(
+          signatureArchive,
+          nameStart + nameLength,
+          signatureStart + signatureLength - nameStart - nameLength,
           stagedSource,
           cursor
         );
@@ -304,7 +370,7 @@ classical class ImportedCallableStubs {
           cursor += 7;
         }
 
-        cursor = writeRange(signatureArchive, nameStart, nameLength, stagedSource, cursor);
+        cursor = writeStubName(target, stagedSource, cursor);
         assert(cursor < MAX_SOURCE_BYTES);
         writeAscii(stagedSource, cursor, "(");
         cursor += 1;
