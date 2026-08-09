@@ -203,9 +203,10 @@ classical class ImportedCallableStubs {
 
   /// Copies one local class and appends one signature-only stub per imported target.
   public ImportedCallableStubPlan writeImportedCallableStubs(
-    borrow byteview archive,
+    borrow byteview sourceArchive,
     long sourceStart,
     long sourceLength,
+    borrow byteview signatureArchive,
     long callCount,
     borrow mut words callRows,
     borrow mut words callableSignatureStarts,
@@ -219,8 +220,8 @@ classical class ImportedCallableStubs {
   ) {
     assert(-1 < sourceStart);
     assert(0 < sourceLength);
-    assert(sourceStart < bufferLength(archive));
-    assert(sourceLength < bufferLength(archive) - sourceStart + 1);
+    assert(sourceStart < bufferLength(sourceArchive));
+    assert(sourceLength < bufferLength(sourceArchive) - sourceStart + 1);
     assert(-1 < callCount);
     assert(callCount < MAX_CALLS + 1);
     assert(bufferLength(callRows) == CALL_ROWS);
@@ -247,7 +248,13 @@ classical class ImportedCallableStubs {
       call += 1;
     }
 
-    long cursor = writeRange(archive, sourceStart, sourceLength, stagedSource, /* cursor= */ 0);
+    long cursor = writeRange(
+      sourceArchive,
+      sourceStart,
+      sourceLength,
+      stagedSource,
+      /* cursor= */ 0
+    );
     long closing = cursor;
     while (0 < closing) limit MAX_SOURCE_BYTES {
       closing -= 1;
@@ -275,13 +282,19 @@ classical class ImportedCallableStubs {
         assert(cursor < MAX_SOURCE_BYTES);
         writeAscii(stagedSource, cursor, " ");
         cursor += 1;
-        cursor = writeRange(archive, signatureStart, signatureLength, stagedSource, cursor);
+        cursor = writeRange(
+          signatureArchive,
+          signatureStart,
+          signatureLength,
+          stagedSource,
+          cursor
+        );
         assert(cursor < MAX_SOURCE_BYTES - 2);
         writeAscii(stagedSource, cursor, " { ");
         cursor += 3;
         if (
           resultIsVoid(
-            archive,
+            signatureArchive,
             callableResultTypeStarts[target],
             callableResultTypeLengths[target]
           ) == false
@@ -291,13 +304,13 @@ classical class ImportedCallableStubs {
           cursor += 7;
         }
 
-        cursor = writeRange(archive, nameStart, nameLength, stagedSource, cursor);
+        cursor = writeRange(signatureArchive, nameStart, nameLength, stagedSource, cursor);
         assert(cursor < MAX_SOURCE_BYTES);
         writeAscii(stagedSource, cursor, "(");
         cursor += 1;
         assert(
           parameterCount == indexParameterNames(
-            archive,
+            signatureArchive,
             signatureStart,
             signatureLength,
             parameterCount,
@@ -314,7 +327,7 @@ classical class ImportedCallableStubs {
           }
 
           cursor = writeRange(
-            archive,
+            signatureArchive,
             parameterNameStarts[parameter],
             parameterNameLengths[parameter],
             stagedSource,

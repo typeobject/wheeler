@@ -15,7 +15,7 @@
 
 The native compiler shall consume the canonical compiler package closure without an arity-shaped frame. WIP-0043 proved graph-complete execution for the seven-source recovery frame. This WIP replaces that transport bound with counted closure tables already validated by bootstrap evidence.
 
-The target is the physical compiler closure, not an intermediate collection of larger tuples. The current closure has 270 local modules and 1,346 imports. Native closure metadata already admits 512 local modules, sixty-four externals, 3,072 imports, and 262,144 canonical manifest bytes. Package-target validation admits 512 targets, 8,192 source selectors, 512 dependencies, 512 capabilities, and 131,072 tokens within the same manifest-byte ceiling. The compiler shall use those facts instead of reconstructing another graph format.
+The target is the physical compiler closure, not an intermediate collection of larger tuples. The current closure has 270 local modules and 1,347 imports. Native closure metadata already admits 512 local modules, sixty-four externals, 3,072 imports, and 262,144 canonical manifest bytes. Package-target validation admits 512 targets, 8,192 source selectors, 512 dependencies, 512 capabilities, and 131,072 tokens within the same manifest-byte ceiling. The compiler shall use those facts instead of reconstructing another graph format.
 
 ## Problem
 
@@ -161,7 +161,7 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 - [ ] Callable closure columns replace packed seven-node execution facts. The small bridge remains a migration fixture, not the production executor.
 - [x] `ActiveSourceSlots.w` owns eight active linked sources, exact 32,768-byte publication, generation-checked leases, lowest-slot reuse, deterministic exhaustion, and byte destruction on release.
 - [x] `ClosureSchedule.w` stages every source in leaf-first order, transfers no archive loan, releases each lease after staging, and publishes per-module slot generations only after the complete pass. The 257-module chain reaches generation 257.
-- [x] WIP-0045 owns semantic module products. Scalar compilation transfers validated declarations and values instead of retaining linked source. The callable phase now publishes 1,118 physical compiler signature and body-range products. Typed signatures and compiled bodies remain.
+- [x] WIP-0045 owns semantic module products. Scalar compilation transfers validated declarations and values instead of retaining linked source. The callable phase now publishes 1,119 physical compiler signature and body-range products. Typed signatures and compiled bodies remain.
 - [ ] The complete physical compiler closure compiles.
 
 ## Acceptance

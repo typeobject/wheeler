@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.compiled_callable_bodies;
 
+import wheeler.compiler.closure.imported_callable_stubs;
 import wheeler.compiler.compiler_core;
 import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
@@ -198,6 +199,109 @@ classical class CompiledCallableBodies {
 
     writeAscii(sourceBytes, written, " }");
     CompiledCallableBody result = compileProductSource(sourceBytes, artifact, identity);
+    drop(sourceArena);
+    return result;
+  }
+
+  /// Compiles local bodies against imported signatures without copying dependency bodies.
+  public CompiledCallableBody compileCallableModuleProductWithImports(
+    borrow byteview archive,
+    long owner,
+    long firstCallable,
+    long callableCount,
+    borrow mut words callableOwners,
+    borrow mut words signatureStarts,
+    borrow mut words signatureLengths,
+    borrow mut words bodyStarts,
+    borrow mut words bodyLengths,
+    long callCount,
+    borrow mut words callRows,
+    borrow mut words callableNameStarts,
+    borrow mut words callableNameLengths,
+    borrow mut words callableParameterCounts,
+    borrow mut words callableResultTypeStarts,
+    borrow mut words callableResultTypeLengths,
+    borrow mut bytes artifact,
+    borrow mut bytes identity
+  ) {
+    assert(bufferLength(artifact) == MAX_CALLABLE_ARTIFACT_BYTES);
+    assert(bufferLength(identity) == IDENTITY_BYTES);
+    assert(-1 < owner);
+    assert(-1 < firstCallable);
+    assert(0 < callableCount);
+    assert(callableCount < MAX_CALLABLES_PER_MODULE + 1);
+    long sourceLength = CALLABLE_CLASS_PREFIX_BYTES + CALLABLE_CLASS_SUFFIX_BYTES;
+    long offset = 0;
+    while (offset < callableCount) limit MAX_CALLABLES_PER_MODULE {
+      long selectedCallable = firstCallable + offset;
+      assert(callableOwners[selectedCallable] == owner);
+      sourceLength += signatureLengths[selectedCallable] + bodyLengths[selectedCallable];
+      if (0 < offset) {
+        sourceLength += 1;
+      }
+
+      offset += 1;
+    }
+
+    assert(sourceLength < MAX_CALLABLE_SOURCE_BYTES + 1);
+
+    region sourceArena = new region(/* bytes= */ 98304, /* allocations= */ 3);
+    bytes baseSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
+    bytes stubSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
+    writeClassPrefix(baseSource);
+    long written = CALLABLE_CLASS_PREFIX_BYTES;
+    offset = 0;
+    while (offset < callableCount) limit MAX_CALLABLES_PER_MODULE {
+      long writtenCallable = firstCallable + offset;
+      if (0 < offset) {
+        setByte(baseSource, written, 32);
+        written += 1;
+      }
+
+      written = copyArchiveRange(
+        archive,
+        signatureStarts[writtenCallable],
+        signatureLengths[writtenCallable],
+        baseSource,
+        written
+      );
+      written = copyArchiveRange(
+        archive,
+        bodyStarts[writtenCallable],
+        bodyLengths[writtenCallable],
+        baseSource,
+        written
+      );
+      offset += 1;
+    }
+
+    writeAscii(baseSource, written, " }");
+    ImportedCallableStubPlan product = writeImportedCallableStubs(
+      baseSource,
+      /* sourceStart= */ 0,
+      sourceLength,
+      archive,
+      callCount,
+      callRows,
+      signatureStarts,
+      signatureLengths,
+      callableNameStarts,
+      callableNameLengths,
+      callableParameterCounts,
+      callableResultTypeStarts,
+      callableResultTypeLengths,
+      stubSource
+    );
+    bytes exactSource = allocateBytes(sourceArena, product.length);
+    long sourceByte = 0;
+    while (sourceByte < product.length) limit MAX_CALLABLE_SOURCE_BYTES {
+      setByte(exactSource, sourceByte, stubSource[sourceByte]);
+      sourceByte += 1;
+    }
+
+    drop(stubSource);
+    drop(baseSource);
+    CompiledCallableBody result = compileProductSource(exactSource, artifact, identity);
     drop(sourceArena);
     return result;
   }
