@@ -3,6 +3,7 @@
 module wheeler.compiler.driver;
 
 import wheeler.compiler.closure.active_source_slots;
+import wheeler.compiler.closure.aggregate_compiled_callable_bodies;
 import wheeler.compiler.closure.aggregate_dependency_products;
 import wheeler.compiler.closure.aggregate_descriptor_rows;
 import wheeler.compiler.closure.aggregate_identities;

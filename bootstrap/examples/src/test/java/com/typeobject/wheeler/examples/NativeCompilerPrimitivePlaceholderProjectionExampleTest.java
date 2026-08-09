@@ -29,6 +29,19 @@ final class NativeCompilerPrimitivePlaceholderProjectionExampleTest {
   }
 
   @Test
+  void removesAnExactAssignmentTemporaryBridge() throws Exception {
+    VirtualMachine machine = VirtualMachine.withBinaryInput(program(), bridgedCode(), 1);
+
+    machine.run();
+
+    assertEquals(1, machine.global("valid"));
+    assertEquals(1, machine.global("instructionCount"));
+    assertEquals(8, machine.global("functionLength"));
+    assertEquals(1, machine.global("remainingOpcode"));
+    assertEquals(48, machine.global("remainingOffset"));
+  }
+
+  @Test
   void rejectsANonzeroPlaceholderBeforeProjectionMutation() throws Exception {
     VirtualMachine machine = VirtualMachine.withBinaryInput(program(), code(1), 1);
 
@@ -38,6 +51,16 @@ final class NativeCompilerPrimitivePlaceholderProjectionExampleTest {
     assertEquals(0, machine.global("placementValid"));
     assertEquals(0, machine.global("instructionCount"));
     assertEquals(91, machine.global("remainingOpcode"));
+  }
+
+  private static byte[] bridgedCode() {
+    return ByteBuffer.allocate(56).order(ByteOrder.LITTLE_ENDIAN)
+        .putShort((short) 0x0400).putShort((short) 2).putInt(24)
+        .putLong(2).putLong(0)
+        .putShort((short) 0x0403).putShort((short) 2).putInt(24)
+        .putLong(3).putLong(2)
+        .putShort((short) 1).putShort((short) 0).putInt(8)
+        .array();
   }
 
   private static byte[] code(long value) {
@@ -83,17 +106,32 @@ final class NativeCompilerPrimitivePlaceholderProjectionExampleTest {
             words projectedInstructions = allocate(rows, /* length= */ 24576);
             words projectedPlacements = allocate(rows, /* length= */ 768);
             set(functions, 0, 0);
-            set(functions, 192, 32);
+            set(functions, 192, bufferLength(input));
             set(instructions, 0, 0);
             set(instructions, 8192, 0);
             set(instructions, 12288, 0x0400);
             set(instructions, 16384, 2);
             set(instructions, 20480, 24);
-            set(instructions, 1, 0);
-            set(instructions, 8193, 24);
-            set(instructions, 12289, 1);
-            set(instructions, 16385, 0);
-            set(instructions, 20481, 8);
+            long primitiveInstructionCount = 2;
+            if (bufferLength(input) == 56) {
+              set(instructions, 1, 0);
+              set(instructions, 8193, 24);
+              set(instructions, 12289, 0x0403);
+              set(instructions, 16385, 2);
+              set(instructions, 20481, 24);
+              set(instructions, 2, 0);
+              set(instructions, 8194, 48);
+              set(instructions, 12290, 1);
+              set(instructions, 16386, 0);
+              set(instructions, 20482, 8);
+              primitiveInstructionCount = 3;
+            } else {
+              set(instructions, 1, 0);
+              set(instructions, 8193, 24);
+              set(instructions, 12289, 1);
+              set(instructions, 16385, 0);
+              set(instructions, 20481, 8);
+            }
             set(operations, 1280, 12);
             set(operations, 1536, 2);
             set(operations, 1281, 10);
@@ -107,7 +145,7 @@ final class NativeCompilerPrimitivePlaceholderProjectionExampleTest {
                 input,
                 bufferLength(input),
                 /* functionCount= */ 1,
-                /* primitiveInstructionCount= */ 2,
+                primitiveInstructionCount,
                 instructions,
                 /* operationCount= */ 2,
                 operations,
@@ -124,7 +162,7 @@ final class NativeCompilerPrimitivePlaceholderProjectionExampleTest {
               bufferLength(input),
               /* functionCount= */ 1,
               functions,
-              /* primitiveInstructionCount= */ 2,
+              primitiveInstructionCount,
               instructions,
               /* operationCount= */ 2,
               operations,

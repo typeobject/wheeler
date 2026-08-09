@@ -45,8 +45,13 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
     assertEquals(3, machine.global("derivedDestinationLocal"));
     assertEquals(1, machine.global("derivedArgumentLocal"));
     assertEquals(0, machine.global("derivedOperationFunction"));
+    assertEquals(2, machine.global("secondOperationOrdinal"));
     assertEquals(0, machine.global("derivedConstructorTarget"));
     assertEquals(0, machine.global("derivedProjectionTarget"));
+    assertEquals(2, machine.global("supplementalInstructionCount"));
+    assertEquals(72, machine.global("supplementalLength"));
+    assertEquals(5, machine.global("composedInstructionCount"));
+    assertEquals(1, machine.global("firstArtifactSelector"));
     assertEquals(SOURCE.indexOf("Local item"), machine.global("firstSourceStatementStart"));
     Program product = new BytecodeReader().read(machine.hostOutput());
     assertEquals(2, product.functions().size());
@@ -84,11 +89,11 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
     CoreSources.addBinaryClosure(sources);
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     sources.putAll(CompilerSources.moduleClosure(
-        "wheeler.compiler.closure.compiled_callable_bodies"));
+        "wheeler.compiler.closure.aggregate_compiled_callable_bodies"));
     sources.put("AggregateAwareSourceProductExample.w", """
         module example.aggregate_aware_source_product;
 
-        import wheeler.compiler.closure.compiled_callable_bodies;
+        import wheeler.compiler.closure.aggregate_compiled_callable_bodies;
 
         classical class AggregateAwareSourceProductExample {
           state long published = 0;
@@ -109,12 +114,17 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
           state long derivedDestinationLocal = 0;
           state long derivedArgumentLocal = 0;
           state long derivedOperationFunction = 0;
+          state long secondOperationOrdinal = -1;
           state long derivedConstructorTarget = -1;
           state long derivedProjectionTarget = -1;
+          state long supplementalInstructionCount = 0;
+          state long supplementalLength = 0;
+          state long composedInstructionCount = 0;
+          state long firstArtifactSelector = -1;
           state long firstSourceStatementStart = 0;
 
           entry void main(borrow byteview input, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 2108448, /* allocations= */ 33);
+            region rows = new region(/* bytes= */ 2367520, /* allocations= */ 38);
             words localAggregates = allocate(rows, /* length= */ 832);
             words localCases = allocate(rows, /* length= */ 640);
             words localMembers = allocate(rows, /* length= */ 2048);
@@ -134,6 +144,11 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             words localPlacements = allocate(rows, /* length= */ 768);
             words localConstructorTargets = allocate(rows, /* length= */ 768);
             words localProjectionTargets = allocate(rows, /* length= */ 1024);
+            words localResolvedOperations = allocate(rows, /* length= */ 1536);
+            bytes supplementalCode = allocateBytes(rows, /* length= */ 12288);
+            words composedFunctions = allocate(rows, /* length= */ 640);
+            words composedInstructions = allocate(rows, /* length= */ 24576);
+            words artifactSelectors = allocate(rows, /* length= */ 4096);
             words references = allocate(rows, /* length= */ 256);
             words carrierFunctions = allocate(rows, /* length= */ 64);
             words carrierLocals = allocate(rows, /* length= */ 64);
@@ -173,6 +188,7 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             set(operations, 1536, 17);
             set(operations, 1281, %d);
             set(operations, 1537, 10);
+            set(operations, 1793, 1);
             set(arguments, 0, 0);
             set(arguments, 1024, 0);
             set(arguments, 2048, %d);
@@ -189,7 +205,7 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             set(references, 128, 3);
             set(references, 192, 1);
             set(importedAggregates, 3, %d);
-            CompiledCallableBody compiled = compileAggregateSourceModuleProductWithImports(
+            AggregateCompiledCallableBody compiled = compileAggregateSourceModuleProductWithImports(
               input,
               /* sourceStart= */ 0,
               /* sourceLength= */ %d,
@@ -220,6 +236,11 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
               localPlacements,
               localConstructorTargets,
               localProjectionTargets,
+              localResolvedOperations,
+              supplementalCode,
+              composedFunctions,
+              composedInstructions,
+              artifactSelectors,
               /* moduleOwner= */ 9,
               /* firstRecordTypeId= */ 1,
               /* firstVariantTypeId= */ 0,
@@ -258,8 +279,13 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             derivedDestinationLocal = localDestinations[0];
             derivedArgumentLocal = localArgumentLocals[0];
             derivedOperationFunction = localPlacements[0];
+            secondOperationOrdinal = localPlacements[513];
             derivedConstructorTarget = localConstructorTargets[256];
             derivedProjectionTarget = localProjectionTargets[769];
+            supplementalInstructionCount = compiled.supplementalInstructionCount;
+            supplementalLength = compiled.supplementalLength;
+            composedInstructionCount = compiled.composedInstructionCount;
+            firstArtifactSelector = artifactSelectors[0];
             firstSourceStatementStart = localStatements[16384];
             published = 1;
             setOutputLength(output, compiled.length);
@@ -277,6 +303,11 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             drop(carrierLocals);
             drop(carrierFunctions);
             drop(references);
+            drop(artifactSelectors);
+            drop(composedInstructions);
+            drop(composedFunctions);
+            drop(supplementalCode);
+            drop(localResolvedOperations);
             drop(localProjectionTargets);
             drop(localConstructorTargets);
             drop(localPlacements);

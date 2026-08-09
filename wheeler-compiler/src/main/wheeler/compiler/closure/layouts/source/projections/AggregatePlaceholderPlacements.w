@@ -12,6 +12,7 @@ classical class AggregatePlaceholderPlacements {
   private const long OPERATION_ROWS = 2048;
   private const long PLACEMENT_ROWS = 768;
   private const long OPCODE_LOCAL_CONST = 0x0400;
+  private const long OPCODE_LOCAL_MOVE = 0x0403;
 
   /// Reports whether every operation acquired one exact primitive splice point.
   public record AggregatePlaceholderPlacementPlan(boolean valid) {}
@@ -26,6 +27,58 @@ classical class AggregatePlaceholderPlacements {
     }
 
     return false;
+  }
+
+  private boolean bridgesPlaceholderDestination(
+    borrow byteview primitiveCode,
+    long primitiveCodeLength,
+    borrow mut words primitiveInstructionRows,
+    long primitiveInstructionCount,
+    long instruction,
+    long function,
+    long direction,
+    long placeholderLocal,
+    long destinationLocal
+  ) {
+    long bridge = instruction + 1;
+    if (primitiveInstructionCount < bridge + 1) {
+      return false;
+    }
+
+    if (primitiveInstructionRows[bridge] != function) {
+      return false;
+    }
+
+    if (primitiveInstructionRows[4096 + bridge] != direction) {
+      return false;
+    }
+
+    if (primitiveInstructionRows[12288 + bridge] != OPCODE_LOCAL_MOVE) {
+      return false;
+    }
+
+    if (primitiveInstructionRows[16384 + bridge] != 2) {
+      return false;
+    }
+
+    if (primitiveInstructionRows[20480 + bridge] != 24) {
+      return false;
+    }
+
+    long bridgeOffset = primitiveInstructionRows[8192 + bridge];
+    if (bridgeOffset < 0) {
+      return false;
+    }
+
+    if (primitiveCodeLength - bridgeOffset < 24) {
+      return false;
+    }
+
+    if (readUnsigned(primitiveCode, bridgeOffset + 8, 8) != destinationLocal) {
+      return false;
+    }
+
+    return readUnsigned(primitiveCode, bridgeOffset + 16, 8) == placeholderLocal;
   }
 
   /// Publishes function, direction, and ordinal rows after exact zero-local matching.
@@ -118,9 +171,23 @@ classical class AggregatePlaceholderPlacements {
                 if (length == 24) {
                   if (-1 < offset) {
                     if (24 < primitiveCodeLength - offset + 1) {
-                      if (
-                        readUnsigned(primitiveCode, offset + 8, 8) == destinationLocals[root]
-                      ) {
+                      long placeholderLocal = readUnsigned(primitiveCode, offset + 8, 8);
+                      boolean destinationMatches = placeholderLocal == destinationLocals[root];
+                      if (destinationMatches == false) {
+                        destinationMatches = bridgesPlaceholderDestination(
+                          primitiveCode,
+                          primitiveCodeLength,
+                          primitiveInstructionRows,
+                          primitiveInstructionCount,
+                          instruction,
+                          function,
+                          direction,
+                          placeholderLocal,
+                          destinationLocals[root]
+                        );
+                      }
+
+                      if (destinationMatches) {
                         if (readUnsigned(primitiveCode, offset + 16, 8) == 0) {
                           selectedOrdinal = ordinal;
                           matches += 1;

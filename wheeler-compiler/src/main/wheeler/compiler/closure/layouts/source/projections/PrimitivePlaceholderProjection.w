@@ -13,6 +13,7 @@ classical class PrimitivePlaceholderProjection {
   private const long OPERATION_ROWS = 2048;
   private const long PLACEMENT_ROWS = 768;
   private const long OPCODE_LOCAL_CONST = 0x0400;
+  private const long OPCODE_LOCAL_MOVE = 0x0403;
   private const long STAGING_BYTES = 208640;
 
   /// Reports the filtered instruction extent.
@@ -29,6 +30,80 @@ classical class PrimitivePlaceholderProjection {
     }
 
     return same;
+  }
+
+  private long placeholderInstruction(
+    borrow mut words instructionRows,
+    long instructionCount,
+    long function,
+    long direction,
+    long ordinal
+  ) {
+    long selected = -1;
+    long candidateOrdinal = 0;
+    long instruction = 0;
+    while (instruction < instructionCount) limit MAX_INSTRUCTIONS {
+      if (instructionRows[instruction] == function) {
+        if (instructionRows[4096 + instruction] == direction) {
+          if (candidateOrdinal == ordinal) {
+            selected = instruction;
+          }
+
+          candidateOrdinal += 1;
+        }
+      }
+
+      instruction += 1;
+    }
+
+    return selected;
+  }
+
+  private long placeholderRemovalCount(
+    borrow byteview primitiveCode,
+    borrow mut words instructionRows,
+    long instructionCount,
+    long operationCount,
+    long operation,
+    borrow mut words operationRows,
+    borrow mut words destinationLocals,
+    borrow mut words placementRows
+  ) {
+    long rootOperation = operation;
+    long rootStart = operationRows[1280 + operation];
+    long rootEnd = rootStart + operationRows[1536 + operation];
+    long peer = 0;
+    while (peer < operationCount) limit MAX_OPERATIONS {
+      if (samePlacement(placementRows, operation, peer)) {
+        long peerStart = operationRows[1280 + peer];
+        long peerEnd = peerStart + operationRows[1536 + peer];
+        if (peerStart < rootStart + 1) {
+          if (rootEnd < peerEnd + 1) {
+            rootOperation = peer;
+            rootStart = peerStart;
+            rootEnd = peerEnd;
+          }
+        }
+      }
+
+      peer += 1;
+    }
+
+    long placeholder = placeholderInstruction(
+      instructionRows,
+      instructionCount,
+      placementRows[operation],
+      placementRows[256 + operation],
+      placementRows[512 + operation]
+    );
+    long offset = instructionRows[8192 + placeholder];
+    if (
+      readUnsigned(primitiveCode, offset + 8, 8) == destinationLocals[rootOperation]
+    ) {
+      return 1;
+    }
+
+    return 2;
   }
 
   /// Filters one exact zero placeholder per aggregate source statement atomically.
@@ -166,14 +241,54 @@ classical class PrimitivePlaceholderProjection {
               valid = false;
             }
 
-            if (
-              readUnsigned(primitiveCode, offset + 8, 8) != destinationLocals[rootOperation]
-            ) {
+            long placeholderLocal = readUnsigned(primitiveCode, offset + 8, 8);
+            if (readUnsigned(primitiveCode, offset + 16, 8) != 0) {
               valid = false;
             }
 
-            if (readUnsigned(primitiveCode, offset + 16, 8) != 0) {
-              valid = false;
+            if (placeholderLocal != destinationLocals[rootOperation]) {
+              long bridgeInstruction = placeholderInstruction(
+                primitiveInstructionRows,
+                primitiveInstructionCount,
+                function,
+                direction,
+                ordinal + 1
+              );
+              if (bridgeInstruction < 0) {
+                valid = false;
+              } else {
+                long bridgeOffset = primitiveInstructionRows[8192 + bridgeInstruction];
+                if (primitiveCodeLength - bridgeOffset < 24) {
+                  valid = false;
+                } else {
+                  if (
+                    primitiveInstructionRows[12288 + bridgeInstruction] != OPCODE_LOCAL_MOVE
+                  ) {
+                    valid = false;
+                  }
+
+                  if (primitiveInstructionRows[16384 + bridgeInstruction] != 2) {
+                    valid = false;
+                  }
+
+                  if (primitiveInstructionRows[20480 + bridgeInstruction] != 24) {
+                    valid = false;
+                  }
+
+                  if (
+                    readUnsigned(primitiveCode, bridgeOffset
+                      + 8, 8) != destinationLocals[rootOperation]
+                  ) {
+                    valid = false;
+                  }
+
+                  if (
+                    readUnsigned(primitiveCode, bridgeOffset + 16, 8) != placeholderLocal
+                  ) {
+                    valid = false;
+                  }
+                }
+              }
             }
           }
         }
@@ -230,8 +345,26 @@ classical class PrimitivePlaceholderProjection {
           if (
             placementRows[256 + operation] == primitiveInstructionRows[4096 + projectedInstruction]
           ) {
-            if (placementRows[512 + operation] == projectedOrdinal) {
+            long placeholderOrdinal = placementRows[512 + operation];
+            if (placeholderOrdinal == projectedOrdinal) {
               removed = true;
+            }
+
+            if (placeholderOrdinal + 1 == projectedOrdinal) {
+              if (
+                placeholderRemovalCount(
+                  primitiveCode,
+                  primitiveInstructionRows,
+                  primitiveInstructionCount,
+                  operationCount,
+                  operation,
+                  operationRows,
+                  destinationLocals,
+                  placementRows
+                ) == 2
+              ) {
+                removed = true;
+              }
             }
           }
         }
@@ -282,7 +415,16 @@ classical class PrimitivePlaceholderProjection {
                 }
 
                 if (firstAtPlacement) {
-                  removedBefore += 1;
+                  removedBefore += placeholderRemovalCount(
+                    primitiveCode,
+                    primitiveInstructionRows,
+                    primitiveInstructionCount,
+                    operationCount,
+                    placementCandidate,
+                    operationRows,
+                    destinationLocals,
+                    placementRows
+                  );
                 }
               }
             }
@@ -316,7 +458,21 @@ classical class PrimitivePlaceholderProjection {
           lengthRow = 320 + placementRows[placeholder];
         }
 
-        set(stagedFunctions, lengthRow, stagedFunctions[lengthRow] - 24);
+        long removedInstructionCount = placeholderRemovalCount(
+          primitiveCode,
+          primitiveInstructionRows,
+          primitiveInstructionCount,
+          operationCount,
+          placeholder,
+          operationRows,
+          destinationLocals,
+          placementRows
+        );
+        set(
+          stagedFunctions,
+          lengthRow,
+          stagedFunctions[lengthRow] - removedInstructionCount * 24
+        );
       }
 
       placeholder += 1;
