@@ -131,7 +131,7 @@ No `wheeler.bootstrap.yaml` may be added before that evidence exists.
 - [x] Aggregate module identities bind an ordered list of up to 64 direct dependency identities before layout counts and rows. The caller must supply header-rank order.
 - [x] `AggregateDependencyProducts.w` packs direct identities in header rank and rejects missing local or locked external products before copying a byte.
 - [ ] The physical closure publisher feeds each completed module through the dependency packer and aggregate identity owner.
-- [x] `CountedAggregateLayouts.w` appends one validated artifact at a time into 4,096 aggregate, 8,192 case, and 16,384 member rows. It rejects duplicate module owners and rebases case and member windows without source.
+- [x] `CountedAggregateLayouts.w` appends one validated artifact or descriptor-compatible source product at a time into 4,096 aggregate, 8,192 case, and 16,384 member rows. It rejects duplicate module owners and rebases case and member windows without dependency source.
 - [x] `AggregateTypeResolution.w` resolves source-local nominal member type codes to the unique owner and type row. Unknown descriptor IDs fail before publication.
 - [x] Stage 0 predeclares nominal descriptor identities before lowering fields. Self-recursive records and mutually recursive record/variant descriptors round-trip canonically. A finite value across a descriptor cycle executes.
 - [x] `AggregateLoanVerifier.w` checks bounded move, shared-loan, mutable-loan, and release events against aggregate member ownership. It rejects unbalanced or escaping loans and publishes final owners only after the complete stream.

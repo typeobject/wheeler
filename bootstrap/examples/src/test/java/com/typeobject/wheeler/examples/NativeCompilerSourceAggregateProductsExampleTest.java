@@ -78,6 +78,11 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
     assertEquals(536_870_912, machine.global("secondProjectedMemberType"));
     assertEquals(805_306_368, machine.global("thirdProjectedMemberType"));
     assertEquals(1, machine.global("arrayProjectedMemberType"));
+    assertEquals(1, machine.global("countedModuleCount"));
+    assertEquals(4, machine.global("countedAggregateCount"));
+    assertEquals(2, machine.global("countedCaseCount"));
+    assertEquals(7, machine.global("countedMemberCount"));
+    assertEquals(1, machine.global("countedArrayMemberType"));
   }
 
   @Test
@@ -142,10 +147,13 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
     Map<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.counted_aggregate_layouts"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_aggregate_products"));
     sources.put("SourceAggregateProductsExample.w", """
         module example.source_aggregate_products;
 
+        import wheeler.compiler.closure.counted_aggregate_layouts;
         import wheeler.compiler.closure.source_aggregate_layouts;
         import wheeler.compiler.closure.source_aggregate_products;
 
@@ -202,9 +210,14 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
           state long secondProjectedMemberType = 0;
           state long thirdProjectedMemberType = 0;
           state long arrayProjectedMemberType = 0;
+          state long countedModuleCount = 0;
+          state long countedAggregateCount = 0;
+          state long countedCaseCount = 0;
+          state long countedMemberCount = 0;
+          state long countedArrayMemberType = 0;
 
           entry void main(borrow utf8 input) {
-            region rows = new region(/* bytes= */ 64512, /* allocations= */ 8);
+            region rows = new region(/* bytes= */ 1149952, /* allocations= */ 12);
             words aggregates = allocate(rows, /* length= */ 832);
             words cases = allocate(rows, /* length= */ 640);
             words members = allocate(rows, /* length= */ 2048);
@@ -213,6 +226,10 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
             words projectedMembers = allocate(rows, /* length= */ 2048);
             words stringStarts = allocate(rows, /* length= */ 512);
             words stringLengths = allocate(rows, /* length= */ 512);
+            words processedModules = allocate(rows, /* length= */ 512);
+            words closureAggregates = allocate(rows, /* length= */ 36864);
+            words closureCases = allocate(rows, /* length= */ 32768);
+            words closureMembers = allocate(rows, /* length= */ 65536);
             set(aggregates, 64, 91);
             set(cases, 0, 61);
             set(members, 0, 73);
@@ -249,6 +266,28 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
               secondProjectedMemberType = projectedMembers[769];
               thirdProjectedMemberType = projectedMembers[770];
               arrayProjectedMemberType = projectedMembers[774];
+              CountedAggregateLayoutPlan counted = appendProjectedAggregateLayouts(
+                /* owner= */ 7,
+                /* moduleCount= */ 0,
+                /* aggregateCount= */ 0,
+                /* caseCount= */ 0,
+                /* memberCount= */ 0,
+                projected.aggregateCount,
+                projected.caseCount,
+                projected.memberCount,
+                projectedAggregates,
+                projectedCases,
+                projectedMembers,
+                processedModules,
+                closureAggregates,
+                closureCases,
+                closureMembers
+              );
+              countedModuleCount = counted.moduleCount;
+              countedAggregateCount = counted.aggregateCount;
+              countedCaseCount = counted.caseCount;
+              countedMemberCount = counted.memberCount;
+              countedArrayMemberType = closureMembers[49158];
               productValid = 1;
             }
             aggregateCount = product.aggregateCount;
@@ -291,6 +330,10 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
             secondCaseNameStart = cases[129];
             firstCaseMemberCount = cases[512];
             secondCaseMemberCount = cases[513];
+            drop(closureMembers);
+            drop(closureCases);
+            drop(closureAggregates);
+            drop(processedModules);
             drop(stringLengths);
             drop(stringStarts);
             drop(projectedMembers);
