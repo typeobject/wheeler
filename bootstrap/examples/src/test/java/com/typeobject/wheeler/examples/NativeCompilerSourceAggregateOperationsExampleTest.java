@@ -31,7 +31,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             Choice selected = new Choice.Some(made);
             long member = pair.value;
             long element = values[index];
-            long piece = slice(values, index, 2)[0];
+            long piece = slice(values, index, 2);
             Pair payload = selected.pair;
             long nested = payload.value;
             return member + element + piece + nested;
@@ -109,6 +109,39 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
   }
 
   @Test
+  void fixedArrayConstructorBracketsAreNotIndexes() throws Exception {
+    String source = "new long[4](1, 2, 3, 4)";
+    VirtualMachine machine = new VirtualMachine(nestedProgram(),
+        source.getBytes(StandardCharsets.UTF_8), 1);
+
+    machine.run();
+
+    assertEquals(1, machine.global("operationCount"));
+    assertEquals(4, machine.global("argumentCount"));
+    assertEquals(1, machine.global("firstKind"));
+    assertEquals("long[4]", source.substring(
+        Math.toIntExact(machine.global("firstTypeStart")),
+        Math.toIntExact(machine.global("firstTypeEnd"))));
+  }
+
+  @Test
+  void postfixSliceProjectionUsesTheNestedResult() throws Exception {
+    String source = "slice(values, 0, 2)[1]";
+    VirtualMachine machine = new VirtualMachine(nestedProgram(),
+        source.getBytes(StandardCharsets.UTF_8), 1);
+
+    machine.run();
+
+    assertEquals(2, machine.global("operationCount"));
+    assertEquals(4, machine.global("argumentCount"));
+    assertEquals(5, machine.global("firstKind"));
+    assertEquals(4, machine.global("secondKind"));
+    assertEquals("slice(values, 0, 2)", source.substring(
+        Math.toIntExact(machine.global("secondOwnerStart")),
+        Math.toIntExact(machine.global("secondOwnerEnd"))));
+  }
+
+  @Test
   void malformedConstructionPublishesNothing() throws Exception {
     VirtualMachine machine = new VirtualMachine(program(),
         "new Pair(value".getBytes(StandardCharsets.UTF_8), 280);
@@ -132,10 +165,14 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
         classical class NestedAggregateOperationsExample {
           state long operationCount = 0;
           state long argumentCount = 0;
+          state long firstKind = 0;
+          state long secondKind = 0;
           state long firstTypeStart = 0;
           state long firstTypeEnd = 0;
           state long secondTypeStart = 0;
           state long secondTypeEnd = 0;
+          state long secondOwnerStart = 0;
+          state long secondOwnerEnd = 0;
           state long firstArgumentOwner = -1;
           state long thirdArgumentOwner = -1;
 
@@ -148,10 +185,14 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             assert(plan.valid);
             operationCount = plan.operationCount;
             argumentCount = plan.argumentCount;
+            firstKind = operations[0];
+            secondKind = operations[1];
             firstTypeStart = operations[256];
             firstTypeEnd = operations[256] + operations[512];
             secondTypeStart = operations[257];
             secondTypeEnd = operations[257] + operations[513];
+            secondOwnerStart = operations[257];
+            secondOwnerEnd = operations[257] + operations[513];
             firstArgumentOwner = arguments[0];
             thirdArgumentOwner = arguments[2];
             setOutputLength(output, 0);

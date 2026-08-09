@@ -416,21 +416,25 @@ classical class SourceAggregateOperations {
 
           if (punctuationAt(source, tokenKinds, tokenStarts, cursor, 91)) {
             if (0 < cursor) {
-              if (tokenKinds[cursor - 1] == 1) {
-                long indexClose = closingToken(
-                  source,
-                  tokenKinds,
-                  tokenStarts,
-                  cursor,
-                  semanticCount,
-                  91,
-                  93
-                );
-                if (indexClose < 0) {
-                  valid = false;
-                  cursor = semanticCount;
-                } else {
-                  boolean typeRange = false;
+              long indexClose = closingToken(
+                source,
+                tokenKinds,
+                tokenStarts,
+                cursor,
+                semanticCount,
+                91,
+                93
+              );
+              if (indexClose < 0) {
+                valid = false;
+                cursor = semanticCount;
+              } else {
+                long indexedSourceStart = -1;
+                long indexedSourceLength = 0;
+                boolean typeRange = false;
+                if (tokenKinds[cursor - 1] == 1) {
+                  indexedSourceStart = tokenStarts[cursor - 1];
+                  indexedSourceLength = tokenLengths[cursor - 1];
                   if (indexClose + 1 < semanticCount) {
                     typeRange = tokenKinds[indexClose + 1] == 1;
                     if (
@@ -439,44 +443,69 @@ classical class SourceAggregateOperations {
                       typeRange = true;
                     }
                   }
+                } else {
+                  if (punctuationAt(source, tokenKinds, tokenStarts, cursor - 1, 41)) {
+                    long postfixMatchCount = 0;
+                    long postfixCandidate = 0;
+                    while (postfixCandidate < operationCount) limit MAX_OPERATIONS {
+                      long postfixStart = stagedRows[1280 + postfixCandidate];
+                      long postfixLength = stagedRows[1536 + postfixCandidate];
+                      if (postfixStart + postfixLength == tokenStarts[cursor]) {
+                        indexedSourceStart = postfixStart;
+                        indexedSourceLength = postfixLength;
+                        postfixMatchCount += 1;
+                      }
 
-                  if (typeRange == false) {
-                    assert(operationCount < MAX_OPERATIONS);
-                    set(stagedRows, operationCount, 4);
-                    set(stagedRows, 256 + operationCount, tokenStarts[cursor - 1]);
-                    set(stagedRows, 512 + operationCount, tokenLengths[cursor - 1]);
-                    set(stagedRows, 768 + operationCount, tokenStarts[cursor + 1]);
-                    set(
-                      stagedRows,
-                      1024 + operationCount,
-                      tokenStarts[indexClose] - tokenStarts[cursor + 1]
-                    );
-                    set(stagedRows, 1280 + operationCount, tokenStarts[cursor - 1]);
-                    set(
-                      stagedRows,
-                      1536 + operationCount,
-                      tokenStarts[indexClose] + tokenLengths[indexClose] - tokenStarts[cursor - 1]
-                    );
-                    set(stagedRows, 1792 + operationCount, argumentCount);
-                    StagedArguments indexArguments = stageArguments(
-                      source,
-                      tokenKinds,
-                      tokenStarts,
-                      tokenLengths,
-                      cursor + 1,
-                      indexClose,
-                      operationCount,
-                      argumentCount,
-                      stagedArguments
-                    );
-                    argumentCount = indexArguments.count;
-                    if (indexArguments.valid == false) {
-                      valid = false;
+                      postfixCandidate += 1;
                     }
 
-                    operationCount += 1;
+                    if (postfixMatchCount != 1) {
+                      valid = false;
+                    }
                   }
+                }
 
+                if (-1 < indexedSourceStart) {
+                  if (typeRange == false) {
+                    if (cursor + 1 < indexClose) {
+                      assert(operationCount < MAX_OPERATIONS);
+                      set(stagedRows, operationCount, 4);
+                      set(stagedRows, 256 + operationCount, indexedSourceStart);
+                      set(stagedRows, 512 + operationCount, indexedSourceLength);
+                      set(stagedRows, 768 + operationCount, tokenStarts[cursor + 1]);
+                      set(
+                        stagedRows,
+                        1024 + operationCount,
+                        tokenStarts[indexClose] - tokenStarts[cursor + 1]
+                      );
+                      set(stagedRows, 1280 + operationCount, indexedSourceStart);
+                      set(
+                        stagedRows,
+                        1536 + operationCount,
+                        tokenStarts[indexClose] + tokenLengths[indexClose] - indexedSourceStart
+                      );
+                      set(stagedRows, 1792 + operationCount, argumentCount);
+                      StagedArguments indexArguments = stageArguments(
+                        source,
+                        tokenKinds,
+                        tokenStarts,
+                        tokenLengths,
+                        cursor + 1,
+                        indexClose,
+                        operationCount,
+                        argumentCount,
+                        stagedArguments
+                      );
+                      argumentCount = indexArguments.count;
+                      if (indexArguments.valid == false) {
+                        valid = false;
+                      }
+
+                      operationCount += 1;
+                    } else {
+                      valid = false;
+                    }
+                  }
                 }
               }
             }
