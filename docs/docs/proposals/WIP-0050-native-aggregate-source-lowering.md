@@ -116,7 +116,7 @@ Scratch token, declaration, descriptor, and projection windows are independently
 - [ ] Temporary nominal declarations publish aggregate projections.
 - [x] `AggregateOwnerProjections.w` maps create, move, loan, release, and drop event locals to unique aggregate and member rows. A move requires identical source and destination projections, and failure leaves caller rows untouched.
 - [x] `LinkedLocalTypes.w` consumes temporary owner, source-code, and aggregate-row projections before final descriptor emission. Missing, duplicate, or kind-inconsistent projections fail before publication.
-- [ ] Aggregate operands consume temporary nominal projections.
+- [x] `AggregateOperandProjections.w` maps temporary owner, kind, and type IDs to aggregate rows and stable product identities. Duplicate projections leave relocation rows and identities untouched.
 - [ ] Generated aggregate scaffolding is excluded from retained products.
 - [ ] Aggregate-aware source-local artifacts match stage 0 byte for byte.
 
