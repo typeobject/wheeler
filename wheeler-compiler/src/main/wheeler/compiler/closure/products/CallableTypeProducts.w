@@ -95,7 +95,8 @@ classical class CallableTypeProducts {
     return source[start + 7] == h;
   }
 
-  private long primitiveType(borrow byteview source, long start, long length) {
+  /// Resolves one bounded primitive source range or returns `-1`.
+  public long sourcePrimitiveType(borrow byteview source, long start, long length) {
     if (length == 4) {
       if (matches4(source, start, 118, 111, 105, 100)) {
         return 0;
@@ -226,7 +227,7 @@ classical class CallableTypeProducts {
       }
 
       if (callableValid) {
-        long type = primitiveType(source, start, length);
+        long type = sourcePrimitiveType(source, start, length);
         if (type < 0) {
           callableValid = false;
         } else {
@@ -274,7 +275,7 @@ classical class CallableTypeProducts {
       }
 
       if (parameterValid) {
-        long parameterType = primitiveType(source, parameterStart, parameterLength);
+        long parameterType = sourcePrimitiveType(source, parameterStart, parameterLength);
         if (parameterType < 1) {
           parameterValid = false;
         } else {
