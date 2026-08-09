@@ -268,6 +268,122 @@ classical class CompiledCallableBodies {
     return result;
   }
 
+  /// Compiles one aggregate-aware local class against counted import products.
+  public CompiledCallableBody compileAggregateSourceModuleProductWithImports(
+    borrow byteview sourceArchive,
+    long sourceStart,
+    long sourceLength,
+    long aggregateCount,
+    borrow mut words aggregateRows,
+    long moduleOwner,
+    long firstRecordTypeId,
+    long firstVariantTypeId,
+    long nominalReferenceCount,
+    borrow mut words nominalReferenceRows,
+    borrow mut words importedAggregateRows,
+    borrow mut words nominalProjectionRows,
+    long callCount,
+    borrow mut words callRows,
+    borrow mut words callableEffects,
+    borrow mut words callableFirstParameters,
+    borrow mut words callableParameterCounts,
+    borrow mut words callableResultTypes,
+    borrow mut words parameterTypes,
+    borrow mut words parameterModes,
+    borrow mut bytes artifact,
+    borrow mut bytes identity
+  ) {
+    assert(bufferLength(artifact) == MAX_CALLABLE_ARTIFACT_BYTES);
+    assert(bufferLength(identity) == IDENTITY_BYTES);
+    assert(-1 < sourceStart);
+    assert(0 < sourceLength);
+    assert(sourceLength < MAX_CALLABLE_SOURCE_BYTES + 1);
+    region sourceArena = new region(/* bytes= */ 557056, /* allocations= */ 6);
+    bytes projectedSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
+    bytes stubSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
+    bytes nominalSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
+    bytes carrierSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
+    words stagedProjections = allocate(sourceArena, /* length= */ 49152);
+    assert(bufferLength(nominalProjectionRows) == 49152);
+    long projectedLength = writeSourceWithoutAggregateDeclarations(
+      sourceArchive,
+      sourceStart,
+      sourceLength,
+      aggregateCount,
+      aggregateRows,
+      projectedSource
+    );
+    ImportedCallableStubPlan callables = writeImportedCallableStubs(
+      projectedSource,
+      /* sourceStart= */ 0,
+      projectedLength,
+      callCount,
+      callRows,
+      callableEffects,
+      callableFirstParameters,
+      callableParameterCounts,
+      callableResultTypes,
+      parameterTypes,
+      parameterModes,
+      stubSource
+    );
+    ImportedNominalReferencePlan nominals = writeImportedNominalReferences(
+      sourceArchive,
+      sourceStart,
+      sourceLength,
+      stubSource,
+      /* callableSourceStart= */ 0,
+      callables.length,
+      moduleOwner,
+      firstRecordTypeId,
+      firstVariantTypeId,
+      nominalReferenceCount,
+      nominalReferenceRows,
+      callCount,
+      callRows,
+      importedAggregateRows,
+      stagedProjections,
+      nominalSource
+    );
+    ImportedNominalCarrierPlan carriers = writeImportedNominalCarriers(
+      sourceArchive,
+      sourceStart,
+      sourceLength,
+      stubSource,
+      /* callableSourceStart= */ 0,
+      callables.length,
+      nominalReferenceCount,
+      nominalReferenceRows,
+      callCount,
+      callRows,
+      importedAggregateRows,
+      carrierSource
+    );
+    assert(carriers.referenceCount == nominalReferenceCount);
+    assert(nominals.projectionCount < nominalReferenceCount + 1);
+    bytes exactSource = allocateBytes(sourceArena, carriers.length);
+    long sourceByte = 0;
+    while (sourceByte < carriers.length) limit MAX_CALLABLE_SOURCE_BYTES {
+      setByte(exactSource, sourceByte, carrierSource[sourceByte]);
+      sourceByte += 1;
+    }
+
+    drop(carrierSource);
+    drop(nominalSource);
+    drop(stubSource);
+    drop(projectedSource);
+    CompiledCallableBody result = compileProductSource(exactSource, artifact, identity);
+    long projectionRow = 0;
+    while (projectionRow < 49152) limit 49152 {
+      set(nominalProjectionRows, projectionRow, stagedProjections[projectionRow]);
+      projectionRow += 1;
+    }
+
+    drop(stagedProjections);
+    drop(sourceArena);
+    return result;
+  }
+
   /// Compiles local callable ranges against imports without dependency source.
   public CompiledCallableBody compileCallableModuleProductWithImports(
     borrow byteview archive,

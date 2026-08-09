@@ -161,6 +161,7 @@ Source-product compilation does not set the bootstrap bit. Promotion still requi
 - [x] `CallableTypeProducts.w` resolves primitive source ranges while local source is leased. Stub generation consumes only type codes, loan modes, effect masks, and parameter windows. Its API has no dependency-source argument.
 - [x] WIP-0050 starts aggregate-aware lowering with atomic record, variant, case, and member products, including mutually recursive local nominal types and deduplicated scalar fixed arrays.
 - [x] Complete primitive bodies compile after validated local aggregate declarations are blanked at stable source offsets.
+- [x] `compileAggregateSourceModuleProductWithImports` compiles primitive body portions after local-declaration projection and imported nominal validation. Temporary signed carriers and generated descriptors do not enter the retained artifact. Projection rows publish only after compilation succeeds.
 - [ ] WIP-0050 completes local aggregate declaration and instruction lowering.
 - [x] Imported nominal names resolve from public WIP-0046 rows and counted artifact-string products without dependency source.
 - [x] Imported nominal record and variant compile declarations generate in target-row order and publish owner-scoped temporary source-code projections.

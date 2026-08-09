@@ -26,6 +26,8 @@ final class NativeCompilerImportedNominalReferencesExampleTest {
     CompilerMachineRunner.runWithoutRewindHistory(machine);
 
     String rewritten = new String(machine.hostOutput(), StandardCharsets.US_ASCII);
+    assertEquals(CALLABLE.length() + 1, machine.global("carrierLength"));
+    assertEquals(108, machine.global("carrierFirst"));
     assertEquals(1, machine.global("stubCount"));
     assertEquals(1, machine.global("projectionCount"));
     assertEquals(7, machine.global("owner"));
@@ -80,6 +82,8 @@ final class NativeCompilerImportedNominalReferencesExampleTest {
 
         classical class ImportedNominalReferencesExample {
           state long published = 0;
+          state long carrierLength = 0;
+          state long carrierFirst = 0;
           state long stubCount = 0;
           state long projectionCount = 0;
           state long owner = 0;
@@ -100,6 +104,22 @@ final class NativeCompilerImportedNominalReferencesExampleTest {
             set(calls, 256, 7);
             set(calls, 768, 5);
             set(aggregates, 3, 1);
+            ImportedNominalCarrierPlan carrier = writeImportedNominalCarriers(
+              input,
+              /* sourceStart= */ 0,
+              /* sourceLength= */ %d,
+              input,
+              /* callableSourceStart= */ %d,
+              /* callableSourceLength= */ %d,
+              /* referenceCount= */ 1,
+              references,
+              /* callCount= */ 1,
+              calls,
+              aggregates,
+              output
+            );
+            carrierLength = carrier.length;
+            carrierFirst = output[%d];
             ImportedNominalReferencePlan plan = writeImportedNominalReferences(
               input,
               /* sourceStart= */ 0,
@@ -135,6 +155,10 @@ final class NativeCompilerImportedNominalReferencesExampleTest {
         """.formatted(
             referenceStart,
             callStart,
+            authoredLength,
+            authoredLength,
+            callableLength,
+            referenceStart + 11,
             authoredLength,
             authoredLength,
             callableLength));
