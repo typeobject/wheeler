@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 /** Native evidence for aggregate-aware complete source-product compilation. */
 final class NativeCompilerAggregateAwareSourceProductExampleTest {
   private static final String SOURCE = """
-      classical class Root { private record Local(long value) {} private long use(Box value, long number) { Local item = new Local(number); long extracted = item.value; return 7; } }
+      classical class Root { private record Local(long value) {} private variant Choice { case Some(long payload); } private long use(Box value, long number) { Local item = new Local(number); long extracted = item.value; Choice selected = new Choice.Some(number); long payload = selected.payload; return 7; } }
       """.strip();
 
   @Test
@@ -48,9 +48,12 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
     assertEquals(2, machine.global("secondOperationOrdinal"));
     assertEquals(0, machine.global("derivedConstructorTarget"));
     assertEquals(0, machine.global("derivedProjectionTarget"));
-    assertEquals(2, machine.global("supplementalInstructionCount"));
-    assertEquals(72, machine.global("supplementalLength"));
-    assertEquals(5, machine.global("composedInstructionCount"));
+    assertEquals(1, machine.global("derivedVariantTarget"));
+    assertEquals(0, machine.global("derivedVariantCase"));
+    assertEquals(0, machine.global("derivedPayloadTarget"));
+    assertEquals(4, machine.global("supplementalInstructionCount"));
+    assertEquals(160, machine.global("supplementalLength"));
+    assertEquals(7, machine.global("composedInstructionCount"));
     assertEquals(1, machine.global("firstArtifactSelector"));
     assertEquals(SOURCE.indexOf("Local item"), machine.global("firstSourceStatementStart"));
     Program product = new BytecodeReader().read(machine.hostOutput());
@@ -76,6 +79,12 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
     int localMemberNameStart = SOURCE.indexOf("value)");
     int declarationEnd = declarationStart
         + "private record Local(long value) {}".length();
+    int variantDeclarationStart = SOURCE.indexOf("private variant");
+    int choiceAggregateNameStart = SOURCE.indexOf("Choice {");
+    int caseNameStart = SOURCE.indexOf("Some(");
+    int payloadMemberNameStart = SOURCE.indexOf("payload)");
+    int variantDeclarationEnd = variantDeclarationStart
+        + "private variant Choice { case Some(long payload); }".length();
     int referenceStart = SOURCE.indexOf("Box");
     int localValueReferenceStart = SOURCE.indexOf("Local item");
     int localConstructorReferenceStart = SOURCE.indexOf("Local(number)");
@@ -83,6 +92,13 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
     int argumentStart = SOURCE.indexOf("number)", operationStart);
     int projectionOwnerStart = SOURCE.indexOf("item.value");
     int projectionMemberStart = projectionOwnerStart + "item.".length();
+    int choiceValueReferenceStart = SOURCE.indexOf("Choice selected");
+    int choiceConstructorReferenceStart = SOURCE.indexOf("Choice.Some");
+    int variantCaseReferenceStart = choiceConstructorReferenceStart + "Choice.".length();
+    int variantOperationStart = SOURCE.indexOf("new Choice.Some(number)");
+    int variantArgumentStart = SOURCE.indexOf("number)", variantOperationStart);
+    int payloadOwnerStart = SOURCE.indexOf("selected.payload");
+    int payloadMemberStart = payloadOwnerStart + "selected.".length();
     int callableBodyStart = SOURCE.indexOf("{ Local item");
     int callableBodyEnd = SOURCE.indexOf("}", callableBodyStart) + 1;
     Map<String, String> sources = new LinkedHashMap<>();
@@ -117,6 +133,9 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
           state long secondOperationOrdinal = -1;
           state long derivedConstructorTarget = -1;
           state long derivedProjectionTarget = -1;
+          state long derivedVariantTarget = -1;
+          state long derivedVariantCase = -1;
+          state long derivedPayloadTarget = -1;
           state long supplementalInstructionCount = 0;
           state long supplementalLength = 0;
           state long composedInstructionCount = 0;
@@ -166,39 +185,81 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             set(localCallableBodyStarts, 0, %d);
             set(localCallableBodyLengths, 0, %d);
             set(localAggregates, 0, 1);
+            set(localAggregates, 1, 4);
             set(localAggregates, 64, %d);
+            set(localAggregates, 65, %d);
             set(localAggregates, 128, 5);
+            set(localAggregates, 129, 6);
+            set(localAggregates, 193, 0);
+            set(localAggregates, 257, 1);
             set(localAggregates, 320, 0);
             set(localAggregates, 384, 1);
             set(localAggregates, 512, %d);
+            set(localAggregates, 513, %d);
             set(localAggregates, 768, %d);
+            set(localAggregates, 769, %d);
+            set(localCases, 0, 1);
+            set(localCases, 128, %d);
+            set(localCases, 256, 4);
+            set(localCases, 384, 1);
+            set(localCases, 512, 1);
             set(localMembers, 0, 0);
+            set(localMembers, 1, 1);
             set(localMembers, 256, -1);
+            set(localMembers, 257, 0);
             set(localMembers, 512, %d);
+            set(localMembers, 513, %d);
             set(localMembers, 768, 5);
+            set(localMembers, 769, 7);
             set(operations, 0, 1);
             set(operations, 1, 3);
+            set(operations, 2, 2);
+            set(operations, 3, 3);
             set(operations, 256, %d);
+            set(operations, 258, %d);
             set(operations, 512, 5);
+            set(operations, 514, 6);
             set(operations, 257, %d);
+            set(operations, 259, %d);
             set(operations, 513, 4);
+            set(operations, 515, 8);
             set(operations, 769, %d);
+            set(operations, 770, %d);
+            set(operations, 771, %d);
             set(operations, 1025, 5);
+            set(operations, 1026, 4);
+            set(operations, 1027, 7);
             set(operations, 1280, %d);
             set(operations, 1536, 17);
             set(operations, 1281, %d);
             set(operations, 1537, 10);
+            set(operations, 1282, %d);
+            set(operations, 1538, 23);
+            set(operations, 1283, %d);
+            set(operations, 1539, 16);
             set(operations, 1793, 1);
+            set(operations, 1794, 1);
+            set(operations, 1795, 2);
             set(arguments, 0, 0);
+            set(arguments, 1, 2);
             set(arguments, 1024, 0);
+            set(arguments, 1025, 0);
             set(arguments, 2048, %d);
+            set(arguments, 2049, %d);
             set(arguments, 3072, 6);
+            set(arguments, 3073, 6);
             set(localReferences, 0, 0);
             set(localReferences, 1, 0);
+            set(localReferences, 2, 1);
+            set(localReferences, 3, 1);
             set(localReferences, 512, %d);
             set(localReferences, 513, %d);
+            set(localReferences, 514, %d);
+            set(localReferences, 515, %d);
             set(localReferences, 1024, 5);
             set(localReferences, 1025, 5);
+            set(localReferences, 1026, 6);
+            set(localReferences, 1027, 6);
             set(localProjections, 0, 91);
             set(references, 0, %d);
             set(references, 64, 3);
@@ -209,17 +270,17 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
               input,
               /* sourceStart= */ 0,
               /* sourceLength= */ %d,
-              /* aggregateCount= */ 1,
+              /* aggregateCount= */ 2,
               localAggregates,
-              /* localCaseCount= */ 0,
+              /* localCaseCount= */ 1,
               localCases,
-              /* localMemberCount= */ 1,
+              /* localMemberCount= */ 2,
               localMembers,
-              /* operationCount= */ 2,
+              /* operationCount= */ 4,
               operations,
-              /* argumentCount= */ 1,
+              /* argumentCount= */ 2,
               arguments,
-              /* localNominalReferenceCount= */ 2,
+              /* localNominalReferenceCount= */ 4,
               localReferences,
               localProjections,
               localCarriers,
@@ -282,6 +343,9 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             secondOperationOrdinal = localPlacements[513];
             derivedConstructorTarget = localConstructorTargets[256];
             derivedProjectionTarget = localProjectionTargets[769];
+            derivedVariantTarget = localConstructorTargets[258];
+            derivedVariantCase = localConstructorTargets[514];
+            derivedPayloadTarget = localProjectionTargets[771];
             supplementalInstructionCount = compiled.supplementalInstructionCount;
             supplementalLength = compiled.supplementalLength;
             composedInstructionCount = compiled.composedInstructionCount;
@@ -334,17 +398,31 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             callableBodyStart,
             callableBodyEnd - callableBodyStart,
             localAggregateNameStart,
+            choiceAggregateNameStart,
             declarationStart,
+            variantDeclarationStart,
             declarationEnd,
+            variantDeclarationEnd,
+            caseNameStart,
             localMemberNameStart,
+            payloadMemberNameStart,
             localConstructorReferenceStart,
+            choiceConstructorReferenceStart,
             projectionOwnerStart,
+            payloadOwnerStart,
             projectionMemberStart,
+            variantCaseReferenceStart,
+            payloadMemberStart,
             operationStart,
             projectionOwnerStart,
+            variantOperationStart,
+            payloadOwnerStart,
             argumentStart,
+            variantArgumentStart,
             localValueReferenceStart,
             localConstructorReferenceStart,
+            choiceValueReferenceStart,
+            choiceConstructorReferenceStart,
             referenceStart,
             importedKind,
             SOURCE.length()));
