@@ -2,11 +2,13 @@
 
 module wheeler.compiler.closure.compiled_callable_bodies;
 
+import wheeler.compiler.closure.aggregate_expression_projection;
 import wheeler.compiler.closure.aggregate_source_projection;
 import wheeler.compiler.closure.callable_type_products;
 import wheeler.compiler.closure.imported_callable_stubs;
 import wheeler.compiler.closure.imported_nominal_carrier_projections;
 import wheeler.compiler.closure.imported_nominal_references;
+import wheeler.compiler.closure.local_nominal_carriers;
 import wheeler.compiler.compiler_core;
 import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
@@ -276,6 +278,12 @@ classical class CompiledCallableBodies {
     long sourceLength,
     long aggregateCount,
     borrow mut words aggregateRows,
+    long operationCount,
+    borrow mut words operationRows,
+    long localNominalReferenceCount,
+    borrow mut words localNominalReferenceRows,
+    borrow mut words localNominalProjectionRows,
+    borrow mut words localCarrierRows,
     long moduleOwner,
     long firstRecordTypeId,
     long firstVariantTypeId,
@@ -302,8 +310,10 @@ classical class CompiledCallableBodies {
     assert(-1 < sourceStart);
     assert(0 < sourceLength);
     assert(sourceLength < MAX_CALLABLE_SOURCE_BYTES + 1);
-    region sourceArena = new region(/* bytes= */ 1081344, /* allocations= */ 7);
+    region sourceArena = new region(/* bytes= */ 1146880, /* allocations= */ 9);
     bytes projectedSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
+    bytes expressionSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
+    bytes localCarrierSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
     bytes stubSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
     bytes nominalSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
     bytes carrierSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
@@ -330,10 +340,28 @@ classical class CompiledCallableBodies {
       aggregateRows,
       projectedSource
     );
-    ImportedCallableStubPlan callables = writeImportedCallableStubs(
+    long expressionLength = writeSourceWithoutAggregateExpressions(
       projectedSource,
       /* sourceStart= */ 0,
       projectedLength,
+      operationCount,
+      operationRows,
+      expressionSource
+    );
+    LocalNominalCarrierPlan localCarriers = writeLocalNominalCarriers(
+      expressionSource,
+      expressionLength,
+      localNominalReferenceCount,
+      localNominalReferenceRows,
+      localNominalProjectionRows,
+      localCarrierRows,
+      localCarrierSource
+    );
+    assert(localCarriers.valid);
+    ImportedCallableStubPlan callables = writeImportedCallableStubs(
+      localCarrierSource,
+      /* sourceStart= */ 0,
+      localCarriers.length,
       callCount,
       callRows,
       callableEffects,
@@ -388,6 +416,8 @@ classical class CompiledCallableBodies {
     drop(carrierSource);
     drop(nominalSource);
     drop(stubSource);
+    drop(localCarrierSource);
+    drop(expressionSource);
     drop(projectedSource);
     CompiledCallableBody result = compileProductSource(exactSource, artifact, identity);
     long projectionRow = 0;

@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 /** Native evidence for aggregate-aware complete source-product compilation. */
 final class NativeCompilerAggregateAwareSourceProductExampleTest {
   private static final String SOURCE = """
-      classical class Root { private record Local(long value) {} private long use(Box value) { return 7; } }
+      classical class Root { private record Local(long value) {} private long use(Box value) { Local item = new Local(7); return 7; } }
       """.strip();
 
   @Test
@@ -38,6 +38,9 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
     assertEquals(0, machine.global("carrierFunction"));
     assertEquals(0, machine.global("carrierLocal"));
     assertEquals(3, machine.global("carrierTarget"));
+    assertEquals(1, machine.global("localValueCarrierRole"));
+    assertEquals(2, machine.global("localConstructorCarrierRole"));
+    assertEquals(1, machine.global("localValueCarrierLocal"));
     Program product = new BytecodeReader().read(machine.hostOutput());
     assertEquals(2, product.functions().size());
     assertEquals(0, product.recordTypes().size());
@@ -60,6 +63,9 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
     int declarationEnd = declarationStart
         + "private record Local(long value) {}".length();
     int referenceStart = SOURCE.indexOf("Box");
+    int localValueReferenceStart = SOURCE.indexOf("Local item");
+    int localConstructorReferenceStart = SOURCE.indexOf("Local(7)");
+    int operationStart = SOURCE.indexOf("new Local(7)");
     Map<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
@@ -82,10 +88,17 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
           state long carrierFunction = 0;
           state long carrierLocal = 0;
           state long carrierTarget = 0;
+          state long localValueCarrierRole = 0;
+          state long localConstructorCarrierRole = 0;
+          state long localValueCarrierLocal = 0;
 
           entry void main(borrow byteview input, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 1623584, /* allocations= */ 15);
+            region rows = new region(/* bytes= */ 1701408, /* allocations= */ 19);
             words localAggregates = allocate(rows, /* length= */ 832);
+            words operations = allocate(rows, /* length= */ 2048);
+            words localReferences = allocate(rows, /* length= */ 1536);
+            words localProjections = allocate(rows, /* length= */ 4096);
+            words localCarriers = allocate(rows, /* length= */ 2048);
             words references = allocate(rows, /* length= */ 256);
             words carrierFunctions = allocate(rows, /* length= */ 64);
             words carrierLocals = allocate(rows, /* length= */ 64);
@@ -103,6 +116,24 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             set(localAggregates, 0, 1);
             set(localAggregates, 512, %d);
             set(localAggregates, 768, %d);
+            set(operations, 1280, %d);
+            set(operations, 1536, 12);
+            set(localReferences, 0, 0);
+            set(localReferences, 1, 0);
+            set(localReferences, 512, %d);
+            set(localReferences, 513, %d);
+            set(localReferences, 1024, 5);
+            set(localReferences, 1025, 5);
+            set(localProjections, 0, 0);
+            set(localProjections, 1, 0);
+            set(localProjections, 512, 1);
+            set(localProjections, 513, 2);
+            set(localProjections, 1024, 0);
+            set(localProjections, 1536, 1);
+            set(localProjections, 2048, %d);
+            set(localProjections, 2049, %d);
+            set(localProjections, 2560, 5);
+            set(localProjections, 2561, 5);
             set(references, 0, %d);
             set(references, 64, 3);
             set(references, 128, 3);
@@ -114,6 +145,12 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
               /* sourceLength= */ %d,
               /* aggregateCount= */ 1,
               localAggregates,
+              /* operationCount= */ 1,
+              operations,
+              /* localNominalReferenceCount= */ 2,
+              localReferences,
+              localProjections,
+              localCarriers,
               /* moduleOwner= */ 9,
               /* firstRecordTypeId= */ 1,
               /* firstVariantTypeId= */ 0,
@@ -145,6 +182,9 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             carrierFunction = carrierProjections[16384];
             carrierLocal = carrierProjections[32768];
             carrierTarget = carrierProjections[49152];
+            localValueCarrierRole = localProjections[512];
+            localConstructorCarrierRole = localProjections[513];
+            localValueCarrierLocal = localProjections[1536];
             published = 1;
             setOutputLength(output, compiled.length);
             drop(identity);
@@ -161,6 +201,10 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             drop(carrierLocals);
             drop(carrierFunctions);
             drop(references);
+            drop(localCarriers);
+            drop(localProjections);
+            drop(localReferences);
+            drop(operations);
             drop(localAggregates);
             drop(rows);
           }
@@ -168,6 +212,11 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
         """.formatted(
             declarationStart,
             declarationEnd,
+            operationStart,
+            localValueReferenceStart,
+            localConstructorReferenceStart,
+            localValueReferenceStart,
+            localConstructorReferenceStart,
             referenceStart,
             importedKind,
             SOURCE.length()));
