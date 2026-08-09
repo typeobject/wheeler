@@ -25,28 +25,23 @@ Source-local ranges are temporary parse evidence. They do not cross an import ed
 
 ## Source aggregate products
 
-`SourceAggregateProducts.w` scans canonical source with the native Wheeler scanner. Comments and documentation are removed before declaration matching. The record product has these fixed columns:
+`SourceAggregateProducts.w` scans canonical source with the native Wheeler scanner. Comments and documentation are removed before declaration matching. The aggregate product has these fixed columns:
 
-1. name start
-2. name length
-3. first member
-4. member count
-5. visibility
-6. declaration start
-
-The member product has these fixed columns:
-
-1. aggregate owner
+1. kind
 2. name start
 3. name length
-4. type start
-5. type length
-6. resolved type kind
-7. primitive code or source-local aggregate row
+4. first case
+5. case count
+6. first member
+7. member count
+8. visibility
+9. declaration start
 
-The first profile admits sixty-four aggregate declarations and 256 members per module. Duplicate aggregate names, duplicate member names, malformed members, unterminated declarations, and a bound breach fail before one caller row changes.
+Variant cases carry their aggregate owner, name range, first member, and member count. Members carry their aggregate owner, optional case owner, name range, type range, resolved type kind, and primitive code or source-local aggregate row.
 
-Variant products shall add case windows without changing the record columns. Fixed arrays and slices shall publish structural descriptor products rather than invented declarations.
+The first profile admits sixty-four aggregate declarations, 128 variant cases, and 256 members per module. Duplicate aggregate, case, or member names, malformed members, unterminated declarations, unresolved types, and a bound breach fail before one caller row changes.
+
+Fixed arrays and slices shall publish structural descriptor products rather than invented declarations.
 
 ## Type resolution
 
@@ -106,10 +101,10 @@ Scratch token, declaration, descriptor, and projection windows are independently
 
 ## Implementation status
 
-- [x] `SourceAggregateProducts.w` publishes atomic recursive record and member source products.
-- [x] Native evidence covers public and private records, recursive member types, exact source ranges, and malformed-member nonpublication.
-- [x] Primitive and recursive local nominal record member types resolve before source release. Unresolved types publish nothing.
-- [ ] Source products cover variants, fixed arrays, and slices.
+- [x] `SourceAggregateProducts.w` publishes atomic record, variant, case, and member source products.
+- [x] Native evidence covers public and private records, variants, empty and populated cases, mutually recursive record and variant types, exact source ranges, and malformed-member nonpublication.
+- [x] Primitive and recursive local nominal member types resolve before source release. Duplicate cases and unresolved types publish nothing.
+- [ ] Source products cover fixed arrays and slices.
 - [ ] Imported nominal type ranges resolve from WIP-0046 products.
 - [ ] The native compiler core emits aggregate descriptors and instructions.
 - [ ] Temporary nominal declarations publish aggregate projections.
