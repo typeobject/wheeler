@@ -34,8 +34,8 @@ final class NativeCompilerAggregateIndexedOwnersExampleTest {
     machine.run();
 
     assertEquals(0, machine.global("valid"));
-    assertEquals(91, machine.global("indexedOwner"));
-    assertEquals(73, machine.global("indexedCase"));
+    assertEquals(-1, machine.global("indexedOwner"));
+    assertEquals(-1, machine.global("indexedCase"));
   }
 
   private static Program program(int structuralKind) throws Exception {
@@ -54,11 +54,13 @@ final class NativeCompilerAggregateIndexedOwnersExampleTest {
           state long indexedCase = 73;
 
           entry void main(borrow utf8 source) {
-            region rows = new region(/* bytes= */ 58880, /* allocations= */ 9);
+            region rows = new region(/* bytes= */ 124416, /* allocations= */ 11);
             words operations = allocate(rows, /* length= */ 2048);
             words destinations = allocate(rows, /* length= */ 256);
             words owners = allocate(rows, /* length= */ 256);
             words placements = allocate(rows, /* length= */ 768);
+            words values = allocate(rows, /* length= */ 7168);
+            words valueStructures = allocate(rows, /* length= */ 1024);
             words aggregates = allocate(rows, /* length= */ 832);
             words cases = allocate(rows, /* length= */ 640);
             words members = allocate(rows, /* length= */ 2048);
@@ -83,9 +85,9 @@ final class NativeCompilerAggregateIndexedOwnersExampleTest {
             set(members, 1536, 1);
             set(members, 1792, 1);
             set(ownerAggregates, 0, 0);
-            set(ownerAggregates, 1, 91);
+            set(ownerAggregates, 1, -1);
             set(ownerCases, 0, -1);
-            set(ownerCases, 1, 73);
+            set(ownerCases, 1, -1);
             AggregateIndexedOwnerPlan plan = deriveAggregateIndexedOwners(
               source,
               /* operationCount= */ 2,
@@ -93,6 +95,9 @@ final class NativeCompilerAggregateIndexedOwnersExampleTest {
               destinations,
               owners,
               placements,
+              /* valueCount= */ 0,
+              values,
+              valueStructures,
               /* aggregateCount= */ 2,
               aggregates,
               /* caseCount= */ 0,
@@ -112,6 +117,8 @@ final class NativeCompilerAggregateIndexedOwnersExampleTest {
             drop(members);
             drop(cases);
             drop(aggregates);
+            drop(valueStructures);
+            drop(values);
             drop(placements);
             drop(owners);
             drop(destinations);

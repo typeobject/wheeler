@@ -17,6 +17,7 @@ classical class AggregateProjectionTargets {
   private const long OWNER_ROWS = 256;
   private const long SOURCE_KIND_RECORD = 1;
   private const long SOURCE_KIND_ARRAY = 2;
+  private const long SOURCE_KIND_SLICE = 3;
   private const long SOURCE_KIND_VARIANT = 4;
   private const long TARGET_ROWS = 1024;
 
@@ -191,10 +192,18 @@ classical class AggregateProjectionTargets {
         }
 
         if (valid) {
-          if (aggregateRows[indexedOwner] != SOURCE_KIND_ARRAY) {
-            valid = false;
-          } else {
+          long indexedKind = aggregateRows[indexedOwner];
+          if (indexedKind == SOURCE_KIND_ARRAY) {
             set(stagedTargets, operation, OPCODE_ARRAY_GET);
+          } else {
+            if (indexedKind == SOURCE_KIND_SLICE) {
+              set(stagedTargets, operation, OPCODE_SLICE_GET);
+            } else {
+              valid = false;
+            }
+          }
+
+          if (valid) {
             set(stagedTargets, 256 + operation, indexedOwner);
           }
         }

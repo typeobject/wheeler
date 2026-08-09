@@ -104,10 +104,11 @@ classical class AggregateCompiledCallableBodies {
     assert(-1 < sourceStart);
     assert(0 < sourceLength);
     assert(sourceLength < MAX_CALLABLE_SOURCE_BYTES + 1);
-    region sourceArena = new region(/* bytes= */ 2201760, /* allocations= */ 37);
+    region sourceArena = new region(/* bytes= */ 2209952, /* allocations= */ 38);
     bytes originalSource = allocateBytes(sourceArena, sourceLength);
     words stagedStatements = allocate(sourceArena, /* length= */ 24576);
     words stagedValues = allocate(sourceArena, /* length= */ 7168);
+    words stagedValueStructures = allocate(sourceArena, /* length= */ 1024);
     words stagedLocalCounts = allocate(sourceArena, /* length= */ 64);
     words stagedLocalProjections = allocate(sourceArena, /* length= */ 4096);
     words stagedDestinations = allocate(sourceArena, /* length= */ 256);
@@ -260,6 +261,9 @@ classical class AggregateCompiledCallableBodies {
       stagedDestinations,
       stagedOwners,
       stagedPlacements,
+      expressionValues.valueCount,
+      stagedValues,
+      stagedValueStructures,
       aggregateCount,
       aggregateRows,
       localCaseCount,
@@ -635,6 +639,7 @@ classical class AggregateCompiledCallableBodies {
     drop(stagedDestinations);
     drop(stagedLocalProjections);
     drop(stagedLocalCounts);
+    drop(stagedValueStructures);
     drop(stagedValues);
     drop(stagedStatements);
     drop(sourceArena);

@@ -11,10 +11,13 @@ classical class AggregateIndexedOwners {
   private const long MAX_CASES = 128;
   private const long MAX_MEMBERS = 256;
   private const long MAX_OPERATIONS = 256;
+  private const long MAX_VALUES = 1024;
   private const long MEMBER_ROWS = 2048;
   private const long OPERATION_ROWS = 2048;
   private const long OWNER_ROWS = 256;
   private const long PLACEMENT_ROWS = 768;
+  private const long VALUE_ROWS = 7168;
+  private const long VALUE_STRUCTURAL_ROWS = 1024;
 
   /// Reports whether every indexed owner acquired one structural array descriptor.
   public record AggregateIndexedOwnerPlan(boolean valid) {}
@@ -51,6 +54,9 @@ classical class AggregateIndexedOwners {
     borrow mut words destinationLocals,
     borrow mut words ownerLocals,
     borrow mut words placementRows,
+    long valueCount,
+    borrow mut words valueRows,
+    borrow mut words valueStructuralRows,
     long aggregateCount,
     borrow mut words aggregateRows,
     long caseCount,
@@ -66,6 +72,10 @@ classical class AggregateIndexedOwners {
     assert(bufferLength(destinationLocals) == OWNER_ROWS);
     assert(bufferLength(ownerLocals) == OWNER_ROWS);
     assert(bufferLength(placementRows) == PLACEMENT_ROWS);
+    assert(-1 < valueCount);
+    assert(valueCount < MAX_VALUES + 1);
+    assert(bufferLength(valueRows) == VALUE_ROWS);
+    assert(bufferLength(valueStructuralRows) == VALUE_STRUCTURAL_ROWS);
     assert(-1 < aggregateCount);
     assert(aggregateCount < MAX_AGGREGATES + 1);
     assert(bufferLength(aggregateRows) == AGGREGATE_ROWS);
@@ -78,9 +88,10 @@ classical class AggregateIndexedOwners {
     assert(bufferLength(ownerAggregateRows) == OWNER_ROWS);
     assert(bufferLength(ownerCaseRows) == OWNER_ROWS);
 
-    region staging = new region(/* bytes= */ 4096, /* allocations= */ 2);
+    region staging = new region(/* bytes= */ 12288, /* allocations= */ 3);
     words stagedAggregates = allocate(staging, OWNER_ROWS);
     words stagedCases = allocate(staging, OWNER_ROWS);
+    words stagedValueStructures = allocate(staging, VALUE_STRUCTURAL_ROWS);
     long row = 0;
     while (row < OWNER_ROWS) limit OWNER_ROWS {
       set(stagedAggregates, row, ownerAggregateRows[row]);
@@ -88,10 +99,28 @@ classical class AggregateIndexedOwners {
       row += 1;
     }
 
-    boolean valid = true;
+    AggregateStructuralOwnerPlan structuralOwners = deriveAggregateStructuralOwners(
+      source,
+      aggregateCount,
+      aggregateRows,
+      valueCount,
+      valueRows,
+      operationCount,
+      operationRows,
+      ownerLocals,
+      placementRows,
+      stagedAggregates,
+      stagedValueStructures
+    );
+    boolean valid = structuralOwners.valid;
     long operation = 0;
     while (operation < operationCount) limit MAX_OPERATIONS {
-      if (operationRows[operation] == 4) {
+      boolean unresolvedIndex = operationRows[operation] == 4;
+      if (-1 < stagedAggregates[operation]) {
+        unresolvedIndex = false;
+      }
+
+      if (unresolvedIndex) {
         long selectedProducer = -1;
         long producerMatches = 0;
         long producer = 0;
@@ -206,11 +235,177 @@ classical class AggregateIndexedOwners {
         set(ownerCaseRows, row, stagedCases[row]);
         row += 1;
       }
+
+      row = 0;
+      while (row < VALUE_STRUCTURAL_ROWS) limit VALUE_STRUCTURAL_ROWS {
+        set(valueStructuralRows, row, stagedValueStructures[row]);
+        row += 1;
+      }
     }
 
+    drop(stagedValueStructures);
     drop(stagedCases);
     drop(stagedAggregates);
     drop(staging);
     return new AggregateIndexedOwnerPlan(valid);
+  }
+
+  /// Reports whether every published structural value has one exact descriptor.
+  private record AggregateStructuralOwnerPlan(boolean valid) {}
+
+  private long precedingByte(long offset) {
+    assert(0 < offset);
+    return offset - 1;
+  }
+
+  /// Publishes value and indexed-owner rows after exact source-type matching.
+  private AggregateStructuralOwnerPlan deriveAggregateStructuralOwners(
+    borrow utf8 source,
+    long aggregateCount,
+    borrow mut words aggregateRows,
+    long valueCount,
+    borrow mut words valueRows,
+    long operationCount,
+    borrow mut words operationRows,
+    borrow mut words ownerLocals,
+    borrow mut words placementRows,
+    borrow mut words ownerAggregateRows,
+    borrow mut words valueStructuralRows
+  ) {
+    assert(-1 < aggregateCount);
+    assert(aggregateCount < MAX_AGGREGATES + 1);
+    assert(bufferLength(aggregateRows) == AGGREGATE_ROWS);
+    assert(-1 < valueCount);
+    assert(valueCount < MAX_VALUES + 1);
+    assert(bufferLength(valueRows) == VALUE_ROWS);
+    assert(-1 < operationCount);
+    assert(operationCount < MAX_OPERATIONS + 1);
+    assert(bufferLength(operationRows) == OPERATION_ROWS);
+    assert(bufferLength(ownerLocals) == OWNER_ROWS);
+    assert(bufferLength(placementRows) == PLACEMENT_ROWS);
+    assert(bufferLength(ownerAggregateRows) == OWNER_ROWS);
+    assert(bufferLength(valueStructuralRows) == VALUE_STRUCTURAL_ROWS);
+
+    region staging = new region(/* bytes= */ 10240, /* allocations= */ 2);
+    words stagedOwners = allocate(staging, OWNER_ROWS);
+    words stagedStructures = allocate(staging, VALUE_STRUCTURAL_ROWS);
+    long row = 0;
+    while (row < OWNER_ROWS) limit OWNER_ROWS {
+      set(stagedOwners, row, ownerAggregateRows[row]);
+      row += 1;
+    }
+
+    row = 0;
+    while (row < VALUE_STRUCTURAL_ROWS) limit VALUE_STRUCTURAL_ROWS {
+      set(stagedStructures, row, -1);
+      row += 1;
+    }
+
+    boolean valid = true;
+    long value = 0;
+    while (value < valueCount) limit MAX_VALUES {
+      long nameStart = valueRows[1024 + value];
+      long typeEnd = precedingByte(nameStart);
+
+      long selected = -1;
+      long structuralMatches = 0;
+      long aggregate = 0;
+      while (aggregate < aggregateCount) limit MAX_AGGREGATES {
+        long kind = aggregateRows[aggregate];
+        boolean structuralKind = kind == 2;
+        if (kind == 3) {
+          structuralKind = true;
+        }
+
+        if (structuralKind) {
+          long typeLength = aggregateRows[128 + aggregate];
+          if (typeLength < typeEnd + 1) {
+            long typeStart = typeEnd - typeLength;
+            if (
+              equalRange(
+                source,
+                typeStart,
+                typeLength,
+                aggregateRows[64 + aggregate],
+                typeLength
+              )
+            ) {
+              selected = aggregate;
+              structuralMatches += 1;
+            }
+          }
+        }
+
+        aggregate += 1;
+      }
+
+      if (1 < structuralMatches) {
+        valid = false;
+      }
+
+      if (structuralMatches == 1) {
+        set(stagedStructures, value, selected);
+      }
+
+      value += 1;
+    }
+
+    long operation = 0;
+    while (operation < operationCount) limit MAX_OPERATIONS {
+      if (operationRows[operation] == 4) {
+        long selectedValue = -1;
+        long ownerMatches = 0;
+        value = 0;
+        while (value < valueCount) limit MAX_VALUES {
+          if (valueRows[value] == placementRows[operation]) {
+            if (valueRows[3072 + value] == ownerLocals[operation]) {
+              if (-1 < stagedStructures[value]) {
+                selectedValue = value;
+                ownerMatches += 1;
+              }
+            }
+          }
+
+          value += 1;
+        }
+
+        if (1 < ownerMatches) {
+          valid = false;
+        }
+
+        if (ownerMatches == 1) {
+          long target = stagedStructures[selectedValue];
+          long existing = stagedOwners[operation];
+          if (-1 < existing) {
+            if (existing != target) {
+              valid = false;
+            }
+          } else {
+            set(stagedOwners, operation, target);
+          }
+        }
+      }
+
+      operation += 1;
+    }
+
+    if (valid) {
+      row = 0;
+      while (row < OWNER_ROWS) limit OWNER_ROWS {
+        set(ownerAggregateRows, row, stagedOwners[row]);
+        row += 1;
+      }
+
+      row = 0;
+      while (row < VALUE_STRUCTURAL_ROWS) limit VALUE_STRUCTURAL_ROWS {
+        set(valueStructuralRows, row, stagedStructures[row]);
+        row += 1;
+      }
+    }
+
+    drop(stagedStructures);
+    drop(stagedOwners);
+    drop(staging);
+    return new AggregateStructuralOwnerPlan(valid);
   }
 }

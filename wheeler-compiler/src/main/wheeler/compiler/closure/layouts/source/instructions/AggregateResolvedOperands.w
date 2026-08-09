@@ -192,8 +192,11 @@ classical class AggregateResolvedOperands {
       }
 
       if (sourceKind == 4) {
-        if (projectionTargets[operation] != OPCODE_ARRAY_GET) {
-          valid = false;
+        long indexedOpcode = projectionTargets[operation];
+        if (indexedOpcode == OPCODE_ARRAY_GET) {} else {
+          if (indexedOpcode != OPCODE_SLICE_GET) {
+            valid = false;
+          }
         }
 
         if (operationArgumentCount != 1) {
@@ -205,7 +208,7 @@ classical class AggregateResolvedOperands {
           valid = false;
         }
 
-        set(stagedRows, operation, OPCODE_ARRAY_GET);
+        set(stagedRows, operation, indexedOpcode);
         set(stagedRows, 256 + operation, destination);
         set(stagedRows, 512 + operation, indexedOwner);
         if (0 < operationArgumentCount) {
