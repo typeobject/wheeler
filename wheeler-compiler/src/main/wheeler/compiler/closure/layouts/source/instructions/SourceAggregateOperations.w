@@ -7,13 +7,21 @@ import wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
 
 classical class SourceAggregateOperations {
+  private const long ARGUMENT_ROWS = 4096;
+  private const long MAX_ARGUMENTS = 1024;
   private const long MAX_OPERATIONS = 256;
   private const long OPERATION_ROWS = 2048;
   private const long TOKEN_NEW = 108960;
   private const long TOKEN_SLICE = 109526418;
 
   /// Reports the exact aggregate syntax-product extent.
-  public record SourceAggregateOperationPlan(long operationCount, boolean valid) {}
+  public record SourceAggregateOperationPlan(
+    long operationCount,
+    long argumentCount,
+    boolean valid
+  ) {}
+
+  private record StagedArguments(long count, boolean valid) {}
 
   private long closingToken(
     borrow utf8 source,
@@ -44,17 +52,123 @@ classical class SourceAggregateOperations {
     return -1;
   }
 
+  private StagedArguments stageArguments(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long firstToken,
+    long closeToken,
+    long ownerOperation,
+    long argumentCount,
+    borrow mut words stagedArguments
+  ) {
+    long argumentStart = firstToken;
+    long argumentIndex = 0;
+    long depth = 0;
+    long token = firstToken;
+    boolean valid = true;
+    while (token < closeToken) limit MAX_COMPILER_TOKENS {
+      boolean separator = false;
+      if (punctuationAt(source, tokenKinds, tokenStarts, token, 40)) {
+        depth += 1;
+      }
+
+      if (punctuationAt(source, tokenKinds, tokenStarts, token, 91)) {
+        depth += 1;
+      }
+
+      if (punctuationAt(source, tokenKinds, tokenStarts, token, 123)) {
+        depth += 1;
+      }
+
+      if (punctuationAt(source, tokenKinds, tokenStarts, token, 41)) {
+        depth -= 1;
+      }
+
+      if (punctuationAt(source, tokenKinds, tokenStarts, token, 93)) {
+        depth -= 1;
+      }
+
+      if (punctuationAt(source, tokenKinds, tokenStarts, token, 125)) {
+        depth -= 1;
+      }
+
+      if (depth < 0) {
+        valid = false;
+      }
+
+      if (depth == 0) {
+        separator = punctuationAt(source, tokenKinds, tokenStarts, token, 44);
+      }
+
+      if (separator) {
+        if (argumentStart == token) {
+          valid = false;
+        } else {
+          if (argumentCount < MAX_ARGUMENTS) {
+            set(stagedArguments, argumentCount, ownerOperation);
+            set(stagedArguments, 1024 + argumentCount, argumentIndex);
+            set(stagedArguments, 2048 + argumentCount, tokenStarts[argumentStart]);
+            set(
+              stagedArguments,
+              3072 + argumentCount,
+              tokenStarts[token] - tokenStarts[argumentStart]
+            );
+            argumentCount += 1;
+            argumentIndex += 1;
+          } else {
+            valid = false;
+          }
+        }
+
+        argumentStart = token + 1;
+      }
+
+      token += 1;
+    }
+
+    if (depth != 0) {
+      valid = false;
+    }
+
+    if (argumentStart < closeToken) {
+      if (argumentCount < MAX_ARGUMENTS) {
+        set(stagedArguments, argumentCount, ownerOperation);
+        set(stagedArguments, 1024 + argumentCount, argumentIndex);
+        set(stagedArguments, 2048 + argumentCount, tokenStarts[argumentStart]);
+        set(
+          stagedArguments,
+          3072 + argumentCount,
+          tokenStarts[closeToken] - tokenStarts[argumentStart]
+        );
+        argumentCount += 1;
+      } else {
+        valid = false;
+      }
+    } else {
+      if (firstToken < closeToken) {
+        valid = false;
+      }
+    }
+
+    return new StagedArguments(argumentCount, valid);
+  }
+
   /// Publishes sorted syntax ranges only after every aggregate expression is framed.
   public SourceAggregateOperationPlan materializeSourceAggregateOperations(
     borrow utf8 source,
-    borrow mut words operationRows
+    borrow mut words operationRows,
+    borrow mut words argumentRows
   ) {
     assert(bufferLength(operationRows) == OPERATION_ROWS);
-    region scratch = new region(/* bytes= */ 114688, /* allocations= */ 4);
+    assert(bufferLength(argumentRows) == ARGUMENT_ROWS);
+    region scratch = new region(/* bytes= */ 147456, /* allocations= */ 5);
     words tokenKinds = allocate(scratch, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(scratch, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(scratch, MAX_COMPILER_TOKENS);
     words stagedRows = allocate(scratch, OPERATION_ROWS);
+    words stagedArguments = allocate(scratch, ARGUMENT_ROWS);
     boolean valid = true;
     long tokenCount = 0;
     ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);
@@ -85,6 +199,7 @@ classical class SourceAggregateOperations {
     }
 
     long operationCount = 0;
+    long argumentCount = 0;
     long cursor = 0;
     while (cursor < semanticCount) limit MAX_COMPILER_TOKENS {
       long hash = tokenHash(source, tokenStarts, tokenLengths, cursor);
@@ -184,6 +299,23 @@ classical class SourceAggregateOperations {
               1536 + operationCount,
               tokenStarts[constructorClose] + tokenLengths[constructorClose] - tokenStarts[cursor]
             );
+            set(stagedRows, 1792 + operationCount, argumentCount);
+            StagedArguments constructorArguments = stageArguments(
+              source,
+              tokenKinds,
+              tokenStarts,
+              tokenLengths,
+              open + 1,
+              constructorClose,
+              operationCount,
+              argumentCount,
+              stagedArguments
+            );
+            argumentCount = constructorArguments.count;
+            if (constructorArguments.valid == false) {
+              valid = false;
+            }
+
             operationCount += 1;
             cursor = constructorClose + 1;
           }
@@ -221,6 +353,23 @@ classical class SourceAggregateOperations {
                     1536 + operationCount,
                     tokenStarts[sliceClose] + tokenLengths[sliceClose] - tokenStarts[cursor]
                   );
+                  set(stagedRows, 1792 + operationCount, argumentCount);
+                  StagedArguments sliceArguments = stageArguments(
+                    source,
+                    tokenKinds,
+                    tokenStarts,
+                    tokenLengths,
+                    cursor + 2,
+                    sliceClose,
+                    operationCount,
+                    argumentCount,
+                    stagedArguments
+                  );
+                  argumentCount = sliceArguments.count;
+                  if (sliceArguments.valid == false) {
+                    valid = false;
+                  }
+
                   operationCount += 1;
                   cursor += 1;
                 }
@@ -253,6 +402,7 @@ classical class SourceAggregateOperations {
                         1536 + operationCount,
                         tokenStarts[cursor + 1] + tokenLengths[cursor + 1] - tokenStarts[cursor - 1]
                       );
+                      set(stagedRows, 1792 + operationCount, argumentCount);
                       operationCount += 1;
                     }
                   }
@@ -299,6 +449,23 @@ classical class SourceAggregateOperations {
                       1536 + operationCount,
                       tokenStarts[indexClose] + tokenLengths[indexClose] - tokenStarts[cursor - 1]
                     );
+                    set(stagedRows, 1792 + operationCount, argumentCount);
+                    StagedArguments indexArguments = stageArguments(
+                      source,
+                      tokenKinds,
+                      tokenStarts,
+                      tokenLengths,
+                      cursor + 1,
+                      indexClose,
+                      operationCount,
+                      argumentCount,
+                      stagedArguments
+                    );
+                    argumentCount = indexArguments.count;
+                    if (indexArguments.valid == false) {
+                      valid = false;
+                    }
+
                     operationCount += 1;
                   }
 
@@ -319,13 +486,20 @@ classical class SourceAggregateOperations {
         set(operationRows, row, stagedRows[row]);
         row += 1;
       }
+
+      long argumentRow = 0;
+      while (argumentRow < ARGUMENT_ROWS) limit ARGUMENT_ROWS {
+        set(argumentRows, argumentRow, stagedArguments[argumentRow]);
+        argumentRow += 1;
+      }
     }
 
+    drop(stagedArguments);
     drop(stagedRows);
     drop(tokenLengths);
     drop(tokenStarts);
     drop(tokenKinds);
     drop(scratch);
-    return new SourceAggregateOperationPlan(operationCount, valid);
+    return new SourceAggregateOperationPlan(operationCount, argumentCount, valid);
   }
 }

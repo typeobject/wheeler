@@ -44,6 +44,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
     machine.run();
 
     assertEquals(7, machine.global("operationCount"));
+    assertEquals(6, machine.global("argumentCount"));
     assertEquals(1, machine.global("firstKind"));
     assertEquals(2, machine.global("secondKind"));
     assertEquals(3, machine.global("thirdKind"));
@@ -58,6 +59,9 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
     assertEquals("value", source.substring(
         Math.toIntExact(machine.global("memberStart")),
         Math.toIntExact(machine.global("memberEnd"))));
+    assertEquals("index", source.substring(
+        Math.toIntExact(machine.global("firstArgumentStart")),
+        Math.toIntExact(machine.global("firstArgumentEnd"))));
     assertEquals(7, machine.global("loweredCount"));
     assertEquals(272, machine.global("length"));
     assertEquals(0, machine.global("recordTarget"));
@@ -107,6 +111,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
 
         classical class SourceAggregateOperationsExample {
           state long operationCount = 0;
+          state long argumentCount = 0;
           state long valid = 0;
           state long firstKind = 0;
           state long secondKind = 0;
@@ -119,6 +124,8 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
           state long caseEnd = 0;
           state long memberStart = 0;
           state long memberEnd = 0;
+          state long firstArgumentStart = 0;
+          state long firstArgumentEnd = 0;
           state long loweredCount = 0;
           state long length = 0;
           state long recordTarget = -1;
@@ -130,7 +137,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
           state long arrayTarget = -1;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 75264, /* allocations= */ 9);
+            region products = new region(/* bytes= */ 108032, /* allocations= */ 10);
             words aggregates = allocate(products, /* length= */ 832);
             words cases = allocate(products, /* length= */ 640);
             words members = allocate(products, /* length= */ 2048);
@@ -139,11 +146,14 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             words ownerAggregates = allocate(products, /* length= */ 256);
             words ownerCases = allocate(products, /* length= */ 256);
             words rows = allocate(products, /* length= */ 2048);
+            words arguments = allocate(products, /* length= */ 4096);
             words resolved = allocate(products, /* length= */ 1536);
             set(rows, 0, 91);
+            set(arguments, 0, 91);
             SourceAggregateProductPlan aggregatesPlan =
               materializeSourceAggregateProducts(input, aggregates, cases, members);
-            SourceAggregateOperationPlan plan = materializeSourceAggregateOperations(input, rows);
+            SourceAggregateOperationPlan plan =
+              materializeSourceAggregateOperations(input, rows, arguments);
             long ownerRow = 0;
             while (ownerRow < 256) limit 256 {
               set(ownerAggregates, ownerRow, -1);
@@ -180,6 +190,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               projectionTargets
             );
             operationCount = plan.operationCount;
+            argumentCount = plan.argumentCount;
             if (aggregatesPlan.valid) {
               aggregatesValid = 1;
             }
@@ -205,6 +216,8 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               caseEnd = rows[769] + rows[1025];
               memberStart = rows[770];
               memberEnd = rows[770] + rows[1026];
+              firstArgumentStart = arguments[2048];
+              firstArgumentEnd = arguments[2048] + arguments[3072];
               recordTarget = targets[256];
               variantTarget = targets[257];
               fieldTarget = projectionTargets[258];
@@ -250,11 +263,14 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               length = product.length;
               setOutputLength(output, product.length);
               assert(rows[0] != 91);
+              assert(arguments[0] != 91);
             } else {
               assert(rows[0] == 91);
+              assert(arguments[0] == 91);
               setOutputLength(output, 0);
             }
             drop(resolved);
+            drop(arguments);
             drop(rows);
             drop(ownerCases);
             drop(ownerAggregates);
