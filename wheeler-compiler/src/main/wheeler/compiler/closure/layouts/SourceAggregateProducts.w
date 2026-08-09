@@ -8,7 +8,7 @@ import wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
 
 classical class SourceAggregateProducts {
-  private const long AGGREGATE_ROWS = 576;
+  private const long AGGREGATE_ROWS = 768;
   private const long CASE_ROWS = 640;
   private const long MAX_AGGREGATES = 64;
   private const long MAX_CASES = 128;
@@ -27,6 +27,14 @@ classical class SourceAggregateProducts {
   ) {}
 
   private record ParsedMembers(long nextMember, boolean valid) {}
+
+  private record StructuralType(
+    long kind,
+    long element,
+    long length,
+    boolean applies,
+    boolean valid
+  ) {}
 
   private boolean punctuation(
     borrow utf8 source,
@@ -272,6 +280,73 @@ classical class SourceAggregateProducts {
     return 0;
   }
 
+  private StructuralType structuralType(borrow utf8 source, long start, long length) {
+    long open = -1;
+    long offset = 0;
+    while (offset < length) limit 256 {
+      if (utf8Scalar(source, start + offset) == 91) {
+        if (-1 < open) {
+          return new StructuralType(0, 0, 0, true, false);
+        }
+
+        open = offset;
+      }
+
+      offset += utf8Width(source, start + offset);
+    }
+
+    if (open < 0) {
+      return new StructuralType(0, 0, 0, false, true);
+    }
+
+    if (length < open + 2) {
+      return new StructuralType(0, 0, 0, true, false);
+    }
+
+    if (utf8Scalar(source, start + length - 1) != 93) {
+      return new StructuralType(0, 0, 0, true, false);
+    }
+
+    long element = primitiveType(rangeHash(source, start, open));
+    if (element == 1) {} else {
+      if (element == 2) {} else {
+        if (element == 14) {} else {
+          return new StructuralType(0, 0, 0, true, false);
+        }
+      }
+    }
+
+    if (open + 1 == length - 1) {
+      return new StructuralType(3, element, 0, true, true);
+    }
+
+    long arrayLength = 0;
+    long digit = open + 1;
+    while (digit < length - 1) limit 20 {
+      long scalar = utf8Scalar(source, start + digit);
+      if (scalar < 48) {
+        return new StructuralType(0, 0, 0, true, false);
+      }
+
+      if (57 < scalar) {
+        return new StructuralType(0, 0, 0, true, false);
+      }
+
+      arrayLength = arrayLength * 10 + scalar - 48;
+      if (64 < arrayLength) {
+        return new StructuralType(0, 0, 0, true, false);
+      }
+
+      digit += 1;
+    }
+
+    if (arrayLength < 1) {
+      return new StructuralType(0, 0, 0, true, false);
+    }
+
+    return new StructuralType(2, element, arrayLength, true, true);
+  }
+
   private long primitiveType(long typeHash) {
     if (typeHash == 3327612) {
       return 1;
@@ -322,7 +397,7 @@ classical class SourceAggregateProducts {
     assert(bufferLength(aggregateRows) == AGGREGATE_ROWS);
     assert(bufferLength(caseRows) == CASE_ROWS);
     assert(bufferLength(memberRows) == MEMBER_ROWS);
-    region scratch = new region(/* bytes= */ 124416, /* allocations= */ 6);
+    region scratch = new region(/* bytes= */ 125952, /* allocations= */ 6);
     words tokenKinds = allocate(scratch, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(scratch, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(scratch, MAX_COMPILER_TOKENS);
@@ -686,13 +761,74 @@ classical class SourceAggregateProducts {
         set(scratchMembers, 1536 + resolvedMember, 1);
         set(scratchMembers, 1792 + resolvedMember, localTarget);
       } else {
-        long typeHash = rangeHash(source, resolvedTypeStart, resolvedTypeLength);
-        long resolvedPrimitive = primitiveType(typeHash);
-        if (resolvedPrimitive < 0) {
-          valid = false;
+        StructuralType structure = structuralType(source, resolvedTypeStart, resolvedTypeLength);
+        if (structure.applies) {
+          boolean structuralUsable = structure.valid;
+          if (structuralUsable == false) {
+            valid = false;
+          }
+
+          if (structure.kind == 3) {
+            structuralUsable = false;
+            valid = false;
+          }
+
+          long structuralTarget = -1;
+          long structuralCandidate = 0;
+          while (structuralCandidate < aggregateCount) limit MAX_AGGREGATES {
+            if (scratchAggregates[structuralCandidate] == structure.kind) {
+              if (
+                sameRange(
+                  source,
+                  resolvedTypeStart,
+                  resolvedTypeLength,
+                  scratchAggregates[64 + structuralCandidate],
+                  scratchAggregates[128 + structuralCandidate]
+                )
+              ) {
+                structuralTarget = structuralCandidate;
+              }
+            }
+
+            structuralCandidate += 1;
+          }
+
+          if (structuralUsable) {
+            if (structuralTarget < 0) {
+              if (MAX_AGGREGATES < aggregateCount + 1) {
+                valid = false;
+              } else {
+                structuralTarget = aggregateCount;
+                set(scratchAggregates, aggregateCount, structure.kind);
+                set(scratchAggregates, 64 + aggregateCount, resolvedTypeStart);
+                set(scratchAggregates, 128 + aggregateCount, resolvedTypeLength);
+                set(scratchAggregates, 192 + aggregateCount, caseCount);
+                set(scratchAggregates, 256 + aggregateCount, 0);
+                set(scratchAggregates, 320 + aggregateCount, memberCount);
+                set(scratchAggregates, 384 + aggregateCount, 0);
+                set(scratchAggregates, 448 + aggregateCount, 0);
+                set(scratchAggregates, 512 + aggregateCount, resolvedTypeStart);
+                set(scratchAggregates, 576 + aggregateCount, 0);
+                set(scratchAggregates, 640 + aggregateCount, structure.element);
+                set(scratchAggregates, 704 + aggregateCount, structure.length);
+                aggregateCount += 1;
+              }
+            }
+
+            if (-1 < structuralTarget) {
+              set(scratchMembers, 1536 + resolvedMember, 1);
+              set(scratchMembers, 1792 + resolvedMember, structuralTarget);
+            }
+          }
         } else {
-          set(scratchMembers, 1536 + resolvedMember, 0);
-          set(scratchMembers, 1792 + resolvedMember, resolvedPrimitive);
+          long typeHash = rangeHash(source, resolvedTypeStart, resolvedTypeLength);
+          long resolvedPrimitive = primitiveType(typeHash);
+          if (resolvedPrimitive < 0) {
+            valid = false;
+          } else {
+            set(scratchMembers, 1536 + resolvedMember, 0);
+            set(scratchMembers, 1792 + resolvedMember, resolvedPrimitive);
+          }
         }
       }
 

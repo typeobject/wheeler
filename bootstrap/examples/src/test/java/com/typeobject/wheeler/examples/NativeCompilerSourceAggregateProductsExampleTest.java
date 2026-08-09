@@ -16,7 +16,7 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
   void publishesRecursiveRecordProductsWithoutCompiledArtifacts() throws Exception {
     String source = """
         classical class Root {
-          public record Node(long value, Maybe next) {}
+          public record Node(long value, Maybe next, long[4] values) {}
           public variant Maybe {
             case End();
             case More(Node node);
@@ -29,18 +29,21 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
     CompilerMachineRunner.runWithoutRewindHistory(machine);
 
     assertEquals(1, machine.global("productValid"));
-    assertEquals(3, machine.global("aggregateCount"));
+    assertEquals(4, machine.global("aggregateCount"));
     assertEquals(2, machine.global("caseCount"));
-    assertEquals(5, machine.global("memberCount"));
+    assertEquals(6, machine.global("memberCount"));
     assertEquals(source.indexOf("Node"), machine.global("firstNameStart"));
     assertEquals(source.indexOf("variant Maybe") + 8, machine.global("secondNameStart"));
     assertEquals(source.indexOf("Pair"), machine.global("thirdNameStart"));
     assertEquals(1, machine.global("firstKind"));
     assertEquals(4, machine.global("secondKind"));
+    assertEquals(2, machine.global("fourthKind"));
+    assertEquals(1, machine.global("arrayElement"));
+    assertEquals(4, machine.global("arrayLength"));
     assertEquals(0, machine.global("firstMember"));
-    assertEquals(2, machine.global("secondMember"));
-    assertEquals(3, machine.global("thirdMember"));
-    assertEquals(2, machine.global("firstMemberCount"));
+    assertEquals(3, machine.global("secondMember"));
+    assertEquals(4, machine.global("thirdMember"));
+    assertEquals(3, machine.global("firstMemberCount"));
     assertEquals(1, machine.global("secondMemberCount"));
     assertEquals(2, machine.global("thirdMemberCount"));
     assertEquals(1, machine.global("firstVisibility"));
@@ -48,16 +51,18 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
     assertEquals(0, machine.global("thirdVisibility"));
     assertEquals(source.indexOf("long"), machine.global("firstTypeStart"));
     assertEquals(4, machine.global("firstTypeLength"));
-    assertEquals(source.indexOf("boolean"), machine.global("fourthTypeStart"));
-    assertEquals(7, machine.global("fourthTypeLength"));
+    assertEquals(source.indexOf("boolean"), machine.global("fifthTypeStart"));
+    assertEquals(7, machine.global("fifthTypeLength"));
     assertEquals(0, machine.global("firstTypeKind"));
     assertEquals(1, machine.global("firstTypeValue"));
     assertEquals(1, machine.global("secondTypeKind"));
     assertEquals(1, machine.global("secondTypeValue"));
     assertEquals(1, machine.global("thirdTypeKind"));
-    assertEquals(0, machine.global("thirdTypeValue"));
-    assertEquals(0, machine.global("fourthTypeKind"));
-    assertEquals(2, machine.global("fourthTypeValue"));
+    assertEquals(3, machine.global("thirdTypeValue"));
+    assertEquals(1, machine.global("fourthTypeKind"));
+    assertEquals(0, machine.global("fourthTypeValue"));
+    assertEquals(0, machine.global("fifthTypeKind"));
+    assertEquals(2, machine.global("fifthTypeValue"));
     assertEquals(source.indexOf("End"), machine.global("firstCaseNameStart"));
     assertEquals(source.indexOf("More"), machine.global("secondCaseNameStart"));
     assertEquals(0, machine.global("firstCaseMemberCount"));
@@ -91,6 +96,18 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
     assertEquals(0, machine.global("productValid"));
     assertEquals(91, machine.global("firstNameStart"));
     assertEquals(61, machine.global("firstCaseOwner"));
+  }
+
+  @Test
+  void rejectsNonescapingSliceMembersBeforePublication() throws Exception {
+    String source = "classical class Root { public record Broken(long[] values) {} }";
+    VirtualMachine machine = machine(source);
+
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+
+    assertEquals(0, machine.global("productValid"));
+    assertEquals(91, machine.global("firstNameStart"));
+    assertEquals(73, machine.global("firstMemberOwner"));
   }
 
   @Test
@@ -129,6 +146,9 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
           state long thirdNameStart = 0;
           state long firstKind = 0;
           state long secondKind = 0;
+          state long fourthKind = 0;
+          state long arrayElement = 0;
+          state long arrayLength = 0;
           state long firstMember = 0;
           state long secondMember = 0;
           state long thirdMember = 0;
@@ -140,8 +160,8 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
           state long thirdVisibility = 0;
           state long firstTypeStart = 0;
           state long firstTypeLength = 0;
-          state long fourthTypeStart = 0;
-          state long fourthTypeLength = 0;
+          state long fifthTypeStart = 0;
+          state long fifthTypeLength = 0;
           state long firstMemberOwner = 0;
           state long firstCaseOwner = 0;
           state long firstTypeKind = 0;
@@ -152,14 +172,16 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
           state long thirdTypeValue = 0;
           state long fourthTypeKind = 0;
           state long fourthTypeValue = 0;
+          state long fifthTypeKind = 0;
+          state long fifthTypeValue = 0;
           state long firstCaseNameStart = 0;
           state long secondCaseNameStart = 0;
           state long firstCaseMemberCount = 0;
           state long secondCaseMemberCount = 0;
 
           entry void main(borrow utf8 input) {
-            region rows = new region(/* bytes= */ 26112, /* allocations= */ 3);
-            words aggregates = allocate(rows, /* length= */ 576);
+            region rows = new region(/* bytes= */ 27648, /* allocations= */ 3);
+            words aggregates = allocate(rows, /* length= */ 768);
             words cases = allocate(rows, /* length= */ 640);
             words members = allocate(rows, /* length= */ 2048);
             set(aggregates, 64, 91);
@@ -179,6 +201,9 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
             memberCount = product.memberCount;
             firstKind = aggregates[0];
             secondKind = aggregates[1];
+            fourthKind = aggregates[3];
+            arrayElement = aggregates[643];
+            arrayLength = aggregates[707];
             firstNameStart = aggregates[64];
             secondNameStart = aggregates[65];
             thirdNameStart = aggregates[66];
@@ -193,8 +218,8 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
             thirdVisibility = aggregates[450];
             firstTypeStart = members[1024];
             firstTypeLength = members[1280];
-            fourthTypeStart = members[1027];
-            fourthTypeLength = members[1283];
+            fifthTypeStart = members[1028];
+            fifthTypeLength = members[1284];
             firstMemberOwner = members[0];
             firstCaseOwner = cases[0];
             firstTypeKind = members[1536];
@@ -205,6 +230,8 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
             thirdTypeValue = members[1794];
             fourthTypeKind = members[1539];
             fourthTypeValue = members[1795];
+            fifthTypeKind = members[1540];
+            fifthTypeValue = members[1796];
             firstCaseNameStart = cases[128];
             secondCaseNameStart = cases[129];
             firstCaseMemberCount = cases[512];
