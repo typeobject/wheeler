@@ -53,4 +53,49 @@ classical class CompiledBodyArchive {
       archiveBytes + artifactLength
     );
   }
+
+  /// Appends one supplemental code product for an already published module.
+  public CompiledBodyArchivePlan appendSupplementalBodyArtifact(
+    borrow byteview artifact,
+    long artifactLength,
+    long moduleOwner,
+    long artifactCount,
+    long archiveBytes,
+    borrow mut words modulePublished,
+    borrow mut words moduleSupplementalPublished,
+    borrow mut words artifactStarts,
+    borrow mut words artifactLengths,
+    borrow mut bytes archive
+  ) {
+    assert(0 < artifactLength);
+    assert(artifactLength < bufferLength(artifact) + 1);
+    assert(-1 < moduleOwner);
+    assert(moduleOwner < MAX_MODULES);
+    assert(-1 < artifactCount);
+    assert(artifactCount < MAX_MODULES);
+    assert(-1 < archiveBytes);
+    assert(artifactLength < MAX_ARTIFACT_BYTES - archiveBytes + 1);
+    assert(bufferLength(modulePublished) == MAX_MODULES);
+    assert(bufferLength(moduleSupplementalPublished) == MAX_MODULES);
+    assert(bufferLength(artifactStarts) == MAX_MODULES);
+    assert(bufferLength(artifactLengths) == MAX_MODULES);
+    assert(bufferLength(archive) == MAX_ARTIFACT_BYTES);
+    assert(modulePublished[moduleOwner] == 1);
+    assert(moduleSupplementalPublished[moduleOwner] == 0);
+
+    long sourceByte = 0;
+    while (sourceByte < artifactLength) limit MAX_ARTIFACT_BYTES {
+      setByte(archive, archiveBytes + sourceByte, artifact[sourceByte]);
+      sourceByte += 1;
+    }
+
+    set(moduleSupplementalPublished, moduleOwner, 1);
+    set(artifactStarts, artifactCount, archiveBytes);
+    set(artifactLengths, artifactCount, artifactLength);
+    return new CompiledBodyArchivePlan(
+      artifactCount,
+      artifactCount + 1,
+      archiveBytes + artifactLength
+    );
+  }
 }

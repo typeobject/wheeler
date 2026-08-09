@@ -39,9 +39,9 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
         }
         """;
     VirtualMachine machine = new VirtualMachine(program(),
-        source.getBytes(StandardCharsets.UTF_8), 272);
+        source.getBytes(StandardCharsets.UTF_8), 280);
 
-    machine.run();
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
 
     assertEquals(7, machine.global("operationCount"));
     assertEquals(6, machine.global("argumentCount"));
@@ -76,19 +76,21 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
     assertEquals(1, machine.global("secondArtifactSelector"));
     assertEquals(1, machine.global("closureFunctionCount"));
     assertEquals(8, machine.global("closureInstructionCount"));
-    assertEquals(5, machine.global("primitiveArtifactRank"));
-    assertEquals(6, machine.global("aggregateArtifactRank"));
+    assertEquals(0, machine.global("primitiveArtifactRank"));
+    assertEquals(1, machine.global("aggregateArtifactRank"));
+    assertEquals(280, machine.global("linkedLength"));
+    assertEquals(0x0500, machine.global("firstAggregateOpcode"));
     assertEquals(0, machine.global("fieldTarget"));
     assertEquals(3, machine.global("arrayTarget"));
     assertEquals(
-        List.of(0x0500, 0x0510, 0x0501, 0x0521, 0x0530, 0x0512, 0x0501),
+        List.of(0x0001, 0x0500, 0x0510, 0x0501, 0x0521, 0x0530, 0x0512, 0x0501),
         opcodes(machine.hostOutput()));
   }
 
   @Test
   void malformedConstructionPublishesNothing() throws Exception {
     VirtualMachine machine = new VirtualMachine(program(),
-        "new Pair(value".getBytes(StandardCharsets.UTF_8), 272);
+        "new Pair(value".getBytes(StandardCharsets.UTF_8), 280);
 
     machine.run();
 
@@ -114,6 +116,10 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
         "wheeler.compiler.closure.aggregate_resolved_operands"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.counted_function_products"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.compiled_body_archive"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.linked_instruction_code"));
     sources.put("SourceAggregateOperationsExample.w", """
         module example.source_aggregate_operations;
 
@@ -122,7 +128,9 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
         import wheeler.compiler.closure.aggregate_instruction_products;
         import wheeler.compiler.closure.aggregate_projection_targets;
         import wheeler.compiler.closure.aggregate_resolved_operands;
+        import wheeler.compiler.closure.compiled_body_archive;
         import wheeler.compiler.closure.counted_function_products;
+        import wheeler.compiler.closure.linked_instruction_code;
         import wheeler.compiler.closure.resolved_aggregate_operations;
         import wheeler.compiler.closure.source_aggregate_operations;
         import wheeler.compiler.closure.source_aggregate_products;
@@ -154,6 +162,8 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
           state long closureInstructionCount = 0;
           state long primitiveArtifactRank = -1;
           state long aggregateArtifactRank = -1;
+          state long linkedLength = 0;
+          state long firstAggregateOpcode = 0;
           state long recordTarget = -1;
           state long variantTarget = -1;
           state long aggregatesValid = 0;
@@ -331,8 +341,8 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               words closureInstructions = allocate(closure, /* length= */ 917504);
               CountedFunctionWindow window = appendComposedFunctionProduct(
                 /* moduleOwner= */ 0,
-                /* primitiveArtifactRank= */ 5,
-                /* aggregateArtifactRank= */ 6,
+                /* primitiveArtifactRank= */ 0,
+                /* aggregateArtifactRank= */ 1,
                 /* functionCount= */ 1,
                 composition.instructionCount,
                 composedFunctions,
@@ -349,6 +359,63 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               closureInstructionCount = window.instructionCount;
               primitiveArtifactRank = closureInstructions[262144];
               aggregateArtifactRank = closureInstructions[262145];
+              region archival = new region(/* bytes= */ 16797704, /* allocations= */ 7);
+              bytes primitiveCode = allocateBytes(archival, /* length= */ 8);
+              words modulePublished = allocate(archival, /* length= */ 512);
+              words moduleSupplementalPublished = allocate(archival, /* length= */ 512);
+              words moduleArtifactRanks = allocate(archival, /* length= */ 512);
+              words artifactStarts = allocate(archival, /* length= */ 512);
+              words artifactLengths = allocate(archival, /* length= */ 512);
+              bytes archive = allocateBytes(archival, /* length= */ 16777216);
+              setByte(primitiveCode, 0, 0x01);
+              setByte(primitiveCode, 4, 0x08);
+              CompiledBodyArchivePlan primitivePlan = appendCompiledBodyArtifact(
+                primitiveCode,
+                /* artifactLength= */ 8,
+                /* moduleOwner= */ 0,
+                /* artifactCount= */ 0,
+                /* archiveBytes= */ 0,
+                modulePublished,
+                moduleArtifactRanks,
+                artifactStarts,
+                artifactLengths,
+                archive
+              );
+              CompiledBodyArchivePlan aggregatePlan = appendSupplementalBodyArtifact(
+                output,
+                product.length,
+                /* moduleOwner= */ 0,
+                primitivePlan.artifactCount,
+                primitivePlan.archiveBytes,
+                modulePublished,
+                moduleSupplementalPublished,
+                artifactStarts,
+                artifactLengths,
+                archive
+              );
+              linkedLength = emitLinkedInstructionCodeAt(
+                archive,
+                aggregatePlan.archiveBytes,
+                artifactStarts,
+                artifactLengths,
+                window.functionCount,
+                window.instructionCount,
+                moduleFirstFunctions,
+                moduleFunctionCounts,
+                closureFunctions,
+                closureInstructions,
+                output,
+                /* outputStart= */ 0
+              );
+              firstAggregateOpcode = output[8] + output[9] * 256;
+              drop(archive);
+              drop(artifactLengths);
+              drop(artifactStarts);
+              drop(moduleArtifactRanks);
+              drop(moduleSupplementalPublished);
+              drop(modulePublished);
+              drop(primitiveCode);
+              drop(archival);
               drop(closureInstructions);
               drop(closureFunctions);
               drop(moduleFunctionCounts);
@@ -356,7 +423,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               drop(closure);
               loweredCount = product.instructionCount;
               length = product.length;
-              setOutputLength(output, product.length);
+              setOutputLength(output, linkedLength);
               assert(rows[0] != 91);
               assert(arguments[0] != 91);
             } else {

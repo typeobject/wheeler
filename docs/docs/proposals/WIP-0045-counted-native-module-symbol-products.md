@@ -182,7 +182,7 @@ The seven-frame executor remains differential conformance evidence until step 9.
 - [x] WIP-0047 resolves imported calls to compiled callable bytecode products. `CallableDependencyProducts.w` packs public local and locked external products in header rank.
 - [x] `ModuleCallables.w` publishes owner, visibility, canonical name, complete signature range, forward/reverse body range, and parameter count after one complete staged-source pass. `CallableTypeProducts.w` freezes primitive type codes before source release.
 - [x] Private callable products stay local. Direct edges count only public dependency callables in header rank.
-- [x] The physical compiler closure publishes 1,197 callable signatures with peak active source count one.
+- [x] The physical compiler closure publishes 1,198 callable signatures with peak active source count one.
 - [x] Canonical result and parameter type ranges, owner or loan mode, and effect bits publish in counted columns. A fixture distinguishes owner, `borrow`, and `borrow mut` parameters.
 - [x] `CallableIdentities.w` publishes package-, source-, visibility-, effect-, name-, result-, parameter-type-, and loan-bound signature identities. Independent Java digests match a leaf and root product. An invalid loan mode publishes nothing.
 - [x] Reversible value products publish the fixed two-local result-slot width. Void and ordinary value products publish zero.
