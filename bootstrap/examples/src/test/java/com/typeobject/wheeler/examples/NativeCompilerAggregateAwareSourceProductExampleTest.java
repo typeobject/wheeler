@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 /** Native evidence for aggregate-aware complete source-product compilation. */
 final class NativeCompilerAggregateAwareSourceProductExampleTest {
   private static final String SOURCE = """
-      classical class Root { private record Local(long value) {} private long use(Box value) { Local item = new Local(7); return 7; } }
+      classical class Root { private record Local(long value) {} private long use(Box value, long number) { Local item = new Local(number); return 7; } }
       """.strip();
 
   @Test
@@ -40,8 +40,11 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
     assertEquals(3, machine.global("carrierTarget"));
     assertEquals(1, machine.global("localValueCarrierRole"));
     assertEquals(2, machine.global("localConstructorCarrierRole"));
-    assertEquals(2, machine.global("localValueCarrierLocal"));
-    assertEquals(2, machine.global("localValueProductLocal"));
+    assertEquals(3, machine.global("localValueCarrierLocal"));
+    assertEquals(3, machine.global("localValueProductLocal"));
+    assertEquals(3, machine.global("derivedDestinationLocal"));
+    assertEquals(1, machine.global("derivedArgumentLocal"));
+    assertEquals(0, machine.global("derivedOperationFunction"));
     assertEquals(SOURCE.indexOf("Local item"), machine.global("firstSourceStatementStart"));
     Program product = new BytecodeReader().read(machine.hostOutput());
     assertEquals(2, product.functions().size());
@@ -66,8 +69,9 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
         + "private record Local(long value) {}".length();
     int referenceStart = SOURCE.indexOf("Box");
     int localValueReferenceStart = SOURCE.indexOf("Local item");
-    int localConstructorReferenceStart = SOURCE.indexOf("Local(7)");
-    int operationStart = SOURCE.indexOf("new Local(7)");
+    int localConstructorReferenceStart = SOURCE.indexOf("Local(number)");
+    int operationStart = SOURCE.indexOf("new Local(number)");
+    int argumentStart = SOURCE.indexOf("number)", operationStart);
     int callableBodyStart = SOURCE.indexOf("{ Local item");
     int callableBodyEnd = SOURCE.indexOf("}", callableBodyStart) + 1;
     Map<String, String> sources = new LinkedHashMap<>();
@@ -96,12 +100,16 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
           state long localConstructorCarrierRole = 0;
           state long localValueCarrierLocal = 0;
           state long localValueProductLocal = 0;
+          state long derivedDestinationLocal = 0;
+          state long derivedArgumentLocal = 0;
+          state long derivedOperationFunction = 0;
           state long firstSourceStatementStart = 0;
 
           entry void main(borrow byteview input, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 2021408, /* allocations= */ 24);
+            region rows = new region(/* bytes= */ 2072608, /* allocations= */ 29);
             words localAggregates = allocate(rows, /* length= */ 832);
             words operations = allocate(rows, /* length= */ 2048);
+            words arguments = allocate(rows, /* length= */ 4096);
             words localReferences = allocate(rows, /* length= */ 1536);
             words localProjections = allocate(rows, /* length= */ 4096);
             words localCarriers = allocate(rows, /* length= */ 2048);
@@ -110,6 +118,10 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             words localStatements = allocate(rows, /* length= */ 24576);
             words localValues = allocate(rows, /* length= */ 7168);
             words localFunctionLocals = allocate(rows, /* length= */ 64);
+            words localDestinations = allocate(rows, /* length= */ 256);
+            words localOwners = allocate(rows, /* length= */ 256);
+            words localArgumentLocals = allocate(rows, /* length= */ 1024);
+            words localPlacements = allocate(rows, /* length= */ 768);
             words references = allocate(rows, /* length= */ 256);
             words carrierFunctions = allocate(rows, /* length= */ 64);
             words carrierLocals = allocate(rows, /* length= */ 64);
@@ -133,7 +145,11 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             set(operations, 256, %d);
             set(operations, 512, 5);
             set(operations, 1280, %d);
-            set(operations, 1536, 12);
+            set(operations, 1536, 17);
+            set(arguments, 0, 0);
+            set(arguments, 1024, 0);
+            set(arguments, 2048, %d);
+            set(arguments, 3072, 6);
             set(localReferences, 0, 0);
             set(localReferences, 1, 0);
             set(localReferences, 512, %d);
@@ -154,6 +170,8 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
               localAggregates,
               /* operationCount= */ 1,
               operations,
+              /* argumentCount= */ 1,
+              arguments,
               /* localNominalReferenceCount= */ 2,
               localReferences,
               localProjections,
@@ -165,6 +183,10 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
               localStatements,
               localValues,
               localFunctionLocals,
+              localDestinations,
+              localOwners,
+              localArgumentLocals,
+              localPlacements,
               /* moduleOwner= */ 9,
               /* firstRecordTypeId= */ 1,
               /* firstVariantTypeId= */ 0,
@@ -199,7 +221,10 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             localValueCarrierRole = localProjections[512];
             localConstructorCarrierRole = localProjections[513];
             localValueCarrierLocal = localProjections[1536];
-            localValueProductLocal = localValues[3073];
+            localValueProductLocal = localValues[3074];
+            derivedDestinationLocal = localDestinations[0];
+            derivedArgumentLocal = localArgumentLocals[0];
+            derivedOperationFunction = localPlacements[0];
             firstSourceStatementStart = localStatements[16384];
             published = 1;
             setOutputLength(output, compiled.length);
@@ -217,6 +242,10 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             drop(carrierLocals);
             drop(carrierFunctions);
             drop(references);
+            drop(localPlacements);
+            drop(localArgumentLocals);
+            drop(localOwners);
+            drop(localDestinations);
             drop(localFunctionLocals);
             drop(localValues);
             drop(localStatements);
@@ -225,6 +254,7 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             drop(localCarriers);
             drop(localProjections);
             drop(localReferences);
+            drop(arguments);
             drop(operations);
             drop(localAggregates);
             drop(rows);
@@ -237,6 +267,7 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             declarationEnd,
             localConstructorReferenceStart,
             operationStart,
+            argumentStart,
             localValueReferenceStart,
             localConstructorReferenceStart,
             referenceStart,
