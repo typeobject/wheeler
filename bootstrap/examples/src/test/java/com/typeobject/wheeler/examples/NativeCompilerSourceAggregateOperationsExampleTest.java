@@ -74,6 +74,13 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
         machine.global("localCarrierLength"));
     assertEquals(108, machine.global("firstLocalCarrierByte"));
     assertEquals(108, machine.global("firstVariantCarrierByte"));
+    assertEquals(4, machine.global("localValueCarrierCount"));
+    assertEquals(2, machine.global("localConstructorCarrierCount"));
+    assertEquals(0, machine.global("localSignatureCarrierCount"));
+    assertEquals(1, machine.global("firstLocalCarrierRole"));
+    assertEquals(2, machine.global("firstConstructorCarrierRole"));
+    assertEquals(0, machine.global("invalidCarrierProjectionValid"));
+    assertEquals(91, machine.global("invalidCarrierProjectionSentinel"));
     assertEquals(1, machine.global("targetsValidState"));
     assertEquals(1, machine.global("projectionsValidState"));
     assertEquals(1, machine.global("bindingsValidState"));
@@ -240,6 +247,8 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
         "wheeler.compiler.closure.local_nominal_references"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.local_nominal_carriers"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.local_nominal_carrier_projections"));
     sources.put("SourceAggregateOperationsExample.w", """
         module example.source_aggregate_operations;
 
@@ -252,6 +261,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
         import wheeler.compiler.closure.compiled_body_archive;
         import wheeler.compiler.closure.counted_function_products;
         import wheeler.compiler.closure.linked_instruction_code;
+        import wheeler.compiler.closure.local_nominal_carrier_projections;
         import wheeler.compiler.closure.local_nominal_carriers;
         import wheeler.compiler.closure.local_nominal_references;
         import wheeler.compiler.closure.resolved_aggregate_operations;
@@ -296,6 +306,13 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
           state long localCarrierLength = 0;
           state long firstLocalCarrierByte = 0;
           state long firstVariantCarrierByte = 0;
+          state long localValueCarrierCount = 0;
+          state long localConstructorCarrierCount = 0;
+          state long localSignatureCarrierCount = 0;
+          state long firstLocalCarrierRole = 0;
+          state long firstConstructorCarrierRole = 0;
+          state long invalidCarrierProjectionValid = 1;
+          state long invalidCarrierProjectionSentinel = 0;
           state long targetsValidState = 0;
           state long projectionsValidState = 0;
           state long bindingsValidState = 0;
@@ -304,7 +321,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
           state long arrayTarget = -1;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 912896, /* allocations= */ 26);
+            region products = new region(/* bytes= */ 1035776, /* allocations= */ 29);
             words aggregates = allocate(products, /* length= */ 832);
             words cases = allocate(products, /* length= */ 640);
             words members = allocate(products, /* length= */ 2048);
@@ -318,6 +335,9 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             words localCarrierRows = allocate(products, /* length= */ 2048);
             bytes localSourceStorage = allocateBytes(products, /* length= */ 32768);
             bytes localCarrierSource = allocateBytes(products, /* length= */ 32768);
+            words localCarrierProjections = allocate(products, /* length= */ 4096);
+            words invalidCarrierProjections = allocate(products, /* length= */ 4096);
+            words localCarrierValues = allocate(products, /* length= */ 7168);
             words valueRows = allocate(products, /* length= */ 7168);
             words statementRows = allocate(products, /* length= */ 24576);
             words argumentLocals = allocate(products, /* length= */ 1024);
@@ -360,6 +380,45 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               localCarrierRows,
               localCarrierSource
             );
+            set(localCarrierValues, 1024, localCarrierRows[512] + localCarrierRows[1024] + 1);
+            set(localCarrierValues, 3072, 1);
+            set(localCarrierValues, 1025, localCarrierRows[513] + localCarrierRows[1025] + 1);
+            set(localCarrierValues, 3073, 3);
+            set(localCarrierValues, 1026, localCarrierRows[515] + localCarrierRows[1027] + 1);
+            set(localCarrierValues, 3074, 5);
+            set(localCarrierValues, 1027, localCarrierRows[517] + localCarrierRows[1029] + 1);
+            set(localCarrierValues, 3075, 13);
+            LocalNominalCarrierProjectionPlan localCarrierProjectionPlan =
+              publishLocalNominalCarrierProjections(
+                input,
+                localCarriers.referenceCount,
+                localCarrierRows,
+                /* valueCount= */ 4,
+                localCarrierValues,
+                plan.operationCount,
+                rows,
+                localCarrierProjections
+              );
+            set(invalidCarrierProjections, 0, 91);
+            set(localCarrierValues, 0, 64);
+            LocalNominalCarrierProjectionPlan invalidCarrierProjection =
+              publishLocalNominalCarrierProjections(
+                input,
+                /* referenceCount= */ 1,
+                localCarrierRows,
+                /* valueCount= */ 4,
+                localCarrierValues,
+                plan.operationCount,
+                rows,
+                invalidCarrierProjections
+              );
+            if (invalidCarrierProjection.valid) {
+              invalidCarrierProjectionValid = 1;
+            } else {
+              invalidCarrierProjectionValid = 0;
+            }
+            invalidCarrierProjectionSentinel = invalidCarrierProjections[0];
+            set(localCarrierValues, 0, 0);
             long frontendOperation = 0;
             while (frontendOperation < plan.operationCount) limit 256 {
               set(statementRows, 8192 + frontendOperation, frontendOperation);
@@ -501,6 +560,13 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               firstLocalCarrierByte = localCarrierSource[localCarrierRows[1536]];
               firstVariantCarrierByte = localCarrierSource[localCarrierRows[1539]];
             }
+            if (localCarrierProjectionPlan.valid) {
+              localValueCarrierCount = localCarrierProjectionPlan.valueCount;
+              localConstructorCarrierCount = localCarrierProjectionPlan.constructorCount;
+              localSignatureCarrierCount = localCarrierProjectionPlan.signatureCount;
+              firstLocalCarrierRole = localCarrierProjections[512];
+              firstConstructorCarrierRole = localCarrierProjections[514];
+            }
             if (targetsValid) {
               targetsValidState = 1;
             }
@@ -517,6 +583,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
               assert(aggregatesPlan.valid);
               assert(localNominals.valid);
               assert(localCarriers.valid);
+              assert(localCarrierProjectionPlan.valid);
               assert(targetsValid);
               assert(projectionsValid);
               assert(bindings.valid);
@@ -671,6 +738,9 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             drop(argumentLocals);
             drop(statementRows);
             drop(valueRows);
+            drop(localCarrierValues);
+            drop(invalidCarrierProjections);
+            drop(localCarrierProjections);
             drop(localCarrierSource);
             drop(localSourceStorage);
             drop(localCarrierRows);

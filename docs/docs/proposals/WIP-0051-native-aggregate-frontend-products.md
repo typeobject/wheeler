@@ -107,7 +107,8 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 - [ ] The callable compiler invokes primitive frontend publication in the same transaction as its body artifact and adds expression-temporary rows.
 - [x] `LocalNominalReferences.w` indexes callable signature, parameter, local, and constructor uses of source-local record and variant names while excluding declaration bodies.
 - [x] `LocalNominalCarriers.w` rewrites sorted local nominal ranges to compact signed carriers and publishes exact old-to-new coordinates without partial source mutation.
-- [ ] The callable compiler binds source-local carriers to exact local-type coordinates and removes them before archival.
+- [x] `LocalNominalCarrierProjections.w` classifies source-local carriers as value, constructor, or signature uses and binds value carriers to exact function-local coordinates atomically.
+- [ ] The callable compiler removes projected local and signature carriers before archival.
 - [ ] Aggregate-only statements are removed from primitive compilation without moving newlines.
 - [x] `SourceAggregateOperations.w` normalizes nested constructors, field chains, and postfix slice indexes into evaluation postorder and remaps their argument owners.
 - [ ] Record, variant, fixed-array, slice, ownership, and field-chain fixtures match stage 0 byte for byte.
