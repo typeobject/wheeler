@@ -106,6 +106,7 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 - [x] `PrimitiveFrontendProducts.w` converts bounded scanner, statement, parameter, and local-width products into named value rows and distinct source and splice statement ordinals. Malformed statements leave caller rows untouched.
 - [x] `compileAggregateSourceModuleProductWithImports` consumes counted aggregate operations, local references, and carrier projections while producing its primitive body artifact.
 - [x] `AggregateExpressionTemporaries.w` appends source-ordered locals for nested operations while retaining the primitive frontend's named outer destination.
+- [x] `AggregateFrontendBindings.w` derives operation functions from exact destination value products rather than trusting statement fixtures.
 - [x] `AggregatePlaceholderPlacements.w` derives splice ordinals from exact compiled zero-local placeholders instead of accepting fixture ordinals.
 - [ ] The callable compiler invokes primitive frontend publication in the same transaction.
 - [x] `LocalNominalReferences.w` indexes callable signature, parameter, local, and constructor uses of source-local record and variant names while excluding declaration bodies.

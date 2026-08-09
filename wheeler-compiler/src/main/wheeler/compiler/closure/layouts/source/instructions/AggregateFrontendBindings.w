@@ -219,6 +219,28 @@ classical class AggregateFrontendBindings {
         valid = false;
       }
 
+      long destinationMatches = 0;
+      long destination = -1;
+      long selectedFunction = -1;
+      value = 0;
+      while (value < valueCount) limit MAX_VALUES {
+        if (valueRows[5120 + value] == expressionStart) {
+          if (valueRows[6144 + value] == expressionLength) {
+            destinationMatches += 1;
+            destination = valueRows[3072 + value];
+            selectedFunction = valueRows[value];
+          }
+        }
+
+        value += 1;
+      }
+
+      if (destinationMatches != 1) {
+        valid = false;
+      } else {
+        set(stagedDestinations, operation, destination);
+      }
+
       long selectedStatement = -1;
       long statementMatches = 0;
       statement = 0;
@@ -239,36 +261,12 @@ classical class AggregateFrontendBindings {
         valid = false;
       }
 
-      long selectedFunction = 0;
       long selectedOrdinal = 0;
       if (-1 < selectedStatement) {
-        selectedFunction = statementRows[selectedStatement];
         selectedOrdinal = statementRows[8192 + selectedStatement];
         set(stagedPlacements, operation, selectedFunction);
         set(stagedPlacements, 256 + operation, statementRows[4096 + selectedStatement]);
         set(stagedPlacements, 512 + operation, statementRows[12288 + selectedStatement]);
-      }
-
-      long destinationMatches = 0;
-      long destination = -1;
-      value = 0;
-      while (value < valueCount) limit MAX_VALUES {
-        if (valueRows[value] == selectedFunction) {
-          if (valueRows[5120 + value] == expressionStart) {
-            if (valueRows[6144 + value] == expressionLength) {
-              destinationMatches += 1;
-              destination = valueRows[3072 + value];
-            }
-          }
-        }
-
-        value += 1;
-      }
-
-      if (destinationMatches != 1) {
-        valid = false;
-      } else {
-        set(stagedDestinations, operation, destination);
       }
 
       long operationKind = operationRows[operation];

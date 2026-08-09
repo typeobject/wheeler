@@ -485,6 +485,7 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
             );
             long frontendOperation = 0;
             while (frontendOperation < plan.operationCount) limit 256 {
+              set(statementRows, frontendOperation, 5);
               set(statementRows, 8192 + frontendOperation, frontendOperation);
               set(statementRows, 12288 + frontendOperation, 1);
               set(statementRows, 16384 + frontendOperation, rows[1280 + frontendOperation]);
