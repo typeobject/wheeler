@@ -8,6 +8,7 @@ import wheeler.compiler.closure.aggregate_expression_temporaries;
 import wheeler.compiler.closure.aggregate_frontend_bindings;
 import wheeler.compiler.closure.aggregate_instruction_composition;
 import wheeler.compiler.closure.aggregate_instruction_products;
+import wheeler.compiler.closure.aggregate_placeholder_placements;
 import wheeler.compiler.closure.aggregate_projection_targets;
 import wheeler.compiler.closure.aggregate_resolved_operands;
 import wheeler.compiler.closure.counted_local_nominal_carriers;

@@ -20,6 +20,7 @@ final class NativeCompilerPrimitivePlaceholderProjectionExampleTest {
     machine.run();
 
     assertEquals(1, machine.global("valid"));
+    assertEquals(1, machine.global("placementValid"));
     assertEquals(1, machine.global("instructionCount"));
     assertEquals(8, machine.global("functionLength"));
     assertEquals(1, machine.global("remainingOpcode"));
@@ -34,6 +35,7 @@ final class NativeCompilerPrimitivePlaceholderProjectionExampleTest {
     machine.run();
 
     assertEquals(0, machine.global("valid"));
+    assertEquals(0, machine.global("placementValid"));
     assertEquals(0, machine.global("instructionCount"));
     assertEquals(91, machine.global("remainingOpcode"));
   }
@@ -51,13 +53,17 @@ final class NativeCompilerPrimitivePlaceholderProjectionExampleTest {
     CoreSources.addBinaryClosure(sources);
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.primitive_placeholder_projection"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.aggregate_placeholder_placements"));
     sources.put("PrimitivePlaceholderProjectionExample.w", """
         module example.primitive_placeholder_projection;
 
+        import wheeler.compiler.closure.aggregate_placeholder_placements;
         import wheeler.compiler.closure.primitive_placeholder_projection;
 
         classical class PrimitivePlaceholderProjectionExample {
           state long valid = 0;
+          state long placementValid = 0;
           state long instructionCount = 0;
           state long functionLength = 0;
           state long remainingOpcode = 0;
@@ -65,11 +71,13 @@ final class NativeCompilerPrimitivePlaceholderProjectionExampleTest {
           state long adjustedPlacement = -1;
 
           entry void main(borrow byteview input, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 434176, /* allocations= */ 9);
+            region rows = new region(/* bytes= */ 438272, /* allocations= */ 10);
             words functions = allocate(rows, /* length= */ 640);
             words instructions = allocate(rows, /* length= */ 24576);
             words operations = allocate(rows, /* length= */ 2048);
             words destinations = allocate(rows, /* length= */ 256);
+            words operationFunctions = allocate(rows, /* length= */ 256);
+            words operationDirections = allocate(rows, /* length= */ 256);
             words placements = allocate(rows, /* length= */ 768);
             words projectedFunctions = allocate(rows, /* length= */ 640);
             words projectedInstructions = allocate(rows, /* length= */ 24576);
@@ -92,10 +100,25 @@ final class NativeCompilerPrimitivePlaceholderProjectionExampleTest {
             set(operations, 1537, 5);
             set(destinations, 0, 4);
             set(destinations, 1, 3);
-            set(placements, 0, 0);
-            set(placements, 256, 0);
-            set(placements, 512, 0);
+            set(placements, 0, 91);
             set(projectedInstructions, 12288, 91);
+            AggregatePlaceholderPlacementPlan placementPlan =
+              deriveAggregatePlaceholderPlacements(
+                input,
+                bufferLength(input),
+                /* functionCount= */ 1,
+                /* primitiveInstructionCount= */ 2,
+                instructions,
+                /* operationCount= */ 2,
+                operations,
+                destinations,
+                operationFunctions,
+                operationDirections,
+                placements
+              );
+            if (placementPlan.valid) {
+              placementValid = 1;
+            }
             PrimitivePlaceholderProjectionPlan plan = projectPrimitiveAggregatePlaceholders(
               input,
               bufferLength(input),
@@ -124,6 +147,8 @@ final class NativeCompilerPrimitivePlaceholderProjectionExampleTest {
             drop(projectedInstructions);
             drop(projectedFunctions);
             drop(placements);
+            drop(operationDirections);
+            drop(operationFunctions);
             drop(destinations);
             drop(operations);
             drop(instructions);
