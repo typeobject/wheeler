@@ -9,6 +9,8 @@ import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +45,21 @@ final class NativeCompilerInstructionOwnershipProductsExampleTest {
     assertEquals(moves, machine.global("moveCount"));
     assertEquals(drops, machine.global("dropCount"));
     assertEquals(1, machine.global("published"));
+  }
+
+  @Test
+  void derivesCreationFromASupplementalArtifactSelector() throws Exception {
+    byte[] supplemental = ByteBuffer.allocate(40).order(ByteOrder.LITTLE_ENDIAN)
+        .putShort((short) 0x0500).putShort((short) 4).putInt(40)
+        .putLong(3).putLong(0).putLong(1).putLong(1)
+        .array();
+    VirtualMachine machine = VirtualMachine.withBinaryInput(composedDecoder(), supplemental);
+
+    machine.run();
+
+    assertEquals(1, machine.global("eventCount"));
+    assertEquals(5, machine.global("eventKind"));
+    assertEquals(3, machine.global("destination"));
   }
 
   @Test
@@ -85,6 +102,52 @@ final class NativeCompilerInstructionOwnershipProductsExampleTest {
         """;
     return new WheelerCompiler().compileLibraryModuleFiles(
         Map.of("InstructionOwnership.w", source), "fixture.instruction_ownership");
+  }
+
+  private static Program composedDecoder() throws Exception {
+    Map<String, String> sources = new LinkedHashMap<>();
+    CoreSources.addBinaryClosure(sources);
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.instruction_ownership_products"));
+    sources.put("ComposedInstructionOwnershipExample.w", """
+        module example.composed_instruction_ownership;
+
+        import wheeler.compiler.closure.instruction_ownership_products;
+
+        classical class ComposedInstructionOwnershipExample {
+          state long eventCount = 0;
+          state long eventKind = 0;
+          state long destination = -1;
+
+          entry void main(borrow byteview source) {
+            region rows = new region(/* bytes= */ 557056, /* allocations= */ 3);
+            words instructions = allocate(rows, /* length= */ 24576);
+            words selectors = allocate(rows, /* length= */ 4096);
+            words events = allocate(rows, /* length= */ 40960);
+            set(instructions, 0, 0);
+            set(instructions, 4096, 0);
+            set(instructions, 8192, 0);
+            set(instructions, 12288, 0x0500);
+            set(selectors, 0, 1);
+            eventCount = deriveComposedInstructionOwnershipProducts(
+              source,
+              source,
+              /* instructionCount= */ 1,
+              instructions,
+              selectors,
+              events
+            );
+            eventKind = events[0];
+            destination = events[24576];
+            drop(events);
+            drop(selectors);
+            drop(instructions);
+            drop(rows);
+          }
+        }
+        """);
+    return new WheelerCompiler().compileModuleFiles(
+        sources, "example.composed_instruction_ownership");
   }
 
   private static Program decoder(boolean malformed) throws Exception {
