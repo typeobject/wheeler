@@ -15,7 +15,7 @@
 
 Lower record, variant, fixed-array, and slice source into source-local semantic products without importing dependency source. Resolve local and imported nominal references to WIP-0046 aggregate identities. Compile aggregate instructions into WIP-0047 body products, then discard all source ranges and generated scaffolding.
 
-This work is split from WIP-0049 because aggregate parsing, descriptor construction, ownership projection, and temporary nominal declarations have different failure boundaries. WIP-0049 still owns module compilation. This proposal owns the aggregate-aware part of that compilation.
+This work is split from WIP-0049 because aggregate parsing, descriptor construction, ownership projection, and temporary nominal declarations have different failure boundaries. WIP-0049 still owns module compilation. This proposal owns aggregate semantic products and canonical emission. [WIP-0051](WIP-0051-native-aggregate-frontend-products.md) owns publication of primitive-frontend values and splice coordinates.
 
 ## Source boundary
 
@@ -112,7 +112,7 @@ Scratch token, declaration, descriptor, and projection windows are independently
 - [x] `AggregateSourceProjection.w` blanks validated local record and variant declarations at stable offsets before primitive body compilation. Newlines remain in place, call offsets do not move, and invalid ranges publish nothing.
 - [ ] Source products cover nonescaping slice use outside aggregate storage.
 - [x] `ImportedNominalProducts.w` resolves qualified or unqualified nominal names from public WIP-0046 aggregate rows and counted artifact-string products. Qualification binds dependency rank. Equal unqualified matches remain ambiguous, and malformed string products fail closed.
-- [ ] The native compiler core places projected aggregate descriptors into source-local artifacts and lowers aggregate source expressions.
+- [ ] The native compiler core derives aggregate locals and splice coordinates from primitive-frontend products as specified by WIP-0051.
 - [x] Source-projected recursive records, variants, and fixed arrays pass through counted layout and string products into `LinkedAggregateSections.w`. Native evidence checks final record fields, recursive descriptor codes, variant cases and payloads, and structural-array descriptors without a temporary aggregate artifact.
 - [x] `SourceAggregateOperations.w` indexes nominal and variant constructors, field and indexed projections, and slice constructors in source order. It publishes bounded expression, type, selector, index, and top-level argument ranges only after every aggregate expression is framed. Nested calls and indexes do not split arguments. Fixed-array type brackets are not mistaken for projections.
 - [x] `AggregateConstructorTargets.w` resolves local record, variant-case, and fixed-array constructor ranges against counted source products. Exact name and kind matches publish descriptor and case coordinates atomically.
@@ -128,7 +128,7 @@ Scratch token, declaration, descriptor, and projection windows are independently
 - [x] `LinkedLocalTypes.w` consumes temporary owner, source-code, and aggregate-row projections before final descriptor emission. `ImportedNominalCarrierProjections.w` adds exact module, local-function, and local-type coordinates for nonretained signed carriers. The linker validates every coordinate and signed source slot before replacing it with the target record or variant descriptor. Missing, duplicate, or kind-inconsistent projections fail before publication.
 - [x] `AggregateOperandProjections.w` maps temporary owner, kind, and type IDs to aggregate rows and stable product identities. Duplicate projections leave relocation rows and identities untouched.
 - [x] Counted aggregate archival accepts exact generated suffix counts, validates every retained case and member range before mutation, and excludes the generated aggregate, case, and member suffixes. Native evidence covers successful prefix retention and failure before publication.
-- [ ] Aggregate-aware source-local artifacts match stage 0 byte for byte.
+- [ ] Aggregate-aware source-local artifacts match stage 0 byte for byte under the WIP-0051 acceptance suite.
 
 ## Acceptance
 
@@ -140,6 +140,8 @@ Scratch token, declaration, descriptor, and projection windows are independently
 - No retained row names a temporary descriptor or generated source range.
 - No authored file reaches 1,000 lines.
 - No Wheeler source directory exceeds ten files.
+
+[WIP-0051](WIP-0051-native-aggregate-frontend-products.md) specifies frontend value publication, primitive source projection, and nested-expression postorder.
 
 ## Rejected alternatives
 

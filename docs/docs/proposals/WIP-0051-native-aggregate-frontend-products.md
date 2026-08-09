@@ -1,0 +1,146 @@
+# WIP-0051: Native aggregate frontend products
+
+| Field | Value |
+| --- | --- |
+| Status | Implementing |
+| Owners | Wheeler compiler, aggregate, bytecode, and bootstrap maintainers |
+| Created | 2026-08-09 |
+| Updated | 2026-08-09 |
+| Area | Self-hosting, frontend products, aggregate lowering, bootstrap |
+| Depends on | WIP-0045, WIP-0047, WIP-0049, WIP-0050 |
+| Supersedes | None |
+| Superseded by | None |
+
+## Summary
+
+Publish the primitive frontend values and statement coordinates needed to lower aggregate source without fixture projections. WIP-0050 owns aggregate syntax, descriptors, resolved operands, code products, composition, archival, and final emission. This proposal owns the remaining join between authored source and those products.
+
+The join is temporary compiler evidence. Canonical `.wbc` 1.0 remains the only retained semantic IR.
+
+## Problem
+
+Aggregate source lowering now has counted products for declarations, constructors, arguments, fields, indexes, owners, operands, instructions, splice composition, archive ranks, and final linked bytes. The native evidence currently supplies local registers and splice coordinates as fixture data. A physical compiler module cannot do that. Its primitive frontend must publish the same data before source release.
+
+Inferring registers from emitted byte offsets is not acceptable. It couples semantic lowering to an accidental encoder layout and fails when one source expression creates several temporaries. Re-reading dependency source is also forbidden.
+
+## Frontend value product
+
+Each source-local frontend value row contains:
+
+1. local function row
+2. name range
+3. source-local register
+4. definition source ordinal
+5. definition range
+6. resolved local type product
+7. ownership mode
+
+The name range may be absent for a compiler temporary. A temporary still has one exact definition range. Parameters precede body definitions in source order. Two live values with the same name are legal only when their definition ordinals establish unambiguous shadowing.
+
+The first profile admits 1,024 frontend values per module and 256 registers per function. Validation of every function, register, type, mode, and source range precedes publication.
+
+## Statement product
+
+Each primitive statement row contains:
+
+1. local function row
+2. forward or inverse direction
+3. source ordinal
+4. splice ordinal in the projected primitive body
+5. source range
+
+Source ordinal resolves visibility. Splice ordinal orders final instructions. They are not interchangeable. Removing one aggregate statement from the primitive projection changes later splice ordinals but does not change source visibility.
+
+A source expression belongs to exactly one statement row. Nested aggregate expressions additionally carry an evaluation parent and are emitted in postorder. Equal splice ordinals preserve that postorder.
+
+## Primitive projection
+
+Before primitive compilation, the compiler projects aggregate-only statements out of the leased source. It may replace a mixed expression with a typed carrier only when the frontend publishes the carrier's exact value and definition products. The projection preserves newlines and publishes a monotone old-to-new offset map.
+
+Local nominal types use nonretained carrier types during primitive checking. Imported carriers continue to use the exact module, function, and local-type coordinates from WIP-0050. Source-local carriers receive equivalent coordinates. Neither carrier kind enters retained local types, identities, or final code.
+
+The primitive compiler publishes value and statement rows from the projected source in the same transaction as its body artifact. Failure withholds the artifact, rows, aggregate code, archive ranks, and body identity.
+
+## Binding
+
+`AggregateFrontendBindings.w` joins aggregate expression and argument ranges to frontend products. It requires:
+
+- one containing statement per operation
+- one exact definition value per operation result
+- one latest visible named value or exact temporary per argument
+- one latest visible owner for field and indexed projections
+- separate source and splice ordinals
+
+The join publishes destination locals, owner locals, argument locals, and placement rows atomically. WIP-0050 then owns descriptor resolution, operand assembly, canonical code generation, composition, and linking.
+
+## Nested expressions
+
+Aggregate operation indexing shall visit nested operands before their consumers. For example, `new Token(new Span(3, 8), true)` emits the `Span` construction before the `Token` construction. The outer argument row names the inner result value.
+
+Field chains follow the same rule. `value.span.end` emits the `span` projection before the `end` projection. A parser that records only the lexical outer operation is incomplete.
+
+## Identity and source release
+
+Frontend source ranges, names, source ordinals, splice ordinals, and carrier registers do not enter callable identity directly. Final local types, canonical instruction bytes, ownership products, relocation identities, and dependency identities already bind the retained semantics.
+
+Source release requires all aggregate values and statement rows to be copied into source-independent products. No later phase may consult a token stream or source allocation.
+
+## Bounds
+
+The first profile admits:
+
+- 64 local functions per module
+- 256 locals per function
+- 1,024 frontend values per module
+- 4,096 primitive statements per module
+- 256 aggregate operations per module
+- 1,024 aggregate arguments per module
+- 4,096 final source-local instructions
+
+A bound breach publishes nothing. No buffer capacity implies another count.
+
+## Implementation status
+
+- [x] `AggregateFrontendBindings.w` validates counted frontend value and statement rows, distinguishes source order from splice order, and publishes destination, owner, argument, and placement products atomically.
+- [x] WIP-0050 composes, archives, and links primitive and aggregate code from two immutable artifact ranks.
+- [ ] The primitive frontend publishes value rows for parameters, named locals, and expression temporaries.
+- [ ] The primitive frontend publishes source and splice statement ordinals with its body artifact.
+- [ ] Source-local nominal carriers are projected and removed with exact local-type coordinates.
+- [ ] Aggregate-only statements are removed from primitive compilation without moving newlines.
+- [ ] Mixed and nested aggregate expressions publish postorder operation products.
+- [ ] Record, variant, fixed-array, slice, ownership, and field-chain fixtures match stage 0 byte for byte.
+- [ ] Every physical compiler module publishes frontend products without dependency source.
+
+## Acceptance
+
+- No test supplies destination, owner, argument, or splice rows by hand.
+- Nested aggregate expressions lower in evaluation order.
+- Primitive and aggregate products compose into one canonical function order.
+- Final local types contain no carrier.
+- Invalid ranges, shadowing, types, ownership, or placement publish nothing.
+- Stage 0 and the native compiler emit byte-identical artifacts for the aggregate example set.
+- The physical compiler closure compiles without dependency source.
+
+## Rejected alternatives
+
+### Recover registers from bytecode
+
+Rejected. Encoder offsets are not semantic frontend products and do not identify removed expressions.
+
+### Keep fixture projections in the compiler path
+
+Rejected. Fixtures can test a join but cannot publish a physical module.
+
+### Flatten aggregate source into primitive source
+
+Rejected. Flattening discards nominal, ownership, and relocation semantics and reintroduces source concatenation.
+
+### Retain source coordinates in `.wbc`
+
+Rejected. Coordinates are temporary evidence and are unstable under canonical formatting and generated scaffolding.
+
+## References
+
+- [WIP-0049: Bounded native source-product compilation](WIP-0049-bounded-native-source-product-compilation.md)
+- [WIP-0050: Native aggregate source lowering](WIP-0050-native-aggregate-source-lowering.md)
+- [Bootstrap evidence](../reference/bootstrap.md)
