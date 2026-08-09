@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.aggregate_instruction_products;
 
 import wheeler.compiler.aggregate_codegen;
+import wheeler.compiler.closure.source_aggregate_operations;
 import wheeler.compiler.instruction_forms;
 import wheeler.compiler.storage_opcodes;
 
