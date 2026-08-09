@@ -108,7 +108,8 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 - [x] `LocalNominalReferences.w` indexes callable signature, parameter, local, and constructor uses of source-local record and variant names while excluding declaration bodies.
 - [x] `LocalNominalCarriers.w` rewrites sorted local nominal ranges to compact signed carriers and publishes exact old-to-new coordinates without partial source mutation.
 - [x] `LocalNominalCarrierProjections.w` classifies source-local carriers as value, constructor, or signature uses and binds value carriers to exact function-local coordinates atomically.
-- [ ] The callable compiler removes projected local and signature carriers before archival.
+- [x] `CountedLocalNominalCarriers.w` converts value projections to closure coordinates, and `LinkedLocalTypes.w` rewrites the exact signed local slots to final descriptors.
+- [ ] The callable compiler removes constructor and signature carriers before archival.
 - [ ] Aggregate-only statements are removed from primitive compilation without moving newlines.
 - [x] `SourceAggregateOperations.w` normalizes nested constructors, field chains, and postfix slice indexes into evaluation postorder and remaps their argument owners.
 - [ ] Record, variant, fixed-array, slice, ownership, and field-chain fixtures match stage 0 byte for byte.
