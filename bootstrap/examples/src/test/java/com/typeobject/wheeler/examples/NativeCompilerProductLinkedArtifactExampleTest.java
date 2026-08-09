@@ -115,7 +115,7 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 20838912, /* allocations= */ 35);
+            region rows = new region(/* bytes= */ 20838920, /* allocations= */ 36);
             words artifactStarts = allocate(rows, /* length= */ 512);
             words artifactLengths = allocate(rows, /* length= */ 512);
             words localFunctions = allocate(rows, /* length= */ 640);
@@ -138,6 +138,7 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
             words moduleStringBases = allocate(rows, /* length= */ 512);
             words finalDescriptors = allocate(rows, /* length= */ 4096);
             words projections = allocate(rows, /* length= */ 49152);
+            words emptyCarrierProjections = allocate(rows, /* length= */ 1);
             words globals = allocate(rows, /* length= */ 20480);
             words proofs = allocate(rows, /* length= */ 24576);
             words importedRelocations = allocate(rows, /* length= */ 131072);
@@ -374,6 +375,8 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
               finalDescriptors,
               /* projectionCount= */ 0,
               projections,
+              /* carrierProjectionCount= */ 0,
+              emptyCarrierProjections,
               linkedTypes
             );
 
@@ -445,6 +448,7 @@ final class NativeCompilerProductLinkedArtifactExampleTest {
             drop(importedRelocations);
             drop(proofs);
             drop(globals);
+            drop(emptyCarrierProjections);
             drop(projections);
             drop(finalDescriptors);
             drop(moduleStringBases);

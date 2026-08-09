@@ -5,6 +5,7 @@ module wheeler.compiler.closure.compiled_callable_bodies;
 import wheeler.compiler.closure.aggregate_source_projection;
 import wheeler.compiler.closure.callable_type_products;
 import wheeler.compiler.closure.imported_callable_stubs;
+import wheeler.compiler.closure.imported_nominal_carrier_projections;
 import wheeler.compiler.closure.imported_nominal_references;
 import wheeler.compiler.compiler_core;
 import wheeler.core.encoding.binary;
@@ -280,8 +281,11 @@ classical class CompiledCallableBodies {
     long firstVariantTypeId,
     long nominalReferenceCount,
     borrow mut words nominalReferenceRows,
+    borrow mut words carrierFunctionRows,
+    borrow mut words carrierLocalRows,
     borrow mut words importedAggregateRows,
     borrow mut words nominalProjectionRows,
+    borrow mut words carrierProjectionRows,
     long callCount,
     borrow mut words callRows,
     borrow mut words callableEffects,
@@ -298,13 +302,26 @@ classical class CompiledCallableBodies {
     assert(-1 < sourceStart);
     assert(0 < sourceLength);
     assert(sourceLength < MAX_CALLABLE_SOURCE_BYTES + 1);
-    region sourceArena = new region(/* bytes= */ 557056, /* allocations= */ 6);
+    region sourceArena = new region(/* bytes= */ 1081344, /* allocations= */ 7);
     bytes projectedSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
     bytes stubSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
     bytes nominalSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
     bytes carrierSource = allocateBytes(sourceArena, MAX_CALLABLE_SOURCE_BYTES);
     words stagedProjections = allocate(sourceArena, /* length= */ 49152);
+    words stagedCarrierProjections = allocate(sourceArena, /* length= */ 65536);
     assert(bufferLength(nominalProjectionRows) == 49152);
+    assert(bufferLength(carrierProjectionRows) == 65536);
+    ImportedNominalCarrierProjectionPlan carrierProjectionPlan
+      = publishImportedNominalCarrierProjections(
+      moduleOwner,
+      nominalReferenceCount,
+      nominalReferenceRows,
+      carrierFunctionRows,
+      carrierLocalRows,
+      importedAggregateRows,
+      stagedCarrierProjections
+    );
+    assert(carrierProjectionPlan.projectionCount == nominalReferenceCount);
     long projectedLength = writeSourceWithoutAggregateDeclarations(
       sourceArchive,
       sourceStart,
@@ -379,6 +396,17 @@ classical class CompiledCallableBodies {
       projectionRow += 1;
     }
 
+    long carrierProjectionRow = 0;
+    while (carrierProjectionRow < 65536) limit 65536 {
+      set(
+        carrierProjectionRows,
+        carrierProjectionRow,
+        stagedCarrierProjections[carrierProjectionRow]
+      );
+      carrierProjectionRow += 1;
+    }
+
+    drop(stagedCarrierProjections);
     drop(stagedProjections);
     drop(sourceArena);
     return result;

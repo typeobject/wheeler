@@ -161,14 +161,14 @@ Source-product compilation does not set the bootstrap bit. Promotion still requi
 - [x] `CallableTypeProducts.w` resolves primitive source ranges while local source is leased. Stub generation consumes only type codes, loan modes, effect masks, and parameter windows. Its API has no dependency-source argument.
 - [x] WIP-0050 starts aggregate-aware lowering with atomic record, variant, case, and member products, including mutually recursive local nominal types and deduplicated scalar fixed arrays.
 - [x] Complete primitive bodies compile after validated local aggregate declarations are blanked at stable source offsets.
-- [x] `compileAggregateSourceModuleProductWithImports` compiles primitive body portions after local-declaration projection and imported nominal validation. Temporary signed carriers and generated descriptors do not enter the retained artifact. Projection rows publish only after compilation succeeds.
+- [x] `compileAggregateSourceModuleProductWithImports` compiles primitive body portions after local-declaration projection and imported nominal validation. Temporary signed carriers and generated descriptors do not enter the retained artifact. Nominal and exact function-local carrier projections publish only after compilation succeeds.
 - [ ] WIP-0050 completes local aggregate declaration and instruction lowering.
 - [x] Imported nominal names resolve from public WIP-0046 rows and counted artifact-string products without dependency source.
 - [x] Imported nominal record and variant compile declarations generate in target-row order and publish owner-scoped temporary source-code projections.
 - [x] Resolved imported nominal ranges rewrite after imported calls. Call-name width changes adjust later type ranges without moving or rereading dependency source.
 - [x] Counted aggregate archival validates retained descriptor ranges, then removes exact generated aggregate, case, and member suffixes before closure publication.
 - [x] Instruction-local create, move, loan, release, and drop owner rows map atomically to aggregate and member projections.
-- [x] Final callable local types and aggregate construction operands consume validated temporary nominal projections.
+- [x] Final callable local types consume validated temporary nominal projections and exact function-local carrier projections. Aggregate construction operands consume stable aggregate projections.
 - [ ] Proof and result-slot products compile with imported callables.
 - [ ] Every physical compiler module publishes one source-local product artifact.
 - [ ] WIP-0048 emits the complete physical compiler closure from those products.

@@ -28,6 +28,20 @@ final class NativeCompilerLinkedLocalTypesExampleTest {
   }
 
   @Test
+  void rewritesOneExactSignedCarrierToItsImportedDescriptor() throws Exception {
+    byte[] source = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN)
+        .putInt(1).putInt(0x1000_0000).array();
+    VirtualMachine machine = VirtualMachine.withBinaryInput(program(false, true), source, 1);
+
+    machine.run();
+
+    assertEquals(2, machine.global("typeCount"));
+    assertEquals(0x1000_0001L, machine.global("firstType"));
+    assertEquals(0x1000_0001L, machine.global("secondType"));
+    assertEquals(1, machine.global("published"));
+  }
+
+  @Test
   void rejectsMissingOwnerDescriptorsBeforePublication() throws Exception {
     VirtualMachine machine = VirtualMachine.withBinaryInput(program(true), typeBytes(), 1);
 
@@ -41,6 +55,10 @@ final class NativeCompilerLinkedLocalTypesExampleTest {
   }
 
   private static Program program(boolean missingOwner) throws Exception {
+    return program(missingOwner, false);
+  }
+
+  private static Program program(boolean missingOwner, boolean carrier) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
     sources.putAll(CompilerSources.moduleClosure(
@@ -57,13 +75,14 @@ final class NativeCompilerLinkedLocalTypesExampleTest {
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 9510912, /* allocations= */ 7);
+            region rows = new region(/* bytes= */ 10035200, /* allocations= */ 8);
             words artifactStarts = allocate(rows, /* length= */ 512);
             words artifactLengths = allocate(rows, /* length= */ 512);
             words functions = allocate(rows, /* length= */ 49152);
             words aggregates = allocate(rows, /* length= */ 36864);
             words finalDescriptors = allocate(rows, /* length= */ 4096);
             words projections = allocate(rows, /* length= */ 49152);
+            words carrierProjections = allocate(rows, /* length= */ 65536);
             words outputTypes = allocate(rows, /* length= */ 1048576);
             set(artifactLengths, 0, bufferLength(source));
             set(functions, 0, 1);
@@ -85,6 +104,10 @@ final class NativeCompilerLinkedLocalTypesExampleTest {
             set(projections, 0, 3);
             set(projections, 16384, 268435456);
             set(projections, 32768, 1);
+            set(carrierProjections, 0, 1);
+            set(carrierProjections, 16384, 0);
+            set(carrierProjections, 32768, 0);
+            set(carrierProjections, 49152, 1);
             typeCount = emitLinkedLocalTypes(
               source,
               bufferLength(source),
@@ -97,6 +120,8 @@ final class NativeCompilerLinkedLocalTypesExampleTest {
               finalDescriptors,
               /* projectionCount= */ %d,
               projections,
+              /* carrierProjectionCount= */ %d,
+              carrierProjections,
               outputTypes
             );
             firstType = outputTypes[0];
@@ -104,6 +129,7 @@ final class NativeCompilerLinkedLocalTypesExampleTest {
             published = 1;
             setOutputLength(output, 0);
             drop(outputTypes);
+            drop(carrierProjections);
             drop(projections);
             drop(finalDescriptors);
             drop(aggregates);
@@ -113,7 +139,7 @@ final class NativeCompilerLinkedLocalTypesExampleTest {
             drop(rows);
           }
         }
-        """.formatted(missingOwner ? 0 : 1));
+        """.formatted(missingOwner ? 0 : 1, carrier ? 1 : 0));
     return new WheelerCompiler().compileModuleFiles(sources, "example.linked_local_types");
   }
 }

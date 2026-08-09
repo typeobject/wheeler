@@ -30,9 +30,14 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
     assertEquals(1, machine.global("published"));
     assertEquals(2, machine.global("functionCount"));
     assertEquals(1, machine.global("projectionCount"));
+    assertEquals(1, machine.global("carrierProjectionCount"));
     assertEquals(9, machine.global("projectionOwner"));
     assertEquals(268_435_457, machine.global("projectionSourceCode"));
     assertEquals(3, machine.global("projectionTarget"));
+    assertEquals(9, machine.global("carrierOwner"));
+    assertEquals(0, machine.global("carrierFunction"));
+    assertEquals(0, machine.global("carrierLocal"));
+    assertEquals(3, machine.global("carrierTarget"));
     Program product = new BytecodeReader().read(machine.hostOutput());
     assertEquals(2, product.functions().size());
     assertEquals(0, product.recordTypes().size());
@@ -69,16 +74,24 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
           state long published = 0;
           state long functionCount = 0;
           state long projectionCount = 0;
+          state long carrierProjectionCount = 0;
           state long projectionOwner = 0;
           state long projectionSourceCode = 0;
           state long projectionTarget = 0;
+          state long carrierOwner = 0;
+          state long carrierFunction = 0;
+          state long carrierLocal = 0;
+          state long carrierTarget = 0;
 
           entry void main(borrow byteview input, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 1098272, /* allocations= */ 12);
+            region rows = new region(/* bytes= */ 1623584, /* allocations= */ 15);
             words localAggregates = allocate(rows, /* length= */ 832);
             words references = allocate(rows, /* length= */ 256);
+            words carrierFunctions = allocate(rows, /* length= */ 64);
+            words carrierLocals = allocate(rows, /* length= */ 64);
             words importedAggregates = allocate(rows, /* length= */ 36864);
             words projections = allocate(rows, /* length= */ 49152);
+            words carrierProjections = allocate(rows, /* length= */ 65536);
             words calls = allocate(rows, /* length= */ 1024);
             words effects = allocate(rows, /* length= */ 4096);
             words firstParameters = allocate(rows, /* length= */ 4096);
@@ -106,8 +119,11 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
               /* firstVariantTypeId= */ 0,
               /* nominalReferenceCount= */ 1,
               references,
+              carrierFunctions,
+              carrierLocals,
               importedAggregates,
               projections,
+              carrierProjections,
               /* callCount= */ 0,
               calls,
               effects,
@@ -121,9 +137,14 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             );
             functionCount = compiled.functionCount;
             projectionCount = 1;
+            carrierProjectionCount = 1;
             projectionOwner = projections[0];
             projectionSourceCode = projections[16384];
             projectionTarget = projections[32768];
+            carrierOwner = carrierProjections[0];
+            carrierFunction = carrierProjections[16384];
+            carrierLocal = carrierProjections[32768];
+            carrierTarget = carrierProjections[49152];
             published = 1;
             setOutputLength(output, compiled.length);
             drop(identity);
@@ -134,8 +155,11 @@ final class NativeCompilerAggregateAwareSourceProductExampleTest {
             drop(firstParameters);
             drop(effects);
             drop(calls);
+            drop(carrierProjections);
             drop(projections);
             drop(importedAggregates);
+            drop(carrierLocals);
+            drop(carrierFunctions);
             drop(references);
             drop(localAggregates);
             drop(rows);
