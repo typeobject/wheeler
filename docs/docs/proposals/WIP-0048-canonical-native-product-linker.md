@@ -117,7 +117,7 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
 - [x] `LinkedFunctionSection.w` emits exact function descriptors and final local-type rows after code and type extent validation.
 - [x] `LinkedStringSection.w` sorts and deduplicates counted ASCII bootstrap names, emits canonical bytes, and publishes every source-to-final ID.
 - [x] `CompiledStringProducts.w` validates source-local string directories, sorted ASCII names, exact extents, and appends counted artifact ranges for linked emission.
-- [x] `CompiledGlobalProducts.w` appends source-local global rows with split 64-bit initial values; `LinkedAggregateSections.w` emits final globals, records, arrays, slices, variants, cases, and fields.
+- [x] `CompiledGlobalProducts.w` appends source-local global rows with split 64-bit initial values. `LinkedAggregateSections.w` emits final globals, records, arrays, slices, variants, cases, and fields.
 - [x] `CompiledFunctionNames.w` retains closure string references and resolves final function-name IDs.
 - [x] `LinkedManifestSection.w` resolves the root program name and rebases its entry through counted module function windows.
 - [x] `LinkedContainer.w` emits format 1.0 headers, sorted directories, eight-byte alignment, zero padding, and bounded optional section types.
@@ -125,12 +125,13 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
 - [x] `CanonicalProductEmitter.w` emits final semantic sections, returns an immutable section plan, and publishes a verified container in a separate lifetime after callers may drop large source and product windows.
 - [x] The complete product-linked fixture uses that production emitter, passes `verifyArtifact` before output-length publication, and then passes the independent stage-0 reader.
 - [x] A local-call, global, and aggregate fixture flows through counted strings, globals, layouts, functions, types, code, manifest, and container emission and matches stage 0 byte for byte.
-- [x] `CompiledProofProducts.w` rebases counted certificate names and subjects; `LinkedProofSection.w` emits canonical split arguments.
+- [x] `CompiledProofProducts.w` rebases counted certificate names and subjects. `LinkedProofSection.w` emits canonical split arguments.
 - [x] The complete reversible result-slot and optional proof product fixture matches stage 0 byte for byte.
 - [x] A complete mixed-owner fixture applies validated imported relocation rows and matches stage 0 byte for byte.
 - [x] `IdentityRelocationEmitter.w` resolves all relocation identities to final rows before changing one code operand.
-- [x] The complete mixed-owner fixture uses that production boundary; numeric source targets select fixture identities but never final rows.
+- [x] The complete mixed-owner fixture uses that production boundary. numeric source targets select fixture identities but never final rows.
 - [ ] Physical callable signature identities feed the same complete pipeline.
+- [ ] WIP-0049 publishes one source-local artifact for every physical compiler module.
 - [ ] The complete physical compiler closure emits without dependency source.
 
 ## Rejected alternatives

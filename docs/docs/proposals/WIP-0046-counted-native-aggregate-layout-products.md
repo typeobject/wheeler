@@ -137,6 +137,7 @@ No `wheeler.bootstrap.yaml` may be added before that evidence exists.
 - [x] `OwnershipProductIdentities.w` binds each function's canonical instruction-derived rows into the callable body identity. An independent Java digest matches.
 - [ ] Callable body verification maps local owner rows to aggregate projections.
 - [ ] Imported callable bodies relocate aggregate type references without dependency source.
+- [ ] WIP-0049 generates local and imported nominal compile scaffolding from these products.
 - [ ] The complete physical compiler closure compiles from scalar, callable, and aggregate products.
 
 ## Rejected alternatives

@@ -116,6 +116,7 @@ Callable bytecode products do not set a bootstrap bit. Promotion still requires 
 - [x] `CountedFunctionProducts.w` appends one validated artifact at a time, rebases instruction owners, preserves artifact ranks, and rejects duplicate module owners before publication.
 - [x] `LinkedInstructionCode.w` emits closure-ordered instruction bytes and rebases local call targets by the owning module's final function base.
 - [ ] WIP-0048 emits the complete canonical multi-module `.wbc` and matches linked fixtures byte for byte.
+- [ ] WIP-0049 compiles every physical source-local body and excludes all compile-time scaffolding.
 - [ ] The complete physical compiler closure compiles from semantic products.
 
 ## Rejected alternatives

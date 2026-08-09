@@ -190,8 +190,9 @@ The seven-frame executor remains differential conformance evidence until step 9.
 - [x] Closure-wide counted function rows publish exact compiled local limits and artifact ranks.
 - [ ] Ambiguity, privacy, type, and unresolved diagnostics carry stable candidate identities.
 - [x] Counted scalar closures compile without a seven-node plan.
-- [x] `compileCallableModuleProductWithImports` compiles imported primitive calls from signature products alone by appending deterministic nonexecuted recursive stubs; dependency bodies are not copied. The retained local prefix excludes stubs and compiler-added entries.
+- [x] `compileCallableModuleProductWithImports` compiles imported primitive calls from signature products alone by appending deterministic nonexecuted recursive stubs. dependency bodies are not copied. The retained local prefix excludes stubs and compiler-added entries.
 - [x] Source-local owner, borrowed, and aggregate product fixtures compile.
+- [ ] WIP-0049 compiles every physical module from local source and counted products.
 - [ ] The complete physical compiler closure compiles.
 
 ## Acceptance
