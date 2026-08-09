@@ -117,7 +117,7 @@ A linked native artifact does not set the bootstrap bit. Promotion still require
 - [x] `LinkedFunctionSection.w` emits exact function descriptors and final local-type rows after code and type extent validation.
 - [x] `LinkedStringSection.w` sorts and deduplicates counted ASCII bootstrap names, emits canonical bytes, and publishes every source-to-final ID.
 - [x] `CompiledStringProducts.w` validates source-local string directories, sorted ASCII names, exact extents, and appends counted artifact ranges for linked emission.
-- [x] `CompiledGlobalProducts.w` appends source-local global rows with split 64-bit initial values. `LinkedAggregateSections.w` emits final globals, records, arrays, slices, variants, cases, and fields.
+- [x] `CompiledGlobalProducts.w` appends source-local global rows with split 64-bit initial values. `LinkedAggregateSections.w` emits final globals, records, arrays, slices, variants, cases, and fields. Descriptor-compatible source products and copied source-string products feed the same emitter without a temporary aggregate artifact.
 - [x] `CompiledFunctionNames.w` retains closure string references and resolves final function-name IDs.
 - [x] `LinkedManifestSection.w` resolves the root program name and rebases its entry through counted module function windows.
 - [x] `LinkedContainer.w` emits format 1.0 headers, sorted directories, eight-byte alignment, zero padding, and bounded optional section types.

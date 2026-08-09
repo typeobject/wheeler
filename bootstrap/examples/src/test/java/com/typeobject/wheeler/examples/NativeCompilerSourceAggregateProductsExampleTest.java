@@ -87,6 +87,16 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
     assertEquals(55, machine.global("archivedStringBytes"));
     assertEquals(78, machine.global("firstArchivedByte"));
     assertEquals(4, machine.global("firstArchivedLength"));
+    assertEquals(92, machine.global("linkedTypeBytes"));
+    assertEquals(2, machine.global("linkedRecordCount"));
+    assertEquals(1, machine.global("linkedFirstFieldType"));
+    assertEquals(536_870_912, machine.global("linkedRecursiveFieldType"));
+    assertEquals(805_306_368, machine.global("linkedArrayFieldType"));
+    assertEquals(1, machine.global("linkedArrayElementType"));
+    assertEquals(40, machine.global("linkedVariantBytes"));
+    assertEquals(1, machine.global("linkedVariantCount"));
+    assertEquals(2, machine.global("linkedVariantCaseCount"));
+    assertEquals(268_435_456, machine.global("linkedVariantMemberType"));
   }
 
   @Test
@@ -153,14 +163,21 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.counted_aggregate_layouts"));
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.linked_aggregate_sections"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.linked_string_section"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_aggregate_products"));
     sources.put("SourceAggregateProductsExample.w", """
         module example.source_aggregate_products;
 
         import wheeler.compiler.closure.counted_aggregate_layouts;
+        import wheeler.compiler.closure.linked_aggregate_sections;
+        import wheeler.compiler.closure.linked_string_section;
         import wheeler.compiler.closure.source_aggregate_layouts;
         import wheeler.compiler.closure.source_aggregate_products;
         import wheeler.compiler.closure.source_aggregate_strings;
+        import wheeler.core.encoding.binary;
 
         classical class SourceAggregateProductsExample {
           state long productValid = 0;
@@ -224,9 +241,19 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
           state long archivedStringBytes = 0;
           state long firstArchivedByte = 0;
           state long firstArchivedLength = 0;
+          state long linkedTypeBytes = 0;
+          state long linkedRecordCount = 0;
+          state long linkedFirstFieldType = 0;
+          state long linkedRecursiveFieldType = 0;
+          state long linkedArrayFieldType = 0;
+          state long linkedArrayElementType = 0;
+          state long linkedVariantBytes = 0;
+          state long linkedVariantCount = 0;
+          state long linkedVariantCaseCount = 0;
+          state long linkedVariantMemberType = 0;
 
           entry void main(borrow utf8 input) {
-            region rows = new region(/* bytes= */ 1547264, /* allocations= */ 16);
+            region rows = new region(/* bytes= */ 1883392, /* allocations= */ 22);
             words aggregates = allocate(rows, /* length= */ 832);
             words cases = allocate(rows, /* length= */ 640);
             words members = allocate(rows, /* length= */ 2048);
@@ -243,6 +270,12 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
             words stringArtifactRanks = allocate(rows, /* length= */ 16384);
             words archivedStringStarts = allocate(rows, /* length= */ 16384);
             words archivedStringLengths = allocate(rows, /* length= */ 16384);
+            words finalStrings = allocate(rows, /* length= */ 16384);
+            words moduleStringBases = allocate(rows, /* length= */ 512);
+            words finalDescriptors = allocate(rows, /* length= */ 4096);
+            words globals = allocate(rows, /* length= */ 20480);
+            bytes linkedStrings = allocateBytes(rows, /* length= */ 4096);
+            bytes linkedSections = allocateBytes(rows, /* length= */ 256);
             set(aggregates, 64, 91);
             set(cases, 0, 61);
             set(members, 0, 73);
@@ -318,6 +351,56 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
               countedCaseCount = counted.caseCount;
               countedMemberCount = counted.memberCount;
               countedArrayMemberType = closureMembers[49158];
+              long linkedStringBytes = emitLinkedStringSectionAt(
+                aggregateStringArchive,
+                archivedStrings.archiveBytes,
+                archivedStrings.stringCount,
+                archivedStringStarts,
+                archivedStringLengths,
+                finalStrings,
+                linkedStrings,
+                /* outputStart= */ 0
+              );
+              assert(0 < linkedStringBytes);
+              set(moduleStringBases, 0, 0);
+              set(finalDescriptors, 0, 0);
+              set(finalDescriptors, 1, 0);
+              set(finalDescriptors, 2, 1);
+              set(finalDescriptors, 3, 0);
+              linkedTypeBytes = emitLinkedTypeSection(
+                /* globalCount= */ 0,
+                globals,
+                counted.aggregateCount,
+                archivedStrings.stringCount,
+                moduleStringBases,
+                finalStrings,
+                closureAggregates,
+                closureMembers,
+                finalDescriptors,
+                linkedSections,
+                /* outputStart= */ 0
+              );
+              linkedRecordCount = readUnsigned(linkedSections, 4, 4);
+              linkedFirstFieldType = readUnsigned(linkedSections, 24, 4);
+              linkedRecursiveFieldType = readUnsigned(linkedSections, 32, 4);
+              linkedArrayFieldType = readUnsigned(linkedSections, 40, 4);
+              linkedArrayElementType = readUnsigned(linkedSections, 80, 4);
+              linkedVariantBytes = emitLinkedVariantSection(
+                counted.aggregateCount,
+                counted.caseCount,
+                archivedStrings.stringCount,
+                moduleStringBases,
+                finalStrings,
+                closureAggregates,
+                closureCases,
+                closureMembers,
+                finalDescriptors,
+                linkedSections,
+                /* outputStart= */ 128
+              );
+              linkedVariantCount = readUnsigned(linkedSections, 128, 4);
+              linkedVariantCaseCount = readUnsigned(linkedSections, 140, 4);
+              linkedVariantMemberType = readUnsigned(linkedSections, 164, 4);
               productValid = 1;
             }
             aggregateCount = product.aggregateCount;
@@ -360,6 +443,12 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
             secondCaseNameStart = cases[129];
             firstCaseMemberCount = cases[512];
             secondCaseMemberCount = cases[513];
+            drop(linkedSections);
+            drop(linkedStrings);
+            drop(globals);
+            drop(finalDescriptors);
+            drop(moduleStringBases);
+            drop(finalStrings);
             drop(archivedStringLengths);
             drop(archivedStringStarts);
             drop(stringArtifactRanks);
