@@ -15,7 +15,7 @@
 
 Wheeler compiles each scheduled source-local module from its own source, resolved scalar products, imported callable signatures, and nominal aggregate products. It does not read dependency source. The temporary compile artifact is canonical `.wbc`. synthetic signature stubs form a checked suffix and never enter the retained local function window.
 
-This proposal owns the missing lowering boundary between counted semantic products and WIP-0047 body products. WIP-0048 remains the owner of closure-wide IDs and final container emission.
+This proposal owns the missing lowering boundary between counted semantic products and WIP-0047 body products. WIP-0050 owns aggregate-aware parsing, descriptor construction, ownership projection, and temporary nominal declarations. WIP-0048 remains the owner of closure-wide IDs and final container emission.
 
 ## Motivation
 
@@ -159,7 +159,8 @@ Source-product compilation does not set the bootstrap bit. Promotion still requi
 - [x] `retainLocalFunctionProduct` excludes stub and compiler-added function suffixes.
 - [x] Imported call ranges, including qualified spelling, rewrite to `__wheeler_import_<product-row>` stub names. Any local use of the reserved prefix fails before output mutation.
 - [x] `CallableTypeProducts.w` resolves primitive source ranges while local source is leased. Stub generation consumes only type codes, loan modes, effect masks, and parameter windows. Its API has no dependency-source argument.
-- [ ] The native compiler core lowers local aggregate declarations.
+- [x] WIP-0050 starts aggregate-aware lowering with atomic recursive record and member source products.
+- [ ] WIP-0050 completes local aggregate declaration and instruction lowering.
 - [ ] Imported nominal declarations generate from WIP-0046 products.
 - [ ] Local ownership rows map to aggregate projections.
 - [ ] Proof and result-slot products compile with imported callables.

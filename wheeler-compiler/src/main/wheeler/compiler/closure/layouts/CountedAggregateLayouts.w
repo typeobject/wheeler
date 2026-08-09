@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.counted_aggregate_layouts;
 
 import wheeler.compiler.closure.compiled_aggregate_layouts;
+import wheeler.compiler.closure.source_aggregate_products;
 
 classical class CountedAggregateLayouts {
   private const long CLOSURE_AGGREGATE_ROWS = 36864;

@@ -122,6 +122,7 @@ No `wheeler.bootstrap.yaml` may be added before that evidence exists.
 
 - [x] A Wheeler-native decoder validates canonical container directories.
 - [x] Record, fixed-array, slice, variant, case, and member rows decode into bounded packed columns.
+- [x] WIP-0050's `SourceAggregateProducts.w` publishes atomic recursive record and member ranges before source release.
 - [x] Record, array, and variant fixtures execute through the native decoder.
 - [x] Malformed container magic traps before publication.
 - [x] Malformed flags, duplicate section types, out-of-range sections, oversized field tables, and oversized case tables trap with zero published counts and identity bytes.
@@ -137,7 +138,7 @@ No `wheeler.bootstrap.yaml` may be added before that evidence exists.
 - [x] `OwnershipProductIdentities.w` binds each function's canonical instruction-derived rows into the callable body identity. An independent Java digest matches.
 - [ ] Callable body verification maps local owner rows to aggregate projections.
 - [ ] Imported callable bodies relocate aggregate type references without dependency source.
-- [ ] WIP-0049 generates local and imported nominal compile scaffolding from these products.
+- [ ] WIP-0050 generates local and imported nominal compile scaffolding from these products.
 - [ ] The complete physical compiler closure compiles from scalar, callable, and aggregate products.
 
 ## Rejected alternatives
