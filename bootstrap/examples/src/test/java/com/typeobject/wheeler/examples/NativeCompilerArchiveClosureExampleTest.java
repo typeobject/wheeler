@@ -145,6 +145,9 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(
         NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES.size(),
         machine.global("physicalModuleProductCount"));
+    assertEquals(
+        NativeCompilerArchiveClosureProgram.PHYSICAL_CALLABLE_MODULES.size(),
+        machine.global("physicalCallableProductCount"));
   }
 
   @Test

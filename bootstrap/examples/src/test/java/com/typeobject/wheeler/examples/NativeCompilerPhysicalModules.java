@@ -84,6 +84,18 @@ final class NativeCompilerPhysicalModules {
         physical(302, "compiler/resolution/returns/WideReturnSources.w", "wide_return_sources"));
   }
 
+  static List<NativeCompilerArchiveClosureProgram.PhysicalModule> importedCallableProducts() {
+    return List.of(
+        physical(4, "compiler/syntax/calls/assignment/AssignmentCallCodeWidths.w", "assignment_call_code_widths"),
+        physical(8, "compiler/syntax/calls/assignment/AssignmentCallInstructionWidths.w", "assignment_call_instruction_widths"),
+        physical(10, "compiler/syntax/calls/assignment/AssignmentCallLocalWidths.w", "assignment_call_local_widths"),
+        physical(133, "compiler/syntax/returns/EarlyComparisonForms.w", "early_comparison_forms"),
+        physical(171, "compiler/syntax/helpers/HelperValueKinds.w", "helper_value_kinds"),
+        physical(293, "compiler/syntax/calls/void/VoidCallSourceForms.w", "void_call_source_forms"),
+        physical(296, "compiler/syntax/calls/VoidCallSourceWidths.w", "void_call_source_widths"),
+        physical(298, "compiler/syntax/calls/VoidCallWidths.w", "void_call_widths"));
+  }
+
   private static NativeCompilerArchiveClosureProgram.PhysicalModule physical(
       int owner, String path, String localName) {
     return new NativeCompilerArchiveClosureProgram.PhysicalModule(

@@ -11,6 +11,8 @@ final class NativeCompilerArchiveClosureProgram {
   record PhysicalModule(int owner, String path, String name) {}
 
   static final List<PhysicalModule> PHYSICAL_MODULES = NativeCompilerPhysicalModules.all();
+  static final List<PhysicalModule> PHYSICAL_CALLABLE_MODULES =
+      NativeCompilerPhysicalModules.importedCallableProducts();
 
   private NativeCompilerArchiveClosureProgram() {}
 
@@ -19,6 +21,11 @@ final class NativeCompilerArchiveClosureProgram {
     for (int index = 0; index < PHYSICAL_MODULES.size(); index++) {
       rows.append("set(physicalOwners, ").append(index).append(", ")
           .append(PHYSICAL_MODULES.get(index).owner()).append(");\n");
+    }
+    for (int index = 0; index < PHYSICAL_CALLABLE_MODULES.size(); index++) {
+      rows.append("set(physicalOwners, ").append(PHYSICAL_MODULES.size() + index)
+          .append(", ").append(PHYSICAL_CALLABLE_MODULES.get(index).owner())
+          .append(");\n");
     }
     return rows.toString();
   }
@@ -29,7 +36,11 @@ final class NativeCompilerArchiveClosureProgram {
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.archive_module_sources"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.callable_dependency_products"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.callable_identities"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.callable_type_products"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.compiled_callable_bodies"));
     sources.putAll(CompilerSources.moduleClosure(
@@ -46,12 +57,16 @@ final class NativeCompilerArchiveClosureProgram {
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.schedule"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.scalar_module_identities"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.source_call_products"));
     sources.put("ArchiveClosureExample.w", """
         module example.archive_closure;
 
         import wheeler.compiler.closure.archive_module_sources;
         import wheeler.compiler.closure.archive_sources;
+        import wheeler.compiler.closure.callable_dependency_products;
         import wheeler.compiler.closure.callable_identities;
+        import wheeler.compiler.closure.callable_type_products;
         import wheeler.compiler.closure.compiled_body_archive;
         import wheeler.compiler.closure.compiled_callable_bodies;
         import wheeler.compiler.closure.counted_constant_executor;
@@ -64,6 +79,7 @@ final class NativeCompilerArchiveClosureProgram {
         import wheeler.compiler.closure.product_root_source;
         import wheeler.compiler.closure.scalar_module_identities;
         import wheeler.compiler.closure.schedule;
+        import wheeler.compiler.closure.source_call_products;
         import wheeler.compiler.closure.symbol_identities;
 
         classical class ArchiveClosureExample {
@@ -119,6 +135,9 @@ final class NativeCompilerArchiveClosureProgram {
           state long physicalModuleProductLength = 0;
           state long physicalModuleProductFunctions = 0;
           state long physicalModuleProductCount = 0;
+          state long physicalCallableProductCount = 0;
+          state long physicalArchivedProductLength = 0;
+          state long physicalArchivedProductCount = 0;
           state long physicalModuleOwner = -1;
           state long packageIdentityPrefix = 0;
           state long firstSymbolIdentityPrefix = 0;
@@ -160,7 +179,7 @@ final class NativeCompilerArchiveClosureProgram {
             words bodyModuleRanks = allocate(products, /* length= */ 512);
             words bodyStarts = allocate(products, /* length= */ 512);
             words bodyLengths = allocate(products, /* length= */ 512);
-            region columns = new region(/* bytes= */ 4127272, /* allocations= */ 74);
+            region columns = new region(/* bytes= */ 5471784, /* allocations= */ 82);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -227,6 +246,14 @@ final class NativeCompilerArchiveClosureProgram {
             words physicalOwners = allocate(columns, /* length= */ 128);
             words physicalImportedRows = allocate(columns, /* length= */ 114689);
             bytes physicalProductSource = allocateBytes(columns, /* length= */ 32768);
+            words callableProductNameStarts = allocate(columns, /* length= */ 4096);
+            bytes callableProductNames = allocateBytes(columns, /* length= */ 1048576);
+            words physicalParameterTypes = allocate(columns, /* length= */ 16384);
+            words primitiveCallables = allocate(columns, /* length= */ 4096);
+            words physicalDependencyRows = allocate(columns, /* length= */ 8192);
+            words externalFirstCallables = allocate(columns, /* length= */ 64);
+            words externalCallableCounts = allocate(columns, /* length= */ 64);
+            words externalCallableVisibilities = allocate(columns, /* length= */ 4096);
             PHYSICAL_MODULE_OWNERS
             bytes packageIdentity = allocateBytes(columns, /* length= */ 32);
             bytes symbolIdentities = allocateBytes(columns, MAX_SYMBOLS * 32);
@@ -368,6 +395,32 @@ final class NativeCompilerArchiveClosureProgram {
                   parameterTypeLengths,
                   parameterModes
                 );
+                long callableProductNameBytes = copyCallableNameProducts(
+                  archive,
+                  callables.callableCount,
+                  callableNameStarts,
+                  callableNameLengths,
+                  callableProductNameStarts,
+                  callableProductNames
+                );
+                assert(0 < callableProductNameBytes);
+                AvailablePrimitiveCallableTypePlan availableTypes =
+                  materializeAvailablePrimitiveCallableTypes(
+                    archive,
+                    callables.callableCount,
+                    callables.parameterCount,
+                    callableResultTypeStarts,
+                    callableResultTypeLengths,
+                    callableFirstParameters,
+                    callableParameterCounts,
+                    parameterTypeStarts,
+                    parameterTypeLengths,
+                    parameterModes,
+                    physicalResultTypes,
+                    physicalParameterTypes,
+                    primitiveCallables
+                  );
+                assert(0 < availableTypes.validCount);
                 publishCountedSymbolIdentities(
                   archive,
                   manifest,
@@ -530,19 +583,58 @@ final class NativeCompilerArchiveClosureProgram {
                       physicalProductSource
                     );
                     assert(0 < physicalSourceLength);
+                    long physicalCallCount = 0;
+                    if (PHYSICAL_COMPARABLE_COUNT < physicalProduct + 1) {
+                      long physicalDependencyCount = packCallableDependencyProducts(
+                        closure.moduleCount,
+                        closure.externalCount,
+                        physicalOwner,
+                        firstImports,
+                        directImportCounts,
+                        edgeTargets,
+                        moduleFirstCallables,
+                        moduleCallableCounts,
+                        callableVisibilities,
+                        externalFirstCallables,
+                        externalCallableCounts,
+                        externalCallableVisibilities,
+                        physicalDependencyRows
+                      );
+                      physicalCallCount = resolveProductSourceCallProducts(
+                        physicalProductSource,
+                        /* sourceStart= */ 0,
+                        physicalSourceLength,
+                        callableProductNames,
+                        moduleFirstCallables[physicalOwner],
+                        moduleCallableCounts[physicalOwner],
+                        callableProductNameStarts,
+                        callableNameLengths,
+                        callableParameterCounts,
+                        physicalDependencyCount,
+                        physicalDependencyRows,
+                        physicalCalls
+                      );
+                      assert(0 < physicalCallCount);
+                      long physicalCall = 0;
+                      while (physicalCall < physicalCallCount) limit 256 {
+                        long physicalTarget = physicalCalls[768 + physicalCall];
+                        assert(primitiveCallables[physicalTarget] == 1);
+                        physicalCall += 1;
+                      }
+                    }
                     CompiledCallableBody physicalModule = compileSourceModuleProductWithImports(
                       physicalProductSource,
                       /* sourceStart= */ 0,
                       physicalSourceLength,
                       /* aggregateCount= */ 0,
                       physicalAggregates,
-                      /* callCount= */ 0,
+                      physicalCallCount,
                       physicalCalls,
                       callableEffects,
                       callableFirstParameters,
                       callableParameterCounts,
                       physicalResultTypes,
-                      parameterTypeStarts,
+                      physicalParameterTypes,
                       parameterModes,
                       compiledCallableArtifact,
                       compiledCallableIdentity
@@ -551,17 +643,23 @@ final class NativeCompilerArchiveClosureProgram {
                       compiledCallableArtifact,
                       physicalModule.length,
                       physicalOwner,
-                      physicalModuleProductCount,
-                      physicalModuleProductLength,
+                      physicalArchivedProductCount,
+                      physicalArchivedProductLength,
                       bodyModulePublished,
                       bodyModuleRanks,
                       bodyStarts,
                       bodyLengths,
                       bodyArchive
                     );
-                    physicalModuleProductLength = retained.archiveBytes;
-                    physicalModuleProductCount = retained.artifactCount;
-                    physicalModuleProductFunctions += physicalModule.functionCount;
+                    physicalArchivedProductLength = retained.archiveBytes;
+                    physicalArchivedProductCount = retained.artifactCount;
+                    if (physicalProduct < PHYSICAL_COMPARABLE_COUNT) {
+                      physicalModuleProductLength = retained.archiveBytes;
+                      physicalModuleProductCount = retained.artifactCount;
+                      physicalModuleProductFunctions += physicalModule.functionCount;
+                    } else {
+                      physicalCallableProductCount += 1;
+                    }
                     physicalProduct += 1;
                   }
                 }
@@ -779,6 +877,14 @@ final class NativeCompilerArchiveClosureProgram {
             drop(moduleIdentities);
             drop(symbolIdentities);
             drop(packageIdentity);
+            drop(externalCallableVisibilities);
+            drop(externalCallableCounts);
+            drop(externalFirstCallables);
+            drop(physicalDependencyRows);
+            drop(primitiveCallables);
+            drop(physicalParameterTypes);
+            drop(callableProductNames);
+            drop(callableProductNameStarts);
             drop(physicalProductSource);
             drop(physicalImportedRows);
             drop(physicalOwners);
@@ -859,7 +965,10 @@ final class NativeCompilerArchiveClosureProgram {
         }
         """
             .replace("PHYSICAL_MODULE_OWNERS", physicalOwnerRows())
-            .replace("PHYSICAL_MODULE_COUNT", Integer.toString(PHYSICAL_MODULES.size())));
+            .replace("PHYSICAL_COMPARABLE_COUNT", Integer.toString(PHYSICAL_MODULES.size()))
+            .replace(
+                "PHYSICAL_MODULE_COUNT",
+                Integer.toString(PHYSICAL_MODULES.size() + PHYSICAL_CALLABLE_MODULES.size())));
     return new WheelerCompiler().compileModuleFiles(sources, "example.archive_closure");
   }
 
