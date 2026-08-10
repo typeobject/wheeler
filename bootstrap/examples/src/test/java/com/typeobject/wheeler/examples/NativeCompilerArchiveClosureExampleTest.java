@@ -250,6 +250,20 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(0, linkedClosure.arrayTypes().size());
     assertEquals(0, linkedClosure.sliceTypes().size());
     CompilerMachineRunner.runWithoutRewindHistory(new VirtualMachine(linkedClosure));
+
+    byte[] malformedProducts = physicalProducts.clone();
+    int firstRelocation = Math.toIntExact(
+        machine.global("physicalRetainedProductLength") + retainedModules.size() * 6L);
+    malformedProducts[firstRelocation + 3] = (byte) 0xff;
+    malformedProducts[firstRelocation + 4] = (byte) 0xff;
+    VirtualMachine malformedFunctionMachine = VirtualMachine.withBinaryInput(
+        functionClosure, malformedProducts, 4_194_304);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(malformedFunctionMachine));
+    assertEquals(0, malformedFunctionMachine.global("published"));
+    assertEquals(0, malformedFunctionMachine.global("relocatedTargetCount"));
+    assertEquals(0, malformedFunctionMachine.global("linkedCodeLength"));
   }
 
   @Test
