@@ -16,6 +16,7 @@ final class NativeCompilerPhysicalModules {
         physical(20, "compiler/syntax/intrinsics/BorrowedIntrinsicKinds.w", "borrowed_intrinsic_kinds"),
         physical(22, "compiler/frontend/intrinsics/BorrowedIntrinsicShapes.w", "borrowed_intrinsic_shapes"),
         physical(24, "compiler/syntax/calls/CallArgumentSources.w", "call_argument_sources"),
+        physical(25, "compiler/backend/calls/CallArguments.w", "call_arguments"),
         physical(125, "compiler/ir/limits/CompilerProgramLimits.w", "compiler_program_limits"),
         physical(126, "compiler/syntax/tokens/CompilerTokenLimits.w", "compiler_token_limits"),
         physical(135, "compiler/syntax/EarlyReturnKinds.w", "early_return_kinds"),
