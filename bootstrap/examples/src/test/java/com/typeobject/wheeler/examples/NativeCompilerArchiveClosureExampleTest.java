@@ -238,6 +238,7 @@ final class NativeCompilerArchiveClosureExampleTest {
             < functionMachine.global("linkedSourceStringCount"));
     assertTrue(0 < functionMachine.global("linkedStringSectionLength"));
     assertEquals(24, functionMachine.global("linkedManifestLength"));
+    assertEquals(880_122_229, functionMachine.global("linkedIdentityPrefix"));
     assertEquals(
         "347599759db644f369dca265a16aec5c34f65d034d57c5a64c788cd51429be72",
         HexFormat.of().formatHex(
@@ -259,6 +260,7 @@ final class NativeCompilerArchiveClosureExampleTest {
         functionClosure, physicalProducts, 4_194_304);
     CompilerMachineRunner.runWithoutRewindHistory(repeatedFunctionMachine);
     assertEquals(1, repeatedFunctionMachine.global("published"));
+    assertEquals(880_122_229, repeatedFunctionMachine.global("linkedIdentityPrefix"));
     assertArrayEquals(
         functionMachine.hostOutput(), repeatedFunctionMachine.hostOutput());
 
@@ -285,6 +287,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(0, malformedFunctionMachine.global("published"));
     assertEquals(0, malformedFunctionMachine.global("relocatedTargetCount"));
     assertEquals(0, malformedFunctionMachine.global("linkedCodeLength"));
+    assertEquals(0, malformedFunctionMachine.global("linkedIdentityPrefix"));
   }
 
   @Test

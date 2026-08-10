@@ -12,6 +12,8 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
   static Program program(int artifactCount, int rootProduct) throws IOException {
     LinkedHashMap<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
+    sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
+    sources.put("ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.compiled_function_names"));
     sources.putAll(CompilerSources.moduleClosure(
@@ -51,6 +53,7 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
         import wheeler.compiler.closure.linked_string_section;
         import wheeler.compiler.opcodes;
         import wheeler.core.encoding.binary;
+        import wheeler.crypto.content_identity;
 
         classical class PhysicalFunctionClosure {
           state long published = 0;
@@ -68,6 +71,7 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
           state long linkedFunctionSectionLength = 0;
           state long linkedManifestLength = 0;
           state long linkedContainerLength = 0;
+          state long linkedIdentityPrefix = 0;
 
           private boolean callOpcode(long opcode) {
             boolean call = opcode == OPCODE_CALL;
@@ -92,7 +96,8 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
           entry void main(borrow byteview input, borrow mut bytes output) {
             assert(bufferLength(input) < 16777217);
             assert(ARTIFACT_COUNT * 6 + 8 < bufferLength(input) + 1);
-            region products = new region(/* bytes= */ 26214400, /* allocations= */ 29);
+            region products = new region(/* bytes= */ 26214400, /* allocations= */ 34);
+            bytes linkedIdentity = allocateBytes(products, /* length= */ 32);
             bytes artifact = allocateBytes(products, /* length= */ 1048576);
             bytes rootArtifact = allocateBytes(products, /* length= */ 1048576);
             bytes sections = allocateBytes(products, /* length= */ 4194304);
@@ -417,6 +422,17 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
               sectionLengths,
               output
             );
+            publishSha256Range(
+              output,
+              /* start= */ 0,
+              linkedContainerLength,
+              linkedIdentity,
+              products
+            );
+            linkedIdentityPrefix = linkedIdentity[0] * 16777216
+              + linkedIdentity[1] * 65536
+              + linkedIdentity[2] * 256
+              + linkedIdentity[3];
             published = 1;
             setOutputLength(output, linkedContainerLength);
             drop(sectionLengths);
@@ -448,6 +464,7 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
             drop(sections);
             drop(rootArtifact);
             drop(artifact);
+            drop(linkedIdentity);
             drop(products);
           }
         }
