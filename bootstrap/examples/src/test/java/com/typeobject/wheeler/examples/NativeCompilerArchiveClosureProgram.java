@@ -38,6 +38,8 @@ final class NativeCompilerArchiveClosureProgram {
         "wheeler.compiler.closure.archive_module_sources"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.callable_dependency_products"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.callable_function_rows"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.callable_identities"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.callable_type_products"));
@@ -69,6 +71,7 @@ final class NativeCompilerArchiveClosureProgram {
         import wheeler.compiler.closure.archive_module_sources;
         import wheeler.compiler.closure.archive_sources;
         import wheeler.compiler.closure.callable_dependency_products;
+        import wheeler.compiler.closure.callable_function_rows;
         import wheeler.compiler.closure.callable_identities;
         import wheeler.compiler.closure.callable_type_products;
         import wheeler.compiler.closure.compiled_body_archive;
@@ -143,6 +146,7 @@ final class NativeCompilerArchiveClosureProgram {
           state long physicalModuleProductCount = 0;
           state long physicalCallableProductCount = 0;
           state long physicalCallableRelocationCount = 0;
+          state long physicalResolvedCallableTargetCount = 0;
           state long physicalArchivedProductLength = 0;
           state long physicalArchivedProductCount = 0;
           state long physicalModuleOwner = -1;
@@ -186,7 +190,7 @@ final class NativeCompilerArchiveClosureProgram {
             words bodyModuleRanks = allocate(products, /* length= */ 512);
             words bodyStarts = allocate(products, /* length= */ 512);
             words bodyLengths = allocate(products, /* length= */ 512);
-            region columns = new region(/* bytes= */ 5905960, /* allocations= */ 89);
+            region columns = new region(/* bytes= */ 6627368, /* allocations= */ 95);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -268,6 +272,12 @@ final class NativeCompilerArchiveClosureProgram {
             bytes physicalFunctionIdentities = allocateBytes(columns, /* length= */ 2048);
             words physicalRelocationRows = allocate(columns, /* length= */ 12288);
             bytes physicalRelocationIdentities = allocateBytes(columns, /* length= */ 131072);
+            words callableHashSlots = allocate(columns, /* length= */ 8192);
+            words callableHashFunctions = allocate(columns, /* length= */ 8192);
+            words callableFunctionRows = allocate(columns, /* length= */ 4096);
+            words callablePublishedRows = allocate(columns, /* length= */ 4096);
+            words physicalTargetRows = allocate(columns, /* length= */ 65536);
+            words physicalStubCallableRows = allocate(columns, /* length= */ 64);
             PHYSICAL_MODULE_OWNERS
             bytes packageIdentity = allocateBytes(columns, /* length= */ 32);
             bytes symbolIdentities = allocateBytes(columns, MAX_SYMBOLS * 32);
@@ -471,6 +481,18 @@ final class NativeCompilerArchiveClosureProgram {
                   packageIdentity,
                   callableIdentities
                 );
+                if (callableIdentityPublication) {
+                  mapCallableFunctionRows(
+                    callables.callableCount,
+                    callableIdentities,
+                    callables.callableCount,
+                    callableIdentities,
+                    callableHashSlots,
+                    callableHashFunctions,
+                    callableFunctionRows,
+                    callablePublishedRows
+                  );
+                }
                 if (closure.moduleCount == 3) {
                   if (0 < callables.parameterCount) {
                     long savedMode = parameterModes[0];
@@ -778,6 +800,12 @@ final class NativeCompilerArchiveClosureProgram {
             drop(moduleIdentities);
             drop(symbolIdentities);
             drop(packageIdentity);
+            drop(physicalStubCallableRows);
+            drop(physicalTargetRows);
+            drop(callablePublishedRows);
+            drop(callableFunctionRows);
+            drop(callableHashFunctions);
+            drop(callableHashSlots);
             drop(physicalRelocationIdentities);
             drop(physicalRelocationRows);
             drop(physicalFunctionIdentities);

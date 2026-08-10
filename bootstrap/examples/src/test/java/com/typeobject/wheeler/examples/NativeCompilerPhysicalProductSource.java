@@ -132,6 +132,7 @@ final class NativeCompilerPhysicalProductSource {
                     physicalStub,
                     callableVisibilities[relocationTarget]
                   );
+                  set(physicalStubCallableRows, physicalStub, relocationTarget);
                   long physicalRelocationIdentityByte = 0;
                   while (physicalRelocationIdentityByte < 32) limit 32 {
                     setByte(
@@ -159,7 +160,30 @@ final class NativeCompilerPhysicalProductSource {
                 physicalRelocationIdentities
               );
               assert(physicalRelocationCount == physicalCallCount);
+              resolveImportedIdentityFunctionTargets(
+                physicalRelocationCount,
+                physicalRelocationIdentities,
+                callables.callableCount,
+                callableIdentities,
+                callableHashSlots,
+                callableHashFunctions,
+                physicalTargetRows
+              );
+              long physicalResolvedTarget = 0;
+              while (
+                physicalResolvedTarget < physicalRelocationCount
+              ) limit 4096 {
+                long physicalStubTarget = physicalRelocationRows[
+                  4096 + physicalResolvedTarget
+                ];
+                assert(
+                  physicalTargetRows[physicalResolvedTarget]
+                    == physicalStubCallableRows[physicalStubTarget]
+                );
+                physicalResolvedTarget += 1;
+              }
               physicalCallableRelocationCount += physicalRelocationCount;
+              physicalResolvedCallableTargetCount += physicalRelocationCount;
             }
             CompiledBodyArchivePlan retained = appendCompiledBodyArtifact(
               compiledCallableArtifact,
