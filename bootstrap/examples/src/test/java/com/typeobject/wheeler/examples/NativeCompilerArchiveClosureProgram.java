@@ -781,97 +781,7 @@ final class NativeCompilerArchiveClosureProgram {
                     }
                     setOutputLength(output, compiledCallableModuleLength);
                   } else {
-                    if (1 < bufferLength(output)) {
-                      long physicalByte = 0;
-                      while (physicalByte < physicalRetainedProductLength) limit 16777216 {
-                        setByte(output, physicalByte, bodyArchive[physicalByte]);
-                        physicalByte += 1;
-                      }
-                      long physicalMetadata = physicalRetainedProductLength;
-                      long physicalArtifact = 0;
-                      while (physicalArtifact < PHYSICAL_MODULE_COUNT) limit 512 {
-                        long physicalArtifactOwner = physicalOwners[physicalArtifact];
-                        long physicalArtifactLength = bodyLengths[physicalArtifact];
-                        setByte(output, physicalMetadata, physicalArtifactOwner / 256);
-                        setByte(output, physicalMetadata + 1, physicalArtifactOwner % 256);
-                        setByte(output, physicalMetadata + 2, physicalArtifactLength / 65536);
-                        setByte(
-                          output,
-                          physicalMetadata + 3,
-                          physicalArtifactLength / 256 % 256
-                        );
-                        setByte(output, physicalMetadata + 4, physicalArtifactLength % 256);
-                        long physicalArtifactFunctionCount = moduleCallableCounts[
-                          physicalArtifactOwner
-                        ];
-                        if (physicalArtifact + 1 == PHYSICAL_COMPARABLE_COUNT) {
-                          physicalArtifactFunctionCount += 1;
-                        }
-                        setByte(
-                          output,
-                          physicalMetadata + 5,
-                          physicalArtifactFunctionCount
-                        );
-                        physicalMetadata += 6;
-                        physicalArtifact += 1;
-                      }
-                      long publishedRelocationFrame = 0;
-                      while (
-                        publishedRelocationFrame < physicalCallableRelocationCount
-                      ) limit 2048 {
-                        long physicalRelocationProduct = physicalRelocationRows[
-                          2048 + publishedRelocationFrame
-                        ];
-                        long physicalRelocationInstruction = physicalRelocationRows[
-                          6144 + publishedRelocationFrame
-                        ];
-                        long physicalRelocationTarget = physicalRelocationRows[
-                          10240 + publishedRelocationFrame
-                        ];
-                        long physicalRelocationOwner = callableOwners[
-                          physicalRelocationTarget
-                        ];
-                        long physicalRelocationLocal = physicalRelocationTarget
-                          - moduleFirstCallables[physicalRelocationOwner];
-                        setByte(output, physicalMetadata, physicalRelocationProduct);
-                        setByte(
-                          output,
-                          physicalMetadata + 1,
-                          physicalRelocationInstruction / 256
-                        );
-                        setByte(
-                          output,
-                          physicalMetadata + 2,
-                          physicalRelocationInstruction % 256
-                        );
-                        setByte(
-                          output,
-                          physicalMetadata + 3,
-                          physicalRelocationOwner / 256
-                        );
-                        setByte(
-                          output,
-                          physicalMetadata + 4,
-                          physicalRelocationOwner % 256
-                        );
-                        setByte(output, physicalMetadata + 5, physicalRelocationLocal);
-                        physicalMetadata += 6;
-                        publishedRelocationFrame += 1;
-                      }
-                      setByte(
-                        output,
-                        physicalMetadata,
-                        physicalCallableRelocationCount / 256
-                      );
-                      setByte(
-                        output,
-                        physicalMetadata + 1,
-                        physicalCallableRelocationCount % 256
-                      );
-                      setOutputLength(output, physicalMetadata + 2);
-                    } else {
-                      setByte(output, 0, 1);
-                    }
+                    PHYSICAL_PRODUCT_PUBLICATION
                   }
                 }
               }
@@ -989,6 +899,7 @@ final class NativeCompilerArchiveClosureProgram {
         """
             .replace("PHYSICAL_MODULE_OWNERS", physicalOwnerRows())
             .replace("PHYSICAL_PRODUCT_COMPILATION", NativeCompilerPhysicalProductSource.compilation())
+            .replace("PHYSICAL_PRODUCT_PUBLICATION", NativeCompilerPhysicalProductSource.publication())
             .replace("PHYSICAL_COMPARABLE_COUNT", Integer.toString(PHYSICAL_MODULES.size()))
             .replace(
                 "PHYSICAL_MODULE_COUNT",
