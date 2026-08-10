@@ -117,11 +117,9 @@ final class NativeCompilerArchiveClosureExampleTest {
     long expectedFunctions = 0;
     for (NativeCompilerArchiveClosureProgram.PhysicalModule module
         : NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES) {
-      String source = CompilerSources.read(module.path());
-      String fileName = module.path().substring(module.path().lastIndexOf('/') + 1);
       byte[] artifact = new BytecodeWriter().write(
           new WheelerCompiler().compileLibraryModuleFiles(
-              Map.of(fileName, source), module.name()));
+              CompilerSources.moduleClosure(module.name()), module.name()));
       expected.writeBytes(artifact);
       expectedFunctions += new BytecodeReader().read(artifact).functions().size();
     }

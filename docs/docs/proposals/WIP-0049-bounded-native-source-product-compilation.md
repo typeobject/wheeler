@@ -152,7 +152,7 @@ Source-product compilation does not set the bootstrap bit. Promotion still requi
 
 ## Implementation status
 
-- [x] `ProductRootSource.w` substitutes imported scalar products without dependency source.
+- [x] `ProductRootSource.w` substitutes imported scalar products without dependency source. Its physical-module path retains the canonical module declaration while removing product-only imports.
 - [x] `ImportedCallableStubs.w` generates deterministic primitive signature stubs.
 - [x] `compileSourceModuleProductWithImports` compiles one complete primitive local class from local source and imported products.
 - [x] `compileCallableModuleProductWithImports` compiles counted primitive callable ranges.
@@ -171,7 +171,7 @@ Source-product compilation does not set the bootstrap bit. Promotion still requi
 - [x] Instruction-local create, move, loan, release, and drop owner rows map atomically to aggregate and member projections.
 - [x] Final callable local types consume validated temporary nominal projections and exact function-local carrier projections. Aggregate construction operands consume stable aggregate projections.
 - [ ] Proof and result-slot products compile with imported callables.
-- [ ] Every physical compiler module publishes one source-local product artifact. The counted physical closure now compiles fourteen modules directly from immutable local archive ranges: `wheeler.compiler.boolean_tokens`, `wheeler.compiler.compiler_program_limits`, `wheeler.compiler.encoding_widths`, `wheeler.compiler.identifier_starts`, `wheeler.compiler.opcodes`, `wheeler.compiler.proof_rules`, `wheeler.compiler.resolved_local_returns`, `wheeler.compiler.resolved_statements`, `wheeler.compiler.statement_kinds`, `wheeler.compiler.storage_opcodes`, `wheeler.compiler.type_codes`, `wheeler.compiler.void_call_kinds`, `wheeler.compiler.void_call_source_kinds`, and `wheeler.compiler.wide_return_sources`. Each artifact enters `CompiledBodyArchive.w` under its physical module owner before the ordered immutable archive matches stage 0 byte for byte. Closure-wide iteration remains.
+- [ ] Every physical compiler module publishes one source-local product artifact. The counted physical closure now compiles sixty-four modules directly from immutable local archive ranges. The first fourteen cover source-local scalar libraries. Another fifty consume the direct imported scalar products listed by WIP-0007. Their dependency imports are removed only after values, types, visibility, qualification, and ambiguity have resolved. Each artifact enters `CompiledBodyArchive.w` under its physical module owner before the ordered immutable archive matches stage 0 byte for byte. Closure-wide iteration remains.
 - [ ] WIP-0048 emits the complete physical compiler closure from those products.
 
 ## Acceptance

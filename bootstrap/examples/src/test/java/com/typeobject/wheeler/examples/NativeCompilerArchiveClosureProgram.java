@@ -11,39 +11,74 @@ final class NativeCompilerArchiveClosureProgram {
   record PhysicalModule(int owner, String path, String name) {}
 
   static final List<PhysicalModule> PHYSICAL_MODULES = List.of(
-      new PhysicalModule(
-          18, "compiler/syntax/booleans/BooleanTokens.w", "wheeler.compiler.boolean_tokens"),
-      new PhysicalModule(
-          125,
-          "compiler/ir/limits/CompilerProgramLimits.w",
-          "wheeler.compiler.compiler_program_limits"),
-      new PhysicalModule(
-          144, "compiler/backend/EncodingWidths.w", "wheeler.compiler.encoding_widths"),
-      new PhysicalModule(
-          172, "compiler/syntax/IdentifierStarts.w", "wheeler.compiler.identifier_starts"),
-      new PhysicalModule(208, "compiler/ir/Opcodes.w", "wheeler.compiler.opcodes"),
-      new PhysicalModule(227, "compiler/ir/ProofRules.w", "wheeler.compiler.proof_rules"),
-      new PhysicalModule(
-          250,
-          "compiler/syntax/returns/ResolvedLocalReturns.w",
-          "wheeler.compiler.resolved_local_returns"),
-      new PhysicalModule(
-          254, "compiler/ir/ResolvedStatements.w", "wheeler.compiler.resolved_statements"),
-      new PhysicalModule(
-          274, "compiler/ir/StatementKinds.w", "wheeler.compiler.statement_kinds"),
-      new PhysicalModule(
-          278, "compiler/ir/StorageOpcodes.w", "wheeler.compiler.storage_opcodes"),
-      new PhysicalModule(286, "compiler/ir/TypeCodes.w", "wheeler.compiler.type_codes"),
-      new PhysicalModule(
-          290, "compiler/syntax/calls/VoidCallKinds.w", "wheeler.compiler.void_call_kinds"),
-      new PhysicalModule(
-          294,
-          "compiler/syntax/calls/VoidCallSourceKinds.w",
-          "wheeler.compiler.void_call_source_kinds"),
-      new PhysicalModule(
-          302,
-          "compiler/resolution/returns/WideReturnSources.w",
-          "wheeler.compiler.wide_return_sources"));
+      physical(16, "compiler/syntax/BooleanDeclarationKinds.w", "boolean_declaration_kinds"),
+      physical(18, "compiler/syntax/booleans/BooleanTokens.w", "boolean_tokens"),
+      physical(22, "compiler/frontend/intrinsics/BorrowedIntrinsicShapes.w", "borrowed_intrinsic_shapes"),
+      physical(24, "compiler/syntax/calls/CallArgumentSources.w", "call_argument_sources"),
+      physical(125, "compiler/ir/limits/CompilerProgramLimits.w", "compiler_program_limits"),
+      physical(135, "compiler/syntax/EarlyReturnKinds.w", "early_return_kinds"),
+      physical(137, "compiler/syntax/EarlyReturnResultKinds.w", "early_return_result_kinds"),
+      physical(138, "compiler/syntax/returns/EarlyReturnSources.w", "early_return_sources"),
+      physical(144, "compiler/backend/EncodingWidths.w", "encoding_widths"),
+      physical(147, "compiler/syntax/calls/FourArgumentCalls.w", "four_argument_calls"),
+      physical(169, "compiler/syntax/helpers/HelperSignatures.w", "helper_signatures"),
+      physical(172, "compiler/syntax/IdentifierStarts.w", "identifier_starts"),
+      physical(174, "compiler/ir/InstructionForms.w", "instruction_forms"),
+      physical(179, "compiler/syntax/conditionals/LiteralComparisonOperations.w", "literal_comparison_operations"),
+      physical(194, "compiler/syntax/returns/NamedBooleanReturnKinds.w", "named_boolean_return_kinds"),
+      physical(195, "compiler/syntax/comparisons/NamedComparisonKinds.w", "named_comparison_kinds"),
+      physical(196, "compiler/syntax/conditionals/NamedConditionalBases.w", "named_conditional_bases"),
+      physical(197, "compiler/syntax/conditionals/NamedLiteralComparisonKinds.w", "named_literal_comparison_kinds"),
+      physical(198, "compiler/syntax/assignments/NamedLocalAssignmentKinds.w", "named_local_assignment_kinds"),
+      physical(199, "compiler/syntax/conditionals/NamedLocalConditionalKinds.w", "named_local_conditional_kinds"),
+      physical(200, "compiler/syntax/conditionals/NamedLocalConditionalValues.w", "named_local_conditional_values"),
+      physical(201, "compiler/syntax/updates/NamedLocalUpdateKinds.w", "named_local_update_kinds"),
+      physical(202, "compiler/syntax/locals/NamedLongOperations.w", "named_long_operations"),
+      physical(203, "compiler/syntax/returns/NamedReturnArithmeticKinds.w", "named_return_arithmetic_kinds"),
+      physical(204, "compiler/syntax/returns/NamedReturnComparisonOperands.w", "named_return_comparison_operands"),
+      physical(205, "compiler/syntax/returns/NamedSignedReturnKinds.w", "named_signed_return_kinds"),
+      physical(206, "compiler/syntax/calls/OneArgumentCalls.w", "one_argument_calls"),
+      physical(207, "compiler/ir/OpcodeKinds.w", "opcode_kinds"),
+      physical(208, "compiler/ir/Opcodes.w", "opcodes"),
+      physical(227, "compiler/ir/ProofRules.w", "proof_rules"),
+      physical(229, "compiler/syntax/assertions/ResolvedBooleanLiteralAssertions.w", "resolved_boolean_literal_assertions"),
+      physical(230, "compiler/syntax/booleans/ResolvedBooleanLiteralComparisons.w", "resolved_boolean_literal_comparisons"),
+      physical(231, "compiler/syntax/returns/ResolvedEarlyComparisonKinds.w", "resolved_early_comparison_kinds"),
+      physical(232, "compiler/syntax/returns/ResolvedEarlyResultKinds.w", "resolved_early_result_kinds"),
+      physical(234, "compiler/syntax/assertions/ResolvedLessThanAssertions.w", "resolved_less_than_assertions"),
+      physical(235, "compiler/syntax/conditionals/ResolvedLiteralComparisonKinds.w", "resolved_literal_comparison_kinds"),
+      physical(236, "compiler/syntax/assignments/ResolvedLocalAssignments.w", "resolved_local_assignments"),
+      physical(237, "compiler/syntax/conditionals/ResolvedLocalConditionalKinds.w", "resolved_local_conditional_kinds"),
+      physical(238, "compiler/syntax/conditionals/ResolvedLocalConditionalOperands.w", "resolved_local_conditional_operands"),
+      physical(239, "compiler/syntax/conditionals/ResolvedLocalConditionalSources.w", "resolved_local_conditional_sources"),
+      physical(240, "compiler/syntax/locals/ResolvedLocalCopyKinds.w", "resolved_local_copy_kinds"),
+      physical(241, "compiler/syntax/locals/ResolvedLocalEqualityKinds.w", "resolved_local_equality_kinds"),
+      physical(242, "compiler/syntax/locals/ResolvedLocalInequalityKinds.w", "resolved_local_inequality_kinds"),
+      physical(243, "compiler/syntax/locals/ResolvedLocalLessThanKinds.w", "resolved_local_less_than_kinds"),
+      physical(244, "compiler/syntax/locals/ResolvedLocalLiteralComparisonSources.w", "resolved_local_literal_comparison_sources"),
+      physical(245, "compiler/syntax/locals/ResolvedLocalLiteralComparisons.w", "resolved_local_literal_comparisons"),
+      physical(246, "compiler/syntax/loops/ResolvedLocalLoopForms.w", "resolved_local_loop_forms"),
+      physical(247, "compiler/syntax/loops/ResolvedLocalLoopKinds.w", "resolved_local_loop_kinds"),
+      physical(248, "compiler/syntax/loops/ResolvedLocalLoopOperands.w", "resolved_local_loop_operands"),
+      physical(249, "compiler/syntax/assertions/ResolvedLocalPairAssertions.w", "resolved_local_pair_assertions"),
+      physical(250, "compiler/syntax/returns/ResolvedLocalReturns.w", "resolved_local_returns"),
+      physical(251, "compiler/syntax/updates/ResolvedLocalUpdates.w", "resolved_local_updates"),
+      physical(252, "compiler/syntax/locals/ResolvedLongOperations.w", "resolved_long_operations"),
+      physical(253, "compiler/syntax/returns/ResolvedReturnCallKinds.w", "resolved_return_call_kinds"),
+      physical(254, "compiler/ir/ResolvedStatements.w", "resolved_statements"),
+      physical(260, "compiler/resolution/returns/ReturnOpcodeKinds.w", "return_opcode_kinds"),
+      physical(274, "compiler/ir/StatementKinds.w", "statement_kinds"),
+      physical(278, "compiler/ir/StorageOpcodes.w", "storage_opcodes"),
+      physical(285, "compiler/syntax/calls/TwoArgumentCallKinds.w", "two_argument_call_kinds"),
+      physical(286, "compiler/ir/TypeCodes.w", "type_codes"),
+      physical(287, "compiler/ir/TypeKinds.w", "type_kinds"),
+      physical(290, "compiler/syntax/calls/VoidCallKinds.w", "void_call_kinds"),
+      physical(294, "compiler/syntax/calls/VoidCallSourceKinds.w", "void_call_source_kinds"),
+      physical(302, "compiler/resolution/returns/WideReturnSources.w", "wide_return_sources"));
+
+  private static PhysicalModule physical(int owner, String path, String localName) {
+    return new PhysicalModule(owner, path, "wheeler.compiler." + localName);
+  }
 
   private NativeCompilerArchiveClosureProgram() {}
 
@@ -69,9 +104,12 @@ final class NativeCompilerArchiveClosureProgram {
         "wheeler.compiler.closure.compiled_body_archive"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.counted_constant_executor"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.imported_constant_values"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.module_callables"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.module_symbols"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.package_target"));
+    sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.product_root_source"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.plan"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.schedule"));
     sources.putAll(CompilerSources.moduleClosure(
@@ -85,11 +123,13 @@ final class NativeCompilerArchiveClosureProgram {
         import wheeler.compiler.closure.compiled_body_archive;
         import wheeler.compiler.closure.compiled_callable_bodies;
         import wheeler.compiler.closure.counted_constant_executor;
+        import wheeler.compiler.closure.imported_constant_values;
         import wheeler.compiler.closure.module_callables;
         import wheeler.compiler.closure.module_manifest;
         import wheeler.compiler.closure.module_symbols;
         import wheeler.compiler.closure.package_target;
         import wheeler.compiler.closure.plan;
+        import wheeler.compiler.closure.product_root_source;
         import wheeler.compiler.closure.scalar_module_identities;
         import wheeler.compiler.closure.schedule;
         import wheeler.compiler.closure.symbol_identities;
@@ -188,7 +228,7 @@ final class NativeCompilerArchiveClosureProgram {
             words bodyModuleRanks = allocate(products, /* length= */ 512);
             words bodyStarts = allocate(products, /* length= */ 512);
             words bodyLengths = allocate(products, /* length= */ 512);
-            region columns = new region(/* bytes= */ 3176096, /* allocations= */ 72);
+            region columns = new region(/* bytes= */ 4126760, /* allocations= */ 74);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -252,7 +292,9 @@ final class NativeCompilerArchiveClosureProgram {
             words physicalAggregates = allocate(columns, /* length= */ 832);
             words physicalCalls = allocate(columns, /* length= */ 1024);
             words physicalResultTypes = allocate(columns, /* length= */ 4096);
-            words physicalOwners = allocate(columns, /* length= */ 16);
+            words physicalOwners = allocate(columns, /* length= */ 64);
+            words physicalImportedRows = allocate(columns, /* length= */ 114689);
+            bytes physicalProductSource = allocateBytes(columns, /* length= */ 32768);
             PHYSICAL_MODULE_OWNERS
             bytes packageIdentity = allocateBytes(columns, /* length= */ 32);
             bytes symbolIdentities = allocateBytes(columns, MAX_SYMBOLS * 32);
@@ -503,15 +545,63 @@ final class NativeCompilerArchiveClosureProgram {
                       + compiledCallableIdentity[3];
                   }
                 }
+                ScalarModuleIdentityPlan scalarIdentities = publishScalarModuleIdentities(
+                  archive,
+                  manifest,
+                  closure,
+                  leafFirstOrder,
+                  identityStarts,
+                  moduleProductNameStarts,
+                  moduleProductNameLengths,
+                  firstImports,
+                  directImportCounts,
+                  edgeTargets,
+                  moduleFirstSymbols,
+                  moduleSymbolCounts,
+                  packageIdentity,
+                  symbolIdentities,
+                  symbolValues,
+                  symbolResolved,
+                  moduleIdentities
+                );
                 if (closure.moduleCount == 304) {
                   long physicalProduct = 0;
-                  while (physicalProduct < PHYSICAL_MODULE_COUNT) limit 16 {
+                  while (physicalProduct < PHYSICAL_MODULE_COUNT) limit 64 {
                     long physicalOwner = physicalOwners[physicalProduct];
                     physicalModuleOwner = physicalOwner;
-                    CompiledCallableBody physicalModule = compileSourceModuleProductWithImports(
+                    long physicalImportedCount = writeDirectImportedValues(
+                      firstImports[physicalOwner],
+                      directImportCounts[physicalOwner],
+                      edgeTargets,
+                      moduleFirstSymbols,
+                      moduleSymbolCounts,
+                      moduleProductNameStarts,
+                      moduleProductNameLengths,
+                      symbolStarts,
+                      symbolLengths,
+                      symbolVisibilities,
+                      symbolTypes,
+                      symbolValues,
+                      symbolResolved,
+                      physicalImportedRows
+                    );
+                    assert(-1 < physicalImportedCount);
+                    long physicalSourceLength = writeProductModuleSource(
                       archive,
                       archiveSourceStarts[physicalOwner],
                       archiveSourceLengths[physicalOwner],
+                      moduleFirstSymbols[physicalOwner],
+                      moduleSymbolCounts[physicalOwner],
+                      symbolStarts,
+                      symbolLengths,
+                      physicalImportedRows,
+                      physicalProductSource
+                    );
+                    assert(0 < physicalSourceLength);
+                    CompiledCallableBody physicalModule = compileSourceModuleProductWithImports(
+                      physicalProductSource,
+                      /* sourceStart= */ 0,
+                      physicalSourceLength,
                       /* aggregateCount= */ 0,
                       physicalAggregates,
                       /* callCount= */ 0,
@@ -543,25 +633,6 @@ final class NativeCompilerArchiveClosureProgram {
                     physicalProduct += 1;
                   }
                 }
-                ScalarModuleIdentityPlan scalarIdentities = publishScalarModuleIdentities(
-                  archive,
-                  manifest,
-                  closure,
-                  leafFirstOrder,
-                  identityStarts,
-                  moduleProductNameStarts,
-                  moduleProductNameLengths,
-                  firstImports,
-                  directImportCounts,
-                  edgeTargets,
-                  moduleFirstSymbols,
-                  moduleSymbolCounts,
-                  packageIdentity,
-                  symbolIdentities,
-                  symbolValues,
-                  symbolResolved,
-                  moduleIdentities
-                );
                 classifyClosureExecutableOwners(
                   archive,
                   manifest,
@@ -776,6 +847,8 @@ final class NativeCompilerArchiveClosureProgram {
             drop(moduleIdentities);
             drop(symbolIdentities);
             drop(packageIdentity);
+            drop(physicalProductSource);
+            drop(physicalImportedRows);
             drop(physicalOwners);
             drop(physicalResultTypes);
             drop(physicalCalls);

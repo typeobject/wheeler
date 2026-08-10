@@ -160,8 +160,7 @@ classical class ProductRootSources {
     return -1;
   }
 
-  /// Removes the module header and substitutes resolved direct product references.
-  public long writeProductRootSource(
+  private long writeProductSource(
     borrow byteview archive,
     long sourceStart,
     long sourceLength,
@@ -170,7 +169,8 @@ classical class ProductRootSources {
     borrow mut words symbolStarts,
     borrow mut words symbolLengths,
     borrow mut words importedRows,
-    borrow mut bytes output
+    borrow mut bytes output,
+    boolean retainModuleHeader
   ) {
     if (0 < sourceLength) {} else {
       return -1;
@@ -214,6 +214,15 @@ classical class ProductRootSources {
     long written = -1;
     if (-1 < body) {
       written = 0;
+      if (retainModuleHeader) {
+        long moduleEnd = moduleRange[0] + moduleRange[1] + 1;
+        written = copyRange(source, 0, moduleEnd, output, written);
+        if (-1 < written) {
+          setByte(output, written, 10);
+          written += 1;
+        }
+      }
+
       long sourceCursor = tokenStarts[body];
       long token = body;
       while (token < tokenCount) limit MAX_COMPILER_TOKENS {
@@ -313,5 +322,57 @@ classical class ProductRootSources {
     drop(source);
     drop(sourceArena);
     return written;
+  }
+
+  /// Removes the module header and substitutes resolved direct product references.
+  public long writeProductRootSource(
+    borrow byteview archive,
+    long sourceStart,
+    long sourceLength,
+    long firstLocalSymbol,
+    long localSymbolCount,
+    borrow mut words symbolStarts,
+    borrow mut words symbolLengths,
+    borrow mut words importedRows,
+    borrow mut bytes output
+  ) {
+    return writeProductSource(
+      archive,
+      sourceStart,
+      sourceLength,
+      firstLocalSymbol,
+      localSymbolCount,
+      symbolStarts,
+      symbolLengths,
+      importedRows,
+      output,
+      false
+    );
+  }
+
+  /// Retains one canonical module declaration while removing product-only imports.
+  public long writeProductModuleSource(
+    borrow byteview archive,
+    long sourceStart,
+    long sourceLength,
+    long firstLocalSymbol,
+    long localSymbolCount,
+    borrow mut words symbolStarts,
+    borrow mut words symbolLengths,
+    borrow mut words importedRows,
+    borrow mut bytes output
+  ) {
+    return writeProductSource(
+      archive,
+      sourceStart,
+      sourceLength,
+      firstLocalSymbol,
+      localSymbolCount,
+      symbolStarts,
+      symbolLengths,
+      importedRows,
+      output,
+      true
+    );
   }
 }
