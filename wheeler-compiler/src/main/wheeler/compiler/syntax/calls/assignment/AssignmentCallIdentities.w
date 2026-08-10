@@ -25,6 +25,8 @@ classical class AssignmentCallIdentities {
   public const long STATEMENT_ASSIGN_CALL_SIX_NAMED = 932;
   /// Existing signed local assigned from a seven-argument helper call.
   public const long STATEMENT_ASSIGN_CALL_SEVEN_NAMED = 933;
+  /// Ends all unresolved call-assignment identities.
+  public const long ASSIGNMENT_CALL_SOURCE_END = 934;
   /// Resolved zero-argument call-assignment target column.
   public const long STATEMENT_ASSIGN_CALL_ZERO_BASE = 40000;
   /// Resolved one-argument call-assignment target column.

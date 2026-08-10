@@ -186,10 +186,24 @@ classical class ReturnCodegen {
           earlyComparisonReturnSource(opcode),
           U64
         );
-        cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
+        long computedSourceOpcode = OPCODE_LOCAL_CONST;
+        if (resolvedEarlyAdditionReturn(opcode)) {
+          computedSourceOpcode = OPCODE_LOCAL_MOVE;
+        }
+
+        cursor = writeInstructionHeader(output, cursor, computedSourceOpcode, FORM_BINARY);
         cursor = writeUnsignedLittleEndian(output, cursor, localBase + 4, U64);
-        cursor = writeSignedLittleEndian(output, cursor, secondaryOperand, U64);
+        cursor = writeReturnScalarOperand(
+          output,
+          cursor,
+          computedSourceOpcode,
+          secondaryOperand
+        );
         long computedOpcode = OPCODE_LOCAL_SUB;
+        if (resolvedEarlyAdditionReturn(opcode)) {
+          computedOpcode = OPCODE_LOCAL_ADD;
+        }
+
         if (resolvedEarlyRemainderReturn(opcode)) {
           computedOpcode = OPCODE_LOCAL_MOD;
         }

@@ -20,6 +20,10 @@ classical class EarlyReturnResultKinds {
       return true;
     }
 
+    if (sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_ADD_NAMED) {
+      return true;
+    }
+
     if (sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED) {
       return true;
     }
@@ -33,6 +37,10 @@ classical class EarlyReturnResultKinds {
 
   /// Checks whether one comparison guard computes its result.
   public boolean comparisonGuardResultComputed(long sourceOpcode) {
+    if (sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_ADD_NAMED) {
+      return true;
+    }
+
     if (sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED) {
       return true;
     }
@@ -42,6 +50,11 @@ classical class EarlyReturnResultKinds {
     }
 
     return sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_DIV_NAMED;
+  }
+
+  /// Checks whether one comparison guard computes checked local addition.
+  public boolean comparisonGuardResultAddition(long sourceOpcode) {
+    return sourceOpcode == STATEMENT_IF_SIGNED_LT_RETURN_ADD_NAMED;
   }
 
   /// Checks whether one comparison guard computes checked remainder.

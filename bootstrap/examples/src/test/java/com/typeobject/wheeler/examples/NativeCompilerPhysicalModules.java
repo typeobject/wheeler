@@ -88,6 +88,7 @@ final class NativeCompilerPhysicalModules {
     return List.of(
         physical(4, "compiler/syntax/calls/assignment/AssignmentCallCodeWidths.w", "assignment_call_code_widths"),
         physical(8, "compiler/syntax/calls/assignment/AssignmentCallInstructionWidths.w", "assignment_call_instruction_widths"),
+        physical(9, "compiler/syntax/calls/assignment/AssignmentCallKinds.w", "assignment_call_kinds"),
         physical(10, "compiler/syntax/calls/assignment/AssignmentCallLocalWidths.w", "assignment_call_local_widths"),
         physical(133, "compiler/syntax/returns/EarlyComparisonForms.w", "early_comparison_forms"),
         physical(171, "compiler/syntax/helpers/HelperValueKinds.w", "helper_value_kinds"),

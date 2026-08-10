@@ -324,6 +324,10 @@ classical class StatementOpcodes {
             }
 
             long guardReturnOperator = utf8Scalar(source, tokenStarts[bodyStart + 2]);
+            if (guardReturnOperator == PUNCTUATION_PLUS) {
+              return STATEMENT_IF_SIGNED_LT_RETURN_ADD_NAMED;
+            }
+
             if (guardReturnOperator == PUNCTUATION_MINUS) {
               return STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED;
             }

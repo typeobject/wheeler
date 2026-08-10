@@ -28,6 +28,9 @@ classical class ResolvedEarlyComparisonKinds {
   /// Ends resolved division ordering guards.
   private const long SIGNED_LT_RETURN_DIV_END = STATEMENT_IF_SIGNED_LT_RETURN_DIV_BASE
     + RESOLVED_SOURCE_COUNT;
+  /// Ends resolved addition ordering guards.
+  private const long SIGNED_LT_RETURN_ADD_END = STATEMENT_IF_SIGNED_LT_RETURN_ADD_BASE
+    + RESOLVED_SOURCE_COUNT;
   /// Ends resolved equality guards returning prior locals.
   private const long SIGNED_EQ_RETURN_LOCAL_END = STATEMENT_IF_SIGNED_EQ_RETURN_LOCAL_BASE
     + RESOLVED_SOURCE_COUNT;
@@ -106,7 +109,15 @@ classical class ResolvedEarlyComparisonKinds {
       return false;
     }
 
-    return opcode < SIGNED_LT_RETURN_LOCAL_END;
+    if (opcode < SIGNED_LT_RETURN_LOCAL_END) {
+      return true;
+    }
+
+    if (opcode < STATEMENT_IF_SIGNED_LT_RETURN_ADD_BASE) {
+      return false;
+    }
+
+    return opcode < SIGNED_LT_RETURN_ADD_END;
   }
 
 }

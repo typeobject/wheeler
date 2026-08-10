@@ -685,8 +685,8 @@ final class NativeCompilerSelfSourceExampleTest {
     assertEquals(
         "wheeler.compiler.early_return_kinds::earlyReturnStatement",
         decoded.functions().getFirst().name());
-    assertEquals(52, decoded.functions().getFirst().localCount());
-    assertEquals(88, decoded.functions().getFirst().forward().size());
+    assertEquals(56, decoded.functions().getFirst().localCount());
+    assertEquals(95, decoded.functions().getFirst().forward().size());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 
@@ -877,13 +877,17 @@ final class NativeCompilerSelfSourceExampleTest {
           }
         }
         """;
+    assertInlineCompilerLibrary(
+        "BooleanParameters.w", "examples.boolean_parameters", source);
+  }
+
+  private static void assertInlineCompilerLibrary(
+      String logicalPath, String moduleName, String source) throws Exception {
     Program compiler = CompilerSources.minimalCompilerProgram();
     VirtualMachine writer = nativeWriter(compiler, source);
-
     CompilerMachineRunner.runWithoutRewindHistory(writer);
-
     Program expected = new WheelerCompiler().compileLibraryModuleFiles(
-        Map.of("BooleanParameters.w", source), "examples.boolean_parameters");
+        Map.of(logicalPath, source), moduleName);
     assertArrayEquals(new BytecodeWriter().write(expected), writer.hostOutput());
   }
 

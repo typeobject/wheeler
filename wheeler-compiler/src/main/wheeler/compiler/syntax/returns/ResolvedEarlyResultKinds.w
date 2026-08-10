@@ -28,6 +28,9 @@ classical class ResolvedEarlyResultKinds {
   /// Ends resolved division ordering guards.
   private const long SIGNED_LT_RETURN_DIV_END = STATEMENT_IF_SIGNED_LT_RETURN_DIV_BASE
     + RESOLVED_SOURCE_COUNT;
+  /// Ends resolved addition ordering guards.
+  private const long SIGNED_LT_RETURN_ADD_END = STATEMENT_IF_SIGNED_LT_RETURN_ADD_BASE
+    + RESOLVED_SOURCE_COUNT;
   /// Ends resolved helper guards forwarding another call.
   private const long HELPER_FORWARD_RETURN_END = STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_BASE
     + RESOLVED_SOURCE_COUNT;
@@ -118,6 +121,10 @@ classical class ResolvedEarlyResultKinds {
       return true;
     }
 
+    if (resolvedEarlyAdditionReturn(opcode)) {
+      return true;
+    }
+
     return resolvedEarlyLocalReturn(opcode);
   }
 
@@ -160,7 +167,24 @@ classical class ResolvedEarlyResultKinds {
       return false;
     }
 
-    return opcode < SIGNED_LT_RETURN_DIV_END;
+    if (opcode < SIGNED_LT_RETURN_DIV_END) {
+      return true;
+    }
+
+    if (opcode < STATEMENT_IF_SIGNED_LT_RETURN_ADD_BASE) {
+      return false;
+    }
+
+    return opcode < SIGNED_LT_RETURN_ADD_END;
+  }
+
+  /// Checks whether one resolved guard computes checked local addition.
+  public boolean resolvedEarlyAdditionReturn(long opcode) {
+    if (opcode < STATEMENT_IF_SIGNED_LT_RETURN_ADD_BASE) {
+      return false;
+    }
+
+    return opcode < SIGNED_LT_RETURN_ADD_END;
   }
 
   /// Checks whether one resolved guard computes checked remainder.

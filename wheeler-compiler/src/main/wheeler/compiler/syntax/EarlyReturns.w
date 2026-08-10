@@ -363,6 +363,10 @@ classical class EarlyReturnForms {
       }
 
       long resultOperator = PUNCTUATION_MINUS;
+      if (comparisonGuardResultAddition(sourceOpcode)) {
+        resultOperator = PUNCTUATION_PLUS;
+      }
+
       if (comparisonGuardResultRemainder(sourceOpcode)) {
         resultOperator = PUNCTUATION_PERCENT;
       }

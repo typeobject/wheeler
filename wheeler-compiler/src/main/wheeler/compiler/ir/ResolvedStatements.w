@@ -175,6 +175,8 @@ classical class ResolvedStatements {
   public const long STATEMENT_LOCAL_CALL_SIX_LOCALS = 30464;
   /// Names a resolved local initialized by a seven-argument scalar call.
   public const long STATEMENT_LOCAL_CALL_SEVEN_LOCALS = 30720;
+  /// Starts resolved parameter less-than guards returning checked local addition.
+  public const long STATEMENT_IF_SIGNED_LT_RETURN_ADD_BASE = 30976;
   /// Starts resolved bounded signed-local while loops.
   public const long STATEMENT_LOCAL_WHILE_BASE = 18688;
   /// Starts resolved signed-local less-than assertions against literals.

@@ -39,6 +39,10 @@ classical class EarlyStatementResolution {
       return true;
     }
 
+    if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_ADD_NAMED) {
+      return true;
+    }
+
     if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED) {
       return true;
     }
@@ -85,6 +89,10 @@ classical class EarlyStatementResolution {
     if (lessThanGuard(opcode)) {
       if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_LONG_NAMED) {
         return STATEMENT_IF_SIGNED_LT_RETURN_LONG_BASE;
+      }
+
+      if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_ADD_NAMED) {
+        return STATEMENT_IF_SIGNED_LT_RETURN_ADD_BASE;
       }
 
       if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED) {

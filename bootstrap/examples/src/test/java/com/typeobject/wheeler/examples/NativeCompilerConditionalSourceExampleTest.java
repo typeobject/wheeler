@@ -1,13 +1,40 @@
 package com.typeobject.wheeler.examples;
 
 import static com.typeobject.wheeler.examples.NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.typeobject.wheeler.compiler.WheelerCompiler;
+import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.vm.VirtualMachine;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 /** Differential self-source tests for bounded conditional classification modules. */
 class NativeCompilerConditionalSourceExampleTest {
+  @Test
+  void compilesEarlyLocalAdditionByteForByte() throws Exception {
+    String source = """
+        module examples.early_local_addition;
+        classical class EarlyLocalAddition {
+          public long boundedAdd(long base, long target) {
+            if (target < 0) { return -1; }
+            if (target < 256) { return target + base; }
+            return -1;
+          }
+        }
+        """;
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    VirtualMachine writer = NativeCompilerSelfSourceExampleTest.nativeWriter(compiler, source);
+
+    CompilerMachineRunner.runWithoutRewindHistory(writer);
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("EarlyLocalAddition.w", source), "examples.early_local_addition");
+    assertArrayEquals(new BytecodeWriter().write(expected), writer.hostOutput());
+  }
+
   @Test
   void compilesCanonicalNamedLocalConditionalKindsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(

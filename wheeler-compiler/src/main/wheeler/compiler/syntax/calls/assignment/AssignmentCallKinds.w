@@ -13,7 +13,7 @@ classical class AssignmentCallKinds {
       return false;
     }
 
-    return opcode < STATEMENT_ASSIGN_CALL_SEVEN_NAMED + 1;
+    return opcode < ASSIGNMENT_CALL_SOURCE_END;
   }
 
   /// Checks whether one identity is a resolved call assignment.
@@ -31,9 +31,9 @@ classical class AssignmentCallKinds {
       return -1;
     }
 
+    long base = resolvedBase(arity);
     if (target < RESOLVED_ASSIGNMENT_CALL_TARGET_COUNT) {
-      long base = resolvedBase(arity);
-      return base + target;
+      return target + base;
     }
 
     return -1;

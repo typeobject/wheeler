@@ -49,6 +49,10 @@ classical class EarlyReturnKinds {
       return true;
     }
 
+    if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_ADD_NAMED) {
+      return true;
+    }
+
     if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED) {
       return true;
     }
@@ -62,6 +66,10 @@ classical class EarlyReturnKinds {
 
   /// Returns the physical local width of one unresolved early return.
   public long sourceEarlyReturnLocalCount(long opcode) {
+    if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_ADD_NAMED) {
+      return EARLY_COMPUTED_RETURN_LOCAL_COUNT;
+    }
+
     if (opcode == STATEMENT_IF_SIGNED_LT_RETURN_SUB_NAMED) {
       return EARLY_COMPUTED_RETURN_LOCAL_COUNT;
     }

@@ -292,6 +292,24 @@ classical class SecondaryOperands {
       );
     }
 
+    if (resolvedEarlyAdditionReturn(opcode)) {
+      long additionToken = earlyComparisonReturnToken(
+        source,
+        tokenStarts,
+        statementStart,
+        opcode
+      );
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        additionToken,
+        true
+      );
+    }
+
     if (resolvedEarlyLocalReturn(opcode)) {
       long returnToken = earlyComparisonReturnToken(source, tokenStarts, statementStart, opcode);
       return resolvePriorDeclaration(

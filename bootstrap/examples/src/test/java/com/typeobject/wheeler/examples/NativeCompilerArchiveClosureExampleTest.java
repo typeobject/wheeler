@@ -51,7 +51,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("executableCount") > 0);
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
-    assertEquals(1_460, machine.global("symbolCount"));
+    assertEquals(1_461, machine.global("symbolCount"));
     assertEquals(1_230, machine.global("callableCount"));
     assertTrue(machine.global("callableParameterCount") > 1_000);
     assertTrue(machine.global("borrowedParameterCount") > 0);
@@ -238,11 +238,19 @@ final class NativeCompilerArchiveClosureExampleTest {
             < functionMachine.global("linkedSourceStringCount"));
     assertTrue(0 < functionMachine.global("linkedStringSectionLength"));
     assertEquals(24, functionMachine.global("linkedManifestLength"));
-    assertEquals(880_122_229, functionMachine.global("linkedIdentityPrefix"));
+    assertEquals(4_078_865_274L, functionMachine.global("linkedIdentityPrefix"));
+    String linkedIdentity = HexFormat.of().formatHex(
+        MessageDigest.getInstance("SHA-256").digest(functionMachine.hostOutput()));
     assertEquals(
-        "347599759db644f369dca265a16aec5c34f65d034d57c5a64c788cd51429be72",
-        HexFormat.of().formatHex(
-            MessageDigest.getInstance("SHA-256").digest(functionMachine.hostOutput())));
+        "f31e8b7a210b699b97f8b87b8d5ede54852c465941e07998f38e89f76a95ba3b",
+        linkedIdentity,
+        () -> "code=" + functionMachine.global("linkedCodeLength")
+            + " functions=" + functionMachine.global("functionCount")
+            + " instructions=" + functionMachine.global("instructionCount")
+            + " sourceStrings=" + functionMachine.global("linkedSourceStringCount")
+            + " uniqueStrings=" + functionMachine.global("linkedUniqueStringCount")
+            + " localTypes=" + functionMachine.global("linkedLocalTypeCount")
+            + " container=" + functionMachine.global("linkedContainerLength"));
     Program linkedClosure = new BytecodeReader().read(functionMachine.hostOutput());
     assertEquals(ProgramKind.CLASSICAL, linkedClosure.kind());
     assertEquals(
@@ -260,7 +268,7 @@ final class NativeCompilerArchiveClosureExampleTest {
         functionClosure, physicalProducts, 4_194_304);
     CompilerMachineRunner.runWithoutRewindHistory(repeatedFunctionMachine);
     assertEquals(1, repeatedFunctionMachine.global("published"));
-    assertEquals(880_122_229, repeatedFunctionMachine.global("linkedIdentityPrefix"));
+    assertEquals(4_078_865_274L, repeatedFunctionMachine.global("linkedIdentityPrefix"));
     assertArrayEquals(
         functionMachine.hostOutput(), repeatedFunctionMachine.hostOutput());
 
