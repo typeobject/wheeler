@@ -211,8 +211,24 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(
         machine.global("physicalCallableRelocationCount"),
         functionMachine.global("relocatedTargetCount"));
-    assertEquals(functionMachine.hostOutput().length, functionMachine.global("linkedCodeLength"));
+    assertEquals(
+        functionMachine.hostOutput().length,
+        functionMachine.global("linkedCodeLength")
+            + functionMachine.global("linkedFunctionSectionLength"));
     assertTrue(0 < functionMachine.global("linkedCodeLength"));
+    assertTrue(0 < functionMachine.global("linkedLocalTypeCount"));
+    assertEquals(
+        4
+            + expectedRetainedFunctions * 40
+            + functionMachine.global("linkedLocalTypeCount") * 4,
+        functionMachine.global("linkedFunctionSectionLength"));
+    int functionSection = Math.toIntExact(functionMachine.global("linkedCodeLength"));
+    byte[] linkedProducts = functionMachine.hostOutput();
+    long encodedFunctionCount = (linkedProducts[functionSection] & 0xffL)
+        | (linkedProducts[functionSection + 1] & 0xffL) << 8
+        | (linkedProducts[functionSection + 2] & 0xffL) << 16
+        | (linkedProducts[functionSection + 3] & 0xffL) << 24;
+    assertEquals(expectedRetainedFunctions, encodedFunctionCount);
   }
 
   @Test

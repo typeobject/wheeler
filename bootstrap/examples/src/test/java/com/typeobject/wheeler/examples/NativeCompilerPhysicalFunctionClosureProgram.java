@@ -19,7 +19,11 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.imported_callable_stubs"));
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.linked_function_section"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.linked_instruction_code"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.linked_local_types"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.opcodes"));
     sources.put("PhysicalFunctionClosure.w", """
         module example.physical_function_closure;
@@ -27,7 +31,9 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
         import wheeler.compiler.closure.compiled_function_products;
         import wheeler.compiler.closure.counted_function_products;
         import wheeler.compiler.closure.imported_callable_stubs;
+        import wheeler.compiler.closure.linked_function_section;
         import wheeler.compiler.closure.linked_instruction_code;
+        import wheeler.compiler.closure.linked_local_types;
         import wheeler.compiler.opcodes;
         import wheeler.core.encoding.binary;
 
@@ -40,6 +46,8 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
           state long unresolvedTargetCount = 0;
           state long relocatedTargetCount = 0;
           state long linkedCodeLength = 0;
+          state long linkedLocalTypeCount = 0;
+          state long linkedFunctionSectionLength = 0;
 
           private boolean callOpcode(long opcode) {
             boolean call = opcode == OPCODE_CALL;
@@ -64,7 +72,7 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
           entry void main(borrow byteview input, borrow mut bytes output) {
             assert(bufferLength(input) < 16777217);
             assert(ARTIFACT_COUNT * 6 < bufferLength(input) + 1);
-            region products = new region(/* bytes= */ 11141120, /* allocations= */ 13);
+            region products = new region(/* bytes= */ 20971520, /* allocations= */ 19);
             bytes artifact = allocateBytes(products, /* length= */ 1048576);
             words localFunctionRows = allocate(products, /* length= */ 640);
             words localInstructionRows = allocate(products, /* length= */ 24576);
@@ -78,6 +86,12 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
             words artifactStarts = allocate(products, /* length= */ 512);
             words artifactLengths = allocate(products, /* length= */ 512);
             words resolvedCallTargets = allocate(products, /* length= */ 131072);
+            words closureAggregateRows = allocate(products, /* length= */ 36864);
+            words finalDescriptorRows = allocate(products, /* length= */ 4096);
+            words projectionRows = allocate(products, /* length= */ 49152);
+            words carrierProjectionRows = allocate(products, /* length= */ 65536);
+            words linkedTypes = allocate(products, /* length= */ 1048576);
+            words functionNameIds = allocate(products, /* length= */ 4096);
             long relocationCount = input[bufferLength(input) - 2] * 256
               + input[bufferLength(input) - 1];
             assert(relocationCount < 2049);
@@ -240,8 +254,44 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
               /* outputStart= */ 0
             );
             assert(relocatedTargetCount == relocationCount);
+            linkedLocalTypeCount = emitLinkedLocalTypes(
+              input,
+              metadata,
+              artifactStarts,
+              artifactLengths,
+              functionCount,
+              closureFunctionRows,
+              /* aggregateCount= */ 0,
+              closureAggregateRows,
+              finalDescriptorRows,
+              /* projectionCount= */ 0,
+              projectionRows,
+              /* carrierProjectionCount= */ 0,
+              carrierProjectionRows,
+              linkedTypes
+            );
+            linkedFunctionSectionLength = emitLinkedFunctionSectionAt(
+              functionCount,
+              closureFunctionRows,
+              /* stringCount= */ 1,
+              functionNameIds,
+              linkedLocalTypeCount,
+              linkedTypes,
+              linkedCodeLength,
+              output,
+              linkedCodeLength
+            );
             published = 1;
-            setOutputLength(output, linkedCodeLength);
+            setOutputLength(
+              output,
+              linkedCodeLength + linkedFunctionSectionLength
+            );
+            drop(functionNameIds);
+            drop(linkedTypes);
+            drop(carrierProjectionRows);
+            drop(projectionRows);
+            drop(finalDescriptorRows);
+            drop(closureAggregateRows);
             drop(resolvedCallTargets);
             drop(artifactLengths);
             drop(artifactStarts);
