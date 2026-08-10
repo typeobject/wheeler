@@ -123,6 +123,22 @@ final class NativeCompilerArchiveClosureExampleTest {
       expected.writeBytes(artifact);
       expectedFunctions += new BytecodeReader().read(artifact).functions().size();
     }
+    long expectedRetainedFunctions = 0;
+    long expectedRetainedInstructions = 0;
+    var retainedModules = new ArrayList<>(
+        NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES);
+    retainedModules.addAll(NativeCompilerArchiveClosureProgram.PHYSICAL_CALLABLE_MODULES);
+    for (NativeCompilerArchiveClosureProgram.PhysicalModule module : retainedModules) {
+      Program compiled = new WheelerCompiler().compileLibraryModuleFiles(
+          CompilerSources.moduleClosure(module.name()), module.name());
+      for (var function : compiled.functions()) {
+        if (function.name().startsWith(module.name() + "::")) {
+          expectedRetainedFunctions += 1;
+          expectedRetainedInstructions += function.forward().size();
+          expectedRetainedInstructions += function.inverse().size();
+        }
+      }
+    }
     Program program = NativeCompilerArchiveClosureProgram.program();
     byte[] archive = CompilerSources.packageArchive();
     BootstrapModuleManifest manifest = CompilerSources.bootstrapModuleManifest();
@@ -154,10 +170,12 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(
         machine.global("physicalCallableRelocationCount"),
         machine.global("physicalResolvedCallableTargetCount"));
-    assertTrue(
-        NativeCompilerArchiveClosureProgram.PHYSICAL_CALLABLE_MODULES.size()
-            < machine.global("physicalRetainedFunctionCount"));
-    assertTrue(0 < machine.global("physicalRetainedInstructionCount"));
+    assertEquals(
+        expectedRetainedFunctions,
+        machine.global("physicalRetainedFunctionCount"));
+    assertEquals(
+        expectedRetainedInstructions,
+        machine.global("physicalRetainedInstructionCount"));
   }
 
   @Test
