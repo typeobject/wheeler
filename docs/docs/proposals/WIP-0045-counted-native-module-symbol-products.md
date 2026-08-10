@@ -35,7 +35,7 @@ Raising the linked-source byte limit would postpone the failure and make the boo
 ## Goals
 
 - Publish one counted semantic product per validated local module.
-- Keep declaration names as immutable archive ranges until an owned identity is required.
+- Keep scalar declaration names as immutable archive ranges until an owned identity is required. Copy callable names into a bounded product before dependency source release.
 - Preserve dependent-header import rank.
 - Distinguish local, public, private, qualified, ambiguous, and unresolved names.
 - Resolve constants without copying dependency source.
@@ -119,7 +119,7 @@ A dependent edge receives the completed dependency's public-symbol count only af
 
 ## Callable phase
 
-Callable products add parameter and result types, loan modes, effects, helper identity, body range, local limits, result-slot layout, and compiled body identity. Signature identity uses domain `wheeler-callable-signature-1` and binds the package archive, owner source, visibility, effects, name, result type, and ordered parameter types and loan modes. Parameter names, archive offsets, and body bytes are not part of signature identity. `ModuleCallables.w` starts this phase with validated canonical signature and complete forward/reverse body ranges. `CallableSignatureProducts.w` separates canonical result and parameter type ranges, owner, shared-loan, mutable-loan modes, and entry, reversible, coherent, or test effects. Fixed-array brackets and lengths remain in the exact type range. The ranges are archive evidence, not transferred source or callable identity. WIP-0046 specifies the aggregate layout behind a nominal or structural type reference.
+Callable products add parameter and result types, loan modes, effects, helper identity, body range, local limits, result-slot layout, and compiled body identity. Signature identity uses domain `wheeler-callable-signature-1` and binds the package archive, owner source, visibility, effects, name, result type, and ordered parameter types and loan modes. Parameter names, archive offsets, and body bytes are not part of signature identity. `ModuleCallables.w` starts this phase with validated canonical signature and complete forward/reverse body ranges. `CallableSignatureProducts.w` separates canonical result and parameter type ranges, owner, shared-loan, mutable-loan modes, and entry, reversible, coherent, or test effects. `ModuleCallables.w` copies validated callable names into a 1 MiB source-independent product before source release. Fixed-array brackets and lengths remain in the exact type range. The ranges are archive evidence, not transferred source or callable identity. WIP-0046 specifies the aggregate layout behind a nominal or structural type reference.
 
 Primitive owners transfer through unqualified parameters. `borrow T` and `borrow mut T` remain nonescaping loans. A product cannot erase a loan, manufacture an owner, or derive an aggregate layout from a host type.
 
@@ -180,7 +180,7 @@ The seven-frame executor remains differential conformance evidence until step 9.
 - [x] `CompiledCallableBodies.w` compiles one source-local callable or every callable owned by one module to canonical `.wbc` and hashes the exact artifact. Owner, borrowed, mutable-loan, and local-call products match stage 0 byte for byte without reading dependency source.
 - [x] Reusing artifact storage clears the complete destination first. Canonical alignment padding cannot retain a prior product byte.
 - [x] WIP-0047 resolves imported calls to compiled callable bytecode products. `CallableDependencyProducts.w` packs public local and locked external products in header rank.
-- [x] `ModuleCallables.w` publishes owner, visibility, canonical name, complete signature range, forward/reverse body range, and parameter count after one complete staged-source pass. `CallableTypeProducts.w` freezes primitive type codes before source release.
+- [x] `ModuleCallables.w` publishes owner, visibility, canonical name, complete signature range, forward/reverse body range, and parameter count after one complete staged-source pass. It validates all name ranges before copying a byte or product start into the bounded source-independent name product. `CallableTypeProducts.w` freezes primitive type codes before source release.
 - [x] Private callable products stay local. Direct edges count only public dependency callables in header rank.
 - [x] The physical compiler closure publishes 1,230 callable signatures with peak active source count one.
 - [x] Canonical result and parameter type ranges, owner or loan mode, and effect bits publish in counted columns. A fixture distinguishes owner, `borrow`, and `borrow mut` parameters.

@@ -16,6 +16,8 @@ import wheeler.compiler.tokens;
 classical class CountedModuleCallables {
   private const long CALLABLE_ARENA_BYTES = 898000;
   private const long MAX_CALLABLES = 4096;
+  private const long MAX_CALLABLE_NAME_BYTES = 1048576;
+  private const long MAX_CALLABLE_NAME_LENGTH = 256;
   private const long MAX_CALLABLES_PER_MODULE = 64;
   private const long MAX_DIRECT_IMPORTS = 64;
   private const long MAX_IMPORTS = 3072;
@@ -782,5 +784,54 @@ classical class CountedModuleCallables {
     drop(storage);
     drop(slotArena);
     return result;
+  }
+
+  /// Copies validated callable names into a source-independent counted product.
+  public long copyCallableNameProducts(
+    borrow byteview archive,
+    long callableCount,
+    borrow mut words sourceNameStarts,
+    borrow mut words nameLengths,
+    borrow mut words productNameStarts,
+    borrow mut bytes productNames
+  ) {
+    assert(-1 < callableCount);
+    assert(callableCount < MAX_CALLABLES + 1);
+    assert(bufferLength(sourceNameStarts) == MAX_CALLABLES);
+    assert(bufferLength(nameLengths) == MAX_CALLABLES);
+    assert(bufferLength(productNameStarts) == MAX_CALLABLES);
+    assert(bufferLength(productNames) == MAX_CALLABLE_NAME_BYTES);
+    long total = 0;
+    long callable = 0;
+    while (callable < callableCount) limit MAX_CALLABLES {
+      long sourceStart = sourceNameStarts[callable];
+      long length = nameLengths[callable];
+      assert(-1 < sourceStart);
+      assert(0 < length);
+      assert(length < MAX_CALLABLE_NAME_LENGTH + 1);
+      assert(length < bufferLength(archive) - sourceStart + 1);
+      assert(length < MAX_CALLABLE_NAME_BYTES - total + 1);
+      total += length;
+      callable += 1;
+    }
+
+    long written = 0;
+    callable = 0;
+    while (callable < callableCount) limit MAX_CALLABLES {
+      set(productNameStarts, callable, written);
+      long copiedSourceStart = sourceNameStarts[callable];
+      long copiedLength = nameLengths[callable];
+      long offset = 0;
+      while (offset < copiedLength) limit MAX_CALLABLE_NAME_LENGTH {
+        setByte(productNames, written + offset, archive[copiedSourceStart + offset]);
+        offset += 1;
+      }
+
+      written += copiedLength;
+      callable += 1;
+    }
+
+    assert(written == total);
+    return total;
   }
 }
