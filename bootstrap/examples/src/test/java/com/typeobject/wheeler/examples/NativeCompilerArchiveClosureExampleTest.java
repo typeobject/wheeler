@@ -168,7 +168,9 @@ final class NativeCompilerArchiveClosureExampleTest {
         Arrays.copyOf(physicalProducts, expected.size()));
     assertEquals(
         machine.global("physicalRetainedProductLength")
-            + retainedModules.size() * 6L,
+            + retainedModules.size() * 6L
+            + machine.global("physicalCallableRelocationCount") * 6L
+            + 2,
         physicalProducts.length);
     assertEquals(expected.size(), machine.global("physicalModuleProductLength"));
     assertEquals(expectedFunctions, machine.global("physicalModuleProductFunctions"));
@@ -200,6 +202,9 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(expectedRetainedProducts, functionMachine.global("productCount"));
     assertEquals(expectedRetainedFunctions, functionMachine.global("functionCount"));
     assertEquals(expectedRetainedInstructions, functionMachine.global("instructionCount"));
+    assertEquals(
+        machine.global("physicalCallableRelocationCount"),
+        functionMachine.global("relocatedTargetCount"));
   }
 
   @Test

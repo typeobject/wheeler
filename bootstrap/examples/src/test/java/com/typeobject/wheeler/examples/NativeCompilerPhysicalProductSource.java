@@ -191,6 +191,20 @@ final class NativeCompilerPhysicalProductSource {
                   physicalTargetRows[physicalResolvedTarget]
                     == physicalStubCallableRows[physicalStubTarget]
                 );
+                long physicalRelocationFrame = physicalCallableRelocationCount
+                  + physicalResolvedTarget;
+                assert(physicalRelocationFrame < 2048);
+                set(physicalRelocationRows, 2048 + physicalRelocationFrame, physicalProduct);
+                set(
+                  physicalRelocationRows,
+                  6144 + physicalRelocationFrame,
+                  physicalRelocationRows[physicalResolvedTarget]
+                );
+                set(
+                  physicalRelocationRows,
+                  10240 + physicalRelocationFrame,
+                  physicalTargetRows[physicalResolvedTarget]
+                );
                 physicalResolvedTarget += 1;
               }
               physicalCallableRelocationCount += physicalRelocationCount;

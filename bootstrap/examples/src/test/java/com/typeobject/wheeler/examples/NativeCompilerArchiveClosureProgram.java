@@ -809,7 +809,60 @@ final class NativeCompilerArchiveClosureProgram {
                         physicalMetadata += 6;
                         physicalArtifact += 1;
                       }
-                      setOutputLength(output, physicalMetadata);
+                      long publishedRelocationFrame = 0;
+                      while (
+                        publishedRelocationFrame < physicalCallableRelocationCount
+                      ) limit 2048 {
+                        long physicalRelocationProduct = physicalRelocationRows[
+                          2048 + publishedRelocationFrame
+                        ];
+                        long physicalRelocationInstruction = physicalRelocationRows[
+                          6144 + publishedRelocationFrame
+                        ];
+                        long physicalRelocationTarget = physicalRelocationRows[
+                          10240 + publishedRelocationFrame
+                        ];
+                        long physicalRelocationOwner = callableOwners[
+                          physicalRelocationTarget
+                        ];
+                        long physicalRelocationLocal = physicalRelocationTarget
+                          - moduleFirstCallables[physicalRelocationOwner];
+                        setByte(output, physicalMetadata, physicalRelocationProduct);
+                        setByte(
+                          output,
+                          physicalMetadata + 1,
+                          physicalRelocationInstruction / 256
+                        );
+                        setByte(
+                          output,
+                          physicalMetadata + 2,
+                          physicalRelocationInstruction % 256
+                        );
+                        setByte(
+                          output,
+                          physicalMetadata + 3,
+                          physicalRelocationOwner / 256
+                        );
+                        setByte(
+                          output,
+                          physicalMetadata + 4,
+                          physicalRelocationOwner % 256
+                        );
+                        setByte(output, physicalMetadata + 5, physicalRelocationLocal);
+                        physicalMetadata += 6;
+                        publishedRelocationFrame += 1;
+                      }
+                      setByte(
+                        output,
+                        physicalMetadata,
+                        physicalCallableRelocationCount / 256
+                      );
+                      setByte(
+                        output,
+                        physicalMetadata + 1,
+                        physicalCallableRelocationCount % 256
+                      );
+                      setOutputLength(output, physicalMetadata + 2);
                     } else {
                       setByte(output, 0, 1);
                     }
