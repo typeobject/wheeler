@@ -18,6 +18,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -123,6 +124,7 @@ final class NativeCompilerArchiveClosureExampleTest {
       expected.writeBytes(artifact);
       expectedFunctions += new BytecodeReader().read(artifact).functions().size();
     }
+    long expectedRetainedProducts = 0;
     long expectedRetainedFunctions = 0;
     long expectedRetainedInstructions = 0;
     var retainedModules = new ArrayList<>(
@@ -131,12 +133,17 @@ final class NativeCompilerArchiveClosureExampleTest {
     for (NativeCompilerArchiveClosureProgram.PhysicalModule module : retainedModules) {
       Program compiled = new WheelerCompiler().compileLibraryModuleFiles(
           CompilerSources.moduleClosure(module.name()), module.name());
+      long moduleFunctions = 0;
       for (var function : compiled.functions()) {
         if (function.name().startsWith(module.name() + "::")) {
+          moduleFunctions += 1;
           expectedRetainedFunctions += 1;
           expectedRetainedInstructions += function.forward().size();
           expectedRetainedInstructions += function.inverse().size();
         }
+      }
+      if (0 < moduleFunctions) {
+        expectedRetainedProducts += 1;
       }
     }
     Program program = NativeCompilerArchiveClosureProgram.program();
@@ -151,11 +158,18 @@ final class NativeCompilerArchiveClosureExampleTest {
     VirtualMachine machine = VirtualMachine.withBinaryInput(
         program,
         framed(archive, manifest.canonicalBytes()),
-        expected.size());
+        expected.size() + 1_048_576);
 
     runClosure(machine, program);
 
-    assertArrayEquals(expected.toByteArray(), machine.hostOutput());
+    byte[] physicalProducts = machine.hostOutput();
+    assertArrayEquals(
+        expected.toByteArray(),
+        Arrays.copyOf(physicalProducts, expected.size()));
+    assertEquals(
+        machine.global("physicalRetainedProductLength")
+            + retainedModules.size() * 6L,
+        physicalProducts.length);
     assertEquals(expected.size(), machine.global("physicalModuleProductLength"));
     assertEquals(expectedFunctions, machine.global("physicalModuleProductFunctions"));
     assertEquals(
@@ -176,6 +190,16 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(
         expectedRetainedInstructions,
         machine.global("physicalRetainedInstructionCount"));
+
+    Program functionClosure = NativeCompilerPhysicalFunctionClosureProgram.program(
+        retainedModules.size());
+    VirtualMachine functionMachine = VirtualMachine.withBinaryInput(
+        functionClosure, physicalProducts, 1);
+    CompilerMachineRunner.runWithoutRewindHistory(functionMachine);
+    assertEquals(1, functionMachine.global("published"));
+    assertEquals(expectedRetainedProducts, functionMachine.global("productCount"));
+    assertEquals(expectedRetainedFunctions, functionMachine.global("functionCount"));
+    assertEquals(expectedRetainedInstructions, functionMachine.global("instructionCount"));
   }
 
   @Test

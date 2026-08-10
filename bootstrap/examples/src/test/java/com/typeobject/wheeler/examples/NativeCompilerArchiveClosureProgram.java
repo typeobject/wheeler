@@ -150,6 +150,7 @@ final class NativeCompilerArchiveClosureProgram {
           state long physicalCallableProductCount = 0;
           state long physicalCallableRelocationCount = 0;
           state long physicalResolvedCallableTargetCount = 0;
+          state long physicalRetainedProductLength = 0;
           state long physicalRetainedFunctionCount = 0;
           state long physicalRetainedInstructionCount = 0;
           state long physicalArchivedProductLength = 0;
@@ -782,11 +783,33 @@ final class NativeCompilerArchiveClosureProgram {
                   } else {
                     if (1 < bufferLength(output)) {
                       long physicalByte = 0;
-                      while (physicalByte < physicalModuleProductLength) limit 16777216 {
+                      while (physicalByte < physicalRetainedProductLength) limit 16777216 {
                         setByte(output, physicalByte, bodyArchive[physicalByte]);
                         physicalByte += 1;
                       }
-                      setOutputLength(output, physicalModuleProductLength);
+                      long physicalMetadata = physicalRetainedProductLength;
+                      long physicalArtifact = 0;
+                      while (physicalArtifact < PHYSICAL_MODULE_COUNT) limit 512 {
+                        long physicalArtifactOwner = physicalOwners[physicalArtifact];
+                        long physicalArtifactLength = bodyLengths[physicalArtifact];
+                        setByte(output, physicalMetadata, physicalArtifactOwner / 256);
+                        setByte(output, physicalMetadata + 1, physicalArtifactOwner % 256);
+                        setByte(output, physicalMetadata + 2, physicalArtifactLength / 65536);
+                        setByte(
+                          output,
+                          physicalMetadata + 3,
+                          physicalArtifactLength / 256 % 256
+                        );
+                        setByte(output, physicalMetadata + 4, physicalArtifactLength % 256);
+                        setByte(
+                          output,
+                          physicalMetadata + 5,
+                          moduleCallableCounts[physicalArtifactOwner]
+                        );
+                        physicalMetadata += 6;
+                        physicalArtifact += 1;
+                      }
+                      setOutputLength(output, physicalMetadata);
                     } else {
                       setByte(output, 0, 1);
                     }

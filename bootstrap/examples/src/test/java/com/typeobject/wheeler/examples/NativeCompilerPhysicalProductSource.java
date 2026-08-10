@@ -210,6 +210,7 @@ final class NativeCompilerPhysicalProductSource {
             );
             physicalArchivedProductLength = retained.archiveBytes;
             physicalArchivedProductCount = retained.artifactCount;
+            physicalRetainedProductLength = retained.archiveBytes;
             if (physicalProduct < PHYSICAL_COMPARABLE_COUNT) {
               physicalModuleProductLength = retained.archiveBytes;
               physicalModuleProductCount = retained.artifactCount;
