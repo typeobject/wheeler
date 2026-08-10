@@ -214,6 +214,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(
         functionMachine.hostOutput().length,
         functionMachine.global("linkedCodeLength")
+            + functionMachine.global("linkedStringSectionLength")
             + functionMachine.global("linkedFunctionSectionLength"));
     assertTrue(0 < functionMachine.global("linkedCodeLength"));
     assertTrue(0 < functionMachine.global("linkedLocalTypeCount"));
@@ -222,8 +223,20 @@ final class NativeCompilerArchiveClosureExampleTest {
             + expectedRetainedFunctions * 40
             + functionMachine.global("linkedLocalTypeCount") * 4,
         functionMachine.global("linkedFunctionSectionLength"));
-    int functionSection = Math.toIntExact(functionMachine.global("linkedCodeLength"));
+    assertTrue(
+        functionMachine.global("linkedUniqueStringCount")
+            < functionMachine.global("linkedSourceStringCount"));
+    assertTrue(0 < functionMachine.global("linkedStringSectionLength"));
+    int stringSection = Math.toIntExact(functionMachine.global("linkedCodeLength"));
+    int functionSection = Math.toIntExact(
+        functionMachine.global("linkedCodeLength")
+            + functionMachine.global("linkedStringSectionLength"));
     byte[] linkedProducts = functionMachine.hostOutput();
+    long encodedStringCount = (linkedProducts[stringSection] & 0xffL)
+        | (linkedProducts[stringSection + 1] & 0xffL) << 8
+        | (linkedProducts[stringSection + 2] & 0xffL) << 16
+        | (linkedProducts[stringSection + 3] & 0xffL) << 24;
+    assertEquals(functionMachine.global("linkedUniqueStringCount"), encodedStringCount);
     long encodedFunctionCount = (linkedProducts[functionSection] & 0xffL)
         | (linkedProducts[functionSection + 1] & 0xffL) << 8
         | (linkedProducts[functionSection + 2] & 0xffL) << 16

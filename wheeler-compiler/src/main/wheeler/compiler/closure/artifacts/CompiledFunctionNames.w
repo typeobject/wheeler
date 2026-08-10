@@ -58,14 +58,14 @@ classical class CompiledFunctionNames {
     return selected;
   }
 
-  /// Appends exact descriptor names into an already assigned function window.
-  public void appendCompiledFunctionNames(
+  private void appendFunctionNames(
     borrow byteview artifact,
     long artifactLength,
     long moduleStringBase,
     long moduleStringCount,
     long firstFunction,
     long expectedFunctionCount,
+    boolean exactCount,
     borrow mut words closureFunctionNameRows
   ) {
     assert(-1 < moduleStringBase);
@@ -78,12 +78,16 @@ classical class CompiledFunctionNames {
     assert(bufferLength(closureFunctionNameRows) == MAX_FUNCTIONS);
     long sectionStart = functionSectionStart(artifact, artifactLength);
     long functionCount = readUnsigned(artifact, sectionStart, 4);
-    assert(functionCount == expectedFunctionCount);
+    if (exactCount) {
+      assert(functionCount == expectedFunctionCount);
+    } else {
+      assert(expectedFunctionCount < functionCount + 1);
+    }
 
     region staging = new region(/* bytes= */ STAGING_BYTES, /* allocations= */ 1);
     words stagedNames = allocate(staging, MAX_FUNCTIONS);
     long function = 0;
-    while (function < functionCount) limit MAX_FUNCTIONS {
+    while (function < expectedFunctionCount) limit MAX_FUNCTIONS {
       long descriptor = sectionStart + 4 + function * 40;
       assert(descriptor < artifactLength + 1);
       assert(40 < artifactLength - descriptor + 1);
@@ -95,13 +99,57 @@ classical class CompiledFunctionNames {
     }
 
     function = 0;
-    while (function < functionCount) limit MAX_FUNCTIONS {
+    while (function < expectedFunctionCount) limit MAX_FUNCTIONS {
       set(closureFunctionNameRows, firstFunction + function, stagedNames[function]);
       function += 1;
     }
 
     drop(stagedNames);
     drop(staging);
+  }
+
+  /// Appends exact descriptor names into an already assigned function window.
+  public void appendCompiledFunctionNames(
+    borrow byteview artifact,
+    long artifactLength,
+    long moduleStringBase,
+    long moduleStringCount,
+    long firstFunction,
+    long expectedFunctionCount,
+    borrow mut words closureFunctionNameRows
+  ) {
+    appendFunctionNames(
+      artifact,
+      artifactLength,
+      moduleStringBase,
+      moduleStringCount,
+      firstFunction,
+      expectedFunctionCount,
+      true,
+      closureFunctionNameRows
+    );
+  }
+
+  /// Appends only the retained source-local name prefix from an artifact with suffix stubs.
+  public void appendRetainedCompiledFunctionNames(
+    borrow byteview artifact,
+    long artifactLength,
+    long moduleStringBase,
+    long moduleStringCount,
+    long firstFunction,
+    long retainedFunctionCount,
+    borrow mut words closureFunctionNameRows
+  ) {
+    appendFunctionNames(
+      artifact,
+      artifactLength,
+      moduleStringBase,
+      moduleStringCount,
+      firstFunction,
+      retainedFunctionCount,
+      false,
+      closureFunctionNameRows
+    );
   }
 
   /// Maps closure string references to final canonical string IDs atomically.
