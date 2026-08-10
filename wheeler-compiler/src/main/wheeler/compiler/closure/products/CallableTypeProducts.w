@@ -150,6 +150,134 @@ classical class CallableTypeProducts {
     return -1;
   }
 
+  /// Reports the number of callables with complete primitive signature products.
+  public record AvailablePrimitiveCallableTypePlan(long callableCount, long validCount) {}
+
+  /// Freezes every available primitive signature without rejecting nominal peers.
+  public AvailablePrimitiveCallableTypePlan materializeAvailablePrimitiveCallableTypes(
+    borrow byteview source,
+    long callableCount,
+    long parameterCount,
+    borrow mut words resultTypeStarts,
+    borrow mut words resultTypeLengths,
+    borrow mut words firstParameters,
+    borrow mut words parameterCounts,
+    borrow mut words parameterTypeStarts,
+    borrow mut words parameterTypeLengths,
+    borrow mut words parameterModes,
+    borrow mut words resultTypes,
+    borrow mut words parameterTypes,
+    borrow mut words primitiveCallables
+  ) {
+    assert(-1 < callableCount);
+    assert(callableCount < MAX_CALLABLES + 1);
+    assert(-1 < parameterCount);
+    assert(parameterCount < MAX_PARAMETERS + 1);
+    assert(bufferLength(resultTypeStarts) == MAX_CALLABLES);
+    assert(bufferLength(resultTypeLengths) == MAX_CALLABLES);
+    assert(bufferLength(firstParameters) == MAX_CALLABLES);
+    assert(bufferLength(parameterCounts) == MAX_CALLABLES);
+    assert(bufferLength(parameterTypeStarts) == MAX_PARAMETERS);
+    assert(bufferLength(parameterTypeLengths) == MAX_PARAMETERS);
+    assert(bufferLength(parameterModes) == MAX_PARAMETERS);
+    assert(bufferLength(resultTypes) == MAX_CALLABLES);
+    assert(bufferLength(parameterTypes) == MAX_PARAMETERS);
+    assert(bufferLength(primitiveCallables) == MAX_CALLABLES);
+    region scratch = new region(/* bytes= */ 294912, /* allocations= */ 3);
+    words scratchResults = allocate(scratch, MAX_CALLABLES);
+    words scratchParameters = allocate(scratch, MAX_PARAMETERS);
+    words primitiveParameters = allocate(scratch, MAX_PARAMETERS);
+    long parameter = 0;
+    while (parameter < parameterCount) limit MAX_PARAMETERS {
+      long start = parameterTypeStarts[parameter];
+      long length = parameterTypeLengths[parameter];
+      long mode = parameterModes[parameter];
+      assert(-1 < start);
+      assert(0 < length);
+      assert(length < bufferLength(source) - start + 1);
+      assert(-1 < mode);
+      assert(mode < 3);
+      long type = sourcePrimitiveType(source, start, length);
+      if (0 < type) {
+        set(scratchParameters, parameter, type);
+        set(primitiveParameters, parameter, 1);
+      }
+
+      parameter += 1;
+    }
+
+    long validCount = 0;
+    long callable = 0;
+    while (callable < callableCount) limit MAX_CALLABLES {
+      long callableStart = resultTypeStarts[callable];
+      long callableLength = resultTypeLengths[callable];
+      long firstParameter = firstParameters[callable];
+      long ownedParameters = parameterCounts[callable];
+      assert(-1 < callableStart);
+      assert(0 < callableLength);
+      assert(callableLength < bufferLength(source) - callableStart + 1);
+      assert(-1 < firstParameter);
+      assert(-1 < ownedParameters);
+      assert(ownedParameters < parameterCount - firstParameter + 1);
+      long resultType = sourcePrimitiveType(source, callableStart, callableLength);
+      boolean primitive = -1 < resultType;
+      long offset = 0;
+      while (offset < ownedParameters) limit MAX_PARAMETERS {
+        if (primitiveParameters[firstParameter + offset] == 1) {} else {
+          primitive = false;
+        }
+
+        offset += 1;
+      }
+
+      if (primitive) {
+        set(scratchResults, callable, resultType);
+        validCount += 1;
+      }
+
+      callable += 1;
+    }
+
+    callable = 0;
+    while (callable < callableCount) limit MAX_CALLABLES {
+      long publishedResultType = sourcePrimitiveType(
+        source,
+        resultTypeStarts[callable],
+        resultTypeLengths[callable]
+      );
+      boolean publishedPrimitive = -1 < publishedResultType;
+      long publishedFirstParameter = firstParameters[callable];
+      long publishedParameterCount = parameterCounts[callable];
+      long publishedOffset = 0;
+      while (publishedOffset < publishedParameterCount) limit MAX_PARAMETERS {
+        if (primitiveParameters[publishedFirstParameter + publishedOffset] == 1) {} else {
+          publishedPrimitive = false;
+        }
+
+        publishedOffset += 1;
+      }
+
+      if (publishedPrimitive) {
+        set(resultTypes, callable, scratchResults[callable]);
+        set(primitiveCallables, callable, 1);
+        publishedOffset = 0;
+        while (publishedOffset < publishedParameterCount) limit MAX_PARAMETERS {
+          long selectedParameter = publishedFirstParameter + publishedOffset;
+          set(parameterTypes, selectedParameter, scratchParameters[selectedParameter]);
+          publishedOffset += 1;
+        }
+      }
+
+      callable += 1;
+    }
+
+    drop(primitiveParameters);
+    drop(scratchParameters);
+    drop(scratchResults);
+    drop(scratch);
+    return new AvailablePrimitiveCallableTypePlan(callableCount, validCount);
+  }
+
   /// Resolves primitive type ranges atomically while their local source is leased.
   public CallableTypeProductPlan materializePrimitiveCallableTypes(
     borrow byteview source,
