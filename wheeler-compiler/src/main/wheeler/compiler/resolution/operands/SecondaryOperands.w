@@ -65,6 +65,20 @@ classical class SecondaryOperands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (localLiteralAssignmentConditional(sourceOpcode)) {
+      long literalToken = localLiteralAssignmentComparisonToken(statementStart, sourceOpcode);
+      long assignmentLiteralHash = tokenHash(source, tokenStarts, tokenLengths, literalToken);
+      if (assignmentLiteralHash == TOKEN_TRUE) {
+        return 1;
+      }
+
+      if (assignmentLiteralHash == TOKEN_FALSE) {
+        return 0;
+      }
+
+      return parsedSignedNumber(source, tokenStarts, tokenLengths, literalToken);
+    }
+
     if (assignmentCallStatement(opcode)) {
       return resolveAssignmentCallLastSources(
         source,

@@ -9,6 +9,7 @@ import wheeler.compiler.call_forms;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.conditionals;
 import wheeler.compiler.early_comparison_forms;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.encoding;
@@ -538,6 +539,10 @@ classical class ScalarHelperLibraries {
         }
 
         if (resolvedLiteralComparisonConditional(earlyOpcode)) {
+          validPrelude = true;
+        }
+
+        if (resolvedLocalLiteralAssignmentConditional(earlyOpcode)) {
           validPrelude = true;
         }
 

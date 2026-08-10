@@ -220,6 +220,17 @@ classical class Statements {
       );
     }
 
+    if (localLiteralAssignmentConditional(statementKind)) {
+      return localLiteralAssignmentConditionalWidth(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        statementKind
+      );
+    }
+
     if (namedLiteralComparisonConditional(statementKind)) {
       return literalComparisonConditionalWidth(
         source,

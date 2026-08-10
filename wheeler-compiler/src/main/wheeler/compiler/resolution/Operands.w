@@ -77,6 +77,24 @@ classical class Operands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (localLiteralAssignmentConditional(sourceOpcode)) {
+      long targetToken = localLiteralAssignmentTargetToken(
+        source,
+        tokenStarts,
+        statementStart,
+        sourceOpcode
+      );
+      return resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        targetToken,
+        false
+      );
+    }
+
     if (assignmentCallStatement(opcode)) {
       return resolveAssignmentCallFirstSources(
         source,

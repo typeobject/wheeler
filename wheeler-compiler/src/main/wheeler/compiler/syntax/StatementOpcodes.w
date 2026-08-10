@@ -6,6 +6,7 @@ import wheeler.compiler.assignment_call_syntax;
 import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.conditionals;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.identifier_starts;
 import wheeler.compiler.keyword_tokens;
@@ -304,6 +305,18 @@ classical class StatementOpcodes {
       }
 
       if (-1 < comparisonLiteralToken) {
+        boolean reversedLessThanComparison = false;
+        if (lessThanComparison) {
+          long comparisonLeft = utf8Scalar(source, tokenStarts[statementStart + 2]);
+          long comparisonRight = utf8Scalar(source, tokenStarts[statementStart + 4]);
+          if (identifierStart(comparisonLeft) == false) {
+            if (identifierStart(comparisonRight)) {
+              comparisonLiteralToken = statementStart + 2;
+              reversedLessThanComparison = true;
+            }
+          }
+        }
+
         long comparisonWidth = 1;
         if (
           utf8Scalar(source, tokenStarts[comparisonLiteralToken]) == PUNCTUATION_MINUS
@@ -312,6 +325,10 @@ classical class StatementOpcodes {
         }
 
         long bodyStart = comparisonLiteralToken + 2 + comparisonWidth;
+        if (reversedLessThanComparison) {
+          bodyStart += 2;
+        }
+
         if (tokenHash(source, tokenStarts, tokenLengths, bodyStart) == TOKEN_RETURN) {
           long returned = tokenHash(source, tokenStarts, tokenLengths, bodyStart + 1);
           if (lessThanComparison) {
@@ -358,10 +375,7 @@ classical class StatementOpcodes {
           return STATEMENT_IF_SIGNED_EQ_RETURN_LONG_NAMED;
         }
 
-        long comparisonBodyOperator = utf8Scalar(
-          source,
-          tokenStarts[comparisonLiteralToken + 3 + comparisonWidth]
-        );
+        long comparisonBodyOperator = utf8Scalar(source, tokenStarts[bodyStart + 1]);
         if (comparisonBodyOperator == PUNCTUATION_PLUS) {
           if (lessThanComparison) {
             return STATEMENT_IF_LOCAL_LT_LITERAL_ADD_NAMED;
@@ -387,6 +401,37 @@ classical class StatementOpcodes {
         }
 
         if (comparisonBodyOperator == PUNCTUATION_ASSIGN) {
+          boolean globalTarget = 0 < tokenLengths[COMPILER_GLOBAL_NAME_TOKEN];
+          if (globalTarget) {
+            globalTarget = sameTokenText(
+              source,
+              tokenStarts,
+              tokenLengths,
+              COMPILER_GLOBAL_NAME_TOKEN,
+              bodyStart
+            );
+          }
+
+          long assigned = tokenHash(source, tokenStarts, tokenLengths, bodyStart + 2);
+          boolean booleanAssignment = assigned == TOKEN_TRUE;
+          if (assigned == TOKEN_FALSE) {
+            booleanAssignment = true;
+          }
+
+          if (globalTarget == false) {
+            if (booleanAssignment) {
+              if (reversedLessThanComparison) {
+                return STATEMENT_IF_LITERAL_LT_LOCAL_ASSIGN_LOCAL_NAMED;
+              }
+
+              if (lessThanComparison) {
+                return STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_LOCAL_NAMED;
+              }
+
+              return STATEMENT_IF_LOCAL_EQ_LITERAL_ASSIGN_LOCAL_NAMED;
+            }
+          }
+
           if (lessThanComparison) {
             return STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_NAMED;
           }

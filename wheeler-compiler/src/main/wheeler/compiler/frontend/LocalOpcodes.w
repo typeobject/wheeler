@@ -185,6 +185,14 @@ classical class LocalOpcodes {
       return 3;
     }
 
+    if (localLiteralAssignmentConditional(opcode)) {
+      return 4;
+    }
+
+    if (resolvedLocalLiteralAssignmentConditional(opcode)) {
+      return 4;
+    }
+
     if (namedLiteralComparisonConditional(opcode)) {
       if (literalComparisonConditionalAssignment(opcode)) {
         return 4;
@@ -696,6 +704,10 @@ classical class LocalOpcodes {
 
     if (resolvedLocalPairAssertion(opcode)) {
       return 96;
+    }
+
+    if (resolvedLocalLiteralAssignmentConditional(opcode)) {
+      return 168;
     }
 
     if (resolvedLiteralComparisonConditional(opcode)) {

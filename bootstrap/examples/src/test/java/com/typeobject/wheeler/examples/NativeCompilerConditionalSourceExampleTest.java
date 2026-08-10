@@ -8,11 +8,61 @@ import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 /** Differential self-source tests for bounded conditional classification modules. */
 class NativeCompilerConditionalSourceExampleTest {
+  @Test
+  void compilesLocalLiteralAssignmentsByteForByte() throws Exception {
+    String source = """
+        module examples.local_conditional_assignments;
+        classical class LocalConditionalAssignments {
+          public boolean equal(boolean input) {
+            boolean valid = false;
+            if (input == true) { valid = true; }
+            return valid;
+          }
+
+          public boolean below(long input) {
+            boolean valid = true;
+            if (input < 10) { valid = false; }
+            return valid;
+          }
+
+          public boolean above(long input) {
+            boolean valid = false;
+            if (10 < input) { valid = true; }
+            return valid;
+          }
+        }
+        """;
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    VirtualMachine writer = NativeCompilerSelfSourceExampleTest.nativeWriter(compiler, source);
+
+    CompilerMachineRunner.runWithoutRewindHistory(writer);
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("LocalConditionalAssignments.w", source),
+        "examples.local_conditional_assignments");
+    assertArrayEquals(new BytecodeWriter().write(expected), writer.hostOutput());
+  }
+
+  @Test
+  void rejectsInvalidLocalLiteralAssignmentsBeforePublication() throws Exception {
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    List<String> invalidBodies = List.of(
+        "long target = 0; if (input == true) { target = true; } return true;",
+        "boolean target = false; if (input < true) { target = true; } return target;",
+        "boolean target = false; if (input == true) { target = 1; } return target;");
+    for (String body : invalidBodies) {
+      String source = "module examples.invalid_conditional; classical class InvalidConditional { "
+          + "public boolean invalid(boolean input) { " + body + " } }";
+      NativeCompilerSelfSourceExampleTest.assertNoPublication(compiler, source);
+    }
+  }
+
   @Test
   void compilesEarlyLocalAdditionByteForByte() throws Exception {
     String source = """

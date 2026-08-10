@@ -3,6 +3,7 @@
 module wheeler.compiler.structured_statement_encoding;
 
 import wheeler.compiler.backend_scalar_encoding;
+import wheeler.compiler.conditionals;
 import wheeler.compiler.encoding;
 import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.local_opcodes;
@@ -143,6 +144,65 @@ classical class StructuredStatementEncoding {
         localBase,
         OPCODE_LOCAL_LT
       );
+    }
+
+    if (resolvedLocalLiteralAssignmentConditional(opcode)) {
+      boolean reversed = resolvedLocalLiteralAssignmentReversed(opcode);
+      long firstSource = resolvedLocalLiteralAssignmentSource(opcode);
+      long firstOpcode = OPCODE_LOCAL_MOVE;
+      if (reversed) {
+        firstSource = secondaryOperand;
+        firstOpcode = OPCODE_LOCAL_CONST;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, firstOpcode, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      if (firstOpcode == OPCODE_LOCAL_CONST) {
+        cursor = writeSignedLittleEndian(output, cursor, firstSource, U64);
+      } else {
+        cursor = writeUnsignedLittleEndian(output, cursor, firstSource, U64);
+      }
+
+      long secondSource = secondaryOperand;
+      long secondOpcode = OPCODE_LOCAL_CONST;
+      if (reversed) {
+        secondSource = resolvedLocalLiteralAssignmentSource(opcode);
+        secondOpcode = OPCODE_LOCAL_MOVE;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, secondOpcode, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      if (secondOpcode == OPCODE_LOCAL_CONST) {
+        cursor = writeSignedLittleEndian(output, cursor, secondSource, U64);
+      } else {
+        cursor = writeUnsignedLittleEndian(output, cursor, secondSource, U64);
+      }
+
+      long comparisonOpcode = OPCODE_LOCAL_EQ;
+      if (resolvedLocalLiteralAssignmentLessThan(opcode)) {
+        comparisonOpcode = OPCODE_LOCAL_LT;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, comparisonOpcode, FORM_TERNARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_JUMP_IF_ZERO, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, instructionBase + 7, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
+      cursor = writeUnsignedLittleEndian(
+        output,
+        cursor,
+        resolvedLocalLiteralAssignmentValue(opcode),
+        U64
+      );
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_JUMP, FORM_UNARY);
+      return writeUnsignedLittleEndian(output, cursor, instructionBase + 7, U64);
     }
 
     if (resolvedLiteralComparisonConditional(opcode)) {

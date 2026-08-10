@@ -7,6 +7,7 @@ import wheeler.compiler.class_constants;
 import wheeler.compiler.class_layouts;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.conditionals;
 import wheeler.compiler.helper_parser;
 import wheeler.compiler.ir;
 import wheeler.compiler.keyword_tokens;
@@ -290,6 +291,10 @@ classical class Parser {
     }
 
     if (opcode == STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_NAMED) {
+      supported = true;
+    }
+
+    if (localLiteralAssignmentConditional(opcode)) {
       supported = true;
     }
 

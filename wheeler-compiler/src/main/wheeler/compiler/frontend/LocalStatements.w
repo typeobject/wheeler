@@ -5,6 +5,7 @@ module wheeler.compiler.local_statements;
 import wheeler.compiler.assertion_resolution;
 import wheeler.compiler.assignment_call_kinds;
 import wheeler.compiler.assignment_call_resolution;
+import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.borrowed_intrinsic_resolution;
 import wheeler.compiler.call_forms;
@@ -84,6 +85,55 @@ classical class LocalStatements {
         previousCount,
         opcode
       );
+    }
+
+    if (localLiteralAssignmentConditional(opcode)) {
+      boolean booleanCondition = localLiteralAssignmentBooleanCondition(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        opcode
+      );
+      long sourceToken = localLiteralAssignmentConditionToken(statementStart, opcode);
+      long assignmentSourceLocal = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        sourceToken,
+        booleanCondition == false
+      );
+      long targetToken = localLiteralAssignmentTargetToken(
+        source,
+        tokenStarts,
+        statementStart,
+        opcode
+      );
+      long targetLocal = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        targetToken,
+        false
+      );
+      if (-1 < assignmentSourceLocal) {
+        if (-1 < targetLocal) {
+          long assigned = tokenHash(source, tokenStarts, tokenLengths, targetToken + 2);
+          return resolvedLocalLiteralAssignmentOpcode(
+            assignmentSourceLocal,
+            booleanCondition,
+            localLiteralAssignmentLessThan(opcode),
+            localLiteralAssignmentReversed(opcode),
+            assigned == TOKEN_TRUE
+          );
+        }
+      }
+
+      return -1;
     }
 
     if (opcode == STATEMENT_WHILE_LOCAL_LT_UPDATE_NAMED) {
