@@ -423,6 +423,10 @@ classical class ScalarHelperLibraries {
           write = true;
         }
 
+        if (voidOpcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
+          write = true;
+        }
+
         if (voidOpcode == STATEMENT_LOCAL_BYTES_ALLOCATE_NAMED) {
           write = true;
         }

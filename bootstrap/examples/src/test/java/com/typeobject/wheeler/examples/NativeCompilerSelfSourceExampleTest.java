@@ -872,6 +872,9 @@ final class NativeCompilerSelfSourceExampleTest {
             boolean negated = !input;
             return negated;
           }
+          public void require(boolean condition, borrow byteview source) {
+            assert(condition);
+          }
         }
         """;
     Program compiler = CompilerSources.minimalCompilerProgram();

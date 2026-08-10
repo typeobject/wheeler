@@ -5,9 +5,7 @@ module wheeler.compiler.closure.manifest_syntax;
 classical class ClosureManifestSyntax {
   /// Traps before publication when one metadata condition fails.
   public void requireMetadata(boolean condition, borrow byteview source) {
-    if (condition == false) {
-      long invalid = source[-1];
-    }
+    assert(condition);
   }
 
   /// Consumes one exact caller-prepared ASCII fragment.
