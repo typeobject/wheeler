@@ -96,13 +96,24 @@ final class NativeCompilerPhysicalProductSource {
               compiledCallableArtifact,
               compiledCallableIdentity
             );
-            if (PHYSICAL_COMPARABLE_COUNT < physicalProduct + 1) {
-              CompiledFunctionPlan physicalFunctions = indexCompiledFunctionProducts(
-                compiledCallableArtifact,
-                physicalModule.length,
-                physicalFunctionRows,
+            CompiledFunctionPlan physicalFunctions = indexCompiledFunctionProducts(
+              compiledCallableArtifact,
+              physicalModule.length,
+              physicalFunctionRows,
+              physicalInstructionRows
+            );
+            long physicalLocalFunctionCount = moduleCallableCounts[physicalOwner];
+            if (0 < physicalLocalFunctionCount) {
+              RetainedFunctionProduct physicalRetained = retainLocalFunctionProduct(
+                physicalLocalFunctionCount,
+                physicalFunctions.functionCount,
+                physicalFunctions.instructionCount,
                 physicalInstructionRows
               );
+              physicalRetainedFunctionCount += physicalRetained.functionCount;
+              physicalRetainedInstructionCount += physicalRetained.instructionCount;
+            }
+            if (PHYSICAL_COMPARABLE_COUNT < physicalProduct + 1) {
               long physicalFunction = 0;
               while (physicalFunction < physicalFunctions.functionCount) limit 64 {
                 set(physicalFunctionOwners, physicalFunction, physicalOwner);

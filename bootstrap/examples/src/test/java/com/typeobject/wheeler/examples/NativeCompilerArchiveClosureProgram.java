@@ -54,6 +54,8 @@ final class NativeCompilerArchiveClosureProgram {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.imported_call_relocations"));
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.imported_callable_stubs"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.imported_constant_values"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.module_callables"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.module_symbols"));
@@ -79,6 +81,7 @@ final class NativeCompilerArchiveClosureProgram {
         import wheeler.compiler.closure.compiled_function_products;
         import wheeler.compiler.closure.counted_constant_executor;
         import wheeler.compiler.closure.imported_call_relocations;
+        import wheeler.compiler.closure.imported_callable_stubs;
         import wheeler.compiler.closure.imported_constant_values;
         import wheeler.compiler.closure.module_callables;
         import wheeler.compiler.closure.module_manifest;
@@ -147,6 +150,8 @@ final class NativeCompilerArchiveClosureProgram {
           state long physicalCallableProductCount = 0;
           state long physicalCallableRelocationCount = 0;
           state long physicalResolvedCallableTargetCount = 0;
+          state long physicalRetainedFunctionCount = 0;
+          state long physicalRetainedInstructionCount = 0;
           state long physicalArchivedProductLength = 0;
           state long physicalArchivedProductCount = 0;
           state long physicalModuleOwner = -1;
