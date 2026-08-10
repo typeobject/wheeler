@@ -51,6 +51,8 @@ final class NativeCompilerArchiveClosureProgram {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.compiled_callable_bodies"));
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.compiled_body_archive"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.counted_constant_executor"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.module_callables"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.module_symbols"));
@@ -65,6 +67,7 @@ final class NativeCompilerArchiveClosureProgram {
         import wheeler.compiler.closure.archive_module_sources;
         import wheeler.compiler.closure.archive_sources;
         import wheeler.compiler.closure.callable_identities;
+        import wheeler.compiler.closure.compiled_body_archive;
         import wheeler.compiler.closure.compiled_callable_bodies;
         import wheeler.compiler.closure.counted_constant_executor;
         import wheeler.compiler.closure.module_callables;
@@ -128,6 +131,7 @@ final class NativeCompilerArchiveClosureProgram {
           state long compiledCallableMaxLocalCount = 0;
           state long physicalModuleProductLength = 0;
           state long physicalModuleProductFunctions = 0;
+          state long physicalModuleProductCount = 0;
           state long physicalModuleOwner = -1;
           state long packageIdentityPrefix = 0;
           state long firstSymbolIdentityPrefix = 0;
@@ -163,6 +167,12 @@ final class NativeCompilerArchiveClosureProgram {
               cursor += 1;
             }
 
+            region products = new region(/* bytes= */ 16793600, /* allocations= */ 5);
+            bytes bodyArchive = allocateBytes(products, /* length= */ 16777216);
+            words bodyModulePublished = allocate(products, /* length= */ 512);
+            words bodyModuleRanks = allocate(products, /* length= */ 512);
+            words bodyStarts = allocate(products, /* length= */ 512);
+            words bodyLengths = allocate(products, /* length= */ 512);
             region columns = new region(/* bytes= */ 3176096, /* allocations= */ 72);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
@@ -500,18 +510,20 @@ final class NativeCompilerArchiveClosureProgram {
                       compiledCallableArtifact,
                       compiledCallableIdentity
                     );
-                    if (1 < bufferLength(output)) {
-                      long productByte = 0;
-                      while (productByte < physicalModule.length) limit 32768 {
-                        setByte(
-                          output,
-                          physicalModuleProductLength + productByte,
-                          compiledCallableArtifact[productByte]
-                        );
-                        productByte += 1;
-                      }
-                    }
-                    physicalModuleProductLength += physicalModule.length;
+                    CompiledBodyArchivePlan retained = appendCompiledBodyArtifact(
+                      compiledCallableArtifact,
+                      physicalModule.length,
+                      physicalOwner,
+                      physicalModuleProductCount,
+                      physicalModuleProductLength,
+                      bodyModulePublished,
+                      bodyModuleRanks,
+                      bodyStarts,
+                      bodyLengths,
+                      bodyArchive
+                    );
+                    physicalModuleProductLength = retained.archiveBytes;
+                    physicalModuleProductCount = retained.artifactCount;
                     physicalModuleProductFunctions += physicalModule.functionCount;
                     physicalProduct += 1;
                   }
@@ -725,6 +737,11 @@ final class NativeCompilerArchiveClosureProgram {
                     setOutputLength(output, compiledCallableModuleLength);
                   } else {
                     if (1 < bufferLength(output)) {
+                      long physicalByte = 0;
+                      while (physicalByte < physicalModuleProductLength) limit 196608 {
+                        setByte(output, physicalByte, bodyArchive[physicalByte]);
+                        physicalByte += 1;
+                      }
                       setOutputLength(output, physicalModuleProductLength);
                     } else {
                       setByte(output, 0, 1);
@@ -812,6 +829,12 @@ final class NativeCompilerArchiveClosureProgram {
             drop(manifest);
             drop(archive);
             drop(inputArena);
+            drop(bodyLengths);
+            drop(bodyStarts);
+            drop(bodyModuleRanks);
+            drop(bodyModulePublished);
+            drop(bodyArchive);
+            drop(products);
           }
         }
         """

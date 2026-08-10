@@ -64,6 +64,9 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(1, machine.global("callableIdentitiesPublished"));
     assertTrue(machine.global("physicalModuleProductLength") > 0);
     assertTrue(machine.global("physicalModuleProductFunctions") > 3);
+    assertEquals(
+        NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES.size(),
+        machine.global("physicalModuleProductCount"));
     assertTrue(machine.global("firstCallableIdentityPrefix") != 0);
     assertTrue(
         machine.global("firstCallableIdentityPrefix")
@@ -141,6 +144,9 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertArrayEquals(expected.toByteArray(), machine.hostOutput());
     assertEquals(expected.size(), machine.global("physicalModuleProductLength"));
     assertEquals(expectedFunctions, machine.global("physicalModuleProductFunctions"));
+    assertEquals(
+        NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES.size(),
+        machine.global("physicalModuleProductCount"));
   }
 
   @Test
