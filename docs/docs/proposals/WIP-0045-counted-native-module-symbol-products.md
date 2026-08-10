@@ -184,7 +184,7 @@ The seven-frame executor remains differential conformance evidence until step 9.
 - [x] Private callable products stay local. Direct edges count only public dependency callables in header rank.
 - [x] The physical compiler closure publishes 1,230 callable signatures with peak active source count one.
 - [x] Canonical result and parameter type ranges, owner or loan mode, and effect bits publish in counted columns. A fixture distinguishes owner, `borrow`, and `borrow mut` parameters.
-- [x] `CallableIdentities.w` publishes package-, source-, visibility-, effect-, name-, result-, parameter-type-, and loan-bound signature identities. Independent Java digests match a leaf and root product. An invalid loan mode publishes nothing.
+- [x] `CallableIdentities.w` publishes package-, source-, visibility-, effect-, name-, result-, parameter-type-, and loan-bound signature identities. Independent Java digests match a leaf and root product. An invalid loan mode publishes nothing. Physical signature-stub artifacts now copy these identities into validated cross-owner call relocation rows.
 - [x] Reversible value products publish the fixed two-local result-slot width. Void and ordinary value products publish zero.
 - [x] Compiled source-local body products decode their canonical function table and publish exact function count and maximum local-register count.
 - [x] Closure-wide counted function rows publish exact compiled local limits and artifact ranks.
