@@ -8,6 +8,7 @@ import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.compiler_program_limits;
+import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.early_comparison_forms;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.encoding;
@@ -853,7 +854,12 @@ classical class ScalarHelperLibraries {
           parameter
         );
         assert(resolvedParameter.valid);
-        set(statementStarts, parameter, 0 - resolvedParameter.nameToken);
+        long parameterMarker = 0 - resolvedParameter.nameToken;
+        if (resolvedParameter.type == TYPE_BOOLEAN) {
+          parameterMarker -= BOOLEAN_PARAMETER_TOKEN_BIAS;
+        }
+
+        set(statementStarts, parameter, parameterMarker);
         parameter += 1;
       }
     }

@@ -10,7 +10,10 @@ import wheeler.compiler.call_forms;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.one_argument_calls;
+import wheeler.compiler.resolved_local_copy_kinds;
+import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.resolved_return_call_kinds;
+import wheeler.compiler.resolved_statements;
 import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
@@ -33,6 +36,22 @@ classical class HelperSourceTypes {
   }
 
   private long firstSource(long opcode, long operand) {
+    if (resolvedLocalLongCopy(opcode)) {
+      return opcode - STATEMENT_LOCAL_LONG_COPY_BASE;
+    }
+
+    if (resolvedLocalBooleanCopy(opcode)) {
+      return opcode - STATEMENT_LOCAL_BOOLEAN_COPY_BASE;
+    }
+
+    if (resolvedLocalBooleanNot(opcode)) {
+      return opcode - STATEMENT_LOCAL_BOOLEAN_NOT_BASE;
+    }
+
+    if (resolvedLocalReturn(opcode)) {
+      return resolvedLocalReturnSource(opcode);
+    }
+
     if (earlyUtf8Call(opcode)) {
       return operand / EARLY_UTF8_CALL_SOURCE_SCALE;
     }

@@ -27,88 +27,98 @@ classical class HelperParameterTypes {
     long typeHash = tokenHash(source, tokenStarts, tokenLengths, cursor);
     long type = TYPE_SIGNED;
     long nameToken = cursor + 1;
-    if (typeHash == TOKEN_LONG) {
-      if (
-        punctuationAt(source, tokenKinds, tokenStarts, cursor + 1, PUNCTUATION_OPEN_SQUARE)
-      ) {
-        long lengthToken = cursor + 2;
-        if (tokenKinds[lengthToken] == 2) {} else {
-          return invalidParameter();
-        }
-
-        if (signedNumberValid(source, tokenStarts, tokenLengths, lengthToken)) {} else {
-          return invalidParameter();
-        }
-
-        long arrayLength = parsedSignedNumber(source, tokenStarts, tokenLengths, lengthToken);
-        if (0 < arrayLength) {} else {
-          return invalidParameter();
-        }
-
-        if (arrayLength < MAX_NATIVE_FIXED_ARRAY_LENGTH + 1) {} else {
-          return invalidParameter();
-        }
-
-        if (
-          punctuationAt(source, tokenKinds, tokenStarts, cursor + 3, PUNCTUATION_CLOSE_SQUARE)
-        ) {} else {
-          return invalidParameter();
-        }
-
-        type = TYPE_ARRAY + arrayLength * TYPE_SOURCE_METADATA_SCALE;
-        nameToken = cursor + 4;
-      }
+    if (typeHash == TOKEN_BOOLEAN) {
+      type = TYPE_BOOLEAN;
     } else {
-      if (typeHash == TOKEN_BORROW) {} else {
-        return invalidParameter();
-      }
+      if (typeHash == TOKEN_LONG) {
+        if (
+          punctuationAt(source, tokenKinds, tokenStarts, cursor + 1, PUNCTUATION_OPEN_SQUARE)
+        ) {
+          long lengthToken = cursor + 2;
+          if (tokenKinds[lengthToken] == 2) {} else {
+            return invalidParameter();
+          }
 
-      long borrowedTypeToken = cursor + 1;
-      boolean mutable = tokenHash(source, tokenStarts, tokenLengths, borrowedTypeToken)
-        == TOKEN_MUT;
-      if (mutable) {
-        borrowedTypeToken += 1;
-      }
+          if (signedNumberValid(source, tokenStarts, tokenLengths, lengthToken)) {} else {
+            return invalidParameter();
+          }
 
-      long borrowedType = tokenHash(source, tokenStarts, tokenLengths, borrowedTypeToken);
-      type = 0;
-      if (borrowedType == TOKEN_UTF8) {
-        if (mutable) {
+          long arrayLength = parsedSignedNumber(source, tokenStarts, tokenLengths, lengthToken);
+          if (0 < arrayLength) {} else {
+            return invalidParameter();
+          }
+
+          if (arrayLength < MAX_NATIVE_FIXED_ARRAY_LENGTH + 1) {} else {
+            return invalidParameter();
+          }
+
+          if (
+            punctuationAt(
+              source,
+              tokenKinds,
+              tokenStarts,
+              cursor + 3,
+              PUNCTUATION_CLOSE_SQUARE
+            )
+          ) {} else {
+            return invalidParameter();
+          }
+
+          type = TYPE_ARRAY + arrayLength * TYPE_SOURCE_METADATA_SCALE;
+          nameToken = cursor + 4;
+        }
+      } else {
+        if (typeHash == TOKEN_BORROW) {} else {
           return invalidParameter();
         }
 
-        type = TYPE_UTF8_BORROW;
-      }
-
-      if (borrowedType == TOKEN_BYTES) {
-        type = TYPE_BYTES_BORROW;
-      }
-
-      if (borrowedType == TOKEN_BYTEVIEW) {
+        long borrowedTypeToken = cursor + 1;
+        boolean mutable = tokenHash(source, tokenStarts, tokenLengths, borrowedTypeToken)
+          == TOKEN_MUT;
         if (mutable) {
+          borrowedTypeToken += 1;
+        }
+
+        long borrowedType = tokenHash(source, tokenStarts, tokenLengths, borrowedTypeToken);
+        type = 0;
+        if (borrowedType == TOKEN_UTF8) {
+          if (mutable) {
+            return invalidParameter();
+          }
+
+          type = TYPE_UTF8_BORROW;
+        }
+
+        if (borrowedType == TOKEN_BYTES) {
+          type = TYPE_BYTES_BORROW;
+        }
+
+        if (borrowedType == TOKEN_BYTEVIEW) {
+          if (mutable) {
+            return invalidParameter();
+          }
+
+          type = TYPE_BYTE_VIEW;
+        }
+
+        if (borrowedType == TOKEN_WORDS) {
+          type = TYPE_WORDS_BORROW;
+        }
+
+        if (borrowedType == TOKEN_REGION) {
+          type = TYPE_REGION_BORROW;
+        }
+
+        if (borrowedType == TOKEN_LONGMAP) {
+          type = TYPE_LONG_MAP_BORROW;
+        }
+
+        if (0 < type) {} else {
           return invalidParameter();
         }
 
-        type = TYPE_BYTE_VIEW;
+        nameToken = borrowedTypeToken + 1;
       }
-
-      if (borrowedType == TOKEN_WORDS) {
-        type = TYPE_WORDS_BORROW;
-      }
-
-      if (borrowedType == TOKEN_REGION) {
-        type = TYPE_REGION_BORROW;
-      }
-
-      if (borrowedType == TOKEN_LONGMAP) {
-        type = TYPE_LONG_MAP_BORROW;
-      }
-
-      if (0 < type) {} else {
-        return invalidParameter();
-      }
-
-      nameToken = borrowedTypeToken + 1;
     }
 
     if (tokenKinds[nameToken] == 1) {} else {

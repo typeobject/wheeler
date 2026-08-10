@@ -858,6 +858,32 @@ final class NativeCompilerSelfSourceExampleTest {
     assertArrayEquals(new BytecodeWriter().write(expected), writer.hostOutput());
   }
 
+  @Test
+  void compilesBooleanParameterCopiesByteForByte() throws Exception {
+    String source = """
+        module examples.boolean_parameters;
+        classical class BooleanParameters {
+          public boolean identity(boolean input) { return input; }
+          public boolean copy(boolean input) {
+            boolean copied = input;
+            return copied;
+          }
+          public boolean negate(boolean input) {
+            boolean negated = !input;
+            return negated;
+          }
+        }
+        """;
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    VirtualMachine writer = nativeWriter(compiler, source);
+
+    CompilerMachineRunner.runWithoutRewindHistory(writer);
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("BooleanParameters.w", source), "examples.boolean_parameters");
+    assertArrayEquals(new BytecodeWriter().write(expected), writer.hostOutput());
+  }
+
   static void assertNoPublication(Program compiler, String source) {
     VirtualMachine writer = nativeWriter(compiler, source);
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(writer));

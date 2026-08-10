@@ -457,6 +457,14 @@ classical class LocalOpcodes {
       return localBase + 3;
     }
 
+    if (resolvedLocalBooleanCopy(opcode)) {
+      return localBase + 1;
+    }
+
+    if (resolvedLocalBooleanNot(opcode)) {
+      return localBase + 3;
+    }
+
     if (opcode == STATEMENT_LOCAL_BOOLEAN) {
       return localBase + 1;
     }
