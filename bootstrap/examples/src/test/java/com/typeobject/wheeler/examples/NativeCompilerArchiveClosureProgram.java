@@ -14,11 +14,26 @@ final class NativeCompilerArchiveClosureProgram {
       new PhysicalModule(
           18, "compiler/syntax/booleans/BooleanTokens.w", "wheeler.compiler.boolean_tokens"),
       new PhysicalModule(
+          125,
+          "compiler/ir/limits/CompilerProgramLimits.w",
+          "wheeler.compiler.compiler_program_limits"),
+      new PhysicalModule(
+          144, "compiler/backend/EncodingWidths.w", "wheeler.compiler.encoding_widths"),
+      new PhysicalModule(
           172, "compiler/syntax/IdentifierStarts.w", "wheeler.compiler.identifier_starts"),
+      new PhysicalModule(208, "compiler/ir/Opcodes.w", "wheeler.compiler.opcodes"),
+      new PhysicalModule(227, "compiler/ir/ProofRules.w", "wheeler.compiler.proof_rules"),
       new PhysicalModule(
           250,
           "compiler/syntax/returns/ResolvedLocalReturns.w",
           "wheeler.compiler.resolved_local_returns"),
+      new PhysicalModule(
+          254, "compiler/ir/ResolvedStatements.w", "wheeler.compiler.resolved_statements"),
+      new PhysicalModule(
+          274, "compiler/ir/StatementKinds.w", "wheeler.compiler.statement_kinds"),
+      new PhysicalModule(
+          278, "compiler/ir/StorageOpcodes.w", "wheeler.compiler.storage_opcodes"),
+      new PhysicalModule(286, "compiler/ir/TypeCodes.w", "wheeler.compiler.type_codes"),
       new PhysicalModule(
           290, "compiler/syntax/calls/VoidCallKinds.w", "wheeler.compiler.void_call_kinds"),
       new PhysicalModule(
