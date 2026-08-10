@@ -229,6 +229,85 @@ classical class LinkedInstructionCode {
     return outputBytes;
   }
 
+  /// Emits code whose call operands already carry final closure function rows.
+  public long emitResolvedLinkedInstructionCodeAt(
+    borrow byteview archive,
+    long archiveBytes,
+    borrow mut words artifactStarts,
+    borrow mut words artifactLengths,
+    long functionCount,
+    long instructionCount,
+    borrow mut words closureInstructionRows,
+    borrow mut words resolvedCallTargets,
+    borrow mut bytes output,
+    long outputStart
+  ) {
+    assert(-1 < outputStart);
+    assert(-1 < archiveBytes);
+    assert(archiveBytes < MAX_ARTIFACT_BYTES + 1);
+    assert(archiveBytes < bufferLength(archive) + 1);
+    assert(bufferLength(artifactStarts) == MAX_ARTIFACTS);
+    assert(bufferLength(artifactLengths) == MAX_ARTIFACTS);
+    assert(-1 < functionCount);
+    assert(functionCount < MAX_CLOSURE_FUNCTIONS + 1);
+    assert(-1 < instructionCount);
+    assert(instructionCount < MAX_CLOSURE_INSTRUCTIONS + 1);
+    assert(bufferLength(closureInstructionRows) == CLOSURE_INSTRUCTION_ROWS);
+    assert(bufferLength(resolvedCallTargets) == MAX_CLOSURE_INSTRUCTIONS);
+    assert(outputStart < bufferLength(output) + 1);
+
+    long outputBytes = 0;
+    long instruction = 0;
+    while (instruction < instructionCount) limit MAX_CLOSURE_INSTRUCTIONS {
+      long artifactRank = closureInstructionRows[262144 + instruction];
+      assert(-1 < artifactRank);
+      assert(artifactRank < MAX_ARTIFACTS);
+      long instructionStart = closureInstructionRows[393216 + instruction];
+      long instructionLength = closureInstructionRows[786432 + instruction];
+      assert(-1 < instructionStart);
+      assert(7 < instructionLength);
+      assert(instructionStart < artifactLengths[artifactRank] + 1);
+      assert(instructionLength < artifactLengths[artifactRank] - instructionStart + 1);
+      assert(instructionLength < MAX_LINKED_CODE_BYTES - outputBytes + 1);
+      if (isCall(closureInstructionRows[524288 + instruction])) {
+        assert(-1 < resolvedCallTargets[instruction]);
+        assert(resolvedCallTargets[instruction] < functionCount);
+      }
+
+      outputBytes += instructionLength;
+      instruction += 1;
+    }
+
+    assert(outputBytes < bufferLength(output) - outputStart + 1);
+    long outputCursor = outputStart;
+    instruction = 0;
+    while (instruction < instructionCount) limit MAX_CLOSURE_INSTRUCTIONS {
+      long selectedArtifact = closureInstructionRows[262144 + instruction];
+      long selectedStart = artifactStarts[selectedArtifact] + closureInstructionRows[393216
+        + instruction];
+      long selectedLength = closureInstructionRows[786432 + instruction];
+      long instructionByte = 0;
+      while (instructionByte < selectedLength) limit 520 {
+        setByte(
+          output,
+          outputCursor + instructionByte,
+          archive[selectedStart + instructionByte]
+        );
+        instructionByte += 1;
+      }
+
+      if (isCall(closureInstructionRows[524288 + instruction])) {
+        writeSigned(resolvedCallTargets[instruction], output, outputCursor + 8);
+      }
+
+      outputCursor += selectedLength;
+      instruction += 1;
+    }
+
+    assert(outputCursor == outputStart + outputBytes);
+    return outputBytes;
+  }
+
   /// Emits into the historical fixed-width section buffer.
   public long emitLinkedInstructionCode(
     borrow byteview archive,

@@ -18,6 +18,8 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
         "wheeler.compiler.closure.counted_function_products"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.imported_callable_stubs"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.linked_instruction_code"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.opcodes"));
     sources.put("PhysicalFunctionClosure.w", """
         module example.physical_function_closure;
@@ -25,28 +27,57 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
         import wheeler.compiler.closure.compiled_function_products;
         import wheeler.compiler.closure.counted_function_products;
         import wheeler.compiler.closure.imported_callable_stubs;
+        import wheeler.compiler.closure.linked_instruction_code;
         import wheeler.compiler.opcodes;
+        import wheeler.core.encoding.binary;
 
         classical class PhysicalFunctionClosure {
           state long published = 0;
           state long productCount = 0;
           state long functionCount = 0;
           state long instructionCount = 0;
+          state long validatedRelocationCount = 0;
+          state long unresolvedTargetCount = 0;
           state long relocatedTargetCount = 0;
+          state long linkedCodeLength = 0;
+
+          private boolean callOpcode(long opcode) {
+            boolean call = opcode == OPCODE_CALL;
+            if (opcode == OPCODE_UNCALL) {
+              call = true;
+            }
+            if (opcode == OPCODE_CALL_VALUE) {
+              call = true;
+            }
+            if (opcode == OPCODE_CALL_VOID) {
+              call = true;
+            }
+            if (opcode == OPCODE_CALL_RESULT_SLOT) {
+              call = true;
+            }
+            if (opcode == OPCODE_UNCALL_RESULT_SLOT) {
+              call = true;
+            }
+            return call;
+          }
 
           entry void main(borrow byteview input, borrow mut bytes output) {
             assert(bufferLength(input) < 16777217);
             assert(ARTIFACT_COUNT * 6 < bufferLength(input) + 1);
-            region products = new region(/* bytes= */ 10035200, /* allocations= */ 9);
+            region products = new region(/* bytes= */ 11141120, /* allocations= */ 13);
             bytes artifact = allocateBytes(products, /* length= */ 1048576);
             words localFunctionRows = allocate(products, /* length= */ 640);
             words localInstructionRows = allocate(products, /* length= */ 24576);
             words moduleFirstFunctions = allocate(products, /* length= */ 512);
             words moduleFunctionCounts = allocate(products, /* length= */ 512);
+            words moduleLocalFunctionCounts = allocate(products, /* length= */ 512);
             words closureFunctionRows = allocate(products, /* length= */ 49152);
             words closureInstructionRows = allocate(products, /* length= */ 917504);
             words productFirstInstructions = allocate(products, /* length= */ 512);
             words productInstructionCounts = allocate(products, /* length= */ 512);
+            words artifactStarts = allocate(products, /* length= */ 512);
+            words artifactLengths = allocate(products, /* length= */ 512);
+            words resolvedCallTargets = allocate(products, /* length= */ 131072);
             long relocationCount = input[bufferLength(input) - 2] * 256
               + input[bufferLength(input) - 1];
             assert(relocationCount < 2049);
@@ -68,6 +99,9 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
               assert(-1 < artifactLength);
               assert(artifactLength < bufferLength(artifact) + 1);
               assert(artifactStart + artifactLength < metadata + 1);
+              set(artifactStarts, product, artifactStart);
+              set(artifactLengths, product, artifactLength);
+              set(moduleLocalFunctionCounts, owner, localFunctionCount);
               long artifactByte = 0;
               while (artifactByte < artifactLength) limit 1048576 {
                 setByte(artifact, artifactByte, input[artifactStart + artifactByte]);
@@ -114,6 +148,7 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
             assert(artifactStart == metadata);
             long relocationStart = metadata + ARTIFACT_COUNT * 6;
             long relocation = 0;
+            long previousClosureInstruction = -1;
             while (relocation < relocationCount) limit 2048 {
               long frame = relocationStart + relocation * 6;
               long relocationProduct = input[frame];
@@ -123,28 +158,58 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
               assert(relocationProduct < ARTIFACT_COUNT);
               assert(localInstruction < productInstructionCounts[relocationProduct]);
               assert(targetOwner < 512);
-              assert(targetLocal < moduleFunctionCounts[targetOwner]);
+              assert(targetLocal < moduleLocalFunctionCounts[targetOwner]);
               long closureInstruction = productFirstInstructions[relocationProduct]
                 + localInstruction;
-              long opcode = closureInstructionRows[524288 + closureInstruction];
-              boolean call = opcode == OPCODE_CALL;
-              if (opcode == OPCODE_UNCALL) {
-                call = true;
-              }
-              if (opcode == OPCODE_CALL_VALUE) {
-                call = true;
-              }
-              if (opcode == OPCODE_CALL_VOID) {
-                call = true;
-              }
-              if (opcode == OPCODE_CALL_RESULT_SLOT) {
-                call = true;
-              }
-              if (opcode == OPCODE_UNCALL_RESULT_SLOT) {
-                call = true;
-              }
-              assert(call);
+              assert(previousClosureInstruction < closureInstruction);
+              previousClosureInstruction = closureInstruction;
+              assert(callOpcode(closureInstructionRows[524288 + closureInstruction]));
+              long caller = closureInstructionRows[closureInstruction];
+              long callerOwner = closureFunctionRows[caller];
+              long callerArtifact = closureInstructionRows[262144 + closureInstruction];
+              long callerStart = artifactStarts[callerArtifact]
+                + closureInstructionRows[393216 + closureInstruction];
+              long unresolvedTarget = readUnsigned(input, callerStart + 8, 8);
+              assert(moduleLocalFunctionCounts[callerOwner] < unresolvedTarget + 1);
               relocation += 1;
+            }
+            validatedRelocationCount = relocation;
+            long unresolvedCallCount = 0;
+            long instruction = 0;
+            while (instruction < instructionCount) limit 131072 {
+              if (callOpcode(closureInstructionRows[524288 + instruction])) {
+                long localCaller = closureInstructionRows[instruction];
+                long localOwner = closureFunctionRows[localCaller];
+                long localArtifact = closureInstructionRows[262144 + instruction];
+                long localStart = artifactStarts[localArtifact]
+                  + closureInstructionRows[393216 + instruction];
+                long localTarget = readUnsigned(input, localStart + 8, 8);
+                if (moduleLocalFunctionCounts[localOwner] < localTarget + 1) {
+                  unresolvedCallCount += 1;
+                }
+              }
+              instruction += 1;
+            }
+            unresolvedTargetCount = unresolvedCallCount;
+            assert(unresolvedCallCount == relocationCount);
+            instruction = 0;
+            while (instruction < instructionCount) limit 131072 {
+              if (callOpcode(closureInstructionRows[524288 + instruction])) {
+                long selectedCaller = closureInstructionRows[instruction];
+                long selectedCallerOwner = closureFunctionRows[selectedCaller];
+                long selectedArtifact = closureInstructionRows[262144 + instruction];
+                long selectedStart = artifactStarts[selectedArtifact]
+                  + closureInstructionRows[393216 + instruction];
+                long selectedLocalTarget = readUnsigned(input, selectedStart + 8, 8);
+                if (selectedLocalTarget < moduleLocalFunctionCounts[selectedCallerOwner]) {
+                  set(
+                    resolvedCallTargets,
+                    instruction,
+                    moduleFirstFunctions[selectedCallerOwner] + selectedLocalTarget
+                  );
+                }
+              }
+              instruction += 1;
             }
             relocation = 0;
             while (relocation < relocationCount) limit 2048 {
@@ -157,20 +222,34 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
               long selectedLocal = input[selectedFrame + 5];
               long selectedClosureInstruction = productFirstInstructions[selectedProduct]
                 + selectedInstruction;
-              set(
-                closureInstructionRows,
-                655360 + selectedClosureInstruction,
-                moduleFirstFunctions[selectedOwner] + selectedLocal
-              );
+              long selectedTarget = moduleFirstFunctions[selectedOwner] + selectedLocal;
+              set(resolvedCallTargets, selectedClosureInstruction, selectedTarget);
               relocation += 1;
             }
-            relocatedTargetCount = relocationCount;
+            relocatedTargetCount = relocation;
+            linkedCodeLength = emitResolvedLinkedInstructionCodeAt(
+              input,
+              metadata,
+              artifactStarts,
+              artifactLengths,
+              functionCount,
+              instructionCount,
+              closureInstructionRows,
+              resolvedCallTargets,
+              output,
+              /* outputStart= */ 0
+            );
+            assert(relocatedTargetCount == relocationCount);
             published = 1;
-            setByte(output, 0, 1);
+            setOutputLength(output, linkedCodeLength);
+            drop(resolvedCallTargets);
+            drop(artifactLengths);
+            drop(artifactStarts);
             drop(productInstructionCounts);
             drop(productFirstInstructions);
             drop(closureInstructionRows);
             drop(closureFunctionRows);
+            drop(moduleLocalFunctionCounts);
             drop(moduleFunctionCounts);
             drop(moduleFirstFunctions);
             drop(localInstructionRows);

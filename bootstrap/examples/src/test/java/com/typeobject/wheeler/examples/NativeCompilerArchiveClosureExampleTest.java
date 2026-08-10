@@ -196,7 +196,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     Program functionClosure = NativeCompilerPhysicalFunctionClosureProgram.program(
         retainedModules.size());
     VirtualMachine functionMachine = VirtualMachine.withBinaryInput(
-        functionClosure, physicalProducts, 1);
+        functionClosure, physicalProducts, 4_194_304);
     CompilerMachineRunner.runWithoutRewindHistory(functionMachine);
     assertEquals(1, functionMachine.global("published"));
     assertEquals(expectedRetainedProducts, functionMachine.global("productCount"));
@@ -204,7 +204,15 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(expectedRetainedInstructions, functionMachine.global("instructionCount"));
     assertEquals(
         machine.global("physicalCallableRelocationCount"),
+        functionMachine.global("validatedRelocationCount"));
+    assertEquals(
+        machine.global("physicalCallableRelocationCount"),
+        functionMachine.global("unresolvedTargetCount"));
+    assertEquals(
+        machine.global("physicalCallableRelocationCount"),
         functionMachine.global("relocatedTargetCount"));
+    assertEquals(functionMachine.hostOutput().length, functionMachine.global("linkedCodeLength"));
+    assertTrue(0 < functionMachine.global("linkedCodeLength"));
   }
 
   @Test
