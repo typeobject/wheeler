@@ -238,6 +238,10 @@ final class NativeCompilerArchiveClosureExampleTest {
             < functionMachine.global("linkedSourceStringCount"));
     assertTrue(0 < functionMachine.global("linkedStringSectionLength"));
     assertEquals(24, functionMachine.global("linkedManifestLength"));
+    assertEquals(
+        "347599759db644f369dca265a16aec5c34f65d034d57c5a64c788cd51429be72",
+        HexFormat.of().formatHex(
+            MessageDigest.getInstance("SHA-256").digest(functionMachine.hostOutput())));
     Program linkedClosure = new BytecodeReader().read(functionMachine.hostOutput());
     assertEquals(ProgramKind.CLASSICAL, linkedClosure.kind());
     assertEquals(
