@@ -12,8 +12,11 @@ import java.util.TreeSet;
 final class SeedWriterProject {
   private static final Path COMPILER_PACKAGE = Path.of("wheeler-compiler");
   private static final Path COMPILER_ROOT = COMPILER_PACKAGE.resolve("src/main/wheeler");
-  private static final Path BINARY_SOURCE =
-      Path.of("wheeler-core/src/main/wheeler/encoding/Binary.w");
+  private static final Path CORE_ROOT = Path.of("wheeler-core/src/main/wheeler");
+  private static final List<String> CORE_SOURCES = List.of(
+      "crypto/Sha256.w",
+      "encoding/Binary.w",
+      "encoding/FixedBinary.w");
   private static final String SOURCE_PREFIX = "src/main/wheeler/";
 
   private SeedWriterProject() {}
@@ -27,9 +30,11 @@ final class SeedWriterProject {
       Files.createDirectories(destination.getParent());
       Files.copy(COMPILER_ROOT.resolve(source), destination);
     }
-    Path binaryDestination = project.resolve("src/packages/Binary.w");
-    Files.createDirectories(binaryDestination.getParent());
-    Files.copy(BINARY_SOURCE, binaryDestination);
+    for (String source : CORE_SOURCES) {
+      Path destination = project.resolve("src/core").resolve(source);
+      Files.createDirectories(destination.getParent());
+      Files.copy(CORE_ROOT.resolve(source), destination);
+    }
     Files.writeString(project.resolve("wheeler.package.yaml"), manifest(compilerSources));
     return project;
   }
@@ -81,7 +86,9 @@ final class SeedWriterProject {
       manifest.append("      - \"src/").append(source).append("\"\n");
     }
     manifest.append("""
-              - "src/packages/Binary.w"
+              - "src/core/crypto/Sha256.w"
+              - "src/core/encoding/Binary.w"
+              - "src/core/encoding/FixedBinary.w"
             test: false
         dependencies: []
         capabilities: []

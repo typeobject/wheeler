@@ -635,7 +635,7 @@ class WheelerCommandTest {
 
     assertEquals(0, Wheeler.execute(
         new String[] {
-            "run", Path.of("wheeler-examples").toString(),
+            "run", Path.of("wheeler-conformance").toString(),
             "--target", "nativeverifier",
             "--input-bytes", artifact.toString()
         },
