@@ -249,6 +249,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(0, linkedClosure.variantTypes().size());
     assertEquals(0, linkedClosure.arrayTypes().size());
     assertEquals(0, linkedClosure.sliceTypes().size());
+    CompilerMachineRunner.runWithoutRewindHistory(new VirtualMachine(linkedClosure));
   }
 
   @Test
