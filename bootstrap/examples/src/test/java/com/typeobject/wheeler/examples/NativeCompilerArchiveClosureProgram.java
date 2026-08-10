@@ -11,20 +11,28 @@ final class NativeCompilerArchiveClosureProgram {
   record PhysicalModule(int owner, String path, String name) {}
 
   static final List<PhysicalModule> PHYSICAL_MODULES = List.of(
+      physical(3, "compiler/syntax/calls/assignment/AssignmentCallArities.w", "assignment_call_arities"),
+      physical(6, "compiler/syntax/calls/assignment/AssignmentCallColumns.w", "assignment_call_columns"),
+      physical(7, "compiler/syntax/calls/assignment/AssignmentCallIdentities.w", "assignment_call_identities"),
       physical(16, "compiler/syntax/BooleanDeclarationKinds.w", "boolean_declaration_kinds"),
       physical(18, "compiler/syntax/booleans/BooleanTokens.w", "boolean_tokens"),
+      physical(20, "compiler/syntax/intrinsics/BorrowedIntrinsicKinds.w", "borrowed_intrinsic_kinds"),
       physical(22, "compiler/frontend/intrinsics/BorrowedIntrinsicShapes.w", "borrowed_intrinsic_shapes"),
       physical(24, "compiler/syntax/calls/CallArgumentSources.w", "call_argument_sources"),
       physical(125, "compiler/ir/limits/CompilerProgramLimits.w", "compiler_program_limits"),
+      physical(126, "compiler/syntax/tokens/CompilerTokenLimits.w", "compiler_token_limits"),
       physical(135, "compiler/syntax/EarlyReturnKinds.w", "early_return_kinds"),
       physical(137, "compiler/syntax/EarlyReturnResultKinds.w", "early_return_result_kinds"),
       physical(138, "compiler/syntax/returns/EarlyReturnSources.w", "early_return_sources"),
       physical(144, "compiler/backend/EncodingWidths.w", "encoding_widths"),
       physical(147, "compiler/syntax/calls/FourArgumentCalls.w", "four_argument_calls"),
+      physical(161, "compiler/syntax/helpers/HelperAbi.w", "helper_abi"),
       physical(169, "compiler/syntax/helpers/HelperSignatures.w", "helper_signatures"),
       physical(172, "compiler/syntax/IdentifierStarts.w", "identifier_starts"),
       physical(174, "compiler/ir/InstructionForms.w", "instruction_forms"),
+      physical(177, "compiler/syntax/tokens/KeywordTokens.w", "keyword_tokens"),
       physical(179, "compiler/syntax/conditionals/LiteralComparisonOperations.w", "literal_comparison_operations"),
+      physical(188, "compiler/syntax/LoopKinds.w", "loop_kinds"),
       physical(194, "compiler/syntax/returns/NamedBooleanReturnKinds.w", "named_boolean_return_kinds"),
       physical(195, "compiler/syntax/comparisons/NamedComparisonKinds.w", "named_comparison_kinds"),
       physical(196, "compiler/syntax/conditionals/NamedConditionalBases.w", "named_conditional_bases"),
@@ -67,8 +75,10 @@ final class NativeCompilerArchiveClosureProgram {
       physical(253, "compiler/syntax/returns/ResolvedReturnCallKinds.w", "resolved_return_call_kinds"),
       physical(254, "compiler/ir/ResolvedStatements.w", "resolved_statements"),
       physical(260, "compiler/resolution/returns/ReturnOpcodeKinds.w", "return_opcode_kinds"),
+      physical(273, "compiler/syntax/tokens/SourceScalars.w", "source_scalars"),
       physical(274, "compiler/ir/StatementKinds.w", "statement_kinds"),
       physical(278, "compiler/ir/StorageOpcodes.w", "storage_opcodes"),
+      physical(283, "compiler/syntax/calls/ThreeArgumentCalls.w", "three_argument_calls"),
       physical(285, "compiler/syntax/calls/TwoArgumentCallKinds.w", "two_argument_call_kinds"),
       physical(286, "compiler/ir/TypeCodes.w", "type_codes"),
       physical(287, "compiler/ir/TypeKinds.w", "type_kinds"),
@@ -228,7 +238,7 @@ final class NativeCompilerArchiveClosureProgram {
             words bodyModuleRanks = allocate(products, /* length= */ 512);
             words bodyStarts = allocate(products, /* length= */ 512);
             words bodyLengths = allocate(products, /* length= */ 512);
-            region columns = new region(/* bytes= */ 4126760, /* allocations= */ 74);
+            region columns = new region(/* bytes= */ 4127272, /* allocations= */ 74);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -292,7 +302,7 @@ final class NativeCompilerArchiveClosureProgram {
             words physicalAggregates = allocate(columns, /* length= */ 832);
             words physicalCalls = allocate(columns, /* length= */ 1024);
             words physicalResultTypes = allocate(columns, /* length= */ 4096);
-            words physicalOwners = allocate(columns, /* length= */ 64);
+            words physicalOwners = allocate(columns, /* length= */ 128);
             words physicalImportedRows = allocate(columns, /* length= */ 114689);
             bytes physicalProductSource = allocateBytes(columns, /* length= */ 32768);
             PHYSICAL_MODULE_OWNERS
@@ -566,7 +576,7 @@ final class NativeCompilerArchiveClosureProgram {
                 );
                 if (closure.moduleCount == 304) {
                   long physicalProduct = 0;
-                  while (physicalProduct < PHYSICAL_MODULE_COUNT) limit 64 {
+                  while (physicalProduct < PHYSICAL_MODULE_COUNT) limit 128 {
                     long physicalOwner = physicalOwners[physicalProduct];
                     physicalModuleOwner = physicalOwner;
                     long physicalImportedCount = writeDirectImportedValues(
@@ -824,7 +834,7 @@ final class NativeCompilerArchiveClosureProgram {
                   } else {
                     if (1 < bufferLength(output)) {
                       long physicalByte = 0;
-                      while (physicalByte < physicalModuleProductLength) limit 196608 {
+                      while (physicalByte < physicalModuleProductLength) limit 16777216 {
                         setByte(output, physicalByte, bodyArchive[physicalByte]);
                         physicalByte += 1;
                       }
