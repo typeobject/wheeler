@@ -103,6 +103,10 @@ final class NativeCompilerPhysicalProductSource {
               physicalInstructionRows
             );
             long physicalLocalFunctionCount = moduleCallableCounts[physicalOwner];
+            if (physicalProduct + 1 == PHYSICAL_COMPARABLE_COUNT) {
+              assert(physicalFunctions.functionCount == physicalLocalFunctionCount + 1);
+              physicalLocalFunctionCount = physicalFunctions.functionCount;
+            }
             if (0 < physicalLocalFunctionCount) {
               RetainedFunctionProduct physicalRetained = retainLocalFunctionProduct(
                 physicalLocalFunctionCount,

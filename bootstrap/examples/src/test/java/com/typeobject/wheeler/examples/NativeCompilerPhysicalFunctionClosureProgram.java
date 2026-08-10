@@ -9,7 +9,7 @@ import java.util.LinkedHashMap;
 final class NativeCompilerPhysicalFunctionClosureProgram {
   private NativeCompilerPhysicalFunctionClosureProgram() {}
 
-  static Program program(int artifactCount) throws IOException {
+  static Program program(int artifactCount, int rootProduct) throws IOException {
     LinkedHashMap<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
     sources.putAll(CompilerSources.moduleClosure(
@@ -23,11 +23,15 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.imported_callable_stubs"));
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.linked_container"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.linked_function_section"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.linked_instruction_code"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.linked_local_types"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.linked_manifest_section"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.linked_string_section"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.opcodes"));
@@ -39,9 +43,11 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
         import wheeler.compiler.closure.compiled_string_products;
         import wheeler.compiler.closure.counted_function_products;
         import wheeler.compiler.closure.imported_callable_stubs;
+        import wheeler.compiler.closure.linked_container;
         import wheeler.compiler.closure.linked_function_section;
         import wheeler.compiler.closure.linked_instruction_code;
         import wheeler.compiler.closure.linked_local_types;
+        import wheeler.compiler.closure.linked_manifest_section;
         import wheeler.compiler.closure.linked_string_section;
         import wheeler.compiler.opcodes;
         import wheeler.core.encoding.binary;
@@ -60,6 +66,8 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
           state long linkedStringSectionLength = 0;
           state long linkedLocalTypeCount = 0;
           state long linkedFunctionSectionLength = 0;
+          state long linkedManifestLength = 0;
+          state long linkedContainerLength = 0;
 
           private boolean callOpcode(long opcode) {
             boolean call = opcode == OPCODE_CALL;
@@ -84,8 +92,10 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
           entry void main(borrow byteview input, borrow mut bytes output) {
             assert(bufferLength(input) < 16777217);
             assert(ARTIFACT_COUNT * 6 < bufferLength(input) + 1);
-            region products = new region(/* bytes= */ 22020096, /* allocations= */ 24);
+            region products = new region(/* bytes= */ 26214400, /* allocations= */ 29);
             bytes artifact = allocateBytes(products, /* length= */ 1048576);
+            bytes rootArtifact = allocateBytes(products, /* length= */ 1048576);
+            bytes sections = allocateBytes(products, /* length= */ 4194304);
             words localFunctionRows = allocate(products, /* length= */ 640);
             words localInstructionRows = allocate(products, /* length= */ 24576);
             words moduleFirstFunctions = allocate(products, /* length= */ 512);
@@ -109,6 +119,9 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
             words finalStringRows = allocate(products, /* length= */ 16384);
             words closureFunctionNameRows = allocate(products, /* length= */ 4096);
             words functionNameIds = allocate(products, /* length= */ 4096);
+            words sectionTypes = allocate(products, /* length= */ 64);
+            words sectionStarts = allocate(products, /* length= */ 64);
+            words sectionLengths = allocate(products, /* length= */ 64);
             long relocationCount = input[bufferLength(input) - 2] * 256
               + input[bufferLength(input) - 1];
             assert(relocationCount < 2049);
@@ -117,6 +130,10 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
               - relocationCount * 6
               - 2;
             long artifactStart = 0;
+            long rootArtifactLength = 0;
+            long rootOwner = 0;
+            long rootStringBase = 0;
+            long rootStringCount = 0;
             long product = 0;
             while (product < ARTIFACT_COUNT) limit 512 {
               long metadataStart = metadata + product * 6;
@@ -155,6 +172,17 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
                 stringLengths
               );
               linkedSourceStringCount = artifactStrings.closureStringCount;
+              if (product == ROOT_PRODUCT) {
+                rootArtifactLength = artifactLength;
+                rootOwner = owner;
+                rootStringBase = artifactStrings.firstString;
+                rootStringCount = artifactStrings.stringCount;
+                artifactByte = 0;
+                while (artifactByte < artifactLength) limit 1048576 {
+                  setByte(rootArtifact, artifactByte, artifact[artifactByte]);
+                  artifactByte += 1;
+                }
+              }
               if (0 < localFunctionCount) {
                 RetainedFunctionProduct retained = retainLocalFunctionProduct(
                   localFunctionCount,
@@ -287,7 +315,7 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
               instructionCount,
               closureInstructionRows,
               resolvedCallTargets,
-              output,
+              sections,
               /* outputStart= */ 0
             );
             assert(relocatedTargetCount == relocationCount);
@@ -314,13 +342,13 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
               stringStarts,
               stringLengths,
               finalStringRows,
-              output,
+              sections,
               linkedCodeLength
             );
-            linkedUniqueStringCount = output[linkedCodeLength]
-              + output[linkedCodeLength + 1] * 256
-              + output[linkedCodeLength + 2] * 65536
-              + output[linkedCodeLength + 3] * 16777216;
+            linkedUniqueStringCount = sections[linkedCodeLength]
+              + sections[linkedCodeLength + 1] * 256
+              + sections[linkedCodeLength + 2] * 65536
+              + sections[linkedCodeLength + 3] * 16777216;
             resolveLinkedFunctionNameIds(
               functionCount,
               linkedSourceStringCount,
@@ -336,16 +364,59 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
               linkedLocalTypeCount,
               linkedTypes,
               linkedCodeLength,
-              output,
+              sections,
               linkedCodeLength + linkedStringSectionLength
             );
-            published = 1;
-            setOutputLength(
-              output,
-              linkedCodeLength
-                + linkedStringSectionLength
-                + linkedFunctionSectionLength
+            long manifestStart = linkedCodeLength
+              + linkedStringSectionLength
+              + linkedFunctionSectionLength;
+            linkedManifestLength = emitLinkedManifestSection(
+              rootArtifact,
+              rootArtifactLength,
+              rootOwner,
+              rootStringBase,
+              rootStringCount,
+              linkedSourceStringCount,
+              finalStringRows,
+              moduleFirstFunctions,
+              moduleFunctionCounts,
+              sections,
+              manifestStart
             );
+            long globalsStart = manifestStart + linkedManifestLength;
+            long aggregatesStart = globalsStart + 16;
+            set(sectionTypes, 0, 1);
+            set(sectionStarts, 0, manifestStart);
+            set(sectionLengths, 0, linkedManifestLength);
+            set(sectionTypes, 1, 2);
+            set(sectionStarts, 1, linkedCodeLength);
+            set(sectionLengths, 1, linkedStringSectionLength);
+            set(sectionTypes, 2, 3);
+            set(sectionStarts, 2, globalsStart);
+            set(sectionLengths, 2, 16);
+            set(sectionTypes, 3, 4);
+            set(sectionStarts, 3, aggregatesStart);
+            set(sectionLengths, 3, 4);
+            set(sectionTypes, 4, 5);
+            set(sectionStarts, 4, linkedCodeLength + linkedStringSectionLength);
+            set(sectionLengths, 4, linkedFunctionSectionLength);
+            set(sectionTypes, 5, 6);
+            set(sectionStarts, 5, 0);
+            set(sectionLengths, 5, linkedCodeLength);
+            linkedContainerLength = emitCanonicalContainer(
+              sections,
+              aggregatesStart + 4,
+              /* sectionCount= */ 6,
+              sectionTypes,
+              sectionStarts,
+              sectionLengths,
+              output
+            );
+            published = 1;
+            setOutputLength(output, linkedContainerLength);
+            drop(sectionLengths);
+            drop(sectionStarts);
+            drop(sectionTypes);
             drop(functionNameIds);
             drop(closureFunctionNameRows);
             drop(finalStringRows);
@@ -369,11 +440,15 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
             drop(moduleFirstFunctions);
             drop(localInstructionRows);
             drop(localFunctionRows);
+            drop(sections);
+            drop(rootArtifact);
             drop(artifact);
             drop(products);
           }
         }
-        """.replace("ARTIFACT_COUNT", Integer.toString(artifactCount)));
+        """
+            .replace("ARTIFACT_COUNT", Integer.toString(artifactCount))
+            .replace("ROOT_PRODUCT", Integer.toString(rootProduct)));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.physical_function_closure");
   }

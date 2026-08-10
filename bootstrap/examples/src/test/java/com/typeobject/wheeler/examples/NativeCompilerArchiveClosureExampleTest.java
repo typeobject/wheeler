@@ -9,6 +9,7 @@ import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.bytecode.ProgramKind;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import com.typeobject.wheeler.packageformat.BootstrapModuleManifest;
@@ -146,6 +147,16 @@ final class NativeCompilerArchiveClosureExampleTest {
         expectedRetainedProducts += 1;
       }
     }
+    var rootModule = NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES.getLast();
+    Program rootArtifact = new WheelerCompiler().compileLibraryModuleFiles(
+        CompilerSources.moduleClosure(rootModule.name()), rootModule.name());
+    var rootEntry = rootArtifact.functions().stream()
+        .filter(function -> function.name().equals("$library"))
+        .findFirst()
+        .orElseThrow();
+    expectedRetainedFunctions += 1;
+    expectedRetainedInstructions += rootEntry.forward().size();
+    expectedRetainedInstructions += rootEntry.inverse().size();
     Program program = NativeCompilerArchiveClosureProgram.program();
     byte[] archive = CompilerSources.packageArchive();
     BootstrapModuleManifest manifest = CompilerSources.bootstrapModuleManifest();
@@ -194,7 +205,8 @@ final class NativeCompilerArchiveClosureExampleTest {
         machine.global("physicalRetainedInstructionCount"));
 
     Program functionClosure = NativeCompilerPhysicalFunctionClosureProgram.program(
-        retainedModules.size());
+        retainedModules.size(),
+        NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES.size() - 1);
     VirtualMachine functionMachine = VirtualMachine.withBinaryInput(
         functionClosure, physicalProducts, 4_194_304);
     CompilerMachineRunner.runWithoutRewindHistory(functionMachine);
@@ -213,9 +225,7 @@ final class NativeCompilerArchiveClosureExampleTest {
         functionMachine.global("relocatedTargetCount"));
     assertEquals(
         functionMachine.hostOutput().length,
-        functionMachine.global("linkedCodeLength")
-            + functionMachine.global("linkedStringSectionLength")
-            + functionMachine.global("linkedFunctionSectionLength"));
+        functionMachine.global("linkedContainerLength"));
     assertTrue(0 < functionMachine.global("linkedCodeLength"));
     assertTrue(0 < functionMachine.global("linkedLocalTypeCount"));
     assertEquals(
@@ -227,21 +237,18 @@ final class NativeCompilerArchiveClosureExampleTest {
         functionMachine.global("linkedUniqueStringCount")
             < functionMachine.global("linkedSourceStringCount"));
     assertTrue(0 < functionMachine.global("linkedStringSectionLength"));
-    int stringSection = Math.toIntExact(functionMachine.global("linkedCodeLength"));
-    int functionSection = Math.toIntExact(
-        functionMachine.global("linkedCodeLength")
-            + functionMachine.global("linkedStringSectionLength"));
-    byte[] linkedProducts = functionMachine.hostOutput();
-    long encodedStringCount = (linkedProducts[stringSection] & 0xffL)
-        | (linkedProducts[stringSection + 1] & 0xffL) << 8
-        | (linkedProducts[stringSection + 2] & 0xffL) << 16
-        | (linkedProducts[stringSection + 3] & 0xffL) << 24;
-    assertEquals(functionMachine.global("linkedUniqueStringCount"), encodedStringCount);
-    long encodedFunctionCount = (linkedProducts[functionSection] & 0xffL)
-        | (linkedProducts[functionSection + 1] & 0xffL) << 8
-        | (linkedProducts[functionSection + 2] & 0xffL) << 16
-        | (linkedProducts[functionSection + 3] & 0xffL) << 24;
-    assertEquals(expectedRetainedFunctions, encodedFunctionCount);
+    assertEquals(24, functionMachine.global("linkedManifestLength"));
+    Program linkedClosure = new BytecodeReader().read(functionMachine.hostOutput());
+    assertEquals(ProgramKind.CLASSICAL, linkedClosure.kind());
+    assertEquals(
+        "$library",
+        linkedClosure.function(linkedClosure.entryFunctionId()).name());
+    assertEquals(expectedRetainedFunctions, linkedClosure.functions().size());
+    assertEquals(0, linkedClosure.globals().size());
+    assertEquals(0, linkedClosure.recordTypes().size());
+    assertEquals(0, linkedClosure.variantTypes().size());
+    assertEquals(0, linkedClosure.arrayTypes().size());
+    assertEquals(0, linkedClosure.sliceTypes().size());
   }
 
   @Test

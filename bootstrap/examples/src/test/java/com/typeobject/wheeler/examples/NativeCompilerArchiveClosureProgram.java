@@ -801,10 +801,16 @@ final class NativeCompilerArchiveClosureProgram {
                           physicalArtifactLength / 256 % 256
                         );
                         setByte(output, physicalMetadata + 4, physicalArtifactLength % 256);
+                        long physicalArtifactFunctionCount = moduleCallableCounts[
+                          physicalArtifactOwner
+                        ];
+                        if (physicalArtifact + 1 == PHYSICAL_COMPARABLE_COUNT) {
+                          physicalArtifactFunctionCount += 1;
+                        }
                         setByte(
                           output,
                           physicalMetadata + 5,
-                          moduleCallableCounts[physicalArtifactOwner]
+                          physicalArtifactFunctionCount
                         );
                         physicalMetadata += 6;
                         physicalArtifact += 1;
