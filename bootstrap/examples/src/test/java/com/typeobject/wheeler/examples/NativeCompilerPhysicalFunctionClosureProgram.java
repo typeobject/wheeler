@@ -91,7 +91,7 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
 
           entry void main(borrow byteview input, borrow mut bytes output) {
             assert(bufferLength(input) < 16777217);
-            assert(ARTIFACT_COUNT * 6 < bufferLength(input) + 1);
+            assert(ARTIFACT_COUNT * 6 + 8 < bufferLength(input) + 1);
             region products = new region(/* bytes= */ 26214400, /* allocations= */ 29);
             bytes artifact = allocateBytes(products, /* length= */ 1048576);
             bytes rootArtifact = allocateBytes(products, /* length= */ 1048576);
@@ -122,13 +122,18 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
             words sectionTypes = allocate(products, /* length= */ 64);
             words sectionStarts = allocate(products, /* length= */ 64);
             words sectionLengths = allocate(products, /* length= */ 64);
-            long relocationCount = input[bufferLength(input) - 2] * 256
-              + input[bufferLength(input) - 1];
+            long footer = bufferLength(input) - 8;
+            assert(input[footer] == 87);
+            assert(input[footer + 1] == 80);
+            assert(input[footer + 2] == 70);
+            assert(input[footer + 3] == 1);
+            long framedProductCount = input[footer + 4] * 256 + input[footer + 5];
+            assert(framedProductCount == ARTIFACT_COUNT);
+            long relocationCount = input[footer + 6] * 256 + input[footer + 7];
             assert(relocationCount < 2049);
-            long metadata = bufferLength(input)
+            long metadata = footer
               - ARTIFACT_COUNT * 6
-              - relocationCount * 6
-              - 2;
+              - relocationCount * 6;
             long artifactStart = 0;
             long rootArtifactLength = 0;
             long rootOwner = 0;

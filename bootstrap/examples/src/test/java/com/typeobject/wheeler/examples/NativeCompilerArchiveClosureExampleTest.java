@@ -181,7 +181,7 @@ final class NativeCompilerArchiveClosureExampleTest {
         machine.global("physicalRetainedProductLength")
             + retainedModules.size() * 6L
             + machine.global("physicalCallableRelocationCount") * 6L
-            + 2,
+            + 8,
         physicalProducts.length);
     assertEquals(expected.size(), machine.global("physicalModuleProductLength"));
     assertEquals(expectedFunctions, machine.global("physicalModuleProductFunctions"));
@@ -261,6 +261,16 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(1, repeatedFunctionMachine.global("published"));
     assertArrayEquals(
         functionMachine.hostOutput(), repeatedFunctionMachine.hostOutput());
+
+    byte[] malformedFooter = physicalProducts.clone();
+    malformedFooter[malformedFooter.length - 8] = 0;
+    VirtualMachine malformedFooterMachine = VirtualMachine.withBinaryInput(
+        functionClosure, malformedFooter, 4_194_304);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(malformedFooterMachine));
+    assertEquals(0, malformedFooterMachine.global("published"));
+    assertEquals(0, malformedFooterMachine.global("productCount"));
 
     byte[] malformedProducts = physicalProducts.clone();
     int firstRelocation = Math.toIntExact(

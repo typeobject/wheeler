@@ -307,13 +307,19 @@ final class NativeCompilerPhysicalProductSource {
             physicalMetadata += 6;
             publishedRelocationFrame += 1;
           }
-          setByte(output, physicalMetadata, physicalCallableRelocationCount / 256);
+          setByte(output, physicalMetadata, 87);
+          setByte(output, physicalMetadata + 1, 80);
+          setByte(output, physicalMetadata + 2, 70);
+          setByte(output, physicalMetadata + 3, 1);
+          setByte(output, physicalMetadata + 4, PHYSICAL_MODULE_COUNT / 256);
+          setByte(output, physicalMetadata + 5, PHYSICAL_MODULE_COUNT % 256);
+          setByte(output, physicalMetadata + 6, physicalCallableRelocationCount / 256);
           setByte(
             output,
-            physicalMetadata + 1,
+            physicalMetadata + 7,
             physicalCallableRelocationCount % 256
           );
-          setOutputLength(output, physicalMetadata + 2);
+          setOutputLength(output, physicalMetadata + 8);
         } else {
           setByte(output, 0, 1);
         }
