@@ -159,6 +159,7 @@ Source-product compilation does not set the bootstrap bit. Promotion still requi
 - [x] Borrowed intrinsic results can feed later typed comparison values. Scalar helper validation now admits every declaration with a concrete result local instead of maintaining a second incomplete declaration whitelist.
 - [x] `retainLocalFunctionProduct` excludes stub and compiler-added function suffixes.
 - [x] Imported call ranges, including qualified spelling, rewrite to `__wheeler_import_<product-row>` stub names. Any local use of the reserved prefix fails before output mutation.
+- [x] `SourceCallProducts.w` resolves unqualified direct dependency calls against packed callable rows and copied WIP-0045 name products. Local shadowing and complete ambiguity validation precede call-row publication. Dependency source is not an argument.
 - [x] `CallableTypeProducts.w` resolves primitive source ranges while local source is leased. Stub generation consumes only type codes, loan modes, effect masks, and parameter windows. Its API has no dependency-source argument.
 - [x] WIP-0050 starts aggregate-aware lowering with atomic record, variant, case, and member products, including mutually recursive local nominal types and deduplicated scalar fixed arrays. Descriptor-compatible rows and copied immutable source-string products now cross the source-release boundary without a temporary artifact.
 - [x] Complete primitive bodies compile after validated local aggregate declarations are blanked at stable source offsets.

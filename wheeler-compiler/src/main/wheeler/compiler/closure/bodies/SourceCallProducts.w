@@ -76,6 +76,68 @@ classical class SourceCallProducts {
     return bodyCursor == bodyEnd;
   }
 
+  private boolean sameProductName(
+    borrow utf8 body,
+    long bodyStart,
+    long bodyLength,
+    borrow byteview names,
+    long nameStart,
+    long nameLength
+  ) {
+    if (bodyLength != nameLength) {
+      return false;
+    }
+
+    long offset = 0;
+    while (offset < bodyLength) limit 256 {
+      if (utf8Scalar(body, bodyStart + offset) != names[nameStart + offset]) {
+        return false;
+      }
+
+      offset += 1;
+    }
+
+    return true;
+  }
+
+  private long matchingProductCallable(
+    borrow utf8 body,
+    long bodyNameStart,
+    long bodyNameLength,
+    long arity,
+    borrow byteview names,
+    long firstCallable,
+    long callableCount,
+    borrow mut words callableNameStarts,
+    borrow mut words callableNameLengths,
+    borrow mut words callableParameterCounts
+  ) {
+    long target = -1;
+    long offset = 0;
+    while (offset < callableCount) limit MAX_CALLABLES {
+      long callable = firstCallable + offset;
+      if (callableParameterCounts[callable] == arity) {
+        if (
+          sameProductName(
+            body,
+            bodyNameStart,
+            bodyNameLength,
+            names,
+            callableNameStarts[callable],
+            callableNameLengths[callable]
+          )
+        ) {
+          assert(target == -1);
+          target = callable;
+        }
+      }
+
+      offset += 1;
+    }
+
+    return target;
+  }
+
   private long matchingCallable(
     borrow utf8 body,
     long bodyNameStart,
@@ -316,6 +378,136 @@ classical class SourceCallProducts {
     }
 
     return target;
+  }
+
+  /// Resolves packed dependency calls from copied names without dependency source.
+  public long resolveProductSourceCallProducts(
+    borrow byteview source,
+    long sourceStart,
+    long sourceLength,
+    borrow byteview names,
+    long firstLocalCallable,
+    long localCallableCount,
+    borrow mut words callableNameStarts,
+    borrow mut words callableNameLengths,
+    borrow mut words callableParameterCounts,
+    long dependencyCount,
+    borrow mut words dependencyRows,
+    borrow mut words callRows
+  ) {
+    assert(-1 < sourceStart);
+    assert(0 < sourceLength);
+    assert(sourceLength < 32769);
+    assert(sourceLength < bufferLength(source) - sourceStart + 1);
+    assert(-1 < firstLocalCallable);
+    assert(-1 < localCallableCount);
+    assert(localCallableCount < MAX_CALLABLES - firstLocalCallable + 1);
+    assert(bufferLength(callableNameStarts) == MAX_CALLABLES);
+    assert(bufferLength(callableNameLengths) == MAX_CALLABLES);
+    assert(bufferLength(callableParameterCounts) == MAX_CALLABLES);
+    assert(-1 < dependencyCount);
+    assert(dependencyCount < MAX_CALLABLES + 1);
+    assert(bufferLength(dependencyRows) == 8192);
+    assert(bufferLength(callRows) == CALL_ROWS);
+    region sourceArena = new region(/* bytes= */ 32768, /* allocations= */ 1);
+    bytes sourceBytes = allocateBytes(sourceArena, sourceLength);
+    long sourceByte = 0;
+    while (sourceByte < sourceLength) limit 32768 {
+      setByte(sourceBytes, sourceByte, source[sourceStart + sourceByte]);
+      sourceByte += 1;
+    }
+
+    utf8 body = freezeUtf8(sourceBytes);
+    region tokens = new region(/* bytes= */ TOKEN_ARENA_BYTES, /* allocations= */ 3);
+    words tokenKinds = allocate(tokens, MAX_COMPILER_TOKENS);
+    words tokenStarts = allocate(tokens, MAX_COMPILER_TOKENS);
+    words tokenLengths = allocate(tokens, MAX_COMPILER_TOKENS);
+    region staged = new region(/* bytes= */ 8192, /* allocations= */ 1);
+    words stagedCalls = allocate(staged, CALL_ROWS);
+    long tokenCount = scanSemanticTokens(body, tokenKinds, tokenStarts, tokenLengths);
+    assert(-1 < tokenCount);
+    long callCount = 0;
+    long token = 0;
+    while (token + 1 < tokenCount) limit MAX_COMPILER_TOKENS {
+      if (tokenKinds[token] == 1) {
+        if (
+          punctuationAt(body, tokenKinds, tokenStarts, token + 1, PUNCTUATION_OPEN_PAREN)
+        ) {
+          long close = closingParen(body, tokenKinds, tokenStarts, token + 1, tokenCount);
+          assert(-1 < close);
+          long arity = parameterCount(body, tokenKinds, tokenStarts, token + 1, close);
+          assert(-1 < arity);
+          long local = matchingProductCallable(
+            body,
+            tokenStarts[token],
+            tokenLengths[token],
+            arity,
+            names,
+            firstLocalCallable,
+            localCallableCount,
+            callableNameStarts,
+            callableNameLengths,
+            callableParameterCounts
+          );
+          if (local < 0) {
+            long imported = -1;
+            long product = 0;
+            while (product < dependencyCount) limit MAX_CALLABLES {
+              long candidate = dependencyRows[4096 + product];
+              if (-1 < candidate) {
+                if (callableParameterCounts[candidate] == arity) {
+                  if (
+                    sameProductName(
+                      body,
+                      tokenStarts[token],
+                      tokenLengths[token],
+                      names,
+                      callableNameStarts[candidate],
+                      callableNameLengths[candidate]
+                    )
+                  ) {
+                    assert(imported == -1);
+                    imported = candidate;
+                  }
+                }
+              }
+
+              product += 1;
+            }
+
+            if (-1 < imported) {
+              assert(callCount < MAX_CALLS_PER_BODY);
+              set(stagedCalls, callCount, tokenStarts[token]);
+              set(stagedCalls, 256 + callCount, tokenLengths[token]);
+              set(stagedCalls, 512 + callCount, arity);
+              set(stagedCalls, 768 + callCount, imported);
+              callCount += 1;
+            }
+          }
+        }
+      }
+
+      token += 1;
+    }
+
+    long call = 0;
+    while (call < callCount) limit MAX_CALLS_PER_BODY {
+      set(callRows, call, stagedCalls[call]);
+      set(callRows, 256 + call, stagedCalls[256 + call]);
+      set(callRows, 512 + call, stagedCalls[512 + call]);
+      set(callRows, 768 + call, stagedCalls[768 + call]);
+      call += 1;
+    }
+
+    drop(stagedCalls);
+    drop(staged);
+    drop(tokenLengths);
+    drop(tokenStarts);
+    drop(tokenKinds);
+    drop(tokens);
+    drop(body);
+    drop(sourceArena);
+    return callCount;
   }
 
   /// Publishes imported call sites after local shadowing and ambiguity checks.
