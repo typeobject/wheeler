@@ -162,11 +162,16 @@ subprojects {
         // A bounded seed must not turn host CPU count into test-process fan-out.
         maxParallelForks = 1
         forkEvery = 0
+        // Fail the worker promptly instead of accumulating more expensive failures.
+        failFast = true
+        // Native differential tests are CPU-heavy, but no single test may run unbounded.
+        systemProperty 'junit.jupiter.execution.timeout.default', '10 m'
+        systemProperty 'junit.jupiter.execution.timeout.thread.mode.default', 'separate_thread'
         // Sixty-four-statement compiler differentials retain bounded rewind histories.
         maxHeapSize = '1024m'
         jvmArgs '-XX:ActiveProcessorCount=2'
         testLogging {
-            events 'failed', 'skipped'
+            events 'started', 'failed', 'skipped'
             exceptionFormat = 'full'
         }
     }
