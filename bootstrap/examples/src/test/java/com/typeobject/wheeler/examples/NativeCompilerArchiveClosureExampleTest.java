@@ -241,11 +241,21 @@ final class NativeCompilerArchiveClosureExampleTest {
             < functionMachine.global("linkedSourceStringCount"));
     assertTrue(0 < functionMachine.global("linkedStringSectionLength"));
     assertEquals(24, functionMachine.global("linkedManifestLength"));
-    assertEquals(7_403_186L, functionMachine.global("linkedIdentityPrefix"));
     String linkedIdentity = HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(functionMachine.hostOutput()));
     assertEquals(
-        "0070f6b273c50be47e5c2e747f649a0bddb312bfa1ce1a17d6a744be807dfbe6",
+        4_276_655_653L,
+        functionMachine.global("linkedIdentityPrefix"),
+        () -> "sha256=" + linkedIdentity
+            + " code=" + functionMachine.global("linkedCodeLength")
+            + " functions=" + functionMachine.global("functionCount")
+            + " instructions=" + functionMachine.global("instructionCount")
+            + " sourceStrings=" + functionMachine.global("linkedSourceStringCount")
+            + " uniqueStrings=" + functionMachine.global("linkedUniqueStringCount")
+            + " localTypes=" + functionMachine.global("linkedLocalTypeCount")
+            + " container=" + functionMachine.global("linkedContainerLength"));
+    assertEquals(
+        "fee8962568a61ecef102bda9ae0c908d9862b40fae3d474198e2e12c54a1674c",
         linkedIdentity,
         () -> "code=" + functionMachine.global("linkedCodeLength")
             + " functions=" + functionMachine.global("functionCount")
@@ -271,7 +281,7 @@ final class NativeCompilerArchiveClosureExampleTest {
         functionClosure, physicalProducts, 4_194_304);
     CompilerMachineRunner.runWithoutRewindHistory(repeatedFunctionMachine);
     assertEquals(1, repeatedFunctionMachine.global("published"));
-    assertEquals(7_403_186L, repeatedFunctionMachine.global("linkedIdentityPrefix"));
+    assertEquals(4_276_655_653L, repeatedFunctionMachine.global("linkedIdentityPrefix"));
     assertArrayEquals(
         functionMachine.hostOutput(), repeatedFunctionMachine.hostOutput());
 

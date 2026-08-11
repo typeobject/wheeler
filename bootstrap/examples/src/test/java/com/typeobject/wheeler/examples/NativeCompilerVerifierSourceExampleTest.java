@@ -7,7 +7,6 @@ import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -43,16 +42,13 @@ final class NativeCompilerVerifierSourceExampleTest {
 
   @Test
   void compilesCanonicalResultSlotVerifierByteForByte() throws Exception {
-    String fixedBinary = CoreSources.read("encoding/FixedBinary.w");
-    List<String> dependencies = List.of(fixedBinary);
-    Map<String, String> sources = new LinkedHashMap<>();
-    sources.put("encoding/FixedBinary.w", fixedBinary);
-    String root = CompilerSources.read("compiler/verification/ResultSlotVerifier.w");
-    sources.put("compiler/verification/ResultSlotVerifier.w", root);
-
-    byte[] expected = compileWithStageZero(sources, "wheeler.compiler.result_slot_verifier");
+    String path = "compiler/verification/ResultSlotVerifier.w";
+    String root = CompilerSources.read(path);
+    byte[] expected = compileWithStageZero(
+        Map.of(path, root),
+        "wheeler.compiler.result_slot_verifier");
     byte[] actual = NativeModuleCompilerHarness.compile(
-        NativeModuleCompilerHarness.program(), dependencies, root);
+        NativeModuleCompilerHarness.program(), List.of(), root);
     assertArrayEquals(expected, actual);
   }
 

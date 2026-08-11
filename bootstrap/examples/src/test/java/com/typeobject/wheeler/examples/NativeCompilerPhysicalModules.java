@@ -73,6 +73,7 @@ final class NativeCompilerPhysicalModules {
         physical(252, "compiler/syntax/locals/ResolvedLongOperations.w", "resolved_long_operations"),
         physical(253, "compiler/syntax/returns/ResolvedReturnCallKinds.w", "resolved_return_call_kinds"),
         physical(254, "compiler/ir/ResolvedStatements.w", "resolved_statements"),
+        physical(256, "compiler/verification/ResultSlotVerifier.w", "result_slot_verifier"),
         physical(260, "compiler/resolution/returns/ReturnOpcodeKinds.w", "return_opcode_kinds"),
         physical(273, "compiler/syntax/tokens/SourceScalars.w", "source_scalars"),
         physical(274, "compiler/ir/StatementKinds.w", "statement_kinds"),
