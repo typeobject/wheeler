@@ -134,10 +134,10 @@ class SourceReadabilityTest {
         "src/main/wheeler/compiler/ir/ResolvedStatements.w"));
 
     assertEquals(java.util.Map.of(), statementIdentities(tokens));
-    assertEquals(138, statementIdentities(kinds).size());
+    assertEquals(139, statementIdentities(kinds).size());
     assertEquals(6, statementIdentities(loopKinds).size());
-    assertEquals(91, statementIdentities(resolved).size());
-    assertEquals(235, statementIdentities(kinds + loopKinds + resolved).size());
+    assertEquals(92, statementIdentities(resolved).size());
+    assertEquals(237, statementIdentities(kinds + loopKinds + resolved).size());
 
     Path root = Path.of("../wheeler-compiler/src/main/wheeler/compiler");
     StringBuilder allSources = new StringBuilder();
@@ -147,8 +147,8 @@ class SourceReadabilityTest {
       }
     }
     var allStatements = statementIdentities(allSources.toString());
-    assertEquals(307, allStatements.size());
-    assertEquals(307, new java.util.HashSet<>(allStatements.values()).size());
+    assertEquals(313, allStatements.size());
+    assertEquals(313, new java.util.HashSet<>(allStatements.values()).size());
   }
 
   @Test

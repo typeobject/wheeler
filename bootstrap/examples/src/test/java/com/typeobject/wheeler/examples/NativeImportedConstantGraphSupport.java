@@ -17,10 +17,18 @@ import java.util.Map;
 final class NativeImportedConstantGraphSupport {
   private NativeImportedConstantGraphSupport() {}
 
-  static byte[] assertEveryOrderMatchesStageZero(
+  static byte[] assertBoundedOrdersMatchStageZero(
       List<String> imported, String root) throws Exception {
-    List<List<String>> orders = permutations(imported);
-    assertEquals(factorial(imported.size()), orders.size());
+    List<List<String>> orders;
+    int expectedOrderCount;
+    if (imported.size() < 6) {
+      orders = permutations(imported);
+      expectedOrderCount = factorial(imported.size());
+    } else {
+      orders = rotationsAndReversals(imported);
+      expectedOrderCount = imported.size() * 2;
+    }
+    assertEquals(expectedOrderCount, orders.size());
     return assertOrdersMatchStageZero(imported, root, orders);
   }
 

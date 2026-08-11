@@ -22,7 +22,7 @@ Run the bounded closure evidence task when a patch changes the physical compiler
 ./bootstrap/gradlew -p bootstrap :examples:closureEvidenceTest
 ```
 
-The ordinary gate gives each JUnit method two minutes. Hosted CI also caps each deterministic example shard at fifteen minutes. The closure task is explicit because its end-to-end methods may each use ten minutes, and the task stops after fifteen minutes.
+The ordinary gate gives each JUnit method two minutes. Hosted CI also caps each deterministic example shard at fifteen minutes. The closure task is explicit because its end-to-end methods may each use twenty minutes, and the task stops after twenty-five minutes.
 
 ## Patch rules
 

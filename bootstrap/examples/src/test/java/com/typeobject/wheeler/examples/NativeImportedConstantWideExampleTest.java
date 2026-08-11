@@ -1,6 +1,6 @@
 package com.typeobject.wheeler.examples;
 
-import static com.typeobject.wheeler.examples.NativeImportedConstantGraphSupport.assertEveryOrderMatchesStageZero;
+import static com.typeobject.wheeler.examples.NativeImportedConstantGraphSupport.assertBoundedOrdersMatchStageZero;
 import static com.typeobject.wheeler.examples.NativeImportedConstantGraphSupport.assertOrdersMatchStageZero;
 import static com.typeobject.wheeler.examples.NativeImportedConstantGraphSupport.rotationsAndReversals;
 import static com.typeobject.wheeler.examples.NativeModuleCompilerHarness.assertTrap;
@@ -35,7 +35,7 @@ class NativeImportedConstantWideExampleTest {
         + "outcome += ELEVEN; } }";
     List<String> imported = List.of(two, three, five, seven, eleven);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(28, machine.global("outcome"));
@@ -57,7 +57,7 @@ class NativeImportedConstantWideExampleTest {
         + "state long outcome = 0; entry void main() { outcome += ANSWER; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(42, machine.global("outcome"));
@@ -83,7 +83,7 @@ class NativeImportedConstantWideExampleTest {
         + "state long outcome = 0; entry void main() { outcome += ANSWER; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(17, machine.global("outcome"));
@@ -108,7 +108,7 @@ class NativeImportedConstantWideExampleTest {
         + "outcome += ANSWER; outcome += DIRECT; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(17, machine.global("outcome"));
@@ -132,7 +132,7 @@ class NativeImportedConstantWideExampleTest {
         + "outcome += EPSILON; outcome += GAMMA; } }";
     List<String> imported = List.of(alpha, beta, delta, epsilon, gamma);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(26, machine.global("outcome"));
@@ -155,7 +155,7 @@ class NativeImportedConstantWideExampleTest {
         + "entry void main() { outcome += BETA; outcome += DELTA; outcome += EPSILON; } }";
     List<String> imported = List.of(alpha, gamma, beta, delta, epsilon);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(25, machine.global("outcome"));
@@ -178,7 +178,7 @@ class NativeImportedConstantWideExampleTest {
         + "entry void main() { outcome += BETA; outcome += DELTA; outcome += EPSILON; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(26, machine.global("outcome"));
@@ -201,7 +201,7 @@ class NativeImportedConstantWideExampleTest {
         + "entry void main() { outcome += GAMMA; outcome += DELTA; outcome += EPSILON; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(23, machine.global("outcome"));
@@ -224,7 +224,7 @@ class NativeImportedConstantWideExampleTest {
         + "outcome += DELTA; outcome += EPSILON; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(18, machine.global("outcome"));
@@ -247,7 +247,7 @@ class NativeImportedConstantWideExampleTest {
         + "outcome += DELTA; outcome += EPSILON; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(23, machine.global("outcome"));
@@ -269,7 +269,7 @@ class NativeImportedConstantWideExampleTest {
         + "state long outcome = 0; entry void main() { outcome += ANSWER; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(12, machine.global("outcome"));
@@ -293,7 +293,7 @@ class NativeImportedConstantWideExampleTest {
         + "state long outcome = 0; entry void main() { outcome += ANSWER; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(14, machine.global("outcome"));
@@ -340,7 +340,7 @@ class NativeImportedConstantWideExampleTest {
         + "entry void main() { outcome += TWO; outcome += THREE; outcome += FIVE; "
         + "outcome += SEVEN; outcome += ELEVEN; outcome += THIRTEEN; } }";
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(41, machine.global("outcome"));
@@ -391,7 +391,7 @@ class NativeImportedConstantWideExampleTest {
         + "state long outcome = 0; entry void main() { outcome += ANSWER; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(42, machine.global("outcome"));
@@ -419,7 +419,7 @@ class NativeImportedConstantWideExampleTest {
         + "state long outcome = 0; entry void main() { outcome += ANSWER; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(28, machine.global("outcome"));
@@ -447,7 +447,7 @@ class NativeImportedConstantWideExampleTest {
         + "outcome += ZETA; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(28, machine.global("outcome"));
@@ -473,7 +473,7 @@ class NativeImportedConstantWideExampleTest {
         + "outcome += ZETA; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(25, machine.global("outcome"));
@@ -499,7 +499,7 @@ class NativeImportedConstantWideExampleTest {
         + "outcome += ZETA; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(36, machine.global("outcome"));
@@ -524,7 +524,7 @@ class NativeImportedConstantWideExampleTest {
         + "entry void main() { outcome += FORK; outcome += CHAIN; outcome += ZETA; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(29, machine.global("outcome"));
@@ -549,7 +549,7 @@ class NativeImportedConstantWideExampleTest {
         + "entry void main() { outcome += FIRST; outcome += SECOND; outcome += THIRD; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(23, machine.global("outcome"));
@@ -574,7 +574,7 @@ class NativeImportedConstantWideExampleTest {
         + "entry void main() { outcome += LONG; outcome += SHORT; outcome += ZETA; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(38, machine.global("outcome"));
@@ -599,7 +599,7 @@ class NativeImportedConstantWideExampleTest {
         + "classical class Root { state long outcome = 0; entry void main() { "
         + "outcome += BETA; outcome += FIVE; outcome += SEVEN; outcome += ELEVEN; "
         + "outcome += THIRTEEN; } }";
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine mixedMachine = new VirtualMachine(artifact);
     mixedMachine.run();
     assertEquals(39, mixedMachine.global("outcome"));
@@ -642,7 +642,7 @@ class NativeImportedConstantWideExampleTest {
         + "outcome += DELTA; outcome += EPSILON; outcome += ZETA; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(28, machine.global("outcome"));
@@ -669,7 +669,7 @@ class NativeImportedConstantWideExampleTest {
         + "outcome += DELTA; outcome += EPSILON; outcome += ZETA; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(28, machine.global("outcome"));
@@ -696,7 +696,7 @@ class NativeImportedConstantWideExampleTest {
         + "outcome += ZETA; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(31, machine.global("outcome"));
@@ -722,7 +722,7 @@ class NativeImportedConstantWideExampleTest {
         + "outcome += SECOND; outcome += EPSILON; outcome += ZETA; } }";
     List<String> imported = List.of(alpha, beta, gamma, delta, epsilon, zeta);
 
-    Program artifact = new BytecodeReader().read(assertEveryOrderMatchesStageZero(imported, root));
+    Program artifact = new BytecodeReader().read(assertBoundedOrdersMatchStageZero(imported, root));
     VirtualMachine machine = new VirtualMachine(artifact);
     machine.run();
     assertEquals(27, machine.global("outcome"));

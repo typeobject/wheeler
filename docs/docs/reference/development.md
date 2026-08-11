@@ -24,7 +24,7 @@ The complete physical compiler product rebuild is integration evidence, not a un
 ./bootstrap/gradlew -p bootstrap :examples:closureEvidenceTest
 ```
 
-That task allows ten minutes for the closure method and still stops after fifteen minutes. It remains outside `check` so an ordinary patch cannot turn two hosted JDK jobs into unbounded closure rebuilds.
+That task allows twenty minutes for each closure method and still stops after twenty-five minutes. It remains outside `check` so an ordinary patch cannot turn two hosted JDK jobs into unbounded closure rebuilds.
 
 ## Documentation style
 

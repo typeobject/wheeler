@@ -20,7 +20,7 @@ classical class Conditionals {
   /// Names reversed less-than guards assigning Boolean literals to prior locals.
   public const long STATEMENT_IF_LITERAL_LT_LOCAL_ASSIGN_LOCAL_NAMED = 937;
   /// Starts resolved literal guards assigning Boolean literals to prior locals.
-  public const long STATEMENT_IF_LITERAL_ASSIGN_LOCAL_BASE = 31232;
+  public const long STATEMENT_IF_LITERAL_ASSIGN_LOCAL_BASE = 32256;
 
   private const long LOCAL_LITERAL_ASSIGNMENT_FORM_COUNT = 16;
   private const long LOCAL_LITERAL_ASSIGNMENT_OPCODE_COUNT = 4096;
