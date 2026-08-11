@@ -30,6 +30,7 @@ final class NativeCompilerPhysicalModules {
         physical(174, "compiler/ir/InstructionForms.w", "instruction_forms"),
         physical(177, "compiler/syntax/tokens/KeywordTokens.w", "keyword_tokens"),
         physical(179, "compiler/syntax/conditionals/LiteralComparisonOperations.w", "literal_comparison_operations"),
+        physical(185, "compiler/backend/types/LocalTypeEncoding.w", "local_type_encoding"),
         physical(188, "compiler/syntax/LoopKinds.w", "loop_kinds"),
         physical(194, "compiler/syntax/returns/NamedBooleanReturnKinds.w", "named_boolean_return_kinds"),
         physical(195, "compiler/syntax/comparisons/NamedComparisonKinds.w", "named_comparison_kinds"),

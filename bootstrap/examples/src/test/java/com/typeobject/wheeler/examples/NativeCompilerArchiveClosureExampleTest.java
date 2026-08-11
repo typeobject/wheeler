@@ -241,11 +241,11 @@ final class NativeCompilerArchiveClosureExampleTest {
             < functionMachine.global("linkedSourceStringCount"));
     assertTrue(0 < functionMachine.global("linkedStringSectionLength"));
     assertEquals(24, functionMachine.global("linkedManifestLength"));
-    assertEquals(1_029_869_779L, functionMachine.global("linkedIdentityPrefix"));
+    assertEquals(7_403_186L, functionMachine.global("linkedIdentityPrefix"));
     String linkedIdentity = HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(functionMachine.hostOutput()));
     assertEquals(
-        "3d6290d3f11b55960f686eeec24ff8139c732911f4358860abb96208d22e7947",
+        "0070f6b273c50be47e5c2e747f649a0bddb312bfa1ce1a17d6a744be807dfbe6",
         linkedIdentity,
         () -> "code=" + functionMachine.global("linkedCodeLength")
             + " functions=" + functionMachine.global("functionCount")
@@ -271,7 +271,7 @@ final class NativeCompilerArchiveClosureExampleTest {
         functionClosure, physicalProducts, 4_194_304);
     CompilerMachineRunner.runWithoutRewindHistory(repeatedFunctionMachine);
     assertEquals(1, repeatedFunctionMachine.global("published"));
-    assertEquals(1_029_869_779L, repeatedFunctionMachine.global("linkedIdentityPrefix"));
+    assertEquals(7_403_186L, repeatedFunctionMachine.global("linkedIdentityPrefix"));
     assertArrayEquals(
         functionMachine.hostOutput(), repeatedFunctionMachine.hostOutput());
 
