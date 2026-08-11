@@ -433,7 +433,9 @@ final class NativeCompilerArchiveClosureProgram {
                   callableProductNameStarts,
                   callableProductNames
                 );
-                assert(0 < callableProductNameBytes);
+                if (0 < callables.callableCount) {
+                  assert(0 < callableProductNameBytes);
+                }
                 AvailablePrimitiveCallableTypePlan availableTypes =
                   materializeAvailablePrimitiveCallableTypes(
                     archive,
@@ -450,7 +452,9 @@ final class NativeCompilerArchiveClosureProgram {
                     physicalParameterTypes,
                     primitiveCallables
                   );
-                assert(0 < availableTypes.validCount);
+                if (0 < callables.callableCount) {
+                  assert(0 < availableTypes.validCount);
+                }
                 publishCountedSymbolIdentities(
                   archive,
                   manifest,

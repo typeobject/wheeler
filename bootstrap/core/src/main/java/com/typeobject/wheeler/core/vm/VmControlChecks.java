@@ -33,9 +33,17 @@ final class VmControlChecks {
   }
 
   /** Requires one canonical Boolean local to hold true. */
-  static void requireTrue(Frame frame, int local) {
-    if (frame.local(local) != 1) {
-      throw new VmTrap(VmTrap.Code.ASSERTION, "Assertion failed");
+  static void requireTrue(Program program, Frame frame, int local) {
+    long actual = frame.local(local);
+    if (actual != 1) {
+      throw new VmTrap(
+          VmTrap.Code.ASSERTION,
+          "Assertion failed in %s at instruction %d for local %d: expected 1, got %d"
+              .formatted(
+                  program.function(frame.functionId()).name(),
+                  frame.programCounter(),
+                  local,
+                  actual));
     }
   }
 

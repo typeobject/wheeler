@@ -376,6 +376,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertArrayEquals(new byte[] {1}, machine.hostOutput());
     assertEquals(8, machine.global("symbolCount"));
     assertEquals(8, machine.global("resolvedSymbolCount"));
+    assertEquals(0, machine.global("callableCount"));
     assertEquals(1, machine.global("lastSymbolValue"));
   }
 

@@ -244,6 +244,9 @@ class VirtualMachineTest {
     VmTrap trap = assertThrows(VmTrap.class, machine::step);
 
     assertEquals(VmTrap.Code.ASSERTION, trap.code());
+    assertEquals(
+        "Assertion failed in main at instruction 1 for local 0: expected 1, got 0",
+        trap.getMessage());
     assertEquals(beforeAssertion, machine.snapshot());
     assertEquals(1, machine.historySize());
   }

@@ -433,7 +433,7 @@ final class VmPreflight {
         case EXPECT_EQ -> VmControlChecks.requireGlobalEqual(
             program, globals, globalIndex(instruction, GLOBAL), instruction.operand(IMMEDIATE));
         case EXPECT_TRUE -> VmControlChecks.requireTrue(
-            frame, localIndex(instruction, CONDITION));
+            program, frame, localIndex(instruction, CONDITION));
         case HALT, NOP, XOR_CONST, SWAP, SET_LOGGED, CHECKPOINT, COMMIT -> {
           // The verifier and operand access establish all remaining preconditions.
         }
