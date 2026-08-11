@@ -413,9 +413,9 @@ classical class ImportedCallableStubs {
       target += 1;
     }
 
-    assert(cursor < MAX_SOURCE_BYTES - 1);
-    writeAscii(stagedSource, cursor, " }");
-    cursor += 2;
+    assert(cursor < MAX_SOURCE_BYTES - 2);
+    writeAscii(stagedSource, cursor, " } ");
+    cursor += 3;
 
     long outputByte = 0;
     while (outputByte < cursor) limit MAX_SOURCE_BYTES {

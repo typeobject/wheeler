@@ -58,6 +58,28 @@ final class NativeCompilerImportedCallableStubsExampleTest {
   }
 
   @Test
+  void compilesBooleanCallGuardsAgainstARecursiveStub() throws Exception {
+    String localSource = """
+        classical class Root {
+          public boolean run(long value) {
+            if (dependency.helper(value)) {
+              return true;
+            }
+            return false;
+          }
+        }
+        """;
+    byte[] input = localSource.getBytes(StandardCharsets.US_ASCII);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        program(localSource, "boolean", "long"), input, 32_768);
+
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+
+    assertEquals(1, machine.global("retainedFunctionCount"));
+    assertEquals(2, machine.global("excludedFunctionCount"));
+  }
+
+  @Test
   void stripsLocalAggregateDeclarationsBeforePrimitiveBodyCompilation() throws Exception {
     String localSource = """
         classical class Root {
@@ -128,14 +150,28 @@ final class NativeCompilerImportedCallableStubsExampleTest {
   }
 
   private static Program program(String localSource, String primitiveType) throws Exception {
-    return program(localSource, primitiveType, false);
+    return program(localSource, primitiveType, primitiveType, false);
   }
 
   private static Program program(
       String localSource, String primitiveType, boolean invalidProjection) throws Exception {
+    return program(localSource, primitiveType, primitiveType, invalidProjection);
+  }
+
+  private static Program program(
+      String localSource, String resultType, String parameterType) throws Exception {
+    return program(localSource, resultType, parameterType, false);
+  }
+
+  private static Program program(
+      String localSource,
+      String resultType,
+      String parameterType,
+      boolean invalidProjection) throws Exception {
     int callStart = localSource.indexOf("dependency.helper");
     int callLength = "dependency.helper".length();
-    int primitiveTypeStart = localSource.indexOf(primitiveType);
+    int resultTypeStart = localSource.indexOf(resultType);
+    int parameterTypeStart = localSource.indexOf(parameterType);
     int recordStart = localSource.indexOf("public record");
     int recordEnd = recordStart < 0 ? 0 : localSource.indexOf('}', recordStart) + 1;
     if (invalidProjection) {
@@ -194,12 +230,12 @@ final class NativeCompilerImportedCallableStubsExampleTest {
             set(parameterCounts, 1, 1);
             set(resultStarts, 0, %d);
             set(resultStarts, 1, %d);
-            set(resultLengths, 0, 4);
-            set(resultLengths, 1, 4);
+            set(resultLengths, 0, %d);
+            set(resultLengths, 1, %d);
             set(parameterStarts, 0, %d);
             set(parameterStarts, 1, %d);
-            set(parameterLengths, 0, 4);
-            set(parameterLengths, 1, 4);
+            set(parameterLengths, 0, %d);
+            set(parameterLengths, 1, %d);
             CallableTypeProductPlan types = materializePrimitiveCallableTypes(
               input,
               /* callableCount= */ 2,
@@ -271,10 +307,14 @@ final class NativeCompilerImportedCallableStubsExampleTest {
           recordEnd,
           callStart,
           callLength,
-          primitiveTypeStart,
-          primitiveTypeStart,
-          primitiveTypeStart,
-          primitiveTypeStart,
+          resultTypeStart,
+          resultTypeStart,
+          resultType.length(),
+          resultType.length(),
+          parameterTypeStart,
+          parameterTypeStart,
+          parameterType.length(),
+          parameterType.length(),
           localSource.length(),
           aggregateCount
         ));
