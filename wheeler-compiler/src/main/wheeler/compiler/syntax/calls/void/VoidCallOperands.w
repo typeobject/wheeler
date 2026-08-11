@@ -15,12 +15,7 @@ classical class VoidCallOperands {
   private const long VOID_CALL_SOURCE_SCALE_THREE = 16777216;
 
   /// Decodes one source from a call with fewer than four arguments.
-  private long narrowVoidCallSource(
-    long kind,
-    long operand,
-    long secondaryOperand,
-    long source
-  ) {
+  private long narrowVoidCallSource(long kind, long operand, long secondaryOperand, long source) {
     if (source == 0) {
       return operand;
     }
@@ -73,11 +68,7 @@ classical class VoidCallOperands {
     long firstSource = 0;
     long trailingStart = VOID_CALL_TRAILING_SOURCE;
     long leadingSource = packedVoidCallSource(operand, source, firstSource);
-    long trailingSource = packedVoidCallSource(
-      secondaryOperand,
-      source,
-      trailingStart
-    );
+    long trailingSource = packedVoidCallSource(secondaryOperand, source, trailingStart);
     if (arity < VOID_CALL_TRAILING_SOURCE) {
       return narrowSource;
     }
