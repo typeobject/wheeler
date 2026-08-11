@@ -93,6 +93,7 @@ final class NativeCompilerPhysicalModules {
         physical(8, "compiler/syntax/calls/assignment/AssignmentCallInstructionWidths.w", "assignment_call_instruction_widths"),
         physical(9, "compiler/syntax/calls/assignment/AssignmentCallKinds.w", "assignment_call_kinds"),
         physical(10, "compiler/syntax/calls/assignment/AssignmentCallLocalWidths.w", "assignment_call_local_widths"),
+        physical(11, "compiler/syntax/calls/assignment/AssignmentCallOperands.w", "assignment_call_operands"),
         physical(26, "compiler/syntax/CallForms.w", "call_forms"),
         physical(133, "compiler/syntax/returns/EarlyComparisonForms.w", "early_comparison_forms"),
         physical(168, "compiler/syntax/helpers/HelperResultKinds.w", "helper_result_kinds"),

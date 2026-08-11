@@ -6,16 +6,21 @@ import wheeler.compiler.assignment_call_arities;
 import wheeler.compiler.assignment_call_identities;
 
 classical class AssignmentCallOperands {
+  /// Names the positive gap to one source still requiring packed traversal.
+  private const long ASSIGNMENT_CALL_MINIMUM_SOURCE_GAP = 1;
+  /// Names the first source stored in the trailing packed operand.
   private const long ASSIGNMENT_CALL_TRAILING_SOURCE = 4;
 
-  private long packedSource(long packed, long source, long first) {
-    long selected = first;
-    while (selected < source) limit MAX_ASSIGNMENT_CALL_ARGUMENTS {
-      packed = packed / ASSIGNMENT_CALL_SOURCE_RADIX;
-      selected += 1;
+  private long packedSource(long packed, long source, long selected) {
+    long remaining = source - selected;
+    long decoded = packed % ASSIGNMENT_CALL_SOURCE_RADIX;
+    if (remaining < ASSIGNMENT_CALL_MINIMUM_SOURCE_GAP) {
+      return decoded;
     }
 
-    return packed % ASSIGNMENT_CALL_SOURCE_RADIX;
+    long scaled = packed / ASSIGNMENT_CALL_SOURCE_RADIX;
+    long next = selected + 1;
+    return packedSource(scaled, source, next);
   }
 
   /// Decodes one source from the two bounded packed operands.
@@ -30,16 +35,19 @@ classical class AssignmentCallOperands {
       return -1;
     }
 
-    if (source < arity) {} else {
+    long sourceGap = arity - source;
+    if (sourceGap < ASSIGNMENT_CALL_MINIMUM_SOURCE_GAP) {
       return -1;
     }
 
     long firstSource = 0;
+    long trailingStart = ASSIGNMENT_CALL_TRAILING_SOURCE;
+    long leadingSource = packedSource(operand, source, firstSource);
+    long trailingSource = packedSource(secondaryOperand, source, trailingStart);
     if (source < ASSIGNMENT_CALL_TRAILING_SOURCE) {
-      return packedSource(operand, source, firstSource);
+      return leadingSource;
     }
 
-    long trailingSource = ASSIGNMENT_CALL_TRAILING_SOURCE;
-    return packedSource(secondaryOperand, source, trailingSource);
+    return trailingSource;
   }
 }
