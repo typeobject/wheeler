@@ -148,7 +148,9 @@ class WheelerCompilerTest {
     VmTrap trap = assertThrows(
         VmTrap.class, () -> new VirtualMachine(falseAssertion).run());
     assertEquals(VmTrap.Code.ASSERTION, trap.code());
-    assertEquals("Assertion failed", trap.getMessage());
+    assertEquals(
+        "Assertion failed in rejects at instruction 1 for local 1: expected 1, got 0",
+        trap.getMessage());
   }
 
   @Test

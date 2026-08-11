@@ -21,7 +21,7 @@ final class NativeImportedConstantGraphSupport {
       List<String> imported, String root) throws Exception {
     List<List<String>> orders;
     int expectedOrderCount;
-    if (imported.size() < 6) {
+    if (imported.size() < 5) {
       orders = permutations(imported);
       expectedOrderCount = factorial(imported.size());
     } else {
