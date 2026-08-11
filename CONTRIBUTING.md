@@ -16,6 +16,14 @@ rm -rf docs-site
 ./bootstrap/gradlew -p bootstrap :tools:wheeler --args='site -o docs-site'
 ```
 
+Run the bounded closure evidence task when a patch changes the physical compiler catalog, retained products, relocation, or final linking:
+
+```bash
+./bootstrap/gradlew -p bootstrap :examples:closureEvidenceTest
+```
+
+The ordinary gate gives each JUnit method two minutes. The closure task is explicit because its single end-to-end method may use ten minutes. Both tasks have a hard stop.
+
 ## Patch rules
 
 - State observable semantics before choosing an API or opcode.

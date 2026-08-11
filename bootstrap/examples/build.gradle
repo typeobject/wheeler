@@ -9,9 +9,9 @@ dependencies {
 def repository = rootProject.repositoryRoot
 def conformanceRoot = new File(repository, 'wheeler-conformance')
 def wheelerRoot = new File(repository, 'wheeler-examples')
-tasks.named('test') {
-    workingDir wheelerRoot
-    inputs.files(
+def configureExampleInputs = { Test testTask ->
+    testTask.workingDir wheelerRoot
+    testTask.inputs.files(
         fileTree(new File(wheelerRoot, 'src/main/wheeler')) { include '**/*.w' },
         fileTree(new File(repository, 'wheeler-compiler/src/main/wheeler')) {
             include '**/*.w'
@@ -27,4 +27,21 @@ tasks.named('test') {
         new File(wheelerRoot, 'wheeler.package.yaml'),
         new File(wheelerRoot, 'wheeler.package.lock.yaml'))
         .withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
+tasks.named('test', Test) { testTask ->
+    useJUnitPlatform { excludeTags 'closure-evidence' }
+    configureExampleInputs(testTask)
+}
+
+tasks.register('closureEvidenceTest', Test) { testTask ->
+    description = 'Rebuilds and links every retained physical compiler product.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'closure-evidence' }
+    systemProperty 'junit.jupiter.execution.timeout.default', '10 m'
+    timeout = java.time.Duration.ofMinutes(15)
+    configureExampleInputs(testTask)
+    shouldRunAfter tasks.named('test')
 }
