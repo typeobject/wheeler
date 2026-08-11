@@ -31,6 +31,14 @@ final class NativeCompilerArchiveClosureProgram {
   }
 
   static Program program() throws Exception {
+    return program(/* compilePhysicalProducts= */ true);
+  }
+
+  static Program metadataProgram() throws Exception {
+    return program(/* compilePhysicalProducts= */ false);
+  }
+
+  private static Program program(boolean compilePhysicalProducts) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
@@ -902,7 +910,9 @@ final class NativeCompilerArchiveClosureProgram {
         }
         """
             .replace("PHYSICAL_MODULE_OWNERS", physicalOwnerRows())
-            .replace("PHYSICAL_PRODUCT_COMPILATION", NativeCompilerPhysicalProductSource.compilation())
+            .replace(
+                "PHYSICAL_PRODUCT_COMPILATION",
+                compilePhysicalProducts ? NativeCompilerPhysicalProductSource.compilation() : "")
             .replace("PHYSICAL_PRODUCT_PUBLICATION", NativeCompilerPhysicalProductSource.publication())
             .replace("PHYSICAL_COMPARABLE_COUNT", Integer.toString(PHYSICAL_MODULES.size()))
             .replace(

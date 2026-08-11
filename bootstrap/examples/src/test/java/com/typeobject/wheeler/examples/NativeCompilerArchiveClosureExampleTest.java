@@ -29,9 +29,10 @@ import org.junit.jupiter.api.Test;
 
 /** Native evidence for joining the physical compiler archive and module manifest. */
 final class NativeCompilerArchiveClosureExampleTest {
+  @Tag("closure-evidence")
   @Test
   void joinsEveryPhysicalCompilerModuleToItsDigestCheckedArchiveRange() throws Exception {
-    Program program = NativeCompilerArchiveClosureProgram.program();
+    Program program = NativeCompilerArchiveClosureProgram.metadataProgram();
     byte[] archive = CompilerSources.packageArchive();
     BootstrapModuleManifest manifest = CompilerSources.bootstrapModuleManifest();
     VirtualMachine machine = VirtualMachine.withBinaryInput(
