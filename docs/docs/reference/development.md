@@ -16,7 +16,9 @@ Java compilation enables every `javac` lint warning and treats warnings as error
 
 `treeSitterTest` installs the pinned CLI, regenerates the parser, runs the syntax corpus, and compiles the editor queries.
 
-Ordinary JUnit methods have a preemptive two-minute limit. Each test task has a fifteen-minute hard stop and quits after its first failure. The complete physical compiler product rebuild is integration evidence, not a unit test. Changes to its module catalog, product relay, relocation, or linked container must run it explicitly:
+Ordinary JUnit methods have a preemptive two-minute limit, and each test worker quits after its first failure. Hosted CI sorts the example test classes and assigns each class to exactly one of eight shards. Every shard has a fifteen-minute hard stop. This keeps the complete suite without letting one worker hide its current test for an hour.
+
+The complete physical compiler product rebuild is integration evidence, not a unit test. Changes to its module catalog, product relay, relocation, or linked container must run it explicitly:
 
 ```bash
 ./bootstrap/gradlew -p bootstrap :examples:closureEvidenceTest

@@ -29,8 +29,47 @@ def configureExampleInputs = { Test testTask ->
         .withPathSensitivity(PathSensitivity.RELATIVE)
 }
 
+def shardIndexText = findProperty('exampleTestShard')
+def shardCountText = findProperty('exampleTestShardCount')
+if ((shardIndexText == null) != (shardCountText == null)) {
+    throw new GradleException('exampleTestShard and exampleTestShardCount must be set together')
+}
+
+def selectedExampleTests = []
+def shardIndex = -1
+def shardCount = -1
+if (shardIndexText != null) {
+    shardIndex = Integer.parseInt(shardIndexText.toString())
+    shardCount = Integer.parseInt(shardCountText.toString())
+    if (shardCount < 1 || shardCount > 64 || shardIndex < 0 || shardIndex >= shardCount) {
+        throw new GradleException('invalid example test shard')
+    }
+    def testSourceRoot = file('src/test/java').toPath()
+    def testClasses = fileTree(testSourceRoot) { include '**/*Test.java' }
+        .files
+        .sort { left, right -> left.path <=> right.path }
+        .collect { source ->
+            def relative = testSourceRoot.relativize(source.toPath()).toString()
+                .replace(File.separator, '.')
+            relative.substring(0, relative.length() - '.java'.length())
+        }
+    testClasses.eachWithIndex { className, position ->
+        if (position % shardCount == shardIndex) {
+            selectedExampleTests.add(className)
+        }
+    }
+}
+
 tasks.named('test', Test) { testTask ->
     useJUnitPlatform { excludeTags 'closure-evidence' }
+    if (shardIndexText != null) {
+        filter {
+            selectedExampleTests.each { className -> includeTestsMatching className }
+        }
+        inputs.property('exampleTestShard', shardIndex)
+        inputs.property('exampleTestShardCount', shardCount)
+        timeout = java.time.Duration.ofMinutes(15)
+    }
     configureExampleInputs(testTask)
 }
 

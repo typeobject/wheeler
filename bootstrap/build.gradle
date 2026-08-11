@@ -167,8 +167,6 @@ subprojects {
         // Native differential tests are CPU-heavy, but no single test may run unbounded.
         systemProperty 'junit.jupiter.execution.timeout.default', '2 m'
         systemProperty 'junit.jupiter.execution.timeout.thread.mode.default', 'separate_thread'
-        // A leaked or interruption-blind test thread cannot hold a worker indefinitely.
-        timeout = java.time.Duration.ofMinutes(15)
         // Sixty-four-statement compiler differentials retain bounded rewind histories.
         maxHeapSize = '1024m'
         jvmArgs '-XX:ActiveProcessorCount=2'

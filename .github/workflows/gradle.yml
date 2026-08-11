@@ -43,7 +43,7 @@ jobs:
       run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 :tools:check
 
     - name: Build remaining modules and test the editor grammar
-      run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 build treeSitterTest -x :tools:check
+      run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 build treeSitterTest -x :tools:check -x :examples:check
 
     - name: Build the complete canonical workspace
       run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 -q :tools:wheeler --args='build . -o bootstrap-output'
@@ -58,8 +58,34 @@ jobs:
         path: bootstrap-output
         if-no-files-found: error
 
+  examples:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 26
+      uses: actions/setup-java@v4
+      with:
+        java-version: '26'
+        distribution: temurin
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+    - name: Test one bounded example shard
+      run: >-
+        ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2
+        :examples:test
+        -PexampleTestShard=${{ matrix.shard }}
+        -PexampleTestShardCount=8
+
   compare-bootstrap-outputs:
-    needs: build
+    needs: [build, examples]
     runs-on: ubuntu-latest
     permissions:
       contents: read
