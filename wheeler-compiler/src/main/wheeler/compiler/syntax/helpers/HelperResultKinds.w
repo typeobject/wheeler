@@ -83,8 +83,12 @@ classical class HelperResultKinds {
       return true;
     }
 
+    if (resolvedSignedLocalReturn(opcode)) {
+      return false;
+    }
+
     if (resolvedLocalReturn(opcode)) {
-      return resolvedSignedLocalReturn(opcode) == false;
+      return true;
     }
 
     return opcode == STATEMENT_RETURN_MAP_HAS;
