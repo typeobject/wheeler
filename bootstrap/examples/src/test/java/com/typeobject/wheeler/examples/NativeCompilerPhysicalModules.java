@@ -96,6 +96,7 @@ final class NativeCompilerPhysicalModules {
         physical(26, "compiler/syntax/CallForms.w", "call_forms"),
         physical(133, "compiler/syntax/returns/EarlyComparisonForms.w", "early_comparison_forms"),
         physical(171, "compiler/syntax/helpers/HelperValueKinds.w", "helper_value_kinds"),
+        physical(291, "compiler/syntax/calls/void/VoidCallOperands.w", "void_call_operands"),
         physical(293, "compiler/syntax/calls/void/VoidCallSourceForms.w", "void_call_source_forms"),
         physical(296, "compiler/syntax/calls/VoidCallSourceWidths.w", "void_call_source_widths"),
         physical(298, "compiler/syntax/calls/VoidCallWidths.w", "void_call_widths"));
