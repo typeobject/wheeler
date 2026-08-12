@@ -51,9 +51,9 @@ One loop row contains:
 7. body statement count
 8. nesting depth
 
-One block row contains its parent, first child statement, child count, and source extent. Statement rows retain their existing typed opcode, operand, ownership, call, and aggregate products. A loop does not copy or flatten its body.
+Block indexing first publishes the callable-local owner, parent block, depth, source extent, and local ordinal. Loop resolution joins each accepted block to its first child statement and child count. Statement rows retain their existing typed opcode, operand, ownership, call, and aggregate products. A loop does not copy or flatten its body.
 
-Source extents diagnose malformed nesting. They do not enter final identity. Canonical instructions, limits, types, ownership events, relocation identities, and proof products already bind retained semantics.
+Source extents diagnose malformed nesting, overlapping callable bodies, and detached roots. They do not enter final identity. Canonical instructions, limits, types, ownership events, relocation identities, and proof products already bind retained semantics.
 
 ## Validation order
 
@@ -114,7 +114,7 @@ Scratch rows and source coordinates have no identity. Failure leaves artifact by
 
 ### Block indexing
 
-`SourceStatementProducts.w` will publish balanced callable-local block rows and parent links. Focused fixtures cover empty bodies, adjacent loops, four nested blocks, malformed braces, and atomic failure.
+`SourceStatementProducts.w` publishes balanced callable-local block rows and parent links. Focused fixtures cover an empty body, four nested blocks, a nonzero archive origin, excess depth, stale and overlapping body extents, a detached root block, and atomic failure. Adjacent-loop syntax remains with loop statement indexing.
 
 ### Loop resolution
 
@@ -132,7 +132,7 @@ Adoption starts with `CoreParsing.w`, whose two loops compact and shift token co
 
 - [x] Closed single-update local loops have canonical source identities, resolution, local types, instruction forms, and code generation.
 - [x] Physical closure probes identify multi-statement loop bodies as a repeated source-product boundary.
-- [ ] `SourceStatementProducts.w` publishes balanced nested block products.
+- [x] `SourceStatementProducts.w` publishes source-independent function owners, parent rows, depths, extents, and local ordinals atomically for empty through four-level nested blocks. Excess depth, stale or overlapping callable extents, and detached root blocks preserve caller rows.
 - [ ] Loop products publish exact condition, limit, body, and parent rows.
 - [ ] Local type, ownership, loan, and relocation joins validate loop back edges.
 - [ ] Canonical forward and inverse instruction windows match stage 0.

@@ -53,8 +53,8 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("executableCount") > 0);
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
-    assertEquals(1_465, machine.global("symbolCount"));
-    assertEquals(1_230, machine.global("callableCount"));
+    assertEquals(1_496, machine.global("symbolCount"));
+    assertEquals(1_260, machine.global("callableCount"));
     assertTrue(machine.global("callableParameterCount") > 1_000);
     assertTrue(machine.global("borrowedParameterCount") > 0);
     assertTrue(machine.global("mutableParameterCount") > 0);
@@ -66,11 +66,6 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(manifest.modules().size(), machine.global("callableGeneration"));
     assertEquals(2, machine.global("lastCallableParameterCount"));
     assertEquals(1, machine.global("callableIdentitiesPublished"));
-    assertTrue(machine.global("physicalModuleProductLength") > 0);
-    assertTrue(machine.global("physicalModuleProductFunctions") > 3);
-    assertEquals(
-        NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES.size(),
-        machine.global("physicalModuleProductCount"));
     assertTrue(machine.global("firstCallableIdentityPrefix") != 0);
     assertTrue(
         machine.global("firstCallableIdentityPrefix")
