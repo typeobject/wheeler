@@ -14,6 +14,7 @@ classical class LoopInstructionProducts {
   private const long BODY_OPERAND_KIND_ROW = 12288;
   private const long BODY_OPERAND_ROW = 16384;
   private const long BODY_ROWS = 20480;
+  private const long BODY_STAGING_BYTES = 163840;
   private const long CONDITION_LEFT_KIND_ROW = 256;
   private const long CONDITION_LEFT_OPERAND_ROW = 512;
   private const long CONDITION_RIGHT_KIND_ROW = 768;
@@ -195,6 +196,14 @@ classical class LoopInstructionProducts {
     assert(bufferLength(loopInstructionStarts) == LOOP_COUNT_LIMIT);
     assert(bufferLength(output) == MAX_CODE_BYTES);
 
+    region staging = new region(/* bytes= */ BODY_STAGING_BYTES, /* allocations= */ 1);
+    words stagedBodies = allocate(staging, BODY_ROWS);
+    long bodyRow = 0;
+    while (bodyRow < BODY_ROWS) limit BODY_ROWS {
+      set(stagedBodies, bodyRow, bodyRows[bodyRow]);
+      bodyRow += 1;
+    }
+
     boolean valid = true;
     long requiredLength = 0;
     long instructionCount = 0;
@@ -212,11 +221,11 @@ classical class LoopInstructionProducts {
       long bodyOffset = 0;
       while (bodyOffset < bodyStatementCount) limit 64 {
         long statement = loopRows[LOOP_FIRST_BODY_STATEMENT_ROW + loop] + bodyOffset;
-        long body = bodyAtStatement(statement, bodyCount, bodyRows);
+        long body = bodyAtStatement(statement, bodyCount, stagedBodies);
         if (body < 0) {
           valid = false;
         } else {
-          long opcode = bodyRows[BODY_OPCODE_ROW + body];
+          long opcode = stagedBodies[BODY_OPCODE_ROW + body];
           if (opcode == 769) {
             requiredLength += 48;
             instructionCount += 2;
@@ -248,6 +257,8 @@ classical class LoopInstructionProducts {
     }
 
     if (valid == false) {
+      drop(stagedBodies);
+      drop(staging);
       return new LoopInstructionProductPlan(0, 0, false);
     }
 
@@ -328,17 +339,15 @@ classical class LoopInstructionProducts {
       long bodyInstructions = 0;
       while (emittedBodyOffset < emittedBodyCount) limit 64 {
         long emittedStatement = loopRows[LOOP_FIRST_BODY_STATEMENT_ROW + loop] + emittedBodyOffset;
-        long emittedBody = bodyAtStatement(emittedStatement, bodyCount, bodyRows);
-        long emittedLocal = bodyRows[BODY_LOCAL_BASE_ROW + emittedBody];
-        set(bodyRows, BODY_LOCAL_BASE_ROW + emittedBody, emittedLocal + bodyLocalBias);
-        long emittedOperand = bodyRows[BODY_OPERAND_ROW + emittedBody];
-        if (bodyRows[BODY_OPERAND_KIND_ROW + emittedBody] == OPERAND_LOCAL) {
-          set(bodyRows, BODY_OPERAND_ROW + emittedBody, emittedOperand + bodyLocalBias);
+        long emittedBody = bodyAtStatement(emittedStatement, bodyCount, stagedBodies);
+        long emittedLocal = stagedBodies[BODY_LOCAL_BASE_ROW + emittedBody];
+        set(stagedBodies, BODY_LOCAL_BASE_ROW + emittedBody, emittedLocal + bodyLocalBias);
+        long emittedOperand = stagedBodies[BODY_OPERAND_ROW + emittedBody];
+        if (stagedBodies[BODY_OPERAND_KIND_ROW + emittedBody] == OPERAND_LOCAL) {
+          set(stagedBodies, BODY_OPERAND_ROW + emittedBody, emittedOperand + bodyLocalBias);
         }
 
-        long next = writeBodyStatement(output, cursor, emittedBody, bodyRows);
-        set(bodyRows, BODY_LOCAL_BASE_ROW + emittedBody, emittedLocal);
-        set(bodyRows, BODY_OPERAND_ROW + emittedBody, emittedOperand);
+        long next = writeBodyStatement(output, cursor, emittedBody, stagedBodies);
         if (next < 0) {
           valid = false;
         } else {
@@ -360,6 +369,8 @@ classical class LoopInstructionProducts {
       loop += 1;
     }
 
+    drop(stagedBodies);
+    drop(staging);
     if (valid == false) {
       return new LoopInstructionProductPlan(0, 0, false);
     }
