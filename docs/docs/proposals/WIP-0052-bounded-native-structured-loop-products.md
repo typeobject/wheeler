@@ -122,7 +122,9 @@ Scratch rows and source coordinates have no identity. Failure leaves artifact by
 
 ### Loop resolution
 
-`ResolvedLoopProducts.w` consumes structural conditions, callable values, and counted module symbols. It resolves signed literal or uniquely named prior-local operands, then binds each limit to a positive literal or one unique resolved signed constant owned by the current module. Archive-relative symbol names are rebased before comparison. Missing, ambiguous, unresolved, Boolean, zero, negative, or excessive named bounds fail before publication. The resolver preserves parent and body windows and publishes source-independent condition and loop rows atomically. Local-flow and ownership joins remain.
+`ResolvedLoopProducts.w` consumes structural conditions, callable values, and counted module symbols. It resolves signed literal or uniquely named prior-local operands, then binds each limit to a positive literal or one unique resolved signed constant owned by the current module. Archive-relative symbol names are rebased before comparison. Missing, ambiguous, unresolved, Boolean, zero, negative, or excessive named bounds fail before publication. The resolver preserves parent and body windows and publishes source-independent condition and loop rows atomically.
+
+`ResolvedLoopBodyProducts.w` resolves direct signed declarations and checked local updates from the block-grouped statement window. Named operands bind one visible callable value. It records exact local bases, closed opcodes, operand forms, and operand values in one transaction. Unsupported statements and ambiguous names publish nothing. Calls, ownership, nested blocks, and back-edge joins remain separate.
 
 ### Canonical emission
 
@@ -140,7 +142,8 @@ Adoption starts with `CoreParsing.w`, whose two loops compact and shift token co
 - [x] `SourceLoopProducts.w` publishes exact structural statement, signed condition range, literal or named limit range, body window, parent, and depth rows. Empty, adjacent, and sixty-four-statement bodies pass. Invalid literal bounds and forged block graphs publish nothing.
 - [x] `ResolvedLoopProducts.w` joins signed literal and unique prior-local condition operands to exact local rows and rejects use before definition, ambiguity, wrong type spelling, invalid reversals, and forged windows without publication.
 - [x] Resolved loop products join named compile-time limits from counted module symbols. Literal and named bounds publish the same source-independent value. Malformed symbol products publish nothing.
-- [ ] Resolved loop products join body-local flow, calls, ownership state, and back edges.
+- [x] `ResolvedLoopBodyProducts.w` publishes direct signed declaration and checked local-update flow with exact local bases. Named sources require one visible prior value. Unsupported or ambiguous body rows publish nothing.
+- [ ] Resolved loop products join calls, ownership state, nested blocks, and back edges.
 - [ ] Local type, ownership, loan, and relocation joins validate loop back edges.
 - [ ] Canonical forward and inverse instruction windows match stage 0.
 - [ ] `CoreParsing.w` compiles byte for byte from its immutable archive range.
