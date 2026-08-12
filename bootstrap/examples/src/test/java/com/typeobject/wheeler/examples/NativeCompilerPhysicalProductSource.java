@@ -6,7 +6,7 @@ final class NativeCompilerPhysicalProductSource {
 
   static String compilation() {
     return """
-        if (closure.moduleCount == 304) {
+        if (closure.moduleCount == PHYSICAL_CLOSURE_MODULE_COUNT) {
           long physicalProduct = 0;
           while (physicalProduct < PHYSICAL_MODULE_COUNT) limit 128 {
             long physicalOwner = physicalOwners[physicalProduct];

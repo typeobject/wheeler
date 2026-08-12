@@ -915,6 +915,8 @@ final class NativeCompilerArchiveClosureProgram {
                 compilePhysicalProducts ? NativeCompilerPhysicalProductSource.compilation() : "")
             .replace("PHYSICAL_PRODUCT_PUBLICATION", NativeCompilerPhysicalProductSource.publication())
             .replace("PHYSICAL_COMPARABLE_COUNT", Integer.toString(PHYSICAL_MODULES.size()))
+            .replace("PHYSICAL_CLOSURE_MODULE_COUNT", Integer.toString(
+                CompilerSources.bootstrapModuleManifest().modules().size()))
             .replace(
                 "PHYSICAL_MODULE_COUNT",
                 Integer.toString(PHYSICAL_MODULES.size() + PHYSICAL_CALLABLE_MODULES.size())));
