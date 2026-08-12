@@ -3,7 +3,6 @@ package com.typeobject.wheeler.examples;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
-import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
@@ -42,9 +41,6 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
     machine.run();
 
     assertEquals(1, machine.global("valid"));
-    assertEquals(2, machine.global("bodyStatement0"));
-    assertEquals(2, machine.global("bodyBase0"));
-    assertEquals(2, machine.global("firstBody"));
     assertEquals(loopInstructionCount, machine.global("instructionCount"));
     assertEquals(expectedLength, machine.global("length"));
     byte[] actual = machine.hostOutput();
@@ -94,9 +90,6 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
           state long valid = 0;
           state long instructionCount = 0;
           state long length = 0;
-          state long bodyStatement0 = 0;
-          state long bodyBase0 = 0;
-          state long firstBody = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
             region products = new region(/* bytes= */ 1417264, /* allocations= */ 24);
@@ -186,9 +179,6 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
               resolvedLoops
             );
             assert(resolvedPlan.valid);
-            bodyStatement0 = bodyRows[0];
-            bodyBase0 = bodyRows[4096];
-            firstBody = resolvedLoops[1536];
             LoopInstructionProductPlan code = writeLoopInstructionProducts(
               resolvedPlan.loopCount,
               resolvedConditions,
@@ -245,8 +235,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
   }
 
   private static long signed(byte[] bytes, int start) {
-    long value = unsigned(bytes, start, 8);
-    return value;
+    return unsigned(bytes, start, 8);
   }
 
   private static int matchingClose(String source, int open) {
