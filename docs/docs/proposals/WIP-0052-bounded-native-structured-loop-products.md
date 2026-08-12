@@ -128,7 +128,7 @@ Scratch rows and source coordinates have no identity. Failure leaves artifact by
 
 ### Canonical emission
 
-`LoopCodegen.w` will consume resolved loop products rather than a fixed one-update source form. `InstructionForms.w` remains the operand-count owner. Branch target computation uses named instruction extents and checked addition.
+`LoopInstructionProducts.w` consumes resolved loop and direct-body products. It emits canonical limit, iteration, comparison, branch, body, and back-edge instructions after a complete extent pass. Body-local and named-operand coordinates rebase into the loop frame without changing product rows. `InstructionForms.w` remains the operand-count owner. Forward branch targets match stage 0 byte for byte for the admitted declaration-and-update body profile. `LoopCodegen.w` still owns the older fixed one-update parser path.
 
 ### Physical closure adoption
 
@@ -145,7 +145,8 @@ Adoption starts with `CoreParsing.w`, whose two loops compact and shift token co
 - [x] `ResolvedLoopBodyProducts.w` publishes direct signed declaration and checked local-update flow with exact local bases. Named sources require one visible prior value. Unsupported or ambiguous body rows publish nothing.
 - [ ] Resolved loop products join calls, ownership state, nested blocks, and back edges.
 - [ ] Local type, ownership, loan, and relocation joins validate loop back edges.
-- [ ] Canonical forward and inverse instruction windows match stage 0.
+- [x] `LoopInstructionProducts.w` emits canonical forward instruction windows and exact branch targets for direct signed declarations and checked local updates. The admitted fixture matches stage 0 byte for byte.
+- [ ] Canonical call, ownership, nested-block, and inverse instruction windows match stage 0.
 - [ ] `CoreParsing.w` compiles byte for byte from its immutable archive range.
 - [ ] Every physical multi-statement loop module compiles without dependency source.
 

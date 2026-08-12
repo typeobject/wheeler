@@ -237,6 +237,21 @@ classical class ResolvedLoopBodyProducts {
             }
 
             if (statementValid) {
+              ResolvedValue declaration = resolveValue(
+                source,
+                tokenStarts[token + 1],
+                tokenLengths[token + 1],
+                owner,
+                ordinal + 1,
+                valueCount,
+                valueRows
+              );
+              if (declaration.valid) {
+                localBase = declaration.local - 1;
+              } else {
+                statementValid = false;
+              }
+
               long sourceToken = token + 3;
               if (tokenKinds[sourceToken] == 1) {
                 ResolvedValue sourceValue = resolveValue(
