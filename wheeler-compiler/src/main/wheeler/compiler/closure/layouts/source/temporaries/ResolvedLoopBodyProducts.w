@@ -299,7 +299,9 @@ classical class ResolvedLoopBodyProducts {
               operation = STATEMENT_LOCAL_UPDATE_SUB_LITERAL_BASE;
             }
 
-            if (punctuationAt(source, tokenKinds, tokenStarts, token + 1, 94)) {
+            if (
+              punctuationAt(source, tokenKinds, tokenStarts, token + 1, PUNCTUATION_CARET)
+            ) {
               operation = STATEMENT_LOCAL_UPDATE_XOR_LITERAL_BASE;
             }
 
