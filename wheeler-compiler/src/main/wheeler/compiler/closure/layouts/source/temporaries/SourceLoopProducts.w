@@ -38,7 +38,7 @@ classical class SourceLoopProducts {
   private const long MAX_LOOP_LIMIT = 16777216;
   private const long MAX_STATEMENTS = 4096;
   private const long MAX_STATEMENTS_PER_BLOCK = 64;
-  private const long SOURCE_LOOP_ARENA_BYTES = 857600;
+  private const long SOURCE_LOOP_ARENA_BYTES = 472064;
   private const long STATEMENT_ROWS = 28672;
   private const long STATEMENT_BLOCK_ROW = 4096;
   private const long STATEMENT_ORDINAL_ROW = 8192;
