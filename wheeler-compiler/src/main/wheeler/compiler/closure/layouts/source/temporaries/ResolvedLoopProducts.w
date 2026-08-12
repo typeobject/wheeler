@@ -18,12 +18,14 @@ classical class ResolvedLoopProducts {
   private const long DOCUMENTATION_TOKEN_KIND = 5;
   private const long LINE_COMMENT_TOKEN_KIND = 4;
   private const long LOOP_COUNT_LIMIT = 256;
-  private const long LOOP_ROWS = 2048;
+  private const long LOOP_ROWS = 2304;
   private const long LOOP_CONDITION_ROW = 768;
-  private const long LOOP_LIMIT_ROW = 1024;
-  private const long LOOP_FIRST_BODY_STATEMENT_ROW = 1280;
-  private const long LOOP_BODY_STATEMENT_COUNT_ROW = 1536;
-  private const long LOOP_DEPTH_ROW = 1792;
+  private const long LOOP_LIMIT_START_ROW = 1024;
+  private const long LOOP_LIMIT_LENGTH_ROW = 1280;
+  private const long LOOP_RESOLVED_LIMIT_ROW = 1024;
+  private const long LOOP_FIRST_BODY_STATEMENT_ROW = 1536;
+  private const long LOOP_BODY_STATEMENT_COUNT_ROW = 1792;
+  private const long LOOP_DEPTH_ROW = 2048;
   private const long LOOP_PARENT_BLOCK_ROW = 256;
   private const long LOOP_STATEMENT_ORDINAL_ROW = 512;
   private const long OPERAND_LITERAL = 0;
@@ -34,6 +36,7 @@ classical class ResolvedLoopProducts {
   private const long SOURCE_CONDITION_RIGHT_START_ROW = 768;
   private const long SOURCE_CONDITION_RIGHT_LENGTH_ROW = 1024;
   private const long VALUE_COUNT_LIMIT = 1024;
+  private const long SYMBOL_COUNT_LIMIT = 16384;
   private const long VALUE_DEFINITION_ORDINAL_ROW = 4096;
   private const long VALUE_LOCAL_ROW = 3072;
   private const long VALUE_NAME_LENGTH_ROW = 2048;
@@ -44,6 +47,8 @@ classical class ResolvedLoopProducts {
   public record ResolvedLoopProductPlan(long conditionCount, long loopCount, boolean valid) {}
 
   private record ResolvedOperand(long kind, long operand, boolean valid) {}
+
+  private record ResolvedLimit(long value, boolean valid) {}
 
   private boolean sameRange(
     borrow utf8 source,
@@ -97,6 +102,86 @@ classical class ResolvedLoopProducts {
     }
 
     return selected;
+  }
+
+  private ResolvedLimit resolveLimit(
+    borrow utf8 source,
+    long start,
+    long length,
+    long archiveSourceStart,
+    long moduleOwner,
+    long tokenCount,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long symbolCount,
+    borrow mut words symbolOwners,
+    borrow mut words symbolStarts,
+    borrow mut words symbolLengths,
+    borrow mut words symbolTypes,
+    borrow mut words symbolValues,
+    borrow mut words symbolResolved
+  ) {
+    long token = tokenAtRange(start, length, tokenCount, tokenStarts, tokenLengths);
+    if (token < 0) {
+      return new ResolvedLimit(0, false);
+    }
+
+    if (tokenKinds[token] != 1) {
+      if (signedNumberWidth(source, tokenKinds, tokenStarts, token) != 1) {
+        return new ResolvedLimit(0, false);
+      }
+
+      if (signedNumberValid(source, tokenStarts, tokenLengths, token) == false) {
+        return new ResolvedLimit(0, false);
+      }
+
+      long literal = parsedSignedNumber(source, tokenStarts, tokenLengths, token);
+      if (literal < 1) {
+        return new ResolvedLimit(0, false);
+      }
+
+      if (16777216 < literal) {
+        return new ResolvedLimit(0, false);
+      }
+
+      return new ResolvedLimit(literal, true);
+    }
+
+    long selected = -1;
+    long matches = 0;
+    long symbol = 0;
+    while (symbol < symbolCount) limit SYMBOL_COUNT_LIMIT {
+      if (symbolOwners[symbol] == moduleOwner) {
+        if (symbolTypes[symbol] == TYPE_SIGNED) {
+          if (symbolResolved[symbol] == 1) {
+            long symbolStart = symbolStarts[symbol] - archiveSourceStart;
+            if (
+              sameRange(source, start, length, symbolStart, symbolLengths[symbol])
+            ) {
+              selected = symbolValues[symbol];
+              matches += 1;
+            }
+          }
+        }
+      }
+
+      symbol += 1;
+    }
+
+    if (matches != 1) {
+      return new ResolvedLimit(0, false);
+    }
+
+    if (selected < 1) {
+      return new ResolvedLimit(0, false);
+    }
+
+    if (16777216 < selected) {
+      return new ResolvedLimit(0, false);
+    }
+
+    return new ResolvedLimit(selected, true);
   }
 
   private boolean signedValue(
@@ -214,14 +299,26 @@ classical class ResolvedLoopProducts {
   /// Resolves signed loop operands and republishes source-independent loop rows atomically.
   public ResolvedLoopProductPlan materializeResolvedLoopProducts(
     borrow utf8 source,
+    long archiveSourceStart,
+    long moduleOwner,
     long loopCount,
     borrow mut words sourceConditionRows,
     borrow mut words sourceLoopRows,
     long valueCount,
     borrow mut words valueRows,
+    long symbolCount,
+    borrow mut words symbolOwners,
+    borrow mut words symbolStarts,
+    borrow mut words symbolLengths,
+    borrow mut words symbolTypes,
+    borrow mut words symbolValues,
+    borrow mut words symbolResolved,
     borrow mut words resolvedConditionRows,
     borrow mut words resolvedLoopRows
   ) {
+    assert(-1 < archiveSourceStart);
+    assert(-1 < moduleOwner);
+    assert(moduleOwner < 512);
     assert(-1 < loopCount);
     assert(loopCount < LOOP_COUNT_LIMIT + 1);
     assert(bufferLength(sourceConditionRows) == CONDITION_ROWS);
@@ -229,6 +326,14 @@ classical class ResolvedLoopProducts {
     assert(-1 < valueCount);
     assert(valueCount < VALUE_COUNT_LIMIT + 1);
     assert(bufferLength(valueRows) == VALUE_ROWS);
+    assert(-1 < symbolCount);
+    assert(symbolCount < SYMBOL_COUNT_LIMIT + 1);
+    assert(bufferLength(symbolOwners) == SYMBOL_COUNT_LIMIT);
+    assert(bufferLength(symbolStarts) == SYMBOL_COUNT_LIMIT);
+    assert(bufferLength(symbolLengths) == SYMBOL_COUNT_LIMIT);
+    assert(bufferLength(symbolTypes) == SYMBOL_COUNT_LIMIT);
+    assert(bufferLength(symbolValues) == SYMBOL_COUNT_LIMIT);
+    assert(bufferLength(symbolResolved) == SYMBOL_COUNT_LIMIT);
     assert(bufferLength(resolvedConditionRows) == CONDITION_ROWS);
     assert(bufferLength(resolvedLoopRows) == LOOP_ROWS);
 
@@ -274,7 +379,8 @@ classical class ResolvedLoopProducts {
       long parentBlock = sourceLoopRows[LOOP_PARENT_BLOCK_ROW + loop];
       long statementOrdinal = sourceLoopRows[LOOP_STATEMENT_ORDINAL_ROW + loop];
       long condition = sourceLoopRows[LOOP_CONDITION_ROW + loop];
-      long limit = sourceLoopRows[LOOP_LIMIT_ROW + loop];
+      long limitStart = sourceLoopRows[LOOP_LIMIT_START_ROW + loop];
+      long limitLength = sourceLoopRows[LOOP_LIMIT_LENGTH_ROW + loop];
       long firstBodyStatement = sourceLoopRows[LOOP_FIRST_BODY_STATEMENT_ROW + loop];
       long bodyStatementCount = sourceLoopRows[LOOP_BODY_STATEMENT_COUNT_ROW + loop];
       long depth = sourceLoopRows[LOOP_DEPTH_ROW + loop];
@@ -313,7 +419,11 @@ classical class ResolvedLoopProducts {
         }
       }
 
-      if (limit < 1) {
+      if (limitStart < 0) {
+        loopValid = false;
+      }
+
+      if (limitLength < 1) {
         loopValid = false;
       }
 
@@ -351,8 +461,33 @@ classical class ResolvedLoopProducts {
         }
       }
 
+      ResolvedLimit limit = new ResolvedLimit(0, false);
       ResolvedOperand left = new ResolvedOperand(0, 0, false);
       ResolvedOperand right = new ResolvedOperand(0, 0, false);
+      if (loopValid) {
+        limit = resolveLimit(
+          source,
+          limitStart,
+          limitLength,
+          archiveSourceStart,
+          moduleOwner,
+          semanticCount,
+          tokenKinds,
+          tokenStarts,
+          tokenLengths,
+          symbolCount,
+          symbolOwners,
+          symbolStarts,
+          symbolLengths,
+          symbolTypes,
+          symbolValues,
+          symbolResolved
+        );
+        if (limit.valid == false) {
+          loopValid = false;
+        }
+      }
+
       if (loopValid) {
         left = resolveOperand(
           source,
@@ -414,7 +549,7 @@ classical class ResolvedLoopProducts {
         set(stagedLoops, LOOP_PARENT_BLOCK_ROW + loop, parentBlock);
         set(stagedLoops, LOOP_STATEMENT_ORDINAL_ROW + loop, statementOrdinal);
         set(stagedLoops, LOOP_CONDITION_ROW + loop, condition);
-        set(stagedLoops, LOOP_LIMIT_ROW + loop, limit);
+        set(stagedLoops, LOOP_RESOLVED_LIMIT_ROW + loop, limit.value);
         set(stagedLoops, LOOP_FIRST_BODY_STATEMENT_ROW + loop, firstBodyStatement);
         set(stagedLoops, LOOP_BODY_STATEMENT_COUNT_ROW + loop, bodyStatementCount);
         set(stagedLoops, LOOP_DEPTH_ROW + loop, depth);

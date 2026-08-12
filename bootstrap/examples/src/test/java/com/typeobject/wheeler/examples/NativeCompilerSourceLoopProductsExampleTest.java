@@ -52,13 +52,13 @@ final class NativeCompilerSourceLoopProductsExampleTest {
     assertEquals(0, machine.global("firstLoopParent"));
     assertEquals(1, machine.global("firstLoopOrdinal"));
     assertEquals(0, machine.global("firstLoopCondition"));
-    assertEquals(2, machine.global("firstLoopLimit"));
+    assertEquals(SOURCE.indexOf("2 {"), machine.global("firstLoopLimit"));
     assertEquals(4, machine.global("firstLoopBodyStart"));
     assertEquals(3, machine.global("firstLoopBodyCount"));
     assertEquals(1, machine.global("firstLoopDepth"));
     assertEquals(0, machine.global("secondLoopParent"));
     assertEquals(6, machine.global("secondLoopOrdinal"));
-    assertEquals(3, machine.global("secondLoopLimit"));
+    assertEquals(SOURCE.indexOf("3 {"), machine.global("secondLoopLimit"));
     assertEquals(8, machine.global("secondLoopBodyStart"));
     assertEquals(1, machine.global("secondLoopBodyCount"));
     assertEquals(0, machine.global("firstConditionReversed"));
@@ -224,13 +224,13 @@ final class NativeCompilerSourceLoopProductsExampleTest {
           state long firstBodyOrdinal = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 372736, /* allocations= */ 6);
+            region products = new region(/* bytes= */ 374784, /* allocations= */ 6);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
             words statements = allocate(products, /* length= */ 28672);
             words conditions = allocate(products, /* length= */ 1536);
-            words loops = allocate(products, /* length= */ 2048);
+            words loops = allocate(products, /* length= */ 2304);
             set(bodyStarts, 0, %d);
             set(bodyLengths, 0, %d);
             set(bodyStarts, 1, %d);
@@ -271,14 +271,14 @@ final class NativeCompilerSourceLoopProductsExampleTest {
             firstLoopOrdinal = loops[512];
             firstLoopCondition = loops[768];
             firstLoopLimit = loops[1024];
-            firstLoopBodyStart = loops[1280];
-            firstLoopBodyCount = loops[1536];
-            firstLoopDepth = loops[1792];
+            firstLoopBodyStart = loops[1536];
+            firstLoopBodyCount = loops[1792];
+            firstLoopDepth = loops[2048];
             secondLoopParent = loops[257];
             secondLoopOrdinal = loops[513];
             secondLoopLimit = loops[1025];
-            secondLoopBodyStart = loops[1281];
-            secondLoopBodyCount = loops[1537];
+            secondLoopBodyStart = loops[1537];
+            secondLoopBodyCount = loops[1793];
             firstConditionReversed = conditions[1280];
             secondConditionReversed = conditions[1281];
             firstConditionLeftStart = conditions[256];

@@ -10,16 +10,18 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/** Native evidence for source-independent resolved loop operands. */
+/** Native evidence for source-independent resolved loop operands and limits. */
 final class NativeCompilerResolvedLoopProductsExampleTest {
   private static final String SOURCE = """
       classical class Example {
+        private const long SECOND_LIMIT = 3;
+
         private void nested(long start) {
           long cursor = start;
           while (cursor < 2) limit 2 {
             cursor += 1;
           }
-          while (0 < cursor) limit 3 {
+          while (0 < cursor) limit SECOND_LIMIT {
             cursor -= 1;
           }
         }
@@ -27,9 +29,9 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
       """.strip();
 
   @Test
-  void resolvesParameterLocalLiteralAndReversedConditions() throws Exception {
+  void resolvesParameterLocalLiteralReversedConditionsAndNamedLimits() throws Exception {
     VirtualMachine machine = new VirtualMachine(
-        program(SOURCE, /* mutateValues= */ false),
+        program(SOURCE, Mutation.NONE),
         SOURCE.getBytes(StandardCharsets.UTF_8),
         1);
 
@@ -55,32 +57,50 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
 
   @Test
   void rejectsAUseBeforeDefinitionAndLeavesCallerRowsUntouched() throws Exception {
-    String invalid = SOURCE.replace(
-        "long cursor = start;\n    while",
-        "while");
+    String invalid = SOURCE.replace("long cursor = start;\n    while", "while");
     VirtualMachine machine = new VirtualMachine(
-        program(invalid, /* mutateValues= */ false),
+        program(invalid, Mutation.NONE),
         invalid.getBytes(StandardCharsets.UTF_8),
         1);
 
     machine.run();
 
-    assertEquals(0, machine.global("valid"));
-    assertEquals(0, machine.global("conditionCount"));
-    assertEquals(0, machine.global("loopCount"));
-    assertEquals(91, machine.global("firstLeftOperand"));
-    assertEquals(92, machine.global("firstLimit"));
+    assertUnpublished(machine);
   }
 
   @Test
   void rejectsAnAmbiguousValueProductWithoutPublishingRows() throws Exception {
     VirtualMachine machine = new VirtualMachine(
-        program(SOURCE, /* mutateValues= */ true),
+        program(SOURCE, Mutation.DUPLICATE_VALUE),
         SOURCE.getBytes(StandardCharsets.UTF_8),
         1);
 
     machine.run();
 
+    assertUnpublished(machine);
+  }
+
+  @Test
+  void rejectsInvalidNamedLimitProductsWithoutPublishingRows() throws Exception {
+    for (Mutation mutation : new Mutation[] {
+        Mutation.MISSING_LIMIT,
+        Mutation.WRONG_LIMIT_TYPE,
+        Mutation.DUPLICATE_LIMIT,
+        Mutation.UNRESOLVED_LIMIT,
+        Mutation.EXCESSIVE_LIMIT
+    }) {
+      VirtualMachine machine = new VirtualMachine(
+          program(SOURCE, mutation),
+          SOURCE.getBytes(StandardCharsets.UTF_8),
+          1);
+
+      machine.run();
+
+      assertUnpublished(machine);
+    }
+  }
+
+  private static void assertUnpublished(VirtualMachine machine) {
     assertEquals(0, machine.global("valid"));
     assertEquals(0, machine.global("conditionCount"));
     assertEquals(0, machine.global("loopCount"));
@@ -88,9 +108,23 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
     assertEquals(92, machine.global("firstLimit"));
   }
 
-  private static Program program(String source, boolean mutateValues) throws Exception {
+  private static Program program(String source, Mutation mutation) throws Exception {
     int bodyStart = source.indexOf("{", source.indexOf("nested("));
     int bodyEnd = matchingClose(source, bodyStart) + 1;
+    int limitNameStart = source.indexOf("SECOND_LIMIT");
+    int symbolType = mutation == Mutation.WRONG_LIMIT_TYPE ? 2 : 1;
+    int symbolValue = mutation == Mutation.EXCESSIVE_LIMIT ? 16_777_217 : 3;
+    int symbolResolved = mutation == Mutation.UNRESOLVED_LIMIT ? 0 : 1;
+    int symbolCount = mutation == Mutation.MISSING_LIMIT
+        ? 0
+        : mutation == Mutation.DUPLICATE_LIMIT ? 2 : 1;
+    String valueMutation = mutation == Mutation.DUPLICATE_VALUE
+        ? "set(values, 1024, values[1025]);\n"
+            + "set(values, 2048, values[2049]);\n"
+            + "set(values, 3072, values[3073]);\n"
+            + "set(values, 4096, values[4097]);"
+        : "";
+
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.resolved_loop_products"));
@@ -124,22 +158,40 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
           state long secondBodyCount = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 655872, /* allocations= */ 11);
+            region products = new region(/* bytes= */ 1446400, /* allocations= */ 17);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
             words sourceStatements = allocate(products, /* length= */ 24576);
             words sourceConditions = allocate(products, /* length= */ 1536);
-            words sourceLoops = allocate(products, /* length= */ 2048);
+            words sourceLoops = allocate(products, /* length= */ 2304);
             words values = allocate(products, /* length= */ 7168);
             words localCounts = allocate(products, /* length= */ 64);
             words structuralStatements = allocate(products, /* length= */ 28672);
             words resolvedConditions = allocate(products, /* length= */ 1536);
-            words resolvedLoops = allocate(products, /* length= */ 2048);
+            words resolvedLoops = allocate(products, /* length= */ 2304);
+            words symbolOwners = allocate(products, /* length= */ 16384);
+            words symbolStarts = allocate(products, /* length= */ 16384);
+            words symbolLengths = allocate(products, /* length= */ 16384);
+            words symbolTypes = allocate(products, /* length= */ 16384);
+            words symbolValues = allocate(products, /* length= */ 16384);
+            words symbolResolved = allocate(products, /* length= */ 16384);
             set(bodyStarts, 0, %d);
             set(bodyLengths, 0, %d);
             set(resolvedConditions, 512, 91);
             set(resolvedLoops, 1024, 92);
+            set(symbolOwners, 0, 0);
+            set(symbolStarts, 0, %d);
+            set(symbolLengths, 0, 12);
+            set(symbolTypes, 0, %d);
+            set(symbolValues, 0, %d);
+            set(symbolResolved, 0, %d);
+            set(symbolOwners, 1, 0);
+            set(symbolStarts, 1, %d);
+            set(symbolLengths, 1, 12);
+            set(symbolTypes, 1, 1);
+            set(symbolValues, 1, 3);
+            set(symbolResolved, 1, 1);
             SourceBlockProductPlan blockPlan = materializeSourceBlockProducts(
               input,
               /* archiveSourceStart= */ 0,
@@ -184,11 +236,20 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
             assert(loopPlan.valid);
             ResolvedLoopProductPlan resolvedPlan = materializeResolvedLoopProducts(
               input,
+              /* archiveSourceStart= */ 0,
+              /* moduleOwner= */ 0,
               loopPlan.loopCount,
               sourceConditions,
               sourceLoops,
               valuePlan.valueCount,
               values,
+              /* symbolCount= */ %d,
+              symbolOwners,
+              symbolStarts,
+              symbolLengths,
+              symbolTypes,
+              symbolValues,
+              symbolResolved,
               resolvedConditions,
               resolvedLoops
             );
@@ -208,9 +269,15 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
             secondRightOperand = resolvedConditions[1025];
             firstLimit = resolvedLoops[1024];
             secondLimit = resolvedLoops[1025];
-            firstBodyCount = resolvedLoops[1536];
-            secondBodyCount = resolvedLoops[1537];
+            firstBodyCount = resolvedLoops[1792];
+            secondBodyCount = resolvedLoops[1793];
             setOutputLength(output, 0);
+            drop(symbolResolved);
+            drop(symbolValues);
+            drop(symbolTypes);
+            drop(symbolLengths);
+            drop(symbolStarts);
+            drop(symbolOwners);
             drop(resolvedLoops);
             drop(resolvedConditions);
             drop(structuralStatements);
@@ -228,14 +295,25 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
         """.formatted(
             bodyStart,
             bodyEnd - bodyStart,
-            mutateValues
-                ? "set(values, 1024, values[1025]);\n"
-                    + "set(values, 2048, values[2049]);\n"
-                    + "set(values, 3072, values[3073]);\n"
-                    + "set(values, 4096, values[4097]);"
-                : ""));
+            limitNameStart,
+            symbolType,
+            symbolValue,
+            symbolResolved,
+            limitNameStart,
+            valueMutation,
+            symbolCount));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.resolved_loop_products");
+  }
+
+  private enum Mutation {
+    NONE,
+    DUPLICATE_VALUE,
+    MISSING_LIMIT,
+    WRONG_LIMIT_TYPE,
+    DUPLICATE_LIMIT,
+    UNRESOLVED_LIMIT,
+    EXCESSIVE_LIMIT
   }
 
   private static int matchingClose(String source, int open) {

@@ -27,18 +27,19 @@ classical class SourceLoopProducts {
   private const long DOCUMENTATION_TOKEN_KIND = 5;
   private const long LINE_COMMENT_TOKEN_KIND = 4;
   private const long LOOP_COUNT_LIMIT = 256;
-  private const long LOOP_ROWS = 2048;
+  private const long LOOP_ROWS = 2304;
   private const long LOOP_PARENT_BLOCK_ROW = 256;
   private const long LOOP_STATEMENT_ORDINAL_ROW = 512;
   private const long LOOP_CONDITION_ROW = 768;
-  private const long LOOP_LIMIT_ROW = 1024;
-  private const long LOOP_FIRST_BODY_STATEMENT_ROW = 1280;
-  private const long LOOP_BODY_STATEMENT_COUNT_ROW = 1536;
-  private const long LOOP_DEPTH_ROW = 1792;
+  private const long LOOP_LIMIT_START_ROW = 1024;
+  private const long LOOP_LIMIT_LENGTH_ROW = 1280;
+  private const long LOOP_FIRST_BODY_STATEMENT_ROW = 1536;
+  private const long LOOP_BODY_STATEMENT_COUNT_ROW = 1792;
+  private const long LOOP_DEPTH_ROW = 2048;
   private const long MAX_LOOP_LIMIT = 16777216;
   private const long MAX_STATEMENTS = 4096;
   private const long MAX_STATEMENTS_PER_BLOCK = 64;
-  private const long SOURCE_LOOP_ARENA_BYTES = 472064;
+  private const long SOURCE_LOOP_ARENA_BYTES = 474112;
   private const long STATEMENT_ROWS = 28672;
   private const long STATEMENT_BLOCK_ROW = 4096;
   private const long STATEMENT_ORDINAL_ROW = 8192;
@@ -109,13 +110,14 @@ classical class SourceLoopProducts {
     long leftWidth,
     long rightToken,
     long rightWidth,
-    long limit,
+    long limitToken,
+    long limitWidth,
     long reversed,
     boolean valid
   ) {}
 
   private SourceLoopHeader invalidSourceLoopHeader() {
-    return new SourceLoopHeader(0, 0, 0, 0, 0, 0, false);
+    return new SourceLoopHeader(0, 0, 0, 0, 0, 0, 0, false);
   }
 
   private SourceLoopHeader parseSourceLoopHeader(
@@ -179,25 +181,24 @@ classical class SourceLoopProducts {
     }
 
     long limitToken = closeCondition + 2;
-    if (limitToken + 1 != bodyOpenToken) {
+    long limitWidth = operandWidth(source, tokenKinds, tokenStarts, tokenLengths, limitToken);
+    if (limitWidth < 1) {
       return invalidSourceLoopHeader();
     }
 
-    if (signedNumberWidth(source, tokenKinds, tokenStarts, limitToken) != 1) {
+    if (limitToken + limitWidth != bodyOpenToken) {
       return invalidSourceLoopHeader();
     }
 
-    if (signedNumberValid(source, tokenStarts, tokenLengths, limitToken) == false) {
-      return invalidSourceLoopHeader();
-    }
+    if (tokenKinds[limitToken] != 1) {
+      long limit = parsedSignedNumber(source, tokenStarts, tokenLengths, limitToken);
+      if (limit < 1) {
+        return invalidSourceLoopHeader();
+      }
 
-    long limit = parsedSignedNumber(source, tokenStarts, tokenLengths, limitToken);
-    if (limit < 1) {
-      return invalidSourceLoopHeader();
-    }
-
-    if (MAX_LOOP_LIMIT < limit) {
-      return invalidSourceLoopHeader();
+      if (MAX_LOOP_LIMIT < limit) {
+        return invalidSourceLoopHeader();
+      }
     }
 
     boolean leftNamed = tokenKinds[leftToken] == 1;
@@ -221,7 +222,8 @@ classical class SourceLoopProducts {
       leftWidth,
       rightToken,
       rightWidth,
-      limit,
+      limitToken,
+      limitWidth,
       reversed,
       true
     );
@@ -621,7 +623,11 @@ classical class SourceLoopProducts {
             stagedStatements[STATEMENT_ORDINAL_ROW + statement]
           );
           set(stagedLoops, LOOP_CONDITION_ROW + loopCount, conditionCount);
-          set(stagedLoops, LOOP_LIMIT_ROW + loopCount, header.limit);
+          long limitStart = tokenStarts[header.limitToken];
+          long limitEndToken = header.limitToken + header.limitWidth - 1;
+          long limitEnd = tokenStarts[limitEndToken] + tokenLengths[limitEndToken];
+          set(stagedLoops, LOOP_LIMIT_START_ROW + loopCount, limitStart);
+          set(stagedLoops, LOOP_LIMIT_LENGTH_ROW + loopCount, limitEnd - limitStart);
           set(
             stagedLoops,
             LOOP_FIRST_BODY_STATEMENT_ROW + loopCount,
