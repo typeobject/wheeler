@@ -116,9 +116,13 @@ Scratch rows and source coordinates have no identity. Failure leaves artifact by
 
 `SourceStatementProducts.w` publishes balanced callable-local block rows and parent links. Focused fixtures cover an empty body, four nested blocks, a nonzero archive origin, excess depth, stale and overlapping body extents, a detached root block, and atomic failure. Adjacent-loop syntax remains with loop statement indexing.
 
+### Structural loop indexing
+
+`SourceLoopProducts.w` consumes validated block rows while the callable source lease is live. It publishes block-grouped direct statement windows, lexical function ordinals, signed less-than condition ranges, positive literal limits, loop parents, body windows, and depths in one transaction. Empty through sixty-four-statement bodies work. A detached or reused child block, forged parent, invalid condition, zero or excessive limit, or sixty-fifth body statement leaves every caller row untouched.
+
 ### Loop resolution
 
-A loop resolver will consume source statement, value, type, and block products. It will publish condition, limit, body window, local-flow, and ownership joins without rereading dependency source.
+A loop resolver will consume structural statement, condition, value, type, and block products. It will resolve named compile-time limits, local condition operands, local-flow joins, and ownership joins without rereading dependency source.
 
 ### Canonical emission
 
@@ -133,7 +137,8 @@ Adoption starts with `CoreParsing.w`, whose two loops compact and shift token co
 - [x] Closed single-update local loops have canonical source identities, resolution, local types, instruction forms, and code generation.
 - [x] Physical closure probes identify multi-statement loop bodies as a repeated source-product boundary.
 - [x] `SourceStatementProducts.w` publishes source-independent function owners, parent rows, depths, extents, and local ordinals atomically for empty through four-level nested blocks. Excess depth, stale or overlapping callable extents, and detached root blocks preserve caller rows.
-- [ ] Loop products publish exact condition, limit, body, and parent rows.
+- [x] `SourceLoopProducts.w` publishes exact structural statement, signed condition range, positive literal limit, body window, parent, and depth rows. Empty, adjacent, and sixty-four-statement bodies pass. Invalid bounds and forged block graphs publish nothing.
+- [ ] Resolved loop products join named compile-time limits, condition values and types, locals, calls, and ownership state.
 - [ ] Local type, ownership, loan, and relocation joins validate loop back edges.
 - [ ] Canonical forward and inverse instruction windows match stage 0.
 - [ ] `CoreParsing.w` compiles byte for byte from its immutable archive range.

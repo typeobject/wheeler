@@ -53,8 +53,8 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("executableCount") > 0);
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
-    assertEquals(1_496, machine.global("symbolCount"));
-    assertEquals(1_260, machine.global("callableCount"));
+    assertEquals(1_533, machine.global("symbolCount"));
+    assertEquals(1_265, machine.global("callableCount"));
     assertTrue(machine.global("callableParameterCount") > 1_000);
     assertTrue(machine.global("borrowedParameterCount") > 0);
     assertTrue(machine.global("mutableParameterCount") > 0);
@@ -110,6 +110,11 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(0, rejected.global("published"));
   }
 
+  @Test
+  void physicalProductOwnersTrackTheCanonicalModuleManifest() throws Exception {
+    assertPhysicalProductOwners(CompilerSources.bootstrapModuleManifest());
+  }
+
   @Tag("closure-evidence")
   @Test
   void compilesPhysicalModuleProductsByteForByte() throws Exception {
@@ -158,12 +163,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     Program program = NativeCompilerArchiveClosureProgram.program();
     byte[] archive = CompilerSources.packageArchive();
     BootstrapModuleManifest manifest = CompilerSources.bootstrapModuleManifest();
-    for (NativeCompilerArchiveClosureProgram.PhysicalModule module
-        : NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES) {
-      BootstrapModuleManifest.Module manifestModule = manifest.modules().get(module.owner());
-      assertEquals(module.name(), manifestModule.name());
-      assertEquals("src/main/wheeler/" + module.path(), manifestModule.source());
-    }
+    assertPhysicalProductOwners(manifest);
     VirtualMachine machine = VirtualMachine.withBinaryInput(
         program,
         framed(archive, manifest.canonicalBytes()),
@@ -716,6 +716,16 @@ final class NativeCompilerArchiveClosureExampleTest {
             """),
         sources);
     return new ChainFixture(archive, manifest);
+  }
+
+  private static void assertPhysicalProductOwners(BootstrapModuleManifest manifest) {
+    var modules = new ArrayList<>(NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES);
+    modules.addAll(NativeCompilerArchiveClosureProgram.PHYSICAL_CALLABLE_MODULES);
+    for (NativeCompilerArchiveClosureProgram.PhysicalModule module : modules) {
+      BootstrapModuleManifest.Module manifestModule = manifest.modules().get(module.owner());
+      assertEquals(module.name(), manifestModule.name());
+      assertEquals("src/main/wheeler/" + module.path(), manifestModule.source());
+    }
   }
 
   private static void runClosure(VirtualMachine machine, Program program) {

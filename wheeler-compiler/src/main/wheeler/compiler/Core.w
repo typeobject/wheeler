@@ -19,6 +19,7 @@ import wheeler.compiler.closure.local_nominal_references;
 import wheeler.compiler.closure.primitive_placeholder_projection;
 import wheeler.compiler.closure.resolved_aggregate_operations;
 import wheeler.compiler.closure.source_callable_type_products;
+import wheeler.compiler.closure.source_loop_products;
 import wheeler.compiler.closure.source_statement_products;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
