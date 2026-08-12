@@ -122,7 +122,7 @@ Scratch rows and source coordinates have no identity. Failure leaves artifact by
 
 ### Loop resolution
 
-A loop resolver will consume structural statement, condition, value, type, and block products. It will resolve named compile-time limits, local condition operands, local-flow joins, and ownership joins without rereading dependency source.
+`ResolvedLoopProducts.w` consumes structural conditions and the existing callable value product. It resolves signed literal or uniquely named prior-local operands, checks source order and type spelling, preserves the parent and body windows, and publishes source-independent condition and loop rows atomically. Literal limits remain bound in the structural row. Named compile-time limits, local-flow joins, and ownership joins remain.
 
 ### Canonical emission
 
@@ -138,7 +138,8 @@ Adoption starts with `CoreParsing.w`, whose two loops compact and shift token co
 - [x] Physical closure probes identify multi-statement loop bodies as a repeated source-product boundary.
 - [x] `SourceStatementProducts.w` publishes source-independent function owners, parent rows, depths, extents, and local ordinals atomically for empty through four-level nested blocks. Excess depth, stale or overlapping callable extents, and detached root blocks preserve caller rows.
 - [x] `SourceLoopProducts.w` publishes exact structural statement, signed condition range, positive literal limit, body window, parent, and depth rows. Empty, adjacent, and sixty-four-statement bodies pass. Invalid bounds and forged block graphs publish nothing.
-- [ ] Resolved loop products join named compile-time limits, condition values and types, locals, calls, and ownership state.
+- [x] `ResolvedLoopProducts.w` joins signed literal and unique prior-local condition operands to exact local rows and rejects use before definition, ambiguity, wrong type spelling, invalid reversals, and forged windows without publication.
+- [ ] Resolved loop products join named compile-time limits, body-local flow, calls, ownership state, and back edges.
 - [ ] Local type, ownership, loan, and relocation joins validate loop back edges.
 - [ ] Canonical forward and inverse instruction windows match stage 0.
 - [ ] `CoreParsing.w` compiles byte for byte from its immutable archive range.
