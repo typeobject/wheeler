@@ -11,6 +11,10 @@ The seed must also be bootstrappable in the source-correspondence sense. Every b
 
 The build driver follows the same rule. The previous recovery release produces the first current driver through a bounded path that does not require an unexplained current driver binary. Distributors must be able to walk and reproduce recovery generations rather than starting from an unlabeled compiler download.
 
+`wheeler.seed.yaml` is the canonical record for one seed artifact. Its schema binds the artifact kind, target platform, output identity and length, source revision and identity, build command, working directory, builder, closed dependencies, environment, parent, and independent attestations. The four admitted kinds are `alternate-stage0`, `recovery-release`, `system-toolchain`, and `opaque-root`. An opaque root has empty source and parent fields and complete origin, transport, acquisition-date, and reason fields. Other kinds require source correspondence and forbid opaque metadata. The strict parser rejects unknown fields, alternate key order, noncanonical scalars, a contradictory opaque marker, and malformed identities.
+
+`BootstrapSeedChain` indexes records by the SHA-256 identity of their canonical bytes. Every parent and attestation must be present. Parent walks are bounded and acyclic. An attestation must name the same source revision, source identity, and output identity under a builder identity not already used by the subject or another attestation. This establishes a closed evidence graph. It does not turn an opaque root into source-derived bytes.
+
 ## Profile and module derivation
 
 Publish the complete known feature contract. Callers cannot subtract an inconvenient feature or add one that neither compiler implements:
