@@ -12,8 +12,8 @@ quantum class DynamicTeleportation {
     H(q[0]);
     measure(q[0], 0);
     measure(q[1], 1);
-    when(1, true, X, q[2]);
-    when(0, true, Z, q[2]);
+    applyIf(1, true, X, q[2]);
+    applyIf(0, true, Z, q[2]);
   }
 
   /// Runs the bounded teleportation fixture.

@@ -732,7 +732,7 @@ class SourceProfileNegativeTest {
           dynamic void correction() {
             prepare(q, 0);
             measure(q[0], 0);
-            when(0, true, X, q[0]);
+            applyIf(0, true, X, q[0]);
           }
           entry void main() {
             correction();
@@ -741,7 +741,7 @@ class SourceProfileNegativeTest {
         }
         """;
     String conflicting = dynamic.replace("dynamic void", "dynamic unitary void");
-    String invalidGate = dynamic.replace("when(0, true, X", "when(0, true, H");
+    String invalidGate = dynamic.replace("applyIf(0, true, X", "applyIf(0, true, H");
 
     CompilerException kindsConflict = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(conflicting));

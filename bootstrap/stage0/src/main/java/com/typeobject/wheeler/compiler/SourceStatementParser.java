@@ -96,8 +96,8 @@ abstract class SourceStatementParser extends SourceTokenCursor {
         body.add(statement("reset_qubit", operation.line(), Integer.toString(reset.index())));
         continue;
       }
-      if (dynamic && operation.text().equals("when")) {
-        expect(Type.LEFT_PAREN, "'(' after when");
+      if (dynamic && operation.text().equals("applyIf")) {
+        expect(Type.LEFT_PAREN, "'(' after applyIf");
         String resultSlot = signedNumber();
         expect(Type.COMMA, "',' after conditional result slot");
         boolean expected = conditionalBoolean();

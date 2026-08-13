@@ -475,7 +475,7 @@ unitary void bell() {
 
 The current semantic gates are `H`, `X`, `Z`, `Phase`, `CPhase`, `CNOT`, `CZ`, and `Swap`. A target adapter may decompose these gates, but it cannot change their ideal meaning.
 
-`dynamic void` declares one target-resident region over one `qreg`. The first profile accepts `prepare(q, basis)`, ordinary fixed gates, `measure(q[index], slot)`, `reset(q[index])`, and `when(slot, expected, X|Z, q[index])`. Result slots are bounded nonnegative identities assigned once and read only after measurement. These methods are nonunitary and have no generated adjoint.
+`dynamic void` declares one target-resident region over one `qreg`. The first profile accepts `prepare(q, basis)`, ordinary fixed gates, `measure(q[index], slot)`, `reset(q[index])`, and `applyIf(slot, expected, X|Z, q[index])`. Result slots are bounded nonnegative identities assigned once and read only after measurement. These methods are nonunitary and have no generated adjoint.
 
 Preparation and measurement are explicit:
 
