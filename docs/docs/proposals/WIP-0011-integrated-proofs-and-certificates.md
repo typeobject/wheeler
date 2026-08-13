@@ -362,7 +362,7 @@ Each fixture first lands as an executable law if necessary, then gains a formal 
 - [ ] An independent checker agrees with the Wheeler kernel on the canonical certificate corpus.
 - [x] Generated-inverse certificates reconstruct the straight-line intrinsic subset and reject nonreversible subjects, unsupported/logged/barrier operations, changed inverse bodies, unknown rules, and malformed metadata.
 - [ ] Coherent certificates prove exact finite permutation and reject nonunitary or hidden-measurement bodies.
-- [ ] QFT carries a generated-adjoint structural certificate and an executable round-trip law. A kernel theorem for semantic composition to identity within an exact scalar profile remains.
+- [x] QFT carries a generated-adjoint structural certificate and an executable round-trip law. A kernel theorem for semantic composition to identity within an exact scalar profile remains.
 - [x] Circuit rewrite certificates accept deterministic adjacent-inverse cancellation and reject a deliberately changed gate.
 - [x] Static step certificates bind one exact function row, reject a bound below its instruction count, reject bounds above the program ceiling, and reject calls or branches instead of pretending to compose them. Region, target-plan, compiler-profile, and compositional bound identities remain.
 - [ ] Sampled experiment evidence cannot type-check where an exact theorem proof is required.
