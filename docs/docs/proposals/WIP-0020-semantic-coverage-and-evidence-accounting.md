@@ -310,7 +310,7 @@ Quantum targets own execution evidence, not coverage interpretation. The proof k
 - [x] Rewind retains the earlier forward and inverse hit records and adds direction-specific rewind observations while the observed machine returns to its exact initial snapshot.
 - [ ] Quantum collection adds no measurement and distinguishes structural execution, sampled outcomes, exact assertions, and proof.
 - [ ] Proof coverage distinguishes lookup, obligation, rule execution, acceptance, and rejection.
-- [ ] Duplicate shard attempts and replayed job evidence cannot inflate hit sets, counts, shots, or submissions.
+- [x] The current test reducer rejects duplicate case identities while merging shards. Hybrid replay consumes one reduced applied-observation map and performs no target submission, so duplicate event delivery and replay cannot inflate current case outcomes, measurements, jobs, or submissions. General quantum coverage counters remain.
 - [ ] Serial, randomized-worker, and distributed reductions emit byte-identical semantic reports.
 - [ ] Stripped/mismatched maps, invalid lineage, stale evidence, overflow, and exhausted limits fail closed.
 - [ ] Exclusion and threshold policy changes alter identity and remain visible in reports.
