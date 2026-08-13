@@ -216,7 +216,7 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 
 ## Progress
 
-- [ ] Repository, snapshot, and recipe schemas accepted.
+- [x] Stage 0 accepts canonical ordered repository policy, immutable coordinate snapshot, Ed25519 signature envelope, build-plan, output-record, quarantine, and package archive schemas. Declarative recipe, RREV, variant, and PREV publication schemas remain.
 - [ ] Recipe RREV and variant identities remain. Stage-0 source-package plans implement a narrower `wheeler-build-input-1` over workspace/compiler/profile/node closure and PREV over exact canonical `.wbc` bytes.
 - [x] Stage-0 fetch and vendor commands materialize exact locked archives before build. Locked offline builds consume only the verified vendor closure and perform no repository resolution. Native recipe fetch remains.
 - [x] XDG path resolution, canonical ordered file-repository policy, immutable local publication, canonical release mappings, and exact first-authoritative fetch are implemented in stage 0.
