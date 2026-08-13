@@ -268,7 +268,7 @@ A persisted continuation contains canonical owned request state, external operat
 - [ ] Recovery handles every provider lifecycle and ambiguous acknowledgement state.
 - [x] Replay and fresh retry lineages are distinct and tested.
 - [x] Reversible, prepared-external, observed, and committed transaction phases are implemented.
-- [ ] Optimizer and coherent-layer fixtures execute with replay coverage. Cleanup, compensation, batches, and dynamic-circuit fixtures remain.
+- [x] The optimizer example executes through `HybridRun`, records its target observation, and replays identical globals and measurements without another submission. Exact coherent-lift fixtures separately preserve superposition, match the declared classical permutation, and add no measurement. Cleanup, compensation, batches, and dynamic circuits remain.
 
 ## Testing and acceptance
 
