@@ -327,7 +327,7 @@ Rejected. Assertions, event recording, target submission, fixture I/O, and repor
 
 ## Open questions
 
-- Which explicit grammar should extend accepted `test void name()` declarations with parameter rows, tags, fixtures, and per-case limits (owner: language and tooling maintainers. Decision point: before descriptor implementation)?
+- Which fixture grammar should follow accepted `cases(...)`, `tags(...)`, and `limits(steps = N, history = M)` metadata (owner: language and tooling maintainers. Decision point: before fixture implementation)?
 - Which canonical report encoding is smallest while remaining independently inspectable during bootstrap (owner: runtime and package maintainers. Decision point: before report persistence)?
 - Which exact simulator tolerance profiles are portable enough for semantic assertions (owner: quantum and numerical maintainers. Decision point: before quantum assertion acceptance)?
 - Which fixture capabilities belong in the first self-host compiler suite (owner: compiler and package maintainers. Decision point: before bootstrap runner promotion)?
