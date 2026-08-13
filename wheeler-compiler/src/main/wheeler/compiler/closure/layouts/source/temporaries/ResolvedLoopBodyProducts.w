@@ -21,6 +21,8 @@ classical class ResolvedLoopBodyProducts {
   private const long BODY_ASSERT_BOOLEAN = 33281;
   private const long BODY_ASSIGN_BOOLEAN_LITERAL_BASE = 33536;
   private const long BODY_ASSIGN_BOOLEAN_LOCAL_BASE = 33792;
+  private const long BODY_WORDS_GET = 34048;
+  private const long BODY_WORDS_SET = 34049;
   private const long BODY_OPERAND_KIND_ROW = 12288;
   private const long BODY_OPERAND_ROW = 16384;
   private const long DOCUMENTATION_TOKEN_KIND = 5;
@@ -64,6 +66,28 @@ classical class ResolvedLoopBodyProducts {
       tokenStarts,
       tokenLengths
     ) == TOKEN_BOOLEAN;
+  }
+
+  private boolean wordsLocal(
+    borrow utf8 source,
+    long owner,
+    long local,
+    long valueCount,
+    borrow mut words valueRows,
+    long tokenCount,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    return loopBodyValueType(
+      source,
+      owner,
+      local,
+      valueCount,
+      valueRows,
+      tokenCount,
+      tokenStarts,
+      tokenLengths
+    ) == TOKEN_WORDS;
   }
 
   private boolean signedLocal(
@@ -289,9 +313,93 @@ classical class ResolvedLoopBodyProducts {
                     valueRows
                   );
                   if (sourceValue.valid) {
-                    opcode = STATEMENT_LOCAL_LONG_COPY_BASE + sourceValue.local;
-                    operandKind = OPERAND_LOCAL;
-                    operand = sourceValue.local;
+                    if (
+                      punctuationAt(
+                        source,
+                        tokenKinds,
+                        tokenStarts,
+                        sourceToken + 1,
+                        PUNCTUATION_OPEN_SQUARE
+                      )
+                    ) {
+                      LoopBodyValue indexValue = resolveLoopBodyValue(
+                        source,
+                        tokenStarts[sourceToken + 2],
+                        tokenLengths[sourceToken + 2],
+                        owner,
+                        ordinal,
+                        valueCount,
+                        valueRows
+                      );
+                      if (indexValue.valid) {
+                        if (
+                          wordsLocal(
+                            source,
+                            owner,
+                            sourceValue.local,
+                            valueCount,
+                            valueRows,
+                            semanticCount,
+                            tokenStarts,
+                            tokenLengths
+                          )
+                        ) {
+                          if (
+                            signedLocal(
+                              source,
+                              owner,
+                              indexValue.local,
+                              valueCount,
+                              valueRows,
+                              semanticCount,
+                              tokenStarts,
+                              tokenLengths
+                            )
+                          ) {
+                            if (
+                              punctuationAt(
+                                source,
+                                tokenKinds,
+                                tokenStarts,
+                                sourceToken + 3,
+                                PUNCTUATION_CLOSE_SQUARE
+                              )
+                            ) {
+                              localBase = localBase - 1;
+                              opcode = BODY_WORDS_GET;
+                              operand = sourceValue.local * 256 + indexValue.local;
+                            } else {
+                              statementValid = false;
+                            }
+                          } else {
+                            statementValid = false;
+                          }
+                        } else {
+                          statementValid = false;
+                        }
+                      } else {
+                        statementValid = false;
+                      }
+                    } else {
+                      if (
+                        signedLocal(
+                          source,
+                          owner,
+                          sourceValue.local,
+                          valueCount,
+                          valueRows,
+                          semanticCount,
+                          tokenStarts,
+                          tokenLengths
+                        )
+                      ) {
+                        opcode = STATEMENT_LOCAL_LONG_COPY_BASE + sourceValue.local;
+                        operandKind = OPERAND_LOCAL;
+                        operand = sourceValue.local;
+                      } else {
+                        statementValid = false;
+                      }
+                    }
                   } else {
                     statementValid = false;
                   }
@@ -318,8 +426,102 @@ classical class ResolvedLoopBodyProducts {
                 }
               }
             } else {
-              if (tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_ASSERT) {
-                if (
+              if (tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_SET) {
+                LoopBodyValue writeOwner = resolveLoopBodyValue(
+                  source,
+                  tokenStarts[token + 2],
+                  tokenLengths[token + 2],
+                  owner,
+                  ordinal,
+                  valueCount,
+                  valueRows
+                );
+                LoopBodyValue writeIndex = resolveLoopBodyValue(
+                  source,
+                  tokenStarts[token + 4],
+                  tokenLengths[token + 4],
+                  owner,
+                  ordinal,
+                  valueCount,
+                  valueRows
+                );
+                LoopBodyValue writeValue = resolveLoopBodyValue(
+                  source,
+                  tokenStarts[token + 6],
+                  tokenLengths[token + 6],
+                  owner,
+                  ordinal,
+                  valueCount,
+                  valueRows
+                );
+                if (writeOwner.valid == false) {
+                  statementValid = false;
+                }
+
+                if (writeIndex.valid == false) {
+                  statementValid = false;
+                }
+
+                if (writeValue.valid == false) {
+                  statementValid = false;
+                }
+
+                if (statementValid) {
+                  if (
+                    wordsLocal(
+                      source,
+                      owner,
+                      writeOwner.local,
+                      valueCount,
+                      valueRows,
+                      semanticCount,
+                      tokenStarts,
+                      tokenLengths
+                    ) == false
+                  ) {
+                    statementValid = false;
+                  }
+
+                  if (
+                    signedLocal(
+                      source,
+                      owner,
+                      writeIndex.local,
+                      valueCount,
+                      valueRows,
+                      semanticCount,
+                      tokenStarts,
+                      tokenLengths
+                    ) == false
+                  ) {
+                    statementValid = false;
+                  }
+
+                  if (
+                    signedLocal(
+                      source,
+                      owner,
+                      writeValue.local,
+                      valueCount,
+                      valueRows,
+                      semanticCount,
+                      tokenStarts,
+                      tokenLengths
+                    ) == false
+                  ) {
+                    statementValid = false;
+                  }
+                }
+
+                if (statementValid) {
+                  opcode = BODY_WORDS_SET;
+                  operand = writeOwner.local * 65536
+                    + writeIndex.local * 256
+                    + writeValue.local;
+                }
+              } else {
+                if (tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_ASSERT) {
+                  if (
                   punctuationAt(
                     source,
                     tokenKinds,
@@ -696,6 +898,7 @@ classical class ResolvedLoopBodyProducts {
             }
           }
         }
+      }
 
         if (statementValid) {
           set(stagedRows, bodyCount, statement);
@@ -715,6 +918,14 @@ classical class ResolvedLoopBodyProducts {
           }
 
           if (opcode == BODY_BOOLEAN_LITERAL) {
+            localCount = 2;
+          }
+
+          if (opcode == BODY_WORDS_GET) {
+            localCount = 3;
+          }
+
+          if (opcode == BODY_WORDS_SET) {
             localCount = 2;
           }
 

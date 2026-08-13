@@ -14,6 +14,8 @@ classical class LoopLocalTypeProducts {
   private const long BODY_ASSERT_BOOLEAN = 33281;
   private const long BODY_ASSIGN_BOOLEAN_LITERAL_BASE = 33536;
   private const long BODY_ASSIGN_BOOLEAN_LOCAL_BASE = 33792;
+  private const long BODY_WORDS_GET = 34048;
+  private const long BODY_WORDS_SET = 34049;
   private const long BODY_ROWS = 20480;
   private const long LOOP_BODY_STATEMENT_COUNT_ROW = 1792;
   private const long LOOP_COUNT_LIMIT = 256;
@@ -88,6 +90,14 @@ classical class LoopLocalTypeProducts {
       if (opcode < BODY_ASSIGN_BOOLEAN_LOCAL_BASE + MAX_LOCALS) {
         return 1;
       }
+    }
+
+    if (opcode == BODY_WORDS_GET) {
+      return 3;
+    }
+
+    if (opcode == BODY_WORDS_SET) {
+      return 2;
     }
 
     return -1;
@@ -189,7 +199,7 @@ classical class LoopLocalTypeProducts {
           }
 
           long localOffset = 0;
-          while (localOffset < localCount) limit 3 {
+          while (localOffset < localCount) limit 4 {
             if (valid) {
               long localType = TYPE_SIGNED;
               long bodyOpcode = bodyRows[BODY_OPCODE_ROW + body];
@@ -212,6 +222,8 @@ classical class LoopLocalTypeProducts {
                   localType = TYPE_BOOLEAN;
                 }
               }
+
+
 
               typeCount = appendType(stagedTypes, typeCount, owner, nextLocal, localType);
               if (typeCount < 0) {

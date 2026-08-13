@@ -6,6 +6,7 @@ import wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.resolved_statements;
+import wheeler.compiler.storage_opcodes;
 
 classical class LoopInstructionProducts {
   private const long BODY_COUNT_LIMIT = 4096;
@@ -17,6 +18,8 @@ classical class LoopInstructionProducts {
   private const long BODY_ASSERT_BOOLEAN = 33281;
   private const long BODY_ASSIGN_BOOLEAN_LITERAL_BASE = 33536;
   private const long BODY_ASSIGN_BOOLEAN_LOCAL_BASE = 33792;
+  private const long BODY_WORDS_GET = 34048;
+  private const long BODY_WORDS_SET = 34049;
   private const long BODY_OPERAND_KIND_ROW = 12288;
   private const long BODY_OPERAND_ROW = 16384;
   private const long BODY_ROWS = 20480;
@@ -27,6 +30,7 @@ classical class LoopInstructionProducts {
   private const long CONDITION_RIGHT_OPERAND_ROW = 1024;
   private const long CONDITION_ROWS = 1536;
   private const long LOOP_COUNT_LIMIT = 256;
+  private const long LOOP_FRAME_LOCAL_COUNT = 5;
   private const long LOOP_CONDITION_ROW = 768;
   private const long LOOP_LIMIT_ROW = 1024;
   private const long LOOP_FIRST_BODY_STATEMENT_ROW = 1536;
@@ -136,6 +140,37 @@ classical class LoopInstructionProducts {
       );
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
       return writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    }
+
+    if (opcode == BODY_WORDS_GET) {
+      long readOwner = operand / 256;
+      long readIndex = operand % 256;
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, INSTRUCTION_FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, readIndex, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_WORDS_GET, 3);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, readOwner, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, INSTRUCTION_FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+      return writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+    }
+
+    if (opcode == BODY_WORDS_SET) {
+      long writeOwner = operand / 65536;
+      long writeIndex = operand / 256 % 256;
+      long writeValue = operand % 256;
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, INSTRUCTION_FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, writeIndex, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, INSTRUCTION_FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, writeValue, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_WORDS_SET, 3);
+      cursor = writeUnsignedLittleEndian(output, cursor, writeOwner, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      return writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
     }
 
     if (opcode == BODY_ASSERT_BOOLEAN) {
@@ -390,6 +425,14 @@ classical class LoopInstructionProducts {
           valid = false;
         } else {
           long opcode = stagedBodies[BODY_OPCODE_ROW + body];
+          if (opcode == BODY_WORDS_GET) {
+            requiredLength += 80;
+            instructionCount += 3;
+          } else {
+            if (opcode == BODY_WORDS_SET) {
+              requiredLength += 80;
+              instructionCount += 3;
+            } else {
           if (opcode == BODY_BOOLEAN_LITERAL) {
             requiredLength += 48;
             instructionCount += 2;
@@ -440,6 +483,8 @@ classical class LoopInstructionProducts {
             }
           }
         }
+            }
+          }
 
         bodyOffset += 1;
       }
@@ -465,7 +510,7 @@ classical class LoopInstructionProducts {
       long condition = loopRows[LOOP_CONDITION_ROW + loop];
       long localBase = loopLocalBases[loop];
       long instructionBase = loopInstructionStarts[loop];
-      long bodyLocalBias = localBase + 3;
+      long bodyLocalBias = LOOP_FRAME_LOCAL_COUNT;
       long leftKind = conditionRows[CONDITION_LEFT_KIND_ROW + condition];
       long rightKind = conditionRows[CONDITION_RIGHT_KIND_ROW + condition];
       long leftOpcode = OPCODE_LOCAL_CONST;
@@ -546,9 +591,46 @@ classical class LoopInstructionProducts {
           rebaseBodyOpcode(emittedOpcode, localBase, bodyLocalBias)
         );
         long emittedOperand = stagedBodies[BODY_OPERAND_ROW + emittedBody];
-        if (stagedBodies[BODY_OPERAND_KIND_ROW + emittedBody] == OPERAND_LOCAL) {
-          if (localBase < emittedOperand + 1) {
-            set(stagedBodies, BODY_OPERAND_ROW + emittedBody, emittedOperand + bodyLocalBias);
+        if (emittedOpcode == BODY_WORDS_GET) {
+          long readOwner = emittedOperand / 256;
+          long readIndex = emittedOperand % 256;
+          if (localBase < readOwner + 1) {
+            readOwner += bodyLocalBias;
+          }
+
+          if (localBase < readIndex + 1) {
+            readIndex += bodyLocalBias;
+          }
+
+          set(stagedBodies, BODY_OPERAND_ROW + emittedBody, readOwner * 256 + readIndex);
+        } else {
+          if (emittedOpcode == BODY_WORDS_SET) {
+            long writeOwner = emittedOperand / 65536;
+            long writeIndex = emittedOperand / 256 % 256;
+            long writeValue = emittedOperand % 256;
+            if (localBase < writeOwner + 1) {
+              writeOwner += bodyLocalBias;
+            }
+
+            if (localBase < writeIndex + 1) {
+              writeIndex += bodyLocalBias;
+            }
+
+            if (localBase < writeValue + 1) {
+              writeValue += bodyLocalBias;
+            }
+
+            set(
+              stagedBodies,
+              BODY_OPERAND_ROW + emittedBody,
+              writeOwner * 65536 + writeIndex * 256 + writeValue
+            );
+          } else {
+            if (stagedBodies[BODY_OPERAND_KIND_ROW + emittedBody] == OPERAND_LOCAL) {
+              if (localBase < emittedOperand + 1) {
+                set(stagedBodies, BODY_OPERAND_ROW + emittedBody, emittedOperand + bodyLocalBias);
+              }
+            }
           }
         }
 
@@ -558,14 +640,22 @@ classical class LoopInstructionProducts {
         } else {
           cursor = next;
           long writtenOpcode = stagedBodies[BODY_OPCODE_ROW + emittedBody];
-          if (BODY_ASSERT_EQ_LITERAL_BASE - 1 < writtenOpcode) {
-            if (writtenOpcode < BODY_BOOLEAN_LITERAL) {
-              bodyInstructions += 4;
-            } else {
-              bodyInstructions += 2;
-            }
+          if (writtenOpcode == BODY_WORDS_GET) {
+            bodyInstructions += 3;
           } else {
-            bodyInstructions += 2;
+            if (writtenOpcode == BODY_WORDS_SET) {
+              bodyInstructions += 3;
+            } else {
+              if (BODY_ASSERT_EQ_LITERAL_BASE - 1 < writtenOpcode) {
+                if (writtenOpcode < BODY_BOOLEAN_LITERAL) {
+                  bodyInstructions += 4;
+                } else {
+                  bodyInstructions += 2;
+                }
+              } else {
+                bodyInstructions += 2;
+              }
+            }
           }
         }
 
