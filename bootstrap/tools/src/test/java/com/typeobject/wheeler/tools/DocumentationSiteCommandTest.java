@@ -111,6 +111,50 @@ class DocumentationSiteCommandTest {
   }
 
   @Test
+  void immutableBundleCanRenderAgainWithoutSemanticGeneration() throws Exception {
+    Path manuals = temporary.resolve("manuals");
+    Path sources = temporary.resolve("sources");
+    Path bundle = temporary.resolve("bundle");
+    Files.createDirectories(manuals);
+    Files.createDirectories(sources);
+    Files.writeString(manuals.resolve("intro.md"), "# Introduction\n\nOne page.\n");
+    Files.writeString(sources.resolve("Api.w"), """
+        //! One API.
+        module demo.api;
+        classical class Api {
+          /// Returns one.
+          public long one() { return 1; }
+        }
+        """);
+    assertEquals(0, Wheeler.execute(
+        new String[] {
+            "docs", manuals.toString(), "--wheeler", sources.toString(),
+            "-o", bundle.toString()
+        },
+        new PrintStream(new ByteArrayOutputStream()),
+        new PrintStream(new ByteArrayOutputStream())));
+    Files.delete(manuals.resolve("intro.md"));
+    Files.delete(sources.resolve("Api.w"));
+    Path first = temporary.resolve("bundle-site-one");
+    Path second = temporary.resolve("bundle-site-two");
+
+    assertEquals(0, Wheeler.execute(
+        new String[] {"site", "--bundle", bundle.toString(), "-o", first.toString()},
+        new PrintStream(new ByteArrayOutputStream()),
+        new PrintStream(new ByteArrayOutputStream())));
+    assertEquals(0, Wheeler.execute(
+        new String[] {"site", "--bundle", bundle.toString(), "-o", second.toString()},
+        new PrintStream(new ByteArrayOutputStream()),
+        new PrintStream(new ByteArrayOutputStream())));
+
+    assertEquals(
+        Files.readString(first.resolve("publication-manifest.json")),
+        Files.readString(second.resolve("publication-manifest.json")));
+    assertTrue(Files.readString(first.resolve("publication-manifest.json"))
+        .contains(DocumentationBundleReader.read(bundle).identity()));
+  }
+
+  @Test
   void sitemapIdentityChangesWithPageContentAndRoutes() throws Exception {
     Map<String, byte[]> first = Map.of(
         "index.html", "first".getBytes(StandardCharsets.UTF_8),

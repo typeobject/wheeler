@@ -62,7 +62,7 @@ Manual IDs come from logical paths without the `.md` or `.mdx` suffix. Heading t
 
 Relative links to `.md` or `.mdx` pages and canonical `#heading` anchors resolve only within the manual root. Escapes, missing targets, and noncanonical anchors fail. Repository source links remain normal site links instead of semantic manual edges.
 
-`wheeler site -o <directory>` is the only website command. It finds the fixed repository roots and builds the semantic bundle in private staging. Next, it verifies the exact profile, path, and digest closure. It renders the inert Markdown and MDX subset as static HTML and CSS under `wheeler.doc-site/2`. One fixed local script adds a copy button to each code block. Documentation content cannot add scripts or handlers.
+`wheeler site -o <directory>` finds the fixed repository roots and builds the semantic bundle in private staging. `wheeler site --bundle <bundle-directory> -o <directory>` starts at an existing immutable bundle, which makes render retry independent of semantic generation. Both forms verify the exact profile, path, and digest closure. They render the inert Markdown and MDX subset as static HTML and CSS under `wheeler.doc-site/2`. One fixed local script adds a copy button to each code block. Documentation content cannot add scripts or handlers.
 
 Scalar MDX-style front matter becomes bounded metadata and is never printed as page text. `index.md` and `index.mdx` map to their directory route. An index may set `sidebar_children: false` to keep descendants routable and searchable while omitting them from navigation. Any page may set `sidebar: false` to omit itself. The renderer does not execute MDX or JSX.
 

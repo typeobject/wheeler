@@ -36,14 +36,16 @@ final class DocumentationSiteCommand {
 
   private DocumentationSiteCommand() {}
 
-  /** Builds the repository's conventional documentation roots into one immutable static site. */
+  /** Builds the repository roots or one immutable bundle into a static site. */
   static int execute(String[] args, PrintStream out, PrintStream error) throws Exception {
-    if (args.length != 3 || !args[1].equals("-o")) {
-      error.println("Usage: wheeler site -o <site-directory>");
+    boolean suppliedBundle = args.length == 5
+        && args[1].equals("--bundle") && args[3].equals("-o");
+    boolean repositoryBundle = args.length == 3 && args[1].equals("-o");
+    if (!suppliedBundle && !repositoryBundle) {
+      error.println("Usage: wheeler site [--bundle <bundle-directory>] -o <site-directory>");
       return 2;
     }
-    Path repository = physicalDirectory(Path.of("."), "repository root");
-    Path output = Path.of(args[2]).toAbsolutePath().normalize();
+    Path output = Path.of(args[suppliedBundle ? 4 : 2]).toAbsolutePath().normalize();
     if (Files.exists(output, LinkOption.NOFOLLOW_LINKS)) {
       throw new IOException("Documentation site output already exists: " + output);
     }
@@ -52,17 +54,27 @@ final class DocumentationSiteCommand {
         || Files.isSymbolicLink(parent)) {
       throw new IOException("Documentation site parent is not physical: " + output);
     }
-    Path bundle = Files.createTempDirectory(parent, ".wheeler-doc-bundle-");
-    Files.delete(bundle);
+    Path bundle;
+    if (suppliedBundle) {
+      bundle = physicalDirectory(Path.of(args[2]), "bundle root");
+    } else {
+      bundle = Files.createTempDirectory(parent, ".wheeler-doc-bundle-");
+      Files.delete(bundle);
+    }
     try {
-      buildBundle(repository, bundle, error);
+      if (!suppliedBundle) {
+        Path repository = physicalDirectory(Path.of("."), "repository root");
+        buildBundle(repository, bundle, error);
+      }
       Site site = render(DocumentationBundleReader.read(bundle));
       publish(output, site.files());
       out.println("published Wheeler documentation site " + site.identity()
           + " into " + output);
       return 0;
     } finally {
-      deleteTree(bundle);
+      if (!suppliedBundle) {
+        deleteTree(bundle);
+      }
     }
   }
 
