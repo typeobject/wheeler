@@ -1,13 +1,17 @@
 package com.typeobject.wheeler.core.bytecode;
 
 import com.typeobject.wheeler.core.quantum.Gate;
+import com.typeobject.wheeler.core.quantum.ConditionalGateOperation;
 import com.typeobject.wheeler.core.quantum.GateOperation;
 import com.typeobject.wheeler.core.quantum.LiftedCall;
+import com.typeobject.wheeler.core.quantum.MeasureOperation;
 import com.typeobject.wheeler.core.quantum.ParameterizedGateOperation;
+import com.typeobject.wheeler.core.quantum.PrepareOperation;
 import com.typeobject.wheeler.core.quantum.QuantumCircuit;
 import com.typeobject.wheeler.core.quantum.QuantumOpcode;
 import com.typeobject.wheeler.core.quantum.QuantumOperation;
 import com.typeobject.wheeler.core.quantum.QuantumRegister;
+import com.typeobject.wheeler.core.quantum.ResetOperation;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -25,6 +29,10 @@ final class QuantumSectionCodec {
   private static final int GATE_ID_FIELDS = 1;
   private static final int SYMBOLIC_PARAMETER_FIELDS = 2;
   private static final int LIFTED_CALL_FIELDS = 2;
+  private static final int PREPARATION_FIELDS = 1;
+  private static final int MEASUREMENT_FIELDS = 2;
+  private static final int RESET_FIELDS = 1;
+  private static final int CONDITIONAL_GATE_HEADER_FIELDS = 3;
   private static final int MAX_OPERATION_FIELDS = 64;
   private static final int MAX_SECTION_ITEMS = 65_535;
   private static final int MAX_CIRCUIT_OPERATIONS = 1_000_000;
@@ -112,6 +120,18 @@ final class QuantumSectionCodec {
     if (operation instanceof LiftedCall) {
       return LIFTED_CALL_FIELDS;
     }
+    if (operation instanceof PrepareOperation) {
+      return PREPARATION_FIELDS;
+    }
+    if (operation instanceof MeasureOperation) {
+      return MEASUREMENT_FIELDS;
+    }
+    if (operation instanceof ResetOperation) {
+      return RESET_FIELDS;
+    }
+    if (operation instanceof ConditionalGateOperation conditional) {
+      return CONDITIONAL_GATE_HEADER_FIELDS + conditional.gate().qubits().size();
+    }
     throw new IllegalArgumentException("Unsupported quantum operation " + operation);
   }
 
@@ -136,10 +156,35 @@ final class QuantumSectionCodec {
       return;
     }
 
-    LiftedCall lifted = (LiftedCall) operation;
-    writeHeader(buffer, QuantumOpcode.CALL_UNITARY, fieldCount);
-    buffer.putLong(lifted.functionId());
-    buffer.putLong(lifted.inverseDirection() ? INVERSE_DIRECTION : FORWARD_DIRECTION);
+    if (operation instanceof LiftedCall lifted) {
+      writeHeader(buffer, QuantumOpcode.CALL_UNITARY, fieldCount);
+      buffer.putLong(lifted.functionId());
+      buffer.putLong(lifted.inverseDirection() ? INVERSE_DIRECTION : FORWARD_DIRECTION);
+      return;
+    }
+    if (operation instanceof PrepareOperation preparation) {
+      writeHeader(buffer, QuantumOpcode.PREPARE_REGISTER, fieldCount);
+      buffer.putLong(preparation.basisState());
+      return;
+    }
+    if (operation instanceof MeasureOperation measurement) {
+      writeHeader(buffer, QuantumOpcode.MEASURE_QUBIT, fieldCount);
+      buffer.putLong(measurement.qubit());
+      buffer.putLong(measurement.resultSlot());
+      return;
+    }
+    if (operation instanceof ResetOperation reset) {
+      writeHeader(buffer, QuantumOpcode.RESET_QUBIT, fieldCount);
+      buffer.putLong(reset.qubit());
+      return;
+    }
+
+    ConditionalGateOperation conditional = (ConditionalGateOperation) operation;
+    writeHeader(buffer, QuantumOpcode.APPLY_CONDITIONAL_GATE, fieldCount);
+    buffer.putLong(conditional.resultSlot());
+    buffer.putLong(conditional.expected() ? 1 : 0);
+    buffer.putLong(conditional.gate().gate().code());
+    conditional.gate().qubits().forEach(qubit -> buffer.putLong(qubit));
   }
 
   private static void writeHeader(
@@ -166,6 +211,10 @@ final class QuantumSectionCodec {
       case APPLY_GATE -> readGate(fields);
       case APPLY_SYMBOLIC_GATE -> readSymbolicGate(fields, strings);
       case CALL_UNITARY -> readLiftedCall(fields);
+      case PREPARE_REGISTER -> readPreparation(fields);
+      case MEASURE_QUBIT -> readMeasurement(fields);
+      case RESET_QUBIT -> readReset(fields);
+      case APPLY_CONDITIONAL_GATE -> readConditionalGate(fields);
     };
   }
 
@@ -208,6 +257,58 @@ final class QuantumSectionCodec {
       throw new BytecodeException("Invalid unitary-call direction");
     }
     return new LiftedCall(function, direction == INVERSE_DIRECTION);
+  }
+
+  private static PrepareOperation readPreparation(long[] fields) {
+    requireFieldCount(fields, PREPARATION_FIELDS, "preparation");
+    try {
+      return new PrepareOperation(fields[0]);
+    } catch (IllegalArgumentException exception) {
+      throw new BytecodeException(exception.getMessage());
+    }
+  }
+
+  private static MeasureOperation readMeasurement(long[] fields) {
+    requireFieldCount(fields, MEASUREMENT_FIELDS, "measurement");
+    try {
+      return new MeasureOperation(
+          exactInt(fields[0], "measurement qubit"),
+          exactInt(fields[1], "measurement result slot"));
+    } catch (IllegalArgumentException exception) {
+      throw new BytecodeException(exception.getMessage());
+    }
+  }
+
+  private static ResetOperation readReset(long[] fields) {
+    requireFieldCount(fields, RESET_FIELDS, "reset");
+    try {
+      return new ResetOperation(exactInt(fields[0], "reset qubit"));
+    } catch (IllegalArgumentException exception) {
+      throw new BytecodeException(exception.getMessage());
+    }
+  }
+
+  private static ConditionalGateOperation readConditionalGate(long[] fields) {
+    if (fields.length < CONDITIONAL_GATE_HEADER_FIELDS) {
+      throw new BytecodeException("Noncanonical conditional gate field count");
+    }
+    int slot = exactInt(fields[0], "conditional result slot");
+    if (fields[1] != 0 && fields[1] != 1) {
+      throw new BytecodeException("Invalid conditional Boolean value");
+    }
+    Gate gate = Gate.fromCode(exactInt(fields[2], "conditional gate identity"));
+    if (gate.parameterized()) {
+      throw new BytecodeException("Conditional instruction requires a fixed gate");
+    }
+    requireFieldCount(
+        fields, CONDITIONAL_GATE_HEADER_FIELDS + gate.arity(), "conditional gate");
+    List<Integer> qubits = readQubits(fields, CONDITIONAL_GATE_HEADER_FIELDS, gate);
+    try {
+      return new ConditionalGateOperation(
+          slot, fields[1] == 1, new GateOperation(gate, qubits, NO_PARAMETER));
+    } catch (IllegalArgumentException exception) {
+      throw new BytecodeException(exception.getMessage());
+    }
   }
 
   private static List<Integer> readQubits(long[] fields, int start, Gate gate) {

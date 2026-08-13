@@ -1,12 +1,16 @@
 package com.typeobject.wheeler.core.bytecode;
 
 import com.typeobject.wheeler.core.proof.ProofKernel;
+import com.typeobject.wheeler.core.quantum.ConditionalGateOperation;
 import com.typeobject.wheeler.core.quantum.GateOperation;
 import com.typeobject.wheeler.core.quantum.LiftedCall;
+import com.typeobject.wheeler.core.quantum.MeasureOperation;
 import com.typeobject.wheeler.core.quantum.ParameterizedGateOperation;
+import com.typeobject.wheeler.core.quantum.PrepareOperation;
 import com.typeobject.wheeler.core.quantum.QuantumCircuit;
 import com.typeobject.wheeler.core.quantum.QuantumOperation;
 import com.typeobject.wheeler.core.quantum.QuantumRegister;
+import com.typeobject.wheeler.core.quantum.ResetOperation;
 import com.typeobject.wheeler.core.workflow.WorkflowOpcode;
 import com.typeobject.wheeler.core.workflow.WorkflowStep;
 import java.util.HashSet;
@@ -52,6 +56,7 @@ final class ProgramSectionVerifier {
         fail("Duplicate quantum circuit name: " + circuit.name());
       }
       QuantumRegister register = program.quantumRegister(circuit.registerId());
+      Set<Integer> resultSlots = new HashSet<>();
       for (QuantumOperation operation : circuit.operations()) {
         if (operation instanceof GateOperation gate) {
           verifyQubits(circuit, register, gate.qubits());
@@ -62,8 +67,29 @@ final class ProgramSectionVerifier {
           if (!function.coherent()) {
             fail("Lifted function is not coherent: " + function.name());
           }
+        } else if (operation instanceof PrepareOperation preparation) {
+          verifyBasis(circuit, register, preparation.basisState());
+        } else if (operation instanceof MeasureOperation measurement) {
+          verifyQubits(circuit, register, List.of(measurement.qubit()));
+          if (!resultSlots.add(measurement.resultSlot())) {
+            fail("Measurement result slot is assigned twice in " + circuit.name());
+          }
+        } else if (operation instanceof ResetOperation reset) {
+          verifyQubits(circuit, register, List.of(reset.qubit()));
+        } else if (operation instanceof ConditionalGateOperation conditional) {
+          if (!resultSlots.contains(conditional.resultSlot())) {
+            fail("Conditional gate reads an unassigned result slot in " + circuit.name());
+          }
+          verifyQubits(circuit, register, conditional.gate().qubits());
         }
       }
+    }
+  }
+
+  private static void verifyBasis(
+      QuantumCircuit circuit, QuantumRegister register, long basisState) {
+    if (register.qubits() < Long.SIZE - 1 && basisState >= (1L << register.qubits())) {
+      fail("Preparation basis value does not fit circuit " + circuit.name());
     }
   }
 

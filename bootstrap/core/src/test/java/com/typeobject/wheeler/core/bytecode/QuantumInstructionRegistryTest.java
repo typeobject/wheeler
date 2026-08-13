@@ -4,13 +4,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.typeobject.wheeler.core.quantum.ConditionalGateOperation;
 import com.typeobject.wheeler.core.quantum.Gate;
 import com.typeobject.wheeler.core.quantum.GateOperation;
 import com.typeobject.wheeler.core.quantum.LiftedCall;
+import com.typeobject.wheeler.core.quantum.MeasureOperation;
 import com.typeobject.wheeler.core.quantum.ParameterizedGateOperation;
+import com.typeobject.wheeler.core.quantum.PrepareOperation;
 import com.typeobject.wheeler.core.quantum.QuantumCircuit;
 import com.typeobject.wheeler.core.quantum.QuantumOpcode;
 import com.typeobject.wheeler.core.quantum.QuantumRegister;
+import com.typeobject.wheeler.core.quantum.ResetOperation;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -72,7 +76,12 @@ class QuantumInstructionRegistryTest {
             new GateOperation(Gate.CPHASE, List.of(FIRST_QUBIT, SECOND_QUBIT), PHASE_ANGLE),
             new ParameterizedGateOperation(
                 Gate.PHASE, List.of(SECOND_QUBIT), "theta", PARAMETER_SCALE),
-            new LiftedCall(FUNCTION_ID, true)));
+            new LiftedCall(FUNCTION_ID, true),
+            new PrepareOperation(1),
+            new MeasureOperation(FIRST_QUBIT, 0),
+            new ResetOperation(SECOND_QUBIT),
+            new ConditionalGateOperation(
+                0, true, GateOperation.of(Gate.X, FIRST_QUBIT))));
     Program program = quantumProgram(register, circuit);
     Map<String, Integer> strings = Map.of(
         "register", REGISTER_STRING,
@@ -86,6 +95,26 @@ class QuantumInstructionRegistryTest {
 
     assertEquals(List.of(register), decoded.registers());
     assertEquals(List.of(circuit), decoded.circuits());
+  }
+
+  @Test
+  void rejectsUnassignedConditionalResultSlots() {
+    QuantumRegister register = new QuantumRegister(
+        REGISTER_ID, "register", REGISTER_QUBITS);
+    QuantumCircuit circuit = new QuantumCircuit(
+        CIRCUIT_ID,
+        "circuit",
+        REGISTER_ID,
+        List.of(
+            new PrepareOperation(0),
+            new ConditionalGateOperation(
+                0, true, GateOperation.of(Gate.X, FIRST_QUBIT))));
+
+    BytecodeException exception = assertThrows(
+        BytecodeException.class,
+        () -> BytecodeVerifier.verify(quantumProgram(register, circuit)));
+
+    assertTrue(exception.getMessage().contains("unassigned result slot"));
   }
 
   @Test
@@ -108,6 +137,12 @@ class QuantumInstructionRegistryTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> new GateOperation(Gate.X, List.of(FIRST_QUBIT), PHASE_ANGLE));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new ConditionalGateOperation(
+            0,
+            true,
+            new GateOperation(Gate.PHASE, List.of(FIRST_QUBIT), PHASE_ANGLE)));
   }
 
   private static byte[] encodedSingleGate() {

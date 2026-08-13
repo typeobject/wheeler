@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/** A unitary region tied to one logical register in the first quantum profile. */
+/** A bounded static or target-resident dynamic region tied to one logical register. */
 public record QuantumCircuit(
     int id, String name, int registerId, List<QuantumOperation> operations) {
   public QuantumCircuit {

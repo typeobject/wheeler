@@ -1,8 +1,17 @@
 package com.typeobject.wheeler.runtime.quantum;
 
+import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.quantum.ConditionalGateOperation;
+import com.typeobject.wheeler.core.quantum.GateOperation;
+import com.typeobject.wheeler.core.quantum.MeasureOperation;
+import com.typeobject.wheeler.core.quantum.PrepareOperation;
+import com.typeobject.wheeler.core.quantum.QuantumCircuit;
 import com.typeobject.wheeler.core.quantum.QuantumRegister;
+import com.typeobject.wheeler.core.quantum.ResetOperation;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /** Bounded ideal simulator for target-resident measurement, reset, and conditional control. */
@@ -21,6 +30,57 @@ public final class DynamicStateVectorSimulator {
 
   public TargetDescriptor descriptor() {
     return descriptor;
+  }
+
+  /** Executes one canonical target-resident dynamic circuit without a host split. */
+  public DynamicCircuitResult execute(Program program, QuantumCircuit circuit, long seed) {
+    descriptor.require(Set.of(
+        TargetCapability.MID_CIRCUIT_MEASUREMENT,
+        TargetCapability.RESET,
+        TargetCapability.CLASSICAL_CONDITIONAL));
+    QuantumRegister register = program.quantumRegister(circuit.registerId());
+    if (descriptor.maxQubits() < register.qubits()) {
+      throw new QuantumExecutionException("Dynamic circuit exceeds target qubit limit");
+    }
+    StateVectorEngine engine = new StateVectorEngine(seed);
+    Map<Integer, Boolean> resultSlots = new HashMap<>();
+    boolean prepared = false;
+    for (var operation : circuit.operations()) {
+      if (operation instanceof PrepareOperation preparation) {
+        if (prepared) {
+          throw new QuantumExecutionException("Dynamic circuit prepares its register twice");
+        }
+        engine.prepare(register, preparation.basisState());
+        prepared = true;
+      } else {
+        if (!prepared) {
+          throw new QuantumExecutionException("Dynamic operation precedes register preparation");
+        }
+        if (operation instanceof GateOperation gate) {
+          engine.applyGate(register, gate);
+        } else if (operation instanceof MeasureOperation measurement) {
+          resultSlots.put(
+              measurement.resultSlot(), engine.measureQubit(register, measurement.qubit()));
+        } else if (operation instanceof ResetOperation reset) {
+          engine.reset(register, reset.qubit());
+        } else if (operation instanceof ConditionalGateOperation conditional) {
+          Boolean result = resultSlots.get(conditional.resultSlot());
+          if (result == null) {
+            throw new QuantumExecutionException("Conditional gate reads an unassigned result slot");
+          }
+          if (result == conditional.expected()) {
+            engine.applyGate(register, conditional.gate());
+          }
+        } else {
+          throw new QuantumExecutionException(
+              "Unsupported target-resident dynamic operation " + operation);
+        }
+      }
+    }
+    if (!prepared) {
+      throw new QuantumExecutionException("Dynamic circuit does not prepare its register");
+    }
+    return new DynamicCircuitResult(engine.measure(register), resultSlots);
   }
 
   /** Executes all rounds within one target call and returns only final bounded evidence. */

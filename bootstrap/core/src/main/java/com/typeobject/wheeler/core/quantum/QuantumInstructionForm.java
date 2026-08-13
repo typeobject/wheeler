@@ -13,7 +13,15 @@ public enum QuantumInstructionForm {
       QuantumOperandRole.QUBIT_WINDOW,
       QuantumOperandRole.PARAMETER_NAME,
       QuantumOperandRole.PARAMETER_SCALE),
-  UNITARY_CALL(QuantumOperandRole.FUNCTION, QuantumOperandRole.DIRECTION);
+  UNITARY_CALL(QuantumOperandRole.FUNCTION, QuantumOperandRole.DIRECTION),
+  PREPARATION(QuantumOperandRole.BASIS_STATE),
+  MEASUREMENT(QuantumOperandRole.QUBIT, QuantumOperandRole.RESULT_SLOT),
+  RESET(QuantumOperandRole.QUBIT),
+  CONDITIONAL_GATE(
+      QuantumOperandRole.RESULT_SLOT,
+      QuantumOperandRole.EXPECTED_BOOLEAN,
+      QuantumOperandRole.GATE,
+      QuantumOperandRole.QUBIT_WINDOW);
 
   private final List<QuantumOperandRole> roles;
 
@@ -33,6 +41,10 @@ public enum QuantumInstructionForm {
     PARAMETER_NAME,
     PARAMETER_SCALE,
     FUNCTION,
-    DIRECTION
+    DIRECTION,
+    BASIS_STATE,
+    QUBIT,
+    RESULT_SLOT,
+    EXPECTED_BOOLEAN
   }
 }

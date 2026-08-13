@@ -1,9 +1,13 @@
 package com.typeobject.wheeler.core.bytecode;
 
+import com.typeobject.wheeler.core.quantum.ConditionalGateOperation;
 import com.typeobject.wheeler.core.quantum.GateOperation;
 import com.typeobject.wheeler.core.quantum.LiftedCall;
+import com.typeobject.wheeler.core.quantum.MeasureOperation;
 import com.typeobject.wheeler.core.quantum.ParameterizedGateOperation;
+import com.typeobject.wheeler.core.quantum.PrepareOperation;
 import com.typeobject.wheeler.core.quantum.QuantumOperation;
+import com.typeobject.wheeler.core.quantum.ResetOperation;
 import java.util.Locale;
 import java.util.StringJoiner;
 
@@ -116,8 +120,21 @@ public final class Disassembler {
       return gate.gate() + " " + gate.qubits() + " "
           + gate.scale() + "*" + gate.parameterName();
     }
-    LiftedCall lifted = (LiftedCall) operation;
-    return (lifted.inverseDirection() ? "UNLIFT " : "LIFT ") + lifted.functionId();
+    if (operation instanceof LiftedCall lifted) {
+      return (lifted.inverseDirection() ? "UNLIFT " : "LIFT ") + lifted.functionId();
+    }
+    if (operation instanceof PrepareOperation preparation) {
+      return "PREPARE " + preparation.basisState();
+    }
+    if (operation instanceof MeasureOperation measurement) {
+      return "MEASURE " + measurement.qubit() + " -> " + measurement.resultSlot();
+    }
+    if (operation instanceof ResetOperation reset) {
+      return "RESET " + reset.qubit();
+    }
+    ConditionalGateOperation conditional = (ConditionalGateOperation) operation;
+    return "IF " + conditional.resultSlot() + " == " + conditional.expected()
+        + " APPLY " + conditional.gate().gate() + " " + conditional.gate().qubits();
   }
 
   private static void appendBody(StringBuilder output, String label, java.util.List<Instruction> body) {

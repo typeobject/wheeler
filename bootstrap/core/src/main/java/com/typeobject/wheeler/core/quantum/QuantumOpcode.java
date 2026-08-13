@@ -9,7 +9,13 @@ public enum QuantumOpcode {
   CALL_UNITARY(QuantumOpcodeIds.CALL_UNITARY, QuantumInstructionForm.UNITARY_CALL),
   APPLY_SYMBOLIC_GATE(
       QuantumOpcodeIds.APPLY_SYMBOLIC_GATE,
-      QuantumInstructionForm.SYMBOLIC_GATE);
+      QuantumInstructionForm.SYMBOLIC_GATE),
+  PREPARE_REGISTER(QuantumOpcodeIds.PREPARE_REGISTER, QuantumInstructionForm.PREPARATION),
+  MEASURE_QUBIT(QuantumOpcodeIds.MEASURE_QUBIT, QuantumInstructionForm.MEASUREMENT),
+  RESET_QUBIT(QuantumOpcodeIds.RESET_QUBIT, QuantumInstructionForm.RESET),
+  APPLY_CONDITIONAL_GATE(
+      QuantumOpcodeIds.APPLY_CONDITIONAL_GATE,
+      QuantumInstructionForm.CONDITIONAL_GATE);
 
   private final int code;
   private final QuantumInstructionForm form;

@@ -33,7 +33,7 @@ Explicit seeds make simulator samples repeatable. They do not make real hardware
 
 The engine supports H, X, Z, phase, controlled phase, CNOT, CZ, swap, generated adjoints, and coherently lifted XOR permutations.
 
-`DynamicStateVectorSimulator` is the bounded target-resident control oracle. It advertises mid-circuit measurement, reset, and classical conditions separately from the static target. One `DynamicSyndromeFixture` executes up to 1,024 parity-measurement rounds in one target call. Each round conditionally corrects its data bit and resets its ancilla before the next round. The result records canonical syndrome, reset, and correction evidence. This is semantic conformance evidence, not a noise model or hardware-fidelity claim.
+`DynamicStateVectorSimulator` is the bounded target-resident control oracle. It advertises mid-circuit measurement, reset, and classical conditions separately from the static target. Canonical quantum region records prepare a register, measure one qubit into a target-resident Boolean slot, reset one qubit, and apply one fixed gate when a prior slot matches. The simulator executes those records without a host split. One `DynamicSyndromeFixture` also executes up to 1,024 parity-measurement rounds in one target call. The results carry bounded final basis, slot, syndrome, reset, and correction evidence. This is semantic conformance evidence, not a noise model or hardware-fidelity claim.
 
 ## Batches and sampled expectations
 
@@ -55,7 +55,7 @@ Provider-native expectation requests may be used as a lowering optimization. Whe
 
 `.wbc` stores regular quantum instruction records and stable semantic gate descriptors. The executable unitary subset applies fixed or symbolic gates and calls compiler-verified coherent functions. Gate forms name ordered controls, targets, and angle parameters. Targets decompose those operations into their native basis and advertise any stricter limits.
 
-No physical gate basis is common to every provider. Wheeler therefore standardizes semantic meaning, not pulse names or appliance opcodes. Measurement, reset, preparation, target-resident control, and barriers use distinct semantic instruction families as they become executable. Provider payloads do not extend the canonical ISA at runtime.
+No physical gate basis is common to every provider. Wheeler therefore standardizes semantic meaning, not pulse names or appliance opcodes. Preparation, measurement, reset, and target-resident conditional gates have distinct semantic instruction families. Barriers remain future work. Provider payloads do not extend the canonical ISA at runtime.
 
 ## OpenQASM 3
 
@@ -105,4 +105,4 @@ Running a generated adjoint is another physical computation. It is not VM rewind
 
 After measurement or target-session loss, Wheeler can replay a recorded observation or prepare new state and retry. It cannot rebuild an unknown earlier hardware state.
 
-Dynamic-circuit and fault-tolerant features remain explicit target requirements. The bounded dynamic semantic oracle covers one syndrome-and-conditional profile. General dynamic IR and provider lowering remain WIP-0003 work. A static target fails before submission instead of silently moving a latency-sensitive region to the host.
+Dynamic-circuit and fault-tolerant features remain explicit target requirements. The bounded dynamic semantic oracle executes the canonical preparation, measurement, reset, and conditional-gate records plus one syndrome-and-correction profile. Source lowering and provider lowering remain future work. A static target fails before submission instead of silently moving a latency-sensitive region to the host.

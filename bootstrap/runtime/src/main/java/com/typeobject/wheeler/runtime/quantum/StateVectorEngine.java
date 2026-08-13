@@ -111,10 +111,14 @@ final class StateVectorEngine {
     return one;
   }
 
-  void applyX(QuantumRegister register, int qubit) {
+  void applyGate(QuantumRegister register, GateOperation gate) {
     RegisterState state = state(register);
-    checkedBit(state, qubit);
-    applyGate(state, GateOperation.of(com.typeobject.wheeler.core.quantum.Gate.X, qubit));
+    gate.qubits().forEach(qubit -> checkedBit(state, qubit));
+    applyGate(state, gate);
+  }
+
+  void applyX(QuantumRegister register, int qubit) {
+    applyGate(register, GateOperation.of(com.typeobject.wheeler.core.quantum.Gate.X, qubit));
   }
 
   void applyCnot(QuantumRegister register, int control, int target) {
