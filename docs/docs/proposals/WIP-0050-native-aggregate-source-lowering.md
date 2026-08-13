@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler compiler, aggregate, ownership, bytecode, and bootstrap maintainers |
 | Created | 2026-08-09 |
 | Updated | 2026-08-09 |
