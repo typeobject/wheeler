@@ -361,10 +361,10 @@ Promotion follows WIP-0007. The identity modules start with executable compiler 
 
 ## Testing and acceptance
 
-- [ ] Literal, Boolean, forward-reference, imported, and qualified constants evaluate exactly.
+- [x] Signed literals and arithmetic, Boolean comparison and negation, forward references, imported unqualified constants, and qualified constants evaluate exactly in compiler and execution fixtures.
 - [ ] Overflow, division by zero, invalid rotate, cycles, ambiguity, privacy violations, and duplicate names produce stable diagnostics and no artifact.
-- [ ] Constant use emits no global, initializer function, hidden history, or runtime lookup.
-- [ ] Reordering independent constant declarations leaves semantic `.wbc` byte-identical.
+- [x] Constant use folds before bytecode publication. The fixture declares four constants but emits only its one authored state global, executes with no initializer function or runtime symbol lookup, and rewinds only ordinary instructions.
+- [x] Reordering independent forward-referenced constant declarations leaves canonical `.wbc` byte-identical.
 - [x] Enum and equivalent nullary-variant fixtures share one semantic type path and runtime behavior.
 - [x] Reordering enum source cases leaves canonical case IDs and semantic `.wbc` byte-identical.
 - [x] Enum/integer and cross-enum operations fail statically absent explicit codec code.
