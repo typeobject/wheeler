@@ -267,7 +267,7 @@ Reject unknown repositories/snapshots, unauthorized namespaces, duplicate aliase
 - [x] Unrelated additions and higher compatible releases do not change a valid preferred lock. Forced range changes move the invalid selection.
 - [ ] Targeted updates preserve unrelated instances.
 - [ ] Workspace overrides are visible and publication-safe.
-- [ ] Locked vendored builds invoke no resolver, network, or ambient cache.
+- [x] Stage-0 locked vendored check, build, run, and plan commands consume the exact verified vendor archive and lock without repository resolution, network, or ambient cache. Native parity remains.
 - [ ] Stage 0 and Wheeler implementations agree.
 
 ## Alternatives
