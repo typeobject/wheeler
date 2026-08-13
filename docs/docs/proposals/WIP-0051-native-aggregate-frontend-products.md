@@ -120,7 +120,7 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 - [x] `SourceCallableTypeProducts.w` freezes primitive, local-record, and local-variant signature types before signed source carriers are compiled or discarded.
 - [x] `AggregateSourceProjection.w` removes aggregate-only declarations from primitive compilation without moving newlines or following source offsets. Native evidence compares every projected byte and traps on overlapping declaration ranges before mutation.
 - [x] `SourceAggregateOperations.w` normalizes nested constructors, field chains, and postfix slice indexes into evaluation postorder and remaps their argument owners.
-- [ ] Record, variant, fixed-array, slice, ownership, and field-chain fixtures match stage 0 byte for byte.
+- [x] Product and linker fixtures reproduce the complete stage-0 record-bearing artifact and its canonical aggregate sections byte for byte. Focused native fixtures cover variant construction and payloads, fixed-array construction and indexing, slice construction and indexing, field chains, and instruction ownership. Whole-artifact equality for every focused form remains part of physical-closure publication.
 - [ ] Every physical compiler module publishes frontend products without dependency source.
 
 ## Acceptance
