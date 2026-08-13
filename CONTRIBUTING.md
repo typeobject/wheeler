@@ -36,6 +36,7 @@ The ordinary gate gives each JUnit method two minutes. Hosted CI also caps each 
 - Update an Implementing WIP's checklist in the patch that supplies the evidence.
 - Use small commits whose message states the completed feature.
 - Run `wheeler format --check .`. Canonical `/* parameter= */ value` comments label adjacent ambiguous literals without pretending comments are named-argument syntax.
+- After changing a workspace package, rebuild its `.wpk`, replace that archive identity in every exact dependent lock, and run one locked dependent command before pushing.
 - Add mechanical checks only when they are deterministic, high-signal, and fatal without a suppression ledger.
 
 Compiler warnings are errors. Broken documentation links are errors. Tree-sitter conflicts and corpus failures are errors.
