@@ -374,10 +374,10 @@ Promotion follows WIP-0007. The identity modules start with executable compiler 
 - [ ] Non-power-of-two coherent use fails before circuit emission.
 - [ ] Measurement tests distinguish coherent enum state from classical enum result and reject attempted uncall of measurement.
 - [ ] Canonical payload-free metadata round-trips and rejects forged type/case/payload references.
-- [ ] Compiler and Tree-sitter parse every checked-in `.w` source after migration.
+- [x] Stage-0 compiler corpus tests and `treeSitterTest` parse every checked-in `.w` source after the constant and enum migration. The root syntax gate admits no second source spelling.
 - [ ] Stage-0 and Wheeler compilers agree on constant-substituted artifacts and diagnostics.
 - [ ] Wheeler verifier/interpreter contain no unexplained raw protocol identities outside focused authority modules and malformed byte fixtures.
-- [ ] Every authored file remains below 1,000 lines. Identity modules stay split by protocol domain.
+- [x] The root `sourceLengthTest` rejects every authored Java, Wheeler, JavaScript, CSS, Gradle, query, shell, or Python file above 1,000 lines. Generated Tree-sitter products are excluded and remain reproducible from their grammar source.
 
 ## Alternatives
 
