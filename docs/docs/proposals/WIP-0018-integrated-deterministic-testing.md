@@ -295,7 +295,7 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 - [ ] Sampled tests retain evidence and cannot satisfy exact or proof assertions.
 - [ ] Proof tests accept valid certificates and reject forged subjects, rules, arguments, and payloads.
 - [ ] Malformed descriptors, duplicate cases, unknown tags, exhausted limits, and oversized reports fail closed.
-- [ ] Parallel shards merge to the byte-identical semantic report produced by serial execution.
+- [x] `--shard INDEX/COUNT` assigns each implemented case by its complete case-identity digest. Shards are disjoint and complete. Canonical reduction sorts arrival-independent rows, rejects duplicate case identities, and reproduces the serial profile-2 report identity.
 - [x] Terminal, canonical JSON, and JUnit XML adapters consume one sorted profile-2 report. Each carries the same case status, diagnostics, assertion count, source, artifact, execution, coverage, and report identities. Adapter bytes remain outside semantic identity.
 - [ ] An end-to-end package suite compiles and tests the self-hosted compiler using no Java discovery.
 - [x] `reference/packages.md` and `reference/language-profile.md` describe only the implemented stage-0 runner: selected root tests, bounded scalar cases, fresh VMs, canonical order, identities, diagnostics, assertion attempts, transition coverage, and the zero-case report. Fixtures, generators, non-root modules, and adapters remain explicitly assigned to this WIP.

@@ -250,18 +250,41 @@ public final class Wheeler {
   }
 
   private static int test(String[] args, PrintStream out, PrintStream error) throws Exception {
-    if (args.length != 2 && args.length != 4) {
+    if (args.length < 2) {
       return testUsage(error);
     }
     TestReportRenderer.Format format = TestReportRenderer.Format.TERMINAL;
-    if (args.length == 4) {
-      if (!args[2].equals("--format")) {
+    int shardIndex = 0;
+    int shardCount = 1;
+    boolean formatSeen = false;
+    boolean shardSeen = false;
+    for (int option = 2; option < args.length; option += 2) {
+      if (option + 1 >= args.length) {
         return testUsage(error);
       }
-      try {
-        format = TestReportRenderer.Format.parse(args[3]);
-      } catch (IllegalArgumentException exception) {
-        error.println(exception.getMessage());
+      if (args[option].equals("--format") && !formatSeen) {
+        try {
+          format = TestReportRenderer.Format.parse(args[option + 1]);
+        } catch (IllegalArgumentException exception) {
+          error.println(exception.getMessage());
+          return testUsage(error);
+        }
+        formatSeen = true;
+      } else if (args[option].equals("--shard") && !shardSeen) {
+        try {
+          int separator = args[option + 1].indexOf('/');
+          if (separator < 1 || separator == args[option + 1].length() - 1) {
+            throw new NumberFormatException();
+          }
+          shardIndex = Integer.parseInt(args[option + 1].substring(0, separator));
+          shardCount = Integer.parseInt(args[option + 1].substring(separator + 1));
+          TestReport.assignedToShard("00".repeat(32), shardIndex, shardCount);
+        } catch (IllegalArgumentException exception) {
+          error.println("Test shard must be INDEX/COUNT with 0 <= INDEX < COUNT <= 65535");
+          return testUsage(error);
+        }
+        shardSeen = true;
+      } else {
         return testUsage(error);
       }
     }
@@ -271,11 +294,11 @@ public final class Wheeler {
     String name;
     if (WorkspaceProject.exists(root)) {
       WorkspaceProject workspace = WorkspaceProject.load(root);
-      report = workspace.test();
+      report = workspace.test(shardIndex, shardCount);
       name = "workspace " + workspace.manifest().name();
     } else {
       PackageProject project = PackageProject.load(root);
-      report = project.test();
+      report = project.test(shardIndex, shardCount);
       name = project.manifest().name();
     }
     out.print(TestReportRenderer.render(report, name, format));
@@ -284,7 +307,7 @@ public final class Wheeler {
 
   private static int testUsage(PrintStream error) {
     error.println("Usage: wheeler test <package-or-workspace-directory>"
-        + " [--format terminal|json|junit-xml]");
+        + " [--format terminal|json|junit-xml] [--shard INDEX/COUNT]");
     return 2;
   }
 

@@ -90,9 +90,13 @@ final class WorkspaceProject {
   }
 
   TestReport test() throws IOException {
+    return test(/* shardIndex= */ 0, /* shardCount= */ 1);
+  }
+
+  TestReport test(int shardIndex, int shardCount) throws IOException {
     List<TestReport> reports = new ArrayList<>();
     for (MemberProject member : members) {
-      reports.add(member.project().test());
+      reports.add(member.project().test(shardIndex, shardCount));
     }
     return TestReport.combine(reports);
   }

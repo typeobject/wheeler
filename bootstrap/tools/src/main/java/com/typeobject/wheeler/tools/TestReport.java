@@ -50,6 +50,20 @@ final class TestReport {
     return new TestReport(cases);
   }
 
+  static boolean assignedToShard(String caseIdentity, int shardIndex, int shardCount) {
+    if (!CaseResult.hex(caseIdentity)
+        || shardCount < 1 || shardCount > MAX_CASES
+        || shardIndex < 0 || shardIndex >= shardCount) {
+      throw new IllegalArgumentException("Invalid test shard assignment");
+    }
+    int remainder = 0;
+    for (int offset = 0; offset < caseIdentity.length(); offset += 2) {
+      int octet = Integer.parseInt(caseIdentity, offset, offset + 2, 16);
+      remainder = (remainder * 256 + octet) % shardCount;
+    }
+    return remainder == shardIndex;
+  }
+
   List<CaseResult> cases() {
     return cases;
   }

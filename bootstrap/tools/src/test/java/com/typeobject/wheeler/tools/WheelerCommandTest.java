@@ -408,6 +408,20 @@ class WheelerCommandTest {
     String xmlReport = stdout.toString(StandardCharsets.UTF_8);
     assertTrue(xmlReport.startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
     assertTrue(xmlReport.contains("tests=\"4\" failures=\"0\""));
+    int shardedCases = 0;
+    for (int shard = 0; shard < 3; shard++) {
+      stdout.reset();
+      assertEquals(0, Wheeler.execute(
+          new String[] {
+              "test", project.toString(), "--format", "json", "--shard", shard + "/3"
+          },
+          new PrintStream(stdout),
+          new PrintStream(new ByteArrayOutputStream())));
+      String shardReport = stdout.toString(StandardCharsets.UTF_8);
+      shardedCases += Integer.parseInt(shardReport.replaceFirst(
+          ".*\\\"selected\\\":([0-9]+).*", "$1").strip());
+    }
+    assertEquals(4, shardedCases);
     stdout.reset();
     assertEquals(0, Wheeler.execute(
         new String[] {"run", project.toString(), "--target", "law"},

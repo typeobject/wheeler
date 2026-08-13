@@ -103,6 +103,10 @@ final class PackageProject {
   }
 
   TestReport test() throws IOException {
+    return test(/* shardIndex= */ 0, /* shardCount= */ 1);
+  }
+
+  TestReport test(int shardIndex, int shardCount) throws IOException {
     LockedPackageSet dependencies = dependencies();
     if (dependencies != null) {
       dependencies.check();
@@ -125,9 +129,11 @@ final class PackageProject {
       } catch (CompilerException exception) {
         String caseIdentity = TestReport.caseIdentity(
             manifest.identity(), target.name(), sourceIdentity);
-        cases.add(TestReport.fail(
-            manifest.name(), manifest.version(), target.name(), caseIdentity,
-            sourceIdentity, "", "WTEST001", exception.getMessage(), 0));
+        if (TestReport.assignedToShard(caseIdentity, shardIndex, shardCount)) {
+          cases.add(TestReport.fail(
+              manifest.name(), manifest.version(), target.name(), caseIdentity,
+              sourceIdentity, "", "WTEST001", exception.getMessage(), 0));
+        }
         continue;
       }
       for (CompiledCase compiledCase : compiled) {
@@ -135,6 +141,9 @@ final class PackageProject {
             ? target.name() : target.name() + "::" + compiledCase.name();
         String caseIdentity = TestReport.caseIdentity(
             manifest.identity(), caseName, sourceIdentity);
+        if (!TestReport.assignedToShard(caseIdentity, shardIndex, shardCount)) {
+          continue;
+        }
         Program program = compiledCase.program();
         String artifactIdentity = sha256(writer.write(program));
         SemanticCoverage coverage = new SemanticCoverage();
