@@ -586,7 +586,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [ ] Event/completion backend passes.
 - [ ] Registered/provided/zero-copy buffer safety passes.
 - [ ] Direct I/O and coherence profile passes.
-- [ ] Durability receipts pass crash-injection conformance.
+- [x] Deterministic receipt conformance pins the complete write, data, file, namespace visibility, namespace stability, and quorum chain. It rejects skipped stages, wrong evidence kinds, duplicate evidence, namespace-less publication, and insufficient quorum profiles. Device-level crash injection remains backend-specific.
 - [ ] High-scale network and multi-queue storage profiles pass on declared hardware.
 - [ ] Tiered storage and RDMA profiles pass.
 - [ ] Quantum target lifecycle uses the fabric.
