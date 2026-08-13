@@ -664,7 +664,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [ ] Live I/O is rejected from `rev`, `coherent rev`, `unitary`, and proof bodies.
 - [ ] Compensation is a new effect and rewind cannot cross an I/O barrier.
 - [ ] Quantum registers cannot become files, bytes, mapped regions, or RDMA registrations.
-- [ ] Target submission/cancellation/result handling uses WIP-0004 identities and this lifecycle.
+- [x] Quantum submission, acknowledged-job recovery, cancellation request and race handling, result validation, late-result quarantine, replay, and retry retain WIP-0004 artifact, run, branch, submission, job, and target identities. They use the same bounded admission, terminal-state, cancellation, and uncertainty distinctions as the fabric while quantum payloads remain domain types.
 - [x] Hybrid execution obtains measurement from target execution, records the classical measurement result, and applies it once. Replay has no target and reuses only that recorded classical observation.
 - [ ] Deterministic, threaded, readiness, completion, polling, native, and VM implementations agree on lifecycle and encodings.
 
