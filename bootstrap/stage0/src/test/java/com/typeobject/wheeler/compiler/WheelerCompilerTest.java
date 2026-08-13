@@ -196,6 +196,20 @@ class WheelerCompilerTest {
         "classical class Bad { test void row(long value) cases(1, 1) {} }"));
     assertThrows(CompilerException.class, () -> compiler.compileTests(
         "classical class Bad { test void row(boolean value) cases(maybe) {} }"));
+    assertThrows(CompilerException.class, () -> compiler.compileTests(
+        "classical class Bad { test void row(long value) cases() {} }"));
+    StringBuilder oversizedCases = new StringBuilder(
+        "classical class Bad { test void row(long value) cases(");
+    for (int value = 0; value < 1_025; value++) {
+      if (value > 0) {
+        oversizedCases.append(',');
+      }
+      oversizedCases.append(value);
+    }
+    oversizedCases.append(") {} }");
+    CompilerException oversized = assertThrows(
+        CompilerException.class, () -> compiler.compileTests(oversizedCases.toString()));
+    assertTrue(oversized.getMessage().contains("exceeds 1,024 cases"));
     assertThrows(CompilerException.class, () -> compiler.compile(
         "classical class Bad { test rev void confused() {} entry void main() {} }"));
   }
