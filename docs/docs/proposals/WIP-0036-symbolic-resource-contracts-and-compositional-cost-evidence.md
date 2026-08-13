@@ -680,7 +680,7 @@ A failed resource check emits no partial verified callable, proof certificate, t
 - [ ] Peak logical qubits differ from the sum of all child qubit counts in an acceptance fixture.
 - [ ] History bytes, explicit witnesses, and clean workspace remain separate dimensions.
 - [ ] Exact logical resources, modeled physical resources, and empirical runtime remain distinct evidence types.
-- [ ] Target qubit and shot ceilings now reject before job allocation, and canonical provider material rejects above eight MiB before continuation mutation. Depth and complete closed-profile planning remain.
+- [x] Target qubit and shot ceilings reject before job allocation. Batch preflight validates every member before the first submission, and canonical provider material above eight MiB rejects before continuation mutation. Depth and complete symbolic-profile planning remain.
 - [ ] Current reference docs describe the clauses only after implementation.
 
 ## Alternatives
