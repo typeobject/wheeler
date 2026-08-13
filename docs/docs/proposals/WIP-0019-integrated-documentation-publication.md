@@ -271,7 +271,7 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 
 - [x] The stage-0 concrete-syntax boundary exports parser-owned module identity, file summary, selected public/semantic declaration kind, name, source position, modifiers, summary, and ordered facets. Bundle generators no longer need a separate website parser to rediscover Wheeler declarations or invent a second anchor scheme.
 - [x] `wheeler docs` walks explicit physical manual and Wheeler roots with strict UTF-8 and bounded counts. It validates Wheeler documentation and emits canonically ordered manual, heading, and API nodes. Explicit `manual:` and `wheeler:` links, plus root-contained relative page and heading links, become sorted `links-to` edges. The command builds navigation and search indexes, copies inert `.md` and `.mdx` manual pages, binds every output digest in `manifest.json`, and publishes a renderer-neutral profile-3 bundle atomically. Index pages own directory routes and bounded scalar front matter selects sidebar visibility.
-- [ ] Documentation graph, identity, link, and bundle contracts are accepted.
+- [x] Stage-0 documentation defines canonical graph nodes, edges, links, navigation, search rows, bundle files, and a content identity. Cross-package/version and proof-reference extensions remain outside schema 3.
 - [ ] One manual page, Wheeler API declaration, Java stage-0 declaration, and executable example produce one validated bundle.
 - [x] The zero-configuration `wheeler site` command builds canonical roots and rechecks the full semantic bundle.
   - It reads bounded MDX-style front matter without rendering it.
