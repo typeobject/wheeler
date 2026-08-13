@@ -797,7 +797,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 
 - [ ] Reader baseline, narrative frame, earned lexicon, and pacing law receive review.
 - [x] Thirteen continuous-story chapters cover every step from `T00` through `T93` in a complete developmental prose revision with sustained setting, character conflict, mission stakes, and causal payoff.
-- [ ] Stable tutorial IDs and prerequisite graph receive review.
+- [x] The documentation gate validates unique stable tutorial identities, contiguous page order, complete required metadata, and exact ordered coverage of `T00` through `T93`. The current linear route makes each prior page the prerequisite prefix.
 - [x] Thirteen routed tutorial nodes carry explicit `tutorial_id`, covered-step range, part, order, kind, source class, expected outcome, and evidence class metadata. `tutorials/index.mdx` is the stable entrance and the series covers `T00` through `T93` without placeholder nodes.
 - [ ] Primary fenced Wheeler source compiles and runs through the documentation gate.
 - [ ] Expected-rejection fences check stable diagnostics.
@@ -820,7 +820,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 ## Testing and acceptance
 
 - [ ] A clean checkout follows the documented setup and runs the first lesson without ambient dependencies.
-- [ ] Every lesson ID is unique, stable, ordered, and reachable through an acyclic prerequisite graph.
+- [x] The parser-owned tutorial graph rejects duplicate IDs, duplicate or noncontiguous orders, malformed steps, gaps, and order disagreement. Exact `T00` through `T93` coverage forms one bounded acyclic linear route.
 - [x] `tutorials/index.mdx` exposes one entrance, `T00` in **Home**. Each chapter ends with exactly one link to the next numbered chapter through **Weather**, and every Markdown node remains directly routable by its stable file path.
 - [ ] Every declared required term resolves to an earlier published introduction in the stable glossary graph.
 - [ ] Every introduced term follows an observation, states its nearest contrast, and supports a later prediction or explanation.

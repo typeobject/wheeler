@@ -133,6 +133,36 @@ class DocumentationMarkdownTest {
   }
 
   @Test
+  void validatesCompleteOrderedTutorialMetadata() {
+    Map<String, String> sources = new java.util.LinkedHashMap<>();
+    sources.put("tutorials/index.mdx", "# Tutorial\n");
+    for (int step = 0; step <= 93; step++) {
+      sources.put("tutorials/%02d.md".formatted(step), """
+          ---
+          tutorial_id: T%02d
+          tutorial_steps: T%02d
+          tutorial_part: part
+          tutorial_order: %d
+          tutorial_kind: exact
+          tutorial_source: fixture
+          tutorial_expectation: pass
+          tutorial_evidence: execution
+          ---
+          # Step %02d
+          """.formatted(step, step, step, step));
+    }
+    DocumentationMarkdown valid = new DocumentationMarkdown(sources);
+    assertEquals(95, valid.pages().size());
+
+    Map<String, String> duplicate = new java.util.LinkedHashMap<>(sources);
+    duplicate.put("tutorials/93.md", duplicate.get("tutorials/93.md")
+        .replace("tutorial_id: T93", "tutorial_id: T92"));
+    PackageFormatException exception = assertThrows(
+        PackageFormatException.class, () -> new DocumentationMarkdown(duplicate));
+    assertTrue(exception.getMessage().contains("Duplicate tutorial identity"));
+  }
+
+  @Test
   void supportsIndexMarkdownAndRejectsRouteOrSidebarMetadataConflicts() {
     DocumentationMarkdown renderer = new DocumentationMarkdown(Map.of(
         "guide/index.md", "# Guide\n",

@@ -53,9 +53,10 @@ final class DocumentationMarkdown {
       Document document = document(entry.getValue(), source);
       ordered.add(new Page(source, title(document.markdown(), source), output,
           document.markdown(), document.sidebarPosition(), document.sidebar(),
-          document.sidebarChildren()));
+          document.sidebarChildren(), document.metadata()));
     });
     pages = List.copyOf(ordered);
+    TutorialGraph.validate(pages);
     routes = Map.copyOf(routeMap);
     manualRoutes = Map.copyOf(manualRouteMap);
   }
@@ -434,7 +435,7 @@ final class DocumentationMarkdown {
   private static Document document(String sourceText, String source) {
     String[] lines = sourceText.split("\\R", -1);
     if (lines.length == 0 || !lines[0].equals("---")) {
-      return new Document(sourceText, NO_SIDEBAR_POSITION, true, true);
+      return new Document(sourceText, NO_SIDEBAR_POSITION, true, true, Map.of());
     }
     int closing = 1;
     while (closing < lines.length && !lines[closing].equals("---")) {
@@ -485,7 +486,8 @@ final class DocumentationMarkdown {
       throw new PackageFormatException("Markdown front-matter title disagrees with heading in "
           + source);
     }
-    return new Document(markdown, sidebarPosition, sidebar, sidebarChildren);
+    return new Document(
+        markdown, sidebarPosition, sidebar, sidebarChildren, Map.copyOf(fields));
   }
 
   private static boolean booleanField(
@@ -565,7 +567,11 @@ final class DocumentationMarkdown {
   }
 
   private record Document(
-      String markdown, int sidebarPosition, boolean sidebar, boolean sidebarChildren) {}
+      String markdown,
+      int sidebarPosition,
+      boolean sidebar,
+      boolean sidebarChildren,
+      Map<String, String> metadata) {}
 
   record Page(
       String source,
@@ -574,5 +580,10 @@ final class DocumentationMarkdown {
       String markdown,
       int sidebarPosition,
       boolean sidebar,
-      boolean sidebarChildren) {}
+      boolean sidebarChildren,
+      Map<String, String> metadata) {
+    Page {
+      metadata = Map.copyOf(metadata);
+    }
+  }
 }
