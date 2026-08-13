@@ -261,12 +261,12 @@ Registered and provided buffers remain bounded affine resources. Native queue en
 
 ## Testing and acceptance
 
-- [ ] Bytecode rejects unknown register types, mismatched operands or calls, invalid Boolean values, uninitialized reads, escaped targets, bad joins, bad returns, and malformed loop descriptors. Scalar types, local bounds, definite assignment, branch targets, and fallthrough are covered.
+- [x] Bytecode verification covers scalar register types, local bounds, operand and call types, Boolean values, definite assignment, branch targets, joins, returns, bounded loop descriptors, and function fallthrough. It rejects unknown register types, mismatches, uninitialized reads, escaped targets, bad joins, bad returns, and malformed loop descriptors before execution.
 - [x] VM tests cover the initial signed-local instruction set forward and rewind, including loop and arithmetic traps before mutation.
 - [ ] Calls cover exact signed/Boolean argument transfer, primitive owner parameters/results, recursive execution, 1,024-frame exhaustion, and rewind. Returned loans, aggregate move/loan, inverse signatures, and nested trap behavior remain.
 - [ ] Branch tests cover both paths, join assignment, early typed return, and source diagnostics. Unreachable-block diagnostics remain.
 - [x] `while` and counted `for` tests cover zero and exact bounds, exceeded bounds, update-on-continue, innermost `break`, nested loops, and the independent global step defense.
-- [ ] Reversible methods reject unprotected branch/loop forms and accept only forms with checked inverse laws.
+- [x] The current reversible source profile rejects local branch and loop forms. It admits generated inverse bodies only when every operation has a checked inverse law. Protected reversible control remains WIP-0035.
 - [ ] Record and variant tests cover canonical encoding, nested fields and payloads, fixed signed/Boolean array fields and payloads, nominal structural equality, exhaustive selection, malformed descriptors, source type errors, deterministic interning, and rewind. Nonescaping slices and aggregate-element arrays remain excluded from inline layouts, and the verifier rejects forged recursive array descriptors. A manifest-linked FIFO now returns immutable cursor records through explicit `Push`/`Pop` variants over a borrowed word buffer. Native layout parity and generic queue ownership remain.
 - [x] Fixed-array and immutable-slice tests cover typed construction, dynamic boundaries, calls, structural equality, canonical encoding, interning, nonescape, and rewind.
 - [ ] Region tests cover word, byte, and map allocation and mutation. They also cover byte ranges, UTF-8 boundaries, borrow kind and aliasing, scratch cleanup, capacity failures, drop order, moved values, leaks, ownership joins, canonical encoding, snapshots, and rewind. Dangling borrows, output-address independence, recoverable failure, and commit remain.
