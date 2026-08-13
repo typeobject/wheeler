@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Accepted |
+| Status | Implemented |
 | Owners | Wheeler compiler, linker, bootstrap, package, and conformance maintainers |
 | Created | 2026-08-07 |
 | Updated | 2026-08-07 |

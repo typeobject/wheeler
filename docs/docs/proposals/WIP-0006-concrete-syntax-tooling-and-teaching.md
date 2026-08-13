@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler language, tooling, and documentation maintainers |
 | Created | 2026-07-17 |
 | Updated | 2026-07-18 |
