@@ -729,7 +729,7 @@ class SourceProfileNegativeTest {
         quantum class DynamicSource {
           state long measured = 0;
           qreg q = new qreg(1);
-          dynamic unitary void correction() { X(q[0]); }
+          dynamic void correction() { X(q[0]); }
           entry void main() {
             prepare(q, 0);
             correction();
@@ -737,16 +737,17 @@ class SourceProfileNegativeTest {
           }
         }
         """;
-    String misplaced = dynamic.replace("dynamic unitary", "dynamic");
+    String conflicting = dynamic.replace("dynamic void", "dynamic unitary void");
 
     CompilerException unavailable = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(dynamic));
-    CompilerException requiresUnitary = assertThrows(
-        CompilerException.class, () -> new WheelerCompiler().compile(misplaced));
+    CompilerException kindsConflict = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(conflicting));
 
     assertTrue(unavailable.getMessage().contains(
         "dynamic unitary source operations are not yet available"));
-    assertTrue(requiresUnitary.getMessage().contains("dynamic methods must also be unitary"));
+    assertTrue(kindsConflict.getMessage().contains(
+        "rev, unitary, dynamic, entry, and test are mutually exclusive"));
   }
 
   @Test

@@ -254,13 +254,10 @@ final class SourceParser extends SourceStatementParser {
     if (coherent && !reversible) {
       fail(start, "coherent methods must also be rev");
     }
-    if (dynamic && !unitary) {
-      fail(start, "dynamic methods must also be unitary");
-    }
-    int semanticModifiers = (reversible ? 1 : 0) + (unitary ? 1 : 0)
+    int semanticModifiers = (reversible ? 1 : 0) + (unitary ? 1 : 0) + (dynamic ? 1 : 0)
         + (entry ? 1 : 0) + (test ? 1 : 0);
     if (semanticModifiers > 1) {
-      fail(start, "rev, unitary, entry, and test are mutually exclusive method kinds");
+      fail(start, "rev, unitary, dynamic, entry, and test are mutually exclusive method kinds");
     }
     boolean validEntryParameters = SourceParameterParser.validEntry(parameters);
     if (entry && (!name.equals("main") || returnsValue || !validEntryParameters)) {
@@ -272,9 +269,9 @@ final class SourceParser extends SourceStatementParser {
     SourceTestCaseParser.validateShape(
         test, domain, returnsValue, parameters, testCases, start);
     SourceResultParser.validateSpecialMethodShape(
-        start, reversible, coherent, unitary, returnType, !parameters.isEmpty());
+        start, reversible, coherent, unitary || dynamic, returnType, !parameters.isEmpty());
 
-    if (unitary) {
+    if (unitary || dynamic) {
       circuits.add(parseCircuit(name, dynamic, start.line()));
     } else {
       functions.add(parseFunction(
