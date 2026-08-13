@@ -297,7 +297,7 @@ Quantum targets own execution evidence, not coverage interpretation. The proof k
 - [ ] Coverage point, map, observation, policy, and report contracts are accepted.
 - [x] Classical bytecode transition points collect through the VM observer without adding counter instructions or changing `.wbc`. Source-point mapping remains outside the current profile.
 - [ ] WIP-0018 attempts merge deterministically across serial and sharded runs.
-- [ ] Inverse, rewind, workflow, quantum, and proof dimensions execute distinctly.
+- [x] The implemented classical reducer distinguishes forward, language inverse, rewind-forward, and rewind-inverse observations in one canonical report. Workflow, quantum, and proof dimensions remain outside the current profile.
 - [ ] Wheeler and stage-0 reducers emit byte-identical reports.
 - [ ] Superseded semantic coverage authorities are deleted.
 
@@ -307,7 +307,7 @@ Quantum targets own execution evidence, not coverage interpretation. The proof k
 - [x] The classical coverage fixture runs observed and plain VMs through forward execution and complete rewind and compares every snapshot and history boundary exactly. Circuit, job, and proof collection remain outside the current profile.
 - [ ] Decision, condition, match-arm, trap, call, and bounded MC/DC fixtures produce exact expected denominators and witnesses.
 - [ ] Forward, language inverse, uncompute, VM rewind, replay, retry, and recovery observations never alias.
-- [ ] Rewind preserves attempted hit coverage while net-state accounting reflects restoration.
+- [x] Rewind retains the earlier forward and inverse hit records and adds direction-specific rewind observations while the observed machine returns to its exact initial snapshot.
 - [ ] Quantum collection adds no measurement and distinguishes structural execution, sampled outcomes, exact assertions, and proof.
 - [ ] Proof coverage distinguishes lookup, obligation, rule execution, acceptance, and rejection.
 - [ ] Duplicate shard attempts and replayed job evidence cannot inflate hit sets, counts, shots, or submissions.
