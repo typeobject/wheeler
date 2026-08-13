@@ -63,7 +63,7 @@ For one callable:
 2. validate balanced source blocks and exact loop limits
 3. assign function-local block and statement ordinals
 4. resolve every condition, body statement, call, and owner product
-5. compute forward and inverse instruction extents
+5. compute the forward instruction extent
 6. compute and validate branch targets
 7. publish block and loop rows atomically
 8. emit canonical instructions
@@ -74,7 +74,7 @@ No output byte, artifact rank, relocation row, or identity may publish before st
 
 Forward code evaluates the condition, checks the static iteration bound, enters the body, and branches back through the canonical loop instruction forms. Body instructions retain source order. Nested blocks use precomputed instruction windows. No emitter searches source text or emitted bytes for a target.
 
-The inverse path exists only when every body instruction and the loop relation have an admitted inverse. Classical irreversible helpers keep ordinary history semantics. An unsupported inverse fails before either direction publishes.
+This WIP does not add reversible loop syntax. WIP-0035 owns inverse loop relations and coherent control flow. Classical loop helpers use ordinary history semantics.
 
 Stage 0 and the native compiler must produce identical function descriptors, local types, instruction order, operands, branch targets, and code padding.
 
@@ -143,13 +143,13 @@ Adoption starts with `CoreParsing.w`, whose two loops compact and shift token co
 - [x] `ResolvedLoopProducts.w` joins signed literal and unique prior-local condition operands to exact local rows and rejects use before definition, ambiguity, wrong type spelling, invalid reversals, and forged windows without publication.
 - [x] Resolved loop products join named compile-time limits from counted module symbols. Literal and named bounds publish the same source-independent value. Malformed symbol products publish nothing.
 - [x] `ResolvedLoopBodyProducts.w` publishes direct signed and Boolean-literal declaration, type-checked signed and Boolean assignment, Boolean and literal comparison assertion, checked local-update, and borrowed-word read/write flow with exact monotonic local bases. Named sources require one visible prior value. Unsupported, cross-type, malformed-index, wrong-owner, or ambiguous body rows publish nothing. The borrowed-word fixture presets the caller row and proves failed reads and writes leave the count and sentinel unchanged.
-- [x] The current nested-block profile joins one-arm signed local equality and less-than guards with direct checked-add children. `LoopNestedBlockProducts.w` rejects detached or recursively nested children atomically. `LoopCallProducts.w` publishes source-independent call code, types, and relocations. `LoopBackEdgeProducts.w` validates ownership state and back edges. Deeper admitted block forms remain with inverse-window integration.
+- [x] The current nested-block profile joins one-arm signed local equality and less-than guards with direct checked-add children. `LoopNestedBlockProducts.w` rejects detached or recursively nested children atomically. `LoopCallProducts.w` publishes source-independent call code, types, and relocations. `LoopBackEdgeProducts.w` validates ownership state and back edges. Deeper reversible block forms remain with WIP-0035.
 - [x] `LoopLocalTypeProducts.w` publishes exact signed and Boolean loop-frame and direct-body local types. The admitted suffix matches stage 0.
 - [x] Ownership and loan joins validate loop back edges. Mismatched state and escaping body loans fail atomically.
 - [x] Zero-argument signed, Boolean, and void call joins publish canonical code, local types, and stable relocation identities atomically.
 - [x] One- through seven-argument call joins validate source order and exact target parameter types, emit typed argument transfer windows, and relocate the call instruction rather than its evaluation prefix. Call products feed the same instruction windows consumed by back-edge validation.
 - [x] `LoopInstructionProducts.w` emits canonical forward instruction windows and exact branch targets for direct signed and Boolean declarations, literal and prior-local assignments, assertions, checked local updates, and borrowed-word reads and writes without mutating resolved products. Only loop-owned locals are rebased. Enclosing parameters and locals retain their coordinates. The admitted fixture matches stage 0 byte for byte.
-- [ ] Canonical call, nested-block, and inverse instruction windows match stage 0. Forward call and ownership windows are complete. One-arm equality and less-than nested-block windows match stage 0 byte for byte. Inverse windows remain.
+- [x] Canonical call and nested-block instruction windows match stage 0. Zero-argument and typed one-argument call fixtures pin every emitted form and relocation coordinate. One-arm equality and less-than nested-block windows match stage 0 byte for byte. WIP-0035 owns inverse windows.
 - [ ] `CoreParsing.w` compiles byte for byte from its immutable archive range.
 - [ ] Every physical multi-statement loop module compiles without dependency source.
 
