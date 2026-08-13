@@ -211,6 +211,21 @@ class SourceFormatterTest {
   }
 
   @Test
+  void normalizesLineEndingsFinalNewlinesAndIndentation() {
+    String lf = "classical class Lines{entry void main(){long value=1;}}";
+    String crlf = lf.replace("{", "{\r\n").replace(";", ";\r\n");
+    String cr = lf.replace("{", "{\r").replace(";", ";\r");
+
+    String canonical = SourceFormatter.format(lf);
+
+    assertEquals(canonical, SourceFormatter.format(crlf));
+    assertEquals(canonical, SourceFormatter.format(cr));
+    assertTrue(canonical.endsWith("\n"));
+    assertFalse(canonical.contains("\r"));
+    assertTrue(canonical.contains("\n  entry void main() {\n    long value = 1;\n"));
+  }
+
+  @Test
   void preservesCommentPayloadAndNormalizesBlockLineEndings() {
     String source = "classical class C{/* first  payload */\r\n"
         + "entry void main(){// trailing  payload\r\n}}";

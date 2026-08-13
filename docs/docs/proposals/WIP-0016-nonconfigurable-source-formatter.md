@@ -778,7 +778,7 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 
 - [x] Command-level malformed UTF-8 and syntax failures leave every sibling source unchanged. Unsafe and duplicate paths fail before traversal, bounded readers reject oversized input, and write mode validates all products before sibling staging and atomic replacement.
 
-- [ ] LF, final-newline, indentation, and code-layout normalization are host-independent.
+- [x] LF, one final newline, two-space indentation, and fixed code layout derive only from formatter constants. Differential LF, CRLF, and CR fixtures produce identical canonical bytes.
 
 - [ ] Configuration files, environment variables, locale, terminal width, editor settings, and network state cannot alter output or diagnostics.
 
