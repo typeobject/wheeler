@@ -21,6 +21,7 @@ import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.closure.loop_call_products;
 import wheeler.compiler.closure.loop_instruction_products;
 import wheeler.compiler.closure.loop_local_type_products;
+import wheeler.compiler.closure.loop_nested_block_products;
 import wheeler.compiler.closure.primitive_placeholder_projection;
 import wheeler.compiler.closure.resolved_aggregate_operations;
 import wheeler.compiler.closure.resolved_loop_body_products;
