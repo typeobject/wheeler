@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.loop_instruction_products;
 
+import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
 import wheeler.compiler.loop_body_opcodes;
@@ -11,11 +12,6 @@ import wheeler.compiler.storage_opcodes;
 
 classical class LoopInstructionProducts {
   private const long BODY_COUNT_LIMIT = 4096;
-  private const long BODY_LOCAL_BASE_ROW = 4096;
-  private const long BODY_OPCODE_ROW = 8192;
-  private const long BODY_OPERAND_KIND_ROW = 12288;
-  private const long BODY_OPERAND_ROW = 16384;
-  private const long BODY_ROWS = 20480;
   private const long BODY_STAGING_BYTES = 163840;
   private const long CONDITION_LEFT_KIND_ROW = 256;
   private const long CONDITION_LEFT_OPERAND_ROW = 512;

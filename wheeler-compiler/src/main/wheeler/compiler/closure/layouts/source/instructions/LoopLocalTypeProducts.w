@@ -2,14 +2,13 @@
 
 module wheeler.compiler.closure.loop_local_type_products;
 
+import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.loop_body_opcodes;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.type_codes;
 
 classical class LoopLocalTypeProducts {
   private const long BODY_COUNT_LIMIT = 4096;
-  private const long BODY_OPCODE_ROW = 8192;
-  private const long BODY_ROWS = 20480;
   private const long LOOP_BODY_STATEMENT_COUNT_ROW = 1792;
   private const long LOOP_COUNT_LIMIT = 256;
   private const long LOOP_FIRST_BODY_STATEMENT_ROW = 1536;

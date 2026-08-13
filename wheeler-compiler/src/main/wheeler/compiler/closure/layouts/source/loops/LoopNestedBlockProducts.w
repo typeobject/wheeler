@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.loop_nested_block_products;
 
+import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
 import wheeler.compiler.opcodes;
@@ -11,11 +12,6 @@ classical class LoopNestedBlockProducts {
   private const long BLOCK_PARENT_ROW = 1024;
   private const long BLOCK_ROWS = 6144;
   private const long BODY_COUNT_LIMIT = 4096;
-  private const long BODY_LOCAL_BASE_ROW = 4096;
-  private const long BODY_OPCODE_ROW = 8192;
-  private const long BODY_OPERAND_KIND_ROW = 12288;
-  private const long BODY_OPERAND_ROW = 16384;
-  private const long BODY_ROWS = 20480;
   private const long CONDITION_EQ_LITERAL = 1;
   private const long CONDITION_LT_LITERAL = 2;
   private const long MAX_CODE_BYTES = 262144;
