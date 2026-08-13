@@ -618,13 +618,13 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] The positional stage-0 oracle captures destination or source buffers on submission, prevents access while the operation is live, and returns the buffer only in terminal completion after release. The Java seed models exclusive capture rather than Wheeler loan syntax.
 - [x] Stage-0 moved buffers return through terminal positional results and remain inaccessible until resource-release completion.
 - [x] Positional read and write construction checks bounded offsets and lengths, completion progress cannot exceed declared work, and a provider that reports excess progress is rejected at terminal reduction.
-- [ ] Registration, pool, queue, completion, timer, and total-work limits fail closed.
+- [x] The stage-0 profile enforces positive operation, live-operation, batch, graph-node, graph-edge, and total-work limits. The threaded backend also bounds workers and admitted work and refuses excess admission before consuming the request. Registration and timer limits remain outside this slice.
 - [ ] Data-plane saturation preserves cleanup/control credit.
 - [ ] Zero-copy does not release a source before final reuse permission.
 
 ### Ordering and addressing
 
-- [ ] Independent batch operations complete in every permitted order.
+- [x] Independent batch requests are admitted together, selection consumes only the chosen terminal result, and awaiting the remainder loses no completion. Threaded graph roots make overlapping progress before their dependent is admitted.
 - [x] The deterministic stage-0 graph publishes a node only after every named terminal predecessor. Independent roots are admitted together.
 - [ ] Submission order creates no implicit completion or persistence order.
 - [ ] Disjoint ranges run independently. Unsafe overlap is rejected or explicitly named.
