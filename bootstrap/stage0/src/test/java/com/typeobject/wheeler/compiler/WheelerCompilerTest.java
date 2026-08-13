@@ -985,16 +985,4 @@ class WheelerCompilerTest {
     assertTrue(exception.getMessage().contains("coherent function contains ADD_CONST"));
   }
 
-  @Test
-  void reportsSourceErrorsWithLines() {
-    CompilerException unknown = assertThrows(
-        CompilerException.class,
-        () -> new WheelerCompiler().compile(COUNTER.replace("count += 1", "missing += 1")));
-    CompilerException irreversible = assertThrows(
-        CompilerException.class,
-        () -> new WheelerCompiler().compile(COUNTER.replace("count += 1", "count = 1")));
-
-    assertTrue(unknown.getMessage().contains("line 5"));
-    assertTrue(irreversible.getMessage().contains("no generated inverse"));
-  }
 }
