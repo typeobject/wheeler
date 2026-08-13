@@ -214,6 +214,20 @@ class SourceFormatterTest {
   }
 
   @Test
+  void preservesDeeplyIndentedIndivisibleTokens() {
+    String name = "canonicalIdentifier".repeat(7);
+    String source = "classical class Deep { entry void main() { if (true) { if (true) { "
+        + "long " + name + " = 1; assert(" + name + " == 1); } } } }";
+
+    String formatted = SourceFormatter.format(source);
+
+    assertTrue(formatted.contains("        long " + name + " = 1;"));
+    assertTrue(formatted.lines().anyMatch(line -> line.length() > 100));
+    assertEquals(tokens(source), tokens(formatted));
+    assertEquals(formatted, SourceFormatter.format(formatted));
+  }
+
+  @Test
   void breaksLongBinaryExpressionsWithLeadingContinuationOperators() {
     String source = "classical class Expression { entry void main() { boolean equal = "
         + "firstAggregateValueWithLongCanonicalName == "
