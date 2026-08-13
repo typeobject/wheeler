@@ -364,7 +364,7 @@ Each fixture first lands as an executable law if necessary, then gains a formal 
 - [ ] Coherent certificates prove exact finite permutation and reject nonunitary or hidden-measurement bodies.
 - [ ] QFT carries a generated-adjoint structural certificate and an executable round-trip law. A kernel theorem for semantic composition to identity within an exact scalar profile remains.
 - [x] Circuit rewrite certificates accept deterministic adjacent-inverse cancellation and reject a deliberately changed gate.
-- [ ] Static step certificates reject a false bound and bind the exact function ID/body. Region, target-plan, compiler-profile, and compositional bound identities remain.
+- [x] Static step certificates bind one exact function row, reject a bound below its instruction count, reject bounds above the program ceiling, and reject calls or branches instead of pretending to compose them. Region, target-plan, compiler-profile, and compositional bound identities remain.
 - [ ] Sampled experiment evidence cannot type-check where an exact theorem proof is required.
 - [ ] Replay preserves empirical downstream decisions without changing experiment evidence into formal proof.
 - [ ] Proof output and diagnostics are deterministic under task, map, solver, and cache-order variation.
