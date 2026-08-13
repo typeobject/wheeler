@@ -501,7 +501,7 @@ Filesystem and network libraries contribute domain types and adapters over that 
 - [ ] Every public operation documents ownership, effects, failure, allocation, limits, inverse availability, and coherent eligibility.
 - [ ] Core packages compile and run without allocator or host capabilities.
 - [ ] Collection iteration and canonical encoding are stable under insertion, allocation, hash, and task-order variation.
-- [ ] Strict UTF-8 validation/scalar decoding covers canonical one-to-four-byte and malformed boundary forms. Streaming decode, encoding, normalization, string boundaries, and parser numeric differential corpora remain.
+- [x] Strict UTF-8 validation and scalar decoding cover canonical one- through four-byte sequences plus stray continuation, overlong, surrogate, out-of-range, invalid lead, and truncated forms. Streaming decode, encoding, normalization, string boundaries, and parser numeric differential corpora remain.
 - [ ] Allocation exhaustion, integer overflow, index failure, malformed decode, and capability denial occur before partial publication.
 - [ ] Reversible structures pass generated forward/inverse laws and reject missing clean storage or ownership witnesses.
 - [ ] Arena and ownership tests reject escapes, use after move, overlapping mutable slices, double drop, and cycles unsupported by the profile.
