@@ -201,7 +201,7 @@ u32 field_count
 u64 fields[field_count]
 ```
 
-The quantum opcode selects a named form with ordered semantic field groups. Gate instructions name a stable gate descriptor, an exact logical-qubit window, and an exact numeric or symbolic parameter window. Unitary calls name a verified coherent function and direction. Measurement, reset, preparation, controlled application, bounded quantum control, and barriers receive their own forms as those semantics become executable. They do not masquerade as gates.
+The quantum opcode selects a named form with ordered semantic field groups. Gate instructions name a stable gate descriptor, an exact logical-qubit window, and an exact numeric or symbolic parameter window. Unitary calls name a verified coherent function and direction. Preparation, measurement, reset, and measurement-conditioned fixed-gate application have distinct executable forms. Bounded quantum control and barriers remain future work. These operations do not masquerade as ordinary gates.
 
 Gate descriptors own stable identities, qubit roles, parameter roles, adjoint rules, and capability requirements. The baseline registry contains `H`, `X`, `Z`, `PHASE`, `CPHASE`, `CNOT`, `CZ`, and `SWAP`. A target may decompose them. It may not change their meaning. Later standard gates append descriptors under explicit capability and version rules without changing the instruction record.
 
