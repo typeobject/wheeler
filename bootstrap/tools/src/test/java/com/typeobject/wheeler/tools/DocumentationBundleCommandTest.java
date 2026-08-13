@@ -12,6 +12,8 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -81,6 +83,37 @@ class DocumentationBundleCommandTest {
         () -> execute(manuals, sources, missing, new ByteArrayOutputStream()));
     assertTrue(missingLink.getMessage().contains("Missing documentation link"));
     assertFalse(Files.exists(missing));
+  }
+
+  @Test
+  void serialAndParallelGenerationProduceTheSameSemanticBundle() throws Exception {
+    Path manuals = temporary.resolve("parallel-manuals");
+    Path sources = temporary.resolve("parallel-sources");
+    Files.createDirectories(manuals);
+    Files.createDirectories(sources);
+    Files.writeString(manuals.resolve("guide.md"), "# Guide\n\nParallel work changes no semantics.\n");
+    Files.writeString(sources.resolve("Api.w"), """
+        //! Stable API.
+        module parallel.api;
+        classical class Api {
+          /// Returns one.
+          public long one() { return 1; }
+        }
+        """);
+    Path serial = temporary.resolve("serial-bundle");
+    Path first = temporary.resolve("parallel-bundle-one");
+    Path second = temporary.resolve("parallel-bundle-two");
+    assertEquals(0, execute(manuals, sources, serial, new ByteArrayOutputStream()));
+
+    CompletableFuture<Integer> firstBuild = CompletableFuture.supplyAsync(
+        () -> uncheckedExecute(manuals, sources, first));
+    CompletableFuture<Integer> secondBuild = CompletableFuture.supplyAsync(
+        () -> uncheckedExecute(manuals, sources, second));
+    assertEquals(0, firstBuild.join());
+    assertEquals(0, secondBuild.join());
+
+    assertEquals(bundleFiles(serial), bundleFiles(first));
+    assertEquals(bundleFiles(serial), bundleFiles(second));
   }
 
   @Test
@@ -160,6 +193,24 @@ class DocumentationBundleCommandTest {
         () -> execute(manuals, sources, output, new ByteArrayOutputStream()));
     assertTrue(failure.getMessage().contains("WDOC001"));
     assertFalse(Files.exists(output));
+  }
+
+  private static Map<String, String> bundleFiles(Path root) throws IOException {
+    Map<String, String> files = new java.util.TreeMap<>();
+    try (var paths = Files.walk(root)) {
+      for (Path path : paths.filter(Files::isRegularFile).toList()) {
+        files.put(root.relativize(path).toString(), Files.readString(path));
+      }
+    }
+    return files;
+  }
+
+  private static int uncheckedExecute(Path manuals, Path sources, Path output) {
+    try {
+      return execute(manuals, sources, output, new ByteArrayOutputStream());
+    } catch (Exception exception) {
+      throw new IllegalStateException(exception);
+    }
   }
 
   private static int execute(

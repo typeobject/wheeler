@@ -843,7 +843,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [x] **Weather** names the measurement, reset, and target-resident conditional requirements. The static target rejects that complete capability set in canonical order before provider work, while the bounded dynamic target executes it.
 - [ ] Every diagram has a text equivalent and does not depend on color.
 - [ ] Source Markdown, static HTML, downloadable source, and printable order contain the same lesson graph.
-- [ ] Serial and parallel documentation builds produce byte-identical semantic bundles.
+- [x] Serial generation and two concurrent independent generations produce byte-identical complete semantic bundle trees from the same manual and Wheeler API inputs.
 - [ ] A failed lesson compile, run, sample, link, or render leaves the previous publication unchanged.
 - [x] The published route contains thirteen complete chapter nodes covering `T00` through `T93`. The graph gate requires every routed chapter file and exact contiguous step coverage, so the release route contains no linked placeholder node.
 - [ ] Structured reader review covers the zero-knowledge path through `T68` before the replacement gate.
