@@ -68,6 +68,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
   void rejectsUnsupportedAndAmbiguousBodyRowsWithoutPublishing() throws Exception {
     for (TestCase testCase : new TestCase[] {
         new TestCase(SOURCE.replace("cursor += delta;", "return;"), false),
+        new TestCase(SOURCE.replace("cursor += delta;", "if (ready) { cursor += delta; }"), false),
         new TestCase(SOURCE.replace("ready = false;", "ready = 0;"), false),
         new TestCase(SOURCE, true)
     }) {

@@ -36,6 +36,7 @@ classical class ResolvedLoopBodyProducts {
   private const long STATEMENT_ORDINAL_ROW = 8192;
   private const long STATEMENT_START_ROW = 12288;
   private const long STATEMENT_LENGTH_ROW = 16384;
+  private const long STATEMENT_CHILD_COUNT_ROW = 24576;
   private const long VALUE_COUNT_LIMIT = 1024;
   private const long VALUE_DEFINITION_ORDINAL_ROW = 4096;
   private const long VALUE_LOCAL_ROW = 3072;
@@ -211,7 +212,11 @@ classical class ResolvedLoopBodyProducts {
     long bodyCount = 0;
     long statement = 0;
     while (statement < statementCount) limit MAX_STATEMENTS {
+      long childCount = statementRows[STATEMENT_CHILD_COUNT_ROW + statement];
       if (0 < statementRows[4096 + statement]) {
+        if (childCount != 0) {
+          valid = false;
+        } else {
         long owner = statementRows[statement];
         long ordinal = statementRows[STATEMENT_ORDINAL_ROW + statement];
         long start = statementRows[STATEMENT_START_ROW + statement];
@@ -939,6 +944,7 @@ classical class ResolvedLoopBodyProducts {
           bodyCount += 1;
         } else {
           valid = false;
+        }
         }
       }
 
