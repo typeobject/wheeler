@@ -308,7 +308,7 @@ Quantum targets own execution evidence, not coverage interpretation. The proof k
 - [ ] Decision, condition, match-arm, trap, call, and bounded MC/DC fixtures produce exact expected denominators and witnesses.
 - [x] Forward, language inverse, rewind-forward, and rewind-inverse are separate closed observer enum values and separate point-identity fields, so the implemented classical dimensions cannot alias. Uncompute, replay, retry, and recovery remain outside this observer profile.
 - [x] Rewind retains the earlier forward and inverse hit records and adds direction-specific rewind observations while the observed machine returns to its exact initial snapshot.
-- [ ] Quantum collection adds no measurement and distinguishes structural execution, sampled outcomes, exact assertions, and proof.
+- [x] Current quantum evidence accounting adds no measurement. It keeps exact-quantum, sampled-quantum, and proof evidence in distinct closed kinds, while circuit execution remains structural runtime evidence. Source-level typed collection remains with WIP-0018.
 - [ ] Proof coverage distinguishes lookup, obligation, rule execution, acceptance, and rejection.
 - [x] The current test reducer rejects duplicate case identities while merging shards. Hybrid replay consumes one reduced applied-observation map and performs no target submission, so duplicate event delivery and replay cannot inflate current case outcomes, measurements, jobs, or submissions. General quantum coverage counters remain.
 - [ ] Serial, randomized-worker, and distributed reductions emit byte-identical semantic reports.
