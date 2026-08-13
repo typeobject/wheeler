@@ -280,7 +280,7 @@ A persisted continuation contains canonical owned request state, external operat
 - [x] Fresh retry creates a distinct submission lineage.
 - [x] Rollback before submission, after acknowledgement, and after measurement follows the declared transaction phase without claiming physical reversal.
 - [x] Late results from cancelled or discarded branches cannot mutate active state.
-- [ ] Commit and cleanup make earlier rewind/replay availability explicit and respect live references.
+- [x] Hybrid commit advances an explicit event-sequence horizon, commits VM history, and makes transaction abort unavailable. Replay remains a separate event reduction over the retained snapshot and submits no target work. General cleanup and live target-session references remain.
 - [x] Optimizer and coherent-layer fixtures do not retain quantum handles across ordinary target-job boundaries.
 - [ ] Surface-code fixtures require target-resident capabilities when host latency would violate the plan.
 - [ ] Persistence corruption, truncation, unknown required events, and target restarts have bounded failure tests. Digest corruption, truncation, unknown header and required-event enums, and artifact substitution are covered. Target restart state remains.
