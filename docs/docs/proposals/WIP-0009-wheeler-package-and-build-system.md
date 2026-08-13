@@ -482,7 +482,7 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 - [ ] Vendor retries and relocation preserve exact locked bytes and reject poisoned files. XDG repository paths are identity-neutral, and package/build-output cache poisoning, deletion, PREV divergence, quarantine, and GC are tested, while identity-preserving mirrors remain.
 - [ ] Build tools cannot observe or mutate undeclared files, environment, network, clock, random state, credentials, or quantum targets.
 - [x] Cyclic package and source-module dependencies, dependency module shadowing, private exports, unreachable local modules, and profile conflicts fail closed. Feature and future binary ABI conflicts remain.
-- [ ] Test-selected Wheeler tools execute through `wheeler`. Compiler, runtime, package manager, tools, docs, and negative fixtures still require package migration.
+- [x] Test-selected Wheeler targets execute through `wheeler test`, discover only exact root-package declarations, compile each case to a fresh verified entry artifact, and reduce compile and runtime failures canonically. Compiler, runtime, package-manager, documentation, and negative suites still require native package migration.
 - [x] Package archives verify without extraction and reject duplicate, unordered, escaping, corrupt, oversized, malformed, and trailing members. Links and special files are unrepresentable.
 - [x] Local publication is idempotent by content identity, uses canonical YAML mappings, and cannot overwrite an existing version. Authenticated remote acknowledgement and retry remain.
 - [ ] Live target tests are opt-in, budgeted, capability-gated, and excluded from package output identities.
