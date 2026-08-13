@@ -821,7 +821,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 
 - [ ] A clean checkout follows the documented setup and runs the first lesson without ambient dependencies.
 - [ ] Every lesson ID is unique, stable, ordered, and reachable through an acyclic prerequisite graph.
-- [ ] The story landing and sidebar expose only the `T00` entrance, while every chapter reveals exactly its intended successor and remains directly routable.
+- [x] `tutorials/index.mdx` exposes one entrance, `T00` in **Home**. Each chapter ends with exactly one link to the next numbered chapter through **Weather**, and every Markdown node remains directly routable by its stable file path.
 - [ ] Every declared required term resolves to an earlier published introduction in the stable glossary graph.
 - [ ] Every introduced term follows an observation, states its nearest contrast, and supports a later prediction or explanation.
 - [ ] Fictional scenes remain removable without removing the only technical definition or evidence boundary.
