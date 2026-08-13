@@ -356,7 +356,7 @@ Each fixture first lands as an executable law if necessary, then gains a formal 
 
 ## Testing and acceptance
 
-- [ ] Parser and Tree-sitter corpora cover the initial inverse, adjoint, circuit-equivalence, and static-step-bound theorem forms. Contracts, general propositions, proof blocks, and experiments remain.
+- [x] Parser and Tree-sitter corpora cover the initial inverse, adjoint, circuit-equivalence, and static-step-bound theorem forms. Contracts, general propositions, proof blocks, and experiments remain.
 - [ ] Negative syntax and type tests reject free-form justification, unresolved theorem names, malformed goals, effectful proofs, and invalid `old` or `result` use.
 - [ ] Kernel malformed-input corpus rejects forged, cyclic, noncanonical, stale, oversized, and unknown-rule certificates.
 - [ ] An independent checker agrees with the Wheeler kernel on the canonical certificate corpus.
