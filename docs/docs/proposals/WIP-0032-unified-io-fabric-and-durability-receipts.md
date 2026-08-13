@@ -655,7 +655,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] Stage-0 receipt requirements name the protected generation/range/content, namespace, failure model, atomicity, replication, quorum, backend profile, and sorted assumptions.
 - [x] Unsupported stage-0 promotions, evidence sources, namespace claims, and quorum profiles fail instead of silently degrading.
 - [x] Stage-0 data, metadata, namespace visibility, namespace stability, and quorum evidence transformations test separately.
-- [ ] Persistence failures report known, partial, or uncertain state accurately.
+- [x] The accepted lifecycle distinguishes success, failure before cancellation, cancellation before effect, cancellation after exact partial progress, and uncertainty with or without cancellation. Durability receipts advance only through evidence-typed stages and cannot skip from write completion to persistence, namespace, or quorum claims.
 - [x] Every stage-0 receipt identity binds the subject generation, byte range, content, namespace, failure model, atomicity, replication, quorum, backend profile, sorted assumptions, evidence source, evidence identity, and parent. Crash-injection qualification remains absent.
 - [x] Current I/O reference documentation calls stage-0 provider actions synthetic, says positional completion proves no crash survival or namespace stability, and reserves stability claims for typed receipt evidence. It does not label close, rename, staging, direct completion, transport completion, or replication as durable.
 
