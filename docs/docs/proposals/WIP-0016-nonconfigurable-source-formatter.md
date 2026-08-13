@@ -780,7 +780,7 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 
 - [x] LF, one final newline, two-space indentation, and fixed code layout derive only from formatter constants. Differential LF, CRLF, and CR fixtures produce identical canonical bytes.
 
-- [ ] Configuration files, environment variables, locale, terminal width, editor settings, and network state cannot alter output or diagnostics.
+- [x] The formatter and checker APIs accept only explicit source bytes and paths. They read no configuration, environment, locale, terminal, editor, clock, random, or network state. Line width and indentation are compile-time constants.
 
 - [ ] Stage-0 and Wheeler implementations agree byte-for-byte on formatting and by code, target, and source range on documentation diagnostics.
 
