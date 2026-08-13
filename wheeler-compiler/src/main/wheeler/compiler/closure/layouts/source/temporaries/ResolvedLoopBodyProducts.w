@@ -8,6 +8,7 @@ import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.source_scalars;
+import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
 
@@ -293,7 +294,7 @@ classical class ResolvedLoopBodyProducts {
                       if (
                         signedNumberValid(source, tokenStarts, tokenLengths, sourceToken)
                       ) {
-                        opcode = 769;
+                        opcode = STATEMENT_LOCAL_LONG;
                         operand = parsedSignedNumber(
                           source,
                           tokenStarts,
@@ -816,7 +817,7 @@ classical class ResolvedLoopBodyProducts {
               }
             }
 
-            if (opcode == 769) {
+            if (opcode == STATEMENT_LOCAL_LONG) {
               localCount = 2;
             }
 
