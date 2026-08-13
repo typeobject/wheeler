@@ -128,7 +128,7 @@ Scratch token, declaration, descriptor, and projection windows are independently
 - [x] `LinkedLocalTypes.w` consumes temporary owner, source-code, and aggregate-row projections before final descriptor emission. `ImportedNominalCarrierProjections.w` adds exact module, local-function, and local-type coordinates for nonretained signed carriers. The linker validates every coordinate and signed source slot before replacing it with the target record or variant descriptor. Missing, duplicate, or kind-inconsistent projections fail before publication.
 - [x] `AggregateOperandProjections.w` maps temporary owner, kind, and type IDs to aggregate rows and stable product identities. Duplicate projections leave relocation rows and identities untouched.
 - [x] Counted aggregate archival accepts exact generated suffix counts, validates every retained case and member range before mutation, and excludes the generated aggregate, case, and member suffixes. Native evidence covers successful prefix retention and failure before publication.
-- [x] The aggregate product linker reproduces a stage-0 record-bearing source artifact byte for byte. Focused source-product fixtures cover record and variant constructors, fixed arrays, slices, field chains, ownership, and malformed nonpublication. Physical-closure publication remains.
+- [x] The aggregate product linker reproduces a stage-0 record-bearing source artifact byte for byte. Focused source-product fixtures cover record and variant constructors, fixed arrays, slices, field chains, ownership, and malformed nonpublication. WIP-0051 owns physical frontend publication.
 
 ## Acceptance
 
