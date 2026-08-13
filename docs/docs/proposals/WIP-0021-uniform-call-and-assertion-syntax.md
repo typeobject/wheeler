@@ -252,7 +252,7 @@ Near-miss syntax is rejected deterministically:
 ## Testing and acceptance
 
 - [x] Stage-0 and Tree-sitter parser tests cover literals, locals, calls, equality, ordering, right-associative negation, and composed Boolean expressions. Logical negation executes its operand once and constant-folds under the same Boolean-only rule.
-- [ ] The Wheeler-native source compiler matches stage 0 for logical-negation fixtures.
+- [x] The Wheeler-native source compiler matches stage 0 byte for byte for Boolean parameter copies, logical negation, direct returns, and assertion consumption in `NativeCompilerSelfSourceExampleTest`.
 - [x] Negative parser and type tests cover bare, empty, multiple-argument, non-Boolean, duplicate-name, and malformed assertions.
 - [x] An assertion expression is evaluated once, including a stateful function call.
 - [x] A false assertion traps before mutation and creates no successful transition-history record.
