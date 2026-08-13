@@ -296,7 +296,7 @@ Quantum targets own execution evidence, not coverage interpretation. The proof k
 - [x] The stage-0 VM emits immutable observations for successful transitions without changing executable code. Forward, language-inverse, rewind-forward, and rewind-inverse coverage stay separate. A successful `JUMP_IF_ZERO` records whether the branch was taken. The reducer emits sorted checked counts and a domain-separated report identity. Tests require identical terminal and rewound snapshots with collection on or off. Classical package tests collect the report in a fresh VM, print its identity, and bind that identity into the test report. Quantum cases do not claim a classical transition report. A policy with no denominator reports no percentage.
 - [ ] Coverage point, map, observation, policy, and report contracts are accepted.
 - [x] Classical bytecode transition points collect through the VM observer without adding counter instructions or changing `.wbc`. Source-point mapping remains outside the current profile.
-- [ ] WIP-0018 attempts merge deterministically across serial and sharded runs.
+- [x] WIP-0018 assigns complete case identities to shards by digest and merges shard outcomes in canonical case order. Arrival-order variation reproduces the serial semantic report identity, and duplicate case identities reject.
 - [x] The implemented classical reducer distinguishes forward, language inverse, rewind-forward, and rewind-inverse observations in one canonical report. Workflow, quantum, and proof dimensions remain outside the current profile.
 - [ ] Wheeler and stage-0 reducers emit byte-identical reports.
 - [ ] Superseded semantic coverage authorities are deleted.
