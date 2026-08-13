@@ -178,6 +178,42 @@ class SourceFormatterTest {
   }
 
   @Test
+  void breaksBoundedLoopHeadersAtTheSmallestConditionGroup() {
+    String source = "classical class Loops { entry void main() { while ("
+        + "currentInstructionCoordinateWithLongName < finalInstructionCoordinateWithLongName"
+        + ") limit 4096 { assert(true); } } }";
+
+    String formatted = SourceFormatter.format(source);
+
+    assertTrue(formatted.contains("""
+            while (
+              currentInstructionCoordinateWithLongName < finalInstructionCoordinateWithLongName
+            ) limit 4096 {
+        """));
+    assertEquals(formatted, SourceFormatter.format(formatted));
+  }
+
+  @Test
+  void breaksArrayInitializersWithoutMovingTheirEnclosingDeclaration() {
+    String source = "classical class Arrays { public long[5] values() { return new long[5]("
+        + "firstCanonicalValue, secondCanonicalValue, thirdCanonicalValue, "
+        + "fourthCanonicalValue, fifthCanonicalValue); } }";
+
+    String formatted = SourceFormatter.format(source);
+
+    assertTrue(formatted.contains("""
+            return new long[5](
+              firstCanonicalValue,
+              secondCanonicalValue,
+              thirdCanonicalValue,
+              fourthCanonicalValue,
+              fifthCanonicalValue
+            );
+        """));
+    assertEquals(formatted, SourceFormatter.format(formatted));
+  }
+
+  @Test
   void breaksLongBinaryExpressionsWithLeadingContinuationOperators() {
     String source = "classical class Expression { entry void main() { boolean equal = "
         + "firstAggregateValueWithLongCanonicalName == "
