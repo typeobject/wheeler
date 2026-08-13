@@ -242,7 +242,7 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 - [ ] Every identity-bearing change moves the corresponding identity.
 - [ ] Recipes cannot erase relevant variant axes.
 - [ ] Source replacement fails before build.
-- [ ] Vendored locked builds use no network.
+- [x] Locked `check`, `build`, and `run` consume only the physical vendor closure and exact lock. They do not invoke resolution or catalog access. A damaged vendored archive fails identity validation before compilation.
 - [ ] Mirrors yield identical objects and never compete as repositories.
 - [ ] Ordered repository lookup stops at the first authoritative admissible trust domain. Lower repositories cannot inject a newer release, while an explicit alias selects the intended domain.
 - [ ] XDG overrides and fallback paths change placement only. Package-object hits reverify complete release and archive identity and cache deletion changes no package bytes, while build-input-keyed outputs from every supported origin remain.
