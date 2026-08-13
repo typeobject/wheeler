@@ -264,7 +264,7 @@ Near-miss syntax is rejected deterministically:
 - [ ] Inverse, rewind, uncomputation, exact quantum, sampled quantum, workflow, proof, and malformed-artifact evidence remain nominally distinct through assertion reduction.
 - [ ] Sampled `Inconclusive` evidence cannot satisfy a Boolean assertion without an explicit, reviewable comparison.
 - [ ] Full repository search plus parser/runner gates prove old source spellings and proposed duplicate intrinsics are absent.
-- [ ] Current reference documentation describes only implemented syntax and fixture behavior.
+- [x] `reference/language-profile.md` documents only the implemented direct Boolean assertion form, its trap boundary, and the absence of duplicate intrinsics. It names reversible, quantum, workflow, and proof assertions as unimplemented rather than presenting proposal syntax as current behavior.
 
 ## Alternatives
 
