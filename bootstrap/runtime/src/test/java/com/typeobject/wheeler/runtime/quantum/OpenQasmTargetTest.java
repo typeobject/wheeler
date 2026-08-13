@@ -78,6 +78,48 @@ class OpenQasmTargetTest {
   }
 
   @Test
+  void targetExecutableIdentityBindsDescriptorPolicySchemaAndRegion() {
+    QuantumSubmission base = submission(3);
+    TargetDescriptor descriptor = new TargetDescriptor(
+        "adapter", "target", java.util.Set.of(TargetCapability.STATIC_CIRCUIT), 8, 100);
+    String identity = TargetExecutableIdentity.of(descriptor, "policy-1", base);
+    TargetDescriptor changedDescriptor = new TargetDescriptor(
+        "adapter-2", "target", java.util.Set.of(TargetCapability.STATIC_CIRCUIT), 8, 100);
+    QuantumRegister register = new QuantumRegister(0, "q", 1);
+    QuantumCircuit phase = new QuantumCircuit(
+        0,
+        "phase",
+        0,
+        List.of(new ParameterizedGateOperation(Gate.PHASE, List.of(0), "theta", 1)));
+    QuantumSubmission changedSchema = new QuantumSubmission(
+        StateVectorTargetTest.program(register, phase, List.of()),
+        0,
+        0,
+        List.of(new CircuitApplication(0, false)),
+        Map.of("theta", 0.25),
+        3,
+        4);
+    QuantumCircuit changedRegion = new QuantumCircuit(
+        0, "flip-z", 0, List.of(GateOperation.of(Gate.Z, 0)));
+    QuantumSubmission changedSemanticRegion = new QuantumSubmission(
+        StateVectorTargetTest.program(register, changedRegion, List.of()),
+        0,
+        0,
+        List.of(new CircuitApplication(0, false)),
+        Map.of(),
+        3,
+        4);
+
+    assertEquals(identity, TargetExecutableIdentity.of(descriptor, "policy-1", base));
+    assertTrue(!identity.equals(TargetExecutableIdentity.of(
+        changedDescriptor, "policy-1", base)));
+    assertTrue(!identity.equals(TargetExecutableIdentity.of(descriptor, "policy-2", base)));
+    assertTrue(!identity.equals(TargetExecutableIdentity.of(descriptor, "policy-1", changedSchema)));
+    assertTrue(!identity.equals(TargetExecutableIdentity.of(
+        descriptor, "policy-1", changedSemanticRegion)));
+  }
+
+  @Test
   void symbolicBindingLowersToBoundOpenQasmAngle() {
     QuantumRegister register = new QuantumRegister(0, "q", 1);
     QuantumCircuit circuit = new QuantumCircuit(

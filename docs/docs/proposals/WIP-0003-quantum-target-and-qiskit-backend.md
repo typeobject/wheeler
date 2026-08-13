@@ -275,7 +275,7 @@ The current `QuantumJob` API is an executable stage-0 slice of that lifecycle. M
 - [x] QFT and inverse-QFT circuits preserve expected behavior on the ideal target.
 - [x] Static parameter schema, binding values, register order, little-endian outcomes, shot counts, and result identity survive bytecode, ideal-target, and OpenQASM lowering round trips.
 - [x] Provider-neutral mock jobs cover queued, running, success, failure, cancel-requested, cancelled, cancellation races, late-result quarantine, acknowledged-job recovery, retry, timeout, malformed results, and adapter restart with lost provider state. Unknown restart state fails without resubmission.
-- [ ] Cached target executables invalidate on descriptor, policy, adapter, parameter-schema, or semantic-region changes.
+- [x] `TargetExecutableIdentity` binds the target descriptor and adapter, explicit policy identity, complete submission artifact and semantic region, and sorted symbolic parameter schema. Any change produces a different cache key before a lowered executable can be reused.
 - [x] The static target rejects the target-resident surface-code requirement set before submission and names `CLASSICAL_CONDITIONAL`, `MID_CIRCUIT_MEASUREMENT`, and `RESET` in canonical order. The checked-in `SurfaceCode.w` remains an explicitly static correction-kernel fixture.
 - [ ] A dynamic simulator executes a bounded syndrome/conditional fixture without a host split.
 - [x] The executor boundary and documentation keep credentials outside artifacts, QASM, results, and traces.
