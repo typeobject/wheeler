@@ -785,7 +785,7 @@ the Java VM on every global.
 - [x] `Done` has one canonical value, `done`, and one zero-payload `DONE` local type. The verifier rejects a nonzero physical `Done` constant. Coherent use remains outside the current profile.
 - [x] Classical `Slot<Done>` has exactly `Vacant` and `Holding(done)` states through the canonical specialized variant descriptor. Its future coherent width remains unspecified.
 - [x] Classical `Vacant` and `Holding(value)` compare and encode canonically.
-- [ ] Slot ownership derives from its payload.
+- [x] The implemented classical slot profile admits only scalar, fixed-scalar-array, `Done`, and recursively closed slot payloads. Owner and loan payloads are rejected rather than silently assigning scalar slot ownership.
 - [ ] Filled affine slots cannot copy and filled must-consume slots cannot drop.
 - [x] `return -1;` is accepted for signed `long` functions, including the reversible result-slot ABI. Wheeler exposes no unsigned source return type in the accepted profile, so no implicit unsigned conversion path exists.
 - [x] Null-like literals fail with one stable source diagnostic.
@@ -795,7 +795,7 @@ the Java VM on every global.
 - [x] Preserved-source, source-with-constant, and two-source fills round-trip exactly.
 - [x] Direct, one-binding, and selected multi-prelude forms produce identical relation bodies.
 - [ ] Affine moves round-trip exactly.
-- [ ] Returned loans retain origin and `Slot<borrow T>` is rejected.
+- [x] `Slot<borrow T>` and owner-carrying slots are rejected by the source type checker with the stable `Slot payload cannot be an owner or loan` diagnostic. Returned-loan origin tracking remains future work.
 - [x] Nested classical slots distinguish outer vacancy from `Holding(Vacant)`.
 - [x] Information-losing bodies remain rejected despite a reversible return.
 - [x] Trapping return expressions leave the result vacant.
