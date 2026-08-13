@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler package, repository, build, security, provenance, and release maintainers |
 | Created | 2026-07-19 |
-| Updated | 2026-07-19 |
+| Updated | 2026-08-13 |
 | Area | Recipe repositories, revisions, source acquisition, reproducible builds, publication |
 | Depends on | WIP-0007, WIP-0008, WIP-0009, WIP-0022 |
 | Supersedes | None |
@@ -41,6 +41,8 @@ The package system must identify repository state, recipe closure, semantic vari
 - Quarantine divergent rebuilds.
 - Enforce mechanically decidable source/API/ABI semantic compatibility.
 - Keep fetch separate from sealed build execution.
+- Make recovery-seed provenance walkable and reproducible across generations.
+- Label unavoidable opaque roots instead of laundering them through a content hash.
 
 ## Non-goals
 
@@ -124,6 +126,12 @@ For one build-input ID, accepted PREV count is at most one.
 Reproducibility has four distinct levels: graph, build plan, exact bytes, and independently verified bytes from separately provisioned builders. An attestation binds the build-input ID, PREV, builder/policy, snapshot, checks, deviations, comparison result, and signer without changing PREV.
 
 A quarantine record binds expected and observed PREVs, build-input ID, attestations, diff-summary identity, and disposition. Quarantined bytes are not resolver candidates.
+
+## Bootstrap seed provenance
+
+A repository snapshot may distribute bootstrap binaries, but it cannot make them self-explanatory. Every recovery seed carries a canonical derivation record with its source coordinate and identity, recipe revision, build-input identity, builder, closed dependencies, normalized environment, exact invocation, output identity, and parent seed. Rebuilders can walk generations backward and reproduce each edge. A binary imported from upstream without a known source derivation is marked as an opaque root with its origin URL and transport identity. Policy must not blur that exception into ordinary trusted provenance.
+
+Wheeler minimizes opaque roots and requires independent rebuild attestations for recovery seeds. Recipe reproducibility and compiler diverse double compilation remain distinct checks. Matching package bytes show that declared inputs reproduced an output. They do not show that a compiler seed corresponds to its source unless the seed chain and independent compiler path also agree.
 
 ## Ownership and boundaries
 

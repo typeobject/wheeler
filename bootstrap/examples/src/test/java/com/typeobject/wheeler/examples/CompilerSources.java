@@ -91,6 +91,22 @@ final class CompilerSources {
     return new PackageArchive().encode(manifest, sources);
   }
 
+  /** Returns canonical compiler target module names in manifest order. */
+  static List<String> sortedModuleNames() {
+    try {
+      List<String> names = new ArrayList<>();
+      for (String logicalPath : minimalPaths()) {
+        String source = read(logicalPath);
+        names.add(SourceModuleInspection.inspect(
+            source.getBytes(StandardCharsets.UTF_8)).name());
+      }
+      names.sort(String::compareTo);
+      return List.copyOf(names);
+    } catch (IOException exception) {
+      throw new IllegalStateException("Cannot inspect compiler target", exception);
+    }
+  }
+
   /** Returns the complete bounded self-hosting compiler module set. */
   static Map<String, String> minimalCompilerModules() throws IOException {
     Map<String, String> modules = new LinkedHashMap<>();

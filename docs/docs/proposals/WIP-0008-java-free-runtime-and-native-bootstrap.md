@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler runtime, compiler, platform, and release maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-31 |
+| Updated | 2026-08-13 |
 | Area | Runtime, native code, bootstrap, distribution, Java retirement |
 | Depends on | WIP-0001, WIP-0007 |
 | Supersedes | None |
@@ -69,6 +69,9 @@ The following invariants hold:
 4. Native images are caches. Corrupt or stale images cannot redefine `.wbc` semantics.
 5. Canonical artifacts contain no host path, clock, process, address, or random state.
 6. A release bootstrap never invokes Java after cutover.
+7. Every required binary seed names its exact source, builder, dependencies, environment, build command, and output identity.
+8. The native build driver has a source-bootstrap path that does not require an opaque copy of itself.
+9. Distributors can reproduce each recovery generation and walk its provenance to the reviewed alternate stage-0 implementation.
 
 ## Architecture
 
@@ -137,7 +140,9 @@ prior native Wheeler recovery release
   -> reproducible native recovery release
 ```
 
-The prior release is not copied into the source semantics. It is a seed with a declared content identity. A later diverse bootstrap may use independently built runtime or backend implementations to reduce trust in one lineage.
+The prior release is not copied into the source semantics. It is a seed with a declared content identity and a reproducible source derivation. Each recovery manifest names the prior seed, exact source revision, build command, closed dependency set, and normalized environment. This forms a verifiable chain back to the routinely exercised alternate stage-0 implementation. A content hash without that chain proves only that everyone received the same unexplained binary.
+
+The native build driver also bootstraps without itself. A bounded launcher or script invokes the prior recovery release to build the first current driver. The full driver then rebuilds itself and enters the fixed-point comparison. A later diverse bootstrap uses independently built runtime or backend implementations to reduce trust in one lineage.
 
 ## Reversibility and effects
 
@@ -176,7 +181,7 @@ Native code retains all declared bytecode, history, stack, heap, workflow, event
 
 Signals, access violations, and platform faults become bounded fatal runtime reports. They are not silently converted into source exceptions. A native crash never validates a partial artifact or event-log write.
 
-Recovery releases are signed or content-addressed by release policy. Bootstrap scripts verify every seed before execution and record the exact host toolchain used for native reproduction.
+Recovery releases are signed or content-addressed by release policy. Bootstrap scripts verify every seed before execution and record the exact host toolchain used for native reproduction. Release evidence includes a machine-readable source URL or revision, source identity, builder identity, dependency closure, normalized environment, command, expected output identity, and parent seed. CI executes that reproduction path on every release candidate. An upstream download with no known reproduction path is labeled as an opaque root and cannot silently become a permanent Wheeler seed.
 
 ## Progress
 
@@ -186,7 +191,7 @@ Recovery releases are signed or content-addressed by release policy. Bootstrap s
 - [x] Package-selected `NativeVerifier.w` reads exact binary `.wbc` through immutable `byteview`.
 - [x] `NativeBytecodeIdentity.w` verifies and privately re-encodes bounded canonical `.wbc` before publishing Wheeler SHA-256. The result matches stage 0 with exact rewind. Malformed or oversized bytes receive no artifact identity.
 - [x] `NativeArtifactSetIdentity.w` strictly decodes bounded canonical artifact-set JSON, validates one through eight sorted safe ASCII paths and their lowercase identities, reconstructs the domain-separated binary set input, checks the embedded identity, and publishes the same digest as stage 0 with exact rewind. It does not claim physical tree closure. Native traversal still belongs to the WIP-0032 cutover.
-- [x] `NativeBootstrapFeaturesIdentity.w` reconstructs and checks the sole complete seventeen-feature `bootstrap-1` vocabulary before reproducing its stage-0 identity. `NativeBootstrapModulesIdentity.w` validates exact rooted acyclic closures through bounded binary module lookup for up to 512 local modules, sixty-four externals, and 3,072 imports across a 262,144-byte manifest, enough for the current 307-module compiler closure. A 257-module chain crosses the former ceiling, and a source guard pins rejection before a 513th append. Larger DAGs remain open rather than being waved through with a confident typedef. `NativeCompilerOptionsIdentity.w` consumes exact schema-1 canonical YAML, validates bounded profile syntax and the source-map Boolean, and reproduces the stage-0 identity with no partial output. `NativeCompilerLimitsIdentity.w` does the same for all ten required positive compiler ceilings and canonical decimals. `NativeToolchainIdentity.w` accepts only the three provenance kinds and four canonical lowercase identities. `NativeBootstrapManifestIdentity.w` validates the complete schema-2 fixed-point and diverse-evidence closure before publication. `ManifestSyntax.w` centralizes their shared fail-closed metadata and identity checks instead of cultivating six nearly identical bootstrap dialects.
+- [x] `NativeBootstrapFeaturesIdentity.w` reconstructs and checks the sole complete seventeen-feature `bootstrap-1` vocabulary before reproducing its stage-0 identity. `NativeBootstrapModulesIdentity.w` validates exact rooted acyclic closures through bounded binary module lookup for up to 512 local modules, sixty-four externals, and 3,072 imports across a 262,144-byte manifest, enough for the current 309-module compiler closure. A 257-module chain crosses the former ceiling, and a source guard pins rejection before a 513th append. Larger DAGs remain open rather than being waved through with a confident typedef. `NativeCompilerOptionsIdentity.w` consumes exact schema-1 canonical YAML, validates bounded profile syntax and the source-map Boolean, and reproduces the stage-0 identity with no partial output. `NativeCompilerLimitsIdentity.w` does the same for all ten required positive compiler ceilings and canonical decimals. `NativeToolchainIdentity.w` accepts only the three provenance kinds and four canonical lowercase identities. `NativeBootstrapManifestIdentity.w` validates the complete schema-2 fixed-point and diverse-evidence closure before publication. `ManifestSyntax.w` centralizes their shared fail-closed metadata and identity checks instead of cultivating six nearly identical bootstrap dialects.
 - [x] The Wheeler compiler driver is importable without an entry method or module state. It preserves canonical module-qualified entry/helper identities and exact primitive-loan signatures. Final calls may forward one or two checked loans within the module or across a direct import using the canonical reborrow opcode. Final signed returns may read bounded lengths from UTF-8, byte-view, byte, and word loans. `NativeCompilerIdentity.w` compiles source into private storage and reproduces stage 0's artifact SHA-256. Malformed or oversized source publishes no digest.
   - `compiler/verification/Verifier.w` checks framing and payload policy.
   - `compiler/verification/FunctionVerifier.w` checks bounded descriptors, type windows, and code windows.

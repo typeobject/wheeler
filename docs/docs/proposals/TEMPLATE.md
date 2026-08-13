@@ -75,6 +75,12 @@ Describe instruction encoding, artifact containers, verification, loaders, store
 
 Cover malformed input, arithmetic traps, invalid state, resource limits, history exhaustion, cancellation, unsupported capabilities, and diagnostics. State which failures can recover and whether reversal still works after each failure class.
 
+## Bootstrap and provenance
+
+State whether the change enters the compiler, runtime, verifier, build driver, package resolver, recovery release, or another required bootstrap input. If it does, define the smallest seed, its source-correspondence record, the routinely tested reproduction command, and an alternate path that does not require the component to build itself. Minimize opaque binaries. A checksum identifies bytes but does not explain how source produced them. Keep fixed-point, diverse-compilation, and seed-chain claims separate.
+
+Write "Not applicable" and give a reason when the proposal cannot enter a required bootstrap or build chain.
+
 ## Migration and deletion
 
 1. List implementation stages in dependency order.
@@ -100,6 +106,7 @@ Keep this list factual while the WIP is **Implementing**. Remove stale narrative
 - [ ] Tests cover quantum backend parity and proof soundness when they apply.
 - [ ] An end-to-end fixture crosses every changed module boundary.
 - [ ] Current reference docs describe the implemented result without depending on this proposal.
+- [ ] Required bootstrap seeds have source provenance and a routinely exercised reproduction path, when applicable.
 
 Remove checklist items that do not apply, or mark them inapplicable and explain why.
 

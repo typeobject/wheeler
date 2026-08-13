@@ -8,8 +8,9 @@ import java.util.Map;
 
 /** Builds the production counted archive-closure evidence program. */
 final class NativeCompilerArchiveClosureProgram {
-  record PhysicalModule(int owner, String path, String name) {}
+  record PhysicalModule(String path, String name) {}
 
+  private static final List<String> MODULE_NAMES = CompilerSources.sortedModuleNames();
   static final List<PhysicalModule> PHYSICAL_MODULES = NativeCompilerPhysicalModules.all();
   static final List<PhysicalModule> PHYSICAL_CALLABLE_MODULES =
       NativeCompilerPhysicalModules.importedCallableProducts();
@@ -20,14 +21,23 @@ final class NativeCompilerArchiveClosureProgram {
     StringBuilder rows = new StringBuilder();
     for (int index = 0; index < PHYSICAL_MODULES.size(); index++) {
       rows.append("set(physicalOwners, ").append(index).append(", ")
-          .append(PHYSICAL_MODULES.get(index).owner()).append(");\n");
+          .append(physicalOwner(PHYSICAL_MODULES.get(index))).append(");\n");
     }
     for (int index = 0; index < PHYSICAL_CALLABLE_MODULES.size(); index++) {
       rows.append("set(physicalOwners, ").append(PHYSICAL_MODULES.size() + index)
-          .append(", ").append(PHYSICAL_CALLABLE_MODULES.get(index).owner())
+          .append(", ").append(physicalOwner(PHYSICAL_CALLABLE_MODULES.get(index)))
           .append(");\n");
     }
     return rows.toString();
+  }
+
+  static int physicalOwner(PhysicalModule module) {
+    int owner = MODULE_NAMES.indexOf(module.name());
+    if (owner < 0) {
+      throw new IllegalStateException(
+          "Physical module is outside compiler target: " + module.name());
+    }
+    return owner;
   }
 
   static Program program() throws Exception {

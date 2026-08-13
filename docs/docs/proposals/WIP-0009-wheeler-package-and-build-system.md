@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler package, build, compiler, security, and release maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-17 |
+| Updated | 2026-08-13 |
 | Area | Packages, modules, builds, registry, tooling |
 | Depends on | WIP-0007, WIP-0008 |
 | Supersedes | None |
@@ -84,6 +84,16 @@ Commands operate on the workspace graph by default and accept explicit package, 
 - Execute build tools under least authority with declared inputs, outputs, limits, and network policy.
 - Support offline, vendored, mirrored, air-gapped, and XDG-local repository operation.
 - Bootstrap the compiler, runtime, and package manager from a prior native Wheeler recovery release.
+- Build the first current driver without requiring the current driver itself.
+- Publish a reproducible seed chain that users and distributors can walk to source.
+
+## Bootstrap contract
+
+The build system must not require an opaque current `wheeler` binary to build `wheeler`. A prior recovery release runs one bounded bootstrap plan that resolves only pinned local or vendored inputs and builds the first current driver. That driver rebuilds itself under the ordinary canonical plan. Both outputs enter the fixed-point and provenance evidence owned by WIP-0007.
+
+Each recovery driver records the exact source revision, source identity, prior seed, builder, closed dependency set, normalized environment, invocation, and output identity. CI runs the cold path routinely. A cached driver is never authority. A downloaded binary with a checksum but no source derivation is an opaque root and must be labeled as such. It cannot become a permanent seed by surviving long enough.
+
+The minimal bootstrap path may be slower and support only the recovery workspace. It does not need repository publication, live resolution, documentation, native optimization, or parallel execution. It must verify its inputs, emit the canonical first driver, and avoid Gradle, a current driver binary, ambient network access, and mutable repository state. This is the build-system counterpart to maintaining a small alternate compiler implementation.
 
 ## Non-goals
 
