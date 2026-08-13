@@ -299,7 +299,7 @@ Quantum state is not a byte stream, file, mapped object, direct-I/O buffer, or R
 ## Progress
 
 - [x] Classical, quantum, and hybrid program domains are represented and verified.
-- [ ] Quantum resources have complete affine ownership and slice checking. The first profile prevents aliases by construction.
+- [x] The accepted source profile names one declared `qreg` per region and admits only indexed operations on that owner. Parser and lowering reject mixed registers, negative or out-of-range qubits, repeated qubits within an operation, duplicate result-slot ownership, and use before measurement. General first-class quantum slices remain outside this profile.
 - [x] Coherent eligibility and lifted reversible calls work for the exact XOR subset.
 - [x] Workflow and quantum body sections have canonical encoding and strict decoding.
 - [x] Quantum instructions use stable opcode and gate registries, named forms, ordered roles, and bounded variable-length records.
