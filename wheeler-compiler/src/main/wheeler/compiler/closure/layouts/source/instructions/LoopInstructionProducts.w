@@ -11,6 +11,8 @@ classical class LoopInstructionProducts {
   private const long BODY_COUNT_LIMIT = 4096;
   private const long BODY_LOCAL_BASE_ROW = 4096;
   private const long BODY_OPCODE_ROW = 8192;
+  private const long BODY_ASSERT_EQ_LITERAL_BASE = 32768;
+  private const long BODY_ASSERT_LT_LITERAL_BASE = 33024;
   private const long BODY_OPERAND_KIND_ROW = 12288;
   private const long BODY_OPERAND_ROW = 16384;
   private const long BODY_ROWS = 20480;
@@ -118,6 +120,49 @@ classical class LoopInstructionProducts {
         cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
         return writeUnsignedLittleEndian(output, cursor, localBase, U64);
       }
+    }
+
+    long assertionSource = -1;
+    long assertionOpcode = OPCODE_LOCAL_EQ;
+    if (BODY_ASSERT_EQ_LITERAL_BASE - 1 < opcode) {
+      if (opcode < BODY_ASSERT_LT_LITERAL_BASE) {
+        assertionSource = opcode - BODY_ASSERT_EQ_LITERAL_BASE;
+      } else {
+        if (opcode < BODY_ASSERT_LT_LITERAL_BASE + 256) {
+          assertionSource = opcode - BODY_ASSERT_LT_LITERAL_BASE;
+          assertionOpcode = OPCODE_LOCAL_LT;
+        }
+      }
+    }
+
+    if (-1 < assertionSource) {
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_MOVE,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, assertionSource, U64);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_CONST,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeSignedLittleEndian(output, cursor, operand, U64);
+      cursor = writeInstructionHeader(output, cursor, assertionOpcode, INSTRUCTION_FORM_TERNARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_EXPECT_TRUE,
+        INSTRUCTION_FORM_UNARY
+      );
+      return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
     }
 
     long assignmentTarget = -1;
@@ -273,7 +318,12 @@ classical class LoopInstructionProducts {
                     requiredLength += 48;
                     instructionCount += 2;
                   } else {
-                    valid = false;
+                    if (opcode < BODY_ASSERT_LT_LITERAL_BASE + 256) {
+                      requiredLength += 96;
+                      instructionCount += 4;
+                    } else {
+                      valid = false;
+                    }
                   }
                 }
               }
@@ -391,7 +441,12 @@ classical class LoopInstructionProducts {
           valid = false;
         } else {
           cursor = next;
-          bodyInstructions += 2;
+          long emittedOpcode = stagedBodies[BODY_OPCODE_ROW + emittedBody];
+          if (BODY_ASSERT_EQ_LITERAL_BASE - 1 < emittedOpcode) {
+            bodyInstructions += 4;
+          } else {
+            bodyInstructions += 2;
+          }
         }
 
         emittedBodyOffset += 1;

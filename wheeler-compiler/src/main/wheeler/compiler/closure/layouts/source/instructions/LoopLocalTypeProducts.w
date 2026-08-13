@@ -8,6 +8,8 @@ import wheeler.compiler.type_codes;
 classical class LoopLocalTypeProducts {
   private const long BODY_COUNT_LIMIT = 4096;
   private const long BODY_OPCODE_ROW = 8192;
+  private const long BODY_ASSERT_EQ_LITERAL_BASE = 32768;
+  private const long BODY_ASSERT_LT_LITERAL_BASE = 33024;
   private const long BODY_ROWS = 20480;
   private const long LOOP_BODY_STATEMENT_COUNT_ROW = 1792;
   private const long LOOP_COUNT_LIMIT = 256;
@@ -61,6 +63,12 @@ classical class LoopLocalTypeProducts {
     if (STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE - 1 < opcode) {
       if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + MAX_LOCALS) {
         return 1;
+      }
+    }
+
+    if (BODY_ASSERT_EQ_LITERAL_BASE - 1 < opcode) {
+      if (opcode < BODY_ASSERT_LT_LITERAL_BASE + MAX_LOCALS) {
+        return 3;
       }
     }
 
@@ -163,9 +171,16 @@ classical class LoopLocalTypeProducts {
           }
 
           long localOffset = 0;
-          while (localOffset < localCount) limit 2 {
+          while (localOffset < localCount) limit 3 {
             if (valid) {
-              typeCount = appendType(stagedTypes, typeCount, owner, nextLocal, TYPE_SIGNED);
+              long localType = TYPE_SIGNED;
+              if (localCount == 3) {
+                if (localOffset == 2) {
+                  localType = TYPE_BOOLEAN;
+                }
+              }
+
+              typeCount = appendType(stagedTypes, typeCount, owner, nextLocal, localType);
               if (typeCount < 0) {
                 valid = false;
               }
