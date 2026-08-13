@@ -239,7 +239,7 @@ No partial package is published. A failed publication leaves a checked theorem v
 - [ ] Correctness certificate rejects one changed instruction, operand, bound, type profile, or specification identity.
 - [ ] Minimality certificate rejects one omitted shorter candidate and one changed metric.
 - [ ] Empty samples, target timeout, cancellation, and retry never become absence evidence.
-- [ ] Replay consumes recorded evidence without a new submission. Retry uses a new identity.
+- [x] The shared hybrid lifecycle enforces this boundary for synthesis consumers: replay consumes recorded result evidence without target submission, while retry creates a new branch, submission, job, and provider lineage identity.
 - [ ] Classical and quantum-assisted searches select the same canonical winner when both complete under a small conformance bound.
 - [ ] Kernel checking is deterministic under proof-search, solver, thread, and declaration order.
 - [ ] Generated source compiles to the certified artifact and the package verifies offline from its exact lock/vendor inputs.
