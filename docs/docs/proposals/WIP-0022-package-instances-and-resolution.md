@@ -261,7 +261,7 @@ Reject unknown repositories/snapshots, unauthorized namespaces, duplicate aliase
 - [ ] Incompatible majors coexist while nominal types remain distinct.
 - [ ] Singleton conflicts are deterministic.
 - [x] Version- or source-profile-incompatible high releases backtrack and stable ranges exclude prereleases. Focused insertion-order, profile, and preview-candidate fixtures cover all three.
-- [ ] Input order cannot alter the graph.
+- [x] The stage-0 bounded resolver canonicalizes candidate and lock order. Reversing the catalog produces the same selected graph, canonical lock bytes, and lock identity. Future multi-instance contextual graphs must preserve this law.
 - [x] Work exhaustion differs from unsatisfiability in diagnostics and focused worst-order candidate tests.
 - [ ] Conflict explanations name causal edges.
 - [x] Unrelated additions and higher compatible releases do not change a valid preferred lock. Forced range changes move the invalid selection.
