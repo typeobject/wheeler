@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.resolved_loop_body_products;
 
 import wheeler.compiler.boolean_tokens;
+import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
@@ -14,22 +15,9 @@ import wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
 
 classical class ResolvedLoopBodyProducts {
-  private const long BODY_ROWS = 20480;
-  private const long BODY_LOCAL_BASE_ROW = 4096;
-  private const long BODY_OPCODE_ROW = 8192;
-  private const long BODY_OPERAND_KIND_ROW = 12288;
-  private const long BODY_OPERAND_ROW = 16384;
   private const long MAX_STATEMENTS = 4096;
   private const long OPERAND_LITERAL = 0;
   private const long OPERAND_LOCAL = 1;
-  private const long RESOLUTION_ARENA_BYTES = 460288;
-  private const long STATEMENT_ROWS = 28672;
-  private const long STATEMENT_ORDINAL_ROW = 8192;
-  private const long STATEMENT_START_ROW = 12288;
-  private const long STATEMENT_LENGTH_ROW = 16384;
-  private const long STATEMENT_CHILD_COUNT_ROW = 24576;
-  private const long VALUE_COUNT_LIMIT = 1024;
-  private const long VALUE_ROWS = 7168;
 
   /// Reports one complete direct body-statement resolution pass.
   public record ResolvedLoopBodyPlan(long bodyCount, boolean valid) {}
@@ -45,13 +33,16 @@ classical class ResolvedLoopBodyProducts {
   ) {
     assert(-1 < statementCount);
     assert(statementCount < MAX_STATEMENTS + 1);
-    assert(bufferLength(statementRows) == STATEMENT_ROWS);
+    assert(bufferLength(statementRows) == LOOP_STATEMENT_ROWS);
     assert(-1 < valueCount);
-    assert(valueCount < VALUE_COUNT_LIMIT + 1);
-    assert(bufferLength(valueRows) == VALUE_ROWS);
+    assert(valueCount < LOOP_VALUE_COUNT_LIMIT + 1);
+    assert(bufferLength(valueRows) == LOOP_VALUE_ROWS);
     assert(bufferLength(bodyRows) == BODY_ROWS);
 
-    region staging = new region(/* bytes= */ RESOLUTION_ARENA_BYTES, /* allocations= */ 5);
+    region staging = new region(
+      /* bytes= */ LOOP_BODY_RESOLUTION_ARENA_BYTES,
+      /* allocations= */ 5
+    );
     words tokenKinds = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(staging, MAX_COMPILER_TOKENS);
@@ -80,15 +71,15 @@ classical class ResolvedLoopBodyProducts {
     long bodyCount = 0;
     long statement = 0;
     while (statement < statementCount) limit MAX_STATEMENTS {
-      long childCount = statementRows[STATEMENT_CHILD_COUNT_ROW + statement];
+      long childCount = statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement];
       if (0 < statementRows[4096 + statement]) {
         if (childCount != 0) {
           valid = false;
         } else {
           long owner = statementRows[statement];
-          long ordinal = statementRows[STATEMENT_ORDINAL_ROW + statement];
-          long start = statementRows[STATEMENT_START_ROW + statement];
-          long length = statementRows[STATEMENT_LENGTH_ROW + statement];
+          long ordinal = statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement];
+          long start = statementRows[LOOP_STATEMENT_START_ROW + statement];
+          long length = statementRows[LOOP_STATEMENT_LENGTH_ROW + statement];
           long token = tokenAtStart(start, semanticCount, tokenStarts);
           boolean statementValid = -1 < token;
           if (length < 2) {
