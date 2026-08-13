@@ -405,7 +405,7 @@ Native worker failure and external uncertainty follow their owning WIPs. They do
 - [x] The compatibility VM owns typed root-task lifecycle state, a deterministic round-robin selector, and rewindable task and scheduler deltas. Multi-task lifecycle remains open.
 - [ ] Task-aware snapshots and complete global task event records exist.
 - [ ] Structured spawn, completion, join, and exit execute.
-- [ ] Canonical scheduling is deterministic.
+- [x] The reference scheduler chooses the least runnable `TaskId` above its cursor and wraps to the least identity. Cursor commit and restoration are explicit, and an empty runnable set traps. Spawn and task execution remain unimplemented.
 - [ ] Replay rejects disabled choices before mutation.
 - [ ] One global journal rewinds task lifecycle.
 - [ ] Signed and Boolean atomics are sequentially consistent.
