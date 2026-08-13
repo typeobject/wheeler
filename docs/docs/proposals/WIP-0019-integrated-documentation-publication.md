@@ -301,7 +301,7 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 - [x] The fixed static renderer consumes only local verified inputs and grants documentation payload no script execution.
 - [x] `sitemap.xml` contains every generated HTML route and changes when a route or page body changes, without nondeterministic timestamps.
 - [ ] Render retry consumes the same bundle without rerunning semantic generation.
-- [ ] Failed generation or rendering leaves the previous publication intact.
+- [x] Bundle generation validates every manual, source, node, edge, and output before atomic directory publication. Malformed source and missing links leave no partial destination, and existing destinations are never overwritten.
 - [ ] Search and navigation contain every public selected node exactly once and no private nodes.
 - [x] `reference/development.md` documents the implemented `wheeler docs` bundle, validation graph, inert payload copy, manifest, navigation, search, and atomic publication boundary. It also documents the local-only static `wheeler site` renderer.
 
