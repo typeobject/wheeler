@@ -90,6 +90,34 @@ class StateVectorTargetTest {
   }
 
   @Test
+  void exactAmplitudesTrackPhaseAndGeneratedAdjointCleansAncilla() {
+    QuantumRegister register = new QuantumRegister(0, "q", 2);
+    QuantumCircuit circuit = new QuantumCircuit(
+        0,
+        "phaseAncilla",
+        0,
+        List.of(
+            GateOperation.of(Gate.H, 0),
+            new GateOperation(Gate.PHASE, List.of(0), Math.PI / 2),
+            GateOperation.of(Gate.CNOT, 0, 1)));
+    Program program = program(register, circuit, List.of());
+    StateVectorEngine simulator = new StateVectorEngine(1);
+
+    simulator.prepare(register, 0);
+    simulator.apply(program, circuit, false);
+    assertArrayEquals(
+        new double[] {1 / Math.sqrt(2), 0, 0, 0, 0, 0, 0, 1 / Math.sqrt(2)},
+        simulator.amplitudes(register),
+        1e-12);
+    simulator.apply(program, circuit, true);
+
+    assertArrayEquals(
+        new double[] {1, 0, 0, 0, 0, 0, 0, 0},
+        simulator.amplitudes(register),
+        1e-12);
+  }
+
+  @Test
   void openQasmLoweringIsPortableAndDeterministic() {
     QuantumRegister register = new QuantumRegister(0, "q", 1);
     QuantumCircuit circuit = new QuantumCircuit(0, "flip", 0, List.of(GateOperation.of(Gate.X, 0)));

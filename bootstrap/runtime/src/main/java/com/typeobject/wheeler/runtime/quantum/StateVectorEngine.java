@@ -144,6 +144,16 @@ final class StateVectorEngine {
     return result;
   }
 
+  double[] amplitudes(QuantumRegister register) {
+    RegisterState state = state(register);
+    double[] result = new double[state.real.length * 2];
+    for (int basis = 0; basis < state.real.length; basis++) {
+      result[basis * 2] = state.real[basis];
+      result[basis * 2 + 1] = state.imaginary[basis];
+    }
+    return result;
+  }
+
   private RegisterState state(QuantumRegister register) {
     RegisterState state = states.get(register.id());
     if (state == null) {
