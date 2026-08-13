@@ -265,7 +265,7 @@ Reject unknown repositories/snapshots, unauthorized namespaces, duplicate aliase
 - [x] Work exhaustion differs from unsatisfiability in diagnostics and focused worst-order candidate tests.
 - [ ] Conflict explanations name causal edges.
 - [x] Unrelated additions and higher compatible releases do not change a valid preferred lock. Forced range changes move the invalid selection.
-- [ ] Targeted updates preserve unrelated instances.
+- [x] Stage 0 prefers every still-valid exact lock selection, changes a package only when named by targeted update or forced by constraints, and rejects an update name outside the resolved graph. Multi-instance contextual minimization remains.
 - [ ] Workspace overrides are visible and publication-safe.
 - [x] Stage-0 locked vendored check, build, run, and plan commands consume the exact verified vendor archive and lock without repository resolution, network, or ambient cache. Native parity remains.
 - [ ] Stage 0 and Wheeler implementations agree.
