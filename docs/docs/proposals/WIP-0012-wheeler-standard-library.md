@@ -506,7 +506,7 @@ Filesystem and network libraries contribute domain types and adapters over that 
 - [ ] Reversible structures pass generated forward/inverse laws and reject missing clean storage or ownership witnesses.
 - [ ] Arena and ownership tests reject escapes, use after move, overlapping mutable slices, double drop, and cycles unsupported by the profile.
 - [ ] Qubit/register tests reject copy, alias, overlap, use after measure, dirty release, and persistence without session capability.
-- [ ] Circuit adjoints, coherent operations, parameter bindings, observable order, and result endianness match semantic IR.
+- [x] The current semantic runtime matches generated circuit adjoints, coherently lifted finite XOR operations, exact symbolic parameter bindings, ordered batches and Pauli-Z observables, and canonical little-endian result integers. Wheeler library APIs remain.
 - [ ] Host capabilities cannot be forged, serialized, logged, cached, or acquired through import.
 - [x] The canonical bytecode, package, workspace, manifest, lock, build-plan, archive, bootstrap, snapshot, and documentation decoders reject their applicable duplicate, cyclic, noncanonical, oversized, unknown-required, corrupt, and trailing records. Native standard-library parity remains.
 - [ ] Proof certificates validate critical equality, ordering, encoding, inverse, and quantum laws.
