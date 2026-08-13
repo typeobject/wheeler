@@ -373,7 +373,7 @@ Promotion follows WIP-0007. The identity modules start with executable compiler 
 - [ ] Coherent power-of-two enum permutations agree with an independent state-vector oracle and generated adjoints restore amplitudes exactly within tolerance.
 - [ ] Non-power-of-two coherent use fails before circuit emission.
 - [ ] Measurement tests distinguish coherent enum state from classical enum result and reject attempted uncall of measurement.
-- [ ] Canonical payload-free metadata round-trips and rejects forged type/case/payload references.
+- [x] Payload-free enums lower through canonical variant metadata, round-trip as `.wbc`, and match the equivalent empty-payload variant bytes. The verifier rejects unknown variant descriptors, case tags, payload counts, and payload field references through the ordinary nominal checks.
 - [x] Stage-0 compiler corpus tests and `treeSitterTest` parse every checked-in `.w` source after the constant and enum migration. The root syntax gate admits no second source spelling.
 - [ ] Stage-0 and Wheeler compilers agree on constant-substituted artifacts and diagnostics.
 - [ ] Wheeler verifier/interpreter contain no unexplained raw protocol identities outside focused authority modules and malformed byte fixtures.
