@@ -71,6 +71,43 @@ class StateVectorTargetTest {
   }
 
   @Test
+  void targetRejectsQubitAndShotLimitsBeforeAllocatingAJobIdentity() {
+    QuantumRegister wideRegister = new QuantumRegister(
+        0, "wide", StateVectorTarget.MAX_QUBITS + 1);
+    QuantumCircuit wideCircuit = new QuantumCircuit(0, "wide", 0, List.of());
+    Program wideProgram = program(wideRegister, wideCircuit, List.of());
+    StateVectorTarget target = new StateVectorTarget();
+
+    QuantumExecutionException qubits = assertThrows(
+        QuantumExecutionException.class,
+        () -> target.submit(new QuantumSubmission(
+            wideProgram,
+            0,
+            0,
+            List.of(new CircuitApplication(0, false)),
+            Map.of(),
+            1,
+            0)));
+
+    QuantumRegister register = new QuantumRegister(0, "q", 1);
+    QuantumCircuit circuit = new QuantumCircuit(0, "idle", 0, List.of());
+    Program program = program(register, circuit, List.of());
+    QuantumExecutionException shots = assertThrows(
+        QuantumExecutionException.class,
+        () -> target.submit(new QuantumSubmission(
+            program,
+            0,
+            0,
+            List.of(new CircuitApplication(0, false)),
+            Map.of(),
+            target.descriptor().maxShots() + 1,
+            0)));
+
+    assertTrue(qubits.getMessage().contains("qubit limit"));
+    assertTrue(shots.getMessage().contains("shot limit"));
+  }
+
+  @Test
   void gateAndGeneratedAdjointRestoreState() {
     QuantumRegister register = new QuantumRegister(0, "q", 2);
     QuantumCircuit circuit = new QuantumCircuit(
