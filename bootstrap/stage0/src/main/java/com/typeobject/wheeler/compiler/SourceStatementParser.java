@@ -63,7 +63,60 @@ abstract class SourceStatementParser extends SourceTokenCursor {
     List<Statement> body = new ArrayList<>();
     String register = null;
     while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
-      SourceToken operation = expect(Type.IDENTIFIER, "gate or qreg reference");
+      SourceToken operation = expect(Type.IDENTIFIER, "quantum operation or qreg reference");
+      if (dynamic && operation.text().equals("prepare")) {
+        expect(Type.LEFT_PAREN, "'(' after prepare");
+        String preparedRegister = expect(Type.IDENTIFIER, "register to prepare").text();
+        register = sameRegister(register, preparedRegister, operation);
+        expect(Type.COMMA, "',' after preparation register");
+        String basis = signedNumber();
+        expect(Type.RIGHT_PAREN, "')' after preparation");
+        expect(Type.SEMICOLON, "';' after preparation");
+        body.add(statement("prepare", operation.line(), basis));
+        continue;
+      }
+      if (dynamic && operation.text().equals("measure")) {
+        expect(Type.LEFT_PAREN, "'(' after measure");
+        QubitReference measured = qubitReference();
+        register = sameRegister(register, measured.register(), operation);
+        expect(Type.COMMA, "',' after measured qubit");
+        String resultSlot = signedNumber();
+        expect(Type.RIGHT_PAREN, "')' after measurement");
+        expect(Type.SEMICOLON, "';' after measurement");
+        body.add(statement(
+            "measure_qubit", operation.line(), Integer.toString(measured.index()), resultSlot));
+        continue;
+      }
+      if (dynamic && operation.text().equals("reset")) {
+        expect(Type.LEFT_PAREN, "'(' after reset");
+        QubitReference reset = qubitReference();
+        register = sameRegister(register, reset.register(), operation);
+        expect(Type.RIGHT_PAREN, "')' after reset");
+        expect(Type.SEMICOLON, "';' after reset");
+        body.add(statement("reset_qubit", operation.line(), Integer.toString(reset.index())));
+        continue;
+      }
+      if (dynamic && operation.text().equals("when")) {
+        expect(Type.LEFT_PAREN, "'(' after when");
+        String resultSlot = signedNumber();
+        expect(Type.COMMA, "',' after conditional result slot");
+        boolean expected = conditionalBoolean();
+        expect(Type.COMMA, "',' after conditional Boolean");
+        SourceToken gate = expect(Type.IDENTIFIER, "conditional gate");
+        expect(Type.COMMA, "',' after conditional gate");
+        QubitReference target = qubitReference();
+        register = sameRegister(register, target.register(), operation);
+        expect(Type.RIGHT_PAREN, "')' after conditional gate");
+        expect(Type.SEMICOLON, "';' after conditional gate");
+        body.add(statement(
+            "conditional_gate",
+            operation.line(),
+            resultSlot,
+            Boolean.toString(expected),
+            gate.text().toLowerCase(Locale.ROOT),
+            Integer.toString(target.index())));
+        continue;
+      }
       if (match(Type.DOT)) {
         expectText("apply");
         expect(Type.LEFT_PAREN, "'(' after apply");
@@ -100,11 +153,23 @@ abstract class SourceStatementParser extends SourceTokenCursor {
       expect(Type.SEMICOLON, "';' after gate");
       body.add(new Statement(gate.equals("swap") ? "qswap" : gate, arguments, operation.line()));
     }
-    expect(Type.RIGHT_BRACE, "'}' after unitary method");
+    expect(Type.RIGHT_BRACE, "'}' after quantum region method");
     if (register == null) {
       fail(peek(), "unitary method must operate on a qreg");
     }
     return new Circuit(name, register, dynamic, body, line);
+  }
+
+  private boolean conditionalBoolean() {
+    SourceToken value = expect(Type.IDENTIFIER, "conditional Boolean");
+    if (value.text().equals("true")) {
+      return true;
+    }
+    if (value.text().equals("false")) {
+      return false;
+    }
+    fail(value, "conditional Boolean must be true or false");
+    return false;
   }
 
   private QubitReference qubitReference() {

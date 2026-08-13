@@ -11,6 +11,8 @@ import com.typeobject.wheeler.core.proof.ProofRule;
 import com.typeobject.wheeler.runtime.ExecutionResult;
 import com.typeobject.wheeler.runtime.WheelerRuntime;
 import com.typeobject.wheeler.runtime.hybrid.HybridRun;
+import com.typeobject.wheeler.runtime.quantum.DynamicCircuitResult;
+import com.typeobject.wheeler.runtime.quantum.DynamicStateVectorSimulator;
 import com.typeobject.wheeler.runtime.quantum.StateVectorTarget;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,6 +45,21 @@ class QuantumExamplesTest {
       assertEquals(ProofRule.CIRCUIT_EQUIVALENCE, decoded.proofCertificates().getFirst().rule());
     }
     expected.forEach((global, value) -> assertEquals(value, result.globals().get(global), global));
+  }
+
+  @Test
+  void checkedInDynamicTeleportationRoundTripsAndRunsWithoutHostSplit() throws Exception {
+    byte[] artifact = new WheelerCompiler().compileToBytecode(
+        Path.of("src/main/wheeler/quantum/DynamicTeleportation.w"));
+    Program program = new BytecodeReader().read(artifact);
+    assertArrayEquals(artifact, new BytecodeWriter().write(program));
+
+    var circuit = program.quantumCircuits().getFirst();
+    DynamicCircuitResult result = new DynamicStateVectorSimulator()
+        .execute(program, circuit, 0);
+
+    assertEquals(1, (result.basisState() >> 2) & 1);
+    assertEquals(2, result.resultSlots().size());
   }
 
   @Test

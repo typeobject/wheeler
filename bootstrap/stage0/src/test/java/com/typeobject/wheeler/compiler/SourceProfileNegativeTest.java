@@ -724,30 +724,33 @@ class SourceProfileNegativeTest {
   }
 
   @Test
-  void reservesDynamicUnitarySyntaxWithoutPretendingToLowerIt() {
+  void rejectsConflictingOrMalformedDynamicRegionSyntax() {
     String dynamic = """
         quantum class DynamicSource {
           state long measured = 0;
           qreg q = new qreg(1);
-          dynamic void correction() { X(q[0]); }
-          entry void main() {
+          dynamic void correction() {
             prepare(q, 0);
+            measure(q[0], 0);
+            when(0, true, X, q[0]);
+          }
+          entry void main() {
             correction();
             measured = measure(q);
           }
         }
         """;
     String conflicting = dynamic.replace("dynamic void", "dynamic unitary void");
+    String invalidGate = dynamic.replace("when(0, true, X", "when(0, true, H");
 
-    CompilerException unavailable = assertThrows(
-        CompilerException.class, () -> new WheelerCompiler().compile(dynamic));
     CompilerException kindsConflict = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(conflicting));
+    CompilerException gate = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(invalidGate));
 
-    assertTrue(unavailable.getMessage().contains(
-        "dynamic unitary source operations are not yet available"));
     assertTrue(kindsConflict.getMessage().contains(
         "rev, unitary, dynamic, entry, and test are mutually exclusive"));
+    assertTrue(gate.getMessage().contains("dynamic conditional gate must be X or Z"));
   }
 
   @Test

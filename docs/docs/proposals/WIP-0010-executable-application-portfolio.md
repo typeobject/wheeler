@@ -388,7 +388,7 @@ Portfolio work follows these rules:
 
 ### Dynamic and fault-tolerant
 
-- [x] `DynamicTeleportationFixture` prepares a Bell pair, performs source-side CNOT and Hadamard, measures two target-resident slots, and applies conditional X and Z corrections. Its canonical `.wbc` round-trips byte for byte, and both basis inputs arrive at the target qubit without a host split.
+- [x] Checked-in `DynamicTeleportation.w` prepares a Bell pair, performs source-side CNOT and Hadamard, measures two target-resident slots, and applies conditional X and Z corrections through `dynamic void` source. Its canonical `.wbc` round-trips byte for byte and reaches the target qubit without a host split. `DynamicTeleportationFixture` checks both basis inputs.
 - [x] The bounded dynamic semantic portfolio executes a target-resident parity-syndrome cycle with mid-circuit measurement, classical conditional correction, and ancilla reset. The three-round injected-error fixture corrects once, keeps later syndromes clear, and returns clean ancilla evidence. General fault-tolerant source IR remains.
 - [ ] Logical operation and magic-state planning.
 - [ ] Distributed entanglement session.
@@ -450,7 +450,7 @@ Rejected. Deterministic simulators and lifecycle mocks establish semantics. Opt-
 ## Open questions
 
 - Which three aggregate/storage fixtures should define the first bootstrap heap profile (owner: language, VM, and compiler maintainers. Decision point: before aggregate bytecode lands)?
-- Which dynamic source IR should follow the accepted independent `MID_CIRCUIT_MEASUREMENT`, `RESET`, and `CLASSICAL_CONDITIONAL` capability gates (owner: quantum target maintainers. Decision point: before teleportation implementation)?
+- Which bounded decoder and loop forms should extend the accepted `dynamic void` preparation, measurement, reset, and X/Z conditional profile? **Owner:** quantum target maintainers. **Decision point:** before adaptive phase estimation.
 - Which proof checker is small enough to join the trusted recovery graph (owner: proof and bootstrap maintainers. Decision point: before formal QFT claims land)?
 - Which statistical testing library and report schema belong in the Wheeler package test contract (owner: runtime and package maintainers. Decision point: before sampled portfolio tests expand)?
 

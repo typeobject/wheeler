@@ -8,12 +8,16 @@ import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.ProgramKind;
 import com.typeobject.wheeler.core.proof.ProofCertificate;
+import com.typeobject.wheeler.core.quantum.ConditionalGateOperation;
 import com.typeobject.wheeler.core.quantum.Gate;
 import com.typeobject.wheeler.core.quantum.GateOperation;
 import com.typeobject.wheeler.core.quantum.LiftedCall;
+import com.typeobject.wheeler.core.quantum.MeasureOperation;
+import com.typeobject.wheeler.core.quantum.PrepareOperation;
 import com.typeobject.wheeler.core.quantum.QuantumCircuit;
 import com.typeobject.wheeler.core.quantum.QuantumOperation;
 import com.typeobject.wheeler.core.quantum.QuantumRegister;
+import com.typeobject.wheeler.core.quantum.ResetOperation;
 import com.typeobject.wheeler.core.workflow.WorkflowOpcode;
 import com.typeobject.wheeler.core.workflow.WorkflowStep;
 import java.util.ArrayList;
@@ -101,17 +105,24 @@ final class QuantumLowerer {
           .qubits();
       List<QuantumOperation> operations = new ArrayList<>();
       for (Statement statement : sourceCircuit.statements()) {
-        QuantumOperation operation = lowerQuantumOperation(statement, classical);
-        if (operation instanceof GateOperation gate
-            && gate.qubits().stream().anyMatch(qubit -> qubit >= qubits)) {
+        QuantumOperation operation = sourceCircuit.dynamic()
+            ? lowerDynamicOperation(statement, classical)
+            : lowerQuantumOperation(statement, classical);
+        List<Integer> operationQubits = List.of();
+        if (operation instanceof GateOperation gate) {
+          operationQubits = gate.qubits();
+        } else if (operation instanceof MeasureOperation measurement) {
+          operationQubits = List.of(measurement.qubit());
+        } else if (operation instanceof ResetOperation reset) {
+          operationQubits = List.of(reset.qubit());
+        } else if (operation instanceof ConditionalGateOperation conditional) {
+          operationQubits = conditional.gate().qubits();
+        }
+        if (operationQubits.stream().anyMatch(qubit -> qubit >= qubits)) {
           throw new CompilerException(
               statement.line(), "qubit index exceeds register " + sourceCircuit.registerName());
         }
         operations.add(operation);
-      }
-      if (sourceCircuit.dynamic()) {
-        throw new CompilerException(
-            sourceCircuit.line(), "dynamic unitary source operations are not yet available");
       }
       result.add(new QuantumCircuit(
           circuitIds.get(sourceCircuit.name()), sourceCircuit.name(), register, operations));
@@ -161,6 +172,52 @@ final class QuantumLowerer {
       default -> throw new CompilerException(
           statement.line(), "unknown quantum operation: " + statement.operation());
     };
+  }
+
+  private static QuantumOperation lowerDynamicOperation(
+      Statement statement, ClassicalContent classical) {
+    return switch (statement.operation()) {
+      case "prepare" -> {
+        requireArguments(statement, 1);
+        yield new PrepareOperation(SourceParser.parseInteger(
+            statement.arguments().getFirst(), statement.line()));
+      }
+      case "measure_qubit" -> {
+        requireArguments(statement, 2);
+        yield new MeasureOperation(
+            qubit(statement.arguments().get(0), statement.line()),
+            exactNonnegativeInt(statement.arguments().get(1), statement.line(), "result slot"));
+      }
+      case "reset_qubit" -> {
+        requireArguments(statement, 1);
+        yield new ResetOperation(qubit(statement.arguments().getFirst(), statement.line()));
+      }
+      case "conditional_gate" -> {
+        requireArguments(statement, 4);
+        int slot = exactNonnegativeInt(
+            statement.arguments().get(0), statement.line(), "result slot");
+        boolean expected = Boolean.parseBoolean(statement.arguments().get(1));
+        Gate gate = switch (statement.arguments().get(2)) {
+          case "x" -> Gate.X;
+          case "z" -> Gate.Z;
+          default -> throw new CompilerException(
+              statement.line(), "dynamic conditional gate must be X or Z");
+        };
+        yield new ConditionalGateOperation(
+            slot,
+            expected,
+            GateOperation.of(gate, qubit(statement.arguments().get(3), statement.line())));
+      }
+      default -> lowerQuantumOperation(statement, classical);
+    };
+  }
+
+  private static int exactNonnegativeInt(String text, int line, String description) {
+    long value = SourceParser.parseInteger(text, line);
+    if (value < 0 || value > Integer.MAX_VALUE) {
+      throw new CompilerException(line, "invalid " + description + ": " + text);
+    }
+    return Math.toIntExact(value);
   }
 
   private static GateOperation oneQubit(Statement statement, Gate gate) {
