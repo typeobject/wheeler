@@ -34,8 +34,8 @@ public record TargetDescriptor(
   public void require(Set<TargetCapability> required) {
     String missing = required.stream()
         .filter(capability -> !capabilities.contains(capability))
-        .sorted()
         .map(Enum::name)
+        .sorted()
         .collect(Collectors.joining(", "));
     if (!missing.isEmpty()) {
       throw new QuantumExecutionException(
