@@ -74,6 +74,12 @@ Navigation uses one fixed order: Manual, Tutorials, Reference, Proposals, then a
 
 Java doclet nodes, executable examples, proof references, and generated reference tables remain part of WIP-0019. The current Java generator and renderer are stage-0 tools. WIP-0019 requires a Wheeler-written generator to reproduce the same bundle bytes before the Java implementation can be removed.
 
+## Instruction registry
+
+`registry/instructions.wreg` is the promoted classical instruction registry. Each bounded row owns one stable identity, named form, ordered role list, and reversibility class. `python3 bootstrap/registry/generate.py` publishes the Java and Wheeler views through atomic replacement. `--check` writes nothing and rejects a stale view. Gradle `instructionRegistryCheck` runs that check before subproject acceptance.
+
+Maintainers edit the promoted registry, not either generated view. The executable Java registry test compares every generated row against the VM's opcode metadata. The Wheeler view provides the same identities, counts, packed ordered roles, and reversibility classes to native modules without importing Java source.
+
 ## Source formatting
 
 `wheeler format <file-or-directory>...` formats the same bounded, strict-UTF-8, physical `.w` input set in canonical path order. It parses every selected file before publication and stages changed bytes in verified sibling files. Where available, it keeps ordinary POSIX permission bits and requires atomic replacement.

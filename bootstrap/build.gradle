@@ -12,6 +12,13 @@ allprojects {
     }
 }
 
+tasks.register('instructionRegistryCheck', Exec) {
+    group = 'verification'
+    description = 'Requires generated Java and Wheeler instruction views to match the promoted registry.'
+    workingDir repositoryRoot
+    commandLine 'python3', 'bootstrap/registry/generate.py', '--check'
+}
+
 tasks.register('treeSitterInstall', Exec) {
     workingDir new File(repositoryRoot, 'tree-sitter-wheeler')
     commandLine 'sh', '-eu', '-c', '''
@@ -220,6 +227,7 @@ subprojects {
 
     check.dependsOn jacocoTestReport
     check.dependsOn rootProject.tasks.named('bootstrapContainmentTest')
+    check.dependsOn rootProject.tasks.named('instructionRegistryCheck')
     check.dependsOn rootProject.tasks.named('sourceHeaderTest')
     check.dependsOn rootProject.tasks.named('sourceLayoutTest')
     check.dependsOn rootProject.tasks.named('sourceLengthTest')

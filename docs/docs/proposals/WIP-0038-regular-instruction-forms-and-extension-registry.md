@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler bytecode, VM, verifier, compiler, runtime, and tooling maintainers |
 | Created | 2026-07-27 |
 | Updated | 2026-07-28 |
@@ -225,7 +225,7 @@ Registry duplication fails tests and build checks. Runtime registration does not
 - [x] VM execution, preflight, aggregate checks, borrow-window checks, argument binding, transition observation, storage preflight, and disassembly consume semantic roles instead of private operand positions.
 - [x] Disassembly labels fields from registry metadata.
 - [x] Optional required section 13 declares unique sorted instruction-extension names and versions.
-- [ ] Stage 1 generates the mechanically cross-checked Java and Wheeler registry views from one promoted source.
+- [x] `registry/instructions.wreg` is the promoted source for all 75 classical opcode identities, forms, ordered roles, and reversibility classes. `bootstrap/registry/generate.py` strictly validates that source and atomically writes bounded Java and Wheeler views. `instructionRegistryCheck` rejects stale generated files. `OpcodeRegistryTest` compares every generated Java row with the executable enum.
 
 ## Testing and acceptance
 

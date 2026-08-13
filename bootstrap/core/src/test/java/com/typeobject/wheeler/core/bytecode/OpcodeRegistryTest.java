@@ -41,6 +41,21 @@ class OpcodeRegistryTest {
   }
 
   @Test
+  void generatedPromotedRegistryMatchesEveryJavaOpcode() {
+    assertEquals(Opcode.values().length, GeneratedInstructionRegistry.entries().size());
+    for (Opcode opcode : Opcode.values()) {
+      GeneratedInstructionRegistry.Entry entry = GeneratedInstructionRegistry.entries().stream()
+          .filter(candidate -> candidate.name().equals(opcode.name()))
+          .findFirst()
+          .orElseThrow();
+      assertEquals(opcode.code(), entry.identity(), opcode.name());
+      assertEquals(opcode.form().name(), entry.form(), opcode.name());
+      assertEquals(opcode.form().roles(), entry.roles(), opcode.name());
+      assertEquals(opcode.reversibility(), entry.reversibility(), opcode.name());
+    }
+  }
+
+  @Test
   void disassemblesEveryRegisteredOpcodeThroughItsCanonicalRoles() {
     List<Instruction> instructions = new ArrayList<>();
     for (Opcode opcode : Opcode.values()) {
