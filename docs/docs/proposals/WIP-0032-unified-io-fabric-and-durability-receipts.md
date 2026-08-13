@@ -580,7 +580,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [ ] Unified request/scope/result model is accepted.
 - [ ] Async versus required-concurrent behavior is accepted.
 - [ ] Terminal completion, cancellation, uncertainty, and reap laws are accepted.
-- [ ] Positional storage and sequential adapters execute.
+- [x] Bounded in-memory positional reads and writes execute at explicit offsets, hold and return their buffer owner, reject invalid ranges and rights before capture, and distinguish completion from durability. Sequential cursor adapters remain.
 - [ ] Groups, batches, graphs, selection, and multishot operations execute.
 - [x] Deterministic inline, delayed, and bounded threaded stage-0 backends pass one lifecycle suite.
 - [ ] Event/completion backend passes.
