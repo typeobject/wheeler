@@ -153,7 +153,12 @@ classical class LoopInstructionProducts {
       );
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, readIndex, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_WORDS_GET, 3);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_WORDS_GET,
+        INSTRUCTION_FORM_TERNARY
+      );
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, readOwner, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
@@ -187,7 +192,12 @@ classical class LoopInstructionProducts {
       );
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, writeValue, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_WORDS_SET, 3);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_WORDS_SET,
+        INSTRUCTION_FORM_TERNARY
+      );
       cursor = writeUnsignedLittleEndian(output, cursor, writeOwner, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
       return writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
