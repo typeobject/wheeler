@@ -18,6 +18,7 @@ import wheeler.compiler.closure.local_nominal_carriers;
 import wheeler.compiler.closure.local_nominal_references;
 import wheeler.compiler.closure.loop_back_edge_products;
 import wheeler.compiler.closure.loop_body_values;
+import wheeler.compiler.closure.loop_call_products;
 import wheeler.compiler.closure.loop_instruction_products;
 import wheeler.compiler.closure.loop_local_type_products;
 import wheeler.compiler.closure.primitive_placeholder_projection;
