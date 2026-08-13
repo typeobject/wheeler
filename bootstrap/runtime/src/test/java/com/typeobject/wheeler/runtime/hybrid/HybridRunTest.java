@@ -94,6 +94,53 @@ class HybridRunTest {
   }
 
   @Test
+  void recoveryAdmitsLiveProviderStatesAndRejectsTerminalFailures() {
+    for (JobState state : List.of(
+        JobState.QUEUED,
+        JobState.RUNNING,
+        JobState.SUCCEEDED,
+        JobState.CANCEL_REQUESTED)) {
+      RecoverableTarget target = new RecoverableTarget(1);
+      HybridRun original = HybridRun.start(program(), target);
+      original.advance();
+      target.setLastState(state);
+
+      HybridRun restored = HybridRun.restore(program(), target, original.snapshot());
+
+      assertEquals(RunStatus.WAITING, restored.status());
+      assertEquals(1, target.submissions);
+      assertEquals(1, target.recoveries);
+    }
+
+    for (JobState state : List.of(JobState.FAILED, JobState.CANCELLED)) {
+      RecoverableTarget target = new RecoverableTarget(1);
+      HybridRun original = HybridRun.start(program(), target);
+      original.advance();
+      target.setLastState(state);
+
+      assertThrows(
+          HybridRunException.class,
+          () -> HybridRun.restore(program(), target, original.snapshot()));
+      assertEquals(1, target.submissions);
+      assertEquals(1, target.recoveries);
+    }
+  }
+
+  @Test
+  void recoveryRejectsUnknownProviderJobWithoutResubmission() {
+    RecoverableTarget originalTarget = new RecoverableTarget(1);
+    HybridRun original = HybridRun.start(program(), originalTarget);
+    original.advance();
+    RecoverableTarget restartedTarget = new RecoverableTarget(1);
+
+    assertThrows(
+        HybridRunException.class,
+        () -> HybridRun.restore(program(), restartedTarget, original.snapshot()));
+    assertEquals(0, restartedTarget.submissions);
+    assertEquals(1, restartedTarget.recoveries);
+  }
+
+  @Test
   void retryCreatesNewBranchAndSubmissionLineage() {
     RecoverableTarget target = new RecoverableTarget(1);
     HybridRun run = HybridRun.start(program(), target);
@@ -363,6 +410,14 @@ class HybridRunTest {
 
     private RecoverableTarget(long outcome) {
       this.outcome = outcome;
+    }
+
+    private void setLastState(JobState state) {
+      TestJob job = jobs.get(lastJobId);
+      if (job == null) {
+        throw new IllegalStateException("No submitted test job");
+      }
+      job.state = state;
     }
 
     @Override

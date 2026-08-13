@@ -525,6 +525,15 @@ public final class HybridRun {
       if (!job.id().equals(jobId)) {
         throw new HybridRunException("Recovered quantum job identity mismatch");
       }
+      switch (job.state()) {
+        case QUEUED, RUNNING, SUCCEEDED, CANCEL_REQUESTED -> {
+          // Await preserves this acknowledged provider lineage.
+        }
+        case FAILED -> throw new HybridRunException(
+            "Recovered quantum job " + jobId + " has failed");
+        case CANCELLED -> throw new HybridRunException(
+            "Recovered quantum job " + jobId + " is cancelled");
+      }
       pending = new PendingSubmission(submission, job, register, Math.toIntExact(step.second()));
     }
   }

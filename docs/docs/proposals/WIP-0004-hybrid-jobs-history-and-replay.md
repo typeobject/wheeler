@@ -265,7 +265,7 @@ A persisted continuation contains canonical owned request state, external operat
 - [x] Hybrid run and deterministic event reducer exist in memory.
 - [x] Typed continuations suspend, persist, recover, and resume one acknowledged quantum job.
 - [x] Result identity and exactly-once application are enforced before classical mutation.
-- [ ] Recovery handles every provider lifecycle and ambiguous acknowledgement state.
+- [x] Recovery handles queued, running, succeeded, cancel-requested, failed, cancelled, and unknown acknowledged jobs without resubmission. Unknown jobs fail closed because this provider-neutral interface cannot distinguish lost acknowledgement from expired provider state.
 - [x] Replay and fresh retry lineages are distinct and tested.
 - [x] Reversible, prepared-external, observed, and committed transaction phases are implemented.
 - [x] The optimizer example executes through `HybridRun`, records its target observation, and replays identical globals and measurements without another submission. Exact coherent-lift fixtures separately preserve superposition, match the declared classical permutation, and add no measurement. Cleanup, compensation, batches, and dynamic circuits remain.
@@ -274,7 +274,7 @@ A persisted continuation contains canonical owned request state, external operat
 
 - [x] Event reduction is deterministic under reordered and duplicated delivery.
 - [ ] Local immediate completion and remote delayed completion produce identical semantic event sequences modulo operational metadata.
-- [ ] Recovery resumes queued, running, succeeded, failed, cancelled, and unknown provider states without double submission or result application.
+- [x] Recovery restores queued, running, succeeded, and cancel-requested jobs on their existing lineage. Failed, cancelled, and unknown jobs reject without submission or continuation mutation. Retry remains an explicit new lineage.
 - [ ] Result validation rejects wrong artifact snapshots, job and submission identities, targets, shot counts, and outcome widths before continuation mutation. Content-identified tasks cover artifacts, regions, requests, targets, branches, shots, seeds, and outcome widths. Symbolic binding/schema checks, stale active branches, and explicit result-byte ceilings remain.
 - [x] Replay reproduces classical optimizer state without calling a target.
 - [x] Fresh retry creates a distinct submission lineage.
@@ -283,7 +283,7 @@ A persisted continuation contains canonical owned request state, external operat
 - [x] Hybrid commit advances an explicit event-sequence horizon, commits VM history, and makes transaction abort unavailable. Replay remains a separate event reduction over the retained snapshot and submits no target work. General cleanup and live target-session references remain.
 - [x] Optimizer and coherent-layer fixtures do not retain quantum handles across ordinary target-job boundaries.
 - [ ] Surface-code fixtures require target-resident capabilities when host latency would violate the plan.
-- [ ] Persistence corruption, truncation, unknown required events, and target restarts have bounded failure tests. Digest corruption, truncation, unknown header and required-event enums, and artifact substitution are covered. Target restart state remains.
+- [x] Persistence corruption, truncation, unknown required events, and target restarts have bounded failure tests. Digest corruption, truncation, unknown header and required-event enums, artifact substitution, and restart loss of an acknowledged job all fail closed.
 - [x] Credentials and unrestricted provider payloads never enter persistence.
 - [x] Current runtime documentation explains rewind, inverse, uncompute, replay, retry, cancel, compensate, and discard.
 
