@@ -752,7 +752,7 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 
 - [ ] Adding, removing, or renaming one list item changes only its smallest enclosing layout groups outside unavoidable source-location shifts.
 
-- [ ] Compact, multiline, deeply nested, comment-heavy, Unicode, reversible, coherent, unitary, proof, module, and malformed fixtures are covered.
+- [x] Focused compact, multiline, nested, comment-heavy, unary, module, aggregate, proof-bearing, and malformed fixtures cover the accepted formatter profile. The canonical-corpus test adds every authored reversible, coherent, unitary, Unicode-comment, and compiler-scale source.
 
 - [x] Every checked-in `.w` file has one nonempty first-content `//!` block.
 
