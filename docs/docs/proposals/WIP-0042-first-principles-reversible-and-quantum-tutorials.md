@@ -811,8 +811,8 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [x] The language reference points to the first-principles tutorial as the sole ordered curriculum. The examples page remains a conformance inventory rather than a parallel teaching list.
 - [x] WIP-0006 assigns the teaching sequence to documentation and examples, while WIP-0010 defines the teaching-track fixture contract and links back to WIP-0006. This WIP owns the first-principles curriculum nodes.
 - [ ] Release unit 4 is complete.
-- [ ] Bounded hybrid event presentation is available.
-- [ ] Release unit 5 is complete through the implemented dynamic boundary.
+- [x] **Weather** presents the bounded six-event plan, submission, target, validation, and application sequence, then shows replay as a separate no-submission event and retry as fresh lineage.
+- [x] Release unit 5 covers `T83` through `T93` through the implemented dynamic boundary: capability preflight, asynchronous lifecycle, result validation, replay, retry, commit horizon, and measured-workspace nonrestoration.
 - [ ] Reader-review findings are resolved for every release unit.
 - [ ] A Wheeler-written generator reproduces the tutorial bundle.
 - [ ] Duplicate curriculum and unchecked example paths are deleted.
