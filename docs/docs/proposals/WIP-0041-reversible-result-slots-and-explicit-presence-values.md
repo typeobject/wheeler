@@ -800,7 +800,7 @@ the Java VM on every global.
 - [x] Information-losing bodies remain rejected despite a reversible return.
 - [x] Trapping return expressions leave the result vacant.
 - [ ] Multiple reversible returns require a reconstructible decision.
-- [ ] Classical matching is exhaustive and coherent matching requires control or measurement.
+- [x] Classical slot, enum, and variant matching is exhaustive and payload bindings are type-checked. Coherent slot matching is not admitted until a control or measurement contract exists.
 - [ ] Every coherent primitive preserves valid states and acts as identity on padding.
 - [ ] Constant coherent fill is a transposition and applying it twice restores state.
 - [ ] Source-controlled coherent fill may entangle but does not clone.
