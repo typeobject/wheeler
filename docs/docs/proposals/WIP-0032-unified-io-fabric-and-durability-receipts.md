@@ -603,7 +603,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] Dropping a live stage-0 operation or closing a native lifecycle table with live or unreaped work is rejected.
 - [x] Inline and delayed deterministic completion have equal semantic results. Threaded results match the same semantic fields.
 - [ ] `async` may execute inline. `concurrent` fails when overlap is unavailable.
-- [ ] Common examples require no backend vocabulary or manual polling.
+- [x] Stage-0 lifecycle fixtures construct requests, await, batch, graph, and select through `IoScope`. Request code names no delivery mode, worker, queue, completion port, or poll loop. Backend selection occurs only at the harness boundary.
 
 ### Cancellation and replay
 
