@@ -742,15 +742,39 @@ class SourceProfileNegativeTest {
         """;
     String conflicting = dynamic.replace("dynamic void", "dynamic unitary void");
     String invalidGate = dynamic.replace("applyIf(0, true, X", "applyIf(0, true, H");
+    String duplicatePreparation = dynamic.replace(
+        "prepare(q, 0);", "prepare(q, 0);\n        prepare(q, 0);");
+    String duplicateSlot = dynamic.replace(
+        "measure(q[0], 0);", "measure(q[0], 0);\n        measure(q[0], 0);");
+    String useBeforeMeasurement = dynamic.replace(
+        "applyIf(0, true, X", "applyIf(1, true, X");
+    String invalidSlot = dynamic.replace("measure(q[0], 0)", "measure(q[0], -1)");
+    String outOfRangeQubit = dynamic.replace("measure(q[0], 0)", "measure(q[1], 0)");
 
     CompilerException kindsConflict = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(conflicting));
     CompilerException gate = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(invalidGate));
+    CompilerException preparedTwice = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(duplicatePreparation));
+    CompilerException assignedTwice = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(duplicateSlot));
+    CompilerException unassignedRead = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(useBeforeMeasurement));
+    CompilerException negativeSlot = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(invalidSlot));
+    CompilerException badQubit = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(outOfRangeQubit));
 
     assertTrue(kindsConflict.getMessage().contains(
         "rev, unitary, dynamic, entry, and test are mutually exclusive"));
     assertTrue(gate.getMessage().contains("dynamic conditional gate must be X or Z"));
+    assertTrue(preparedTwice.getMessage().contains("dynamic register is prepared twice"));
+    assertTrue(assignedTwice.getMessage().contains("dynamic result slot is assigned twice: 0"));
+    assertTrue(unassignedRead.getMessage().contains(
+        "dynamic conditional reads unassigned result slot: 1"));
+    assertTrue(negativeSlot.getMessage().contains("invalid result slot: -1"));
+    assertTrue(badQubit.getMessage().contains("qubit index exceeds register q"));
   }
 
   @Test

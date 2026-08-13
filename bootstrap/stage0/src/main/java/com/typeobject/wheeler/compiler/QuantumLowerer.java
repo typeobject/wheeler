@@ -104,7 +104,12 @@ final class QuantumLowerer {
           .orElseThrow()
           .qubits();
       List<QuantumOperation> operations = new ArrayList<>();
+      boolean prepared = false;
+      Set<Integer> measuredSlots = new HashSet<>();
       for (Statement statement : sourceCircuit.statements()) {
+        if (sourceCircuit.dynamic()) {
+          prepared = verifyDynamicFlow(statement, prepared, measuredSlots);
+        }
         QuantumOperation operation = sourceCircuit.dynamic()
             ? lowerDynamicOperation(statement, classical)
             : lowerQuantumOperation(statement, classical);
@@ -171,6 +176,47 @@ final class QuantumLowerer {
       }
       default -> throw new CompilerException(
           statement.line(), "unknown quantum operation: " + statement.operation());
+    };
+  }
+
+  private static boolean verifyDynamicFlow(
+      Statement statement, boolean prepared, Set<Integer> measuredSlots) {
+    return switch (statement.operation()) {
+      case "prepare" -> {
+        if (prepared) {
+          throw new CompilerException(statement.line(), "dynamic register is prepared twice");
+        }
+        yield true;
+      }
+      case "measure_qubit" -> {
+        if (!prepared) {
+          throw new CompilerException(
+              statement.line(), "dynamic measurement precedes register preparation");
+        }
+        int slot = exactNonnegativeInt(
+            statement.arguments().get(1), statement.line(), "result slot");
+        if (!measuredSlots.add(slot)) {
+          throw new CompilerException(
+              statement.line(), "dynamic result slot is assigned twice: " + slot);
+        }
+        yield prepared;
+      }
+      case "conditional_gate" -> {
+        int slot = exactNonnegativeInt(
+            statement.arguments().get(0), statement.line(), "result slot");
+        if (!measuredSlots.contains(slot)) {
+          throw new CompilerException(
+              statement.line(), "dynamic conditional reads unassigned result slot: " + slot);
+        }
+        yield prepared;
+      }
+      default -> {
+        if (!prepared) {
+          throw new CompilerException(
+              statement.line(), "dynamic operation precedes register preparation");
+        }
+        yield prepared;
+      }
     };
   }
 

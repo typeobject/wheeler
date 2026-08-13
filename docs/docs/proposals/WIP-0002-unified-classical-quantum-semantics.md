@@ -313,6 +313,7 @@ Quantum state is not a byte stream, file, mapped object, direct-I/O buffer, or R
 - [x] Superposition tests show the lifted function acts as a unitary permutation, not a measurement-driven classical call.
 - [x] A lifted function and unitary circuit followed by its generated adjoint restore the simulated register.
 - [ ] Compiler-negative tests reject cloning, dirty ancillas, overlapping slices, use after measure, hidden logged history, I/O, and unbounded loops in coherent bodies.
+- [x] Dynamic-region source diagnostics reject duplicate preparation, duplicate result-slot assignment, conditional use before assignment, negative slots, out-of-range qubits, conflicting method kinds, and unsupported conditional gates before bytecode publication.
 - [x] QFT followed by its generated adjoint restores the checked basis-state fixture within numeric tolerance.
 - [x] Full-register measurement produces a typed classical observation. Broader consumed-identity checking remains.
 - [x] Static, host-split, and canonical target-resident dynamic plans produce the same exact basis result for the accepted measured-conditional fixture. Broader distribution equivalence remains target-specific conformance work.
