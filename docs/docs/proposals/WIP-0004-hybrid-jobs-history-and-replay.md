@@ -275,7 +275,7 @@ A persisted continuation contains canonical owned request state, external operat
 - [x] Event reduction is deterministic under reordered and duplicated delivery.
 - [ ] Local immediate completion and remote delayed completion produce identical semantic event sequences modulo operational metadata.
 - [x] Recovery restores queued, running, succeeded, and cancel-requested jobs on their existing lineage. Failed, cancelled, and unknown jobs reject without submission or continuation mutation. Retry remains an explicit new lineage.
-- [ ] Result validation rejects wrong artifact snapshots, job and submission identities, targets, shot counts, and outcome widths before continuation mutation. Content-identified tasks cover artifacts, regions, requests, targets, branches, shots, seeds, and outcome widths. Symbolic binding/schema checks, stale active branches, and explicit result-byte ceilings remain.
+- [x] Result validation rejects wrong artifact snapshots, job and submission identities, targets, shot counts, outcome widths, malformed symbolic binding schemas, stale event branches, and results beyond the canonical eight-MiB byte ceiling before continuation mutation. Submission identities bind artifacts, circuit applications, bindings, shots, and seeds. Event identities bind runs, branches, jobs, targets, and workflow positions.
 - [x] Replay reproduces classical optimizer state without calling a target.
 - [x] Fresh retry creates a distinct submission lineage.
 - [x] Rollback before submission, after acknowledgement, and after measurement follows the declared transaction phase without claiming physical reversal.

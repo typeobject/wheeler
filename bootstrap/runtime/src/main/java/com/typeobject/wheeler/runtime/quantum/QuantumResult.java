@@ -12,12 +12,19 @@ public record QuantumResult(
     List<Long> outcomes,
     Map<Long, Long> counts,
     String target) {
+  private static final int MAX_RESULT_BYTES = 8 * 1024 * 1024;
+
   public QuantumResult {
     Objects.requireNonNull(jobId, "jobId");
     Objects.requireNonNull(submissionIdentity, "submissionIdentity");
     Objects.requireNonNull(target, "target");
     outcomes = List.copyOf(outcomes);
     counts = Map.copyOf(new LinkedHashMap<>(counts));
+    long canonicalBytes = 4L + outcomes.size() * Long.BYTES
+        + 4L + counts.size() * 2L * Long.BYTES;
+    if (canonicalBytes > MAX_RESULT_BYTES) {
+      throw new IllegalArgumentException("Quantum result exceeds the canonical byte limit");
+    }
     if (jobId.isBlank() || submissionIdentity.isBlank() || target.isBlank() || outcomes.isEmpty()) {
       throw new IllegalArgumentException("Quantum result identity and outcomes are required");
     }

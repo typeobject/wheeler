@@ -116,6 +116,20 @@ class StateVectorTargetTest {
   }
 
   @Test
+  void resultByteLimitRejectsOversizedProviderMaterial() {
+    List<Long> oversized = java.util.Collections.nCopies(1_048_575, 0L);
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new QuantumResult(
+            "job",
+            "submission",
+            oversized,
+            Map.of(0L, (long) oversized.size()),
+            "target"));
+  }
+
+  @Test
   void coherentLiftPreservesSuperpositionWithoutMeasurement() {
     FunctionBody flip = new FunctionBody(
         1,
