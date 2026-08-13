@@ -18,6 +18,7 @@ import com.typeobject.wheeler.core.quantum.PrepareOperation;
 import com.typeobject.wheeler.core.quantum.QuantumCircuit;
 import com.typeobject.wheeler.core.quantum.QuantumRegister;
 import com.typeobject.wheeler.core.quantum.ResetOperation;
+import com.typeobject.wheeler.core.workflow.WorkflowStep;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -88,8 +89,14 @@ final class DynamicStateVectorSimulatorTest {
           "teleportation",
           DynamicTeleportationFixture.QUBITS);
       QuantumCircuit circuit = fixture.circuit();
+      Program source = program(register, circuit);
+      byte[] artifact = new com.typeobject.wheeler.core.bytecode.BytecodeWriter().write(source);
+      Program program = new com.typeobject.wheeler.core.bytecode.BytecodeReader().read(artifact);
+      assertTrue(java.util.Arrays.equals(
+          artifact, new com.typeobject.wheeler.core.bytecode.BytecodeWriter().write(program)));
+      QuantumCircuit decodedCircuit = program.quantumCircuit(circuit.id());
       DynamicCircuitResult result = simulator.execute(
-          program(register, circuit), circuit, input ? 1 : 0);
+          program, decodedCircuit, input ? 1 : 0);
 
       assertEquals(input, fixture.target(result));
       assertEquals(2, result.resultSlots().size());
@@ -189,7 +196,7 @@ final class DynamicStateVectorSimulatorTest {
         List.of(),
         List.of(register),
         List.of(circuit),
-        List.of(),
+        List.of(WorkflowStep.halt()),
         Program.DEFAULT_MAX_HISTORY,
         Program.DEFAULT_MAX_STEPS);
   }
