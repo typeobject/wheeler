@@ -316,7 +316,7 @@ Quantum state is not a byte stream, file, mapped object, direct-I/O buffer, or R
 - [x] QFT followed by its generated adjoint restores the checked basis-state fixture within numeric tolerance.
 - [x] Full-register measurement produces a typed classical observation. Broader consumed-identity checking remains.
 - [ ] Static, host-split, and dynamic region plans preserve the same ideal result distributions where each is semantically valid.
-- [ ] The optimizer fixture alternates parameter binding, quantum sampling, and classical updates without provider APIs in source.
+- [x] The checked-in optimizer fixture alternates two explicit quantum preparations and samples with one reversible classical acceptance update and commit, without provider APIs in source. Runtime batch fixtures cover symbolic parameter binding separately. Source-level optimizer parameters remain.
 - [ ] The surface-code fixture declares and checks dynamic measurement/reset/feed-forward requirements.
 - [x] Every current example compiles, round-trips, parses with Tree-sitter, and executes in CI.
 - [x] Current language and hybrid references distinguish inverse, uncompute, rewind, replay, and retry.
