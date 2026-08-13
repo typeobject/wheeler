@@ -13,7 +13,17 @@ allprojects {
 
 tasks.register('treeSitterInstall', Exec) {
     workingDir new File(repositoryRoot, 'tree-sitter-wheeler')
-    commandLine 'npm', 'ci'
+    commandLine 'sh', '-eu', '-c', '''
+        attempt=1
+        while ! npm ci; do
+            rm -rf node_modules
+            if [ "$attempt" -eq 3 ]; then
+                exit 1
+            fi
+            attempt=$((attempt + 1))
+            sleep 2
+        done
+    '''.stripIndent()
 }
 
 tasks.register('treeSitterTest', Exec) {
