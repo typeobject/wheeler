@@ -581,7 +581,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [ ] Async versus required-concurrent behavior is accepted.
 - [x] The stage-0 lifecycle distinguishes success, failure, cancellation before effect, cancellation after partial effect, completion or failure before cancellation, and uncertainty with or without cancellation. Every terminal completion releases resources and must be reaped exactly once.
 - [x] Bounded in-memory positional reads and writes execute at explicit offsets, hold and return their buffer owner, reject invalid ranges and rights before capture, and distinguish completion from durability. Sequential cursor adapters remain.
-- [ ] Groups, batches, graphs, selection, and multishot operations execute.
+- [x] Bounded batches, first-completion selection, and dependency graphs execute. Selection returns every unselected operation, consumed members cannot partially publish a batch, graph dependents wait for all named predecessors, and graph node and edge limits fail before admission. General groups and multishot operations remain.
 - [x] Deterministic inline, delayed, and bounded threaded stage-0 backends pass one lifecycle suite.
 - [ ] Event/completion backend passes.
 - [ ] Registered/provided/zero-copy buffer safety passes.
