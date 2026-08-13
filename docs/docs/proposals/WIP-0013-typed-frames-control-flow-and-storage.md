@@ -272,7 +272,7 @@ Registered and provided buffers remain bounded affine resources. Native queue en
 - [ ] Region tests cover word, byte, and map allocation and mutation. They also cover byte ranges, UTF-8 boundaries, borrow kind and aliasing, scratch cleanup, capacity failures, drop order, moved values, leaks, ownership joins, canonical encoding, snapshots, and rewind. Dangling borrows, output-address independence, recoverable failure, and commit remain.
 - [ ] Stage-0 and Wheeler compilers produce identical typed metadata, code, diagnostics, and artifacts for the shared profile.
 - [ ] The self-host compiler modules and package resolver run under declared frame, region, stack, and step ceilings.
-- [ ] No source construct lowers to a synthetic global or unverified host object.
+- [x] Accepted source values lower to typed frame locals, declared globals, verified aggregate descriptors, or affine owned-store handles. Constants and finite enums add no globals. Tests and compiler fixtures assert exact global counts. No accepted source construct lowers to an unverified host object.
 
 ## Alternatives
 
