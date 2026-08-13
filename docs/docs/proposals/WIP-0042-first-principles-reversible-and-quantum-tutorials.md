@@ -804,7 +804,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [ ] Downloadable `.w` assets reproduce exact fenced source.
 - [ ] Release unit 1 is complete.
 - [x] **The Long Count** records the target, 32-shot budget, seed `104729`, outcome width, exact observed bars, and the boundary between a finite frequency and the declared probability model.
-- [ ] Bounded ideal amplitude diagnostics are available to tutorial experiments.
+- [x] **One Qubit**, **Two Systems**, **The Search**, and **The Far Instrument** use bounded exact amplitude tables. They label state access as an ideal-simulator diagnostic and do not present it as hardware observation.
 - [ ] Release unit 2 is complete.
 - [ ] Static circuit diagrams pass accessibility and identity checks.
 - [ ] Release unit 3 is complete.
@@ -833,7 +833,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [ ] Every expected-rejection fence fails with its named stable diagnostic and publishes no artifact.
 - [x] The current sampled tutorial experiment names the ideal target, seed, 32 shots, binary outcome width, exact histogram, and its accepted claim. Hardware discussion remains explicitly unexecuted.
 - [ ] Repeating the full seeded sample suite produces the same canonical semantic reports.
-- [ ] Every amplitude experiment stays within the ideal diagnostic profile and labels the result simulator-only.
+- [x] Every current amplitude experiment labels its table as ideal state-vector or ideal-simulator evidence. **Weather** states that hardware does not expose those amplitudes.
 - [x] The quantum chapters distinguish ideal amplitude state, one measured classical outcome, seeded repeated counts, hardware samples, and formal structural evidence. No sampled histogram is presented as state access or proof.
 - [x] Reversible chapters describe generated inverse or adjoint operations as new execution and reserve VM rewind for retained transition history. The Bell restoration payoff states the distinction explicitly.
 - [x] **Weather** treats measurement as the quantum-classical boundary, replay as reuse of recorded evidence without submission, and retry as a fresh physical preparation with a new lineage.
