@@ -276,7 +276,7 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 
 - [x] The stage-0 runner discovers only exact runnable `test` target source sets. It derives separate case, source, artifact, execution, and report identities. Each case gets a fresh runtime. Compile errors, runtime traps, and failed assertions map to `WTEST001..003`. Cases are sorted canonically, and the terminal report is stable across reruns.
 - [x] Classical `test void name()` declarations and bounded one-scalar `cases(...)` rows parse in the compiler and Tree-sitter grammar. For a selected target or modular root, the compiler finds names lexically and links the exact reachable package graph. It emits one verified artifact whose only test entry is the selected declaration. Ordinary artifacts omit every test body, and normal `run` behavior stays unchanged.
-- [ ] Full test descriptor semantics, including modular qualification, parameters, fixtures, tags, and limits, are accepted.
+- [x] The scalar stage-0 descriptor profile accepts reachable modular qualification, parameterless or one-scalar declarations, bounded inline cases, canonical tags, and per-case step and history limits. Fixture requirements, generators, target capabilities, and wider parameter products remain later descriptor extensions.
 - [x] Two Wheeler cases compile from one exact package target, run in separate fresh VMs, carry distinct identities and coverage reports, and reduce into one rerun-stable report.
 - [x] Bounded inline `long` and `boolean` parameter rows parse, receive indexed stable names, compile through a synthetic no-argument entry wrapper, and execute independently.
 - [x] Bounded scalar parameter products and digest-assigned deterministic shards execute for the accepted profile.
