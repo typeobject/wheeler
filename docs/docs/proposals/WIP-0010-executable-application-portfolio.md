@@ -389,7 +389,7 @@ Portfolio work follows these rules:
 ### Dynamic and fault-tolerant
 
 - [ ] Dynamic teleportation.
-- [ ] Target-resident error-correction cycle.
+- [x] The bounded dynamic semantic portfolio executes a target-resident parity-syndrome cycle with mid-circuit measurement, classical conditional correction, and ancilla reset. The three-round injected-error fixture corrects once, keeps later syndromes clear, and returns clean ancilla evidence. General fault-tolerant source IR remains.
 - [ ] Logical operation and magic-state planning.
 - [ ] Distributed entanglement session.
 - [ ] Delegated computation protocol.
@@ -450,7 +450,7 @@ Rejected. Deterministic simulators and lifecycle mocks establish semantics. Opt-
 ## Open questions
 
 - Which three aggregate/storage fixtures should define the first bootstrap heap profile (owner: language, VM, and compiler maintainers. Decision point: before aggregate bytecode lands)?
-- Which dynamic simulator and capability vocabulary should gate teleportation and correction fixtures (owner: quantum target maintainers. Decision point: before dynamic workflow implementation)?
+- Which dynamic source IR should follow the accepted independent `MID_CIRCUIT_MEASUREMENT`, `RESET`, and `CLASSICAL_CONDITIONAL` capability gates (owner: quantum target maintainers. Decision point: before teleportation implementation)?
 - Which proof checker is small enough to join the trusted recovery graph (owner: proof and bootstrap maintainers. Decision point: before formal QFT claims land)?
 - Which statistical testing library and report schema belong in the Wheeler package test contract (owner: runtime and package maintainers. Decision point: before sampled portfolio tests expand)?
 
