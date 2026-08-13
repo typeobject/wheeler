@@ -155,6 +155,7 @@ module.exports = grammar({
       optional(field('cases', $.test_case_list)),
       optional(field('tags', $.test_tag_list)),
       optional(field('limits', $.test_limit_list)),
+      optional(field('fixtures', $.test_fixture_list)),
       field('body', $.block),
     ),
 
@@ -193,6 +194,15 @@ module.exports = grammar({
       'history',
       '=',
       field('history', $.integer_literal),
+      ')',
+    ),
+    test_fixture_list: $ => seq(
+      'fixtures',
+      '(',
+      'suite_acquire', '=', field('suite_acquire', $.identifier), ',',
+      'case_acquire', '=', field('case_acquire', $.identifier), ',',
+      'case_release', '=', field('case_release', $.identifier), ',',
+      'suite_release', '=', field('suite_release', $.identifier),
       ')',
     ),
     value_type: $ => seq(

@@ -316,7 +316,9 @@ A declaration may append `tags(unit, compiler.parser)` after `cases(...)` or the
 
 A test may then append `limits(steps = N, history = M)`. Both values range from 1 through 4,000,000. The runner writes them into that case artifact before hashing and execution, so exhaustion uses the ordinary VM trap boundary.
 
-Multi-parameter products, fixtures, non-root test modules, and richer descriptors remain WIP-0018 work.
+An unparameterized test may append the four-function `fixtures(...)` lifecycle described in the language profile. Fixture names resolve in the selected artifact. The runner attempts case and suite release after assertion failure, runtime trap, or cleanup failure while retaining the primary diagnostic.
+
+Multi-parameter products, capability-bearing fixtures, non-root test modules, and richer descriptors remain WIP-0018 work.
 
 ### Packages, locks, and vendors
 

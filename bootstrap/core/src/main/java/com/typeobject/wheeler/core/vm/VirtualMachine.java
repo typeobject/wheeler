@@ -250,6 +250,17 @@ public final class VirtualMachine {
     if (status == MachineStatus.HALTED || status == MachineStatus.TRAPPED) {
       throw new VmTrap("Cannot invoke a function on a finished machine");
     }
+    invokeAvailable(functionId, inverse);
+  }
+
+  /** Executes a zero-argument fixture function around a halted or failed test entry. */
+  public void invokeFixture(int functionId) {
+    status = MachineStatus.READY;
+    tasks.setSelectedStatus(TaskStatus.RUNNABLE);
+    invokeAvailable(functionId, false);
+  }
+
+  private void invokeAvailable(int functionId, boolean inverse) {
     FunctionBody function = program.function(functionId);
     if (function.parameterCount() != 0 || function.returnsValue()) {
       throw new VmTrap(

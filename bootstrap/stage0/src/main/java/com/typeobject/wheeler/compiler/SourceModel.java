@@ -21,6 +21,15 @@ final class SourceModel {
 
   record TestLimits(long maxSteps, int maxHistory) {}
 
+  record TestFixtures(String suiteAcquire, String caseAcquire, String caseRelease,
+                      String suiteRelease) {
+    static final TestFixtures NONE = new TestFixtures("", "", "", "");
+
+    boolean present() {
+      return !suiteAcquire.isEmpty();
+    }
+  }
+
   record RecordField(String name, String type) {}
 
   record RecordDefinition(
@@ -72,6 +81,7 @@ final class SourceModel {
       List<List<String>> testCases,
       List<String> testTags,
       TestLimits testLimits,
+      TestFixtures testFixtures,
       String returnType,
       List<Statement> statements,
       int line) {
@@ -79,8 +89,8 @@ final class SourceModel {
       parameters = List.copyOf(parameters);
       testCases = testCases.stream().map(List::copyOf).toList();
       testTags = List.copyOf(testTags);
-      if (testLimits == null) {
-        throw new IllegalArgumentException("Function test limits are missing");
+      if (testLimits == null || testFixtures == null) {
+        throw new IllegalArgumentException("Function test metadata is missing");
       }
       statements = List.copyOf(statements);
     }

@@ -5,6 +5,7 @@ import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.ProgramKind;
+import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import com.typeobject.wheeler.packageformat.BuildPlan;
 import com.typeobject.wheeler.packageformat.PackageManifest.TargetKind;
@@ -167,7 +168,7 @@ final class PackageProject {
         try {
           WheelerRuntime runtime = new WheelerRuntime();
           ExecutionResult execution = program.kind() == ProgramKind.CLASSICAL
-              ? runtime.executeObserved(program, coverage)
+              ? executeClassicalCase(program, compiledCase.fixtures(), coverage)
               : runtime.execute(program, new StateVectorTarget());
           String coverageIdentity = program.kind() == ProgramKind.CLASSICAL
               ? coverage.identity() : "";
@@ -188,6 +189,66 @@ final class PackageProject {
       }
     }
     return new TestRun(new TestReport(cases), availableTags);
+  }
+
+  private static ExecutionResult executeClassicalCase(
+      Program program,
+      WheelerCompiler.FixtureFunctions fixtures,
+      SemanticCoverage coverage) {
+    if (!fixtures.present()) {
+      return new WheelerRuntime().executeObserved(program, coverage);
+    }
+    VirtualMachine machine = new VirtualMachine(program, coverage);
+    VmTrap primary = null;
+    boolean suiteAcquired = false;
+    boolean caseAcquired = false;
+    try {
+      machine.invokeFixture(fixtures.suiteAcquire());
+      suiteAcquired = true;
+      machine.invokeFixture(fixtures.caseAcquire());
+      caseAcquired = true;
+      machine.run();
+    } catch (VmTrap exception) {
+      primary = exception;
+    }
+    List<String> cleanupFailures = new ArrayList<>();
+    if (caseAcquired) {
+      invokeRelease(machine, fixtures.caseRelease(), "case_release", cleanupFailures);
+    }
+    if (suiteAcquired) {
+      invokeRelease(machine, fixtures.suiteRelease(), "suite_release", cleanupFailures);
+    }
+    String cleanup = cleanupFailures.isEmpty()
+        ? "" : "; cleanup failures: " + String.join(" | ", cleanupFailures);
+    if (primary != null) {
+      throw new VmTrap(
+          primary.code(),
+          primary.getMessage() + cleanup + "; cleanup globals: "
+              + canonicalGlobals(machine.snapshot().globals()));
+    }
+    if (!cleanupFailures.isEmpty()) {
+      throw new VmTrap(
+          "Fixture release failed: " + String.join(" | ", cleanupFailures)
+              + "; cleanup globals: " + canonicalGlobals(machine.snapshot().globals()));
+    }
+    return new ExecutionResult(
+        program.name(), program.kind(), machine.snapshot().globals(),
+        List.of(), List.of(), machine.snapshot().sequence(), machine.hostOutput());
+  }
+
+  private static void invokeRelease(
+      VirtualMachine machine, int function, String phase, List<String> failures) {
+    try {
+      machine.invokeFixture(function);
+    } catch (VmTrap cleanup) {
+      failures.add(phase + ": " + cleanup.getMessage());
+    }
+  }
+
+  private static String canonicalGlobals(Map<String, Long> globals) {
+    return new TreeMap<>(globals).entrySet().stream()
+        .map(entry -> entry.getKey() + "=" + entry.getValue())
+        .collect(java.util.stream.Collectors.joining(","));
   }
 
   static void rejectUnknownTags(Set<String> selectedTags, Set<String> availableTags) {
@@ -337,12 +398,13 @@ final class PackageProject {
       return declarations.stream()
           .map(test -> new CompiledCase(
               test.name(), Set.copyOf(test.tags()), test.maxHistory(), test.maxSteps(),
-              test.program()))
+              test.fixtures(), test.program()))
           .toList();
     }
     Program fallback = compileTarget(compiler, target, linkedModules, directModules);
     return List.of(new CompiledCase(
-        "", Set.of(), fallback.maxHistoryRecords(), fallback.maxSteps(), fallback));
+        "", Set.of(), fallback.maxHistoryRecords(), fallback.maxSteps(),
+        WheelerCompiler.FixtureFunctions.NONE, fallback));
   }
 
   private Program compileTarget(
@@ -372,10 +434,16 @@ final class PackageProject {
   }
 
   private record CompiledCase(
-      String name, Set<String> tags, int maxHistory, long maxSteps, Program program) {
+      String name,
+      Set<String> tags,
+      int maxHistory,
+      long maxSteps,
+      WheelerCompiler.FixtureFunctions fixtures,
+      Program program) {
     private CompiledCase {
       tags = Set.copyOf(tags);
-      if (name == null || program == null || maxHistory < 1 || maxSteps < 1) {
+      if (name == null || fixtures == null || program == null
+          || maxHistory < 1 || maxSteps < 1) {
         throw new IllegalArgumentException("Compiled test case is incomplete");
       }
     }

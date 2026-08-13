@@ -429,9 +429,24 @@ final class SourceModuleLinker {
         function.testCases(),
         function.testTags(),
         function.testLimits(),
+        linkFixtures(function.testFixtures(), references, function.line()),
         resolveType(types, function.returnType(), function.line()),
         statements,
         function.line());
+  }
+
+  private static SourceModel.TestFixtures linkFixtures(
+      SourceModel.TestFixtures fixtures,
+      Map<String, String> references,
+      int line) {
+    if (!fixtures.present()) {
+      return fixtures;
+    }
+    return new SourceModel.TestFixtures(
+        resolve(references, fixtures.suiteAcquire(), line),
+        resolve(references, fixtures.caseAcquire(), line),
+        resolve(references, fixtures.caseRelease(), line),
+        resolve(references, fixtures.suiteRelease(), line));
   }
 
   private static String resolveType(

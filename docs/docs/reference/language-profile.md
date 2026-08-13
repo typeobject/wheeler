@@ -49,6 +49,8 @@ A `test` method is a classical `void` method. It has no parameters, or one `long
 
 A parameterized test must include an inline `cases(...)` list with 1 through 1,024 unique values of the right type. A test may append up to 64 unique canonical dotted tags. The compiler sorts tags, and `wheeler test --tag NAME` selects their intersection. Optional `limits(steps = N, history = M)` values bind the case artifact and may only lower the profile's 4,000,000-record ceilings. There is no hidden generator or ambient random seed.
 
+An unparameterized test may append `fixtures(suite_acquire = openSuite, case_acquire = openCase, case_release = closeCase, suite_release = closeSuite)`. Each name resolves to a distinct zero-argument `void` function in the case artifact. The runner calls acquisition functions in declaration order and release functions in reverse scope order. Assertion failure, runtime trap, or case-release failure does not suppress the remaining release. Cleanup failures remain separate from the primary diagnostic.
+
 When a runnable target has the package `test` selector, each nonmodular test or root-module test compiles into its own verified entry artifact. Tests run in fresh VMs and in lexical qualified-name order. Normal build and run artifacts omit test methods.
 
 Exactly one `entry` method defines ordinary execution. It may borrow an optional `utf8` input followed by an optional mutable `bytes` output.

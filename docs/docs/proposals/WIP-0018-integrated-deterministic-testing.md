@@ -276,13 +276,13 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 
 - [x] The stage-0 runner discovers only exact runnable `test` target source sets. It derives separate case, source, artifact, execution, and report identities. Each case gets a fresh runtime. Compile errors, runtime traps, and failed assertions map to `WTEST001..003`. Cases are sorted canonically, and the terminal report is stable across reruns.
 - [x] Classical `test void name()` declarations and bounded one-scalar `cases(...)` rows parse in the compiler and Tree-sitter grammar. For a selected target or modular root, the compiler finds names lexically and links the exact reachable package graph. It emits one verified artifact whose only test entry is the selected declaration. Ordinary artifacts omit every test body, and normal `run` behavior stays unchanged.
-- [x] The scalar stage-0 descriptor profile accepts reachable modular qualification, parameterless or one-scalar declarations, bounded inline cases, canonical tags, and per-case step and history limits. Fixture requirements, generators, target capabilities, and wider parameter products remain later descriptor extensions.
+- [x] The scalar stage-0 descriptor profile accepts reachable modular qualification, parameterless or one-scalar declarations, bounded inline cases, canonical tags, per-case step and history limits, and the first unparameterized lifecycle fixture declaration. Capability-bearing fixtures, generators, target capabilities, and wider parameter products remain later descriptor extensions.
 - [x] Two Wheeler cases compile from one exact package target, run in separate fresh VMs, carry distinct identities and coverage reports, and reduce into one rerun-stable report.
 - [x] Bounded inline `long` and `boolean` parameter rows parse, receive indexed stable names, compile through a synthetic no-argument entry wrapper, and execute independently.
 - [x] Bounded scalar parameter products and digest-assigned deterministic shards execute for the accepted profile.
 - [x] Bounded canonical dotted tags attach to test declarations, survive modular linking, and sort in descriptor metadata. Repeated `--tag` filters select the intersection without an ambient registry.
 - [x] Optional `limits(steps = N, history = M)` metadata survives modular linking and rewrites only that case artifact's verified machine ceilings before hashing and execution.
-- [ ] Lifecycle fixtures execute.
+- [x] The first source-declared lifecycle fixture profile names four distinct zero-argument `void` functions in `fixtures(suite_acquire = ..., case_acquire = ..., case_release = ..., suite_release = ...)`. The compiler resolves exact artifact function identities. The runner executes the phases around one unparameterized case in that order and attempts both releases after pass, assertion failure, runtime trap, or case-release failure.
 - [ ] Inverse, rewind, quantum, workflow, package, and proof assertions execute with distinct semantics.
 - [ ] A Wheeler-written runner reproduces the stage-0 semantic report.
 - [ ] Superseded JUnit semantic authorities are deleted.
@@ -292,7 +292,7 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 - [x] Stage-0 discovery expands selected source trees into lexical logical-path maps, resolves modules by canonical names, sorts declarations by qualified lexical identity, and sorts the reduced report by case identity. Case and report hashes consume explicit UTF-8 and fixed-width fields. No locale, filesystem enumeration order, source-map order, worker, or completion order enters the implemented profile.
 - [x] Every implemented stage-0 case compiles to its own entry artifact and runs in a newly constructed VM. The multi-case fixture mutates state in one case and proves a later lexical case still observes the declared initial global. Fixtures and target-bearing cases remain future work.
 - [x] The implemented inline signed and Boolean `cases(...)` products retain declaration order, use stable indexed identities, reject duplicate or mistyped rows, and cap one product at 1,024 values. Seeds, generation, and shrinking remain outside the profile.
-- [ ] Lifecycle acquire/release ordering is exact across pass, assertion fail, trap, cancel, and process recovery.
+- [x] Lifecycle acquire/release ordering is exact for the accepted in-process profile across pass, assertion failure, runtime trap, and cleanup failure. The runner preserves the primary diagnostic, records cleanup failures and post-cleanup globals, and attempts suite release after case release fails. Cancellation and process recovery require durable fixture capabilities and remain outside this profile.
 - [x] Transition evidence distinguishes forward, language inverse, rewind-forward, and rewind-inverse directions. Hybrid tests separately prove replay performs no submission and retry creates a new branch and provider lineage. Typed uncomputation assertions remain.
 - [ ] Exact simulator tests cover amplitudes, global phase, generated adjoints, and clean ancillas.
 - [ ] Sampled tests retain evidence and cannot satisfy exact or proof assertions.
@@ -301,7 +301,7 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 - [x] `--shard INDEX/COUNT` assigns each implemented case by its complete case-identity digest. Shards are disjoint and complete. Canonical reduction sorts arrival-independent rows, rejects duplicate case identities, and reproduces the serial profile-2 report identity.
 - [x] Terminal, canonical JSON, and JUnit XML adapters consume one sorted profile-2 report. Each carries the same case status, diagnostics, assertion count, source, artifact, execution, coverage, and report identities. Adapter bytes remain outside semantic identity.
 - [ ] An end-to-end package suite compiles and tests the self-hosted compiler using no Java discovery.
-- [x] `reference/packages.md` and `reference/language-profile.md` describe only the implemented stage-0 runner: selected root tests, bounded scalar cases, fresh VMs, canonical order, identities, diagnostics, assertion attempts, transition coverage, and the zero-case report. Fixtures, generators, non-root modules, and adapters remain explicitly assigned to this WIP.
+- [x] `reference/packages.md` and `reference/language-profile.md` describe only the implemented stage-0 runner: selected root tests, bounded scalar cases, fresh VMs, the first in-process lifecycle fixture profile, canonical order, identities, diagnostics, assertion attempts, transition coverage, and the zero-case report. Capability-bearing fixtures, generators, non-root modules, and new adapters remain explicitly assigned to this WIP.
 
 ## Alternatives
 

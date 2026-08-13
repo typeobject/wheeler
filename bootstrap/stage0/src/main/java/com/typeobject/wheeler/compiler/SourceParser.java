@@ -14,6 +14,7 @@ import com.typeobject.wheeler.compiler.SourceModel.SliceDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.SourceProgram;
 import com.typeobject.wheeler.compiler.SourceModel.State;
 import com.typeobject.wheeler.compiler.SourceModel.Statement;
+import com.typeobject.wheeler.compiler.SourceModel.TestFixtures;
 import com.typeobject.wheeler.compiler.SourceModel.TestLimits;
 import com.typeobject.wheeler.compiler.SourceModel.VariantCase;
 import com.typeobject.wheeler.compiler.SourceModel.VariantDefinition;
@@ -241,6 +242,10 @@ final class SourceParser extends SourceStatementParser {
         this, test, parameters, start);
     List<String> testTags = SourceTestTags.parse(this, test, start);
     TestLimits testLimits = SourceTestLimits.parse(this, test, start);
+    TestFixtures testFixtures = SourceTestFixtures.parse(this, test, start);
+    if (testFixtures.present() && !testCases.isEmpty()) {
+      fail(start, "the first fixture profile requires one unparameterized case");
+    }
     expect(Type.LEFT_BRACE, "'{' before method body");
 
     if (coherent && !reversible) {
@@ -268,7 +273,7 @@ final class SourceParser extends SourceStatementParser {
     } else {
       functions.add(parseFunction(
           name, exported, entry, test, reversible, coherent, parameters, testCases,
-          testTags, testLimits, returnType, start.line()));
+          testTags, testLimits, testFixtures, returnType, start.line()));
     }
   }
 
@@ -283,6 +288,7 @@ final class SourceParser extends SourceStatementParser {
       List<List<String>> testCases,
       List<String> testTags,
       TestLimits testLimits,
+      TestFixtures testFixtures,
       String returnType,
       int line) {
     List<Statement> body = new ArrayList<>();
@@ -363,7 +369,7 @@ final class SourceParser extends SourceStatementParser {
     }
     return new Function(
         name, exported, entry, test, reversible, coherent, parameters, testCases,
-        testTags, testLimits, returnType, body, line);
+        testTags, testLimits, testFixtures, returnType, body, line);
   }
 
   @Override

@@ -5,9 +5,11 @@ Classical reversible class
 classical class Counter {
   state long count = 0;
   rev void increment() { count += 1; }
-  test void remembers(long input) cases(-1, 0, 1) tags(fast, compiler.parser)
-      limits(steps = 100, history = 100) {
-    assert(input == input);
+  test void remembers() tags(fast, compiler.parser)
+      limits(steps = 100, history = 100)
+      fixtures(suite_acquire = openSuite, case_acquire = openCase,
+          case_release = closeCase, suite_release = closeSuite) {
+    assert(count == count);
   }
   entry void main() {
     increment();
@@ -44,17 +46,7 @@ classical class Counter {
         (method_declaration
           (method_modifier)
           (identifier)
-          (parameter_list
-            (parameter
-              (value_type)
-              (identifier)))
-          (test_case_list
-            (test_case
-              (integer_literal))
-            (test_case
-              (integer_literal))
-            (test_case
-              (integer_literal)))
+          (parameter_list)
           (test_tag_list
             (test_tag
               (identifier))
@@ -64,6 +56,11 @@ classical class Counter {
           (test_limit_list
             (integer_literal)
             (integer_literal))
+          (test_fixture_list
+            (identifier)
+            (identifier)
+            (identifier)
+            (identifier))
           (block
             (statement
               (assert_statement

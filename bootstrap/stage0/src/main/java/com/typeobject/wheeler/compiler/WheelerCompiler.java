@@ -20,12 +20,27 @@ import java.util.TreeMap;
 public final class WheelerCompiler {
   /** One source-declared test and the verified artifact that enters only that test. */
   public record TestCase(
-      String name, List<String> tags, long maxSteps, int maxHistory, Program program) {
+      String name,
+      List<String> tags,
+      long maxSteps,
+      int maxHistory,
+      FixtureFunctions fixtures,
+      Program program) {
     public TestCase {
       tags = List.copyOf(tags);
-      if (name == null || name.isBlank() || program == null) {
+      if (name == null || name.isBlank() || fixtures == null || program == null) {
         throw new IllegalArgumentException("Test case requires a name and program");
       }
+    }
+  }
+
+  /** Resolved lifecycle fixture functions in the selected test artifact. */
+  public record FixtureFunctions(
+      int suiteAcquire, int caseAcquire, int caseRelease, int suiteRelease) {
+    public static final FixtureFunctions NONE = new FixtureFunctions(-1, -1, -1, -1);
+
+    public boolean present() {
+      return suiteAcquire >= 0;
     }
   }
 
@@ -47,13 +62,17 @@ public final class WheelerCompiler {
         .filter(SourceModel.Function::test)
         .sorted(java.util.Comparator.comparing(SourceModel.Function::name))
         .flatMap(function -> java.util.stream.IntStream.range(0, testRows(function).size())
-            .mapToObj(index -> new TestCase(
-                testCaseName(function, index),
-                function.testTags(),
-                function.testLimits().maxSteps(),
-                function.testLimits().maxHistory(),
-                compileParsed(withTestEntry(
-                    parsed, function, testRows(function).get(index))))))
+            .mapToObj(index -> {
+              Program program = compileParsed(withTestEntry(
+                  parsed, function, testRows(function).get(index)));
+              return new TestCase(
+                  testCaseName(function, index),
+                  function.testTags(),
+                  function.testLimits().maxSteps(),
+                  function.testLimits().maxHistory(),
+                  fixtureFunctions(program, function.testFixtures(), ""),
+                  program);
+            }))
         .toList();
   }
 
@@ -131,12 +150,14 @@ public final class WheelerCompiler {
               Map<String, SourceProgram> selected = new TreeMap<>(parsed);
               selected.put(rootModule, withTestEntry(
                   root, function, testRows(function).get(index)));
+              Program program = compileLinkedModules(selected, rootModule);
               return new TestCase(
                   rootModule + "::" + testCaseName(function, index),
                   function.testTags(),
                   function.testLimits().maxSteps(),
                   function.testLimits().maxHistory(),
-                  compileLinkedModules(selected, rootModule));
+                  fixtureFunctions(program, function.testFixtures(), rootModule + "::"),
+                  program);
             }))
         .toList();
   }
@@ -165,6 +186,7 @@ public final class WheelerCompiler {
         List.of(),
         List.of(),
         SourceTestLimits.defaults(),
+        SourceModel.TestFixtures.NONE,
         "void",
         List.of(new SourceModel.Statement("halt", List.of(), 1)),
         1));
@@ -311,6 +333,7 @@ public final class WheelerCompiler {
             function.testCases(),
             function.testTags(),
             function.testLimits(),
+            function.testFixtures(),
             function.returnType(),
             withoutEntryHalt(function),
             function.line()))
@@ -321,6 +344,32 @@ public final class WheelerCompiler {
         source.states(), source.constants(), source.records(), source.variants(),
         source.arrays(), source.slices(), source.proofs(), functions,
         source.quantumRegisters(), source.circuits());
+  }
+
+  private static FixtureFunctions fixtureFunctions(
+      Program program, SourceModel.TestFixtures fixtures, String prefix) {
+    if (!fixtures.present()) {
+      return FixtureFunctions.NONE;
+    }
+    return new FixtureFunctions(
+        fixtureFunction(program, prefix + fixtures.suiteAcquire()),
+        fixtureFunction(program, prefix + fixtures.caseAcquire()),
+        fixtureFunction(program, prefix + fixtures.caseRelease()),
+        fixtureFunction(program, prefix + fixtures.suiteRelease()));
+  }
+
+  private static int fixtureFunction(Program program, String name) {
+    return program.functions().stream()
+        .filter(function -> function.name().equals(name))
+        .findFirst()
+        .map(function -> {
+          if (function.parameterCount() != 0 || function.returnsValue()) {
+            throw new CompilerException(1,
+                "fixture function must have no parameters and return void: " + name);
+          }
+          return function.id();
+        })
+        .orElseThrow(() -> new CompilerException(1, "fixture function is missing: " + name));
   }
 
   private static List<List<String>> testRows(SourceModel.Function function) {
@@ -351,7 +400,7 @@ public final class WheelerCompiler {
     statements.add(new SourceModel.Statement("halt", List.of(), selected.line()));
     return new SourceModel.Function(
         "$test", false, true, false, false, false, List.of(), List.of(), List.of(),
-        selected.testLimits(), "void",
+        selected.testLimits(), SourceModel.TestFixtures.NONE, "void",
         statements, selected.line());
   }
 
