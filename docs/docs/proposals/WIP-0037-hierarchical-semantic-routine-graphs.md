@@ -693,7 +693,7 @@ A malformed semantic graph fails before target planning. A failed transformation
 - [ ] Current coherent and unitary calls emit hierarchy.
 - [ ] Repeat, adjoint, and controlled nodes emit.
 - [ ] Compute/use and ancilla scopes emit.
-- [ ] Measurement and hybrid boundaries remain explicit.
+- [x] Canonical dynamic regions retain preparation, measurement, reset, and target-resident conditional operations as distinct records. Host submission, validation, observation application, replay, and retry remain explicit hybrid lifecycle edges outside the region.
 - [ ] Canonical graph encoding and verification pass.
 - [ ] Resource profiles attach to source nodes.
 - [ ] Exact transformation receipts check.
