@@ -347,6 +347,8 @@ Rejected. The canonical executable is `.wbc`. Provider formats and host-native i
 
 ## References
 
+- [WIP-0053: Auditable bootstrap seed chain](WIP-0053-auditable-bootstrap-seed-chain.md)
+
 - [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md)
 - [WIP-0005](WIP-0005-wheeler-source-language.md)
 - [WIP-0006](WIP-0006-concrete-syntax-tooling-and-teaching.md)
