@@ -282,7 +282,7 @@ A persisted continuation contains canonical owned request state, external operat
 - [x] Late results from cancelled or discarded branches cannot mutate active state.
 - [x] Hybrid commit advances an explicit event-sequence horizon, commits VM history, and makes transaction abort unavailable. Replay remains a separate event reduction over the retained snapshot and submits no target work. General cleanup and live target-session references remain.
 - [x] Optimizer and coherent-layer fixtures do not retain quantum handles across ordinary target-job boundaries.
-- [ ] Surface-code fixtures require target-resident capabilities when host latency would violate the plan.
+- [x] The target-resident surface-code boundary requires mid-circuit measurement, reset, and classical conditional capabilities as one pre-submission set. The static target reports all three missing capabilities and does not host-split the region.
 - [x] Persistence corruption, truncation, unknown required events, and target restarts have bounded failure tests. Digest corruption, truncation, unknown header and required-event enums, artifact substitution, and restart loss of an acknowledged job all fail closed.
 - [x] Credentials and unrestricted provider payloads never enter persistence.
 - [x] Current runtime documentation explains rewind, inverse, uncompute, replay, retry, cancel, compensate, and discard.
