@@ -106,6 +106,28 @@ class SourceDocumentationTest {
   }
 
   @Test
+  void checksEverySemanticDeclarationKind() {
+    String[] declarations = {
+        "public long visible() { return 0; }",
+        "entry void main() {}",
+        "rev void reverse() {}",
+        "coherent rev void coherentStep() {}",
+        "unitary void gate() {}",
+        "theorem inverseLaw proves inverse(reverse);",
+        "experiment sampled() { shots 1; }"
+    };
+    String[] codes = {
+        "WDOC002", "WDOC002", "WDOC002", "WDOC002", "WDOC002", "WDOC002", "WDOC002"
+    };
+    for (int index = 0; index < declarations.length; index++) {
+      List<SourceDocumentation.Diagnostic> diagnostics = SourceDocumentation.checkFile(
+          "//! Missing declaration documentation.\nclassical class Missing { "
+              + declarations[index] + " }\n");
+      assertEquals(codes[index], diagnostics.getFirst().code(), declarations[index]);
+    }
+  }
+
+  @Test
   void exportsParserOwnedModuleAndDeclarationDocumentation() {
     SourceDocumentation.FileDocumentation documentation = SourceDocumentation.extract("""
         //! Arithmetic API used by documentation bundles.

@@ -758,7 +758,7 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 
 - [x] Every required declaration has one adjacent nonempty `///` block.
 
-- [ ] Public, entry, reversible, coherent, unitary, theorem, and experiment coverage rules have positive and negative fixtures.
+- [x] Public, entry, reversible, coherent, unitary, theorem, and experiment declarations have parser-owned coverage fixtures. The complete positive declaration form and a table-driven missing-documentation corpus exercise every required kind.
 
 - [x] Required `Effects`, `Inverse`, `Coherent`, and `Adjoint` facets have exact positive and negative fixtures.
 
