@@ -248,7 +248,7 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 - [ ] XDG overrides and fallback paths change placement only. Package-object hits reverify complete release and archive identity and cache deletion changes no package bytes, while build-input-keyed outputs from every supported origin remain.
 - [ ] Path, identity, locale, timezone, order, timestamp, and job count do not alter bytes.
 - [x] Repeating an exact build-input identity with equal verified bytes is idempotent. A different canonical PREV is retained under its observed identity with immutable bytes and a canonical quarantine record, while the accepted mapping remains authoritative.
-- [ ] Equal publication is idempotent and conflicts cannot overwrite.
+- [x] Publishing the same canonical archive and coordinate twice is idempotent. Reusing that package/version for changed bytes raises a format error before replacement, and exact fetch revalidates stored archive identity before publication.
 - [ ] Yanks preserve locks and incompatible patch/minor APIs are rejected.
 - [ ] Stage 0 and Wheeler implementations agree.
 
