@@ -212,6 +212,15 @@ class HybridRunTest {
     System.arraycopy(digest, 0, unknownMode, digestOffset, digest.length);
     assertThrows(HybridRunException.class, () -> store.decode(unknownMode));
 
+    byte[] unknownEvent = store.encode(run.snapshot());
+    int eventKindOffset = firstEventKindOffset(unknownEvent);
+    java.nio.ByteBuffer.wrap(unknownEvent).putInt(eventKindOffset, Integer.MAX_VALUE);
+    digestOffset = unknownEvent.length - 32;
+    digest = java.security.MessageDigest.getInstance("SHA-256")
+        .digest(java.util.Arrays.copyOf(unknownEvent, digestOffset));
+    System.arraycopy(digest, 0, unknownEvent, digestOffset, digest.length);
+    assertThrows(HybridRunException.class, () -> store.decode(unknownEvent));
+
     Program wrong = new Program(
         "Different",
         ProgramKind.QUANTUM,
@@ -295,6 +304,43 @@ class HybridRunTest {
         workflow,
         100,
         100);
+  }
+
+  private static int firstEventKindOffset(byte[] encoded) {
+    java.nio.ByteBuffer bytes = java.nio.ByteBuffer.wrap(encoded);
+    bytes.position(8);
+    skipText(bytes);
+    skipText(bytes);
+    bytes.position(bytes.position() + 8);
+    skipText(bytes);
+    bytes.position(bytes.position() + 8 + 12);
+    skipText(bytes);
+    skipText(bytes);
+    skipText(bytes);
+    bytes.position(bytes.position() + 4);
+    skipGlobals(bytes);
+    skipText(bytes);
+    skipText(bytes);
+    bytes.position(bytes.position() + 12);
+    skipGlobals(bytes);
+    int eventCount = bytes.getInt();
+    assertTrue(0 < eventCount);
+    skipText(bytes);
+    skipText(bytes);
+    bytes.position(bytes.position() + 8);
+    return bytes.position();
+  }
+
+  private static void skipGlobals(java.nio.ByteBuffer bytes) {
+    int count = bytes.getInt();
+    for (int index = 0; index < count; index++) {
+      skipText(bytes);
+      bytes.position(bytes.position() + 8);
+    }
+  }
+
+  private static void skipText(java.nio.ByteBuffer bytes) {
+    bytes.position(bytes.position() + 4 + bytes.getInt(bytes.position()));
   }
 
   private static final class RecoverableTarget implements QuantumTarget {

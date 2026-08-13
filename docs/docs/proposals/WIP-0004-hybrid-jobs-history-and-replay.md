@@ -283,7 +283,7 @@ A persisted continuation contains canonical owned request state, external operat
 - [ ] Commit and cleanup make earlier rewind/replay availability explicit and respect live references.
 - [x] Optimizer and coherent-layer fixtures do not retain quantum handles across ordinary target-job boundaries.
 - [ ] Surface-code fixtures require target-resident capabilities when host latency would violate the plan.
-- [ ] Persistence corruption, truncation, unknown required events, and target restarts have bounded failure tests. Digest corruption, truncation, unknown enums, and artifact substitution are covered. Unknown required events and target restart state remain.
+- [ ] Persistence corruption, truncation, unknown required events, and target restarts have bounded failure tests. Digest corruption, truncation, unknown header and required-event enums, and artifact substitution are covered. Target restart state remains.
 - [x] Credentials and unrestricted provider payloads never enter persistence.
 - [x] Current runtime documentation explains rewind, inverse, uncompute, replay, retry, cancel, compensate, and discard.
 
