@@ -254,6 +254,33 @@ class BytecodeCodecTest {
         java.util.List.of(new ProofCertificate(
             0, "falseClaim", ProofRule.GENERATED_INVERSE, 0, -1)));
     assertThrows(BytecodeException.class, () -> BytecodeVerifier.verify(forged));
+
+    assertThrows(IllegalArgumentException.class, () -> new ProofCertificate(
+        0, "badArgument", ProofRule.GENERATED_INVERSE, 1, 0));
+    Program wrongSubject = Program.classical(
+        "WrongSubject", 0, java.util.List.of(new Global("value", 0)),
+        java.util.List.of(), java.util.List.of(), java.util.List.of(), java.util.List.of(),
+        java.util.List.of(main, increment), java.util.List.of(new ProofCertificate(
+            0, "wrongSubject", ProofRule.GENERATED_INVERSE, 0, -1)));
+    BytecodeException subjectFailure = assertThrows(
+        BytecodeException.class, () -> BytecodeVerifier.verify(wrongSubject));
+    assertTrue(subjectFailure.getMessage().contains("subject is not reversible"));
+    FunctionBody forgedInverse = new FunctionBody(
+        1,
+        "increment",
+        false,
+        0,
+        java.util.List.of(),
+        null,
+        increment.forward(),
+        java.util.List.of(Instruction.of(Opcode.ADD_CONST, 0, 1), Instruction.of(Opcode.RETURN)));
+    Program wrongPayload = Program.classical(
+        "WrongPayload", 0, java.util.List.of(new Global("value", 0)),
+        java.util.List.of(), java.util.List.of(), java.util.List.of(), java.util.List.of(),
+        java.util.List.of(main, forgedInverse), java.util.List.of(proof));
+    BytecodeException payloadFailure = assertThrows(
+        BytecodeException.class, () -> BytecodeVerifier.verify(wrongPayload));
+    assertTrue(payloadFailure.getMessage().contains("inverse body does not match"));
   }
 
   private static int sectionOffset(byte[] artifact, int expectedType) {

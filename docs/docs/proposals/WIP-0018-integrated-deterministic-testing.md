@@ -295,7 +295,7 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 - [ ] Language inverse, VM rewind, uncomputation, replay, and retry tests distinguish every boundary.
 - [ ] Exact simulator tests cover amplitudes, global phase, generated adjoints, and clean ancillas.
 - [ ] Sampled tests retain evidence and cannot satisfy exact or proof assertions.
-- [ ] Proof tests accept valid certificates and reject forged subjects, rules, arguments, and payloads.
+- [x] The current kernel fixture accepts a canonical generated-inverse certificate and rejects a nonreversible subject, an invalid rule argument, and a forged inverse body. The runner still needs a source-level typed proof assertion rather than a Java harness.
 - [ ] Malformed descriptors, duplicate cases, unknown tags, exhausted limits, and oversized reports fail closed.
 - [x] `--shard INDEX/COUNT` assigns each implemented case by its complete case-identity digest. Shards are disjoint and complete. Canonical reduction sorts arrival-independent rows, rejects duplicate case identities, and reproduces the serial profile-2 report identity.
 - [x] Terminal, canonical JSON, and JUnit XML adapters consume one sorted profile-2 report. Each carries the same case status, diagnostics, assertion count, source, artifact, execution, coverage, and report identities. Adapter bytes remain outside semantic identity.
