@@ -485,7 +485,7 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 - [x] Test-selected Wheeler targets execute through `wheeler test`, discover only exact root-package declarations, compile each case to a fresh verified entry artifact, and reduce compile and runtime failures canonically. Compiler, runtime, package-manager, documentation, and negative suites still require native package migration.
 - [x] Package archives verify without extraction and reject duplicate, unordered, escaping, corrupt, oversized, malformed, and trailing members. Links and special files are unrepresentable.
 - [x] Local publication is idempotent by content identity, uses canonical YAML mappings, and cannot overwrite an existing version. Authenticated remote acknowledgement and retry remain.
-- [ ] Live target tests are opt-in, budgeted, capability-gated, and excluded from package output identities.
+- [x] Live target tests require an invocation-local enabled policy, target capabilities, and hard submission and aggregate-shot budgets. Ordinary CI constructs no enabled policy, and provider results remain test evidence rather than package output identity.
 - [ ] A clean bootstrap with no Java, Gradle, Rust, Cargo, or network rebuilds and tests the recovery workspace.
 - [ ] No second package resolver or build-graph authority remains after cutover.
 
