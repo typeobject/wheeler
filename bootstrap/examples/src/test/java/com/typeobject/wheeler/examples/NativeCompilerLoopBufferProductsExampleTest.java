@@ -42,7 +42,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
         .mapToInt(Instruction::encodedLength)
         .sum();
     VirtualMachine machine = new VirtualMachine(
-        program(), SOURCE.getBytes(StandardCharsets.UTF_8), 262_144);
+        program(SOURCE), SOURCE.getBytes(StandardCharsets.UTF_8), 262_144);
 
     machine.run();
 
@@ -82,12 +82,32 @@ final class NativeCompilerLoopBufferProductsExampleTest {
     assertEquals(1, machine.global("fourthBodyType"));
   }
 
-  private static Program program() throws Exception {
-    int bodyStart = SOURCE.indexOf("{", SOURCE.indexOf("main("));
-    int bodyEnd = matchingClose(SOURCE, bodyStart) + 1;
-    int valuesStart = SOURCE.indexOf("values = allocate");
-    int cursorStart = SOURCE.indexOf("cursor = 0");
-    int valueStart = SOURCE.indexOf("value = values");
+  @Test
+  void rejectsMalformedOrMistypedBufferRowsWithoutPublishing() throws Exception {
+    for (String source : List.of(
+        SOURCE.replace("words values", "long values"),
+        SOURCE.replace("values[cursor]", "cursor[cursor]"),
+        SOURCE.replace("values[cursor]", "values[values]"),
+        SOURCE.replace("set(values, cursor, value)", "set(cursor, cursor, value)"),
+        SOURCE.replace("set(values, cursor, value)", "set(values, values, value)"),
+        SOURCE.replace("set(values, cursor, value)", "set(values, cursor, values)"))) {
+      VirtualMachine machine = new VirtualMachine(
+          program(source), source.getBytes(StandardCharsets.UTF_8), 262_144);
+
+      machine.run();
+
+      assertEquals(0, machine.global("valid"), source);
+      assertEquals(0, machine.global("bodyCount"), source);
+      assertEquals(91, machine.global("firstOpcode"), source);
+    }
+  }
+
+  private static Program program(String source) throws Exception {
+    int bodyStart = source.indexOf("{", source.indexOf("main("));
+    int bodyEnd = matchingClose(source, bodyStart) + 1;
+    int valuesStart = source.indexOf("values = allocate");
+    int cursorStart = source.indexOf("cursor = ");
+    int valueStart = source.indexOf("value = ");
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.loop_instruction_products"));
@@ -155,44 +175,56 @@ final class NativeCompilerLoopBufferProductsExampleTest {
             set(values, 4098, 5);
             set(loopLocalBases, 0, 7);
             set(loopInstructionStarts, 0, 6);
+            set(bodyRows, 8192, 91);
             SourceBlockProductPlan blockPlan = materializeSourceBlockProducts(
               input, 0, 0, 1, bodyStarts, bodyLengths, blocks
             );
-            assert(blockPlan.valid);
             SourceLoopProductPlan loopPlan = materializeSourceLoopProducts(
               input, blockPlan.blockCount, blocks, statements, conditions, loops
             );
-            assert(loopPlan.valid);
             ResolvedLoopBodyPlan bodyPlan = materializeResolvedLoopBodyProducts(
               input, loopPlan.statementCount, statements, 3, values, bodyRows
             );
-            assert(bodyPlan.valid);
             set(conditions, 256, 1);
             set(conditions, 512, 6);
             set(conditions, 768, 0);
             set(conditions, 1024, 1);
             set(loops, 1024, 1);
+            long admittedLoopCount = 0;
+            if (bodyPlan.valid) {
+              admittedLoopCount = loopPlan.loopCount;
+            }
+            long admittedBodyCount = 0;
+            if (bodyPlan.valid) {
+              admittedBodyCount = bodyPlan.bodyCount;
+            }
             LoopInstructionProductPlan code = writeLoopInstructionProducts(
-              loopPlan.loopCount,
+              admittedLoopCount,
               conditions,
               loops,
-              bodyPlan.bodyCount,
+              admittedBodyCount,
               bodyRows,
               loopLocalBases,
               loopInstructionStarts,
               output
             );
             LoopLocalTypePlan types = materializeLoopLocalTypeProducts(
-              loopPlan.loopCount,
+              admittedLoopCount,
               loops,
-              bodyPlan.bodyCount,
+              admittedBodyCount,
               bodyRows,
               loopLocalBases,
               typeRows
             );
-            if (code.valid) {
-              if (types.valid) {
-                valid = 1;
+            if (blockPlan.valid) {
+              if (loopPlan.valid) {
+                if (bodyPlan.valid) {
+                  if (code.valid) {
+                    if (types.valid) {
+                      valid = 1;
+                    }
+                  }
+                }
               }
             }
             bodyCount = bodyPlan.bodyCount;
