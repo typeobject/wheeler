@@ -297,7 +297,7 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 - [ ] Javadoc extraction is independent of generated HTML, locale, and source order.
 - [ ] Java pages cannot define or shadow Wheeler symbols or semantic reference nodes.
 - [ ] Executable examples compile/run/replay through WIP-0018 and retain exact result identities.
-- [ ] Proof and quantum labels distinguish checked proof, exact simulation, sampled evidence, and speculation.
+- [x] Tutorial metadata and maintained prose distinguish exact classical execution, exact ideal simulation, finite checked certificates, seeded sampled evidence, hardware evidence, and explicit nonclaims. No histogram is presented as state access or proof.
 - [x] The fixed static renderer consumes only local verified inputs and grants documentation payload no script execution.
 - [x] `sitemap.xml` contains every generated HTML route and changes when a route or page body changes, without nondeterministic timestamps.
 - [x] `wheeler site --bundle <bundle-directory> -o <directory>` verifies and renders an existing immutable bundle without consulting manual or Wheeler source roots. Independent retries produce the same publication manifest.
