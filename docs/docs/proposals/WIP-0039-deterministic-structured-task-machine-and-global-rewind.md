@@ -439,7 +439,7 @@ Native worker failure and external uncertainty follow their owning WIPs. They do
 - [ ] Complete rewind restores the exact bakery initial snapshot.
 - [ ] WIP-0015 replays one selected bakery interleaving.
 - [ ] Task rewind cannot cross WIP-0032 horizons.
-- [ ] Quantum submissions remain external operations.
+- [x] Quantum submission remains outside the task VM as an explicit asynchronous target operation. Canonical quantum regions contain preparation, gates, measurement, reset, and conditional work, while submission identity and lifecycle stay in the WIP-0004 runtime.
 - [ ] Reference and native runtimes emit equal traces.
 - [ ] Reference pages change only after implementation works.
 
