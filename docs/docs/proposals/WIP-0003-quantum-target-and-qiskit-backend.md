@@ -270,7 +270,7 @@ The current `QuantumJob` API is an executable stage-0 slice of that lifecycle. M
 ## Testing and acceptance
 
 - [x] Descriptor canonicalization and fingerprints are stable, bounded, and independent of set construction order.
-- [x] Capability matching reports every missing required capability before submission.
+- [x] Capability matching reports every missing required capability before submission. `QuantumSubmission.requiredCapabilities()` derives parameter binding, mid-circuit measurement, reset, and classical conditional requirements from the selected canonical operation lists. Both the hybrid boundary and target enforce the complete set before allocating a provider job identity.
 - [x] The semantic simulator and a conforming OpenQASM executor agree on exact basis-state results and one representative fixed-seed Hadamard sample stream. The executor boundary receives the same QASM, shots, and seed.
 - [x] QFT and inverse-QFT circuits preserve expected behavior on the ideal target.
 - [x] Static parameter schema, binding values, register order, little-endian outcomes, shot counts, and result identity survive bytecode, ideal-target, and OpenQASM lowering round trips.

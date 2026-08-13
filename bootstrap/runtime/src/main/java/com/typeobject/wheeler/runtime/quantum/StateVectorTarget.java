@@ -35,7 +35,7 @@ public final class StateVectorTarget implements QuantumTarget {
 
   @Override
   public QuantumJob submit(QuantumSubmission submission) {
-    descriptor.require(TargetCapability.STATIC_CIRCUIT);
+    descriptor.require(submission.requiredCapabilities());
     QuantumRegister register = submission.program().quantumRegister(submission.registerId());
     if (register.qubits() > descriptor.maxQubits()) {
       throw new QuantumExecutionException("Submission exceeds target qubit limit");

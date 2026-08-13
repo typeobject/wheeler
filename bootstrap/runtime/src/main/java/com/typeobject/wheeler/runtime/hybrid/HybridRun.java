@@ -121,6 +121,7 @@ public final class HybridRun {
         case MEASURE -> {
           int register = Math.toIntExact(step.first());
           QuantumSubmission submission = requirePrepared(register).build(1, measurements.size());
+          target.descriptor().require(submission.requiredCapabilities());
           QuantumJob job = target.submit(submission);
           pending = new PendingSubmission(submission, job, register, Math.toIntExact(step.second()));
           if (transactionPhase == TransactionPhase.REVERSIBLE) {

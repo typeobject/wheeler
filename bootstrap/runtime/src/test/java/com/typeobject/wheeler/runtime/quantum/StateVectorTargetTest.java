@@ -16,8 +16,12 @@ import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.ProgramKind;
 import com.typeobject.wheeler.core.quantum.Gate;
 import com.typeobject.wheeler.core.quantum.GateOperation;
+import com.typeobject.wheeler.core.quantum.ConditionalGateOperation;
 import com.typeobject.wheeler.core.quantum.LiftedCall;
+import com.typeobject.wheeler.core.quantum.MeasureOperation;
 import com.typeobject.wheeler.core.quantum.ParameterizedGateOperation;
+import com.typeobject.wheeler.core.quantum.PrepareOperation;
+import com.typeobject.wheeler.core.quantum.ResetOperation;
 import com.typeobject.wheeler.core.quantum.QuantumCircuit;
 import com.typeobject.wheeler.core.quantum.QuantumRegister;
 import java.time.Duration;
@@ -65,6 +69,34 @@ class StateVectorTargetTest {
     QuantumExecutionException failure = assertThrows(
         QuantumExecutionException.class,
         () -> target.descriptor().require(required));
+
+    assertTrue(failure.getMessage().contains(
+        "CLASSICAL_CONDITIONAL, MID_CIRCUIT_MEASUREMENT, RESET"));
+  }
+
+  @Test
+  void staticTargetRejectsDynamicSubmissionBeforeAllocatingAJobIdentity() {
+    QuantumRegister register = new QuantumRegister(0, "q", 1);
+    QuantumCircuit circuit = new QuantumCircuit(
+        0,
+        "dynamic",
+        0,
+        List.of(
+            new PrepareOperation(0),
+            new MeasureOperation(0, 0),
+            new ResetOperation(0),
+            new ConditionalGateOperation(0, true, GateOperation.of(Gate.X, 0))));
+    QuantumSubmission submission = new QuantumSubmission(
+        program(register, circuit, List.of()),
+        0,
+        0,
+        List.of(new CircuitApplication(0, false)),
+        Map.of(),
+        1,
+        0);
+
+    QuantumExecutionException failure = assertThrows(
+        QuantumExecutionException.class, () -> new StateVectorTarget().submit(submission));
 
     assertTrue(failure.getMessage().contains(
         "CLASSICAL_CONDITIONAL, MID_CIRCUIT_MEASUREMENT, RESET"));

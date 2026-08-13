@@ -2,7 +2,10 @@ package com.typeobject.wheeler.runtime.quantum;
 
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.quantum.ConditionalGateOperation;
+import com.typeobject.wheeler.core.quantum.MeasureOperation;
 import com.typeobject.wheeler.core.quantum.ParameterizedGateOperation;
+import com.typeobject.wheeler.core.quantum.ResetOperation;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -53,6 +56,26 @@ public record QuantumSubmission(
       throw new IllegalArgumentException(
           "Quantum parameter bindings do not match submission schema: expected " + required);
     }
+  }
+
+  /** Capabilities required by every selected canonical operation. */
+  public Set<TargetCapability> requiredCapabilities() {
+    Set<TargetCapability> required = new HashSet<>();
+    required.add(TargetCapability.STATIC_CIRCUIT);
+    for (CircuitApplication application : applications) {
+      program.quantumCircuit(application.circuitId()).operations().forEach(operation -> {
+        if (operation instanceof ParameterizedGateOperation) {
+          required.add(TargetCapability.PARAMETER_BINDING);
+        } else if (operation instanceof MeasureOperation) {
+          required.add(TargetCapability.MID_CIRCUIT_MEASUREMENT);
+        } else if (operation instanceof ResetOperation) {
+          required.add(TargetCapability.RESET);
+        } else if (operation instanceof ConditionalGateOperation) {
+          required.add(TargetCapability.CLASSICAL_CONDITIONAL);
+        }
+      });
+    }
+    return Set.copyOf(required);
   }
 
   /** Content identity covering artifact, region applications, request, and seed policy. */
