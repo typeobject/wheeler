@@ -16,6 +16,78 @@ classical class LoopBodyValues {
   /// Reports one exact visible callable value.
   public record LoopBodyValue(long local, boolean valid) {}
 
+  /// Returns the unique token at one exact source start.
+  public long tokenAtStart(long start, long tokenCount, borrow mut words tokenStarts) {
+    long selected = -1;
+    long matches = 0;
+    long token = 0;
+    while (token < tokenCount) limit MAX_COMPILER_TOKENS {
+      if (tokenStarts[token] == start) {
+        selected = token;
+        matches += 1;
+      }
+
+      token += 1;
+    }
+
+    if (matches != 1) {
+      return -1;
+    }
+
+    return selected;
+  }
+
+  /// Returns the first local coordinate free before one statement ordinal.
+  public long localBaseAtOrdinal(
+    long owner,
+    long ordinal,
+    long valueCount,
+    borrow mut words valueRows
+  ) {
+    long localBase = 0;
+    long value = 0;
+    while (value < valueCount) limit VALUE_COUNT_LIMIT {
+      if (valueRows[value] == owner) {
+        if (valueRows[VALUE_DEFINITION_ORDINAL_ROW + value] < ordinal + 1) {
+          long local = valueRows[VALUE_LOCAL_ROW + value] + 1;
+          if (localBase < local) {
+            localBase = local;
+          }
+        }
+      }
+
+      value += 1;
+    }
+
+    return localBase;
+  }
+
+  /// Compacts semantic tokens in place and returns their count.
+  public long compactLoopBodyTokens(
+    long tokenCount,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    long readToken = 0;
+    long semanticCount = 0;
+    while (readToken < tokenCount) limit MAX_COMPILER_TOKENS {
+      long kind = tokenKinds[readToken];
+      if (kind != 4) {
+        if (kind != 5) {
+          set(tokenKinds, semanticCount, kind);
+          set(tokenStarts, semanticCount, tokenStarts[readToken]);
+          set(tokenLengths, semanticCount, tokenLengths[readToken]);
+          semanticCount += 1;
+        }
+      }
+
+      readToken += 1;
+    }
+
+    return semanticCount;
+  }
+
   private long tokenAtRange(
     long start,
     long length,
