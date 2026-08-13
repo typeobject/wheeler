@@ -224,6 +224,27 @@ class SourceFormatterTest {
   }
 
   @Test
+  void preservesDocumentationListsLinksFencesAndSemanticLineBreaks() {
+    String source = "classical class Docs{"
+        + "///Summary line.\n"
+        + "///\n"
+        + "///- Inputs: [`value`](reference.md) stays exact.\n"
+        + "///\n"
+        + "///```wheeler\n"
+        + "///assert(value == 1);\n"
+        + "///```\n"
+        + "public long identity(long value){return value;}}";
+
+    String formatted = SourceFormatter.format(source);
+
+    assertEquals(comments(source), comments(formatted));
+    assertTrue(formatted.contains("/// - Inputs: [`value`](reference.md) stays exact."));
+    assertTrue(formatted.contains("/// ```wheeler\n"));
+    assertTrue(formatted.contains("/// assert(value == 1);\n"));
+    assertEquals(formatted, SourceFormatter.format(formatted));
+  }
+
+  @Test
   void roundTripsEveryCanonicalSourceTokenAndCommentAttachment() throws Exception {
     for (Path root : List.of(
         Path.of("src/main/wheeler"),

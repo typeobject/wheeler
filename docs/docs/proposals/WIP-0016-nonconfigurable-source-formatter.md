@@ -766,7 +766,7 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 
 - [x] A private ordinary helper without `///` documentation remains valid for both formatting and documentation checking.
 
-- [ ] Documentation payload, semantic line breaks, lists, links, and fenced blocks survive formatting byte-for-byte.
+- [x] Documentation payload, semantic line breaks, lists, links, and fenced blocks survive formatting. The formatter may normalize the one marker space, while the complete payload extracted after `//!` or `///` remains byte-for-byte identical.
 
 - [x] Formatter fixtures compile compact source and its formatted product to byte-identical `.wbc`. The complete checked-in Wheeler corpus is already canonical, so formatting before its ordinary compilation is an identity transform guarded by `SourceFormatterTest`.
 
