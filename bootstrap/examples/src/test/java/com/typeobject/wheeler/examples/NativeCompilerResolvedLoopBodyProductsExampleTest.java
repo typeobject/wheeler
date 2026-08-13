@@ -18,6 +18,8 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
           long cursor = 0;
           while (cursor < 2) limit 2 {
             long delta = 1;
+            cursor = 0;
+            cursor = delta;
             cursor += delta;
           }
         }
@@ -34,7 +36,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
     machine.run();
 
     assertEquals(1, machine.global("valid"));
-    assertEquals(2, machine.global("bodyCount"));
+    assertEquals(4, machine.global("bodyCount"));
     assertEquals(2, machine.global("firstStatement"));
     assertEquals(2, machine.global("firstLocalBase"));
     assertEquals(769, machine.global("firstOpcode"));
@@ -42,9 +44,13 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
     assertEquals(1, machine.global("firstOperand"));
     assertEquals(3, machine.global("secondStatement"));
     assertEquals(4, machine.global("secondLocalBase"));
-    assertEquals(16_385, machine.global("secondOpcode"));
-    assertEquals(1, machine.global("secondOperandKind"));
-    assertEquals(3, machine.global("secondOperand"));
+    assertEquals(17_665, machine.global("secondOpcode"));
+    assertEquals(0, machine.global("secondOperandKind"));
+    assertEquals(0, machine.global("secondOperand"));
+    assertEquals(17_921, machine.global("thirdOpcode"));
+    assertEquals(1, machine.global("thirdOperandKind"));
+    assertEquals(3, machine.global("thirdOperand"));
+    assertEquals(16_385, machine.global("fourthOpcode"));
   }
 
   @Test
@@ -98,6 +104,10 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
           state long secondOpcode = 0;
           state long secondOperandKind = 0;
           state long secondOperand = 0;
+          state long thirdOpcode = 0;
+          state long thirdOperandKind = 0;
+          state long thirdOperand = 0;
+          state long fourthOpcode = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
             region products = new region(/* bytes= */ 595976, /* allocations= */ 9);
@@ -165,6 +175,10 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
             secondOpcode = bodyRows[8193];
             secondOperandKind = bodyRows[12289];
             secondOperand = bodyRows[16385];
+            thirdOpcode = bodyRows[8194];
+            thirdOperandKind = bodyRows[12290];
+            thirdOperand = bodyRows[16386];
+            fourthOpcode = bodyRows[8195];
             setOutputLength(output, 0);
             drop(unused);
             drop(bodyRows);

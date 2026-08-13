@@ -21,7 +21,7 @@ classical class ResolvedLoopBodyProducts {
   private const long MAX_STATEMENTS = 4096;
   private const long OPERAND_LITERAL = 0;
   private const long OPERAND_LOCAL = 1;
-  private const long RESOLUTION_ARENA_BYTES = 459776;
+  private const long RESOLUTION_ARENA_BYTES = 460288;
   private const long STATEMENT_ROWS = 28672;
   private const long STATEMENT_ORDINAL_ROW = 8192;
   private const long STATEMENT_START_ROW = 12288;
@@ -172,11 +172,12 @@ classical class ResolvedLoopBodyProducts {
     assert(bufferLength(valueRows) == VALUE_ROWS);
     assert(bufferLength(bodyRows) == BODY_ROWS);
 
-    region staging = new region(/* bytes= */ RESOLUTION_ARENA_BYTES, /* allocations= */ 4);
+    region staging = new region(/* bytes= */ RESOLUTION_ARENA_BYTES, /* allocations= */ 5);
     words tokenKinds = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(staging, MAX_COMPILER_TOKENS);
     words stagedRows = allocate(staging, BODY_ROWS);
+    words nextBodyLocals = allocate(staging, 64);
     boolean valid = true;
     long tokenCount = 0;
     ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);
@@ -221,6 +222,10 @@ classical class ResolvedLoopBodyProducts {
         }
 
         long localBase = localBaseAtOrdinal(owner, ordinal, valueCount, valueRows);
+        if (localBase < nextBodyLocals[owner]) {
+          localBase = nextBodyLocals[owner];
+        }
+
         long opcode = -1;
         long operandKind = OPERAND_LITERAL;
         long operand = 0;
@@ -301,72 +306,117 @@ classical class ResolvedLoopBodyProducts {
               statementValid = false;
             }
 
-            long operation = 0;
             if (
-              punctuationAt(source, tokenKinds, tokenStarts, token + 1, PUNCTUATION_PLUS)
+              punctuationAt(source, tokenKinds, tokenStarts, token + 1, PUNCTUATION_ASSIGN)
             ) {
-              operation = STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE;
-            }
-
-            if (
-              punctuationAt(source, tokenKinds, tokenStarts, token + 1, PUNCTUATION_MINUS)
-            ) {
-              operation = STATEMENT_LOCAL_UPDATE_SUB_LITERAL_BASE;
-            }
-
-            if (
-              punctuationAt(source, tokenKinds, tokenStarts, token + 1, PUNCTUATION_CARET)
-            ) {
-              operation = STATEMENT_LOCAL_UPDATE_XOR_LITERAL_BASE;
-            }
-
-            if (operation == 0) {
-              statementValid = false;
-            }
-
-            if (
-              punctuationAt(source, tokenKinds, tokenStarts, token + 2, PUNCTUATION_ASSIGN) == false
-            ) {
-              statementValid = false;
-            }
-
-            if (statementValid) {
-              long updateSourceToken = token + 3;
-              if (tokenKinds[updateSourceToken] == 1) {
-                ResolvedValue updateSourceValue = resolveValue(
+              long assignmentSourceToken = token + 2;
+              if (tokenKinds[assignmentSourceToken] == 1) {
+                ResolvedValue assignmentSource = resolveValue(
                   source,
-                  tokenStarts[updateSourceToken],
-                  tokenLengths[updateSourceToken],
+                  tokenStarts[assignmentSourceToken],
+                  tokenLengths[assignmentSourceToken],
                   owner,
                   ordinal,
                   valueCount,
                   valueRows
                 );
-                if (updateSourceValue.valid) {
-                  opcode = operation + 256 + target.local;
+                if (assignmentSource.valid) {
+                  opcode = STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + target.local;
                   operandKind = OPERAND_LOCAL;
-                  operand = updateSourceValue.local;
+                  operand = assignmentSource.local;
                 } else {
                   statementValid = false;
                 }
               } else {
                 if (
-                  signedNumberWidth(source, tokenKinds, tokenStarts, updateSourceToken) != 1
+                  signedNumberWidth(source, tokenKinds, tokenStarts, assignmentSourceToken) != 1
                 ) {
                   statementValid = false;
                 } else {
                   if (
-                    signedNumberValid(source, tokenStarts, tokenLengths, updateSourceToken)
+                    signedNumberValid(source, tokenStarts, tokenLengths, assignmentSourceToken)
                   ) {
-                    opcode = operation + target.local;
+                    opcode = STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE + target.local;
                     operand = parsedSignedNumber(
                       source,
                       tokenStarts,
                       tokenLengths,
-                      updateSourceToken
+                      assignmentSourceToken
                     );
                   } else {
                     statementValid = false;
+                  }
+                }
+              }
+            } else {
+              long operation = 0;
+              if (
+                punctuationAt(source, tokenKinds, tokenStarts, token + 1, PUNCTUATION_PLUS)
+              ) {
+                operation = STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE;
+              }
+
+              if (
+                punctuationAt(source, tokenKinds, tokenStarts, token + 1, PUNCTUATION_MINUS)
+              ) {
+                operation = STATEMENT_LOCAL_UPDATE_SUB_LITERAL_BASE;
+              }
+
+              if (
+                punctuationAt(source, tokenKinds, tokenStarts, token + 1, PUNCTUATION_CARET)
+              ) {
+                operation = STATEMENT_LOCAL_UPDATE_XOR_LITERAL_BASE;
+              }
+
+              if (operation == 0) {
+                statementValid = false;
+              }
+
+              if (
+                punctuationAt(source, tokenKinds, tokenStarts, token + 2, PUNCTUATION_ASSIGN)
+                  == false
+              ) {
+                statementValid = false;
+              }
+
+              if (statementValid) {
+                long updateSourceToken = token + 3;
+                if (tokenKinds[updateSourceToken] == 1) {
+                  ResolvedValue updateSourceValue = resolveValue(
+                    source,
+                    tokenStarts[updateSourceToken],
+                    tokenLengths[updateSourceToken],
+                    owner,
+                    ordinal,
+                    valueCount,
+                    valueRows
+                  );
+                  if (updateSourceValue.valid) {
+                    opcode = operation + 256 + target.local;
+                    operandKind = OPERAND_LOCAL;
+                    operand = updateSourceValue.local;
+                  } else {
+                    statementValid = false;
+                  }
+                } else {
+                  if (
+                    signedNumberWidth(source, tokenKinds, tokenStarts, updateSourceToken) != 1
+                  ) {
+                    statementValid = false;
+                  } else {
+                    if (
+                      signedNumberValid(source, tokenStarts, tokenLengths, updateSourceToken)
+                    ) {
+                      opcode = operation + target.local;
+                      operand = parsedSignedNumber(
+                        source,
+                        tokenStarts,
+                        tokenLengths,
+                        updateSourceToken
+                      );
+                    } else {
+                      statementValid = false;
+                    }
                   }
                 }
               }
@@ -380,6 +430,18 @@ classical class ResolvedLoopBodyProducts {
           set(stagedRows, BODY_OPCODE_ROW + bodyCount, opcode);
           set(stagedRows, BODY_OPERAND_KIND_ROW + bodyCount, operandKind);
           set(stagedRows, BODY_OPERAND_ROW + bodyCount, operand);
+          long localCount = 1;
+          if (opcode == 769) {
+            localCount = 2;
+          }
+
+          if (STATEMENT_LOCAL_LONG_COPY_BASE - 1 < opcode) {
+            if (opcode < STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE) {
+              localCount = 2;
+            }
+          }
+
+          set(nextBodyLocals, owner, localBase + localCount);
           bodyCount += 1;
         } else {
           valid = false;
@@ -397,6 +459,7 @@ classical class ResolvedLoopBodyProducts {
       }
     }
 
+    drop(nextBodyLocals);
     drop(stagedRows);
     drop(tokenLengths);
     drop(tokenStarts);

@@ -20,6 +20,8 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
           long cursor = 0;
           while (cursor < 2) limit 2 {
             long delta = 1;
+            cursor = 0;
+            cursor = delta;
             cursor += delta;
           }
         }
@@ -29,7 +31,8 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
   @Test
   void publishesTheStageZeroLoopLocalTypeSuffix() throws Exception {
     Program expected = new WheelerCompiler().compile(SOURCE);
-    List<ValueType> expectedTypes = expected.functions().getFirst().localTypes().subList(2, 10);
+    List<ValueType> allTypes = expected.functions().getFirst().localTypes();
+    List<ValueType> expectedTypes = allTypes.subList(2, allTypes.size());
     VirtualMachine machine = new VirtualMachine(
         program(), SOURCE.getBytes(StandardCharsets.UTF_8), 1);
 
@@ -154,12 +157,12 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
           }
         }
         """.formatted(
-            globals(8),
+            globals(10),
             bodyStart,
             bodyEnd - bodyStart,
             cursorStart,
             deltaStart,
-            assignments(8)));
+            assignments(10)));
     return new WheelerCompiler().compileModuleFiles(sources, "example.loop_local_type_products");
   }
 

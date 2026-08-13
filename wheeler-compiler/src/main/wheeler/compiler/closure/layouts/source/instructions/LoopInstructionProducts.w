@@ -120,6 +120,36 @@ classical class LoopInstructionProducts {
       }
     }
 
+    long assignmentTarget = -1;
+    if (STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE - 1 < opcode) {
+      if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE) {
+        assignmentTarget = opcode - STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE;
+      } else {
+        if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + 256) {
+          assignmentTarget = opcode - STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE;
+        }
+      }
+    }
+
+    if (-1 < assignmentTarget) {
+      long assignmentOpcode = OPCODE_LOCAL_CONST;
+      if (operandKind == OPERAND_LOCAL) {
+        assignmentOpcode = OPCODE_LOCAL_MOVE;
+      }
+
+      cursor = writeInstructionHeader(output, cursor, assignmentOpcode, INSTRUCTION_FORM_BINARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeOperand(output, cursor, operandKind, operand);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_MOVE,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, assignmentTarget, U64);
+      return writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    }
+
     long target = -1;
     long updateOpcode = OPCODE_LOCAL_ADD;
     long sourceForm = operandKind;
@@ -235,8 +265,17 @@ classical class LoopInstructionProducts {
                 requiredLength += 48;
                 instructionCount += 2;
               } else {
-                requiredLength += 56;
-                instructionCount += 2;
+                if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE) {
+                  requiredLength += 56;
+                  instructionCount += 2;
+                } else {
+                  if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + 256) {
+                    requiredLength += 48;
+                    instructionCount += 2;
+                  } else {
+                    valid = false;
+                  }
+                }
               }
             } else {
               valid = false;

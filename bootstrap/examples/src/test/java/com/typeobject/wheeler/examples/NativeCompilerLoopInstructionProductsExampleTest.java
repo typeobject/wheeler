@@ -20,6 +20,8 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
           long cursor = 0;
           while (cursor < 2) limit 2 {
             long delta = 1;
+            cursor = 0;
+            cursor = delta;
             cursor += delta;
           }
         }

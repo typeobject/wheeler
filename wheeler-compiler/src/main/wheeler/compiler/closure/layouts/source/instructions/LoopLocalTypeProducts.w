@@ -58,6 +58,12 @@ classical class LoopLocalTypeProducts {
       }
     }
 
+    if (STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE - 1 < opcode) {
+      if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + MAX_LOCALS) {
+        return 1;
+      }
+    }
+
     return -1;
   }
 
