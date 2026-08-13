@@ -845,7 +845,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [ ] Source Markdown, static HTML, downloadable source, and printable order contain the same lesson graph.
 - [ ] Serial and parallel documentation builds produce byte-identical semantic bundles.
 - [ ] A failed lesson compile, run, sample, link, or render leaves the previous publication unchanged.
-- [ ] Release units contain no linked placeholder pages.
+- [x] The published route contains thirteen complete chapter nodes covering `T00` through `T93`. The graph gate requires every routed chapter file and exact contiguous step coverage, so the release route contains no linked placeholder node.
 - [ ] Structured reader review covers the zero-knowledge path through `T68` before the replacement gate.
 - [x] The compact language-reference teaching list is deleted. The reference keeps one tutorial entrance and one unordered executable-evidence inventory.
 - [x] Current reference pages remain implementation-only. `intro.md` links to the first-principles tutorial index, while no reference contract depends on a tutorial's draft metadata or narrative claims.
