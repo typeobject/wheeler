@@ -198,6 +198,12 @@ class SourceDocumentationTest {
         1,
         1,
         "source file requires nonempty //! documentation");
+    assertDiagnostic(
+        "/// Wrong documentation kind.\nclassical class Mixed {}\n",
+        "WDOC001",
+        1,
+        1,
+        "source file requires nonempty //! documentation");
   }
 
   private static void assertDiagnostic(

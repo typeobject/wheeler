@@ -762,7 +762,7 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 
 - [x] Required `Effects`, `Inverse`, `Coherent`, and `Adjoint` facets have exact positive and negative fixtures.
 
-- [ ] Missing, empty, misplaced, detached, mixed-kind, duplicate-facet, and out-of-order-facet cases produce exact `WDOC` diagnostics.
+- [x] Missing, empty, misplaced, detached, mixed-kind, duplicate-facet, and out-of-order-facet fixtures produce exact `WDOC` codes and primary locations. Required semantic facets have separate `WDOC007..010` checks.
 
 - [x] A private ordinary helper without `///` documentation remains valid for both formatting and documentation checking.
 
