@@ -239,7 +239,7 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 ## Testing and acceptance
 
 - [ ] Checkout path/order does not affect RREV or snapshot bytes.
-- [ ] Every identity-bearing change moves the corresponding identity.
+- [x] The accepted source-package profile binds canonical manifests, exact source bytes, target and profile selection, dependency lock, build-plan inputs, compiler options, output bytes, and publication records to domain-separated identities. Focused tests change each admitted input independently and require the corresponding identity to move before cache reuse or publication.
 - [ ] Recipes cannot erase relevant variant axes.
 - [x] Sealed execution rederives the complete workspace plan and compares it with the signed-off plan before creating staging output or consulting build products. Replacing a planned source makes the plan stale and fails before build.
 - [x] Locked `check`, `build`, and `run` consume only the physical vendor closure and exact lock. They do not invoke resolution or catalog access. A damaged vendored archive fails identity validation before compilation.
