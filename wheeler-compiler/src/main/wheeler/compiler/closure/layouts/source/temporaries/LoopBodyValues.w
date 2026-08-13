@@ -2,7 +2,9 @@
 
 module wheeler.compiler.closure.loop_body_values;
 
+import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.tokens;
 
 classical class LoopBodyValues {
@@ -188,6 +190,75 @@ classical class LoopBodyValues {
     }
 
     return new LoopBodyValue(selected, true);
+  }
+
+  /// Reports whether one unique callable local has Boolean type.
+  public boolean booleanLoopBodyLocal(
+    borrow utf8 source,
+    long owner,
+    long local,
+    long valueCount,
+    borrow mut words valueRows,
+    long tokenCount,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    return loopBodyValueType(
+      source,
+      owner,
+      local,
+      valueCount,
+      valueRows,
+      tokenCount,
+      tokenStarts,
+      tokenLengths
+    ) == TOKEN_BOOLEAN;
+  }
+
+  /// Reports whether one unique callable local has signed type.
+  public boolean signedLoopBodyLocal(
+    borrow utf8 source,
+    long owner,
+    long local,
+    long valueCount,
+    borrow mut words valueRows,
+    long tokenCount,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    return loopBodyValueType(
+      source,
+      owner,
+      local,
+      valueCount,
+      valueRows,
+      tokenCount,
+      tokenStarts,
+      tokenLengths
+    ) == TOKEN_LONG;
+  }
+
+  /// Reports whether one unique callable local has borrowed-word type.
+  public boolean wordsLoopBodyLocal(
+    borrow utf8 source,
+    long owner,
+    long local,
+    long valueCount,
+    borrow mut words valueRows,
+    long tokenCount,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    return loopBodyValueType(
+      source,
+      owner,
+      local,
+      valueCount,
+      valueRows,
+      tokenCount,
+      tokenStarts,
+      tokenLengths
+    ) == TOKEN_WORDS;
   }
 
   /// Returns the source type token hash for one unique callable local.

@@ -6,6 +6,7 @@ import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
+import wheeler.compiler.loop_body_opcodes;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
@@ -16,17 +17,8 @@ classical class ResolvedLoopBodyProducts {
   private const long BODY_ROWS = 20480;
   private const long BODY_LOCAL_BASE_ROW = 4096;
   private const long BODY_OPCODE_ROW = 8192;
-  private const long BODY_ASSERT_EQ_LITERAL_BASE = 32768;
-  private const long BODY_ASSERT_LT_LITERAL_BASE = 33024;
-  private const long BODY_BOOLEAN_LITERAL = 33280;
-  private const long BODY_ASSERT_BOOLEAN = 33281;
-  private const long BODY_ASSIGN_BOOLEAN_LITERAL_BASE = 33536;
-  private const long BODY_ASSIGN_BOOLEAN_LOCAL_BASE = 33792;
-  private const long BODY_WORDS_GET = 34048;
-  private const long BODY_WORDS_SET = 34049;
   private const long BODY_OPERAND_KIND_ROW = 12288;
   private const long BODY_OPERAND_ROW = 16384;
-  private const long MAX_LOCALS = 256;
   private const long MAX_STATEMENTS = 4096;
   private const long OPERAND_LITERAL = 0;
   private const long OPERAND_LOCAL = 1;
@@ -215,7 +207,7 @@ classical class ResolvedLoopBodyProducts {
                         );
                         if (indexValue.valid) {
                           if (
-                            loopBodyValueType(
+                            wordsLoopBodyLocal(
                               source,
                               owner,
                               sourceValue.local,
@@ -224,10 +216,10 @@ classical class ResolvedLoopBodyProducts {
                               semanticCount,
                               tokenStarts,
                               tokenLengths
-                            ) == TOKEN_WORDS
+                            )
                           ) {
                             if (
-                              loopBodyValueType(
+                              signedLoopBodyLocal(
                                 source,
                                 owner,
                                 indexValue.local,
@@ -236,7 +228,7 @@ classical class ResolvedLoopBodyProducts {
                                 semanticCount,
                                 tokenStarts,
                                 tokenLengths
-                              ) == TOKEN_LONG
+                              )
                             ) {
                               if (
                                 punctuationAt(
@@ -264,7 +256,7 @@ classical class ResolvedLoopBodyProducts {
                         }
                       } else {
                         if (
-                          loopBodyValueType(
+                          signedLoopBodyLocal(
                             source,
                             owner,
                             sourceValue.local,
@@ -273,7 +265,7 @@ classical class ResolvedLoopBodyProducts {
                             semanticCount,
                             tokenStarts,
                             tokenLengths
-                          ) == TOKEN_LONG
+                          )
                         ) {
                           opcode = STATEMENT_LOCAL_LONG_COPY_BASE + sourceValue.local;
                           operandKind = OPERAND_LOCAL;
@@ -350,7 +342,7 @@ classical class ResolvedLoopBodyProducts {
 
                   if (statementValid) {
                     if (
-                      loopBodyValueType(
+                      wordsLoopBodyLocal(
                         source,
                         owner,
                         writeOwner.local,
@@ -359,38 +351,34 @@ classical class ResolvedLoopBodyProducts {
                         semanticCount,
                         tokenStarts,
                         tokenLengths
-                      ) == TOKEN_WORDS == false
+                      )
                     ) {
-                      statementValid = false;
-                    }
-
-                    if (
-                      loopBodyValueType(
-                        source,
-                        owner,
-                        writeIndex.local,
-                        valueCount,
-                        valueRows,
-                        semanticCount,
-                        tokenStarts,
-                        tokenLengths
-                      ) == TOKEN_LONG == false
-                    ) {
-                      statementValid = false;
-                    }
-
-                    if (
-                      loopBodyValueType(
-                        source,
-                        owner,
-                        writeValue.local,
-                        valueCount,
-                        valueRows,
-                        semanticCount,
-                        tokenStarts,
-                        tokenLengths
-                      ) == TOKEN_LONG == false
-                    ) {
+                      if (
+                        signedLoopBodyLocal(
+                          source,
+                          owner,
+                          writeIndex.local,
+                          valueCount,
+                          valueRows,
+                          semanticCount,
+                          tokenStarts,
+                          tokenLengths
+                        )
+                      ) {
+                        statementValid = signedLoopBodyLocal(
+                          source,
+                          owner,
+                          writeValue.local,
+                          valueCount,
+                          valueRows,
+                          semanticCount,
+                          tokenStarts,
+                          tokenLengths
+                        );
+                      } else {
+                        statementValid = false;
+                      }
+                    } else {
                       statementValid = false;
                     }
                   }
@@ -547,7 +535,7 @@ classical class ResolvedLoopBodyProducts {
                       boolean targetBoolean = false;
                       boolean targetSigned = false;
                       if (target.valid) {
-                        targetBoolean = loopBodyValueType(
+                        targetBoolean = booleanLoopBodyLocal(
                           source,
                           owner,
                           target.local,
@@ -556,8 +544,8 @@ classical class ResolvedLoopBodyProducts {
                           semanticCount,
                           tokenStarts,
                           tokenLengths
-                        ) == TOKEN_BOOLEAN;
-                        targetSigned = loopBodyValueType(
+                        );
+                        targetSigned = signedLoopBodyLocal(
                           source,
                           owner,
                           target.local,
@@ -566,7 +554,7 @@ classical class ResolvedLoopBodyProducts {
                           semanticCount,
                           tokenStarts,
                           tokenLengths
-                        ) == TOKEN_LONG;
+                        );
                         if (targetBoolean == false) {
                           if (targetSigned == false) {
                             statementValid = false;
@@ -602,7 +590,7 @@ classical class ResolvedLoopBodyProducts {
                               );
                               if (booleanSource.valid) {
                                 if (
-                                  loopBodyValueType(
+                                  booleanLoopBodyLocal(
                                     source,
                                     owner,
                                     booleanSource.local,
@@ -611,7 +599,7 @@ classical class ResolvedLoopBodyProducts {
                                     semanticCount,
                                     tokenStarts,
                                     tokenLengths
-                                  ) == TOKEN_BOOLEAN
+                                  )
                                 ) {
                                   opcode = BODY_ASSIGN_BOOLEAN_LOCAL_BASE + target.local;
                                   operandKind = OPERAND_LOCAL;
@@ -636,7 +624,7 @@ classical class ResolvedLoopBodyProducts {
                           );
                           if (assignmentSource.valid) {
                             if (
-                              loopBodyValueType(
+                              signedLoopBodyLocal(
                                 source,
                                 owner,
                                 assignmentSource.local,
@@ -645,7 +633,7 @@ classical class ResolvedLoopBodyProducts {
                                 semanticCount,
                                 tokenStarts,
                                 tokenLengths
-                              ) == TOKEN_BOOLEAN == false
+                              )
                             ) {
                               opcode = STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + target.local;
                               operandKind = OPERAND_LOCAL;
