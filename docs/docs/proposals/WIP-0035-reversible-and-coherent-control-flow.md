@@ -713,7 +713,7 @@ Failure during checking emits no partial inverse branch, inverse loop, controlle
 - [ ] A unitary branch on a const parameter is eliminated before semantic region emission.
 - [ ] A classical `if` on a coherent value is rejected with guidance to use `controlled`.
 - [ ] A controlled block preserves the control and applies the body only on the one basis state.
-- [ ] Measurement, reset, host effects, and dynamic dispatch are rejected inside a controlled block.
+- [x] The accepted unitary region parser rejects measurement, reset, preparation, target-resident dynamic conditionals, host workflow operations, and unresolved gate or callable dispatch. Those operations exist only in distinct dynamic or workflow regions and cannot enter generated adjoints or controlled unitary lists.
 - [ ] Declared and synthesized controlled forms agree with the source semantic operation.
 - [ ] Controlled paired regions may use an accepted structure-aware lowering.
 - [ ] VM inverse execution, semantic simulation, generated circuits, and proof certificates agree.
