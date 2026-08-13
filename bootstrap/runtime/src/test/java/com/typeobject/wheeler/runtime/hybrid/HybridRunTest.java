@@ -187,7 +187,7 @@ class HybridRunTest {
   }
 
   @Test
-  void persistenceRejectsCorruptionAndArtifactMismatch() {
+  void persistenceRejectsCorruptionAndArtifactMismatch() throws Exception {
     HybridRun run = HybridRun.start(program(), new RecoverableTarget(1));
     run.advance();
     HybridRunStore store = new HybridRunStore();
@@ -195,6 +195,22 @@ class HybridRunTest {
     encoded[12] ^= 0x40;
 
     assertThrows(HybridRunException.class, () -> store.decode(encoded));
+    assertThrows(
+        HybridRunException.class,
+        () -> store.decode(java.util.Arrays.copyOf(encoded, encoded.length - 1)));
+
+    byte[] unknownMode = store.encode(run.snapshot());
+    java.nio.ByteBuffer payload = java.nio.ByteBuffer.wrap(unknownMode);
+    int artifactLength = payload.getInt(8);
+    int runLengthOffset = 12 + artifactLength;
+    int runLength = payload.getInt(runLengthOffset);
+    int modeOffset = runLengthOffset + 4 + runLength;
+    payload.putInt(modeOffset, Integer.MAX_VALUE);
+    int digestOffset = unknownMode.length - 32;
+    byte[] digest = java.security.MessageDigest.getInstance("SHA-256")
+        .digest(java.util.Arrays.copyOf(unknownMode, digestOffset));
+    System.arraycopy(digest, 0, unknownMode, digestOffset, digest.length);
+    assertThrows(HybridRunException.class, () -> store.decode(unknownMode));
 
     Program wrong = new Program(
         "Different",
