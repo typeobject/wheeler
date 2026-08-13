@@ -160,17 +160,22 @@ class HybridRunTest {
 
   @Test
   void malformedResultCannotMutateContinuation() {
-    RecoverableTarget target = new RecoverableTarget(1);
-    target.wrongSubmissionIdentity = true;
-    HybridRun run = HybridRun.start(program(), target);
-    run.advance();
-    HybridRunSnapshot before = run.snapshot();
+    for (int failure = 0; failure < 5; failure++) {
+      RecoverableTarget target = new RecoverableTarget(failure == 3 ? 2 : 1);
+      target.wrongSubmissionIdentity = failure == 0;
+      target.wrongJobIdentity = failure == 1;
+      target.wrongTarget = failure == 2;
+      target.wrongShotCount = failure == 4;
+      HybridRun run = HybridRun.start(program(), target);
+      run.advance();
+      HybridRunSnapshot before = run.snapshot();
 
-    assertThrows(HybridRunException.class, () -> run.resume(TIMEOUT));
+      assertThrows(HybridRunException.class, () -> run.resume(TIMEOUT));
 
-    assertEquals(RunStatus.WAITING, run.status());
-    assertEquals(before.continuation().globals(), run.snapshot().continuation().globals());
-    assertEquals(before.events(), run.events());
+      assertEquals(RunStatus.WAITING, run.status());
+      assertEquals(before.continuation().globals(), run.snapshot().continuation().globals());
+      assertEquals(before.events(), run.events());
+    }
   }
 
   @Test
@@ -353,6 +358,8 @@ class HybridRunTest {
     private String lastJobId = "";
     private boolean wrongJobIdentity;
     private boolean wrongSubmissionIdentity;
+    private boolean wrongTarget;
+    private boolean wrongShotCount;
 
     private RecoverableTarget(long outcome) {
       this.outcome = outcome;
@@ -369,7 +376,8 @@ class HybridRunTest {
       String id = "job-" + submissions;
       lastJobId = id;
       TestJob job = new TestJob(
-          id, submission.identity(), outcome, wrongJobIdentity, wrongSubmissionIdentity);
+          id, submission.identity(), outcome, wrongJobIdentity, wrongSubmissionIdentity,
+          wrongTarget, wrongShotCount);
       jobs.put(id, job);
       return job;
     }
@@ -390,6 +398,8 @@ class HybridRunTest {
       private final long value;
       private final boolean wrongIdentity;
       private final boolean wrongSubmissionIdentity;
+      private final boolean wrongTarget;
+      private final boolean wrongShotCount;
       private JobState state = JobState.SUCCEEDED;
 
       private TestJob(
@@ -397,12 +407,16 @@ class HybridRunTest {
           String submissionIdentity,
           long value,
           boolean wrongIdentity,
-          boolean wrongSubmissionIdentity) {
+          boolean wrongSubmissionIdentity,
+          boolean wrongTarget,
+          boolean wrongShotCount) {
         this.id = id;
         this.submissionIdentity = submissionIdentity;
         this.value = value;
         this.wrongIdentity = wrongIdentity;
         this.wrongSubmissionIdentity = wrongSubmissionIdentity;
+        this.wrongTarget = wrongTarget;
+        this.wrongShotCount = wrongShotCount;
       }
 
       @Override
@@ -423,12 +437,13 @@ class HybridRunTest {
 
       @Override
       public QuantumResult await(Duration timeout) {
+        List<Long> outcomes = wrongShotCount ? List.of(value, value) : List.of(value);
         return new QuantumResult(
             wrongIdentity ? id + "-wrong" : id,
             wrongSubmissionIdentity ? submissionIdentity + "-wrong" : submissionIdentity,
-            List.of(value),
-            Map.of(value, 1L),
-            descriptor.target());
+            outcomes,
+            Map.of(value, (long) outcomes.size()),
+            wrongTarget ? descriptor.target() + "-wrong" : descriptor.target());
       }
     }
   }
