@@ -62,6 +62,26 @@ final class BootstrapSeedChainTest {
   }
 
   @Test
+  void recoveryReleaseRequiresTwoIndependentRebuilds() {
+    BootstrapSeedRecord firstWitness = recovery(2, List.of(), identity(21));
+    BootstrapSeedRecord secondWitness = recovery(3, List.of(), identity(22));
+    BootstrapSeedRecord release = recovery(
+        1,
+        List.of(firstWitness.identity(), secondWitness.identity()),
+        identity(20));
+
+    BootstrapSeedChain chain = new BootstrapSeedChain(
+        List.of(release, firstWitness, secondWitness));
+    assertEquals(List.of(release), chain.ancestry(release.identity()));
+
+    BootstrapSeedRecord oneWitness = recovery(
+        4, List.of(firstWitness.identity()), identity(23));
+    assertThrows(
+        PackageFormatException.class,
+        () -> new BootstrapSeedChain(List.of(oneWitness, firstWitness)));
+  }
+
+  @Test
   void classificationAndCanonicalSyntaxCannotOverstateProvenance() {
     assertThrows(PackageFormatException.class, () -> new BootstrapSeedRecord(
         BootstrapSeedRecord.Kind.OPAQUE_ROOT,
@@ -130,6 +150,29 @@ final class BootstrapSeedChainTest {
         List.of(identity(marker + 50)),
         identity(marker + 60),
         parent,
+        attestations,
+        EMPTY,
+        EMPTY,
+        EMPTY,
+        EMPTY);
+  }
+
+  private static BootstrapSeedRecord recovery(
+      int marker, List<String> attestations, String builder) {
+    return new BootstrapSeedRecord(
+        BootstrapSeedRecord.Kind.RECOVERY_RELEASE,
+        "recovery-" + marker,
+        "linux-x86_64",
+        identity(100),
+        8_192,
+        "release-revision",
+        identity(101),
+        "./rebuild-recovery",
+        ".",
+        builder,
+        List.of(identity(102)),
+        identity(103),
+        EMPTY,
         attestations,
         EMPTY,
         EMPTY,

@@ -79,6 +79,11 @@ public final class BootstrapSeedChain {
       if (!record.parent().isEmpty()) {
         required(record.parent(), "parent seed");
       }
+      if (record.kind() == BootstrapSeedRecord.Kind.RECOVERY_RELEASE
+          && record.attestations().size() == 1) {
+        throw new PackageFormatException(
+            "Promoted recovery releases require zero or at least two independent attestations");
+      }
       Set<String> independentBuilders = new HashSet<>();
       independentBuilders.add(record.builder());
       for (String attestation : record.attestations()) {
