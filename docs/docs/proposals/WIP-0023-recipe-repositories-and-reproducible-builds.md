@@ -241,7 +241,7 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 - [ ] Checkout path/order does not affect RREV or snapshot bytes.
 - [ ] Every identity-bearing change moves the corresponding identity.
 - [ ] Recipes cannot erase relevant variant axes.
-- [ ] Source replacement fails before build.
+- [x] Sealed execution rederives the complete workspace plan and compares it with the signed-off plan before creating staging output or consulting build products. Replacing a planned source makes the plan stale and fails before build.
 - [x] Locked `check`, `build`, and `run` consume only the physical vendor closure and exact lock. They do not invoke resolution or catalog access. A damaged vendored archive fails identity validation before compilation.
 - [ ] Mirrors yield identical objects and never compete as repositories.
 - [ ] Ordered repository lookup stops at the first authoritative admissible trust domain. Lower repositories cannot inject a newer release, while an explicit alias selects the intended domain.
