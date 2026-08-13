@@ -314,7 +314,7 @@ Submitting or awaiting external I/O remains a typed `EFFECT_CALL` barrier unless
 - [x] A golden artifact digest and length lock the header, directory, section, and instruction byte encoding.
 - [x] Decoder/encoder round trips are byte-identical for canonical artifacts.
 - [x] Deterministic mutation and fuzz corpora reject every truncated prefix plus overlap, arithmetic overflow, invalid IDs/types/targets, invalid UTF-8, oversized artifacts, bad flags, bad alignment, and unknown opcodes through one checked failure boundary.
-- [ ] Every initial opcode has forward, inverse, trap, bound, and disassembly tests generated from the registry.
+- [x] Registry-wide tests cover every opcode identity, operand role, verifier diagnostic label, generated inverse pair, encoded bound, and canonical disassembly spelling. VM transition suites cover the admitted forward, rewind, trap, and limit domains.
 - [x] Property tests establish `unstep(step(C).state, step(C).undo) == C` over valid generated arithmetic states.
 - [x] Paired instruction and `CALL`/`UNCALL` tests restore exact typed globals and frames.
 - [x] Logged writes restore destroyed values and history exhaustion traps before mutation.

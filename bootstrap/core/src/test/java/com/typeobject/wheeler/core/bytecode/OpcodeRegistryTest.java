@@ -17,6 +17,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,6 +37,25 @@ class OpcodeRegistryTest {
       assertTrue(identities.add(opcode.code()), opcode.name());
       assertEquals(opcode.form().roles().size(), opcode.operandCount(), opcode.name());
       assertEquals(opcode, Opcode.fromCode(opcode.code()));
+    }
+  }
+
+  @Test
+  void disassemblesEveryRegisteredOpcodeThroughItsCanonicalRoles() {
+    List<Instruction> instructions = new ArrayList<>();
+    for (Opcode opcode : Opcode.values()) {
+      instructions.add(Instruction.of(opcode, new long[opcode.operandCount()]));
+    }
+    FunctionBody main = new FunctionBody(
+        0, "main", false, 0, List.of(), null, instructions, List.of());
+    String assembly = new Disassembler().disassemble(
+        new Program("registry", 0, List.of(), List.of(main)));
+
+    for (Opcode opcode : Opcode.values()) {
+      assertTrue(assembly.contains(opcode.name()), opcode.name());
+      for (InstructionForm.OperandRole role : opcode.form().roles()) {
+        assertTrue(assembly.contains(role.label() + "="), opcode.name() + " " + role);
+      }
     }
   }
 
