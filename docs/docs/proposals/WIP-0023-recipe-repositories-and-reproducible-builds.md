@@ -230,7 +230,7 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 - [x] Wheeler computes a final build-plan identity only after the payload digest and exact node identity rederive. The bounded one-node result agrees with stage 0. Damage or oversized input leaves output untouched.
 - [ ] Recipe-complete build-input axes and identity-preserving mirrors remain. Local locks are snapshot-bound, but public signed snapshots are not implemented.
 - [ ] Reproducibility normalization passes.
-- [ ] Quarantine and independent attestations implemented.
+- [x] Divergent verified build output enters deterministic XDG quarantine and cannot replace the accepted PREV. Canonical bootstrap seed attestations independently bind source, output, and distinct builder identities. Recipe-level attestation policy remains.
 - [x] Signed snapshot authorization and automatic configured-repository enforcement implemented.
 - [ ] Compatibility checks, delegation, and threshold signature policy implemented.
 - [ ] Recovery build consumes vendored snapshots/objects.
@@ -247,7 +247,7 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 - [ ] Ordered repository lookup stops at the first authoritative admissible trust domain. Lower repositories cannot inject a newer release, while an explicit alias selects the intended domain.
 - [ ] XDG overrides and fallback paths change placement only. Package-object hits reverify complete release and archive identity and cache deletion changes no package bytes, while build-input-keyed outputs from every supported origin remain.
 - [ ] Path, identity, locale, timezone, order, timestamp, and job count do not alter bytes.
-- [ ] Independent builds produce one PREV. Divergence is quarantined.
+- [x] Repeating an exact build-input identity with equal verified bytes is idempotent. A different canonical PREV is retained under its observed identity with immutable bytes and a canonical quarantine record, while the accepted mapping remains authoritative.
 - [ ] Equal publication is idempotent and conflicts cannot overwrite.
 - [ ] Yanks preserve locks and incompatible patch/minor APIs are rejected.
 - [ ] Stage 0 and Wheeler implementations agree.
