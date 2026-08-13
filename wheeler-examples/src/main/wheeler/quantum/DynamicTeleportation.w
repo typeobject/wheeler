@@ -17,6 +17,8 @@ quantum class DynamicTeleportation {
   }
 
   /// Runs the bounded teleportation fixture.
+  ///
+  /// - Effects: Submits one bounded target-resident dynamic region.
   entry void main() {
     teleport();
   }
