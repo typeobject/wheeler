@@ -782,12 +782,12 @@ the Java VM on every global.
 ## Testing and acceptance
 
 - [ ] `void` has no value and is invalid as a generic argument.
-- [ ] `Done` has one value and coherent width zero.
-- [ ] `Slot<Done>` has two logical states and coherent width one.
+- [x] `Done` has one canonical value, `done`, and one zero-payload `DONE` local type. The verifier rejects a nonzero physical `Done` constant. Coherent use remains outside the current profile.
+- [x] Classical `Slot<Done>` has exactly `Vacant` and `Holding(done)` states through the canonical specialized variant descriptor. Its future coherent width remains unspecified.
 - [x] Classical `Vacant` and `Holding(value)` compare and encode canonically.
 - [ ] Slot ownership derives from its payload.
 - [ ] Filled affine slots cannot copy and filled must-consume slots cannot drop.
-- [ ] `return -1;` is accepted for `long` and rejected for unsigned output without a valid conversion.
+- [x] `return -1;` is accepted for signed `long` functions, including the reversible result-slot ABI. Wheeler exposes no unsigned source return type in the accepted profile, so no implicit unsigned conversion path exists.
 - [x] Null-like literals fail with one stable source diagnostic.
 - [x] Reversible constant return fills a vacant result and exact inverse restores vacancy.
 - [x] The inverse succeeds after VM history commit.
