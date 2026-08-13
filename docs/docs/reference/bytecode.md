@@ -243,7 +243,7 @@ Proof metadata cannot weaken normal verification or change execution. Omitting s
 
 ## Quantum and workflow records
 
-Quantum bodies declare affine logical registers, unitary circuits, semantic gates, symbolic phase parameters with finite scale, and references to compiler-checked coherent functions. Symbol names are canonical string-table entries.
+Quantum bodies declare affine logical registers, static or target-resident dynamic regions, semantic gates, symbolic phase parameters with finite scale, and references to compiler-checked coherent functions. Symbol names are canonical string-table entries.
 
 Quantum instructions use a regular provider-neutral record:
 
@@ -253,9 +253,9 @@ u32 field_count
 u64 fields[field_count]
 ```
 
-`QuantumOpcode` names `APPLY_GATE`, `APPLY_SYMBOLIC_GATE`, and `CALL_UNITARY` in the executable unitary subset. Each opcode has one `QuantumInstructionForm` with ordered semantic field groups. `Gate` identities no longer depend on Java enum order. Each gate names a `GateForm` that fixes control, target, and angle roles. The initial descriptors are `H`, `X`, `Z`, `PHASE`, `CPHASE`, `CNOT`, `CZ`, and `SWAP`.
+`QuantumOpcode` names `APPLY_GATE`, `APPLY_SYMBOLIC_GATE`, `CALL_UNITARY`, `PREPARE_REGISTER`, `MEASURE_QUBIT`, `RESET_QUBIT`, and `APPLY_CONDITIONAL_GATE`. Each opcode has one `QuantumInstructionForm` with ordered semantic field groups. `Gate` identities no longer depend on Java enum order. Each gate names a `GateForm` that fixes control, target, and angle roles. The initial descriptors are `H`, `X`, `Z`, `PHASE`, `CPHASE`, `CNOT`, `CZ`, and `SWAP`.
 
-The variable field window leaves room for wider standard gates and distinct measurement, reset, preparation, control, and barrier instructions without replacing the record. Those operations still need accepted semantics and explicit opcodes before use. Unknown quantum opcodes, gate IDs, field counts, and noncanonical parameters fail closed. Provider-native gates and QASM remain derived output.
+Preparation carries one complete basis value. Measurement names one qubit and one target-resident Boolean result slot. Reset names one qubit. Conditional application names a prior result slot, expected Boolean value, and one fixed gate with its qubit window. Preparation, measurement, and reset are nonunitary and reject inverse construction. The variable field window leaves room for wider standard gates, bounded control, and barriers without replacing the record. Unknown quantum opcodes, gate IDs, field counts, invalid result-slot flow, and noncanonical parameters fail closed. Provider-native gates and QASM remain derived output.
 
 Runtime tasks provide an exact finite binding map. Task identity covers its schema, values, circuit applications, request, and seed policy.
 
