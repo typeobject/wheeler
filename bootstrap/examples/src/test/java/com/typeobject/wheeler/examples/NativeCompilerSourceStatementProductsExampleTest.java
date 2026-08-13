@@ -43,6 +43,28 @@ final class NativeCompilerSourceStatementProductsExampleTest {
   }
 
   @Test
+  void treatsAMultiStatementLoopAsOneTopLevelStatement() throws Exception {
+    String source = "classical class Example { private long count(long stop) { "
+        + "long cursor = 0; while (cursor < stop) limit 8 { "
+        + "cursor += 1; cursor += 1; } return cursor; } }";
+    int bodyStart = source.indexOf("{", source.indexOf("count("));
+    int bodyEnd = source.indexOf("} return cursor") + "} return cursor;".length() + 2;
+    VirtualMachine machine = new VirtualMachine(
+        oneBodyProgram(bodyStart, bodyEnd - bodyStart),
+        source.getBytes(StandardCharsets.UTF_8),
+        1);
+
+    machine.run();
+
+    assertEquals(1, machine.global("valid"));
+    assertEquals(3, machine.global("statementCount"));
+    assertEquals(source.indexOf("while ("), machine.global("secondStart"));
+    assertEquals(
+        "while (cursor < stop) limit 8 { cursor += 1; cursor += 1; }".length(),
+        machine.global("secondLength"));
+  }
+
+  @Test
   void rejectsAStaleBodyExtentBeforeStatementPublication() throws Exception {
     VirtualMachine machine = new VirtualMachine(
         program(/* staleFirstBody= */ true), SOURCE.getBytes(StandardCharsets.UTF_8), 1);
@@ -52,6 +74,54 @@ final class NativeCompilerSourceStatementProductsExampleTest {
     assertEquals(0, machine.global("valid"));
     assertEquals(0, machine.global("statementCount"));
     assertEquals(91, machine.global("firstStart"));
+  }
+
+  private static Program oneBodyProgram(int bodyStart, int bodyLength) throws Exception {
+    Map<String, String> sources = new LinkedHashMap<>();
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.source_statement_products"));
+    sources.put("LoopStatementProductsExample.w", """
+        module example.loop_statement_products;
+
+        import wheeler.compiler.closure.source_statement_products;
+
+        classical class LoopStatementProductsExample {
+          state long valid = 0;
+          state long statementCount = 0;
+          state long secondStart = 0;
+          state long secondLength = 0;
+
+          entry void main(borrow utf8 input, borrow mut bytes output) {
+            region products = new region(/* bytes= */ 262144, /* allocations= */ 3);
+            words bodyStarts = allocate(products, /* length= */ 4096);
+            words bodyLengths = allocate(products, /* length= */ 4096);
+            words statements = allocate(products, /* length= */ 24576);
+            set(bodyStarts, 0, %d);
+            set(bodyLengths, 0, %d);
+            SourceStatementProductPlan plan = materializeSourceStatementProducts(
+              input,
+              /* archiveSourceStart= */ 0,
+              /* firstCallable= */ 0,
+              /* callableCount= */ 1,
+              bodyStarts,
+              bodyLengths,
+              statements
+            );
+            if (plan.valid) {
+              valid = 1;
+            }
+            statementCount = plan.statementCount;
+            secondStart = statements[16385];
+            secondLength = statements[20481];
+            setOutputLength(output, 0);
+            drop(statements);
+            drop(bodyLengths);
+            drop(bodyStarts);
+            drop(products);
+          }
+        }
+        """.formatted(bodyStart, bodyLength));
+    return new WheelerCompiler().compileModuleFiles(sources, "example.loop_statement_products");
   }
 
   private static Program program(boolean staleFirstBody) throws Exception {

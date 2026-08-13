@@ -73,6 +73,9 @@ classical class SourceStatementProducts {
         }
 
         depth -= 1;
+        if (depth == 0) {
+          return token - start + 1;
+        }
       }
 
       if (depth == 0) {
