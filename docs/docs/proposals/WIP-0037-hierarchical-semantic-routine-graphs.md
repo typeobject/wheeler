@@ -707,7 +707,7 @@ A malformed semantic graph fails before target planning. A failed transformation
 - [ ] Generic and type-class specialization changes routine identity when semantics change.
 - [ ] Repeated operations remain symbolic and bounded without forced flattening.
 - [ ] Adjoint, controlled, compute/use, and ancilla nodes preserve their structural identity.
-- [ ] Measurement, reset, and target boundaries cannot be hidden inside a unitary node.
+- [x] Canonical preparation, measurement, and reset records are distinct nonunitary operation kinds. Their `inverse()` methods reject, while unitary fixed, symbolic, lifted, and conditional records remain separately invertible. Target submission stays in the workflow lifecycle rather than a unitary node.
 - [ ] Ownership and effect edges reject use after move, aliasing, and illegal observation.
 - [ ] A flat simulator execution of the graph matches the existing semantic simulator on acceptance fixtures.
 - [ ] An exact rewrite receipt verifies and links input to output.
