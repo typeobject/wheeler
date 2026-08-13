@@ -619,10 +619,10 @@ final class NativeCompilerArchiveClosureExampleTest {
 
         classical class ClosureClassifierExample {
           entry void main(borrow byteview input, borrow mut bytes output) {
-            region arena = new region(/* bytes= */ 32768, /* allocations= */ 1);
+            region arena = new region(/* bytes= */ 65536, /* allocations= */ 1);
             bytes sourceBytes = allocateBytes(arena, bufferLength(input));
             long cursor = 0;
-            while (cursor < bufferLength(input)) limit 32768 {
+            while (cursor < bufferLength(input)) limit 65536 {
               setByte(sourceBytes, cursor, input[cursor]);
               cursor += 1;
             }

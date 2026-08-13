@@ -1,13 +1,17 @@
-//! Joins loop-body call rows to canonical code and relocation products.
+//! Joins loop-body calls to typed code and stable relocation products.
 
 module wheeler.compiler.closure.loop_call_products;
 
+import wheeler.compiler.call_arguments;
 import wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.type_codes;
 
 classical class LoopCallProducts {
+  private const long ARGUMENT_COUNT_LIMIT = 1792;
+  private const long ARGUMENT_ROWS = 3584;
+  private const long ARGUMENT_TYPE_ROW = 1792;
   private const long CALL_COUNT_LIMIT = 256;
   private const long CALL_KIND_ROW = 256;
   private const long CALL_LOCAL_BASE_ROW = 512;
@@ -17,18 +21,22 @@ classical class LoopCallProducts {
   private const long CALL_VALUE_BOOLEAN = 2;
   private const long CALL_VALUE_SIGNED = 1;
   private const long IDENTITY_BYTES = 32;
+  private const long LOCAL_TYPE_ROWS = 4096;
+  private const long MAX_ARGUMENTS_PER_CALL = 7;
   private const long MAX_CODE_BYTES = 262144;
   private const long RELOCATION_IDENTITY_BYTES = 8192;
   private const long RELOCATION_ROWS = 768;
   private const long TARGET_COUNT_LIMIT = 4096;
   private const long TARGET_IDENTITY_BYTES = 131072;
+  private const long TARGET_PARAMETER_ROWS = 16384;
   private const long U64 = ENCODING_WIDTH_U64;
 
-  /// Reports one complete loop call and relocation extent.
+  /// Reports one complete loop call, local-type, and relocation extent.
   public record LoopCallPlan(
     long instructionCount,
     long length,
     long relocationCount,
+    long localTypeCount,
     boolean valid
   ) {}
 
@@ -44,34 +52,223 @@ classical class LoopCallProducts {
     return kind == CALL_VALUE_BOOLEAN;
   }
 
+  private long callInstructionCount(long kind, long arity) {
+    if (kind == CALL_VOID) {
+      if (arity == 0) {
+        return 1;
+      }
+
+      return arity * 2 + 1;
+    }
+
+    return arity * 2 + 2;
+  }
+
+  private long callLength(long kind, long arity) {
+    if (kind == CALL_VOID) {
+      if (arity == 0) {
+        return 16;
+      }
+
+      return arity * 48 + 32;
+    }
+
+    return arity * 48 + 64;
+  }
+
+  private long callLocalCount(long kind, long arity) {
+    if (kind == CALL_VOID) {
+      return arity * 2;
+    }
+
+    return arity * 2 + 2;
+  }
+
+  private boolean validArguments(
+    long firstArgument,
+    long arity,
+    borrow mut words argumentRows,
+    long firstParameter,
+    borrow mut words targetParameterTypes,
+    long localBase
+  ) {
+    long argument = 0;
+    while (argument < arity) limit MAX_ARGUMENTS_PER_CALL {
+      long source = argumentRows[firstArgument + argument];
+      long sourceType = argumentRows[ARGUMENT_TYPE_ROW + firstArgument + argument];
+      if (source < 0) {
+        return false;
+      }
+
+      if (localBase - 1 < source) {
+        return false;
+      }
+
+      if (sourceType < 1) {
+        return false;
+      }
+
+      if (sourceType != targetParameterTypes[firstParameter + argument]) {
+        return false;
+      }
+
+      argument += 1;
+    }
+
+    return true;
+  }
+
+  private long writeArguments(
+    borrow mut bytes output,
+    long cursor,
+    long firstArgument,
+    long arity,
+    borrow mut words argumentRows,
+    long localBase
+  ) {
+    long argument = 0;
+    while (argument < arity) limit MAX_ARGUMENTS_PER_CALL {
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_MOVE,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + argument, U64);
+      cursor = writeUnsignedLittleEndian(
+        output,
+        cursor,
+        argumentRows[firstArgument + argument],
+        U64
+      );
+      argument += 1;
+    }
+
+    argument = 0;
+    while (argument < arity) limit MAX_ARGUMENTS_PER_CALL {
+      long sourceType = argumentRows[ARGUMENT_TYPE_ROW + firstArgument + argument];
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        callArgumentOpcode(sourceType),
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(
+        output,
+        cursor,
+        localBase + arity + argument,
+        U64
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + argument, U64);
+      argument += 1;
+    }
+
+    return cursor;
+  }
+
   private long writeCall(
     borrow mut bytes output,
     long cursor,
     long kind,
     long localBase,
-    long target
+    long target,
+    long firstArgument,
+    long arity,
+    borrow mut words argumentRows
   ) {
+    if (arity == 0) {
+      if (kind == CALL_VOID) {
+        cursor = writeInstructionHeader(output, cursor, OPCODE_CALL, INSTRUCTION_FORM_UNARY);
+        return writeUnsignedLittleEndian(output, cursor, target, U64);
+      }
+    } else {
+      cursor = writeArguments(
+        output,
+        cursor,
+        firstArgument,
+        arity,
+        argumentRows,
+        localBase
+      );
+    }
+
     if (kind == CALL_VOID) {
-      cursor = writeInstructionHeader(output, cursor, OPCODE_CALL, INSTRUCTION_FORM_UNARY);
-      return writeUnsignedLittleEndian(output, cursor, target, U64);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_CALL_VOID,
+        INSTRUCTION_FORM_TERNARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, target, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + arity, U64);
+      return writeUnsignedLittleEndian(output, cursor, arity, U64);
     }
 
     cursor = writeInstructionHeader(output, cursor, OPCODE_CALL_VALUE, INSTRUCTION_FORM_QUATERNARY);
     cursor = writeUnsignedLittleEndian(output, cursor, target, U64);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* argumentBase= */ 0, U64);
-    cursor = writeUnsignedLittleEndian(output, cursor, /* argumentCount= */ 0, U64);
-    cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    long argumentBase = 0;
+    if (0 < arity) {
+      argumentBase = localBase + arity;
+    }
+
+    cursor = writeUnsignedLittleEndian(output, cursor, argumentBase, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, arity, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + arity * 2, U64);
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, INSTRUCTION_FORM_BINARY);
-    cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-    return writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    cursor = writeUnsignedLittleEndian(output, cursor, localBase + arity * 2 + 1, U64);
+    return writeUnsignedLittleEndian(output, cursor, localBase + arity * 2, U64);
   }
 
-  /// Emits validated zero-argument calls and their stable target identities atomically.
+  private long writeCallLocalTypes(
+    borrow mut words stagedTypes,
+    long typeCursor,
+    long kind,
+    long firstArgument,
+    long arity,
+    borrow mut words argumentRows
+  ) {
+    long argument = 0;
+    while (argument < arity) limit MAX_ARGUMENTS_PER_CALL {
+      long type = argumentRows[ARGUMENT_TYPE_ROW + firstArgument + argument];
+      set(stagedTypes, typeCursor, type);
+      typeCursor += 1;
+      argument += 1;
+    }
+
+    argument = 0;
+    while (argument < arity) limit MAX_ARGUMENTS_PER_CALL {
+      long transferType = argumentRows[ARGUMENT_TYPE_ROW + firstArgument + argument];
+      set(stagedTypes, typeCursor, transferType);
+      typeCursor += 1;
+      argument += 1;
+    }
+
+    if (kind != CALL_VOID) {
+      long resultType = TYPE_SIGNED;
+      if (kind == CALL_VALUE_BOOLEAN) {
+        resultType = TYPE_BOOLEAN;
+      }
+
+      set(stagedTypes, typeCursor, resultType);
+      set(stagedTypes, typeCursor + 1, resultType);
+      typeCursor += 2;
+    }
+
+    return typeCursor;
+  }
+
+  /// Emits typed zero- through seven-argument calls and relocations atomically.
   public LoopCallPlan writeLoopCallProducts(
     long callCount,
     borrow mut words callRows,
+    borrow mut words callArgumentStarts,
+    borrow mut words callArgumentCounts,
+    borrow mut words argumentRows,
     long targetCount,
     borrow byteview targetIdentities,
+    borrow mut words targetParameterStarts,
+    borrow mut words targetParameterCounts,
+    borrow mut words targetParameterTypes,
     long instructionBase,
     borrow mut words relocationRows,
     borrow mut bytes relocationIdentities,
@@ -81,23 +278,33 @@ classical class LoopCallProducts {
     assert(-1 < callCount);
     assert(callCount < CALL_COUNT_LIMIT + 1);
     assert(bufferLength(callRows) == CALL_ROWS);
+    assert(bufferLength(callArgumentStarts) == CALL_COUNT_LIMIT);
+    assert(bufferLength(callArgumentCounts) == CALL_COUNT_LIMIT);
+    assert(bufferLength(argumentRows) == ARGUMENT_ROWS);
     assert(-1 < targetCount);
     assert(targetCount < TARGET_COUNT_LIMIT + 1);
     assert(bufferLength(targetIdentities) == TARGET_IDENTITY_BYTES);
+    assert(bufferLength(targetParameterStarts) == TARGET_COUNT_LIMIT);
+    assert(bufferLength(targetParameterCounts) == TARGET_COUNT_LIMIT);
+    assert(bufferLength(targetParameterTypes) == TARGET_PARAMETER_ROWS);
     assert(-1 < instructionBase);
     assert(bufferLength(relocationRows) == RELOCATION_ROWS);
     assert(bufferLength(relocationIdentities) == RELOCATION_IDENTITY_BYTES);
-    assert(bufferLength(localTypeRows) == CALL_COUNT_LIMIT * 2);
+    assert(bufferLength(localTypeRows) == LOCAL_TYPE_ROWS);
     assert(bufferLength(output) == MAX_CODE_BYTES);
 
     boolean valid = true;
     long length = 0;
     long instructionCount = 0;
+    long localTypeCount = 0;
+    long previousArgumentEnd = 0;
     long call = 0;
     while (call < callCount) limit CALL_COUNT_LIMIT {
       long kind = callRows[CALL_KIND_ROW + call];
       long localBase = callRows[CALL_LOCAL_BASE_ROW + call];
       long target = callRows[CALL_TARGET_ROW + call];
+      long firstArgument = callArgumentStarts[call];
+      long arity = callArgumentCounts[call];
       if (validKind(kind) == false) {
         valid = false;
       }
@@ -118,42 +325,89 @@ classical class LoopCallProducts {
         valid = false;
       }
 
-      if (kind == CALL_VOID) {
-        length += 16;
-        instructionCount += 1;
-      } else {
-        if (254 < localBase) {
+      if (firstArgument != previousArgumentEnd) {
+        valid = false;
+      }
+
+      if (arity < 0) {
+        valid = false;
+      }
+
+      if (MAX_ARGUMENTS_PER_CALL < arity) {
+        valid = false;
+      }
+
+      if (ARGUMENT_COUNT_LIMIT - firstArgument < arity) {
+        valid = false;
+      }
+
+      if (valid) {
+        long firstParameter = targetParameterStarts[target];
+        long parameterCount = targetParameterCounts[target];
+        if (parameterCount != arity) {
           valid = false;
         }
 
-        length += 64;
-        instructionCount += 2;
+        if (firstParameter < 0) {
+          valid = false;
+        }
+
+        if (TARGET_PARAMETER_ROWS - firstParameter < arity) {
+          valid = false;
+        }
+
+        if (valid) {
+          valid = validArguments(
+            firstArgument,
+            arity,
+            argumentRows,
+            firstParameter,
+            targetParameterTypes,
+            localBase
+          );
+        }
       }
 
+      long selectedLocalCount = callLocalCount(kind, arity);
+      if (256 - localBase < selectedLocalCount) {
+        valid = false;
+      }
+
+      localTypeCount += selectedLocalCount;
+      if (LOCAL_TYPE_ROWS < localTypeCount) {
+        valid = false;
+      }
+
+      length += callLength(kind, arity);
+      instructionCount += callInstructionCount(kind, arity);
       if (MAX_CODE_BYTES < length) {
         valid = false;
       }
 
+      previousArgumentEnd = firstArgument + arity;
       call += 1;
     }
 
     if (valid == false) {
-      return new LoopCallPlan(0, 0, 0, false);
+      return new LoopCallPlan(0, 0, 0, 0, false);
     }
 
-    region staging = new region(/* bytes= */ 280576, /* allocations= */ 4);
+    region staging = new region(/* bytes= */ 309248, /* allocations= */ 4);
     words stagedRelocations = allocate(staging, RELOCATION_ROWS);
     bytes stagedIdentities = allocateBytes(staging, RELOCATION_IDENTITY_BYTES);
-    words stagedTypes = allocate(staging, CALL_COUNT_LIMIT * 2);
+    words stagedTypes = allocate(staging, LOCAL_TYPE_ROWS);
     bytes stagedCode = allocateBytes(staging, MAX_CODE_BYTES);
     long cursor = 0;
+    long typeCursor = 0;
     long emittedInstruction = instructionBase;
     call = 0;
     while (call < callCount) limit CALL_COUNT_LIMIT {
       long emittedKind = callRows[CALL_KIND_ROW + call];
       long emittedLocalBase = callRows[CALL_LOCAL_BASE_ROW + call];
       long emittedTarget = callRows[CALL_TARGET_ROW + call];
-      set(stagedRelocations, call, emittedInstruction);
+      long emittedFirstArgument = callArgumentStarts[call];
+      long emittedArity = callArgumentCounts[call];
+      set(stagedRelocations, call, emittedInstruction + emittedArity * 2);
       set(stagedRelocations, CALL_COUNT_LIMIT + call, emittedTarget);
       set(stagedRelocations, CALL_COUNT_LIMIT * 2 + call, callRows[call]);
       long identityByte = 0;
@@ -166,20 +420,25 @@ classical class LoopCallProducts {
         identityByte += 1;
       }
 
-      cursor = writeCall(stagedCode, cursor, emittedKind, emittedLocalBase, emittedTarget);
-      if (emittedKind == CALL_VOID) {
-        emittedInstruction += 1;
-      } else {
-        long type = TYPE_SIGNED;
-        if (emittedKind == CALL_VALUE_BOOLEAN) {
-          type = TYPE_BOOLEAN;
-        }
-
-        set(stagedTypes, call * 2, type);
-        set(stagedTypes, call * 2 + 1, type);
-        emittedInstruction += 2;
-      }
-
+      cursor = writeCall(
+        stagedCode,
+        cursor,
+        emittedKind,
+        emittedLocalBase,
+        emittedTarget,
+        emittedFirstArgument,
+        emittedArity,
+        argumentRows
+      );
+      typeCursor = writeCallLocalTypes(
+        stagedTypes,
+        typeCursor,
+        emittedKind,
+        emittedFirstArgument,
+        emittedArity,
+        argumentRows
+      );
+      emittedInstruction += callInstructionCount(emittedKind, emittedArity);
       call += 1;
     }
 
@@ -196,7 +455,7 @@ classical class LoopCallProducts {
     }
 
     row = 0;
-    while (row < CALL_COUNT_LIMIT * 2) limit 512 {
+    while (row < LOCAL_TYPE_ROWS) limit LOCAL_TYPE_ROWS {
       set(localTypeRows, row, stagedTypes[row]);
       row += 1;
     }
@@ -212,6 +471,6 @@ classical class LoopCallProducts {
     drop(stagedIdentities);
     drop(stagedRelocations);
     drop(staging);
-    return new LoopCallPlan(instructionCount, cursor, callCount, true);
+    return new LoopCallPlan(instructionCount, cursor, callCount, typeCursor, true);
   }
 }
