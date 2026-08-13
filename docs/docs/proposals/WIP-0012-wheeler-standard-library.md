@@ -508,7 +508,7 @@ Filesystem and network libraries contribute domain types and adapters over that 
 - [ ] Qubit/register tests reject copy, alias, overlap, use after measure, dirty release, and persistence without session capability.
 - [ ] Circuit adjoints, coherent operations, parameter bindings, observable order, and result endianness match semantic IR.
 - [ ] Host capabilities cannot be forged, serialized, logged, cached, or acquired through import.
-- [ ] Canonical decoders reject duplicate, cyclic, noncanonical, oversized, unknown required, and trailing records.
+- [x] The canonical bytecode, package, workspace, manifest, lock, build-plan, archive, bootstrap, snapshot, and documentation decoders reject their applicable duplicate, cyclic, noncanonical, oversized, unknown-required, corrupt, and trailing records. Native standard-library parity remains.
 - [ ] Proof certificates validate critical equality, ordering, encoding, inverse, and quantum laws.
 - [ ] Standard-library packages build, test, document, and package offline through `wheeler`. The initial `wheeler.core` FIFO slice does, while the remaining package layers and native test/doc tools remain.
 - [ ] The self-hosted compiler, runtime, package manager, proof kernel, and application portfolio use the Wheeler standard library.
