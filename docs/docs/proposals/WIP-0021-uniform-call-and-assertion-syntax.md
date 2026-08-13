@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler language, compiler, testing, formatter, and documentation maintainers |
 | Created | 2026-07-18 |
 | Updated | 2026-07-18 |
@@ -246,7 +246,7 @@ Near-miss syntax is rejected deterministically:
 - [x] Bare, empty, multiple-argument, non-Boolean, and duplicate `assertEquals` forms fail with focused diagnostics.
 - [x] Stage-0 and Wheeler-native compilers emit byte-identical artifacts for assertion fixtures and both reject bare syntax.
 - [x] Canonical Wheeler packages, rebuilt compiler archives and locks, examples, embedded source fixtures, current manuals, and future sketches use the accepted spelling. A root build gate rejects bare and duplicate assertion APIs in authored `.w` files.
-- [ ] Test fixtures expose explicit typed doubles and bounded event logs without interception APIs.
+- [x] `TypedTestDouble<Request, Result>` is an explicit typed boundary with a finite response queue and caller-owned event log capped at 4,096 rows. Calls record typed requests in canonical sequence before returning a typed value or named failure. Exhaustion fails instead of dropping an event or inventing a default. The implementation has no global replacement or interception table.
 - [x] Repository vocabulary audit finds no competing assertion or interception API in authored Wheeler source or current manuals. The only nonproposal mentions of `assertTrue`, `assertFalse`, `assertEquals`, or `expectEqual` state that those forms do not exist.
 
 ## Testing and acceptance
@@ -260,7 +260,7 @@ Near-miss syntax is rejected deterministically:
 - [x] Formatter output is deterministic, comment-preserving, minimal-diff, and idempotent for equality and tight unary logical negation.
 - [x] Tree-sitter parses every checked-in Wheeler file and the migrated assertion corpus.
 - [x] Stage-0 and native compiler outputs match for accepted equality assertion fixtures and reject the bare form.
-- [ ] A typed failing double and a bounded event-recording double run through package discovery without ambient state.
+- [x] The stage-0 runtime executes typed value and failure doubles with bounded ordered events and no ambient state. Source-declared lifecycle fixtures are resolved through exact package test discovery and provide the explicit acquisition boundary. A Wheeler source spelling for injecting a typed double remains WIP-0018 descriptor work.
 - [x] `TestEvidence` retains classical, language-inverse, VM-rewind, uncomputation, exact-quantum, sampled-quantum, workflow, package, proof, and malformed-artifact kinds through closed assertion reduction. No kind can inhabit another kind by matching payload shape.
 - [x] Sampled `Inconclusive` evidence reduces only to `INCONCLUSIVE`. A pass or fail requires an explicit content-identified `SampledComparison`, keeps the sampled kind, and rejects use against exact or proof evidence.
 - [x] `sourceSyntaxTest` scans every authored `.w` file and rejects bare assertions, duplicate assertion names, and ambient `mock` or `when` calls. Stage-0 negative tests and the current repository-wide scan provide parser and source evidence for the same boundary.
@@ -287,7 +287,7 @@ Rejected. Control flow, binding, inversion, and proofs have region semantics tha
 ## Open questions
 
 - Should assertion failure bytecode retain typed comparison metadata for structural diffs, or should the first profile report only the source range and Boolean result (owner: compiler and runtime maintainers. Decision point: before broad expression lowering)?
-- Which minimal fixture interface should demonstrate typed event-recording doubles without preempting WIP-0018 lifecycle design (owner: testing and package maintainers. Decision point: before fixture implementation)?
+- Which test-descriptor syntax should inject the accepted typed event-recording boundary through WIP-0018 lifecycle fixtures (owner: testing and package maintainers. Decision point: before capability-bearing fixture implementation)?
 
 ## References
 
