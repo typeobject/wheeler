@@ -20,6 +20,8 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
           long cursor = 0;
           while (cursor < 2) limit 2 {
             long delta = 1;
+            boolean ready = true;
+            assert(ready);
             assert(cursor < 3);
             assert(cursor == 0);
             cursor = 0;
@@ -70,6 +72,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
     int bodyEnd = matchingClose(SOURCE, bodyStart) + 1;
     int cursorStart = SOURCE.indexOf("cursor = 0");
     int deltaStart = SOURCE.indexOf("delta = 1");
+    int readyStart = SOURCE.indexOf("ready = true");
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.loop_instruction_products"));
@@ -133,6 +136,11 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
             set(values, 2049, 5);
             set(values, 3073, 3);
             set(values, 4097, 3);
+            set(values, 2, 0);
+            set(values, 1026, %d);
+            set(values, 2050, 5);
+            set(values, 3074, 5);
+            set(values, 4098, 4);
             set(loopLocalBases, 0, 2);
             set(loopInstructionStarts, 0, 2);
             SourceBlockProductPlan blockPlan = materializeSourceBlockProducts(
@@ -158,7 +166,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
               input,
               loopPlan.statementCount,
               statements,
-              /* valueCount= */ 2,
+              /* valueCount= */ 3,
               values,
               bodyRows
             );
@@ -170,7 +178,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
               loopPlan.loopCount,
               sourceConditions,
               sourceLoops,
-              /* valueCount= */ 2,
+              /* valueCount= */ 3,
               values,
               /* symbolCount= */ 0,
               symbolOwners,
@@ -226,7 +234,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
             drop(products);
           }
         }
-        """.formatted(bodyStart, bodyEnd - bodyStart, cursorStart, deltaStart));
+        """.formatted(bodyStart, bodyEnd - bodyStart, cursorStart, deltaStart, readyStart));
     return new WheelerCompiler().compileModuleFiles(sources, "example.loop_instruction_products");
   }
 

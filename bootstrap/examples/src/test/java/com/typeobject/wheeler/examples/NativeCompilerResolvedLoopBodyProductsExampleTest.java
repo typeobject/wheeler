@@ -18,6 +18,8 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
           long cursor = 0;
           while (cursor < 2) limit 2 {
             long delta = 1;
+            boolean ready = true;
+            assert(ready);
             assert(cursor < 3);
             assert(cursor == 0);
             cursor = 0;
@@ -38,7 +40,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
     machine.run();
 
     assertEquals(1, machine.global("valid"));
-    assertEquals(6, machine.global("bodyCount"));
+    assertEquals(8, machine.global("bodyCount"));
     assertEquals(2, machine.global("firstStatement"));
     assertEquals(2, machine.global("firstLocalBase"));
     assertEquals(769, machine.global("firstOpcode"));
@@ -46,15 +48,15 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
     assertEquals(1, machine.global("firstOperand"));
     assertEquals(3, machine.global("secondStatement"));
     assertEquals(4, machine.global("secondLocalBase"));
-    assertEquals(33_025, machine.global("secondOpcode"));
+    assertEquals(33_280, machine.global("secondOpcode"));
     assertEquals(0, machine.global("secondOperandKind"));
-    assertEquals(3, machine.global("secondOperand"));
-    assertEquals(32_769, machine.global("thirdOpcode"));
-    assertEquals(0, machine.global("thirdOperandKind"));
-    assertEquals(0, machine.global("thirdOperand"));
-    assertEquals(17_665, machine.global("fourthOpcode"));
-    assertEquals(17_921, machine.global("fifthOpcode"));
-    assertEquals(16_385, machine.global("sixthOpcode"));
+    assertEquals(1, machine.global("secondOperand"));
+    assertEquals(33_281, machine.global("thirdOpcode"));
+    assertEquals(1, machine.global("thirdOperandKind"));
+    assertEquals(5, machine.global("thirdOperand"));
+    assertEquals(33_025, machine.global("fourthOpcode"));
+    assertEquals(32_769, machine.global("fifthOpcode"));
+    assertEquals(17_665, machine.global("sixthOpcode"));
   }
 
   @Test
@@ -81,6 +83,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
     int bodyEnd = matchingClose(source, bodyStart) + 1;
     int cursorStart = source.indexOf("cursor = 0");
     int deltaStart = source.indexOf("delta = 1");
+    int readyStart = source.indexOf("ready = true");
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.resolved_loop_body_products"));
@@ -138,6 +141,11 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
             set(values, 2049, 5);
             set(values, 3073, 3);
             set(values, 4097, 3);
+            set(values, 2, 0);
+            set(values, 1026, %d);
+            set(values, 2050, 5);
+            set(values, 3074, 5);
+            set(values, 4098, 4);
             %s
             set(bodyRows, 8192, 91);
             SourceBlockProductPlan blockPlan = materializeSourceBlockProducts(
@@ -205,14 +213,15 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
             bodyEnd - bodyStart,
             cursorStart,
             deltaStart,
+            readyStart,
             duplicateCursor
-                ? "set(values, 2, 0);\n"
-                    + "set(values, 1026, %d);\n".formatted(cursorStart)
-                    + "set(values, 2050, 6);\n"
-                    + "set(values, 3074, 1);\n"
-                    + "set(values, 4098, 1);"
+                ? "set(values, 3, 0);\n"
+                    + "set(values, 1027, %d);\n".formatted(cursorStart)
+                    + "set(values, 2051, 6);\n"
+                    + "set(values, 3075, 1);\n"
+                    + "set(values, 4099, 1);"
                 : "",
-            duplicateCursor ? 3 : 2));
+            duplicateCursor ? 4 : 3));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.resolved_loop_body_products");
   }

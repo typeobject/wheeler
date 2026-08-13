@@ -13,6 +13,8 @@ classical class LoopInstructionProducts {
   private const long BODY_OPCODE_ROW = 8192;
   private const long BODY_ASSERT_EQ_LITERAL_BASE = 32768;
   private const long BODY_ASSERT_LT_LITERAL_BASE = 33024;
+  private const long BODY_BOOLEAN_LITERAL = 33280;
+  private const long BODY_ASSERT_BOOLEAN = 33281;
   private const long BODY_OPERAND_KIND_ROW = 12288;
   private const long BODY_OPERAND_ROW = 16384;
   private const long BODY_ROWS = 20480;
@@ -77,6 +79,43 @@ classical class LoopInstructionProducts {
     long opcode = bodyRows[BODY_OPCODE_ROW + body];
     long operandKind = bodyRows[BODY_OPERAND_KIND_ROW + body];
     long operand = bodyRows[BODY_OPERAND_ROW + body];
+    if (opcode == BODY_BOOLEAN_LITERAL) {
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_CONST,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_MOVE,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      return writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    }
+
+    if (opcode == BODY_ASSERT_BOOLEAN) {
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_MOVE,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_EXPECT_TRUE,
+        INSTRUCTION_FORM_UNARY
+      );
+      return writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    }
+
     if (opcode == 769) {
       cursor = writeInstructionHeader(
         output,
@@ -301,34 +340,44 @@ classical class LoopInstructionProducts {
           valid = false;
         } else {
           long opcode = stagedBodies[BODY_OPCODE_ROW + body];
-          if (opcode == 769) {
+          if (opcode == BODY_BOOLEAN_LITERAL) {
             requiredLength += 48;
             instructionCount += 2;
           } else {
-            if (STATEMENT_LOCAL_LONG_COPY_BASE - 1 < opcode) {
-              if (opcode < STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE) {
+            if (opcode == BODY_ASSERT_BOOLEAN) {
+              requiredLength += 40;
+              instructionCount += 2;
+            } else {
+              if (opcode == 769) {
                 requiredLength += 48;
                 instructionCount += 2;
               } else {
-                if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE) {
-                  requiredLength += 56;
-                  instructionCount += 2;
-                } else {
-                  if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + 256) {
+                if (STATEMENT_LOCAL_LONG_COPY_BASE - 1 < opcode) {
+                  if (opcode < STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE) {
                     requiredLength += 48;
                     instructionCount += 2;
                   } else {
-                    if (opcode < BODY_ASSERT_LT_LITERAL_BASE + 256) {
-                      requiredLength += 96;
-                      instructionCount += 4;
+                    if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE) {
+                      requiredLength += 56;
+                      instructionCount += 2;
                     } else {
-                      valid = false;
+                      if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + 256) {
+                        requiredLength += 48;
+                        instructionCount += 2;
+                      } else {
+                        if (opcode < BODY_ASSERT_LT_LITERAL_BASE + 256) {
+                          requiredLength += 96;
+                          instructionCount += 4;
+                        } else {
+                          valid = false;
+                        }
+                      }
                     }
                   }
+                } else {
+                  valid = false;
                 }
               }
-            } else {
-              valid = false;
             }
           }
         }
@@ -443,7 +492,11 @@ classical class LoopInstructionProducts {
           cursor = next;
           long emittedOpcode = stagedBodies[BODY_OPCODE_ROW + emittedBody];
           if (BODY_ASSERT_EQ_LITERAL_BASE - 1 < emittedOpcode) {
-            bodyInstructions += 4;
+            if (emittedOpcode < BODY_BOOLEAN_LITERAL) {
+              bodyInstructions += 4;
+            } else {
+              bodyInstructions += 2;
+            }
           } else {
             bodyInstructions += 2;
           }
