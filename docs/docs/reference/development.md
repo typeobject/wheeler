@@ -78,7 +78,7 @@ Java doclet nodes, executable examples, proof references, and generated referenc
 
 `registry/instructions.wreg` is the promoted classical instruction registry. Each bounded row owns one stable identity, named form, ordered role list, and reversibility class. `python3 bootstrap/registry/generate.py` publishes the Java and Wheeler views through atomic replacement. `--check` writes nothing and rejects a stale view. Gradle `instructionRegistryCheck` runs that check before subproject acceptance.
 
-Maintainers edit the promoted registry, not either generated view. The executable Java registry test compares every generated row against the VM's opcode metadata. The Wheeler view provides the same identities, counts, packed ordered roles, and reversibility classes to native modules without importing Java source.
+Maintainers edit the promoted registry, not either generated view. The executable Java registry test compares every generated row against the VM's opcode metadata. The nonproduction Wheeler view under `registry/generated` provides the same identities, counts, packed ordered roles, and reversibility classes for native promotion without entering the physical compiler source closure or importing Java source.
 
 ## Source formatting
 

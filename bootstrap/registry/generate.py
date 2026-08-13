@@ -15,10 +15,7 @@ JAVA_OUTPUT = (
     ROOT
     / "bootstrap/core/src/main/java/com/typeobject/wheeler/core/bytecode/GeneratedInstructionRegistry.java"
 )
-WHEELER_OUTPUT = (
-    ROOT
-    / "wheeler-compiler/src/main/wheeler/compiler/ir/registry/GeneratedInstructionRegistry.w"
-)
+WHEELER_OUTPUT = ROOT / "registry/generated/GeneratedInstructionRegistry.w"
 NAME = re.compile(r"[A-Z][A-Z0-9_]*\Z")
 FORM = re.compile(r"[A-Z][A-Z0-9_]*\Z")
 HEX_IDENTITY = re.compile(r"0x[0-9a-f]{4}\Z")
@@ -132,26 +129,26 @@ def wheeler_view(entries: list[Entry]) -> str:
     ]
     for name, value in REVERSIBILITIES.items():
         lines.extend([
-            f"  /// Names the generated `{name}` reversibility class.",
+            f"  /// `{name}` reversibility.",
             f"  public const long REVERSIBILITY_{name} = {value};",
         ])
     lines.append("")
     for role, value in role_ids.items():
         lines.extend([
-            f"  /// Names the generated `{role}` operand role.",
+            f"  /// `{role}` operand role.",
             f"  public const long ROLE_{role} = {value};",
         ])
     for entry in entries:
         packed = sum(role_ids[role] << (index * 5) for index, role in enumerate(entry.roles))
         lines.extend([
             "",
-            f"  /// Names the generated `{entry.name}` opcode identity.",
+            f"  /// `{entry.name}` opcode identity.",
             f"  public const long OPCODE_{entry.name} = 0x{entry.identity:04x};",
-            f"  /// Names the generated `{entry.name}` operand count.",
+            f"  /// `{entry.name}` operand count.",
             f"  public const long OPCODE_{entry.name}_OPERAND_COUNT = {len(entry.roles)};",
-            f"  /// Packs the generated `{entry.name}` roles in operand order.",
+            f"  /// `{entry.name}` packed operand roles.",
             f"  public const long OPCODE_{entry.name}_ROLE_FORM = 0x{packed:x};",
-            f"  /// Names the generated `{entry.name}` reversibility class.",
+            f"  /// `{entry.name}` reversibility.",
             "  public const long OPCODE_"
             f"{entry.name}_REVERSIBILITY = REVERSIBILITY_{entry.reversibility};",
         ])
