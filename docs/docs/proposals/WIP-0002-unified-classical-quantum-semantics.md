@@ -317,7 +317,7 @@ Quantum state is not a byte stream, file, mapped object, direct-I/O buffer, or R
 - [x] Full-register measurement produces a typed classical observation. Broader consumed-identity checking remains.
 - [ ] Static, host-split, and dynamic region plans preserve the same ideal result distributions where each is semantically valid.
 - [x] The checked-in optimizer fixture alternates two explicit quantum preparations and samples with one reversible classical acceptance update and commit, without provider APIs in source. Runtime batch fixtures cover symbolic parameter binding separately. Source-level optimizer parameters remain.
-- [ ] The surface-code fixture declares and checks dynamic measurement/reset/feed-forward requirements.
+- [x] The checked-in `SurfaceCode.w` declares itself as a static correction kernel. Before any target work, the target-resident profile requires the complete `MID_CIRCUIT_MEASUREMENT`, `RESET`, and `CLASSICAL_CONDITIONAL` set. The static target rejects all three in canonical order, while the bounded dynamic semantic fixture checks a measured syndrome, conditional correction, and clean reset.
 - [x] Every current example compiles, round-trips, parses with Tree-sitter, and executes in CI.
 - [x] Current language and hybrid references distinguish inverse, uncompute, rewind, replay, and retry.
 
