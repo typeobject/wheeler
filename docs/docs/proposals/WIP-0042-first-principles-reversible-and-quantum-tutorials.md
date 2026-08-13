@@ -834,9 +834,9 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [ ] Every sampled experiment names target, seed, shots, outcome width, and acceptance rule.
 - [ ] Repeating the full seeded sample suite produces the same canonical semantic reports.
 - [ ] Every amplitude experiment stays within the ideal diagnostic profile and labels the result simulator-only.
-- [ ] Every quantum page distinguishes state, one outcome, repeated outcomes, and proof claims correctly.
-- [ ] Every reversible page distinguishes inverse execution from VM rewind.
-- [ ] Every hybrid page distinguishes measurement, replay, and retry.
+- [x] The quantum chapters distinguish ideal amplitude state, one measured classical outcome, seeded repeated counts, hardware samples, and formal structural evidence. No sampled histogram is presented as state access or proof.
+- [x] Reversible chapters describe generated inverse or adjoint operations as new execution and reserve VM rewind for retained transition history. The Bell restoration payoff states the distinction explicitly.
+- [x] **Weather** treats measurement as the quantum-classical boundary, replay as reuse of recorded evidence without submission, and retry as a fresh physical preparation with a new lineage.
 - [ ] Bell-state pages distinguish correlation from entanglement and reject cloning language.
 - [ ] Landauer text states the bound and its assumptions without claiming zero-energy computation.
 - [ ] QFT pages identify executable restoration and finite certificates without claiming a missing general theorem.
