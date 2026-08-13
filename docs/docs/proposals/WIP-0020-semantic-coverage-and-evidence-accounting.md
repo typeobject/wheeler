@@ -306,7 +306,7 @@ Quantum targets own execution evidence, not coverage interpretation. The proof k
 - [ ] Source, bytecode, generated, and runtime point mappings reject every dangling, duplicate, overlapping, and forged relation in a malformed corpus.
 - [x] The classical coverage fixture runs observed and plain VMs through forward execution and complete rewind and compares every snapshot and history boundary exactly. Circuit, job, and proof collection remain outside the current profile.
 - [ ] Decision, condition, match-arm, trap, call, and bounded MC/DC fixtures produce exact expected denominators and witnesses.
-- [ ] Forward, language inverse, uncompute, VM rewind, replay, retry, and recovery observations never alias.
+- [x] Forward, language inverse, rewind-forward, and rewind-inverse are separate closed observer enum values and separate point-identity fields, so the implemented classical dimensions cannot alias. Uncompute, replay, retry, and recovery remain outside this observer profile.
 - [x] Rewind retains the earlier forward and inverse hit records and adds direction-specific rewind observations while the observed machine returns to its exact initial snapshot.
 - [ ] Quantum collection adds no measurement and distinguishes structural execution, sampled outcomes, exact assertions, and proof.
 - [ ] Proof coverage distinguishes lookup, obligation, rule execution, acceptance, and rejection.
