@@ -55,6 +55,22 @@ class StateVectorTargetTest {
   }
 
   @Test
+  void staticTargetRejectsTargetResidentSurfaceCodeRequirements() {
+    StateVectorTarget target = new StateVectorTarget();
+    Set<TargetCapability> required = Set.of(
+        TargetCapability.MID_CIRCUIT_MEASUREMENT,
+        TargetCapability.RESET,
+        TargetCapability.CLASSICAL_CONDITIONAL);
+
+    QuantumExecutionException failure = assertThrows(
+        QuantumExecutionException.class,
+        () -> target.descriptor().require(required));
+
+    assertTrue(failure.getMessage().contains(
+        "CLASSICAL_CONDITIONAL, MID_CIRCUIT_MEASUREMENT, RESET"));
+  }
+
+  @Test
   void gateAndGeneratedAdjointRestoreState() {
     QuantumRegister register = new QuantumRegister(0, "q", 2);
     QuantumCircuit circuit = new QuantumCircuit(
