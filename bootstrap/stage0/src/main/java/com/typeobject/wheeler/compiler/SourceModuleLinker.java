@@ -428,6 +428,7 @@ final class SourceModuleLinker {
             .toList(),
         function.testCases(),
         function.testTags(),
+        function.testLimits(),
         resolveType(types, function.returnType(), function.line()),
         statements,
         function.line());

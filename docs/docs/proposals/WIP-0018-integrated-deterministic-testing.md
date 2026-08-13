@@ -281,6 +281,7 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 - [x] Bounded inline `long` and `boolean` parameter rows parse, receive indexed stable names, compile through a synthetic no-argument entry wrapper, and execute independently.
 - [x] Bounded scalar parameter products and digest-assigned deterministic shards execute for the accepted profile.
 - [x] Bounded canonical dotted tags attach to test declarations, survive modular linking, and sort in descriptor metadata. Repeated `--tag` filters select the intersection without an ambient registry.
+- [x] Optional `limits(steps = N, history = M)` metadata survives modular linking and rewrites only that case artifact's verified machine ceilings before hashing and execution.
 - [ ] Lifecycle fixtures execute.
 - [ ] Inverse, rewind, quantum, workflow, package, and proof assertions execute with distinct semantics.
 - [ ] A Wheeler-written runner reproduces the stage-0 semantic report.

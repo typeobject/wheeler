@@ -314,6 +314,8 @@ Test-report profile 2 includes a bounded count of assertion attempts. A failed a
 
 A declaration may append `tags(unit, compiler.parser)` after `cases(...)` or the parameter list. Tags use bounded canonical dotted names and sort in descriptor metadata. Repeated `--tag NAME` arguments select cases containing every named tag. The runner rejects any selected tag absent from the complete package or workspace discovery set. A valid intersection with no cases succeeds with a zero-case report.
 
+A test may then append `limits(steps = N, history = M)`. Both values range from 1 through 4,000,000. The runner writes them into that case artifact before hashing and execution, so exhaustion uses the ordinary VM trap boundary.
+
 Multi-parameter products, fixtures, non-root test modules, and richer descriptors remain WIP-0018 work.
 
 ### Packages, locks, and vendors

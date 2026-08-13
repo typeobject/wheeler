@@ -160,7 +160,8 @@ final class PackageProject {
         if (!TestReport.assignedToShard(caseIdentity, shardIndex, shardCount)) {
           continue;
         }
-        Program program = compiledCase.program();
+        Program program = withTestLimits(
+            compiledCase.program(), compiledCase.maxHistory(), compiledCase.maxSteps());
         String artifactIdentity = sha256(writer.write(program));
         SemanticCoverage coverage = new SemanticCoverage();
         try {
@@ -195,6 +196,26 @@ final class PackageProject {
     if (!unknown.isEmpty()) {
       throw new PackageFormatException("Unknown test tags: " + String.join(", ", unknown));
     }
+  }
+
+  private static Program withTestLimits(Program program, int maxHistory, long maxSteps) {
+    return new Program(
+        program.name(),
+        program.kind(),
+        program.entryFunctionId(),
+        program.globals(),
+        program.recordTypes(),
+        program.variantTypes(),
+        program.arrayTypes(),
+        program.sliceTypes(),
+        program.functions(),
+        program.proofCertificates(),
+        program.quantumRegisters(),
+        program.quantumCircuits(),
+        program.workflow(),
+        program.requiredInstructionExtensions(),
+        maxHistory,
+        maxSteps);
   }
 
   Map<String, byte[]> compile() throws IOException {
@@ -314,11 +335,14 @@ final class PackageProject {
     }
     if (!declarations.isEmpty()) {
       return declarations.stream()
-          .map(test -> new CompiledCase(test.name(), Set.copyOf(test.tags()), test.program()))
+          .map(test -> new CompiledCase(
+              test.name(), Set.copyOf(test.tags()), test.maxHistory(), test.maxSteps(),
+              test.program()))
           .toList();
     }
+    Program fallback = compileTarget(compiler, target, linkedModules, directModules);
     return List.of(new CompiledCase(
-        "", Set.of(), compileTarget(compiler, target, linkedModules, directModules)));
+        "", Set.of(), fallback.maxHistoryRecords(), fallback.maxSteps(), fallback));
   }
 
   private Program compileTarget(
@@ -347,10 +371,11 @@ final class PackageProject {
     }
   }
 
-  private record CompiledCase(String name, Set<String> tags, Program program) {
+  private record CompiledCase(
+      String name, Set<String> tags, int maxHistory, long maxSteps, Program program) {
     private CompiledCase {
       tags = Set.copyOf(tags);
-      if (name == null || program == null) {
+      if (name == null || program == null || maxHistory < 1 || maxSteps < 1) {
         throw new IllegalArgumentException("Compiled test case is incomplete");
       }
     }

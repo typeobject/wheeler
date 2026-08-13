@@ -366,7 +366,10 @@ class WheelerCommandTest {
             state long value = 0;
             test void startsAtZero() tags(slow) { assert(value == 0); }
             test void accepts(long input) cases(-1, 2) tags(fast, scalar) { value = input; }
-            test void addsTwo() tags(fast) { value += 2; assert(value == 2); }
+            test void addsTwo() tags(fast) limits(steps = 8, history = 8) {
+              value += 2;
+              assert(value == 2);
+            }
             entry void main() { value += 2; assert(value == 2); }
         }
         """);
@@ -540,7 +543,8 @@ class WheelerCommandTest {
     Files.writeString(project.resolve("src/Runtime.w"), """
         classical class Runtime {
             state long value = 1;
-            entry void main() { long zero = 0; value = value / zero; }
+            test void bounded() limits(steps = 1, history = 1) { value += 1; }
+            entry void main() {}
         }
         """);
     Files.writeString(project.resolve("src/Assertion.w"), """

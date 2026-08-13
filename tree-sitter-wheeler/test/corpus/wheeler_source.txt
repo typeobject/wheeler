@@ -5,7 +5,8 @@ Classical reversible class
 classical class Counter {
   state long count = 0;
   rev void increment() { count += 1; }
-  test void remembers(long input) cases(-1, 0, 1) tags(fast, compiler.parser) {
+  test void remembers(long input) cases(-1, 0, 1) tags(fast, compiler.parser)
+      limits(steps = 100, history = 100) {
     assert(input == input);
   }
   entry void main() {
@@ -60,6 +61,9 @@ classical class Counter {
             (test_tag
               (identifier)
               (identifier)))
+          (test_limit_list
+            (integer_literal)
+            (integer_literal))
           (block
             (statement
               (assert_statement

@@ -19,6 +19,8 @@ final class SourceModel {
 
   record Parameter(String name, String type, ParameterMode mode) {}
 
+  record TestLimits(long maxSteps, int maxHistory) {}
+
   record RecordField(String name, String type) {}
 
   record RecordDefinition(
@@ -69,6 +71,7 @@ final class SourceModel {
       List<Parameter> parameters,
       List<List<String>> testCases,
       List<String> testTags,
+      TestLimits testLimits,
       String returnType,
       List<Statement> statements,
       int line) {
@@ -76,6 +79,9 @@ final class SourceModel {
       parameters = List.copyOf(parameters);
       testCases = testCases.stream().map(List::copyOf).toList();
       testTags = List.copyOf(testTags);
+      if (testLimits == null) {
+        throw new IllegalArgumentException("Function test limits are missing");
+      }
       statements = List.copyOf(statements);
     }
 

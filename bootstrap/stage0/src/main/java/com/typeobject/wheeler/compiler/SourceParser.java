@@ -14,6 +14,7 @@ import com.typeobject.wheeler.compiler.SourceModel.SliceDefinition;
 import com.typeobject.wheeler.compiler.SourceModel.SourceProgram;
 import com.typeobject.wheeler.compiler.SourceModel.State;
 import com.typeobject.wheeler.compiler.SourceModel.Statement;
+import com.typeobject.wheeler.compiler.SourceModel.TestLimits;
 import com.typeobject.wheeler.compiler.SourceModel.VariantCase;
 import com.typeobject.wheeler.compiler.SourceModel.VariantDefinition;
 import com.typeobject.wheeler.compiler.SourceToken.Type;
@@ -239,6 +240,7 @@ final class SourceParser extends SourceStatementParser {
     List<List<String>> testCases = SourceTestCaseParser.parse(
         this, test, parameters, start);
     List<String> testTags = SourceTestTags.parse(this, test, start);
+    TestLimits testLimits = SourceTestLimits.parse(this, test, start);
     expect(Type.LEFT_BRACE, "'{' before method body");
 
     if (coherent && !reversible) {
@@ -266,7 +268,7 @@ final class SourceParser extends SourceStatementParser {
     } else {
       functions.add(parseFunction(
           name, exported, entry, test, reversible, coherent, parameters, testCases,
-          testTags, returnType, start.line()));
+          testTags, testLimits, returnType, start.line()));
     }
   }
 
@@ -280,6 +282,7 @@ final class SourceParser extends SourceStatementParser {
       List<Parameter> parameters,
       List<List<String>> testCases,
       List<String> testTags,
+      TestLimits testLimits,
       String returnType,
       int line) {
     List<Statement> body = new ArrayList<>();
@@ -360,7 +363,7 @@ final class SourceParser extends SourceStatementParser {
     }
     return new Function(
         name, exported, entry, test, reversible, coherent, parameters, testCases,
-        testTags, returnType, body, line);
+        testTags, testLimits, returnType, body, line);
   }
 
   @Override

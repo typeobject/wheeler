@@ -98,7 +98,8 @@ class WheelerCompilerTest {
           boolean observe(boolean input) { value += 1; return input; }
           test void beta() { assert(value == 1); }
           test void alpha() { assert(value == 0); }
-          test void flag(boolean input) cases(false, true) tags(fast, unit.boolean) {
+          test void flag(boolean input) cases(false, true) tags(fast, unit.boolean)
+              limits(steps = 100, history = 90) {
             if (input) { value = 1; } else { value = 0; }
             assert(observe(input) == input);
           }
@@ -121,6 +122,8 @@ class WheelerCompilerTest {
         tests.stream().map(WheelerCompiler.TestCase::name).toList());
     assertEquals(List.of(), tests.getFirst().tags());
     assertEquals(List.of("fast", "unit.boolean"), tests.get(2).tags());
+    assertEquals(100, tests.get(2).maxSteps());
+    assertEquals(90, tests.get(2).maxHistory());
     new VirtualMachine(tests.getFirst().program()).run();
     assertThrows(VmTrap.class, () -> new VirtualMachine(tests.get(1).program()).run());
     assertTrue(tests.get(2).program().functions().stream()
@@ -207,6 +210,13 @@ class WheelerCompilerTest {
         "classical class Bad { test void row() tags() {} }"));
     assertThrows(CompilerException.class, () -> compiler.compileTests(
         "classical class Bad { void row() tags(unit) {} entry void main() {} }"));
+    assertThrows(CompilerException.class, () -> compiler.compileTests(
+        "classical class Bad { test void row() limits(steps = 0, history = 1) {} }"));
+    assertThrows(CompilerException.class, () -> compiler.compileTests(
+        "classical class Bad { test void row() limits(steps = 1, history = 4000001) {} }"));
+    assertThrows(CompilerException.class, () -> compiler.compileTests(
+        "classical class Bad { void row() limits(steps = 1, history = 1) {} "
+            + "entry void main() {} }"));
     StringBuilder oversizedCases = new StringBuilder(
         "classical class Bad { test void row(long value) cases(");
     for (int value = 0; value < 1_025; value++) {

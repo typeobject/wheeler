@@ -36,7 +36,8 @@ rev void increment() { ... }
 coherent rev void flip() { ... }
 unitary void qft() { ... }
 test void startsAtZero() tags(unit) { assert(count == 0); }
-test void signed(long value) cases(-1, 0, 1) tags(unit, signed.edge) { ... }
+test void signed(long value) cases(-1, 0, 1) tags(unit, signed.edge)
+    limits(steps = 1000, history = 1000) { ... }
 entry void main() { ... }
 ```
 
@@ -46,7 +47,7 @@ A `rev` method gets a compiler-checked inverse. A `coherent rev` method must als
 
 A `test` method is a classical `void` method. It has no parameters, or one `long` or `boolean` parameter.
 
-A parameterized test must include an inline `cases(...)` list with 1 through 1,024 unique values of the right type. A test may append up to 64 unique canonical dotted tags. The compiler sorts tags, and `wheeler test --tag NAME` selects their intersection. There is no hidden generator or ambient random seed.
+A parameterized test must include an inline `cases(...)` list with 1 through 1,024 unique values of the right type. A test may append up to 64 unique canonical dotted tags. The compiler sorts tags, and `wheeler test --tag NAME` selects their intersection. Optional `limits(steps = N, history = M)` values bind the case artifact and may only lower the profile's 4,000,000-record ceilings. There is no hidden generator or ambient random seed.
 
 When a runnable target has the package `test` selector, each nonmodular test or root-module test compiles into its own verified entry artifact. Tests run in fresh VMs and in lexical qualified-name order. Normal build and run artifacts omit test methods.
 
