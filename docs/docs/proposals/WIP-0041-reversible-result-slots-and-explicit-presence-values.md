@@ -806,7 +806,7 @@ the Java VM on every global.
 - [ ] Source-controlled coherent fill may entangle but does not clone.
 - [ ] Coherent move preserves affine ownership.
 - [ ] Measurement returns classical `Slot<T>` and rejects padding evidence.
-- [ ] Reset remains a reset effect rather than inverse return.
+- [x] Canonical quantum IR gives reset its own nonunitary instruction family. Calling `inverse()` on reset rejects, and static OpenQASM lowering cannot mistake reset for an inverse return.
 - [x] Existing ordinary artifacts retain their meaning.
 - [x] Unsupported result-slot features reject before execution.
 - [x] Reference docs describe only the implemented classical `Done` and closed-slot slices.
