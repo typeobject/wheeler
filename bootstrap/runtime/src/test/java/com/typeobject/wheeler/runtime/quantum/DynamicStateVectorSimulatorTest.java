@@ -46,6 +46,39 @@ final class DynamicStateVectorSimulatorTest {
   }
 
   @Test
+  void staticHostSplitAndDynamicPlansAgreeOnAnIdealBasisResult() {
+    QuantumRegister register = new QuantumRegister(0, "plan", 1);
+    QuantumCircuit dynamicCircuit = new QuantumCircuit(
+        0,
+        "dynamic",
+        0,
+        List.of(
+            new PrepareOperation(1),
+            new MeasureOperation(0, 0),
+            new ConditionalGateOperation(0, true, GateOperation.of(Gate.X, 0))));
+    Program dynamicProgram = program(register, dynamicCircuit);
+    DynamicCircuitResult dynamic = new DynamicStateVectorSimulator()
+        .execute(dynamicProgram, dynamicCircuit, 0);
+
+    StateVectorEngine staticEngine = new StateVectorEngine(0);
+    staticEngine.prepare(register, 1);
+    staticEngine.applyGate(register, GateOperation.of(Gate.X, 0));
+    long staticResult = staticEngine.measure(register);
+
+    StateVectorEngine splitEngine = new StateVectorEngine(0);
+    splitEngine.prepare(register, 1);
+    boolean observed = splitEngine.measureQubit(register, 0);
+    if (observed) {
+      splitEngine.applyGate(register, GateOperation.of(Gate.X, 0));
+    }
+    long hostSplitResult = splitEngine.measure(register);
+
+    assertEquals(0, staticResult);
+    assertEquals(staticResult, hostSplitResult);
+    assertEquals(staticResult, dynamic.basisState());
+  }
+
+  @Test
   void syndromeMeasurementConditionallyCorrectsAndResetsWithoutHostSplit() {
     DynamicStateVectorSimulator simulator = new DynamicStateVectorSimulator();
     DynamicSyndromeResult result = simulator.execute(

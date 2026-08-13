@@ -315,7 +315,7 @@ Quantum state is not a byte stream, file, mapped object, direct-I/O buffer, or R
 - [ ] Compiler-negative tests reject cloning, dirty ancillas, overlapping slices, use after measure, hidden logged history, I/O, and unbounded loops in coherent bodies.
 - [x] QFT followed by its generated adjoint restores the checked basis-state fixture within numeric tolerance.
 - [x] Full-register measurement produces a typed classical observation. Broader consumed-identity checking remains.
-- [ ] Static, host-split, and dynamic region plans preserve the same ideal result distributions where each is semantically valid.
+- [x] Static, host-split, and canonical target-resident dynamic plans produce the same exact basis result for the accepted measured-conditional fixture. Broader distribution equivalence remains target-specific conformance work.
 - [x] The checked-in optimizer fixture alternates two explicit quantum preparations and samples with one reversible classical acceptance update and commit, without provider APIs in source. Runtime batch fixtures cover symbolic parameter binding separately. Source-level optimizer parameters remain.
 - [x] The checked-in `SurfaceCode.w` declares itself as a static correction kernel. Before any target work, the target-resident profile requires the complete `MID_CIRCUIT_MEASUREMENT`, `RESET`, and `CLASSICAL_CONDITIONAL` set. The static target rejects all three in canonical order, while the bounded dynamic semantic fixture checks a measured syndrome, conditional correction, and clean reset.
 - [x] Every current example compiles, round-trips, parses with Tree-sitter, and executes in CI.
