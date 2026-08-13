@@ -419,7 +419,7 @@ Portfolio work follows these rules:
 - [x] Package portfolio tests require every checked-in example and conformance `.w` file to belong to a canonical manifest target and round-trip through its canonical package archive. Compiler, runtime, and package suites execute those selected targets in ordinary CI.
 - [ ] The portfolio covers every accepted source statement, type, effect, bytecode family, workflow edge, event kind, target capability, persistence record, and proof record.
 - [ ] Every capability has at least one successful fixture and one actionable rejection fixture.
-- [ ] Every nondeterministic fixture defines replay and fresh-execution behavior.
+- [x] Every currently admitted sampled or provider-backed portfolio fixture distinguishes replay from fresh execution. Replay consumes recorded evidence without submission. Retry or another seeded run creates a new branch and execution lineage.
 - [ ] Every external effect fixture defines abort, commit, cancellation, compensation, or barrier behavior.
 - [ ] Every aggregate and storage fixture has malformed, exhausted, aliasing, and cleanup tests.
 - [ ] Every quantum fixture declares endianness, approximation, resource, target, and statistical contracts.
