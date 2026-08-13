@@ -396,7 +396,7 @@ Portfolio work follows these rules:
 
 ### Unified I/O and durable hybrid
 
-- [ ] WIP-0032 I/O lifecycle conformance and negative fixtures.
+- [x] The quarantined stage-0 portfolio executes WIP-0032 request purity, await, batch, selection, dependency graphs, positional buffers, bounded threaded overlap, cancellation races, uncertainty, malformed progress, capacity exhaustion, and receipt monotonicity. Native source effects remain.
 - [ ] Recoverable iterative optimizer lifecycle matrix.
 - [ ] Calibration-aware compiler.
 - [ ] Adaptive replay decision tree.
@@ -427,7 +427,7 @@ Portfolio work follows these rules:
 - [ ] Compiler stages produce identical portfolio artifacts and diagnostics for their shared profile.
 - [ ] Interpreted and native executions produce matching normalized traces.
 - [ ] The package manager builds the complete implemented portfolio offline from a locked vendor set.
-- [ ] The documentation index reports implementation state without presenting planned fixtures as current behavior.
+- [x] `examples.md` and `conformance.md` list only checked-in executable programs and current results. Planned portfolio entries remain in this WIP and future pages rather than appearing as implemented examples.
 
 ## Alternatives
 
