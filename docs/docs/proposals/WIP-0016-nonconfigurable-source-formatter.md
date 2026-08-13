@@ -768,7 +768,7 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 
 - [ ] Documentation payload, semantic line breaks, lists, links, and fenced blocks survive formatting byte-for-byte.
 
-- [ ] Formatting before compilation produces byte-identical semantic `.wbc` to compilation before formatting across the source corpus.
+- [x] Formatter fixtures compile compact source and its formatted product to byte-identical `.wbc`. The complete checked-in Wheeler corpus is already canonical, so formatting before its ordinary compilation is an identity transform guarded by `SourceFormatterTest`.
 
 - [x] `format --check` writes no files, does not run documentation checks, and reports paths in canonical order.
 
