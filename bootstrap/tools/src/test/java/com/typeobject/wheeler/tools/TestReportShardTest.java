@@ -61,6 +61,18 @@ final class TestReportShardTest {
     TestReport report = new TestReport(List.of(result));
     assertThrows(IllegalArgumentException.class,
         () -> TestReport.combine(List.of(report, report)));
+
+    List<TestReport.CaseResult> oversized = new ArrayList<>(65_536);
+    for (int index = 0; index < 65_536; index++) {
+      oversized.add(result);
+    }
+    IllegalArgumentException reportLimit = assertThrows(
+        IllegalArgumentException.class, () -> new TestReport(oversized));
+    assertEquals("Test report exceeds 65,535 cases", reportLimit.getMessage());
+    assertThrows(IllegalArgumentException.class, () -> new TestReport(List.of(
+        new TestReport.CaseResult(
+            "demo", "1.0.0", "case", "bad", "a1".repeat(32), "",
+            TestReport.Status.FAIL, "WTEST001", "malformed", 0, 0, "", ""))));
   }
 
   private static ExecutionResult execution(long value) {
