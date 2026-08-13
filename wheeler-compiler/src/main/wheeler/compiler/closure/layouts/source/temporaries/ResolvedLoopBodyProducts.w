@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.resolved_loop_body_products;
 
 import wheeler.compiler.boolean_tokens;
+import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.resolved_statements;
@@ -43,72 +44,6 @@ classical class ResolvedLoopBodyProducts {
   /// Reports one complete direct body-statement resolution pass.
   public record ResolvedLoopBodyPlan(long bodyCount, boolean valid) {}
 
-  private record ResolvedValue(long local, boolean valid) {}
-
-  private boolean booleanValue(
-    borrow utf8 source,
-    long nameStart,
-    long nameLength,
-    long tokenCount,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths
-  ) {
-    long nameToken = tokenAtRange(
-      nameStart,
-      nameLength,
-      tokenCount,
-      tokenStarts,
-      tokenLengths
-    );
-    if (nameToken < 1) {
-      return false;
-    }
-
-    return tokenHash(source, tokenStarts, tokenLengths, nameToken - 1) == TOKEN_BOOLEAN;
-  }
-
-  private long valueType(
-    borrow utf8 source,
-    long owner,
-    long local,
-    long valueCount,
-    borrow mut words valueRows,
-    long tokenCount,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths
-  ) {
-    long selected = -1;
-    long matches = 0;
-    long value = 0;
-    while (value < valueCount) limit VALUE_COUNT_LIMIT {
-      if (valueRows[value] == owner) {
-        if (valueRows[VALUE_LOCAL_ROW + value] == local) {
-          selected = value;
-          matches += 1;
-        }
-      }
-
-      value += 1;
-    }
-
-    if (matches != 1) {
-      return -1;
-    }
-
-    long nameToken = tokenAtRange(
-      valueRows[VALUE_NAME_START_ROW + selected],
-      valueRows[VALUE_NAME_LENGTH_ROW + selected],
-      tokenCount,
-      tokenStarts,
-      tokenLengths
-    );
-    if (nameToken < 1) {
-      return -1;
-    }
-
-    return tokenHash(source, tokenStarts, tokenLengths, nameToken - 1);
-  }
-
   private boolean booleanLocal(
     borrow utf8 source,
     long owner,
@@ -119,7 +54,7 @@ classical class ResolvedLoopBodyProducts {
     borrow mut words tokenStarts,
     borrow mut words tokenLengths
   ) {
-    return valueType(
+    return loopBodyValueType(
       source,
       owner,
       local,
@@ -141,7 +76,7 @@ classical class ResolvedLoopBodyProducts {
     borrow mut words tokenStarts,
     borrow mut words tokenLengths
   ) {
-    return valueType(
+    return loopBodyValueType(
       source,
       owner,
       local,
@@ -151,107 +86,6 @@ classical class ResolvedLoopBodyProducts {
       tokenStarts,
       tokenLengths
     ) == TOKEN_LONG;
-  }
-
-  private long tokenAtRange(
-    long start,
-    long length,
-    long tokenCount,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths
-  ) {
-    long selected = -1;
-    long matches = 0;
-    long token = 0;
-    while (token < tokenCount) limit MAX_COMPILER_TOKENS {
-      if (tokenStarts[token] == start) {
-        if (tokenLengths[token] == length) {
-          selected = token;
-          matches += 1;
-        }
-      }
-
-      token += 1;
-    }
-
-    if (matches != 1) {
-      return -1;
-    }
-
-    return selected;
-  }
-
-  private boolean sameRange(
-    borrow utf8 source,
-    long leftStart,
-    long leftLength,
-    long rightStart,
-    long rightLength
-  ) {
-    if (leftLength != rightLength) {
-      return false;
-    }
-
-    long offset = 0;
-    while (offset < leftLength) limit 256 {
-      if (
-        utf8Scalar(source, leftStart + offset) != utf8Scalar(source, rightStart + offset)
-      ) {
-        return false;
-      }
-
-      offset += 1;
-    }
-
-    return true;
-  }
-
-  private ResolvedValue resolveValue(
-    borrow utf8 source,
-    long start,
-    long length,
-    long owner,
-    long ordinal,
-    long valueCount,
-    borrow mut words valueRows
-  ) {
-    long selected = -1;
-    long matches = 0;
-    long value = 0;
-    while (value < valueCount) limit VALUE_COUNT_LIMIT {
-      if (valueRows[value] == owner) {
-        if (valueRows[VALUE_DEFINITION_ORDINAL_ROW + value] < ordinal + 1) {
-          if (
-            sameRange(
-              source,
-              start,
-              length,
-              valueRows[VALUE_NAME_START_ROW + value],
-              valueRows[VALUE_NAME_LENGTH_ROW + value]
-            )
-          ) {
-            selected = valueRows[VALUE_LOCAL_ROW + value];
-            matches += 1;
-          }
-        }
-      }
-
-      value += 1;
-    }
-
-    if (matches != 1) {
-      return new ResolvedValue(0, false);
-    }
-
-    if (selected < 0) {
-      return new ResolvedValue(0, false);
-    }
-
-    if (MAX_LOCALS - 1 < selected) {
-      return new ResolvedValue(0, false);
-    }
-
-    return new ResolvedValue(selected, true);
   }
 
   private long tokenAtStart(long start, long tokenCount, borrow mut words tokenStarts) {
@@ -386,7 +220,7 @@ classical class ResolvedLoopBodyProducts {
             }
 
             if (statementValid) {
-              ResolvedValue booleanDeclaration = resolveValue(
+              LoopBodyValue booleanDeclaration = resolveLoopBodyValue(
                 source,
                 tokenStarts[token + 1],
                 tokenLengths[token + 1],
@@ -428,7 +262,7 @@ classical class ResolvedLoopBodyProducts {
               }
 
               if (statementValid) {
-                ResolvedValue declaration = resolveValue(
+                LoopBodyValue declaration = resolveLoopBodyValue(
                   source,
                   tokenStarts[token + 1],
                   tokenLengths[token + 1],
@@ -445,7 +279,7 @@ classical class ResolvedLoopBodyProducts {
 
                 long sourceToken = token + 3;
                 if (tokenKinds[sourceToken] == 1) {
-                  ResolvedValue sourceValue = resolveValue(
+                  LoopBodyValue sourceValue = resolveLoopBodyValue(
                     source,
                     tokenStarts[sourceToken],
                     tokenLengths[sourceToken],
@@ -502,7 +336,7 @@ classical class ResolvedLoopBodyProducts {
                   statementValid = false;
                 }
 
-                ResolvedValue assertionLeft = resolveValue(
+                LoopBodyValue assertionLeft = resolveLoopBodyValue(
                   source,
                   tokenStarts[assertionLeftToken],
                   tokenLengths[assertionLeftToken],
@@ -599,7 +433,7 @@ classical class ResolvedLoopBodyProducts {
                   }
                 }
               } else {
-                ResolvedValue target = resolveValue(
+                LoopBodyValue target = resolveLoopBodyValue(
                   source,
                   tokenStarts[token],
                   tokenLengths[token],
@@ -662,7 +496,7 @@ classical class ResolvedLoopBodyProducts {
                           opcode = BODY_ASSIGN_BOOLEAN_LITERAL_BASE + target.local;
                           operand = 0;
                         } else {
-                          ResolvedValue booleanSource = resolveValue(
+                          LoopBodyValue booleanSource = resolveLoopBodyValue(
                             source,
                             tokenStarts[assignmentSourceToken],
                             tokenLengths[assignmentSourceToken],
@@ -696,7 +530,7 @@ classical class ResolvedLoopBodyProducts {
                         }
                       }
                     } else {
-                      ResolvedValue assignmentSource = resolveValue(
+                      LoopBodyValue assignmentSource = resolveLoopBodyValue(
                         source,
                         tokenStarts[assignmentSourceToken],
                         tokenLengths[assignmentSourceToken],
@@ -814,7 +648,7 @@ classical class ResolvedLoopBodyProducts {
                   if (statementValid) {
                     long updateSourceToken = token + 3;
                     if (tokenKinds[updateSourceToken] == 1) {
-                      ResolvedValue updateSourceValue = resolveValue(
+                      LoopBodyValue updateSourceValue = resolveLoopBodyValue(
                         source,
                         tokenStarts[updateSourceToken],
                         tokenLengths[updateSourceToken],
