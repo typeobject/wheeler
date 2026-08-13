@@ -45,13 +45,17 @@ public final class OpenQasm3Emitter {
       appendGate(output, gate.bind(submission.bindings()));
       return;
     }
-    LiftedCall lifted = (LiftedCall) operation;
-    appendLifted(
-        output,
-        submission,
-        submission.program().function(lifted.functionId()),
-        lifted.inverseDirection(),
-        qubits);
+    if (operation instanceof LiftedCall lifted) {
+      appendLifted(
+          output,
+          submission,
+          submission.program().function(lifted.functionId()),
+          lifted.inverseDirection(),
+          qubits);
+      return;
+    }
+    throw new QuantumExecutionException(
+        "OpenQASM static lowering cannot represent " + operation.getClass().getSimpleName());
   }
 
   private static void appendGate(StringBuilder output, GateOperation operation) {

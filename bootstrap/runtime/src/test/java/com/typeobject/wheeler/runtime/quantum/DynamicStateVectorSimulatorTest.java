@@ -63,6 +63,28 @@ final class DynamicStateVectorSimulatorTest {
   }
 
   @Test
+  void staticOpenQasmLoweringRejectsDynamicInstructionFamilies() {
+    QuantumRegister register = new QuantumRegister(0, "dynamic", 1);
+    QuantumCircuit circuit = new QuantumCircuit(
+        0, "dynamic", 0, List.of(new PrepareOperation(0)));
+    Program program = program(register, circuit);
+    QuantumSubmission submission = new QuantumSubmission(
+        program,
+        0,
+        0,
+        List.of(new CircuitApplication(0, false)),
+        java.util.Map.of(),
+        1,
+        0);
+
+    QuantumExecutionException exception = assertThrows(
+        QuantumExecutionException.class,
+        () -> new OpenQasm3Emitter().emit(submission));
+
+    assertTrue(exception.getMessage().contains("cannot represent PrepareOperation"));
+  }
+
+  @Test
   void rejectsDynamicOperationsBeforePreparation() {
     QuantumRegister register = new QuantumRegister(0, "dynamic", 1);
     QuantumCircuit circuit = new QuantumCircuit(
