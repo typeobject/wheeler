@@ -608,7 +608,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 ### Cancellation and replay
 
 - [x] Stage-0 cancellation-before-effect, partial effect, completion-won, failure, and uncertainty are distinguishable.
-- [ ] Deadline expiry requests cancellation and never proves no effect.
+- [x] `IoDeadline` consumes an explicit caller-owned semantic tick, requests cancellation exactly once at expiry, and makes no no-effect claim. Expiry before provider start yields `CANCELED_BEFORE_EFFECT`. Expiry during running work preserves `UNCERTAIN_AFTER_CANCELLATION` and known progress.
 - [x] Every stage-0 uncertain completion carries a bounded reconciliation identity in its detail field, exact known progress not exceeding declared work, request identity, operation identity, cancellation relation, resource-release fact, and backend name.
 - [x] Hybrid replay reduces the recorded event snapshot without a target object or new submission and reproduces the exact classical globals and measurement records. Restore separately validates program and recorded job identity.
 - [x] Hybrid retry creates a new branch and job identity, submits again, and records the discarded branch. The API claims exact event application, not exactly-once provider execution.

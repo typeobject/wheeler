@@ -34,6 +34,8 @@ Inline submission may produce terminal completion before `submit` returns. Delay
 
 ## Cancellation and uncertainty
 
+`IoDeadline` takes an explicit semantic tick rather than reading wall time. Expiry requests cancellation once. It may establish cancellation before effect, completion winning the race, known partial effect, or uncertainty. Expiry alone never proves that no effect occurred.
+
 Terminal kind and cancellation relation are separate closed enums. The executable model distinguishes:
 
 | Result | Meaning |
