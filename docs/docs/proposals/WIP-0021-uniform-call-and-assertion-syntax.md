@@ -247,7 +247,7 @@ Near-miss syntax is rejected deterministically:
 - [x] Stage-0 and Wheeler-native compilers emit byte-identical artifacts for assertion fixtures and both reject bare syntax.
 - [x] Canonical Wheeler packages, rebuilt compiler archives and locks, examples, embedded source fixtures, current manuals, and future sketches use the accepted spelling. A root build gate rejects bare and duplicate assertion APIs in authored `.w` files.
 - [ ] Test fixtures expose explicit typed doubles and bounded event logs without interception APIs.
-- [ ] Assertion and test-double vocabulary audits contain no undocumented competing authority.
+- [x] Repository vocabulary audit finds no competing assertion or interception API in authored Wheeler source or current manuals. The only nonproposal mentions of `assertTrue`, `assertFalse`, `assertEquals`, or `expectEqual` state that those forms do not exist.
 
 ## Testing and acceptance
 
@@ -263,7 +263,7 @@ Near-miss syntax is rejected deterministically:
 - [ ] A typed failing double and a bounded event-recording double run through package discovery without ambient state.
 - [ ] Inverse, rewind, uncomputation, exact quantum, sampled quantum, workflow, proof, and malformed-artifact evidence remain nominally distinct through assertion reduction.
 - [ ] Sampled `Inconclusive` evidence cannot satisfy a Boolean assertion without an explicit, reviewable comparison.
-- [ ] Full repository search plus parser/runner gates prove old source spellings and proposed duplicate intrinsics are absent.
+- [x] `sourceSyntaxTest` scans every authored `.w` file and rejects bare assertions, duplicate assertion names, and ambient `mock` or `when` calls. Stage-0 negative tests and the current repository-wide scan provide parser and source evidence for the same boundary.
 - [x] `reference/language-profile.md` documents only the implemented direct Boolean assertion form, its trap boundary, and the absence of duplicate intrinsics. It names reversible, quantum, workflow, and proof assertions as unimplemented rather than presenting proposal syntax as current behavior.
 
 ## Alternatives
