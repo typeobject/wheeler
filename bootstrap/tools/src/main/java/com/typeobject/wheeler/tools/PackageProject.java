@@ -112,6 +112,12 @@ final class PackageProject {
   }
 
   TestReport test(int shardIndex, int shardCount, Set<String> selectedTags) throws IOException {
+    TestRun run = testRun(shardIndex, shardCount, selectedTags);
+    rejectUnknownTags(selectedTags, run.availableTags());
+    return run.report();
+  }
+
+  TestRun testRun(int shardIndex, int shardCount, Set<String> selectedTags) throws IOException {
     LockedPackageSet dependencies = dependencies();
     if (dependencies != null) {
       dependencies.check();
@@ -123,6 +129,7 @@ final class PackageProject {
     Map<String, String> directModules = dependencies == null
         ? Map.of() : dependencies.directModuleSources();
     List<TestReport.CaseResult> cases = new ArrayList<>();
+    Set<String> availableTags = new java.util.TreeSet<>();
     for (PackageManifest.Target target : manifest.targets()) {
       if (!target.test()) {
         continue;
@@ -142,6 +149,7 @@ final class PackageProject {
         continue;
       }
       for (CompiledCase compiledCase : compiled) {
+        availableTags.addAll(compiledCase.tags());
         if (!compiledCase.tags().containsAll(selectedTags)) {
           continue;
         }
@@ -178,7 +186,15 @@ final class PackageProject {
         }
       }
     }
-    return new TestReport(cases);
+    return new TestRun(new TestReport(cases), availableTags);
+  }
+
+  static void rejectUnknownTags(Set<String> selectedTags, Set<String> availableTags) {
+    Set<String> unknown = new java.util.TreeSet<>(selectedTags);
+    unknown.removeAll(availableTags);
+    if (!unknown.isEmpty()) {
+      throw new PackageFormatException("Unknown test tags: " + String.join(", ", unknown));
+    }
   }
 
   Map<String, byte[]> compile() throws IOException {
@@ -323,6 +339,12 @@ final class PackageProject {
     return target.kind() == TargetKind.LIBRARY
         ? compiler.compilePackageLibraryModuleFiles(sources, linkedModules, target.module())
         : compiler.compilePackageModuleFiles(sources, linkedModules, target.module());
+  }
+
+  record TestRun(TestReport report, Set<String> availableTags) {
+    TestRun {
+      availableTags = Set.copyOf(availableTags);
+    }
   }
 
   private record CompiledCase(String name, Set<String> tags, Program program) {

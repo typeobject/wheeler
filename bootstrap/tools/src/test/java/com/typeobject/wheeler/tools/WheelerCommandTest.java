@@ -441,6 +441,13 @@ class WheelerCommandTest {
         new PrintStream(new ByteArrayOutputStream())));
     assertTrue(stdout.toString(StandardCharsets.UTF_8)
         .contains("\"selected\":2,\"passed\":2,\"failed\":0"));
+    PackageFormatException unknownTag = assertThrows(
+        PackageFormatException.class,
+        () -> Wheeler.execute(
+            new String[] {"test", project.toString(), "--tag", "missing"},
+            new PrintStream(new ByteArrayOutputStream()),
+            new PrintStream(new ByteArrayOutputStream())));
+    assertTrue(unknownTag.getMessage().contains("Unknown test tags: missing"));
     stdout.reset();
     assertEquals(0, Wheeler.execute(
         new String[] {"run", project.toString(), "--target", "law"},

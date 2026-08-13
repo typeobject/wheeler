@@ -100,9 +100,14 @@ final class WorkspaceProject {
 
   TestReport test(int shardIndex, int shardCount, Set<String> selectedTags) throws IOException {
     List<TestReport> reports = new ArrayList<>();
+    Set<String> availableTags = new java.util.TreeSet<>();
     for (MemberProject member : members) {
-      reports.add(member.project().test(shardIndex, shardCount, selectedTags));
+      PackageProject.TestRun run = member.project().testRun(
+          shardIndex, shardCount, selectedTags);
+      reports.add(run.report());
+      availableTags.addAll(run.availableTags());
     }
+    PackageProject.rejectUnknownTags(selectedTags, availableTags);
     return TestReport.combine(reports);
   }
 
