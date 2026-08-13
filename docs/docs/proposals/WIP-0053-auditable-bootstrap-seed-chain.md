@@ -111,7 +111,7 @@ Publication fails before replacing any release pointer when:
 - [x] `BootstrapSeedChain` indexes records by their canonical SHA-256 identity, walks bounded ancestry, rejects missing parents and attestations, and rejects cycles. Attestations must reproduce the same source and output under a distinct builder. Opaque records cannot claim source correspondence, while reproducible records cannot carry opaque-root metadata.
 - [x] Ordinary CI reproduces the alternate Java stage 0 from a clean module output using `:stage0:clean :stage0:build` before it admits command-adapter, workspace, or promotion evidence.
 - [ ] The first current build driver is produced without a current driver binary.
-- [ ] Recovery-release evidence binds the complete seed chain and opaque-root inventory.
+- [x] `BootstrapRecoveryEvidence` binds the complete seed-chain identity and count, exact sorted opaque-root identities, opaque byte total, source archive, lock, compiler options and limits, fixed-point evidence, diverse-compilation evidence, acceptance artifact set, and parent recovery release. Its strict parser and chain validator reject changed inventories or evidence fields.
 - [ ] Two independent builders reproduce the promoted recovery release.
 
 ## Acceptance

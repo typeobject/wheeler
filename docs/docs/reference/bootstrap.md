@@ -17,6 +17,8 @@ The build driver follows the same rule. The previous recovery release produces t
 
 `BootstrapSeedChain` indexes records by the SHA-256 identity of their canonical bytes. Every parent and attestation must be present. Parent walks are bounded and acyclic. An attestation must name the same source revision, source identity, and output identity under a builder identity not already used by the subject or another attestation. This establishes a closed evidence graph. It does not turn an opaque root into source-derived bytes.
 
+`wheeler.recovery.yaml` binds that graph into release evidence. The canonical record carries the complete chain identity and count, sorted opaque-root identities and byte total, source archive, lock, compiler options and limits, fixed-point evidence, diverse-compilation evidence, acceptance artifact set, and parent recovery release. `BootstrapRecoveryEvidence.validate` rederives all chain and opaque totals rather than trusting duplicated release metadata. Fixed-point and diverse identities remain separate fields.
+
 ## Profile and module derivation
 
 Publish the complete known feature contract. Callers cannot subtract an inconvenient feature or add one that neither compiler implements:
