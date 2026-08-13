@@ -798,7 +798,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [ ] Reader baseline, narrative frame, earned lexicon, and pacing law receive review.
 - [x] Thirteen continuous-story chapters cover every step from `T00` through `T93` in a complete developmental prose revision with sustained setting, character conflict, mission stakes, and causal payoff.
 - [ ] Stable tutorial IDs and prerequisite graph receive review.
-- [ ] Tutorial metadata and documentation nodes are implemented.
+- [x] Thirteen routed tutorial nodes carry explicit `tutorial_id`, covered-step range, part, order, kind, source class, expected outcome, and evidence class metadata. `tutorials/index.mdx` is the stable entrance and the series covers `T00` through `T93` without placeholder nodes.
 - [ ] Primary fenced Wheeler source compiles and runs through the documentation gate.
 - [ ] Expected-rejection fences check stable diagnostics.
 - [ ] Downloadable `.w` assets reproduce exact fenced source.
@@ -848,7 +848,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [ ] Release units contain no linked placeholder pages.
 - [ ] Structured reader review covers the zero-knowledge path through `T68` before the replacement gate.
 - [ ] The compact language-reference teaching list is deleted after replacement, not maintained in parallel.
-- [ ] Current reference pages describe only implemented behavior and link to the tutorial without depending on draft lessons.
+- [x] Current reference pages remain implementation-only. `intro.md` links to the first-principles tutorial index, while no reference contract depends on a tutorial's draft metadata or narrative claims.
 
 ## Alternatives
 
