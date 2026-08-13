@@ -407,7 +407,7 @@ Native worker failure and external uncertainty follow their owning WIPs. They do
 - [ ] Structured spawn, completion, join, and exit execute.
 - [x] The reference scheduler chooses the least runnable `TaskId` above its cursor and wraps to the least identity. Cursor commit and restoration are explicit, and an empty runnable set traps. Spawn and task execution remain unimplemented.
 - [ ] Replay rejects disabled choices before mutation.
-- [ ] One global journal rewinds task lifecycle.
+- [x] The accepted root-task substrate stores selected TaskId, scheduler cursor, task status, frame delta, globals, aggregates, owned storage, output length, and machine status in one ordered `StepRecord` journal. `rewindOne()` restores that complete transition atomically. Spawn, completion, and join deltas remain for the multi-task extension.
 - [ ] Signed and Boolean atomics are sequentially consistent.
 - [ ] Atomic transitions rewind exactly.
 - [ ] Ordinary mutable cross-task aliases fail verification.
