@@ -602,7 +602,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] Every stage-0 and Wheeler-native submitted operation has one terminal completion and one reap.
 - [x] Dropping a live stage-0 operation or closing a native lifecycle table with live or unreaped work is rejected.
 - [x] Inline and delayed deterministic completion have equal semantic results. Threaded results match the same semantic fields.
-- [ ] `async` may execute inline. `concurrent` fails when overlap is unavailable.
+- [x] The deterministic provider may complete inline or delay delivery without changing semantic completion. The threaded provider proves two required-overlap requests start together and fails admission before consuming a request when its bounded worker/queue capacity cannot supply overlap.
 - [x] Stage-0 lifecycle fixtures construct requests, await, batch, graph, and select through `IoScope`. Request code names no delivery mode, worker, queue, completion port, or poll loop. Backend selection occurs only at the harness boundary.
 
 ### Cancellation and replay
@@ -629,7 +629,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] Batch and graph submission order creates no persistence claim. Independent roots may complete concurrently, graph dependents wait only for named terminal predecessors, and positional write completion is explicitly not a durability receipt.
 - [ ] Disjoint ranges run independently. Unsafe overlap is rejected or explicitly named.
 - [ ] Sequential adapters own exactly one cursor and preserve consumed/examined positions.
-- [ ] Canonical aggregate reduction is independent of physical completion order.
+- [x] Batch and graph reductions retain canonical request order while delayed, reversed, duplicate, and threaded physical completions vary. Independent graph roots may overlap, but their dependent observes both completed roots.
 
 ### Direct, topology, and scale
 
