@@ -293,7 +293,7 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 - [x] Bundle generation sorts physical inputs, nodes, edges, navigation, search rows, and manifest outputs explicitly and emits byte-identical bundles across independent destinations. It reads no locale, worker-count, or cache-order input.
 - [x] Bundle generation assigns domain-prefixed canonical identities to manual pages, headings, and Wheeler declarations. Every sorted edge names an existing source and target node, and each node derives from one selected physical manual or parser-owned declaration.
 - [ ] Ambiguous, missing, private, stale-version, malformed, and cyclic links fail with exact diagnostics.
-- [ ] Wheeler docs preserve WIP-0016 payload and attachment exactly.
+- [x] Wheeler API nodes consume WIP-0016's parser-owned module, declaration, modifier, summary, facet, and source-position records directly. The bundle generator does not rescan or normalize `//!` and `///` payloads.
 - [ ] Javadoc extraction is independent of generated HTML, locale, and source order.
 - [ ] Java pages cannot define or shadow Wheeler symbols or semantic reference nodes.
 - [ ] Executable examples compile/run/replay through WIP-0018 and retain exact result identities.
