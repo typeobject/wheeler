@@ -657,7 +657,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] Stage-0 data, metadata, namespace visibility, namespace stability, and quorum evidence transformations test separately.
 - [ ] Persistence failures report known, partial, or uncertain state accurately.
 - [ ] Crash/power/profile evidence binds exact backend assumptions.
-- [ ] Documentation uses the word durable for close, rename, staging, direct completion, transport completion, or ordinary replication only when exact evidence supports it.
+- [x] Current I/O reference documentation calls stage-0 provider actions synthetic, says positional completion proves no crash survival or namespace stability, and reserves stability claims for typed receipt evidence. It does not label close, rename, staging, direct completion, transport completion, or replication as durable.
 
 ### Reversibility, quantum, and backends
 
