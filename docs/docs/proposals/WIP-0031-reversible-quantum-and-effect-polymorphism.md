@@ -412,7 +412,7 @@ An optional `IoAction<Effects, Result>` or `QuantumAction<Input, Output, Effects
 - [x] Fixed, parameterized, lifted, and accepted conditional unitary operation records survive two generated adjoints as the exact original ordered semantic operation list. Preparation, measurement, and reset remain nonunitary and reject adjoint construction.
 - [ ] Generic adjoint commutes with specialization.
 - [ ] Controlled/adjoint specializations commute where declared.
-- [ ] Resource bounds close and pass before target submission.
+- [x] The accepted target profile closes selected operation capabilities, register width, shot count, and parameter schema before submission. Missing dynamic capabilities, excessive qubits or shots, and mismatched symbolic bindings fail before a provider job identity is allocated.
 - [x] A complete quantum submission records the ordered circuit identities and directions selected by classical planning. Selecting another circuit changes the canonical submission identity before target work.
 - [ ] Replay-only generic code rejects fresh target/FFI effects.
 - [ ] Forged class evidence cannot grant semantic characteristics.
