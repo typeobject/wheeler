@@ -795,7 +795,7 @@ the Java VM on every global.
 - [x] Preserved-source, source-with-constant, and two-source fills round-trip exactly.
 - [x] Direct, one-binding, and selected multi-prelude forms produce identical relation bodies.
 - [ ] Affine moves round-trip exactly.
-- [x] `Slot<borrow T>` and owner-carrying slots are rejected by the source type checker with the stable `Slot payload cannot be an owner or loan` diagnostic. Returned-loan origin tracking remains future work.
+- [x] The source type checker rejects `Slot<borrow T>` and owner-carrying slots with the stable `Slot payload cannot be an owner or loan` diagnostic. Returned-loan origin tracking remains future work.
 - [x] Nested classical slots distinguish outer vacancy from `Holding(Vacant)`.
 - [x] Information-losing bodies remain rejected despite a reversible return.
 - [x] Trapping return expressions leave the result vacant.
