@@ -609,15 +609,15 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 
 - [x] Stage-0 cancellation-before-effect, partial effect, completion-won, failure, and uncertainty are distinguishable.
 - [ ] Deadline expiry requests cancellation and never proves no effect.
-- [ ] Every uncertain result carries reconciliation identity and known progress.
+- [x] Every stage-0 uncertain completion carries a bounded reconciliation identity in its detail field, exact known progress not exceeding declared work, request identity, operation identity, cancellation relation, resource-release fact, and backend name.
 - [ ] Replay performs no live I/O and validates exact request/resource/profile identity.
 - [ ] Retry creates a new lineage. No generic API claims exactly-once execution.
 
 ### Buffers and pressure
 
-- [ ] Reads hold exclusive destination loans and writes hold shared source loans until release.
+- [x] The positional stage-0 oracle captures destination or source buffers on submission, prevents access while the operation is live, and returns the buffer only in terminal completion after release. The Java seed models exclusive capture rather than Wheeler loan syntax.
 - [x] Stage-0 moved buffers return through terminal positional results and remain inaccessible until resource-release completion.
-- [ ] Segment overlap/range arithmetic and backend result lengths are checked.
+- [x] Positional read and write construction checks bounded offsets and lengths, completion progress cannot exceed declared work, and a provider that reports excess progress is rejected at terminal reduction.
 - [ ] Registration, pool, queue, completion, timer, and total-work limits fail closed.
 - [ ] Data-plane saturation preserves cleanup/control credit.
 - [ ] Zero-copy does not release a source before final reuse permission.
