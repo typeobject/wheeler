@@ -416,7 +416,7 @@ Portfolio work follows these rules:
 
 ## Testing and acceptance
 
-- [ ] Every checked-in `.w` file satisfies the fixture contract and ordinary CI.
+- [x] Package portfolio tests require every checked-in example and conformance `.w` file to belong to a canonical manifest target and round-trip through its canonical package archive. Compiler, runtime, and package suites execute those selected targets in ordinary CI.
 - [ ] The portfolio covers every accepted source statement, type, effect, bytecode family, workflow edge, event kind, target capability, persistence record, and proof record.
 - [ ] Every capability has at least one successful fixture and one actionable rejection fixture.
 - [ ] Every nondeterministic fixture defines replay and fresh-execution behavior.
