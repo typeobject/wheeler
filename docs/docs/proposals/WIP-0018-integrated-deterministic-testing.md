@@ -286,7 +286,7 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 
 ## Testing and acceptance
 
-- [ ] Discovery order and case identities are stable under source-map, filesystem, locale, and worker-order variation.
+- [x] Stage-0 discovery expands selected source trees into lexical logical-path maps, resolves modules by canonical names, sorts declarations by qualified lexical identity, and sorts the reduced report by case identity. Case and report hashes consume explicit UTF-8 and fixed-width fields. No locale, filesystem enumeration order, source-map order, worker, or completion order enters the implemented profile.
 - [x] Every implemented stage-0 case compiles to its own entry artifact and runs in a newly constructed VM. The multi-case fixture mutates state in one case and proves a later lexical case still observes the declared initial global. Fixtures and target-bearing cases remain future work.
 - [x] The implemented inline signed and Boolean `cases(...)` products retain declaration order, use stable indexed identities, reject duplicate or mistyped rows, and cap one product at 1,024 values. Seeds, generation, and shrinking remain outside the profile.
 - [ ] Lifecycle acquire/release ordering is exact across pass, assertion fail, trap, cancel, and process recovery.
