@@ -295,7 +295,7 @@ Quantum targets own execution evidence, not coverage interpretation. The proof k
 
 - [x] The stage-0 VM emits immutable observations for successful transitions without changing executable code. Forward, language-inverse, rewind-forward, and rewind-inverse coverage stay separate. A successful `JUMP_IF_ZERO` records whether the branch was taken. The reducer emits sorted checked counts and a domain-separated report identity. Tests require identical terminal and rewound snapshots with collection on or off. Classical package tests collect the report in a fresh VM, print its identity, and bind that identity into the test report. Quantum cases do not claim a classical transition report. A policy with no denominator reports no percentage.
 - [ ] Coverage point, map, observation, policy, and report contracts are accepted.
-- [ ] Classical source/bytecode points collect without program instrumentation.
+- [x] Classical bytecode transition points collect through the VM observer without adding counter instructions or changing `.wbc`. Source-point mapping remains outside the current profile.
 - [ ] WIP-0018 attempts merge deterministically across serial and sharded runs.
 - [ ] Inverse, rewind, workflow, quantum, and proof dimensions execute distinctly.
 - [ ] Wheeler and stage-0 reducers emit byte-identical reports.
@@ -304,7 +304,7 @@ Quantum targets own execution evidence, not coverage interpretation. The proof k
 ## Testing and acceptance
 
 - [ ] Source, bytecode, generated, and runtime point mappings reject every dangling, duplicate, overlapping, and forged relation in a malformed corpus.
-- [ ] Collection on/off produces identical Wheeler machine states, output effects, histories, circuits, jobs, and proof results.
+- [x] The classical coverage fixture runs observed and plain VMs through forward execution and complete rewind and compares every snapshot and history boundary exactly. Circuit, job, and proof collection remain outside the current profile.
 - [ ] Decision, condition, match-arm, trap, call, and bounded MC/DC fixtures produce exact expected denominators and witnesses.
 - [ ] Forward, language inverse, uncompute, VM rewind, replay, retry, and recovery observations never alias.
 - [ ] Rewind preserves attempted hit coverage while net-state accounting reflects restoration.
