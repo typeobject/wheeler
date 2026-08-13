@@ -615,7 +615,7 @@ A failed check emits no partial paired region, generated inverse body, proof cer
 - [ ] Generic arguments, associated types, evidence, and callable identities match between compute and cleanup.
 - [ ] A computed value may control a frame-preserving operation and still uncompute.
 - [ ] Mutation, move, measurement, reset, or release of an inverse dependency is rejected.
-- [ ] Every declared ancilla returns to its exact clean basis in the ideal simulator.
+- [x] For the accepted explicit unitary profile, the exact simulator applies the actual generated adjoint after an entangling phase-bearing circuit and recovers the complete initial amplitude vector. The ancillary qubit therefore returns exactly to its clean basis. Source-level paired compute/use ancilla declarations remain unimplemented.
 - [ ] The proof kernel accepts the corresponding cleanup certificate.
 - [ ] Nested regions uncompute in the required order.
 - [ ] The adjoint of a paired region uses the compute block, adjoint use block, and cleanup block in the correct order.
