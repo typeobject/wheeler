@@ -1,6 +1,7 @@
 // Root build policy for the bounded stage-0 modules and repository conformance gates.
 ext.repositoryRoot = rootDir.parentFile
 ext.maxWheelerSourceFilesPerDirectory = 10
+ext.maxAuthoredCodeLines = 1000
 
 allprojects {
     group = 'com.typeobject.wheeler'
@@ -73,6 +74,29 @@ tasks.register('sourceSyntaxTest') {
         if (!failures.isEmpty()) {
             throw new GradleException('Wheeler assertion syntax has one authority:\n'
                     + failures.join('\n'))
+        }
+    }
+}
+
+tasks.register('sourceLengthTest') {
+    group = 'verification'
+    description = 'Rejects authored code files longer than one thousand lines.'
+    doLast {
+        def oversized = fileTree(repositoryRoot) {
+            include '**/*.java', '**/*.w', '**/*.js', '**/*.css', '**/*.gradle',
+                    '**/*.scm', '**/*.sh', '**/*.py'
+            exclude '.git/**', '**/.gradle/**', '**/build/**', '**/node_modules/**',
+                    'tree-sitter-wheeler/src/**'
+        }.files.findAll { file ->
+            file.readLines('UTF-8').size() > maxAuthoredCodeLines
+        }.collect { file ->
+            def logical = repositoryRoot.toPath().relativize(file.toPath()).toString()
+            "${logical}: ${file.readLines('UTF-8').size()} lines"
+        }.sort()
+        if (!oversized.isEmpty()) {
+            throw new GradleException(
+                    "Authored code files may contain at most ${maxAuthoredCodeLines} lines:\n"
+                            + oversized.join('\n'))
         }
     }
 }
@@ -198,5 +222,6 @@ subprojects {
     check.dependsOn rootProject.tasks.named('bootstrapContainmentTest')
     check.dependsOn rootProject.tasks.named('sourceHeaderTest')
     check.dependsOn rootProject.tasks.named('sourceLayoutTest')
+    check.dependsOn rootProject.tasks.named('sourceLengthTest')
     check.dependsOn rootProject.tasks.named('sourceSyntaxTest')
 }
