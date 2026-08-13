@@ -108,6 +108,34 @@ class StateVectorTargetTest {
   }
 
   @Test
+  void classicalOperationSelectionChangesSubmissionIdentity() {
+    QuantumRegister register = new QuantumRegister(0, "q", 1);
+    QuantumCircuit idle = new QuantumCircuit(0, "idle", 0, List.of());
+    QuantumCircuit flip = new QuantumCircuit(
+        1, "flip", 0, List.of(GateOperation.of(Gate.X, 0)));
+    Program program = program(register, idle, List.of(), flip);
+
+    QuantumSubmission selectedIdle = new QuantumSubmission(
+        program,
+        0,
+        0,
+        List.of(new CircuitApplication(0, false)),
+        Map.of(),
+        1,
+        0);
+    QuantumSubmission selectedFlip = new QuantumSubmission(
+        program,
+        0,
+        0,
+        List.of(new CircuitApplication(1, false)),
+        Map.of(),
+        1,
+        0);
+
+    assertNotEquals(selectedIdle.identity(), selectedFlip.identity());
+  }
+
+  @Test
   void gateAndGeneratedAdjointRestoreState() {
     QuantumRegister register = new QuantumRegister(0, "q", 2);
     QuantumCircuit circuit = new QuantumCircuit(
@@ -341,6 +369,14 @@ class StateVectorTargetTest {
 
   static Program program(
       QuantumRegister register, QuantumCircuit circuit, List<FunctionBody> additionalFunctions) {
+    return program(register, circuit, additionalFunctions, new QuantumCircuit[0]);
+  }
+
+  static Program program(
+      QuantumRegister register,
+      QuantumCircuit circuit,
+      List<FunctionBody> additionalFunctions,
+      QuantumCircuit... additionalCircuits) {
     FunctionBody main = new FunctionBody(
         0,
         "main",
@@ -353,6 +389,9 @@ class StateVectorTargetTest {
     List<FunctionBody> functions = new java.util.ArrayList<>();
     functions.add(main);
     functions.addAll(additionalFunctions);
+    List<QuantumCircuit> circuits = new java.util.ArrayList<>();
+    circuits.add(circuit);
+    circuits.addAll(List.of(additionalCircuits));
     return new Program(
         "QuantumTest",
         ProgramKind.QUANTUM,
@@ -365,7 +404,7 @@ class StateVectorTargetTest {
         functions,
         List.of(),
         List.of(register),
-        List.of(circuit),
+        circuits,
         List.of(com.typeobject.wheeler.core.workflow.WorkflowStep.halt()),
         Program.DEFAULT_MAX_HISTORY,
         Program.DEFAULT_MAX_STEPS);

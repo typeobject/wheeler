@@ -413,7 +413,7 @@ An optional `IoAction<Effects, Result>` or `QuantumAction<Input, Output, Effects
 - [ ] Generic adjoint commutes with specialization.
 - [ ] Controlled/adjoint specializations commute where declared.
 - [ ] Resource bounds close and pass before target submission.
-- [ ] Classical operation selection is recorded in circuit identity.
+- [x] A complete quantum submission records the ordered circuit identities and directions selected by classical planning. Selecting another circuit changes the canonical submission identity before target work.
 - [ ] Replay-only generic code rejects fresh target/FFI effects.
 - [ ] Forged class evidence cannot grant semantic characteristics.
 - [ ] Forged callable/effect metadata fails verification.
