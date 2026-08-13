@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.runtime;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -27,12 +28,14 @@ class SemanticCoverageTest {
     plain.run();
 
     assertEquals(plain.snapshot(), observed.snapshot());
+    assertArrayEquals(plain.hostOutput(), observed.hostOutput());
     while (observed.historySize() > 0) {
       observed.rewindOne();
       plain.rewindOne();
     }
     assertEquals(initial, observed.snapshot());
     assertEquals(plain.snapshot(), observed.snapshot());
+    assertArrayEquals(plain.hostOutput(), observed.hostOutput());
     String report = coverage.canonicalReport();
     assertTrue(report.contains("\"direction\":\"forward\""));
     assertTrue(report.contains("\"branch\":\"taken\""));
