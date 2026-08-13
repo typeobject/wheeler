@@ -408,7 +408,7 @@ An optional `IoAction<Effects, Result>` or `QuantumAction<Input, Output, Effects
 - [ ] Intrinsic reversible bodies reject arbitrary allocation/release/foreign/measurement effects.
 - [ ] Coherent types require admitted exact finite encoding and complete bijection.
 - [ ] Coherent output contains no runtime class/callable dispatch.
-- [ ] Unitary bodies contain no measurement or host effect.
+- [x] Canonical preparation, measurement, and reset records reject inverse or adjoint construction. Host submission remains a workflow operation. The invertible quantum operation set contains only fixed or symbolic gates, coherent calls, and accepted conditional fixed gates.
 - [x] Fixed, parameterized, lifted, and accepted conditional unitary operation records survive two generated adjoints as the exact original ordered semantic operation list. Preparation, measurement, and reset remain nonunitary and reject adjoint construction.
 - [ ] Generic adjoint commutes with specialization.
 - [ ] Controlled/adjoint specializations commute where declared.
