@@ -109,7 +109,7 @@ Publication fails before replacing any release pointer when:
 - [x] WIP-0023 distinguishes reproducible package bytes from compiler source correspondence.
 - [x] `BootstrapSeedRecord` and its strict parser define the canonical `wheeler.seed.yaml` schema. The identity binds artifact class, platform, output and length, source revision and identity, command, working directory, builder, dependencies, environment, parent, attestations, and explicit opaque acquisition data.
 - [x] `BootstrapSeedChain` indexes records by their canonical SHA-256 identity, walks bounded ancestry, rejects missing parents and attestations, and rejects cycles. Attestations must reproduce the same source and output under a distinct builder. Opaque records cannot claim source correspondence, while reproducible records cannot carry opaque-root metadata.
-- [ ] The alternate stage-0 reproduction command runs in ordinary CI.
+- [x] Ordinary CI reproduces the alternate Java stage 0 from a clean module output using `:stage0:clean :stage0:build` before it admits command-adapter, workspace, or promotion evidence.
 - [ ] The first current build driver is produced without a current driver binary.
 - [ ] Recovery-release evidence binds the complete seed chain and opaque-root inventory.
 - [ ] Two independent builders reproduce the promoted recovery release.

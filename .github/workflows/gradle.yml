@@ -39,6 +39,9 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
+    - name: Reproduce the alternate Java stage 0 from source
+      run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 :stage0:clean :stage0:build
+
     - name: Test the command adapter before other test workers
       run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 :tools:check
 

@@ -7,6 +7,8 @@ A compiler can reproduce its own bugs. That alone doesn't make it trustworthy. W
 
 The bootstrap gate records successful evidence in `wheeler.bootstrap.yaml`. The repository does not contain that manifest yet because the bounded Wheeler compiler is not self-hosting. Creating the file early would not provide real evidence.
 
+Ordinary CI first runs `./bootstrap/gradlew -p bootstrap :stage0:clean :stage0:build`. This deletes prior stage-0 module outputs and rebuilds the alternate Java compiler seed from source before command-adapter, workspace, or promotion work can use it. The command establishes routine reproduction of the current alternate implementation. It is not a Wheeler fixed point or an independent derivation.
+
 The seed must also be bootstrappable in the source-correspondence sense. Every binary in the required chain names the exact source revision, builder, closed dependencies, normalized environment, build command, output identity, and parent seed. CI runs the recorded command routinely. A checksum identifies an opaque binary but does not explain how source produced it. Wheeler minimizes such roots and keeps the simple alternate stage-0 implementation alive until a smaller auditable path replaces it.
 
 The build driver follows the same rule. The previous recovery release produces the first current driver through a bounded path that does not require an unexplained current driver binary. Distributors must be able to walk and reproduce recovery generations rather than starting from an unlabeled compiler download.
