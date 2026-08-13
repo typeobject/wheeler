@@ -808,7 +808,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [ ] Release unit 2 is complete.
 - [ ] Static circuit diagrams pass accessibility and identity checks.
 - [ ] Release unit 3 is complete.
-- [ ] The language-reference teaching path is replaced.
+- [x] The language reference points to the first-principles tutorial as the sole ordered curriculum. The examples page remains a conformance inventory rather than a parallel teaching list.
 - [x] WIP-0006 assigns the teaching sequence to documentation and examples, while WIP-0010 defines the teaching-track fixture contract and links back to WIP-0006. This WIP owns the first-principles curriculum nodes.
 - [ ] Release unit 4 is complete.
 - [ ] Bounded hybrid event presentation is available.
@@ -847,7 +847,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [ ] A failed lesson compile, run, sample, link, or render leaves the previous publication unchanged.
 - [ ] Release units contain no linked placeholder pages.
 - [ ] Structured reader review covers the zero-knowledge path through `T68` before the replacement gate.
-- [ ] The compact language-reference teaching list is deleted after replacement, not maintained in parallel.
+- [x] The compact language-reference teaching list is deleted. The reference keeps one tutorial entrance and one unordered executable-evidence inventory.
 - [x] Current reference pages remain implementation-only. `intro.md` links to the first-principles tutorial index, while no reference contract depends on a tutorial's draft metadata or narrative claims.
 
 ## Alternatives

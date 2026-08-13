@@ -651,14 +651,8 @@ It has no generic declarations, type classes, associated types, const-generic pa
 
 Each feature must still lower to the same typed reversible `.wbc` IR. None is implemented yet unless the reference above describes its executable slice.
 
-## Teaching path
+## Learning Wheeler
 
-1. `Counter.w`, `BinaryTree.w`, `BootstrapControl.w`, `FunctionValues.w`, and `RecursiveValue.w`: reversible state, fixed-capacity data, typed locals, bounded control, parameters, returns, static calls, and bounded recursion.
-2. `RegionStorage.w`, `FrozenUtf8.w`, and `Utf8Lexer.w`: affine bounded storage, immutable UTF-8, strict decoding, and token-buffer scanning.
-3. `CoherentOracle.w` and `QuantumNeuralNetwork.w`: exact XOR permutations over classical and coherent data.
-4. `QFT.w` and `QFTProof.w`: unitary regions, generated adjoints, and executable inverse laws.
-5. `QuantumOptimizer.w`: repeated target observations, classical acceptance, commit, and target-free replay.
-6. `QuantumCompiler.w`: semantic comparison of source and normalized circuits.
-7. `SurfaceCode.w`: a static correction kernel with an explicit dynamic-target boundary.
+Start with the [first-principles tutorial](../tutorials/). It owns the ordered teaching sequence from classical state through reversible execution, coherent reuse, measurement, and hybrid replay.
 
-See [executable examples](../examples.md) for exact results and scope. Every checked-in example compiles, runs, and parses without Tree-sitter error nodes in the normal test gate.
+Use [executable examples](../examples.md) as the conformance inventory. Those programs give exact results and implementation scope, but their directory order is not a second curriculum. Every checked-in example compiles, runs, and parses without Tree-sitter error nodes in the normal test gate.
