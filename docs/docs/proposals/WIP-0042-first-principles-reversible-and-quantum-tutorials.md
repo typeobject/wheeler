@@ -839,7 +839,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [x] **Weather** treats measurement as the quantum-classical boundary, replay as reuse of recorded evidence without submission, and retry as a fresh physical preparation with a new lineage.
 - [x] **Two Systems** says the Bell histogram establishes correlation but not entanglement by shape alone. It derives nonfactorability from the amplitude table and explains why CNOT copying basis information is not universal quantum cloning.
 - [ ] Landauer text states the bound and its assumptions without claiming zero-energy computation.
-- [ ] QFT pages identify executable restoration and finite certificates without claiming a missing general theorem.
+- [x] **The Far Instrument** separates one executable prepared-state restoration from the generated finite structural certificate and states that a general QFT theorem over all normalized inputs and phase equivalence remains absent.
 - [ ] Static targets reject lessons that require unavailable dynamic behavior before submission.
 - [ ] Every diagram has a text equivalent and does not depend on color.
 - [ ] Source Markdown, static HTML, downloadable source, and printable order contain the same lesson graph.
