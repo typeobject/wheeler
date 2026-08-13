@@ -665,7 +665,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [ ] Compensation is a new effect and rewind cannot cross an I/O barrier.
 - [ ] Quantum registers cannot become files, bytes, mapped regions, or RDMA registrations.
 - [ ] Target submission/cancellation/result handling uses WIP-0004 identities and this lifecycle.
-- [ ] Measurement remains a quantum effect. Replay reuses only its classical observation.
+- [x] Hybrid execution obtains measurement from target execution, records the classical measurement result, and applies it once. Replay has no target and reuses only that recorded classical observation.
 - [ ] Deterministic, threaded, readiness, completion, polling, native, and VM implementations agree on lifecycle and encodings.
 
 ## Alternatives
