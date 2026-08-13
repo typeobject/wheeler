@@ -772,7 +772,7 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 
 - [x] `format --check` writes no files, does not run documentation checks, and reports paths in canonical order.
 
-- [ ] `check-docs` writes no files, accepts unformatted valid source, and reports paths and declarations in canonical order.
+- [x] `check-docs` writes no files, accepts unformatted valid source, and reports physical paths and parser-owned declaration diagnostics in canonical order. `SourceCommandTest` snapshots input bytes around successful and failing traversals.
 
 - [x] Write mode avoids touching already formatted files, preserves ordinary permission bits, validates sibling staging files, and atomically replaces changed physical files.
 
