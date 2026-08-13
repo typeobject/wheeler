@@ -259,7 +259,7 @@ The unified command executes local package operations:
 ```text
 wheeler check <package-or-workspace-directory>
 wheeler build <package-or-workspace-directory> [-o output-directory]
-wheeler test <package-or-workspace-directory> [--format terminal|json|junit-xml] [--shard INDEX/COUNT]
+wheeler test <package-or-workspace-directory> [--format terminal|json|junit-xml] [--shard INDEX/COUNT] [--tag NAME]...
 wheeler clean <package-or-workspace-directory>
 wheeler cache gc
 wheeler package <package-directory> [-o package.wpk]
@@ -311,6 +311,8 @@ Test-report profile 2 includes a bounded count of assertion attempts. A failed a
 `--format` renders that reduced report as the default terminal text, canonical JSON, or JUnit XML. Every adapter preserves sorted case identities, status, diagnostics, assertion count, source, artifact, execution, coverage, and report identity. Adapter bytes do not enter the report identity.
 
 `--shard INDEX/COUNT` assigns each case by its complete case-identity digest. Indices start at zero. Shards are disjoint, and reducing their reports in any arrival order reproduces the serial semantic report byte for byte. Duplicate case identities reject reduction.
+
+A declaration may append `tags(unit, compiler.parser)` after `cases(...)` or the parameter list. Tags use bounded canonical dotted names and sort in descriptor metadata. Repeated `--tag NAME` arguments select cases containing every named tag. An unmatched selection succeeds with a zero-case report.
 
 Multi-parameter products, fixtures, non-root test modules, and richer descriptors remain WIP-0018 work.
 

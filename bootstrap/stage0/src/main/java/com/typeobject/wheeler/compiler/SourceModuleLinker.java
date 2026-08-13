@@ -427,6 +427,7 @@ final class SourceModuleLinker {
                 parameter.mode()))
             .toList(),
         function.testCases(),
+        function.testTags(),
         resolveType(types, function.returnType(), function.line()),
         statements,
         function.line());

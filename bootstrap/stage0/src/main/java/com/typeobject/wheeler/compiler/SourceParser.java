@@ -238,6 +238,7 @@ final class SourceParser extends SourceStatementParser {
     expect(Type.RIGHT_PAREN, "')' after parameters");
     List<List<String>> testCases = SourceTestCaseParser.parse(
         this, test, parameters, start);
+    List<String> testTags = SourceTestTags.parse(this, test, start);
     expect(Type.LEFT_BRACE, "'{' before method body");
 
     if (coherent && !reversible) {
@@ -265,7 +266,7 @@ final class SourceParser extends SourceStatementParser {
     } else {
       functions.add(parseFunction(
           name, exported, entry, test, reversible, coherent, parameters, testCases,
-          returnType, start.line()));
+          testTags, returnType, start.line()));
     }
   }
 
@@ -278,6 +279,7 @@ final class SourceParser extends SourceStatementParser {
       boolean coherent,
       List<Parameter> parameters,
       List<List<String>> testCases,
+      List<String> testTags,
       String returnType,
       int line) {
     List<Statement> body = new ArrayList<>();
@@ -358,7 +360,7 @@ final class SourceParser extends SourceStatementParser {
     }
     return new Function(
         name, exported, entry, test, reversible, coherent, parameters, testCases,
-        returnType, body, line);
+        testTags, returnType, body, line);
   }
 
   @Override

@@ -98,7 +98,7 @@ class WheelerCompilerTest {
           boolean observe(boolean input) { value += 1; return input; }
           test void beta() { assert(value == 1); }
           test void alpha() { assert(value == 0); }
-          test void flag(boolean input) cases(false, true) {
+          test void flag(boolean input) cases(false, true) tags(fast, unit.boolean) {
             if (input) { value = 1; } else { value = 0; }
             assert(observe(input) == input);
           }
@@ -119,6 +119,8 @@ class WheelerCompilerTest {
             "alpha", "beta", "flag[0]", "flag[1]",
             "remembers[0]", "remembers[1]", "remembers[2]"),
         tests.stream().map(WheelerCompiler.TestCase::name).toList());
+    assertEquals(List.of(), tests.getFirst().tags());
+    assertEquals(List.of("fast", "unit.boolean"), tests.get(2).tags());
     new VirtualMachine(tests.getFirst().program()).run();
     assertThrows(VmTrap.class, () -> new VirtualMachine(tests.get(1).program()).run());
     assertTrue(tests.get(2).program().functions().stream()
@@ -166,7 +168,7 @@ class WheelerCompilerTest {
         import laws.math;
         classical class Main {
           state long result = 0;
-          test void imported() {
+          test void imported() tags(package, unit) {
             result = laws.math::two();
             assert(result == 2);
           }
@@ -179,6 +181,7 @@ class WheelerCompilerTest {
 
     assertEquals(List.of("laws.main::imported"), tests.stream().map(
         WheelerCompiler.TestCase::name).toList());
+    assertEquals(List.of("package", "unit"), tests.getFirst().tags());
     VirtualMachine machine = new VirtualMachine(tests.getFirst().program());
     machine.run();
     assertEquals(2, machine.global("result"));
@@ -198,6 +201,12 @@ class WheelerCompilerTest {
         "classical class Bad { test void row(boolean value) cases(maybe) {} }"));
     assertThrows(CompilerException.class, () -> compiler.compileTests(
         "classical class Bad { test void row(long value) cases() {} }"));
+    assertThrows(CompilerException.class, () -> compiler.compileTests(
+        "classical class Bad { test void row() tags(unit, unit) {} }"));
+    assertThrows(CompilerException.class, () -> compiler.compileTests(
+        "classical class Bad { test void row() tags() {} }"));
+    assertThrows(CompilerException.class, () -> compiler.compileTests(
+        "classical class Bad { void row() tags(unit) {} entry void main() {} }"));
     StringBuilder oversizedCases = new StringBuilder(
         "classical class Bad { test void row(long value) cases(");
     for (int value = 0; value < 1_025; value++) {

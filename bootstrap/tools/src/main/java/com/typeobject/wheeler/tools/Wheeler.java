@@ -258,6 +258,7 @@ public final class Wheeler {
     int shardCount = 1;
     boolean formatSeen = false;
     boolean shardSeen = false;
+    Set<String> selectedTags = new TreeSet<>();
     for (int option = 2; option < args.length; option += 2) {
       if (option + 1 >= args.length) {
         return testUsage(error);
@@ -284,6 +285,16 @@ public final class Wheeler {
           return testUsage(error);
         }
         shardSeen = true;
+      } else if (args[option].equals("--tag")) {
+        String tag = args[option + 1];
+        if (!tag.matches("[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*")) {
+          error.println("Test tag must be a canonical dotted name: " + tag);
+          return testUsage(error);
+        }
+        if (!selectedTags.add(tag)) {
+          error.println("Duplicate test tag selection: " + tag);
+          return testUsage(error);
+        }
       } else {
         return testUsage(error);
       }
@@ -294,11 +305,11 @@ public final class Wheeler {
     String name;
     if (WorkspaceProject.exists(root)) {
       WorkspaceProject workspace = WorkspaceProject.load(root);
-      report = workspace.test(shardIndex, shardCount);
+      report = workspace.test(shardIndex, shardCount, selectedTags);
       name = "workspace " + workspace.manifest().name();
     } else {
       PackageProject project = PackageProject.load(root);
-      report = project.test(shardIndex, shardCount);
+      report = project.test(shardIndex, shardCount, selectedTags);
       name = project.manifest().name();
     }
     out.print(TestReportRenderer.render(report, name, format));
@@ -307,7 +318,7 @@ public final class Wheeler {
 
   private static int testUsage(PrintStream error) {
     error.println("Usage: wheeler test <package-or-workspace-directory>"
-        + " [--format terminal|json|junit-xml] [--shard INDEX/COUNT]");
+        + " [--format terminal|json|junit-xml] [--shard INDEX/COUNT] [--tag NAME]...");
     return 2;
   }
 

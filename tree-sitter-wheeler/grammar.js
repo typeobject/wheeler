@@ -153,6 +153,7 @@ module.exports = grammar({
       field('name', $.identifier),
       field('parameters', $.parameter_list),
       optional(field('cases', $.test_case_list)),
+      optional(field('tags', $.test_tag_list)),
       field('body', $.block),
     ),
 
@@ -174,6 +175,13 @@ module.exports = grammar({
       'true',
       'false',
     ),
+    test_tag_list: $ => seq(
+      'tags',
+      '(',
+      optional(seq($.test_tag, repeat(seq(',', $.test_tag)))),
+      ')',
+    ),
+    test_tag: $ => seq($.identifier, repeat(seq('.', $.identifier))),
     value_type: $ => seq(
       choice(
         'long', 'boolean', 'Done', 'region', 'words', 'bytes', 'byteview', 'longmap', 'utf8',

@@ -2,6 +2,7 @@ package com.typeobject.wheeler.tools;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -363,9 +364,9 @@ class WheelerCommandTest {
     Files.writeString(project.resolve("src/Law.w"), """
         classical class Law {
             state long value = 0;
-            test void startsAtZero() { assert(value == 0); }
-            test void accepts(long input) cases(-1, 2) { value = input; }
-            test void addsTwo() { value += 2; assert(value == 2); }
+            test void startsAtZero() tags(slow) { assert(value == 0); }
+            test void accepts(long input) cases(-1, 2) tags(fast, scalar) { value = input; }
+            test void addsTwo() tags(fast) { value += 2; assert(value == 2); }
             entry void main() { value += 2; assert(value == 2); }
         }
         """);
@@ -422,6 +423,24 @@ class WheelerCommandTest {
           ".*\\\"selected\\\":([0-9]+).*", "$1").strip());
     }
     assertEquals(4, shardedCases);
+    stdout.reset();
+    assertEquals(0, Wheeler.execute(
+        new String[] {"test", project.toString(), "--tag", "fast", "--format", "json"},
+        new PrintStream(stdout),
+        new PrintStream(new ByteArrayOutputStream())));
+    String taggedReport = stdout.toString(StandardCharsets.UTF_8);
+    assertTrue(taggedReport.contains("\"selected\":3,\"passed\":3,\"failed\":0"));
+    assertFalse(taggedReport.contains("startsAtZero"));
+    stdout.reset();
+    assertEquals(0, Wheeler.execute(
+        new String[] {
+            "test", project.toString(), "--tag", "fast", "--tag", "scalar",
+            "--format", "json"
+        },
+        new PrintStream(stdout),
+        new PrintStream(new ByteArrayOutputStream())));
+    assertTrue(stdout.toString(StandardCharsets.UTF_8)
+        .contains("\"selected\":2,\"passed\":2,\"failed\":0"));
     stdout.reset();
     assertEquals(0, Wheeler.execute(
         new String[] {"run", project.toString(), "--target", "law"},

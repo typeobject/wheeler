@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /** Capability-minimal host adapter for one local Wheeler workspace. */
@@ -90,13 +91,17 @@ final class WorkspaceProject {
   }
 
   TestReport test() throws IOException {
-    return test(/* shardIndex= */ 0, /* shardCount= */ 1);
+    return test(/* shardIndex= */ 0, /* shardCount= */ 1, Set.of());
   }
 
   TestReport test(int shardIndex, int shardCount) throws IOException {
+    return test(shardIndex, shardCount, Set.of());
+  }
+
+  TestReport test(int shardIndex, int shardCount, Set<String> selectedTags) throws IOException {
     List<TestReport> reports = new ArrayList<>();
     for (MemberProject member : members) {
-      reports.add(member.project().test(shardIndex, shardCount));
+      reports.add(member.project().test(shardIndex, shardCount, selectedTags));
     }
     return TestReport.combine(reports);
   }

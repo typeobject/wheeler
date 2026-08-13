@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
@@ -103,10 +104,14 @@ final class PackageProject {
   }
 
   TestReport test() throws IOException {
-    return test(/* shardIndex= */ 0, /* shardCount= */ 1);
+    return test(/* shardIndex= */ 0, /* shardCount= */ 1, Set.of());
   }
 
   TestReport test(int shardIndex, int shardCount) throws IOException {
+    return test(shardIndex, shardCount, Set.of());
+  }
+
+  TestReport test(int shardIndex, int shardCount, Set<String> selectedTags) throws IOException {
     LockedPackageSet dependencies = dependencies();
     if (dependencies != null) {
       dependencies.check();
@@ -137,6 +142,9 @@ final class PackageProject {
         continue;
       }
       for (CompiledCase compiledCase : compiled) {
+        if (!compiledCase.tags().containsAll(selectedTags)) {
+          continue;
+        }
         String caseName = compiledCase.name().isEmpty()
             ? target.name() : target.name() + "::" + compiledCase.name();
         String caseIdentity = TestReport.caseIdentity(
@@ -290,11 +298,11 @@ final class PackageProject {
     }
     if (!declarations.isEmpty()) {
       return declarations.stream()
-          .map(test -> new CompiledCase(test.name(), test.program()))
+          .map(test -> new CompiledCase(test.name(), Set.copyOf(test.tags()), test.program()))
           .toList();
     }
     return List.of(new CompiledCase(
-        "", compileTarget(compiler, target, linkedModules, directModules)));
+        "", Set.of(), compileTarget(compiler, target, linkedModules, directModules)));
   }
 
   private Program compileTarget(
@@ -317,8 +325,9 @@ final class PackageProject {
         : compiler.compilePackageModuleFiles(sources, linkedModules, target.module());
   }
 
-  private record CompiledCase(String name, Program program) {
+  private record CompiledCase(String name, Set<String> tags, Program program) {
     private CompiledCase {
+      tags = Set.copyOf(tags);
       if (name == null || program == null) {
         throw new IllegalArgumentException("Compiled test case is incomplete");
       }

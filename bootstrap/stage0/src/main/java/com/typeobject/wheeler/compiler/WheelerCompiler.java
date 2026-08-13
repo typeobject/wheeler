@@ -19,8 +19,9 @@ import java.util.TreeMap;
 /** Compiler for Wheeler's executable source profile. */
 public final class WheelerCompiler {
   /** One source-declared test and the verified artifact that enters only that test. */
-  public record TestCase(String name, Program program) {
+  public record TestCase(String name, List<String> tags, Program program) {
     public TestCase {
+      tags = List.copyOf(tags);
       if (name == null || name.isBlank() || program == null) {
         throw new IllegalArgumentException("Test case requires a name and program");
       }
@@ -47,6 +48,7 @@ public final class WheelerCompiler {
         .flatMap(function -> java.util.stream.IntStream.range(0, testRows(function).size())
             .mapToObj(index -> new TestCase(
                 testCaseName(function, index),
+                function.testTags(),
                 compileParsed(withTestEntry(
                     parsed, function, testRows(function).get(index))))))
         .toList();
@@ -128,6 +130,7 @@ public final class WheelerCompiler {
                   root, function, testRows(function).get(index)));
               return new TestCase(
                   rootModule + "::" + testCaseName(function, index),
+                  function.testTags(),
                   compileLinkedModules(selected, rootModule));
             }))
         .toList();
@@ -153,6 +156,7 @@ public final class WheelerCompiler {
         false,
         false,
         false,
+        List.of(),
         List.of(),
         List.of(),
         "void",
@@ -299,6 +303,7 @@ public final class WheelerCompiler {
             function.coherent(),
             function.parameters(),
             function.testCases(),
+            function.testTags(),
             function.returnType(),
             withoutEntryHalt(function),
             function.line()))
@@ -338,7 +343,7 @@ public final class WheelerCompiler {
     statements.add(new SourceModel.Statement("call_void", call, selected.line()));
     statements.add(new SourceModel.Statement("halt", List.of(), selected.line()));
     return new SourceModel.Function(
-        "$test", false, true, false, false, false, List.of(), List.of(), "void",
+        "$test", false, true, false, false, false, List.of(), List.of(), List.of(), "void",
         statements, selected.line());
   }
 
