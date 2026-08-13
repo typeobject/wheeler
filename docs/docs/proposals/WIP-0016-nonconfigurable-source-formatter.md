@@ -784,7 +784,7 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 
 - [ ] Stage-0 and Wheeler implementations agree byte-for-byte on formatting and by code, target, and source range on documentation diagnostics.
 
-- [ ] Current tooling and language-reference documentation describe implemented commands and comment conventions only after the acceptance suite passes.
+- [x] `reference/development.md` documents the implemented `format` and `check-docs` commands, strict input bounds, atomic publication boundary, `//!` and `///` rules, required facets, and current `WFMT` and `WDOC` diagnostics without presenting native-cutover work as available.
 
 ## Alternatives
 
