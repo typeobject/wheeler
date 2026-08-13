@@ -149,7 +149,7 @@ Adoption starts with `CoreParsing.w`, whose two loops compact and shift token co
 - [x] Zero-argument signed, Boolean, and void call joins publish canonical code, local types, and stable relocation identities atomically.
 - [x] One- through seven-argument call joins validate source order and exact target parameter types, emit typed argument transfer windows, and relocate the call instruction rather than its evaluation prefix. Call products feed the same instruction windows consumed by back-edge validation.
 - [x] `LoopInstructionProducts.w` emits canonical forward instruction windows and exact branch targets for direct signed and Boolean declarations, literal and prior-local assignments, assertions, checked local updates, and borrowed-word reads and writes without mutating resolved products. Only loop-owned locals are rebased. Enclosing parameters and locals retain their coordinates. The admitted fixture matches stage 0 byte for byte.
-- [ ] Canonical call, nested-block, and inverse instruction windows match stage 0. Forward call and ownership windows are complete. One-arm equality nested-block windows match stage 0 byte for byte.
+- [ ] Canonical call, nested-block, and inverse instruction windows match stage 0. Forward call and ownership windows are complete. One-arm equality and less-than nested-block windows match stage 0 byte for byte. Inverse windows remain.
 - [ ] `CoreParsing.w` compiles byte for byte from its immutable archive range.
 - [ ] Every physical multi-statement loop module compiles without dependency source.
 

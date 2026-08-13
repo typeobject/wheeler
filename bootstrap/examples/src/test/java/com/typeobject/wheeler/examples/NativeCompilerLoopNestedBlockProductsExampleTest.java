@@ -31,7 +31,10 @@ final class NativeCompilerLoopNestedBlockProductsExampleTest {
   void matchesTheStageZeroNestedGuardWindowByteForByte() throws Exception {
     List<Instruction> expected = new WheelerCompiler().compile(SOURCE)
         .functions().getFirst().forward().subList(9, 16);
-    VirtualMachine machine = new VirtualMachine(program(false), new byte[0], 262_144);
+    VirtualMachine machine = new VirtualMachine(
+        program(false, /* conditionKind= */ 1, /* conditionLiteral= */ 0),
+        new byte[0],
+        262_144);
 
     machine.run();
 
@@ -52,8 +55,36 @@ final class NativeCompilerLoopNestedBlockProductsExampleTest {
   }
 
   @Test
+  void matchesTheStageZeroLessThanGuardWindowByteForByte() throws Exception {
+    String source = SOURCE.replace("cursor == 0", "cursor < 1");
+    List<Instruction> expected = new WheelerCompiler().compile(source)
+        .functions().getFirst().forward().subList(9, 16);
+    VirtualMachine machine = new VirtualMachine(
+        program(false, /* conditionKind= */ 2, /* conditionLiteral= */ 1),
+        new byte[0],
+        262_144);
+
+    machine.run();
+
+    assertEquals(1, machine.global("valid"));
+    int cursor = 0;
+    for (Instruction instruction : expected) {
+      assertEquals(instruction.opcode().code(), unsigned(machine.hostOutput(), cursor, 2));
+      for (int operand = 0; operand < instruction.operands().size(); operand++) {
+        assertEquals(
+            instruction.operands().get(operand).longValue(),
+            unsigned(machine.hostOutput(), cursor + 8 + operand * 8, 8));
+      }
+      cursor += instruction.encodedLength();
+    }
+  }
+
+  @Test
   void rejectsDetachedChildrenBeforePublishingBytes() throws Exception {
-    VirtualMachine machine = new VirtualMachine(program(true), new byte[0], 262_144);
+    VirtualMachine machine = new VirtualMachine(
+        program(true, /* conditionKind= */ 1, /* conditionLiteral= */ 0),
+        new byte[0],
+        262_144);
 
     machine.run();
 
@@ -63,7 +94,8 @@ final class NativeCompilerLoopNestedBlockProductsExampleTest {
     assertEquals(0xff, machine.global("firstOutputByte"));
   }
 
-  private static Program program(boolean detached) throws Exception {
+  private static Program program(
+      boolean detached, long conditionKind, long conditionLiteral) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.loop_nested_block_products"));
@@ -105,9 +137,9 @@ final class NativeCompilerLoopNestedBlockProductsExampleTest {
               blocks,
               /* bodyCount= */ 1,
               bodies,
-              /* conditionKind= */ 1,
+              /* conditionKind= */ CONDITION_KIND,
               /* conditionLocal= */ 1,
-              /* conditionLiteral= */ 0,
+              /* conditionLiteral= */ CONDITION_LITERAL,
               /* conditionLocalBase= */ 7,
               /* instructionBase= */ 9,
               output
@@ -126,7 +158,10 @@ final class NativeCompilerLoopNestedBlockProductsExampleTest {
             drop(products);
           }
         }
-        """.replace("PARENT", detached ? "0" : "1"));
+        """
+        .replace("PARENT", detached ? "0" : "1")
+        .replace("CONDITION_KIND", Long.toString(conditionKind))
+        .replace("CONDITION_LITERAL", Long.toString(conditionLiteral)));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.loop_nested_block_products");
   }
