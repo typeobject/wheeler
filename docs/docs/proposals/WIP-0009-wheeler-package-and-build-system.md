@@ -410,8 +410,8 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 - [x] The project replaced extensionless package, workspace, and lock metadata with `wheeler.package.yaml`, `wheeler.workspace.yaml`, and `wheeler.package.lock.yaml`. Stage-0 and native parsers moved in the same change. The old grammar and format detection paths are gone.
 - [x] Canonical `.wbc` provides a portable artifact identity for package outputs.
 - [x] WIP-0007 and WIP-0008 define compiler and native recovery requirements.
-- [ ] Workspace, package, lock, and archive schemas have strict stage-0 codecs. Build plans bind compiler, source, package input, output, capability request, execution limit, and explicit grant identities. Sealed stage-0 execution checks the active compiler and core class identity, rederives the plan, and publishes exact verified outputs atomically. Isolated native memory and work enforcement remains.
-- [ ] Stage-0 manifests, resolution, locks, plans, and archives are content-addressed and reproducible. Exact offline dependencies build in dependency-first order.
+- [x] Workspace, package, lock, archive, and build-plan schemas have strict stage-0 codecs. Plans bind compiler, source, package input, output, capability request, execution limit, and explicit grant identities. Sealed execution checks the active compiler, rederives the plan, rejects stale source and missing grants, and publishes exact verified outputs atomically. Isolated native memory and work enforcement remain.
+- [x] Stage-0 manifests, resolution, locks, plans, and archives are content-addressed and reproducible. Exact offline dependencies build in dependency-first order.
   - Entryless `library` targets emit a verified inert-entry artifact.
   - Consumers link only reachable public modules from exact locked archives.
   - Linked APIs include qualified functions, records, closed variants, fixed arrays, slices, and exhaustive matches.
