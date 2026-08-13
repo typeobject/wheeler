@@ -265,7 +265,7 @@ The current `QuantumJob` API is an executable stage-0 slice of that lifecycle. M
 - [x] Asynchronous jobs cover successful ideal and OpenQASM execution plus malformed results. Cancellation and recovery remain.
 - [x] Static OpenQASM 3 lowering, canonical symbolic parameter binding, ordered task batches, and sampled Pauli-Z expectations work.
 - [x] Static `TargetDescriptor.require` rejects a request whose declared capability set is not contained by the target and reports missing capabilities in canonical order. Dynamic discovery remains.
-- [ ] QFT, inverse QFT, and the bounded optimizer run on the ideal target. OpenQASM executor parity and parameterized optimization remain.
+- [x] Checked-in QFT and generated-adjoint restoration plus the bounded optimizer execute on the ideal state-vector target. The optimizer's recorded observation replays without another submission. OpenQASM executor parity and parameterized optimization remain.
 
 ## Testing and acceptance
 
