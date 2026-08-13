@@ -388,7 +388,7 @@ Portfolio work follows these rules:
 
 ### Dynamic and fault-tolerant
 
-- [ ] Dynamic teleportation.
+- [x] `DynamicTeleportationFixture` prepares a Bell pair, performs source-side CNOT and Hadamard, measures two target-resident slots, and applies conditional X and Z corrections. Both basis inputs arrive at the target qubit without a host split.
 - [x] The bounded dynamic semantic portfolio executes a target-resident parity-syndrome cycle with mid-circuit measurement, classical conditional correction, and ancilla reset. The three-round injected-error fixture corrects once, keeps later syndromes clear, and returns clean ancilla evidence. General fault-tolerant source IR remains.
 - [ ] Logical operation and magic-state planning.
 - [ ] Distributed entanglement session.

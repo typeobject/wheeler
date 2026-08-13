@@ -79,6 +79,24 @@ final class DynamicStateVectorSimulatorTest {
   }
 
   @Test
+  void dynamicTeleportationTransfersBothBasisInputsWithoutHostSplit() {
+    DynamicStateVectorSimulator simulator = new DynamicStateVectorSimulator();
+    for (boolean input : List.of(false, true)) {
+      DynamicTeleportationFixture fixture = new DynamicTeleportationFixture(input);
+      QuantumRegister register = new QuantumRegister(
+          DynamicTeleportationFixture.REGISTER_ID,
+          "teleportation",
+          DynamicTeleportationFixture.QUBITS);
+      QuantumCircuit circuit = fixture.circuit();
+      DynamicCircuitResult result = simulator.execute(
+          program(register, circuit), circuit, input ? 1 : 0);
+
+      assertEquals(input, fixture.target(result));
+      assertEquals(2, result.resultSlots().size());
+    }
+  }
+
+  @Test
   void syndromeMeasurementConditionallyCorrectsAndResetsWithoutHostSplit() {
     DynamicStateVectorSimulator simulator = new DynamicStateVectorSimulator();
     DynamicSyndromeResult result = simulator.execute(
