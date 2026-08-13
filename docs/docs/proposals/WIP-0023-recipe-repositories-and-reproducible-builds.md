@@ -244,7 +244,7 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 - [x] Sealed execution rederives the complete workspace plan and compares it with the signed-off plan before creating staging output or consulting build products. Replacing a planned source makes the plan stale and fails before build.
 - [x] Locked `check`, `build`, and `run` consume only the physical vendor closure and exact lock. They do not invoke resolution or catalog access. A damaged vendored archive fails identity validation before compilation.
 - [ ] Mirrors yield identical objects and never compete as repositories.
-- [ ] Ordered repository lookup stops at the first authoritative admissible trust domain. Lower repositories cannot inject a newer release, while an explicit alias selects the intended domain.
+- [x] Ordered repository lookup stops at the first enabled authoritative namespace containing the release. The repository fixture publishes conflicting bytes under one coordinate, proves the higher private domain wins unqualified fetch and resolution, and proves an explicit `local` alias selects local bytes.
 - [ ] XDG overrides and fallback paths change placement only. Package-object hits reverify complete release and archive identity and cache deletion changes no package bytes, while build-input-keyed outputs from every supported origin remain.
 - [ ] Path, identity, locale, timezone, order, timestamp, and job count do not alter bytes.
 - [x] Repeating an exact build-input identity with equal verified bytes is idempotent. A different canonical PREV is retained under its observed identity with immutable bytes and a canonical quarantine record, while the accepted mapping remains authoritative.
