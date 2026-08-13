@@ -132,7 +132,7 @@ The compiler bounds input bytes and characters, token and line counts, token wid
 - [x] Tree-sitter grammar, corpus, highlights, and folds exist.
 - [x] The Gradle/CI gate runs both compiler and Tree-sitter corpus tests.
 - [x] The implemented syntax and teaching path are published in reference documentation.
-- [ ] Every teaching level has an executable example.
+- [x] Every teaching level has checked-in executable evidence. Classical state, generated inverses, coherent lifting, unitary QFT, measurement and sampling, hybrid replay, dynamic-control requirements, and proof-bearing examples compile and run under the package portfolio suites.
 
 ## Testing and acceptance
 
