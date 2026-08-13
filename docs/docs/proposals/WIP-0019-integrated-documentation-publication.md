@@ -302,7 +302,7 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 - [x] `sitemap.xml` contains every generated HTML route and changes when a route or page body changes, without nondeterministic timestamps.
 - [x] `wheeler site --bundle <bundle-directory> -o <directory>` verifies and renders an existing immutable bundle without consulting manual or Wheeler source roots. Independent retries produce the same publication manifest.
 - [x] Bundle generation validates every manual, source, node, edge, and output before atomic directory publication. Malformed source and missing links leave no partial destination, and existing destinations are never overwritten.
-- [ ] Search and navigation contain every public selected node exactly once and no private nodes.
+- [x] Schema-3 search contains each graph node once, and navigation contains each metadata-selected manual node once. `sidebar_children: false` excludes child pages from navigation without deleting their graph nodes. Package-private API selection remains.
 - [x] `reference/development.md` documents the implemented `wheeler docs` bundle, validation graph, inert payload copy, manifest, navigation, search, and atomic publication boundary. It also documents the local-only static `wheeler site` renderer.
 
 ## Alternatives
