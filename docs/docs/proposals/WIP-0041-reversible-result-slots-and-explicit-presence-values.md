@@ -777,7 +777,7 @@ the Java VM on every global.
 - [ ] Proof and resource metadata pass.
 - [x] Wheeler verifier and bounded interpreter agree with the Java VM on bounded signed forms.
 - [x] Native lowering and interpreted traces agree.
-- [ ] Duplicate absence and history-dependent inverse paths are deleted.
+- [x] `Vacant` is the sole presence absence value. `null`, `nil`, `none`, and `undefined` fail with one source diagnostic. Reversible result-slot inverse execution uses the explicit relation and succeeds after history commit.
 
 ## Testing and acceptance
 
