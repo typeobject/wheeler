@@ -35,11 +35,7 @@ classical class LoopNestedBlockProducts {
     boolean valid
   ) {}
 
-  private long bodyAtStatement(
-    long statement,
-    long bodyCount,
-    borrow mut words bodyRows
-  ) {
+  private long bodyAtStatement(long statement, long bodyCount, borrow mut words bodyRows) {
     long selected = -1;
     long matches = 0;
     long body = 0;
@@ -206,8 +202,8 @@ classical class LoopNestedBlockProducts {
         valid = false;
       } else {
         if (
-          blockRows[BLOCK_PARENT_ROW + childBlock]
-            != statementRows[STATEMENT_BLOCK_ROW + parentStatement]
+          blockRows[BLOCK_PARENT_ROW + childBlock] != statementRows[STATEMENT_BLOCK_ROW
+            + parentStatement]
         ) {
           valid = false;
         }
@@ -349,11 +345,6 @@ classical class LoopNestedBlockProducts {
 
     drop(stagedCode);
     drop(staging);
-    return new LoopNestedBlockPlan(
-      requiredInstructions,
-      cursor,
-      selectedBodyCount,
-      true
-    );
+    return new LoopNestedBlockPlan(requiredInstructions, cursor, selectedBodyCount, true);
   }
 }

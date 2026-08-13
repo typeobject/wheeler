@@ -35,7 +35,9 @@ classical class LoopBackEdgeProducts {
         return false;
       }
 
-      if (entryStateRows[STATE_KIND_ROW + state] != backEdgeStateRows[STATE_KIND_ROW + state]) {
+      if (
+        entryStateRows[STATE_KIND_ROW + state] != backEdgeStateRows[STATE_KIND_ROW + state]
+      ) {
         return false;
       }
 
@@ -168,12 +170,7 @@ classical class LoopBackEdgeProducts {
 
       if (valid) {
         if (
-          stateMatches(
-            stateStart,
-            selectedStateCount,
-            entryStateRows,
-            backEdgeStateRows
-          ) == false
+          stateMatches(stateStart, selectedStateCount, entryStateRows, backEdgeStateRows) == false
         ) {
           valid = false;
         }

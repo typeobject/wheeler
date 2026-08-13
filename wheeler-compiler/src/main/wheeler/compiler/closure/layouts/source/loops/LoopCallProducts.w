@@ -153,12 +153,7 @@ classical class LoopCallProducts {
         callArgumentOpcode(sourceType),
         INSTRUCTION_FORM_BINARY
       );
-      cursor = writeUnsignedLittleEndian(
-        output,
-        cursor,
-        localBase + arity + argument,
-        U64
-      );
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + arity + argument, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + argument, U64);
       argument += 1;
     }
@@ -182,14 +177,7 @@ classical class LoopCallProducts {
         return writeUnsignedLittleEndian(output, cursor, target, U64);
       }
     } else {
-      cursor = writeArguments(
-        output,
-        cursor,
-        firstArgument,
-        arity,
-        argumentRows,
-        localBase
-      );
+      cursor = writeArguments(output, cursor, firstArgument, arity, argumentRows, localBase);
     }
 
     if (kind == CALL_VOID) {
@@ -204,7 +192,12 @@ classical class LoopCallProducts {
       return writeUnsignedLittleEndian(output, cursor, arity, U64);
     }
 
-    cursor = writeInstructionHeader(output, cursor, OPCODE_CALL_VALUE, INSTRUCTION_FORM_QUATERNARY);
+    cursor = writeInstructionHeader(
+      output,
+      cursor,
+      OPCODE_CALL_VALUE,
+      INSTRUCTION_FORM_QUATERNARY
+    );
     cursor = writeUnsignedLittleEndian(output, cursor, target, U64);
     long argumentBase = 0;
     if (0 < arity) {

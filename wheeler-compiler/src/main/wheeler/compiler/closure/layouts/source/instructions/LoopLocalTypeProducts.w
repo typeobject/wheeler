@@ -223,8 +223,6 @@ classical class LoopLocalTypeProducts {
                 }
               }
 
-
-
               typeCount = appendType(stagedTypes, typeCount, owner, nextLocal, localType);
               if (typeCount < 0) {
                 valid = false;

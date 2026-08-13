@@ -145,14 +145,24 @@ classical class LoopInstructionProducts {
     if (opcode == BODY_WORDS_GET) {
       long readOwner = operand / 256;
       long readIndex = operand % 256;
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, INSTRUCTION_FORM_BINARY);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_MOVE,
+        INSTRUCTION_FORM_BINARY
+      );
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, readIndex, U64);
       cursor = writeInstructionHeader(output, cursor, OPCODE_WORDS_GET, 3);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, readOwner, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, INSTRUCTION_FORM_BINARY);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_MOVE,
+        INSTRUCTION_FORM_BINARY
+      );
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
       return writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
     }
@@ -161,10 +171,20 @@ classical class LoopInstructionProducts {
       long writeOwner = operand / 65536;
       long writeIndex = operand / 256 % 256;
       long writeValue = operand % 256;
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, INSTRUCTION_FORM_BINARY);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_MOVE,
+        INSTRUCTION_FORM_BINARY
+      );
       cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, writeIndex, U64);
-      cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, INSTRUCTION_FORM_BINARY);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_MOVE,
+        INSTRUCTION_FORM_BINARY
+      );
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, writeValue, U64);
       cursor = writeInstructionHeader(output, cursor, OPCODE_WORDS_SET, 3);
@@ -433,58 +453,58 @@ classical class LoopInstructionProducts {
               requiredLength += 80;
               instructionCount += 3;
             } else {
-          if (opcode == BODY_BOOLEAN_LITERAL) {
-            requiredLength += 48;
-            instructionCount += 2;
-          } else {
-            if (opcode == BODY_ASSERT_BOOLEAN) {
-              requiredLength += 40;
-              instructionCount += 2;
-            } else {
-              if (opcode == 769) {
+              if (opcode == BODY_BOOLEAN_LITERAL) {
                 requiredLength += 48;
                 instructionCount += 2;
               } else {
-                if (STATEMENT_LOCAL_LONG_COPY_BASE - 1 < opcode) {
-                  if (opcode < STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE) {
+                if (opcode == BODY_ASSERT_BOOLEAN) {
+                  requiredLength += 40;
+                  instructionCount += 2;
+                } else {
+                  if (opcode == 769) {
                     requiredLength += 48;
                     instructionCount += 2;
                   } else {
-                    if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE) {
-                      requiredLength += 56;
-                      instructionCount += 2;
-                    } else {
-                      if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + 256) {
+                    if (STATEMENT_LOCAL_LONG_COPY_BASE - 1 < opcode) {
+                      if (opcode < STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE) {
                         requiredLength += 48;
                         instructionCount += 2;
                       } else {
-                        if (opcode < BODY_ASSERT_LT_LITERAL_BASE + 256) {
-                          requiredLength += 96;
-                          instructionCount += 4;
+                        if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE) {
+                          requiredLength += 56;
+                          instructionCount += 2;
                         } else {
-                          if (BODY_ASSIGN_BOOLEAN_LITERAL_BASE - 1 < opcode) {
-                            if (opcode < BODY_ASSIGN_BOOLEAN_LOCAL_BASE + 256) {
-                              requiredLength += 48;
-                              instructionCount += 2;
-                            } else {
-                              valid = false;
-                            }
+                          if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + 256) {
+                            requiredLength += 48;
+                            instructionCount += 2;
                           } else {
-                            valid = false;
+                            if (opcode < BODY_ASSERT_LT_LITERAL_BASE + 256) {
+                              requiredLength += 96;
+                              instructionCount += 4;
+                            } else {
+                              if (BODY_ASSIGN_BOOLEAN_LITERAL_BASE - 1 < opcode) {
+                                if (opcode < BODY_ASSIGN_BOOLEAN_LOCAL_BASE + 256) {
+                                  requiredLength += 48;
+                                  instructionCount += 2;
+                                } else {
+                                  valid = false;
+                                }
+                              } else {
+                                valid = false;
+                              }
+                            }
                           }
                         }
                       }
+                    } else {
+                      valid = false;
                     }
                   }
-                } else {
-                  valid = false;
                 }
               }
             }
           }
         }
-            }
-          }
 
         bodyOffset += 1;
       }
