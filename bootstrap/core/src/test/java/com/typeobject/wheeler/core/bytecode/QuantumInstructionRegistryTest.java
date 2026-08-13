@@ -118,6 +118,25 @@ class QuantumInstructionRegistryTest {
   }
 
   @Test
+  void doubleAdjointRestoresExactSemanticOperations() {
+    List<com.typeobject.wheeler.core.quantum.QuantumOperation> operations = List.of(
+        GateOperation.of(Gate.H, FIRST_QUBIT),
+        new GateOperation(
+            Gate.CPHASE, List.of(FIRST_QUBIT, SECOND_QUBIT), PHASE_ANGLE),
+        new ParameterizedGateOperation(
+            Gate.PHASE, List.of(SECOND_QUBIT), "theta", PARAMETER_SCALE),
+        new LiftedCall(FUNCTION_ID, false),
+        new ConditionalGateOperation(
+            0, true, GateOperation.of(Gate.X, FIRST_QUBIT)));
+    QuantumCircuit circuit = new QuantumCircuit(
+        CIRCUIT_ID, "circuit", REGISTER_ID, operations);
+    QuantumCircuit adjoint = new QuantumCircuit(
+        CIRCUIT_ID, "adjoint", REGISTER_ID, circuit.inverseOperations());
+
+    assertEquals(operations, adjoint.inverseOperations());
+  }
+
+  @Test
   void rejectsUnknownTruncatedAndUnboundedInstructionRecords() {
     byte[] encoded = encodedSingleGate();
     ByteBuffer unknown = ByteBuffer.wrap(encoded.clone()).order(ByteOrder.LITTLE_ENDIAN);

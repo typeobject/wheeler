@@ -409,7 +409,7 @@ An optional `IoAction<Effects, Result>` or `QuantumAction<Input, Output, Effects
 - [ ] Coherent types require admitted exact finite encoding and complete bijection.
 - [ ] Coherent output contains no runtime class/callable dispatch.
 - [ ] Unitary bodies contain no measurement or host effect.
-- [ ] Double adjoint restores exact semantic region identity.
+- [x] Fixed, parameterized, lifted, and accepted conditional unitary operation records survive two generated adjoints as the exact original ordered semantic operation list. Preparation, measurement, and reset remain nonunitary and reject adjoint construction.
 - [ ] Generic adjoint commutes with specialization.
 - [ ] Controlled/adjoint specializations commute where declared.
 - [ ] Resource bounds close and pass before target submission.
