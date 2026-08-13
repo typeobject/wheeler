@@ -77,7 +77,7 @@ could preserve it, reject it, or account for it. They could not order the univer
 Sana opened the result record. Near its end sat a small quantum program whose grammar Tala recognized before its purpose came into
 focus.
 
-```java
+```wheeler
 quantum class Bell {
   state long measured = 0;
   qreg q = new qreg(2);

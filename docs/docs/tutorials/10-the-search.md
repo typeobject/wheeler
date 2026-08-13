@@ -80,7 +80,7 @@ Three amplitudes fell to zero. The marked amplitude rose to one. Phase had becom
 For the first time since the algorithm racks opened, Mara looked pleased. The marked answer had not been read secretly and copied
 into an output field. Its sign had changed how all four alternatives combined. Tala assembled the known gates.
 
-```java
+```wheeler
 quantum class GroverFour {
   state long measured = 0;
   qreg q = new qreg(2);

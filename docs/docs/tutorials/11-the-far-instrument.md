@@ -48,7 +48,7 @@ still created equal magnitudes, while a controlled phase supplied the relative a
 Iona projected the gate sequence on the gallery glass. Beyond it, technicians walked the outer truss in pressure suits, closing the
 last thermal links before calibration. Their suit lamps passed behind the source as slow moving punctuation.
 
-```java
+```wheeler
 unitary void qft2() {
   H(q[0]);
   CPhase(q[1], q[0], 1.5707963267948966);
@@ -98,7 +98,7 @@ source had continued to accept revisions from both locations because source poss
 
 The current body contained neither comment.
 
-```java
+```wheeler
 quantum class QFT {
   state long measured = 0;
   qreg q = new qreg(3);

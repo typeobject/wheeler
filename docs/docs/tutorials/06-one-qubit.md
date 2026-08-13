@@ -62,7 +62,7 @@ written zero lived inside the device.
 
 Wheeler represented the system with one quantum register.
 
-```java
+```wheeler
 quantum class KnownZero {
   state long measured = 0;
   qreg q = new qreg(1);
@@ -109,7 +109,7 @@ imperfect control, but no uncertainty had yet entered the semantic experiment.
 Mara recognized the next operation before Tala did. `X` exchanged the two basis states just as the finite flip had exchanged
 classical `0` and `1`.
 
-```java
+```wheeler
 quantum class BasisFlip {
   state long measured = 0;
   qreg q = new qreg(1);
@@ -135,7 +135,7 @@ more states than the two basis labels could name.
 
 Iona introduced `H`, the Hadamard operation, without defining those states in advance.
 
-```java
+```wheeler
 quantum class HadamardSample {
   state long measured = 0;
   qreg q = new qreg(1);
@@ -219,7 +219,7 @@ Because the state was **normalized**, its probabilities summed to one.
 With the amplitude table in place, the path arithmetic from the incoming packets found its quantum use. Iona applied `H` a second
 time before measurement.
 
-```java
+```wheeler
 quantum class HadamardReturn {
   state long measured = 0;
   qreg q = new qreg(1);
@@ -265,7 +265,7 @@ A second gate made phase visible. `Z` preserved `|0>` and negated the amplitude 
 
 Applied directly to prepared `|0>`, `Z` changed no prediction. Applied between two Hadamards, it changed everything.
 
-```java
+```wheeler
 quantum class RevealPhase {
   state long measured = 0;
   qreg q = new qreg(1);

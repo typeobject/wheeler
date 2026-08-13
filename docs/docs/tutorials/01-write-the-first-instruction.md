@@ -74,7 +74,7 @@ mkdir -p tutorial
 For the first exercise, the manual supplied `tutorial/Wake.w` and a complete source small enough to look less like a program
 than the space reserved for one.
 
-```java
+```wheeler
 classical class Wake {
   entry void main() {
   }
@@ -131,7 +131,7 @@ worker outside struck the pressure hull three times, listened, and marked the pa
 
 Beneath that note, the next annotation added a state declaration.
 
-```java
+```wheeler
 classical class FirstSignal {
   state long lamp = 0;
 
@@ -158,7 +158,7 @@ She set it beside the terminal, where it acquired more presence than the number 
 An assignment inside `main` replaced the current program value. Tala renamed the small experiment and kept every other change
 visible in one complete source.
 
-```java
+```wheeler
 classical class CabinLamp {
   state long lamp = 0;
 
@@ -183,7 +183,7 @@ lower edge.
 Osei took her place at the console. One transition, he said, concealed the question that mattered to him. He added a second
 assignment to a state named `signal`.
 
-```java
+```wheeler
 signal = 1;
 signal = 2;
 ```
@@ -196,7 +196,7 @@ Sana, reading over his shoulder, objected to the path existing only in their exp
 while leaving the explanation intact, a form of durability the archive profession had learned to distrust. She placed an
 executable expectation after the transition.
 
-```java
+```wheeler
 assert(signal == 2);
 ```
 
@@ -224,7 +224,7 @@ State has not thereby returned to an earlier value.
 
 One screen held the complete program.
 
-```java
+```wheeler
 classical class FirstWatch {
   state long berth = 1;
   state long drive = 0;

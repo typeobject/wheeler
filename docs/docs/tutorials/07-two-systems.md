@@ -87,7 +87,7 @@ That difference returned them to the Bell program in the mission package. Iona c
 Sana bound it to the copy carried across the reach, and the two digests matched. The program had not changed while their ability to
 read it had.
 
-```java
+```wheeler
 quantum class BellPair {
   state long measured = 0;
   qreg q = new qreg(2);
@@ -194,7 +194,7 @@ In the last experiment, measurement disappeared so that the Bell preparation its
 measurement line, paused over the empty space, and left it visible in the diff. One absent boundary changed what restoration could
 mean.
 
-```java
+```wheeler
 quantum class BellReturn {
   state long measured = 0;
   qreg q = new qreg(2);

@@ -40,7 +40,7 @@ what I want."
 Wheeler required the stronger declaration `coherent rev`. The compiler then checked a closed finite operation for coherent
 eligibility and produced both ordinary inverse-bearing code and its quantum lifting.
 
-```java
+```wheeler
 hybrid class CoherentBridge {
   state long bit = 0;
   state long measured = 0;

@@ -108,7 +108,7 @@ distinction between them from its declared current state.
 
 Tala entered the operation as an ordinary assignment.
 
-```java
+```wheeler
 classical class EraseBit {
   state long bit = 1;
 
@@ -149,7 +149,7 @@ have such an inverse only when distinct inputs remained distinct at the output.
 
 By that test, the overwrite failed. Tala asked the Wheeler compiler to treat it as reversible anyway.
 
-```java
+```wheeler
 classical class RejectedErase {
   state long bit = 1;
 
@@ -186,7 +186,7 @@ again restored either starting value.
 Wheeler expressed that operation with XOR by one. Over the allowed two-state set, `bit ^= 1` exchanged `0` and `1` without merging
 them.
 
-```java
+```wheeler
 classical class ReversibleFlip {
   state long bit = 0;
 
@@ -218,7 +218,7 @@ Mara, who had tolerated the gallery with the restlessness of someone surrounded 
 what happened when a reversible method contained several operations. Osei replaced the one-bit example with two methods whose
 order mattered.
 
-```java
+```wheeler
 classical class ReverseOrder {
   state long value = 0;
 
@@ -268,7 +268,7 @@ steps would no longer remain available for ordinary rewind through that boundary
 
 For the final distinction, the manual offered another program.
 
-```java
+```wheeler
 classical class CommittedInverse {
   state long bit = 0;
 

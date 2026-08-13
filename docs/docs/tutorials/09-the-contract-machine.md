@@ -94,7 +94,7 @@ constant function, both input amplitudes acquired the same sign.
 A final Hadamard converted either common-sign pattern into input outcome `0`. The global difference between `(+,+)` and `(-,-)`
 remained unobservable.
 
-```java
+```wheeler
 quantum class DeutschConstant {
   state long result = 0;
   qreg q = new qreg(2);
@@ -125,7 +125,7 @@ For a balanced function, the two input alternatives acquired opposite signs.
 
 Afterward, the final Hadamard converted either relative-sign pattern into input outcome `1`.
 
-```java
+```wheeler
 quantum class DeutschBalanced {
   state long result = 0;
   qreg q = new qreg(2);

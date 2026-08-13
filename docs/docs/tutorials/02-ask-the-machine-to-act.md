@@ -61,7 +61,7 @@ The manual had marked the two traffic values as unfinished business.
 
 Tala opened the accompanying source.
 
-```java
+```wheeler
 classical class OneBit {
   state long bit = 0;
 
