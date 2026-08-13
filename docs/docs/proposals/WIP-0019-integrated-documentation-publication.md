@@ -291,7 +291,7 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 ## Testing and acceptance
 
 - [ ] Bundle generation is byte-identical under source enumeration, locale, worker count, and cache-order variation.
-- [ ] Every node and edge has one valid canonical identity and owner.
+- [x] Bundle generation assigns domain-prefixed canonical identities to manual pages, headings, and Wheeler declarations. Every sorted edge names an existing source and target node, and each node derives from one selected physical manual or parser-owned declaration.
 - [ ] Ambiguous, missing, private, stale-version, malformed, and cyclic links fail with exact diagnostics.
 - [ ] Wheeler docs preserve WIP-0016 payload and attachment exactly.
 - [ ] Javadoc extraction is independent of generated HTML, locale, and source order.
@@ -303,7 +303,7 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 - [ ] Render retry consumes the same bundle without rerunning semantic generation.
 - [ ] Failed generation or rendering leaves the previous publication intact.
 - [ ] Search and navigation contain every public selected node exactly once and no private nodes.
-- [ ] Current website and development documentation describe the implemented generator and publication path.
+- [x] `reference/development.md` documents the implemented `wheeler docs` bundle, validation graph, inert payload copy, manifest, navigation, search, and atomic publication boundary. It also documents the local-only static `wheeler site` renderer.
 
 ## Alternatives
 
