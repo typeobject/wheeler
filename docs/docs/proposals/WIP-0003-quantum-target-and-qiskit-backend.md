@@ -264,7 +264,7 @@ The current `QuantumJob` API is an executable stage-0 slice of that lifecycle. M
 - [x] The ideal state-vector target passes the implemented region conformance suite.
 - [x] Asynchronous jobs cover successful ideal and OpenQASM execution plus malformed results. Cancellation and recovery remain.
 - [x] Static OpenQASM 3 lowering, canonical symbolic parameter binding, ordered task batches, and sampled Pauli-Z expectations work.
-- [ ] Static capability rejection works. Dynamic capability discovery remains.
+- [x] Static `TargetDescriptor.require` rejects a request whose declared capability set is not contained by the target and reports missing capabilities in canonical order. Dynamic discovery remains.
 - [ ] QFT, inverse QFT, and the bounded optimizer run on the ideal target. OpenQASM executor parity and parameterized optimization remain.
 
 ## Testing and acceptance
