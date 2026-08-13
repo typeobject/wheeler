@@ -59,7 +59,7 @@ abstract class SourceStatementParser extends SourceTokenCursor {
     return statement("invoke", start.line(), start.text());
   }
 
-  protected final Circuit parseCircuit(String name, int line) {
+  protected final Circuit parseCircuit(String name, boolean dynamic, int line) {
     List<Statement> body = new ArrayList<>();
     String register = null;
     while (!check(Type.RIGHT_BRACE) && !check(Type.END)) {
@@ -104,7 +104,7 @@ abstract class SourceStatementParser extends SourceTokenCursor {
     if (register == null) {
       fail(peek(), "unitary method must operate on a qreg");
     }
-    return new Circuit(name, register, body, line);
+    return new Circuit(name, register, dynamic, body, line);
   }
 
   private QubitReference qubitReference() {

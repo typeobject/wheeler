@@ -100,7 +100,8 @@ final class SourceModel {
     }
   }
 
-  record Circuit(String name, String registerName, List<Statement> statements, int line) {
+  record Circuit(
+      String name, String registerName, boolean dynamic, List<Statement> statements, int line) {
     Circuit {
       statements = List.copyOf(statements);
     }

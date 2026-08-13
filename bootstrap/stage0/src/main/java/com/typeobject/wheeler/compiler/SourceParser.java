@@ -201,17 +201,20 @@ final class SourceParser extends SourceStatementParser {
     boolean coherent = false;
     boolean reversible = false;
     boolean unitary = false;
+    boolean dynamic = false;
     boolean entry = false;
     boolean test = false;
     SourceToken start = peek();
 
-    while (checkTextIn(Set.of("static", "coherent", "rev", "unitary", "entry", "test"))) {
+    while (checkTextIn(Set.of(
+        "static", "coherent", "rev", "unitary", "dynamic", "entry", "test"))) {
       String modifier = advance().text();
       switch (modifier) {
         case "static" -> { /* Accepted for Java familiarity; entry remains statically owned. */ }
         case "coherent" -> coherent = true;
         case "rev" -> reversible = true;
         case "unitary" -> unitary = true;
+        case "dynamic" -> dynamic = true;
         case "entry" -> entry = true;
         case "test" -> test = true;
         default -> fail(previous(), "unsupported method modifier: " + modifier);
@@ -251,6 +254,9 @@ final class SourceParser extends SourceStatementParser {
     if (coherent && !reversible) {
       fail(start, "coherent methods must also be rev");
     }
+    if (dynamic && !unitary) {
+      fail(start, "dynamic methods must also be unitary");
+    }
     int semanticModifiers = (reversible ? 1 : 0) + (unitary ? 1 : 0)
         + (entry ? 1 : 0) + (test ? 1 : 0);
     if (semanticModifiers > 1) {
@@ -269,7 +275,7 @@ final class SourceParser extends SourceStatementParser {
         start, reversible, coherent, unitary, returnType, !parameters.isEmpty());
 
     if (unitary) {
-      circuits.add(parseCircuit(name, start.line()));
+      circuits.add(parseCircuit(name, dynamic, start.line()));
     } else {
       functions.add(parseFunction(
           name, exported, entry, test, reversible, coherent, parameters, testCases,

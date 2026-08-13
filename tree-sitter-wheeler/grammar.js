@@ -160,7 +160,9 @@ module.exports = grammar({
     ),
 
     visibility_modifier: _ => choice('public', 'private', 'protected'),
-    method_modifier: _ => choice('static', 'entry', 'test', 'rev', 'coherent', 'unitary'),
+    method_modifier: _ => choice(
+      'static', 'entry', 'test', 'rev', 'coherent', 'unitary', 'dynamic',
+    ),
     parameter_list: $ => seq(
       '(',
       optional(seq($.parameter, repeat(seq(',', $.parameter)))),

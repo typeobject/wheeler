@@ -475,6 +475,8 @@ unitary void bell() {
 
 The current semantic gates are `H`, `X`, `Z`, `Phase`, `CPhase`, `CNOT`, `CZ`, and `Swap`. A target adapter may decompose these gates, but it cannot change their ideal meaning.
 
+`dynamic unitary void` is parser-owned reserved syntax for target-resident preparation, measurement, reset, and conditional work. It currently rejects with a stable diagnostic rather than silently lowering through the static circuit path.
+
 Preparation and measurement are explicit:
 
 ```java

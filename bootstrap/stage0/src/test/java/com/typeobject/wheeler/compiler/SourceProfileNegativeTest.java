@@ -724,6 +724,32 @@ class SourceProfileNegativeTest {
   }
 
   @Test
+  void reservesDynamicUnitarySyntaxWithoutPretendingToLowerIt() {
+    String dynamic = """
+        quantum class DynamicSource {
+          state long measured = 0;
+          qreg q = new qreg(1);
+          dynamic unitary void correction() { X(q[0]); }
+          entry void main() {
+            prepare(q, 0);
+            correction();
+            measured = measure(q);
+          }
+        }
+        """;
+    String misplaced = dynamic.replace("dynamic unitary", "dynamic");
+
+    CompilerException unavailable = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(dynamic));
+    CompilerException requiresUnitary = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(misplaced));
+
+    assertTrue(unavailable.getMessage().contains(
+        "dynamic unitary source operations are not yet available"));
+    assertTrue(requiresUnitary.getMessage().contains("dynamic methods must also be unitary"));
+  }
+
+  @Test
   void rejectsOutOfRangeQuantumReference() {
     String source = """
         quantum class BrokenQubit {

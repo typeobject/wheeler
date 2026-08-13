@@ -109,6 +109,10 @@ final class QuantumLowerer {
         }
         operations.add(operation);
       }
+      if (sourceCircuit.dynamic()) {
+        throw new CompilerException(
+            sourceCircuit.line(), "dynamic unitary source operations are not yet available");
+      }
       result.add(new QuantumCircuit(
           circuitIds.get(sourceCircuit.name()), sourceCircuit.name(), register, operations));
     }

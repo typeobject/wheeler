@@ -103,7 +103,7 @@ Quantum class
 quantum class Bell {
   state long measured = 0;
   qreg q = new qreg(2);
-  unitary void bell() {
+  dynamic unitary void bell() {
     H(q[0]);
     CNOT(q[0], q[1]);
   }
@@ -135,6 +135,7 @@ quantum class Bell {
               (integer_literal)))))
       (member_declaration
         (method_declaration
+          (method_modifier)
           (method_modifier)
           (identifier)
           (parameter_list)

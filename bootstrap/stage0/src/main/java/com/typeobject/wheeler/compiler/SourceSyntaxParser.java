@@ -17,7 +17,8 @@ import java.util.Set;
 final class SourceSyntaxParser {
   private static final int MAX_NESTING = 256;
   private static final Set<String> MODIFIERS = Set.of(
-      "public", "private", "protected", "static", "entry", "test", "coherent", "rev", "unitary");
+      "public", "private", "protected", "static", "entry", "test", "coherent", "rev",
+      "unitary", "dynamic");
   private static final Set<String> DOMAINS = Set.of("classical", "quantum", "hybrid");
 
   private final List<Element> elements;

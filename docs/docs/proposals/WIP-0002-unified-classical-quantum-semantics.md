@@ -303,7 +303,7 @@ Quantum state is not a byte stream, file, mapped object, direct-I/O buffer, or R
 - [x] Coherent eligibility and lifted reversible calls work for the exact XOR subset.
 - [x] Workflow and quantum body sections have canonical encoding and strict decoding.
 - [x] Quantum instructions use stable opcode and gate registries, named forms, ordered roles, and bounded variable-length records.
-- [x] Canonical quantum region records encode preparation, qubit measurement into target-resident Boolean slots, reset, and slot-conditional fixed-gate application. The bounded dynamic state-vector target executes those records without a host split. Source syntax remains outside the accepted first profile.
+- [x] Canonical quantum region records encode preparation, qubit measurement into target-resident Boolean slots, reset, and slot-conditional fixed-gate application. The bounded dynamic state-vector target executes those records without a host split. Parser-owned `dynamic unitary` syntax fails with a stable unsupported diagnostic until source lowering lands.
 - [x] The semantic state-vector simulator executes the initial gate and lifted-function subset.
 - [x] Counter, coherent oracle, QFT, and the bounded measured optimizer pass end to end.
 
