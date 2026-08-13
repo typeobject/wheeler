@@ -840,7 +840,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [x] **Two Systems** says the Bell histogram establishes correlation but not entanglement by shape alone. It derives nonfactorability from the amplitude table and explains why CNOT copying basis information is not universal quantum cloning.
 - [ ] Landauer text states the bound and its assumptions without claiming zero-energy computation.
 - [x] **The Far Instrument** separates one executable prepared-state restoration from the generated finite structural certificate and states that a general QFT theorem over all normalized inputs and phase equivalence remains absent.
-- [ ] Static targets reject lessons that require unavailable dynamic behavior before submission.
+- [x] **Weather** names the measurement, reset, and target-resident conditional requirements. The static target rejects that complete capability set in canonical order before provider work, while the bounded dynamic target executes it.
 - [ ] Every diagram has a text equivalent and does not depend on color.
 - [ ] Source Markdown, static HTML, downloadable source, and printable order contain the same lesson graph.
 - [ ] Serial and parallel documentation builds produce byte-identical semantic bundles.
