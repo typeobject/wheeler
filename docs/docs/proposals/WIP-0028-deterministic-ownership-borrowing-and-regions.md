@@ -296,11 +296,11 @@ Exhaustion is a deterministic diagnostic, never permission to compile unsafely. 
 
 ## Testing and acceptance
 
-- [ ] `Copy` values duplicate. Owned values move. Use after move, double move/drop, and forgotten must-consume values fail.
+- [x] In the accepted ownership profile, signed and Boolean values copy while region, word, byte, UTF-8, and map owners move. Compiler-negative tests reject reads after move, repeated move or drop, use after owned-call transfer, dropping a loan, owner leaks at function exit, and owners nested in unsupported arrays or slices.
 - [ ] Shared loans coexist and block mutation. Exclusive loans reject overlap. Reborrows suspend and restore parent permissions.
 - [ ] Local loans end at deterministic last use. Returned loans cannot outlive owners. Ambiguous public origins require metadata.
 - [ ] Dynamic split rejects overlap before publishing loans.
-- [ ] Region drop rejects live loans and escapes. Cyclic arena graphs release without tracing.
+- [x] Region and child-owner drop ordering is checked, scratch allocations cannot escape a borrowed region, and owner-carrying results preserve their allocation ancestry. Accepted arena graphs release explicitly without tracing. General cyclic typed arena graphs remain outside this profile.
 - [ ] `Box<T>` and collections derive element ownership correctly.
 - [ ] Trap cleanup invokes no user finalizer and external failure remains explicit.
 - [ ] VM rewind restores ownership/storage above the horizon. Generated inverse rejects arbitrary allocation/drop.
