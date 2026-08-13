@@ -608,7 +608,7 @@ A failed `oracle(predicate)` conversion emits no partial coherent body, callable
 - [ ] Effects, traps, unbounded loops, dynamic dispatch, and excessive resources reject oracle construction before publication.
 - [ ] Generic, associated-width, and class-evidence choices are closed before coherent lowering.
 - [ ] The VM basis interpreter, semantic simulator, proof kernel, and generated circuit agree.
-- [ ] Existing raw `qreg` programs remain valid and do not gain an implicit logical type.
+- [x] Existing `qreg` bytecode and source programs retain their logical-register contract. The canonical dynamic instruction additions extend operation records without assigning a hidden `qvalue<T>` type or changing raw register descriptors.
 - [ ] Current reference docs describe the feature only after implementation.
 
 ## Alternatives
