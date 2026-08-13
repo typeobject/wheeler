@@ -138,7 +138,7 @@ Adoption starts with `CoreParsing.w`, whose two loops compact and shift token co
 
 - [x] Closed single-update local loops have canonical source identities, resolution, local types, instruction forms, and code generation.
 - [x] Physical closure probes identify multi-statement loop bodies as a repeated source-product boundary.
-- [x] `SourceStatementProducts.w` publishes source-independent function owners, parent rows, depths, extents, and local ordinals atomically for empty through four-level nested blocks. Excess depth, stale or overlapping callable extents, and detached root blocks preserve caller rows.
+- [x] `SourceStatementProducts.w` publishes source-independent function owners, parent rows, depths, extents, and local ordinals atomically for empty through four-level nested blocks. Top-level statement indexing consumes a complete balanced multi-statement loop as one range instead of swallowing the following statement. Excess depth, stale or overlapping callable extents, and detached root blocks preserve caller rows.
 - [x] `SourceLoopProducts.w` publishes exact structural statement, signed condition range, literal or named limit range, body window, parent, and depth rows. Empty, adjacent, and sixty-four-statement bodies pass. Invalid literal bounds and forged block graphs publish nothing.
 - [x] `ResolvedLoopProducts.w` joins signed literal and unique prior-local condition operands to exact local rows and rejects use before definition, ambiguity, wrong type spelling, invalid reversals, and forged windows without publication.
 - [x] Resolved loop products join named compile-time limits from counted module symbols. Literal and named bounds publish the same source-independent value. Malformed symbol products publish nothing.
