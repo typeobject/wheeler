@@ -406,7 +406,7 @@ Portfolio work follows these rules:
 
 ### Proof, native, and packages
 
-- [ ] Trusted QFT and circuit-equivalence certificates.
+- [x] QFT emits a generated-adjoint certificate, and the quantum compiler example emits a circuit-equivalence certificate. Canonical proof metadata round-trips, executes through the checked examples, and the verifier rejects a minimally forged generated-inverse subject.
 - [ ] Resource-bound and inverse-law certificates.
 - [ ] Bounded certified `Foundry.w` synthesis and minimality package.
 - [ ] Package provenance verifier.
