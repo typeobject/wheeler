@@ -256,7 +256,7 @@ Near-miss syntax is rejected deterministically:
 - [x] Negative parser and type tests cover bare, empty, multiple-argument, non-Boolean, duplicate-name, and malformed assertions.
 - [x] An assertion expression is evaluated once, including a stateful function call.
 - [x] A false assertion traps before mutation and creates no successful transition-history record.
-- [ ] Forward execution, inverse invocation, and rewind retain distinct assertion evidence.
+- [x] The current transition observer and semantic coverage report retain forward, language-inverse, rewind-forward, and rewind-inverse assertion transitions as distinct direction points. Higher-level typed test assertion records remain WIP-0018.
 - [x] Formatter output is deterministic, comment-preserving, minimal-diff, and idempotent for equality and tight unary logical negation.
 - [x] Tree-sitter parses every checked-in Wheeler file and the migrated assertion corpus.
 - [x] Stage-0 and native compiler outputs match for accepted equality assertion fixtures and reject the bare form.
