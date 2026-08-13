@@ -239,6 +239,31 @@ class HybridRunTest {
   }
 
   @Test
+  void providerFailureAndTimeoutLeaveNoAppliedObservation() {
+    RecoverableTarget failedTarget = new RecoverableTarget(1);
+    HybridRun failed = HybridRun.start(program(), failedTarget);
+    failed.advance();
+    failedTarget.setLastState(JobState.FAILED);
+
+    assertThrows(HybridRunException.class, () -> failed.resume(TIMEOUT));
+    assertEquals(RunStatus.TRAPPED, failed.status());
+    assertEquals(0, failed.events().stream()
+        .filter(event -> event.kind() == HybridEventKind.QUANTUM_APPLIED)
+        .count());
+
+    RecoverableTarget delayedTarget = new RecoverableTarget(1);
+    delayedTarget.awaitTimeout = true;
+    HybridRun delayed = HybridRun.start(program(), delayedTarget);
+    delayed.advance();
+    HybridRunSnapshot before = delayed.snapshot();
+
+    assertThrows(HybridRunException.class, () -> delayed.resume(Duration.ZERO));
+    assertEquals(RunStatus.WAITING, delayed.status());
+    assertEquals(before.events(), delayed.events());
+    assertEquals(before.continuation().globals(), delayed.snapshot().continuation().globals());
+  }
+
+  @Test
   void cancelQuarantinesLateCompletion() {
     RecoverableTarget target = new RecoverableTarget(1);
     HybridRun run = HybridRun.start(program(), target);
@@ -464,6 +489,7 @@ class HybridRunTest {
     private int submissions;
     private int recoveries;
     private String lastJobId = "";
+    private boolean awaitTimeout;
     private boolean wrongJobIdentity;
     private boolean wrongSubmissionIdentity;
     private boolean wrongTarget;
@@ -553,6 +579,16 @@ class HybridRunTest {
 
       @Override
       public QuantumResult await(Duration timeout) {
+        if (state == JobState.FAILED) {
+          throw new HybridRunException("test provider failed");
+        }
+        if (state == JobState.CANCELLED) {
+          throw new HybridRunException("test provider cancelled the job");
+        }
+        if (awaitTimeout) {
+          state = JobState.RUNNING;
+          throw new HybridRunException("test provider await timed out");
+        }
         List<Long> outcomes = wrongShotCount ? List.of(value, value) : List.of(value);
         return new QuantumResult(
             wrongIdentity ? id + "-wrong" : id,

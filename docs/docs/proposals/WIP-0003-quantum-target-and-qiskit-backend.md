@@ -274,7 +274,7 @@ The current `QuantumJob` API is an executable stage-0 slice of that lifecycle. M
 - [x] The semantic simulator and a conforming OpenQASM executor agree on exact basis-state results and one representative fixed-seed Hadamard sample stream. The executor boundary receives the same QASM, shots, and seed.
 - [x] QFT and inverse-QFT circuits preserve expected behavior on the ideal target.
 - [x] Static parameter schema, binding values, register order, little-endian outcomes, shot counts, and result identity survive bytecode, ideal-target, and OpenQASM lowering round trips.
-- [ ] Mock jobs cover queueing, success, provider failure, cancellation request races, late results, recovery, timeout, malformed result, and adapter restart.
+- [x] Provider-neutral mock jobs cover queued, running, success, failure, cancel-requested, cancelled, cancellation races, late-result quarantine, acknowledged-job recovery, retry, timeout, malformed results, and adapter restart with lost provider state. Unknown restart state fails without resubmission.
 - [ ] Cached target executables invalidate on descriptor, policy, adapter, parameter-schema, or semantic-region changes.
 - [ ] A static target rejects the dynamic surface-code fixture with actionable missing capabilities.
 - [ ] A dynamic simulator executes a bounded syndrome/conditional fixture without a host split.
