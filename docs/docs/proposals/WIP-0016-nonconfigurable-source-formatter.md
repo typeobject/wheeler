@@ -776,7 +776,7 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 
 - [x] Write mode avoids touching already formatted files, preserves ordinary permission bits, validates sibling staging files, and atomically replaces changed physical files.
 
-- [ ] Malformed UTF-8, syntax failure, unsafe paths, exhausted limits, and prepublication failures leave original bytes unchanged.
+- [x] Command-level malformed UTF-8 and syntax failures leave every sibling source unchanged. Unsafe and duplicate paths fail before traversal, bounded readers reject oversized input, and write mode validates all products before sibling staging and atomic replacement.
 
 - [ ] LF, final-newline, indentation, and code-layout normalization are host-independent.
 
