@@ -781,7 +781,7 @@ the Java VM on every global.
 
 ## Testing and acceptance
 
-- [ ] `void` has no value and is invalid as a generic argument.
+- [x] `void` has no source value, cannot appear as a `Slot` argument, and is parsed only in method return position. `done` is the separate inhabited completion value.
 - [x] `Done` has one canonical value, `done`, and one zero-payload `DONE` local type. The verifier rejects a nonzero physical `Done` constant. Coherent use remains outside the current profile.
 - [x] Classical `Slot<Done>` has exactly `Vacant` and `Holding(done)` states through the canonical specialized variant descriptor. Its future coherent width remains unspecified.
 - [x] Classical `Vacant` and `Holding(value)` compare and encode canonically.

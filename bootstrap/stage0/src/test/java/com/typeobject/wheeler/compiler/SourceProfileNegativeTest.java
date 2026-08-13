@@ -260,6 +260,11 @@ class SourceProfileNegativeTest {
         () -> new WheelerCompiler().compile(
             "classical class BareSlot { Slot value() { return done; } "
                 + "entry void main() { } }"));
+    CompilerException voidSlot = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile(
+            "classical class VoidSlot { Slot<void> value() { return done; } "
+                + "entry void main() { } }"));
     CompilerException owner = assertThrows(
         CompilerException.class,
         () -> new WheelerCompiler().compile(
@@ -294,6 +299,7 @@ class SourceProfileNegativeTest {
                 + "entry void main() { } }"));
 
     assertTrue(bare.getMessage().contains("expected declared method return type"));
+    assertTrue(voidSlot.getMessage().contains("expected declared Slot payload type"));
     assertTrue(owner.getMessage().contains("Slot payload cannot be an owner or loan"));
     assertTrue(loan.getMessage().contains("Slot payload cannot be an owner or loan"));
     assertTrue(unknown.getMessage().contains("expected declared Slot payload type"));
