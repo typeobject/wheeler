@@ -288,7 +288,7 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 
 - [ ] Discovery order and case identities are stable under source-map, filesystem, locale, and worker-order variation.
 - [x] Every implemented stage-0 case compiles to its own entry artifact and runs in a newly constructed VM. The multi-case fixture mutates state in one case and proves a later lexical case still observes the declared initial global. Fixtures and target-bearing cases remain future work.
-- [ ] Parameter products, explicit seeds, generation, and shrinking are deterministic and bounded.
+- [x] The implemented inline signed and Boolean `cases(...)` products retain declaration order, use stable indexed identities, reject duplicate or mistyped rows, and cap one product at 1,024 values. Seeds, generation, and shrinking remain outside the profile.
 - [ ] Lifecycle acquire/release ordering is exact across pass, assertion fail, trap, cancel, and process recovery.
 - [ ] Language inverse, VM rewind, uncomputation, replay, and retry tests distinguish every boundary.
 - [ ] Exact simulator tests cover amplitudes, global phase, generated adjoints, and clean ancillas.
