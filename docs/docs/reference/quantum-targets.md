@@ -93,6 +93,12 @@ This boundary avoids an embedded Python runtime. A Qiskit application can consum
 
 Credentials and provider objects stay with the host. They never enter `.wbc`, QASM, result records, or logs.
 
+## Live hardware tests
+
+Live hardware tests require an invocation-local `LiveHardwareTestPolicy`. The default policy is disabled. An enabled policy names hard submission and aggregate-shot ceilings. `LiveHardwareTestTarget` charges both before calling the provider and rejects the first excess request without submission.
+
+Ordinary CI does not construct an enabled policy. A separately authorized smoke job may supply credentials and an enabled budget through its host environment. Its result is sampled hardware evidence, not a deterministic CI result or theorem.
+
 ## Physical limits
 
 Running a generated adjoint is another physical computation. It is not VM rewind.

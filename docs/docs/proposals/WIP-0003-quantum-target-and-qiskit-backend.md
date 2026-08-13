@@ -279,7 +279,7 @@ The current `QuantumJob` API is an executable stage-0 slice of that lifecycle. M
 - [x] The static target rejects the target-resident surface-code requirement set before submission and names `CLASSICAL_CONDITIONAL`, `MID_CIRCUIT_MEASUREMENT`, and `RESET` in canonical order. The checked-in `SurfaceCode.w` remains an explicitly static correction-kernel fixture.
 - [x] `DynamicStateVectorSimulator` executes up to 1,024 syndrome rounds inside one target call. Each round measures a parity ancilla, conditionally corrects the data bit, resets the ancilla, and records bounded canonical evidence. The three-round injected-error fixture returns only after correction and clean reset, without a host-side round trip.
 - [x] The executor boundary and documentation keep credentials outside artifacts, QASM, results, and traces.
-- [ ] Live hardware tests are opt-in, budget-capped, and do not make deterministic CI claims.
+- [x] `LiveHardwareTestTarget` rejects before provider submission unless its invocation receives an explicit enabled policy. The policy caps submission count and aggregate shots, charges both before provider work, and rejects the first excess request without charging or submitting it. Ordinary CI instantiates no enabled policy and makes no hardware determinism claim.
 - [x] Current target documentation explains simulator, OpenQASM, hardware, and future logical capability boundaries.
 
 ## Alternatives
