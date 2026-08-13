@@ -284,7 +284,7 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
   - The old renderer package graph, duplicate deployment-test workflow, and generic website configuration are deleted.
   - Hosted run `29670968033` built and deployed the navigation and front-matter slice at commit `2dea61e`.
   - Hosted evidence remains tied to that commit and does not inherit later renderer identities.
-- [ ] Cross-package/version links and proof references remain. Schema-3 search, local manual and Wheeler links, relative-page anchors, root-escape rejection, missing-link diagnostics, strict bundle verification, and malformed-source atomicity pass.
+- [x] Schema-3 search, local manual and Wheeler API links, relative-page anchors, canonical heading anchors, root-escape rejection, missing-link diagnostics, strict bundle verification, deterministic serial and parallel generation, and malformed-source atomicity pass. Cross-package version links and proof references remain.
 - [ ] A Wheeler-written generator emits the stage-0 bundle byte-for-byte.
 - [ ] Duplicate hand-authored/generated authorities are deleted.
 
@@ -292,7 +292,7 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 
 - [x] Bundle generation sorts physical inputs, nodes, edges, navigation, search rows, and manifest outputs explicitly and emits byte-identical bundles across independent destinations. It reads no locale, worker-count, or cache-order input.
 - [x] Bundle generation assigns domain-prefixed canonical identities to manual pages, headings, and Wheeler declarations. Every sorted edge names an existing source and target node, and each node derives from one selected physical manual or parser-owned declaration.
-- [ ] Ambiguous, private, stale-version, and cyclic links remain. Missing, malformed, and root-escaping local links fail with stable diagnostics before bundle publication.
+- [x] Missing, malformed, and root-escaping local links fail with stable diagnostics before bundle publication, and a failed static-site render leaves no partial site. Ambiguous, private, stale-version, and cyclic cross-package links remain.
 - [x] Wheeler API nodes consume WIP-0016's parser-owned module, declaration, modifier, summary, facet, and source-position records directly. The bundle generator does not rescan or normalize `//!` and `///` payloads.
 - [ ] Javadoc extraction is independent of generated HTML, locale, and source order.
 - [ ] Java pages cannot define or shadow Wheeler symbols or semantic reference nodes.
