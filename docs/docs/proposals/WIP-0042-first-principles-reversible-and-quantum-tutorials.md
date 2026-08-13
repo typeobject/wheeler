@@ -837,7 +837,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [x] The quantum chapters distinguish ideal amplitude state, one measured classical outcome, seeded repeated counts, hardware samples, and formal structural evidence. No sampled histogram is presented as state access or proof.
 - [x] Reversible chapters describe generated inverse or adjoint operations as new execution and reserve VM rewind for retained transition history. The Bell restoration payoff states the distinction explicitly.
 - [x] **Weather** treats measurement as the quantum-classical boundary, replay as reuse of recorded evidence without submission, and retry as a fresh physical preparation with a new lineage.
-- [ ] Bell-state pages distinguish correlation from entanglement and reject cloning language.
+- [x] **Two Systems** says the Bell histogram establishes correlation but not entanglement by shape alone. It derives nonfactorability from the amplitude table and explains why CNOT copying basis information is not universal quantum cloning.
 - [ ] Landauer text states the bound and its assumptions without claiming zero-energy computation.
 - [ ] QFT pages identify executable restoration and finite certificates without claiming a missing general theorem.
 - [ ] Static targets reject lessons that require unavailable dynamic behavior before submission.
