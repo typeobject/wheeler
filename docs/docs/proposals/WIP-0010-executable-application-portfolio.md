@@ -366,7 +366,7 @@ Portfolio work follows these rules:
 ### Toolchain
 
 - [x] The Wheeler-written UTF-8 scanner and bounded local-declaration parser consume explicit source input, publish token and diagnostic coordinates, return a closed parse result, and rewind exactly. General Wheeler grammar coverage remains WIP-0007.
-- [ ] Wheeler bytecode codec and verifier:
+- [x] The Wheeler-native bounded bytecode emitter, canonical codec slice, and emitted-product verifier execute for the documented scalar compiler profile. General arbitrary-artifact decoding and full control, type, ownership, quantum, and workflow verification remain:
   - `compiler/Core.w` parses one linked bounded source and emits the full artifact through the shared encoding module. The direct linker handles one import. Complete plans and `graphs/plans/GraphExecutor.w` handle every rooted acyclic scalar-constant graph from two through seven imports. `compiler/Driver.w` owns the public graph-aware facade. `MinimalCompiler.w` is its thin executable wrapper, while `NativeCompilerIdentity.w` keeps output private and publishes only the verified digest.
   - Source strings are sorted canonically, and section layout is derived.
   - All 504 bytes for `LongClass` with `state long value = 7` and `value += 5` match stage 0.
