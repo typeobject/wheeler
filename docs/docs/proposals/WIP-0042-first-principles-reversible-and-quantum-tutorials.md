@@ -803,7 +803,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [ ] Expected-rejection fences check stable diagnostics.
 - [ ] Downloadable `.w` assets reproduce exact fenced source.
 - [ ] Release unit 1 is complete.
-- [ ] Fixed-seed shot histograms are available to tutorial experiments.
+- [x] **The Long Count** records the target, 32-shot budget, seed `104729`, outcome width, exact observed bars, and the boundary between a finite frequency and the declared probability model.
 - [ ] Bounded ideal amplitude diagnostics are available to tutorial experiments.
 - [ ] Release unit 2 is complete.
 - [ ] Static circuit diagrams pass accessibility and identity checks.
@@ -831,7 +831,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [ ] Every page introduces no unexplained required term or notation according to its declared prerequisite inventory.
 - [ ] Every exact primary fence parses with Tree-sitter, compiles, verifies, round-trips canonically, and produces its expected result.
 - [ ] Every expected-rejection fence fails with its named stable diagnostic and publishes no artifact.
-- [ ] Every sampled experiment names target, seed, shots, outcome width, and acceptance rule.
+- [x] The current sampled tutorial experiment names the ideal target, seed, 32 shots, binary outcome width, exact histogram, and its accepted claim. Hardware discussion remains explicitly unexecuted.
 - [ ] Repeating the full seeded sample suite produces the same canonical semantic reports.
 - [ ] Every amplitude experiment stays within the ideal diagnostic profile and labels the result simulator-only.
 - [x] The quantum chapters distinguish ideal amplitude state, one measured classical outcome, seeded repeated counts, hardware samples, and formal structural evidence. No sampled histogram is presented as state access or proof.
