@@ -403,7 +403,7 @@ Native worker failure and external uncertainty follow their owning WIPs. They do
 - [x] Quantum target work uses QuantumSubmission. I/O backend work uses IoProviderResult. Task terminology is reserved for this VM model.
 - [x] Existing artifacts execute through a canonical task table containing root task zero with stable TaskId and EventId origins.
 - [x] The compatibility VM owns typed root-task lifecycle state, a deterministic round-robin selector, and rewindable task and scheduler deltas. Multi-task lifecycle remains open.
-- [ ] Task-aware snapshots and complete global task event records exist.
+- [x] Machine snapshots publish selected task, scheduler cursor, immutable task-frame and status maps, workflow epoch, and root-task execution origin. Forward and rewind observations retain the same bounded `EventId`. Multi-task global journal records remain.
 - [ ] Structured spawn, completion, join, and exit execute.
 - [x] The reference scheduler chooses the least runnable `TaskId` above its cursor and wraps to the least identity. Cursor commit and restoration are explicit, and an empty runnable set traps. Spawn and task execution remain unimplemented.
 - [ ] Replay rejects disabled choices before mutation.
