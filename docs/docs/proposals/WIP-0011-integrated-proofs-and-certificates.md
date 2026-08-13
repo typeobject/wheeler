@@ -349,7 +349,7 @@ Each fixture first lands as an executable law if necessary, then gains a formal 
 - [x] Explicit generated-inverse theorems over straight-line reversible functions emit canonical certificates checked independently from compiler lowering.
 - [x] The Wheeler-written compiler slice parses an optional inverse theorem. It derives the fifth sorted string and seventh section, then emits the 28-byte `GENERATED_INVERSE` payload. Wheeler verifies the profile, and the independent proof kernel accepts the resulting bytes.
 - [ ] The finite kernel checks exact QFT adjoint involution and same-register adjacent-inverse rewrite certificates. Semantic composition, general rewrite equivalence, scalar normalization, and global-phase rules remain.
-- [ ] Straight-line function step-bound certificates are checked against exact instruction bodies and the program ceiling. Composition, loops, recursion, circuits, workflows, and target-plan resource bounds remain.
+- [x] Straight-line function step-bound certificates are checked against exact instruction bodies and the program ceiling. Composition, loops, recursion, circuits, workflows, and target-plan resource bounds remain.
 - [ ] Experiment declarations integrate with hybrid provenance without inhabiting theorem types.
 - [ ] Wheeler-written kernel and elaborator bootstrap reproducibly.
 - [ ] Package and editor tooling expose proof APIs and status.
