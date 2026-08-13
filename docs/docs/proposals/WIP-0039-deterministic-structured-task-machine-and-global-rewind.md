@@ -427,7 +427,7 @@ Native worker failure and external uncertainty follow their owning WIPs. They do
 - [ ] A task-private undo cannot bypass a newer foreign-task event.
 - [ ] Canonical scheduling matches under one or many host workers.
 - [ ] Replay rejects nonexistent, completed, blocked, and forged TaskIds.
-- [ ] Schedule, event, and history exhaustion fail before mutation.
+- [x] In the accepted root-task substrate, bounded TaskId depth, event sequence, machine step count, and retained history are validated before the next transition mutates frames, scheduler cursor, globals, aggregates, or owned storage. Spawn and join schedule bounds remain with the structured-task opcode slice.
 - [ ] Atomic operations satisfy generated forward and rewind laws.
 - [ ] SC loads observe the latest prior write.
 - [ ] Ordinary shared mutable access rejects before execution.
