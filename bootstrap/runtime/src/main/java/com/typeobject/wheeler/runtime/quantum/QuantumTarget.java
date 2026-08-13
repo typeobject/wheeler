@@ -9,6 +9,8 @@ public interface QuantumTarget {
   /** Submit an ordered batch without changing individual submission or result identity. */
   default QuantumBatchJob submitBatch(QuantumBatch batch) {
     descriptor().require(TargetCapability.BATCH_SUBMISSION);
+    batch.submissions().forEach(submission ->
+        descriptor().require(submission.requiredCapabilities()));
     return new CompositeQuantumBatchJob(this, batch);
   }
 

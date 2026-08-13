@@ -103,6 +103,29 @@ class StateVectorTargetTest {
   }
 
   @Test
+  void batchPreflightRejectsDynamicMemberBeforeSubmittingAnyMember() {
+    QuantumRegister register = new QuantumRegister(0, "q", 1);
+    QuantumCircuit idle = new QuantumCircuit(0, "idle", 0, List.of());
+    QuantumCircuit dynamic = new QuantumCircuit(
+        1, "dynamic", 0, List.of(new PrepareOperation(0), new MeasureOperation(0, 0)));
+    Program program = program(register, idle, List.of(), dynamic);
+    QuantumSubmission staticSubmission = new QuantumSubmission(
+        program, 0, 0, List.of(new CircuitApplication(0, false)), Map.of(), 1, 0);
+    QuantumSubmission dynamicSubmission = new QuantumSubmission(
+        program, 0, 0, List.of(new CircuitApplication(1, false)), Map.of(), 1, 0);
+    StateVectorTarget target = new StateVectorTarget();
+
+    QuantumExecutionException failure = assertThrows(
+        QuantumExecutionException.class,
+        () -> target.submitBatch(new QuantumBatch(List.of(staticSubmission, dynamicSubmission))));
+
+    assertTrue(failure.getMessage().contains("MID_CIRCUIT_MEASUREMENT"));
+    assertThrows(
+        QuantumExecutionException.class,
+        () -> target.recover("state-vector-1", staticSubmission));
+  }
+
+  @Test
   void targetRejectsQubitAndShotLimitsBeforeAllocatingAJobIdentity() {
     QuantumRegister wideRegister = new QuantumRegister(
         0, "wide", StateVectorTarget.MAX_QUBITS + 1);
