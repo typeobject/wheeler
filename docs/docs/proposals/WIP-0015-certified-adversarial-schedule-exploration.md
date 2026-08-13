@@ -283,7 +283,7 @@ A bounded proof does not establish that the model matches production, excludes s
 - [ ] A local delta-debug result is not labeled shortest without all shorter-length proofs.
 - [ ] Empty samples, timeout, cancellation, stale jobs, and target failure produce `Inconclusive`, never `BoundedSafe`.
 - [ ] Bounded-safe certification rejects one omitted enabled schedule.
-- [ ] Replay performs no target submission. Retry receives a new evidence identity.
+- [x] The shared hybrid lifecycle gives schedule exploration this boundary: replay consumes recorded evidence without target submission, while retry receives a new branch, submission, job, and provider lineage identity.
 - [ ] Crash/recovery at every durable phase neither skips a length nor applies evidence twice.
 - [ ] Coherent classification returns all non-answer registers and workspaces clean.
 - [ ] Classical and coherent classifiers agree for every schedule in a tiny complete domain.
