@@ -279,7 +279,8 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 - [ ] Full test descriptor semantics, including modular qualification, parameters, fixtures, tags, and limits, are accepted.
 - [x] Two Wheeler cases compile from one exact package target, run in separate fresh VMs, carry distinct identities and coverage reports, and reduce into one rerun-stable report.
 - [x] Bounded inline `long` and `boolean` parameter rows parse, receive indexed stable names, compile through a synthetic no-argument entry wrapper, and execute independently.
-- [ ] Parameter products, lifecycle fixtures, tags, and deterministic sharding execute.
+- [x] Bounded scalar parameter products and digest-assigned deterministic shards execute for the accepted profile.
+- [ ] Lifecycle fixtures and canonical tag selection execute.
 - [ ] Inverse, rewind, quantum, workflow, package, and proof assertions execute with distinct semantics.
 - [ ] A Wheeler-written runner reproduces the stage-0 semantic report.
 - [ ] Superseded JUnit semantic authorities are deleted.
