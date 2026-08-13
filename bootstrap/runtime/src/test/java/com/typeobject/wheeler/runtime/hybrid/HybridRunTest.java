@@ -59,6 +59,19 @@ class HybridRunTest {
   }
 
   @Test
+  void immediateAndDelayedTargetsProduceTheSameSemanticEventShape() {
+    HybridRun immediate = HybridRun.start(program(), new RecoverableTarget(1));
+    HybridRun delayed = HybridRun.start(program(), new DelayedTarget(1));
+
+    immediate.runToCompletion(TIMEOUT);
+    delayed.runToCompletion(TIMEOUT);
+
+    assertEquals(
+        immediate.events().stream().map(HybridRunTest::eventShape).toList(),
+        delayed.events().stream().map(HybridRunTest::eventShape).toList());
+  }
+
+  @Test
   void reductionIsStableUnderReorderingAndDuplicateDelivery() {
     HybridRun run = HybridRun.start(program(), new RecoverableTarget(1));
     run.runToCompletion(TIMEOUT);
@@ -383,6 +396,15 @@ class HybridRunTest {
     return bytes.position();
   }
 
+  private static List<Object> eventShape(HybridEvent event) {
+    return List.of(
+        event.kind(),
+        event.branchId(),
+        event.workflowIndex(),
+        event.value(),
+        event.detail());
+  }
+
   private static void skipGlobals(java.nio.ByteBuffer bytes) {
     int count = bytes.getInt();
     for (int index = 0; index < count; index++) {
@@ -393,6 +415,45 @@ class HybridRunTest {
 
   private static void skipText(java.nio.ByteBuffer bytes) {
     bytes.position(bytes.position() + 4 + bytes.getInt(bytes.position()));
+  }
+
+  private static final class DelayedTarget implements QuantumTarget {
+    private final RecoverableTarget delegate;
+
+    private DelayedTarget(long outcome) {
+      delegate = new RecoverableTarget(outcome);
+    }
+
+    @Override
+    public TargetDescriptor descriptor() {
+      return delegate.descriptor();
+    }
+
+    @Override
+    public QuantumJob submit(QuantumSubmission submission) {
+      QuantumJob completed = delegate.submit(submission);
+      return new QuantumJob() {
+        @Override
+        public String id() {
+          return completed.id();
+        }
+
+        @Override
+        public JobState state() {
+          return JobState.RUNNING;
+        }
+
+        @Override
+        public boolean cancel() {
+          return completed.cancel();
+        }
+
+        @Override
+        public QuantumResult await(Duration timeout) {
+          return completed.await(timeout);
+        }
+      };
+    }
   }
 
   private static final class RecoverableTarget implements QuantumTarget {
