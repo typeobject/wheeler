@@ -394,6 +394,22 @@ class WheelerCommandTest {
     assertEquals(firstReport, stdout.toString(StandardCharsets.UTF_8));
     stdout.reset();
     assertEquals(0, Wheeler.execute(
+        new String[] {"test", project.toString(), "--format", "json"},
+        new PrintStream(stdout),
+        new PrintStream(new ByteArrayOutputStream())));
+    String jsonReport = stdout.toString(StandardCharsets.UTF_8);
+    assertTrue(jsonReport.startsWith("{\"schema\":\"wheeler.test-report-adapter/1\""));
+    assertTrue(jsonReport.contains("\"selected\":4,\"passed\":4,\"failed\":0"));
+    stdout.reset();
+    assertEquals(0, Wheeler.execute(
+        new String[] {"test", project.toString(), "--format", "junit-xml"},
+        new PrintStream(stdout),
+        new PrintStream(new ByteArrayOutputStream())));
+    String xmlReport = stdout.toString(StandardCharsets.UTF_8);
+    assertTrue(xmlReport.startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
+    assertTrue(xmlReport.contains("tests=\"4\" failures=\"0\""));
+    stdout.reset();
+    assertEquals(0, Wheeler.execute(
         new String[] {"run", project.toString(), "--target", "law"},
         new PrintStream(stdout),
         new PrintStream(new ByteArrayOutputStream())));

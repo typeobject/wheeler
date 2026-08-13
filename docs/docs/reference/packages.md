@@ -259,7 +259,7 @@ The unified command executes local package operations:
 ```text
 wheeler check <package-or-workspace-directory>
 wheeler build <package-or-workspace-directory> [-o output-directory]
-wheeler test <package-or-workspace-directory>
+wheeler test <package-or-workspace-directory> [--format terminal|json|junit-xml]
 wheeler clean <package-or-workspace-directory>
 wheeler cache gc
 wheeler package <package-directory> [-o package.wpk]
@@ -308,7 +308,9 @@ The stage-0 runner binds separate case, source, artifact, execution, compiler, a
 
 Test-report profile 2 includes a bounded count of assertion attempts. A failed assertion counts the attempted check, while a runtime trap does not invent one. Classical cases also include a typed transition-coverage identity. Quantum cases omit that classical field. Repeating an unchanged run produces the same semantic status and report identity. A package with no selected test targets succeeds with a zero-case report.
 
-Multi-parameter products, fixtures, non-root test modules, richer descriptors, and report adapters remain WIP-0018 work.
+`--format` renders that reduced report as the default terminal text, canonical JSON, or JUnit XML. Every adapter preserves sorted case identities, status, diagnostics, assertion count, source, artifact, execution, coverage, and report identity. Adapter bytes do not enter the report identity.
+
+Multi-parameter products, fixtures, non-root test modules, and richer descriptors remain WIP-0018 work.
 
 ### Packages, locks, and vendors
 

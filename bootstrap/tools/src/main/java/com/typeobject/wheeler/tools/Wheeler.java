@@ -250,10 +250,22 @@ public final class Wheeler {
   }
 
   private static int test(String[] args, PrintStream out, PrintStream error) throws Exception {
-    if (args.length != 2) {
-      error.println("Usage: wheeler test <package-or-workspace-directory>");
-      return 2;
+    if (args.length != 2 && args.length != 4) {
+      return testUsage(error);
     }
+    TestReportRenderer.Format format = TestReportRenderer.Format.TERMINAL;
+    if (args.length == 4) {
+      if (!args[2].equals("--format")) {
+        return testUsage(error);
+      }
+      try {
+        format = TestReportRenderer.Format.parse(args[3]);
+      } catch (IllegalArgumentException exception) {
+        error.println(exception.getMessage());
+        return testUsage(error);
+      }
+    }
+
     Path root = Path.of(args[1]);
     TestReport report;
     String name;
@@ -266,19 +278,14 @@ public final class Wheeler {
       report = project.test();
       name = project.manifest().name();
     }
-    for (TestReport.CaseResult result : report.cases()) {
-      out.println(result.status().name() + " " + result.packageName() + "::"
-          + result.targetName() + " " + result.caseIdentity()
-          + " assertions " + result.assertions()
-          + (result.coverageIdentity().isEmpty() ? ""
-              : " coverage " + result.coverageIdentity())
-          + (result.diagnosticCode().isEmpty() ? ""
-              : " " + result.diagnosticCode() + " " + result.diagnosticMessage()));
-    }
-    out.println("tested " + name + " (" + report.selected() + " cases, "
-        + report.passed() + " passed, " + report.failed() + " failed, report "
-        + report.identity() + ")");
+    out.print(TestReportRenderer.render(report, name, format));
     return report.successful() ? 0 : 1;
+  }
+
+  private static int testUsage(PrintStream error) {
+    error.println("Usage: wheeler test <package-or-workspace-directory>"
+        + " [--format terminal|json|junit-xml]");
+    return 2;
   }
 
   private static int clean(String[] args, PrintStream out, PrintStream error) throws Exception {
