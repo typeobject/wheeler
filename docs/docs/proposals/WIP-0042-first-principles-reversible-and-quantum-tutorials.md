@@ -827,7 +827,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [ ] Fictional scenes remain removable without removing the only technical definition or evidence boundary.
 - [ ] Every chapter advances setting through a material constraint, institution, recurring object, or consequential character choice without making fictional worldbuilding semantic authority.
 - [ ] Every secondary plot changes a main-story decision, relationship, artifact, or payoff and contains no scene retained only for genre decoration.
-- [ ] The failed return report and Bell artifact from `T00` receive explicit payoffs at `T57`, `T62`, and `T93`.
+- [x] **Two Systems** returns to the `T00` Bell artifact, distinguishes correlation from entanglement at `T57`, and executes unmeasured Bell restoration rather than VM rewind at `T62`. **Weather** resolves the failed return report and measured-workspace warning at `T93`.
 - [ ] Every page introduces no unexplained required term or notation according to its declared prerequisite inventory.
 - [ ] Every exact primary fence parses with Tree-sitter, compiles, verifies, round-trips canonically, and produces its expected result.
 - [ ] Every expected-rejection fence fails with its named stable diagnostic and publishes no artifact.
