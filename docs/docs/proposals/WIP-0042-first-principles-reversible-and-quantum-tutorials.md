@@ -809,7 +809,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [ ] Static circuit diagrams pass accessibility and identity checks.
 - [ ] Release unit 3 is complete.
 - [ ] The language-reference teaching path is replaced.
-- [ ] WIP-0006 and WIP-0010 identify the new curriculum owner.
+- [x] WIP-0006 assigns the teaching sequence to documentation and examples, while WIP-0010 defines the teaching-track fixture contract and links back to WIP-0006. This WIP owns the first-principles curriculum nodes.
 - [ ] Release unit 4 is complete.
 - [ ] Bounded hybrid event presentation is available.
 - [ ] Release unit 5 is complete through the implemented dynamic boundary.
