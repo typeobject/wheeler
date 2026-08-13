@@ -510,7 +510,7 @@ Filesystem and network libraries contribute domain types and adapters over that 
 - [ ] Host capabilities cannot be forged, serialized, logged, cached, or acquired through import.
 - [x] The canonical bytecode, package, workspace, manifest, lock, build-plan, archive, bootstrap, snapshot, and documentation decoders reject their applicable duplicate, cyclic, noncanonical, oversized, unknown-required, corrupt, and trailing records. Native standard-library parity remains.
 - [ ] Proof certificates validate critical equality, ordering, encoding, inverse, and quantum laws.
-- [ ] Standard-library packages build, test, document, and package offline through `wheeler`. The initial `wheeler.core` FIFO slice does, while the remaining package layers and native test/doc tools remain.
+- [x] The initial `wheeler.core` FIFO slice builds, tests, documents, and packages offline through `wheeler` from locked workspace or vendor inputs. Remaining package layers and native test and documentation tools stay open under their own rows.
 - [ ] The self-hosted compiler, runtime, package manager, proof kernel, and application portfolio use the Wheeler standard library.
 - [ ] No Java or provider SDK type appears in a public Wheeler library signature after native cutover.
 
