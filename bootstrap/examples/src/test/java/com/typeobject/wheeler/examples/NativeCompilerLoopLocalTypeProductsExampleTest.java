@@ -21,6 +21,9 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
           while (cursor < 2) limit 2 {
             long delta = 1;
             boolean ready = true;
+            ready = false;
+            ready = ready;
+            ready = true;
             assert(ready);
             assert(cursor < 3);
             assert(cursor == 0);
@@ -167,13 +170,13 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
           }
         }
         """.formatted(
-            globals(19),
+            globals(22),
             bodyStart,
             bodyEnd - bodyStart,
             cursorStart,
             deltaStart,
             readyStart,
-            assignments(19)));
+            assignments(22)));
     return new WheelerCompiler().compileModuleFiles(sources, "example.loop_local_type_products");
   }
 

@@ -18,6 +18,8 @@ classical class ResolvedLoopBodyProducts {
   private const long BODY_ASSERT_LT_LITERAL_BASE = 33024;
   private const long BODY_BOOLEAN_LITERAL = 33280;
   private const long BODY_ASSERT_BOOLEAN = 33281;
+  private const long BODY_ASSIGN_BOOLEAN_LITERAL_BASE = 33536;
+  private const long BODY_ASSIGN_BOOLEAN_LOCAL_BASE = 33792;
   private const long BODY_OPERAND_KIND_ROW = 12288;
   private const long BODY_OPERAND_ROW = 16384;
   private const long DOCUMENTATION_TOKEN_KIND = 5;
@@ -42,6 +44,142 @@ classical class ResolvedLoopBodyProducts {
   public record ResolvedLoopBodyPlan(long bodyCount, boolean valid) {}
 
   private record ResolvedValue(long local, boolean valid) {}
+
+  private boolean booleanValue(
+    borrow utf8 source,
+    long nameStart,
+    long nameLength,
+    long tokenCount,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    long nameToken = tokenAtRange(
+      nameStart,
+      nameLength,
+      tokenCount,
+      tokenStarts,
+      tokenLengths
+    );
+    if (nameToken < 1) {
+      return false;
+    }
+
+    return tokenHash(source, tokenStarts, tokenLengths, nameToken - 1) == TOKEN_BOOLEAN;
+  }
+
+  private long valueType(
+    borrow utf8 source,
+    long owner,
+    long local,
+    long valueCount,
+    borrow mut words valueRows,
+    long tokenCount,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    long selected = -1;
+    long matches = 0;
+    long value = 0;
+    while (value < valueCount) limit VALUE_COUNT_LIMIT {
+      if (valueRows[value] == owner) {
+        if (valueRows[VALUE_LOCAL_ROW + value] == local) {
+          selected = value;
+          matches += 1;
+        }
+      }
+
+      value += 1;
+    }
+
+    if (matches != 1) {
+      return -1;
+    }
+
+    long nameToken = tokenAtRange(
+      valueRows[VALUE_NAME_START_ROW + selected],
+      valueRows[VALUE_NAME_LENGTH_ROW + selected],
+      tokenCount,
+      tokenStarts,
+      tokenLengths
+    );
+    if (nameToken < 1) {
+      return -1;
+    }
+
+    return tokenHash(source, tokenStarts, tokenLengths, nameToken - 1);
+  }
+
+  private boolean booleanLocal(
+    borrow utf8 source,
+    long owner,
+    long local,
+    long valueCount,
+    borrow mut words valueRows,
+    long tokenCount,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    return valueType(
+      source,
+      owner,
+      local,
+      valueCount,
+      valueRows,
+      tokenCount,
+      tokenStarts,
+      tokenLengths
+    ) == TOKEN_BOOLEAN;
+  }
+
+  private boolean signedLocal(
+    borrow utf8 source,
+    long owner,
+    long local,
+    long valueCount,
+    borrow mut words valueRows,
+    long tokenCount,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    return valueType(
+      source,
+      owner,
+      local,
+      valueCount,
+      valueRows,
+      tokenCount,
+      tokenStarts,
+      tokenLengths
+    ) == TOKEN_LONG;
+  }
+
+  private long tokenAtRange(
+    long start,
+    long length,
+    long tokenCount,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    long selected = -1;
+    long matches = 0;
+    long token = 0;
+    while (token < tokenCount) limit MAX_COMPILER_TOKENS {
+      if (tokenStarts[token] == start) {
+        if (tokenLengths[token] == length) {
+          selected = token;
+          matches += 1;
+        }
+      }
+
+      token += 1;
+    }
+
+    if (matches != 1) {
+      return -1;
+    }
+
+    return selected;
+  }
 
   private boolean sameRange(
     borrow utf8 source,
@@ -477,47 +615,151 @@ classical class ResolvedLoopBodyProducts {
                 if (
                   punctuationAt(source, tokenKinds, tokenStarts, token + 1, PUNCTUATION_ASSIGN)
                 ) {
+                  boolean targetBoolean = false;
+                  boolean targetSigned = false;
+                  if (target.valid) {
+                    targetBoolean = booleanLocal(
+                      source,
+                      owner,
+                      target.local,
+                      valueCount,
+                      valueRows,
+                      semanticCount,
+                      tokenStarts,
+                      tokenLengths
+                    );
+                    targetSigned = signedLocal(
+                      source,
+                      owner,
+                      target.local,
+                      valueCount,
+                      valueRows,
+                      semanticCount,
+                      tokenStarts,
+                      tokenLengths
+                    );
+                    if (targetBoolean == false) {
+                      if (targetSigned == false) {
+                        statementValid = false;
+                      }
+                    }
+                  }
+
                   long assignmentSourceToken = token + 2;
                   if (tokenKinds[assignmentSourceToken] == 1) {
-                    ResolvedValue assignmentSource = resolveValue(
+                    long assignmentHash = tokenHash(
                       source,
-                      tokenStarts[assignmentSourceToken],
-                      tokenLengths[assignmentSourceToken],
-                      owner,
-                      ordinal,
-                      valueCount,
-                      valueRows
+                      tokenStarts,
+                      tokenLengths,
+                      assignmentSourceToken
                     );
-                    if (assignmentSource.valid) {
-                      opcode = STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + target.local;
-                      operandKind = OPERAND_LOCAL;
-                      operand = assignmentSource.local;
+                    if (targetBoolean) {
+                      if (assignmentHash == TOKEN_TRUE) {
+                        opcode = BODY_ASSIGN_BOOLEAN_LITERAL_BASE + target.local;
+                        operand = 1;
+                      } else {
+                        if (assignmentHash == TOKEN_FALSE) {
+                          opcode = BODY_ASSIGN_BOOLEAN_LITERAL_BASE + target.local;
+                          operand = 0;
+                        } else {
+                          ResolvedValue booleanSource = resolveValue(
+                            source,
+                            tokenStarts[assignmentSourceToken],
+                            tokenLengths[assignmentSourceToken],
+                            owner,
+                            ordinal,
+                            valueCount,
+                            valueRows
+                          );
+                          if (booleanSource.valid) {
+                            if (
+                              booleanLocal(
+                                source,
+                                owner,
+                                booleanSource.local,
+                                valueCount,
+                                valueRows,
+                                semanticCount,
+                                tokenStarts,
+                                tokenLengths
+                              )
+                            ) {
+                              opcode = BODY_ASSIGN_BOOLEAN_LOCAL_BASE + target.local;
+                              operandKind = OPERAND_LOCAL;
+                              operand = booleanSource.local;
+                            } else {
+                              statementValid = false;
+                            }
+                          } else {
+                            statementValid = false;
+                          }
+                        }
+                      }
                     } else {
-                      statementValid = false;
+                      ResolvedValue assignmentSource = resolveValue(
+                        source,
+                        tokenStarts[assignmentSourceToken],
+                        tokenLengths[assignmentSourceToken],
+                        owner,
+                        ordinal,
+                        valueCount,
+                        valueRows
+                      );
+                      if (assignmentSource.valid) {
+                        if (
+                          booleanLocal(
+                            source,
+                            owner,
+                            assignmentSource.local,
+                            valueCount,
+                            valueRows,
+                            semanticCount,
+                            tokenStarts,
+                            tokenLengths
+                          ) == false
+                        ) {
+                          opcode = STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + target.local;
+                          operandKind = OPERAND_LOCAL;
+                          operand = assignmentSource.local;
+                        } else {
+                          statementValid = false;
+                        }
+                      } else {
+                        statementValid = false;
+                      }
                     }
                   } else {
-                    if (
-                      signedNumberWidth(source, tokenKinds, tokenStarts, assignmentSourceToken) != 1
-                    ) {
+                    if (targetBoolean) {
                       statementValid = false;
                     } else {
                       if (
-                        signedNumberValid(
+                        signedNumberWidth(
                           source,
+                          tokenKinds,
                           tokenStarts,
-                          tokenLengths,
                           assignmentSourceToken
-                        )
+                        ) != 1
                       ) {
-                        opcode = STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE + target.local;
-                        operand = parsedSignedNumber(
-                          source,
-                          tokenStarts,
-                          tokenLengths,
-                          assignmentSourceToken
-                        );
-                      } else {
                         statementValid = false;
+                      } else {
+                        if (
+                          signedNumberValid(
+                            source,
+                            tokenStarts,
+                            tokenLengths,
+                            assignmentSourceToken
+                          )
+                        ) {
+                          opcode = STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE + target.local;
+                          operand = parsedSignedNumber(
+                            source,
+                            tokenStarts,
+                            tokenLengths,
+                            assignmentSourceToken
+                          );
+                        } else {
+                          statementValid = false;
+                        }
                       }
                     }
                   }

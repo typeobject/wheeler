@@ -15,6 +15,8 @@ classical class LoopInstructionProducts {
   private const long BODY_ASSERT_LT_LITERAL_BASE = 33024;
   private const long BODY_BOOLEAN_LITERAL = 33280;
   private const long BODY_ASSERT_BOOLEAN = 33281;
+  private const long BODY_ASSIGN_BOOLEAN_LITERAL_BASE = 33536;
+  private const long BODY_ASSIGN_BOOLEAN_LOCAL_BASE = 33792;
   private const long BODY_OPERAND_KIND_ROW = 12288;
   private const long BODY_OPERAND_ROW = 16384;
   private const long BODY_ROWS = 20480;
@@ -67,6 +69,44 @@ classical class LoopInstructionProducts {
     }
 
     return selected;
+  }
+
+  private long rebaseBodyOpcode(long opcode, long boundary, long bias) {
+    long base = -1;
+    if (STATEMENT_LOCAL_LONG_COPY_BASE - 1 < opcode) {
+      if (opcode < STATEMENT_LOCAL_LONG_COPY_BASE + 256) {
+        base = STATEMENT_LOCAL_LONG_COPY_BASE;
+      }
+    }
+
+    if (STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE - 1 < opcode) {
+      if (opcode < STATEMENT_LOCAL_ASSIGN_BOOLEAN_LOCAL_BASE + 256) {
+        base = opcode / 256 * 256;
+      }
+    }
+
+    if (BODY_ASSERT_EQ_LITERAL_BASE - 1 < opcode) {
+      if (opcode < BODY_BOOLEAN_LITERAL) {
+        base = opcode / 256 * 256;
+      }
+    }
+
+    if (BODY_ASSIGN_BOOLEAN_LITERAL_BASE - 1 < opcode) {
+      if (opcode < BODY_ASSIGN_BOOLEAN_LOCAL_BASE + 256) {
+        base = opcode / 256 * 256;
+      }
+    }
+
+    if (base < 0) {
+      return opcode;
+    }
+
+    long local = opcode - base;
+    if (local < boundary) {
+      return opcode;
+    }
+
+    return opcode + bias;
   }
 
   private long writeBodyStatement(
@@ -211,6 +251,16 @@ classical class LoopInstructionProducts {
       } else {
         if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + 256) {
           assignmentTarget = opcode - STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE;
+        } else {
+          if (BODY_ASSIGN_BOOLEAN_LITERAL_BASE - 1 < opcode) {
+            if (opcode < BODY_ASSIGN_BOOLEAN_LOCAL_BASE) {
+              assignmentTarget = opcode - BODY_ASSIGN_BOOLEAN_LITERAL_BASE;
+            } else {
+              if (opcode < BODY_ASSIGN_BOOLEAN_LOCAL_BASE + 256) {
+                assignmentTarget = opcode - BODY_ASSIGN_BOOLEAN_LOCAL_BASE;
+              }
+            }
+          }
         }
       }
     }
@@ -369,7 +419,16 @@ classical class LoopInstructionProducts {
                           requiredLength += 96;
                           instructionCount += 4;
                         } else {
-                          valid = false;
+                          if (BODY_ASSIGN_BOOLEAN_LITERAL_BASE - 1 < opcode) {
+                            if (opcode < BODY_ASSIGN_BOOLEAN_LOCAL_BASE + 256) {
+                              requiredLength += 48;
+                              instructionCount += 2;
+                            } else {
+                              valid = false;
+                            }
+                          } else {
+                            valid = false;
+                          }
                         }
                       }
                     }
@@ -480,9 +539,17 @@ classical class LoopInstructionProducts {
         long emittedBody = bodyAtStatement(emittedStatement, bodyCount, stagedBodies);
         long emittedLocal = stagedBodies[BODY_LOCAL_BASE_ROW + emittedBody];
         set(stagedBodies, BODY_LOCAL_BASE_ROW + emittedBody, emittedLocal + bodyLocalBias);
+        long emittedOpcode = stagedBodies[BODY_OPCODE_ROW + emittedBody];
+        set(
+          stagedBodies,
+          BODY_OPCODE_ROW + emittedBody,
+          rebaseBodyOpcode(emittedOpcode, localBase, bodyLocalBias)
+        );
         long emittedOperand = stagedBodies[BODY_OPERAND_ROW + emittedBody];
         if (stagedBodies[BODY_OPERAND_KIND_ROW + emittedBody] == OPERAND_LOCAL) {
-          set(stagedBodies, BODY_OPERAND_ROW + emittedBody, emittedOperand + bodyLocalBias);
+          if (localBase < emittedOperand + 1) {
+            set(stagedBodies, BODY_OPERAND_ROW + emittedBody, emittedOperand + bodyLocalBias);
+          }
         }
 
         long next = writeBodyStatement(output, cursor, emittedBody, stagedBodies);
@@ -490,9 +557,9 @@ classical class LoopInstructionProducts {
           valid = false;
         } else {
           cursor = next;
-          long emittedOpcode = stagedBodies[BODY_OPCODE_ROW + emittedBody];
-          if (BODY_ASSERT_EQ_LITERAL_BASE - 1 < emittedOpcode) {
-            if (emittedOpcode < BODY_BOOLEAN_LITERAL) {
+          long writtenOpcode = stagedBodies[BODY_OPCODE_ROW + emittedBody];
+          if (BODY_ASSERT_EQ_LITERAL_BASE - 1 < writtenOpcode) {
+            if (writtenOpcode < BODY_BOOLEAN_LITERAL) {
               bodyInstructions += 4;
             } else {
               bodyInstructions += 2;

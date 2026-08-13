@@ -21,6 +21,9 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
           while (cursor < 2) limit 2 {
             long delta = 1;
             boolean ready = true;
+            ready = false;
+            ready = ready;
+            ready = true;
             assert(ready);
             assert(cursor < 3);
             assert(cursor == 0);

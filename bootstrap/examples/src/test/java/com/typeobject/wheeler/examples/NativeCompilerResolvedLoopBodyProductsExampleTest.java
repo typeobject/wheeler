@@ -19,6 +19,9 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
           while (cursor < 2) limit 2 {
             long delta = 1;
             boolean ready = true;
+            ready = false;
+            ready = ready;
+            ready = true;
             assert(ready);
             assert(cursor < 3);
             assert(cursor == 0);
@@ -40,7 +43,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
     machine.run();
 
     assertEquals(1, machine.global("valid"));
-    assertEquals(8, machine.global("bodyCount"));
+    assertEquals(11, machine.global("bodyCount"));
     assertEquals(2, machine.global("firstStatement"));
     assertEquals(2, machine.global("firstLocalBase"));
     assertEquals(769, machine.global("firstOpcode"));
@@ -51,18 +54,21 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
     assertEquals(33_280, machine.global("secondOpcode"));
     assertEquals(0, machine.global("secondOperandKind"));
     assertEquals(1, machine.global("secondOperand"));
-    assertEquals(33_281, machine.global("thirdOpcode"));
-    assertEquals(1, machine.global("thirdOperandKind"));
-    assertEquals(5, machine.global("thirdOperand"));
-    assertEquals(33_025, machine.global("fourthOpcode"));
-    assertEquals(32_769, machine.global("fifthOpcode"));
-    assertEquals(17_665, machine.global("sixthOpcode"));
+    assertEquals(33_541, machine.global("thirdOpcode"));
+    assertEquals(0, machine.global("thirdOperandKind"));
+    assertEquals(0, machine.global("thirdOperand"));
+    assertEquals(33_797, machine.global("fourthOpcode"));
+    assertEquals(1, machine.global("fourthOperandKind"));
+    assertEquals(5, machine.global("fourthOperand"));
+    assertEquals(33_541, machine.global("fifthOpcode"));
+    assertEquals(33_281, machine.global("sixthOpcode"));
   }
 
   @Test
   void rejectsUnsupportedAndAmbiguousBodyRowsWithoutPublishing() throws Exception {
     for (TestCase testCase : new TestCase[] {
         new TestCase(SOURCE.replace("cursor += delta;", "return;"), false),
+        new TestCase(SOURCE.replace("ready = false;", "ready = 0;"), false),
         new TestCase(SOURCE, true)
     }) {
       VirtualMachine machine = new VirtualMachine(
@@ -72,7 +78,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
 
       machine.run();
 
-      assertEquals(0, machine.global("valid"));
+      assertEquals(0, machine.global("valid"), testCase.source());
       assertEquals(0, machine.global("bodyCount"));
       assertEquals(91, machine.global("firstOpcode"));
     }
@@ -115,6 +121,8 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
           state long thirdOperandKind = 0;
           state long thirdOperand = 0;
           state long fourthOpcode = 0;
+          state long fourthOperandKind = 0;
+          state long fourthOperand = 0;
           state long fifthOpcode = 0;
           state long sixthOpcode = 0;
 
@@ -193,6 +201,8 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
             thirdOperandKind = bodyRows[12290];
             thirdOperand = bodyRows[16386];
             fourthOpcode = bodyRows[8195];
+            fourthOperandKind = bodyRows[12291];
+            fourthOperand = bodyRows[16387];
             fifthOpcode = bodyRows[8196];
             sixthOpcode = bodyRows[8197];
             setOutputLength(output, 0);
