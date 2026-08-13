@@ -261,8 +261,8 @@ Near-miss syntax is rejected deterministically:
 - [x] Tree-sitter parses every checked-in Wheeler file and the migrated assertion corpus.
 - [x] Stage-0 and native compiler outputs match for accepted equality assertion fixtures and reject the bare form.
 - [ ] A typed failing double and a bounded event-recording double run through package discovery without ambient state.
-- [ ] Inverse, rewind, uncomputation, exact quantum, sampled quantum, workflow, proof, and malformed-artifact evidence remain nominally distinct through assertion reduction.
-- [ ] Sampled `Inconclusive` evidence cannot satisfy a Boolean assertion without an explicit, reviewable comparison.
+- [x] `TestEvidence` retains classical, language-inverse, VM-rewind, uncomputation, exact-quantum, sampled-quantum, workflow, package, proof, and malformed-artifact kinds through closed assertion reduction. No kind can inhabit another kind by matching payload shape.
+- [x] Sampled `Inconclusive` evidence reduces only to `INCONCLUSIVE`. A pass or fail requires an explicit content-identified `SampledComparison`, keeps the sampled kind, and rejects use against exact or proof evidence.
 - [x] `sourceSyntaxTest` scans every authored `.w` file and rejects bare assertions, duplicate assertion names, and ambient `mock` or `when` calls. Stage-0 negative tests and the current repository-wide scan provide parser and source evidence for the same boundary.
 - [x] `reference/language-profile.md` documents only the implemented direct Boolean assertion form, its trap boundary, and the absence of duplicate intrinsics. It names reversible, quantum, workflow, and proof assertions as unimplemented rather than presenting proposal syntax as current behavior.
 
