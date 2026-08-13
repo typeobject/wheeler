@@ -155,7 +155,7 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 - [x] The manifest parser materializes counted module, external, import-owner, and resolved-target columns through 512 modules and 3,072 imports.
 - [x] `ClosurePlan.w` publishes archive source ranges, first-import offsets, direct-import counts, import ranks, leaf-first order, and executable-owner bits only after complete validation.
 - [x] A 257-module chain plans and classifies with its root last. The complete physical compiler closure plans and classifies without truncation.
-- [x] Every physical compiler source is at most 32,768 bytes and classifies within 4,096 semantic tokens. Backend statement, compiler-core, and local-type owners replaced the oversized modules.
+- [x] Every physical compiler source is at most 32,768 bytes and classifies within 4,096 semantic tokens. Shared loop-body layouts brought the last oversized source below the archive publication ceiling. Backend statement, compiler-core, and local-type owners replaced the earlier oversized modules.
 - [x] `SmallClosureExecutor.w` bridges an exact seven-import counted fixture to the differential executor. Direct constants, a redundant DAG, three executable owners beside four constants, and private helper edges match stage 0 byte for byte from package and manifest inputs.
 - [x] `CountedConstantExecutor.w` consumes counted closure and product columns directly. A 257-module executable forwarding chain compiles without `BoundedGraphPlan` or dependency source.
 - [x] Counted callable products and `GraphExecutor.w` replace packed arity-specific execution facts. The small seven-node bridge remains a differential fixture, not a production executor.
