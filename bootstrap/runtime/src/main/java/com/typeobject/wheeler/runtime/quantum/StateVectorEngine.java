@@ -84,6 +84,57 @@ final class StateVectorEngine {
     return selected;
   }
 
+  boolean measureQubit(QuantumRegister register, int qubit) {
+    RegisterState state = state(register);
+    int bit = checkedBit(state, qubit);
+    double oneProbability = 0;
+    for (int basis = 0; basis < state.real.length; basis++) {
+      if ((basis & bit) != 0) {
+        oneProbability += probability(state, basis);
+      }
+    }
+    boolean one = random.nextDouble() < oneProbability;
+    double selectedProbability = one ? oneProbability : 1 - oneProbability;
+    if (selectedProbability <= 0) {
+      throw new QuantumExecutionException("Qubit measurement selected an empty subspace");
+    }
+    double normalization = Math.sqrt(selectedProbability);
+    for (int basis = 0; basis < state.real.length; basis++) {
+      if (((basis & bit) != 0) != one) {
+        state.real[basis] = 0;
+        state.imaginary[basis] = 0;
+      } else {
+        state.real[basis] /= normalization;
+        state.imaginary[basis] /= normalization;
+      }
+    }
+    return one;
+  }
+
+  void applyX(QuantumRegister register, int qubit) {
+    RegisterState state = state(register);
+    checkedBit(state, qubit);
+    applyGate(state, GateOperation.of(com.typeobject.wheeler.core.quantum.Gate.X, qubit));
+  }
+
+  void applyCnot(QuantumRegister register, int control, int target) {
+    RegisterState state = state(register);
+    checkedBit(state, control);
+    checkedBit(state, target);
+    if (control == target) {
+      throw new QuantumExecutionException("CNOT control and target must differ");
+    }
+    applyGate(
+        state,
+        GateOperation.of(com.typeobject.wheeler.core.quantum.Gate.CNOT, control, target));
+  }
+
+  void reset(QuantumRegister register, int qubit) {
+    if (measureQubit(register, qubit)) {
+      applyX(register, qubit);
+    }
+  }
+
   double[] probabilities(QuantumRegister register) {
     RegisterState state = state(register);
     double[] result = new double[state.real.length];
@@ -99,6 +150,13 @@ final class StateVectorEngine {
       throw new QuantumExecutionException("Register is not prepared: " + register.name());
     }
     return state;
+  }
+
+  private static int checkedBit(RegisterState state, int qubit) {
+    if (qubit < 0 || qubit >= state.qubits) {
+      throw new QuantumExecutionException("Qubit index is outside the prepared register");
+    }
+    return 1 << qubit;
   }
 
   private static double probability(RegisterState state, int basis) {

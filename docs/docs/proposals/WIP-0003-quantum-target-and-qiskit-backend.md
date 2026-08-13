@@ -264,7 +264,7 @@ The current `QuantumJob` API is an executable stage-0 slice of that lifecycle. M
 - [x] The ideal state-vector target passes the implemented region conformance suite.
 - [x] Asynchronous jobs cover successful ideal and OpenQASM execution plus malformed results. Cancellation and recovery remain.
 - [x] Static OpenQASM 3 lowering, canonical symbolic parameter binding, ordered task batches, and sampled Pauli-Z expectations work.
-- [x] Static `TargetDescriptor.require` rejects a request whose declared capability set is not contained by the target and reports missing capabilities in canonical order. Dynamic discovery remains.
+- [x] `TargetDescriptor.require` rejects a request whose declared capability set is not contained by the target and reports missing capabilities in canonical order. The static target omits dynamic capabilities. The bounded dynamic semantic simulator advertises measurement, reset, and classical conditional control explicitly.
 - [x] Checked-in QFT and generated-adjoint restoration plus the bounded optimizer execute on the ideal state-vector target. The optimizer's recorded observation replays without another submission. OpenQASM executor parity and parameterized optimization remain.
 
 ## Testing and acceptance
@@ -277,7 +277,7 @@ The current `QuantumJob` API is an executable stage-0 slice of that lifecycle. M
 - [x] Provider-neutral mock jobs cover queued, running, success, failure, cancel-requested, cancelled, cancellation races, late-result quarantine, acknowledged-job recovery, retry, timeout, malformed results, and adapter restart with lost provider state. Unknown restart state fails without resubmission.
 - [x] `TargetExecutableIdentity` binds the target descriptor and adapter, explicit policy identity, complete submission artifact and semantic region, and sorted symbolic parameter schema. Any change produces a different cache key before a lowered executable can be reused.
 - [x] The static target rejects the target-resident surface-code requirement set before submission and names `CLASSICAL_CONDITIONAL`, `MID_CIRCUIT_MEASUREMENT`, and `RESET` in canonical order. The checked-in `SurfaceCode.w` remains an explicitly static correction-kernel fixture.
-- [ ] A dynamic simulator executes a bounded syndrome/conditional fixture without a host split.
+- [x] `DynamicStateVectorSimulator` executes up to 1,024 syndrome rounds inside one target call. Each round measures a parity ancilla, conditionally corrects the data bit, resets the ancilla, and records bounded canonical evidence. The three-round injected-error fixture returns only after correction and clean reset, without a host-side round trip.
 - [x] The executor boundary and documentation keep credentials outside artifacts, QASM, results, and traces.
 - [ ] Live hardware tests are opt-in, budget-capped, and do not make deterministic CI claims.
 - [x] Current target documentation explains simulator, OpenQASM, hardware, and future logical capability boundaries.
