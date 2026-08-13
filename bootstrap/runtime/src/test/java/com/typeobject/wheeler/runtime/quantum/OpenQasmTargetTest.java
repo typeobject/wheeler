@@ -41,6 +41,43 @@ class OpenQasmTargetTest {
   }
 
   @Test
+  void idealAndOpenQasmTargetsAgreeOnBasisAndSeededSamples() {
+    QuantumRegister register = new QuantumRegister(0, "q", 1);
+    QuantumCircuit circuit = new QuantumCircuit(
+        0, "coin", 0, List.of(GateOperation.of(Gate.H, 0)));
+    Program program = StateVectorTargetTest.program(register, circuit, List.of());
+    QuantumSubmission submission = new QuantumSubmission(
+        program,
+        0,
+        0,
+        List.of(new CircuitApplication(0, false)),
+        Map.of(),
+        32,
+        17);
+    List<Long> oracle = new StateVectorTarget()
+        .submit(submission)
+        .await(Duration.ofSeconds(1))
+        .outcomes();
+    OpenQasmTarget target = new OpenQasmTarget(
+        "conforming-executor", 8, 100, (qasm, shots, seed) -> {
+          assertTrue(qasm.contains("h q[0];"));
+          assertEquals(32, shots);
+          assertEquals(17, seed);
+          return oracle;
+        });
+
+    QuantumResult result = target.submit(submission).await(Duration.ofSeconds(1));
+
+    assertEquals(oracle, result.outcomes());
+    assertEquals(
+        oracle.stream().filter(value -> value == 0).count(),
+        result.counts().getOrDefault(0L, 0L));
+    assertEquals(
+        oracle.stream().filter(value -> value == 1).count(),
+        result.counts().getOrDefault(1L, 0L));
+  }
+
+  @Test
   void symbolicBindingLowersToBoundOpenQasmAngle() {
     QuantumRegister register = new QuantumRegister(0, "q", 1);
     QuantumCircuit circuit = new QuantumCircuit(

@@ -271,7 +271,7 @@ The current `QuantumJob` API is an executable stage-0 slice of that lifecycle. M
 
 - [x] Descriptor canonicalization and fingerprints are stable, bounded, and independent of set construction order.
 - [x] Capability matching reports every missing required capability before submission.
-- [ ] The semantic simulator and a conforming OpenQASM executor agree on basis-state results and representative sampled circuits.
+- [x] The semantic simulator and a conforming OpenQASM executor agree on exact basis-state results and one representative fixed-seed Hadamard sample stream. The executor boundary receives the same QASM, shots, and seed.
 - [x] QFT and inverse-QFT circuits preserve expected behavior on the ideal target.
 - [x] Static parameter schema, binding values, register order, little-endian outcomes, shot counts, and result identity survive bytecode, ideal-target, and OpenQASM lowering round trips.
 - [ ] Mock jobs cover queueing, success, provider failure, cancellation request races, late results, recovery, timeout, malformed result, and adapter restart.
