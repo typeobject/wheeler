@@ -316,7 +316,7 @@ Quantum targets own execution evidence, not coverage interpretation. The proof k
 - [ ] Exclusion and threshold policy changes alter identity and remain visible in reports.
 - [ ] Terminal, JSON, LCOV, Cobertura, and website adapters disclose unsupported dimensions.
 - [ ] A self-hosted compiler test run emits source-through-native coverage without Java collection.
-- [ ] Current reference documentation describes only implemented coverage dimensions.
+- [x] `reference/coverage.md` documents only successful classical VM transition points, the canonical JSON report and identity, and current runner integration. It explicitly excludes source points, compound conditions, traps, lineage, shard reduction, quantum structure, proof duties, thresholds, and adapters.
 
 ## Alternatives
 

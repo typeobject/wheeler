@@ -298,7 +298,7 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 - [ ] Parallel shards merge to the byte-identical semantic report produced by serial execution.
 - [ ] Terminal, JSON, and JUnit XML adapters agree on semantic outcomes.
 - [ ] An end-to-end package suite compiles and tests the self-hosted compiler using no Java discovery.
-- [ ] Current reference documentation describes only implemented runner behavior.
+- [x] `reference/packages.md` and `reference/language-profile.md` describe only the implemented stage-0 runner: selected root tests, bounded scalar cases, fresh VMs, canonical order, identities, diagnostics, assertion attempts, transition coverage, and the zero-case report. Fixtures, generators, non-root modules, and adapters remain explicitly assigned to this WIP.
 
 ## Alternatives
 
