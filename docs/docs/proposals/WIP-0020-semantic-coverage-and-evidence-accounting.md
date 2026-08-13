@@ -311,8 +311,8 @@ Quantum targets own execution evidence, not coverage interpretation. The proof k
 - [x] Current quantum evidence accounting adds no measurement. It keeps exact-quantum, sampled-quantum, and proof evidence in distinct closed kinds, while circuit execution remains structural runtime evidence. Source-level typed collection remains with WIP-0018.
 - [ ] Proof coverage distinguishes lookup, obligation, rule execution, acceptance, and rejection.
 - [x] The current test reducer rejects duplicate case identities while merging shards. Hybrid replay consumes one reduced applied-observation map and performs no target submission, so duplicate event delivery and replay cannot inflate current case outcomes, measurements, jobs, or submissions. General quantum coverage counters remain.
-- [ ] Serial, randomized-worker, and distributed reductions emit byte-identical semantic reports.
-- [ ] Stripped/mismatched maps, invalid lineage, stale evidence, overflow, and exhausted limits fail closed.
+- [x] The accepted test-report reducer sorts by complete case identity, assigns shards from that digest, rejects duplicate terminal rows, and emits the same profile-2 semantic report identity for serial, reversed-arrival, and concurrently produced shards. Distributed transport and retry policy remain outside this slice.
+- [x] The accepted profile rejects duplicate and malformed identities, mismatched artifact or result lineage, stale target evidence, a 65,536th report row, oversized diagnostics, quantum results above eight MiB, and exhausted execution or event limits before report publication or continuation mutation. General source-map stripping remains.
 - [ ] Exclusion and threshold policy changes alter identity and remain visible in reports.
 - [ ] Terminal, JSON, LCOV, Cobertura, and website adapters disclose unsupported dimensions.
 - [ ] A self-hosted compiler test run emits source-through-native coverage without Java collection.
