@@ -28,6 +28,7 @@ import wheeler.compiler.resolved_less_than_assertions;
 import wheeler.compiler.resolved_literal_comparison_kinds;
 import wheeler.compiler.resolved_local_conditional_kinds;
 import wheeler.compiler.resolved_local_copy_kinds;
+import wheeler.compiler.resolved_local_loop_kinds;
 import wheeler.compiler.resolved_long_operations;
 import wheeler.compiler.scalar_helper_tables;
 import wheeler.compiler.sequences;
@@ -428,6 +429,10 @@ classical class ScalarHelperLibraries {
           write = true;
         }
 
+        if (resolvedLocalWhile(voidOpcode)) {
+          write = true;
+        }
+
         if (voidOpcode == STATEMENT_LOCAL_BYTES_ALLOCATE_NAMED) {
           write = true;
         }
@@ -511,6 +516,10 @@ classical class ScalarHelperLibraries {
         }
 
         if (resolvedLocalLongCopy(earlyOpcode)) {
+          validPrelude = true;
+        }
+
+        if (resolvedLocalWhile(earlyOpcode)) {
           validPrelude = true;
         }
 
