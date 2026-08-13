@@ -395,7 +395,7 @@ An optional `IoAction<Effects, Result>` or `QuantumAction<Input, Output, Effects
 - [ ] Controlled specializations execute where supported.
 - [ ] Generic adjoint commutation passes.
 - [ ] Bounds and proof evidence integrate.
-- [ ] Semantic quantum IR contains no dynamic dispatch.
+- [x] Canonical quantum operation records select stable gate descriptors, exact coherent function IDs, explicit preparation, measurement, and reset operands, or an exact conditional fixed gate. Runtime class or provider callable dispatch does not enter semantic IR.
 - [ ] Duplicate helper APIs are deleted.
 
 ## Testing and acceptance
@@ -407,7 +407,7 @@ An optional `IoAction<Effects, Result>` or `QuantumAction<Input, Output, Effects
 - [ ] Reversible composition uses inverse order and generic inverse commutes with specialization.
 - [ ] Intrinsic reversible bodies reject arbitrary allocation/release/foreign/measurement effects.
 - [ ] Coherent types require admitted exact finite encoding and complete bijection.
-- [ ] Coherent output contains no runtime class/callable dispatch.
+- [x] Coherent calls encode one verified numeric function identity and direction. Gate records encode stable semantic gate identities. Provider objects and runtime callable tables do not enter the quantum section.
 - [x] Canonical preparation, measurement, and reset records reject inverse or adjoint construction. Host submission remains a workflow operation. The invertible quantum operation set contains only fixed or symbolic gates, coherent calls, and accepted conditional fixed gates.
 - [x] Fixed, parameterized, lifted, and accepted conditional unitary operation records survive two generated adjoints as the exact original ordered semantic operation list. Preparation, measurement, and reset remain nonunitary and reject adjoint construction.
 - [ ] Generic adjoint commutes with specialization.
