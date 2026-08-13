@@ -1,6 +1,6 @@
 # I/O lifecycle
 
-[WIP-0032] specifies Wheeler's portable I/O contract(../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md). There is one request lifecycle. Files, sockets, storage tiers, RDMA, and quantum target adapters may define resource facts, but they do not get private futures, cancellation folklore, or a second event loop hidden behind the curtains.
+[WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md) specifies Wheeler's portable I/O contract. There is one request lifecycle. Files, sockets, storage tiers, RDMA, and quantum target adapters may define resource facts, but they do not get private futures, cancellation folklore, or a second event loop hidden behind the curtains.
 
 ## Executable stage-0 slice
 
