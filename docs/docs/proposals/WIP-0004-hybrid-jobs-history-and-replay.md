@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler runtime, history, and quantum maintainers |
 | Created | 2026-07-17 |
 | Updated | 2026-07-17 |
