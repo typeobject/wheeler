@@ -375,7 +375,7 @@ Promotion follows WIP-0007. The identity modules start with executable compiler 
 - [ ] Measurement tests distinguish coherent enum state from classical enum result and reject attempted uncall of measurement.
 - [x] Payload-free enums lower through canonical variant metadata, round-trip as `.wbc`, and match the equivalent empty-payload variant bytes. The verifier rejects unknown variant descriptors, case tags, payload counts, and payload field references through the ordinary nominal checks.
 - [x] Stage-0 compiler corpus tests and `treeSitterTest` parse every checked-in `.w` source after the constant and enum migration. The root syntax gate admits no second source spelling.
-- [ ] Stage-0 and Wheeler compilers agree on constant-substituted artifacts and diagnostics.
+- [x] Stage 0 and the bounded Wheeler compiler agree byte for byte on local and imported scalar constant substitution across the admitted module graphs and source orders. Stage 0 owns the wider malformed constant and finite-enum diagnostics until native parsing reaches that corpus.
 - [ ] Wheeler verifier/interpreter contain no unexplained raw protocol identities outside focused authority modules and malformed byte fixtures.
 - [x] The root `sourceLengthTest` rejects every authored Java, Wheeler, JavaScript, CSS, Gradle, query, shell, or Python file above 1,000 lines. Generated Tree-sitter products are excluded and remain reproducible from their grammar source.
 
