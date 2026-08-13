@@ -232,7 +232,7 @@ Reject noncanonical snapshots, invalid delegations, conflicting mappings, source
 - [ ] Reproducibility normalization passes.
 - [x] Divergent verified build output enters deterministic XDG quarantine and cannot replace the accepted PREV. Canonical bootstrap seed attestations independently bind source, output, and distinct builder identities. Recipe-level attestation policy remains.
 - [x] Signed snapshot authorization and automatic configured-repository enforcement implemented.
-- [ ] Compatibility checks, delegation, and threshold signature policy implemented.
+- [ ] Rich compatibility, namespace delegation, and threshold signatures remain. Stage 0 enforces exact source-profile compatibility, repository namespace authority, explicit trusted Ed25519 keys, and one required valid snapshot signature once trust is configured.
 - [ ] Recovery build consumes vendored snapshots/objects.
 - [ ] Duplicate authorities deleted.
 
