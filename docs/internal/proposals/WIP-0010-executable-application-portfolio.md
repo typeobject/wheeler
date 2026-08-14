@@ -397,7 +397,7 @@ Portfolio work follows these rules:
 ### Unified I/O and durable hybrid
 
 - [x] The quarantined stage-0 portfolio executes WIP-0032 request purity, await, batch, selection, dependency graphs, positional buffers, bounded threaded overlap, cancellation races, uncertainty, malformed progress, capacity exhaustion, and receipt monotonicity. Native source effects remain.
-- [ ] Recoverable iterative optimizer lifecycle matrix.
+- [x] The checked-in `QuantumOptimizer.w` now runs through a lifecycle matrix over a real `StateVectorTarget`: waiting snapshot encoding, decode and provider-job recovery without resubmission, completion and commit, replay without target access, retry under new branch and submission lineage, and cancellation after immediate provider completion with late-result quarantine. Every path retains exact globals and measurements or one explicit terminal status.
 - [ ] Calibration-aware compiler.
 - [ ] Adaptive replay decision tree.
 - [ ] Compensation fixture.

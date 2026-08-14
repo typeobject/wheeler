@@ -304,7 +304,7 @@ Expected result: result slot zero contains `1`, and `measured = 0` after correct
 
 Source: [`QuantumOptimizer.w`](../../wheeler-examples/src/main/wheeler/quantum/QuantumOptimizer.w).
 
-Covers: Two target observations, reversible acceptance update, commit, and target-free replay.
+Covers: Two target observations, reversible acceptance update, waiting-snapshot persistence, provider-job recovery without resubmission, commit, target-free replay, branched retry, and cancellation with late-result quarantine.
 
 Expected result: `sample = 1`, `bestCost = 1`, `accepted = 1`.
 

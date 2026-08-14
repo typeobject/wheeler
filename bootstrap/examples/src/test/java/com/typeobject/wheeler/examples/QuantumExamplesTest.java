@@ -2,6 +2,9 @@ package com.typeobject.wheeler.examples;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
@@ -12,6 +15,10 @@ import com.typeobject.wheeler.core.proof.ProofRule;
 import com.typeobject.wheeler.runtime.ExecutionResult;
 import com.typeobject.wheeler.runtime.WheelerRuntime;
 import com.typeobject.wheeler.runtime.hybrid.HybridRun;
+import com.typeobject.wheeler.runtime.hybrid.HybridRunException;
+import com.typeobject.wheeler.runtime.hybrid.HybridRunStore;
+import com.typeobject.wheeler.runtime.hybrid.RunStatus;
+import com.typeobject.wheeler.runtime.hybrid.TransactionPhase;
 import com.typeobject.wheeler.runtime.quantum.DynamicCircuitResult;
 import com.typeobject.wheeler.runtime.quantum.DynamicStateVectorSimulator;
 import com.typeobject.wheeler.runtime.quantum.DynamicStateVectorTarget;
@@ -89,17 +96,39 @@ class QuantumExamplesTest {
   }
 
   @Test
-  void optimizerObservationsReplayWithoutAnotherTargetSubmission() throws Exception {
+  void optimizerLifecycleCoversRecoveryReplayRetryCancellationAndCommit() throws Exception {
     Program program = new WheelerCompiler().compile(
         Path.of("src/main/wheeler/quantum/QuantumOptimizer.w"));
     StateVectorTarget target = new StateVectorTarget();
-    HybridRun run = HybridRun.start(program, target);
-    ExecutionResult recorded = run.runToCompletion(Duration.ofSeconds(1));
+    HybridRun original = HybridRun.start(program, target);
+    original.beginTransaction();
+    assertEquals(RunStatus.WAITING, original.advance());
+    byte[] encoded = new HybridRunStore().encode(original.snapshot());
+    HybridRun restored = HybridRun.restore(
+        program, target, new HybridRunStore().decode(encoded));
 
-    ExecutionResult replayed = HybridRun.replay(program, run.snapshot());
-
+    ExecutionResult recorded = restored.runToCompletion(Duration.ofSeconds(1));
+    assertEquals(TransactionPhase.COMMITTED, restored.transactionPhase());
+    assertThrows(HybridRunException.class, restored::abortTransaction);
+    ExecutionResult replayed = HybridRun.replay(program, restored.snapshot());
     assertEquals(recorded.globals(), replayed.globals());
     assertEquals(recorded.measurements(), replayed.measurements());
+
+    HybridRun retried = HybridRun.start(program, new StateVectorTarget());
+    assertEquals(RunStatus.WAITING, retried.advance());
+    String firstBranch = retried.activeBranch();
+    retried.retry();
+    assertNotEquals(firstBranch, retried.activeBranch());
+    retried.runToCompletion(Duration.ofSeconds(1));
+    assertEquals(RunStatus.COMPLETED, retried.status());
+
+    HybridRun cancelled = HybridRun.start(program, new StateVectorTarget());
+    assertEquals(RunStatus.WAITING, cancelled.advance());
+    assertFalse(cancelled.cancel());
+    assertEquals(RunStatus.CANCELLED, cancelled.status());
+    assertThrows(
+        HybridRunException.class,
+        () -> cancelled.resume(Duration.ofSeconds(1)));
   }
 
   static Stream<Arguments> examples() {
