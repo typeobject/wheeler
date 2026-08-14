@@ -15,7 +15,7 @@
 
 The native compiler shall consume the canonical compiler package closure without an arity-shaped frame. WIP-0043 proved graph-complete execution for the seven-source recovery frame. This WIP replaces that transport bound with counted closure tables already validated by bootstrap evidence.
 
-The target is the physical compiler closure, not an intermediate collection of larger tuples. The current closure has 315 local modules and 1,505 imports. Native closure metadata already admits 512 local modules, sixty-four externals, 3,072 imports, and 262,144 canonical manifest bytes. Package-target validation admits 512 targets, 8,192 source selectors, 512 dependencies, 512 capabilities, and 131,072 tokens within the same manifest-byte ceiling. The compiler shall use those facts instead of reconstructing another graph format.
+The target is the physical compiler closure, not an intermediate collection of larger tuples. The current closure has 315 local modules and 1,506 imports. Native closure metadata already admits 512 local modules, sixty-four externals, 3,072 imports, and 262,144 canonical manifest bytes. Package-target validation admits 512 targets, 8,192 source selectors, 512 dependencies, 512 capabilities, and 131,072 tokens within the same manifest-byte ceiling. The compiler shall use those facts instead of reconstructing another graph format.
 
 ## Problem
 
@@ -168,7 +168,7 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 
 - The counted closure executor reproduces every seven-frame differential byte for byte.
 - A 257-module chain crosses the former native closure boundary and publishes correctly.
-- The current 317-module compiler closure plans without truncation.
+- The current 318-module compiler closure plans without truncation.
 - Module and import order are invariant under archive-entry permutation.
 - Invalid archive, manifest, source identity, root, offset, cycle, or bound publishes nothing.
 - Active work slots cannot be read after release or stale generation.
