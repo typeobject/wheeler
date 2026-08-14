@@ -533,18 +533,33 @@ class SourceProfileNegativeTest {
 
   @Test
   void rejectsOutputLengthChangesOutsideTheEntry() {
-    CompilerException exception = assertThrows(
+    String hidden = """
+        classical class HiddenOutput {
+          KIND void resize(borrow mut bytes output, long length) {
+            setOutputLength(output, length);
+          }
+          entry void main(borrow mut bytes output) { }
+        }
+        """;
+    CompilerException ordinary = assertThrows(
         CompilerException.class,
-        () -> new WheelerCompiler().compile("""
-            classical class HiddenOutput {
-              void resize(borrow mut bytes output, long length) {
-                setOutputLength(output, length);
-              }
-              entry void main(borrow mut bytes output) { resize(output, 1); }
-            }
-            """));
+        () -> new WheelerCompiler().compile(hidden.replace("KIND ", "")));
+    CompilerException reversible = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile(hidden.replace("KIND", "rev")));
+    CompilerException coherent = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile(hidden.replace("KIND", "coherent rev")));
+    CompilerException unitary = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile(hidden
+            .replace("classical class", "quantum class")
+            .replace("KIND", "unitary")));
 
-    assertTrue(exception.getMessage().contains("output length requires the entry"));
+    assertTrue(ordinary.getMessage().contains("output length requires the entry"));
+    assertTrue(reversible.getMessage().contains("reversible void parameters are not yet available"));
+    assertTrue(coherent.getMessage().contains("parameters and returns are not yet available"));
+    assertTrue(unitary.getMessage().contains("parameters and returns are not yet available"));
   }
 
   @Test

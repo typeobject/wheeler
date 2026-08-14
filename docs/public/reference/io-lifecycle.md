@@ -45,6 +45,8 @@ Inline submission may produce terminal completion before `submit` returns. Delay
 
 `IoDeadline` takes an explicit semantic tick rather than reading wall time. Expiry requests cancellation once. It may establish cancellation before effect, completion winning the race, known partial effect, or uncertainty. Expiry alone never proves that no effect occurred.
 
+The accepted source profile grants physical host input and output only to `entry`. `setOutputLength` requires the exact entry output owner. An entry cannot also be `rev`, `coherent rev`, `unitary`, or `test`, and theorem declarations contain no executable body. The compiler rejects helper and reversible or quantum method attempts before bytecode publication. Stage-0 `IoRequest` is host scaffolding, not an ambient Wheeler source API.
+
 `IoEffectBoundary.acceptLive` accepts one terminal live-I/O completion at an explicit workflow boundary. It binds the completion facts into a content identity and cuts the VM rewind tail while retaining current machine state. `IoCompensation` prepares a second request from one effect-bearing completion. Its action does not run during construction. Successful evidence receives a distinct compensation receipt, and acceptance establishes another `COMPENSATION` boundary. Failed compensation cannot establish that boundary. Neither operation claims inverse execution or removes the original external effect.
 
 Terminal kind and cancellation relation are separate closed enums. The executable model distinguishes:
