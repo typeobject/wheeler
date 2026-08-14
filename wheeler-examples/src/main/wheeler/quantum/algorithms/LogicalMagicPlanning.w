@@ -16,6 +16,8 @@ classical class LogicalMagicPlanning {
   state long targetCycles = 0;
 
   /// Closes exact state demand and factory cycles without treating either as a gate count.
+  ///
+  /// - Inverse: Clears the exact target cycles, factory batches, and state demand.
   rev void closePlan() {
     magicStates += 5;
     factoryBatches += 2;
@@ -23,6 +25,8 @@ classical class LogicalMagicPlanning {
   }
 
   /// Runs the bounded logical-resource planning fixture.
+  ///
+  /// - Effects: Mutates only the fixture's declared planning state.
   entry void main() {
     closePlan();
     assert(logicalQubits == 3);
