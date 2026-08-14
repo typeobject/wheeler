@@ -656,6 +656,8 @@ A failed resource check emits no partial verified callable, proof certificate, t
 ## Progress
 
 - [ ] Core resource metric profiles are accepted.
+  - [x] `LogicalResourcePlan` owns one exact bounded logical slice with distinct qubit, layer, Clifford, T, measurement, T-depth, magic-state, factory-batch, and target-cycle dimensions. It closes immutable layers against content-identified factory capacity and rejects insufficient factory or cycle bounds before plan identity publication.
+  - [ ] Move the accepted slice into compiler-owned `.wbc` profiles, then add the classical, storage, history, workflow, proof, and physical-model dimensions required by this WIP.
 - [ ] Resource expressions parse and encode canonically.
 - [ ] Closed declarations receive derived profiles.
 - [ ] Generic formulas close after specialization.
@@ -680,6 +682,7 @@ A failed resource check emits no partial verified callable, proof certificate, t
 - [ ] Peak logical qubits differ from the sum of all child qubit counts in an acceptance fixture.
 - [ ] History bytes, explicit witnesses, and clean workspace remain separate dimensions.
 - [ ] Exact logical resources, modeled physical resources, and empirical runtime remain distinct evidence types.
+  - [x] The accepted logical slice emits no code-distance, decoder, hardware-fidelity, or wall-clock fact. Its public reference names those absences.
 - [x] Target qubit and shot ceilings reject before job allocation. Batch preflight validates every member before the first submission, and canonical provider material above eight MiB rejects before continuation mutation. Depth and complete symbolic-profile planning remain.
 - [ ] Current reference docs describe the clauses only after implementation.
 
