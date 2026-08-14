@@ -642,7 +642,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 
 ### Tier and RDMA honesty
 
-- [ ] `Staged` names its tier and failure domain and cannot be treated as durable.
+- [x] `StagedData` binds exact content, byte count, named tier, named failure domain, and prior placement identity. It is deterministic placement evidence with no subtype, conversion, constructor, or promotion path to `DurabilityReceipt`.
 - [ ] Drains retain source leases and preserve known partial receipts on failure.
 - [ ] Remote advertisements are unforgeable, bounded, right-checked, and epoch-checked.
 - [ ] One-sided placement, peer acknowledgement, peer application, and persistence remain distinct.

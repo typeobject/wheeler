@@ -77,6 +77,8 @@ The native transition table rejects second completion, completion before resourc
 
 A `WriteCompleted` value proves only that the in-memory copy completed. Calling it durable would be like calling a register assignment a successful fsync: energetic, but not useful.
 
+`StagedData` is likewise placement evidence, not durability. It binds exact content and byte count to one named tier, one named failure domain, and an optional prior placement identity. Restaging forms a content-identified ancestry chain. The type has no conversion or promotion path to `DurabilityReceipt`. A caller still needs the exact evidence sequence below before making stability claims.
+
 ## Batches, selection, and graphs
 
 A batch is independent work and adds no ordering edges. Selection reaps one canonical terminal operation and returns every nonselected operation to the caller. Nothing is detached merely because it lost a race.
