@@ -200,7 +200,11 @@ Construction, nominal equality, exhaustive matching, artifact metadata, VM value
 
 Enum cases have no integer ordinal or wire value. The compiler sorts cases by name for semantic output, so source reordering does not change `.wbc`.
 
-Protocol numbers belong in named constants and explicit encode or decode functions. Quantum basis identity and reversible finite permutations remain planned WIP-0017 work.
+Protocol numbers belong in named constants and explicit encode or decode functions.
+
+`FiniteEnumPermutation` is the stage-0 checker for reversible and coherent finite mappings. It consumes one canonical payload-free `VariantType` plus an exact case-name map. It requires every input and output once, derives the inverse table, and binds the type and mapping under separate content identities. It accepts no declaration-order ordinal or protocol integer. The conformance corpus enumerates all twenty-four mappings of a four-case enum and rejects missing, unknown, duplicate, payload-bearing, and noncanonical products.
+
+Coherent use requires an exact power-of-two case count. Canonical qualified case-name order defines the amplitude basis and qubit width. Forward permutation agrees with an independent amplitude oracle, and the generated adjoint restores every real and imaginary amplitude. The checker rejects a non-power-of-two cardinality before allocating an output state. Exact basis measurement returns a separate nominal `MeasuredCase`, not a coherent value, and provides no inverse or `uncall` operation. Typed `rev` enum parameters and compiler circuit synthesis remain part of WIP-0031 rather than a second enum representation.
 
 ## Value records
 
