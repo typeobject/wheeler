@@ -306,10 +306,10 @@ The launcher grants read-only source inputs and one atomic artifact destination.
 - [ ] Stage 1 and stage 2 `.wbc` artifacts are byte-identical in clean CI.
 - [ ] Stage 0, stage 1, and stage 2 produce identical artifacts for every accepted example.
 - [ ] All stages produce the same stable diagnostics for the negative corpus.
-- [ ] Bootstrap succeeds under at least two supported host JDKs and clean environments without path-dependent output.
-- [ ] Randomized source whitespace and comment placement preserve artifact bytes where source maps are disabled.
+- [x] Canonical CI reproduces the alternate stage 0, builds the complete workspace, and emits the same verified artifact tree under Temurin and Zulu JDK 26 on separate clean workers. The final job compares every output byte before accepting the run, and build identities exclude checkout paths.
+- [x] Thirty-two deterministic pseudo-random whitespace, line-comment, and block-comment layouts reproduce the baseline source-map-free artifact bytes in stage 0 and the Wheeler compiler.
 - [ ] Deterministic collection tests vary insertion history and host hash seeds.
-- [ ] Compiler memory, stack, token, diagnostic, and step limits fail before partial output.
+- [x] The accepted compiler profile enforces source, token, statement, local, function, call, recursion, arena, artifact, output, history, and transition ceilings before publication. Boundary and first-excess fixtures require untouched output after failure. Wider closure profiles retain their own explicit bounds.
 - [ ] Malformed UTF-8, literal overflow, deep nesting, cyclic imports, duplicate symbols, and malformed bytecode fail identically.
 - [ ] The self-hosted compiler emits classical, coherent, quantum, and hybrid examples accepted by the independent verifier.
 - [ ] The recovery seed can rebuild its successor from a clean checkout.
