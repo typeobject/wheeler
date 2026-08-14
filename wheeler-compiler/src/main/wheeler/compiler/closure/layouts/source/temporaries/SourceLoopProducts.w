@@ -692,4 +692,72 @@ classical class SourceLoopProducts {
 
     return new SourceLoopProductPlan(statementCount, conditionCount, loopCount, true);
   }
+
+  /// Merges one five-local frame width for every uniquely joined loop statement.
+  public boolean materializeLoopFrameWidths(
+    long loopCount,
+    borrow mut words loopRows,
+    long statementCount,
+    borrow mut words statementRows,
+    borrow mut words statementPhysicalWidths
+  ) {
+    assert(-1 < loopCount);
+    assert(loopCount < LOOP_COUNT_LIMIT + 1);
+    assert(bufferLength(loopRows) == LOOP_ROWS);
+    assert(-1 < statementCount);
+    assert(statementCount < MAX_STATEMENTS + 1);
+    assert(bufferLength(statementRows) == STATEMENT_ROWS);
+    assert(bufferLength(statementPhysicalWidths) == MAX_STATEMENTS);
+
+    region staging = new region(/* bytes= */ 32768, /* allocations= */ 1);
+    words stagedWidths = allocate(staging, MAX_STATEMENTS);
+    long statement = 0;
+    while (statement < MAX_STATEMENTS) limit MAX_STATEMENTS {
+      set(stagedWidths, statement, statementPhysicalWidths[statement]);
+      statement += 1;
+    }
+
+    boolean valid = true;
+    long loop = 0;
+    while (loop < loopCount) limit LOOP_COUNT_LIMIT {
+      long selected = -1;
+      long matches = 0;
+      statement = 0;
+      while (statement < statementCount) limit MAX_STATEMENTS {
+        if (statementRows[statement] == loopRows[loop]) {
+          if (
+            statementRows[STATEMENT_ORDINAL_ROW + statement] == loopRows[LOOP_STATEMENT_ORDINAL_ROW
+              + loop]
+          ) {
+            if (0 < statementRows[STATEMENT_CHILD_COUNT_ROW + statement]) {
+              selected = statement;
+              matches += 1;
+            }
+          }
+        }
+
+        statement += 1;
+      }
+
+      if (matches != 1) {
+        valid = false;
+      } else {
+        set(stagedWidths, selected, 5);
+      }
+
+      loop += 1;
+    }
+
+    if (valid) {
+      statement = 0;
+      while (statement < MAX_STATEMENTS) limit MAX_STATEMENTS {
+        set(statementPhysicalWidths, statement, stagedWidths[statement]);
+        statement += 1;
+      }
+    }
+
+    drop(stagedWidths);
+    drop(staging);
+    return valid;
+  }
 }

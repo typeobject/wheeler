@@ -166,6 +166,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
     }
     assertEquals(directTypeCount, machine.global("directTypeCount"));
     assertEquals(1, machine.global("directWidthsValid"));
+    assertEquals(1, machine.global("loopFrameWidthsValid"));
     assertEquals(directTypeCursor, machine.global("composedOutputStart"));
 
     int composedCursor = directTypeCursor;
@@ -294,6 +295,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
           state long directLength = 0;
           state long directTypeCount = 0;
           state long directWidthsValid = 0;
+          state long loopFrameWidthsValid = 0;
           state long directOutputStart = 0;
           state long directTypeOutputStart = 0;
           state long composedInstructionCount = 0;
@@ -524,6 +526,17 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               directTypes,
               directCode
             );
+            boolean frameWidthsValid = materializeLoopFrameWidths(
+              loopPlan.loopCount,
+              loops,
+              loopPlan.statementCount,
+              statements,
+              statementPhysicalWidths
+            );
+            assert(frameWidthsValid);
+            if (frameWidthsValid) {
+              loopFrameWidthsValid = 1;
+            }
             if (directPlan.valid) {
               directValid = 1;
               boolean widthsValid = true;

@@ -303,6 +303,14 @@ classical class StructuredSourceModuleCompiler {
       directCode
     );
     assert(directPlan.valid);
+    boolean frameWidthsValid = materializeLoopFrameWidths(
+      loopPlan.loopCount,
+      sourceLoops,
+      loopPlan.statementCount,
+      statements,
+      statementPhysicalWidths
+    );
+    assert(frameWidthsValid);
     CallableSourceCompositionPlan composition = composeCallableSourceProducts(
       callableCount,
       loopPlan.statementCount,
