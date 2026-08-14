@@ -137,6 +137,16 @@ Covers: A mutable four-node adjacency table, a deterministic signed map for vers
 
 Expected result: every node has version `2`, `rebuilds = affected = 4`, `cycleRejected = 4`, and `transactionPhase = 2`.
 
+### `TransactionalPersistentIndex.w`
+
+Source: [`TransactionalPersistentIndex.w`](../../wheeler-examples/src/main/wheeler/classical/control/TransactionalPersistentIndex.w).
+
+Covers: Copy-on-write root staging, root-before-marker commit ordering, deterministic transaction identities, tagged duplicate rejection, an injected marker-free torn record, bounded committed-record scanning, and reopen of the latest complete root.
+
+Expected result: `committedRoot = stagedRoot = reopenedRoot = 11`, `reopenedSequence = commitMarkerObserved = duplicateRejected = 1`, and `tornRecovered = 2`.
+
+This source fixture models the canonical recovery protocol in bounded owned storage. It does not claim native file durability or process-crash qualification.
+
 ### `IntegerWaveletTransform.w`
 
 Source: [`IntegerWaveletTransform.w`](../../wheeler-examples/src/main/wheeler/classical/data/IntegerWaveletTransform.w).

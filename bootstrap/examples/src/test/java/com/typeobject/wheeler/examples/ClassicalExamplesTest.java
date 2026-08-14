@@ -50,13 +50,16 @@ class ClassicalExamplesTest {
           "CoreLongMap.w",
           "collections/LongMap.w",
           "examples.collections.long_map_main");
-    } else if (name.equals("EventReducer.w")) {
+    } else if (name.equals("EventReducer.w")
+        || name.equals("TransactionalPersistentIndex.w")) {
       program = compileCoreExample(
           compiler,
           source,
           "CoreLongMap.w",
           "collections/LongMap.w",
-          "examples.events.reducer");
+          name.equals("EventReducer.w")
+              ? "examples.events.reducer"
+              : "examples.index.transactional");
     } else if (name.equals("IncrementalDependencyGraph.w")) {
       program = compiler.compileModuleFiles(
           Map.of(
@@ -191,6 +194,16 @@ class ClassicalExamplesTest {
         Arguments.of("text/FrozenUtf8.w", Map.of(
             "byteLength", 6L, "scalarCount", 3L, "middleScalar", 8364L, "valid", 1L)),
         Arguments.of("classical/control/FunctionValues.w", Map.of("result", 10L)),
+        Arguments.of(
+            "classical/control/TransactionalPersistentIndex.w",
+            Map.of(
+                "committedRoot", 11L,
+                "stagedRoot", 11L,
+                "reopenedRoot", 11L,
+                "reopenedSequence", 1L,
+                "duplicateRejected", 1L,
+                "tornRecovered", 2L,
+                "commitMarkerObserved", 1L)),
         Arguments.of(
             "classical/control/IncrementalDependencyGraph.w",
             Map.of(

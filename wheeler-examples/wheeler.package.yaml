@@ -163,6 +163,13 @@ targets:
     root: "src/main/wheeler/quantum/SurfaceCode.w"
     test: false
   - kind: "deployable"
+    name: "transactionalpersistentindex"
+    root: "src/main/wheeler/classical/control/TransactionalPersistentIndex.w"
+    module: "examples.index.transactional"
+    sources:
+      - "src/main/wheeler/classical/control/TransactionalPersistentIndex.w"
+    test: false
+  - kind: "deployable"
     name: "utf8lexer"
     root: "src/main/wheeler/text/Utf8Lexer.w"
     module: "examples.lexer.main"
