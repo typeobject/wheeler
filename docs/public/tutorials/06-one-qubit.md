@@ -1,34 +1,34 @@
 ---
 sidebar_position: 7
 title: One Qubit
-description: A two-outcome physical system earns basis states, amplitudes, interference, phase, and measurement.
+description: At Sable, one small physical system opens a larger world of amplitude, phase, and interference.
 tutorial_id: CH06
 tutorial_steps: T36,T37,T38,T39,T40,T41,T42,T43,T44,T45,T46,T47,T48,T49,T50
 tutorial_part: one-qubit
 tutorial_order: 6
-tutorial_kind: exact-quantum-sequence
-tutorial_source: primary-fences
+tutorial_kind: intended-quantum-sequence
+tutorial_source: intended-primary-fences
 tutorial_expectation: one-qubit-model
-tutorial_evidence: ideal-state-and-seeded-samples
+tutorial_evidence: ideal-model-and-intended-seeded-samples
 ---
 
 # One Qubit
 
-Below *Vela*, the far instrument rotated like a piece of dark glass set into the orbit of Sable. The moon turned irregularly
-beneath it, a captured stone that had never settled into the courteous motion expected of native satellites. No habitation ring
-softened the station's outline. Its spin section was buried in the shadow of its own shield. Its laboratories extended on trusses
-far enough apart that one refrigeration failure would not warm the others.
+Below *Vela*, the far instrument turned like dark glass in Sable's orbit. The captured moon rolled beneath it without the courteous
+regularity of a native satellite. No habitation ring softened the station. Its spin section hid in shield-shadow. Laboratories
+stood far apart on trusses, so one failed refrigerator could not warm the next.
 
-Five people lived there. They grew mushrooms in the warm return lines, voted monthly on which delayed broadcasts to download, and
-measured a bad year by how many replacement parts had to be machined from something else. Every personal message shared bandwidth
-with target telemetry. Every cup of water crossed the same accounting boundary as the vacuum pumps.
+Five people lived there. Mushrooms grew along the warm return lines. Once a month they voted on which delayed broadcasts deserved
+the bandwidth. A bad year was measured in parts machined from other parts.
 
-The station existed to prepare small physical systems, transform them under controlled fields, and measure what survived the
-encounter. Its current calibration would let Catenary's traffic network separate beacon phase drift from the charged-particle
-weather approaching the inner orbits. That result, rather than the elegance of the machine, was why *Vela* had crossed the reach.
+Personal messages shared a channel with target telemetry. Drinking water appeared in the same accounts as the vacuum pumps.
+
+The station prepared small physical systems, worked upon them with controlled fields, and measured what came out. Catenary needed
+the comparison to distinguish drifting beacons from the charged weather moving toward the inner orbits. That need, not the machine's
+elegance, had carried *Vela* across the reach.
 
 Iona met the crew at the inner lock. She wore no uniform, only a gray work coat with conductive thread bright at the cuffs, and
-looked first at the evidence case in Sana's hand.
+looked first at the record case in Sana's hand.
 
 "The Archive signed it?"
 
@@ -36,29 +36,41 @@ looked first at the evidence case in Sana's hand.
 
 "Better. Signatures make them sentimental."
 
-A slight change in Iona's expression suggested that the answer restored an older confidence. During the instrument's first winter,
-a corrupted parts manifest had left her with three thousand fasteners of the wrong alloy and a beautifully signed explanation.
-She had corresponded with Sana ever since, mostly by attaching increasingly specific questions to rejected records.
+Something in Iona's face eased. During the instrument's first winter, a corrupt manifest had delivered thousands of fasteners in
+the wrong alloy and a beautifully signed explanation. She and Sana had corresponded ever since, mostly through questions attached
+to rejected paperwork.
 
-Only then did she look at Osei. He opened a padded case and offered two bearing sensors, one built for the mounting he remembered and
-one for the revision installed after he left. Carrying both had cost *Vela* mass Mara could have sold to cargo.
+Only then did she look at Osei. He opened a padded case: two bearing sensors, one for the mounting he remembered, one for the
+revision installed after he left. Mara had surrendered cargo mass for both and had not suffered in silence.
 
 Iona selected the revised part. "You checked."
 
 "Eventually."
 
-Her thumb remained against the sealed case for a moment before she passed it to a technician. No embrace would have told Tala as
+"He brought both," Mara said. "Eventually weighed four kilograms."
+
+The sensor would keep the west bearing within its safe range. It would not give the outbound laser its old precision. That needed a
+new race, a cargo berth, a long shutdown, none available now.
+
+Radio would carry summaries. *Vela* would carry the weight.
+
+Iona's thumb remained against the sealed case for a moment before she passed it to a technician. No embrace would have told Tala as
 much about the years between them.
 
-Iona led them down a corridor whose local down shifted as the station turned. Frost feathered one wall behind a warning grid. At
-the laboratory entrance they exchanged ship clothing for clean layers and passed through two fields that removed the dust Sable
-lifted even in vacuum. One shielded device occupied the center of an otherwise empty room.
+Iona led them down a corridor where *down* moved gently beneath their feet. Frost feathered one wall behind a warning grid. At the
+laboratory they changed into clean layers and passed through fields that stripped away the dust Sable raised even in vacuum.
 
-Its controlled system had two distinguished measurement outcomes. The instrument labeled them `0` and `1`. Those labels formed the
-**computational basis**, written `|0>` and `|1>` when they named quantum states rather than classical integers.
+One shielded device stood at the center of an empty room. Mara asked what the empty floor had cost. Iona told her. The architecture
+received no further review.
 
-In Dirac notation, the vertical mark and angle bracket formed a ket. `|0>` was read "ket zero." It did not claim that a tiny
-written zero lived inside the device.
+Before touching the chamber, Iona opened its ideal simulator. Both accepted the same Wheeler operations. Only one forgave mistakes
+for free.
+
+The modeled system offered two distinguished outcomes, labeled `0` and `1`. Together they formed the **computational basis**. As
+quantum states rather than ordinary integers, they were written `|0>` and `|1>`.
+
+The vertical line and angle bracket formed a *ket*. `|0>` was read "ket zero." The notation named a state. No tiny numeral lived
+inside the device.
 
 Wheeler represented the system with one quantum register.
 
@@ -75,24 +87,29 @@ quantum class KnownZero {
 }
 ```
 
-`qreg q = new qreg(1)` declared a register containing one qubit. `prepare(q, 0)` established the known basis state `|0>`. The
-measurement produced one classical outcome and stored it in `measured`.
+`qreg q = new qreg(1)` made room for one qubit. `prepare(q, 0)` placed it in the known state `|0>`. Measurement ended with a
+classical outcome stored in `measured`.
 
 ```text
-KnownZero (quantum) halted
+KnownZero (quantum) halted after 4 steps
 measured = 0
 measurements = [0]
 ```
 
-A single run established one outcome. The device made no celebratory sound. A green boundary appeared around the record, and the
-refrigeration plant continued its low structural hum.
+One run. One outcome. The simulator offered no fanfare. A green border appeared around the report. Across the room, the physical
+chamber continued its expensive hum, innocent of participation.
 
-Target interfaces called one complete preparation, operation, and measurement trial a **shot**. Iona requested 256 shots, each of
-which created fresh state and a complete execution. Measuring the already measured system 256 times would not have been the same
-experiment.
+"Most expensive room I have ever used to run software," Mara said.
+
+"You did not use the room," Iona replied.
+
+"That has not reduced its cost."
+
+A fresh preparation, its operations, and one measurement made a **shot**. Iona requested 256. Each began again. Re-reading one
+already measured qubit would have been a different experiment entirely.
 
 ```bash
-wheeler run tutorial/KnownZero.wbc \
+wheeler run manual/KnownZero.wbc \
   --target ideal \
   --shots 256 \
   --seed 271828
@@ -103,8 +120,8 @@ wheeler run tutorial/KnownZero.wbc \
 1 |                                                                  0
 ```
 
-Under the ideal model, this preparation and basis predicted certainty. Hardware could later depart from the ideal through noise and
-imperfect control, but no uncertainty had yet entered the semantic experiment.
+In the ideal model, this preparation ended at zero with certainty. Real controls would later introduce noise. Here, the mathematics
+had not.
 
 Mara recognized the next operation before Tala did. `X` exchanged the two basis states just as the finite flip had exchanged
 classical `0` and `1`.
@@ -123,15 +140,15 @@ quantum class BasisFlip {
 }
 ```
 
-On the computational basis, the table was familiar.
+On basis states, the old flip returned in a new machine.
 
 | Input state | After `X` |
 | --- | --- |
 | ket zero | ket one |
 | ket one | ket zero |
 
-That resemblance had a boundary. A classical bit always occupied one of its allowed values in the classical model. A qubit required
-more states than the two basis labels could name.
+The resemblance ended there. A classical bit occupied one of its two values. Two labels were not enough to describe every qubit
+state.
 
 Iona introduced `H`, the Hadamard operation, without defining those states in advance.
 
@@ -148,39 +165,41 @@ quantum class HadamardSample {
 }
 ```
 
-Before the next run, Iona asked for predictions. Mara expected the two bars to balance exactly because the target was ideal. Osei
-expected both outcomes but would not name counts. Sana wrote only the scope of the record they were about to create. Tala, still
-remembering the long count, predicted variation around equal frequencies.
+Iona asked for predictions. Mara wanted equal bars because the simulator was ideal. Osei expected both outcomes and refused the
+counts. Sana wrote down what, precisely, they were about to do.
 
-She ran 1,024 fresh shots with a declared seed.
+"You are all finding different ways not to commit," Iona said.
+
+Remembering the long count, Tala predicted uneven bars around an even model. Specific enough to fail. Modest enough to keep.
+
+She ran 1,024 fresh shots with the seed fixed in advance.
 
 ```bash
-wheeler run tutorial/HadamardSample.wbc \
+wheeler run manual/HadamardSample.wbc \
   --target ideal \
   --shots 1024 \
   --seed 314159
 ```
 
 ```text
-0 | ################################################### 509
-1 | #################################################### 515
+0 | #################################################### 516
+1 | ###################################################  508
 ```
 
-Mara conceded the six-count imbalance without complaint. Every shot still ended in one classical outcome. The histogram
-approached equal frequencies, yet nothing in a single outcome identified the state that existed before measurement. Calling the
-qubit a hidden coin would reproduce the counts and fail the next experiment.
+Mara inspected the word *ideal* for loopholes, then conceded the eight-count difference. Each shot still ended in one classical
+answer. No single answer revealed the state before measurement. A hidden coin could mimic these bars, and fail the next test.
 
-During a cooling pause, Iona took them to the station galley. Five place settings had become nine by borrowing dishes from the
-machine shop. Osei opened one cabinet without asking and found spare filters where cups had once been. Iona pointed to the opposite
-wall. His chipped blue cup remained in the common rack, worn by use rather than preserved. She filled it and set it at the place
-beside hers.
+During a cooling pause, they went to the galley. Borrowed machine-shop dishes stretched five places to nine. Osei opened the old
+cupboard without asking and found filters. Iona pointed across the room.
+
+His chipped blue cup remained in the common rack, not preserved. Used. She filled it and set it beside her own.
 
 Sable rolled across the ceiling window, its surface black except where old prospecting charges had exposed pale veins. The residents
 asked about Catenary's gardens and whether the Archive still served the impossible broth. Nobody asked whether the experiment had
 worked. At the instrument, that question was considered too broad for a meal.
 
-Only the ideal simulator could expose its mathematical state before measurement. That diagnostic belonged to the simulator, not
-to an ordinary hardware observation.
+The simulator could show the mathematical state before measurement. Hardware would not. That privileged view belonged to the
+model.
 
 ```text
 basis   amplitude
@@ -188,7 +207,7 @@ basis   amplitude
 |1>     +0.7071067811865475
 ```
 
-Each row carried an **amplitude**. The state after `H` on `|0>` was therefore written
+Each row carried an **amplitude**: a contribution, now attached to a basis state. After `H`, the state was written
 
 ```text
 (|0> + |1>) / sqrt(2)
@@ -200,8 +219,8 @@ or, more compactly,
 H|0> = (|0> + |1>) / sqrt(2)
 ```
 
-A state with nonzero amplitudes on more than one basis state was a **superposition** in that basis. The term named the amplitude
-description. It did not mean that measurement would report two outcomes in one shot.
+Nonzero amplitudes on several basis states made a **superposition** in that basis. The word described the state before measurement.
+it did not promise several answers afterward.
 
 Probability came from squared amplitude magnitude. Both real amplitudes had magnitude `1 / sqrt(2)`, so each basis outcome had
 probability `1/2`.
@@ -210,14 +229,13 @@ probability `1/2`.
 |1 / sqrt(2)|^2 = 1/2
 ```
 
-Because the state was **normalized**, its probabilities summed to one.
+The state was **normalized**: all outcome probabilities together summed to one.
 
 ```text
 1/2 + 1/2 = 1
 ```
 
-With the amplitude table in place, the path arithmetic from the incoming packets found its quantum use. Iona applied `H` a second
-time before measurement.
+Now the signed-path arithmetic found its quantum use. Iona applied `H` again before measurement.
 
 ```wheeler
 quantum class HadamardReturn {
@@ -246,15 +264,19 @@ For output `|1>`, opposite contributions canceled.
 +1/2 + -1/2 = 0
 ```
 
-Measurement therefore returned `0` with certainty in the ideal model. A hidden fair coin flipped twice would not have made the
-same prediction. The amplitudes, including their signs, carried information absent from ordinary probabilities.
+So the ideal measurement returned `0` with certainty. A fair hidden coin, tossed twice, could not promise that. The signs carried
+something ordinary probabilities had lost.
 
 Osei studied the zero amplitude. "The route disappeared."
 
 "The route was never an outcome," Iona said. "Its contribution canceled at that destination."
 
-He rubbed the bridge of his nose, an admission he offered more readily than agreement. Then he amended the diagnostic note himself.
-Such a distinction mattered whenever a diagram tempted someone to assign a classical private history to each quantum path.
+"That distinction feels designed to annoy maintenance engineers."
+
+"Maintenance engineers discovered it. Physics declined to revise."
+
+He rubbed the bridge of his nose, an admission he offered more readily than agreement, and amended the note himself. Any diagram of
+quantum paths invited a private classical history. The temptation had to be named before it could be refused.
 
 A second gate made phase visible. `Z` preserved `|0>` and negated the amplitude of `|1>`.
 
@@ -281,19 +303,27 @@ quantum class RevealPhase {
 }
 ```
 
-After the first `H`, the amplitudes were `(+,+)`. `Z` changed them to `(+,-)`. The final `H` converted that relative sign into a
-certain basis outcome, `1`.
+First `H`: `(+,+)`. Then `Z`: `(+,-)`. Final `H`: the hidden sign became a visible `1`.
 
-Negating both amplitudes instead would have produced `(-,-)`, a **global phase** change. Every amplitude would rotate together, so
-no interference experiment on the isolated state could reveal the difference. Negating only one row changed **relative phase**,
-which later operations could convert into different outcome probabilities.
+Mara looked from the source to the result. "So the middle operation changed nothing we could measure until the last operation made
+it everybody's problem."
 
-Beyond two signs lay every other possible phase. The far instrument existed because such angles could carry structure worth
-measuring. Its oldest clock array still used mechanical shutters cut during the settlement years. Its newest target controlled
-fields by instructions whose timing would have been meaningless to those builders. Both systems depended on comparing where one
-cycle stood relative to another.
+"That is an operationally hostile summary," Sana said.
 
-Wheeler's `Phase` operation could rotate an amplitude through any declared angle. At a quarter turn, the real number line became a
+"But admissible?"
+
+Sana left the sentence in the record.
+
+Had both signs changed together to `(-,-)`, the state would have acquired **global phase**. Everything rotated. Nothing inside the
+isolated experiment could reveal it. Change one sign relative to the other, and later interference could turn that **relative
+phase** into a different outcome.
+
+Beyond the two signs waited every other angle. The far instrument had been built because those angles could carry structure.
+
+Its oldest clocks still used mechanical shutters cut in the settlement years. Its newest target shaped fields with timings those
+builders could not have imagined. Old machine, new machine: both asked where one cycle stood beside another.
+
+Wheeler's `Phase` operation could rotate an amplitude through any chosen angle. At a quarter turn, the real number line became a
 plane.
 
 ```text
@@ -303,8 +333,8 @@ i       points up
 -i      points down
 ```
 
-A **complex number** supplied two real coordinates on that plane. Its magnitude measured distance from the origin, while its angle
-carried phase. Rotating an amplitude could change its angle without changing the probability obtained from squared magnitude.
+A **complex number** supplied two coordinates on that plane. Distance from the origin gave magnitude. Direction gave phase. Turn
+an amplitude without changing its length and its probability stayed still.
 
 Tala drew one final state table.
 
@@ -313,15 +343,15 @@ Tala drew one final state table.
 | ket zero | `1 / sqrt(2)` | `1/2` |
 | ket one | `i / sqrt(2)` | `1/2` |
 
-Nothing in the table made complex numbers mysterious. One arrow pointed right, another up, both had equal length, and a later
-operation could bring their angular difference into interference.
+One arrow pointed right. One pointed up. Equal length, different direction. A later operation could make the difference meet itself.
 
-When the calibration ended, station night had come without darkness. The lab lights dimmed while Sable's horizon continued its
-uneven passage beyond the shield cameras. Iona opened the adjacent enclosure. A second qubit waited inside, coupled to the first by
-a controlled operation.
+Station night came without darkness. The laboratory dimmed. Sable continued its uneven roll across the shield cameras.
 
-On Sana's evidence case, the old Bell record changed status from inscrutable source to a question they could finally approach. The
-program had been included in the mission package as a target diagnostic. Its lone result, `3`, had seemed almost childishly small
-beside the distance required to produce it. Now Tala could see how much state that integer concealed.
+Iona opened the next enclosure.
 
-Iona had already opened the next chapter, [Two Systems](07-two-systems.md).
+A second qubit waited inside.
+
+The old Bell record lay on Sana's case. Its lone `3` had seemed childishly small beside the distance required to make it. Now Tala
+could see the state folded inside the number, and what the folding had destroyed.
+
+Iona turned the page to [Two Systems](07-two-systems.md).

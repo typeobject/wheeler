@@ -1,7 +1,7 @@
 ---
 sidebar_position: 4
 title: The Archive
-description: A habitat that records every transition reveals why history, rewind, and inverse execution remain different.
+description: The Archive remembers everything and discovers that memory is not the same as return.
 tutorial_id: CH03
 tutorial_steps: T14,T15,T16,T17,T18,T19,T20,T21,T22,T23
 tutorial_part: reversible-foundations
@@ -14,21 +14,26 @@ tutorial_evidence: exact-classical-execution
 
 # The Archive
 
-From a distance, the Archive resembled a wheel assembled around an error in the stars. Its inhabited rim shone softly. The central
-vault did not shine at all, because heat and light were facts about the present, while the vault had been built to preserve the
-past.
+From a distance, the Archive resembled a wheel built around an error in the stars. Its inhabited rim shone softly. The central
+vault gave back no light.
 
-Every vessel entering the transfer corridor received a storage allotment before it received docking instructions. *Vela* acquired
-forty-eight terabytes for approach telemetry, six for ship state, and one narrow directory in which the port authority invited the
-crew to record anything they might later regret losing.
+Heat belonged to the present. The vault had been built for the past.
 
-Archive citizens inherited no land. They inherited retention obligations. A family might be responsible for three generations of
-water-allocation votes, the maintenance history of a pressure wall, and one ancestor's unedited correspondence. Public schools
-taught compression beside handwriting. Weddings merged storage trusts. Funerals began only after the deceased person's keys had
-been distributed or destroyed according to a witnessed plan.
+Every vessel entering the corridor received storage before docking instructions. The port authority reserved volumes for *Vela*'s
+approach, for ship state, and one narrow directory labeled: *anything you may later regret losing*.
+
+"Do they charge for regret above quota?" Mara asked.
+
+Sana was reading the retention terms. "They charge for everything above quota. Regret is merely well indexed."
+
+Archive citizens inherited no land. They inherited the duty to remember. Water votes. The life of a pressure wall. An ancestor's
+unedited correspondence, growing less charming with every generation. Schools taught compression beside handwriting. Weddings
+merged storage trusts. Funerals waited for the witnessed division, or destruction, of the dead person's keys.
 
 Mara declined the invitation. Osei doubled the telemetry checks. Sana stood at the forward lock before the pressure equalized,
 watching the inner door as if she knew who would be waiting behind it.
+
+Tala noticed and performed the polite social maneuver of becoming intensely interested in a pressure gauge.
 
 Edrin Saye wore the gray seal of an Archive custodian. Age had narrowed him without making him look fragile. When the door opened,
 he greeted Sana first and used the formal version of her name.
@@ -37,39 +42,45 @@ he greeted Sana first and used the formal version of her name.
 
 "I keep distinctions. Records are one way."
 
-His glance moved to the evidence tags on her case. He had trained her to bind a claim to its source before she was old enough to
-enter the central vault. She had left after discovering that a perfect source could still support a dishonest sentence when its
-scope was trimmed carefully enough. For nine years their messages had remained courteous, complete, and infrequent.
+The gauge informed Tala that pressure was equal. It offered no guidance for the next thirty seconds.
+
+His glance moved to the tags on her case. He had taught her, before she was old enough to enter the vault, never to let a claim
+wander far from its source. She had later discovered that a perfect source could support a dishonest sentence if someone trimmed
+its edges with care.
+
+For nine years their messages had been courteous. Thorough. Rare.
 
 Whatever answer he had expected, hers belonged to that older conversation.
 
-Memory had earned its authority there. A century earlier, during an evacuation, an automated repair system had overwritten the
-only state from which its pressure model could be reconstructed. The habitat survived. Twelve workers in a sealed section did not.
-Afterward, the custodians recorded every accepted transition in critical systems and built a culture around the proposition that a
-retained past could not become an inaccessible one.
+Memory had not become sacred there by accident. A century earlier, during an evacuation, an automated repair system overwrote the
+only state from which its pressure model could be rebuilt. The habitat survived. Twelve workers behind a sealed door did not.
 
-Sana had cataloged the evacuation while apprenticed to Edrin. The accepted public history said the damaged section had been
-*returned to service*. The phrase was operationally correct and, beside the twelve names, morally grotesque. Edrin had defended
-the record because no byte in it was false. Sana had argued that accuracy at the wrong boundary was another way to lose the event.
-She left before either of them learned how to retreat.
+Afterward the custodians kept every transition in every critical machine. From catastrophe they made policy. From policy, a
+culture.
 
-Nearly true propositions made dangerous foundations, especially when a culture had built upward from them.
+Sana had cataloged the evacuation as Edrin's apprentice. The public history said the damaged section had been *returned to
+service*. Operationally correct. Beside twelve names: grotesque.
+
+Edrin defended the record because no byte in it was false. Sana argued that accuracy drawn around the wrong thing was another kind
+of erasure. She left before either of them learned how to retreat.
+
+A nearly true sentence could bear a terrifying amount of weight.
 
 Edrin led the crew through a gallery where old machine states moved behind glass in synchronized reconstruction. Broken pumps
 unfailed. Valves closed before leaks. A guidance computer backed away from the arithmetic fault that had sent an ore carrier
 through a docking mast. Each exhibit consumed stored records in reverse order until the selected earlier state reappeared.
 
-The gallery served as museum, civic shrine, and market. Children sold ceramic orientation birds whose weighted beaks pointed along
-the habitat's local gravity. A noodle counter advertised the oldest continuously preserved broth in human space, a claim Sana
-could disprove from three meters away. Mara bought one of the birds and refused the broth. Around them, visitors applauded as a
-reactor simulation withdrew from a fault it had taken less than a second to enter.
+The gallery was museum, shrine, market. Children sold ceramic birds whose weighted beaks found local down. A noodle counter
+advertised the oldest continuously preserved broth in human space, a claim Sana could disprove from across the aisle. Mara bought a
+bird and refused the broth.
+
+Around them, visitors applauded while a reactor simulation backed away from a fault it had taken less than a second to enter.
 
 "What is remembered can be returned," Edrin said.
 
 Osei studied the reconstruction controls. "Rewound."
 
-With that single word, a hairline fracture crossed the Archive motto. Edrin heard it and chose not to answer until they reached the
-evacuation exhibit.
+One word. A hairline crack through the Archive motto. Edrin heard it. He waited until the evacuation exhibit to answer.
 
 Behind its glass, the failed pressure system approached the old emergency, stopped, and began consuming its retained transitions in
 reverse. Warnings cleared. The damaged section reopened. Twelve names remained fixed across the glass while the machinery withdrew
@@ -83,8 +94,9 @@ Sana looked at Edrin. "That overlay was not here."
 
 "After you left. Before I learned how to tell you."
 
-The change did not repair their argument or return the dead. It prevented the reconstruction from carrying the people backward
-with the machine state. Sana read every name. Edrin waited without asking what the revision had earned.
+The change repaired neither their argument nor the dead. It merely refused to drag the people backward with the machinery.
+
+Sana read every name. Edrin asked nothing.
 
 In the verification room, Tala found a two-state example waiting on the terminal. Its operation differed from the flip by one row.
 
@@ -99,12 +111,10 @@ Both arrows met at the same output.
 0 -> 0 <- 1
 ```
 
-If the current state contained only `0`, nothing in that state identified whether the earlier input had been `0` or `1`. An
-operation claiming to reconstruct the input would need to choose between two compatible pasts, and either choice would be wrong
-for one row.
+At the output, only `0` remained. Had the input been `0` or `1`? The current state could not say. Any attempted reconstruction must
+choose one past and thereby be wrong about the other.
 
-Zero was not special. Any mapping that merged two allowed inputs into one output discarded the
-distinction between them from its declared current state.
+Zero held no special power here. Whenever two inputs met at one output, the distinction between them left the state.
 
 Tala entered the operation as an ordinary assignment.
 
@@ -119,33 +129,35 @@ classical class EraseBit {
 }
 ```
 
-Execution succeeded. That success meant the assignment had produced its stated endpoint, not that the endpoint retained enough
-information to recover what came before it. Mara would have called the operation complete. Osei would have called it unfinished.
-Both descriptions depended on the task.
+Execution succeeded. Mara nodded. Osei did not.
+
+Tala could translate the silence. The assignment reached the endpoint Mara had asked for: finished. The endpoint could not tell
+Osei where it came from: unfinished.
+
+Same line of code. Different responsibility. Neither of them enjoyed the other's correctness.
 
 Edrin opened the Archive trace. Beside the current `bit = 0`, the system had retained the earlier value `1`. What the program state
 alone could not distinguish, the larger history record still could.
 
-For the two possible inputs, that record prevented the rows from colliding completely.
+The current-bit column collided. Add the saved input and the rows separated again.
 
 | Input | Current bit | Retained earlier bit |
 | --- | --- | --- |
 | `0` | `0` | `0` |
 | `1` | `0` | `1` |
 
-A rewind could consume the retained record and restore the earlier program state. The method worked because the Archive had kept
-extra information outside the current state, not because `bit = 0` contained a hidden answer.
+A rewind could spend the saved row and restore the earlier value. The answer lived in the Archive's history, not, secretly, inside
+`bit = 0`.
 
 Sana touched the second column. "If the record is unavailable?"
 
 "Then the state cannot be reconstructed from this transition," Edrin said.
 
-He offered the concession without defensiveness. The Archive motto described an operational policy, not a mathematical property,
-and perhaps he had spent the years since Sana's departure learning the value of saying so.
+He conceded the point without defense. The Archive motto named a policy, not a law of mathematics. Perhaps the years since Sana
+left had taught him the mercy of saying less.
 
-For the field manual, **inverse** named a different object: an operation that, given the output state covered by its contract,
-reconstructed the exact corresponding input. No private log from the earlier execution could be assumed. A finite mapping could
-have such an inverse only when distinct inputs remained distinct at the output.
+The field manual reserved **inverse** for something stricter: an operation that could take an output and recover its corresponding
+input without consulting a private history. Such an inverse existed only when different inputs stayed different at the end.
 
 By that test, the overwrite failed. Tala asked the Wheeler compiler to treat it as reversible anyway.
 
@@ -169,11 +181,17 @@ In source, the `rev` modifier requested a generated inverse. Compilation stopped
 wheeler: line 4: reversible function contains SET_LOGGED, which has no generated inverse
 ```
 
-Ordinary execution could log the destructive assignment. A `rev` body could not borrow that log and pretend the assignment had an
-inverse. The rejection preserved the distinction Edrin's gallery had made visible: history-backed rewind and inverse execution
-might reach the same earlier value in one demonstration, but they obtained it through different information.
+"Concise," Mara said.
 
-Tala returned to the two-state flip. Its complete table had no collision.
+"Hostile," Osei said.
+
+"Correct," Sana said.
+
+Ordinary execution could remember the destructive assignment. A `rev` body could not borrow that memory and call itself
+invertible. The compiler's refusal preserved what Edrin's gallery had revealed: rewind and inverse execution might arrive at the
+same earlier value, but they paid for the journey with different information.
+
+Tala returned to the two-state flip. Its rows did not collide.
 
 | Input | Output |
 | --- | --- |
@@ -203,16 +221,15 @@ classical class ReversibleFlip {
 }
 ```
 
-The compiler found enough information in the `rev` body to generate its inverse. The command `reverse flip();` did not restore a
-snapshot. It executed new work selected from the inverse of `flip`.
+Here the compiler could build the inverse. `reverse flip();` restored no snapshot. It performed new work, following `flip` the
+other way.
 
 ```text
 ReversibleFlip (classical) halted after 9 steps
 bit = 0
 ```
 
-At the final zero, the route remained invisible. Source and artifact supplied the missing account: forward flip, checked state
-one, inverse flip, checked state zero.
+The final zero concealed the route. The program supplied it: forward to one. Backward to zero.
 
 Mara, who had tolerated the gallery with the restlessness of someone surrounded by events traveling in the wrong direction, asked
 what happened when a reversible method contained several operations. Osei replaced the one-bit example with two methods whose
@@ -254,17 +271,19 @@ ReverseOrder (classical) halted after 15 steps
 value = 0
 ```
 
-Composition made the rule unavoidable. If forward work crossed doors A and B in that order, exact return crossed B before A. No
-mysticism was involved. The second operation had received the state produced by the first, so its inverse had to surrender that
-state before the first inverse could accept it.
+The order was unavoidable. Cross doors A, then B. To leave, cross B, then A. Nothing mystical. The second operation held the state
+the first inverse would need, and had to give it back first.
 
-Edrin brought up the transfer record *Vela* had come to collect. Its lineage was complete, its digest matched the far-instrument
-request, and Archive policy required a commit before release. Commit would establish a horizon in the retained VM history. Earlier
-steps would no longer remain available for ordinary rewind through that boundary.
+Edrin opened the transfer *Vela* had come to collect. Its trail was intact. Its digest matched the far instrument's request.
+Archive policy required a commit before release. Beyond that horizon, ordinary rewind could not go.
 
 "If commit prevents return," Mara said, "we are back where we began."
 
 "It prevents one kind," Tala said.
+
+Mara pointed at her. "That sentence is why you and Sana should not be allowed to form a committee."
+
+"Committees retain minutes," Sana said. "They rarely generate inverses."
 
 For the final distinction, the manual offered another program.
 
@@ -294,17 +313,18 @@ CommittedInverse (classical) halted after 10 steps
 bit = 0
 ```
 
-Three routes now stood apart. An overwrite could return through retained history while that history survived. A reversible
-operation could execute its inverse from the current state. A commit could close the first route without deleting the second.
-Equal endpoints did not make the mechanisms interchangeable.
+The paths had separated. An overwrite might be rewound while history survived. A reversible operation could walk its own inverse.
+Commit could close the first path and leave the second open.
 
-Sana reviewed the transfer lineage beside Edrin. Their disagreement had narrowed from doctrine to fields in a record: which state
-was current, which history remained available, which inverse belonged to the artifact, and where commit had established the
-horizon. Precision had not made them agree about the Archive. It had made their remaining disagreement small enough to preserve.
+Same destination. Different road. Different price.
 
-Before the final signature, Edrin showed her a newer retention practice. Routine event logs could be compacted after commit, but a
-sealed pre-commit manifest preserved the identities and edges from which the compact record had been derived. The bulk history
-could close without leaving a summary unable to explain its parents.
+Sana reviewed the transfer beside Edrin. Their old argument narrowed from doctrine to particulars: what was current, what history
+remained, which inverse belonged to the program, where commit had closed the past.
+
+Precision did not make them agree about the Archive. It made the disagreement small enough to keep.
+
+Before signing, Edrin showed her a newer practice. Routine logs could be compressed after commit, but a sealed manifest kept the
+parentage of the surviving record. The bulk might close. The summary would not become an orphan.
 
 "An expensive qualification," he said.
 
@@ -315,15 +335,17 @@ his eyes eased. Sana copied the manifest pattern into *Vela*'s mission policy.
 
 Edrin authorized the transfer.
 
-At departure, the habitat streamed *Vela*'s approach history back to the ship as a courtesy. Osei retained the verified digest and
-declined the bulk record. Sana sent Edrin one amendment to the evacuation exhibit: *machine state restored, losses unchanged*. He
-accepted it into review without a message.
+At departure, the habitat offered *Vela* her whole approach history as a courtesy. Osei kept the digest and declined the weight.
+Sana sent Edrin one amendment to the evacuation exhibit: *machine state restored. Losses unchanged*.
 
-Mara fixed the ceramic bird above her console with removable adhesive, waited until the corridor cleared, then moved the Archive
-behind them with one sustained burn. The habitat's dark vault crossed the sun and vanished. For several minutes afterward its
-record beacons remained visible, each pulse insisting that an event could outlast the place that emitted it.
+He accepted it for review. No message.
+
+Mara fixed the ceramic bird above her console, waited for the corridor to clear, then put the Archive behind them with one sustained
+burn. The dark vault crossed the sun. Vanished.
+
+Its beacons continued for several minutes: pulse after pulse, an event outliving the place that sent it.
 
 Twelve hours later, another signal arrived from beyond the range where a single observation could be mistaken for a pattern. It
 contained a sequence of zeros and ones, irregular enough to invite a story and too short to justify one.
 
-The field manual opened at [The Long Count](04-the-long-count.md).
+The field manual opened at [Long Count](04-long-count.md).

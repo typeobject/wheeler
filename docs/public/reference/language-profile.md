@@ -659,6 +659,6 @@ Each feature must still lower to the same typed reversible `.wbc` IR. None is im
 
 ## Learning Wheeler
 
-Start with the [first-principles tutorial](../tutorials/). It owns the ordered teaching sequence from classical state through reversible execution, coherent reuse, measurement, and hybrid replay.
+Start with [*Home Was the Easy Part*](../tutorials/). The story follows the ordered conceptual path from classical state through reversible execution, coherent reuse, measurement, and hybrid replay.
 
 Use [executable examples](../examples.md) as the conformance inventory. Those programs give exact results and implementation scope, but their directory order is not a second curriculum. Every checked-in example compiles, runs, and parses without Tree-sitter error nodes in the normal test gate.

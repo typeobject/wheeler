@@ -1,7 +1,7 @@
 ---
 sidebar_position: 2
 title: Departure
-description: An empty program grows into the checked state transition that releases Vela from her berth.
+description: An empty program learns just enough to release Vela from her berth.
 tutorial_id: CH01
 tutorial_steps: T01,T02,T03,T04,T05,T06,T07
 tutorial_part: ordinary-state
@@ -14,50 +14,61 @@ tutorial_evidence: exact-classical-execution
 
 # Departure
 
-Thirty-seven days before the failed return, *Vela* waited in Yard Nine with most of her hull closed and several important
-disagreements still exposed.
+Thirty-seven days before the failed return, *Vela* waited in Yard Nine: hull nearly closed, arguments still open.
 
-Construction berths occupied Catenary's least fashionable wheel. Their spin gravity varied by corridor, the air tasted faintly of
-cut alloy, and every public surface carried two sets of numbers: the architect's intended load and the mass that residents had
-actually attached. Welders crossed the open vault on articulated lines. Below them, if *below* could be trusted in a wheel, *Vela*
-rested inside a web of fuel, data, and cooling umbilicals. One half of her hull reflected the berth lights. The other half wore the
-black residue of earlier voyages.
+Construction berths occupied Catenary's least fashionable wheel. Gravity changed from corridor to corridor. The air tasted of cut
+alloy. Every public wall carried two loads: what the architect had allowed and what the residents had since attached.
 
-Mara met Tala at the service lock. The pilot's welcome consisted of a pressure check and a brisk inventory of exits, after which
-she introduced the ship in the order she expected to need it: attitude, drive, navigation, power, air. Coffee entered the list
-between power and air, then moved upward when Tala asked whether the galley unit worked.
+Welders crossed the vault on articulated lines. Below them, if *below* could be trusted in a wheel, *Vela* lay in a web of fuel,
+data, and cooling lines. Half her hull reflected the berth lamps. The other half kept the soot of earlier voyages.
 
-By profession Tala was a systems analyst. She had spent seven years tracing failures through municipal transit software, where
-vehicles remained on the ground and most state could be copied without consulting the laws of physics. Her last network had once
-reported itself restored while fourteen passenger cars waited between stations under manual power. The copied control state was
-perfect. It was also six minutes old.
+Mara met Tala at the service lock. The pilot's welcome consisted of a pressure check, a brisk inventory of exits, and a question
+about whether Tala became sick in variable gravity. Then she introduced the ship in the order she expected to need it: attitude,
+drive, navigation, power, air. Coffee entered the list between power and air, then moved upward when Tala asked whether the galley
+unit worked.
+
+"Good," Mara said. "You understand critical systems."
+
+It was the warmest thing she said for the next three hours.
+
+Tala was a systems analyst. For seven years she had traced faults through municipal transit software, where vehicles stayed on the
+ground and most state could be copied without consulting physics. Her last network had once announced itself restored while
+fourteen passenger cars waited between stations under manual power.
+
+The copied control state was perfect. It was six minutes old.
 
 Neris Venn, the transit director, had two platforms approaching their air limit and a crowd beginning to test locked doors. She
 ordered the network reopened from the green control state. Tala invoked the safety veto because the fourteen cars existed outside
 that copy. Neither woman had mistaken the pressure on the other. Venn needed movement before the platforms became dangerous. Tala
 needed the movement to account for vehicles the dashboard had forgotten.
 
-The cars came back under local control. The public report called the service restored and attributed the additional delay to Tala's
-veto, both statements narrowly true. She embarrassed Venn, kept the report in her private records, and acquired the kind of
-reputation that becomes expertise only after another employer needs it.
+The cars came back under local control. The public report called the service restored and blamed the additional delay on Tala's
+veto. Neither statement was false. Together they were a lie with good posture.
 
-Venn's reference contained no apology for the report and no criticism of Tala's veto. It stated that Tala would stop an operational
-system when its current state failed to account for the physical one, then listed the cost of employing someone willing to do so.
-The far-instrument mission had hired her for that experience, not because it was sufficient, and Osei made the distinction during
-their first conversation.
+She embarrassed Venn, kept the report, and acquired the kind of reputation that becomes expertise when a different employer needs
+it.
 
-"Here," he said, looking at the folded reference from the transit authority, "six minutes can be farther away than another
-planet."
+Venn's reference apologized for nothing. It said Tala would stop a working system when its account of the world omitted something
+physical, then listed the cost of employing anyone willing to do that. Less a recommendation than a warning, but an honest one.
+
+That failure had won her a place on the far-instrument mission. During their first conversation, Osei made clear that it had not
+prepared her for the work.
+
+"You know how to distrust a green display," he said, looking at the folded reference.
+
+"Professionally."
+
+"Good. Here, six minutes can be farther away than another planet."
 
 He was waiting in the machine room beside an open rack. Instead of a greeting, he handed her a field manual bound in gray cloth.
 
 "Read the annotations before the printed text," he said. "The text was approved."
 
-On the oldest title page, no author appeared. Sana had attached a provenance slip containing eight probable owners, three
-impossible dates, and a note that the binding adhesive matched a repair shop on Selene. One owner had calculated propellant in the
-margins. Another had corrected the calculations but preserved the mistake. A third had used the blank leaves to record the names
-of six pressure doors that no longer existed on any registered vessel. The book carried engineering forward without pretending
-that engineering had one uncontested author.
+No author appeared on the oldest title page. Sana's slip named several probable owners, rejected the impossible dates, and traced
+the binding glue to a repair shop on Selene. Propellant arithmetic filled one margin. Another hand corrected it without erasing the
+mistake. Lost pressure doors survived by name among the blank leaves.
+
+The book carried engineering forward without pretending it had traveled in a straight line.
 
 Beneath the slip, a handwritten instruction survived in faded blue ink.
 
@@ -68,11 +79,10 @@ Begin with a program that has nowhere to go.
 Tala opened the Wheeler workspace at the terminal built into the rack and created a directory for the manual's programs.
 
 ```bash
-mkdir -p tutorial
+mkdir -p manual
 ```
 
-For the first exercise, the manual supplied `tutorial/Wake.w` and a complete source small enough to look less like a program
-than the space reserved for one.
+The first source, `manual/Wake.w`, looked less like a program than a place where one might eventually occur.
 
 ```wheeler
 classical class Wake {
@@ -81,25 +91,27 @@ classical class Wake {
 }
 ```
 
-Authored text came first. In Wheeler, as in the transit systems Tala knew, a **source file** described the program before a compiler
-translated it into an executable artifact. The distinction mattered because changing the source did not reach backward through
-time and alter an artifact already produced from earlier bytes.
+The manual showed the whole before naming its pieces. `classical` selected ordinary program state. A `class` gathered state and
+operations beneath the name `Wake`. Execution entered at `main`. `void` said no value would be returned when it finished. The
+braces marked what belonged inside. For now, almost nothing did.
+
+This written form was a **source file**. A compiler could read it and make something executable. Editing the source afterward would
+not reach into the past and alter what had already been built.
 
 She invoked the compiler from the repository root.
 
 ```bash
-wheeler compile tutorial/Wake.w -o tutorial/Wake.wbc
+wheeler compile manual/Wake.w -o manual/Wake.wbc
 ```
 
 The compiler reported its output.
 
 ```text
-wrote tutorial/Wake.wbc
+wrote manual/Wake.wbc (360 bytes)
 ```
 
-Inside `Wake.wbc`, canonical Wheeler bytecode formed the **artifact**. Compilation had checked the source rules and translated the
-program. It had not executed the empty body, a point the manual emphasized with a margin note written by someone who pressed hard
-enough to score the next three leaves.
+`Wake.wbc` was the **artifact**: checked, translated, ready to run. Not yet run. Someone had driven that warning through three
+leaves of the manual.
 
 ```text
 A compiled promise remains a promise.
@@ -108,26 +120,27 @@ A compiled promise remains a promise.
 Execution required another boundary and another command.
 
 ```bash
-wheeler run tutorial/Wake.wbc
+wheeler run manual/Wake.wbc
 ```
 
-After verifying the artifact, the runtime entered `main`, found no body instruction, and halted.
+The runtime entered `main`. It found nothing to do. It stopped.
 
 ```text
 Wake (classical) halted after 1 steps
 ```
 
-One entry transition. No declared state. No value to report. The run had done almost nothing, which left little room to disagree
-about what it had done.
+One entry. No state. No answer. Almost nothing had happened, and for once almost nothing was easy to describe.
 
-Sana arrived while Tala was comparing the source and artifact digests. She requested both for the mission record, along with the
-compiler profile and run report. A thin Archive seal hung at her throat, turned inward so its inscription faced her shirt. On
-Catenary, where people advertised former institutions as readily as present loyalties, the choice was conspicuous.
+Sana arrived while Tala compared the source with what the compiler had made. She asked for both, and for the compiler and run
+reports. A thin Archive seal hung at her throat with its inscription turned inward. On Catenary, where people displayed former
+institutions as readily as present loyalties, the choice was conspicuous.
 
-When Tala asked whether an empty program deserved so much lineage, Sana looked through the rack toward the unfinished ship. A
-worker outside struck the pressure hull three times, listened, and marked the panel with chalk.
+"All this for an empty program?" Tala asked.
 
-"The inexpensive records establish whether the expensive ones can be trusted."
+Sana looked through the rack toward the unfinished ship. Outside, a worker struck the pressure hull, listened, and marked the panel
+with chalk.
+
+"Cheap records are where you learn whether the costly ones lie."
 
 Beneath that note, the next annotation added a state declaration.
 
@@ -140,8 +153,8 @@ classical class FirstSignal {
 }
 ```
 
-Here `lamp` named a **state value** owned by the program, while `0` supplied its initial value. The empty entry changed nothing, so
-an exact run ended where the declaration began.
+`long` held a signed whole number. `lamp` named a **state value** belonging to the program. `0` was where it began. The empty entry
+left it there.
 
 ```text
 FirstSignal (classical) halted after 1 steps
@@ -153,7 +166,11 @@ She set it beside the terminal, where it acquired more presence than the number 
 
 "Zero is accurate," Tala said.
 
-"Accuracy has stages," Mara replied. "Make it ready."
+"The lamp agrees. The ship does not care."
+
+"You brought me hardware to argue with a variable?"
+
+"The hardware was closer. Make it ready."
 
 An assignment inside `main` replaced the current program value. Tala renamed the small experiment and kept every other change
 visible in one complete source.
@@ -168,29 +185,30 @@ classical class CabinLamp {
 }
 ```
 
-Now the state path had direction: `0 -> 1`. The single `=` changed a value rather than comparing two values, and the runtime's
-final report reflected the transition.
+Now the path had direction: `0 -> 1`. A single `=` changed the value. The final report showed where it came to rest.
 
 ```text
 CabinLamp (classical) halted after 3 steps
 lamp = 1
 ```
 
-Mara reinstalled the physical lamp without suggesting that the Wheeler value had touched it. The program modeled one condition.
-The hardware remained a larger system with power, wiring, control logic, and a lens that had collected a crescent of dust along its
-lower edge.
+Mara reinstalled the lamp. Nobody pretended the number had lit it. The little program described one condition. The ship still
+required power, wire, logic, glass, and the crescent of dust along the lens.
 
-Osei took her place at the console. One transition, he said, concealed the question that mattered to him. He added a second
-assignment to a state named `signal`.
+Osei took her place at the console before she had technically offered it. One transition, he said, concealed the question that
+mattered to him. He added a second assignment to a state named `signal`.
+
+"Does everyone on this ship teach by taking the controls?" Tala asked.
+
+"Mara teaches by removing parts first," he said. "This is safer."
 
 ```wheeler
 signal = 1;
 signal = 2;
 ```
 
-From an initial `0`, execution followed `0 -> 1 -> 2`. Reversing the two source lines produced `0 -> 2 -> 1`. The statements were
-not an unordered collection of intentions. **Source order** selected a path, even when only the endpoint appeared in the final
-state report.
+From `0`, execution went `0 -> 1 -> 2`. Reverse the lines and the path became `0 -> 2 -> 1`. Instructions were not a basket of
+intentions. **Source order** chose the road, even when the report showed only its end.
 
 Sana, reading over his shoulder, objected to the path existing only in their explanation. A later edit could change the assignment
 while leaving the explanation intact, a form of durability the archive profession had learned to distrust. She placed an
@@ -204,13 +222,13 @@ Unlike the assignment's single `=`, the doubled `==` compared the current value 
 hold at that position in the run. If it held, execution continued. If it failed, the runtime trapped instead of publishing an
 ordinary successful halt.
 
-A passing assertion did not prove the program correct for every input, artifact, or target. It supported a smaller claim about one
-specified point in one execution. Its modesty appealed to Sana more than a broad promise would have.
+A passing assertion said less than people often wanted. At this point in this run, the comparison held. Sana trusted its modesty.
 
-By the end of the shift, station night had dimmed the berth lights, although Yard Nine itself never stopped. The restaurants along
-the inner rim served breakfast to one shift and fermented broth to the next. Families gathered at pressure windows to watch ships
-depart, and freight crews painted temporary constellations on hull plates before selling the plates for scrap. Inside *Vela*, the
-examples had converged on the departure interlock Mara actually needed reviewed.
+Station night dimmed the berth lamps, though Yard Nine never stopped. Restaurants served breakfast to one shift and fermented
+broth to the next. Families gathered at pressure windows. Freight crews painted temporary constellations on hull plates soon to be
+sold for scrap.
+
+Inside *Vela*, the little examples converged on the departure interlock Mara actually needed.
 
 Tala gave the known sequence a method name, `depart`, then called that method from `main`. A method collected instructions into a
 named body. A method call transferred control into that body and resumed after the call when the body finished.
@@ -245,30 +263,36 @@ classical class FirstWatch {
 Before execution, Tala traced both values. `berth` would follow `1 -> 0`. `drive` would follow `0 -> 1`. The call would finish
 before either assertion examined the state.
 
-She compiled the displayed source into its canonical artifact and ran it.
+She compiled the source on the screen and ran what it produced.
 
 ```text
 FirstWatch (classical) halted after 9 steps
-drive = 1
 berth = 0
+drive = 1
 ```
 
-Canonical output order placed `drive` before `berth`, though the names preserved which value belonged to which location. Both
-assertions had succeeded. The run therefore supported the bounded claim Sana attached to the departure record: this artifact,
-under this runtime profile, finished with the modeled berth released and drive enabled.
+The report kept declaration order, so the names stayed beside their values. Both assertions had passed. Sana wrote no larger claim:
+this build of the program had finished with its modeled berth released and drive enabled.
 
-Mara waited for the record identity and Osei's review before enabling the physical sequence. She did not mistake caution for doubt.
-A pilot trusted systems by knowing the limits of what they had established.
+Mara waited for its record and for Osei's review before touching the physical controls. A pilot's trust was not boundless. That was
+what made it trust.
 
-Without ceremony, the clamps opened. Metal that had carried *Vela*'s weight for nine months withdrew into the berth, and the ship
-moved under attitude control into the dark between structures. Weight left Tala's feet as the yard's spin released them. A loose
-washer, missed by three inventories, rose from the deck and crossed the bridge with stately confidence until Osei trapped it under
-his palm.
+The clamps opened.
 
-Catenary turned outside the forward windows: greenhouse bands, repair lights, a funeral lantern released from one of the old
-wheels, and then the bright line of Yard Nine rotating away. Tala had expected departure to feel like a line crossed. Instead the
-station remained visible, merely becoming an object she could cover with one hand.
+Metal that had carried *Vela* for nine months withdrew into the berth. The ship slipped under attitude control into the dark between
+structures. Yard gravity released Tala's feet. A loose washer rose from the deck, crossed the bridge with stately confidence, and
+vanished beneath Osei's palm.
+
+"Fourth inventory," Sana said.
+
+Osei closed his fist around the washer. "The first three established a trend."
+
+Catenary turned beyond the glass: greenhouse bands, repair lights, a funeral lantern drifting from an old wheel. Then Yard Nine
+rotated away.
+
+Tala had expected departure to feel like a line crossed. Instead the station remained where it had always been, only small enough
+now to cover with one hand.
 
 On the communications panel, traffic control reduced their departure to a pair of values repeated in alternation.
 
-Its next chapter bore the same spare title: [Two Signals](02-ask-the-machine-to-act.md).
+The manual gave those alternating values a name: [Two Signals](02-ask-the-machine-to-act.md).

@@ -1,7 +1,7 @@
 ---
 sidebar_position: 1
 title: Home
-description: One failed return check exposes several operations hidden inside an ordinary word.
+description: A failed return check breaks an ordinary word into all the things it was hiding.
 tutorial_id: T00
 tutorial_steps: T00
 tutorial_part: opening
@@ -16,23 +16,27 @@ tutorial_evidence: exact-source-display
 
 Home arrived by subtraction.
 
-For six days the forward windows had held nothing but stars, hard and innumerable. Then traffic lights appeared among them,
-followed by the pale geometry of Catenary's orbital yards, until the constellations were no longer the largest structures in view.
-The station was not one station but a civic argument conducted in metal: three old wheels, a spindle of newer gardens, nine
-commercial yards, and several unauthorized neighborhoods that had acquired air before they acquired names. Every structure turned
-at its chosen rate. From a distance, the moving lights braided themselves into something that looked intentional.
+For six days the forward windows had held only stars, hard and innumerable. Then came traffic lights, then the pale geometry of
+Catenary's yards, until the constellations were no longer the largest structures in view.
 
-Nobody aboard *Vela* had been born there. All four carried Catenary residency, which was a different and more demanding fact. The
-habitat considered arrival a matter of matching velocity, paying for dock mass, and accepting responsibility for whatever crossed
-the pressure seal in one's luggage. Mara reduced the remaining distance to a column of burns and corrections. Osei began closing
-systems that had been open since departure. Sana requested the final mission lineage. Tala watched Yard Nine rotate into sunlight
-and tried not to count the lit windows around the berth they had left empty.
+Catenary was less a station than a civic argument conducted in metal: old wheels, young gardens, commercial yards, neighborhoods
+that had acquired air before they acquired names. Each part turned at its chosen rate. From a distance, the lights braided
+movement into something that looked intentional.
 
-The far instrument's manifest had crossed the reach in time for Catenary to retune its approach beacons provisionally. The full
-evidence package was too large for the instrument's narrow transmitter. *Vela* carried it home. Before the charged-particle front
-peaked, traffic control had to accept that lineage or revert the beacons to their older profile. Missing one braking window would
-not kill the crew. It would put *Vela* into a nineteen-hour contingency orbit, spend most of Mara's reserve, and deliver the
-calibration after the decision it was meant to support.
+Nobody aboard *Vela* had been born there. They all carried Catenary residency, a different and more demanding fact. The habitat
+considered arrival a matter of matching velocity, paying for dock mass, and taking responsibility for whatever crossed the pressure
+seal in your luggage.
+
+Mara reduced the remaining distance to burns and corrections. Osei closed systems left open since departure. Sana called for the
+mission record. Tala watched Yard Nine turn into sunlight and tried not to count the windows around their empty berth.
+
+The far instrument's compact manifest had crossed the reach by fallback radio, just in time for Catenary to retune its approach
+beacons. The west tracking bearing could no longer hold the narrow outbound laser. Behind the manifest lay too much for radio:
+clock comparisons, particle records, chamber logs, calibration receipts. *Vela* carried the rest.
+
+Before the charged-particle front peaked, traffic control had to accept the chain or revert the beacons to their older profile.
+Missing one braking window would not kill the crew. It would put *Vela* into a nineteen-hour contingency orbit, spend most of
+Mara's reserve, and deliver the calibration after the decision it was meant to support.
 
 With eleven minutes left before braking, *Vela* laid an amber sentence across the navigation plot.
 
@@ -42,10 +46,16 @@ RETURN CHECK FAILED
 
 Mara's hand remained inside the burn cage. Nothing in her posture changed, but the countdown stopped.
 
-Osei was already inside the restoration map, opening branches faster than the display could arrange them. Sana did not touch her
-console. She watched the others instead, waiting to learn which event they would later claim had happened.
+"Which part?" she asked.
 
-Tala expanded the report.
+Osei was already inside the restoration map, opening branches faster than the display could arrange them. "Workspace."
+
+Sana did not touch her console. "Lineage."
+
+They looked at Tala. Her formal responsibility was systems analysis. Her practical one was interrupting specialists just as
+certainty carried them beyond the edge of their authority.
+
+She expanded the report.
 
 ```text
 navigation       home
@@ -54,25 +64,30 @@ mission result   present
 result lineage   incomplete
 ```
 
-The contradiction lasted only as long as it took each of them to choose a different line.
+"Navigation says home," Mara said.
 
-To Mara, return meant position: mass, velocity, approach corridor, the clean arithmetic of not striking the station. Osei saw state
-that had failed to restore. Sana saw an observation detached from the sequence that had produced it. Tala, who had spent the
-voyage learning their vocabularies without yet possessing any of them, saw one ordinary word carrying more machinery than it could
-bear.
+"Navigation has a charmingly narrow definition of home," Osei replied.
 
-*Vela* had been rebuilt often enough that nobody knew which subsystem was oldest. The pressure hull began as a survey tender. Her
-port radiator came from a hospital barge, her maneuvering model from a racing tug whose owners had considered safety margins a
-form of pessimism. Hardware disappeared. Interfaces changed. Names remained. *Return* meant the value produced by a function in
-one layer, inverse execution in another, the consumption of retained history in a third, and physical arrival in the navigation
-code, where the word predated everyone aboard.
+"So does the restoration map," Sana said.
 
-Routine voyages had never required those meanings to agree. A cargo could be delivered after a workspace leak. A test could be
-repeated when its lineage proved thin. A ship could miss a polite arrival time and take the outer loop.
+The contradiction lasted only until each of them chose a line. To Mara, return meant position: mass, velocity, approach corridor,
+the clean arithmetic of not striking the station. Osei saw a state that had failed to restore. Sana saw a number severed from the
+work that had produced it. Tala saw one ordinary word carrying more machinery than it could bear, while each specialist reached for the part they had been
+trained to notice.
 
-This voyage had brought home one result that could not simply be made again. The physical target was entering maintenance, its
-calibration would expire during the particle front, and the sealed source observation belonged to the run already completed. They
-could preserve it, reject it, or account for it. They could not order the universe to repeat the same past.
+*Vela* had been rebuilt too often for anyone to know which part was oldest. Her pressure hull began as a survey tender. The port
+radiator came from a hospital barge. The maneuvering model, from a racing tug whose owners had considered safety margins a form of
+pessimism. Hardware vanished. Interfaces changed. Names survived.
+
+*Return* meant a function's answer in one layer, inverse execution in another, the spending of remembered history in a third. In
+navigation it meant arrival, and there the word predated everyone aboard.
+
+Routine voyages let those meanings pass one another without meeting. Cargo could be delivered despite a workspace leak. Another test could replace a weak
+record. A ship could miss a courteous arrival and take the outer loop.
+
+Not this time. The physical chamber was entering maintenance. Its calibration would expire in the coming storm. The sealed
+observation belonged to work already done. They might preserve it, reject it, or explain it. They could not ask the universe for
+the same past twice.
 
 Sana opened the result record. Near its end sat a small quantum program whose grammar Tala recognized before its purpose came into
 focus.
@@ -95,7 +110,7 @@ quantum class Bell {
 }
 ```
 
-Two registers. A preparation. An operation called `H`. A controlled gate. Measurement. The terms marked a route through a subject
+A two-position register. A preparation. An operation called `H`. A controlled gate. Measurement. The terms marked a route through a subject
 Tala did not know, but the record beneath them was plain enough.
 
 ```text
@@ -112,12 +127,14 @@ The distinction irritated Mara, which did not make it less important. "Can the r
 
 Osei enlarged the amber region of the restoration map. "Not while its workspace is still out there."
 
-Tala looked again at the number. One ideal-simulator run had halted and recorded `3`. Nothing in the record established what a
-second run would produce. A distribution required repeated trials. Entanglement required more than matching digits. Restoration
-required an operation absent after the measurement. The smallness of the number had no relation to the size of the missing
-explanation.
+Three was at least a number. Tala preferred numbers to people. Numbers usually grew quieter under inspection. This one did not.
+
+An ideal simulation had ended at `3`. A second run might end elsewhere. Matching digits alone could not establish entanglement.
+Nothing after measurement could restore the state that had been measured. The number was small. The missing explanation was not.
 
 "It is an observation," she said. "Not yet an answer."
+
+"I liked it better as a number," Mara said.
 
 Sana's attention shifted from the record to Tala. During the outward voyage, that pause had often preceded a correction. This time
 she entered the sentence unchanged.
@@ -140,13 +157,13 @@ From the ventilation came the smell of hot dust as braking systems left standby.
 Mara's console. She had bought it from a child in the Archive, denied that it was a keepsake, and spent thirty-seven days moving it
 to whichever surface currently defined forward. Now she caught it before the next attitude correction and put it in her pocket.
 
-Six meanings of *return* occupied the room, each precise enough to rule out one bad solution. None yet authorized the burn.
+Too many meanings of *return* occupied the room. Each forbade a different bad solution. The distinction might have been beautiful with
+more fuel.
 
-Tala reached for the field manual strapped beneath her console. Its cover had softened during the voyage, and Sana's evidence tags
-protruded from the binding at irregular intervals. Osei had repaired its spine with sailcloth at the Archive. Iona had drawn a
-wiring route across one endpaper and then, after Sana objected, attached enough provenance to make the drawing admissible. Between
-them lay the first programs Tala had written aboard *Vela*, beginning with an empty class in the construction berth and ending with
-the distinction that might yet bring them through the burn.
+Tala reached for the field manual strapped beneath her console. The cover had softened during the voyage. Sana's paper tags
+bristled from the binding. Osei had repaired the spine with sailcloth at the Archive. Iona had drawn a wiring route across one
+endpaper, then supplied its date and authorship after Sana objected. Between them lay Tala's first programs aboard *Vela*: an empty
+class in the construction berth, a black moon, and at last the distinction that might carry them through the burn.
 
 The book did not contain a hidden answer. It contained the route by which they had stopped accepting convenient ones.
 

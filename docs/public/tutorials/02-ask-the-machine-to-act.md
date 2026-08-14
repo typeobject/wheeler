@@ -1,7 +1,7 @@
 ---
 sidebar_position: 3
 title: Two Signals
-description: A departure handshake reduces a larger physical system to two values and two complete operations.
+description: Two lights in the dark become a bit, a flip, and the first hint of a way back.
 tutorial_id: CH02
 tutorial_steps: T08,T09,T10,T11,T12,T13
 tutorial_part: finite-state
@@ -14,15 +14,17 @@ tutorial_evidence: exact-classical-execution
 
 # Two Signals
 
-Behind them, Catenary spoke to departing vessels in pulses of microwave light. The station had six official languages and several
-hundred neighborhood dialects, but traffic control trusted none of them with separation distance. Each pulse crossed the widening
-vacuum, reached *Vela*'s receiver as an analog disturbance, and passed through enough hardware to become a number on Mara's
-console.
+Behind them, Catenary spoke in microwave pulses. The station had official languages, neighborhood dialects, private whistles,
+market slang. Traffic control trusted none of these with separation distance.
 
-Around the ship, departure traffic unfolded at several scales. Ore carriers began braking days before their assigned berths.
-Passenger needles changed velocity with the impatience of people who charged by the minute. A flotilla of family habitats moved so
-slowly that their gardens had grown toward a different sun by the time they cleared the yards. Traffic control reduced them all to
-the same narrow acknowledgments.
+A pulse crossed the widening vacuum. It touched *Vela* as an analog tremor, passed through layers of hardware, and arrived on
+Mara's console as a number.
+
+Departure unfolded at many speeds. Ore carriers began braking days before berth. Passenger needles changed velocity with the
+impatience of people who charged by the minute. Family habitats drifted so slowly their gardens leaned toward a different sun by
+the time they cleared the yards.
+
+Traffic control reduced them all to the same two replies.
 
 One flotilla vessel carried a white thorn painted across its radiator spine. Mara magnified it until individual repair patches
 became visible. She had grown up among the Thorn Families, whose addresses named a vessel, a pressure section, and the next three
@@ -39,23 +41,30 @@ For the departure handshake, only two numbers were admitted.
 1  request present
 ```
 
-Calling the signal two-state did not reduce the receiver to two physical conditions. Its antenna warmed. Amplifiers introduced
-noise. Threshold circuits occupied voltages between their nominal levels. The protocol ignored those details after they had done
-their work, preserving one distinction needed by the next layer.
+*Two-state* did not mean the receiver possessed only two physical conditions. The antenna warmed. Amplifiers added noise.
+threshold circuits wandered through voltages between their named levels. Once those details had done their work, the protocol let
+them fall away. It kept one distinction: absent, present.
 
-Mara waited for `1`, acknowledged it, then watched the station return to `0`. The exchange was routine. It granted no wisdom to
-either endpoint and carried none of the farewell messages still arriving on the private channels. Tala had two from former
-colleagues. Mara had nine from food vendors asking her to settle accounts before relativistic delay became an excuse.
+Mara waited for `1`, answered, watched the station fall back to `0`. Routine. The exchange carried no wisdom and none of the
+farewells accumulating on private channels. Tala had two from former colleagues. Mara's came from food vendors who wanted their
+accounts settled before distance became an excuse.
+
+"Those are navigational hazards," Mara said when Sana noticed the queue.
+
+"Only if the vendors own pursuit craft."
+
+"Two of them cater tug crews. I am not ruling it out."
 
 Osei had one from the Sable Instrument Cooperative. It addressed him as a delinquent member and contained a private line beneath
 the maintenance vote.
 
 ```text
 The west bearing outlasted your estimate.
+It did not outlast the mission.
 Iona
 ```
 
-He marked the message retained without answering it.
+He marked the message to keep. He did not answer.
 
 The manual had marked the two traffic values as unfinished business.
 
@@ -73,8 +82,8 @@ classical class OneBit {
 }
 ```
 
-Although the underlying `long` type could represent many whole numbers, this model admitted only `{0, 1}`, with assertions guarding
-the two points visited during the run. That narrower contract, not the storage capacity of `long`, made the location a **bit**.
+A `long` could hold many whole numbers. This model allowed only `{0, 1}` and checked both states as it passed. The narrow rule, not
+the size of the container, made the location a **bit**.
 
 Tala compiled the source and executed its artifact.
 
@@ -83,26 +92,28 @@ OneBit (classical) halted after 5 steps
 bit = 1
 ```
 
-One path, `0 -> 1`, followed from the report. Sana accepted the run and rejected Tala's first summary of it.
+The report showed one path: `0 -> 1`. Tala wrote, *the bit can change from zero to one*. Restrained, she thought. Safe.
 
-"The bit can change from zero to one," Tala had written.
+It did not.
 
 "This bit did," Sana said. "A claim about the operation needs every allowed input."
 
-There were only two, which made completeness possible without statistics or faith. Tala wrote them as rows.
+"There are two."
+
+"Then completeness should be affordable."
+
+Only two inputs existed. No statistics were needed. No faith either. Tala drew the rows.
 
 | Input | Output |
 | --- | --- |
 | `0` | `1` |
 | `1` | unknown |
 
-Without the missing row, the table did not describe an operation over the complete two-state set, only one
-observed transition. Had the input begun at `1`, an assignment to `1` would have produced `1 -> 1`, not the complementary change
-Mara associated with a signal flip.
+The missing row mattered. Without it, the table described one transition, not an operation over both states. Begin at `1` and the
+assignment would give `1 -> 1`, not the exchange Mara meant by *flip*.
 
-Osei joined them at the chart table while the station receded into the traffic behind. He had already opened the first maintenance
-watch, and a fan impeller the size of his hand lay disassembled beside the navigation plot. On *Vela*, abstract discussion took
-place wherever physical work had left enough horizontal surface.
+Osei joined them at the chart table. Catenary receded behind him. Beside the navigation plot, a fan impeller lay in pieces. On
+*Vela*, abstraction happened wherever repair work surrendered a flat surface.
 
 He drew two dots, labeled them `0` and `1`, and asked for the least eventful operation possible. Tala connected each dot to itself.
 
@@ -111,8 +122,8 @@ He drew two dots, labeled them `0` and `1`, and asked for the least eventful ope
 | `0` | `0` |
 | `1` | `1` |
 
-Under the **identity operation**, either allowed input remained itself. Deliberately doing nothing to the bit still defined a
-complete mapping, which mattered because an unchanged endpoint did not prove that no surrounding work had occurred.
+This was the **identity operation**. Either input remained itself. Deliberate inaction was still a whole mapping. An unchanged end
+never proved that nothing had happened around it.
 
 Mara added a second table from the departure protocol.
 
@@ -121,8 +132,8 @@ Mara added a second table from the departure protocol.
 | `0` | `1` |
 | `1` | `0` |
 
-This was the **flip operation**: not a single assignment to `1`, but a rule that exchanged both allowed states. Every input had one
-output, and the two output rows remained distinct.
+This was the **flip operation**: an exchange, not an assignment to `1`. Each input had one destination. The destinations did not
+collide.
 
 Tala drew the same rule as arrows.
 
@@ -131,8 +142,7 @@ Tala drew the same rule as arrows.
 1 -> 0
 ```
 
-Tables and arrows described one finite mapping in different forms. The table made completeness easy to inspect. The arrows made
-composition easier to follow.
+Same mapping, two views. The table exposed a missing case. The arrows made one operation easier to follow into the next.
 
 Osei covered the labels and asked Tala to apply the flip twice. She traced the first input through both copies of the operation,
 then repeated the work for the second.
@@ -142,8 +152,7 @@ then repeated the work for the second.
 | `0` | `1` | `0` |
 | `1` | `0` | `1` |
 
-Both inputs returned to their starting values. The composed map matched identity, although each individual flip had changed the
-state.
+Both inputs came home. Two changes composed into identity.
 
 Mara regarded the result with the suspicion pilots reserve for facts that appear obvious only after someone has written them down.
 "So it goes there and back."
@@ -154,10 +163,14 @@ Mara regarded the result with the suspicion pilots reserve for facts that appear
 
 "Only when it prevents salvage."
 
+"I am starting to understand why the Archive let you leave."
+
+Sana folded the table into the mission record. "They did not use *let*."
+
 Mara looked at the repaired impeller, then at the thinning lights of home, and let the answer stand.
 
-Sana's qualification stayed. Two cases were enough because the allowed set contained exactly two cases. A larger set would require
-more rows, and an unbounded set would need a different kind of argument.
+Sana's qualification stayed. Two rows settled a world containing two possibilities. A larger world would demand more work. An
+endless one, a different kind of argument.
 
 Tala wrote *reversible* in the margin, then hesitated. The manual's earlier owners had crossed out the same word in three inks.
 Beside it, the most recent hand had left a warning.
@@ -168,16 +181,15 @@ Defining one output for every input is an operation.
 Recovering every input from its output will earn the next word.
 ```
 
-By then the flip seemed ready to pass that test. Nothing in the chapter had yet shown what failure looked like, and a distinction
-learned only from its successful example tends to become praise rather than a rule.
+The flip seemed to pass. Too easily. A rule learned only from success soon curdles into praise.
 
-At the edge of the traffic field, *Vela* aligned for the Archive transfer corridor. The route was older than Catenary. Supply
-ships had followed it when the outer settlements were still pressure tents and a message could arrive before the sender's legal
-identity. Now autonomous buoys kept the lane clear, each one storing a local copy of every navigational correction in case the
-others forgot.
+At the edge of traffic, *Vela* turned into the Archive corridor. The route was older than Catenary. Supply ships had followed it
+when the outer settlements were pressure tents and a message might arrive before the sender's legal identity.
 
-The Archive appeared on the long-range plot as an administrative boundary hours before it appeared as light. It identified itself
-with a stream of checksummed records and a statement engraved into every public protocol it emitted.
+Now buoys kept the lane. Each remembered the latest correction in case the others forgot.
+
+The Archive appeared first as jurisdiction, hours before it appeared as light. Checksums filled the receiver. Beneath them came the
+sentence it had engraved into every public protocol:
 
 ```text
 WHAT IS REMEMBERED CAN BE RETURNED
@@ -186,4 +198,4 @@ WHAT IS REMEMBERED CAN BE RETURNED
 Sana read the line without expression. Her thumb found the inward-facing seal at her throat, held it for one breath, and moved
 away. Osei read the motto twice.
 
-From that claim, the field manual had taken the title of its next chapter: [The Archive](03-one-thing-to-remember.md).
+The next surviving heading borrowed the Archive's claim: [The Archive](03-one-thing-to-remember.md).

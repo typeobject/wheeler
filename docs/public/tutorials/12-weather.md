@@ -1,149 +1,192 @@
 ---
 sidebar_position: 13
 title: Weather
-description: Physical targets, jobs, noise, replay, retry, correction, and proof complete the return contract.
+description: In the chamber, mathematics meets weather. On the way home, every kind of return must answer for itself.
 tutorial_id: CH12
 tutorial_steps: T83,T84,T85,T86,T87,T88,T89,T90,T91,T92,T93
 tutorial_part: targets-and-evidence
 tutorial_order: 12
-tutorial_kind: complete-hybrid-execution
-tutorial_source: source-backed-capstones
+tutorial_kind: intended-complete-hybrid-execution
+tutorial_source: current-and-intended-capstones
 tutorial_expectation: auditable-return
-tutorial_evidence: exact-simulated-hardware-and-formal
+tutorial_evidence: intended-hardware-workflow-and-formal-records
 ---
 
 # Weather
 
-Across three decks, the physical target exposed one logical endpoint.
+The physical target occupied three decks and answered through one interface.
 
-Pumps maintained its vacuum. Refrigeration carried heat upward through nested shields. Control racks translated scheduled pulses
-into fields whose errors had to be measured rather than wished away. Seen from the chamber gallery, a quantum job looked less like
-an equation than a treaty among incompatible temperatures.
+Pumps held the vacuum. Refrigeration lifted heat through shield within shield. Control racks turned scheduled pulses into fields,
+and the fields went slightly wrong in ways that had to be measured. From the gallery, a quantum run looked less like mathematics
+than a truce among incompatible temperatures.
 
-The instrument's other residents took positions around the chamber. One closed a coolant bypass by hand while the control system
-watched. Another removed a family photograph from a rack that would vibrate during pump-down. Nobody stood in ceremonial silence.
-They checked seals, traded tool counts, and argued about whether a warm bearing belonged to this window's risk budget or the next
-one. Years from Catenary, the frontier consisted mostly of maintenance performed before a fault became interesting.
+The residents took their places. A coolant bypass closed by hand while the controls watched. Someone lifted a family photograph
+from a rack that would shake during pump-down. There was no ceremonial silence: seals, tools, the warm bearing and whether its risk
+belonged to tonight or tomorrow.
 
-An ideal semantic simulator and this machine implemented the same accepted Wheeler operations, but they offered different evidence.
-The simulator could expose an exact bounded state vector under its numeric profile. The target returned classical observations,
-calibration records, timestamps, and uncertainty. Hardware did not reveal its amplitudes merely because the source had names for
-them.
+Years from Catenary, the frontier was mostly maintenance performed before a fault became interesting.
 
-Sana divided the mission records before any submission occurred.
+The simulator and chamber understood the same Wheeler operations. They could not show the same things. The simulator exposed a
+state vector inside its numerical model. The chamber returned outcomes, times, calibration, uncertainty. Naming amplitudes in
+source did not make hardware reveal them.
 
-| Evidence | What it could support |
+Before submission, Sana separated the kinds of record.
+
+| Record | What it could show |
 | --- | --- |
-| exact classical execution | one deterministic run under a bound artifact and input |
-| ideal state-vector result | amplitudes under the named ideal simulator and numeric profile |
-| seeded simulator sample | reproducible counts under a target, seed, and shot count |
-| hardware sample | recorded observations from one physical job lineage |
-| statistical analysis | an inference under declared estimator and assumptions |
-| structural certificate | one finite artifact rule checked by the trusted kernel |
-| theorem certificate | one proposition under explicit assumptions checked by the trusted kernel |
+| classical execution | what one deterministic run did with a particular program and input |
+| ideal state vector | amplitudes inside the named simulator and numerical profile |
+| seeded simulation | reproducible counts for that seed and shot count |
+| hardware sample | observations from one physical job |
+| statistical analysis | an inference under its stated model and assumptions |
+| structural certificate | one artifact rule checked by the trusted kernel |
+| theorem certificate | one proposition proved from explicit assumptions |
 
-A row lower in the table did not automatically dominate a row above it. Hardware supplied physical evidence and noise. The ideal
-simulator supplied state access hardware could not. A theorem established its proposition without predicting whether the warm
-bearing would survive tonight's run.
+No row swallowed another. Hardware brought noise and physical fact. Simulation offered a view no chamber could. A theorem might
+settle its proposition and remain silent about the warm bearing.
 
-Sana gave each record class its own pane. Mara asked which pane would get them home. Sana answered by pointing to the blank lineage
-that would have to connect all the relevant ones.
+Sana gave each kind its own pane.
 
-Before a target received anything, Wheeler lowered the verified quantum region into a target plan. For an OpenQASM target, the
-compiler emitted derived text.
+"Which one gets us home?" Mara asked.
 
-```bash
-wheeler qasm tutorial/QFT.wbc \
-  --target far-instrument-physical \
-  -o mission/QFT.qasm
+Sana pointed to the empty space where their connections would go.
+
+"Not one. The chain."
+
+Before the chamber received anything, Wheeler translated the quantum region into a machine plan. Iona first selected the QFT
+round-trip they had repaired.
+
+The planner was brief.
+
+```text
+declared purpose:       phase calibration
+forward transform:      present
+immediate adjoint:      present
+net quantum operation:  identity
 ```
 
-A fragment named the same gates in the target language.
+Silence.
+
+"Excellent restoration test," Tala said.
+
+"Terrible calibration," Iona said.
+
+The round trip went out and back. No clock ever touched it. The mission needed phase accumulation followed by the inverse transform.
+Iona selected `BeaconPhaseEstimate.wbc`. Its plan coupled the control register to the optical reference, then applied the corrected
+QFT adjoint before measurement.
+
+For an OpenQASM target, the compiler emitted derived text for the ordinary gate regions.
+
+```bash
+wheeler qasm mission/BeaconPhaseEstimate.wbc \
+  --target far-instrument-physical \
+  -o mission/BeaconPhaseEstimate.qasm
+```
+
+The text showed the opening inverse-transform gates. The separate machine plan described the clock interaction for which standard
+gates had no words.
 
 ```qasm
 OPENQASM 3.0;
 include "stdgates.inc";
-qubit[3] q;
-h q[0];
-cp(pi / 2) q[1], q[0];
-cp(pi / 4) q[2], q[0];
+bit[16] measured;
+qubit[16] phase;
+swap phase[0], phase[15];
+swap phase[1], phase[14];
+// six remaining bit-order swaps
+h phase[0];
+cp(-pi / 2) phase[0], phase[1];
 ```
 
-Although useful to the target, QASM was neither Wheeler semantics nor source authority. Its identity bound the Wheeler artifact,
-target profile, lowering profile, and emitted bytes so that the submitted plan could be traced back to the verified program.
+QASM was useful machinery, not the meaning of the Wheeler source. Its record tied the emitted bytes to the program and to the
+translation used for this chamber.
 
-Capabilities constrained that lowering. The chamber target advertised qubit count, native gates, control depth, measurement,
-reset, dynamic branches, shot bounds, and calibration age. A second target in the rack supported static circuits but no
-mid-circuit measurement.
+The chamber could hold only so many qubits and perform only certain gates. Its profile also said whether it could couple to the
+optical reference, measure and reset mid-circuit, make a fast local branch, accept the requested shots, and remain within
+calibration. An older rack nearby could run fixed gate sequences but could not measure until the end.
 
-Iona deliberately sent the dynamic correction plan to the static target planner. Tala predicted a capability failure. Osei
-predicted the three missing fields. Mara predicted that the older rack would find a new way to be difficult. Rejection occurred
-before submission.
+Iona sent the dynamic correction plan to the older rack first.
+
+Tala expected refusal. Osei named the missing abilities. Mara expected originality.
+
+The planner refused before submission.
 
 ```text
 TARGET CAPABILITY REJECTION
-required: mid_circuit_measurement, reset, target_resident_branch
-missing:  mid_circuit_measurement, reset, target_resident_branch
+required: classical_conditional, mid_circuit_measurement, reset
+missing:  classical_conditional, mid_circuit_measurement, reset
 submitted: false
 ```
 
-No queue entry, provider charge, or physical lineage existed for the rejected plan. Complete preflight failure was part of target
-behavior, not an inconvenience to bypass.
+The correction had to be chosen beside the qubits. Its measurement could not wait for a message to cross the station, let alone the
+reach. *Target-resident* meant the branch happened there. `classical_conditional` was the required ability.
 
-Once the QFT plan satisfied the physical chamber's capability contract, Tala submitted it with a bounded shot count and calibration
-identity. The command returned before the machine did.
+The rejected plan entered no queue and touched no hardware. Refusal was the safe behavior.
+
+The phase-estimation plan passed the chamber checks. Tala submitted it with its shot count and calibration record.
+
+The command returned. The machine did not.
 
 ```bash
-wheeler run tutorial/QFT.wbc \
+wheeler run mission/BeaconPhaseEstimate.wbc \
   --target far-instrument-physical \
   --shots 4096 \
-  --record mission/qft-run
+  --record mission/beacon-phase-run
 ```
 
 ```text
 job state: submitted
 submission: sha256:6d6f...
-target job: FI-2048-771
+target job: FI-4096-771
 ```
 
-A **quantum job** was asynchronous even when a local target happened to complete immediately. Submission, acceptance, execution,
-completion, validation, and application remained separate events because remote time could place a crash or cancellation between
-any two of them.
+A **quantum job** bundled preparation, operations, measurements, and shots. Submission was not completion. Between acceptance and
+execution, or execution and validation, lay time enough for cancellation, failure, a broken link, a changed mind.
 
-The physical chamber made those intervals tangible. Acceptance arrived while its shutters closed. Execution began after a cooling
-hold long enough for the crew to eat. During the run, Sable eclipsed the primary and the station changed to battery power. A person
-could leave the gallery, sleep, and return before one semantic event yielded to the next.
+The chamber gave those intervals weight. Acceptance arrived while shutters closed. Then cooling: long enough to eat. During the
+run Sable eclipsed the star and the station went to battery power. Someone could leave the gallery, sleep, return, and still find the
+job between two verbs.
 
-With each remote change, the mission record grew by one immutable transition.
+The program joined chamber work to later classical changes. Wheeler called the whole life of it a **hybrid run**. Planning,
+acceptance, completion, validation: each belonged to the system that performed it. Only at the end could an observation alter
+ordinary program state.
 
 ```text
-01 plan_selected
-02 submission_created
-03 target_accepted
-04 target_completed
-05 result_validated
-06 observation_applied
+01 plan_selected          plan record
+02 submission_created     hybrid event
+03 target_accepted        target receipt
+04 target_completed       target receipt
+05 result_validated       validation record
+06 observation_applied    hybrid event
 ```
 
-Arrival order did not define semantic order. Submission identity selected the accepted completion. Validation checked target,
-shots, outcome width, plan identity, and calibration bounds before the observation could change classical program state.
+The numbered display did not make the events interchangeable. Messages might arrive out of order. Identities said which completion
+belonged to which submission. Validation checked the chamber, shots, outcome width, plan, and calibration before any observation
+could change classical state.
 
-At event six, measurement crossed the quantum-classical boundary. The target had produced basis outcomes from physical systems.
-Wheeler recorded those outcomes and continued classically. No generated inverse could reconstruct the unknown premeasurement state
-from the resulting integers.
+At the final event, measurement crossed the boundary. Physical systems became basis outcomes. Wheeler continued with integers. No
+generated inverse could unfold those integers into the unknown state before measurement.
 
-The QFT job passed its declared validation bounds. The instrument's calibration reducer bound its hardware sample to the source,
-artifact, target plan, chamber calibration, and estimator, then produced the signed result Catenary had requested. The result did
-not certify the whole target or prove the transform. It supplied one timely physical measurement under a chain that traffic
-control could audit.
+The phase job passed validation. Its outcomes placed the received optical reference into phase bins, blurred by finite shots and
+chamber error. Ordinary software combined them with microwave delay, particle counts, and magnetic readings. The program, machine
+plan, calibration, and estimator stayed attached.
 
-Sana transmitted the result manifest immediately. The bulk sample would take longer to cross the reach. Catenary acknowledged the
-manifest and held the beacon update open.
+Only then did clock drift separate from propagation delay.
 
-With the mission window secured, Iona submitted `BellPair.wbc` as a separate diagnostic under `mission/bell-run`. Its ideal model
-allowed only outcomes `0` and `3`, which made departures easy to see. In that first hardware Bell run, the weather became visible.
-Nobody in the gallery mistook the unwanted bars for a revelation. Iona had seen cleaner nights and much worse mornings. She read the counts with the practiced displeasure of someone finding frost
-inside a seal.
+The result proved neither the whole chamber nor the transform and made no claim to universal advantage. It gave traffic control a
+physical measurement whose path could be followed.
+
+Sana sent the compact manifest by fallback radio. The underlying clock comparisons, carrier readings, particle data, chamber
+receipts, and correction logs would take too long. Their calibration would expire in transit. She sealed them aboard *Vela*.
+
+Catenary acknowledged the summary. The beacon update stayed open.
+
+With the mission window safe, Iona submitted `BellPair.wbc` as a separate diagnostic. Its ideal model allowed only `0` and `3`. Any
+other bar would show the chamber's weather.
+
+The bars appeared.
+
+Nobody mistook them for mystery. Iona read the counts with the displeasure of someone finding frost inside a seal.
 
 ```text
 shots: 4096
@@ -153,25 +196,43 @@ shots: 4096
 3 | ################################################## 2002
 ```
 
-Ideal Bell semantics assigned probability only to `0` and `3`. The physical sample contained 116 other outcomes. Control error,
-readout error, decoherence, leakage, and drift could all contribute under the target's calibrated noise model. The histogram alone
-did not identify which mechanism caused each event.
+The ideal Bell state assigned probability only to `0` and `3`. Here, other outcomes appeared. Some population had left the expected
+rows. Yet the surviving `0` and `3` counts said nothing about whether their relative phase remained. A classical mixture could draw
+the same first histogram.
 
-**Decoherence** described loss of usable quantum phase relations through uncontrolled interaction with the environment. It was not
-a semantic operation in the Wheeler source and not a hidden random gate the program had requested. The target report supplied a
-physical model and calibration evidence for it.
+Iona changed the basis of the question. After the same Bell preparation, the chamber applied `H` to both qubits before measurement.
+The Hadamards turned phase relation into parity. An ideal Bell state would still yield matching outcomes. Damage to that relation
+would feed the mismatched rows.
 
-Mara asked for another run. What she wanted was understandable: a chance to learn whether the 116 unwanted outcomes would recur.
-What she said was, "Run it again," as though repetition named only one operation.
+```text
+complementary-basis shots: 4096
+0 | #############################################       1801
+1 | ######                                               254
+2 | ######                                               247
+3 | #############################################       1794
+```
 
-Sana stopped the command before submission and replayed the existing observation instead.
+Mismatch grew sharply in the second basis. Faulty control, readout error, leakage, drift, lost phase: the noise model allowed each
+to contribute. No single bar confessed its cause. Together, the two parities narrowed what the chamber might have done.
+
+The loss of usable phase relation through uncontrolled contact with the environment was **decoherence**. No Wheeler operation had
+requested it. No secret random gate explained it away. The chamber report inferred the loss through a calibrated physical model and
+gave the inference an uncertainty.
+
+Hardware still had not shown them an amplitude table.
+
+"Again," Mara said.
+
+She meant: *Will it recur?* The command meant something else.
+
+Sana stopped before submission and replayed the existing observation.
 
 ```bash
 wheeler replay mission/bell-run
 ```
 
-Replay consumed the validated record, reproduced the same later classical choices, and emitted a new replay event. It did not
-contact the target, create qubits, spend shots, or improve the statistical evidence.
+Replay fed the saved observation through the later classical decisions. No chamber was contacted. No qubits were prepared. No
+shots spent. No statistics improved. The record showed that replay had occurred and invented no physical event.
 
 ```text
 source observation: sha256:8aa1...
@@ -179,65 +240,97 @@ target submissions: 0
 replay status: applied
 ```
 
-A **retry** would do something else. It would prepare fresh physical systems and create a new submission lineage, even if source,
-target, and shot count remained unchanged.
+A **retry** crossed back into physics. Same program, same chamber, same shots: fresh systems, fresh job, another branch in the
+record.
 
 ```bash
 wheeler retry mission/bell-run --record mission/bell-retry
 ```
 
 ```text
-prior submission: sha256:6d6f...
-new submission:   sha256:891c...
-target submissions: 1
+task identity:       sha256:b41e...
+prior target job:    FI-BELL-042
+new target job:      FI-BELL-043
+retry branch:        sha256:891c...
+target submissions:  1
 ```
 
-Because retry prepared fresh physical state, the new sample could differ. Combining it with the first required an explicit
-statistical plan rather than silently replacing an unpleasant result.
+The new sample could differ because the physical preparations were new. It could be compared or combined with the first only by a
+plan written in advance, not used as a cleaner replacement.
 
-The retry contained 121 unwanted outcomes. Mara did not call that better or worse until Iona named the comparison and its
-assumptions. Sana retained both lineages. No convenient sample disappeared.
+The retry showed similar mismatch in both bases. Mara waited for Iona to define the comparison before calling it better or worse.
+Sana kept both runs. The inconvenient one remained.
 
-On the deck below, the instrument's error-correction target exercised the distinction between static structure and dynamic work.
-`SurfaceCode.w` prepared a logical patch, extracted syndrome information into ancillas, measured those ancillas during the run,
-reset them, selected corrections through target-resident branches, and repeated the bounded cycle under a declared noise budget.
+One deck below, error correction faced the same problem sharpened to a point. A physical qubit could drift without naming the fault.
+Measure it directly and the diagnosis would destroy the protected state.
 
-Where their contracts required it, the exact stabilizer and correction kernels remained unitary. Syndrome measurement produced new
-classical observations. Reset prepared resources for another cycle without pretending to uncompute the measured state. Dynamic
-control selected a correction from the observed syndrome. Each boundary retained its own operation name.
+The chamber spread one useful **logical qubit** across a pattern of physical qubits. A valid encoded state obeyed certain
+agreements. Temporary ancillas touched the pattern and were measured, not to reveal the protected value, but to ask which agreements
+had broken.
 
-Unlike the static target, the fully capable chamber accepted the plan. During execution, syndrome observations crossed the control
-panels in narrow columns. Corrections followed close enough that no instruction could wait for Catenary, the Archive, or even a
-person in the gallery. Target-resident did not mean unsupervised. It meant the supervision and branch contract had been established
-before the physical event required them.
+The answers formed a **syndrome**. A **decoder** mapped the recognized pattern to a correction. Drift did not wait. Measurement,
+decision, and correction all had to remain inside the chamber.
 
-The report bound cycle count, logical layout, physical qubits, decoder profile, syndrome records, corrections, and final logical
-measurement. A lower logical error estimate was a statistical claim over the declared runs, not proof that every encoded state
-would survive every physical fault.
+The static `SurfaceCode.w` fixture could prepare and reverse one correction kernel. It could not perform that measured feedback
+cycle. The dynamic plan therefore had a different name: `ErrorCorrectionCycle.w`.
 
-While the target cooled between jobs, Sana completed the evidence ledger for the three-qubit QFT.
+The check and correction kernels remained unitary where promised. Syndrome measurement created classical information. Reset
+prepared those measured ancillas for another cycle. It did not masquerade as uncomputation. Conditional control chose the
+correction. The boundaries kept their names because the physics differed.
 
-For prepared basis value five, the executable test showed restoration. The structural certificate verified that the generated body
-was the adjoint of the bound gate sequence. A theorem certificate covered the general proposition.
+A position in source named one logical resource. The chamber planner expanded it into a patch of physical sites, then surrounded the
+patch with ancillas for repeated checks. The phase register and its protection occupied thousands of physical qubits. Sixteen in
+the algorithm. Thousands in the room.
+
+The full chamber accepted the plan.
+
+During execution, syndromes poured down the panels in narrow columns. Corrections followed too quickly for Catenary, the Archive,
+or anyone in the gallery to intervene. *Target-resident* did not mean unsupervised. It meant the team had agreed every allowed
+branch before the moment of choice.
+
+The report tied the cycles to their layout, decoder, syndrome stream, corrections, and final logical measurement. Its lower logical
+error estimate belonged to these runs. It was not a promise that every encoded state would survive every fault.
+
+Eight hours became one status line: `completed with corrections`.
+
+Accurate, Iona thought, in the way *pressure loss* was accurate while omitting the room.
+
+While the chamber cooled, Sana finished the QFT record.
+
+Basis value five had gone forward and returned. The structural certificate showed that the generated body was the adjoint of the
+gate sequence. Neither had noticed that the sequence itself was the wrong Fourier transform.
+
+The corrected source kept its angles as symbolic fractions of `pi`. Now a theorem could address the proposition that had been
+missing: the forward body itself implemented the eight-point Fourier transform.
 
 ```text
-theorem: QFTAdjointLaw
-subjects: QFT.qft, generated_adjoint(QFT.qft)
-assumptions: normalized three-qubit input, accepted unitary semantics
-claim: adjoint(qft)(qft(state)) = state
+theorem: QFTDefinition
+subjects: QFT.qft, EightPointFourierTransform
+assumptions: normalized three-qubit input, exact symbolic angles,
+             accepted unitary semantics
+claim: qft(state) = EightPointFourierTransform(state)
 kernel status: verified
 ```
 
-Because the theorem named assumptions and subjects, it established more than the one fixture and something different from the
-hardware sample. It did not certify provider uptime, physical fidelity, or the correctness of an unrelated QFT implementation.
+The theorem ranged beyond one fixture, but only within its assumptions. It said nothing about chamber fidelity, pulse
+approximation, clock coupling, uptime, or some other implementation that happened to share the name QFT.
 
-Into the field manual's last open signature went those distinctions. Tala added no glossary. By then the crew's speech had changed
-without one. Mara no longer asked whether a job had "run again" when Sana replayed it. Osei no longer accepted "clean" without a
-basis and scope. Sana used *result* only after lineage connected observation to preparation.
+Tala wrote the distinctions into the manual's last open page. No glossary followed. Their speech had changed without permission.
+Mara no longer called replay *running again*. Osei heard *clean* and asked, *in which basis?* Sana withheld *result* until an
+observation could name its origin.
 
-Catenary's acknowledgment reached Sable during undocking. Traffic control had accepted the compact manifest and scheduled a
-provisional beacon retuning before the particle front. Final acceptance still required the full evidence package aboard *Vela*.
-The message contained no praise, only an application identity and the next expected contact. Mara read it twice anyway.
+Catenary's acknowledgment arrived during undocking. Traffic control accepted the compact manifest and scheduled a provisional
+retuning ahead of the particle front. Final acceptance would wait for the full record aboard *Vela*.
+
+The message offered no praise. It named the application, the next contact, and the consequences of arriving late.
+
+"We saved their beacon schedule," Mara said.
+
+"Provisionally," Sana replied.
+
+"I am celebrating provisionally."
+
+She read the message twice anyway.
 
 Iona remained at the inner lock while *Vela* withdrew. She returned the empty sensor case to Osei and kept his blue cup in the
 common rack.
@@ -250,32 +343,38 @@ common rack.
 
 "Write about something that works."
 
-Behind her, the station's five residents had already returned to pump work, meal rotation, and the bearing they had deferred into
-the next risk budget. The instrument contracted into a black line against Sable. Its result traveled inward with the ship. The
-place and people that produced it stayed where they were.
+Behind Iona, Sable's residents had returned to pumps, meals, and the bearing deferred to tomorrow's risk. The instrument narrowed
+against the moon: station, black line, nothing.
 
-Their departure from the far instrument began the homeward half of the voyage.
+Its result traveled inward. Its makers remained.
 
-On the homeward passage, the charged-particle front reached the inner system. *Vela* watched it first through instrument reports:
-noise floors rose, beacon clocks drifted, and Catenary's newly calibrated network changed profiles exactly once. Later the front
-became visible as a pale aurora along the magnetic field of the world below home. The crew slept, worked, and argued inside a hull
-that reduced the event to allowable exposure.
+On the homeward passage, the charged front crossed Sable and pressed inward against the giant world's magnetic field. *Vela* saw it
+first as numbers. Microwave paths shifted by frequency. Local clocks wandered by smaller amounts. The optical references held.
+Catenary's reducer separated the motions and changed the beacon profile once.
 
-Catenary's public reports described another scale of the same weather. The old wheels closed their widest windows. Garden districts
-shifted lamps to protect their power reserve. Markets moved from exposed spokes into school corridors, where children treated the
-emergency stalls as a festival until their parents ran out of patience. Under the provisional beacon profile, traffic continued at
-reduced separation rather than stopping altogether.
+Later the weather became light: a pale aurora following the giant world's field toward home. Inside *Vela*, the crew slept, worked,
+argued. The hull translated beauty into allowable exposure.
 
-On the second day inward, Osei began a message to Iona with the radiator valve he had repaired before breakfast. He described why
-the old part had failed, what the replacement did, and the sound it made when flow returned. He did not explain his departure or
-promise his arrival. Sana recorded the transmission identity without asking to read the private body.
+Catenary's reports described weather at human scale. Old wheels shuttered their widest glass. Gardens dimmed their lamps. Markets
+left the exposed spokes for school corridors, where children treated emergency stalls as festival booths until their parents' fear
+outlasted the game.
 
-Tala read the field manual from the beginning. In the outward margin she found her own early notes too broad, corrected them, and
-left enough of the old ink visible to show why. Sana received a message from Edrin accepting the evacuation-exhibit amendment.
-He had added two words: *losses remembered*. She did not answer immediately.
+Under the provisional beacons, traffic slowed. It did not stop.
 
-Weeks later, with orbital yards replacing stars in the forward windows, the return checker produced the amber report from which
-the manual had begun.
+On the second day inward, Osei wrote Iona about a radiator valve. Why the old part failed. How the replacement seated. The sound of
+flow returning. He explained neither his departure nor a future arrival.
+
+Sana logged the transmission without asking to read it.
+
+Tala began the manual again. Her early notes looked broad now. She corrected them without hiding the old ink.
+
+Edrin accepted Sana's amendment to the evacuation exhibit and added two words: *losses remembered*.
+
+She let the message wait.
+
+Weeks later, orbital yards replaced stars in the forward glass.
+
+Amber filled the navigation plot.
 
 ```text
 RETURN CHECK FAILED
@@ -285,44 +384,61 @@ mission result   present
 result lineage   incomplete
 ```
 
-This time Tala could read the failure rather than merely divide it among the crew. Neris Venn had granted one technical hold. The
-burn cage showed eight minutes, fifty-eight seconds and continued counting. Mara kept her hand inside it, ready to commit or abort,
-and waited for Tala's nouns.
+This time Tala could read the failure.
+
+One hold. Eight minutes, fifty-eight seconds. Falling.
+
+Mara kept her hand in the burn cage. Commit or abort. She waited for Tala to name the problem.
 
 "The result bytes match the manifest," Venn said. "I can carry the provisional profile for one cycle if you attest the result now
 and repair its lineage after docking."
 
-The offer was not reckless. It separated immediate traffic from later records, just as reopening the transit platforms had once
-separated crowd safety from fourteen cars outside the copied state. The dangerous word was *result*. Its bytes matched. Its claim
-did not yet possess the history required for acceptance.
+The offer was not reckless. Venn had separated immediate traffic from later accounting, as she once tried to separate crowded
+platforms from fourteen forgotten cars.
+
+The dangerous word was *result*.
+
+The bytes matched. The claim had lost its past.
+
+Tala wanted yes. Mara needed the burn. Catenary needed the calibration. Venn had offered a defensible path between them.
+
+Still the noun stood unsupported.
 
 "I can attest the bytes," Tala said. "I cannot attest the result. Keep the hold."
 
 Venn took one breath. "You have it."
 
-The crew did not serialize the problem. Sana opened the sealed manifest while Osei isolated the reversible branch. Tala split the
-checker into claims small enough to accept or reject. Mara kept the burn solution current as every unused second changed it. Their
-work could proceed together because each person knew which state and record the others were allowed to touch.
+They moved.
 
-One undifferentiated return policy had covered two experiments. In the unmeasured Bell restoration test, the generated adjoint had
-returned coherent workspace to `|00>`. In the sampled hardware experiment, measurement had intentionally
-created classical observations and ended the quantum state lineage. Demanding restoration after that boundary was not strict. It
-was a category error.
+Sana: sealed manifest.
 
-A separate cause lay behind the lineage failure. During homeward verification, Sana had replayed the validated QFT observation.
-The selected mission result now came from that replay event, whose compact record had lost its original submission edge. The bytes
-had survived. One relation had not.
+Osei: reversible branch.
 
-Sana opened the pre-commit manifest whose pattern she had copied from Edrin at the Archive. It preserved the missing identity and
-its parents. She recovered the signed target receipt, verified both content identities, and restored the edge without submitting
-another target job. The result now connected backward through validation, completion, acceptance, submission, plan, artifact, and
-source.
+Tala broke the failed check into smaller claims. Mara kept the burn alive while every passing second changed it.
+
+No meeting. No allocation of blame. Their responsibilities found their work.
+
+The return policy had confused two experiments. In the unmeasured Bell test, the adjoint restored coherent workspace to `|00>`. In
+the hardware run, measurement deliberately made classical observations and ended the quantum state.
+
+To demand that state back was not rigor. It was asking for the wrong thing.
+
+The broken chain had another cause. During homeward checks, Sana had replayed the validated beacon observation. The selected result
+now descended from that replay, but compression had dropped the link to the original submission.
+
+Bytes survived. Parentage did not.
+
+Sana opened the pre-commit manifest copied from Edrin's practice at the Archive. There: the missing identity, and behind it the
+signed chamber receipt. She checked both. Rejoined the edge. No new job.
+
+The result could walk backward again, from validation to completion, acceptance, submission, plan, artifact, source.
 
 "Lineage complete," she said.
 
-Osei had already isolated the reversible classical branch. He executed its generated inverse from the current state, without
-claiming access to history beyond the commit horizon. The remaining workspace warning belonged only to the measured Bell branch.
-Tala narrowed that contract to the state restoration had ever been able to cover.
+Osei ran the classical branch's generated inverse from the state they had now. He claimed no history beyond commit. The remaining
+workspace warning belonged only to the measured Bell run.
+
+Tala narrowed the promise to what restoration had ever been capable of restoring.
 
 Tala replaced the generic check with explicit contracts.
 
@@ -332,6 +448,8 @@ classical reversible state      restored by generated inverse
 VM history before commit        unavailable by declared horizon
 coherent Bell workspace         restored before measurement
 hardware measurement            recorded irreversible observation
+beacon phase observation        validated physical lineage
+calibration reducer inputs      complete
 replay                           linked to original observation
 retry                            separate physical lineage
 mission result lineage          complete
@@ -339,7 +457,9 @@ QFT structural certificate      verified
 QFT theorem certificate         verified
 ```
 
-No row claimed that the measured qubits had been recovered. No row needed them to be.
+The measured qubits were not recovered.
+
+Nothing required them to be.
 
 Osei ran the checker.
 
@@ -347,27 +467,51 @@ Osei ran the checker.
 RETURN CONTRACT SATISFIED
 ```
 
-Sana transmitted the repaired full lineage. Tala sent the explicit contracts beside it. Venn read far enough to separate the
-recorded observation from the state nobody claimed to restore, then bound the lineage to the provisional application.
+Sana transmitted the repaired chain. Tala sent the separated contracts beside it.
+
+Seconds moved.
+
+Venn read. She distinguished the preserved observation from the state no one claimed to restore. Then she bound the record to the
+provisional beacon update.
 
 "Calibration accepted," she said. "Proceed to burn."
 
-Mara looked once at Tala. On their first day she had trusted a departure interlock because its claim was small enough to inspect.
-Now she trusted a larger decision for the same reason. She resumed the countdown at seven minutes, thirty-one seconds. The braking
-burn arrived as acceleration through the deck, a physical fact no replay could reproduce for them later. Beyond the windows, the orbital yards stopped growing and began to hold
-their position.
+The navigation system cleared the hold and displayed one final notice.
 
-Sana closed the mission lineage only after docking contact. Iona's calibration, the Archive transfer, both hardware lineages, the
-replay, every rejected preflight, and the final theorem remained distinct records inside one account. She sent Edrin a reference to
-the manifest that had saved the edge, followed by an answer to his amendment: *remembered is not restored, and both matter*.
+```text
+RETURN AUTHORIZED
+THIS EVENT CANNOT BE REPLAYED AS PROPULSION
+```
 
-Catenary had changed while they were gone. Shield shutters covered the oldest windows. Traffic moved under the retuned beacon
-profile. In Yard Nine, somebody had painted the berth wall with a blue spiral and a maintenance crew had already billed *Vela* for
-removing it. Home had not held still to make their return easier.
+"Now it develops a sense of scope," Mara said.
 
-Tala returned the gray field manual to the machine room. Its binding still listed no revision authority, so she added her name only
-to the changes she could support. On the inside cover, beneath the old sentence about return, she wrote the narrower conclusion the
-voyage had earned.
+She looked once at Tala.
+
+On their first day, Mara had trusted a departure interlock because its promise fit on one screen. This decision was larger. Its
+parts were still visible.
+
+Seven minutes, thirty-one seconds.
+
+She committed.
+
+Acceleration struck through the deck. No replay could produce it later. Beyond the windows, the yards stopped growing and began to
+hold.
+
+Sana closed the mission account only after docking contact. Iona's calibration remained itself. So did the Archive transfer, the
+hardware runs, replay, refusals, theorem. Connected, not blended.
+
+She sent Edrin the manifest that had saved the missing edge. Beneath it she answered his amendment: *remembered is not restored.
+both matter*.
+
+Catenary had changed. Shield shutters covered the oldest windows. Traffic followed the retuned beacons. Someone had painted a blue
+spiral across *Vela*'s berth wall. Maintenance had already sent the removal charge.
+
+Home had not held still for them.
+
+Tala returned the gray manual to the machine room. The binding still named no final authority. She signed only the changes that
+were hers.
+
+Inside the cover, beneath the old sentence about return, she wrote what the voyage had left them:
 
 ```text
 Home is not the state before the journey.
@@ -375,8 +519,12 @@ Home is the state the contract promised to restore,
 with every surviving result able to explain how it arrived.
 ```
 
-Outside the hull, Catenary took *Vela*'s weight. Mara placed the Archive bird on the console. In the yard's spin it tipped forward,
-as if pointing into the ship rather than toward anything they had left behind. Osei opened a delayed Sable message that contained
-no fault report and began a reply. Sana watched the mission record propagate into three independent stores.
+Outside the hull, Catenary took *Vela*'s weight.
 
-Nothing moved backward. The doors opened anyway.
+Mara set the Archive bird on the console. In the yard's spin it tipped forward, pointing not toward the places behind them but into
+the ship. Osei opened a delayed message from Sable. No fault report. He began a reply. Sana watched the mission account enter its
+other stores, then let the screen go dark.
+
+Nothing moved backward.
+
+The doors opened anyway.

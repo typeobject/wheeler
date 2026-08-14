@@ -24,7 +24,11 @@ one new conceptual dependency, runs or inspects one bounded experiment, and ends
 tutorial. New Wheeler syntax carries an already familiar idea. New physics uses already familiar syntax. The series introduces
 mathematical notation only after an experiment creates a need for it.
 
-The tutorial carries one original science-fiction return voyage titled **Instructions for Returning**. Tala, an
+The public navigation presents the sequence as Story. Its narrative uses Wheeler's intended language, command, target, and proof
+surface without discussing implementation status inside the fiction. Public reference pages remain the authority for behavior that
+runs in the current toolchain. Internal metadata distinguishes current executable evidence from an intended semantic transcript.
+
+The tutorial carries one original science-fiction return voyage titled **Home Was the Easy Part**. Tala, an
 adult systems analyst aboard the courier *Vela*, understands ordinary software but lacks precise models for reversible and quantum
 work. A human-authored field manual preserves experiments and disputes from earlier engineers while the crew crosses habitats
 with different incomplete ideas about memory and evidence. Close third-person prose earns its vocabulary in the same order as
@@ -106,11 +110,12 @@ Every exact experiment records its expected result. Every sampled experiment rec
 acceptance explanation. Repeating the documented command produces the documented semantic result or one explicitly described
 bounded sample.
 
-### Lesson whose desired feature does not exist
+### Story chapter whose desired feature does not exist
 
-A planned lesson needs structured ancilla cleanup. The current compiler cannot execute that source. The tutorial navigation omits
-the lesson and the repository contains no aspirational `.w` file. The curriculum map records the dependency on WIP-0034. Current
-pages may explain the boundary in prose, but they do not present future syntax as usable.
+A chapter needs structured ancilla cleanup. The current compiler cannot execute that source, but the earned conceptual sequence
+needs the operation before later workspace failures make sense. The story may show intended `compute` and `use` syntax after the
+chapter establishes the information contract. Its metadata labels the transcript as intended rather than current executable
+evidence. The language reference and checked-in example catalog do not claim that the syntax runs today.
 
 ### Reader comparing evidence
 
@@ -294,7 +299,7 @@ home-directory state, live provider, or credential.
 
 ### Narrative frame
 
-**Instructions for Returning** opens in the middle of the voyage. The *Vela* has reached home coordinates, but its return check
+**Home Was the Easy Part** opens in the middle of the voyage. The *Vela* has reached home coordinates, but its return check
 reports unrestored workspace and incomplete result lineage. Mara reads position, Osei reads state restoration, Sana reads evidence,
 and Tala notices that *return* has accumulated incompatible meanings across old software layers.
 
@@ -378,8 +383,8 @@ opens the next question. Links may appear in diegetic records or chapter referen
 announce the next lesson.
 
 The public story landing links only to `T00`. It does not list or name later chapters. Each nonfinal chapter reveals its single successor
-after the closing consequence creates that next question. The sidebar exposes only the story landing, while direct chapter routes,
-search records, and sitemap entries remain available for stable references and returning readers.
+after the closing consequence creates that next question. The sidebar groups the landing and every released chapter under Story,
+while direct chapter routes, search records, and sitemap entries remain available for stable references and returning readers.
 
 ### Narrative voice
 
@@ -482,8 +487,8 @@ more deeply, but later required steps cannot depend on an optional sidebar witho
 
 ### Source and documentation authority
 
-A self-contained executable step uses one complete primary `wheeler` fence in its chapter. Chapter metadata identifies the step
-and fence as one of:
+A self-contained current-executable step uses one complete primary `wheeler` fence in its chapter. Chapter metadata identifies a
+current fence as one of:
 
 - exact execution.
 - expected compiler rejection.
@@ -491,19 +496,23 @@ and fence as one of:
 - seeded sampled simulation.
 - source display only for a conceptual trace.
 
-The documentation generator treats the primary fence as authored Wheeler source. It extracts the exact bytes, runs the compiler
-and Tree-sitter grammar, verifies canonical bytecode when compilation should succeed, executes the declared mode, and checks the
-bounded expectation. The generated site publishes the exact source as a downloadable `.w` asset.
+The documentation generator treats a current primary fence as authored Wheeler source. It extracts the exact bytes, runs the
+compiler and Tree-sitter grammar, verifies canonical bytecode when compilation should succeed, executes the declared mode, and
+checks the bounded expectation. The generated site may publish the exact source as a downloadable `.w` asset.
 
-This model gives the lesson one source authority. It does not require a copied file under `wheeler-examples`. A reader may save
-the displayed bytes and run the same commands.
+An intended transcript uses a separate metadata kind tied to an accepted semantic direction or owning WIP. The generator does not
+present that fence as current execution. It still checks bounded syntax structure where possible, exact arithmetic, finite mapping
+completeness, histogram totals, circuit dimensions, phase tables, event identities, and consistency between displayed commands and
+results. Intended syntax cannot contradict the language's information, ownership, quantum, or evidence model merely because the
+current parser does not accept it.
 
-A source-backed capstone may instead identify one checked-in `.w` file and package target. The generator reads that exact source
-through the package graph. A copied complete listing must match the named source bytes or a specified deterministic display
-projection. The first profile should prefer a link plus generated complete listing over manually copied fragments.
+A source-backed capstone identifies one checked-in `.w` file and package target. The generator reads that exact source through the
+package graph. A copied complete current listing must match the named source bytes or a specified deterministic display projection.
+An intended revision may extend that source with separately owned syntax, such as exact symbolic angles, but its metadata cannot
+claim byte identity with the current fixture.
 
-Invalid teaching source lives only in an expected-rejection fence or compiler test input. It never enters an ordinary package
-source set where every `.w` file must compile.
+Invalid current teaching source lives only in an expected-rejection fence or compiler test input. Intended source remains story
+evidence rather than entering an ordinary package source set where every `.w` file must compile.
 
 Each tutorial page receives bounded scalar front-matter metadata under a new documentation profile. The profile includes at least:
 
@@ -657,8 +666,8 @@ The curriculum tracks implementation state per step:
 | Coherent reuse | Exact XOR lifting exists | Superposition diagnostic and focused rejection lessons |
 | Static algorithms | Baseline gates can express fixed Deutsch, Grover, and QFT circuits | End-to-end tiny fixtures and checked explanations |
 | Hybrid workflow | Jobs, events, replay, retry, and commit exist in bounded slices | Reader-facing bounded event inspection |
-| Dynamic correction | Static kernel and capability vocabulary exist | Dynamic measurement, reset, and target-resident control remain unfinished |
-| General proofs | Four finite structural rules exist | General quantum propositions and resource proofs remain unfinished |
+| Dynamic correction | Static kernel and capability vocabulary exist | The story uses the intended measured feedback cycle, while current evidence remains separately identified |
+| General proofs | Four finite structural rules exist | The story may use an intended assumption-bearing theorem certificate without promoting it into the current reference |
 
 A page may mention a future gate only as a current boundary. It cannot inherit executable status from a proposal checklist.
 
@@ -803,8 +812,8 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [ ] Expected-rejection fences check stable diagnostics.
 - [ ] Downloadable `.w` assets reproduce exact fenced source.
 - [ ] Release unit 1 is complete.
-- [x] **The Long Count** records the target, 32-shot budget, seed `104729`, outcome width, exact observed bars, and the boundary between a finite frequency and the declared probability model.
-- [x] **One Qubit**, **Two Systems**, **The Search**, and **The Far Instrument** use bounded exact amplitude tables. They label state access as an ideal-simulator diagnostic and do not present it as hardware observation.
+- [x] **Long Count** records the target, 32-shot budget, seed `104729`, outcome width, exact observed bars, and the boundary between a finite frequency and the declared probability model.
+- [x] **One Qubit**, **Two Systems**, **Search**, and **Far Instrument** use bounded exact amplitude tables. They label state access as an ideal-simulator diagnostic and do not present it as hardware observation.
 - [ ] Release unit 2 is complete.
 - [ ] Static circuit diagrams pass accessibility and identity checks.
 - [ ] Release unit 3 is complete.
@@ -839,7 +848,7 @@ mathematical claim. The project does not preserve a false explanation for page-l
 - [x] **Weather** treats measurement as the quantum-classical boundary, replay as reuse of recorded evidence without submission, and retry as a fresh physical preparation with a new lineage.
 - [x] **Two Systems** says the Bell histogram establishes correlation but not entanglement by shape alone. It derives nonfactorability from the amplitude table and explains why CNOT copying basis information is not universal quantum cloning.
 - [ ] Landauer text states the bound and its assumptions without claiming zero-energy computation.
-- [x] **The Far Instrument** separates one executable prepared-state restoration from the generated finite structural certificate and states that a general QFT theorem over all normalized inputs and phase equivalence remains absent.
+- [x] **Far Instrument** separates one executable prepared-state restoration from the generated finite structural certificate and states that a general QFT theorem over all normalized inputs and phase equivalence remains absent.
 - [x] **Weather** names the measurement, reset, and target-resident conditional requirements. The static target rejects that complete capability set in canonical order before provider work, while the bounded dynamic target executes it.
 - [ ] Every diagram has a text equivalent and does not depend on color.
 - [ ] Source Markdown, static HTML, downloadable source, and printable order contain the same lesson graph.
@@ -914,7 +923,7 @@ proposal may retain an unlinked release-unit roadmap, while the public story lan
 - Which static circuit representation should generate both accessible HTML and useful source Markdown. **Owner:** quantum tooling and documentation maintainers. **Decide by:** before release unit 3.
 - How many independent zero-knowledge reader reviews are required for a release unit. **Owner:** documentation maintainers. **Decide by:** before release unit 1 publication.
 - Which chapter and anchor metadata binds several stable tutorial steps to one continuous story page without creating a second ordering authority. **Owner:** documentation and publication maintainers. **Decide by:** before tutorial metadata acceptance.
-- Which crew names and fictional settings survive zero-knowledge reader testing, and should **Instructions for Returning** remain the public series title. **Owner:** documentation maintainers. **Decide by:** before release unit 1 publication.
+- Which crew names and fictional settings survive zero-knowledge reader testing. **Owner:** documentation maintainers. **Decide by:** before release unit 1 publication.
 - Which glossary identity and front-matter fields encode required, introduced, sharpened, and retired language. **Owner:** documentation and language maintainers. **Decide by:** before tutorial metadata acceptance.
 
 ## References
