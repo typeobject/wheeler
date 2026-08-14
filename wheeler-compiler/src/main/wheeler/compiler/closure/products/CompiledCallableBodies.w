@@ -8,6 +8,7 @@ import wheeler.compiler.closure.callable_instruction_plans;
 import wheeler.compiler.closure.callable_local_type_plans;
 import wheeler.compiler.closure.callable_product_identity_plans;
 import wheeler.compiler.closure.imported_callable_stubs;
+import wheeler.compiler.closure.source_product_artifact;
 import wheeler.compiler.compiler_core;
 import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;

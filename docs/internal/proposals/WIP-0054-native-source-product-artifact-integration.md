@@ -123,7 +123,7 @@ No fallback reparses source after one of these failures.
 - [x] `CallableInstructionPlans.w` composes direct and structured-loop windows by root-statement source ordinal. It publishes callable-local instruction bases, source product selectors, exact byte extents, per-callable totals, and nothing on duplicate, detached, overlapping, or over-limit input.
 - [x] `CallableLocalTypePlans.w` composes signature, direct-statement, and loop rows into contiguous owner-local windows. Primitive and nominal codes retain their source product kind and identity. Duplicate, missing, excessive, or reordered locals leave caller rows unchanged.
 - [x] `CallableProductIdentityPlans.w` rebases call and aggregate identities through composed instruction windows while carrying callable-level ownership and proof identities. It retains all 32 identity bytes and source-product rows. Numeric closure target IDs do not enter the product.
-- [ ] One complete source-local module artifact emits directly from products.
+- [x] `SourceProductArtifact.w` assembles the six mandatory product sections and an optional proof section through the WIP-0048 container emitter. It verifies and hashes the private 32,768-byte artifact before atomically publishing bytes or identity.
 - [ ] `CoreParsing.w` matches stage 0 byte for byte and enters `CompiledBodyArchive.w`.
 - [ ] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.
