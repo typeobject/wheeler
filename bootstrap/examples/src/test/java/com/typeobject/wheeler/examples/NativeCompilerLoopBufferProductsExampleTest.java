@@ -176,7 +176,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
           state long fourthBodyType = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 968704, /* allocations= */ 15);
+            region products = new region(/* bytes= */ 974848, /* allocations= */ 16);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -188,6 +188,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
             words nestedRows = allocate(products, /* length= */ 20480);
             words loopLocalBases = allocate(products, /* length= */ 256);
             words loopInstructionStarts = allocate(products, /* length= */ 256);
+            words loopWindowRows = allocate(products, /* length= */ 768);
             words typeRows = allocate(products, /* length= */ 12288);
             words unused0 = allocate(products, /* length= */ 1);
             words unused1 = allocate(products, /* length= */ 1);
@@ -248,6 +249,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
               nestedRows,
               loopLocalBases,
               loopInstructionStarts,
+              loopWindowRows,
               output
             );
             LoopLocalTypePlan types = materializeLoopLocalTypeProducts(
@@ -287,6 +289,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
             drop(unused1);
             drop(unused0);
             drop(typeRows);
+            drop(loopWindowRows);
             drop(loopInstructionStarts);
             drop(loopLocalBases);
             drop(nestedRows);

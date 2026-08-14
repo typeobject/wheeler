@@ -37,6 +37,7 @@ classical class LoopInstructionProducts {
   private const long STATEMENT_BLOCK_ROW = 4096;
   private const long STATEMENT_CHILD_COUNT_ROW = 24576;
   private const long U64 = ENCODING_WIDTH_U64;
+  private const long WINDOW_ROWS = 768;
 
   /// Reports one complete canonical loop code extent.
   public record LoopInstructionProductPlan(long instructionCount, long length, boolean valid) {}
@@ -179,6 +180,7 @@ classical class LoopInstructionProducts {
     borrow mut words nestedRows,
     borrow mut words loopLocalBases,
     borrow mut words loopInstructionStarts,
+    borrow mut words loopWindowRows,
     borrow mut bytes output
   ) {
     assert(-1 < loopCount);
@@ -199,6 +201,7 @@ classical class LoopInstructionProducts {
     assert(bufferLength(nestedRows) == NESTED_ROWS);
     assert(bufferLength(loopLocalBases) == LOOP_COUNT_LIMIT);
     assert(bufferLength(loopInstructionStarts) == LOOP_COUNT_LIMIT);
+    assert(bufferLength(loopWindowRows) == WINDOW_ROWS);
     assert(bufferLength(output) == MAX_CODE_BYTES);
 
     region staging = new region(/* bytes= */ BODY_STAGING_BYTES, /* allocations= */ 1);
@@ -354,6 +357,7 @@ classical class LoopInstructionProducts {
     long instructionCount = 0;
     loop = 0;
     while (loop < loopCount) limit LOOP_COUNT_LIMIT {
+      long loopCodeStart = cursor;
       long condition = loopRows[LOOP_CONDITION_ROW + loop];
       long emittedLocalBase = loopLocalBases[loop];
       long emittedInstructionBase = loopInstructionStarts[loop];
@@ -477,7 +481,11 @@ classical class LoopInstructionProducts {
       long exitTarget = emittedInstructionBase + 8 + emittedBodyInstructions;
       long exitCursor = writeUnsignedLittleEndian(output, exitHeader + 16, exitTarget, U64);
       assert(exitCursor == exitHeader + 24);
-      instructionCount += emittedBodyInstructions + 8;
+      long loopInstructionCount = emittedBodyInstructions + 8;
+      set(loopWindowRows, loop, loopCodeStart);
+      set(loopWindowRows, 256 + loop, loopInstructionCount);
+      set(loopWindowRows, 512 + loop, cursor - loopCodeStart);
+      instructionCount += loopInstructionCount;
       loop += 1;
     }
 

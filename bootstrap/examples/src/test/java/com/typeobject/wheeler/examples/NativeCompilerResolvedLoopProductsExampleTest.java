@@ -132,12 +132,15 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
         "wheeler.compiler.closure.source_loop_products"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_statement_products"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.source_value_products"));
     sources.put("ResolvedLoopProductsExample.w", """
         module example.resolved_loop_products;
 
         import wheeler.compiler.closure.resolved_loop_products;
         import wheeler.compiler.closure.source_loop_products;
         import wheeler.compiler.closure.source_statement_products;
+        import wheeler.compiler.closure.source_value_products;
 
         classical class ResolvedLoopProductsExample {
           state long valid = 0;

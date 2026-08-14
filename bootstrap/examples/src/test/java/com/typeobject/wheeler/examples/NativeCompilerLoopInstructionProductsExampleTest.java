@@ -113,7 +113,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
           state long length = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 1581104, /* allocations= */ 25);
+            region products = new region(/* bytes= */ 1587248, /* allocations= */ 26);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -133,6 +133,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
             words symbolResolved = allocate(products, /* length= */ 16384);
             words loopLocalBases = allocate(products, /* length= */ 256);
             words loopInstructionStarts = allocate(products, /* length= */ 256);
+            words loopWindowRows = allocate(products, /* length= */ 768);
             words unused0 = allocate(products, /* length= */ 1);
             words unused1 = allocate(products, /* length= */ 1);
             words unused2 = allocate(products, /* length= */ 1);
@@ -221,6 +222,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
               nestedRows,
               loopLocalBases,
               loopInstructionStarts,
+              loopWindowRows,
               output
             );
             if (code.valid) {
@@ -235,6 +237,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
             drop(unused2);
             drop(unused1);
             drop(unused0);
+            drop(loopWindowRows);
             drop(loopInstructionStarts);
             drop(loopLocalBases);
             drop(symbolResolved);

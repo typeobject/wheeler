@@ -1,8 +1,10 @@
 package com.typeobject.wheeler.examples;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
+import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Program;
@@ -54,6 +56,9 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
     assertEquals(1, machine.global("resolvedValid"));
     assertEquals(1, machine.global("codeValid"));
     assertEquals(1, machine.global("typesValid"));
+    assertEquals(1, machine.global("directValid"));
+    assertEquals(1, machine.global("compositionValid"));
+    assertEquals(1, machine.global("artifactValid"));
     assertEquals(1, machine.global("valid"));
     assertEquals(25, machine.global("statementCount"));
     assertEquals(7, machine.global("blockCount"));
@@ -113,7 +118,95 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
       }
     }
     assertEquals(typeCount, machine.global("typeCount"));
-    assertEquals(typeCursor, machine.hostOutput().length);
+    assertEquals(typeCursor, machine.global("directOutputStart"));
+
+    int directCursor = typeCursor;
+    int directInstructionCount = 0;
+    for (FunctionBody function : expectedFunctions) {
+      List<Instruction> directCode = new java.util.ArrayList<>();
+      directCode.addAll(function.forward().subList(0, 4));
+      directCode.addAll(function.forward().subList(
+          function.forward().size() - 2, function.forward().size()));
+      for (Instruction instruction : directCode) {
+        assertEquals(
+            instruction.opcode().code(),
+            unsigned(machine.hostOutput(), directCursor, 2));
+        for (int operand = 0; operand < instruction.operands().size(); operand++) {
+          assertEquals(
+              instruction.operands().get(operand).longValue(),
+              unsigned(machine.hostOutput(), directCursor + 8 + operand * 8, 8));
+        }
+        directCursor += instruction.encodedLength();
+        directInstructionCount += 1;
+      }
+    }
+    assertEquals(directInstructionCount, machine.global("directInstructionCount"));
+    assertEquals(directCursor - typeCursor, machine.global("directLength"));
+    assertEquals(directCursor, machine.global("directTypeOutputStart"));
+
+    int directTypeCursor = directCursor;
+    int directTypeCount = 0;
+    int[][] directLocals = {{4, 5, 6, 7, 43}, {5, 6, 7, 8, 31}};
+    for (int owner = 0; owner < directLocals.length; owner++) {
+      for (int local : directLocals[owner]) {
+        assertEquals(owner, Byte.toUnsignedInt(machine.hostOutput()[directTypeCursor]));
+        assertEquals(local, Byte.toUnsignedInt(machine.hostOutput()[directTypeCursor + 1]));
+        assertEquals(
+            expectedFunctions.get(owner).localTypes().get(local).code(),
+            Byte.toUnsignedInt(machine.hostOutput()[directTypeCursor + 2]));
+        directTypeCursor += 3;
+        directTypeCount += 1;
+      }
+    }
+    assertEquals(directTypeCount, machine.global("directTypeCount"));
+    assertEquals(directTypeCursor, machine.global("composedOutputStart"));
+
+    int composedCursor = directTypeCursor;
+    int composedInstructionCount = 0;
+    for (FunctionBody function : expectedFunctions) {
+      for (Instruction instruction : function.forward()) {
+        assertEquals(
+            instruction.opcode().code(),
+            unsigned(machine.hostOutput(), composedCursor, 2));
+        for (int operand = 0; operand < instruction.operands().size(); operand++) {
+          assertEquals(
+              instruction.operands().get(operand).longValue(),
+              unsigned(machine.hostOutput(), composedCursor + 8 + operand * 8, 8));
+        }
+        composedCursor += instruction.encodedLength();
+        composedInstructionCount += 1;
+      }
+    }
+    assertEquals(composedInstructionCount, machine.global("composedInstructionCount"));
+    assertEquals(composedCursor - directTypeCursor, machine.global("composedLength"));
+    assertEquals(composedCursor, machine.global("composedTypeOutputStart"));
+
+    int composedTypeCursor = composedCursor;
+    int composedTypeCount = 0;
+    for (int owner = 0; owner < expectedFunctions.size(); owner++) {
+      List<com.typeobject.wheeler.core.bytecode.ValueType> types =
+          expectedFunctions.get(owner).localTypes();
+      for (int local = 0; local < types.size(); local++) {
+        assertEquals(owner, Byte.toUnsignedInt(machine.hostOutput()[composedTypeCursor]));
+        assertEquals(local, Byte.toUnsignedInt(machine.hostOutput()[composedTypeCursor + 1]));
+        assertEquals(
+            types.get(local).code(),
+            Byte.toUnsignedInt(machine.hostOutput()[composedTypeCursor + 2]));
+        composedTypeCursor += 3;
+        composedTypeCount += 1;
+      }
+    }
+    assertEquals(composedTypeCount, machine.global("composedTypeCount"));
+    assertEquals(composedTypeCursor, machine.global("artifactOutputStart"));
+
+    byte[] expectedArtifact = new BytecodeWriter().write(expectedProgram);
+    assertEquals(expectedArtifact.length, machine.global("artifactLength"));
+    assertEquals(1, machine.global("archivedArtifactCount"));
+    assertEquals(expectedArtifact.length, machine.global("archivedArtifactBytes"));
+    assertArrayEquals(
+        expectedArtifact,
+        java.util.Arrays.copyOfRange(
+            machine.hostOutput(), composedTypeCursor, machine.hostOutput().length));
   }
 
   private static Program program(
@@ -126,6 +219,8 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_statement_products"));
     sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.source_value_products"));
+    sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_loop_products"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.resolved_loop_body_products"));
@@ -135,15 +230,33 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
         "wheeler.compiler.closure.loop_instruction_products"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.loop_local_type_products"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.direct_statement_products"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.callable_source_composition"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.source_module_product_artifact"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.compiled_body_archive"));
+    CoreSources.addBinaryClosure(sources);
+    sources.put("FixedBinary.w", CoreSources.read("encoding/FixedBinary.w"));
+    sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     sources.put("CoreParsingSourceProductsExample.w", """
         module example.core_parsing_source_products;
 
+        import wheeler.compiler.closure.callable_source_composition;
+        import wheeler.compiler.closure.compiled_body_archive;
+        import wheeler.compiler.closure.direct_statement_products;
         import wheeler.compiler.closure.loop_instruction_products;
         import wheeler.compiler.closure.loop_local_type_products;
         import wheeler.compiler.closure.resolved_loop_body_products;
         import wheeler.compiler.closure.resolved_loop_products;
         import wheeler.compiler.closure.source_loop_products;
+        import wheeler.compiler.closure.source_module_product_artifact;
+        import wheeler.compiler.closure.source_product_artifact;
         import wheeler.compiler.closure.source_statement_products;
+        import wheeler.compiler.closure.source_value_products;
+        import wheeler.core.encoding.binary;
 
         classical class CoreParsingSourceProductsExample {
           state long valid = 0;
@@ -154,9 +267,26 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
           state long resolvedValid = 0;
           state long codeValid = 0;
           state long typesValid = 0;
+          state long directValid = 0;
+          state long compositionValid = 0;
+          state long artifactValid = 0;
           state long instructionCount = 0;
           state long codeLength = 0;
           state long typeCount = 0;
+          state long directInstructionCount = 0;
+          state long directLength = 0;
+          state long directTypeCount = 0;
+          state long directOutputStart = 0;
+          state long directTypeOutputStart = 0;
+          state long composedInstructionCount = 0;
+          state long composedLength = 0;
+          state long composedTypeCount = 0;
+          state long composedOutputStart = 0;
+          state long composedTypeOutputStart = 0;
+          state long artifactLength = 0;
+          state long artifactOutputStart = 0;
+          state long archivedArtifactCount = 0;
+          state long archivedArtifactBytes = 0;
           state long statementCount = 0;
           state long blockCount = 0;
           state long loopCount = 0;
@@ -176,7 +306,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
           state long secondLoopOwner = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 1788928, /* allocations= */ 22);
+            region products = new region(/* bytes= */ 19711008, /* allocations= */ 43);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -197,7 +327,28 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             words symbolResolved = allocate(products, /* length= */ 16384);
             words loopLocalBases = allocate(products, /* length= */ 256);
             words loopInstructionStarts = allocate(products, /* length= */ 256);
+            words loopWindowRows = allocate(products, /* length= */ 768);
             words typeRows = allocate(products, /* length= */ 12288);
+            words callableReturnLocals = allocate(products, /* length= */ 64);
+            words directRows = allocate(products, /* length= */ 28672);
+            words directTypes = allocate(products, /* length= */ 12288);
+            bytes directCode = allocateBytes(products, /* length= */ 262144);
+            words signatureTypes = allocate(products, /* length= */ 12288);
+            words composedCallables = allocate(products, /* length= */ 320);
+            words composedTypes = allocate(products, /* length= */ 12288);
+            bytes composedCode = allocateBytes(products, /* length= */ 262144);
+            bytes strings = allocateBytes(products, /* length= */ 32768);
+            words stringStarts = allocate(products, /* length= */ 256);
+            words stringLengths = allocate(products, /* length= */ 256);
+            words parameterCounts = allocate(products, /* length= */ 64);
+            words functionNameIds = allocate(products, /* length= */ 64);
+            bytes artifact = allocateBytes(products, /* length= */ 32768);
+            bytes identity = allocateBytes(products, /* length= */ 32);
+            words modulePublished = allocate(products, /* length= */ 512);
+            words moduleArtifactRanks = allocate(products, /* length= */ 512);
+            words artifactStarts = allocate(products, /* length= */ 512);
+            words artifactLengths = allocate(products, /* length= */ 512);
+            bytes bodyArchive = allocateBytes(products, /* length= */ 16777216);
             words unused = allocate(products, /* length= */ 1);
             set(bodyStarts, 0, %d);
             set(bodyLengths, 0, %d);
@@ -213,6 +364,51 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             set(loopLocalBases, 1, 9);
             set(loopInstructionStarts, 0, 4);
             set(loopInstructionStarts, 1, 4);
+            set(callableReturnLocals, 0, 43);
+            set(callableReturnLocals, 1, 31);
+            set(signatureTypes, 0, 0);
+            set(signatureTypes, 4096, 0);
+            set(signatureTypes, 8192, 10);
+            set(signatureTypes, 1, 0);
+            set(signatureTypes, 4097, 1);
+            set(signatureTypes, 8193, 10);
+            set(signatureTypes, 2, 0);
+            set(signatureTypes, 4098, 2);
+            set(signatureTypes, 8194, 10);
+            set(signatureTypes, 3, 0);
+            set(signatureTypes, 4099, 3);
+            set(signatureTypes, 8195, 1);
+            set(signatureTypes, 4, 1);
+            set(signatureTypes, 4100, 0);
+            set(signatureTypes, 8196, 10);
+            set(signatureTypes, 5, 1);
+            set(signatureTypes, 4101, 1);
+            set(signatureTypes, 8197, 10);
+            set(signatureTypes, 6, 1);
+            set(signatureTypes, 4102, 2);
+            set(signatureTypes, 8198, 10);
+            set(signatureTypes, 7, 1);
+            set(signatureTypes, 4103, 3);
+            set(signatureTypes, 8199, 1);
+            set(signatureTypes, 8, 1);
+            set(signatureTypes, 4104, 4);
+            set(signatureTypes, 8200, 1);
+            writeAscii(strings, 0, "$library");
+            writeAscii(strings, 8, "CoreParsing");
+            writeAscii(strings, 19, "wheeler.compiler.core_parsing::compactCompilerTokens");
+            writeAscii(strings, 71, "wheeler.compiler.core_parsing::discardLeadingTokens");
+            set(stringStarts, 0, 0);
+            set(stringLengths, 0, 8);
+            set(stringStarts, 1, 8);
+            set(stringLengths, 1, 11);
+            set(stringStarts, 2, 19);
+            set(stringLengths, 2, 52);
+            set(stringStarts, 3, 71);
+            set(stringLengths, 3, 51);
+            set(parameterCounts, 0, 4);
+            set(parameterCounts, 1, 5);
+            set(functionNameIds, 0, 2);
+            set(functionNameIds, 1, 3);
             SourceBlockProductPlan blockPlan = materializeSourceBlockProducts(
               input, 0, 0, 2, bodyStarts, bodyLengths, blocks
             );
@@ -280,6 +476,20 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             if (resolvedPlan.valid) {
               resolvedValid = 1;
             }
+            DirectStatementPlan directPlan = materializeDirectStatementProducts(
+              input,
+              loopPlan.statementCount,
+              statements,
+              valuePlan.valueCount,
+              values,
+              callableReturnLocals,
+              directRows,
+              directTypes,
+              directCode
+            );
+            if (directPlan.valid) {
+              directValid = 1;
+            }
             LoopInstructionProductPlan codePlan = writeLoopInstructionProducts(
               resolvedPlan.loopCount,
               resolvedConditions,
@@ -294,6 +504,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               nestedRows,
               loopLocalBases,
               loopInstructionStarts,
+              loopWindowRows,
               output
             );
             if (codePlan.valid) {
@@ -314,6 +525,66 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             if (typePlan.valid) {
               typesValid = 1;
             }
+            CallableSourceCompositionPlan compositionPlan = composeCallableSourceProducts(
+              2,
+              loopPlan.statementCount,
+              statements,
+              directPlan.productCount,
+              directRows,
+              directCode,
+              resolvedPlan.loopCount,
+              resolvedLoops,
+              loopWindowRows,
+              output,
+              9,
+              signatureTypes,
+              directPlan.typeCount,
+              directTypes,
+              typePlan.typeCount,
+              typeRows,
+              composedCallables,
+              composedTypes,
+              composedCode
+            );
+            if (compositionPlan.valid) {
+              compositionValid = 1;
+            }
+            SourceProductArtifactPlan artifactPlan = publishClassicalSourceModuleArtifact(
+              2,
+              composedCallables,
+              parameterCounts,
+              functionNameIds,
+              compositionPlan.typeCount,
+              composedTypes,
+              composedCode,
+              compositionPlan.length,
+              strings,
+              /* stringBytes= */ 122,
+              /* stringCount= */ 4,
+              stringStarts,
+              stringLengths,
+              artifact,
+              identity
+            );
+            if (0 < artifactPlan.length) {
+              artifactValid = 1;
+            }
+            CompiledBodyArchivePlan archivePlan = appendCompiledBodyArtifact(
+              artifact,
+              artifactPlan.length,
+              /* moduleOwner= */ 0,
+              /* artifactCount= */ 0,
+              /* archiveBytes= */ 0,
+              modulePublished,
+              moduleArtifactRanks,
+              artifactStarts,
+              artifactLengths,
+              bodyArchive
+            );
+            if (archivePlan.artifactCount == 1) {
+              archivedArtifactCount = archivePlan.artifactCount;
+              archivedArtifactBytes = archivePlan.archiveBytes;
+            }
             if (blockPlan.valid) {
               if (loopPlan.valid) {
                 if (valuePlan.valid) {
@@ -321,7 +592,13 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
                     if (resolvedPlan.valid) {
                       if (codePlan.valid) {
                         if (typePlan.valid) {
-                          valid = 1;
+                          if (directPlan.valid) {
+                            if (compositionPlan.valid) {
+                              if (0 < artifactPlan.length) {
+                                valid = 1;
+                              }
+                            }
+                          }
                         }
                       }
                     }
@@ -349,6 +626,13 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             instructionCount = codePlan.instructionCount;
             codeLength = codePlan.length;
             typeCount = typePlan.typeCount;
+            directInstructionCount = directPlan.instructionCount;
+            directLength = directPlan.length;
+            directTypeCount = directPlan.typeCount;
+            composedInstructionCount = compositionPlan.instructionCount;
+            composedLength = compositionPlan.length;
+            composedTypeCount = compositionPlan.typeCount;
+            artifactLength = artifactPlan.length;
             long type = 0;
             long outputCursor = codePlan.length;
             while (type < typePlan.typeCount) limit 4096 {
@@ -358,9 +642,69 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               outputCursor += 3;
               type += 1;
             }
+            directOutputStart = outputCursor;
+            long directByte = 0;
+            while (directByte < directPlan.length) limit 262144 {
+              setByte(output, outputCursor, directCode[directByte]);
+              outputCursor += 1;
+              directByte += 1;
+            }
+            directTypeOutputStart = outputCursor;
+            long directType = 0;
+            while (directType < directPlan.typeCount) limit 4096 {
+              setByte(output, outputCursor, directTypes[directType]);
+              setByte(output, outputCursor + 1, directTypes[4096 + directType]);
+              setByte(output, outputCursor + 2, directTypes[8192 + directType]);
+              outputCursor += 3;
+              directType += 1;
+            }
+            composedOutputStart = outputCursor;
+            long composedByte = 0;
+            while (composedByte < compositionPlan.length) limit 262144 {
+              setByte(output, outputCursor, composedCode[composedByte]);
+              outputCursor += 1;
+              composedByte += 1;
+            }
+            composedTypeOutputStart = outputCursor;
+            long composedType = 0;
+            while (composedType < compositionPlan.typeCount) limit 4096 {
+              setByte(output, outputCursor, composedTypes[composedType]);
+              setByte(output, outputCursor + 1, composedTypes[4096 + composedType]);
+              setByte(output, outputCursor + 2, composedTypes[8192 + composedType]);
+              outputCursor += 3;
+              composedType += 1;
+            }
+            artifactOutputStart = outputCursor;
+            long artifactByte = 0;
+            while (artifactByte < artifactPlan.length) limit 32768 {
+              setByte(output, outputCursor, artifact[artifactByte]);
+              outputCursor += 1;
+              artifactByte += 1;
+            }
             setOutputLength(output, outputCursor);
             drop(unused);
+            drop(bodyArchive);
+            drop(artifactLengths);
+            drop(artifactStarts);
+            drop(moduleArtifactRanks);
+            drop(modulePublished);
+            drop(identity);
+            drop(artifact);
+            drop(functionNameIds);
+            drop(parameterCounts);
+            drop(stringLengths);
+            drop(stringStarts);
+            drop(strings);
+            drop(composedCode);
+            drop(composedTypes);
+            drop(composedCallables);
+            drop(signatureTypes);
+            drop(directCode);
+            drop(directTypes);
+            drop(directRows);
+            drop(callableReturnLocals);
             drop(typeRows);
+            drop(loopWindowRows);
             drop(loopInstructionStarts);
             drop(loopLocalBases);
             drop(symbolResolved);

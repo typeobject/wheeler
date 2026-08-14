@@ -28,7 +28,6 @@ import wheeler.compiler.closure.resolved_loop_body_products;
 import wheeler.compiler.closure.resolved_loop_products;
 import wheeler.compiler.closure.source_callable_type_products;
 import wheeler.compiler.closure.source_loop_products;
-import wheeler.compiler.closure.source_statement_products;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.core_local_types;

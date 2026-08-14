@@ -80,10 +80,13 @@ final class NativeCompilerSourceStatementProductsExampleTest {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_statement_products"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.source_value_products"));
     sources.put("LoopStatementProductsExample.w", """
         module example.loop_statement_products;
 
         import wheeler.compiler.closure.source_statement_products;
+        import wheeler.compiler.closure.source_value_products;
 
         classical class LoopStatementProductsExample {
           state long valid = 0;
@@ -132,10 +135,13 @@ final class NativeCompilerSourceStatementProductsExampleTest {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_statement_products"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.source_value_products"));
     sources.put("SourceStatementProductsExample.w", """
         module example.source_statement_products;
 
         import wheeler.compiler.closure.source_statement_products;
+        import wheeler.compiler.closure.source_value_products;
 
         classical class SourceStatementProductsExample {
           state long valid = 0;

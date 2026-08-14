@@ -24,6 +24,7 @@ import wheeler.compiler.closure.local_nominal_carriers;
 import wheeler.compiler.closure.primitive_placeholder_projection;
 import wheeler.compiler.closure.resolved_aggregate_operations;
 import wheeler.compiler.closure.source_statement_products;
+import wheeler.compiler.closure.source_value_products;
 
 classical class AggregateCompiledCallableBodies {
   private const long IDENTITY_BYTES = 32;
