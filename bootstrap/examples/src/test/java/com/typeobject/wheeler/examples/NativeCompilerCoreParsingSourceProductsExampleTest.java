@@ -637,6 +637,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               directTypes,
               typePlan.typeCount,
               typeRows,
+              functionResultTypes,
               composedCallables,
               composedTypes,
               composedCode

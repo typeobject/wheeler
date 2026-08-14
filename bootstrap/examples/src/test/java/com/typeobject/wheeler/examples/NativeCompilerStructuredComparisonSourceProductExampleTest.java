@@ -69,6 +69,18 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
+  void emitsAnImplicitVoidReturn() throws Exception {
+    String voidReturn = SOURCE.replace(
+        "public long copyOffset(",
+        "public void copyOffset(").replace(
+            "    return length;\n",
+            "");
+
+    assertTrue(voidReturn.contains("public void copyOffset("));
+    assertArtifact(voidReturn);
+  }
+
+  @Test
   void rejectsUnsupportedDirectReturnTypesBeforePublication() throws Exception {
     String byteViewReturn = SOURCE.replace(
         "public long copyOffset(",

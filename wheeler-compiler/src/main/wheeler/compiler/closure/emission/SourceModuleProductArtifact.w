@@ -150,6 +150,7 @@ classical class SourceModuleProductArtifact {
     long functionTypeStart = descriptorStart + functionCount * 40;
     long codeOffset = 0;
     long typeOffset = 0;
+    long resultTypeCount = 0;
     long function = 0;
     while (function < callableCount) limit MAX_CALLABLES {
       long descriptor = descriptorStart + function * 40;
@@ -161,10 +162,14 @@ classical class SourceModuleProductArtifact {
       assert(0 < functionCodeLength);
       assert(functionCodeLength < codeLength - codeOffset + 1);
       assert(parameterCounts[function] < functionLocalCount + 1);
-      assert(functionLocalTypeStart == typeOffset - function);
+      assert(functionLocalTypeStart == typeOffset - resultTypeCount);
       assert(functionNameIds[function] < stringCount);
       long resultType = functionResultTypes[function];
-      boolean resultTypeValid = resultType == TYPE_SIGNED;
+      boolean resultTypeValid = resultType == 0;
+      if (resultType == TYPE_SIGNED) {
+        resultTypeValid = true;
+      }
+
       if (resultType == TYPE_BOOLEAN) {
         resultTypeValid = true;
       }
@@ -172,7 +177,12 @@ classical class SourceModuleProductArtifact {
       assert(resultTypeValid);
       writeUnsigned(sectionArchive, descriptor, 4, function);
       writeUnsigned(sectionArchive, descriptor + 4, 4, functionNameIds[function]);
-      writeUnsigned(sectionArchive, descriptor + 8, 4, 4);
+      long functionFlags = 0;
+      if (0 < resultType) {
+        functionFlags = 4;
+      }
+
+      writeUnsigned(sectionArchive, descriptor + 8, 4, functionFlags);
       writeUnsigned(sectionArchive, descriptor + 12, 4, codeOffset);
       writeUnsigned(sectionArchive, descriptor + 16, 4, functionCodeLength);
       writeUnsigned(sectionArchive, descriptor + 20, 4, 4294967295);
@@ -180,8 +190,12 @@ classical class SourceModuleProductArtifact {
       writeUnsigned(sectionArchive, descriptor + 28, 4, parameterCounts[function]);
       writeUnsigned(sectionArchive, descriptor + 32, 4, functionLocalCount);
       writeUnsigned(sectionArchive, descriptor + 36, 4, typeOffset);
-      writeUnsigned(sectionArchive, functionTypeStart + typeOffset * 4, 4, resultType);
-      typeOffset += 1;
+      if (0 < resultType) {
+        writeUnsigned(sectionArchive, functionTypeStart + typeOffset * 4, 4, resultType);
+        typeOffset += 1;
+        resultTypeCount += 1;
+      }
+
       long local = 0;
       while (local < functionLocalCount) limit 256 {
         long type = functionLocalTypeStart + local;
@@ -203,7 +217,7 @@ classical class SourceModuleProductArtifact {
     }
 
     assert(codeOffset == codeLength);
-    assert(typeOffset == localTypeCount + callableCount);
+    assert(typeOffset == localTypeCount + resultTypeCount);
     long libraryDescriptor = descriptorStart + callableCount * 40;
     writeUnsigned(sectionArchive, libraryDescriptor, 4, callableCount);
     writeUnsigned(sectionArchive, libraryDescriptor + 4, 4, 0);

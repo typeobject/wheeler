@@ -4,6 +4,8 @@ module wheeler.compiler.closure.callable_source_composition;
 
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
+import wheeler.compiler.encoding;
+import wheeler.compiler.opcodes;
 
 classical class CallableSourceComposition {
   private const long CALLABLE_ROWS = 320;
@@ -116,6 +118,7 @@ classical class CallableSourceComposition {
     borrow mut words directTypes,
     long loopTypeCount,
     borrow mut words loopTypes,
+    borrow mut words functionResultTypes,
     borrow mut words callableRows,
     borrow mut words outputTypes,
     borrow mut bytes outputCode
@@ -143,6 +146,7 @@ classical class CallableSourceComposition {
     assert(-1 < loopTypeCount);
     assert(loopTypeCount < MAX_TYPES + 1);
     assert(bufferLength(loopTypes) == TYPE_ROWS);
+    assert(bufferLength(functionResultTypes) == MAX_CALLABLES);
     assert(bufferLength(callableRows) == CALLABLE_ROWS);
     assert(bufferLength(outputTypes) == TYPE_ROWS);
     assert(bufferLength(outputCode) == MAX_CODE_BYTES);
@@ -233,6 +237,21 @@ classical class CallableSourceComposition {
           }
 
           processed += 1;
+        }
+      }
+
+      if (functionResultTypes[callable] == 0) {
+        if (MAX_CODE_BYTES - codeCursor < 8) {
+          valid = false;
+        } else {
+          codeCursor = writeInstructionHeader(
+            stagedCode,
+            codeCursor,
+            OPCODE_RETURN,
+            INSTRUCTION_FORM_NULLARY
+          );
+          callableInstructionCount += 1;
+          instructionCount += 1;
         }
       }
 

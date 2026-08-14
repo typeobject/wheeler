@@ -109,7 +109,8 @@ Failure leaves coordinate, code, type, relocation, and artifact outputs untouche
 - [x] WIP-0056 now feeds parameter counts, exact logical statement rows, merged body, direct, and loop-frame widths, statement identities, source extents, and structural parents into `SourceCallableCoordinateProducts.w`. `StructuredSourceModuleCompiler.w` requires the shared plan before composition and publication. The physical `CoreParsing.w` product remains byte-identical to stage 0.
 - [x] WIP-0056's sequential-root and nested-first fixture matches stage 0 byte for byte. It includes direct work between roots, a second-root update, a trailing assertion, and a value return. The existing two-callable `CoreParsing.w` product remains byte-identical.
 - [x] Direct signed and Boolean returns publish the planned return slot and exact result type through the function descriptor. Unsupported direct return types fail before artifact publication.
-- [ ] Void and inverse products consume the same plan. WIP-0057 owns call, relocation, and ownership coordinate products.
+- [x] Void descriptors and implicit returns publish without a fabricated result type or local slot and match stage 0.
+- [ ] The implicit void return and inverse products consume the same coordinate plan. The current composition pass appends the void return after statement planning. WIP-0057 owns call, relocation, and ownership coordinate products.
 - [ ] Private frame and instruction bias calculations are deleted.
 
 ## Acceptance

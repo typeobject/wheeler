@@ -454,6 +454,7 @@ classical class StructuredSourceModuleCompiler {
       directTypes,
       typePlan.typeCount,
       loopTypes,
+      functionResultTypes,
       composedCallables,
       composedTypes,
       composedCode
