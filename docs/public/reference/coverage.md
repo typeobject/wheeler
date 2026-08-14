@@ -32,7 +32,13 @@ The report has no percentage. This first slice knows which transitions ran, but 
 
 `wheeler.runtime.coverage_reducer` consumes at most 64 bounded canonical point fragments. Each input row separates its sort key from the rendered prefix and suffix. The library reducer validates every extent, insertion-sorts rows without a host collection, combines duplicate keys with exact counts, renders decimal counts, and returns the length only after the complete profile-1 report exists. `wheeler.conformance.runtime.native_coverage_reducer` is the executable boundary that publishes that exact returned extent. The runtime package therefore carries no hidden entry method.
 
-The differential fixture collects two forward-and-rewind executions, reverses arrival order, and compares every Wheeler-produced report byte with `SemanticCoverage.canonicalReport()`. This proves reducer parity for the accepted row format. It does not prove source-native collection: the Java seed still turns VM observations into bounded input fragments.
+The differential fixture collects two forward-and-rewind executions, reverses arrival order, and compares every Wheeler-produced report byte with `SemanticCoverage.canonicalReport()`. This proves reducer parity for the accepted row format.
+
+## Native bootstrap collection
+
+`wheeler.conformance.runtime.native_coverage_run` closes the first source-to-native path. The Wheeler-native module compiler compiles a bounded assertion fixture to canonical `.wbc`. The Wheeler interpreter verifies and executes that artifact, retains its opcode trace outside the subject's state, and passes the measured fragment prefix to `reduceRange`. The Java harness transports source and artifact bytes and compares the final fixed report. It creates no `TransitionObserver`, point row, sort key, prefix, or suffix.
+
+`wheeler.runtime.bootstrap_coverage_fragments` admits the linear bootstrap trace made of `LOCAL_CONST`, `EXPECT_TRUE`, and `HALT`. It derives function and instruction coordinates from the verified entry and trace order. Any other opcode fails before fragment or report publication. A negative fixture executes a trace containing `LOCAL_MOVE` and proves the entire output remains zeroed. Calls, branches, inverses, rewind, and multiple functions require richer native interpreter events and remain outside this narrow bootstrap profile.
 
 ## Presentation adapters
 
@@ -62,4 +68,4 @@ Adjacent-edge coverage reports observed path outcomes without inventing a comple
 
 Proof-stage observation does not change kernel decisions or inhabit a theorem. Its report and identity remain separate from VM transition coverage, certificate identity, and proof validity.
 
-Compound conditions, match-arm denominators, trapped attempts, attempt lineage, quantum structure, and Wheeler-native observation collection remain part of WIP-0020. JaCoCo still measures only the Java seed implementation. It is not evidence about Wheeler semantics.
+Compound conditions, match-arm denominators, trapped attempts, attempt lineage, quantum structure, and general Wheeler-native observation collection remain part of WIP-0020. JaCoCo still measures only the Java seed implementation. It is not evidence about Wheeler semantics.

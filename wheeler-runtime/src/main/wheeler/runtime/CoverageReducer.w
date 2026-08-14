@@ -148,11 +148,12 @@ classical class CoverageReducer {
     return cursor + length;
   }
 
-  /// Emits the profile-1 report after complete input validation and row sorting.
+  /// Emits the profile-1 report from one exact input prefix.
   ///
   /// - Effects: Publishes output length only after the complete bounded report exists.
-  public long reduce(borrow byteview input, borrow mut bytes output) {
-    assert(0 < bufferLength(input));
+  public long reduceRange(borrow byteview input, long inputLength, borrow mut bytes output) {
+    assert(0 < inputLength);
+    assert(inputLength < bufferLength(input) + 1);
     long rowCount = input[0];
     assert(rowCount < MAX_ROWS + 1);
     region arena = new region(4096, 7);
@@ -174,7 +175,7 @@ classical class CoverageReducer {
       row += 1;
     }
 
-    assert(cursor == bufferLength(input));
+    assert(cursor == inputLength);
     long selected = 1;
     while (selected < rowCount) limit MAX_ROWS {
       long position = selected;
@@ -257,5 +258,12 @@ classical class CoverageReducer {
     drop(keyStarts);
     drop(arena);
     return cursor;
+  }
+
+  /// Emits the profile-1 report after complete input validation and row sorting.
+  ///
+  /// - Effects: Publishes output length only after the complete bounded report exists.
+  public long reduce(borrow byteview input, borrow mut bytes output) {
+    return reduceRange(input, bufferLength(input), output);
   }
 }
