@@ -109,6 +109,10 @@ targets:
     root: "src/main/wheeler/classical/ownership/RegionStorage.w"
     test: false
   - kind: "deployable"
+    name: "reversiblepacketcodec"
+    root: "src/main/wheeler/classical/data/ReversiblePacketCodec.w"
+    test: false
+  - kind: "deployable"
     name: "reversibleresult"
     root: "src/main/wheeler/classical/control/ReversibleResult.w"
     test: false

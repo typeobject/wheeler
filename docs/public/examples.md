@@ -153,6 +153,14 @@ Covers: Recursive signed value call under frame and step ceilings.
 
 Expected result: `result = 6`.
 
+### `ReversiblePacketCodec.w`
+
+Source: [`ReversiblePacketCodec.w`](../../wheeler-examples/src/main/wheeler/classical/data/ReversiblePacketCodec.w).
+
+Covers: A fixed-width version, kind, and payload layout encoded by checked reversible updates, one generated decoder, a kernel-checked inverse certificate, exact encoded bytes represented as a bounded word, and complete packet restoration.
+
+Expected result: `observed = 2753795`, `packet = 0`.
+
 ### `ReversibleResult.w`
 
 Source: [`ReversibleResult.w`](../../wheeler-examples/src/main/wheeler/classical/control/ReversibleResult.w).

@@ -356,7 +356,7 @@ Portfolio work follows these rules:
 
 ### Reversible systems
 
-- [ ] Reversible packet codec.
+- [x] `ReversiblePacketCodec.w` assigns version, kind, and payload to disjoint fixed-width byte positions through checked reversible updates. Its generated decoder and kernel-checked inverse certificate restore an empty packet after the exact encoded value is observed. Stage-0 compilation, canonical bytecode decoding, execution, and complete VM rewind are part of the classical portfolio gate.
 - [ ] Transactional persistent index.
 - [ ] Incremental dependency graph.
 - [ ] Integer wavelet transform.
