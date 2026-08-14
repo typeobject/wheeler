@@ -405,7 +405,7 @@ An optional `IoAction<Effects, Result>` or `QuantumAction<Input, Output, Effects
 - [ ] Effect-polymorphic wrappers cannot hide effects or forge capabilities.
 - [ ] An ordinary callable cannot become `ReversibleFunction` without evidence.
 - [ ] Reversible composition uses inverse order and generic inverse commutes with specialization.
-- [ ] Intrinsic reversible bodies reject arbitrary allocation/release/foreign/measurement effects.
+- [x] The accepted `rev` and `coherent rev` verifier derives generated inverses only for registered reversible opcodes. Allocation, release, freeze, logged mutation, measurement, reset, target submission, host I/O, and unknown calls reject before publication. Coherent calls also require a coherent target function.
 - [ ] Coherent types require admitted exact finite encoding and complete bijection.
 - [x] Coherent calls encode one verified numeric function identity and direction. Gate records encode stable semantic gate identities. Provider objects and runtime callable tables do not enter the quantum section.
 - [x] Canonical preparation, measurement, and reset records reject inverse or adjoint construction. Host submission remains a workflow operation. The invertible quantum operation set contains only fixed or symbolic gates, coherent calls, and accepted conditional fixed gates.
@@ -416,7 +416,7 @@ An optional `IoAction<Effects, Result>` or `QuantumAction<Input, Output, Effects
 - [x] A complete quantum submission records the ordered circuit identities and directions selected by classical planning. Selecting another circuit changes the canonical submission identity before target work.
 - [ ] Replay-only generic code rejects fresh target/FFI effects.
 - [ ] Forged class evidence cannot grant semantic characteristics.
-- [ ] Forged callable/effect metadata fails verification.
+- [x] The bytecode verifier rejects coherent flags on nonreversible bodies, noncoherent opcodes or call targets inside coherent bodies, invalid generated inverse bodies, nonunitary lifted targets, nonunitary operation inverses, malformed parameter schemas, and dynamic inverse submissions.
 - [ ] VM, simulator, native runtime, and proof kernel agree on accepted semantics.
 - [ ] Generic quantum examples compile without provider-specific dispatch.
 
