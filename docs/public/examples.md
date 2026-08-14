@@ -302,6 +302,14 @@ Covers: Executable two-qubit inverse law.
 
 Expected result: `measured = 2`.
 
+### `DelegatedComputation.w`
+
+Source: [`DelegatedComputation.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/DelegatedComputation.w).
+
+Covers: The bounded `MASKED_NOT_V1` protocol under an explicit honest-but-curious single-provider model, client-owned secret and mask state, a nonce-backed commitment, provider-visible blinded bits, challenge-bound verification, exact unmasking, and one-shot transcript consumption.
+
+Expected result: secret one with mask zero produces blinded input one, provider output zero, and verified output zero. A self-consistent envelope carrying the wrong NOT relation rejects. The fixture leaves `generalPrivacyClaim = 0`. It proves no malicious-provider, collusion, side-channel, transport, or randomness claim.
+
 ### `DistributedBell.w`
 
 Source: [`DistributedBell.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/DistributedBell.w).

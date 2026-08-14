@@ -155,6 +155,18 @@ class QuantumExamplesTest {
         Arguments.of("QuantumWalk.w", Map.of("measured", 0L)),
         Arguments.of("SurfaceCode.w", Map.of("measured", 0L)),
         Arguments.of(
+            "algorithms/DelegatedComputation.w",
+            Map.of(
+                "protocol", 1L,
+                "threatModel", 1L,
+                "secret", 1L,
+                "clientMask", 0L,
+                "blindedInput", 1L,
+                "blindedOutput", 0L,
+                "verifiedOutput", 0L,
+                "verified", 1L,
+                "generalPrivacyClaim", 0L)),
+        Arguments.of(
             "algorithms/DistributedBell.w",
             Map.of(
                 "requestedCycle", 10L,

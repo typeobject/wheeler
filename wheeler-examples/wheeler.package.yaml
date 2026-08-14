@@ -33,6 +33,10 @@ targets:
     root: "src/main/wheeler/classical/control/Counter.w"
     test: false
   - kind: "deployable"
+    name: "delegatedcomputation"
+    root: "src/main/wheeler/quantum/algorithms/DelegatedComputation.w"
+    test: false
+  - kind: "deployable"
     name: "distributedbell"
     root: "src/main/wheeler/quantum/algorithms/DistributedBell.w"
     test: false
