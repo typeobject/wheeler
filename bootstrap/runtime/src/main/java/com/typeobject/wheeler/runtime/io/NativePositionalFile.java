@@ -347,7 +347,7 @@ public final class NativePositionalFile implements AutoCloseable {
     byte[] bytes = new byte[length];
     int progress = 0;
     try {
-      ByteBuffer target = direct ? ByteBuffer.allocateDirect(length) : ByteBuffer.wrap(bytes);
+      ByteBuffer target = direct ? directBuffer(length) : ByteBuffer.wrap(bytes);
       while (target.hasRemaining()) {
         int read = channel.read(target, position + progress);
         if (read < 0) {
@@ -383,7 +383,7 @@ public final class NativePositionalFile implements AutoCloseable {
     try {
       ByteBuffer input;
       if (direct) {
-        input = ByteBuffer.allocateDirect(length);
+        input = directBuffer(length);
         input.put(bytes);
         input.flip();
       } else {
@@ -402,6 +402,13 @@ public final class NativePositionalFile implements AutoCloseable {
     } catch (IOException failure) {
       return IoProviderResult.failure("native positional write failed", progress);
     }
+  }
+
+  private ByteBuffer directBuffer(int length) {
+    int capacity = Math.addExact(length, alignment - 1);
+    ByteBuffer aligned = ByteBuffer.allocateDirect(capacity).alignedSlice(alignment);
+    aligned.limit(length);
+    return aligned;
   }
 
   private synchronized void release(OwnedIoBuffer buffer) {
