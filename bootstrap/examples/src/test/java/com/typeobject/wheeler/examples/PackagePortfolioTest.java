@@ -6,6 +6,7 @@ import com.typeobject.wheeler.packageformat.PackageArchive;
 import com.typeobject.wheeler.packageformat.PackageManifest;
 import com.typeobject.wheeler.packageformat.PackageManifestParser;
 import java.nio.file.Files;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,15 @@ class PackagePortfolioTest {
                 .noneMatch(selector -> path.equals(selector)
                     || path.startsWith(selector + "/")))
             .toList());
+    for (PackageManifest.Target target : manifest.targets()) {
+      byte[] root = entries.get(target.root());
+      boolean declaresModule = new String(root, StandardCharsets.UTF_8).lines()
+          .anyMatch(line -> line.startsWith("module "));
+      assertEquals(
+          declaresModule,
+          target.modular(),
+          target.name() + " module-aware compilation mode");
+    }
 
     PackageArchive.DecodedPackage decoded = new PackageArchive().decode(
         new PackageArchive().encode(manifest, entries));
