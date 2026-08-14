@@ -153,6 +153,18 @@ class QuantumExamplesTest {
         Arguments.of("SurfaceCode.w", Map.of("measured", 0L)),
         Arguments.of("algorithms/StaticPhaseEstimation.w", Map.of("measured", 7L)),
         Arguments.of(
+            "algorithms/LogicalMagicPlanning.w",
+            Map.of(
+                "logicalQubits", 3L,
+                "layers", 4L,
+                "cliffordGates", 4L,
+                "tGates", 5L,
+                "measurements", 3L,
+                "tDepth", 2L,
+                "magicStates", 5L,
+                "factoryBatches", 2L,
+                "targetCycles", 28L)),
+        Arguments.of(
             "algorithms/AmplitudeEstimation.w",
             Map.of("measured", 3L, "circuitApplications", 4L, "plannedShots", 4_096L)),
         Arguments.of(

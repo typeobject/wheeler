@@ -326,6 +326,14 @@ Covers: Exact preparation of a one-half good-state probability, two source-order
 
 Expected result: exact ideal amplitudes occupy basis states zero and three equally. Both adjoints restore basis zero. The half-probability estimate remains between `0.45` and `0.55`, its standard error is below `0.009`, and the exact value `0.5` lies inside the reported two-error interval. The certain estimate records all 4,096 successes, zero error, and exact unit bounds. The one-shot source fixture records deterministic sample `3` without treating that sample as the estimate.
 
+### `LogicalMagicPlanning.w`
+
+Source: [`LogicalMagicPlanning.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/LogicalMagicPlanning.w).
+
+Covers: Exact logical-qubit, layer, Clifford, T, measurement, T-depth, magic-state, factory-batch, and target-cycle dimensions. Runtime planning closes immutable logical layers against one named bounded factory and rejects insufficient state or cycle capacity before publishing a plan identity.
+
+Expected result: the four-layer fixture needs five magic states, two four-state factory batches, and 28 target cycles. T-depth remains `2`. It is not replaced by the five-gate T count.
+
 ### `VariationalApplications.w`
 
 Source: [`VariationalApplications.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/VariationalApplications.w).

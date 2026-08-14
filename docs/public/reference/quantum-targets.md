@@ -45,6 +45,8 @@ The ideal target advertises `BATCH_SUBMISSION`. Its provider-neutral implementat
 
 `ParameterizedGateOperation` stores a stable parameter name and finite scale in semantic region IR. A task provides the exact finite binding map. Missing or extra names fail before submission, and the map becomes part of task identity.
 
+`LogicalResourcePlan` closes an immutable bounded layer list against one content-identified magic-state factory and target-cycle ceiling. Clifford gates, T gates, measurements, T-depth, required states, factory batches, logical qubits, and target cycles remain separate exact dimensions. Factory or target insufficiency rejects before a plan identity exists. This is logical planning evidence, not physical-code distance, decoder throughput, hardware fidelity, or wall-clock evidence.
+
 Generated adjoints negate the symbolic scale. The ideal target evaluates bindings directly, while OpenQASM lowering writes the bound numeric angle. Both paths advertise `PARAMETER_BINDING`.
 
 `QuantumResult.zExpectation(...)` estimates a tensor product of Pauli-Z observables from canonical little-endian samples. It reports the value, standard error, and shot count.

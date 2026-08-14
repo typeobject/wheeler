@@ -394,7 +394,7 @@ Portfolio work follows these rules:
 
 - [x] Checked-in `DynamicTeleportation.w` prepares a Bell pair, performs source-side CNOT and Hadamard, measures two target-resident slots, and applies conditional X and Z corrections through `dynamic void` source. Its canonical `.wbc` round-trips byte for byte and reaches the target qubit without a host split. `DynamicTeleportationFixture` checks both basis inputs.
 - [x] The bounded dynamic semantic portfolio executes a target-resident parity-syndrome cycle with mid-circuit measurement, classical conditional correction, and ancilla reset. The three-round injected-error fixture corrects once, keeps later syndromes clear, and returns clean ancilla evidence. General fault-tolerant source IR remains.
-- [ ] Logical operation and magic-state planning.
+- [x] `LogicalMagicPlanning.w` records one exact four-layer schedule with separate logical-qubit, Clifford, T, measurement, T-depth, magic-state, factory-batch, and target-cycle dimensions. `LogicalResourcePlan` closes immutable nonempty layers against one content-identified factory. It derives five required states, two factory batches, and 28 target cycles without treating peak qubits or T-depth as additive operation counts. Insufficient factory batches or target cycles reject before plan identity publication.
 - [ ] Distributed entanglement session.
 - [ ] Delegated computation protocol.
 

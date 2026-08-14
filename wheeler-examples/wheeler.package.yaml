@@ -93,6 +93,10 @@ targets:
     root: "src/main/wheeler/classical/data/IntegerWaveletTransform.w"
     test: false
   - kind: "deployable"
+    name: "logicalmagicplanning"
+    root: "src/main/wheeler/quantum/algorithms/LogicalMagicPlanning.w"
+    test: false
+  - kind: "deployable"
     name: "longmap"
     root: "src/main/wheeler/classical/data/LongMap.w"
     module: "examples.collections.long_map_main"
