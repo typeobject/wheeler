@@ -150,7 +150,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
             assert(bufferLength(input) == 0);
-            region products = new region(/* bytes= */ 452608, /* allocations= */ 14);
+            region products = new region(/* bytes= */ 485376, /* allocations= */ 15);
             words calls = allocate(products, /* length= */ 1024);
             words callArgumentStarts = allocate(products, /* length= */ 256);
             words callArgumentCounts = allocate(products, /* length= */ 256);
@@ -164,17 +164,20 @@ final class NativeCompilerLoopCallProductsExampleTest {
             bytes relocationIdentities = allocateBytes(products, /* length= */ 8192);
             words types = allocate(products, /* length= */ 4096);
             words localWidths = allocate(products, /* length= */ 256);
+            words statementStarts = allocate(products, /* length= */ 4096);
             words statementWidths = allocate(products, /* length= */ 4096);
             set(calls, 0, 7);
             set(calls, 256, 1);
-            set(calls, 512, 12);
+            set(calls, 512, 99);
             set(calls, 768, 3);
             set(calls, 1, 8);
             set(calls, 257, 0);
-            set(calls, 513, 14);
+            set(calls, 513, 98);
             set(calls, 769, TARGET);
             set(callStatements, 0, STATEMENT);
             set(callStatements, 1, 11);
+            set(statementStarts, 10, 12);
+            set(statementStarts, 11, 14);
             set(statementWidths, 10, 3);
             set(statementWidths, 11, 4);
             setByte(identities, 3 * 32, 0xab);
@@ -199,6 +202,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
               relocationIdentities,
               types,
               localWidths,
+              statementStarts,
               statementWidths,
               output
             );
@@ -229,6 +233,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
             sixthOpcode = output[160] + output[161] * 256;
             firstOutputByte = output[0];
             drop(statementWidths);
+            drop(statementStarts);
             drop(localWidths);
             drop(types);
             drop(relocationIdentities);
@@ -282,7 +287,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
             assert(bufferLength(input) == 0);
-            region products = new region(/* bytes= */ 452608, /* allocations= */ 14);
+            region products = new region(/* bytes= */ 485376, /* allocations= */ 15);
             words calls = allocate(products, /* length= */ 1024);
             words callArgumentStarts = allocate(products, /* length= */ 256);
             words callArgumentCounts = allocate(products, /* length= */ 256);
@@ -296,17 +301,20 @@ final class NativeCompilerLoopCallProductsExampleTest {
             bytes relocationIdentities = allocateBytes(products, /* length= */ 8192);
             words types = allocate(products, /* length= */ 4096);
             words localWidths = allocate(products, /* length= */ 256);
+            words statementStarts = allocate(products, /* length= */ 4096);
             words statementWidths = allocate(products, /* length= */ 4096);
             set(calls, 0, 7);
             set(calls, 256, 1);
-            set(calls, 512, 12);
+            set(calls, 512, 99);
             set(calls, 768, 3);
             set(calls, 1, 8);
             set(calls, 257, 0);
-            set(calls, 513, 20);
+            set(calls, 513, 98);
             set(calls, 769, 4);
             set(callStatements, 0, 10);
             set(callStatements, 1, 11);
+            set(statementStarts, 10, 12);
+            set(statementStarts, 11, 20);
             set(statementWidths, 10, 3);
             set(statementWidths, 11, 4);
             set(callArgumentStarts, 0, 0);
@@ -345,6 +353,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
               relocationIdentities,
               types,
               localWidths,
+              statementStarts,
               statementWidths,
               output
             );
@@ -369,6 +378,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
             sixthOpcode = output[160] + output[161] * 256;
             firstOutputByte = output[0];
             drop(statementWidths);
+            drop(statementStarts);
             drop(localWidths);
             drop(types);
             drop(relocationIdentities);

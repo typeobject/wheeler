@@ -107,7 +107,7 @@ All rows use fixed caller-provided buffers. No pass allocates per call or per ev
 - [x] `SourceCallProducts.w` binds each copied call token to the narrowest containing statement for its callable owner. Detached and equal-width ambiguous rows leave caller storage unchanged.
 - [x] `LoopCallProducts.w` atomically merges each call's exact local width into its bound statement row. Invalid statements, targets, or argument types preserve existing call and statement widths.
 - [ ] Call arguments retain defining value products and offsets.
-- [ ] Call code and local types consume planned statement starts.
+- [x] `LoopCallProducts.w` takes every call-local base from its bound statement's planned physical start. Caller-populated local-base cells are no longer an authority. Typed argument transfers, result slots, code, types, and statement-width publication share that start.
 - [ ] Relocations consume planned instruction rows.
 - [ ] Ownership source products retain statement, local, and instruction coordinates.
 - [ ] Source and decoded ownership evidence agree before archive publication.

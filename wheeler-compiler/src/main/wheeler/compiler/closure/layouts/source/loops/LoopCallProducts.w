@@ -14,7 +14,6 @@ classical class LoopCallProducts {
   private const long ARGUMENT_TYPE_ROW = 1792;
   private const long CALL_COUNT_LIMIT = 256;
   private const long CALL_KIND_ROW = 256;
-  private const long CALL_LOCAL_BASE_ROW = 512;
   private const long CALL_TARGET_ROW = 768;
   private const long CALL_ROWS = 1024;
   private const long CALL_VOID = 0;
@@ -269,6 +268,7 @@ classical class LoopCallProducts {
     borrow mut bytes relocationIdentities,
     borrow mut words localTypeRows,
     borrow mut words callLocalWidths,
+    borrow mut words statementPhysicalStarts,
     borrow mut words statementPhysicalWidths,
     borrow mut bytes output
   ) {
@@ -290,6 +290,7 @@ classical class LoopCallProducts {
     assert(bufferLength(relocationIdentities) == RELOCATION_IDENTITY_BYTES);
     assert(bufferLength(localTypeRows) == LOCAL_TYPE_ROWS);
     assert(bufferLength(callLocalWidths) == CALL_COUNT_LIMIT);
+    assert(bufferLength(statementPhysicalStarts) == STATEMENT_COUNT_LIMIT);
     assert(bufferLength(statementPhysicalWidths) == STATEMENT_COUNT_LIMIT);
     assert(bufferLength(output) == MAX_CODE_BYTES);
 
@@ -301,7 +302,7 @@ classical class LoopCallProducts {
     long call = 0;
     while (call < callCount) limit CALL_COUNT_LIMIT {
       long kind = callRows[CALL_KIND_ROW + call];
-      long localBase = callRows[CALL_LOCAL_BASE_ROW + call];
+      long localBase = -1;
       long target = callRows[CALL_TARGET_ROW + call];
       long firstArgument = callArgumentStarts[call];
       long arity = callArgumentCounts[call];
@@ -310,15 +311,21 @@ classical class LoopCallProducts {
         valid = false;
       }
 
-      if (localBase < 0) {
-        valid = false;
-      }
-
       if (statement < 0) {
         valid = false;
       }
 
       if (STATEMENT_COUNT_LIMIT - 1 < statement) {
+        valid = false;
+      }
+
+      if (-1 < statement) {
+        if (statement < STATEMENT_COUNT_LIMIT) {
+          localBase = statementPhysicalStarts[statement];
+        }
+      }
+
+      if (localBase < 0) {
         valid = false;
       }
 
@@ -420,7 +427,8 @@ classical class LoopCallProducts {
     call = 0;
     while (call < callCount) limit CALL_COUNT_LIMIT {
       long emittedKind = callRows[CALL_KIND_ROW + call];
-      long emittedLocalBase = callRows[CALL_LOCAL_BASE_ROW + call];
+      long emittedStatement = callStatements[call];
+      long emittedLocalBase = statementPhysicalStarts[emittedStatement];
       long emittedTarget = callRows[CALL_TARGET_ROW + call];
       long emittedFirstArgument = callArgumentStarts[call];
       long emittedArity = callArgumentCounts[call];
@@ -449,7 +457,6 @@ classical class LoopCallProducts {
       );
       long emittedLocalWidth = callLocalCount(emittedKind, emittedArity);
       set(stagedLocalWidths, call, emittedLocalWidth);
-      long emittedStatement = callStatements[call];
       long mergedStatementWidth = stagedStatementWidths[emittedStatement] + emittedLocalWidth;
       assert(mergedStatementWidth < 257);
       set(stagedStatementWidths, emittedStatement, mergedStatementWidth);
