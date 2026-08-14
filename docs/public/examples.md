@@ -340,7 +340,7 @@ Source: [`VqeHydrogen.w`](../../wheeler-examples/src/main/wheeler/quantum/algori
 
 Covers: A pinned one-qubit `Z` Hamiltonian, two exact parameter points, ordered parameter binding, selected-point resource fields, and a generated ansatz adjoint.
 
-Expected result: the pi ansatz reaches basis one and has exact Z energy `-1`, below the zero-angle energy `1`.
+Expected result: the pi ansatz reaches basis one and has exact Z energy `-1`, below the zero-angle energy `1`. Batch and single execution agree. Recorded-result replay makes no target call, a fresh seed changes retry identity, and an OpenQASM executor reproduces the ideal outcomes.
 
 ### `QaoaMaxCut.w`
 
@@ -348,7 +348,7 @@ Source: [`QaoaMaxCut.w`](../../wheeler-examples/src/main/wheeler/quantum/algorit
 
 Covers: One fixed two-vertex, one-edge cost layer, controlled phase, fixed mixer, exact depth, and complete complex-amplitude comparison.
 
-Expected result: the pi layer has amplitudes `(0.5, 0.5, 0.5, -0.5)` in little-endian basis order and an exact cut probability of one half.
+Expected result: the depth-five pi layer has amplitudes `(0.5, 0.5, 0.5, -0.5)` in little-endian basis order and an exact cut probability of one half. A 4,096-shot seeded batch remains within the declared cut-count bound.
 
 ### `QuantumKernelClassifier.w`
 
@@ -356,7 +356,7 @@ Source: [`QuantumKernelClassifier.w`](../../wheeler-examples/src/main/wheeler/qu
 
 Covers: A two-row feature map, generated adjoint overlap, four bounded kernel entries, and one fixed accepted label.
 
-Expected result: equal features have unit overlap, features separated by pi have zero overlap, and the diagonal source check restores basis zero.
+Expected result: equal features have unit overlap, features separated by pi have zero overlap, and the complete matrix is symmetric. A bounded diagonal-versus-off-diagonal classifier selects label one. Replay consumes result records without retaining a job or calling the target.
 
 ### `ParameterShift.w`
 
@@ -364,7 +364,7 @@ Source: [`ParameterShift.w`](../../wheeler-examples/src/main/wheeler/quantum/alg
 
 Covers: An ordered positive and negative parameter pair, exact expectation reduction, generated adjoints, and explicit application count.
 
-Expected result: shifts around pi over two yield expectations `-1` and `1` and therefore derivative `-1`.
+Expected result: shifts around pi over two yield expectations `-1` and `1` and therefore derivative `-1`. Reversing completion arrival does not change canonical angle order or the reduced gradient.
 
 ### `QuantumOptimizer.w`
 

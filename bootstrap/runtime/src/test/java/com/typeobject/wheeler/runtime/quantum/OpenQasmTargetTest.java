@@ -152,6 +152,48 @@ class OpenQasmTargetTest {
   }
 
   @Test
+  void vqeReferencePointMatchesEquivalentOpenQasmExecution() {
+    QuantumRegister register = new QuantumRegister(0, "hydrogen", 1);
+    QuantumCircuit ansatz = new QuantumCircuit(
+        0,
+        "hydrogenAnsatz",
+        0,
+        List.of(
+            GateOperation.of(Gate.H, 0),
+            new ParameterizedGateOperation(Gate.PHASE, List.of(0), "theta", 1),
+            GateOperation.of(Gate.H, 0)));
+    Program program = StateVectorTargetTest.program(register, ansatz, List.of());
+    QuantumSubmission submission = new QuantumSubmission(
+        program,
+        0,
+        0,
+        List.of(new CircuitApplication(0, false)),
+        Map.of("theta", Math.PI),
+        32,
+        137);
+    List<Long> oracle = new StateVectorTarget()
+        .submit(submission)
+        .await(Duration.ofSeconds(1))
+        .outcomes();
+    OpenQasmTarget target = new OpenQasmTarget(
+        "vqe-qasm",
+        8,
+        100,
+        (qasm, shots, seed) -> {
+          assertTrue(qasm.contains("h q[0];"));
+          assertTrue(qasm.contains("p(3.141592653589793) q[0];"));
+          assertEquals(32, shots);
+          assertEquals(137, seed);
+          return oracle;
+        });
+
+    QuantumResult result = target.submit(submission).await(Duration.ofSeconds(1));
+
+    assertEquals(oracle, result.outcomes());
+    assertEquals(-1.0, result.zExpectation(0).value());
+  }
+
+  @Test
   void malformedProviderResultFailsClosed() {
     OpenQasmTarget target = new OpenQasmTarget(
         "broken-provider", 8, 100, (qasm, shots, seed) -> List.of(4L));

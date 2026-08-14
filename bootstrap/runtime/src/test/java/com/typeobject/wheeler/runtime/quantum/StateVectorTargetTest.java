@@ -25,10 +25,13 @@ import com.typeobject.wheeler.core.quantum.ResetOperation;
 import com.typeobject.wheeler.core.quantum.QuantumCircuit;
 import com.typeobject.wheeler.core.quantum.QuantumRegister;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
 /** Conformance tests for the bounded ideal state-vector target contract. */
@@ -562,11 +565,27 @@ class StateVectorTargetTest {
     QuantumSubmission thetaPi = new QuantumSubmission(
         vqe, 0, 0, List.of(new CircuitApplication(0, false)),
         Map.of("theta", Math.PI), 64, 103);
-    QuantumBatchResult vqeBatch = new StateVectorTarget()
+    CountingTarget target = new CountingTarget();
+    QuantumBatchResult vqeBatch = target
         .submitBatch(new QuantumBatch(List.of(thetaZero, thetaPi)))
         .await(Duration.ofSeconds(1));
     assertEquals(1.0, vqeBatch.results().get(0).zExpectation(0).value());
     assertEquals(-1.0, vqeBatch.results().get(1).zExpectation(0).value());
+    QuantumResult singlePi = target.submit(thetaPi).await(Duration.ofSeconds(1));
+    assertEquals(vqeBatch.results().get(1).zExpectation(0), singlePi.zExpectation(0));
+    int submissionsBeforeReplay = target.submissions();
+    double replayedSelection = vqeBatch.results().stream()
+        .mapToDouble(result -> result.zExpectation(0).value())
+        .min()
+        .orElseThrow();
+    assertEquals(-1.0, replayedSelection);
+    assertEquals(submissionsBeforeReplay, target.submissions());
+    QuantumSubmission retriedPi = new QuantumSubmission(
+        vqe, 0, 0, List.of(new CircuitApplication(0, false)),
+        Map.of("theta", Math.PI), 64, 104);
+    target.submit(retriedPi).await(Duration.ofSeconds(1));
+    assertNotEquals(thetaPi.identity(), retriedPi.identity());
+    assertEquals(submissionsBeforeReplay + 1, target.submissions());
 
     QuantumSubmission shiftPlus = new QuantumSubmission(
         vqe, 0, 0, List.of(new CircuitApplication(0, false)),
@@ -578,8 +597,15 @@ class StateVectorTargetTest {
     QuantumBatchResult shifted = new StateVectorTarget()
         .submitBatch(shifts)
         .await(Duration.ofSeconds(1));
-    double derivative = (shifted.results().get(0).zExpectation(0).value()
-        - shifted.results().get(1).zExpectation(0).value()) / 2;
+    List<QuantumResult> reversedArrival = new ArrayList<>(shifted.results());
+    java.util.Collections.reverse(reversedArrival);
+    Map<String, Double> shiftOrder = Map.of(
+        shiftPlus.identity(), Math.PI,
+        shiftMinus.identity(), 0.0);
+    reversedArrival.sort(Comparator.comparingDouble(
+        result -> shiftOrder.get(result.submissionIdentity())));
+    double derivative = (reversedArrival.get(1).zExpectation(0).value()
+        - reversedArrival.get(0).zExpectation(0).value()) / 2;
     assertEquals(-1.0, derivative, 1e-12);
     assertEquals(shifts.identity(), shifted.batchIdentity());
 
@@ -604,13 +630,25 @@ class StateVectorTargetTest {
         kernel, 0, 0, overlap, Map.of("x", Math.PI / 3, "y", Math.PI / 3), 64, 113);
     QuantumSubmission distinctFeatures = new QuantumSubmission(
         kernel, 0, 0, overlap, Map.of("x", 0.0, "y", Math.PI), 64, 127);
-    QuantumBatchResult kernels = new StateVectorTarget()
-        .submitBatch(new QuantumBatch(List.of(equalFeatures, distinctFeatures)))
+    QuantumSubmission reversedFeatures = new QuantumSubmission(
+        kernel, 0, 0, overlap, Map.of("x", Math.PI, "y", 0.0), 64, 129);
+    QuantumSubmission secondDiagonal = new QuantumSubmission(
+        kernel, 0, 0, overlap, Map.of("x", Math.PI, "y", Math.PI), 64, 130);
+    QuantumBatchResult kernels = target
+        .submitBatch(new QuantumBatch(List.of(
+            equalFeatures, distinctFeatures, reversedFeatures, secondDiagonal)))
         .await(Duration.ofSeconds(1));
-    assertEquals(64, kernels.results().get(0).outcomes().stream()
-        .filter(outcome -> outcome == 0).count());
-    assertEquals(64, kernels.results().get(1).outcomes().stream()
-        .filter(outcome -> outcome == 1).count());
+    int submissionsBeforeKernelReplay = target.submissions();
+    long[] zeroCounts = kernels.results().stream()
+        .mapToLong(result -> result.outcomes().stream().filter(outcome -> outcome == 0).count())
+        .toArray();
+    assertArrayEquals(new long[] {64, 0, 0, 64}, zeroCounts);
+    assertEquals(zeroCounts[1], zeroCounts[2]);
+    long diagonal = zeroCounts[0] + zeroCounts[3];
+    long offDiagonal = zeroCounts[1] + zeroCounts[2];
+    int acceptedLabel = diagonal > offDiagonal ? 1 : 0;
+    assertEquals(1, acceptedLabel);
+    assertEquals(submissionsBeforeKernelReplay, target.submissions());
 
     QuantumRegister pair = new QuantumRegister(0, "qaoa", 2);
     QuantumCircuit qaoa = new QuantumCircuit(
@@ -631,6 +669,16 @@ class StateVectorTargetTest {
         new double[] {0.5, 0, 0.5, 0, 0.5, 0, -0.5, 0},
         exact.amplitudes(pair),
         1e-12);
+    QuantumSubmission qaoaSample = new QuantumSubmission(
+        qaoaProgram, 0, 0, List.of(new CircuitApplication(0, false)),
+        Map.of("gamma", Math.PI), 4_096, 131);
+    QuantumResult sampledCut = new StateVectorTarget()
+        .submit(qaoaSample)
+        .await(Duration.ofSeconds(1));
+    long cuts = sampledCut.outcomes().stream()
+        .filter(outcome -> outcome == 1 || outcome == 2)
+        .count();
+    assertTrue(1_900 <= cuts && cuts <= 2_196, Long.toString(cuts));
   }
 
   @Test
@@ -731,6 +779,26 @@ class StateVectorTargetTest {
     simulator.prepare(register, 0);
     simulator.apply(program, circuit, false);
     assertEquals(1, simulator.measure(register));
+  }
+
+  private static final class CountingTarget implements QuantumTarget {
+    private final StateVectorTarget delegate = new StateVectorTarget();
+    private final AtomicInteger submissions = new AtomicInteger();
+
+    @Override
+    public TargetDescriptor descriptor() {
+      return delegate.descriptor();
+    }
+
+    @Override
+    public QuantumJob submit(QuantumSubmission submission) {
+      submissions.incrementAndGet();
+      return delegate.submit(submission);
+    }
+
+    int submissions() {
+      return submissions.get();
+    }
   }
 
   static Program program(
