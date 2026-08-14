@@ -46,6 +46,10 @@ class DocumentationBundleCommandTest {
           public long one() { return 1; }
         }
         """);
+    Files.writeString(sources.resolve("Forged.java"), """
+        /** Attempts to shadow a Wheeler documentation identity. */
+        final class Forged { String identity = "wheeler:split.api#one"; }
+        """);
 
     assertEquals(0, execute(publicManuals, sources, output, new ByteArrayOutputStream()));
 
@@ -57,7 +61,10 @@ class DocumentationBundleCommandTest {
     assertFalse(nodes.contains("Internal conformance"));
     assertFalse(nodes.contains("Private proposal"));
     assertFalse(nodes.contains("Private idea"));
-    assertFalse(Files.readString(output.resolve("manifest.json")).contains("internal-manuals"));
+    assertFalse(nodes.contains("Forged"));
+    String manifest = Files.readString(output.resolve("manifest.json"));
+    assertFalse(manifest.contains("internal-manuals"));
+    assertFalse(manifest.contains("Forged.java"));
   }
 
   @Test

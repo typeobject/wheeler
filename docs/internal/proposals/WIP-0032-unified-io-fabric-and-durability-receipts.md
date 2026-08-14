@@ -590,7 +590,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [ ] High-scale network and multi-queue storage profiles pass on declared hardware.
 - [ ] Tiered storage and RDMA profiles pass.
 - [x] `QuantumIo` runs one target submission, wait, cancellation hook, typed result, terminal completion, and reap through `IoRequest` and `IoScope`. Construction allocates no target job, result identity is revalidated, and started cancellation stays acknowledged-partial or uncertain. Hybrid acknowledged-job recovery still uses the interim `QuantumJob` adapter.
-- [ ] Ambient, cursor-only, callback-only, and ambiguous-flush paths are deleted.
+- [x] The accepted runtime I/O namespace exposes no ambient singleton, callback-only operation, universal cursor stream, or bare `flush`. Positional files remain primary, sequential access requires an owned cursor adapter, and persistence claims require typed receipt promotion. Provider-specific quantum jobs sit beneath `QuantumIo` until hybrid recovery cutover.
 
 ## Testing and acceptance
 

@@ -295,7 +295,7 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 - [x] Missing, malformed, and root-escaping local links fail with stable diagnostics before bundle publication, and a failed static-site render leaves no partial site. Ambiguous, private, stale-version, and cyclic cross-package links remain.
 - [x] Wheeler API nodes consume WIP-0016's parser-owned module, declaration, modifier, summary, facet, and source-position records directly. The bundle generator does not rescan or normalize `//!` and `///` payloads.
 - [ ] Javadoc extraction is independent of generated HTML, locale, and source order.
-- [ ] Java pages cannot define or shadow Wheeler symbols or semantic reference nodes.
+- [x] The canonical bundle accepts only explicit Markdown/MDX manual roots and explicit `.w` API roots. Java source and generated Javadoc HTML are not input kinds, so they cannot define or shadow `wheeler:` semantic identities. Duplicate manual or Wheeler identities fail before bundle publication.
 - [ ] Executable examples compile/run/replay through WIP-0018 and retain exact result identities.
 - [x] Tutorial metadata and maintained prose distinguish exact classical execution, exact ideal simulation, finite checked certificates, seeded sampled evidence, hardware evidence, and explicit nonclaims. No histogram is presented as state access or proof.
 - [x] The fixed static renderer consumes only local verified inputs and grants documentation payload no script execution.
