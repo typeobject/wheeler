@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, bytecode, linker, and bootstrap maintainers |
 | Created | 2026-08-13 |
-| Updated | 2026-08-13 |
+| Updated | 2026-08-14 |
 | Area | Self-hosting compiler, source products, artifact emission, bootstrap closure |
 | Depends on | WIP-0045, WIP-0046, WIP-0047, WIP-0048, WIP-0049, WIP-0050, WIP-0051, WIP-0052 |
 | Supersedes | WIP-0052 physical-closure adoption tasks |
@@ -120,7 +120,7 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0052 publishes direct, nested, call-bearing, ownership-checked structured-loop code and local types.
 - [x] The dependency-free `LoopBodyOpcodes.w` and `LoopBodyLayouts.w` authorities compile from immutable archive ranges and are retained in the physical prefix.
 - [x] `CallableBlockPlans.w` joins each local callable to exactly one root block plus contiguous callable-local block and direct-statement windows. It validates owners, root parents, depths, local ordinals, complete coverage, and caller-output atomicity.
-- [ ] Direct and structured-loop instruction windows compose in exact source order.
+- [x] `CallableInstructionPlans.w` composes direct and structured-loop windows by root-statement source ordinal. It publishes callable-local instruction bases, source product selectors, exact byte extents, per-callable totals, and nothing on duplicate, detached, overlapping, or over-limit input.
 - [ ] Signature, direct-statement, and loop local types compose into one exact callable window.
 - [ ] Call, aggregate, ownership, and proof identities survive composition without numeric pre-link IDs.
 - [ ] One complete source-local module artifact emits directly from products.

@@ -4,6 +4,7 @@ module wheeler.compiler.closure.compiled_callable_bodies;
 
 import wheeler.compiler.closure.aggregate_source_projection;
 import wheeler.compiler.closure.callable_block_plans;
+import wheeler.compiler.closure.callable_instruction_plans;
 import wheeler.compiler.closure.imported_callable_stubs;
 import wheeler.compiler.compiler_core;
 import wheeler.core.encoding.binary;

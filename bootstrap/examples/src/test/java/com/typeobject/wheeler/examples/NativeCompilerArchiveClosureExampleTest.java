@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.examples;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -53,8 +54,10 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertTrue(machine.global("executableCount") > 0);
     assertEquals(1, machine.global("peakActiveSources"));
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
-    assertEquals(1_680, machine.global("symbolCount"));
-    assertEquals(1_309, machine.global("callableCount"));
+    assertAll(
+        "physical declaration products",
+        () -> assertEquals(1_688, machine.global("symbolCount")),
+        () -> assertEquals(1_310, machine.global("callableCount")));
     assertTrue(machine.global("callableParameterCount") > 1_000);
     assertTrue(machine.global("borrowedParameterCount") > 0);
     assertTrue(machine.global("mutableParameterCount") > 0);
