@@ -30,7 +30,7 @@ final class NativeCompilerSourceCallProductsExampleTest {
 
   @Test
   void resolvesPackedCallableNameProductsWithoutDependencySource() throws Exception {
-    VirtualMachine machine = VirtualMachine.withBinaryInput(productProgram(false), SOURCE, 1);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(productProgram(false, false), SOURCE, 1);
 
     machine.run();
 
@@ -38,11 +38,24 @@ final class NativeCompilerSourceCallProductsExampleTest {
     assertEquals(3, machine.global("firstTarget"));
     assertEquals(1, machine.global("firstArity"));
     assertEquals(1, machine.global("published"));
+    assertEquals(1, machine.global("statementValid"));
+    assertEquals(0, machine.global("firstStatement"));
+  }
+
+  @Test
+  void rejectsDetachedCallStatementBeforePublication() throws Exception {
+    VirtualMachine machine = VirtualMachine.withBinaryInput(productProgram(false, true), SOURCE, 1);
+
+    machine.run();
+
+    assertEquals(1, machine.global("callCount"));
+    assertEquals(0, machine.global("statementValid"));
+    assertEquals(77, machine.global("firstStatement"));
   }
 
   @Test
   void rejectsPackedProductAmbiguityBeforeCallRowPublication() throws Exception {
-    VirtualMachine machine = VirtualMachine.withBinaryInput(productProgram(true), SOURCE, 1);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(productProgram(true, false), SOURCE, 1);
 
     assertThrows(VmTrap.class, machine::run);
 
@@ -68,7 +81,7 @@ final class NativeCompilerSourceCallProductsExampleTest {
     assertEquals(0, machine.global("published"));
   }
 
-  private static Program productProgram(boolean ambiguous) throws Exception {
+  private static Program productProgram(boolean ambiguous, boolean detachedStatement) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_call_products"));
@@ -81,15 +94,19 @@ final class NativeCompilerSourceCallProductsExampleTest {
           state long callCount = 0;
           state long firstTarget = -1;
           state long firstArity = -1;
+          state long firstStatement = 77;
+          state long statementValid = 0;
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 1220608, /* allocations= */ 6);
+            region rows = new region(/* bytes= */ 1452032, /* allocations= */ 8);
             words nameStarts = allocate(rows, /* length= */ 4096);
             words nameLengths = allocate(rows, /* length= */ 4096);
             words parameterCounts = allocate(rows, /* length= */ 4096);
             words dependencies = allocate(rows, /* length= */ 8192);
             words calls = allocate(rows, /* length= */ 1024);
+            words callStatements = allocate(rows, /* length= */ 256);
+            words statements = allocate(rows, /* length= */ 28672);
             bytes names = allocateBytes(rows, /* length= */ 1048576);
             long nameByte = 0;
             while (nameByte < 8) limit 8 {
@@ -100,6 +117,10 @@ final class NativeCompilerSourceCallProductsExampleTest {
             set(nameLengths, 3, 8);
             set(parameterCounts, 3, 1);
             set(dependencies, 4096, 3);
+            set(statements, 0, 0);
+            set(statements, 12288, STATEMENT_START);
+            set(statements, 16384, STATEMENT_LENGTH);
+            set(callStatements, 0, 77);
             if (AMBIGUOUS) {
               set(nameStarts, 4, 0);
               set(nameLengths, 4, 8);
@@ -124,9 +145,24 @@ final class NativeCompilerSourceCallProductsExampleTest {
               firstTarget = calls[768];
               firstArity = calls[512];
             }
+            SourceCallStatementPlan statementPlan = bindSourceCallStatements(
+              callCount,
+              /* callSourceBase= */ 0,
+              /* callableOwner= */ 0,
+              /* statementCount= */ 1,
+              statements,
+              calls,
+              callStatements
+            );
+            if (statementPlan.valid) {
+              statementValid = 1;
+            }
+            firstStatement = callStatements[0];
             setOutputLength(output, 0);
             published = 1;
             drop(names);
+            drop(statements);
+            drop(callStatements);
             drop(calls);
             drop(dependencies);
             drop(parameterCounts);
@@ -136,7 +172,9 @@ final class NativeCompilerSourceCallProductsExampleTest {
           }
         }
         """.replace("AMBIGUOUS", ambiguous ? "true" : "false")
-            .replace("DEPENDENCY_COUNT", ambiguous ? "2" : "1"));
+            .replace("DEPENDENCY_COUNT", ambiguous ? "2" : "1")
+            .replace("STATEMENT_START", detachedStatement ? "18" : "9")
+            .replace("STATEMENT_LENGTH", detachedStatement ? "1" : "11"));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.product_source_call_products");
   }

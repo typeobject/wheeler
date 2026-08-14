@@ -108,7 +108,7 @@ Failure leaves coordinate, code, type, relocation, and artifact outputs untouche
 - [x] `CallableCoordinateProducts.w` accepts up to 64 callables and 4,096 product rows, validates owners, exact source extents, strict parent containment, explicit logical and physical widths, product kinds, instruction counts, code lengths, and 256-local, 32,768-instruction, 262,144-byte, and 4,096-type ceilings before publication. It orders each callable by source coordinate rather than storage row. One private pass publishes physical local starts and ends, callable-local instruction starts, global code and type starts, exact extents, and callable totals. A deliberately shuffled two-root fixture includes a nested first root, direct work between roots, a trailing assertion, and a return. It publishes 30 contiguous locals, 31 instructions, and 736 code bytes. A logical gap or overlapping root extent leaves sentinel coordinate and callable rows untouched.
 - [x] WIP-0056 now feeds parameter counts, exact logical statement rows, merged body, direct, and loop-frame widths, statement identities, source extents, and structural parents into `SourceCallableCoordinateProducts.w`. `StructuredSourceModuleCompiler.w` requires the shared plan before composition and publication. The physical `CoreParsing.w` product remains byte-identical to stage 0.
 - [x] WIP-0056's sequential-root and nested-first fixture matches stage 0 byte for byte. It includes direct work between roots, a second-root update, a trailing assertion, and a value return. The existing two-callable `CoreParsing.w` product remains byte-identical.
-- [ ] Void, Boolean, call, relocation, ownership, and inverse products consume the same plan.
+- [ ] Void, Boolean, and inverse products consume the same plan. WIP-0057 owns call, relocation, and ownership coordinate products.
 - [ ] Private frame and instruction bias calculations are deleted.
 
 ## Acceptance
@@ -143,3 +143,4 @@ Rejected. WIP-0054 exists to remove source projection and parser retry from arti
 - [WIP-0052](WIP-0052-bounded-native-structured-loop-products.md)
 - [WIP-0054](WIP-0054-native-source-product-artifact-integration.md)
 - [WIP-0056](WIP-0056-measured-source-statement-local-products.md)
+- [WIP-0057](WIP-0057-source-call-relocation-and-ownership-coordinate-products.md)

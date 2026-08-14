@@ -17,6 +17,13 @@ classical class SourceCallProducts {
   private const long PARAMETER_SIGNATURE_ROWS = 32768;
   private const long REQUEST_ROWS = 133;
   private const long TOKEN_ARENA_BYTES = 98320;
+  private const long STATEMENT_COUNT_LIMIT = 4096;
+  private const long STATEMENT_ROWS = 28672;
+  private const long STATEMENT_SOURCE_START_ROW = 12288;
+  private const long STATEMENT_SOURCE_LENGTH_ROW = 16384;
+
+  /// Reports one exact call-to-statement join.
+  public record SourceCallStatementPlan(long callCount, boolean valid) {}
 
   private long closingParen(
     borrow utf8 source,
@@ -378,6 +385,85 @@ classical class SourceCallProducts {
     }
 
     return target;
+  }
+
+  /// Binds every call token to its narrowest containing source statement atomically.
+  public SourceCallStatementPlan bindSourceCallStatements(
+    long callCount,
+    long callSourceBase,
+    long callableOwner,
+    long statementCount,
+    borrow mut words statementRows,
+    borrow mut words callRows,
+    borrow mut words callStatements
+  ) {
+    assert(-1 < callCount);
+    assert(callCount < MAX_CALLS_PER_BODY + 1);
+    assert(-1 < callSourceBase);
+    assert(-1 < callableOwner);
+    assert(callableOwner < 64);
+    assert(-1 < statementCount);
+    assert(statementCount < STATEMENT_COUNT_LIMIT + 1);
+    assert(bufferLength(statementRows) == STATEMENT_ROWS);
+    assert(bufferLength(callRows) == CALL_ROWS);
+    assert(bufferLength(callStatements) == MAX_CALLS_PER_BODY);
+
+    region staging = new region(/* bytes= */ 2048, /* allocations= */ 1);
+    words stagedStatements = allocate(staging, MAX_CALLS_PER_BODY);
+    boolean valid = true;
+    long call = 0;
+    while (call < callCount) limit MAX_CALLS_PER_BODY {
+      long callStart = callSourceBase + callRows[call];
+      long callLength = callRows[256 + call];
+      long callEnd = callStart + callLength;
+      long selected = -1;
+      long selectedLength = 32769;
+      long statement = 0;
+      while (statement < statementCount) limit STATEMENT_COUNT_LIMIT {
+        if (statementRows[statement] == callableOwner) {
+          long statementStart = statementRows[STATEMENT_SOURCE_START_ROW + statement];
+          long statementLength = statementRows[STATEMENT_SOURCE_LENGTH_ROW + statement];
+          long statementEnd = statementStart + statementLength;
+          if (statementStart < callStart + 1) {
+            if (callEnd < statementEnd + 1) {
+              if (statementLength < selectedLength) {
+                selected = statement;
+                selectedLength = statementLength;
+              } else {
+                if (statementLength == selectedLength) {
+                  valid = false;
+                }
+              }
+            }
+          }
+        }
+
+        statement += 1;
+      }
+
+      if (selected < 0) {
+        valid = false;
+      }
+
+      set(stagedStatements, call, selected);
+      call += 1;
+    }
+
+    if (valid == false) {
+      drop(stagedStatements);
+      drop(staging);
+      return new SourceCallStatementPlan(0, false);
+    }
+
+    call = 0;
+    while (call < callCount) limit MAX_CALLS_PER_BODY {
+      set(callStatements, call, stagedStatements[call]);
+      call += 1;
+    }
+
+    drop(stagedStatements);
+    drop(staging);
+    return new SourceCallStatementPlan(callCount, true);
   }
 
   /// Resolves packed dependency calls from copied names without dependency source.
