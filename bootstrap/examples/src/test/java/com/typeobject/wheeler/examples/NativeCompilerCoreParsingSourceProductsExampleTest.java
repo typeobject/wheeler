@@ -29,23 +29,15 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
     int secondName = source.indexOf("discardLeadingTokens(");
     Program compiledProgram = program(
         firstBody,
-        matchingClose(source, firstBody) - firstBody + 1,
+        SourceRanges.matchingClose(source, firstBody) - firstBody + 1,
         secondBody,
-        matchingClose(source, secondBody) - secondBody + 1,
+        SourceRanges.matchingClose(source, secondBody) - secondBody + 1,
         limitName,
         firstName,
         secondName);
     VirtualMachine machine = new VirtualMachine(
         compiledProgram, source.getBytes(StandardCharsets.UTF_8), 262_144);
-    try {
-      CompilerMachineRunner.runWithoutRewindHistory(machine);
-    } catch (RuntimeException exception) {
-      var frame = machine.snapshot().selectedFrames().getLast();
-      throw new AssertionError(
-          compiledProgram.functions().get(frame.functionId()).name()
-              + " instruction=" + frame.programCounter(),
-          exception);
-    }
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
     assertEquals(1, machine.global("blockValid"));
     assertEquals(1, machine.global("loopValid"));
     assertEquals(1, machine.global("valueValid"));
@@ -324,7 +316,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
           state long secondLoopOwner = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 21416552, /* allocations= */ 61);
+            region products = new region(/* bytes= */ 21795432, /* allocations= */ 67);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -351,6 +343,12 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             words loopWindowRows = allocate(products, /* length= */ 768);
             words typeRows = allocate(products, /* length= */ 12288);
             words directRows = allocate(products, /* length= */ 28672);
+            words unusedCallRows = allocate(products, /* length= */ 1024);
+            words unusedCallStatements = allocate(products, /* length= */ 256);
+            words unusedCallArgumentCounts = allocate(products, /* length= */ 256);
+            words unusedCallWindows = allocate(products, /* length= */ 768);
+            words unusedCallTypes = allocate(products, /* length= */ 12288);
+            bytes unusedCallCode = allocateBytes(products, /* length= */ 262144);
             words functionResultTypes = allocate(products, /* length= */ 64);
             words returnRows = allocate(products, /* length= */ 192);
             words directTypes = allocate(products, /* length= */ 12288);
@@ -548,6 +546,8 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               input,
               loopPlan.statementCount,
               statements,
+              /* callCount= */ 0,
+              unusedCallStatements,
               valuePlan.valueCount,
               values,
               statementLocalRows,
@@ -618,7 +618,9 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             }
             CallableReturnPlan returnPlan = materializeCallableReturnProducts(
               2, functionResultTypes, loopPlan.statementCount, statements, directPlan.productCount,
-              directRows, resolvedPlan.loopCount, resolvedLoops, loopWindowRows, returnRows
+              directRows, /* callCount= */ 0, unusedCallRows, unusedCallStatements,
+              unusedCallArgumentCounts, resolvedPlan.loopCount, resolvedLoops, loopWindowRows,
+              returnRows
             );
             assert(returnPlan.valid);
             CallableSourceCompositionPlan compositionPlan = composeCallableSourceProducts(
@@ -628,6 +630,10 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               directPlan.productCount,
               directRows,
               directCode,
+              /* callCount= */ 0,
+              unusedCallStatements,
+              unusedCallWindows,
+              unusedCallCode,
               resolvedPlan.loopCount,
               resolvedLoops,
               loopWindowRows,
@@ -636,6 +642,8 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               signatureTypes,
               directPlan.typeCount,
               directTypes,
+              /* callTypeCount= */ 0,
+              unusedCallTypes,
               typePlan.typeCount,
               typeRows,
               functionResultTypes,
@@ -931,6 +939,12 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             drop(directTypes);
             drop(returnRows);
             drop(functionResultTypes);
+            drop(unusedCallCode);
+            drop(unusedCallTypes);
+            drop(unusedCallArgumentCounts);
+            drop(unusedCallWindows);
+            drop(unusedCallStatements);
+            drop(unusedCallRows);
             drop(directRows);
             drop(typeRows);
             drop(loopWindowRows);
@@ -982,19 +996,4 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
     return value;
   }
 
-  private static int matchingClose(String source, int open) {
-    int depth = 0;
-    for (int cursor = open; cursor < source.length(); cursor++) {
-      if (source.charAt(cursor) == '{') {
-        depth += 1;
-      }
-      if (source.charAt(cursor) == '}') {
-        depth -= 1;
-        if (depth == 0) {
-          return cursor;
-        }
-      }
-    }
-    throw new IllegalArgumentException("unbalanced source");
-  }
 }

@@ -8,21 +8,95 @@ import wheeler.compiler.closure.callable_source_composition;
 import wheeler.compiler.closure.direct_statement_products;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
+import wheeler.compiler.closure.loop_call_products;
 import wheeler.compiler.closure.loop_instruction_products;
 import wheeler.compiler.closure.loop_local_type_products;
 import wheeler.compiler.closure.resolved_loop_body_products;
 import wheeler.compiler.closure.resolved_loop_products;
+import wheeler.compiler.closure.source_call_argument_products;
+import wheeler.compiler.closure.source_call_instruction_products;
+import wheeler.compiler.closure.source_call_layout_products;
 import wheeler.compiler.closure.source_callable_coordinate_products;
+import wheeler.compiler.closure.source_callable_result_products;
 import wheeler.compiler.closure.source_loop_products;
+import wheeler.compiler.closure.source_module_call_products;
 import wheeler.compiler.closure.source_module_product_artifact;
 import wheeler.compiler.closure.source_product_artifact;
 import wheeler.compiler.closure.source_statement_products;
 import wheeler.compiler.closure.source_value_products;
+import wheeler.crypto.sha256;
 
 classical class StructuredSourceModuleCompiler {
   private const long MAX_CALLABLES = 64;
   private const long MAX_LOOPS = 256;
   private const long MAX_STATEMENTS = 4096;
+
+  private long signatureTypeAt(
+    long owner,
+    long local,
+    long signatureTypeCount,
+    borrow mut words signatureTypes
+  ) {
+    long selected = -1;
+    long matches = 0;
+    long type = 0;
+    while (type < signatureTypeCount) limit 4096 {
+      if (signatureTypes[type] == owner) {
+        if (signatureTypes[4096 + type] == local) {
+          selected = signatureTypes[8192 + type];
+          matches += 1;
+        }
+      }
+
+      type += 1;
+    }
+
+    if (matches != 1) {
+      return -1;
+    }
+
+    return selected;
+  }
+
+  private void writeTargetIdentity(
+    borrow byteview names,
+    long start,
+    long length,
+    long target,
+    borrow mut bytes identities
+  ) {
+    region hashArena = new region(/* bytes= */ 1232, /* allocations= */ 4);
+    bytes digest = allocateBytes(hashArena, /* length= */ 32);
+    hashSha256Range(names, start, length, digest, hashArena);
+    long identityByte = 0;
+    while (identityByte < 32) limit 32 {
+      setByte(identities, target * 32 + identityByte, digest[identityByte]);
+      identityByte += 1;
+    }
+
+    drop(digest);
+    drop(hashArena);
+  }
+
+  private long callAtStatement(long statement, long callCount, borrow mut words callStatements) {
+    long selected = -1;
+    long matches = 0;
+    long call = 0;
+    while (call < callCount) limit 256 {
+      if (callStatements[call] == statement) {
+        selected = call;
+        matches += 1;
+      }
+
+      call += 1;
+    }
+
+    if (matches != 1) {
+      return -1;
+    }
+
+    return selected;
+  }
 
   private long statementAtLoop(
     long owner,
@@ -180,7 +254,7 @@ classical class StructuredSourceModuleCompiler {
     assert(bufferLength(output) == 32768);
     assert(bufferLength(identity) == 32);
 
-    region products = new region(/* bytes= */ 2182144, /* allocations= */ 26);
+    region products = new region(/* bytes= */ 3081216, /* allocations= */ 48);
     words blocks = allocate(products, /* length= */ 6144);
     words statements = allocate(products, /* length= */ 28672);
     words sourceConditions = allocate(products, /* length= */ 1536);
@@ -207,7 +281,82 @@ classical class StructuredSourceModuleCompiler {
     words composedCallables = allocate(products, /* length= */ 320);
     words composedTypes = allocate(products, /* length= */ 12288);
     bytes composedCode = allocateBytes(products, /* length= */ 262144);
+    words callableNameStarts = allocate(products, /* length= */ 4096);
+    words callableNameLengths = allocate(products, /* length= */ 4096);
+    words callableParameterCounts = allocate(products, /* length= */ 4096);
+    words calls = allocate(products, /* length= */ 1024);
+    words callStatements = allocate(products, /* length= */ 256);
+    words callArgumentStarts = allocate(products, /* length= */ 256);
+    words callArgumentCounts = allocate(products, /* length= */ 256);
+    words callArguments = allocate(products, /* length= */ 3584);
+    words callArgumentValues = allocate(products, /* length= */ 3584);
+    words resolvedCalls = allocate(products, /* length= */ 1024);
+    words callLocalWidths = allocate(products, /* length= */ 256);
+    words callInstructionStarts = allocate(products, /* length= */ 256);
+    words callWindowRows = allocate(products, /* length= */ 768);
+    words valuePhysicalStarts = allocate(products, /* length= */ 1024);
+    bytes targetIdentities = allocateBytes(products, /* length= */ 131072);
+    words targetParameterStarts = allocate(products, /* length= */ 4096);
+    words targetParameterCounts = allocate(products, /* length= */ 4096);
+    words targetParameterTypes = allocate(products, /* length= */ 16384);
+    words callRelocations = allocate(products, /* length= */ 768);
+    bytes callRelocationIdentities = allocateBytes(products, /* length= */ 8192);
+    words callTypes = allocate(products, /* length= */ 12288);
+    bytes callCode = allocateBytes(products, /* length= */ 262144);
 
+    long targetParameterCursor = 0;
+    long namedCallable = 0;
+    while (namedCallable < callableCount) limit MAX_CALLABLES {
+      long name = functionNameIds[namedCallable];
+      assert(-1 < name);
+      assert(name < stringCount);
+      long nameStart = stringStarts[name];
+      long nameLength = stringLengths[name];
+      long simpleStart = nameStart;
+      long nameByte = 0;
+      while (nameByte + 1 < nameLength) limit 256 {
+        if (strings[nameStart + nameByte] == 58) {
+          if (strings[nameStart + nameByte + 1] == 58) {
+            simpleStart = nameStart + nameByte + 2;
+          }
+        }
+
+        nameByte += 1;
+      }
+
+      assert(simpleStart < nameStart + nameLength);
+      set(callableNameStarts, namedCallable, simpleStart);
+      set(callableNameLengths, namedCallable, nameStart + nameLength - simpleStart);
+      set(callableParameterCounts, namedCallable, parameterCounts[namedCallable]);
+      writeTargetIdentity(strings, nameStart, nameLength, namedCallable, targetIdentities);
+      set(targetParameterStarts, namedCallable, targetParameterCursor);
+      set(targetParameterCounts, namedCallable, parameterCounts[namedCallable]);
+      long targetParameter = 0;
+      while (targetParameter < parameterCounts[namedCallable]) limit 256 {
+        long targetType = signatureTypeAt(
+          namedCallable,
+          targetParameter,
+          signatureTypeCount,
+          signatureTypes
+        );
+        assert(-1 < targetType);
+        set(targetParameterTypes, targetParameterCursor, targetType);
+        targetParameterCursor += 1;
+        targetParameter += 1;
+      }
+
+      namedCallable += 1;
+    }
+
+    SourceCallableResultPlan resultPlan = materializeSourceCallableResultProducts(
+      source,
+      archiveSourceStart,
+      firstCallable,
+      callableCount,
+      bodyStarts,
+      functionResultTypes
+    );
+    assert(resultPlan.valid);
     SourceBlockProductPlan blockPlan = materializeSourceBlockProducts(
       source,
       archiveSourceStart,
@@ -228,6 +377,23 @@ classical class StructuredSourceModuleCompiler {
     );
     assert(loopPlan.valid);
     assert(0 < loopPlan.loopCount);
+    SourceModuleCallPlan callPlan = materializeLocalSourceModuleCallProducts(
+      source,
+      archiveSourceStart,
+      firstCallable,
+      callableCount,
+      bodyStarts,
+      bodyLengths,
+      strings,
+      callableNameStarts,
+      callableNameLengths,
+      callableParameterCounts,
+      loopPlan.statementCount,
+      statements,
+      calls,
+      callStatements
+    );
+    assert(callPlan.valid);
     SourceValueProductPlan valuePlan = materializeSourceValueProducts(
       source,
       archiveSourceStart,
@@ -243,6 +409,22 @@ classical class StructuredSourceModuleCompiler {
       statementLocalRows
     );
     assert(valuePlan.valid);
+    SourceCallArgumentPlan callArgumentPlan = materializeSourceCallArgumentProducts(
+      source,
+      /* callSourceBase= */ 0,
+      callPlan.callCount,
+      calls,
+      callStatements,
+      loopPlan.statementCount,
+      statements,
+      valuePlan.valueCount,
+      values,
+      callArgumentStarts,
+      callArgumentCounts,
+      callArguments,
+      callArgumentValues
+    );
+    assert(callArgumentPlan.valid);
     long measuredStatement = 0;
     while (measuredStatement < loopPlan.statementCount) limit MAX_STATEMENTS {
       set(
@@ -253,6 +435,24 @@ classical class StructuredSourceModuleCompiler {
       measuredStatement += 1;
     }
 
+    SourceCallLayoutPlan callLayoutPlan = materializeSourceCallLayoutProducts(
+      callPlan.callCount,
+      calls,
+      callStatements,
+      callArgumentStarts,
+      callArgumentCounts,
+      callArguments,
+      callableCount,
+      parameterCounts,
+      signatureTypeCount,
+      signatureTypes,
+      functionResultTypes,
+      statements,
+      statementPhysicalWidths,
+      resolvedCalls,
+      callLocalWidths
+    );
+    assert(callLayoutPlan.valid);
     ResolvedLoopBodyPlan bodyPlan = materializeResolvedLoopBodyProducts(
       source,
       loopPlan.statementCount,
@@ -282,6 +482,41 @@ classical class StructuredSourceModuleCompiler {
       statementPhysicalStarts
     );
     assert(coordinatePlan.valid);
+    long plannedValue = 0;
+    while (plannedValue < valuePlan.valueCount) limit 1024 {
+      long valueOwner = values[plannedValue];
+      long valueLocal = values[3072 + plannedValue];
+      long valueStart = physicalValueLocal(
+        valueOwner,
+        valueLocal,
+        loopPlan.statementCount,
+        statements,
+        statementLocalRows,
+        valuePlan.valueCount,
+        values,
+        statementPhysicalStarts
+      );
+      assert(-1 < valueStart);
+      long valueOrdinal = values[4096 + plannedValue];
+      if (0 < valueOrdinal) {
+        long valueStatement = statementAtOrdinal(
+          valueOwner,
+          valueOrdinal,
+          loopPlan.statementCount,
+          statements
+        );
+        assert(-1 < valueStatement);
+        long valueCall = callAtStatement(valueStatement, callPlan.callCount, callStatements);
+        if (-1 < valueCall) {
+          assert(resolvedCalls[256 + valueCall] != 0);
+          valueStart = statementPhysicalStarts[valueStatement] + callLocalWidths[valueCall] - 1;
+        }
+      }
+
+      set(valuePhysicalStarts, plannedValue, valueStart);
+      plannedValue += 1;
+    }
+
     ResolvedLoopProductPlan resolvedPlan = materializeResolvedLoopProducts(
       source,
       archiveSourceStart,
@@ -356,6 +591,8 @@ classical class StructuredSourceModuleCompiler {
       source,
       loopPlan.statementCount,
       statements,
+      callPlan.callCount,
+      callStatements,
       valuePlan.valueCount,
       values,
       statementLocalRows,
@@ -374,6 +611,10 @@ classical class StructuredSourceModuleCompiler {
       statements,
       directPlan.productCount,
       directRows,
+      callPlan.callCount,
+      resolvedCalls,
+      callStatements,
+      callArgumentCounts,
       loopInstructionStarts
     );
     assert(instructionPrefixPlan.valid);
@@ -397,6 +638,46 @@ classical class StructuredSourceModuleCompiler {
       loopCode
     );
     assert(codePlan.valid);
+    SourceCallInstructionPlan callInstructionPlan = materializeSourceCallInstructionProducts(
+      callPlan.callCount,
+      resolvedCalls,
+      callStatements,
+      callArgumentCounts,
+      loopPlan.statementCount,
+      statements,
+      directPlan.productCount,
+      directRows,
+      resolvedPlan.loopCount,
+      resolvedLoops,
+      loopWindowRows,
+      callInstructionStarts,
+      callWindowRows
+    );
+    assert(callInstructionPlan.valid);
+    LoopCallPlan emittedCallPlan = writeLoopCallProducts(
+      callPlan.callCount,
+      resolvedCalls,
+      callArgumentStarts,
+      callArgumentCounts,
+      callStatements,
+      callInstructionStarts,
+      callArguments,
+      callArgumentValues,
+      valuePhysicalStarts,
+      callableCount,
+      targetIdentities,
+      targetParameterStarts,
+      targetParameterCounts,
+      targetParameterTypes,
+      callRelocations,
+      callRelocationIdentities,
+      callTypes,
+      callLocalWidths,
+      statementPhysicalStarts,
+      statementPhysicalWidths,
+      callCode
+    );
+    assert(emittedCallPlan.valid);
     LoopLocalTypePlan typePlan = materializeLoopLocalTypeProducts(
       resolvedPlan.loopCount,
       resolvedLoops,
@@ -418,6 +699,10 @@ classical class StructuredSourceModuleCompiler {
       statements,
       directPlan.productCount,
       directRows,
+      callPlan.callCount,
+      resolvedCalls,
+      callStatements,
+      callArgumentCounts,
       resolvedPlan.loopCount,
       resolvedLoops,
       loopWindowRows,
@@ -431,6 +716,10 @@ classical class StructuredSourceModuleCompiler {
       directPlan.productCount,
       directRows,
       directCode,
+      callPlan.callCount,
+      callStatements,
+      callWindowRows,
+      callCode,
       resolvedPlan.loopCount,
       resolvedLoops,
       loopWindowRows,
@@ -439,6 +728,8 @@ classical class StructuredSourceModuleCompiler {
       signatureTypes,
       directPlan.typeCount,
       directTypes,
+      emittedCallPlan.localTypeCount,
+      callTypes,
       typePlan.typeCount,
       loopTypes,
       functionResultTypes,
@@ -467,6 +758,28 @@ classical class StructuredSourceModuleCompiler {
       identity
     );
 
+    drop(callCode);
+    drop(callTypes);
+    drop(callRelocationIdentities);
+    drop(callRelocations);
+    drop(targetParameterTypes);
+    drop(targetParameterCounts);
+    drop(targetParameterStarts);
+    drop(targetIdentities);
+    drop(valuePhysicalStarts);
+    drop(callWindowRows);
+    drop(callInstructionStarts);
+    drop(callLocalWidths);
+    drop(resolvedCalls);
+    drop(callArgumentValues);
+    drop(callArguments);
+    drop(callArgumentCounts);
+    drop(callArgumentStarts);
+    drop(callStatements);
+    drop(calls);
+    drop(callableParameterCounts);
+    drop(callableNameLengths);
+    drop(callableNameStarts);
     drop(composedCode);
     drop(composedTypes);
     drop(composedCallables);

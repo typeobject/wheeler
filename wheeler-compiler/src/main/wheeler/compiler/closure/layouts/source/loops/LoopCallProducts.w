@@ -1,8 +1,9 @@
-//! Joins loop-body calls to typed code and stable relocation products.
+//! Joins planned source calls to typed code and stable relocation products.
 
 module wheeler.compiler.closure.loop_call_products;
 
 import wheeler.compiler.call_arguments;
+import wheeler.compiler.closure.source_call_layout_products;
 import wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
 import wheeler.compiler.opcodes;
@@ -20,7 +21,8 @@ classical class LoopCallProducts {
   private const long CALL_VALUE_BOOLEAN = 2;
   private const long CALL_VALUE_SIGNED = 1;
   private const long IDENTITY_BYTES = 32;
-  private const long LOCAL_TYPE_ROWS = 4096;
+  private const long LOCAL_TYPE_COUNT_LIMIT = 4096;
+  private const long LOCAL_TYPE_ROWS = 12288;
   private const long MAX_ARGUMENTS_PER_CALL = 7;
   private const long MAX_CODE_BYTES = 262144;
   private const long RELOCATION_IDENTITY_BYTES = 8192;
@@ -40,50 +42,6 @@ classical class LoopCallProducts {
     long localTypeCount,
     boolean valid
   ) {}
-
-  private boolean validKind(long kind) {
-    if (kind == CALL_VOID) {
-      return true;
-    }
-
-    if (kind == CALL_VALUE_SIGNED) {
-      return true;
-    }
-
-    return kind == CALL_VALUE_BOOLEAN;
-  }
-
-  private long callInstructionCount(long kind, long arity) {
-    if (kind == CALL_VOID) {
-      if (arity == 0) {
-        return 1;
-      }
-
-      return arity * 2 + 1;
-    }
-
-    return arity * 2 + 2;
-  }
-
-  private long callLength(long kind, long arity) {
-    if (kind == CALL_VOID) {
-      if (arity == 0) {
-        return 16;
-      }
-
-      return arity * 48 + 32;
-    }
-
-    return arity * 48 + 64;
-  }
-
-  private long callLocalCount(long kind, long arity) {
-    if (kind == CALL_VOID) {
-      return arity * 2;
-    }
-
-    return arity * 2 + 2;
-  }
 
   private boolean validArguments(
     long firstArgument,
@@ -251,6 +209,8 @@ classical class LoopCallProducts {
   private long writeCallLocalTypes(
     borrow mut words stagedTypes,
     long typeCursor,
+    long owner,
+    long localBase,
     long kind,
     long firstArgument,
     long arity,
@@ -259,7 +219,9 @@ classical class LoopCallProducts {
     long argument = 0;
     while (argument < arity) limit MAX_ARGUMENTS_PER_CALL {
       long type = argumentRows[ARGUMENT_TYPE_ROW + firstArgument + argument];
-      set(stagedTypes, typeCursor, type);
+      set(stagedTypes, typeCursor, owner);
+      set(stagedTypes, 4096 + typeCursor, localBase + argument);
+      set(stagedTypes, 8192 + typeCursor, type);
       typeCursor += 1;
       argument += 1;
     }
@@ -267,7 +229,9 @@ classical class LoopCallProducts {
     argument = 0;
     while (argument < arity) limit MAX_ARGUMENTS_PER_CALL {
       long transferType = argumentRows[ARGUMENT_TYPE_ROW + firstArgument + argument];
-      set(stagedTypes, typeCursor, transferType);
+      set(stagedTypes, typeCursor, owner);
+      set(stagedTypes, 4096 + typeCursor, localBase + arity + argument);
+      set(stagedTypes, 8192 + typeCursor, transferType);
       typeCursor += 1;
       argument += 1;
     }
@@ -278,8 +242,12 @@ classical class LoopCallProducts {
         resultType = TYPE_BOOLEAN;
       }
 
-      set(stagedTypes, typeCursor, resultType);
-      set(stagedTypes, typeCursor + 1, resultType);
+      set(stagedTypes, typeCursor, owner);
+      set(stagedTypes, 4096 + typeCursor, localBase + arity * 2);
+      set(stagedTypes, 8192 + typeCursor, resultType);
+      set(stagedTypes, typeCursor + 1, owner);
+      set(stagedTypes, 4096 + typeCursor + 1, localBase + arity * 2 + 1);
+      set(stagedTypes, 8192 + typeCursor + 1, resultType);
       typeCursor += 2;
     }
 
@@ -348,7 +316,7 @@ classical class LoopCallProducts {
       long arity = callArgumentCounts[call];
       long statement = callStatements[call];
       long instructionStart = callInstructionStarts[call];
-      if (validKind(kind) == false) {
+      if (validSourceCallKind(kind) == false) {
         valid = false;
       }
 
@@ -435,18 +403,30 @@ classical class LoopCallProducts {
         }
       }
 
-      long selectedLocalCount = callLocalCount(kind, arity);
+      long selectedLocalCount = sourceCallLocalCount(kind, arity);
       if (256 - localBase < selectedLocalCount) {
         valid = false;
       }
 
-      localTypeCount += selectedLocalCount;
-      if (LOCAL_TYPE_ROWS < localTypeCount) {
+      if (callLocalWidths[call] != selectedLocalCount) {
         valid = false;
       }
 
-      length += callLength(kind, arity);
-      instructionCount += callInstructionCount(kind, arity);
+      if (-1 < statement) {
+        if (statement < STATEMENT_COUNT_LIMIT) {
+          if (statementPhysicalWidths[statement] != selectedLocalCount) {
+            valid = false;
+          }
+        }
+      }
+
+      localTypeCount += selectedLocalCount;
+      if (LOCAL_TYPE_COUNT_LIMIT < localTypeCount) {
+        valid = false;
+      }
+
+      length += sourceCallLength(kind, arity);
+      instructionCount += sourceCallInstructionCount(kind, arity);
       if (MAX_CODE_BYTES < length) {
         valid = false;
       }
@@ -459,7 +439,7 @@ classical class LoopCallProducts {
       return new LoopCallPlan(0, 0, 0, 0, false);
     }
 
-    region staging = new region(/* bytes= */ 344064, /* allocations= */ 6);
+    region staging = new region(/* bytes= */ 409600, /* allocations= */ 6);
     words stagedRelocations = allocate(staging, RELOCATION_ROWS);
     bytes stagedIdentities = allocateBytes(staging, RELOCATION_IDENTITY_BYTES);
     words stagedTypes = allocate(staging, LOCAL_TYPE_ROWS);
@@ -507,14 +487,13 @@ classical class LoopCallProducts {
         argumentValueProducts,
         valuePhysicalStarts
       );
-      long emittedLocalWidth = callLocalCount(emittedKind, emittedArity);
+      long emittedLocalWidth = sourceCallLocalCount(emittedKind, emittedArity);
       set(stagedLocalWidths, call, emittedLocalWidth);
-      long mergedStatementWidth = stagedStatementWidths[emittedStatement] + emittedLocalWidth;
-      assert(mergedStatementWidth < 257);
-      set(stagedStatementWidths, emittedStatement, mergedStatementWidth);
       typeCursor = writeCallLocalTypes(
         stagedTypes,
         typeCursor,
+        callRows[call],
+        emittedLocalBase,
         emittedKind,
         emittedFirstArgument,
         emittedArity,

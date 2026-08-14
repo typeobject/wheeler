@@ -2,8 +2,11 @@
 
 module wheeler.compiler.closure.callable_return_products;
 
+import wheeler.compiler.closure.source_call_layout_products;
+
 classical class CallableReturnProducts {
   private const long CALLABLE_LIMIT = 64;
+  private const long CALL_COUNT_LIMIT = 256;
   private const long DIRECT_INSTRUCTION_COUNT_ROW = 8192;
   private const long DIRECT_LENGTH_ROW = 16384;
   private const long DIRECT_LIMIT = 4096;
@@ -24,6 +27,10 @@ classical class CallableReturnProducts {
     borrow mut words statementRows,
     long directCount,
     borrow mut words directRows,
+    long callCount,
+    borrow mut words callRows,
+    borrow mut words callStatements,
+    borrow mut words callArgumentCounts,
     long loopCount,
     borrow mut words loopRows,
     borrow mut words loopWindowRows,
@@ -38,6 +45,11 @@ classical class CallableReturnProducts {
     assert(-1 < directCount);
     assert(directCount < DIRECT_LIMIT + 1);
     assert(bufferLength(directRows) == 28672);
+    assert(-1 < callCount);
+    assert(callCount < CALL_COUNT_LIMIT + 1);
+    assert(bufferLength(callRows) == 1024);
+    assert(bufferLength(callStatements) == CALL_COUNT_LIMIT);
+    assert(bufferLength(callArgumentCounts) == CALL_COUNT_LIMIT);
     assert(-1 < loopCount);
     assert(loopCount < LOOP_COUNT_LIMIT + 1);
     assert(bufferLength(loopRows) == 2304);
@@ -79,6 +91,28 @@ classical class CallableReturnProducts {
         }
 
         direct += 1;
+      }
+
+      long call = 0;
+      while (call < callCount) limit CALL_COUNT_LIMIT {
+        long callStatement = callStatements[call];
+        if (callStatement < 0) {
+          valid = false;
+        } else {
+          if (statementCount - 1 < callStatement) {
+            valid = false;
+          } else {
+            if (statementRows[callStatement] == callable) {
+              instructionStart += sourceCallInstructionCount(
+                callRows[256 + call],
+                callArgumentCounts[call]
+              );
+              codeStart += sourceCallLength(callRows[256 + call], callArgumentCounts[call]);
+            }
+          }
+        }
+
+        call += 1;
       }
 
       long loop = 0;

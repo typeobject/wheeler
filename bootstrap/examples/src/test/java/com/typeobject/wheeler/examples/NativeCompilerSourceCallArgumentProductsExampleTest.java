@@ -110,10 +110,10 @@ final class NativeCompilerSourceCallArgumentProductsExampleTest {
             set(values, 6144, DECLARATION_LENGTH);
             set(argumentValues, 0, 77);
             set(arguments, 1792, 78);
-            callCount = resolveLocalProductSourceCallProducts(
-              binarySource,
-              /* sourceStart= */ 0,
-              bufferLength(input),
+            callCount = resolveLocalUtf8ProductSourceCallProducts(
+              source,
+              /* bodyStart= */ IDENTITY_START,
+              bufferLength(source) - IDENTITY_START,
               binarySource,
               /* firstLocalCallable= */ 0,
               /* localCallableCount= */ 1,

@@ -9,6 +9,8 @@ import wheeler.compiler.opcodes;
 
 classical class CallableSourceComposition {
   private const long CALLABLE_ROWS = 320;
+  private const long CALL_COUNT_LIMIT = 256;
+  private const long CALL_WINDOW_ROWS = 768;
   private const long DIRECT_ROWS = 28672;
   private const long LOOP_ROWS = 2304;
   private const long LOOP_STATEMENT_ORDINAL_ROW = 512;
@@ -27,6 +29,26 @@ classical class CallableSourceComposition {
     long typeCount,
     boolean valid
   ) {}
+
+  private long callAtStatement(long statement, long callCount, borrow mut words callStatements) {
+    long selected = -1;
+    long matches = 0;
+    long call = 0;
+    while (call < callCount) limit CALL_COUNT_LIMIT {
+      if (callStatements[call] == statement) {
+        selected = call;
+        matches += 1;
+      }
+
+      call += 1;
+    }
+
+    if (matches != 1) {
+      return -1;
+    }
+
+    return selected;
+  }
 
   private long directAtStatement(long statement, long directCount, borrow mut words directRows) {
     long selected = -1;
@@ -108,6 +130,10 @@ classical class CallableSourceComposition {
     long directCount,
     borrow mut words directRows,
     borrow byteview directCode,
+    long callCount,
+    borrow mut words callStatements,
+    borrow mut words callWindowRows,
+    borrow byteview callCode,
     long loopCount,
     borrow mut words loopRows,
     borrow mut words loopWindowRows,
@@ -116,6 +142,8 @@ classical class CallableSourceComposition {
     borrow mut words signatureTypes,
     long directTypeCount,
     borrow mut words directTypes,
+    long callTypeCount,
+    borrow mut words callTypes,
     long loopTypeCount,
     borrow mut words loopTypes,
     borrow mut words functionResultTypes,
@@ -133,6 +161,11 @@ classical class CallableSourceComposition {
     assert(directCount < MAX_PRODUCTS + 1);
     assert(bufferLength(directRows) == DIRECT_ROWS);
     assert(bufferLength(directCode) == MAX_CODE_BYTES);
+    assert(-1 < callCount);
+    assert(callCount < CALL_COUNT_LIMIT + 1);
+    assert(bufferLength(callStatements) == CALL_COUNT_LIMIT);
+    assert(bufferLength(callWindowRows) == CALL_WINDOW_ROWS);
+    assert(bufferLength(callCode) == MAX_CODE_BYTES);
     assert(-1 < loopCount);
     assert(loopCount < 257);
     assert(bufferLength(loopRows) == LOOP_ROWS);
@@ -144,6 +177,9 @@ classical class CallableSourceComposition {
     assert(-1 < directTypeCount);
     assert(directTypeCount < MAX_TYPES + 1);
     assert(bufferLength(directTypes) == TYPE_ROWS);
+    assert(-1 < callTypeCount);
+    assert(callTypeCount < MAX_TYPES + 1);
+    assert(bufferLength(callTypes) == TYPE_ROWS);
     assert(-1 < loopTypeCount);
     assert(loopTypeCount < MAX_TYPES + 1);
     assert(bufferLength(loopTypes) == TYPE_ROWS);
@@ -159,6 +195,7 @@ classical class CallableSourceComposition {
     bytes stagedCode = allocateBytes(staging, MAX_CODE_BYTES);
     boolean valid = true;
     long consumedDirect = 0;
+    long consumedCalls = 0;
     long consumedLoops = 0;
     long codeCursor = 0;
     long instructionCount = 0;
@@ -185,15 +222,25 @@ classical class CallableSourceComposition {
               long codeStart = -1;
               long codeLength = 0;
               long productInstructionCount = 0;
+              boolean callProduct = false;
               if (statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement] == 0) {
-                long direct = directAtStatement(statement, directCount, directRows);
-                if (direct < 0) {
-                  valid = false;
+                long call = callAtStatement(statement, callCount, callStatements);
+                if (-1 < call) {
+                  codeStart = callWindowRows[call];
+                  codeLength = callWindowRows[512 + call];
+                  productInstructionCount = callWindowRows[256 + call];
+                  consumedCalls += 1;
+                  callProduct = true;
                 } else {
-                  codeStart = directRows[12288 + direct];
-                  codeLength = directRows[16384 + direct];
-                  productInstructionCount = directRows[8192 + direct];
-                  consumedDirect += 1;
+                  long direct = directAtStatement(statement, directCount, directRows);
+                  if (direct < 0) {
+                    valid = false;
+                  } else {
+                    codeStart = directRows[12288 + direct];
+                    codeLength = directRows[16384 + direct];
+                    productInstructionCount = directRows[8192 + direct];
+                    consumedDirect += 1;
+                  }
                 }
               } else {
                 long loop = loopAtStatement(statement, loopCount, loopRows, statementRows);
@@ -223,7 +270,11 @@ classical class CallableSourceComposition {
                 long codeByte = 0;
                 while (codeByte < codeLength) limit MAX_CODE_BYTES {
                   if (statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement] == 0) {
-                    setByte(stagedCode, codeCursor, directCode[codeStart + codeByte]);
+                    if (callProduct) {
+                      setByte(stagedCode, codeCursor, callCode[codeStart + codeByte]);
+                    } else {
+                      setByte(stagedCode, codeCursor, directCode[codeStart + codeByte]);
+                    }
                   } else {
                     setByte(stagedCode, codeCursor, loopCode[codeStart + codeByte]);
                   }
@@ -293,6 +344,10 @@ classical class CallableSourceComposition {
       valid = false;
     }
 
+    if (consumedCalls != callCount) {
+      valid = false;
+    }
+
     long rootLoopCount = 0;
     long countedLoop = 0;
     while (countedLoop < loopCount) limit 256 {
@@ -310,6 +365,7 @@ classical class CallableSourceComposition {
     long typeCount = 0;
     long consumedSignatureTypes = 0;
     long consumedDirectTypes = 0;
+    long consumedCallTypes = 0;
     long consumedLoopTypes = 0;
     callable = 0;
     while (callable < callableCount) limit MAX_CALLABLES {
@@ -320,6 +376,7 @@ classical class CallableSourceComposition {
         long code = -1;
         long signatureCode = typeCodeAt(callable, local, signatureTypeCount, signatureTypes);
         long directCodeType = typeCodeAt(callable, local, directTypeCount, directTypes);
+        long callCodeType = typeCodeAt(callable, local, callTypeCount, callTypes);
         long loopCodeType = typeCodeAt(callable, local, loopTypeCount, loopTypes);
         long matches = 0;
         if (-1 < signatureCode) {
@@ -332,6 +389,12 @@ classical class CallableSourceComposition {
           code = directCodeType;
           matches += 1;
           consumedDirectTypes += 1;
+        }
+
+        if (-1 < callCodeType) {
+          code = callCodeType;
+          matches += 1;
+          consumedCallTypes += 1;
         }
 
         if (-1 < loopCodeType) {
@@ -369,6 +432,10 @@ classical class CallableSourceComposition {
     }
 
     if (consumedDirectTypes != directTypeCount) {
+      valid = false;
+    }
+
+    if (consumedCallTypes != callTypeCount) {
       valid = false;
     }
 

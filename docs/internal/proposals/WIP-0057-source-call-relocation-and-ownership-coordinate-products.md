@@ -10,6 +10,7 @@
 | Depends on | WIP-0045, WIP-0047, WIP-0055, WIP-0056 |
 | Supersedes | Call and ownership coordinate work embedded in WIP-0055 and WIP-0056 |
 | Superseded by | None |
+| Follow-ups | WIP-0058, WIP-0059 |
 
 ## Summary
 
@@ -99,8 +100,9 @@ All rows use fixed caller-provided buffers. No pass allocates per call or per ev
 5. Publish relocation instruction rows from the callable instruction plan.
 6. Bind source ownership effects to statement, local, and instruction products.
 7. Compare source ownership with decoded artifact ownership before archive publication.
-8. Integrate calls and ownership into `StructuredSourceModuleCompiler.w`.
+8. Integrate source-root local calls into `StructuredSourceModuleCompiler.w`.
 9. Delete caller-supplied call local and instruction bases.
+10. Continue nested windows under WIP-0058 and imported targets under WIP-0059.
 
 ## Progress
 
@@ -114,15 +116,22 @@ All rows use fixed caller-provided buffers. No pass allocates per call or per ev
 - [x] `SourceOwnershipProducts.w` independently authorizes source ownership kind, statement, instruction offset, destination offset, defining source value, and source offset before mapping them through planned statement and value coordinates. Creation, movement, and destruction fixtures publish exact rows. An out-of-range destination publishes nothing.
 - [x] `ownershipCoordinatesAgree` requires exact source and decoded statement, instruction, destination, and source rows. The native fixture covers moves, balanced loans, creation, destruction, boundary releases, and explicit disagreement.
 - [x] `OwnershipCheckedBodyArchive.w` compares independent source and decoded event counts and all four coordinate rows before it calls the sole bounded archive append. Event-count or coordinate disagreement publishes no rank, table row, or artifact byte. The native ownership fixture archives a real canonical artifact only after agreement and retains sentinels on malformed planned rows or source disagreement.
-- [ ] Structured source artifacts include local and imported calls without source projection.
+- [x] `SourceModuleCallProducts.w` scans retained callable body ranges directly, publishes absolute call ranges in callable order, and binds every local call to one exact statement without another source copy.
+- [x] `SourceCallableResultProducts.w` establishes signed, Boolean, and void result kinds before call layout. Direct return emission checks the same retained table.
+- [x] `SourceCallLayoutProducts.w` validates target arity, ordered parameter types, result kinds, and exact source-measured statement widths before callable coordinate publication. Shared layout functions now define the sole call instruction, byte, and local widths.
+- [x] `CallableInstructionPrefixes.w` includes preceding root calls when it plans loop instructions. `SourceCallInstructionProducts.w` then publishes root-call instruction and code windows from direct, loop, and call products in source order.
+- [x] `LoopCallProducts.w` now consumes preplanned statement widths, publishes owner-local-type rows, and cannot add a second width after coordinate publication. `CallableReturnProducts.w` includes calls before it places implicit void returns.
+- [x] `CallableSourceComposition.w` consumes root call code and local types beside direct and loop products. Signed, Boolean, void, one-argument, and two-argument recursive fixtures match stage 0 byte for byte after a completed root loop.
+- [ ] WIP-0058 composes calls nested inside structured control windows.
+- [ ] WIP-0059 admits imported callable products and stable external target identities without dependency source.
 
 ## Acceptance
 
 - A call after a completed root loop uses the planned physical locals.
-- A call inside a nested first root and a call in a second root have contiguous type and code windows.
+- A call in a second root has contiguous type and code windows. WIP-0058 owns calls inside nested roots.
 - Value and Boolean results own exact result slots.
 - Void calls own no fabricated local.
-- Local, imported, qualified, call, and uncall relocations name exact planned instructions.
+- Local call relocations name exact planned instructions. WIP-0059 owns imported, qualified, and external relocation publication.
 - Ownership events name exact planned locals and instructions.
 - Reordered call, relocation, and ownership storage rows do not change artifact bytes.
 - Missing target identities, detached statements, malformed widths, and ownership disagreement publish nothing.

@@ -32,6 +32,25 @@ classical class DirectStatementProducts {
     boolean valid
   ) {}
 
+  private boolean callAtStatement(
+    long statement,
+    long callCount,
+    borrow mut words callStatements
+  ) {
+    long matches = 0;
+    long call = 0;
+    while (call < callCount) limit 256 {
+      if (callStatements[call] == statement) {
+        matches += 1;
+      }
+
+      call += 1;
+    }
+
+    assert(matches < 2);
+    return matches == 1;
+  }
+
   private long statementAtOrdinal(
     long owner,
     long ordinal,
@@ -154,6 +173,8 @@ classical class DirectStatementProducts {
     borrow utf8 source,
     long statementCount,
     borrow mut words statementRows,
+    long callCount,
+    borrow mut words callStatements,
     long valueCount,
     borrow mut words valueRows,
     borrow mut words statementLocalRows,
@@ -167,6 +188,12 @@ classical class DirectStatementProducts {
     assert(-1 < statementCount);
     assert(statementCount < MAX_STATEMENTS + 1);
     assert(bufferLength(statementRows) == LOOP_STATEMENT_ROWS);
+    assert(-1 < callCount);
+    assert(callCount < 257);
+    if (0 < callCount) {
+      assert(bufferLength(callStatements) == 256);
+    }
+
     assert(-1 < valueCount);
     assert(valueCount < LOOP_VALUE_COUNT_LIMIT + 1);
     assert(bufferLength(valueRows) == LOOP_VALUE_ROWS);
@@ -192,6 +219,12 @@ classical class DirectStatementProducts {
     while (stagedStatement < MAX_STATEMENTS) limit MAX_STATEMENTS {
       set(stagedPhysicalWidths, stagedStatement, statementPhysicalWidths[stagedStatement]);
       stagedStatement += 1;
+    }
+
+    long resultCallable = 0;
+    while (resultCallable < 64) limit 64 {
+      set(stagedResultTypes, resultCallable, functionResultTypes[resultCallable]);
+      resultCallable += 1;
     }
 
     boolean valid = true;
@@ -245,6 +278,7 @@ classical class DirectStatementProducts {
             long productInstructions = 0;
             long productTypeStart = typeCount;
             long hash = 0;
+            boolean selectedCall = callAtStatement(statement, callCount, callStatements);
             if (statementValid) {
               hash = tokenHash(source, tokenStarts, tokenLengths, token);
             }
@@ -557,17 +591,25 @@ classical class DirectStatementProducts {
               }
             }
 
+            if (selectedCall) {
+              statementValid = true;
+              cursor = productStart;
+              typeCount = productTypeStart;
+            }
+
             if (statementValid) {
-              set(stagedRows, productCount, statement);
-              set(stagedRows, 4096 + productCount, owner);
-              set(stagedRows, 8192 + productCount, productInstructions);
-              set(stagedRows, 12288 + productCount, productStart);
-              set(stagedRows, 16384 + productCount, cursor - productStart);
-              set(stagedRows, 20480 + productCount, productTypeStart);
-              set(stagedRows, 24576 + productCount, typeCount - productTypeStart);
-              set(stagedPhysicalWidths, statement, typeCount - productTypeStart);
-              instructionCount += productInstructions;
-              productCount += 1;
+              if (selectedCall == false) {
+                set(stagedRows, productCount, statement);
+                set(stagedRows, 4096 + productCount, owner);
+                set(stagedRows, 8192 + productCount, productInstructions);
+                set(stagedRows, 12288 + productCount, productStart);
+                set(stagedRows, 16384 + productCount, cursor - productStart);
+                set(stagedRows, 20480 + productCount, productTypeStart);
+                set(stagedRows, 24576 + productCount, typeCount - productTypeStart);
+                set(stagedPhysicalWidths, statement, typeCount - productTypeStart);
+                instructionCount += productInstructions;
+                productCount += 1;
+              }
             } else {
               valid = false;
             }

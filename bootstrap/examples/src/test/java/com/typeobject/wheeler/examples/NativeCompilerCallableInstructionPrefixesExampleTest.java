@@ -19,8 +19,8 @@ final class NativeCompilerCallableInstructionPrefixesExampleTest {
 
     assertEquals(1, machine.global("valid"));
     assertEquals(2, machine.global("loopCount"));
-    assertEquals(5, machine.global("secondRootPrefix"));
-    assertEquals(3, machine.global("firstRootPrefix"));
+    assertEquals(7, machine.global("secondRootPrefix"));
+    assertEquals(5, machine.global("firstRootPrefix"));
   }
 
   @Test
@@ -52,10 +52,13 @@ final class NativeCompilerCallableInstructionPrefixesExampleTest {
 
           entry void main(borrow utf8 input) {
             assert(bufferLength(input) == 0);
-            region products = new region(/* bytes= */ 483328, /* allocations= */ 4);
+            region products = new region(/* bytes= */ 496640, /* allocations= */ 7);
             words loops = allocate(products, /* length= */ 2304);
             words statements = allocate(products, /* length= */ 28672);
             words directs = allocate(products, /* length= */ 28672);
+            words calls = allocate(products, /* length= */ 1024);
+            words callStatements = allocate(products, /* length= */ 256);
+            words callArgumentCounts = allocate(products, /* length= */ 256);
             words starts = allocate(products, /* length= */ 256);
             set(loops, 0, 0);
             set(loops, 512, 4);
@@ -81,6 +84,10 @@ final class NativeCompilerCallableInstructionPrefixesExampleTest {
             set(statements, 8196, 2);
             set(statements, 12292, 250);
             set(statements, 16388, 20);
+            set(statements, 5, 0);
+            set(statements, 8197, 5);
+            set(statements, 12293, 150);
+            set(statements, 16389, 20);
             if (DUPLICATE) {
               set(statements, 8192, 4);
             }
@@ -90,15 +97,21 @@ final class NativeCompilerCallableInstructionPrefixesExampleTest {
             set(directs, 8193, 4);
             set(directs, 2, 2);
             set(directs, 8194, 3);
+            set(calls, 256, 1);
+            set(callStatements, 0, 5);
             set(starts, 0, 77);
             set(starts, 1, 88);
             CallableInstructionPrefixPlan plan = materializeCallableInstructionPrefixes(
               /* loopCount= */ 2,
               loops,
-              /* statementCount= */ 5,
+              /* statementCount= */ 6,
               statements,
               /* directCount= */ 3,
               directs,
+              /* callCount= */ 1,
+              calls,
+              callStatements,
+              callArgumentCounts,
               starts
             );
             if (plan.valid) {
@@ -108,6 +121,9 @@ final class NativeCompilerCallableInstructionPrefixesExampleTest {
             secondRootPrefix = starts[0];
             firstRootPrefix = starts[1];
             drop(starts);
+            drop(callArgumentCounts);
+            drop(callStatements);
+            drop(calls);
             drop(directs);
             drop(statements);
             drop(loops);

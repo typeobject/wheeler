@@ -20,8 +20,8 @@ final class NativeCompilerCallableReturnProductsExampleTest {
     assertEquals(1, machine.global("valid"));
     assertEquals(1, machine.global("returnCount"));
     assertEquals(1, machine.global("required"));
-    assertEquals(8, machine.global("instructionStart"));
-    assertEquals(64, machine.global("codeStart"));
+    assertEquals(9, machine.global("instructionStart"));
+    assertEquals(80, machine.global("codeStart"));
     assertEquals(-1, machine.global("valueStart"));
   }
 
@@ -57,10 +57,13 @@ final class NativeCompilerCallableReturnProductsExampleTest {
 
           entry void main(borrow utf8 input) {
             assert(bufferLength(input) == 0);
-            region products = new region(/* bytes= */ 487936, /* allocations= */ 6);
+            region products = new region(/* bytes= */ 500224, /* allocations= */ 9);
             words resultTypes = allocate(products, /* length= */ 64);
             words statements = allocate(products, /* length= */ 28672);
             words directs = allocate(products, /* length= */ 28672);
+            words calls = allocate(products, /* length= */ 1024);
+            words callStatements = allocate(products, /* length= */ 256);
+            words callArgumentCounts = allocate(products, /* length= */ 256);
             words loops = allocate(products, /* length= */ 2304);
             words windows = allocate(products, /* length= */ 768);
             words returns = allocate(products, /* length= */ 192);
@@ -68,12 +71,15 @@ final class NativeCompilerCallableReturnProductsExampleTest {
             set(resultTypes, 1, 3);
             set(statements, 0, 1);
             set(statements, 1, 0);
+            set(statements, 2, 0);
             set(directs, 0, MALFORMED_STATEMENT);
             set(directs, 8192, 2);
             set(directs, 16384, 16);
             set(directs, 1, 1);
             set(directs, 8193, 3);
             set(directs, 16385, 24);
+            set(calls, 256, 0);
+            set(callStatements, 0, 2);
             set(loops, 0, 0);
             set(loops, 2048, 2);
             set(loops, 1, 1);
@@ -92,10 +98,14 @@ final class NativeCompilerCallableReturnProductsExampleTest {
             CallableReturnPlan plan = materializeCallableReturnProducts(
               /* callableCount= */ 2,
               resultTypes,
-              /* statementCount= */ 2,
+              /* statementCount= */ 3,
               statements,
               /* directCount= */ 2,
               directs,
+              /* callCount= */ 1,
+              calls,
+              callStatements,
+              callArgumentCounts,
               /* loopCount= */ 3,
               loops,
               windows,
@@ -112,13 +122,16 @@ final class NativeCompilerCallableReturnProductsExampleTest {
             drop(returns);
             drop(windows);
             drop(loops);
+            drop(callArgumentCounts);
+            drop(callStatements);
+            drop(calls);
             drop(directs);
             drop(statements);
             drop(resultTypes);
             drop(products);
           }
         }
-        """.replace("MALFORMED_STATEMENT", malformed ? "2" : "0"));
+        """.replace("MALFORMED_STATEMENT", malformed ? "3" : "0"));
     return new WheelerCompiler().compileModuleFiles(sources, "example.callable_return_products");
   }
 }

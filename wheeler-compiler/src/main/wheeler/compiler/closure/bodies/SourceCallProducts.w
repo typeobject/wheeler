@@ -466,12 +466,12 @@ classical class SourceCallProducts {
     return new SourceCallStatementPlan(callCount, true);
   }
 
-  private long resolveSelectedProductSourceCallProducts(
+  private long resolveSelectedUtf8ProductSourceCallProducts(
     boolean includeLocal,
     boolean includeImported,
-    borrow byteview source,
-    long sourceStart,
-    long sourceLength,
+    borrow utf8 body,
+    long bodyStart,
+    long bodyLength,
     borrow byteview names,
     long firstLocalCallable,
     long localCallableCount,
@@ -482,10 +482,9 @@ classical class SourceCallProducts {
     borrow mut words dependencyRows,
     borrow mut words callRows
   ) {
-    assert(-1 < sourceStart);
-    assert(0 < sourceLength);
-    assert(sourceLength < 32769);
-    assert(sourceLength < bufferLength(source) - sourceStart + 1);
+    assert(-1 < bodyStart);
+    assert(0 < bodyLength);
+    assert(bodyLength < bufferLength(body) - bodyStart + 1);
     assert(-1 < firstLocalCallable);
     assert(-1 < localCallableCount);
     assert(localCallableCount < MAX_CALLABLES - firstLocalCallable + 1);
@@ -499,15 +498,6 @@ classical class SourceCallProducts {
     }
 
     assert(bufferLength(callRows) == CALL_ROWS);
-    region sourceArena = new region(/* bytes= */ 32768, /* allocations= */ 1);
-    bytes sourceBytes = allocateBytes(sourceArena, sourceLength);
-    long sourceByte = 0;
-    while (sourceByte < sourceLength) limit 32768 {
-      setByte(sourceBytes, sourceByte, source[sourceStart + sourceByte]);
-      sourceByte += 1;
-    }
-
-    utf8 body = freezeUtf8(sourceBytes);
     region tokens = new region(/* bytes= */ TOKEN_ARENA_BYTES, /* allocations= */ 3);
     words tokenKinds = allocate(tokens, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(tokens, MAX_COMPILER_TOKENS);
@@ -519,69 +509,74 @@ classical class SourceCallProducts {
     long callCount = 0;
     long token = 0;
     while (token + 1 < tokenCount) limit MAX_COMPILER_TOKENS {
-      if (tokenKinds[token] == 1) {
-        if (
-          punctuationAt(body, tokenKinds, tokenStarts, token + 1, PUNCTUATION_OPEN_PAREN)
-        ) {
-          long close = closingParen(body, tokenKinds, tokenStarts, token + 1, tokenCount);
-          assert(-1 < close);
-          long arity = parameterCount(body, tokenKinds, tokenStarts, token + 1, close);
-          assert(-1 < arity);
-          long local = matchingProductCallable(
-            body,
-            tokenStarts[token],
-            tokenLengths[token],
-            arity,
-            names,
-            firstLocalCallable,
-            localCallableCount,
-            callableNameStarts,
-            callableNameLengths,
-            callableParameterCounts
-          );
-          long selectedTarget = -1;
-          if (-1 < local) {
-            if (includeLocal) {
-              selectedTarget = local;
-            }
-          } else {
-            if (includeImported) {
-              long imported = -1;
-              long product = 0;
-              while (product < dependencyCount) limit MAX_CALLABLES {
-                long candidate = dependencyRows[4096 + product];
-                if (-1 < candidate) {
-                  if (callableParameterCounts[candidate] == arity) {
-                    if (
-                      sameProductName(
-                        body,
-                        tokenStarts[token],
-                        tokenLengths[token],
-                        names,
-                        callableNameStarts[candidate],
-                        callableNameLengths[candidate]
-                      )
-                    ) {
-                      assert(imported == -1);
-                      imported = candidate;
-                    }
-                  }
+      long selectedStart = tokenStarts[token];
+      if (bodyStart - 1 < selectedStart) {
+        if (selectedStart < bodyStart + bodyLength) {
+          if (tokenKinds[token] == 1) {
+            if (
+              punctuationAt(body, tokenKinds, tokenStarts, token + 1, PUNCTUATION_OPEN_PAREN)
+            ) {
+              long close = closingParen(body, tokenKinds, tokenStarts, token + 1, tokenCount);
+              assert(-1 < close);
+              long arity = parameterCount(body, tokenKinds, tokenStarts, token + 1, close);
+              assert(-1 < arity);
+              long local = matchingProductCallable(
+                body,
+                tokenStarts[token],
+                tokenLengths[token],
+                arity,
+                names,
+                firstLocalCallable,
+                localCallableCount,
+                callableNameStarts,
+                callableNameLengths,
+                callableParameterCounts
+              );
+              long selectedTarget = -1;
+              if (-1 < local) {
+                if (includeLocal) {
+                  selectedTarget = local;
                 }
+              } else {
+                if (includeImported) {
+                  long imported = -1;
+                  long product = 0;
+                  while (product < dependencyCount) limit MAX_CALLABLES {
+                    long candidate = dependencyRows[4096 + product];
+                    if (-1 < candidate) {
+                      if (callableParameterCounts[candidate] == arity) {
+                        if (
+                          sameProductName(
+                            body,
+                            tokenStarts[token],
+                            tokenLengths[token],
+                            names,
+                            callableNameStarts[candidate],
+                            callableNameLengths[candidate]
+                          )
+                        ) {
+                          assert(imported == -1);
+                          imported = candidate;
+                        }
+                      }
+                    }
 
-                product += 1;
+                    product += 1;
+                  }
+
+                  selectedTarget = imported;
+                }
               }
 
-              selectedTarget = imported;
+              if (-1 < selectedTarget) {
+                assert(callCount < MAX_CALLS_PER_BODY);
+                set(stagedCalls, callCount, tokenStarts[token]);
+                set(stagedCalls, 256 + callCount, tokenLengths[token]);
+                set(stagedCalls, 512 + callCount, arity);
+                set(stagedCalls, 768 + callCount, selectedTarget);
+                callCount += 1;
+              }
             }
-          }
-
-          if (-1 < selectedTarget) {
-            assert(callCount < MAX_CALLS_PER_BODY);
-            set(stagedCalls, callCount, tokenStarts[token]);
-            set(stagedCalls, 256 + callCount, tokenLengths[token]);
-            set(stagedCalls, 512 + callCount, arity);
-            set(stagedCalls, 768 + callCount, selectedTarget);
-            callCount += 1;
           }
         }
       }
@@ -604,6 +599,54 @@ classical class SourceCallProducts {
     drop(tokenStarts);
     drop(tokenKinds);
     drop(tokens);
+    return callCount;
+  }
+
+  private long resolveSelectedProductSourceCallProducts(
+    boolean includeLocal,
+    boolean includeImported,
+    borrow byteview source,
+    long sourceStart,
+    long sourceLength,
+    borrow byteview names,
+    long firstLocalCallable,
+    long localCallableCount,
+    borrow mut words callableNameStarts,
+    borrow mut words callableNameLengths,
+    borrow mut words callableParameterCounts,
+    long dependencyCount,
+    borrow mut words dependencyRows,
+    borrow mut words callRows
+  ) {
+    assert(-1 < sourceStart);
+    assert(0 < sourceLength);
+    assert(sourceLength < 32769);
+    assert(sourceLength < bufferLength(source) - sourceStart + 1);
+    region sourceArena = new region(/* bytes= */ 32768, /* allocations= */ 1);
+    bytes sourceBytes = allocateBytes(sourceArena, sourceLength);
+    long sourceByte = 0;
+    while (sourceByte < sourceLength) limit 32768 {
+      setByte(sourceBytes, sourceByte, source[sourceStart + sourceByte]);
+      sourceByte += 1;
+    }
+
+    utf8 body = freezeUtf8(sourceBytes);
+    long callCount = resolveSelectedUtf8ProductSourceCallProducts(
+      includeLocal,
+      includeImported,
+      body,
+      /* bodyStart= */ 0,
+      bufferLength(body),
+      names,
+      firstLocalCallable,
+      localCallableCount,
+      callableNameStarts,
+      callableNameLengths,
+      callableParameterCounts,
+      dependencyCount,
+      dependencyRows,
+      callRows
+    );
     drop(body);
     drop(sourceArena);
     return callCount;
@@ -661,6 +704,37 @@ classical class SourceCallProducts {
       source,
       sourceStart,
       sourceLength,
+      names,
+      firstLocalCallable,
+      localCallableCount,
+      callableNameStarts,
+      callableNameLengths,
+      callableParameterCounts,
+      /* dependencyCount= */ 0,
+      callRows,
+      callRows
+    );
+  }
+
+  /// Resolves local calls directly from one retained UTF-8 callable body.
+  public long resolveLocalUtf8ProductSourceCallProducts(
+    borrow utf8 body,
+    long bodyStart,
+    long bodyLength,
+    borrow byteview names,
+    long firstLocalCallable,
+    long localCallableCount,
+    borrow mut words callableNameStarts,
+    borrow mut words callableNameLengths,
+    borrow mut words callableParameterCounts,
+    borrow mut words callRows
+  ) {
+    return resolveSelectedUtf8ProductSourceCallProducts(
+      true,
+      false,
+      body,
+      bodyStart,
+      bodyLength,
       names,
       firstLocalCallable,
       localCallableCount,

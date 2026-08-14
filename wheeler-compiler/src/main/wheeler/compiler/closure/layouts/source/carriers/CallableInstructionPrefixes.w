@@ -1,10 +1,13 @@
-//! Publishes exact direct-instruction prefixes for source loop products.
+//! Publishes exact root-product instruction prefixes for source loops.
 
 module wheeler.compiler.closure.callable_instruction_prefixes;
 
 import wheeler.compiler.closure.loop_body_layouts;
+import wheeler.compiler.closure.source_call_layout_products;
 
 classical class CallableInstructionPrefixes {
+  private const long CALL_COUNT_LIMIT = 256;
+  private const long CALL_ROWS = 1024;
   private const long DIRECT_COUNT_LIMIT = 4096;
   private const long DIRECT_ROWS = 28672;
   private const long DIRECT_INSTRUCTION_COUNT_ROW = 8192;
@@ -52,7 +55,7 @@ classical class CallableInstructionPrefixes {
     return selected;
   }
 
-  private boolean rootDirectStatement(
+  private boolean rootProductStatement(
     long directStatement,
     long loopCount,
     borrow mut words loopRows,
@@ -89,7 +92,7 @@ classical class CallableInstructionPrefixes {
     return true;
   }
 
-  /// Publishes each loop's exact preceding root-direct instruction count atomically.
+  /// Publishes each loop's exact preceding root direct-and-call instruction count atomically.
   public CallableInstructionPrefixPlan materializeCallableInstructionPrefixes(
     long loopCount,
     borrow mut words loopRows,
@@ -97,6 +100,10 @@ classical class CallableInstructionPrefixes {
     borrow mut words statementRows,
     long directCount,
     borrow mut words directRows,
+    long callCount,
+    borrow mut words callRows,
+    borrow mut words callStatements,
+    borrow mut words callArgumentCounts,
     borrow mut words loopInstructionStarts
   ) {
     assert(-1 < loopCount);
@@ -108,6 +115,11 @@ classical class CallableInstructionPrefixes {
     assert(-1 < directCount);
     assert(directCount < DIRECT_COUNT_LIMIT + 1);
     assert(bufferLength(directRows) == DIRECT_ROWS);
+    assert(-1 < callCount);
+    assert(callCount < CALL_COUNT_LIMIT + 1);
+    assert(bufferLength(callRows) == CALL_ROWS);
+    assert(bufferLength(callStatements) == CALL_COUNT_LIMIT);
+    assert(bufferLength(callArgumentCounts) == CALL_COUNT_LIMIT);
     assert(bufferLength(loopInstructionStarts) == LOOP_COUNT_LIMIT);
 
     region staging = new region(/* bytes= */ 2048, /* allocations= */ 1);
@@ -135,7 +147,7 @@ classical class CallableInstructionPrefixes {
           long directStatement = directRows[direct];
           if (statementRows[directStatement] == owner) {
             if (
-              rootDirectStatement(
+              rootProductStatement(
                 directStatement,
                 loopCount,
                 loopRows,
@@ -155,6 +167,44 @@ classical class CallableInstructionPrefixes {
           }
 
           direct += 1;
+        }
+
+        long call = 0;
+        while (call < callCount) limit CALL_COUNT_LIMIT {
+          long callStatement = callStatements[call];
+          if (callStatement < 0) {
+            valid = false;
+          } else {
+            if (statementCount - 1 < callStatement) {
+              valid = false;
+            } else {
+              if (statementRows[callStatement] == owner) {
+                if (
+                  rootProductStatement(
+                    callStatement,
+                    loopCount,
+                    loopRows,
+                    statementCount,
+                    statementRows
+                  )
+                ) {
+                  if (
+                    statementRows[STATEMENT_SOURCE_START_ROW + callStatement] < loopStart
+                  ) {
+                    prefix += sourceCallInstructionCount(
+                      callRows[256 + call],
+                      callArgumentCounts[call]
+                    );
+                    if (32767 < prefix) {
+                      valid = false;
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          call += 1;
         }
       }
 
