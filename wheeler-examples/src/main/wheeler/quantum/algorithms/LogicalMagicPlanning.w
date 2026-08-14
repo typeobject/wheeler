@@ -14,6 +14,9 @@ classical class LogicalMagicPlanning {
   state long magicStates = 0;
   state long factoryBatches = 0;
   state long targetCycles = 0;
+  state long codeDistance = 7;
+  state long failureBudgetPartsPerTrillion = 800;
+  state long plannedFailurePartsPerTrillion = 780;
 
   /// Closes exact state demand and factory cycles without treating either as a gate count.
   ///
@@ -37,5 +40,8 @@ classical class LogicalMagicPlanning {
     assert(magicStates == 5);
     assert(factoryBatches == 2);
     assert(targetCycles == TARGET_CYCLE_LIMIT);
+    assert(codeDistance == 7);
+    assert(failureBudgetPartsPerTrillion == 800);
+    assert(plannedFailurePartsPerTrillion == 780);
   }
 }

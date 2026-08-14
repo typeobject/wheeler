@@ -330,9 +330,9 @@ Expected result: exact ideal amplitudes occupy basis states zero and three equal
 
 Source: [`LogicalMagicPlanning.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/LogicalMagicPlanning.w).
 
-Covers: Exact logical-qubit, layer, Clifford, T, measurement, T-depth, magic-state, factory-batch, and target-cycle dimensions. Runtime planning closes immutable logical layers against one named bounded factory and rejects insufficient state or cycle capacity before publishing a plan identity.
+Covers: Exact logical-qubit, layer, Clifford, T, measurement, T-depth, magic-state, factory-batch, target-cycle, code-distance, and failure-budget dimensions. Runtime planning closes immutable logical layers against one named bounded factory and one logical-capable target. It rejects insufficient state, cycles, qubits, logical capability, or failure budget before publishing a plan identity.
 
-Expected result: the four-layer fixture needs five magic states, two four-state factory batches, and 28 target cycles. T-depth remains `2`. It is not replaced by the five-gate T count.
+Expected result: the four-layer fixture needs five magic states, two four-state factory batches, 28 target cycles, code distance seven, and 780 parts per trillion of modeled failure under a budget of 800. T-depth remains `2`. It is not replaced by the five-gate T count. A static physical target without verified logical lowering rejects the plan.
 
 ### `VqeHydrogen.w`
 

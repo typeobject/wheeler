@@ -16,6 +16,7 @@ final class LogicalResourcePlanTest {
   void closesExactLayerCountsAgainstFactoryAndTargetCapacity() {
     LogicalResourcePlan.Factory factory = new LogicalResourcePlan.Factory(
         FACTORY_IDENTITY, 4, 12, 3, 100);
+    LogicalResourcePlan.LogicalTarget target = logicalTarget(3, 7, 28, 10);
     LogicalResourcePlan plan = LogicalResourcePlan.close(
         3,
         List.of(
@@ -24,7 +25,8 @@ final class LogicalResourcePlanTest {
             new LogicalResourcePlan.Layer(0, 2, 1),
             new LogicalResourcePlan.Layer(1, 0, 2)),
         factory,
-        28);
+        target,
+        800);
 
     assertEquals(3, plan.logicalQubits());
     assertEquals(4, plan.layers());
@@ -35,6 +37,10 @@ final class LogicalResourcePlanTest {
     assertEquals(5, plan.magicStates());
     assertEquals(2, plan.factoryBatches());
     assertEquals(28, plan.targetCycles());
+    assertEquals(7, plan.codeDistance());
+    assertEquals(800, plan.failureBudgetPartsPerTrillion());
+    assertEquals(780, plan.plannedFailurePartsPerTrillion());
+    assertEquals(target.identity(), plan.targetIdentity());
     assertNotEquals(FACTORY_IDENTITY, plan.identity());
   }
 
@@ -49,9 +55,33 @@ final class LogicalResourcePlanTest {
 
     assertThrows(
         QuantumExecutionException.class,
-        () -> LogicalResourcePlan.close(1, layers, smallFactory, 100));
+        () -> LogicalResourcePlan.close(
+            1, layers, smallFactory, logicalTarget(1, 3, 100, 1), 1_000));
     assertThrows(
         QuantumExecutionException.class,
-        () -> LogicalResourcePlan.close(1, layers, sufficientFactory, 3));
+        () -> LogicalResourcePlan.close(
+            1, layers, sufficientFactory, logicalTarget(1, 3, 3, 1), 1_000));
+    assertThrows(
+        QuantumExecutionException.class,
+        () -> LogicalResourcePlan.close(
+            1, layers, sufficientFactory, logicalTarget(1, 3, 100, 100), 100));
+
+    TargetDescriptor physical = new TargetDescriptor(
+        "physical", "static-only", java.util.Set.of(TargetCapability.STATIC_CIRCUIT), 8, 8);
+    assertThrows(
+        QuantumExecutionException.class,
+        () -> new LogicalResourcePlan.LogicalTarget(physical, 3, 100, 1));
+  }
+
+  private static LogicalResourcePlan.LogicalTarget logicalTarget(
+      int qubits, int distance, long cycles, long errorPerCycle) {
+    TargetDescriptor descriptor = new TargetDescriptor(
+        "logical-planner",
+        "mock-logical",
+        java.util.Set.of(TargetCapability.LOGICAL_QUBITS),
+        qubits,
+        1);
+    return new LogicalResourcePlan.LogicalTarget(
+        descriptor, distance, cycles, errorPerCycle);
   }
 }

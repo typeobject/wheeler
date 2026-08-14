@@ -18,7 +18,11 @@ public record LogicalResourcePlan(
     long magicStates,
     long factoryBatches,
     long targetCycles,
+    int codeDistance,
+    long failureBudgetPartsPerTrillion,
+    long plannedFailurePartsPerTrillion,
     String factoryIdentity,
+    String targetIdentity,
     String identity) {
   private static final int MAX_LAYERS = 65_536;
   private static final long MAX_OPERATIONS = 1_000_000_000L;
@@ -55,10 +59,38 @@ public record LogicalResourcePlan(
     }
   }
 
+  /** Logical-target capability with explicit code distance, cycle bound, and error model. */
+  public record LogicalTarget(
+      TargetDescriptor descriptor,
+      int codeDistance,
+      long maximumCycles,
+      long errorPerCyclePartsPerTrillion) {
+    public LogicalTarget {
+      Objects.requireNonNull(descriptor, "descriptor");
+      descriptor.require(TargetCapability.LOGICAL_QUBITS);
+      if (codeDistance < 3 || codeDistance % 2 == 0
+          || maximumCycles < 1
+          || errorPerCyclePartsPerTrillion < 0
+          || 1_000_000_000_000L < errorPerCyclePartsPerTrillion) {
+        throw new IllegalArgumentException("logical target plan is invalid");
+      }
+    }
+
+    public String identity() {
+      return digest("wheeler-logical-target-plan-1\n" + descriptor.identity() + '\n'
+          + codeDistance + '\n' + maximumCycles + '\n'
+          + errorPerCyclePartsPerTrillion + '\n');
+    }
+  }
+
   public LogicalResourcePlan {
     if (logicalQubits < 1 || layers < 1 || cliffordGates < 0 || tGates < 0
         || measurements < 0 || tDepth < 0 || magicStates != tGates
-        || factoryBatches < 0 || targetCycles < layers || !lowerHex(factoryIdentity)) {
+        || factoryBatches < 0 || targetCycles < layers || codeDistance < 3
+        || failureBudgetPartsPerTrillion < 0
+        || plannedFailurePartsPerTrillion < 0
+        || failureBudgetPartsPerTrillion < plannedFailurePartsPerTrillion
+        || !lowerHex(factoryIdentity) || !lowerHex(targetIdentity)) {
       throw new IllegalArgumentException("logical resource plan is invalid");
     }
     String expected = planIdentity(
@@ -71,7 +103,11 @@ public record LogicalResourcePlan(
         magicStates,
         factoryBatches,
         targetCycles,
-        factoryIdentity);
+        codeDistance,
+        failureBudgetPartsPerTrillion,
+        plannedFailurePartsPerTrillion,
+        factoryIdentity,
+        targetIdentity);
     if (!expected.equals(identity)) {
       throw new IllegalArgumentException("logical resource plan identity mismatch");
     }
@@ -82,10 +118,13 @@ public record LogicalResourcePlan(
       int logicalQubits,
       List<Layer> layers,
       Factory factory,
-      long maximumTargetCycles) {
-    if (logicalQubits < 1 || logicalQubits > 1_000_000
+      LogicalTarget target,
+      long failureBudgetPartsPerTrillion) {
+    Objects.requireNonNull(target, "target");
+    if (logicalQubits < 1 || target.descriptor().maxQubits() < logicalQubits
         || layers.isEmpty() || MAX_LAYERS < layers.size()
-        || maximumTargetCycles < 1) {
+        || failureBudgetPartsPerTrillion < 0
+        || 1_000_000_000_000L < failureBudgetPartsPerTrillion) {
       throw new IllegalArgumentException("logical planning bounds are invalid");
     }
     Objects.requireNonNull(factory, "factory");
@@ -109,9 +148,16 @@ public record LogicalResourcePlan(
     }
     long cycles = Math.addExact(
         closedLayers.size(), Math.multiplyExact(batches, factory.cyclesPerBatch()));
-    if (maximumTargetCycles < cycles) {
+    if (target.maximumCycles() < cycles) {
       throw new QuantumExecutionException("Logical plan exceeds target-cycle capacity");
     }
+    long plannedFailure = Math.addExact(
+        Math.multiplyExact(cycles, target.errorPerCyclePartsPerTrillion()),
+        Math.multiplyExact(t, factory.outputErrorPartsPerTrillion()));
+    if (failureBudgetPartsPerTrillion < plannedFailure) {
+      throw new QuantumExecutionException("Logical plan exceeds its failure budget");
+    }
+    String targetIdentity = target.identity();
     String identity = planIdentity(
         logicalQubits,
         closedLayers.size(),
@@ -122,7 +168,11 @@ public record LogicalResourcePlan(
         t,
         batches,
         cycles,
-        factory.identity());
+        target.codeDistance(),
+        failureBudgetPartsPerTrillion,
+        plannedFailure,
+        factory.identity(),
+        targetIdentity);
     return new LogicalResourcePlan(
         logicalQubits,
         closedLayers.size(),
@@ -133,7 +183,11 @@ public record LogicalResourcePlan(
         t,
         batches,
         cycles,
+        target.codeDistance(),
+        failureBudgetPartsPerTrillion,
+        plannedFailure,
         factory.identity(),
+        targetIdentity,
         identity);
   }
 
@@ -147,11 +201,19 @@ public record LogicalResourcePlan(
       long magicStates,
       long batches,
       long cycles,
-      String factoryIdentity) {
-    String canonical = "wheeler-logical-resource-plan-1\n"
+      int codeDistance,
+      long failureBudget,
+      long plannedFailure,
+      String factoryIdentity,
+      String targetIdentity) {
+    return digest("wheeler-logical-resource-plan-1\n"
         + logicalQubits + '\n' + layers + '\n' + clifford + '\n' + t + '\n'
         + measurements + '\n' + tDepth + '\n' + magicStates + '\n' + batches + '\n'
-        + cycles + '\n' + factoryIdentity + '\n';
+        + cycles + '\n' + codeDistance + '\n' + failureBudget + '\n' + plannedFailure + '\n'
+        + factoryIdentity + '\n' + targetIdentity + '\n');
+  }
+
+  private static String digest(String canonical) {
     try {
       return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(
           canonical.getBytes(StandardCharsets.US_ASCII)));
