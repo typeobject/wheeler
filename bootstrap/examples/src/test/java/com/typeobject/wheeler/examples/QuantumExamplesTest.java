@@ -213,6 +213,18 @@ class QuantumExamplesTest {
             Map.of(
                 "measured", 0L,
                 "shiftedApplications", 2L,
-                "exactGradientMilli", -1_000L)));
+                "exactGradientMilli", -1_000L)),
+        Arguments.of(
+            "workflows/CalibrationCompiler.w",
+            Map.of(
+                "requiredEpoch", 7L,
+                "measuredEpoch", 7L,
+                "staleMeasuredEpoch", 6L,
+                "requestedGateKinds", 2L,
+                "samplesPerGate", 128L,
+                "compiled", 1L,
+                "acceptedOlderEpoch", 0L,
+                "durationCycles", 7L,
+                "unionErrorBound", 40L)));
   }
 }

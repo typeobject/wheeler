@@ -382,6 +382,14 @@ Covers: An ordered positive and negative parameter pair, exact expectation reduc
 
 Expected result: shifts around pi over two yield expectations `-1` and `1` and therefore derivative `-1`. Reversing completion arrival does not change canonical angle order or the reduced gradient.
 
+### `CalibrationCompiler.w`
+
+Source: [`CalibrationCompiler.w`](../../wheeler-examples/src/main/wheeler/quantum/workflows/CalibrationCompiler.w).
+
+Covers: One exact calibration epoch, two requested semantic gate kinds, bounded samples, deterministic duration, an additive error upper bound, and a committed plan. The runtime compiler binds the source artifact, circuit, immutable target descriptor, request, provider result, and stale-epoch policy into the plan identity.
+
+Expected result: epoch seven admits H and phase metrics over 128 samples each. The H, phase, H circuit costs seven target cycles and has a 40-part-per-trillion union error bound. Epoch six rejects under the default policy and is admitted only by an explicit one-epoch stale policy.
+
 ### `QuantumOptimizer.w`
 
 Source: [`QuantumOptimizer.w`](../../wheeler-examples/src/main/wheeler/quantum/QuantumOptimizer.w).

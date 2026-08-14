@@ -250,7 +250,7 @@ The test suite stops and restores the run in queued and running states, then cov
 
 ### Calibration-aware circuit compiler
 
-`CalibrationCompiler.w` compiles a semantic circuit against an immutable target descriptor and calibration epoch, submits bounded calibration experiments, and rejects stale results unless policy explicitly accepts them. Provider data remains bounded target input. Credentials and provider objects never enter compiler state.
+`CalibrationCompiler.w` records an exact calibration epoch, bounded gate set and samples, derived cycle count, additive error upper bound, and committed plan. `CalibrationAwareCompiler` submits the matching request through a narrow provider boundary and binds the semantic artifact, circuit, immutable target descriptor, request, result, and stale policy into one plan identity. Missing capability, gate, sample, target, request, or epoch evidence rejects before plan publication. Credentials and provider objects never enter compiler state.
 
 ### Adaptive experiment
 
@@ -408,7 +408,7 @@ Portfolio work follows these rules:
 - [x] Recoverable iterative optimizer lifecycle matrix.
   - [x] `QuantumOptimizer.w` covers waiting snapshot encoding, decode and provider-job recovery, completion and commit, replay, retry under new lineage, and cancellation after immediate completion with late-result quarantine on `StateVectorTarget`.
   - [x] `RecoverableOptimizerCampaign` bounds campaigns and batches at 64, requires angle, probability, or scalar parameter kinds to match each submission binding, and persists every logical transition through one atomic snapshot adapter. Ordered member identities restore queued and running work without resubmission. Failed, cancelled, and unknown provider states are terminal and explicit. Result application checks job and submission identity, and an applied submission identity cannot update the objective again. The two-iteration fixture restores from both active states, applies two first-batch results, suppresses a repeated second-batch result, and exercises failure, cancellation, missing-provider recovery, and changed-plan rejection.
-- [ ] Calibration-aware compiler.
+- [x] Calibration-aware compiler. `CalibrationCompiler.w` executes the exact-epoch resource fixture. `CalibrationAwareCompiler` requests one to 64 direct semantic gates with at most 100,000 samples each, validates complete sorted gate metrics, and derives exact duration plus a parts-per-trillion union error bound. Exact and accepted-stale epochs produce distinct identities. Older, future, wrong-target, wrong-request, incomplete, and capability-denied inputs publish no plan.
 - [ ] Adaptive replay decision tree.
 - [ ] Compensation fixture.
 - [ ] Long-running campaign and cleanup.
