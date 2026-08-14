@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
+import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.ValueType;
@@ -977,12 +978,17 @@ class WheelerCompilerTest {
   }
 
   @Test
-  void rejectsCheckedArithmeticFromTheCoherentSubset() {
-    CompilerException exception = assertThrows(
-        CompilerException.class,
-        () -> new WheelerCompiler().compile(COUNTER.replace("rev void increment", "coherent rev void increment")));
+  void coherentSubsetAdmitsFiniteModularAdditionAndItsGeneratedInverse() {
+    Program program = new WheelerCompiler().compile(
+        COUNTER.replace("rev void increment", "coherent rev void increment"));
+    FunctionBody increment = program.functions().stream()
+        .filter(function -> function.name().equals("increment"))
+        .findFirst()
+        .orElseThrow();
 
-    assertTrue(exception.getMessage().contains("coherent function contains ADD_CONST"));
+    assertTrue(increment.coherent());
+    assertEquals(Opcode.ADD_CONST, increment.forward().getFirst().opcode());
+    assertEquals(Opcode.SUB_CONST, increment.inverse().getFirst().opcode());
   }
 
 }

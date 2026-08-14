@@ -316,6 +316,10 @@ final class StateVectorEngine {
       Opcode opcode = instruction.opcode();
       if (opcode == Opcode.XOR_CONST) {
         value = (value ^ instruction.operands().get(1)) & mask;
+      } else if (opcode == Opcode.ADD_CONST) {
+        value = (value + instruction.operands().get(1)) & mask;
+      } else if (opcode == Opcode.SUB_CONST) {
+        value = (value - instruction.operands().get(1)) & mask;
       } else if (opcode == Opcode.CALL || opcode == Opcode.UNCALL) {
         FunctionBody target = program.function(Math.toIntExact(instruction.operands().getFirst()));
         value = applyPermutation(program, target, opcode == Opcode.UNCALL, Math.toIntExact(value), qubits);

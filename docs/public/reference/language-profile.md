@@ -493,19 +493,19 @@ Measurement creates a classical observation. It cannot be hidden inside a `pure`
 
 ## Coherent lifting
 
-The first coherent subset supports finite XOR permutations. One checked method may run over classical state and also be referenced from a quantum register:
+The coherent subset supports finite XOR and constant add/subtract permutations. The `qreg` width fixes the modulus for a lifted add or subtract. Ordinary classical execution remains checked signed arithmetic and is not evidence about the finite coherent mapping.
 
 ```java
-coherent rev void flip() {
-  bit ^= 1;
+coherent rev void addThree() {
+  value += 3;
 }
 
 unitary void oracle() {
-  q.apply(flip);
+  q.apply(addThree);
 }
 ```
 
-The compiler rejects checked arithmetic, logged writes, measurement, I/O, and other nonunitary operations from this subset. Broader exact finite arithmetic will need explicit width rules.
+For a three-qubit `q`, the lifted operation maps basis `x` to `(x + 3) mod 8`. Its generated adjoint subtracts three under the same width. The verifier admits only no-op, XOR, constant add/subtract, coherent call/uncall, and return records. It rejects logged writes, measurement, I/O, data-dependent control, and every other operation before publication.
 
 ## Distinct meanings of reverse
 

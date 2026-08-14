@@ -73,7 +73,7 @@ The repository currently executes these bounded fixtures:
 - `LongMap.w`: region-owned fixed-capacity signed symbol map.
 - `modules/ModuleMain.w` plus `Arithmetic.w`, `Collections.w`, and `Results.w`: exact package source set with private helpers, public function/record/closed-variant/fixed-array/slice linking over scalar and nominal values, and an imported exhaustive match.
 - `Utf8Lexer.w` plus `lexer/Parser.w` and `lexer/Scanner.w`: manifest-bound scanner/parser modules over explicit UTF-8 input and bounded byte output.
-- `CoherentOracle.w`: classical and coherent XOR behavior.
+- `CoherentOracle.w`: finite modular addition and controlled marking over classical and coherent state.
 - `QFT.w`: unitary execution and generated adjoint.
 - `QFTProof.w`: executable inverse law.
 - `QuantumOptimizer.w`: repeated observations, classical acceptance, commit, and replay.
@@ -152,7 +152,7 @@ Acceptance requires deterministic shape, no leaked nodes after abort, exact reco
 
 `ArithmeticOracle.w` implements fixed-width modular add, compare, and controlled mark operations. The same functions run over classical values and lift to exact finite permutations. Exhaustive small-width tests compare every basis state and generated inverse.
 
-This fixture is the gate for broadening coherent eligibility beyond XOR. Checked signed arithmetic is never substituted for modular arithmetic.
+The implemented lift admission binds constant add/subtract to the explicit `qreg` width and therefore to one finite modulus. Ordinary classical execution remains checked signed arithmetic. It cannot stand in for exhaustive coherent-basis evidence.
 
 ### Reversible lookup oracle
 
@@ -384,9 +384,7 @@ Portfolio work follows these rules:
 
 ### Quantum algorithms
 
-- [ ] Width-explicit arithmetic and lookup oracles.
-  - [x] `WidthExplicitOracle.w` combines explicit 32-bit rotate-right semantics, a low-byte mask, and a four-row immutable classical lookup. Checked indexing and exact words make host-width drift visible.
-  - [ ] Add finite modular add and compare, coherent controlled marking, clean table workspace and ancillas, exhaustive basis comparison, and generated inverse checks.
+- [x] `WidthExplicitOracle.w` combines explicit 32-bit rotate-right semantics, a low-byte mask, and a four-row immutable classical lookup with checked indexing. `CoherentOracle.w` adds three modulo an explicit three-qubit width, marks low-bit comparison state three by controlled phase, and carries a generated adjoint. The ideal engine exhausts all eight basis inputs against an independent permutation-and-phase oracle and applies the adjoint to recover every exact input amplitude. The oracle uses no table workspace or ancilla to leave dirty.
 - [x] `GroverSearch.w` composes an exact two-qubit lookup phase oracle for basis state three with diffusion and needs no workspace ancilla. The ideal engine checks the complete complex amplitude vector, a 256-shot seeded run checks the declared success threshold, and the generated adjoint is certified. `QuantumWalk.w` composes two Hadamard-coin conditional shifts on a two-node cycle, checks both exact complex distributions, applies both generated adjoints, restores basis zero, and round-trips through the canonical artifact.
 - [x] `StaticPhaseEstimation.w` resolves the exact two-bit phase three quarters through two controlled powers and a two-bit inverse transform. The ideal engine checks the complete complex amplitude vector and generated-adjoint restoration. `AdaptivePhaseEstimation.w` runs two target-resident rounds, records bounded result slots `(true, false)`, feeds each result into a conditional phase or eigenstate correction, resets both measured ancillas, converges to basis zero, and leaves only final host observation. Canonical artifacts, dynamic jobs, and exact outcomes are checked.
 - [ ] Amplitude estimation.

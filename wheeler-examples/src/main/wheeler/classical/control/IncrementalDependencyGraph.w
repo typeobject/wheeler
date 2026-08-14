@@ -10,6 +10,7 @@ classical class IncrementalDependencyGraph {
     case Accepted();
     case Cycle(long from, long to);
   }
+
   const long NODE_COUNT = 4;
   const long EDGE_CELLS = 16;
   const long QUEUE_CELLS = 16;
@@ -35,11 +36,7 @@ classical class IncrementalDependencyGraph {
     return false;
   }
 
-  QueueCursor append(
-    borrow mut words values,
-    QueueCursor cursor,
-    long value
-  ) {
+  QueueCursor append(borrow mut words values, QueueCursor cursor, long value) {
     Push result = push(values, cursor, value);
     match (result) {
       case Push.Full() {

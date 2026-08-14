@@ -41,7 +41,13 @@ import java.util.Set;
 /** Structural and semantic verification for decoded Wheeler programs. */
 public final class BytecodeVerifier {
   private static final Set<Opcode> COHERENT_OPCODES = Set.of(
-      Opcode.NOP, Opcode.XOR_CONST, Opcode.CALL, Opcode.UNCALL, Opcode.RETURN);
+      Opcode.NOP,
+      Opcode.ADD_CONST,
+      Opcode.SUB_CONST,
+      Opcode.XOR_CONST,
+      Opcode.CALL,
+      Opcode.UNCALL,
+      Opcode.RETURN);
 
   private BytecodeVerifier() {}
 

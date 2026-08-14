@@ -50,7 +50,7 @@ Wheeler currently includes a reversible VM, backend-neutral quantum regions, an 
 Executable examples:
 
 - [`Counter.w`](wheeler-examples/src/main/wheeler/classical/control/Counter.w): reversible classical state.
-- [`CoherentOracle.w`](wheeler-examples/src/main/wheeler/quantum/CoherentOracle.w): one function over classical and coherent data.
+- [`CoherentOracle.w`](wheeler-examples/src/main/wheeler/quantum/CoherentOracle.w): width-bounded modular addition and controlled marking over classical and coherent data.
 - [`QFT.w`](wheeler-examples/src/main/wheeler/quantum/QFT.w): the [quantum Fourier transform](https://en.wikipedia.org/wiki/Quantum_Fourier_transform) and its generated adjoint.
 
 ## License

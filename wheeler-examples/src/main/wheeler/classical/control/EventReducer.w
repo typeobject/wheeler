@@ -44,20 +44,9 @@ classical class EventReducer {
   }
 
   /// Restores event identities and the reduced value from one exact checkpoint.
-  void recoverCheckpoint(
-    borrow mut bytes checkpoint,
-    borrow mut longmap recovered
-  ) {
-    put(
-      recovered,
-      checkpoint[0],
-      eventIdentity(checkpoint[0], checkpoint[1])
-    );
-    put(
-      recovered,
-      checkpoint[2],
-      eventIdentity(checkpoint[2], checkpoint[3])
-    );
+  void recoverCheckpoint(borrow mut bytes checkpoint, borrow mut longmap recovered) {
+    put(recovered, checkpoint[0], eventIdentity(checkpoint[0], checkpoint[1]));
+    put(recovered, checkpoint[2], eventIdentity(checkpoint[2], checkpoint[3]));
     checkpointSequence = checkpoint[2];
     checkpointValue = checkpoint[1] + checkpoint[3];
     resumedValue = checkpointValue;

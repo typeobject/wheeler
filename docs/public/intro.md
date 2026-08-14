@@ -99,35 +99,36 @@ Wheeler's `coherent rev` model reduces that duplication:
 
 ```java
 hybrid class CoherentOracle {
-  state long bit = 0;
+  state long value = 0;
   state long measured = 0;
-  qreg q = new qreg(1);
+  qreg q = new qreg(3);
 
-  coherent rev void flip() {
-    bit ^= 1;
+  coherent rev void addThree() {
+    value += 3;
   }
 
   unitary void oracle() {
-    q.apply(flip);
+    q.apply(addThree);
+    CPhase(q[0], q[1], 3.141592653589793);
   }
 
   entry void main() {
-    flip();
-    assert(bit == 1);
-    reverse flip();
-    assert(bit == 0);
+    addThree();
+    assert(value == 3);
+    reverse addThree();
+    assert(value == 0);
 
-    prepare(q, 0);
+    prepare(q, 5);
     oracle();
     measured = measure(q);
-    assert(measured == 1);
+    assert(measured == 0);
   }
 }
 ```
 
-The same exact finite permutation runs over classical state and can also run coherently. The current implementation starts with simple permutations such as XOR. Wider modular arithmetic, table lookup, reversible comparison, and richer oracle tools are planned.
+The same finite permutation runs over classical state and coherently modulo the explicit register width. The controlled phase marks one comparison state without allocating table workspace or ancillas. Exhaustive ideal-target tests compare every basis amplitude and apply the generated adjoint to recover each input.
 
-One source definition can be both the testable classical reference and the quantum operation. Later, it can also carry proof duties. That gives the two execution paths less room to disagree.
+One source definition is both the testable classical reference and the quantum operation. Its inverse and proof duties remain attached to that definition, leaving the two execution paths less room to disagree.
 
 ### 2. Generate inverses instead of maintaining them by hand
 
@@ -237,7 +238,7 @@ The repository includes:
 - generated inverses for the supported reversible subset.
 - one canonical `.wbc` format, strict decoding, semantic verification, disassembly, and exact VM rewind.
 - finite proof rules for generated inverses, generated adjoints, circuit rewrites, and static step bounds.
-- provider-neutral quantum regions, generated circuit adjoints, and coherent XOR lifting.
+- provider-neutral quantum regions, generated circuit adjoints, and coherent XOR and width-modular constant arithmetic.
 - an asynchronous ideal state-vector target and an application-supplied OpenQASM 3 execution interface.
 - durable hybrid events, recovery, replay, retry, cancellation, quarantine, and transaction phases.
 - canonical package, workspace, lock, build-plan, vendor, and `.wpk` archive formats.

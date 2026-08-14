@@ -1,36 +1,40 @@
-//! The same finite XOR permutation executes classically and coherently.
+//! The same finite modular permutation executes classically and coherently.
 hybrid class CoherentOracle {
-  state long bit = 0;
+  state long value = 0;
   state long measured = 0;
-  qreg q = new qreg(1);
+  qreg q = new qreg(3);
 
-  /// Applies the reversible `flip` state transition.
+  /// Adds three to the finite coherent basis.
   ///
-  /// - Inverse: Applies the compiler-generated inverse transition.
-  /// - Coherent: Preserves amplitudes while permuting the declared basis state.
-  coherent rev void flip() {
-    bit ^= 1;
+  /// - Inverse: Subtracts three modulo the explicit coherent register width.
+  /// - Coherent: Preserves amplitudes while permuting all eight basis states.
+  coherent rev void addThree() {
+    value += 3;
   }
 
-  /// Applies the `oracle` unitary.
+  /// Applies modular addition and marks low-bit comparison state three.
   ///
-  /// - Adjoint: Applies the compiler-generated reversed gate sequence.
+  /// - Adjoint: Removes the comparison phase and modular addition exactly.
   unitary void oracle() {
-    q.apply(flip);
+    q.apply(addThree);
+    CPhase(q[0], q[1], 3.141592653589793);
   }
 
-  /// Runs the bounded `CoherentOracle` fixture.
-  ///
-  /// - Effects: Mutates declared state and submits one bounded task to the explicit quantum target.
-  entry void main() {
-    flip();
-    assert(bit == 1);
-    reverse flip();
-    assert(bit == 0);
+  /// Checks the generated coherent oracle adjoint.
+  theorem oracleAdjoint proves adjoint(oracle);
 
-    prepare(q, 0);
+  /// Runs the bounded coherent finite-oracle fixture.
+  ///
+  /// - Effects: Mutates declared state and submits one bounded ideal-target task.
+  entry void main() {
+    addThree();
+    assert(value == 3);
+    reverse addThree();
+    assert(value == 0);
+
+    prepare(q, 5);
     oracle();
     measured = measure(q);
-    assert(measured == 1);
+    assert(measured == 0);
   }
 }

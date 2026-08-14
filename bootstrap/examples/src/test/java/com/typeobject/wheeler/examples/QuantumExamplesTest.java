@@ -137,7 +137,7 @@ class QuantumExamplesTest {
     return Stream.of(
         Arguments.of("QFT.w", Map.of("measured", 5L)),
         Arguments.of("QFTProof.w", Map.of("measured", 2L)),
-        Arguments.of("CoherentOracle.w", Map.of("measured", 1L)),
+        Arguments.of("CoherentOracle.w", Map.of("value", 0L, "measured", 0L)),
         Arguments.of("GroverSearch.w", Map.of("measured", 3L)),
         Arguments.of("QuantumOptimizer.w", Map.of("sample", 1L, "bestCost", 1L, "accepted", 1L)),
         Arguments.of("QuantumNeuralNetwork.w", Map.of("activation", 1L, "measured", 0L)),

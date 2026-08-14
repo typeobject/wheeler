@@ -264,9 +264,9 @@ Expected result: `first = 4`, `second = 9`, `finalHead = 2`, `finalTail = 4`, `e
 
 Source: [`CoherentOracle.w`](../../wheeler-examples/src/main/wheeler/quantum/CoherentOracle.w).
 
-Covers: One XOR function over classical and coherent data.
+Covers: Add-three modulo an explicit three-qubit width, classical forward and inverse execution, coherent lifting, controlled-phase marking of low-bit comparison state three, no workspace ancilla, exhaustive comparison of all eight basis amplitudes, and generated-adjoint cleanup.
 
-Expected result: `bit = 0`, `measured = 1`.
+Expected result: classical `value` returns to `0`. Coherent basis `5` maps to basis `0`, so `measured = 0`. Every exhaustive forward-adjoint pair restores its exact input amplitude.
 
 ### `GroverSearch.w`
 

@@ -430,6 +430,43 @@ class StateVectorTargetTest {
   }
 
   @Test
+  void widthExplicitCoherentAddAndMarkExhaustEveryBasisAndCleanWorkspace() {
+    FunctionBody addThree = new FunctionBody(
+        1,
+        "modularAddThree",
+        true,
+        0,
+        List.of(),
+        null,
+        List.of(Instruction.of(Opcode.ADD_CONST, 0, 3), Instruction.of(Opcode.RETURN)),
+        List.of(Instruction.of(Opcode.SUB_CONST, 0, 3), Instruction.of(Opcode.RETURN)));
+    QuantumRegister register = new QuantumRegister(0, "oracle", 3);
+    QuantumCircuit circuit = new QuantumCircuit(
+        0,
+        "addAndMark",
+        0,
+        List.of(
+            new LiftedCall(1, false),
+            new GateOperation(Gate.CPHASE, List.of(0, 1), Math.PI)));
+    Program program = program(register, circuit, List.of(addThree));
+
+    for (int basis = 0; basis < 8; basis++) {
+      StateVectorEngine simulator = new StateVectorEngine(37 + basis);
+      simulator.prepare(register, basis);
+      simulator.apply(program, circuit, false);
+      double[] expected = new double[16];
+      int target = (basis + 3) & 7;
+      expected[target * 2] = (target & 3) == 3 ? -1 : 1;
+      assertArrayEquals(expected, simulator.amplitudes(register), 1e-12);
+
+      simulator.apply(program, circuit, true);
+      expected = new double[16];
+      expected[basis * 2] = 1;
+      assertArrayEquals(expected, simulator.amplitudes(register), 1e-12);
+    }
+  }
+
+  @Test
   void symbolicParameterBindingSurvivesBytecodeAndChangesBatchResult() {
     QuantumRegister register = new QuantumRegister(0, "q", 1);
     QuantumCircuit circuit = new QuantumCircuit(

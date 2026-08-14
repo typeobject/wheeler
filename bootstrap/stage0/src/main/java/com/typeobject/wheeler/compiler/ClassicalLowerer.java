@@ -334,7 +334,13 @@ final class ClassicalLowerer {
   private static void verifyCoherent(
       SourceModel.Function function, List<Instruction> forward) {
     Set<Opcode> coherent = Set.of(
-        Opcode.NOP, Opcode.XOR_CONST, Opcode.CALL, Opcode.UNCALL, Opcode.RETURN);
+        Opcode.NOP,
+        Opcode.ADD_CONST,
+        Opcode.SUB_CONST,
+        Opcode.XOR_CONST,
+        Opcode.CALL,
+        Opcode.UNCALL,
+        Opcode.RETURN);
     for (Instruction instruction : forward) {
       if (!coherent.contains(instruction.opcode())) {
         throw new CompilerException(
