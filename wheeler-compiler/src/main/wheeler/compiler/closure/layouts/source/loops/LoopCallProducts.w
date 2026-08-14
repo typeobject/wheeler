@@ -30,6 +30,7 @@ classical class LoopCallProducts {
   private const long TARGET_PARAMETER_ROWS = 16384;
   private const long STATEMENT_COUNT_LIMIT = 4096;
   private const long U64 = ENCODING_WIDTH_U64;
+  private const long VALUE_COUNT_LIMIT = 1024;
 
   /// Reports one complete loop call, local-type, and relocation extent.
   public record LoopCallPlan(
@@ -88,13 +89,33 @@ classical class LoopCallProducts {
     long firstArgument,
     long arity,
     borrow mut words argumentRows,
+    borrow mut words argumentValueProducts,
+    borrow mut words valuePhysicalStarts,
     long firstParameter,
     borrow mut words targetParameterTypes,
     long localBase
   ) {
     long argument = 0;
     while (argument < arity) limit MAX_ARGUMENTS_PER_CALL {
-      long source = argumentRows[firstArgument + argument];
+      long valueProduct = argumentValueProducts[firstArgument + argument];
+      long valueOffset = argumentValueProducts[ARGUMENT_TYPE_ROW + firstArgument + argument];
+      if (valueProduct < 0) {
+        return false;
+      }
+
+      if (VALUE_COUNT_LIMIT - 1 < valueProduct) {
+        return false;
+      }
+
+      if (valueOffset < 0) {
+        return false;
+      }
+
+      if (255 < valueOffset) {
+        return false;
+      }
+
+      long source = valuePhysicalStarts[valueProduct] + valueOffset;
       long sourceType = argumentRows[ARGUMENT_TYPE_ROW + firstArgument + argument];
       if (source < 0) {
         return false;
@@ -124,6 +145,8 @@ classical class LoopCallProducts {
     long firstArgument,
     long arity,
     borrow mut words argumentRows,
+    borrow mut words argumentValueProducts,
+    borrow mut words valuePhysicalStarts,
     long localBase
   ) {
     long argument = 0;
@@ -135,10 +158,12 @@ classical class LoopCallProducts {
         INSTRUCTION_FORM_BINARY
       );
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + argument, U64);
+      long valueProduct = argumentValueProducts[firstArgument + argument];
+      long valueOffset = argumentValueProducts[ARGUMENT_TYPE_ROW + firstArgument + argument];
       cursor = writeUnsignedLittleEndian(
         output,
         cursor,
-        argumentRows[firstArgument + argument],
+        valuePhysicalStarts[valueProduct] + valueOffset,
         U64
       );
       argument += 1;
@@ -169,7 +194,9 @@ classical class LoopCallProducts {
     long target,
     long firstArgument,
     long arity,
-    borrow mut words argumentRows
+    borrow mut words argumentRows,
+    borrow mut words argumentValueProducts,
+    borrow mut words valuePhysicalStarts
   ) {
     if (arity == 0) {
       if (kind == CALL_VOID) {
@@ -177,7 +204,16 @@ classical class LoopCallProducts {
         return writeUnsignedLittleEndian(output, cursor, target, U64);
       }
     } else {
-      cursor = writeArguments(output, cursor, firstArgument, arity, argumentRows, localBase);
+      cursor = writeArguments(
+        output,
+        cursor,
+        firstArgument,
+        arity,
+        argumentRows,
+        argumentValueProducts,
+        valuePhysicalStarts,
+        localBase
+      );
     }
 
     if (kind == CALL_VOID) {
@@ -259,6 +295,8 @@ classical class LoopCallProducts {
     borrow mut words callStatements,
     borrow mut words callInstructionStarts,
     borrow mut words argumentRows,
+    borrow mut words argumentValueProducts,
+    borrow mut words valuePhysicalStarts,
     long targetCount,
     borrow byteview targetIdentities,
     borrow mut words targetParameterStarts,
@@ -280,6 +318,8 @@ classical class LoopCallProducts {
     assert(bufferLength(callStatements) == CALL_COUNT_LIMIT);
     assert(bufferLength(callInstructionStarts) == CALL_COUNT_LIMIT);
     assert(bufferLength(argumentRows) == ARGUMENT_ROWS);
+    assert(bufferLength(argumentValueProducts) == ARGUMENT_ROWS);
+    assert(bufferLength(valuePhysicalStarts) == VALUE_COUNT_LIMIT);
     assert(-1 < targetCount);
     assert(targetCount < TARGET_COUNT_LIMIT + 1);
     assert(bufferLength(targetIdentities) == TARGET_IDENTITY_BYTES);
@@ -386,6 +426,8 @@ classical class LoopCallProducts {
             firstArgument,
             arity,
             argumentRows,
+            argumentValueProducts,
+            valuePhysicalStarts,
             firstParameter,
             targetParameterTypes,
             localBase
@@ -461,7 +503,9 @@ classical class LoopCallProducts {
         emittedTarget,
         emittedFirstArgument,
         emittedArity,
-        argumentRows
+        argumentRows,
+        argumentValueProducts,
+        valuePhysicalStarts
       );
       long emittedLocalWidth = callLocalCount(emittedKind, emittedArity);
       set(stagedLocalWidths, call, emittedLocalWidth);

@@ -44,7 +44,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
 
   @Test
   void emitsTypedArgumentCallsAndRelocatesTheCallInstruction() throws Exception {
-    VirtualMachine machine = new VirtualMachine(argumentProgram(false), new byte[0], 262_144);
+    VirtualMachine machine = new VirtualMachine(argumentProgram(false, false), new byte[0], 262_144);
 
     machine.run();
 
@@ -68,7 +68,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
 
   @Test
   void rejectsArgumentTypeMismatchBeforePublication() throws Exception {
-    VirtualMachine machine = new VirtualMachine(argumentProgram(true), new byte[0], 262_144);
+    VirtualMachine machine = new VirtualMachine(argumentProgram(true, false), new byte[0], 262_144);
 
     machine.run();
 
@@ -77,6 +77,21 @@ final class NativeCompilerLoopCallProductsExampleTest {
     assertEquals(0, machine.global("localTypeCount"));
     assertEquals(3, machine.global("firstStatementWidth"));
     assertEquals(4, machine.global("secondStatementWidth"));
+    assertEquals(91, machine.global("firstInstruction"));
+    assertEquals(0xee, machine.global("firstIdentityByte"));
+    assertEquals(0xff, machine.global("firstOutputByte"));
+  }
+
+  @Test
+  void rejectsUnknownArgumentValueProductsBeforePublication() throws Exception {
+    VirtualMachine machine = new VirtualMachine(argumentProgram(false, true), new byte[0], 262_144);
+
+    machine.run();
+
+    assertEquals(0, machine.global("valid"));
+    assertEquals(0, machine.global("instructionCount"));
+    assertEquals(0, machine.global("localTypeCount"));
+    assertEquals(3, machine.global("firstStatementWidth"));
     assertEquals(91, machine.global("firstInstruction"));
     assertEquals(0xee, machine.global("firstIdentityByte"));
     assertEquals(0xff, machine.global("firstOutputByte"));
@@ -167,13 +182,15 @@ final class NativeCompilerLoopCallProductsExampleTest {
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
             assert(bufferLength(input) == 0);
-            region products = new region(/* bytes= */ 487424, /* allocations= */ 16);
+            region products = new region(/* bytes= */ 524288, /* allocations= */ 18);
             words calls = allocate(products, /* length= */ 1024);
             words callArgumentStarts = allocate(products, /* length= */ 256);
             words callArgumentCounts = allocate(products, /* length= */ 256);
             words callStatements = allocate(products, /* length= */ 256);
             words callInstructionStarts = allocate(products, /* length= */ 256);
             words arguments = allocate(products, /* length= */ 3584);
+            words argumentValues = allocate(products, /* length= */ 3584);
+            words valueStarts = allocate(products, /* length= */ 1024);
             bytes identities = allocateBytes(products, /* length= */ 131072);
             words targetParameterStarts = allocate(products, /* length= */ 4096);
             words targetParameterCounts = allocate(products, /* length= */ 4096);
@@ -213,6 +230,8 @@ final class NativeCompilerLoopCallProductsExampleTest {
               callStatements,
               callInstructionStarts,
               arguments,
+              argumentValues,
+              valueStarts,
               /* targetCount= */ 5,
               identities,
               targetParameterStarts,
@@ -262,6 +281,8 @@ final class NativeCompilerLoopCallProductsExampleTest {
             drop(targetParameterCounts);
             drop(targetParameterStarts);
             drop(identities);
+            drop(valueStarts);
+            drop(argumentValues);
             drop(arguments);
             drop(callInstructionStarts);
             drop(callStatements);
@@ -278,7 +299,9 @@ final class NativeCompilerLoopCallProductsExampleTest {
   }
 
 
-  private static Program argumentProgram(boolean invalidType) throws Exception {
+  private static Program argumentProgram(
+      boolean invalidType,
+      boolean invalidValueProduct) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.loop_call_products"));
@@ -309,13 +332,15 @@ final class NativeCompilerLoopCallProductsExampleTest {
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
             assert(bufferLength(input) == 0);
-            region products = new region(/* bytes= */ 487424, /* allocations= */ 16);
+            region products = new region(/* bytes= */ 524288, /* allocations= */ 18);
             words calls = allocate(products, /* length= */ 1024);
             words callArgumentStarts = allocate(products, /* length= */ 256);
             words callArgumentCounts = allocate(products, /* length= */ 256);
             words callStatements = allocate(products, /* length= */ 256);
             words callInstructionStarts = allocate(products, /* length= */ 256);
             words arguments = allocate(products, /* length= */ 3584);
+            words argumentValues = allocate(products, /* length= */ 3584);
+            words valueStarts = allocate(products, /* length= */ 1024);
             bytes identities = allocateBytes(products, /* length= */ 131072);
             words targetParameterStarts = allocate(products, /* length= */ 4096);
             words targetParameterCounts = allocate(products, /* length= */ 4096);
@@ -346,10 +371,16 @@ final class NativeCompilerLoopCallProductsExampleTest {
             set(callArgumentCounts, 0, 1);
             set(callArgumentStarts, 1, 1);
             set(callArgumentCounts, 1, 1);
-            set(arguments, 0, 3);
+            set(arguments, 0, 99);
             set(arguments, 1792, 1);
-            set(arguments, 1, 5);
+            set(arguments, 1, 99);
             set(arguments, 1793, ARGUMENT_TYPE);
+            set(argumentValues, 0, 0);
+            set(argumentValues, 1792, 0);
+            set(argumentValues, 1, VALUE_PRODUCT);
+            set(argumentValues, 1793, 0);
+            set(valueStarts, 0, 3);
+            set(valueStarts, 1, 5);
             set(targetParameterStarts, 3, 0);
             set(targetParameterCounts, 3, 1);
             set(targetParameterTypes, 0, 1);
@@ -369,6 +400,8 @@ final class NativeCompilerLoopCallProductsExampleTest {
               callStatements,
               callInstructionStarts,
               arguments,
+              argumentValues,
+              valueStarts,
               /* targetCount= */ 5,
               identities,
               targetParameterStarts,
@@ -412,6 +445,8 @@ final class NativeCompilerLoopCallProductsExampleTest {
             drop(targetParameterCounts);
             drop(targetParameterStarts);
             drop(identities);
+            drop(valueStarts);
+            drop(argumentValues);
             drop(arguments);
             drop(callInstructionStarts);
             drop(callStatements);
@@ -421,7 +456,8 @@ final class NativeCompilerLoopCallProductsExampleTest {
             drop(products);
           }
         }
-        """.replace("ARGUMENT_TYPE", invalidType ? "1" : "2"));
+        """.replace("ARGUMENT_TYPE", invalidType ? "1" : "2")
+            .replace("VALUE_PRODUCT", invalidValueProduct ? "1024" : "1"));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.loop_argument_call_products");
   }
