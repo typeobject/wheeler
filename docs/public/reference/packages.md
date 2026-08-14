@@ -21,6 +21,8 @@ Exact fetch checks enabled authoritative repositories in policy order without me
 
 Exact fetch keeps a disposable verified package-object cache under the XDG artifact root. `wheeler-build-input-1` keys cached complete build outputs. Every hit is independently verified, one input admits one PREV, and divergent verified output enters deterministic quarantine rather than replacing accepted bytes. Bounded `cache gc` removes malformed or unreachable disposable objects. WIP-0023 owns repository, build-input, and PREV semantics. A path under `$HOME` is not provenance by itself.
 
+Canonical compilation ignores checkout location, source timestamp, default locale, default timezone, and module-map order. CI builds the complete artifact set with distinct JDK distributions, timezones, and worker counts, then compares every published byte. These checks cover the accepted source-package profile. They do not claim the unimplemented recipe, variant, native-toolchain, or mirror axes.
+
 ## Workspace manifest
 
 A workspace manifest names one profile and one or more package directories:

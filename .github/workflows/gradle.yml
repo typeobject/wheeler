@@ -21,9 +21,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distribution: [temurin, zulu]
+        include:
+          - distribution: temurin
+            workers: 2
+            timezone: UTC
+          - distribution: zulu
+            workers: 1
+            timezone: Pacific/Kiritimati
 
     runs-on: ubuntu-latest
+    env:
+      TZ: ${{ matrix.timezone }}
     permissions:
       contents: read
 
@@ -50,7 +58,7 @@ jobs:
     - name: Reproduce the alternate Java stage 0 from source
       run: |
         for attempt in 1 2 3; do
-          ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 \
+          ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers ${{ matrix.workers }} \
             :stage0:clean :stage0:build && exit 0
           rm -rf "$HOME/.gradle/wrapper/dists/gradle-9.6.1-bin"
           sleep 2
@@ -58,16 +66,16 @@ jobs:
         exit 1
 
     - name: Test the command adapter before other test workers
-      run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 :tools:check
+      run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers ${{ matrix.workers }} :tools:check
 
     - name: Build remaining modules and test the editor grammar
-      run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 build treeSitterTest -x :tools:check -x :examples:check
+      run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers ${{ matrix.workers }} build treeSitterTest -x :tools:check -x :examples:check
 
     - name: Build the complete canonical workspace
-      run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 -q :tools:wheeler --args='build . -o bootstrap-output'
+      run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers ${{ matrix.workers }} -q :tools:wheeler --args='build . -o bootstrap-output'
 
     - name: Manifest the verified artifact set
-      run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 -q :tools:wheeler --args='manifest-artifacts bootstrap-output'
+      run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers ${{ matrix.workers }} -q :tools:wheeler --args='manifest-artifacts bootstrap-output'
 
     - name: Upload canonical bootstrap outputs
       uses: actions/upload-artifact@v4
