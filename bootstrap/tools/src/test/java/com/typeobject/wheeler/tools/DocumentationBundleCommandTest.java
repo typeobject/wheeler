@@ -23,6 +23,34 @@ class DocumentationBundleCommandTest {
   Path temporary;
 
   @Test
+  void publicAndInternalDocumentationRootsRemainSeparate() throws Exception {
+    Path publicManuals = temporary.resolve("public-manuals");
+    Path internalManuals = temporary.resolve("internal-manuals");
+    Path sources = temporary.resolve("split-sources");
+    Path output = temporary.resolve("public-only-bundle");
+    Files.createDirectories(publicManuals);
+    Files.createDirectories(internalManuals);
+    Files.createDirectories(sources);
+    Files.writeString(publicManuals.resolve("intro.md"), "# Public manual\n");
+    Files.writeString(internalManuals.resolve("conformance.md"), "# Internal conformance\n");
+    Files.writeString(sources.resolve("Api.w"), """
+        //! Public API.
+        module split.api;
+        classical class Api {
+          /// Returns one.
+          public long one() { return 1; }
+        }
+        """);
+
+    assertEquals(0, execute(publicManuals, sources, output, new ByteArrayOutputStream()));
+
+    assertTrue(Files.isRegularFile(output.resolve("pages/intro.md")));
+    assertFalse(Files.exists(output.resolve("pages/conformance.md")));
+    assertFalse(Files.readString(output.resolve("nodes.json")).contains("Internal conformance"));
+    assertFalse(Files.readString(output.resolve("manifest.json")).contains("internal-manuals"));
+  }
+
+  @Test
   void emitsStableManualAndWheelerApiBundle() throws Exception {
     Path manuals = temporary.resolve("manuals");
     Path sources = temporary.resolve("sources");

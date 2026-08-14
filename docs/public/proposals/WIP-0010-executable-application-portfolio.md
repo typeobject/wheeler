@@ -427,7 +427,7 @@ Portfolio work follows these rules:
 - [ ] Compiler stages produce identical portfolio artifacts and diagnostics for their shared profile.
 - [ ] Interpreted and native executions produce matching normalized traces.
 - [ ] The package manager builds the complete implemented portfolio offline from a locked vendor set.
-- [x] `examples.md` and `conformance.md` list only checked-in executable programs and current results. Planned portfolio entries remain in this WIP and future pages rather than appearing as implemented examples.
+- [x] `examples.md` lists readable checked-in programs and current results. The internal conformance manual lists only checked-in verification and recovery subjects. Planned portfolio entries remain in this WIP and future pages rather than appearing as implemented examples.
 
 ## Alternatives
 

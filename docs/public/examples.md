@@ -2,7 +2,7 @@
 
 Every checked-in `.w` file must pass both the compiler and the Tree-sitter grammar. Classical examples run on the VM. Quantum and hybrid examples use asynchronous `QuantumTarget` jobs on the ideal state-vector target. Before any example runs, its bytecode must complete a canonical round trip.
 
-Each example has a fixed bound. It shows behavior that works today and names any limit it reaches. The `wheeler.examples` package contains only programs meant to be read as examples. Bootstrap probes, identity codecs, and native differential subjects live in the separate [executable conformance suite](conformance.md). Calling those tutorials did not make them friendlier.
+Each example has a fixed bound. It shows behavior that works today and names any limit it reaches. The `wheeler.examples` package contains only programs meant to be read as examples. Bootstrap probes, identity codecs, and native differential subjects remain in the repository's internal conformance manual.
 
 ## Examples
 

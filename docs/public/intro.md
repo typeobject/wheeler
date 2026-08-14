@@ -311,7 +311,6 @@ When software crosses classical, reversible, quantum, and external-effect bounda
 - [First-principles tutorials](tutorials/index.mdx)
 - [Language profile](reference/language-profile.md)
 - [Executable examples](examples.md)
-- [Executable conformance programs](conformance.md)
 - [Bytecode format](reference/bytecode.md) and [virtual machine](reference/virtual-machine.md)
 - [Quantum targets](reference/quantum-targets.md)
 - [Hybrid runs, history, and replay](reference/hybrid-runs.md)

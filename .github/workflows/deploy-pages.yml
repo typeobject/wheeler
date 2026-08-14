@@ -3,8 +3,26 @@ name: Wheeler documentation site
 on:
   push:
     branches: [master]
+    paths:
+      - 'docs/**'
+      - 'wheeler-compiler/src/main/wheeler/**'
+      - 'wheeler-core/src/main/wheeler/**'
+      - 'wheeler-examples/src/main/wheeler/**'
+      - 'wheeler-package/src/main/wheeler/**'
+      - 'wheeler-runtime/src/main/wheeler/**'
+      - 'bootstrap/**'
+      - '.github/workflows/deploy-pages.yml'
   pull_request:
     branches: [master]
+    paths:
+      - 'docs/**'
+      - 'wheeler-compiler/src/main/wheeler/**'
+      - 'wheeler-core/src/main/wheeler/**'
+      - 'wheeler-examples/src/main/wheeler/**'
+      - 'wheeler-package/src/main/wheeler/**'
+      - 'wheeler-runtime/src/main/wheeler/**'
+      - 'bootstrap/**'
+      - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
 concurrency:

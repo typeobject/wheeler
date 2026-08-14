@@ -5,8 +5,16 @@ name: Wheeler bootstrap CI
 on:
   push:
     branches: [ "master" ]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '**/*.mdx'
   pull_request:
     branches: [ "master" ]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '**/*.mdx'
 
 jobs:
   build:

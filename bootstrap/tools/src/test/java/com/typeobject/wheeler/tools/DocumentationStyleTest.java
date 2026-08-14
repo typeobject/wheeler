@@ -51,9 +51,11 @@ final class DocumentationStyleTest {
   @Test
   void maintainedDocumentationUsesDirectProse() throws Exception {
     List<Path> files = new ArrayList<>(FILES);
-    try (var paths = Files.walk(Path.of("docs/docs"))) {
-      files.addAll(paths.filter(path -> path.toString().endsWith(".md")
-          || path.toString().endsWith(".mdx")).toList());
+    for (Path root : List.of(Path.of("docs/public"), Path.of("docs/internal"))) {
+      try (var paths = Files.walk(root)) {
+        files.addAll(paths.filter(path -> path.toString().endsWith(".md")
+            || path.toString().endsWith(".mdx")).toList());
+      }
     }
     files.sort(Path::compareTo);
 

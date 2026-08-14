@@ -119,7 +119,10 @@ final class DocumentationMarkdown {
         group = nextGroup;
         html.append("<section><h2>").append(escape(group)).append("</h2>\n");
       }
+      boolean tutorialChild = page.source().startsWith("tutorials/")
+          && !isIndexSource(page.source());
       html.append("<a")
+          .append(tutorialChild ? " class=\"nav-child\"" : "")
           .append(page.source().equals(current.source()) ? " aria-current=\"page\"" : "")
           .append(" href=\"").append(escapeAttribute(relative(current.output(), page.output())))
           .append("\">").append(escape(page.title())).append("</a>\n");
@@ -383,7 +386,7 @@ final class DocumentationMarkdown {
       }
       return relative(page.output(), route) + fragment;
     }
-    Path repositoryPath = Path.of("docs/docs").resolve(page.source()).getParent()
+    Path repositoryPath = Path.of("docs/public").resolve(page.source()).getParent()
         .resolve(path).normalize();
     return "https://github.com/typeobject/wheeler/blob/master/" + logical(repositoryPath) + fragment;
   }

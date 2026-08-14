@@ -37,14 +37,14 @@ Wheeler currently includes a reversible VM, backend-neutral quantum regions, an 
 ## Read next
 
 - [Full documentation](https://wheeler.typeobject.com/)
-- [Language profile](docs/docs/reference/language-profile.md)
-- [Bytecode format](docs/docs/reference/bytecode.md)
-- [Virtual machine](docs/docs/reference/virtual-machine.md)
-- [Semantic coverage](docs/docs/reference/coverage.md)
-- [Executable conformance](docs/docs/conformance.md)
-- [Quantum targets](docs/docs/reference/quantum-targets.md)
-- [Improvement proposals](docs/docs/proposals/index.mdx)
-- [Development and test guide](docs/docs/reference/development.md)
+- [Language profile](docs/public/reference/language-profile.md)
+- [Bytecode format](docs/public/reference/bytecode.md)
+- [Virtual machine](docs/public/reference/virtual-machine.md)
+- [Semantic coverage](docs/public/reference/coverage.md)
+- [Executable conformance](docs/internal/conformance.md)
+- [Quantum targets](docs/public/reference/quantum-targets.md)
+- [Improvement proposals](docs/public/proposals/index.mdx)
+- [Development and test guide](docs/public/reference/development.md)
 
 Executable examples:
 

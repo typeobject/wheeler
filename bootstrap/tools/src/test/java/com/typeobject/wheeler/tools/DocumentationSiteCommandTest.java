@@ -78,15 +78,23 @@ class DocumentationSiteCommandTest {
     String tutorialSidebar = index.substring(tutorials, tutorialsEnd);
     assertTrue(tutorialSidebar.contains(
         "<a href=\"tutorials/index.html\">Instructions for Returning</a>"));
-    assertFalse(tutorialSidebar.contains("tutorials/00-return-to-which-state.html"));
-    assertFalse(tutorialSidebar.contains("tutorials/12-weather.html"));
+    assertTrue(tutorialSidebar.contains(
+        "<a class=\"nav-child\" href=\"tutorials/00-return-to-which-state.html\">Home</a>"));
+    assertTrue(tutorialSidebar.contains(
+        "<a class=\"nav-child\" href=\"tutorials/12-weather.html\">Weather</a>"));
+    assertTrue(tutorialSidebar.indexOf("Instructions for Returning")
+        < tutorialSidebar.indexOf(">Home</a>"));
+    assertTrue(tutorialSidebar.indexOf(">Home</a>")
+        < tutorialSidebar.indexOf(">Weather</a>"));
     assertTrue(Files.isRegularFile(first.resolve("tutorials/00-return-to-which-state.html")));
     assertTrue(Files.isRegularFile(first.resolve("tutorials/12-weather.html")));
     String tutorialIndex = Files.readString(first.resolve("tutorials/index.html"));
     assertTrue(tutorialIndex.contains(
         "<a href=\"00-return-to-which-state.html\">Begin with <strong>Home</strong>.</a>"));
-    assertFalse(tutorialIndex.contains("href=\"01-write-the-first-instruction.html\""));
-    assertFalse(tutorialIndex.contains("href=\"12-weather.html\""));
+    assertTrue(tutorialIndex.contains(
+        "class=\"nav-child\" href=\"01-write-the-first-instruction.html\""));
+    assertTrue(tutorialIndex.contains(
+        "class=\"nav-child\" href=\"12-weather.html\""));
     assertFalse(index.contains("<section><h2>future</h2>"));
     assertFalse(index.contains(">WIP-0042: First-principles reversible and quantum computing tutorials</a>"));
     assertTrue(index.indexOf(">What Is Wheeler?</a>")
@@ -94,6 +102,9 @@ class DocumentationSiteCommandTest {
     assertFalse(index.contains("WIP-XXXX: Short decision title"));
     assertTrue(Files.isRegularFile(first.resolve(
         "proposals/WIP-0037-hierarchical-semantic-routine-graphs.html")));
+    assertFalse(Files.exists(first.resolve("conformance.html")));
+    assertFalse(publication.contains("conformance.html"));
+    assertFalse(sitemap.contains("conformance"));
     assertTrue(Files.isRegularFile(first.resolve("future/index.html")));
     assertTrue(Files.isRegularFile(first.resolve("future/foundry.html")));
     String proposalsIndex = Files.readString(first.resolve("proposals/index.html"));

@@ -82,7 +82,7 @@ final class DocumentationSiteCommand {
       throws Exception {
     List<String> arguments = new java.util.ArrayList<>();
     arguments.add("docs");
-    arguments.add(repository.resolve("docs/docs").toString());
+    arguments.add(repository.resolve("docs/public").toString());
     for (String root : WHEELER_ROOTS) {
       arguments.add("--wheeler");
       arguments.add(repository.resolve(root).toString());
@@ -293,6 +293,7 @@ final class DocumentationSiteCommand {
         text-transform: uppercase; }
       nav a { display: block; padding: .22rem .45rem; color: var(--ink); text-decoration: none;
         border-left: 2px solid transparent; }
+      nav a.nav-child { margin-left: .7rem; padding-left: .8rem; font-size: .92rem; }
       nav a:hover, nav a[aria-current=page] { color: var(--accent); border-color: var(--accent); }
       main { min-width: 0; }
       h1 { font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.12; }

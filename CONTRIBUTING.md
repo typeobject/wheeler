@@ -4,7 +4,7 @@ Wheeler is pre-release, but changes are welcome when they preserve one semantic 
 
 ## Before sending a change
 
-1. Read the relevant [Wheeler Improvement Proposal](docs/docs/proposals/index.mdx).
+1. Read the relevant [Wheeler Improvement Proposal](docs/public/proposals/index.mdx).
 2. Keep reference documentation limited to implemented behavior.
 3. Run the complete local gate:
 
