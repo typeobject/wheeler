@@ -14,8 +14,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.time.Duration;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -62,6 +64,29 @@ final class NativeNamespacePublicationTest {
     DurabilityReceipt stable = publication.forceNamespace(visible);
     assertEquals(Kind.NAMESPACE_STABLE, stable.kind());
     assertEquals(visible.identity(), stable.parentIdentity());
+  }
+
+  @Test
+  void directoryForceSurvivesAnImmediateProcessHalt(@TempDir Path temporary)
+      throws Exception {
+    Process writer = new ProcessBuilder(
+        Path.of(System.getProperty("java.home"), "bin", "java").toString(),
+        "-cp",
+        System.getProperty("java.class.path"),
+        NativeNamespaceCrashWriter.class.getName(),
+        temporary.toString())
+        .redirectErrorStream(true)
+        .start();
+    boolean exited = writer.waitFor(Duration.ofSeconds(10).toMillis(), TimeUnit.MILLISECONDS);
+    if (!exited) {
+      writer.destroyForcibly();
+      throw new AssertionError("native namespace crash writer did not terminate");
+    }
+    assertEquals(23, writer.exitValue(), new String(writer.getInputStream().readAllBytes()));
+    assertFalse(Files.exists(temporary.resolve("release.next")));
+    assertArrayEquals(
+        "release-23".getBytes(StandardCharsets.UTF_8),
+        Files.readAllBytes(temporary.resolve("release.current")));
   }
 
   private static String identity(byte[] bytes) throws Exception {
