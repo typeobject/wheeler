@@ -310,6 +310,59 @@ class StateVectorTargetTest {
   }
 
   @Test
+  void amplitudeEstimatorMatchesExactStateAndReportsSeededUncertainty() {
+    QuantumRegister register = new QuantumRegister(0, "estimate", 2);
+    QuantumCircuit preparation = new QuantumCircuit(
+        0, "prepareAmplitude", 0, List.of(GateOperation.of(Gate.H, 1)));
+    QuantumCircuit estimation = new QuantumCircuit(
+        1,
+        "estimateRound",
+        0,
+        List.of(
+            GateOperation.of(Gate.H, 0),
+            new GateOperation(Gate.CPHASE, List.of(1, 0), Math.PI),
+            GateOperation.of(Gate.H, 0)));
+    Program program = program(register, preparation, List.of(), estimation);
+    StateVectorEngine simulator = new StateVectorEngine(41);
+    simulator.prepare(register, 0);
+    simulator.apply(program, preparation, false);
+    simulator.apply(program, estimation, false);
+    assertArrayEquals(
+        new double[] {1 / Math.sqrt(2), 0, 0, 0, 0, 0, 1 / Math.sqrt(2), 0},
+        simulator.amplitudes(register),
+        1e-12);
+    simulator.apply(program, estimation, true);
+    simulator.apply(program, preparation, true);
+    assertArrayEquals(
+        new double[] {1, 0, 0, 0, 0, 0, 0, 0},
+        simulator.amplitudes(register),
+        1e-12);
+
+    QuantumSubmission submission = new QuantumSubmission(
+        program,
+        0,
+        0,
+        List.of(new CircuitApplication(0, false), new CircuitApplication(1, false)),
+        Map.of(),
+        4_096,
+        41);
+    QuantumResult result = new StateVectorTarget()
+        .submit(submission)
+        .await(Duration.ofSeconds(1));
+    AmplitudeEstimate estimate = AmplitudeEstimate.from(result, 2, 2, 2, 2);
+    assertTrue(
+        1_900 <= estimate.successes() && estimate.successes() <= 2_196,
+        estimate.toString());
+    assertEquals(4_096, estimate.shots());
+    assertTrue(0.45 <= estimate.probability() && estimate.probability() <= 0.55);
+    assertTrue(estimate.standardError() < 0.009);
+    assertTrue(estimate.lowerBound() <= 0.5 && 0.5 <= estimate.upperBound());
+    assertEquals(2, estimate.qubits());
+    assertEquals(2, estimate.circuitApplications());
+    assertEquals(submission.identity(), estimate.resultIdentity());
+  }
+
+  @Test
   void twoBitStaticPhaseEstimateHasOneExactIdealAmplitude() {
     QuantumRegister register = new QuantumRegister(0, "phase", 3);
     QuantumCircuit circuit = new QuantumCircuit(

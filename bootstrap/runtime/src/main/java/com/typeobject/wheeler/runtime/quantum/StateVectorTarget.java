@@ -46,8 +46,8 @@ public final class StateVectorTarget implements QuantumTarget {
 
     List<Long> outcomes = new ArrayList<>(submission.shots());
     Map<Long, Long> counts = new LinkedHashMap<>();
+    StateVectorEngine engine = new StateVectorEngine(submission.seed());
     for (int shot = 0; shot < submission.shots(); shot++) {
-      StateVectorEngine engine = new StateVectorEngine(submission.seed() + shot);
       engine.prepare(register, submission.basisState());
       for (CircuitApplication application : submission.applications()) {
         engine.apply(

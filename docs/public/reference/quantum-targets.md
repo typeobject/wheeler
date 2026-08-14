@@ -29,7 +29,7 @@ In either model, submission moves classical descriptions and observations. Coher
 
 `StateVectorTarget` is the semantic reference for the current static gate set. It supports up to 20 qubits and reruns the complete prepare, unitary, and measure task for each shot.
 
-Explicit seeds make simulator samples repeatable. They do not make real hardware deterministic.
+Explicit seeds make simulator samples repeatable. One target submission consumes one seeded pseudorandom stream in shot order. It does not reseed adjacent shots. Seeds do not make real hardware deterministic.
 
 The engine supports H, X, Z, phase, controlled phase, CNOT, CZ, swap, generated adjoints, and coherently lifted XOR and width-modular constant add/subtract permutations.
 
