@@ -2,9 +2,11 @@
 
 module wheeler.compiler.closure.source_value_products;
 
+import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
@@ -371,6 +373,30 @@ classical class SourceValueProducts {
                     }
                   }
                 }
+              }
+            }
+          }
+
+          if (-1 < statementToken) {
+            long valueHash = tokenHash(source, tokenStarts, tokenLengths, statementToken);
+            if (valueHash == TOKEN_ASSERT) {
+              LoopAssertion assertion = resolveLoopAssertion(
+                source,
+                statementToken,
+                localFunction,
+                statementRows[8192 + statement],
+                valueCount,
+                stagedValues,
+                semanticCount,
+                tokenKinds,
+                tokenStarts,
+                tokenLengths
+              );
+              if (assertion.valid) {
+                localWidth = loopBodyLocalCount(assertion.opcode, assertion.operand);
+                resultLocal = -1;
+              } else {
+                valid = false;
               }
             }
           }

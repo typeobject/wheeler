@@ -31,6 +31,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
           borrow mut words rows,
           borrow mut bytes output
         ) {
+          assert(-1 < length);
           long index = 0;
           while (index < length) limit MAX_SOURCE_BYTES {
             long kind = rows[512 + index];

@@ -2,12 +2,14 @@
 
 module wheeler.compiler.closure.direct_statement_products;
 
+import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
 import wheeler.compiler.keyword_tokens;
+import wheeler.compiler.loop_body_opcodes;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
@@ -53,11 +55,12 @@ classical class DirectStatementProducts {
     assert(bufferLength(typeRows) == TYPE_ROWS);
     assert(bufferLength(output) == MAX_CODE_BYTES);
 
-    region staging = new region(/* bytes= */ 688128, /* allocations= */ 6);
+    region staging = new region(/* bytes= */ 851968, /* allocations= */ 7);
     words tokenKinds = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(staging, MAX_COMPILER_TOKENS);
     words stagedRows = allocate(staging, DIRECT_ROWS);
+    words assertionBody = allocate(staging, BODY_ROWS);
     words stagedTypes = allocate(staging, TYPE_ROWS);
     bytes stagedCode = allocateBytes(staging, MAX_CODE_BYTES);
     boolean valid = true;
@@ -217,53 +220,128 @@ classical class DirectStatementProducts {
                 productInstructions = 2;
               }
             } else {
-              if (hash == TOKEN_RETURN) {
-                LoopBodyValue returned = resolveLoopBodyValue(
+              if (hash == TOKEN_ASSERT) {
+                long ordinal = statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement];
+                LoopAssertion assertion = resolveLoopAssertion(
                   source,
-                  tokenStarts[token + 1],
-                  tokenLengths[token + 1],
+                  token,
                   owner,
-                  statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement],
+                  ordinal,
+                  valueCount,
+                  valueRows,
+                  semanticCount,
+                  tokenKinds,
+                  tokenStarts,
+                  tokenLengths
+                );
+                if (assertion.valid == false) {
+                  statementValid = false;
+                }
+
+                long assertionLocalBase = localBaseAtOrdinal(
+                  owner,
+                  ordinal,
                   valueCount,
                   valueRows
                 );
-                if (returned.valid == false) {
-                  statementValid = false;
-                }
-
-                long returnLocal = callableReturnLocals[owner];
-                if (returnLocal < 0) {
-                  statementValid = false;
-                }
-
-                if (255 < returnLocal) {
-                  statementValid = false;
-                }
-
                 if (statementValid) {
-                  cursor = writeInstructionHeader(
+                  set(assertionBody, BODY_LOCAL_BASE_ROW, assertionLocalBase);
+                  set(assertionBody, BODY_OPCODE_ROW, assertion.opcode);
+                  set(assertionBody, BODY_OPERAND_KIND_ROW, assertion.operandKind);
+                  set(assertionBody, BODY_OPERAND_ROW, assertion.operand);
+                  long next = writeLoopBodyInstructionProduct(
                     stagedCode,
                     cursor,
-                    OPCODE_LOCAL_MOVE,
-                    INSTRUCTION_FORM_BINARY
+                    /* body= */ 0,
+                    assertionBody
                   );
-                  cursor = writeUnsignedLittleEndian(stagedCode, cursor, returnLocal, U64);
-                  cursor = writeUnsignedLittleEndian(stagedCode, cursor, returned.local, U64);
-                  cursor = writeInstructionHeader(
-                    stagedCode,
-                    cursor,
-                    OPCODE_RETURN_VALUE,
-                    INSTRUCTION_FORM_UNARY
-                  );
-                  cursor = writeUnsignedLittleEndian(stagedCode, cursor, returnLocal, U64);
-                  set(stagedTypes, typeCount, owner);
-                  set(stagedTypes, 4096 + typeCount, returnLocal);
-                  set(stagedTypes, 8192 + typeCount, TYPE_SIGNED);
-                  typeCount += 1;
-                  productInstructions = 2;
+                  if (next < 0) {
+                    statementValid = false;
+                  } else {
+                    long localCount = loopBodyLocalCount(assertion.opcode, assertion.operand);
+                    if (localCount < 1) {
+                      statementValid = false;
+                    } else {
+                      long localOffset = 0;
+                      while (localOffset < localCount) limit 3 {
+                        long localType = TYPE_SIGNED;
+                        if (localOffset == localCount - 1) {
+                          localType = TYPE_BOOLEAN;
+                        }
+
+                        if (assertion.opcode == BODY_ASSERT_BOOLEAN) {
+                          localType = TYPE_BOOLEAN;
+                        }
+
+                        set(stagedTypes, typeCount, owner);
+                        set(stagedTypes, 4096 + typeCount, assertionLocalBase + localOffset);
+                        set(stagedTypes, 8192 + typeCount, localType);
+                        typeCount += 1;
+                        localOffset += 1;
+                      }
+
+                      cursor = next;
+                      LoopBodyInstructionExtent extent = loopBodyInstructionExtent(
+                        assertion.opcode,
+                        assertion.operand
+                      );
+                      if (extent.valid) {
+                        productInstructions = extent.instructionCount;
+                      } else {
+                        statementValid = false;
+                      }
+                    }
+                  }
                 }
               } else {
-                statementValid = false;
+                if (hash == TOKEN_RETURN) {
+                  LoopBodyValue returned = resolveLoopBodyValue(
+                    source,
+                    tokenStarts[token + 1],
+                    tokenLengths[token + 1],
+                    owner,
+                    statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement],
+                    valueCount,
+                    valueRows
+                  );
+                  if (returned.valid == false) {
+                    statementValid = false;
+                  }
+
+                  long returnLocal = callableReturnLocals[owner];
+                  if (returnLocal < 0) {
+                    statementValid = false;
+                  }
+
+                  if (255 < returnLocal) {
+                    statementValid = false;
+                  }
+
+                  if (statementValid) {
+                    cursor = writeInstructionHeader(
+                      stagedCode,
+                      cursor,
+                      OPCODE_LOCAL_MOVE,
+                      INSTRUCTION_FORM_BINARY
+                    );
+                    cursor = writeUnsignedLittleEndian(stagedCode, cursor, returnLocal, U64);
+                    cursor = writeUnsignedLittleEndian(stagedCode, cursor, returned.local, U64);
+                    cursor = writeInstructionHeader(
+                      stagedCode,
+                      cursor,
+                      OPCODE_RETURN_VALUE,
+                      INSTRUCTION_FORM_UNARY
+                    );
+                    cursor = writeUnsignedLittleEndian(stagedCode, cursor, returnLocal, U64);
+                    set(stagedTypes, typeCount, owner);
+                    set(stagedTypes, 4096 + typeCount, returnLocal);
+                    set(stagedTypes, 8192 + typeCount, TYPE_SIGNED);
+                    typeCount += 1;
+                    productInstructions = 2;
+                  }
+                } else {
+                  statementValid = false;
+                }
               }
             }
 
@@ -313,6 +391,7 @@ classical class DirectStatementProducts {
 
     drop(stagedCode);
     drop(stagedTypes);
+    drop(assertionBody);
     drop(stagedRows);
     drop(tokenLengths);
     drop(tokenStarts);

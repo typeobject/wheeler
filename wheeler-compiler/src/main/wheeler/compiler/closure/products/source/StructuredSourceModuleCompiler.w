@@ -43,6 +43,7 @@ classical class StructuredSourceModuleCompiler {
   }
 
   private long instructionStartForLoop(
+    borrow utf8 source,
     long owner,
     long loopOrdinal,
     long statementCount,
@@ -56,7 +57,13 @@ classical class StructuredSourceModuleCompiler {
         if (statementRows[4096 + statement] == rootBlock) {
           if (statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement] < loopOrdinal) {
             if (statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement] == 0) {
-              instructionStart += 2;
+              long directInstructions = 2;
+              long start = statementRows[LOOP_STATEMENT_START_ROW + statement];
+              if (utf8Scalar(source, start) == 97) {
+                directInstructions = 4;
+              }
+
+              instructionStart += directInstructions;
             }
           }
         }
@@ -231,7 +238,7 @@ classical class StructuredSourceModuleCompiler {
       set(
         loopInstructionStarts,
         loop,
-        instructionStartForLoop(owner, ordinal, loopPlan.statementCount, statements)
+        instructionStartForLoop(source, owner, ordinal, loopPlan.statementCount, statements)
       );
       loop += 1;
     }
