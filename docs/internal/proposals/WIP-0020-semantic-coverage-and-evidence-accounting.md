@@ -303,7 +303,7 @@ Quantum targets own execution evidence, not coverage interpretation. The proof k
 
 ## Testing and acceptance
 
-- [ ] Source, bytecode, generated, and runtime point mappings reject every dangling, duplicate, overlapping, and forged relation in a malformed corpus.
+- [x] `SemanticCoverageMap` binds normalized source ranges, exact canonical artifact identity, authored or generated-inverse origin, execution direction, function, contiguous instruction window, and the window's opcode identity. Construction rejects dangling windows, duplicate rows, overlaps within one bytecode body, forward claims for generated inverses, forged opcode identities, malformed source coordinates, and unknown functions. Joining rejects observed runtime points without one exact relation or with a forged opcode or branch shape.
 - [x] The classical coverage fixture runs observed and plain VMs through forward execution and complete rewind and compares every snapshot and history boundary exactly. Circuit, job, and proof collection remain outside the current profile.
 - [x] The accepted runtime collector records each verified instruction transition without instrumentation, distinguishes taken and fallthrough branches, direct calls, assertions, traps, forward and inverse execution, and rewind of each direction, and reproduces exact report identities across reruns. Match-arm and MC/DC denominators remain.
 - [x] Forward, language inverse, rewind-forward, and rewind-inverse are separate closed observer enum values and separate point-identity fields, so the implemented classical dimensions cannot alias. Uncompute, replay, retry, and recovery remain outside this observer profile.

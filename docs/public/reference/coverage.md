@@ -40,6 +40,12 @@ LCOV and Cobertura receive explicit synthetic `wheeler-bytecode/function-N` coor
 
 Changing one exclusion or threshold changes both policy and evaluation identities. Caller set order does not. Evaluation never edits the underlying transition report. This profile has no hidden percentage denominator and cannot promote an excluded source, proof, quantum, or empirical dimension into coverage evidence.
 
+## Source and generated-body relations
+
+`SemanticCoverageMap` validates source-to-runtime relations against one exact canonical artifact. Each row binds a normalized source range, forward, inverse, or rewind direction, function, contiguous instruction window, authored or generated-inverse origin, and a digest of the exact opcode window.
+
+Map construction rejects dangling or unknown coordinates, duplicate and overlapping bytecode windows, generated-inverse claims over forward code, malformed source ranges, and forged opcode digests. Joining one transition report rejects missing relations and observed opcode or branch shapes that disagree with the artifact. The resulting `wheeler-source-transition-coverage-1` report names source path, line, column, bytecode coordinates, direction, origin, branch result, and hit count. Map, artifact, and transition identities remain separate.
+
 ## Proof stages
 
 `ProofObserver` records lookup, obligation construction, rule execution, acceptance, and rejection as distinct ordered stages. `ProofCoverage` keys points by proof rule, subject, and stage under `wheeler-proof-coverage-1`. A rejected certificate records rule execution and rejection, never acceptance. An accepted certificate records acceptance, never rejection.
