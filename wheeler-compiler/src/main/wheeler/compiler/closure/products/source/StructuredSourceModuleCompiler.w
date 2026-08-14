@@ -10,6 +10,7 @@ import wheeler.compiler.closure.loop_instruction_products;
 import wheeler.compiler.closure.loop_local_type_products;
 import wheeler.compiler.closure.resolved_loop_body_products;
 import wheeler.compiler.closure.resolved_loop_products;
+import wheeler.compiler.closure.source_callable_coordinate_products;
 import wheeler.compiler.closure.source_loop_products;
 import wheeler.compiler.closure.source_module_product_artifact;
 import wheeler.compiler.closure.source_product_artifact;
@@ -129,7 +130,7 @@ classical class StructuredSourceModuleCompiler {
     assert(bufferLength(output) == 32768);
     assert(bufferLength(identity) == 32);
 
-    region products = new region(/* bytes= */ 2147840, /* allocations= */ 24);
+    region products = new region(/* bytes= */ 2180608, /* allocations= */ 25);
     words blocks = allocate(products, /* length= */ 6144);
     words statements = allocate(products, /* length= */ 28672);
     words sourceConditions = allocate(products, /* length= */ 1536);
@@ -140,6 +141,7 @@ classical class StructuredSourceModuleCompiler {
     words bodyRows = allocate(products, /* length= */ 20480);
     words nestedRows = allocate(products, /* length= */ 20480);
     words statementPhysicalWidths = allocate(products, /* length= */ 4096);
+    words statementPhysicalStarts = allocate(products, /* length= */ 4096);
     words resolvedConditions = allocate(products, /* length= */ 1536);
     words resolvedLoops = allocate(products, /* length= */ 2304);
     words loopLocalBases = allocate(products, /* length= */ 256);
@@ -311,6 +313,16 @@ classical class StructuredSourceModuleCompiler {
       statementPhysicalWidths
     );
     assert(frameWidthsValid);
+    SourceCallableCoordinatePlan coordinatePlan = materializeSourceCallableCoordinateProducts(
+      callableCount,
+      parameterCounts,
+      loopPlan.statementCount,
+      statements,
+      statementLocalRows,
+      statementPhysicalWidths,
+      statementPhysicalStarts
+    );
+    assert(coordinatePlan.valid);
     CallableSourceCompositionPlan composition = composeCallableSourceProducts(
       callableCount,
       loopPlan.statementCount,
@@ -365,6 +377,7 @@ classical class StructuredSourceModuleCompiler {
     drop(loopLocalBases);
     drop(resolvedLoops);
     drop(resolvedConditions);
+    drop(statementPhysicalStarts);
     drop(statementPhysicalWidths);
     drop(nestedRows);
     drop(bodyRows);

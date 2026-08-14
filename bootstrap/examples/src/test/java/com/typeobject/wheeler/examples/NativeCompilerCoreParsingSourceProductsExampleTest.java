@@ -167,6 +167,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
     assertEquals(directTypeCount, machine.global("directTypeCount"));
     assertEquals(1, machine.global("directWidthsValid"));
     assertEquals(1, machine.global("loopFrameWidthsValid"));
+    assertEquals(1, machine.global("coordinateValid"));
     assertEquals(directTypeCursor, machine.global("composedOutputStart"));
 
     int composedCursor = directTypeCursor;
@@ -266,6 +267,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
         import wheeler.compiler.closure.loop_local_type_products;
         import wheeler.compiler.closure.resolved_loop_body_products;
         import wheeler.compiler.closure.resolved_loop_products;
+        import wheeler.compiler.closure.source_callable_coordinate_products;
         import wheeler.compiler.closure.source_loop_products;
         import wheeler.compiler.closure.source_module_product_artifact;
         import wheeler.compiler.closure.source_product_artifact;
@@ -296,6 +298,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
           state long directTypeCount = 0;
           state long directWidthsValid = 0;
           state long loopFrameWidthsValid = 0;
+          state long coordinateValid = 0;
           state long directOutputStart = 0;
           state long directTypeOutputStart = 0;
           state long composedInstructionCount = 0;
@@ -326,7 +329,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
           state long secondLoopOwner = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 21382248, /* allocations= */ 59);
+            region products = new region(/* bytes= */ 21415016, /* allocations= */ 60);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -339,6 +342,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             words bodyRows = allocate(products, /* length= */ 20480);
             words nestedRows = allocate(products, /* length= */ 20480);
             words statementPhysicalWidths = allocate(products, /* length= */ 4096);
+            words statementPhysicalStarts = allocate(products, /* length= */ 4096);
             words resolvedConditions = allocate(products, /* length= */ 1536);
             words resolvedLoops = allocate(products, /* length= */ 2304);
             words symbolOwners = allocate(products, /* length= */ 16384);
@@ -536,6 +540,18 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             assert(frameWidthsValid);
             if (frameWidthsValid) {
               loopFrameWidthsValid = 1;
+            }
+            SourceCallableCoordinatePlan coordinatePlan = materializeSourceCallableCoordinateProducts(
+              2,
+              parameterCounts,
+              loopPlan.statementCount,
+              statements,
+              statementLocalRows,
+              statementPhysicalWidths,
+              statementPhysicalStarts
+            );
+            if (coordinatePlan.valid) {
+              coordinateValid = 1;
             }
             if (directPlan.valid) {
               directValid = 1;
@@ -911,6 +927,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             drop(symbolOwners);
             drop(resolvedLoops);
             drop(resolvedConditions);
+            drop(statementPhysicalStarts);
             drop(statementPhysicalWidths);
             drop(nestedRows);
             drop(bodyRows);
