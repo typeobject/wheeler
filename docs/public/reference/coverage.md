@@ -34,4 +34,10 @@ The report has no percentage. This first slice knows which transitions ran, but 
 
 LCOV and Cobertura receive explicit synthetic `wheeler-bytecode/function-N` coordinates. They never label instruction rows as source lines. The website prints the unsupported list in visible text and metadata. Adapter generation leaves canonical report bytes and identity unchanged.
 
+## Exclusions and thresholds
+
+`SemanticCoveragePolicy` gives direction and opcode exclusions an explicit sorted identity. It also binds bounded minimum observed-point and minimum per-point hit requirements. Evaluation emits the policy, base coverage, included and excluded counts, thresholds, selected points, and pass result in canonical JSON with its own identity.
+
+Changing one exclusion or threshold changes both policy and evaluation identities. Caller set order does not. Evaluation never edits the underlying transition report. This profile has no hidden percentage denominator and cannot promote an excluded source, proof, quantum, or empirical dimension into coverage evidence.
+
 Source points, compound conditions, match arms, traps, attempt lineage, sharded merging, quantum structure, proof duties, thresholds, and Wheeler-written reduction remain part of WIP-0020. JaCoCo still measures only the Java seed implementation. It is not evidence about Wheeler semantics.
