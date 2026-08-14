@@ -666,7 +666,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] The accepted source profile has no qreg-to-classical-storage conversion. Classical classes reject qreg declarations, unitary bodies admit only gate syntax, and quantum entries reject qreg use in buffer intrinsics or local storage. Stage-0 file, pool, tier, and remote-memory adapters accept `OwnedIoBuffer`, never a quantum register or state object. Circuit descriptions and measured classical results remain separate allowed payloads.
 - [x] Quantum submission, acknowledged-job recovery, cancellation request and race handling, result validation, late-result quarantine, replay, and retry retain WIP-0004 artifact, run, branch, submission, job, and target identities. They use the same bounded admission, terminal-state, cancellation, and uncertainty distinctions as the fabric while quantum payloads remain domain types.
 - [x] Hybrid execution obtains measurement from target execution, records the classical measurement result, and applies it once. Replay has no target and reuses only that recorded classical observation.
-- [ ] Deterministic, threaded, readiness, completion, polling, native, and VM implementations agree on lifecycle and encodings.
+- [x] `IoLifecycleEncoding` fixes success, failure, cancellation, uncertainty, all seven cancellation relations, progress, declared work, and release rows. Inline, delayed, threaded, interrupt, readiness, one-lane and many-lane completion, and polling profiles emit identical portable rows. `wheeler.runtime.io.lifecycle` uses the same terminal and relation identities, and the VM-executed native conformance program compares them directly.
 
 ## Alternatives
 

@@ -7,6 +7,10 @@ import wheeler.runtime.io.lifecycle;
 classical class NativeIoLifecycle {
   state long finalOperationCount = 0;
   state long finalChargedWork = 0;
+  state long successTerminal = 0;
+  state long canceledTerminal = 0;
+  state long partialRelation = 0;
+  state long uncertainTerminal = 0;
   state long completionWonRelation = 0;
   state long uncertainRelation = 0;
   state long rejectedOperation = 0;
@@ -76,6 +80,7 @@ classical class NativeIoLifecycle {
     assert(
       observeLateCancellation(states, terminalKinds, cancellationRelations, first.operation)
     );
+    successTerminal = terminalKinds[first.operation];
     completionWonRelation = cancellationRelations[first.operation];
     assert(reap(states, resourcesReleased, reaped, first.operation));
     assert(reap(states, resourcesReleased, reaped, first.operation) == false);
@@ -109,6 +114,7 @@ classical class NativeIoLifecycle {
     );
     assert(progress[second.operation] == 0);
     assert(resourcesReleased[second.operation] == 1);
+    canceledTerminal = terminalKinds[second.operation];
     assert(reap(states, resourcesReleased, reaped, second.operation));
 
     Submission third = submit(
@@ -142,6 +148,7 @@ classical class NativeIoLifecycle {
         true
       )
     );
+    partialRelation = cancellationRelations[third.operation];
     assert(reap(states, resourcesReleased, reaped, third.operation));
 
     Submission fourth = submit(
@@ -178,6 +185,7 @@ classical class NativeIoLifecycle {
     assert(
       observeLateCancellation(states, terminalKinds, cancellationRelations, fourth.operation)
     );
+    uncertainTerminal = terminalKinds[fourth.operation];
     uncertainRelation = cancellationRelations[fourth.operation];
     assert(reap(states, resourcesReleased, reaped, fourth.operation));
 

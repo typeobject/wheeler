@@ -52,7 +52,9 @@ The accepted source profile grants physical host input and output only to `entry
 
 `IoEffectBoundary.acceptLive` accepts one terminal live-I/O completion at an explicit workflow boundary. It binds the completion facts into a content identity and cuts the VM rewind tail while retaining current machine state. `IoCompensation` prepares a second request from one effect-bearing completion. Its action does not run during construction. Successful evidence receives a distinct compensation receipt, and acceptance establishes another `COMPENSATION` boundary. Failed compensation cannot establish that boundary. Neither operation claims inverse execution or removes the original external effect.
 
-Terminal kind and cancellation relation are separate closed enums. The executable model distinguishes:
+Terminal kind and cancellation relation are separate closed enums. `IoLifecycleEncoding` assigns portable rows 1 through 4 to success, failure, cancellation, and uncertainty. It assigns rows 0 through 6 to the cancellation relations below. The encoding also carries exact progress, declared work, and resource release. Inline, delayed, threaded, interrupt, readiness, completion, and polling tests emit equal rows. The VM-executed Wheeler lifecycle table uses those same identities.
+
+The executable model distinguishes:
 
 | Result | Meaning |
 | --- | --- |
