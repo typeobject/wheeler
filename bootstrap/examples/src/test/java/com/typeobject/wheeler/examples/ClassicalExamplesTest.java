@@ -224,7 +224,6 @@ class ClassicalExamplesTest {
         Arguments.of(
             "classical/data/ReversiblePacketCodec.w",
             Map.of(
-                "packet", 0L,
                 "observed", 2_753_795L,
                 "decodedVersion", 3L,
                 "decodedKind", 5L,

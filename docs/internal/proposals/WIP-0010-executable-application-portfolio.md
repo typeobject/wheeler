@@ -356,9 +356,7 @@ Portfolio work follows these rules:
 
 ### Reversible systems
 
-- [ ] Reversible packet codec.
-  - [x] `ReversiblePacketCodec.w` encodes a typed record into four region-owned bytes, validates and decodes through a closed value-or-malformed result, checks both decode-encode directions, exhausts 256 bounded field combinations, distinguishes length and checksum errors without partial decode state, cleans every owner, and separately checks a generated inverse over the equivalent fixed word layout.
-  - [ ] Make byte-frame encoding itself participate in a checked inverse relation rather than relying on the parallel fixed-word transform.
+- [x] `ReversiblePacketCodec.w` produces four canonical byte-valued frame fields under one generated inverse relation, projects those exact fields into region-owned bytes without a packed-word surrogate, validates and decodes through a closed value-or-malformed result, checks decode-encode byte equality, exhausts 256 bounded field combinations, distinguishes length and checksum errors without partial decode state, reverses every frame field to zero, and cleans every owner.
 - [ ] Transactional persistent index.
 - [x] `IncrementalDependencyGraph.w` owns a mutable four-node adjacency table, deterministic signed maps for versions and generation-tagged visited sets, the locked core queue API for bounded breadth-first work, a tagged accepted-or-cycle result, staged and rolled-back phases, rollback of a tentative back edge, affected-node invalidation, owner cleanup, canonical execution, and complete rewind.
 - [x] `IntegerWaveletTransform.w` applies determinant-one lifting steps to a two-pair integer tile, exhausts 256 bounded input pairs through the independent coefficient and reconstruction equations, checks signed extreme values, traps checked coefficient overflow before publishing a result, carries a generated inverse certificate, restores every sample without rounding, and compares exact initial and reconstructed tile bytes.

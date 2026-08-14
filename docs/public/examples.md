@@ -197,9 +197,9 @@ Expected result: `result = 6`.
 
 Source: [`ReversiblePacketCodec.w`](../../wheeler-examples/src/main/wheeler/classical/data/ReversiblePacketCodec.w).
 
-Covers: A typed packet record, a closed decoded-or-malformed result, four-byte encoding, checksum validation, decode-encode byte equality, exhaustive 256-case bounded field generation, distinct length and checksum diagnostics, bounded region cleanup, a fixed-width word layout, and one generated inverse certificate.
+Covers: A typed packet record, four canonical byte-valued frame fields under a generated inverse relation, direct projection into region-owned bytes without a packed-word surrogate, a closed decoded-or-malformed result, checksum validation, decode-encode byte equality, exhaustive 256-case bounded field generation, distinct length and checksum diagnostics, and bounded owner cleanup.
 
-Expected result: decoded fields are `3`, `5`, and `42`. Malformed codes are `1` and `2`. `observed = 2753795`, and `packet = 0`.
+Expected result: decoded fields are `3`, `5`, and `42`. Malformed codes are `1` and `2`. `observed = 2753795`, and reverse frame execution clears all four fields.
 
 ### `ReversibleResult.w`
 
