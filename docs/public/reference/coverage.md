@@ -40,4 +40,10 @@ LCOV and Cobertura receive explicit synthetic `wheeler-bytecode/function-N` coor
 
 Changing one exclusion or threshold changes both policy and evaluation identities. Caller set order does not. Evaluation never edits the underlying transition report. This profile has no hidden percentage denominator and cannot promote an excluded source, proof, quantum, or empirical dimension into coverage evidence.
 
+## Proof stages
+
+`ProofObserver` records lookup, obligation construction, rule execution, acceptance, and rejection as distinct ordered stages. `ProofCoverage` keys points by proof rule, subject, and stage under `wheeler-proof-coverage-1`. A rejected certificate records rule execution and rejection, never acceptance. An accepted certificate records acceptance, never rejection.
+
+Proof-stage observation does not change kernel decisions or inhabit a theorem. Its report and identity remain separate from VM transition coverage, certificate identity, and proof validity.
+
 Source points, compound conditions, match arms, traps, attempt lineage, sharded merging, quantum structure, proof duties, thresholds, and Wheeler-written reduction remain part of WIP-0020. JaCoCo still measures only the Java seed implementation. It is not evidence about Wheeler semantics.

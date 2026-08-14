@@ -14,12 +14,37 @@ public final class ProofKernel {
   private ProofKernel() {}
 
   public static void verify(Program program, ProofCertificate certificate) {
-    switch (certificate.rule()) {
-      case GENERATED_INVERSE -> verifyGeneratedInverse(program, certificate);
-      case GENERATED_ADJOINT -> verifyGeneratedAdjoint(program, certificate);
-      case CIRCUIT_EQUIVALENCE -> verifyCircuitEquivalence(program, certificate);
-      case STATIC_STEP_BOUND -> verifyStaticStepBound(program, certificate);
+    verify(program, certificate, observation -> {});
+  }
+
+  /** Verifies one certificate while reporting each nominal kernel stage separately. */
+  public static void verify(
+      Program program, ProofCertificate certificate, ProofObserver observer) {
+    observer.observe(observation(0, certificate, ProofObserver.Stage.LOOKUP));
+    observer.observe(observation(1, certificate, ProofObserver.Stage.OBLIGATION));
+    observer.observe(observation(2, certificate, ProofObserver.Stage.RULE_EXECUTION));
+    try {
+      switch (certificate.rule()) {
+        case GENERATED_INVERSE -> verifyGeneratedInverse(program, certificate);
+        case GENERATED_ADJOINT -> verifyGeneratedAdjoint(program, certificate);
+        case CIRCUIT_EQUIVALENCE -> verifyCircuitEquivalence(program, certificate);
+        case STATIC_STEP_BOUND -> verifyStaticStepBound(program, certificate);
+      }
+    } catch (RuntimeException failure) {
+      observer.observe(observation(3, certificate, ProofObserver.Stage.REJECTION));
+      throw failure;
     }
+    observer.observe(observation(3, certificate, ProofObserver.Stage.ACCEPTANCE));
+  }
+
+  private static ProofObserver.Observation observation(
+      long sequence, ProofCertificate certificate, ProofObserver.Stage stage) {
+    return new ProofObserver.Observation(
+        sequence,
+        certificate.name(),
+        certificate.rule(),
+        certificate.subjectId(),
+        stage);
   }
 
   private static void verifyGeneratedInverse(
