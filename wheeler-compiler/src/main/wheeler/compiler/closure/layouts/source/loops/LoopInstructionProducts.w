@@ -171,6 +171,52 @@ classical class LoopInstructionProducts {
     return selected;
   }
 
+  private long nextRootLoop(
+    long priorStart,
+    long loopCount,
+    borrow mut words loopRows,
+    long statementCount,
+    borrow mut words statementRows
+  ) {
+    long selected = loopCount;
+    long selectedStart = 2147483647;
+    long matches = 0;
+    long loop = 0;
+    while (loop < loopCount) limit LOOP_COUNT_LIMIT {
+      if (loopRows[LOOP_DEPTH_ROW + loop] == 1) {
+        long statement = sourceStatementForLoop(
+          loop,
+          loopCount,
+          loopRows,
+          statementCount,
+          statementRows
+        );
+        if (-1 < statement) {
+          long start = statementRows[STATEMENT_SOURCE_START_ROW + statement];
+          if (priorStart < start) {
+            if (start < selectedStart) {
+              selected = loop;
+              selectedStart = start;
+              matches = 1;
+            } else {
+              if (start == selectedStart) {
+                matches += 1;
+              }
+            }
+          }
+        }
+      }
+
+      loop += 1;
+    }
+
+    if (matches != 1) {
+      return -1;
+    }
+
+    return selected;
+  }
+
   /// Emits every validated root loop and its nested loop windows atomically.
   public LoopInstructionProductPlan writeLoopInstructionProducts(
     boolean correctPlannedStarts,
@@ -384,14 +430,44 @@ classical class LoopInstructionProducts {
 
     long requiredLength = 0;
     long requiredInstructions = 0;
+    long rootCount = 0;
     loop = 0;
     while (loop < loopCount) limit LOOP_COUNT_LIMIT {
       if (loopRows[LOOP_DEPTH_ROW + loop] == 1) {
-        long rootOwner = loopRows[loop];
-        long instructionStart = loopInstructionStarts[loop] + ownerInstructionBiases[rootOwner];
-        set(stagedInstructionStarts, loop, instructionStart);
+        rootCount += 1;
+      }
+
+      loop += 1;
+    }
+
+    long measuredRootCount = 0;
+    long priorRootStart = -1;
+    while (measuredRootCount < rootCount) limit LOOP_COUNT_LIMIT {
+      long measuredLoop = nextRootLoop(
+        priorRootStart,
+        loopCount,
+        loopRows,
+        statementCount,
+        statementRows
+      );
+      if (measuredLoop < 0) {
+        valid = false;
+        measuredRootCount = rootCount;
+      } else {
+        long measuredStatement = sourceStatementForLoop(
+          measuredLoop,
+          loopCount,
+          loopRows,
+          statementCount,
+          statementRows
+        );
+        priorRootStart = statementRows[STATEMENT_SOURCE_START_ROW + measuredStatement];
+        long rootOwner = loopRows[measuredLoop];
+        long instructionStart = loopInstructionStarts[measuredLoop]
+          + ownerInstructionBiases[rootOwner];
+        set(stagedInstructionStarts, measuredLoop, instructionStart);
         NestedLoopInstructionPlan measured = writeNestedLoopInstructionProduct(
-          loop,
+          measuredLoop,
           loopCount,
           loopRows,
           stagedConditions,
@@ -422,9 +498,9 @@ classical class LoopInstructionProducts {
         } else {
           valid = false;
         }
-      }
 
-      loop += 1;
+        measuredRootCount += 1;
+      }
     }
 
     if (MAX_CODE_BYTES < requiredLength) {
@@ -440,38 +516,61 @@ classical class LoopInstructionProducts {
       return new LoopInstructionProductPlan(0, 0, false);
     }
 
-    long cursor = 0;
-    long instructionCount = 0;
     loop = 0;
     while (loop < loopCount) limit LOOP_COUNT_LIMIT {
       if (loopRows[LOOP_DEPTH_ROW + loop] == 1) {
-        NestedLoopInstructionPlan emitted = writeNestedLoopInstructionProduct(
-          loop,
-          loopCount,
-          loopRows,
-          stagedConditions,
-          statementCount,
-          statementRows,
-          blockCount,
-          blockRows,
-          bodyCount,
-          stagedBodies,
-          nestedCount,
-          nestedRows,
-          loopLocalBases,
-          stagedInstructionStarts[loop],
-          /* depth= */ 1,
-          /* publish= */ true,
-          cursor,
-          loopWindowRows,
-          output
-        );
-        assert(emitted.valid);
-        cursor += emitted.length;
-        instructionCount += emitted.instructionCount;
+        set(loopInstructionStarts, loop, stagedInstructionStarts[loop]);
       }
 
       loop += 1;
+    }
+
+    long cursor = 0;
+    long instructionCount = 0;
+    long emittedRootCount = 0;
+    priorRootStart = -1;
+    while (emittedRootCount < rootCount) limit LOOP_COUNT_LIMIT {
+      long emittedLoop = nextRootLoop(
+        priorRootStart,
+        loopCount,
+        loopRows,
+        statementCount,
+        statementRows
+      );
+      assert(-1 < emittedLoop);
+      long emittedStatement = sourceStatementForLoop(
+        emittedLoop,
+        loopCount,
+        loopRows,
+        statementCount,
+        statementRows
+      );
+      priorRootStart = statementRows[STATEMENT_SOURCE_START_ROW + emittedStatement];
+      NestedLoopInstructionPlan emitted = writeNestedLoopInstructionProduct(
+        emittedLoop,
+        loopCount,
+        loopRows,
+        stagedConditions,
+        statementCount,
+        statementRows,
+        blockCount,
+        blockRows,
+        bodyCount,
+        stagedBodies,
+        nestedCount,
+        nestedRows,
+        loopLocalBases,
+        stagedInstructionStarts[emittedLoop],
+        /* depth= */ 1,
+        /* publish= */ true,
+        cursor,
+        loopWindowRows,
+        output
+      );
+      assert(emitted.valid);
+      cursor += emitted.length;
+      instructionCount += emitted.instructionCount;
+      emittedRootCount += 1;
     }
 
     assert(cursor == requiredLength);

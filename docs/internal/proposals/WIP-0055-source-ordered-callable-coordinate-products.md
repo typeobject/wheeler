@@ -112,7 +112,8 @@ Failure leaves coordinate, code, type, relocation, and artifact outputs untouche
 - [x] Void descriptors and implicit returns publish without a fabricated result type or local slot and match stage 0.
 - [ ] The implicit void return and inverse products consume the same coordinate plan. The current composition pass appends the void return after statement planning. WIP-0057 owns call, relocation, and ownership coordinate products.
 - [x] `CallableInstructionPrefixes.w` publishes each loop's exact preceding root-direct instruction count from emitted direct products and exact source containment. Shuffled loop, statement, and direct-product storage rows publish the same prefixes. Duplicate loop identities leave caller rows untouched. `StructuredSourceModuleCompiler.w` no longer inspects source scalars or assumes two- and four-instruction direct forms.
-- [ ] The remaining recursive-loop frame and prior-root instruction biases move into the shared plan.
+- [x] `LoopInstructionProducts.w` measures root loops in exact source order, stages complete prior-root instruction prefixes, and publishes the final root instruction starts only after every recursive window validates. Loop row storage order no longer selects code order.
+- [ ] Provisional loop-body frame rebasing moves into the shared plan.
 
 ## Acceptance
 
