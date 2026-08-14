@@ -44,6 +44,16 @@ jobs:
           distribution: 'temurin'
       - name: Set up Gradle seed
         uses: gradle/actions/setup-gradle@v4
+      - name: Verify public and internal documentation
+        run: >-
+          ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2
+          :tools:test
+          --tests com.typeobject.wheeler.tools.DocumentationBundleCommandTest
+          --tests com.typeobject.wheeler.tools.DocumentationMarkdownTest
+          --tests com.typeobject.wheeler.tools.DocumentationSiteCommandTest
+          --tests com.typeobject.wheeler.tools.DocumentationStyleTest
+          --tests com.typeobject.wheeler.tools.InternalDocumentationTest
+          --tests com.typeobject.wheeler.tools.ProposalIndexTest
       - name: Build verified static site
         run: ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 -q :tools:wheeler --args='site -o docs-site'
       - name: Upload Pages artifact
