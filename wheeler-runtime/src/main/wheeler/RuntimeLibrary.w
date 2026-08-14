@@ -2,6 +2,7 @@
 
 module wheeler.runtime.library;
 
+import wheeler.runtime.bootstrap_coverage_fragments;
 import wheeler.runtime.coverage_reducer;
 import wheeler.runtime.interpreter;
 import wheeler.runtime.io.lifecycle;

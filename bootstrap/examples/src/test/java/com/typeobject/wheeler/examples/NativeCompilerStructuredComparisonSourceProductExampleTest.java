@@ -32,7 +32,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
         ) {
           long index = 0;
           while (index < length) limit MAX_SOURCE_BYTES {
-            long kind = rows[index];
+            long kind = rows[512 + index];
             boolean one = kind == 1;
             assert(-1 < kind);
             assert(index < length);
@@ -78,16 +78,21 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
 
   @Test
   void malformedComparisonProductsPublishNoArtifact() throws Exception {
-    String malformed = SOURCE.replace(
-        "assert(index < length);", "assert(index < length + 1);");
-    int body = malformed.indexOf("{", malformed.indexOf("copyOffset("));
-    int maxSourceBytes = malformed.indexOf("MAX_SOURCE_BYTES");
-    Program driver = driver(
-        body,
-        matchingClose(malformed, body) - body + 1,
-        maxSourceBytes);
+    assertNoArtifact(SOURCE.replace(
+        "assert(index < length);", "assert(index < length + 1);"));
+  }
+
+  @Test
+  void oversizedLiteralIndexPublishesNoArtifact() throws Exception {
+    assertNoArtifact(SOURCE.replace("512 + index", "65536 + index"));
+  }
+
+  private static void assertNoArtifact(String source) throws Exception {
+    int body = source.indexOf("{", source.indexOf("copyOffset("));
+    int maxSourceBytes = source.indexOf("MAX_SOURCE_BYTES");
+    Program driver = driver(body, matchingClose(source, body) - body + 1, maxSourceBytes);
     VirtualMachine machine = new VirtualMachine(
-        driver, malformed.getBytes(StandardCharsets.UTF_8), 32_768);
+        driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
     assertEquals(0, machine.global("valid"));

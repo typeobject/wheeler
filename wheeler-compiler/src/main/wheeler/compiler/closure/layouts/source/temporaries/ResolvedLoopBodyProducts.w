@@ -19,6 +19,8 @@ import wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
 
 classical class ResolvedLoopBodyProducts {
+  private const long LITERAL_INDEX_OFFSET_SCALE = 131072;
+  private const long MAX_LITERAL_INDEX_OFFSET = 65535;
   private const long MAX_STATEMENTS = 4096;
   private const long OPERAND_LITERAL = 0;
   private const long OPERAND_LOCAL = 1;
@@ -211,10 +213,44 @@ classical class ResolvedLoopBodyProducts {
                           PUNCTUATION_OPEN_SQUARE
                         )
                       ) {
+                        long indexToken = sourceToken + 2;
+                        long indexOffset = 0;
+                        boolean offsetIndex = false;
+                        if (
+                          signedNumberWidth(source, tokenKinds, tokenStarts, indexToken) == 1
+                        ) {
+                          if (
+                            signedNumberValid(source, tokenStarts, tokenLengths, indexToken)
+                          ) {
+                            if (
+                              punctuationAt(
+                                source,
+                                tokenKinds,
+                                tokenStarts,
+                                indexToken + 1,
+                                PUNCTUATION_PLUS
+                              )
+                            ) {
+                              indexOffset = parsedSignedNumber(
+                                source,
+                                tokenStarts,
+                                tokenLengths,
+                                indexToken
+                              );
+                              if (indexOffset < 0) {
+                                statementValid = false;
+                              } else {
+                                indexToken += 2;
+                                offsetIndex = true;
+                              }
+                            }
+                          }
+                        }
+
                         LoopBodyValue indexValue = resolveLoopBodyValue(
                           source,
-                          tokenStarts[sourceToken + 2],
-                          tokenLengths[sourceToken + 2],
+                          tokenStarts[indexToken],
+                          tokenLengths[indexToken],
                           owner,
                           ordinal,
                           valueCount,
@@ -226,7 +262,7 @@ classical class ResolvedLoopBodyProducts {
                               source,
                               tokenKinds,
                               tokenStarts,
-                              sourceToken + 3,
+                              indexToken + 1,
                               PUNCTUATION_CLOSE_SQUARE
                             )
                           ) {
@@ -245,6 +281,10 @@ classical class ResolvedLoopBodyProducts {
                               localBase = localBase - 1;
                               if (0 < read.operand / 65536) {
                                 localBase -= 1;
+                              }
+
+                              if (offsetIndex) {
+                                localBase -= 2;
                               }
 
                               long sourceType = loopBodyValueType(
@@ -267,6 +307,18 @@ classical class ResolvedLoopBodyProducts {
                               }
 
                               operand = read.operand;
+                              if (offsetIndex) {
+                                if (MAX_LITERAL_INDEX_OFFSET < indexOffset) {
+                                  statementValid = false;
+                                }
+
+                                if (opcode == BODY_WORDS_GET) {
+                                  opcode = BODY_WORDS_GET_OFFSET;
+                                  operand += indexOffset * LITERAL_INDEX_OFFSET_SCALE;
+                                } else {
+                                  statementValid = false;
+                                }
+                              }
                             } else {
                               statementValid = false;
                             }

@@ -11,6 +11,7 @@ import wheeler.compiler.resolved_statements;
 import wheeler.compiler.storage_opcodes;
 
 classical class LoopBodyInstructionEncoding {
+  private const long LITERAL_INDEX_OFFSET_SCALE = 131072;
   private const long OPERAND_LOCAL = 1;
   private const long U64 = ENCODING_WIDTH_U64;
 
@@ -19,6 +20,11 @@ classical class LoopBodyInstructionEncoding {
 
   /// Measures one resolved direct statement without writing caller storage.
   public LoopBodyInstructionExtent loopBodyInstructionExtent(long opcode, long operand) {
+    if (opcode == BODY_WORDS_GET_OFFSET) {
+      long borrowed = operand % LITERAL_INDEX_OFFSET_SCALE / 65536;
+      return new LoopBodyInstructionExtent(5 + borrowed, 136 + borrowed * 24, true);
+    }
+
     boolean bufferGet = opcode == BODY_WORDS_GET;
     if (opcode == BODY_BYTES_GET) {
       bufferGet = true;
@@ -170,6 +176,10 @@ classical class LoopBodyInstructionEncoding {
       }
     }
 
+    if (opcode == BODY_WORDS_GET_OFFSET) {
+      return 5 + operand % LITERAL_INDEX_OFFSET_SCALE / 65536;
+    }
+
     boolean bufferGet = opcode == BODY_WORDS_GET;
     if (opcode == BODY_BYTES_GET) {
       bufferGet = true;
@@ -262,6 +272,80 @@ classical class LoopBodyInstructionEncoding {
       );
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
       return writeUnsignedLittleEndian(output, cursor, localBase, U64);
+    }
+
+    if (opcode == BODY_WORDS_GET_OFFSET) {
+      long offsetLiteral = operand / LITERAL_INDEX_OFFSET_SCALE;
+      long offsetOperand = operand % LITERAL_INDEX_OFFSET_SCALE;
+      long offsetBorrowedOwner = offsetOperand / 65536;
+      long offsetPair = offsetOperand % 65536;
+      long offsetOwner = offsetPair / 256;
+      long offsetIndex = offsetPair % 256;
+      long offsetNextLocal = localBase;
+      long offsetOwnerOperand = offsetOwner;
+      if (0 < offsetBorrowedOwner) {
+        cursor = writeInstructionHeader(
+          output,
+          cursor,
+          OPCODE_LOCAL_MOVE,
+          INSTRUCTION_FORM_BINARY
+        );
+        cursor = writeUnsignedLittleEndian(output, cursor, offsetNextLocal, U64);
+        cursor = writeUnsignedLittleEndian(output, cursor, offsetOwner, U64);
+        offsetOwnerOperand = offsetNextLocal;
+        offsetNextLocal += 1;
+      }
+
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_CONST,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, offsetNextLocal, U64);
+      cursor = writeSignedLittleEndian(output, cursor, offsetLiteral, U64);
+      long offsetLiteralLocal = offsetNextLocal;
+      offsetNextLocal += 1;
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_MOVE,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, offsetNextLocal, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, offsetIndex, U64);
+      long offsetIndexLocal = offsetNextLocal;
+      offsetNextLocal += 1;
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_ADD,
+        INSTRUCTION_FORM_TERNARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, offsetNextLocal, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, offsetLiteralLocal, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, offsetIndexLocal, U64);
+      long offsetSumLocal = offsetNextLocal;
+      offsetNextLocal += 1;
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_WORDS_GET,
+        INSTRUCTION_FORM_TERNARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, offsetNextLocal, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, offsetOwnerOperand, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, offsetSumLocal, U64);
+      long offsetResult = offsetNextLocal;
+      offsetNextLocal += 1;
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_MOVE,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, offsetNextLocal, U64);
+      return writeUnsignedLittleEndian(output, cursor, offsetResult, U64);
     }
 
     boolean bufferGet = opcode == BODY_WORDS_GET;

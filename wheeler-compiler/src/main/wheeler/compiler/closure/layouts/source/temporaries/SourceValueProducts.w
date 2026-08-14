@@ -237,6 +237,17 @@ classical class SourceValueProducts {
             if (-1 < opcode) {
               localWidth = statementLocalCount(opcode);
               resultLocal = statementResultLocal(opcode, localBase);
+              if (
+                punctuationAt(source, tokenKinds, tokenStarts, statementToken + 4, 91)
+              ) {
+                if (tokenKinds[statementToken + 5] != 1) {
+                  if (tokenKinds[statementToken + 7] == 1) {
+                    localWidth += 2;
+                    resultLocal += 2;
+                  }
+                }
+              }
+
               long statementHash = tokenHash(source, tokenStarts, tokenLengths, statementToken);
               boolean indexedBufferCopy = loopBufferSetToken(statementHash);
 
@@ -340,6 +351,12 @@ classical class SourceValueProducts {
                         )
                       ) {
                         localWidth += 1;
+                      }
+
+                      if (tokenKinds[statementToken + 5] != 1) {
+                        if (tokenKinds[statementToken + 7] == 1) {
+                          localWidth += 2;
+                        }
                       }
 
                       resultLocal = localBase + localWidth - 1;

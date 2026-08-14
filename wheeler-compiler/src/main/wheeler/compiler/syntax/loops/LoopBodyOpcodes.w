@@ -37,4 +37,6 @@ classical class LoopBodyOpcodes {
   public const long BODY_ASSERT_LITERAL_LT_BASE = 34560;
   /// Starts assertions comparing one signed local below another.
   public const long BODY_ASSERT_LOCAL_LT_BASE = 34816;
+  /// Loads one word through a literal-plus-local index.
+  public const long BODY_WORDS_GET_OFFSET = 35072;
 }

@@ -13,6 +13,7 @@ classical class LoopLocalTypeProducts {
   private const long LOOP_BODY_STATEMENT_COUNT_ROW = 1792;
   private const long LOOP_COUNT_LIMIT = 256;
   private const long LOOP_FIRST_BODY_STATEMENT_ROW = 1536;
+  private const long LITERAL_INDEX_OFFSET_SCALE = 131072;
   private const long LOOP_ROWS = 2304;
   private const long MAX_LOCALS = 256;
   private const long MAX_STATEMENTS = 4096;
@@ -129,6 +130,14 @@ classical class LoopLocalTypeProducts {
 
     if (opcode == BODY_BYTEVIEW_GET) {
       bufferType = TYPE_BYTE_VIEW;
+    }
+
+    if (opcode == BODY_WORDS_GET_OFFSET) {
+      if (0 < operand % LITERAL_INDEX_OFFSET_SCALE / 65536) {
+        if (localOffset == 0) {
+          localType = bufferType;
+        }
+      }
     }
 
     boolean bufferGet = opcode == BODY_WORDS_GET;
@@ -301,7 +310,7 @@ classical class LoopLocalTypeProducts {
             }
 
             long localOffset = 0;
-            while (localOffset < localCount) limit 5 {
+            while (localOffset < localCount) limit 6 {
               if (valid) {
                 typeCount = appendType(
                   stagedTypes,
@@ -382,7 +391,7 @@ classical class LoopLocalTypeProducts {
                   }
 
                   long childLocalOffset = 0;
-                  while (childLocalOffset < childLocalCount) limit 5 {
+                  while (childLocalOffset < childLocalCount) limit 6 {
                     if (valid) {
                       typeCount = appendType(
                         stagedTypes,

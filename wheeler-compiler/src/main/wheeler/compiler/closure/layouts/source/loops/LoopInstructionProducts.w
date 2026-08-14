@@ -182,6 +182,10 @@ classical class LoopInstructionProducts {
       bufferOperand = true;
     }
 
+    if (opcode == BODY_WORDS_GET_OFFSET) {
+      bufferOperand = true;
+    }
+
     if (bufferOperand) {
       set(
         bodyRows,

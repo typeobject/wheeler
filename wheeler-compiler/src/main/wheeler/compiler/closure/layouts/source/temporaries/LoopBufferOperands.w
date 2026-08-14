@@ -7,11 +7,32 @@ import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.loop_body_opcodes;
 
 classical class LoopBufferOperands {
+  private const long LITERAL_INDEX_OFFSET_SCALE = 131072;
+
   /// Reports one packed buffer operand tuple.
   public record LoopBufferOperand(long operand, boolean valid) {}
 
   /// Rebases every local coordinate while preserving buffer reborrow bits.
   public long rebaseLoopBufferOperand(long opcode, long operand, long boundary, long bias) {
+    if (opcode == BODY_WORDS_GET_OFFSET) {
+      long offset = operand / LITERAL_INDEX_OFFSET_SCALE;
+      long offsetOperand = operand % LITERAL_INDEX_OFFSET_SCALE;
+      long offsetBorrowed = offsetOperand / 65536;
+      long offsetPair = offsetOperand % 65536;
+      long offsetOwner = offsetPair / 256;
+      long offsetIndex = offsetPair % 256;
+      if (boundary < offsetOwner + 1) {
+        offsetOwner += bias;
+      }
+
+      if (boundary < offsetIndex + 1) {
+        offsetIndex += bias;
+      }
+
+      return offset * LITERAL_INDEX_OFFSET_SCALE + offsetBorrowed * 65536 + offsetOwner * 256
+        + offsetIndex;
+    }
+
     boolean bufferGet = opcode == BODY_WORDS_GET;
     if (opcode == BODY_BYTES_GET) {
       bufferGet = true;
