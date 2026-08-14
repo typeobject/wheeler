@@ -6,7 +6,8 @@ WIP-0032 specifies Wheeler's portable I/O contract. There is one request lifecyc
 
 The quarantined runtime now carries a deterministic executable slice under `bootstrap/runtime/src/main/java/com/typeobject/wheeler/runtime/io/`:
 
-- `IoRequest<T>` prepares one pure, affine request.
+- `wheeler.runtime.io.portable` owns the source-level nominal request, scope, operation, completion, queue, reap, and effect-boundary spelling.
+- `IoRequest<T>` prepares one pure, affine host-adapter request.
 - `IoScope` bounds submission, work, batches, graphs, terminal completions, and reaping.
 - `IoOperation<T>` is a live must-reap handle.
 - `IoCompletion<T>` separates terminal kind, cancellation relation, known progress, resource release, and backend identity.
@@ -24,7 +25,7 @@ The quarantined runtime now carries a deterministic executable slice under `boot
 - `CompletionIo` supplies bounded one-lane and many-lane completion queues. The awaiting scope thread drives them.
 - `ReadinessIo`, `PollingIo`, and `InterruptIo` exercise explicit readiness, caller polling, and fixed-worker terminal notification through the same scope.
 
-The implementation is stage-0 scaffolding. Its Java API is replaceable and is not a source-language compatibility promise. The lifecycle and distinctions are the contract.
+The Java implementation remains stage-0 host scaffolding. Wheeler source now owns the portable nominal API and lifecycle rows. Java generic types are adapter implementation details, not a second language spelling.
 
 ## Lifecycle
 
@@ -54,7 +55,7 @@ The declared host floor opens 256 simultaneous loopback channels with one servic
 
 `IoDeadline` takes an explicit semantic tick rather than reading wall time. Expiry requests cancellation once. It may establish cancellation before effect, completion winning the race, known partial effect, or uncertainty. Expiry alone never proves that no effect occurred.
 
-The accepted source profile grants physical host input and output only to `entry`. `setOutputLength` requires the exact entry output owner. An entry cannot also be `rev`, `coherent rev`, `unitary`, or `test`, and theorem declarations contain no executable body. The compiler rejects helper and reversible or quantum method attempts before bytecode publication. Stage-0 `IoRequest` is host scaffolding, not an ambient Wheeler source API.
+The accepted source profile grants physical host input and output only to `entry`. `setOutputLength` requires the exact entry output owner. An entry cannot also be `rev`, `coherent rev`, `unitary`, or `test`, and theorem declarations contain no executable body. The compiler rejects helper and reversible or quantum method attempts before bytecode publication. `wheeler.runtime.io.portable` operates on explicit caller-owned lifecycle tables. It grants no ambient host resource. Stage-0 `IoRequest` remains the host adapter beneath that source contract.
 
 `IoEffectBoundary.acceptLive` accepts one terminal live-I/O completion at an explicit workflow boundary. It binds the completion facts into a content identity and cuts the VM rewind tail while retaining current machine state. `IoCompensation` prepares a second request from one effect-bearing completion. Its action does not run during construction. Successful evidence receives a distinct compensation receipt, and acceptance establishes another `COMPENSATION` boundary. Failed compensation cannot establish that boundary. Neither operation claims inverse execution or removes the original external effect.
 
@@ -73,7 +74,11 @@ The executable model distinguishes:
 
 Cancellation does not reap an operation and never claims rollback. Malformed provider progress is normalized to a known failure before completion publication.
 
-## Wheeler-native lifecycle kernel
+## Wheeler-native portable API and lifecycle kernel
+
+`wheeler-runtime/src/main/wheeler/runtime/io/Portable.w` defines nominal source requests, scopes, operations, closed terminal completions, bounded completion queues, explicit reap permission, and live effect boundaries. Admission and completion delegate to one lifecycle table. FIFO push and pop move only operation identities and run no provider work. Every completion lowers to `EffectLowering.Live`. The reversible case has no constructor path from external completion.
+
+The native fixture admits one request, publishes success with exact progress and resource release, enqueues and dequeues its operation, lowers its live boundary, reaps once, closes its scope, and rewinds the complete VM. This establishes source spelling and portable row ownership. Native host providers still supply the actual external capability and action.
 
 `wheeler-runtime/src/main/wheeler/runtime/io/Lifecycle.w` moves the lifecycle laws out of Java prose and into executable Wheeler. The kernel uses caller-owned fixed columns for state, declared work, exact progress, terminal kind, cancellation relation, resource release, and reap state. It accepts at most 64 rows and publishes no row until every capacity and arithmetic check succeeds.
 
@@ -136,4 +141,4 @@ Skipping a stage, replaying evidence, claiming namespace visibility without a na
 
 This slice performs synthetic provider actions, bounded in-memory positional, tier, and remote-memory operations, plus one bounded native positional-file adapter. It has typed placement and receipt schemas but no release-grade evidence issuer. It does not yet implement native completion, direct I/O, network protocols above the connected byte stream, RNIC access, or crash- and power-cut-qualified persistence. Native file forcing is confined to its declared process-crash API profile. No current receipt proves namespace stability, peer application, quorum, remote persistence, or power-loss survival.
 
-The I/O conformance tests live under `bootstrap/runtime/src/test/java/com/typeobject/wheeler/runtime/io/`. Wheeler source request types, effect lowering, source-language buffer loans, the remaining native providers, and crash-tested receipts remain required before WIP-0032 can leave Draft.
+The I/O conformance tests live under `bootstrap/runtime/src/test/java/com/typeobject/wheeler/runtime/io/`. Source-language buffer loans, the remaining native providers, and crash-tested receipts remain required before WIP-0032 can leave Draft.
