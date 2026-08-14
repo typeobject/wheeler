@@ -5,7 +5,6 @@ module wheeler.compiler.closure.source_value_products;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.compiler_token_limits;
-import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
@@ -239,10 +238,7 @@ classical class SourceValueProducts {
               localWidth = statementLocalCount(opcode);
               resultLocal = statementResultLocal(opcode, localBase);
               long statementHash = tokenHash(source, tokenStarts, tokenLengths, statementToken);
-              boolean indexedBufferCopy = statementHash == TOKEN_SET;
-              if (statementHash == TOKEN_SET_BYTE) {
-                indexedBufferCopy = true;
-              }
+              boolean indexedBufferCopy = loopBufferSetToken(statementHash);
 
               if (indexedBufferCopy) {
                 indexedBufferCopy = punctuationAt(

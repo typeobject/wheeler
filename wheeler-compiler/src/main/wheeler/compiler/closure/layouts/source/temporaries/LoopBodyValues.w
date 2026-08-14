@@ -346,6 +346,15 @@ classical class LoopBodyValues {
     );
   }
 
+  /// Reports whether one token hash names a supported buffer write intrinsic.
+  public boolean loopBufferSetToken(long hash) {
+    if (hash == TOKEN_SET) {
+      return true;
+    }
+
+    return hash == TOKEN_SET_BYTE;
+  }
+
   /// Reports whether one source local carries an explicit borrow mode.
   public boolean borrowedLoopBodyLocal(
     borrow utf8 source,
