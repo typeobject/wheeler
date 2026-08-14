@@ -30,6 +30,7 @@ import wheeler.compiler.closure.primitive_placeholder_projection;
 import wheeler.compiler.closure.resolved_aggregate_operations;
 import wheeler.compiler.closure.resolved_loop_body_products;
 import wheeler.compiler.closure.resolved_loop_products;
+import wheeler.compiler.closure.source_call_argument_products;
 import wheeler.compiler.closure.source_callable_type_products;
 import wheeler.compiler.closure.source_loop_products;
 import wheeler.compiler.closure.source_ownership_products;
