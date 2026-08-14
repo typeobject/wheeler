@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.structured_source_module_compiler;
 
+import wheeler.compiler.closure.callable_instruction_prefixes;
 import wheeler.compiler.closure.callable_source_composition;
 import wheeler.compiler.closure.direct_statement_products;
 import wheeler.compiler.closure.loop_body_layouts;
@@ -122,39 +123,6 @@ classical class StructuredSourceModuleCompiler {
     }
 
     return statementPhysicalStarts[statement] + local - logicalBase;
-  }
-
-  private long instructionStartForLoop(
-    borrow utf8 source,
-    long owner,
-    long loopOrdinal,
-    long statementCount,
-    borrow mut words statementRows
-  ) {
-    long rootBlock = loopBodyRootBlockForOwner(owner, statementCount, statementRows);
-    long instructionStart = 0;
-    long statement = 0;
-    while (statement < statementCount) limit MAX_STATEMENTS {
-      if (statementRows[statement] == owner) {
-        if (statementRows[4096 + statement] == rootBlock) {
-          if (statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement] < loopOrdinal) {
-            if (statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement] == 0) {
-              long directInstructions = 2;
-              long start = statementRows[LOOP_STATEMENT_START_ROW + statement];
-              if (utf8Scalar(source, start) == 97) {
-                directInstructions = 4;
-              }
-
-              instructionStart += directInstructions;
-            }
-          }
-        }
-      }
-
-      statement += 1;
-    }
-
-    return instructionStart;
   }
 
   /// Publishes one verified source-local artifact without scalar-helper reparsing.
@@ -379,14 +347,34 @@ classical class StructuredSourceModuleCompiler {
       long loopStatement = statementAtLoop(owner, ordinal, loopPlan.statementCount, statements);
       assert(-1 < loopStatement);
       set(loopLocalBases, loop, statementPhysicalStarts[loopStatement]);
-      set(
-        loopInstructionStarts,
-        loop,
-        instructionStartForLoop(source, owner, ordinal, loopPlan.statementCount, statements)
-      );
       loop += 1;
     }
 
+    DirectStatementPlan directPlan = materializeDirectStatementProducts(
+      source,
+      loopPlan.statementCount,
+      statements,
+      valuePlan.valueCount,
+      values,
+      statementLocalRows,
+      statementPhysicalStarts,
+      statementPhysicalWidths,
+      directRows,
+      functionResultTypes,
+      directTypes,
+      directCode
+    );
+    assert(directPlan.valid);
+    CallableInstructionPrefixPlan instructionPrefixPlan = materializeCallableInstructionPrefixes(
+      resolvedPlan.loopCount,
+      resolvedLoops,
+      loopPlan.statementCount,
+      statements,
+      directPlan.productCount,
+      directRows,
+      loopInstructionStarts
+    );
+    assert(instructionPrefixPlan.valid);
     LoopInstructionProductPlan codePlan = writeLoopInstructionProducts(
       true,
       resolvedPlan.loopCount,
@@ -421,22 +409,6 @@ classical class StructuredSourceModuleCompiler {
       loopTypes
     );
     assert(typePlan.valid);
-
-    DirectStatementPlan directPlan = materializeDirectStatementProducts(
-      source,
-      loopPlan.statementCount,
-      statements,
-      valuePlan.valueCount,
-      values,
-      statementLocalRows,
-      statementPhysicalStarts,
-      statementPhysicalWidths,
-      directRows,
-      functionResultTypes,
-      directTypes,
-      directCode
-    );
-    assert(directPlan.valid);
     CallableSourceCompositionPlan composition = composeCallableSourceProducts(
       callableCount,
       loopPlan.statementCount,

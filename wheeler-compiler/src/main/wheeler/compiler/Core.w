@@ -13,6 +13,7 @@ import wheeler.compiler.closure.aggregate_projection_targets;
 import wheeler.compiler.closure.aggregate_resolved_operands;
 import wheeler.compiler.closure.aggregate_source_owners;
 import wheeler.compiler.closure.callable_coordinate_products;
+import wheeler.compiler.closure.callable_instruction_prefixes;
 import wheeler.compiler.closure.counted_local_nominal_carriers;
 import wheeler.compiler.closure.local_nominal_carrier_projections;
 import wheeler.compiler.closure.local_nominal_carriers;
