@@ -103,6 +103,19 @@ jobs:
         distribution: temurin
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+    - name: Resolve and compile the example harness
+      shell: bash
+      run: |
+        for attempt in 1 2 3; do
+          if ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2 \
+              :examples:compileTestJava; then
+            exit 0
+          fi
+          if [[ "$attempt" == 3 ]]; then
+            exit 1
+          fi
+          sleep $((attempt * 15))
+        done
     - name: Test one bounded example shard
       run: >-
         ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2
