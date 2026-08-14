@@ -63,6 +63,10 @@ targets:
     root: "src/main/wheeler/host/HostInput.w"
     test: false
   - kind: "deployable"
+    name: "incrementaldependencygraph"
+    root: "src/main/wheeler/classical/control/IncrementalDependencyGraph.w"
+    test: false
+  - kind: "deployable"
     name: "integerwavelettransform"
     root: "src/main/wheeler/classical/data/IntegerWaveletTransform.w"
     test: false

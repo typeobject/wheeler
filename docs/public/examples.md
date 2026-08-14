@@ -121,6 +121,14 @@ Expected behavior:
 - For UTF-8 `A¢` and capacity 2: globals `byteLength = 3`, `scalarCount = outputLength = 2`, `firstScalar = 65`.
 - Output `A!`.
 
+### `IncrementalDependencyGraph.w`
+
+Source: [`IncrementalDependencyGraph.w`](../../wheeler-examples/src/main/wheeler/classical/control/IncrementalDependencyGraph.w).
+
+Covers: A bounded source-to-parse-to-code-to-link dependency chain, explicit per-node versions, change propagation, duplicate notification suppression, typed helper calls, and a rebuild count independent of notification count.
+
+Expected result: every node has version `2`, and `rebuilds = 6`.
+
 ### `IntegerWaveletTransform.w`
 
 Source: [`IntegerWaveletTransform.w`](../../wheeler-examples/src/main/wheeler/classical/data/IntegerWaveletTransform.w).

@@ -113,6 +113,14 @@ class ClassicalExamplesTest {
             "byteLength", 6L, "scalarCount", 3L, "middleScalar", 8364L, "valid", 1L)),
         Arguments.of("classical/control/FunctionValues.w", Map.of("result", 10L)),
         Arguments.of(
+            "classical/control/IncrementalDependencyGraph.w",
+            Map.of(
+                "sourceVersion", 2L,
+                "parseVersion", 2L,
+                "codeVersion", 2L,
+                "linkVersion", 2L,
+                "rebuilds", 6L)),
+        Arguments.of(
             "classical/data/IntegerWaveletTransform.w",
             Map.of("high", 10L, "low", 6L, "observedHigh", 4L, "observedLow", 10L)),
         Arguments.of("classical/control/LoopControl.w", Map.of("sum", 12L, "selected", 7L)),
