@@ -5,6 +5,8 @@ module wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
+import wheeler.compiler.loop_body_opcodes;
+import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 
 classical class LoopBodyValues {
@@ -17,6 +19,335 @@ classical class LoopBodyValues {
 
   /// Reports one exact visible callable value.
   public record LoopBodyValue(long local, boolean valid) {}
+
+  /// Reports one Boolean declaration resolved against prior callable values.
+  public record LoopBooleanDeclaration(long localBase, long opcode, long operand, boolean valid) {}
+
+  /// Resolves one Boolean literal or signed-local equality declaration.
+  public LoopBooleanDeclaration resolveLoopBooleanDeclaration(
+    borrow utf8 source,
+    long token,
+    long owner,
+    long ordinal,
+    long valueCount,
+    borrow mut words valueRows,
+    long semanticCount,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    LoopBodyValue declaration = resolveLoopBodyValue(
+      source,
+      tokenStarts[token + 1],
+      tokenLengths[token + 1],
+      owner,
+      ordinal + 1,
+      valueCount,
+      valueRows
+    );
+    if (declaration.valid == false) {
+      return new LoopBooleanDeclaration(0, 0, 0, false);
+    }
+
+    long localBase = declaration.local - 1;
+    long valueToken = token + 3;
+    long literal = tokenHash(source, tokenStarts, tokenLengths, valueToken);
+    if (literal == TOKEN_TRUE) {
+      return new LoopBooleanDeclaration(localBase, BODY_BOOLEAN_LITERAL, 1, true);
+    }
+
+    if (literal == TOKEN_FALSE) {
+      return new LoopBooleanDeclaration(localBase, BODY_BOOLEAN_LITERAL, 0, true);
+    }
+
+    if (tokenKinds[valueToken] != 1) {
+      return new LoopBooleanDeclaration(0, 0, 0, false);
+    }
+
+    LoopBodyValue comparisonSource = resolveLoopBodyValue(
+      source,
+      tokenStarts[valueToken],
+      tokenLengths[valueToken],
+      owner,
+      ordinal,
+      valueCount,
+      valueRows
+    );
+    if (comparisonSource.valid == false) {
+      return new LoopBooleanDeclaration(0, 0, 0, false);
+    }
+
+    if (
+      signedLoopBodyLocal(
+        source,
+        owner,
+        comparisonSource.local,
+        valueCount,
+        valueRows,
+        semanticCount,
+        tokenStarts,
+        tokenLengths
+      ) == false
+    ) {
+      return new LoopBooleanDeclaration(0, 0, 0, false);
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, valueToken + 1, PUNCTUATION_ASSIGN) == false
+    ) {
+      return new LoopBooleanDeclaration(0, 0, 0, false);
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, valueToken + 2, PUNCTUATION_ASSIGN) == false
+    ) {
+      return new LoopBooleanDeclaration(0, 0, 0, false);
+    }
+
+    long comparisonLiteral = valueToken + 3;
+    if (signedNumberWidth(source, tokenKinds, tokenStarts, comparisonLiteral) != 1) {
+      return new LoopBooleanDeclaration(0, 0, 0, false);
+    }
+
+    if (
+      signedNumberValid(source, tokenStarts, tokenLengths, comparisonLiteral) == false
+    ) {
+      return new LoopBooleanDeclaration(0, 0, 0, false);
+    }
+
+    return new LoopBooleanDeclaration(
+      localBase - 2,
+      BODY_BOOLEAN_EQ_LITERAL_BASE + comparisonSource.local,
+      parsedSignedNumber(source, tokenStarts, tokenLengths, comparisonLiteral),
+      true
+    );
+  }
+
+  /// Reports one resolved direct loop assertion.
+  public record LoopAssertion(long opcode, long operandKind, long operand, boolean valid) {}
+
+  /// Resolves Boolean, local-to-literal, and literal-to-local assertions.
+  public LoopAssertion resolveLoopAssertion(
+    borrow utf8 source,
+    long token,
+    long owner,
+    long ordinal,
+    long valueCount,
+    borrow mut words valueRows,
+    long semanticCount,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, token + 1, PUNCTUATION_OPEN_PAREN) == false
+    ) {
+      return new LoopAssertion(0, 0, 0, false);
+    }
+
+    long leftToken = token + 2;
+    if (tokenKinds[leftToken] != 1) {
+      long leftWidth = signedNumberWidth(source, tokenKinds, tokenStarts, leftToken);
+      if (leftWidth < 1) {
+        return new LoopAssertion(0, 0, 0, false);
+      }
+
+      if (signedNumberValid(source, tokenStarts, tokenLengths, leftToken) == false) {
+        return new LoopAssertion(0, 0, 0, false);
+      }
+
+      long reversedComparisonToken = leftToken + leftWidth;
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          reversedComparisonToken,
+          PUNCTUATION_LESS_THAN
+        ) == false
+      ) {
+        return new LoopAssertion(0, 0, 0, false);
+      }
+
+      long reversedRightToken = reversedComparisonToken + 1;
+      LoopBodyValue right = resolveLoopBodyValue(
+        source,
+        tokenStarts[reversedRightToken],
+        tokenLengths[reversedRightToken],
+        owner,
+        ordinal,
+        valueCount,
+        valueRows
+      );
+      if (right.valid == false) {
+        return new LoopAssertion(0, 0, 0, false);
+      }
+
+      if (
+        signedLoopBodyLocal(
+          source,
+          owner,
+          right.local,
+          valueCount,
+          valueRows,
+          semanticCount,
+          tokenStarts,
+          tokenLengths
+        ) == false
+      ) {
+        return new LoopAssertion(0, 0, 0, false);
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          reversedRightToken + 1,
+          PUNCTUATION_CLOSE_PAREN
+        ) == false
+      ) {
+        return new LoopAssertion(0, 0, 0, false);
+      }
+
+      return new LoopAssertion(
+        BODY_ASSERT_LITERAL_LT_BASE + right.local,
+        0,
+        parsedSignedNumber(source, tokenStarts, tokenLengths, leftToken),
+        true
+      );
+    }
+
+    LoopBodyValue left = resolveLoopBodyValue(
+      source,
+      tokenStarts[leftToken],
+      tokenLengths[leftToken],
+      owner,
+      ordinal,
+      valueCount,
+      valueRows
+    );
+    if (left.valid == false) {
+      return new LoopAssertion(0, 0, 0, false);
+    }
+
+    long comparisonToken = leftToken + 1;
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, comparisonToken, PUNCTUATION_CLOSE_PAREN)
+    ) {
+      return new LoopAssertion(BODY_ASSERT_BOOLEAN, 1, left.local, true);
+    }
+
+    long assertionBase = -1;
+    long sourceToken = comparisonToken + 1;
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, comparisonToken, PUNCTUATION_LESS_THAN)
+    ) {
+      assertionBase = BODY_ASSERT_LT_LITERAL_BASE;
+    } else {
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, comparisonToken, PUNCTUATION_ASSIGN)
+      ) {
+        if (
+          punctuationAt(
+            source,
+            tokenKinds,
+            tokenStarts,
+            comparisonToken + 1,
+            PUNCTUATION_ASSIGN
+          )
+        ) {
+          assertionBase = BODY_ASSERT_EQ_LITERAL_BASE;
+          sourceToken += 1;
+        }
+      }
+    }
+
+    if (assertionBase < 0) {
+      return new LoopAssertion(0, 0, 0, false);
+    }
+
+    if (tokenKinds[sourceToken] == 1) {
+      if (assertionBase != BODY_ASSERT_LT_LITERAL_BASE) {
+        return new LoopAssertion(0, 0, 0, false);
+      }
+
+      LoopBodyValue localRight = resolveLoopBodyValue(
+        source,
+        tokenStarts[sourceToken],
+        tokenLengths[sourceToken],
+        owner,
+        ordinal,
+        valueCount,
+        valueRows
+      );
+      if (localRight.valid == false) {
+        return new LoopAssertion(0, 0, 0, false);
+      }
+
+      if (
+        signedLoopBodyLocal(
+          source,
+          owner,
+          localRight.local,
+          valueCount,
+          valueRows,
+          semanticCount,
+          tokenStarts,
+          tokenLengths
+        ) == false
+      ) {
+        return new LoopAssertion(0, 0, 0, false);
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          sourceToken + 1,
+          PUNCTUATION_CLOSE_PAREN
+        ) == false
+      ) {
+        return new LoopAssertion(0, 0, 0, false);
+      }
+
+      return new LoopAssertion(
+        BODY_ASSERT_LOCAL_LT_BASE + left.local,
+        1,
+        localRight.local,
+        true
+      );
+    }
+
+    long sourceWidth = signedNumberWidth(source, tokenKinds, tokenStarts, sourceToken);
+    if (sourceWidth < 1) {
+      return new LoopAssertion(0, 0, 0, false);
+    }
+
+    if (signedNumberValid(source, tokenStarts, tokenLengths, sourceToken) == false) {
+      return new LoopAssertion(0, 0, 0, false);
+    }
+
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        sourceToken + sourceWidth,
+        PUNCTUATION_CLOSE_PAREN
+      ) == false
+    ) {
+      return new LoopAssertion(0, 0, 0, false);
+    }
+
+    return new LoopAssertion(
+      assertionBase + left.local,
+      0,
+      parsedSignedNumber(source, tokenStarts, tokenLengths, sourceToken),
+      true
+    );
+  }
 
   /// Returns the next statement in strict source order.
   public long nextLoopBodyStatement(

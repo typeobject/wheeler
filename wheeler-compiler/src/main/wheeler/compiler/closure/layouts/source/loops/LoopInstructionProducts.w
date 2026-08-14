@@ -88,6 +88,18 @@ classical class LoopInstructionProducts {
       }
     }
 
+    if (BODY_BOOLEAN_EQ_LITERAL_BASE - 1 < opcode) {
+      if (opcode < BODY_BOOLEAN_EQ_LITERAL_BASE + 256) {
+        base = BODY_BOOLEAN_EQ_LITERAL_BASE;
+      }
+    }
+
+    if (BODY_ASSERT_LITERAL_LT_BASE - 1 < opcode) {
+      if (opcode < BODY_ASSERT_LOCAL_LT_BASE + 256) {
+        base = opcode / 256 * 256;
+      }
+    }
+
     if (base < 0) {
       return opcode;
     }

@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
+/** Exact calibration provenance and stale policy gate every compiled target plan. */
 final class CalibrationAwareCompilerTest {
   private static final int SHOTS = 128;
 

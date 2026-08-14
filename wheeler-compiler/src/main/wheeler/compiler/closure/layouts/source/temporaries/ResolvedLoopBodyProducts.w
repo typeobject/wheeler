@@ -141,32 +141,24 @@ classical class ResolvedLoopBodyProducts {
               }
 
               if (statementValid) {
-                LoopBodyValue booleanDeclaration = resolveLoopBodyValue(
+                LoopBooleanDeclaration booleanPlan = resolveLoopBooleanDeclaration(
                   source,
-                  tokenStarts[token + 1],
-                  tokenLengths[token + 1],
+                  token,
                   owner,
-                  ordinal + 1,
+                  ordinal,
                   valueCount,
-                  valueRows
+                  valueRows,
+                  semanticCount,
+                  tokenKinds,
+                  tokenStarts,
+                  tokenLengths
                 );
-                if (booleanDeclaration.valid) {
-                  localBase = booleanDeclaration.local - 1;
+                if (booleanPlan.valid) {
+                  localBase = booleanPlan.localBase;
+                  opcode = booleanPlan.opcode;
+                  operand = booleanPlan.operand;
                 } else {
                   statementValid = false;
-                }
-
-                long literal = tokenHash(source, tokenStarts, tokenLengths, token + 3);
-                if (literal == TOKEN_TRUE) {
-                  opcode = BODY_BOOLEAN_LITERAL;
-                  operand = 1;
-                } else {
-                  if (literal == TOKEN_FALSE) {
-                    opcode = BODY_BOOLEAN_LITERAL;
-                    operand = 0;
-                  } else {
-                    statementValid = false;
-                  }
                 }
               }
             } else {
@@ -359,123 +351,24 @@ classical class ResolvedLoopBodyProducts {
                   if (
                     tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_ASSERT
                   ) {
-                    if (
-                      punctuationAt(
-                        source,
-                        tokenKinds,
-                        tokenStarts,
-                        token + 1,
-                        PUNCTUATION_OPEN_PAREN
-                      ) == false
-                    ) {
-                      statementValid = false;
-                    }
-
-                    long assertionLeftToken = token + 2;
-                    if (tokenKinds[assertionLeftToken] != 1) {
-                      statementValid = false;
-                    }
-
-                    LoopBodyValue assertionLeft = resolveLoopBodyValue(
+                    LoopAssertion assertion = resolveLoopAssertion(
                       source,
-                      tokenStarts[assertionLeftToken],
-                      tokenLengths[assertionLeftToken],
+                      token,
                       owner,
                       ordinal,
                       valueCount,
-                      valueRows
+                      valueRows,
+                      semanticCount,
+                      tokenKinds,
+                      tokenStarts,
+                      tokenLengths
                     );
-                    if (assertionLeft.valid == false) {
-                      statementValid = false;
-                    }
-
-                    long comparisonToken = assertionLeftToken + 1;
-                    long assertionSourceToken = comparisonToken + 1;
-                    long assertionBase = -1;
-                    if (
-                      punctuationAt(
-                        source,
-                        tokenKinds,
-                        tokenStarts,
-                        comparisonToken,
-                        PUNCTUATION_CLOSE_PAREN
-                      )
-                    ) {
-                      opcode = BODY_ASSERT_BOOLEAN;
-                      operandKind = OPERAND_LOCAL;
-                      operand = assertionLeft.local;
-                      assertionBase = BODY_ASSERT_BOOLEAN;
-                    }
-
-                    if (
-                      punctuationAt(
-                        source,
-                        tokenKinds,
-                        tokenStarts,
-                        comparisonToken,
-                        PUNCTUATION_LESS_THAN
-                      )
-                    ) {
-                      assertionBase = BODY_ASSERT_LT_LITERAL_BASE;
+                    if (assertion.valid) {
+                      opcode = assertion.opcode;
+                      operandKind = assertion.operandKind;
+                      operand = assertion.operand;
                     } else {
-                      if (
-                        punctuationAt(
-                          source,
-                          tokenKinds,
-                          tokenStarts,
-                          comparisonToken,
-                          PUNCTUATION_ASSIGN
-                        )
-                      ) {
-                        if (
-                          punctuationAt(
-                            source,
-                            tokenKinds,
-                            tokenStarts,
-                            comparisonToken + 1,
-                            PUNCTUATION_ASSIGN
-                          )
-                        ) {
-                          assertionBase = BODY_ASSERT_EQ_LITERAL_BASE;
-                          assertionSourceToken += 1;
-                        }
-                      }
-                    }
-
-                    if (assertionBase < 0) {
                       statementValid = false;
-                    } else {
-                      if (assertionBase != BODY_ASSERT_BOOLEAN) {
-                        if (
-                          signedNumberWidth(
-                            source,
-                            tokenKinds,
-                            tokenStarts,
-                            assertionSourceToken
-                          ) != 1
-                        ) {
-                          statementValid = false;
-                        } else {
-                          if (
-                            signedNumberValid(
-                              source,
-                              tokenStarts,
-                              tokenLengths,
-                              assertionSourceToken
-                            )
-                          ) {
-                            opcode = assertionBase + assertionLeft.local;
-                            operand = parsedSignedNumber(
-                              source,
-                              tokenStarts,
-                              tokenLengths,
-                              assertionSourceToken
-                            );
-                          } else {
-                            statementValid = false;
-                          }
-                        }
-                      }
                     }
                   } else {
                     LoopBodyValue target = resolveLoopBodyValue(

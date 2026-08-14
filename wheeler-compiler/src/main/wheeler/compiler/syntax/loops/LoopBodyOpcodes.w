@@ -31,4 +31,10 @@ classical class LoopBodyOpcodes {
   public const long BODY_BYTEVIEW_GET = 34054;
   /// Copies one immutable byte-view value into mutable byte storage.
   public const long BODY_BYTEVIEW_TO_BYTES_COPY = 34055;
+  /// Starts Boolean declarations comparing one signed local to one literal.
+  public const long BODY_BOOLEAN_EQ_LITERAL_BASE = 34304;
+  /// Starts assertions comparing one signed literal below one signed local.
+  public const long BODY_ASSERT_LITERAL_LT_BASE = 34560;
+  /// Starts assertions comparing one signed local below another.
+  public const long BODY_ASSERT_LOCAL_LT_BASE = 34816;
 }

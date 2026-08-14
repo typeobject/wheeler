@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+/** Optimizer checkpoints recover provider work and apply each result identity once. */
 final class RecoverableOptimizerCampaignTest {
   @Test
   void restoresQueuedAndRunningBatchesAndSuppressesDuplicateResults() {

@@ -90,6 +90,26 @@ classical class LoopLocalTypeProducts {
       }
     }
 
+    if (BODY_BOOLEAN_EQ_LITERAL_BASE - 1 < opcode) {
+      if (opcode < BODY_BOOLEAN_EQ_LITERAL_BASE + MAX_LOCALS) {
+        if (localOffset == 2) {
+          localType = TYPE_BOOLEAN;
+        }
+
+        if (localOffset == 3) {
+          localType = TYPE_BOOLEAN;
+        }
+      }
+    }
+
+    if (BODY_ASSERT_LITERAL_LT_BASE - 1 < opcode) {
+      if (opcode < BODY_ASSERT_LOCAL_LT_BASE + MAX_LOCALS) {
+        if (localOffset == 2) {
+          localType = TYPE_BOOLEAN;
+        }
+      }
+    }
+
     long bufferType = TYPE_WORDS_BORROW;
     if (opcode == BODY_BYTES_GET) {
       bufferType = TYPE_BYTES_BORROW;
