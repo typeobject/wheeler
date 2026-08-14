@@ -360,7 +360,7 @@ Portfolio work follows these rules:
 - [ ] Transactional persistent index.
 - [ ] Incremental dependency graph.
 - [x] `IntegerWaveletTransform.w` implements a determinant-one two-step integer lifting transform over one signed sample pair. A generated inverse certificate checks the reverse lifting order. The fixture observes exact coefficients, restores both inputs without rounding evidence, and passes canonical compilation, execution, and complete rewind.
-- [ ] Fixed-point symplectic simulation.
+- [x] `FixedPointSymplectic.w` carries scale-1024 position and momentum through one integer kick-drift symplectic step. The transform uses no floating point, division, or rounding state. Its generated inverse certificate, exact observed phase point, restored initial point, canonical artifact, and complete VM rewind are checked.
 - [ ] Wheeler event-reducer fixture.
 
 ### Toolchain

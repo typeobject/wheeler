@@ -57,7 +57,8 @@ class ClassicalExamplesTest {
     machine.run();
 
     assertEquals(MachineStatus.HALTED, machine.status());
-    if (name.equals("Counter.w") || name.equals("IntegerWaveletTransform.w")
+    if (name.equals("Counter.w") || name.equals("FixedPointSymplectic.w")
+        || name.equals("IntegerWaveletTransform.w")
         || name.equals("ReversiblePacketCodec.w") || name.equals("ReversibleResult.w")) {
       assertEquals(ProofRule.GENERATED_INVERSE, program.proofCertificates().getFirst().rule());
     } else if (name.equals("FunctionValues.w")) {
@@ -98,6 +99,13 @@ class ClassicalExamplesTest {
                 "equal", 1L,
                 "recordSelected", 7L,
                 "variantSelected", 13L)),
+        Arguments.of(
+            "classical/data/FixedPointSymplectic.w",
+            Map.of(
+                "position", 7_168L,
+                "momentum", 5_120L,
+                "observedPosition", 10_240L,
+                "observedMomentum", 3_072L)),
         Arguments.of("text/FrozenUtf8.w", Map.of(
             "byteLength", 6L, "scalarCount", 3L, "middleScalar", 8364L, "valid", 1L)),
         Arguments.of("classical/control/FunctionValues.w", Map.of("result", 10L)),

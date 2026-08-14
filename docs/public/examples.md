@@ -53,6 +53,14 @@ Covers: Fixed immutable arrays, signed/Boolean scalar arrays embedded in records
 
 Expected result: `selected = 6`, `sum = 20`, `middleSum = 10`, `equal = 1`, `recordSelected = 7`, `variantSelected = 13`.
 
+### `FixedPointSymplectic.w`
+
+Source: [`FixedPointSymplectic.w`](../../wheeler-examples/src/main/wheeler/classical/data/FixedPointSymplectic.w).
+
+Covers: Scale-1024 phase-space coordinates, one integer kick-drift symplectic step, checked fixed-point updates without division or rounding, a generated inverse certificate, exact observed coordinates, and complete phase-point restoration.
+
+Expected result: `observedPosition = 10240`, `observedMomentum = 3072`, `position = 7168`, `momentum = 5120`.
+
 ### `FrozenUtf8.w`
 
 Files: [`FrozenUtf8.w`](../../wheeler-examples/src/main/wheeler/text/FrozenUtf8.w) + [`text/Utf8.w`](../../wheeler-core/src/main/wheeler/text/Utf8.w).

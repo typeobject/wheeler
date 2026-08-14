@@ -36,6 +36,10 @@ targets:
       - "src/main/wheeler/classical/data/FixedArrays.w"
     test: false
   - kind: "deployable"
+    name: "fixedpointsymplectic"
+    root: "src/main/wheeler/classical/data/FixedPointSymplectic.w"
+    test: false
+  - kind: "deployable"
     name: "frozenutf8"
     root: "src/main/wheeler/text/FrozenUtf8.w"
     module: "examples.text.frozen_utf8_main"
