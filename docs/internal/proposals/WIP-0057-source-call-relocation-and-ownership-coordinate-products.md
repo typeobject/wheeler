@@ -109,7 +109,8 @@ All rows use fixed caller-provided buffers. No pass allocates per call or per ev
 - [x] `LoopCallProducts.w` resolves each argument source from a bounded defining-value product, explicit local offset, and planned value start. Raw source-local cells are no longer an emission authority. Unknown products and invalid offsets fail before any call product publishes.
 - [x] `LoopCallProducts.w` takes every call-local base from its bound statement's planned physical start. Caller-populated local-base cells are no longer an authority. Typed argument transfers, result slots, code, types, and statement-width publication share that start.
 - [x] `LoopCallProducts.w` takes each relocation instruction from the call's planned instruction start plus its exact argument-transfer width. The caller-supplied instruction base is deleted. Invalid planned rows leave code, type, width, identity, and relocation outputs untouched.
-- [ ] Ownership source products retain statement, local, and instruction coordinates.
+- [x] `InstructionOwnershipProducts.w` atomically joins each nonboundary effect to its source statement, planned instruction, destination local, and source local. Synthetic loan releases retain `-1` as the statement and the exact function-boundary instruction. Invalid source or planned rows preserve caller storage.
+- [ ] An independent source ownership product authorizes each joined statement, local, and instruction coordinate.
 - [ ] Source and decoded ownership evidence agree before archive publication.
 - [ ] Structured source artifacts include local and imported calls without source projection.
 

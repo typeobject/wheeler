@@ -11,6 +11,10 @@ classical class InstructionOwnershipProducts {
   private const long MAX_EVENTS_PER_MODULE = 8192;
   private const long MAX_INSTRUCTIONS_PER_MODULE = 4096;
   private const long OWNER_STACK_BYTES = 65536;
+  private const long OWNERSHIP_COORDINATE_ROWS = 32768;
+
+  /// Reports one complete ownership coordinate join.
+  public record OwnershipCoordinatePlan(long eventCount, boolean valid) {}
 
   private long eventKind(long opcode) {
     if (opcode == OPCODE_OWNED_MOVE) {
@@ -201,6 +205,107 @@ classical class InstructionOwnershipProducts {
     drop(borrowedDestinations);
     drop(owners);
     return eventCount;
+  }
+
+  /// Binds source effects to planned statements, instructions, and locals atomically.
+  public OwnershipCoordinatePlan bindInstructionOwnershipCoordinates(
+    long eventCount,
+    long instructionCount,
+    borrow mut words eventRows,
+    borrow mut words instructionStatements,
+    borrow mut words instructionPlannedRows,
+    borrow mut words coordinateRows
+  ) {
+    assert(-1 < eventCount);
+    assert(eventCount < MAX_EVENTS_PER_MODULE + 1);
+    assert(-1 < instructionCount);
+    assert(instructionCount < MAX_INSTRUCTIONS_PER_MODULE + 1);
+    assert(bufferLength(eventRows) == EVENT_ROWS);
+    assert(bufferLength(instructionStatements) == MAX_INSTRUCTIONS_PER_MODULE);
+    assert(bufferLength(instructionPlannedRows) == MAX_INSTRUCTIONS_PER_MODULE);
+    assert(bufferLength(coordinateRows) == OWNERSHIP_COORDINATE_ROWS);
+
+    region staging = new region(/* bytes= */ 262144, /* allocations= */ 1);
+    words stagedCoordinates = allocate(staging, OWNERSHIP_COORDINATE_ROWS);
+    boolean valid = true;
+    long event = 0;
+    while (event < eventCount) limit MAX_EVENTS_PER_MODULE {
+      long kind = eventRows[event];
+      long instruction = eventRows[8192 + event];
+      long statement = -1;
+      long plannedInstruction = instruction;
+      if (kind == 3) {
+        if (instruction < 0) {
+          valid = false;
+        }
+
+        if (instructionCount < instruction) {
+          valid = false;
+        }
+      } else {
+        if (instruction < 0) {
+          valid = false;
+        }
+
+        if (instructionCount - 1 < instruction) {
+          valid = false;
+        }
+
+        if (-1 < instruction) {
+          if (instruction < instructionCount) {
+            statement = instructionStatements[instruction];
+            plannedInstruction = instructionPlannedRows[instruction];
+            if (statement < 0) {
+              valid = false;
+            }
+
+            if (MAX_INSTRUCTIONS_PER_MODULE - 1 < statement) {
+              valid = false;
+            }
+
+            if (plannedInstruction < 0) {
+              valid = false;
+            }
+
+            if (32767 < plannedInstruction) {
+              valid = false;
+            }
+          }
+        }
+      }
+
+      long destination = eventRows[24576 + event];
+      long source = eventRows[32768 + event];
+      if (255 < destination) {
+        valid = false;
+      }
+
+      if (255 < source) {
+        valid = false;
+      }
+
+      set(stagedCoordinates, event, statement);
+      set(stagedCoordinates, 8192 + event, plannedInstruction);
+      set(stagedCoordinates, 16384 + event, destination);
+      set(stagedCoordinates, 24576 + event, source);
+      event += 1;
+    }
+
+    if (valid == false) {
+      drop(stagedCoordinates);
+      drop(staging);
+      return new OwnershipCoordinatePlan(0, false);
+    }
+
+    long row = 0;
+    while (row < OWNERSHIP_COORDINATE_ROWS) limit OWNERSHIP_COORDINATE_ROWS {
+      set(coordinateRows, row, stagedCoordinates[row]);
+      row += 1;
+    }
+
+    drop(stagedCoordinates);
+    drop(staging);
+    return new OwnershipCoordinatePlan(eventCount, true);
   }
 
   /// Publishes events from a validated two-artifact composed instruction view.

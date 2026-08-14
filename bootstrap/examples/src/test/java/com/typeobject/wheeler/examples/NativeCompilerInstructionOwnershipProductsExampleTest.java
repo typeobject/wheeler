@@ -30,7 +30,7 @@ final class NativeCompilerInstructionOwnershipProductsExampleTest {
   void derivesMovesBalancedLoansCreatesAndDrops() throws Exception {
     Program product = product();
     byte[] artifact = new BytecodeWriter().write(product);
-    VirtualMachine machine = VirtualMachine.withBinaryInput(decoder(false), artifact, 1);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(decoder(false, false), artifact, 1);
 
     machine.run();
 
@@ -44,6 +44,9 @@ final class NativeCompilerInstructionOwnershipProductsExampleTest {
     assertEquals(creates, machine.global("createCount"));
     assertEquals(moves, machine.global("moveCount"));
     assertEquals(drops, machine.global("dropCount"));
+    assertEquals(borrows + creates + moves + drops, machine.global("sourceCoordinateCount"));
+    assertEquals(borrows, machine.global("boundaryCoordinateCount"));
+    assertEquals(1, machine.global("coordinateValid"));
     assertEquals(1, machine.global("published"));
   }
 
@@ -65,10 +68,22 @@ final class NativeCompilerInstructionOwnershipProductsExampleTest {
   @Test
   void rejectsInvalidInstructionRangesBeforePublication() throws Exception {
     byte[] artifact = new BytecodeWriter().write(product());
-    VirtualMachine machine = VirtualMachine.withBinaryInput(decoder(true), artifact, 1);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(decoder(true, false), artifact, 1);
 
     assertThrows(VmTrap.class, machine::run);
     assertEquals(0, machine.global("published"));
+  }
+
+  @Test
+  void rejectsInvalidPlannedOwnershipCoordinatesAtomically() throws Exception {
+    byte[] artifact = new BytecodeWriter().write(product());
+    VirtualMachine machine = VirtualMachine.withBinaryInput(decoder(false, true), artifact, 1);
+
+    machine.run();
+
+    assertEquals(0, machine.global("coordinateValid"));
+    assertEquals(77, machine.global("firstCoordinate"));
+    assertEquals(1, machine.global("published"));
   }
 
   private static long instructions(Program product, Set<Opcode> wanted) {
@@ -150,7 +165,9 @@ final class NativeCompilerInstructionOwnershipProductsExampleTest {
         sources, "example.composed_instruction_ownership");
   }
 
-  private static Program decoder(boolean malformed) throws Exception {
+  private static Program decoder(
+      boolean malformed,
+      boolean malformedCoordinates) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
     sources.putAll(CompilerSources.moduleClosure(
@@ -170,30 +187,70 @@ final class NativeCompilerInstructionOwnershipProductsExampleTest {
           state long createCount = 0;
           state long moveCount = 0;
           state long dropCount = 0;
+          state long sourceCoordinateCount = 0;
+          state long boundaryCoordinateCount = 0;
+          state long coordinateValid = 0;
+          state long firstCoordinate = 77;
           state long published = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 529408, /* allocations= */ 3);
+            region rows = new region(/* bytes= */ 857088, /* allocations= */ 6);
             words functions = allocate(rows, /* length= */ 640);
             words instructions = allocate(rows, /* length= */ 24576);
             words events = allocate(rows, /* length= */ 40960);
+            words instructionStatements = allocate(rows, /* length= */ 4096);
+            words instructionPlannedRows = allocate(rows, /* length= */ 4096);
+            words ownershipCoordinates = allocate(rows, /* length= */ 32768);
             CompiledFunctionPlan plan = indexCompiledFunctionProducts(
               source,
               bufferLength(source),
               functions,
               instructions
             );
-            MALFORMED
+            MALFORMED_ARTIFACT
+            set(ownershipCoordinates, 0, 77);
             eventCount = deriveInstructionOwnershipProducts(
               source,
               plan.instructionCount,
               instructions,
               events
             );
+            long instruction = 0;
+            while (instruction < plan.instructionCount) limit 4096 {
+              set(instructionStatements, instruction, instruction);
+              set(instructionPlannedRows, instruction, instruction + 10);
+              instruction += 1;
+            }
+            MALFORMED_COORDINATES
+            OwnershipCoordinatePlan coordinatePlan = bindInstructionOwnershipCoordinates(
+              eventCount,
+              plan.instructionCount,
+              events,
+              instructionStatements,
+              instructionPlannedRows,
+              ownershipCoordinates
+            );
+            if (coordinatePlan.valid) {
+              coordinateValid = 1;
+            }
+            firstCoordinate = ownershipCoordinates[0];
             long event = 0;
             while (event < eventCount) limit 8192 {
               if (events[event] == 1) {
                 moveCount += 1;
+              }
+              if (coordinatePlan.valid) {
+                if (events[event] == 3) {
+                  assert(ownershipCoordinates[event] == -1);
+                  assert(ownershipCoordinates[8192 + event] == events[8192 + event]);
+                  boundaryCoordinateCount += 1;
+                } else {
+                  assert(ownershipCoordinates[event] == events[8192 + event]);
+                  assert(ownershipCoordinates[8192 + event] == events[8192 + event] + 10);
+                  assert(ownershipCoordinates[16384 + event] == events[24576 + event]);
+                  assert(ownershipCoordinates[24576 + event] == events[32768 + event]);
+                  sourceCoordinateCount += 1;
+                }
               }
               if (events[event] == 2) {
                 borrowCount += 1;
@@ -211,6 +268,9 @@ final class NativeCompilerInstructionOwnershipProductsExampleTest {
             }
             published = 1;
             setOutputLength(output, 0);
+            drop(ownershipCoordinates);
+            drop(instructionPlannedRows);
+            drop(instructionStatements);
             drop(events);
             drop(instructions);
             drop(functions);
@@ -218,11 +278,18 @@ final class NativeCompilerInstructionOwnershipProductsExampleTest {
           }
         }
         """.replace(
-            "MALFORMED",
+            "MALFORMED_ARTIFACT",
             malformed
                 ? "long bad = 0; while (bad < plan.instructionCount) limit 4096 { "
                     + "set(instructions, 8192 + bad, -1); bad += 1; }"
-                : ""));
+                : "")
+            .replace(
+                "MALFORMED_COORDINATES",
+                malformedCoordinates
+                    ? "long badCoordinate = 0; while (badCoordinate < plan.instructionCount) "
+                        + "limit 4096 { set(instructionPlannedRows, badCoordinate, 32768); "
+                        + "badCoordinate += 1; }"
+                    : ""));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.instruction_ownership_products");
   }
