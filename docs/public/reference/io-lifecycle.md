@@ -13,6 +13,7 @@ The quarantined runtime now carries a deterministic executable slice under `boot
 - `IoGraph<T>` is an explicitly bounded terminal-dependency DAG.
 - `OwnedIoBuffer` is inaccessible while captured and returns through a terminal result.
 - `MemoryAddressableFile` is the bounded positional-semantics oracle.
+- `SequentialFileCursor` is the single-owner adapter for work that depends on one cursor.
 - `DeterministicIo` offers inline and delayed delivery with identical completion meaning.
 - `ThreadedIo` supplies an explicitly bounded portable worker backend.
 
@@ -60,6 +61,8 @@ The native transition table rejects second completion, completion before resourc
 ## Positional memory-file oracle
 
 `MemoryAddressableFile` is not a filesystem API. It is a bounded oracle for the positional contract. `readAt` validates the destination range and position before capture, then returns the destination owner with exact bytes-read progress. `writeAt` requires a write capability, validates the complete source and file ranges before capture, and returns the source owner with exact bytes-written progress.
+
+`SequentialFileCursor` lends its sole cursor to one live request. A read starts at the examined position and returns exact consumed and examined coordinates. `advance` moves those coordinates only inside the completed window. A write requires a settled cursor, where consumed equals examined, and advances both only after successful provider work. Cancellation before effect releases the cursor and buffer without changing either position. Independent positional work still uses `MemoryAddressableFile` directly instead of sharing this serialization point.
 
 `OwnedIoBuffer` rejects access from request construction until terminal resource release. Cancellation-before-effect releases it without touching file bytes. The memory file has no cursor, so unrelated ranges acquire no accidental seek order. It is capped at 16 MiB and performs no growth, truncation, namespace, metadata, or persistence operation.
 

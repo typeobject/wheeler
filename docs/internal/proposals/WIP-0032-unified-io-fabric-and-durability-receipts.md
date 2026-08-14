@@ -580,7 +580,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] The bounded stage-0 profile accepts pure `IoRequest` construction, one owning `IoScope`, affine `IoOperation` consumption, provider results, and typed terminal `IoCompletion` values. Native, network, storage, RDMA, and quantum request families remain.
 - [x] The bounded stage-0 profile distinguishes asynchronous delivery from required overlap. Inline and delayed backends preserve completion meaning. The threaded backend reserves capacity before consumption and either starts a required-overlap set together or rejects admission.
 - [x] The stage-0 lifecycle distinguishes success, failure, cancellation before effect, cancellation after partial effect, completion or failure before cancellation, and uncertainty with or without cancellation. Every terminal completion releases resources and must be reaped exactly once.
-- [x] Bounded in-memory positional reads and writes execute at explicit offsets, hold and return their buffer owner, reject invalid ranges and rights before capture, and distinguish completion from durability. Sequential cursor adapters remain.
+- [x] Bounded in-memory positional reads and writes execute at explicit offsets, hold and return their buffer owner, reject invalid ranges and rights before capture, and distinguish completion from durability. `SequentialFileCursor` lends one cursor to one live request, carries consumed and examined coordinates, requires a settled position for writes, and advances only after successful provider work.
 - [x] Bounded batches, first-completion selection, and dependency graphs execute. Selection returns every unselected operation, consumed members cannot partially publish a batch, graph dependents wait for all named predecessors, and graph node and edge limits fail before admission. General groups and multishot operations remain.
 - [x] Deterministic inline, delayed, and bounded threaded stage-0 backends pass one lifecycle suite.
 - [ ] Event/completion backend passes.
@@ -628,7 +628,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] The deterministic stage-0 graph publishes a node only after every named terminal predecessor. Independent roots are admitted together.
 - [x] Batch and graph submission order creates no persistence claim. Independent roots may complete concurrently, graph dependents wait only for named terminal predecessors, and positional write completion is explicitly not a durability receipt.
 - [x] The accepted addressable-file profile uses explicit positional ranges. Disjoint reads and writes can run independently in batches and dependency graphs, while overlapping mutable requests require an explicit graph edge or fail deterministic overlap validation before provider work.
-- [ ] Sequential adapters own exactly one cursor and preserve consumed/examined positions.
+- [x] The positional sequential adapter owns exactly one cursor. It rejects concurrent use, preserves separate consumed and examined positions across reads, bounds explicit advancement to the examined window, and leaves both coordinates unchanged after cancellation before effect.
 - [x] Batch and graph reductions retain canonical request order while delayed, reversed, duplicate, and threaded physical completions vary. Independent graph roots may overlap, but their dependent observes both completed roots.
 
 ### Direct, topology, and scale
