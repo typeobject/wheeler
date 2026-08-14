@@ -35,6 +35,9 @@ targets:
   - kind: "deployable"
     name: "eventreducer"
     root: "src/main/wheeler/classical/control/EventReducer.w"
+    module: "examples.events.reducer"
+    sources:
+      - "src/main/wheeler/classical/control/EventReducer.w"
     test: false
   - kind: "deployable"
     name: "finiteenums"

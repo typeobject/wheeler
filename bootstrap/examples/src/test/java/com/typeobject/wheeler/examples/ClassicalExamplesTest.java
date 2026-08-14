@@ -47,6 +47,13 @@ class ClassicalExamplesTest {
           "CoreLongMap.w",
           "collections/LongMap.w",
           "examples.collections.long_map_main");
+    } else if (name.equals("EventReducer.w")) {
+      program = compileCoreExample(
+          compiler,
+          source,
+          "CoreLongMap.w",
+          "collections/LongMap.w",
+          "examples.events.reducer");
     } else if (name.equals("IncrementalDependencyGraph.w")) {
       program = compiler.compileModuleFiles(
           Map.of(
@@ -105,7 +112,14 @@ class ClassicalExamplesTest {
         Arguments.of("classical/data/BinaryTree.w", Map.of("root", 0L, "left", 0L, "right", 0L)),
         Arguments.of(
             "classical/control/EventReducer.w",
-            Map.of("lastEvent", 2L, "reduced", 12L, "duplicates", 1L)),
+            Map.of(
+                "lastEvent", 2L,
+                "reduced", 12L,
+                "duplicates", 2L,
+                "conflicts", 1L,
+                "checkpointSequence", 2L,
+                "checkpointValue", 12L,
+                "resumedValue", 12L)),
         Arguments.of("classical/control/BootstrapControl.w", Map.of("sum", 10L, "branch", 1L)),
         Arguments.of("classical/data/FiniteEnums.w", Map.of("selected", 7L)),
         Arguments.of(

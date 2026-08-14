@@ -41,9 +41,9 @@ Expected result: `count = 0`.
 
 Source: [`EventReducer.w`](../../wheeler-examples/src/main/wheeler/classical/control/EventReducer.w).
 
-Covers: Ordered event application, an explicit settled-event identity, adjacent duplicate-delivery suppression, duplicate accounting distinct from the reduced value, typed helper calls, and deterministic final state.
+Covers: Reordered content-identified event delivery, deterministic sequence storage, duplicate suppression, conflicting-occupant rejection, duplicate and conflict counts distinct from reduced value, canonical checkpoint bytes under independent owners, fresh-map recovery, and exactly-once resumed delivery.
 
-Expected result: `lastEvent = 2`, `reduced = 12`, `duplicates = 1`.
+Expected result: `lastEvent = checkpointSequence = 2`, `reduced = checkpointValue = resumedValue = 12`, `duplicates = 2`, and `conflicts = 1`.
 
 ### `BinaryTree.w`
 

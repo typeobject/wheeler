@@ -367,9 +367,7 @@ Portfolio work follows these rules:
 - [ ] Fixed-point symplectic simulation.
   - [x] `FixedPointSymplectic.w` carries one scale-1024 phase point through an integer kick-drift step without floating point or rounding state. Its generated inverse, exact observation, restored input, canonical artifact, and complete rewind are checked.
   - [ ] Add the bounded two-body system, generated state cases, checked overflow boundaries, and exact discrete inverse properties.
-- [ ] Wheeler event-reducer fixture.
-  - [x] `EventReducer.w` suppresses one adjacent duplicate under an explicit settled-event identity and keeps duplicate count separate from reduced value. Typed calls, branches, final state, canonical artifact acceptance, and complete rewind are checked.
-  - [ ] Add content identities, reordered delivery, conflicting sequence occupants, checkpoint persistence, recovery, and exactly-once resumption.
+- [x] `EventReducer.w` reduces reordered content-identified events through a deterministic sequence map, suppresses duplicate delivery, rejects a conflicting sequence occupant without changing reduced value, writes a canonical bounded checkpoint twice under distinct owners, recovers event identities and value into a fresh map, and proves that replayed delivery cannot apply twice. Typed calls, branches, owner cleanup, canonical artifact acceptance, and complete rewind are checked.
 
 ### Toolchain
 
