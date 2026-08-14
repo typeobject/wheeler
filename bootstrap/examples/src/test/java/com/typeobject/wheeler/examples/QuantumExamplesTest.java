@@ -11,16 +11,13 @@ import com.typeobject.wheeler.core.proof.ProofRule;
 import com.typeobject.wheeler.runtime.ExecutionResult;
 import com.typeobject.wheeler.runtime.WheelerRuntime;
 import com.typeobject.wheeler.runtime.hybrid.HybridRun;
-import com.typeobject.wheeler.runtime.quantum.CircuitApplication;
 import com.typeobject.wheeler.runtime.quantum.DynamicCircuitResult;
 import com.typeobject.wheeler.runtime.quantum.DynamicStateVectorSimulator;
 import com.typeobject.wheeler.runtime.quantum.DynamicStateVectorTarget;
-import com.typeobject.wheeler.runtime.quantum.QuantumSubmission;
 import com.typeobject.wheeler.runtime.quantum.StateVectorTarget;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -65,19 +62,10 @@ class QuantumExamplesTest {
     assertEquals(1, (result.basisState() >> 2) & 1);
     assertEquals(2, result.resultSlots().size());
 
-    QuantumSubmission submission = new QuantumSubmission(
-        program,
-        circuit.registerId(),
-        0,
-        List.of(new CircuitApplication(circuit.id(), false)),
-        Map.of(),
-        1,
-        0);
-    long targetOutcome = new DynamicStateVectorTarget()
-        .submit(submission)
-        .await(Duration.ofSeconds(1))
-        .firstOutcome();
-    assertEquals(1, (targetOutcome >> 2) & 1);
+    ExecutionResult executed = new WheelerRuntime().execute(
+        program, new DynamicStateVectorTarget());
+    assertEquals(1, (executed.globals().get("measured") >> 2) & 1);
+    assertEquals(1, executed.quantumJobs().size());
   }
 
   @Test

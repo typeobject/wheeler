@@ -2,6 +2,8 @@ package com.typeobject.wheeler.runtime.hybrid;
 
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.ProgramKind;
+import com.typeobject.wheeler.core.quantum.PrepareOperation;
+import com.typeobject.wheeler.core.quantum.QuantumCircuit;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.workflow.WorkflowOpcode;
 import com.typeobject.wheeler.core.workflow.WorkflowStep;
@@ -113,9 +115,20 @@ public final class HybridRun {
           workflowIndex++;
         }
         case APPLY, UNAPPLY -> {
-          int circuit = Math.toIntExact(step.first());
-          int register = program.quantumCircuit(circuit).registerId();
-          requirePrepared(register).apply(circuit, step.opcode() == WorkflowOpcode.UNAPPLY);
+          int circuitId = Math.toIntExact(step.first());
+          QuantumCircuit circuit = program.quantumCircuit(circuitId);
+          int register = circuit.registerId();
+          QuantumSubmissionBuilder builder = prepared.get(register);
+          if (builder == null
+              && !circuit.operations().isEmpty()
+              && circuit.operations().getFirst() instanceof PrepareOperation) {
+            builder = new QuantumSubmissionBuilder(program, register, 0);
+            prepared.put(register, builder);
+          }
+          if (builder == null) {
+            builder = requirePrepared(register);
+          }
+          builder.apply(circuitId, step.opcode() == WorkflowOpcode.UNAPPLY);
           workflowIndex++;
         }
         case MEASURE -> {

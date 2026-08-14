@@ -21,5 +21,6 @@ quantum class DynamicTeleportation {
   /// - Effects: Submits one bounded target-resident dynamic region.
   entry void main() {
     teleport();
+    measured = measure(q);
   }
 }
