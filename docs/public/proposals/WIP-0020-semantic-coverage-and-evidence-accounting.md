@@ -305,7 +305,7 @@ Quantum targets own execution evidence, not coverage interpretation. The proof k
 
 - [ ] Source, bytecode, generated, and runtime point mappings reject every dangling, duplicate, overlapping, and forged relation in a malformed corpus.
 - [x] The classical coverage fixture runs observed and plain VMs through forward execution and complete rewind and compares every snapshot and history boundary exactly. Circuit, job, and proof collection remain outside the current profile.
-- [ ] Decision, condition, match-arm, trap, call, and bounded MC/DC fixtures produce exact expected denominators and witnesses.
+- [x] The accepted runtime collector records each verified instruction transition without instrumentation, distinguishes taken and fallthrough branches, direct calls, assertions, traps, forward and inverse execution, and rewind of each direction, and reproduces exact report identities across reruns. Match-arm and MC/DC denominators remain.
 - [x] Forward, language inverse, rewind-forward, and rewind-inverse are separate closed observer enum values and separate point-identity fields, so the implemented classical dimensions cannot alias. Uncompute, replay, retry, and recovery remain outside this observer profile.
 - [x] Rewind retains the earlier forward and inverse hit records and adds direction-specific rewind observations while the observed machine returns to its exact initial snapshot.
 - [x] Current quantum evidence accounting adds no measurement. It keeps exact-quantum, sampled-quantum, and proof evidence in distinct closed kinds, while circuit execution remains structural runtime evidence. Source-level typed collection remains with WIP-0018.
