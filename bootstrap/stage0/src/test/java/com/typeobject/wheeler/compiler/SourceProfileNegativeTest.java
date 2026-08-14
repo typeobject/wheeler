@@ -788,6 +788,39 @@ class SourceProfileNegativeTest {
   }
 
   @Test
+  void rejectsQuantumRegisterConversionToClassicalByteStorage() {
+    CompilerException classical = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile("""
+            classical class QuantumBytes {
+              qreg q = new qreg(1);
+              entry void main() { bytes raw = q; }
+            }
+            """));
+    CompilerException unitary = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile("""
+            quantum class QuantumBytes {
+              qreg q = new qreg(1);
+              unitary void copy() { bytes raw = q; }
+              entry void main() {}
+            }
+            """));
+    CompilerException entry = assertThrows(
+        CompilerException.class,
+        () -> new WheelerCompiler().compile("""
+            quantum class QuantumBytes {
+              qreg q = new qreg(1);
+              entry void main() { long width = bufferLength(q); }
+            }
+            """));
+
+    assertTrue(classical.getMessage().contains("classical programs cannot declare qregs"));
+    assertTrue(unitary.getMessage().contains("expected '(' after gate name"));
+    assertTrue(entry.getMessage().contains("local control flow is not available"));
+  }
+
+  @Test
   void rejectsOutOfRangeQuantumReference() {
     String source = """
         quantum class BrokenQubit {

@@ -80,6 +80,8 @@ The native transition table rejects second completion, completion before resourc
 
 `QuantumIo.request` performs target submission, bounded waiting, result-identity validation, cancellation propagation, terminal completion, and reap as one ordinary I/O operation. Request construction allocates no provider job. Queued cancellation therefore allocates nothing. Cancellation after target allocation either records acknowledged partial cancellation or remains uncertain under the normal completion vocabulary. `QuantumJob` remains the provider adapter beneath this boundary until hybrid recovery also moves to the common fabric.
 
+The accepted source profile gives a qreg no classical declaration, local-storage, buffer-intrinsic, file, mapping, or remote-advertisement path. Classical classes cannot declare qregs. Unitary bodies accept only gate syntax, and quantum entry bodies cannot reinterpret qregs as local storage. Stage-0 I/O and remote-memory adapters accept `OwnedIoBuffer`, not quantum register or state objects. Circuit descriptions and measured classical results may cross the I/O fabric. Coherent state cannot.
+
 `OwnedIoBuffer` rejects access from request construction until terminal resource release. Cancellation-before-effect releases it without touching file bytes. The memory file has no cursor, so unrelated ranges acquire no accidental seek order. It is capped at 16 MiB and performs no growth, truncation, namespace, metadata, or persistence operation.
 
 A `WriteCompleted` value proves only that the in-memory copy completed. Calling it durable would be like calling a register assignment a successful fsync: energetic, but not useful.
