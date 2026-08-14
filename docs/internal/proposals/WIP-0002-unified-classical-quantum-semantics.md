@@ -2,10 +2,10 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler language, compiler, and quantum maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-28 |
+| Updated | 2026-08-13 |
 | Area | Language, hybrid execution, quantum IR, reversibility |
 | Depends on | WIP-0001 |
 | Supersedes | None |
@@ -312,7 +312,7 @@ Quantum state is not a byte stream, file, mapped object, direct-I/O buffer, or R
 - [x] The same eligible `rev` XOR function produces matching classical basis results in the WIP-0001 VM and semantic quantum simulator.
 - [x] Superposition tests show the lifted function acts as a unitary permutation, not a measurement-driven classical call.
 - [x] A lifted function and unitary circuit followed by its generated adjoint restore the simulated register.
-- [ ] Compiler-negative tests reject cloning, dirty ancillas, overlapping slices, use after measure, hidden logged history, I/O, and unbounded loops in coherent bodies.
+- [x] The accepted source profile has no quantum-copy, ambient I/O, or untracked ancilla form. Ownership-negative tests reject copied owners, overlapping mutable loans, escaping resources, and use after move. Coherent verification admits only exact XOR, coherent call or uncall, no-op, and return records. Bounded-control tests reject loops without a limit. Dynamic source lowering, bytecode verification, and target execution reject a qubit used or measured again after measurement until an explicit reset restores it.
 - [x] Dynamic-region source diagnostics reject duplicate preparation, duplicate result-slot assignment, conditional use before assignment, negative slots, out-of-range qubits, conflicting method kinds, and unsupported conditional gates before bytecode publication.
 - [x] QFT followed by its generated adjoint restores the checked basis-state fixture within numeric tolerance.
 - [x] Full-register measurement produces a typed classical observation. Broader consumed-identity checking remains.

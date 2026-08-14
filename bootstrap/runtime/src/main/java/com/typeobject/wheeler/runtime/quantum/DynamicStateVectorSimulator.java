@@ -10,6 +10,7 @@ import com.typeobject.wheeler.core.quantum.QuantumRegister;
 import com.typeobject.wheeler.core.quantum.ResetOperation;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,6 +45,7 @@ public final class DynamicStateVectorSimulator {
     }
     StateVectorEngine engine = new StateVectorEngine(seed);
     Map<Integer, Boolean> resultSlots = new HashMap<>();
+    Set<Integer> measuredQubits = new HashSet<>();
     boolean prepared = false;
     for (var operation : circuit.operations()) {
       if (operation instanceof PrepareOperation preparation) {
@@ -57,17 +59,24 @@ public final class DynamicStateVectorSimulator {
           throw new QuantumExecutionException("Dynamic operation precedes register preparation");
         }
         if (operation instanceof GateOperation gate) {
+          requireAvailable(gate.qubits(), measuredQubits);
           engine.applyGate(register, gate);
         } else if (operation instanceof MeasureOperation measurement) {
+          if (!measuredQubits.add(measurement.qubit())) {
+            throw new QuantumExecutionException(
+                "Dynamic qubit is measured twice without reset");
+          }
           resultSlots.put(
               measurement.resultSlot(), engine.measureQubit(register, measurement.qubit()));
         } else if (operation instanceof ResetOperation reset) {
+          measuredQubits.remove(reset.qubit());
           engine.reset(register, reset.qubit());
         } else if (operation instanceof ConditionalGateOperation conditional) {
           Boolean result = resultSlots.get(conditional.resultSlot());
           if (result == null) {
             throw new QuantumExecutionException("Conditional gate reads an unassigned result slot");
           }
+          requireAvailable(conditional.gate().qubits(), measuredQubits);
           if (result == conditional.expected()) {
             engine.applyGate(register, conditional.gate());
           }
@@ -81,6 +90,14 @@ public final class DynamicStateVectorSimulator {
       throw new QuantumExecutionException("Dynamic circuit does not prepare its register");
     }
     return new DynamicCircuitResult(engine.measure(register), resultSlots);
+  }
+
+  private static void requireAvailable(
+      List<Integer> qubits, Set<Integer> measuredQubits) {
+    if (qubits.stream().anyMatch(measuredQubits::contains)) {
+      throw new QuantumExecutionException(
+          "Dynamic qubit is used after measurement without reset");
+    }
   }
 
   /** Executes all rounds within one target call and returns only final bounded evidence. */

@@ -56,33 +56,64 @@ final class ProgramSectionVerifier {
         fail("Duplicate quantum circuit name: " + circuit.name());
       }
       QuantumRegister register = program.quantumRegister(circuit.registerId());
+      boolean dynamic = circuit.operations().stream().anyMatch(operation ->
+          operation instanceof PrepareOperation
+              || operation instanceof MeasureOperation
+              || operation instanceof ResetOperation
+              || operation instanceof ConditionalGateOperation);
+      boolean prepared = !dynamic;
       Set<Integer> resultSlots = new HashSet<>();
+      Set<Integer> measuredQubits = new HashSet<>();
       for (QuantumOperation operation : circuit.operations()) {
+        if (dynamic && !prepared && !(operation instanceof PrepareOperation)) {
+          fail("Dynamic circuit uses its register before preparation: " + circuit.name());
+        }
         if (operation instanceof GateOperation gate) {
           verifyQubits(circuit, register, gate.qubits());
+          verifyNotMeasured(circuit, measuredQubits, gate.qubits());
         } else if (operation instanceof ParameterizedGateOperation gate) {
           verifyQubits(circuit, register, gate.qubits());
+          verifyNotMeasured(circuit, measuredQubits, gate.qubits());
         } else if (operation instanceof LiftedCall lifted) {
           FunctionBody function = program.function(lifted.functionId());
           if (!function.coherent()) {
             fail("Lifted function is not coherent: " + function.name());
           }
+          if (dynamic) {
+            fail("Dynamic circuit contains coherent call: " + circuit.name());
+          }
         } else if (operation instanceof PrepareOperation preparation) {
+          if (prepared) {
+            fail("Dynamic circuit prepares its register twice: " + circuit.name());
+          }
           verifyBasis(circuit, register, preparation.basisState());
+          prepared = true;
         } else if (operation instanceof MeasureOperation measurement) {
           verifyQubits(circuit, register, List.of(measurement.qubit()));
+          if (!measuredQubits.add(measurement.qubit())) {
+            fail("Dynamic qubit is measured twice without reset in " + circuit.name());
+          }
           if (!resultSlots.add(measurement.resultSlot())) {
             fail("Measurement result slot is assigned twice in " + circuit.name());
           }
         } else if (operation instanceof ResetOperation reset) {
           verifyQubits(circuit, register, List.of(reset.qubit()));
+          measuredQubits.remove(reset.qubit());
         } else if (operation instanceof ConditionalGateOperation conditional) {
           if (!resultSlots.contains(conditional.resultSlot())) {
             fail("Conditional gate reads an unassigned result slot in " + circuit.name());
           }
           verifyQubits(circuit, register, conditional.gate().qubits());
+          verifyNotMeasured(circuit, measuredQubits, conditional.gate().qubits());
         }
       }
+    }
+  }
+
+  private static void verifyNotMeasured(
+      QuantumCircuit circuit, Set<Integer> measuredQubits, List<Integer> usedQubits) {
+    if (usedQubits.stream().anyMatch(measuredQubits::contains)) {
+      fail("Dynamic qubit is used after measurement without reset in " + circuit.name());
     }
   }
 

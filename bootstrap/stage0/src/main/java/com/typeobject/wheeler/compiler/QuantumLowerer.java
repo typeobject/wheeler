@@ -106,6 +106,7 @@ final class QuantumLowerer {
       List<QuantumOperation> operations = new ArrayList<>();
       boolean prepared = false;
       Set<Integer> measuredSlots = new HashSet<>();
+      Set<Integer> measuredQubits = new HashSet<>();
       for (Statement statement : sourceCircuit.statements()) {
         if (sourceCircuit.dynamic()) {
           prepared = verifyDynamicFlow(statement, prepared, measuredSlots);
@@ -113,6 +114,9 @@ final class QuantumLowerer {
         QuantumOperation operation = sourceCircuit.dynamic()
             ? lowerDynamicOperation(statement, classical)
             : lowerQuantumOperation(statement, classical);
+        if (sourceCircuit.dynamic()) {
+          verifyDynamicQubitFlow(operation, statement, measuredQubits);
+        }
         List<Integer> operationQubits = List.of();
         if (operation instanceof GateOperation gate) {
           operationQubits = gate.qubits();
@@ -177,6 +181,34 @@ final class QuantumLowerer {
       default -> throw new CompilerException(
           statement.line(), "unknown quantum operation: " + statement.operation());
     };
+  }
+
+  private static void verifyDynamicQubitFlow(
+      QuantumOperation operation, Statement statement, Set<Integer> measuredQubits) {
+    if (operation instanceof MeasureOperation measurement) {
+      if (!measuredQubits.add(measurement.qubit())) {
+        throw new CompilerException(
+            statement.line(), "dynamic qubit is measured twice without reset");
+      }
+      return;
+    }
+    if (operation instanceof ResetOperation reset) {
+      measuredQubits.remove(reset.qubit());
+      return;
+    }
+    List<Integer> usedQubits = operation instanceof GateOperation gate
+        ? gate.qubits()
+        : operation instanceof ConditionalGateOperation conditional
+            ? conditional.gate().qubits()
+            : List.of();
+    if (usedQubits.stream().anyMatch(measuredQubits::contains)) {
+      throw new CompilerException(
+          statement.line(), "dynamic qubit is used after measurement without reset");
+    }
+    if (operation instanceof LiftedCall) {
+      throw new CompilerException(
+          statement.line(), "dynamic regions accept fixed gates, not coherent calls");
+    }
   }
 
   private static boolean verifyDynamicFlow(

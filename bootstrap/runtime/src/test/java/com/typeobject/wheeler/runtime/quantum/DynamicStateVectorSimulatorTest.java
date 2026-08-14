@@ -50,7 +50,7 @@ final class DynamicStateVectorSimulatorTest {
 
   @Test
   void staticHostSplitAndDynamicPlansAgreeOnAnIdealBasisResult() {
-    QuantumRegister register = new QuantumRegister(0, "plan", 1);
+    QuantumRegister register = new QuantumRegister(0, "plan", 2);
     QuantumCircuit dynamicCircuit = new QuantumCircuit(
         0,
         "dynamic",
@@ -58,27 +58,47 @@ final class DynamicStateVectorSimulatorTest {
         List.of(
             new PrepareOperation(1),
             new MeasureOperation(0, 0),
-            new ConditionalGateOperation(0, true, GateOperation.of(Gate.X, 0))));
+            new ConditionalGateOperation(0, true, GateOperation.of(Gate.X, 1))));
     Program dynamicProgram = program(register, dynamicCircuit);
     DynamicCircuitResult dynamic = new DynamicStateVectorSimulator()
         .execute(dynamicProgram, dynamicCircuit, 0);
 
     StateVectorEngine staticEngine = new StateVectorEngine(0);
     staticEngine.prepare(register, 1);
-    staticEngine.applyGate(register, GateOperation.of(Gate.X, 0));
+    staticEngine.applyGate(register, GateOperation.of(Gate.X, 1));
     long staticResult = staticEngine.measure(register);
 
     StateVectorEngine splitEngine = new StateVectorEngine(0);
     splitEngine.prepare(register, 1);
     boolean observed = splitEngine.measureQubit(register, 0);
     if (observed) {
-      splitEngine.applyGate(register, GateOperation.of(Gate.X, 0));
+      splitEngine.applyGate(register, GateOperation.of(Gate.X, 1));
     }
     long hostSplitResult = splitEngine.measure(register);
 
-    assertEquals(0, staticResult);
+    assertEquals(3, staticResult);
     assertEquals(staticResult, hostSplitResult);
     assertEquals(staticResult, dynamic.basisState());
+  }
+
+  @Test
+  void rejectsQubitUseAfterMeasurementUntilReset() {
+    QuantumRegister register = new QuantumRegister(0, "measured", 1);
+    QuantumCircuit circuit = new QuantumCircuit(
+        0,
+        "invalid",
+        0,
+        List.of(
+            new PrepareOperation(1),
+            new MeasureOperation(0, 0),
+            GateOperation.of(Gate.X, 0)));
+
+    QuantumExecutionException exception = assertThrows(
+        QuantumExecutionException.class,
+        () -> new DynamicStateVectorSimulator().execute(program(register, circuit), circuit, 0));
+
+    assertTrue(exception.getMessage().contains(
+        "Dynamic qubit is used after measurement without reset"));
   }
 
   @Test

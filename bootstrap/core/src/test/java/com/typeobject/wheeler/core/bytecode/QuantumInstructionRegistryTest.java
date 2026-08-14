@@ -15,6 +15,7 @@ import com.typeobject.wheeler.core.quantum.QuantumCircuit;
 import com.typeobject.wheeler.core.quantum.QuantumOpcode;
 import com.typeobject.wheeler.core.quantum.QuantumRegister;
 import com.typeobject.wheeler.core.quantum.ResetOperation;
+import com.typeobject.wheeler.core.workflow.WorkflowStep;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -118,6 +119,37 @@ class QuantumInstructionRegistryTest {
   }
 
   @Test
+  void requiresResetBeforeMeasuredQubitIsUsedAgain() {
+    QuantumRegister register = new QuantumRegister(
+        REGISTER_ID, "register", REGISTER_QUBITS);
+    QuantumCircuit invalid = new QuantumCircuit(
+        CIRCUIT_ID,
+        "invalid",
+        REGISTER_ID,
+        List.of(
+            new PrepareOperation(0),
+            new MeasureOperation(FIRST_QUBIT, 0),
+            GateOperation.of(Gate.X, FIRST_QUBIT)));
+
+    BytecodeException exception = assertThrows(
+        BytecodeException.class,
+        () -> BytecodeVerifier.verify(quantumProgram(register, invalid)));
+    assertTrue(exception.getMessage().contains(
+        "Dynamic qubit is used after measurement without reset"));
+
+    QuantumCircuit valid = new QuantumCircuit(
+        CIRCUIT_ID,
+        "valid",
+        REGISTER_ID,
+        List.of(
+            new PrepareOperation(0),
+            new MeasureOperation(FIRST_QUBIT, 0),
+            new ResetOperation(FIRST_QUBIT),
+            GateOperation.of(Gate.X, FIRST_QUBIT)));
+    BytecodeVerifier.verify(quantumProgram(register, valid));
+  }
+
+  @Test
   void doubleAdjointRestoresExactSemanticOperations() {
     List<com.typeobject.wheeler.core.quantum.QuantumOperation> operations = List.of(
         GateOperation.of(Gate.H, FIRST_QUBIT),
@@ -193,11 +225,19 @@ class QuantumInstructionRegistryTest {
         List.of(),
         List.of(),
         List.of(),
-        List.of(),
+        List.of(new FunctionBody(
+            0,
+            "main",
+            false,
+            0,
+            List.of(),
+            null,
+            List.of(Instruction.of(Opcode.HALT)),
+            List.of())),
         List.of(),
         List.of(register),
         List.of(circuit),
-        List.of(),
+        List.of(WorkflowStep.halt()),
         Program.DEFAULT_MAX_HISTORY,
         Program.DEFAULT_MAX_STEPS);
   }

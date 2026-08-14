@@ -728,11 +728,11 @@ class SourceProfileNegativeTest {
     String dynamic = """
         quantum class DynamicSource {
           state long measured = 0;
-          qreg q = new qreg(1);
+          qreg q = new qreg(2);
           dynamic void correction() {
             prepare(q, 0);
             measure(q[0], 0);
-            applyIf(0, true, X, q[0]);
+            applyIf(0, true, X, q[1]);
           }
           entry void main() {
             correction();
@@ -749,7 +749,9 @@ class SourceProfileNegativeTest {
     String useBeforeMeasurement = dynamic.replace(
         "applyIf(0, true, X", "applyIf(1, true, X");
     String invalidSlot = dynamic.replace("measure(q[0], 0)", "measure(q[0], -1)");
-    String outOfRangeQubit = dynamic.replace("measure(q[0], 0)", "measure(q[1], 0)");
+    String outOfRangeQubit = dynamic.replace("measure(q[0], 0)", "measure(q[2], 0)");
+    String measuredQubitUse = dynamic.replace(
+        "applyIf(0, true, X, q[1])", "applyIf(0, true, X, q[0])");
 
     CompilerException kindsConflict = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(conflicting));
@@ -765,6 +767,8 @@ class SourceProfileNegativeTest {
         CompilerException.class, () -> new WheelerCompiler().compile(invalidSlot));
     CompilerException badQubit = assertThrows(
         CompilerException.class, () -> new WheelerCompiler().compile(outOfRangeQubit));
+    CompilerException useAfterMeasure = assertThrows(
+        CompilerException.class, () -> new WheelerCompiler().compile(measuredQubitUse));
 
     assertTrue(kindsConflict.getMessage().contains(
         "rev, unitary, dynamic, entry, and test are mutually exclusive"));
@@ -775,6 +779,12 @@ class SourceProfileNegativeTest {
         "dynamic conditional reads unassigned result slot: 1"));
     assertTrue(negativeSlot.getMessage().contains("invalid result slot: -1"));
     assertTrue(badQubit.getMessage().contains("qubit index exceeds register q"));
+    assertTrue(useAfterMeasure.getMessage().contains(
+        "dynamic qubit is used after measurement without reset"));
+
+    new WheelerCompiler().compile(dynamic.replace(
+        "applyIf(0, true, X, q[1]);",
+        "reset(q[0]);\n        applyIf(0, true, X, q[0]);"));
   }
 
   @Test
