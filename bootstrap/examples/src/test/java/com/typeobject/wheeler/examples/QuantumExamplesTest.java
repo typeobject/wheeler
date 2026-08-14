@@ -50,11 +50,14 @@ class QuantumExamplesTest {
     assertArrayEquals(first, second);
     if (file.equals("QFT.w") || file.equals("GroverSearch.w")
         || file.equals("QuantumWalk.w") || file.equals("algorithms/StaticPhaseEstimation.w")
-        || file.equals("algorithms/AmplitudeEstimation.w")) {
+        || file.equals("algorithms/AmplitudeEstimation.w")
+        || file.equals("algorithms/VariationalApplications.w")) {
       assertEquals(ProofRule.GENERATED_ADJOINT, decoded.proofCertificates().getFirst().rule());
     }
     if (file.equals("algorithms/AmplitudeEstimation.w")) {
       assertEquals(2, decoded.proofCertificates().size());
+    } else if (file.equals("algorithms/VariationalApplications.w")) {
+      assertEquals(3, decoded.proofCertificates().size());
     } else if (file.equals("QuantumCompiler.w")) {
       assertEquals(ProofRule.CIRCUIT_EQUIVALENCE, decoded.proofCertificates().getFirst().rule());
     }
@@ -151,6 +154,9 @@ class QuantumExamplesTest {
         Arguments.of("algorithms/StaticPhaseEstimation.w", Map.of("measured", 7L)),
         Arguments.of(
             "algorithms/AmplitudeEstimation.w",
-            Map.of("measured", 3L, "circuitApplications", 4L, "plannedShots", 4_096L)));
+            Map.of("measured", 3L, "circuitApplications", 4L, "plannedShots", 4_096L)),
+        Arguments.of(
+            "algorithms/VariationalApplications.w",
+            Map.of("measured", 1L, "batchApplications", 8L)));
   }
 }

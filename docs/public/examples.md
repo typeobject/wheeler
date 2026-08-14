@@ -326,6 +326,14 @@ Covers: Exact preparation of a one-half good-state probability, two source-order
 
 Expected result: exact ideal amplitudes occupy basis states zero and three equally. Both adjoints restore basis zero. The half-probability estimate remains between `0.45` and `0.55`, its standard error is below `0.009`, and the exact value `0.5` lies inside the reported two-error interval. The certain estimate records all 4,096 successes, zero error, and exact unit bounds. The one-shot source fixture records deterministic sample `3` without treating that sample as the estimate.
 
+### `VariationalApplications.w`
+
+Source: [`VariationalApplications.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/VariationalApplications.w).
+
+Covers: Fixed readable representatives for VQE, a two-node QAOA layer, quantum-kernel feature overlap, and positive and negative parameter shifts. Runtime conformance binds symbolic phase and controlled-phase values into ordered immutable batches and preserves exact submission and batch identities.
+
+Expected result: VQE selects the pi ansatz with Z energy `-1`. The shift pair at pi over two yields derivative `-1`. Equal kernel features have unit overlap while features separated by pi have zero overlap. The fixed QAOA layer matches the complete two-qubit complex amplitude vector. The source executable records `measured = 1` and `batchApplications = 8`.
+
 ### `QuantumOptimizer.w`
 
 Source: [`QuantumOptimizer.w`](../../wheeler-examples/src/main/wheeler/quantum/QuantumOptimizer.w).

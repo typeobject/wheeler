@@ -186,6 +186,10 @@ targets:
     root: "src/main/wheeler/classical/data/Variants.w"
     test: false
   - kind: "deployable"
+    name: "variationalapplications"
+    root: "src/main/wheeler/quantum/algorithms/VariationalApplications.w"
+    test: false
+  - kind: "deployable"
     name: "widthexplicitlookup"
     root: "src/main/wheeler/classical/oracles/WidthExplicitOracle.w"
     test: false

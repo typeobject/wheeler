@@ -545,6 +545,95 @@ class StateVectorTargetTest {
   }
 
   @Test
+  void variationalBatchCoversVqeQaoaKernelAndParameterShift() {
+    QuantumRegister one = new QuantumRegister(0, "variational", 1);
+    QuantumCircuit ansatz = new QuantumCircuit(
+        0,
+        "ansatz",
+        0,
+        List.of(
+            GateOperation.of(Gate.H, 0),
+            new ParameterizedGateOperation(Gate.PHASE, List.of(0), "theta", 1),
+            GateOperation.of(Gate.H, 0)));
+    Program vqe = program(one, ansatz, List.of());
+    QuantumSubmission thetaZero = new QuantumSubmission(
+        vqe, 0, 0, List.of(new CircuitApplication(0, false)),
+        Map.of("theta", 0.0), 64, 101);
+    QuantumSubmission thetaPi = new QuantumSubmission(
+        vqe, 0, 0, List.of(new CircuitApplication(0, false)),
+        Map.of("theta", Math.PI), 64, 103);
+    QuantumBatchResult vqeBatch = new StateVectorTarget()
+        .submitBatch(new QuantumBatch(List.of(thetaZero, thetaPi)))
+        .await(Duration.ofSeconds(1));
+    assertEquals(1.0, vqeBatch.results().get(0).zExpectation(0).value());
+    assertEquals(-1.0, vqeBatch.results().get(1).zExpectation(0).value());
+
+    QuantumSubmission shiftPlus = new QuantumSubmission(
+        vqe, 0, 0, List.of(new CircuitApplication(0, false)),
+        Map.of("theta", Math.PI), 64, 107);
+    QuantumSubmission shiftMinus = new QuantumSubmission(
+        vqe, 0, 0, List.of(new CircuitApplication(0, false)),
+        Map.of("theta", 0.0), 64, 109);
+    QuantumBatch shifts = new QuantumBatch(List.of(shiftPlus, shiftMinus));
+    QuantumBatchResult shifted = new StateVectorTarget()
+        .submitBatch(shifts)
+        .await(Duration.ofSeconds(1));
+    double derivative = (shifted.results().get(0).zExpectation(0).value()
+        - shifted.results().get(1).zExpectation(0).value()) / 2;
+    assertEquals(-1.0, derivative, 1e-12);
+    assertEquals(shifts.identity(), shifted.batchIdentity());
+
+    QuantumCircuit featureX = new QuantumCircuit(
+        0,
+        "featureX",
+        0,
+        List.of(
+            GateOperation.of(Gate.H, 0),
+            new ParameterizedGateOperation(Gate.PHASE, List.of(0), "x", 1)));
+    QuantumCircuit featureY = new QuantumCircuit(
+        1,
+        "featureY",
+        0,
+        List.of(
+            GateOperation.of(Gate.H, 0),
+            new ParameterizedGateOperation(Gate.PHASE, List.of(0), "y", 1)));
+    Program kernel = program(one, featureX, List.of(), featureY);
+    List<CircuitApplication> overlap = List.of(
+        new CircuitApplication(0, false), new CircuitApplication(1, true));
+    QuantumSubmission equalFeatures = new QuantumSubmission(
+        kernel, 0, 0, overlap, Map.of("x", Math.PI / 3, "y", Math.PI / 3), 64, 113);
+    QuantumSubmission distinctFeatures = new QuantumSubmission(
+        kernel, 0, 0, overlap, Map.of("x", 0.0, "y", Math.PI), 64, 127);
+    QuantumBatchResult kernels = new StateVectorTarget()
+        .submitBatch(new QuantumBatch(List.of(equalFeatures, distinctFeatures)))
+        .await(Duration.ofSeconds(1));
+    assertEquals(64, kernels.results().get(0).outcomes().stream()
+        .filter(outcome -> outcome == 0).count());
+    assertEquals(64, kernels.results().get(1).outcomes().stream()
+        .filter(outcome -> outcome == 1).count());
+
+    QuantumRegister pair = new QuantumRegister(0, "qaoa", 2);
+    QuantumCircuit qaoa = new QuantumCircuit(
+        0,
+        "qaoaLayer",
+        0,
+        List.of(
+            GateOperation.of(Gate.H, 0),
+            GateOperation.of(Gate.H, 1),
+            new ParameterizedGateOperation(Gate.CPHASE, List.of(0, 1), "gamma", 1),
+            GateOperation.of(Gate.H, 0),
+            GateOperation.of(Gate.H, 1)));
+    Program qaoaProgram = program(pair, qaoa, List.of());
+    StateVectorEngine exact = new StateVectorEngine(131);
+    exact.prepare(pair, 0);
+    exact.apply(qaoaProgram, qaoa, false, Map.of("gamma", Math.PI));
+    assertArrayEquals(
+        new double[] {0.5, 0, 0.5, 0, 0.5, 0, -0.5, 0},
+        exact.amplitudes(pair),
+        1e-12);
+  }
+
+  @Test
   void symbolicParameterBindingSurvivesBytecodeAndChangesBatchResult() {
     QuantumRegister register = new QuantumRegister(0, "q", 1);
     QuantumCircuit circuit = new QuantumCircuit(
