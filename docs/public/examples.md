@@ -133,9 +133,9 @@ Expected behavior:
 
 Source: [`IncrementalDependencyGraph.w`](../../wheeler-examples/src/main/wheeler/classical/control/IncrementalDependencyGraph.w).
 
-Covers: A mutable four-node adjacency table, bounded breadth-first work queues and visited sets, cycle detection, rollback of a tentative back edge, deterministic affected-node invalidation, exact per-node versions, and region cleanup.
+Covers: A mutable four-node adjacency table, a deterministic signed map for versions, bounded breadth-first work queues and visited sets, a tagged accepted-or-cycle result, rollback of a tentative back edge, explicit staged and rolled-back phases, deterministic affected-node invalidation, and region cleanup.
 
-Expected result: every node has version `2`, `rebuilds = affected = 4`, and `cycleRejected = 1`.
+Expected result: every node has version `2`, `rebuilds = affected = 4`, `cycleRejected = 4`, and `transactionPhase = 2`.
 
 ### `IntegerWaveletTransform.w`
 

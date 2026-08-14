@@ -77,6 +77,9 @@ targets:
   - kind: "deployable"
     name: "incrementaldependencygraph"
     root: "src/main/wheeler/classical/control/IncrementalDependencyGraph.w"
+    module: "examples.graph.incremental"
+    sources:
+      - "src/main/wheeler/classical/control/IncrementalDependencyGraph.w"
     test: false
   - kind: "deployable"
     name: "integerwavelettransform"

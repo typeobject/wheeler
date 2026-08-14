@@ -361,8 +361,8 @@ Portfolio work follows these rules:
   - [ ] Make byte-frame encoding itself participate in a checked inverse relation rather than relying on the parallel fixed-word transform.
 - [ ] Transactional persistent index.
 - [ ] Incremental dependency graph.
-  - [x] `IncrementalDependencyGraph.w` owns a mutable four-node adjacency table, bounded breadth-first queues and visited sets, cycle detection, rollback of a tentative back edge, deterministic affected-node invalidation, exact versions, owner cleanup, canonical execution, and complete rewind.
-  - [ ] Replace raw tables with the accepted nominal map, set, and queue APIs. Add tagged cycle diagnostics and explicit transaction phases around tentative updates.
+  - [x] `IncrementalDependencyGraph.w` owns a mutable four-node adjacency table, a deterministic signed map for versions, bounded breadth-first queues and visited sets, a tagged accepted-or-cycle result, staged and rolled-back phases, rollback of a tentative back edge, affected-node invalidation, owner cleanup, canonical execution, and complete rewind.
+  - [ ] Replace the remaining raw visited and queue tables with accepted nominal set and queue APIs.
 - [ ] Integer wavelet transform.
   - [x] `IntegerWaveletTransform.w` implements one determinant-one lifting step over a signed sample pair, checks its generated inverse, observes exact coefficients, and restores both inputs without rounding.
   - [ ] Extend the fixture to a bounded image tile, generated extrema and overflow cases, and byte-identical encoded reconstruction.

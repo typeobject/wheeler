@@ -47,6 +47,13 @@ class ClassicalExamplesTest {
           "CoreLongMap.w",
           "collections/LongMap.w",
           "examples.collections.long_map_main");
+    } else if (name.equals("IncrementalDependencyGraph.w")) {
+      program = compileCoreExample(
+          compiler,
+          source,
+          "CoreLongMap.w",
+          "collections/LongMap.w",
+          "examples.graph.incremental");
     } else {
       byte[] artifact = compiler.compileToBytecode(Files.readString(source));
       program = new BytecodeReader().read(artifact);
@@ -129,7 +136,8 @@ class ClassicalExamplesTest {
                 "linkVersion", 2L,
                 "rebuilds", 4L,
                 "affected", 4L,
-                "cycleRejected", 1L)),
+                "cycleRejected", 4L,
+                "transactionPhase", 2L)),
         Arguments.of(
             "classical/data/IntegerWaveletTransform.w",
             Map.of("high", 10L, "low", 6L, "observedHigh", 4L, "observedLow", 10L)),
