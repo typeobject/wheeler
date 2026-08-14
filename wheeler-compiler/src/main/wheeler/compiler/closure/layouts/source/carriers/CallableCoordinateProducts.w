@@ -72,7 +72,7 @@ classical class CallableCoordinateProducts {
   private boolean ancestorOf(long ancestor, long product, borrow mut words productRows) {
     long cursor = productRows[PRODUCT_PARENT_ROW + product];
     long depth = 0;
-    while (cursor != - 1) limit MAX_PRODUCTS {
+    while (-1 < cursor) limit MAX_PRODUCTS {
       depth += 1;
       if (4 < depth) {
         return false;
@@ -91,7 +91,7 @@ classical class CallableCoordinateProducts {
   private boolean validDepth(long product, borrow mut words productRows) {
     long cursor = productRows[PRODUCT_PARENT_ROW + product];
     long depth = 0;
-    while (cursor != - 1) limit MAX_PRODUCTS {
+    while (-1 < cursor) limit MAX_PRODUCTS {
       depth += 1;
       if (4 < depth) {
         return false;
