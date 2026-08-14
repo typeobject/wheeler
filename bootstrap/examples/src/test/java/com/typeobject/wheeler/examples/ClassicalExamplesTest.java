@@ -94,6 +94,27 @@ class ClassicalExamplesTest {
   }
 
   @Test
+  void symplecticKickOverflowTrapsBeforePublishingAResult() {
+    Program program = new WheelerCompiler().compile("""
+        classical class SymplecticOverflow {
+          state long result = 0;
+
+          long kick(long momentum, long force) {
+            return momentum - force;
+          }
+
+          entry void main() {
+            result = kick(9223372036854775807, -1);
+          }
+        }
+        """);
+    VirtualMachine machine = new VirtualMachine(program);
+
+    assertThrows(VmTrap.class, machine::run);
+    assertEquals(0, machine.global("result"));
+  }
+
+  @Test
   void waveletCoefficientOverflowTrapsBeforePublishingAResult() {
     Program program = new WheelerCompiler().compile("""
         classical class WaveletOverflow {
@@ -160,8 +181,13 @@ class ClassicalExamplesTest {
             Map.of(
                 "position", 7_168L,
                 "momentum", 5_120L,
+                "positionB", -7_168L,
+                "momentumB", -5_120L,
                 "observedPosition", 10_240L,
-                "observedMomentum", 3_072L)),
+                "observedMomentum", 3_072L,
+                "observedPositionB", -10_240L,
+                "observedMomentumB", -3_072L,
+                "generatedCases", 256L)),
         Arguments.of("text/FrozenUtf8.w", Map.of(
             "byteLength", 6L, "scalarCount", 3L, "middleScalar", 8364L, "valid", 1L)),
         Arguments.of("classical/control/FunctionValues.w", Map.of("result", 10L)),

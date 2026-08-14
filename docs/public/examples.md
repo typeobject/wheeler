@@ -73,9 +73,9 @@ Expected result: `selected = 6`, `sum = 20`, `middleSum = 10`, `equal = 1`, `rec
 
 Source: [`FixedPointSymplectic.w`](../../wheeler-examples/src/main/wheeler/classical/data/FixedPointSymplectic.w).
 
-Covers: Scale-1024 phase-space coordinates, one integer kick-drift symplectic step, checked fixed-point updates without division or rounding, a generated inverse certificate, exact observed coordinates, and complete phase-point restoration.
+Covers: Scale-1024 two-body phase-space coordinates, equal-and-opposite integer kicks and drifts, zero total momentum, 256 exhaustive bounded phase cases, signed extremes, checked overflow rejection, a generated inverse certificate, exact observed coordinates, and complete phase-point restoration without division or rounding.
 
-Expected result: `observedPosition = 10240`, `observedMomentum = 3072`, `position = 7168`, `momentum = 5120`.
+Expected result: observed phase points are `(10240, 3072)` and `(-10240, -3072)`. Restored points are `(7168, 5120)` and `(-7168, -5120)`, and `generatedCases = 256`.
 
 ### `FrozenUtf8.w`
 
