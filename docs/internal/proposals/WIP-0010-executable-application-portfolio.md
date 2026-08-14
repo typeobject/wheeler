@@ -376,7 +376,7 @@ Portfolio work follows these rules:
   - A Wheeler-native bounded verifier checks emitted bytes before publication. General IR payloads and full control, type, and resource verification remain.
 - [ ] Self-hosting compiler fixed point.
 - [ ] Wheeler package resolver.
-- [ ] Native transition trace parity.
+- [x] The Wheeler-written bounded verifier and interpreter append every successful opcode identity in execution order, hash the exact little-endian stream with Wheeler SHA-256, and publish all 32 digest bytes through eight bounded state words. Java VM observations produce the same stream independently. The differential portfolio compares exact trace identities and every admitted global across direct updates, branches, calls, generated inverses, recursion, aggregates, ownership, storage, UTF-8, and result slots. Malformed artifacts publish no trace identity.
 
 ### Quantum algorithms
 
@@ -425,7 +425,7 @@ Portfolio work follows these rules:
 - [x] Every implemented quantum fixture declares little-endian basis and sample interpretation, exact or sampled evidence, qubit and shot bounds, required target capabilities, seed policy where deterministic, and acceptance thresholds where statistical. Exact dynamic fixtures make no hardware-fidelity claim.
 - [x] Implemented proof fixtures name the bounded `ProofKernel` rule profile and reject minimally corrupted rule arguments, subject bodies, inverse bodies, and nonreversible subjects. Passing tests remain evidence about the named proposition rather than a substitute theorem.
 - [ ] Compiler stages produce identical portfolio artifacts and diagnostics for their shared profile.
-- [ ] Interpreted and native executions produce matching normalized traces.
+- [x] Stage-0 and Wheeler interpreter runs produce the same normalized successful-opcode trace identity and terminal globals across the complete bounded native-VM differential corpus. The trace is an exact SHA-256 identity over ordered two-byte opcode values, not a lossy event counter or host log.
 - [ ] The package manager builds the complete implemented portfolio offline from a locked vendor set.
 - [x] `examples.md` lists readable checked-in programs and current results. The internal conformance manual lists only checked-in verification and recovery subjects. Planned portfolio entries remain in this WIP and future pages rather than appearing as implemented examples.
 

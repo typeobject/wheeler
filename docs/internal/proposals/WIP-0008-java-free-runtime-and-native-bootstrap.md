@@ -222,7 +222,7 @@ Recovery releases are signed or content-addressed by release policy. Bootstrap s
   - Returned public loans, interpreter-level rewind records, workflows, and native machine code remain unfinished.
 - [ ] Platform ABI and native-image identity are specified.
 - [ ] Native backend executes the classical bootstrap profile.
-- [ ] Wheeler-written verifier and VM pass Java differential traces.
+- [x] The Wheeler-written verifier and bounded interpreter hash each successful ordered two-byte opcode trace with Wheeler SHA-256. Independent Java VM observations reproduce all 32 bytes across direct updates, branches, calls, generated inverses, recursion, aggregates, ownership, storage, UTF-8, and result slots while terminal globals agree. Malformed artifacts trap before a trace identity is published.
 - [ ] Wheeler-written compiler reaches the WIP-0007 fixed point.
 - [ ] Quantum and hybrid runtime fixtures pass natively.
 - [ ] A clean no-Java bootstrap produces a reproducible recovery release.

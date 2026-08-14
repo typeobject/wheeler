@@ -16,8 +16,11 @@ import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.ValueType;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,6 +40,7 @@ class NativeVmExampleTest {
         "AggregateInterpreter.w",
         RuntimeSources.read("runtime/AggregateInterpreter.w"));
     CoreSources.addBinaryClosure(modules);
+    modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     modules.put("Interpreter.w", RuntimeSources.read("runtime/Interpreter.w"));
     modules.put("MapInterpreter.w", RuntimeSources.read("runtime/MapInterpreter.w"));
     modules.put(
@@ -60,9 +64,11 @@ class NativeVmExampleTest {
     assertEquals(12, machine.global("finalGlobal"));
     assertEquals(update.length, machine.global("artifactLength"));
     assertTrue(machine.global("interpretedSteps") > 0);
-    VirtualMachine stageZero = new VirtualMachine(new BytecodeReader().read(update));
+    ByteArrayOutputStream updateTrace = new ByteArrayOutputStream();
+    VirtualMachine stageZero = tracingMachine(new BytecodeReader().read(update), updateTrace);
     stageZero.run();
     assertEquals(stageZero.global("value"), machine.global("finalGlobal"));
+    assertTraceIdentity(updateTrace, machine);
     assertInterpretedGlobal(
         interpreter,
         "classical class Conditional { state long value = 0; "
@@ -399,9 +405,11 @@ class NativeVmExampleTest {
     var initial = nativeMachine.snapshot();
     nativeMachine.run();
     Program decoded = new BytecodeReader().read(artifact);
-    VirtualMachine stageZero = new VirtualMachine(decoded);
+    ByteArrayOutputStream trace = new ByteArrayOutputStream();
+    VirtualMachine stageZero = tracingMachine(decoded, trace);
     stageZero.run();
     assertEquals(expected, stageZero.global(global));
+    assertTraceIdentity(trace, nativeMachine);
     assertAllInterpretedGlobals(decoded, stageZero, nativeMachine);
     while (nativeMachine.historySize() > 0) {
       nativeMachine.rewindOne();
@@ -436,15 +444,42 @@ class NativeVmExampleTest {
     var initial = nativeMachine.snapshot();
     nativeMachine.run();
     Program decoded = new BytecodeReader().read(artifact);
-    VirtualMachine stageZero = new VirtualMachine(decoded);
+    ByteArrayOutputStream trace = new ByteArrayOutputStream();
+    VirtualMachine stageZero = tracingMachine(decoded, trace);
     stageZero.run();
     assertEquals(firstExpected, stageZero.global(firstGlobal));
     assertEquals(secondExpected, stageZero.global(secondGlobal));
+    assertTraceIdentity(trace, nativeMachine);
     assertAllInterpretedGlobals(decoded, stageZero, nativeMachine);
     while (nativeMachine.historySize() > 0) {
       nativeMachine.rewindOne();
     }
     assertEquals(initial, nativeMachine.snapshot());
+  }
+
+  private static VirtualMachine tracingMachine(
+      Program program, ByteArrayOutputStream trace) {
+    return new VirtualMachine(program, observation -> {
+      trace.write(observation.opcode().code() & 0xff);
+      trace.write(observation.opcode().code() >>> 8);
+    });
+  }
+
+  private static void assertTraceIdentity(
+      ByteArrayOutputStream trace, VirtualMachine nativeMachine) {
+    try {
+      byte[] identity = MessageDigest.getInstance("SHA-256").digest(trace.toByteArray());
+      ByteBuffer words = ByteBuffer.wrap(identity).order(ByteOrder.BIG_ENDIAN);
+      String[] names = {
+          "traceZero", "traceOne", "traceTwo", "traceThree",
+          "traceFour", "traceFive", "traceSix", "traceSeven"
+      };
+      for (String name : names) {
+        assertEquals(Integer.toUnsignedLong(words.getInt()), nativeMachine.global(name), name);
+      }
+    } catch (NoSuchAlgorithmException exception) {
+      throw new AssertionError(exception);
+    }
   }
 
   private static byte[] reversibleResultRoundTrip() {

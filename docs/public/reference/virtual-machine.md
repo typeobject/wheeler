@@ -43,7 +43,7 @@ The interpreter supports:
 - up to eight signed globals.
 - up to 512 interpreted instructions.
 - eight bounded frames.
-- up to eight functions.
+- up to 24 functions.
 - 256 typed locals per frame.
 - up to 512 instructions per function.
 
@@ -76,6 +76,8 @@ The direct checked-update fixture matches the final global value produced by the
 Differential tests also cover branches, a three-iteration bounded loop, signed calls, and Boolean logic in `FunctionValues.w`. Six-level recursion runs through `RecursiveValue.w`, while `LoopControl.w` covers early return, `break`, and `continue`.
 
 Data fixtures include nested `Records.w` values, payload-free `FiniteEnums.w`, payload-carrying `Variants.w`, arrays, slices, owned storage, valid and invalid UTF-8, `FrozenUtf8.w`, and signed maps. Every declared global, up to eight, must match stage 0 before exact rewind.
+
+Each successful interpreted instruction appends its two-byte opcode identity to a private 512-row trace. `NativeVm.w` hashes the exact ordered bytes with Wheeler SHA-256 and publishes the digest through eight 32-bit words. An independent stage-0 observer builds the same byte stream from Java VM transitions. Differential cases require all 32 digest bytes to agree. A malformed artifact or trapped interpreter path publishes no successful result or trace identity.
 
 Negative tests forge record-field, variant-tag, array-index-local, slice-index-local, word-index-local, byte-index-local, UTF-8-index-local, and map-key-local operands. They also forge step bounds, branch targets, and generated inverses. The Wheeler verifier must reject each case before interpretation.
 

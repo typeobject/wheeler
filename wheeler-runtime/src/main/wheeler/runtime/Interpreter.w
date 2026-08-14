@@ -125,8 +125,10 @@ classical class Interpreter {
     borrow mut words storageLive,
     borrow mut words storageRegionUsedBytes,
     borrow mut words storageRegionLiveObjects,
-    borrow mut words storageData
+    borrow mut words storageData,
+    borrow mut bytes traceOpcodes
   ) {
+    assert(bufferLength(traceOpcodes) == MAX_INTERPRETED_STEPS * 2);
     long fileLength = bufferLength(artifact);
     if (verifyArtifact(artifact, fileLength) == 1) {} else {
       return new ExecutionResult.Error(0);
@@ -171,6 +173,8 @@ classical class Interpreter {
       }
 
       long opcode = readUnsigned(artifact, cursor, 2);
+      setByte(traceOpcodes, steps * 2, opcode % 256);
+      setByte(traceOpcodes, steps * 2 + 1, opcode / 256);
       long instructionLength = readUnsigned(artifact, cursor + 4, 4);
       long next = cursor + instructionLength;
       if (opcode == OPCODE_HALT) {
