@@ -76,7 +76,7 @@ Relative links to `.md` or `.mdx` pages and canonical `#heading` anchors resolve
 
 Scalar MDX-style front matter becomes bounded metadata and is never printed as page text. `index.md` and `index.mdx` map to their directory route. An index may set `sidebar_children: false` to keep descendants routable and searchable while omitting them from navigation. Any page may set `sidebar: false` to omit itself. The renderer does not execute MDX or JSX.
 
-Navigation uses one fixed order: Manual, Tutorials, then Reference. Proposals, future sketches, maintainer notes, and conformance programs stay under `docs/internal`. The bundle cannot discover them. The profile has one stylesheet, one fixed local copy script, no themes, no plugins, a restrictive content security policy, bounded output, and one atomic publication step.
+Navigation uses one fixed order: Manual, Story, then Reference. Proposals, future sketches, maintainer notes, and conformance programs stay under `docs/internal`. The bundle cannot discover them. The profile has one stylesheet, one fixed local copy script, no themes, no plugins, a restrictive content security policy, bounded output, and one atomic publication step.
 
 `sitemap.xml` comes from every generated HTML route and includes a deterministic content-set digest. A page edit changes the sitemap without adding build time to the semantic inputs.
 

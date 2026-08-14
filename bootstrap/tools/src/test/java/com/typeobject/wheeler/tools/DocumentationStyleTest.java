@@ -49,6 +49,17 @@ final class DocumentationStyleTest {
   }
 
   @Test
+  void storyProseAllowsPunctuationAndVariedSentenceVoice() {
+    List<String> diagnostics = new ArrayList<>();
+    check(
+        Path.of("docs/public/tutorials/Scene.md"),
+        "The lock was built by people who stayed; the ship left — slowly.\n",
+        diagnostics);
+
+    assertEquals(List.of(), diagnostics);
+  }
+
+  @Test
   void maintainedDocumentationUsesDirectProse() throws Exception {
     List<Path> files = new ArrayList<>(FILES);
     for (Path root : List.of(Path.of("docs/public"), Path.of("docs/internal"))) {
@@ -67,6 +78,7 @@ final class DocumentationStyleTest {
   }
 
   private static void check(Path file, String source, List<String> diagnostics) {
+    boolean narrative = file.startsWith(Path.of("docs/public/tutorials"));
     boolean fence = false;
     String[] lines = source.split("\\R", -1);
     for (int index = 0; index < lines.length; index++) {
@@ -79,16 +91,16 @@ final class DocumentationStyleTest {
         continue;
       }
       String prose = proseOnly(line);
-      if (prose.indexOf(';') >= 0) {
+      if (!narrative && prose.indexOf(';') >= 0) {
         diagnostics.add(diagnostic(file, index, "WSTYLE001", "replace the prose semicolon"));
       }
-      if (prose.indexOf('—') >= 0 || prose.indexOf('–') >= 0) {
+      if (!narrative && (prose.indexOf('—') >= 0 || prose.indexOf('–') >= 0)) {
         diagnostics.add(diagnostic(file, index, "WSTYLE002", "replace the prose dash"));
       }
       if (FILLER.matcher(prose).find()) {
         diagnostics.add(diagnostic(file, index, "WSTYLE003", "remove filler language"));
       }
-      if (PASSIVE_BY.matcher(prose).find()) {
+      if (!narrative && PASSIVE_BY.matcher(prose).find()) {
         diagnostics.add(diagnostic(file, index, "WSTYLE004", "name the actor first"));
       }
     }

@@ -68,20 +68,20 @@ class DocumentationSiteCommandTest {
     assertFalse(index.contains("description: Wheeler"));
     assertFalse(index.contains("reversible classical/quantum systems"));
     int manual = index.indexOf("<section><h2>manual</h2>");
-    int tutorials = index.indexOf("<section><h2>tutorials</h2>");
+    int story = index.indexOf("<section><h2>story</h2>");
     int reference = index.indexOf("<section><h2>reference</h2>");
-    assertTrue(manual >= 0 && manual < tutorials && tutorials < reference);
+    assertTrue(manual >= 0 && manual < story && story < reference);
     assertFalse(index.contains("<section><h2>proposals</h2>"));
     assertFalse(index.contains("<section><h2>future</h2>"));
-    int tutorialsEnd = index.indexOf("</section>", tutorials);
-    String tutorialSidebar = index.substring(tutorials, tutorialsEnd);
+    int storyEnd = index.indexOf("</section>", story);
+    String tutorialSidebar = index.substring(story, storyEnd);
     assertTrue(tutorialSidebar.contains(
-        "<a href=\"tutorials/index.html\">Instructions for Returning</a>"));
+        "<a href=\"tutorials/index.html\">Home Was the Easy Part</a>"));
     assertTrue(tutorialSidebar.contains(
         "<a class=\"nav-child\" href=\"tutorials/00-return-to-which-state.html\">Home</a>"));
     assertTrue(tutorialSidebar.contains(
         "<a class=\"nav-child\" href=\"tutorials/12-weather.html\">Weather</a>"));
-    assertTrue(tutorialSidebar.indexOf("Instructions for Returning")
+    assertTrue(tutorialSidebar.indexOf("Home Was the Easy Part")
         < tutorialSidebar.indexOf(">Home</a>"));
     assertTrue(tutorialSidebar.indexOf(">Home</a>")
         < tutorialSidebar.indexOf(">Weather</a>"));

@@ -116,7 +116,8 @@ final class DocumentationMarkdown {
           html.append("</section>\n");
         }
         group = nextGroup;
-        html.append("<section><h2>").append(escape(group)).append("</h2>\n");
+        String heading = group.equals("tutorials") ? "story" : group;
+        html.append("<section><h2>").append(escape(heading)).append("</h2>\n");
       }
       boolean tutorialChild = page.source().startsWith("tutorials/")
           && !isIndexSource(page.source());
