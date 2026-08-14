@@ -60,8 +60,11 @@ class NativeCoverageReducerExampleTest {
         Map.of(
             "CoverageReducer.w",
             Files.readString(Path.of(
-                "../wheeler-runtime/src/main/wheeler/runtime/CoverageReducer.w"))),
-        "wheeler.runtime.coverage_reducer");
+                "../wheeler-runtime/src/main/wheeler/runtime/CoverageReducer.w")),
+            "NativeCoverageReducer.w",
+            Files.readString(Path.of(
+                "../wheeler-conformance/src/main/wheeler/runtime/NativeCoverageReducer.w"))),
+        "wheeler.conformance.runtime.native_coverage_reducer");
     byte[] reduced = new WheelerRuntime()
         .executeBinaryInput(reducer, encode(rows), 32_768)
         .output();

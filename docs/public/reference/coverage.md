@@ -30,7 +30,7 @@ The report has no percentage. This first slice knows which transitions ran, but 
 
 ## Wheeler reduction
 
-`wheeler.runtime.coverage_reducer` consumes at most 64 bounded canonical point fragments. Each input row separates its sort key from the rendered prefix and suffix. The reducer validates every extent, insertion-sorts rows without a host collection, combines duplicate keys with exact counts, renders decimal counts, and publishes output length only after the complete profile-1 report exists.
+`wheeler.runtime.coverage_reducer` consumes at most 64 bounded canonical point fragments. Each input row separates its sort key from the rendered prefix and suffix. The library reducer validates every extent, insertion-sorts rows without a host collection, combines duplicate keys with exact counts, renders decimal counts, and returns the length only after the complete profile-1 report exists. `wheeler.conformance.runtime.native_coverage_reducer` is the executable boundary that publishes that exact returned extent. The runtime package therefore carries no hidden entry method.
 
 The differential fixture collects two forward-and-rewind executions, reverses arrival order, and compares every Wheeler-produced report byte with `SemanticCoverage.canonicalReport()`. This proves reducer parity for the accepted row format. It does not prove source-native collection: the Java seed still turns VM observations into bounded input fragments.
 

@@ -151,7 +151,7 @@ classical class CoverageReducer {
   /// Emits the profile-1 report after complete input validation and row sorting.
   ///
   /// - Effects: Publishes output length only after the complete bounded report exists.
-  entry void main(borrow byteview input, borrow mut bytes output) {
+  public long reduce(borrow byteview input, borrow mut bytes output) {
     assert(0 < bufferLength(input));
     long rowCount = input[0];
     assert(rowCount < MAX_ROWS + 1);
@@ -248,7 +248,6 @@ classical class CoverageReducer {
     }
 
     cursor = writeFooter(output, cursor);
-    setOutputLength(output, cursor);
     drop(order);
     drop(suffixLengths);
     drop(suffixStarts);
@@ -257,5 +256,6 @@ classical class CoverageReducer {
     drop(keyLengths);
     drop(keyStarts);
     drop(arena);
+    return cursor;
   }
 }

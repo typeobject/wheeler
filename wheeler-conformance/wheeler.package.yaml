@@ -82,6 +82,13 @@ targets:
       - "src/main/wheeler/bootstrap/NativeCompilerOptionsIdentity.w"
     test: false
   - kind: "deployable"
+    name: "nativecoveragereducer"
+    root: "src/main/wheeler/runtime/NativeCoverageReducer.w"
+    module: "wheeler.conformance.runtime.native_coverage_reducer"
+    sources:
+      - "src/main/wheeler/runtime/NativeCoverageReducer.w"
+    test: false
+  - kind: "deployable"
     name: "nativedurabilityreceipts"
     root: "src/main/wheeler/io/NativeDurabilityReceipts.w"
     module: "wheeler.conformance.io.durability_receipts"
