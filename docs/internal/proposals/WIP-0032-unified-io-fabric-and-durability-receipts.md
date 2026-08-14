@@ -584,7 +584,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] Bounded batches, first-completion selection, and dependency graphs execute. Selection returns every unselected operation, consumed members cannot partially publish a batch, graph dependents wait for all named predecessors, and graph node and edge limits fail before admission. General groups and multishot operations remain.
 - [x] Deterministic inline, delayed, and bounded threaded stage-0 backends pass one lifecycle suite.
 - [ ] Event/completion backend passes.
-- [ ] Registered/provided/zero-copy buffer safety passes.
+- [x] `IoBufferPool` pre-registers a bounded fixed owner set and issues generation-checked provider leases. Provided reads and registered writes expose no staging owner, hold the lease through terminal resource release, require explicit recycle permission, and reject stale, foreign, concurrent, or early reuse.
 - [ ] Direct I/O and coherence profile passes.
 - [x] Deterministic receipt conformance pins the complete write, data, file, namespace visibility, namespace stability, and quorum chain. It rejects skipped stages, wrong evidence kinds, duplicate evidence, namespace-less publication, and insufficient quorum profiles. Device-level crash injection remains backend-specific.
 - [ ] High-scale network and multi-queue storage profiles pass on declared hardware.
@@ -619,8 +619,8 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] Stage-0 moved buffers return through terminal positional results and remain inaccessible until resource-release completion.
 - [x] Positional read and write construction checks bounded offsets and lengths, completion progress cannot exceed declared work, and a provider that reports excess progress is rejected at terminal reduction.
 - [x] The stage-0 profile enforces positive operation, live-operation, batch, graph-node, graph-edge, and total-work limits. The threaded backend also bounds workers and admitted work and refuses excess admission before consuming the request. Registration and timer limits remain outside this slice.
-- [ ] Data-plane saturation preserves cleanup/control credit.
-- [ ] Zero-copy does not release a source before final reuse permission.
+- [x] Registered-buffer data-plane saturation returns explicit absence without allocating. Cancellation, terminal release, lease recycle, and pool-close checks require no available data buffer and remain usable at zero data-plane credit.
+- [x] The registered-write path submits the leased source owner directly. Early recycle fails while the request holds it. Terminal completion returns the exact lease, and explicit recycle is the sole final reuse permission.
 
 ### Ordering and addressing
 
