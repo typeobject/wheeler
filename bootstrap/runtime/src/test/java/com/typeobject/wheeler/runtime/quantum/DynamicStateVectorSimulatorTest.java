@@ -19,7 +19,9 @@ import com.typeobject.wheeler.core.quantum.QuantumCircuit;
 import com.typeobject.wheeler.core.quantum.QuantumRegister;
 import com.typeobject.wheeler.core.quantum.ResetOperation;
 import com.typeobject.wheeler.core.workflow.WorkflowStep;
+import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
@@ -101,6 +103,42 @@ final class DynamicStateVectorSimulatorTest {
       assertEquals(input, fixture.target(result));
       assertEquals(2, result.resultSlots().size());
     }
+  }
+
+  @Test
+  void asynchronousTargetSubmitsAndRecoversOneCanonicalDynamicRegion() {
+    DynamicTeleportationFixture fixture = new DynamicTeleportationFixture(true);
+    QuantumRegister register = new QuantumRegister(
+        DynamicTeleportationFixture.REGISTER_ID,
+        "teleportation",
+        DynamicTeleportationFixture.QUBITS);
+    Program program = program(register, fixture.circuit());
+    QuantumSubmission submission = new QuantumSubmission(
+        program,
+        register.id(),
+        0,
+        List.of(new CircuitApplication(fixture.circuit().id(), false)),
+        Map.of(),
+        2,
+        7);
+    DynamicStateVectorTarget target = new DynamicStateVectorTarget();
+
+    QuantumJob job = target.submit(submission);
+    QuantumResult result = job.await(Duration.ofSeconds(1));
+
+    assertEquals(2, result.outcomes().size());
+    assertTrue(result.outcomes().stream().allMatch(outcome -> (outcome & 4) != 0));
+    assertEquals(job.id(), target.recover(job.id(), submission).id());
+    assertThrows(
+        QuantumExecutionException.class,
+        () -> target.recover(job.id(), new QuantumSubmission(
+            program,
+            register.id(),
+            0,
+            submission.applications(),
+            Map.of(),
+            2,
+            8)));
   }
 
   @Test
