@@ -266,6 +266,7 @@ classical class LoopCallProducts {
     borrow mut words relocationRows,
     borrow mut bytes relocationIdentities,
     borrow mut words localTypeRows,
+    borrow mut words callLocalWidths,
     borrow mut bytes output
   ) {
     assert(-1 < callCount);
@@ -284,6 +285,7 @@ classical class LoopCallProducts {
     assert(bufferLength(relocationRows) == RELOCATION_ROWS);
     assert(bufferLength(relocationIdentities) == RELOCATION_IDENTITY_BYTES);
     assert(bufferLength(localTypeRows) == LOCAL_TYPE_ROWS);
+    assert(bufferLength(callLocalWidths) == CALL_COUNT_LIMIT);
     assert(bufferLength(output) == MAX_CODE_BYTES);
 
     boolean valid = true;
@@ -385,10 +387,11 @@ classical class LoopCallProducts {
       return new LoopCallPlan(0, 0, 0, 0, false);
     }
 
-    region staging = new region(/* bytes= */ 309248, /* allocations= */ 4);
+    region staging = new region(/* bytes= */ 311296, /* allocations= */ 5);
     words stagedRelocations = allocate(staging, RELOCATION_ROWS);
     bytes stagedIdentities = allocateBytes(staging, RELOCATION_IDENTITY_BYTES);
     words stagedTypes = allocate(staging, LOCAL_TYPE_ROWS);
+    words stagedLocalWidths = allocate(staging, CALL_COUNT_LIMIT);
     bytes stagedCode = allocateBytes(staging, MAX_CODE_BYTES);
     long cursor = 0;
     long typeCursor = 0;
@@ -423,6 +426,7 @@ classical class LoopCallProducts {
         emittedArity,
         argumentRows
       );
+      set(stagedLocalWidths, call, callLocalCount(emittedKind, emittedArity));
       typeCursor = writeCallLocalTypes(
         stagedTypes,
         typeCursor,
@@ -453,6 +457,12 @@ classical class LoopCallProducts {
       row += 1;
     }
 
+    row = 0;
+    while (row < CALL_COUNT_LIMIT) limit CALL_COUNT_LIMIT {
+      set(callLocalWidths, row, stagedLocalWidths[row]);
+      row += 1;
+    }
+
     long codeByte = 0;
     while (codeByte < cursor) limit MAX_CODE_BYTES {
       setByte(output, codeByte, stagedCode[codeByte]);
@@ -460,6 +470,7 @@ classical class LoopCallProducts {
     }
 
     drop(stagedCode);
+    drop(stagedLocalWidths);
     drop(stagedTypes);
     drop(stagedIdentities);
     drop(stagedRelocations);

@@ -34,6 +34,8 @@ final class NativeCompilerLoopCallProductsExampleTest {
     assertEquals(2, machine.global("localTypeCount"));
     assertEquals(1, machine.global("firstType"));
     assertEquals(1, machine.global("secondType"));
+    assertEquals(2, machine.global("firstLocalWidth"));
+    assertEquals(0, machine.global("secondLocalWidth"));
     assertEquals(Opcode.CALL_VALUE.code(), machine.global("firstOpcode"));
     assertEquals(Opcode.CALL.code(), machine.global("thirdOpcode"));
   }
@@ -56,6 +58,8 @@ final class NativeCompilerLoopCallProductsExampleTest {
     assertEquals(26, machine.global("secondInstruction"));
     assertEquals(1, machine.global("firstType"));
     assertEquals(2, machine.global("secondType"));
+    assertEquals(4, machine.global("firstLocalWidth"));
+    assertEquals(2, machine.global("secondLocalWidth"));
   }
 
   @Test
@@ -111,6 +115,8 @@ final class NativeCompilerLoopCallProductsExampleTest {
           state long secondIdentityByte = 0;
           state long firstType = 0;
           state long secondType = 0;
+          state long firstLocalWidth = 0;
+          state long secondLocalWidth = 0;
           state long firstOpcode = 0;
           state long thirdOpcode = 0;
           state long fourthOpcode = 0;
@@ -119,7 +125,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
             assert(bufferLength(input) == 0);
-            region products = new region(/* bytes= */ 415744, /* allocations= */ 11);
+            region products = new region(/* bytes= */ 417792, /* allocations= */ 12);
             words calls = allocate(products, /* length= */ 1024);
             words callArgumentStarts = allocate(products, /* length= */ 256);
             words callArgumentCounts = allocate(products, /* length= */ 256);
@@ -131,6 +137,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
             words relocations = allocate(products, /* length= */ 768);
             bytes relocationIdentities = allocateBytes(products, /* length= */ 8192);
             words types = allocate(products, /* length= */ 4096);
+            words localWidths = allocate(products, /* length= */ 256);
             set(calls, 0, 7);
             set(calls, 256, 1);
             set(calls, 512, 12);
@@ -159,6 +166,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
               relocations,
               relocationIdentities,
               types,
+              localWidths,
               output
             );
             if (plan.valid) {
@@ -178,11 +186,14 @@ final class NativeCompilerLoopCallProductsExampleTest {
             secondIdentityByte = relocationIdentities[32];
             firstType = types[0];
             secondType = types[1];
+            firstLocalWidth = localWidths[0];
+            secondLocalWidth = localWidths[1];
             firstOpcode = output[0] + output[1] * 256;
             thirdOpcode = output[64] + output[65] * 256;
             fourthOpcode = output[112] + output[113] * 256;
             sixthOpcode = output[160] + output[161] * 256;
             firstOutputByte = output[0];
+            drop(localWidths);
             drop(types);
             drop(relocationIdentities);
             drop(relocations);
@@ -216,6 +227,8 @@ final class NativeCompilerLoopCallProductsExampleTest {
           state long instructionCount = 0;
           state long length = 0;
           state long localTypeCount = 0;
+          state long firstLocalWidth = 0;
+          state long secondLocalWidth = 0;
           state long firstInstruction = 0;
           state long secondInstruction = 0;
           state long firstIdentityByte = 0;
@@ -229,7 +242,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
             assert(bufferLength(input) == 0);
-            region products = new region(/* bytes= */ 415744, /* allocations= */ 11);
+            region products = new region(/* bytes= */ 417792, /* allocations= */ 12);
             words calls = allocate(products, /* length= */ 1024);
             words callArgumentStarts = allocate(products, /* length= */ 256);
             words callArgumentCounts = allocate(products, /* length= */ 256);
@@ -241,6 +254,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
             words relocations = allocate(products, /* length= */ 768);
             bytes relocationIdentities = allocateBytes(products, /* length= */ 8192);
             words types = allocate(products, /* length= */ 4096);
+            words localWidths = allocate(products, /* length= */ 256);
             set(calls, 0, 7);
             set(calls, 256, 1);
             set(calls, 512, 12);
@@ -283,6 +297,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
               relocations,
               relocationIdentities,
               types,
+              localWidths,
               output
             );
             if (plan.valid) {
@@ -296,11 +311,14 @@ final class NativeCompilerLoopCallProductsExampleTest {
             firstIdentityByte = relocationIdentities[0];
             firstType = types[0];
             secondType = types[4];
+            firstLocalWidth = localWidths[0];
+            secondLocalWidth = localWidths[1];
             firstOpcode = output[0] + output[1] * 256;
             thirdOpcode = output[48] + output[49] * 256;
             fourthOpcode = output[112] + output[113] * 256;
             sixthOpcode = output[160] + output[161] * 256;
             firstOutputByte = output[0];
+            drop(localWidths);
             drop(types);
             drop(relocationIdentities);
             drop(relocations);
