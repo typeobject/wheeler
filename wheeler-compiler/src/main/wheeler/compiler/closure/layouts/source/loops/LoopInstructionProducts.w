@@ -186,6 +186,10 @@ classical class LoopInstructionProducts {
       bufferOperand = true;
     }
 
+    if (opcode == BODY_BYTEVIEW_TO_BYTES_COPY_SUM) {
+      bufferOperand = true;
+    }
+
     if (bufferOperand) {
       set(
         bodyRows,

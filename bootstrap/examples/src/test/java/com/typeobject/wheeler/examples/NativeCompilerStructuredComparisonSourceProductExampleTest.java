@@ -37,7 +37,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             assert(-1 < kind);
             assert(index < length);
             assert(one);
-            setByte(output, index, source[index]);
+            setByte(output, index, source[sourceStart + index]);
             index += 1;
           }
 
@@ -85,6 +85,12 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   @Test
   void oversizedLiteralIndexPublishesNoArtifact() throws Exception {
     assertNoArtifact(SOURCE.replace("512 + index", "65536 + index"));
+  }
+
+  @Test
+  void mutableByteSumReadPublishesNoArtifact() throws Exception {
+    assertNoArtifact(SOURCE.replace(
+        "source[sourceStart + index]", "output[sourceStart + index]"));
   }
 
   private static void assertNoArtifact(String source) throws Exception {

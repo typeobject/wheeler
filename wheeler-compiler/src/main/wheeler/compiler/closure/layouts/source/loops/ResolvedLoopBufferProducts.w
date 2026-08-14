@@ -68,10 +68,37 @@ classical class ResolvedLoopBufferProducts {
     if (
       punctuationAt(source, tokenKinds, tokenStarts, token + 7, PUNCTUATION_OPEN_SQUARE)
     ) {
+      long readIndexToken = token + 8;
+      boolean sumIndex = punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        token + 9,
+        PUNCTUATION_PLUS
+      );
+      long readBaseLocal = -1;
+      if (sumIndex) {
+        LoopBodyValue readBase = resolveLoopBodyValue(
+          source,
+          tokenStarts[readIndexToken],
+          tokenLengths[readIndexToken],
+          owner,
+          ordinal,
+          valueCount,
+          valueRows
+        );
+        if (readBase.valid == false) {
+          return new ResolvedLoopBufferProduct(0, 0, false);
+        }
+
+        readBaseLocal = readBase.local;
+        readIndexToken += 2;
+      }
+
       LoopBodyValue readIndex = resolveLoopBodyValue(
         source,
-        tokenStarts[token + 8],
-        tokenLengths[token + 8],
+        tokenStarts[readIndexToken],
+        tokenLengths[readIndexToken],
         owner,
         ordinal,
         valueCount,
@@ -82,7 +109,13 @@ classical class ResolvedLoopBufferProducts {
       }
 
       if (
-        punctuationAt(source, tokenKinds, tokenStarts, token + 9, PUNCTUATION_CLOSE_SQUARE) == false
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          readIndexToken + 1,
+          PUNCTUATION_CLOSE_SQUARE
+        ) == false
       ) {
         return new ResolvedLoopBufferProduct(0, 0, false);
       }
@@ -100,6 +133,23 @@ classical class ResolvedLoopBufferProducts {
         tokenStarts,
         tokenLengths
       );
+      if (sumIndex) {
+        copy = resolveLoopBufferOffsetCopyOperand(
+          source,
+          owner,
+          writeOwner.local,
+          writeIndex.local,
+          writeValue.local,
+          readBaseLocal,
+          readIndex.local,
+          valueCount,
+          valueRows,
+          tokenCount,
+          tokenStarts,
+          tokenLengths
+        );
+      }
+
       if (copy.valid == false) {
         return new ResolvedLoopBufferProduct(0, 0, false);
       }
@@ -129,6 +179,15 @@ classical class ResolvedLoopBufferProducts {
         copyOpcode = BODY_BYTES_COPY;
         if (readType == TOKEN_BYTEVIEW) {
           copyOpcode = BODY_BYTEVIEW_TO_BYTES_COPY;
+          if (sumIndex) {
+            copyOpcode = BODY_BYTEVIEW_TO_BYTES_COPY_SUM;
+          }
+        }
+      }
+
+      if (sumIndex) {
+        if (copyOpcode != BODY_BYTEVIEW_TO_BYTES_COPY_SUM) {
+          return new ResolvedLoopBufferProduct(0, 0, false);
         }
       }
 

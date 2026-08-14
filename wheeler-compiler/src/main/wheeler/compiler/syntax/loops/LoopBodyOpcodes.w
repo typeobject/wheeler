@@ -39,4 +39,6 @@ classical class LoopBodyOpcodes {
   public const long BODY_ASSERT_LOCAL_LT_BASE = 34816;
   /// Loads one word through a literal-plus-local index.
   public const long BODY_WORDS_GET_OFFSET = 35072;
+  /// Copies one byte-view value through a local-plus-local read index.
+  public const long BODY_BYTEVIEW_TO_BYTES_COPY_SUM = 35073;
 }

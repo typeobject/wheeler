@@ -17,6 +17,8 @@ classical class LoopLocalTypeProducts {
   private const long LOOP_ROWS = 2304;
   private const long MAX_LOCALS = 256;
   private const long MAX_STATEMENTS = 4096;
+  private const long OFFSET_COPY_READ_BORROW_SCALE = 2199023255552;
+  private const long OFFSET_COPY_WRITE_BORROW_SCALE = 1099511627776;
   private const long STATEMENT_BLOCK_ROW = 4096;
   private const long STATEMENT_CHILD_COUNT_ROW = 24576;
   private const long STATEMENT_FIRST_CHILD_ROW = 20480;
@@ -128,6 +130,10 @@ classical class LoopLocalTypeProducts {
       bufferType = TYPE_BYTES_BORROW;
     }
 
+    if (opcode == BODY_BYTEVIEW_TO_BYTES_COPY_SUM) {
+      bufferType = TYPE_BYTES_BORROW;
+    }
+
     if (opcode == BODY_BYTEVIEW_GET) {
       bufferType = TYPE_BYTE_VIEW;
     }
@@ -177,6 +183,22 @@ classical class LoopLocalTypeProducts {
 
     if (opcode == BODY_BYTEVIEW_TO_BYTES_COPY) {
       bufferCopy = true;
+    }
+
+    if (opcode == BODY_BYTEVIEW_TO_BYTES_COPY_SUM) {
+      long sumWriteBorrowed = operand / OFFSET_COPY_WRITE_BORROW_SCALE % 2;
+      long sumReadBorrowed = operand / OFFSET_COPY_READ_BORROW_SCALE;
+      if (0 < sumWriteBorrowed) {
+        if (localOffset == 0) {
+          localType = TYPE_BYTES_BORROW;
+        }
+      }
+
+      if (0 < sumReadBorrowed) {
+        if (localOffset == sumWriteBorrowed + 1) {
+          localType = TYPE_BYTE_VIEW;
+        }
+      }
     }
 
     if (bufferCopy) {
@@ -310,7 +332,7 @@ classical class LoopLocalTypeProducts {
             }
 
             long localOffset = 0;
-            while (localOffset < localCount) limit 6 {
+            while (localOffset < localCount) limit 7 {
               if (valid) {
                 typeCount = appendType(
                   stagedTypes,
@@ -391,7 +413,7 @@ classical class LoopLocalTypeProducts {
                   }
 
                   long childLocalOffset = 0;
-                  while (childLocalOffset < childLocalCount) limit 6 {
+                  while (childLocalOffset < childLocalCount) limit 7 {
                     if (valid) {
                       typeCount = appendType(
                         stagedTypes,

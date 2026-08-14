@@ -8,12 +8,53 @@ import wheeler.compiler.loop_body_opcodes;
 
 classical class LoopBufferOperands {
   private const long LITERAL_INDEX_OFFSET_SCALE = 131072;
+  private const long OFFSET_COPY_READ_BORROW_SCALE = 2199023255552;
+  private const long OFFSET_COPY_WRITE_BORROW_SCALE = 1099511627776;
+  private const long OFFSET_COPY_WRITE_OWNER_SCALE = 4294967296;
+  private const long OFFSET_COPY_WRITE_INDEX_SCALE = 16777216;
+  private const long OFFSET_COPY_READ_OWNER_SCALE = 65536;
+  private const long OFFSET_COPY_READ_BASE_SCALE = 256;
 
   /// Reports one packed buffer operand tuple.
   public record LoopBufferOperand(long operand, boolean valid) {}
 
   /// Rebases every local coordinate while preserving buffer reborrow bits.
   public long rebaseLoopBufferOperand(long opcode, long operand, long boundary, long bias) {
+    if (opcode == BODY_BYTEVIEW_TO_BYTES_COPY_SUM) {
+      long sumReadBorrowed = operand / OFFSET_COPY_READ_BORROW_SCALE;
+      long sumWriteBorrowed = operand / OFFSET_COPY_WRITE_BORROW_SCALE % 2;
+      long sumTuple = operand % OFFSET_COPY_WRITE_BORROW_SCALE;
+      long sumWriteOwner = sumTuple / OFFSET_COPY_WRITE_OWNER_SCALE;
+      long sumWriteIndex = sumTuple / OFFSET_COPY_WRITE_INDEX_SCALE % 256;
+      long sumReadOwner = sumTuple / OFFSET_COPY_READ_OWNER_SCALE % 256;
+      long sumReadBase = sumTuple / OFFSET_COPY_READ_BASE_SCALE % 256;
+      long sumReadIndex = sumTuple % 256;
+      if (boundary < sumWriteOwner + 1) {
+        sumWriteOwner += bias;
+      }
+
+      if (boundary < sumWriteIndex + 1) {
+        sumWriteIndex += bias;
+      }
+
+      if (boundary < sumReadOwner + 1) {
+        sumReadOwner += bias;
+      }
+
+      if (boundary < sumReadBase + 1) {
+        sumReadBase += bias;
+      }
+
+      if (boundary < sumReadIndex + 1) {
+        sumReadIndex += bias;
+      }
+
+      return sumReadBorrowed * OFFSET_COPY_READ_BORROW_SCALE + sumWriteBorrowed
+        * OFFSET_COPY_WRITE_BORROW_SCALE + sumWriteOwner * OFFSET_COPY_WRITE_OWNER_SCALE
+        + sumWriteIndex * OFFSET_COPY_WRITE_INDEX_SCALE + sumReadOwner
+        * OFFSET_COPY_READ_OWNER_SCALE + sumReadBase * OFFSET_COPY_READ_BASE_SCALE + sumReadIndex;
+    }
+
     if (opcode == BODY_WORDS_GET_OFFSET) {
       long offset = operand / LITERAL_INDEX_OFFSET_SCALE;
       long offsetOperand = operand % LITERAL_INDEX_OFFSET_SCALE;
@@ -191,6 +232,67 @@ classical class LoopBufferOperands {
     }
 
     return new LoopBufferOperand(operand, true);
+  }
+
+  /// Packs one byte-view copy whose read index is the sum of two signed locals.
+  public LoopBufferOperand resolveLoopBufferOffsetCopyOperand(
+    borrow utf8 source,
+    long owner,
+    long writeOwner,
+    long writeIndex,
+    long readOwner,
+    long readBase,
+    long readIndex,
+    long valueCount,
+    borrow mut words valueRows,
+    long tokenCount,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    LoopBufferOperand direct = resolveLoopBufferCopyOperand(
+      source,
+      owner,
+      writeOwner,
+      writeIndex,
+      readOwner,
+      readIndex,
+      valueCount,
+      valueRows,
+      tokenCount,
+      tokenStarts,
+      tokenLengths
+    );
+    if (direct.valid == false) {
+      return new LoopBufferOperand(0, false);
+    }
+
+    if (
+      signedLoopBodyLocal(
+        source,
+        owner,
+        readBase,
+        valueCount,
+        valueRows,
+        tokenCount,
+        tokenStarts,
+        tokenLengths
+      ) == false
+    ) {
+      return new LoopBufferOperand(0, false);
+    }
+
+    long readBorrowed = direct.operand / 8589934592;
+    long writeBorrowed = direct.operand / 4294967296 % 2;
+    long directTuple = direct.operand % 4294967296;
+    long packedWriteOwner = directTuple / 16777216;
+    long packedWriteIndex = directTuple / 65536 % 256;
+    long packedReadOwner = directTuple / 256 % 256;
+    long packedReadIndex = directTuple % 256;
+    long packed = readBorrowed * OFFSET_COPY_READ_BORROW_SCALE + writeBorrowed
+      * OFFSET_COPY_WRITE_BORROW_SCALE + packedWriteOwner * OFFSET_COPY_WRITE_OWNER_SCALE
+      + packedWriteIndex * OFFSET_COPY_WRITE_INDEX_SCALE + packedReadOwner
+      * OFFSET_COPY_READ_OWNER_SCALE + readBase * OFFSET_COPY_READ_BASE_SCALE + packedReadIndex;
+    return new LoopBufferOperand(packed, true);
   }
 
   /// Packs one type-checked indexed buffer copy and both reborrow bits.

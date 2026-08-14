@@ -312,6 +312,12 @@ classical class SourceValueProducts {
                     ) {
                       localWidth += 1;
                     }
+
+                    if (
+                      punctuationAt(source, tokenKinds, tokenStarts, statementToken + 9, 43)
+                    ) {
+                      localWidth += 2;
+                    }
                   } else {
                     valid = false;
                   }
