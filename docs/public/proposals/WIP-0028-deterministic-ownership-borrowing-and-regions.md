@@ -287,8 +287,8 @@ Exhaustion is a deterministic diagnostic, never permission to compile unsafely. 
 - [ ] Local last-use inference is deterministic.
 - [ ] Unique dynamic allocation executes.
 - [ ] Generic arenas and typed IDs support compiler-scale graphs.
-- [ ] Deterministic destruction executes without finalizers.
-- [ ] Effectful disposal is explicit and must-consume.
+- [x] Accepted region, buffer, UTF-8, and map owners require explicit lexical or transfer-aware drop. The VM performs no finalizer callback, collector traversal, or host-dependent destruction pass, and rewind restores the prior ownership table rather than rerunning disposal.
+- [x] Primitive owned values are must-consume. Explicit drop and owner transfer are typed instructions, live owners at exit reject, and effectful external cleanup stays in the I/O or hybrid lifecycle rather than an implicit destructor.
 - [ ] Quantum split/join and ancilla obligations execute.
 - [ ] Optional immutable sharing satisfies acyclicity.
 - [ ] Native lowering and FFI preserve ownership.
