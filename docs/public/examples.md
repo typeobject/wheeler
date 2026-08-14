@@ -244,6 +244,14 @@ Covers: The one-value `Done` completion type, ordinary `done` returns, closed ta
 
 Expected result: `selected = 9`, `equal = 1`, `presence = 11`.
 
+### `WidthExplicitOracle.w`
+
+Source: [`WidthExplicitOracle.w`](../../wheeler-examples/src/main/wheeler/classical/oracles/WidthExplicitOracle.w).
+
+Covers: Explicit 32-bit rotate-right semantics inside a signed host word, a bounded bit mask, a four-row immutable lookup table, checked indexing, and exact width-independent results.
+
+Expected result: `rotated = 268435456`, `masked = 0`, `selected = 13`.
+
 ### `WorkQueue.w`
 
 Files: [`WorkQueue.w`](../../wheeler-examples/src/main/wheeler/classical/data/WorkQueue.w) + [`collections/LongQueue.w`](../../wheeler-core/src/main/wheeler/collections/LongQueue.w).

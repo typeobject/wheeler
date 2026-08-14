@@ -146,6 +146,9 @@ class ClassicalExamplesTest {
             "decodedScalars", 3L, "scalarSum", 8591L, "scratchValue", 19L)),
         Arguments.of(
             "classical/data/Variants.w",
-            Map.of("selected", 9L, "equal", 1L, "presence", 11L)));
+            Map.of("selected", 9L, "equal", 1L, "presence", 11L)),
+        Arguments.of(
+            "classical/oracles/WidthExplicitOracle.w",
+            Map.of("rotated", 268_435_456L, "masked", 0L, "selected", 13L)));
   }
 }

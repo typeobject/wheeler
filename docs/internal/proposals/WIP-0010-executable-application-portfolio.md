@@ -380,7 +380,7 @@ Portfolio work follows these rules:
 
 ### Quantum algorithms
 
-- [ ] Width-explicit arithmetic and lookup oracles.
+- [x] `WidthExplicitOracle.w` combines explicit 32-bit rotate-right semantics, a bounded low-byte mask, and a four-row immutable lookup oracle. Checked indexing and exact expected words make host-width drift visible. Canonical compilation, execution, artifact decoding, and complete VM rewind are checked.
 - [x] `GroverSearch.w` performs one exact four-element search with a phase oracle and diffusion operator, then deterministically observes the unique marked state. `QuantumWalk.w` applies a Hadamard coin and coherent conditional shift, uncomputes the entangled intermediate state through its generated adjoint, and observes the restored walker. Both retain adjoint certificates, canonical bytecode round trips, bounded ideal-target jobs, and exact outcomes.
 - [x] `StaticPhaseEstimation.w` writes one exact binary eigenphase to an ancilla and carries a generated adjoint certificate. `AdaptivePhaseEstimation.w` measures the same phase bit in a target-resident dynamic region, conditionally corrects the eigenstate through `applyIf`, resets the measured ancilla, and performs only the final host observation. Canonical static and dynamic artifacts, result-slot evidence, asynchronous jobs, and exact outcomes are checked.
 - [ ] Amplitude estimation.
