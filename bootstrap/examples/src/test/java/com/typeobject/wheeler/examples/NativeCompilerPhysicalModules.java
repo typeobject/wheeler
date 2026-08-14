@@ -32,6 +32,8 @@ final class NativeCompilerPhysicalModules {
         physical("compiler/syntax/conditionals/LiteralComparisonOperations.w", "literal_comparison_operations"),
         physical("compiler/backend/types/LocalTypeEncoding.w", "local_type_encoding"),
         physical("compiler/syntax/LoopKinds.w", "loop_kinds"),
+        physical("compiler/syntax/loops/LoopBodyOpcodes.w", "loop_body_opcodes"),
+        physical("compiler/closure/layouts/source/carriers/LoopBodyLayouts.w", "closure.loop_body_layouts"),
         physical("compiler/syntax/returns/NamedBooleanReturnKinds.w", "named_boolean_return_kinds"),
         physical("compiler/syntax/comparisons/NamedComparisonKinds.w", "named_comparison_kinds"),
         physical("compiler/syntax/conditionals/NamedConditionalBases.w", "named_conditional_bases"),

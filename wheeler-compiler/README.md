@@ -110,7 +110,9 @@ imported-constant `compiler/ir/InstructionForms.w`, imported-constant
 `compiler/syntax/helpers/HelperAbi.w`, imported-constant `compiler/syntax/helpers/HelperSignatures.w`,
 mixed-owner `compiler/syntax/helpers/HelperValueKinds.w`, imported-constant
 `compiler/syntax/EarlyReturnKinds.w`, imported-constant
-`compiler/syntax/EarlyReturnResultKinds.w`, `compiler/syntax/LoopKinds.w`, imported-constant
+`compiler/syntax/EarlyReturnResultKinds.w`, `compiler/syntax/LoopKinds.w`,
+`compiler/syntax/loops/LoopBodyOpcodes.w`,
+`compiler/closure/layouts/source/carriers/LoopBodyLayouts.w`, imported-constant
 `compiler/syntax/calls/CallArgumentSources.w`, imported-constant
 `compiler/syntax/calls/OneArgumentCalls.w`, imported-constant
 `compiler/syntax/calls/TwoArgumentCallKinds.w`, imported-constant
