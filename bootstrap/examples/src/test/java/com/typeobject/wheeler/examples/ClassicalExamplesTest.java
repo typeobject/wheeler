@@ -127,7 +127,9 @@ class ClassicalExamplesTest {
                 "parseVersion", 2L,
                 "codeVersion", 2L,
                 "linkVersion", 2L,
-                "rebuilds", 6L)),
+                "rebuilds", 4L,
+                "affected", 4L,
+                "cycleRejected", 1L)),
         Arguments.of(
             "classical/data/IntegerWaveletTransform.w",
             Map.of("high", 10L, "low", 6L, "observedHigh", 4L, "observedLow", 10L)),

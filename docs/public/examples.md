@@ -133,9 +133,9 @@ Expected behavior:
 
 Source: [`IncrementalDependencyGraph.w`](../../wheeler-examples/src/main/wheeler/classical/control/IncrementalDependencyGraph.w).
 
-Covers: A bounded source-to-parse-to-code-to-link dependency chain, explicit per-node versions, change propagation, duplicate notification suppression, typed helper calls, and a rebuild count independent of notification count.
+Covers: A mutable four-node adjacency table, bounded breadth-first work queues and visited sets, cycle detection, rollback of a tentative back edge, deterministic affected-node invalidation, exact per-node versions, and region cleanup.
 
-Expected result: every node has version `2`, and `rebuilds = 6`.
+Expected result: every node has version `2`, `rebuilds = affected = 4`, and `cycleRejected = 1`.
 
 ### `IntegerWaveletTransform.w`
 
