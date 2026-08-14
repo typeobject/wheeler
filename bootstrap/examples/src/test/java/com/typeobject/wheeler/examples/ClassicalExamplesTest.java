@@ -88,6 +88,9 @@ class ClassicalExamplesTest {
     return Stream.of(
         Arguments.of("classical/control/Counter.w", Map.of("count", 0L)),
         Arguments.of("classical/data/BinaryTree.w", Map.of("root", 0L, "left", 0L, "right", 0L)),
+        Arguments.of(
+            "classical/control/EventReducer.w",
+            Map.of("lastEvent", 2L, "reduced", 12L, "duplicates", 1L)),
         Arguments.of("classical/control/BootstrapControl.w", Map.of("sum", 10L, "branch", 1L)),
         Arguments.of("classical/data/FiniteEnums.w", Map.of("selected", 7L)),
         Arguments.of(

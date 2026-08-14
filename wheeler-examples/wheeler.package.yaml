@@ -25,6 +25,10 @@ targets:
     root: "src/main/wheeler/quantum/DynamicTeleportation.w"
     test: false
   - kind: "deployable"
+    name: "eventreducer"
+    root: "src/main/wheeler/classical/control/EventReducer.w"
+    test: false
+  - kind: "deployable"
     name: "finiteenums"
     root: "src/main/wheeler/classical/data/FiniteEnums.w"
     test: false

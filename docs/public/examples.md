@@ -29,6 +29,14 @@ Covers: Generated inverse calls, reverse-block order, kernel-checked generated-i
 
 Expected result: `count = 0`.
 
+### `EventReducer.w`
+
+Source: [`EventReducer.w`](../../wheeler-examples/src/main/wheeler/classical/control/EventReducer.w).
+
+Covers: Ordered event application, an explicit settled-event identity, adjacent duplicate-delivery suppression, duplicate accounting distinct from the reduced value, typed helper calls, and deterministic final state.
+
+Expected result: `lastEvent = 2`, `reduced = 12`, `duplicates = 1`.
+
 ### `BinaryTree.w`
 
 Source: [`BinaryTree.w`](../../wheeler-examples/src/main/wheeler/classical/data/BinaryTree.w).
