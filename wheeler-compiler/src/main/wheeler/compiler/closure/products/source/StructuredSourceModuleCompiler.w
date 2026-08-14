@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.structured_source_module_compiler;
 
 import wheeler.compiler.closure.callable_instruction_prefixes;
+import wheeler.compiler.closure.callable_return_products;
 import wheeler.compiler.closure.callable_source_composition;
 import wheeler.compiler.closure.direct_statement_products;
 import wheeler.compiler.closure.loop_body_layouts;
@@ -179,7 +180,7 @@ classical class StructuredSourceModuleCompiler {
     assert(bufferLength(output) == 32768);
     assert(bufferLength(identity) == 32);
 
-    region products = new region(/* bytes= */ 2180608, /* allocations= */ 25);
+    region products = new region(/* bytes= */ 2182144, /* allocations= */ 26);
     words blocks = allocate(products, /* length= */ 6144);
     words statements = allocate(products, /* length= */ 28672);
     words sourceConditions = allocate(products, /* length= */ 1536);
@@ -200,6 +201,7 @@ classical class StructuredSourceModuleCompiler {
     words loopTypes = allocate(products, /* length= */ 12288);
     words directRows = allocate(products, /* length= */ 28672);
     words functionResultTypes = allocate(products, /* length= */ 64);
+    words returnRows = allocate(products, /* length= */ 192);
     words directTypes = allocate(products, /* length= */ 12288);
     bytes directCode = allocateBytes(products, /* length= */ 262144);
     words composedCallables = allocate(products, /* length= */ 320);
@@ -409,6 +411,19 @@ classical class StructuredSourceModuleCompiler {
       loopTypes
     );
     assert(typePlan.valid);
+    CallableReturnPlan returnPlan = materializeCallableReturnProducts(
+      callableCount,
+      functionResultTypes,
+      loopPlan.statementCount,
+      statements,
+      directPlan.productCount,
+      directRows,
+      resolvedPlan.loopCount,
+      resolvedLoops,
+      loopWindowRows,
+      returnRows
+    );
+    assert(returnPlan.valid);
     CallableSourceCompositionPlan composition = composeCallableSourceProducts(
       callableCount,
       loopPlan.statementCount,
@@ -427,6 +442,7 @@ classical class StructuredSourceModuleCompiler {
       typePlan.typeCount,
       loopTypes,
       functionResultTypes,
+      returnRows,
       composedCallables,
       composedTypes,
       composedCode
@@ -456,6 +472,7 @@ classical class StructuredSourceModuleCompiler {
     drop(composedCallables);
     drop(directCode);
     drop(directTypes);
+    drop(returnRows);
     drop(functionResultTypes);
     drop(directRows);
     drop(loopTypes);

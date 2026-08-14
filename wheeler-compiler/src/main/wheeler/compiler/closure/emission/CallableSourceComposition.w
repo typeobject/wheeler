@@ -119,6 +119,7 @@ classical class CallableSourceComposition {
     long loopTypeCount,
     borrow mut words loopTypes,
     borrow mut words functionResultTypes,
+    borrow mut words returnRows,
     borrow mut words callableRows,
     borrow mut words outputTypes,
     borrow mut bytes outputCode
@@ -147,6 +148,7 @@ classical class CallableSourceComposition {
     assert(loopTypeCount < MAX_TYPES + 1);
     assert(bufferLength(loopTypes) == TYPE_ROWS);
     assert(bufferLength(functionResultTypes) == MAX_CALLABLES);
+    assert(bufferLength(returnRows) == 192);
     assert(bufferLength(callableRows) == CALLABLE_ROWS);
     assert(bufferLength(outputTypes) == TYPE_ROWS);
     assert(bufferLength(outputCode) == MAX_CODE_BYTES);
@@ -241,9 +243,23 @@ classical class CallableSourceComposition {
       }
 
       if (functionResultTypes[callable] == 0) {
+        if (returnRows[callable] != 1) {
+          valid = false;
+        }
+
+        if (returnRows[64 + callable] != callableInstructionCount) {
+          valid = false;
+        }
+
+        if (returnRows[128 + callable] != codeCursor - callableCodeStart) {
+          valid = false;
+        }
+
         if (MAX_CODE_BYTES - codeCursor < 8) {
           valid = false;
-        } else {
+        }
+
+        if (valid) {
           codeCursor = writeInstructionHeader(
             stagedCode,
             codeCursor,
@@ -252,6 +268,18 @@ classical class CallableSourceComposition {
           );
           callableInstructionCount += 1;
           instructionCount += 1;
+        }
+      } else {
+        if (returnRows[callable] != 0) {
+          valid = false;
+        }
+
+        if (returnRows[64 + callable] != - 1) {
+          valid = false;
+        }
+
+        if (returnRows[128 + callable] != - 1) {
+          valid = false;
         }
       }
 

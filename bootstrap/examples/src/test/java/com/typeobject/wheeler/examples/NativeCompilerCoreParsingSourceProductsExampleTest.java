@@ -37,7 +37,6 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
         secondName);
     VirtualMachine machine = new VirtualMachine(
         compiledProgram, source.getBytes(StandardCharsets.UTF_8), 262_144);
-
     try {
       CompilerMachineRunner.runWithoutRewindHistory(machine);
     } catch (RuntimeException exception) {
@@ -47,7 +46,6 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               + " instruction=" + frame.programCounter(),
           exception);
     }
-
     assertEquals(1, machine.global("blockValid"));
     assertEquals(1, machine.global("loopValid"));
     assertEquals(1, machine.global("valueValid"));
@@ -78,7 +76,6 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
     assertEquals(4_096, machine.global("secondLimit"));
     assertEquals(0, machine.global("firstLoopOwner"));
     assertEquals(1, machine.global("secondLoopOwner"));
-
     Program expectedProgram = new WheelerCompiler().compileLibraryModuleFiles(
         CompilerSources.moduleClosure("wheeler.compiler.core_parsing"),
         "wheeler.compiler.core_parsing");
@@ -105,7 +102,6 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
     }
     assertEquals(expectedInstructionCount, machine.global("instructionCount"));
     assertEquals(codeCursor, machine.global("codeLength"));
-
     int typeCursor = codeCursor;
     int typeCount = 0;
     int[] loopLocalBases = {8, 9};
@@ -125,7 +121,6 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
     }
     assertEquals(typeCount, machine.global("typeCount"));
     assertEquals(typeCursor, machine.global("directOutputStart"));
-
     int directCursor = typeCursor;
     int directInstructionCount = 0;
     for (FunctionBody function : expectedFunctions) {
@@ -149,7 +144,6 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
     assertEquals(directInstructionCount, machine.global("directInstructionCount"));
     assertEquals(directCursor - typeCursor, machine.global("directLength"));
     assertEquals(directCursor, machine.global("directTypeOutputStart"));
-
     int directTypeCursor = directCursor;
     int directTypeCount = 0;
     int[][] directLocals = {{4, 5, 6, 7, 43}, {5, 6, 7, 8, 31}};
@@ -169,7 +163,6 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
     assertEquals(1, machine.global("loopFrameWidthsValid"));
     assertEquals(1, machine.global("coordinateValid"));
     assertEquals(directTypeCursor, machine.global("composedOutputStart"));
-
     int composedCursor = directTypeCursor;
     int composedInstructionCount = 0;
     for (FunctionBody function : expectedFunctions) {
@@ -243,6 +236,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
         "wheeler.compiler.closure.loop_local_type_products"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.direct_statement_products"));
+    sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.callable_return_products"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.callable_source_composition"));
     sources.putAll(CompilerSources.moduleClosure(
@@ -260,6 +254,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
         module example.core_parsing_source_products;
 
         import wheeler.compiler.closure.archive_structured_source_module_compiler;
+        import wheeler.compiler.closure.callable_return_products;
         import wheeler.compiler.closure.callable_source_composition;
         import wheeler.compiler.closure.compiled_body_archive;
         import wheeler.compiler.closure.direct_statement_products;
@@ -329,7 +324,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
           state long secondLoopOwner = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 21415016, /* allocations= */ 60);
+            region products = new region(/* bytes= */ 21416552, /* allocations= */ 61);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -357,6 +352,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             words typeRows = allocate(products, /* length= */ 12288);
             words directRows = allocate(products, /* length= */ 28672);
             words functionResultTypes = allocate(products, /* length= */ 64);
+            words returnRows = allocate(products, /* length= */ 192);
             words directTypes = allocate(products, /* length= */ 12288);
             bytes directCode = allocateBytes(products, /* length= */ 262144);
             words signatureTypes = allocate(products, /* length= */ 12288);
@@ -620,6 +616,11 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             if (typePlan.valid) {
               typesValid = 1;
             }
+            CallableReturnPlan returnPlan = materializeCallableReturnProducts(
+              2, functionResultTypes, loopPlan.statementCount, statements, directPlan.productCount,
+              directRows, resolvedPlan.loopCount, resolvedLoops, loopWindowRows, returnRows
+            );
+            assert(returnPlan.valid);
             CallableSourceCompositionPlan compositionPlan = composeCallableSourceProducts(
               2,
               loopPlan.statementCount,
@@ -638,6 +639,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               typePlan.typeCount,
               typeRows,
               functionResultTypes,
+              returnRows,
               composedCallables,
               composedTypes,
               composedCode
@@ -927,6 +929,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             drop(signatureTypes);
             drop(directCode);
             drop(directTypes);
+            drop(returnRows);
             drop(functionResultTypes);
             drop(directRows);
             drop(typeRows);
