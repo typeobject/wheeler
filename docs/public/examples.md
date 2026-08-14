@@ -252,6 +252,14 @@ Covers: One XOR function over classical and coherent data.
 
 Expected result: `bit = 0`, `measured = 1`.
 
+### `GroverSearch.w`
+
+Source: [`GroverSearch.w`](../../wheeler-examples/src/main/wheeler/quantum/GroverSearch.w).
+
+Covers: One exact four-element Grover iteration, a phase oracle marking basis state three, diffusion over the uniform state, a generated adjoint certificate, canonical ideal-target execution, and deterministic measurement of the unique marked state.
+
+Expected result: `measured = 3`.
+
 ### `QFT.w`
 
 Source: [`QFT.w`](../../wheeler-examples/src/main/wheeler/quantum/QFT.w).
@@ -291,6 +299,14 @@ Source: [`QuantumCompiler.w`](../../wheeler-examples/src/main/wheeler/quantum/Qu
 Covers: Kernel-checked adjacent-inverse normalization plus basis-state execution.
 
 Expected result: `sourceResult = normalizedResult = 1`.
+
+### `QuantumWalk.w`
+
+Source: [`QuantumWalk.w`](../../wheeler-examples/src/main/wheeler/quantum/QuantumWalk.w).
+
+Covers: A Hadamard coin, coherent conditional position shift, entangled intermediate state, a generated adjoint certificate, uncomputation before observation, and exact restoration of the initial walker basis state.
+
+Expected result: `measured = 0`.
 
 ### `SurfaceCode.w`
 

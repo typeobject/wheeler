@@ -40,7 +40,8 @@ class QuantumExamplesTest {
     ExecutionResult result = new WheelerRuntime().execute(decoded, new StateVectorTarget());
 
     assertArrayEquals(first, second);
-    if (file.equals("QFT.w")) {
+    if (file.equals("QFT.w") || file.equals("GroverSearch.w")
+        || file.equals("QuantumWalk.w")) {
       assertEquals(ProofRule.GENERATED_ADJOINT, decoded.proofCertificates().getFirst().rule());
     } else if (file.equals("QuantumCompiler.w")) {
       assertEquals(ProofRule.CIRCUIT_EQUIVALENCE, decoded.proofCertificates().getFirst().rule());
@@ -87,9 +88,11 @@ class QuantumExamplesTest {
         Arguments.of("QFT.w", Map.of("measured", 5L)),
         Arguments.of("QFTProof.w", Map.of("measured", 2L)),
         Arguments.of("CoherentOracle.w", Map.of("measured", 1L)),
+        Arguments.of("GroverSearch.w", Map.of("measured", 3L)),
         Arguments.of("QuantumOptimizer.w", Map.of("sample", 1L, "bestCost", 1L, "accepted", 1L)),
         Arguments.of("QuantumNeuralNetwork.w", Map.of("activation", 1L, "measured", 0L)),
         Arguments.of("QuantumCompiler.w", Map.of("sourceResult", 1L, "normalizedResult", 1L)),
+        Arguments.of("QuantumWalk.w", Map.of("measured", 0L)),
         Arguments.of("SurfaceCode.w", Map.of("measured", 0L)));
   }
 }

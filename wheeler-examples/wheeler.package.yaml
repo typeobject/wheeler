@@ -55,6 +55,10 @@ targets:
     root: "src/main/wheeler/classical/control/FunctionValues.w"
     test: false
   - kind: "deployable"
+    name: "groversearch"
+    root: "src/main/wheeler/quantum/GroverSearch.w"
+    test: false
+  - kind: "deployable"
     name: "hostbinaryinput"
     root: "src/main/wheeler/host/HostBinaryInput.w"
     test: false
@@ -111,6 +115,10 @@ targets:
   - kind: "deployable"
     name: "quantumoptimizer"
     root: "src/main/wheeler/quantum/QuantumOptimizer.w"
+    test: false
+  - kind: "deployable"
+    name: "quantumwalk"
+    root: "src/main/wheeler/quantum/QuantumWalk.w"
     test: false
   - kind: "deployable"
     name: "records"
