@@ -105,6 +105,7 @@ All rows use fixed caller-provided buffers. No pass allocates per call or per ev
 ## Progress
 
 - [x] `SourceCallProducts.w` binds each copied call token to the narrowest containing statement for its callable owner. Detached and equal-width ambiguous rows leave caller storage unchanged.
+- [x] Local and imported product-call discovery now share one bounded scanner over copied source and callable-name products. The local API publishes exact target, arity, source, and statement rows without allocating a dependency table. The imported API preserves local shadowing and rejects equal imported matches.
 - [x] `LoopCallProducts.w` atomically merges each call's exact local width into its bound statement row. Invalid statements, targets, or argument types preserve existing call and statement widths.
 - [x] `LoopCallProducts.w` resolves each argument source from a bounded defining-value product, explicit local offset, and planned value start. Raw source-local cells are no longer an emission authority. Unknown products and invalid offsets fail before any call product publishes.
 - [x] `LoopCallProducts.w` takes every call-local base from its bound statement's planned physical start. Caller-populated local-base cells are no longer an authority. Typed argument transfers, result slots, code, types, and statement-width publication share that start.

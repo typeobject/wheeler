@@ -30,7 +30,7 @@ final class NativeCompilerSourceCallProductsExampleTest {
 
   @Test
   void resolvesPackedCallableNameProductsWithoutDependencySource() throws Exception {
-    VirtualMachine machine = VirtualMachine.withBinaryInput(productProgram(false, false), SOURCE, 1);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(productProgram(false, false, false), SOURCE, 1);
 
     machine.run();
 
@@ -43,8 +43,33 @@ final class NativeCompilerSourceCallProductsExampleTest {
   }
 
   @Test
+  void resolvesLocalCallableProductsAndBindsTheirStatements() throws Exception {
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        productProgram(false, false, true), SOURCE, 1);
+
+    machine.run();
+
+    assertEquals(1, machine.global("callCount"));
+    assertEquals(0, machine.global("firstTarget"));
+    assertEquals(1, machine.global("firstArity"));
+    assertEquals(1, machine.global("statementValid"));
+    assertEquals(0, machine.global("firstStatement"));
+  }
+
+  @Test
+  void rejectsAmbiguousLocalProductsBeforePublication() throws Exception {
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        productProgram(true, false, true), SOURCE, 1);
+
+    assertThrows(VmTrap.class, machine::run);
+
+    assertEquals(-1, machine.global("firstTarget"));
+    assertEquals(0, machine.global("published"));
+  }
+
+  @Test
   void rejectsDetachedCallStatementBeforePublication() throws Exception {
-    VirtualMachine machine = VirtualMachine.withBinaryInput(productProgram(false, true), SOURCE, 1);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(productProgram(false, true, false), SOURCE, 1);
 
     machine.run();
 
@@ -55,7 +80,7 @@ final class NativeCompilerSourceCallProductsExampleTest {
 
   @Test
   void rejectsPackedProductAmbiguityBeforeCallRowPublication() throws Exception {
-    VirtualMachine machine = VirtualMachine.withBinaryInput(productProgram(true, false), SOURCE, 1);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(productProgram(true, false, false), SOURCE, 1);
 
     assertThrows(VmTrap.class, machine::run);
 
@@ -81,7 +106,8 @@ final class NativeCompilerSourceCallProductsExampleTest {
     assertEquals(0, machine.global("published"));
   }
 
-  private static Program productProgram(boolean ambiguous, boolean detachedStatement) throws Exception {
+  private static Program productProgram(
+      boolean ambiguous, boolean detachedStatement, boolean local) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_call_products"));
@@ -113,6 +139,7 @@ final class NativeCompilerSourceCallProductsExampleTest {
               setByte(names, nameByte, source[nameByte]);
               nameByte += 1;
             }
+            LOCAL_PRODUCT
             set(nameStarts, 3, 0);
             set(nameLengths, 3, 8);
             set(parameterCounts, 3, 1);
@@ -127,20 +154,7 @@ final class NativeCompilerSourceCallProductsExampleTest {
               set(parameterCounts, 4, 1);
               set(dependencies, 4097, 4);
             }
-            callCount = resolveProductSourceCallProducts(
-              source,
-              /* sourceStart= */ 0,
-              bufferLength(source),
-              names,
-              /* firstLocalCallable= */ 0,
-              /* localCallableCount= */ 0,
-              nameStarts,
-              nameLengths,
-              parameterCounts,
-              /* dependencyCount= */ DEPENDENCY_COUNT,
-              dependencies,
-              calls
-            );
+            CALL_RESOLVER
             if (0 < callCount) {
               firstTarget = calls[768];
               firstArity = calls[512];
@@ -172,6 +186,26 @@ final class NativeCompilerSourceCallProductsExampleTest {
           }
         }
         """.replace("AMBIGUOUS", ambiguous ? "true" : "false")
+            .replace("LOCAL_PRODUCT", local
+                ? "set(nameStarts, 0, 0); set(nameLengths, 0, 8); set(parameterCounts, 0, 1);"
+                    + (ambiguous
+                        ? "set(nameStarts, 1, 0); set(nameLengths, 1, 8); set(parameterCounts, 1, 1);"
+                        : "")
+                : "")
+            .replace("CALL_RESOLVER", local
+                ? """
+                  callCount = resolveLocalProductSourceCallProducts(
+                    source, 0, bufferLength(source), names, 0, LOCAL_COUNT,
+                    nameStarts, nameLengths, parameterCounts, calls
+                  );
+                  """
+                : """
+                  callCount = resolveProductSourceCallProducts(
+                    source, 0, bufferLength(source), names, 0, 0,
+                    nameStarts, nameLengths, parameterCounts, DEPENDENCY_COUNT, dependencies, calls
+                  );
+                  """)
+            .replace("LOCAL_COUNT", ambiguous ? "2" : "1")
             .replace("DEPENDENCY_COUNT", ambiguous ? "2" : "1")
             .replace("STATEMENT_START", detachedStatement ? "18" : "9")
             .replace("STATEMENT_LENGTH", detachedStatement ? "1" : "11"));

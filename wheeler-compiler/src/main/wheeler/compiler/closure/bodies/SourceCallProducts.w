@@ -466,8 +466,9 @@ classical class SourceCallProducts {
     return new SourceCallStatementPlan(callCount, true);
   }
 
-  /// Resolves packed dependency calls from copied names without dependency source.
-  public long resolveProductSourceCallProducts(
+  private long resolveSelectedProductSourceCallProducts(
+    boolean includeLocal,
+    boolean includeImported,
     borrow byteview source,
     long sourceStart,
     long sourceLength,
@@ -493,7 +494,10 @@ classical class SourceCallProducts {
     assert(bufferLength(callableParameterCounts) == MAX_CALLABLES);
     assert(-1 < dependencyCount);
     assert(dependencyCount < MAX_CALLABLES + 1);
-    assert(bufferLength(dependencyRows) == 8192);
+    if (includeImported) {
+      assert(bufferLength(dependencyRows) == 8192);
+    }
+
     assert(bufferLength(callRows) == CALL_ROWS);
     region sourceArena = new region(/* bytes= */ 32768, /* allocations= */ 1);
     bytes sourceBytes = allocateBytes(sourceArena, sourceLength);
@@ -535,40 +539,49 @@ classical class SourceCallProducts {
             callableNameLengths,
             callableParameterCounts
           );
-          if (local < 0) {
-            long imported = -1;
-            long product = 0;
-            while (product < dependencyCount) limit MAX_CALLABLES {
-              long candidate = dependencyRows[4096 + product];
-              if (-1 < candidate) {
-                if (callableParameterCounts[candidate] == arity) {
-                  if (
-                    sameProductName(
-                      body,
-                      tokenStarts[token],
-                      tokenLengths[token],
-                      names,
-                      callableNameStarts[candidate],
-                      callableNameLengths[candidate]
-                    )
-                  ) {
-                    assert(imported == -1);
-                    imported = candidate;
+          long selectedTarget = -1;
+          if (-1 < local) {
+            if (includeLocal) {
+              selectedTarget = local;
+            }
+          } else {
+            if (includeImported) {
+              long imported = -1;
+              long product = 0;
+              while (product < dependencyCount) limit MAX_CALLABLES {
+                long candidate = dependencyRows[4096 + product];
+                if (-1 < candidate) {
+                  if (callableParameterCounts[candidate] == arity) {
+                    if (
+                      sameProductName(
+                        body,
+                        tokenStarts[token],
+                        tokenLengths[token],
+                        names,
+                        callableNameStarts[candidate],
+                        callableNameLengths[candidate]
+                      )
+                    ) {
+                      assert(imported == -1);
+                      imported = candidate;
+                    }
                   }
                 }
+
+                product += 1;
               }
 
-              product += 1;
+              selectedTarget = imported;
             }
+          }
 
-            if (-1 < imported) {
-              assert(callCount < MAX_CALLS_PER_BODY);
-              set(stagedCalls, callCount, tokenStarts[token]);
-              set(stagedCalls, 256 + callCount, tokenLengths[token]);
-              set(stagedCalls, 512 + callCount, arity);
-              set(stagedCalls, 768 + callCount, imported);
-              callCount += 1;
-            }
+          if (-1 < selectedTarget) {
+            assert(callCount < MAX_CALLS_PER_BODY);
+            set(stagedCalls, callCount, tokenStarts[token]);
+            set(stagedCalls, 256 + callCount, tokenLengths[token]);
+            set(stagedCalls, 512 + callCount, arity);
+            set(stagedCalls, 768 + callCount, selectedTarget);
+            callCount += 1;
           }
         }
       }
@@ -594,6 +607,70 @@ classical class SourceCallProducts {
     drop(body);
     drop(sourceArena);
     return callCount;
+  }
+
+  /// Resolves packed dependency calls after local shadowing without dependency source.
+  public long resolveProductSourceCallProducts(
+    borrow byteview source,
+    long sourceStart,
+    long sourceLength,
+    borrow byteview names,
+    long firstLocalCallable,
+    long localCallableCount,
+    borrow mut words callableNameStarts,
+    borrow mut words callableNameLengths,
+    borrow mut words callableParameterCounts,
+    long dependencyCount,
+    borrow mut words dependencyRows,
+    borrow mut words callRows
+  ) {
+    return resolveSelectedProductSourceCallProducts(
+      false,
+      true,
+      source,
+      sourceStart,
+      sourceLength,
+      names,
+      firstLocalCallable,
+      localCallableCount,
+      callableNameStarts,
+      callableNameLengths,
+      callableParameterCounts,
+      dependencyCount,
+      dependencyRows,
+      callRows
+    );
+  }
+
+  /// Resolves local calls from copied names without dependency source.
+  public long resolveLocalProductSourceCallProducts(
+    borrow byteview source,
+    long sourceStart,
+    long sourceLength,
+    borrow byteview names,
+    long firstLocalCallable,
+    long localCallableCount,
+    borrow mut words callableNameStarts,
+    borrow mut words callableNameLengths,
+    borrow mut words callableParameterCounts,
+    borrow mut words callRows
+  ) {
+    return resolveSelectedProductSourceCallProducts(
+      true,
+      false,
+      source,
+      sourceStart,
+      sourceLength,
+      names,
+      firstLocalCallable,
+      localCallableCount,
+      callableNameStarts,
+      callableNameLengths,
+      callableParameterCounts,
+      /* dependencyCount= */ 0,
+      callRows,
+      callRows
+    );
   }
 
   /// Publishes imported call sites after local shadowing and ambiguity checks.
