@@ -589,7 +589,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] Deterministic receipt conformance pins the complete write, data, file, namespace visibility, namespace stability, and quorum chain. It rejects skipped stages, wrong evidence kinds, duplicate evidence, namespace-less publication, and insufficient quorum profiles. Device-level crash injection remains backend-specific.
 - [ ] High-scale network and multi-queue storage profiles pass on declared hardware.
 - [ ] Tiered storage and RDMA profiles pass.
-- [ ] Quantum target lifecycle uses the fabric.
+- [x] `QuantumIo` runs one target submission, wait, cancellation hook, typed result, terminal completion, and reap through `IoRequest` and `IoScope`. Construction allocates no target job, result identity is revalidated, and started cancellation stays acknowledged-partial or uncertain. Hybrid acknowledged-job recovery still uses the interim `QuantumJob` adapter.
 - [ ] Ambient, cursor-only, callback-only, and ambiguous-flush paths are deleted.
 
 ## Testing and acceptance

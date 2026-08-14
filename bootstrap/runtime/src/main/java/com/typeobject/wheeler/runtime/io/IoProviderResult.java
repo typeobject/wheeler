@@ -9,6 +9,7 @@ public record IoProviderResult<T>(Kind kind, T value, String detail, long progre
   public enum Kind {
     SUCCESS,
     FAILURE,
+    CANCELED_BEFORE_EFFECT,
     CANCELED_AFTER_PARTIAL_EFFECT,
     UNCERTAIN
   }
@@ -17,6 +18,9 @@ public record IoProviderResult<T>(Kind kind, T value, String detail, long progre
     Objects.requireNonNull(kind, "kind");
     if (progress < 0) {
       throw new IllegalArgumentException("progress cannot be negative");
+    }
+    if (kind == Kind.CANCELED_BEFORE_EFFECT && progress != 0) {
+      throw new IllegalArgumentException("pre-effect cancellation cannot report progress");
     }
     if (kind == Kind.CANCELED_AFTER_PARTIAL_EFFECT && progress == 0) {
       throw new IllegalArgumentException("partial cancellation needs positive progress");
@@ -42,6 +46,7 @@ public record IoProviderResult<T>(Kind kind, T value, String detail, long progre
     return switch (kind) {
       case SUCCESS -> success(mapper.apply(value), progress);
       case FAILURE -> failure(detail, progress);
+      case CANCELED_BEFORE_EFFECT -> canceledBeforeEffect(detail);
       case CANCELED_AFTER_PARTIAL_EFFECT -> canceledAfterPartial(detail, progress);
       case UNCERTAIN -> uncertain(detail, progress);
     };
@@ -55,6 +60,11 @@ public record IoProviderResult<T>(Kind kind, T value, String detail, long progre
   /** Returns a known provider failure. */
   public static <T> IoProviderResult<T> failure(String detail, long progress) {
     return new IoProviderResult<>(Kind.FAILURE, null, detail, progress);
+  }
+
+  /** Returns cancellation before any external effect. */
+  public static <T> IoProviderResult<T> canceledBeforeEffect(String detail) {
+    return new IoProviderResult<>(Kind.CANCELED_BEFORE_EFFECT, null, detail, 0);
   }
 
   /** Returns cancellation after known partial external progress. */

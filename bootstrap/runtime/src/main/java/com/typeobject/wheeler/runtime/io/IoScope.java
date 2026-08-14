@@ -209,6 +209,7 @@ public final class IoScope implements AutoCloseable {
     if (!operation.isTerminal()) {
       if (mode == Mode.THREADED && operation.isStarted()) {
         operation.requestCancellation();
+        operation.request().requestCancellation();
         return false;
       }
       delayed.remove(operation.id());
@@ -349,6 +350,10 @@ public final class IoScope implements AutoCloseable {
           operation.id(), operation.requestIdentity(), TerminalKind.FAILURE,
           failureRelation(operation), null, result.detail(), result.progress(),
           operation.request().work(), true, backend);
+      case CANCELED_BEFORE_EFFECT -> new IoCompletion<>(
+          operation.id(), operation.requestIdentity(), TerminalKind.CANCELED,
+          CancellationRelation.CANCELED_BEFORE_EFFECT, null, result.detail(),
+          0, operation.request().work(), true, backend);
       case CANCELED_AFTER_PARTIAL_EFFECT -> new IoCompletion<>(
           operation.id(), operation.requestIdentity(), TerminalKind.CANCELED,
           CancellationRelation.CANCELED_AFTER_PARTIAL_EFFECT, null, result.detail(),

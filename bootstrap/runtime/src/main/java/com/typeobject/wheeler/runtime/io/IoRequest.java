@@ -12,14 +12,26 @@ public final class IoRequest<T> {
     IoProviderResult<T> execute();
   }
 
+  /** Provider cancellation signal used only after work has started. */
+  @FunctionalInterface
+  public interface Cancellation {
+    void request();
+  }
+
   private final String identity;
   private final long work;
   private final Action<T> action;
   private final Runnable release;
+  private final Cancellation cancellation;
   private final AtomicBoolean consumed = new AtomicBoolean();
   private final AtomicBoolean released = new AtomicBoolean();
 
-  private IoRequest(String identity, long work, Action<T> action, Runnable release) {
+  private IoRequest(
+      String identity,
+      long work,
+      Action<T> action,
+      Runnable release,
+      Cancellation cancellation) {
     this.identity = validateIdentity(identity);
     if (work < 1 || work > 1_000_000_000L) {
       throw new IllegalArgumentException("request work must be between 1 and 1000000000");
@@ -27,6 +39,7 @@ public final class IoRequest<T> {
     this.work = work;
     this.action = Objects.requireNonNull(action, "action");
     this.release = Objects.requireNonNull(release, "release");
+    this.cancellation = Objects.requireNonNull(cancellation, "cancellation");
   }
 
   /** Constructs a request without invoking its provider action. */
@@ -37,7 +50,17 @@ public final class IoRequest<T> {
   /** Constructs a request that releases captured resources at terminal completion. */
   public static <T> IoRequest<T> prepare(
       String identity, long work, Action<T> action, Runnable release) {
-    return new IoRequest<>(identity, work, action, release);
+    return prepare(identity, work, action, release, () -> {});
+  }
+
+  /** Constructs a request with terminal release and started-work cancellation hooks. */
+  public static <T> IoRequest<T> prepare(
+      String identity,
+      long work,
+      Action<T> action,
+      Runnable release,
+      Cancellation cancellation) {
+    return new IoRequest<>(identity, work, action, release, cancellation);
   }
 
   /** Returns the stable request identity. */
@@ -62,6 +85,10 @@ public final class IoRequest<T> {
 
   IoProviderResult<T> execute() {
     return Objects.requireNonNull(action.execute(), "provider result");
+  }
+
+  void requestCancellation() {
+    cancellation.request();
   }
 
   void releaseResources() {

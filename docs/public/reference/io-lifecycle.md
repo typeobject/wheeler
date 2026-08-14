@@ -16,6 +16,7 @@ The quarantined runtime now carries a deterministic executable slice under `boot
 - `SequentialFileCursor` is the single-owner adapter for work that depends on one cursor.
 - `IoBufferPool` owns bounded registered buffers, provider leases, and explicit reuse permission.
 - `DirectFile` enforces one declared alignment, tail, fallback, and coherence profile.
+- `QuantumIo` adapts a complete target call to the same request and completion contract.
 - `DeterministicIo` offers inline and delayed delivery with identical completion meaning.
 - `ThreadedIo` supplies an explicitly bounded portable worker backend.
 
@@ -23,7 +24,7 @@ The implementation is stage-0 scaffolding. Its Java API is replaceable and is no
 
 ## Lifecycle
 
-A request constructor stores a validated identity, work charge, and provider action. It does not invoke that action. Submission consumes the request once, charges all limits before publication, and creates one operation identity.
+A request constructor stores a validated identity, work charge, and provider action. It does not invoke that action. Submission consumes the request once, charges all limits before publication, and creates one operation identity. A started request may define one total provider-cancellation hook. Queued cancellation still completes before provider work and never invokes that hook.
 
 ```text
 prepared -> submitted -> terminal -> reaped
@@ -69,6 +70,8 @@ The native transition table rejects second completion, completion before resourc
 `IoBufferPool` pre-registers up to 4,096 fixed owners under a 16 MiB aggregate ceiling. Acquisition returns the lowest available generation-checked lease or explicit absence when data-plane credit is exhausted. Provided reads and registered writes submit that owner directly, return the exact lease in the terminal result, and expose no second staging owner. The lease remains unavailable during provider work and cannot return to the pool until terminal resource release. `recycle` is the explicit final reuse permission and invalidates stale generations. Saturation cannot consume the cancellation, terminal-release, recycle, or close path.
 
 `DirectFile` binds one power-of-two alignment up to 4,096 bytes. A required direct path rejects an unsupported backend or any unaligned position, buffer offset, or length before capture. A preferred path either rejects fallback or reports `direct = false` in the terminal result under an explicit buffered-tail policy. Direct and ordinary positional requests share one synchronized byte authority, so each view immediately observes completed writes from the other. This is a semantic profile over the in-memory oracle, not evidence for a host kernel, device, cache, or power-loss contract.
+
+`QuantumIo.request` performs target submission, bounded waiting, result-identity validation, cancellation propagation, terminal completion, and reap as one ordinary I/O operation. Request construction allocates no provider job. Queued cancellation therefore allocates nothing. Cancellation after target allocation either records acknowledged partial cancellation or remains uncertain under the normal completion vocabulary. `QuantumJob` remains the provider adapter beneath this boundary until hybrid recovery also moves to the common fabric.
 
 `OwnedIoBuffer` rejects access from request construction until terminal resource release. Cancellation-before-effect releases it without touching file bytes. The memory file has no cursor, so unrelated ranges acquire no accidental seek order. It is capped at 16 MiB and performs no growth, truncation, namespace, metadata, or persistence operation.
 

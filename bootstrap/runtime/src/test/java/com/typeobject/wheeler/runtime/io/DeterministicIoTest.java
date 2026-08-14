@@ -81,6 +81,7 @@ final class DeterministicIoTest {
     AtomicInteger mappings = new AtomicInteger();
     for (IoProviderResult<Integer> result : List.of(
         IoProviderResult.<Integer>failure("failed", 0),
+        IoProviderResult.<Integer>canceledBeforeEffect("before"),
         IoProviderResult.<Integer>canceledAfterPartial("partial", 1),
         IoProviderResult.<Integer>uncertain("reconcile:item", 2))) {
       IoProviderResult<Long> mapped = result.mapSuccess(value -> {
