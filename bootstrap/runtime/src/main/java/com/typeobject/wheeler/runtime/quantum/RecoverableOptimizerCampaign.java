@@ -107,20 +107,40 @@ public final class RecoverableOptimizerCampaign {
         .toList();
     submissions.forEach(submission -> target.descriptor().require(submission.requiredCapabilities()));
     QuantumBatchJob batch = target.submitBatch(new QuantumBatch(submissions));
-    if (batch.jobs().size() != submissions.size()) {
-      throw new QuantumExecutionException("Provider batch returned the wrong job count");
-    }
+    List<QuantumJob> submittedJobs = new ArrayList<>(
+        Objects.requireNonNull(batch.jobs(), "provider batch jobs"));
     List<JobCheckpoint> checkpoints = new ArrayList<>(submissions.size());
-    for (int index = 0; index < submissions.size(); index++) {
-      QuantumJob job = batch.jobs().get(index);
-      if (job.id().isBlank()) {
-        throw new QuantumExecutionException("Provider returned a job without an identity");
+    try {
+      if (submittedJobs.size() != submissions.size()) {
+        throw new QuantumExecutionException("Provider batch returned the wrong job count");
       }
-      checkpoints.add(new JobCheckpoint(
-          job.id(), submissions.get(index).identity(), job.state()));
+      for (int index = 0; index < submissions.size(); index++) {
+        QuantumJob job = Objects.requireNonNull(
+            submittedJobs.get(index), "provider batch job");
+        if (job.id().isBlank()) {
+          throw new QuantumExecutionException("Provider returned a job without an identity");
+        }
+        checkpoints.add(new JobCheckpoint(
+            job.id(), submissions.get(index).identity(), job.state()));
+      }
+    } catch (RuntimeException failure) {
+      Cleanup cleanup = cleanupJobs(submittedJobs);
+      if (!cleanup.complete()) {
+        failure.addSuppressed(new QuantumExecutionException(cleanup.detail()));
+      }
+      throw failure;
     }
-    activeJobs = List.copyOf(batch.jobs());
-    return persist(nextSnapshot(CampaignState.QUEUED, checkpoints, ""));
+    activeJobs = List.copyOf(submittedJobs);
+    try {
+      return persist(nextSnapshot(CampaignState.QUEUED, checkpoints, ""));
+    } catch (RuntimeException failure) {
+      Cleanup cleanup = cleanupJobs(activeJobs);
+      activeJobs = List.of();
+      if (!cleanup.complete()) {
+        failure.addSuppressed(new QuantumExecutionException(cleanup.detail()));
+      }
+      throw failure;
+    }
   }
 
   /** Polls provider state and persists an exact queued, running, or terminal checkpoint. */
@@ -128,7 +148,15 @@ public final class RecoverableOptimizerCampaign {
     requireActive();
     CampaignState state = CampaignState.QUEUED;
     String detail = "";
-    List<JobCheckpoint> checkpoints = currentCheckpoints();
+    List<JobCheckpoint> checkpoints;
+    try {
+      checkpoints = currentCheckpoints();
+    } catch (RuntimeException failure) {
+      Cleanup cleanup = cleanupJobs(activeJobs);
+      activeJobs = List.of();
+      return persist(nextSnapshot(
+          CampaignState.UNKNOWN, List.of(), cleanupDetail(failure, cleanup)));
+    }
     for (JobCheckpoint checkpoint : checkpoints) {
       if (checkpoint.state() == JobState.FAILED) {
         state = CampaignState.FAILED;
@@ -145,8 +173,13 @@ public final class RecoverableOptimizerCampaign {
       }
     }
     if (state == CampaignState.FAILED || state == CampaignState.CANCELLED) {
+      Cleanup cleanup = cleanupJobs(activeJobs);
       activeJobs = List.of();
       checkpoints = List.of();
+      if (!cleanup.complete()) {
+        state = CampaignState.UNKNOWN;
+        detail = cleanupDetail(detail, cleanup);
+      }
     }
     return persist(nextSnapshot(state, checkpoints, detail));
   }
@@ -164,8 +197,12 @@ public final class RecoverableOptimizerCampaign {
         results.add(job.await(timeout));
       }
     } catch (RuntimeException failure) {
+      Cleanup cleanup = cleanupJobs(activeJobs);
       activeJobs = List.of();
-      return persist(nextSnapshot(CampaignState.FAILED, List.of(), boundedDetail(failure)));
+      CampaignState failedState = cleanup.complete()
+          ? CampaignState.FAILED : CampaignState.UNKNOWN;
+      return persist(nextSnapshot(
+          failedState, List.of(), cleanupDetail(failure, cleanup)));
     }
 
     Iteration iteration = iterations.get(snapshot.nextIteration());
@@ -179,9 +216,14 @@ public final class RecoverableOptimizerCampaign {
       QuantumJob job = activeJobs.get(index);
       if (!result.jobId().equals(job.id())
           || !result.submissionIdentity().equals(submission.identity())) {
+        Cleanup cleanup = cleanupJobs(activeJobs);
         activeJobs = List.of();
+        CampaignState failedState = cleanup.complete()
+            ? CampaignState.FAILED : CampaignState.UNKNOWN;
         return persist(nextSnapshot(
-            CampaignState.FAILED, List.of(), "provider result identity mismatch"));
+            failedState,
+            List.of(),
+            cleanupDetail("provider result identity mismatch", cleanup)));
       }
       if (applied.add(result.submissionIdentity())) {
         sum += result.zExpectation(iteration.objectiveQubit()).value();
@@ -213,11 +255,12 @@ public final class RecoverableOptimizerCampaign {
   /** Cancels every acknowledged member and persists a terminal campaign state. */
   public Snapshot cancel() {
     requireActive();
-    for (QuantumJob job : activeJobs) {
-      job.cancel();
-    }
+    Cleanup cleanup = cleanupJobs(activeJobs);
     activeJobs = List.of();
-    return persist(nextSnapshot(CampaignState.CANCELLED, List.of(), "campaign cancelled"));
+    CampaignState state = cleanup.complete()
+        ? CampaignState.CANCELLED : CampaignState.UNKNOWN;
+    return persist(nextSnapshot(
+        state, List.of(), cleanupDetail("campaign cancelled", cleanup)));
   }
 
   public Snapshot snapshot() {
@@ -247,9 +290,11 @@ public final class RecoverableOptimizerCampaign {
         recovered.add(job);
       }
       activeJobs = List.copyOf(recovered);
-    } catch (QuantumExecutionException failure) {
+    } catch (RuntimeException failure) {
+      Cleanup cleanup = cleanupJobs(recovered);
       activeJobs = List.of();
-      persist(nextSnapshot(CampaignState.UNKNOWN, List.of(), boundedDetail(failure)));
+      persist(nextSnapshot(
+          CampaignState.UNKNOWN, List.of(), cleanupDetail(failure, cleanup)));
     }
   }
 
@@ -340,13 +385,49 @@ public final class RecoverableOptimizerCampaign {
     }
   }
 
+  private static Cleanup cleanupJobs(List<QuantumJob> jobs) {
+    RuntimeException firstFailure = null;
+    for (QuantumJob job : jobs) {
+      try {
+        job.cancel();
+      } catch (RuntimeException failure) {
+        if (firstFailure == null) {
+          firstFailure = failure;
+        } else {
+          firstFailure.addSuppressed(failure);
+        }
+      }
+    }
+    if (firstFailure == null) {
+      return new Cleanup(true, "");
+    }
+    return new Cleanup(false, "provider cleanup uncertain: " + boundedDetail(firstFailure));
+  }
+
+  private static String cleanupDetail(RuntimeException failure, Cleanup cleanup) {
+    return cleanupDetail(boundedDetail(failure), cleanup);
+  }
+
+  private static String cleanupDetail(String detail, Cleanup cleanup) {
+    if (cleanup.complete()) {
+      return detail;
+    }
+    return boundedDetail(detail + ": " + cleanup.detail());
+  }
+
   private static String boundedDetail(RuntimeException failure) {
     String detail = failure.getMessage();
     if (detail == null || detail.isBlank()) {
       detail = failure.getClass().getSimpleName();
     }
+    return boundedDetail(detail);
+  }
+
+  private static String boundedDetail(String detail) {
     return detail.substring(0, Math.min(detail.length(), MAX_DETAIL));
   }
+
+  private record Cleanup(boolean complete, String detail) {}
 
   public enum CampaignState {
     READY,

@@ -16,8 +16,13 @@ final class CompositeQuantumBatchJob implements QuantumBatchJob {
   CompositeQuantumBatchJob(QuantumTarget target, QuantumBatch batch) {
     this.batch = batch;
     List<QuantumJob> submitted = new ArrayList<>(batch.submissions().size());
-    for (QuantumSubmission submission : batch.submissions()) {
-      submitted.add(target.submit(submission));
+    try {
+      for (QuantumSubmission submission : batch.submissions()) {
+        submitted.add(target.submit(submission));
+      }
+    } catch (RuntimeException failure) {
+      cancelAfterFailure(submitted, failure);
+      throw failure;
     }
     this.jobs = List.copyOf(submitted);
   }
@@ -61,10 +66,32 @@ final class CompositeQuantumBatchJob implements QuantumBatchJob {
   @Override
   public boolean cancel() {
     boolean requested = false;
+    RuntimeException failure = null;
     for (QuantumJob job : jobs) {
-      requested |= job.cancel();
+      try {
+        requested |= job.cancel();
+      } catch (RuntimeException current) {
+        if (failure == null) {
+          failure = current;
+        } else {
+          failure.addSuppressed(current);
+        }
+      }
+    }
+    if (failure != null) {
+      throw failure;
     }
     return requested;
+  }
+
+  private static void cancelAfterFailure(List<QuantumJob> jobs, RuntimeException failure) {
+    for (QuantumJob job : jobs) {
+      try {
+        job.cancel();
+      } catch (RuntimeException cleanupFailure) {
+        failure.addSuppressed(cleanupFailure);
+      }
+    }
   }
 
   @Override

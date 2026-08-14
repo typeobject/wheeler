@@ -454,7 +454,7 @@ No checked-in example uses the planned WIP-0032 unified I/O API. `HostInput.w`, 
 
 `QFTProof.w` is an executable conformance law. The trusted proof kernel does not accept it as a theorem. It checks that the generated adjoint restores one basis state on the semantic simulator.
 
-`QuantumOptimizer.w` uses deterministic basis candidates so CI can check exact observations. Its event-log test records both jobs, then reproduces the classical result through replay without another target call. `RecoverableOptimizerCampaign` owns the provider-neutral bounded continuation around parameterized batches. It stores logical snapshots through an explicit atomic adapter and retains no provider object. The fixture is optimizer lifecycle evidence, not a convergence or hardware-quality claim.
+`QuantumOptimizer.w` uses deterministic basis candidates so CI can check exact observations. Its event-log test records both jobs, then reproduces the classical result through replay without another target call. `RecoverableOptimizerCampaign` owns the provider-neutral bounded continuation around parameterized batches. It stores logical snapshots through an explicit atomic adapter and retains no provider object. The campaign executes its complete 64-iteration bound and attempts cleanup for every acknowledged job after partial submission, checkpoint rejection, provider failure, cancellation, or recovery failure. Uncertain cleanup becomes an explicit terminal state. The fixture is optimizer lifecycle evidence, not a convergence or hardware-quality claim.
 
 `QuantumNeuralNetwork.w` shows that one coherent reversible function can act as a classical activation and a quantum permutation. Training arrays, gradients, and floating-point optimizers are not part of this example.
 
