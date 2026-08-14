@@ -42,7 +42,9 @@ Inline submission may produce terminal completion before `submit` returns. Delay
 
 `ReadinessIo` executes only a request whose explicit level signal is ready. An unready await leaves the operation live and the provider untouched. Selection chooses the first ready operation in canonical identity order. `PollingIo` requires `pollOne` before direct await and polls queued identities in canonical order across one or many lanes. `InterruptIo` uses the fixed bounded dispatcher and terminal notification path without changing request or completion types. The tests run success, cancellation, selection, queue bounds, and terminal-field comparisons through these profiles. These stage-0 adapters establish portable queue semantics. They do not claim a native selector, completion port, device interrupt, or polling driver.
 
-`ConnectionRegistry` keeps up to one million dormant connection authorities in primitive state, generation, and free-slot tables. Dormant connections hold no active-work credit and allocate no worker, stack, task, executor, or timer. Activation draws from a separate bound and fails without changing a dormant authority when that credit is exhausted. Close requires dormancy and invalidates the prior generation. This is an admission and ownership profile, not a socket stack or throughput claim.
+`ConnectionRegistry` keeps up to one million dormant connection authorities in primitive state, generation, and free-slot tables. Dormant connections hold no active-work credit and allocate no worker, stack, task, executor, or timer. Activation draws from a separate bound and fails without changing a dormant authority when that credit is exhausted. Close requires dormancy and invalidates the prior generation.
+
+The declared host floor opens 256 simultaneous loopback channels with one service worker. It also runs 64 positional writes across four physical file queues through the bounded common lifecycle and verifies every byte. This check proves the named CI floor and catches host-adapter drift. It is not a socket stack, protocol, throughput, IOPS, latency, direct-I/O, crash, or durability claim.
 
 ## Cancellation and uncertainty
 
