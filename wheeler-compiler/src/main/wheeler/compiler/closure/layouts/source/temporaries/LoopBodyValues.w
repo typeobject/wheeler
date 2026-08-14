@@ -18,6 +18,53 @@ classical class LoopBodyValues {
   /// Reports one exact visible callable value.
   public record LoopBodyValue(long local, boolean valid) {}
 
+  /// Returns the next statement in strict source order.
+  public long nextLoopBodyStatement(
+    long priorStart,
+    long statementCount,
+    borrow mut words statementRows,
+    long statementStartRow
+  ) {
+    long selected = statementCount;
+    long selectedStart = 16777217;
+    long candidate = 0;
+    while (candidate < statementCount) limit 4096 {
+      long candidateStart = statementRows[statementStartRow + candidate];
+      if (priorStart < candidateStart) {
+        if (candidateStart < selectedStart) {
+          selected = candidate;
+          selectedStart = candidateStart;
+        }
+      }
+
+      candidate += 1;
+    }
+
+    return selected;
+  }
+
+  /// Returns the lowest statement block owned by one callable.
+  public long loopBodyRootBlockForOwner(
+    long owner,
+    long statementCount,
+    borrow mut words statementRows
+  ) {
+    long root = 4096;
+    long statement = 0;
+    while (statement < statementCount) limit 4096 {
+      if (statementRows[statement] == owner) {
+        long block = statementRows[4096 + statement];
+        if (block < root) {
+          root = block;
+        }
+      }
+
+      statement += 1;
+    }
+
+    return root;
+  }
+
   /// Returns the unique token at one exact source start.
   public long tokenAtStart(long start, long tokenCount, borrow mut words tokenStarts) {
     long selected = -1;

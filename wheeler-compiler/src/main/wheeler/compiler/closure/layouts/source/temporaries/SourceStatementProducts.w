@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.source_statement_products;
 
 import wheeler.compiler.closure.loop_body_layouts;
+import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.statement_opcodes;
@@ -470,9 +471,30 @@ classical class SourceStatementProducts {
       }
 
       long localBase = parameterCount;
-      long statement = 0;
-      while (statement < statementCount) limit MAX_STATEMENTS {
-        if (statementRows[statement] == localFunction) {
+      long priorStatementOrdinal = -1;
+      boolean selectingStatement = true;
+      while (selectingStatement) limit MAX_STATEMENTS {
+        long statement = -1;
+        long selectedStatementOrdinal = MAX_STATEMENTS + 1;
+        long statementCandidate = 0;
+        while (statementCandidate < statementCount) limit MAX_STATEMENTS {
+          if (statementRows[statementCandidate] == localFunction) {
+            long candidateOrdinal = statementRows[8192 + statementCandidate];
+            if (priorStatementOrdinal < candidateOrdinal) {
+              if (candidateOrdinal < selectedStatementOrdinal) {
+                statement = statementCandidate;
+                selectedStatementOrdinal = candidateOrdinal;
+              }
+            }
+          }
+
+          statementCandidate += 1;
+        }
+
+        if (statement < 0) {
+          selectingStatement = false;
+        } else {
+          priorStatementOrdinal = selectedStatementOrdinal;
           long statementStart = statementRows[statementStartRow + statement];
           long statementToken = -1;
           long statementTokenMatches = 0;
@@ -503,6 +525,40 @@ classical class SourceStatementProducts {
                 if (tokenKinds[statementToken + 1] == 1) {
                   localWidth = 2;
                   resultLocal = localBase + 1;
+                  if (
+                    punctuationAt(source, tokenKinds, tokenStarts, statementToken + 4, 91)
+                  ) {
+                    LoopBodyValue readOwner = resolveLoopBodyValue(
+                      source,
+                      tokenStarts[statementToken + 3],
+                      tokenLengths[statementToken + 3],
+                      localFunction,
+                      statementRows[8192 + statement],
+                      valueCount,
+                      stagedValues
+                    );
+                    if (readOwner.valid) {
+                      localWidth = 3;
+                      if (
+                        borrowedWordsLoopBodyLocal(
+                          source,
+                          localFunction,
+                          readOwner.local,
+                          valueCount,
+                          stagedValues,
+                          semanticCount,
+                          tokenStarts,
+                          tokenLengths
+                        )
+                      ) {
+                        localWidth += 1;
+                      }
+
+                      resultLocal = localBase + localWidth - 1;
+                    } else {
+                      valid = false;
+                    }
+                  }
                 }
               }
             }
@@ -542,8 +598,6 @@ classical class SourceStatementProducts {
 
           localBase += localWidth;
         }
-
-        statement += 1;
       }
 
       if (255 < localBase) {

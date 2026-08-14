@@ -31,23 +31,6 @@ classical class ResolvedLoopBodyProducts {
     boolean valid
   ) {}
 
-  private long rootBlockForOwner(long owner, long statementCount, borrow mut words statementRows) {
-    long root = MAX_STATEMENTS;
-    long statement = 0;
-    while (statement < statementCount) limit MAX_STATEMENTS {
-      if (statementRows[statement] == owner) {
-        long block = statementRows[4096 + statement];
-        if (block < root) {
-          root = block;
-        }
-      }
-
-      statement += 1;
-    }
-
-    return root;
-  }
-
   /// Publishes resolved declaration and update rows only after every body statement validates.
   public ResolvedLoopBodyPlan materializeResolvedLoopBodyProducts(
     borrow utf8 source,
@@ -100,12 +83,29 @@ classical class ResolvedLoopBodyProducts {
     long bodyCount = 0;
     long nestedCount = 0;
     long failureStatement = -1;
-    long statement = 0;
-    while (statement < statementCount) limit MAX_STATEMENTS {
+    long processedStatementCount = 0;
+    long priorStatementStart = -1;
+    while (processedStatementCount < statementCount) limit MAX_STATEMENTS {
+      long statement = nextLoopBodyStatement(
+        priorStatementStart,
+        statementCount,
+        statementRows,
+        LOOP_STATEMENT_START_ROW
+      );
+      if (statement == statementCount) {
+        valid = false;
+      } else {
+        priorStatementStart = statementRows[LOOP_STATEMENT_START_ROW + statement];
+      }
+
       boolean validBeforeStatement = valid;
       long childCount = statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement];
       long statementOwner = statementRows[statement];
-      long statementRootBlock = rootBlockForOwner(statementOwner, statementCount, statementRows);
+      long statementRootBlock = loopBodyRootBlockForOwner(
+        statementOwner,
+        statementCount,
+        statementRows
+      );
       if (statementRootBlock < statementRows[4096 + statement]) {
         if (childCount == 0) {
           long owner = statementRows[statement];
@@ -817,7 +817,7 @@ classical class ResolvedLoopBodyProducts {
         }
       }
 
-      statement += 1;
+      processedStatementCount += 1;
     }
 
     if (valid) {

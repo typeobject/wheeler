@@ -234,7 +234,7 @@ classical class LoopLocalTypeProducts {
             }
 
             long localOffset = 0;
-            while (localOffset < localCount) limit 4 {
+            while (localOffset < localCount) limit 5 {
               if (valid) {
                 typeCount = appendType(
                   stagedTypes,
@@ -315,7 +315,7 @@ classical class LoopLocalTypeProducts {
                   }
 
                   long childLocalOffset = 0;
-                  while (childLocalOffset < childLocalCount) limit 4 {
+                  while (childLocalOffset < childLocalCount) limit 5 {
                     if (valid) {
                       typeCount = appendType(
                         stagedTypes,
