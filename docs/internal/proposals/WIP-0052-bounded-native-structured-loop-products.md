@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, bytecode, verification, and bootstrap maintainers |
 | Created | 2026-08-11 |
-| Updated | 2026-08-13 |
+| Updated | 2026-08-14 |
 | Area | Self-hosting, structured control flow, callable products, bootstrap |
 | Depends on | WIP-0013, WIP-0038, WIP-0047, WIP-0049 |
 | Supersedes | None |
@@ -128,7 +128,7 @@ Scratch rows and source coordinates have no identity. Failure leaves artifact by
 
 ### Canonical emission
 
-`LoopInstructionProducts.w` consumes resolved loop and direct-body products. It emits canonical limit, iteration, comparison, branch, body, and back-edge instructions after a complete extent pass. Body-local and named-operand coordinates rebase into a private staging table. Published rows stay immutable. `LoopLocalTypeProducts.w` publishes the corresponding signed and Boolean local suffix. `InstructionForms.w` remains the operand-count owner. Forward branch targets match stage 0 byte for byte for the admitted signed and Boolean declaration, literal and prior-local assignment, assertion, update, and borrowed-word body profile. `LoopCodegen.w` still owns the older fixed one-update parser path.
+`LoopBodyInstructionEncoding.w` is the sole encoder for resolved direct loop statements. `LoopInstructionProducts.w` and `LoopNestedBlockProducts.w` share it, and the nested path now consumes the canonical resolved checked-add opcode rather than its former 1024-based private dialect. `LoopInstructionProducts.w` consumes resolved loop and direct-body products. It emits canonical limit, iteration, comparison, branch, body, and back-edge instructions after a complete extent pass. Body-local and named-operand coordinates rebase into a private staging table. Published rows stay immutable. `LoopLocalTypeProducts.w` publishes the corresponding signed and Boolean local suffix. `InstructionForms.w` remains the operand-count owner. Forward branch targets match stage 0 byte for byte for the admitted signed and Boolean declaration, literal and prior-local assignment, assertion, update, and borrowed-word body profile. `LoopCodegen.w` still owns the older fixed one-update parser path.
 
 ### Physical closure adoption
 
@@ -149,6 +149,7 @@ Adoption starts with `CoreParsing.w`, whose two loops compact and shift token co
 - [x] Ownership and loan joins validate loop back edges. Mismatched state and escaping body loans fail atomically.
 - [x] Zero-argument signed, Boolean, and void call joins publish canonical code, local types, and stable relocation identities atomically.
 - [x] One- through seven-argument call joins validate source order and exact target parameter types, emit typed argument transfer windows, and relocate the call instruction rather than its evaluation prefix. Call products feed the same instruction windows consumed by back-edge validation.
+- [x] `LoopBodyInstructionEncoding.w` owns direct-statement byte encoding for outer and nested loop products. The old nested-block update opcode dialect is gone.
 - [x] `LoopInstructionProducts.w` emits canonical forward instruction windows and exact branch targets for direct signed and Boolean declarations, literal and prior-local assignments, assertions, checked local updates, and borrowed-word reads and writes without mutating resolved products. Only loop-owned locals are rebased. Enclosing parameters and locals retain their coordinates. The admitted fixture matches stage 0 byte for byte.
 - [x] Canonical call and nested-block instruction windows match stage 0. Zero-argument and typed one-argument call fixtures pin every emitted form and relocation coordinate. One-arm equality and less-than nested-block windows match stage 0 byte for byte. WIP-0035 owns inverse windows.
 Physical source-product artifact integration, beginning with `CoreParsing.w`, moved to WIP-0054. This WIP's authority ends at validated source-independent loop code, types, relocations, and ownership back edges.

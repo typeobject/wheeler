@@ -145,7 +145,7 @@ final class NativeCompilerLoopNestedBlockProductsExampleTest {
             set(blocks, 1026, PARENT);
             set(bodies, 0, 1);
             set(bodies, 4096, 10);
-            set(bodies, 8192, 1025);
+            set(bodies, 8192, 16129);
             set(bodies, 12288, 0);
             set(bodies, 16384, 1);
             setByte(output, 0, 0xff);

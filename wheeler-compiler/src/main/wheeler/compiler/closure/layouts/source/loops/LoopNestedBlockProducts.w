@@ -2,10 +2,12 @@
 
 module wheeler.compiler.closure.loop_nested_block_products;
 
+import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
 import wheeler.compiler.opcodes;
+import wheeler.compiler.resolved_statements;
 
 classical class LoopNestedBlockProducts {
   private const long BLOCK_COUNT_LIMIT = 1024;
@@ -16,7 +18,6 @@ classical class LoopNestedBlockProducts {
   private const long CONDITION_LT_LITERAL = 2;
   private const long MAX_CODE_BYTES = 262144;
   private const long MAX_STATEMENTS = 4096;
-  private const long OPERAND_LOCAL = 1;
   private const long STATEMENT_BLOCK_ROW = 4096;
   private const long STATEMENT_CHILD_COUNT_ROW = 24576;
   private const long STATEMENT_FIRST_CHILD_ROW = 20480;
@@ -91,46 +92,6 @@ classical class LoopNestedBlockProducts {
     }
 
     return count;
-  }
-
-  private long writeUpdate(
-    borrow mut bytes output,
-    long cursor,
-    long localBase,
-    long opcode,
-    long operandKind,
-    long operand
-  ) {
-    if (opcode < 1024) {
-      return -1;
-    }
-
-    if (1279 < opcode) {
-      return -1;
-    }
-
-    long target = opcode - 1024;
-    long sourceOpcode = OPCODE_LOCAL_CONST;
-    if (operandKind == OPERAND_LOCAL) {
-      sourceOpcode = OPCODE_LOCAL_MOVE;
-    } else {
-      if (operandKind != 0) {
-        return -1;
-      }
-    }
-
-    cursor = writeInstructionHeader(output, cursor, sourceOpcode, INSTRUCTION_FORM_BINARY);
-    cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-    if (sourceOpcode == OPCODE_LOCAL_CONST) {
-      cursor = writeSignedLittleEndian(output, cursor, operand, U64);
-    } else {
-      cursor = writeUnsignedLittleEndian(output, cursor, operand, U64);
-    }
-
-    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_ADD, INSTRUCTION_FORM_TERNARY);
-    cursor = writeUnsignedLittleEndian(output, cursor, target, U64);
-    cursor = writeUnsignedLittleEndian(output, cursor, target, U64);
-    return writeUnsignedLittleEndian(output, cursor, localBase, U64);
   }
 
   /// Emits one resolved equality or less-than guard and its direct update body atomically.
@@ -238,11 +199,11 @@ classical class LoopNestedBlockProducts {
           valid = false;
         } else {
           long opcode = bodyRows[BODY_OPCODE_ROW + body];
-          if (opcode < 1024) {
+          if (opcode < STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE) {
             valid = false;
           }
 
-          if (1279 < opcode) {
+          if (STATEMENT_LOCAL_UPDATE_ADD_LOCAL_BASE - 1 < opcode) {
             valid = false;
           }
         }
@@ -315,14 +276,7 @@ classical class LoopNestedBlockProducts {
         statementRows
       );
       long emittedBody = bodyAtStatement(emittedStatement, bodyCount, bodyRows);
-      cursor = writeUpdate(
-        stagedCode,
-        cursor,
-        bodyRows[BODY_LOCAL_BASE_ROW + emittedBody],
-        bodyRows[BODY_OPCODE_ROW + emittedBody],
-        bodyRows[BODY_OPERAND_KIND_ROW + emittedBody],
-        bodyRows[BODY_OPERAND_ROW + emittedBody]
-      );
+      cursor = writeLoopBodyInstructionProduct(stagedCode, cursor, emittedBody, bodyRows);
       childOffset += 1;
     }
 
