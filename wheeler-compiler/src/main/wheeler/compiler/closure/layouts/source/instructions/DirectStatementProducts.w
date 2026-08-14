@@ -40,6 +40,7 @@ classical class DirectStatementProducts {
     long valueCount,
     borrow mut words valueRows,
     borrow mut words callableReturnLocals,
+    borrow mut words statementPhysicalWidths,
     borrow mut words directRows,
     borrow mut words typeRows,
     borrow mut bytes output
@@ -51,18 +52,26 @@ classical class DirectStatementProducts {
     assert(valueCount < LOOP_VALUE_COUNT_LIMIT + 1);
     assert(bufferLength(valueRows) == LOOP_VALUE_ROWS);
     assert(bufferLength(callableReturnLocals) == 64);
+    assert(bufferLength(statementPhysicalWidths) == MAX_STATEMENTS);
     assert(bufferLength(directRows) == DIRECT_ROWS);
     assert(bufferLength(typeRows) == TYPE_ROWS);
     assert(bufferLength(output) == MAX_CODE_BYTES);
 
-    region staging = new region(/* bytes= */ 851968, /* allocations= */ 7);
+    region staging = new region(/* bytes= */ 884736, /* allocations= */ 8);
     words tokenKinds = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(staging, MAX_COMPILER_TOKENS);
     words stagedRows = allocate(staging, DIRECT_ROWS);
     words assertionBody = allocate(staging, BODY_ROWS);
     words stagedTypes = allocate(staging, TYPE_ROWS);
+    words stagedPhysicalWidths = allocate(staging, MAX_STATEMENTS);
     bytes stagedCode = allocateBytes(staging, MAX_CODE_BYTES);
+    long stagedStatement = 0;
+    while (stagedStatement < MAX_STATEMENTS) limit MAX_STATEMENTS {
+      set(stagedPhysicalWidths, stagedStatement, statementPhysicalWidths[stagedStatement]);
+      stagedStatement += 1;
+    }
+
     boolean valid = true;
     long tokenCount = 0;
     ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);
@@ -353,6 +362,7 @@ classical class DirectStatementProducts {
               set(stagedRows, 16384 + productCount, cursor - productStart);
               set(stagedRows, 20480 + productCount, productTypeStart);
               set(stagedRows, 24576 + productCount, typeCount - productTypeStart);
+              set(stagedPhysicalWidths, statement, typeCount - productTypeStart);
               instructionCount += productInstructions;
               productCount += 1;
             } else {
@@ -382,6 +392,12 @@ classical class DirectStatementProducts {
         row += 1;
       }
 
+      row = 0;
+      while (row < MAX_STATEMENTS) limit MAX_STATEMENTS {
+        set(statementPhysicalWidths, row, stagedPhysicalWidths[row]);
+        row += 1;
+      }
+
       long codeByte = 0;
       while (codeByte < cursor) limit MAX_CODE_BYTES {
         setByte(output, codeByte, stagedCode[codeByte]);
@@ -390,6 +406,7 @@ classical class DirectStatementProducts {
     }
 
     drop(stagedCode);
+    drop(stagedPhysicalWidths);
     drop(stagedTypes);
     drop(assertionBody);
     drop(stagedRows);

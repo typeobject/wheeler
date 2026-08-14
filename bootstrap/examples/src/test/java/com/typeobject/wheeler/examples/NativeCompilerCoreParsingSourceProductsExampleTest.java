@@ -165,6 +165,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
       }
     }
     assertEquals(directTypeCount, machine.global("directTypeCount"));
+    assertEquals(1, machine.global("directWidthsValid"));
     assertEquals(directTypeCursor, machine.global("composedOutputStart"));
 
     int composedCursor = directTypeCursor;
@@ -292,6 +293,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
           state long directInstructionCount = 0;
           state long directLength = 0;
           state long directTypeCount = 0;
+          state long directWidthsValid = 0;
           state long directOutputStart = 0;
           state long directTypeOutputStart = 0;
           state long composedInstructionCount = 0;
@@ -517,12 +519,30 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               valuePlan.valueCount,
               values,
               callableReturnLocals,
+              statementPhysicalWidths,
               directRows,
               directTypes,
               directCode
             );
             if (directPlan.valid) {
               directValid = 1;
+              boolean widthsValid = true;
+              long directProduct = 0;
+              while (directProduct < directPlan.productCount) limit 4096 {
+                long directStatement = directRows[directProduct];
+                if (
+                  statementPhysicalWidths[directStatement]
+                    != directRows[24576 + directProduct]
+                ) {
+                  widthsValid = false;
+                }
+
+                directProduct += 1;
+              }
+
+              if (widthsValid) {
+                directWidthsValid = 1;
+              }
             }
             LoopInstructionProductPlan codePlan = writeLoopInstructionProducts(
               resolvedPlan.loopCount,

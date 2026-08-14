@@ -297,6 +297,7 @@ classical class StructuredSourceModuleCompiler {
       valuePlan.valueCount,
       values,
       callableReturnLocals,
+      statementPhysicalWidths,
       directRows,
       directTypes,
       directCode
