@@ -183,6 +183,23 @@ classical class LoopLocalTypeProducts {
                 }
               }
 
+              if (bodyOpcode == BODY_WORDS_COPY) {
+                long copyOperand = bodyRows[BODY_OPERAND_ROW + body];
+                long writeBorrowed = copyOperand / 4294967296 % 2;
+                long readBorrowed = copyOperand / 8589934592;
+                if (0 < writeBorrowed) {
+                  if (localOffset == 0) {
+                    localType = TYPE_WORDS_BORROW;
+                  }
+                }
+
+                if (0 < readBorrowed) {
+                  if (localOffset == writeBorrowed + 1) {
+                    localType = TYPE_WORDS_BORROW;
+                  }
+                }
+              }
+
               typeCount = appendType(stagedTypes, typeCount, owner, nextLocal, localType);
               if (typeCount < 0) {
                 valid = false;

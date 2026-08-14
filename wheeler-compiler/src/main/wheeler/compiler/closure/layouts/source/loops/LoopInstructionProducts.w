@@ -4,6 +4,7 @@ module wheeler.compiler.closure.loop_instruction_products;
 
 import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
+import wheeler.compiler.closure.loop_buffer_operands;
 import wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
 import wheeler.compiler.loop_body_opcodes;
@@ -260,53 +261,25 @@ classical class LoopInstructionProducts {
           rebaseBodyOpcode(emittedOpcode, localBase, bodyLocalBias)
         );
         long emittedOperand = stagedBodies[BODY_OPERAND_ROW + emittedBody];
-        if (emittedOpcode == BODY_WORDS_GET) {
-          long readBorrowedOwner = emittedOperand / 65536;
-          long readOperand = emittedOperand % 65536;
-          long readOwner = readOperand / 256;
-          long readIndex = readOperand % 256;
-          if (localBase < readOwner + 1) {
-            readOwner += bodyLocalBias;
-          }
+        boolean bufferOperand = emittedOpcode == BODY_WORDS_GET;
+        if (emittedOpcode == BODY_WORDS_SET) {
+          bufferOperand = true;
+        }
 
-          if (localBase < readIndex + 1) {
-            readIndex += bodyLocalBias;
-          }
+        if (emittedOpcode == BODY_WORDS_COPY) {
+          bufferOperand = true;
+        }
 
+        if (bufferOperand) {
           set(
             stagedBodies,
             BODY_OPERAND_ROW + emittedBody,
-            readBorrowedOwner * 65536 + readOwner * 256 + readIndex
+            rebaseLoopBufferOperand(emittedOpcode, emittedOperand, localBase, bodyLocalBias)
           );
         } else {
-          if (emittedOpcode == BODY_WORDS_SET) {
-            long writeBorrowedOwner = emittedOperand / 16777216;
-            long writeOperand = emittedOperand % 16777216;
-            long writeOwner = writeOperand / 65536;
-            long writeIndex = writeOperand / 256 % 256;
-            long writeValue = writeOperand % 256;
-            if (localBase < writeOwner + 1) {
-              writeOwner += bodyLocalBias;
-            }
-
-            if (localBase < writeIndex + 1) {
-              writeIndex += bodyLocalBias;
-            }
-
-            if (localBase < writeValue + 1) {
-              writeValue += bodyLocalBias;
-            }
-
-            set(
-              stagedBodies,
-              BODY_OPERAND_ROW + emittedBody,
-              writeBorrowedOwner * 16777216 + writeOwner * 65536 + writeIndex * 256 + writeValue
-            );
-          } else {
-            if (stagedBodies[BODY_OPERAND_KIND_ROW + emittedBody] == OPERAND_LOCAL) {
-              if (localBase < emittedOperand + 1) {
-                set(stagedBodies, BODY_OPERAND_ROW + emittedBody, emittedOperand + bodyLocalBias);
-              }
+          if (stagedBodies[BODY_OPERAND_KIND_ROW + emittedBody] == OPERAND_LOCAL) {
+            if (localBase < emittedOperand + 1) {
+              set(stagedBodies, BODY_OPERAND_ROW + emittedBody, emittedOperand + bodyLocalBias);
             }
           }
         }

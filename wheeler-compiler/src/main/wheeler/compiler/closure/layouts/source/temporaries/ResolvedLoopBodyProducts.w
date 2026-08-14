@@ -7,6 +7,7 @@ import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.closure.loop_buffer_operands;
+import wheeler.compiler.closure.resolved_loop_buffer_products;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.loop_body_opcodes;
@@ -281,64 +282,23 @@ classical class ResolvedLoopBodyProducts {
                 }
               } else {
                 if (tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_SET) {
-                  LoopBodyValue writeOwner = resolveLoopBodyValue(
+                  ResolvedLoopBufferProduct buffer = resolveLoopBufferProduct(
                     source,
-                    tokenStarts[token + 2],
-                    tokenLengths[token + 2],
                     owner,
                     ordinal,
+                    token,
                     valueCount,
-                    valueRows
+                    valueRows,
+                    semanticCount,
+                    tokenKinds,
+                    tokenStarts,
+                    tokenLengths
                   );
-                  LoopBodyValue writeIndex = resolveLoopBodyValue(
-                    source,
-                    tokenStarts[token + 4],
-                    tokenLengths[token + 4],
-                    owner,
-                    ordinal,
-                    valueCount,
-                    valueRows
-                  );
-                  LoopBodyValue writeValue = resolveLoopBodyValue(
-                    source,
-                    tokenStarts[token + 6],
-                    tokenLengths[token + 6],
-                    owner,
-                    ordinal,
-                    valueCount,
-                    valueRows
-                  );
-                  if (writeOwner.valid == false) {
+                  if (buffer.valid) {
+                    opcode = buffer.opcode;
+                    operand = buffer.operand;
+                  } else {
                     statementValid = false;
-                  }
-
-                  if (writeIndex.valid == false) {
-                    statementValid = false;
-                  }
-
-                  if (writeValue.valid == false) {
-                    statementValid = false;
-                  }
-
-                  if (statementValid) {
-                    LoopBufferOperand write = resolveLoopBufferWriteOperand(
-                      source,
-                      owner,
-                      writeOwner.local,
-                      writeIndex.local,
-                      writeValue.local,
-                      valueCount,
-                      valueRows,
-                      semanticCount,
-                      tokenStarts,
-                      tokenLengths
-                    );
-                    if (write.valid) {
-                      opcode = BODY_WORDS_SET;
-                      operand = write.operand;
-                    } else {
-                      statementValid = false;
-                    }
                   }
                 } else {
                   if (

@@ -51,7 +51,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
     assertEquals(34_048, machine.global("firstOpcode"));
     assertEquals(1_030, machine.global("firstOperand"));
     assertEquals(34_049, machine.global("secondOpcode"));
-    assertEquals(263_694, machine.global("secondOperand"));
+    assertEquals(263_689, machine.global("secondOperand"));
     assertEquals(loopInstructionCount, machine.global("instructionCount"));
     assertEquals(expectedLength, machine.global("length"));
     byte[] actual = machine.hostOutput();
@@ -80,6 +80,41 @@ final class NativeCompilerLoopBufferProductsExampleTest {
     }
     assertEquals(1, machine.global("firstBodyType"));
     assertEquals(1, machine.global("fourthBodyType"));
+  }
+
+  @Test
+  void matchesIndexedBufferCopyRowsAndInstructions() throws Exception {
+    String source = SOURCE.replace(
+        "set(values, cursor, value);",
+        "set(values, cursor, values[cursor]);");
+    List<Instruction> expected = new WheelerCompiler().compile(source)
+        .functions().getFirst().forward();
+    VirtualMachine machine = new VirtualMachine(
+        program(source), source.getBytes(StandardCharsets.UTF_8), 262_144);
+
+    machine.run();
+
+    assertEquals(1, machine.global("valid"));
+    assertEquals(34_050, machine.global("secondOpcode"));
+    assertEquals(67_503_110, machine.global("secondOperand"));
+    assertEquals(17, machine.global("instructionCount"));
+    int cursor = 0;
+    int instructionIndex = 7;
+    for (Instruction instruction : expected.subList(7, 24)) {
+      assertEquals(
+          instruction.opcode().code(),
+          unsigned(machine.hostOutput(), cursor, 2),
+          "instruction=" + instructionIndex + " expected=" + instruction);
+      instructionIndex += 1;
+      for (int operand = 0; operand < instruction.operands().size(); operand++) {
+        assertEquals(
+            instruction.operands().get(operand).longValue(),
+            unsigned(machine.hostOutput(), cursor + 8 + operand * 8, 8),
+            "instruction=" + instructionIndex + " operand=" + operand);
+      }
+      cursor += instruction.encodedLength();
+    }
+    assertEquals(cursor, machine.global("length"));
   }
 
   @Test
@@ -171,10 +206,10 @@ final class NativeCompilerLoopBufferProductsExampleTest {
             set(values, 2, 0);
             set(values, 1026, %d);
             set(values, 2050, 5);
-            set(values, 3074, 14);
+            set(values, 3074, 9);
             set(values, 4098, 5);
             set(loopLocalBases, 0, 7);
-            set(loopInstructionStarts, 0, 6);
+            set(loopInstructionStarts, 0, 7);
             set(bodyRows, 8192, 91);
             SourceBlockProductPlan blockPlan = materializeSourceBlockProducts(
               input, 0, 0, 1, bodyStarts, bodyLengths, blocks

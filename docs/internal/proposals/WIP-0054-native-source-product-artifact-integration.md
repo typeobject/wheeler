@@ -120,6 +120,7 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0052 publishes direct, nested, call-bearing, ownership-checked structured-loop code and local types.
 - [x] The dependency-free `LoopBodyOpcodes.w` and `LoopBodyLayouts.w` authorities compile from immutable archive ranges and are retained in the physical prefix.
 - [x] Outer and nested loop products call `LoopBodyInstructionEncoding.w`. The nested path consumes canonical resolved opcodes, measures heterogeneous child windows, and admits Boolean guards without owning a private update encoding.
+- [x] Buffer products preserve owned and borrowed owner modes through reads, writes, and indexed copies. Borrowed paths publish explicit owner temporaries and matching local types.
 - [x] `CallableBlockPlans.w` joins each local callable to exactly one root block plus contiguous callable-local block and direct-statement windows. It validates owners, root parents, depths, local ordinals, complete coverage, and caller-output atomicity.
 - [x] `CallableInstructionPlans.w` composes direct and structured-loop windows by root-statement source ordinal. It publishes callable-local instruction bases, source product selectors, exact byte extents, per-callable totals, and nothing on duplicate, detached, overlapping, or over-limit input.
 - [x] `CallableLocalTypePlans.w` composes signature, direct-statement, and loop rows into contiguous owner-local windows. Primitive and nominal codes retain their source product kind and identity. Duplicate, missing, excessive, or reordered locals leave caller rows unchanged.

@@ -15,8 +15,10 @@ classical class LoopBodyOpcodes {
   public const long BODY_ASSIGN_BOOLEAN_LITERAL_BASE = 33536;
   /// Starts Boolean-local assignments from prior locals.
   public const long BODY_ASSIGN_BOOLEAN_LOCAL_BASE = 33792;
-  /// Loads one signed local from a borrowed word buffer.
+  /// Loads one signed local from an owned or borrowed word buffer.
   public const long BODY_WORDS_GET = 34048;
-  /// Stores one signed local in a borrowed word buffer.
+  /// Stores one signed local in an owned or borrowed word buffer.
   public const long BODY_WORDS_SET = 34049;
+  /// Copies one indexed word between owned or borrowed buffers.
+  public const long BODY_WORDS_COPY = 34050;
 }
