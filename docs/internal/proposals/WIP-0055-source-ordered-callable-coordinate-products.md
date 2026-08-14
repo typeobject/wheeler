@@ -104,7 +104,7 @@ Failure leaves coordinate, code, type, relocation, and artifact outputs untouche
 - [x] WIP-0052 publishes exact root and nested loop code and type extents.
 - [x] WIP-0054 composes one root structured window into a byte-identical `CoreParsing.w` artifact.
 - [x] Root assertions contribute their exact four instructions to later loop targets.
-- [ ] One staged planner publishes complete source-ordered local and instruction coordinates.
+- [x] `CallableCoordinateProducts.w` accepts up to 64 callables and 4,096 product rows, validates owners, exact source extents, strict parent containment, explicit logical and physical widths, product kinds, instruction counts, code lengths, and 256-local, 32,768-instruction, 262,144-byte, and 4,096-type ceilings before publication. It orders each callable by source coordinate rather than storage row. One private pass publishes physical local starts and ends, callable-local instruction starts, global code and type starts, exact extents, and callable totals. A deliberately shuffled two-root fixture includes a nested first root, direct work between roots, a trailing assertion, and a return. It publishes 30 contiguous locals, 31 instructions, and 736 code bytes. A logical gap or overlapping root extent leaves sentinel coordinate and callable rows untouched.
 - [ ] The existing single-root artifact remains byte-identical through the shared plan.
 - [ ] Sequential-root and nested-first fixtures match stage 0 byte for byte.
 - [ ] Void, Boolean, call, relocation, ownership, and inverse products consume the same plan.
