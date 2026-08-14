@@ -197,9 +197,9 @@ Expected result: `result = 6`.
 
 Source: [`ReversiblePacketCodec.w`](../../wheeler-examples/src/main/wheeler/classical/data/ReversiblePacketCodec.w).
 
-Covers: A fixed-width version, kind, and payload layout encoded by checked reversible updates, one generated decoder, a kernel-checked inverse certificate, exact encoded bytes represented as a bounded word, and complete packet restoration.
+Covers: A typed packet record, a closed decoded-or-malformed result, four-byte encoding, checksum validation, decode-encode byte equality, distinct length and checksum diagnostics, bounded region cleanup, a fixed-width word layout, and one generated inverse certificate.
 
-Expected result: `observed = 2753795`, `packet = 0`.
+Expected result: decoded fields are `3`, `5`, and `42`. Malformed codes are `1` and `2`. `observed = 2753795`, and `packet = 0`.
 
 ### `ReversibleResult.w`
 

@@ -357,8 +357,8 @@ Portfolio work follows these rules:
 ### Reversible systems
 
 - [ ] Reversible packet codec.
-  - [x] `ReversiblePacketCodec.w` assigns fixed version, kind, and payload values to disjoint byte positions through checked reversible updates. Its generated inverse certificate restores an empty packet, and the classical gate checks canonical compilation, execution, and complete rewind.
-  - [ ] Replace the fixed fixture with typed frame parsing and emission over byte slices, records, variants, checked lengths, checksums, malformed results, generated bounded cases, and region cleanup.
+  - [x] `ReversiblePacketCodec.w` encodes a typed record into four region-owned bytes, validates and decodes through a closed value-or-malformed result, checks both decode-encode directions for the canonical frame, distinguishes length and checksum errors without partial decode state, cleans every owner, and separately checks a generated inverse over the equivalent fixed word layout.
+  - [ ] Add generated bounded packet records and malformed frames, then make byte-frame encoding itself participate in a checked inverse relation rather than relying on the parallel fixed-word transform.
 - [ ] Transactional persistent index.
 - [ ] Incremental dependency graph.
   - [x] `IncrementalDependencyGraph.w` propagates exact versions through a bounded linear source, parse, code, and link chain. Duplicate notification performs no rebuild, and canonical compilation, execution, and complete rewind are checked.

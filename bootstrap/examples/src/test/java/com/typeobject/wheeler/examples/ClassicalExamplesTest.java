@@ -140,7 +140,14 @@ class ClassicalExamplesTest {
         Arguments.of("classical/control/RecursiveValue.w", Map.of("result", 6L)),
         Arguments.of(
             "classical/data/ReversiblePacketCodec.w",
-            Map.of("packet", 0L, "observed", 2_753_795L)),
+            Map.of(
+                "packet", 0L,
+                "observed", 2_753_795L,
+                "decodedVersion", 3L,
+                "decodedKind", 5L,
+                "decodedPayload", 42L,
+                "malformedLength", 1L,
+                "malformedChecksum", 2L)),
         Arguments.of("classical/control/ReversibleResult.w", Map.of("observed", 42L)),
         Arguments.of("classical/ownership/RegionStorage.w", Map.of("first", 7L, "byteValue", 65L, "utf8Scalars", 3L, "validUtf8", 1L, "byteLength", 6L,
             "decodedScalars", 3L, "scalarSum", 8591L, "scratchValue", 19L)),
