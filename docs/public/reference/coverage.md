@@ -28,6 +28,12 @@ Fresh classical cases chosen by `wheeler test` collect this report. The test out
 
 The report has no percentage. This first slice knows which transitions ran, but it does not yet define a complete source or IR denominator.
 
+## Wheeler reduction
+
+`wheeler.runtime.coverage_reducer` consumes at most 64 bounded canonical point fragments. Each input row separates its sort key from the rendered prefix and suffix. The reducer validates every extent, insertion-sorts rows without a host collection, combines duplicate keys with exact counts, renders decimal counts, and publishes output length only after the complete profile-1 report exists.
+
+The differential fixture collects two forward-and-rewind executions, reverses arrival order, and compares every Wheeler-produced report byte with `SemanticCoverage.canonicalReport()`. This proves reducer parity for the accepted row format. It does not prove source-native collection: the Java seed still turns VM observations into bounded input fragments.
+
 ## Presentation adapters
 
 `SemanticCoverageRenderer` emits terminal, JSON, LCOV, Cobertura XML, and static website views from the immutable point table. Every view carries the semantic report identity and discloses the same unsupported dimensions: source lines, source branches, proof obligations, quantum state, and empirical targets.
@@ -56,4 +62,4 @@ Adjacent-edge coverage reports observed path outcomes without inventing a comple
 
 Proof-stage observation does not change kernel decisions or inhabit a theorem. Its report and identity remain separate from VM transition coverage, certificate identity, and proof validity.
 
-Compound conditions, match-arm denominators, trapped attempts, attempt lineage, quantum structure, and Wheeler-written reduction remain part of WIP-0020. JaCoCo still measures only the Java seed implementation. It is not evidence about Wheeler semantics.
+Compound conditions, match-arm denominators, trapped attempts, attempt lineage, quantum structure, and Wheeler-native observation collection remain part of WIP-0020. JaCoCo still measures only the Java seed implementation. It is not evidence about Wheeler semantics.

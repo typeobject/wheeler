@@ -298,7 +298,7 @@ Quantum targets own execution evidence, not coverage interpretation. The proof k
 - [x] Classical bytecode transition points collect through the VM observer without adding counter instructions or changing `.wbc`. Validated source-point and generated-inverse relations remain a separate map and join profile, so base transition identity never depends on retained source paths.
 - [x] WIP-0018 assigns complete case identities to shards by digest and merges shard outcomes in canonical case order. Arrival-order variation reproduces the serial semantic report identity, and duplicate case identities reject.
 - [x] The implemented classical reducer distinguishes forward, language inverse, rewind-forward, and rewind-inverse observations in one canonical report. Proof stages occupy a separate reducer. Complete workflow and quantum dimensions remain outside the transition profile.
-- [ ] Wheeler and stage-0 reducers emit byte-identical reports.
+- [x] `wheeler.runtime.coverage_reducer` validates at most 64 bounded canonical point fragments, sorts source-order-independent keys without host collections, combines duplicate counts, renders exact decimal fields, and publishes profile-1 length only after complete reduction. Differential execution feeds two forward-and-rewind runs in reverse arrival order and matches every stage-0 report byte.
 - [ ] Superseded semantic coverage authorities are deleted.
 
 ## Testing and acceptance
