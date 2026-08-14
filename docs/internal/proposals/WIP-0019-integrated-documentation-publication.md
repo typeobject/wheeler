@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler documentation, compiler, package, tools, website, and stage-0 Java maintainers |
 | Created | 2026-07-18 |
-| Updated | 2026-08-02 |
+| Updated | 2026-08-13 |
 | Area | Wheeler API docs, Markdown manuals, Javadoc ingestion, fixed static rendering, links, search, publication |
 | Depends on | WIP-0006, WIP-0007, WIP-0009, WIP-0011, WIP-0016, WIP-0018 |
 | Supersedes | None |

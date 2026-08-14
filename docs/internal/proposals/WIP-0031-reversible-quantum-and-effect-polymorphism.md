@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler language, type-system, compiler, bytecode, verifier, quantum, proof, runtime, and library maintainers |
 | Created | 2026-07-19 |
-| Updated | 2026-07-28 |
+| Updated | 2026-08-13 |
 | Area | Effects, higher-order calls, reversibility, coherent lifting, unitary operations, generics |
 | Depends on | WIP-0001, WIP-0002, WIP-0004, WIP-0005, WIP-0011, WIP-0021, WIP-0028, WIP-0029, WIP-0030 |
 | Supersedes | None |

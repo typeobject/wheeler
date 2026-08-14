@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, bytecode, bootstrap, and conformance maintainers |
 | Created | 2026-08-08 |
-| Updated | 2026-08-08 |
+| Updated | 2026-08-13 |
 | Area | Self-hosting, canonical linking, bytecode emission, bootstrap |
 | Depends on | WIP-0038, WIP-0041, WIP-0044, WIP-0045, WIP-0046, WIP-0047 |
 | Supersedes | Final artifact emission work in WIP-0047 |

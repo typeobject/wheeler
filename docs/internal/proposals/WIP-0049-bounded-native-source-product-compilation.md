@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, module-product, aggregate, ownership, and bootstrap maintainers |
 | Created | 2026-08-09 |
-| Updated | 2026-08-09 |
+| Updated | 2026-08-13 |
 | Area | Self-hosting, source lowering, module products, aggregate products, bootstrap |
 | Depends on | WIP-0013, WIP-0028, WIP-0044, WIP-0045, WIP-0046, WIP-0047, WIP-0048 |
 | Supersedes | None |

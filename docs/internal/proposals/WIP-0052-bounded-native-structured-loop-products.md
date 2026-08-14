@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, bytecode, verification, and bootstrap maintainers |
 | Created | 2026-08-11 |
-| Updated | 2026-08-11 |
+| Updated | 2026-08-13 |
 | Area | Self-hosting, structured control flow, callable products, bootstrap |
 | Depends on | WIP-0013, WIP-0038, WIP-0047, WIP-0049 |
 | Supersedes | None |

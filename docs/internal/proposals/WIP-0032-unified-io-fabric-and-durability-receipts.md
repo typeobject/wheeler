@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler language, runtime, VM, verifier, standard-library, storage, networking, native, security, workflow, quantum, proof, package, and tooling maintainers |
 | Created | 2026-07-19 |
-| Updated | 2026-07-19 |
+| Updated | 2026-08-13 |
 | Area | I/O, asynchronous execution, files, networking, direct I/O, RDMA, tiered storage, durability |
 | Depends on | WIP-0001, WIP-0002, WIP-0004, WIP-0005, WIP-0009, WIP-0011, WIP-0013, WIP-0025, WIP-0028, WIP-0031 |
 | Supersedes | None |

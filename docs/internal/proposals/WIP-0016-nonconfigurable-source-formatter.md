@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler tools, compiler, syntax, documentation, and package maintainers |
 | Created | 2026-07-18 |
-| Updated | 2026-07-18 |
+| Updated | 2026-08-13 |
 | Area | Source formatting, documentation comments, diagnostics, editor and build tooling |
 | Depends on | WIP-0005, WIP-0006 |
 | Supersedes | None |
