@@ -278,10 +278,15 @@ public final class VirtualMachine {
     history.clear();
   }
 
+  /** Establishes an irreversible external-effect boundary at the current machine state. */
+  public void establishEffectBoundary() {
+    history.clear();
+  }
+
   /** Applies a measured or external value and establishes an irreversible workflow boundary. */
   public void setGlobalFromEffect(int index, long value) {
     globals[VmControlChecks.globalIndex(globals.length, index)] = value;
-    history.clear();
+    establishEffectBoundary();
   }
 
   /** Restores a typed workflow checkpoint; this does not claim to reverse external effects. */
@@ -297,7 +302,7 @@ public final class VirtualMachine {
       }
       globals[i] = value;
     }
-    history.clear();
+    establishEffectBoundary();
   }
 
   public void expectGlobal(int index, long expected) {

@@ -79,6 +79,19 @@ class VirtualMachineTest {
   }
 
   @Test
+  void externalEffectBoundaryRetainsCurrentStateAndCutsTheRewindTail() {
+    VirtualMachine machine = new VirtualMachine(ProgramFixtures.counter());
+    machine.step();
+    assertEquals(1, machine.historySize());
+    MachineSnapshot atBoundary = machine.snapshot();
+
+    machine.establishEffectBoundary();
+    assertEquals(0, machine.historySize());
+    assertThrows(VmTrap.class, machine::rewindOne);
+    assertEquals(atBoundary.globals(), machine.snapshot().globals());
+  }
+
+  @Test
   void loggedWriteRestoresDestroyedValue() {
     Program program = singleFunction(
         List.of(

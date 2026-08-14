@@ -662,7 +662,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 ### Reversibility, quantum, and backends
 
 - [ ] Live I/O is rejected from `rev`, `coherent rev`, `unitary`, and proof bodies.
-- [ ] Compensation is a new effect and rewind cannot cross an I/O barrier.
+- [x] `IoEffectBoundary` accepts terminal live-I/O facts as a domain-separated boundary identity and clears retained VM history while preserving current state. `IoCompensation` prepares a distinct request from effect-bearing completion, issues a separate successful receipt, and establishes a `COMPENSATION` boundary only after that evidence succeeds. Rewind crosses neither boundary, and compensation never claims inverse execution.
 - [ ] Quantum registers cannot become files, bytes, mapped regions, or RDMA registrations.
 - [x] Quantum submission, acknowledged-job recovery, cancellation request and race handling, result validation, late-result quarantine, replay, and retry retain WIP-0004 artifact, run, branch, submission, job, and target identities. They use the same bounded admission, terminal-state, cancellation, and uncertainty distinctions as the fabric while quantum payloads remain domain types.
 - [x] Hybrid execution obtains measurement from target execution, records the classical measurement result, and applies it once. Replay has no target and reuses only that recorded classical observation.
