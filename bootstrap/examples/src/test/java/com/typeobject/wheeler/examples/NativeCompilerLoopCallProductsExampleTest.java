@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 final class NativeCompilerLoopCallProductsExampleTest {
   @Test
   void emitsCallsTypesAndStableRelocationsAtomically() throws Exception {
-    VirtualMachine machine = new VirtualMachine(program(false), new byte[0], 262_144);
+    VirtualMachine machine = new VirtualMachine(program(false, false), new byte[0], 262_144);
 
     machine.run();
 
@@ -36,6 +36,8 @@ final class NativeCompilerLoopCallProductsExampleTest {
     assertEquals(1, machine.global("secondType"));
     assertEquals(2, machine.global("firstLocalWidth"));
     assertEquals(0, machine.global("secondLocalWidth"));
+    assertEquals(5, machine.global("firstStatementWidth"));
+    assertEquals(4, machine.global("secondStatementWidth"));
     assertEquals(Opcode.CALL_VALUE.code(), machine.global("firstOpcode"));
     assertEquals(Opcode.CALL.code(), machine.global("thirdOpcode"));
   }
@@ -60,6 +62,8 @@ final class NativeCompilerLoopCallProductsExampleTest {
     assertEquals(2, machine.global("secondType"));
     assertEquals(4, machine.global("firstLocalWidth"));
     assertEquals(2, machine.global("secondLocalWidth"));
+    assertEquals(7, machine.global("firstStatementWidth"));
+    assertEquals(6, machine.global("secondStatementWidth"));
   }
 
   @Test
@@ -71,6 +75,8 @@ final class NativeCompilerLoopCallProductsExampleTest {
     assertEquals(0, machine.global("valid"));
     assertEquals(0, machine.global("instructionCount"));
     assertEquals(0, machine.global("localTypeCount"));
+    assertEquals(3, machine.global("firstStatementWidth"));
+    assertEquals(4, machine.global("secondStatementWidth"));
     assertEquals(91, machine.global("firstInstruction"));
     assertEquals(0xee, machine.global("firstIdentityByte"));
     assertEquals(0xff, machine.global("firstOutputByte"));
@@ -78,19 +84,36 @@ final class NativeCompilerLoopCallProductsExampleTest {
 
   @Test
   void rejectsUnknownTargetsBeforeCodeOrRelocationsPublish() throws Exception {
-    VirtualMachine machine = new VirtualMachine(program(true), new byte[0], 262_144);
+    VirtualMachine machine = new VirtualMachine(program(true, false), new byte[0], 262_144);
 
     machine.run();
 
     assertEquals(0, machine.global("valid"));
     assertEquals(0, machine.global("instructionCount"));
     assertEquals(0, machine.global("relocationCount"));
+    assertEquals(3, machine.global("firstStatementWidth"));
+    assertEquals(4, machine.global("secondStatementWidth"));
     assertEquals(91, machine.global("firstInstruction"));
     assertEquals(0xee, machine.global("firstIdentityByte"));
     assertEquals(0xff, machine.global("firstOutputByte"));
   }
 
-  private static Program program(boolean invalidTarget) throws Exception {
+  @Test
+  void rejectsDetachedCallStatementsBeforePublication() throws Exception {
+    VirtualMachine machine = new VirtualMachine(program(false, true), new byte[0], 262_144);
+
+    machine.run();
+
+    assertEquals(0, machine.global("valid"));
+    assertEquals(0, machine.global("instructionCount"));
+    assertEquals(3, machine.global("firstStatementWidth"));
+    assertEquals(4, machine.global("secondStatementWidth"));
+    assertEquals(91, machine.global("firstInstruction"));
+    assertEquals(0xee, machine.global("firstIdentityByte"));
+    assertEquals(0xff, machine.global("firstOutputByte"));
+  }
+
+  private static Program program(boolean invalidTarget, boolean invalidStatement) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.loop_call_products"));
@@ -117,6 +140,8 @@ final class NativeCompilerLoopCallProductsExampleTest {
           state long secondType = 0;
           state long firstLocalWidth = 0;
           state long secondLocalWidth = 0;
+          state long firstStatementWidth = 0;
+          state long secondStatementWidth = 0;
           state long firstOpcode = 0;
           state long thirdOpcode = 0;
           state long fourthOpcode = 0;
@@ -125,10 +150,11 @@ final class NativeCompilerLoopCallProductsExampleTest {
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
             assert(bufferLength(input) == 0);
-            region products = new region(/* bytes= */ 417792, /* allocations= */ 12);
+            region products = new region(/* bytes= */ 452608, /* allocations= */ 14);
             words calls = allocate(products, /* length= */ 1024);
             words callArgumentStarts = allocate(products, /* length= */ 256);
             words callArgumentCounts = allocate(products, /* length= */ 256);
+            words callStatements = allocate(products, /* length= */ 256);
             words arguments = allocate(products, /* length= */ 3584);
             bytes identities = allocateBytes(products, /* length= */ 131072);
             words targetParameterStarts = allocate(products, /* length= */ 4096);
@@ -138,6 +164,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
             bytes relocationIdentities = allocateBytes(products, /* length= */ 8192);
             words types = allocate(products, /* length= */ 4096);
             words localWidths = allocate(products, /* length= */ 256);
+            words statementWidths = allocate(products, /* length= */ 4096);
             set(calls, 0, 7);
             set(calls, 256, 1);
             set(calls, 512, 12);
@@ -146,6 +173,10 @@ final class NativeCompilerLoopCallProductsExampleTest {
             set(calls, 257, 0);
             set(calls, 513, 14);
             set(calls, 769, TARGET);
+            set(callStatements, 0, STATEMENT);
+            set(callStatements, 1, 11);
+            set(statementWidths, 10, 3);
+            set(statementWidths, 11, 4);
             setByte(identities, 3 * 32, 0xab);
             setByte(identities, 4 * 32, 0xcd);
             set(relocations, 0, 91);
@@ -156,6 +187,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
               calls,
               callArgumentStarts,
               callArgumentCounts,
+              callStatements,
               arguments,
               /* targetCount= */ 5,
               identities,
@@ -167,6 +199,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
               relocationIdentities,
               types,
               localWidths,
+              statementWidths,
               output
             );
             if (plan.valid) {
@@ -188,11 +221,14 @@ final class NativeCompilerLoopCallProductsExampleTest {
             secondType = types[1];
             firstLocalWidth = localWidths[0];
             secondLocalWidth = localWidths[1];
+            firstStatementWidth = statementWidths[10];
+            secondStatementWidth = statementWidths[11];
             firstOpcode = output[0] + output[1] * 256;
             thirdOpcode = output[64] + output[65] * 256;
             fourthOpcode = output[112] + output[113] * 256;
             sixthOpcode = output[160] + output[161] * 256;
             firstOutputByte = output[0];
+            drop(statementWidths);
             drop(localWidths);
             drop(types);
             drop(relocationIdentities);
@@ -202,13 +238,15 @@ final class NativeCompilerLoopCallProductsExampleTest {
             drop(targetParameterStarts);
             drop(identities);
             drop(arguments);
+            drop(callStatements);
             drop(callArgumentCounts);
             drop(callArgumentStarts);
             drop(calls);
             drop(products);
           }
         }
-        """.replace("TARGET", invalidTarget ? "5" : "4"));
+        """.replace("TARGET", invalidTarget ? "5" : "4")
+            .replace("STATEMENT", invalidStatement ? "4096" : "10"));
     return new WheelerCompiler().compileModuleFiles(sources, "example.loop_call_products");
   }
 
@@ -229,6 +267,8 @@ final class NativeCompilerLoopCallProductsExampleTest {
           state long localTypeCount = 0;
           state long firstLocalWidth = 0;
           state long secondLocalWidth = 0;
+          state long firstStatementWidth = 0;
+          state long secondStatementWidth = 0;
           state long firstInstruction = 0;
           state long secondInstruction = 0;
           state long firstIdentityByte = 0;
@@ -242,10 +282,11 @@ final class NativeCompilerLoopCallProductsExampleTest {
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
             assert(bufferLength(input) == 0);
-            region products = new region(/* bytes= */ 417792, /* allocations= */ 12);
+            region products = new region(/* bytes= */ 452608, /* allocations= */ 14);
             words calls = allocate(products, /* length= */ 1024);
             words callArgumentStarts = allocate(products, /* length= */ 256);
             words callArgumentCounts = allocate(products, /* length= */ 256);
+            words callStatements = allocate(products, /* length= */ 256);
             words arguments = allocate(products, /* length= */ 3584);
             bytes identities = allocateBytes(products, /* length= */ 131072);
             words targetParameterStarts = allocate(products, /* length= */ 4096);
@@ -255,6 +296,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
             bytes relocationIdentities = allocateBytes(products, /* length= */ 8192);
             words types = allocate(products, /* length= */ 4096);
             words localWidths = allocate(products, /* length= */ 256);
+            words statementWidths = allocate(products, /* length= */ 4096);
             set(calls, 0, 7);
             set(calls, 256, 1);
             set(calls, 512, 12);
@@ -263,6 +305,10 @@ final class NativeCompilerLoopCallProductsExampleTest {
             set(calls, 257, 0);
             set(calls, 513, 20);
             set(calls, 769, 4);
+            set(callStatements, 0, 10);
+            set(callStatements, 1, 11);
+            set(statementWidths, 10, 3);
+            set(statementWidths, 11, 4);
             set(callArgumentStarts, 0, 0);
             set(callArgumentCounts, 0, 1);
             set(callArgumentStarts, 1, 1);
@@ -287,6 +333,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
               calls,
               callArgumentStarts,
               callArgumentCounts,
+              callStatements,
               arguments,
               /* targetCount= */ 5,
               identities,
@@ -298,6 +345,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
               relocationIdentities,
               types,
               localWidths,
+              statementWidths,
               output
             );
             if (plan.valid) {
@@ -313,11 +361,14 @@ final class NativeCompilerLoopCallProductsExampleTest {
             secondType = types[4];
             firstLocalWidth = localWidths[0];
             secondLocalWidth = localWidths[1];
+            firstStatementWidth = statementWidths[10];
+            secondStatementWidth = statementWidths[11];
             firstOpcode = output[0] + output[1] * 256;
             thirdOpcode = output[48] + output[49] * 256;
             fourthOpcode = output[112] + output[113] * 256;
             sixthOpcode = output[160] + output[161] * 256;
             firstOutputByte = output[0];
+            drop(statementWidths);
             drop(localWidths);
             drop(types);
             drop(relocationIdentities);
@@ -327,6 +378,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
             drop(targetParameterStarts);
             drop(identities);
             drop(arguments);
+            drop(callStatements);
             drop(callArgumentCounts);
             drop(callArgumentStarts);
             drop(calls);

@@ -29,6 +29,7 @@ classical class LoopCallProducts {
   private const long TARGET_COUNT_LIMIT = 4096;
   private const long TARGET_IDENTITY_BYTES = 131072;
   private const long TARGET_PARAMETER_ROWS = 16384;
+  private const long STATEMENT_COUNT_LIMIT = 4096;
   private const long U64 = ENCODING_WIDTH_U64;
 
   /// Reports one complete loop call, local-type, and relocation extent.
@@ -256,6 +257,7 @@ classical class LoopCallProducts {
     borrow mut words callRows,
     borrow mut words callArgumentStarts,
     borrow mut words callArgumentCounts,
+    borrow mut words callStatements,
     borrow mut words argumentRows,
     long targetCount,
     borrow byteview targetIdentities,
@@ -267,6 +269,7 @@ classical class LoopCallProducts {
     borrow mut bytes relocationIdentities,
     borrow mut words localTypeRows,
     borrow mut words callLocalWidths,
+    borrow mut words statementPhysicalWidths,
     borrow mut bytes output
   ) {
     assert(-1 < callCount);
@@ -274,6 +277,7 @@ classical class LoopCallProducts {
     assert(bufferLength(callRows) == CALL_ROWS);
     assert(bufferLength(callArgumentStarts) == CALL_COUNT_LIMIT);
     assert(bufferLength(callArgumentCounts) == CALL_COUNT_LIMIT);
+    assert(bufferLength(callStatements) == CALL_COUNT_LIMIT);
     assert(bufferLength(argumentRows) == ARGUMENT_ROWS);
     assert(-1 < targetCount);
     assert(targetCount < TARGET_COUNT_LIMIT + 1);
@@ -286,6 +290,7 @@ classical class LoopCallProducts {
     assert(bufferLength(relocationIdentities) == RELOCATION_IDENTITY_BYTES);
     assert(bufferLength(localTypeRows) == LOCAL_TYPE_ROWS);
     assert(bufferLength(callLocalWidths) == CALL_COUNT_LIMIT);
+    assert(bufferLength(statementPhysicalWidths) == STATEMENT_COUNT_LIMIT);
     assert(bufferLength(output) == MAX_CODE_BYTES);
 
     boolean valid = true;
@@ -300,11 +305,20 @@ classical class LoopCallProducts {
       long target = callRows[CALL_TARGET_ROW + call];
       long firstArgument = callArgumentStarts[call];
       long arity = callArgumentCounts[call];
+      long statement = callStatements[call];
       if (validKind(kind) == false) {
         valid = false;
       }
 
       if (localBase < 0) {
+        valid = false;
+      }
+
+      if (statement < 0) {
+        valid = false;
+      }
+
+      if (STATEMENT_COUNT_LIMIT - 1 < statement) {
         valid = false;
       }
 
@@ -387,12 +401,19 @@ classical class LoopCallProducts {
       return new LoopCallPlan(0, 0, 0, 0, false);
     }
 
-    region staging = new region(/* bytes= */ 311296, /* allocations= */ 5);
+    region staging = new region(/* bytes= */ 344064, /* allocations= */ 6);
     words stagedRelocations = allocate(staging, RELOCATION_ROWS);
     bytes stagedIdentities = allocateBytes(staging, RELOCATION_IDENTITY_BYTES);
     words stagedTypes = allocate(staging, LOCAL_TYPE_ROWS);
     words stagedLocalWidths = allocate(staging, CALL_COUNT_LIMIT);
+    words stagedStatementWidths = allocate(staging, STATEMENT_COUNT_LIMIT);
     bytes stagedCode = allocateBytes(staging, MAX_CODE_BYTES);
+    long statementRow = 0;
+    while (statementRow < STATEMENT_COUNT_LIMIT) limit STATEMENT_COUNT_LIMIT {
+      set(stagedStatementWidths, statementRow, statementPhysicalWidths[statementRow]);
+      statementRow += 1;
+    }
+
     long cursor = 0;
     long typeCursor = 0;
     long emittedInstruction = instructionBase;
@@ -426,7 +447,12 @@ classical class LoopCallProducts {
         emittedArity,
         argumentRows
       );
-      set(stagedLocalWidths, call, callLocalCount(emittedKind, emittedArity));
+      long emittedLocalWidth = callLocalCount(emittedKind, emittedArity);
+      set(stagedLocalWidths, call, emittedLocalWidth);
+      long emittedStatement = callStatements[call];
+      long mergedStatementWidth = stagedStatementWidths[emittedStatement] + emittedLocalWidth;
+      assert(mergedStatementWidth < 257);
+      set(stagedStatementWidths, emittedStatement, mergedStatementWidth);
       typeCursor = writeCallLocalTypes(
         stagedTypes,
         typeCursor,
@@ -463,6 +489,12 @@ classical class LoopCallProducts {
       row += 1;
     }
 
+    row = 0;
+    while (row < STATEMENT_COUNT_LIMIT) limit STATEMENT_COUNT_LIMIT {
+      set(statementPhysicalWidths, row, stagedStatementWidths[row]);
+      row += 1;
+    }
+
     long codeByte = 0;
     while (codeByte < cursor) limit MAX_CODE_BYTES {
       setByte(output, codeByte, stagedCode[codeByte]);
@@ -470,6 +502,7 @@ classical class LoopCallProducts {
     }
 
     drop(stagedCode);
+    drop(stagedStatementWidths);
     drop(stagedLocalWidths);
     drop(stagedTypes);
     drop(stagedIdentities);
