@@ -5,14 +5,19 @@ module wheeler.runtime.io.portable;
 import wheeler.runtime.io.lifecycle;
 
 classical class PortableIo {
+  /// Names one pure bounded request before admission.
   public record Request(long identity, long work) {}
 
+  /// Names one operation-count and aggregate-work scope.
   public record Scope(long maxOperations, long maxWork) {}
 
+  /// Names one admitted must-reap operation row.
   public record Operation(long identity) {}
 
+  /// Carries one immutable bounded FIFO cursor.
   public record CompletionQueue(long head, long tail, long capacity) {}
 
+  /// Binds one terminal external effect to its exact progress and work.
   public record EffectBoundary(
     long operation,
     long terminalKind,
@@ -20,11 +25,13 @@ classical class PortableIo {
     long declaredWork
   ) {}
 
+  /// Returns either rejected admission or one exact operation and scope charge.
   public variant Admission {
     case Rejected();
     case Accepted(Operation operation, long operationCount, long chargedWork);
   }
 
+  /// Keeps success, failure, cancellation, and uncertainty nominally distinct.
   public variant Completion {
     case Success(Operation operation, long progress, long declaredWork, boolean released);
     case Failure(Operation operation, long progress, long declaredWork, boolean released);
@@ -44,16 +51,19 @@ classical class PortableIo {
     );
   }
 
+  /// Returns explicit queue capacity failure or the advanced queue cursor.
   public variant QueuePush {
     case Full(CompletionQueue queue);
     case Value(CompletionQueue queue);
   }
 
+  /// Returns explicit queue emptiness or one operation and advanced cursor.
   public variant QueuePop {
     case Empty(CompletionQueue queue);
     case Value(Operation operation, CompletionQueue queue);
   }
 
+  /// Distinguishes reversible work from a retained live external boundary.
   public variant EffectLowering {
     case Reversible();
     case Live(EffectBoundary boundary);
