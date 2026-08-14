@@ -32,7 +32,7 @@ final class NativeCompilerInstructionOwnershipProductsExampleTest {
     byte[] artifact = new BytecodeWriter().write(product);
     VirtualMachine machine = VirtualMachine.withBinaryInput(decoder(false, false, false), artifact, 1);
 
-    machine.run();
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
 
     long borrows = instructions(product, BORROWS);
     long creates = instructions(product, CREATES);
@@ -49,6 +49,7 @@ final class NativeCompilerInstructionOwnershipProductsExampleTest {
     assertEquals(1, machine.global("coordinateValid"));
     assertEquals(1, machine.global("ownershipAgreement"));
     assertEquals(1, machine.global("published"));
+    assertEquals('W', machine.global("archivedByte"));
   }
 
   @Test
@@ -71,7 +72,7 @@ final class NativeCompilerInstructionOwnershipProductsExampleTest {
     byte[] artifact = new BytecodeWriter().write(product());
     VirtualMachine machine = VirtualMachine.withBinaryInput(decoder(true, false, false), artifact, 1);
 
-    assertThrows(VmTrap.class, machine::run);
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
     assertEquals(0, machine.global("published"));
   }
 
@@ -80,11 +81,12 @@ final class NativeCompilerInstructionOwnershipProductsExampleTest {
     byte[] artifact = new BytecodeWriter().write(product());
     VirtualMachine machine = VirtualMachine.withBinaryInput(decoder(false, true, false), artifact, 1);
 
-    machine.run();
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
 
     assertEquals(0, machine.global("coordinateValid"));
     assertEquals(77, machine.global("firstCoordinate"));
-    assertEquals(1, machine.global("published"));
+    assertEquals(0, machine.global("published"));
+    assertEquals(99, machine.global("archivedByte"));
   }
 
   @Test
@@ -93,11 +95,12 @@ final class NativeCompilerInstructionOwnershipProductsExampleTest {
     VirtualMachine machine = VirtualMachine.withBinaryInput(
         decoder(false, false, true), artifact, 1);
 
-    machine.run();
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
 
     assertEquals(1, machine.global("coordinateValid"));
     assertEquals(0, machine.global("ownershipAgreement"));
-    assertEquals(1, machine.global("published"));
+    assertEquals(0, machine.global("published"));
+    assertEquals(99, machine.global("archivedByte"));
   }
 
   private static long instructions(Program product, Set<Opcode> wanted) {
@@ -189,11 +192,14 @@ final class NativeCompilerInstructionOwnershipProductsExampleTest {
         "wheeler.compiler.closure.compiled_function_products"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.instruction_ownership_products"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.ownership_checked_body_archive"));
     sources.put("InstructionOwnershipProductsExample.w", """
         module example.instruction_ownership_products;
 
         import wheeler.compiler.closure.compiled_function_products;
         import wheeler.compiler.closure.instruction_ownership_products;
+        import wheeler.compiler.closure.ownership_checked_body_archive;
 
         classical class InstructionOwnershipProductsExample {
           state long eventCount = 0;
@@ -208,9 +214,10 @@ final class NativeCompilerInstructionOwnershipProductsExampleTest {
           state long firstCoordinate = 77;
           state long ownershipAgreement = 0;
           state long published = 0;
+          state long archivedByte = 0;
 
           entry void main(borrow byteview source, borrow mut bytes output) {
-            region rows = new region(/* bytes= */ 1119232, /* allocations= */ 7);
+            region rows = new region(/* bytes= */ 17912832, /* allocations= */ 12);
             words functions = allocate(rows, /* length= */ 640);
             words instructions = allocate(rows, /* length= */ 24576);
             words events = allocate(rows, /* length= */ 40960);
@@ -218,6 +225,12 @@ final class NativeCompilerInstructionOwnershipProductsExampleTest {
             words instructionPlannedRows = allocate(rows, /* length= */ 4096);
             words ownershipCoordinates = allocate(rows, /* length= */ 32768);
             words sourceOwnershipCoordinates = allocate(rows, /* length= */ 32768);
+            words modulePublished = allocate(rows, /* length= */ 512);
+            words moduleArtifactRanks = allocate(rows, /* length= */ 512);
+            words artifactStarts = allocate(rows, /* length= */ 512);
+            words artifactLengths = allocate(rows, /* length= */ 512);
+            bytes archive = allocateBytes(rows, /* length= */ 16777216);
+            setByte(archive, 0, 99);
             CompiledFunctionPlan plan = indexCompiledFunctionProducts(
               source,
               bufferLength(source),
@@ -324,8 +337,34 @@ final class NativeCompilerInstructionOwnershipProductsExampleTest {
               }
               event += 1;
             }
-            published = 1;
+            if (coordinatePlan.valid) {
+              OwnershipCheckedBodyArchivePlan archivePlan = appendOwnershipCheckedBodyArtifact(
+                source,
+                bufferLength(source),
+                /* moduleOwner= */ 0,
+                eventCount,
+                sourceOwnershipCoordinates,
+                eventCount,
+                ownershipCoordinates,
+                /* artifactCount= */ 0,
+                /* archiveBytes= */ 0,
+                modulePublished,
+                moduleArtifactRanks,
+                artifactStarts,
+                artifactLengths,
+                archive
+              );
+              if (archivePlan.valid) {
+                published = 1;
+              }
+            }
+            archivedByte = archive[0];
             setOutputLength(output, 0);
+            drop(archive);
+            drop(artifactLengths);
+            drop(artifactStarts);
+            drop(moduleArtifactRanks);
+            drop(modulePublished);
             drop(sourceOwnershipCoordinates);
             drop(ownershipCoordinates);
             drop(instructionPlannedRows);

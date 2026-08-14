@@ -112,7 +112,7 @@ All rows use fixed caller-provided buffers. No pass allocates per call or per ev
 - [x] `InstructionOwnershipProducts.w` atomically joins each nonboundary effect to its source statement, planned instruction, destination local, and source local. Synthetic loan releases retain `-1` as the statement and the exact function-boundary instruction. Invalid source or planned rows preserve caller storage.
 - [x] `SourceOwnershipProducts.w` independently authorizes source ownership kind, statement, instruction offset, destination offset, defining source value, and source offset before mapping them through planned statement and value coordinates. Creation, movement, and destruction fixtures publish exact rows. An out-of-range destination publishes nothing.
 - [x] `ownershipCoordinatesAgree` requires exact source and decoded statement, instruction, destination, and source rows. The native fixture covers moves, balanced loans, creation, destruction, boundary releases, and explicit disagreement.
-- [ ] Source and decoded ownership evidence gate archive publication.
+- [x] `OwnershipCheckedBodyArchive.w` compares independent source and decoded event counts and all four coordinate rows before it calls the sole bounded archive append. Event-count or coordinate disagreement publishes no rank, table row, or artifact byte. The native ownership fixture archives a real canonical artifact only after agreement and retains sentinels on malformed planned rows or source disagreement.
 - [ ] Structured source artifacts include local and imported calls without source projection.
 
 ## Acceptance
