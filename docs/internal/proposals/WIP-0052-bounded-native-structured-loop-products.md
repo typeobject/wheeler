@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler compiler, bytecode, verification, and bootstrap maintainers |
 | Created | 2026-08-11 |
 | Updated | 2026-08-13 |
@@ -151,8 +151,7 @@ Adoption starts with `CoreParsing.w`, whose two loops compact and shift token co
 - [x] One- through seven-argument call joins validate source order and exact target parameter types, emit typed argument transfer windows, and relocate the call instruction rather than its evaluation prefix. Call products feed the same instruction windows consumed by back-edge validation.
 - [x] `LoopInstructionProducts.w` emits canonical forward instruction windows and exact branch targets for direct signed and Boolean declarations, literal and prior-local assignments, assertions, checked local updates, and borrowed-word reads and writes without mutating resolved products. Only loop-owned locals are rebased. Enclosing parameters and locals retain their coordinates. The admitted fixture matches stage 0 byte for byte.
 - [x] Canonical call and nested-block instruction windows match stage 0. Zero-argument and typed one-argument call fixtures pin every emitted form and relocation coordinate. One-arm equality and less-than nested-block windows match stage 0 byte for byte. WIP-0035 owns inverse windows.
-- [ ] `CoreParsing.w` compiles byte for byte from its immutable archive range.
-- [ ] Every physical multi-statement loop module compiles without dependency source.
+Physical source-product artifact integration, beginning with `CoreParsing.w`, moved to WIP-0054. This WIP's authority ends at validated source-independent loop code, types, relocations, and ownership back edges.
 
 ## Acceptance
 
@@ -161,8 +160,8 @@ Adoption starts with `CoreParsing.w`, whose two loops compact and shift token co
 - Calls, buffer reads, buffer writes, assertions, and local updates work in one loop body.
 - Invalid limits, blocks, types, ownership states, and branch extents publish nothing.
 - Loop products survive source release and contain no dependency source.
-- `CoreParsing.w` enters the retained physical product set.
-- No compatibility parser or recursive source rewrite remains.
+- WIP-0054 consumes these products for `CoreParsing.w` without extending the scalar-helper parser.
+- No compatibility parser or recursive source rewrite enters the product layer.
 
 ## Rejected alternatives
 
