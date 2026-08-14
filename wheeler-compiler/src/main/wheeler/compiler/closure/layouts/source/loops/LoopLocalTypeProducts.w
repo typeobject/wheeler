@@ -78,29 +78,6 @@ classical class LoopLocalTypeProducts {
     return selected;
   }
 
-  private long frameBiasForStatement(
-    long owner,
-    long statement,
-    long loopCount,
-    borrow mut words loopRows,
-    borrow mut words statementRows
-  ) {
-    long ordinal = statementRows[STATEMENT_ORDINAL_ROW + statement];
-    long priorLoops = 0;
-    long loop = 0;
-    while (loop < loopCount) limit LOOP_COUNT_LIMIT {
-      if (loopRows[loop] == owner) {
-        if (loopRows[512 + loop] < ordinal) {
-          priorLoops += 1;
-        }
-      }
-
-      loop += 1;
-    }
-
-    return priorLoops * 5;
-  }
-
   private long nestedAtStatement(long statement, long nestedCount, borrow mut words nestedRows) {
     long selected = -1;
     long matches = 0;
@@ -305,6 +282,7 @@ classical class LoopLocalTypeProducts {
     long nestedCount,
     borrow mut words nestedRows,
     borrow mut words loopLocalBases,
+    borrow mut words statementPhysicalStarts,
     borrow mut words typeRows
   ) {
     assert(-1 < loopCount);
@@ -320,6 +298,7 @@ classical class LoopLocalTypeProducts {
     assert(nestedCount < BODY_COUNT_LIMIT + 1);
     assert(bufferLength(nestedRows) == NESTED_ROWS);
     assert(bufferLength(loopLocalBases) == LOOP_COUNT_LIMIT);
+    assert(bufferLength(statementPhysicalStarts) == MAX_STATEMENTS);
     assert(bufferLength(typeRows) == TYPE_ROWS);
 
     region staging = new region(/* bytes= */ 98304, /* allocations= */ 1);
@@ -383,13 +362,7 @@ classical class LoopLocalTypeProducts {
             long opcode = bodyRows[BODY_OPCODE_ROW + body];
             long operand = bodyRows[BODY_OPERAND_ROW + body];
             long localCount = loopBodyLocalCount(opcode, operand);
-            long bodyLocalBase = bodyRows[BODY_LOCAL_BASE_ROW + body] + frameBiasForStatement(
-              owner,
-              statement,
-              loopCount,
-              loopRows,
-              statementRows
-            );
+            long bodyLocalBase = statementPhysicalStarts[statement];
             if (localCount < 0) {
               valid = false;
             }
@@ -423,14 +396,7 @@ classical class LoopLocalTypeProducts {
             if (nested < 0) {
               valid = false;
             } else {
-              long nestedLocalBase = nestedRows[NESTED_LOCAL_BASE_ROW + nested]
-                + frameBiasForStatement(
-                owner,
-                statement,
-                loopCount,
-                loopRows,
-                statementRows
-              );
+              long nestedLocalBase = statementPhysicalStarts[statement];
               long nestedKind = nestedRows[NESTED_KIND_ROW + nested];
               long nestedLocalCount = 3;
               if (nestedKind == 3) {
@@ -479,14 +445,7 @@ classical class LoopLocalTypeProducts {
                     long childOpcode = bodyRows[BODY_OPCODE_ROW + childBody];
                     long childOperand = bodyRows[BODY_OPERAND_ROW + childBody];
                     long childLocalCount = loopBodyLocalCount(childOpcode, childOperand);
-                    long childLocalBase = bodyRows[BODY_LOCAL_BASE_ROW + childBody]
-                      + frameBiasForStatement(
-                      owner,
-                      childStatement,
-                      loopCount,
-                      loopRows,
-                      statementRows
-                    );
+                    long childLocalBase = statementPhysicalStarts[childStatement];
                     if (childLocalCount < 0) {
                       valid = false;
                     }

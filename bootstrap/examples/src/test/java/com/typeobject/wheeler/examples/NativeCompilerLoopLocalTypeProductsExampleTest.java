@@ -85,7 +85,7 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
           %s
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 892936, /* allocations= */ 13);
+            region products = new region(/* bytes= */ 925704, /* allocations= */ 14);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -96,6 +96,7 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
             words bodyRows = allocate(products, /* length= */ 20480);
             words nestedRows = allocate(products, /* length= */ 20480);
             words statementPhysicalWidths = allocate(products, /* length= */ 4096);
+            words statementPhysicalStarts = allocate(products, /* length= */ 4096);
             words loopLocalBases = allocate(products, /* length= */ 256);
             words typeRows = allocate(products, /* length= */ 12288);
             words unused = allocate(products, /* length= */ 1);
@@ -147,6 +148,26 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
               statementPhysicalWidths
             );
             assert(bodyPlan.valid);
+            long physicalBody = 0;
+            while (physicalBody < bodyPlan.bodyCount) limit 4096 {
+              long physicalStatement = bodyRows[physicalBody];
+              set(
+                statementPhysicalStarts,
+                physicalStatement,
+                bodyRows[4096 + physicalBody] + 5
+              );
+              physicalBody += 1;
+            }
+            long physicalNested = 0;
+            while (physicalNested < bodyPlan.nestedCount) limit 4096 {
+              long physicalNestedStatement = nestedRows[physicalNested];
+              set(
+                statementPhysicalStarts,
+                physicalNestedStatement,
+                nestedRows[16384 + physicalNested] + 5
+              );
+              physicalNested += 1;
+            }
             LoopLocalTypePlan typePlan = materializeLoopLocalTypeProducts(
               loopPlan.loopCount,
               loops,
@@ -157,6 +178,7 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
               bodyPlan.nestedCount,
               nestedRows,
               loopLocalBases,
+              statementPhysicalStarts,
               typeRows
             );
             if (typePlan.valid) {
@@ -168,6 +190,7 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
             drop(unused);
             drop(typeRows);
             drop(loopLocalBases);
+            drop(statementPhysicalStarts);
             drop(statementPhysicalWidths);
             drop(nestedRows);
             drop(bodyRows);

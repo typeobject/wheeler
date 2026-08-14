@@ -11,10 +11,6 @@ import wheeler.compiler.resolved_statements;
 classical class LoopInstructionProducts {
   private const long BLOCK_COUNT_LIMIT = 1024;
   private const long BODY_COUNT_LIMIT = 4096;
-  private const long CONDITION_LEFT_KIND_ROW = 256;
-  private const long CONDITION_LEFT_OPERAND_ROW = 512;
-  private const long CONDITION_RIGHT_KIND_ROW = 768;
-  private const long CONDITION_RIGHT_OPERAND_ROW = 1024;
   private const long CONDITION_ROWS = 1536;
   private const long LOOP_BODY_STATEMENT_COUNT_ROW = 1792;
   private const long LOOP_COUNT_LIMIT = 256;
@@ -136,21 +132,6 @@ classical class LoopInstructionProducts {
         if (boundary < operand + 1) {
           set(bodyRows, BODY_OPERAND_ROW + body, operand + bias);
         }
-      }
-    }
-  }
-
-  private void rebaseConditionOperand(
-    long condition,
-    long kindRow,
-    long operandRow,
-    long boundary,
-    borrow mut words conditionRows
-  ) {
-    if (conditionRows[kindRow + condition] == OPERAND_LOCAL) {
-      long operand = conditionRows[operandRow + condition];
-      if (boundary < operand + 1) {
-        set(conditionRows, operandRow + condition, operand + LOOP_FRAME_LOCAL_COUNT);
       }
     }
   }
@@ -292,33 +273,6 @@ classical class LoopInstructionProducts {
             body += 1;
           }
 
-          long descendant = 0;
-          while (descendant < loopCount) limit LOOP_COUNT_LIMIT {
-            if (loopRows[descendant] == loopRows[loop]) {
-              if (
-                loopRows[LOOP_STATEMENT_ORDINAL_ROW + loop] < loopRows[LOOP_STATEMENT_ORDINAL_ROW
-                  + descendant]
-              ) {
-                long condition = loopRows[768 + descendant];
-                rebaseConditionOperand(
-                  condition,
-                  CONDITION_LEFT_KIND_ROW,
-                  CONDITION_LEFT_OPERAND_ROW,
-                  localBase,
-                  stagedConditions
-                );
-                rebaseConditionOperand(
-                  condition,
-                  CONDITION_RIGHT_KIND_ROW,
-                  CONDITION_RIGHT_OPERAND_ROW,
-                  localBase,
-                  stagedConditions
-                );
-              }
-            }
-
-            descendant += 1;
-          }
         }
       }
 

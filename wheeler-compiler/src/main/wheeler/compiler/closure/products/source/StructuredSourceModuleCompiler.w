@@ -51,6 +51,79 @@ classical class StructuredSourceModuleCompiler {
     return selected;
   }
 
+  private long statementAtOrdinal(
+    long owner,
+    long ordinal,
+    long statementCount,
+    borrow mut words statementRows
+  ) {
+    long selected = -1;
+    long matches = 0;
+    long statement = 0;
+    while (statement < statementCount) limit MAX_STATEMENTS {
+      if (statementRows[statement] == owner) {
+        if (statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement] == ordinal) {
+          selected = statement;
+          matches += 1;
+        }
+      }
+
+      statement += 1;
+    }
+
+    if (matches != 1) {
+      return -1;
+    }
+
+    return selected;
+  }
+
+  private long physicalValueLocal(
+    long owner,
+    long local,
+    long statementCount,
+    borrow mut words statementRows,
+    borrow mut words statementLocalRows,
+    long valueCount,
+    borrow mut words valueRows,
+    borrow mut words statementPhysicalStarts
+  ) {
+    long selected = -1;
+    long matches = 0;
+    long value = 0;
+    while (value < valueCount) limit 1024 {
+      if (valueRows[value] == owner) {
+        if (valueRows[3072 + value] == local) {
+          selected = value;
+          matches += 1;
+        }
+      }
+
+      value += 1;
+    }
+
+    if (matches != 1) {
+      return -1;
+    }
+
+    long ordinal = valueRows[4096 + selected];
+    if (ordinal == 0) {
+      return local;
+    }
+
+    long statement = statementAtOrdinal(owner, ordinal, statementCount, statementRows);
+    if (statement < 0) {
+      return -1;
+    }
+
+    long logicalBase = statementLocalRows[statement];
+    if (local < logicalBase) {
+      return -1;
+    }
+
+    return statementPhysicalStarts[statement] + local - logicalBase;
+  }
+
   private long instructionStartForLoop(
     borrow utf8 source,
     long owner,
@@ -138,7 +211,7 @@ classical class StructuredSourceModuleCompiler {
     assert(bufferLength(output) == 32768);
     assert(bufferLength(identity) == 32);
 
-    region products = new region(/* bytes= */ 2180608, /* allocations= */ 25);
+    region products = new region(/* bytes= */ 2180096, /* allocations= */ 24);
     words blocks = allocate(products, /* length= */ 6144);
     words statements = allocate(products, /* length= */ 28672);
     words sourceConditions = allocate(products, /* length= */ 1536);
@@ -157,7 +230,6 @@ classical class StructuredSourceModuleCompiler {
     words loopWindowRows = allocate(products, /* length= */ 768);
     bytes loopCode = allocateBytes(products, /* length= */ 262144);
     words loopTypes = allocate(products, /* length= */ 12288);
-    words callableReturnLocals = allocate(products, /* length= */ 64);
     words directRows = allocate(products, /* length= */ 28672);
     words directTypes = allocate(products, /* length= */ 12288);
     bytes directCode = allocateBytes(products, /* length= */ 262144);
@@ -259,6 +331,42 @@ classical class StructuredSourceModuleCompiler {
       resolvedLoops
     );
     assert(resolvedPlan.valid);
+    long conditionLoop = 0;
+    while (conditionLoop < resolvedPlan.loopCount) limit MAX_LOOPS {
+      long conditionOwner = resolvedLoops[conditionLoop];
+      long condition = resolvedLoops[768 + conditionLoop];
+      if (resolvedConditions[256 + condition] == 1) {
+        long leftLocal = physicalValueLocal(
+          conditionOwner,
+          resolvedConditions[512 + condition],
+          loopPlan.statementCount,
+          statements,
+          statementLocalRows,
+          valuePlan.valueCount,
+          values,
+          statementPhysicalStarts
+        );
+        assert(-1 < leftLocal);
+        set(resolvedConditions, 512 + condition, leftLocal);
+      }
+
+      if (resolvedConditions[768 + condition] == 1) {
+        long rightLocal = physicalValueLocal(
+          conditionOwner,
+          resolvedConditions[1024 + condition],
+          loopPlan.statementCount,
+          statements,
+          statementLocalRows,
+          valuePlan.valueCount,
+          values,
+          statementPhysicalStarts
+        );
+        assert(-1 < rightLocal);
+        set(resolvedConditions, 1024 + condition, rightLocal);
+      }
+
+      conditionLoop += 1;
+    }
 
     long loop = 0;
     while (loop < resolvedPlan.loopCount) limit MAX_LOOPS {
@@ -306,20 +414,10 @@ classical class StructuredSourceModuleCompiler {
       bodyPlan.nestedCount,
       nestedRows,
       loopLocalBases,
+      statementPhysicalStarts,
       loopTypes
     );
     assert(typePlan.valid);
-
-    long type = 0;
-    while (type < typePlan.typeCount) limit 4096 {
-      long typeOwner = loopTypes[type];
-      long nextLocal = loopTypes[4096 + type] + 1;
-      if (callableReturnLocals[typeOwner] < nextLocal) {
-        set(callableReturnLocals, typeOwner, nextLocal);
-      }
-
-      type += 1;
-    }
 
     DirectStatementPlan directPlan = materializeDirectStatementProducts(
       source,
@@ -327,7 +425,8 @@ classical class StructuredSourceModuleCompiler {
       statements,
       valuePlan.valueCount,
       values,
-      callableReturnLocals,
+      statementLocalRows,
+      statementPhysicalStarts,
       statementPhysicalWidths,
       directRows,
       directTypes,
@@ -380,7 +479,6 @@ classical class StructuredSourceModuleCompiler {
     drop(directCode);
     drop(directTypes);
     drop(directRows);
-    drop(callableReturnLocals);
     drop(loopTypes);
     drop(loopCode);
     drop(loopWindowRows);

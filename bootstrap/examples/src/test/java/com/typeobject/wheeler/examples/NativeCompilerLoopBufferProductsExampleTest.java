@@ -176,7 +176,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
           state long fourthBodyType = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 1007616, /* allocations= */ 17);
+            region products = new region(/* bytes= */ 1040384, /* allocations= */ 18);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -187,6 +187,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
             words bodyRows = allocate(products, /* length= */ 20480);
             words nestedRows = allocate(products, /* length= */ 20480);
             words statementPhysicalWidths = allocate(products, /* length= */ 4096);
+            words statementPhysicalStarts = allocate(products, /* length= */ 4096);
             words loopLocalBases = allocate(products, /* length= */ 256);
             words loopInstructionStarts = allocate(products, /* length= */ 256);
             words loopWindowRows = allocate(products, /* length= */ 768);
@@ -230,6 +231,16 @@ final class NativeCompilerLoopBufferProductsExampleTest {
               nestedRows,
               statementPhysicalWidths
             );
+            long physicalBody = 0;
+            while (physicalBody < bodyPlan.bodyCount) limit 4096 {
+              long physicalStatement = bodyRows[physicalBody];
+              set(
+                statementPhysicalStarts,
+                physicalStatement,
+                bodyRows[4096 + physicalBody] + 5
+              );
+              physicalBody += 1;
+            }
             set(conditions, 256, 1);
             set(conditions, 512, 6);
             set(conditions, 768, 0);
@@ -270,6 +281,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
               bodyPlan.nestedCount,
               nestedRows,
               loopLocalBases,
+              statementPhysicalStarts,
               typeRows
             );
             if (blockPlan.valid) {
@@ -300,6 +312,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
             drop(loopWindowRows);
             drop(loopInstructionStarts);
             drop(loopLocalBases);
+            drop(statementPhysicalStarts);
             drop(statementPhysicalWidths);
             drop(nestedRows);
             drop(bodyRows);

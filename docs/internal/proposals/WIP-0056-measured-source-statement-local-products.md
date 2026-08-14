@@ -93,7 +93,8 @@ The producer uses fixed caller-provided rows. It does not allocate per statement
 - [ ] Source-call and ownership products bind exact statement physical widths.
 - [x] `SourceCallableCoordinateProducts.w` adapts measured statement rows to WIP-0055's storage-order-independent planner. Structured artifact publication now requires a valid complete coordinate plan, and the physical `CoreParsing.w` fixture retains byte equality. Code, types, and operands do not yet consume the planned starts.
 - [x] `StructuredSourceModuleCompiler.w` now seeds logical widths, applies measured body and loop-frame widths, plans physical starts before loop emission, and takes every root and nested loop base from the statement coordinate product. The former callable-wide `loopFrameBias` calculation is deleted. Loop code and loop local types retain byte equality for `CoreParsing.w` and the structured comparison fixture.
-- [ ] Direct code, direct local types, source calls, ownership rows, and value operands consume planned starts.
+- [x] `DirectStatementProducts.w` maps declaration temporaries, prior named sources, assertion opcodes and operands, return sources, return slots, and emitted type rows through planned statement starts. `StructuredSourceModuleCompiler.w` maps every loop-condition local through its defining statement before loop emission. `LoopLocalTypeProducts.w` takes body and nested-control starts directly and no longer counts prior loops. Existing physical artifacts remain byte-identical.
+- [ ] Loop-body opcodes and packed operands, source calls, and ownership rows consume planned starts.
 - [ ] The sequential-root regression matches stage 0 byte for byte.
 - [ ] Ordinal frame biases and inferred return maxima are deleted.
 

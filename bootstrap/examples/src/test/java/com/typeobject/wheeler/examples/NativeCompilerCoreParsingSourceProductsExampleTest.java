@@ -329,7 +329,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
           state long secondLoopOwner = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 21415016, /* allocations= */ 60);
+            region products = new region(/* bytes= */ 21414504, /* allocations= */ 59);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -355,7 +355,6 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             words loopInstructionStarts = allocate(products, /* length= */ 256);
             words loopWindowRows = allocate(products, /* length= */ 768);
             words typeRows = allocate(products, /* length= */ 12288);
-            words callableReturnLocals = allocate(products, /* length= */ 64);
             words directRows = allocate(products, /* length= */ 28672);
             words directTypes = allocate(products, /* length= */ 12288);
             bytes directCode = allocateBytes(products, /* length= */ 262144);
@@ -404,8 +403,6 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             set(loopLocalBases, 1, 9);
             set(loopInstructionStarts, 0, 4);
             set(loopInstructionStarts, 1, 4);
-            set(callableReturnLocals, 0, 43);
-            set(callableReturnLocals, 1, 31);
             set(signatureTypes, 0, 0);
             set(signatureTypes, 4096, 0);
             set(signatureTypes, 8192, 10);
@@ -483,6 +480,15 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             if (valuePlan.valid) {
               valueValid = 1;
             }
+            long measuredStatement = 0;
+            while (measuredStatement < loopPlan.statementCount) limit 4096 {
+              set(
+                statementPhysicalWidths,
+                measuredStatement,
+                statementLocalRows[4096 + measuredStatement]
+              );
+              measuredStatement += 1;
+            }
             ResolvedLoopBodyPlan bodyPlan = materializeResolvedLoopBodyProducts(
               input,
               loopPlan.statementCount,
@@ -495,6 +501,29 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             );
             if (bodyPlan.valid) {
               bodyValid = 1;
+            }
+            boolean frameWidthsValid = materializeLoopFrameWidths(
+              loopPlan.loopCount,
+              loops,
+              loopPlan.statementCount,
+              statements,
+              statementPhysicalWidths
+            );
+            assert(frameWidthsValid);
+            if (frameWidthsValid) {
+              loopFrameWidthsValid = 1;
+            }
+            SourceCallableCoordinatePlan coordinatePlan = materializeSourceCallableCoordinateProducts(
+              2,
+              parameterCounts,
+              loopPlan.statementCount,
+              statements,
+              statementLocalRows,
+              statementPhysicalWidths,
+              statementPhysicalStarts
+            );
+            if (coordinatePlan.valid) {
+              coordinateValid = 1;
             }
             ResolvedLoopProductPlan resolvedPlan = materializeResolvedLoopProducts(
               input,
@@ -524,35 +553,13 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               statements,
               valuePlan.valueCount,
               values,
-              callableReturnLocals,
+              statementLocalRows,
+              statementPhysicalStarts,
               statementPhysicalWidths,
               directRows,
               directTypes,
               directCode
             );
-            boolean frameWidthsValid = materializeLoopFrameWidths(
-              loopPlan.loopCount,
-              loops,
-              loopPlan.statementCount,
-              statements,
-              statementPhysicalWidths
-            );
-            assert(frameWidthsValid);
-            if (frameWidthsValid) {
-              loopFrameWidthsValid = 1;
-            }
-            SourceCallableCoordinatePlan coordinatePlan = materializeSourceCallableCoordinateProducts(
-              2,
-              parameterCounts,
-              loopPlan.statementCount,
-              statements,
-              statementLocalRows,
-              statementPhysicalWidths,
-              statementPhysicalStarts
-            );
-            if (coordinatePlan.valid) {
-              coordinateValid = 1;
-            }
             if (directPlan.valid) {
               directValid = 1;
               boolean widthsValid = true;
@@ -603,6 +610,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               bodyPlan.nestedCount,
               nestedRows,
               loopLocalBases,
+              statementPhysicalStarts,
               typeRows
             );
             if (typePlan.valid) {
@@ -914,7 +922,6 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             drop(directCode);
             drop(directTypes);
             drop(directRows);
-            drop(callableReturnLocals);
             drop(typeRows);
             drop(loopWindowRows);
             drop(loopInstructionStarts);

@@ -32,6 +32,123 @@ classical class DirectStatementProducts {
     boolean valid
   ) {}
 
+  private long statementAtOrdinal(
+    long owner,
+    long ordinal,
+    long statementCount,
+    borrow mut words statementRows
+  ) {
+    long selected = -1;
+    long matches = 0;
+    long statement = 0;
+    while (statement < statementCount) limit MAX_STATEMENTS {
+      if (statementRows[statement] == owner) {
+        if (statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement] == ordinal) {
+          selected = statement;
+          matches += 1;
+        }
+      }
+
+      statement += 1;
+    }
+
+    if (matches != 1) {
+      return -1;
+    }
+
+    return selected;
+  }
+
+  private long physicalValueLocal(
+    long owner,
+    long local,
+    long statementCount,
+    borrow mut words statementRows,
+    borrow mut words statementLocalRows,
+    long valueCount,
+    borrow mut words valueRows,
+    borrow mut words statementPhysicalStarts
+  ) {
+    long value = 0;
+    long selected = -1;
+    long matches = 0;
+    while (value < valueCount) limit LOOP_VALUE_COUNT_LIMIT {
+      if (valueRows[value] == owner) {
+        if (valueRows[3072 + value] == local) {
+          selected = value;
+          matches += 1;
+        }
+      }
+
+      value += 1;
+    }
+
+    if (matches != 1) {
+      return -1;
+    }
+
+    long ordinal = valueRows[4096 + selected];
+    if (ordinal == 0) {
+      return local;
+    }
+
+    long statement = statementAtOrdinal(owner, ordinal, statementCount, statementRows);
+    if (statement < 0) {
+      return -1;
+    }
+
+    long logicalBase = statementLocalRows[statement];
+    if (local < logicalBase) {
+      return -1;
+    }
+
+    return statementPhysicalStarts[statement] + local - logicalBase;
+  }
+
+  private long physicalAssertionOpcode(
+    long opcode,
+    long owner,
+    long statementCount,
+    borrow mut words statementRows,
+    borrow mut words statementLocalRows,
+    long valueCount,
+    borrow mut words valueRows,
+    borrow mut words statementPhysicalStarts
+  ) {
+    long base = -1;
+    if (BODY_ASSERT_EQ_LITERAL_BASE - 1 < opcode) {
+      if (opcode < BODY_BOOLEAN_LITERAL) {
+        base = opcode / 256 * 256;
+      }
+    }
+
+    if (BODY_ASSERT_LITERAL_LT_BASE - 1 < opcode) {
+      if (opcode < BODY_ASSERT_LOCAL_LT_BASE + 256) {
+        base = opcode / 256 * 256;
+      }
+    }
+
+    if (base < 0) {
+      return opcode;
+    }
+
+    long physical = physicalValueLocal(
+      owner,
+      opcode - base,
+      statementCount,
+      statementRows,
+      statementLocalRows,
+      valueCount,
+      valueRows,
+      statementPhysicalStarts
+    );
+    if (physical < 0) {
+      return -1;
+    }
+
+    return base + physical;
+  }
+
   /// Emits literal and prior-local declarations plus local returns in source order.
   public DirectStatementPlan materializeDirectStatementProducts(
     borrow utf8 source,
@@ -39,7 +156,8 @@ classical class DirectStatementProducts {
     borrow mut words statementRows,
     long valueCount,
     borrow mut words valueRows,
-    borrow mut words callableReturnLocals,
+    borrow mut words statementLocalRows,
+    borrow mut words statementPhysicalStarts,
     borrow mut words statementPhysicalWidths,
     borrow mut words directRows,
     borrow mut words typeRows,
@@ -51,7 +169,8 @@ classical class DirectStatementProducts {
     assert(-1 < valueCount);
     assert(valueCount < LOOP_VALUE_COUNT_LIMIT + 1);
     assert(bufferLength(valueRows) == LOOP_VALUE_ROWS);
-    assert(bufferLength(callableReturnLocals) == 64);
+    assert(bufferLength(statementLocalRows) == 8192);
+    assert(bufferLength(statementPhysicalStarts) == MAX_STATEMENTS);
     assert(bufferLength(statementPhysicalWidths) == MAX_STATEMENTS);
     assert(bufferLength(directRows) == DIRECT_ROWS);
     assert(bufferLength(typeRows) == TYPE_ROWS);
@@ -112,6 +231,7 @@ classical class DirectStatementProducts {
         long rootBlock = loopBodyRootBlockForOwner(owner, statementCount, statementRows);
         if (statementRows[4096 + statement] == rootBlock) {
           if (statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement] == 0) {
+            long physicalStatementBase = statementPhysicalStarts[statement];
             long token = tokenAtStart(
               statementRows[LOOP_STATEMENT_START_ROW + statement],
               semanticCount,
@@ -140,7 +260,8 @@ classical class DirectStatementProducts {
                 statementValid = false;
               }
 
-              long localBase = destination.local - 1;
+              long localBase = physicalStatementBase;
+              long destinationLocal = localBase + 1;
               long sourceToken = token + 3;
               long sourceOpcode = OPCODE_LOCAL_CONST;
               long sourceOperand = 0;
@@ -168,7 +289,19 @@ classical class DirectStatementProducts {
                     )
                   ) {
                     sourceOpcode = OPCODE_LOCAL_MOVE;
-                    sourceOperand = sourceValue.local;
+                    sourceOperand = physicalValueLocal(
+                      owner,
+                      sourceValue.local,
+                      statementCount,
+                      statementRows,
+                      statementLocalRows,
+                      valueCount,
+                      valueRows,
+                      statementPhysicalStarts
+                    );
+                    if (sourceOperand < 0) {
+                      statementValid = false;
+                    }
                   } else {
                     statementValid = false;
                   }
@@ -216,14 +349,14 @@ classical class DirectStatementProducts {
                   OPCODE_LOCAL_MOVE,
                   INSTRUCTION_FORM_BINARY
                 );
-                cursor = writeUnsignedLittleEndian(stagedCode, cursor, destination.local, U64);
+                cursor = writeUnsignedLittleEndian(stagedCode, cursor, destinationLocal, U64);
                 cursor = writeUnsignedLittleEndian(stagedCode, cursor, localBase, U64);
                 set(stagedTypes, typeCount, owner);
                 set(stagedTypes, 4096 + typeCount, localBase);
                 set(stagedTypes, 8192 + typeCount, TYPE_SIGNED);
                 typeCount += 1;
                 set(stagedTypes, typeCount, owner);
-                set(stagedTypes, 4096 + typeCount, destination.local);
+                set(stagedTypes, 4096 + typeCount, destinationLocal);
                 set(stagedTypes, 8192 + typeCount, TYPE_SIGNED);
                 typeCount += 1;
                 productInstructions = 2;
@@ -247,17 +380,43 @@ classical class DirectStatementProducts {
                   statementValid = false;
                 }
 
-                long assertionLocalBase = localBaseAtOrdinal(
+                long assertionLocalBase = physicalStatementBase;
+                long assertionOpcode = physicalAssertionOpcode(
+                  assertion.opcode,
                   owner,
-                  ordinal,
+                  statementCount,
+                  statementRows,
+                  statementLocalRows,
                   valueCount,
-                  valueRows
+                  valueRows,
+                  statementPhysicalStarts
                 );
+                if (assertionOpcode < 0) {
+                  statementValid = false;
+                }
+
+                long assertionOperand = assertion.operand;
+                if (assertion.operandKind == 1) {
+                  assertionOperand = physicalValueLocal(
+                    owner,
+                    assertion.operand,
+                    statementCount,
+                    statementRows,
+                    statementLocalRows,
+                    valueCount,
+                    valueRows,
+                    statementPhysicalStarts
+                  );
+                  if (assertionOperand < 0) {
+                    statementValid = false;
+                  }
+                }
+
                 if (statementValid) {
                   set(assertionBody, BODY_LOCAL_BASE_ROW, assertionLocalBase);
-                  set(assertionBody, BODY_OPCODE_ROW, assertion.opcode);
+                  set(assertionBody, BODY_OPCODE_ROW, assertionOpcode);
                   set(assertionBody, BODY_OPERAND_KIND_ROW, assertion.operandKind);
-                  set(assertionBody, BODY_OPERAND_ROW, assertion.operand);
+                  set(assertionBody, BODY_OPERAND_ROW, assertionOperand);
                   long next = writeLoopBodyInstructionProduct(
                     stagedCode,
                     cursor,
@@ -291,8 +450,8 @@ classical class DirectStatementProducts {
 
                       cursor = next;
                       LoopBodyInstructionExtent extent = loopBodyInstructionExtent(
-                        assertion.opcode,
-                        assertion.operand
+                        assertionOpcode,
+                        assertionOperand
                       );
                       if (extent.valid) {
                         productInstructions = extent.instructionCount;
@@ -317,7 +476,21 @@ classical class DirectStatementProducts {
                     statementValid = false;
                   }
 
-                  long returnLocal = callableReturnLocals[owner];
+                  long returnedLocal = physicalValueLocal(
+                    owner,
+                    returned.local,
+                    statementCount,
+                    statementRows,
+                    statementLocalRows,
+                    valueCount,
+                    valueRows,
+                    statementPhysicalStarts
+                  );
+                  if (returnedLocal < 0) {
+                    statementValid = false;
+                  }
+
+                  long returnLocal = physicalStatementBase;
                   if (returnLocal < 0) {
                     statementValid = false;
                   }
@@ -334,7 +507,7 @@ classical class DirectStatementProducts {
                       INSTRUCTION_FORM_BINARY
                     );
                     cursor = writeUnsignedLittleEndian(stagedCode, cursor, returnLocal, U64);
-                    cursor = writeUnsignedLittleEndian(stagedCode, cursor, returned.local, U64);
+                    cursor = writeUnsignedLittleEndian(stagedCode, cursor, returnedLocal, U64);
                     cursor = writeInstructionHeader(
                       stagedCode,
                       cursor,
