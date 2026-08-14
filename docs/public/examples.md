@@ -276,6 +276,22 @@ Covers: Executable two-qubit inverse law.
 
 Expected result: `measured = 2`.
 
+### `StaticPhaseEstimation.w`
+
+Source: [`StaticPhaseEstimation.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/StaticPhaseEstimation.w).
+
+Covers: A one-bit exact eigenphase, controlled negative phase, ancilla basis changes, a generated adjoint certificate, canonical static target execution, and deterministic joint-basis observation.
+
+Expected result: `measured = 3`.
+
+### `AdaptivePhaseEstimation.w`
+
+Source: [`AdaptivePhaseEstimation.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/AdaptivePhaseEstimation.w).
+
+Covers: Target-resident phase-bit measurement, a bounded result slot, conditional correction through `applyIf`, measured-ancilla reset, asynchronous dynamic execution, and final host observation without a host split.
+
+Expected result: result slot zero contains `1`, and `measured = 0` after correction and reset.
+
 ### `QuantumOptimizer.w`
 
 Source: [`QuantumOptimizer.w`](../../wheeler-examples/src/main/wheeler/quantum/QuantumOptimizer.w).

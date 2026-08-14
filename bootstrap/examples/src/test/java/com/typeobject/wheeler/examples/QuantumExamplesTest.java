@@ -2,6 +2,7 @@ package com.typeobject.wheeler.examples;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
@@ -41,7 +42,7 @@ class QuantumExamplesTest {
 
     assertArrayEquals(first, second);
     if (file.equals("QFT.w") || file.equals("GroverSearch.w")
-        || file.equals("QuantumWalk.w")) {
+        || file.equals("QuantumWalk.w") || file.equals("algorithms/StaticPhaseEstimation.w")) {
       assertEquals(ProofRule.GENERATED_ADJOINT, decoded.proofCertificates().getFirst().rule());
     } else if (file.equals("QuantumCompiler.w")) {
       assertEquals(ProofRule.CIRCUIT_EQUIVALENCE, decoded.proofCertificates().getFirst().rule());
@@ -70,6 +71,24 @@ class QuantumExamplesTest {
   }
 
   @Test
+  void adaptivePhaseEstimateCorrectsAndResetsInsideTheTarget() throws Exception {
+    byte[] artifact = new WheelerCompiler().compileToBytecode(
+        Path.of("src/main/wheeler/quantum/algorithms/AdaptivePhaseEstimation.w"));
+    Program program = new BytecodeReader().read(artifact);
+    assertArrayEquals(artifact, new BytecodeWriter().write(program));
+
+    DynamicCircuitResult result = new DynamicStateVectorSimulator()
+        .execute(program, program.quantumCircuits().getFirst(), 0);
+    assertTrue(result.resultSlots().get(0));
+    assertEquals(0, result.basisState());
+
+    ExecutionResult executed = new WheelerRuntime().execute(
+        program, new DynamicStateVectorTarget());
+    assertEquals(0, executed.globals().get("measured"));
+    assertEquals(1, executed.quantumJobs().size());
+  }
+
+  @Test
   void optimizerObservationsReplayWithoutAnotherTargetSubmission() throws Exception {
     Program program = new WheelerCompiler().compile(
         Path.of("src/main/wheeler/quantum/QuantumOptimizer.w"));
@@ -93,6 +112,7 @@ class QuantumExamplesTest {
         Arguments.of("QuantumNeuralNetwork.w", Map.of("activation", 1L, "measured", 0L)),
         Arguments.of("QuantumCompiler.w", Map.of("sourceResult", 1L, "normalizedResult", 1L)),
         Arguments.of("QuantumWalk.w", Map.of("measured", 0L)),
-        Arguments.of("SurfaceCode.w", Map.of("measured", 0L)));
+        Arguments.of("SurfaceCode.w", Map.of("measured", 0L)),
+        Arguments.of("algorithms/StaticPhaseEstimation.w", Map.of("measured", 3L)));
   }
 }

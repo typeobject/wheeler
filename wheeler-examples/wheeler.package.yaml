@@ -5,6 +5,10 @@ package:
   profile: "bootstrap-1"
 targets:
   - kind: "deployable"
+    name: "adaptivephaseestimation"
+    root: "src/main/wheeler/quantum/algorithms/AdaptivePhaseEstimation.w"
+    test: false
+  - kind: "deployable"
     name: "binarytree"
     root: "src/main/wheeler/classical/data/BinaryTree.w"
     test: false
@@ -139,6 +143,10 @@ targets:
   - kind: "deployable"
     name: "reversibleresult"
     root: "src/main/wheeler/classical/control/ReversibleResult.w"
+    test: false
+  - kind: "deployable"
+    name: "staticphaseestimation"
+    root: "src/main/wheeler/quantum/algorithms/StaticPhaseEstimation.w"
     test: false
   - kind: "deployable"
     name: "surfacecode"
