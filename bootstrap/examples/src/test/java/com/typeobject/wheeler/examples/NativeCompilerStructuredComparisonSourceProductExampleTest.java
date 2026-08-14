@@ -3,6 +3,7 @@ package com.typeobject.wheeler.examples;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
@@ -48,7 +49,67 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
 
   @Test
   void emitsStructuredComparisonAndIndexedCopyProducts() throws Exception {
-    String source = SOURCE;
+    assertArtifact(SOURCE);
+  }
+
+  @Test
+  void emitsOneNestedLoopInsideTheStructuredWindow() throws Exception {
+    String nested = SOURCE.replace(
+        "      setByte(output, index, source[sourceStart + index]);\n",
+        "      long copyIndex = 0;\n"
+            + "      while (copyIndex < 1) limit 5 {\n"
+            + "        setByte(output, index, source[sourceStart + index]);\n"
+            + "        copyIndex += 1;\n"
+            + "      }\n");
+
+    assertTrue(nested.contains("while (copyIndex < 1)"));
+    assertArtifact(nested);
+  }
+
+  @Test
+  void fifthNestedLoopPublishesNoArtifact() throws Exception {
+    String tooDeep = SOURCE.replace(
+        "      setByte(output, index, source[sourceStart + index]);\n",
+        "      long a = 0;\n"
+            + "      while (a < 1) limit 5 {\n"
+            + "        long b = 0;\n"
+            + "        while (b < 1) limit 5 {\n"
+            + "          long c = 0;\n"
+            + "          while (c < 1) limit 5 {\n"
+            + "            long d = 0;\n"
+            + "            while (d < 1) limit 5 {\n"
+            + "              setByte(output, index, source[sourceStart + index]);\n"
+            + "              d += 1;\n"
+            + "            }\n"
+            + "            c += 1;\n"
+            + "          }\n"
+            + "          b += 1;\n"
+            + "        }\n"
+            + "        a += 1;\n"
+            + "      }\n");
+
+    assertTrue(tooDeep.contains("while (d < 1)"));
+    assertNoArtifact(tooDeep);
+  }
+
+  @Test
+  void malformedComparisonProductsPublishNoArtifact() throws Exception {
+    assertNoArtifact(SOURCE.replace(
+        "assert(index < length);", "assert(index < length + 1);"));
+  }
+
+  @Test
+  void oversizedLiteralIndexPublishesNoArtifact() throws Exception {
+    assertNoArtifact(SOURCE.replace("512 + index", "65536 + index"));
+  }
+
+  @Test
+  void mutableByteSumReadPublishesNoArtifact() throws Exception {
+    assertNoArtifact(SOURCE.replace(
+        "source[sourceStart + index]", "output[sourceStart + index]"));
+  }
+
+  private static void assertArtifact(String source) throws Exception {
     int body = source.indexOf("{", source.indexOf("copyOffset("));
     int maxSourceBytes = source.indexOf("MAX_SOURCE_BYTES");
     Program driver = driver(body, matchingClose(source, body) - body + 1, maxSourceBytes);
@@ -74,23 +135,6 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
     assertEquals(1, machine.global("valid"));
     assertEquals(expectedBytes.length, machine.global("artifactLength"));
     assertArrayEquals(expectedBytes, machine.hostOutput());
-  }
-
-  @Test
-  void malformedComparisonProductsPublishNoArtifact() throws Exception {
-    assertNoArtifact(SOURCE.replace(
-        "assert(index < length);", "assert(index < length + 1);"));
-  }
-
-  @Test
-  void oversizedLiteralIndexPublishesNoArtifact() throws Exception {
-    assertNoArtifact(SOURCE.replace("512 + index", "65536 + index"));
-  }
-
-  @Test
-  void mutableByteSumReadPublishesNoArtifact() throws Exception {
-    assertNoArtifact(SOURCE.replace(
-        "source[sourceStart + index]", "output[sourceStart + index]"));
   }
 
   private static void assertNoArtifact(String source) throws Exception {

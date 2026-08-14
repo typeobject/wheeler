@@ -12,6 +12,7 @@ classical class LoopLocalTypeProducts {
   private const long BODY_COUNT_LIMIT = 4096;
   private const long LOOP_BODY_STATEMENT_COUNT_ROW = 1792;
   private const long LOOP_COUNT_LIMIT = 256;
+  private const long LOOP_DEPTH_ROW = 2048;
   private const long LOOP_FIRST_BODY_STATEMENT_ROW = 1536;
   private const long LITERAL_INDEX_OFFSET_SCALE = 131072;
   private const long LOOP_ROWS = 2304;
@@ -22,6 +23,7 @@ classical class LoopLocalTypeProducts {
   private const long STATEMENT_BLOCK_ROW = 4096;
   private const long STATEMENT_CHILD_COUNT_ROW = 24576;
   private const long STATEMENT_FIRST_CHILD_ROW = 20480;
+  private const long STATEMENT_ORDINAL_ROW = 8192;
   private const long TYPE_ROWS = 12288;
   private const long TYPE_LOCAL_ROW = 4096;
   private const long TYPE_CODE_ROW = 8192;
@@ -47,6 +49,56 @@ classical class LoopLocalTypeProducts {
     }
 
     return selected;
+  }
+
+  private long loopAtStatement(
+    long statement,
+    long loopCount,
+    borrow mut words loopRows,
+    borrow mut words statementRows
+  ) {
+    long selected = -1;
+    long matches = 0;
+    long loop = 0;
+    while (loop < loopCount) limit LOOP_COUNT_LIMIT {
+      if (loopRows[loop] == statementRows[statement]) {
+        if (loopRows[512 + loop] == statementRows[STATEMENT_ORDINAL_ROW + statement]) {
+          selected = loop;
+          matches += 1;
+        }
+      }
+
+      loop += 1;
+    }
+
+    if (matches != 1) {
+      return -1;
+    }
+
+    return selected;
+  }
+
+  private long frameBiasForStatement(
+    long owner,
+    long statement,
+    long loopCount,
+    borrow mut words loopRows,
+    borrow mut words statementRows
+  ) {
+    long ordinal = statementRows[STATEMENT_ORDINAL_ROW + statement];
+    long priorLoops = 0;
+    long loop = 0;
+    while (loop < loopCount) limit LOOP_COUNT_LIMIT {
+      if (loopRows[loop] == owner) {
+        if (loopRows[512 + loop] < ordinal) {
+          priorLoops += 1;
+        }
+      }
+
+      loop += 1;
+    }
+
+    return priorLoops * 5;
   }
 
   private long nestedAtStatement(long statement, long nestedCount, borrow mut words nestedRows) {
@@ -277,6 +329,15 @@ classical class LoopLocalTypeProducts {
     long loop = 0;
     while (loop < loopCount) limit LOOP_COUNT_LIMIT {
       long owner = loopRows[loop];
+      long loopDepth = loopRows[LOOP_DEPTH_ROW + loop];
+      if (loopDepth < 1) {
+        valid = false;
+      }
+
+      if (4 < loopDepth) {
+        valid = false;
+      }
+
       long localBase = loopLocalBases[loop];
       if (owner < 0) {
         valid = false;
@@ -322,7 +383,13 @@ classical class LoopLocalTypeProducts {
             long opcode = bodyRows[BODY_OPCODE_ROW + body];
             long operand = bodyRows[BODY_OPERAND_ROW + body];
             long localCount = loopBodyLocalCount(opcode, operand);
-            long bodyLocalBase = bodyRows[BODY_LOCAL_BASE_ROW + body] + 5;
+            long bodyLocalBase = bodyRows[BODY_LOCAL_BASE_ROW + body] + frameBiasForStatement(
+              owner,
+              statement,
+              loopCount,
+              loopRows,
+              statementRows
+            );
             if (localCount < 0) {
               valid = false;
             }
@@ -350,89 +417,106 @@ classical class LoopLocalTypeProducts {
             }
           }
         } else {
-          long nested = nestedAtStatement(statement, nestedCount, nestedRows);
-          if (nested < 0) {
-            valid = false;
-          } else {
-            long nestedLocalBase = nestedRows[NESTED_LOCAL_BASE_ROW + nested] + 5;
-            long nestedKind = nestedRows[NESTED_KIND_ROW + nested];
-            long nestedLocalCount = 3;
-            if (nestedKind == 3) {
-              nestedLocalCount = 1;
-            }
-
-            if (MAX_LOCALS - nestedLocalBase < nestedLocalCount) {
+          long childLoop = loopAtStatement(statement, loopCount, loopRows, statementRows);
+          if (childLoop < 0) {
+            long nested = nestedAtStatement(statement, nestedCount, nestedRows);
+            if (nested < 0) {
               valid = false;
-            }
-
-            long nestedLocalOffset = 0;
-            while (nestedLocalOffset < nestedLocalCount) limit 3 {
-              long nestedLocalType = TYPE_SIGNED;
+            } else {
+              long nestedLocalBase = nestedRows[NESTED_LOCAL_BASE_ROW + nested]
+                + frameBiasForStatement(
+                owner,
+                statement,
+                loopCount,
+                loopRows,
+                statementRows
+              );
+              long nestedKind = nestedRows[NESTED_KIND_ROW + nested];
+              long nestedLocalCount = 3;
               if (nestedKind == 3) {
-                nestedLocalType = TYPE_BOOLEAN;
-              } else {
-                if (nestedLocalOffset == 2) {
+                nestedLocalCount = 1;
+              }
+
+              if (MAX_LOCALS - nestedLocalBase < nestedLocalCount) {
+                valid = false;
+              }
+
+              long nestedLocalOffset = 0;
+              while (nestedLocalOffset < nestedLocalCount) limit 3 {
+                long nestedLocalType = TYPE_SIGNED;
+                if (nestedKind == 3) {
                   nestedLocalType = TYPE_BOOLEAN;
-                }
-              }
-
-              if (valid) {
-                typeCount = appendType(
-                  stagedTypes,
-                  typeCount,
-                  owner,
-                  nestedLocalBase + nestedLocalOffset,
-                  nestedLocalType
-                );
-                if (typeCount < 0) {
-                  valid = false;
-                }
-              }
-
-              nestedLocalOffset += 1;
-            }
-
-            long childBlock = statementRows[STATEMENT_FIRST_CHILD_ROW + statement];
-            long childStatement = 0;
-            while (childStatement < statementCount) limit MAX_STATEMENTS {
-              if (statementRows[STATEMENT_BLOCK_ROW + childStatement] == childBlock) {
-                long childBody = bodyAtStatement(childStatement, bodyCount, bodyRows);
-                if (childBody < 0) {
-                  valid = false;
                 } else {
-                  long childOpcode = bodyRows[BODY_OPCODE_ROW + childBody];
-                  long childOperand = bodyRows[BODY_OPERAND_ROW + childBody];
-                  long childLocalCount = loopBodyLocalCount(childOpcode, childOperand);
-                  long childLocalBase = bodyRows[BODY_LOCAL_BASE_ROW + childBody] + 5;
-                  if (childLocalCount < 0) {
+                  if (nestedLocalOffset == 2) {
+                    nestedLocalType = TYPE_BOOLEAN;
+                  }
+                }
+
+                if (valid) {
+                  typeCount = appendType(
+                    stagedTypes,
+                    typeCount,
+                    owner,
+                    nestedLocalBase + nestedLocalOffset,
+                    nestedLocalType
+                  );
+                  if (typeCount < 0) {
                     valid = false;
                   }
+                }
 
-                  if (MAX_LOCALS - childLocalBase < childLocalCount) {
+                nestedLocalOffset += 1;
+              }
+
+              long childBlock = statementRows[STATEMENT_FIRST_CHILD_ROW + statement];
+              long childStatement = 0;
+              while (childStatement < statementCount) limit MAX_STATEMENTS {
+                if (statementRows[STATEMENT_BLOCK_ROW + childStatement] == childBlock) {
+                  long childBody = bodyAtStatement(childStatement, bodyCount, bodyRows);
+                  if (childBody < 0) {
                     valid = false;
-                  }
-
-                  long childLocalOffset = 0;
-                  while (childLocalOffset < childLocalCount) limit 7 {
-                    if (valid) {
-                      typeCount = appendType(
-                        stagedTypes,
-                        typeCount,
-                        owner,
-                        childLocalBase + childLocalOffset,
-                        bodyLocalType(childOpcode, childOperand, childLocalOffset)
-                      );
-                      if (typeCount < 0) {
-                        valid = false;
-                      }
+                  } else {
+                    long childOpcode = bodyRows[BODY_OPCODE_ROW + childBody];
+                    long childOperand = bodyRows[BODY_OPERAND_ROW + childBody];
+                    long childLocalCount = loopBodyLocalCount(childOpcode, childOperand);
+                    long childLocalBase = bodyRows[BODY_LOCAL_BASE_ROW + childBody]
+                      + frameBiasForStatement(
+                      owner,
+                      childStatement,
+                      loopCount,
+                      loopRows,
+                      statementRows
+                    );
+                    if (childLocalCount < 0) {
+                      valid = false;
                     }
 
-                    childLocalOffset += 1;
+                    if (MAX_LOCALS - childLocalBase < childLocalCount) {
+                      valid = false;
+                    }
+
+                    long childLocalOffset = 0;
+                    while (childLocalOffset < childLocalCount) limit 7 {
+                      if (valid) {
+                        typeCount = appendType(
+                          stagedTypes,
+                          typeCount,
+                          owner,
+                          childLocalBase + childLocalOffset,
+                          bodyLocalType(childOpcode, childOperand, childLocalOffset)
+                        );
+                        if (typeCount < 0) {
+                          valid = false;
+                        }
+                      }
+
+                      childLocalOffset += 1;
+                    }
                   }
                 }
-              }
 
-              childStatement += 1;
+                childStatement += 1;
+              }
             }
           }
         }

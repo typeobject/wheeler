@@ -246,7 +246,17 @@ classical class CallableSourceComposition {
       valid = false;
     }
 
-    if (consumedLoops != loopCount) {
+    long rootLoopCount = 0;
+    long countedLoop = 0;
+    while (countedLoop < loopCount) limit 256 {
+      if (loopRows[2048 + countedLoop] == 1) {
+        rootLoopCount += 1;
+      }
+
+      countedLoop += 1;
+    }
+
+    if (consumedLoops != rootLoopCount) {
       valid = false;
     }
 

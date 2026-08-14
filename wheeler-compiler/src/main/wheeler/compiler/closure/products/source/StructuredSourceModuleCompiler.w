@@ -21,6 +21,27 @@ classical class StructuredSourceModuleCompiler {
   private const long MAX_LOOPS = 256;
   private const long MAX_STATEMENTS = 4096;
 
+  private long loopFrameBias(
+    long owner,
+    long ordinal,
+    long loopCount,
+    borrow mut words loopRows
+  ) {
+    long priorLoops = 0;
+    long loop = 0;
+    while (loop < loopCount) limit MAX_LOOPS {
+      if (loopRows[loop] == owner) {
+        if (loopRows[512 + loop] < ordinal) {
+          priorLoops += 1;
+        }
+      }
+
+      loop += 1;
+    }
+
+    return priorLoops * 5;
+  }
+
   private long instructionStartForLoop(
     long owner,
     long loopOrdinal,
@@ -194,10 +215,18 @@ classical class StructuredSourceModuleCompiler {
     while (loop < resolvedPlan.loopCount) limit MAX_LOOPS {
       long owner = resolvedLoops[loop];
       long ordinal = resolvedLoops[512 + loop];
+      long loopDepth = resolvedLoops[2048 + loop];
+      assert(0 < loopDepth);
+      assert(loopDepth < 5);
       set(
         loopLocalBases,
         loop,
-        localBaseAtOrdinal(owner, ordinal, valuePlan.valueCount, values)
+        localBaseAtOrdinal(owner, ordinal, valuePlan.valueCount, values) + loopFrameBias(
+          owner,
+          ordinal,
+          resolvedPlan.loopCount,
+          resolvedLoops
+        )
       );
       set(
         loopInstructionStarts,

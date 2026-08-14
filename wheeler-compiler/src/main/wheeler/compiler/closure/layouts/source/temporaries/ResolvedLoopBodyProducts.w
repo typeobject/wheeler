@@ -729,51 +729,52 @@ classical class ResolvedLoopBodyProducts {
           if (controlToken < 0) {
             valid = false;
           } else {
-            if (
-              tokenHash(source, tokenStarts, tokenLengths, controlToken) != TOKEN_IF
-            ) {
-              valid = false;
-            } else {
-              LoopNestedCondition control = resolveLoopNestedCondition(
-                source,
-                controlOwner,
-                controlOrdinal,
-                controlToken,
-                valueCount,
-                valueRows,
-                semanticCount,
-                tokenKinds,
-                tokenStarts,
-                tokenLengths
-              );
-              if (control.valid == false) {
-                valid = false;
-              }
-
-              long controlLocalBase = localBaseAtOrdinal(
-                controlOwner,
-                controlOrdinal,
-                valueCount,
-                valueRows
-              );
-              if (controlLocalBase < nextBodyLocals[controlOwner]) {
-                controlLocalBase = nextBodyLocals[controlOwner];
-              }
-
-              if (255 < controlLocalBase + control.localCount) {
+            long controlHash = tokenHash(source, tokenStarts, tokenLengths, controlToken);
+            if (controlHash == TOKEN_WHILE) {} else {
+              if (controlHash != TOKEN_IF) {
                 valid = false;
               } else {
-                set(nextBodyLocals, controlOwner, controlLocalBase + control.localCount);
-                set(stagedNestedRows, nestedCount, statement);
-                set(stagedNestedRows, NESTED_KIND_ROW + nestedCount, control.kind);
-                set(stagedNestedRows, NESTED_CONDITION_LOCAL_ROW + nestedCount, control.local);
-                set(
-                  stagedNestedRows,
-                  NESTED_CONDITION_LITERAL_ROW + nestedCount,
-                  control.literal
+                LoopNestedCondition control = resolveLoopNestedCondition(
+                  source,
+                  controlOwner,
+                  controlOrdinal,
+                  controlToken,
+                  valueCount,
+                  valueRows,
+                  semanticCount,
+                  tokenKinds,
+                  tokenStarts,
+                  tokenLengths
                 );
-                set(stagedNestedRows, NESTED_LOCAL_BASE_ROW + nestedCount, controlLocalBase);
-                nestedCount += 1;
+                if (control.valid == false) {
+                  valid = false;
+                }
+
+                long controlLocalBase = localBaseAtOrdinal(
+                  controlOwner,
+                  controlOrdinal,
+                  valueCount,
+                  valueRows
+                );
+                if (controlLocalBase < nextBodyLocals[controlOwner]) {
+                  controlLocalBase = nextBodyLocals[controlOwner];
+                }
+
+                if (255 < controlLocalBase + control.localCount) {
+                  valid = false;
+                } else {
+                  set(nextBodyLocals, controlOwner, controlLocalBase + control.localCount);
+                  set(stagedNestedRows, nestedCount, statement);
+                  set(stagedNestedRows, NESTED_KIND_ROW + nestedCount, control.kind);
+                  set(stagedNestedRows, NESTED_CONDITION_LOCAL_ROW + nestedCount, control.local);
+                  set(
+                    stagedNestedRows,
+                    NESTED_CONDITION_LITERAL_ROW + nestedCount,
+                    control.literal
+                  );
+                  set(stagedNestedRows, NESTED_LOCAL_BASE_ROW + nestedCount, controlLocalBase);
+                  nestedCount += 1;
+                }
               }
             }
           }
