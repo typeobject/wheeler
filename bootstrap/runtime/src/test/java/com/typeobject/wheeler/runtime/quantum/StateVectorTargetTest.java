@@ -163,6 +163,28 @@ class StateVectorTargetTest {
   }
 
   @Test
+  void submissionRejectsMismatchedRegisterBasisAndDynamicInverse() {
+    QuantumRegister first = new QuantumRegister(0, "first", 1);
+    QuantumRegister second = new QuantumRegister(1, "second", 1);
+    QuantumCircuit dynamic = new QuantumCircuit(
+        0, "dynamic", 1, List.of(new PrepareOperation(0), new MeasureOperation(0, 0)));
+    Program program = program(List.of(first, second), dynamic);
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new QuantumSubmission(
+            program, 0, 0, List.of(new CircuitApplication(0, false)), Map.of(), 1, 0));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new QuantumSubmission(
+            program, 1, 2, List.of(new CircuitApplication(0, false)), Map.of(), 1, 0));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new QuantumSubmission(
+            program, 1, 0, List.of(new CircuitApplication(0, true)), Map.of(), 1, 0));
+  }
+
+  @Test
   void classicalOperationSelectionChangesSubmissionIdentity() {
     QuantumRegister register = new QuantumRegister(0, "q", 1);
     QuantumCircuit idle = new QuantumCircuit(0, "idle", 0, List.of());
@@ -432,6 +454,18 @@ class StateVectorTargetTest {
       QuantumCircuit circuit,
       List<FunctionBody> additionalFunctions,
       QuantumCircuit... additionalCircuits) {
+    return program(List.of(register), circuit, additionalFunctions, additionalCircuits);
+  }
+
+  private static Program program(List<QuantumRegister> registers, QuantumCircuit circuit) {
+    return program(registers, circuit, List.of(), new QuantumCircuit[0]);
+  }
+
+  private static Program program(
+      List<QuantumRegister> registers,
+      QuantumCircuit circuit,
+      List<FunctionBody> additionalFunctions,
+      QuantumCircuit... additionalCircuits) {
     FunctionBody main = new FunctionBody(
         0,
         "main",
@@ -458,7 +492,7 @@ class StateVectorTargetTest {
         List.of(),
         functions,
         List.of(),
-        List.of(register),
+        registers,
         circuits,
         List.of(com.typeobject.wheeler.core.workflow.WorkflowStep.halt()),
         Program.DEFAULT_MAX_HISTORY,

@@ -5,6 +5,7 @@ import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.quantum.ConditionalGateOperation;
 import com.typeobject.wheeler.core.quantum.MeasureOperation;
 import com.typeobject.wheeler.core.quantum.ParameterizedGateOperation;
+import com.typeobject.wheeler.core.quantum.PrepareOperation;
 import com.typeobject.wheeler.core.quantum.ResetOperation;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -44,9 +45,26 @@ public record QuantumSubmission(
     if (registerId < 0 || shots <= 0) {
       throw new IllegalArgumentException("Invalid quantum submission");
     }
+    var register = program.quantumRegister(registerId);
+    if (basisState < 0
+        || (register.qubits() < Long.SIZE - 1 && basisState >= (1L << register.qubits()))) {
+      throw new IllegalArgumentException("Quantum submission basis does not fit register");
+    }
     Set<String> required = new HashSet<>();
     for (CircuitApplication application : applications) {
-      program.quantumCircuit(application.circuitId()).operations().stream()
+      var circuit = program.quantumCircuit(application.circuitId());
+      if (circuit.registerId() != registerId) {
+        throw new IllegalArgumentException(
+            "Quantum submission circuit and register do not match");
+      }
+      if (application.inverse() && circuit.operations().stream()
+          .anyMatch(operation -> operation instanceof MeasureOperation
+              || operation instanceof ResetOperation
+              || operation instanceof PrepareOperation)) {
+        throw new IllegalArgumentException(
+            "Dynamic preparation, measurement, and reset cannot be submitted as an inverse");
+      }
+      circuit.operations().stream()
           .filter(ParameterizedGateOperation.class::isInstance)
           .map(ParameterizedGateOperation.class::cast)
           .map(ParameterizedGateOperation::parameterName)
