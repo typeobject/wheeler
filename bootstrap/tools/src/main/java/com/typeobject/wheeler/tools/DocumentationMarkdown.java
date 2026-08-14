@@ -111,21 +111,33 @@ final class DocumentationMarkdown {
     String group = null;
     for (Page page : navigationPages()) {
       String nextGroup = group(page);
+      boolean tutorialIndex = nextGroup.equals("tutorials") && isIndexSource(page.source());
       if (!nextGroup.equals(group)) {
         if (group != null) {
           html.append("</section>\n");
         }
         group = nextGroup;
-        String heading = group.equals("tutorials") ? "story" : group;
-        html.append("<section><h2>").append(escape(heading)).append("</h2>\n");
+        if (tutorialIndex) {
+          html.append("<section><h2><a class=\"nav-section\"")
+              .append(page.source().equals(current.source())
+                  ? " aria-current=\"page\"" : "")
+              .append(" href=\"")
+              .append(escapeAttribute(relative(current.output(), page.output())))
+              .append("\">").append(escape(page.title())).append("</a></h2>\n");
+        } else {
+          html.append("<section><h2>").append(escape(group)).append("</h2>\n");
+        }
       }
-      boolean tutorialChild = page.source().startsWith("tutorials/")
-          && !isIndexSource(page.source());
-      html.append("<a")
-          .append(tutorialChild ? " class=\"nav-child\"" : "")
-          .append(page.source().equals(current.source()) ? " aria-current=\"page\"" : "")
-          .append(" href=\"").append(escapeAttribute(relative(current.output(), page.output())))
-          .append("\">").append(escape(page.title())).append("</a>\n");
+      if (!tutorialIndex) {
+        boolean tutorialChild = page.source().startsWith("tutorials/");
+        html.append("<a")
+            .append(tutorialChild ? " class=\"nav-child\"" : "")
+            .append(page.source().equals(current.source())
+                ? " aria-current=\"page\"" : "")
+            .append(" href=\"")
+            .append(escapeAttribute(relative(current.output(), page.output())))
+            .append("\">").append(escape(page.title())).append("</a>\n");
+      }
     }
     if (group != null) {
       html.append("</section>\n");

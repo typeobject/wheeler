@@ -108,12 +108,15 @@ class DocumentationMarkdownTest {
     String html = renderer.render(introduction);
 
     int manual = html.indexOf("<section><h2>manual</h2>");
-    int story = html.indexOf("<section><h2>story</h2>");
+    int story = html.indexOf("<section><h2><a class=\"nav-section\" "
+        + "href=\"tutorials/index.html\">Home Was the Easy Part</a></h2>");
     int reference = html.indexOf("<section><h2>reference</h2>");
     int decisions = html.indexOf("<section><h2>decisions</h2>");
     assertTrue(manual >= 0 && manual < story && story < reference
         && reference < decisions);
     assertEqualsOnce(html, "<section><h2>manual</h2>");
+    assertEqualsOnce(html, ">Home Was the Easy Part</a></h2>");
+    assertFalse(html.contains("<section><h2>story</h2>"));
     assertTrue(html.indexOf(">What Is Wheeler?</a>")
         < html.indexOf(">Executable examples</a>"));
     assertTrue(html.indexOf(">Wheeler source language profile</a>")

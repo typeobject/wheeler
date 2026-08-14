@@ -293,6 +293,7 @@ final class DocumentationSiteCommand {
         text-transform: uppercase; }
       nav a { display: block; padding: .22rem .45rem; color: var(--ink); text-decoration: none;
         border-left: 2px solid transparent; }
+      nav h2 a.nav-section { padding: 0; border-left: 0; }
       nav a.nav-child { margin-left: .7rem; padding-left: .8rem; font-size: .92rem; }
       nav a:hover, nav a[aria-current=page] { color: var(--accent); border-color: var(--accent); }
       main { min-width: 0; }

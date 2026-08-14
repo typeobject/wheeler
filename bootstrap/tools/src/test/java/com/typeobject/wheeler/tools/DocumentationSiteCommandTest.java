@@ -50,6 +50,7 @@ class DocumentationSiteCommandTest {
     String style = Files.readString(first.resolve("style.css"));
     assertTrue(style.contains("pre { overflow: auto; padding: 1rem;"));
     assertTrue(style.contains("pre code { display: block; padding: 0 6rem 0 0; }"));
+    assertTrue(style.contains("nav h2 a.nav-section { padding: 0; border-left: 0; }"));
     assertFalse(style.contains("padding: 2.35rem 1rem 1rem"));
     String sitemap = Files.readString(first.resolve("sitemap.xml"));
     assertTrue(sitemap.startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
@@ -70,15 +71,18 @@ class DocumentationSiteCommandTest {
     assertFalse(index.contains("description: Wheeler"));
     assertFalse(index.contains("reversible classical/quantum systems"));
     int manual = index.indexOf("<section><h2>manual</h2>");
-    int story = index.indexOf("<section><h2>story</h2>");
+    int story = index.indexOf("<section><h2><a class=\"nav-section\" "
+        + "href=\"tutorials/index.html\">Home Was the Easy Part</a></h2>");
     int reference = index.indexOf("<section><h2>reference</h2>");
     assertTrue(manual >= 0 && manual < story && story < reference);
+    assertFalse(index.contains("<section><h2>story</h2>"));
     assertFalse(index.contains("<section><h2>proposals</h2>"));
     assertFalse(index.contains("<section><h2>future</h2>"));
     int storyEnd = index.indexOf("</section>", story);
     String tutorialSidebar = index.substring(story, storyEnd);
     assertTrue(tutorialSidebar.contains(
-        "<a href=\"tutorials/index.html\">Home Was the Easy Part</a>"));
+        "<h2><a class=\"nav-section\" href=\"tutorials/index.html\">"
+            + "Home Was the Easy Part</a></h2>"));
     assertTrue(tutorialSidebar.contains(
         "<a class=\"nav-child\" href=\"tutorials/00-return-to-which-state.html\">Home</a>"));
     assertTrue(tutorialSidebar.contains(
@@ -90,6 +94,9 @@ class DocumentationSiteCommandTest {
     assertTrue(Files.isRegularFile(first.resolve("tutorials/00-return-to-which-state.html")));
     assertTrue(Files.isRegularFile(first.resolve("tutorials/12-weather.html")));
     String tutorialIndex = Files.readString(first.resolve("tutorials/index.html"));
+    assertTrue(tutorialIndex.contains(
+        "<h2><a class=\"nav-section\" aria-current=\"page\" href=\"index.html\">"
+            + "Home Was the Easy Part</a></h2>"));
     assertTrue(tutorialIndex.contains(
         "<a href=\"00-return-to-which-state.html\">Begin with <strong>Home</strong>.</a>"));
     assertTrue(tutorialIndex.contains(
