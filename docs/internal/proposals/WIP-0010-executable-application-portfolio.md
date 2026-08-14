@@ -387,9 +387,7 @@ Portfolio work follows these rules:
 - [ ] Width-explicit arithmetic and lookup oracles.
   - [x] `WidthExplicitOracle.w` combines explicit 32-bit rotate-right semantics, a low-byte mask, and a four-row immutable classical lookup. Checked indexing and exact words make host-width drift visible.
   - [ ] Add finite modular add and compare, coherent controlled marking, clean table workspace and ancillas, exhaustive basis comparison, and generated inverse checks.
-- [ ] Grover search and quantum walk.
-  - [x] `GroverSearch.w` executes one four-element phase-oracle and diffusion iteration with a generated adjoint. `QuantumWalk.w` executes and uncomputes one Hadamard-coin conditional shift. Both round-trip and run on the bounded ideal target.
-  - [ ] Compose the lookup oracle with clean ancillas, compare exact amplitudes and seeded success thresholds, and add repeated walk composition plus graph-cycle distribution comparison.
+- [x] `GroverSearch.w` composes an exact two-qubit lookup phase oracle for basis state three with diffusion and needs no workspace ancilla. The ideal engine checks the complete complex amplitude vector, a 256-shot seeded run checks the declared success threshold, and the generated adjoint is certified. `QuantumWalk.w` composes two Hadamard-coin conditional shifts on a two-node cycle, checks both exact complex distributions, applies both generated adjoints, restores basis zero, and round-trips through the canonical artifact.
 - [ ] Static and adaptive phase estimation.
   - [x] `StaticPhaseEstimation.w` resolves one exact binary phase with one controlled power and the one-bit inverse transform. `AdaptivePhaseEstimation.w` measures that bit in a dynamic region, conditionally corrects the eigenstate, resets the ancilla, and leaves only final host observation. Artifacts, result slots, jobs, and exact outcomes are checked.
   - [ ] Add multiple controlled powers, a multi-bit inverse QFT, measurement-conditioned phase rotations, and exact comparison of both estimators.

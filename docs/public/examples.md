@@ -272,9 +272,9 @@ Expected result: `bit = 0`, `measured = 1`.
 
 Source: [`GroverSearch.w`](../../wheeler-examples/src/main/wheeler/quantum/GroverSearch.w).
 
-Covers: One exact four-element Grover iteration, a phase oracle marking basis state three, diffusion over the uniform state, a generated adjoint certificate, canonical ideal-target execution, and deterministic measurement of the unique marked state.
+Covers: One exact four-element Grover iteration, a zero-workspace lookup phase oracle marking basis state three, diffusion over the uniform state, an exact complex-amplitude oracle, a 256-shot seeded success threshold, a generated adjoint certificate, and canonical ideal-target execution.
 
-Expected result: `measured = 3`.
+Expected result: the marked-state amplitude has magnitude one, at least 250 of 256 seeded shots return basis state three, and source execution records `measured = 3`.
 
 ### `QFT.w`
 
@@ -336,9 +336,9 @@ Expected result: `sourceResult = normalizedResult = 1`.
 
 Source: [`QuantumWalk.w`](../../wheeler-examples/src/main/wheeler/quantum/QuantumWalk.w).
 
-Covers: A Hadamard coin, coherent conditional position shift, entangled intermediate state, a generated adjoint certificate, uncomputation before observation, and exact restoration of the initial walker basis state.
+Covers: Two composed Hadamard-coin conditional shifts on a two-node cycle, exact complex amplitudes after each step, the signed uniform two-step distribution, a generated adjoint certificate, reverse composition before observation, and exact restoration of the initial walker basis state.
 
-Expected result: `measured = 0`.
+Expected result: the two-step basis amplitudes are `(1/2, -1/2, 1/2, 1/2)`, both adjoints restore basis zero, and source execution records `measured = 0`.
 
 ### `SurfaceCode.w`
 

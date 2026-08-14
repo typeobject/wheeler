@@ -3,9 +3,12 @@ quantum class GroverSearch {
   state long measured = 0;
   qreg search = new qreg(2);
 
-  /// Marks basis state three and reflects the uniform state about its mean.
+  /// Composes a phase oracle for basis state three with mean diffusion.
   ///
-  /// - Adjoint: Applies the exact reversed gate sequence.
+  /// The first three gates prepare and mark the uniform search basis. The
+  /// remaining gates implement the exact two-qubit diffusion operator.
+  ///
+  /// - Adjoint: Applies the exact reversed oracle and diffusion gate sequence.
   unitary void groverIteration() {
     H(search[0]);
     H(search[1]);

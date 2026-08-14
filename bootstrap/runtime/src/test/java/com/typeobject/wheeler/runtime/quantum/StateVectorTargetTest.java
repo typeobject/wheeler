@@ -213,11 +213,11 @@ class StateVectorTargetTest {
   }
 
   @Test
-  void gateAndGeneratedAdjointRestoreState() {
-    QuantumRegister register = new QuantumRegister(0, "q", 2);
+  void coinedWalkCompositionHasExactAmplitudesAndGeneratedAdjointRestoration() {
+    QuantumRegister register = new QuantumRegister(0, "walker", 2);
     QuantumCircuit circuit = new QuantumCircuit(
         0,
-        "bell",
+        "walkStep",
         0,
         List.of(GateOperation.of(Gate.H, 0), GateOperation.of(Gate.CNOT, 0, 1)));
     Program program = program(register, circuit, List.of());
@@ -225,10 +225,22 @@ class StateVectorTargetTest {
 
     simulator.prepare(register, 0);
     simulator.apply(program, circuit, false);
-    assertArrayEquals(new double[] {0.5, 0, 0, 0.5}, simulator.probabilities(register), 1e-12);
+    assertArrayEquals(
+        new double[] {1 / Math.sqrt(2), 0, 0, 0, 0, 0, 1 / Math.sqrt(2), 0},
+        simulator.amplitudes(register),
+        1e-12);
+    simulator.apply(program, circuit, false);
+    assertArrayEquals(
+        new double[] {0.5, 0, -0.5, 0, 0.5, 0, 0.5, 0},
+        simulator.amplitudes(register),
+        1e-12);
+    simulator.apply(program, circuit, true);
     simulator.apply(program, circuit, true);
 
-    assertArrayEquals(new double[] {1, 0, 0, 0}, simulator.probabilities(register), 1e-12);
+    assertArrayEquals(
+        new double[] {1, 0, 0, 0, 0, 0, 0, 0},
+        simulator.amplitudes(register),
+        1e-12);
   }
 
   @Test
@@ -257,6 +269,44 @@ class StateVectorTargetTest {
         new double[] {1, 0, 0, 0, 0, 0, 0, 0},
         simulator.amplitudes(register),
         1e-12);
+  }
+
+  @Test
+  void composedGroverOracleAndDiffusionHaveExactAmplitudeAndSeededCounts() {
+    QuantumRegister register = new QuantumRegister(0, "search", 2);
+    QuantumCircuit circuit = new QuantumCircuit(
+        0,
+        "groverIteration",
+        0,
+        List.of(
+            GateOperation.of(Gate.H, 0),
+            GateOperation.of(Gate.H, 1),
+            new GateOperation(Gate.CPHASE, List.of(0, 1), Math.PI),
+            GateOperation.of(Gate.H, 0),
+            GateOperation.of(Gate.H, 1),
+            GateOperation.of(Gate.X, 0),
+            GateOperation.of(Gate.X, 1),
+            new GateOperation(Gate.CPHASE, List.of(0, 1), Math.PI),
+            GateOperation.of(Gate.X, 0),
+            GateOperation.of(Gate.X, 1),
+            GateOperation.of(Gate.H, 0),
+            GateOperation.of(Gate.H, 1)));
+    Program program = program(register, circuit, List.of());
+    StateVectorEngine simulator = new StateVectorEngine(29);
+    simulator.prepare(register, 0);
+    simulator.apply(program, circuit, false);
+
+    assertArrayEquals(
+        new double[] {0, 0, 0, 0, 0, 0, -1, 0},
+        simulator.amplitudes(register),
+        1e-12);
+    QuantumSubmission submission = new QuantumSubmission(
+        program, 0, 0, List.of(new CircuitApplication(0, false)), Map.of(), 256, 29);
+    QuantumResult result = new StateVectorTarget()
+        .submit(submission)
+        .await(Duration.ofSeconds(1));
+    assertTrue(result.counts().getOrDefault(3L, 0L) >= 250);
+    assertEquals(256L, result.counts().values().stream().mapToLong(Long::longValue).sum());
   }
 
   @Test
