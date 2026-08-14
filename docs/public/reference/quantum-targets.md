@@ -105,4 +105,4 @@ Running a generated adjoint is another physical computation. It is not VM rewind
 
 After measurement or target-session loss, Wheeler can replay a recorded observation or prepare new state and retry. It cannot rebuild an unknown earlier hardware state.
 
-Dynamic-circuit and fault-tolerant features remain explicit target requirements. The bounded dynamic semantic oracle executes the canonical preparation, measurement, reset, and conditional-gate records plus one syndrome-and-correction profile. Source lowering and provider lowering remain future work. A static target fails before submission instead of silently moving a latency-sensitive region to the host.
+Dynamic-circuit and fault-tolerant features remain explicit target requirements. The bounded dynamic semantic oracle executes the canonical preparation, measurement, reset, and conditional-gate records plus one syndrome-and-correction profile. Parser-owned `dynamic void` source lowers the same bounded record set. Provider lowering remains future work. A static target fails before submission instead of silently moving a latency-sensitive region to the host.
