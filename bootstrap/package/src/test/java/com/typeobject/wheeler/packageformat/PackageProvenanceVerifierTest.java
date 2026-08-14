@@ -85,6 +85,28 @@ final class PackageProvenanceVerifierTest {
         fixture.expectation,
         OUTPUT));
 
+    PackageLock changedDependency = new PackageLock(
+        PackageLock.SCHEMA_VERSION,
+        fixture.manifest.identity(),
+        List.of(new PackageLock.Entry(
+            "wheeler.core",
+            "1.0.0",
+            "b".repeat(64),
+            "c".repeat(64),
+            "9".repeat(64),
+            "d".repeat(64),
+            List.of())));
+    assertThrows(PackageFormatException.class, () -> PackageProvenanceVerifier.verify(
+        fixture.manifest,
+        fixture.archive,
+        changedDependency,
+        fixture.plan,
+        fixture.node,
+        SOURCE,
+        fixture.toolchain,
+        fixture.expectation,
+        OUTPUT));
+
     byte[] changedArchive = fixture.archive.clone();
     changedArchive[changedArchive.length - 1] ^= 1;
     assertThrows(PackageFormatException.class, () -> PackageProvenanceVerifier.verify(
