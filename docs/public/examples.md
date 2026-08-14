@@ -37,6 +37,14 @@ Covers: Separate original-effect, remedy-preparation, rejected-remedy, accepted-
 
 Expected result: the original changes the balance to `7`, rejection leaves it there, accepted compensation returns it to `0`, and `inverseClaim` remains false.
 
+### `PackageProvenance.w`
+
+Source: [`PackageProvenance.w`](../../wheeler-examples/src/main/wheeler/classical/workflows/PackageProvenance.w).
+
+Covers: Exact archive, manifest, lock-root, target-source, build-plan, toolchain, dependency-archive, and output witness edges. The byte-level verifier canonically re-encodes the archive, checks the recorded output expectation, and emits one domain-separated evidence identity only after the complete closure agrees.
+
+Expected result: one dependency and a 31-byte output are accepted. Changing any bound identity or byte range publishes no evidence.
+
 ### `CertifiedInverseBounds.w`
 
 Source: [`CertifiedInverseBounds.w`](../../wheeler-examples/src/main/wheeler/proof/CertifiedInverseBounds.w).

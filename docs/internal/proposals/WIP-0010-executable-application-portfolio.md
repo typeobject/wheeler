@@ -421,7 +421,7 @@ Portfolio work follows these rules:
   - [x] `CertifiedInverseBounds.w` carries one generated-inverse certificate and one static straight-line step bound in the same executable. It executes both subjects, restores state, round-trips bytecode, and rewinds complete history.
   - [ ] Add symbolic and concrete qubit, ancilla, gate, depth, measurement, target-cycle, event-byte, and retry bounds tied to semantic-region and compiler identities. Add exhaustive bounded inverse inputs, clean ancillas, and unchanged borrow checks.
 - [ ] Bounded certified `Foundry.w` synthesis and minimality package.
-- [ ] Package provenance verifier.
+- [x] Package provenance verifier. `PackageProvenance.w` accepts one bounded witness only after archive, manifest, lock-root, target-source, build-plan, toolchain, dependency-archive, output-identity, and output-length facts agree. `PackageProvenanceVerifier` performs the full byte-level check. It decodes and canonically re-encodes the package archive, requires the exact manifest and lock root, requires the node to belong to the plan and package, hashes the exact target-source input, matches every direct manifest dependency to its planned and locked archive, binds the toolchain, checks the recorded output expectation, and publishes one domain-separated evidence identity after the complete pass. Changed archive, lock, plan, source, dependency, or output bytes publish no evidence.
 - [ ] Hermetic workspace bootstrap.
 - [ ] Capability-denied tool and registry mirror.
 - [ ] Cross-target native trace matrix.

@@ -61,12 +61,16 @@ class ClassicalExamplesTest {
               ? "examples.events.reducer"
               : "examples.index.transactional");
     } else if (name.equals("AdaptiveReplay.w")
-        || name.equals("CompensationWorkflow.w")) {
+        || name.equals("CompensationWorkflow.w")
+        || name.equals("PackageProvenance.w")) {
+      String rootModule = switch (name) {
+        case "AdaptiveReplay.w" -> "examples.adaptive.replay";
+        case "CompensationWorkflow.w" -> "examples.compensation.workflow";
+        case "PackageProvenance.w" -> "examples.package.provenance";
+        default -> throw new IllegalStateException("unknown modular example " + name);
+      };
       program = compiler.compileModuleFiles(
-          Map.of(name, Files.readString(source)),
-          name.equals("AdaptiveReplay.w")
-              ? "examples.adaptive.replay"
-              : "examples.compensation.workflow");
+          Map.of(name, Files.readString(source)), rootModule);
     } else if (name.equals("IncrementalDependencyGraph.w")) {
       program = compiler.compileModuleFiles(
           Map.of(
@@ -178,6 +182,13 @@ class ClassicalExamplesTest {
                 "compensationVisible", 1L,
                 "rejectedCompensations", 1L,
                 "inverseClaim", 0L)),
+        Arguments.of(
+            "classical/workflows/PackageProvenance.w",
+            Map.of(
+                "accepted", 1L,
+                "outputLength", 31L,
+                "dependencyCount", 1L,
+                "changedFields", 0L)),
         Arguments.of(
             "proof/CertifiedInverseBounds.w",
             Map.of("value", 0L, "observed", 1L, "successor", 5L)),

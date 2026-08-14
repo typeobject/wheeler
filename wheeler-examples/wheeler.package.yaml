@@ -139,6 +139,10 @@ targets:
     root: "src/main/wheeler/classical/ownership/OwnedReturns.w"
     test: false
   - kind: "deployable"
+    name: "packageprovenance"
+    root: "src/main/wheeler/classical/workflows/PackageProvenance.w"
+    test: false
+  - kind: "deployable"
     name: "parametershift"
     root: "src/main/wheeler/quantum/algorithms/ParameterShift.w"
     test: false
