@@ -25,12 +25,16 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
     int firstBody = source.indexOf("{", source.indexOf("compactCompilerTokens("));
     int secondBody = source.indexOf("{", source.indexOf("discardLeadingTokens("));
     int limitName = source.indexOf("limit MAX_COMPILER_TOKENS") + "limit ".length();
+    int firstName = source.indexOf("compactCompilerTokens(");
+    int secondName = source.indexOf("discardLeadingTokens(");
     Program compiledProgram = program(
         firstBody,
         matchingClose(source, firstBody) - firstBody + 1,
         secondBody,
         matchingClose(source, secondBody) - secondBody + 1,
-        limitName);
+        limitName,
+        firstName,
+        secondName);
     VirtualMachine machine = new VirtualMachine(
         compiledProgram, source.getBytes(StandardCharsets.UTF_8), 262_144);
 
@@ -60,6 +64,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
     assertEquals(1, machine.global("compositionValid"));
     assertEquals(1, machine.global("artifactValid"));
     assertEquals(1, machine.global("structuredArtifactValid"));
+    assertEquals(1, machine.global("archiveArtifactValid"));
     assertEquals(1, machine.global("valid"));
     assertEquals(25, machine.global("statementCount"));
     assertEquals(7, machine.global("blockCount"));
@@ -215,7 +220,9 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
       int firstLength,
       int secondBody,
       int secondLength,
-      int limitName) throws Exception {
+      int limitName,
+      int firstName,
+      int secondName) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_statement_products"));
@@ -241,12 +248,15 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
         "wheeler.compiler.closure.compiled_body_archive"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.structured_source_module_compiler"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.archive_structured_source_module_compiler"));
     CoreSources.addBinaryClosure(sources);
     sources.put("FixedBinary.w", CoreSources.read("encoding/FixedBinary.w"));
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     sources.put("CoreParsingSourceProductsExample.w", """
         module example.core_parsing_source_products;
 
+        import wheeler.compiler.closure.archive_structured_source_module_compiler;
         import wheeler.compiler.closure.callable_source_composition;
         import wheeler.compiler.closure.compiled_body_archive;
         import wheeler.compiler.closure.direct_statement_products;
@@ -275,6 +285,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
           state long compositionValid = 0;
           state long artifactValid = 0;
           state long structuredArtifactValid = 0;
+          state long archiveArtifactValid = 0;
           state long instructionCount = 0;
           state long codeLength = 0;
           state long typeCount = 0;
@@ -311,7 +322,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
           state long secondLoopOwner = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 19743808, /* allocations= */ 45);
+            region products = new region(/* bytes= */ 21283944, /* allocations= */ 57);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -351,6 +362,18 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             bytes identity = allocateBytes(products, /* length= */ 32);
             bytes structuredArtifact = allocateBytes(products, /* length= */ 32768);
             bytes structuredIdentity = allocateBytes(products, /* length= */ 32);
+            bytes archiveArtifact = allocateBytes(products, /* length= */ 32768);
+            bytes archiveIdentity = allocateBytes(products, /* length= */ 32);
+            bytes binarySource = allocateBytes(products, /* length= */ 32768);
+            words importedRows = allocate(products, /* length= */ 114689);
+            words importedNameStarts = allocate(products, /* length= */ 16384);
+            words globalFirstParameters = allocate(products, /* length= */ 4096);
+            words globalParameterCounts = allocate(products, /* length= */ 4096);
+            words globalResultTypes = allocate(products, /* length= */ 4096);
+            words globalParameterTypes = allocate(products, /* length= */ 16384);
+            words globalParameterModes = allocate(products, /* length= */ 16384);
+            words callableNameStarts = allocate(products, /* length= */ 4096);
+            words callableNameLengths = allocate(products, /* length= */ 4096);
             words modulePublished = allocate(products, /* length= */ 512);
             words moduleArtifactRanks = allocate(products, /* length= */ 512);
             words artifactStarts = allocate(products, /* length= */ 512);
@@ -578,6 +601,8 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             }
             SourceProductArtifactPlan structuredPlan = compileStructuredSourceModule(
               input,
+              /* archiveSourceStart= */ 0,
+              /* moduleOwner= */ 0,
               /* firstCallable= */ 0,
               /* callableCount= */ 2,
               bodyStarts,
@@ -615,6 +640,77 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               }
 
               structuredArtifactValid = 1;
+            }
+            long sourceByte = 0;
+            while (sourceByte < bufferLength(input)) limit 32768 {
+              setByte(binarySource, sourceByte, utf8Scalar(input, sourceByte));
+              sourceByte += 1;
+            }
+
+            set(importedRows, 0, 1);
+            set(importedRows, 1, %d);
+            set(importedRows, 2, 19);
+            set(importedRows, 3, 1);
+            set(importedRows, 4, 4096);
+            set(importedRows, 5, 1);
+            set(importedNameStarts, 0, %d);
+            set(globalFirstParameters, 0, 0);
+            set(globalParameterCounts, 0, 4);
+            set(globalResultTypes, 0, 1);
+            set(globalFirstParameters, 1, 4);
+            set(globalParameterCounts, 1, 5);
+            set(globalResultTypes, 1, 1);
+            set(globalParameterTypes, 0, 4);
+            set(globalParameterTypes, 1, 4);
+            set(globalParameterTypes, 2, 4);
+            set(globalParameterTypes, 3, 1);
+            set(globalParameterTypes, 4, 4);
+            set(globalParameterTypes, 5, 4);
+            set(globalParameterTypes, 6, 4);
+            set(globalParameterTypes, 7, 1);
+            set(globalParameterTypes, 8, 1);
+            set(globalParameterModes, 0, 2);
+            set(globalParameterModes, 1, 2);
+            set(globalParameterModes, 2, 2);
+            set(globalParameterModes, 4, 2);
+            set(globalParameterModes, 5, 2);
+            set(globalParameterModes, 6, 2);
+            set(callableNameStarts, 0, %d);
+            set(callableNameLengths, 0, 21);
+            set(callableNameStarts, 1, %d);
+            set(callableNameLengths, 1, 20);
+            SourceProductArtifactPlan archiveArtifactPlan = compileStructuredArchiveModule(
+              binarySource,
+              /* sourceStart= */ 0,
+              bufferLength(input),
+              /* moduleOwner= */ 0,
+              /* firstCallable= */ 0,
+              /* callableCount= */ 2,
+              bodyStarts,
+              bodyLengths,
+              /* importedCount= */ 1,
+              importedRows,
+              binarySource,
+              importedNameStarts,
+              globalFirstParameters,
+              globalParameterCounts,
+              globalResultTypes,
+              globalParameterTypes,
+              globalParameterModes,
+              binarySource,
+              callableNameStarts,
+              callableNameLengths,
+              archiveArtifact,
+              archiveIdentity
+            );
+            if (archiveArtifactPlan.length == artifactPlan.length) {
+              long archiveByte = 0;
+              while (archiveByte < artifactPlan.length) limit 32768 {
+                assert(archiveArtifact[archiveByte] == artifact[archiveByte]);
+                archiveByte += 1;
+              }
+
+              archiveArtifactValid = 1;
             }
             CompiledBodyArchivePlan archivePlan = appendCompiledBodyArtifact(
               artifact,
@@ -737,6 +833,18 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             drop(artifactStarts);
             drop(moduleArtifactRanks);
             drop(modulePublished);
+            drop(callableNameLengths);
+            drop(callableNameStarts);
+            drop(globalParameterModes);
+            drop(globalParameterTypes);
+            drop(globalResultTypes);
+            drop(globalParameterCounts);
+            drop(globalFirstParameters);
+            drop(importedNameStarts);
+            drop(importedRows);
+            drop(binarySource);
+            drop(archiveIdentity);
+            drop(archiveArtifact);
             drop(structuredIdentity);
             drop(structuredArtifact);
             drop(identity);
@@ -779,7 +887,16 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             drop(products);
           }
         }
-        """.formatted(firstBody, firstLength, secondBody, secondLength, limitName));
+        """.formatted(
+            firstBody,
+            firstLength,
+            secondBody,
+            secondLength,
+            limitName,
+            limitName,
+            limitName,
+            firstName,
+            secondName));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.core_parsing_source_products");
   }

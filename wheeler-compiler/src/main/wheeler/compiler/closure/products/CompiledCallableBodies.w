@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.compiled_callable_bodies;
 
 import wheeler.compiler.closure.aggregate_source_projection;
+import wheeler.compiler.closure.archive_structured_source_module_compiler;
 import wheeler.compiler.closure.callable_block_plans;
 import wheeler.compiler.closure.callable_instruction_plans;
 import wheeler.compiler.closure.callable_local_type_plans;
@@ -210,6 +211,57 @@ classical class CompiledCallableBodies {
     CompiledCallableBody result = compileProductSource(sourceBytes, artifact, identity);
     drop(sourceArena);
     return result;
+  }
+
+  /// Compiles the bounded archive-local structured profile from closed products.
+  public SourceProductArtifactPlan compileStructuredArchiveModuleProduct(
+    borrow byteview archive,
+    long sourceStart,
+    long sourceLength,
+    long moduleOwner,
+    long firstCallable,
+    long callableCount,
+    borrow mut words callableBodyStarts,
+    borrow mut words callableBodyLengths,
+    long importedCount,
+    borrow mut words importedRows,
+    borrow byteview importedNames,
+    borrow mut words importedNameStarts,
+    borrow mut words callableFirstParameters,
+    borrow mut words callableParameterCounts,
+    borrow mut words callableResultTypes,
+    borrow mut words parameterTypes,
+    borrow mut words parameterModes,
+    borrow byteview callableNames,
+    borrow mut words callableNameStarts,
+    borrow mut words callableNameLengths,
+    borrow mut bytes artifact,
+    borrow mut bytes identity
+  ) {
+    return compileStructuredArchiveModule(
+      archive,
+      sourceStart,
+      sourceLength,
+      moduleOwner,
+      firstCallable,
+      callableCount,
+      callableBodyStarts,
+      callableBodyLengths,
+      importedCount,
+      importedRows,
+      importedNames,
+      importedNameStarts,
+      callableFirstParameters,
+      callableParameterCounts,
+      callableResultTypes,
+      parameterTypes,
+      parameterModes,
+      callableNames,
+      callableNameStarts,
+      callableNameLengths,
+      artifact,
+      identity
+    );
   }
 
   /// Compiles a complete local class against imports without dependency source.

@@ -50,6 +50,8 @@ classical class StructuredSourceModuleCompiler {
   /// Publishes one verified source-local artifact without scalar-helper reparsing.
   public SourceProductArtifactPlan compileStructuredSourceModule(
     borrow utf8 source,
+    long archiveSourceStart,
+    long moduleOwner,
     long firstCallable,
     long callableCount,
     borrow mut words bodyStarts,
@@ -73,6 +75,9 @@ classical class StructuredSourceModuleCompiler {
     borrow mut bytes output,
     borrow mut bytes identity
   ) {
+    assert(-1 < archiveSourceStart);
+    assert(-1 < moduleOwner);
+    assert(moduleOwner < 512);
     assert(-1 < firstCallable);
     assert(0 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
@@ -122,7 +127,7 @@ classical class StructuredSourceModuleCompiler {
 
     SourceBlockProductPlan blockPlan = materializeSourceBlockProducts(
       source,
-      /* archiveSourceStart= */ 0,
+      archiveSourceStart,
       firstCallable,
       callableCount,
       bodyStarts,
@@ -142,7 +147,7 @@ classical class StructuredSourceModuleCompiler {
     assert(0 < loopPlan.loopCount);
     SourceValueProductPlan valuePlan = materializeSourceValueProducts(
       source,
-      /* archiveSourceStart= */ 0,
+      archiveSourceStart,
       firstCallable,
       callableCount,
       bodyStarts,
@@ -166,8 +171,8 @@ classical class StructuredSourceModuleCompiler {
     assert(bodyPlan.valid);
     ResolvedLoopProductPlan resolvedPlan = materializeResolvedLoopProducts(
       source,
-      /* archiveSourceStart= */ 0,
-      /* moduleOwner= */ 0,
+      archiveSourceStart,
+      moduleOwner,
       loopPlan.loopCount,
       sourceConditions,
       sourceLoops,

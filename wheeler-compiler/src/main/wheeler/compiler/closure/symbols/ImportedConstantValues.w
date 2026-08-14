@@ -8,7 +8,48 @@ classical class ImportedConstantValues {
   /// Names the complete packed direct-import lookup table size.
   public const long IMPORTED_CONSTANT_ROWS = 114689;
   private const long IMPORTED_CONSTANT_LIMIT = 16384;
+  private const long IMPORTED_CONSTANT_NAME_BYTES = 1048576;
   private const long IMPORTED_CONSTANT_ROW_WIDTH = 7;
+
+  /// Copies packed imported names so consumers do not reopen dependency source.
+  public long writeDirectImportedValueNames(
+    borrow byteview archive,
+    long importedCount,
+    borrow mut words importedRows,
+    long outputStart,
+    borrow mut words importedNameStarts,
+    borrow mut bytes importedNames
+  ) {
+    assert(-1 < importedCount);
+    assert(importedCount < IMPORTED_CONSTANT_LIMIT + 1);
+    assert(bufferLength(importedRows) == IMPORTED_CONSTANT_ROWS);
+    assert(-1 < outputStart);
+    assert(outputStart < IMPORTED_CONSTANT_NAME_BYTES + 1);
+    assert(IMPORTED_CONSTANT_LIMIT < bufferLength(importedNameStarts) + 1);
+    assert(bufferLength(importedNames) == IMPORTED_CONSTANT_NAME_BYTES);
+    long written = outputStart;
+    long imported = 0;
+    while (imported < importedCount) limit IMPORTED_CONSTANT_LIMIT {
+      long base = 1 + imported * IMPORTED_CONSTANT_ROW_WIDTH;
+      long sourceStart = importedRows[base];
+      long length = importedRows[base + 1];
+      assert(-1 < sourceStart);
+      assert(0 < length);
+      assert(length < bufferLength(archive) - sourceStart + 1);
+      assert(length < IMPORTED_CONSTANT_NAME_BYTES - written + 1);
+      set(importedNameStarts, imported, written);
+      long offset = 0;
+      while (offset < length) limit 256 {
+        setByte(importedNames, written + offset, archive[sourceStart + offset]);
+        offset += 1;
+      }
+
+      written += length;
+      imported += 1;
+    }
+
+    return written - outputStart;
+  }
 
   /// Writes one dependent's direct public products in header and declaration order.
   public long writeDirectImportedValues(

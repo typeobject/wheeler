@@ -17,15 +17,17 @@ final class NativeCompilerArchiveClosureProgram {
 
   private NativeCompilerArchiveClosureProgram() {}
 
-  private static String physicalOwnerRows() {
+  private static String physicalOwnerRows(
+      List<PhysicalModule> comparableModules,
+      List<PhysicalModule> callableModules) {
     StringBuilder rows = new StringBuilder();
-    for (int index = 0; index < PHYSICAL_MODULES.size(); index++) {
+    for (int index = 0; index < comparableModules.size(); index++) {
       rows.append("set(physicalOwners, ").append(index).append(", ")
-          .append(physicalOwner(PHYSICAL_MODULES.get(index))).append(");\n");
+          .append(physicalOwner(comparableModules.get(index))).append(");\n");
     }
-    for (int index = 0; index < PHYSICAL_CALLABLE_MODULES.size(); index++) {
-      rows.append("set(physicalOwners, ").append(PHYSICAL_MODULES.size() + index)
-          .append(", ").append(physicalOwner(PHYSICAL_CALLABLE_MODULES.get(index)))
+    for (int index = 0; index < callableModules.size(); index++) {
+      rows.append("set(physicalOwners, ").append(comparableModules.size() + index)
+          .append(", ").append(physicalOwner(callableModules.get(index)))
           .append(");\n");
     }
     return rows.toString();
@@ -41,14 +43,30 @@ final class NativeCompilerArchiveClosureProgram {
   }
 
   static Program program() throws Exception {
-    return program(/* compilePhysicalProducts= */ true);
+    return program(
+        /* compilePhysicalProducts= */ true,
+        PHYSICAL_MODULES,
+        PHYSICAL_CALLABLE_MODULES);
+  }
+
+  static Program structuredProductProgram() throws Exception {
+    return program(
+        /* compilePhysicalProducts= */ true,
+        List.of(PHYSICAL_MODULES.getLast()),
+        List.of());
   }
 
   static Program metadataProgram() throws Exception {
-    return program(/* compilePhysicalProducts= */ false);
+    return program(
+        /* compilePhysicalProducts= */ false,
+        PHYSICAL_MODULES,
+        PHYSICAL_CALLABLE_MODULES);
   }
 
-  private static Program program(boolean compilePhysicalProducts) throws Exception {
+  private static Program program(
+      boolean compilePhysicalProducts,
+      List<PhysicalModule> comparableModules,
+      List<PhysicalModule> callableModules) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
@@ -110,6 +128,7 @@ final class NativeCompilerArchiveClosureProgram {
         import wheeler.compiler.closure.scalar_module_identities;
         import wheeler.compiler.closure.schedule;
         import wheeler.compiler.closure.source_call_products;
+        import wheeler.compiler.closure.source_product_artifact;
         import wheeler.compiler.closure.symbol_identities;
 
         classical class ArchiveClosureExample {
@@ -919,17 +938,22 @@ final class NativeCompilerArchiveClosureProgram {
           }
         }
         """
-            .replace("PHYSICAL_MODULE_OWNERS", physicalOwnerRows())
+            .replace(
+                "PHYSICAL_MODULE_OWNERS",
+                physicalOwnerRows(comparableModules, callableModules))
             .replace(
                 "PHYSICAL_PRODUCT_COMPILATION",
                 compilePhysicalProducts ? NativeCompilerPhysicalProductSource.compilation() : "")
             .replace("PHYSICAL_PRODUCT_PUBLICATION", NativeCompilerPhysicalProductSource.publication())
-            .replace("PHYSICAL_COMPARABLE_COUNT", Integer.toString(PHYSICAL_MODULES.size()))
+            .replace("PHYSICAL_COMPARABLE_COUNT", Integer.toString(comparableModules.size()))
+            .replace(
+                "STRUCTURED_SOURCE_MODULE_OWNER",
+                Integer.toString(physicalOwner(PHYSICAL_MODULES.getLast())))
             .replace("PHYSICAL_CLOSURE_MODULE_COUNT", Integer.toString(
                 CompilerSources.bootstrapModuleManifest().modules().size()))
             .replace(
                 "PHYSICAL_MODULE_COUNT",
-                Integer.toString(PHYSICAL_MODULES.size() + PHYSICAL_CALLABLE_MODULES.size())));
+                Integer.toString(comparableModules.size() + callableModules.size())));
     return new WheelerCompiler().compileModuleFiles(sources, "example.archive_closure");
   }
 

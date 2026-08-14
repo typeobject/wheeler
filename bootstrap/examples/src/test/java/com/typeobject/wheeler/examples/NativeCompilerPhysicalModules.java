@@ -86,7 +86,8 @@ final class NativeCompilerPhysicalModules {
         physical("compiler/ir/TypeKinds.w", "type_kinds"),
         physical("compiler/syntax/calls/VoidCallKinds.w", "void_call_kinds"),
         physical("compiler/syntax/calls/VoidCallSourceKinds.w", "void_call_source_kinds"),
-        physical("compiler/resolution/returns/WideReturnSources.w", "wide_return_sources"));
+        physical("compiler/resolution/returns/WideReturnSources.w", "wide_return_sources"),
+        physical("compiler/backend/core/CoreParsing.w", "core_parsing"));
   }
 
   static List<NativeCompilerArchiveClosureProgram.PhysicalModule> importedCallableProducts() {

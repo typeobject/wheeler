@@ -114,6 +114,14 @@ final class NativeCompilerArchiveClosureExampleTest {
   }
 
   @Test
+  void productionClosureBuildsTheStructuredSourceProductRoute() throws Exception {
+    Program program = NativeCompilerArchiveClosureProgram.structuredProductProgram();
+    assertTrue(program.functions().stream().anyMatch(function -> function.name().equals(
+        "wheeler.compiler.closure.compiled_callable_bodies"
+            + "::compileStructuredArchiveModuleProduct")));
+  }
+
+  @Test
   void physicalProductOwnersTrackTheCanonicalModuleManifest() throws Exception {
     assertPhysicalProductOwners(CompilerSources.bootstrapModuleManifest());
   }
@@ -242,7 +250,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     String linkedIdentity = HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(functionMachine.hostOutput()));
     assertEquals(
-        3_912_660_007L,
+        2_706_341_748L,
         functionMachine.global("linkedIdentityPrefix"),
         () -> "sha256=" + linkedIdentity
             + " code=" + functionMachine.global("linkedCodeLength")
@@ -253,7 +261,7 @@ final class NativeCompilerArchiveClosureExampleTest {
             + " localTypes=" + functionMachine.global("linkedLocalTypeCount")
             + " container=" + functionMachine.global("linkedContainerLength"));
     assertEquals(
-        "e9367427b3ccd4ac15767fdc81a61e75a5b35d6076f98e8c05b778651c283b9d",
+        "a14f7f74062baef68ce4ff024f5350a8feb655f3ae0f0d2d7502a8b348ee9cea",
         linkedIdentity,
         () -> "code=" + functionMachine.global("linkedCodeLength")
             + " functions=" + functionMachine.global("functionCount")
@@ -279,7 +287,7 @@ final class NativeCompilerArchiveClosureExampleTest {
         functionClosure, physicalProducts, 4_194_304);
     CompilerMachineRunner.runWithoutRewindHistory(repeatedFunctionMachine);
     assertEquals(1, repeatedFunctionMachine.global("published"));
-    assertEquals(3_912_660_007L, repeatedFunctionMachine.global("linkedIdentityPrefix"));
+    assertEquals(2_706_341_748L, repeatedFunctionMachine.global("linkedIdentityPrefix"));
     assertArrayEquals(
         functionMachine.hostOutput(), repeatedFunctionMachine.hostOutput());
 

@@ -28,6 +28,17 @@ final class NativeCompilerPhysicalProductSource {
               physicalImportedRows
             );
             assert(-1 < physicalImportedCount);
+            long physicalImportedNameBytes = writeDirectImportedValueNames(
+              archive,
+              physicalImportedCount,
+              physicalImportedRows,
+              callableProductNameBytes,
+              physicalTargetRows,
+              callableProductNames
+            );
+            if (0 < physicalImportedCount) {
+              assert(0 < physicalImportedNameBytes);
+            }
             long physicalSourceLength = writeProductModuleSource(
               archive,
               archiveSourceStarts[physicalOwner],
@@ -79,23 +90,57 @@ final class NativeCompilerPhysicalProductSource {
                 physicalCall += 1;
               }
             }
-            CompiledCallableBody physicalModule = compileSourceModuleProductWithImports(
-              physicalProductSource,
-              /* sourceStart= */ 0,
-              physicalSourceLength,
-              /* aggregateCount= */ 0,
-              physicalAggregates,
-              physicalCallCount,
-              physicalCalls,
-              callableEffects,
-              callableFirstParameters,
-              callableParameterCounts,
-              physicalResultTypes,
-              physicalParameterTypes,
-              parameterModes,
-              compiledCallableArtifact,
-              compiledCallableIdentity
-            );
+            CompiledCallableBody physicalModule = new CompiledCallableBody(0, 0, 0, 0);
+            if (physicalOwner == STRUCTURED_SOURCE_MODULE_OWNER) {
+              SourceProductArtifactPlan directArtifact = compileStructuredArchiveModuleProduct(
+                archive,
+                archiveSourceStarts[physicalOwner],
+                archiveSourceLengths[physicalOwner],
+                physicalOwner,
+                moduleFirstCallables[physicalOwner],
+                moduleCallableCounts[physicalOwner],
+                callableBodyStarts,
+                callableBodyLengths,
+                physicalImportedCount,
+                physicalImportedRows,
+                callableProductNames,
+                physicalTargetRows,
+                callableFirstParameters,
+                callableParameterCounts,
+                physicalResultTypes,
+                physicalParameterTypes,
+                parameterModes,
+                callableProductNames,
+                callableProductNameStarts,
+                callableNameLengths,
+                compiledCallableArtifact,
+                compiledCallableIdentity
+              );
+              physicalModule = new CompiledCallableBody(
+                directArtifact.length,
+                directArtifact.codeStart,
+                directArtifact.functionCount,
+                directArtifact.maxLocalCount
+              );
+            } else {
+              physicalModule = compileSourceModuleProductWithImports(
+                physicalProductSource,
+                /* sourceStart= */ 0,
+                physicalSourceLength,
+                /* aggregateCount= */ 0,
+                physicalAggregates,
+                physicalCallCount,
+                physicalCalls,
+                callableEffects,
+                callableFirstParameters,
+                callableParameterCounts,
+                physicalResultTypes,
+                physicalParameterTypes,
+                parameterModes,
+                compiledCallableArtifact,
+                compiledCallableIdentity
+              );
+            }
             CompiledFunctionPlan physicalFunctions = indexCompiledFunctionProducts(
               compiledCallableArtifact,
               physicalModule.length,
