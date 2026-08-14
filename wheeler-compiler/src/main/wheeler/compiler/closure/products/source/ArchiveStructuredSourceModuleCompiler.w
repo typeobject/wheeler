@@ -12,7 +12,9 @@ classical class ArchiveStructuredSourceModuleCompiler {
   private const long MAX_SIGNATURE_TYPES = 4096;
 
   private record ClassNameRange(long start, long length, boolean valid) {}
+
   private record ModuleNameRange(long start, long length, boolean valid) {}
+
   private record NameUseRange(long start, boolean valid) {}
 
   private boolean classPrefix(borrow byteview source, long start) {
@@ -424,13 +426,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     stringCursor += 8;
     set(stringStarts, 1, stringCursor);
     set(stringLengths, 1, className.length);
-    stringCursor = copyRange(
-      archive,
-      className.start,
-      className.length,
-      strings,
-      stringCursor
-    );
+    stringCursor = copyRange(archive, className.start, className.length, strings, stringCursor);
 
     long signatureTypeCount = 0;
     long callable = 0;

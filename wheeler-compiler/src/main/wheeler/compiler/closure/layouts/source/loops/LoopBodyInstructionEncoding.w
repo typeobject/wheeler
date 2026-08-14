@@ -431,22 +431,12 @@ classical class LoopBodyInstructionEncoding {
       cursor = writeUnsignedLittleEndian(output, cursor, copyReadIndex, U64);
       long copyReadIndexOperand = copyNextLocal;
       copyNextLocal += 1;
-      cursor = writeInstructionHeader(
-        output,
-        cursor,
-        copyGetOpcode,
-        INSTRUCTION_FORM_TERNARY
-      );
+      cursor = writeInstructionHeader(output, cursor, copyGetOpcode, INSTRUCTION_FORM_TERNARY);
       cursor = writeUnsignedLittleEndian(output, cursor, copyNextLocal, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, copyReadOwnerOperand, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, copyReadIndexOperand, U64);
       long copyResult = copyNextLocal;
-      cursor = writeInstructionHeader(
-        output,
-        cursor,
-        copySetOpcode,
-        INSTRUCTION_FORM_TERNARY
-      );
+      cursor = writeInstructionHeader(output, cursor, copySetOpcode, INSTRUCTION_FORM_TERNARY);
       cursor = writeUnsignedLittleEndian(output, cursor, copyWriteOwnerOperand, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, copyWriteIndexOperand, U64);
       return writeUnsignedLittleEndian(output, cursor, copyResult, U64);
