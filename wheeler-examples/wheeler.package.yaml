@@ -119,6 +119,14 @@ targets:
     root: "src/main/wheeler/classical/ownership/OwnedReturns.w"
     test: false
   - kind: "deployable"
+    name: "parametershift"
+    root: "src/main/wheeler/quantum/algorithms/ParameterShift.w"
+    test: false
+  - kind: "deployable"
+    name: "qaoamaxcut"
+    root: "src/main/wheeler/quantum/algorithms/QaoaMaxCut.w"
+    test: false
+  - kind: "deployable"
     name: "qft"
     root: "src/main/wheeler/quantum/QFT.w"
     test: false
@@ -129,6 +137,10 @@ targets:
   - kind: "deployable"
     name: "quantumcompiler"
     root: "src/main/wheeler/quantum/QuantumCompiler.w"
+    test: false
+  - kind: "deployable"
+    name: "quantumkernelclassifier"
+    root: "src/main/wheeler/quantum/algorithms/QuantumKernelClassifier.w"
     test: false
   - kind: "deployable"
     name: "quantumneuralnetwork"
@@ -190,8 +202,8 @@ targets:
     root: "src/main/wheeler/classical/data/Variants.w"
     test: false
   - kind: "deployable"
-    name: "variationalapplications"
-    root: "src/main/wheeler/quantum/algorithms/VariationalApplications.w"
+    name: "vqehydrogen"
+    root: "src/main/wheeler/quantum/algorithms/VqeHydrogen.w"
     test: false
   - kind: "deployable"
     name: "widthexplicitlookup"

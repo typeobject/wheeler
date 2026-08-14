@@ -334,13 +334,37 @@ Covers: Exact logical-qubit, layer, Clifford, T, measurement, T-depth, magic-sta
 
 Expected result: the four-layer fixture needs five magic states, two four-state factory batches, and 28 target cycles. T-depth remains `2`. It is not replaced by the five-gate T count.
 
-### `VariationalApplications.w`
+### `VqeHydrogen.w`
 
-Source: [`VariationalApplications.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/VariationalApplications.w).
+Source: [`VqeHydrogen.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/VqeHydrogen.w).
 
-Covers: Fixed readable representatives for VQE, a two-node QAOA layer, quantum-kernel feature overlap, and positive and negative parameter shifts. Runtime conformance binds symbolic phase and controlled-phase values into ordered immutable batches and preserves exact submission and batch identities.
+Covers: A pinned one-qubit `Z` Hamiltonian, two exact parameter points, ordered parameter binding, selected-point resource fields, and a generated ansatz adjoint.
 
-Expected result: VQE selects the pi ansatz with Z energy `-1`. The shift pair at pi over two yields derivative `-1`. Equal kernel features have unit overlap while features separated by pi have zero overlap. The fixed QAOA layer matches the complete two-qubit complex amplitude vector. The source executable records `measured = 1` and `batchApplications = 8`.
+Expected result: the pi ansatz reaches basis one and has exact Z energy `-1`, below the zero-angle energy `1`.
+
+### `QaoaMaxCut.w`
+
+Source: [`QaoaMaxCut.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/QaoaMaxCut.w).
+
+Covers: One fixed two-vertex, one-edge cost layer, controlled phase, fixed mixer, exact depth, and complete complex-amplitude comparison.
+
+Expected result: the pi layer has amplitudes `(0.5, 0.5, 0.5, -0.5)` in little-endian basis order and an exact cut probability of one half.
+
+### `QuantumKernelClassifier.w`
+
+Source: [`QuantumKernelClassifier.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/QuantumKernelClassifier.w).
+
+Covers: A two-row feature map, generated adjoint overlap, four bounded kernel entries, and one fixed accepted label.
+
+Expected result: equal features have unit overlap, features separated by pi have zero overlap, and the diagonal source check restores basis zero.
+
+### `ParameterShift.w`
+
+Source: [`ParameterShift.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/ParameterShift.w).
+
+Covers: An ordered positive and negative parameter pair, exact expectation reduction, generated adjoints, and explicit application count.
+
+Expected result: shifts around pi over two yield expectations `-1` and `1` and therefore derivative `-1`.
 
 ### `QuantumOptimizer.w`
 

@@ -51,13 +51,16 @@ class QuantumExamplesTest {
     if (file.equals("QFT.w") || file.equals("GroverSearch.w")
         || file.equals("QuantumWalk.w") || file.equals("algorithms/StaticPhaseEstimation.w")
         || file.equals("algorithms/AmplitudeEstimation.w")
-        || file.equals("algorithms/VariationalApplications.w")) {
+        || file.equals("algorithms/VqeHydrogen.w")
+        || file.equals("algorithms/QaoaMaxCut.w")
+        || file.equals("algorithms/QuantumKernelClassifier.w")
+        || file.equals("algorithms/ParameterShift.w")) {
       assertEquals(ProofRule.GENERATED_ADJOINT, decoded.proofCertificates().getFirst().rule());
     }
     if (file.equals("algorithms/AmplitudeEstimation.w")) {
       assertEquals(2, decoded.proofCertificates().size());
-    } else if (file.equals("algorithms/VariationalApplications.w")) {
-      assertEquals(3, decoded.proofCertificates().size());
+    } else if (file.equals("algorithms/ParameterShift.w")) {
+      assertEquals(2, decoded.proofCertificates().size());
     } else if (file.equals("QuantumCompiler.w")) {
       assertEquals(ProofRule.CIRCUIT_EQUIVALENCE, decoded.proofCertificates().getFirst().rule());
     }
@@ -168,7 +171,27 @@ class QuantumExamplesTest {
             "algorithms/AmplitudeEstimation.w",
             Map.of("measured", 3L, "circuitApplications", 4L, "plannedShots", 4_096L)),
         Arguments.of(
-            "algorithms/VariationalApplications.w",
-            Map.of("measured", 1L, "batchApplications", 8L)));
+            "algorithms/VqeHydrogen.w",
+            Map.of(
+                "measured", 1L,
+                "selectedEnergyMilli", -1_000L,
+                "batchApplications", 2L,
+                "plannedShots", 4_096L)),
+        Arguments.of(
+            "algorithms/QaoaMaxCut.w",
+            Map.of("vertices", 2L, "edges", 1L, "layers", 1L, "plannedDepth", 5L)),
+        Arguments.of(
+            "algorithms/QuantumKernelClassifier.w",
+            Map.of(
+                "measured", 0L,
+                "trainingRows", 2L,
+                "kernelEntries", 4L,
+                "acceptedLabel", 1L)),
+        Arguments.of(
+            "algorithms/ParameterShift.w",
+            Map.of(
+                "measured", 0L,
+                "shiftedApplications", 2L,
+                "exactGradientMilli", -1_000L)));
   }
 }
