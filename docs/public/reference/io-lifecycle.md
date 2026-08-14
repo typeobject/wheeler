@@ -19,6 +19,7 @@ The quarantined runtime now carries a deterministic executable slice under `boot
 - `QuantumIo` adapts a complete target call to the same request and completion contract.
 - `DeterministicIo` offers inline and delayed delivery with identical completion meaning.
 - `ThreadedIo` supplies an explicitly bounded portable worker backend.
+- `CompletionIo` supplies bounded one-lane and many-lane completion queues. The awaiting scope thread drives them.
 
 The implementation is stage-0 scaffolding. Its Java API is replaceable and is not a source-language compatibility promise. The lifecycle and distinctions are the contract.
 
@@ -35,6 +36,8 @@ A scope cannot close while an operation is live or terminal-but-unreaped. Awaiti
 Inline submission may produce terminal completion before `submit` returns. Delayed submission produces the same semantic completion when driven by `await` or selection. Tests compare the complete records, not merely result values.
 
 `ThreadedIo(workers, maxInFlight)` adds actual overlap without changing request or completion types. Admission is reserved before request consumption. The executor has a fixed worker count, a bounded queue, and no fallback pool. Closing it with admitted work fails. Cancellation of queued work releases resources without invoking the provider. Cancellation racing with started work records which terminal result won instead of interrupting an external effect and hoping for the best.
+
+`CompletionIo(queueCount, queueDepth)` models one or more bounded completion lanes without allocating a worker, stack, task, or timer for each queued operation. The scope operation limit must fit the declared queue capacity. Submission queues work without running the provider. Await and selection drive the selected operation, preserve canonical reduction order, and release the queue slot before provider execution. Queued cancellation removes the slot and releases resources without running provider code. This stage-0 profile establishes portable queue semantics. It does not claim a native readiness or kernel completion adapter.
 
 ## Cancellation and uncertainty
 

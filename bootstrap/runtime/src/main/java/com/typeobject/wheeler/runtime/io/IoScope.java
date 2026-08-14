@@ -18,6 +18,7 @@ public final class IoScope implements AutoCloseable {
   enum Mode {
     INLINE,
     DELAYED,
+    COMPLETION,
     THREADED
   }
 
@@ -34,8 +35,11 @@ public final class IoScope implements AutoCloseable {
   private final String backend;
   private final IoLimits limits;
   private final ThreadedIo.Dispatcher dispatcher;
+  private final int completionQueueDepth;
+  private final int[] queuedByLane;
   private final Map<Long, IoOperation<?>> active = new LinkedHashMap<>();
   private final Set<Long> delayed = new LinkedHashSet<>();
+  private final Map<Long, Integer> completionLanes = new LinkedHashMap<>();
   private long nextOperation = 1;
   private long chargedWork;
   private int terminalCount;
@@ -47,13 +51,32 @@ public final class IoScope implements AutoCloseable {
       String backend,
       IoLimits limits,
       ThreadedIo.Dispatcher dispatcher) {
+    this(scopeId, mode, backend, limits, dispatcher, 0, 0);
+  }
+
+  IoScope(
+      long scopeId,
+      Mode mode,
+      String backend,
+      IoLimits limits,
+      ThreadedIo.Dispatcher dispatcher,
+      int completionQueueCount,
+      int completionQueueDepth) {
     this.mode = Objects.requireNonNull(mode, "mode");
     this.backend = Objects.requireNonNull(backend, "backend");
     this.limits = Objects.requireNonNull(limits, "limits");
     this.operationBase = Math.multiplyExact(scopeId, limits.maxOperations() + 1L);
     this.dispatcher = dispatcher;
+    this.completionQueueDepth = completionQueueDepth;
+    this.queuedByLane = new int[completionQueueCount];
     if ((mode == Mode.THREADED) != (dispatcher != null)) {
       throw new IllegalArgumentException("threaded mode and dispatcher must agree");
+    }
+    if ((mode == Mode.COMPLETION) != (completionQueueCount > 0)) {
+      throw new IllegalArgumentException("completion mode and queues must agree");
+    }
+    if (mode == Mode.COMPLETION && completionQueueDepth < 1) {
+      throw new IllegalArgumentException("completion queue depth must be positive");
     }
   }
 
@@ -212,7 +235,7 @@ public final class IoScope implements AutoCloseable {
         operation.request().requestCancellation();
         return false;
       }
-      delayed.remove(operation.id());
+      removeQueued(operation.id());
       operation.request().releaseResources();
       operation.complete(new IoCompletion<>(
           operation.id(),
@@ -277,9 +300,9 @@ public final class IoScope implements AutoCloseable {
     if (mode == Mode.INLINE) {
       execute(operation);
     } else if (mode == Mode.DELAYED) {
-      if (!delayed.add(operation.id())) {
-        throw new IllegalStateException("graph operation activated more than once");
-      }
+      queueDelayed(operation.id());
+    } else if (mode == Mode.COMPLETION) {
+      queueCompletion(operation.id());
     } else {
       dispatcher.submit(() -> executeThreaded(operation));
     }
@@ -290,11 +313,40 @@ public final class IoScope implements AutoCloseable {
     if (operation.isTerminal()) {
       return;
     }
-    if (mode == Mode.DELAYED && !delayed.remove(operation.id())) {
-      throw new IllegalStateException("delayed operation is not queued: " + operation.id());
+    if ((mode == Mode.DELAYED || mode == Mode.COMPLETION)
+        && !removeQueued(operation.id())) {
+      throw new IllegalStateException("operation is not queued: " + operation.id());
     }
     operation.markStarted();
     finishExecution(operation, runProvider(operation));
+  }
+
+  private void queueDelayed(long operationId) {
+    if (!delayed.add(operationId)) {
+      throw new IllegalStateException("graph operation activated more than once");
+    }
+  }
+
+  private void queueCompletion(long operationId) {
+    queueDelayed(operationId);
+    for (int lane = 0; lane < queuedByLane.length; lane++) {
+      if (queuedByLane[lane] < completionQueueDepth) {
+        queuedByLane[lane]++;
+        completionLanes.put(operationId, lane);
+        return;
+      }
+    }
+    delayed.remove(operationId);
+    throw new IllegalStateException("completion queue capacity exceeded");
+  }
+
+  private boolean removeQueued(long operationId) {
+    boolean removed = delayed.remove(operationId);
+    Integer lane = completionLanes.remove(operationId);
+    if (lane != null) {
+      queuedByLane[lane]--;
+    }
+    return removed;
   }
 
   private <T> void executeThreaded(IoOperation<T> operation) {
