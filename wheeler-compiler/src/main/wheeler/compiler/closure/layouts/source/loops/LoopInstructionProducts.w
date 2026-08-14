@@ -217,9 +217,9 @@ classical class LoopInstructionProducts {
     return selected;
   }
 
-  /// Emits every validated root loop and its nested loop windows atomically.
+  /// Publishes planned body coordinates and emits every root and nested loop atomically.
   public LoopInstructionProductPlan writeLoopInstructionProducts(
-    boolean correctPlannedStarts,
+    boolean publishPlannedCoordinates,
     long loopCount,
     borrow mut words conditionRows,
     borrow mut words loopRows,
@@ -254,7 +254,7 @@ classical class LoopInstructionProducts {
     assert(nestedCount < BODY_COUNT_LIMIT + 1);
     assert(bufferLength(nestedRows) == NESTED_ROWS);
     assert(bufferLength(loopLocalBases) == LOOP_COUNT_LIMIT);
-    if (correctPlannedStarts) {
+    if (publishPlannedCoordinates) {
       assert(bufferLength(statementPhysicalStarts) == MAX_STATEMENTS);
     }
 
@@ -376,7 +376,7 @@ classical class LoopInstructionProducts {
       loop += 1;
     }
 
-    if (correctPlannedStarts) {
+    if (publishPlannedCoordinates) {
       long plannedBody = 0;
       while (plannedBody < bodyCount) limit BODY_COUNT_LIMIT {
         long plannedStatement = stagedBodies[plannedBody];
@@ -523,6 +523,14 @@ classical class LoopInstructionProducts {
       }
 
       loop += 1;
+    }
+
+    if (publishPlannedCoordinates) {
+      row = 0;
+      while (row < BODY_ROWS) limit BODY_ROWS {
+        set(bodyRows, row, stagedBodies[row]);
+        row += 1;
+      }
     }
 
     long cursor = 0;
