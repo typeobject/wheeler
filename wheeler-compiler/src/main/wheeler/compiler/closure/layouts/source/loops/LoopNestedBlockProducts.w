@@ -7,13 +7,13 @@ import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
 import wheeler.compiler.opcodes;
-import wheeler.compiler.resolved_statements;
 
 classical class LoopNestedBlockProducts {
   private const long BLOCK_COUNT_LIMIT = 1024;
   private const long BLOCK_PARENT_ROW = 1024;
   private const long BLOCK_ROWS = 6144;
   private const long BODY_COUNT_LIMIT = 4096;
+  private const long CONDITION_BOOLEAN = 3;
   private const long CONDITION_EQ_LITERAL = 1;
   private const long CONDITION_LT_LITERAL = 2;
   private const long MAX_CODE_BYTES = 262144;
@@ -127,7 +127,9 @@ classical class LoopNestedBlockProducts {
     boolean valid = true;
     if (conditionKind != CONDITION_EQ_LITERAL) {
       if (conditionKind != CONDITION_LT_LITERAL) {
-        valid = false;
+        if (conditionKind != CONDITION_BOOLEAN) {
+          valid = false;
+        }
       }
     }
 
@@ -143,8 +145,14 @@ classical class LoopNestedBlockProducts {
       valid = false;
     }
 
-    if (253 < conditionLocalBase) {
-      valid = false;
+    if (conditionKind == CONDITION_BOOLEAN) {
+      if (255 < conditionLocalBase) {
+        valid = false;
+      }
+    } else {
+      if (253 < conditionLocalBase) {
+        valid = false;
+      }
     }
 
     long childBlock = statementRows[STATEMENT_FIRST_CHILD_ROW + parentStatement];
@@ -179,6 +187,8 @@ classical class LoopNestedBlockProducts {
       }
     }
 
+    long bodyInstructionCount = 0;
+    long bodyLength = 0;
     long childOffset = 0;
     while (childOffset < selectedBodyCount) limit 64 {
       long childStatement = childStatementAt(
@@ -199,12 +209,18 @@ classical class LoopNestedBlockProducts {
           valid = false;
         } else {
           long opcode = bodyRows[BODY_OPCODE_ROW + body];
-          if (opcode < STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE) {
+          LoopBodyInstructionExtent extent = loopBodyInstructionExtent(
+            opcode,
+            bodyRows[BODY_OPERAND_ROW + body]
+          );
+          if (extent.valid == false) {
             valid = false;
-          }
-
-          if (STATEMENT_LOCAL_UPDATE_ADD_LOCAL_BASE - 1 < opcode) {
-            valid = false;
+          } else {
+            bodyInstructionCount += extent.instructionCount;
+            bodyLength += extent.length;
+            if (MAX_CODE_BYTES < bodyLength) {
+              valid = false;
+            }
           }
         }
       }
@@ -212,8 +228,15 @@ classical class LoopNestedBlockProducts {
       childOffset += 1;
     }
 
-    long requiredLength = 120 + selectedBodyCount * 56;
-    long requiredInstructions = 5 + selectedBodyCount * 2;
+    long guardLength = 104;
+    long guardInstructionCount = 4;
+    if (conditionKind == CONDITION_BOOLEAN) {
+      guardLength = 48;
+      guardInstructionCount = 2;
+    }
+
+    long requiredLength = guardLength + bodyLength + 16;
+    long requiredInstructions = guardInstructionCount + bodyInstructionCount + 1;
     if (MAX_CODE_BYTES < requiredLength) {
       valid = false;
     }
@@ -232,35 +255,40 @@ classical class LoopNestedBlockProducts {
     );
     cursor = writeUnsignedLittleEndian(stagedCode, cursor, conditionLocalBase, U64);
     cursor = writeUnsignedLittleEndian(stagedCode, cursor, conditionLocal, U64);
-    cursor = writeInstructionHeader(
-      stagedCode,
-      cursor,
-      OPCODE_LOCAL_CONST,
-      INSTRUCTION_FORM_BINARY
-    );
-    cursor = writeUnsignedLittleEndian(stagedCode, cursor, conditionLocalBase + 1, U64);
-    cursor = writeSignedLittleEndian(stagedCode, cursor, conditionLiteral, U64);
-    long comparisonOpcode = OPCODE_LOCAL_EQ;
-    if (conditionKind == CONDITION_LT_LITERAL) {
-      comparisonOpcode = OPCODE_LOCAL_LT;
+    long conditionResult = conditionLocalBase;
+    if (conditionKind != CONDITION_BOOLEAN) {
+      cursor = writeInstructionHeader(
+        stagedCode,
+        cursor,
+        OPCODE_LOCAL_CONST,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(stagedCode, cursor, conditionLocalBase + 1, U64);
+      cursor = writeSignedLittleEndian(stagedCode, cursor, conditionLiteral, U64);
+      long comparisonOpcode = OPCODE_LOCAL_EQ;
+      if (conditionKind == CONDITION_LT_LITERAL) {
+        comparisonOpcode = OPCODE_LOCAL_LT;
+      }
+
+      cursor = writeInstructionHeader(
+        stagedCode,
+        cursor,
+        comparisonOpcode,
+        INSTRUCTION_FORM_TERNARY
+      );
+      cursor = writeUnsignedLittleEndian(stagedCode, cursor, conditionLocalBase + 2, U64);
+      cursor = writeUnsignedLittleEndian(stagedCode, cursor, conditionLocalBase, U64);
+      cursor = writeUnsignedLittleEndian(stagedCode, cursor, conditionLocalBase + 1, U64);
+      conditionResult = conditionLocalBase + 2;
     }
 
-    cursor = writeInstructionHeader(
-      stagedCode,
-      cursor,
-      comparisonOpcode,
-      INSTRUCTION_FORM_TERNARY
-    );
-    cursor = writeUnsignedLittleEndian(stagedCode, cursor, conditionLocalBase + 2, U64);
-    cursor = writeUnsignedLittleEndian(stagedCode, cursor, conditionLocalBase, U64);
-    cursor = writeUnsignedLittleEndian(stagedCode, cursor, conditionLocalBase + 1, U64);
     cursor = writeInstructionHeader(
       stagedCode,
       cursor,
       OPCODE_JUMP_IF_ZERO,
       INSTRUCTION_FORM_BINARY
     );
-    cursor = writeUnsignedLittleEndian(stagedCode, cursor, conditionLocalBase + 2, U64);
+    cursor = writeUnsignedLittleEndian(stagedCode, cursor, conditionResult, U64);
     cursor = writeUnsignedLittleEndian(
       stagedCode,
       cursor,

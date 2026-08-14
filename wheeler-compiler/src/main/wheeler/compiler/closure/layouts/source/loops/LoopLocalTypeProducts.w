@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.loop_local_type_products;
 
+import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.loop_body_opcodes;
 import wheeler.compiler.resolved_statements;
@@ -39,60 +40,6 @@ classical class LoopLocalTypeProducts {
     }
 
     return selected;
-  }
-
-  private long bodyLocalCount(long opcode) {
-    if (opcode == 769) {
-      return 2;
-    }
-
-    if (STATEMENT_LOCAL_LONG_COPY_BASE - 1 < opcode) {
-      if (opcode < STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE) {
-        return 2;
-      }
-    }
-
-    if (STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE - 1 < opcode) {
-      if (opcode < STATEMENT_LOCAL_UPDATE_XOR_LOCAL_BASE + MAX_LOCALS) {
-        return 1;
-      }
-    }
-
-    if (STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE - 1 < opcode) {
-      if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + MAX_LOCALS) {
-        return 1;
-      }
-    }
-
-    if (BODY_ASSERT_EQ_LITERAL_BASE - 1 < opcode) {
-      if (opcode < BODY_ASSERT_LT_LITERAL_BASE + MAX_LOCALS) {
-        return 3;
-      }
-    }
-
-    if (opcode == BODY_BOOLEAN_LITERAL) {
-      return 2;
-    }
-
-    if (opcode == BODY_ASSERT_BOOLEAN) {
-      return 1;
-    }
-
-    if (BODY_ASSIGN_BOOLEAN_LITERAL_BASE - 1 < opcode) {
-      if (opcode < BODY_ASSIGN_BOOLEAN_LOCAL_BASE + MAX_LOCALS) {
-        return 1;
-      }
-    }
-
-    if (opcode == BODY_WORDS_GET) {
-      return 3;
-    }
-
-    if (opcode == BODY_WORDS_SET) {
-      return 2;
-    }
-
-    return -1;
   }
 
   private long appendType(borrow mut words rows, long type, long owner, long local, long code) {
@@ -181,7 +128,10 @@ classical class LoopLocalTypeProducts {
         if (body < 0) {
           valid = false;
         } else {
-          long localCount = bodyLocalCount(bodyRows[BODY_OPCODE_ROW + body]);
+          long localCount = loopBodyLocalCount(
+            bodyRows[BODY_OPCODE_ROW + body],
+            bodyRows[BODY_OPERAND_ROW + body]
+          );
           if (localCount < 0) {
             valid = false;
           }
@@ -209,9 +159,27 @@ classical class LoopLocalTypeProducts {
                 }
               }
 
-              if (localCount == 3) {
-                if (localOffset == 2) {
-                  localType = TYPE_BOOLEAN;
+              if (BODY_ASSERT_EQ_LITERAL_BASE - 1 < bodyOpcode) {
+                if (bodyOpcode < BODY_BOOLEAN_LITERAL) {
+                  if (localOffset == 2) {
+                    localType = TYPE_BOOLEAN;
+                  }
+                }
+              }
+
+              if (bodyOpcode == BODY_WORDS_GET) {
+                if (0 < bodyRows[BODY_OPERAND_ROW + body] / 65536) {
+                  if (localOffset == 0) {
+                    localType = TYPE_WORDS_BORROW;
+                  }
+                }
+              }
+
+              if (bodyOpcode == BODY_WORDS_SET) {
+                if (0 < bodyRows[BODY_OPERAND_ROW + body] / 16777216) {
+                  if (localOffset == 0) {
+                    localType = TYPE_WORDS_BORROW;
+                  }
                 }
               }
 

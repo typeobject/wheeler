@@ -3,8 +3,10 @@
 module wheeler.compiler.closure.resolved_loop_body_products;
 
 import wheeler.compiler.boolean_tokens;
+import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
+import wheeler.compiler.closure.loop_buffer_operands;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.loop_body_opcodes;
@@ -73,9 +75,7 @@ classical class ResolvedLoopBodyProducts {
     while (statement < statementCount) limit MAX_STATEMENTS {
       long childCount = statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement];
       if (0 < statementRows[4096 + statement]) {
-        if (childCount != 0) {
-          valid = false;
-        } else {
+        if (childCount == 0) {
           long owner = statementRows[statement];
           long ordinal = statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement];
           long start = statementRows[LOOP_STATEMENT_START_ROW + statement];
@@ -198,44 +198,33 @@ classical class ResolvedLoopBodyProducts {
                         );
                         if (indexValue.valid) {
                           if (
-                            wordsLoopBodyLocal(
+                            punctuationAt(
+                              source,
+                              tokenKinds,
+                              tokenStarts,
+                              sourceToken + 3,
+                              PUNCTUATION_CLOSE_SQUARE
+                            )
+                          ) {
+                            LoopBufferOperand read = resolveLoopBufferReadOperand(
                               source,
                               owner,
                               sourceValue.local,
+                              indexValue.local,
                               valueCount,
                               valueRows,
                               semanticCount,
                               tokenStarts,
                               tokenLengths
-                            )
-                          ) {
-                            if (
-                              signedLoopBodyLocal(
-                                source,
-                                owner,
-                                indexValue.local,
-                                valueCount,
-                                valueRows,
-                                semanticCount,
-                                tokenStarts,
-                                tokenLengths
-                              )
-                            ) {
-                              if (
-                                punctuationAt(
-                                  source,
-                                  tokenKinds,
-                                  tokenStarts,
-                                  sourceToken + 3,
-                                  PUNCTUATION_CLOSE_SQUARE
-                                )
-                              ) {
-                                localBase = localBase - 1;
-                                opcode = BODY_WORDS_GET;
-                                operand = sourceValue.local * 256 + indexValue.local;
-                              } else {
-                                statementValid = false;
+                            );
+                            if (read.valid) {
+                              localBase = localBase - 1;
+                              if (0 < read.operand / 65536) {
+                                localBase -= 1;
                               }
+
+                              opcode = BODY_WORDS_GET;
+                              operand = read.operand;
                             } else {
                               statementValid = false;
                             }
@@ -332,51 +321,24 @@ classical class ResolvedLoopBodyProducts {
                   }
 
                   if (statementValid) {
-                    if (
-                      wordsLoopBodyLocal(
-                        source,
-                        owner,
-                        writeOwner.local,
-                        valueCount,
-                        valueRows,
-                        semanticCount,
-                        tokenStarts,
-                        tokenLengths
-                      )
-                    ) {
-                      if (
-                        signedLoopBodyLocal(
-                          source,
-                          owner,
-                          writeIndex.local,
-                          valueCount,
-                          valueRows,
-                          semanticCount,
-                          tokenStarts,
-                          tokenLengths
-                        )
-                      ) {
-                        statementValid = signedLoopBodyLocal(
-                          source,
-                          owner,
-                          writeValue.local,
-                          valueCount,
-                          valueRows,
-                          semanticCount,
-                          tokenStarts,
-                          tokenLengths
-                        );
-                      } else {
-                        statementValid = false;
-                      }
+                    LoopBufferOperand write = resolveLoopBufferWriteOperand(
+                      source,
+                      owner,
+                      writeOwner.local,
+                      writeIndex.local,
+                      writeValue.local,
+                      valueCount,
+                      valueRows,
+                      semanticCount,
+                      tokenStarts,
+                      tokenLengths
+                    );
+                    if (write.valid) {
+                      opcode = BODY_WORDS_SET;
+                      operand = write.operand;
                     } else {
                       statementValid = false;
                     }
-                  }
-
-                  if (statementValid) {
-                    opcode = BODY_WORDS_SET;
-                    operand = writeOwner.local * 65536 + writeIndex.local * 256 + writeValue.local;
                   }
                 } else {
                   if (
@@ -789,39 +751,58 @@ classical class ResolvedLoopBodyProducts {
             set(stagedRows, BODY_OPCODE_ROW + bodyCount, opcode);
             set(stagedRows, BODY_OPERAND_KIND_ROW + bodyCount, operandKind);
             set(stagedRows, BODY_OPERAND_ROW + bodyCount, operand);
-            long localCount = 1;
-            if (BODY_ASSERT_EQ_LITERAL_BASE - 1 < opcode) {
-              if (opcode < BODY_BOOLEAN_LITERAL) {
-                localCount = 3;
-              }
+            long localCount = loopBodyLocalCount(opcode, operand);
+            if (localCount < 0) {
+              valid = false;
+            } else {
+              set(nextBodyLocals, owner, localBase + localCount);
+              bodyCount += 1;
             }
-
-            if (opcode == STATEMENT_LOCAL_LONG) {
-              localCount = 2;
-            }
-
-            if (opcode == BODY_BOOLEAN_LITERAL) {
-              localCount = 2;
-            }
-
-            if (opcode == BODY_WORDS_GET) {
-              localCount = 3;
-            }
-
-            if (opcode == BODY_WORDS_SET) {
-              localCount = 2;
-            }
-
-            if (STATEMENT_LOCAL_LONG_COPY_BASE - 1 < opcode) {
-              if (opcode < STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE) {
-                localCount = 2;
-              }
-            }
-
-            set(nextBodyLocals, owner, localBase + localCount);
-            bodyCount += 1;
           } else {
             valid = false;
+          }
+        } else {
+          long controlOwner = statementRows[statement];
+          long controlOrdinal = statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement];
+          long controlStart = statementRows[LOOP_STATEMENT_START_ROW + statement];
+          long controlToken = tokenAtStart(controlStart, semanticCount, tokenStarts);
+          if (controlToken < 0) {
+            valid = false;
+          } else {
+            if (
+              tokenHash(source, tokenStarts, tokenLengths, controlToken) != TOKEN_IF
+            ) {
+              valid = false;
+            } else {
+              long controlLocalBase = localBaseAtOrdinal(
+                controlOwner,
+                controlOrdinal,
+                valueCount,
+                valueRows
+              );
+              if (controlLocalBase < nextBodyLocals[controlOwner]) {
+                controlLocalBase = nextBodyLocals[controlOwner];
+              }
+
+              long controlLocalCount = 3;
+              if (
+                punctuationAt(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  controlToken + 3,
+                  PUNCTUATION_CLOSE_PAREN
+                )
+              ) {
+                controlLocalCount = 1;
+              }
+
+              if (255 < controlLocalBase + controlLocalCount) {
+                valid = false;
+              } else {
+                set(nextBodyLocals, controlOwner, controlLocalBase + controlLocalCount);
+              }
+            }
           }
         }
       }

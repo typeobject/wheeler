@@ -14,6 +14,129 @@ classical class LoopBodyInstructionEncoding {
   private const long OPERAND_LOCAL = 1;
   private const long U64 = ENCODING_WIDTH_U64;
 
+  /// Reports the canonical instruction and byte extent of one direct statement.
+  public record LoopBodyInstructionExtent(long instructionCount, long length, boolean valid) {}
+
+  /// Measures one resolved direct statement without writing caller storage.
+  public LoopBodyInstructionExtent loopBodyInstructionExtent(long opcode, long operand) {
+    if (opcode == BODY_WORDS_GET) {
+      if (0 < operand / 65536) {
+        return new LoopBodyInstructionExtent(4, 104, true);
+      }
+
+      return new LoopBodyInstructionExtent(3, 80, true);
+    }
+
+    if (opcode == BODY_WORDS_SET) {
+      if (0 < operand / 16777216) {
+        return new LoopBodyInstructionExtent(4, 104, true);
+      }
+
+      return new LoopBodyInstructionExtent(3, 80, true);
+    }
+
+    if (opcode == BODY_BOOLEAN_LITERAL) {
+      return new LoopBodyInstructionExtent(2, 48, true);
+    }
+
+    if (opcode == BODY_ASSERT_BOOLEAN) {
+      return new LoopBodyInstructionExtent(2, 40, true);
+    }
+
+    if (opcode == 769) {
+      return new LoopBodyInstructionExtent(2, 48, true);
+    }
+
+    if (STATEMENT_LOCAL_LONG_COPY_BASE - 1 < opcode) {
+      if (opcode < STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE) {
+        return new LoopBodyInstructionExtent(2, 48, true);
+      }
+
+      if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE) {
+        return new LoopBodyInstructionExtent(2, 56, true);
+      }
+
+      if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + 256) {
+        return new LoopBodyInstructionExtent(2, 48, true);
+      }
+
+      if (opcode < BODY_ASSERT_LT_LITERAL_BASE + 256) {
+        return new LoopBodyInstructionExtent(4, 96, true);
+      }
+    }
+
+    if (BODY_ASSIGN_BOOLEAN_LITERAL_BASE - 1 < opcode) {
+      if (opcode < BODY_ASSIGN_BOOLEAN_LOCAL_BASE + 256) {
+        return new LoopBodyInstructionExtent(2, 48, true);
+      }
+    }
+
+    return new LoopBodyInstructionExtent(0, 0, false);
+  }
+
+  /// Reports the exact local suffix width of one resolved direct statement.
+  public long loopBodyLocalCount(long opcode, long operand) {
+    if (opcode == 769) {
+      return 2;
+    }
+
+    if (STATEMENT_LOCAL_LONG_COPY_BASE - 1 < opcode) {
+      if (opcode < STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE) {
+        return 2;
+      }
+    }
+
+    if (STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE - 1 < opcode) {
+      if (opcode < STATEMENT_LOCAL_UPDATE_XOR_LOCAL_BASE + 256) {
+        return 1;
+      }
+    }
+
+    if (STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE - 1 < opcode) {
+      if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + 256) {
+        return 1;
+      }
+    }
+
+    if (BODY_ASSERT_EQ_LITERAL_BASE - 1 < opcode) {
+      if (opcode < BODY_ASSERT_LT_LITERAL_BASE + 256) {
+        return 3;
+      }
+    }
+
+    if (opcode == BODY_BOOLEAN_LITERAL) {
+      return 2;
+    }
+
+    if (opcode == BODY_ASSERT_BOOLEAN) {
+      return 1;
+    }
+
+    if (BODY_ASSIGN_BOOLEAN_LITERAL_BASE - 1 < opcode) {
+      if (opcode < BODY_ASSIGN_BOOLEAN_LOCAL_BASE + 256) {
+        return 1;
+      }
+    }
+
+    if (opcode == BODY_WORDS_GET) {
+      if (0 < operand / 65536) {
+        return 4;
+      }
+
+      return 3;
+    }
+
+    if (opcode == BODY_WORDS_SET) {
+      if (0 < operand / 16777216) {
+        return 3;
+      }
+
+      return 2;
+    }
+
+    return -1;
+  }
+
   /// Writes one resolved literal or local operand.
   public long writeLoopInstructionOperand(
     borrow mut bytes output,
@@ -63,64 +186,105 @@ classical class LoopBodyInstructionEncoding {
     }
 
     if (opcode == BODY_WORDS_GET) {
-      long readOwner = operand / 256;
-      long readIndex = operand % 256;
+      long readBorrowedOwner = operand / 65536;
+      long readOperand = operand % 65536;
+      long readOwner = readOperand / 256;
+      long readIndex = readOperand % 256;
+      long readNextLocal = localBase;
+      long readOwnerOperand = readOwner;
+      if (0 < readBorrowedOwner) {
+        cursor = writeInstructionHeader(
+          output,
+          cursor,
+          OPCODE_LOCAL_MOVE,
+          INSTRUCTION_FORM_BINARY
+        );
+        cursor = writeUnsignedLittleEndian(output, cursor, readNextLocal, U64);
+        cursor = writeUnsignedLittleEndian(output, cursor, readOwner, U64);
+        readOwnerOperand = readNextLocal;
+        readNextLocal += 1;
+      }
+
       cursor = writeInstructionHeader(
         output,
         cursor,
         OPCODE_LOCAL_MOVE,
         INSTRUCTION_FORM_BINARY
       );
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, readNextLocal, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, readIndex, U64);
+      long readIndexOperand = readNextLocal;
+      readNextLocal += 1;
       cursor = writeInstructionHeader(
         output,
         cursor,
         OPCODE_WORDS_GET,
         INSTRUCTION_FORM_TERNARY
       );
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, readOwner, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, readNextLocal, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, readOwnerOperand, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, readIndexOperand, U64);
+      long readResult = readNextLocal;
+      readNextLocal += 1;
       cursor = writeInstructionHeader(
         output,
         cursor,
         OPCODE_LOCAL_MOVE,
         INSTRUCTION_FORM_BINARY
       );
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
-      return writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, readNextLocal, U64);
+      return writeUnsignedLittleEndian(output, cursor, readResult, U64);
     }
 
     if (opcode == BODY_WORDS_SET) {
-      long writeOwner = operand / 65536;
-      long writeIndex = operand / 256 % 256;
-      long writeValue = operand % 256;
+      long writeBorrowedOwner = operand / 16777216;
+      long writeOperand = operand % 16777216;
+      long writeOwner = writeOperand / 65536;
+      long writeIndex = writeOperand / 256 % 256;
+      long writeValue = writeOperand % 256;
+      long writeNextLocal = localBase;
+      long writeOwnerOperand = writeOwner;
+      if (0 < writeBorrowedOwner) {
+        cursor = writeInstructionHeader(
+          output,
+          cursor,
+          OPCODE_LOCAL_MOVE,
+          INSTRUCTION_FORM_BINARY
+        );
+        cursor = writeUnsignedLittleEndian(output, cursor, writeNextLocal, U64);
+        cursor = writeUnsignedLittleEndian(output, cursor, writeOwner, U64);
+        writeOwnerOperand = writeNextLocal;
+        writeNextLocal += 1;
+      }
+
       cursor = writeInstructionHeader(
         output,
         cursor,
         OPCODE_LOCAL_MOVE,
         INSTRUCTION_FORM_BINARY
       );
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, writeNextLocal, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, writeIndex, U64);
+      long writeIndexOperand = writeNextLocal;
+      writeNextLocal += 1;
       cursor = writeInstructionHeader(
         output,
         cursor,
         OPCODE_LOCAL_MOVE,
         INSTRUCTION_FORM_BINARY
       );
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, writeNextLocal, U64);
       cursor = writeUnsignedLittleEndian(output, cursor, writeValue, U64);
+      long writeValueOperand = writeNextLocal;
       cursor = writeInstructionHeader(
         output,
         cursor,
         OPCODE_WORDS_SET,
         INSTRUCTION_FORM_TERNARY
       );
-      cursor = writeUnsignedLittleEndian(output, cursor, writeOwner, U64);
-      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
-      return writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, writeOwnerOperand, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, writeIndexOperand, U64);
+      return writeUnsignedLittleEndian(output, cursor, writeValueOperand, U64);
     }
 
     if (opcode == BODY_ASSERT_BOOLEAN) {

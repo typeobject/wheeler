@@ -261,6 +261,72 @@ classical class LoopBodyValues {
     ) == TOKEN_WORDS;
   }
 
+  /// Reports whether one borrowed-word local requires an owner reborrow temporary.
+  public boolean borrowedWordsLoopBodyLocal(
+    borrow utf8 source,
+    long owner,
+    long local,
+    long valueCount,
+    borrow mut words valueRows,
+    long tokenCount,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    if (
+      loopBodyValueType(
+        source,
+        owner,
+        local,
+        valueCount,
+        valueRows,
+        tokenCount,
+        tokenStarts,
+        tokenLengths
+      ) != TOKEN_WORDS
+    ) {
+      return false;
+    }
+
+    long selected = -1;
+    long matches = 0;
+    long value = 0;
+    while (value < valueCount) limit VALUE_COUNT_LIMIT {
+      if (valueRows[value] == owner) {
+        if (valueRows[VALUE_LOCAL_ROW + value] == local) {
+          selected = value;
+          matches += 1;
+        }
+      }
+
+      value += 1;
+    }
+
+    if (matches != 1) {
+      return false;
+    }
+
+    long nameToken = tokenAtRange(
+      valueRows[VALUE_NAME_START_ROW + selected],
+      valueRows[VALUE_NAME_LENGTH_ROW + selected],
+      tokenCount,
+      tokenStarts,
+      tokenLengths
+    );
+    if (1 < nameToken) {
+      if (tokenHash(source, tokenStarts, tokenLengths, nameToken - 2) == TOKEN_BORROW) {
+        return true;
+      }
+    }
+
+    if (2 < nameToken) {
+      if (tokenHash(source, tokenStarts, tokenLengths, nameToken - 3) == TOKEN_BORROW) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   /// Returns the source type token hash for one unique callable local.
   public long loopBodyValueType(
     borrow utf8 source,

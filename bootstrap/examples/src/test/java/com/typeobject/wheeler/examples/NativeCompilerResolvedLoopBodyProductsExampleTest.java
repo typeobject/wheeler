@@ -65,10 +65,25 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
   }
 
   @Test
+  void resolvesNestedLeavesWithoutClaimingTheirControlParent() throws Exception {
+    String nested = SOURCE.replace(
+        "cursor += delta;",
+        "if (ready) { cursor += delta; }");
+    VirtualMachine machine = new VirtualMachine(
+        program(nested, false),
+        nested.getBytes(StandardCharsets.UTF_8),
+        1);
+
+    machine.run();
+
+    assertEquals(1, machine.global("valid"));
+    assertEquals(11, machine.global("bodyCount"));
+  }
+
+  @Test
   void rejectsUnsupportedAndAmbiguousBodyRowsWithoutPublishing() throws Exception {
     for (TestCase testCase : new TestCase[] {
         new TestCase(SOURCE.replace("cursor += delta;", "return;"), false),
-        new TestCase(SOURCE.replace("cursor += delta;", "if (ready) { cursor += delta; }"), false),
         new TestCase(SOURCE.replace("ready = false;", "ready = 0;"), false),
         new TestCase(SOURCE, true)
     }) {

@@ -143,64 +143,15 @@ classical class LoopInstructionProducts {
           valid = false;
         } else {
           long opcode = stagedBodies[BODY_OPCODE_ROW + body];
-          if (opcode == BODY_WORDS_GET) {
-            requiredLength += 80;
-            instructionCount += 3;
+          LoopBodyInstructionExtent extent = loopBodyInstructionExtent(
+            opcode,
+            stagedBodies[BODY_OPERAND_ROW + body]
+          );
+          if (extent.valid == false) {
+            valid = false;
           } else {
-            if (opcode == BODY_WORDS_SET) {
-              requiredLength += 80;
-              instructionCount += 3;
-            } else {
-              if (opcode == BODY_BOOLEAN_LITERAL) {
-                requiredLength += 48;
-                instructionCount += 2;
-              } else {
-                if (opcode == BODY_ASSERT_BOOLEAN) {
-                  requiredLength += 40;
-                  instructionCount += 2;
-                } else {
-                  if (opcode == 769) {
-                    requiredLength += 48;
-                    instructionCount += 2;
-                  } else {
-                    if (STATEMENT_LOCAL_LONG_COPY_BASE - 1 < opcode) {
-                      if (opcode < STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE) {
-                        requiredLength += 48;
-                        instructionCount += 2;
-                      } else {
-                        if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE) {
-                          requiredLength += 56;
-                          instructionCount += 2;
-                        } else {
-                          if (opcode < STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + 256) {
-                            requiredLength += 48;
-                            instructionCount += 2;
-                          } else {
-                            if (opcode < BODY_ASSERT_LT_LITERAL_BASE + 256) {
-                              requiredLength += 96;
-                              instructionCount += 4;
-                            } else {
-                              if (BODY_ASSIGN_BOOLEAN_LITERAL_BASE - 1 < opcode) {
-                                if (opcode < BODY_ASSIGN_BOOLEAN_LOCAL_BASE + 256) {
-                                  requiredLength += 48;
-                                  instructionCount += 2;
-                                } else {
-                                  valid = false;
-                                }
-                              } else {
-                                valid = false;
-                              }
-                            }
-                          }
-                        }
-                      }
-                    } else {
-                      valid = false;
-                    }
-                  }
-                }
-              }
-            }
+            requiredLength += extent.length;
+            instructionCount += extent.instructionCount;
           }
         }
 
@@ -310,8 +261,10 @@ classical class LoopInstructionProducts {
         );
         long emittedOperand = stagedBodies[BODY_OPERAND_ROW + emittedBody];
         if (emittedOpcode == BODY_WORDS_GET) {
-          long readOwner = emittedOperand / 256;
-          long readIndex = emittedOperand % 256;
+          long readBorrowedOwner = emittedOperand / 65536;
+          long readOperand = emittedOperand % 65536;
+          long readOwner = readOperand / 256;
+          long readIndex = readOperand % 256;
           if (localBase < readOwner + 1) {
             readOwner += bodyLocalBias;
           }
@@ -320,12 +273,18 @@ classical class LoopInstructionProducts {
             readIndex += bodyLocalBias;
           }
 
-          set(stagedBodies, BODY_OPERAND_ROW + emittedBody, readOwner * 256 + readIndex);
+          set(
+            stagedBodies,
+            BODY_OPERAND_ROW + emittedBody,
+            readBorrowedOwner * 65536 + readOwner * 256 + readIndex
+          );
         } else {
           if (emittedOpcode == BODY_WORDS_SET) {
-            long writeOwner = emittedOperand / 65536;
-            long writeIndex = emittedOperand / 256 % 256;
-            long writeValue = emittedOperand % 256;
+            long writeBorrowedOwner = emittedOperand / 16777216;
+            long writeOperand = emittedOperand % 16777216;
+            long writeOwner = writeOperand / 65536;
+            long writeIndex = writeOperand / 256 % 256;
+            long writeValue = writeOperand % 256;
             if (localBase < writeOwner + 1) {
               writeOwner += bodyLocalBias;
             }
@@ -341,7 +300,7 @@ classical class LoopInstructionProducts {
             set(
               stagedBodies,
               BODY_OPERAND_ROW + emittedBody,
-              writeOwner * 65536 + writeIndex * 256 + writeValue
+              writeBorrowedOwner * 16777216 + writeOwner * 65536 + writeIndex * 256 + writeValue
             );
           } else {
             if (stagedBodies[BODY_OPERAND_KIND_ROW + emittedBody] == OPERAND_LOCAL) {
@@ -358,22 +317,14 @@ classical class LoopInstructionProducts {
         } else {
           cursor = next;
           long writtenOpcode = stagedBodies[BODY_OPCODE_ROW + emittedBody];
-          if (writtenOpcode == BODY_WORDS_GET) {
-            bodyInstructions += 3;
+          LoopBodyInstructionExtent writtenExtent = loopBodyInstructionExtent(
+            writtenOpcode,
+            stagedBodies[BODY_OPERAND_ROW + emittedBody]
+          );
+          if (writtenExtent.valid == false) {
+            valid = false;
           } else {
-            if (writtenOpcode == BODY_WORDS_SET) {
-              bodyInstructions += 3;
-            } else {
-              if (BODY_ASSERT_EQ_LITERAL_BASE - 1 < writtenOpcode) {
-                if (writtenOpcode < BODY_BOOLEAN_LITERAL) {
-                  bodyInstructions += 4;
-                } else {
-                  bodyInstructions += 2;
-                }
-              } else {
-                bodyInstructions += 2;
-              }
-            }
+            bodyInstructions += writtenExtent.instructionCount;
           }
         }
 
