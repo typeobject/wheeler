@@ -303,7 +303,7 @@ Exhaustion is a deterministic diagnostic, never permission to compile unsafely. 
 - [x] Region and child-owner drop ordering is checked, scratch allocations cannot escape a borrowed region, and owner-carrying results preserve their allocation ancestry. Accepted arena graphs release explicitly without tracing. General cyclic typed arena graphs remain outside this profile.
 - [ ] `Box<T>` and collections derive element ownership correctly.
 - [ ] Trap cleanup invokes no user finalizer and external failure remains explicit.
-- [ ] VM rewind restores ownership/storage above the horizon. Generated inverse rejects arbitrary allocation/drop.
+- [x] VM rewind restores region allocations, word, byte, UTF-8, and map state plus ownership availability for every retained transition above the commit horizon. Generated inverse and coherent lifting reject arbitrary allocation, freeze, mutation, and drop operations rather than claiming physical reversal.
 - [ ] Qubit/register copy, implicit drop, sharing, and serialization fail. Split/join/ancilla obligations pass.
 - [ ] `Shared<T>` cannot form a strong cycle through its accepted API.
 - [ ] Pinning is bounded and creates no portable address identity.
