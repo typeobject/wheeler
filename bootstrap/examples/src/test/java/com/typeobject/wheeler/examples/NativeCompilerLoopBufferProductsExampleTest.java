@@ -176,7 +176,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
           state long fourthBodyType = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 974848, /* allocations= */ 16);
+            region products = new region(/* bytes= */ 1007616, /* allocations= */ 17);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -186,6 +186,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
             words values = allocate(products, /* length= */ 7168);
             words bodyRows = allocate(products, /* length= */ 20480);
             words nestedRows = allocate(products, /* length= */ 20480);
+            words statementPhysicalWidths = allocate(products, /* length= */ 4096);
             words loopLocalBases = allocate(products, /* length= */ 256);
             words loopInstructionStarts = allocate(products, /* length= */ 256);
             words loopWindowRows = allocate(products, /* length= */ 768);
@@ -220,7 +221,14 @@ final class NativeCompilerLoopBufferProductsExampleTest {
               input, blockPlan.blockCount, blocks, statements, conditions, loops
             );
             ResolvedLoopBodyPlan bodyPlan = materializeResolvedLoopBodyProducts(
-              input, loopPlan.statementCount, statements, 3, values, bodyRows, nestedRows
+              input,
+              loopPlan.statementCount,
+              statements,
+              3,
+              values,
+              bodyRows,
+              nestedRows,
+              statementPhysicalWidths
             );
             set(conditions, 256, 1);
             set(conditions, 512, 6);
@@ -292,6 +300,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
             drop(loopWindowRows);
             drop(loopInstructionStarts);
             drop(loopLocalBases);
+            drop(statementPhysicalWidths);
             drop(nestedRows);
             drop(bodyRows);
             drop(values);

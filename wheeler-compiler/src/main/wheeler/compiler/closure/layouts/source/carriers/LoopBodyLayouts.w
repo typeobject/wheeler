@@ -24,7 +24,7 @@ classical class LoopBodyLayouts {
   /// Row containing each closed operand.
   public const long BODY_OPERAND_ROW = 16384;
   /// Bytes reserved by the atomic body-resolution arena.
-  public const long LOOP_BODY_RESOLUTION_ARENA_BYTES = 460288;
+  public const long LOOP_BODY_RESOLUTION_ARENA_BYTES = 493056;
   /// Number of rows in the structured statement product table.
   public const long LOOP_STATEMENT_ROWS = 28672;
   /// Row containing callable-local statement ordinals.

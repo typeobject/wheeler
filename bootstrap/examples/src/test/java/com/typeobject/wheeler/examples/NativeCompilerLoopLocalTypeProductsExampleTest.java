@@ -85,7 +85,7 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
           %s
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 860168, /* allocations= */ 12);
+            region products = new region(/* bytes= */ 892936, /* allocations= */ 13);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -95,6 +95,7 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
             words values = allocate(products, /* length= */ 7168);
             words bodyRows = allocate(products, /* length= */ 20480);
             words nestedRows = allocate(products, /* length= */ 20480);
+            words statementPhysicalWidths = allocate(products, /* length= */ 4096);
             words loopLocalBases = allocate(products, /* length= */ 256);
             words typeRows = allocate(products, /* length= */ 12288);
             words unused = allocate(products, /* length= */ 1);
@@ -142,7 +143,8 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
               /* valueCount= */ 3,
               values,
               bodyRows,
-              nestedRows
+              nestedRows,
+              statementPhysicalWidths
             );
             assert(bodyPlan.valid);
             LoopLocalTypePlan typePlan = materializeLoopLocalTypeProducts(
@@ -166,6 +168,7 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
             drop(unused);
             drop(typeRows);
             drop(loopLocalBases);
+            drop(statementPhysicalWidths);
             drop(nestedRows);
             drop(bodyRows);
             drop(values);

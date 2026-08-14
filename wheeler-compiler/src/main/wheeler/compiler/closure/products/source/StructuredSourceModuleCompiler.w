@@ -129,7 +129,7 @@ classical class StructuredSourceModuleCompiler {
     assert(bufferLength(output) == 32768);
     assert(bufferLength(identity) == 32);
 
-    region products = new region(/* bytes= */ 2115072, /* allocations= */ 23);
+    region products = new region(/* bytes= */ 2147840, /* allocations= */ 24);
     words blocks = allocate(products, /* length= */ 6144);
     words statements = allocate(products, /* length= */ 28672);
     words sourceConditions = allocate(products, /* length= */ 1536);
@@ -139,6 +139,7 @@ classical class StructuredSourceModuleCompiler {
     words statementLocalRows = allocate(products, /* length= */ 8192);
     words bodyRows = allocate(products, /* length= */ 20480);
     words nestedRows = allocate(products, /* length= */ 20480);
+    words statementPhysicalWidths = allocate(products, /* length= */ 4096);
     words resolvedConditions = allocate(products, /* length= */ 1536);
     words resolvedLoops = allocate(products, /* length= */ 2304);
     words loopLocalBases = allocate(products, /* length= */ 256);
@@ -196,7 +197,8 @@ classical class StructuredSourceModuleCompiler {
       valuePlan.valueCount,
       values,
       bodyRows,
-      nestedRows
+      nestedRows,
+      statementPhysicalWidths
     );
     assert(bodyPlan.valid);
     ResolvedLoopProductPlan resolvedPlan = materializeResolvedLoopProducts(
@@ -354,6 +356,7 @@ classical class StructuredSourceModuleCompiler {
     drop(loopLocalBases);
     drop(resolvedLoops);
     drop(resolvedConditions);
+    drop(statementPhysicalWidths);
     drop(nestedRows);
     drop(bodyRows);
     drop(statementLocalRows);

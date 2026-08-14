@@ -113,7 +113,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
           state long length = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 1587248, /* allocations= */ 26);
+            region products = new region(/* bytes= */ 1620016, /* allocations= */ 27);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -123,6 +123,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
             words values = allocate(products, /* length= */ 7168);
             words bodyRows = allocate(products, /* length= */ 20480);
             words nestedRows = allocate(products, /* length= */ 20480);
+            words statementPhysicalWidths = allocate(products, /* length= */ 4096);
             words resolvedConditions = allocate(products, /* length= */ 1536);
             words resolvedLoops = allocate(products, /* length= */ 2304);
             words symbolOwners = allocate(products, /* length= */ 16384);
@@ -185,7 +186,8 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
               /* valueCount= */ 3,
               values,
               bodyRows,
-              nestedRows
+              nestedRows,
+              statementPhysicalWidths
             );
             assert(bodyPlan.valid);
             ResolvedLoopProductPlan resolvedPlan = materializeResolvedLoopProducts(
@@ -248,6 +250,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
             drop(symbolOwners);
             drop(resolvedLoops);
             drop(resolvedConditions);
+            drop(statementPhysicalWidths);
             drop(nestedRows);
             drop(bodyRows);
             drop(values);

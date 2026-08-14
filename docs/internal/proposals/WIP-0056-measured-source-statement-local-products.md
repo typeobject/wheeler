@@ -86,7 +86,8 @@ The producer uses fixed caller-provided rows. It does not allocate per statement
 - [x] WIP-0055 publishes bounded source-ordered coordinate rows independently of storage order.
 - [x] Existing loop and direct producers retain statement identities in their product rows.
 - [x] `SourceValueProducts.w` now stages an 8,192-word statement-local table beside named values and callable counts. Each of up to 4,096 statement product rows retains the exact logical first local and width measured by the source walk. Publication copies all three products only after validation. The source-statement fixture pins parameter-relative declaration, return, and second-callable coordinates. Structured, aggregate, and resolved-loop consumers supply bounded rows without changing existing artifacts.
-- [ ] Resolved body, direct, call, ownership, and return products publish exact physical widths.
+- [x] `ResolvedLoopBodyProducts.w` stages one physical-width row per source statement. Every accepted direct body row records `loopBodyLocalCount`, while nested conditional controls record their exact one- or three-local width. Unsupported rows leave the 4,096-word caller table untouched. Declaration, Boolean, update, buffer, and nested-control fixtures pin the output.
+- [ ] Direct, call, ownership, loop-frame, and return products publish exact physical widths.
 - [ ] Loop code, direct code, local types, and value operands consume planned starts.
 - [ ] The sequential-root regression matches stage 0 byte for byte.
 - [ ] Ordinal frame biases and inferred return maxima are deleted.

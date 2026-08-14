@@ -62,6 +62,8 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
     assertEquals(5, machine.global("fourthOperand"));
     assertEquals(33_541, machine.global("fifthOpcode"));
     assertEquals(33_281, machine.global("sixthOpcode"));
+    assertEquals(2, machine.global("firstPhysicalWidth"));
+    assertEquals(2, machine.global("secondPhysicalWidth"));
   }
 
   @Test
@@ -81,6 +83,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
     assertEquals(1, machine.global("nestedCount"));
     assertEquals(3, machine.global("nestedKind"));
     assertEquals(5, machine.global("nestedConditionLocal"));
+    assertEquals(1, machine.global("nestedPhysicalWidth"));
   }
 
   @Test
@@ -129,6 +132,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
           state long nestedCount = 0;
           state long nestedKind = 0;
           state long nestedConditionLocal = 0;
+          state long nestedPhysicalWidth = 0;
           state long firstStatement = 0;
           state long firstLocalBase = 0;
           state long firstOpcode = 0;
@@ -147,9 +151,11 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
           state long fourthOperand = 0;
           state long fifthOpcode = 0;
           state long sixthOpcode = 0;
+          state long firstPhysicalWidth = 0;
+          state long secondPhysicalWidth = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 759816, /* allocations= */ 10);
+            region products = new region(/* bytes= */ 792584, /* allocations= */ 11);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -159,6 +165,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
             words values = allocate(products, /* length= */ 7168);
             words bodyRows = allocate(products, /* length= */ 20480);
             words nestedRows = allocate(products, /* length= */ 20480);
+            words statementPhysicalWidths = allocate(products, /* length= */ 4096);
             words unused = allocate(products, /* length= */ 1);
             set(bodyStarts, 0, %d);
             set(bodyLengths, 0, %d);
@@ -205,7 +212,8 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
               /* valueCount= */ %d,
               values,
               bodyRows,
-              nestedRows
+              nestedRows,
+              statementPhysicalWidths
             );
             if (bodyPlan.valid) {
               valid = 1;
@@ -214,6 +222,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
             nestedCount = bodyPlan.nestedCount;
             nestedKind = nestedRows[4096];
             nestedConditionLocal = nestedRows[8192];
+            nestedPhysicalWidth = statementPhysicalWidths[nestedRows[0]];
             firstStatement = bodyRows[0];
             firstLocalBase = bodyRows[4096];
             firstOpcode = bodyRows[8192];
@@ -232,8 +241,11 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
             fourthOperand = bodyRows[16387];
             fifthOpcode = bodyRows[8196];
             sixthOpcode = bodyRows[8197];
+            firstPhysicalWidth = statementPhysicalWidths[2];
+            secondPhysicalWidth = statementPhysicalWidths[3];
             setOutputLength(output, 0);
             drop(unused);
+            drop(statementPhysicalWidths);
             drop(nestedRows);
             drop(bodyRows);
             drop(values);

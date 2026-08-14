@@ -41,7 +41,8 @@ classical class ResolvedLoopBodyProducts {
     long valueCount,
     borrow mut words valueRows,
     borrow mut words bodyRows,
-    borrow mut words nestedRows
+    borrow mut words nestedRows,
+    borrow mut words statementPhysicalWidths
   ) {
     assert(-1 < statementCount);
     assert(statementCount < MAX_STATEMENTS + 1);
@@ -51,16 +52,18 @@ classical class ResolvedLoopBodyProducts {
     assert(bufferLength(valueRows) == LOOP_VALUE_ROWS);
     assert(bufferLength(bodyRows) == BODY_ROWS);
     assert(bufferLength(nestedRows) == NESTED_ROWS);
+    assert(bufferLength(statementPhysicalWidths) == MAX_STATEMENTS);
 
     region staging = new region(
       /* bytes= */ LOOP_BODY_RESOLUTION_ARENA_BYTES,
-      /* allocations= */ 6
+      /* allocations= */ 7
     );
     words tokenKinds = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(staging, MAX_COMPILER_TOKENS);
     words stagedRows = allocate(staging, BODY_ROWS);
     words stagedNestedRows = allocate(staging, NESTED_ROWS);
+    words stagedPhysicalWidths = allocate(staging, MAX_STATEMENTS);
     words nextBodyLocals = allocate(staging, 64);
     boolean valid = true;
     long tokenCount = 0;
@@ -716,6 +719,7 @@ classical class ResolvedLoopBodyProducts {
               valid = false;
             } else {
               set(nextBodyLocals, owner, localBase + localCount);
+              set(stagedPhysicalWidths, statement, localCount);
               bodyCount += 1;
             }
           } else {
@@ -730,7 +734,9 @@ classical class ResolvedLoopBodyProducts {
             valid = false;
           } else {
             long controlHash = tokenHash(source, tokenStarts, tokenLengths, controlToken);
-            if (controlHash == TOKEN_WHILE) {} else {
+            if (controlHash == TOKEN_WHILE) {
+              set(stagedPhysicalWidths, statement, 5);
+            } else {
               if (controlHash != TOKEN_IF) {
                 valid = false;
               } else {
@@ -773,6 +779,7 @@ classical class ResolvedLoopBodyProducts {
                     control.literal
                   );
                   set(stagedNestedRows, NESTED_LOCAL_BASE_ROW + nestedCount, controlLocalBase);
+                  set(stagedPhysicalWidths, statement, control.localCount);
                   nestedCount += 1;
                 }
               }
@@ -802,9 +809,16 @@ classical class ResolvedLoopBodyProducts {
         set(nestedRows, row, stagedNestedRows[row]);
         row += 1;
       }
+
+      row = 0;
+      while (row < MAX_STATEMENTS) limit MAX_STATEMENTS {
+        set(statementPhysicalWidths, row, stagedPhysicalWidths[row]);
+        row += 1;
+      }
     }
 
     drop(nextBodyLocals);
+    drop(stagedPhysicalWidths);
     drop(stagedNestedRows);
     drop(stagedRows);
     drop(tokenLengths);
