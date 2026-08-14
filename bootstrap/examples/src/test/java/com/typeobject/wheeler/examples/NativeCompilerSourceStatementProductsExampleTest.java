@@ -40,6 +40,12 @@ final class NativeCompilerSourceStatementProductsExampleTest {
     assertEquals(0, machine.global("parameterLocal"));
     assertEquals(2, machine.global("destinationLocal"));
     assertEquals(4, machine.global("firstFunctionLocals"));
+    assertEquals(1, machine.global("firstStatementLocal"));
+    assertEquals(2, machine.global("firstStatementWidth"));
+    assertEquals(3, machine.global("secondStatementLocal"));
+    assertEquals(1, machine.global("secondStatementWidth"));
+    assertEquals(0, machine.global("thirdStatementLocal"));
+    assertEquals(1, machine.global("thirdStatementWidth"));
   }
 
   @Test
@@ -158,14 +164,21 @@ final class NativeCompilerSourceStatementProductsExampleTest {
           state long parameterLocal = 0;
           state long destinationLocal = 0;
           state long firstFunctionLocals = 0;
+          state long firstStatementLocal = 0;
+          state long firstStatementWidth = 0;
+          state long secondStatementLocal = 0;
+          state long secondStatementWidth = 0;
+          state long thirdStatementLocal = 0;
+          state long thirdStatementWidth = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 320000, /* allocations= */ 5);
+            region products = new region(/* bytes= */ 385536, /* allocations= */ 6);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words statements = allocate(products, /* length= */ 24576);
             words values = allocate(products, /* length= */ 7168);
             words functionLocals = allocate(products, /* length= */ 64);
+            words statementLocals = allocate(products, /* length= */ 8192);
             set(bodyStarts, 0, %d);
             set(bodyLengths, 0, %d);
             set(bodyStarts, 1, %d);
@@ -193,13 +206,20 @@ final class NativeCompilerSourceStatementProductsExampleTest {
                 /* statementStartRow= */ 16384,
                 /* statementLengthRow= */ 20480,
                 values,
-                functionLocals
+                functionLocals,
+                statementLocals
               );
               assert(valuePlan.valid);
               valueCount = valuePlan.valueCount;
               parameterLocal = values[3072];
               destinationLocal = values[3073];
               firstFunctionLocals = functionLocals[0];
+              firstStatementLocal = statementLocals[0];
+              firstStatementWidth = statementLocals[4096];
+              secondStatementLocal = statementLocals[1];
+              secondStatementWidth = statementLocals[4097];
+              thirdStatementLocal = statementLocals[2];
+              thirdStatementWidth = statementLocals[4098];
             }
             statementCount = plan.statementCount;
             firstFunction = statements[0];
@@ -211,6 +231,7 @@ final class NativeCompilerSourceStatementProductsExampleTest {
             firstStart = statements[16384];
             firstLength = statements[20480];
             setOutputLength(output, 0);
+            drop(statementLocals);
             drop(functionLocals);
             drop(values);
             drop(statements);

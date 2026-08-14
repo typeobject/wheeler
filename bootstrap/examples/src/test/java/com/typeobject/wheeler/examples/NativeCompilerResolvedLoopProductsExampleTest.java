@@ -161,7 +161,7 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
           state long secondBodyCount = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 1446400, /* allocations= */ 17);
+            region products = new region(/* bytes= */ 1511936, /* allocations= */ 18);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -170,6 +170,7 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
             words sourceLoops = allocate(products, /* length= */ 2304);
             words values = allocate(products, /* length= */ 7168);
             words localCounts = allocate(products, /* length= */ 64);
+            words statementLocals = allocate(products, /* length= */ 8192);
             words structuralStatements = allocate(products, /* length= */ 28672);
             words resolvedConditions = allocate(products, /* length= */ 1536);
             words resolvedLoops = allocate(products, /* length= */ 2304);
@@ -226,7 +227,8 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
               /* statementStartRow= */ 16384,
               /* statementLengthRow= */ 20480,
               values,
-              localCounts
+              localCounts,
+              statementLocals
             );
             assert(valuePlan.valid);
             %s
@@ -286,6 +288,7 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
             drop(resolvedLoops);
             drop(resolvedConditions);
             drop(structuralStatements);
+            drop(statementLocals);
             drop(localCounts);
             drop(values);
             drop(sourceLoops);

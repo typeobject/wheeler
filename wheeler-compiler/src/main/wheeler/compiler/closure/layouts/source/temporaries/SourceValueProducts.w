@@ -36,7 +36,8 @@ classical class SourceValueProducts {
     long statementStartRow,
     long statementLengthRow,
     borrow mut words valueRows,
-    borrow mut words functionLocalCounts
+    borrow mut words functionLocalCounts,
+    borrow mut words statementLocalRows
   ) {
     assert(-1 < archiveSourceStart);
     assert(-1 < firstCallable);
@@ -59,13 +60,15 @@ classical class SourceValueProducts {
     assert(statementLengthRow < bufferLength(statementRows));
     assert(bufferLength(valueRows) == VALUE_ROWS);
     assert(bufferLength(functionLocalCounts) == FUNCTION_LOCAL_ROWS);
+    assert(bufferLength(statementLocalRows) == 8192);
 
-    region staging = new region(/* bytes= */ 156160, /* allocations= */ 5);
+    region staging = new region(/* bytes= */ 221696, /* allocations= */ 6);
     words tokenKinds = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(staging, MAX_COMPILER_TOKENS);
     words stagedValues = allocate(staging, VALUE_ROWS);
     words stagedLocalCounts = allocate(staging, FUNCTION_LOCAL_ROWS);
+    words stagedStatementLocals = allocate(staging, /* length= */ 8192);
     boolean valid = true;
     long tokenCount = 0;
     ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);
@@ -433,6 +436,8 @@ classical class SourceValueProducts {
             }
           }
 
+          set(stagedStatementLocals, statement, localBase);
+          set(stagedStatementLocals, 4096 + statement, localWidth);
           localBase += localWidth;
         }
       }
@@ -457,8 +462,15 @@ classical class SourceValueProducts {
         set(functionLocalCounts, row, stagedLocalCounts[row]);
         row += 1;
       }
+
+      row = 0;
+      while (row < 8192) limit 8192 {
+        set(statementLocalRows, row, stagedStatementLocals[row]);
+        row += 1;
+      }
     }
 
+    drop(stagedStatementLocals);
     drop(stagedLocalCounts);
     drop(stagedValues);
     drop(tokenLengths);

@@ -105,12 +105,13 @@ classical class AggregateCompiledCallableBodies {
     assert(-1 < sourceStart);
     assert(0 < sourceLength);
     assert(sourceLength < MAX_CALLABLE_SOURCE_BYTES + 1);
-    region sourceArena = new region(/* bytes= */ 2209952, /* allocations= */ 38);
+    region sourceArena = new region(/* bytes= */ 2275488, /* allocations= */ 39);
     bytes originalSource = allocateBytes(sourceArena, sourceLength);
     words stagedStatements = allocate(sourceArena, /* length= */ 24576);
     words stagedValues = allocate(sourceArena, /* length= */ 7168);
     words stagedValueStructures = allocate(sourceArena, /* length= */ 1024);
     words stagedLocalCounts = allocate(sourceArena, /* length= */ 64);
+    words stagedStatementLocals = allocate(sourceArena, /* length= */ 8192);
     words stagedLocalProjections = allocate(sourceArena, /* length= */ 4096);
     words stagedDestinations = allocate(sourceArena, /* length= */ 256);
     words stagedOwners = allocate(sourceArena, /* length= */ 256);
@@ -193,7 +194,8 @@ classical class AggregateCompiledCallableBodies {
       /* statementStartRow= */ 16384,
       /* statementLengthRow= */ 20480,
       stagedValues,
-      stagedLocalCounts
+      stagedLocalCounts,
+      stagedStatementLocals
     );
     assert(sourceValues.valid);
     AggregateExpressionTemporaryPlan expressionValues = appendAggregateExpressionTemporaries(
@@ -642,6 +644,7 @@ classical class AggregateCompiledCallableBodies {
     drop(stagedOwners);
     drop(stagedDestinations);
     drop(stagedLocalProjections);
+    drop(stagedStatementLocals);
     drop(stagedLocalCounts);
     drop(stagedValueStructures);
     drop(stagedValues);

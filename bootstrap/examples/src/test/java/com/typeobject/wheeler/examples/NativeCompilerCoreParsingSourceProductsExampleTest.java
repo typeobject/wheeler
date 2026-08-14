@@ -322,7 +322,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
           state long secondLoopOwner = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 21283944, /* allocations= */ 57);
+            region products = new region(/* bytes= */ 21349480, /* allocations= */ 58);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -331,6 +331,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             words loops = allocate(products, /* length= */ 2304);
             words values = allocate(products, /* length= */ 7168);
             words functionLocalCounts = allocate(products, /* length= */ 64);
+            words statementLocalRows = allocate(products, /* length= */ 8192);
             words bodyRows = allocate(products, /* length= */ 20480);
             words nestedRows = allocate(products, /* length= */ 20480);
             words resolvedConditions = allocate(products, /* length= */ 1536);
@@ -461,7 +462,8 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               /* statementStartRow= */ 12288,
               /* statementLengthRow= */ 16384,
               values,
-              functionLocalCounts
+              functionLocalCounts,
+              statementLocalRows
             );
             if (blockPlan.valid) {
               blockValid = 1;
@@ -876,6 +878,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             drop(resolvedConditions);
             drop(nestedRows);
             drop(bodyRows);
+            drop(statementLocalRows);
             drop(functionLocalCounts);
             drop(values);
             drop(loops);
