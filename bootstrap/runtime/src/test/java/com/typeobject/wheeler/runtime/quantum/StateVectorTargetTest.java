@@ -310,6 +310,41 @@ class StateVectorTargetTest {
   }
 
   @Test
+  void twoBitStaticPhaseEstimateHasOneExactIdealAmplitude() {
+    QuantumRegister register = new QuantumRegister(0, "phase", 3);
+    QuantumCircuit circuit = new QuantumCircuit(
+        0,
+        "estimate",
+        0,
+        List.of(
+            GateOperation.of(Gate.H, 0),
+            GateOperation.of(Gate.H, 1),
+            new GateOperation(Gate.CPHASE, List.of(2, 0), 3 * Math.PI),
+            new GateOperation(Gate.CPHASE, List.of(2, 1), 3 * Math.PI / 2),
+            GateOperation.of(Gate.SWAP, 0, 1),
+            GateOperation.of(Gate.H, 1),
+            new GateOperation(Gate.CPHASE, List.of(1, 0), -Math.PI / 2),
+            GateOperation.of(Gate.H, 0)));
+    Program program = program(register, circuit, List.of());
+    StateVectorEngine simulator = new StateVectorEngine(31);
+    simulator.prepare(register, 4);
+    simulator.apply(program, circuit, false);
+
+    assertArrayEquals(
+        new double[] {
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 1, 0
+        },
+        simulator.amplitudes(register),
+        1e-12);
+    simulator.apply(program, circuit, true);
+    assertArrayEquals(
+        new double[] {0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0},
+        simulator.amplitudes(register),
+        1e-12);
+  }
+
+  @Test
   void openQasmLoweringIsPortableAndDeterministic() {
     QuantumRegister register = new QuantumRegister(0, "q", 1);
     QuantumCircuit circuit = new QuantumCircuit(0, "flip", 0, List.of(GateOperation.of(Gate.X, 0)));

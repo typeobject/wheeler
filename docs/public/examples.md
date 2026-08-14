@@ -296,17 +296,17 @@ Expected result: `measured = 2`.
 
 Source: [`StaticPhaseEstimation.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/StaticPhaseEstimation.w).
 
-Covers: A one-bit exact eigenphase, controlled negative phase, ancilla basis changes, a generated adjoint certificate, canonical static target execution, and deterministic joint-basis observation.
+Covers: The exact two-bit eigenphase three quarters, two controlled powers, a two-bit inverse transform, complete complex-amplitude comparison, a generated adjoint certificate, canonical static target execution, and deterministic joint-basis observation.
 
-Expected result: `measured = 3`.
+Expected result: the low two bits are `3`, the eigenstate bit remains set, and joint observation records `measured = 7`.
 
 ### `AdaptivePhaseEstimation.w`
 
 Source: [`AdaptivePhaseEstimation.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/AdaptivePhaseEstimation.w).
 
-Covers: Target-resident phase-bit measurement, a bounded result slot, conditional correction through `applyIf`, measured-ancilla reset, asynchronous dynamic execution, and final host observation without a host split.
+Covers: Two target-resident phase rounds, bounded result slots, measurement-conditioned phase and eigenstate corrections through `applyIf`, measured-ancilla reset after each round, asynchronous dynamic execution, and final host observation without a host split.
 
-Expected result: result slot zero contains `1`, and `measured = 0` after correction and reset.
+Expected result: result slots contain `(true, false)`, both ancillas reset, the corrected eigenstate clears, and final observation records `measured = 0`.
 
 ### `QuantumOptimizer.w`
 

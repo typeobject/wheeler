@@ -86,7 +86,9 @@ class QuantumExamplesTest {
 
     DynamicCircuitResult result = new DynamicStateVectorSimulator()
         .execute(program, program.quantumCircuits().getFirst(), 0);
+    assertEquals(2, result.resultSlots().size());
     assertTrue(result.resultSlots().get(0));
+    assertFalse(result.resultSlots().get(1));
     assertEquals(0, result.basisState());
 
     ExecutionResult executed = new WheelerRuntime().execute(
@@ -142,6 +144,6 @@ class QuantumExamplesTest {
         Arguments.of("QuantumCompiler.w", Map.of("sourceResult", 1L, "normalizedResult", 1L)),
         Arguments.of("QuantumWalk.w", Map.of("measured", 0L)),
         Arguments.of("SurfaceCode.w", Map.of("measured", 0L)),
-        Arguments.of("algorithms/StaticPhaseEstimation.w", Map.of("measured", 3L)));
+        Arguments.of("algorithms/StaticPhaseEstimation.w", Map.of("measured", 7L)));
   }
 }
