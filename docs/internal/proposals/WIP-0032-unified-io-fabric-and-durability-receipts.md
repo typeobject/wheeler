@@ -600,7 +600,8 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
   - [ ] Add a native RNIC provider with registration, generation, range, rights, revocation, disconnect, acknowledgement, peer-application, and remote-persistence behavior matching the accepted rows.
 - [ ] Crash and power-cut conformance qualifies file, namespace, replication, and remote-persistence evidence before a release-grade receipt issuer is enabled.
   - [x] The transactional-index child writes and forces a committed payload and marker, writes and forces a later payload without its marker, and terminates through `Runtime.halt` without close. The parent opens a fresh native capability, observes the exact torn layout, and ignores the unmarked generation. Receipt issuance remains confined to the declared process-crash FileChannel profile.
-  - [ ] Native backend maintainers must qualify power interruption, atomic rename, namespace flush, replicated quorum, peer application, and remote persistence on named profiles before they enable release-grade issuers.
+  - [x] `NativeNamespacePublication` consumes one file-stable named subject, performs one no-replacement `ATOMIC_MOVE` between physical siblings, issues namespace-visible evidence only after rename, opens and forces the containing directory, and then issues namespace-stable evidence. The exact visible receipt and physical target gate directory-force promotion. No file or namespace stage aliases another.
+  - [ ] Native backend maintainers must qualify power interruption, replicated quorum, peer application, and remote persistence on named profiles before they enable release-grade issuers.
 
 ## Testing and acceptance
 
