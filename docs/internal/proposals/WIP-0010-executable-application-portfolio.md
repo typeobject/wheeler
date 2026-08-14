@@ -356,12 +356,22 @@ Portfolio work follows these rules:
 
 ### Reversible systems
 
-- [x] `ReversiblePacketCodec.w` assigns version, kind, and payload to disjoint fixed-width byte positions through checked reversible updates. Its generated decoder and kernel-checked inverse certificate restore an empty packet after the exact encoded value is observed. Stage-0 compilation, canonical bytecode decoding, execution, and complete VM rewind are part of the classical portfolio gate.
+- [ ] Reversible packet codec.
+  - [x] `ReversiblePacketCodec.w` assigns fixed version, kind, and payload values to disjoint byte positions through checked reversible updates. Its generated inverse certificate restores an empty packet, and the classical gate checks canonical compilation, execution, and complete rewind.
+  - [ ] Replace the fixed fixture with typed frame parsing and emission over byte slices, records, variants, checked lengths, checksums, malformed results, generated bounded cases, and region cleanup.
 - [ ] Transactional persistent index.
-- [x] `IncrementalDependencyGraph.w` propagates exact source versions through bounded parse, code, and link nodes. A duplicate notification performs no rebuild, two distinct updates settle every node at version two, and the rebuild counter records six node transitions rather than three notifications. Canonical compilation, execution, and complete VM rewind are checked.
-- [x] `IntegerWaveletTransform.w` implements a determinant-one two-step integer lifting transform over one signed sample pair. A generated inverse certificate checks the reverse lifting order. The fixture observes exact coefficients, restores both inputs without rounding evidence, and passes canonical compilation, execution, and complete rewind.
-- [x] `FixedPointSymplectic.w` carries scale-1024 position and momentum through one integer kick-drift symplectic step. The transform uses no floating point, division, or rounding state. Its generated inverse certificate, exact observed phase point, restored initial point, canonical artifact, and complete VM rewind are checked.
-- [x] `EventReducer.w` reduces a deterministic event stream under one explicit settled-event identity. Duplicate delivery increments a distinct counter and cannot inflate the reduced value. Typed calls, branch outcomes, final state, canonical artifact acceptance, and complete VM rewind are checked.
+- [ ] Incremental dependency graph.
+  - [x] `IncrementalDependencyGraph.w` propagates exact versions through a bounded linear source, parse, code, and link chain. Duplicate notification performs no rebuild, and canonical compilation, execution, and complete rewind are checked.
+  - [ ] Add general module edges, deterministic maps and sets, cycle diagnostics, affected-node invalidation, a work queue, and reversible tentative updates.
+- [ ] Integer wavelet transform.
+  - [x] `IntegerWaveletTransform.w` implements one determinant-one lifting step over a signed sample pair, checks its generated inverse, observes exact coefficients, and restores both inputs without rounding.
+  - [ ] Extend the fixture to a bounded image tile, generated extrema and overflow cases, and byte-identical encoded reconstruction.
+- [ ] Fixed-point symplectic simulation.
+  - [x] `FixedPointSymplectic.w` carries one scale-1024 phase point through an integer kick-drift step without floating point or rounding state. Its generated inverse, exact observation, restored input, canonical artifact, and complete rewind are checked.
+  - [ ] Add the bounded two-body system, generated state cases, checked overflow boundaries, and exact discrete inverse properties.
+- [ ] Wheeler event-reducer fixture.
+  - [x] `EventReducer.w` suppresses one adjacent duplicate under an explicit settled-event identity and keeps duplicate count separate from reduced value. Typed calls, branches, final state, canonical artifact acceptance, and complete rewind are checked.
+  - [ ] Add content identities, reordered delivery, conflicting sequence occupants, checkpoint persistence, recovery, and exactly-once resumption.
 
 ### Toolchain
 
@@ -376,13 +386,21 @@ Portfolio work follows these rules:
   - A Wheeler-native bounded verifier checks emitted bytes before publication. General IR payloads and full control, type, and resource verification remain.
 - [ ] Self-hosting compiler fixed point.
 - [ ] Wheeler package resolver.
-- [x] The Wheeler-written bounded verifier and interpreter append every successful opcode identity in execution order, hash the exact little-endian stream with Wheeler SHA-256, and publish all 32 digest bytes through eight bounded state words. Java VM observations produce the same stream independently. The differential portfolio compares exact trace identities and every admitted global across direct updates, branches, calls, generated inverses, recursion, aggregates, ownership, storage, UTF-8, and result slots. Malformed artifacts publish no trace identity.
+- [ ] Native transition trace parity.
+  - [x] The Wheeler-written bounded interpreter hashes every successful ordered opcode identity with Wheeler SHA-256. Independent Java VM observations reproduce all 32 bytes across scalar, call, inverse, recursive, aggregate, ownership, storage, UTF-8, and result-slot fixtures. Malformed artifacts publish no trace identity.
+  - [ ] Add interpreter-level rewind, trapped transition records, commit horizons, workflow events, and native machine-code execution to the normalized trace.
 
 ### Quantum algorithms
 
-- [x] `WidthExplicitOracle.w` combines explicit 32-bit rotate-right semantics, a bounded low-byte mask, and a four-row immutable lookup oracle. Checked indexing and exact expected words make host-width drift visible. Canonical compilation, execution, artifact decoding, and complete VM rewind are checked.
-- [x] `GroverSearch.w` performs one exact four-element search with a phase oracle and diffusion operator, then deterministically observes the unique marked state. `QuantumWalk.w` applies a Hadamard coin and coherent conditional shift, uncomputes the entangled intermediate state through its generated adjoint, and observes the restored walker. Both retain adjoint certificates, canonical bytecode round trips, bounded ideal-target jobs, and exact outcomes.
-- [x] `StaticPhaseEstimation.w` writes one exact binary eigenphase to an ancilla and carries a generated adjoint certificate. `AdaptivePhaseEstimation.w` measures the same phase bit in a target-resident dynamic region, conditionally corrects the eigenstate through `applyIf`, resets the measured ancilla, and performs only the final host observation. Canonical static and dynamic artifacts, result-slot evidence, asynchronous jobs, and exact outcomes are checked.
+- [ ] Width-explicit arithmetic and lookup oracles.
+  - [x] `WidthExplicitOracle.w` combines explicit 32-bit rotate-right semantics, a low-byte mask, and a four-row immutable classical lookup. Checked indexing and exact words make host-width drift visible.
+  - [ ] Add finite modular add and compare, coherent controlled marking, clean table workspace and ancillas, exhaustive basis comparison, and generated inverse checks.
+- [ ] Grover search and quantum walk.
+  - [x] `GroverSearch.w` executes one four-element phase-oracle and diffusion iteration with a generated adjoint. `QuantumWalk.w` executes and uncomputes one Hadamard-coin conditional shift. Both round-trip and run on the bounded ideal target.
+  - [ ] Compose the lookup oracle with clean ancillas, compare exact amplitudes and seeded success thresholds, and add repeated walk composition plus graph-cycle distribution comparison.
+- [ ] Static and adaptive phase estimation.
+  - [x] `StaticPhaseEstimation.w` resolves one exact binary phase with one controlled power and the one-bit inverse transform. `AdaptivePhaseEstimation.w` measures that bit in a dynamic region, conditionally corrects the eigenstate, resets the ancilla, and leaves only final host observation. Artifacts, result slots, jobs, and exact outcomes are checked.
+  - [ ] Add multiple controlled powers, a multi-bit inverse QFT, measurement-conditioned phase rotations, and exact comparison of both estimators.
 - [ ] Amplitude estimation.
 - [ ] VQE, QAOA, quantum kernel, and parameter-shift batches.
 
@@ -397,7 +415,9 @@ Portfolio work follows these rules:
 ### Unified I/O and durable hybrid
 
 - [x] The quarantined stage-0 portfolio executes WIP-0032 request purity, await, batch, selection, dependency graphs, positional buffers, bounded threaded overlap, cancellation races, uncertainty, malformed progress, capacity exhaustion, and receipt monotonicity. Native source effects remain.
-- [x] The checked-in `QuantumOptimizer.w` now runs through a lifecycle matrix over a real `StateVectorTarget`: waiting snapshot encoding, decode and provider-job recovery without resubmission, completion and commit, replay without target access, retry under new branch and submission lineage, and cancellation after immediate provider completion with late-result quarantine. Every path retains exact globals and measurements or one explicit terminal status.
+- [ ] Recoverable iterative optimizer lifecycle matrix.
+  - [x] `QuantumOptimizer.w` now covers waiting snapshot encoding, decode and provider-job recovery, completion and commit, replay, retry under new lineage, and cancellation after immediate completion with late-result quarantine on `StateVectorTarget`.
+  - [ ] Add bounded iterations and typed parameters, parameterized batches, persistence after every iteration, queued and running restore points, failed, cancelled, and unknown provider states, and duplicate-result suppression on the application itself.
 - [ ] Calibration-aware compiler.
 - [ ] Adaptive replay decision tree.
 - [ ] Compensation fixture.
@@ -407,7 +427,9 @@ Portfolio work follows these rules:
 ### Proof, native, and packages
 
 - [x] QFT emits a generated-adjoint certificate, and the quantum compiler example emits a circuit-equivalence certificate. Canonical proof metadata round-trips, executes through the checked examples, and the verifier rejects a minimally forged generated-inverse subject.
-- [x] `CertifiedInverseBounds.w` carries one kernel-checked generated-inverse certificate and one static straight-line step-bound certificate in the same executable artifact. The fixture executes both subjects, restores reversible state, checks exact results, round-trips canonical bytecode, and rewinds the complete VM history.
+- [ ] Resource-bound and inverse-law certificates.
+  - [x] `CertifiedInverseBounds.w` carries one generated-inverse certificate and one static straight-line step bound in the same executable. It executes both subjects, restores state, round-trips bytecode, and rewinds complete history.
+  - [ ] Add symbolic and concrete qubit, ancilla, gate, depth, measurement, target-cycle, event-byte, and retry bounds tied to semantic-region and compiler identities. Add exhaustive bounded inverse inputs, clean ancillas, and unchanged borrow checks.
 - [ ] Bounded certified `Foundry.w` synthesis and minimality package.
 - [ ] Package provenance verifier.
 - [ ] Hermetic workspace bootstrap.
@@ -425,7 +447,9 @@ Portfolio work follows these rules:
 - [x] Every implemented quantum fixture declares little-endian basis and sample interpretation, exact or sampled evidence, qubit and shot bounds, required target capabilities, seed policy where deterministic, and acceptance thresholds where statistical. Exact dynamic fixtures make no hardware-fidelity claim.
 - [x] Implemented proof fixtures name the bounded `ProofKernel` rule profile and reject minimally corrupted rule arguments, subject bodies, inverse bodies, and nonreversible subjects. Passing tests remain evidence about the named proposition rather than a substitute theorem.
 - [ ] Compiler stages produce identical portfolio artifacts and diagnostics for their shared profile.
-- [x] Stage-0 and Wheeler interpreter runs produce the same normalized successful-opcode trace identity and terminal globals across the complete bounded native-VM differential corpus. The trace is an exact SHA-256 identity over ordered two-byte opcode values, not a lossy event counter or host log.
+- [ ] Interpreted and native executions produce matching normalized traces.
+  - [x] Stage-0 and Wheeler interpreter runs produce the same successful-opcode trace identity and terminal globals across the bounded interpreter corpus. The identity is SHA-256 over ordered two-byte opcode values.
+  - [ ] Extend equality to interpreter rewind, traps, commit horizons, semantic workflow events, and actual native images.
 - [ ] The package manager builds the complete implemented portfolio offline from a locked vendor set.
 - [x] `examples.md` lists readable checked-in programs and current results. The internal conformance manual lists only checked-in verification and recovery subjects. Planned portfolio entries remain in this WIP and future pages rather than appearing as implemented examples.
 
