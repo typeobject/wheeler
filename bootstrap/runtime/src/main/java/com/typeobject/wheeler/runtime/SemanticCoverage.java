@@ -7,6 +7,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 
 /** Collects deterministic typed VM transition coverage without instrumenting Wheeler programs. */
@@ -48,6 +49,11 @@ public final class SemanticCoverage implements TransitionObserver {
     return json.append("],\"profile\":\"wheeler-transition-coverage-1\"}\n").toString();
   }
 
+  /** Returns an immutable point table for presentation adapters. */
+  public Map<Point, Long> points() {
+    return Map.copyOf(hits);
+  }
+
   /** Counts successful assertion transitions without conflating them with test-case status. */
   public long successfulAssertions() {
     return hits.entrySet().stream()
@@ -71,9 +77,19 @@ public final class SemanticCoverage implements TransitionObserver {
     }
   }
 
-  private record Point(
+  /** One typed bytecode transition point; it does not claim a source-line mapping. */
+  public record Point(
       String direction, int function, int instruction, String opcode, String branch)
       implements Comparable<Point> {
+    public Point {
+      Objects.requireNonNull(direction, "direction");
+      Objects.requireNonNull(opcode, "opcode");
+      Objects.requireNonNull(branch, "branch");
+      if (function < 0 || instruction < 0) {
+        throw new IllegalArgumentException("coverage point coordinates must be nonnegative");
+      }
+    }
+
     @Override
     public int compareTo(Point other) {
       int order = direction.compareTo(other.direction);

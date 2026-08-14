@@ -28,4 +28,10 @@ Fresh classical cases chosen by `wheeler test` collect this report. The test out
 
 The report has no percentage. This first slice knows which transitions ran, but it does not yet define a complete source or IR denominator.
 
-Source points, compound conditions, match arms, traps, attempt lineage, sharded merging, quantum structure, proof duties, thresholds, adapters, and Wheeler-written reduction remain part of WIP-0020. JaCoCo still measures only the Java seed implementation. It is not evidence about Wheeler semantics.
+## Presentation adapters
+
+`SemanticCoverageRenderer` emits terminal, JSON, LCOV, Cobertura XML, and static website views from the immutable point table. Every view carries the semantic report identity and discloses the same unsupported dimensions: source lines, source branches, proof obligations, quantum state, and empirical targets.
+
+LCOV and Cobertura receive explicit synthetic `wheeler-bytecode/function-N` coordinates. They never label instruction rows as source lines. The website prints the unsupported list in visible text and metadata. Adapter generation leaves canonical report bytes and identity unchanged.
+
+Source points, compound conditions, match arms, traps, attempt lineage, sharded merging, quantum structure, proof duties, thresholds, and Wheeler-written reduction remain part of WIP-0020. JaCoCo still measures only the Java seed implementation. It is not evidence about Wheeler semantics.
