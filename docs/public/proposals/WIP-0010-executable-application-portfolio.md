@@ -421,7 +421,7 @@ Portfolio work follows these rules:
 - [ ] Every capability has at least one successful fixture and one actionable rejection fixture.
 - [x] Every currently admitted sampled or provider-backed portfolio fixture distinguishes replay from fresh execution. Replay consumes recorded evidence without submission. Retry or another seeded run creates a new branch and execution lineage.
 - [ ] Every external effect fixture defines abort, commit, cancellation, compensation, or barrier behavior.
-- [ ] Every aggregate and storage fixture has malformed, exhausted, aliasing, and cleanup tests.
+- [x] Implemented aggregate and owned-storage fixtures cover malformed descriptors and operands, index and capacity exhaustion, mutable-loan alias rejection, owner escape and use after move, wrong drop order, cleanup after transfer, and exact rewind. Returned loans and dynamic split and join remain outside the accepted profile.
 - [x] Every implemented quantum fixture declares little-endian basis and sample interpretation, exact or sampled evidence, qubit and shot bounds, required target capabilities, seed policy where deterministic, and acceptance thresholds where statistical. Exact dynamic fixtures make no hardware-fidelity claim.
 - [x] Implemented proof fixtures name the bounded `ProofKernel` rule profile and reject minimally corrupted rule arguments, subject bodies, inverse bodies, and nonreversible subjects. Passing tests remain evidence about the named proposition rather than a substitute theorem.
 - [ ] Compiler stages produce identical portfolio artifacts and diagnostics for their shared profile.
