@@ -244,9 +244,9 @@ Acceptance requires target-resident feedback capability, bounded decoder latency
 
 ### Recoverable optimizer
 
-`QuantumOptimizer.w` grows into a bounded iterative optimizer with typed parameters, parameterized batches, persisted continuation after each iteration, queued-job recovery, replay, fresh retry, and commit horizons.
+`QuantumOptimizer.w` supplies the reversible candidate update and commit fixture. `RecoverableOptimizerCampaign` supplies bounded typed parameters, parameterized batches, persisted continuation after each iteration, queued-job recovery, replay, and explicit terminal provider states.
 
-The test suite stops and restores the run in queued, running, succeeded, failed, cancelled, and unknown states. Duplicate result delivery cannot apply an update twice.
+The test suite stops and restores the run in queued and running states, then covers succeeded, failed, cancelled, and unknown outcomes. Duplicate result delivery cannot apply an update twice.
 
 ### Calibration-aware circuit compiler
 
@@ -405,9 +405,9 @@ Portfolio work follows these rules:
 ### Unified I/O and durable hybrid
 
 - [x] The quarantined stage-0 portfolio executes WIP-0032 request purity, await, batch, selection, dependency graphs, positional buffers, bounded threaded overlap, cancellation races, uncertainty, malformed progress, capacity exhaustion, and receipt monotonicity. Native source effects remain.
-- [ ] Recoverable iterative optimizer lifecycle matrix.
-  - [x] `QuantumOptimizer.w` now covers waiting snapshot encoding, decode and provider-job recovery, completion and commit, replay, retry under new lineage, and cancellation after immediate completion with late-result quarantine on `StateVectorTarget`.
-  - [ ] Add bounded iterations and typed parameters, parameterized batches, persistence after every iteration, queued and running restore points, failed, cancelled, and unknown provider states, and duplicate-result suppression on the application itself.
+- [x] Recoverable iterative optimizer lifecycle matrix.
+  - [x] `QuantumOptimizer.w` covers waiting snapshot encoding, decode and provider-job recovery, completion and commit, replay, retry under new lineage, and cancellation after immediate completion with late-result quarantine on `StateVectorTarget`.
+  - [x] `RecoverableOptimizerCampaign` bounds campaigns and batches at 64, requires angle, probability, or scalar parameter kinds to match each submission binding, and persists every logical transition through one atomic snapshot adapter. Ordered member identities restore queued and running work without resubmission. Failed, cancelled, and unknown provider states are terminal and explicit. Result application checks job and submission identity, and an applied submission identity cannot update the objective again. The two-iteration fixture restores from both active states, applies two first-batch results, suppresses a repeated second-batch result, and exercises failure, cancellation, missing-provider recovery, and changed-plan rejection.
 - [ ] Calibration-aware compiler.
 - [ ] Adaptive replay decision tree.
 - [ ] Compensation fixture.

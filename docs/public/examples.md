@@ -386,9 +386,9 @@ Expected result: shifts around pi over two yield expectations `-1` and `1` and t
 
 Source: [`QuantumOptimizer.w`](../../wheeler-examples/src/main/wheeler/quantum/QuantumOptimizer.w).
 
-Covers: Two target observations, reversible acceptance update, waiting-snapshot persistence, provider-job recovery without resubmission, commit, target-free replay, branched retry, and cancellation with late-result quarantine.
+Covers: Two target observations, reversible acceptance update, waiting-snapshot persistence, provider-job recovery without resubmission, commit, target-free replay, branched retry, and cancellation with late-result quarantine. The runtime campaign adapter adds typed finite parameters, ordered batches, per-iteration checkpoints, queued and running recovery, explicit failed, cancelled, and unknown states, and submission-identity duplicate suppression.
 
-Expected result: `sample = 1`, `bestCost = 1`, `accepted = 1`.
+Expected result: `sample = 1`, `bestCost = 1`, `accepted = 1`. The two-iteration runtime fixture applies two distinct first-batch results, ignores a repeated second-batch result, and completes with one recorded objective.
 
 ### `QuantumNeuralNetwork.w`
 
@@ -430,7 +430,7 @@ No checked-in example uses the planned WIP-0032 unified I/O API. `HostInput.w`, 
 
 `QFTProof.w` is an executable conformance law. The trusted proof kernel does not accept it as a theorem. It checks that the generated adjoint restores one basis state on the semantic simulator.
 
-`QuantumOptimizer.w` uses deterministic basis candidates so CI can check exact observations. Its event-log test records both jobs, then reproduces the classical result through replay without another target call. Parameter binding, sampled objective estimates, and convergence loops remain separate work.
+`QuantumOptimizer.w` uses deterministic basis candidates so CI can check exact observations. Its event-log test records both jobs, then reproduces the classical result through replay without another target call. `RecoverableOptimizerCampaign` owns the provider-neutral bounded continuation around parameterized batches. It stores logical snapshots through an explicit atomic adapter and retains no provider object. The fixture is optimizer lifecycle evidence, not a convergence or hardware-quality claim.
 
 `QuantumNeuralNetwork.w` shows that one coherent reversible function can act as a classical activation and a quantum permutation. Training arrays, gradients, and floating-point optimizers are not part of this example.
 
