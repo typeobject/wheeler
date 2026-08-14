@@ -627,7 +627,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] Independent batch requests are admitted together, selection consumes only the chosen terminal result, and awaiting the remainder loses no completion. Threaded graph roots make overlapping progress before their dependent is admitted.
 - [x] The deterministic stage-0 graph publishes a node only after every named terminal predecessor. Independent roots are admitted together.
 - [x] Batch and graph submission order creates no persistence claim. Independent roots may complete concurrently, graph dependents wait only for named terminal predecessors, and positional write completion is explicitly not a durability receipt.
-- [ ] Disjoint ranges run independently. Unsafe overlap is rejected or explicitly named.
+- [x] The accepted addressable-file profile uses explicit positional ranges. Disjoint reads and writes can run independently in batches and dependency graphs, while overlapping mutable requests require an explicit graph edge or fail deterministic overlap validation before provider work.
 - [ ] Sequential adapters own exactly one cursor and preserve consumed/examined positions.
 - [x] Batch and graph reductions retain canonical request order while delayed, reversed, duplicate, and threaded physical completions vary. Independent graph roots may overlap, but their dependent observes both completed roots.
 
@@ -638,7 +638,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] Positional write completion reports only bytes written and buffer release. The receipt chain starts at the distinct `WriteCompleted` evidence kind and requires explicit monotonic promotion before any stability claim.
 - [ ] One-queue, many-queue, interrupt, and polling backends pass one semantic suite. The bounded worker backend now passes its stage-0 slice.
 - [ ] Connection scale requires no native thread, stack, task, or timer per dormant connection.
-- [ ] Admission, batching, migration, fairness, and overload remain bounded and measurable.
+- [x] The accepted deterministic and threaded profiles bound live operations, admitted work, workers, batch members, graph nodes and edges, and total work. Capacity failure occurs before request consumption. Canonical request order and completion observations expose overload and scheduling without making host completion order semantic.
 
 ### Tier and RDMA honesty
 
