@@ -37,6 +37,10 @@ targets:
     root: "src/main/wheeler/quantum/CoherentOracle.w"
     test: false
   - kind: "deployable"
+    name: "compensationworkflow"
+    root: "src/main/wheeler/classical/workflows/CompensationWorkflow.w"
+    test: false
+  - kind: "deployable"
     name: "counter"
     root: "src/main/wheeler/classical/control/Counter.w"
     test: false

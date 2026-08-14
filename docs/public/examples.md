@@ -29,6 +29,14 @@ Covers: A bounded two-level observation tree, exact branch records, a short term
 
 Expected result: live and replayed paths both select result `1` after two observations, the upper branch selects `100` after one observation, and replay makes zero target calls.
 
+### `CompensationWorkflow.w`
+
+Source: [`CompensationWorkflow.w`](../../wheeler-examples/src/main/wheeler/classical/workflows/CompensationWorkflow.w).
+
+Covers: Separate original-effect, remedy-preparation, rejected-remedy, accepted-remedy, and inverse-claim facts. The runtime companion prepares compensation without provider work, accepts only successful receipt evidence, and establishes a new commit horizon rather than restoring reversible history.
+
+Expected result: the original changes the balance to `7`, rejection leaves it there, accepted compensation returns it to `0`, and `inverseClaim` remains false.
+
 ### `CertifiedInverseBounds.w`
 
 Source: [`CertifiedInverseBounds.w`](../../wheeler-examples/src/main/wheeler/proof/CertifiedInverseBounds.w).

@@ -60,9 +60,13 @@ class ClassicalExamplesTest {
           name.equals("EventReducer.w")
               ? "examples.events.reducer"
               : "examples.index.transactional");
-    } else if (name.equals("AdaptiveReplay.w")) {
+    } else if (name.equals("AdaptiveReplay.w")
+        || name.equals("CompensationWorkflow.w")) {
       program = compiler.compileModuleFiles(
-          Map.of(name, Files.readString(source)), "examples.adaptive.replay");
+          Map.of(name, Files.readString(source)),
+          name.equals("AdaptiveReplay.w")
+              ? "examples.adaptive.replay"
+              : "examples.compensation.workflow");
     } else if (name.equals("IncrementalDependencyGraph.w")) {
       program = compiler.compileModuleFiles(
           Map.of(
@@ -165,6 +169,15 @@ class ClassicalExamplesTest {
                 "liveObservations", 3L,
                 "replayObservations", 2L,
                 "replayTargetCalls", 0L)),
+        Arguments.of(
+            "classical/workflows/CompensationWorkflow.w",
+            Map.of(
+                "balance", 0L,
+                "originalVisible", 1L,
+                "compensationPrepared", 1L,
+                "compensationVisible", 1L,
+                "rejectedCompensations", 1L,
+                "inverseClaim", 0L)),
         Arguments.of(
             "proof/CertifiedInverseBounds.w",
             Map.of("value", 0L, "observed", 1L, "successor", 5L)),
