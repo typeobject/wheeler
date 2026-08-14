@@ -302,6 +302,14 @@ Covers: Executable two-qubit inverse law.
 
 Expected result: `measured = 2`.
 
+### `DistributedBell.w`
+
+Source: [`DistributedBell.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/DistributedBell.w).
+
+Covers: Two ordered target endpoints, explicit network-entanglement capability, content-identified request and branch state, handle-free persistence, delayed heralding, deadline expiry, and local branch discard.
+
+Expected result: a herald at cycle 19 satisfies the cycle-20 deadline, survives snapshot restoration without another request, and can be discarded locally. The fixture leaves `remoteDestroyed = 0`. A static target without network capability rejects before session creation.
+
 ### `StaticPhaseEstimation.w`
 
 Source: [`StaticPhaseEstimation.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/StaticPhaseEstimation.w).

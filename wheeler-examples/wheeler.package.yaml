@@ -33,6 +33,10 @@ targets:
     root: "src/main/wheeler/classical/control/Counter.w"
     test: false
   - kind: "deployable"
+    name: "distributedbell"
+    root: "src/main/wheeler/quantum/algorithms/DistributedBell.w"
+    test: false
+  - kind: "deployable"
     name: "dynamicteleportation"
     root: "src/main/wheeler/quantum/DynamicTeleportation.w"
     test: false

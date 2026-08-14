@@ -154,6 +154,15 @@ class QuantumExamplesTest {
         Arguments.of("QuantumCompiler.w", Map.of("sourceResult", 1L, "normalizedResult", 1L)),
         Arguments.of("QuantumWalk.w", Map.of("measured", 0L)),
         Arguments.of("SurfaceCode.w", Map.of("measured", 0L)),
+        Arguments.of(
+            "algorithms/DistributedBell.w",
+            Map.of(
+                "requestedCycle", 10L,
+                "deadlineCycle", 20L,
+                "heraldCycle", 19L,
+                "sessionState", 1L,
+                "localDiscarded", 1L,
+                "remoteDestroyed", 0L)),
         Arguments.of("algorithms/StaticPhaseEstimation.w", Map.of("measured", 7L)),
         Arguments.of(
             "algorithms/LogicalMagicPlanning.w",

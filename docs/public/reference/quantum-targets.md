@@ -45,6 +45,8 @@ The ideal target advertises `BATCH_SUBMISSION`. Its provider-neutral implementat
 
 `ParameterizedGateOperation` stores a stable parameter name and finite scale in semantic region IR. A task provides the exact finite binding map. Missing or extra names fail before submission, and the map becomes part of task identity.
 
+`DistributedEntanglementSession` requires `NETWORK_ENTANGLEMENT` before it creates an ordered two-endpoint request. Its session and branch identities bind request and deadline cycles, persisted snapshots contain no provider or qubit handles, and restoration sends no second request. A timely content-identified herald, deadline expiry, and local discard are separate states. Discard never claims that remote entanglement was physically destroyed.
+
 `LogicalResourcePlan` closes an immutable bounded layer list against one content-identified magic-state factory and target-cycle ceiling. Clifford gates, T gates, measurements, T-depth, required states, factory batches, logical qubits, and target cycles remain separate exact dimensions. The target plan also binds one odd modeled code distance and parts-per-trillion cycle-error bound. Factory capacity, target cycles, logical-qubit capability, or combined failure-budget insufficiency rejects before a plan identity exists. A static physical descriptor cannot substitute for verified logical lowering. This is logical planning evidence, not a proof of physical code performance, decoder throughput, hardware fidelity, or wall-clock behavior.
 
 Generated adjoints negate the symbolic scale. The ideal target evaluates bindings directly, while OpenQASM lowering writes the bound numeric angle. Both paths advertise `PARAMETER_BINDING`.
