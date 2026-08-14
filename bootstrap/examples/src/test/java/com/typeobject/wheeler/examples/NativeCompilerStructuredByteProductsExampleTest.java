@@ -11,7 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/** Native evidence for byte-view reads and mutable-byte writes in structured products. */
+/** Native evidence for byte-view reads, byte writes, and indexed byte copies. */
 final class NativeCompilerStructuredByteProductsExampleTest {
   private static final String SOURCE = """
       //! Exercises direct byte products in one structured loop.
@@ -23,13 +23,15 @@ final class NativeCompilerStructuredByteProductsExampleTest {
         public long copyAndRead(
           borrow byteview input,
           borrow mut bytes output,
+          borrow mut bytes scratch,
           long count
         ) {
           long index = 0;
           long observed = 0;
           while (index < count) limit 64 {
             long value = input[index];
-            setByte(output, index, value);
+            setByte(scratch, index, value);
+            setByte(output, index, scratch[index]);
             long copied = output[index];
             observed = copied;
             index += 1;
@@ -41,7 +43,7 @@ final class NativeCompilerStructuredByteProductsExampleTest {
       """;
 
   @Test
-  void compilesByteViewReadsAndBorrowedByteWritesWithoutProjection() throws Exception {
+  void compilesByteViewsWritesAndIndexedCopiesWithoutProjection() throws Exception {
     int bodyStart = SOURCE.indexOf('{', SOURCE.indexOf("copyAndRead("));
     int bodyLength = matchingClose(SOURCE, bodyStart) - bodyStart + 1;
     var expectedProgram = new WheelerCompiler().compileLibraryModuleFiles(
@@ -104,8 +106,11 @@ final class NativeCompilerStructuredByteProductsExampleTest {
             set(signatureTypes, 8193, 11);
             set(signatureTypes, 2, 0);
             set(signatureTypes, 4098, 2);
-            set(signatureTypes, 8194, 1);
-            set(parameterCounts, 0, 3);
+            set(signatureTypes, 8194, 11);
+            set(signatureTypes, 3, 0);
+            set(signatureTypes, 4099, 3);
+            set(signatureTypes, 8195, 1);
+            set(parameterCounts, 0, 4);
             writeAscii(strings, 0, "$library");
             writeAscii(strings, 8, "ByteLoop");
             writeAscii(strings, 16, "example.byte_loop::copyAndRead");
@@ -131,7 +136,7 @@ final class NativeCompilerStructuredByteProductsExampleTest {
               symbolTypes,
               symbolValues,
               symbolResolved,
-              /* signatureTypeCount= */ 3,
+              /* signatureTypeCount= */ 4,
               signatureTypes,
               parameterCounts,
               strings,

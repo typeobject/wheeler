@@ -70,8 +70,8 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
     assertEquals(7, machine.global("blockCount"));
     assertEquals(2, machine.global("loopCount"));
     assertEquals(15, machine.global("valueCount"));
-    assertEquals(38, machine.global("firstProductLocalCount"));
-    assertEquals(23, machine.global("secondProductLocalCount"));
+    assertEquals(42, machine.global("firstProductLocalCount"));
+    assertEquals(29, machine.global("secondProductLocalCount"));
     assertEquals(14, machine.global("bodyCount"));
     assertEquals(3, machine.global("nestedCount"));
     assertEquals(4_096, machine.global("firstLimit"));

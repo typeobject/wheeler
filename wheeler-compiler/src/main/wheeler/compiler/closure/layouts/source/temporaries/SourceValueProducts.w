@@ -5,6 +5,7 @@ module wheeler.compiler.closure.source_value_products;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
@@ -237,6 +238,80 @@ classical class SourceValueProducts {
             if (-1 < opcode) {
               localWidth = statementLocalCount(opcode);
               resultLocal = statementResultLocal(opcode, localBase);
+              long statementHash = tokenHash(source, tokenStarts, tokenLengths, statementToken);
+              boolean indexedBufferCopy = statementHash == TOKEN_SET;
+              if (statementHash == TOKEN_SET_BYTE) {
+                indexedBufferCopy = true;
+              }
+
+              if (indexedBufferCopy) {
+                indexedBufferCopy = punctuationAt(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  statementToken + 7,
+                  91
+                );
+              }
+
+              if (indexedBufferCopy) {
+                LoopBodyValue indexedWriteOwner = resolveLoopBodyValue(
+                  source,
+                  tokenStarts[statementToken + 2],
+                  tokenLengths[statementToken + 2],
+                  localFunction,
+                  statementRows[8192 + statement],
+                  valueCount,
+                  stagedValues
+                );
+                LoopBodyValue indexedReadOwner = resolveLoopBodyValue(
+                  source,
+                  tokenStarts[statementToken + 6],
+                  tokenLengths[statementToken + 6],
+                  localFunction,
+                  statementRows[8192 + statement],
+                  valueCount,
+                  stagedValues
+                );
+                if (indexedWriteOwner.valid) {
+                  if (indexedReadOwner.valid) {
+                    localWidth = 3;
+                    if (
+                      borrowedLoopBodyLocal(
+                        source,
+                        localFunction,
+                        indexedWriteOwner.local,
+                        valueCount,
+                        stagedValues,
+                        semanticCount,
+                        tokenStarts,
+                        tokenLengths
+                      )
+                    ) {
+                      localWidth += 1;
+                    }
+
+                    if (
+                      borrowedLoopBodyLocal(
+                        source,
+                        localFunction,
+                        indexedReadOwner.local,
+                        valueCount,
+                        stagedValues,
+                        semanticCount,
+                        tokenStarts,
+                        tokenLengths
+                      )
+                    ) {
+                      localWidth += 1;
+                    }
+                  } else {
+                    valid = false;
+                  }
+                } else {
+                  valid = false;
+                }
+              }
             } else {
               if (tokenKinds[statementToken] == 1) {
                 if (tokenKinds[statementToken + 1] == 1) {
