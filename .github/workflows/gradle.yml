@@ -9,12 +9,16 @@ on:
       - 'docs/**'
       - '**/*.md'
       - '**/*.mdx'
+      - 'bootstrap/tools/src/main/java/com/typeobject/wheeler/tools/Documentation*.java'
+      - 'bootstrap/tools/src/test/java/com/typeobject/wheeler/tools/Documentation*.java'
   pull_request:
     branches: [ "master" ]
     paths-ignore:
       - 'docs/**'
       - '**/*.md'
       - '**/*.mdx'
+      - 'bootstrap/tools/src/main/java/com/typeobject/wheeler/tools/Documentation*.java'
+      - 'bootstrap/tools/src/test/java/com/typeobject/wheeler/tools/Documentation*.java'
 
 jobs:
   build:
