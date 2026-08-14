@@ -11,6 +11,9 @@ targets:
   - kind: "deployable"
     name: "adaptivereplay"
     root: "src/main/wheeler/classical/control/AdaptiveReplay.w"
+    module: "examples.adaptive.replay"
+    sources:
+      - "src/main/wheeler/classical/control/AdaptiveReplay.w"
     test: false
   - kind: "deployable"
     name: "amplitudeestimation"
@@ -39,6 +42,9 @@ targets:
   - kind: "deployable"
     name: "compensationworkflow"
     root: "src/main/wheeler/classical/workflows/CompensationWorkflow.w"
+    module: "examples.compensation.workflow"
+    sources:
+      - "src/main/wheeler/classical/workflows/CompensationWorkflow.w"
     test: false
   - kind: "deployable"
     name: "counter"
@@ -141,6 +147,9 @@ targets:
   - kind: "deployable"
     name: "packageprovenance"
     root: "src/main/wheeler/classical/workflows/PackageProvenance.w"
+    module: "examples.package.provenance"
+    sources:
+      - "src/main/wheeler/classical/workflows/PackageProvenance.w"
     test: false
   - kind: "deployable"
     name: "parametershift"
