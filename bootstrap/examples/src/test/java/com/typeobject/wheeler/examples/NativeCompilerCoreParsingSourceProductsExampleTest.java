@@ -329,7 +329,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
           state long secondLoopOwner = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 21414504, /* allocations= */ 59);
+            region products = new region(/* bytes= */ 21415016, /* allocations= */ 60);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -356,6 +356,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             words loopWindowRows = allocate(products, /* length= */ 768);
             words typeRows = allocate(products, /* length= */ 12288);
             words directRows = allocate(products, /* length= */ 28672);
+            words functionResultTypes = allocate(products, /* length= */ 64);
             words directTypes = allocate(products, /* length= */ 12288);
             bytes directCode = allocateBytes(products, /* length= */ 262144);
             words signatureTypes = allocate(products, /* length= */ 12288);
@@ -557,6 +558,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               statementPhysicalStarts,
               statementPhysicalWidths,
               directRows,
+              functionResultTypes,
               directTypes,
               directCode
             );
@@ -646,6 +648,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               2,
               composedCallables,
               parameterCounts,
+              functionResultTypes,
               functionNameIds,
               compositionPlan.typeCount,
               composedTypes,
@@ -923,6 +926,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             drop(signatureTypes);
             drop(directCode);
             drop(directTypes);
+            drop(functionResultTypes);
             drop(directRows);
             drop(typeRows);
             drop(loopWindowRows);

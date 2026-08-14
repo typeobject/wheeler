@@ -54,6 +54,33 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
+  void emitsABooleanReturnSlot() throws Exception {
+    String booleanReturn = SOURCE.replace(
+        "public long copyOffset(",
+        "public boolean copyOffset(").replace(
+            "    borrow mut bytes output\n",
+            "    borrow mut bytes output,\n"
+                + "    boolean result\n").replace(
+                    "    return length;\n",
+                    "    return result;\n");
+
+    assertTrue(booleanReturn.contains("public boolean copyOffset("));
+    assertArtifact(booleanReturn);
+  }
+
+  @Test
+  void rejectsUnsupportedDirectReturnTypesBeforePublication() throws Exception {
+    String byteViewReturn = SOURCE.replace(
+        "public long copyOffset(",
+        "public byteview copyOffset(").replace(
+            "    return length;\n",
+            "    return source;\n");
+
+    assertTrue(byteViewReturn.contains("public byteview copyOffset("));
+    assertNoArtifact(byteViewReturn);
+  }
+
+  @Test
   void emitsOneNestedLoopInsideTheStructuredWindow() throws Exception {
     String nested = SOURCE.replace(
         "      setByte(output, index, source[sourceStart + index]);\n",
@@ -134,7 +161,12 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   private static void assertArtifact(String source) throws Exception {
     int body = source.indexOf("{", source.indexOf("copyOffset("));
     int maxSourceBytes = source.indexOf("MAX_SOURCE_BYTES");
-    Program driver = driver(body, matchingClose(source, body) - body + 1, maxSourceBytes);
+    int parameterCount = source.contains("boolean result") ? 6 : 5;
+    Program driver = driver(
+        body,
+        matchingClose(source, body) - body + 1,
+        maxSourceBytes,
+        parameterCount);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
@@ -162,7 +194,12 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   private static void assertNoArtifact(String source) throws Exception {
     int body = source.indexOf("{", source.indexOf("copyOffset("));
     int maxSourceBytes = source.indexOf("MAX_SOURCE_BYTES");
-    Program driver = driver(body, matchingClose(source, body) - body + 1, maxSourceBytes);
+    int parameterCount = source.contains("boolean result") ? 6 : 5;
+    Program driver = driver(
+        body,
+        matchingClose(source, body) - body + 1,
+        maxSourceBytes,
+        parameterCount);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
@@ -174,7 +211,8 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   private static Program driver(
       int bodyStart,
       int bodyLength,
-      int maxSourceBytes) throws Exception {
+      int maxSourceBytes,
+      int parameterCount) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.structured_source_module_compiler"));
@@ -233,7 +271,10 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             set(signatureTypes, 4, 0);
             set(signatureTypes, 4100, 4);
             set(signatureTypes, 8196, 11);
-            set(parameterCounts, 0, 5);
+            set(signatureTypes, 5, 0);
+            set(signatureTypes, 4101, 5);
+            set(signatureTypes, 8197, 2);
+            set(parameterCounts, 0, %d);
             writeAscii(strings, 0, "$library");
             writeAscii(strings, 8, "StructuredComparison");
             writeAscii(strings, 28, "example.structured_comparison::copyOffset");
@@ -259,7 +300,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
               symbolTypes,
               symbolValues,
               symbolResolved,
-              /* signatureTypeCount= */ 5,
+              /* signatureTypeCount= */ %d,
               signatureTypes,
               parameterCounts,
               strings,
@@ -299,7 +340,12 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             drop(products);
           }
         }
-        """.formatted(bodyStart, bodyLength, maxSourceBytes));
+        """.formatted(
+            bodyStart,
+            bodyLength,
+            maxSourceBytes,
+            parameterCount,
+            parameterCount));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.structured_comparison_source_product");
   }

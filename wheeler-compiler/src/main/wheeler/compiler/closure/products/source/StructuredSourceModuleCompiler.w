@@ -211,7 +211,7 @@ classical class StructuredSourceModuleCompiler {
     assert(bufferLength(output) == 32768);
     assert(bufferLength(identity) == 32);
 
-    region products = new region(/* bytes= */ 2180096, /* allocations= */ 24);
+    region products = new region(/* bytes= */ 2180608, /* allocations= */ 25);
     words blocks = allocate(products, /* length= */ 6144);
     words statements = allocate(products, /* length= */ 28672);
     words sourceConditions = allocate(products, /* length= */ 1536);
@@ -231,6 +231,7 @@ classical class StructuredSourceModuleCompiler {
     bytes loopCode = allocateBytes(products, /* length= */ 262144);
     words loopTypes = allocate(products, /* length= */ 12288);
     words directRows = allocate(products, /* length= */ 28672);
+    words functionResultTypes = allocate(products, /* length= */ 64);
     words directTypes = allocate(products, /* length= */ 12288);
     bytes directCode = allocateBytes(products, /* length= */ 262144);
     words composedCallables = allocate(products, /* length= */ 320);
@@ -431,6 +432,7 @@ classical class StructuredSourceModuleCompiler {
       statementPhysicalStarts,
       statementPhysicalWidths,
       directRows,
+      functionResultTypes,
       directTypes,
       directCode
     );
@@ -461,6 +463,7 @@ classical class StructuredSourceModuleCompiler {
       callableCount,
       composedCallables,
       parameterCounts,
+      functionResultTypes,
       functionNameIds,
       composition.typeCount,
       composedTypes,
@@ -480,6 +483,7 @@ classical class StructuredSourceModuleCompiler {
     drop(composedCallables);
     drop(directCode);
     drop(directTypes);
+    drop(functionResultTypes);
     drop(directRows);
     drop(loopTypes);
     drop(loopCode);

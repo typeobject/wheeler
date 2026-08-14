@@ -160,6 +160,7 @@ classical class DirectStatementProducts {
     borrow mut words statementPhysicalStarts,
     borrow mut words statementPhysicalWidths,
     borrow mut words directRows,
+    borrow mut words functionResultTypes,
     borrow mut words typeRows,
     borrow mut bytes output
   ) {
@@ -173,16 +174,18 @@ classical class DirectStatementProducts {
     assert(bufferLength(statementPhysicalStarts) == MAX_STATEMENTS);
     assert(bufferLength(statementPhysicalWidths) == MAX_STATEMENTS);
     assert(bufferLength(directRows) == DIRECT_ROWS);
+    assert(bufferLength(functionResultTypes) == 64);
     assert(bufferLength(typeRows) == TYPE_ROWS);
     assert(bufferLength(output) == MAX_CODE_BYTES);
 
-    region staging = new region(/* bytes= */ 884736, /* allocations= */ 8);
+    region staging = new region(/* bytes= */ 885248, /* allocations= */ 9);
     words tokenKinds = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(staging, MAX_COMPILER_TOKENS);
     words stagedRows = allocate(staging, DIRECT_ROWS);
     words assertionBody = allocate(staging, BODY_ROWS);
     words stagedTypes = allocate(staging, TYPE_ROWS);
+    words stagedResultTypes = allocate(staging, /* length= */ 64);
     words stagedPhysicalWidths = allocate(staging, MAX_STATEMENTS);
     bytes stagedCode = allocateBytes(staging, MAX_CODE_BYTES);
     long stagedStatement = 0;
@@ -476,6 +479,33 @@ classical class DirectStatementProducts {
                     statementValid = false;
                   }
 
+                  long returnedSourceType = loopBodyValueType(
+                    source,
+                    owner,
+                    returned.local,
+                    valueCount,
+                    valueRows,
+                    tokenCount,
+                    tokenStarts,
+                    tokenLengths
+                  );
+                  long returnedType = TYPE_SIGNED;
+                  if (returnedSourceType == TOKEN_BOOLEAN) {
+                    returnedType = TYPE_BOOLEAN;
+                  } else {
+                    if (returnedSourceType != TOKEN_LONG) {
+                      statementValid = false;
+                    }
+                  }
+
+                  if (stagedResultTypes[owner] == 0) {
+                    set(stagedResultTypes, owner, returnedType);
+                  } else {
+                    if (stagedResultTypes[owner] != returnedType) {
+                      statementValid = false;
+                    }
+                  }
+
                   long returnedLocal = physicalValueLocal(
                     owner,
                     returned.local,
@@ -517,7 +547,7 @@ classical class DirectStatementProducts {
                     cursor = writeUnsignedLittleEndian(stagedCode, cursor, returnLocal, U64);
                     set(stagedTypes, typeCount, owner);
                     set(stagedTypes, 4096 + typeCount, returnLocal);
-                    set(stagedTypes, 8192 + typeCount, TYPE_SIGNED);
+                    set(stagedTypes, 8192 + typeCount, returnedType);
                     typeCount += 1;
                     productInstructions = 2;
                   }
@@ -560,6 +590,12 @@ classical class DirectStatementProducts {
       }
 
       row = 0;
+      while (row < 64) limit 64 {
+        set(functionResultTypes, row, stagedResultTypes[row]);
+        row += 1;
+      }
+
+      row = 0;
       while (row < TYPE_ROWS) limit TYPE_ROWS {
         set(typeRows, row, stagedTypes[row]);
         row += 1;
@@ -580,6 +616,7 @@ classical class DirectStatementProducts {
 
     drop(stagedCode);
     drop(stagedPhysicalWidths);
+    drop(stagedResultTypes);
     drop(stagedTypes);
     drop(assertionBody);
     drop(stagedRows);

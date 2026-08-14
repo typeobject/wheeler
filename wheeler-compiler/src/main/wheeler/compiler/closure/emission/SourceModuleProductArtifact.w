@@ -72,6 +72,7 @@ classical class SourceModuleProductArtifact {
     long callableCount,
     borrow mut words callableRows,
     borrow mut words parameterCounts,
+    borrow mut words functionResultTypes,
     borrow mut words functionNameIds,
     long localTypeCount,
     borrow mut words localTypes,
@@ -89,6 +90,7 @@ classical class SourceModuleProductArtifact {
     assert(callableCount < MAX_CALLABLES + 1);
     assert(bufferLength(callableRows) == CALLABLE_ROWS);
     assert(bufferLength(parameterCounts) == MAX_CALLABLES);
+    assert(bufferLength(functionResultTypes) == MAX_CALLABLES);
     assert(bufferLength(functionNameIds) == MAX_CALLABLES);
     assert(-1 < localTypeCount);
     assert(localTypeCount < 4097);
@@ -161,6 +163,13 @@ classical class SourceModuleProductArtifact {
       assert(parameterCounts[function] < functionLocalCount + 1);
       assert(functionLocalTypeStart == typeOffset - function);
       assert(functionNameIds[function] < stringCount);
+      long resultType = functionResultTypes[function];
+      boolean resultTypeValid = resultType == TYPE_SIGNED;
+      if (resultType == TYPE_BOOLEAN) {
+        resultTypeValid = true;
+      }
+
+      assert(resultTypeValid);
       writeUnsigned(sectionArchive, descriptor, 4, function);
       writeUnsigned(sectionArchive, descriptor + 4, 4, functionNameIds[function]);
       writeUnsigned(sectionArchive, descriptor + 8, 4, 4);
@@ -171,7 +180,7 @@ classical class SourceModuleProductArtifact {
       writeUnsigned(sectionArchive, descriptor + 28, 4, parameterCounts[function]);
       writeUnsigned(sectionArchive, descriptor + 32, 4, functionLocalCount);
       writeUnsigned(sectionArchive, descriptor + 36, 4, typeOffset);
-      writeUnsigned(sectionArchive, functionTypeStart + typeOffset * 4, 4, TYPE_SIGNED);
+      writeUnsigned(sectionArchive, functionTypeStart + typeOffset * 4, 4, resultType);
       typeOffset += 1;
       long local = 0;
       while (local < functionLocalCount) limit 256 {
