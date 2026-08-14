@@ -4,6 +4,21 @@ Every checked-in `.w` file must pass both the compiler and the Tree-sitter gramm
 
 Each example has a fixed bound. It shows behavior that works today and names any limit it reaches. The `wheeler.examples` package contains only programs meant to be read as examples. Bootstrap probes, identity codecs, and native differential subjects remain in the repository's internal conformance manual.
 
+## Exact bundle example
+
+This self-contained case executes twice during the semantic documentation build. The bundle retains its source, artifact, output, and result identities. A failed compile, trap, replay mismatch, or output mismatch prevents publication.
+
+```wheeler-exact name=answer-byte output=2a
+module documentation.answer_byte;
+
+classical class AnswerByte {
+  entry void main(borrow utf8 input, borrow mut bytes output) {
+    assert(bufferLength(input) == 0);
+    setByte(output, 0, 42);
+  }
+}
+```
+
 ## Examples
 
 ### `Counter.w`

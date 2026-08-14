@@ -115,7 +115,7 @@ class DocumentationBundleCommandTest {
     assertTrue(edges.contains(
         "\"source\":\"manual:guide\",\"target\":\"wheeler:demo.api#twice\""));
     String manifest = Files.readString(first.resolve("manifest.json"));
-    assertTrue(manifest.contains("\"profile\":\"wheeler-doc-bundle-3\""));
+    assertTrue(manifest.contains("\"profile\":\"wheeler-doc-bundle-4\""));
     assertTrue(output.toString(StandardCharsets.UTF_8).contains("documented 4 nodes"));
     assertThrows(IOException.class, () -> execute(
         manuals, sources, first, new ByteArrayOutputStream()));
@@ -128,6 +128,68 @@ class DocumentationBundleCommandTest {
         () -> execute(manuals, sources, missing, new ByteArrayOutputStream()));
     assertTrue(missingLink.getMessage().contains("Missing documentation link"));
     assertFalse(Files.exists(missing));
+  }
+
+  @Test
+  void manualApiAndExactExecutableExampleShareOneValidatedBundle() throws Exception {
+    Path manuals = temporary.resolve("example-manuals");
+    Path sources = temporary.resolve("example-sources");
+    Path first = temporary.resolve("example-bundle-one");
+    Path second = temporary.resolve("example-bundle-two");
+    Files.createDirectories(manuals);
+    Files.createDirectories(sources);
+    Files.writeString(manuals.resolve("guide.md"), """
+        # Exact guide
+
+        The [answer API](wheeler:example.api#answer) and its executable case share this page.
+
+        ```wheeler-exact name=answer output=2a
+        module documentation.answer;
+
+        classical class Answer {
+          entry void main(borrow utf8 input, borrow mut bytes output) {
+            assert(bufferLength(input) == 0);
+            setByte(output, 0, 42);
+          }
+        }
+        ```
+        """);
+    Files.writeString(sources.resolve("Api.w"), """
+        //! Answer API.
+        module example.api;
+        classical class Api {
+          /// Returns the exact answer.
+          public long answer() { return 42; }
+        }
+        """);
+
+    assertEquals(0, execute(manuals, sources, first, new ByteArrayOutputStream()));
+    assertEquals(0, execute(manuals, sources, second, new ByteArrayOutputStream()));
+    assertEquals(
+        Files.readString(first.resolve("examples.json")),
+        Files.readString(second.resolve("examples.json")));
+    String examples = Files.readString(first.resolve("examples.json"));
+    assertTrue(examples.contains("\"id\":\"example:guide#answer\""));
+    assertTrue(examples.contains("\"output\":\"2a\""));
+    assertTrue(examples.contains("\"artifact\":\""));
+    assertTrue(examples.contains("\"result\":\""));
+    String nodes = Files.readString(first.resolve("nodes.json"));
+    assertTrue(nodes.contains("\"kind\":\"executable-example\""));
+    assertTrue(nodes.contains("\"id\":\"wheeler:example.api#answer\""));
+    String edges = Files.readString(first.resolve("edges.json"));
+    assertTrue(edges.contains(
+        "\"kind\":\"example-of\",\"source\":\"manual:guide\","
+            + "\"target\":\"example:guide#answer\""));
+
+    Files.writeString(
+        manuals.resolve("guide.md"),
+        Files.readString(manuals.resolve("guide.md")).replace("output=2a", "output=2b"));
+    Path rejected = temporary.resolve("rejected-example-bundle");
+    PackageFormatException failure = assertThrows(
+        PackageFormatException.class,
+        () -> execute(manuals, sources, rejected, new ByteArrayOutputStream()));
+    assertTrue(failure.getMessage().contains("expected 2b"));
+    assertFalse(Files.exists(rejected));
   }
 
   @Test

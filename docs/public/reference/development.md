@@ -52,11 +52,21 @@ The command does not read configuration, use the network, or create placeholder 
 
 The command validates Wheeler `//!` and `///` documentation through the compiler export. It then emits sorted manual, heading, and Wheeler API nodes. Explicit `manual:` and `wheeler:` links, along with root-contained relative manual links, become canonical edges.
 
-The bundle includes navigation and search indexes, inert `.md` and `.mdx` manual sources under `pages/`, and a digest for every emitted file in `manifest.json`. Publication creates a new directory with one required atomic move.
+The bundle includes navigation and search indexes, inert `.md` and `.mdx` manual sources under `pages/`, exact executable results in `examples.json`, and a digest for every emitted file in `manifest.json`. Publication creates a new directory with one required atomic move.
 
-Existing destinations, malformed source, missing manual titles, duplicate node or route identities, links in the input tree, and nonphysical parents all fail before publication.
+An exact executable fence has one fixed header:
 
-The current profile is `wheeler-doc-bundle-3`. Profile 3 adds `.mdx` manual input, `index.md` and `index.mdx` routes, and semantic sidebar selection. It replaces profile 2 rather than changing that profile in place.
+````text
+```wheeler-exact name=answer output=2a
+<one self-contained Wheeler module>
+```
+````
+
+The name is a bounded lowercase identity. `output` is bounded lowercase hexadecimal. The semantic build compiles the module, runs two fresh machines, requires byte-identical replay, and compares the declared output. The graph receives an executable-example node and an `example-of` edge from its manual. `examples.json` binds source, bytecode artifact, output, and exact result identities. Failure or disagreement publishes nothing. This exact profile does not turn one execution into proof or sampled evidence.
+
+Existing destinations, malformed source, missing manual titles, duplicate node, route, or example identities, failed examples, links in the input tree, and nonphysical parents all fail before publication.
+
+The current profile is `wheeler-doc-bundle-4`. Profile 4 adds exact executable-example nodes, edges, and `examples.json` to profile 3's MDX, index-route, and semantic-sidebar contract. It replaces profile 3 rather than changing that profile in place.
 
 Manual IDs come from logical paths without the `.md` or `.mdx` suffix. Heading text produces canonical heading IDs with deterministic suffixes for duplicates. Wheeler IDs use module or source identity plus the declaration name.
 
@@ -72,7 +82,7 @@ Navigation uses one fixed order: Manual, Tutorials, then Reference. Proposals, f
 
 `publication-manifest.json` binds the bundle, renderer classes, and every site file. Existing output is rejected. Atomic publication prevents a partial tree from becoming the selected tree. It is not a WIP-0032 data or namespace durability receipt.
 
-Java doclet nodes, executable examples, proof references, and generated reference tables remain part of WIP-0019. The current Java generator and renderer are stage-0 tools. WIP-0019 requires a Wheeler-written generator to reproduce the same bundle bytes before the Java implementation can be removed.
+Java doclet nodes, proof references, and generated reference tables remain part of WIP-0019. Exact self-contained Wheeler examples are implemented. Sampled, hardware, cross-package, and proof-bearing examples remain outside profile 4. The current Java generator and renderer are stage-0 tools. WIP-0019 requires a Wheeler-written generator to reproduce the same bundle bytes before the Java implementation can be removed.
 
 ## Instruction registry
 

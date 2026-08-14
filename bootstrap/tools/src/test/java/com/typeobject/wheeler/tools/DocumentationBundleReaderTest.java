@@ -56,9 +56,25 @@ class DocumentationBundleReaderTest {
 
     Path manifest = bundle.resolve("manifest.json");
     String originalManifest = Files.readString(manifest, StandardCharsets.UTF_8);
+    Path examples = bundle.resolve("examples.json");
+    byte[] originalExamples = Files.readAllBytes(examples);
+    byte[] malformedExamples = new String(originalExamples, StandardCharsets.UTF_8)
+        .replace("\"results\"", "\"resultx\"")
+        .getBytes(StandardCharsets.UTF_8);
+    Files.write(examples, malformedExamples);
     Files.writeString(
         manifest,
-        originalManifest.replace("wheeler-doc-bundle-3", "wheeler-doc-bundle-2"),
+        originalManifest.replace(
+            DocumentationBundleReader.sha256(originalExamples),
+            DocumentationBundleReader.sha256(malformedExamples)),
+        StandardCharsets.UTF_8);
+    assertThrows(PackageFormatException.class, () -> DocumentationBundleReader.read(bundle));
+    Files.write(examples, originalExamples);
+    Files.writeString(manifest, originalManifest, StandardCharsets.UTF_8);
+
+    Files.writeString(
+        manifest,
+        originalManifest.replace("wheeler-doc-bundle-4", "wheeler-doc-bundle-3"),
         StandardCharsets.UTF_8);
     assertThrows(PackageFormatException.class, () -> DocumentationBundleReader.read(bundle));
   }

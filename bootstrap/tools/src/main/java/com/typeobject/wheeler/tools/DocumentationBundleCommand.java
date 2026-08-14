@@ -74,6 +74,22 @@ final class DocumentationBundleCommand {
       }
       pages.put(manual.logicalPath(), manual.text());
     }
+    List<DocumentationExampleRunner.Manual> exampleManuals = manuals.stream()
+        .map(manual -> new DocumentationExampleRunner.Manual(
+            DocumentationMarkdown.manualPage(manual.logicalPath()),
+            manual.logicalPath(),
+            manual.text()))
+        .toList();
+    List<DocumentationExampleRunner.Result> examples =
+        DocumentationExampleRunner.run(exampleManuals);
+    for (DocumentationExampleRunner.Result example : examples) {
+      nodes.add(new Node(
+          example.id(),
+          "executable-example",
+          example.id().substring(example.id().indexOf('#') + 1),
+          example.source(),
+          "exact result " + example.resultIdentity()));
+    }
     for (Input source : wheeler) {
       List<SourceDocumentation.Diagnostic> diagnostics = SourceDocumentation.checkFile(source.text());
       if (!diagnostics.isEmpty()) {
@@ -100,7 +116,8 @@ final class DocumentationBundleCommand {
     Map<String, String> files = new LinkedHashMap<>();
     DocumentationMarkdown markdown = new DocumentationMarkdown(pages);
     files.put("nodes.json", nodesJson(nodes));
-    files.put("edges.json", edgesJson(documentationEdges(manuals, nodes)));
+    files.put("edges.json", edgesJson(documentationEdges(manuals, nodes, examples)));
+    files.put("examples.json", DocumentationExampleRunner.canonicalJson(examples));
     files.put("navigation.json", navigationJson(markdown.navigationPages()));
     files.put("search.json", searchJson(nodes));
     pages.forEach((path, text) -> files.put("pages/" + path, text));
@@ -223,11 +240,15 @@ final class DocumentationBundleCommand {
     return json.append("]}\n").toString();
   }
 
-  private static List<Edge> documentationEdges(List<Input> manuals, List<Node> nodes) {
+  private static List<Edge> documentationEdges(
+      List<Input> manuals,
+      List<Node> nodes,
+      List<DocumentationExampleRunner.Result> examples) {
     Set<String> identities = new TreeSet<>();
     nodes.forEach(node -> identities.add(node.id()));
     Set<Edge> edges = new TreeSet<>(Comparator.comparing(Edge::source)
-        .thenComparing(Edge::target));
+        .thenComparing(Edge::target)
+        .thenComparing(Edge::kind));
     for (Input manual : manuals) {
       String source = "manual:" + DocumentationMarkdown.manualPage(manual.logicalPath());
       Matcher matcher = MARKDOWN_LINK.matcher(manual.text());
@@ -246,8 +267,11 @@ final class DocumentationBundleCommand {
           throw new PackageFormatException(
               "Missing documentation link " + target + " from " + source);
         }
-        edges.add(new Edge(source, target));
+        edges.add(new Edge(source, target, "links-to"));
       }
+    }
+    for (DocumentationExampleRunner.Result example : examples) {
+      edges.add(new Edge(example.owner(), example.id(), "example-of"));
     }
     return List.copyOf(edges);
   }
@@ -291,7 +315,7 @@ final class DocumentationBundleCommand {
         json.append(',');
       }
       Edge edge = edges.get(index);
-      json.append("{\"kind\":\"links-to\",\"source\":")
+      json.append("{\"kind\":").append(quote(edge.kind())).append(",\"source\":")
           .append(quote(edge.source())).append(",\"target\":")
           .append(quote(edge.target())).append('}');
     }
@@ -334,7 +358,7 @@ final class DocumentationBundleCommand {
               file.getValue().getBytes(StandardCharsets.UTF_8)))).append('}');
     }
     json.append("],\"manualSources\":").append(manuals.size())
-        .append(",\"profile\":\"wheeler-doc-bundle-3\",\"wheelerSources\":")
+        .append(",\"profile\":\"wheeler-doc-bundle-4\",\"wheelerSources\":")
         .append(wheeler.size()).append("}\n");
     return json.toString();
   }
@@ -450,7 +474,7 @@ final class DocumentationBundleCommand {
 
   private record Node(String id, String kind, String title, String source, String summary) {}
 
-  private record Edge(String source, String target) {}
+  private record Edge(String source, String target, String kind) {}
 
   private record Heading(String anchor, String title, int line) {}
 

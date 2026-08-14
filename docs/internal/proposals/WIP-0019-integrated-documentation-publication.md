@@ -265,8 +265,8 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 
 - [x] The stage-0 concrete-syntax boundary exports parser-owned module identity, file summary, selected public/semantic declaration kind, name, source position, modifiers, summary, and ordered facets. Bundle generators no longer need a separate website parser to rediscover Wheeler declarations or invent a second anchor scheme.
 - [x] `wheeler docs` walks explicit physical manual and Wheeler roots with strict UTF-8 and bounded counts. It validates Wheeler documentation and emits canonically ordered manual, heading, and API nodes. Explicit `manual:` and `wheeler:` links, plus root-contained relative page and heading links, become sorted `links-to` edges. The command builds navigation and search indexes, copies inert `.md` and `.mdx` manual pages, binds every output digest in `manifest.json`, and publishes a renderer-neutral profile-3 bundle atomically. Index pages own directory routes and bounded scalar front matter selects sidebar visibility.
-- [x] Stage-0 documentation defines canonical graph nodes, edges, links, navigation, search rows, bundle files, and a content identity. Cross-package/version and proof-reference extensions remain outside schema 3.
-- [ ] One manual page, Wheeler API declaration, and executable example produce one validated bundle.
+- [x] Stage-0 documentation defines canonical graph nodes, edges, links, navigation, search rows, bundle files, and a content identity. Cross-package/version and proof-reference extensions remain outside schema 4. Schema 4 adds exact executable-example nodes, `example-of` edges, and result records without mutating schema 3.
+- [x] One semantic build now joins manual and Wheeler API nodes with exact executable-example nodes. A `wheeler-exact` fence compiles as a self-contained module, executes twice, compares replay bytes and declared lowercase hexadecimal output, and publishes source, artifact, output, and result identities in `examples.json`. The manual owns the example through one `example-of` edge. Any compile, trap, replay, expectation, syntax, duplicate-identity, or bound failure leaves no bundle.
 - [x] The zero-configuration `wheeler site` command builds canonical roots and rechecks the full semantic bundle.
   - It reads bounded MDX-style front matter without rendering it.
   - The renderer handles headings, prose, links, code, lists, tables, quotes, and admonitions safely.
@@ -278,7 +278,7 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
   - The old renderer package graph, duplicate deployment-test workflow, and generic website configuration are deleted.
   - Hosted run `29670968033` built and deployed the navigation and front-matter slice at commit `2dea61e`.
   - Hosted evidence remains tied to that commit and does not inherit later renderer identities.
-- [x] Schema-3 search, local manual and Wheeler API links, relative-page anchors, canonical heading anchors, root-escape rejection, missing-link diagnostics, strict bundle verification, deterministic serial and parallel generation, and malformed-source atomicity pass. Cross-package version links and proof references remain.
+- [x] Schema-4 search, local manual and Wheeler API links, exact executable-example records, relative-page anchors, canonical heading anchors, root-escape rejection, missing-link diagnostics, strict bundle verification, deterministic serial and parallel generation, and malformed-source atomicity pass. Cross-package version links and proof references remain.
 - [ ] A Wheeler-written generator emits the stage-0 bundle byte-for-byte.
 - [x] Manuals and Wheeler declarations occupy disjoint identity namespaces. Generated API nodes come only from explicit `.w` roots, duplicate identities fail before publication, and no hand-authored API-page or Java extraction path can shadow them.
 
@@ -290,13 +290,13 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 - [x] Wheeler API nodes consume WIP-0016's parser-owned module, declaration, modifier, summary, facet, and source-position records directly. The bundle generator does not rescan or normalize `//!` and `///` payloads.
 - [x] Java source and generated Javadoc are excluded before graph construction, independent of generated HTML, locale, and source order.
 - [x] The canonical bundle accepts only explicit Markdown/MDX manual roots and explicit `.w` API roots. Java source and generated Javadoc HTML are not input kinds, so they cannot define or shadow `wheeler:` semantic identities. Duplicate manual or Wheeler identities fail before bundle publication.
-- [ ] Executable examples compile/run/replay through WIP-0018 and retain exact result identities.
+- [x] Exact documentation examples use the WIP-0018 stage-0 compiler and VM execution boundary. Two fresh executions must agree before the declared output is accepted. `examples.json` retains separate source, bytecode artifact, output, and domain-separated result identities. Example observation grants no proof or sampled-evidence authority.
 - [x] Tutorial metadata and maintained prose distinguish exact classical execution, exact ideal simulation, finite checked certificates, seeded sampled evidence, hardware evidence, and explicit nonclaims. No histogram is presented as state access or proof.
 - [x] The fixed static renderer consumes only local verified inputs and grants documentation payload no script execution.
 - [x] `sitemap.xml` contains every generated HTML route and changes when a route or page body changes, without nondeterministic timestamps.
 - [x] `wheeler site --bundle <bundle-directory> -o <directory>` verifies and renders an existing immutable bundle without consulting manual or Wheeler source roots. Independent retries produce the same publication manifest.
 - [x] Bundle generation validates every manual, source, node, edge, and output before atomic directory publication. Malformed source and missing links leave no partial destination, and existing destinations are never overwritten.
-- [x] Schema-3 search contains each graph node once, and navigation contains each metadata-selected manual node once. `sidebar_children: false` excludes child pages from navigation without deleting their graph nodes. Package-private API selection remains.
+- [x] Schema-4 search contains each graph node once, and navigation contains each metadata-selected manual node once. `sidebar_children: false` excludes child pages from navigation without deleting their graph nodes. Package-private API selection remains.
 - [x] `reference/development.md` documents the implemented `wheeler docs` bundle, validation graph, inert payload copy, manifest, navigation, search, and atomic publication boundary. It also documents the local-only static `wheeler site` renderer.
 
 ## Alternatives

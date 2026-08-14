@@ -29,7 +29,7 @@ final class DocumentationBundleReader {
   private static final Pattern ENTRY = Pattern.compile(
       "\\{\"path\":\"([A-Za-z0-9._/-]+)\",\"sha256\":\"([0-9a-f]{64})\"}");
   private static final Pattern TRAILER = Pattern.compile(
-      "\\],\"manualSources\":[0-9]+,\"profile\":\"wheeler-doc-bundle-3\","
+      "\\],\"manualSources\":[0-9]+,\"profile\":\"wheeler-doc-bundle-4\","
           + "\"wheelerSources\":[0-9]+}\\n");
 
   private DocumentationBundleReader() {}
@@ -51,6 +51,7 @@ final class DocumentationBundleReader {
     Set<String> expected = new TreeSet<>();
     expected.add("manifest.json");
     Map<String, String> pages = new LinkedHashMap<>();
+    String examples = null;
     for (ManifestEntry entry : entries) {
       if (!expected.add(entry.path())) {
         throw new PackageFormatException("Duplicate documentation bundle path " + entry.path());
@@ -68,7 +69,20 @@ final class DocumentationBundleReader {
           && DocumentationMarkdown.isManualSource(entry.path())) {
         pages.put(entry.path().substring("pages/".length()), decode(bytes, entry.path()));
       }
+      if (entry.path().equals("examples.json")) {
+        examples = decode(bytes, entry.path());
+      }
     }
+    Set<String> required = Set.of(
+        "edges.json",
+        "examples.json",
+        "navigation.json",
+        "nodes.json",
+        "search.json");
+    if (!expected.containsAll(required) || examples == null) {
+      throw new PackageFormatException("Documentation bundle omits a profile-4 graph file");
+    }
+    DocumentationExampleRunner.validateCanonicalJson(examples);
     Set<String> actual = physicalFiles(root);
     if (!actual.equals(expected)) {
       throw new PackageFormatException("Documentation bundle contains unmanifested files");
