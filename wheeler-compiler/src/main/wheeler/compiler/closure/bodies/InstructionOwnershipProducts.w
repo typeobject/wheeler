@@ -308,6 +308,41 @@ classical class InstructionOwnershipProducts {
     return new OwnershipCoordinatePlan(eventCount, true);
   }
 
+  /// Requires source and decoded ownership coordinates to agree exactly.
+  public boolean ownershipCoordinatesAgree(
+    long eventCount,
+    borrow mut words sourceCoordinates,
+    borrow mut words decodedCoordinates
+  ) {
+    assert(-1 < eventCount);
+    assert(eventCount < MAX_EVENTS_PER_MODULE + 1);
+    assert(bufferLength(sourceCoordinates) == OWNERSHIP_COORDINATE_ROWS);
+    assert(bufferLength(decodedCoordinates) == OWNERSHIP_COORDINATE_ROWS);
+
+    long event = 0;
+    while (event < eventCount) limit MAX_EVENTS_PER_MODULE {
+      if (sourceCoordinates[event] != decodedCoordinates[event]) {
+        return false;
+      }
+
+      if (sourceCoordinates[8192 + event] != decodedCoordinates[8192 + event]) {
+        return false;
+      }
+
+      if (sourceCoordinates[16384 + event] != decodedCoordinates[16384 + event]) {
+        return false;
+      }
+
+      if (sourceCoordinates[24576 + event] != decodedCoordinates[24576 + event]) {
+        return false;
+      }
+
+      event += 1;
+    }
+
+    return true;
+  }
+
   /// Publishes events from a validated two-artifact composed instruction view.
   public long deriveComposedInstructionOwnershipProducts(
     borrow byteview primitiveArtifact,
