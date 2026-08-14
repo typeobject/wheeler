@@ -255,6 +255,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
               admittedBodyCount = bodyPlan.bodyCount;
             }
             LoopInstructionProductPlan code = writeLoopInstructionProducts(
+              false,
               admittedLoopCount,
               conditions,
               loops,
@@ -267,6 +268,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
               bodyPlan.nestedCount,
               nestedRows,
               loopLocalBases,
+              statementPhysicalStarts,
               loopInstructionStarts,
               loopWindowRows,
               output

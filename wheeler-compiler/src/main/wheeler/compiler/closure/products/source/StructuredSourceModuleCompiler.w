@@ -387,6 +387,7 @@ classical class StructuredSourceModuleCompiler {
     }
 
     LoopInstructionProductPlan codePlan = writeLoopInstructionProducts(
+      true,
       resolvedPlan.loopCount,
       resolvedConditions,
       resolvedLoops,
@@ -399,6 +400,7 @@ classical class StructuredSourceModuleCompiler {
       bodyPlan.nestedCount,
       nestedRows,
       loopLocalBases,
+      statementPhysicalStarts,
       loopInstructionStarts,
       loopWindowRows,
       loopCode

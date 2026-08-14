@@ -68,6 +68,27 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
+  void emitsANestedFirstRootFollowedByASequentialRoot() throws Exception {
+    String sequential = SOURCE.replace(
+        "      setByte(output, index, source[sourceStart + index]);\n",
+        "      long copyIndex = 0;\n"
+            + "      while (copyIndex < 1) limit 5 {\n"
+            + "        copyIndex += 1;\n"
+            + "      }\n").replace(
+                "    return length;\n",
+                "    long second = 0;\n"
+                    + "    while (second < 1) limit 5 {\n"
+                    + "      second += 1;\n"
+                    + "    }\n"
+                    + "    assert(second == 1);\n"
+                    + "    return length;\n");
+
+    assertTrue(sequential.contains("while (copyIndex < 1)"));
+    assertTrue(sequential.contains("while (second < 1)"));
+    assertArtifact(sequential);
+  }
+
+  @Test
   void fifthNestedLoopPublishesNoArtifact() throws Exception {
     String tooDeep = SOURCE.replace(
         "      setByte(output, index, source[sourceStart + index]);\n",

@@ -24,6 +24,8 @@ classical class LoopInstructionProducts {
   private const long STAGING_BYTES = 178688;
   private const long STATEMENT_BLOCK_ROW = 4096;
   private const long STATEMENT_ORDINAL_ROW = 8192;
+  private const long STATEMENT_SOURCE_START_ROW = 12288;
+  private const long STATEMENT_SOURCE_LENGTH_ROW = 16384;
 
   /// Reports one complete canonical loop code extent.
   public record LoopInstructionProductPlan(long instructionCount, long length, boolean valid) {}
@@ -138,6 +140,7 @@ classical class LoopInstructionProducts {
 
   /// Emits every validated root loop and its nested loop windows atomically.
   public LoopInstructionProductPlan writeLoopInstructionProducts(
+    boolean correctPlannedStarts,
     long loopCount,
     borrow mut words conditionRows,
     borrow mut words loopRows,
@@ -150,6 +153,7 @@ classical class LoopInstructionProducts {
     long nestedCount,
     borrow mut words nestedRows,
     borrow mut words loopLocalBases,
+    borrow mut words statementPhysicalStarts,
     borrow mut words loopInstructionStarts,
     borrow mut words loopWindowRows,
     borrow mut bytes output
@@ -171,6 +175,10 @@ classical class LoopInstructionProducts {
     assert(nestedCount < BODY_COUNT_LIMIT + 1);
     assert(bufferLength(nestedRows) == NESTED_ROWS);
     assert(bufferLength(loopLocalBases) == LOOP_COUNT_LIMIT);
+    if (correctPlannedStarts) {
+      assert(bufferLength(statementPhysicalStarts) == MAX_STATEMENTS);
+    }
+
     assert(bufferLength(loopInstructionStarts) == LOOP_COUNT_LIMIT);
     assert(bufferLength(loopWindowRows) == 768);
     assert(bufferLength(output) == MAX_CODE_BYTES);
@@ -272,11 +280,70 @@ classical class LoopInstructionProducts {
 
             body += 1;
           }
-
         }
       }
 
       loop += 1;
+    }
+
+    if (correctPlannedStarts) {
+      long plannedBody = 0;
+      while (plannedBody < bodyCount) limit BODY_COUNT_LIMIT {
+        long plannedStatement = stagedBodies[plannedBody];
+        long plannedOwner = statementRows[plannedStatement];
+        long plannedSourceStart = statementRows[STATEMENT_SOURCE_START_ROW + plannedStatement];
+        long plannedSourceEnd = plannedSourceStart + statementRows[STATEMENT_SOURCE_LENGTH_ROW
+          + plannedStatement];
+        long containingLoop = -1;
+        long containingDepth = 0;
+        long candidateLoop = 0;
+        while (candidateLoop < loopCount) limit LOOP_COUNT_LIMIT {
+          if (loopRows[candidateLoop] == plannedOwner) {
+            long candidateOrdinal = loopRows[LOOP_STATEMENT_ORDINAL_ROW + candidateLoop];
+            long candidateStatement = -1;
+            long statementCandidate = 0;
+            while (statementCandidate < statementCount) limit MAX_STATEMENTS {
+              if (statementRows[statementCandidate] == plannedOwner) {
+                if (
+                  statementRows[STATEMENT_ORDINAL_ROW + statementCandidate] == candidateOrdinal
+                ) {
+                  candidateStatement = statementCandidate;
+                }
+              }
+
+              statementCandidate += 1;
+            }
+
+            if (-1 < candidateStatement) {
+              long candidateStart = statementRows[STATEMENT_SOURCE_START_ROW + candidateStatement];
+              long candidateEnd = candidateStart + statementRows[STATEMENT_SOURCE_LENGTH_ROW
+                + candidateStatement];
+              if (candidateStart < plannedSourceStart + 1) {
+                if (plannedSourceEnd < candidateEnd + 1) {
+                  long candidateDepth = loopRows[LOOP_DEPTH_ROW + candidateLoop];
+                  if (containingDepth < candidateDepth) {
+                    containingLoop = candidateLoop;
+                    containingDepth = candidateDepth;
+                  }
+                }
+              }
+            }
+          }
+
+          candidateLoop += 1;
+        }
+
+        assert(-1 < containingLoop);
+        long provisionalStart = stagedBodies[BODY_LOCAL_BASE_ROW + plannedBody];
+        long correction = statementPhysicalStarts[plannedStatement] - provisionalStart;
+        rebaseBodyProduct(
+          plannedBody,
+          loopLocalBases[containingLoop],
+          correction,
+          stagedBodies
+        );
+        plannedBody += 1;
+      }
     }
 
     long requiredLength = 0;

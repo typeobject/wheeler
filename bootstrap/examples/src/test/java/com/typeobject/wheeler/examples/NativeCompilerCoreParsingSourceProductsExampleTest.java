@@ -581,6 +581,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               }
             }
             LoopInstructionProductPlan codePlan = writeLoopInstructionProducts(
+              false,
               resolvedPlan.loopCount,
               resolvedConditions,
               resolvedLoops,
@@ -593,6 +594,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               bodyPlan.nestedCount,
               nestedRows,
               loopLocalBases,
+              statementPhysicalStarts,
               loopInstructionStarts,
               loopWindowRows,
               output

@@ -113,7 +113,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
           state long length = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 1620016, /* allocations= */ 27);
+            region products = new region(/* bytes= */ 1652784, /* allocations= */ 28);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -134,6 +134,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
             words symbolResolved = allocate(products, /* length= */ 16384);
             words loopLocalBases = allocate(products, /* length= */ 256);
             words loopInstructionStarts = allocate(products, /* length= */ 256);
+            words statementPhysicalStarts = allocate(products, /* length= */ 4096);
             words loopWindowRows = allocate(products, /* length= */ 768);
             words unused0 = allocate(products, /* length= */ 1);
             words unused1 = allocate(products, /* length= */ 1);
@@ -211,6 +212,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
             );
             assert(resolvedPlan.valid);
             LoopInstructionProductPlan code = writeLoopInstructionProducts(
+              false,
               resolvedPlan.loopCount,
               resolvedConditions,
               resolvedLoops,
@@ -223,6 +225,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
               bodyPlan.nestedCount,
               nestedRows,
               loopLocalBases,
+              statementPhysicalStarts,
               loopInstructionStarts,
               loopWindowRows,
               output
@@ -240,6 +243,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
             drop(unused1);
             drop(unused0);
             drop(loopWindowRows);
+            drop(statementPhysicalStarts);
             drop(loopInstructionStarts);
             drop(loopLocalBases);
             drop(symbolResolved);
