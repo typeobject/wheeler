@@ -361,9 +361,7 @@ Portfolio work follows these rules:
   - [ ] Make byte-frame encoding itself participate in a checked inverse relation rather than relying on the parallel fixed-word transform.
 - [ ] Transactional persistent index.
 - [x] `IncrementalDependencyGraph.w` owns a mutable four-node adjacency table, deterministic signed maps for versions and generation-tagged visited sets, the locked core queue API for bounded breadth-first work, a tagged accepted-or-cycle result, staged and rolled-back phases, rollback of a tentative back edge, affected-node invalidation, owner cleanup, canonical execution, and complete rewind.
-- [ ] Integer wavelet transform.
-  - [x] `IntegerWaveletTransform.w` implements one determinant-one lifting step over a signed sample pair, checks its generated inverse, observes exact coefficients, and restores both inputs without rounding.
-  - [ ] Extend the fixture to a bounded image tile, generated extrema and overflow cases, and byte-identical encoded reconstruction.
+- [x] `IntegerWaveletTransform.w` applies determinant-one lifting steps to a two-pair integer tile, exhausts 256 bounded input pairs through the independent coefficient and reconstruction equations, checks signed extreme values, traps checked coefficient overflow before publishing a result, carries a generated inverse certificate, restores every sample without rounding, and compares exact initial and reconstructed tile bytes.
 - [ ] Fixed-point symplectic simulation.
   - [x] `FixedPointSymplectic.w` carries one scale-1024 phase point through an integer kick-drift step without floating point or rounding state. Its generated inverse, exact observation, restored input, canonical artifact, and complete rewind are checked.
   - [ ] Add the bounded two-body system, generated state cases, checked overflow boundaries, and exact discrete inverse properties.

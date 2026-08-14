@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.examples;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
@@ -8,10 +9,12 @@ import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.proof.ProofRule;
 import com.typeobject.wheeler.core.vm.MachineStatus;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
+import com.typeobject.wheeler.core.vm.VmTrap;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -90,6 +93,27 @@ class ClassicalExamplesTest {
     assertEquals(initial, machine.snapshot());
   }
 
+  @Test
+  void waveletCoefficientOverflowTrapsBeforePublishingAResult() {
+    Program program = new WheelerCompiler().compile("""
+        classical class WaveletOverflow {
+          state long result = 0;
+
+          long highCoefficient(long left, long right) {
+            return left - right;
+          }
+
+          entry void main() {
+            result = highCoefficient(9223372036854775807, -1);
+          }
+        }
+        """);
+    VirtualMachine machine = new VirtualMachine(program);
+
+    assertThrows(VmTrap.class, machine::run);
+    assertEquals(0, machine.global("result"));
+  }
+
   private static Program compileCoreExample(
       WheelerCompiler compiler,
       Path example,
@@ -154,7 +178,16 @@ class ClassicalExamplesTest {
                 "transactionPhase", 2L)),
         Arguments.of(
             "classical/data/IntegerWaveletTransform.w",
-            Map.of("high", 10L, "low", 6L, "observedHigh", 4L, "observedLow", 10L)),
+            Map.of(
+                "high", 10L,
+                "low", 6L,
+                "highSecond", 21L,
+                "lowSecond", 13L,
+                "observedHigh", 4L,
+                "observedLow", 10L,
+                "observedHighSecond", 8L,
+                "observedLowSecond", 21L,
+                "generatedCases", 256L)),
         Arguments.of("classical/control/LoopControl.w", Map.of("sum", 12L, "selected", 7L)),
         Arguments.of("classical/data/LongMap.w", Map.of(
             "selected", 17L, "zeroKey", 5L, "present", 1L, "missing", 1L)),

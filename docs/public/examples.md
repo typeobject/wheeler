@@ -141,9 +141,9 @@ Expected result: every node has version `2`, `rebuilds = affected = 4`, `cycleRe
 
 Source: [`IntegerWaveletTransform.w`](../../wheeler-examples/src/main/wheeler/classical/data/IntegerWaveletTransform.w).
 
-Covers: A determinant-one two-step integer lifting transform, checked signed updates between state slots, a generated inverse certificate, exact transformed coefficients, and lossless restoration without rounding state.
+Covers: Determinant-one lifting over a two-pair integer tile, 256 exhaustive bounded coefficient cases, signed extremes, checked overflow rejection, a generated inverse certificate, exact transformed coefficients, byte-identical tile reconstruction, and lossless restoration without rounding state.
 
-Expected result: `observedHigh = 4`, `observedLow = 10`, `high = 10`, `low = 6`.
+Expected result: observed coefficient pairs are `(4, 10)` and `(8, 21)`. Restored sample pairs are `(10, 6)` and `(21, 13)`, and `generatedCases = 256`.
 
 ### `LoopControl.w`
 
