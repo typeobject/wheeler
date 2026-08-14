@@ -119,7 +119,7 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0050 and WIP-0051 publish aggregate source and frontend products.
 - [x] WIP-0052 publishes direct, nested, call-bearing, ownership-checked structured-loop code and local types.
 - [x] The dependency-free `LoopBodyOpcodes.w` and `LoopBodyLayouts.w` authorities compile from immutable archive ranges and are retained in the physical prefix.
-- [ ] Callable-to-root-block plans publish for every physical source-local callable.
+- [x] `CallableBlockPlans.w` joins each local callable to exactly one root block plus contiguous callable-local block and direct-statement windows. It validates owners, root parents, depths, local ordinals, complete coverage, and caller-output atomicity.
 - [ ] Direct and structured-loop instruction windows compose in exact source order.
 - [ ] Signature, direct-statement, and loop local types compose into one exact callable window.
 - [ ] Call, aggregate, ownership, and proof identities survive composition without numeric pre-link IDs.
