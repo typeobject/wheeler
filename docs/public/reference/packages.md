@@ -13,13 +13,13 @@ Stage 0 currently supports these operations:
 
 Physical and configured file repositories provide immutable publish and fetch transport. Locks bind repository and snapshot identities. Unlocked solving follows first-authoritative policy order. Package objects and complete verified build outputs use disposable XDG caches, and trusted snapshots carry detached Ed25519 signatures. Namespace delegation, yanks and advisories, identity-preserving network mirrors, complete recipe revisions, and complete Wheeler-native package execution remain future work.
 
-Package, workspace, and lock files use the canonical-YAML profile from [WIP-0009](../proposals/WIP-0009-wheeler-package-and-build-system.md#manifest-language). Stage 0 rejects duplicate or unknown keys, implicit types, aliases, tags, merge keys, invalid indentation, and unbounded structures. The Wheeler compiler owns package-manifest tokens, names, paths, semantic versions, parsing, and exact byte layout under `compiler/packages`. The package library imports those modules and does not carry a second parser. Wheeler-native recovery examples parse the files and emit the same canonical bytes. The retired extensionless records and parser are gone, and format sniffing remains unsupported.
+Package, workspace, and lock files use the canonical-YAML profile from WIP-0009. Stage 0 rejects duplicate or unknown keys, implicit types, aliases, tags, merge keys, invalid indentation, and unbounded structures. The Wheeler compiler owns package-manifest tokens, names, paths, semantic versions, parsing, and exact byte layout under `compiler/packages`. The package library imports those modules and does not carry a second parser. Wheeler-native recovery examples parse the files and emit the same canonical bytes. The retired extensionless records and parser are gone, and format sniffing remains unsupported.
 
 Stage 0 resolves XDG config, data, cache, and state paths. It diagnoses relative overrides, ignores them, and updates the ordered repository policy atomically. The default policy contains the stable `local` trust domain under the XDG data directory, and publication uses it unless the caller chooses another repository.
 
 Exact fetch checks enabled authoritative repositories in policy order without merging them. A caller may select one alias directly. Physical `--registry` transport remains available for sealed bootstrap fixtures. Unlocked resolution uses configured order, an explicit ordered set of repeated `--repository` aliases, or one sealed `--catalog`.
 
-Exact fetch keeps a disposable verified package-object cache under the XDG artifact root. `wheeler-build-input-1` keys cached complete build outputs. Every hit is independently verified, one input admits one PREV, and divergent verified output enters deterministic quarantine rather than replacing accepted bytes. Bounded `cache gc` removes malformed or unreachable disposable objects. [WIP-0023](../proposals/WIP-0023-recipe-repositories-and-reproducible-builds.md#xdg-local-objects-and-reusable-artifacts) owns repository, build-input, and PREV semantics. A path under `$HOME` is not provenance by itself.
+Exact fetch keeps a disposable verified package-object cache under the XDG artifact root. `wheeler-build-input-1` keys cached complete build outputs. Every hit is independently verified, one input admits one PREV, and divergent verified output enters deterministic quarantine rather than replacing accepted bytes. Bounded `cache gc` removes malformed or unreachable disposable objects. WIP-0023 owns repository, build-input, and PREV semantics. A path under `$HOME` is not provenance by itself.
 
 ## Workspace manifest
 
@@ -369,7 +369,7 @@ Later WIPs add more public metadata:
 
 The current schema implements none of these fields. A hash proves byte identity, not missing semantics.
 
-The planned `Io` fabric in [WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md) keeps I/O scheduling separate from package authority. Future file, network, direct-storage, persistence, RDMA, and target capabilities remain scoped to a target and phase. A runtime backend does not give build programs ambient live I/O.
+The planned `Io` fabric in WIP-0032 keeps I/O scheduling separate from package authority. Future file, network, direct-storage, persistence, RDMA, and target capabilities remain scoped to a target and phase. A runtime backend does not give build programs ambient live I/O.
 
 Until that work lands, three rules remain fixed. Only direct manifest intent may create future source visibility. Locked builds perform no ambient resolution. Native and distribution work must not discover host libraries or package databases.
 

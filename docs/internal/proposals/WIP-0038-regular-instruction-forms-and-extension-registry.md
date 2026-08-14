@@ -314,5 +314,5 @@ only with their complete operand roles and execution contract.
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0013](WIP-0013-typed-frames-control-flow-and-storage.md)
 - [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md)
-- [Bytecode reference](../reference/bytecode.md)
+- [Bytecode reference](../../public/reference/bytecode.md)
 - [RISC-V instruction set manual](https://riscv.org/technical/specifications/)

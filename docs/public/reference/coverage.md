@@ -28,4 +28,4 @@ Fresh classical cases chosen by `wheeler test` collect this report. The test out
 
 The report has no percentage. This first slice knows which transitions ran, but it does not yet define a complete source or IR denominator.
 
-Source points, compound conditions, match arms, traps, attempt lineage, sharded merging, quantum structure, proof duties, thresholds, adapters, and Wheeler-written reduction remain part of [WIP-0020](../proposals/WIP-0020-semantic-coverage-and-evidence-accounting.md). JaCoCo still measures only the Java seed implementation. It is not evidence about Wheeler semantics.
+Source points, compound conditions, match arms, traps, attempt lineage, sharded merging, quantum structure, proof duties, thresholds, adapters, and Wheeler-written reduction remain part of WIP-0020. JaCoCo still measures only the Java seed implementation. It is not evidence about Wheeler semantics.

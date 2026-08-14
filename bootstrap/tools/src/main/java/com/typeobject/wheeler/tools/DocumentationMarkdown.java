@@ -71,7 +71,6 @@ final class DocumentationMarkdown {
         .toList();
     return pages.stream()
         .filter(Page::sidebar)
-        .filter(page -> !page.source().equals("proposals/TEMPLATE.md"))
         .filter(page -> controllingIndexes.stream().noneMatch(index ->
             page.source().startsWith(indexPrefix(index.source()))
                 && !page.source().equals(index.source())))
@@ -138,9 +137,7 @@ final class DocumentationMarkdown {
       case "manual" -> 0;
       case "tutorials" -> 1;
       case "reference" -> 2;
-      case "proposals" -> 3;
-      case "future" -> 4;
-      default -> 5;
+      default -> 3;
     };
   }
 
@@ -158,12 +155,6 @@ final class DocumentationMarkdown {
     }
     if (page.source().equals("examples.md")) {
       return 10;
-    }
-    if (isIndexSource(page.source()) && group(page).equals("proposals")) {
-      return 0;
-    }
-    if (page.source().startsWith("proposals/WIP-")) {
-      return 100;
     }
     if (page.source().startsWith("reference/")) {
       return switch (page.source()) {

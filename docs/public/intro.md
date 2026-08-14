@@ -7,7 +7,7 @@ description: Wheeler's reversible, quantum, and systems programming model, its e
 
 # What is Wheeler?
 
-_Wheeler is under active development. This page also covers planned unfinished features._
+_Wheeler is under active development. This page describes the implemented system and its current limits._
 
 Wheeler is a programming language for reversible computing, quantum computing, and software that uses both quantum and classical code.
 
@@ -225,32 +225,6 @@ The production compiler is intended to be written in Wheeler. The same applies t
 
 A compiler uses many parts of a general-purpose language. Building Wheeler with Wheeler will test whether those parts work together under real load.
 
-## Possible projects
-
-Once the remaining language and standard-library work lands, Wheeler could support projects beyond textbook quantum algorithms.
-
-A reversible packet codec could parse bytes into typed records, then run its inverse to recreate the canonical frame exactly.
-
-A reversible image transform could apply an integer wavelet transform to a tile and recover the original bytes.
-
-A time-travel debugger could show the difference between VM rewind and inverse execution instead of calling both actions "undo."
-
-A quantum search playground could use one predicate as a classical test and as the coherent oracle for Grover search.
-
-A certifying circuit optimizer could produce a smaller circuit with checkable evidence that its meaning did not change.
-
-A recoverable molecular-energy experiment could save optimizer steps, submissions, results, uncertainty estimates, and target identities. After a crash, it could resume or replay without spending another hardware budget.
-
-A fault-tolerance planner could calculate logical qubits, code distance, correction cycles, magic-state throughput, and failure budgets before submitting costly work.
-
-A distributed entanglement workflow could track sessions, delayed heralding, timeouts, cancellation, and discarded branches. Deleting a database row wouldn't be confused with destroying a Bell pair elsewhere.
-
-A hermetic package builder could work offline from exact content identities. It could verify provenance and proof certificates, then block undeclared file or network access before the effect starts.
-
-The far-future [algorithm foundry](future/foundry.md) explores a bounded program grammar, uncomputes rejected candidates, checks every bounded input, proves correctness and relative minimality, and publishes the result as a normal Wheeler package. It is a research direction, not a current feature or roadmap promise.
-
-The future [adversarial timeline debugger](future/murphy.md) explores every bounded message and fault schedule for a distributed protocol. It can replay a failure, prove the shortest counterexample, or return an exact bounded-safety certificate. Without a counterexample or certificate, the result is `Inconclusive`.
-
 ## What works today?
 
 Wheeler already has an executable base.
@@ -274,7 +248,7 @@ The examples cover reversible state, typed aggregate values, bounded and recursi
 
 Large areas are still unfinished. They include borrowing, mutable slices, and compiler-scale region storage. The project also needs a standard library, self-hosted tools, and native Java-free execution. Dynamic target control, richer coherent arithmetic, complete application fixtures, and the full proof system remain open.
 
-Wheeler runs today, but the language is not complete. The WIPs describe reviewed design work and implementation plans. They do not claim that every proposed feature already exists.
+Wheeler runs today, but the language is not complete. Public reference pages state the implemented boundary. Maintainers keep proposals and research sketches outside the published site.
 
 ## Common questions
 
@@ -315,6 +289,5 @@ When software crosses classical, reversible, quantum, and external-effect bounda
 - [Quantum targets](reference/quantum-targets.md)
 - [Hybrid runs, history, and replay](reference/hybrid-runs.md)
 - [Packages, locks, archives, and offline builds](reference/packages.md)
-- [WIP index](proposals/index.mdx)
 - [Wheeler repository](https://github.com/typeobject/wheeler)
 - [Published documentation](https://wheeler.typeobject.com/)

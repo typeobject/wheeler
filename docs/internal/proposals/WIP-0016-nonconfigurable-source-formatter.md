@@ -861,5 +861,5 @@ Rejected. That is an indentation fixer instead of a formatter and leaves syntact
 - [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md)
 - [WIP-0019](WIP-0019-integrated-documentation-publication.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
-- [Language profile](../reference/language-profile.md)
-- [Development and testing](../reference/development.md)
+- [Language profile](../../public/reference/language-profile.md)
+- [Development and testing](../../public/reference/development.md)

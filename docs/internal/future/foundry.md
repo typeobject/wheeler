@@ -7,7 +7,7 @@ sidebar_position: 1
 
 :::caution Future design, not current Wheeler
 
-`Foundry.w` is a possible application for a future fault-tolerant system. The current compiler accepts only the syntax that also appears in the [language reference](../reference/language-profile.md). This page is a design target. It is not a checked-in `.w` example, a hardware promise, a benchmark result, or a release schedule.
+`Foundry.w` is a possible application for a future fault-tolerant system. The current compiler accepts only the syntax that also appears in the [language reference](../../public/reference/language-profile.md). This page is a design target. It is not a checked-in `.w` example, a hardware promise, a benchmark result, or a release schedule.
 
 :::
 

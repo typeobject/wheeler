@@ -80,7 +80,7 @@ At a waiting edge, recovery calls `QuantumTarget.recover(jobId, task)`. It never
 
 Provider SDK objects, credentials, host pointers, arbitrary object graphs, and raw quantum handles are never persisted.
 
-Atomic replacement can prevent a torn userspace publication on a supporting host. The current store does not return evidence that data, metadata, or the namespace survived a crash. [WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md) will place snapshot I/O under the unified operation lifecycle and typed receipt model.
+Atomic replacement can prevent a torn userspace publication on a supporting host. The current store does not return evidence that data, metadata, or the namespace survived a crash. WIP-0032 will place snapshot I/O under the unified operation lifecycle and typed receipt model.
 
 Until then, a successful snapshot write is not a proof of power-loss durability.
 

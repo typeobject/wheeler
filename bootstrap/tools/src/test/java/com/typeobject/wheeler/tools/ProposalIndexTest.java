@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 
 /** Keeps the proposal index complete and the declared WIP dependency graph acyclic. */
 final class ProposalIndexTest {
-  private static final Path ROOT = Path.of("docs/public/proposals");
+  private static final Path ROOT = Path.of("docs/internal/proposals");
   private static final Pattern FILE = Pattern.compile("WIP-(\\d{4})-[a-z0-9-]+\\.md");
   private static final Pattern HEADING = Pattern.compile("# WIP-(\\d{4}): .+");
   private static final Pattern STATUS = Pattern.compile(

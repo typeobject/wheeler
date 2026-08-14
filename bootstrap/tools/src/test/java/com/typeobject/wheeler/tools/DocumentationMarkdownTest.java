@@ -73,15 +73,15 @@ class DocumentationMarkdownTest {
   void indexMdxControlsSidebarChildrenAndCanHideAWholeSection() {
     DocumentationMarkdown renderer = new DocumentationMarkdown(Map.of(
         "examples.md", "# Executable examples\n",
-        "future/index.mdx", """
+        "archive/index.mdx", """
             ---
-            title: Future directions
+            title: Private archive
             sidebar: false
             sidebar_children: false
             ---
-            # Future directions
+            # Private archive
             """,
-        "future/murphy.md", "# Murphy\n",
+        "archive/old.md", "# Old note\n",
         "intro.md", """
             ---
             title: What Is Wheeler?
@@ -89,16 +89,15 @@ class DocumentationMarkdownTest {
             ---
             # What Is Wheeler?
             """,
-        "proposals/index.mdx", """
+        "decisions/index.mdx", """
             ---
-            title: Wheeler Improvement Proposals
+            title: Published decisions
             sidebar_position: 1
             sidebar_children: false
             ---
-            # Wheeler Improvement Proposals
+            # Published decisions
             """,
-        "proposals/TEMPLATE.md", "# WIP-XXXX: Short decision title\n",
-        "proposals/WIP-0001-first.md", "# WIP-0001: First\n",
+        "decisions/first.md", "# First decision\n",
         "reference/bytecode.md", "# Wheeler bytecode format\n",
         "reference/language-profile.md", "# Wheeler source language profile\n",
         "tutorials/index.mdx", "# Instructions for Returning\n"));
@@ -111,24 +110,23 @@ class DocumentationMarkdownTest {
     int manual = html.indexOf("<section><h2>manual</h2>");
     int tutorials = html.indexOf("<section><h2>tutorials</h2>");
     int reference = html.indexOf("<section><h2>reference</h2>");
-    int proposals = html.indexOf("<section><h2>proposals</h2>");
+    int decisions = html.indexOf("<section><h2>decisions</h2>");
     assertTrue(manual >= 0 && manual < tutorials && tutorials < reference
-        && reference < proposals);
+        && reference < decisions);
     assertEqualsOnce(html, "<section><h2>manual</h2>");
     assertTrue(html.indexOf(">What Is Wheeler?</a>")
         < html.indexOf(">Executable examples</a>"));
     assertTrue(html.indexOf(">Wheeler source language profile</a>")
         < html.indexOf(">Wheeler bytecode format</a>"));
-    assertTrue(html.contains(">Wheeler Improvement Proposals</a>"));
-    assertFalse(html.contains(">WIP-0001: First</a>"));
-    assertFalse(html.contains("WIP-XXXX: Short decision title"));
-    assertFalse(html.contains("<section><h2>future</h2>"));
-    assertFalse(html.contains(">Murphy</a>"));
-    assertEquals("proposals/index.html", renderer.pages().stream()
-        .filter(page -> page.source().equals("proposals/index.mdx"))
+    assertTrue(html.contains(">Published decisions</a>"));
+    assertFalse(html.contains(">First decision</a>"));
+    assertFalse(html.contains("<section><h2>archive</h2>"));
+    assertFalse(html.contains(">Old note</a>"));
+    assertEquals("decisions/index.html", renderer.pages().stream()
+        .filter(page -> page.source().equals("decisions/index.mdx"))
         .findFirst().orElseThrow().output());
-    assertEquals("future/index.html", renderer.pages().stream()
-        .filter(page -> page.source().equals("future/index.mdx"))
+    assertEquals("archive/index.html", renderer.pages().stream()
+        .filter(page -> page.source().equals("archive/index.mdx"))
         .findFirst().orElseThrow().output());
   }
 

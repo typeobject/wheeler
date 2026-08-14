@@ -621,7 +621,7 @@ After native runtime conformance, the project plans to remove the Java compiler,
 
 Java APIs and object behavior are not future Wheeler contracts.
 
-See [WIP-0007](../proposals/WIP-0007-self-hosting-compiler-and-bootstrap.md), [WIP-0008](../proposals/WIP-0008-java-free-runtime-and-native-bootstrap.md), and [WIP-0009](../proposals/WIP-0009-wheeler-package-and-build-system.md).
+See WIP-0007, WIP-0008, and WIP-0009.
 
 ## Proof direction
 
@@ -631,13 +631,13 @@ Formal theorem evidence stays separate from simulator tests and sampled hardware
 
 `QFTProof.w` is currently an executable inverse law, not a formal theorem. `Counter.w`, `QFT.w`, and `QuantumCompiler.w` carry the first finite-rule certificates.
 
-General proposition terms, contracts, matrix-level quantum proofs, resource claims, and tool contracts remain specified work in [WIP-0011](../proposals/WIP-0011-integrated-proofs-and-certificates.md).
+General proposition terms, contracts, matrix-level quantum proofs, resource claims, and tool contracts remain specified work in WIP-0011.
 
 ## Standard library direction
 
 The Wheeler-written standard library will provide allocation-free core values and owned deterministic collections. It will include bytes, UTF-8, explicit host capabilities, and reversible data structures with exact inverse contracts. Quantum support will cover affine logical qubits and registers, circuits, observables, and target jobs. The library will also include proof support and test tools.
 
-[WIP-0012](../proposals/WIP-0012-wheeler-standard-library.md) defines its package layers and ownership rules.
+WIP-0012 defines its package layers and ownership rules.
 
 ## Generic and ownership direction
 
@@ -645,11 +645,11 @@ The current profile has concrete nominal aggregates, fixed arrays and slices, pr
 
 It has no generic declarations, type classes, associated types, const-generic parameters, returned loans, closures, effect variables, or runtime class dispatch.
 
-[WIP-0028](../proposals/WIP-0028-deterministic-ownership-borrowing-and-regions.md) defines affine ownership, inferred local loans, public origins, deterministic destruction, and no required collector.
+WIP-0028 defines affine ownership, inferred local loans, public origins, deterministic destruction, and no required collector.
 
-[WIP-0029](../proposals/WIP-0029-parametric-polymorphism-and-bounded-specialization.md) defines checked generics, kinds, bounded values, and deterministic specialization. [WIP-0030](../proposals/WIP-0030-coherent-type-classes-and-associated-types.md) adds coherent static classes and certified semantic evidence.
+WIP-0029 defines checked generics, kinds, bounded values, and deterministic specialization. WIP-0030 adds coherent static classes and certified semantic evidence.
 
-[WIP-0031](../proposals/WIP-0031-reversible-quantum-and-effect-polymorphism.md) defines closure ownership, effect rows, and distinct reversible, coherent, and unitary callable kinds.
+WIP-0031 defines closure ownership, effect rows, and distinct reversible, coherent, and unitary callable kinds.
 
 Each feature must still lower to the same typed reversible `.wbc` IR. None is implemented yet unless the reference above describes its executable slice.
 

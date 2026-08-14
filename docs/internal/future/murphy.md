@@ -7,7 +7,7 @@ sidebar_position: 2
 
 :::caution Future design, not current Wheeler
 
-`Murphy.w` is a possible application for a future fault-tolerant system. The current compiler accepts only the syntax that also appears in the [language reference](../reference/language-profile.md). This page describes a bounded model-checking and proof target. It does not claim that today's quantum hardware improves distributed debugging.
+`Murphy.w` is a possible application for a future fault-tolerant system. The current compiler accepts only the syntax that also appears in the [language reference](../../public/reference/language-profile.md). This page describes a bounded model-checking and proof target. It does not claim that today's quantum hardware improves distributed debugging.
 
 :::
 

@@ -20,7 +20,7 @@ final class InternalDocumentationTest {
     List<String> failures = new ArrayList<>();
     try (var paths = Files.walk(ROOT)) {
       for (Path source : paths.filter(Files::isRegularFile).sorted().toList()) {
-        Matcher matcher = LINK.matcher(Files.readString(source));
+        Matcher matcher = LINK.matcher(prose(Files.readString(source)));
         while (matcher.find()) {
           String target = matcher.group(1);
           if (target.startsWith("#") || target.startsWith("https://")
@@ -38,5 +38,18 @@ final class InternalDocumentationTest {
       }
     }
     assertEquals(List.of(), failures);
+  }
+
+  private static String prose(String markdown) {
+    StringBuilder result = new StringBuilder(markdown.length());
+    boolean fenced = false;
+    for (String line : markdown.split("\\R", -1)) {
+      if (line.trim().startsWith("```")) {
+        fenced = !fenced;
+      } else if (!fenced) {
+        result.append(line.replaceAll("`[^`]*`", "")).append('\n');
+      }
+    }
+    return result.toString();
   }
 }

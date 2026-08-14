@@ -32,7 +32,7 @@ Write in active voice and name the actor first. Address readers as `you` when yo
 
 Do not use semicolons, en dashes, or em dashes in prose. Code spans and fenced examples keep the punctuation that their syntax requires. Markdown keeps its own list, link, and emphasis markers.
 
-`DocumentationStyleTest` checks every maintained README, reference page, future note, and WIP. It rejects those punctuation forms, common filler phrases, and clear passive forms that hide an actor behind `by`. The check stays narrow on purpose. Review still catches vague claims, needless conditionals, awkward rhythm, and jokes that have outlived their patch.
+`DocumentationStyleTest` checks every maintained README, public page, internal proposal, future note, and conformance document. It rejects those punctuation forms, common filler phrases, and clear passive forms that hide an actor behind `by`. The check stays narrow on purpose. Review still catches vague claims, needless conditionals, awkward rhythm, and jokes that have outlived their patch.
 
 ## Documentation check
 
@@ -66,11 +66,11 @@ Relative links to `.md` or `.mdx` pages and canonical `#heading` anchors resolve
 
 Scalar MDX-style front matter becomes bounded metadata and is never printed as page text. `index.md` and `index.mdx` map to their directory route. An index may set `sidebar_children: false` to keep descendants routable and searchable while omitting them from navigation. Any page may set `sidebar: false` to omit itself. The renderer does not execute MDX or JSX.
 
-Navigation uses one fixed order: Manual, Tutorials, Reference, Proposals, then any later visible group. Overview pages come first, and the proposal template stays out of the sidebar. The proposals index hides its child WIPs, while the future index hides its complete section for now. The profile has one stylesheet, one fixed local copy script, no themes, no plugins, a restrictive content security policy, bounded output, and one atomic publication step.
+Navigation uses one fixed order: Manual, Tutorials, then Reference. Proposals, future sketches, maintainer notes, and conformance programs stay under `docs/internal`. The bundle cannot discover them. The profile has one stylesheet, one fixed local copy script, no themes, no plugins, a restrictive content security policy, bounded output, and one atomic publication step.
 
 `sitemap.xml` comes from every generated HTML route and includes a deterministic content-set digest. A page edit changes the sitemap without adding build time to the semantic inputs.
 
-`publication-manifest.json` binds the bundle, renderer classes, and every site file. Existing output is rejected. Atomic publication prevents a partial tree from becoming the selected tree. It is not a [WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md) data or namespace durability receipt.
+`publication-manifest.json` binds the bundle, renderer classes, and every site file. Existing output is rejected. Atomic publication prevents a partial tree from becoming the selected tree. It is not a WIP-0032 data or namespace durability receipt.
 
 Java doclet nodes, executable examples, proof references, and generated reference tables remain part of WIP-0019. The current Java generator and renderer are stage-0 tools. WIP-0019 requires a Wheeler-written generator to reproduce the same bundle bytes before the Java implementation can be removed.
 
@@ -104,7 +104,7 @@ Bounded-loop headers and the remaining syntax-owned break rules are still WIP-00
 
 ## Design workflow
 
-Cross-cutting semantic changes start as a [Wheeler Improvement Proposal](../proposals/index.mdx). Reference pages describe behavior that exists now. A WIP becomes Implemented only after its tests, documentation, migration, and required cleanup are complete.
+Cross-cutting semantic changes start as a Wheeler Improvement Proposal. Reference pages describe behavior that exists now. A WIP becomes Implemented only after its tests, documentation, migration, and required cleanup are complete.
 
 ## Maintenance rules
 

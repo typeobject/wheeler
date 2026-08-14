@@ -43,7 +43,8 @@ Wheeler currently includes a reversible VM, backend-neutral quantum regions, an 
 - [Semantic coverage](docs/public/reference/coverage.md)
 - [Executable conformance](docs/internal/conformance.md)
 - [Quantum targets](docs/public/reference/quantum-targets.md)
-- [Improvement proposals](docs/public/proposals/index.mdx)
+- [Improvement proposals](docs/internal/proposals/index.mdx)
+- [Future research notes](docs/internal/future/index.mdx)
 - [Development and test guide](docs/public/reference/development.md)
 
 Executable examples:

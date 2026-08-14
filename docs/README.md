@@ -1,6 +1,6 @@
 # Wheeler documentation system
 
-Public website source lives under `docs/public`. Maintainer and conformance material lives under `docs/internal` and is never added to the public bundle. The repository has one opinionated documentation command and no renderer configuration, plugin graph, Node installation, or theme package:
+Public website source lives under `docs/public`. Proposals, future ideas, maintainer notes, and conformance material live under `docs/internal` and are never added to the public bundle. The repository has one opinionated documentation command and no renderer configuration, plugin graph, Node installation, or theme package:
 
 ```bash
 ./bootstrap/gradlew -p bootstrap -q :tools:wheeler --args='site -o docs-site'
@@ -10,4 +10,4 @@ The command discovers the fixed Wheeler source and manual roots, validates docum
 
 GitHub Pages runs that same command. Pull requests build the complete public site. Pushes publish the exact resulting directory. A change confined to `docs/**`, Markdown, or MDX skips the dual-JDK bootstrap and example matrix. The documentation workflow remains the required gate. Internal documentation is checked for style and links by repository verification, but it has no public route, search node, navigation entry, or sitemap URL. There is no second website parser waiting in the shrubbery.
 
-Reference pages describe implemented contracts. WIPs contain designs, migrations, and implementation status. Draft prose cannot make absent behavior callable.
+Public reference pages describe implemented contracts. Internal WIPs contain designs, migrations, and implementation status. Future sketches remain internal until executable behavior belongs in the reference manual. Draft prose cannot make absent behavior callable.

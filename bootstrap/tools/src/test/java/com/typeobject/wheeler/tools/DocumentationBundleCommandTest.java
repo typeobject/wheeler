@@ -32,7 +32,12 @@ class DocumentationBundleCommandTest {
     Files.createDirectories(internalManuals);
     Files.createDirectories(sources);
     Files.writeString(publicManuals.resolve("intro.md"), "# Public manual\n");
+    Files.createDirectories(internalManuals.resolve("proposals"));
+    Files.createDirectories(internalManuals.resolve("future"));
     Files.writeString(internalManuals.resolve("conformance.md"), "# Internal conformance\n");
+    Files.writeString(
+        internalManuals.resolve("proposals/WIP-0001-private.md"), "# Private proposal\n");
+    Files.writeString(internalManuals.resolve("future/idea.md"), "# Private idea\n");
     Files.writeString(sources.resolve("Api.w"), """
         //! Public API.
         module split.api;
@@ -46,7 +51,12 @@ class DocumentationBundleCommandTest {
 
     assertTrue(Files.isRegularFile(output.resolve("pages/intro.md")));
     assertFalse(Files.exists(output.resolve("pages/conformance.md")));
-    assertFalse(Files.readString(output.resolve("nodes.json")).contains("Internal conformance"));
+    assertFalse(Files.exists(output.resolve("pages/proposals")));
+    assertFalse(Files.exists(output.resolve("pages/future")));
+    String nodes = Files.readString(output.resolve("nodes.json"));
+    assertFalse(nodes.contains("Internal conformance"));
+    assertFalse(nodes.contains("Private proposal"));
+    assertFalse(nodes.contains("Private idea"));
     assertFalse(Files.readString(output.resolve("manifest.json")).contains("internal-manuals"));
   }
 
@@ -186,24 +196,24 @@ class DocumentationBundleCommandTest {
   void indexMetadataOwnsTheSemanticSidebarSelection() throws Exception {
     Path manuals = temporary.resolve("navigation-manuals");
     Path sources = temporary.resolve("navigation-sources");
-    Files.createDirectories(manuals.resolve("proposals"));
+    Files.createDirectories(manuals.resolve("decisions"));
     Files.createDirectories(sources);
     Files.writeString(manuals.resolve("intro.md"), "# Introduction\n");
-    Files.writeString(manuals.resolve("proposals/index.mdx"), """
+    Files.writeString(manuals.resolve("decisions/index.mdx"), """
         ---
         sidebar_children: false
         ---
-        # Proposals
+        # Decisions
         """);
-    Files.writeString(manuals.resolve("proposals/WIP-0001-first.md"), "# First proposal\n");
+    Files.writeString(manuals.resolve("decisions/first.md"), "# First decision\n");
     Path output = temporary.resolve("navigation-bundle");
 
     assertEquals(0, execute(manuals, sources, output, new ByteArrayOutputStream()));
     String navigation = Files.readString(output.resolve("navigation.json"));
-    assertTrue(navigation.contains("manual:proposals/index"));
-    assertFalse(navigation.contains("manual:proposals/WIP-0001-first"));
+    assertTrue(navigation.contains("manual:decisions/index"));
+    assertFalse(navigation.contains("manual:decisions/first"));
     String nodes = Files.readString(output.resolve("nodes.json"));
-    assertTrue(nodes.contains("manual:proposals/WIP-0001-first"));
+    assertTrue(nodes.contains("manual:decisions/first"));
   }
 
   @Test

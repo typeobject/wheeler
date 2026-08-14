@@ -30,7 +30,7 @@ Each input or output is capped at 16 MiB. Total live owned and host storage is c
 
 Missing, extra, mismatched, malformed UTF-8, or oversized effects fail before the first step. Binary input is never decoded as text. Effect bytes and output capacity are runtime data, so they do not change `.wbc` identity.
 
-These entry loans are the narrow host boundary that exists today. They are not the planned asynchronous I/O API. [WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md) will lower submitted I/O through typed effects and continuations while keeping the same ownership and fail-closed rules.
+These entry loans are the narrow host boundary that exists today. They are not the planned asynchronous I/O API. WIP-0032 will lower submitted I/O through typed effects and continuations while keeping the same ownership and fail-closed rules.
 
 Live I/O remains a rewind barrier. Building a request doesn't submit it.
 

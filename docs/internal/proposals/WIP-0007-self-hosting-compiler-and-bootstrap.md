@@ -207,7 +207,7 @@ The build executes these steps:
 7. Compare the complete diverse output with the ordinary stage-1 artifact before executing the candidate output.
 8. Publish the stage-2 content identity, diverse evidence, and build manifest as the next recovery-seed candidate.
 
-`wheeler bootstrap-manifest` implements the final fail-closed comparison and evidence codec. It reads only bounded physical files. It requires a canonical source archive, lock, stage artifacts, and closed acceptance artifacts. It compares stage 1, stage 2, diverse output, and diagnostics before publication. It then emits schema-2 `wheeler.bootstrap.yaml` atomically. The exact schema and command contract live in the [bootstrap evidence reference](../reference/bootstrap.md). The command never executes the candidate. CI must still order candidate acceptance after diverse comparison. The YAML file records evidence, but it does not prove that CI ran the steps in the required order.
+`wheeler bootstrap-manifest` implements the final fail-closed comparison and evidence codec. It reads only bounded physical files. It requires a canonical source archive, lock, stage artifacts, and closed acceptance artifacts. It compares stage 1, stage 2, diverse output, and diagnostics before publication. It then emits schema-2 `wheeler.bootstrap.yaml` atomically. The exact schema and command contract live in the [bootstrap evidence reference](../../public/reference/bootstrap.md). The command never executes the candidate. CI must still order candidate acceptance after diverse comparison. The YAML file records evidence, but it does not prove that CI ran the steps in the required order.
 
 A seed update is reviewed like source code. CI rebuilds from the prior seed, proves the new fixed point, and verifies diverse evidence before accepting it.
 
@@ -367,5 +367,5 @@ Rejected. The canonical executable is `.wbc`. Provider formats and host-native i
 - [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
-- [Wheeler source language profile](../reference/language-profile.md)
+- [Wheeler source language profile](../../public/reference/language-profile.md)
 - [Ken Thompson, "Reflections on Trusting Trust"](https://dl.acm.org/doi/10.1145/358198.358210)

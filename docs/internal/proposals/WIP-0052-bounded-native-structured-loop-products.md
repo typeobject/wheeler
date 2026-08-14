@@ -185,4 +185,4 @@ Rejected. Block rows are temporary lowering evidence. Canonical `.wbc` remains t
 
 - [WIP-0047: Counted native callable bytecode products](WIP-0047-counted-native-callable-bytecode-products.md)
 - [WIP-0049: Bounded native source-product compilation](WIP-0049-bounded-native-source-product-compilation.md)
-- [Bootstrap evidence](../reference/bootstrap.md)
+- [Bootstrap evidence](../../public/reference/bootstrap.md)

@@ -282,4 +282,4 @@ The manifest is generated and must not be hand-edited. A failed comparison produ
 
 Deleting extra cache copies must not change the evidence graph. Losing a referenced provenance object makes the candidate impossible to verify, so the candidate cannot be promoted.
 
-See [WIP-0007](../proposals/WIP-0007-self-hosting-compiler-and-bootstrap.md) for the bootstrap process. The [package and build reference](packages.md) defines canonical package, lock, repository, and artifact-set identities.
+See WIP-0007 for the bootstrap process. The [package and build reference](packages.md) defines canonical package, lock, repository, and artifact-set identities.

@@ -295,4 +295,4 @@ Rejected. Control flow, binding, inversion, and proofs have region semantics tha
 - [WIP-0006: Concrete syntax, tooling, and teaching](WIP-0006-concrete-syntax-tooling-and-teaching.md)
 - [WIP-0016: Nonconfigurable source formatter](WIP-0016-nonconfigurable-source-formatter.md)
 - [WIP-0018: Integrated deterministic testing](WIP-0018-integrated-deterministic-testing.md)
-- [Language profile](../reference/language-profile.md)
+- [Language profile](../../public/reference/language-profile.md)

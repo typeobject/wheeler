@@ -155,4 +155,4 @@ Rejected. Coordinates are temporary evidence and are unstable under canonical fo
 
 - [WIP-0049: Bounded native source-product compilation](WIP-0049-bounded-native-source-product-compilation.md)
 - [WIP-0050: Native aggregate source lowering](WIP-0050-native-aggregate-source-lowering.md)
-- [Bootstrap evidence](../reference/bootstrap.md)
+- [Bootstrap evidence](../../public/reference/bootstrap.md)

@@ -249,4 +249,4 @@ Rejected. Reversibility, affine quantum resources, reverse blocks, and measureme
 - [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
-- [Language profile](../reference/language-profile.md)
+- [Language profile](../../public/reference/language-profile.md)

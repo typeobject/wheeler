@@ -941,12 +941,12 @@ proposal may retain an unlinked release-unit roadmap, while the public story lan
 
 ### Current documentation
 
-- [What is Wheeler?](../intro.md)
-- [Wheeler source language profile](../reference/language-profile.md)
-- [Executable examples](../examples.md)
-- [Quantum targets](../reference/quantum-targets.md)
-- [Hybrid runs and replay](../reference/hybrid-runs.md)
-- [Reversible virtual machine](../reference/virtual-machine.md)
+- [What is Wheeler?](../../public/intro.md)
+- [Wheeler source language profile](../../public/reference/language-profile.md)
+- [Executable examples](../../public/examples.md)
+- [Quantum targets](../../public/reference/quantum-targets.md)
+- [Hybrid runs and replay](../../public/reference/hybrid-runs.md)
+- [Reversible virtual machine](../../public/reference/virtual-machine.md)
 
 ### Teaching and subject references
 

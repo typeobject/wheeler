@@ -434,5 +434,5 @@ Deferred. Non-power-of-two domains leave invalid computational-basis states and 
 - [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md)
 - [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
-- [Bytecode reference](../reference/bytecode.md)
-- [Language profile](../reference/language-profile.md)
+- [Bytecode reference](../../public/reference/bytecode.md)
+- [Language profile](../../public/reference/language-profile.md)

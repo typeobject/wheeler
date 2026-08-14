@@ -344,4 +344,4 @@ Rejected. Themes, plugins, package locks, and runtime-side Markdown interpretati
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
-- [Development guide](../reference/development.md)
+- [Development guide](../../public/reference/development.md)

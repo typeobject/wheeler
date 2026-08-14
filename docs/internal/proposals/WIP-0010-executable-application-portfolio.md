@@ -482,4 +482,4 @@ A later `BlackWhiteBakery.w` covers repeated bounded entry after generic atomics
 - [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md)
 - [WIP-0012](WIP-0012-wheeler-standard-library.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
-- [Executable examples](../examples.md)
+- [Executable examples](../../public/examples.md)

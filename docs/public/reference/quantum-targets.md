@@ -21,7 +21,7 @@ Results use canonical little-endian integer outcomes and carry target identity. 
 
 `QuantumTarget.recover(jobId, task)` reconciles an acknowledged job without submitting it again. Local targets can recover jobs kept by the same target instance. A remote adapter must map the durable external identity and reject unknown or mismatched tasks. Recovery never grants permission to resubmit.
 
-[WIP-0032](../proposals/WIP-0032-unified-io-fabric-and-durability-receipts.md) will move this lifecycle under `IoScope` while keeping target-specific request and result types plus WIP-0004 identities. That proposal is still a Draft, so the current `QuantumJob` API doesn't implement the general fabric.
+WIP-0032 will move this lifecycle under `IoScope` while keeping target-specific request and result types plus WIP-0004 identities. That proposal is still a Draft, so the current `QuantumJob` API doesn't implement the general fabric.
 
 In either model, submission moves classical descriptions and observations. Coherent quantum state never becomes an I/O buffer.
 
