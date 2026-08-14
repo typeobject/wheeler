@@ -103,6 +103,10 @@ classical class LoopLocalTypeProducts {
       bufferType = TYPE_BYTES_BORROW;
     }
 
+    if (opcode == BODY_BYTEVIEW_TO_BYTES_COPY) {
+      bufferType = TYPE_BYTES_BORROW;
+    }
+
     if (opcode == BODY_BYTEVIEW_GET) {
       bufferType = TYPE_BYTE_VIEW;
     }
@@ -142,6 +146,10 @@ classical class LoopLocalTypeProducts {
       bufferCopy = true;
     }
 
+    if (opcode == BODY_BYTEVIEW_TO_BYTES_COPY) {
+      bufferCopy = true;
+    }
+
     if (bufferCopy) {
       long writeBorrowed = operand / 4294967296 % 2;
       long readBorrowed = operand / 8589934592;
@@ -154,6 +162,9 @@ classical class LoopLocalTypeProducts {
       if (0 < readBorrowed) {
         if (localOffset == writeBorrowed + 1) {
           localType = bufferType;
+          if (opcode == BODY_BYTEVIEW_TO_BYTES_COPY) {
+            localType = TYPE_BYTE_VIEW;
+          }
         }
       }
     }

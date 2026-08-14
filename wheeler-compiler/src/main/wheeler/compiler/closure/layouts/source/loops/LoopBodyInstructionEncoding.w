@@ -54,6 +54,10 @@ classical class LoopBodyInstructionEncoding {
       bufferCopy = true;
     }
 
+    if (opcode == BODY_BYTEVIEW_TO_BYTES_COPY) {
+      bufferCopy = true;
+    }
+
     if (bufferCopy) {
       long borrowedCount = operand / 4294967296 % 2 + operand / 8589934592;
       return new LoopBodyInstructionExtent(4 + borrowedCount, 112 + borrowedCount * 24, true);
@@ -174,6 +178,10 @@ classical class LoopBodyInstructionEncoding {
 
     boolean bufferCopy = opcode == BODY_WORDS_COPY;
     if (opcode == BODY_BYTES_COPY) {
+      bufferCopy = true;
+    }
+
+    if (opcode == BODY_BYTEVIEW_TO_BYTES_COPY) {
       bufferCopy = true;
     }
 
@@ -367,10 +375,19 @@ classical class LoopBodyInstructionEncoding {
       bufferCopy = true;
     }
 
+    if (opcode == BODY_BYTEVIEW_TO_BYTES_COPY) {
+      bufferCopy = true;
+    }
+
     if (bufferCopy) {
       long copyGetOpcode = OPCODE_WORDS_GET;
       long copySetOpcode = OPCODE_WORDS_SET;
       if (opcode == BODY_BYTES_COPY) {
+        copyGetOpcode = OPCODE_BYTES_GET;
+        copySetOpcode = OPCODE_BYTES_SET;
+      }
+
+      if (opcode == BODY_BYTEVIEW_TO_BYTES_COPY) {
         copyGetOpcode = OPCODE_BYTES_GET;
         copySetOpcode = OPCODE_BYTES_SET;
       }

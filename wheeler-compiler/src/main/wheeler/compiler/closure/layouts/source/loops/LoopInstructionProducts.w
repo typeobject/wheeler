@@ -162,6 +162,10 @@ classical class LoopInstructionProducts {
       bufferOperand = true;
     }
 
+    if (opcode == BODY_BYTEVIEW_TO_BYTES_COPY) {
+      bufferOperand = true;
+    }
+
     if (opcode == BODY_BYTEVIEW_GET) {
       bufferOperand = true;
     }

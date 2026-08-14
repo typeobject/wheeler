@@ -104,20 +104,32 @@ classical class ResolvedLoopBufferProducts {
         return new ResolvedLoopBufferProduct(0, 0, false);
       }
 
+      long writeType = loopBodyValueType(
+        source,
+        owner,
+        writeOwner.local,
+        valueCount,
+        valueRows,
+        tokenCount,
+        tokenStarts,
+        tokenLengths
+      );
+      long readType = loopBodyValueType(
+        source,
+        owner,
+        writeValue.local,
+        valueCount,
+        valueRows,
+        tokenCount,
+        tokenStarts,
+        tokenLengths
+      );
       long copyOpcode = BODY_WORDS_COPY;
-      if (
-        loopBodyValueType(
-          source,
-          owner,
-          writeOwner.local,
-          valueCount,
-          valueRows,
-          tokenCount,
-          tokenStarts,
-          tokenLengths
-        ) == TOKEN_BYTES
-      ) {
+      if (writeType == TOKEN_BYTES) {
         copyOpcode = BODY_BYTES_COPY;
+        if (readType == TOKEN_BYTEVIEW) {
+          copyOpcode = BODY_BYTEVIEW_TO_BYTES_COPY;
+        }
       }
 
       return new ResolvedLoopBufferProduct(copyOpcode, copy.operand, true);

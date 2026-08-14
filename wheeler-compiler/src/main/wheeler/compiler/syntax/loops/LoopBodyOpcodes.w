@@ -29,4 +29,6 @@ classical class LoopBodyOpcodes {
   public const long BODY_BYTES_COPY = 34053;
   /// Loads one signed local from an immutable byte view.
   public const long BODY_BYTEVIEW_GET = 34054;
+  /// Copies one immutable byte-view value into mutable byte storage.
+  public const long BODY_BYTEVIEW_TO_BYTES_COPY = 34055;
 }

@@ -68,6 +68,10 @@ classical class LoopBufferOperands {
       bufferCopy = true;
     }
 
+    if (opcode == BODY_BYTEVIEW_TO_BYTES_COPY) {
+      bufferCopy = true;
+    }
+
     if (bufferCopy) {
       long copyReadBorrowed = operand / 8589934592;
       long copyWriteBorrowed = operand / 4294967296 % 2;
@@ -232,7 +236,14 @@ classical class LoopBufferOperands {
       tokenStarts,
       tokenLengths
     );
-    if (writeType != readType) {
+    boolean compatible = writeType == readType;
+    if (writeType == TOKEN_BYTES) {
+      if (readType == TOKEN_BYTEVIEW) {
+        compatible = true;
+      }
+    }
+
+    if (compatible == false) {
       return new LoopBufferOperand(0, false);
     }
 

@@ -32,6 +32,7 @@ final class NativeCompilerStructuredByteProductsExampleTest {
             long value = input[index];
             setByte(scratch, index, value);
             setByte(output, index, scratch[index]);
+            setByte(output, index, input[index]);
             long copied = output[index];
             observed = copied;
             index += 1;
