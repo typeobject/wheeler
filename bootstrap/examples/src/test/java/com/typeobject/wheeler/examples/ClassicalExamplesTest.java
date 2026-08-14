@@ -57,12 +57,17 @@ class ClassicalExamplesTest {
     machine.run();
 
     assertEquals(MachineStatus.HALTED, machine.status());
-    if (name.equals("Counter.w") || name.equals("FixedPointSymplectic.w")
+    if (name.equals("CertifiedInverseBounds.w") || name.equals("Counter.w")
+        || name.equals("FixedPointSymplectic.w")
         || name.equals("IntegerWaveletTransform.w")
         || name.equals("ReversiblePacketCodec.w") || name.equals("ReversibleResult.w")) {
       assertEquals(ProofRule.GENERATED_INVERSE, program.proofCertificates().getFirst().rule());
     } else if (name.equals("FunctionValues.w")) {
       assertEquals(ProofRule.STATIC_STEP_BOUND, program.proofCertificates().getFirst().rule());
+    }
+    if (name.equals("CertifiedInverseBounds.w")) {
+      assertEquals(2, program.proofCertificates().size());
+      assertEquals(ProofRule.STATIC_STEP_BOUND, program.proofCertificates().get(1).rule());
     }
     expected.forEach((global, value) -> assertEquals(value, machine.global(global), global));
     while (machine.historySize() > 0) {
@@ -86,6 +91,9 @@ class ClassicalExamplesTest {
 
   static Stream<Arguments> examples() {
     return Stream.of(
+        Arguments.of(
+            "proof/CertifiedInverseBounds.w",
+            Map.of("value", 0L, "observed", 1L, "successor", 5L)),
         Arguments.of("classical/control/Counter.w", Map.of("count", 0L)),
         Arguments.of("classical/data/BinaryTree.w", Map.of("root", 0L, "left", 0L, "right", 0L)),
         Arguments.of(

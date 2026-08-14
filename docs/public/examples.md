@@ -21,6 +21,14 @@ classical class AnswerByte {
 
 ## Examples
 
+### `CertifiedInverseBounds.w`
+
+Source: [`CertifiedInverseBounds.w`](../../wheeler-examples/src/main/wheeler/proof/CertifiedInverseBounds.w).
+
+Covers: One generated inverse body, one kernel-checked inverse-law certificate, one straight-line value routine, one static step-bound certificate, exact execution, restored reversible state, and complete VM rewind.
+
+Expected result: `observed = 1`, `value = 0`, `successor = 5`.
+
 ### `Counter.w`
 
 Source: [`Counter.w`](../../wheeler-examples/src/main/wheeler/classical/control/Counter.w).

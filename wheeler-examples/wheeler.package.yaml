@@ -17,6 +17,10 @@ targets:
     root: "src/main/wheeler/classical/control/BootstrapControl.w"
     test: false
   - kind: "deployable"
+    name: "certifiedinversebounds"
+    root: "src/main/wheeler/proof/CertifiedInverseBounds.w"
+    test: false
+  - kind: "deployable"
     name: "coherentoracle"
     root: "src/main/wheeler/quantum/CoherentOracle.w"
     test: false

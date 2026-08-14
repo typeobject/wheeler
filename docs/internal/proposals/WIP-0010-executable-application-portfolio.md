@@ -407,7 +407,7 @@ Portfolio work follows these rules:
 ### Proof, native, and packages
 
 - [x] QFT emits a generated-adjoint certificate, and the quantum compiler example emits a circuit-equivalence certificate. Canonical proof metadata round-trips, executes through the checked examples, and the verifier rejects a minimally forged generated-inverse subject.
-- [ ] Resource-bound and inverse-law certificates.
+- [x] `CertifiedInverseBounds.w` carries one kernel-checked generated-inverse certificate and one static straight-line step-bound certificate in the same executable artifact. The fixture executes both subjects, restores reversible state, checks exact results, round-trips canonical bytecode, and rewinds the complete VM history.
 - [ ] Bounded certified `Foundry.w` synthesis and minimality package.
 - [ ] Package provenance verifier.
 - [ ] Hermetic workspace bootstrap.
