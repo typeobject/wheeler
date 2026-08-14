@@ -322,9 +322,9 @@ Expected result: result slots contain `(true, false)`, both ancillas reset, the 
 
 Source: [`AmplitudeEstimation.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/AmplitudeEstimation.w).
 
-Covers: Exact preparation of a one-half good-state probability, one phase-kickback estimation round, complete complex-amplitude comparison, generated adjoints for preparation and estimation, a 4,096-shot deterministic sample, explicit qubit and circuit-application counts, probability, standard error, visible uncertainty bounds, and submission provenance.
+Covers: Exact preparation of a one-half good-state probability, two source-ordered calls to a controlled coherent half-turn, complete complex-amplitude comparison, generated adjoints for preparation and estimation, 4,096-shot deterministic samples of exact probabilities one half and one, explicit qubit and circuit-application counts, probability, standard error, visible uncertainty bounds, and submission provenance.
 
-Expected result: exact ideal amplitudes occupy basis states zero and three equally. Both adjoints restore basis zero. The seeded estimate remains between `0.45` and `0.55`, its standard error is below `0.009`, and the exact value `0.5` lies inside the reported two-error interval. The one-shot source fixture records deterministic sample `3` without treating that sample as the estimate.
+Expected result: exact ideal amplitudes occupy basis states zero and three equally. Both adjoints restore basis zero. The half-probability estimate remains between `0.45` and `0.55`, its standard error is below `0.009`, and the exact value `0.5` lies inside the reported two-error interval. The certain estimate records all 4,096 successes, zero error, and exact unit bounds. The one-shot source fixture records deterministic sample `3` without treating that sample as the estimate.
 
 ### `QuantumOptimizer.w`
 

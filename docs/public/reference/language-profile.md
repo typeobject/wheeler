@@ -57,7 +57,7 @@ Exactly one `entry` method defines ordinary execution. It may borrow an optional
 
 `public`, `private`, `protected`, and `static` are accepted where they make sense. Normal classical methods support signed and Boolean parameters, return values, local bindings, and bounded control flow.
 
-For now, `rev`, `coherent rev`, and `unitary` methods take no arguments and return `void`. Their parameter ownership and inverse-signature rules are still being built.
+For now, `rev`, `coherent rev`, and `unitary` methods take no arguments and return `void`. A static unitary body may call another static unitary method on the same declared `qreg`. The compiler resolves the target before publication, rejects unknown, recursive, dynamic, or cross-register calls, and flattens called gates in exact source order so generated adjoints cover the composed circuit. Their parameter ownership and inverse-signature rules are still being built.
 
 ## Classical statements
 

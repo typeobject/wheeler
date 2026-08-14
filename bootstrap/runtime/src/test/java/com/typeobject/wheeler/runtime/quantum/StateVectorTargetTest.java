@@ -320,7 +320,8 @@ class StateVectorTargetTest {
         0,
         List.of(
             GateOperation.of(Gate.H, 0),
-            new GateOperation(Gate.CPHASE, List.of(1, 0), Math.PI),
+            new GateOperation(Gate.CPHASE, List.of(1, 0), Math.PI / 2),
+            new GateOperation(Gate.CPHASE, List.of(1, 0), Math.PI / 2),
             GateOperation.of(Gate.H, 0)));
     Program program = program(register, preparation, List.of(), estimation);
     StateVectorEngine simulator = new StateVectorEngine(41);
@@ -349,7 +350,7 @@ class StateVectorTargetTest {
     QuantumResult result = new StateVectorTarget()
         .submit(submission)
         .await(Duration.ofSeconds(1));
-    AmplitudeEstimate estimate = AmplitudeEstimate.from(result, 2, 2, 2, 2);
+    AmplitudeEstimate estimate = AmplitudeEstimate.from(result, 2, 2, 2, 4);
     assertTrue(
         1_900 <= estimate.successes() && estimate.successes() <= 2_196,
         estimate.toString());
@@ -358,8 +359,32 @@ class StateVectorTargetTest {
     assertTrue(estimate.standardError() < 0.009);
     assertTrue(estimate.lowerBound() <= 0.5 && 0.5 <= estimate.upperBound());
     assertEquals(2, estimate.qubits());
-    assertEquals(2, estimate.circuitApplications());
+    assertEquals(4, estimate.circuitApplications());
     assertEquals(submission.identity(), estimate.resultIdentity());
+
+    QuantumCircuit certainPreparation = new QuantumCircuit(
+        0, "prepareCertainAmplitude", 0, List.of(GateOperation.of(Gate.X, 1)));
+    Program certainProgram = program(register, certainPreparation, List.of(), estimation);
+    QuantumSubmission certainSubmission = new QuantumSubmission(
+        certainProgram,
+        0,
+        0,
+        List.of(new CircuitApplication(0, false), new CircuitApplication(1, false)),
+        Map.of(),
+        4_096,
+        43);
+    AmplitudeEstimate certain = AmplitudeEstimate.from(
+        new StateVectorTarget().submit(certainSubmission).await(Duration.ofSeconds(1)),
+        2,
+        2,
+        2,
+        4);
+    assertEquals(4_096, certain.successes());
+    assertEquals(1.0, certain.probability());
+    assertEquals(0.0, certain.standardError());
+    assertEquals(1.0, certain.lowerBound());
+    assertEquals(1.0, certain.upperBound());
+    assertEquals(certainSubmission.identity(), certain.resultIdentity());
   }
 
   @Test

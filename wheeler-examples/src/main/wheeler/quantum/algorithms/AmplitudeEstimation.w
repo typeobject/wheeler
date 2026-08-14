@@ -4,7 +4,7 @@ quantum class AmplitudeEstimation {
   const long PLANNED_SHOTS = 4096;
 
   state long measured = 0;
-  state long circuitApplications = 2;
+  state long circuitApplications = 4;
   state long plannedShots = PLANNED_SHOTS;
   qreg estimate = new qreg(QUBITS);
 
@@ -15,12 +15,20 @@ quantum class AmplitudeEstimation {
     H(estimate[1]);
   }
 
-  /// Correlates one phase bit with the prepared good-state component.
+  /// Applies one controlled coherent amplitude-operator power.
   ///
-  /// - Adjoint: Removes phase kickback and restores the prepared amplitude.
+  /// - Adjoint: Removes one half-turn phase contribution.
+  unitary void controlledAmplitudePower() {
+    CPhase(estimate[1], estimate[0], 1.5707963267948966);
+  }
+
+  /// Correlates one phase bit through two amplitude-operator powers.
+  ///
+  /// - Adjoint: Removes both called powers and restores the prepared amplitude.
   unitary void estimateRound() {
     H(estimate[0]);
-    CPhase(estimate[1], estimate[0], 3.141592653589793);
+    controlledAmplitudePower();
+    controlledAmplitudePower();
     H(estimate[0]);
   }
 

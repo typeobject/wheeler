@@ -130,6 +130,11 @@ abstract class SourceStatementParser extends SourceTokenCursor {
 
       String gate = operation.text().toLowerCase(Locale.ROOT);
       expect(Type.LEFT_PAREN, "'(' after gate name");
+      if (match(Type.RIGHT_PAREN)) {
+        expect(Type.SEMICOLON, "';' after unitary call");
+        body.add(statement("circuit_call", operation.line(), operation.text()));
+        continue;
+      }
       QubitReference first = qubitReference();
       register = sameRegister(register, first.register(), operation);
       List<String> arguments = new ArrayList<>();

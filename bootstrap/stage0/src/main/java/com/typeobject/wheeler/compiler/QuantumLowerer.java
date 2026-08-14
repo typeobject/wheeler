@@ -104,6 +104,13 @@ final class QuantumLowerer {
           .orElseThrow()
           .qubits();
       List<QuantumOperation> operations = new ArrayList<>();
+      if (!sourceCircuit.dynamic()) {
+        appendStaticOperations(
+            source, sourceCircuit, sourceCircuit, classical, qubits, new HashSet<>(), operations);
+        result.add(new QuantumCircuit(
+            circuitIds.get(sourceCircuit.name()), sourceCircuit.name(), register, operations));
+        continue;
+      }
       boolean prepared = false;
       Set<Integer> measuredSlots = new HashSet<>();
       Set<Integer> measuredQubits = new HashSet<>();
@@ -137,6 +144,44 @@ final class QuantumLowerer {
           circuitIds.get(sourceCircuit.name()), sourceCircuit.name(), register, operations));
     }
     return List.copyOf(result);
+  }
+
+  private static void appendStaticOperations(
+      SourceProgram source,
+      Circuit root,
+      Circuit current,
+      ClassicalContent classical,
+      int qubits,
+      Set<String> active,
+      List<QuantumOperation> operations) {
+    if (!active.add(current.name())) {
+      throw new CompilerException(current.line(), "recursive unitary call: " + current.name());
+    }
+    for (Statement statement : current.statements()) {
+      if (statement.operation().equals("circuit_call")) {
+        requireArguments(statement, 1);
+        String targetName = statement.arguments().getFirst();
+        Circuit target = source.circuits().stream()
+            .filter(candidate -> candidate.name().equals(targetName))
+            .findFirst()
+            .orElseThrow(() -> new CompilerException(
+                statement.line(), "unknown unitary method: " + targetName));
+        if (target.dynamic() || !target.registerName().equals(root.registerName())) {
+          throw new CompilerException(
+              statement.line(), "unitary call must use the caller's qreg: " + targetName);
+        }
+        appendStaticOperations(source, root, target, classical, qubits, active, operations);
+        continue;
+      }
+      QuantumOperation operation = lowerQuantumOperation(statement, classical);
+      if (operation instanceof GateOperation gate
+          && gate.qubits().stream().anyMatch(qubit -> qubit >= qubits)) {
+        throw new CompilerException(
+            statement.line(), "qubit index exceeds register " + root.registerName());
+      }
+      operations.add(operation);
+    }
+    active.remove(current.name());
   }
 
   private static QuantumOperation lowerQuantumOperation(

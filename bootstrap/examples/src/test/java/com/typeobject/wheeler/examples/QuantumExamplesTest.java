@@ -151,6 +151,6 @@ class QuantumExamplesTest {
         Arguments.of("algorithms/StaticPhaseEstimation.w", Map.of("measured", 7L)),
         Arguments.of(
             "algorithms/AmplitudeEstimation.w",
-            Map.of("measured", 3L, "circuitApplications", 2L, "plannedShots", 4_096L)));
+            Map.of("measured", 3L, "circuitApplications", 4L, "plannedShots", 4_096L)));
   }
 }
