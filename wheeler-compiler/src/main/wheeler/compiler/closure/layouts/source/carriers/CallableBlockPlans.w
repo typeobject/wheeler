@@ -68,7 +68,7 @@ classical class CallableBlockPlans {
 
           if (blockRows[2048 + block] == 0) {
             rootCount += 1;
-            if (blockRows[1024 + block] != -1) {
+            if (blockRows[1024 + block] + 1 != 0) {
               valid = false;
             }
 
