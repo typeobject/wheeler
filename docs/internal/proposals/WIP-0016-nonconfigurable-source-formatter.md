@@ -750,7 +750,7 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 
 - [x] Every accepted formatting fixture satisfies parse preservation, token and literal preservation, order preservation, comment-payload preservation, comment-kind preservation, comment-attachment preservation, and idempotence.
 
-- [ ] Adding, removing, or renaming one list item changes only its smallest enclosing layout groups outside unavoidable source-location shifts.
+- [x] The accepted parenthesized-list profile has generated rename, insertion, and removal evidence. Renaming changes only that token. Inserting one item into an already vertical group changes the former final-item comma and adds one line with the inherited indent. Removing it restores the prior bytes exactly. Outer declaration and block layout remains unchanged.
 
 - [x] Focused compact, multiline, nested, comment-heavy, unary, module, aggregate, proof-bearing, and malformed fixtures cover the accepted formatter profile. The canonical-corpus test adds every authored reversible, coherent, unitary, Unicode-comment, and compiler-scale source.
 

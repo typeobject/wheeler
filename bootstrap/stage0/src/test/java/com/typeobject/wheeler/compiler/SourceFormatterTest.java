@@ -336,11 +336,50 @@ class SourceFormatterTest {
   }
 
   @Test
+  void listEditsChangeOnlyTheirSmallestVerticalLayoutGroup() {
+    List<String> items = List.of(
+        "alphaArgumentWithEnoughWidthToRequireVerticalLayout",
+        "bravoArgumentWithEnoughWidthToRequireVerticalLayout",
+        "charlieArgumentWithEnoughWidthToRequireVerticalLayout");
+    String added = "deltaArgumentWithEnoughWidthToRequireVerticalLayout";
+    String three = SourceFormatter.format(listSource(items));
+    int firstStart = three.indexOf(items.getFirst());
+    String indent = three.substring(three.lastIndexOf('\n', firstStart) + 1, firstStart);
+
+    for (int index = 0; index < items.size(); index++) {
+      String renamed = "renamed" + index + "ArgumentWithEnoughWidthToRequireVerticalLayout";
+      var edited = new java.util.ArrayList<>(items);
+      edited.set(index, renamed);
+      assertEquals(three.replace(items.get(index), renamed),
+          SourceFormatter.format(listSource(edited)));
+    }
+
+    for (int index = 0; index <= items.size(); index++) {
+      var edited = new java.util.ArrayList<>(items);
+      edited.add(index, added);
+      String four = SourceFormatter.format(listSource(edited));
+      String addedLine = indent + added + (index < items.size() ? "," : "") + "\n";
+      String restored = four.replace(addedLine, "");
+      if (index == items.size()) {
+        restored = restored.replace(items.getLast() + ",\n", items.getLast() + "\n");
+      }
+      assertEquals(three, restored, "insertion " + index);
+      edited.remove(index);
+      assertEquals(three, SourceFormatter.format(listSource(edited)), "removal " + index);
+    }
+  }
+
+  @Test
   void rejectsMismatchedDelimitersBeforePrinting() {
     CompilerException failure = assertThrows(
         CompilerException.class,
         () -> SourceFormatter.format("classical class Broken { entry void main(] {} }"));
     assertEquals("line 1: unmatched delimiter ']'", failure.getMessage());
+  }
+
+  private static String listSource(List<String> items) {
+    return "classical class Lists { entry void main() { invoke("
+        + String.join(",", items) + "); } }";
   }
 
   private static List<String> tokens(String source) {
