@@ -18,7 +18,9 @@ public final class IoScope implements AutoCloseable {
   enum Mode {
     INLINE,
     DELAYED,
+    READINESS,
     COMPLETION,
+    POLLING,
     THREADED
   }
 
@@ -72,11 +74,11 @@ public final class IoScope implements AutoCloseable {
     if ((mode == Mode.THREADED) != (dispatcher != null)) {
       throw new IllegalArgumentException("threaded mode and dispatcher must agree");
     }
-    if ((mode == Mode.COMPLETION) != (completionQueueCount > 0)) {
-      throw new IllegalArgumentException("completion mode and queues must agree");
+    if (queuedMode() != (completionQueueCount > 0)) {
+      throw new IllegalArgumentException("queued mode and queues must agree");
     }
-    if (mode == Mode.COMPLETION && completionQueueDepth < 1) {
-      throw new IllegalArgumentException("completion queue depth must be positive");
+    if (queuedMode() && completionQueueDepth < 1) {
+      throw new IllegalArgumentException("queue depth must be positive");
     }
   }
 
@@ -155,7 +157,14 @@ public final class IoScope implements AutoCloseable {
             .findFirst()
             .orElseThrow();
       } else {
-        selected = checked.get(0);
+        if (mode == Mode.READINESS) {
+          selected = checked.stream()
+              .filter(operation -> operation.request().isReady())
+              .findFirst()
+              .orElseThrow(() -> new IllegalStateException("no selected operation is ready"));
+        } else {
+          selected = checked.get(0);
+        }
         execute(selected);
       }
     }
@@ -210,6 +219,24 @@ public final class IoScope implements AutoCloseable {
       completed++;
     }
     return List.copyOf(completions);
+  }
+
+  /** Polls one canonical queued operation without reaping its terminal completion. */
+  public synchronized boolean pollOne() {
+    requireOpen();
+    if (mode != Mode.POLLING) {
+      throw new IllegalStateException("scope is not a polling backend");
+    }
+    Long operationId = delayed.stream().min(Long::compareTo).orElse(null);
+    if (operationId == null) {
+      return false;
+    }
+    IoOperation<?> operation = active.get(operationId);
+    if (operation == null) {
+      throw new IllegalStateException("poll queue names an unknown operation");
+    }
+    execute(operation);
+    return true;
   }
 
   /** Returns the number of submitted operations not yet reaped. */
@@ -274,6 +301,8 @@ public final class IoScope implements AutoCloseable {
     if (!operation.isTerminal()) {
       if (mode == Mode.THREADED) {
         waitForTerminal(operation);
+      } else if (mode == Mode.POLLING) {
+        throw new IllegalStateException("polling operation is not terminal");
       } else {
         execute(operation);
       }
@@ -301,7 +330,7 @@ public final class IoScope implements AutoCloseable {
       execute(operation);
     } else if (mode == Mode.DELAYED) {
       queueDelayed(operation.id());
-    } else if (mode == Mode.COMPLETION) {
+    } else if (queuedMode()) {
       queueCompletion(operation.id());
     } else {
       dispatcher.submit(() -> executeThreaded(operation));
@@ -313,12 +342,18 @@ public final class IoScope implements AutoCloseable {
     if (operation.isTerminal()) {
       return;
     }
-    if ((mode == Mode.DELAYED || mode == Mode.COMPLETION)
-        && !removeQueued(operation.id())) {
+    if (mode == Mode.READINESS && !operation.request().isReady()) {
+      throw new IllegalStateException("readiness operation is not ready");
+    }
+    if ((mode == Mode.DELAYED || queuedMode()) && !removeQueued(operation.id())) {
       throw new IllegalStateException("operation is not queued: " + operation.id());
     }
     operation.markStarted();
     finishExecution(operation, runProvider(operation));
+  }
+
+  private boolean queuedMode() {
+    return mode == Mode.READINESS || mode == Mode.COMPLETION || mode == Mode.POLLING;
   }
 
   private void queueDelayed(long operationId) {

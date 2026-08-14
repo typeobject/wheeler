@@ -3,6 +3,7 @@ package com.typeobject.wheeler.runtime.io;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BooleanSupplier;
 
 /** Pure prepared operation description consumed by exactly one submission path. */
 public final class IoRequest<T> {
@@ -23,6 +24,7 @@ public final class IoRequest<T> {
   private final Action<T> action;
   private final Runnable release;
   private final Cancellation cancellation;
+  private final BooleanSupplier readiness;
   private final AtomicBoolean consumed = new AtomicBoolean();
   private final AtomicBoolean released = new AtomicBoolean();
 
@@ -31,7 +33,8 @@ public final class IoRequest<T> {
       long work,
       Action<T> action,
       Runnable release,
-      Cancellation cancellation) {
+      Cancellation cancellation,
+      BooleanSupplier readiness) {
     this.identity = validateIdentity(identity);
     if (work < 1 || work > 1_000_000_000L) {
       throw new IllegalArgumentException("request work must be between 1 and 1000000000");
@@ -40,6 +43,7 @@ public final class IoRequest<T> {
     this.action = Objects.requireNonNull(action, "action");
     this.release = Objects.requireNonNull(release, "release");
     this.cancellation = Objects.requireNonNull(cancellation, "cancellation");
+    this.readiness = Objects.requireNonNull(readiness, "readiness");
   }
 
   /** Constructs a request without invoking its provider action. */
@@ -60,7 +64,17 @@ public final class IoRequest<T> {
       Action<T> action,
       Runnable release,
       Cancellation cancellation) {
-    return new IoRequest<>(identity, work, action, release, cancellation);
+    return new IoRequest<>(identity, work, action, release, cancellation, () -> true);
+  }
+
+  /** Constructs a request whose readiness backend uses one explicit level signal. */
+  public static <T> IoRequest<T> prepareWhen(
+      String identity,
+      long work,
+      BooleanSupplier readiness,
+      Action<T> action,
+      Runnable release) {
+    return new IoRequest<>(identity, work, action, release, () -> {}, readiness);
   }
 
   /** Returns the stable request identity. */
@@ -81,6 +95,10 @@ public final class IoRequest<T> {
     if (!consumed.compareAndSet(false, true)) {
       throw new IllegalStateException("request was already consumed: " + identity);
     }
+  }
+
+  boolean isReady() {
+    return readiness.getAsBoolean();
   }
 
   IoProviderResult<T> execute() {

@@ -86,13 +86,17 @@ public final class ThreadedIo implements AutoCloseable {
 
   /** Creates a fixed worker backend with one global admitted-work bound. */
   public ThreadedIo(int workers, int maxInFlight) {
+    validateLimits(workers, maxInFlight);
+    dispatcher = new Dispatcher(workers, maxInFlight);
+  }
+
+  static void validateLimits(int workers, int maxInFlight) {
     if (workers < 1 || workers > 64) {
       throw new IllegalArgumentException("thread worker count must be between 1 and 64");
     }
     if (maxInFlight < workers || maxInFlight > 10_000) {
       throw new IllegalArgumentException("maxInFlight must be between workers and 10000");
     }
-    dispatcher = new Dispatcher(workers, maxInFlight);
   }
 
   /** Opens one bounded scope sharing this backend's admitted worker capacity. */

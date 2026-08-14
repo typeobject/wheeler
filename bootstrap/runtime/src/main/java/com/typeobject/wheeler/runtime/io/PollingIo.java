@@ -1,0 +1,42 @@
+package com.typeobject.wheeler.runtime.io;
+
+import java.util.Objects;
+
+/** Bounded polling queues that require an explicit scope poll before direct await. */
+public final class PollingIo {
+  private final int queueCount;
+  private final int queueDepth;
+  private long nextScopeId = 1;
+
+  /** Creates fixed polling queue topology. */
+  public PollingIo(int queueCount, int queueDepth) {
+    if (queueCount < 1 || queueCount > 64) {
+      throw new IllegalArgumentException("queue count must be between 1 and 64");
+    }
+    if (queueDepth < 1 || queueDepth > 4_096) {
+      throw new IllegalArgumentException("queue depth must be between 1 and 4096");
+    }
+    this.queueCount = queueCount;
+    this.queueDepth = queueDepth;
+  }
+
+  /** Opens one scope whose operation ceiling fits the polling queues. */
+  public synchronized IoScope scope(IoLimits limits) {
+    Objects.requireNonNull(limits, "limits");
+    int capacity = Math.multiplyExact(queueCount, queueDepth);
+    if (limits.maxOperations() > capacity) {
+      throw new IllegalArgumentException("scope operation limit exceeds queue capacity");
+    }
+    if (nextScopeId == Long.MAX_VALUE) {
+      throw new IllegalStateException("polling scope identity exhausted");
+    }
+    return new IoScope(
+        nextScopeId++,
+        IoScope.Mode.POLLING,
+        "bounded-polling-io-1",
+        limits,
+        null,
+        queueCount,
+        queueDepth);
+  }
+}

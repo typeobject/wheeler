@@ -20,6 +20,7 @@ The quarantined runtime now carries a deterministic executable slice under `boot
 - `DeterministicIo` offers inline and delayed delivery with identical completion meaning.
 - `ThreadedIo` supplies an explicitly bounded portable worker backend.
 - `CompletionIo` supplies bounded one-lane and many-lane completion queues. The awaiting scope thread drives them.
+- `ReadinessIo`, `PollingIo`, and `InterruptIo` exercise explicit readiness, caller polling, and fixed-worker terminal notification through the same scope.
 
 The implementation is stage-0 scaffolding. Its Java API is replaceable and is not a source-language compatibility promise. The lifecycle and distinctions are the contract.
 
@@ -37,7 +38,9 @@ Inline submission may produce terminal completion before `submit` returns. Delay
 
 `ThreadedIo(workers, maxInFlight)` adds actual overlap without changing request or completion types. Admission is reserved before request consumption. The executor has a fixed worker count, a bounded queue, and no fallback pool. Closing it with admitted work fails. Cancellation of queued work releases resources without invoking the provider. Cancellation racing with started work records which terminal result won instead of interrupting an external effect and hoping for the best.
 
-`CompletionIo(queueCount, queueDepth)` models one or more bounded completion lanes without allocating a worker, stack, task, or timer for each queued operation. The scope operation limit must fit the declared queue capacity. Submission queues work without running the provider. Await and selection drive the selected operation, preserve canonical reduction order, and release the queue slot before provider execution. Queued cancellation removes the slot and releases resources without running provider code. This stage-0 profile establishes portable queue semantics. It does not claim a native readiness or kernel completion adapter.
+`CompletionIo(queueCount, queueDepth)` models one or more bounded completion lanes without allocating a worker, stack, task, or timer for each queued operation. The scope operation limit must fit the declared queue capacity. Submission queues work without running the provider. Await and selection drive the selected operation, preserve canonical reduction order, and release the queue slot before provider execution. Queued cancellation removes the slot and releases resources without running provider code.
+
+`ReadinessIo` executes only a request whose explicit level signal is ready. An unready await leaves the operation live and the provider untouched. Selection chooses the first ready operation in canonical identity order. `PollingIo` requires `pollOne` before direct await and polls queued identities in canonical order across one or many lanes. `InterruptIo` uses the fixed bounded dispatcher and terminal notification path without changing request or completion types. The tests run success, cancellation, selection, queue bounds, and terminal-field comparisons through these profiles. These stage-0 adapters establish portable queue semantics. They do not claim a native selector, completion port, device interrupt, or polling driver.
 
 `ConnectionRegistry` keeps up to one million dormant connection authorities in primitive state, generation, and free-slot tables. Dormant connections hold no active-work credit and allocate no worker, stack, task, executor, or timer. Activation draws from a separate bound and fails without changing a dormant authority when that credit is exhausted. Close requires dormancy and invalidates the prior generation. This is an admission and ownership profile, not a socket stack or throughput claim.
 
