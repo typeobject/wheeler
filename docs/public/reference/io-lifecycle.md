@@ -13,6 +13,7 @@ The quarantined runtime now carries a deterministic executable slice under `boot
 - `IoGraph<T>` is an explicitly bounded terminal-dependency DAG.
 - `OwnedIoBuffer` is inaccessible while captured and returns through a terminal result.
 - `MemoryAddressableFile` is the bounded positional-semantics oracle.
+- `NativePositionalFile` is the no-follow bounded host-file adapter for the same request rows.
 - `SequentialFileCursor` is the single-owner adapter for work that depends on one cursor.
 - `IoBufferPool` owns bounded registered buffers, provider leases, and explicit reuse permission.
 - `DirectFile` enforces one declared alignment, tail, fallback, and coherence profile.
@@ -81,6 +82,10 @@ The native transition table rejects second completion, completion before resourc
 
 `MemoryAddressableFile` is not a filesystem API. It is a bounded oracle for the positional contract. `readAt` validates the destination range and position before capture, then returns the destination owner with exact bytes-read progress. `writeAt` requires a write capability, validates the complete source and file ranges before capture, and returns the source owner with exact bytes-written progress.
 
+`NativePositionalFile` opens one physical final component without following a symbolic link. Construction fixes read-only or read-write authority and a one-byte through 16 MiB extent. Positional requests use the ordinary `IoRequest` and `IoScope` lifecycle, hold the exact owner until terminal resource release, report known partial failure progress, and add no shared cursor. Close rejects any unreaped request resource. The conformance test writes at a nonzero offset, forces data and metadata, closes the capability, opens a fresh read-only capability, and compares every byte.
+
+A successful native write can produce `WriteCompleted` evidence only through its private completion class. `force(false)` promotes that exact subject to `DataStable`. `force(true)` promotes it to `FileStable`. Issuance is limited to one-replica `PROCESS_CRASH` profiles that name the FileChannel force contract. A `POWER_LOSS` profile rejects before receipt creation. This is API-contract and fresh-reopen evidence, not a killed-process, unplugged-device, filesystem, controller-cache, namespace, or power-cut qualification.
+
 `SequentialFileCursor` lends its sole cursor to one live request. A read starts at the examined position and returns exact consumed and examined coordinates. `advance` moves those coordinates only inside the completed window. A write requires a settled cursor, where consumed equals examined, and advances both only after successful provider work. Cancellation before effect releases the cursor and buffer without changing either position. Independent positional work still uses `MemoryAddressableFile` directly instead of sharing this serialization point.
 
 `IoBufferPool` pre-registers up to 4,096 fixed owners under a 16 MiB aggregate ceiling. Acquisition returns the lowest available generation-checked lease or explicit absence when data-plane credit is exhausted. Provided reads and registered writes submit that owner directly, return the exact lease in the terminal result, and expose no second staging owner. The lease remains unavailable during provider work and cannot return to the pool until terminal resource release. `recycle` is the explicit final reuse permission and invalidates stale generations. Saturation cannot consume the cancellation, terminal-release, recycle, or close path.
@@ -126,6 +131,6 @@ Skipping a stage, replaying evidence, claiming namespace visibility without a na
 
 ## Deliberate nonclaims
 
-This slice performs synthetic provider actions and bounded in-memory positional, tier, and remote-memory operations. It has typed placement and receipt schemas but no release-grade evidence issuer. It does not yet implement host files, clocks, replay, source-language loans, native completion queues, host direct I/O, network protocols, RNIC access, or crash-qualified persistence evidence. A successful completion therefore proves no crash survival, namespace stability, peer application, quorum, or remote persistence beyond the explicit synthetic evidence type that its oracle returns.
+This slice performs synthetic provider actions, bounded in-memory positional, tier, and remote-memory operations, plus one bounded native positional-file adapter. It has typed placement and receipt schemas but no release-grade evidence issuer. It does not yet implement native readiness, completion, polling, direct I/O, network protocols, RNIC access, or crash- and power-cut-qualified persistence. Native file forcing is confined to its declared process-crash API profile. No current receipt proves namespace stability, peer application, quorum, remote persistence, or power-loss survival.
 
-The I/O conformance tests live under `bootstrap/runtime/src/test/java/com/typeobject/wheeler/runtime/io/`. Native source request types, effect lowering, host positional resources, source-language buffer loans, and crash-tested receipts remain required before WIP-0032 can leave Draft.
+The I/O conformance tests live under `bootstrap/runtime/src/test/java/com/typeobject/wheeler/runtime/io/`. Wheeler source request types, effect lowering, source-language buffer loans, the remaining native providers, and crash-tested receipts remain required before WIP-0032 can leave Draft.
