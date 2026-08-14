@@ -36,6 +36,9 @@ final class SemanticCoverageMapTest {
     assertTrue(joined.contains("\"line\":7"));
     assertTrue(joined.contains("\"opcode\":\"ADD_CONST\""));
     assertTrue(joined.contains("\"branch\":\"none\""));
+    assertTrue(joined.contains("\"path_coverage\":\"" + coverage.pathIdentity() + "\""));
+    assertTrue(joined.contains("\"from_source_path\":\"src/Counter.w\""));
+    assertTrue(joined.contains("\"to_source_path\":\"src/Counter.w\""));
     assertNotEquals(coverage.identity(), first.identity());
   }
 

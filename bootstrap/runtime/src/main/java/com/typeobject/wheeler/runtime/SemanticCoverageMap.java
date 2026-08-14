@@ -217,6 +217,39 @@ public final class SemanticCoverageMap {
               relation.origin().name().toLowerCase(java.util.Locale.ROOT))
           .append("\",\"source_path\":\"").append(source.path()).append("\"}");
     }
+    json.append("],\"path_coverage\":\"").append(coverage.pathIdentity())
+        .append("\",\"paths\":[");
+    emitted = 0;
+    for (Map.Entry<SemanticCoverage.PathEdge, Long> entry
+        : coverage.paths().entrySet().stream().sorted(Map.Entry.comparingByKey()).toList()) {
+      SemanticCoverage.PathEdge edge = entry.getKey();
+      Relation from = relationFor(edge.direction(), edge.from());
+      Relation to = relationFor(edge.direction(), edge.to());
+      if (from == null || to == null) {
+        throw new IllegalArgumentException("runtime path edge has no source relation");
+      }
+      if (emitted++ > 0) {
+        json.append(',');
+      }
+      json.append("{\"count\":").append(entry.getValue())
+          .append(",\"direction\":\"").append(edge.direction())
+          .append("\",\"from_branch\":\"").append(edge.from().branch())
+          .append("\",\"from_column\":").append(from.source().startColumn())
+          .append(",\"from_function\":").append(edge.from().function())
+          .append(",\"from_instruction\":").append(edge.from().instruction())
+          .append(",\"from_line\":").append(from.source().startLine())
+          .append(",\"from_opcode\":\"").append(edge.from().opcode())
+          .append("\",\"from_source_path\":\"").append(from.source().path())
+          .append("\",\"task\":\"").append(edge.task())
+          .append("\",\"to_branch\":\"").append(edge.to().branch())
+          .append("\",\"to_column\":").append(to.source().startColumn())
+          .append(",\"to_function\":").append(edge.to().function())
+          .append(",\"to_instruction\":").append(edge.to().instruction())
+          .append(",\"to_line\":").append(to.source().startLine())
+          .append(",\"to_opcode\":\"").append(edge.to().opcode())
+          .append("\",\"to_source_path\":\"").append(to.source().path())
+          .append("\",\"workflow_epoch\":").append(edge.workflowEpoch()).append('}');
+    }
     return json.append("],\"profile\":\"wheeler-source-transition-coverage-1\"}\n")
         .toString();
   }
@@ -227,13 +260,19 @@ public final class SemanticCoverageMap {
   }
 
   private Relation relationFor(SemanticCoverage.Point point) {
+    return relationFor(
+        point.direction(),
+        new SemanticCoverage.PathEndpoint(
+            point.function(), point.instruction(), point.opcode(), point.branch()));
+  }
+
+  private Relation relationFor(String direction, SemanticCoverage.PathEndpoint point) {
     for (Relation relation : relations) {
-      if (relation.direction().equals(point.direction())
+      if (relation.direction().equals(direction)
           && relation.function() == point.function()
           && relation.firstInstruction() <= point.instruction()
           && point.instruction() < relation.firstInstruction() + relation.instructionCount()) {
-        Instruction instruction = body(
-            program, point.direction(), point.function()).get(point.instruction());
+        Instruction instruction = body(program, direction, point.function()).get(point.instruction());
         boolean validBranch = instruction.opcode().name().equals(point.opcode());
         if (instruction.opcode() == Opcode.JUMP_IF_ZERO) {
           validBranch = validBranch

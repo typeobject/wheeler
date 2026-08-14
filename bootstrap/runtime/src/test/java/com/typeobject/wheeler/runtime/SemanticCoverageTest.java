@@ -42,6 +42,11 @@ class SemanticCoverageTest {
     assertTrue(report.contains("\"direction\":\"inverse\""));
     assertTrue(report.contains("\"direction\":\"rewind_forward\""));
     assertTrue(report.contains("\"direction\":\"rewind_inverse\""));
+    String paths = coverage.canonicalPathReport();
+    assertTrue(paths.contains("\"profile\":\"wheeler-transition-path-coverage-1\""));
+    assertTrue(paths.contains("\"task\":\"root\""));
+    assertTrue(paths.contains("\"from_branch\":\"taken\""));
+    assertTrue(paths.contains("\"direction\":\"rewind_forward\""));
     assertEquals(1, coverage.successfulAssertions());
 
     SemanticCoverage repeated = new SemanticCoverage();
@@ -51,7 +56,9 @@ class SemanticCoverageTest {
       rerun.rewindOne();
     }
     assertEquals(report, repeated.canonicalReport());
+    assertEquals(paths, repeated.canonicalPathReport());
     assertEquals(coverage.identity(), repeated.identity());
+    assertEquals(coverage.pathIdentity(), repeated.pathIdentity());
 
     SemanticCoverage fallthrough = new SemanticCoverage();
     new VirtualMachine(reversibleProgram(1), fallthrough).run();

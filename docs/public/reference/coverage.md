@@ -44,7 +44,11 @@ Changing one exclusion or threshold changes both policy and evaluation identitie
 
 `SemanticCoverageMap` validates source-to-runtime relations against one exact canonical artifact. Each row binds a normalized source range, forward, inverse, or rewind direction, function, contiguous instruction window, authored or generated-inverse origin, and a digest of the exact opcode window.
 
-Map construction rejects dangling or unknown coordinates, duplicate and overlapping bytecode windows, generated-inverse claims over forward code, malformed source ranges, and forged opcode digests. Joining one transition report rejects missing relations and observed opcode or branch shapes that disagree with the artifact. The resulting `wheeler-source-transition-coverage-1` report names source path, line, column, bytecode coordinates, direction, origin, branch result, and hit count. Map, artifact, and transition identities remain separate.
+Map construction rejects dangling or unknown coordinates, duplicate and overlapping bytecode windows, generated-inverse claims over forward code, malformed source ranges, and forged opcode digests. Joining one transition report rejects missing relations and observed opcode or branch shapes that disagree with the artifact. The resulting `wheeler-source-transition-coverage-1` report names source path, line, column, bytecode coordinates, direction, origin, branch result, and hit count. Map, artifact, transition, and adjacent-path identities remain separate.
+
+`SemanticCoverage` also reduces consecutive successful transitions into `wheeler-transition-path-coverage-1`. An edge retains workflow epoch, hierarchical task identity, direction, both bytecode endpoints, the originating branch result, and a checked count. Forward and inverse edges require increasing task-local sequence. Rewind edges require decreasing sequence. A new run, task, workflow epoch, or direction cannot inherit the prior tail. The source join resolves both endpoints before publishing an edge.
+
+Adjacent-edge coverage reports observed path outcomes without inventing a complete path denominator. It does not claim MC/DC, loop-path exhaustion, or feasibility of an unobserved path.
 
 ## Proof stages
 
@@ -52,4 +56,4 @@ Map construction rejects dangling or unknown coordinates, duplicate and overlapp
 
 Proof-stage observation does not change kernel decisions or inhabit a theorem. Its report and identity remain separate from VM transition coverage, certificate identity, and proof validity.
 
-Source points, compound conditions, match arms, traps, attempt lineage, sharded merging, quantum structure, proof duties, thresholds, and Wheeler-written reduction remain part of WIP-0020. JaCoCo still measures only the Java seed implementation. It is not evidence about Wheeler semantics.
+Compound conditions, match-arm denominators, trapped attempts, attempt lineage, quantum structure, and Wheeler-written reduction remain part of WIP-0020. JaCoCo still measures only the Java seed implementation. It is not evidence about Wheeler semantics.
