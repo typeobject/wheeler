@@ -60,6 +60,9 @@ class ClassicalExamplesTest {
           name.equals("EventReducer.w")
               ? "examples.events.reducer"
               : "examples.index.transactional");
+    } else if (name.equals("AdaptiveReplay.w")) {
+      program = compiler.compileModuleFiles(
+          Map.of(name, Files.readString(source)), "examples.adaptive.replay");
     } else if (name.equals("IncrementalDependencyGraph.w")) {
       program = compiler.compileModuleFiles(
           Map.of(
@@ -153,6 +156,15 @@ class ClassicalExamplesTest {
 
   static Stream<Arguments> examples() {
     return Stream.of(
+        Arguments.of(
+            "classical/control/AdaptiveReplay.w",
+            Map.of(
+                "liveResult", 1L,
+                "replayResult", 1L,
+                "upperResult", 100L,
+                "liveObservations", 3L,
+                "replayObservations", 2L,
+                "replayTargetCalls", 0L)),
         Arguments.of(
             "proof/CertifiedInverseBounds.w",
             Map.of("value", 0L, "observed", 1L, "successor", 5L)),

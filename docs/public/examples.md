@@ -21,6 +21,14 @@ classical class AnswerByte {
 
 ## Examples
 
+### `AdaptiveReplay.w`
+
+Source: [`AdaptiveReplay.w`](../../wheeler-examples/src/main/wheeler/classical/control/AdaptiveReplay.w).
+
+Covers: A bounded two-level observation tree, exact branch records, a short terminal branch, and target-free replay of the selected path. The runtime adapter binds plans, lineages, evidence identities, branch coordinates, and terminal results into one canonical run identity. Retry derives a distinct lineage instead of changing replay evidence.
+
+Expected result: live and replayed paths both select result `1` after two observations, the upper branch selects `100` after one observation, and replay makes zero target calls.
+
 ### `CertifiedInverseBounds.w`
 
 Source: [`CertifiedInverseBounds.w`](../../wheeler-examples/src/main/wheeler/proof/CertifiedInverseBounds.w).

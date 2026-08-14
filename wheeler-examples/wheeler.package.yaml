@@ -9,6 +9,10 @@ targets:
     root: "src/main/wheeler/quantum/algorithms/AdaptivePhaseEstimation.w"
     test: false
   - kind: "deployable"
+    name: "adaptivereplay"
+    root: "src/main/wheeler/classical/control/AdaptiveReplay.w"
+    test: false
+  - kind: "deployable"
     name: "amplitudeestimation"
     root: "src/main/wheeler/quantum/algorithms/AmplitudeEstimation.w"
     test: false
