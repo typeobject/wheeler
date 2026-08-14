@@ -17,6 +17,7 @@ The quarantined runtime now carries a deterministic executable slice under `boot
 - `NativePositionalFile` is the no-follow bounded host-file adapter for the same request rows.
 - `NativeReadinessSocket` is the connected nonblocking selector adapter for readiness-gated rows.
 - `NativeCompletionFile` is the bounded asynchronous host-file adapter for completion-queue rows.
+- `NativeTieredStorage` copies content-identified placement between named native file tiers.
 - `SequentialFileCursor` is the single-owner adapter for work that depends on one cursor.
 - `IoBufferPool` owns bounded registered buffers, provider leases, and explicit reuse permission.
 - `DirectFile` enforces one declared alignment, tail, fallback, and coherence profile.
@@ -49,6 +50,8 @@ Inline submission may produce terminal completion before `submit` returns. Delay
 `ConnectionRegistry` keeps up to one million dormant connection authorities in primitive state, generation, and free-slot tables. Dormant connections hold no active-work credit and allocate no worker, stack, task, executor, or timer. Activation draws from a separate bound and fails without changing a dormant authority when that credit is exhausted. Close requires dormancy and invalidates the prior generation.
 
 `NativeCompletionFile` opens one no-follow asynchronous positional-file capability over a fixed worker count and bounded executor queue. Request construction captures its exact owner but submits no asynchronous operation. Completion-queue progress starts one `AsynchronousFileChannel` read or write, waits for its native-provider result, reports exact known progress, and releases the owner through the ordinary terminal row. Queued cancellation starts no file operation. Close rejects unreaped resources and shuts down the fixed executor after the channel closes.
+
+`NativeTieredStorage` binds a named tier and failure domain to one bounded native completion-file capability. Initial placement hashes the exact captured byte range before its asynchronous write. A drain reads the source range, verifies the bytes against source placement identity before target work, writes the target range, retains source ancestry, and returns complete or exact-prefix placement evidence through the same terminal row. The native copy changes physical placement only. It issues no durability receipt.
 
 `NativeReadinessSocket.connect` acquires one explicit connected capability before request construction and then switches the channel to nonblocking mode. `read` and `write` capture one owner, expose a level-readiness predicate backed by `Selector.selectNow`, and execute at most one nonblocking channel operation after the readiness scope selects them. `pollingRead` and `pollingWrite` capture the same authority under `PollingIo`. No channel operation runs before explicit `pollOne` progress. Terminal completion carries exact progress and releases the owner. Queued cancellation performs no channel operation, and close rejects unreaped resources. The adapter is a byte-stream transport capability, not a framing, retry, security, congestion, or application protocol.
 
