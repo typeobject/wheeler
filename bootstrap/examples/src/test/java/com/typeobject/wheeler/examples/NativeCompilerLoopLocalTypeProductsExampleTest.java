@@ -29,7 +29,9 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
             assert(cursor == 0);
             cursor = 0;
             cursor = delta;
-            cursor += delta;
+            if (cursor == 0) {
+              cursor += delta;
+            }
           }
         }
       }
@@ -43,7 +45,7 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
     VirtualMachine machine = new VirtualMachine(
         program(), SOURCE.getBytes(StandardCharsets.UTF_8), 1);
 
-    machine.run();
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
 
     assertEquals(1, machine.global("valid"));
     assertEquals(expectedTypes.size(), machine.global("typeCount"));
@@ -83,7 +85,7 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
           %s
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 696328, /* allocations= */ 11);
+            region products = new region(/* bytes= */ 860168, /* allocations= */ 12);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -92,6 +94,7 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
             words loops = allocate(products, /* length= */ 2304);
             words values = allocate(products, /* length= */ 7168);
             words bodyRows = allocate(products, /* length= */ 20480);
+            words nestedRows = allocate(products, /* length= */ 20480);
             words loopLocalBases = allocate(products, /* length= */ 256);
             words typeRows = allocate(products, /* length= */ 12288);
             words unused = allocate(products, /* length= */ 1);
@@ -138,14 +141,19 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
               statements,
               /* valueCount= */ 3,
               values,
-              bodyRows
+              bodyRows,
+              nestedRows
             );
             assert(bodyPlan.valid);
             LoopLocalTypePlan typePlan = materializeLoopLocalTypeProducts(
               loopPlan.loopCount,
               loops,
+              loopPlan.statementCount,
+              statements,
               bodyPlan.bodyCount,
               bodyRows,
+              bodyPlan.nestedCount,
+              nestedRows,
               loopLocalBases,
               typeRows
             );
@@ -158,6 +166,7 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
             drop(unused);
             drop(typeRows);
             drop(loopLocalBases);
+            drop(nestedRows);
             drop(bodyRows);
             drop(values);
             drop(loops);
@@ -170,13 +179,13 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
           }
         }
         """.formatted(
-            globals(22),
+            globals(25),
             bodyStart,
             bodyEnd - bodyStart,
             cursorStart,
             deltaStart,
             readyStart,
-            assignments(22)));
+            assignments(25)));
     return new WheelerCompiler().compileModuleFiles(sources, "example.loop_local_type_products");
   }
 

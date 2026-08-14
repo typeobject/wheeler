@@ -44,7 +44,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
     VirtualMachine machine = new VirtualMachine(
         program(SOURCE), SOURCE.getBytes(StandardCharsets.UTF_8), 262_144);
 
-    machine.run();
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
 
     assertEquals(1, machine.global("valid"));
     assertEquals(3, machine.global("bodyCount"));
@@ -92,7 +92,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
     VirtualMachine machine = new VirtualMachine(
         program(source), source.getBytes(StandardCharsets.UTF_8), 262_144);
 
-    machine.run();
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
 
     assertEquals(1, machine.global("valid"));
     assertEquals(34_050, machine.global("secondOpcode"));
@@ -129,7 +129,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
       VirtualMachine machine = new VirtualMachine(
           program(source), source.getBytes(StandardCharsets.UTF_8), 262_144);
 
-      machine.run();
+      CompilerMachineRunner.runWithoutRewindHistory(machine);
 
       assertEquals(0, machine.global("valid"), source);
       assertEquals(0, machine.global("bodyCount"), source);
@@ -176,7 +176,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
           state long fourthBodyType = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 804864, /* allocations= */ 14);
+            region products = new region(/* bytes= */ 968704, /* allocations= */ 15);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -185,6 +185,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
             words loops = allocate(products, /* length= */ 2304);
             words values = allocate(products, /* length= */ 7168);
             words bodyRows = allocate(products, /* length= */ 20480);
+            words nestedRows = allocate(products, /* length= */ 20480);
             words loopLocalBases = allocate(products, /* length= */ 256);
             words loopInstructionStarts = allocate(products, /* length= */ 256);
             words typeRows = allocate(products, /* length= */ 12288);
@@ -218,7 +219,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
               input, blockPlan.blockCount, blocks, statements, conditions, loops
             );
             ResolvedLoopBodyPlan bodyPlan = materializeResolvedLoopBodyProducts(
-              input, loopPlan.statementCount, statements, 3, values, bodyRows
+              input, loopPlan.statementCount, statements, 3, values, bodyRows, nestedRows
             );
             set(conditions, 256, 1);
             set(conditions, 512, 6);
@@ -237,8 +238,14 @@ final class NativeCompilerLoopBufferProductsExampleTest {
               admittedLoopCount,
               conditions,
               loops,
+              loopPlan.statementCount,
+              statements,
+              blockPlan.blockCount,
+              blocks,
               admittedBodyCount,
               bodyRows,
+              bodyPlan.nestedCount,
+              nestedRows,
               loopLocalBases,
               loopInstructionStarts,
               output
@@ -246,8 +253,12 @@ final class NativeCompilerLoopBufferProductsExampleTest {
             LoopLocalTypePlan types = materializeLoopLocalTypeProducts(
               admittedLoopCount,
               loops,
+              loopPlan.statementCount,
+              statements,
               admittedBodyCount,
               bodyRows,
+              bodyPlan.nestedCount,
+              nestedRows,
               loopLocalBases,
               typeRows
             );
@@ -278,6 +289,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
             drop(typeRows);
             drop(loopInstructionStarts);
             drop(loopLocalBases);
+            drop(nestedRows);
             drop(bodyRows);
             drop(values);
             drop(loops);

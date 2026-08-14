@@ -108,6 +108,8 @@ classical class LoopNestedBlockProducts {
     long conditionLiteral,
     long conditionLocalBase,
     long instructionBase,
+    boolean publish,
+    long outputStart,
     borrow mut bytes output
   ) {
     assert(-1 < parentStatement);
@@ -122,6 +124,8 @@ classical class LoopNestedBlockProducts {
     assert(bodyCount < BODY_COUNT_LIMIT + 1);
     assert(bufferLength(bodyRows) == BODY_ROWS);
     assert(-1 < instructionBase);
+    assert(-1 < outputStart);
+    assert(outputStart < MAX_CODE_BYTES + 1);
     assert(bufferLength(output) == MAX_CODE_BYTES);
 
     boolean valid = true;
@@ -241,8 +245,21 @@ classical class LoopNestedBlockProducts {
       valid = false;
     }
 
+    if (MAX_CODE_BYTES - outputStart < requiredLength) {
+      valid = false;
+    }
+
     if (valid == false) {
       return new LoopNestedBlockPlan(0, 0, 0, false);
+    }
+
+    if (publish == false) {
+      return new LoopNestedBlockPlan(
+        requiredInstructions,
+        requiredLength,
+        selectedBodyCount,
+        true
+      );
     }
 
     region staging = new region(/* bytes= */ MAX_CODE_BYTES, /* allocations= */ 1);
@@ -317,7 +334,7 @@ classical class LoopNestedBlockProducts {
     );
     long codeByte = 0;
     while (codeByte < cursor) limit MAX_CODE_BYTES {
-      setByte(output, codeByte, stagedCode[codeByte]);
+      setByte(output, outputStart + codeByte, stagedCode[codeByte]);
       codeByte += 1;
     }
 

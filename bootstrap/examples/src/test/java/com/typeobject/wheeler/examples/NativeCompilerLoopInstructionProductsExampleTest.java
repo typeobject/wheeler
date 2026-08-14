@@ -29,7 +29,9 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
             assert(cursor == 0);
             cursor = 0;
             cursor = delta;
-            cursor += delta;
+            if (ready) {
+              cursor += delta;
+            }
           }
         }
       }
@@ -37,7 +39,16 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
 
   @Test
   void matchesTheStageZeroLoopWindowByteForByte() throws Exception {
-    Program expectedProgram = new WheelerCompiler().compile(SOURCE);
+    assertMatches(SOURCE);
+  }
+
+  @Test
+  void matchesNestedEqualityGuardsByteForByte() throws Exception {
+    assertMatches(SOURCE.replace("if (ready)", "if (cursor == 0)"));
+  }
+
+  private static void assertMatches(String source) throws Exception {
+    Program expectedProgram = new WheelerCompiler().compile(source);
     List<Instruction> expected = expectedProgram.functions().getFirst().forward();
     int firstLoopInstruction = 2;
     int loopInstructionCount = expected.size() - firstLoopInstruction - 1;
@@ -45,9 +56,9 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
         .mapToInt(Instruction::encodedLength)
         .sum();
     VirtualMachine machine = new VirtualMachine(
-        program(), SOURCE.getBytes(StandardCharsets.UTF_8), 262_144);
+        program(source), source.getBytes(StandardCharsets.UTF_8), 262_144);
 
-    machine.run();
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
 
     assertEquals(1, machine.global("valid"));
     assertEquals(loopInstructionCount, machine.global("instructionCount"));
@@ -70,12 +81,12 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
     assertEquals(expectedLength, cursor);
   }
 
-  private static Program program() throws Exception {
-    int bodyStart = SOURCE.indexOf("{", SOURCE.indexOf("main("));
-    int bodyEnd = matchingClose(SOURCE, bodyStart) + 1;
-    int cursorStart = SOURCE.indexOf("cursor = 0");
-    int deltaStart = SOURCE.indexOf("delta = 1");
-    int readyStart = SOURCE.indexOf("ready = true");
+  private static Program program(String source) throws Exception {
+    int bodyStart = source.indexOf("{", source.indexOf("main("));
+    int bodyEnd = matchingClose(source, bodyStart) + 1;
+    int cursorStart = source.indexOf("cursor = 0");
+    int deltaStart = source.indexOf("delta = 1");
+    int readyStart = source.indexOf("ready = true");
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.loop_instruction_products"));
@@ -102,7 +113,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
           state long length = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 1417264, /* allocations= */ 24);
+            region products = new region(/* bytes= */ 1581104, /* allocations= */ 25);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -111,6 +122,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
             words sourceLoops = allocate(products, /* length= */ 2304);
             words values = allocate(products, /* length= */ 7168);
             words bodyRows = allocate(products, /* length= */ 20480);
+            words nestedRows = allocate(products, /* length= */ 20480);
             words resolvedConditions = allocate(products, /* length= */ 1536);
             words resolvedLoops = allocate(products, /* length= */ 2304);
             words symbolOwners = allocate(products, /* length= */ 16384);
@@ -171,7 +183,8 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
               statements,
               /* valueCount= */ 3,
               values,
-              bodyRows
+              bodyRows,
+              nestedRows
             );
             assert(bodyPlan.valid);
             ResolvedLoopProductPlan resolvedPlan = materializeResolvedLoopProducts(
@@ -198,8 +211,14 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
               resolvedPlan.loopCount,
               resolvedConditions,
               resolvedLoops,
+              loopPlan.statementCount,
+              statements,
+              blockPlan.blockCount,
+              blocks,
               bodyPlan.bodyCount,
               bodyRows,
+              bodyPlan.nestedCount,
+              nestedRows,
               loopLocalBases,
               loopInstructionStarts,
               output
@@ -226,6 +245,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
             drop(symbolOwners);
             drop(resolvedLoops);
             drop(resolvedConditions);
+            drop(nestedRows);
             drop(bodyRows);
             drop(values);
             drop(sourceLoops);

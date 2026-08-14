@@ -5,6 +5,16 @@ module wheeler.compiler.closure.loop_body_layouts;
 classical class LoopBodyLayouts {
   /// Number of rows in one direct loop-body product table.
   public const long BODY_ROWS = 20480;
+  /// Number of rows in one resolved nested-control product table.
+  public const long NESTED_ROWS = 20480;
+  /// Row containing each nested control kind.
+  public const long NESTED_KIND_ROW = 4096;
+  /// Row containing each nested condition local.
+  public const long NESTED_CONDITION_LOCAL_ROW = 8192;
+  /// Row containing each nested condition literal.
+  public const long NESTED_CONDITION_LITERAL_ROW = 12288;
+  /// Row containing each nested control's first private local.
+  public const long NESTED_LOCAL_BASE_ROW = 16384;
   /// Row containing each statement's first private local.
   public const long BODY_LOCAL_BASE_ROW = 4096;
   /// Row containing each closed body opcode.

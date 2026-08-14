@@ -138,6 +138,8 @@ final class NativeCompilerLoopNestedBodyProductsExampleTest {
               /* conditionLiteral= */ 0,
               /* conditionLocalBase= */ 5,
               /* instructionBase= */ 0,
+              /* publish= */ true,
+              /* outputStart= */ 0,
               output
             );
             if (plan.valid) {
@@ -206,6 +208,8 @@ final class NativeCompilerLoopNestedBodyProductsExampleTest {
               /* conditionLiteral= */ 0,
               /* conditionLocalBase= */ 4,
               /* instructionBase= */ 0,
+              /* publish= */ true,
+              /* outputStart= */ 0,
               output
             );
             if (plan.valid) {

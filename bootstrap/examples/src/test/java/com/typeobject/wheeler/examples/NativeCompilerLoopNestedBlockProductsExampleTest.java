@@ -162,6 +162,8 @@ final class NativeCompilerLoopNestedBlockProductsExampleTest {
               /* conditionLiteral= */ CONDITION_LITERAL,
               /* conditionLocalBase= */ 7,
               /* instructionBase= */ 9,
+              /* publish= */ true,
+              /* outputStart= */ 0,
               output
             );
             if (plan.valid) {

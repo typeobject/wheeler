@@ -7,6 +7,7 @@ import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.closure.loop_buffer_operands;
+import wheeler.compiler.closure.loop_nested_conditions;
 import wheeler.compiler.closure.resolved_loop_buffer_products;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
@@ -23,7 +24,7 @@ classical class ResolvedLoopBodyProducts {
   private const long OPERAND_LOCAL = 1;
 
   /// Reports one complete direct body-statement resolution pass.
-  public record ResolvedLoopBodyPlan(long bodyCount, boolean valid) {}
+  public record ResolvedLoopBodyPlan(long bodyCount, long nestedCount, boolean valid) {}
 
   /// Publishes resolved declaration and update rows only after every body statement validates.
   public ResolvedLoopBodyPlan materializeResolvedLoopBodyProducts(
@@ -32,7 +33,8 @@ classical class ResolvedLoopBodyProducts {
     borrow mut words statementRows,
     long valueCount,
     borrow mut words valueRows,
-    borrow mut words bodyRows
+    borrow mut words bodyRows,
+    borrow mut words nestedRows
   ) {
     assert(-1 < statementCount);
     assert(statementCount < MAX_STATEMENTS + 1);
@@ -41,15 +43,17 @@ classical class ResolvedLoopBodyProducts {
     assert(valueCount < LOOP_VALUE_COUNT_LIMIT + 1);
     assert(bufferLength(valueRows) == LOOP_VALUE_ROWS);
     assert(bufferLength(bodyRows) == BODY_ROWS);
+    assert(bufferLength(nestedRows) == NESTED_ROWS);
 
     region staging = new region(
       /* bytes= */ LOOP_BODY_RESOLUTION_ARENA_BYTES,
-      /* allocations= */ 5
+      /* allocations= */ 6
     );
     words tokenKinds = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(staging, MAX_COMPILER_TOKENS);
     words stagedRows = allocate(staging, BODY_ROWS);
+    words stagedNestedRows = allocate(staging, NESTED_ROWS);
     words nextBodyLocals = allocate(staging, 64);
     boolean valid = true;
     long tokenCount = 0;
@@ -72,6 +76,7 @@ classical class ResolvedLoopBodyProducts {
     );
 
     long bodyCount = 0;
+    long nestedCount = 0;
     long statement = 0;
     while (statement < statementCount) limit MAX_STATEMENTS {
       long childCount = statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement];
@@ -734,6 +739,22 @@ classical class ResolvedLoopBodyProducts {
             ) {
               valid = false;
             } else {
+              LoopNestedCondition control = resolveLoopNestedCondition(
+                source,
+                controlOwner,
+                controlOrdinal,
+                controlToken,
+                valueCount,
+                valueRows,
+                semanticCount,
+                tokenKinds,
+                tokenStarts,
+                tokenLengths
+              );
+              if (control.valid == false) {
+                valid = false;
+              }
+
               long controlLocalBase = localBaseAtOrdinal(
                 controlOwner,
                 controlOrdinal,
@@ -744,23 +765,20 @@ classical class ResolvedLoopBodyProducts {
                 controlLocalBase = nextBodyLocals[controlOwner];
               }
 
-              long controlLocalCount = 3;
-              if (
-                punctuationAt(
-                  source,
-                  tokenKinds,
-                  tokenStarts,
-                  controlToken + 3,
-                  PUNCTUATION_CLOSE_PAREN
-                )
-              ) {
-                controlLocalCount = 1;
-              }
-
-              if (255 < controlLocalBase + controlLocalCount) {
+              if (255 < controlLocalBase + control.localCount) {
                 valid = false;
               } else {
-                set(nextBodyLocals, controlOwner, controlLocalBase + controlLocalCount);
+                set(nextBodyLocals, controlOwner, controlLocalBase + control.localCount);
+                set(stagedNestedRows, nestedCount, statement);
+                set(stagedNestedRows, NESTED_KIND_ROW + nestedCount, control.kind);
+                set(stagedNestedRows, NESTED_CONDITION_LOCAL_ROW + nestedCount, control.local);
+                set(
+                  stagedNestedRows,
+                  NESTED_CONDITION_LITERAL_ROW + nestedCount,
+                  control.literal
+                );
+                set(stagedNestedRows, NESTED_LOCAL_BASE_ROW + nestedCount, controlLocalBase);
+                nestedCount += 1;
               }
             }
           }
@@ -776,18 +794,25 @@ classical class ResolvedLoopBodyProducts {
         set(bodyRows, row, stagedRows[row]);
         row += 1;
       }
+
+      row = 0;
+      while (row < NESTED_ROWS) limit NESTED_ROWS {
+        set(nestedRows, row, stagedNestedRows[row]);
+        row += 1;
+      }
     }
 
     drop(nextBodyLocals);
+    drop(stagedNestedRows);
     drop(stagedRows);
     drop(tokenLengths);
     drop(tokenStarts);
     drop(tokenKinds);
     drop(staging);
     if (valid == false) {
-      return new ResolvedLoopBodyPlan(0, false);
+      return new ResolvedLoopBodyPlan(0, 0, false);
     }
 
-    return new ResolvedLoopBodyPlan(bodyCount, true);
+    return new ResolvedLoopBodyPlan(bodyCount, nestedCount, true);
   }
 }

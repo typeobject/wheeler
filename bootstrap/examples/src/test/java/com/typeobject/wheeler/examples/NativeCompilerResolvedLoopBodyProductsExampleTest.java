@@ -40,7 +40,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
         SOURCE.getBytes(StandardCharsets.UTF_8),
         1);
 
-    machine.run();
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
 
     assertEquals(1, machine.global("valid"));
     assertEquals(11, machine.global("bodyCount"));
@@ -74,10 +74,13 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
         nested.getBytes(StandardCharsets.UTF_8),
         1);
 
-    machine.run();
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
 
     assertEquals(1, machine.global("valid"));
     assertEquals(11, machine.global("bodyCount"));
+    assertEquals(1, machine.global("nestedCount"));
+    assertEquals(3, machine.global("nestedKind"));
+    assertEquals(5, machine.global("nestedConditionLocal"));
   }
 
   @Test
@@ -92,7 +95,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
           testCase.source().getBytes(StandardCharsets.UTF_8),
           1);
 
-      machine.run();
+      CompilerMachineRunner.runWithoutRewindHistory(machine);
 
       assertEquals(0, machine.global("valid"), testCase.source());
       assertEquals(0, machine.global("bodyCount"));
@@ -123,6 +126,9 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
         classical class ResolvedLoopBodyProductsExample {
           state long valid = 0;
           state long bodyCount = 0;
+          state long nestedCount = 0;
+          state long nestedKind = 0;
+          state long nestedConditionLocal = 0;
           state long firstStatement = 0;
           state long firstLocalBase = 0;
           state long firstOpcode = 0;
@@ -143,7 +149,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
           state long sixthOpcode = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 595976, /* allocations= */ 9);
+            region products = new region(/* bytes= */ 759816, /* allocations= */ 10);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -152,6 +158,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
             words loops = allocate(products, /* length= */ 2304);
             words values = allocate(products, /* length= */ 7168);
             words bodyRows = allocate(products, /* length= */ 20480);
+            words nestedRows = allocate(products, /* length= */ 20480);
             words unused = allocate(products, /* length= */ 1);
             set(bodyStarts, 0, %d);
             set(bodyLengths, 0, %d);
@@ -197,12 +204,16 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
               statements,
               /* valueCount= */ %d,
               values,
-              bodyRows
+              bodyRows,
+              nestedRows
             );
             if (bodyPlan.valid) {
               valid = 1;
             }
             bodyCount = bodyPlan.bodyCount;
+            nestedCount = bodyPlan.nestedCount;
+            nestedKind = nestedRows[4096];
+            nestedConditionLocal = nestedRows[8192];
             firstStatement = bodyRows[0];
             firstLocalBase = bodyRows[4096];
             firstOpcode = bodyRows[8192];
@@ -223,6 +234,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
             sixthOpcode = bodyRows[8197];
             setOutputLength(output, 0);
             drop(unused);
+            drop(nestedRows);
             drop(bodyRows);
             drop(values);
             drop(loops);

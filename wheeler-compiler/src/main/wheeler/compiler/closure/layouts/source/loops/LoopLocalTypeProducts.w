@@ -15,6 +15,10 @@ classical class LoopLocalTypeProducts {
   private const long LOOP_FIRST_BODY_STATEMENT_ROW = 1536;
   private const long LOOP_ROWS = 2304;
   private const long MAX_LOCALS = 256;
+  private const long MAX_STATEMENTS = 4096;
+  private const long STATEMENT_BLOCK_ROW = 4096;
+  private const long STATEMENT_CHILD_COUNT_ROW = 24576;
+  private const long STATEMENT_FIRST_CHILD_ROW = 20480;
   private const long TYPE_ROWS = 12288;
   private const long TYPE_LOCAL_ROW = 4096;
   private const long TYPE_CODE_ROW = 8192;
@@ -42,6 +46,85 @@ classical class LoopLocalTypeProducts {
     return selected;
   }
 
+  private long nestedAtStatement(long statement, long nestedCount, borrow mut words nestedRows) {
+    long selected = -1;
+    long matches = 0;
+    long nested = 0;
+    while (nested < nestedCount) limit BODY_COUNT_LIMIT {
+      if (nestedRows[nested] == statement) {
+        selected = nested;
+        matches += 1;
+      }
+
+      nested += 1;
+    }
+
+    if (matches != 1) {
+      return -1;
+    }
+
+    return selected;
+  }
+
+  private long bodyLocalType(long opcode, long operand, long localOffset) {
+    long localType = TYPE_SIGNED;
+    if (opcode == BODY_BOOLEAN_LITERAL) {
+      localType = TYPE_BOOLEAN;
+    }
+
+    if (opcode == BODY_ASSERT_BOOLEAN) {
+      localType = TYPE_BOOLEAN;
+    }
+
+    if (BODY_ASSIGN_BOOLEAN_LITERAL_BASE - 1 < opcode) {
+      if (opcode < BODY_ASSIGN_BOOLEAN_LOCAL_BASE + MAX_LOCALS) {
+        localType = TYPE_BOOLEAN;
+      }
+    }
+
+    if (BODY_ASSERT_EQ_LITERAL_BASE - 1 < opcode) {
+      if (opcode < BODY_BOOLEAN_LITERAL) {
+        if (localOffset == 2) {
+          localType = TYPE_BOOLEAN;
+        }
+      }
+    }
+
+    if (opcode == BODY_WORDS_GET) {
+      if (0 < operand / 65536) {
+        if (localOffset == 0) {
+          localType = TYPE_WORDS_BORROW;
+        }
+      }
+    }
+
+    if (opcode == BODY_WORDS_SET) {
+      if (0 < operand / 16777216) {
+        if (localOffset == 0) {
+          localType = TYPE_WORDS_BORROW;
+        }
+      }
+    }
+
+    if (opcode == BODY_WORDS_COPY) {
+      long writeBorrowed = operand / 4294967296 % 2;
+      long readBorrowed = operand / 8589934592;
+      if (0 < writeBorrowed) {
+        if (localOffset == 0) {
+          localType = TYPE_WORDS_BORROW;
+        }
+      }
+
+      if (0 < readBorrowed) {
+        if (localOffset == writeBorrowed + 1) {
+          localType = TYPE_WORDS_BORROW;
+        }
+      }
+    }
+
+    return localType;
+  }
+
   private long appendType(borrow mut words rows, long type, long owner, long local, long code) {
     if (BODY_COUNT_LIMIT - 1 < type) {
       return -1;
@@ -65,17 +148,27 @@ classical class LoopLocalTypeProducts {
   public LoopLocalTypePlan materializeLoopLocalTypeProducts(
     long loopCount,
     borrow mut words loopRows,
+    long statementCount,
+    borrow mut words statementRows,
     long bodyCount,
     borrow mut words bodyRows,
+    long nestedCount,
+    borrow mut words nestedRows,
     borrow mut words loopLocalBases,
     borrow mut words typeRows
   ) {
     assert(-1 < loopCount);
     assert(loopCount < LOOP_COUNT_LIMIT + 1);
     assert(bufferLength(loopRows) == LOOP_ROWS);
+    assert(-1 < statementCount);
+    assert(statementCount < MAX_STATEMENTS + 1);
+    assert(bufferLength(statementRows) == LOOP_STATEMENT_ROWS);
     assert(-1 < bodyCount);
     assert(bodyCount < BODY_COUNT_LIMIT + 1);
     assert(bufferLength(bodyRows) == BODY_ROWS);
+    assert(-1 < nestedCount);
+    assert(nestedCount < BODY_COUNT_LIMIT + 1);
+    assert(bufferLength(nestedRows) == NESTED_ROWS);
     assert(bufferLength(loopLocalBases) == LOOP_COUNT_LIMIT);
     assert(bufferLength(typeRows) == TYPE_ROWS);
 
@@ -111,7 +204,6 @@ classical class LoopLocalTypeProducts {
         typeCount = appendType(stagedTypes, typeCount, owner, localBase + 4, TYPE_BOOLEAN);
       }
 
-      long nextLocal = localBase + 5;
       long bodyStatementCount = loopRows[LOOP_BODY_STATEMENT_COUNT_ROW + loop];
       if (bodyStatementCount < 0) {
         valid = false;
@@ -124,90 +216,126 @@ classical class LoopLocalTypeProducts {
       long bodyOffset = 0;
       while (bodyOffset < bodyStatementCount) limit 64 {
         long statement = loopRows[LOOP_FIRST_BODY_STATEMENT_ROW + loop] + bodyOffset;
-        long body = bodyAtStatement(statement, bodyCount, bodyRows);
-        if (body < 0) {
-          valid = false;
-        } else {
-          long localCount = loopBodyLocalCount(
-            bodyRows[BODY_OPCODE_ROW + body],
-            bodyRows[BODY_OPERAND_ROW + body]
-          );
-          if (localCount < 0) {
+        if (statementRows[STATEMENT_CHILD_COUNT_ROW + statement] == 0) {
+          long body = bodyAtStatement(statement, bodyCount, bodyRows);
+          if (body < 0) {
             valid = false;
-          }
-
-          if (MAX_LOCALS - nextLocal < localCount) {
-            valid = false;
-          }
-
-          long localOffset = 0;
-          while (localOffset < localCount) limit 4 {
-            if (valid) {
-              long localType = TYPE_SIGNED;
-              long bodyOpcode = bodyRows[BODY_OPCODE_ROW + body];
-              if (bodyOpcode == BODY_BOOLEAN_LITERAL) {
-                localType = TYPE_BOOLEAN;
-              }
-
-              if (bodyOpcode == BODY_ASSERT_BOOLEAN) {
-                localType = TYPE_BOOLEAN;
-              }
-
-              if (BODY_ASSIGN_BOOLEAN_LITERAL_BASE - 1 < bodyOpcode) {
-                if (bodyOpcode < BODY_ASSIGN_BOOLEAN_LOCAL_BASE + MAX_LOCALS) {
-                  localType = TYPE_BOOLEAN;
-                }
-              }
-
-              if (BODY_ASSERT_EQ_LITERAL_BASE - 1 < bodyOpcode) {
-                if (bodyOpcode < BODY_BOOLEAN_LITERAL) {
-                  if (localOffset == 2) {
-                    localType = TYPE_BOOLEAN;
-                  }
-                }
-              }
-
-              if (bodyOpcode == BODY_WORDS_GET) {
-                if (0 < bodyRows[BODY_OPERAND_ROW + body] / 65536) {
-                  if (localOffset == 0) {
-                    localType = TYPE_WORDS_BORROW;
-                  }
-                }
-              }
-
-              if (bodyOpcode == BODY_WORDS_SET) {
-                if (0 < bodyRows[BODY_OPERAND_ROW + body] / 16777216) {
-                  if (localOffset == 0) {
-                    localType = TYPE_WORDS_BORROW;
-                  }
-                }
-              }
-
-              if (bodyOpcode == BODY_WORDS_COPY) {
-                long copyOperand = bodyRows[BODY_OPERAND_ROW + body];
-                long writeBorrowed = copyOperand / 4294967296 % 2;
-                long readBorrowed = copyOperand / 8589934592;
-                if (0 < writeBorrowed) {
-                  if (localOffset == 0) {
-                    localType = TYPE_WORDS_BORROW;
-                  }
-                }
-
-                if (0 < readBorrowed) {
-                  if (localOffset == writeBorrowed + 1) {
-                    localType = TYPE_WORDS_BORROW;
-                  }
-                }
-              }
-
-              typeCount = appendType(stagedTypes, typeCount, owner, nextLocal, localType);
-              if (typeCount < 0) {
-                valid = false;
-              }
+          } else {
+            long opcode = bodyRows[BODY_OPCODE_ROW + body];
+            long operand = bodyRows[BODY_OPERAND_ROW + body];
+            long localCount = loopBodyLocalCount(opcode, operand);
+            long bodyLocalBase = bodyRows[BODY_LOCAL_BASE_ROW + body] + 5;
+            if (localCount < 0) {
+              valid = false;
             }
 
-            nextLocal += 1;
-            localOffset += 1;
+            if (MAX_LOCALS - bodyLocalBase < localCount) {
+              valid = false;
+            }
+
+            long localOffset = 0;
+            while (localOffset < localCount) limit 4 {
+              if (valid) {
+                typeCount = appendType(
+                  stagedTypes,
+                  typeCount,
+                  owner,
+                  bodyLocalBase + localOffset,
+                  bodyLocalType(opcode, operand, localOffset)
+                );
+                if (typeCount < 0) {
+                  valid = false;
+                }
+              }
+
+              localOffset += 1;
+            }
+          }
+        } else {
+          long nested = nestedAtStatement(statement, nestedCount, nestedRows);
+          if (nested < 0) {
+            valid = false;
+          } else {
+            long nestedLocalBase = nestedRows[NESTED_LOCAL_BASE_ROW + nested] + 5;
+            long nestedKind = nestedRows[NESTED_KIND_ROW + nested];
+            long nestedLocalCount = 3;
+            if (nestedKind == 3) {
+              nestedLocalCount = 1;
+            }
+
+            if (MAX_LOCALS - nestedLocalBase < nestedLocalCount) {
+              valid = false;
+            }
+
+            long nestedLocalOffset = 0;
+            while (nestedLocalOffset < nestedLocalCount) limit 3 {
+              long nestedLocalType = TYPE_SIGNED;
+              if (nestedKind == 3) {
+                nestedLocalType = TYPE_BOOLEAN;
+              } else {
+                if (nestedLocalOffset == 2) {
+                  nestedLocalType = TYPE_BOOLEAN;
+                }
+              }
+
+              if (valid) {
+                typeCount = appendType(
+                  stagedTypes,
+                  typeCount,
+                  owner,
+                  nestedLocalBase + nestedLocalOffset,
+                  nestedLocalType
+                );
+                if (typeCount < 0) {
+                  valid = false;
+                }
+              }
+
+              nestedLocalOffset += 1;
+            }
+
+            long childBlock = statementRows[STATEMENT_FIRST_CHILD_ROW + statement];
+            long childStatement = 0;
+            while (childStatement < statementCount) limit MAX_STATEMENTS {
+              if (statementRows[STATEMENT_BLOCK_ROW + childStatement] == childBlock) {
+                long childBody = bodyAtStatement(childStatement, bodyCount, bodyRows);
+                if (childBody < 0) {
+                  valid = false;
+                } else {
+                  long childOpcode = bodyRows[BODY_OPCODE_ROW + childBody];
+                  long childOperand = bodyRows[BODY_OPERAND_ROW + childBody];
+                  long childLocalCount = loopBodyLocalCount(childOpcode, childOperand);
+                  long childLocalBase = bodyRows[BODY_LOCAL_BASE_ROW + childBody] + 5;
+                  if (childLocalCount < 0) {
+                    valid = false;
+                  }
+
+                  if (MAX_LOCALS - childLocalBase < childLocalCount) {
+                    valid = false;
+                  }
+
+                  long childLocalOffset = 0;
+                  while (childLocalOffset < childLocalCount) limit 4 {
+                    if (valid) {
+                      typeCount = appendType(
+                        stagedTypes,
+                        typeCount,
+                        owner,
+                        childLocalBase + childLocalOffset,
+                        bodyLocalType(childOpcode, childOperand, childLocalOffset)
+                      );
+                      if (typeCount < 0) {
+                        valid = false;
+                      }
+                    }
+
+                    childLocalOffset += 1;
+                  }
+                }
+              }
+
+              childStatement += 1;
+            }
           }
         }
 
