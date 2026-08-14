@@ -257,13 +257,13 @@ classical class LoopCallProducts {
     borrow mut words callArgumentStarts,
     borrow mut words callArgumentCounts,
     borrow mut words callStatements,
+    borrow mut words callInstructionStarts,
     borrow mut words argumentRows,
     long targetCount,
     borrow byteview targetIdentities,
     borrow mut words targetParameterStarts,
     borrow mut words targetParameterCounts,
     borrow mut words targetParameterTypes,
-    long instructionBase,
     borrow mut words relocationRows,
     borrow mut bytes relocationIdentities,
     borrow mut words localTypeRows,
@@ -278,6 +278,7 @@ classical class LoopCallProducts {
     assert(bufferLength(callArgumentStarts) == CALL_COUNT_LIMIT);
     assert(bufferLength(callArgumentCounts) == CALL_COUNT_LIMIT);
     assert(bufferLength(callStatements) == CALL_COUNT_LIMIT);
+    assert(bufferLength(callInstructionStarts) == CALL_COUNT_LIMIT);
     assert(bufferLength(argumentRows) == ARGUMENT_ROWS);
     assert(-1 < targetCount);
     assert(targetCount < TARGET_COUNT_LIMIT + 1);
@@ -285,7 +286,6 @@ classical class LoopCallProducts {
     assert(bufferLength(targetParameterStarts) == TARGET_COUNT_LIMIT);
     assert(bufferLength(targetParameterCounts) == TARGET_COUNT_LIMIT);
     assert(bufferLength(targetParameterTypes) == TARGET_PARAMETER_ROWS);
-    assert(-1 < instructionBase);
     assert(bufferLength(relocationRows) == RELOCATION_ROWS);
     assert(bufferLength(relocationIdentities) == RELOCATION_IDENTITY_BYTES);
     assert(bufferLength(localTypeRows) == LOCAL_TYPE_ROWS);
@@ -307,6 +307,7 @@ classical class LoopCallProducts {
       long firstArgument = callArgumentStarts[call];
       long arity = callArgumentCounts[call];
       long statement = callStatements[call];
+      long instructionStart = callInstructionStarts[call];
       if (validKind(kind) == false) {
         valid = false;
       }
@@ -316,6 +317,14 @@ classical class LoopCallProducts {
       }
 
       if (STATEMENT_COUNT_LIMIT - 1 < statement) {
+        valid = false;
+      }
+
+      if (instructionStart < 0) {
+        valid = false;
+      }
+
+      if (32767 < instructionStart) {
         valid = false;
       }
 
@@ -423,7 +432,6 @@ classical class LoopCallProducts {
 
     long cursor = 0;
     long typeCursor = 0;
-    long emittedInstruction = instructionBase;
     call = 0;
     while (call < callCount) limit CALL_COUNT_LIMIT {
       long emittedKind = callRows[CALL_KIND_ROW + call];
@@ -432,7 +440,7 @@ classical class LoopCallProducts {
       long emittedTarget = callRows[CALL_TARGET_ROW + call];
       long emittedFirstArgument = callArgumentStarts[call];
       long emittedArity = callArgumentCounts[call];
-      set(stagedRelocations, call, emittedInstruction + emittedArity * 2);
+      set(stagedRelocations, call, callInstructionStarts[call] + emittedArity * 2);
       set(stagedRelocations, CALL_COUNT_LIMIT + call, emittedTarget);
       set(stagedRelocations, CALL_COUNT_LIMIT * 2 + call, callRows[call]);
       long identityByte = 0;
@@ -468,7 +476,6 @@ classical class LoopCallProducts {
         emittedArity,
         argumentRows
       );
-      emittedInstruction += callInstructionCount(emittedKind, emittedArity);
       call += 1;
     }
 

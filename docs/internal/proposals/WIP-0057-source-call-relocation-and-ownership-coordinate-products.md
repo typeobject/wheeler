@@ -108,7 +108,7 @@ All rows use fixed caller-provided buffers. No pass allocates per call or per ev
 - [x] `LoopCallProducts.w` atomically merges each call's exact local width into its bound statement row. Invalid statements, targets, or argument types preserve existing call and statement widths.
 - [ ] Call arguments retain defining value products and offsets.
 - [x] `LoopCallProducts.w` takes every call-local base from its bound statement's planned physical start. Caller-populated local-base cells are no longer an authority. Typed argument transfers, result slots, code, types, and statement-width publication share that start.
-- [ ] Relocations consume planned instruction rows.
+- [x] `LoopCallProducts.w` takes each relocation instruction from the call's planned instruction start plus its exact argument-transfer width. The caller-supplied instruction base is deleted. Invalid planned rows leave code, type, width, identity, and relocation outputs untouched.
 - [ ] Ownership source products retain statement, local, and instruction coordinates.
 - [ ] Source and decoded ownership evidence agree before archive publication.
 - [ ] Structured source artifacts include local and imported calls without source projection.
