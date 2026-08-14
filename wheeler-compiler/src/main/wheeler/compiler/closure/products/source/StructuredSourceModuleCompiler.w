@@ -22,25 +22,33 @@ classical class StructuredSourceModuleCompiler {
   private const long MAX_LOOPS = 256;
   private const long MAX_STATEMENTS = 4096;
 
-  private long loopFrameBias(
+  private long statementAtLoop(
     long owner,
     long ordinal,
-    long loopCount,
-    borrow mut words loopRows
+    long statementCount,
+    borrow mut words statementRows
   ) {
-    long priorLoops = 0;
-    long loop = 0;
-    while (loop < loopCount) limit MAX_LOOPS {
-      if (loopRows[loop] == owner) {
-        if (loopRows[512 + loop] < ordinal) {
-          priorLoops += 1;
+    long selected = -1;
+    long matches = 0;
+    long statement = 0;
+    while (statement < statementCount) limit MAX_STATEMENTS {
+      if (statementRows[statement] == owner) {
+        if (statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement] == ordinal) {
+          if (0 < statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement]) {
+            selected = statement;
+            matches += 1;
+          }
         }
       }
 
-      loop += 1;
+      statement += 1;
     }
 
-    return priorLoops * 5;
+    if (matches != 1) {
+      return -1;
+    }
+
+    return selected;
   }
 
   private long instructionStartForLoop(
@@ -192,6 +200,16 @@ classical class StructuredSourceModuleCompiler {
       statementLocalRows
     );
     assert(valuePlan.valid);
+    long measuredStatement = 0;
+    while (measuredStatement < loopPlan.statementCount) limit MAX_STATEMENTS {
+      set(
+        statementPhysicalWidths,
+        measuredStatement,
+        statementLocalRows[MAX_STATEMENTS + measuredStatement]
+      );
+      measuredStatement += 1;
+    }
+
     ResolvedLoopBodyPlan bodyPlan = materializeResolvedLoopBodyProducts(
       source,
       loopPlan.statementCount,
@@ -203,6 +221,24 @@ classical class StructuredSourceModuleCompiler {
       statementPhysicalWidths
     );
     assert(bodyPlan.valid);
+    boolean frameWidthsValid = materializeLoopFrameWidths(
+      loopPlan.loopCount,
+      sourceLoops,
+      loopPlan.statementCount,
+      statements,
+      statementPhysicalWidths
+    );
+    assert(frameWidthsValid);
+    SourceCallableCoordinatePlan coordinatePlan = materializeSourceCallableCoordinateProducts(
+      callableCount,
+      parameterCounts,
+      loopPlan.statementCount,
+      statements,
+      statementLocalRows,
+      statementPhysicalWidths,
+      statementPhysicalStarts
+    );
+    assert(coordinatePlan.valid);
     ResolvedLoopProductPlan resolvedPlan = materializeResolvedLoopProducts(
       source,
       archiveSourceStart,
@@ -231,16 +267,9 @@ classical class StructuredSourceModuleCompiler {
       long loopDepth = resolvedLoops[2048 + loop];
       assert(0 < loopDepth);
       assert(loopDepth < 5);
-      set(
-        loopLocalBases,
-        loop,
-        localBaseAtOrdinal(owner, ordinal, valuePlan.valueCount, values) + loopFrameBias(
-          owner,
-          ordinal,
-          resolvedPlan.loopCount,
-          resolvedLoops
-        )
-      );
+      long loopStatement = statementAtLoop(owner, ordinal, loopPlan.statementCount, statements);
+      assert(-1 < loopStatement);
+      set(loopLocalBases, loop, statementPhysicalStarts[loopStatement]);
       set(
         loopInstructionStarts,
         loop,
@@ -305,24 +334,6 @@ classical class StructuredSourceModuleCompiler {
       directCode
     );
     assert(directPlan.valid);
-    boolean frameWidthsValid = materializeLoopFrameWidths(
-      loopPlan.loopCount,
-      sourceLoops,
-      loopPlan.statementCount,
-      statements,
-      statementPhysicalWidths
-    );
-    assert(frameWidthsValid);
-    SourceCallableCoordinatePlan coordinatePlan = materializeSourceCallableCoordinateProducts(
-      callableCount,
-      parameterCounts,
-      loopPlan.statementCount,
-      statements,
-      statementLocalRows,
-      statementPhysicalWidths,
-      statementPhysicalStarts
-    );
-    assert(coordinatePlan.valid);
     CallableSourceCompositionPlan composition = composeCallableSourceProducts(
       callableCount,
       loopPlan.statementCount,

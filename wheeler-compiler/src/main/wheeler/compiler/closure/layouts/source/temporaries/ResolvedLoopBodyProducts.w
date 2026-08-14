@@ -65,6 +65,12 @@ classical class ResolvedLoopBodyProducts {
     words stagedNestedRows = allocate(staging, NESTED_ROWS);
     words stagedPhysicalWidths = allocate(staging, MAX_STATEMENTS);
     words nextBodyLocals = allocate(staging, 64);
+    long stagedStatement = 0;
+    while (stagedStatement < MAX_STATEMENTS) limit MAX_STATEMENTS {
+      set(stagedPhysicalWidths, stagedStatement, statementPhysicalWidths[stagedStatement]);
+      stagedStatement += 1;
+    }
+
     boolean valid = true;
     long tokenCount = 0;
     ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);

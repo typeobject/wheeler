@@ -92,7 +92,8 @@ The producer uses fixed caller-provided rows. It does not allocate per statement
 - [x] `LoopCallProducts.w` publishes one physical local width per call beside code, type, and relocation products. Zero-argument void calls retain width zero. Value calls reserve their result pair, and one- through seven-argument calls include both evaluation and transfer rows. Invalid targets or argument types leave widths untouched.
 - [ ] Source-call and ownership products bind exact statement physical widths.
 - [x] `SourceCallableCoordinateProducts.w` adapts measured statement rows to WIP-0055's storage-order-independent planner. Structured artifact publication now requires a valid complete coordinate plan, and the physical `CoreParsing.w` fixture retains byte equality. Code, types, and operands do not yet consume the planned starts.
-- [ ] Loop code, direct code, local types, and value operands consume planned starts.
+- [x] `StructuredSourceModuleCompiler.w` now seeds logical widths, applies measured body and loop-frame widths, plans physical starts before loop emission, and takes every root and nested loop base from the statement coordinate product. The former callable-wide `loopFrameBias` calculation is deleted. Loop code and loop local types retain byte equality for `CoreParsing.w` and the structured comparison fixture.
+- [ ] Direct code, direct local types, source calls, ownership rows, and value operands consume planned starts.
 - [ ] The sequential-root regression matches stage 0 byte for byte.
 - [ ] Ordinal frame biases and inferred return maxima are deleted.
 
