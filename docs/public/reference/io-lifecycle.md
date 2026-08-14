@@ -80,7 +80,11 @@ The native transition table rejects second completion, completion before resourc
 
 A `WriteCompleted` value proves only that the in-memory copy completed. Calling it durable would be like calling a register assignment a successful fsync: energetic, but not useful.
 
-`StagedData` is likewise placement evidence, not durability. It binds exact content and byte count to one named tier, one named failure domain, and an optional prior placement identity. Restaging forms a content-identified ancestry chain. The type has no conversion or promotion path to `DurabilityReceipt`. A caller still needs the exact evidence sequence below before making stability claims.
+`StagedData` is likewise placement evidence, not durability. It binds exact content and byte count to one named tier, one named failure domain, and an optional prior placement identity. Restaging forms a content-identified ancestry chain. A known partial transfer binds the placed prefix identity and byte count to its complete source placement. The type has no conversion or promotion path to `DurabilityReceipt`. A caller still needs the exact evidence sequence below before making stability claims.
+
+`TieredStorage` supplies a bounded placement and drain oracle. A drain captures its source placement until terminal resource release and never consumes it. Complete transfer returns a complete restaging record. A provider's shorter known transfer limit returns `PARTIAL_FAILURE` with exact prefix evidence and source ancestry. The request itself completes because it obtained the typed drain outcome. That outcome does not claim complete transfer or durability.
+
+`RemoteMemory` supplies an epoch-scoped one-sided placement oracle. Only the region can issue an `Advertisement`, and each advertisement binds the exact range, rights, and revocation epoch. A write captures its source owner and produces only a `Placement`. Region-issued `PeerAcknowledgement`, `PeerApplication`, and `Persistence` records form distinct evidence stages. None implements or converts to `DurabilityReceipt`. Disconnection or revocation before queued provider work returns explicit uncertainty, releases the source, and performs no observed placement. Reconnection advances the epoch and restores no old authority. This profile proves the type and lifecycle boundaries. It does not claim an RNIC, transport, peer, or persistent-memory implementation.
 
 ## Batches, selection, and graphs
 
@@ -107,6 +111,6 @@ Skipping a stage, replaying evidence, claiming namespace visibility without a na
 
 ## Deliberate nonclaims
 
-This slice performs synthetic provider actions and bounded in-memory positional operations. It has a typed receipt schema but no release-grade evidence issuer. It does not yet implement host files, clocks, replay, source-language loans, native completion queues, direct I/O, network protocols, or crash-qualified persistence evidence. A successful completion therefore proves no crash survival, namespace stability, peer application, quorum, or remote persistence.
+This slice performs synthetic provider actions and bounded in-memory positional, tier, and remote-memory operations. It has typed placement and receipt schemas but no release-grade evidence issuer. It does not yet implement host files, clocks, replay, source-language loans, native completion queues, host direct I/O, network protocols, RNIC access, or crash-qualified persistence evidence. A successful completion therefore proves no crash survival, namespace stability, peer application, quorum, or remote persistence beyond the explicit synthetic evidence type that its oracle returns.
 
-The deterministic and threaded conformance tests live under `bootstrap/runtime/src/test/java/com/typeobject/wheeler/runtime/io/`. Native source request types, effect lowering, host positional resources, source-language buffer loans, and crash-tested receipts remain required before WIP-0032 can leave Draft.
+The I/O conformance tests live under `bootstrap/runtime/src/test/java/com/typeobject/wheeler/runtime/io/`. Native source request types, effect lowering, host positional resources, source-language buffer loans, and crash-tested receipts remain required before WIP-0032 can leave Draft.

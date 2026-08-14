@@ -36,9 +36,28 @@ public record StagedData(
     return create(tier, failureDomain, contentIdentity, bytes, "-");
   }
 
-  /** Records placement in another named tier while retaining exact ancestry. */
+  /** Records complete placement in another named tier while retaining exact ancestry. */
   public StagedData restage(String nextTier, String nextFailureDomain) {
     return create(nextTier, nextFailureDomain, contentIdentity, bytes, identity);
+  }
+
+  /** Records a known placed prefix after a bounded partial transfer. */
+  public static StagedData partialOf(
+      StagedData source,
+      String nextTier,
+      String nextFailureDomain,
+      String prefixContentIdentity,
+      long prefixBytes) {
+    Objects.requireNonNull(source, "source");
+    if (prefixBytes < 0 || prefixBytes >= source.bytes) {
+      throw new IllegalArgumentException("partial placement must be shorter than its source");
+    }
+    return create(
+        nextTier,
+        nextFailureDomain,
+        prefixContentIdentity,
+        prefixBytes,
+        source.identity);
   }
 
   private static StagedData create(

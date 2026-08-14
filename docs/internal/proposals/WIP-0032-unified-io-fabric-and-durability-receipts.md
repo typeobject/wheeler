@@ -588,7 +588,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] The bounded `DirectFile` semantic profile rejects unavailable required-direct paths and unaligned requests before capture. Preferred fallback is either forbidden or reported in the terminal result. Direct and buffered views share one synchronized positional byte authority. Host kernel, device, and crash conformance remain separate.
 - [x] Deterministic receipt conformance pins the complete write, data, file, namespace visibility, namespace stability, and quorum chain. It rejects skipped stages, wrong evidence kinds, duplicate evidence, namespace-less publication, and insufficient quorum profiles. Device-level crash injection remains backend-specific.
 - [ ] High-scale network and multi-queue storage profiles pass on declared hardware.
-- [ ] Tiered storage and RDMA profiles pass.
+- [x] The bounded stage-0 `TieredStorage` and `RemoteMemory` profiles pass the common request lifecycle. They establish typed tier drains, partial placement ancestry, epoch-scoped remote advertisements, one-sided placement, and ordered peer evidence without claiming host storage or RNIC conformance.
 - [x] `QuantumIo` runs one target submission, wait, cancellation hook, typed result, terminal completion, and reap through `IoRequest` and `IoScope`. Construction allocates no target job, result identity is revalidated, and started cancellation stays acknowledged-partial or uncertain. Hybrid acknowledged-job recovery still uses the interim `QuantumJob` adapter.
 - [x] The accepted runtime I/O namespace exposes no ambient singleton, callback-only operation, universal cursor stream, or bare `flush`. Positional files remain primary, sequential access requires an owned cursor adapter, and persistence claims require typed receipt promotion. Provider-specific quantum jobs sit beneath `QuantumIo` until hybrid recovery cutover.
 
@@ -643,11 +643,11 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 ### Tier and RDMA honesty
 
 - [x] `StagedData` binds exact content, byte count, named tier, named failure domain, and prior placement identity. It is deterministic placement evidence with no subtype, conversion, constructor, or promotion path to `DurabilityReceipt`.
-- [ ] Drains retain source leases and preserve known partial receipts on failure.
-- [ ] Remote advertisements are unforgeable, bounded, right-checked, and epoch-checked.
-- [ ] One-sided placement, peer acknowledgement, peer application, and persistence remain distinct.
-- [ ] RDMA completion cannot be cast to remote persistence.
-- [ ] Connection/revocation races can return uncertainty.
+- [x] `TieredStorage` drains retain the source placement through terminal release. Complete transfer restages exact content. A bounded shorter transfer returns typed partial-failure prefix evidence with the complete source identity as parent and leaves the source intact.
+- [x] `RemoteMemory.Advertisement` has no public constructor. The region binds its visible identity, bounded range, rights, and current revocation epoch into every advertisement identity. Wrong-region, stale, out-of-range, and insufficient-right use fails before source capture.
+- [x] One-sided `Placement`, `PeerAcknowledgement`, `PeerApplication`, and remote `Persistence` are distinct region-issued classes with domain-separated evidence identities and exact ancestry.
+- [x] A remote placement has no subtype, constructor, conversion, or promotion path to remote persistence or `DurabilityReceipt`. Peer and persistence evidence require their exact preceding typed stage.
+- [x] A queued remote placement whose association disconnects or whose advertisement epoch is revoked terminates as `UNCERTAIN_WITHOUT_CANCELLATION`, releases its source, and carries bounded reconciliation detail. Reconnection advances the epoch and restores no old authority.
 
 ### Durability
 
