@@ -310,7 +310,7 @@ The launcher grants read-only source inputs and one atomic artifact destination.
 - [x] Thirty-two deterministic pseudo-random whitespace, line-comment, and block-comment layouts reproduce the baseline source-map-free artifact bytes in stage 0 and the Wheeler compiler.
 - [ ] Deterministic collection tests vary insertion history and host hash seeds.
 - [x] The accepted compiler profile enforces source, token, statement, local, function, call, recursion, arena, artifact, output, history, and transition ceilings before publication. Boundary and first-excess fixtures require untouched output after failure. Wider closure profiles retain their own explicit bounds.
-- [ ] Malformed UTF-8, literal overflow, deep nesting, cyclic imports, duplicate symbols, and malformed bytecode fail identically.
+- [x] The accepted shared corpus rejects malformed UTF-8, signed literal overflow, excessive structured nesting, cyclic imports, duplicate or ambiguous symbols, and malformed bytecode before output. Stage 0 and the Wheeler verifier or compiler agree on acceptance and atomic failure. Closure-wide diagnostic text parity remains.
 - [ ] The self-hosted compiler emits classical, coherent, quantum, and hybrid examples accepted by the independent verifier.
 - [ ] The recovery seed can rebuild its successor from a clean checkout.
 - [ ] Diverse double compilation reproduces the candidate artifact without executing candidate-produced code before comparison.
