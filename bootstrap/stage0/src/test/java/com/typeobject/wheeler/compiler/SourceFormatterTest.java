@@ -370,6 +370,59 @@ class SourceFormatterTest {
   }
 
   @Test
+  void generatedBreakCorpusChangesOnlyTheOwningSyntaxGroup() {
+    String loopName = "currentInstructionCoordinateWithLongStableName";
+    String renamedLoop = "renamedInstructionCoordinateWithLongStableName";
+    String loop = "classical class Loops { entry void main() { while ("
+        + loopName + " < finalInstructionCoordinateWithLongStableName) limit 4096 { "
+        + "assert(true); } } }";
+    String formattedLoop = SourceFormatter.format(loop);
+    assertEquals(
+        formattedLoop.replace(loopName, renamedLoop),
+        SourceFormatter.format(loop.replace(loopName, renamedLoop)));
+
+    List<String> values = List.of(
+        "alphaCanonicalArrayInitializerValue",
+        "bravoCanonicalArrayInitializerValue",
+        "charlieCanonicalArrayInitializerValue");
+    String three = SourceFormatter.format(arraySource(values));
+    String added = "deltaCanonicalArrayInitializerValue";
+    for (int index = 0; index <= values.size(); index++) {
+      var edited = new java.util.ArrayList<>(values);
+      edited.add(index, added);
+      String four = SourceFormatter.format(arraySource(edited));
+      String restored = four.replace(
+          "      " + added + (index < values.size() ? "," : "") + "\n", "");
+      if (index == values.size()) {
+        restored = restored.replace(values.getLast() + ",\n", values.getLast() + "\n");
+      }
+      restored = restored.replace("long[4]", "long[3]");
+      assertEquals(three, restored, "array insertion " + index);
+      assertEquals(tokens(arraySource(edited)), tokens(four));
+      assertEquals(four, SourceFormatter.format(four));
+    }
+
+    String left = "firstAggregateValueWithLongCanonicalStableName";
+    String renamedLeft = "otherAggregateValueWithLongCanonicalStableName";
+    String expression = "classical class Expressions { entry void main() { boolean equal = "
+        + left + " == secondAggregateValueWithLongCanonicalStableName; } }";
+    String formattedExpression = SourceFormatter.format(expression);
+    assertEquals(
+        formattedExpression.replace(left, renamedLeft),
+        SourceFormatter.format(expression.replace(left, renamedLeft)));
+
+    for (int depth = 1; depth < 9; depth++) {
+      StringBuilder source = new StringBuilder("classical class Deep { entry void main() {");
+      source.append(" if (true) {".repeat(depth));
+      source.append(" long ").append("indivisibleIdentifier".repeat(8)).append(" = 1;");
+      source.append(" }".repeat(depth)).append(" } }");
+      String formatted = SourceFormatter.format(source.toString());
+      assertEquals(tokens(source.toString()), tokens(formatted));
+      assertEquals(formatted, SourceFormatter.format(formatted));
+    }
+  }
+
+  @Test
   void rejectsMismatchedDelimitersBeforePrinting() {
     CompilerException failure = assertThrows(
         CompilerException.class,
@@ -379,6 +432,12 @@ class SourceFormatterTest {
 
   private static String listSource(List<String> items) {
     return "classical class Lists { entry void main() { invoke("
+        + String.join(",", items) + "); } }";
+  }
+
+  private static String arraySource(List<String> items) {
+    return "classical class Arrays { public long[" + items.size()
+        + "] values() { return new long[" + items.size() + "] ("
         + String.join(",", items) + "); } }";
   }
 

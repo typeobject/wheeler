@@ -110,7 +110,7 @@ Long binary expressions continue with leading operators at one fixed extra inden
 
 `WREAD001` rejects unlabeled adjacent literal `value` and `width` arguments to the compiler's signed and unsigned little-endian writers. The check is deliberately narrow: array fixtures and cryptographic tables do not need a novella between every comma. New mechanical checks need a stable diagnostic, positive and negative tests, and enough precision to run as errors from day one.
 
-Bounded-loop headers and the remaining syntax-owned break rules are still WIP-0016 work.
+Bounded-loop conditions, array initializers, and binary expressions use the same smallest-group rule. Generated rename, insertion, removal, nesting-depth, and line-fit variants preserve tokens and stable neighboring layout. Deeply indented indivisible tokens may exceed the soft target rather than change spelling.
 
 ## Design workflow
 
