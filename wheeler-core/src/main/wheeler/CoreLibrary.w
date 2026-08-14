@@ -6,6 +6,7 @@ import wheeler.core.collections.fixed_longs;
 import wheeler.core.collections.long_map;
 import wheeler.core.collections.queue;
 import wheeler.core.encoding.binary;
+import wheeler.core.finite_permutations;
 import wheeler.core.text.utf8;
 import wheeler.crypto.content_identity;
 import wheeler.crypto.sha256;
