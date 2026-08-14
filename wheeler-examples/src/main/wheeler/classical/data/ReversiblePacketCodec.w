@@ -14,6 +14,8 @@ classical class ReversiblePacketCodec {
   state long decodedPayload = 0;
   state long malformedLength = 0;
   state long malformedChecksum = 0;
+  state long generatedCases = 0;
+  state long generatedFailures = 0;
 
   /// Encodes the version, kind, payload, and checksum into four bytes.
   void encode(Packet value, borrow mut bytes output) {
@@ -80,6 +82,36 @@ classical class ReversiblePacketCodec {
     assert(reencoded[1] == frame[1]);
     assert(reencoded[2] == frame[2]);
     assert(reencoded[3] == frame[3]);
+    long version = 0;
+    while (version < 4) limit 4 {
+      long kind = 0;
+      while (kind < 4) limit 4 {
+        long payload = 0;
+        while (payload < 16) limit 16 {
+          Packet generated = new Packet(version, kind, payload);
+          encode(generated, frame);
+          DecodeResult generatedResult = decode(frame);
+          match (generatedResult) {
+            case DecodeResult.Malformed(long generatedCode) {
+              generatedFailures += generatedCode;
+            }
+            case DecodeResult.Value(Packet generatedValue) {
+              assert(generatedValue.version == version);
+              assert(generatedValue.kind == kind);
+              assert(generatedValue.payload == payload);
+            }
+          }
+
+          generatedCases += 1;
+          payload += 1;
+        }
+
+        kind += 1;
+      }
+
+      version += 1;
+    }
+
     setByte(frame, 3, 0);
     DecodeResult damaged = decode(frame);
     match (damaged) {
@@ -108,6 +140,8 @@ classical class ReversiblePacketCodec {
     assert(decodedPayload == 42);
     assert(malformedLength == 1);
     assert(malformedChecksum == 2);
+    assert(generatedCases == 256);
+    assert(generatedFailures == 0);
     encodeWord();
     observed = packet;
     assert(observed == 2753795);
