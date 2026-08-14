@@ -189,6 +189,8 @@ classical class AggregateCompiledCallableBodies {
       localCallableBodyStarts,
       sourceStatements.statementCount,
       stagedStatements,
+      /* statementStartRow= */ 16384,
+      /* statementLengthRow= */ 20480,
       stagedValues,
       stagedLocalCounts
     );

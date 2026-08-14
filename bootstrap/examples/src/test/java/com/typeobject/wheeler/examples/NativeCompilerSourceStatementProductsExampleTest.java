@@ -184,6 +184,8 @@ final class NativeCompilerSourceStatementProductsExampleTest {
                 bodyStarts,
                 plan.statementCount,
                 statements,
+                /* statementStartRow= */ 16384,
+                /* statementLengthRow= */ 20480,
                 values,
                 functionLocals
               );

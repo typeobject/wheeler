@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.source_statement_products;
 
+import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.statement_opcodes;
@@ -25,7 +26,7 @@ classical class SourceStatementProducts {
   private const long MAX_VALUES = 1024;
   private const long OPEN_BRACE_SCALAR = 123;
   private const long SOURCE_BLOCK_MINIMUM_BYTES = 2;
-  private const long STATEMENT_ROWS = 24576;
+  private const long SOURCE_STATEMENT_ROWS = 24576;
   private const long VALUE_ROWS = 7168;
 
   /// Reports balanced callable-local source block products.
@@ -112,14 +113,14 @@ classical class SourceStatementProducts {
     assert(callableCount < MAX_CALLABLES - firstCallable + 1);
     assert(bufferLength(bodyStarts) == MAX_CALLABLES);
     assert(bufferLength(bodyLengths) == MAX_CALLABLES);
-    assert(bufferLength(statementRows) == STATEMENT_ROWS);
+    assert(bufferLength(statementRows) == SOURCE_STATEMENT_ROWS);
 
     region staging = new region(/* bytes= */ 295424, /* allocations= */ 5);
     words tokenKinds = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(staging, MAX_COMPILER_TOKENS);
     words localStatementStarts = allocate(staging, MAX_LOCAL_CALLABLES);
-    words stagedRows = allocate(staging, STATEMENT_ROWS);
+    words stagedRows = allocate(staging, SOURCE_STATEMENT_ROWS);
     boolean valid = true;
     long tokenCount = 0;
     ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);
@@ -284,7 +285,7 @@ classical class SourceStatementProducts {
 
     if (valid) {
       long row = 0;
-      while (row < STATEMENT_ROWS) limit STATEMENT_ROWS {
+      while (row < SOURCE_STATEMENT_ROWS) limit SOURCE_STATEMENT_ROWS {
         set(statementRows, row, stagedRows[row]);
         row += 1;
       }
@@ -312,6 +313,8 @@ classical class SourceStatementProducts {
     borrow mut words bodyStarts,
     long statementCount,
     borrow mut words statementRows,
+    long statementStartRow,
+    long statementLengthRow,
     borrow mut words valueRows,
     borrow mut words functionLocalCounts
   ) {
@@ -324,7 +327,16 @@ classical class SourceStatementProducts {
     assert(bufferLength(bodyStarts) == MAX_CALLABLES);
     assert(-1 < statementCount);
     assert(statementCount < MAX_STATEMENTS + 1);
-    assert(bufferLength(statementRows) == STATEMENT_ROWS);
+    boolean statementRowsValid = bufferLength(statementRows) == SOURCE_STATEMENT_ROWS;
+    if (bufferLength(statementRows) == LOOP_STATEMENT_ROWS) {
+      statementRowsValid = true;
+    }
+
+    assert(statementRowsValid);
+    assert(-1 < statementStartRow);
+    assert(-1 < statementLengthRow);
+    assert(statementStartRow < bufferLength(statementRows));
+    assert(statementLengthRow < bufferLength(statementRows));
     assert(bufferLength(valueRows) == VALUE_ROWS);
     assert(bufferLength(functionLocalCounts) == FUNCTION_LOCAL_ROWS);
 
@@ -461,7 +473,7 @@ classical class SourceStatementProducts {
       long statement = 0;
       while (statement < statementCount) limit MAX_STATEMENTS {
         if (statementRows[statement] == localFunction) {
-          long statementStart = statementRows[16384 + statement];
+          long statementStart = statementRows[statementStartRow + statement];
           long statementToken = -1;
           long statementTokenMatches = 0;
           token = 0;
@@ -519,7 +531,11 @@ classical class SourceStatementProducts {
               set(stagedValues, 3072 + valueCount, resultLocal);
               set(stagedValues, 4096 + valueCount, statementRows[8192 + statement]);
               set(stagedValues, 5120 + valueCount, statementStart);
-              set(stagedValues, 6144 + valueCount, statementRows[20480 + statement]);
+              set(
+                stagedValues,
+                6144 + valueCount,
+                statementRows[statementLengthRow + statement]
+              );
               valueCount += 1;
             }
           }

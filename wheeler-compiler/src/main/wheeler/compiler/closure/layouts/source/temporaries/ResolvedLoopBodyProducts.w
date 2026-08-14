@@ -24,7 +24,29 @@ classical class ResolvedLoopBodyProducts {
   private const long OPERAND_LOCAL = 1;
 
   /// Reports one complete direct body-statement resolution pass.
-  public record ResolvedLoopBodyPlan(long bodyCount, long nestedCount, boolean valid) {}
+  public record ResolvedLoopBodyPlan(
+    long bodyCount,
+    long nestedCount,
+    long failureStatement,
+    boolean valid
+  ) {}
+
+  private long rootBlockForOwner(long owner, long statementCount, borrow mut words statementRows) {
+    long root = MAX_STATEMENTS;
+    long statement = 0;
+    while (statement < statementCount) limit MAX_STATEMENTS {
+      if (statementRows[statement] == owner) {
+        long block = statementRows[4096 + statement];
+        if (block < root) {
+          root = block;
+        }
+      }
+
+      statement += 1;
+    }
+
+    return root;
+  }
 
   /// Publishes resolved declaration and update rows only after every body statement validates.
   public ResolvedLoopBodyPlan materializeResolvedLoopBodyProducts(
@@ -77,10 +99,14 @@ classical class ResolvedLoopBodyProducts {
 
     long bodyCount = 0;
     long nestedCount = 0;
+    long failureStatement = -1;
     long statement = 0;
     while (statement < statementCount) limit MAX_STATEMENTS {
+      boolean validBeforeStatement = valid;
       long childCount = statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement];
-      if (0 < statementRows[4096 + statement]) {
+      long statementOwner = statementRows[statement];
+      long statementRootBlock = rootBlockForOwner(statementOwner, statementCount, statementRows);
+      if (statementRootBlock < statementRows[4096 + statement]) {
         if (childCount == 0) {
           long owner = statementRows[statement];
           long ordinal = statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement];
@@ -785,6 +811,12 @@ classical class ResolvedLoopBodyProducts {
         }
       }
 
+      if (validBeforeStatement) {
+        if (valid == false) {
+          failureStatement = statement;
+        }
+      }
+
       statement += 1;
     }
 
@@ -810,9 +842,9 @@ classical class ResolvedLoopBodyProducts {
     drop(tokenKinds);
     drop(staging);
     if (valid == false) {
-      return new ResolvedLoopBodyPlan(0, 0, false);
+      return new ResolvedLoopBodyPlan(0, 0, failureStatement, false);
     }
 
-    return new ResolvedLoopBodyPlan(bodyCount, nestedCount, true);
+    return new ResolvedLoopBodyPlan(bodyCount, nestedCount, -1, true);
   }
 }

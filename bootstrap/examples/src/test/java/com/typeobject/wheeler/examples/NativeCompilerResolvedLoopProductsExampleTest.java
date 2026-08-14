@@ -220,6 +220,8 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
               bodyStarts,
               statementPlan.statementCount,
               sourceStatements,
+              /* statementStartRow= */ 16384,
+              /* statementLengthRow= */ 20480,
               values,
               localCounts
             );
