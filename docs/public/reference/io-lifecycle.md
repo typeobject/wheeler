@@ -39,6 +39,8 @@ Inline submission may produce terminal completion before `submit` returns. Delay
 
 `CompletionIo(queueCount, queueDepth)` models one or more bounded completion lanes without allocating a worker, stack, task, or timer for each queued operation. The scope operation limit must fit the declared queue capacity. Submission queues work without running the provider. Await and selection drive the selected operation, preserve canonical reduction order, and release the queue slot before provider execution. Queued cancellation removes the slot and releases resources without running provider code. This stage-0 profile establishes portable queue semantics. It does not claim a native readiness or kernel completion adapter.
 
+`ConnectionRegistry` keeps up to one million dormant connection authorities in primitive state, generation, and free-slot tables. Dormant connections hold no active-work credit and allocate no worker, stack, task, executor, or timer. Activation draws from a separate bound and fails without changing a dormant authority when that credit is exhausted. Close requires dormancy and invalidates the prior generation. This is an admission and ownership profile, not a socket stack or throughput claim.
+
 ## Cancellation and uncertainty
 
 `IoDeadline` takes an explicit semantic tick rather than reading wall time. Expiry requests cancellation once. It may establish cancellation before effect, completion winning the race, known partial effect, or uncertainty. Expiry alone never proves that no effect occurred.

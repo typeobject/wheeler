@@ -637,7 +637,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] The accepted direct profile binds a power-of-two alignment for file position, buffer offset, and length. Tail policy is closed as reject or reported buffered fallback. Direct and ordinary positional operations use one coherent byte authority.
 - [x] Positional write completion reports only bytes written and buffer release. The receipt chain starts at the distinct `WriteCompleted` evidence kind and requires explicit monotonic promotion before any stability claim.
 - [ ] One-queue, many-queue, interrupt, and polling backends pass one semantic suite. The bounded worker backend now passes its stage-0 slice.
-- [ ] Connection scale requires no native thread, stack, task, or timer per dormant connection.
+- [x] `ConnectionRegistry` stores 100,000 tested dormant authorities in fixed primitive state, generation, and free-slot tables under a one-million ceiling. Dormant rows hold no active-work credit and allocate no thread, stack, task, executor, or timer. Activation uses a separate fail-before-mutation credit bound.
 - [x] The accepted deterministic and threaded profiles bound live operations, admitted work, workers, batch members, graph nodes and edges, and total work. Capacity failure occurs before request consumption. Canonical request order and completion observations expose overload and scheduling without making host completion order semantic.
 
 ### Tier and RDMA honesty
