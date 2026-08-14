@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-14 |
 | Updated | 2026-08-14 |
@@ -99,7 +99,7 @@ The producer uses fixed caller-provided rows. It does not allocate per statement
 - [x] A nested first root followed by a second root emits the exact stage-0 artifact. The fixture covers second-root conditions, updates, scratch locals, local types, a trailing assertion, and the value return while the existing two-callable `CoreParsing.w` artifact remains byte-identical.
 - [x] Source calls and ownership rows consume planned starts.
 - [x] The sequential-root regression matches stage 0 byte for byte.
-- [ ] Ordinal frame biases and inferred return maxima are deleted.
+- [x] Ordinal frame biases and inferred return maxima are deleted. Loop frames rebase from exact source coordinates, and the planned statement start corrects the complete provisional scalar or packed-operand window. Callable-local ordinals now validate loop identity only.
 
 ## Acceptance
 

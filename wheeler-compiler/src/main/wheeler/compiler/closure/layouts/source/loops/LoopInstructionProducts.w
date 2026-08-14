@@ -138,6 +138,39 @@ classical class LoopInstructionProducts {
     }
   }
 
+  private long sourceStatementForLoop(
+    long loop,
+    long loopCount,
+    borrow mut words loopRows,
+    long statementCount,
+    borrow mut words statementRows
+  ) {
+    assert(-1 < loop);
+    assert(loop < loopCount);
+    long selected = -1;
+    long matches = 0;
+    long candidate = 0;
+    while (candidate < statementCount) limit MAX_STATEMENTS {
+      if (statementRows[candidate] == loopRows[loop]) {
+        if (
+          statementRows[STATEMENT_ORDINAL_ROW + candidate] == loopRows[LOOP_STATEMENT_ORDINAL_ROW
+            + loop]
+        ) {
+          selected = candidate;
+          matches += 1;
+        }
+      }
+
+      candidate += 1;
+    }
+
+    if (matches != 1) {
+      return -1;
+    }
+
+    return selected;
+  }
+
   /// Emits every validated root loop and its nested loop windows atomically.
   public LoopInstructionProductPlan writeLoopInstructionProducts(
     boolean correctPlannedStarts,
@@ -264,6 +297,17 @@ classical class LoopInstructionProducts {
         valid = false;
       }
 
+      long sourceLoopStatement = sourceStatementForLoop(
+        loop,
+        loopCount,
+        loopRows,
+        statementCount,
+        statementRows
+      );
+      if (sourceLoopStatement < 0) {
+        valid = false;
+      }
+
       if (valid) {
         if (0 < bodyStatementCount) {
           long body = 0;
@@ -271,8 +315,8 @@ classical class LoopInstructionProducts {
             long statement = stagedBodies[body];
             if (statementRows[statement] == loopRows[loop]) {
               if (
-                loopRows[LOOP_STATEMENT_ORDINAL_ROW + loop] < statementRows[STATEMENT_ORDINAL_ROW
-                  + statement]
+                statementRows[STATEMENT_SOURCE_START_ROW + sourceLoopStatement]
+                  < statementRows[STATEMENT_SOURCE_START_ROW + statement]
               ) {
                 rebaseBodyProduct(body, localBase, LOOP_FRAME_LOCAL_COUNT, stagedBodies);
               }
@@ -299,21 +343,13 @@ classical class LoopInstructionProducts {
         long candidateLoop = 0;
         while (candidateLoop < loopCount) limit LOOP_COUNT_LIMIT {
           if (loopRows[candidateLoop] == plannedOwner) {
-            long candidateOrdinal = loopRows[LOOP_STATEMENT_ORDINAL_ROW + candidateLoop];
-            long candidateStatement = -1;
-            long statementCandidate = 0;
-            while (statementCandidate < statementCount) limit MAX_STATEMENTS {
-              if (statementRows[statementCandidate] == plannedOwner) {
-                if (
-                  statementRows[STATEMENT_ORDINAL_ROW + statementCandidate] == candidateOrdinal
-                ) {
-                  candidateStatement = statementCandidate;
-                }
-              }
-
-              statementCandidate += 1;
-            }
-
+            long candidateStatement = sourceStatementForLoop(
+              candidateLoop,
+              loopCount,
+              loopRows,
+              statementCount,
+              statementRows
+            );
             if (-1 < candidateStatement) {
               long candidateStart = statementRows[STATEMENT_SOURCE_START_ROW + candidateStatement];
               long candidateEnd = candidateStart + statementRows[STATEMENT_SOURCE_LENGTH_ROW
