@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.runtime.io;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 /** Provider result before the scope assigns lifecycle and cancellation facts. */
 public record IoProviderResult<T>(Kind kind, T value, String detail, long progress) {
@@ -33,6 +34,17 @@ public record IoProviderResult<T>(Kind kind, T value, String detail, long progre
         throw new IllegalArgumentException("non-success result needs bounded detail");
       }
     }
+  }
+
+  /** Maps only a successful value while preserving failure and progress semantics. */
+  public <R> IoProviderResult<R> mapSuccess(Function<? super T, ? extends R> mapper) {
+    Objects.requireNonNull(mapper, "mapper");
+    return switch (kind) {
+      case SUCCESS -> success(mapper.apply(value), progress);
+      case FAILURE -> failure(detail, progress);
+      case CANCELED_AFTER_PARTIAL_EFFECT -> canceledAfterPartial(detail, progress);
+      case UNCERTAIN -> uncertain(detail, progress);
+    };
   }
 
   /** Returns a successful provider result. */

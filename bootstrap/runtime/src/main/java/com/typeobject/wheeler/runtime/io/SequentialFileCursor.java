@@ -91,34 +91,27 @@ public final class SequentialFileCursor {
 
   private IoProviderResult<ReadCompleted> completeRead(
       IoRequest<MemoryAddressableFile.ReadCompleted> positional, long position) {
-    IoProviderResult<MemoryAddressableFile.ReadCompleted> result = positional.execute();
-    if (result.kind() != IoProviderResult.Kind.SUCCESS) {
-      return failed(result);
-    }
-    MemoryAddressableFile.ReadCompleted value = result.value();
-    long nextExamined = Math.addExact(position, value.bytesRead());
-    synchronized (this) {
-      examined = nextExamined;
-    }
-    return IoProviderResult.success(
-        new ReadCompleted(value.buffer(), consumed, nextExamined, value.bytesRead()),
-        result.progress());
+    return positional.execute().mapSuccess(value -> {
+      long nextExamined = Math.addExact(position, value.bytesRead());
+      long currentConsumed;
+      synchronized (this) {
+        examined = nextExamined;
+        currentConsumed = consumed;
+      }
+      return new ReadCompleted(value.buffer(), currentConsumed, nextExamined, value.bytesRead());
+    });
   }
 
   private IoProviderResult<WriteCompleted> completeWrite(
       IoRequest<MemoryAddressableFile.WriteCompleted> positional, long position) {
-    IoProviderResult<MemoryAddressableFile.WriteCompleted> result = positional.execute();
-    if (result.kind() != IoProviderResult.Kind.SUCCESS) {
-      return failed(result);
-    }
-    MemoryAddressableFile.WriteCompleted value = result.value();
-    long next = Math.addExact(position, value.bytesWritten());
-    synchronized (this) {
-      consumed = next;
-      examined = next;
-    }
-    return IoProviderResult.success(
-        new WriteCompleted(value.buffer(), next, value.bytesWritten()), result.progress());
+    return positional.execute().mapSuccess(value -> {
+      long next = Math.addExact(position, value.bytesWritten());
+      synchronized (this) {
+        consumed = next;
+        examined = next;
+      }
+      return new WriteCompleted(value.buffer(), next, value.bytesWritten());
+    });
   }
 
   private synchronized void release(IoRequest<?> positional) {
@@ -135,13 +128,4 @@ public final class SequentialFileCursor {
     }
   }
 
-  private static <T> IoProviderResult<T> failed(IoProviderResult<?> result) {
-    return switch (result.kind()) {
-      case FAILURE -> IoProviderResult.failure(result.detail(), result.progress());
-      case CANCELED_AFTER_PARTIAL_EFFECT ->
-        IoProviderResult.canceledAfterPartial(result.detail(), result.progress());
-      case UNCERTAIN -> IoProviderResult.uncertain(result.detail(), result.progress());
-      case SUCCESS -> throw new IllegalArgumentException("successful result requires a value");
-    };
-  }
 }

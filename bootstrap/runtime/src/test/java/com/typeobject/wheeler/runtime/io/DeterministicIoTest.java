@@ -77,6 +77,26 @@ final class DeterministicIoTest {
   }
 
   @Test
+  void providerResultMappingPreservesEveryNonsuccessKindWithoutInvokingMapper() {
+    AtomicInteger mappings = new AtomicInteger();
+    for (IoProviderResult<Integer> result : List.of(
+        IoProviderResult.<Integer>failure("failed", 0),
+        IoProviderResult.<Integer>canceledAfterPartial("partial", 1),
+        IoProviderResult.<Integer>uncertain("reconcile:item", 2))) {
+      IoProviderResult<Long> mapped = result.mapSuccess(value -> {
+        mappings.incrementAndGet();
+        return value.longValue();
+      });
+      assertEquals(result.kind(), mapped.kind());
+      assertEquals(result.detail(), mapped.detail());
+      assertEquals(result.progress(), mapped.progress());
+    }
+    assertEquals(0, mappings.get());
+    assertEquals(6L, IoProviderResult.success(3, 1)
+        .mapSuccess(value -> value * 2L).value());
+  }
+
+  @Test
   void partialFailureAndUncertaintyRemainDistinct() {
     try (IoScope scope = new DeterministicIo(Delivery.INLINE).scope(LIMITS)) {
       IoCompletion<Long> partial = scope.await(IoRequest.prepare(

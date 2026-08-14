@@ -182,35 +182,14 @@ public final class IoBufferPool implements AutoCloseable {
 
   private static IoProviderResult<ReadCompleted> mapRead(
       IoRequest<MemoryAddressableFile.ReadCompleted> positional, Lease lease) {
-    IoProviderResult<MemoryAddressableFile.ReadCompleted> result = positional.execute();
-    if (result.kind() != IoProviderResult.Kind.SUCCESS) {
-      return failed(result);
-    }
-    MemoryAddressableFile.ReadCompleted value = result.value();
-    return IoProviderResult.success(
-        new ReadCompleted(lease, value.position(), value.bufferOffset(), value.bytesRead()),
-        result.progress());
+    return positional.execute().mapSuccess(value ->
+        new ReadCompleted(lease, value.position(), value.bufferOffset(), value.bytesRead()));
   }
 
   private static IoProviderResult<WriteCompleted> mapWrite(
       IoRequest<MemoryAddressableFile.WriteCompleted> positional, Lease lease) {
-    IoProviderResult<MemoryAddressableFile.WriteCompleted> result = positional.execute();
-    if (result.kind() != IoProviderResult.Kind.SUCCESS) {
-      return failed(result);
-    }
-    MemoryAddressableFile.WriteCompleted value = result.value();
-    return IoProviderResult.success(
-        new WriteCompleted(lease, value.position(), value.bufferOffset(), value.bytesWritten()),
-        result.progress());
+    return positional.execute().mapSuccess(value ->
+        new WriteCompleted(lease, value.position(), value.bufferOffset(), value.bytesWritten()));
   }
 
-  private static <T> IoProviderResult<T> failed(IoProviderResult<?> result) {
-    return switch (result.kind()) {
-      case FAILURE -> IoProviderResult.failure(result.detail(), result.progress());
-      case CANCELED_AFTER_PARTIAL_EFFECT ->
-        IoProviderResult.canceledAfterPartial(result.detail(), result.progress());
-      case UNCERTAIN -> IoProviderResult.uncertain(result.detail(), result.progress());
-      case SUCCESS -> throw new IllegalArgumentException("successful result requires a value");
-    };
-  }
 }

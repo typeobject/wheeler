@@ -15,6 +15,7 @@ The quarantined runtime now carries a deterministic executable slice under `boot
 - `MemoryAddressableFile` is the bounded positional-semantics oracle.
 - `SequentialFileCursor` is the single-owner adapter for work that depends on one cursor.
 - `IoBufferPool` owns bounded registered buffers, provider leases, and explicit reuse permission.
+- `DirectFile` enforces one declared alignment, tail, fallback, and coherence profile.
 - `DeterministicIo` offers inline and delayed delivery with identical completion meaning.
 - `ThreadedIo` supplies an explicitly bounded portable worker backend.
 
@@ -66,6 +67,8 @@ The native transition table rejects second completion, completion before resourc
 `SequentialFileCursor` lends its sole cursor to one live request. A read starts at the examined position and returns exact consumed and examined coordinates. `advance` moves those coordinates only inside the completed window. A write requires a settled cursor, where consumed equals examined, and advances both only after successful provider work. Cancellation before effect releases the cursor and buffer without changing either position. Independent positional work still uses `MemoryAddressableFile` directly instead of sharing this serialization point.
 
 `IoBufferPool` pre-registers up to 4,096 fixed owners under a 16 MiB aggregate ceiling. Acquisition returns the lowest available generation-checked lease or explicit absence when data-plane credit is exhausted. Provided reads and registered writes submit that owner directly, return the exact lease in the terminal result, and expose no second staging owner. The lease remains unavailable during provider work and cannot return to the pool until terminal resource release. `recycle` is the explicit final reuse permission and invalidates stale generations. Saturation cannot consume the cancellation, terminal-release, recycle, or close path.
+
+`DirectFile` binds one power-of-two alignment up to 4,096 bytes. A required direct path rejects an unsupported backend or any unaligned position, buffer offset, or length before capture. A preferred path either rejects fallback or reports `direct = false` in the terminal result under an explicit buffered-tail policy. Direct and ordinary positional requests share one synchronized byte authority, so each view immediately observes completed writes from the other. This is a semantic profile over the in-memory oracle, not evidence for a host kernel, device, cache, or power-loss contract.
 
 `OwnedIoBuffer` rejects access from request construction until terminal resource release. Cancellation-before-effect releases it without touching file bytes. The memory file has no cursor, so unrelated ranges acquire no accidental seek order. It is capped at 16 MiB and performs no growth, truncation, namespace, metadata, or persistence operation.
 

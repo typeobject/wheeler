@@ -585,7 +585,7 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 - [x] Deterministic inline, delayed, and bounded threaded stage-0 backends pass one lifecycle suite.
 - [ ] Event/completion backend passes.
 - [x] `IoBufferPool` pre-registers a bounded fixed owner set and issues generation-checked provider leases. Provided reads and registered writes expose no staging owner, hold the lease through terminal resource release, require explicit recycle permission, and reject stale, foreign, concurrent, or early reuse.
-- [ ] Direct I/O and coherence profile passes.
+- [x] The bounded `DirectFile` semantic profile rejects unavailable required-direct paths and unaligned requests before capture. Preferred fallback is either forbidden or reported in the terminal result. Direct and buffered views share one synchronized positional byte authority. Host kernel, device, and crash conformance remain separate.
 - [x] Deterministic receipt conformance pins the complete write, data, file, namespace visibility, namespace stability, and quorum chain. It rejects skipped stages, wrong evidence kinds, duplicate evidence, namespace-less publication, and insufficient quorum profiles. Device-level crash injection remains backend-specific.
 - [ ] High-scale network and multi-queue storage profiles pass on declared hardware.
 - [ ] Tiered storage and RDMA profiles pass.
@@ -633,8 +633,8 @@ Filesystem, networking, tier, RDMA, durability-profile, and quantum-network deta
 
 ### Direct, topology, and scale
 
-- [ ] Required direct/zero-copy paths reject fallback. Preferred paths report it.
-- [ ] Alignment, tail handling, and buffered/direct coherence are explicit.
+- [x] Required direct requests reject unavailable or unaligned paths, and registered-buffer reuse rejects early release. Preferred direct requests report buffered fallback in their typed terminal result.
+- [x] The accepted direct profile binds a power-of-two alignment for file position, buffer offset, and length. Tail policy is closed as reject or reported buffered fallback. Direct and ordinary positional operations use one coherent byte authority.
 - [x] Positional write completion reports only bytes written and buffer release. The receipt chain starts at the distinct `WriteCompleted` evidence kind and requires explicit monotonic promotion before any stability claim.
 - [ ] One-queue, many-queue, interrupt, and polling backends pass one semantic suite. The bounded worker backend now passes its stage-0 slice.
 - [ ] Connection scale requires no native thread, stack, task, or timer per dormant connection.
