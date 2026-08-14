@@ -280,7 +280,7 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
   - Hosted evidence remains tied to that commit and does not inherit later renderer identities.
 - [x] Schema-3 search, local manual and Wheeler API links, relative-page anchors, canonical heading anchors, root-escape rejection, missing-link diagnostics, strict bundle verification, deterministic serial and parallel generation, and malformed-source atomicity pass. Cross-package version links and proof references remain.
 - [ ] A Wheeler-written generator emits the stage-0 bundle byte-for-byte.
-- [ ] Duplicate hand-authored/generated authorities are deleted.
+- [x] Manuals and Wheeler declarations occupy disjoint identity namespaces. Generated API nodes come only from explicit `.w` roots, duplicate identities fail before publication, and no hand-authored API-page or Java extraction path can shadow them.
 
 ## Testing and acceptance
 
