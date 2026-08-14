@@ -60,7 +60,9 @@ class DocumentationSiteCommandTest {
     String index = Files.readString(first.resolve("index.html"));
     assertTrue(index.startsWith("<!doctype html>"));
     assertTrue(index.contains("Content-Security-Policy"));
-    assertTrue(index.contains("Generated from the verified Wheeler documentation graph"));
+    assertTrue(index.contains(
+        "The best material model of a cat is another, or preferably the same, cat."));
+    assertTrue(index.contains("A. Rosenblueth &amp; N. Wiener"));
     assertTrue(index.contains("<script src=\"copy.js\" defer></script>"));
     assertTrue(index.contains("class=\"copy-code\""));
     assertFalse(index.contains("<script>"));

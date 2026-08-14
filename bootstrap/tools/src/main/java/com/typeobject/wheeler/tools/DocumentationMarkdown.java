@@ -101,7 +101,7 @@ final class DocumentationMarkdown {
         .append(navigation(page))
         .append("</nav><main>\n")
         .append(body(page))
-        .append("</main></div>\n<footer>Generated from the verified Wheeler documentation graph.</footer>\n")
+        .append("</main></div>\n<footer>&ldquo;The best material model of a cat is another, or preferably the same, cat.&rdquo; &mdash; A. Rosenblueth &amp; N. Wiener</footer>\n")
         .append("</body></html>\n");
     return html.toString();
   }
