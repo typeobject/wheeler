@@ -55,6 +55,10 @@ targets:
     root: "src/main/wheeler/host/HostInput.w"
     test: false
   - kind: "deployable"
+    name: "integerwavelettransform"
+    root: "src/main/wheeler/classical/data/IntegerWaveletTransform.w"
+    test: false
+  - kind: "deployable"
     name: "longmap"
     root: "src/main/wheeler/classical/data/LongMap.w"
     module: "examples.collections.long_map_main"

@@ -105,6 +105,14 @@ Expected behavior:
 - For UTF-8 `A¢` and capacity 2: globals `byteLength = 3`, `scalarCount = outputLength = 2`, `firstScalar = 65`.
 - Output `A!`.
 
+### `IntegerWaveletTransform.w`
+
+Source: [`IntegerWaveletTransform.w`](../../wheeler-examples/src/main/wheeler/classical/data/IntegerWaveletTransform.w).
+
+Covers: A determinant-one two-step integer lifting transform, checked signed updates between state slots, a generated inverse certificate, exact transformed coefficients, and lossless restoration without rounding state.
+
+Expected result: `observedHigh = 4`, `observedLow = 10`, `high = 10`, `low = 6`.
+
 ### `LoopControl.w`
 
 Source: [`LoopControl.w`](../../wheeler-examples/src/main/wheeler/classical/control/LoopControl.w).

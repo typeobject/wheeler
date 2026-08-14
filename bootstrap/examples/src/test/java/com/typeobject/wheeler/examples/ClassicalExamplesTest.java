@@ -57,8 +57,8 @@ class ClassicalExamplesTest {
     machine.run();
 
     assertEquals(MachineStatus.HALTED, machine.status());
-    if (name.equals("Counter.w") || name.equals("ReversiblePacketCodec.w")
-        || name.equals("ReversibleResult.w")) {
+    if (name.equals("Counter.w") || name.equals("IntegerWaveletTransform.w")
+        || name.equals("ReversiblePacketCodec.w") || name.equals("ReversibleResult.w")) {
       assertEquals(ProofRule.GENERATED_INVERSE, program.proofCertificates().getFirst().rule());
     } else if (name.equals("FunctionValues.w")) {
       assertEquals(ProofRule.STATIC_STEP_BOUND, program.proofCertificates().getFirst().rule());
@@ -101,6 +101,9 @@ class ClassicalExamplesTest {
         Arguments.of("text/FrozenUtf8.w", Map.of(
             "byteLength", 6L, "scalarCount", 3L, "middleScalar", 8364L, "valid", 1L)),
         Arguments.of("classical/control/FunctionValues.w", Map.of("result", 10L)),
+        Arguments.of(
+            "classical/data/IntegerWaveletTransform.w",
+            Map.of("high", 10L, "low", 6L, "observedHigh", 4L, "observedLow", 10L)),
         Arguments.of("classical/control/LoopControl.w", Map.of("sum", 12L, "selected", 7L)),
         Arguments.of("classical/data/LongMap.w", Map.of(
             "selected", 17L, "zeroKey", 5L, "present", 1L, "missing", 1L)),

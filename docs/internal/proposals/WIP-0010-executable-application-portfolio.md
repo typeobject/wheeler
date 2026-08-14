@@ -359,7 +359,7 @@ Portfolio work follows these rules:
 - [x] `ReversiblePacketCodec.w` assigns version, kind, and payload to disjoint fixed-width byte positions through checked reversible updates. Its generated decoder and kernel-checked inverse certificate restore an empty packet after the exact encoded value is observed. Stage-0 compilation, canonical bytecode decoding, execution, and complete VM rewind are part of the classical portfolio gate.
 - [ ] Transactional persistent index.
 - [ ] Incremental dependency graph.
-- [ ] Integer wavelet transform.
+- [x] `IntegerWaveletTransform.w` implements a determinant-one two-step integer lifting transform over one signed sample pair. A generated inverse certificate checks the reverse lifting order. The fixture observes exact coefficients, restores both inputs without rounding evidence, and passes canonical compilation, execution, and complete rewind.
 - [ ] Fixed-point symplectic simulation.
 - [ ] Wheeler event-reducer fixture.
 
