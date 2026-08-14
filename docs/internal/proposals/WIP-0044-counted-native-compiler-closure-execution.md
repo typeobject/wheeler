@@ -151,7 +151,7 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 - [x] Package syntax, names, paths, semantic versions, and manifest parsing moved under `compiler/packages`. The package library consumes those compiler-owned modules instead of carrying another parser.
 - [x] Three-entry evidence checks physical path and payload offsets. Damaged outer evidence preserves caller columns.
 - [x] `compiler/closure/ModuleManifest.w` owns canonical syntax, binding, root, cycle, and reachability validation. Conformance identity publication calls that owner.
-- [x] `ArchiveModuleSources.w` joins all 315 physical compiler modules to exact digest-matching archive ranges. A mismatched source identity leaves publication untouched.
+- [x] `ArchiveModuleSources.w` joins all 336 physical compiler modules to exact digest-matching archive ranges. A mismatched source identity leaves publication untouched.
 - [x] The manifest parser materializes counted module, external, import-owner, and resolved-target columns through 512 modules and 3,072 imports.
 - [x] `ClosurePlan.w` publishes archive source ranges, first-import offsets, direct-import counts, import ranks, leaf-first order, and executable-owner bits only after complete validation.
 - [x] A 257-module chain plans and classifies with its root last. The complete physical compiler closure plans and classifies without truncation.
@@ -168,7 +168,7 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 
 - The counted closure executor reproduces every seven-frame differential byte for byte.
 - A 257-module chain crosses the former native closure boundary and publishes correctly.
-- The current 332-module compiler closure plans without truncation.
+- The current 336-module compiler closure plans without truncation.
 - Module and import order are invariant under archive-entry permutation.
 - Invalid archive, manifest, source identity, root, offset, cycle, or bound publishes nothing.
 - Active work slots cannot be read after release or stale generation.
