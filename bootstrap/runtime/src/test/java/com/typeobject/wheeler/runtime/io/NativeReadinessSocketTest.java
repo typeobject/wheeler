@@ -65,6 +65,41 @@ final class NativeReadinessSocketTest {
   }
 
   @Test
+  void pollingProfileRunsNoChannelOperationBeforeExplicitProgress() throws Exception {
+    AtomicInteger acceptedBytes = new AtomicInteger();
+    try (ServerSocketChannel server = ServerSocketChannel.open()) {
+      server.bind(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0));
+      Thread peer = Thread.ofVirtual().start(() -> {
+        try (SocketChannel channel = server.accept()) {
+          ByteBuffer bytes = ByteBuffer.allocate(2);
+          while (bytes.hasRemaining()) {
+            if (channel.read(bytes) < 0) {
+              throw new IllegalStateException("client closed before polled write");
+            }
+          }
+          acceptedBytes.set(bytes.position());
+        } catch (Exception failure) {
+          throw new RuntimeException(failure);
+        }
+      });
+      try (NativeReadinessSocket socket = NativeReadinessSocket.connect(
+          "native-polling", server.getLocalAddress());
+          IoScope scope = new PollingIo(1, 4).scope(LIMITS)) {
+        OwnedIoBuffer source = OwnedIoBuffer.copyOf(new byte[] {8, 9});
+        IoOperation<NativeReadinessSocket.WriteCompleted> operation =
+            scope.submit(socket.pollingWrite(source, 0, 2));
+        assertEquals(0, acceptedBytes.get());
+        assertThrows(IllegalStateException.class, source::snapshot);
+        scope.pollOne();
+        assertEquals(2, operation.await().progress());
+        assertArrayEquals(new byte[] {8, 9}, source.snapshot());
+      }
+      peer.join();
+      assertEquals(2, acceptedBytes.get());
+    }
+  }
+
+  @Test
   void queuedCancellationRunsNoSocketProviderAndReleasesTheOwner() throws Exception {
     try (ServerSocketChannel server = ServerSocketChannel.open()) {
       server.bind(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0));

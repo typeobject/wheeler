@@ -122,6 +122,26 @@ public final class NativeReadinessSocket implements AutoCloseable {
     }
   }
 
+  /** Prepares one caller-polled nonblocking receive without reading the socket. */
+  public synchronized IoRequest<ReadCompleted> pollingRead(
+      OwnedIoBuffer destination, int bufferOffset, int length) {
+    requireOpen();
+    Objects.requireNonNull(destination, "destination");
+    checkRange(destination, bufferOffset, length);
+    destination.hold();
+    activeRequests.incrementAndGet();
+    try {
+      return IoRequest.prepare(
+          identity + ":poll-read:" + bufferOffset + ":" + length,
+          Math.max(1, length),
+          () -> executeRead(destination, bufferOffset, length),
+          () -> release(destination));
+    } catch (RuntimeException failure) {
+      release(destination);
+      throw failure;
+    }
+  }
+
   /** Prepares one readiness-gated nonblocking send without writing the socket. */
   public synchronized IoRequest<WriteCompleted> write(
       OwnedIoBuffer source, int bufferOffset, int length) {
@@ -135,6 +155,26 @@ public final class NativeReadinessSocket implements AutoCloseable {
           identity + ":write:" + bufferOffset + ":" + length,
           Math.max(1, length),
           () -> ready(SelectionKey.OP_WRITE),
+          () -> executeWrite(source, bufferOffset, length),
+          () -> release(source));
+    } catch (RuntimeException failure) {
+      release(source);
+      throw failure;
+    }
+  }
+
+  /** Prepares one caller-polled nonblocking send without writing the socket. */
+  public synchronized IoRequest<WriteCompleted> pollingWrite(
+      OwnedIoBuffer source, int bufferOffset, int length) {
+    requireOpen();
+    Objects.requireNonNull(source, "source");
+    checkRange(source, bufferOffset, length);
+    source.hold();
+    activeRequests.incrementAndGet();
+    try {
+      return IoRequest.prepare(
+          identity + ":poll-write:" + bufferOffset + ":" + length,
+          Math.max(1, length),
           () -> executeWrite(source, bufferOffset, length),
           () -> release(source));
     } catch (RuntimeException failure) {
