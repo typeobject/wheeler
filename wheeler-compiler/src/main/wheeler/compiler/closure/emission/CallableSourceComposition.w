@@ -274,11 +274,11 @@ classical class CallableSourceComposition {
           valid = false;
         }
 
-        if (returnRows[64 + callable] != - 1) {
+        if (returnRows[64 + callable] + 1 != 0) {
           valid = false;
         }
 
-        if (returnRows[128 + callable] != - 1) {
+        if (returnRows[128 + callable] + 1 != 0) {
           valid = false;
         }
       }
