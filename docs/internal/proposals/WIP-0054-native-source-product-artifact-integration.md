@@ -128,6 +128,7 @@ No fallback reparses source after one of these failures.
 - [x] `CallableProductIdentityPlans.w` rebases call and aggregate identities through composed instruction windows while carrying callable-level ownership and proof identities. It retains all 32 identity bytes and source-product rows. Numeric closure target IDs do not enter the product.
 - [x] `SourceProductArtifact.w` assembles the six mandatory product sections and an optional proof section through the WIP-0048 container emitter. It verifies and hashes the private 32,768-byte artifact before atomically publishing bytes or identity.
 - [x] `CoreParsing.w` matches stage 0 byte for byte and enters `CompiledBodyArchive.w`.
+- [x] `StructuredSourceModuleCompiler.w` owns the bounded orchestration from callable body extents, source-independent symbols, signatures, and canonical strings through block, value, loop, direct-statement, local-type, composition, verification, hashing, and artifact publication. Its `CoreParsing.w` product is byte-identical to both the separately inspected product layers and stage 0.
 - [ ] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.
 - [ ] Product-to-source projection and signature-stub source leave the production path.

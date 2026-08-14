@@ -59,6 +59,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
     assertEquals(1, machine.global("directValid"));
     assertEquals(1, machine.global("compositionValid"));
     assertEquals(1, machine.global("artifactValid"));
+    assertEquals(1, machine.global("structuredArtifactValid"));
     assertEquals(1, machine.global("valid"));
     assertEquals(25, machine.global("statementCount"));
     assertEquals(7, machine.global("blockCount"));
@@ -238,6 +239,8 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
         "wheeler.compiler.closure.source_module_product_artifact"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.compiled_body_archive"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.structured_source_module_compiler"));
     CoreSources.addBinaryClosure(sources);
     sources.put("FixedBinary.w", CoreSources.read("encoding/FixedBinary.w"));
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
@@ -256,6 +259,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
         import wheeler.compiler.closure.source_product_artifact;
         import wheeler.compiler.closure.source_statement_products;
         import wheeler.compiler.closure.source_value_products;
+        import wheeler.compiler.closure.structured_source_module_compiler;
         import wheeler.core.encoding.binary;
 
         classical class CoreParsingSourceProductsExample {
@@ -270,6 +274,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
           state long directValid = 0;
           state long compositionValid = 0;
           state long artifactValid = 0;
+          state long structuredArtifactValid = 0;
           state long instructionCount = 0;
           state long codeLength = 0;
           state long typeCount = 0;
@@ -306,7 +311,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
           state long secondLoopOwner = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 19711008, /* allocations= */ 43);
+            region products = new region(/* bytes= */ 19743808, /* allocations= */ 45);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -344,6 +349,8 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             words functionNameIds = allocate(products, /* length= */ 64);
             bytes artifact = allocateBytes(products, /* length= */ 32768);
             bytes identity = allocateBytes(products, /* length= */ 32);
+            bytes structuredArtifact = allocateBytes(products, /* length= */ 32768);
+            bytes structuredIdentity = allocateBytes(products, /* length= */ 32);
             words modulePublished = allocate(products, /* length= */ 512);
             words moduleArtifactRanks = allocate(products, /* length= */ 512);
             words artifactStarts = allocate(products, /* length= */ 512);
@@ -569,6 +576,46 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             if (0 < artifactPlan.length) {
               artifactValid = 1;
             }
+            SourceProductArtifactPlan structuredPlan = compileStructuredSourceModule(
+              input,
+              /* firstCallable= */ 0,
+              /* callableCount= */ 2,
+              bodyStarts,
+              bodyLengths,
+              /* symbolCount= */ 1,
+              symbolOwners,
+              symbolStarts,
+              symbolLengths,
+              symbolTypes,
+              symbolValues,
+              symbolResolved,
+              /* signatureTypeCount= */ 9,
+              signatureTypes,
+              parameterCounts,
+              strings,
+              /* stringBytes= */ 122,
+              /* stringCount= */ 4,
+              stringStarts,
+              stringLengths,
+              functionNameIds,
+              structuredArtifact,
+              structuredIdentity
+            );
+            if (structuredPlan.length == artifactPlan.length) {
+              long structuredByte = 0;
+              while (structuredByte < artifactPlan.length) limit 32768 {
+                assert(structuredArtifact[structuredByte] == artifact[structuredByte]);
+                structuredByte += 1;
+              }
+
+              long identityByte = 0;
+              while (identityByte < 32) limit 32 {
+                assert(structuredIdentity[identityByte] == identity[identityByte]);
+                identityByte += 1;
+              }
+
+              structuredArtifactValid = 1;
+            }
             CompiledBodyArchivePlan archivePlan = appendCompiledBodyArtifact(
               artifact,
               artifactPlan.length,
@@ -595,7 +642,9 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
                           if (directPlan.valid) {
                             if (compositionPlan.valid) {
                               if (0 < artifactPlan.length) {
-                                valid = 1;
+                                if (structuredArtifactValid == 1) {
+                                  valid = 1;
+                                }
                               }
                             }
                           }
@@ -688,6 +737,8 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             drop(artifactStarts);
             drop(moduleArtifactRanks);
             drop(modulePublished);
+            drop(structuredIdentity);
+            drop(structuredArtifact);
             drop(identity);
             drop(artifact);
             drop(functionNameIds);
