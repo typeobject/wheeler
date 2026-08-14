@@ -21,4 +21,12 @@ classical class LoopBodyOpcodes {
   public const long BODY_WORDS_SET = 34049;
   /// Copies one indexed word between owned or borrowed buffers.
   public const long BODY_WORDS_COPY = 34050;
+  /// Loads one signed local from owned or borrowed byte storage.
+  public const long BODY_BYTES_GET = 34051;
+  /// Stores one signed local in owned or borrowed byte storage.
+  public const long BODY_BYTES_SET = 34052;
+  /// Copies one indexed byte between owned or borrowed byte buffers.
+  public const long BODY_BYTES_COPY = 34053;
+  /// Loads one signed local from an immutable byte view.
+  public const long BODY_BYTEVIEW_GET = 34054;
 }

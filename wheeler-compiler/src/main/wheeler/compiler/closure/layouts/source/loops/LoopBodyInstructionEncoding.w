@@ -19,7 +19,16 @@ classical class LoopBodyInstructionEncoding {
 
   /// Measures one resolved direct statement without writing caller storage.
   public LoopBodyInstructionExtent loopBodyInstructionExtent(long opcode, long operand) {
-    if (opcode == BODY_WORDS_GET) {
+    boolean bufferGet = opcode == BODY_WORDS_GET;
+    if (opcode == BODY_BYTES_GET) {
+      bufferGet = true;
+    }
+
+    if (opcode == BODY_BYTEVIEW_GET) {
+      bufferGet = true;
+    }
+
+    if (bufferGet) {
       if (0 < operand / 65536) {
         return new LoopBodyInstructionExtent(4, 104, true);
       }
@@ -27,7 +36,12 @@ classical class LoopBodyInstructionEncoding {
       return new LoopBodyInstructionExtent(3, 80, true);
     }
 
-    if (opcode == BODY_WORDS_SET) {
+    boolean bufferSet = opcode == BODY_WORDS_SET;
+    if (opcode == BODY_BYTES_SET) {
+      bufferSet = true;
+    }
+
+    if (bufferSet) {
       if (0 < operand / 16777216) {
         return new LoopBodyInstructionExtent(4, 104, true);
       }
@@ -35,7 +49,12 @@ classical class LoopBodyInstructionEncoding {
       return new LoopBodyInstructionExtent(3, 80, true);
     }
 
-    if (opcode == BODY_WORDS_COPY) {
+    boolean bufferCopy = opcode == BODY_WORDS_COPY;
+    if (opcode == BODY_BYTES_COPY) {
+      bufferCopy = true;
+    }
+
+    if (bufferCopy) {
       long borrowedCount = operand / 4294967296 % 2 + operand / 8589934592;
       return new LoopBodyInstructionExtent(4 + borrowedCount, 112 + borrowedCount * 24, true);
     }
@@ -123,7 +142,16 @@ classical class LoopBodyInstructionEncoding {
       }
     }
 
-    if (opcode == BODY_WORDS_GET) {
+    boolean bufferGet = opcode == BODY_WORDS_GET;
+    if (opcode == BODY_BYTES_GET) {
+      bufferGet = true;
+    }
+
+    if (opcode == BODY_BYTEVIEW_GET) {
+      bufferGet = true;
+    }
+
+    if (bufferGet) {
       if (0 < operand / 65536) {
         return 4;
       }
@@ -131,7 +159,12 @@ classical class LoopBodyInstructionEncoding {
       return 3;
     }
 
-    if (opcode == BODY_WORDS_SET) {
+    boolean bufferSet = opcode == BODY_WORDS_SET;
+    if (opcode == BODY_BYTES_SET) {
+      bufferSet = true;
+    }
+
+    if (bufferSet) {
       if (0 < operand / 16777216) {
         return 3;
       }
@@ -139,7 +172,12 @@ classical class LoopBodyInstructionEncoding {
       return 2;
     }
 
-    if (opcode == BODY_WORDS_COPY) {
+    boolean bufferCopy = opcode == BODY_WORDS_COPY;
+    if (opcode == BODY_BYTES_COPY) {
+      bufferCopy = true;
+    }
+
+    if (bufferCopy) {
       return 3 + operand / 4294967296 % 2 + operand / 8589934592;
     }
 
@@ -194,7 +232,25 @@ classical class LoopBodyInstructionEncoding {
       return writeUnsignedLittleEndian(output, cursor, localBase, U64);
     }
 
-    if (opcode == BODY_WORDS_GET) {
+    boolean bufferGet = opcode == BODY_WORDS_GET;
+    if (opcode == BODY_BYTES_GET) {
+      bufferGet = true;
+    }
+
+    if (opcode == BODY_BYTEVIEW_GET) {
+      bufferGet = true;
+    }
+
+    if (bufferGet) {
+      long readStorageOpcode = OPCODE_WORDS_GET;
+      if (opcode == BODY_BYTES_GET) {
+        readStorageOpcode = OPCODE_BYTES_GET;
+      }
+
+      if (opcode == BODY_BYTEVIEW_GET) {
+        readStorageOpcode = OPCODE_BYTES_GET;
+      }
+
       long readBorrowedOwner = operand / 65536;
       long readOperand = operand % 65536;
       long readOwner = readOperand / 256;
@@ -227,7 +283,7 @@ classical class LoopBodyInstructionEncoding {
       cursor = writeInstructionHeader(
         output,
         cursor,
-        OPCODE_WORDS_GET,
+        readStorageOpcode,
         INSTRUCTION_FORM_TERNARY
       );
       cursor = writeUnsignedLittleEndian(output, cursor, readNextLocal, U64);
@@ -245,7 +301,17 @@ classical class LoopBodyInstructionEncoding {
       return writeUnsignedLittleEndian(output, cursor, readResult, U64);
     }
 
-    if (opcode == BODY_WORDS_SET) {
+    boolean bufferSet = opcode == BODY_WORDS_SET;
+    if (opcode == BODY_BYTES_SET) {
+      bufferSet = true;
+    }
+
+    if (bufferSet) {
+      long writeStorageOpcode = OPCODE_WORDS_SET;
+      if (opcode == BODY_BYTES_SET) {
+        writeStorageOpcode = OPCODE_BYTES_SET;
+      }
+
       long writeBorrowedOwner = operand / 16777216;
       long writeOperand = operand % 16777216;
       long writeOwner = writeOperand / 65536;
@@ -288,7 +354,7 @@ classical class LoopBodyInstructionEncoding {
       cursor = writeInstructionHeader(
         output,
         cursor,
-        OPCODE_WORDS_SET,
+        writeStorageOpcode,
         INSTRUCTION_FORM_TERNARY
       );
       cursor = writeUnsignedLittleEndian(output, cursor, writeOwnerOperand, U64);
@@ -296,7 +362,19 @@ classical class LoopBodyInstructionEncoding {
       return writeUnsignedLittleEndian(output, cursor, writeValueOperand, U64);
     }
 
-    if (opcode == BODY_WORDS_COPY) {
+    boolean bufferCopy = opcode == BODY_WORDS_COPY;
+    if (opcode == BODY_BYTES_COPY) {
+      bufferCopy = true;
+    }
+
+    if (bufferCopy) {
+      long copyGetOpcode = OPCODE_WORDS_GET;
+      long copySetOpcode = OPCODE_WORDS_SET;
+      if (opcode == BODY_BYTES_COPY) {
+        copyGetOpcode = OPCODE_BYTES_GET;
+        copySetOpcode = OPCODE_BYTES_SET;
+      }
+
       long copyReadBorrowed = operand / 8589934592;
       long copyWriteBorrowed = operand / 4294967296 % 2;
       long copyOperand = operand % 4294967296;
@@ -356,7 +434,7 @@ classical class LoopBodyInstructionEncoding {
       cursor = writeInstructionHeader(
         output,
         cursor,
-        OPCODE_WORDS_GET,
+        copyGetOpcode,
         INSTRUCTION_FORM_TERNARY
       );
       cursor = writeUnsignedLittleEndian(output, cursor, copyNextLocal, U64);
@@ -366,7 +444,7 @@ classical class LoopBodyInstructionEncoding {
       cursor = writeInstructionHeader(
         output,
         cursor,
-        OPCODE_WORDS_SET,
+        copySetOpcode,
         INSTRUCTION_FORM_TERNARY
       );
       cursor = writeUnsignedLittleEndian(output, cursor, copyWriteOwnerOperand, U64);

@@ -255,7 +255,25 @@ classical class ResolvedLoopBodyProducts {
                                 localBase -= 1;
                               }
 
+                              long sourceType = loopBodyValueType(
+                                source,
+                                owner,
+                                sourceValue.local,
+                                valueCount,
+                                valueRows,
+                                semanticCount,
+                                tokenStarts,
+                                tokenLengths
+                              );
                               opcode = BODY_WORDS_GET;
+                              if (sourceType == TOKEN_BYTES) {
+                                opcode = BODY_BYTES_GET;
+                              }
+
+                              if (sourceType == TOKEN_BYTEVIEW) {
+                                opcode = BODY_BYTEVIEW_GET;
+                              }
+
                               operand = read.operand;
                             } else {
                               statementValid = false;
@@ -312,7 +330,13 @@ classical class ResolvedLoopBodyProducts {
                   }
                 }
               } else {
-                if (tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_SET) {
+                long bufferHash = tokenHash(source, tokenStarts, tokenLengths, token);
+                boolean bufferStatement = bufferHash == TOKEN_SET;
+                if (bufferHash == TOKEN_SET_BYTE) {
+                  bufferStatement = true;
+                }
+
+                if (bufferStatement) {
                   ResolvedLoopBufferProduct buffer = resolveLoopBufferProduct(
                     source,
                     owner,

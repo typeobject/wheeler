@@ -4,6 +4,7 @@ module wheeler.compiler.closure.resolved_loop_buffer_products;
 
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.closure.loop_buffer_operands;
+import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.loop_body_opcodes;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
@@ -103,7 +104,23 @@ classical class ResolvedLoopBufferProducts {
         return new ResolvedLoopBufferProduct(0, 0, false);
       }
 
-      return new ResolvedLoopBufferProduct(BODY_WORDS_COPY, copy.operand, true);
+      long copyOpcode = BODY_WORDS_COPY;
+      if (
+        loopBodyValueType(
+          source,
+          owner,
+          writeOwner.local,
+          valueCount,
+          valueRows,
+          tokenCount,
+          tokenStarts,
+          tokenLengths
+        ) == TOKEN_BYTES
+      ) {
+        copyOpcode = BODY_BYTES_COPY;
+      }
+
+      return new ResolvedLoopBufferProduct(copyOpcode, copy.operand, true);
     }
 
     LoopBufferOperand write = resolveLoopBufferWriteOperand(
@@ -122,6 +139,22 @@ classical class ResolvedLoopBufferProducts {
       return new ResolvedLoopBufferProduct(0, 0, false);
     }
 
-    return new ResolvedLoopBufferProduct(BODY_WORDS_SET, write.operand, true);
+    long writeOpcode = BODY_WORDS_SET;
+    if (
+      loopBodyValueType(
+        source,
+        owner,
+        writeOwner.local,
+        valueCount,
+        valueRows,
+        tokenCount,
+        tokenStarts,
+        tokenLengths
+      ) == TOKEN_BYTES
+    ) {
+      writeOpcode = BODY_BYTES_SET;
+    }
+
+    return new ResolvedLoopBufferProduct(writeOpcode, write.operand, true);
   }
 }

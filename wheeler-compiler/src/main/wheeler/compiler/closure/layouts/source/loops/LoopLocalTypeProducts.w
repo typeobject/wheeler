@@ -90,34 +90,70 @@ classical class LoopLocalTypeProducts {
       }
     }
 
-    if (opcode == BODY_WORDS_GET) {
+    long bufferType = TYPE_WORDS_BORROW;
+    if (opcode == BODY_BYTES_GET) {
+      bufferType = TYPE_BYTES_BORROW;
+    }
+
+    if (opcode == BODY_BYTES_SET) {
+      bufferType = TYPE_BYTES_BORROW;
+    }
+
+    if (opcode == BODY_BYTES_COPY) {
+      bufferType = TYPE_BYTES_BORROW;
+    }
+
+    if (opcode == BODY_BYTEVIEW_GET) {
+      bufferType = TYPE_BYTE_VIEW;
+    }
+
+    boolean bufferGet = opcode == BODY_WORDS_GET;
+    if (opcode == BODY_BYTES_GET) {
+      bufferGet = true;
+    }
+
+    if (opcode == BODY_BYTEVIEW_GET) {
+      bufferGet = true;
+    }
+
+    if (bufferGet) {
       if (0 < operand / 65536) {
         if (localOffset == 0) {
-          localType = TYPE_WORDS_BORROW;
+          localType = bufferType;
         }
       }
     }
 
-    if (opcode == BODY_WORDS_SET) {
+    boolean bufferSet = opcode == BODY_WORDS_SET;
+    if (opcode == BODY_BYTES_SET) {
+      bufferSet = true;
+    }
+
+    if (bufferSet) {
       if (0 < operand / 16777216) {
         if (localOffset == 0) {
-          localType = TYPE_WORDS_BORROW;
+          localType = bufferType;
         }
       }
     }
 
-    if (opcode == BODY_WORDS_COPY) {
+    boolean bufferCopy = opcode == BODY_WORDS_COPY;
+    if (opcode == BODY_BYTES_COPY) {
+      bufferCopy = true;
+    }
+
+    if (bufferCopy) {
       long writeBorrowed = operand / 4294967296 % 2;
       long readBorrowed = operand / 8589934592;
       if (0 < writeBorrowed) {
         if (localOffset == 0) {
-          localType = TYPE_WORDS_BORROW;
+          localType = bufferType;
         }
       }
 
       if (0 < readBorrowed) {
         if (localOffset == writeBorrowed + 1) {
-          localType = TYPE_WORDS_BORROW;
+          localType = bufferType;
         }
       }
     }

@@ -150,6 +150,22 @@ classical class LoopInstructionProducts {
       bufferOperand = true;
     }
 
+    if (opcode == BODY_BYTES_GET) {
+      bufferOperand = true;
+    }
+
+    if (opcode == BODY_BYTES_SET) {
+      bufferOperand = true;
+    }
+
+    if (opcode == BODY_BYTES_COPY) {
+      bufferOperand = true;
+    }
+
+    if (opcode == BODY_BYTEVIEW_GET) {
+      bufferOperand = true;
+    }
+
     if (bufferOperand) {
       set(
         bodyRows,

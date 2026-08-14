@@ -334,6 +334,29 @@ classical class LoopBodyValues {
       return false;
     }
 
+    return borrowedLoopBodyLocal(
+      source,
+      owner,
+      local,
+      valueCount,
+      valueRows,
+      tokenCount,
+      tokenStarts,
+      tokenLengths
+    );
+  }
+
+  /// Reports whether one source local carries an explicit borrow mode.
+  public boolean borrowedLoopBodyLocal(
+    borrow utf8 source,
+    long owner,
+    long local,
+    long valueCount,
+    borrow mut words valueRows,
+    long tokenCount,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
     long selected = -1;
     long matches = 0;
     long value = 0;

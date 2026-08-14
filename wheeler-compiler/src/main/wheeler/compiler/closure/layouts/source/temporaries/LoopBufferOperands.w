@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.loop_buffer_operands;
 
 import wheeler.compiler.closure.loop_body_values;
+import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.loop_body_opcodes;
 
 classical class LoopBufferOperands {
@@ -11,7 +12,16 @@ classical class LoopBufferOperands {
 
   /// Rebases every local coordinate while preserving buffer reborrow bits.
   public long rebaseLoopBufferOperand(long opcode, long operand, long boundary, long bias) {
-    if (opcode == BODY_WORDS_GET) {
+    boolean bufferGet = opcode == BODY_WORDS_GET;
+    if (opcode == BODY_BYTES_GET) {
+      bufferGet = true;
+    }
+
+    if (opcode == BODY_BYTEVIEW_GET) {
+      bufferGet = true;
+    }
+
+    if (bufferGet) {
       long readBorrowed = operand / 65536;
       long readPair = operand % 65536;
       long readOwner = readPair / 256;
@@ -27,7 +37,12 @@ classical class LoopBufferOperands {
       return readBorrowed * 65536 + readOwner * 256 + readIndex;
     }
 
-    if (opcode == BODY_WORDS_SET) {
+    boolean bufferSet = opcode == BODY_WORDS_SET;
+    if (opcode == BODY_BYTES_SET) {
+      bufferSet = true;
+    }
+
+    if (bufferSet) {
       long writeBorrowed = operand / 16777216;
       long writeTuple = operand % 16777216;
       long writeOwner = writeTuple / 65536;
@@ -48,7 +63,12 @@ classical class LoopBufferOperands {
       return writeBorrowed * 16777216 + writeOwner * 65536 + writeIndex * 256 + writeValue;
     }
 
-    if (opcode == BODY_WORDS_COPY) {
+    boolean bufferCopy = opcode == BODY_WORDS_COPY;
+    if (opcode == BODY_BYTES_COPY) {
+      bufferCopy = true;
+    }
+
+    if (bufferCopy) {
       long copyReadBorrowed = operand / 8589934592;
       long copyWriteBorrowed = operand / 4294967296 % 2;
       long copyTuple = operand % 4294967296;
@@ -91,18 +111,26 @@ classical class LoopBufferOperands {
     borrow mut words tokenStarts,
     borrow mut words tokenLengths
   ) {
-    if (
-      wordsLoopBodyLocal(
-        source,
-        owner,
-        sourceLocal,
-        valueCount,
-        valueRows,
-        tokenCount,
-        tokenStarts,
-        tokenLengths
-      ) == false
-    ) {
+    long sourceType = loopBodyValueType(
+      source,
+      owner,
+      sourceLocal,
+      valueCount,
+      valueRows,
+      tokenCount,
+      tokenStarts,
+      tokenLengths
+    );
+    boolean readable = sourceType == TOKEN_WORDS;
+    if (sourceType == TOKEN_BYTES) {
+      readable = true;
+    }
+
+    if (sourceType == TOKEN_BYTEVIEW) {
+      readable = true;
+    }
+
+    if (readable == false) {
       return new LoopBufferOperand(0, false);
     }
 
@@ -123,7 +151,7 @@ classical class LoopBufferOperands {
 
     long operand = sourceLocal * 256 + indexLocal;
     if (
-      borrowedWordsLoopBodyLocal(
+      borrowedLoopBodyLocal(
         source,
         owner,
         sourceLocal,
@@ -184,6 +212,34 @@ classical class LoopBufferOperands {
       return new LoopBufferOperand(0, false);
     }
 
+    long writeType = loopBodyValueType(
+      source,
+      owner,
+      writeOwner,
+      valueCount,
+      valueRows,
+      tokenCount,
+      tokenStarts,
+      tokenLengths
+    );
+    long readType = loopBodyValueType(
+      source,
+      owner,
+      readOwner,
+      valueCount,
+      valueRows,
+      tokenCount,
+      tokenStarts,
+      tokenLengths
+    );
+    if (writeType != readType) {
+      return new LoopBufferOperand(0, false);
+    }
+
+    if (writeType == TOKEN_BYTEVIEW) {
+      return new LoopBufferOperand(0, false);
+    }
+
     long writeBorrowed = write.operand / 65536;
     long writePair = write.operand % 65536;
     long readBorrowed = read.operand / 65536;
@@ -214,18 +270,22 @@ classical class LoopBufferOperands {
     borrow mut words tokenStarts,
     borrow mut words tokenLengths
   ) {
-    if (
-      wordsLoopBodyLocal(
-        source,
-        owner,
-        writeOwner,
-        valueCount,
-        valueRows,
-        tokenCount,
-        tokenStarts,
-        tokenLengths
-      ) == false
-    ) {
+    long writeType = loopBodyValueType(
+      source,
+      owner,
+      writeOwner,
+      valueCount,
+      valueRows,
+      tokenCount,
+      tokenStarts,
+      tokenLengths
+    );
+    boolean writable = writeType == TOKEN_WORDS;
+    if (writeType == TOKEN_BYTES) {
+      writable = true;
+    }
+
+    if (writable == false) {
       return new LoopBufferOperand(0, false);
     }
 
@@ -261,7 +321,7 @@ classical class LoopBufferOperands {
 
     long operand = writeOwner * 65536 + writeIndex * 256 + writeValue;
     if (
-      borrowedWordsLoopBodyLocal(
+      borrowedLoopBodyLocal(
         source,
         owner,
         writeOwner,
