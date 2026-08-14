@@ -3,6 +3,7 @@
 module examples.graph.incremental;
 
 import wheeler.core.collections.long_map;
+import wheeler.core.collections.queue;
 
 classical class IncrementalDependencyGraph {
   variant GraphUpdate {
@@ -26,11 +27,27 @@ classical class IncrementalDependencyGraph {
     return from * NODE_COUNT + to;
   }
 
-  void clearWords(borrow mut words values, long length) {
-    long cursor = 0;
-    while (cursor < length) limit QUEUE_CELLS {
-      set(values, cursor, 0);
-      cursor += 1;
+  boolean visited(borrow mut longmap seen, long node, long generation) {
+    if (mapHas(seen, node)) {
+      return mapGet(seen, node) == generation;
+    }
+
+    return false;
+  }
+
+  QueueCursor append(
+    borrow mut words values,
+    QueueCursor cursor,
+    long value
+  ) {
+    Push result = push(values, cursor, value);
+    match (result) {
+      case Push.Full() {
+        return cursor;
+      }
+      case Push.Value(QueueCursor next) {
+        return next;
+      }
     }
   }
 
@@ -39,34 +56,37 @@ classical class IncrementalDependencyGraph {
     long start,
     long target,
     borrow mut words queue,
-    borrow mut words seen
+    borrow mut longmap seen,
+    long generation
   ) {
-    clearWords(queue, QUEUE_CELLS);
-    clearWords(seen, NODE_COUNT);
-    set(queue, 0, start);
-    set(seen, start, 1);
-    long head = 0;
-    long tail = 1;
-    while (head < tail) limit QUEUE_CELLS {
-      long node = queue[head];
-      if (node == target) {
-        return true;
-      }
+    QueueCursor cursor = new QueueCursor(0, 0);
+    cursor = append(queue, cursor, start);
+    put(seen, start, generation);
+    while (cursor.head < cursor.tail) limit QUEUE_CELLS {
+      Pop result = pop(queue, cursor);
+      match (result) {
+        case Pop.Empty() {
+          return false;
+        }
+        case Pop.Value(long node, QueueCursor after) {
+          cursor = after;
+          if (node == target) {
+            return true;
+          }
 
-      long next = 0;
-      while (next < NODE_COUNT) limit NODE_COUNT {
-        if (edges[edgeIndex(node, next)] == 1) {
-          if (seen[next] == 0) {
-            set(seen, next, 1);
-            set(queue, tail, next);
-            tail += 1;
+          long neighbor = 0;
+          while (neighbor < NODE_COUNT) limit NODE_COUNT {
+            if (edges[edgeIndex(node, neighbor)] == 1) {
+              if (visited(seen, neighbor, generation) == false) {
+                put(seen, neighbor, generation);
+                cursor = append(queue, cursor, neighbor);
+              }
+            }
+
+            neighbor += 1;
           }
         }
-
-        next += 1;
       }
-
-      head += 1;
     }
 
     return false;
@@ -77,11 +97,12 @@ classical class IncrementalDependencyGraph {
     long from,
     long to,
     borrow mut words queue,
-    borrow mut words seen
+    borrow mut longmap seen,
+    long generation
   ) {
     long selected = edgeIndex(from, to);
     set(edges, selected, 1);
-    boolean cycle = reachable(edges, to, from, queue, seen);
+    boolean cycle = reachable(edges, to, from, queue, seen, generation);
     if (cycle) {
       set(edges, selected, 0);
       return false;
@@ -95,9 +116,10 @@ classical class IncrementalDependencyGraph {
     long from,
     long to,
     borrow mut words queue,
-    borrow mut words seen
+    borrow mut longmap seen,
+    long generation
   ) {
-    boolean accepted = addEdge(edges, from, to, queue, seen);
+    boolean accepted = addEdge(edges, from, to, queue, seen, generation);
     if (accepted) {
       return new GraphUpdate.Accepted();
     }
@@ -109,40 +131,45 @@ classical class IncrementalDependencyGraph {
     borrow mut words edges,
     long source,
     borrow mut words queue,
-    borrow mut words seen,
-    borrow mut longmap versions
+    borrow mut longmap seen,
+    borrow mut longmap versions,
+    long generation
   ) {
-    clearWords(queue, QUEUE_CELLS);
-    clearWords(seen, NODE_COUNT);
-    set(queue, 0, source);
-    set(seen, source, 1);
-    long head = 0;
-    long tail = 1;
-    while (head < tail) limit QUEUE_CELLS {
-      long node = queue[head];
-      long version = 0;
-      if (mapHas(versions, node)) {
-        version = mapGet(versions, node);
-      }
+    QueueCursor cursor = new QueueCursor(0, 0);
+    cursor = append(queue, cursor, source);
+    put(seen, source, generation);
+    long count = 0;
+    while (cursor.head < cursor.tail) limit QUEUE_CELLS {
+      Pop result = pop(queue, cursor);
+      match (result) {
+        case Pop.Empty() {
+          return count;
+        }
+        case Pop.Value(long node, QueueCursor after) {
+          cursor = after;
+          long version = 0;
+          if (mapHas(versions, node)) {
+            version = mapGet(versions, node);
+          }
 
-      put(versions, node, version + 1);
-      long next = 0;
-      while (next < NODE_COUNT) limit NODE_COUNT {
-        if (edges[edgeIndex(node, next)] == 1) {
-          if (seen[next] == 0) {
-            set(seen, next, 1);
-            set(queue, tail, next);
-            tail += 1;
+          put(versions, node, version + 1);
+          count += 1;
+          long neighbor = 0;
+          while (neighbor < NODE_COUNT) limit NODE_COUNT {
+            if (edges[edgeIndex(node, neighbor)] == 1) {
+              if (visited(seen, neighbor, generation) == false) {
+                put(seen, neighbor, generation);
+                cursor = append(queue, cursor, neighbor);
+              }
+            }
+
+            neighbor += 1;
           }
         }
-
-        next += 1;
       }
-
-      head += 1;
     }
 
-    return tail;
+    return count;
   }
 
   /// Builds, rejects a cyclic update, and invalidates every affected node once.
@@ -152,13 +179,13 @@ classical class IncrementalDependencyGraph {
     region arena = new region(512, 4);
     words edges = allocate(arena, EDGE_CELLS);
     words queue = allocate(arena, QUEUE_CELLS);
-    words seen = allocate(arena, NODE_COUNT);
+    longmap seen = allocateMap(arena, NODE_COUNT);
     longmap versions = allocateMap(arena, NODE_COUNT);
-    assert(addEdge(edges, 0, 1, queue, seen));
-    assert(addEdge(edges, 1, 2, queue, seen));
-    assert(addEdge(edges, 2, 3, queue, seen));
+    assert(addEdge(edges, 0, 1, queue, seen, 1));
+    assert(addEdge(edges, 1, 2, queue, seen, 2));
+    assert(addEdge(edges, 2, 3, queue, seen, 3));
     transactionPhase = 1;
-    GraphUpdate update = attemptEdge(edges, 3, 0, queue, seen);
+    GraphUpdate update = attemptEdge(edges, 3, 0, queue, seen, 4);
     match (update) {
       case GraphUpdate.Accepted() {
         cycleRejected = 0;
@@ -171,7 +198,7 @@ classical class IncrementalDependencyGraph {
     }
 
     assert(edges[edgeIndex(3, 0)] == 0);
-    affected = invalidate(edges, 0, queue, seen, versions);
+    affected = invalidate(edges, 0, queue, seen, versions, 5);
     rebuilds = affected;
     sourceVersion = mapGet(versions, 0) + 1;
     parseVersion = mapGet(versions, 1) + 1;

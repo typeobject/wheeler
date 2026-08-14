@@ -48,11 +48,11 @@ class ClassicalExamplesTest {
           "collections/LongMap.w",
           "examples.collections.long_map_main");
     } else if (name.equals("IncrementalDependencyGraph.w")) {
-      program = compileCoreExample(
-          compiler,
-          source,
-          "CoreLongMap.w",
-          "collections/LongMap.w",
+      program = compiler.compileModuleFiles(
+          Map.of(
+              name, Files.readString(source),
+              "CoreLongMap.w", Files.readString(CoreSources.path("collections/LongMap.w")),
+              "CoreLongQueue.w", Files.readString(CoreSources.path("collections/LongQueue.w"))),
           "examples.graph.incremental");
     } else {
       byte[] artifact = compiler.compileToBytecode(Files.readString(source));

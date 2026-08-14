@@ -360,9 +360,7 @@ Portfolio work follows these rules:
   - [x] `ReversiblePacketCodec.w` encodes a typed record into four region-owned bytes, validates and decodes through a closed value-or-malformed result, checks both decode-encode directions, exhausts 256 bounded field combinations, distinguishes length and checksum errors without partial decode state, cleans every owner, and separately checks a generated inverse over the equivalent fixed word layout.
   - [ ] Make byte-frame encoding itself participate in a checked inverse relation rather than relying on the parallel fixed-word transform.
 - [ ] Transactional persistent index.
-- [ ] Incremental dependency graph.
-  - [x] `IncrementalDependencyGraph.w` owns a mutable four-node adjacency table, a deterministic signed map for versions, bounded breadth-first queues and visited sets, a tagged accepted-or-cycle result, staged and rolled-back phases, rollback of a tentative back edge, affected-node invalidation, owner cleanup, canonical execution, and complete rewind.
-  - [ ] Replace the remaining raw visited and queue tables with accepted nominal set and queue APIs.
+- [x] `IncrementalDependencyGraph.w` owns a mutable four-node adjacency table, deterministic signed maps for versions and generation-tagged visited sets, the locked core queue API for bounded breadth-first work, a tagged accepted-or-cycle result, staged and rolled-back phases, rollback of a tentative back edge, affected-node invalidation, owner cleanup, canonical execution, and complete rewind.
 - [ ] Integer wavelet transform.
   - [x] `IntegerWaveletTransform.w` implements one determinant-one lifting step over a signed sample pair, checks its generated inverse, observes exact coefficients, and restores both inputs without rounding.
   - [ ] Extend the fixture to a bounded image tile, generated extrema and overflow cases, and byte-identical encoded reconstruction.
