@@ -8,11 +8,14 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.OpenOption;
 import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /** Bounded native positional-file capability beneath the portable request lifecycle. */
@@ -115,6 +118,8 @@ public final class NativePositionalFile implements AutoCloseable {
   private final String identity;
   private final Rights rights;
   private final long maximumBytes;
+  private final int alignment;
+  private final boolean direct;
   private final FileChannel channel;
   private final AtomicInteger activeRequests = new AtomicInteger();
   private boolean closed;
@@ -123,38 +128,76 @@ public final class NativePositionalFile implements AutoCloseable {
       String identity,
       Rights rights,
       long maximumBytes,
+      int alignment,
+      boolean direct,
       FileChannel channel) {
     this.identity = DurabilitySubject.visibleAscii("identity", identity, 160, false);
     this.rights = Objects.requireNonNull(rights, "rights");
     if (maximumBytes < 1 || MAX_CAPABILITY_BYTES < maximumBytes) {
       throw new IllegalArgumentException("native file extent must be 1 byte through 16 MiB");
     }
+    if (alignment < 1 || 4_096 < alignment || Integer.bitCount(alignment) != 1) {
+      throw new IllegalArgumentException("native file alignment must be a power of two up to 4096");
+    }
     this.maximumBytes = maximumBytes;
+    this.alignment = alignment;
+    this.direct = direct;
     this.channel = Objects.requireNonNull(channel, "channel");
   }
 
   /** Opens one physical file without following a symbolic-link final component. */
   public static NativePositionalFile open(
       String identity, Path path, Rights rights, long maximumBytes) throws IOException {
+    return open(identity, path, rights, maximumBytes, 1, false);
+  }
+
+  /** Opens one required host direct-I/O capability with exact alignment. */
+  public static NativePositionalFile openDirect(
+      String identity,
+      Path path,
+      Rights rights,
+      long maximumBytes,
+      int alignment) throws IOException {
+    return open(identity, path, rights, maximumBytes, alignment, true);
+  }
+
+  private static NativePositionalFile open(
+      String identity,
+      Path path,
+      Rights rights,
+      long maximumBytes,
+      int alignment,
+      boolean direct) throws IOException {
+    DurabilitySubject.visibleAscii("identity", identity, 160, false);
     Objects.requireNonNull(path, "path");
     Objects.requireNonNull(rights, "rights");
+    if (maximumBytes < 1 || MAX_CAPABILITY_BYTES < maximumBytes) {
+      throw new IllegalArgumentException("native file extent must be 1 byte through 16 MiB");
+    }
+    if (alignment < 1 || 4_096 < alignment || Integer.bitCount(alignment) != 1) {
+      throw new IllegalArgumentException("native file alignment must be a power of two up to 4096");
+    }
     Path normalized = path.toAbsolutePath().normalize();
     if (Files.isSymbolicLink(normalized)) {
       throw new IOException("native file capability rejects symbolic links");
     }
-    FileChannel channel = rights == Rights.READ_ONLY
-        ? FileChannel.open(normalized, StandardOpenOption.READ, LinkOption.NOFOLLOW_LINKS)
-        : FileChannel.open(
-            normalized,
-            StandardOpenOption.CREATE,
-            StandardOpenOption.READ,
-            StandardOpenOption.WRITE,
-            LinkOption.NOFOLLOW_LINKS);
+    Set<OpenOption> options = new HashSet<>();
+    options.add(StandardOpenOption.READ);
+    options.add(LinkOption.NOFOLLOW_LINKS);
+    if (rights == Rights.READ_WRITE) {
+      options.add(StandardOpenOption.CREATE);
+      options.add(StandardOpenOption.WRITE);
+    }
+    if (direct) {
+      options.add(directOpenOption());
+    }
+    FileChannel channel = FileChannel.open(normalized, options);
     try {
       if (channel.size() > maximumBytes) {
         throw new IOException("native file exceeds its capability extent");
       }
-      return new NativePositionalFile(identity, rights, maximumBytes, channel);
+      return new NativePositionalFile(
+          identity, rights, maximumBytes, alignment, direct, channel);
     } catch (Throwable failure) {
       channel.close();
       throw failure;
@@ -168,6 +211,7 @@ public final class NativePositionalFile implements AutoCloseable {
     Objects.requireNonNull(destination, "destination");
     checkBufferRange(destination, bufferOffset, length);
     checkFileRange(position, length);
+    checkAlignment(position, bufferOffset, length);
     String operationIdentity = operationIdentity("read", position, bufferOffset, length);
     destination.hold();
     activeRequests.incrementAndGet();
@@ -193,6 +237,7 @@ public final class NativePositionalFile implements AutoCloseable {
     Objects.requireNonNull(source, "source");
     checkBufferRange(source, bufferOffset, length);
     checkFileRange(position, length);
+    checkAlignment(position, bufferOffset, length);
     String operationIdentity = operationIdentity("write", position, bufferOffset, length);
     source.hold();
     activeRequests.incrementAndGet();
@@ -268,6 +313,14 @@ public final class NativePositionalFile implements AutoCloseable {
     return identity;
   }
 
+  public boolean direct() {
+    return direct;
+  }
+
+  public int alignment() {
+    return alignment;
+  }
+
   public synchronized long size() throws IOException {
     requireOpen();
     return channel.size();
@@ -294,7 +347,7 @@ public final class NativePositionalFile implements AutoCloseable {
     byte[] bytes = new byte[length];
     int progress = 0;
     try {
-      ByteBuffer target = ByteBuffer.wrap(bytes);
+      ByteBuffer target = direct ? ByteBuffer.allocateDirect(length) : ByteBuffer.wrap(bytes);
       while (target.hasRemaining()) {
         int read = channel.read(target, position + progress);
         if (read < 0) {
@@ -304,6 +357,10 @@ public final class NativePositionalFile implements AutoCloseable {
           break;
         }
         progress += read;
+      }
+      if (direct) {
+        target.flip();
+        target.get(bytes, 0, progress);
       }
       destination.copyFrom(bytes, 0, bufferOffset, progress);
       return IoProviderResult.success(
@@ -324,7 +381,14 @@ public final class NativePositionalFile implements AutoCloseable {
     source.copyTo(bufferOffset, bytes, 0, length);
     int progress = 0;
     try {
-      ByteBuffer input = ByteBuffer.wrap(bytes);
+      ByteBuffer input;
+      if (direct) {
+        input = ByteBuffer.allocateDirect(length);
+        input.put(bytes);
+        input.flip();
+      } else {
+        input = ByteBuffer.wrap(bytes);
+      }
       while (input.hasRemaining()) {
         int written = channel.write(input, position + progress);
         if (written < 1) {
@@ -361,6 +425,15 @@ public final class NativePositionalFile implements AutoCloseable {
     }
   }
 
+  private void checkAlignment(long position, int bufferOffset, int length) {
+    if (direct && (position % alignment != 0
+        || bufferOffset % alignment != 0
+        || length % alignment != 0)) {
+      throw new IllegalArgumentException(
+          "direct file position, buffer offset, and length must be aligned");
+    }
+  }
+
   private String operationIdentity(String kind, long position, int offset, int length) {
     return identity + ":" + kind + ":" + position + ":" + offset + ":" + length;
   }
@@ -375,6 +448,23 @@ public final class NativePositionalFile implements AutoCloseable {
     Objects.requireNonNull(prior, "prior");
     if (prior.kind() != expected || !prior.subject().resourceIdentity().equals(identity)) {
       throw new IllegalArgumentException("durability receipt is not the required native-file prior");
+    }
+  }
+
+  private static OpenOption directOpenOption() throws IOException {
+    try {
+      Class<?> type = Class.forName("com.sun.nio.file.ExtendedOpenOption");
+      Object[] constants = type.getEnumConstants();
+      if (constants != null) {
+        for (Object constant : constants) {
+          if (constant.toString().equals("DIRECT") && constant instanceof OpenOption option) {
+            return option;
+          }
+        }
+      }
+      throw new IOException("host JDK exposes no required direct-I/O option");
+    } catch (ClassNotFoundException failure) {
+      throw new IOException("host JDK exposes no required direct-I/O option", failure);
     }
   }
 

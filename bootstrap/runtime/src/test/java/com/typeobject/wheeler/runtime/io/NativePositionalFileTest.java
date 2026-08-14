@@ -22,6 +22,7 @@ import org.junit.jupiter.api.io.TempDir;
 /** Native positional-file and process-reopen evidence beneath the portable lifecycle. */
 final class NativePositionalFileTest {
   private static final IoLimits LIMITS = new IoLimits(8, 8, 8, 8, 8, 1024);
+  private static final IoLimits DIRECT_LIMITS = new IoLimits(8, 8, 8, 8, 8, 8192);
 
   @Test
   void positionalWriteForceCloseAndFreshReopenPreserveExactBytes(@TempDir Path temporary)
@@ -84,6 +85,38 @@ final class NativePositionalFileTest {
       assertThrows(
           IllegalStateException.class,
           () -> reopened.writeAt(0, destination, 0, 1));
+    }
+  }
+
+  @Test
+  void requiredDirectPathUsesAlignedNativeBuffersAndRejectsFallback(
+      @TempDir Path temporary) throws Exception {
+    Path path = temporary.resolve("direct.bin");
+    byte[] content = new byte[4096];
+    for (int index = 0; index < content.length; index++) {
+      content[index] = (byte) index;
+    }
+    OwnedIoBuffer source = OwnedIoBuffer.copyOf(content);
+    try (NativePositionalFile file = NativePositionalFile.openDirect(
+        "native-direct", path, Rights.READ_WRITE, 8192, 4096);
+        IoScope scope = new DeterministicIo(Delivery.INLINE).scope(DIRECT_LIMITS)) {
+      assertTrue(file.direct());
+      assertEquals(4096, file.alignment());
+      assertThrows(
+          IllegalArgumentException.class,
+          () -> file.writeAt(1, source, 0, content.length));
+      assertArrayEquals(content, source.snapshot());
+      assertEquals(content.length, scope.await(file.writeAt(0, source, 0, content.length)).progress());
+    }
+
+    try (NativePositionalFile file = NativePositionalFile.openDirect(
+        "native-direct", path, Rights.READ_ONLY, 8192, 4096);
+        IoScope scope = new DeterministicIo(Delivery.INLINE).scope(DIRECT_LIMITS)) {
+      OwnedIoBuffer destination = OwnedIoBuffer.allocate(content.length);
+      assertEquals(
+          content.length,
+          scope.await(file.readAt(0, destination, 0, content.length)).progress());
+      assertArrayEquals(content, destination.snapshot());
     }
   }
 
