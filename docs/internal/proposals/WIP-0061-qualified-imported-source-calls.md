@@ -2,14 +2,14 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler compiler and module-product maintainers |
 | Created | 2026-08-14 |
 | Updated | 2026-08-14 |
 | Area | Self-hosting compiler, module names, imported calls |
 | Depends on | WIP-0045, WIP-0059, WIP-0060 |
 | Supersedes | Qualified-call acceptance in WIP-0059 |
-| Superseded by | None |
+| Superseded by | WIP-0062 for atomic closure publication |
 
 ## Summary
 
@@ -76,7 +76,7 @@ The module name contains canonical lowercase identifier segments separated by on
 3. [x] Bind the qualifier to one exact direct rank.
 4. [x] Match name and arity inside that rank, then use the shared parameter, result, effect, and visibility products.
 5. [x] Publish the same call and statement products used by unqualified calls.
-6. Prove storage-order independence and atomic malformed-input rejection.
+6. [x] Prove storage-order independence and atomic malformed-input rejection.
 
 ## Acceptance
 
@@ -86,8 +86,8 @@ The module name contains canonical lowercase identifier segments separated by on
 - [x] A local callable does not shadow a qualified imported call.
 - [x] An indirect dependency qualifier publishes nothing.
 - [x] Malformed dots, colons, whitespace, and uppercase segments publish nothing.
-- Shuffled dependency and callable storage leaves artifact and relocation bytes unchanged.
-- Dependency source is absent from the compilation lifetime.
+- [x] Shuffled dependency and callable storage leaves artifact and relocation products unchanged.
+- [x] Dependency source is absent from the compilation lifetime.
 
 ## Rejected alternatives
 
@@ -108,3 +108,4 @@ Rejected. Closed module products are the dependency interface.
 - [WIP-0045](WIP-0045-counted-native-module-symbol-products.md)
 - [WIP-0059](WIP-0059-imported-source-call-target-products.md)
 - [WIP-0060](WIP-0060-imported-call-stub-and-relocation-products.md)
+- [WIP-0062](WIP-0062-atomic-source-call-link-publication.md)
