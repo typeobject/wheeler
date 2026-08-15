@@ -9,7 +9,7 @@
 | Area | Self-hosting compiler, imported calls, relocation |
 | Depends on | WIP-0045, WIP-0048, WIP-0057 |
 | Supersedes | Imported call integration in WIP-0057 |
-| Superseded by | None |
+| Superseded by | WIP-0060 for artifact stubs and final relocation |
 
 ## Summary
 
@@ -63,8 +63,8 @@ The archive compiler imports this product as the sole target-view boundary. Stru
 - [ ] Carry copied qualified names, signatures, effects, and identities into structured compilation.
 - [ ] Resolve local and imported calls through one source scanner.
 - [ ] Build one local-plus-imported parameter and identity table.
-- [ ] Classify local and external relocations without changing call code windows.
-- [ ] Publish imported relocation identities through the canonical linker.
+- [ ] Hand referenced targets to WIP-0060 without changing call code windows.
+- [ ] Preserve package and dependency-rank evidence through the handoff.
 
 ## Acceptance
 
@@ -90,3 +90,4 @@ Rejected. Table packing is not semantic order.
 - [WIP-0045](WIP-0045-counted-native-module-symbol-products.md)
 - [WIP-0048](WIP-0048-canonical-native-product-linker.md)
 - [WIP-0057](WIP-0057-source-call-relocation-and-ownership-coordinate-products.md)
+- [WIP-0060](WIP-0060-imported-call-stub-and-relocation-products.md)
