@@ -144,11 +144,12 @@ classical class SourceModuleProductArtifact {
     borrow mut bytes output,
     borrow mut bytes identity
   ) {
-    region emptyStubs = new region(/* bytes= */ 229376, /* allocations= */ 4);
+    region emptyStubs = new region(/* bytes= */ 262144, /* allocations= */ 5);
     words stubParameterStarts = allocate(emptyStubs, /* length= */ 4096);
     words stubParameterCounts = allocate(emptyStubs, /* length= */ 4096);
     words stubParameterTypes = allocate(emptyStubs, /* length= */ 16384);
     words stubResultTypes = allocate(emptyStubs, /* length= */ 4096);
+    words stubEffects = allocate(emptyStubs, /* length= */ 4096);
     SourceProductArtifactPlan result = publishClassicalSourceModuleArtifactWithStubs(
       callableCount,
       /* reversibleCallableCount= */ 0,
@@ -157,6 +158,7 @@ classical class SourceModuleProductArtifact {
       stubParameterCounts,
       stubParameterTypes,
       stubResultTypes,
+      stubEffects,
       callableRows,
       parameterCounts,
       functionResultTypes,
@@ -173,6 +175,7 @@ classical class SourceModuleProductArtifact {
       output,
       identity
     );
+    drop(stubEffects);
     drop(stubResultTypes);
     drop(stubParameterTypes);
     drop(stubParameterCounts);
@@ -190,6 +193,7 @@ classical class SourceModuleProductArtifact {
     borrow mut words stubParameterCounts,
     borrow mut words stubParameterTypes,
     borrow mut words stubResultTypes,
+    borrow mut words stubEffects,
     borrow mut words callableRows,
     borrow mut words parameterCounts,
     borrow mut words functionResultTypes,
@@ -219,6 +223,7 @@ classical class SourceModuleProductArtifact {
     assert(bufferLength(stubParameterCounts) == 4096);
     assert(bufferLength(stubParameterTypes) == 16384);
     assert(bufferLength(stubResultTypes) == 4096);
+    assert(bufferLength(stubEffects) == 4096);
     assert(bufferLength(callableRows) == CALLABLE_ROWS);
     assert(bufferLength(parameterCounts) == MAX_CALLABLES);
     assert(bufferLength(functionResultTypes) == MAX_CALLABLES);
@@ -359,6 +364,7 @@ classical class SourceModuleProductArtifact {
       long stubFirstParameter = stubParameterStarts[stubTarget];
       long stubParameterCount = stubParameterCounts[stubTarget];
       long stubResultType = stubResultTypes[stubTarget];
+      long stubEffect = stubEffects[stubTarget];
       assert(-1 < stubFirstParameter);
       assert(-1 < stubParameterCount);
       assert(stubParameterCount < 8);
@@ -373,6 +379,13 @@ classical class SourceModuleProductArtifact {
       }
 
       assert(stubResultTypeValid);
+      boolean stubEffectValid = stubEffect == 0;
+      if (stubEffect == 2) {
+        assert(stubResultType == 0);
+        stubEffectValid = true;
+      }
+
+      assert(stubEffectValid);
       writeUnsigned(sectionArchive, stubDescriptor, 4, callableCount + stub);
       writeUnsigned(sectionArchive, stubDescriptor + 4, 4, 0);
       long stubFlags = 0;
@@ -380,12 +393,23 @@ classical class SourceModuleProductArtifact {
         stubFlags = 4;
       }
 
+      if (stubEffect == 2) {
+        stubFlags = 1;
+      }
+
       writeUnsigned(sectionArchive, stubDescriptor + 8, 4, stubFlags);
       long stubLength = stubCodeLength(stubResultType);
       writeUnsigned(sectionArchive, stubDescriptor + 12, 4, codeOffset);
       writeUnsigned(sectionArchive, stubDescriptor + 16, 4, stubLength);
-      writeUnsigned(sectionArchive, stubDescriptor + 20, 4, 4294967295);
-      writeUnsigned(sectionArchive, stubDescriptor + 24, 4, 0);
+      long stubInverseOffset = 4294967295;
+      long stubInverseLength = 0;
+      if (stubEffect == 2) {
+        stubInverseOffset = codeOffset + stubLength;
+        stubInverseLength = stubLength;
+      }
+
+      writeUnsigned(sectionArchive, stubDescriptor + 20, 4, stubInverseOffset);
+      writeUnsigned(sectionArchive, stubDescriptor + 24, 4, stubInverseLength);
       writeUnsigned(sectionArchive, stubDescriptor + 28, 4, stubParameterCount);
       long stubGeneratedLocals = 0;
       if (stubResultType == TYPE_SIGNED) {
@@ -436,6 +460,10 @@ classical class SourceModuleProductArtifact {
       }
 
       codeOffset += stubLength;
+      if (stubEffect == 2) {
+        codeOffset += stubLength;
+      }
+
       stub += 1;
     }
 
@@ -473,6 +501,16 @@ classical class SourceModuleProductArtifact {
         stubResultTypes[emittedTarget]
       );
       emittedCodeCursor = emittedStubEnd - cursor;
+      if (stubEffects[emittedTarget] == 2) {
+        emittedStubEnd = writeStubCode(
+          sectionArchive,
+          cursor + emittedCodeCursor,
+          stubParameterCounts[emittedTarget],
+          stubResultTypes[emittedTarget]
+        );
+        emittedCodeCursor = emittedStubEnd - cursor;
+      }
+
       emittedStub += 1;
     }
 

@@ -541,9 +541,9 @@ classical class ReversibleSourceProductArtifact {
       long flags = readUnsigned(forwardArtifact, descriptor + 8, 4);
       long forwardOffset = readUnsigned(forwardArtifact, descriptor + 12, 4);
       long forwardLength = readUnsigned(forwardArtifact, descriptor + 16, 4);
+      long forwardInverseOffset = readUnsigned(forwardArtifact, descriptor + 20, 4);
       long inverseLength = readUnsigned(forwardArtifact, descriptor + 24, 4);
       assert(functionId == function);
-      assert(inverseLength == 0);
       writeUnsigned(codeCursor, 4, sectionArchive, outputDescriptor + 12);
       copyBytes(
         forwardArtifact,
@@ -554,6 +554,7 @@ classical class ReversibleSourceProductArtifact {
       );
       codeCursor += forwardLength;
       if (function < callableCount) {
+        assert(inverseLength == 0);
         boolean flagsValid = flags == 0;
         if (flags == 12) {
           flagsValid = true;
@@ -578,7 +579,23 @@ classical class ReversibleSourceProductArtifact {
         codeCursor += generatedLength;
         inverseCursor += generatedLength;
       } else {
-        writeUnsigned(4294967295, 4, sectionArchive, outputDescriptor + 20);
+        boolean reversibleStub = flags == 1;
+        if (reversibleStub) {
+          assert(inverseLength == forwardLength);
+          assert(forwardInverseOffset == forwardOffset + forwardLength);
+          writeUnsigned(codeCursor, 4, sectionArchive, outputDescriptor + 20);
+          copyBytes(
+            forwardArtifact,
+            code.start + forwardInverseOffset,
+            inverseLength,
+            sectionArchive,
+            codeOutputStart + codeCursor
+          );
+          codeCursor += inverseLength;
+        } else {
+          assert(inverseLength == 0);
+          writeUnsigned(4294967295, 4, sectionArchive, outputDescriptor + 20);
+        }
       }
 
       function += 1;

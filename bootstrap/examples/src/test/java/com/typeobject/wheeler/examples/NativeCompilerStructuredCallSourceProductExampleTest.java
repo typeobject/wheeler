@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
+import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import java.nio.charset.StandardCharsets;
@@ -50,6 +51,68 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
   @Test
   void emitsAReversibleTwoSourceResultRelation() throws Exception {
     assertReversibleArtifact("long left, long right", "left + right", 2);
+  }
+
+  @Test
+  void emitsAReversibleLocalCallArtifact() throws Exception {
+    String source = """
+        module example.structured_call;
+
+        classical class StructuredCall {
+          public rev void recurse() {
+            recurse();
+          }
+
+          theorem recurseInverse proves inverse(recurse);
+        }
+        """;
+    int bodyStart = source.indexOf("{", source.indexOf("recurse("));
+    int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
+    Program driver = driverWithEffect(bodyStart, bodyLength, 0, 0, 0, false, 1, 1, 2);
+    VirtualMachine machine = new VirtualMachine(
+        driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
+
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("StructuredCall.w", source), MODULE);
+    assertEquals(1, machine.global("valid"));
+    assertEquals(1, machine.global("relocationCount"));
+    assertArrayEquals(new BytecodeWriter().write(expected), machine.hostOutput());
+  }
+
+  @Test
+  void emitsReversibleImportedCallProducts() throws Exception {
+    String source = """
+        module example.structured_call;
+
+        classical class StructuredCall {
+          public rev void recurse() {
+            remote();
+          }
+
+          theorem recurseInverse proves inverse(recurse);
+        }
+        """;
+    int bodyStart = source.indexOf("{", source.indexOf("recurse("));
+    int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
+    Program driver = driverWithEffect(bodyStart, bodyLength, 0, 0, 0, true, 0, 0, 2);
+    VirtualMachine machine = new VirtualMachine(
+        driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
+
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+
+    byte[] artifact = machine.hostOutput();
+    int functions = sectionStart(artifact, 5);
+    int code = sectionStart(artifact, 6);
+    int descriptor = functions + 4;
+    int forward = code + readU32(artifact, descriptor + 12);
+    int inverse = code + readU32(artifact, descriptor + 20);
+    assertEquals(Opcode.CALL.code(), readU16(artifact, forward));
+    assertEquals(Opcode.UNCALL.code(), readU16(artifact, inverse));
+    assertEquals(1, machine.global("relocationCount"));
+    assertEquals(1, machine.global("relocationTarget"));
+    assertEquals(42, machine.global("relocationIdentityByte"));
   }
 
   @Test
@@ -339,6 +402,36 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
     assertEquals(1, machine.global("valid"));
     assertEquals(expectedBytes.length, machine.global("artifactLength"));
     assertArrayEquals(expectedBytes, machine.hostOutput());
+  }
+
+  private static int sectionStart(byte[] artifact, int wantedType) {
+    int sectionCount = readU32(artifact, 24);
+    for (int section = 0; section < sectionCount; section++) {
+      int directory = 40 + section * 32;
+      if (readU32(artifact, directory) == wantedType) {
+        return Math.toIntExact(readU64(artifact, directory + 8));
+      }
+    }
+    throw new IllegalArgumentException("Missing section " + wantedType);
+  }
+
+  private static int readU16(byte[] input, int offset) {
+    return input[offset] & 0xff | (input[offset + 1] & 0xff) << 8;
+  }
+
+  private static int readU32(byte[] input, int offset) {
+    return input[offset] & 0xff
+        | (input[offset + 1] & 0xff) << 8
+        | (input[offset + 2] & 0xff) << 16
+        | (input[offset + 3] & 0xff) << 24;
+  }
+
+  private static long readU64(byte[] input, int offset) {
+    long value = 0;
+    for (int index = 7; index >= 0; index--) {
+      value = value << 8 | input[offset + index] & 0xffL;
+    }
+    return value;
   }
 
   private static void assertReversibleArtifact(
@@ -693,12 +786,14 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
                     + "set(importedRows, 12288, 6);\n"
                     + "set(importedRows, 20480, IMPORTED_PARAMETER_COUNT);\n"
                     + "set(importedRows, 24576, IMPORTED_RESULT_TYPE);\n"
+                    + "set(importedRows, 28672, " + callableEffect + ");\n"
                     + "set(importedRows, 4097, 1);\n"
                     + "set(importedRows, 8193, 6);\n"
                     + "set(importedRows, 12289, 6);\n"
                     + "set(importedRows, 16385, 1);\n"
                     + "set(importedRows, 20481, IMPORTED_PARAMETER_COUNT);\n"
                     + "set(importedRows, 24577, IMPORTED_RESULT_TYPE);\n"
+                    + "set(importedRows, 28673, " + callableEffect + ");\n"
                     + "set(importedParameterRows, 0, IMPORTED_PARAMETER_TYPE);\n"
                     + "set(importedParameterRows, 1, IMPORTED_PARAMETER_TYPE);\n"
                     + "setByte(importedIdentities, 0, 42);\n"

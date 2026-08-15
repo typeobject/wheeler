@@ -5,6 +5,84 @@ module wheeler.compiler.closure.structured_source_targets;
 import wheeler.crypto.sha256;
 
 classical class StructuredSourceTargets {
+  private const long MAX_CALLABLES = 64;
+
+  /// Reports one complete local target name and signature table.
+  public record LocalStructuredTargetPlan(long parameterCount, boolean valid) {}
+
+  /// Publishes local target names, signatures, effects, and stable identities.
+  public LocalStructuredTargetPlan materializeLocalStructuredTargets(
+    long firstCallable,
+    long callableCount,
+    borrow byteview strings,
+    long stringBytes,
+    long stringCount,
+    borrow mut words stringStarts,
+    borrow mut words stringLengths,
+    borrow mut words functionNameIds,
+    borrow mut words parameterCounts,
+    borrow mut words callableEffects,
+    long signatureTypeCount,
+    borrow mut words signatureTypes,
+    borrow mut words callableNameStarts,
+    borrow mut words callableNameLengths,
+    borrow mut words callableParameterCounts,
+    borrow mut words targetParameterStarts,
+    borrow mut words targetParameterCounts,
+    borrow mut words targetParameterTypes,
+    borrow mut words targetEffects,
+    borrow mut bytes targetIdentities
+  ) {
+    assert(0 < callableCount);
+    assert(callableCount < MAX_CALLABLES + 1);
+    assert(-1 < firstCallable);
+    assert(-1 < stringBytes);
+    assert(0 < stringCount);
+    long parameterCursor = 0;
+    long callable = 0;
+    while (callable < callableCount) limit MAX_CALLABLES {
+      long name = functionNameIds[callable];
+      assert(-1 < name);
+      assert(name < stringCount);
+      long nameStart = stringStarts[name];
+      long nameLength = stringLengths[name];
+      assert(nameStart < stringBytes);
+      assert(nameLength < stringBytes - nameStart + 1);
+      long simpleStart = nameStart;
+      long nameByte = 0;
+      while (nameByte + 1 < nameLength) limit 256 {
+        if (strings[nameStart + nameByte] == 58) {
+          if (strings[nameStart + nameByte + 1] == 58) {
+            simpleStart = nameStart + nameByte + 2;
+          }
+        }
+
+        nameByte += 1;
+      }
+
+      assert(simpleStart < nameStart + nameLength);
+      set(callableNameStarts, callable, simpleStart);
+      set(callableNameLengths, callable, nameStart + nameLength - simpleStart);
+      set(callableParameterCounts, callable, parameterCounts[callable]);
+      writeTargetIdentity(strings, nameStart, nameLength, callable, targetIdentities);
+      set(targetParameterStarts, callable, parameterCursor);
+      set(targetParameterCounts, callable, parameterCounts[callable]);
+      set(targetEffects, callable, callableEffects[firstCallable + callable]);
+      long parameter = 0;
+      while (parameter < parameterCounts[callable]) limit 256 {
+        long type = signatureTypeAt(callable, parameter, signatureTypeCount, signatureTypes);
+        assert(-1 < type);
+        set(targetParameterTypes, parameterCursor, type);
+        parameterCursor += 1;
+        parameter += 1;
+      }
+
+      callable += 1;
+    }
+
+    return new LocalStructuredTargetPlan(parameterCursor, true);
+  }
+
   /// Returns the sole type at one callable-local signature coordinate.
   public long signatureTypeAt(
     long owner,

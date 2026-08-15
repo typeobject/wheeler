@@ -40,12 +40,14 @@ classical class ReferencedSourceCallTargets {
     borrow mut words sourceParameterCounts,
     borrow mut words sourceParameterTypes,
     borrow mut words sourceResultTypes,
+    borrow mut words sourceEffects,
     borrow byteview sourceIdentities,
     borrow mut words targetCalls,
     borrow mut words targetParameterStarts,
     borrow mut words targetParameterCounts,
     borrow mut words targetParameterTypes,
     borrow mut words targetResultTypes,
+    borrow mut words targetEffects,
     borrow mut bytes targetIdentities
   ) {
     assert(-1 < localCount);
@@ -59,20 +61,23 @@ classical class ReferencedSourceCallTargets {
     assert(bufferLength(sourceParameterCounts) == TARGET_COUNT_LIMIT);
     assert(bufferLength(sourceParameterTypes) == PARAMETER_COUNT_LIMIT);
     assert(bufferLength(sourceResultTypes) == TARGET_COUNT_LIMIT);
+    assert(bufferLength(sourceEffects) == TARGET_COUNT_LIMIT);
     assert(bufferLength(sourceIdentities) == 131072);
     assert(bufferLength(targetCalls) == CALL_ROWS);
     assert(bufferLength(targetParameterStarts) == TARGET_COUNT_LIMIT);
     assert(bufferLength(targetParameterCounts) == TARGET_COUNT_LIMIT);
     assert(bufferLength(targetParameterTypes) == PARAMETER_COUNT_LIMIT);
     assert(bufferLength(targetResultTypes) == TARGET_COUNT_LIMIT);
+    assert(bufferLength(targetEffects) == TARGET_COUNT_LIMIT);
     assert(bufferLength(targetIdentities) == 131072);
 
-    region staging = new region(/* bytes= */ 401408, /* allocations= */ 7);
+    region staging = new region(/* bytes= */ 434176, /* allocations= */ 8);
     words stagedCalls = allocate(staging, CALL_ROWS);
     words stagedParameterStarts = allocate(staging, TARGET_COUNT_LIMIT);
     words stagedParameterCounts = allocate(staging, TARGET_COUNT_LIMIT);
     words stagedParameterTypes = allocate(staging, PARAMETER_COUNT_LIMIT);
     words stagedResultTypes = allocate(staging, TARGET_COUNT_LIMIT);
+    words stagedEffects = allocate(staging, TARGET_COUNT_LIMIT);
     bytes stagedIdentities = allocateBytes(staging, /* length= */ 131072);
     words remap = allocate(staging, TARGET_COUNT_LIMIT);
     boolean valid = true;
@@ -119,6 +124,7 @@ classical class ReferencedSourceCallTargets {
           set(stagedParameterStarts, target, parameterCursor);
           set(stagedParameterCounts, target, parameterCount);
           set(stagedResultTypes, target, sourceResultTypes[sourceTarget]);
+          set(stagedEffects, target, sourceEffects[sourceTarget]);
           long parameter = 0;
           while (parameter < parameterCount) limit 64 {
             set(
@@ -181,6 +187,7 @@ classical class ReferencedSourceCallTargets {
         set(targetParameterStarts, row, stagedParameterStarts[row]);
         set(targetParameterCounts, row, stagedParameterCounts[row]);
         set(targetResultTypes, row, stagedResultTypes[row]);
+        set(targetEffects, row, stagedEffects[row]);
         row += 1;
       }
 
@@ -204,6 +211,7 @@ classical class ReferencedSourceCallTargets {
 
     drop(remap);
     drop(stagedIdentities);
+    drop(stagedEffects);
     drop(stagedResultTypes);
     drop(stagedParameterTypes);
     drop(stagedParameterCounts);

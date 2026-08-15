@@ -40,6 +40,7 @@ classical class SourceCallTargetTable {
     borrow mut words localParameterCounts,
     borrow mut words localParameterTypes,
     borrow mut words localResultTypes,
+    borrow mut words localEffects,
     borrow byteview localIdentities,
     long importedCount,
     borrow mut words importedRows,
@@ -53,6 +54,7 @@ classical class SourceCallTargetTable {
     borrow mut words targetParameterCounts,
     borrow mut words targetParameterTypes,
     borrow mut words targetResultTypes,
+    borrow mut words targetEffects,
     borrow mut bytes targetIdentities,
     borrow mut words dependencyRows
   ) {
@@ -67,6 +69,7 @@ classical class SourceCallTargetTable {
     assert(bufferLength(localParameterCounts) == TARGET_COUNT_LIMIT);
     assert(bufferLength(localParameterTypes) == PARAMETER_COUNT_LIMIT);
     assert(bufferLength(localResultTypes) == TARGET_COUNT_LIMIT);
+    assert(bufferLength(localEffects) == TARGET_COUNT_LIMIT);
     assert(bufferLength(localIdentities) == 131072);
     assert(bufferLength(importedRows) == TARGET_ROWS);
     assert(bufferLength(importedParameterRows) == 32768);
@@ -78,10 +81,11 @@ classical class SourceCallTargetTable {
     assert(bufferLength(targetParameterCounts) == TARGET_COUNT_LIMIT);
     assert(bufferLength(targetParameterTypes) == PARAMETER_COUNT_LIMIT);
     assert(bufferLength(targetResultTypes) == TARGET_COUNT_LIMIT);
+    assert(bufferLength(targetEffects) == TARGET_COUNT_LIMIT);
     assert(bufferLength(targetIdentities) == 131072);
     assert(bufferLength(dependencyRows) == 8192);
 
-    region staging = new region(/* bytes= */ 1540096, /* allocations= */ 9);
+    region staging = new region(/* bytes= */ 1572864, /* allocations= */ 10);
     bytes stagedNames = allocateBytes(staging, NAME_BYTES_LIMIT);
     words stagedNameStarts = allocate(staging, TARGET_COUNT_LIMIT);
     words stagedNameLengths = allocate(staging, TARGET_COUNT_LIMIT);
@@ -89,6 +93,7 @@ classical class SourceCallTargetTable {
     words stagedParameterCounts = allocate(staging, TARGET_COUNT_LIMIT);
     words stagedParameterTypes = allocate(staging, PARAMETER_COUNT_LIMIT);
     words stagedResultTypes = allocate(staging, TARGET_COUNT_LIMIT);
+    words stagedEffects = allocate(staging, TARGET_COUNT_LIMIT);
     bytes stagedIdentities = allocateBytes(staging, /* length= */ 131072);
     words stagedDependencies = allocate(staging, /* length= */ 8192);
     boolean valid = true;
@@ -101,12 +106,14 @@ classical class SourceCallTargetTable {
       long firstParameter = 0;
       long parameterCount = 0;
       long resultType = -1;
+      long effect = -1;
       if (target < localCount) {
         nameStart = localNameStarts[target];
         nameLength = localNameLengths[target];
         firstParameter = localParameterStarts[target];
         parameterCount = localParameterCounts[target];
         resultType = localResultTypes[target];
+        effect = localEffects[target];
         if (nameStart < 0) {
           valid = false;
         }
@@ -125,6 +132,7 @@ classical class SourceCallTargetTable {
         firstParameter = importedRows[16384 + imported];
         parameterCount = importedRows[20480 + imported];
         resultType = importedRows[24576 + imported];
+        effect = importedRows[28672 + imported];
         if (nameStart < 0) {
           valid = false;
         }
@@ -169,12 +177,19 @@ classical class SourceCallTargetTable {
         valid = false;
       }
 
+      if (effect == 0) {} else {
+        if (effect != 2) {
+          valid = false;
+        }
+      }
+
       if (valid) {
         set(stagedNameStarts, target, nameCursor);
         set(stagedNameLengths, target, nameLength);
         set(stagedParameterStarts, target, parameterCursor);
         set(stagedParameterCounts, target, parameterCount);
         set(stagedResultTypes, target, resultType);
+        set(stagedEffects, target, effect);
         long nameByte = 0;
         while (nameByte < nameLength) limit 256 {
           long value = 0;
@@ -235,6 +250,7 @@ classical class SourceCallTargetTable {
         set(targetParameterStarts, row, stagedParameterStarts[row]);
         set(targetParameterCounts, row, stagedParameterCounts[row]);
         set(targetResultTypes, row, stagedResultTypes[row]);
+        set(targetEffects, row, stagedEffects[row]);
         row += 1;
       }
 
@@ -263,6 +279,7 @@ classical class SourceCallTargetTable {
 
     drop(stagedDependencies);
     drop(stagedIdentities);
+    drop(stagedEffects);
     drop(stagedResultTypes);
     drop(stagedParameterTypes);
     drop(stagedParameterCounts);

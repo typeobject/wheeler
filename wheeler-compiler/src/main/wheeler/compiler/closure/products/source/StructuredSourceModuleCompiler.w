@@ -146,6 +146,10 @@ classical class StructuredSourceModuleCompiler {
     assert(reversibleEvidence.valid);
     long reversibleCallableCount = reversibleEvidence.reversibleCallableCount;
     long proofCount = reversibleEvidence.proofCount;
+    region targetEffectProducts = new region(/* bytes= */ 98304, /* allocations= */ 3);
+    words localTargetEffects = allocate(targetEffectProducts, /* length= */ 4096);
+    words targetEffects = allocate(targetEffectProducts, /* length= */ 4096);
+    words retainedTargetEffects = allocate(targetEffectProducts, /* length= */ 4096);
 
     region products = new region(/* bytes= */ 5022720, /* allocations= */ 64);
     words blocks = allocate(products, /* length= */ 6144);
@@ -213,49 +217,29 @@ classical class StructuredSourceModuleCompiler {
     words callTypes = allocate(products, /* length= */ 12288);
     bytes callCode = allocateBytes(products, /* length= */ 262144);
 
-    long targetParameterCursor = 0;
-    long namedCallable = 0;
-    while (namedCallable < callableCount) limit MAX_CALLABLES {
-      long name = functionNameIds[namedCallable];
-      assert(-1 < name);
-      assert(name < stringCount);
-      long nameStart = stringStarts[name];
-      long nameLength = stringLengths[name];
-      long simpleStart = nameStart;
-      long nameByte = 0;
-      while (nameByte + 1 < nameLength) limit 256 {
-        if (strings[nameStart + nameByte] == 58) {
-          if (strings[nameStart + nameByte + 1] == 58) {
-            simpleStart = nameStart + nameByte + 2;
-          }
-        }
-
-        nameByte += 1;
-      }
-
-      assert(simpleStart < nameStart + nameLength);
-      set(callableNameStarts, namedCallable, simpleStart);
-      set(callableNameLengths, namedCallable, nameStart + nameLength - simpleStart);
-      set(callableParameterCounts, namedCallable, parameterCounts[namedCallable]);
-      writeTargetIdentity(strings, nameStart, nameLength, namedCallable, localTargetIdentities);
-      set(localTargetParameterStarts, namedCallable, targetParameterCursor);
-      set(localTargetParameterCounts, namedCallable, parameterCounts[namedCallable]);
-      long targetParameter = 0;
-      while (targetParameter < parameterCounts[namedCallable]) limit 256 {
-        long targetType = signatureTypeAt(
-          namedCallable,
-          targetParameter,
-          signatureTypeCount,
-          signatureTypes
-        );
-        assert(-1 < targetType);
-        set(localTargetParameterTypes, targetParameterCursor, targetType);
-        targetParameterCursor += 1;
-        targetParameter += 1;
-      }
-
-      namedCallable += 1;
-    }
+    LocalStructuredTargetPlan localTargets = materializeLocalStructuredTargets(
+      firstCallable,
+      callableCount,
+      strings,
+      stringBytes,
+      stringCount,
+      stringStarts,
+      stringLengths,
+      functionNameIds,
+      parameterCounts,
+      callableEffects,
+      signatureTypeCount,
+      signatureTypes,
+      callableNameStarts,
+      callableNameLengths,
+      callableParameterCounts,
+      localTargetParameterStarts,
+      localTargetParameterCounts,
+      localTargetParameterTypes,
+      localTargetEffects,
+      localTargetIdentities
+    );
+    assert(localTargets.valid);
 
     SourceCallableResultPlan resultPlan = materializeSourceCallableResultProducts(
       source,
@@ -281,6 +265,7 @@ classical class StructuredSourceModuleCompiler {
       localTargetParameterCounts,
       localTargetParameterTypes,
       localTargetResultTypes,
+      localTargetEffects,
       localTargetIdentities,
       importedTargetCount,
       importedTargetRows,
@@ -294,6 +279,7 @@ classical class StructuredSourceModuleCompiler {
       targetParameterCounts,
       targetParameterTypes,
       targetResultTypes,
+      targetEffects,
       targetIdentities,
       targetDependencyRows
     );
@@ -375,12 +361,14 @@ classical class StructuredSourceModuleCompiler {
       targetParameterCounts,
       targetParameterTypes,
       targetResultTypes,
+      targetEffects,
       targetIdentities,
       calls,
       retainedTargetParameterStarts,
       retainedTargetParameterCounts,
       retainedTargetParameterTypes,
       retainedTargetResultTypes,
+      retainedTargetEffects,
       retainedTargetIdentities
     );
     assert(referencedTargetPlan.valid);
@@ -797,6 +785,7 @@ classical class StructuredSourceModuleCompiler {
       retainedTargetParameterCounts,
       retainedTargetParameterTypes,
       retainedTargetResultTypes,
+      retainedTargetEffects,
       composedCallables,
       parameterCounts,
       functionResultTypes,
@@ -908,6 +897,10 @@ classical class StructuredSourceModuleCompiler {
     drop(proofNameStarts);
     drop(proofNames);
     drop(sourceProofs);
+    drop(retainedTargetEffects);
+    drop(targetEffects);
+    drop(localTargetEffects);
+    drop(targetEffectProducts);
     return publishedResult;
   }
 }

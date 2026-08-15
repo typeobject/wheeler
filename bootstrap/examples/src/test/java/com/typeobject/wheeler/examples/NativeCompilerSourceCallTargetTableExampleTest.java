@@ -64,7 +64,7 @@ final class NativeCompilerSourceCallTargetTableExampleTest {
 
           entry void main(borrow utf8 input) {
             assert(bufferLength(input) == 0);
-            region rows = new region(/* bytes= */ 1181328, /* allocations= */ 14);
+            region rows = new region(/* bytes= */ 1214096, /* allocations= */ 15);
             bytes localNames = allocateBytes(rows, /* length= */ 3);
             words localNameStarts = allocate(rows, /* length= */ 4096);
             words localNameLengths = allocate(rows, /* length= */ 4096);
@@ -72,6 +72,7 @@ final class NativeCompilerSourceCallTargetTableExampleTest {
             words localParameterCounts = allocate(rows, /* length= */ 4096);
             words localParameterTypes = allocate(rows, /* length= */ 16384);
             words localResultTypes = allocate(rows, /* length= */ 4096);
+            words localEffects = allocate(rows, /* length= */ 4096);
             bytes localIdentities = allocateBytes(rows, /* length= */ 131072);
             words importedRows = allocate(rows, /* length= */ 32768);
             words importedParameterRows = allocate(rows, /* length= */ 32768);
@@ -92,7 +93,7 @@ final class NativeCompilerSourceCallTargetTableExampleTest {
             set(importedRows, 24576, IMPORTED_RESULT);
             set(importedParameterRows, 0, 2);
             setByte(importedIdentities, 0, 22);
-            region output = new region(/* bytes= */ 1540096, /* allocations= */ 9);
+            region output = new region(/* bytes= */ 1572864, /* allocations= */ 10);
             bytes targetNames = allocateBytes(output, /* length= */ 1048576);
             words targetNameStarts = allocate(output, /* length= */ 4096);
             words targetNameLengths = allocate(output, /* length= */ 4096);
@@ -100,6 +101,7 @@ final class NativeCompilerSourceCallTargetTableExampleTest {
             words targetParameterCounts = allocate(output, /* length= */ 4096);
             words targetParameterTypes = allocate(output, /* length= */ 16384);
             words targetResultTypes = allocate(output, /* length= */ 4096);
+            words targetEffects = allocate(output, /* length= */ 4096);
             bytes targetIdentities = allocateBytes(output, /* length= */ 131072);
             words dependencyRows = allocate(output, /* length= */ 8192);
             setByte(targetNames, 3, 99);
@@ -114,6 +116,7 @@ final class NativeCompilerSourceCallTargetTableExampleTest {
               localParameterCounts,
               localParameterTypes,
               localResultTypes,
+              localEffects,
               localIdentities,
               /* importedCount= */ 1,
               importedRows,
@@ -127,6 +130,7 @@ final class NativeCompilerSourceCallTargetTableExampleTest {
               targetParameterCounts,
               targetParameterTypes,
               targetResultTypes,
+              targetEffects,
               targetIdentities,
               dependencyRows
             );
@@ -144,6 +148,7 @@ final class NativeCompilerSourceCallTargetTableExampleTest {
             dependencyTarget = dependencyRows[4096];
             drop(dependencyRows);
             drop(targetIdentities);
+            drop(targetEffects);
             drop(targetResultTypes);
             drop(targetParameterTypes);
             drop(targetParameterCounts);
@@ -159,6 +164,7 @@ final class NativeCompilerSourceCallTargetTableExampleTest {
             drop(importedParameterRows);
             drop(importedRows);
             drop(localIdentities);
+            drop(localEffects);
             drop(localResultTypes);
             drop(localParameterTypes);
             drop(localParameterCounts);
