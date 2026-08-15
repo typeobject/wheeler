@@ -55,14 +55,14 @@ The module call scanner checks locals first. It checks only admitted dependency 
 
 `ImportedSourceCallTargets.w` now consumes the direct callable-dependency product and closure-wide callable metadata. It copies names, ordered parameter types and loan modes, result kinds, effects, and callable identities into one bounded view. Dependency rank and callable identity establish output order, so packed row order owns nothing. Negative external rows, duplicate identities, malformed ranges, and overlong signatures preserve every caller buffer.
 
-The archive compiler imports this product as the sole target-view boundary. `SourceModuleCallProducts.w` now scans local and admitted dependency targets in one retained callable-body pass. Local matches shadow dependency rows before exact statement binding. `SourceCallLayoutProducts.w` validates arity, parameter types, and result kinds through one dense target table instead of reconstructing local signatures. Structured compilation still supplies an empty dependency view, so imported table population and relocation remain open.
+The archive compiler imports this product as the sole target-view boundary. `SourceCallTargetTable.w` joins local products and the ordered imported view into one dense name, parameter, result, identity, and dependency-rank table. It stages the complete table and leaves every output unchanged on a malformed range, type, or result. `SourceModuleCallProducts.w` scans that shape in one retained callable-body pass. Local matches shadow dependency rows before exact statement binding. `SourceCallLayoutProducts.w` validates arity, parameter types, and result kinds through the same table instead of reconstructing local signatures. Structured compilation still supplies an empty dependency view, so archive table population and relocation remain open.
 
 ## Plan
 
 - [x] Define the closed imported target view accepted by the archive compiler.
 - [ ] Carry copied qualified names, signatures, effects, and identities into structured compilation.
 - [x] Resolve local and imported calls through one source scanner.
-- [ ] Build one local-plus-imported parameter and identity table.
+- [x] Build one local-plus-imported parameter and identity table.
 - [ ] Hand referenced targets to WIP-0060 without changing call code windows.
 - [ ] Preserve package and dependency-rank evidence through the handoff.
 
