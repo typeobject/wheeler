@@ -3,9 +3,9 @@
 module wheeler.compiler.closure.archive_structured_source_module_compiler;
 
 import wheeler.compiler.closure.imported_source_call_targets;
-import wheeler.compiler.closure.local_structured_source_module_compiler;
 import wheeler.compiler.closure.source_call_target_table;
 import wheeler.compiler.closure.source_product_artifact;
+import wheeler.compiler.closure.structured_source_module_compiler;
 import wheeler.core.encoding.binary;
 
 classical class ArchiveStructuredSourceModuleCompiler {
@@ -321,7 +321,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     return outputStart + length;
   }
 
-  /// Publishes one archive module from source-independent imported values and callable products.
+  /// Publishes one local-call archive module from closed value and callable products.
   public SourceProductArtifactPlan compileStructuredArchiveModule(
     borrow byteview archive,
     long sourceStart,
@@ -329,6 +329,78 @@ classical class ArchiveStructuredSourceModuleCompiler {
     long moduleOwner,
     long firstCallable,
     long callableCount,
+    borrow mut words callableBodyStarts,
+    borrow mut words callableBodyLengths,
+    long importedCount,
+    borrow mut words importedRows,
+    borrow byteview importedNames,
+    borrow mut words importedNameStarts,
+    borrow mut words callableFirstParameters,
+    borrow mut words callableParameterCounts,
+    borrow mut words callableResultTypes,
+    borrow mut words parameterTypes,
+    borrow mut words parameterModes,
+    borrow byteview callableNames,
+    borrow mut words callableNameStarts,
+    borrow mut words callableNameLengths,
+    borrow mut bytes artifact,
+    borrow mut bytes identity
+  ) {
+    region emptyTargets = new region(/* bytes= */ 1703936, /* allocations= */ 4);
+    words importedTargetRows = allocate(emptyTargets, /* length= */ 32768);
+    words importedTargetParameterRows = allocate(emptyTargets, /* length= */ 32768);
+    bytes importedTargetNames = allocateBytes(emptyTargets, /* length= */ 1048576);
+    bytes importedTargetIdentities = allocateBytes(emptyTargets, /* length= */ 131072);
+    SourceProductArtifactPlan result = compileStructuredArchiveModuleWithTargetView(
+      archive,
+      sourceStart,
+      sourceLength,
+      moduleOwner,
+      firstCallable,
+      callableCount,
+      /* importedTargetCount= */ 0,
+      importedTargetRows,
+      importedTargetParameterRows,
+      importedTargetNames,
+      importedTargetIdentities,
+      callableBodyStarts,
+      callableBodyLengths,
+      importedCount,
+      importedRows,
+      importedNames,
+      importedNameStarts,
+      callableFirstParameters,
+      callableParameterCounts,
+      callableResultTypes,
+      parameterTypes,
+      parameterModes,
+      callableNames,
+      callableNameStarts,
+      callableNameLengths,
+      artifact,
+      identity
+    );
+    drop(importedTargetIdentities);
+    drop(importedTargetNames);
+    drop(importedTargetParameterRows);
+    drop(importedTargetRows);
+    drop(emptyTargets);
+    return result;
+  }
+
+  /// Publishes an archive module against one closed imported target view.
+  public SourceProductArtifactPlan compileStructuredArchiveModuleWithTargetView(
+    borrow byteview archive,
+    long sourceStart,
+    long sourceLength,
+    long moduleOwner,
+    long firstCallable,
+    long callableCount,
+    long importedTargetCount,
+    borrow mut words importedTargetRows,
+    borrow mut words importedTargetParameterRows,
+    borrow byteview importedTargetNames,
+    borrow byteview importedTargetIdentities,
     borrow mut words callableBodyStarts,
     borrow mut words callableBodyLengths,
     long importedCount,
@@ -354,6 +426,12 @@ classical class ArchiveStructuredSourceModuleCompiler {
     assert(-1 < firstCallable);
     assert(0 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
+    assert(-1 < importedTargetCount);
+    assert(importedTargetCount < 4097);
+    assert(bufferLength(importedTargetRows) == 32768);
+    assert(bufferLength(importedTargetParameterRows) == 32768);
+    assert(bufferLength(importedTargetNames) == 1048576);
+    assert(bufferLength(importedTargetIdentities) == 131072);
     assert(bufferLength(callableBodyStarts) == 4096);
     assert(bufferLength(callableBodyLengths) == 4096);
     assert(-1 < importedCount);
@@ -487,12 +565,17 @@ classical class ArchiveStructuredSourceModuleCompiler {
       callable += 1;
     }
 
-    SourceProductArtifactPlan result = compileStructuredSourceModule(
+    SourceProductArtifactPlan result = compileStructuredSourceModuleWithTargets(
       source,
       /* archiveSourceStart= */ 0,
       moduleOwner,
       /* firstCallable= */ 0,
       callableCount,
+      importedTargetCount,
+      importedTargetRows,
+      importedTargetParameterRows,
+      importedTargetNames,
+      importedTargetIdentities,
       localBodyStarts,
       localBodyLengths,
       importedCount,

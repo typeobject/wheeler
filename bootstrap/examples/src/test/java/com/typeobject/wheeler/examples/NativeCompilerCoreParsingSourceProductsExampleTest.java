@@ -250,9 +250,9 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
         import wheeler.compiler.closure.callable_source_composition;
         import wheeler.compiler.closure.compiled_body_archive;
         import wheeler.compiler.closure.direct_statement_products;
+        import wheeler.compiler.closure.local_structured_source_module_compiler;
         import wheeler.compiler.closure.loop_instruction_products;
         import wheeler.compiler.closure.loop_local_type_products;
-        import wheeler.compiler.closure.local_structured_source_module_compiler;
         import wheeler.compiler.closure.resolved_loop_body_products;
         import wheeler.compiler.closure.resolved_loop_products;
         import wheeler.compiler.closure.source_callable_coordinate_products;

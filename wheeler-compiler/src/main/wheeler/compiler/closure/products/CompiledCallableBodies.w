@@ -11,6 +11,8 @@ import wheeler.compiler.closure.callable_product_identity_plans;
 import wheeler.compiler.closure.callable_source_composition;
 import wheeler.compiler.closure.direct_statement_products;
 import wheeler.compiler.closure.imported_callable_stubs;
+import wheeler.compiler.closure.imported_structured_archive_module_compiler;
+import wheeler.compiler.closure.local_structured_source_module_compiler;
 import wheeler.compiler.closure.source_module_product_artifact;
 import wheeler.compiler.closure.source_product_artifact;
 import wheeler.compiler.compiler_core;
