@@ -153,10 +153,10 @@ final class NativeCompilerReversibleSourceProductArtifactExampleTest {
               setByte(forwardCode, codeByte, input[CODE_START + codeByte]);
               codeByte += 1;
             }
-            set(callableRows, 64, INSTRUCTION_COUNT);
-            set(callableRows, 128, 0);
-            set(callableRows, 192, CODE_LENGTH);
-            GeneratedInversePlan inverse = materializeGeneratedInverseProducts(
+            set(callableRows, 0, 0);
+            set(callableRows, 64, CODE_LENGTH);
+            set(callableRows, 128, INSTRUCTION_COUNT);
+            GeneratedInversePlan inverse = materializeGeneratedInverseCompositionProducts(
               /* callableCount= */ 1,
               callableRows,
               forwardCode,

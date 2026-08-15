@@ -7,8 +7,8 @@ import wheeler.core.encoding.binary;
 
 classical class ReversibleSourceProductArtifact {
   private const long ARTIFACT_BYTES = 32768;
-  private const long CALLABLE_CODE_LENGTH_ROW = 192;
-  private const long CALLABLE_CODE_START_ROW = 128;
+  private const long CALLABLE_CODE_LENGTH_ROW = 64;
+  private const long CALLABLE_CODE_START_ROW = 0;
   private const long CALLABLE_ROWS = 320;
   private const long INVERSE_CODE_LENGTH_ROW = 64;
   private const long INVERSE_ROWS = 192;

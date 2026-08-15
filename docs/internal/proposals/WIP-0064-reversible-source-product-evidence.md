@@ -41,18 +41,20 @@ The admitted straight-line inverse profile has no allocation, drop, move, loan, 
 
 ## Implementation
 
-`ArchiveStructuredSourceModuleCompiler.w` copies each owner-local effect mask beside its rebased body and signature rows. `StructuredSourceModuleCompiler.w` now requires the complete 4,096-row effect view before allocating product storage. The ordinary path accepts only mask zero. A reversible mask traps while artifact and identity outputs retain their sentinels.
+`ArchiveStructuredSourceModuleCompiler.w` copies each owner-local effect mask beside its rebased body and signature rows. `StructuredSourceModuleCompiler.w` now requires the complete 4,096-row effect view before allocating product storage. It admits only homogeneous ordinary or reversible local callable sets and rejects every other mask before forward composition.
+
+The reversible branch stages the complete forward artifact and identity privately, adapts composed callable rows to WIP-0063 inverse coordinates, and accepts only the ownership-free reversible opcode set. `ReversibleSourceProductArtifact.w` requires an explicit zero ownership-event count. Unsupported structured bodies trap before caller artifact or identity mutation. The ordinary branch copies its staged artifact only after the same product pipeline succeeds.
 
 ## Plan
 
 1. [x] Carry local callable effect rows into `StructuredSourceModuleCompiler.w`.
-2. [ ] Select reversible callables before forward composition and reject mixed unsupported effects.
-3. [ ] Require zero forward ownership events for the admitted straight-line inverse profile.
-4. [ ] Generate inverse code and inverse relocation rows from completed callable coordinates.
+2. [x] Select reversible callables before forward composition and reject mixed unsupported effects.
+3. [x] Require zero forward ownership events for the admitted straight-line inverse profile.
+4. [x] Generate inverse code and inverse relocation rows from completed callable coordinates.
 5. [ ] Publish one generated-inverse proof row per declared theorem subject.
-6. [ ] Emit forward, inverse, proof, and identity bytes under one atomic artifact boundary.
+6. [x] Emit staged forward, inverse, and identity bytes under one atomic artifact boundary. Proof publication remains item 5.
 7. [ ] Match signed, Boolean, void, local-call, imported-call, and result-slot stage-0 artifacts byte for byte.
-8. [ ] Execute forward, clear history, execute inverse, and restore exact global and owned state.
+8. [x] Execute forward, clear history, execute inverse, and restore exact state for the ownership-free profile.
 9. [ ] Route the first physical reversible compiler module through direct products.
 10. [ ] Remove its stage-0 source projection and signature-scaffolding path.
 

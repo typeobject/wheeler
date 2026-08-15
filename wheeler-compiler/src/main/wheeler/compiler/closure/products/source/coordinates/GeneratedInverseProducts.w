@@ -106,6 +106,45 @@ classical class GeneratedInverseProducts {
     }
   }
 
+  /// Adapts composed descriptor rows to the shared callable coordinate layout.
+  public GeneratedInversePlan materializeGeneratedInverseCompositionProducts(
+    long callableCount,
+    borrow mut words composedCallables,
+    borrow byteview forwardCode,
+    long forwardCodeLength,
+    borrow mut words inverseRows,
+    borrow mut bytes inverseCode
+  ) {
+    assert(0 < callableCount);
+    assert(callableCount < MAX_CALLABLES + 1);
+    assert(bufferLength(composedCallables) == CALLABLE_ROWS);
+    region coordinates = new region(/* bytes= */ 2560, /* allocations= */ 1);
+    words callableRows = allocate(coordinates, CALLABLE_ROWS);
+    long callable = 0;
+    while (callable < callableCount) limit MAX_CALLABLES {
+      set(
+        callableRows,
+        CALLABLE_INSTRUCTION_COUNT_ROW + callable,
+        composedCallables[128 + callable]
+      );
+      set(callableRows, CALLABLE_CODE_START_ROW + callable, composedCallables[callable]);
+      set(callableRows, CALLABLE_CODE_LENGTH_ROW + callable, composedCallables[64 + callable]);
+      callable += 1;
+    }
+
+    GeneratedInversePlan result = materializeGeneratedInverseProducts(
+      callableCount,
+      callableRows,
+      forwardCode,
+      forwardCodeLength,
+      inverseRows,
+      inverseCode
+    );
+    drop(callableRows);
+    drop(coordinates);
+    return result;
+  }
+
   /// Reverses each callable window without deriving another local or type coordinate.
   public GeneratedInversePlan materializeGeneratedInverseProducts(
     long callableCount,

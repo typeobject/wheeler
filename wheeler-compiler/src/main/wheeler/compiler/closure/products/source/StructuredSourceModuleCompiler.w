@@ -27,6 +27,7 @@ import wheeler.compiler.closure.source_module_product_artifact;
 import wheeler.compiler.closure.source_product_artifact;
 import wheeler.compiler.closure.source_statement_products;
 import wheeler.compiler.closure.source_value_products;
+import wheeler.compiler.closure.structured_artifact_directions;
 import wheeler.compiler.closure.structured_source_coordinates;
 import wheeler.compiler.closure.structured_source_targets;
 
@@ -83,10 +84,22 @@ classical class StructuredSourceModuleCompiler {
     assert(0 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
     assert(bufferLength(callableEffects) == 4096);
+    long reversibleCallableCount = 0;
     long validatedCallable = 0;
     while (validatedCallable < callableCount) limit MAX_CALLABLES {
-      assert(callableEffects[firstCallable + validatedCallable] == 0);
+      long effect = callableEffects[firstCallable + validatedCallable];
+      boolean supportedEffect = effect == 0;
+      if (effect == 2) {
+        supportedEffect = true;
+        reversibleCallableCount += 1;
+      }
+
+      assert(supportedEffect);
       validatedCallable += 1;
+    }
+
+    if (0 < reversibleCallableCount) {
+      assert(reversibleCallableCount == callableCount);
     }
 
     assert(-1 < importedTargetCount);
@@ -768,8 +781,9 @@ classical class StructuredSourceModuleCompiler {
       composedCode
     );
     assert(composition.valid);
-    SourceProductArtifactPlan result = publishClassicalSourceModuleArtifactWithStubs(
+    SourceProductArtifactPlan result = publishStructuredArtifactDirections(
       callableCount,
+      reversibleCallableCount,
       referencedTargetPlan.importedCount,
       retainedTargetParameterStarts,
       retainedTargetParameterCounts,
@@ -791,6 +805,7 @@ classical class StructuredSourceModuleCompiler {
       output,
       identity
     );
+
     long publishedRelocation = 0;
     while (publishedRelocation < resolvedCallCount) limit 256 {
       set(publishedRelocations, publishedRelocation, callRelocations[publishedRelocation]);
