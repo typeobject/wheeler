@@ -50,12 +50,13 @@ Adding inverse flags to the existing emitter without an explicit product would c
 
 1. [x] Publish callable inverse instruction and code windows from the WIP-0055 callable rows.
 2. [x] Move reversible opcode pairing out of the proof verifier into the shared product authority.
-3. [ ] Differentially generate straight-line update, assertion, call, and result-slot inverses.
-4. [ ] Rebase local and imported call relocations into inverse instruction order without changing identities.
-5. [ ] Bind inverse ownership and proof rows to the forward coordinate identity.
-6. [ ] Emit reversible function flags, inverse offsets, inverse lengths, and code from completed products.
-7. [ ] Match stage 0 byte for byte and execute forward then inverse after a history commit.
-8. [ ] Admit structured reversible control only after WIP-0035 publishes branch and loop inverse products.
+3. [x] Differentially generate a straight-line checked-update inverse byte for byte.
+4. [ ] Extend differential generation to assertions, calls, and result-slot operations.
+5. [ ] Rebase local and imported call relocations into inverse instruction order without changing identities.
+6. [ ] Bind inverse ownership and proof rows to the forward coordinate identity.
+7. [ ] Emit reversible function flags, inverse offsets, inverse lengths, and code from completed products.
+8. [ ] Match a complete artifact byte for byte and execute forward then inverse after a history commit.
+9. [ ] Admit structured reversible control only after WIP-0035 publishes branch and loop inverse products.
 
 ## Acceptance
 
