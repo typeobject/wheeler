@@ -24,37 +24,40 @@ final class NativeCompilerReversibleSourceProductArtifactExampleTest {
     Program expectedProgram = compiler.compileLibraryModuleFiles(
         Map.of("InverseArtifact.w", source()), "fixture.inverse_artifact");
     FunctionBody expectedFunction = function(expectedProgram, "bump");
-    FunctionBody forwardFunction = new FunctionBody(
-        expectedFunction.id(),
-        expectedFunction.name(),
-        expectedFunction.coherent(),
-        expectedFunction.parameterCount(),
-        expectedFunction.localTypes(),
-        expectedFunction.resultType(),
-        expectedFunction.implicitResultSlot(),
-        expectedFunction.forward(),
-        List.of());
+    FunctionBody expectedCaller = function(expectedProgram, "invoke");
     Program forwardProgram = new Program(
         expectedProgram.name(),
         expectedProgram.entryFunctionId(),
         expectedProgram.globals(),
         expectedProgram.functions().stream()
-            .map(function -> function.id() == forwardFunction.id() ? forwardFunction : function)
+            .map(function -> function.id() < 2
+                ? new FunctionBody(
+                    function.id(),
+                    function.name(),
+                    function.coherent(),
+                    function.parameterCount(),
+                    function.localTypes(),
+                    function.resultType(),
+                    function.implicitResultSlot(),
+                    function.forward(),
+                    List.of())
+                : function)
             .toList());
     byte[] forwardArtifact = new BytecodeWriter().write(forwardProgram);
     byte[] expectedArtifact = new BytecodeWriter().write(expectedProgram);
-    CodeRange forwardCode = functionForwardCode(forwardArtifact, forwardFunction.id());
-    byte[] proofName = "bumpInverse".getBytes(StandardCharsets.UTF_8);
-    byte[] input = Arrays.copyOf(forwardArtifact, forwardArtifact.length + proofName.length);
-    System.arraycopy(proofName, 0, input, forwardArtifact.length, proofName.length);
+    CodeRange bumpCode = functionForwardCode(forwardArtifact, expectedFunction.id());
+    CodeRange invokeCode = functionForwardCode(forwardArtifact, expectedCaller.id());
+    byte[] proofNames = "bumpInverseinvokeInverse".getBytes(StandardCharsets.UTF_8);
+    byte[] input = Arrays.copyOf(forwardArtifact, forwardArtifact.length + proofNames.length);
+    System.arraycopy(proofNames, 0, input, forwardArtifact.length, proofNames.length);
     Program nativeCompiler = program(
         input.length,
         forwardArtifact.length,
-        forwardCode.start(),
-        forwardCode.length(),
-        forwardFunction.forward().size(),
-        forwardFunction.id(),
-        proofName.length);
+        bumpCode.start(),
+        bumpCode.length(),
+        invokeCode.length(),
+        expectedFunction.forward().size(),
+        expectedCaller.forward().size());
     VirtualMachine machine = VirtualMachine.withBinaryInput(nativeCompiler, input, 32_768);
 
     CompilerMachineRunner.runWithoutRewindHistory(machine);
@@ -62,12 +65,12 @@ final class NativeCompilerReversibleSourceProductArtifactExampleTest {
     assertEquals(1, machine.global("published"));
     assertArrayEquals(expectedArtifact, machine.hostOutput());
     Program published = new BytecodeReader().read(machine.hostOutput());
-    FunctionBody publishedFunction = function(published, "bump");
     VirtualMachine executed = new VirtualMachine(published);
-    executed.invoke(publishedFunction.id(), false);
+    FunctionBody publishedCaller = function(published, "invoke");
+    executed.invoke(publishedCaller.id(), false);
     assertEquals(3, executed.global(0));
     executed.establishEffectBoundary();
-    executed.invoke(publishedFunction.id(), true);
+    executed.invoke(publishedCaller.id(), true);
     assertEquals(0, executed.global(0));
   }
 
@@ -83,7 +86,12 @@ final class NativeCompilerReversibleSourceProductArtifactExampleTest {
             assert(value == 3);
           }
 
+          rev void invoke() {
+            bump();
+          }
+
           theorem bumpInverse proves inverse(bump);
+          theorem invokeInverse proves inverse(invoke);
         }
         """;
   }
@@ -134,10 +142,10 @@ final class NativeCompilerReversibleSourceProductArtifactExampleTest {
       int inputLength,
       int artifactLength,
       int codeStart,
-      int codeLength,
-      int instructionCount,
-      int subject,
-      int proofNameLength) throws Exception {
+      int bumpCodeLength,
+      int invokeCodeLength,
+      int bumpInstructionCount,
+      int invokeInstructionCount) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.generated_inverse_products"));
@@ -172,13 +180,19 @@ final class NativeCompilerReversibleSourceProductArtifactExampleTest {
               codeByte += 1;
             }
             set(callableRows, 0, 0);
-            set(callableRows, 64, CODE_LENGTH);
-            set(callableRows, 128, INSTRUCTION_COUNT);
+            set(callableRows, 64, BUMP_CODE_LENGTH);
+            set(callableRows, 128, BUMP_INSTRUCTION_COUNT);
+            set(callableRows, 1, BUMP_CODE_LENGTH);
+            set(callableRows, 65, INVOKE_CODE_LENGTH);
+            set(callableRows, 129, INVOKE_INSTRUCTION_COUNT);
             set(proofNameStarts, 0, ARTIFACT_LENGTH);
-            set(proofNameLengths, 0, PROOF_NAME_LENGTH);
-            set(proofSubjects, 0, SUBJECT);
+            set(proofNameLengths, 0, 11);
+            set(proofSubjects, 0, 0);
+            set(proofNameStarts, 1, ARTIFACT_LENGTH + 11);
+            set(proofNameLengths, 1, 13);
+            set(proofSubjects, 1, 1);
             GeneratedInversePlan inverse = materializeGeneratedInverseCompositionProducts(
-              /* callableCount= */ 1,
+              /* callableCount= */ 2,
               callableRows,
               forwardCode,
               /* forwardCodeLength= */ CODE_LENGTH,
@@ -189,13 +203,13 @@ final class NativeCompilerReversibleSourceProductArtifactExampleTest {
             SourceProductArtifactPlan artifact = publishReversibleSourceProductArtifact(
               input,
               ARTIFACT_LENGTH,
-              /* callableCount= */ 1,
+              /* callableCount= */ 2,
               /* ownershipEventCount= */ 0,
               callableRows,
               inverseRows,
               inverseCode,
               input,
-              /* proofCount= */ 1,
+              /* proofCount= */ 2,
               proofNameStarts,
               proofNameLengths,
               proofSubjects,
@@ -219,11 +233,16 @@ final class NativeCompilerReversibleSourceProductArtifactExampleTest {
             .replace("INPUT_LENGTH", Integer.toString(inputLength))
             .replace("ARTIFACT_LENGTH", Integer.toString(artifactLength))
             .replace("CODE_START", Integer.toString(codeStart))
-            .replace("CODE_LENGTH", Integer.toString(codeLength))
-            .replace("INSTRUCTION_COUNT", Integer.toString(instructionCount))
-            .replace("SUBJECT", Integer.toString(subject))
-            .replace("PROOF_NAME_LENGTH", Integer.toString(proofNameLength))
-            .replace("ARENA_BYTES", Integer.toString(267_808 + codeLength)));
+            .replace("BUMP_CODE_LENGTH", Integer.toString(bumpCodeLength))
+            .replace("INVOKE_CODE_LENGTH", Integer.toString(invokeCodeLength))
+            .replace(
+                "CODE_LENGTH",
+                Integer.toString(bumpCodeLength + invokeCodeLength))
+            .replace("BUMP_INSTRUCTION_COUNT", Integer.toString(bumpInstructionCount))
+            .replace("INVOKE_INSTRUCTION_COUNT", Integer.toString(invokeInstructionCount))
+            .replace(
+                "ARENA_BYTES",
+                Integer.toString(267_808 + bumpCodeLength + invokeCodeLength)));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.reversible_source_product_artifact");
   }

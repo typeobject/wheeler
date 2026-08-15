@@ -2,18 +2,18 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Draft |
+| Status | Implemented |
 | Owners | Wheeler compiler, linker, and reversible runtime maintainers |
 | Created | 2026-08-15 |
 | Updated | 2026-08-15 |
 | Area | Self-hosting compiler, reversible calls, result slots |
 | Depends on | WIP-0041, WIP-0057, WIP-0060, WIP-0064 |
 | Supersedes | Broad call and result portfolio split from WIP-0064 |
-| Superseded by | None |
+| Superseded by | WIP-0066 owns Boolean reversible result slots |
 
 ## Summary
 
-Extend the direct reversible source-product path from the admitted void and signed source-result profiles to Boolean results, local calls, imported calls, and result relations with two sources. Preserve exact call identities and reject every unsupported effect before artifact publication.
+Extend the direct reversible source-product path from the admitted void and signed source-result profiles to local calls, imported calls, and result relations with two sources. Preserve exact call identities and reject every unsupported effect before artifact publication.
 
 ## Problem
 
@@ -50,22 +50,22 @@ The source-immediate and two-source fixtures pass through `StructuredSourceModul
 
 `SourceCallRelocationLinkProducts.w` counts forward and inverse instruction directions independently after verifier-stub filtering. It maps the forward source coordinate through the stable target identity, derives the inverse coordinate from the generated inverse order, checks the exact call/uncall opcode pair, and publishes both final targets together. The linked-code fixture excludes both suffix functions and rewrites the retained forward and inverse operands to the same final function ID.
 
+The native proof verifier accepts a bounded dense proof section instead of one hard-coded row. A two-callable native artifact matches stage 0 byte for byte, executes a local call forward, clears history at an effect boundary, and executes `UNCALL` to restore exact global state. The imported-link fixture executes the same sequence through its two native-linked target operands. Stale identities and mismatched owners fail before publication.
+
 ## Plan
 
-1. [ ] Publish the stage-0 Boolean reversible result-slot source profile.
-2. [ ] Extend native result composition to Boolean presence and payload products.
-3. [x] Match the admitted signed one-source result artifact byte for byte. Boolean remains gated by item 1.
-4. [x] Match admitted source-immediate and two-source result relations byte for byte.
-5. [x] Generate local `CALL` and inverse `UNCALL` products from one target identity.
-6. [x] Rebase imported inverse call relocations after referenced-target filtering.
-7. [x] Rewrite forward and inverse call operands to final linked function IDs atomically.
-8. [x] Prove verifier stubs are absent from retained forward, inverse, function, and proof products.
-9. [x] Cover shuffled call storage, shared targets, duplicate coordinates, and stale identities.
-10. [ ] Execute forward and inverse local and imported call chains after clearing history.
+1. [x] Match the admitted signed one-source result artifact byte for byte.
+2. [x] Match admitted source-immediate and two-source result relations byte for byte.
+3. [x] Generate local `CALL` and inverse `UNCALL` products from one target identity.
+4. [x] Rebase imported inverse call relocations after referenced-target filtering.
+5. [x] Rewrite forward and inverse call operands to final linked function IDs atomically.
+6. [x] Prove verifier stubs are absent from retained forward, inverse, function, and proof products.
+7. [x] Cover shuffled call storage, shared targets, duplicate coordinates, and stale identities.
+8. [x] Execute forward and inverse local and imported call chains after clearing history.
 
 ## Acceptance
 
-- The native and stage-0 artifacts match for every admitted result relation and call shape.
+- The native and stage-0 artifacts match for every admitted signed result relation and call shape.
 - The final verifier accepts linked forward and inverse bodies without dependency source.
 - Shuffled product storage does not change artifact or relocation bytes.
 - Unsupported Boolean, call, target, or result forms fail before one caller-visible byte changes.
@@ -91,3 +91,4 @@ Rejected. Referenced-target filtering changes storage order. Stable identities a
 - [WIP-0057](WIP-0057-source-call-relocation-and-ownership-coordinate-products.md)
 - [WIP-0060](WIP-0060-imported-call-stub-and-relocation-products.md)
 - [WIP-0064](WIP-0064-reversible-source-product-evidence.md)
+- [WIP-0066](WIP-0066-boolean-reversible-result-slots.md)

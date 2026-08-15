@@ -4,10 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
+import com.typeobject.wheeler.core.bytecode.FunctionBody;
+import com.typeobject.wheeler.core.bytecode.Global;
+import com.typeobject.wheeler.core.bytecode.Instruction;
+import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -28,6 +33,44 @@ final class NativeCompilerSourceCallRelocationLinkProductsExampleTest {
     assertEquals(1, machine.global("inverseLinkedOperand"));
     assertEquals(0, machine.global("suffixByte"));
     assertEquals(1, machine.global("published"));
+
+    FunctionBody caller = new FunctionBody(
+        0,
+        "caller",
+        false,
+        0,
+        List.of(),
+        null,
+        List.of(Instruction.of(Opcode.CALL, machine.global("linkedOperand")),
+            Instruction.of(Opcode.RETURN)),
+        List.of(Instruction.of(Opcode.UNCALL, machine.global("inverseLinkedOperand")),
+            Instruction.of(Opcode.RETURN)));
+    FunctionBody target = new FunctionBody(
+        1,
+        "target",
+        false,
+        0,
+        List.of(),
+        null,
+        List.of(Instruction.of(Opcode.ADD_CONST, 0, 3), Instruction.of(Opcode.RETURN)),
+        List.of(Instruction.of(Opcode.SUB_CONST, 0, 3), Instruction.of(Opcode.RETURN)));
+    FunctionBody library = new FunctionBody(
+        2,
+        "$library",
+        false,
+        0,
+        List.of(),
+        null,
+        List.of(Instruction.of(Opcode.HALT)),
+        List.of());
+    VirtualMachine executed = new VirtualMachine(
+        new Program("linked-call-chain", 2, List.of(new Global("marker", 0)),
+            List.of(caller, target, library)));
+    executed.invoke(caller.id(), false);
+    assertEquals(3, executed.global(0));
+    executed.establishEffectBoundary();
+    executed.invoke(caller.id(), true);
+    assertEquals(0, executed.global(0));
   }
 
   @Test

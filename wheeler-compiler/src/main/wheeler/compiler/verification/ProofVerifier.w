@@ -213,77 +213,100 @@ classical class ProofVerifier {
       return 0;
     }
 
-    if (differs(proofLength, 28)) {
+    long proofCount = readUnsigned(artifact, proofOffset, 4);
+    if (proofCount < 1) {
       return 0;
     }
 
-    if (differs(readUnsigned(artifact, proofOffset, 4), 1)) {
+    if (4096 < proofCount) {
       return 0;
     }
 
-    if (differs(readUnsigned(artifact, proofOffset + 4, 4), 0)) {
+    if (differs(proofLength, 4 + proofCount * 24)) {
       return 0;
     }
 
-    if (readUnsigned(artifact, proofOffset + 8, 4) < stringCount) {} else {
-      return 0;
-    }
+    long proof = 0;
+    while (proof < proofCount) limit 4096 {
+      long proofRow = proofOffset + 4 + proof * 24;
+      if (differs(readUnsigned(artifact, proofRow, 4), proof)) {
+        return 0;
+      }
 
-    long rule = readUnsigned(artifact, proofOffset + 12, 4);
-    long subject = readUnsigned(artifact, proofOffset + 16, 4);
-    if (subject < entryFunction) {} else {
-      return 0;
-    }
+      if (readUnsigned(artifact, proofRow + 4, 4) < stringCount) {} else {
+        return 0;
+      }
 
-    long descriptor = functionsOffset + 4 + subject * 40;
-    if (rule == PROOF_GENERATED_INVERSE) {
-      long functionFlags = readUnsigned(artifact, descriptor + 8, 4);
-      if (functionFlags == 1) {} else {
-        if (functionFlags == 13) {} else {
+      long rule = readUnsigned(artifact, proofRow + 8, 4);
+      long subject = readUnsigned(artifact, proofRow + 12, 4);
+      if (subject < functionCount) {} else {
+        return 0;
+      }
+
+      if (subject < entryFunction) {} else {
+        return 0;
+      }
+
+      long descriptor = functionsOffset + 4 + subject * 40;
+      boolean proofValid = false;
+      if (rule == PROOF_GENERATED_INVERSE) {
+        long functionFlags = readUnsigned(artifact, descriptor + 8, 4);
+        boolean functionFlagsValid = functionFlags == 1;
+        if (functionFlags == 13) {
+          functionFlagsValid = true;
+        }
+
+        if (functionFlagsValid == false) {
           return 0;
         }
+
+        long generatedArgumentByte = 0;
+        while (generatedArgumentByte < 8) limit 8 {
+          if (differs(artifact[proofRow + 16 + generatedArgumentByte], 255)) {
+            return 0;
+          }
+
+          generatedArgumentByte += 1;
+        }
+
+        proofValid = verifyGeneratedInverse(artifact, descriptor, codeOffset) == 1;
       }
 
-      long argumentByte = 0;
-      while (argumentByte < 8) limit 8 {
-        if (differs(artifact[proofOffset + 20 + argumentByte], 255)) {
+      if (rule == PROOF_STATIC_STEP_BOUND) {
+        long staticBound = readUnsigned(artifact, proofRow + 16, 8);
+        if (staticBound < 1) {
           return 0;
         }
 
-        argumentByte += 1;
+        if (maxSteps < staticBound) {
+          return 0;
+        }
+
+        long staticForwardOffset = readUnsigned(artifact, descriptor + 12, 4);
+        long staticForwardLength = readUnsigned(artifact, descriptor + 16, 4);
+        long staticSteps = straightLineInstructionCount(
+          artifact,
+          codeOffset + staticForwardOffset,
+          staticForwardLength
+        );
+        if (staticSteps < 0) {
+          return 0;
+        }
+
+        if (staticBound < staticSteps) {
+          return 0;
+        }
+
+        proofValid = true;
       }
 
-      return verifyGeneratedInverse(artifact, descriptor, codeOffset);
+      if (proofValid == false) {
+        return 0;
+      }
+
+      proof += 1;
     }
 
-    if (rule == PROOF_STATIC_STEP_BOUND) {
-      long bound = readUnsigned(artifact, proofOffset + 20, 8);
-      if (bound < 1) {
-        return 0;
-      }
-
-      if (maxSteps < bound) {
-        return 0;
-      }
-
-      long forwardOffset = readUnsigned(artifact, descriptor + 12, 4);
-      long forwardLength = readUnsigned(artifact, descriptor + 16, 4);
-      long steps = straightLineInstructionCount(
-        artifact,
-        codeOffset + forwardOffset,
-        forwardLength
-      );
-      if (steps < 0) {
-        return 0;
-      }
-
-      if (bound < steps) {
-        return 0;
-      }
-
-      return 1;
-    }
-
-    return 0;
+    return 1;
   }
 }
