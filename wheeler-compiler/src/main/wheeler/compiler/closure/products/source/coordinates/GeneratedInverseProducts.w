@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.generated_inverse_products;
 
+import wheeler.compiler.closure.generated_inverse_relocations;
 import wheeler.compiler.opcodes;
 import wheeler.core.encoding.binary;
 

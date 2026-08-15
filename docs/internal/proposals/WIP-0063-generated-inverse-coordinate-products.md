@@ -44,7 +44,9 @@ Adding inverse flags to the existing emitter without an explicit product would c
 
 `GeneratedInverseProducts.w` consumes the WIP-0055 callable code starts, lengths, and instruction counts. It validates complete contiguous windows, records every exact instruction start, keeps the terminal return in place, and emits each earlier instruction in reverse order through one shared opcode-pair function. It stages all 262,144 code bytes and every callable row before publication. An unsupported opcode leaves caller sentinels untouched.
 
-`ProofVerifier.w` now calls that same opcode-pair function. The verifier no longer carries a private inverse table.
+`GeneratedInverseRelocations.w` maps each forward owner-local call coordinate to its exact reversed instruction. It sorts output by callable and inverse instruction, retains the target row and all 32 identity bytes, and rejects duplicate forward coordinates before copying one caller row. Two shuffled calls to one target publish inverse coordinates zero and three with separate stable identity rows.
+
+`ProofVerifier.w` now calls the generated-inverse opcode-pair function. The verifier no longer carries a private inverse table.
 
 ## Plan
 
@@ -52,7 +54,7 @@ Adding inverse flags to the existing emitter without an explicit product would c
 2. [x] Move reversible opcode pairing out of the proof verifier into the shared product authority.
 3. [x] Differentially generate a straight-line checked-update inverse byte for byte.
 4. [ ] Extend differential generation to assertions, calls, and result-slot operations.
-5. [ ] Rebase local and imported call relocations into inverse instruction order without changing identities.
+5. [x] Rebase local and imported call relocations into inverse instruction order without changing identities.
 6. [ ] Bind inverse ownership and proof rows to the forward coordinate identity.
 7. [ ] Emit reversible function flags, inverse offsets, inverse lengths, and code from completed products.
 8. [ ] Match a complete artifact byte for byte and execute forward then inverse after a history commit.
