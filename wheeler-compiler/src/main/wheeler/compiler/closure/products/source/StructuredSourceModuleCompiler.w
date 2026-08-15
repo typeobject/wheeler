@@ -117,6 +117,7 @@ classical class StructuredSourceModuleCompiler {
     borrow mut words stringLengths,
     borrow mut words functionNameIds,
     borrow mut words publishedRelocations,
+    borrow mut words publishedRelocationOwners,
     borrow mut bytes publishedRelocationIdentities,
     borrow mut bytes output,
     borrow mut bytes identity
@@ -159,6 +160,7 @@ classical class StructuredSourceModuleCompiler {
     assert(bufferLength(stringLengths) == 256);
     assert(bufferLength(functionNameIds) == 64);
     assert(bufferLength(publishedRelocations) == 768);
+    assert(bufferLength(publishedRelocationOwners) == 256);
     assert(bufferLength(publishedRelocationIdentities) == 8192);
     assert(bufferLength(output) == 32768);
     assert(bufferLength(identity) == 32);
@@ -831,6 +833,11 @@ classical class StructuredSourceModuleCompiler {
     long publishedRelocation = 0;
     while (publishedRelocation < resolvedCallCount) limit 256 {
       set(publishedRelocations, publishedRelocation, callRelocations[publishedRelocation]);
+      set(
+        publishedRelocationOwners,
+        publishedRelocation,
+        statements[callStatements[publishedRelocation]]
+      );
       set(
         publishedRelocations,
         256 + publishedRelocation,

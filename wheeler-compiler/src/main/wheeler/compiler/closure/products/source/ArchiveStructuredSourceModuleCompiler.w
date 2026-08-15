@@ -351,8 +351,9 @@ classical class ArchiveStructuredSourceModuleCompiler {
     words importedTargetParameterRows = allocate(emptyTargets, /* length= */ 32768);
     bytes importedTargetNames = allocateBytes(emptyTargets, /* length= */ 1048576);
     bytes importedTargetIdentities = allocateBytes(emptyTargets, /* length= */ 131072);
-    region emptyRelocations = new region(/* bytes= */ 14336, /* allocations= */ 2);
+    region emptyRelocations = new region(/* bytes= */ 16384, /* allocations= */ 3);
     words relocationRows = allocate(emptyRelocations, /* length= */ 768);
+    words relocationOwners = allocate(emptyRelocations, /* length= */ 256);
     bytes relocationIdentities = allocateBytes(emptyRelocations, /* length= */ 8192);
     words qualifierNameStarts = allocate(emptyTargets, /* length= */ 4096);
     words qualifierNameLengths = allocate(emptyTargets, /* length= */ 4096);
@@ -388,11 +389,13 @@ classical class ArchiveStructuredSourceModuleCompiler {
       callableNameStarts,
       callableNameLengths,
       relocationRows,
+      relocationOwners,
       relocationIdentities,
       artifact,
       identity
     );
     drop(relocationIdentities);
+    drop(relocationOwners);
     drop(relocationRows);
     drop(emptyRelocations);
     drop(qualifierRanks);
@@ -438,6 +441,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     borrow mut words callableNameStarts,
     borrow mut words callableNameLengths,
     borrow mut words relocationRows,
+    borrow mut words relocationOwners,
     borrow mut bytes relocationIdentities,
     borrow mut bytes artifact,
     borrow mut bytes identity
@@ -623,6 +627,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
       stringLengths,
       functionNameIds,
       relocationRows,
+      relocationOwners,
       relocationIdentities,
       artifact,
       identity

@@ -13,6 +13,7 @@ import wheeler.compiler.closure.direct_statement_products;
 import wheeler.compiler.closure.imported_callable_stubs;
 import wheeler.compiler.closure.imported_structured_archive_module_compiler;
 import wheeler.compiler.closure.local_structured_source_module_compiler;
+import wheeler.compiler.closure.source_call_relocation_link_products;
 import wheeler.compiler.closure.source_module_product_artifact;
 import wheeler.compiler.closure.source_product_artifact;
 import wheeler.compiler.compiler_core;

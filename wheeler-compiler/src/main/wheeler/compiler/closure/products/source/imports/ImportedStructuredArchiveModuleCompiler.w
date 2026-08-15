@@ -40,6 +40,7 @@ classical class ImportedStructuredArchiveModuleCompiler {
     borrow mut words moduleNameStarts,
     borrow mut words moduleNameLengths,
     borrow mut words relocationRows,
+    borrow mut words relocationOwners,
     borrow mut bytes relocationIdentities,
     borrow mut bytes artifact,
     borrow mut bytes identity
@@ -117,6 +118,7 @@ classical class ImportedStructuredArchiveModuleCompiler {
       callableNameStarts,
       callableNameLengths,
       relocationRows,
+      relocationOwners,
       relocationIdentities,
       artifact,
       identity

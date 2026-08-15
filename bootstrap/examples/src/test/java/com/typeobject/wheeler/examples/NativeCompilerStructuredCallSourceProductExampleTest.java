@@ -72,6 +72,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
     assertEquals(3, machine.global("functionCount"));
     assertEquals(1, machine.global("relocationCount"));
     assertEquals(1, machine.global("relocationTarget"));
+    assertEquals(0, machine.global("relocationOwner"));
     assertEquals(42, machine.global("relocationIdentityByte"));
     assertEquals(1, machine.global("retainedFunctionCount"));
     assertEquals(2, machine.global("excludedFunctionCount"));
@@ -372,6 +373,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
           state long maxLocalCount = 0;
           state long relocationCount = 0;
           state long relocationTarget = 0;
+          state long relocationOwner = -1;
           state long relocationIdentityByte = 0;
           state long retainedFunctionCount = 0;
           state long excludedFunctionCount = 0;
@@ -404,8 +406,9 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             words qualifierNameStarts = allocate(qualifiers, /* length= */ 4096);
             words qualifierNameLengths = allocate(qualifiers, /* length= */ 4096);
             words qualifierRanks = allocate(qualifiers, /* length= */ 4096);
-            region relocations = new region(/* bytes= */ 14336, /* allocations= */ 2);
+            region relocations = new region(/* bytes= */ 16384, /* allocations= */ 3);
             words relocationRows = allocate(relocations, /* length= */ 768);
+            words relocationOwners = allocate(relocations, /* length= */ 256);
             bytes relocationIdentities = allocateBytes(relocations, /* length= */ 8192);
             IMPORTED_SETUP
             set(bodyStarts, 0, BODY_START);
@@ -461,6 +464,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
               stringLengths,
               functionNameIds,
               relocationRows,
+              relocationOwners,
               relocationIdentities,
               artifact,
               identity
@@ -477,6 +481,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             relocationCount = plan.relocationCount;
             if (0 < plan.relocationCount) {
               relocationTarget = relocationRows[256];
+              relocationOwner = relocationOwners[0];
               relocationIdentityByte = relocationIdentities[0];
             }
             region decoded = new region(/* bytes= */ 201728, /* allocations= */ 2);
@@ -551,6 +556,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             drop(linker);
             valid = 1;
             drop(relocationIdentities);
+            drop(relocationOwners);
             drop(relocationRows);
             drop(relocations);
             drop(qualifierRanks);

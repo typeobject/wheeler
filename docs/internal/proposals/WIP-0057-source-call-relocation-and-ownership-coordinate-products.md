@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler compiler, linker, and ownership maintainers |
 | Created | 2026-08-14 |
 | Updated | 2026-08-14 |
@@ -123,7 +123,7 @@ All rows use fixed caller-provided buffers. No pass allocates per call or per ev
 - [x] `LoopCallProducts.w` now consumes preplanned statement widths, publishes owner-local-type rows, and cannot add a second width after coordinate publication. `CallableReturnProducts.w` includes calls before it places implicit void returns.
 - [x] `CallableSourceComposition.w` consumes root call code and local types beside direct and loop products. Signed, Boolean, void, one-argument, and two-argument recursive fixtures match stage 0 byte for byte after a completed root loop.
 - [x] WIP-0058 composes calls nested inside structured control windows and publishes exact nested relocation rows after recursive measurement.
-- [ ] WIP-0059 admits imported callable products and stable external target identities without dependency source.
+- [x] WIP-0059 admits imported callable products and stable external target identities without dependency source.
 
 ## Acceptance
 
