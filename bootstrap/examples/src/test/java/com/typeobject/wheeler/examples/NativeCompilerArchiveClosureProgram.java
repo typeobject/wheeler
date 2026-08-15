@@ -14,6 +14,10 @@ final class NativeCompilerArchiveClosureProgram {
   static final List<PhysicalModule> PHYSICAL_MODULES = NativeCompilerPhysicalModules.all();
   static final List<PhysicalModule> PHYSICAL_CALLABLE_MODULES =
       NativeCompilerPhysicalModules.importedCallableProducts();
+  static final PhysicalModule PHYSICAL_MANIFEST_MODULE = PHYSICAL_MODULES.stream()
+      .filter(module -> module.name().equals("wheeler.compiler.closure.manifest_syntax"))
+      .findFirst()
+      .orElseThrow();
   static final PhysicalModule PHYSICAL_REVERSIBLE_MODULE = PHYSICAL_MODULES.stream()
       .filter(module -> module.name().equals(
           "wheeler.compiler.closure.reversible_token_coordinates"))
@@ -58,6 +62,13 @@ final class NativeCompilerArchiveClosureProgram {
     return program(
         /* compilePhysicalProducts= */ true,
         List.of(PHYSICAL_MODULES.getLast()),
+        List.of());
+  }
+
+  static Program manifestProductProgram() throws Exception {
+    return program(
+        /* compilePhysicalProducts= */ true,
+        List.of(PHYSICAL_MANIFEST_MODULE),
         List.of());
   }
 
@@ -961,6 +972,9 @@ final class NativeCompilerArchiveClosureProgram {
             .replace(
                 "STRUCTURED_SOURCE_MODULE_OWNER",
                 Integer.toString(physicalOwner(PHYSICAL_MODULES.getLast())))
+            .replace(
+                "MANIFEST_SOURCE_MODULE_OWNER",
+                Integer.toString(physicalOwner(PHYSICAL_MANIFEST_MODULE)))
             .replace(
                 "REVERSIBLE_SOURCE_MODULE_OWNER",
                 Integer.toString(physicalOwner(PHYSICAL_REVERSIBLE_MODULE)))

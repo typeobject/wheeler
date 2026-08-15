@@ -316,7 +316,10 @@ classical class BootstrapModuleManifestParser {
         break;
       }
 
-      requireMetadata(profileByte(source[cursor], cursor == profileStart), source);
+      requireMetadata(
+        profileByte(source[cursor], cursor != profileStart, /* valid= */ false),
+        source
+      );
       cursor += 1;
     }
 
@@ -441,7 +444,7 @@ classical class BootstrapModuleManifestParser {
       writeAscii(expected, 2, "    identity: ");
       cursor = consumeMetadata(source, cursor, expected, 16);
       set(identityStarts, parsedModules, cursor + 1);
-      cursor = consumeQuotedIdentity(source, cursor, expected);
+      cursor = consumeQuotedIdentity(source, cursor);
       setByte(expected, 0, 10);
       writeAscii(expected, 1, "    imports:");
       cursor = consumeMetadata(source, cursor, expected, 13);

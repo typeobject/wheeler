@@ -145,6 +145,34 @@ classical class ArchiveStructuredSourceModuleCompiler {
     return false;
   }
 
+  private boolean nameBefore(
+    borrow byteview names,
+    long leftStart,
+    long leftLength,
+    long rightStart,
+    long rightLength
+  ) {
+    long shared = leftLength;
+    if (rightLength < shared) {
+      shared = rightLength;
+    }
+
+    long index = 0;
+    while (index < shared) limit 256 {
+      if (names[leftStart + index] < names[rightStart + index]) {
+        return true;
+      }
+
+      if (names[rightStart + index] < names[leftStart + index]) {
+        return false;
+      }
+
+      index += 1;
+    }
+
+    return leftLength < rightLength;
+  }
+
   private long localParameterType(long type, long mode) {
     if (mode == 0) {
       return type;
@@ -495,7 +523,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     );
     assert(copiedSourceLength == sourceLength);
     utf8 source = freezeUtf8(sourceBytes);
-    region metadata = new region(/* bytes= */ 1020928, /* allocations= */ 15);
+    region metadata = new region(/* bytes= */ 1021440, /* allocations= */ 16);
     words symbolOwners = allocate(metadata, /* length= */ 16384);
     words symbolStarts = allocate(metadata, /* length= */ 16384);
     words symbolLengths = allocate(metadata, /* length= */ 16384);
@@ -511,6 +539,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     words localBodyStarts = allocate(metadata, /* length= */ 4096);
     words localBodyLengths = allocate(metadata, /* length= */ 4096);
     words localCallableEffects = allocate(metadata, /* length= */ 4096);
+    words selectedCallableNames = allocate(metadata, /* length= */ 64);
 
     long imported = 0;
     while (imported < importedCount) limit 16384 {
@@ -553,7 +582,9 @@ classical class ArchiveStructuredSourceModuleCompiler {
       long ownedParameters = callableParameterCounts[sourceCallable];
       assert(-1 < ownedParameters);
       assert(ownedParameters < MAX_SIGNATURE_TYPES);
-      assert(callableResultTypes[sourceCallable] == 1);
+      long localResultType = callableResultTypes[sourceCallable];
+      assert(-1 < localResultType);
+      assert(localResultType < 3);
       set(localParameterCounts, callable, ownedParameters);
       long firstParameter = callableFirstParameters[sourceCallable];
       long parameter = 0;
@@ -573,10 +604,43 @@ classical class ArchiveStructuredSourceModuleCompiler {
         parameter += 1;
       }
 
-      long string = callable + 2;
-      long callableNameStart = callableNameStarts[sourceCallable];
-      long callableNameLength = callableNameLengths[sourceCallable];
-      assert(0 < callableNameLength);
+      callable += 1;
+    }
+
+    long nameRank = 0;
+    while (nameRank < callableCount) limit MAX_CALLABLES {
+      long selected = -1;
+      long candidate = 0;
+      while (candidate < callableCount) limit MAX_CALLABLES {
+        if (selectedCallableNames[candidate] == 0) {
+          if (selected < 0) {
+            selected = candidate;
+          } else {
+            long candidateCallable = firstCallable + candidate;
+            long selectedCallable = firstCallable + selected;
+            if (
+              nameBefore(
+                callableNames,
+                callableNameStarts[candidateCallable],
+                callableNameLengths[candidateCallable],
+                callableNameStarts[selectedCallable],
+                callableNameLengths[selectedCallable]
+              )
+            ) {
+              selected = candidate;
+            }
+          }
+        }
+
+        candidate += 1;
+      }
+
+      assert(-1 < selected);
+      set(selectedCallableNames, selected, 1);
+      long selectedSourceCallable = firstCallable + selected;
+      long selectedNameLength = callableNameLengths[selectedSourceCallable];
+      assert(0 < selectedNameLength);
+      long string = nameRank + 2;
       set(stringStarts, string, stringCursor);
       stringCursor = copyRange(
         archive,
@@ -589,14 +653,14 @@ classical class ArchiveStructuredSourceModuleCompiler {
       stringCursor += 2;
       stringCursor = copyRange(
         callableNames,
-        callableNameStart,
-        callableNameLength,
+        callableNameStarts[selectedSourceCallable],
+        selectedNameLength,
         strings,
         stringCursor
       );
-      set(stringLengths, string, moduleName.length + 2 + callableNameLength);
-      set(functionNameIds, callable, string);
-      callable += 1;
+      set(stringLengths, string, moduleName.length + 2 + selectedNameLength);
+      set(functionNameIds, selected, string);
+      nameRank += 1;
     }
 
     SourceProductArtifactPlan result = compileStructuredSourceModuleWithTargets(
@@ -640,6 +704,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
       identity
     );
 
+    drop(selectedCallableNames);
     drop(localCallableEffects);
     drop(localBodyLengths);
     drop(localBodyStarts);

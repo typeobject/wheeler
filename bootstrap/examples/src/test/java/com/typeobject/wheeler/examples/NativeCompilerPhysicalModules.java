@@ -87,6 +87,7 @@ final class NativeCompilerPhysicalModules {
         physical("compiler/syntax/calls/VoidCallKinds.w", "void_call_kinds"),
         physical("compiler/syntax/calls/VoidCallSourceKinds.w", "void_call_source_kinds"),
         physical("compiler/resolution/returns/WideReturnSources.w", "wide_return_sources"),
+        physical("compiler/closure/ManifestSyntax.w", "closure.manifest_syntax"),
         physical(
             "compiler/closure/products/source/coordinates/ReversibleTokenCoordinates.w",
             "closure.reversible_token_coordinates"),

@@ -47,7 +47,10 @@ classical class NativeCompilerOptionsIdentity {
         break;
       }
 
-      requireMetadata(profileByte(source[cursor], cursor == profileStart), source);
+      requireMetadata(
+        profileByte(source[cursor], cursor != profileStart, /* valid= */ false),
+        source
+      );
       cursor += 1;
     }
 

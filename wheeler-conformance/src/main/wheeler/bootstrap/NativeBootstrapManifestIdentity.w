@@ -17,7 +17,7 @@ classical class NativeBootstrapManifestIdentity {
     long prefixLength
   ) {
     cursor = consumeMetadata(source, cursor, expected, prefixLength);
-    return consumeQuotedIdentity(source, cursor, expected);
+    return consumeQuotedIdentity(source, cursor);
   }
 
   private void requireSameIdentity(borrow byteview source, long left, long right) {
@@ -79,7 +79,10 @@ classical class NativeBootstrapManifestIdentity {
         break;
       }
 
-      requireMetadata(profileByte(source[cursor], cursor == profileStart), source);
+      requireMetadata(
+        profileByte(source[cursor], cursor != profileStart, /* valid= */ false),
+        source
+      );
       cursor += 1;
     }
 

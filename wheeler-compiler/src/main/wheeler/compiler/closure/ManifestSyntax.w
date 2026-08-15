@@ -15,79 +15,101 @@ classical class ClosureManifestSyntax {
     borrow mut bytes expected,
     long length
   ) {
-    requireMetadata(cursor + length < bufferLength(source) + 1, source);
-    long index = 0;
-    while (index < length) limit 2048 {
-      requireMetadata(source[cursor + index] == expected[index], source);
-      index += 1;
+    long sourceCursor = cursor;
+    long expectedCursor = 0;
+    while (expectedCursor < length) limit 2048 {
+      long actual = source[sourceCursor];
+      long wanted = expected[expectedCursor];
+      actual ^= wanted;
+      assert(actual == 0);
+      sourceCursor += 1;
+      expectedCursor += 1;
     }
 
-    return cursor + length;
+    return sourceCursor;
   }
 
   /// Consumes one quoted lowercase SHA-256 identity.
-  public long consumeQuotedIdentity(
-    borrow byteview source,
-    long cursor,
-    borrow mut bytes expected
-  ) {
-    requireMetadata(cursor + 66 < bufferLength(source) + 1, source);
-    setByte(expected, 0, 34);
-    boolean accepted = source[cursor] == expected[0];
-    long index = 0;
-    while (index < 64) limit 64 {
-      long scalar = source[cursor + index + 1];
-      boolean valid = 47 < scalar;
-      if (57 < scalar) {
-        valid = false;
+  public long consumeQuotedIdentity(borrow byteview source, long cursor) {
+    long scalarCount = 0;
+    while (scalarCount < 64) limit 64 {
+      boolean firstScalar = scalarCount == 0;
+      if (firstScalar) {
+        long opening = source[cursor];
+        assert(opening == 34);
+        cursor += 1;
       }
 
-      if (96 < scalar) {
-        valid = scalar < 103;
+      long scalar = source[cursor];
+      boolean valid = false;
+      boolean letter = true;
+      assert(47 < scalar);
+      if (scalar < 58) {
+        valid = true;
+        letter = false;
       }
 
-      if (valid == false) {
-        accepted = false;
+      if (letter) {
+        assert(96 < scalar);
+        assert(scalar < 103);
+        valid = true;
       }
 
-      index += 1;
+      assert(valid);
+      cursor += 1;
+      if (scalarCount == 63) {
+        long closing = source[cursor];
+        assert(closing == 34);
+        cursor += 1;
+      }
+
+      scalarCount += 1;
     }
 
-    if ((source[cursor + 65] == expected[0]) == false) {
-      accepted = false;
-    }
-
-    requireMetadata(accepted, source);
-    return cursor + 66;
+    return cursor;
   }
 
   /// Checks one canonical bootstrap profile byte.
-  public boolean profileByte(long scalar, boolean first) {
-    boolean valid = 47 < scalar;
-    if (57 < scalar) {
-      valid = false;
-    }
-
-    if (64 < scalar) {
-      valid = scalar < 91;
-    }
-
-    if (96 < scalar) {
-      valid = scalar < 123;
-    }
-
-    if (first == false) {
-      if (scalar == 45) {
+  public boolean profileByte(long scalar, boolean allowPunctuation, boolean valid) {
+    long once = 0;
+    while (once < 1) limit 1 {
+      if (scalar < 123) {
         valid = true;
+      }
+
+      if (scalar < 97) {
+        valid = false;
+      }
+
+      if (scalar < 91) {
+        valid = true;
+      }
+
+      if (scalar < 65) {
+        valid = false;
+      }
+
+      if (scalar < 58) {
+        valid = true;
+      }
+
+      if (scalar < 48) {
+        valid = false;
+      }
+
+      if (scalar == 45) {
+        valid = allowPunctuation;
       }
 
       if (scalar == 46) {
-        valid = true;
+        valid = allowPunctuation;
       }
 
       if (scalar == 95) {
-        valid = true;
+        valid = allowPunctuation;
       }
+
+      once += 1;
     }
 
     return valid;
