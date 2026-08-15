@@ -1,6 +1,7 @@
 //! Checks the bounded classical proof records accepted by native bootstrap tools.
 module wheeler.compiler.proof_verifier;
 
+import wheeler.compiler.closure.generated_inverse_products;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.proof_rules;
 import wheeler.core.encoding.binary;
@@ -40,54 +41,6 @@ classical class ProofVerifier {
     }
 
     return opcode == OPCODE_JUMP_IF_ZERO;
-  }
-
-  private long inverseOpcode(long opcode) {
-    if (opcode == OPCODE_ADD_CONST) {
-      return OPCODE_SUB_CONST;
-    }
-
-    if (opcode == OPCODE_SUB_CONST) {
-      return OPCODE_ADD_CONST;
-    }
-
-    if (opcode == OPCODE_XOR_CONST) {
-      return OPCODE_XOR_CONST;
-    }
-
-    if (opcode == OPCODE_CALL) {
-      return OPCODE_UNCALL;
-    }
-
-    if (opcode == OPCODE_UNCALL) {
-      return OPCODE_CALL;
-    }
-
-    if (opcode == OPCODE_EXPECT_EQ) {
-      return OPCODE_EXPECT_EQ;
-    }
-
-    if (opcode == OPCODE_EXPECT_TRUE) {
-      return OPCODE_EXPECT_TRUE;
-    }
-
-    if (opcode == OPCODE_RESULT_FILL_CONSTANT) {
-      return OPCODE_RESULT_FILL_CONSTANT;
-    }
-
-    if (opcode == OPCODE_RESULT_FILL_SOURCE) {
-      return OPCODE_RESULT_FILL_SOURCE;
-    }
-
-    if (opcode == OPCODE_RESULT_FILL_BINARY) {
-      return OPCODE_RESULT_FILL_BINARY;
-    }
-
-    if (opcode == OPCODE_RESULT_FILL_BINARY_SOURCES) {
-      return OPCODE_RESULT_FILL_BINARY_SOURCES;
-    }
-
-    return -1;
   }
 
   private long instructionCount(borrow byteview artifact, long start, long length) {
@@ -176,7 +129,7 @@ classical class ProofVerifier {
     while (inverseIndex < forwardCount - 1) limit MAX_CODE_INSTRUCTIONS {
       long forwardIndex = forwardCount - 2 - inverseIndex;
       long forwardCursor = instructionCursor(artifact, forwardStart, forwardIndex);
-      long expected = inverseOpcode(readUnsigned(artifact, forwardCursor, 2));
+      long expected = inverseGeneratedOpcode(readUnsigned(artifact, forwardCursor, 2));
       if (expected < 0) {
         return 0;
       }

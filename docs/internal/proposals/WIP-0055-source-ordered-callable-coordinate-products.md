@@ -2,14 +2,14 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler compiler, bytecode, and bootstrap maintainers |
 | Created | 2026-08-14 |
 | Updated | 2026-08-14 |
 | Area | Self-hosting compiler, callable layout, local types, structured control flow |
 | Depends on | WIP-0047, WIP-0052 |
 | Supersedes | Distributed callable-local rebasing in WIP-0054 |
-| Superseded by | None |
+| Superseded by | WIP-0063 owns generated inverse integration |
 
 ## Summary
 
@@ -111,7 +111,7 @@ Failure leaves coordinate, code, type, relocation, and artifact outputs untouche
 - [x] Direct signed and Boolean returns publish the planned return slot and exact result type through the function descriptor. Unsupported direct return types fail before artifact publication.
 - [x] Void descriptors and implicit returns publish without a fabricated result type or local slot and match stage 0.
 - [x] `CallableReturnProducts.w` publishes required bits and exact callable-local instruction and code starts for implicit void returns from completed direct and root-loop products. Composition requires those coordinates before it writes `RETURN`. Shuffled products preserve coordinates, value functions receive no fabricated return row, and malformed products leave caller rows untouched.
-- [ ] Generated inverse products consume the same coordinate plan. WIP-0057 owns call, relocation, and ownership coordinate products.
+- [x] WIP-0057 makes call, relocation, and ownership products consume the same coordinate plan. WIP-0063 owns generated inverse code and the matching inverse relocation, ownership, proof, and descriptor windows.
 - [x] `CallableInstructionPrefixes.w` publishes each loop's exact preceding root-direct instruction count from emitted direct products and exact source containment. Shuffled loop, statement, and direct-product storage rows publish the same prefixes. Duplicate loop identities leave caller rows untouched. `StructuredSourceModuleCompiler.w` no longer inspects source scalars or assumes two- and four-instruction direct forms.
 - [x] `LoopInstructionProducts.w` measures root loops in exact source order, stages complete prior-root instruction prefixes, and publishes the final root instruction starts only after every recursive window validates. Loop row storage order no longer selects code order.
 - [x] `LoopInstructionProducts.w` now publishes its privately staged exact body coordinates back to the shared body product only after every body, nested control, code extent, and planned statement start validates. Production local-type composition runs after that publication. Failed planning leaves the source body product untouched.
