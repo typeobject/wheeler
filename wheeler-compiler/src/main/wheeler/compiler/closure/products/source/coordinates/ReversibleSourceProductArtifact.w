@@ -84,6 +84,7 @@ classical class ReversibleSourceProductArtifact {
     borrow byteview forwardArtifact,
     long forwardArtifactLength,
     long callableCount,
+    long ownershipEventCount,
     borrow mut words callableRows,
     borrow mut words inverseRows,
     borrow byteview inverseCode,
@@ -106,6 +107,7 @@ classical class ReversibleSourceProductArtifact {
     assert(readUnsigned(forwardArtifact, 16, 8) == forwardArtifactLength);
     assert(0 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
+    assert(ownershipEventCount == 0);
     assert(bufferLength(callableRows) == CALLABLE_ROWS);
     assert(bufferLength(inverseRows) == INVERSE_ROWS);
     assert(bufferLength(inverseCode) == MAX_CODE_BYTES);

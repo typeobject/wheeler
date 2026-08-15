@@ -169,6 +169,7 @@ final class NativeCompilerReversibleSourceProductArtifactExampleTest {
               input,
               ARTIFACT_LENGTH,
               /* callableCount= */ 1,
+              /* ownershipEventCount= */ 0,
               callableRows,
               inverseRows,
               inverseCode,

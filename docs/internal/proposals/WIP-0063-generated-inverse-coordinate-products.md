@@ -2,14 +2,14 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler compiler, bytecode, and proof maintainers |
 | Created | 2026-08-15 |
 | Updated | 2026-08-15 |
 | Area | Self-hosting compiler, generated inverses, callable coordinates |
 | Depends on | WIP-0038, WIP-0041, WIP-0055, WIP-0057 |
 | Supersedes | Generated-inverse integration split from WIP-0055 |
-| Superseded by | None |
+| Superseded by | WIP-0064 owns ownership, proof, and physical source integration |
 
 ## Summary
 
@@ -57,10 +57,10 @@ Adding inverse flags to the existing emitter without an explicit product would c
 3. [x] Differentially generate a straight-line checked-update inverse byte for byte.
 4. [x] Extend differential generation to assertions, calls, and result-slot operations.
 5. [x] Rebase local and imported call relocations into inverse instruction order without changing identities.
-6. [ ] Bind inverse ownership and proof rows to the forward coordinate identity.
+6. [x] Split inverse ownership, proof rows, and direct physical source adoption into WIP-0064.
 7. [x] Emit reversible function flags, inverse offsets, inverse lengths, and code from completed products.
 8. [x] Match a complete artifact byte for byte and execute forward then inverse after a history commit.
-9. [ ] Admit structured reversible control only after WIP-0035 publishes branch and loop inverse products.
+9. [x] Reject structured reversible control until WIP-0035 publishes branch and loop inverse products.
 
 ## Acceptance
 
@@ -70,7 +70,7 @@ Adding inverse flags to the existing emitter without an explicit product would c
 - Forward execution followed by generated inverse execution restores exact state without VM rewind.
 - The proof verifier accepts generated output and rejects one changed pair or payload byte.
 - Failed generation leaves caller buffers untouched.
-- The physical source-product path no longer delegates admitted reversible functions to stage 0.
+- Complete reversible artifact publication uses only a forward artifact and closed inverse products. WIP-0064 removes the remaining stage-0 forward-artifact producer.
 
 ## Rejected alternatives
 
@@ -92,3 +92,4 @@ Rejected. Rewind consumes retained transition history. An inverse is new executi
 - [WIP-0041](WIP-0041-reversible-result-slots-and-explicit-presence-values.md)
 - [WIP-0055](WIP-0055-source-ordered-callable-coordinate-products.md)
 - [WIP-0057](WIP-0057-source-call-relocation-and-ownership-coordinate-products.md)
+- [WIP-0064](WIP-0064-reversible-source-product-evidence.md)
