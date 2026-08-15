@@ -4,6 +4,7 @@ module wheeler.compiler.closure.compiled_callable_bodies;
 
 import wheeler.compiler.closure.aggregate_source_projection;
 import wheeler.compiler.closure.archive_structured_source_module_compiler;
+import wheeler.compiler.closure.atomic_linked_container;
 import wheeler.compiler.closure.callable_block_plans;
 import wheeler.compiler.closure.callable_instruction_plans;
 import wheeler.compiler.closure.callable_local_type_plans;

@@ -57,7 +57,9 @@ The transaction publishes these products together or publishes none of them.
 
 ## Implementation
 
-`ImportedStructuredArchiveModuleCompiler.w` now stages the source-local artifact, artifact identity, relocation rows, relocation owners, relocation identities, and closure instruction targets. It decodes the staged artifact, excludes verifier suffix functions, resolves every package-bound target identity, and only then copies those products into caller-owned buffers. A stale target traps while all public buffers still hold their sentinels. Canonical section and container assembly remain outside this boundary.
+`ImportedStructuredArchiveModuleCompiler.w` now stages the source-local artifact, artifact identity, relocation rows, relocation owners, relocation identities, and closure instruction targets. It decodes the staged artifact, excludes verifier suffix functions, resolves every package-bound target identity, and only then copies those products into caller-owned buffers. A stale target traps while all public buffers still hold their sentinels.
+
+`AtomicLinkedContainer.w` validates canonical section inputs, assembles the complete container in a 16 MiB private arena, verifies it, hashes it, and copies container and identity bytes only after every check passes. The remaining join must build retained sections and invoke both staging boundaries under one transaction.
 
 ## Plan
 
@@ -65,7 +67,7 @@ The transaction publishes these products together or publishes none of them.
 2. [x] Decode and retain every local prefix before any public archive append.
 3. [x] Resolve all package-bound identities and rewrite closure instruction targets.
 4. Build canonical string, type, function, code, and container sections from retained rows.
-5. Verify and hash the complete container.
+5. [x] Verify and hash the complete container.
 6. Publish artifact, archive, relocation, section, and container outputs in one final copy.
 7. Prove stale-identity atomicity and shuffled-storage byte equality.
 
