@@ -15,29 +15,38 @@ import org.junit.jupiter.api.Test;
 final class NativeCompilerSourceCallRelocationLinkProductsExampleTest {
   @Test
   void excludesStubInstructionsAndResolvesTheFinalTarget() throws Exception {
-    VirtualMachine machine = new VirtualMachine(program(false));
+    VirtualMachine machine = new VirtualMachine(program(0));
 
     CompilerMachineRunner.runWithoutRewindHistory(machine);
 
     assertEquals(1, machine.global("retainedFunctions"));
-    assertEquals(1, machine.global("retainedInstructions"));
+    assertEquals(4, machine.global("retainedInstructions"));
     assertEquals(2, machine.global("excludedFunctions"));
     assertEquals(1, machine.global("resolvedTarget"));
-    assertEquals(16, machine.global("linkedLength"));
+    assertEquals(48, machine.global("linkedLength"));
     assertEquals(1, machine.global("linkedOperand"));
+    assertEquals(1, machine.global("inverseLinkedOperand"));
     assertEquals(0, machine.global("suffixByte"));
     assertEquals(1, machine.global("published"));
   }
 
   @Test
   void rejectsAMismatchedRelocationOwnerBeforePublication() throws Exception {
-    VirtualMachine machine = new VirtualMachine(program(true));
+    VirtualMachine machine = new VirtualMachine(program(1));
 
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
     assertEquals(0, machine.global("published"));
   }
 
-  private static Program program(boolean malformedOwner) throws Exception {
+  @Test
+  void rejectsAStaleTargetIdentityBeforePublication() throws Exception {
+    VirtualMachine machine = new VirtualMachine(program(2));
+
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
+    assertEquals(0, machine.global("published"));
+  }
+
+  private static Program program(int malformed) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_call_relocation_link_products"));
@@ -60,6 +69,7 @@ final class NativeCompilerSourceCallRelocationLinkProductsExampleTest {
           state long resolvedTarget = -1;
           state long linkedLength = 0;
           state long linkedOperand = -1;
+          state long inverseLinkedOperand = -1;
           state long suffixByte = -1;
           state long published = 0;
 
@@ -77,15 +87,23 @@ final class NativeCompilerSourceCallRelocationLinkProductsExampleTest {
             words publishedFunctions = allocate(products, /* length= */ 4096);
             words resolvedTargets = allocate(products, /* length= */ 131072);
             set(instructionRows, 0, 0);
-            set(instructionRows, 1, 1);
-            set(instructionRows, 2, 2);
-            set(instructionRows, 12288, OPCODE_CALL_VALUE);
+            set(instructionRows, 1, 0);
+            set(instructionRows, 2, 0);
+            set(instructionRows, 3, 0);
+            set(instructionRows, 4, 1);
+            set(instructionRows, 5, 2);
+            set(instructionRows, 4098, 1);
+            set(instructionRows, 4099, 1);
+            set(instructionRows, 12288, OPCODE_CALL);
+            set(instructionRows, 12289, OPCODE_RETURN);
+            set(instructionRows, 12290, OPCODE_UNCALL);
+            set(instructionRows, 12291, OPCODE_RETURN);
             set(relocationOwners, 0, RELOCATION_OWNER);
             setByte(relocationIdentities, 0, 42);
             setByte(callableIdentities, 0, 9);
             setByte(callableIdentities, 32, 42);
             setByte(functionIdentities, 0, 9);
-            setByte(functionIdentities, 32, 42);
+            setByte(functionIdentities, 32, TARGET_IDENTITY);
             mapCallableFunctionRows(
               /* callableCount= */ 2,
               callableIdentities,
@@ -99,7 +117,7 @@ final class NativeCompilerSourceCallRelocationLinkProductsExampleTest {
             SourceCallRelocationLinkPlan plan = materializeSourceCallRelocationLinkProducts(
               /* localFunctionCount= */ 1,
               /* compiledFunctionCount= */ 3,
-              /* compiledInstructionCount= */ 3,
+              /* compiledInstructionCount= */ 6,
               instructionRows,
               /* relocationCount= */ 1,
               relocationRows,
@@ -115,21 +133,41 @@ final class NativeCompilerSourceCallRelocationLinkProductsExampleTest {
             retainedInstructions = plan.instructionCount;
             excludedFunctions = plan.excludedFunctionCount;
             resolvedTarget = resolvedTargets[0];
-            region codeProducts = new region(/* bytes= */ 7348288, /* allocations= */ 5);
-            bytes archive = allocateBytes(codeProducts, /* length= */ 32);
+            region codeProducts = new region(/* bytes= */ 7348352, /* allocations= */ 5);
+            bytes archive = allocateBytes(codeProducts, /* length= */ 64);
             words artifactStarts = allocate(codeProducts, /* length= */ 512);
             words artifactLengths = allocate(codeProducts, /* length= */ 512);
             words closureInstructions = allocate(codeProducts, /* length= */ 917504);
-            bytes linkedCode = allocateBytes(codeProducts, /* length= */ 32);
-            setByte(archive, 16, 77);
-            set(artifactLengths, 0, 32);
+            bytes linkedCode = allocateBytes(codeProducts, /* length= */ 64);
+            setByte(archive, 0, OPCODE_CALL % 256);
+            setByte(archive, 4, 16);
+            setByte(archive, 16, OPCODE_RETURN % 256);
+            setByte(archive, 20, 8);
+            setByte(archive, 24, OPCODE_UNCALL % 256);
+            setByte(archive, 28, 16);
+            setByte(archive, 40, OPCODE_RETURN % 256);
+            setByte(archive, 44, 8);
+            setByte(archive, 48, 77);
+            set(artifactLengths, 0, 64);
             set(closureInstructions, 262144, 0);
+            set(closureInstructions, 262145, 0);
+            set(closureInstructions, 262146, 0);
+            set(closureInstructions, 262147, 0);
             set(closureInstructions, 393216, 0);
-            set(closureInstructions, 524288, OPCODE_CALL_VALUE);
+            set(closureInstructions, 393217, 16);
+            set(closureInstructions, 393218, 24);
+            set(closureInstructions, 393219, 40);
+            set(closureInstructions, 524288, OPCODE_CALL);
+            set(closureInstructions, 524289, OPCODE_RETURN);
+            set(closureInstructions, 524290, OPCODE_UNCALL);
+            set(closureInstructions, 524291, OPCODE_RETURN);
             set(closureInstructions, 786432, 16);
+            set(closureInstructions, 786433, 8);
+            set(closureInstructions, 786434, 16);
+            set(closureInstructions, 786435, 8);
             linkedLength = emitResolvedLinkedInstructionCodeAt(
               archive,
-              /* archiveBytes= */ 32,
+              /* archiveBytes= */ 64,
               artifactStarts,
               artifactLengths,
               /* functionCount= */ 2,
@@ -140,7 +178,8 @@ final class NativeCompilerSourceCallRelocationLinkProductsExampleTest {
               /* outputStart= */ 0
             );
             linkedOperand = linkedCode[8];
-            suffixByte = linkedCode[16];
+            inverseLinkedOperand = linkedCode[32];
+            suffixByte = linkedCode[48];
             published = 1;
             drop(linkedCode);
             drop(closureInstructions);
@@ -162,7 +201,8 @@ final class NativeCompilerSourceCallRelocationLinkProductsExampleTest {
             drop(products);
           }
         }
-        """.replace("RELOCATION_OWNER", malformedOwner ? "1" : "0"));
+        """.replace("RELOCATION_OWNER", malformed == 1 ? "1" : "0")
+            .replace("TARGET_IDENTITY", malformed == 2 ? "41" : "42"));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.source_call_relocation_link_products");
   }

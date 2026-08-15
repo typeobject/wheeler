@@ -18,6 +18,26 @@ classical class SourceCallRelocationLinkProducts {
     long relocationCount
   ) {}
 
+  private long inverseCallOpcode(long opcode) {
+    if (opcode == OPCODE_CALL) {
+      return OPCODE_UNCALL;
+    }
+
+    if (opcode == OPCODE_UNCALL) {
+      return OPCODE_CALL;
+    }
+
+    if (opcode == OPCODE_CALL_RESULT_SLOT) {
+      return OPCODE_UNCALL_RESULT_SLOT;
+    }
+
+    if (opcode == OPCODE_UNCALL_RESULT_SLOT) {
+      return OPCODE_CALL_RESULT_SLOT;
+    }
+
+    return -1;
+  }
+
   private boolean callOpcode(long opcode) {
     if (opcode == OPCODE_CALL) {
       return true;
@@ -93,12 +113,14 @@ classical class SourceCallRelocationLinkProducts {
       long instruction = 0;
       while (instruction < retained.instructionCount) limit 4096 {
         if (instructionRows[instruction] == owner) {
-          if (ownerOrdinal == ownerInstruction) {
-            assert(selected == -1);
-            selected = instruction;
-          }
+          if (instructionRows[4096 + instruction] == 0) {
+            if (ownerOrdinal == ownerInstruction) {
+              assert(selected == -1);
+              selected = instruction;
+            }
 
-          ownerOrdinal += 1;
+            ownerOrdinal += 1;
+          }
         }
 
         instruction += 1;
@@ -118,6 +140,49 @@ classical class SourceCallRelocationLinkProducts {
       }
 
       set(stagedTargets, selected, identityTargets[relocation]);
+      long inverseOpcode = inverseCallOpcode(instructionRows[12288 + selected]);
+      if (-1 < inverseOpcode) {
+        long forwardCount = 0;
+        long inverseCount = 0;
+        long directionInstruction = 0;
+        while (directionInstruction < retained.instructionCount) limit 4096 {
+          if (instructionRows[directionInstruction] == owner) {
+            if (instructionRows[4096 + directionInstruction] == 0) {
+              forwardCount += 1;
+            } else {
+              inverseCount += 1;
+            }
+          }
+
+          directionInstruction += 1;
+        }
+
+        assert(forwardCount == inverseCount);
+        assert(ownerInstruction < forwardCount - 1);
+        long inverseOwnerInstruction = forwardCount - ownerInstruction - 2;
+        long inverseOrdinal = 0;
+        long inverseSelected = -1;
+        directionInstruction = 0;
+        while (directionInstruction < retained.instructionCount) limit 4096 {
+          if (instructionRows[directionInstruction] == owner) {
+            if (instructionRows[4096 + directionInstruction] == 1) {
+              if (inverseOrdinal == inverseOwnerInstruction) {
+                assert(inverseSelected == -1);
+                inverseSelected = directionInstruction;
+              }
+
+              inverseOrdinal += 1;
+            }
+          }
+
+          directionInstruction += 1;
+        }
+
+        assert(-1 < inverseSelected);
+        assert(instructionRows[12288 + inverseSelected] == inverseOpcode);
+        set(stagedTargets, inverseSelected, identityTargets[relocation]);
+      }
+
       relocation += 1;
     }
 

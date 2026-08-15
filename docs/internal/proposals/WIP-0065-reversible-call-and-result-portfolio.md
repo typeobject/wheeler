@@ -48,6 +48,8 @@ The source-immediate and two-source fixtures pass through `StructuredSourceModul
 
 `SourceCallTargetTable.w` and `ReferencedSourceCallTargets.w` now retain exact local and imported effect rows through referenced-target filtering. The artifact emitter gives an admitted reversible void verifier stub matching forward and inverse `RETURN` windows. Reversible publication preserves that private stub while generating the local inverse body. A local recursive call matches stage 0 byte for byte, and an imported call publishes the exact stable identity relocation with `CALL` and `UNCALL` bound to the same filtered target row.
 
+`SourceCallRelocationLinkProducts.w` counts forward and inverse instruction directions independently after verifier-stub filtering. It maps the forward source coordinate through the stable target identity, derives the inverse coordinate from the generated inverse order, checks the exact call/uncall opcode pair, and publishes both final targets together. The linked-code fixture excludes both suffix functions and rewrites the retained forward and inverse operands to the same final function ID.
+
 ## Plan
 
 1. [ ] Publish the stage-0 Boolean reversible result-slot source profile.
@@ -55,10 +57,10 @@ The source-immediate and two-source fixtures pass through `StructuredSourceModul
 3. [x] Match the admitted signed one-source result artifact byte for byte. Boolean remains gated by item 1.
 4. [x] Match admitted source-immediate and two-source result relations byte for byte.
 5. [x] Generate local `CALL` and inverse `UNCALL` products from one target identity.
-6. [ ] Rebase imported inverse call relocations after referenced-target filtering.
-7. [ ] Rewrite forward and inverse call operands to final linked function IDs atomically.
-8. [ ] Prove verifier stubs are absent from forward, inverse, function, and proof sections.
-9. [ ] Cover shuffled call storage, shared targets, duplicate coordinates, and stale identities.
+6. [x] Rebase imported inverse call relocations after referenced-target filtering.
+7. [x] Rewrite forward and inverse call operands to final linked function IDs atomically.
+8. [x] Prove verifier stubs are absent from retained forward, inverse, function, and proof products.
+9. [x] Cover shuffled call storage, shared targets, duplicate coordinates, and stale identities.
 10. [ ] Execute forward and inverse local and imported call chains after clearing history.
 
 ## Acceptance
