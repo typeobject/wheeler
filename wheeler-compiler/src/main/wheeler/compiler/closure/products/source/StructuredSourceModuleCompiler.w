@@ -846,8 +846,13 @@ classical class StructuredSourceModuleCompiler {
       composedCode
     );
     assert(composition.valid);
-    SourceProductArtifactPlan result = publishClassicalSourceModuleArtifact(
+    SourceProductArtifactPlan result = publishClassicalSourceModuleArtifactWithStubs(
       callableCount,
+      importedTargetCount,
+      targetParameterStarts,
+      targetParameterCounts,
+      targetParameterTypes,
+      targetResultTypes,
       composedCallables,
       parameterCounts,
       functionResultTypes,

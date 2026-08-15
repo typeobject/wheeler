@@ -38,6 +38,38 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
   }
 
   @Test
+  void emitsAnImportedCallThroughAVerifiedSignatureStub() throws Exception {
+    String source = SOURCE.replace("recurse(value)", "remote(value)")
+        .replace("public long recurse", "public long caller");
+    int bodyStart = source.indexOf("{", source.indexOf("caller("));
+    int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
+    Program driver = driver(bodyStart, bodyLength, 1, 1, 0, true);
+    VirtualMachine machine = new VirtualMachine(
+        driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
+
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+
+    assertEquals(1, machine.global("valid"));
+    assertEquals(3, machine.global("functionCount"));
+  }
+
+  @Test
+  void emitsImportedBooleanAndVoidSignatureStubs() throws Exception {
+    String booleanSource = SOURCE.replace(
+        "public long recurse(long value)",
+        "public boolean caller(boolean value)")
+        .replace("recurse(value)", "remote(value)")
+        .replace("long result = remote(value)", "boolean result = remote(value)");
+    assertImportedArtifact(booleanSource, "caller(", 1, 2, 2);
+
+    String voidSource = SOURCE.replace(
+        "public long recurse(long value)",
+        "public void caller()")
+        .replace("long result = recurse(value);\n    return result;", "remote();");
+    assertImportedArtifact(voidSource, "caller(", 0, 0, 0);
+  }
+
+  @Test
   void emitsAValueCallInsideTheRootLoop() throws Exception {
     String source = SOURCE.replace(
         "index += 1;",
@@ -173,6 +205,32 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
     assertArtifact(source, 2, 1, 2);
   }
 
+  private static void assertImportedArtifact(
+      String source,
+      String callable,
+      int parameterCount,
+      int parameterType,
+      int resultType) throws Exception {
+    int bodyStart = source.indexOf("{", source.indexOf(callable));
+    int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
+    Program driver = driver(
+        bodyStart,
+        bodyLength,
+        parameterCount,
+        parameterType,
+        0,
+        true,
+        parameterType,
+        resultType);
+    VirtualMachine machine = new VirtualMachine(
+        driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
+
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+
+    assertEquals(1, machine.global("valid"));
+    assertEquals(3, machine.global("functionCount"));
+  }
+
   private static void assertRejected(
       String source,
       int parameterCount,
@@ -231,24 +289,56 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
       int parameterCount,
       int firstType,
       int secondType) throws Exception {
+    return driver(bodyStart, bodyLength, parameterCount, firstType, secondType, false);
+  }
+
+  private static Program driver(
+      int bodyStart,
+      int bodyLength,
+      int parameterCount,
+      int firstType,
+      int secondType,
+      boolean imported) throws Exception {
+    return driver(
+        bodyStart,
+        bodyLength,
+        parameterCount,
+        firstType,
+        secondType,
+        imported,
+        1,
+        1);
+  }
+
+  private static Program driver(
+      int bodyStart,
+      int bodyLength,
+      int parameterCount,
+      int firstType,
+      int secondType,
+      boolean imported,
+      int importedParameterType,
+      int importedResultType) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
-        "wheeler.compiler.closure.local_structured_source_module_compiler"));
+        "wheeler.compiler.closure.structured_source_module_compiler"));
     CoreSources.addBinaryClosure(sources);
     sources.put("FixedBinary.w", CoreSources.read("encoding/FixedBinary.w"));
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     sources.put("StructuredCallSourceProductExample.w", """
         module example.structured_call_source_product;
 
-        import wheeler.compiler.closure.local_structured_source_module_compiler;
         import wheeler.compiler.closure.source_product_artifact;
+        import wheeler.compiler.closure.structured_source_module_compiler;
 
         classical class StructuredCallSourceProductExample {
           state long valid = 0;
           state long artifactLength = 0;
+          state long functionCount = 0;
+          state long maxLocalCount = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 1200000, /* allocations= */ 16);
+            region products = new region(/* bytes= */ 2903936, /* allocations= */ 20);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words symbolOwners = allocate(products, /* length= */ 16384);
@@ -265,6 +355,11 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             words functionNameIds = allocate(products, /* length= */ 64);
             bytes artifact = allocateBytes(products, /* length= */ 32768);
             bytes identity = allocateBytes(products, /* length= */ 32);
+            words importedRows = allocate(products, /* length= */ 32768);
+            words importedParameterRows = allocate(products, /* length= */ 32768);
+            bytes importedNames = allocateBytes(products, /* length= */ 1048576);
+            bytes importedIdentities = allocateBytes(products, /* length= */ 131072);
+            IMPORTED_SETUP
             set(bodyStarts, 0, BODY_START);
             set(bodyLengths, 0, BODY_LENGTH);
             set(signatureTypes, 0, 0);
@@ -284,12 +379,17 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             set(stringStarts, 2, 22);
             set(stringLengths, 2, 32);
             set(functionNameIds, 0, 2);
-            SourceProductArtifactPlan plan = compileStructuredSourceModule(
+            SourceProductArtifactPlan plan = compileStructuredSourceModuleWithTargets(
               input,
               /* archiveSourceStart= */ 0,
               /* moduleOwner= */ 0,
               /* firstCallable= */ 0,
               /* callableCount= */ 1,
+              /* importedTargetCount= */ IMPORTED_COUNT,
+              importedRows,
+              importedParameterRows,
+              importedNames,
+              importedIdentities,
               bodyStarts,
               bodyLengths,
               /* symbolCount= */ 0,
@@ -318,7 +418,13 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             }
             setOutputLength(output, plan.length);
             artifactLength = plan.length;
+            functionCount = plan.functionCount;
+            maxLocalCount = plan.maxLocalCount;
             valid = 1;
+            drop(importedIdentities);
+            drop(importedNames);
+            drop(importedParameterRows);
+            drop(importedRows);
             drop(identity);
             drop(artifact);
             drop(functionNameIds);
@@ -342,7 +448,19 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             .replace("BODY_LENGTH", Integer.toString(bodyLength))
             .replace("PARAMETER_COUNT", Integer.toString(parameterCount))
             .replace("FIRST_TYPE", Integer.toString(firstType))
-            .replace("SECOND_TYPE", Integer.toString(secondType)));
+            .replace("SECOND_TYPE", Integer.toString(secondType))
+            .replace("IMPORTED_COUNT", imported ? "1" : "0")
+            .replace("IMPORTED_SETUP", imported
+                ? "writeAscii(importedNames, 0, \"remote\");\n"
+                    + "set(importedRows, 12288, 6);\n"
+                    + "set(importedRows, 20480, IMPORTED_PARAMETER_COUNT);\n"
+                    + "set(importedRows, 24576, IMPORTED_RESULT_TYPE);\n"
+                    + "set(importedParameterRows, 0, IMPORTED_PARAMETER_TYPE);\n"
+                    + "setByte(importedIdentities, 0, 42);"
+                : "")
+            .replace("IMPORTED_PARAMETER_COUNT", Integer.toString(parameterCount))
+            .replace("IMPORTED_PARAMETER_TYPE", Integer.toString(importedParameterType))
+            .replace("IMPORTED_RESULT_TYPE", Integer.toString(importedResultType)));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.structured_call_source_product");
   }

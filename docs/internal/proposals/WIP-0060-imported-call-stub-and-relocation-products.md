@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Draft |
+| Status | Implementing |
 | Owners | Wheeler compiler and linker maintainers |
 | Created | 2026-08-14 |
 | Updated | 2026-08-14 |
@@ -53,6 +53,12 @@ The stub has no executable semantic authority. The linker resolves the identity,
 - 32,768 artifact bytes
 - 8,192 relocation events per archive
 
+## Implementation
+
+`SourceModuleProductArtifact.w` emits typed verifier-only stubs after local callable code. Void stubs return directly. Signed stubs synthesize a zero result. Boolean stubs synthesize equal signed constants and return the comparison. Stub descriptors preserve parameter and result types, while source calls retain stable target identities in relocation products. The local-only publisher passes an explicit empty stub table.
+
+`compileStructuredSourceModuleWithTargets` now publishes independently verified signed, Boolean, and void imported-call artifacts without dependency source. Stub selection still follows every admitted imported target. Reference filtering, deduplication, package evidence, and final linker removal remain open.
+
 ## Plan
 
 1. Deduplicate referenced WIP-0059 targets by callable identity.
@@ -65,8 +71,8 @@ The stub has no executable semantic authority. The linker resolves the identity,
 
 ## Acceptance
 
-- An imported signed call produces a verified source-local artifact without dependency source.
-- Boolean and void imported calls preserve exact result and local windows.
+- [x] An imported signed call produces a verified source-local artifact without dependency source.
+- [x] Boolean and void imported calls preserve exact result and local windows.
 - Two calls to one target share one stub and publish two relocations.
 - Local shadowing creates no imported stub.
 - A stale package identity leaves artifact, archive, and relocation outputs untouched.
