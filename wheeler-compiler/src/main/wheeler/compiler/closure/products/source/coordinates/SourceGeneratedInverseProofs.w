@@ -15,6 +15,13 @@ classical class SourceGeneratedInverseProofs {
   /// Reports one complete generated-inverse proof table.
   public record SourceGeneratedInverseProofPlan(long proofCount, boolean valid) {}
 
+  /// Reports homogeneous callable effects and their complete proof table.
+  public record StructuredReversibleEvidencePlan(
+    long reversibleCallableCount,
+    long proofCount,
+    boolean valid
+  ) {}
+
   private boolean tokenMatchesBytes(
     borrow utf8 source,
     long token,
@@ -137,6 +144,75 @@ classical class SourceGeneratedInverseProofs {
     }
 
     return true;
+  }
+
+  /// Validates homogeneous callable effects and publishes their exact proof rows.
+  public StructuredReversibleEvidencePlan materializeStructuredReversibleEvidence(
+    borrow utf8 source,
+    long firstCallable,
+    long callableCount,
+    borrow mut words callableEffects,
+    borrow byteview strings,
+    long stringBytes,
+    long stringCount,
+    borrow mut words stringStarts,
+    borrow mut words stringLengths,
+    borrow mut words functionNameIds,
+    borrow mut bytes proofNames,
+    borrow mut words proofNameStarts,
+    borrow mut words proofNameLengths,
+    borrow mut words proofSubjects
+  ) {
+    assert(-1 < firstCallable);
+    assert(0 < callableCount);
+    assert(callableCount < MAX_CALLABLES + 1);
+    assert(bufferLength(callableEffects) == 4096);
+    assert(callableCount < 4096 - firstCallable + 1);
+    long reversibleCallableCount = 0;
+    boolean valid = true;
+    long callable = 0;
+    while (callable < callableCount) limit MAX_CALLABLES {
+      long effect = callableEffects[firstCallable + callable];
+      if (effect == 2) {
+        reversibleCallableCount += 1;
+      } else {
+        if (effect != 0) {
+          valid = false;
+        }
+      }
+
+      callable += 1;
+    }
+
+    if (0 < reversibleCallableCount) {
+      if (reversibleCallableCount != callableCount) {
+        valid = false;
+      }
+    }
+
+    long proofCount = 0;
+    if (valid) {
+      if (0 < reversibleCallableCount) {
+        SourceGeneratedInverseProofPlan proofs = materializeSourceGeneratedInverseProofs(
+          source,
+          callableCount,
+          strings,
+          stringBytes,
+          stringCount,
+          stringStarts,
+          stringLengths,
+          functionNameIds,
+          proofNames,
+          proofNameStarts,
+          proofNameLengths,
+          proofSubjects
+        );
+        valid = proofs.valid;
+        proofCount = proofs.proofCount;
+      }
+    }
+
+    return new StructuredReversibleEvidencePlan(reversibleCallableCount, proofCount, valid);
   }
 
   /// Publishes exact `theorem name proves inverse(callable);` rows in source order.

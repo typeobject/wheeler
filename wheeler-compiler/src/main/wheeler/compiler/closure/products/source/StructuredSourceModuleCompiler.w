@@ -85,24 +85,6 @@ classical class StructuredSourceModuleCompiler {
     assert(0 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
     assert(bufferLength(callableEffects) == 4096);
-    long reversibleCallableCount = 0;
-    long validatedCallable = 0;
-    while (validatedCallable < callableCount) limit MAX_CALLABLES {
-      long effect = callableEffects[firstCallable + validatedCallable];
-      boolean supportedEffect = effect == 0;
-      if (effect == 2) {
-        supportedEffect = true;
-        reversibleCallableCount += 1;
-      }
-
-      assert(supportedEffect);
-      validatedCallable += 1;
-    }
-
-    if (0 < reversibleCallableCount) {
-      assert(reversibleCallableCount == callableCount);
-    }
-
     assert(-1 < importedTargetCount);
     assert(importedTargetCount < 4097);
     assert(importedTargetCount < 4096 - callableCount + 1);
@@ -145,25 +127,25 @@ classical class StructuredSourceModuleCompiler {
     words proofNameStarts = allocate(sourceProofs, /* length= */ 64);
     words proofNameLengths = allocate(sourceProofs, /* length= */ 64);
     words proofSubjects = allocate(sourceProofs, /* length= */ 64);
-    long proofCount = 0;
-    if (0 < reversibleCallableCount) {
-      SourceGeneratedInverseProofPlan sourceProofPlan = materializeSourceGeneratedInverseProofs(
-        source,
-        callableCount,
-        strings,
-        stringBytes,
-        stringCount,
-        stringStarts,
-        stringLengths,
-        functionNameIds,
-        proofNames,
-        proofNameStarts,
-        proofNameLengths,
-        proofSubjects
-      );
-      assert(sourceProofPlan.valid);
-      proofCount = sourceProofPlan.proofCount;
-    }
+    StructuredReversibleEvidencePlan reversibleEvidence = materializeStructuredReversibleEvidence(
+      source,
+      firstCallable,
+      callableCount,
+      callableEffects,
+      strings,
+      stringBytes,
+      stringCount,
+      stringStarts,
+      stringLengths,
+      functionNameIds,
+      proofNames,
+      proofNameStarts,
+      proofNameLengths,
+      proofSubjects
+    );
+    assert(reversibleEvidence.valid);
+    long reversibleCallableCount = reversibleEvidence.reversibleCallableCount;
+    long proofCount = reversibleEvidence.proofCount;
 
     region products = new region(/* bytes= */ 5022720, /* allocations= */ 64);
     words blocks = allocate(products, /* length= */ 6144);
@@ -836,36 +818,16 @@ classical class StructuredSourceModuleCompiler {
       identity
     );
 
-    long publishedRelocation = 0;
-    while (publishedRelocation < resolvedCallCount) limit 256 {
-      set(publishedRelocations, publishedRelocation, callRelocations[publishedRelocation]);
-      set(
-        publishedRelocationOwners,
-        publishedRelocation,
-        statements[callStatements[publishedRelocation]]
-      );
-      set(
-        publishedRelocations,
-        256 + publishedRelocation,
-        callRelocations[256 + publishedRelocation]
-      );
-      set(
-        publishedRelocations,
-        512 + publishedRelocation,
-        callRelocations[512 + publishedRelocation]
-      );
-      long publishedIdentityByte = 0;
-      while (publishedIdentityByte < 32) limit 32 {
-        setByte(
-          publishedRelocationIdentities,
-          publishedRelocation * 32 + publishedIdentityByte,
-          callRelocationIdentities[publishedRelocation * 32 + publishedIdentityByte]
-        );
-        publishedIdentityByte += 1;
-      }
-
-      publishedRelocation += 1;
-    }
+    publishStructuredCallRelocations(
+      resolvedCallCount,
+      statements,
+      callStatements,
+      callRelocations,
+      callRelocationIdentities,
+      publishedRelocations,
+      publishedRelocationOwners,
+      publishedRelocationIdentities
+    );
 
     SourceProductArtifactPlan publishedResult = new SourceProductArtifactPlan(
       result.length,
