@@ -57,13 +57,13 @@ The stub has no executable semantic authority. The linker resolves the identity,
 
 `SourceModuleProductArtifact.w` emits typed verifier-only stubs after local callable code. Void stubs return directly. Signed stubs synthesize a zero result. Boolean stubs synthesize equal signed constants and return the comparison. Stub descriptors preserve parameter and result types, while source calls retain stable target identities in relocation products. The local-only publisher passes an explicit empty stub table.
 
-`compileStructuredSourceModuleWithTargets` now publishes independently verified signed, Boolean, and void imported-call artifacts without dependency source. Stub selection still follows every admitted imported target. Reference filtering, deduplication, package evidence, and final linker removal remain open.
+`compileStructuredSourceModuleWithTargets` now publishes independently verified signed, Boolean, and void imported-call artifacts without dependency source. `ReferencedSourceCallTargets.w` stages a local-plus-referenced table after source-call discovery, remaps imported call rows, and drops every unreferenced target before typed layout. Multiple calls to one imported identity share one stub. Malformed call and target rows leave calls and signature outputs untouched. Package evidence and final linker removal remain open.
 
 ## Plan
 
-1. Deduplicate referenced WIP-0059 targets by callable identity.
-2. Emit canonical declaration-only stub descriptors and local types.
-3. Map imported calls to source-local stub rows during artifact verification.
+1. [x] Deduplicate referenced WIP-0059 targets by callable identity.
+2. [x] Emit canonical verifier-only stub descriptors and local types.
+3. [x] Map imported calls to source-local stub rows during artifact verification.
 4. Publish external relocation identities beside exact call instructions.
 5. Exclude stub products while appending retained local functions.
 6. Resolve every external identity through `CallableFunctionRows.w`.
@@ -73,7 +73,7 @@ The stub has no executable semantic authority. The linker resolves the identity,
 
 - [x] An imported signed call produces a verified source-local artifact without dependency source.
 - [x] Boolean and void imported calls preserve exact result and local windows.
-- Two calls to one target share one stub and publish two relocations.
+- [x] Two calls to one target share one stub and publish two relocations.
 - Local shadowing creates no imported stub.
 - A stale package identity leaves artifact, archive, and relocation outputs untouched.
 - Shuffled dependency and call storage leaves source-local and linked bytes unchanged.

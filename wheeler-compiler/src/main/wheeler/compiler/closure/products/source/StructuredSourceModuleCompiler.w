@@ -11,6 +11,7 @@ import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.closure.loop_call_products;
 import wheeler.compiler.closure.loop_instruction_products;
 import wheeler.compiler.closure.loop_local_type_products;
+import wheeler.compiler.closure.referenced_source_call_targets;
 import wheeler.compiler.closure.resolved_loop_body_products;
 import wheeler.compiler.closure.resolved_loop_products;
 import wheeler.compiler.closure.source_call_argument_products;
@@ -267,7 +268,7 @@ classical class StructuredSourceModuleCompiler {
     assert(bufferLength(output) == 32768);
     assert(bufferLength(identity) == 32);
 
-    region products = new region(/* bytes= */ 4654080, /* allocations= */ 58);
+    region products = new region(/* bytes= */ 5022720, /* allocations= */ 64);
     words blocks = allocate(products, /* length= */ 6144);
     words statements = allocate(products, /* length= */ 28672);
     words sourceConditions = allocate(products, /* length= */ 1536);
@@ -298,6 +299,7 @@ classical class StructuredSourceModuleCompiler {
     words callableNameStarts = allocate(products, /* length= */ 4096);
     words callableNameLengths = allocate(products, /* length= */ 4096);
     words callableParameterCounts = allocate(products, /* length= */ 4096);
+    words discoveredCalls = allocate(products, /* length= */ 1024);
     words calls = allocate(products, /* length= */ 1024);
     words targetDependencyRows = allocate(products, /* length= */ 8192);
     words callStatements = allocate(products, /* length= */ 256);
@@ -322,6 +324,11 @@ classical class StructuredSourceModuleCompiler {
     words targetParameterTypes = allocate(products, /* length= */ 16384);
     words targetResultTypes = allocate(products, /* length= */ 4096);
     bytes targetIdentities = allocateBytes(products, /* length= */ 131072);
+    words retainedTargetParameterStarts = allocate(products, /* length= */ 4096);
+    words retainedTargetParameterCounts = allocate(products, /* length= */ 4096);
+    words retainedTargetParameterTypes = allocate(products, /* length= */ 16384);
+    words retainedTargetResultTypes = allocate(products, /* length= */ 4096);
+    bytes retainedTargetIdentities = allocateBytes(products, /* length= */ 131072);
     words callRelocations = allocate(products, /* length= */ 768);
     bytes callRelocationIdentities = allocateBytes(products, /* length= */ 8192);
     words callTypes = allocate(products, /* length= */ 12288);
@@ -447,10 +454,28 @@ classical class StructuredSourceModuleCompiler {
       targetDependencyRows,
       loopPlan.statementCount,
       statements,
-      calls,
+      discoveredCalls,
       callStatements
     );
     assert(callPlan.valid);
+    ReferencedSourceCallTargetPlan referencedTargetPlan = materializeReferencedSourceCallTargets(
+      callableCount,
+      importedTargetCount,
+      callPlan.callCount,
+      discoveredCalls,
+      targetParameterStarts,
+      targetParameterCounts,
+      targetParameterTypes,
+      targetResultTypes,
+      targetIdentities,
+      calls,
+      retainedTargetParameterStarts,
+      retainedTargetParameterCounts,
+      retainedTargetParameterTypes,
+      retainedTargetResultTypes,
+      retainedTargetIdentities
+    );
+    assert(referencedTargetPlan.valid);
     SourceValueProductPlan valuePlan = materializeSourceValueProducts(
       source,
       archiveSourceStart,
@@ -499,11 +524,11 @@ classical class StructuredSourceModuleCompiler {
       callArgumentStarts,
       callArgumentCounts,
       callArguments,
-      targetTablePlan.targetCount,
-      targetParameterStarts,
-      targetParameterCounts,
-      targetParameterTypes,
-      targetResultTypes,
+      referencedTargetPlan.targetCount,
+      retainedTargetParameterStarts,
+      retainedTargetParameterCounts,
+      retainedTargetParameterTypes,
+      retainedTargetResultTypes,
       statements,
       statementPhysicalWidths,
       resolvedCalls,
@@ -704,11 +729,11 @@ classical class StructuredSourceModuleCompiler {
       callArguments,
       callArgumentValues,
       valuePhysicalStarts,
-      targetTablePlan.targetCount,
-      targetIdentities,
-      targetParameterStarts,
-      targetParameterCounts,
-      targetParameterTypes,
+      referencedTargetPlan.targetCount,
+      retainedTargetIdentities,
+      retainedTargetParameterStarts,
+      retainedTargetParameterCounts,
+      retainedTargetParameterTypes,
       callRelocations,
       callRelocationIdentities,
       callTypes,
@@ -769,11 +794,11 @@ classical class StructuredSourceModuleCompiler {
       callArguments,
       callArgumentValues,
       valuePhysicalStarts,
-      targetTablePlan.targetCount,
-      targetIdentities,
-      targetParameterStarts,
-      targetParameterCounts,
-      targetParameterTypes,
+      referencedTargetPlan.targetCount,
+      retainedTargetIdentities,
+      retainedTargetParameterStarts,
+      retainedTargetParameterCounts,
+      retainedTargetParameterTypes,
       callRelocations,
       callRelocationIdentities,
       callTypes,
@@ -848,11 +873,11 @@ classical class StructuredSourceModuleCompiler {
     assert(composition.valid);
     SourceProductArtifactPlan result = publishClassicalSourceModuleArtifactWithStubs(
       callableCount,
-      importedTargetCount,
-      targetParameterStarts,
-      targetParameterCounts,
-      targetParameterTypes,
-      targetResultTypes,
+      referencedTargetPlan.importedCount,
+      retainedTargetParameterStarts,
+      retainedTargetParameterCounts,
+      retainedTargetParameterTypes,
+      retainedTargetResultTypes,
       composedCallables,
       parameterCounts,
       functionResultTypes,
@@ -874,6 +899,11 @@ classical class StructuredSourceModuleCompiler {
     drop(callTypes);
     drop(callRelocationIdentities);
     drop(callRelocations);
+    drop(retainedTargetIdentities);
+    drop(retainedTargetResultTypes);
+    drop(retainedTargetParameterTypes);
+    drop(retainedTargetParameterCounts);
+    drop(retainedTargetParameterStarts);
     drop(targetIdentities);
     drop(targetResultTypes);
     drop(targetParameterTypes);
@@ -898,6 +928,7 @@ classical class StructuredSourceModuleCompiler {
     drop(callStatements);
     drop(targetDependencyRows);
     drop(calls);
+    drop(discoveredCalls);
     drop(callableParameterCounts);
     drop(callableNameLengths);
     drop(callableNameStarts);

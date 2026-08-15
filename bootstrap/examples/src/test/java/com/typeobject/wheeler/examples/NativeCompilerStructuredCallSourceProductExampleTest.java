@@ -40,7 +40,10 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
   @Test
   void emitsAnImportedCallThroughAVerifiedSignatureStub() throws Exception {
     String source = SOURCE.replace("recurse(value)", "remote(value)")
-        .replace("public long recurse", "public long caller");
+        .replace("public long recurse", "public long caller")
+        .replace(
+            "long result = remote(value);",
+            "long first = remote(value);\n    long result = remote(first);");
     int bodyStart = source.indexOf("{", source.indexOf("caller("));
     int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
     Program driver = driver(bodyStart, bodyLength, 1, 1, 0, true);
@@ -449,14 +452,22 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             .replace("PARAMETER_COUNT", Integer.toString(parameterCount))
             .replace("FIRST_TYPE", Integer.toString(firstType))
             .replace("SECOND_TYPE", Integer.toString(secondType))
-            .replace("IMPORTED_COUNT", imported ? "1" : "0")
+            .replace("IMPORTED_COUNT", imported ? "2" : "0")
             .replace("IMPORTED_SETUP", imported
-                ? "writeAscii(importedNames, 0, \"remote\");\n"
+                ? "writeAscii(importedNames, 0, \"remoteunused\");\n"
                     + "set(importedRows, 12288, 6);\n"
                     + "set(importedRows, 20480, IMPORTED_PARAMETER_COUNT);\n"
                     + "set(importedRows, 24576, IMPORTED_RESULT_TYPE);\n"
+                    + "set(importedRows, 4097, 1);\n"
+                    + "set(importedRows, 8193, 6);\n"
+                    + "set(importedRows, 12289, 6);\n"
+                    + "set(importedRows, 16385, 1);\n"
+                    + "set(importedRows, 20481, IMPORTED_PARAMETER_COUNT);\n"
+                    + "set(importedRows, 24577, IMPORTED_RESULT_TYPE);\n"
                     + "set(importedParameterRows, 0, IMPORTED_PARAMETER_TYPE);\n"
-                    + "setByte(importedIdentities, 0, 42);"
+                    + "set(importedParameterRows, 1, IMPORTED_PARAMETER_TYPE);\n"
+                    + "setByte(importedIdentities, 0, 42);\n"
+                    + "setByte(importedIdentities, 32, 43);"
                 : "")
             .replace("IMPORTED_PARAMETER_COUNT", Integer.toString(parameterCount))
             .replace("IMPORTED_PARAMETER_TYPE", Integer.toString(importedParameterType))
