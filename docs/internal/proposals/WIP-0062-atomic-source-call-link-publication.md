@@ -55,11 +55,15 @@ The transaction publishes these products together or publishes none of them.
 - 4 MiB linked code
 - 32-byte package, callable, artifact, and container identities
 
+## Implementation
+
+`ImportedStructuredArchiveModuleCompiler.w` now stages the source-local artifact, artifact identity, relocation rows, relocation owners, relocation identities, and closure instruction targets. It decodes the staged artifact, excludes verifier suffix functions, resolves every package-bound target identity, and only then copies those products into caller-owned buffers. A stale target traps while all public buffers still hold their sentinels. Canonical section and container assembly remain outside this boundary.
+
 ## Plan
 
-1. Define one caller-owned staging record for source artifacts and relocation products.
-2. Decode and retain every local prefix before any public archive append.
-3. Resolve all package-bound identities and rewrite closure instruction targets.
+1. [x] Define one caller-owned staging record for source artifacts and relocation products.
+2. [x] Decode and retain every local prefix before any public archive append.
+3. [x] Resolve all package-bound identities and rewrite closure instruction targets.
 4. Build canonical string, type, function, code, and container sections from retained rows.
 5. Verify and hash the complete container.
 6. Publish artifact, archive, relocation, section, and container outputs in one final copy.
