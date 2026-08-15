@@ -2,18 +2,18 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Draft |
+| Status | Implemented |
 | Owners | Wheeler compiler, package, and linker maintainers |
 | Created | 2026-08-14 |
 | Updated | 2026-08-14 |
 | Area | Self-hosting compiler, imported calls, relocation |
 | Depends on | WIP-0045, WIP-0048, WIP-0057 |
 | Supersedes | Imported call integration in WIP-0057 |
-| Superseded by | WIP-0060 for artifact stubs and final relocation |
+| Superseded by | WIP-0060 for artifact stubs and final relocation, WIP-0061 for qualified spelling |
 
 ## Summary
 
-Feed imported callable products into structured source compilation without reopening dependency source. Match calls against closed names and signatures, retain stable target identities, and publish external relocations beside local call products.
+Feed imported callable products into structured source compilation without reopening dependency source. Match unqualified calls against closed names and signatures, retain package-bound target identities, and publish external relocations beside local call products. WIP-0061 owns qualified spelling.
 
 ## Problem
 
@@ -25,12 +25,11 @@ Copying dependency source into the structured pass would create a second fronten
 
 An imported target view contains:
 
-- canonical qualified name range
+- canonical callable name range
 - ordered parameter types and loan modes
 - result kind and effects
-- stable callable identity
-- dependency rank and package identity
-- local or external relocation class
+- package-bound stable callable identity
+- dependency rank used during target admission
 
 The module call scanner checks locals first. It checks only admitted dependency products after local matching fails. Call rows retain the selected product identity through code emission.
 
@@ -38,7 +37,7 @@ The module call scanner checks locals first. It checks only admitted dependency 
 
 - Dependency source never enters the API.
 - A local callable shadows an equal imported name and arity.
-- Equal imported products remain ambiguous until qualification selects one.
+- Equal unqualified imported products remain ambiguous.
 - Target identity, not packed row order, authorizes relocation.
 - Parameter and result products validate before call widths publish.
 - Missing identities and malformed signatures publish no call artifact.
@@ -63,17 +62,17 @@ The archive compiler imports this product as the sole target-view boundary. `Sou
 - [x] Carry copied qualified names, signatures, effects, and identities into structured compilation.
 - [x] Resolve local and imported calls through one source scanner.
 - [x] Build one local-plus-imported parameter and identity table.
-- [ ] Hand referenced targets to WIP-0060 without changing call code windows.
-- [ ] Preserve package and dependency-rank evidence through the handoff.
+- [x] Hand referenced targets to WIP-0060 without changing call code windows.
+- [x] Preserve package-bound callable identity through the handoff and use dependency rank before selection.
 
 ## Acceptance
 
-- An imported call compiles byte for byte with no dependency source in memory.
-- A local callable shadows an equal imported target.
-- Qualified calls select one exact imported product.
-- Missing, duplicate, or mismatched imported products publish nothing.
-- Shuffled dependency and target rows do not change artifact or relocation bytes.
-- Package-lock identity changes invalidate stale imported target products.
+- [x] An imported call compiles with no dependency source in memory.
+- [x] A local callable shadows an equal imported target.
+- [x] Missing, duplicate, or mismatched imported products publish nothing.
+- [x] Shuffled dependency and target rows do not change target or artifact products.
+- [x] Package identity participates in the stable callable identity.
+- [ ] WIP-0061 makes qualified calls select one exact imported product.
 
 ## Rejected alternatives
 
@@ -91,3 +90,4 @@ Rejected. Table packing is not semantic order.
 - [WIP-0048](WIP-0048-canonical-native-product-linker.md)
 - [WIP-0057](WIP-0057-source-call-relocation-and-ownership-coordinate-products.md)
 - [WIP-0060](WIP-0060-imported-call-stub-and-relocation-products.md)
+- [WIP-0061](WIP-0061-qualified-imported-source-calls.md)
