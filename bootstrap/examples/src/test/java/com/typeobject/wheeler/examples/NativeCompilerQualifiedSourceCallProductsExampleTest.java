@@ -77,7 +77,7 @@ final class NativeCompilerQualifiedSourceCallProductsExampleTest {
 
           entry void main(borrow utf8 input) {
             region products = new region(/* bytes= */ 1277958, /* allocations= */ 8);
-            bytes callableNames = allocateBytes(products, /* length= */ 6);
+            bytes callableNames = allocateBytes(products, /* length= */ 9);
             words callableNameStarts = allocate(products, /* length= */ 4096);
             words callableNameLengths = allocate(products, /* length= */ 4096);
             words callableParameterCounts = allocate(products, /* length= */ 4096);
@@ -85,11 +85,12 @@ final class NativeCompilerQualifiedSourceCallProductsExampleTest {
             words qualifierNameStarts = allocate(products, /* length= */ 4096);
             words qualifierNameLengths = allocate(products, /* length= */ 4096);
             words qualifierRanks = allocate(products, /* length= */ 4096);
-            writeAscii(callableNames, 0, "runrun");
-            set(callableNameStarts, 1, 0);
+            writeAscii(callableNames, 0, "runrunrun");
+            set(callableNameLengths, 0, 3);
+            set(callableNameStarts, 1, 3);
             set(callableNameLengths, 1, 3);
             set(callableParameterCounts, 1, 1);
-            set(callableNameStarts, 2, 3);
+            set(callableNameStarts, 2, 6);
             set(callableNameLengths, 2, 3);
             set(callableParameterCounts, 2, 1);
             writeAscii(qualifierNames, 0, "alpha.betazeta");
@@ -100,8 +101,8 @@ final class NativeCompilerQualifiedSourceCallProductsExampleTest {
             set(qualifierRanks, 1, 5);
             region ranks = new region(/* bytes= */ 32768, /* allocations= */ 1);
             words callableRanks = allocate(ranks, /* length= */ 4096);
-            set(callableRanks, 1, 2);
-            set(callableRanks, 2, 5);
+            set(callableRanks, 0, 2);
+            set(callableRanks, 1, 5);
             region output = new region(/* bytes= */ 8192, /* allocations= */ 1);
             words calls = allocate(output, /* length= */ 1024);
             set(calls, 768, 77);

@@ -157,6 +157,117 @@ classical class QualifiedSourceCallProducts {
     return segmentStart == false;
   }
 
+  /// Replaces parser-default widths for calls carrying an exact qualifier.
+  public boolean materializeQualifiedCallStatementWidths(
+    borrow utf8 source,
+    long callCount,
+    borrow mut words callRows,
+    borrow mut words callStatements,
+    borrow mut words targetResultTypes,
+    borrow mut words statementWidths
+  ) {
+    assert(-1 < callCount);
+    assert(callCount < MAX_CALLS + 1);
+    assert(bufferLength(callRows) == CALL_ROWS);
+    assert(bufferLength(callStatements) == MAX_CALLS);
+    assert(bufferLength(targetResultTypes) == MAX_CALLABLES);
+    assert(bufferLength(statementWidths) == MAX_CALLABLES);
+    region staging = new region(/* bytes= */ 32768, /* allocations= */ 1);
+    words stagedWidths = allocate(staging, MAX_CALLABLES);
+    long statement = 0;
+    while (statement < MAX_CALLABLES) limit MAX_CALLABLES {
+      set(stagedWidths, statement, statementWidths[statement]);
+      statement += 1;
+    }
+
+    boolean valid = true;
+    long call = 0;
+    while (call < callCount) limit MAX_CALLS {
+      long callStart = callRows[call];
+      boolean callStartValid = -1 < callStart;
+      if (bufferLength(source) < callStart) {
+        callStartValid = false;
+      }
+
+      if (callStartValid == false) {
+        valid = false;
+      }
+
+      if (callStartValid) {
+        if (1 < callStart) {
+          if (utf8Scalar(source, callStart - 1) == PUNCTUATION_COLON) {
+            if (utf8Scalar(source, callStart - 2) == PUNCTUATION_COLON) {
+              long owner = callStatements[call];
+              long target = callRows[768 + call];
+              long arity = callRows[512 + call];
+              if (owner < 0) {
+                valid = false;
+              }
+
+              if (MAX_CALLABLES - 1 < owner) {
+                valid = false;
+              }
+
+              if (target < 0) {
+                valid = false;
+              }
+
+              if (MAX_CALLABLES - 1 < target) {
+                valid = false;
+              }
+
+              if (arity < 0) {
+                valid = false;
+              }
+
+              if (7 < arity) {
+                valid = false;
+              }
+
+              long resultKind = -1;
+              if (-1 < target) {
+                if (target < MAX_CALLABLES) {
+                  resultKind = targetResultTypes[target];
+                }
+              }
+
+              if (resultKind < 0) {
+                valid = false;
+              }
+
+              if (2 < resultKind) {
+                valid = false;
+              }
+
+              if (valid) {
+                long width = arity * 2;
+                if (0 < resultKind) {
+                  width += 2;
+                }
+
+                set(stagedWidths, owner, width);
+              }
+            }
+          }
+        }
+      }
+
+      call += 1;
+    }
+
+    if (valid) {
+      statement = 0;
+      while (statement < MAX_CALLABLES) limit MAX_CALLABLES {
+        set(statementWidths, statement, stagedWidths[statement]);
+        statement += 1;
+      }
+    }
+
+    drop(stagedWidths);
+    drop(staging);
+    return valid;
+  }
+
   /// Resolves qualified calls against target-aligned module names and direct ranks.
   public QualifiedSourceCallPlan resolveQualifiedSourceCallProducts(
     borrow utf8 source,
@@ -172,7 +283,7 @@ classical class QualifiedSourceCallProducts {
     borrow mut words qualifierNameStarts,
     borrow mut words qualifierNameLengths,
     borrow mut words qualifierDependencyRanks,
-    borrow mut words callableDependencyRanks,
+    borrow mut words importedDependencyRanks,
     borrow mut words callRows
   ) {
     assert(-1 < bodyStart);
@@ -185,10 +296,10 @@ classical class QualifiedSourceCallProducts {
     assert(bufferLength(callableNameLengths) == MAX_CALLABLES);
     assert(bufferLength(callableParameterCounts) == MAX_CALLABLES);
     assert(bufferLength(qualifierNames) == MAX_NAME_BYTES);
-    assert(bufferLength(qualifierNameStarts) == MAX_CALLABLES);
-    assert(bufferLength(qualifierNameLengths) == MAX_CALLABLES);
-    assert(bufferLength(qualifierDependencyRanks) == MAX_CALLABLES);
-    assert(bufferLength(callableDependencyRanks) == MAX_CALLABLES);
+    assert(MAX_CALLABLES - 1 < bufferLength(qualifierNameStarts));
+    assert(MAX_CALLABLES - 1 < bufferLength(qualifierNameLengths));
+    assert(MAX_CALLABLES - 1 < bufferLength(qualifierDependencyRanks));
+    assert(MAX_CALLABLES - 1 < bufferLength(importedDependencyRanks));
     assert(bufferLength(callRows) == CALL_ROWS);
 
     region tokens = new region(/* bytes= */ TOKEN_ARENA_BYTES, /* allocations= */ 3);
@@ -277,7 +388,7 @@ classical class QualifiedSourceCallProducts {
                     while (imported < importedCallableCount) limit MAX_CALLABLES {
                       long callable = firstImportedCallable + imported;
                       if (
-                        qualifierDependencyRanks[imported] == callableDependencyRanks[callable]
+                        qualifierDependencyRanks[imported] == importedDependencyRanks[imported]
                       ) {
                         if (callableParameterCounts[callable] == arity) {
                           if (

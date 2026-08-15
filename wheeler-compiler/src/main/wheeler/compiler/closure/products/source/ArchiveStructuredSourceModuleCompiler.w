@@ -346,11 +346,14 @@ classical class ArchiveStructuredSourceModuleCompiler {
     borrow mut bytes artifact,
     borrow mut bytes identity
   ) {
-    region emptyTargets = new region(/* bytes= */ 1703936, /* allocations= */ 4);
+    region emptyTargets = new region(/* bytes= */ 1802240, /* allocations= */ 7);
     words importedTargetRows = allocate(emptyTargets, /* length= */ 32768);
     words importedTargetParameterRows = allocate(emptyTargets, /* length= */ 32768);
     bytes importedTargetNames = allocateBytes(emptyTargets, /* length= */ 1048576);
     bytes importedTargetIdentities = allocateBytes(emptyTargets, /* length= */ 131072);
+    words qualifierNameStarts = allocate(emptyTargets, /* length= */ 4096);
+    words qualifierNameLengths = allocate(emptyTargets, /* length= */ 4096);
+    words qualifierRanks = allocate(emptyTargets, /* length= */ 4096);
     SourceProductArtifactPlan result = compileStructuredArchiveModuleWithTargetView(
       archive,
       sourceStart,
@@ -363,6 +366,10 @@ classical class ArchiveStructuredSourceModuleCompiler {
       importedTargetParameterRows,
       importedTargetNames,
       importedTargetIdentities,
+      importedTargetNames,
+      qualifierNameStarts,
+      qualifierNameLengths,
+      qualifierRanks,
       callableBodyStarts,
       callableBodyLengths,
       importedCount,
@@ -380,6 +387,9 @@ classical class ArchiveStructuredSourceModuleCompiler {
       artifact,
       identity
     );
+    drop(qualifierRanks);
+    drop(qualifierNameLengths);
+    drop(qualifierNameStarts);
     drop(importedTargetIdentities);
     drop(importedTargetNames);
     drop(importedTargetParameterRows);
@@ -401,6 +411,10 @@ classical class ArchiveStructuredSourceModuleCompiler {
     borrow mut words importedTargetParameterRows,
     borrow byteview importedTargetNames,
     borrow byteview importedTargetIdentities,
+    borrow byteview importedTargetQualifierNames,
+    borrow mut words importedTargetQualifierNameStarts,
+    borrow mut words importedTargetQualifierNameLengths,
+    borrow mut words importedTargetQualifierDependencyRanks,
     borrow mut words callableBodyStarts,
     borrow mut words callableBodyLengths,
     long importedCount,
@@ -576,6 +590,10 @@ classical class ArchiveStructuredSourceModuleCompiler {
       importedTargetParameterRows,
       importedTargetNames,
       importedTargetIdentities,
+      importedTargetQualifierNames,
+      importedTargetQualifierNameStarts,
+      importedTargetQualifierNameLengths,
+      importedTargetQualifierDependencyRanks,
       localBodyStarts,
       localBodyLengths,
       importedCount,

@@ -11,6 +11,7 @@ import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.closure.loop_call_products;
 import wheeler.compiler.closure.loop_instruction_products;
 import wheeler.compiler.closure.loop_local_type_products;
+import wheeler.compiler.closure.qualified_source_call_products;
 import wheeler.compiler.closure.referenced_source_call_targets;
 import wheeler.compiler.closure.resolved_loop_body_products;
 import wheeler.compiler.closure.resolved_loop_products;
@@ -26,6 +27,7 @@ import wheeler.compiler.closure.source_module_product_artifact;
 import wheeler.compiler.closure.source_product_artifact;
 import wheeler.compiler.closure.source_statement_products;
 import wheeler.compiler.closure.source_value_products;
+import wheeler.compiler.closure.structured_source_coordinates;
 import wheeler.crypto.sha256;
 
 classical class StructuredSourceModuleCompiler {
@@ -80,128 +82,6 @@ classical class StructuredSourceModuleCompiler {
     drop(hashArena);
   }
 
-  private long callAtStatement(long statement, long callCount, borrow mut words callStatements) {
-    long selected = -1;
-    long matches = 0;
-    long call = 0;
-    while (call < callCount) limit 256 {
-      if (callStatements[call] == statement) {
-        selected = call;
-        matches += 1;
-      }
-
-      call += 1;
-    }
-
-    if (matches != 1) {
-      return -1;
-    }
-
-    return selected;
-  }
-
-  private long statementAtLoop(
-    long owner,
-    long ordinal,
-    long statementCount,
-    borrow mut words statementRows
-  ) {
-    long selected = -1;
-    long matches = 0;
-    long statement = 0;
-    while (statement < statementCount) limit MAX_STATEMENTS {
-      if (statementRows[statement] == owner) {
-        if (statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement] == ordinal) {
-          if (0 < statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement]) {
-            selected = statement;
-            matches += 1;
-          }
-        }
-      }
-
-      statement += 1;
-    }
-
-    if (matches != 1) {
-      return -1;
-    }
-
-    return selected;
-  }
-
-  private long statementAtOrdinal(
-    long owner,
-    long ordinal,
-    long statementCount,
-    borrow mut words statementRows
-  ) {
-    long selected = -1;
-    long matches = 0;
-    long statement = 0;
-    while (statement < statementCount) limit MAX_STATEMENTS {
-      if (statementRows[statement] == owner) {
-        if (statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement] == ordinal) {
-          selected = statement;
-          matches += 1;
-        }
-      }
-
-      statement += 1;
-    }
-
-    if (matches != 1) {
-      return -1;
-    }
-
-    return selected;
-  }
-
-  private long physicalValueLocal(
-    long owner,
-    long local,
-    long statementCount,
-    borrow mut words statementRows,
-    borrow mut words statementLocalRows,
-    long valueCount,
-    borrow mut words valueRows,
-    borrow mut words statementPhysicalStarts
-  ) {
-    long selected = -1;
-    long matches = 0;
-    long value = 0;
-    while (value < valueCount) limit 1024 {
-      if (valueRows[value] == owner) {
-        if (valueRows[3072 + value] == local) {
-          selected = value;
-          matches += 1;
-        }
-      }
-
-      value += 1;
-    }
-
-    if (matches != 1) {
-      return -1;
-    }
-
-    long ordinal = valueRows[4096 + selected];
-    if (ordinal == 0) {
-      return local;
-    }
-
-    long statement = statementAtOrdinal(owner, ordinal, statementCount, statementRows);
-    if (statement < 0) {
-      return -1;
-    }
-
-    long logicalBase = statementLocalRows[statement];
-    if (local < logicalBase) {
-      return -1;
-    }
-
-    return statementPhysicalStarts[statement] + local - logicalBase;
-  }
-
   /// Publishes one verified artifact against closed imported target products.
   public SourceProductArtifactPlan compileStructuredSourceModuleWithTargets(
     borrow utf8 source,
@@ -214,6 +94,10 @@ classical class StructuredSourceModuleCompiler {
     borrow mut words importedTargetParameterRows,
     borrow byteview importedTargetNames,
     borrow byteview importedTargetIdentities,
+    borrow byteview importedTargetQualifierNames,
+    borrow mut words importedTargetQualifierNameStarts,
+    borrow mut words importedTargetQualifierNameLengths,
+    borrow mut words importedTargetQualifierDependencyRanks,
     borrow mut words bodyStarts,
     borrow mut words bodyLengths,
     long symbolCount,
@@ -248,6 +132,13 @@ classical class StructuredSourceModuleCompiler {
     assert(bufferLength(importedTargetParameterRows) == 32768);
     assert(bufferLength(importedTargetNames) == 1048576);
     assert(bufferLength(importedTargetIdentities) == 131072);
+    if (0 < importedTargetCount) {
+      assert(bufferLength(importedTargetQualifierNames) == 1048576);
+      assert(4095 < bufferLength(importedTargetQualifierNameStarts));
+      assert(4095 < bufferLength(importedTargetQualifierNameLengths));
+      assert(4095 < bufferLength(importedTargetQualifierDependencyRanks));
+    }
+
     assert(bufferLength(bodyStarts) == 4096);
     assert(bufferLength(bodyLengths) == 4096);
     assert(-1 < symbolCount);
@@ -458,10 +349,40 @@ classical class StructuredSourceModuleCompiler {
       callStatements
     );
     assert(callPlan.valid);
+    long resolvedCallCount = callPlan.callCount;
+    if (0 < importedTargetCount) {
+      SourceModuleCallPlan qualifiedCallPlan = appendQualifiedSourceModuleCallProducts(
+        source,
+        archiveSourceStart,
+        firstCallable,
+        callableCount,
+        bodyStarts,
+        bodyLengths,
+        targetNames,
+        targetNameStarts,
+        targetNameLengths,
+        targetParameterCounts,
+        callableCount,
+        importedTargetCount,
+        importedTargetQualifierNames,
+        importedTargetQualifierNameStarts,
+        importedTargetQualifierNameLengths,
+        importedTargetQualifierDependencyRanks,
+        targetDependencyRows,
+        loopPlan.statementCount,
+        statements,
+        callPlan.callCount,
+        discoveredCalls,
+        callStatements
+      );
+      assert(qualifiedCallPlan.valid);
+      resolvedCallCount = qualifiedCallPlan.callCount;
+    }
+
     ReferencedSourceCallTargetPlan referencedTargetPlan = materializeReferencedSourceCallTargets(
       callableCount,
       importedTargetCount,
-      callPlan.callCount,
+      resolvedCallCount,
       discoveredCalls,
       targetParameterStarts,
       targetParameterCounts,
@@ -494,7 +415,7 @@ classical class StructuredSourceModuleCompiler {
     SourceCallArgumentPlan callArgumentPlan = materializeSourceCallArgumentProducts(
       source,
       /* callSourceBase= */ 0,
-      callPlan.callCount,
+      resolvedCallCount,
       calls,
       callStatements,
       loopPlan.statementCount,
@@ -517,8 +438,17 @@ classical class StructuredSourceModuleCompiler {
       measuredStatement += 1;
     }
 
+    boolean qualifiedWidthsValid = materializeQualifiedCallStatementWidths(
+      source,
+      resolvedCallCount,
+      calls,
+      callStatements,
+      retainedTargetResultTypes,
+      statementPhysicalWidths
+    );
+    assert(qualifiedWidthsValid);
     SourceCallLayoutPlan callLayoutPlan = materializeSourceCallLayoutProducts(
-      callPlan.callCount,
+      resolvedCallCount,
       calls,
       callStatements,
       callArgumentStarts,
@@ -541,7 +471,7 @@ classical class StructuredSourceModuleCompiler {
       statements,
       valuePlan.valueCount,
       values,
-      callPlan.callCount,
+      resolvedCallCount,
       callStatements,
       bodyRows,
       nestedRows,
@@ -590,7 +520,7 @@ classical class StructuredSourceModuleCompiler {
           statements
         );
         assert(-1 < valueStatement);
-        long valueCall = callAtStatement(valueStatement, callPlan.callCount, callStatements);
+        long valueCall = callAtStatement(valueStatement, resolvedCallCount, callStatements);
         if (-1 < valueCall) {
           assert(resolvedCalls[256 + valueCall] != 0);
           valueStart = statementPhysicalStarts[valueStatement] + callLocalWidths[valueCall] - 1;
@@ -675,7 +605,7 @@ classical class StructuredSourceModuleCompiler {
       source,
       loopPlan.statementCount,
       statements,
-      callPlan.callCount,
+      resolvedCallCount,
       callStatements,
       valuePlan.valueCount,
       values,
@@ -695,7 +625,7 @@ classical class StructuredSourceModuleCompiler {
       statements,
       directPlan.productCount,
       directRows,
-      callPlan.callCount,
+      resolvedCallCount,
       resolvedCalls,
       callStatements,
       callArgumentCounts,
@@ -704,7 +634,7 @@ classical class StructuredSourceModuleCompiler {
     assert(instructionPrefixPlan.valid);
     SourceCallInstructionPlan preliminaryCallInstructionPlan
       = materializeSourceCallInstructionProducts(
-      callPlan.callCount,
+      resolvedCallCount,
       resolvedCalls,
       callStatements,
       callArgumentCounts,
@@ -720,7 +650,7 @@ classical class StructuredSourceModuleCompiler {
     );
     assert(preliminaryCallInstructionPlan.valid);
     LoopCallPlan preliminaryEmittedCallPlan = writeLoopCallProducts(
-      callPlan.callCount,
+      resolvedCallCount,
       resolvedCalls,
       callArgumentStarts,
       callArgumentCounts,
@@ -754,7 +684,7 @@ classical class StructuredSourceModuleCompiler {
       blocks,
       bodyPlan.bodyCount,
       bodyRows,
-      callPlan.callCount,
+      resolvedCallCount,
       callStatements,
       callWindowRows,
       callInstructionStarts,
@@ -769,7 +699,7 @@ classical class StructuredSourceModuleCompiler {
     );
     assert(codePlan.valid);
     SourceCallInstructionPlan callInstructionPlan = materializeSourceCallInstructionProducts(
-      callPlan.callCount,
+      resolvedCallCount,
       resolvedCalls,
       callStatements,
       callArgumentCounts,
@@ -785,7 +715,7 @@ classical class StructuredSourceModuleCompiler {
     );
     assert(callInstructionPlan.valid);
     LoopCallPlan emittedCallPlan = writeLoopCallProducts(
-      callPlan.callCount,
+      resolvedCallCount,
       resolvedCalls,
       callArgumentStarts,
       callArgumentCounts,
@@ -815,7 +745,7 @@ classical class StructuredSourceModuleCompiler {
       statements,
       bodyPlan.bodyCount,
       bodyRows,
-      callPlan.callCount,
+      resolvedCallCount,
       callStatements,
       bodyPlan.nestedCount,
       nestedRows,
@@ -831,7 +761,7 @@ classical class StructuredSourceModuleCompiler {
       statements,
       directPlan.productCount,
       directRows,
-      callPlan.callCount,
+      resolvedCallCount,
       resolvedCalls,
       callStatements,
       callArgumentCounts,
@@ -848,7 +778,7 @@ classical class StructuredSourceModuleCompiler {
       directPlan.productCount,
       directRows,
       directCode,
-      callPlan.callCount,
+      resolvedCallCount,
       callStatements,
       callWindowRows,
       callCode,

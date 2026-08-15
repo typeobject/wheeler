@@ -35,6 +35,10 @@ classical class ImportedStructuredArchiveModuleCompiler {
     borrow mut words callableNameStarts,
     borrow mut words callableNameLengths,
     borrow byteview callableIdentities,
+    borrow mut words callableOwners,
+    borrow byteview moduleNames,
+    borrow mut words moduleNameStarts,
+    borrow mut words moduleNameLengths,
     borrow mut bytes artifact,
     borrow mut bytes identity
   ) {
@@ -62,6 +66,24 @@ classical class ImportedStructuredArchiveModuleCompiler {
       targetIdentities
     );
     assert(targetPlan.valid);
+    region qualifiers = new region(/* bytes= */ 1146880, /* allocations= */ 4);
+    bytes qualifierNames = allocateBytes(qualifiers, /* length= */ 1048576);
+    words qualifierNameStarts = allocate(qualifiers, /* length= */ 4096);
+    words qualifierNameLengths = allocate(qualifiers, /* length= */ 4096);
+    words qualifierDependencyRanks = allocate(qualifiers, /* length= */ 4096);
+    ImportedCallQualifierPlan qualifierPlan = materializeImportedCallQualifierProducts(
+      targetPlan.targetCount,
+      targetRows,
+      callableOwners,
+      moduleNames,
+      moduleNameStarts,
+      moduleNameLengths,
+      qualifierNames,
+      qualifierNameStarts,
+      qualifierNameLengths,
+      qualifierDependencyRanks
+    );
+    assert(qualifierPlan.valid);
     SourceProductArtifactPlan result = compileStructuredArchiveModuleWithTargetView(
       archive,
       sourceStart,
@@ -74,6 +96,10 @@ classical class ImportedStructuredArchiveModuleCompiler {
       targetParameterRows,
       targetNames,
       targetIdentities,
+      qualifierNames,
+      qualifierNameStarts,
+      qualifierNameLengths,
+      qualifierDependencyRanks,
       callableBodyStarts,
       callableBodyLengths,
       importedValueCount,
@@ -91,6 +117,11 @@ classical class ImportedStructuredArchiveModuleCompiler {
       artifact,
       identity
     );
+    drop(qualifierDependencyRanks);
+    drop(qualifierNameLengths);
+    drop(qualifierNameStarts);
+    drop(qualifierNames);
+    drop(qualifiers);
     drop(targetIdentities);
     drop(targetNames);
     drop(targetParameterRows);

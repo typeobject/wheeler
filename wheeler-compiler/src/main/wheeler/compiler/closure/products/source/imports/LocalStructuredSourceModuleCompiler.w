@@ -34,11 +34,14 @@ classical class LocalStructuredSourceModuleCompiler {
     borrow mut bytes output,
     borrow mut bytes identity
   ) {
-    region emptyTargets = new region(/* bytes= */ 1703936, /* allocations= */ 4);
+    region emptyTargets = new region(/* bytes= */ 1802240, /* allocations= */ 7);
     words importedRows = allocate(emptyTargets, /* length= */ 32768);
     words importedParameterRows = allocate(emptyTargets, /* length= */ 32768);
     bytes importedNames = allocateBytes(emptyTargets, /* length= */ 1048576);
     bytes importedIdentities = allocateBytes(emptyTargets, /* length= */ 131072);
+    words qualifierNameStarts = allocate(emptyTargets, /* length= */ 4096);
+    words qualifierNameLengths = allocate(emptyTargets, /* length= */ 4096);
+    words qualifierRanks = allocate(emptyTargets, /* length= */ 4096);
     SourceProductArtifactPlan result = compileStructuredSourceModuleWithTargets(
       source,
       archiveSourceStart,
@@ -50,6 +53,10 @@ classical class LocalStructuredSourceModuleCompiler {
       importedParameterRows,
       importedNames,
       importedIdentities,
+      importedNames,
+      qualifierNameStarts,
+      qualifierNameLengths,
+      qualifierRanks,
       bodyStarts,
       bodyLengths,
       symbolCount,
@@ -71,6 +78,9 @@ classical class LocalStructuredSourceModuleCompiler {
       output,
       identity
     );
+    drop(qualifierRanks);
+    drop(qualifierNameLengths);
+    drop(qualifierNameStarts);
     drop(importedIdentities);
     drop(importedNames);
     drop(importedParameterRows);

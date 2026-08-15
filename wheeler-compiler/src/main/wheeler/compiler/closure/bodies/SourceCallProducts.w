@@ -513,68 +513,83 @@ classical class SourceCallProducts {
       if (bodyStart - 1 < selectedStart) {
         if (selectedStart < bodyStart + bodyLength) {
           if (tokenKinds[token] == 1) {
-            if (
-              punctuationAt(body, tokenKinds, tokenStarts, token + 1, PUNCTUATION_OPEN_PAREN)
-            ) {
-              long close = closingParen(body, tokenKinds, tokenStarts, token + 1, tokenCount);
-              assert(-1 < close);
-              long arity = parameterCount(body, tokenKinds, tokenStarts, token + 1, close);
-              assert(-1 < arity);
-              long local = matchingProductCallable(
-                body,
-                tokenStarts[token],
-                tokenLengths[token],
-                arity,
-                names,
-                firstLocalCallable,
-                localCallableCount,
-                callableNameStarts,
-                callableNameLengths,
-                callableParameterCounts
-              );
-              long selectedTarget = -1;
-              if (-1 < local) {
-                if (includeLocal) {
-                  selectedTarget = local;
-                }
-              } else {
-                if (includeImported) {
-                  long imported = -1;
-                  long product = 0;
-                  while (product < dependencyCount) limit MAX_CALLABLES {
-                    long candidate = dependencyRows[4096 + product];
-                    if (-1 < candidate) {
-                      if (callableParameterCounts[candidate] == arity) {
-                        if (
-                          sameProductName(
-                            body,
-                            tokenStarts[token],
-                            tokenLengths[token],
-                            names,
-                            callableNameStarts[candidate],
-                            callableNameLengths[candidate]
-                          )
-                        ) {
-                          assert(imported == -1);
-                          imported = candidate;
-                        }
-                      }
-                    }
-
-                    product += 1;
-                  }
-
-                  selectedTarget = imported;
+            boolean unqualifiedCall = true;
+            if (1 < token) {
+              if (
+                punctuationAt(body, tokenKinds, tokenStarts, token - 1, PUNCTUATION_COLON)
+              ) {
+                if (
+                  punctuationAt(body, tokenKinds, tokenStarts, token - 2, PUNCTUATION_COLON)
+                ) {
+                  unqualifiedCall = false;
                 }
               }
+            }
 
-              if (-1 < selectedTarget) {
-                assert(callCount < MAX_CALLS_PER_BODY);
-                set(stagedCalls, callCount, tokenStarts[token]);
-                set(stagedCalls, 256 + callCount, tokenLengths[token]);
-                set(stagedCalls, 512 + callCount, arity);
-                set(stagedCalls, 768 + callCount, selectedTarget);
-                callCount += 1;
+            if (unqualifiedCall) {
+              if (
+                punctuationAt(body, tokenKinds, tokenStarts, token + 1, PUNCTUATION_OPEN_PAREN)
+              ) {
+                long close = closingParen(body, tokenKinds, tokenStarts, token + 1, tokenCount);
+                assert(-1 < close);
+                long arity = parameterCount(body, tokenKinds, tokenStarts, token + 1, close);
+                assert(-1 < arity);
+                long local = matchingProductCallable(
+                  body,
+                  tokenStarts[token],
+                  tokenLengths[token],
+                  arity,
+                  names,
+                  firstLocalCallable,
+                  localCallableCount,
+                  callableNameStarts,
+                  callableNameLengths,
+                  callableParameterCounts
+                );
+                long selectedTarget = -1;
+                if (-1 < local) {
+                  if (includeLocal) {
+                    selectedTarget = local;
+                  }
+                } else {
+                  if (includeImported) {
+                    long imported = -1;
+                    long product = 0;
+                    while (product < dependencyCount) limit MAX_CALLABLES {
+                      long candidate = dependencyRows[4096 + product];
+                      if (-1 < candidate) {
+                        if (callableParameterCounts[candidate] == arity) {
+                          if (
+                            sameProductName(
+                              body,
+                              tokenStarts[token],
+                              tokenLengths[token],
+                              names,
+                              callableNameStarts[candidate],
+                              callableNameLengths[candidate]
+                            )
+                          ) {
+                            assert(imported == -1);
+                            imported = candidate;
+                          }
+                        }
+                      }
+
+                      product += 1;
+                    }
+
+                    selectedTarget = imported;
+                  }
+                }
+
+                if (-1 < selectedTarget) {
+                  assert(callCount < MAX_CALLS_PER_BODY);
+                  set(stagedCalls, callCount, tokenStarts[token]);
+                  set(stagedCalls, 256 + callCount, tokenLengths[token]);
+                  set(stagedCalls, 512 + callCount, arity);
+                  set(stagedCalls, 768 + callCount, selectedTarget);
+                  callCount += 1;
+                }
               }
             }
           }

@@ -57,6 +57,22 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
   }
 
   @Test
+  void emitsAQualifiedImportedCallThroughTheSharedPipeline() throws Exception {
+    String source = SOURCE.replace("recurse(value)", "dep.alpha::remote(value)")
+        .replace("public long recurse", "public long caller");
+    int bodyStart = source.indexOf("{", source.indexOf("caller("));
+    int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
+    Program driver = driver(bodyStart, bodyLength, 1, 1, 0, true);
+    VirtualMachine machine = new VirtualMachine(
+        driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
+
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+
+    assertEquals(1, machine.global("valid"));
+    assertEquals(3, machine.global("functionCount"));
+  }
+
+  @Test
   void emitsImportedBooleanAndVoidSignatureStubs() throws Exception {
     String booleanSource = SOURCE.replace(
         "public long recurse(long value)",
@@ -362,6 +378,11 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             words importedParameterRows = allocate(products, /* length= */ 32768);
             bytes importedNames = allocateBytes(products, /* length= */ 1048576);
             bytes importedIdentities = allocateBytes(products, /* length= */ 131072);
+            region qualifiers = new region(/* bytes= */ 1146880, /* allocations= */ 4);
+            bytes qualifierNames = allocateBytes(qualifiers, /* length= */ 1048576);
+            words qualifierNameStarts = allocate(qualifiers, /* length= */ 4096);
+            words qualifierNameLengths = allocate(qualifiers, /* length= */ 4096);
+            words qualifierRanks = allocate(qualifiers, /* length= */ 4096);
             IMPORTED_SETUP
             set(bodyStarts, 0, BODY_START);
             set(bodyLengths, 0, BODY_LENGTH);
@@ -393,6 +414,10 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
               importedParameterRows,
               importedNames,
               importedIdentities,
+              qualifierNames,
+              qualifierNameStarts,
+              qualifierNameLengths,
+              qualifierRanks,
               bodyStarts,
               bodyLengths,
               /* symbolCount= */ 0,
@@ -424,6 +449,11 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             functionCount = plan.functionCount;
             maxLocalCount = plan.maxLocalCount;
             valid = 1;
+            drop(qualifierRanks);
+            drop(qualifierNameLengths);
+            drop(qualifierNameStarts);
+            drop(qualifierNames);
+            drop(qualifiers);
             drop(importedIdentities);
             drop(importedNames);
             drop(importedParameterRows);
@@ -455,6 +485,10 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             .replace("IMPORTED_COUNT", imported ? "2" : "0")
             .replace("IMPORTED_SETUP", imported
                 ? "writeAscii(importedNames, 0, \"remoteunused\");\n"
+                    + "writeAscii(qualifierNames, 0, \"dep.alphadep.beta\");\n"
+                    + "set(qualifierNameLengths, 0, 9);\n"
+                    + "set(qualifierNameStarts, 1, 9);\n"
+                    + "set(qualifierNameLengths, 1, 8);\n"
                     + "set(importedRows, 12288, 6);\n"
                     + "set(importedRows, 20480, IMPORTED_PARAMETER_COUNT);\n"
                     + "set(importedRows, 24576, IMPORTED_RESULT_TYPE);\n"

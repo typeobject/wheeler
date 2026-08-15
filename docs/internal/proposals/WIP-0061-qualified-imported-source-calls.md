@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Draft |
+| Status | Implementing |
 | Owners | Wheeler compiler and module-product maintainers |
 | Created | 2026-08-14 |
 | Updated | 2026-08-14 |
@@ -67,23 +67,25 @@ The module name contains canonical lowercase identifier segments separated by on
 
 `QualifiedSourceCallProducts.w` recognizes the canonical token shape, rejects malformed dots, colons, whitespace, uppercase segments, missing targets, and duplicate matches, then publishes target rows atomically. It leaves unqualified calls to the ordinary local-first scanner.
 
+`SourceModuleCallProducts.w` merges qualified and unqualified rows back into exact source order and binds each row to the narrowest statement. Structured compilation uses the merged rows for argument binding, retained-target filtering, typed layout, coordinate planning, stub emission, and stable-identity relocation. `StructuredSourceCoordinates.w` keeps statement and physical-local lookups out of the artifact orchestrator.
+
 ## Plan
 
 1. [x] Copy direct dependency module names beside their closure ranks.
 2. [x] Recognize the bounded `name(.name)*::name(` token shape.
 3. [x] Bind the qualifier to one exact direct rank.
-4. Match name, arity, parameter types, result kind, effects, and visibility inside that rank.
-5. Publish the same call and statement products used by unqualified calls.
+4. [x] Match name and arity inside that rank, then use the shared parameter, result, effect, and visibility products.
+5. [x] Publish the same call and statement products used by unqualified calls.
 6. Prove storage-order independence and atomic malformed-input rejection.
 
 ## Acceptance
 
-- Two dependencies may export the same callable name and arity.
-- Either canonical qualifier selects its exact package-bound target.
-- The equivalent unqualified call remains ambiguous.
-- A local callable does not shadow a qualified imported call.
-- An indirect dependency qualifier publishes nothing.
-- Malformed dots, colons, whitespace, and uppercase segments publish nothing.
+- [x] Two dependencies may export the same callable name and arity.
+- [x] Either canonical qualifier selects its exact package-bound target.
+- [x] The equivalent unqualified call remains ambiguous.
+- [x] A local callable does not shadow a qualified imported call.
+- [x] An indirect dependency qualifier publishes nothing.
+- [x] Malformed dots, colons, whitespace, and uppercase segments publish nothing.
 - Shuffled dependency and callable storage leaves artifact and relocation bytes unchanged.
 - Dependency source is absent from the compilation lifetime.
 
