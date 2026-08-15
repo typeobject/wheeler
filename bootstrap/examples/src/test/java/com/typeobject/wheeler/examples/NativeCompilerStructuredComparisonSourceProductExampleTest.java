@@ -227,15 +227,15 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
       int parameterCount) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
-        "wheeler.compiler.closure.structured_source_module_compiler"));
+        "wheeler.compiler.closure.local_structured_source_module_compiler"));
     CoreSources.addBinaryClosure(sources);
     sources.put("FixedBinary.w", CoreSources.read("encoding/FixedBinary.w"));
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     sources.put("StructuredComparisonSourceProductExample.w", """
         module example.structured_comparison_source_product;
 
+        import wheeler.compiler.closure.local_structured_source_module_compiler;
         import wheeler.compiler.closure.source_product_artifact;
-        import wheeler.compiler.closure.structured_source_module_compiler;
         import wheeler.core.encoding.binary;
 
         classical class StructuredComparisonSourceProductExample {

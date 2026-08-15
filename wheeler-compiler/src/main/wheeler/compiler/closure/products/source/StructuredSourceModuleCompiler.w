@@ -16,6 +16,7 @@ import wheeler.compiler.closure.resolved_loop_products;
 import wheeler.compiler.closure.source_call_argument_products;
 import wheeler.compiler.closure.source_call_instruction_products;
 import wheeler.compiler.closure.source_call_layout_products;
+import wheeler.compiler.closure.source_call_target_table;
 import wheeler.compiler.closure.source_callable_coordinate_products;
 import wheeler.compiler.closure.source_callable_result_products;
 import wheeler.compiler.closure.source_loop_products;
@@ -200,13 +201,18 @@ classical class StructuredSourceModuleCompiler {
     return statementPhysicalStarts[statement] + local - logicalBase;
   }
 
-  /// Publishes one verified source-local artifact without scalar-helper reparsing.
-  public SourceProductArtifactPlan compileStructuredSourceModule(
+  /// Publishes one verified artifact against closed imported target products.
+  public SourceProductArtifactPlan compileStructuredSourceModuleWithTargets(
     borrow utf8 source,
     long archiveSourceStart,
     long moduleOwner,
     long firstCallable,
     long callableCount,
+    long importedTargetCount,
+    borrow mut words importedTargetRows,
+    borrow mut words importedTargetParameterRows,
+    borrow byteview importedTargetNames,
+    borrow byteview importedTargetIdentities,
     borrow mut words bodyStarts,
     borrow mut words bodyLengths,
     long symbolCount,
@@ -234,6 +240,13 @@ classical class StructuredSourceModuleCompiler {
     assert(-1 < firstCallable);
     assert(0 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
+    assert(-1 < importedTargetCount);
+    assert(importedTargetCount < 4097);
+    assert(importedTargetCount < 4096 - callableCount + 1);
+    assert(bufferLength(importedTargetRows) == 32768);
+    assert(bufferLength(importedTargetParameterRows) == 32768);
+    assert(bufferLength(importedTargetNames) == 1048576);
+    assert(bufferLength(importedTargetIdentities) == 131072);
     assert(bufferLength(bodyStarts) == 4096);
     assert(bufferLength(bodyLengths) == 4096);
     assert(-1 < symbolCount);
@@ -254,7 +267,7 @@ classical class StructuredSourceModuleCompiler {
     assert(bufferLength(output) == 32768);
     assert(bufferLength(identity) == 32);
 
-    region products = new region(/* bytes= */ 3179520, /* allocations= */ 50);
+    region products = new region(/* bytes= */ 4654080, /* allocations= */ 58);
     words blocks = allocate(products, /* length= */ 6144);
     words statements = allocate(products, /* length= */ 28672);
     words sourceConditions = allocate(products, /* length= */ 1536);
@@ -275,7 +288,7 @@ classical class StructuredSourceModuleCompiler {
     words loopTypes = allocate(products, /* length= */ 12288);
     words directRows = allocate(products, /* length= */ 28672);
     words functionResultTypes = allocate(products, /* length= */ 64);
-    words targetResultTypes = allocate(products, /* length= */ 4096);
+    words localTargetResultTypes = allocate(products, /* length= */ 4096);
     words returnRows = allocate(products, /* length= */ 192);
     words directTypes = allocate(products, /* length= */ 12288);
     bytes directCode = allocateBytes(products, /* length= */ 262144);
@@ -286,7 +299,7 @@ classical class StructuredSourceModuleCompiler {
     words callableNameLengths = allocate(products, /* length= */ 4096);
     words callableParameterCounts = allocate(products, /* length= */ 4096);
     words calls = allocate(products, /* length= */ 1024);
-    words emptyDependencyRows = allocate(products, /* length= */ 8192);
+    words targetDependencyRows = allocate(products, /* length= */ 8192);
     words callStatements = allocate(products, /* length= */ 256);
     words callArgumentStarts = allocate(products, /* length= */ 256);
     words callArgumentCounts = allocate(products, /* length= */ 256);
@@ -297,10 +310,18 @@ classical class StructuredSourceModuleCompiler {
     words callInstructionStarts = allocate(products, /* length= */ 256);
     words callWindowRows = allocate(products, /* length= */ 768);
     words valuePhysicalStarts = allocate(products, /* length= */ 1024);
-    bytes targetIdentities = allocateBytes(products, /* length= */ 131072);
+    bytes localTargetIdentities = allocateBytes(products, /* length= */ 131072);
+    words localTargetParameterStarts = allocate(products, /* length= */ 4096);
+    words localTargetParameterCounts = allocate(products, /* length= */ 4096);
+    words localTargetParameterTypes = allocate(products, /* length= */ 16384);
+    bytes targetNames = allocateBytes(products, /* length= */ 1048576);
+    words targetNameStarts = allocate(products, /* length= */ 4096);
+    words targetNameLengths = allocate(products, /* length= */ 4096);
     words targetParameterStarts = allocate(products, /* length= */ 4096);
     words targetParameterCounts = allocate(products, /* length= */ 4096);
     words targetParameterTypes = allocate(products, /* length= */ 16384);
+    words targetResultTypes = allocate(products, /* length= */ 4096);
+    bytes targetIdentities = allocateBytes(products, /* length= */ 131072);
     words callRelocations = allocate(products, /* length= */ 768);
     bytes callRelocationIdentities = allocateBytes(products, /* length= */ 8192);
     words callTypes = allocate(products, /* length= */ 12288);
@@ -330,9 +351,9 @@ classical class StructuredSourceModuleCompiler {
       set(callableNameStarts, namedCallable, simpleStart);
       set(callableNameLengths, namedCallable, nameStart + nameLength - simpleStart);
       set(callableParameterCounts, namedCallable, parameterCounts[namedCallable]);
-      writeTargetIdentity(strings, nameStart, nameLength, namedCallable, targetIdentities);
-      set(targetParameterStarts, namedCallable, targetParameterCursor);
-      set(targetParameterCounts, namedCallable, parameterCounts[namedCallable]);
+      writeTargetIdentity(strings, nameStart, nameLength, namedCallable, localTargetIdentities);
+      set(localTargetParameterStarts, namedCallable, targetParameterCursor);
+      set(localTargetParameterCounts, namedCallable, parameterCounts[namedCallable]);
       long targetParameter = 0;
       while (targetParameter < parameterCounts[namedCallable]) limit 256 {
         long targetType = signatureTypeAt(
@@ -342,7 +363,7 @@ classical class StructuredSourceModuleCompiler {
           signatureTypes
         );
         assert(-1 < targetType);
-        set(targetParameterTypes, targetParameterCursor, targetType);
+        set(localTargetParameterTypes, targetParameterCursor, targetType);
         targetParameterCursor += 1;
         targetParameter += 1;
       }
@@ -361,10 +382,36 @@ classical class StructuredSourceModuleCompiler {
     assert(resultPlan.valid);
     long resultTarget = 0;
     while (resultTarget < callableCount) limit MAX_CALLABLES {
-      set(targetResultTypes, resultTarget, functionResultTypes[resultTarget]);
+      set(localTargetResultTypes, resultTarget, functionResultTypes[resultTarget]);
       resultTarget += 1;
     }
 
+    SourceCallTargetTablePlan targetTablePlan = materializeSourceCallTargetTable(
+      callableCount,
+      strings,
+      callableNameStarts,
+      callableNameLengths,
+      localTargetParameterStarts,
+      localTargetParameterCounts,
+      localTargetParameterTypes,
+      localTargetResultTypes,
+      localTargetIdentities,
+      importedTargetCount,
+      importedTargetRows,
+      importedTargetParameterRows,
+      importedTargetNames,
+      importedTargetIdentities,
+      targetNames,
+      targetNameStarts,
+      targetNameLengths,
+      targetParameterStarts,
+      targetParameterCounts,
+      targetParameterTypes,
+      targetResultTypes,
+      targetIdentities,
+      targetDependencyRows
+    );
+    assert(targetTablePlan.valid);
     SourceBlockProductPlan blockPlan = materializeSourceBlockProducts(
       source,
       archiveSourceStart,
@@ -392,12 +439,12 @@ classical class StructuredSourceModuleCompiler {
       callableCount,
       bodyStarts,
       bodyLengths,
-      strings,
-      callableNameStarts,
-      callableNameLengths,
-      callableParameterCounts,
-      /* dependencyCount= */ 0,
-      emptyDependencyRows,
+      targetNames,
+      targetNameStarts,
+      targetNameLengths,
+      targetParameterCounts,
+      importedTargetCount,
+      targetDependencyRows,
       loopPlan.statementCount,
       statements,
       calls,
@@ -452,7 +499,7 @@ classical class StructuredSourceModuleCompiler {
       callArgumentStarts,
       callArgumentCounts,
       callArguments,
-      callableCount,
+      targetTablePlan.targetCount,
       targetParameterStarts,
       targetParameterCounts,
       targetParameterTypes,
@@ -657,7 +704,7 @@ classical class StructuredSourceModuleCompiler {
       callArguments,
       callArgumentValues,
       valuePhysicalStarts,
-      callableCount,
+      targetTablePlan.targetCount,
       targetIdentities,
       targetParameterStarts,
       targetParameterCounts,
@@ -722,7 +769,7 @@ classical class StructuredSourceModuleCompiler {
       callArguments,
       callArgumentValues,
       valuePhysicalStarts,
-      callableCount,
+      targetTablePlan.targetCount,
       targetIdentities,
       targetParameterStarts,
       targetParameterCounts,
@@ -822,10 +869,18 @@ classical class StructuredSourceModuleCompiler {
     drop(callTypes);
     drop(callRelocationIdentities);
     drop(callRelocations);
+    drop(targetIdentities);
+    drop(targetResultTypes);
     drop(targetParameterTypes);
     drop(targetParameterCounts);
     drop(targetParameterStarts);
-    drop(targetIdentities);
+    drop(targetNameLengths);
+    drop(targetNameStarts);
+    drop(targetNames);
+    drop(localTargetParameterTypes);
+    drop(localTargetParameterCounts);
+    drop(localTargetParameterStarts);
+    drop(localTargetIdentities);
     drop(valuePhysicalStarts);
     drop(callWindowRows);
     drop(callInstructionStarts);
@@ -836,7 +891,7 @@ classical class StructuredSourceModuleCompiler {
     drop(callArgumentCounts);
     drop(callArgumentStarts);
     drop(callStatements);
-    drop(emptyDependencyRows);
+    drop(targetDependencyRows);
     drop(calls);
     drop(callableParameterCounts);
     drop(callableNameLengths);
@@ -847,7 +902,7 @@ classical class StructuredSourceModuleCompiler {
     drop(directCode);
     drop(directTypes);
     drop(returnRows);
-    drop(targetResultTypes);
+    drop(localTargetResultTypes);
     drop(functionResultTypes);
     drop(directRows);
     drop(loopTypes);

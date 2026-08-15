@@ -236,7 +236,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.compiled_body_archive"));
     sources.putAll(CompilerSources.moduleClosure(
-        "wheeler.compiler.closure.structured_source_module_compiler"));
+        "wheeler.compiler.closure.local_structured_source_module_compiler"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.archive_structured_source_module_compiler"));
     CoreSources.addBinaryClosure(sources);
@@ -252,6 +252,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
         import wheeler.compiler.closure.direct_statement_products;
         import wheeler.compiler.closure.loop_instruction_products;
         import wheeler.compiler.closure.loop_local_type_products;
+        import wheeler.compiler.closure.local_structured_source_module_compiler;
         import wheeler.compiler.closure.resolved_loop_body_products;
         import wheeler.compiler.closure.resolved_loop_products;
         import wheeler.compiler.closure.source_callable_coordinate_products;
@@ -260,7 +261,6 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
         import wheeler.compiler.closure.source_product_artifact;
         import wheeler.compiler.closure.source_statement_products;
         import wheeler.compiler.closure.source_value_products;
-        import wheeler.compiler.closure.structured_source_module_compiler;
         import wheeler.core.encoding.binary;
 
         classical class CoreParsingSourceProductsExample {
