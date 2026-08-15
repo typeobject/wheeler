@@ -15,7 +15,7 @@ classical class SourceModuleCallProducts {
   public record SourceModuleCallPlan(long callCount, boolean valid) {}
 
   /// Resolves each callable body and publishes absolute call ranges atomically.
-  public SourceModuleCallPlan materializeLocalSourceModuleCallProducts(
+  public SourceModuleCallPlan materializeSourceModuleCallProducts(
     borrow utf8 source,
     long archiveSourceStart,
     long firstCallable,
@@ -26,6 +26,8 @@ classical class SourceModuleCallProducts {
     borrow mut words callableNameStarts,
     borrow mut words callableNameLengths,
     borrow mut words callableParameterCounts,
+    long dependencyCount,
+    borrow mut words dependencyRows,
     long statementCount,
     borrow mut words statementRows,
     borrow mut words callRows,
@@ -41,6 +43,12 @@ classical class SourceModuleCallProducts {
     assert(bufferLength(callableNameStarts) == MAX_PRODUCT_CALLABLES);
     assert(bufferLength(callableNameLengths) == MAX_PRODUCT_CALLABLES);
     assert(bufferLength(callableParameterCounts) == MAX_PRODUCT_CALLABLES);
+    assert(-1 < dependencyCount);
+    assert(dependencyCount < MAX_PRODUCT_CALLABLES + 1);
+    if (0 < dependencyCount) {
+      assert(bufferLength(dependencyRows) == 8192);
+    }
+
     assert(-1 < statementCount);
     assert(statementCount < 4097);
     assert(bufferLength(statementRows) == STATEMENT_ROWS);
@@ -69,18 +77,36 @@ classical class SourceModuleCallProducts {
 
       long bodyCallCount = 0;
       if (valid) {
-        bodyCallCount = resolveLocalUtf8ProductSourceCallProducts(
-          source,
-          bodyStart,
-          bodyLength,
-          names,
-          /* firstLocalCallable= */ 0,
-          callableCount,
-          callableNameStarts,
-          callableNameLengths,
-          callableParameterCounts,
-          bodyCalls
-        );
+        if (0 < dependencyCount) {
+          bodyCallCount = resolveUtf8ProductSourceCallProducts(
+            source,
+            bodyStart,
+            bodyLength,
+            names,
+            /* firstLocalCallable= */ 0,
+            callableCount,
+            callableNameStarts,
+            callableNameLengths,
+            callableParameterCounts,
+            dependencyCount,
+            dependencyRows,
+            bodyCalls
+          );
+        } else {
+          bodyCallCount = resolveLocalUtf8ProductSourceCallProducts(
+            source,
+            bodyStart,
+            bodyLength,
+            names,
+            /* firstLocalCallable= */ 0,
+            callableCount,
+            callableNameStarts,
+            callableNameLengths,
+            callableParameterCounts,
+            bodyCalls
+          );
+        }
+
         if (CALL_COUNT_LIMIT - callCount < bodyCallCount) {
           valid = false;
         }

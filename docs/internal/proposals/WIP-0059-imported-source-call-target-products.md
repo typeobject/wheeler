@@ -55,13 +55,13 @@ The module call scanner checks locals first. It checks only admitted dependency 
 
 `ImportedSourceCallTargets.w` now consumes the direct callable-dependency product and closure-wide callable metadata. It copies names, ordered parameter types and loan modes, result kinds, effects, and callable identities into one bounded view. Dependency rank and callable identity establish output order, so packed row order owns nothing. Negative external rows, duplicate identities, malformed ranges, and overlong signatures preserve every caller buffer.
 
-The archive compiler imports this product as the sole target-view boundary. Structured call discovery and relocation still accept local targets only.
+The archive compiler imports this product as the sole target-view boundary. `SourceModuleCallProducts.w` now scans local and admitted dependency targets in one retained callable-body pass. Local matches shadow dependency rows before exact statement binding. Structured compilation still supplies an empty dependency view, so parameter-table integration and relocation remain open.
 
 ## Plan
 
 - [x] Define the closed imported target view accepted by the archive compiler.
 - [ ] Carry copied qualified names, signatures, effects, and identities into structured compilation.
-- [ ] Resolve local and imported calls through one source scanner.
+- [x] Resolve local and imported calls through one source scanner.
 - [ ] Build one local-plus-imported parameter and identity table.
 - [ ] Hand referenced targets to WIP-0060 without changing call code windows.
 - [ ] Preserve package and dependency-rank evidence through the handoff.

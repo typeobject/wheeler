@@ -747,6 +747,39 @@ classical class SourceCallProducts {
     );
   }
 
+  /// Resolves local and direct-dependency calls from one retained UTF-8 callable body.
+  public long resolveUtf8ProductSourceCallProducts(
+    borrow utf8 body,
+    long bodyStart,
+    long bodyLength,
+    borrow byteview names,
+    long firstLocalCallable,
+    long localCallableCount,
+    borrow mut words callableNameStarts,
+    borrow mut words callableNameLengths,
+    borrow mut words callableParameterCounts,
+    long dependencyCount,
+    borrow mut words dependencyRows,
+    borrow mut words callRows
+  ) {
+    return resolveSelectedUtf8ProductSourceCallProducts(
+      true,
+      true,
+      body,
+      bodyStart,
+      bodyLength,
+      names,
+      firstLocalCallable,
+      localCallableCount,
+      callableNameStarts,
+      callableNameLengths,
+      callableParameterCounts,
+      dependencyCount,
+      dependencyRows,
+      callRows
+    );
+  }
+
   /// Publishes imported call sites after local shadowing and ambiguity checks.
   public long resolveSourceCallProducts(
     borrow utf8 body,

@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 final class NativeCompilerSourceModuleCallProductsExampleTest {
   private static final byte[] SOURCE =
       "foo(){bar()} bar(){foo()}".getBytes(StandardCharsets.UTF_8);
+  private static final byte[] IMPORTED_SOURCE =
+      "foo(){bar()}".getBytes(StandardCharsets.UTF_8);
 
   @Test
   void collectsAbsoluteCallsInCallableOrder() throws Exception {
@@ -32,6 +34,19 @@ final class NativeCompilerSourceModuleCallProductsExampleTest {
   }
 
   @Test
+  void resolvesImportedTargetsAfterLocalMatching() throws Exception {
+    VirtualMachine machine = new VirtualMachine(program(false, true), IMPORTED_SOURCE);
+
+    machine.run();
+
+    assertEquals(1, machine.global("valid"));
+    assertEquals(1, machine.global("callCount"));
+    assertEquals(6, machine.global("firstStart"));
+    assertEquals(1, machine.global("firstTarget"));
+    assertEquals(0, machine.global("firstStatement"));
+  }
+
+  @Test
   void rejectsDetachedModuleCallsAtomically() throws Exception {
     VirtualMachine machine = new VirtualMachine(program(true), SOURCE);
 
@@ -44,6 +59,10 @@ final class NativeCompilerSourceModuleCallProductsExampleTest {
   }
 
   private static Program program(boolean detached) throws Exception {
+    return program(detached, false);
+  }
+
+  private static Program program(boolean detached, boolean imported) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_module_call_products"));
@@ -63,7 +82,7 @@ final class NativeCompilerSourceModuleCallProductsExampleTest {
           state long secondStatement = 0;
 
           entry void main(borrow utf8 input) {
-            region rows = new region(/* bytes= */ 403470, /* allocations= */ 10);
+            region rows = new region(/* bytes= */ 468998, /* allocations= */ 10);
             words bodyStarts = allocate(rows, /* length= */ 4096);
             words bodyLengths = allocate(rows, /* length= */ 4096);
             bytes names = allocateBytes(rows, /* length= */ 6);
@@ -73,7 +92,7 @@ final class NativeCompilerSourceModuleCallProductsExampleTest {
             words statements = allocate(rows, /* length= */ 28672);
             words calls = allocate(rows, /* length= */ 1024);
             words callStatements = allocate(rows, /* length= */ 256);
-            words unused = allocate(rows, /* length= */ 1);
+            words dependencyRows = allocate(rows, /* length= */ 8192);
             writeAscii(names, 0, "foobar");
             set(bodyStarts, 0, 5);
             set(bodyLengths, 0, 7);
@@ -91,18 +110,21 @@ final class NativeCompilerSourceModuleCallProductsExampleTest {
             set(statements, 16385, 5);
             set(calls, 0, 77);
             set(callStatements, 0, 78);
-            SourceModuleCallPlan plan = materializeLocalSourceModuleCallProducts(
+            DEPENDENCY_SETUP
+            SourceModuleCallPlan plan = materializeSourceModuleCallProducts(
               input,
               /* archiveSourceStart= */ 0,
               /* firstCallable= */ 0,
-              /* callableCount= */ 2,
+              /* callableCount= */ CALLABLE_COUNT,
               bodyStarts,
               bodyLengths,
               names,
               nameStarts,
               nameLengths,
               parameterCounts,
-              /* statementCount= */ 2,
+              /* dependencyCount= */ DEPENDENCY_COUNT,
+              dependencyRows,
+              /* statementCount= */ STATEMENT_COUNT,
               statements,
               calls,
               callStatements
@@ -117,7 +139,7 @@ final class NativeCompilerSourceModuleCallProductsExampleTest {
             secondStart = calls[1];
             secondTarget = calls[769];
             secondStatement = callStatements[1];
-            drop(unused);
+            drop(dependencyRows);
             drop(callStatements);
             drop(calls);
             drop(statements);
@@ -130,7 +152,12 @@ final class NativeCompilerSourceModuleCallProductsExampleTest {
             drop(rows);
           }
         }
-        """.replace("STATEMENT_START", detached ? "7" : "6"));
+        """
+        .replace("STATEMENT_START", detached ? "7" : "6")
+        .replace("CALLABLE_COUNT", imported ? "1" : "2")
+        .replace("DEPENDENCY_COUNT", imported ? "1" : "0")
+        .replace("STATEMENT_COUNT", imported ? "1" : "2")
+        .replace("DEPENDENCY_SETUP", imported ? "set(dependencyRows, 4096, 1);" : ""));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.source_module_call_products");
   }

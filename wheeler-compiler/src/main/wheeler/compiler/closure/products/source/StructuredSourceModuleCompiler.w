@@ -254,7 +254,7 @@ classical class StructuredSourceModuleCompiler {
     assert(bufferLength(output) == 32768);
     assert(bufferLength(identity) == 32);
 
-    region products = new region(/* bytes= */ 3081216, /* allocations= */ 48);
+    region products = new region(/* bytes= */ 3146752, /* allocations= */ 49);
     words blocks = allocate(products, /* length= */ 6144);
     words statements = allocate(products, /* length= */ 28672);
     words sourceConditions = allocate(products, /* length= */ 1536);
@@ -285,6 +285,7 @@ classical class StructuredSourceModuleCompiler {
     words callableNameLengths = allocate(products, /* length= */ 4096);
     words callableParameterCounts = allocate(products, /* length= */ 4096);
     words calls = allocate(products, /* length= */ 1024);
+    words emptyDependencyRows = allocate(products, /* length= */ 8192);
     words callStatements = allocate(products, /* length= */ 256);
     words callArgumentStarts = allocate(products, /* length= */ 256);
     words callArgumentCounts = allocate(products, /* length= */ 256);
@@ -377,7 +378,7 @@ classical class StructuredSourceModuleCompiler {
     );
     assert(loopPlan.valid);
     assert(0 < loopPlan.loopCount);
-    SourceModuleCallPlan callPlan = materializeLocalSourceModuleCallProducts(
+    SourceModuleCallPlan callPlan = materializeSourceModuleCallProducts(
       source,
       archiveSourceStart,
       firstCallable,
@@ -388,6 +389,8 @@ classical class StructuredSourceModuleCompiler {
       callableNameStarts,
       callableNameLengths,
       callableParameterCounts,
+      /* dependencyCount= */ 0,
+      emptyDependencyRows,
       loopPlan.statementCount,
       statements,
       calls,
@@ -826,6 +829,7 @@ classical class StructuredSourceModuleCompiler {
     drop(callArgumentCounts);
     drop(callArgumentStarts);
     drop(callStatements);
+    drop(emptyDependencyRows);
     drop(calls);
     drop(callableParameterCounts);
     drop(callableNameLengths);
