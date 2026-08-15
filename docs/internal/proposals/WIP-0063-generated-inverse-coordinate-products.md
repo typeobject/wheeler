@@ -42,7 +42,7 @@ Adding inverse flags to the existing emitter without an explicit product would c
 
 ## Implementation
 
-`GeneratedInverseProducts.w` consumes the WIP-0055 callable code starts, lengths, and instruction counts. It validates complete contiguous windows, records every exact instruction start, keeps the terminal return in place, and emits each earlier instruction in reverse order through one shared opcode-pair function. It stages all 262,144 code bytes and every callable row before publication. An unsupported opcode leaves caller sentinels untouched.
+`GeneratedInverseProducts.w` consumes the WIP-0055 callable code starts, lengths, and instruction counts. It validates complete contiguous windows, records every exact instruction start, keeps the terminal return in place, and emits each earlier instruction in reverse order through one shared opcode-pair function. It stages all 262,144 code bytes and every callable row before publication. An unsupported opcode leaves caller sentinels untouched. Checked updates, assertions, calls, and result-slot returns match stage 0 byte for byte.
 
 `GeneratedInverseRelocations.w` maps each forward owner-local call coordinate to its exact reversed instruction. It sorts output by callable and inverse instruction, retains the target row and all 32 identity bytes, and rejects duplicate forward coordinates before copying one caller row. Two shuffled calls to one target publish inverse coordinates zero and three with separate stable identity rows.
 
@@ -53,7 +53,7 @@ Adding inverse flags to the existing emitter without an explicit product would c
 1. [x] Publish callable inverse instruction and code windows from the WIP-0055 callable rows.
 2. [x] Move reversible opcode pairing out of the proof verifier into the shared product authority.
 3. [x] Differentially generate a straight-line checked-update inverse byte for byte.
-4. [ ] Extend differential generation to assertions, calls, and result-slot operations.
+4. [x] Extend differential generation to assertions, calls, and result-slot operations.
 5. [x] Rebase local and imported call relocations into inverse instruction order without changing identities.
 6. [ ] Bind inverse ownership and proof rows to the forward coordinate identity.
 7. [ ] Emit reversible function flags, inverse offsets, inverse lengths, and code from completed products.

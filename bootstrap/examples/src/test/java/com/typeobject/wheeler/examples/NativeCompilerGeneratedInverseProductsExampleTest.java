@@ -25,24 +25,35 @@ final class NativeCompilerGeneratedInverseProductsExampleTest {
 
               rev void bump() {
                 value += 3;
+                assert(value == 3);
+              }
+
+              rev void invoke() {
+                bump();
+              }
+
+              rev long add(long left, long right) {
+                return left + right;
               }
             }
             """),
         "fixture.inverse");
-    FunctionBody function = stageZero.functions().stream()
-        .filter(candidate -> candidate.name().endsWith("::bump"))
-        .findFirst()
-        .orElseThrow();
     byte[] artifact = new BytecodeWriter().write(stageZero);
-    byte[][] code = functionCode(artifact, function.id());
-    VirtualMachine machine = new VirtualMachine(
-        differentialProgram(code[0], function.forward().size()), null, 262_144);
+    for (String name : java.util.List.of("bump", "invoke", "add")) {
+      FunctionBody function = stageZero.functions().stream()
+          .filter(candidate -> candidate.name().endsWith("::" + name))
+          .findFirst()
+          .orElseThrow();
+      byte[][] code = functionCode(artifact, function.id());
+      VirtualMachine machine = new VirtualMachine(
+          differentialProgram(code[0], function.forward().size()), null, 262_144);
 
-    CompilerMachineRunner.runWithoutRewindHistory(machine);
+      CompilerMachineRunner.runWithoutRewindHistory(machine);
 
-    assertEquals(1, machine.global("published"));
-    assertEquals(function.inverse().size(), machine.global("instructionCount"));
-    org.junit.jupiter.api.Assertions.assertArrayEquals(code[1], machine.hostOutput());
+      assertEquals(1, machine.global("published"));
+      assertEquals(function.inverse().size(), machine.global("instructionCount"));
+      org.junit.jupiter.api.Assertions.assertArrayEquals(code[1], machine.hostOutput());
+    }
   }
 
   @Test
