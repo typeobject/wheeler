@@ -59,7 +59,7 @@ classical class SourceModuleProductArtifact {
         INSTRUCTION_FORM_BINARY
       );
       cursor = writeUnsignedLittleEndian(output, cursor, parameterCount, 8);
-      cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+      cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
       cursor = writeInstructionHeader(
         output,
         cursor,
@@ -72,10 +72,10 @@ classical class SourceModuleProductArtifact {
     assert(resultType == TYPE_BOOLEAN);
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, INSTRUCTION_FORM_BINARY);
     cursor = writeUnsignedLittleEndian(output, cursor, parameterCount, 8);
-    cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_CONST, INSTRUCTION_FORM_BINARY);
     cursor = writeUnsignedLittleEndian(output, cursor, parameterCount + 1, 8);
-    cursor = writeUnsignedLittleEndian(output, cursor, 0, 8);
+    cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, /* width= */ 8);
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_EQ, INSTRUCTION_FORM_TERNARY);
     cursor = writeUnsignedLittleEndian(output, cursor, parameterCount + 2, 8);
     cursor = writeUnsignedLittleEndian(output, cursor, parameterCount, 8);
