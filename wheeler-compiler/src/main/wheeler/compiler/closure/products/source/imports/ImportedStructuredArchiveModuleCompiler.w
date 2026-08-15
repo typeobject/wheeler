@@ -5,6 +5,7 @@ module wheeler.compiler.closure.imported_structured_archive_module_compiler;
 import wheeler.compiler.closure.archive_structured_source_module_compiler;
 import wheeler.compiler.closure.imported_call_qualifier_products;
 import wheeler.compiler.closure.imported_source_call_targets;
+import wheeler.compiler.closure.qualified_source_call_products;
 import wheeler.compiler.closure.source_product_artifact;
 
 classical class ImportedStructuredArchiveModuleCompiler {

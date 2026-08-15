@@ -65,11 +65,13 @@ The module name contains canonical lowercase identifier segments separated by on
 
 `ImportedCallQualifierProducts.w` joins each imported target's callable owner to one canonical module-name product and retains the direct dependency rank. It rejects a rank that names callables from two module owners and stages complete names, starts, lengths, and ranks before publication. Dependency source is absent from the API.
 
+`QualifiedSourceCallProducts.w` recognizes the canonical token shape, rejects malformed dots, colons, whitespace, uppercase segments, missing targets, and duplicate matches, then publishes target rows atomically. It leaves unqualified calls to the ordinary local-first scanner.
+
 ## Plan
 
 1. [x] Copy direct dependency module names beside their closure ranks.
-2. Recognize the bounded `name(.name)*::name(` token shape.
-3. Bind the qualifier to one exact direct rank.
+2. [x] Recognize the bounded `name(.name)*::name(` token shape.
+3. [x] Bind the qualifier to one exact direct rank.
 4. Match name, arity, parameter types, result kind, effects, and visibility inside that rank.
 5. Publish the same call and statement products used by unqualified calls.
 6. Prove storage-order independence and atomic malformed-input rejection.
