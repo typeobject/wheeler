@@ -2,10 +2,12 @@ package com.typeobject.wheeler.examples;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
+import com.typeobject.wheeler.core.vm.VmTrap;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -26,6 +28,12 @@ final class NativeCompilerStructuredByteProductsExampleTest {
           borrow mut bytes scratch,
           long count
         ) {
+          long inputLength = bufferLength(input);
+          long outputLength = bufferLength(output);
+          long scratchLength = bufferLength(scratch);
+          assert(-1 < inputLength);
+          assert(-1 < outputLength);
+          assert(-1 < scratchLength);
           long index = 0;
           long observed = 0;
           while (index < count) limit 64 {
@@ -58,6 +66,22 @@ final class NativeCompilerStructuredByteProductsExampleTest {
     assertEquals(1, machine.global("valid"));
     assertEquals(expected.length, machine.global("artifactLength"));
     assertArrayEquals(expected, machine.hostOutput());
+  }
+
+  @Test
+  void rejectsBufferLengthOnSignedValuesBeforePublication() throws Exception {
+    String invalid = SOURCE.replace("bufferLength(input)", "bufferLength(count)");
+    int bodyStart = invalid.indexOf('{', invalid.indexOf("copyAndRead("));
+    int bodyLength = matchingClose(invalid, bodyStart) - bodyStart + 1;
+    var machine = new VirtualMachine(
+        productProgram(bodyStart, bodyLength),
+        invalid.getBytes(StandardCharsets.UTF_8),
+        32_768);
+
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
+
+    assertEquals(0, machine.global("valid"));
+    assertEquals(0, machine.global("artifactLength"));
   }
 
   private static com.typeobject.wheeler.core.bytecode.Program productProgram(

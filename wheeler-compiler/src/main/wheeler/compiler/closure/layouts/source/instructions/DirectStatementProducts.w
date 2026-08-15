@@ -14,6 +14,7 @@ import wheeler.compiler.loop_body_opcodes;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.result_slot_codegen;
 import wheeler.compiler.source_scalars;
+import wheeler.compiler.storage_opcodes;
 import wheeler.compiler.tokens;
 import wheeler.compiler.type_codes;
 import wheeler.lexer.scanner;
@@ -124,6 +125,67 @@ classical class DirectStatementProducts {
     }
 
     return statementPhysicalStarts[statement] + local - logicalBase;
+  }
+
+  private long bufferLocalType(
+    borrow utf8 source,
+    long owner,
+    long local,
+    long valueCount,
+    borrow mut words valueRows,
+    long semanticCount,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    long sourceType = loopBodyValueType(
+      source,
+      owner,
+      local,
+      valueCount,
+      valueRows,
+      semanticCount,
+      tokenStarts,
+      tokenLengths
+    );
+    boolean borrowed = borrowedLoopBodyLocal(
+      source,
+      owner,
+      local,
+      valueCount,
+      valueRows,
+      semanticCount,
+      tokenStarts,
+      tokenLengths
+    );
+    if (sourceType == TOKEN_BYTEVIEW) {
+      return TYPE_BYTE_VIEW;
+    }
+
+    if (sourceType == TOKEN_WORDS) {
+      if (borrowed) {
+        return TYPE_WORDS_BORROW;
+      }
+
+      return TYPE_WORDS;
+    }
+
+    if (sourceType == TOKEN_BYTES) {
+      if (borrowed) {
+        return TYPE_BYTES_BORROW;
+      }
+
+      return TYPE_BYTES;
+    }
+
+    if (sourceType == TOKEN_UTF8) {
+      if (borrowed) {
+        return TYPE_UTF8_BORROW;
+      }
+
+      return TYPE_UTF8;
+    }
+
+    return -1;
   }
 
   private long physicalAssertionOpcode(
@@ -305,103 +367,218 @@ classical class DirectStatementProducts {
               long localBase = physicalStatementBase;
               long destinationLocal = localBase + 1;
               long sourceToken = token + 3;
-              long sourceOpcode = OPCODE_LOCAL_CONST;
-              long sourceOperand = 0;
+              boolean bufferLengthInitializer = false;
               if (tokenKinds[sourceToken] == 1) {
-                LoopBodyValue sourceValue = resolveLoopBodyValue(
+                if (
+                  tokenHash(source, tokenStarts, tokenLengths, sourceToken) == TOKEN_BUFFER_LENGTH
+                ) {
+                  bufferLengthInitializer = punctuationAt(
+                    source,
+                    tokenKinds,
+                    tokenStarts,
+                    sourceToken + 1,
+                    40
+                  );
+                }
+              }
+
+              if (bufferLengthInitializer) {
+                if (tokenKinds[sourceToken + 2] != 1) {
+                  statementValid = false;
+                }
+
+                if (
+                  punctuationAt(source, tokenKinds, tokenStarts, sourceToken + 3, 41) == false
+                ) {
+                  statementValid = false;
+                }
+
+                LoopBodyValue bufferSourceValue = resolveLoopBodyValue(
                   source,
-                  tokenStarts[sourceToken],
-                  tokenLengths[sourceToken],
+                  tokenStarts[sourceToken + 2],
+                  tokenLengths[sourceToken + 2],
                   owner,
                   statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement],
                   valueCount,
                   valueRows
                 );
-                if (sourceValue.valid) {
-                  if (
-                    signedLoopBodyLocal(
-                      source,
-                      owner,
-                      sourceValue.local,
-                      valueCount,
-                      valueRows,
-                      semanticCount,
-                      tokenStarts,
-                      tokenLengths
-                    )
-                  ) {
-                    sourceOpcode = OPCODE_LOCAL_MOVE;
-                    sourceOperand = physicalValueLocal(
-                      owner,
-                      sourceValue.local,
-                      statementCount,
-                      statementRows,
-                      statementLocalRows,
-                      valueCount,
-                      valueRows,
-                      statementPhysicalStarts
-                    );
-                    if (sourceOperand < 0) {
+                if (bufferSourceValue.valid == false) {
+                  statementValid = false;
+                }
+
+                long bufferSourceOperand = physicalValueLocal(
+                  owner,
+                  bufferSourceValue.local,
+                  statementCount,
+                  statementRows,
+                  statementLocalRows,
+                  valueCount,
+                  valueRows,
+                  statementPhysicalStarts
+                );
+                if (bufferSourceOperand < 0) {
+                  statementValid = false;
+                }
+
+                long bufferSourceType = bufferLocalType(
+                  source,
+                  owner,
+                  bufferSourceValue.local,
+                  valueCount,
+                  valueRows,
+                  semanticCount,
+                  tokenStarts,
+                  tokenLengths
+                );
+                if (bufferSourceType < 0) {
+                  statementValid = false;
+                }
+
+                destinationLocal = localBase + 2;
+                if (statementValid) {
+                  cursor = writeInstructionHeader(
+                    stagedCode,
+                    cursor,
+                    OPCODE_LOCAL_MOVE,
+                    INSTRUCTION_FORM_BINARY
+                  );
+                  cursor = writeUnsignedLittleEndian(stagedCode, cursor, localBase, U64);
+                  cursor = writeUnsignedLittleEndian(
+                    stagedCode,
+                    cursor,
+                    bufferSourceOperand,
+                    U64
+                  );
+                  cursor = writeInstructionHeader(
+                    stagedCode,
+                    cursor,
+                    OPCODE_BUFFER_LENGTH,
+                    INSTRUCTION_FORM_BINARY
+                  );
+                  cursor = writeUnsignedLittleEndian(stagedCode, cursor, localBase + 1, U64);
+                  cursor = writeUnsignedLittleEndian(stagedCode, cursor, localBase, U64);
+                  cursor = writeInstructionHeader(
+                    stagedCode,
+                    cursor,
+                    OPCODE_LOCAL_MOVE,
+                    INSTRUCTION_FORM_BINARY
+                  );
+                  cursor = writeUnsignedLittleEndian(stagedCode, cursor, destinationLocal, U64);
+                  cursor = writeUnsignedLittleEndian(stagedCode, cursor, localBase + 1, U64);
+                  set(stagedTypes, typeCount, owner);
+                  set(stagedTypes, 4096 + typeCount, localBase);
+                  set(stagedTypes, 8192 + typeCount, bufferSourceType);
+                  typeCount += 1;
+                  long signedOffset = 1;
+                  while (signedOffset < 3) limit 2 {
+                    set(stagedTypes, typeCount, owner);
+                    set(stagedTypes, 4096 + typeCount, localBase + signedOffset);
+                    set(stagedTypes, 8192 + typeCount, TYPE_SIGNED);
+                    typeCount += 1;
+                    signedOffset += 1;
+                  }
+
+                  productInstructions = 3;
+                }
+              } else {
+                long sourceOpcode = OPCODE_LOCAL_CONST;
+                long sourceOperand = 0;
+                if (tokenKinds[sourceToken] == 1) {
+                  LoopBodyValue sourceValue = resolveLoopBodyValue(
+                    source,
+                    tokenStarts[sourceToken],
+                    tokenLengths[sourceToken],
+                    owner,
+                    statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement],
+                    valueCount,
+                    valueRows
+                  );
+                  if (sourceValue.valid) {
+                    if (
+                      signedLoopBodyLocal(
+                        source,
+                        owner,
+                        sourceValue.local,
+                        valueCount,
+                        valueRows,
+                        semanticCount,
+                        tokenStarts,
+                        tokenLengths
+                      )
+                    ) {
+                      sourceOpcode = OPCODE_LOCAL_MOVE;
+                      sourceOperand = physicalValueLocal(
+                        owner,
+                        sourceValue.local,
+                        statementCount,
+                        statementRows,
+                        statementLocalRows,
+                        valueCount,
+                        valueRows,
+                        statementPhysicalStarts
+                      );
+                      if (sourceOperand < 0) {
+                        statementValid = false;
+                      }
+                    } else {
                       statementValid = false;
                     }
                   } else {
                     statementValid = false;
                   }
                 } else {
-                  statementValid = false;
-                }
-              } else {
-                if (
-                  signedNumberWidth(source, tokenKinds, tokenStarts, sourceToken) != 1
-                ) {
-                  statementValid = false;
-                } else {
                   if (
-                    signedNumberValid(source, tokenStarts, tokenLengths, sourceToken)
+                    signedNumberWidth(source, tokenKinds, tokenStarts, sourceToken) != 1
                   ) {
-                    sourceOperand = parsedSignedNumber(
-                      source,
-                      tokenStarts,
-                      tokenLengths,
-                      sourceToken
-                    );
-                  } else {
                     statementValid = false;
+                  } else {
+                    if (
+                      signedNumberValid(source, tokenStarts, tokenLengths, sourceToken)
+                    ) {
+                      sourceOperand = parsedSignedNumber(
+                        source,
+                        tokenStarts,
+                        tokenLengths,
+                        sourceToken
+                      );
+                    } else {
+                      statementValid = false;
+                    }
                   }
                 }
-              }
 
-              if (statementValid) {
-                cursor = writeInstructionHeader(
-                  stagedCode,
-                  cursor,
-                  sourceOpcode,
-                  INSTRUCTION_FORM_BINARY
-                );
-                cursor = writeUnsignedLittleEndian(stagedCode, cursor, localBase, U64);
-                if (sourceOpcode == OPCODE_LOCAL_MOVE) {
-                  cursor = writeUnsignedLittleEndian(stagedCode, cursor, sourceOperand, U64);
-                } else {
-                  cursor = writeSignedLittleEndian(stagedCode, cursor, sourceOperand, U64);
+                if (statementValid) {
+                  cursor = writeInstructionHeader(
+                    stagedCode,
+                    cursor,
+                    sourceOpcode,
+                    INSTRUCTION_FORM_BINARY
+                  );
+                  cursor = writeUnsignedLittleEndian(stagedCode, cursor, localBase, U64);
+                  if (sourceOpcode == OPCODE_LOCAL_MOVE) {
+                    cursor = writeUnsignedLittleEndian(stagedCode, cursor, sourceOperand, U64);
+                  } else {
+                    cursor = writeSignedLittleEndian(stagedCode, cursor, sourceOperand, U64);
+                  }
+
+                  cursor = writeInstructionHeader(
+                    stagedCode,
+                    cursor,
+                    OPCODE_LOCAL_MOVE,
+                    INSTRUCTION_FORM_BINARY
+                  );
+                  cursor = writeUnsignedLittleEndian(stagedCode, cursor, destinationLocal, U64);
+                  cursor = writeUnsignedLittleEndian(stagedCode, cursor, localBase, U64);
+                  set(stagedTypes, typeCount, owner);
+                  set(stagedTypes, 4096 + typeCount, localBase);
+                  set(stagedTypes, 8192 + typeCount, TYPE_SIGNED);
+                  typeCount += 1;
+                  set(stagedTypes, typeCount, owner);
+                  set(stagedTypes, 4096 + typeCount, destinationLocal);
+                  set(stagedTypes, 8192 + typeCount, TYPE_SIGNED);
+                  typeCount += 1;
+                  productInstructions = 2;
                 }
-
-                cursor = writeInstructionHeader(
-                  stagedCode,
-                  cursor,
-                  OPCODE_LOCAL_MOVE,
-                  INSTRUCTION_FORM_BINARY
-                );
-                cursor = writeUnsignedLittleEndian(stagedCode, cursor, destinationLocal, U64);
-                cursor = writeUnsignedLittleEndian(stagedCode, cursor, localBase, U64);
-                set(stagedTypes, typeCount, owner);
-                set(stagedTypes, 4096 + typeCount, localBase);
-                set(stagedTypes, 8192 + typeCount, TYPE_SIGNED);
-                typeCount += 1;
-                set(stagedTypes, typeCount, owner);
-                set(stagedTypes, 4096 + typeCount, destinationLocal);
-                set(stagedTypes, 8192 + typeCount, TYPE_SIGNED);
-                typeCount += 1;
-                productInstructions = 2;
               }
             } else {
               if (hash == TOKEN_ASSERT) {
