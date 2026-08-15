@@ -14,7 +14,9 @@ classical class ReversibleSourceProductArtifact {
   private const long INVERSE_ROWS = 192;
   private const long MAX_CALLABLES = 64;
   private const long MAX_CODE_BYTES = 262144;
+  private const long MAX_PROOFS = 64;
   private const long MAX_SECTIONS = 7;
+  private const long MAX_STRINGS = 256;
 
   private record SectionRange(long start, long length) {}
 
@@ -50,6 +52,164 @@ classical class ReversibleSourceProductArtifact {
       setByte(output, outputStart + copied, source[sourceStart + copied]);
       copied += 1;
     }
+  }
+
+  private long compareBytes(
+    borrow byteview left,
+    long leftStart,
+    long leftLength,
+    borrow byteview right,
+    long rightStart,
+    long rightLength
+  ) {
+    long sharedLength = leftLength;
+    if (rightLength < sharedLength) {
+      sharedLength = rightLength;
+    }
+
+    long compared = 0;
+    while (compared < sharedLength) limit ARTIFACT_BYTES {
+      long leftValue = left[leftStart + compared];
+      long rightValue = right[rightStart + compared];
+      if (leftValue < rightValue) {
+        return -1;
+      }
+
+      if (rightValue < leftValue) {
+        return 1;
+      }
+
+      compared += 1;
+    }
+
+    if (leftLength < rightLength) {
+      return -1;
+    }
+
+    if (rightLength < leftLength) {
+      return 1;
+    }
+
+    return 0;
+  }
+
+  private long remappedStringId(long oldId, long oldStringCount, borrow mut words oldIds) {
+    assert(-1 < oldId);
+    assert(oldId < oldStringCount);
+    return oldIds[oldId];
+  }
+
+  private void remapTypeStrings(
+    borrow mut bytes sectionArchive,
+    long start,
+    long length,
+    long oldStringCount,
+    borrow mut words oldIds
+  ) {
+    long cursor = start;
+    long globalCount = readUnsigned(sectionArchive, cursor, 4);
+    cursor += 4;
+    long global = 0;
+    while (global < globalCount) limit 4096 {
+      long globalNameId = readUnsigned(sectionArchive, cursor, 4);
+      writeUnsigned(
+        remappedStringId(globalNameId, oldStringCount, oldIds),
+        4,
+        sectionArchive,
+        cursor
+      );
+      cursor += 16;
+      global += 1;
+    }
+
+    long recordCount = readUnsigned(sectionArchive, cursor, 4);
+    cursor += 4;
+    long record = 0;
+    while (record < recordCount) limit 4096 {
+      long recordNameId = readUnsigned(sectionArchive, cursor + 4, 4);
+      writeUnsigned(
+        remappedStringId(recordNameId, oldStringCount, oldIds),
+        4,
+        sectionArchive,
+        cursor + 4
+      );
+      long fieldCount = readUnsigned(sectionArchive, cursor + 8, 4);
+      cursor += 12;
+      long field = 0;
+      while (field < fieldCount) limit 4096 {
+        long fieldNameId = readUnsigned(sectionArchive, cursor, 4);
+        writeUnsigned(
+          remappedStringId(fieldNameId, oldStringCount, oldIds),
+          4,
+          sectionArchive,
+          cursor
+        );
+        cursor += 8;
+        field += 1;
+      }
+
+      record += 1;
+    }
+
+    long arrayCount = readUnsigned(sectionArchive, cursor, 4);
+    cursor += 4 + arrayCount * 12;
+    long sliceCount = readUnsigned(sectionArchive, cursor, 4);
+    cursor += 4 + sliceCount * 8;
+    assert(cursor == start + length);
+  }
+
+  private void remapVariantStrings(
+    borrow mut bytes sectionArchive,
+    long start,
+    long length,
+    long oldStringCount,
+    borrow mut words oldIds
+  ) {
+    long cursor = start;
+    long variantCount = readUnsigned(sectionArchive, cursor, 4);
+    cursor += 4;
+    long variant = 0;
+    while (variant < variantCount) limit 4096 {
+      long nameId = readUnsigned(sectionArchive, cursor + 4, 4);
+      writeUnsigned(
+        remappedStringId(nameId, oldStringCount, oldIds),
+        4,
+        sectionArchive,
+        cursor + 4
+      );
+      long caseCount = readUnsigned(sectionArchive, cursor + 8, 4);
+      cursor += 12;
+      long variantCase = 0;
+      while (variantCase < caseCount) limit 4096 {
+        long caseNameId = readUnsigned(sectionArchive, cursor, 4);
+        writeUnsigned(
+          remappedStringId(caseNameId, oldStringCount, oldIds),
+          4,
+          sectionArchive,
+          cursor
+        );
+        long fieldCount = readUnsigned(sectionArchive, cursor + 4, 4);
+        cursor += 8;
+        long field = 0;
+        while (field < fieldCount) limit 4096 {
+          long fieldNameId = readUnsigned(sectionArchive, cursor, 4);
+          writeUnsigned(
+            remappedStringId(fieldNameId, oldStringCount, oldIds),
+            4,
+            sectionArchive,
+            cursor
+          );
+          cursor += 8;
+          field += 1;
+        }
+
+        variantCase += 1;
+      }
+
+      variant += 1;
+    }
+
+    assert(cursor == start + length);
   }
 
   private SectionRange sectionRange(
@@ -88,6 +248,11 @@ classical class ReversibleSourceProductArtifact {
     borrow mut words callableRows,
     borrow mut words inverseRows,
     borrow byteview inverseCode,
+    borrow byteview proofNames,
+    long proofCount,
+    borrow mut words proofNameStarts,
+    borrow mut words proofNameLengths,
+    borrow mut words proofSubjects,
     borrow mut bytes output,
     borrow mut bytes identity
   ) {
@@ -111,6 +276,11 @@ classical class ReversibleSourceProductArtifact {
     assert(bufferLength(callableRows) == CALLABLE_ROWS);
     assert(bufferLength(inverseRows) == INVERSE_ROWS);
     assert(bufferLength(inverseCode) == MAX_CODE_BYTES);
+    assert(-1 < proofCount);
+    assert(proofCount < MAX_PROOFS + 1);
+    assert(bufferLength(proofNameStarts) == MAX_PROOFS);
+    assert(bufferLength(proofNameLengths) == MAX_PROOFS);
+    assert(bufferLength(proofSubjects) == MAX_PROOFS);
     assert(bufferLength(output) == ARTIFACT_BYTES);
     assert(bufferLength(identity) == 32);
     long sectionCount = readUnsigned(forwardArtifact, 24, 4);
@@ -129,10 +299,100 @@ classical class ReversibleSourceProductArtifact {
     assert(3 < functions.length);
     assert(4 + functionCount * 40 < functions.length + 1);
 
-    region staging = new region(/* bytes= */ 33792, /* allocations= */ 3);
+    region staging = new region(/* bytes= */ 40448, /* allocations= */ 7);
     bytes sectionArchive = allocateBytes(staging, ARTIFACT_BYTES);
     words sectionStarts = allocate(staging, /* length= */ 64);
     words sectionLengths = allocate(staging, /* length= */ 64);
+    words oldStringStarts = allocate(staging, /* length= */ MAX_STRINGS);
+    words oldStringLengths = allocate(staging, /* length= */ MAX_STRINGS);
+    words oldStringIds = allocate(staging, /* length= */ MAX_STRINGS);
+    words proofNameIds = allocate(staging, /* length= */ MAX_PROOFS);
+    long forwardStringCount = readUnsigned(forwardArtifact, strings.start, 4);
+    assert(0 < forwardStringCount);
+    assert(forwardStringCount < MAX_STRINGS - proofCount + 1);
+    long stringCursor = strings.start + 4;
+    long oldString = 0;
+    while (oldString < forwardStringCount) limit MAX_STRINGS {
+      long oldLength = readUnsigned(forwardArtifact, stringCursor, 4);
+      assert(0 < oldLength);
+      assert(oldLength < strings.start + strings.length - stringCursor - 3);
+      set(oldStringStarts, oldString, stringCursor + 4);
+      set(oldStringLengths, oldString, oldLength);
+      stringCursor += 4 + oldLength;
+      oldString += 1;
+    }
+
+    assert(stringCursor == strings.start + strings.length);
+    oldString = 0;
+    while (oldString < forwardStringCount) limit MAX_STRINGS {
+      long oldPrecedingProofCount = 0;
+      long oldProof = 0;
+      while (oldProof < proofCount) limit MAX_PROOFS {
+        long oldProofOrder = compareBytes(
+          proofNames,
+          proofNameStarts[oldProof],
+          proofNameLengths[oldProof],
+          forwardArtifact,
+          oldStringStarts[oldString],
+          oldStringLengths[oldString]
+        );
+        assert(oldProofOrder != 0);
+        if (oldProofOrder < 0) {
+          oldPrecedingProofCount += 1;
+        }
+
+        oldProof += 1;
+      }
+
+      set(oldStringIds, oldString, oldString + oldPrecedingProofCount);
+      oldString += 1;
+    }
+
+    long proof = 0;
+    while (proof < proofCount) limit MAX_PROOFS {
+      long precedingStrings = 0;
+      oldString = 0;
+      while (oldString < forwardStringCount) limit MAX_STRINGS {
+        long proofStringOrder = compareBytes(
+          forwardArtifact,
+          oldStringStarts[oldString],
+          oldStringLengths[oldString],
+          proofNames,
+          proofNameStarts[proof],
+          proofNameLengths[proof]
+        );
+        if (proofStringOrder < 0) {
+          precedingStrings += 1;
+        }
+
+        oldString += 1;
+      }
+
+      long proofPrecedingProofCount = 0;
+      long otherProof = 0;
+      while (otherProof < proofCount) limit MAX_PROOFS {
+        if (otherProof != proof) {
+          long otherProofOrder = compareBytes(
+            proofNames,
+            proofNameStarts[otherProof],
+            proofNameLengths[otherProof],
+            proofNames,
+            proofNameStarts[proof],
+            proofNameLengths[proof]
+          );
+          assert(otherProofOrder != 0);
+          if (otherProofOrder < 0) {
+            proofPrecedingProofCount += 1;
+          }
+        }
+
+        otherProof += 1;
+      }
+
+      set(proofNameIds, proof, precedingStrings + proofPrecedingProofCount);
+      proof += 1;
+    }
+
     SectionRange selected = manifest;
     long cursor = 0;
     long section = 0;
@@ -150,9 +410,100 @@ classical class ReversibleSourceProductArtifact {
       }
 
       set(sectionStarts, section, cursor);
-      set(sectionLengths, section, selected.length);
-      copyBytes(forwardArtifact, selected.start, selected.length, sectionArchive, cursor);
-      cursor += selected.length;
+      long selectedLength = selected.length;
+      if (section == 1) {
+        long mergedStringCount = forwardStringCount + proofCount;
+        writeUnsigned(mergedStringCount, 4, sectionArchive, cursor);
+        selectedLength = 4;
+        long mergedId = 0;
+        while (mergedId < mergedStringCount) limit MAX_STRINGS {
+          long selectedStart = 0;
+          long selectedStringLength = 0;
+          long selectedSource = 0;
+          long matches = 0;
+          oldString = 0;
+          while (oldString < forwardStringCount) limit MAX_STRINGS {
+            if (oldStringIds[oldString] == mergedId) {
+              selectedStart = oldStringStarts[oldString];
+              selectedStringLength = oldStringLengths[oldString];
+              selectedSource = 0;
+              matches += 1;
+            }
+
+            oldString += 1;
+          }
+
+          long proofString = 0;
+          while (proofString < proofCount) limit MAX_PROOFS {
+            if (proofNameIds[proofString] == mergedId) {
+              selectedStart = proofNameStarts[proofString];
+              selectedStringLength = proofNameLengths[proofString];
+              selectedSource = 1;
+              matches += 1;
+            }
+
+            proofString += 1;
+          }
+
+          assert(matches == 1);
+          writeUnsigned(selectedStringLength, 4, sectionArchive, cursor + selectedLength);
+          selectedLength += 4;
+          if (selectedSource == 0) {
+            copyBytes(
+              forwardArtifact,
+              selectedStart,
+              selectedStringLength,
+              sectionArchive,
+              cursor + selectedLength
+            );
+          } else {
+            copyBytes(
+              proofNames,
+              selectedStart,
+              selectedStringLength,
+              sectionArchive,
+              cursor + selectedLength
+            );
+          }
+
+          selectedLength += selectedStringLength;
+          mergedId += 1;
+        }
+      } else {
+        copyBytes(forwardArtifact, selected.start, selected.length, sectionArchive, cursor);
+        if (section == 0) {
+          long programNameId = readUnsigned(sectionArchive, cursor, 4);
+          writeUnsigned(
+            remappedStringId(programNameId, forwardStringCount, oldStringIds),
+            4,
+            sectionArchive,
+            cursor
+          );
+        }
+
+        if (section == 2) {
+          remapTypeStrings(
+            sectionArchive,
+            cursor,
+            selected.length,
+            forwardStringCount,
+            oldStringIds
+          );
+        }
+
+        if (section == 3) {
+          remapVariantStrings(
+            sectionArchive,
+            cursor,
+            selected.length,
+            forwardStringCount,
+            oldStringIds
+          );
+        }
+      }
+
+      set(sectionLengths, section, selectedLength);
+      cursor += selectedLength;
       section += 1;
     }
 
@@ -180,6 +531,13 @@ classical class ReversibleSourceProductArtifact {
       long outputDescriptor = functionOutputStart + 4 + function * 40;
       copyBytes(forwardArtifact, descriptor, 40, sectionArchive, outputDescriptor);
       long functionId = readUnsigned(forwardArtifact, descriptor, 4);
+      long functionNameId = readUnsigned(forwardArtifact, descriptor + 4, 4);
+      writeUnsigned(
+        remappedStringId(functionNameId, forwardStringCount, oldStringIds),
+        4,
+        sectionArchive,
+        outputDescriptor + 4
+      );
       long flags = readUnsigned(forwardArtifact, descriptor + 8, 4);
       long forwardOffset = readUnsigned(forwardArtifact, descriptor + 12, 4);
       long forwardLength = readUnsigned(forwardArtifact, descriptor + 16, 4);
@@ -224,23 +582,55 @@ classical class ReversibleSourceProductArtifact {
     assert(codeCursor < ARTIFACT_BYTES - codeOutputStart + 1);
     set(sectionLengths, 5, codeCursor);
     cursor += codeCursor;
-    if (sectionCount == 7) {
-      SectionRange proofs = sectionRange(forwardArtifact, forwardArtifactLength, 10);
+    long outputSectionCount = 6;
+    if (0 < proofCount) {
+      assert(sectionCount == 6);
       set(sectionStarts, 6, cursor);
-      set(sectionLengths, 6, proofs.length);
-      copyBytes(forwardArtifact, proofs.start, proofs.length, sectionArchive, cursor);
-      cursor += proofs.length;
+      long proofSectionLength = 4 + proofCount * 24;
+      set(sectionLengths, 6, proofSectionLength);
+      writeUnsigned(proofCount, 4, sectionArchive, cursor);
+      long proofRowIndex = 0;
+      while (proofRowIndex < proofCount) limit MAX_PROOFS {
+        long proofRow = cursor + 4 + proofRowIndex * 24;
+        assert(proofSubjects[proofRowIndex] < callableCount);
+        writeUnsigned(proofRowIndex, 4, sectionArchive, proofRow);
+        writeUnsigned(proofNameIds[proofRowIndex], 4, sectionArchive, proofRow + 4);
+        writeUnsigned(
+          /* generated inverse rule= */
+          1,
+          4,
+          sectionArchive,
+          proofRow + 8
+        );
+        writeUnsigned(proofSubjects[proofRowIndex], 4, sectionArchive, proofRow + 12);
+        long argumentByte = 0;
+        while (argumentByte < 8) limit 8 {
+          setByte(sectionArchive, proofRow + 16 + argumentByte, 255);
+          argumentByte += 1;
+        }
+
+        proofRowIndex += 1;
+      }
+
+      cursor += proofSectionLength;
+      outputSectionCount = 7;
+    } else {
+      assert(sectionCount == 6);
     }
 
     SourceProductArtifactPlan result = publishSourceProductArtifact(
       sectionArchive,
       cursor,
-      sectionCount,
+      outputSectionCount,
       sectionStarts,
       sectionLengths,
       output,
       identity
     );
+    drop(proofNameIds);
+    drop(oldStringIds);
+    drop(oldStringLengths);
+    drop(oldStringStarts);
     drop(sectionLengths);
     drop(sectionStarts);
     drop(sectionArchive);

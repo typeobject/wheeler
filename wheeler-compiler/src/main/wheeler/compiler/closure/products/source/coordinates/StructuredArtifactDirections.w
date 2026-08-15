@@ -32,6 +32,11 @@ classical class StructuredArtifactDirections {
     long stringCount,
     borrow mut words stringStarts,
     borrow mut words stringLengths,
+    long proofCount,
+    borrow byteview proofNames,
+    borrow mut words proofNameStarts,
+    borrow mut words proofNameLengths,
+    borrow mut words proofSubjects,
     borrow mut bytes output,
     borrow mut bytes identity
   ) {
@@ -90,6 +95,11 @@ classical class StructuredArtifactDirections {
         composedCallables,
         inverseRows,
         inverseCode,
+        proofNames,
+        proofCount,
+        proofNameStarts,
+        proofNameLengths,
+        proofSubjects,
         output,
         identity
       );

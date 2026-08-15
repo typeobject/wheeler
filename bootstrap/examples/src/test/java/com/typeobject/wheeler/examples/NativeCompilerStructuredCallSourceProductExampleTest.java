@@ -39,11 +39,14 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
 
   @Test
   void rejectsAnUnimplementedReversibleEffectBeforePublication() throws Exception {
-    int bodyStart = SOURCE.indexOf("{", SOURCE.indexOf("recurse("));
-    int bodyLength = SourceRanges.matchingClose(SOURCE, bodyStart) - bodyStart + 1;
+    String source = SOURCE.replace(
+        "\n}",
+        "\n\n  theorem recurseInverse proves inverse(recurse);\n}");
+    int bodyStart = source.indexOf("{", source.indexOf("recurse("));
+    int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
     Program driver = driverWithEffect(bodyStart, bodyLength, 1, 1, 0, false, 1, 1, 2);
     VirtualMachine machine = new VirtualMachine(
-        driver, SOURCE.getBytes(StandardCharsets.UTF_8), 32_768);
+        driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
     assertThrows(RuntimeException.class,
         () -> CompilerMachineRunner.runWithoutRewindHistory(machine));

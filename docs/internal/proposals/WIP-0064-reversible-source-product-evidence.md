@@ -45,14 +45,16 @@ The admitted straight-line inverse profile has no allocation, drop, move, loan, 
 
 The reversible branch stages the complete forward artifact and identity privately, adapts composed callable rows to WIP-0063 inverse coordinates, and accepts only the ownership-free reversible opcode set. `ReversibleSourceProductArtifact.w` requires an explicit zero ownership-event count. Unsupported structured bodies trap before caller artifact or identity mutation. The ordinary branch copies its staged artifact only after the same product pipeline succeeds.
 
+`SourceGeneratedInverseProofs.w` recognizes the exact `theorem name proves inverse(callable);` form, binds each subject through the closed callable string products, rejects duplicate names and subjects, and publishes no partial name table. Reversible artifact publication merges theorem names into canonical lexical string order, rewrites every affected manifest, type, variant, and function string ID, emits section 10 with the final subject IDs, and verifies the complete artifact before publication.
+
 ## Plan
 
 1. [x] Carry local callable effect rows into `StructuredSourceModuleCompiler.w`.
 2. [x] Select reversible callables before forward composition and reject mixed unsupported effects.
 3. [x] Require zero forward ownership events for the admitted straight-line inverse profile.
 4. [x] Generate inverse code and inverse relocation rows from completed callable coordinates.
-5. [ ] Publish one generated-inverse proof row per declared theorem subject.
-6. [x] Emit staged forward, inverse, and identity bytes under one atomic artifact boundary. Proof publication remains item 5.
+5. [x] Publish one generated-inverse proof row per declared theorem subject.
+6. [x] Emit staged forward, inverse, proof, and identity bytes under one atomic artifact boundary.
 7. [ ] Match signed, Boolean, void, local-call, imported-call, and result-slot stage-0 artifacts byte for byte.
 8. [x] Execute forward, clear history, execute inverse, and restore exact state for the ownership-free profile.
 9. [ ] Route the first physical reversible compiler module through direct products.

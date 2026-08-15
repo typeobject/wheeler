@@ -21,6 +21,7 @@ import wheeler.compiler.closure.source_call_layout_products;
 import wheeler.compiler.closure.source_call_target_table;
 import wheeler.compiler.closure.source_callable_coordinate_products;
 import wheeler.compiler.closure.source_callable_result_products;
+import wheeler.compiler.closure.source_generated_inverse_proofs;
 import wheeler.compiler.closure.source_loop_products;
 import wheeler.compiler.closure.source_module_call_products;
 import wheeler.compiler.closure.source_module_product_artifact;
@@ -138,6 +139,31 @@ classical class StructuredSourceModuleCompiler {
     assert(bufferLength(publishedRelocationIdentities) == 8192);
     assert(bufferLength(output) == 32768);
     assert(bufferLength(identity) == 32);
+
+    region sourceProofs = new region(/* bytes= */ 17920, /* allocations= */ 4);
+    bytes proofNames = allocateBytes(sourceProofs, /* length= */ 16384);
+    words proofNameStarts = allocate(sourceProofs, /* length= */ 64);
+    words proofNameLengths = allocate(sourceProofs, /* length= */ 64);
+    words proofSubjects = allocate(sourceProofs, /* length= */ 64);
+    long proofCount = 0;
+    if (0 < reversibleCallableCount) {
+      SourceGeneratedInverseProofPlan sourceProofPlan = materializeSourceGeneratedInverseProofs(
+        source,
+        callableCount,
+        strings,
+        stringBytes,
+        stringCount,
+        stringStarts,
+        stringLengths,
+        functionNameIds,
+        proofNames,
+        proofNameStarts,
+        proofNameLengths,
+        proofSubjects
+      );
+      assert(sourceProofPlan.valid);
+      proofCount = sourceProofPlan.proofCount;
+    }
 
     region products = new region(/* bytes= */ 5022720, /* allocations= */ 64);
     words blocks = allocate(products, /* length= */ 6144);
@@ -802,6 +828,11 @@ classical class StructuredSourceModuleCompiler {
       stringCount,
       stringStarts,
       stringLengths,
+      proofCount,
+      proofNames,
+      proofNameStarts,
+      proofNameLengths,
+      proofSubjects,
       output,
       identity
     );
@@ -910,6 +941,11 @@ classical class StructuredSourceModuleCompiler {
     drop(statements);
     drop(blocks);
     drop(products);
+    drop(proofSubjects);
+    drop(proofNameLengths);
+    drop(proofNameStarts);
+    drop(proofNames);
+    drop(sourceProofs);
     return publishedResult;
   }
 }

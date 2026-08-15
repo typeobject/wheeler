@@ -9,6 +9,8 @@ import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,13 +44,18 @@ final class NativeCompilerReversibleSourceProductArtifactExampleTest {
     byte[] forwardArtifact = new BytecodeWriter().write(forwardProgram);
     byte[] expectedArtifact = new BytecodeWriter().write(expectedProgram);
     CodeRange forwardCode = functionForwardCode(forwardArtifact, forwardFunction.id());
+    byte[] proofName = "bumpInverse".getBytes(StandardCharsets.UTF_8);
+    byte[] input = Arrays.copyOf(forwardArtifact, forwardArtifact.length + proofName.length);
+    System.arraycopy(proofName, 0, input, forwardArtifact.length, proofName.length);
     Program nativeCompiler = program(
+        input.length,
         forwardArtifact.length,
         forwardCode.start(),
         forwardCode.length(),
-        forwardFunction.forward().size());
-    VirtualMachine machine = VirtualMachine.withBinaryInput(
-        nativeCompiler, forwardArtifact, 32_768);
+        forwardFunction.forward().size(),
+        forwardFunction.id(),
+        proofName.length);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(nativeCompiler, input, 32_768);
 
     CompilerMachineRunner.runWithoutRewindHistory(machine);
 
@@ -75,6 +82,8 @@ final class NativeCompilerReversibleSourceProductArtifactExampleTest {
             value += 3;
             assert(value == 3);
           }
+
+          theorem bumpInverse proves inverse(bump);
         }
         """;
   }
@@ -122,7 +131,13 @@ final class NativeCompilerReversibleSourceProductArtifactExampleTest {
   }
 
   private static Program program(
-      int artifactLength, int codeStart, int codeLength, int instructionCount) throws Exception {
+      int inputLength,
+      int artifactLength,
+      int codeStart,
+      int codeLength,
+      int instructionCount,
+      int subject,
+      int proofNameLength) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.generated_inverse_products"));
@@ -141,12 +156,15 @@ final class NativeCompilerReversibleSourceProductArtifactExampleTest {
           state long published = 0;
 
           entry void main(borrow byteview input, borrow mut bytes output) {
-            assert(bufferLength(input) == ARTIFACT_LENGTH);
-            region arena = new region(/* bytes= */ ARENA_BYTES, /* allocations= */ 5);
+            assert(bufferLength(input) == INPUT_LENGTH);
+            region arena = new region(/* bytes= */ ARENA_BYTES, /* allocations= */ 8);
             bytes forwardCode = allocateBytes(arena, /* length= */ CODE_LENGTH);
             words callableRows = allocate(arena, /* length= */ 320);
             words inverseRows = allocate(arena, /* length= */ 192);
             bytes inverseCode = allocateBytes(arena, /* length= */ 262144);
+            words proofNameStarts = allocate(arena, /* length= */ 64);
+            words proofNameLengths = allocate(arena, /* length= */ 64);
+            words proofSubjects = allocate(arena, /* length= */ 64);
             bytes identity = allocateBytes(arena, /* length= */ 32);
             long codeByte = 0;
             while (codeByte < CODE_LENGTH) limit 262144 {
@@ -156,6 +174,9 @@ final class NativeCompilerReversibleSourceProductArtifactExampleTest {
             set(callableRows, 0, 0);
             set(callableRows, 64, CODE_LENGTH);
             set(callableRows, 128, INSTRUCTION_COUNT);
+            set(proofNameStarts, 0, ARTIFACT_LENGTH);
+            set(proofNameLengths, 0, PROOF_NAME_LENGTH);
+            set(proofSubjects, 0, SUBJECT);
             GeneratedInversePlan inverse = materializeGeneratedInverseCompositionProducts(
               /* callableCount= */ 1,
               callableRows,
@@ -173,12 +194,20 @@ final class NativeCompilerReversibleSourceProductArtifactExampleTest {
               callableRows,
               inverseRows,
               inverseCode,
+              input,
+              /* proofCount= */ 1,
+              proofNameStarts,
+              proofNameLengths,
+              proofSubjects,
               output,
               identity
             );
             published = 1;
             setOutputLength(output, artifact.length);
             drop(identity);
+            drop(proofSubjects);
+            drop(proofNameLengths);
+            drop(proofNameStarts);
             drop(inverseCode);
             drop(inverseRows);
             drop(callableRows);
@@ -187,11 +216,14 @@ final class NativeCompilerReversibleSourceProductArtifactExampleTest {
           }
         }
         """
+            .replace("INPUT_LENGTH", Integer.toString(inputLength))
             .replace("ARTIFACT_LENGTH", Integer.toString(artifactLength))
             .replace("CODE_START", Integer.toString(codeStart))
             .replace("CODE_LENGTH", Integer.toString(codeLength))
             .replace("INSTRUCTION_COUNT", Integer.toString(instructionCount))
-            .replace("ARENA_BYTES", Integer.toString(266_272 + codeLength)));
+            .replace("SUBJECT", Integer.toString(subject))
+            .replace("PROOF_NAME_LENGTH", Integer.toString(proofNameLength))
+            .replace("ARENA_BYTES", Integer.toString(267_808 + codeLength)));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.reversible_source_product_artifact");
   }
