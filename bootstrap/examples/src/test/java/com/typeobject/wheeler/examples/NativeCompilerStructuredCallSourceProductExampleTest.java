@@ -9,6 +9,7 @@ import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
+import com.typeobject.wheeler.core.vm.VmTrap;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -40,17 +41,48 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
 
   @Test
   void emitsAReversibleResultSlotArtifact() throws Exception {
-    assertReversibleArtifact("long value", "value", 1);
+    assertReversibleArtifact("long", "long value", "value", 1, 1);
   }
 
   @Test
   void emitsAReversibleImmediateResultRelation() throws Exception {
-    assertReversibleArtifact("long value", "value + 8", 1);
+    assertReversibleArtifact("long", "long value", "value + 8", 1, 1);
   }
 
   @Test
   void emitsAReversibleTwoSourceResultRelation() throws Exception {
-    assertReversibleArtifact("long left, long right", "left + right", 2);
+    assertReversibleArtifact("long", "long left, long right", "left + right", 2, 1);
+  }
+
+  @Test
+  void emitsAReversibleBooleanResultSlotArtifact() throws Exception {
+    assertReversibleArtifact("boolean", "boolean value", "value", 1, 2);
+  }
+
+  @Test
+  void rejectsBooleanArithmeticBeforeArtifactPublication() throws Exception {
+    String source = """
+        module example.structured_call;
+
+        classical class StructuredCall {
+          public rev boolean recurse(boolean value) {
+            return value & true;
+          }
+
+          theorem recurseInverse proves inverse(recurse);
+        }
+        """;
+    int bodyStart = source.indexOf("{", source.indexOf("recurse("));
+    int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
+    Program driver = driverWithEffect(bodyStart, bodyLength, 1, 2, 1, false, 1, 1, 2);
+    VirtualMachine machine = new VirtualMachine(
+        driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
+
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
+    assertEquals(0, machine.global("valid"));
+    assertArrayEquals(new byte[32_768], machine.hostOutput());
   }
 
   @Test
@@ -435,26 +467,29 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
   }
 
   private static void assertReversibleArtifact(
+      String returnType,
       String parameters,
       String result,
-      int parameterCount) throws Exception {
+      int parameterCount,
+      int parameterType) throws Exception {
     String source = """
         module example.structured_call;
 
         classical class StructuredCall {
-          public rev long recurse(PARAMETERS) {
+          public rev RETURN_TYPE recurse(PARAMETERS) {
             return RESULT;
           }
 
           theorem recurseInverse proves inverse(recurse);
         }
         """
+        .replace("RETURN_TYPE", returnType)
         .replace("PARAMETERS", parameters)
         .replace("RESULT", result);
     int bodyStart = source.indexOf("{", source.indexOf("recurse("));
     int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
     Program driver = driverWithEffect(
-        bodyStart, bodyLength, parameterCount, 1, 1, false, 1, 1, 2);
+        bodyStart, bodyLength, parameterCount, parameterType, 1, false, 1, 1, 2);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 

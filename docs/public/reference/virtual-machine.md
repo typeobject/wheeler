@@ -20,7 +20,7 @@ The machine owns:
 
 Raw host pointers and masked segmented addresses are not machine values.
 
-Source compilation currently writes equal limits of 4,000,000 steps and 4,000,000 retained history records. The `run()` loop traps at the step limit. Every execution path traps before it exceeds the history limit. The history budget can therefore retain every transition in one default run. The physical bootstrap closure evidence uses `stepWithoutRewindHistory()` with a 70,000,000-transition test ceiling. That mode refuses a retained rewind tail and establishes an immediate rewind horizon after each successful transition. It is suitable for artifact comparisons that never rewind, not a cheaper spelling of reversible execution and not a durability claim. The complete 346-module graph validation finishes in 67,956,966 transitions. The test keeps that larger evidence run bounded without quietly changing source program policy. An artifact or embedding host may choose lower verified limits.
+Source compilation currently writes equal limits of 4,000,000 steps and 4,000,000 retained history records. The `run()` loop traps at the step limit. Every execution path traps before it exceeds the history limit. The history budget can therefore retain every transition in one default run. The physical bootstrap closure evidence uses `stepWithoutRewindHistory()` with a 70,000,000-transition test ceiling. That mode refuses a retained rewind tail and establishes an immediate rewind horizon after each successful transition. It is suitable for artifact comparisons that never rewind, not a cheaper spelling of reversible execution and not a durability claim. The complete 346-module graph validation finishes in 67,957,014 transitions. The test keeps that larger evidence run bounded without quietly changing source program policy. An artifact or embedding host may choose lower verified limits.
 
 A classical entry may borrow one strict UTF-8 input, one immutable binary `byteview`, one mutable byte output, or one input followed by the output. VM construction requires the exact declared effects and an explicit text or binary binding API.
 
@@ -115,12 +115,13 @@ differential fixture keeps the second inverse honest.
 
 `RETURN_VALUE` checks the result and moves it back to the caller. Every call and return adds history, including the write to the caller's result register, so each transition can be rewound.
 
-A reversible signed result uses an adjacent Boolean tag and signed payload owned by the
-caller. `CALL_RESULT_SLOT` requires exact vacancy before pushing a frame.
+A reversible scalar result uses an adjacent Boolean tag and signed or Boolean payload
+owned by the caller. `CALL_RESULT_SLOT` requires exact vacancy before pushing a frame.
 `UNCALL_RESULT_SLOT` requires `Holding` of the constant, preserved source, or checked
-computed value expected by the generated inverse before pushing a frame. The three result
-fill instructions perform their exact exchanges in the callee. `RESULT_FILL_BINARY`
-evaluates one signed source with one constant right operand before mutation.
+computed value expected by the generated inverse before pushing a frame. The result fill
+instructions perform their exact exchanges in the callee. Boolean relations admit a
+canonical literal or an unchanged Boolean source. `RESULT_FILL_BINARY` evaluates one
+signed source with one constant right operand before mutation.
 `RESULT_FILL_BINARY_SOURCES` evaluates two signed sources under the same checked operation.
 `RETURN_RESULT_SLOT` copies both slot registers back atomically. Its history
 record stores both previous caller registers for debugger rewind. Generated language

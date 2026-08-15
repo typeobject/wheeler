@@ -23,8 +23,9 @@ final class SourceResultParser {
     if (reversible && !returnsValue && hasParameters) {
       SourceTokenCursor.fail(start, "reversible void parameters are not yet available");
     }
-    if (reversible && returnsValue && !returnType.equals("long")) {
-      SourceTokenCursor.fail(start, "the first reversible result-slot profile returns long");
+    if (reversible && returnsValue
+        && !returnType.equals("long") && !returnType.equals("boolean")) {
+      SourceTokenCursor.fail(start, "reversible result slots require a scalar result");
     }
   }
 

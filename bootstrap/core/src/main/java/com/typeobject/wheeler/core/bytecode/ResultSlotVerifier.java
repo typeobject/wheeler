@@ -3,6 +3,7 @@ package com.typeobject.wheeler.core.bytecode;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ARGUMENT_BASE;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.ARGUMENT_COUNT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.FUNCTION;
+import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.IMMEDIATE;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.OPERATION;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RESULT_SLOT;
 import static com.typeobject.wheeler.core.bytecode.InstructionForm.OperandRole.RIGHT_SOURCE;
@@ -67,11 +68,20 @@ final class ResultSlotVerifier {
         && slot < argumentEnd;
   }
 
-  static void verifyFill(FunctionBody owner, Instruction instruction, int pc) {
+  static void verifyFillConstant(FunctionBody owner, Instruction instruction, int pc) {
+    verifyFill(owner, instruction, pc);
+    long value = instruction.operand(IMMEDIATE);
+    if (owner.resultType().equals(ValueType.BOOLEAN) && value != 0 && value != 1) {
+      failOperand(owner, instruction, IMMEDIATE, pc, "invalid Boolean result constant");
+    }
+  }
+
+  private static void verifyFill(FunctionBody owner, Instruction instruction, int pc) {
     int slot = verifyLocal(owner, instruction, RESULT_SLOT, pc);
-    if (!owner.implicitResultSlot() || slot != owner.resultSlotBase()
-        || !owner.resultType().equals(ValueType.SIGNED)) {
-      failOperand(owner, instruction, RESULT_SLOT, pc, "invalid signed result slot");
+    boolean scalarResult = owner.resultType().equals(ValueType.SIGNED)
+        || owner.resultType().equals(ValueType.BOOLEAN);
+    if (!owner.implicitResultSlot() || slot != owner.resultSlotBase() || !scalarResult) {
+      failOperand(owner, instruction, RESULT_SLOT, pc, "invalid scalar result slot");
     }
   }
 
@@ -86,6 +96,7 @@ final class ResultSlotVerifier {
 
   static void verifyFillBinary(FunctionBody owner, Instruction instruction, int pc) {
     verifyFillSource(owner, instruction, pc);
+    requireSignedBinaryResult(owner, instruction, pc);
     verifyBinaryOperation(owner, instruction, pc);
   }
 
@@ -98,7 +109,15 @@ final class ResultSlotVerifier {
           "right result source is not a preserved parameter");
     }
     requireType(owner, instruction, right, RIGHT_SOURCE, owner.resultType(), pc);
+    requireSignedBinaryResult(owner, instruction, pc);
     verifyBinaryOperation(owner, instruction, pc);
+  }
+
+  private static void requireSignedBinaryResult(
+      FunctionBody owner, Instruction instruction, int pc) {
+    if (!owner.resultType().equals(ValueType.SIGNED)) {
+      failOperand(owner, instruction, RESULT_SLOT, pc, "binary result requires a signed payload");
+    }
   }
 
   private static void verifyBinaryOperation(

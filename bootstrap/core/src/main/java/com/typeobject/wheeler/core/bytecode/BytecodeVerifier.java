@@ -479,7 +479,7 @@ public final class BytecodeVerifier {
         requireType(owner, instruction, source, RESULT, owner.resultType(), pc);
       }
       case RESULT_FILL_CONSTANT ->
-          ResultSlotVerifier.verifyFill(owner, instruction, pc);
+          ResultSlotVerifier.verifyFillConstant(owner, instruction, pc);
       case RESULT_FILL_SOURCE ->
           ResultSlotVerifier.verifyFillSource(owner, instruction, pc);
       case RESULT_FILL_BINARY ->
@@ -685,6 +685,11 @@ public final class BytecodeVerifier {
         }
         assigned.set(written);
       }
+      if (instruction.opcode() == Opcode.CALL_RESULT_SLOT
+          || instruction.opcode() == Opcode.UNCALL_RESULT_SLOT) {
+        int slot = Math.toIntExact(instruction.operand(RESULT_SLOT));
+        assigned.set(slot, slot + 2);
+      }
       if (instruction.opcode() == Opcode.OWNED_MOVE
           || instruction.opcode() == Opcode.UTF8_FREEZE) {
         assigned.clear(Math.toIntExact(instruction.operand(SOURCE)));
@@ -773,12 +778,6 @@ public final class BytecodeVerifier {
       int count = Math.toIntExact(instruction.operand(countRole));
       for (int local = base; local < base + count; local++) {
         requireAssignedLocal(owner, instruction, baseRole, pc, assigned, local);
-      }
-      if (instruction.opcode() == Opcode.CALL_RESULT_SLOT
-          || instruction.opcode() == Opcode.UNCALL_RESULT_SLOT) {
-        int slot = Math.toIntExact(instruction.operand(RESULT_SLOT));
-        requireAssignedLocal(owner, instruction, RESULT_SLOT, pc, assigned, slot);
-        requireAssignedLocal(owner, instruction, RESULT_SLOT, pc, assigned, slot + 1);
       }
       return;
     }

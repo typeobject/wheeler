@@ -11,11 +11,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
+import com.typeobject.wheeler.core.bytecode.BytecodeException;
 import com.typeobject.wheeler.core.bytecode.Disassembler;
+import com.typeobject.wheeler.core.bytecode.FunctionBody;
+import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.bytecode.ValueType;
 import com.typeobject.wheeler.core.vm.MachineStatus;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 /** Source, metadata, and runtime coverage for reversible signed result slots. */
@@ -197,12 +203,89 @@ class ReversibleResultSlotSourceTest {
   }
 
   @Test
+  void compilesAndExecutesBooleanResultRelations() {
+    String source = "classical class BooleanResult { "
+        + "rev boolean yes() { return true; } "
+        + "rev boolean identity(boolean value) { return value; } "
+        + "entry void main() { boolean first = yes(); assert(first); "
+        + "boolean second = identity(false); assert(second == false); } }";
+    Program program = new WheelerCompiler().compile(source);
+    VirtualMachine machine = new VirtualMachine(program);
+
+    machine.run();
+
+    assertEquals(MachineStatus.HALTED, machine.status());
+    assertEquals(Opcode.RESULT_FILL_CONSTANT, program.function(0).forward().getFirst().opcode());
+    assertEquals(1, program.function(0).forward().getFirst().operand(IMMEDIATE));
+    assertEquals(Opcode.RESULT_FILL_SOURCE, program.function(1).forward().getFirst().opcode());
+    assertEquals(0, program.function(1).forward().getFirst().operand(SOURCE));
+    assertEquals(program.function(1).forward(), program.function(1).inverse());
+  }
+
+  @Test
+  void executesABooleanResultCallInBothDirections() {
+    String source = "module fixture.boolean_result; classical class BooleanResult { "
+        + "rev boolean yes() { return true; } "
+        + "theorem yesInverse proves inverse(yes); }";
+    Program resultProgram = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("BooleanResult.w", source), "fixture.boolean_result");
+    FunctionBody result = resultProgram.function(0);
+    FunctionBody entry = new FunctionBody(
+        1,
+        "fixture.boolean_result::main",
+        false,
+        0,
+        List.of(ValueType.BOOLEAN, ValueType.BOOLEAN),
+        null,
+        List.of(
+            Instruction.of(Opcode.CALL_RESULT_SLOT, 0, 0, 0, 0),
+            Instruction.of(Opcode.COMMIT),
+            Instruction.of(Opcode.UNCALL_RESULT_SLOT, 0, 0, 0, 0),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    Program program = new Program(
+        resultProgram.name(), 1, resultProgram.globals(), List.of(result, entry));
+    VirtualMachine machine = new VirtualMachine(program);
+
+    machine.run();
+
+    assertEquals(MachineStatus.HALTED, machine.status());
+  }
+
+  @Test
+  void rejectsMalformedBooleanResultInstructions() {
+    Program valid = new WheelerCompiler().compile(
+        "classical class BooleanResult { rev boolean yes() { return true; } "
+            + "entry void main() { boolean answer = yes(); assert(answer); } }");
+    FunctionBody function = valid.function(0);
+    FunctionBody malformedFunction = new FunctionBody(
+        function.id(),
+        function.name(),
+        function.coherent(),
+        function.parameterCount(),
+        function.localTypes(),
+        function.resultType(),
+        function.implicitResultSlot(),
+        List.of(
+            Instruction.of(
+                Opcode.RESULT_FILL_CONSTANT, function.resultSlotBase(), 2),
+            function.forward().getLast()),
+        List.of(
+            Instruction.of(
+                Opcode.RESULT_FILL_CONSTANT, function.resultSlotBase(), 2),
+            function.inverse().getLast()));
+    Program malformed = new Program(
+        valid.name(),
+        valid.entryFunctionId(),
+        valid.globals(),
+        List.of(malformedFunction, valid.function(1)));
+
+    assertThrows(BytecodeException.class, () -> new BytecodeWriter().write(malformed));
+  }
+
+  @Test
   void rejectsResultsOutsideTheFirstClosedProfile() {
     WheelerCompiler compiler = new WheelerCompiler();
-    CompilerException booleanResult = assertThrows(
-        CompilerException.class,
-        () -> compiler.compile("classical class Bad { rev boolean answer() { return true; } "
-            + "entry void main() {} }"));
     CompilerException computedResult = assertThrows(
         CompilerException.class,
         () -> compiler.compile("classical class Bad { rev long answer() { return 1 + 2; } "
@@ -225,11 +308,10 @@ class ReversibleResultSlotSourceTest {
         () -> compiler.compile("classical class Bad { rev long answer(boolean value) { "
             + "return value; } entry void main() {} }"));
 
-    assertTrue(booleanResult.getMessage().contains("first reversible result-slot profile"));
-    assertTrue(computedResult.getMessage().contains("return a signed constant"));
+    assertTrue(computedResult.getMessage().contains("return a scalar constant"));
     assertTrue(mismatchedPrelude.getMessage().contains("operation over preserved"));
-    assertTrue(erasingBody.getMessage().contains("return a signed constant"));
+    assertTrue(erasingBody.getMessage().contains("return a scalar constant"));
     assertTrue(voidParameter.getMessage().contains("reversible void parameters"));
-    assertTrue(booleanSource.getMessage().contains("preserve one signed parameter"));
+    assertTrue(booleanSource.getMessage().contains("exact result parameter"));
   }
 }

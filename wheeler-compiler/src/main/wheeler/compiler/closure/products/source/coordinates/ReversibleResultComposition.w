@@ -58,6 +58,10 @@ classical class ReversibleResultComposition {
         resultTypeValid = true;
       }
 
+      if (resultType == TYPE_BOOLEAN) {
+        resultTypeValid = true;
+      }
+
       if (resultTypeValid == false) {
         valid = false;
       }
@@ -145,12 +149,18 @@ classical class ReversibleResultComposition {
         boolean readyRelation = terminalOpcode == OPCODE_RETURN_RESULT_SLOT;
         if (readyRelation) {
           boolean relationOpcodeValid = relationOpcode == OPCODE_RESULT_FILL_SOURCE;
-          if (relationOpcode == OPCODE_RESULT_FILL_BINARY) {
+          if (relationOpcode == OPCODE_RESULT_FILL_CONSTANT) {
             relationOpcodeValid = true;
           }
 
-          if (relationOpcode == OPCODE_RESULT_FILL_BINARY_SOURCES) {
-            relationOpcodeValid = true;
+          if (resultType == TYPE_SIGNED) {
+            if (relationOpcode == OPCODE_RESULT_FILL_BINARY) {
+              relationOpcodeValid = true;
+            }
+
+            if (relationOpcode == OPCODE_RESULT_FILL_BINARY_SOURCES) {
+              relationOpcodeValid = true;
+            }
           }
 
           if (relationOpcodeValid == false) {

@@ -385,7 +385,9 @@ classical class InstructionVerifier {
         }
 
         if (activeResultType == TYPE_SIGNED) {} else {
-          return 0;
+          if (activeResultType == TYPE_BOOLEAN) {} else {
+            return 0;
+          }
         }
 
         if (1 < localCount) {} else {
@@ -407,7 +409,7 @@ classical class InstructionVerifier {
         }
 
         long payloadSlot = verifiedResultSlot + 1;
-        if (localHasType(artifact, activeTypes, payloadSlot, TYPE_SIGNED)) {} else {
+        if (localHasType(artifact, activeTypes, payloadSlot, activeResultType)) {} else {
           return 0;
         }
 
@@ -416,6 +418,12 @@ classical class InstructionVerifier {
         }
 
         if (opcode == OPCODE_RESULT_FILL_CONSTANT) {
+          if (activeResultType == TYPE_BOOLEAN) {
+            if (1 < resultSlotSourceOperand(artifact, cursor)) {
+              return 0;
+            }
+          }
+
           return 1;
         }
 
@@ -424,12 +432,16 @@ classical class InstructionVerifier {
           return 0;
         }
 
-        if (localHasType(artifact, activeTypes, verifiedSource, TYPE_SIGNED)) {} else {
+        if (localHasType(artifact, activeTypes, verifiedSource, activeResultType)) {} else {
           return 0;
         }
 
         if (opcode == OPCODE_RESULT_FILL_SOURCE) {
           return 1;
+        }
+
+        if (activeResultType != TYPE_SIGNED) {
+          return 0;
         }
 
         long operation = resultSlotOperationOperand(artifact, cursor);

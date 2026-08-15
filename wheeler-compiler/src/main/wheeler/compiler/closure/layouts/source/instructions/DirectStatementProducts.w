@@ -575,8 +575,10 @@ classical class DirectStatementProducts {
 
                   long relationRightLocal = -1;
                   if (0 < reversibleCallableCount) {
-                    if (returnedType != TYPE_SIGNED) {
-                      statementValid = false;
+                    if (returnedType == TYPE_BOOLEAN) {
+                      if (resultRelation.kind != RESULT_RELATION_SOURCE) {
+                        statementValid = false;
+                      }
                     }
 
                     if (resultRelation.kind == RESULT_RELATION_BINARY_SOURCES) {

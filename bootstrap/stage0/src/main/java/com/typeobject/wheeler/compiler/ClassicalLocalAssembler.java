@@ -100,21 +100,25 @@ final class ClassicalLocalAssembler implements SourceStorageLowerer.Context {
 
   private ClassicalLowerer.LoweredBody lowerReversibleResult() {
     List<Statement> statements = owner.statements();
+    ValueType resultType = SourceTypeLowerer.resolve(
+        owner.returnType(), owner.line(), typeReferences);
     localTypes.add(ValueType.BOOLEAN);
-    localTypes.add(ValueType.SIGNED);
+    localTypes.add(resultType);
     int resultSlot = localTypes.size() - 2;
-    if (directReversibleResult(statements, resultSlot)
-        || binaryReversibleResult(statements, resultSlot)) {
+    if (directReversibleResult(statements, resultSlot, resultType)
+        || (resultType.equals(ValueType.SIGNED)
+            && binaryReversibleResult(statements, resultSlot))) {
       output.add(Instruction.of(Opcode.RETURN_RESULT_SLOT, resultSlot));
       return new ClassicalLowerer.LoweredBody(List.copyOf(output), List.copyOf(localTypes));
     }
     throw new CompilerException(
         owner.line(),
-        "reversible value functions return a signed constant, preserved parameter, "
-            + "or operation over preserved parameters and constants");
+        "reversible value functions return a scalar constant, preserved parameter, "
+            + "or signed operation over preserved parameters and constants");
   }
 
-  private boolean directReversibleResult(List<Statement> statements, int resultSlot) {
+  private boolean directReversibleResult(
+      List<Statement> statements, int resultSlot, ValueType resultType) {
     if (statements.size() != 2
         || !statements.get(1).operation().equals("return_value")
         || !statements.get(0).arguments().getFirst()
@@ -122,13 +126,18 @@ final class ClassicalLocalAssembler implements SourceStorageLowerer.Context {
       return false;
     }
     Statement value = statements.getFirst();
-    if (value.operation().equals("local_const")) {
+    if (value.operation().equals("local_const") && resultType.equals(ValueType.SIGNED)) {
+      long constant = SourceParser.parseInteger(value.arguments().get(1), value.line());
+      output.add(Instruction.of(Opcode.RESULT_FILL_CONSTANT, resultSlot, constant));
+      return true;
+    }
+    if (value.operation().equals("local_boolean") && resultType.equals(ValueType.BOOLEAN)) {
       long constant = SourceParser.parseInteger(value.arguments().get(1), value.line());
       output.add(Instruction.of(Opcode.RESULT_FILL_CONSTANT, resultSlot, constant));
       return true;
     }
     if (value.operation().equals("local_read")) {
-      int source = preservedSignedParameter(value);
+      int source = preservedParameter(value, resultType);
       output.add(Instruction.of(Opcode.RESULT_FILL_SOURCE, resultSlot, source));
       return true;
     }
@@ -218,13 +227,17 @@ final class ClassicalLocalAssembler implements SourceStorageLowerer.Context {
   }
 
   private int preservedSignedParameter(Statement value) {
+    return preservedParameter(value, ValueType.SIGNED);
+  }
+
+  private int preservedParameter(Statement value, ValueType resultType) {
     String sourceName = value.arguments().get(1);
     Integer source = locals.get(sourceName);
     boolean parameter = owner.parameters().stream()
         .anyMatch(candidate -> candidate.name().equals(sourceName));
-    if (source == null || !parameter || !localTypes.get(source).equals(ValueType.SIGNED)) {
+    if (source == null || !parameter || !localTypes.get(source).equals(resultType)) {
       throw new CompilerException(
-          owner.line(), "reversible value functions preserve one signed parameter");
+          owner.line(), "reversible value functions preserve one exact result parameter");
     }
     return source;
   }

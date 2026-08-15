@@ -319,6 +319,12 @@ classical class FunctionVerifier {
 
       if (resultSlotDescriptor) {
         resultSlotBody = 1;
+        if (resultType == TYPE_SIGNED) {} else {
+          if (resultType == TYPE_BOOLEAN) {} else {
+            return 0;
+          }
+        }
+
         if (parameterCount + 1 < localCount) {} else {
           return 0;
         }
@@ -369,13 +375,35 @@ classical class FunctionVerifier {
           return 0;
         }
 
+        boolean resultRelation = slotForwardOpcode == OPCODE_RESULT_FILL_CONSTANT;
         boolean preservedRelation = slotForwardOpcode == OPCODE_RESULT_FILL_SOURCE;
-        if (slotForwardOpcode == OPCODE_RESULT_FILL_BINARY) {
-          preservedRelation = true;
+        if (preservedRelation) {
+          resultRelation = true;
         }
 
-        if (slotForwardOpcode == OPCODE_RESULT_FILL_BINARY_SOURCES) {
-          preservedRelation = true;
+        if (resultType == TYPE_SIGNED) {
+          if (slotForwardOpcode == OPCODE_RESULT_FILL_BINARY) {
+            preservedRelation = true;
+            resultRelation = true;
+          }
+
+          if (slotForwardOpcode == OPCODE_RESULT_FILL_BINARY_SOURCES) {
+            preservedRelation = true;
+            resultRelation = true;
+          }
+        }
+
+        if (resultRelation == false) {
+          return 0;
+        }
+
+        if (resultType == TYPE_BOOLEAN) {
+          if (slotForwardOpcode == OPCODE_RESULT_FILL_CONSTANT) {
+            long booleanResult = readUnsigned(artifact, slotForwardCursor + 16, 8);
+            if (1 < booleanResult) {
+              return 0;
+            }
+          }
         }
 
         if (preservedRelation) {
