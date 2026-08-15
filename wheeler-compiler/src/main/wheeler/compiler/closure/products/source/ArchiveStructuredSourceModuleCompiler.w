@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.archive_structured_source_module_compiler;
 
+import wheeler.compiler.closure.imported_source_call_targets;
 import wheeler.compiler.closure.source_product_artifact;
 import wheeler.compiler.closure.structured_source_module_compiler;
 import wheeler.core.encoding.binary;

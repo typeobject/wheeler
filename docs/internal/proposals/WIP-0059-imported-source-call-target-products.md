@@ -51,14 +51,20 @@ The module call scanner checks locals first. It checks only admitted dependency 
 - seven parameters per admitted call
 - 32 identity bytes per target
 
+## Implementation
+
+`ImportedSourceCallTargets.w` now consumes the direct callable-dependency product and closure-wide callable metadata. It copies names, ordered parameter types and loan modes, result kinds, effects, and callable identities into one bounded view. Dependency rank and callable identity establish output order, so packed row order owns nothing. Negative external rows, duplicate identities, malformed ranges, and overlong signatures preserve every caller buffer.
+
+The archive compiler imports this product as the sole target-view boundary. Structured call discovery and relocation still accept local targets only.
+
 ## Plan
 
-1. Define the closed imported target view accepted by the archive compiler.
-2. Carry copied qualified names, signatures, effects, and identities into structured compilation.
-3. Resolve local and imported calls through one source scanner.
-4. Build one local-plus-imported parameter and identity table.
-5. Classify local and external relocations without changing call code windows.
-6. Publish imported relocation identities through the canonical linker.
+- [x] Define the closed imported target view accepted by the archive compiler.
+- [ ] Carry copied qualified names, signatures, effects, and identities into structured compilation.
+- [ ] Resolve local and imported calls through one source scanner.
+- [ ] Build one local-plus-imported parameter and identity table.
+- [ ] Classify local and external relocations without changing call code windows.
+- [ ] Publish imported relocation identities through the canonical linker.
 
 ## Acceptance
 
