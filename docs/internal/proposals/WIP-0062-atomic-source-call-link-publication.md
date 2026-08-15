@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Draft |
+| Status | Implemented |
 | Owners | Wheeler compiler and linker maintainers |
 | Created | 2026-08-15 |
 | Updated | 2026-08-15 |
@@ -13,7 +13,7 @@
 
 ## Summary
 
-Stage structured source artifacts, relocation products, retained prefixes, identity resolution, linked sections, and the final container under one bounded publication boundary. A missing or stale package-bound callable identity must leave every caller-owned artifact, archive, relocation, section, identity, and container buffer untouched.
+Stage structured source artifacts, relocation products, retained prefixes, identity resolution, linked sections, and the final container under one bounded transaction. A missing or stale package-bound callable identity must leave every caller-owned output buffer untouched. Successful builds publish only the final container and its identity.
 
 ## Problem
 
@@ -33,7 +33,7 @@ One source-call link transaction retains:
 - canonical linked section lengths and identities
 - the verified final container and its SHA-256 identity
 
-The transaction publishes these products together or publishes none of them.
+The transaction retains these products privately and publishes none of them as build output. It publishes the verified container and its identity together or publishes neither.
 
 ## Invariants
 
@@ -59,17 +59,19 @@ The transaction publishes these products together or publishes none of them.
 
 `ImportedStructuredArchiveModuleCompiler.w` now stages the source-local artifact, artifact identity, relocation rows, relocation owners, relocation identities, and closure instruction targets. It decodes the staged artifact, excludes verifier suffix functions, resolves every package-bound target identity, and only then copies those products into caller-owned buffers. A stale target traps while all public buffers still hold their sentinels.
 
-`AtomicLinkedContainer.w` validates canonical section inputs, assembles the complete container in a 16 MiB private arena, verifies it, hashes it, and copies container and identity bytes only after every check passes. The remaining join must build retained sections and invoke both staging boundaries under one transaction.
+`AtomicLinkedContainer.w` validates canonical section inputs, assembles the complete container in a 16 MiB private arena, verifies it, hashes it, and copies container and identity bytes only after every check passes. `CompiledBodyArchive.w` accepts any positive archive capacity through the 16 MiB ceiling, so a bounded build pays for its admitted product set rather than the ceiling.
+
+The physical-product transaction now allocates its 4 MiB body archive only after package and closure validation. Its second lifetime builds canonical retained string, type, function, and code sections, drops every source and product buffer, and calls `publishAtomicLinkedContainer`. Only the verified container and its identity cross the publication boundary. The transaction does not publish the source-local artifacts, relocation tables, or section archive as build outputs.
 
 ## Plan
 
 1. [x] Define one caller-owned staging record for source artifacts and relocation products.
 2. [x] Decode and retain every local prefix before any public archive append.
 3. [x] Resolve all package-bound identities and rewrite closure instruction targets.
-4. Build canonical string, type, function, code, and container sections from retained rows.
+4. [x] Build canonical string, type, function, code, and container sections from retained rows.
 5. [x] Verify and hash the complete container.
-6. Publish artifact, archive, relocation, section, and container outputs in one final copy.
-7. Prove stale-identity atomicity and shuffled-storage byte equality.
+6. [x] Keep every intermediate private and publish only container and identity bytes in one final copy.
+7. [x] Prove stale-identity atomicity and shuffled-storage byte equality.
 
 ## Acceptance
 

@@ -23,9 +23,9 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.counted_function_products"));
     sources.putAll(CompilerSources.moduleClosure(
-        "wheeler.compiler.closure.imported_callable_stubs"));
+        "wheeler.compiler.closure.atomic_linked_container"));
     sources.putAll(CompilerSources.moduleClosure(
-        "wheeler.compiler.closure.linked_container"));
+        "wheeler.compiler.closure.imported_callable_stubs"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.linked_function_section"));
     sources.putAll(CompilerSources.moduleClosure(
@@ -40,12 +40,12 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
     sources.put("PhysicalFunctionClosure.w", """
         module example.physical_function_closure;
 
+        import wheeler.compiler.closure.atomic_linked_container;
         import wheeler.compiler.closure.compiled_function_names;
         import wheeler.compiler.closure.compiled_function_products;
         import wheeler.compiler.closure.compiled_string_products;
         import wheeler.compiler.closure.counted_function_products;
         import wheeler.compiler.closure.imported_callable_stubs;
-        import wheeler.compiler.closure.linked_container;
         import wheeler.compiler.closure.linked_function_section;
         import wheeler.compiler.closure.linked_instruction_code;
         import wheeler.compiler.closure.linked_local_types;
@@ -413,31 +413,6 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
             set(sectionTypes, 5, 6);
             set(sectionStarts, 5, 0);
             set(sectionLengths, 5, linkedCodeLength);
-            linkedContainerLength = emitCanonicalContainer(
-              sections,
-              aggregatesStart + 4,
-              /* sectionCount= */ 6,
-              sectionTypes,
-              sectionStarts,
-              sectionLengths,
-              output
-            );
-            publishSha256Range(
-              output,
-              /* start= */ 0,
-              linkedContainerLength,
-              linkedIdentity,
-              products
-            );
-            linkedIdentityPrefix = linkedIdentity[0] * 16777216
-              + linkedIdentity[1] * 65536
-              + linkedIdentity[2] * 256
-              + linkedIdentity[3];
-            published = 1;
-            setOutputLength(output, linkedContainerLength);
-            drop(sectionLengths);
-            drop(sectionStarts);
-            drop(sectionTypes);
             drop(functionNameIds);
             drop(closureFunctionNameRows);
             drop(finalStringRows);
@@ -461,9 +436,30 @@ final class NativeCompilerPhysicalFunctionClosureProgram {
             drop(moduleFirstFunctions);
             drop(localInstructionRows);
             drop(localFunctionRows);
-            drop(sections);
             drop(rootArtifact);
             drop(artifact);
+            AtomicLinkedContainerPlan container = publishAtomicLinkedContainer(
+              sections,
+              aggregatesStart + 4,
+              /* sectionCount= */ 6,
+              sectionTypes,
+              sectionStarts,
+              sectionLengths,
+              output,
+              linkedIdentity
+            );
+            assert(container.sectionCount == 6);
+            linkedContainerLength = container.length;
+            linkedIdentityPrefix = linkedIdentity[0] * 16777216
+              + linkedIdentity[1] * 65536
+              + linkedIdentity[2] * 256
+              + linkedIdentity[3];
+            published = 1;
+            setOutputLength(output, linkedContainerLength);
+            drop(sectionLengths);
+            drop(sectionStarts);
+            drop(sectionTypes);
+            drop(sections);
             drop(linkedIdentity);
             drop(products);
           }

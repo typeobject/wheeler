@@ -15,25 +15,28 @@ import org.junit.jupiter.api.Test;
 final class NativeCompilerAtomicLinkedContainerExampleTest {
   @Test
   void publishesOneVerifiedContainerAndIdentity() throws Exception {
-    VirtualMachine machine = new VirtualMachine(program(false));
+    VirtualMachine machine = new VirtualMachine(program(false, false));
+    VirtualMachine shuffled = new VirtualMachine(program(false, true));
 
     CompilerMachineRunner.runWithoutRewindHistory(machine);
+    CompilerMachineRunner.runWithoutRewindHistory(shuffled);
 
     assertEquals(304, machine.global("length"));
     assertEquals(6, machine.global("sections"));
     assertEquals(87, machine.global("magic"));
     assertEquals(1, machine.global("published"));
+    assertEquals(machine.global("identityPrefix"), shuffled.global("identityPrefix"));
   }
 
   @Test
   void rejectsMalformedSectionsBeforePublication() throws Exception {
-    VirtualMachine machine = new VirtualMachine(program(true));
+    VirtualMachine machine = new VirtualMachine(program(true, false));
 
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
     assertEquals(0, machine.global("published"));
   }
 
-  private static Program program(boolean malformed) throws Exception {
+  private static Program program(boolean malformed, boolean shuffled) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.atomic_linked_container"));
@@ -49,6 +52,7 @@ final class NativeCompilerAtomicLinkedContainerExampleTest {
           state long length = 0;
           state long sections = 0;
           state long magic = 0;
+          state long identityPrefix = 0;
           state long published = 0;
 
           entry void main() {
@@ -60,21 +64,34 @@ final class NativeCompilerAtomicLinkedContainerExampleTest {
             long section = 0;
             while (section < 6) limit 6 {
               set(sectionTypes, section, section + 1);
-              setByte(sectionBytes, section, section + 1);
               section += 1;
             }
             set(sectionTypes, 1, SECOND_TYPE);
-            set(sectionStarts, 1, 24);
-            set(sectionStarts, 2, 28);
-            set(sectionStarts, 3, 44);
-            set(sectionStarts, 4, 48);
-            set(sectionStarts, 5, 52);
+            set(sectionStarts, 0, FIRST_START);
+            set(sectionStarts, 1, SECOND_START);
+            set(sectionStarts, 2, THIRD_START);
+            set(sectionStarts, 3, FOURTH_START);
+            set(sectionStarts, 4, FIFTH_START);
+            set(sectionStarts, 5, SIXTH_START);
             set(sectionLengths, 0, 24);
             set(sectionLengths, 1, 4);
             set(sectionLengths, 2, 16);
             set(sectionLengths, 3, 4);
             set(sectionLengths, 4, 4);
             set(sectionLengths, 5, 4);
+            section = 0;
+            while (section < 6) limit 6 {
+              long sectionByte = 0;
+              while (sectionByte < sectionLengths[section]) limit 24 {
+                setByte(
+                  sectionBytes,
+                  sectionStarts[section] + sectionByte,
+                  section + 1
+                );
+                sectionByte += 1;
+              }
+              section += 1;
+            }
             region outputs = new region(/* bytes= */ 544, /* allocations= */ 2);
             bytes container = allocateBytes(outputs, /* length= */ 512);
             bytes identity = allocateBytes(outputs, /* length= */ 32);
@@ -91,6 +108,10 @@ final class NativeCompilerAtomicLinkedContainerExampleTest {
             length = plan.length;
             sections = plan.sectionCount;
             magic = container[0];
+            identityPrefix = identity[0] * 16777216
+              + identity[1] * 65536
+              + identity[2] * 256
+              + identity[3];
             published = 1;
             drop(identity);
             drop(container);
@@ -102,7 +123,14 @@ final class NativeCompilerAtomicLinkedContainerExampleTest {
             drop(inputs);
           }
         }
-        """.replace("SECOND_TYPE", malformed ? "1" : "2"));
+        """
+            .replace("SECOND_TYPE", malformed ? "1" : "2")
+            .replace("FIRST_START", shuffled ? "16" : "0")
+            .replace("SECOND_START", shuffled ? "44" : "24")
+            .replace("THIRD_START", shuffled ? "0" : "28")
+            .replace("FOURTH_START", shuffled ? "52" : "44")
+            .replace("FIFTH_START", shuffled ? "40" : "48")
+            .replace("SIXTH_START", shuffled ? "48" : "52"));
     return new WheelerCompiler().compileModuleFiles(sources, "example.atomic_linked_container");
   }
 }

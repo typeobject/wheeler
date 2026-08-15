@@ -227,12 +227,6 @@ final class NativeCompilerArchiveClosureProgram {
               cursor += 1;
             }
 
-            region products = new region(/* bytes= */ 16793600, /* allocations= */ 5);
-            bytes bodyArchive = allocateBytes(products, /* length= */ 16777216);
-            words bodyModulePublished = allocate(products, /* length= */ 512);
-            words bodyModuleRanks = allocate(products, /* length= */ 512);
-            words bodyStarts = allocate(products, /* length= */ 512);
-            words bodyLengths = allocate(products, /* length= */ 512);
             region columns = new region(/* bytes= */ 6627368, /* allocations= */ 95);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
@@ -632,6 +626,12 @@ final class NativeCompilerArchiveClosureProgram {
                   symbolResolved,
                   moduleIdentities
                 );
+                region products = new region(/* bytes= */ 4210688, /* allocations= */ 5);
+                bytes bodyArchive = allocateBytes(products, /* length= */ 4194304);
+                words bodyModulePublished = allocate(products, /* length= */ 512);
+                words bodyModuleRanks = allocate(products, /* length= */ 512);
+                words bodyStarts = allocate(products, /* length= */ 512);
+                words bodyLengths = allocate(products, /* length= */ 512);
                 PHYSICAL_PRODUCT_COMPILATION
                 classifyClosureExecutableOwners(
                   archive,
@@ -825,6 +825,12 @@ final class NativeCompilerArchiveClosureProgram {
                     PHYSICAL_PRODUCT_PUBLICATION
                   }
                 }
+                drop(bodyLengths);
+                drop(bodyStarts);
+                drop(bodyModuleRanks);
+                drop(bodyModulePublished);
+                drop(bodyArchive);
+                drop(products);
               }
               case ArchiveSourceIndexResult.Error(long offset) {
                 assert(offset < 0);
@@ -929,12 +935,6 @@ final class NativeCompilerArchiveClosureProgram {
             drop(manifest);
             drop(archive);
             drop(inputArena);
-            drop(bodyLengths);
-            drop(bodyStarts);
-            drop(bodyModuleRanks);
-            drop(bodyModulePublished);
-            drop(bodyArchive);
-            drop(products);
           }
         }
         """

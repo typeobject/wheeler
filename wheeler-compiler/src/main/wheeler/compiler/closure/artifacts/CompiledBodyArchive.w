@@ -29,12 +29,13 @@ classical class CompiledBodyArchive {
     assert(-1 < artifactCount);
     assert(artifactCount < MAX_MODULES);
     assert(-1 < archiveBytes);
-    assert(artifactLength < MAX_ARTIFACT_BYTES - archiveBytes + 1);
+    assert(0 < bufferLength(archive));
+    assert(bufferLength(archive) < MAX_ARTIFACT_BYTES + 1);
+    assert(artifactLength < bufferLength(archive) - archiveBytes + 1);
     assert(bufferLength(modulePublished) == MAX_MODULES);
     assert(bufferLength(moduleArtifactRanks) == MAX_MODULES);
     assert(bufferLength(artifactStarts) == MAX_MODULES);
     assert(bufferLength(artifactLengths) == MAX_MODULES);
-    assert(bufferLength(archive) == MAX_ARTIFACT_BYTES);
     assert(modulePublished[moduleOwner] == 0);
 
     long sourceByte = 0;
@@ -74,12 +75,13 @@ classical class CompiledBodyArchive {
     assert(-1 < artifactCount);
     assert(artifactCount < MAX_MODULES);
     assert(-1 < archiveBytes);
-    assert(artifactLength < MAX_ARTIFACT_BYTES - archiveBytes + 1);
+    assert(0 < bufferLength(archive));
+    assert(bufferLength(archive) < MAX_ARTIFACT_BYTES + 1);
+    assert(artifactLength < bufferLength(archive) - archiveBytes + 1);
     assert(bufferLength(modulePublished) == MAX_MODULES);
     assert(bufferLength(moduleSupplementalPublished) == MAX_MODULES);
     assert(bufferLength(artifactStarts) == MAX_MODULES);
     assert(bufferLength(artifactLengths) == MAX_MODULES);
-    assert(bufferLength(archive) == MAX_ARTIFACT_BYTES);
     assert(modulePublished[moduleOwner] == 1);
     assert(moduleSupplementalPublished[moduleOwner] == 0);
 
