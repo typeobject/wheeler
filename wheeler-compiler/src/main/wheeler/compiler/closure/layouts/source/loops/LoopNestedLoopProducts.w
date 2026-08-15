@@ -5,6 +5,7 @@ module wheeler.compiler.closure.loop_nested_loop_products;
 import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_nested_block_products;
+import wheeler.compiler.closure.nested_source_call_windows;
 import wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
 import wheeler.compiler.opcodes;
@@ -178,6 +179,11 @@ classical class LoopNestedLoopProducts {
     borrow mut words blockRows,
     long bodyCount,
     borrow mut words bodyRows,
+    long callCount,
+    borrow mut words callStatements,
+    borrow mut words callWindowRows,
+    borrow mut words callInstructionStarts,
+    borrow byteview callCode,
     long nestedCount,
     borrow mut words nestedRows,
     borrow mut words loopLocalBases,
@@ -214,19 +220,31 @@ classical class LoopNestedLoopProducts {
       if (statementRows[STATEMENT_CHILD_COUNT_ROW + statement] == 0) {
         long body = bodyAtStatement(statement, bodyCount, bodyRows);
         if (body < 0) {
-          return new NestedLoopInstructionPlan(0, 0, false);
-        }
+          NestedSourceCallWindow callWindow = resolveNestedSourceCallWindow(
+            statement,
+            callCount,
+            callStatements,
+            callWindowRows
+          );
+          if (callWindow.valid == false) {
+            return new NestedLoopInstructionPlan(0, 0, false);
+          }
 
-        LoopBodyInstructionExtent extent = loopBodyInstructionExtent(
-          bodyRows[BODY_OPCODE_ROW + body],
-          bodyRows[BODY_OPERAND_ROW + body]
-        );
-        if (extent.valid == false) {
-          return new NestedLoopInstructionPlan(0, 0, false);
-        }
+          set(callInstructionStarts, callWindow.call, instructionBase + 7 + bodyInstructions);
+          bodyInstructions += callWindow.instructionCount;
+          length += callWindow.length;
+        } else {
+          LoopBodyInstructionExtent extent = loopBodyInstructionExtent(
+            bodyRows[BODY_OPCODE_ROW + body],
+            bodyRows[BODY_OPERAND_ROW + body]
+          );
+          if (extent.valid == false) {
+            return new NestedLoopInstructionPlan(0, 0, false);
+          }
 
-        bodyInstructions += extent.instructionCount;
-        length += extent.length;
+          bodyInstructions += extent.instructionCount;
+          length += extent.length;
+        }
       } else {
         long childLoop = loopAtStatement(statement, loopCount, loopRows, statementRows);
         if (-1 < childLoop) {
@@ -249,6 +267,11 @@ classical class LoopNestedLoopProducts {
             blockRows,
             bodyCount,
             bodyRows,
+            callCount,
+            callStatements,
+            callWindowRows,
+            callInstructionStarts,
+            callCode,
             nestedCount,
             nestedRows,
             loopLocalBases,
@@ -277,6 +300,11 @@ classical class LoopNestedLoopProducts {
             blockRows,
             bodyCount,
             bodyRows,
+            callCount,
+            callStatements,
+            callWindowRows,
+            callInstructionStarts,
+            callCode,
             nestedRows[NESTED_KIND_ROW + nested],
             rebaseLocalForStatement(
               nestedRows[NESTED_CONDITION_LOCAL_ROW + nested],
@@ -325,6 +353,11 @@ classical class LoopNestedLoopProducts {
     borrow mut words blockRows,
     long bodyCount,
     borrow mut words bodyRows,
+    long callCount,
+    borrow mut words callStatements,
+    borrow mut words callWindowRows,
+    borrow mut words callInstructionStarts,
+    borrow byteview callCode,
     long nestedCount,
     borrow mut words nestedRows,
     borrow mut words loopLocalBases,
@@ -341,6 +374,11 @@ classical class LoopNestedLoopProducts {
     assert(statementCount < MAX_STATEMENTS + 1);
     assert(blockCount < BLOCK_COUNT_LIMIT + 1);
     assert(bodyCount < BODY_COUNT_LIMIT + 1);
+    assert(callCount < 257);
+    assert(bufferLength(callStatements) == 256);
+    assert(bufferLength(callWindowRows) == 768);
+    assert(bufferLength(callInstructionStarts) == 256);
+    assert(bufferLength(callCode) == MAX_CODE_BYTES);
     assert(nestedCount < BODY_COUNT_LIMIT + 1);
     assert(bufferLength(output) == MAX_CODE_BYTES);
     NestedLoopInstructionPlan measured = measureBody(
@@ -354,6 +392,11 @@ classical class LoopNestedLoopProducts {
       blockRows,
       bodyCount,
       bodyRows,
+      callCount,
+      callStatements,
+      callWindowRows,
+      callInstructionStarts,
+      callCode,
       nestedCount,
       nestedRows,
       loopLocalBases,
@@ -441,15 +484,35 @@ classical class LoopNestedLoopProducts {
       long statement = firstStatement + offset;
       if (statementRows[STATEMENT_CHILD_COUNT_ROW + statement] == 0) {
         long body = bodyAtStatement(statement, bodyCount, bodyRows);
-        long next = writeLoopBodyInstructionProduct(output, cursor, body, bodyRows);
-        assert(-1 < next);
-        cursor = next;
-        LoopBodyInstructionExtent extent = loopBodyInstructionExtent(
-          bodyRows[BODY_OPCODE_ROW + body],
-          bodyRows[BODY_OPERAND_ROW + body]
-        );
-        assert(extent.valid);
-        bodyInstructions += extent.instructionCount;
+        if (-1 < body) {
+          long next = writeLoopBodyInstructionProduct(output, cursor, body, bodyRows);
+          assert(-1 < next);
+          cursor = next;
+          LoopBodyInstructionExtent extent = loopBodyInstructionExtent(
+            bodyRows[BODY_OPCODE_ROW + body],
+            bodyRows[BODY_OPERAND_ROW + body]
+          );
+          assert(extent.valid);
+          bodyInstructions += extent.instructionCount;
+        } else {
+          NestedSourceCallWindow callWindow = resolveNestedSourceCallWindow(
+            statement,
+            callCount,
+            callStatements,
+            callWindowRows
+          );
+          assert(callWindow.valid);
+          long emittedCallEnd = writeNestedSourceCallWindow(
+            callWindow.call,
+            callWindowRows,
+            callCode,
+            cursor,
+            output
+          );
+          assert(-1 < emittedCallEnd);
+          cursor = emittedCallEnd;
+          bodyInstructions += callWindow.instructionCount;
+        }
       } else {
         long childLoop = loopAtStatement(statement, loopCount, loopRows, statementRows);
         if (-1 < childLoop) {
@@ -464,6 +527,11 @@ classical class LoopNestedLoopProducts {
             blockRows,
             bodyCount,
             bodyRows,
+            callCount,
+            callStatements,
+            callWindowRows,
+            callInstructionStarts,
+            callCode,
             nestedCount,
             nestedRows,
             loopLocalBases,
@@ -488,6 +556,11 @@ classical class LoopNestedLoopProducts {
             blockRows,
             bodyCount,
             bodyRows,
+            callCount,
+            callStatements,
+            callWindowRows,
+            callInstructionStarts,
+            callCode,
             nestedRows[NESTED_KIND_ROW + nested],
             rebaseLocalForStatement(
               nestedRows[NESTED_CONDITION_LOCAL_ROW + nested],

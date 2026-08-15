@@ -271,6 +271,24 @@ classical class LoopLocalTypeProducts {
     return type + 1;
   }
 
+  private boolean callAtStatement(
+    long statement,
+    long callCount,
+    borrow mut words callStatements
+  ) {
+    long matches = 0;
+    long call = 0;
+    while (call < callCount) limit 256 {
+      if (callStatements[call] == statement) {
+        matches += 1;
+      }
+
+      call += 1;
+    }
+
+    return matches == 1;
+  }
+
   /// Publishes exact loop-frame and direct-body local types after complete validation.
   public LoopLocalTypePlan materializeLoopLocalTypeProducts(
     long loopCount,
@@ -279,6 +297,8 @@ classical class LoopLocalTypeProducts {
     borrow mut words statementRows,
     long bodyCount,
     borrow mut words bodyRows,
+    long callCount,
+    borrow mut words callStatements,
     long nestedCount,
     borrow mut words nestedRows,
     borrow mut words loopLocalBases,
@@ -294,6 +314,9 @@ classical class LoopLocalTypeProducts {
     assert(-1 < bodyCount);
     assert(bodyCount < BODY_COUNT_LIMIT + 1);
     assert(bufferLength(bodyRows) == BODY_ROWS);
+    assert(-1 < callCount);
+    assert(callCount < 257);
+    assert(bufferLength(callStatements) == 256);
     assert(-1 < nestedCount);
     assert(nestedCount < BODY_COUNT_LIMIT + 1);
     assert(bufferLength(nestedRows) == NESTED_ROWS);
@@ -357,7 +380,9 @@ classical class LoopLocalTypeProducts {
         if (statementRows[STATEMENT_CHILD_COUNT_ROW + statement] == 0) {
           long body = bodyAtStatement(statement, bodyCount, bodyRows);
           if (body < 0) {
-            valid = false;
+            if (callAtStatement(statement, callCount, callStatements) == false) {
+              valid = false;
+            }
           } else {
             long opcode = bodyRows[BODY_OPCODE_ROW + body];
             long operand = bodyRows[BODY_OPERAND_ROW + body];
@@ -440,7 +465,11 @@ classical class LoopLocalTypeProducts {
                 if (statementRows[STATEMENT_BLOCK_ROW + childStatement] == childBlock) {
                   long childBody = bodyAtStatement(childStatement, bodyCount, bodyRows);
                   if (childBody < 0) {
-                    valid = false;
+                    if (
+                      callAtStatement(childStatement, callCount, callStatements) == false
+                    ) {
+                      valid = false;
+                    }
                   } else {
                     long childOpcode = bodyRows[BODY_OPCODE_ROW + childBody];
                     long childOperand = bodyRows[BODY_OPERAND_ROW + childBody];

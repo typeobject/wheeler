@@ -344,6 +344,38 @@ classical class CallableSourceComposition {
       valid = false;
     }
 
+    long nestedCall = 0;
+    while (nestedCall < callCount) limit CALL_COUNT_LIMIT {
+      long nestedStatement = callStatements[nestedCall];
+      if (nestedStatement < 0) {
+        valid = false;
+      } else {
+        if (statementCount - 1 < nestedStatement) {
+          valid = false;
+        } else {
+          long nestedOwner = statementRows[nestedStatement];
+          if (nestedOwner < 0) {
+            valid = false;
+          } else {
+            if (callableCount - 1 < nestedOwner) {
+              valid = false;
+            } else {
+              long nestedRoot = loopBodyRootBlockForOwner(
+                nestedOwner,
+                statementCount,
+                statementRows
+              );
+              if (statementRows[4096 + nestedStatement] != nestedRoot) {
+                consumedCalls += 1;
+              }
+            }
+          }
+        }
+      }
+
+      nestedCall += 1;
+    }
+
     if (consumedCalls != callCount) {
       valid = false;
     }

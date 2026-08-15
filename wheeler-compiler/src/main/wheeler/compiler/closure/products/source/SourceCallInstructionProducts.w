@@ -96,6 +96,12 @@ classical class SourceCallInstructionProducts {
     region staging = new region(/* bytes= */ 8192, /* allocations= */ 2);
     words stagedStarts = allocate(staging, CALL_COUNT_LIMIT);
     words stagedWindows = allocate(staging, /* length= */ 768);
+    long retainedCall = 0;
+    while (retainedCall < CALL_COUNT_LIMIT) limit CALL_COUNT_LIMIT {
+      set(stagedStarts, retainedCall, callInstructionStarts[retainedCall]);
+      retainedCall += 1;
+    }
+
     boolean valid = true;
     long checkedCall = 0;
     while (checkedCall < callCount) limit CALL_COUNT_LIMIT {
@@ -132,10 +138,9 @@ classical class SourceCallInstructionProducts {
             valid = false;
           }
 
+          boolean callIsRoot = false;
           if (valid) {
-            if (rootStatement(statement, statementCount, statementRows) == false) {
-              valid = false;
-            }
+            callIsRoot = rootStatement(statement, statementCount, statementRows);
           }
 
           long owner = 0;
@@ -150,12 +155,14 @@ classical class SourceCallInstructionProducts {
           long direct = 0;
           while (direct < directCount) limit DIRECT_COUNT_LIMIT {
             long directStatement = directRows[direct];
-            if (statementRows[directStatement] == owner) {
-              if (rootStatement(directStatement, statementCount, statementRows)) {
-                if (
-                  statementRows[LOOP_STATEMENT_START_ROW + directStatement] < callStart
-                ) {
-                  instructionStart += directRows[8192 + direct];
+            if (callIsRoot) {
+              if (statementRows[directStatement] == owner) {
+                if (rootStatement(directStatement, statementCount, statementRows)) {
+                  if (
+                    statementRows[LOOP_STATEMENT_START_ROW + directStatement] < callStart
+                  ) {
+                    instructionStart += directRows[8192 + direct];
+                  }
                 }
               }
             }
@@ -165,29 +172,31 @@ classical class SourceCallInstructionProducts {
 
           long loop = 0;
           while (loop < loopCount) limit LOOP_COUNT_LIMIT {
-            if (loopRows[loop] == owner) {
-              if (loopRows[2048 + loop] == 1) {
-                long loopStatement = 0;
-                long matches = 0;
-                long candidate = 0;
-                while (candidate < statementCount) limit STATEMENT_COUNT_LIMIT {
-                  if (statementRows[candidate] == owner) {
-                    if (statementRows[8192 + candidate] == loopRows[512 + loop]) {
-                      loopStatement = candidate;
-                      matches += 1;
+            if (callIsRoot) {
+              if (loopRows[loop] == owner) {
+                if (loopRows[2048 + loop] == 1) {
+                  long loopStatement = 0;
+                  long matches = 0;
+                  long candidate = 0;
+                  while (candidate < statementCount) limit STATEMENT_COUNT_LIMIT {
+                    if (statementRows[candidate] == owner) {
+                      if (statementRows[8192 + candidate] == loopRows[512 + loop]) {
+                        loopStatement = candidate;
+                        matches += 1;
+                      }
                     }
+
+                    candidate += 1;
                   }
 
-                  candidate += 1;
-                }
-
-                if (matches != 1) {
-                  valid = false;
-                } else {
-                  if (
-                    statementRows[LOOP_STATEMENT_START_ROW + loopStatement] < callStart
-                  ) {
-                    instructionStart += loopWindowRows[256 + loop];
+                  if (matches != 1) {
+                    valid = false;
+                  } else {
+                    if (
+                      statementRows[LOOP_STATEMENT_START_ROW + loopStatement] < callStart
+                    ) {
+                      instructionStart += loopWindowRows[256 + loop];
+                    }
                   }
                 }
               }
@@ -199,13 +208,17 @@ classical class SourceCallInstructionProducts {
           long priorCall = 0;
           while (priorCall < callCount) limit CALL_COUNT_LIMIT {
             long priorStatement = callStatements[priorCall];
-            if (statementRows[priorStatement] == owner) {
-              if (rootStatement(priorStatement, statementCount, statementRows)) {
-                if (statementRows[LOOP_STATEMENT_START_ROW + priorStatement] < callStart) {
-                  instructionStart += sourceCallInstructionCount(
-                    callRows[256 + priorCall],
-                    callArgumentCounts[priorCall]
-                  );
+            if (callIsRoot) {
+              if (statementRows[priorStatement] == owner) {
+                if (rootStatement(priorStatement, statementCount, statementRows)) {
+                  if (
+                    statementRows[LOOP_STATEMENT_START_ROW + priorStatement] < callStart
+                  ) {
+                    instructionStart += sourceCallInstructionCount(
+                      callRows[256 + priorCall],
+                      callArgumentCounts[priorCall]
+                    );
+                  }
                 }
               }
             }
@@ -226,7 +239,10 @@ classical class SourceCallInstructionProducts {
             valid = false;
           }
 
-          set(stagedStarts, call, instructionStart);
+          if (callIsRoot) {
+            set(stagedStarts, call, instructionStart);
+          }
+
           set(stagedWindows, call, codeCursor);
           set(stagedWindows, 256 + call, selectedInstructionCount);
           set(stagedWindows, 512 + call, selectedLength);

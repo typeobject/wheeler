@@ -85,7 +85,7 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
           %s
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 925704, /* allocations= */ 14);
+            region products = new region(/* bytes= */ 927744, /* allocations= */ 14);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -99,7 +99,7 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
             words statementPhysicalStarts = allocate(products, /* length= */ 4096);
             words loopLocalBases = allocate(products, /* length= */ 256);
             words typeRows = allocate(products, /* length= */ 12288);
-            words unused = allocate(products, /* length= */ 1);
+            words callStatements = allocate(products, /* length= */ 256);
             set(bodyStarts, 0, %d);
             set(bodyLengths, 0, %d);
             set(values, 0, 0);
@@ -143,6 +143,8 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
               statements,
               /* valueCount= */ 3,
               values,
+              /* callCount= */ 0,
+              callStatements,
               bodyRows,
               nestedRows,
               statementPhysicalWidths
@@ -175,6 +177,8 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
               statements,
               bodyPlan.bodyCount,
               bodyRows,
+              /* callCount= */ 0,
+              callStatements,
               bodyPlan.nestedCount,
               nestedRows,
               loopLocalBases,
@@ -187,7 +191,7 @@ final class NativeCompilerLoopLocalTypeProductsExampleTest {
             typeCount = typePlan.typeCount;
             %s
             setOutputLength(output, 0);
-            drop(unused);
+            drop(callStatements);
             drop(typeRows);
             drop(loopLocalBases);
             drop(statementPhysicalStarts);

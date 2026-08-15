@@ -4,6 +4,7 @@ module wheeler.compiler.closure.loop_nested_block_products;
 
 import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
+import wheeler.compiler.closure.nested_source_call_windows;
 import wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
 import wheeler.compiler.opcodes;
@@ -103,6 +104,11 @@ classical class LoopNestedBlockProducts {
     borrow mut words blockRows,
     long bodyCount,
     borrow mut words bodyRows,
+    long callCount,
+    borrow mut words callStatements,
+    borrow mut words callWindowRows,
+    borrow mut words callInstructionStarts,
+    borrow byteview callCode,
     long conditionKind,
     long conditionLocal,
     long conditionLiteral,
@@ -123,6 +129,12 @@ classical class LoopNestedBlockProducts {
     assert(-1 < bodyCount);
     assert(bodyCount < BODY_COUNT_LIMIT + 1);
     assert(bufferLength(bodyRows) == BODY_ROWS);
+    assert(-1 < callCount);
+    assert(callCount < 257);
+    assert(bufferLength(callStatements) == 256);
+    assert(bufferLength(callWindowRows) == 768);
+    assert(bufferLength(callInstructionStarts) == 256);
+    assert(bufferLength(callCode) == MAX_CODE_BYTES);
     assert(-1 < instructionBase);
     assert(-1 < outputStart);
     assert(outputStart < MAX_CODE_BYTES + 1);
@@ -191,6 +203,13 @@ classical class LoopNestedBlockProducts {
       }
     }
 
+    long guardLength = 104;
+    long guardInstructionCount = 4;
+    if (conditionKind == CONDITION_BOOLEAN) {
+      guardLength = 48;
+      guardInstructionCount = 2;
+    }
+
     long bodyInstructionCount = 0;
     long bodyLength = 0;
     long childOffset = 0;
@@ -210,7 +229,23 @@ classical class LoopNestedBlockProducts {
 
         long body = bodyAtStatement(childStatement, bodyCount, bodyRows);
         if (body < 0) {
-          valid = false;
+          NestedSourceCallWindow callWindow = resolveNestedSourceCallWindow(
+            childStatement,
+            callCount,
+            callStatements,
+            callWindowRows
+          );
+          if (callWindow.valid == false) {
+            valid = false;
+          } else {
+            set(
+              callInstructionStarts,
+              callWindow.call,
+              instructionBase + guardInstructionCount + bodyInstructionCount
+            );
+            bodyInstructionCount += callWindow.instructionCount;
+            bodyLength += callWindow.length;
+          }
         } else {
           long opcode = bodyRows[BODY_OPCODE_ROW + body];
           LoopBodyInstructionExtent extent = loopBodyInstructionExtent(
@@ -230,13 +265,6 @@ classical class LoopNestedBlockProducts {
       }
 
       childOffset += 1;
-    }
-
-    long guardLength = 104;
-    long guardInstructionCount = 4;
-    if (conditionKind == CONDITION_BOOLEAN) {
-      guardLength = 48;
-      guardInstructionCount = 2;
     }
 
     long requiredLength = guardLength + bodyLength + 16;
@@ -321,7 +349,25 @@ classical class LoopNestedBlockProducts {
         statementRows
       );
       long emittedBody = bodyAtStatement(emittedStatement, bodyCount, bodyRows);
-      cursor = writeLoopBodyInstructionProduct(stagedCode, cursor, emittedBody, bodyRows);
+      if (-1 < emittedBody) {
+        cursor = writeLoopBodyInstructionProduct(stagedCode, cursor, emittedBody, bodyRows);
+      } else {
+        NestedSourceCallWindow emittedCallWindow = resolveNestedSourceCallWindow(
+          emittedStatement,
+          callCount,
+          callStatements,
+          callWindowRows
+        );
+        assert(emittedCallWindow.valid);
+        cursor = writeNestedSourceCallWindow(
+          emittedCallWindow.call,
+          callWindowRows,
+          callCode,
+          cursor,
+          stagedCode
+        );
+      }
+
       childOffset += 1;
     }
 

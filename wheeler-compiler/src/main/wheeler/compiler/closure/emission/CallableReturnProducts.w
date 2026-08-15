@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.callable_return_products;
 
+import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.closure.source_call_layout_products;
 
 classical class CallableReturnProducts {
@@ -103,11 +104,19 @@ classical class CallableReturnProducts {
             valid = false;
           } else {
             if (statementRows[callStatement] == callable) {
-              instructionStart += sourceCallInstructionCount(
-                callRows[256 + call],
-                callArgumentCounts[call]
-              );
-              codeStart += sourceCallLength(callRows[256 + call], callArgumentCounts[call]);
+              if (
+                statementRows[4096 + callStatement] == loopBodyRootBlockForOwner(
+                  callable,
+                  statementCount,
+                  statementRows
+                )
+              ) {
+                instructionStart += sourceCallInstructionCount(
+                  callRows[256 + call],
+                  callArgumentCounts[call]
+                );
+                codeStart += sourceCallLength(callRows[256 + call], callArgumentCounts[call]);
+              }
             }
           }
         }

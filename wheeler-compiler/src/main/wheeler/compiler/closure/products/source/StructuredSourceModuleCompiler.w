@@ -459,6 +459,8 @@ classical class StructuredSourceModuleCompiler {
       statements,
       valuePlan.valueCount,
       values,
+      callPlan.callCount,
+      callStatements,
       bodyRows,
       nestedRows,
       statementPhysicalWidths
@@ -618,6 +620,47 @@ classical class StructuredSourceModuleCompiler {
       loopInstructionStarts
     );
     assert(instructionPrefixPlan.valid);
+    SourceCallInstructionPlan preliminaryCallInstructionPlan
+      = materializeSourceCallInstructionProducts(
+      callPlan.callCount,
+      resolvedCalls,
+      callStatements,
+      callArgumentCounts,
+      loopPlan.statementCount,
+      statements,
+      directPlan.productCount,
+      directRows,
+      resolvedPlan.loopCount,
+      resolvedLoops,
+      loopWindowRows,
+      callInstructionStarts,
+      callWindowRows
+    );
+    assert(preliminaryCallInstructionPlan.valid);
+    LoopCallPlan preliminaryEmittedCallPlan = writeLoopCallProducts(
+      callPlan.callCount,
+      resolvedCalls,
+      callArgumentStarts,
+      callArgumentCounts,
+      callStatements,
+      callInstructionStarts,
+      callArguments,
+      callArgumentValues,
+      valuePhysicalStarts,
+      callableCount,
+      targetIdentities,
+      targetParameterStarts,
+      targetParameterCounts,
+      targetParameterTypes,
+      callRelocations,
+      callRelocationIdentities,
+      callTypes,
+      callLocalWidths,
+      statementPhysicalStarts,
+      statementPhysicalWidths,
+      callCode
+    );
+    assert(preliminaryEmittedCallPlan.valid);
     LoopInstructionProductPlan codePlan = writeLoopInstructionProducts(
       true,
       resolvedPlan.loopCount,
@@ -629,6 +672,11 @@ classical class StructuredSourceModuleCompiler {
       blocks,
       bodyPlan.bodyCount,
       bodyRows,
+      callPlan.callCount,
+      callStatements,
+      callWindowRows,
+      callInstructionStarts,
+      callCode,
       bodyPlan.nestedCount,
       nestedRows,
       loopLocalBases,
@@ -685,6 +733,8 @@ classical class StructuredSourceModuleCompiler {
       statements,
       bodyPlan.bodyCount,
       bodyRows,
+      callPlan.callCount,
+      callStatements,
       bodyPlan.nestedCount,
       nestedRows,
       loopLocalBases,

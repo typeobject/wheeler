@@ -132,11 +132,14 @@ final class NativeCompilerLoopNestedBlockProductsExampleTest {
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
             assert(bufferLength(input) == 0);
-            region products = new region(/* bytes= */ 483328, /* allocations= */ 4);
+            region products = new region(/* bytes= */ 714752, /* allocations= */ 7);
             words statements = allocate(products, /* length= */ 28672);
             words blocks = allocate(products, /* length= */ 6144);
             words bodies = allocate(products, /* length= */ 20480);
-            words unused = allocate(products, /* length= */ 5120);
+            words callStatements = allocate(products, /* length= */ 256);
+            words callWindowRows = allocate(products, /* length= */ 768);
+            words callInstructionStarts = allocate(products, /* length= */ 256);
+            bytes callCode = allocateBytes(products, /* length= */ 262144);
             set(statements, 4096, 1);
             set(statements, 20480, 2);
             set(statements, 24576, 1);
@@ -157,6 +160,11 @@ final class NativeCompilerLoopNestedBlockProductsExampleTest {
               blocks,
               /* bodyCount= */ 1,
               bodies,
+              /* callCount= */ 0,
+              callStatements,
+              callWindowRows,
+              callInstructionStarts,
+              callCode,
               /* conditionKind= */ CONDITION_KIND,
               /* conditionLocal= */ 1,
               /* conditionLiteral= */ CONDITION_LITERAL,
@@ -173,7 +181,10 @@ final class NativeCompilerLoopNestedBlockProductsExampleTest {
             length = plan.length;
             childBodyCount = plan.childBodyCount;
             firstOutputByte = output[0];
-            drop(unused);
+            drop(callCode);
+            drop(callInstructionStarts);
+            drop(callWindowRows);
+            drop(callStatements);
             drop(bodies);
             drop(blocks);
             drop(statements);

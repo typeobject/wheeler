@@ -316,7 +316,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
           state long secondLoopOwner = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 21795432, /* allocations= */ 67);
+            region products = new region(/* bytes= */ 21797472, /* allocations= */ 67);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -383,7 +383,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             words artifactStarts = allocate(products, /* length= */ 512);
             words artifactLengths = allocate(products, /* length= */ 512);
             bytes bodyArchive = allocateBytes(products, /* length= */ 16777216);
-            words unused = allocate(products, /* length= */ 1);
+            words unusedCallInstructionStarts = allocate(products, /* length= */ 256);
             set(bodyStarts, 0, %d);
             set(bodyLengths, 0, %d);
             set(bodyStarts, 1, %d);
@@ -490,6 +490,8 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               statements,
               valuePlan.valueCount,
               values,
+              /* callCount= */ 0,
+              unusedCallStatements,
               bodyRows,
               nestedRows,
               statementPhysicalWidths
@@ -589,6 +591,11 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               blocks,
               bodyPlan.bodyCount,
               bodyRows,
+              /* callCount= */ 0,
+              unusedCallStatements,
+              unusedCallWindows,
+              unusedCallInstructionStarts,
+              unusedCallCode,
               bodyPlan.nestedCount,
               nestedRows,
               loopLocalBases,
@@ -607,6 +614,8 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               statements,
               bodyPlan.bodyCount,
               bodyRows,
+              /* callCount= */ 0,
+              unusedCallStatements,
               bodyPlan.nestedCount,
               nestedRows,
               loopLocalBases,
@@ -904,7 +913,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               artifactByte += 1;
             }
             setOutputLength(output, outputCursor);
-            drop(unused);
+            drop(unusedCallInstructionStarts);
             drop(bodyArchive);
             drop(artifactLengths);
             drop(artifactStarts);
@@ -920,31 +929,17 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             drop(importedNameStarts);
             drop(importedRows);
             drop(binarySource);
-            drop(archiveIdentity);
-            drop(archiveArtifact);
-            drop(structuredIdentity);
-            drop(structuredArtifact);
-            drop(identity);
-            drop(artifact);
-            drop(functionNameIds);
-            drop(parameterCounts);
-            drop(stringLengths);
-            drop(stringStarts);
-            drop(strings);
-            drop(composedCode);
-            drop(composedTypes);
-            drop(composedCallables);
-            drop(signatureTypes);
-            drop(directCode);
-            drop(directTypes);
-            drop(returnRows);
-            drop(functionResultTypes);
-            drop(unusedCallCode);
-            drop(unusedCallTypes);
-            drop(unusedCallArgumentCounts);
-            drop(unusedCallWindows);
-            drop(unusedCallStatements);
-            drop(unusedCallRows);
+            drop(archiveIdentity); drop(archiveArtifact);
+            drop(structuredIdentity); drop(structuredArtifact);
+            drop(identity); drop(artifact);
+            drop(functionNameIds); drop(parameterCounts);
+            drop(stringLengths); drop(stringStarts); drop(strings);
+            drop(composedCode); drop(composedTypes); drop(composedCallables);
+            drop(signatureTypes); drop(directCode); drop(directTypes);
+            drop(returnRows); drop(functionResultTypes);
+            drop(unusedCallCode); drop(unusedCallTypes);
+            drop(unusedCallArgumentCounts); drop(unusedCallWindows);
+            drop(unusedCallStatements); drop(unusedCallRows);
             drop(directRows);
             drop(typeRows);
             drop(loopWindowRows);

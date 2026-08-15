@@ -29,14 +29,16 @@ final class NativeCompilerSourceCallInstructionProductsExampleTest {
   }
 
   @Test
-  void rejectsNestedCallsBeforeCoordinatePublication() throws Exception {
+  void retainsNestedStartsForLoopCoordinatePublication() throws Exception {
     VirtualMachine machine = new VirtualMachine(program(true), new byte[0]);
 
     machine.run();
 
-    assertEquals(0, machine.global("valid"));
-    assertEquals(77, machine.global("lateInstruction"));
-    assertEquals(88, machine.global("lateCodeStart"));
+    assertEquals(1, machine.global("valid"));
+    assertEquals(7, machine.global("lateInstruction"));
+    assertEquals(0, machine.global("earlyInstruction"));
+    assertEquals(64, machine.global("lateCodeStart"));
+    assertEquals(0, machine.global("earlyCodeStart"));
   }
 
   private static Program program(boolean nested) throws Exception {

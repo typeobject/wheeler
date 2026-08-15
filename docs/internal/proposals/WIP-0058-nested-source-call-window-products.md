@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Draft |
+| Status | Implemented |
 | Owners | Wheeler compiler and callable-layout maintainers |
 | Created | 2026-08-14 |
 | Updated | 2026-08-14 |
@@ -61,13 +61,21 @@ Each nested call retains:
 5. Merge nested call local types through planned statement starts.
 6. Verify relocations and ownership against the composed artifact.
 
+## Implementation
+
+`ResolvedLoopBodyProducts.w` reserves exact leaf statements for call composition instead of assigning a second body opcode. `DirectLoopBodyProducts.w` owns direct declaration, assertion, buffer, assignment, and update resolution, which keeps the coordinator below the physical source limit.
+
+`NestedSourceCallWindows.w` resolves one retained call by statement identity and copies its bounded code extent. Recursive loop and guard measurement consumes that extent before calculating branch targets. The same pass stages the call's callable-local instruction start. A second call-emission pass publishes relocation rows only after loop measurement fixes every nested coordinate.
+
+Callable composition counts nested calls through their enclosing root-loop product. Return planning counts only root calls because loop windows already contain nested instruction and code extents. Call local types still come from the shared planned statement start.
+
 ## Acceptance
 
-- A call in the first nested root precedes a direct statement and a second root byte for byte.
-- A depth-four call compiles and a depth-five call publishes nothing.
-- Signed, Boolean, and void nested calls retain exact local windows.
-- A malformed nested argument leaves every caller buffer unchanged.
-- Shuffled loop and call product storage does not change the artifact.
+- [x] A call in the first nested root precedes a direct statement and a second root byte for byte.
+- [x] A depth-four call compiles and a depth-five call publishes nothing.
+- [x] Signed, Boolean, and void nested calls retain exact local windows.
+- [x] A malformed nested argument leaves every caller buffer unchanged.
+- [x] Shuffled loop and call product storage does not change artifact coordinates or bytes.
 
 ## Rejected alternatives
 

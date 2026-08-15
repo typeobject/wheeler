@@ -176,7 +176,7 @@ final class NativeCompilerLoopBufferProductsExampleTest {
           state long fourthBodyType = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 1040384, /* allocations= */ 18);
+            region products = new region(/* bytes= */ 1312760, /* allocations= */ 19);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -192,9 +192,10 @@ final class NativeCompilerLoopBufferProductsExampleTest {
             words loopInstructionStarts = allocate(products, /* length= */ 256);
             words loopWindowRows = allocate(products, /* length= */ 768);
             words typeRows = allocate(products, /* length= */ 12288);
-            words unused0 = allocate(products, /* length= */ 1);
-            words unused1 = allocate(products, /* length= */ 1);
-            words unused2 = allocate(products, /* length= */ 1);
+            words callStatements = allocate(products, /* length= */ 256);
+            words callWindowRows = allocate(products, /* length= */ 768);
+            words callInstructionStarts = allocate(products, /* length= */ 256);
+            bytes callCode = allocateBytes(products, /* length= */ 262144);
             set(bodyStarts, 0, %d);
             set(bodyLengths, 0, %d);
             set(values, 0, 0);
@@ -227,6 +228,8 @@ final class NativeCompilerLoopBufferProductsExampleTest {
               statements,
               3,
               values,
+              /* callCount= */ 0,
+              callStatements,
               bodyRows,
               nestedRows,
               statementPhysicalWidths
@@ -265,6 +268,11 @@ final class NativeCompilerLoopBufferProductsExampleTest {
               blocks,
               admittedBodyCount,
               bodyRows,
+              /* callCount= */ 0,
+              callStatements,
+              callWindowRows,
+              callInstructionStarts,
+              callCode,
               bodyPlan.nestedCount,
               nestedRows,
               loopLocalBases,
@@ -280,6 +288,8 @@ final class NativeCompilerLoopBufferProductsExampleTest {
               statements,
               admittedBodyCount,
               bodyRows,
+              /* callCount= */ 0,
+              callStatements,
               bodyPlan.nestedCount,
               nestedRows,
               loopLocalBases,
@@ -307,9 +317,10 @@ final class NativeCompilerLoopBufferProductsExampleTest {
             firstBodyType = typeRows[8197];
             fourthBodyType = typeRows[8200];
             setOutputLength(output, code.length);
-            drop(unused2);
-            drop(unused1);
-            drop(unused0);
+            drop(callCode);
+            drop(callInstructionStarts);
+            drop(callWindowRows);
+            drop(callStatements);
             drop(typeRows);
             drop(loopWindowRows);
             drop(loopInstructionStarts);

@@ -11,6 +11,7 @@ import wheeler.compiler.resolved_statements;
 classical class LoopInstructionProducts {
   private const long BLOCK_COUNT_LIMIT = 1024;
   private const long BODY_COUNT_LIMIT = 4096;
+  private const long CALL_COUNT_LIMIT = 256;
   private const long CONDITION_ROWS = 1536;
   private const long LOOP_BODY_STATEMENT_COUNT_ROW = 1792;
   private const long LOOP_COUNT_LIMIT = 256;
@@ -21,7 +22,7 @@ classical class LoopInstructionProducts {
   private const long MAX_CODE_BYTES = 262144;
   private const long MAX_STATEMENTS = 4096;
   private const long OPERAND_LOCAL = 1;
-  private const long STAGING_BYTES = 178688;
+  private const long STAGING_BYTES = 180736;
   private const long STATEMENT_BLOCK_ROW = 4096;
   private const long STATEMENT_ORDINAL_ROW = 8192;
   private const long STATEMENT_SOURCE_START_ROW = 12288;
@@ -229,6 +230,11 @@ classical class LoopInstructionProducts {
     borrow mut words blockRows,
     long bodyCount,
     borrow mut words bodyRows,
+    long callCount,
+    borrow mut words callStatements,
+    borrow mut words callWindowRows,
+    borrow mut words callInstructionStarts,
+    borrow byteview callCode,
     long nestedCount,
     borrow mut words nestedRows,
     borrow mut words loopLocalBases,
@@ -250,6 +256,12 @@ classical class LoopInstructionProducts {
     assert(-1 < bodyCount);
     assert(bodyCount < BODY_COUNT_LIMIT + 1);
     assert(bufferLength(bodyRows) == BODY_ROWS);
+    assert(-1 < callCount);
+    assert(callCount < 257);
+    assert(bufferLength(callStatements) == 256);
+    assert(bufferLength(callWindowRows) == 768);
+    assert(bufferLength(callInstructionStarts) == 256);
+    assert(bufferLength(callCode) == MAX_CODE_BYTES);
     assert(-1 < nestedCount);
     assert(nestedCount < BODY_COUNT_LIMIT + 1);
     assert(bufferLength(nestedRows) == NESTED_ROWS);
@@ -262,10 +274,11 @@ classical class LoopInstructionProducts {
     assert(bufferLength(loopWindowRows) == 768);
     assert(bufferLength(output) == MAX_CODE_BYTES);
 
-    region staging = new region(/* bytes= */ STAGING_BYTES, /* allocations= */ 4);
+    region staging = new region(/* bytes= */ STAGING_BYTES, /* allocations= */ 5);
     words stagedBodies = allocate(staging, BODY_ROWS);
     words stagedConditions = allocate(staging, CONDITION_ROWS);
     words stagedInstructionStarts = allocate(staging, LOOP_COUNT_LIMIT);
+    words stagedCallInstructionStarts = allocate(staging, CALL_COUNT_LIMIT);
     words ownerInstructionBiases = allocate(staging, /* length= */ 64);
     long row = 0;
     while (row < BODY_ROWS) limit BODY_ROWS {
@@ -276,6 +289,12 @@ classical class LoopInstructionProducts {
     row = 0;
     while (row < CONDITION_ROWS) limit CONDITION_ROWS {
       set(stagedConditions, row, conditionRows[row]);
+      row += 1;
+    }
+
+    row = 0;
+    while (row < CALL_COUNT_LIMIT) limit CALL_COUNT_LIMIT {
+      set(stagedCallInstructionStarts, row, callInstructionStarts[row]);
       row += 1;
     }
 
@@ -477,6 +496,11 @@ classical class LoopInstructionProducts {
           blockRows,
           bodyCount,
           stagedBodies,
+          callCount,
+          callStatements,
+          callWindowRows,
+          stagedCallInstructionStarts,
+          callCode,
           nestedCount,
           nestedRows,
           loopLocalBases,
@@ -509,6 +533,7 @@ classical class LoopInstructionProducts {
 
     if (valid == false) {
       drop(ownerInstructionBiases);
+      drop(stagedCallInstructionStarts);
       drop(stagedInstructionStarts);
       drop(stagedConditions);
       drop(stagedBodies);
@@ -565,6 +590,11 @@ classical class LoopInstructionProducts {
         blockRows,
         bodyCount,
         stagedBodies,
+        callCount,
+        callStatements,
+        callWindowRows,
+        stagedCallInstructionStarts,
+        callCode,
         nestedCount,
         nestedRows,
         loopLocalBases,
@@ -583,7 +613,14 @@ classical class LoopInstructionProducts {
 
     assert(cursor == requiredLength);
     assert(instructionCount == requiredInstructions);
+    row = 0;
+    while (row < CALL_COUNT_LIMIT) limit CALL_COUNT_LIMIT {
+      set(callInstructionStarts, row, stagedCallInstructionStarts[row]);
+      row += 1;
+    }
+
     drop(ownerInstructionBiases);
+    drop(stagedCallInstructionStarts);
     drop(stagedInstructionStarts);
     drop(stagedConditions);
     drop(stagedBodies);

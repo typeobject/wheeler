@@ -122,13 +122,13 @@ All rows use fixed caller-provided buffers. No pass allocates per call or per ev
 - [x] `CallableInstructionPrefixes.w` includes preceding root calls when it plans loop instructions. `SourceCallInstructionProducts.w` then publishes root-call instruction and code windows from direct, loop, and call products in source order.
 - [x] `LoopCallProducts.w` now consumes preplanned statement widths, publishes owner-local-type rows, and cannot add a second width after coordinate publication. `CallableReturnProducts.w` includes calls before it places implicit void returns.
 - [x] `CallableSourceComposition.w` consumes root call code and local types beside direct and loop products. Signed, Boolean, void, one-argument, and two-argument recursive fixtures match stage 0 byte for byte after a completed root loop.
-- [ ] WIP-0058 composes calls nested inside structured control windows.
+- [x] WIP-0058 composes calls nested inside structured control windows and publishes exact nested relocation rows after recursive measurement.
 - [ ] WIP-0059 admits imported callable products and stable external target identities without dependency source.
 
 ## Acceptance
 
 - A call after a completed root loop uses the planned physical locals.
-- A call in a second root has contiguous type and code windows. WIP-0058 owns calls inside nested roots.
+- Calls in nested and second-root windows retain contiguous type and code coordinates.
 - Value and Boolean results own exact result slots.
 - Void calls own no fabricated local.
 - Local call relocations name exact planned instructions. WIP-0059 owns imported, qualified, and external relocation publication.

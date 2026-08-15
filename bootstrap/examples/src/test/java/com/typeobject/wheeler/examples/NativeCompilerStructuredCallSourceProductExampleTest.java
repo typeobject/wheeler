@@ -2,6 +2,7 @@ package com.typeobject.wheeler.examples;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
@@ -37,6 +38,117 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
   }
 
   @Test
+  void emitsAValueCallInsideTheRootLoop() throws Exception {
+    String source = SOURCE.replace(
+        "index += 1;",
+        "long nested = recurse(value);\n      index += 1;")
+        .replace("long result = recurse(value);\n    return result;", "return value;");
+
+    assertArtifact(source, 1, 1, 0);
+  }
+
+  @Test
+  void emitsAValueCallInsideANestedGuard() throws Exception {
+    String source = SOURCE.replace(
+        "index += 1;",
+        "if (index < 1) {\n        long nested = recurse(value);\n      }\n      index += 1;")
+        .replace("long result = recurse(value);\n    return result;", "return value;");
+
+    assertArtifact(source, 1, 1, 0);
+  }
+
+  @Test
+  void emitsAValueCallAtDepthFour() throws Exception {
+    String source = SOURCE.replace(
+        "index += 1;",
+        "while (index < 1) limit 1 {\n"
+            + "        while (index < 1) limit 1 {\n"
+            + "          while (index < 1) limit 1 {\n"
+            + "            long nested = recurse(value);\n"
+            + "            index += 1;\n"
+            + "          }\n"
+            + "        }\n"
+            + "      }")
+        .replace("long result = recurse(value);\n    return result;", "return value;");
+
+    assertArtifact(source, 1, 1, 0);
+  }
+
+  @Test
+  void emitsNestedBooleanAndVoidCalls() throws Exception {
+    String booleanSource = SOURCE.replace(
+        "public long recurse(long value)",
+        "public boolean recurse(boolean value)")
+        .replace(
+            "index += 1;",
+            "boolean nested = recurse(value);\n      index += 1;")
+        .replace("long result = recurse(value);\n    return result;", "return value;");
+    assertArtifact(booleanSource, 1, 2, 0);
+
+    String voidSource = SOURCE.replace("public long recurse(long value)", "public void recurse()")
+        .replace("index += 1;", "recurse();\n      index += 1;")
+        .replace("long result = recurse(value);\n    return result;", "");
+    assertArtifact(voidSource, 0, 0, 0);
+  }
+
+  @Test
+  void preservesNestedCallsAcrossTwoRootLoops() throws Exception {
+    String source = """
+        module example.structured_call;
+
+        classical class StructuredCall {
+          public long recurse(long value) {
+            long index = 0;
+            while (index < 1) limit 1 {
+              long first = recurse(value);
+              index += 1;
+            }
+
+            long between = 1;
+            assert(between == 1);
+            while (index < 2) limit 1 {
+              long second = recurse(value);
+              index += 1;
+            }
+
+            return value;
+          }
+        }
+        """;
+
+    assertArtifact(source, 1, 1, 0);
+  }
+
+  @Test
+  void rejectsMalformedNestedArgumentsWithoutPublishing() throws Exception {
+    String malformed = SOURCE.replace(
+        "index += 1;",
+        "long nested = recurse(missing);\n      index += 1;")
+        .replace("long result = recurse(value);\n    return result;", "return value;");
+
+    assertRejected(malformed, 1, 1, 0);
+  }
+
+  @Test
+  void rejectsCallsBeyondDepthFourWithoutPublishing() throws Exception {
+    String tooDeep = SOURCE.replace(
+        "index += 1;",
+        "while (index < 1) limit 1 {\n"
+            + "        while (index < 1) limit 1 {\n"
+            + "          while (index < 1) limit 1 {\n"
+            + "            while (index < 1) limit 1 {\n"
+            + "              long nested = recurse(value);\n"
+            + "              index += 1;\n"
+            + "            }\n"
+            + "          }\n"
+            + "        }\n"
+            + "      }")
+        .replace("long result = recurse(value);\n    return result;", "return value;");
+
+    assertRejected(tooDeep, 1, 1, 0);
+  }
+
+  @Test
   void emitsABooleanResultCall() throws Exception {
     String source = SOURCE.replace("public long recurse(long value)",
         "public boolean recurse(boolean value)")
@@ -59,6 +171,23 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
         .replace("recurse(value);", "recurse(value, enabled);");
 
     assertArtifact(source, 2, 1, 2);
+  }
+
+  private static void assertRejected(
+      String source,
+      int parameterCount,
+      int firstType,
+      int secondType) throws Exception {
+    int bodyStart = source.indexOf("{", source.indexOf("recurse("));
+    int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
+    Program driver = driver(bodyStart, bodyLength, parameterCount, firstType, secondType);
+    VirtualMachine machine = new VirtualMachine(
+        driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
+
+    assertThrows(RuntimeException.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
+    assertEquals(0, machine.global("artifactLength"));
+    assertArrayEquals(new byte[32_768], machine.hostOutput());
   }
 
   private static void assertArtifact(

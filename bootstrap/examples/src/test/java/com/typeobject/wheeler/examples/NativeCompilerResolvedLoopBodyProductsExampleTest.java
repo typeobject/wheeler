@@ -87,6 +87,22 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
   }
 
   @Test
+  void reservesNestedCallStatementsForCallComposition() throws Exception {
+    String callSource = SOURCE.replace("cursor += delta;", "consume(delta);");
+    VirtualMachine machine = new VirtualMachine(
+        program(callSource, false, /* callStatement= */ 12),
+        callSource.getBytes(StandardCharsets.UTF_8),
+        1);
+
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+
+    assertEquals(1, machine.global("valid"),
+        "failure statement " + machine.global("failureStatement"));
+    assertEquals(10, machine.global("bodyCount"));
+    assertEquals(3, machine.global("callPhysicalWidth"));
+  }
+
+  @Test
   void rejectsUnsupportedAndAmbiguousBodyRowsWithoutPublishing() throws Exception {
     for (TestCase testCase : new TestCase[] {
         new TestCase(SOURCE.replace("cursor += delta;", "return;"), false),
@@ -107,6 +123,11 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
   }
 
   private static Program program(String source, boolean duplicateCursor) throws Exception {
+    return program(source, duplicateCursor, /* callStatement= */ -1);
+  }
+
+  private static Program program(String source, boolean duplicateCursor, int callStatement)
+      throws Exception {
     int bodyStart = source.indexOf("{", source.indexOf("main("));
     int bodyEnd = matchingClose(source, bodyStart) + 1;
     int cursorStart = source.indexOf("cursor = 0");
@@ -129,6 +150,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
         classical class ResolvedLoopBodyProductsExample {
           state long valid = 0;
           state long bodyCount = 0;
+          state long failureStatement = 0;
           state long nestedCount = 0;
           state long nestedKind = 0;
           state long nestedConditionLocal = 0;
@@ -153,9 +175,10 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
           state long sixthOpcode = 0;
           state long firstPhysicalWidth = 0;
           state long secondPhysicalWidth = 0;
+          state long callPhysicalWidth = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 792584, /* allocations= */ 11);
+            region products = new region(/* bytes= */ 794624, /* allocations= */ 11);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -166,7 +189,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
             words bodyRows = allocate(products, /* length= */ 20480);
             words nestedRows = allocate(products, /* length= */ 20480);
             words statementPhysicalWidths = allocate(products, /* length= */ 4096);
-            words unused = allocate(products, /* length= */ 1);
+            words callStatements = allocate(products, /* length= */ 256);
             set(bodyStarts, 0, %d);
             set(bodyLengths, 0, %d);
             set(values, 0, 0);
@@ -184,6 +207,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
             set(values, 2050, 5);
             set(values, 3074, 5);
             set(values, 4098, 4);
+            %s
             %s
             set(bodyRows, 8192, 91);
             SourceBlockProductPlan blockPlan = materializeSourceBlockProducts(
@@ -211,6 +235,8 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
               statements,
               /* valueCount= */ %d,
               values,
+              /* callCount= */ %d,
+              callStatements,
               bodyRows,
               nestedRows,
               statementPhysicalWidths
@@ -219,6 +245,7 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
               valid = 1;
             }
             bodyCount = bodyPlan.bodyCount;
+            failureStatement = bodyPlan.failureStatement;
             nestedCount = bodyPlan.nestedCount;
             nestedKind = nestedRows[4096];
             nestedConditionLocal = nestedRows[8192];
@@ -243,8 +270,9 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
             sixthOpcode = bodyRows[8197];
             firstPhysicalWidth = statementPhysicalWidths[2];
             secondPhysicalWidth = statementPhysicalWidths[3];
+            callPhysicalWidth = statementPhysicalWidths[12];
             setOutputLength(output, 0);
-            drop(unused);
+            drop(callStatements);
             drop(statementPhysicalWidths);
             drop(nestedRows);
             drop(bodyRows);
@@ -271,7 +299,13 @@ final class NativeCompilerResolvedLoopBodyProductsExampleTest {
                     + "set(values, 3075, 1);\n"
                     + "set(values, 4099, 1);"
                 : "",
-            duplicateCursor ? 4 : 3));
+            callStatement < 0
+                ? ""
+                : "set(callStatements, 0, %d);\n"
+                    .formatted(callStatement)
+                    + "set(statementPhysicalWidths, %d, 3);".formatted(callStatement),
+            duplicateCursor ? 4 : 3,
+            callStatement < 0 ? 0 : 1));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.resolved_loop_body_products");
   }

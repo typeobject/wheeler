@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.resolved_loop_body_products;
 
 import wheeler.compiler.boolean_tokens;
+import wheeler.compiler.closure.direct_loop_body_products;
 import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
@@ -33,13 +34,35 @@ classical class ResolvedLoopBodyProducts {
     boolean valid
   ) {}
 
-  /// Publishes resolved declaration and update rows only after every body statement validates.
+  private long callAtStatement(long statement, long callCount, borrow mut words callRows) {
+    long selected = -1;
+    long matches = 0;
+    long call = 0;
+    while (call < callCount) limit 256 {
+      if (callRows[call] == statement) {
+        selected = call;
+        matches += 1;
+      }
+
+      call += 1;
+    }
+
+    if (1 < matches) {
+      return -2;
+    }
+
+    return selected;
+  }
+
+  /// Publishes resolved declarations, updates, and call holes after every body validates.
   public ResolvedLoopBodyPlan materializeResolvedLoopBodyProducts(
     borrow utf8 source,
     long statementCount,
     borrow mut words statementRows,
     long valueCount,
     borrow mut words valueRows,
+    long callCount,
+    borrow mut words callRows,
     borrow mut words bodyRows,
     borrow mut words nestedRows,
     borrow mut words statementPhysicalWidths
@@ -50,6 +73,9 @@ classical class ResolvedLoopBodyProducts {
     assert(-1 < valueCount);
     assert(valueCount < LOOP_VALUE_COUNT_LIMIT + 1);
     assert(bufferLength(valueRows) == LOOP_VALUE_ROWS);
+    assert(-1 < callCount);
+    assert(callCount < 257);
+    assert(bufferLength(callRows) == 256);
     assert(bufferLength(bodyRows) == BODY_ROWS);
     assert(bufferLength(nestedRows) == NESTED_ROWS);
     assert(bufferLength(statementPhysicalWidths) == MAX_STATEMENTS);
@@ -121,615 +147,60 @@ classical class ResolvedLoopBodyProducts {
         if (childCount == 0) {
           long owner = statementRows[statement];
           long ordinal = statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement];
-          long start = statementRows[LOOP_STATEMENT_START_ROW + statement];
-          long length = statementRows[LOOP_STATEMENT_LENGTH_ROW + statement];
-          long token = tokenAtStart(start, semanticCount, tokenStarts);
-          boolean statementValid = -1 < token;
-          if (length < 2) {
-            statementValid = false;
-          }
-
           long localBase = localBaseAtOrdinal(owner, ordinal, valueCount, valueRows);
-          if (localBase < nextBodyLocals[owner]) {
-            localBase = nextBodyLocals[owner];
-          }
-
-          long opcode = -1;
-          long operandKind = OPERAND_LITERAL;
-          long operand = 0;
-          if (statementValid) {
-            long statementHash = tokenHash(source, tokenStarts, tokenLengths, token);
-            if (statementHash == TOKEN_BOOLEAN) {
-              if (tokenKinds[token + 1] != 1) {
-                statementValid = false;
-              }
-
-              if (
-                punctuationAt(source, tokenKinds, tokenStarts, token + 2, PUNCTUATION_ASSIGN)
-                  == false
-              ) {
-                statementValid = false;
-              }
-
-              if (statementValid) {
-                LoopBooleanDeclaration booleanPlan = resolveLoopBooleanDeclaration(
-                  source,
-                  token,
-                  owner,
-                  ordinal,
-                  valueCount,
-                  valueRows,
-                  semanticCount,
-                  tokenKinds,
-                  tokenStarts,
-                  tokenLengths
-                );
-                if (booleanPlan.valid) {
-                  localBase = booleanPlan.localBase;
-                  opcode = booleanPlan.opcode;
-                  operand = booleanPlan.operand;
-                } else {
-                  statementValid = false;
+          long selectedCall = callAtStatement(statement, callCount, callRows);
+          if (selectedCall == -2) {
+            valid = false;
+          } else {
+            if (-1 < selectedCall) {
+              long callWidth = stagedPhysicalWidths[statement];
+              if (callWidth < 0) {
+                valid = false;
+              } else {
+                if (localBase < nextBodyLocals[owner]) {
+                  localBase = nextBodyLocals[owner];
                 }
+
+                set(nextBodyLocals, owner, localBase + callWidth);
               }
             } else {
-              if (statementHash == TOKEN_LONG) {
-                if (tokenKinds[token + 1] != 1) {
-                  statementValid = false;
-                }
-
-                if (
-                  punctuationAt(source, tokenKinds, tokenStarts, token + 2, PUNCTUATION_ASSIGN)
-                    == false
-                ) {
-                  statementValid = false;
-                }
-
-                if (statementValid) {
-                  LoopBodyValue declaration = resolveLoopBodyValue(
-                    source,
-                    tokenStarts[token + 1],
-                    tokenLengths[token + 1],
-                    owner,
-                    ordinal + 1,
-                    valueCount,
-                    valueRows
-                  );
-                  if (declaration.valid) {
-                    localBase = declaration.local - 1;
-                  } else {
-                    statementValid = false;
-                  }
-
-                  long sourceToken = token + 3;
-                  if (tokenKinds[sourceToken] == 1) {
-                    LoopBodyValue sourceValue = resolveLoopBodyValue(
-                      source,
-                      tokenStarts[sourceToken],
-                      tokenLengths[sourceToken],
-                      owner,
-                      ordinal,
-                      valueCount,
-                      valueRows
-                    );
-                    if (sourceValue.valid) {
-                      if (
-                        punctuationAt(
-                          source,
-                          tokenKinds,
-                          tokenStarts,
-                          sourceToken + 1,
-                          PUNCTUATION_OPEN_SQUARE
-                        )
-                      ) {
-                        long indexToken = sourceToken + 2;
-                        long indexOffset = 0;
-                        boolean offsetIndex = false;
-                        if (
-                          signedNumberWidth(source, tokenKinds, tokenStarts, indexToken) == 1
-                        ) {
-                          if (
-                            signedNumberValid(source, tokenStarts, tokenLengths, indexToken)
-                          ) {
-                            if (
-                              punctuationAt(
-                                source,
-                                tokenKinds,
-                                tokenStarts,
-                                indexToken + 1,
-                                PUNCTUATION_PLUS
-                              )
-                            ) {
-                              indexOffset = parsedSignedNumber(
-                                source,
-                                tokenStarts,
-                                tokenLengths,
-                                indexToken
-                              );
-                              if (indexOffset < 0) {
-                                statementValid = false;
-                              } else {
-                                indexToken += 2;
-                                offsetIndex = true;
-                              }
-                            }
-                          }
-                        }
-
-                        LoopBodyValue indexValue = resolveLoopBodyValue(
-                          source,
-                          tokenStarts[indexToken],
-                          tokenLengths[indexToken],
-                          owner,
-                          ordinal,
-                          valueCount,
-                          valueRows
-                        );
-                        if (indexValue.valid) {
-                          if (
-                            punctuationAt(
-                              source,
-                              tokenKinds,
-                              tokenStarts,
-                              indexToken + 1,
-                              PUNCTUATION_CLOSE_SQUARE
-                            )
-                          ) {
-                            LoopBufferOperand read = resolveLoopBufferReadOperand(
-                              source,
-                              owner,
-                              sourceValue.local,
-                              indexValue.local,
-                              valueCount,
-                              valueRows,
-                              semanticCount,
-                              tokenStarts,
-                              tokenLengths
-                            );
-                            if (read.valid) {
-                              localBase = localBase - 1;
-                              if (0 < read.operand / 65536) {
-                                localBase -= 1;
-                              }
-
-                              if (offsetIndex) {
-                                localBase -= 2;
-                              }
-
-                              long sourceType = loopBodyValueType(
-                                source,
-                                owner,
-                                sourceValue.local,
-                                valueCount,
-                                valueRows,
-                                semanticCount,
-                                tokenStarts,
-                                tokenLengths
-                              );
-                              opcode = BODY_WORDS_GET;
-                              if (sourceType == TOKEN_BYTES) {
-                                opcode = BODY_BYTES_GET;
-                              }
-
-                              if (sourceType == TOKEN_BYTEVIEW) {
-                                opcode = BODY_BYTEVIEW_GET;
-                              }
-
-                              operand = read.operand;
-                              if (offsetIndex) {
-                                if (MAX_LITERAL_INDEX_OFFSET < indexOffset) {
-                                  statementValid = false;
-                                }
-
-                                if (opcode == BODY_WORDS_GET) {
-                                  opcode = BODY_WORDS_GET_OFFSET;
-                                  operand += indexOffset * LITERAL_INDEX_OFFSET_SCALE;
-                                } else {
-                                  statementValid = false;
-                                }
-                              }
-                            } else {
-                              statementValid = false;
-                            }
-                          } else {
-                            statementValid = false;
-                          }
-                        } else {
-                          statementValid = false;
-                        }
-                      } else {
-                        if (
-                          signedLoopBodyLocal(
-                            source,
-                            owner,
-                            sourceValue.local,
-                            valueCount,
-                            valueRows,
-                            semanticCount,
-                            tokenStarts,
-                            tokenLengths
-                          )
-                        ) {
-                          opcode = STATEMENT_LOCAL_LONG_COPY_BASE + sourceValue.local;
-                          operandKind = OPERAND_LOCAL;
-                          operand = sourceValue.local;
-                        } else {
-                          statementValid = false;
-                        }
-                      }
-                    } else {
-                      statementValid = false;
-                    }
-                  } else {
-                    if (
-                      signedNumberWidth(source, tokenKinds, tokenStarts, sourceToken) != 1
-                    ) {
-                      statementValid = false;
-                    } else {
-                      if (
-                        signedNumberValid(source, tokenStarts, tokenLengths, sourceToken)
-                      ) {
-                        opcode = STATEMENT_LOCAL_LONG;
-                        operand = parsedSignedNumber(
-                          source,
-                          tokenStarts,
-                          tokenLengths,
-                          sourceToken
-                        );
-                      } else {
-                        statementValid = false;
-                      }
-                    }
-                  }
+              DirectLoopBodyProduct product = resolveDirectLoopBodyProduct(
+                source,
+                owner,
+                ordinal,
+                statementRows[LOOP_STATEMENT_START_ROW + statement],
+                statementRows[LOOP_STATEMENT_LENGTH_ROW + statement],
+                nextBodyLocals[owner],
+                valueCount,
+                valueRows,
+                semanticCount,
+                tokenKinds,
+                tokenStarts,
+                tokenLengths
+              );
+              boolean statementValid = product.valid;
+              localBase = product.localBase;
+              long opcode = product.opcode;
+              long operandKind = product.operandKind;
+              long operand = product.operand;
+              if (statementValid) {
+                set(stagedRows, bodyCount, statement);
+                set(stagedRows, BODY_LOCAL_BASE_ROW + bodyCount, localBase);
+                set(stagedRows, BODY_OPCODE_ROW + bodyCount, opcode);
+                set(stagedRows, BODY_OPERAND_KIND_ROW + bodyCount, operandKind);
+                set(stagedRows, BODY_OPERAND_ROW + bodyCount, operand);
+                long localCount = loopBodyLocalCount(opcode, operand);
+                if (localCount < 0) {
+                  valid = false;
+                } else {
+                  set(nextBodyLocals, owner, localBase + localCount);
+                  set(stagedPhysicalWidths, statement, localCount);
+                  bodyCount += 1;
                 }
               } else {
-                long bufferHash = tokenHash(source, tokenStarts, tokenLengths, token);
-                boolean bufferStatement = bufferHash == TOKEN_SET;
-                if (bufferHash == TOKEN_SET_BYTE) {
-                  bufferStatement = true;
-                }
-
-                if (bufferStatement) {
-                  ResolvedLoopBufferProduct buffer = resolveLoopBufferProduct(
-                    source,
-                    owner,
-                    ordinal,
-                    token,
-                    valueCount,
-                    valueRows,
-                    semanticCount,
-                    tokenKinds,
-                    tokenStarts,
-                    tokenLengths
-                  );
-                  if (buffer.valid) {
-                    opcode = buffer.opcode;
-                    operand = buffer.operand;
-                  } else {
-                    statementValid = false;
-                  }
-                } else {
-                  if (
-                    tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_ASSERT
-                  ) {
-                    LoopAssertion assertion = resolveLoopAssertion(
-                      source,
-                      token,
-                      owner,
-                      ordinal,
-                      valueCount,
-                      valueRows,
-                      semanticCount,
-                      tokenKinds,
-                      tokenStarts,
-                      tokenLengths
-                    );
-                    if (assertion.valid) {
-                      opcode = assertion.opcode;
-                      operandKind = assertion.operandKind;
-                      operand = assertion.operand;
-                    } else {
-                      statementValid = false;
-                    }
-                  } else {
-                    LoopBodyValue target = resolveLoopBodyValue(
-                      source,
-                      tokenStarts[token],
-                      tokenLengths[token],
-                      owner,
-                      ordinal,
-                      valueCount,
-                      valueRows
-                    );
-                    if (target.valid == false) {
-                      statementValid = false;
-                    }
-
-                    if (
-                      punctuationAt(
-                        source,
-                        tokenKinds,
-                        tokenStarts,
-                        token + 1,
-                        PUNCTUATION_ASSIGN
-                      )
-                    ) {
-                      boolean targetBoolean = false;
-                      boolean targetSigned = false;
-                      if (target.valid) {
-                        targetBoolean = booleanLoopBodyLocal(
-                          source,
-                          owner,
-                          target.local,
-                          valueCount,
-                          valueRows,
-                          semanticCount,
-                          tokenStarts,
-                          tokenLengths
-                        );
-                        targetSigned = signedLoopBodyLocal(
-                          source,
-                          owner,
-                          target.local,
-                          valueCount,
-                          valueRows,
-                          semanticCount,
-                          tokenStarts,
-                          tokenLengths
-                        );
-                        if (targetBoolean == false) {
-                          if (targetSigned == false) {
-                            statementValid = false;
-                          }
-                        }
-                      }
-
-                      long assignmentSourceToken = token + 2;
-                      if (tokenKinds[assignmentSourceToken] == 1) {
-                        long assignmentHash = tokenHash(
-                          source,
-                          tokenStarts,
-                          tokenLengths,
-                          assignmentSourceToken
-                        );
-                        if (targetBoolean) {
-                          if (assignmentHash == TOKEN_TRUE) {
-                            opcode = BODY_ASSIGN_BOOLEAN_LITERAL_BASE + target.local;
-                            operand = 1;
-                          } else {
-                            if (assignmentHash == TOKEN_FALSE) {
-                              opcode = BODY_ASSIGN_BOOLEAN_LITERAL_BASE + target.local;
-                              operand = 0;
-                            } else {
-                              LoopBodyValue booleanSource = resolveLoopBodyValue(
-                                source,
-                                tokenStarts[assignmentSourceToken],
-                                tokenLengths[assignmentSourceToken],
-                                owner,
-                                ordinal,
-                                valueCount,
-                                valueRows
-                              );
-                              if (booleanSource.valid) {
-                                if (
-                                  booleanLoopBodyLocal(
-                                    source,
-                                    owner,
-                                    booleanSource.local,
-                                    valueCount,
-                                    valueRows,
-                                    semanticCount,
-                                    tokenStarts,
-                                    tokenLengths
-                                  )
-                                ) {
-                                  opcode = BODY_ASSIGN_BOOLEAN_LOCAL_BASE + target.local;
-                                  operandKind = OPERAND_LOCAL;
-                                  operand = booleanSource.local;
-                                } else {
-                                  statementValid = false;
-                                }
-                              } else {
-                                statementValid = false;
-                              }
-                            }
-                          }
-                        } else {
-                          LoopBodyValue assignmentSource = resolveLoopBodyValue(
-                            source,
-                            tokenStarts[assignmentSourceToken],
-                            tokenLengths[assignmentSourceToken],
-                            owner,
-                            ordinal,
-                            valueCount,
-                            valueRows
-                          );
-                          if (assignmentSource.valid) {
-                            if (
-                              signedLoopBodyLocal(
-                                source,
-                                owner,
-                                assignmentSource.local,
-                                valueCount,
-                                valueRows,
-                                semanticCount,
-                                tokenStarts,
-                                tokenLengths
-                              )
-                            ) {
-                              opcode = STATEMENT_LOCAL_ASSIGN_SIGNED_LOCAL_BASE + target.local;
-                              operandKind = OPERAND_LOCAL;
-                              operand = assignmentSource.local;
-                            } else {
-                              statementValid = false;
-                            }
-                          } else {
-                            statementValid = false;
-                          }
-                        }
-                      } else {
-                        if (targetBoolean) {
-                          statementValid = false;
-                        } else {
-                          if (
-                            signedNumberWidth(
-                              source,
-                              tokenKinds,
-                              tokenStarts,
-                              assignmentSourceToken
-                            ) != 1
-                          ) {
-                            statementValid = false;
-                          } else {
-                            if (
-                              signedNumberValid(
-                                source,
-                                tokenStarts,
-                                tokenLengths,
-                                assignmentSourceToken
-                              )
-                            ) {
-                              opcode = STATEMENT_LOCAL_ASSIGN_SIGNED_LITERAL_BASE + target.local;
-                              operand = parsedSignedNumber(
-                                source,
-                                tokenStarts,
-                                tokenLengths,
-                                assignmentSourceToken
-                              );
-                            } else {
-                              statementValid = false;
-                            }
-                          }
-                        }
-                      }
-                    } else {
-                      long operation = 0;
-                      if (
-                        punctuationAt(
-                          source,
-                          tokenKinds,
-                          tokenStarts,
-                          token + 1,
-                          PUNCTUATION_PLUS
-                        )
-                      ) {
-                        operation = STATEMENT_LOCAL_UPDATE_ADD_LITERAL_BASE;
-                      }
-
-                      if (
-                        punctuationAt(
-                          source,
-                          tokenKinds,
-                          tokenStarts,
-                          token + 1,
-                          PUNCTUATION_MINUS
-                        )
-                      ) {
-                        operation = STATEMENT_LOCAL_UPDATE_SUB_LITERAL_BASE;
-                      }
-
-                      if (
-                        punctuationAt(
-                          source,
-                          tokenKinds,
-                          tokenStarts,
-                          token + 1,
-                          PUNCTUATION_CARET
-                        )
-                      ) {
-                        operation = STATEMENT_LOCAL_UPDATE_XOR_LITERAL_BASE;
-                      }
-
-                      if (operation == 0) {
-                        statementValid = false;
-                      }
-
-                      if (
-                        punctuationAt(
-                          source,
-                          tokenKinds,
-                          tokenStarts,
-                          token + 2,
-                          PUNCTUATION_ASSIGN
-                        ) == false
-                      ) {
-                        statementValid = false;
-                      }
-
-                      if (statementValid) {
-                        long updateSourceToken = token + 3;
-                        if (tokenKinds[updateSourceToken] == 1) {
-                          LoopBodyValue updateSourceValue = resolveLoopBodyValue(
-                            source,
-                            tokenStarts[updateSourceToken],
-                            tokenLengths[updateSourceToken],
-                            owner,
-                            ordinal,
-                            valueCount,
-                            valueRows
-                          );
-                          if (updateSourceValue.valid) {
-                            opcode = operation + 256 + target.local;
-                            operandKind = OPERAND_LOCAL;
-                            operand = updateSourceValue.local;
-                          } else {
-                            statementValid = false;
-                          }
-                        } else {
-                          if (
-                            signedNumberWidth(
-                              source,
-                              tokenKinds,
-                              tokenStarts,
-                              updateSourceToken
-                            ) != 1
-                          ) {
-                            statementValid = false;
-                          } else {
-                            if (
-                              signedNumberValid(
-                                source,
-                                tokenStarts,
-                                tokenLengths,
-                                updateSourceToken
-                              )
-                            ) {
-                              opcode = operation + target.local;
-                              operand = parsedSignedNumber(
-                                source,
-                                tokenStarts,
-                                tokenLengths,
-                                updateSourceToken
-                              );
-                            } else {
-                              statementValid = false;
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
+                valid = false;
               }
             }
-          }
-
-          if (statementValid) {
-            set(stagedRows, bodyCount, statement);
-            set(stagedRows, BODY_LOCAL_BASE_ROW + bodyCount, localBase);
-            set(stagedRows, BODY_OPCODE_ROW + bodyCount, opcode);
-            set(stagedRows, BODY_OPERAND_KIND_ROW + bodyCount, operandKind);
-            set(stagedRows, BODY_OPERAND_ROW + bodyCount, operand);
-            long localCount = loopBodyLocalCount(opcode, operand);
-            if (localCount < 0) {
-              valid = false;
-            } else {
-              set(nextBodyLocals, owner, localBase + localCount);
-              set(stagedPhysicalWidths, statement, localCount);
-              bodyCount += 1;
-            }
-          } else {
-            valid = false;
           }
         } else {
           long controlOwner = statementRows[statement];

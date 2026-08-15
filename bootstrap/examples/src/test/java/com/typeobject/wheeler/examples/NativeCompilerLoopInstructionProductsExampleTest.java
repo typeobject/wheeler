@@ -113,7 +113,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
           state long length = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 1652784, /* allocations= */ 28);
+            region products = new region(/* bytes= */ 1925143, /* allocations= */ 28);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -136,10 +136,10 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
             words loopInstructionStarts = allocate(products, /* length= */ 256);
             words statementPhysicalStarts = allocate(products, /* length= */ 4096);
             words loopWindowRows = allocate(products, /* length= */ 768);
-            words unused0 = allocate(products, /* length= */ 1);
-            words unused1 = allocate(products, /* length= */ 1);
-            words unused2 = allocate(products, /* length= */ 1);
-            words unused3 = allocate(products, /* length= */ 1);
+            words callStatements = allocate(products, /* length= */ 256);
+            words callWindowRows = allocate(products, /* length= */ 768);
+            words callInstructionStarts = allocate(products, /* length= */ 256);
+            bytes callCode = allocateBytes(products, /* length= */ 262144);
             words unused4 = allocate(products, /* length= */ 1);
             words unused5 = allocate(products, /* length= */ 1);
             set(bodyStarts, 0, %d);
@@ -186,6 +186,8 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
               statements,
               /* valueCount= */ 3,
               values,
+              /* callCount= */ 0,
+              callStatements,
               bodyRows,
               nestedRows,
               statementPhysicalWidths
@@ -222,6 +224,11 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
               blocks,
               bodyPlan.bodyCount,
               bodyRows,
+              /* callCount= */ 0,
+              callStatements,
+              callWindowRows,
+              callInstructionStarts,
+              callCode,
               bodyPlan.nestedCount,
               nestedRows,
               loopLocalBases,
@@ -238,10 +245,10 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
             setOutputLength(output, code.length);
             drop(unused5);
             drop(unused4);
-            drop(unused3);
-            drop(unused2);
-            drop(unused1);
-            drop(unused0);
+            drop(callCode);
+            drop(callInstructionStarts);
+            drop(callWindowRows);
+            drop(callStatements);
             drop(loopWindowRows);
             drop(statementPhysicalStarts);
             drop(loopInstructionStarts);
