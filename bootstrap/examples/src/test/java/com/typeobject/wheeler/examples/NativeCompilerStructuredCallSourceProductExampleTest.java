@@ -38,6 +38,33 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
   }
 
   @Test
+  void emitsAReversibleResultSlotArtifact() throws Exception {
+    String source = """
+        module example.structured_call;
+
+        classical class StructuredCall {
+          public rev long recurse(long value) {
+            return value;
+          }
+
+          theorem recurseInverse proves inverse(recurse);
+        }
+        """;
+    int bodyStart = source.indexOf("{", source.indexOf("recurse("));
+    int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
+    Program driver = driverWithEffect(bodyStart, bodyLength, 1, 1, 0, false, 1, 1, 2);
+    VirtualMachine machine = new VirtualMachine(
+        driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
+
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("StructuredCall.w", source), MODULE);
+    assertEquals(1, machine.global("valid"));
+    assertArrayEquals(new BytecodeWriter().write(expected), machine.hostOutput());
+  }
+
+  @Test
   void rejectsAnUnimplementedReversibleEffectBeforePublication() throws Exception {
     String source = SOURCE.replace(
         "\n}",

@@ -151,6 +151,7 @@ classical class SourceModuleProductArtifact {
     words stubResultTypes = allocate(emptyStubs, /* length= */ 4096);
     SourceProductArtifactPlan result = publishClassicalSourceModuleArtifactWithStubs(
       callableCount,
+      /* reversibleCallableCount= */ 0,
       /* stubCount= */ 0,
       stubParameterStarts,
       stubParameterCounts,
@@ -183,6 +184,7 @@ classical class SourceModuleProductArtifact {
   /// Builds canonical sections with verifier-only imported signature stubs.
   public SourceProductArtifactPlan publishClassicalSourceModuleArtifactWithStubs(
     long callableCount,
+    long reversibleCallableCount,
     long stubCount,
     borrow mut words stubParameterStarts,
     borrow mut words stubParameterCounts,
@@ -206,6 +208,11 @@ classical class SourceModuleProductArtifact {
   ) {
     assert(0 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
+    assert(-1 < reversibleCallableCount);
+    if (0 < reversibleCallableCount) {
+      assert(reversibleCallableCount == callableCount);
+    }
+
     assert(-1 < stubCount);
     assert(stubCount < MAX_CALLABLES - callableCount + 1);
     assert(bufferLength(stubParameterStarts) == 4096);
@@ -304,6 +311,9 @@ classical class SourceModuleProductArtifact {
       long functionFlags = 0;
       if (0 < resultType) {
         functionFlags = 4;
+        if (0 < reversibleCallableCount) {
+          functionFlags += 8;
+        }
       }
 
       writeUnsigned(sectionArchive, descriptor + 8, 4, functionFlags);

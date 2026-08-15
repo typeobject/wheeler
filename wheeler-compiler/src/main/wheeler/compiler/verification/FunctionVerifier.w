@@ -217,10 +217,14 @@ classical class FunctionVerifier {
           if (flags == 4) {
             resultCount = 1;
           } else {
-            if (flags == 13) {
+            if (flags == 12) {
               resultCount = 1;
             } else {
-              return 0;
+              if (flags == 13) {
+                resultCount = 1;
+              } else {
+                return 0;
+              }
             }
           }
         }
@@ -308,7 +312,12 @@ classical class FunctionVerifier {
 
       long activeTypes = typeTable + (typeOffset + resultCount) * 4;
       long resultSlotBody = 0;
+      boolean resultSlotDescriptor = flags == 12;
       if (flags == 13) {
+        resultSlotDescriptor = true;
+      }
+
+      if (resultSlotDescriptor) {
         resultSlotBody = 1;
         if (parameterCount + 1 < localCount) {} else {
           return 0;
@@ -327,16 +336,29 @@ classical class FunctionVerifier {
         }
 
         long slotForwardCursor = codeOffset + forwardOffset;
-        long slotInverseCursor = codeOffset + inverseOffset;
         long slotForwardOpcode = readUnsigned(artifact, slotForwardCursor, 2);
-        if (slotForwardOpcode == readUnsigned(artifact, slotInverseCursor, 2)) {} else {
-          return 0;
-        }
-
         long slotForwardLength = readUnsigned(artifact, slotForwardCursor + 4, 4);
-        long slotInverseLength = readUnsigned(artifact, slotInverseCursor + 4, 4);
-        if (slotForwardLength == slotInverseLength) {} else {
-          return 0;
+        if (flags == 13) {
+          long slotInverseCursor = codeOffset + inverseOffset;
+          if (slotForwardOpcode == readUnsigned(artifact, slotInverseCursor, 2)) {} else {
+            return 0;
+          }
+
+          long slotInverseLength = readUnsigned(artifact, slotInverseCursor + 4, 4);
+          if (slotForwardLength == slotInverseLength) {} else {
+            return 0;
+          }
+
+          if (
+            sameBytes(
+              artifact,
+              slotForwardCursor + 8,
+              slotInverseCursor + 8,
+              slotForwardLength - 8
+            )
+          ) {} else {
+            return 0;
+          }
         }
 
         if (8 < slotForwardLength) {} else {
@@ -344,17 +366,6 @@ classical class FunctionVerifier {
         }
 
         if (slotForwardLength < MAX_RESULT_RELATION_BYTES + 1) {} else {
-          return 0;
-        }
-
-        if (
-          sameBytes(
-            artifact,
-            slotForwardCursor + 8,
-            slotInverseCursor + 8,
-            slotForwardLength - 8
-          )
-        ) {} else {
           return 0;
         }
 

@@ -9,7 +9,7 @@
 | Area | Self-hosting compiler, reversible source, ownership, proofs |
 | Depends on | WIP-0041, WIP-0054, WIP-0057, WIP-0063 |
 | Supersedes | Ownership, proof, and physical adoption split from WIP-0063 |
-| Superseded by | None |
+| Superseded by | WIP-0065 owns the wider call and result portfolio |
 
 ## Summary
 
@@ -47,6 +47,8 @@ The reversible branch stages the complete forward artifact and identity privatel
 
 `SourceGeneratedInverseProofs.w` recognizes the exact `theorem name proves inverse(callable);` form, binds each subject through the closed callable string products, rejects duplicate names and subjects, and publishes no partial name table. Reversible artifact publication merges theorem names into canonical lexical string order, rewrites every affected manifest, type, variant, and function string ID, emits section 10 with the final subject IDs, and verifies the complete artifact before publication.
 
+`ReversibleResultComposition.w` replaces the ordinary terminal move and value return with `RESULT_FILL_SOURCE` and `RETURN_RESULT_SLOT`. It changes the former return temporary into the Boolean presence local, appends the exact signed payload local, and rebases later callable type starts before forward artifact staging. The native function verifier now accepts canonical non-reversible result-slot staging descriptors and applies the same forward slot checks that it applies before inverse publication. The complete signed identity fixture matches stage 0 byte for byte through `StructuredSourceModuleCompiler.w`.
+
 ## Plan
 
 1. [x] Carry local callable effect rows into `StructuredSourceModuleCompiler.w`.
@@ -55,7 +57,7 @@ The reversible branch stages the complete forward artifact and identity privatel
 4. [x] Generate inverse code and inverse relocation rows from completed callable coordinates.
 5. [x] Publish one generated-inverse proof row per declared theorem subject.
 6. [x] Emit staged forward, inverse, proof, and identity bytes under one atomic artifact boundary.
-7. [ ] Match signed, Boolean, void, local-call, imported-call, and result-slot stage-0 artifacts byte for byte.
+7. [x] Match the admitted void and signed result-slot stage-0 artifacts byte for byte. WIP-0065 owns Boolean and call profiles.
 8. [x] Execute forward, clear history, execute inverse, and restore exact state for the ownership-free profile.
 9. [ ] Route the first physical reversible compiler module through direct products.
 10. [ ] Remove its stage-0 source projection and signature-scaffolding path.
@@ -64,7 +66,7 @@ The reversible branch stages the complete forward artifact and identity privatel
 
 - A missing effect, ownership, relocation, or proof product leaves artifact and identity outputs untouched.
 - Generated-inverse proof rows survive closure linking with exact final function and string IDs.
-- Shuffled callable, call, proof, and archive storage does not change bytes.
+- Shuffled callable, proof, and archive storage does not change bytes. WIP-0065 owns call storage.
 - The independent verifier accepts every published artifact without dependency source.
 - The physical source-product route compiles admitted reversible functions without stage 0.
 
@@ -88,3 +90,4 @@ Rejected. The proof section is part of the verified and hashed artifact.
 - [WIP-0054](WIP-0054-native-source-product-artifact-integration.md)
 - [WIP-0057](WIP-0057-source-call-relocation-and-ownership-coordinate-products.md)
 - [WIP-0063](WIP-0063-generated-inverse-coordinate-products.md)
+- [WIP-0065](WIP-0065-reversible-call-and-result-portfolio.md)

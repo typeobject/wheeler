@@ -1,4 +1,4 @@
-//! Publishes reversible void artifacts from forward products and generated inverses.
+//! Publishes reversible artifacts from forward products and generated inverses.
 
 module wheeler.compiler.closure.reversible_source_product_artifact;
 
@@ -240,7 +240,7 @@ classical class ReversibleSourceProductArtifact {
   }
 
   /// Rebuilds canonical sections with generated inverse windows before publication.
-  public SourceProductArtifactPlan publishReversibleVoidSourceProductArtifact(
+  public SourceProductArtifactPlan publishReversibleSourceProductArtifact(
     borrow byteview forwardArtifact,
     long forwardArtifactLength,
     long callableCount,
@@ -554,13 +554,18 @@ classical class ReversibleSourceProductArtifact {
       );
       codeCursor += forwardLength;
       if (function < callableCount) {
-        assert(flags == 0);
+        boolean flagsValid = flags == 0;
+        if (flags == 12) {
+          flagsValid = true;
+        }
+
+        assert(flagsValid);
         assert(forwardOffset == callableRows[CALLABLE_CODE_START_ROW + function]);
         assert(forwardLength == callableRows[CALLABLE_CODE_LENGTH_ROW + function]);
         assert(inverseRows[function] == inverseCursor);
         long generatedLength = inverseRows[INVERSE_CODE_LENGTH_ROW + function];
         assert(generatedLength == forwardLength);
-        writeUnsigned(1, 4, sectionArchive, outputDescriptor + 8);
+        writeUnsigned(flags + 1, 4, sectionArchive, outputDescriptor + 8);
         writeUnsigned(codeCursor, 4, sectionArchive, outputDescriptor + 20);
         writeUnsigned(generatedLength, 4, sectionArchive, outputDescriptor + 24);
         copyBytes(

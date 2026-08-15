@@ -186,7 +186,7 @@ final class NativeCompilerReversibleSourceProductArtifactExampleTest {
               inverseCode
             );
             assert(inverse.valid);
-            SourceProductArtifactPlan artifact = publishReversibleVoidSourceProductArtifact(
+            SourceProductArtifactPlan artifact = publishReversibleSourceProductArtifact(
               input,
               ARTIFACT_LENGTH,
               /* callableCount= */ 1,

@@ -84,8 +84,29 @@ classical class SourceGeneratedInverseProofs {
         return -1;
       }
 
+      long callableNameStart = start;
+      long nameByte = 0;
+      while (nameByte + 1 < length) limit 256 {
+        if (strings[start + nameByte] == 58) {
+          if (strings[start + nameByte + 1] == 58) {
+            callableNameStart = start + nameByte + 2;
+          }
+        }
+
+        nameByte += 1;
+      }
+
+      long callableNameLength = start + length - callableNameStart;
       if (
-        tokenMatchesBytes(source, token, tokenStarts, tokenLengths, strings, start, length)
+        tokenMatchesBytes(
+          source,
+          token,
+          tokenStarts,
+          tokenLengths,
+          strings,
+          callableNameStart,
+          callableNameLength
+        )
       ) {
         if (-1 < selected) {
           return -1;

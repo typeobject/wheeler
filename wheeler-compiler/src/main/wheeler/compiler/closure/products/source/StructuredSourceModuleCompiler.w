@@ -335,7 +335,6 @@ classical class StructuredSourceModuleCompiler {
       sourceLoops
     );
     assert(loopPlan.valid);
-    assert(0 < loopPlan.loopCount);
     SourceModuleCallPlan callPlan = materializeSourceModuleCallProducts(
       source,
       archiveSourceStart,
