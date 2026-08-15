@@ -70,6 +70,9 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
 
     assertEquals(1, machine.global("valid"));
     assertEquals(3, machine.global("functionCount"));
+    assertEquals(1, machine.global("relocationCount"));
+    assertEquals(1, machine.global("relocationTarget"));
+    assertEquals(42, machine.global("relocationIdentityByte"));
   }
 
   @Test
@@ -355,6 +358,9 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
           state long artifactLength = 0;
           state long functionCount = 0;
           state long maxLocalCount = 0;
+          state long relocationCount = 0;
+          state long relocationTarget = 0;
+          state long relocationIdentityByte = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
             region products = new region(/* bytes= */ 2903936, /* allocations= */ 20);
@@ -383,6 +389,9 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             words qualifierNameStarts = allocate(qualifiers, /* length= */ 4096);
             words qualifierNameLengths = allocate(qualifiers, /* length= */ 4096);
             words qualifierRanks = allocate(qualifiers, /* length= */ 4096);
+            region relocations = new region(/* bytes= */ 14336, /* allocations= */ 2);
+            words relocationRows = allocate(relocations, /* length= */ 768);
+            bytes relocationIdentities = allocateBytes(relocations, /* length= */ 8192);
             IMPORTED_SETUP
             set(bodyStarts, 0, BODY_START);
             set(bodyLengths, 0, BODY_LENGTH);
@@ -436,6 +445,8 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
               stringStarts,
               stringLengths,
               functionNameIds,
+              relocationRows,
+              relocationIdentities,
               artifact,
               identity
             );
@@ -448,7 +459,15 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             artifactLength = plan.length;
             functionCount = plan.functionCount;
             maxLocalCount = plan.maxLocalCount;
+            relocationCount = plan.relocationCount;
+            if (0 < plan.relocationCount) {
+              relocationTarget = relocationRows[256];
+              relocationIdentityByte = relocationIdentities[0];
+            }
             valid = 1;
+            drop(relocationIdentities);
+            drop(relocationRows);
+            drop(relocations);
             drop(qualifierRanks);
             drop(qualifierNameLengths);
             drop(qualifierNameStarts);

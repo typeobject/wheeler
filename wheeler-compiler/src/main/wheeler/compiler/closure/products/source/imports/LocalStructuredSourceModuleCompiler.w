@@ -39,6 +39,9 @@ classical class LocalStructuredSourceModuleCompiler {
     words importedParameterRows = allocate(emptyTargets, /* length= */ 32768);
     bytes importedNames = allocateBytes(emptyTargets, /* length= */ 1048576);
     bytes importedIdentities = allocateBytes(emptyTargets, /* length= */ 131072);
+    region emptyRelocations = new region(/* bytes= */ 14336, /* allocations= */ 2);
+    words relocationRows = allocate(emptyRelocations, /* length= */ 768);
+    bytes relocationIdentities = allocateBytes(emptyRelocations, /* length= */ 8192);
     words qualifierNameStarts = allocate(emptyTargets, /* length= */ 4096);
     words qualifierNameLengths = allocate(emptyTargets, /* length= */ 4096);
     words qualifierRanks = allocate(emptyTargets, /* length= */ 4096);
@@ -75,9 +78,14 @@ classical class LocalStructuredSourceModuleCompiler {
       stringStarts,
       stringLengths,
       functionNameIds,
+      relocationRows,
+      relocationIdentities,
       output,
       identity
     );
+    drop(relocationIdentities);
+    drop(relocationRows);
+    drop(emptyRelocations);
     drop(qualifierRanks);
     drop(qualifierNameLengths);
     drop(qualifierNameStarts);

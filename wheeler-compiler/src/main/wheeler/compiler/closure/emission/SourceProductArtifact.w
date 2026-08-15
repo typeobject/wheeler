@@ -18,7 +18,8 @@ classical class SourceProductArtifact {
     long length,
     long codeStart,
     long functionCount,
-    long maxLocalCount
+    long maxLocalCount,
+    long relocationCount
   ) {}
 
   /// Assembles, verifies, hashes, and atomically publishes canonical product sections.
@@ -105,7 +106,8 @@ classical class SourceProductArtifact {
       artifactLength,
       codeStart,
       functionCount,
-      maxLocalCount
+      maxLocalCount,
+      /* relocationCount= */ 0
     );
     drop(hashArena);
     drop(stagedIdentity);

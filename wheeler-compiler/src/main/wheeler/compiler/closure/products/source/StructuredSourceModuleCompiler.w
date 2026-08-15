@@ -116,6 +116,8 @@ classical class StructuredSourceModuleCompiler {
     borrow mut words stringStarts,
     borrow mut words stringLengths,
     borrow mut words functionNameIds,
+    borrow mut words publishedRelocations,
+    borrow mut bytes publishedRelocationIdentities,
     borrow mut bytes output,
     borrow mut bytes identity
   ) {
@@ -156,6 +158,8 @@ classical class StructuredSourceModuleCompiler {
     assert(bufferLength(stringStarts) == 256);
     assert(bufferLength(stringLengths) == 256);
     assert(bufferLength(functionNameIds) == 64);
+    assert(bufferLength(publishedRelocations) == 768);
+    assert(bufferLength(publishedRelocationIdentities) == 8192);
     assert(bufferLength(output) == 32768);
     assert(bufferLength(identity) == 32);
 
@@ -824,6 +828,39 @@ classical class StructuredSourceModuleCompiler {
       output,
       identity
     );
+    long publishedRelocation = 0;
+    while (publishedRelocation < resolvedCallCount) limit 256 {
+      set(publishedRelocations, publishedRelocation, callRelocations[publishedRelocation]);
+      set(
+        publishedRelocations,
+        256 + publishedRelocation,
+        callRelocations[256 + publishedRelocation]
+      );
+      set(
+        publishedRelocations,
+        512 + publishedRelocation,
+        callRelocations[512 + publishedRelocation]
+      );
+      long publishedIdentityByte = 0;
+      while (publishedIdentityByte < 32) limit 32 {
+        setByte(
+          publishedRelocationIdentities,
+          publishedRelocation * 32 + publishedIdentityByte,
+          callRelocationIdentities[publishedRelocation * 32 + publishedIdentityByte]
+        );
+        publishedIdentityByte += 1;
+      }
+
+      publishedRelocation += 1;
+    }
+
+    SourceProductArtifactPlan publishedResult = new SourceProductArtifactPlan(
+      result.length,
+      result.codeStart,
+      result.functionCount,
+      result.maxLocalCount,
+      resolvedCallCount
+    );
 
     drop(callCode);
     drop(callTypes);
@@ -890,6 +927,6 @@ classical class StructuredSourceModuleCompiler {
     drop(statements);
     drop(blocks);
     drop(products);
-    return result;
+    return publishedResult;
   }
 }
