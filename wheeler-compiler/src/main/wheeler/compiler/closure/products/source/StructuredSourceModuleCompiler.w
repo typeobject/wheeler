@@ -254,7 +254,7 @@ classical class StructuredSourceModuleCompiler {
     assert(bufferLength(output) == 32768);
     assert(bufferLength(identity) == 32);
 
-    region products = new region(/* bytes= */ 3146752, /* allocations= */ 49);
+    region products = new region(/* bytes= */ 3179520, /* allocations= */ 50);
     words blocks = allocate(products, /* length= */ 6144);
     words statements = allocate(products, /* length= */ 28672);
     words sourceConditions = allocate(products, /* length= */ 1536);
@@ -275,6 +275,7 @@ classical class StructuredSourceModuleCompiler {
     words loopTypes = allocate(products, /* length= */ 12288);
     words directRows = allocate(products, /* length= */ 28672);
     words functionResultTypes = allocate(products, /* length= */ 64);
+    words targetResultTypes = allocate(products, /* length= */ 4096);
     words returnRows = allocate(products, /* length= */ 192);
     words directTypes = allocate(products, /* length= */ 12288);
     bytes directCode = allocateBytes(products, /* length= */ 262144);
@@ -358,6 +359,12 @@ classical class StructuredSourceModuleCompiler {
       functionResultTypes
     );
     assert(resultPlan.valid);
+    long resultTarget = 0;
+    while (resultTarget < callableCount) limit MAX_CALLABLES {
+      set(targetResultTypes, resultTarget, functionResultTypes[resultTarget]);
+      resultTarget += 1;
+    }
+
     SourceBlockProductPlan blockPlan = materializeSourceBlockProducts(
       source,
       archiveSourceStart,
@@ -446,10 +453,10 @@ classical class StructuredSourceModuleCompiler {
       callArgumentCounts,
       callArguments,
       callableCount,
-      parameterCounts,
-      signatureTypeCount,
-      signatureTypes,
-      functionResultTypes,
+      targetParameterStarts,
+      targetParameterCounts,
+      targetParameterTypes,
+      targetResultTypes,
       statements,
       statementPhysicalWidths,
       resolvedCalls,
@@ -840,6 +847,7 @@ classical class StructuredSourceModuleCompiler {
     drop(directCode);
     drop(directTypes);
     drop(returnRows);
+    drop(targetResultTypes);
     drop(functionResultTypes);
     drop(directRows);
     drop(loopTypes);

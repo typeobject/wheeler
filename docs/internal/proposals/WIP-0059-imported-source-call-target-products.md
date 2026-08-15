@@ -55,7 +55,7 @@ The module call scanner checks locals first. It checks only admitted dependency 
 
 `ImportedSourceCallTargets.w` now consumes the direct callable-dependency product and closure-wide callable metadata. It copies names, ordered parameter types and loan modes, result kinds, effects, and callable identities into one bounded view. Dependency rank and callable identity establish output order, so packed row order owns nothing. Negative external rows, duplicate identities, malformed ranges, and overlong signatures preserve every caller buffer.
 
-The archive compiler imports this product as the sole target-view boundary. `SourceModuleCallProducts.w` now scans local and admitted dependency targets in one retained callable-body pass. Local matches shadow dependency rows before exact statement binding. Structured compilation still supplies an empty dependency view, so parameter-table integration and relocation remain open.
+The archive compiler imports this product as the sole target-view boundary. `SourceModuleCallProducts.w` now scans local and admitted dependency targets in one retained callable-body pass. Local matches shadow dependency rows before exact statement binding. `SourceCallLayoutProducts.w` validates arity, parameter types, and result kinds through one dense target table instead of reconstructing local signatures. Structured compilation still supplies an empty dependency view, so imported table population and relocation remain open.
 
 ## Plan
 

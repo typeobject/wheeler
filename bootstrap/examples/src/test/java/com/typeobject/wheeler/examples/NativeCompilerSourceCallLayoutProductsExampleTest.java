@@ -65,15 +65,16 @@ final class NativeCompilerSourceCallLayoutProductsExampleTest {
 
           entry void main(borrow utf8 input) {
             assert(bufferLength(input) == 0);
-            region rows = new region(/* bytes= */ 414720, /* allocations= */ 12);
+            region rows = new region(/* bytes= */ 544768, /* allocations= */ 13);
             words sourceCalls = allocate(rows, /* length= */ 1024);
             words callStatements = allocate(rows, /* length= */ 256);
             words argumentStarts = allocate(rows, /* length= */ 256);
             words argumentCounts = allocate(rows, /* length= */ 256);
             words arguments = allocate(rows, /* length= */ 3584);
-            words parameterCounts = allocate(rows, /* length= */ 64);
-            words signatureTypes = allocate(rows, /* length= */ 12288);
-            words resultTypes = allocate(rows, /* length= */ 64);
+            words targetParameterStarts = allocate(rows, /* length= */ 4096);
+            words targetParameterCounts = allocate(rows, /* length= */ 4096);
+            words targetParameterTypes = allocate(rows, /* length= */ 16384);
+            words targetResultTypes = allocate(rows, /* length= */ 4096);
             words statements = allocate(rows, /* length= */ 28672);
             words statementWidths = allocate(rows, /* length= */ 4096);
             words resolvedCalls = allocate(rows, /* length= */ 1024);
@@ -92,12 +93,10 @@ final class NativeCompilerSourceCallLayoutProductsExampleTest {
             set(argumentStarts, 1, 1);
             set(argumentStarts, 2, 1);
             set(arguments, 1792, ARGUMENT_TYPE);
-            set(parameterCounts, 0, 1);
-            set(signatureTypes, 0, 0);
-            set(signatureTypes, 4096, 0);
-            set(signatureTypes, 8192, 1);
-            set(resultTypes, 0, 1);
-            set(resultTypes, 1, 2);
+            set(targetParameterCounts, 0, 1);
+            set(targetParameterTypes, 0, 1);
+            set(targetResultTypes, 0, 1);
+            set(targetResultTypes, 1, 2);
             set(statements, 0, 3);
             set(statements, 1, 4);
             set(statements, 2, 5);
@@ -112,11 +111,11 @@ final class NativeCompilerSourceCallLayoutProductsExampleTest {
               argumentStarts,
               argumentCounts,
               arguments,
-              /* callableCount= */ 3,
-              parameterCounts,
-              /* signatureTypeCount= */ 1,
-              signatureTypes,
-              resultTypes,
+              /* targetCount= */ 3,
+              targetParameterStarts,
+              targetParameterCounts,
+              targetParameterTypes,
+              targetResultTypes,
               statements,
               statementWidths,
               resolvedCalls,
@@ -139,9 +138,10 @@ final class NativeCompilerSourceCallLayoutProductsExampleTest {
             drop(resolvedCalls);
             drop(statementWidths);
             drop(statements);
-            drop(resultTypes);
-            drop(signatureTypes);
-            drop(parameterCounts);
+            drop(targetResultTypes);
+            drop(targetParameterTypes);
+            drop(targetParameterCounts);
+            drop(targetParameterStarts);
             drop(arguments);
             drop(argumentCounts);
             drop(argumentStarts);

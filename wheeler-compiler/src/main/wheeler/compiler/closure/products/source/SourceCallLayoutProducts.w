@@ -13,7 +13,6 @@ classical class SourceCallLayoutProducts {
   private const long CALL_VALUE_BOOLEAN = 2;
   private const long CALL_VALUE_SIGNED = 1;
   private const long MAX_ARGUMENTS_PER_CALL = 7;
-  private const long MAX_CALLABLES = 64;
   private const long MAX_SIGNATURE_TYPES = 4096;
   private const long MAX_STATEMENTS = 4096;
 
@@ -77,33 +76,6 @@ classical class SourceCallLayoutProducts {
     return arity * 2 + 2;
   }
 
-  private long parameterType(
-    long callable,
-    long parameter,
-    long signatureTypeCount,
-    borrow mut words signatureTypes
-  ) {
-    long selected = -1;
-    long matches = 0;
-    long type = 0;
-    while (type < signatureTypeCount) limit MAX_SIGNATURE_TYPES {
-      if (signatureTypes[type] == callable) {
-        if (signatureTypes[4096 + type] == parameter) {
-          selected = signatureTypes[8192 + type];
-          matches += 1;
-        }
-      }
-
-      type += 1;
-    }
-
-    if (matches != 1) {
-      return -1;
-    }
-
-    return selected;
-  }
-
   /// Validates and publishes exact typed call-statement widths atomically.
   public SourceCallLayoutPlan materializeSourceCallLayoutProducts(
     long callCount,
@@ -112,11 +84,11 @@ classical class SourceCallLayoutProducts {
     borrow mut words callArgumentStarts,
     borrow mut words callArgumentCounts,
     borrow mut words arguments,
-    long callableCount,
-    borrow mut words parameterCounts,
-    long signatureTypeCount,
-    borrow mut words signatureTypes,
-    borrow mut words resultTypes,
+    long targetCount,
+    borrow mut words targetParameterStarts,
+    borrow mut words targetParameterCounts,
+    borrow mut words targetParameterTypes,
+    borrow mut words targetResultTypes,
     borrow mut words statementRows,
     borrow mut words statementPhysicalWidths,
     borrow mut words resolvedCalls,
@@ -129,13 +101,12 @@ classical class SourceCallLayoutProducts {
     assert(bufferLength(callArgumentStarts) == CALL_COUNT_LIMIT);
     assert(bufferLength(callArgumentCounts) == CALL_COUNT_LIMIT);
     assert(bufferLength(arguments) == 3584);
-    assert(-1 < callableCount);
-    assert(callableCount < MAX_CALLABLES + 1);
-    assert(bufferLength(parameterCounts) == MAX_CALLABLES);
-    assert(-1 < signatureTypeCount);
-    assert(signatureTypeCount < MAX_SIGNATURE_TYPES + 1);
-    assert(bufferLength(signatureTypes) == 12288);
-    assert(bufferLength(resultTypes) == MAX_CALLABLES);
+    assert(-1 < targetCount);
+    assert(targetCount < MAX_SIGNATURE_TYPES + 1);
+    assert(bufferLength(targetParameterStarts) == MAX_SIGNATURE_TYPES);
+    assert(bufferLength(targetParameterCounts) == MAX_SIGNATURE_TYPES);
+    assert(bufferLength(targetParameterTypes) == 16384);
+    assert(bufferLength(targetResultTypes) == MAX_SIGNATURE_TYPES);
     assert(bufferLength(statementRows) == 28672);
     assert(bufferLength(statementPhysicalWidths) == MAX_STATEMENTS);
     assert(bufferLength(resolvedCalls) == CALL_ROWS);
@@ -164,7 +135,7 @@ classical class SourceCallLayoutProducts {
         valid = false;
       }
 
-      if (callableCount - 1 < target) {
+      if (targetCount - 1 < target) {
         valid = false;
       }
 
@@ -194,9 +165,9 @@ classical class SourceCallLayoutProducts {
 
       long kind = -1;
       if (-1 < target) {
-        if (target < callableCount) {
-          kind = resultTypes[target];
-          if (parameterCounts[target] != arity) {
+        if (target < targetCount) {
+          kind = targetResultTypes[target];
+          if (targetParameterCounts[target] != arity) {
             valid = false;
           }
         }
@@ -208,7 +179,7 @@ classical class SourceCallLayoutProducts {
 
       long argument = 0;
       while (argument < arity) limit MAX_ARGUMENTS_PER_CALL {
-        long expectedType = parameterType(target, argument, signatureTypeCount, signatureTypes);
+        long expectedType = targetParameterTypes[targetParameterStarts[target] + argument];
         if (expectedType < 0) {
           valid = false;
         }
