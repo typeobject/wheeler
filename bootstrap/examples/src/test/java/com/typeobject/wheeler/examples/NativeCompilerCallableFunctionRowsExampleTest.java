@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 final class NativeCompilerCallableFunctionRowsExampleTest {
   @Test
   void mapsCallablesAndImportsByStableIdentity() throws Exception {
-    VirtualMachine machine = new VirtualMachine(program(false));
+    VirtualMachine machine = new VirtualMachine(program(false, false));
 
     machine.run();
 
@@ -27,13 +27,22 @@ final class NativeCompilerCallableFunctionRowsExampleTest {
 
   @Test
   void rejectsDuplicateFunctionIdentitiesBeforePublication() throws Exception {
-    VirtualMachine machine = new VirtualMachine(program(true));
+    VirtualMachine machine = new VirtualMachine(program(true, false));
 
     assertThrows(VmTrap.class, machine::run);
     assertEquals(0, machine.global("published"));
   }
 
-  private static Program program(boolean duplicate) throws Exception {
+  @Test
+  void rejectsAStalePackageBoundIdentityBeforePublication() throws Exception {
+    VirtualMachine machine = new VirtualMachine(program(false, true));
+
+    assertThrows(VmTrap.class, machine::run);
+    assertEquals(-1, machine.global("importedFunction"));
+    assertEquals(0, machine.global("published"));
+  }
+
+  private static Program program(boolean duplicate, boolean stale) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.callable_function_rows"));
@@ -49,10 +58,10 @@ final class NativeCompilerCallableFunctionRowsExampleTest {
           state long published = 0;
 
           entry void main() {
-            region rows = new region(/* bytes= */ 1114112, /* allocations= */ 8);
+            region rows = new region(/* bytes= */ 991232, /* allocations= */ 8);
             bytes callableIdentities = allocateBytes(rows, /* length= */ 131072);
             bytes functionIdentities = allocateBytes(rows, /* length= */ 131072);
-            bytes importedIdentities = allocateBytes(rows, /* length= */ 131072);
+            bytes importedIdentities = allocateBytes(rows, /* length= */ 8192);
             words hashSlots = allocate(rows, /* length= */ 8192);
             words hashFunctions = allocate(rows, /* length= */ 8192);
             words callableFunctions = allocate(rows, /* length= */ 4096);
@@ -64,7 +73,7 @@ final class NativeCompilerCallableFunctionRowsExampleTest {
               setByte(callableIdentities, 32 + identityByte, 1);
               setByte(functionIdentities, identityByte, 1);
               setByte(functionIdentities, 32 + identityByte, SECOND_IDENTITY);
-              setByte(importedIdentities, identityByte, 2);
+              setByte(importedIdentities, identityByte, IMPORTED_IDENTITY);
               identityByte += 1;
             }
             mapCallableFunctionRows(
@@ -101,7 +110,8 @@ final class NativeCompilerCallableFunctionRowsExampleTest {
             drop(rows);
           }
         }
-        """.replace("SECOND_IDENTITY", duplicate ? "1" : "2"));
+        """.replace("SECOND_IDENTITY", duplicate ? "1" : "2")
+            .replace("IMPORTED_IDENTITY", stale ? "3" : "2"));
     return new WheelerCompiler().compileModuleFiles(sources, "example.callable_function_rows");
   }
 }

@@ -57,7 +57,9 @@ The stub has no executable semantic authority. The linker resolves the identity,
 
 `SourceModuleProductArtifact.w` emits typed verifier-only stubs after local callable code. Void stubs return directly. Signed stubs synthesize a zero result. Boolean stubs synthesize equal signed constants and return the comparison. Stub descriptors preserve parameter and result types, while source calls retain stable target identities in relocation products. The local-only publisher passes an explicit empty stub table.
 
-`compileStructuredSourceModuleWithTargets` now publishes independently verified signed, Boolean, and void imported-call artifacts without dependency source. `ReferencedSourceCallTargets.w` stages a local-plus-referenced table after source-call discovery, remaps imported call rows, and drops every unreferenced target before typed layout. Multiple calls to one imported identity share one stub. Malformed call and target rows leave calls and signature outputs untouched. Structured artifact plans now publish the exact relocation count. Caller-owned rows retain instruction offsets, verifier-stub targets, source coordinates, and package-bound callable identities after artifact verification. Final linker removal remains open.
+`compileStructuredSourceModuleWithTargets` now publishes independently verified signed, Boolean, and void imported-call artifacts without dependency source. `ReferencedSourceCallTargets.w` stages a local-plus-referenced table after source-call discovery, remaps imported call rows, and drops every unreferenced target before typed layout. Multiple calls to one imported identity share one stub. Malformed call and target rows leave calls and signature outputs untouched. Structured artifact plans now publish the exact relocation count. Caller-owned rows retain instruction offsets, verifier-stub targets, source coordinates, and package-bound callable identities after artifact verification.
+
+The canonical linker decodes the verified artifact, retains only the exact source-local function and instruction prefix, and excludes the suffix stub and library rows before closure append. `CallableFunctionRows.w` accepts the bounded 8,192-byte source relocation identity table and resolves each identity against complete closure functions. Focused native evidence carries a qualified source call through verified stub emission, prefix retention, suffix exclusion, and stable-identity resolution.
 
 ## Plan
 
@@ -65,8 +67,8 @@ The stub has no executable semantic authority. The linker resolves the identity,
 2. [x] Emit canonical verifier-only stub descriptors and local types.
 3. [x] Map imported calls to source-local stub rows during artifact verification.
 4. [x] Publish external relocation identities beside exact call instructions.
-5. Exclude stub products while appending retained local functions.
-6. Resolve every external identity through `CallableFunctionRows.w`.
+5. [x] Exclude stub products while appending retained local functions.
+6. [x] Resolve every external identity through `CallableFunctionRows.w`.
 7. Prove byte-identical output under shuffled call and dependency rows.
 
 ## Acceptance

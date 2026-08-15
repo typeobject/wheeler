@@ -130,7 +130,7 @@ classical class CallableFunctionRows {
   ) {
     assert(-1 < relocationCount);
     assert(relocationCount < MAX_FUNCTIONS + 1);
-    assert(bufferLength(relocationIdentities) == IDENTITY_TABLE_BYTES);
+    assert(relocationCount * IDENTITY_BYTES < bufferLength(relocationIdentities) + 1);
     assert(-1 < functionCount);
     assert(functionCount < MAX_FUNCTIONS + 1);
     assert(bufferLength(functionIdentities) == IDENTITY_TABLE_BYTES);

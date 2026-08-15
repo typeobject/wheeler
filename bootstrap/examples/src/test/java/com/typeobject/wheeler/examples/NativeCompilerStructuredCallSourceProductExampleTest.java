@@ -73,6 +73,9 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
     assertEquals(1, machine.global("relocationCount"));
     assertEquals(1, machine.global("relocationTarget"));
     assertEquals(42, machine.global("relocationIdentityByte"));
+    assertEquals(1, machine.global("retainedFunctionCount"));
+    assertEquals(2, machine.global("excludedFunctionCount"));
+    assertEquals(0, machine.global("resolvedFunctionTarget"));
   }
 
   @Test
@@ -344,12 +347,21 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.structured_source_module_compiler"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.callable_function_rows"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.compiled_function_products"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.imported_callable_stubs"));
     CoreSources.addBinaryClosure(sources);
     sources.put("FixedBinary.w", CoreSources.read("encoding/FixedBinary.w"));
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     sources.put("StructuredCallSourceProductExample.w", """
         module example.structured_call_source_product;
 
+        import wheeler.compiler.closure.callable_function_rows;
+        import wheeler.compiler.closure.compiled_function_products;
+        import wheeler.compiler.closure.imported_callable_stubs;
         import wheeler.compiler.closure.source_product_artifact;
         import wheeler.compiler.closure.structured_source_module_compiler;
 
@@ -361,6 +373,9 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
           state long relocationCount = 0;
           state long relocationTarget = 0;
           state long relocationIdentityByte = 0;
+          state long retainedFunctionCount = 0;
+          state long excludedFunctionCount = 0;
+          state long resolvedFunctionTarget = -1;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
             region products = new region(/* bytes= */ 2903936, /* allocations= */ 20);
@@ -464,6 +479,76 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
               relocationTarget = relocationRows[256];
               relocationIdentityByte = relocationIdentities[0];
             }
+            region decoded = new region(/* bytes= */ 201728, /* allocations= */ 2);
+            words functionRows = allocate(decoded, /* length= */ 640);
+            words instructionRows = allocate(decoded, /* length= */ 24576);
+            CompiledFunctionPlan compiled = indexCompiledFunctionProducts(
+              artifact,
+              plan.length,
+              functionRows,
+              instructionRows
+            );
+            RetainedFunctionProduct retained = retainLocalFunctionProduct(
+              /* localFunctionCount= */ 1,
+              compiled.functionCount,
+              compiled.instructionCount,
+              instructionRows
+            );
+            retainedFunctionCount = retained.functionCount;
+            excludedFunctionCount = retained.excludedFunctionCount;
+            drop(instructionRows);
+            drop(functionRows);
+            drop(decoded);
+            region linker = new region(/* bytes= */ 983040, /* allocations= */ 7);
+            words hashSlots = allocate(linker, /* length= */ 8192);
+            words hashFunctions = allocate(linker, /* length= */ 8192);
+            bytes callableIdentities = allocateBytes(linker, /* length= */ 131072);
+            bytes functionIdentities = allocateBytes(linker, /* length= */ 131072);
+            words callableFunctions = allocate(linker, /* length= */ 4096);
+            words publishedFunctions = allocate(linker, /* length= */ 4096);
+            words resolvedTargets = allocate(linker, /* length= */ 65536);
+            long linkedIdentityByte = 0;
+            while (linkedIdentityByte < 32) limit 32 {
+              setByte(
+                callableIdentities,
+                linkedIdentityByte,
+                relocationIdentities[linkedIdentityByte]
+              );
+              setByte(
+                functionIdentities,
+                linkedIdentityByte,
+                relocationIdentities[linkedIdentityByte]
+              );
+              linkedIdentityByte += 1;
+            }
+            mapCallableFunctionRows(
+              /* callableCount= */ 1,
+              callableIdentities,
+              /* functionCount= */ 1,
+              functionIdentities,
+              hashSlots,
+              hashFunctions,
+              callableFunctions,
+              publishedFunctions
+            );
+            resolveImportedIdentityFunctionTargets(
+              plan.relocationCount,
+              relocationIdentities,
+              /* functionCount= */ 1,
+              functionIdentities,
+              hashSlots,
+              hashFunctions,
+              resolvedTargets
+            );
+            resolvedFunctionTarget = resolvedTargets[0];
+            drop(resolvedTargets);
+            drop(publishedFunctions);
+            drop(callableFunctions);
+            drop(functionIdentities);
+            drop(callableIdentities);
+            drop(hashFunctions);
+            drop(hashSlots);
+            drop(linker);
             valid = 1;
             drop(relocationIdentities);
             drop(relocationRows);
