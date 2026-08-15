@@ -346,7 +346,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     borrow mut bytes artifact,
     borrow mut bytes identity
   ) {
-    region emptyTargets = new region(/* bytes= */ 1802240, /* allocations= */ 7);
+    region emptyTargets = new region(/* bytes= */ 1835008, /* allocations= */ 8);
     words importedTargetRows = allocate(emptyTargets, /* length= */ 32768);
     words importedTargetParameterRows = allocate(emptyTargets, /* length= */ 32768);
     bytes importedTargetNames = allocateBytes(emptyTargets, /* length= */ 1048576);
@@ -358,6 +358,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     words qualifierNameStarts = allocate(emptyTargets, /* length= */ 4096);
     words qualifierNameLengths = allocate(emptyTargets, /* length= */ 4096);
     words qualifierRanks = allocate(emptyTargets, /* length= */ 4096);
+    words callableEffects = allocate(emptyTargets, /* length= */ 4096);
     SourceProductArtifactPlan result = compileStructuredArchiveModuleWithTargetView(
       archive,
       sourceStart,
@@ -383,6 +384,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
       callableFirstParameters,
       callableParameterCounts,
       callableResultTypes,
+      callableEffects,
       parameterTypes,
       parameterModes,
       callableNames,
@@ -398,6 +400,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     drop(relocationOwners);
     drop(relocationRows);
     drop(emptyRelocations);
+    drop(callableEffects);
     drop(qualifierRanks);
     drop(qualifierNameLengths);
     drop(qualifierNameStarts);
@@ -435,6 +438,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     borrow mut words callableFirstParameters,
     borrow mut words callableParameterCounts,
     borrow mut words callableResultTypes,
+    borrow mut words callableEffects,
     borrow mut words parameterTypes,
     borrow mut words parameterModes,
     borrow byteview callableNames,
@@ -469,6 +473,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     assert(bufferLength(callableFirstParameters) == 4096);
     assert(bufferLength(callableParameterCounts) == 4096);
     assert(bufferLength(callableResultTypes) == 4096);
+    assert(bufferLength(callableEffects) == 4096);
     assert(bufferLength(parameterTypes) == MAX_PARAMETERS);
     assert(bufferLength(parameterModes) == MAX_PARAMETERS);
     assert(bufferLength(callableNameStarts) == 4096);
@@ -491,7 +496,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     );
     assert(copiedSourceLength == sourceLength);
     utf8 source = freezeUtf8(sourceBytes);
-    region metadata = new region(/* bytes= */ 988160, /* allocations= */ 14);
+    region metadata = new region(/* bytes= */ 1020928, /* allocations= */ 15);
     words symbolOwners = allocate(metadata, /* length= */ 16384);
     words symbolStarts = allocate(metadata, /* length= */ 16384);
     words symbolLengths = allocate(metadata, /* length= */ 16384);
@@ -506,6 +511,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     words functionNameIds = allocate(metadata, /* length= */ 64);
     words localBodyStarts = allocate(metadata, /* length= */ 4096);
     words localBodyLengths = allocate(metadata, /* length= */ 4096);
+    words localCallableEffects = allocate(metadata, /* length= */ 4096);
 
     long imported = 0;
     while (imported < importedCount) limit 16384 {
@@ -544,6 +550,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
       assert(-1 < localBodyStart);
       set(localBodyStarts, callable, localBodyStart);
       set(localBodyLengths, callable, callableBodyLengths[sourceCallable]);
+      set(localCallableEffects, callable, callableEffects[sourceCallable]);
       long ownedParameters = callableParameterCounts[sourceCallable];
       assert(-1 < ownedParameters);
       assert(ownedParameters < MAX_SIGNATURE_TYPES);
@@ -599,6 +606,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
       moduleOwner,
       /* firstCallable= */ 0,
       callableCount,
+      localCallableEffects,
       importedTargetCount,
       importedTargetRows,
       importedTargetParameterRows,
@@ -633,6 +641,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
       identity
     );
 
+    drop(localCallableEffects);
     drop(localBodyLengths);
     drop(localBodyStarts);
     drop(functionNameIds);

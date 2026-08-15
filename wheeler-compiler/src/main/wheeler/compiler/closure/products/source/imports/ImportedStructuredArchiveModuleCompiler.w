@@ -132,6 +132,7 @@ classical class ImportedStructuredArchiveModuleCompiler {
       callableFirstParameters,
       callableParameterCounts,
       callableResultTypes,
+      callableEffects,
       parameterTypes,
       parameterModes,
       callableNames,

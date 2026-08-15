@@ -38,6 +38,20 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
   }
 
   @Test
+  void rejectsAnUnimplementedReversibleEffectBeforePublication() throws Exception {
+    int bodyStart = SOURCE.indexOf("{", SOURCE.indexOf("recurse("));
+    int bodyLength = SourceRanges.matchingClose(SOURCE, bodyStart) - bodyStart + 1;
+    Program driver = driverWithEffect(bodyStart, bodyLength, 1, 1, 0, false, 1, 1, 2);
+    VirtualMachine machine = new VirtualMachine(
+        driver, SOURCE.getBytes(StandardCharsets.UTF_8), 32_768);
+
+    assertThrows(RuntimeException.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
+    assertEquals(0, machine.global("artifactLength"));
+    assertArrayEquals(new byte[32_768], machine.hostOutput());
+  }
+
+  @Test
   void emitsAnImportedCallThroughAVerifiedSignatureStub() throws Exception {
     String source = SOURCE.replace("recurse(value)", "remote(value)")
         .replace("public long recurse", "public long caller")
@@ -345,6 +359,28 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
       boolean imported,
       int importedParameterType,
       int importedResultType) throws Exception {
+    return driverWithEffect(
+        bodyStart,
+        bodyLength,
+        parameterCount,
+        firstType,
+        secondType,
+        imported,
+        importedParameterType,
+        importedResultType,
+        0);
+  }
+
+  private static Program driverWithEffect(
+      int bodyStart,
+      int bodyLength,
+      int parameterCount,
+      int firstType,
+      int secondType,
+      boolean imported,
+      int importedParameterType,
+      int importedResultType,
+      int callableEffect) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.structured_source_module_compiler"));
@@ -380,7 +416,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
           state long resolvedFunctionTarget = -1;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 2903936, /* allocations= */ 20);
+            region products = new region(/* bytes= */ 2936704, /* allocations= */ 21);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words symbolOwners = allocate(products, /* length= */ 16384);
@@ -391,6 +427,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             words symbolResolved = allocate(products, /* length= */ 16384);
             words signatureTypes = allocate(products, /* length= */ 12288);
             words parameterCounts = allocate(products, /* length= */ 64);
+            words callableEffects = allocate(products, /* length= */ 4096);
             bytes strings = allocateBytes(products, /* length= */ 32768);
             words stringStarts = allocate(products, /* length= */ 256);
             words stringLengths = allocate(products, /* length= */ 256);
@@ -420,6 +457,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             set(signatureTypes, 4097, 1);
             set(signatureTypes, 8193, SECOND_TYPE);
             set(parameterCounts, 0, PARAMETER_COUNT);
+            set(callableEffects, 0, CALLABLE_EFFECT);
             writeAscii(strings, 0, "$library");
             writeAscii(strings, 8, "StructuredCall");
             writeAscii(strings, 22, "example.structured_call::recurse");
@@ -436,6 +474,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
               /* moduleOwner= */ 0,
               /* firstCallable= */ 0,
               /* callableCount= */ 1,
+              callableEffects,
               /* importedTargetCount= */ IMPORTED_COUNT,
               importedRows,
               importedParameterRows,
@@ -574,6 +613,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             drop(stringLengths);
             drop(stringStarts);
             drop(strings);
+            drop(callableEffects);
             drop(parameterCounts);
             drop(signatureTypes);
             drop(symbolResolved);
@@ -592,6 +632,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             .replace("PARAMETER_COUNT", Integer.toString(parameterCount))
             .replace("FIRST_TYPE", Integer.toString(firstType))
             .replace("SECOND_TYPE", Integer.toString(secondType))
+            .replace("CALLABLE_EFFECT", Integer.toString(callableEffect))
             .replace("IMPORTED_COUNT", imported ? "2" : "0")
             .replace("IMPORTED_SETUP", imported
                 ? "writeAscii(importedNames, 0, \"remoteunused\");\n"

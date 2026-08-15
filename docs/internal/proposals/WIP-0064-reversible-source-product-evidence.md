@@ -39,9 +39,13 @@ The admitted straight-line inverse profile has no allocation, drop, move, loan, 
 - 4,096 proof products per closure
 - 32,768-byte source-local artifact
 
+## Implementation
+
+`ArchiveStructuredSourceModuleCompiler.w` copies each owner-local effect mask beside its rebased body and signature rows. `StructuredSourceModuleCompiler.w` now requires the complete 4,096-row effect view before allocating product storage. The ordinary path accepts only mask zero. A reversible mask traps while artifact and identity outputs retain their sentinels.
+
 ## Plan
 
-1. [ ] Carry local callable effect rows into `StructuredSourceModuleCompiler.w`.
+1. [x] Carry local callable effect rows into `StructuredSourceModuleCompiler.w`.
 2. [ ] Select reversible callables before forward composition and reject mixed unsupported effects.
 3. [ ] Require zero forward ownership events for the admitted straight-line inverse profile.
 4. [ ] Generate inverse code and inverse relocation rows from completed callable coordinates.

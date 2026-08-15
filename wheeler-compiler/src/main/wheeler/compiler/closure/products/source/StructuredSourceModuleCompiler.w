@@ -42,6 +42,7 @@ classical class StructuredSourceModuleCompiler {
     long moduleOwner,
     long firstCallable,
     long callableCount,
+    borrow mut words callableEffects,
     long importedTargetCount,
     borrow mut words importedTargetRows,
     borrow mut words importedTargetParameterRows,
@@ -81,6 +82,13 @@ classical class StructuredSourceModuleCompiler {
     assert(-1 < firstCallable);
     assert(0 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
+    assert(bufferLength(callableEffects) == 4096);
+    long validatedCallable = 0;
+    while (validatedCallable < callableCount) limit MAX_CALLABLES {
+      assert(callableEffects[firstCallable + validatedCallable] == 0);
+      validatedCallable += 1;
+    }
+
     assert(-1 < importedTargetCount);
     assert(importedTargetCount < 4097);
     assert(importedTargetCount < 4096 - callableCount + 1);
