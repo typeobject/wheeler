@@ -84,17 +84,18 @@ final class SourceModuleLinker {
       for (Function function : module.functions()) {
         functions.add(linkFunction(moduleName, function, references, types));
       }
-      if (moduleName.equals(rootName)) {
-        for (ProofDeclaration proof : module.proofs()) {
-          proofs.add(new ProofDeclaration(
-              proof.name(),
-              proof.rule(),
-              resolve(references, proof.subject(), proof.line()),
-              proof.relatedSubject() == null
-                  ? null : resolve(references, proof.relatedSubject(), proof.line()),
-              proof.argument(),
-              proof.line()));
-        }
+      for (ProofDeclaration proof : module.proofs()) {
+        String proofName = moduleName.equals(rootName)
+            ? proof.name()
+            : linkedName(moduleName, proof.name());
+        proofs.add(new ProofDeclaration(
+            proofName,
+            proof.rule(),
+            resolve(references, proof.subject(), proof.line()),
+            proof.relatedSubject() == null
+                ? null : resolve(references, proof.relatedSubject(), proof.line()),
+            proof.argument(),
+            proof.line()));
       }
     }
 
@@ -176,7 +177,6 @@ final class SourceModuleLinker {
       }
     }
     if (!root && (!module.states().isEmpty()
-        || !module.proofs().isEmpty()
         || !module.quantumRegisters().isEmpty()
         || !module.circuits().isEmpty())) {
       fail("dependency modules currently contain functions and value types only: " + expectedName);

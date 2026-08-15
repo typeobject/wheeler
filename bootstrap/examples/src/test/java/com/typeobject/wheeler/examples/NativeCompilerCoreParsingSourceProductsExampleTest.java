@@ -316,7 +316,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
           state long secondLoopOwner = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 21797472, /* allocations= */ 67);
+            region products = new region(/* bytes= */ 21830240, /* allocations= */ 68);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -374,6 +374,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             words globalFirstParameters = allocate(products, /* length= */ 4096);
             words globalParameterCounts = allocate(products, /* length= */ 4096);
             words globalResultTypes = allocate(products, /* length= */ 4096);
+            words globalEffects = allocate(products, /* length= */ 4096);
             words globalParameterTypes = allocate(products, /* length= */ 16384);
             words globalParameterModes = allocate(products, /* length= */ 16384);
             words callableNameStarts = allocate(products, /* length= */ 4096);
@@ -782,6 +783,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               globalFirstParameters,
               globalParameterCounts,
               globalResultTypes,
+              globalEffects,
               globalParameterTypes,
               globalParameterModes,
               binarySource,
@@ -924,6 +926,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             drop(callableNameStarts);
             drop(globalParameterModes);
             drop(globalParameterTypes);
+            drop(globalEffects);
             drop(globalResultTypes);
             drop(globalParameterCounts);
             drop(globalFirstParameters);

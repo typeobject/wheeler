@@ -122,6 +122,25 @@ final class NativeCompilerArchiveClosureExampleTest {
   }
 
   @Test
+  void routesThePhysicalReversibleModuleThroughDirectProducts() throws Exception {
+    var module = NativeCompilerArchiveClosureProgram.PHYSICAL_REVERSIBLE_MODULE;
+    Program compiled = new WheelerCompiler().compileLibraryModuleFiles(
+        CompilerSources.moduleClosure(module.name()), module.name());
+    var function = compiled.functions().stream()
+        .filter(candidate -> candidate.name().endsWith("::nextSourceToken"))
+        .findFirst()
+        .orElseThrow();
+    Program productProgram = NativeCompilerArchiveClosureProgram.reversibleProductProgram();
+
+    assertTrue(productProgram.functions().stream().anyMatch(candidate -> candidate.name().equals(
+        "wheeler.compiler.closure.compiled_callable_bodies"
+            + "::compileStructuredArchiveModuleProduct")));
+    assertTrue(function.reversible());
+    assertEquals(function.forward(), function.inverse());
+    assertEquals(1, compiled.proofCertificates().size());
+  }
+
+  @Test
   void physicalProductOwnersTrackTheCanonicalModuleManifest() throws Exception {
     assertPhysicalProductOwners(CompilerSources.bootstrapModuleManifest());
   }
@@ -250,7 +269,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     String linkedIdentity = HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(functionMachine.hostOutput()));
     assertEquals(
-        2_439_963_404L,
+        1_123_755_081L,
         functionMachine.global("linkedIdentityPrefix"),
         () -> "sha256=" + linkedIdentity
             + " code=" + functionMachine.global("linkedCodeLength")
@@ -261,7 +280,7 @@ final class NativeCompilerArchiveClosureExampleTest {
             + " localTypes=" + functionMachine.global("linkedLocalTypeCount")
             + " container=" + functionMachine.global("linkedContainerLength"));
     assertEquals(
-        "916ee30cefb4cb697aed7da8e9670e889e5b6a040d08ed814aa92a09a28c7a82",
+        "42fb244943c1831e1a544087d31af0d93732decd0f6462ffadad7702f137a820",
         linkedIdentity,
         () -> "code=" + functionMachine.global("linkedCodeLength")
             + " functions=" + functionMachine.global("functionCount")
@@ -287,7 +306,7 @@ final class NativeCompilerArchiveClosureExampleTest {
         functionClosure, physicalProducts, 4_194_304);
     CompilerMachineRunner.runWithoutRewindHistory(repeatedFunctionMachine);
     assertEquals(1, repeatedFunctionMachine.global("published"));
-    assertEquals(2_439_963_404L, repeatedFunctionMachine.global("linkedIdentityPrefix"));
+    assertEquals(1_123_755_081L, repeatedFunctionMachine.global("linkedIdentityPrefix"));
     assertArrayEquals(
         functionMachine.hostOutput(), repeatedFunctionMachine.hostOutput());
 

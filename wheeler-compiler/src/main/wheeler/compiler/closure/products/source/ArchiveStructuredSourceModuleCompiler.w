@@ -338,6 +338,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     borrow mut words callableFirstParameters,
     borrow mut words callableParameterCounts,
     borrow mut words callableResultTypes,
+    borrow mut words callableEffects,
     borrow mut words parameterTypes,
     borrow mut words parameterModes,
     borrow byteview callableNames,
@@ -346,7 +347,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     borrow mut bytes artifact,
     borrow mut bytes identity
   ) {
-    region emptyTargets = new region(/* bytes= */ 1835008, /* allocations= */ 8);
+    region emptyTargets = new region(/* bytes= */ 1802240, /* allocations= */ 7);
     words importedTargetRows = allocate(emptyTargets, /* length= */ 32768);
     words importedTargetParameterRows = allocate(emptyTargets, /* length= */ 32768);
     bytes importedTargetNames = allocateBytes(emptyTargets, /* length= */ 1048576);
@@ -358,7 +359,6 @@ classical class ArchiveStructuredSourceModuleCompiler {
     words qualifierNameStarts = allocate(emptyTargets, /* length= */ 4096);
     words qualifierNameLengths = allocate(emptyTargets, /* length= */ 4096);
     words qualifierRanks = allocate(emptyTargets, /* length= */ 4096);
-    words callableEffects = allocate(emptyTargets, /* length= */ 4096);
     SourceProductArtifactPlan result = compileStructuredArchiveModuleWithTargetView(
       archive,
       sourceStart,
@@ -400,7 +400,6 @@ classical class ArchiveStructuredSourceModuleCompiler {
     drop(relocationOwners);
     drop(relocationRows);
     drop(emptyRelocations);
-    drop(callableEffects);
     drop(qualifierRanks);
     drop(qualifierNameLengths);
     drop(qualifierNameStarts);

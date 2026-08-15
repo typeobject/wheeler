@@ -91,7 +91,11 @@ final class NativeCompilerPhysicalProductSource {
               }
             }
             CompiledCallableBody physicalModule = new CompiledCallableBody(0, 0, 0, 0);
-            if (physicalOwner == STRUCTURED_SOURCE_MODULE_OWNER) {
+            boolean directSourceModule = physicalOwner == STRUCTURED_SOURCE_MODULE_OWNER;
+            if (physicalOwner == REVERSIBLE_SOURCE_MODULE_OWNER) {
+              directSourceModule = true;
+            }
+            if (directSourceModule) {
               SourceProductArtifactPlan directArtifact = compileStructuredArchiveModuleProduct(
                 archive,
                 archiveSourceStarts[physicalOwner],
@@ -108,6 +112,7 @@ final class NativeCompilerPhysicalProductSource {
                 callableFirstParameters,
                 callableParameterCounts,
                 physicalResultTypes,
+                callableEffects,
                 physicalParameterTypes,
                 parameterModes,
                 callableProductNames,

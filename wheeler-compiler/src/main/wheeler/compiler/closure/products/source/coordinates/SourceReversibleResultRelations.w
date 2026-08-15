@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.source_reversible_result_relations;
 
+import wheeler.compiler.closure.reversible_token_coordinates;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
@@ -74,7 +75,7 @@ classical class SourceReversibleResultRelations {
       return new SourceReversibleResultRelation(0, 0, 0, 0, 0, false);
     }
 
-    long leftToken = token + 1;
+    long leftToken = nextSourceToken(token);
     if (tokenKinds[leftToken] != 1) {
       return new SourceReversibleResultRelation(0, 0, 0, 0, 0, false);
     }

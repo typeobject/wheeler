@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler compiler, ownership, proof, and bootstrap maintainers |
 | Created | 2026-08-15 |
 | Updated | 2026-08-15 |
@@ -49,6 +49,8 @@ The reversible branch stages the complete forward artifact and identity privatel
 
 `ReversibleResultComposition.w` replaces the ordinary terminal move and value return with `RESULT_FILL_SOURCE` and `RETURN_RESULT_SLOT`. It changes the former return temporary into the Boolean presence local, appends the exact signed payload local, and rebases later callable type starts before forward artifact staging. The native function verifier now accepts canonical non-reversible result-slot staging descriptors and applies the same forward slot checks that it applies before inverse publication. The complete signed identity fixture matches stage 0 byte for byte through `StructuredSourceModuleCompiler.w`.
 
+`ReversibleTokenCoordinates.w` is the first physical reversible compiler module on the direct path. `CompiledCallableBodies.w` now carries its closed WIP-0045 effect row into archive compilation instead of allocating an ordinary zero-effect surrogate. The physical compiler transaction selects the module beside `CoreParsing.w`, emits its inverse and proof without source projection or signature scaffolding, and retains the byte-identical artifact. Stage 0 now qualifies and retains dependency-owned proof declarations, so compiler-module proofs survive closure linking without colliding with root proof names. The 94-product closure retains and links the reversible function into the independently verified 232,552-byte physical container.
+
 ## Plan
 
 1. [x] Carry local callable effect rows into `StructuredSourceModuleCompiler.w`.
@@ -59,8 +61,8 @@ The reversible branch stages the complete forward artifact and identity privatel
 6. [x] Emit staged forward, inverse, proof, and identity bytes under one atomic artifact boundary.
 7. [x] Match the admitted void and signed result-slot stage-0 artifacts byte for byte. WIP-0065 owns Boolean and call profiles.
 8. [x] Execute forward, clear history, execute inverse, and restore exact state for the ownership-free profile.
-9. [ ] Route the first physical reversible compiler module through direct products.
-10. [ ] Remove its stage-0 source projection and signature-scaffolding path.
+9. [x] Route the first physical reversible compiler module through direct products.
+10. [x] Remove its stage-0 source projection and signature-scaffolding path.
 
 ## Acceptance
 
