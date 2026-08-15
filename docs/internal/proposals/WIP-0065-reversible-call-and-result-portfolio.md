@@ -40,12 +40,18 @@ Stage 0 currently admits only the first reversible result-slot profile, which re
 - 4,096 retained imported targets
 - 32,768-byte source-local artifact
 
+## Implementation
+
+`SourceReversibleResultRelations.w` accepts only an identifier, identifier-immediate, or two-identifier return relation with one exact semicolon. It maps the seven admitted checked operations to canonical local opcodes and rejects malformed or trailing tokens. `DirectStatementProducts.w` resolves each source through the existing source-ordered value products and writes the result-slot instruction pair directly. `ReversibleResultComposition.w` accepts either that completed pair or the older one-source move, inserts the presence and payload types once, and leaves completed relation bytes unchanged.
+
+The source-immediate and two-source fixtures pass through `StructuredSourceModuleCompiler.w`, proof publication, inverse generation, final verification, and hashing. Their complete artifacts match stage 0 byte for byte.
+
 ## Plan
 
 1. [ ] Publish the stage-0 Boolean reversible result-slot source profile.
 2. [ ] Extend native result composition to Boolean presence and payload products.
-3. [ ] Match signed and Boolean one-source result artifacts byte for byte.
-4. [ ] Match admitted constant and two-source result relations byte for byte.
+3. [x] Match the admitted signed one-source result artifact byte for byte. Boolean remains gated by item 1.
+4. [x] Match admitted source-immediate and two-source result relations byte for byte.
 5. [ ] Generate local `CALL` and inverse `UNCALL` products from one target identity.
 6. [ ] Rebase imported inverse call relocations after referenced-target filtering.
 7. [ ] Rewrite forward and inverse call operands to final linked function IDs atomically.

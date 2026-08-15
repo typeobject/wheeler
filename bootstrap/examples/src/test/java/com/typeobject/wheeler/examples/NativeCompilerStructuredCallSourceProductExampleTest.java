@@ -39,29 +39,17 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
 
   @Test
   void emitsAReversibleResultSlotArtifact() throws Exception {
-    String source = """
-        module example.structured_call;
+    assertReversibleArtifact("long value", "value", 1);
+  }
 
-        classical class StructuredCall {
-          public rev long recurse(long value) {
-            return value;
-          }
+  @Test
+  void emitsAReversibleImmediateResultRelation() throws Exception {
+    assertReversibleArtifact("long value", "value + 8", 1);
+  }
 
-          theorem recurseInverse proves inverse(recurse);
-        }
-        """;
-    int bodyStart = source.indexOf("{", source.indexOf("recurse("));
-    int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
-    Program driver = driverWithEffect(bodyStart, bodyLength, 1, 1, 0, false, 1, 1, 2);
-    VirtualMachine machine = new VirtualMachine(
-        driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
-
-    CompilerMachineRunner.runWithoutRewindHistory(machine);
-
-    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
-        Map.of("StructuredCall.w", source), MODULE);
-    assertEquals(1, machine.global("valid"));
-    assertArrayEquals(new BytecodeWriter().write(expected), machine.hostOutput());
+  @Test
+  void emitsAReversibleTwoSourceResultRelation() throws Exception {
+    assertReversibleArtifact("long left, long right", "left + right", 2);
   }
 
   @Test
@@ -351,6 +339,38 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
     assertEquals(1, machine.global("valid"));
     assertEquals(expectedBytes.length, machine.global("artifactLength"));
     assertArrayEquals(expectedBytes, machine.hostOutput());
+  }
+
+  private static void assertReversibleArtifact(
+      String parameters,
+      String result,
+      int parameterCount) throws Exception {
+    String source = """
+        module example.structured_call;
+
+        classical class StructuredCall {
+          public rev long recurse(PARAMETERS) {
+            return RESULT;
+          }
+
+          theorem recurseInverse proves inverse(recurse);
+        }
+        """
+        .replace("PARAMETERS", parameters)
+        .replace("RESULT", result);
+    int bodyStart = source.indexOf("{", source.indexOf("recurse("));
+    int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
+    Program driver = driverWithEffect(
+        bodyStart, bodyLength, parameterCount, 1, 1, false, 1, 1, 2);
+    VirtualMachine machine = new VirtualMachine(
+        driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
+
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("StructuredCall.w", source), MODULE);
+    assertEquals(1, machine.global("valid"));
+    assertArrayEquals(new BytecodeWriter().write(expected), machine.hostOutput());
   }
 
   private static Program driver(

@@ -546,6 +546,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             }
             DirectStatementPlan directPlan = materializeDirectStatementProducts(
               input,
+              /* reversibleCallableCount= */ 0,
               loopPlan.statementCount,
               statements,
               /* callCount= */ 0,

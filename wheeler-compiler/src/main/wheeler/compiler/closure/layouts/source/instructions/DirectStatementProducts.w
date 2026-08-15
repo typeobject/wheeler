@@ -5,12 +5,14 @@ module wheeler.compiler.closure.direct_statement_products;
 import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
+import wheeler.compiler.closure.source_reversible_result_relations;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.loop_body_opcodes;
 import wheeler.compiler.opcodes;
+import wheeler.compiler.result_slot_codegen;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 import wheeler.compiler.type_codes;
@@ -171,6 +173,7 @@ classical class DirectStatementProducts {
   /// Emits literal and prior-local declarations plus local returns in source order.
   public DirectStatementPlan materializeDirectStatementProducts(
     borrow utf8 source,
+    long reversibleCallableCount,
     long statementCount,
     borrow mut words statementRows,
     long callCount,
@@ -185,6 +188,8 @@ classical class DirectStatementProducts {
     borrow mut words typeRows,
     borrow mut bytes output
   ) {
+    assert(-1 < reversibleCallableCount);
+    assert(reversibleCallableCount < 65);
     assert(-1 < statementCount);
     assert(statementCount < MAX_STATEMENTS + 1);
     assert(bufferLength(statementRows) == LOOP_STATEMENT_ROWS);
@@ -500,6 +505,20 @@ classical class DirectStatementProducts {
                 }
               } else {
                 if (hash == TOKEN_RETURN) {
+                  SourceReversibleResultRelation resultRelation = sourceReversibleResultRelation(
+                    source,
+                    token,
+                    semanticCount,
+                    tokenKinds,
+                    tokenStarts,
+                    tokenLengths
+                  );
+                  if (0 < reversibleCallableCount) {
+                    if (resultRelation.valid == false) {
+                      statementValid = false;
+                    }
+                  }
+
                   LoopBodyValue returned = resolveLoopBodyValue(
                     source,
                     tokenStarts[token + 1],
@@ -554,6 +573,56 @@ classical class DirectStatementProducts {
                     statementValid = false;
                   }
 
+                  long relationRightLocal = -1;
+                  if (0 < reversibleCallableCount) {
+                    if (returnedType != TYPE_SIGNED) {
+                      statementValid = false;
+                    }
+
+                    if (resultRelation.kind == RESULT_RELATION_BINARY_SOURCES) {
+                      LoopBodyValue relationRight = resolveLoopBodyValue(
+                        source,
+                        tokenStarts[resultRelation.rightToken],
+                        tokenLengths[resultRelation.rightToken],
+                        owner,
+                        statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement],
+                        valueCount,
+                        valueRows
+                      );
+                      if (relationRight.valid == false) {
+                        statementValid = false;
+                      } else {
+                        long relationRightType = loopBodyValueType(
+                          source,
+                          owner,
+                          relationRight.local,
+                          valueCount,
+                          valueRows,
+                          tokenCount,
+                          tokenStarts,
+                          tokenLengths
+                        );
+                        if (relationRightType != TOKEN_LONG) {
+                          statementValid = false;
+                        }
+
+                        relationRightLocal = physicalValueLocal(
+                          owner,
+                          relationRight.local,
+                          statementCount,
+                          statementRows,
+                          statementLocalRows,
+                          valueCount,
+                          valueRows,
+                          statementPhysicalStarts
+                        );
+                        if (relationRightLocal < 0) {
+                          statementValid = false;
+                        }
+                      }
+                    }
+                  }
+
                   long returnLocal = physicalStatementBase;
                   if (returnLocal < 0) {
                     statementValid = false;
@@ -564,21 +633,55 @@ classical class DirectStatementProducts {
                   }
 
                   if (statementValid) {
-                    cursor = writeInstructionHeader(
-                      stagedCode,
-                      cursor,
-                      OPCODE_LOCAL_MOVE,
-                      INSTRUCTION_FORM_BINARY
-                    );
-                    cursor = writeUnsignedLittleEndian(stagedCode, cursor, returnLocal, U64);
-                    cursor = writeUnsignedLittleEndian(stagedCode, cursor, returnedLocal, U64);
-                    cursor = writeInstructionHeader(
-                      stagedCode,
-                      cursor,
-                      OPCODE_RETURN_VALUE,
-                      INSTRUCTION_FORM_UNARY
-                    );
-                    cursor = writeUnsignedLittleEndian(stagedCode, cursor, returnLocal, U64);
+                    if (0 < reversibleCallableCount) {
+                      if (resultRelation.kind == RESULT_RELATION_SOURCE) {
+                        cursor = writeResultSlotSourceBody(
+                          stagedCode,
+                          cursor,
+                          returnLocal,
+                          returnedLocal
+                        );
+                      }
+
+                      if (resultRelation.kind == RESULT_RELATION_BINARY) {
+                        cursor = writeResultSlotBinaryBody(
+                          stagedCode,
+                          cursor,
+                          returnLocal,
+                          returnedLocal,
+                          resultRelation.operation,
+                          resultRelation.immediate
+                        );
+                      }
+
+                      if (resultRelation.kind == RESULT_RELATION_BINARY_SOURCES) {
+                        cursor = writeResultSlotBinarySourcesBody(
+                          stagedCode,
+                          cursor,
+                          returnLocal,
+                          returnedLocal,
+                          resultRelation.operation,
+                          relationRightLocal
+                        );
+                      }
+                    } else {
+                      cursor = writeInstructionHeader(
+                        stagedCode,
+                        cursor,
+                        OPCODE_LOCAL_MOVE,
+                        INSTRUCTION_FORM_BINARY
+                      );
+                      cursor = writeUnsignedLittleEndian(stagedCode, cursor, returnLocal, U64);
+                      cursor = writeUnsignedLittleEndian(stagedCode, cursor, returnedLocal, U64);
+                      cursor = writeInstructionHeader(
+                        stagedCode,
+                        cursor,
+                        OPCODE_RETURN_VALUE,
+                        INSTRUCTION_FORM_UNARY
+                      );
+                      cursor = writeUnsignedLittleEndian(stagedCode, cursor, returnLocal, U64);
+                    }
+
                     set(stagedTypes, typeCount, owner);
                     set(stagedTypes, 4096 + typeCount, returnLocal);
                     set(stagedTypes, 8192 + typeCount, returnedType);

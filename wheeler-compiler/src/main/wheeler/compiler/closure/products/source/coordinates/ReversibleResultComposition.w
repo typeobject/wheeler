@@ -42,11 +42,12 @@ classical class ReversibleResultComposition {
     assert(-1 < codeLength);
     assert(codeLength < MAX_CODE_BYTES + 1);
 
-    region staging = new region(/* bytes= */ 99840, /* allocations= */ 4);
+    region staging = new region(/* bytes= */ 100352, /* allocations= */ 5);
     words stagedTypes = allocate(staging, TYPE_ROWS);
     words moveStarts = allocate(staging, MAX_CALLABLES);
     words returnStarts = allocate(staging, MAX_CALLABLES);
     words returnLocals = allocate(staging, MAX_CALLABLES);
+    words readyRelations = allocate(staging, MAX_CALLABLES);
     boolean valid = true;
     long resultCallableCount = 0;
     long callable = 0;
@@ -137,8 +138,26 @@ classical class ReversibleResultComposition {
 
         if (previousStart < codeStart) {
           valid = false;
+        }
+
+        long relationOpcode = readUnsigned(composedCode, previousStart, 2);
+        long terminalOpcode = readUnsigned(composedCode, terminalStart, 2);
+        boolean readyRelation = terminalOpcode == OPCODE_RETURN_RESULT_SLOT;
+        if (readyRelation) {
+          boolean relationOpcodeValid = relationOpcode == OPCODE_RESULT_FILL_SOURCE;
+          if (relationOpcode == OPCODE_RESULT_FILL_BINARY) {
+            relationOpcodeValid = true;
+          }
+
+          if (relationOpcode == OPCODE_RESULT_FILL_BINARY_SOURCES) {
+            relationOpcodeValid = true;
+          }
+
+          if (relationOpcodeValid == false) {
+            valid = false;
+          }
         } else {
-          if (readUnsigned(composedCode, previousStart, 2) != OPCODE_LOCAL_MOVE) {
+          if (relationOpcode != OPCODE_LOCAL_MOVE) {
             valid = false;
           }
 
@@ -149,10 +168,10 @@ classical class ReversibleResultComposition {
           if (readUnsigned(composedCode, previousStart + 4, 4) != 24) {
             valid = false;
           }
-        }
 
-        if (readUnsigned(composedCode, terminalStart, 2) != OPCODE_RETURN_VALUE) {
-          valid = false;
+          if (terminalOpcode != OPCODE_RETURN_VALUE) {
+            valid = false;
+          }
         }
 
         if (readUnsigned(composedCode, terminalStart + 2, 2) != 1) {
@@ -170,6 +189,10 @@ classical class ReversibleResultComposition {
 
         if (readUnsigned(composedCode, previousStart + 8, 8) != returnLocal) {
           valid = false;
+        }
+
+        if (readyRelation) {
+          set(readyRelations, callable, 1);
         }
 
         if (valid) {
@@ -259,8 +282,11 @@ classical class ReversibleResultComposition {
         long publishedLocalCount = composedCallables[256 + callable];
         if (0 < functionResultTypes[callable]) {
           set(composedCallables, 256 + callable, publishedLocalCount + 1);
-          writeOpcode(OPCODE_RESULT_FILL_SOURCE, composedCode, moveStarts[callable]);
-          writeOpcode(OPCODE_RETURN_RESULT_SLOT, composedCode, returnStarts[callable]);
+          if (readyRelations[callable] == 0) {
+            writeOpcode(OPCODE_RESULT_FILL_SOURCE, composedCode, moveStarts[callable]);
+            writeOpcode(OPCODE_RETURN_RESULT_SLOT, composedCode, returnStarts[callable]);
+          }
+
           publishedTypeStart += publishedLocalCount + 1;
         } else {
           publishedTypeStart += publishedLocalCount;
@@ -272,6 +298,7 @@ classical class ReversibleResultComposition {
       stagedTypeCount = 0;
     }
 
+    drop(readyRelations);
     drop(returnLocals);
     drop(returnStarts);
     drop(moveStarts);

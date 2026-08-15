@@ -590,6 +590,7 @@ classical class StructuredSourceModuleCompiler {
 
     DirectStatementPlan directPlan = materializeDirectStatementProducts(
       source,
+      reversibleCallableCount,
       loopPlan.statementCount,
       statements,
       resolvedCallCount,
