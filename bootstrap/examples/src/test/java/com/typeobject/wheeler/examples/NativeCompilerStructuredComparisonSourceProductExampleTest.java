@@ -200,6 +200,55 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
+  void emitsOneArmRootConditionalReturnProducts() throws Exception {
+    String conditional = SOURCE.replace(
+        "public long copyOffset(",
+        "public boolean copyOffset(").replace(
+            "    long index = 0;\n",
+            "    if (length < sourceStart) {\n"
+                + "      return false;\n"
+                + "    }\n\n"
+                + "    long index = 0;\n").replace(
+                    "    return length;\n",
+                    "    return length < sourceStart;\n");
+
+    assertArtifact(conditional);
+  }
+
+  @Test
+  void rejectsMultipleConditionalReturnChildren() throws Exception {
+    String malformed = SOURCE.replace(
+        "public long copyOffset(",
+        "public boolean copyOffset(").replace(
+            "    long index = 0;\n",
+            "    if (length < sourceStart) {\n"
+                + "      assert(length < sourceStart);\n"
+                + "      return false;\n"
+                + "    }\n\n"
+                + "    long index = 0;\n").replace(
+                    "    return length;\n",
+                    "    return length < sourceStart;\n");
+
+    assertNoArtifact(malformed);
+  }
+
+  @Test
+  void rejectsNonliteralConditionalReturns() throws Exception {
+    String malformed = SOURCE.replace(
+        "public long copyOffset(",
+        "public boolean copyOffset(").replace(
+            "    long index = 0;\n",
+            "    if (length < sourceStart) {\n"
+                + "      return length < sourceStart;\n"
+                + "    }\n\n"
+                + "    long index = 0;\n").replace(
+                    "    return length;\n",
+                    "    return length < sourceStart;\n");
+
+    assertNoArtifact(malformed);
+  }
+
+  @Test
   void emitsOneNestedLoopInsideTheStructuredWindow() throws Exception {
     String nested = SOURCE.replace(
         "      setByte(output, index, source[sourceStart + index]);\n",

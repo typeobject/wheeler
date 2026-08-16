@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.direct_statement_products;
 
 import wheeler.compiler.closure.direct_byte_mutation_products;
+import wheeler.compiler.closure.direct_conditional_return_products;
 import wheeler.compiler.closure.direct_long_declaration_products;
 import wheeler.compiler.closure.direct_scalar_encoding;
 import wheeler.compiler.closure.direct_scalar_relations;
@@ -39,6 +40,7 @@ classical class DirectStatementProducts {
     long length,
     long typeCount,
     long failureStatement,
+    long failureCode,
     boolean valid
   ) {}
 
@@ -99,7 +101,7 @@ classical class DirectStatementProducts {
     assert(bufferLength(typeRows) == TYPE_ROWS);
     assert(bufferLength(output) == MAX_CODE_BYTES);
 
-    region staging = new region(/* bytes= */ 885248, /* allocations= */ 9);
+    region staging = new region(/* bytes= */ 886272, /* allocations= */ 11);
     words tokenKinds = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(staging, MAX_COMPILER_TOKENS);
@@ -108,6 +110,8 @@ classical class DirectStatementProducts {
     words stagedTypes = allocate(staging, TYPE_ROWS);
     words stagedResultTypes = allocate(staging, /* length= */ 64);
     words stagedPhysicalWidths = allocate(staging, MAX_STATEMENTS);
+    words functionInstructionCounts = allocate(staging, /* length= */ 64);
+    words functionPrefixesComplete = allocate(staging, /* length= */ 64);
     bytes stagedCode = allocateBytes(staging, MAX_CODE_BYTES);
     long stagedStatement = 0;
     while (stagedStatement < MAX_STATEMENTS) limit MAX_STATEMENTS {
@@ -118,11 +122,13 @@ classical class DirectStatementProducts {
     long resultCallable = 0;
     while (resultCallable < 64) limit 64 {
       set(stagedResultTypes, resultCallable, functionResultTypes[resultCallable]);
+      set(functionPrefixesComplete, resultCallable, 1);
       resultCallable += 1;
     }
 
     boolean valid = true;
     long failureStatement = -1;
+    long failureCode = 0;
     long tokenCount = 0;
     ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);
     match (scanned) {
@@ -161,69 +167,103 @@ classical class DirectStatementProducts {
         long owner = statementRows[statement];
         long rootBlock = loopBodyRootBlockForOwner(owner, statementCount, statementRows);
         if (statementRows[4096 + statement] == rootBlock) {
-          if (statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement] == 0) {
+          long rootToken = tokenAtStart(
+            statementRows[LOOP_STATEMENT_START_ROW + statement],
+            semanticCount,
+            tokenStarts
+          );
+          long rootHash = 0;
+          if (-1 < rootToken) {
+            rootHash = tokenHash(source, tokenStarts, tokenLengths, rootToken);
+          }
+
+          long childCount = statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement];
+          boolean productStatement = childCount == 0;
+          if (childCount == 1) {
+            if (rootHash == TOKEN_IF) {
+              productStatement = true;
+            } else {
+              set(functionPrefixesComplete, owner, 0);
+            }
+          }
+
+          if (productStatement) {
             long physicalStatementBase = statementPhysicalStarts[statement];
-            long token = tokenAtStart(
-              statementRows[LOOP_STATEMENT_START_ROW + statement],
-              semanticCount,
-              tokenStarts
-            );
+            long token = rootToken;
             boolean statementValid = -1 < token;
             long productStart = cursor;
             long productInstructions = 0;
             long productTypeStart = typeCount;
-            long hash = 0;
+            long hash = rootHash;
+            boolean preserveStatementWidth = false;
             boolean selectedCall = -1 < callAtStatement(statement, callCount, callStatements);
-            if (statementValid) {
-              hash = tokenHash(source, tokenStarts, tokenLengths, token);
-            }
-
-            if (hash == TOKEN_LONG) {
-              DirectLongDeclarationProduct declaration = writeDirectLongDeclaration(
-                source,
-                token,
-                semanticCount,
-                tokenKinds,
-                tokenStarts,
-                tokenLengths,
-                moduleOwner,
-                owner,
-                statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement],
-                statementCount,
-                statementRows,
-                statementLocalRows,
-                statementPhysicalStarts,
-                valueCount,
-                valueRows,
-                symbolCount,
-                symbolOwners,
-                symbolStarts,
-                symbolLengths,
-                symbolTypes,
-                symbolValues,
-                symbolResolved,
-                stagedTypes,
-                typeCount,
-                stagedCode,
-                cursor,
-                physicalStatementBase
-              );
-              if (declaration.valid) {
-                cursor = declaration.next;
-                typeCount = declaration.typeCount;
-                productInstructions = declaration.instructionCount;
-              } else {
+            if (hash == TOKEN_IF) {
+              if (0 < reversibleCallableCount) {
                 statementValid = false;
               }
-            } else {
-              if (hash == TOKEN_SET_BYTE) {
-                DirectByteMutationProduct mutation = writeDirectByteMutation(
+
+              if (functionPrefixesComplete[owner] != 1) {
+                statementValid = false;
+              }
+
+              if (statementValid) {
+                DirectConditionalReturnProduct conditional = writeDirectConditionalReturn(
                   source,
                   token,
                   semanticCount,
                   tokenKinds,
                   tokenStarts,
                   tokenLengths,
+                  moduleOwner,
+                  owner,
+                  statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement],
+                  statement,
+                  statementCount,
+                  statementRows,
+                  statementLocalRows,
+                  statementPhysicalStarts,
+                  valueCount,
+                  valueRows,
+                  symbolCount,
+                  symbolOwners,
+                  symbolStarts,
+                  symbolLengths,
+                  symbolTypes,
+                  symbolValues,
+                  symbolResolved,
+                  stagedTypes,
+                  typeCount,
+                  stagedCode,
+                  cursor,
+                  functionInstructionCounts[owner]
+                );
+                if (conditional.valid) {
+                  cursor = conditional.next;
+                  typeCount = conditional.typeCount;
+                  productInstructions = conditional.instructionCount;
+                  preserveStatementWidth = true;
+                  if (stagedResultTypes[owner] == 0) {
+                    set(stagedResultTypes, owner, conditional.resultType);
+                  } else {
+                    if (stagedResultTypes[owner] != conditional.resultType) {
+                      statementValid = false;
+                    }
+                  }
+                } else {
+                  failureCode = conditional.failureCode;
+                  statementValid = false;
+                }
+              }
+            } else {
+              if (hash == TOKEN_LONG) {
+                DirectLongDeclarationProduct declaration = writeDirectLongDeclaration(
+                  source,
+                  token,
+                  semanticCount,
+                  tokenKinds,
+                  tokenStarts,
+                  tokenLengths,
+                  moduleOwner,
                   owner,
                   statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement],
                   statementCount,
@@ -232,58 +272,79 @@ classical class DirectStatementProducts {
                   statementPhysicalStarts,
                   valueCount,
                   valueRows,
+                  symbolCount,
+                  symbolOwners,
+                  symbolStarts,
+                  symbolLengths,
+                  symbolTypes,
+                  symbolValues,
+                  symbolResolved,
                   stagedTypes,
                   typeCount,
                   stagedCode,
                   cursor,
                   physicalStatementBase
                 );
-                if (mutation.valid) {
-                  cursor = mutation.next;
-                  typeCount = mutation.typeCount;
-                  productInstructions = 4;
+                if (declaration.valid) {
+                  cursor = declaration.next;
+                  typeCount = declaration.typeCount;
+                  productInstructions = declaration.instructionCount;
                 } else {
                   statementValid = false;
                 }
               } else {
-                if (hash == TOKEN_ASSERT) {
-                  long ordinal = statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement];
-                  LoopAssertion assertion = resolveLoopAssertion(
+                if (hash == TOKEN_SET_BYTE) {
+                  DirectByteMutationProduct mutation = writeDirectByteMutation(
                     source,
                     token,
-                    owner,
-                    ordinal,
-                    valueCount,
-                    valueRows,
                     semanticCount,
                     tokenKinds,
                     tokenStarts,
-                    tokenLengths
-                  );
-                  if (assertion.valid == false) {
-                    statementValid = false;
-                  }
-
-                  long assertionLocalBase = physicalStatementBase;
-                  long assertionOpcode = physicalDirectAssertionOpcode(
-                    assertion.opcode,
+                    tokenLengths,
                     owner,
+                    statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement],
                     statementCount,
                     statementRows,
                     statementLocalRows,
+                    statementPhysicalStarts,
                     valueCount,
                     valueRows,
-                    statementPhysicalStarts
+                    stagedTypes,
+                    typeCount,
+                    stagedCode,
+                    cursor,
+                    physicalStatementBase
                   );
-                  if (assertionOpcode < 0) {
+                  if (mutation.valid) {
+                    cursor = mutation.next;
+                    typeCount = mutation.typeCount;
+                    productInstructions = 4;
+                  } else {
                     statementValid = false;
                   }
-
-                  long assertionOperand = assertion.operand;
-                  if (assertion.operandKind == 1) {
-                    assertionOperand = physicalValueLocal(
+                } else {
+                  if (hash == TOKEN_ASSERT) {
+                    long ordinal = statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement];
+                    LoopAssertion assertion = resolveLoopAssertion(
+                      source,
+                      token,
                       owner,
-                      assertion.operand,
+                      ordinal,
+                      valueCount,
+                      valueRows,
+                      semanticCount,
+                      tokenKinds,
+                      tokenStarts,
+                      tokenLengths
+                    );
+                    if (assertion.valid == false) {
+                      statementValid = false;
+                    }
+
+                    long assertionLocalBase = physicalStatementBase;
+                    long assertionOpcode = physicalDirectAssertionOpcode(
+                      assertion.opcode,
+                      owner,
                       statementCount,
                       statementRows,
                       statementLocalRows,
@@ -291,206 +352,223 @@ classical class DirectStatementProducts {
                       valueRows,
                       statementPhysicalStarts
                     );
-                    if (assertionOperand < 0) {
-                      statementValid = false;
-                    }
-                  }
-
-                  if (statementValid) {
-                    set(assertionBody, BODY_LOCAL_BASE_ROW, assertionLocalBase);
-                    set(assertionBody, BODY_OPCODE_ROW, assertionOpcode);
-                    set(assertionBody, BODY_OPERAND_KIND_ROW, assertion.operandKind);
-                    set(assertionBody, BODY_OPERAND_ROW, assertionOperand);
-                    long next = writeLoopBodyInstructionProduct(
-                      stagedCode,
-                      cursor,
-                      /* body= */ 0,
-                      assertionBody
-                    );
-                    if (next < 0) {
-                      statementValid = false;
-                    } else {
-                      long localCount = loopBodyLocalCount(assertion.opcode, assertion.operand);
-                      if (localCount < 1) {
-                        statementValid = false;
-                      } else {
-                        long localOffset = 0;
-                        while (localOffset < localCount) limit 3 {
-                          long localType = TYPE_SIGNED;
-                          if (localOffset == localCount - 1) {
-                            localType = TYPE_BOOLEAN;
-                          }
-
-                          if (assertion.opcode == BODY_ASSERT_BOOLEAN) {
-                            localType = TYPE_BOOLEAN;
-                          }
-
-                          set(stagedTypes, typeCount, owner);
-                          set(stagedTypes, 4096 + typeCount, assertionLocalBase + localOffset);
-                          set(stagedTypes, 8192 + typeCount, localType);
-                          typeCount += 1;
-                          localOffset += 1;
-                        }
-
-                        cursor = next;
-                        LoopBodyInstructionExtent extent = loopBodyInstructionExtent(
-                          assertionOpcode,
-                          assertionOperand
-                        );
-                        if (extent.valid) {
-                          productInstructions = extent.instructionCount;
-                        } else {
-                          statementValid = false;
-                        }
-                      }
-                    }
-                  }
-                } else {
-                  if (hash == TOKEN_RETURN) {
-                    DirectScalarRelationProduct relation = resolveDirectScalarRelation(
-                      source,
-                      token + 1,
-                      semanticCount,
-                      tokenKinds,
-                      tokenStarts,
-                      tokenLengths,
-                      moduleOwner,
-                      owner,
-                      statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement],
-                      statementCount,
-                      statementRows,
-                      statementLocalRows,
-                      statementPhysicalStarts,
-                      valueCount,
-                      valueRows,
-                      symbolCount,
-                      symbolOwners,
-                      symbolStarts,
-                      symbolLengths,
-                      symbolTypes,
-                      symbolValues,
-                      symbolResolved
-                    );
-                    if (relation.valid == false) {
+                    if (assertionOpcode < 0) {
                       statementValid = false;
                     }
 
-                    long returnedType = directRelationResultType(
-                      relation.operation,
-                      relation.leftType
-                    );
-                    if (returnedType < 0) {
-                      statementValid = false;
-                    }
-
-                    if (stagedResultTypes[owner] == 0) {
-                      set(stagedResultTypes, owner, returnedType);
-                    } else {
-                      if (stagedResultTypes[owner] != returnedType) {
+                    long assertionOperand = assertion.operand;
+                    if (assertion.operandKind == 1) {
+                      assertionOperand = physicalValueLocal(
+                        owner,
+                        assertion.operand,
+                        statementCount,
+                        statementRows,
+                        statementLocalRows,
+                        valueCount,
+                        valueRows,
+                        statementPhysicalStarts
+                      );
+                      if (assertionOperand < 0) {
                         statementValid = false;
                       }
-                    }
-
-                    if (
-                      directReturnTypesValid(
-                        reversibleCallableCount,
-                        relation.kind,
-                        relation.operation,
-                        relation.leftType,
-                        relation.rightType
-                      ) == false
-                    ) {
-                      statementValid = false;
-                    }
-
-                    long returnLocal = physicalStatementBase;
-                    if (returnLocal < 0) {
-                      statementValid = false;
-                    }
-
-                    if (255 < returnLocal) {
-                      statementValid = false;
                     }
 
                     if (statementValid) {
-                      long returnWidth = 1;
-                      if (0 < reversibleCallableCount) {
-                        if (relation.kind == RESULT_RELATION_SOURCE) {
-                          cursor = writeResultSlotSourceBody(
-                            stagedCode,
-                            cursor,
-                            returnLocal,
-                            relation.left
-                          );
-                        }
-
-                        if (relation.kind == RESULT_RELATION_BINARY) {
-                          cursor = writeResultSlotBinaryBody(
-                            stagedCode,
-                            cursor,
-                            returnLocal,
-                            relation.left,
-                            relation.operation,
-                            relation.immediate
-                          );
-                        }
-
-                        if (relation.kind == RESULT_RELATION_BINARY_SOURCES) {
-                          cursor = writeResultSlotBinarySourcesBody(
-                            stagedCode,
-                            cursor,
-                            returnLocal,
-                            relation.left,
-                            relation.operation,
-                            relation.right
-                          );
-                        }
-
-                        productInstructions = 2;
+                      set(assertionBody, BODY_LOCAL_BASE_ROW, assertionLocalBase);
+                      set(assertionBody, BODY_OPCODE_ROW, assertionOpcode);
+                      set(assertionBody, BODY_OPERAND_KIND_ROW, assertion.operandKind);
+                      set(assertionBody, BODY_OPERAND_ROW, assertionOperand);
+                      long next = writeLoopBodyInstructionProduct(
+                        stagedCode,
+                        cursor,
+                        /* body= */ 0,
+                        assertionBody
+                      );
+                      if (next < 0) {
+                        statementValid = false;
                       } else {
-                        DirectReturnExtent written = writeDirectReturn(
-                          stagedCode,
-                          cursor,
-                          relation.kind,
-                          returnLocal,
-                          relation.left,
-                          relation.operation,
-                          relation.right,
-                          relation.immediate
-                        );
-                        if (written.valid) {
-                          cursor = written.next;
-                          productInstructions = written.instructionCount;
-                          returnWidth = written.localCount;
-                        } else {
+                        long localCount = loopBodyLocalCount(assertion.opcode, assertion.operand);
+                        if (localCount < 1) {
                           statementValid = false;
-                        }
-                      }
-
-                      if (statementValid) {
-                        long returnOffset = 0;
-                        while (returnOffset < returnWidth) limit 3 {
-                          long returnLocalType = returnedType;
-                          if (relation.kind != RESULT_RELATION_SOURCE) {
-                            if (returnOffset == 0) {
-                              returnLocalType = directReturnType(relation.leftType);
+                        } else {
+                          long localOffset = 0;
+                          while (localOffset < localCount) limit 3 {
+                            long localType = TYPE_SIGNED;
+                            if (localOffset == localCount - 1) {
+                              localType = TYPE_BOOLEAN;
                             }
 
-                            if (returnOffset == 1) {
-                              returnLocalType = directReturnType(relation.rightType);
+                            if (assertion.opcode == BODY_ASSERT_BOOLEAN) {
+                              localType = TYPE_BOOLEAN;
                             }
+
+                            set(stagedTypes, typeCount, owner);
+                            set(stagedTypes, 4096 + typeCount, assertionLocalBase + localOffset);
+                            set(stagedTypes, 8192 + typeCount, localType);
+                            typeCount += 1;
+                            localOffset += 1;
                           }
 
-                          set(stagedTypes, typeCount, owner);
-                          set(stagedTypes, 4096 + typeCount, returnLocal + returnOffset);
-                          set(stagedTypes, 8192 + typeCount, returnLocalType);
-                          typeCount += 1;
-                          returnOffset += 1;
+                          cursor = next;
+                          LoopBodyInstructionExtent extent = loopBodyInstructionExtent(
+                            assertionOpcode,
+                            assertionOperand
+                          );
+                          if (extent.valid) {
+                            productInstructions = extent.instructionCount;
+                          } else {
+                            statementValid = false;
+                          }
                         }
                       }
                     }
                   } else {
-                    statementValid = false;
+                    if (hash == TOKEN_RETURN) {
+                      DirectScalarRelationProduct relation = resolveDirectScalarRelation(
+                        source,
+                        token + 1,
+                        semanticCount,
+                        tokenKinds,
+                        tokenStarts,
+                        tokenLengths,
+                        moduleOwner,
+                        owner,
+                        statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement],
+                        statementCount,
+                        statementRows,
+                        statementLocalRows,
+                        statementPhysicalStarts,
+                        valueCount,
+                        valueRows,
+                        symbolCount,
+                        symbolOwners,
+                        symbolStarts,
+                        symbolLengths,
+                        symbolTypes,
+                        symbolValues,
+                        symbolResolved
+                      );
+                      if (relation.valid == false) {
+                        statementValid = false;
+                      }
+
+                      long returnedType = directRelationResultType(
+                        relation.operation,
+                        relation.leftType
+                      );
+                      if (returnedType < 0) {
+                        statementValid = false;
+                      }
+
+                      if (stagedResultTypes[owner] == 0) {
+                        set(stagedResultTypes, owner, returnedType);
+                      } else {
+                        if (stagedResultTypes[owner] != returnedType) {
+                          statementValid = false;
+                        }
+                      }
+
+                      if (
+                        directReturnTypesValid(
+                          reversibleCallableCount,
+                          relation.kind,
+                          relation.operation,
+                          relation.leftType,
+                          relation.rightType
+                        ) == false
+                      ) {
+                        statementValid = false;
+                      }
+
+                      long returnLocal = physicalStatementBase;
+                      if (returnLocal < 0) {
+                        statementValid = false;
+                      }
+
+                      if (255 < returnLocal) {
+                        statementValid = false;
+                      }
+
+                      if (statementValid) {
+                        long returnWidth = 1;
+                        if (0 < reversibleCallableCount) {
+                          if (relation.kind == RESULT_RELATION_SOURCE) {
+                            cursor = writeResultSlotSourceBody(
+                              stagedCode,
+                              cursor,
+                              returnLocal,
+                              relation.left
+                            );
+                          }
+
+                          if (relation.kind == RESULT_RELATION_BINARY) {
+                            cursor = writeResultSlotBinaryBody(
+                              stagedCode,
+                              cursor,
+                              returnLocal,
+                              relation.left,
+                              relation.operation,
+                              relation.immediate
+                            );
+                          }
+
+                          if (relation.kind == RESULT_RELATION_BINARY_SOURCES) {
+                            cursor = writeResultSlotBinarySourcesBody(
+                              stagedCode,
+                              cursor,
+                              returnLocal,
+                              relation.left,
+                              relation.operation,
+                              relation.right
+                            );
+                          }
+
+                          productInstructions = 2;
+                        } else {
+                          DirectReturnExtent written = writeDirectReturn(
+                            stagedCode,
+                            cursor,
+                            relation.kind,
+                            returnLocal,
+                            relation.left,
+                            relation.operation,
+                            relation.right,
+                            relation.immediate
+                          );
+                          if (written.valid) {
+                            cursor = written.next;
+                            productInstructions = written.instructionCount;
+                            returnWidth = written.localCount;
+                          } else {
+                            statementValid = false;
+                          }
+                        }
+
+                        if (statementValid) {
+                          long returnOffset = 0;
+                          while (returnOffset < returnWidth) limit 3 {
+                            long returnLocalType = returnedType;
+                            if (relation.kind != RESULT_RELATION_SOURCE) {
+                              if (returnOffset == 0) {
+                                returnLocalType = directReturnType(relation.leftType);
+                              }
+
+                              if (returnOffset == 1) {
+                                returnLocalType = directReturnType(relation.rightType);
+                              }
+                            }
+
+                            set(stagedTypes, typeCount, owner);
+                            set(stagedTypes, 4096 + typeCount, returnLocal + returnOffset);
+                            set(stagedTypes, 8192 + typeCount, returnLocalType);
+                            typeCount += 1;
+                            returnOffset += 1;
+                          }
+                        }
+                      }
+                    } else {
+                      statementValid = false;
+                    }
                   }
                 }
               }
@@ -500,6 +578,7 @@ classical class DirectStatementProducts {
               statementValid = true;
               cursor = productStart;
               typeCount = productTypeStart;
+              set(functionPrefixesComplete, owner, 0);
             }
 
             if (statementValid) {
@@ -511,7 +590,15 @@ classical class DirectStatementProducts {
                 set(stagedRows, 16384 + productCount, cursor - productStart);
                 set(stagedRows, 20480 + productCount, productTypeStart);
                 set(stagedRows, 24576 + productCount, typeCount - productTypeStart);
-                set(stagedPhysicalWidths, statement, typeCount - productTypeStart);
+                if (preserveStatementWidth == false) {
+                  set(stagedPhysicalWidths, statement, typeCount - productTypeStart);
+                }
+
+                set(
+                  functionInstructionCounts,
+                  owner,
+                  functionInstructionCounts[owner] + productInstructions
+                );
                 instructionCount += productInstructions;
                 productCount += 1;
               }
@@ -566,6 +653,8 @@ classical class DirectStatementProducts {
     }
 
     drop(stagedCode);
+    drop(functionPrefixesComplete);
+    drop(functionInstructionCounts);
     drop(stagedPhysicalWidths);
     drop(stagedResultTypes);
     drop(stagedTypes);
@@ -576,9 +665,17 @@ classical class DirectStatementProducts {
     drop(tokenKinds);
     drop(staging);
     if (valid == false) {
-      return new DirectStatementPlan(0, 0, 0, 0, failureStatement, false);
+      return new DirectStatementPlan(0, 0, 0, 0, failureStatement, failureCode, false);
     }
 
-    return new DirectStatementPlan(productCount, instructionCount, cursor, typeCount, -1, true);
+    return new DirectStatementPlan(
+      productCount,
+      instructionCount,
+      cursor,
+      typeCount,
+      -1,
+      0,
+      true
+    );
   }
 }

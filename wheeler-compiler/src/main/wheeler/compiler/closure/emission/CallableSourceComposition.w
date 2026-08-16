@@ -223,6 +223,7 @@ classical class CallableSourceComposition {
               long codeLength = 0;
               long productInstructionCount = 0;
               boolean callProduct = false;
+              boolean directProduct = false;
               if (statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement] == 0) {
                 long call = callAtStatement(statement, callCount, callStatements);
                 if (-1 < call) {
@@ -240,17 +241,27 @@ classical class CallableSourceComposition {
                     codeLength = directRows[16384 + direct];
                     productInstructionCount = directRows[8192 + direct];
                     consumedDirect += 1;
+                    directProduct = true;
                   }
                 }
               } else {
-                long loop = loopAtStatement(statement, loopCount, loopRows, statementRows);
-                if (loop < 0) {
-                  valid = false;
+                long structuredDirect = directAtStatement(statement, directCount, directRows);
+                if (-1 < structuredDirect) {
+                  codeStart = directRows[12288 + structuredDirect];
+                  codeLength = directRows[16384 + structuredDirect];
+                  productInstructionCount = directRows[8192 + structuredDirect];
+                  consumedDirect += 1;
+                  directProduct = true;
                 } else {
-                  codeStart = loopWindowRows[loop];
-                  codeLength = loopWindowRows[512 + loop];
-                  productInstructionCount = loopWindowRows[256 + loop];
-                  consumedLoops += 1;
+                  long loop = loopAtStatement(statement, loopCount, loopRows, statementRows);
+                  if (loop < 0) {
+                    valid = false;
+                  } else {
+                    codeStart = loopWindowRows[loop];
+                    codeLength = loopWindowRows[512 + loop];
+                    productInstructionCount = loopWindowRows[256 + loop];
+                    consumedLoops += 1;
+                  }
                 }
               }
 
@@ -269,14 +280,14 @@ classical class CallableSourceComposition {
               if (valid) {
                 long codeByte = 0;
                 while (codeByte < codeLength) limit MAX_CODE_BYTES {
-                  if (statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement] == 0) {
+                  if (directProduct) {
+                    setByte(stagedCode, codeCursor, directCode[codeStart + codeByte]);
+                  } else {
                     if (callProduct) {
                       setByte(stagedCode, codeCursor, callCode[codeStart + codeByte]);
                     } else {
-                      setByte(stagedCode, codeCursor, directCode[codeStart + codeByte]);
+                      setByte(stagedCode, codeCursor, loopCode[codeStart + codeByte]);
                     }
-                  } else {
-                    setByte(stagedCode, codeCursor, loopCode[codeStart + codeByte]);
                   }
 
                   codeCursor += 1;

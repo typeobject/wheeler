@@ -483,6 +483,20 @@ classical class SourceValueProducts {
 
           if (-1 < statementToken) {
             long valueHash = tokenHash(source, tokenStarts, tokenLengths, statementToken);
+            if (valueHash == TOKEN_IF) {
+              long rootBlock = loopBodyRootBlockForOwner(
+                localFunction,
+                statementCount,
+                statementRows
+              );
+              if (statementRows[4096 + statement] == rootBlock) {
+                if (statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement] == 1) {
+                  localWidth = 3;
+                  resultLocal = -1;
+                }
+              }
+            }
+
             if (valueHash == TOKEN_LONG) {
               SourceReversibleResultRelation initializerRelation = sourceScalarRelation(
                 source,

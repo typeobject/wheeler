@@ -39,6 +39,9 @@ final class NativeCompilerPhysicalProductSource {
             if (physicalOwner == RESOLVED_LOCAL_LOOP_OPERANDS_MODULE_OWNER) {
               directSourceModule = true;
             }
+            if (physicalOwner == FOUR_ARGUMENT_CALLS_MODULE_OWNER) {
+              directSourceModule = true;
+            }
             long physicalImportedCount = writeDirectImportedValues(
               firstImports[physicalOwner],
               directImportCounts[physicalOwner],
@@ -334,7 +337,12 @@ final class NativeCompilerPhysicalProductSource {
             "RESOLVED_LOCAL_LOOP_OPERANDS_MODULE_OWNER",
             Integer.toString(NativeCompilerArchiveClosureProgram.physicalOwner(
                 NativeCompilerArchiveClosureProgram.physicalModule(
-                    "wheeler.compiler.resolved_local_loop_operands"))));
+                    "wheeler.compiler.resolved_local_loop_operands"))))
+        .replace(
+            "FOUR_ARGUMENT_CALLS_MODULE_OWNER",
+            Integer.toString(NativeCompilerArchiveClosureProgram.physicalOwner(
+                NativeCompilerArchiveClosureProgram.physicalModule(
+                    "wheeler.compiler.four_argument_calls"))));
   }
 
   static String publication() {

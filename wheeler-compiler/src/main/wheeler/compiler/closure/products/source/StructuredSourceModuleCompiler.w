@@ -624,6 +624,7 @@ classical class StructuredSourceModuleCompiler {
       directTypes,
       directCode
     );
+    assert(directPlan.failureCode == 0);
     assert(directPlan.failureStatement == -1);
     assert(directPlan.valid);
     CallableInstructionPrefixPlan instructionPrefixPlan = materializeCallableInstructionPrefixes(
