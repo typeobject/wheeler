@@ -57,7 +57,7 @@ The migration changes the compilation path, not source or output bytes. The comp
 
 Call-conditioned returns remain outside this migration. `ResolvedEarlyResultKinds.w` invokes another classifier inside an `if` condition. The direct condition product requires signed scalar operands and a known source-local instruction prefix. A later call-conditioned product must close call targets, argument windows, result locals, relocations, and branch coordinates together.
 
-A signed constant used as the complete child expression also remains outside the current direct scalar relation. WIP-0075 admits preserved source locals and signed binary relations.
+A signed constant used as the complete child expression remains outside WIP-0075. WIP-0077 adds that exact relation and routes a constant-return mapping module.
 
 ## Evidence
 

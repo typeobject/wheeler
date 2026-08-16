@@ -1,0 +1,107 @@
+# WIP-0077: Exact constant-return products
+
+| Field | Value |
+| --- | --- |
+| Status | Implementing |
+| Owners | Wheeler compiler and bootstrap maintainers |
+| Created | 2026-08-16 |
+| Updated | 2026-08-16 |
+| Area | Self-hosting compiler, constants, return products |
+| Depends on | WIP-0054, WIP-0069, WIP-0075 |
+| Supersedes | Local-only source relation for ordinary signed returns |
+| Superseded by | None |
+
+## Summary
+
+Emit an ordinary signed return from one exact module constant product. The relation uses one signed local, `LOCAL_CONST`, and `RETURN_VALUE`. Root returns and one-arm conditional children share the same relation kind and encoder.
+
+`NamedConditionalBases.w` exercises constant children and final constant returns. Its three functions and 159 instructions produce a 4,592-byte artifact that matches stage 0 byte for byte.
+
+## Problem
+
+The scalar relation parser accepts an identifier followed by a semicolon. The direct resolver previously required that identifier to name a source value. A module constant worked only as the right operand of a binary relation or as a declaration initializer.
+
+Opcode mapping modules often return imported constants directly:
+
+```wheeler
+if (opcode == STATEMENT_IF_LOCAL_EQ_LITERAL_ADD_NAMED) {
+  return STATEMENT_IF_LOCAL_EQ_LITERAL_ADD_BASE;
+}
+```
+
+The parser route could lower this source, but the closed product route could not. Treating the constant value as a local index would emit `LOCAL_MOVE` with an arbitrary operand and corrupt the physical coordinate contract.
+
+## Relation kind
+
+`RESULT_RELATION_CONSTANT` names one signed value from an exact constant product. `DirectScalarRelations.w` resolves the source-anchored identifier through owner, length, type, value, and resolution rows. It requires one signed match and rejects ambiguous, unresolved, nonsigned, or non-source relation forms.
+
+Constant lookup precedes local lookup. A module constant therefore keeps the existing precedence over a same-named source value.
+
+The relation carries the signed value in its left field. It carries no physical source local, operation, or right operand. Consumers must test the relation kind before they interpret that field as a coordinate.
+
+## Encoding
+
+`writeDirectReturn` validates one destination local and emits:
+
+1. `LOCAL_CONST destination, value`
+2. `RETURN_VALUE destination`
+
+The extent is 40 code bytes, two instructions, and one signed local. Negative values use signed little-endian encoding.
+
+`directReturnTypesValid` admits the relation only for ordinary callables. Reversible constant returns need explicit result-slot staging and inverse evidence, so this product rejects them.
+
+## Declarations and conditionals
+
+`DirectLongDeclarationProducts.w` retains its existing constant initializer path. It distinguishes binary scalar initializers from the new source constant relation before it delegates to the four-local declaration encoder. Constant declarations still emit their canonical source and named-destination moves.
+
+`DirectConditionalReturnProducts.w` treats a constant child like a preserved source child for width and instruction count. The child uses one local and two instructions, so the complete conditional remains a seven-instruction window. Child type and callable result products remain signed.
+
+## Physical adoption
+
+`NamedConditionalBases.w` maps named comparison and local-condition forms to imported resolved opcode columns. Every guarded arm and final fallback returns one imported signed constant. The direct route consumes only local source and copied constant products.
+
+The full physical product closure compares the 4,592-byte artifact with stage 0. The selected linked subset keeps the same bytes and identity.
+
+## Failure products
+
+A constant candidate fails before publication when no symbol matches, more than one symbol matches, the owner differs, the type is not signed, or the resolution bit is not set. A binary relation with a constant on the left remains outside this product.
+
+Focused fixtures compare root and conditional constant returns byte for byte. Existing declaration fixtures prove that the new relation kind does not steal or widen constant initializers.
+
+## Acceptance
+
+- [x] One exact signed constant relation kind has a documented closed representation.
+- [x] Root constant returns emit `LOCAL_CONST` and `RETURN_VALUE` in one local.
+- [x] Conditional constant children keep the exact seven-instruction window.
+- [x] Constant lookup retains precedence over same-named locals.
+- [x] Constant declarations retain their existing canonical code and local widths.
+- [x] Reversible and nonsigned constant returns fail before publication.
+- [x] `NamedConditionalBases.w` matches its 4,592-byte stage-0 artifact byte for byte.
+- [x] The complete physical product closure matches stage 0 byte for byte.
+- [ ] Compiler archive identities, dependent locks, and bootstrap budgets are current.
+- [ ] A fresh locked workspace build passes.
+- [ ] Source, documentation, line, and directory-width policy pass.
+
+## Rejected alternatives
+
+### Encode a constant as a source local
+
+Rejected. Constant values and physical local coordinates share an integer carrier but not an identity domain.
+
+### Rewrite the return as a synthetic declaration
+
+Rejected. That adds a destination move and changes code, local, and branch extents.
+
+### Admit constants in every scalar position
+
+Rejected. This product owns a complete source return only. Left-constant binary relations need their own precedence, typing, and encoding contract.
+
+### Stage reversible constants through the ordinary encoder
+
+Rejected. Reversible publication requires presence and payload result slots plus inverse evidence.
+
+## References
+
+- [WIP-0054](WIP-0054-native-source-product-artifact-integration.md)
+- [WIP-0069](WIP-0069-exact-scalar-return-expression-products.md)
+- [WIP-0075](WIP-0075-exact-computed-conditional-return-products.md)

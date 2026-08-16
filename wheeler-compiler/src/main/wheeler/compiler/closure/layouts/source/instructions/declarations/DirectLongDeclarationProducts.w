@@ -303,7 +303,12 @@ classical class DirectLongDeclarationProducts {
       symbolResolved
     );
     if (initializer.valid) {
-      if (initializer.kind != RESULT_RELATION_SOURCE) {
+      boolean binaryInitializer = initializer.kind == RESULT_RELATION_BINARY;
+      if (initializer.kind == RESULT_RELATION_BINARY_SOURCES) {
+        binaryInitializer = true;
+      }
+
+      if (binaryInitializer) {
         DirectScalarExtent scalar = writeDirectScalarDeclaration(
           output,
           cursor,

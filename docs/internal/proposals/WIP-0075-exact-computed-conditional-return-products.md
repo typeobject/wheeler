@@ -9,7 +9,7 @@
 | Area | Self-hosting compiler, control flow, signed returns |
 | Depends on | WIP-0054, WIP-0069, WIP-0073, WIP-0074 |
 | Supersedes | Boolean-literal-only child restriction in WIP-0073 |
-| Superseded by | None |
+| Superseded by | WIP-0077 for standalone signed constant children |
 
 ## Summary
 

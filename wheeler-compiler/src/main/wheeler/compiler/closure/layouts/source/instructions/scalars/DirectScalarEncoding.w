@@ -197,6 +197,10 @@ classical class DirectScalarEncoding {
       return true;
     }
 
+    if (kind == RESULT_RELATION_CONSTANT) {
+      return reversibleCallableCount == 0;
+    }
+
     if (returnOperation(operation) == false) {
       return false;
     }
@@ -372,18 +376,25 @@ classical class DirectScalarEncoding {
       return new DirectReturnExtent(0, 0, 0, false);
     }
 
-    if (left < 0) {
-      return new DirectReturnExtent(0, 0, 0, false);
-    }
+    if (kind != RESULT_RELATION_CONSTANT) {
+      if (left < 0) {
+        return new DirectReturnExtent(0, 0, 0, false);
+      }
 
-    if (255 < left) {
-      return new DirectReturnExtent(0, 0, 0, false);
+      if (255 < left) {
+        return new DirectReturnExtent(0, 0, 0, false);
+      }
     }
 
     long length = 40;
     long localCount = 1;
     long instructionCount = 2;
-    if (kind != RESULT_RELATION_SOURCE) {
+    boolean binaryRelation = kind != RESULT_RELATION_SOURCE;
+    if (kind == RESULT_RELATION_CONSTANT) {
+      binaryRelation = false;
+    }
+
+    if (binaryRelation) {
       if (returnOperation(operation) == false) {
         return new DirectReturnExtent(0, 0, 0, false);
       }
@@ -415,15 +426,26 @@ classical class DirectScalarEncoding {
       return new DirectReturnExtent(0, 0, 0, false);
     }
 
-    long next = writeInstructionHeader(
-      output,
-      cursor,
-      OPCODE_LOCAL_MOVE,
-      INSTRUCTION_FORM_BINARY
-    );
+    long sourceOpcode = OPCODE_LOCAL_MOVE;
+    if (kind == RESULT_RELATION_CONSTANT) {
+      sourceOpcode = OPCODE_LOCAL_CONST;
+    }
+
+    long next = writeInstructionHeader(output, cursor, sourceOpcode, INSTRUCTION_FORM_BINARY);
     next = writeUnsignedLittleEndian(output, next, destination, U64);
-    next = writeUnsignedLittleEndian(output, next, left, U64);
+    if (kind == RESULT_RELATION_CONSTANT) {
+      next = writeSignedLittleEndian(output, next, left, U64);
+    } else {
+      next = writeUnsignedLittleEndian(output, next, left, U64);
+    }
+
     if (kind == RESULT_RELATION_SOURCE) {
+      next = writeInstructionHeader(output, next, OPCODE_RETURN_VALUE, INSTRUCTION_FORM_UNARY);
+      next = writeUnsignedLittleEndian(output, next, destination, U64);
+      return new DirectReturnExtent(next, instructionCount, localCount, true);
+    }
+
+    if (kind == RESULT_RELATION_CONSTANT) {
       next = writeInstructionHeader(output, next, OPCODE_RETURN_VALUE, INSTRUCTION_FORM_UNARY);
       next = writeUnsignedLittleEndian(output, next, destination, U64);
       return new DirectReturnExtent(next, instructionCount, localCount, true);

@@ -80,6 +80,40 @@ classical class DirectScalarRelations {
       return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
     }
 
+    DirectReturnConstant leftConstant = resolveDirectReturnConstant(
+      source,
+      moduleOwner,
+      tokenStarts[relation.leftToken],
+      tokenLengths[relation.leftToken],
+      symbolCount,
+      symbolOwners,
+      symbolStarts,
+      symbolLengths,
+      symbolTypes,
+      symbolValues,
+      symbolResolved
+    );
+    if (leftConstant.found) {
+      if (leftConstant.valid == false) {
+        return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+      }
+
+      if (relation.kind != RESULT_RELATION_SOURCE) {
+        return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+      }
+
+      return new DirectScalarRelationProduct(
+        RESULT_RELATION_CONSTANT,
+        0,
+        leftConstant.value,
+        0,
+        0,
+        TOKEN_LONG,
+        0,
+        true
+      );
+    }
+
     LoopBodyValue leftValue = resolveLoopBodyValue(
       source,
       tokenStarts[relation.leftToken],

@@ -454,7 +454,12 @@ classical class DirectConditionalReturnProducts {
       childImmediate = childRelation.immediate;
       childLeftType = childRelation.leftType;
       childRightType = childRelation.rightType;
-      if (childKind != RESULT_RELATION_SOURCE) {
+      boolean binaryChild = childKind != RESULT_RELATION_SOURCE;
+      if (childKind == RESULT_RELATION_CONSTANT) {
+        binaryChild = false;
+      }
+
+      if (binaryChild) {
         childLocalCount = 3;
         childInstructionCount = 4;
       }
