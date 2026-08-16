@@ -232,7 +232,6 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
               bodyPlan.nestedCount,
               nestedRows,
               loopLocalBases,
-              statementPhysicalStarts,
               loopInstructionStarts,
               loopWindowRows,
               output

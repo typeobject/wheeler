@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
-import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -13,29 +12,26 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/** Native byte parity for the direct manifest-syntax product. */
-final class NativeCompilerManifestProductExampleTest {
+/** Native evidence for the physical aggregate-projection product route. */
+final class NativeCompilerAggregatePhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
-  void compilesManifestSyntaxThroughDirectProducts() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.PHYSICAL_MANIFEST_MODULE;
-    Program productProgram = NativeCompilerArchiveClosureProgram.physicalProductProgram(
-        NativeCompilerArchiveClosureProgram.PHYSICAL_MANIFEST_MODULE);
+  void compilesByteForByte() throws Exception {
+    var module = NativeCompilerArchiveClosureProgram.PHYSICAL_AGGREGATE_MODULE;
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(
             CompilerSources.moduleClosure(module.name()), module.name()));
-    byte[] archive = CompilerSources.packageArchive();
-    byte[] manifest = CompilerSources.bootstrapModuleManifest().canonicalBytes();
+    var productProgram = NativeCompilerArchiveClosureProgram.physicalProductProgram(module);
+    var manifest = CompilerSources.bootstrapModuleManifest();
     VirtualMachine machine = VirtualMachine.withBinaryInput(
         productProgram,
-        framed(archive, manifest),
+        framed(CompilerSources.packageArchive(), manifest.canonicalBytes()),
         expected.length + 1_048_576);
 
     CompilerMachineRunner.runWithoutRewindHistory(machine);
 
-    assertEquals("wheeler.compiler.closure.manifest_syntax", module.name());
+    assertEquals(1, machine.global("published"));
     assertArrayEquals(expected, Arrays.copyOf(machine.hostOutput(), expected.length));
-    assertEquals(expected.length, machine.global("physicalModuleProductLength"));
   }
 
   private static byte[] framed(byte[] archive, byte[] manifest) {

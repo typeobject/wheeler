@@ -44,7 +44,12 @@ classical class ResolvedLoopProducts {
   private const long VALUE_ROWS = 7168;
 
   /// Reports one completely resolved structural loop product.
-  public record ResolvedLoopProductPlan(long conditionCount, long loopCount, boolean valid) {}
+  public record ResolvedLoopProductPlan(
+    long conditionCount,
+    long loopCount,
+    long failureLoop,
+    boolean valid
+  ) {}
 
   private record ResolvedOperand(long kind, long operand, boolean valid) {}
 
@@ -373,6 +378,7 @@ classical class ResolvedLoopProducts {
       readToken += 1;
     }
 
+    long failureLoop = -1;
     long loop = 0;
     while (loop < loopCount) limit LOOP_COUNT_LIMIT {
       long owner = sourceLoopRows[loop];
@@ -554,6 +560,10 @@ classical class ResolvedLoopProducts {
         set(stagedLoops, LOOP_BODY_STATEMENT_COUNT_ROW + loop, bodyStatementCount);
         set(stagedLoops, LOOP_DEPTH_ROW + loop, depth);
       } else {
+        if (failureLoop < 0) {
+          failureLoop = loop;
+        }
+
         valid = false;
       }
 
@@ -591,9 +601,9 @@ classical class ResolvedLoopProducts {
     drop(tokenKinds);
     drop(staging);
     if (valid == false) {
-      return new ResolvedLoopProductPlan(0, 0, false);
+      return new ResolvedLoopProductPlan(0, 0, failureLoop, false);
     }
 
-    return new ResolvedLoopProductPlan(loopCount, loopCount, true);
+    return new ResolvedLoopProductPlan(loopCount, loopCount, -1, true);
   }
 }

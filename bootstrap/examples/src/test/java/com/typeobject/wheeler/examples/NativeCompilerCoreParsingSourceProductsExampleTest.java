@@ -601,7 +601,6 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               bodyPlan.nestedCount,
               nestedRows,
               loopLocalBases,
-              statementPhysicalStarts,
               loopInstructionStarts,
               loopWindowRows,
               output

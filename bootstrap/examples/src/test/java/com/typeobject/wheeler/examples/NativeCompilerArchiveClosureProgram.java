@@ -14,6 +14,11 @@ final class NativeCompilerArchiveClosureProgram {
   static final List<PhysicalModule> PHYSICAL_MODULES = NativeCompilerPhysicalModules.all();
   static final List<PhysicalModule> PHYSICAL_CALLABLE_MODULES =
       NativeCompilerPhysicalModules.importedCallableProducts();
+  static final PhysicalModule PHYSICAL_AGGREGATE_MODULE = PHYSICAL_MODULES.stream()
+      .filter(module -> module.name().equals(
+          "wheeler.compiler.closure.aggregate_source_projection"))
+      .findFirst()
+      .orElseThrow();
   static final PhysicalModule PHYSICAL_MANIFEST_MODULE = PHYSICAL_MODULES.stream()
       .filter(module -> module.name().equals("wheeler.compiler.closure.manifest_syntax"))
       .findFirst()
@@ -58,24 +63,10 @@ final class NativeCompilerArchiveClosureProgram {
         PHYSICAL_CALLABLE_MODULES);
   }
 
-  static Program structuredProductProgram() throws Exception {
+  static Program physicalProductProgram(PhysicalModule module) throws Exception {
     return program(
         /* compilePhysicalProducts= */ true,
-        List.of(PHYSICAL_MODULES.getLast()),
-        List.of());
-  }
-
-  static Program manifestProductProgram() throws Exception {
-    return program(
-        /* compilePhysicalProducts= */ true,
-        List.of(PHYSICAL_MANIFEST_MODULE),
-        List.of());
-  }
-
-  static Program reversibleProductProgram() throws Exception {
-    return program(
-        /* compilePhysicalProducts= */ true,
-        List.of(PHYSICAL_REVERSIBLE_MODULE),
+        List.of(module),
         List.of());
   }
 
@@ -972,6 +963,9 @@ final class NativeCompilerArchiveClosureProgram {
             .replace(
                 "STRUCTURED_SOURCE_MODULE_OWNER",
                 Integer.toString(physicalOwner(PHYSICAL_MODULES.getLast())))
+            .replace(
+                "AGGREGATE_SOURCE_MODULE_OWNER",
+                Integer.toString(physicalOwner(PHYSICAL_AGGREGATE_MODULE)))
             .replace(
                 "MANIFEST_SOURCE_MODULE_OWNER",
                 Integer.toString(physicalOwner(PHYSICAL_MANIFEST_MODULE)))

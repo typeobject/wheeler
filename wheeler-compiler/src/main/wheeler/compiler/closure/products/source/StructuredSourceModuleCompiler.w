@@ -11,6 +11,7 @@ import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.closure.loop_call_products;
 import wheeler.compiler.closure.loop_instruction_products;
 import wheeler.compiler.closure.loop_local_type_products;
+import wheeler.compiler.closure.physical_loop_body_products;
 import wheeler.compiler.closure.qualified_source_call_products;
 import wheeler.compiler.closure.referenced_source_call_targets;
 import wheeler.compiler.closure.resolved_loop_body_products;
@@ -452,6 +453,7 @@ classical class StructuredSourceModuleCompiler {
       nestedRows,
       statementPhysicalWidths
     );
+    assert(bodyPlan.failureStatement == -1);
     assert(bodyPlan.valid);
     boolean frameWidthsValid = materializeLoopFrameWidths(
       loopPlan.loopCount,
@@ -506,6 +508,22 @@ classical class StructuredSourceModuleCompiler {
       plannedValue += 1;
     }
 
+    PhysicalLoopBodyPlan physicalBodyPlan = materializePhysicalLoopBodyProducts(
+      loopPlan.statementCount,
+      statements,
+      valuePlan.valueCount,
+      values,
+      statementLocalRows,
+      statementPhysicalStarts,
+      bodyPlan.bodyCount,
+      bodyRows,
+      bodyPlan.nestedCount,
+      nestedRows
+    );
+    assert(physicalBodyPlan.failureBody == -1);
+    assert(physicalBodyPlan.failureNested == -1);
+    assert(physicalBodyPlan.failureCode == 0);
+    assert(physicalBodyPlan.valid);
     ResolvedLoopProductPlan resolvedPlan = materializeResolvedLoopProducts(
       source,
       archiveSourceStart,
@@ -525,6 +543,7 @@ classical class StructuredSourceModuleCompiler {
       resolvedConditions,
       resolvedLoops
     );
+    assert(resolvedPlan.failureLoop == -1);
     assert(resolvedPlan.valid);
     long conditionLoop = 0;
     while (conditionLoop < resolvedPlan.loopCount) limit MAX_LOOPS {
@@ -593,6 +612,7 @@ classical class StructuredSourceModuleCompiler {
       directTypes,
       directCode
     );
+    assert(directPlan.failureStatement == -1);
     assert(directPlan.valid);
     CallableInstructionPrefixPlan instructionPrefixPlan = materializeCallableInstructionPrefixes(
       resolvedPlan.loopCount,
@@ -668,7 +688,6 @@ classical class StructuredSourceModuleCompiler {
       bodyPlan.nestedCount,
       nestedRows,
       loopLocalBases,
-      statementPhysicalStarts,
       loopInstructionStarts,
       loopWindowRows,
       loopCode

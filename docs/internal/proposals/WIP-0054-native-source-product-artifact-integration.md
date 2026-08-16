@@ -5,9 +5,9 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, bytecode, linker, and bootstrap maintainers |
 | Created | 2026-08-13 |
-| Updated | 2026-08-14 |
+| Updated | 2026-08-15 |
 | Area | Self-hosting compiler, source products, artifact emission, bootstrap closure |
-| Depends on | WIP-0045, WIP-0046, WIP-0047, WIP-0048, WIP-0049, WIP-0050, WIP-0051, WIP-0052, WIP-0055, WIP-0056, WIP-0057 |
+| Depends on | WIP-0045, WIP-0046, WIP-0047, WIP-0048, WIP-0049, WIP-0050, WIP-0051, WIP-0052, WIP-0055, WIP-0056, WIP-0057, WIP-0067 |
 | Supersedes | WIP-0052 physical-closure adoption tasks |
 | Superseded by | None |
 
@@ -50,7 +50,7 @@ For each source-local callable, join the callable product to one root statement 
 
 ### Instruction composition
 
-Compose ordinary statement windows and structured-loop windows in source order. Branch and back-edge targets are callable-local instruction ordinals until final code emission. Loop-private locals rebase once against the callable's exact prior local count. Enclosing parameters and locals keep their coordinates.
+Compose ordinary statement windows and structured-loop windows in source order. Branch and back-edge targets are callable-local instruction ordinals until final code emission. WIP-0067 maps loop values and private windows to exact physical locals before production code emission. Enclosing parameters and locals keep their coordinates.
 
 Call operands remain stable relocation identities through composition. Aggregate operands remain stable owner/type identities. Numeric closure IDs appear only in WIP-0048 final emission.
 
@@ -130,13 +130,14 @@ No fallback reparses source after one of these failures.
 - [x] `CoreParsing.w` matches stage 0 byte for byte and enters `CompiledBodyArchive.w`.
 - [x] Root direct products emit `bufferLength` declarations for owned or borrowed words, bytes, UTF-8, and immutable byte views. The product preserves the exact source buffer type, emits one signed result, rejects scalar operands before publication, and matches stage 0 byte for byte for byte-view and mutable-byte loans.
 - [x] The direct artifact path now admits signed-local Boolean equality declarations and Boolean, local-to-literal, literal-to-local, and local-to-local assertions inside one loop body. `LoopBodyValues.w` owns the shared declaration and assertion products. Encoding, local widths, local types, and rebasing have one authority. A source-independent fixture composes all forms with a bounded literal-plus-local borrowed-word read and a local-plus-local byte-view copy, emits a complete artifact, and matches stage 0 byte for byte. The same artifact path emits a root literal-to-local assertion before ordinary declarations, then embeds one nested loop with exact frame, branch, back-edge, code-window, and local-type coordinates. Direct assertion widths participate in every later branch target. A fifth nested loop, a literal above 65,535, and a mutable-byte sum read fail before artifact publication.
-- [x] `StructuredSourceModuleCompiler.w` owns the bounded orchestration from callable body extents, source-independent symbols, signatures, and canonical strings through block, value, loop, direct-statement, local-type, composition, verification, hashing, and artifact publication. `ArchiveStructuredSourceModuleCompiler.w` freezes only the selected local source range, rebases callable bodies, consumes packed imported-value names, applies parameter loans, and builds canonical qualified function names. The production physical archive sends `CoreParsing.w`, reversible `ReversibleTokenCoordinates.w`, and `ManifestSyntax.w` through this route instead of `compileSourceModuleProductWithImports`. Their artifacts are byte-identical to the separately inspected layers and stage 0. The manifest artifact covers void, signed, and Boolean results, root and nested loops, byte-view reads, Boolean conditions, and canonical lexical function-name insertion. The 95-product subset links 227 functions and 8,014 instructions into a verified 238,296-byte container with identity `748050b3cf5e9a915ca2da3ee896d53599566f5e749d4b3ff42949fbc8723da6`.
+- [x] `StructuredSourceModuleCompiler.w` owns the bounded orchestration from callable body extents, source-independent symbols, signatures, and canonical strings through block, value, loop, direct-statement, local-type, composition, verification, hashing, and artifact publication. `ArchiveStructuredSourceModuleCompiler.w` freezes only the selected local source range, rebases callable bodies, consumes packed imported-value names, applies parameter loans, and builds canonical qualified function names. The production physical archive sends `CoreParsing.w`, reversible `ReversibleTokenCoordinates.w`, `ManifestSyntax.w`, and `AggregateSourceProjection.w` through this route instead of `compileSourceModuleProductWithImports`. Their artifacts are byte-identical to the separately inspected layers and stage 0. The manifest artifact covers void, signed, and Boolean results, root and nested loops, byte-view reads, Boolean conditions, and canonical lexical function-name insertion. The aggregate artifact adds indexed source preflight, sequential root loops, nested controls, mutable-byte writes, and exact physical nested-value products. The 96-product subset links 228 functions and 8,286 instructions into a verified 246,040-byte container with identity `3ed0a594aa243d6271cfcbdff5c766c9e1459b1418cfcc3278076a61a25358b0`.
 - [x] WIP-0055 replaces distributed local and instruction rebasing with one source-ordered callable coordinate product. WIP-0056 supplies exact statement-local extents, and its nested-first sequential-root fixture matches stage 0 through the trailing assertion and return slot. WIP-0063 owns generated inverse integration.
 - [x] Signed and Boolean result kinds publish through direct statement, callable composition, and function descriptor products with exact planned return slots.
 - [x] Void result kinds publish no fabricated result type or slot. `CallableSourceComposition.w` appends one canonical implicit `RETURN`, and the function descriptor publishes no value-result flag or type. The complete void artifact matches stage 0.
 - [x] WIP-0057 composes source call arguments, callable identities, relocations, and ownership rows into the same callable window.
 - [x] `ManifestSyntax.w` enters the physical archive through direct products. Its four callables preserve void, signed, and Boolean result identities. Canonical lexical function-name insertion remaps source-ordered descriptors without changing callable coordinates.
-- [ ] `AggregateSourceProjection.w` enters the physical archive through direct products.
+- [x] WIP-0067 replaces inferred production loop rebasing with exact physical value, packed operand, nested-condition, and scratch-window products. Logical-coordinate rebasing remains only for isolated product fixtures. Bounded body, nested, loop, and direct-statement failure coordinates identify malformed products before publication.
+- [x] `AggregateSourceProjection.w` enters the physical archive through direct products. Its 8,096-byte artifact verifies and matches stage 0 byte for byte.
 - [ ] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.
 - [ ] Product-to-source projection and signature-stub source leave the production path.

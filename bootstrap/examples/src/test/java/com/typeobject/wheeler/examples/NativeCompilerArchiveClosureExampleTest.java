@@ -115,7 +115,8 @@ final class NativeCompilerArchiveClosureExampleTest {
 
   @Test
   void productionClosureBuildsTheStructuredSourceProductRoute() throws Exception {
-    Program program = NativeCompilerArchiveClosureProgram.structuredProductProgram();
+    Program program = NativeCompilerArchiveClosureProgram.physicalProductProgram(
+        NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES.getLast());
     assertTrue(program.functions().stream().anyMatch(function -> function.name().equals(
         "wheeler.compiler.closure.compiled_callable_bodies"
             + "::compileStructuredArchiveModuleProduct")));
@@ -130,7 +131,7 @@ final class NativeCompilerArchiveClosureExampleTest {
         .filter(candidate -> candidate.name().endsWith("::nextSourceToken"))
         .findFirst()
         .orElseThrow();
-    Program productProgram = NativeCompilerArchiveClosureProgram.reversibleProductProgram();
+    Program productProgram = NativeCompilerArchiveClosureProgram.physicalProductProgram(module);
 
     assertTrue(productProgram.functions().stream().anyMatch(candidate -> candidate.name().equals(
         "wheeler.compiler.closure.compiled_callable_bodies"
@@ -200,7 +201,6 @@ final class NativeCompilerArchiveClosureExampleTest {
         expected.size() + 1_048_576);
 
     runClosure(machine, program);
-
     byte[] physicalProducts = machine.hostOutput();
     assertArrayEquals(
         expected.toByteArray(),
@@ -269,7 +269,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     String linkedIdentity = HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(functionMachine.hostOutput()));
     assertEquals(
-        1_954_566_323L,
+        1_053_861_268L,
         functionMachine.global("linkedIdentityPrefix"),
         () -> "sha256=" + linkedIdentity
             + " code=" + functionMachine.global("linkedCodeLength")
@@ -280,7 +280,7 @@ final class NativeCompilerArchiveClosureExampleTest {
             + " localTypes=" + functionMachine.global("linkedLocalTypeCount")
             + " container=" + functionMachine.global("linkedContainerLength"));
     assertEquals(
-        "748050b3cf5e9a915ca2da3ee896d53599566f5e749d4b3ff42949fbc8723da6",
+        "3ed0a594aa243d6271cfcbdff5c766c9e1459b1418cfcc3278076a61a25358b0",
         linkedIdentity,
         () -> "code=" + functionMachine.global("linkedCodeLength")
             + " functions=" + functionMachine.global("functionCount")
@@ -306,7 +306,7 @@ final class NativeCompilerArchiveClosureExampleTest {
         functionClosure, physicalProducts, 4_194_304);
     CompilerMachineRunner.runWithoutRewindHistory(repeatedFunctionMachine);
     assertEquals(1, repeatedFunctionMachine.global("published"));
-    assertEquals(1_954_566_323L, repeatedFunctionMachine.global("linkedIdentityPrefix"));
+    assertEquals(1_053_861_268L, repeatedFunctionMachine.global("linkedIdentityPrefix"));
     assertArrayEquals(
         functionMachine.hostOutput(), repeatedFunctionMachine.hostOutput());
 
@@ -764,8 +764,17 @@ final class NativeCompilerArchiveClosureExampleTest {
       CompilerMachineRunner.runWithoutRewindHistory(machine);
     } catch (VmTrap trap) {
       var frames = machine.snapshot().selectedFrames().stream()
-          .map(frame -> program.function(frame.functionId()).name()
-              + "@" + frame.programCounter())
+          .map(frame -> {
+            var function = program.function(frame.functionId());
+            var instruction = function.forward().get(frame.programCounter());
+            int center = instruction.operands().isEmpty()
+                ? 0
+                : Math.toIntExact(instruction.operands().getFirst().longValue());
+            int first = Math.max(0, Math.min(center - 4, frame.localCount()));
+            int end = Math.max(first, Math.min(center + 1, frame.localCount()));
+            return function.name() + "@" + frame.programCounter()
+                + " locals[" + first + ".." + end + "]=" + frame.locals().subList(first, end);
+          })
           .toList();
       throw new AssertionError(
           "Counted closure trapped for physical owner "

@@ -276,7 +276,6 @@ final class NativeCompilerLoopBufferProductsExampleTest {
               bodyPlan.nestedCount,
               nestedRows,
               loopLocalBases,
-              statementPhysicalStarts,
               loopInstructionStarts,
               loopWindowRows,
               output

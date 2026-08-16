@@ -1,4 +1,4 @@
-//! Emits canonical code and local types for source-local root statements.
+//! Emits root products.
 
 module wheeler.compiler.closure.direct_statement_products;
 
@@ -26,12 +26,13 @@ classical class DirectStatementProducts {
   private const long TYPE_ROWS = 12288;
   private const long U64 = ENCODING_WIDTH_U64;
 
-  /// Reports one complete direct code and local-type product set.
+  /// Reports direct products.
   public record DirectStatementPlan(
     long productCount,
     long instructionCount,
     long length,
     long typeCount,
+    long failureStatement,
     boolean valid
   ) {}
 
@@ -232,7 +233,7 @@ classical class DirectStatementProducts {
     return base + physical;
   }
 
-  /// Emits literal and prior-local declarations plus local returns in source order.
+  /// Emits roots in source order.
   public DirectStatementPlan materializeDirectStatementProducts(
     borrow utf8 source,
     long reversibleCallableCount,
@@ -295,6 +296,7 @@ classical class DirectStatementProducts {
     }
 
     boolean valid = true;
+    long failureStatement = -1;
     long tokenCount = 0;
     ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);
     match (scanned) {
@@ -893,6 +895,10 @@ classical class DirectStatementProducts {
                 productCount += 1;
               }
             } else {
+              if (failureStatement < 0) {
+                failureStatement = statement;
+              }
+
               valid = false;
             }
           }
@@ -949,9 +955,9 @@ classical class DirectStatementProducts {
     drop(tokenKinds);
     drop(staging);
     if (valid == false) {
-      return new DirectStatementPlan(0, 0, 0, 0, false);
+      return new DirectStatementPlan(0, 0, 0, 0, failureStatement, false);
     }
 
-    return new DirectStatementPlan(productCount, instructionCount, cursor, typeCount, true);
+    return new DirectStatementPlan(productCount, instructionCount, cursor, typeCount, -1, true);
   }
 }

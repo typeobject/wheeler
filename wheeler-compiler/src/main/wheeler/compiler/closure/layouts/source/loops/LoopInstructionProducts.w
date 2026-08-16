@@ -26,7 +26,6 @@ classical class LoopInstructionProducts {
   private const long STATEMENT_BLOCK_ROW = 4096;
   private const long STATEMENT_ORDINAL_ROW = 8192;
   private const long STATEMENT_SOURCE_START_ROW = 12288;
-  private const long STATEMENT_SOURCE_LENGTH_ROW = 16384;
 
   /// Reports one complete canonical loop code extent.
   public record LoopInstructionProductPlan(long instructionCount, long length, boolean valid) {}
@@ -218,9 +217,9 @@ classical class LoopInstructionProducts {
     return selected;
   }
 
-  /// Publishes planned body coordinates and emits every root and nested loop atomically.
+  /// Emits every root and nested loop from logical fixture or exact physical body coordinates.
   public LoopInstructionProductPlan writeLoopInstructionProducts(
-    boolean publishPlannedCoordinates,
+    boolean bodyCoordinatesPhysical,
     long loopCount,
     borrow mut words conditionRows,
     borrow mut words loopRows,
@@ -238,7 +237,6 @@ classical class LoopInstructionProducts {
     long nestedCount,
     borrow mut words nestedRows,
     borrow mut words loopLocalBases,
-    borrow mut words statementPhysicalStarts,
     borrow mut words loopInstructionStarts,
     borrow mut words loopWindowRows,
     borrow mut bytes output
@@ -266,10 +264,6 @@ classical class LoopInstructionProducts {
     assert(nestedCount < BODY_COUNT_LIMIT + 1);
     assert(bufferLength(nestedRows) == NESTED_ROWS);
     assert(bufferLength(loopLocalBases) == LOOP_COUNT_LIMIT);
-    if (publishPlannedCoordinates) {
-      assert(bufferLength(statementPhysicalStarts) == MAX_STATEMENTS);
-    }
-
     assert(bufferLength(loopInstructionStarts) == LOOP_COUNT_LIMIT);
     assert(bufferLength(loopWindowRows) == 768);
     assert(bufferLength(output) == MAX_CODE_BYTES);
@@ -374,77 +368,27 @@ classical class LoopInstructionProducts {
       }
 
       if (valid) {
-        if (0 < bodyStatementCount) {
-          long body = 0;
-          while (body < bodyCount) limit BODY_COUNT_LIMIT {
-            long statement = stagedBodies[body];
-            if (statementRows[statement] == loopRows[loop]) {
-              if (
-                statementRows[STATEMENT_SOURCE_START_ROW + sourceLoopStatement]
-                  < statementRows[STATEMENT_SOURCE_START_ROW + statement]
-              ) {
-                rebaseBodyProduct(body, localBase, LOOP_FRAME_LOCAL_COUNT, stagedBodies);
+        if (bodyCoordinatesPhysical == false) {
+          if (0 < bodyStatementCount) {
+            long body = 0;
+            while (body < bodyCount) limit BODY_COUNT_LIMIT {
+              long statement = stagedBodies[body];
+              if (statementRows[statement] == loopRows[loop]) {
+                if (
+                  statementRows[STATEMENT_SOURCE_START_ROW + sourceLoopStatement]
+                    < statementRows[STATEMENT_SOURCE_START_ROW + statement]
+                ) {
+                  rebaseBodyProduct(body, localBase, LOOP_FRAME_LOCAL_COUNT, stagedBodies);
+                }
               }
-            }
 
-            body += 1;
+              body += 1;
+            }
           }
         }
       }
 
       loop += 1;
-    }
-
-    if (publishPlannedCoordinates) {
-      long plannedBody = 0;
-      while (plannedBody < bodyCount) limit BODY_COUNT_LIMIT {
-        long plannedStatement = stagedBodies[plannedBody];
-        long plannedOwner = statementRows[plannedStatement];
-        long plannedSourceStart = statementRows[STATEMENT_SOURCE_START_ROW + plannedStatement];
-        long plannedSourceEnd = plannedSourceStart + statementRows[STATEMENT_SOURCE_LENGTH_ROW
-          + plannedStatement];
-        long containingLoop = -1;
-        long containingDepth = 0;
-        long candidateLoop = 0;
-        while (candidateLoop < loopCount) limit LOOP_COUNT_LIMIT {
-          if (loopRows[candidateLoop] == plannedOwner) {
-            long candidateStatement = sourceStatementForLoop(
-              candidateLoop,
-              loopCount,
-              loopRows,
-              statementCount,
-              statementRows
-            );
-            if (-1 < candidateStatement) {
-              long candidateStart = statementRows[STATEMENT_SOURCE_START_ROW + candidateStatement];
-              long candidateEnd = candidateStart + statementRows[STATEMENT_SOURCE_LENGTH_ROW
-                + candidateStatement];
-              if (candidateStart < plannedSourceStart + 1) {
-                if (plannedSourceEnd < candidateEnd + 1) {
-                  long candidateDepth = loopRows[LOOP_DEPTH_ROW + candidateLoop];
-                  if (containingDepth < candidateDepth) {
-                    containingLoop = candidateLoop;
-                    containingDepth = candidateDepth;
-                  }
-                }
-              }
-            }
-          }
-
-          candidateLoop += 1;
-        }
-
-        assert(-1 < containingLoop);
-        long provisionalStart = stagedBodies[BODY_LOCAL_BASE_ROW + plannedBody];
-        long correction = statementPhysicalStarts[plannedStatement] - provisionalStart;
-        rebaseBodyProduct(
-          plannedBody,
-          loopLocalBases[containingLoop],
-          correction,
-          stagedBodies
-        );
-        plannedBody += 1;
-      }
     }
 
     long requiredLength = 0;
@@ -504,6 +448,7 @@ classical class LoopInstructionProducts {
           nestedCount,
           nestedRows,
           loopLocalBases,
+          bodyCoordinatesPhysical,
           instructionStart,
           /* depth= */ 1,
           /* publish= */ false,
@@ -550,14 +495,6 @@ classical class LoopInstructionProducts {
       loop += 1;
     }
 
-    if (publishPlannedCoordinates) {
-      row = 0;
-      while (row < BODY_ROWS) limit BODY_ROWS {
-        set(bodyRows, row, stagedBodies[row]);
-        row += 1;
-      }
-    }
-
     long cursor = 0;
     long instructionCount = 0;
     long emittedRootCount = 0;
@@ -598,6 +535,7 @@ classical class LoopInstructionProducts {
         nestedCount,
         nestedRows,
         loopLocalBases,
+        bodyCoordinatesPhysical,
         stagedInstructionStarts[emittedLoop],
         /* depth= */ 1,
         /* publish= */ true,

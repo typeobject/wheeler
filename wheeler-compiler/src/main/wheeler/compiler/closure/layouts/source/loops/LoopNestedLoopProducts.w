@@ -187,6 +187,7 @@ classical class LoopNestedLoopProducts {
     long nestedCount,
     borrow mut words nestedRows,
     borrow mut words loopLocalBases,
+    boolean physicalCoordinates,
     long instructionBase,
     long depth,
     borrow mut words loopWindowRows,
@@ -275,6 +276,7 @@ classical class LoopNestedLoopProducts {
             nestedCount,
             nestedRows,
             loopLocalBases,
+            physicalCoordinates,
             instructionBase + 7 + bodyInstructions,
             depth + 1,
             loopWindowRows,
@@ -292,6 +294,25 @@ classical class LoopNestedLoopProducts {
             return new NestedLoopInstructionPlan(0, 0, false);
           }
 
+          long nestedConditionLocal = nestedRows[NESTED_CONDITION_LOCAL_ROW + nested];
+          long nestedLocalBase = nestedRows[NESTED_LOCAL_BASE_ROW + nested];
+          if (physicalCoordinates == false) {
+            nestedConditionLocal = rebaseLocalForStatement(
+              nestedConditionLocal,
+              statement,
+              loopCount,
+              loopRows,
+              loopLocalBases,
+              statementRows
+            );
+            nestedLocalBase += frameBiasForStatement(
+              statement,
+              loopCount,
+              loopRows,
+              statementRows
+            );
+          }
+
           LoopNestedBlockPlan nestedPlan = writeLoopNestedBlockProducts(
             statement,
             statementCount,
@@ -306,21 +327,9 @@ classical class LoopNestedLoopProducts {
             callInstructionStarts,
             callCode,
             nestedRows[NESTED_KIND_ROW + nested],
-            rebaseLocalForStatement(
-              nestedRows[NESTED_CONDITION_LOCAL_ROW + nested],
-              statement,
-              loopCount,
-              loopRows,
-              loopLocalBases,
-              statementRows
-            ),
+            nestedConditionLocal,
             nestedRows[NESTED_CONDITION_LITERAL_ROW + nested],
-            nestedRows[NESTED_LOCAL_BASE_ROW + nested] + frameBiasForStatement(
-              statement,
-              loopCount,
-              loopRows,
-              statementRows
-            ),
+            nestedLocalBase,
             instructionBase + 7 + bodyInstructions,
             /* publish= */ false,
             /* outputStart= */ 0,
@@ -361,6 +370,7 @@ classical class LoopNestedLoopProducts {
     long nestedCount,
     borrow mut words nestedRows,
     borrow mut words loopLocalBases,
+    boolean physicalCoordinates,
     long instructionBase,
     long depth,
     boolean publish,
@@ -400,6 +410,7 @@ classical class LoopNestedLoopProducts {
       nestedCount,
       nestedRows,
       loopLocalBases,
+      physicalCoordinates,
       instructionBase,
       depth,
       loopWindowRows,
@@ -535,6 +546,7 @@ classical class LoopNestedLoopProducts {
             nestedCount,
             nestedRows,
             loopLocalBases,
+            physicalCoordinates,
             instructionBase + 7 + bodyInstructions,
             depth + 1,
             true,
@@ -548,6 +560,25 @@ classical class LoopNestedLoopProducts {
         } else {
           long nested = nestedAtStatement(statement, nestedCount, nestedRows);
           assert(-1 < nested);
+          long nestedConditionLocal = nestedRows[NESTED_CONDITION_LOCAL_ROW + nested];
+          long nestedLocalBase = nestedRows[NESTED_LOCAL_BASE_ROW + nested];
+          if (physicalCoordinates == false) {
+            nestedConditionLocal = rebaseLocalForStatement(
+              nestedConditionLocal,
+              statement,
+              loopCount,
+              loopRows,
+              loopLocalBases,
+              statementRows
+            );
+            nestedLocalBase += frameBiasForStatement(
+              statement,
+              loopCount,
+              loopRows,
+              statementRows
+            );
+          }
+
           LoopNestedBlockPlan nestedPlan = writeLoopNestedBlockProducts(
             statement,
             statementCount,
@@ -562,21 +593,9 @@ classical class LoopNestedLoopProducts {
             callInstructionStarts,
             callCode,
             nestedRows[NESTED_KIND_ROW + nested],
-            rebaseLocalForStatement(
-              nestedRows[NESTED_CONDITION_LOCAL_ROW + nested],
-              statement,
-              loopCount,
-              loopRows,
-              loopLocalBases,
-              statementRows
-            ),
+            nestedConditionLocal,
             nestedRows[NESTED_CONDITION_LITERAL_ROW + nested],
-            nestedRows[NESTED_LOCAL_BASE_ROW + nested] + frameBiasForStatement(
-              statement,
-              loopCount,
-              loopRows,
-              statementRows
-            ),
+            nestedLocalBase,
             instructionBase + 7 + bodyInstructions,
             true,
             cursor,

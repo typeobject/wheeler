@@ -17,18 +17,26 @@ classical class AggregateSourceProjection {
     borrow mut bytes output
   ) {
     assert(-1 < aggregateCount);
-    assert(aggregateCount < MAX_AGGREGATES + 1);
-    assert(bufferLength(aggregateRows) == AGGREGATE_ROWS);
-    assert(bufferLength(output) == MAX_SOURCE_BYTES);
+    assert(aggregateCount < 65);
+    long aggregateRowLength = bufferLength(aggregateRows);
+    assert(aggregateRowLength == 832);
+    long outputLength = bufferLength(output);
+    assert(outputLength == 32768);
     assert(-1 < sourceStart);
     assert(-1 < sourceLength);
-    assert(sourceStart < bufferLength(source) + 1);
-    assert(sourceLength < bufferLength(source) - sourceStart + 1);
-    assert(sourceLength < MAX_SOURCE_BYTES + 1);
+    long sourceBufferLength = bufferLength(source);
+    assert(sourceLength < 32769);
+    long checkedIndex = sourceStart;
+    long checkedByte = 0;
+    while (checkedByte < sourceLength) limit 32768 {
+      assert(checkedIndex < sourceBufferLength);
+      checkedIndex += 1;
+      checkedByte += 1;
+    }
 
     long previousEnd = 0;
     long aggregate = 0;
-    while (aggregate < aggregateCount) limit MAX_AGGREGATES {
+    while (aggregate < aggregateCount) limit 64 {
       long kind = aggregateRows[aggregate];
       boolean kindValid = kind == 1;
       if (kind == 2) {
@@ -41,17 +49,21 @@ classical class AggregateSourceProjection {
 
       assert(kindValid);
       long start = aggregateRows[512 + aggregate];
+      long startLimit = start;
+      startLimit += 1;
       long end = aggregateRows[768 + aggregate];
+      long endProbe = end;
+      endProbe -= 1;
       assert(-1 < start);
       assert(start < end);
-      assert(end < sourceLength + 1);
+      assert(endProbe < sourceLength);
       if (kind == 1) {
-        assert(previousEnd < start + 1);
+        assert(previousEnd < startLimit);
         previousEnd = end;
       }
 
       if (kind == 4) {
-        assert(previousEnd < start + 1);
+        assert(previousEnd < startLimit);
         previousEnd = end;
       }
 
@@ -59,32 +71,48 @@ classical class AggregateSourceProjection {
     }
 
     long sourceByte = 0;
-    while (sourceByte < sourceLength) limit MAX_SOURCE_BYTES {
+    while (sourceByte < sourceLength) limit 32768 {
       setByte(output, sourceByte, source[sourceStart + sourceByte]);
       sourceByte += 1;
     }
 
-    aggregate = 0;
-    while (aggregate < aggregateCount) limit MAX_AGGREGATES {
-      long selectedKind = aggregateRows[aggregate];
+    long declarationByte = 0;
+    long declarationEnd = 0;
+    long projectedAggregate = 0;
+    while (projectedAggregate < aggregateCount) limit 64 {
+      long selectedKind = aggregateRows[projectedAggregate];
       boolean declaration = selectedKind == 1;
       if (selectedKind == 4) {
         declaration = true;
       }
 
+      long selectedStart = aggregateRows[512 + projectedAggregate];
+      long selectedEnd = aggregateRows[768 + projectedAggregate];
+      declarationByte = selectedStart;
+      declarationEnd = declarationByte;
       if (declaration) {
-        long declarationByte = aggregateRows[512 + aggregate];
-        long declarationEnd = aggregateRows[768 + aggregate];
-        while (declarationByte < declarationEnd) limit MAX_SOURCE_BYTES {
-          if (output[declarationByte] != 10) {
-            setByte(output, declarationByte, 32);
-          }
-
-          declarationByte += 1;
-        }
+        declarationEnd = selectedEnd;
       }
 
-      aggregate += 1;
+      projectedAggregate += 1;
+      while (declarationByte < declarationEnd) limit 32768 {
+        long declarationScalar = output[declarationByte];
+        declarationScalar = 32;
+        setByte(output, declarationByte, declarationScalar);
+        declarationByte += 1;
+      }
+    }
+
+    long restoreByte = 0;
+    long sourceIndex = sourceStart;
+    while (restoreByte < sourceLength) limit 32768 {
+      long sourceScalar = source[sourceIndex];
+      if (sourceScalar == 10) {
+        setByte(output, restoreByte, sourceScalar);
+      }
+
+      restoreByte += 1;
+      sourceIndex += 1;
     }
 
     return sourceLength;
