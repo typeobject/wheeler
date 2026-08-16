@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.source_value_products;
 
+import wheeler.compiler.closure.direct_statement_coordinates;
 import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
@@ -10,8 +11,10 @@ import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.source_scalars;
+import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
+import wheeler.compiler.type_codes;
 import wheeler.lexer.scanner;
 
 classical class SourceValueProducts {
@@ -23,10 +26,16 @@ classical class SourceValueProducts {
   private const long SOURCE_STATEMENT_ROWS = 24576;
   private const long VALUE_ROWS = 7168;
 
-  /// Reports named parameter and local value extents.
-  public record SourceValueProductPlan(long valueCount, boolean valid) {}
+  /// Reports named values or the first bounded failure coordinate.
+  public record SourceValueProductPlan(
+    long valueCount,
+    long failureFunction,
+    long failureStatement,
+    long failureCode,
+    boolean valid
+  ) {}
 
-  /// Publishes named parameter and statement-result locals from source statement products.
+  /// Publishes named locals for one source product that contains no calls.
   public SourceValueProductPlan materializeSourceValueProducts(
     borrow utf8 source,
     long archiveSourceStart,
@@ -38,6 +47,52 @@ classical class SourceValueProducts {
     borrow mut words statementRows,
     long statementStartRow,
     long statementLengthRow,
+    borrow mut words valueRows,
+    borrow mut words functionLocalCounts,
+    borrow mut words statementLocalRows
+  ) {
+    region noCalls = new region(/* bytes= */ 10240, /* allocations= */ 2);
+    words callRows = allocate(noCalls, /* length= */ 1024);
+    words callStatements = allocate(noCalls, /* length= */ 256);
+    SourceValueProductPlan plan = materializeSourceValueProductsWithCalls(
+      source,
+      archiveSourceStart,
+      firstCallable,
+      callableCount,
+      reversibleCallableCount,
+      bodyStarts,
+      statementCount,
+      statementRows,
+      statementStartRow,
+      statementLengthRow,
+      /* callCount= */ 0,
+      callRows,
+      callStatements,
+      valueRows,
+      functionLocalCounts,
+      statementLocalRows
+    );
+    drop(callStatements);
+    drop(callRows);
+    drop(noCalls);
+    return plan;
+  }
+
+  /// Publishes named locals from statement and exact source-call products.
+  public SourceValueProductPlan materializeSourceValueProductsWithCalls(
+    borrow utf8 source,
+    long archiveSourceStart,
+    long firstCallable,
+    long callableCount,
+    long reversibleCallableCount,
+    borrow mut words bodyStarts,
+    long statementCount,
+    borrow mut words statementRows,
+    long statementStartRow,
+    long statementLengthRow,
+    long callCount,
+    borrow mut words callRows,
+    borrow mut words callStatements,
     borrow mut words valueRows,
     borrow mut words functionLocalCounts,
     borrow mut words statementLocalRows
@@ -67,6 +122,10 @@ classical class SourceValueProducts {
     assert(-1 < statementLengthRow);
     assert(statementStartRow < bufferLength(statementRows));
     assert(statementLengthRow < bufferLength(statementRows));
+    assert(-1 < callCount);
+    assert(callCount < 257);
+    assert(bufferLength(callRows) == 1024);
+    assert(bufferLength(callStatements) == 256);
     assert(bufferLength(valueRows) == VALUE_ROWS);
     assert(bufferLength(functionLocalCounts) == FUNCTION_LOCAL_ROWS);
     assert(bufferLength(statementLocalRows) == 8192);
@@ -79,6 +138,9 @@ classical class SourceValueProducts {
     words stagedLocalCounts = allocate(staging, FUNCTION_LOCAL_ROWS);
     words stagedStatementLocals = allocate(staging, /* length= */ 8192);
     boolean valid = true;
+    long failureFunction = -1;
+    long failureStatement = -1;
+    long failureCode = 0;
     long tokenCount = 0;
     ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);
     match (scanned) {
@@ -164,6 +226,13 @@ classical class SourceValueProducts {
 
       if (openParameters < 0) {
         valid = false;
+      }
+
+      if (valid == false) {
+        if (failureCode == 0) {
+          failureFunction = localFunction;
+          failureCode = 1;
+        }
       }
 
       long parameterCount = 0;
@@ -358,24 +427,47 @@ classical class SourceValueProducts {
                     );
                     if (readOwner.valid) {
                       localWidth = 3;
-                      if (
-                        borrowedWordsLoopBodyLocal(
-                          source,
-                          localFunction,
-                          readOwner.local,
-                          valueCount,
-                          stagedValues,
-                          semanticCount,
-                          tokenStarts,
-                          tokenLengths
-                        )
-                      ) {
-                        localWidth += 1;
+                      long readType = directBufferLocalType(
+                        source,
+                        localFunction,
+                        readOwner.local,
+                        valueCount,
+                        stagedValues,
+                        semanticCount,
+                        tokenStarts,
+                        tokenLengths
+                      );
+                      boolean byteRead = readType == TYPE_BYTE_VIEW;
+                      if (readType == TYPE_BYTES) {
+                        byteRead = true;
                       }
 
-                      if (tokenKinds[statementToken + 5] != 1) {
-                        if (tokenKinds[statementToken + 7] == 1) {
-                          localWidth += 2;
+                      if (readType == TYPE_BYTES_BORROW) {
+                        byteRead = true;
+                      }
+
+                      if (byteRead) {
+                        localWidth = 4;
+                      } else {
+                        if (
+                          borrowedWordsLoopBodyLocal(
+                            source,
+                            localFunction,
+                            readOwner.local,
+                            valueCount,
+                            stagedValues,
+                            semanticCount,
+                            tokenStarts,
+                            tokenLengths
+                          )
+                        ) {
+                          localWidth += 1;
+                        }
+
+                        if (tokenKinds[statementToken + 5] != 1) {
+                          if (tokenKinds[statementToken + 7] == 1) {
+                            localWidth += 2;
+                          }
                         }
                       }
 
@@ -430,41 +522,71 @@ classical class SourceValueProducts {
             }
 
             if (valueHash == TOKEN_RETURN) {
-              if (
-                punctuationAt(
-                  source,
-                  tokenKinds,
-                  tokenStarts,
-                  statementToken + 1,
-                  PUNCTUATION_SEMICOLON
-                )
-              ) {
-                localWidth = 0;
-                resultLocal = -1;
-              } else {
-                if (tokenKinds[statementToken + 1] != 1) {
-                  localWidth = 1;
-                  resultLocal = -1;
+              if (opcode == STATEMENT_RETURN_HELPER_CALL_NAMED) {
+                long returnArity = -1;
+                long returnCallMatches = 0;
+                long returnCall = 0;
+                while (returnCall < callCount) limit 256 {
+                  if (callStatements[returnCall] == statement) {
+                    returnArity = callRows[512 + returnCall];
+                    returnCallMatches += 1;
+                  }
+
+                  returnCall += 1;
+                }
+
+                if (returnCallMatches != 1) {
+                  valid = false;
                 } else {
-                  SourceReversibleResultRelation relation = sourceReversibleResultRelation(
-                    source,
-                    statementToken,
-                    semanticCount,
-                    tokenKinds,
-                    tokenStarts,
-                    tokenLengths
-                  );
-                  if (relation.valid == false) {
+                  if (returnArity < 0) {
                     valid = false;
                   } else {
-                    if (reversibleCallableCount == 0) {
-                      localWidth = 1;
-                      if (relation.kind != RESULT_RELATION_SOURCE) {
-                        localWidth = 3;
-                      }
+                    if (7 < returnArity) {
+                      valid = false;
+                    } else {
+                      localWidth = returnArity * 2 + 1;
                     }
+                  }
+                }
 
+                resultLocal = -1;
+              } else {
+                if (
+                  punctuationAt(
+                    source,
+                    tokenKinds,
+                    tokenStarts,
+                    statementToken + 1,
+                    PUNCTUATION_SEMICOLON
+                  )
+                ) {
+                  localWidth = 0;
+                  resultLocal = -1;
+                } else {
+                  if (tokenKinds[statementToken + 1] != 1) {
+                    localWidth = 1;
                     resultLocal = -1;
+                  } else {
+                    SourceReversibleResultRelation relation = sourceReversibleResultRelation(
+                      source,
+                      statementToken,
+                      semanticCount,
+                      tokenKinds,
+                      tokenStarts,
+                      tokenLengths
+                    );
+                    if (relation.valid == false) {
+                      valid = false;
+                    } else {
+                      if (reversibleCallableCount == 0) {
+                        localWidth = 1;
+                        if (relation.kind != RESULT_RELATION_SOURCE) {
+                          localWidth = 3;
+                        }
+                      }
+
+                      resultLocal = -1;
+                    }
                   }
                 }
               }
@@ -503,6 +625,14 @@ classical class SourceValueProducts {
             }
           }
 
+          if (valid == false) {
+            if (failureCode == 0) {
+              failureFunction = localFunction;
+              failureStatement = statement;
+              failureCode = 2;
+            }
+          }
+
           set(stagedStatementLocals, statement, localBase);
           set(stagedStatementLocals, 4096 + statement, localWidth);
           localBase += localWidth;
@@ -511,6 +641,10 @@ classical class SourceValueProducts {
 
       if (255 < localBase) {
         valid = false;
+        if (failureCode == 0) {
+          failureFunction = localFunction;
+          failureCode = 3;
+        }
       }
 
       set(stagedLocalCounts, localFunction, localBase);
@@ -545,10 +679,16 @@ classical class SourceValueProducts {
     drop(tokenKinds);
     drop(staging);
     if (valid == false) {
-      return new SourceValueProductPlan(0, false);
+      return new SourceValueProductPlan(
+        0,
+        failureFunction,
+        failureStatement,
+        failureCode,
+        false
+      );
     }
 
-    return new SourceValueProductPlan(valueCount, true);
+    return new SourceValueProductPlan(valueCount, -1, -1, 0, true);
   }
 
 }

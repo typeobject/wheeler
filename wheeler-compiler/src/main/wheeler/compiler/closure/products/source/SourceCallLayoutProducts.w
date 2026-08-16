@@ -10,6 +10,8 @@ classical class SourceCallLayoutProducts {
   private const long CALL_COUNT_LIMIT = 256;
   private const long CALL_ROWS = 1024;
   private const long CALL_VOID = 0;
+  private const long CALL_FORWARD_BOOLEAN = 4;
+  private const long CALL_FORWARD_SIGNED = 3;
   private const long CALL_VALUE_BOOLEAN = 2;
   private const long CALL_VALUE_SIGNED = 1;
   private const long MAX_ARGUMENTS_PER_CALL = 7;
@@ -29,7 +31,24 @@ classical class SourceCallLayoutProducts {
       return true;
     }
 
-    return kind == CALL_VALUE_BOOLEAN;
+    if (kind == CALL_VALUE_BOOLEAN) {
+      return true;
+    }
+
+    if (kind == CALL_FORWARD_SIGNED) {
+      return true;
+    }
+
+    return kind == CALL_FORWARD_BOOLEAN;
+  }
+
+  /// Reports whether one value call returns its result directly.
+  public boolean sourceCallForwardsResult(long kind) {
+    if (kind == CALL_FORWARD_SIGNED) {
+      return true;
+    }
+
+    return kind == CALL_FORWARD_BOOLEAN;
   }
 
   /// Returns the exact instruction count for one typed call.
@@ -61,6 +80,10 @@ classical class SourceCallLayoutProducts {
       return arity * 48 + 32;
     }
 
+    if (sourceCallForwardsResult(kind)) {
+      return arity * 48 + 56;
+    }
+
     return arity * 48 + 64;
   }
 
@@ -71,6 +94,10 @@ classical class SourceCallLayoutProducts {
     assert(arity < MAX_ARGUMENTS_PER_CALL + 1);
     if (kind == CALL_VOID) {
       return arity * 2;
+    }
+
+    if (sourceCallForwardsResult(kind)) {
+      return arity * 2 + 1;
     }
 
     return arity * 2 + 2;
@@ -193,6 +220,18 @@ classical class SourceCallLayoutProducts {
 
       if (valid) {
         long width = sourceCallLocalCount(kind, arity);
+        if (statementPhysicalWidths[ownedStatement] == width - 1) {
+          if (kind == CALL_VALUE_SIGNED) {
+            kind = CALL_FORWARD_SIGNED;
+          }
+
+          if (kind == CALL_VALUE_BOOLEAN) {
+            kind = CALL_FORWARD_BOOLEAN;
+          }
+
+          width = sourceCallLocalCount(kind, arity);
+        }
+
         if (statementPhysicalWidths[ownedStatement] != width) {
           valid = false;
         }

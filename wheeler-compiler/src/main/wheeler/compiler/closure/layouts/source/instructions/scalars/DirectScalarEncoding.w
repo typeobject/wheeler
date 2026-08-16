@@ -34,7 +34,19 @@ classical class DirectScalarEncoding {
     boolean valid
   ) {}
 
+  private boolean comparisonOperation(long operation) {
+    if (operation == OPCODE_LOCAL_EQ) {
+      return true;
+    }
+
+    return operation == OPCODE_LOCAL_LT;
+  }
+
   private boolean returnOperation(long operation) {
+    if (comparisonOperation(operation)) {
+      return true;
+    }
+
     if (operation == OPCODE_LOCAL_ADD) {
       return true;
     }
@@ -158,6 +170,15 @@ classical class DirectScalarEncoding {
     return -1;
   }
 
+  /// Returns one relation result type from its operand type and operation.
+  public long directRelationResultType(long operation, long leftType) {
+    if (comparisonOperation(operation)) {
+      return TYPE_BOOLEAN;
+    }
+
+    return directReturnType(leftType);
+  }
+
   /// Checks source types before one ordinary or reversible return emits.
   public boolean directReturnTypesValid(
     long reversibleCallableCount,
@@ -178,6 +199,26 @@ classical class DirectScalarEncoding {
 
     if (returnOperation(operation) == false) {
       return false;
+    }
+
+    if (comparisonOperation(operation)) {
+      if (0 < reversibleCallableCount) {
+        return false;
+      }
+
+      if (leftType != TOKEN_LONG) {
+        return false;
+      }
+
+      if (kind == RESULT_RELATION_BINARY) {
+        return true;
+      }
+
+      if (kind != RESULT_RELATION_BINARY_SOURCES) {
+        return false;
+      }
+
+      return rightType == TOKEN_LONG;
     }
 
     if (0 < reversibleCallableCount) {
@@ -228,6 +269,10 @@ classical class DirectScalarEncoding {
     }
 
     if (returnOperation(operation) == false) {
+      return new DirectScalarExtent(0, 0, 0, false);
+    }
+
+    if (comparisonOperation(operation)) {
       return new DirectScalarExtent(0, 0, 0, false);
     }
 

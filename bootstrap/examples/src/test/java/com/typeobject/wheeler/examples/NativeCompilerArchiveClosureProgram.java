@@ -9,7 +9,6 @@ import java.util.Map;
 /** Builds the production counted archive-closure evidence program. */
 final class NativeCompilerArchiveClosureProgram {
   record PhysicalModule(String path, String name) {}
-
   private static final List<String> MODULE_NAMES = CompilerSources.sortedModuleNames();
   static final List<PhysicalModule> PHYSICAL_MODULES = NativeCompilerPhysicalModules.all();
   static final List<PhysicalModule> PHYSICAL_CALLABLE_MODULES =
@@ -26,7 +25,8 @@ final class NativeCompilerArchiveClosureProgram {
       physicalModule("wheeler.compiler.wide_return_sources");
   static final PhysicalModule PHYSICAL_LOCAL_TYPE_ENCODING_MODULE =
       physicalModule("wheeler.compiler.local_type_encoding");
-
+  static final PhysicalModule PHYSICAL_RESULT_SLOT_VERIFIER_MODULE =
+      physicalModule("wheeler.compiler.result_slot_verifier");
   private NativeCompilerArchiveClosureProgram() {}
 
   private static PhysicalModule physicalModule(String name) {
@@ -986,6 +986,9 @@ final class NativeCompilerArchiveClosureProgram {
             .replace(
                 "LOCAL_TYPE_ENCODING_MODULE_OWNER",
                 Integer.toString(physicalOwner(PHYSICAL_LOCAL_TYPE_ENCODING_MODULE)))
+            .replace(
+                "RESULT_SLOT_VERIFIER_MODULE_OWNER",
+                Integer.toString(physicalOwner(PHYSICAL_RESULT_SLOT_VERIFIER_MODULE)))
             .replace("PHYSICAL_CLOSURE_MODULE_COUNT", Integer.toString(
                 CompilerSources.bootstrapModuleManifest().modules().size()))
             .replace(

@@ -373,7 +373,7 @@ classical class StructuredSourceModuleCompiler {
       retainedTargetIdentities
     );
     assert(referencedTargetPlan.valid);
-    SourceValueProductPlan valuePlan = materializeSourceValueProducts(
+    SourceValueProductPlan valuePlan = materializeSourceValueProductsWithCalls(
       source,
       archiveSourceStart,
       firstCallable,
@@ -384,6 +384,9 @@ classical class StructuredSourceModuleCompiler {
       statements,
       LOOP_STATEMENT_START_ROW,
       LOOP_STATEMENT_LENGTH_ROW,
+      resolvedCallCount,
+      calls,
+      callStatements,
       values,
       functionLocalCounts,
       statementLocalRows

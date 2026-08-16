@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.source_call_argument_products;
 
+import wheeler.compiler.closure.direct_statement_coordinates;
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
@@ -259,7 +260,19 @@ classical class SourceCallArgumentProducts {
                     type = TYPE_BOOLEAN;
                   } else {
                     if (sourceType != TOKEN_LONG) {
-                      valid = false;
+                      type = directBufferLocalType(
+                        source,
+                        owner,
+                        valueRows[3072 + selectedValue],
+                        valueCount,
+                        valueRows,
+                        tokenCount,
+                        tokenStarts,
+                        tokenLengths
+                      );
+                      if (type < 0) {
+                        valid = false;
+                      }
                     }
                   }
 

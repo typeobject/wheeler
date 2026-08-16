@@ -17,9 +17,9 @@ classical class LoopCallProducts {
   private const long CALL_KIND_ROW = 256;
   private const long CALL_TARGET_ROW = 768;
   private const long CALL_ROWS = 1024;
+  private const long CALL_FORWARD_BOOLEAN = 4;
   private const long CALL_VOID = 0;
   private const long CALL_VALUE_BOOLEAN = 2;
-  private const long CALL_VALUE_SIGNED = 1;
   private const long IDENTITY_BYTES = 32;
   private const long LOCAL_TYPE_COUNT_LIMIT = 4096;
   private const long LOCAL_TYPE_ROWS = 12288;
@@ -201,6 +201,16 @@ classical class LoopCallProducts {
     cursor = writeUnsignedLittleEndian(output, cursor, argumentBase, U64);
     cursor = writeUnsignedLittleEndian(output, cursor, arity, U64);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + arity * 2, U64);
+    if (sourceCallForwardsResult(kind)) {
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_RETURN_VALUE,
+        INSTRUCTION_FORM_UNARY
+      );
+      return writeUnsignedLittleEndian(output, cursor, localBase + arity * 2, U64);
+    }
+
     cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, INSTRUCTION_FORM_BINARY);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + arity * 2 + 1, U64);
     return writeUnsignedLittleEndian(output, cursor, localBase + arity * 2, U64);
@@ -242,13 +252,20 @@ classical class LoopCallProducts {
         resultType = TYPE_BOOLEAN;
       }
 
+      if (kind == CALL_FORWARD_BOOLEAN) {
+        resultType = TYPE_BOOLEAN;
+      }
+
       set(stagedTypes, typeCursor, owner);
       set(stagedTypes, 4096 + typeCursor, localBase + arity * 2);
       set(stagedTypes, 8192 + typeCursor, resultType);
-      set(stagedTypes, typeCursor + 1, owner);
-      set(stagedTypes, 4096 + typeCursor + 1, localBase + arity * 2 + 1);
-      set(stagedTypes, 8192 + typeCursor + 1, resultType);
-      typeCursor += 2;
+      typeCursor += 1;
+      if (sourceCallForwardsResult(kind) == false) {
+        set(stagedTypes, typeCursor, owner);
+        set(stagedTypes, 4096 + typeCursor, localBase + arity * 2 + 1);
+        set(stagedTypes, 8192 + typeCursor, resultType);
+        typeCursor += 1;
+      }
     }
 
     return typeCursor;

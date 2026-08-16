@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.direct_statement_products;
 
 import wheeler.compiler.closure.direct_byte_mutation_products;
+import wheeler.compiler.closure.direct_long_declaration_products;
 import wheeler.compiler.closure.direct_scalar_encoding;
 import wheeler.compiler.closure.direct_scalar_relations;
 import wheeler.compiler.closure.direct_statement_coordinates;
@@ -178,38 +179,9 @@ classical class DirectStatementProducts {
             }
 
             if (hash == TOKEN_LONG) {
-              LoopBodyValue destination = resolveLoopBodyValue(
+              DirectLongDeclarationProduct declaration = writeDirectLongDeclaration(
                 source,
-                tokenStarts[token + 1],
-                tokenLengths[token + 1],
-                owner,
-                statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement] + 1,
-                valueCount,
-                valueRows
-              );
-              if (destination.valid == false) {
-                statementValid = false;
-              }
-
-              long localBase = physicalStatementBase;
-              long destinationLocal = localBase + 1;
-              long sourceToken = token + 3;
-              DirectReturnConstant initializerConstant = resolveDirectReturnConstant(
-                source,
-                moduleOwner,
-                tokenStarts[sourceToken],
-                tokenLengths[sourceToken],
-                symbolCount,
-                symbolOwners,
-                symbolStarts,
-                symbolLengths,
-                symbolTypes,
-                symbolValues,
-                symbolResolved
-              );
-              DirectScalarRelationProduct initializer = resolveDirectScalarRelation(
-                source,
-                sourceToken,
+                token,
                 semanticCount,
                 tokenKinds,
                 tokenStarts,
@@ -229,285 +201,19 @@ classical class DirectStatementProducts {
                 symbolLengths,
                 symbolTypes,
                 symbolValues,
-                symbolResolved
+                symbolResolved,
+                stagedTypes,
+                typeCount,
+                stagedCode,
+                cursor,
+                physicalStatementBase
               );
-              boolean binaryInitializer = initializer.valid;
-              if (binaryInitializer) {
-                binaryInitializer = initializer.kind != RESULT_RELATION_SOURCE;
-              }
-
-              boolean bufferLengthInitializer = false;
-              if (tokenKinds[sourceToken] == 1) {
-                if (
-                  tokenHash(source, tokenStarts, tokenLengths, sourceToken) == TOKEN_BUFFER_LENGTH
-                ) {
-                  bufferLengthInitializer = punctuationAt(
-                    source,
-                    tokenKinds,
-                    tokenStarts,
-                    sourceToken + 1,
-                    40
-                  );
-                }
-              }
-
-              if (bufferLengthInitializer) {
-                if (tokenKinds[sourceToken + 2] != 1) {
-                  statementValid = false;
-                }
-
-                if (
-                  punctuationAt(source, tokenKinds, tokenStarts, sourceToken + 3, 41) == false
-                ) {
-                  statementValid = false;
-                }
-
-                if (
-                  punctuationAt(
-                    source,
-                    tokenKinds,
-                    tokenStarts,
-                    sourceToken + 4,
-                    PUNCTUATION_SEMICOLON
-                  ) == false
-                ) {
-                  statementValid = false;
-                }
-
-                LoopBodyValue bufferSourceValue = resolveLoopBodyValue(
-                  source,
-                  tokenStarts[sourceToken + 2],
-                  tokenLengths[sourceToken + 2],
-                  owner,
-                  statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement],
-                  valueCount,
-                  valueRows
-                );
-                if (bufferSourceValue.valid == false) {
-                  statementValid = false;
-                }
-
-                long bufferSourceOperand = physicalValueLocal(
-                  owner,
-                  bufferSourceValue.local,
-                  statementCount,
-                  statementRows,
-                  statementLocalRows,
-                  valueCount,
-                  valueRows,
-                  statementPhysicalStarts
-                );
-                if (bufferSourceOperand < 0) {
-                  statementValid = false;
-                }
-
-                long bufferSourceType = directBufferLocalType(
-                  source,
-                  owner,
-                  bufferSourceValue.local,
-                  valueCount,
-                  valueRows,
-                  semanticCount,
-                  tokenStarts,
-                  tokenLengths
-                );
-                if (bufferSourceType < 0) {
-                  statementValid = false;
-                }
-
-                destinationLocal = localBase + 2;
-                if (statementValid) {
-                  cursor = writeInstructionHeader(
-                    stagedCode,
-                    cursor,
-                    OPCODE_LOCAL_MOVE,
-                    INSTRUCTION_FORM_BINARY
-                  );
-                  cursor = writeUnsignedLittleEndian(stagedCode, cursor, localBase, U64);
-                  cursor = writeUnsignedLittleEndian(
-                    stagedCode,
-                    cursor,
-                    bufferSourceOperand,
-                    U64
-                  );
-                  cursor = writeInstructionHeader(
-                    stagedCode,
-                    cursor,
-                    OPCODE_BUFFER_LENGTH,
-                    INSTRUCTION_FORM_BINARY
-                  );
-                  cursor = writeUnsignedLittleEndian(stagedCode, cursor, localBase + 1, U64);
-                  cursor = writeUnsignedLittleEndian(stagedCode, cursor, localBase, U64);
-                  cursor = writeInstructionHeader(
-                    stagedCode,
-                    cursor,
-                    OPCODE_LOCAL_MOVE,
-                    INSTRUCTION_FORM_BINARY
-                  );
-                  cursor = writeUnsignedLittleEndian(stagedCode, cursor, destinationLocal, U64);
-                  cursor = writeUnsignedLittleEndian(stagedCode, cursor, localBase + 1, U64);
-                  set(stagedTypes, typeCount, owner);
-                  set(stagedTypes, 4096 + typeCount, localBase);
-                  set(stagedTypes, 8192 + typeCount, bufferSourceType);
-                  typeCount += 1;
-                  long signedOffset = 1;
-                  while (signedOffset < 3) limit 2 {
-                    set(stagedTypes, typeCount, owner);
-                    set(stagedTypes, 4096 + typeCount, localBase + signedOffset);
-                    set(stagedTypes, 8192 + typeCount, TYPE_SIGNED);
-                    typeCount += 1;
-                    signedOffset += 1;
-                  }
-
-                  productInstructions = 3;
-                }
+              if (declaration.valid) {
+                cursor = declaration.next;
+                typeCount = declaration.typeCount;
+                productInstructions = declaration.instructionCount;
               } else {
-                if (binaryInitializer) {
-                  if (statementValid) {
-                    DirectScalarExtent emitted = writeDirectScalarDeclaration(
-                      stagedCode,
-                      cursor,
-                      initializer.kind,
-                      localBase,
-                      initializer.left,
-                      initializer.leftType,
-                      initializer.operation,
-                      initializer.right,
-                      initializer.rightType,
-                      initializer.immediate
-                    );
-                    if (emitted.valid) {
-                      cursor = emitted.next;
-                      destinationLocal = localBase + 3;
-                      long scalarOffset = 0;
-                      while (scalarOffset < emitted.localCount) limit 4 {
-                        set(stagedTypes, typeCount, owner);
-                        set(stagedTypes, 4096 + typeCount, localBase + scalarOffset);
-                        set(stagedTypes, 8192 + typeCount, TYPE_SIGNED);
-                        typeCount += 1;
-                        scalarOffset += 1;
-                      }
-
-                      productInstructions = emitted.instructionCount;
-                    } else {
-                      statementValid = false;
-                    }
-                  }
-                }
-
-                if (binaryInitializer == false) {
-                  long sourceOpcode = OPCODE_LOCAL_CONST;
-                  long sourceOperand = 0;
-                  if (tokenKinds[sourceToken] == 1) {
-                    if (initializerConstant.found) {
-                      if (initializerConstant.valid) {
-                        if (
-                          punctuationAt(
-                            source,
-                            tokenKinds,
-                            tokenStarts,
-                            sourceToken + 1,
-                            PUNCTUATION_SEMICOLON
-                          )
-                        ) {
-                          sourceOperand = initializerConstant.value;
-                        } else {
-                          statementValid = false;
-                        }
-                      } else {
-                        statementValid = false;
-                      }
-                    } else {
-                      if (initializer.valid) {
-                        if (initializer.kind == RESULT_RELATION_SOURCE) {
-                          if (initializer.leftType == TOKEN_LONG) {
-                            sourceOpcode = OPCODE_LOCAL_MOVE;
-                            sourceOperand = initializer.left;
-                          } else {
-                            statementValid = false;
-                          }
-                        } else {
-                          statementValid = false;
-                        }
-                      } else {
-                        statementValid = false;
-                      }
-                    }
-                  } else {
-                    long signedWidth = signedNumberWidth(
-                      source,
-                      tokenKinds,
-                      tokenStarts,
-                      sourceToken
-                    );
-                    if (signedWidth < 1) {
-                      statementValid = false;
-                    } else {
-                      if (
-                        punctuationAt(
-                          source,
-                          tokenKinds,
-                          tokenStarts,
-                          sourceToken + signedWidth,
-                          PUNCTUATION_SEMICOLON
-                        ) == false
-                      ) {
-                        statementValid = false;
-                      }
-
-                      if (
-                        signedNumberValid(source, tokenStarts, tokenLengths, sourceToken)
-                      ) {
-                        sourceOperand = parsedSignedNumber(
-                          source,
-                          tokenStarts,
-                          tokenLengths,
-                          sourceToken
-                        );
-                      } else {
-                        statementValid = false;
-                      }
-                    }
-                  }
-
-                  if (statementValid) {
-                    cursor = writeInstructionHeader(
-                      stagedCode,
-                      cursor,
-                      sourceOpcode,
-                      INSTRUCTION_FORM_BINARY
-                    );
-                    cursor = writeUnsignedLittleEndian(stagedCode, cursor, localBase, U64);
-                    if (sourceOpcode == OPCODE_LOCAL_MOVE) {
-                      cursor = writeUnsignedLittleEndian(stagedCode, cursor, sourceOperand, U64);
-                    } else {
-                      cursor = writeSignedLittleEndian(stagedCode, cursor, sourceOperand, U64);
-                    }
-
-                    cursor = writeInstructionHeader(
-                      stagedCode,
-                      cursor,
-                      OPCODE_LOCAL_MOVE,
-                      INSTRUCTION_FORM_BINARY
-                    );
-                    cursor = writeUnsignedLittleEndian(
-                      stagedCode,
-                      cursor,
-                      destinationLocal,
-                      U64
-                    );
-                    cursor = writeUnsignedLittleEndian(stagedCode, cursor, localBase, U64);
-                    set(stagedTypes, typeCount, owner);
-                    set(stagedTypes, 4096 + typeCount, localBase);
-                    set(stagedTypes, 8192 + typeCount, TYPE_SIGNED);
-                    typeCount += 1;
-                    set(stagedTypes, typeCount, owner);
-                    set(stagedTypes, 4096 + typeCount, destinationLocal);
-                    set(stagedTypes, 8192 + typeCount, TYPE_SIGNED);
-                    typeCount += 1;
-                    productInstructions = 2;
-                  }
-                }
+                statementValid = false;
               }
             } else {
               if (hash == TOKEN_SET_BYTE) {
@@ -669,7 +375,10 @@ classical class DirectStatementProducts {
                       statementValid = false;
                     }
 
-                    long returnedType = directReturnType(relation.leftType);
+                    long returnedType = directRelationResultType(
+                      relation.operation,
+                      relation.leftType
+                    );
                     if (returnedType < 0) {
                       statementValid = false;
                     }
@@ -761,9 +470,20 @@ classical class DirectStatementProducts {
                       if (statementValid) {
                         long returnOffset = 0;
                         while (returnOffset < returnWidth) limit 3 {
+                          long returnLocalType = returnedType;
+                          if (relation.kind != RESULT_RELATION_SOURCE) {
+                            if (returnOffset == 0) {
+                              returnLocalType = directReturnType(relation.leftType);
+                            }
+
+                            if (returnOffset == 1) {
+                              returnLocalType = directReturnType(relation.rightType);
+                            }
+                          }
+
                           set(stagedTypes, typeCount, owner);
                           set(stagedTypes, 4096 + typeCount, returnLocal + returnOffset);
-                          set(stagedTypes, 8192 + typeCount, returnedType);
+                          set(stagedTypes, 8192 + typeCount, returnLocalType);
                           typeCount += 1;
                           returnOffset += 1;
                         }

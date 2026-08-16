@@ -96,15 +96,37 @@ classical class SourceReversibleResultRelations {
       return new SourceReversibleResultRelation(0, 0, 0, 0, 0, false);
     }
 
-    long operation = resultOperation(utf8Scalar(source, tokenStarts[leftToken + 1]));
+    long operationToken = leftToken + 1;
+    long operationScalar = utf8Scalar(source, tokenStarts[operationToken]);
+    long operation = resultOperation(operationScalar);
+    long rightToken = leftToken + 2;
+    if (operationScalar == PUNCTUATION_LESS_THAN) {
+      operation = OPCODE_LOCAL_LT;
+    }
+
+    if (operationScalar == PUNCTUATION_ASSIGN) {
+      if (tokenCount < leftToken + 5) {
+        return new SourceReversibleResultRelation(0, 0, 0, 0, 0, false);
+      }
+
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, operationToken + 1, PUNCTUATION_ASSIGN)
+          == false
+      ) {
+        return new SourceReversibleResultRelation(0, 0, 0, 0, 0, false);
+      }
+
+      operation = OPCODE_LOCAL_EQ;
+      rightToken = leftToken + 3;
+    }
+
     if (operation < 0) {
       return new SourceReversibleResultRelation(0, 0, 0, 0, 0, false);
     }
 
-    long rightToken = leftToken + 2;
     if (tokenKinds[rightToken] == 1) {
       if (
-        punctuationAt(source, tokenKinds, tokenStarts, leftToken + 3, PUNCTUATION_SEMICOLON)
+        punctuationAt(source, tokenKinds, tokenStarts, rightToken + 1, PUNCTUATION_SEMICOLON)
           == false
       ) {
         return new SourceReversibleResultRelation(0, 0, 0, 0, 0, false);

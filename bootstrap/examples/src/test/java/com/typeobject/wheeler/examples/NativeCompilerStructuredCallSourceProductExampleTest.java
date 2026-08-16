@@ -40,6 +40,14 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
   }
 
   @Test
+  void forwardsAValueCallResultDirectly() throws Exception {
+    assertArtifact(SOURCE.replace(
+        "    long result = recurse(value);\n"
+            + "    return result;\n",
+        "    return recurse(value);\n"), 1, 1, 0);
+  }
+
+  @Test
   void emitsAReversibleResultSlotArtifact() throws Exception {
     assertReversibleArtifact("long", "long value", "value", 1, 1);
   }

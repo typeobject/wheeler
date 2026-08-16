@@ -61,6 +61,24 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
+  void emitsEqualityReturnProducts() throws Exception {
+    assertArtifact(SOURCE.replace(
+        "public long copyOffset(",
+        "public boolean copyOffset(").replace(
+            "    return length;\n",
+            "    return length == sourceStart;\n"));
+  }
+
+  @Test
+  void emitsLessThanReturnProducts() throws Exception {
+    assertArtifact(SOURCE.replace(
+        "public long copyOffset(",
+        "public boolean copyOffset(").replace(
+            "    return length;\n",
+            "    return length < sourceStart;\n"));
+  }
+
+  @Test
   void rejectsMalformedBinaryReturnProducts() throws Exception {
     assertNoArtifact(SOURCE.replace(
         "    return length;\n",
@@ -100,6 +118,38 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
         "    while (index < length) limit MAX_SOURCE_BYTES {\n",
         "    setByte(output, index, length);\n"
             + "    while (index < length) limit MAX_SOURCE_BYTES {\n"));
+  }
+
+  @Test
+  void emitsRootByteProjectionProducts() throws Exception {
+    assertArtifact(SOURCE.replace(
+        "    long index = 0;\n",
+        "    long projected = source[sourceStart];\n"
+            + "    long index = 0;\n"));
+  }
+
+  @Test
+  void rejectsMalformedRootByteProjectionProducts() throws Exception {
+    assertNoArtifact(SOURCE.replace(
+        "    long index = 0;\n",
+        "    long projected = source[sourceStart] + length;\n"
+            + "    long index = 0;\n"));
+  }
+
+  @Test
+  void rejectsNonByteRootProjectionOwners() throws Exception {
+    assertNoArtifact(SOURCE.replace(
+        "    long index = 0;\n",
+        "    long projected = rows[sourceStart];\n"
+            + "    long index = 0;\n"));
+  }
+
+  @Test
+  void rejectsNonSignedRootProjectionIndexes() throws Exception {
+    assertNoArtifact(SOURCE.replace(
+        "    long index = 0;\n",
+        "    long projected = source[output];\n"
+            + "    long index = 0;\n"));
   }
 
   @Test
