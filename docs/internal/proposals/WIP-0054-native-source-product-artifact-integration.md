@@ -147,6 +147,7 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0073 emits exact one-arm root conditional returns with signed less-than or equality conditions and one Boolean-literal child. `FourArgumentCalls.w` matches its five-function, 39-instruction, 1,864-byte stage-0 artifact byte for byte.
 - [x] WIP-0074 routes `LiteralComparisonOperations.w`, `ResolvedLocalCopyKinds.w`, `ResolvedLocalLessThanKinds.w`, and `ResolvedLocalLiteralComparisons.w` through direct products. Their 17 functions and 273 instructions match 10,080 stage-0 artifact bytes. One ordered list owns callable-bearing direct-route migration state.
 - [x] WIP-0075 extends exact root conditionals with preserved signed and signed binary child returns. `ResolvedLocalEqualityKinds.w` and `ResolvedLocalInequalityKinds.w` match their eight-function, 72-instruction, 3,360-byte stage-0 artifacts byte for byte.
+- [x] WIP-0076 routes five bounded range decoders through direct scalar and conditional products. Their 17 functions and 477 instructions match 15,760 stage-0 artifact bytes without dependency-source projection.
 - [x] Every callable-free physical module compiles without dependency source.
 - [ ] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.
