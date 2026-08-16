@@ -29,7 +29,7 @@ final class NativeCompilerArchiveClosureProgram {
       physicalModule("wheeler.compiler.result_slot_verifier");
   private NativeCompilerArchiveClosureProgram() {}
 
-  private static PhysicalModule physicalModule(String name) {
+  static PhysicalModule physicalModule(String name) {
     return PHYSICAL_MODULES.stream()
         .filter(module -> module.name().equals(name))
         .findFirst()

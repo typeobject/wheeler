@@ -36,6 +36,9 @@ final class NativeCompilerPhysicalProductSource {
             if (physicalOwner == RESULT_SLOT_VERIFIER_MODULE_OWNER) {
               directSourceModule = true;
             }
+            if (physicalOwner == RESOLVED_LOCAL_LOOP_OPERANDS_MODULE_OWNER) {
+              directSourceModule = true;
+            }
             long physicalImportedCount = writeDirectImportedValues(
               firstImports[physicalOwner],
               directImportCounts[physicalOwner],
@@ -326,7 +329,12 @@ final class NativeCompilerPhysicalProductSource {
             physicalProduct += 1;
           }
         }
-        """;
+        """
+        .replace(
+            "RESOLVED_LOCAL_LOOP_OPERANDS_MODULE_OWNER",
+            Integer.toString(NativeCompilerArchiveClosureProgram.physicalOwner(
+                NativeCompilerArchiveClosureProgram.physicalModule(
+                    "wheeler.compiler.resolved_local_loop_operands"))));
   }
 
   static String publication() {
