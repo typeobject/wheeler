@@ -87,7 +87,9 @@ stack, including private data saved for logged overwrite.
 
 An optional observer receives an immutable event only after successful mutation.
 Forward, inverse, rewind-forward, and rewind-inverse remain distinct directions.
-The observer cannot inspect or alter mutable machine state.
+The observer cannot inspect or alter mutable machine state. The canonical `NONE`
+observer constructs no events. Any other observer receives the complete stream,
+even when it discards each event.
 
 ## Commit horizons
 

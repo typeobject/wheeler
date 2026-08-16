@@ -8,7 +8,7 @@ import com.typeobject.wheeler.core.bytecode.Opcode;
 /** Receives immutable observations after successful execution or rewind transitions. */
 @FunctionalInterface
 public interface TransitionObserver {
-  /** Observer that deliberately records nothing. */
+  /** Observer that deliberately records nothing without constructing observations. */
   TransitionObserver NONE = observation -> {};
 
   /** Records one transition without receiving mutable machine state. */

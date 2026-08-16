@@ -188,8 +188,10 @@ public final class VirtualMachine {
     }
     tasks.setSelectedStatus(
         status == MachineStatus.HALTED ? TaskStatus.COMPLETED : TaskStatus.RUNNABLE);
-    observer.observe(
-        TransitionObserver.execution(sequence, tasks.selected(), frame, instruction));
+    if (observer != TransitionObserver.NONE) {
+      observer.observe(
+          TransitionObserver.execution(sequence, tasks.selected(), frame, instruction));
+    }
   }
 
   public void rewindOne() {
@@ -228,7 +230,9 @@ public final class VirtualMachine {
     scheduler.restore(record.previousSchedulerCursor());
     status = record.previousStatus();
     sequence = record.sequence();
-    observer.observe(TransitionObserver.rewind(record));
+    if (observer != TransitionObserver.NONE) {
+      observer.observe(TransitionObserver.rewind(record));
+    }
   }
 
   public byte[] hostOutput() {
