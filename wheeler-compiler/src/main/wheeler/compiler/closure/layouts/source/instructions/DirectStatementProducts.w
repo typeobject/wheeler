@@ -424,7 +424,7 @@ classical class DirectStatementProducts {
                     }
                   } else {
                     if (hash == TOKEN_RETURN) {
-                      DirectScalarRelationProduct relation = resolveDirectScalarRelation(
+                      DirectScalarRelationProduct relation = resolveDirectReturnRelation(
                         source,
                         token + 1,
                         semanticCount,

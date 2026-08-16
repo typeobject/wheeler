@@ -80,40 +80,6 @@ classical class DirectScalarRelations {
       return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
     }
 
-    DirectReturnConstant leftConstant = resolveDirectReturnConstant(
-      source,
-      moduleOwner,
-      tokenStarts[relation.leftToken],
-      tokenLengths[relation.leftToken],
-      symbolCount,
-      symbolOwners,
-      symbolStarts,
-      symbolLengths,
-      symbolTypes,
-      symbolValues,
-      symbolResolved
-    );
-    if (leftConstant.found) {
-      if (leftConstant.valid == false) {
-        return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
-      }
-
-      if (relation.kind != RESULT_RELATION_SOURCE) {
-        return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
-      }
-
-      return new DirectScalarRelationProduct(
-        RESULT_RELATION_CONSTANT,
-        0,
-        leftConstant.value,
-        0,
-        0,
-        TOKEN_LONG,
-        0,
-        true
-      );
-    }
-
     LoopBodyValue leftValue = resolveLoopBodyValue(
       source,
       tokenStarts[relation.leftToken],
@@ -265,6 +231,103 @@ classical class DirectScalarRelations {
       leftType,
       rightType,
       true
+    );
+  }
+
+  /// Resolves one complete return relation with constant precedence on its left source.
+  public DirectScalarRelationProduct resolveDirectReturnRelation(
+    borrow utf8 source,
+    long leftToken,
+    long tokenCount,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long moduleOwner,
+    long owner,
+    long ordinal,
+    long statementCount,
+    borrow mut words statementRows,
+    borrow mut words statementLocalRows,
+    borrow mut words statementPhysicalStarts,
+    long valueCount,
+    borrow mut words valueRows,
+    long symbolCount,
+    borrow mut words symbolOwners,
+    borrow mut words symbolStarts,
+    borrow mut words symbolLengths,
+    borrow mut words symbolTypes,
+    borrow mut words symbolValues,
+    borrow mut words symbolResolved
+  ) {
+    SourceReversibleResultRelation relation = sourceScalarRelation(
+      source,
+      leftToken,
+      tokenCount,
+      tokenKinds,
+      tokenStarts,
+      tokenLengths
+    );
+    if (relation.valid == false) {
+      return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+    }
+
+    DirectReturnConstant constant = resolveDirectReturnConstant(
+      source,
+      moduleOwner,
+      tokenStarts[relation.leftToken],
+      tokenLengths[relation.leftToken],
+      symbolCount,
+      symbolOwners,
+      symbolStarts,
+      symbolLengths,
+      symbolTypes,
+      symbolValues,
+      symbolResolved
+    );
+    if (constant.found) {
+      if (constant.valid == false) {
+        return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+      }
+
+      if (relation.kind != RESULT_RELATION_SOURCE) {
+        return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+      }
+
+      return new DirectScalarRelationProduct(
+        RESULT_RELATION_CONSTANT,
+        0,
+        constant.value,
+        0,
+        0,
+        TOKEN_LONG,
+        0,
+        true
+      );
+    }
+
+    return resolveDirectScalarRelation(
+      source,
+      leftToken,
+      tokenCount,
+      tokenKinds,
+      tokenStarts,
+      tokenLengths,
+      moduleOwner,
+      owner,
+      ordinal,
+      statementCount,
+      statementRows,
+      statementLocalRows,
+      statementPhysicalStarts,
+      valueCount,
+      valueRows,
+      symbolCount,
+      symbolOwners,
+      symbolStarts,
+      symbolLengths,
+      symbolTypes,
+      symbolValues,
+      symbolResolved
     );
   }
 }

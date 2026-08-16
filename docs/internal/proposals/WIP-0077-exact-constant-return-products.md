@@ -37,6 +37,8 @@ The parser route could lower this source, but the closed product route could not
 
 Constant lookup precedes local lookup. A module constant therefore keeps the existing precedence over a same-named source value.
 
+`resolveDirectReturnRelation` owns that lookup. Declaration initializers continue to call `resolveDirectScalarRelation` and then use their existing constant initializer path. This boundary prevents a one-local return relation from entering the four-local declaration encoder. It also avoids a constant-symbol scan for every local declaration.
+
 The relation carries the signed value in its left field. It carries no physical source local, operation, or right operand. Consumers must test the relation kind before they interpret that field as a coordinate.
 
 ## Encoding
@@ -83,6 +85,7 @@ The 96-product physical subset remains unchanged. It contains 228 functions and 
 - [x] Conditional constant children keep the exact seven-instruction window.
 - [x] Constant lookup retains precedence over same-named locals.
 - [x] Constant declarations retain their existing canonical code and local widths.
+- [x] Return-only constant lookup cannot enter scalar declaration encoding.
 - [x] Reversible and nonsigned constant returns fail before publication.
 - [x] `NamedConditionalBases.w` matches its 4,592-byte stage-0 artifact byte for byte.
 - [x] The complete physical product closure matches stage 0 byte for byte.

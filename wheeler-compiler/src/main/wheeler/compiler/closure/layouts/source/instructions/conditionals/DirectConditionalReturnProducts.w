@@ -402,7 +402,7 @@ classical class DirectConditionalReturnProducts {
     long childInstructionCount = 2;
     long childResultType = TYPE_BOOLEAN;
     if (literalChild == false) {
-      DirectScalarRelationProduct childRelation = resolveDirectScalarRelation(
+      DirectScalarRelationProduct childRelation = resolveDirectReturnRelation(
         source,
         childToken + 1,
         tokenCount,
