@@ -158,6 +158,7 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0086 routes the named local-update and signed-operation classifiers through direct conditional, constant, and scalar return products. Their six functions and 279 instructions match 8,448 stage-0 bytes.
 - [x] WIP-0087 publishes only measured direct product, type, statement-width, and code extents. The complete physical closure retains exact artifact and linked-container bytes under its unchanged deadline.
 - [x] WIP-0088 routes `NamedReturnComparisonOperands.w` through direct conditional and final equality products. Its one function and 32 instructions match the 1,328-byte stage-0 artifact.
+- [x] WIP-0089 routes `NamedSignedReturnKinds.w` through direct conditional and final equality products. Its three functions and 33 instructions match the 1,608-byte stage-0 artifact.
 - [x] Every callable-free physical module compiles without dependency source.
 - [x] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.

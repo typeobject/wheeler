@@ -18,6 +18,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.named_local_update_kinds",
       "wheeler.compiler.named_long_operations",
       "wheeler.compiler.named_return_comparison_operands",
+      "wheeler.compiler.named_signed_return_kinds",
       "wheeler.compiler.resolved_early_comparison_kinds",
       "wheeler.compiler.resolved_literal_comparison_kinds",
       "wheeler.compiler.resolved_local_copy_kinds",
