@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-16 |
 | Updated | 2026-08-16 |
@@ -80,6 +80,14 @@ Focused fixtures compare literal, preserved-source, and signed less-than root de
 
 A signed arithmetic initializer publishes no artifact. The complete physical product closure compiles after the helper enters the compiler module graph and preserves every selected artifact and linked subset byte.
 
+## Bootstrap closure
+
+The compiler archive contains 2,967,798 bytes and has identity `1ea503d30c771404d1bfdbaccb71e469d3cfbc3e1c17e31c32bce50f46833445`. The package manifest identity remains `e83091ee70e165f76eefcb2135d2b9620af0906f39affb8a0013e9e60bf894c2`. All four dependent locks name both identities.
+
+The bootstrap module manifest contains 173,585 bytes with 373 modules, two externals, and 1,832 imports. Native validation halts after 72,194,794 transitions under the 73,000,000-transition ceiling.
+
+The 96-product physical subset remains unchanged. It contains 228 functions and 8,286 instructions in 246,040 bytes. Its identity is `3d6e88c426f12d34912a1b14120cd59de093c243e101edf9c05efb30b5d6b679`.
+
 ## Acceptance
 
 - [x] Boolean literal declarations emit two instructions and two Boolean locals.
@@ -91,9 +99,9 @@ A signed arithmetic initializer publishes no artifact. The complete physical pro
 - [x] Code, type rows, widths, and failure products publish atomically.
 - [x] Focused declarations match stage 0 byte for byte.
 - [x] The complete physical product closure matches stage 0 byte for byte under its existing deadline.
-- [ ] Compiler archive identities, dependent locks, and bootstrap budgets are current.
-- [ ] A fresh locked workspace build passes.
-- [ ] Source, documentation, line, and directory-width policy pass.
+- [x] Compiler archive identities, dependent locks, and bootstrap budgets are current.
+- [x] A fresh locked workspace build passes.
+- [x] Source, documentation, line, and directory-width policy pass.
 
 ## Rejected alternatives
 
