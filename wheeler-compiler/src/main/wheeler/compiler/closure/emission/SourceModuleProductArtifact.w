@@ -210,7 +210,7 @@ classical class SourceModuleProductArtifact {
     borrow mut bytes output,
     borrow mut bytes identity
   ) {
-    assert(0 < callableCount);
+    assert(-1 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
     assert(-1 < reversibleCallableCount);
     if (0 < reversibleCallableCount) {

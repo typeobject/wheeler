@@ -62,7 +62,7 @@ Feed counted globals, aggregates, functions, local types, code, proofs, and stri
 
 Adopt physical modules in closure order. `CoreParsing.w` is first because it exercises two direct multi-statement loops without aggregate noise. `ManifestSyntax.w`, `CompiledBodyArchive.w`, package token utilities, and later compiler modules follow.
 
-After every physical module uses product integration, delete product-to-source projection, imported callable source stubs, and the scalar-helper loop retry from the production closure path. Keep a bounded recovery parser only while an accepted recovery seed still names it.
+WIP-0068 sends callable-free modules directly to the canonical artifact emitter. After every callable-bearing physical module uses product integration, delete product-to-source projection, imported callable source stubs, and the scalar-helper loop retry from the production closure path. Keep a bounded recovery parser only while an accepted recovery seed still names it.
 
 ## Bounds
 
@@ -138,6 +138,8 @@ No fallback reparses source after one of these failures.
 - [x] `ManifestSyntax.w` enters the physical archive through direct products. Its four callables preserve void, signed, and Boolean result identities. Canonical lexical function-name insertion remaps source-ordered descriptors without changing callable coordinates.
 - [x] WIP-0067 replaces inferred production loop rebasing with exact physical value, packed operand, nested-condition, and scratch-window products. Logical-coordinate rebasing remains only for isolated product fixtures. Bounded body, nested, loop, and direct-statement failure coordinates identify malformed products before publication.
 - [x] `AggregateSourceProjection.w` enters the physical archive through direct products. Its 8,096-byte artifact verifies and matches stage 0 byte for byte.
+- [x] WIP-0068 emits callable-free artifacts without parser projection or structured-product allocation. All 17 callable-free physical authorities produce byte-identical canonical library artifacts through one bounded route.
+- [x] Every callable-free physical module compiles without dependency source.
 - [ ] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.
 - [ ] Product-to-source projection and signature-stub source leave the production path.

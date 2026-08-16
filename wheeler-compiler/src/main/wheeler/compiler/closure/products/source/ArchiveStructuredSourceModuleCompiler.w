@@ -4,6 +4,7 @@ module wheeler.compiler.closure.archive_structured_source_module_compiler;
 
 import wheeler.compiler.closure.imported_source_call_targets;
 import wheeler.compiler.closure.source_call_target_table;
+import wheeler.compiler.closure.source_module_product_artifact;
 import wheeler.compiler.closure.source_product_artifact;
 import wheeler.compiler.closure.structured_source_module_compiler;
 import wheeler.core.encoding.binary;
@@ -439,6 +440,62 @@ classical class ArchiveStructuredSourceModuleCompiler {
     return result;
   }
 
+  private SourceProductArtifactPlan compileCallableFreeArchiveModule(
+    borrow byteview archive,
+    long sourceStart,
+    long sourceLength,
+    borrow mut bytes artifact,
+    borrow mut bytes identity
+  ) {
+    ClassNameRange className = sourceClassName(archive, sourceStart, sourceLength);
+    assert(className.valid);
+    region empty = new region(/* bytes= */ 140000, /* allocations= */ 9);
+    words callables = allocate(empty, /* length= */ 320);
+    words parameterCounts = allocate(empty, /* length= */ 64);
+    words resultTypes = allocate(empty, /* length= */ 64);
+    words functionNameIds = allocate(empty, /* length= */ 64);
+    words localTypes = allocate(empty, /* length= */ 12288);
+    bytes code = allocateBytes(empty, /* length= */ 1);
+    bytes strings = allocateBytes(empty, /* length= */ 32768);
+    words stringStarts = allocate(empty, /* length= */ 256);
+    words stringLengths = allocate(empty, /* length= */ 256);
+    writeAscii(strings, /* outputStart= */ 0, "$library");
+    set(stringStarts, 0, 0);
+    set(stringLengths, 0, 8);
+    set(stringStarts, 1, 8);
+    set(stringLengths, 1, className.length);
+    long stringBytes = copyRange(archive, className.start, className.length, strings, 8);
+    SourceProductArtifactPlan result = publishClassicalSourceModuleArtifact(
+      /* callableCount= */ 0,
+      callables,
+      parameterCounts,
+      resultTypes,
+      functionNameIds,
+      /* localTypeCount= */ 0,
+      localTypes,
+      code,
+      /* codeLength= */ 0,
+      strings,
+      stringBytes,
+      /* stringCount= */ 2,
+      stringStarts,
+      stringLengths,
+      artifact,
+      identity
+    );
+    drop(stringLengths);
+    drop(stringStarts);
+    drop(strings);
+    drop(code);
+    drop(localTypes);
+    drop(functionNameIds);
+    drop(resultTypes);
+    drop(parameterCounts);
+    drop(callables);
+    drop(empty);
+    return result;
+  }
+
   /// Publishes an archive module against one closed imported target view.
   public SourceProductArtifactPlan compileStructuredArchiveModuleWithTargetView(
     borrow byteview archive,
@@ -483,7 +540,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     assert(-1 < moduleOwner);
     assert(moduleOwner < 512);
     assert(-1 < firstCallable);
-    assert(0 < callableCount);
+    assert(-1 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
     assert(-1 < importedTargetCount);
     assert(importedTargetCount < 4097);
@@ -507,6 +564,15 @@ classical class ArchiveStructuredSourceModuleCompiler {
     assert(bufferLength(callableNameLengths) == 4096);
     assert(bufferLength(artifact) == 32768);
     assert(bufferLength(identity) == 32);
+    if (callableCount == 0) {
+      return compileCallableFreeArchiveModule(
+        archive,
+        sourceStart,
+        sourceLength,
+        artifact,
+        identity
+      );
+    }
 
     ClassNameRange className = sourceClassName(archive, sourceStart, sourceLength);
     ModuleNameRange moduleName = sourceModuleName(archive, sourceStart, sourceLength);

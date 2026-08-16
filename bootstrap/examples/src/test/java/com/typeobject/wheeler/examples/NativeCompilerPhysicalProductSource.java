@@ -91,7 +91,10 @@ final class NativeCompilerPhysicalProductSource {
               }
             }
             CompiledCallableBody physicalModule = new CompiledCallableBody(0, 0, 0, 0);
-            boolean directSourceModule = physicalOwner == STRUCTURED_SOURCE_MODULE_OWNER;
+            boolean directSourceModule = moduleCallableCounts[physicalOwner] == 0;
+            if (physicalOwner == STRUCTURED_SOURCE_MODULE_OWNER) {
+              directSourceModule = true;
+            }
             if (physicalOwner == AGGREGATE_SOURCE_MODULE_OWNER) {
               directSourceModule = true;
             }
