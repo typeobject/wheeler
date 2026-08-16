@@ -68,6 +68,33 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
+  void emitsBinaryDeclarationProducts() throws Exception {
+    assertArtifact(SOURCE.replace(
+        "    long index = 0;\n",
+        "    long combined = length + sourceStart;\n"
+            + "    long index = 0;\n"));
+  }
+
+  @Test
+  void emitsImportedConstantDeclarationProducts() throws Exception {
+    assertArtifact(SOURCE.replace(
+        "    long index = 0;\n",
+        "    long combined = length & MAX_SOURCE_BYTES;\n"
+            + "    long index = 0;\n"));
+  }
+
+  @Test
+  void constantProductShadowsLocalDeclaration() throws Exception {
+    assertArtifact(SOURCE.replace(
+        "    long index = 0;\n",
+        "    long MAX_SOURCE_BYTES = length;\n"
+            + "    long combined = sourceStart + MAX_SOURCE_BYTES;\n"
+            + "    long index = 0;\n").replace(
+                "limit MAX_SOURCE_BYTES",
+                "limit 32768"));
+  }
+
+  @Test
   void emitsABooleanReturnSlot() throws Exception {
     String booleanReturn = SOURCE.replace(
         "public long copyOffset(",
@@ -186,7 +213,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
 
   private static void assertArtifact(String source) throws Exception {
     int body = source.indexOf("{", source.indexOf("copyOffset("));
-    int maxSourceBytes = source.indexOf("MAX_SOURCE_BYTES");
+    int maxSourceBytes = maxSourceBytesUse(source);
     int parameterCount = source.contains("boolean result") ? 6 : 5;
     Program driver = driver(
         body,
@@ -219,7 +246,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
 
   private static void assertNoArtifact(String source) throws Exception {
     int body = source.indexOf("{", source.indexOf("copyOffset("));
-    int maxSourceBytes = source.indexOf("MAX_SOURCE_BYTES");
+    int maxSourceBytes = maxSourceBytesUse(source);
     int parameterCount = source.contains("boolean result") ? 6 : 5;
     Program driver = driver(
         body,
@@ -232,6 +259,14 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
     assertEquals(0, machine.global("valid"));
     assertEquals(0, machine.global("artifactLength"));
+  }
+
+  private static int maxSourceBytesUse(String source) {
+    int initializer = source.indexOf("long combined");
+    if (-1 < initializer) {
+      return source.indexOf("MAX_SOURCE_BYTES", initializer);
+    }
+    return source.indexOf("MAX_SOURCE_BYTES");
   }
 
   private static Program driver(

@@ -139,7 +139,8 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0067 replaces inferred production loop rebasing with exact physical value, packed operand, nested-condition, and scratch-window products. Logical-coordinate rebasing remains only for isolated product fixtures. Bounded body, nested, loop, and direct-statement failure coordinates identify malformed products before publication.
 - [x] `AggregateSourceProjection.w` enters the physical archive through direct products. Its 8,096-byte artifact verifies and matches stage 0 byte for byte.
 - [x] WIP-0068 emits callable-free artifacts without parser projection or structured-product allocation. All 17 callable-free physical authorities produce byte-identical canonical library artifacts through one bounded route.
-- [x] WIP-0069 emits complete ordinary scalar return relations and rejects statement suffix loss. `TypeKinds.w` resolves its imported mask from an exact local source-use product and matches stage 0 byte for byte.
+- [x] WIP-0069 emits complete ordinary scalar return relations and rejects statement suffix loss. `TypeKinds.w` resolves its imported mask from an exact local source-anchored name product and matches stage 0 byte for byte.
+- [x] WIP-0070 emits complete signed scalar declaration relations and module-local constant products. All nine `WideReturnSources.w` callables match stage 0 byte for byte.
 - [x] Every callable-free physical module compiles without dependency source.
 - [ ] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.

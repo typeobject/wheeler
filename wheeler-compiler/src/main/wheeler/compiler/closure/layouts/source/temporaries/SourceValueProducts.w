@@ -391,6 +391,23 @@ classical class SourceValueProducts {
 
           if (-1 < statementToken) {
             long valueHash = tokenHash(source, tokenStarts, tokenLengths, statementToken);
+            if (valueHash == TOKEN_LONG) {
+              SourceReversibleResultRelation initializerRelation = sourceScalarRelation(
+                source,
+                statementToken + 3,
+                semanticCount,
+                tokenKinds,
+                tokenStarts,
+                tokenLengths
+              );
+              if (initializerRelation.valid) {
+                if (initializerRelation.kind != RESULT_RELATION_SOURCE) {
+                  localWidth = 4;
+                  resultLocal = localBase + 3;
+                }
+              }
+            }
+
             if (valueHash == TOKEN_ASSERT) {
               LoopAssertion assertion = resolveLoopAssertion(
                 source,

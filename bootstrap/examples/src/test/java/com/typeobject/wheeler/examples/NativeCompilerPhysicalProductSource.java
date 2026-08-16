@@ -11,6 +11,25 @@ final class NativeCompilerPhysicalProductSource {
           while (physicalProduct < PHYSICAL_MODULE_COUNT) limit 128 {
             long physicalOwner = physicalOwners[physicalProduct];
             physicalModuleOwner = physicalOwner;
+            boolean directSourceModule = moduleCallableCounts[physicalOwner] == 0;
+            if (physicalOwner == STRUCTURED_SOURCE_MODULE_OWNER) {
+              directSourceModule = true;
+            }
+            if (physicalOwner == AGGREGATE_SOURCE_MODULE_OWNER) {
+              directSourceModule = true;
+            }
+            if (physicalOwner == MANIFEST_SOURCE_MODULE_OWNER) {
+              directSourceModule = true;
+            }
+            if (physicalOwner == REVERSIBLE_SOURCE_MODULE_OWNER) {
+              directSourceModule = true;
+            }
+            if (physicalOwner == TYPE_KINDS_SOURCE_MODULE_OWNER) {
+              directSourceModule = true;
+            }
+            if (physicalOwner == WIDE_RETURN_SOURCES_MODULE_OWNER) {
+              directSourceModule = true;
+            }
             long physicalImportedCount = writeDirectImportedValues(
               firstImports[physicalOwner],
               directImportCounts[physicalOwner],
@@ -28,6 +47,22 @@ final class NativeCompilerPhysicalProductSource {
               physicalImportedRows
             );
             assert(-1 < physicalImportedCount);
+            if (directSourceModule) {
+              physicalImportedCount = appendDirectLocalValues(
+                physicalOwner,
+                physicalImportedCount,
+                moduleFirstSymbols,
+                moduleSymbolCounts,
+                moduleProductNameStarts,
+                moduleProductNameLengths,
+                symbolStarts,
+                symbolLengths,
+                symbolTypes,
+                symbolValues,
+                symbolResolved,
+                physicalImportedRows
+              );
+            }
             long physicalImportedNameBytes = writeDirectImportedValueNames(
               archive,
               physicalImportedCount,
@@ -91,22 +126,6 @@ final class NativeCompilerPhysicalProductSource {
               }
             }
             CompiledCallableBody physicalModule = new CompiledCallableBody(0, 0, 0, 0);
-            boolean directSourceModule = moduleCallableCounts[physicalOwner] == 0;
-            if (physicalOwner == STRUCTURED_SOURCE_MODULE_OWNER) {
-              directSourceModule = true;
-            }
-            if (physicalOwner == AGGREGATE_SOURCE_MODULE_OWNER) {
-              directSourceModule = true;
-            }
-            if (physicalOwner == MANIFEST_SOURCE_MODULE_OWNER) {
-              directSourceModule = true;
-            }
-            if (physicalOwner == REVERSIBLE_SOURCE_MODULE_OWNER) {
-              directSourceModule = true;
-            }
-            if (physicalOwner == TYPE_KINDS_SOURCE_MODULE_OWNER) {
-              directSourceModule = true;
-            }
             if (directSourceModule) {
               SourceProductArtifactPlan directArtifact = compileStructuredArchiveModuleProduct(
                 archive,

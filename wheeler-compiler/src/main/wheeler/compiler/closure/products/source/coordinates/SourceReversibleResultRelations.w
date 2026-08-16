@@ -58,30 +58,29 @@ classical class SourceReversibleResultRelations {
     return -1;
   }
 
-  /// Resolves an identifier, identifier-immediate, or two-identifier return relation.
-  public SourceReversibleResultRelation sourceReversibleResultRelation(
+  /// Resolves one identifier-led scalar relation through its exact semicolon.
+  public SourceReversibleResultRelation sourceScalarRelation(
     borrow utf8 source,
-    long token,
+    long leftToken,
     long tokenCount,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths
   ) {
-    if (token < 0) {
+    if (leftToken < 0) {
       return new SourceReversibleResultRelation(0, 0, 0, 0, 0, false);
     }
 
-    if (tokenCount < token + 3) {
+    if (tokenCount < leftToken + 2) {
       return new SourceReversibleResultRelation(0, 0, 0, 0, 0, false);
     }
 
-    long leftToken = nextSourceToken(token);
     if (tokenKinds[leftToken] != 1) {
       return new SourceReversibleResultRelation(0, 0, 0, 0, 0, false);
     }
 
     if (
-      punctuationAt(source, tokenKinds, tokenStarts, token + 2, PUNCTUATION_SEMICOLON)
+      punctuationAt(source, tokenKinds, tokenStarts, leftToken + 1, PUNCTUATION_SEMICOLON)
     ) {
       return new SourceReversibleResultRelation(
         RESULT_RELATION_SOURCE,
@@ -93,19 +92,20 @@ classical class SourceReversibleResultRelations {
       );
     }
 
-    if (tokenCount < token + 5) {
+    if (tokenCount < leftToken + 4) {
       return new SourceReversibleResultRelation(0, 0, 0, 0, 0, false);
     }
 
-    long operation = resultOperation(utf8Scalar(source, tokenStarts[token + 2]));
+    long operation = resultOperation(utf8Scalar(source, tokenStarts[leftToken + 1]));
     if (operation < 0) {
       return new SourceReversibleResultRelation(0, 0, 0, 0, 0, false);
     }
 
-    long rightToken = token + 3;
+    long rightToken = leftToken + 2;
     if (tokenKinds[rightToken] == 1) {
       if (
-        punctuationAt(source, tokenKinds, tokenStarts, token + 4, PUNCTUATION_SEMICOLON) == false
+        punctuationAt(source, tokenKinds, tokenStarts, leftToken + 3, PUNCTUATION_SEMICOLON)
+          == false
       ) {
         return new SourceReversibleResultRelation(0, 0, 0, 0, 0, false);
       }
@@ -152,6 +152,29 @@ classical class SourceReversibleResultRelations {
       0,
       parsedSignedNumber(source, tokenStarts, tokenLengths, rightToken),
       true
+    );
+  }
+
+  /// Resolves one reversible relation after its return token.
+  public SourceReversibleResultRelation sourceReversibleResultRelation(
+    borrow utf8 source,
+    long token,
+    long tokenCount,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    if (token < 0) {
+      return new SourceReversibleResultRelation(0, 0, 0, 0, 0, false);
+    }
+
+    return sourceScalarRelation(
+      source,
+      nextSourceToken(token),
+      tokenCount,
+      tokenKinds,
+      tokenStarts,
+      tokenLengths
     );
   }
 }

@@ -32,6 +32,10 @@ final class NativeCompilerArchiveClosureProgram {
       .filter(module -> module.name().equals("wheeler.compiler.type_kinds"))
       .findFirst()
       .orElseThrow();
+  static final PhysicalModule PHYSICAL_WIDE_RETURN_SOURCES_MODULE = PHYSICAL_MODULES.stream()
+      .filter(module -> module.name().equals("wheeler.compiler.wide_return_sources"))
+      .findFirst()
+      .orElseThrow();
 
   private NativeCompilerArchiveClosureProgram() {}
 
@@ -979,6 +983,9 @@ final class NativeCompilerArchiveClosureProgram {
             .replace(
                 "TYPE_KINDS_SOURCE_MODULE_OWNER",
                 Integer.toString(physicalOwner(PHYSICAL_TYPE_KINDS_MODULE)))
+            .replace(
+                "WIDE_RETURN_SOURCES_MODULE_OWNER",
+                Integer.toString(physicalOwner(PHYSICAL_WIDE_RETURN_SOURCES_MODULE)))
             .replace("PHYSICAL_CLOSURE_MODULE_COUNT", Integer.toString(
                 CompilerSources.bootstrapModuleManifest().modules().size()))
             .replace(

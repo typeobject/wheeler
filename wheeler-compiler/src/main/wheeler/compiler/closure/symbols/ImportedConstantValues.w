@@ -51,6 +51,51 @@ classical class ImportedConstantValues {
     return written - outputStart;
   }
 
+  /// Appends one selected module's own scalar products in declaration order.
+  public long appendDirectLocalValues(
+    long moduleOwner,
+    long importedCount,
+    borrow mut words moduleFirstSymbols,
+    borrow mut words moduleSymbolCounts,
+    borrow mut words moduleNameStarts,
+    borrow mut words moduleNameLengths,
+    borrow mut words symbolStarts,
+    borrow mut words symbolLengths,
+    borrow mut words symbolTypes,
+    borrow mut words symbolValues,
+    borrow mut words symbolResolved,
+    borrow mut words importedRows
+  ) {
+    assert(-1 < moduleOwner);
+    assert(moduleOwner < 512);
+    assert(-1 < importedCount);
+    assert(importedCount < IMPORTED_CONSTANT_LIMIT + 1);
+    assert(bufferLength(importedRows) == IMPORTED_CONSTANT_ROWS);
+    long first = moduleFirstSymbols[moduleOwner];
+    long count = moduleSymbolCounts[moduleOwner];
+    assert(-1 < first);
+    assert(-1 < count);
+    assert(count < MAX_CLASS_CONSTANTS + 1);
+    long offset = 0;
+    while (offset < count) limit MAX_CLASS_CONSTANTS {
+      assert(importedCount < IMPORTED_CONSTANT_LIMIT);
+      long symbol = first + offset;
+      long base = 1 + importedCount * IMPORTED_CONSTANT_ROW_WIDTH;
+      set(importedRows, base, symbolStarts[symbol]);
+      set(importedRows, base + 1, symbolLengths[symbol]);
+      set(importedRows, base + 2, symbolTypes[symbol]);
+      set(importedRows, base + 3, symbolValues[symbol]);
+      set(importedRows, base + 4, symbolResolved[symbol]);
+      set(importedRows, base + 5, moduleNameStarts[moduleOwner]);
+      set(importedRows, base + 6, moduleNameLengths[moduleOwner]);
+      importedCount += 1;
+      offset += 1;
+    }
+
+    set(importedRows, 0, importedCount);
+    return importedCount;
+  }
+
   /// Writes one dependent's direct public products in header and declaration order.
   public long writeDirectImportedValues(
     long firstImport,
