@@ -4,8 +4,10 @@ module wheeler.compiler.closure.direct_conditional_return_products;
 
 import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.closure.direct_scalar_encoding;
+import wheeler.compiler.closure.direct_scalar_relations;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
+import wheeler.compiler.closure.source_reversible_result_relations;
 import wheeler.compiler.closure.structured_source_coordinates;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.encoding;
@@ -330,35 +332,132 @@ classical class DirectConditionalReturnProducts {
       return invalidConditionalReturn(20);
     }
 
-    long literalHash = tokenHash(source, tokenStarts, tokenLengths, childToken + 1);
-    long literal = 0;
-    if (literalHash == TOKEN_TRUE) {
-      literal = 1;
-    } else {
-      if (literalHash != TOKEN_FALSE) {
-        return invalidConditionalReturn(21);
+    long semicolonToken = -1;
+    long semicolonMatches = 0;
+    long expectedSemicolonStart = statementRows[LOOP_STATEMENT_START_ROW + childStatement]
+      + statementRows[LOOP_STATEMENT_LENGTH_ROW + childStatement] - 1;
+    candidateToken = childToken + 1;
+    while (candidateToken < tokenCount) limit MAX_COMPILER_TOKENS {
+      if (tokenStarts[candidateToken] == expectedSemicolonStart) {
+        semicolonToken = candidateToken;
+        semicolonMatches += 1;
       }
+
+      candidateToken += 1;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, childToken + 2, PUNCTUATION_SEMICOLON) == false
-    ) {
+    if (semicolonMatches != 1) {
       return invalidConditionalReturn(22);
     }
 
     if (
-      punctuationAt(source, tokenKinds, tokenStarts, childToken + 3, PUNCTUATION_CLOSE_BRACE)
-        == false
+      punctuationAt(source, tokenKinds, tokenStarts, semicolonToken, PUNCTUATION_SEMICOLON) == false
+    ) {
+      return invalidConditionalReturn(22);
+    }
+
+    if (tokenCount < semicolonToken + 2) {
+      return invalidConditionalReturn(32);
+    }
+
+    if (
+      punctuationAt(
+        source,
+        tokenKinds,
+        tokenStarts,
+        semicolonToken + 1,
+        PUNCTUATION_CLOSE_BRACE
+      ) == false
     ) {
       return invalidConditionalReturn(33);
     }
 
     if (
-      tokenStarts[childToken + 3] + tokenLengths[childToken
-        + 3] != statementRows[LOOP_STATEMENT_START_ROW + statement]
+      tokenStarts[semicolonToken + 1] + tokenLengths[semicolonToken
+        + 1] != statementRows[LOOP_STATEMENT_START_ROW + statement]
         + statementRows[LOOP_STATEMENT_LENGTH_ROW + statement]
     ) {
       return invalidConditionalReturn(34);
+    }
+
+    long literalHash = tokenHash(source, tokenStarts, tokenLengths, childToken + 1);
+    boolean literalChild = literalHash == TOKEN_TRUE;
+    if (literalHash == TOKEN_FALSE) {
+      literalChild = true;
+    }
+
+    long literal = 0;
+    if (literalHash == TOKEN_TRUE) {
+      literal = 1;
+    }
+
+    long childKind = 0;
+    long childOperation = 0;
+    long childLeft = 0;
+    long childRight = 0;
+    long childImmediate = 0;
+    long childLeftType = 0;
+    long childRightType = 0;
+    long childLocalCount = 1;
+    long childInstructionCount = 2;
+    long childResultType = TYPE_BOOLEAN;
+    if (literalChild == false) {
+      DirectScalarRelationProduct childRelation = resolveDirectScalarRelation(
+        source,
+        childToken + 1,
+        tokenCount,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        moduleOwner,
+        owner,
+        statementRows[LOOP_STATEMENT_ORDINAL_ROW + childStatement],
+        statementCount,
+        statementRows,
+        statementLocalRows,
+        statementPhysicalStarts,
+        valueCount,
+        valueRows,
+        symbolCount,
+        symbolOwners,
+        symbolStarts,
+        symbolLengths,
+        symbolTypes,
+        symbolValues,
+        symbolResolved
+      );
+      if (childRelation.valid == false) {
+        return invalidConditionalReturn(21);
+      }
+
+      childResultType = directRelationResultType(childRelation.operation, childRelation.leftType);
+      if (childResultType != TYPE_SIGNED) {
+        return invalidConditionalReturn(35);
+      }
+
+      if (
+        directReturnTypesValid(
+          /* reversibleCallableCount= */ 0,
+          childRelation.kind,
+          childRelation.operation,
+          childRelation.leftType,
+          childRelation.rightType
+        ) == false
+      ) {
+        return invalidConditionalReturn(36);
+      }
+
+      childKind = childRelation.kind;
+      childOperation = childRelation.operation;
+      childLeft = childRelation.left;
+      childRight = childRelation.right;
+      childImmediate = childRelation.immediate;
+      childLeftType = childRelation.leftType;
+      childRightType = childRelation.rightType;
+      if (childKind != RESULT_RELATION_SOURCE) {
+        childLocalCount = 3;
+        childInstructionCount = 4;
+      }
     }
 
     long localBase = statementPhysicalStarts[statement];
@@ -379,23 +478,28 @@ classical class DirectConditionalReturnProducts {
       return invalidConditionalReturn(26);
     }
 
-    if (statementLocalRows[4096 + childStatement] != 1) {
+    if (statementLocalRows[4096 + childStatement] != childLocalCount) {
       return invalidConditionalReturn(27);
+    }
+
+    if (256 - childLocalCount < childLocal) {
+      return invalidConditionalReturn(37);
     }
 
     if (instructionStart < 0) {
       return invalidConditionalReturn(28);
     }
 
-    if (32760 < instructionStart) {
+    long totalInstructionCount = childInstructionCount + 5;
+    if (32768 - totalInstructionCount < instructionStart) {
       return invalidConditionalReturn(29);
     }
 
-    if (MAX_CODE_BYTES - 160 < cursor) {
+    if (MAX_CODE_BYTES - 224 < cursor) {
       return invalidConditionalReturn(30);
     }
 
-    long branchTarget = instructionStart + 7;
+    long branchTarget = instructionStart + totalInstructionCount;
     long next = writeInstructionHeader(
       output,
       cursor,
@@ -419,33 +523,74 @@ classical class DirectConditionalReturnProducts {
     next = writeInstructionHeader(output, next, OPCODE_JUMP_IF_ZERO, INSTRUCTION_FORM_BINARY);
     next = writeUnsignedLittleEndian(output, next, localBase + 2, U64);
     next = writeUnsignedLittleEndian(output, next, branchTarget, U64);
-    next = writeInstructionHeader(output, next, OPCODE_LOCAL_CONST, INSTRUCTION_FORM_BINARY);
-    next = writeUnsignedLittleEndian(output, next, childLocal, U64);
-    next = writeSignedLittleEndian(output, next, literal, U64);
-    next = writeInstructionHeader(output, next, OPCODE_RETURN_VALUE, INSTRUCTION_FORM_UNARY);
-    next = writeUnsignedLittleEndian(output, next, childLocal, U64);
+    if (literalChild) {
+      next = writeInstructionHeader(output, next, OPCODE_LOCAL_CONST, INSTRUCTION_FORM_BINARY);
+      next = writeUnsignedLittleEndian(output, next, childLocal, U64);
+      next = writeSignedLittleEndian(output, next, literal, U64);
+      next = writeInstructionHeader(output, next, OPCODE_RETURN_VALUE, INSTRUCTION_FORM_UNARY);
+      next = writeUnsignedLittleEndian(output, next, childLocal, U64);
+    } else {
+      DirectReturnExtent childExtent = writeDirectReturn(
+        output,
+        next,
+        childKind,
+        childLocal,
+        childLeft,
+        childOperation,
+        childRight,
+        childImmediate
+      );
+      if (childExtent.valid == false) {
+        return invalidConditionalReturn(38);
+      }
+
+      next = childExtent.next;
+    }
+
     next = writeInstructionHeader(output, next, OPCODE_JUMP, INSTRUCTION_FORM_UNARY);
     next = writeUnsignedLittleEndian(output, next, branchTarget, U64);
-    long localOffset = 0;
-    while (localOffset < 4) limit 4 {
-      long localType = TYPE_SIGNED;
-      if (1 < localOffset) {
-        localType = TYPE_BOOLEAN;
+    long parentLocalOffset = 0;
+    while (parentLocalOffset < 3) limit 3 {
+      long parentLocalType = TYPE_SIGNED;
+      if (parentLocalOffset == 2) {
+        parentLocalType = TYPE_BOOLEAN;
       }
 
       set(typeRows, typeCount, owner);
-      set(typeRows, 4096 + typeCount, localBase + localOffset);
-      set(typeRows, 8192 + typeCount, localType);
+      set(typeRows, 4096 + typeCount, localBase + parentLocalOffset);
+      set(typeRows, 8192 + typeCount, parentLocalType);
       typeCount += 1;
-      localOffset += 1;
+      parentLocalOffset += 1;
+    }
+
+    long childLocalOffset = 0;
+    while (childLocalOffset < childLocalCount) limit 3 {
+      long childLocalType = childResultType;
+      if (literalChild == false) {
+        if (childKind != RESULT_RELATION_SOURCE) {
+          if (childLocalOffset == 0) {
+            childLocalType = directReturnType(childLeftType);
+          }
+
+          if (childLocalOffset == 1) {
+            childLocalType = directReturnType(childRightType);
+          }
+        }
+      }
+
+      set(typeRows, typeCount, owner);
+      set(typeRows, 4096 + typeCount, childLocal + childLocalOffset);
+      set(typeRows, 8192 + typeCount, childLocalType);
+      typeCount += 1;
+      childLocalOffset += 1;
     }
 
     return new DirectConditionalReturnProduct(
       next,
       childStatement,
-      7,
+      totalInstructionCount,
       typeCount,
-      TYPE_BOOLEAN,
+      childResultType,
       0,
       true
     );

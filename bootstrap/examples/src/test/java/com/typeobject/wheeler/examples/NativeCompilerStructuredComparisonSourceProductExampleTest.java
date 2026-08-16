@@ -233,7 +233,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
-  void rejectsNonliteralConditionalReturns() throws Exception {
+  void rejectsComparisonConditionalReturns() throws Exception {
     String malformed = SOURCE.replace(
         "public long copyOffset(",
         "public boolean copyOffset(").replace(
@@ -246,6 +246,30 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
                     "    return length < sourceStart;\n");
 
     assertNoArtifact(malformed);
+  }
+
+  @Test
+  void emitsComputedConditionalReturnProducts() throws Exception {
+    String conditional = SOURCE.replace(
+        "    long index = 0;\n",
+        "    if (length < sourceStart) {\n"
+            + "      return length - sourceStart;\n"
+            + "    }\n\n"
+            + "    long index = 0;\n");
+
+    assertArtifact(conditional);
+  }
+
+  @Test
+  void emitsPreservedConditionalReturnProducts() throws Exception {
+    String conditional = SOURCE.replace(
+        "    long index = 0;\n",
+        "    if (length < sourceStart) {\n"
+            + "      return length;\n"
+            + "    }\n\n"
+            + "    long index = 0;\n");
+
+    assertArtifact(conditional);
   }
 
   @Test

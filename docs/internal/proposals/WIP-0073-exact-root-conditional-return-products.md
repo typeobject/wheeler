@@ -9,7 +9,7 @@
 | Area | Self-hosting compiler, control flow, return products |
 | Depends on | WIP-0049, WIP-0054, WIP-0055, WIP-0056, WIP-0069 |
 | Supersedes | Parser projection for one-arm root conditional returns |
-| Superseded by | None |
+| Superseded by | WIP-0075 for signed computed children |
 
 ## Summary
 
@@ -107,7 +107,7 @@ Rejected. Composition must copy closed instruction windows. It cannot reopen sou
 
 ### Admit arbitrary child returns
 
-Rejected. Scalar expressions require wider child windows and different result relations. A later product must specify and test those forms without weakening the literal contract.
+Rejected. Scalar expressions require wider child windows and different result relations. WIP-0075 specifies signed source and binary children without weakening the literal contract.
 
 ## References
 

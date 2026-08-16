@@ -10,6 +10,7 @@ import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.closure.loop_buffer_operands;
 import wheeler.compiler.closure.loop_nested_conditions;
 import wheeler.compiler.closure.resolved_loop_buffer_products;
+import wheeler.compiler.closure.source_reversible_result_relations;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.loop_body_opcodes;
@@ -88,14 +89,36 @@ classical class ResolvedLoopBodyProducts {
     }
 
     long literal = tokenHash(source, tokenStarts, tokenLengths, childToken + 1);
-    if (literal != TOKEN_TRUE) {
-      if (literal != TOKEN_FALSE) {
-        return false;
-      }
+    boolean supportedReturn = literal == TOKEN_TRUE;
+    if (literal == TOKEN_FALSE) {
+      supportedReturn = true;
+    }
+
+    if (supportedReturn == false) {
+      SourceReversibleResultRelation relation = sourceScalarRelation(
+        source,
+        childToken + 1,
+        tokenCount,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths
+      );
+      supportedReturn = relation.valid;
+    }
+
+    if (supportedReturn == false) {
+      return false;
+    }
+
+    long expectedSemicolonStart = statementRows[LOOP_STATEMENT_START_ROW + statement]
+      + statementRows[LOOP_STATEMENT_LENGTH_ROW + statement] - 1;
+    long semicolonToken = tokenAtStart(expectedSemicolonStart, tokenCount, tokenStarts);
+    if (semicolonToken < 0) {
+      return false;
     }
 
     if (
-      punctuationAt(source, tokenKinds, tokenStarts, childToken + 2, PUNCTUATION_SEMICOLON) == false
+      punctuationAt(source, tokenKinds, tokenStarts, semicolonToken, PUNCTUATION_SEMICOLON) == false
     ) {
       return false;
     }

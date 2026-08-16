@@ -9,7 +9,7 @@
 | Area | Self-hosting compiler, physical closure, migration |
 | Depends on | WIP-0049, WIP-0054, WIP-0073 |
 | Supersedes | Parser projection for four bounded classifier modules |
-| Superseded by | None |
+| Superseded by | WIP-0075 for classifiers with computed children |
 
 ## Summary
 
@@ -48,7 +48,7 @@ The generated Wheeler transaction no longer carries per-module placeholder names
 
 ## Scope boundary
 
-This migration does not admit computed conditional children. `ResolvedLocalEqualityKinds.w` and `ResolvedLocalInequalityKinds.w` contain signed arithmetic returns inside one-arm conditions, so they remain on the old route. A later product must measure and emit those wider child windows before either module moves.
+This migration does not admit computed conditional children. `ResolvedLocalEqualityKinds.w` and `ResolvedLocalInequalityKinds.w` contain signed arithmetic returns inside one-arm conditions. WIP-0075 measures and emits those wider child windows before it moves either module.
 
 This migration also does not admit helper-call conditions or helper-call child returns. WIP-0073 requires a known direct instruction prefix and a four-local parent plus child window.
 

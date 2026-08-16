@@ -13,6 +13,8 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.literal_comparison_operations",
       "wheeler.compiler.local_type_encoding",
       "wheeler.compiler.resolved_local_copy_kinds",
+      "wheeler.compiler.resolved_local_equality_kinds",
+      "wheeler.compiler.resolved_local_inequality_kinds",
       "wheeler.compiler.resolved_local_less_than_kinds",
       "wheeler.compiler.resolved_local_literal_comparisons",
       "wheeler.compiler.resolved_local_loop_operands",
