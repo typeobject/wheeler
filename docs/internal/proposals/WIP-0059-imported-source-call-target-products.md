@@ -72,7 +72,7 @@ The archive compiler imports this product as the sole target-view boundary. `Sou
 - [x] Missing, duplicate, or mismatched imported products publish nothing.
 - [x] Shuffled dependency and target rows do not change target or artifact products.
 - [x] Package identity participates in the stable callable identity.
-- [ ] WIP-0061 makes qualified calls select one exact imported product.
+- [x] WIP-0061 makes qualified calls select one exact imported product.
 
 ## Rejected alternatives
 

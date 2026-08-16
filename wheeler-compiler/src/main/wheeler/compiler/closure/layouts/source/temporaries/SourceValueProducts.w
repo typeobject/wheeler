@@ -173,6 +173,11 @@ classical class SourceValueProducts {
     long localFunction = 0;
     while (localFunction < callableCount) limit MAX_LOCAL_CALLABLES {
       long callable = firstCallable + localFunction;
+      long functionRootBlock = loopBodyRootBlockForOwner(
+        localFunction,
+        statementCount,
+        statementRows
+      );
       long bodyStart = bodyStarts[callable] - archiveSourceStart;
       long openBody = -1;
       long bodyMatches = 0;
@@ -484,12 +489,7 @@ classical class SourceValueProducts {
           if (-1 < statementToken) {
             long valueHash = tokenHash(source, tokenStarts, tokenLengths, statementToken);
             if (valueHash == TOKEN_IF) {
-              long rootBlock = loopBodyRootBlockForOwner(
-                localFunction,
-                statementCount,
-                statementRows
-              );
-              if (statementRows[4096 + statement] == rootBlock) {
+              if (statementRows[4096 + statement] == functionRootBlock) {
                 if (statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement] == 1) {
                   localWidth = 3;
                   resultLocal = -1;

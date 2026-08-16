@@ -302,30 +302,15 @@ classical class DirectConditionalReturnProducts {
       return invalidConditionalReturn(18);
     }
 
-    long childToken = 0;
-    long childMatches = 0;
-    long candidateToken = 0;
-    while (candidateToken < tokenCount) limit MAX_COMPILER_TOKENS {
-      if (
-        tokenStarts[candidateToken] == statementRows[LOOP_STATEMENT_START_ROW + childStatement]
-      ) {
-        childToken = candidateToken;
-        childMatches += 1;
-      }
-
-      candidateToken += 1;
-    }
-
-    if (childMatches != 1) {
-      return invalidConditionalReturn(19);
-    }
-
-    if (childToken != closeToken + 2) {
-      return invalidConditionalReturn(31);
-    }
-
+    long childToken = closeToken + 2;
     if (tokenCount < childToken + 4) {
       return invalidConditionalReturn(32);
+    }
+
+    if (
+      tokenStarts[childToken] != statementRows[LOOP_STATEMENT_START_ROW + childStatement]
+    ) {
+      return invalidConditionalReturn(19);
     }
 
     if (tokenHash(source, tokenStarts, tokenLengths, childToken) != TOKEN_RETURN) {
@@ -336,8 +321,13 @@ classical class DirectConditionalReturnProducts {
     long semicolonMatches = 0;
     long expectedSemicolonStart = statementRows[LOOP_STATEMENT_START_ROW + childStatement]
       + statementRows[LOOP_STATEMENT_LENGTH_ROW + childStatement] - 1;
-    candidateToken = childToken + 1;
-    while (candidateToken < tokenCount) limit MAX_COMPILER_TOKENS {
+    long candidateToken = childToken + 1;
+    long childTokenEnd = childToken + 8;
+    if (tokenCount < childTokenEnd) {
+      childTokenEnd = tokenCount;
+    }
+
+    while (candidateToken < childTokenEnd) limit 7 {
       if (tokenStarts[candidateToken] == expectedSemicolonStart) {
         semicolonToken = candidateToken;
         semicolonMatches += 1;

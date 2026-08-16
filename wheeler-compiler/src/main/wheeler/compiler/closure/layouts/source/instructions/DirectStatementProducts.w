@@ -152,6 +152,8 @@ classical class DirectStatementProducts {
     long instructionCount = 0;
     long typeCount = 0;
     long priorStart = -1;
+    long rootOwner = -1;
+    long rootBlock = -1;
     long processed = 0;
     while (processed < statementCount) limit MAX_STATEMENTS {
       long statement = nextLoopBodyStatement(
@@ -165,7 +167,11 @@ classical class DirectStatementProducts {
       } else {
         priorStart = statementRows[LOOP_STATEMENT_START_ROW + statement];
         long owner = statementRows[statement];
-        long rootBlock = loopBodyRootBlockForOwner(owner, statementCount, statementRows);
+        if (owner != rootOwner) {
+          rootOwner = owner;
+          rootBlock = loopBodyRootBlockForOwner(owner, statementCount, statementRows);
+        }
+
         if (statementRows[4096 + statement] == rootBlock) {
           long rootToken = tokenAtStart(
             statementRows[LOOP_STATEMENT_START_ROW + statement],

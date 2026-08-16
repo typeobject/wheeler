@@ -223,6 +223,8 @@ classical class ResolvedLoopBodyProducts {
     long failureStatement = -1;
     long processedStatementCount = 0;
     long priorStatementStart = -1;
+    long rootOwner = -1;
+    long rootBlock = -1;
     while (processedStatementCount < statementCount) limit MAX_STATEMENTS {
       long statement = nextLoopBodyStatement(
         priorStatementStart,
@@ -239,18 +241,18 @@ classical class ResolvedLoopBodyProducts {
       boolean validBeforeStatement = valid;
       long childCount = statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement];
       long statementOwner = statementRows[statement];
-      long statementRootBlock = loopBodyRootBlockForOwner(
-        statementOwner,
-        statementCount,
-        statementRows
-      );
-      if (statementRootBlock < statementRows[4096 + statement]) {
+      if (statementOwner != rootOwner) {
+        rootOwner = statementOwner;
+        rootBlock = loopBodyRootBlockForOwner(statementOwner, statementCount, statementRows);
+      }
+
+      if (rootBlock < statementRows[4096 + statement]) {
         boolean skipDirectConditionalChild = directConditionalChild(
           source,
           statement,
           statementCount,
           statementRows,
-          statementRootBlock,
+          rootBlock,
           semanticCount,
           tokenKinds,
           tokenStarts,
