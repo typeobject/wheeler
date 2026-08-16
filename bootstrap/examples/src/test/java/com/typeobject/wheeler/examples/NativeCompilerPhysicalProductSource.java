@@ -1,8 +1,38 @@
 package com.typeobject.wheeler.examples;
 
+import java.util.List;
+
 /** Owns the physical source-product compilation transaction used by closure evidence. */
 final class NativeCompilerPhysicalProductSource {
+  private static final List<String> DIRECT_SOURCE_MODULES = List.of(
+      "wheeler.compiler.closure.aggregate_source_projection",
+      "wheeler.compiler.closure.manifest_syntax",
+      "wheeler.compiler.closure.reversible_token_coordinates",
+      "wheeler.compiler.core_parsing",
+      "wheeler.compiler.four_argument_calls",
+      "wheeler.compiler.literal_comparison_operations",
+      "wheeler.compiler.local_type_encoding",
+      "wheeler.compiler.resolved_local_copy_kinds",
+      "wheeler.compiler.resolved_local_less_than_kinds",
+      "wheeler.compiler.resolved_local_literal_comparisons",
+      "wheeler.compiler.resolved_local_loop_operands",
+      "wheeler.compiler.result_slot_verifier",
+      "wheeler.compiler.type_kinds",
+      "wheeler.compiler.wide_return_sources");
+
   private NativeCompilerPhysicalProductSource() {}
+
+  private static String directSourceRouting() {
+    StringBuilder routing = new StringBuilder();
+    for (String moduleName : DIRECT_SOURCE_MODULES) {
+      int owner = NativeCompilerArchiveClosureProgram.physicalOwner(
+          NativeCompilerArchiveClosureProgram.physicalModule(moduleName));
+      routing.append("if (physicalOwner == ").append(owner).append(") {\n")
+          .append("  directSourceModule = true;\n")
+          .append("}\n");
+    }
+    return routing.toString();
+  }
 
   static String compilation() {
     return """
@@ -12,36 +42,7 @@ final class NativeCompilerPhysicalProductSource {
             long physicalOwner = physicalOwners[physicalProduct];
             physicalModuleOwner = physicalOwner;
             boolean directSourceModule = moduleCallableCounts[physicalOwner] == 0;
-            if (physicalOwner == STRUCTURED_SOURCE_MODULE_OWNER) {
-              directSourceModule = true;
-            }
-            if (physicalOwner == AGGREGATE_SOURCE_MODULE_OWNER) {
-              directSourceModule = true;
-            }
-            if (physicalOwner == MANIFEST_SOURCE_MODULE_OWNER) {
-              directSourceModule = true;
-            }
-            if (physicalOwner == REVERSIBLE_SOURCE_MODULE_OWNER) {
-              directSourceModule = true;
-            }
-            if (physicalOwner == TYPE_KINDS_SOURCE_MODULE_OWNER) {
-              directSourceModule = true;
-            }
-            if (physicalOwner == WIDE_RETURN_SOURCES_MODULE_OWNER) {
-              directSourceModule = true;
-            }
-            if (physicalOwner == LOCAL_TYPE_ENCODING_MODULE_OWNER) {
-              directSourceModule = true;
-            }
-            if (physicalOwner == RESULT_SLOT_VERIFIER_MODULE_OWNER) {
-              directSourceModule = true;
-            }
-            if (physicalOwner == RESOLVED_LOCAL_LOOP_OPERANDS_MODULE_OWNER) {
-              directSourceModule = true;
-            }
-            if (physicalOwner == FOUR_ARGUMENT_CALLS_MODULE_OWNER) {
-              directSourceModule = true;
-            }
+            DIRECT_SOURCE_MODULE_ROUTING
             long physicalImportedCount = writeDirectImportedValues(
               firstImports[physicalOwner],
               directImportCounts[physicalOwner],
@@ -333,16 +334,7 @@ final class NativeCompilerPhysicalProductSource {
           }
         }
         """
-        .replace(
-            "RESOLVED_LOCAL_LOOP_OPERANDS_MODULE_OWNER",
-            Integer.toString(NativeCompilerArchiveClosureProgram.physicalOwner(
-                NativeCompilerArchiveClosureProgram.physicalModule(
-                    "wheeler.compiler.resolved_local_loop_operands"))))
-        .replace(
-            "FOUR_ARGUMENT_CALLS_MODULE_OWNER",
-            Integer.toString(NativeCompilerArchiveClosureProgram.physicalOwner(
-                NativeCompilerArchiveClosureProgram.physicalModule(
-                    "wheeler.compiler.four_argument_calls"))));
+        .replace("DIRECT_SOURCE_MODULE_ROUTING", directSourceRouting());
   }
 
   static String publication() {

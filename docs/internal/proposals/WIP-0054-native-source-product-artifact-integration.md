@@ -145,6 +145,7 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0072 emits four-local root byte projections, signed comparison returns, typed byte-view arguments, and forwarded result calls. All seven `ResultSlotVerifier.w` callables match its 6,040-byte stage-0 artifact byte for byte.
 - [x] `ResolvedLocalLoopOperands.w` enters through direct scalar declaration and return products. Both callables match its 1,200-byte stage-0 artifact byte for byte.
 - [x] WIP-0073 emits exact one-arm root conditional returns with signed less-than or equality conditions and one Boolean-literal child. `FourArgumentCalls.w` matches its five-function, 39-instruction, 1,864-byte stage-0 artifact byte for byte.
+- [x] WIP-0074 routes `LiteralComparisonOperations.w`, `ResolvedLocalCopyKinds.w`, `ResolvedLocalLessThanKinds.w`, and `ResolvedLocalLiteralComparisons.w` through direct products. Their 17 functions and 273 instructions match 10,080 stage-0 artifact bytes. One ordered list owns callable-bearing direct-route migration state.
 - [x] Every callable-free physical module compiles without dependency source.
 - [ ] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.
