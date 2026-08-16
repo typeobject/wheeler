@@ -1,7 +1,7 @@
 ---
 sidebar_position: 5
 title: Long Count
-description: A string of distant signals refuses to become a pattern until the crew learns what may be counted.
+description: Sable greets Vela with thirty-two outcomes and waits to see which story distance will tempt the crew to invent.
 tutorial_id: CH04
 tutorial_steps: T24,T25,T26,T27,T28,T29
 tutorial_part: probability
@@ -14,28 +14,40 @@ tutorial_evidence: exact-record-and-intended-seeded-sample
 
 # Long Count
 
-Twelve hours beyond the Archive, traffic disappeared. *Vela* entered the cold between inhabited orbits. Rescue was counted in
-weeks there. A ship's discarded heat became the brightest object nearby.
+Twelve hours after the Archive, the last traffic return vanished. *Vela* crossed a region where aid required weeks and waste heat
+outshone every neighboring object.
 
-The crew changed to passage time. Mara slept in short intervals. Osei listened to pumps over meals. Sana opened the day's mission
-book each morning, though the universe had neglected to provide any new event overnight.
+Passage watches replaced station time. Mara divided sleep into short pieces. Osei listened through meals for changes in pump tone.
+Every morning Sana opened a new account page, even when vacuum had supplied nothing to enter.
 
-Privacy became a time slot, not a place. Tala learned the panel that creaked outside Sana's bunk. She learned when Mara's silence
-meant peace and when it meant trouble. Osei, missing work he could not reach, took harmless machines apart. Asking whether he meant
-to rebuild them only delayed the rebuilding.
+On a small ship, privacy belonged to the watch schedule. Tala learned the creak outside Sana's berth and the difference between
+Mara's contented silence and her dangerous one. Osei disassembled healthy devices whenever Sable's distant repairs occupied him.
+Questions about reassembly only extended the process.
 
-They ate from magnetic trays around the chart table. The galley offered enough seats or enough working displays, never both. Mara
-called this design. Osei called it scheduling. Sana was still investigating the fourth chair.
+Tala kept Venn's folded reference inside her private locker and read it when the
+ship was quiet. The page warned that she would halt apparently healthy machinery when its model
+omitted something physical. Some nights that sounded like judgment. Some nights
+it sounded like a machine fault wearing her name. She had joined *Vela* without
+learning which version was true.
 
-The field manual traveled with the watch.
+Meals attached themselves magnetically to the chart table. The galley could provide chairs for the crew or screens for the watch.
+Mara defended the arrangement as design, Osei as scheduling. Sana had opened an inquiry into the missing chair.
 
-Catenary turned close to the giant world, deep inside its restless magnetic field. Sable wandered a wide, irregular orbit near the
-sunward boundary, where the star's charged wind first pressed against that field. In this season the moon crossed the weather
-before Catenary did. Its clocks kept an independent rhythm. Its instruments felt the charged front while the inner habitats still
-had time to prepare.
+The gray book traveled with the watch.
 
-The far instrument circled Sable, a moon so dark early surveyors had mistaken its shadow for missing data. Its first greeting
-contained thirty-two binary observations. Nothing else.
+Catenary turned close to the Giant, deep inside its restless magnetic field.
+Sable wandered a wide, irregular orbit near the sunward boundary, where the
+star's charged wind first pressed against that field. In this season the moon
+crossed the weather before Catenary did. Its clocks kept an independent rhythm.
+Its instruments felt the charged front while the inner habitats still had time
+to prepare.
+
+That geography had given a small cooperative a place in the Second Navigation.
+Catenary supplied traffic and a common optical reference. Sable supplied the
+weatherward comparison. Neither could make the other's observation by decree.
+
+Early surveys had processed Sable's darkness as an absence in their data. The instrument orbiting that moon greeted *Vela* with
+thirty-two binary observations and no explanation.
 
 ```text
 0 1 1 0 0 1 0 0
@@ -44,39 +56,41 @@ contained thirty-two binary observations. Nothing else.
 1 0 0 1 0 1 0 0
 ```
 
-Mara put the sequence on the navigation display, where it resembled a route chosen by a nervous machine. Pilots had once crossed
-the reach by reading pulsar fixes through charged dust. A few still kept old binary ephemerides above their bunks, and Mara's first
-instinct was to see direction in any ordered lights. She traced the first eight digits with one finger before stopping herself.
+Mara moved the digits onto her navigation pane. Old Reach pilots had pulled pulsar fixes through charged dust, and binary
+ephemerides still hung above some Thorn bunks. Ordered lights invited her to find a road. She followed eight with one finger, then
+withdrew her hand.
 
 Osei searched for a header. Sana traced the transmission and found that each digit came from a fresh preparation at the same remote
-source. No route lay hidden in the sequence. This was the instrument's greeting, a small test of what the receiving crew would
-invent before the real data arrived.
+source. The sequence carried no route. It was the instrument's greeting, a small test of
+what the receiving crew would invent before the real data arrived. Sable's camps
+had inherited too many charter reports whose confidence grew with transmission
+distance; the cooperative now tested the interpreter as carefully as the link.
 
-The difference was the experiment. Thirty-two readings from one changing object would tell a history. Thirty-two fresh
-preparations made thirty-two trials.
+Experimental procedure decided what the sequence meant. Repeated readings of one evolving system would form a history. Here the
+instrument made a fresh preparation for every reading, producing thirty-two trials.
 
-Tala named the pieces. A **trial** began with a preparation, performed the chosen procedure, and ended in one observed **outcome**.
-Here that outcome was `0` or `1`, never a fraction, never both.
+Tala called each complete preparation and procedure a **trial**. Observation ended it with one **outcome**. This interface admitted
+`0` or `1`; each trial supplied one of them.
 
-Mara selected the first `0`. "What does this tell us about the source?"
+Mara isolated the first `0`. "What have we learned about the source?"
 
-"That one trial ended in zero," Tala said.
+"This preparation produced zero under this procedure."
 
-"And the next one?"
+Mara selected the following digit. "And this?"
 
-"Ended in one."
+"A separate trial produced one."
 
-"I had hoped distance would improve your conversation."
+"The Reach has made you less informative."
 
-Tala had hoped the same. Unfortunately Sana looked pleased, which meant the answer had probably been responsible.
+Tala shared the disappointment. Sana's approval confirmed that responsibility had caused it.
 
-On Catenary, context arrived from a thousand nearby systems. Out here, an invented story could cross the reach long before its
-correction.
+Catenary surrounded every number with neighboring systems and people available to contradict it. Across the Reach, invention could
+arrive hours ahead of correction.
 
-The answers sounded unhelpful because the questions demanded a pattern from single events. Sana preserved the sequence and named
-the collection a **sample**.
+A single outcome could answer only its own trial. Sana preserved all thirty-two in order and named the finite collection a
+**sample**.
 
-Only then did Tala count.
+With the individual outcomes preserved, Tala counted.
 
 ```text
 outcome 0: 18
@@ -84,51 +98,52 @@ outcome 1: 14
 total:     32
 ```
 
-The count altered no digit. It reduced the sequence to totals and threw away order. Sana kept the original beside it, an Archive
-habit: never let a summary hide what it consumed.
+Counting left the observations unchanged while discarding their order. Sana retained the sequence beside its totals, following the
+Archive practice of displaying what a summary had consumed.
 
-Above the console, Mara's ceramic bird found the deck under thrust and drifted sideways when the engines slept.
+Mara's Archive bird stood upright during thrust and searched slowly for down whenever the drive slept.
 
-To preserve the shape of those totals, the manual drew one mark per trial.
+The Common Book gave every counted trial one visible mark.
 
 ```text
 0 | ################## 18
 1 | ##############     14
 ```
 
-Drawn this way, the sample became a **histogram**. Its bars represented counts, not amplitudes, physical waves, or confidence.
-Reordering the thirty-two observations would leave the histogram unchanged even though it would produce a different sequence.
+Those bars formed a **histogram** of observed counts. They depicted neither amplitude nor confidence nor a wave in the chamber.
+Any permutation of the sequence would preserve the histogram while changing the ordered sample.
 
-Osei divided each count by the number of trials.
+Osei converted the counts by dividing each one by thirty-two.
 
 | Outcome | Count | Frequency |
 | --- | ---: | ---: |
 | `0` | 18 | `18 / 32 = 0.5625` |
 | `1` | 14 | `14 / 32 = 0.4375` |
 
-A **frequency** belonged to this finite sample. The source specification, when Sana finally recovered it from the following packet,
-contained a different kind of number.
+Each resulting **frequency** described the finite sample. A later packet finally delivered the source specification and numbers of
+another kind.
 
 ```text
 model probability of 0: 0.5
 model probability of 1: 0.5
 ```
 
-A **probability model** assigned long-run weight before this sample existed. It promised no perfect split in any particular block.
-The frequencies might wander from `0.5` without refuting the model, or land on `0.5` without proving it.
+The **probability model** assigned weights independently of this particular sample. Equal model probabilities did not require equal
+counts in a finite block. Frequencies away from `0.5` could agree with the model, while a perfect split could occur without proving
+it.
 
-Mara enlarged the two bars. The first calibration deadline was approaching, and a number of trials sounded like the kind of answer
-that could be put on a schedule. "How many settle it?"
+The first calibration deadline drew closer. Mara enlarged the bars, looking for a count she could place on a schedule. "How many
+trials finish the question?"
 
-Sana looked at the source claim attached to the model. "Settle what?"
+Sana opened the model's stated scope. "Which question?"
 
-The question closed over the conversation like a hand over an unsafe control.
+Conversation stopped as quickly as a hand leaving an unsafe switch.
 
-More trials could steady an estimate (if the preparations were what they claimed, the trials were independent, the model applied).
-More trials could not repair assumptions nobody had made.
+Additional independent trials could steady an estimate when the named preparation and model applied. Quantity could not supply an
+unstated assumption.
 
-Osei requested another thirty-two preparations from the simulator. Before execution he fixed the target, shot count, and seed. The
-request entered the mission book before anyone knew whether the bars would look persuasive.
+Osei prepared a simulator request for thirty-two fresh trials. Target, shot count, and seed entered the mission account before the
+sample existed, beyond the reach of later preference.
 
 ```bash
 wheeler run manual/BinaryTrials.wbc \
@@ -137,38 +152,39 @@ wheeler run manual/BinaryTrials.wbc \
   --seed 104729
 ```
 
-The second sample produced a different sequence and exactly the same histogram as the transmitted record.
+Its ordered outcomes differed from Sable's greeting. Their counts produced the same bars.
 
 ```text
 0 | ################## 18
 1 | ##############     14
 ```
 
-Mara frowned at it. "It copied the answer."
+Mara compared the displays. "The simulator repeated them."
 
-Sana put both sequences side by side. "It copied the counts."
+Sana aligned the sequences. "It repeated the histogram."
 
-The digits differed. The bars did not. A histogram was blind to order by design.
+Different observations occupied the two sequences. Identical totals occupied the histogram, whose construction had discarded
+order.
 
-Because the seed belonged to the run, the same command reproduced the same simulator sample. Change the seed and a different
-repeatable sample appeared. Neither result foretold the next act of unseeded hardware.
+The recorded seed made this simulator sample reproducible. Another seed would create another reproducible sample. Neither command
+predicted a future physical preparation without that seeded numerical model.
 
-The instrument would not reserve their approach until Mara acknowledged the greeting. Another transmitted sample would cost six
-hours and still could not supply missing assumptions. Refusal had a price. So did pretending.
+Sable withheld the approach reservation until Mara acknowledged the greeting. A second physical sample required six hours and
+would leave the same assumptions unstated. Refusal spent fuel; invention spent trust.
 
-"What can I sign?" she asked.
+"Give me the sentence I can sign," Mara said.
 
-Tala read the record again. "That these thirty-two instrument trials produced these counts. That the attached model assigns equal
-probability. Not that one proves the other."
+Tala returned to the transmitted record. "These instrument trials produced the preserved sequence and counts. The attached model
+assigns equal probability to both outcomes. The sample alone does not establish that model."
 
-"That is a very long way to say yes."
+"Your yes requires unusual cargo space."
 
-"It is the yes these data can carry."
+"It fits the evidence we possess."
 
-Mara entered the claims separately, accepted the approach, and kept enough contingency fuel to answer any later contradiction.
-Uncertainty had narrowed the decision. It had not made action impossible.
+Mara entered the statements separately and accepted Sable's approach. She preserved contingency fuel for contradiction. Limited
+evidence still permitted a limited decision.
 
-Tala set outcome, sample, and model beside one another.
+Tala arranged the three names in the gray book.
 
 | Object | Statement it supports |
 | --- | --- |
@@ -176,14 +192,14 @@ Tala set outcome, sample, and model beside one another.
 | One sample | These trials produced these counts and frequencies |
 | Probability model | The stated preparation and procedure assign these outcome probabilities |
 
-The names kept the objects apart. An outcome was not a distribution. Bars were not the model that might have produced them.
-Probability made no promise about the next light to appear.
+An outcome belonged to one trial. A histogram summarized a sample. The model assigned probabilities under assumptions and promised
+no particular next digit.
 
-Outside, the reach was empty enough for the far instrument's carrier tone to feel like company. New packets crossed the hours from
-Sable. No binary outcomes this time: two routes to one detector, and signed quantities that ordinary probability could not hold.
+Sable's carrier tone became the only nearby voice. The next packets described two modeled routes meeting at a detector, each
+bearing a signed quantity that ordinary probability could not represent.
 
-Mara watched one pair add and another disappear. "Counts do not cancel."
+One pair reinforced while another vanished. Mara shook her head. "Observed counts cannot do that."
 
-The cabin lights entered artificial evening. Nobody moved to end the watch.
+Artificial evening dimmed the cabin. The watch continued around the new arithmetic.
 
-Tala turned the page: [Contributions That Cancel](05-contributions-that-cancel.md).
+The packet and the gray book met under one heading: [Contributions That Cancel](05-contributions-that-cancel.md).

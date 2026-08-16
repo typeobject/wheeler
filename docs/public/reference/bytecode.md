@@ -1,14 +1,21 @@
-# Wheeler bytecode format
+---
+title: Artifacts and Bytecode
+description: The canonical Wheeler 1.0 container, its typed sections, and the checks required before execution.
+---
 
-Wheeler executables use the `.wbc` Wheeler Bytecode Container. It is the closed, typed, reversible IR and the only semantic artifact.
+# Artifacts and Bytecode
 
-Classical instructions keep inverse, logging, and barrier rules. Workflow records keep irreversible boundaries visible, while quantum regions keep semantic operations and adjoints. Native code, OpenQASM, and provider payloads are derived from this form.
+Source can travel in a gray book. Execution requires a more severe object.
+Wheeler executables use the `.wbc` container, the closed typed artifact that
+carries classical instructions, inverse bodies, workflow records, quantum regions,
+and proof certificates.
 
-A `.wbc` file is not a JVM `.class` file.
+Native code, OpenQASM, and provider payloads derive from `.wbc`. None replaces its
+semantic authority. A `.wbc` file is not a JVM `.class` file.
 
-## Header
+## Header and directory
 
-Every artifact starts with this 40-byte little-endian header:
+Every artifact begins with this 40-byte little-endian header:
 
 ```text
 byte[8] magic                 "WHEELBC\0"
@@ -21,50 +28,82 @@ u32     directory_entry_size  32
 u64     directory_offset
 ```
 
-Each directory entry stores the section type, flags, offset, length, alignment, and a zero reserved field. Format 1.0 requires eight-byte alignment, canonical section order, no overlaps, and zero-filled padding.
+Each directory row contains section type, flags, offset, length, alignment, and a
+zero reserved field. Format 1.0 requires eight-byte alignment, canonical section
+order, disjoint extents, and zero-filled padding.
 
-## Implemented sections
+## Sections in format 1.0
 
-| ID | Section |
-| --- | --- |
-| 1 | Manifest: program name, entry function, and limits. |
-| 2 | Strict UTF-8 string table. |
-| 3 | Signed 64-bit global and nominal record descriptors. |
-| 4 | Nominal tagged-variant descriptors. |
-| 5 | Function, inverse-body, signature, and local-register type descriptors. |
-| 6 | Classical code records. |
-| 7 | Ordered classical and quantum workflow records. |
-| 8 | Quantum registers, circuits, literal or symbolic gates, and coherently lifted calls. |
-| 10 | Optional canonical proof certificates checked by the trusted finite kernel. |
-| 13 | Optional required classical instruction extensions. |
+| ID | Contents |
+| ---: | --- |
+| `1` | Manifest: program name, entry, kind, and limits. |
+| `2` | Strict UTF-8 string table. |
+| `3` | Signed globals, record descriptors, arrays, and slices. |
+| `4` | Tagged variants and their cases. |
+| `5` | Functions, inverse bodies, signatures, and local types. |
+| `6` | Classical instruction records. |
+| `7` | Ordered classical and quantum workflow records. |
+| `8` | Quantum registers, circuits, parameters, and coherent calls. |
+| `10` | Optional proof certificates checked by the finite kernel. |
+| `13` | Optional required classical instruction extensions. |
 
-Quantum and hybrid artifacts require sections 7 and 8. Canonical classical artifacts omit both. The decoder rejects unknown required sections.
+Quantum and hybrid artifacts require sections 7 and 8. Canonical classical
+artifacts omit them. Unknown required sections cause rejection.
 
-WIP-0003 reserves a later section for target requirements. Provider-specific executables remain derived artifacts instead of semantic bytecode.
+The manifest kind is `classical`, `quantum`, or `hybrid`. New source uses limits of
+4,000,000 transitions and 4,000,000 retained history entries unless the artifact
+requests smaller verified values.
 
-The manifest records the program kind as `classical`, `quantum`, or `hybrid`. It also stores the name, entry function, history limit, and step limit.
+## Type identities
 
-New source builds default to 4,000,000 history records and 4,000,000 transitions. These values are encoded, verifier-bounded policy inputs instead of fixed rules of the container format. Equal defaults guarantee that the transition ceiling, not an undersized journal, governs a run in which every transition must remain rewindable.
+Each 40-byte function descriptor carries contiguous signature and local-type windows. Parameter
+registers occupy the first local slots. A present result type comes first in its
+signature window.
 
-## Type and aggregate descriptors
+| Type code | Meaning |
+| ---: | --- |
+| `1` | signed 64-bit integer |
+| `2` | Boolean |
+| `3` | affine region owner |
+| `4` | affine signed-word buffer |
+| `5` | affine byte buffer |
+| `6` | affine fixed-capacity signed map |
+| `7` | affine immutable UTF-8 owner |
+| `8` | nonescaping UTF-8 loan |
+| `9` | exclusive signed-map loan |
+| `10` | exclusive word-buffer loan |
+| `11` | exclusive byte-buffer loan |
+| `12` | exclusive region loan |
+| `13` | immutable binary `byteview` |
+| `14` | the one-value `Done` type |
 
-The type section starts with fixed signed-global descriptors. Bounded tables for records and fixed arrays follow.
+Function flag `4` declares one result type in the signature table.
+High-nibble tags `0x1`, `0x2`, `0x3`, and `0x4` identify record, variant,
+fixed-array, and borrowed-slice references. Their low 28 bits contain the
+descriptor ID.
 
-A record descriptor contains a canonical ID, name, and a nonempty ordered field list. Each field has a name and type reference.
+Unknown types, absent descriptors, malformed type windows, and invalid owner or
+loan positions fail verification.
 
-The required variant section has canonical nominal IDs and ordered, nonempty case tables. A case has a name and zero or more ordered payload fields.
+## Aggregate descriptors
 
-An array descriptor stores a canonical ID, element type, and a length from 1 through 65,535. A slice descriptor stores a canonical ID and element type. Slices cannot escape, appear as function results, or become aggregate elements.
+Records and variants use canonical nominal IDs and string-table names. Arrays
+store element type and a length from 1 through 65,535. A slice stores its element
+type and may appear only where its source lifetime remains visible.
 
-Every descriptor ID must equal its table position. Record fields and variant payloads may refer to any validated record or variant descriptor, including themselves and each other. Both may also embed a fixed-array descriptor when its element type is signed, Boolean, or `Done`. Both verifiers reject slice fields, aggregate-element arrays, and recursive array layouts.
+Descriptor graphs may refer to records and variants recursively. Runtime values
+remain finite constructions from initialized fields. Arrays cannot create a
+recursive inline layout.
 
-A closed classical WIP-0041 `Slot<T>` uses this existing variant section. Its exact specialization name is `Slot<T>`. Ordered tag zero is payload-free `Vacant`, and ordered tag one is `Holding` with one field named `value`. Nested slots point only to an earlier closed slot descriptor. No new ambient-null type code or payload bytes sneak into vacancy.
+`Slot<T>` uses the existing variant section. Tag zero is payload-free `Vacant`.
+Tag one is `Holding`, with one field named `value`.
 
-Nominal descriptor graphs may be recursive. Runtime construction still builds finite values from already initialized fields. Descriptor recursion does not invent a cyclic object graph. Duplicate names, fields, cases, or IDs fail closed. The decoder also rejects unknown descriptor IDs, unknown string IDs, unknown type tags, truncation, and trailing bytes.
+Duplicate names, fields, cases, IDs, unknown references, escaped slices, and
+recursive array layouts cause rejection before execution.
 
 ## Classical instruction records
 
-Each instruction is independently bounded:
+Each instruction carries its own checked extent:
 
 ```text
 u16 opcode
@@ -73,180 +112,88 @@ u32 byte_length
 u64 operands[operand_count]
 ```
 
-The opcode selects one named instruction form. Each form fixes an ordered semantic role list, such as destination, source, operation, immediate, function, argument window, result, owner, index, or target. The writer derives `operand_count_form` and `byte_length` from that list. The reader checks both wire values before it constructs an instruction.
+The opcode selects one registered form and ordered semantic roles such as
+destination, source, function, argument window, result, owner, index, or branch
+target. The decoder verifies the declared form and length before accepting the
+row. Unknown executable opcodes always fail.
 
-Related register instructions keep destination first and sources after it. `CALL_VALUE`
-uses function, argument base, argument count, and result. Reversible scalar results use
-`CALL_RESULT_SLOT` or `UNCALL_RESULT_SLOT` with function, argument base, argument count,
-and result slot. `RESULT_FILL_CONSTANT` carries result slot and immediate.
-`RESULT_FILL_SOURCE` carries result slot and preserved source local.
-`RESULT_FILL_BINARY` adds a signed operation identity and constant immediate.
-`RESULT_FILL_BINARY_SOURCES` replaces that immediate with a second preserved source.
-`RETURN_RESULT_SLOT` carries the same slot. Stable Java opcode identities live in
-`OpcodeIds`, while `InstructionForm` owns roles. The verifier reports the opcode and canonical role for bad local types, references, windows, descriptors, tags, indices, limits, and storage operands. One registry label serves verifier diagnostics and disassembly, so the Turkish locale cannot rename `limit` while nobody is looking. The stage-0 readability gate parses the Wheeler-native opcode and instruction-form registries. It rejects any consumed identity or operand count that differs from `OpcodeIds` and `InstructionForm`. `compiler/ir/InstructionForms.w` is the sole native operand-count owner.
-`compiler/verification/ResultSlotVerifier.w` owns native slot-transition operand checks. `compiler/backend/results/ResultSlotCodegen.w` owns native reversible entry shapes. The general verifier and program emitter already have enough dishes in their respective sinks. Wheeler-native
-emitters use named nullary through quinary form constants and one named operand width. Numeric arities no longer decorate emission sites like lost screws on a workbench.
+Optional section 13 begins with a positive `u32` requirement count. Each row has
+a byte length, canonical ASCII extension name, and positive decimal version.
+Names are unique, sorted, and no longer than 128 bytes. The current registry
+supports no extension. An empty requirement set omits the section.
 
-Unknown executable opcodes always fail. A valid byte length locates the next record, but it cannot make skipped behavior safe. Wheeler has no runtime vendor-opcode registration.
+Instruction families cover:
 
-Optional required section 13 starts with a nonzero `u32` requirement count. Each entry stores a `u32` byte length followed by a canonical ASCII extension name and positive decimal version, such as `wheeler.classical.example/1`. Names are unique, sorted, and limited to 128 bytes. The current registry supports no extension. This is deliberate. The reader validates the complete section and rejects unsupported requirements before it decodes instructions. Direct VM construction applies the same compatibility gate before execution. An empty requirement set omits section 13, so baseline artifacts retain their bytes.
+- checked scalar arithmetic, comparison, and bit operations.
+- typed locals, state load and store, affine moves, and expectations.
+- branch and loop-limit checks.
+- function call, inverse call, result transfer, and return.
+- immutable records, variants, arrays, and slices.
+- regions, buffers, maps, UTF-8, binary views, loans, and explicit drop.
+- `COMMIT` and `HALT`.
 
-A future standard extension needs immutable identities, complete verifier and VM semantics, explicit artifact negotiation, and a version rule before it enters this stream. Adding a name to the supported set without those pieces would merely teach the loader a new spelling for trouble.
+Arithmetic traps before mutation on overflow, zero division, invalid remainder,
+or an out-of-range `rotateRight32` amount. Boolean registers admit only zero and
+one.
 
-Dynamic undo data never appears in an instruction. The runtime stores it in step records.
+Dynamic undo data never appears inside an instruction. The VM stores it in a
+transition record.
 
-### Function signatures and local types
+## Calls and reversible results
 
-Each 40-byte function descriptor declares parameter and local counts, an optional result, code ranges, and a canonical offset into the trailing signature-type table.
+A call names one initialized argument window and an exact argument count. Value
+calls also name the caller's destination register. Owner arguments move. Loans
+remain attached to their verified origins.
 
-When a result exists, its type appears first at that offset. Local types follow, and parameter registers occupy the first local slots. Type windows are contiguous in function order.
+`CALL` runs a forward zero-argument body. `UNCALL` runs its generated inverse as
+new work. The inverse body has its own code offset.
 
-One little-endian `u32` per register stores its type:
+A reversible scalar result uses two adjacent caller-owned registers: a Boolean
+presence tag and a signed or Boolean payload. Function flags `0xd` identify this
+ABI. `CALL_RESULT_SLOT`, the `RESULT_FILL_*` family,
+`RETURN_RESULT_SLOT`, and `UNCALL_RESULT_SLOT` exchange vacancy with one verified
+result relation. The inverse checks the held value before restoring vacancy.
 
-- `1`: signed 64-bit integer.
-- `2`: Boolean.
-- `14`: the one-value `Done` completion type.
-- high-nibble tag `0x1`: record reference.
-- high-nibble tag `0x2`: variant reference.
-- high-nibble tag `0x3`: fixed-array reference.
-- high-nibble tag `0x4`: borrowed-slice reference.
+Generated inversion never reads the VM's debugger history. Committing between the
+forward and inverse calls leaves the relation available.
 
-Aggregate references carry a 28-bit descriptor ID. The result-presence flag `4` means that one result type is present in the signature table.
+## Storage and text
 
-Stage 0 mechanically compares every primitive type identity with the Wheeler-native `TypeCodes.w` registry. Unknown type codes, missing descriptor IDs, and noncanonical type-table lengths fail before execution. Parameter registers may carry any value, affine owner, or nonescaping loan accepted by the source profile.
+Region and buffer instructions check owner state, kind, capacity, byte range, and
+loan authority before mutation. `OWNED_MOVE` invalidates its source.
 
-### Scalar and control instructions
+Map allocation charges 24 bytes per slot. UTF-8 freeze consumes mutable bytes only
+after complete RFC 3629 validation. Scalar and width operations require a leading
+byte position. Binary views perform no text decoding.
 
-Local instructions include constants, state load or store, copy or affine move, checked arithmetic, bit operations, comparison, branches, loop-limit checks, calls, returns, aggregate construction, payload access, and bounded storage operations. `LOCAL_CONST` materializes `Done` only with canonical immediate zero. The verifier rejects every other physical value before execution.
+An owned result crosses a call boundary without copying its handle. Slices and
+loans cannot become results. Flow verification requires every other callee owner
+to be dead before return.
 
-Checked arithmetic covers add, subtract, multiply, divide, and remainder. `LOCAL_AND` performs signed bitwise AND. `LOCAL_ROTR32` rotates the low unsigned 32 bits and requires an amount in the exact `0..31` range.
-
-Equality and ordering produce Boolean values. Boolean registers contain only `0` or `1`, and branch conditions consume those values.
-
-`EXPECT_TRUE` consumes one assigned Boolean local and traps when it is false. `EXPECT_EQ` remains the compact form for direct signed-global and literal equality.
-
-### Records, variants, arrays, and slices
-
-`RECORD_NEW` consumes an exact, contiguous field window and interns one immutable record. `RECORD_GET` reads a field checked against the descriptor.
-
-`VARIANT_NEW` adds a verified case tag. `VARIANT_TAG_EQ` tests that tag, while `VARIANT_GET` requires the exact tag before it reads a payload field.
-
-`ARRAY_NEW` consumes exactly the descriptor length from a homogeneous local window. `ARRAY_GET` takes a signed dynamic index and traps before mutation when the index is outside the value.
-
-`SLICE_NEW` verifies the array origin plus a signed start and length. `SLICE_GET` checks a relative index and reads through the retained origin.
-
-### Owned storage
-
-Type code `3` identifies an affine region. Codes `4` and `5` identify affine signed-word and byte buffers. `OWNED_MOVE` invalidates its source.
-
-Owner types may also appear in parameters. Passing an owner consumes the caller's argument and initializes exactly one owner in the callee. Before exit, the callee must consume, forward, drop, or return that value.
-
-`REGION_NEW` creates bounded region storage. The `WORDS_ALLOC`, `WORDS_GET`, and `WORDS_SET` family manages signed-word buffers. `BYTES_ALLOC`, `BYTES_GET`, and `BYTES_SET` does the same for bytes.
-
-`BUFFER_DROP` and `REGION_DROP` reclaim storage explicitly. Each operation checks allocation bounds, storage kind, byte range, and ownership state.
-
-`BUFFER_LENGTH` returns the fixed element count without consuming an owner. It also accepts the immutable UTF-8 loan used by core text functions.
-
-Type code `6` is an affine, fixed-capacity signed map. `MAP_ALLOC` charges 24 bytes for each slot. `MAP_PUT` inserts or updates, `MAP_HAS` checks membership, and `MAP_GET` traps on a missing key. Map slots use deterministic order and the normal owned-drop opcode.
-
-Type code `7` is an affine immutable UTF-8 owner. `UTF8_FREEZE` consumes mutable bytes only after full strict validation. It changes the allocation kind under logged rewind and initializes the destination. Mutation opcodes continue to accept only mutable byte storage.
-
-A function result may return any owned storage type. `RETURN_VALUE` consumes the callee local, then makes the caller destination the sole owner. Flow verification requires every other callee owner to be dead.
-
-Function flag `0x8` declares the implicit reversible result-slot ABI. It is valid only
-with reversible flag `0x1` and value-result flag `0x4`, giving canonical flags `0xd`.
-The final two local types must be Boolean and the declared signed or Boolean result type.
-The first Boolean is the presence tag. Forward `RESULT_FILL_CONSTANT` requires tag and
-payload zero, then writes tag one and the exact immediate. A Boolean immediate must be
-zero or one. Inverse execution requires tag one and that exact immediate, then restores
-both registers to zero. `RESULT_FILL_SOURCE` performs the same exchange against an
-unchanged parameter of the exact payload type. `RESULT_FILL_BINARY` computes one checked
-signed operation over a signed parameter and a constant right operand before the
-exchange. `RESULT_FILL_BINARY_SOURCES` computes over two unchanged signed parameters.
-Each operation must name `LOCAL_ADD`, `LOCAL_SUB`, `LOCAL_MUL`, `LOCAL_DIV`,
-`LOCAL_MOD`, `LOCAL_XOR`, or `LOCAL_AND`. The verifier requires every source to stay outside
-the slot and requires forward and inverse bodies to name the same complete relation.
-All checks finish before mutation. Ordinary `RETURN_VALUE` descriptors retain their previous bytes and behavior.
-
-A returned buffer, map, or UTF-8 value must live in a caller region reached through a nonescaping region loan. A callee cannot return storage while abandoning its owning region. Slices, loans, and `byteview` values cannot be results.
-
-Crossing a frame boundary does not copy an affine handle.
-
-### UTF-8 operations
-
-`UTF8_VALID` checks full-buffer RFC 3629 validity and returns a Boolean. `UTF8_COUNT` returns the Unicode scalar count or traps on malformed input.
-
-`UTF8_SCALAR` and `UTF8_WIDTH` decode one scalar at an exact leading-byte position. They trap on malformed input, continuation-byte access, truncation, or a position outside the buffer.
-
-Type code `8` is the nonescaping UTF-8 loan used for immutable function parameters. `UTF8_BORROW` creates a transient call-window handle from an owner or another loan.
-
-This loan cannot be dropped, moved, returned, placed in an aggregate, or used for mutation.
-
-### Mutable and immutable loans
-
-Type code `9` is a nonescaping exclusive map loan. `MAP_BORROW` creates a transient call window from a map owner or an existing loan. Map operations accept the window, but ownership operations do not.
-
-Type codes `10` and `11` are exclusive signed-word and byte-buffer loans. `BUFFER_BORROW` derives the verifier-selected kind for one transient call window. Normal word and byte operations accept a matching loan, while freeze, move, drop, return, and aggregate paths reject it.
-
-Type code `12` is an exclusive region loan. `REGION_BORROW` creates a transient call window accepted by allocation opcodes. Region drop and result paths reject it. A callee must drop every allocation made through that region before returning.
-
-Borrow verification rejects a call that passes one storage source into more than one mutable parameter.
-
-Type code `13` is immutable `byteview`. `BYTES_GET` and `BUFFER_LENGTH` may inspect it. Byte writes, owner operations, function results, and aggregate storage reject it.
-
-`BUFFER_BORROW` may derive a temporary immutable view from byte storage for a call. Unlike a mutable byte loan, this view does not join the exclusive-writer alias set.
-
-### Calls and host effects
-
-A call names a contiguous, initialized argument window, an exact argument count, and one caller result register when needed.
-
-Verification consumes owner and transient-loan argument slots at the call boundary. A borrowed source owner remains live, while an owner moved into the argument window doesn't. Runtime frame binding follows the same rule, and rewind restores both frames and ownership state exactly.
-
-The `void` entry accepts one of these signatures:
-
-- no parameters.
-- one type-code-8 UTF-8 input loan.
-- one type-code-13 binary input view.
-- one type-code-11 byte-output loan.
-- either input form followed by the output loan.
-
-The signature declares the required host effects. It does not place effect bytes, capacities, or paths in artifact identity.
-
-`OUTPUT_LENGTH` records a checked prefix length for external byte output. Verification limits it to the entry function and a byte-loan operand. At runtime, the handle must be the exact host-output loan and the length must fit within capacity.
-
-The instruction changes no byte. Its state participates in rewind, and no output becomes visible before successful termination.
+The `void` entry accepts no parameters, one text input loan, one binary input view,
+one mutable output loan, or either input followed by output. `OUTPUT_LENGTH`
+selects a checked prefix of the exact external output owner and becomes visible
+only after successful halt.
 
 ## Proof certificates
 
-Section 10 appears only when a program carries proof evidence. It begins with a bounded count, followed by fixed records with:
+Section 10 begins with a count followed by fixed certificate records containing a
+canonical ID, name, trusted rule, subject, and one signed argument.
 
-- canonical proof ID.
-- proof-name string ID.
-- trusted rule code.
-- rule-domain subject ID.
-- one signed 64-bit rule argument.
+The accepted rules are:
 
-Unary generation rules require argument `-1`. Binary circuit rules use a second circuit ID, and resource rules use a positive bound.
+- `GENERATED_INVERSE`
+- `GENERATED_ADJOINT`
+- `CIRCUIT_EQUIVALENCE`
+- `STATIC_STEP_BOUND`
 
-The first trusted rules are `GENERATED_INVERSE`, `GENERATED_ADJOINT`, `CIRCUIT_EQUIVALENCE`, and `STATIC_STEP_BOUND`.
-
-For `GENERATED_INVERSE`, the kernel rebuilds the inverse from the exact forward instruction sequence. It accepts only the checked reversible opcode set.
-
-For `GENERATED_ADJOINT`, the kernel reverses the exact circuit operation list, inverts every semantic operation, and checks that applying the process twice returns the original body.
-
-`CIRCUIT_EQUIVALENCE` requires two circuits over one register. The kernel compares their canonical bodies after cancelling adjacent inverse pairs with a stack-like pass.
-
-`STATIC_STEP_BOUND` rejects calls and branches, then compares the full forward instruction count with both its positive proof bound and the program limit.
-
-Unknown rules, missing subjects, noncanonical IDs, nonreversible functions, malformed lengths, duplicate names, and changed inverse bodies all reject the artifact.
-
-Proof metadata cannot weaken normal verification or change execution. Omitting section 10 makes no theorem claim.
+The kernel rebuilds generated bodies or performs the named finite check. Unknown
+rules, missing subjects, changed bodies, malformed arguments, and duplicate names
+reject the artifact. Proof metadata cannot weaken ordinary verification.
 
 ## Quantum and workflow records
 
-Quantum bodies declare affine logical registers, static or target-resident dynamic regions, semantic gates, symbolic phase parameters with finite scale, and references to compiler-checked coherent functions. Symbol names are canonical string-table entries.
-
-Quantum instructions use a regular provider-neutral record:
+Quantum instructions use a provider-neutral form:
 
 ```text
 u32 quantum_opcode
@@ -254,83 +201,51 @@ u32 field_count
 u64 fields[field_count]
 ```
 
-`QuantumOpcode` names `APPLY_GATE`, `APPLY_SYMBOLIC_GATE`, `CALL_UNITARY`, `PREPARE_REGISTER`, `MEASURE_QUBIT`, `RESET_QUBIT`, and `APPLY_CONDITIONAL_GATE`. Each opcode has one `QuantumInstructionForm` with ordered semantic field groups. `Gate` identities no longer depend on Java enum order. Each gate names a `GateForm` that fixes control, target, and angle roles. The initial descriptors are `H`, `X`, `Z`, `PHASE`, `CPHASE`, `CNOT`, `CZ`, and `SWAP`.
+The accepted quantum opcodes are `APPLY_GATE`, `APPLY_SYMBOLIC_GATE`,
+`CALL_UNITARY`, `PREPARE_REGISTER`, `MEASURE_QUBIT`, `RESET_QUBIT`, and
+`APPLY_CONDITIONAL_GATE`. Semantic gates are H, X, Z, phase, controlled phase,
+CNOT, CZ, and swap.
 
-Preparation carries one complete basis value. Measurement names one qubit and one target-resident Boolean result slot. Reset names one qubit. Conditional application names a prior result slot, expected Boolean value, and one fixed gate with its qubit window. Preparation, measurement, and reset are nonunitary and reject inverse construction. The variable field window leaves room for wider standard gates, bounded control, and barriers without replacing the record. Unknown quantum opcodes, gate IDs, field counts, invalid result-slot flow, and noncanonical parameters fail closed. Provider-native gates and QASM remain derived output.
+Preparation contains one complete basis value. Measurement names one qubit and a
+target-resident Boolean slot. Conditional application names an earlier slot, an
+expected Boolean, and a fixed gate. Preparation, measurement, and reset admit no
+inverse construction.
 
-Runtime tasks provide an exact finite binding map. Task identity covers its schema, values, circuit applications, request, and seed policy.
+Workflow rows order preparation, circuit or adjoint application, measurement into
+classical state, classical calls, assertions, commit, and halt. Task identity also
+binds the finite parameter map, requested circuit applications, shot count, and
+seed policy.
 
-Workflow records describe preparation, circuit or adjoint application, measurement into classical state, classical call or inverse, assertion, commit, and halt.
+Provider gate names and QASM never enter the canonical instruction registry.
 
-Quantum operations remain in their own domain. The decoder does not let a runtime target reinterpret a classical opcode as a provider gate.
+## Verification before identity
 
-## Verification
+Loading checks:
 
-Loading checks the artifact size, magic, version, file length, directory arithmetic, section order, overlap, alignment, required sections, UTF-8, table IDs, body ranges, instruction lengths, and operand counts.
+- size, magic, version, declared length, and complete consumption.
+- directory order, arithmetic, alignment, overlap, and padding.
+- required sections and strict UTF-8.
+- table IDs, references, type windows, body ranges, and instruction extents.
+- operand roles, local indexes, Boolean normalization, and branch targets.
+- definite assignment, affine movement, equal ownership at joins, and leak-free
+  exits.
+- typed calls, complete returns, inverse availability, and entry halting.
+- proof subjects and quantum result-slot flow.
 
-It also checks references, type codes, operands, Boolean normalization, and control-flow targets. Data-flow checks cover definite assignment, affine moves and drops, equal ownership at joins, and leak-free exits. Call checks cover fallthrough, typed calls, initialized arguments, result types, complete returns, inverse availability, and entry halting.
+An instruction either completes and appends one rewind entry or traps without
+partial mutation.
 
-An instruction either completes and adds one rewind record, or it traps before changing data. Arithmetic is checked. Artifact limits may reduce runtime budgets, but they cannot exceed host ceilings.
-
-### Wheeler-written compiler and verifier slice
-
-`MinimalCompiler.w` and its IR, token, parser, code-generation, and encoding modules exercise a complete but bounded writer path. Wheeler scans one small source file, builds class and global IR, and emits a canonical artifact.
-
-The accepted grammar supports zero or one signed global, an optional classical or reversible helper with zero through sixty-four statements, and one entry. An entry without a helper may contain zero through sixty-four signed-local, Boolean-local, assertion, assignment, checked-update, or global-expectation statements before `HALT`. Helper-call entries retain the smaller explicit call/reverse shape. Statement starts live in one caller-owned bounded table shared by both body parsers. The sixty-fifth row is not an undocumented storage tier.
-
-A class may declare one contiguous block of up to 256 scalar constants around its optional signed state and before its helper or entry. A signed result may initialize that state, including through a forward reference when state appears first. Split blocks and signed/Boolean mismatches fail before any header byte. The native resolver evaluates a bounded same-class dependency graph with forward references, checked scalar arithmetic, Boolean negation and comparisons, bitwise operations, `rotateRight32`, and parentheses. Decimal, hexadecimal, and binary integer spellings share the scanner's checked 64-bit decoder. Each lookup allows 4,096 evaluation steps, dependency paths stop at sixty-four declarations, and parentheses stop at depth thirty-two. Cycles, unknown names, type errors, malformed expressions, and arithmetic traps fail before publication.
-
-The resolver substitutes matching signed or Boolean values into locals, direct helper returns, scalar assignments, checked signed updates including generated reversible helper updates, and one- or two-argument scalar helper calls. Matching constants also replace right operands in signed arithmetic and ordering declarations or signed and Boolean equality and inequality declarations, signed arithmetic returns, typed comparison returns over signed or Boolean operands, signed or Boolean equality assertions, signed ordering assertions, conditions and their state-update values, plus bounded loop conditions and limits, while retaining stage-0-identical temporary locals and instruction bytes. Calls and mutations may mix constants and prior locals. Helper parameters and locals cannot shadow a constant. Public and private declarations use the same table. Reordering dependency declarations leaves output bytes unchanged. Constants contribute no global, initializer, or runtime lookup. Every rooted tree topology over one through four imported scalar modules, one four-module shared-dependency diamond, five direct imports, one five-module chain, and one four-leaf fork now follow this recovery path through unqualified or canonical owner-qualified public uses. General module linking remains outside the slice. Drawing more `::` on the napkin still does not allocate a symbol table.
-
-Identifiers from source are sorted into the canonical string table. Offsets, type windows, local counts, code lengths, and final artifact size are derived from the parsed program.
-
-The `LongClass` fixture contains `state long value = 7` and a checked update. CI compares all 504 output bytes with stage 0, decodes them strictly, requires byte-identical re-encoding, and runs both direct VM and `wheeler run` CLI publication paths.
-
-`compiler/verification/Verifier.w` and its focused verifier modules independently read the emitted bytes. They check the header, contiguous directory, payload rules, function and local windows, manifest bounds, every supported instruction form, call and register domains, proof subjects and arguments, and terminal-only `HALT`.
-
-A binary corpus accepts canonical stage-0 artifacts and rejects forged local or global indexes, type codes, call targets, proof subjects, and proof arguments. `NativeVerifier.w` applies the same verifier to immutable binary `byteview`, so verification does not need a text envelope.
-
-`compiler/verification/Codec.w` provides Wheeler's bounded canonical identity encoder. It decodes and verifies the complete typed artifact before copying any byte into caller-owned output. Because `.wbc` 1.0 has one canonical representation, identity encoding is the only correct re-encoding of accepted bytes. There is no permissive spelling to normalize. `NativeBytecodeCodec.w` differentially reproduces a stage-0 artifact, rewinds exactly, and leaves output untouched and unpublished when verification traps or the verified artifact exceeds output capacity.
-
-`NativeBytecodeIdentity.w` re-encodes at most 4,096 verified bytes into private owned storage before publishing Wheeler SHA-256. The complete digest matches stage 0 and rewinds exactly. Damaged framing or oversized input leaves all 32 bytes untouched. A digest identifies an artifact only after verification establishes that there is an artifact to identify. SHA-256 is many things, but it is not a type checker.
-
-The bounded compiler core now lives in importable `compiler/Core.w`. `compiler/Graphs.w`, `GraphFour.w`, `GraphFive.w`, and `GraphSix.w` coordinate counted frames. `compiler/graphs/SmallStructures.w`, `FourStructures.w`, `Plans.w`, `six/SixPlans.w`, and `seven/Plans.w` build complete rooted acyclic plans. `compiler/graphs/Matrix.w` records exact edges, roots, root ranks, leaf-first order, privacy, and sharing. `compiler/graphs/plans/SourceTable.w` owns seven fixed physical or linked source slots. `compiler/graphs/plans/GraphExecutor.w` executes every validated scalar-constant graph from two through seven imports without topology identities. The single-import path links directly. `compiler/graphs/plans/GraphExecutor.w` also links direct helpers, mixed direct owners, redundant helper leaves, and the constant-fed helper chain. `compiler/Driver.w` preserves the public API. `MinimalCompiler.w` is only its executable package wrapper. `compileMinimal` returns the exact verified artifact and code bounds without changing externally visible output length. A canonical module header qualifies entry and helper strings while preserving theorem names exactly as stage 0 does. An entryless library with zero or one general helper instead receives the canonical unqualified `$library` halt entry. One through twenty-three public, private, or unqualified zero- through sixteen-parameter scalar helpers now receive canonical strings, descriptors, signatures, code offsets, and the same entry. The native compiler now reproduces stage 0 for its complete checked-in `compiler/backend/calls/CallArguments.w`, `compiler/backend/EncodingWidths.w`, imported-constant `compiler/frontend/intrinsics/BorrowedIntrinsicShapes.w`, `compiler/ir/Opcodes.w`, `compiler/ir/ProofRules.w`, `compiler/ir/ResolvedStatements.w`, `compiler/ir/StatementKinds.w`, `compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`, `compiler/ir/limits/CompilerProgramLimits.w`, imported-function `compiler/verification/ResultSlotVerifier.w`, `compiler/resolution/returns/WideReturnSources.w`, imported-constant `compiler/resolution/returns/ReturnOpcodeKinds.w`, imported-constant `compiler/syntax/assignments/NamedLocalAssignmentKinds.w`, imported-constant `compiler/syntax/assignments/ResolvedLocalAssignments.w`, imported-constant `compiler/syntax/assertions/ResolvedBooleanLiteralAssertions.w`, imported-constant `compiler/syntax/assertions/ResolvedLessThanAssertions.w`, imported-constant `compiler/syntax/assertions/ResolvedLocalPairAssertions.w`, `compiler/syntax/booleans/BooleanTokens.w`, imported-constant `compiler/syntax/booleans/ResolvedBooleanLiteralComparisons.w`, imported-constant `compiler/syntax/comparisons/NamedComparisonKinds.w`, imported-constant `compiler/syntax/conditionals/LiteralComparisonOperations.w`, imported-constant `compiler/syntax/conditionals/NamedConditionalBases.w`, imported-constant `compiler/syntax/conditionals/NamedLiteralComparisonKinds.w`, imported-constant `compiler/syntax/conditionals/NamedLocalConditionalKinds.w`, imported-constant `compiler/syntax/conditionals/NamedLocalConditionalValues.w`, imported-constant `compiler/syntax/conditionals/ResolvedLiteralComparisonKinds.w`, imported-constant `compiler/syntax/conditionals/ResolvedLocalConditionalKinds.w`, imported-constant `compiler/syntax/conditionals/ResolvedLocalConditionalOperands.w`, imported-constant `compiler/syntax/conditionals/ResolvedLocalConditionalSources.w`, imported-constant `compiler/syntax/locals/NamedLongOperations.w`, imported-constant `compiler/syntax/locals/ResolvedLocalCopyKinds.w`, imported-constant `compiler/syntax/locals/ResolvedLocalEqualityKinds.w`, imported-constant `compiler/syntax/locals/ResolvedLocalInequalityKinds.w`, imported-constant `compiler/syntax/locals/ResolvedLocalLessThanKinds.w`, imported-constant `compiler/syntax/locals/ResolvedLocalLiteralComparisons.w`, imported-constant `compiler/syntax/locals/ResolvedLocalLiteralComparisonSources.w`, imported-constant `compiler/syntax/locals/ResolvedLongOperations.w`, imported-constant `compiler/syntax/loops/ResolvedLocalLoopForms.w`, imported-constant `compiler/syntax/loops/ResolvedLocalLoopKinds.w`, imported-constant `compiler/syntax/loops/ResolvedLocalLoopOperands.w`, imported-constant `compiler/syntax/updates/NamedLocalUpdateKinds.w`, imported-constant `compiler/syntax/updates/ResolvedLocalUpdates.w`, imported-constant `compiler/ir/OpcodeKinds.w`, imported-constant `compiler/ir/TypeKinds.w`, imported-constant `compiler/ir/InstructionForms.w`, imported-constant `compiler/syntax/BooleanDeclarationKinds.w`, `compiler/syntax/IdentifierStarts.w`, `compiler/syntax/tokens/CompilerTokenLimits.w`, `compiler/syntax/tokens/KeywordTokens.w`, `compiler/syntax/tokens/SourceScalars.w`, `compiler/syntax/helpers/HelperAbi.w`, imported-constant `compiler/syntax/helpers/HelperSignatures.w`, mixed-owner `compiler/syntax/helpers/HelperValueKinds.w`, `compiler/syntax/intrinsics/BorrowedIntrinsicKinds.w`, imported-constant `compiler/syntax/EarlyReturnKinds.w`, imported-constant `compiler/syntax/EarlyReturnResultKinds.w`, `compiler/syntax/LoopKinds.w`, imported-constant `compiler/syntax/calls/CallArgumentSources.w`, imported-constant `compiler/syntax/calls/OneArgumentCalls.w`, imported-constant `compiler/syntax/calls/TwoArgumentCallKinds.w`, imported-constant `compiler/syntax/calls/FourArgumentCalls.w`, `compiler/syntax/calls/assignment/AssignmentCallArities.w`, `compiler/syntax/calls/assignment/AssignmentCallCodeWidths.w`, `compiler/syntax/calls/assignment/AssignmentCallColumns.w`, `compiler/syntax/calls/assignment/AssignmentCallIdentities.w`, `compiler/syntax/calls/assignment/AssignmentCallInstructionWidths.w`, `compiler/syntax/calls/assignment/AssignmentCallLocalWidths.w`, `compiler/syntax/calls/ThreeArgumentCalls.w`, `compiler/syntax/calls/VoidCallKinds.w`, `compiler/syntax/calls/VoidCallSourceKinds.w`, mixed-owner `compiler/syntax/calls/VoidCallSourceWidths.w`, imported-function `compiler/syntax/calls/void/VoidCallSourceForms.w`, `compiler/syntax/calls/VoidCallWidths.w`, imported-constant `compiler/syntax/returns/EarlyReturnSources.w`, imported-constant `compiler/syntax/returns/NamedBooleanReturnKinds.w`, imported-constant `compiler/syntax/returns/NamedReturnArithmeticKinds.w`, imported-constant `compiler/syntax/returns/NamedReturnComparisonOperands.w`, imported-constant `compiler/syntax/returns/NamedSignedReturnKinds.w`, imported-constant `compiler/syntax/returns/ResolvedEarlyComparisonKinds.w`, imported-constant `compiler/syntax/returns/ResolvedEarlyResultKinds.w`, imported-function `compiler/syntax/returns/EarlyComparisonForms.w`, `compiler/syntax/returns/ResolvedLocalReturns.w`, imported-constant `compiler/syntax/returns/ResolvedReturnCallKinds.w` sources. `frontend/helpers/ScalarHelperLibraries.w` parses individual scalar helpers. `ScalarHelperParsing.w` assembles the one- through twenty-three-member declaration table. One-member libraries no longer hire a dummy function to satisfy a parser branch. `ScalarHelperCallResolution.w` resolves one member, `ResolvedHelperValidity.w` checks the active prefix, `ScalarHelperResolution.w` assembles the complete resolved table, and `ScalarHelperPrograms.w` constructs the IR. No single owner needs to become a 900-line houseboat. The IR now owns a bounded twenty-three-helper table for that closed form. One through seven direct executable dependencies may jointly own one through twenty-two helpers while the root owns the remainder. A twenty-third dependency helper, an eighth executable owner, a twenty-fourth total helper, and broader function tables remain rejected. `backend/HelperOwners.w` owns the validated seven-slot owner table consumed by the core. One table replaces four arity-shaped core entry points. Copy-paste has lost another minor jurisdiction. `graphs/plans/GraphExecutor.w` links direct helper groups in canonical root-import order and freezes their validated ranges through `backend/HelperOwners.w`. `CanonicalHelperLinking.w` keeps constants ahead of functions. The arity-shaped helper linkers and source-order network are deleted. Signed-parameter Boolean and signed helpers lower computed signed-local preludes and typed literal, constant, or prior-local early returns after equality tests, less-than tests, or up to sixty-four same-module or direct imported Boolean calls. Sixty-four calls may span all twenty-two helpers from seven direct owners and reach the 256-local function window while remaining below the 512-instruction ceiling. A sixty-fifth call fails before output. Guard forms use exact seven-instruction blocks with four typed locals. A final Boolean return may forward one zero-argument helper call through one local and two instructions, a one-argument call through three locals and four instructions, or a two-argument call through five locals and six instructions. Boolean helper-call guards may forward another one-argument call using the guard argument or a different prior signed local. The exact six-local, nine-instruction form packs two resolved function IDs without confusing frame order with ownership. `frontend/statements/EarlyResolution.w` owns early-guard local-index resolution. `LocalStatements.w` no longer carries that separate parser in its coat pocket. `HelperBody.parameterCount` is now the single post-parse arity source for descriptors, frame layout, call checks, and code generation. Helper-kind arithmetic remains only at the source classifier boundary. `HelperBody.parameterTypes` carries sixteen canonical type-code slots, and the type-table writer emits those validated slots directly. `frontend/helpers/HelperParameterTypes.w` now parses signed values, shared UTF-8 and byte-view loans, and mutable byte, word, region, and signed-map loans into that column. Mixed signatures reproduce stage 0 exactly. `frontend/calls/ScalarReturnCallResolution.w` resolves final scalar-call arguments. `frontend/Structure.w` validates the zero- through seven-argument source form with one bounded cursor instead of an arity staircase. Same-module or direct imported calls may forward one through seven signed, fixed-array, or loan parameters. Their argument types are checked exactly, and the call frame uses the matching move, UTF-8, buffer, map, or region borrow opcode. Seven arguments use fifteen locals and sixteen instructions. Eight fail before output. A signed helper may lower `bufferLength` directly or bind its result to a signed local over UTF-8, byte-view, byte, or word loans. It may also bind `utf8Scalar` or `utf8Width` from a UTF-8 loan and signed index, or bind one indexed byte or word from a byte-view, byte, or word loan. Mutable byte and word loans admit `setByte` and `set`, while mutable signed-map loans admit `put`. Each uses signed key or index and value locals. Signed and Boolean locals may bind `mapGet` and `mapHas` from a signed-map loan and signed key. Entryless void helpers accept zero through sixteen primitive parameters and either an empty body or those writes. Their type table has no imaginary result local. Void and scalar-result helpers may issue zero- through seven-argument calls to same-module or direct imported void helpers with exact primitive types and canonical reborrows. Four through seven sources use two bounded packed operands. Eight fail before publication. Other intrinsic loan operations remain outside this slice. One correct read is useful. It is not an IO subsystem wearing a paper hat. Equality and less-than guards may return any prior signed local. A signed less-than guard may return its parameter minus, divide by, or reduce modulo one literal or constant through six locals and nine instructions. It accepts up to sixty-four sorted unique direct import declarations. Malformed, duplicate, unsorted, and excess imports fail before publication. The bounded constant-import APIs execute every rooted acyclic scalar-constant graph from one through seven imported modules. Complete plans, not frame order or topology identities, own edge traversal, root order, privacy, and exact shared-declaration deduplication. Dense DAGs and redundant direct edges require no new executor. Cycles, detached nodes, eight imports, non-ASCII linked source, and byte 32,769 fail before publication. Direct helper sets, mixed direct owners, redundant constant leaves, the constant-fed helper chain, private helper chains, and multi-input private helper dependencies use the graph executor. Mixed constant/helper inputs run through separate declaration and executable passes. Shared and redundant executable dependencies use exact owner-identity filters. Helper member groups remain once in canonical dependency order. General imported declarations and aggregate symbols remain unsupported. `NativeCompilerIdentity.w` compiles into private 4,096-byte storage and hashes only the returned range. Its digest matches the stage-0 artifact, while malformed or oversized source publishes nothing. This is an artifact-producing recovery boundary, not yet a general-purpose mutable semantic editor.
-
-The native compiler lowers reversible signed and Boolean result source profiles. One
-`rev long` helper with up to two signed parameters may return a signed literal, evaluated
-constant, preserved signed parameter, checked operation over either signed parameter and a
-constant right operand, or checked operation over two signed parameters. One `rev boolean`
-helper may return a Boolean literal or one preserved Boolean parameter. One checked
-operation may bind an exact signed local before return. Its entry interleaves result calls
-with signed checks against
-constants or results already produced. The emitter writes function flags `0xd`, adjacent
-Boolean presence and exact payload slot locals, one admitted fill relation followed by
-`RETURN_RESULT_SLOT`, `CALL_RESULT_SLOT`, and the optional generated-inverse proof. Complete artifact bytes match stage 0. Unsupported
-result forms do not get an almost-correct ABI, which is compiler jargon for a future
-incident report.
-
-This verifier covers the bounded compiler profile. It is not yet the full production verifier.
-
-Differential fixtures include these exact artifacts and lowering paths:
-
-- the 568-byte two-function `Calls` artifact.
-- the 528-byte inverse-bearing `ReversibleCalls` artifact.
-- reversible signed constant, signed or Boolean preserved-source, and checked computed signed-result artifacts with identical generated bodies.
-- post-call local and assertion forms.
-- the proof-bearing `Certified` artifact.
-- the 360-byte no-global `Bare` artifact.
-- alternate identifier orders and the checked-in commented `Counter.w` source.
-
-Classical helper fixtures use two descriptors, end with `RETURN`, and exercise one or two repeated `CALL` sites. Reversible helpers lower checked `+=` and `-=` to opposite bodies and XOR through `^=` to a self-inverse body. Entry code relies on `CALL` and `UNCALL`, while local declarations use `LOCAL_CONST` and `LOCAL_MOVE`. An optional inverse theorem adds a 28-byte `GENERATED_INVERSE` proof section.
-
-Plain assignment inside a `rev` helper and duplicate names fail before output publication.
-
-`compiler/ir/StatementKinds.w`, `compiler/ir/ResolvedStatements.w`, `compiler/ir/Opcodes.w`, `compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`, and `compiler/ir/ProofRules.w` are the Wheeler-side authorities for statement, resolved-statement, opcode, storage-opcode, type, and proof identities. `compiler/ir/OpcodeKinds.w` owns opcode family checks. `compiler/ir/TypeKinds.w` owns aggregate descriptor decoding. Neither identity table doubles as a utility drawer. Public `const long` declarations fold at compile time and add no globals or startup work.
-
-`InstructionVerifier.w`, `Verifier.w`, and `Interpreter.w` dispatch through those names instead of repeating integer tables. The focused verifier set also includes `compiler/{FunctionVerifier,InstructionVerifier,ProofVerifier}.w`. The stage-0 `Opcode` table remains the differential reference until compiler promotion. It does not authorize a third source of truth.
+Canonical Wheeler 1.0 has one accepted byte representation. Identity encoding
+first decodes and verifies the complete artifact, then reproduces those bytes.
+SHA-256 can identify accepted bytes. It cannot turn malformed bytes into an
+artifact.
 
 ## Compatibility
 
-The repository defines only format `1.0`. The decoder accepts that exact version and has no compatibility path for an earlier artifact.
+The Reach currently recognizes format `1.0` only. Numeric section, opcode, type,
+gate, and proof-rule identities are never silently reused. An incompatible future
+format must carry a new version and an explicit migration.
 
-Future incompatible work must replace the format on purpose. Numeric section and opcode IDs are never silently reused.
+The [virtual machine](virtual-machine.md) describes execution and rewind. The
+[package appendix](packages.md) describes the containers that carry source and
+artifacts between ports.

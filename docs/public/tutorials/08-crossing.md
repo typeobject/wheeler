@@ -1,7 +1,7 @@
 ---
 sidebar_position: 9
 title: Crossing
-description: A reversible classical rule crosses into quantum work and learns to clean up after itself.
+description: Across Sable's maintenance bridge, one finite permutation earns coherent use and every temporary incurs a debt.
 tutorial_id: CH08
 tutorial_steps: T63,T64,T65,T66,T67,T68
 tutorial_part: coherent-reuse
@@ -14,37 +14,36 @@ tutorial_evidence: current-execution-and-intended-uncomputation
 
 # Crossing
 
-At the Archive, the XOR flip had been a two-row classical permutation.
+The Archive exercise had established XOR by one as a complete two-row permutation.
 
 | Input | Output |
 | ---: | ---: |
 | `0` | `1` |
 | `1` | `0` |
 
-Its inverse needed no execution log. Each output pointed to one input. That made the mapping a candidate for coherent use, but only
-a candidate.
+Each output retained one identifiable input, so the inverse required no execution history. That property qualified the mapping for
+further coherent checks rather than guaranteeing acceptance.
 
-The algorithm racks occupied another truss. To reach them, Iona led the crew across a maintenance bridge beyond the station's spin.
-Through clear panels underfoot, Sable filled the dark, not round so much as accumulated: ridge on impact shelf on black hollows that
-had kept sunlight out for geological time.
+The algorithm racks stood on a neighboring truss across a maintenance bridge beyond station spin. Clear floor panels exposed
+Sable below. The moon appeared assembled from ridges and impact shelves above hollows that had excluded sunlight for geological
+time.
 
-Cables followed the rail. Ordinary power. Classical control. At either end, the quantum regions remained apart.
+Power cables and classical control lines followed the handrail. Quantum regions remained physically separated at either end.
 
-At the midpoint, Iona tested a rail weld bearing Osei's old mark. His last shift at Sable.
+At midspan, Iona pressed a rail weld marked with Osei's stamp from his final Sable watch.
 
-The weld still held. Neither mistook that for an argument about the life around it.
+Six years had left the weld intact. Its survival offered no judgment on the departure that followed.
 
-Halfway across, Osei stopped to watch a service cart traverse the outside rail. "One definition on both sides," he said. "That is
-what I want."
+Osei watched a service cart cross the external rail. "I want one definition to serve both machines."
 
-"Then ask both sides to prove they can accept it," Sana said.
+"Require each machine to justify accepting it," Sana said.
 
-"I asked for fewer implementations."
+"My request concerned duplicated implementations."
 
-"Shared definitions include shared mistakes."
+"One implementation also distributes one mistake everywhere."
 
-Wheeler demanded a stronger promise: `coherent rev`. For a closed finite operation, the compiler checked whether that promise could
-hold. If so, it produced ordinary reversible code and a quantum lifting.
+Wheeler expressed the stronger contract as `coherent rev`. For a closed finite operation, the compiler checked the body before
+producing ordinary reversible execution and a coherent quantum lifting.
 
 ```wheeler
 hybrid class CoherentBridge {
@@ -74,18 +73,18 @@ hybrid class CoherentBridge {
 }
 ```
 
-A `hybrid` class held ordinary state beside a quantum register. Neither became the other. The program merely coordinated them, and
-had to keep the border visible.
+The `hybrid` class placed classical state and a quantum register within one coordinating program. Their coexistence preserved the
+border between them; neither kind of state transformed into the other.
 
-During the classical calls, `bit` changed according to the original table. Inside `liftedFlip`, `q.apply(flip)` applied that same
-finite permutation to quantum basis states.
+Classical calls changed `bit` according to the verified mapping. Within `liftedFlip`, `q.apply(flip)` lifted that finite permutation
+over the quantum basis.
 
 ```text
 classical path: 0 -> 1 -> 0
 quantum basis path: |0> -> |1>
 ```
 
-No measurement chose a branch inside the lifted call. On a superposition, the permutation moved every amplitude.
+The lifted call introduced no measurement or ordinary branch. On superposed input, it permuted the full amplitude table.
 
 ```text
 before:
@@ -97,20 +96,21 @@ after lifted flip:
 |1>  amplitude a
 ```
 
-If `a = b`, exchanging them left the table unchanged. If `a = 1/sqrt(2)` and `b = -1/sqrt(2)`, the exchange introduced a global
-minus. Same permutation. Different amplitudes around it.
+If `a = b`, exchanging them left the table unchanged. If `a = 1/sqrt(2)` and
+`b = -1/sqrt(2)`, the exchange introduced a global minus. The permutation stayed
+fixed while the amplitudes around it changed.
 
-Mara called the bridge economical. One definition served ordinary execution, generated an inverse, and crossed into coherent work.
-Osei had spent his career watching copied rules drift apart. He began naming other functions they could share.
+Mara approved of the economy: one definition supported classical execution, generated inverse work, and coherent lifting. Osei had
+spent too many watches reconciling copied rules. He began listing other operations suitable for reuse.
 
-Sana let the list gather momentum, then stopped him. Reuse could remove one source of disagreement while spreading one bad
-assumption everywhere.
+Sana waited until the list reached ambition and interrupted. Shared source removed drift while increasing the reach of any false
+assumption it contained.
 
-"You could have interrupted sooner," he said.
+"You allowed me to continue," Osei said.
 
-"I wanted to know how fast the fever rose."
+"The rate of expansion was useful evidence."
 
-On this point, the compiler agreed with Sana.
+Compiler diagnostics enforced the caution she had named.
 
 | Body operation | Coherent result |
 | --- | --- |
@@ -121,7 +121,7 @@ On this point, the compiler agreed with Sana.
 | allocation with unbounded identity | rejected because the closed operation is not finite |
 | division that discards a remainder | rejected because distinct inputs may collide |
 
-They altered the body and submitted it. Again. Again. The diagnostic panel found a rhythm.
+Each prohibited operation entered the body and met a diagnostic. Repetition gave the refusals a work-song rhythm.
 
 ```text
 overwrite       rejected
@@ -130,19 +130,22 @@ network output  rejected
 unbounded state rejected
 ```
 
-Every refusal arrived before target planning. No chamber time was spent asking physics to imitate an operation the source could not
-justify.
+All refusals occurred before target planning, preserving chamber time for source whose coherent contract could be justified.
 
-`coherent` could not bless information loss, measurement, or an external side effect into unitarity. It was a promise the body had
-to keep, not a favor requested from the compiler.
+The `coherent` modifier declared an obligation rather than conferring one. Information loss, measurement, and external effects
+violated that obligation and could not acquire unitarity through syntax.
 
-The bridge delivered them to cabinets layered with old repair decals: an orbital union's circles. A six-fingered hand born from a
-printer fault. The faded green triangle of the first quantum-target crew.
+The bridge delivered them to cabinets layered with old repair decals: an orbital
+union's linked circles, a six-fingered hand born from a printer fault, the faded
+green triangle of the first quantum-target crew. During the Withdrawal those
+unions had converted abandoned work orders into claims of possession. Sable's
+cooperative still treated a maker's mark as evidence that labor had joined the
+machine's history.
 
-The current work order needed more than a flip. It would compute a temporary value, use it to mark phase, then remove it. Leave the
-temporary behind and later interference would remain tangled with the workspace.
+The actual work order computed a temporary value, used it for a phase mark, and had to remove it afterward. A surviving temporary
+would keep later interference entangled with workspace.
 
-Iona showed the pattern in Wheeler's paired compute and use form.
+Iona opened Wheeler's paired `compute` and `use` pattern.
 
 ```wheeler
 unitary void markMatchingRecord(
@@ -164,14 +167,14 @@ unitary void markMatchingRecord(
 }
 ```
 
-Inside `compute`, a clean **ancilla** began as temporary quantum space in a known basis state. The lookup wrote a value into it
-without measurement. Inside `use`, that value controlled the phase mark. Then Wheeler ran the compute work backward, returning the
-ancilla to zero before its scope closed.
+Within `compute`, a clean **ancilla** supplied temporary quantum space in a known basis state. Coherent lookup wrote a value there
+without measurement. The `use` block let that value control a phase mark, after which Wheeler inverted the compute work and returned
+the ancilla to zero before scope exit.
 
-Iona made Tala give the temporary value its own column. After `compute`, it mattered. During `use`, it controlled what mattered.
-At the end, it had to be gone.
+Iona required a separate column for the temporary. It held meaningful state after `compute`, controlled the intended effect during
+`use`, and owed the scope a clean zero at completion.
 
-The mark survived elsewhere. The temporary had not been ignored. It had been unmade.
+The phase mark remained on its destination after inverse work removed the temporary state.
 
 ```text
 compute     |0> -> |value>
@@ -179,39 +182,40 @@ use         mark phase from |value>
 uncompute   |value> -> |0>
 ```
 
-The phase on `marked` remained. The temporary vanished from the live state without measurement, reset, or stored history.
-**Uncomputation** was this deliberate inverse work: clean the workspace. Preserve the effect placed elsewhere.
+Neither measurement nor reset nor retained execution history removed the temporary. Deliberate inverse work performed
+**uncomputation**, restoring workspace while preserving the effect transferred to `marked`.
 
-Measurement would not do. It created a classical observation and broke the coherence the inverse needed. Reset would make the
-endpoint look clean by a different, nonunitary route. Wheeler rejected both.
+Measurement would create classical information and end the coherence needed by the inverse. Reset would reach an apparently clean
+endpoint through nonunitary preparation. Wheeler prohibited both substitutions.
 
-Osei examined the resource report. Each ancilla had a width, an origin, a cleanup operation, and a point after which its allocation
-could be used again.
+Osei inspected the resource account. Every ancilla listed width, allocation origin, cleanup work, and the point where its physical
+allocation became reusable.
 
-"Finally," he said, "a system that tells me who left the workspace dirty."
+"At last, workspace dirt has an owner," he said.
 
-Iona looked through the glass at his open tool case. "Quantum workspace. The classical report is still pending."
+Iona looked at his open tool case across the bridge. "The report covers quantum workspace. Your classical audit remains open."
 
-Until then, *workspace* had sounded like housekeeping. Here a dirty temporary could alter later interference while every visible
-result continued to look plausible.
+The word *workspace* had previously suggested housekeeping to Tala. In this rack, an uncleared temporary could corrupt later
+interference while visible outputs retained plausible shapes.
 
-At Sable, the report became a work order. Width consumed hardware. Depth consumed the cooling window. A reusable allocation did
-not refund time or energy already spent. Uncomputation cleaned state, not history and not the power account.
+Sable converted the compiler report into physical scheduling. Width claimed hardware, and depth claimed cooling time. Reusing an
+allocation refunded neither energy nor elapsed work. Uncomputation restored state without restoring the station's power account.
 
-For the first time, the phrase *workspace restored* named a contract precise enough to check.
+The phrase *workspace restored* finally referred to a state contract they could test.
 
-Iona transferred the cleaned operation to the rack. The scheduler began clearing a path around the chamber. The machine shop gave
-up a coolant loop. Mushroom lamps dimmed. Personal transmissions slipped to the next watch.
+Iona transferred the accepted operation. Scheduler changes crossed the habitat: the machine shop yielded a coolant loop, mushroom
+lamps lost power, and personal transmissions moved into the following watch.
 
-On Sable, computation had weather. It had neighbors.
+Every computation at Sable occupied a physical season shared with neighbors.
 
-The rack accepted no prose about what the function was supposed to know. It accepted a mapping and a coherent way to perform it.
+The rack ignored prose about intention. It required a finite mapping and a justified coherent implementation.
 
-No face waited behind the interface. No judgment. The machine answered one kind of question.
+The interface concealed no face and exercised no judgment. Its contract admitted
+one kind of question.
 
-Amber became green.
+Its readiness lamp changed from amber to green.
 
-The crew crossed the maintenance bridge again at station midnight. Far below, one of Sable's pale excavations rotated into view and
-looked briefly like an open eye before the moon carried it back into darkness.
+At station midnight, the crew crossed back over Sable. A pale excavation rotated beneath the transparent floor, held the shape of
+an open eye for several seconds, and passed into black terrain.
 
-On the other side waited [Contract Machine](09-contract-machine.md).
+The accepted mapping opened the rack on the far side: [Contract Machine](09-contract-machine.md).

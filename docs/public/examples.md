@@ -1,12 +1,28 @@
+---
+title: Executable examples
+description: Maintained Wheeler cases, their source locations, accepted scope, and expected outcomes.
+---
+
 # Executable examples
 
-Every checked-in `.w` file must pass both the compiler and the Tree-sitter grammar. Classical examples run on the VM. Quantum and hybrid examples use asynchronous `QuantumTarget` jobs on the ideal state-vector target. Before any example runs, its bytecode must complete a canonical round trip.
+*The compiler yard's program ledger.*
 
-Each example has a fixed bound. It shows behavior that works today and names any limit it reaches. The `wheeler.examples` package contains only programs meant to be read as examples. Bootstrap probes, identity codecs, and native differential subjects remain in the repository's internal conformance manual.
+The compiler yard admits no case to this ledger until its source passes the
+compiler and the Tree-sitter grammar. Classical work runs on the VM. Quantum and
+hybrid work uses asynchronous `QuantumTarget` jobs on the ideal state-vector
+target. Every artifact completes a canonical round trip before execution.
 
-## Exact bundle example
+Each entry states its finite scope, current behavior, and expected outcome. The
+`wheeler.examples` package holds the programs maintained for inspection.
+Bootstrap probes, identity codecs, and native differential subjects remain in the
+internal conformance account.
 
-This self-contained case executes twice during the semantic documentation build. The bundle retains its source, artifact, output, and result identities. A failed compile, trap, replay mismatch, or output mismatch prevents publication.
+## Exact publication witness
+
+This self-contained case executes twice while the semantic manual bundle is
+assembled. The bundle retains source, artifact, output, and result identities. A
+failed compile, trap, replay disagreement, or output disagreement prevents
+publication.
 
 ```wheeler-exact name=answer-byte output=2a
 module documentation.answer_byte;
@@ -19,13 +35,13 @@ classical class AnswerByte {
 }
 ```
 
-## Examples
+## Maintained cases
 
 ### `AdaptiveReplay.w`
 
 Source: [`AdaptiveReplay.w`](../../wheeler-examples/src/main/wheeler/classical/control/AdaptiveReplay.w).
 
-Covers: A bounded two-level observation tree, exact branch records, a short terminal branch, and target-free replay of the selected path. The runtime adapter binds plans, lineages, evidence identities, branch coordinates, and terminal results into one canonical run identity. Retry derives a distinct lineage instead of changing replay evidence.
+Covers: A two-level observation tree, exact branch records, a short terminal branch, and target-free replay of the selected path. The runtime adapter binds plans, lineages, evidence identities, branch coordinates, and terminal results into one canonical run identity. Retry derives a distinct lineage instead of changing replay evidence.
 
 Expected result: live and replayed paths both select result `1` after two observations, the upper branch selects `100` after one observation, and replay makes zero target calls.
 
@@ -57,7 +73,7 @@ Expected result: `observed = 1`, `value = 0`, `successor = 5`.
 
 Source: [`Counter.w`](../../wheeler-examples/src/main/wheeler/classical/control/Counter.w).
 
-Covers: Generated inverse calls, reverse-block order, kernel-checked generated-inverse theorem, and byte-identical compilation by the Wheeler-written bounded compiler.
+Covers: Generated inverse calls, reverse-block order, kernel-checked generated-inverse theorem, and byte-identical compilation by the Wheeler-written recovery compiler.
 
 Expected result: `count = 0`.
 
@@ -81,7 +97,7 @@ Expected result: `root = left = right = 0`.
 
 Source: [`BootstrapControl.w`](../../wheeler-examples/src/main/wheeler/classical/control/BootstrapControl.w).
 
-Covers: Typed signed and Boolean locals, expressions, branch joins, and a bounded counted `for`.
+Covers: Typed signed and Boolean locals, expressions, branch joins, and a counted `for` with an explicit limit.
 
 Expected result: `sum = 10`, `branch = 1`.
 
@@ -97,7 +113,7 @@ Expected result: `selected = 6`, `sum = 20`, `middleSum = 10`, `equal = 1`, `rec
 
 Source: [`FixedPointSymplectic.w`](../../wheeler-examples/src/main/wheeler/classical/data/FixedPointSymplectic.w).
 
-Covers: Scale-1024 two-body phase-space coordinates, equal-and-opposite integer kicks and drifts, zero total momentum, 256 exhaustive bounded phase cases, signed extremes, checked overflow rejection, a generated inverse certificate, exact observed coordinates, and complete phase-point restoration without division or rounding.
+Covers: Scale-1024 two-body phase-space coordinates, equal-and-opposite integer kicks and drifts, zero total momentum, 256 exhaustive phase cases, signed extremes, checked overflow rejection, a generated inverse certificate, exact observed coordinates, and complete phase-point restoration without division or rounding.
 
 Expected result: observed phase points are `(10240, 3072)` and `(-10240, -3072)`. Restored points are `(7168, 5120)` and `(-7168, -5120)`, and `generatedCases = 256`.
 
@@ -134,7 +150,7 @@ Expected result: `result = 10`.
 
 Source: [`HostBinaryInput.w`](../../wheeler-examples/src/main/wheeler/host/HostBinaryInput.w).
 
-Covers: Explicit immutable `byteview` host input, arbitrary octet reads, bounded byte output, defensive input copying, and exact rewind.
+Covers: Explicit immutable `byteview` host input, arbitrary octet reads, fixed-capacity byte output, defensive input copying, and exact rewind.
 
 Expected behavior:
 
@@ -146,7 +162,7 @@ Expected behavior:
 
 Source: [`HostInput.w`](../../wheeler-examples/src/main/wheeler/host/HostInput.w).
 
-Covers: Explicit bounded UTF-8 input and byte-output borrows with no ambient file/network access.
+Covers: Explicit size-limited UTF-8 input and byte-output borrows with no ambient file/network access.
 
 Expected behavior:
 
@@ -157,7 +173,7 @@ Expected behavior:
 
 Source: [`IncrementalDependencyGraph.w`](../../wheeler-examples/src/main/wheeler/classical/control/IncrementalDependencyGraph.w).
 
-Covers: A mutable four-node adjacency table, a deterministic signed map for versions, bounded breadth-first work queues and visited sets, a tagged accepted-or-cycle result, rollback of a tentative back edge, explicit staged and rolled-back phases, deterministic affected-node invalidation, and region cleanup.
+Covers: A mutable four-node adjacency table, a deterministic signed map for versions, fixed-capacity breadth-first work queues and visited sets, a tagged accepted-or-cycle result, rollback of a tentative back edge, explicit staged and rolled-back phases, deterministic affected-node invalidation, and region cleanup.
 
 Expected result: every node has version `2`, `rebuilds = affected = 4`, `cycleRejected = 4`, and `transactionPhase = 2`.
 
@@ -165,7 +181,7 @@ Expected result: every node has version `2`, `rebuilds = affected = 4`, `cycleRe
 
 Source: [`TransactionalPersistentIndex.w`](../../wheeler-examples/src/main/wheeler/classical/control/TransactionalPersistentIndex.w).
 
-Covers: Copy-on-write root staging, root-before-marker commit ordering, deterministic transaction identities, tagged duplicate rejection, an injected marker-free torn record, bounded committed-record scanning, and reopen of the latest complete root. A native companion writes the same log through `NativePositionalFile`, forces payload and marker separately, forces a second payload without its marker, halts the child process without cleanup, and recovers from a fresh parent-process capability.
+Covers: Copy-on-write root staging, root-before-marker commit ordering, deterministic transaction identities, tagged duplicate rejection, an injected marker-free torn record, finite committed-record scanning, and reopen of the latest complete root. A native companion writes the same log through `NativePositionalFile`, forces payload and marker separately, forces a second payload without its marker, halts the child process without cleanup, and recovers from a fresh parent-process capability.
 
 Expected result: `committedRoot = stagedRoot = reopenedRoot = 11`, `reopenedSequence = commitMarkerObserved = duplicateRejected = 1`, and `tornRecovered = 2`. Native recovery reads exact bytes `(7, 0, 1, 11, 1, 1, 19, 2, 0)` and selects root `11` at sequence `1`.
 
@@ -175,7 +191,7 @@ This is process-crash evidence under the declared FileChannel force contract. It
 
 Source: [`IntegerWaveletTransform.w`](../../wheeler-examples/src/main/wheeler/classical/data/IntegerWaveletTransform.w).
 
-Covers: Determinant-one lifting over a two-pair integer tile, 256 exhaustive bounded coefficient cases, signed extremes, checked overflow rejection, a generated inverse certificate, exact transformed coefficients, byte-identical tile reconstruction, and lossless restoration without rounding state.
+Covers: Determinant-one lifting over a two-pair integer tile, 256 exhaustive coefficient cases, signed extremes, checked overflow rejection, a generated inverse certificate, exact transformed coefficients, byte-identical tile reconstruction, and lossless restoration without rounding state.
 
 Expected result: observed coefficient pairs are `(4, 10)` and `(8, 21)`. Restored sample pairs are `(10, 6)` and `(21, 13)`, and `generatedCases = 256`.
 
@@ -183,7 +199,7 @@ Expected result: observed coefficient pairs are `(4, 10)` and `(8, 21)`. Restore
 
 Source: [`LoopControl.w`](../../wheeler-examples/src/main/wheeler/classical/control/LoopControl.w).
 
-Covers: Early typed return plus bounded `break` and `continue` edges.
+Covers: Early typed return plus loop-limited `break` and `continue` edges.
 
 Expected result: `sum = 12`, `selected = 7`.
 
@@ -231,7 +247,7 @@ Expected result: `result = 6`.
 
 Source: [`ReversiblePacketCodec.w`](../../wheeler-examples/src/main/wheeler/classical/data/ReversiblePacketCodec.w).
 
-Covers: A typed packet record, four canonical byte-valued frame fields under a generated inverse relation, direct projection into region-owned bytes without a packed-word surrogate, a closed decoded-or-malformed result, checksum validation, decode-encode byte equality, exhaustive 256-case bounded field generation, distinct length and checksum diagnostics, and bounded owner cleanup.
+Covers: A typed packet record, four canonical byte-valued frame fields under a generated inverse relation, direct projection into region-owned bytes without a packed-word surrogate, a closed decoded-or-malformed result, checksum validation, decode-encode byte equality, exhaustive 256-case field generation, distinct length and checksum diagnostics, and explicit owner cleanup.
 
 Expected result: decoded fields are `3`, `5`, and `42`. Malformed codes are `1` and `2`. `observed = 2753795`, and reverse frame execution clears all four fields.
 
@@ -262,7 +278,7 @@ Expected result: `first = 7`, `byteValue = 65`, `byteLength = 6`, `validUtf8 = 1
 
 Files: [`Utf8Lexer.w`](../../wheeler-examples/src/main/wheeler/text/Utf8Lexer.w) + [`lexer/Parser.w`](../../wheeler-examples/src/main/wheeler/lexer/Parser.w) + [`lexer/Scanner.w`](../../wheeler-compiler/src/main/wheeler/lexer/Scanner.w).
 
-Covers: An explicit host UTF-8 source scanned and parsed by dependency-first modules. The scanner creates region-owned identifier, number, punctuation, escaped ASCII literal, and line or block comment tokens. It supports digits after the first identifier character, bounded decimal, hexadecimal, and binary parsing, and stable diagnostic codes with byte offset, line, and column. A typed-local-declaration parser consumes those tokens.
+Covers: An explicit host UTF-8 source scanned and parsed by dependency-first modules. The scanner creates region-owned identifier, number, punctuation, escaped ASCII literal, and line or block comment tokens. It supports digits after the first identifier character, checked decimal, hexadecimal, and binary parsing, and stable diagnostic codes with byte offset, line, and column. A typed-local-declaration parser consumes those tokens.
 
 Expected behavior:
 
@@ -282,7 +298,7 @@ Expected result: `selected = 9`, `equal = 1`, `presence = 11`.
 
 Source: [`WidthExplicitOracle.w`](../../wheeler-examples/src/main/wheeler/classical/oracles/WidthExplicitOracle.w).
 
-Covers: Explicit 32-bit rotate-right semantics inside a signed host word, a bounded bit mask, a four-row immutable lookup table, checked indexing, and exact width-independent results.
+Covers: Explicit 32-bit rotate-right semantics inside a signed host word, a width-specific bit mask, a four-row immutable lookup table, checked indexing, and exact width-independent results.
 
 Expected result: `rotated = 268435456`, `masked = 0`, `selected = 13`.
 
@@ -290,7 +306,7 @@ Expected result: `rotated = 268435456`, `masked = 0`, `selected = 13`.
 
 Files: [`WorkQueue.w`](../../wheeler-examples/src/main/wheeler/classical/data/WorkQueue.w) + [`collections/LongQueue.w`](../../wheeler-core/src/main/wheeler/collections/LongQueue.w).
 
-Covers: Bounded FIFO over an exclusive word-buffer borrow with immutable cursor and explicit `Full`/`Empty` results.
+Covers: Fixed-capacity FIFO over an exclusive word-buffer borrow with immutable cursor and explicit `Full`/`Empty` results.
 
 Expected result: `first = 4`, `second = 9`, `finalHead = 2`, `finalTail = 4`, `emptyObserved = fullObserved = 1`.
 
@@ -314,15 +330,15 @@ Expected result: the marked-state amplitude has magnitude one, at least 250 of 2
 
 Source: [`QFT.w`](../../wheeler-examples/src/main/wheeler/quantum/QFT.w).
 
-Covers: Quantum Fourier transform whose qreg size is a compile-time constant, with a generated adjoint and kernel-checked adjoint certificate.
+Covers: Little-endian three-qubit quantum Fourier transform whose qreg size is a compile-time constant, all eight Fourier basis rows under the ideal amplitude model, and a generated adjoint with a kernel-checked structural certificate.
 
-Expected result: `measured = 5`.
+Expected result: every basis row matches the discrete Fourier phases, every generated-adjoint application restores its exact input, and source execution records `measured = 5`.
 
 ### `QFTProof.w`
 
 Source: [`QFTProof.w`](../../wheeler-examples/src/main/wheeler/quantum/QFTProof.w).
 
-Covers: Executable two-qubit inverse law.
+Covers: Executable two-qubit little-endian Fourier inverse law.
 
 Expected result: `measured = 2`.
 
@@ -330,7 +346,7 @@ Expected result: `measured = 2`.
 
 Source: [`DelegatedComputation.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/DelegatedComputation.w).
 
-Covers: The bounded `MASKED_NOT_V1` protocol under an explicit honest-but-curious single-provider model, client-owned secret and mask state, a nonce-backed commitment, provider-visible blinded bits, challenge-bound verification, exact unmasking, and one-shot transcript consumption.
+Covers: The finite `MASKED_NOT_V1` protocol under an explicit honest-but-curious single-provider model, client-owned secret and mask state, a nonce-backed commitment, provider-visible blinded bits, challenge-bound verification, exact unmasking, and one-shot transcript consumption.
 
 Expected result: secret one with mask zero produces blinded input one, provider output zero, and verified output zero. A self-consistent envelope carrying the wrong NOT relation rejects. The fixture leaves `generalPrivacyClaim = 0`. It proves no malicious-provider, collusion, side-channel, transport, or randomness claim.
 
@@ -354,7 +370,7 @@ Expected result: the low two bits are `3`, the eigenstate bit remains set, and j
 
 Source: [`AdaptivePhaseEstimation.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/AdaptivePhaseEstimation.w).
 
-Covers: Two target-resident phase rounds, bounded result slots, measurement-conditioned phase and eigenstate corrections through `applyIf`, measured-ancilla reset after each round, asynchronous dynamic execution, and final host observation without a host split.
+Covers: Two target-resident phase rounds, target-resident result slots, measurement-conditioned phase and eigenstate corrections through `applyIf`, measured-ancilla reset after each round, asynchronous dynamic execution, and final host observation without a host split.
 
 Expected result: result slots contain `(true, false)`, both ancillas reset, the corrected eigenstate clears, and final observation records `measured = 0`.
 
@@ -370,7 +386,7 @@ Expected result: exact ideal amplitudes occupy basis states zero and three equal
 
 Source: [`LogicalMagicPlanning.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/LogicalMagicPlanning.w).
 
-Covers: Exact logical-qubit, layer, Clifford, T, measurement, T-depth, magic-state, factory-batch, target-cycle, code-distance, and failure-budget dimensions. Runtime planning closes immutable logical layers against one named bounded factory and one logical-capable target. It rejects insufficient state, cycles, qubits, logical capability, or failure budget before publishing a plan identity.
+Covers: Exact logical-qubit, layer, Clifford, T, measurement, T-depth, magic-state, factory-batch, target-cycle, code-distance, and failure-budget dimensions. Runtime planning closes immutable logical layers against one named fixed-capacity factory and one logical-capable target. It rejects insufficient state, cycles, qubits, logical capability, or failure budget before publishing a plan identity.
 
 Expected result: the four-layer fixture needs five magic states, two four-state factory batches, 28 target cycles, code distance seven, and 780 parts per trillion of modeled failure under a budget of 800. T-depth remains `2`. It is not replaced by the five-gate T count. A static physical target without verified logical lowering rejects the plan.
 
@@ -394,9 +410,9 @@ Expected result: the depth-five pi layer has amplitudes `(0.5, 0.5, 0.5, -0.5)` 
 
 Source: [`QuantumKernelClassifier.w`](../../wheeler-examples/src/main/wheeler/quantum/algorithms/QuantumKernelClassifier.w).
 
-Covers: A two-row feature map, generated adjoint overlap, four bounded kernel entries, and one fixed accepted label.
+Covers: A two-row feature map, generated adjoint overlap, four kernel entries, and one fixed accepted label.
 
-Expected result: equal features have unit overlap, features separated by pi have zero overlap, and the complete matrix is symmetric. A bounded diagonal-versus-off-diagonal classifier selects label one. Replay consumes result records without retaining a job or calling the target.
+Expected result: equal features have unit overlap, features separated by pi have zero overlap, and the complete matrix is symmetric. A diagonal-versus-off-diagonal classifier selects label one. Replay consumes result records without retaining a job or calling the target.
 
 ### `ParameterShift.w`
 
@@ -410,7 +426,7 @@ Expected result: shifts around pi over two yield expectations `-1` and `1` and t
 
 Source: [`CalibrationCompiler.w`](../../wheeler-examples/src/main/wheeler/quantum/workflows/CalibrationCompiler.w).
 
-Covers: One exact calibration epoch, two requested semantic gate kinds, bounded samples, deterministic duration, an additive error upper bound, and a committed plan. The runtime compiler binds the source artifact, circuit, immutable target descriptor, request, provider result, and stale-epoch policy into the plan identity.
+Covers: One exact calibration epoch, two requested semantic gate kinds, a fixed sample count, deterministic duration, an additive error upper bound, and a committed plan. The runtime compiler binds the source artifact, circuit, immutable target descriptor, request, provider result, and stale-epoch policy into the plan identity.
 
 Expected result: epoch seven admits H and phase metrics over 128 samples each. The H, phase, H circuit costs seven target cycles and has a 40-part-per-trillion union error bound. Epoch six rejects under the default policy and is admitted only by an explicit one-epoch stale policy.
 
@@ -456,27 +472,29 @@ Expected result: `measured = 0`.
 
 ## Scope boundaries
 
-No checked-in example uses the planned WIP-0032 unified I/O API. `HostInput.w`, `HostBinaryInput.w`, and the current asynchronous quantum jobs cover the smaller host boundaries that exist today. They do not implement `IoScope`, operation graphs, or durability receipts. The planned conformance fixture remains in WIP-0010 until a full vertical slice can compile, parse, format, and run.
+No maintained case uses the planned WIP-0032 unified I/O API. `HostInput.w`, `HostBinaryInput.w`, and the current asynchronous quantum jobs cover the smaller host boundaries that exist today. They do not implement `IoScope`, operation graphs, or durability receipts. The planned conformance fixture remains in WIP-0010 until a full vertical slice can compile, parse, format, and run.
 
 `BinaryTree.w` uses three fixed state slots. Generic nodes, allocation, ownership, and unbounded traversal are outside its scope. Those features belong to the self-hosting language work.
 
 `QFTProof.w` is an executable conformance law. The trusted proof kernel does not accept it as a theorem. It checks that the generated adjoint restores one basis state on the semantic simulator.
 
-`QuantumOptimizer.w` uses deterministic basis candidates so CI can check exact observations. Its event-log test records both jobs, then reproduces the classical result through replay without another target call. `RecoverableOptimizerCampaign` owns the provider-neutral bounded continuation around parameterized batches. It stores logical snapshots through an explicit atomic adapter and retains no provider object. The campaign executes its complete 64-iteration bound and attempts cleanup for every acknowledged job after partial submission, checkpoint rejection, provider failure, cancellation, or recovery failure. Uncertain cleanup becomes an explicit terminal state. The fixture is optimizer lifecycle evidence, not a convergence or hardware-quality claim.
+`QuantumOptimizer.w` uses deterministic basis candidates so yard acceptance can check exact observations. Its event-log test records both jobs, then reproduces the classical result through replay without another target call. `RecoverableOptimizerCampaign` owns the provider-neutral 64-iteration continuation around parameterized batches. It stores logical snapshots through an explicit atomic adapter and retains no provider object. The campaign executes its complete 64-iteration bound and attempts cleanup for every acknowledged job after partial submission, checkpoint rejection, provider failure, cancellation, or recovery failure. Uncertain cleanup becomes an explicit terminal state. The fixture is optimizer lifecycle evidence, not a convergence or hardware-quality claim.
 
 `QuantumNeuralNetwork.w` shows that one coherent reversible function can act as a classical activation and a quantum permutation. Training arrays, gradients, and floating-point optimizers are not part of this example.
 
 `QuantumCompiler.w` checks one small compiler law in two ways. Its exact cancellation rewrite carries a kernel certificate, and execution checks the basis behavior. This fixture is separate from the larger self-hosted compiler effort.
 
-`SurfaceCode.w` is static. A full syndrome loop needs measurement, reset, bounded decoding, conditional correction, and a target that supports dynamic resident control. Wheeler must reject that workflow on a static target. It cannot hide the cost of host round trips.
+`SurfaceCode.w` is static. A full syndrome loop needs measurement, reset, loop-limited decoding, conditional correction, and a target that supports dynamic resident control. Wheeler must reject that workflow on a static target. It cannot hide the cost of host round trips.
 
-## Running the suite
+## Running the ledger
 
-The canonical [`wheeler.package.yaml`](../../wheeler-examples/wheeler.package.yaml) declares every example as a package target. Use the same commands to check them all:
+The canonical [`wheeler.package.yaml`](../../wheeler-examples/wheeler.package.yaml) declares every case as a package target. Use the same commands to check them all:
 
 ```bash
 ./bootstrap/gradlew -p bootstrap :tools:wheeler --args='check .'
 ./bootstrap/gradlew -p bootstrap :tools:wheeler --args='test .'
 ```
 
-See the [development guide](reference/development.md) for the full gate. The normal `check` and `treeSitterTest` tasks cover every example. None is excluded as future syntax.
+[Yard Procedures](reference/development.md) gives the full gate. The normal
+`check` and `treeSitterTest` tasks cover every case. None is admitted as future
+syntax.

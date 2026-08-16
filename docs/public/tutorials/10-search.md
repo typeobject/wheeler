@@ -1,7 +1,7 @@
 ---
 sidebar_position: 11
 title: Search
-description: Four old camp names become a search space where one changed sign can gather an entire answer.
+description: Dawn, Cross, Evening, and Deep become four amplitudes under a chamber window Sable cannot replace.
 tutorial_id: CH10
 tutorial_steps: T75,T76,T77,T78
 tutorial_part: quantum-search
@@ -14,22 +14,24 @@ tutorial_evidence: intended-ideal-execution
 
 # Search
 
-Four calibration channels ran to timing cavities along the outer truss. Their names came from Sable's vanished equatorial camps:
-Dawn, Cross, Evening, Deep. Dawn followed the sunward edge. Evening chased it. Cross held the surface road between. Deep stopped
-moving when its crews found shelter in a lava tube.
+Four outer-truss channels inherited the names of Sable's lost equatorial camps. Dawn had traveled the sunward rim, and Evening kept
+the opposing side. Cross maintained the surface road. Deep ended its migration in lava-tube shelter.
 
-The camps were gone. Their names remained in maintenance speech, beside a collapsed antenna field and debts the cooperative still
-honored. Nobody saying *Deep has drifted* needed to remember the people who once carried clocks there. The name remembered for
-them.
+The camps were gone. Their names remained in maintenance speech, beside a
+collapsed antenna field and debts the cooperative still honored. Charter
+companies had abandoned both during the Withdrawal; Sable accepted the debts it
+could trace to real labor and rejected the ownership notices that arrived without
+maintenance. Nobody saying *Deep has drifted* needed to remember the people who
+once carried clocks there. The name remembered for them.
 
-Exactly one channel in the training record had been marked as faulty, and its identity was available only through a phase oracle.
+The training oracle phase-marked exactly one channel as faulty without exposing its identity directly.
 
-Mara offered to inspect the channels directly. Osei was already reaching for a probe. Either method, Iona agreed, would beat the
-quantum training circuit by half an hour.
+Mara proposed opening the channel account. Osei reached for a physical probe. Iona agreed that either ordinary method would finish
+thirty minutes earlier.
 
-That was why the training case had only four channels: not to save time, but to make every amplitude visible.
+The training case used four channels so every amplitude would remain visible.
 
-Two qubits supplied the four basis states. Hadamard prepared them with equal amplitudes.
+A two-qubit register supplied four basis states, and Hadamards assigned them equal initial amplitude.
 
 | Measurement integer | Basis | Initial amplitude |
 | ---: | --- | ---: |
@@ -38,16 +40,16 @@ Two qubits supplied the four basis states. Hadamard prepared them with equal amp
 | `2` | ket one zero | `1/2` |
 | `3` | ket one one | `1/2` |
 
-With four squared magnitudes of `1/2` summing to one, the preparation was normalized.
+Each of four amplitude magnitudes was `1/2`. Their squared magnitudes summed to one, establishing normalization.
 
 ```text
 4 * (1/2)^2 = 1
 ```
 
-The oracle marked state `3` by changing only its phase. Iona chose it before the run. Sana sealed the choice. No one could move the
-answer afterward to flatter the circuit.
+Iona selected state `3`, and the oracle negated only that state's phase. Sana sealed the selection before execution, preventing any
+later relocation of the answer.
 
-Tala wrote `3` before seeing the trace. It felt less like confidence than closing one door against her future memory.
+Tala committed `3` to old paper before viewing the trace, denying her future memory room to improve the prediction.
 
 | State | Before oracle | After oracle |
 | ---: | ---: | ---: |
@@ -56,46 +58,45 @@ Tala wrote `3` before seeing the trace. It felt less like confidence than closin
 | `2` | `+1/2` | `+1/2` |
 | `3` | `+1/2` | `-1/2` |
 
-Measured now, every state would still have probability `1/4`. The mark needed another operation, something that could force the odd
-sign to meet the others.
+Immediate measurement would still assign probability `1/4` to each outcome because phase negation preserved magnitude. Another
+operation had to bring the exceptional sign into interference.
 
-They worked on the back of an obsolete maintenance card. Tala summed the signed entries. Osei checked the arithmetic, rotated the
-card, checked it again.
+They used the blank side of an obsolete maintenance card. Tala summed the amplitudes. Osei verified the arithmetic, rotated the
+card, and verified it from the opposite side.
 
-For these four amplitudes, the average after marking was `1/4`.
+After the phase mark, the mean of the four amplitudes was `1/4`.
 
 ```text
 (1/2 + 1/2 + 1/2 - 1/2) / 4 = 1/4
 ```
 
-The **diffusion operation** reflected every amplitude around that average. For an amplitude `a`, the new value was
-`2 * average - a`.
+The **diffusion operation** reflected each amplitude across the mean, mapping amplitude `a` to `2 * average - a`.
 
 ```text
 unmarked: 2*(1/4) - 1/2  = 0
 marked:   2*(1/4) - (-1/2) = 1
 ```
 
-The unmarked amplitudes fell to zero. The marked one rose to unity.
+Reflection sent all three unmarked amplitudes to zero and the marked amplitude to one.
 
-Phase had crossed into probability.
+Interference had converted the phase mark into outcome certainty.
 
-For the first time since the algorithm racks opened, Mara looked pleased. The marked answer had not been read secretly and copied
-into an output field. Its sign had changed how all four alternatives combined.
+Mara finally approved of an algorithm rack. The answer had never been extracted and inserted into output. Its phase had altered how
+every alternative combined.
 
-"One iteration?" she asked.
+"That requires one iteration?"
 
-"For four states," Iona said.
+"For this four-state space," Iona said.
 
-"And then it tells us three?"
+"Measurement returns three with certainty?"
 
-"Under the oracle's promise."
+"Inside the stated oracle promise."
 
-Mara pointed at Sana. "That qualification was implied."
+Mara indicated Sana. "I could hear that qualification approaching."
 
-"Not while I am on duty," Sana said.
+"Implication has no authority on my watch," Sana said.
 
-Tala assembled the known gates.
+Tala translated the arithmetic into gates.
 
 ```wheeler
 quantum class GroverFour {
@@ -130,8 +131,8 @@ quantum class GroverFour {
 }
 ```
 
-The scheduler granted one ideal run before chamber cooling began. On the front plate the channels remained identical. Inside the
-simulator, the state vector moved exactly as their maintenance-card arithmetic had predicted.
+The schedule permitted one ideal execution before cooling. The rack's four channel lamps remained alike while the simulator state
+followed the maintenance-card calculation.
 
 ```text
 after preparation  [+0.5, +0.5, +0.5, +0.5]
@@ -140,40 +141,50 @@ after diffusion    [ 0.0,  0.0,  0.0, -1.0]
 measurement        3
 ```
 
-A global minus separated the gate sequence from their hand calculation. Measurement could not see it.
+The gate sequence produced a global minus absent from their hand result. It left every measurement prediction unchanged.
 
-Tala uncovered her `3`. The answer matched. The old ink mattered more.
+Tala exposed the `3` written before execution. Its age mattered more than its correctness.
 
 Then Mara took Osei's probe and inspected the actual channels. All were healthy. State `3` had been marked in the training oracle.
-no fault had been discovered in the timing cavity. *Faulty* belonged to the problem, not the hardware.
+No fault had been discovered in the timing cavity. *Faulty* belonged to the problem, not the hardware.
 
-The lesson cost them thirty-three minutes more than direct inspection. Mara entered the difference in the maintenance account.
+Compared with direct inspection, the training execution spent thirty-three additional minutes. Mara charged every one to the
+maintenance account.
 
-This was one complete Grover iteration in a four-state model, not a practical speedup. The search space was tiny. The oracle was
-known. Chamber overhead dwarfed the work. A probe could find a real failed channel without quantum assistance.
+A delayed traffic notice arrived while she was signing it.
 
-"So the machine has successfully demonstrated that a larger machine might someday save the time this machine just spent," Mara
-said.
+```text
+RETUNING RESERVE       one chamber window
+NEXT CONTACT           full manifest or legacy profile
+LEGACY CONSEQUENCE     widened approach intervals
+```
 
-Iona took back the probe. "Now you understand research scheduling."
+Venn had signed before the training run began. She did not know which minutes
+Sable would spend. She had made clear that Catenary would spend them too.
 
-A claim of advantage would have to survive larger search spaces, honest oracle costs, repeated iterations, state preparation, error
-correction. This two-qubit run carried none of that weight.
+They had performed one complete Grover iteration over four states. It demonstrated no practical speedup: the search space and
+oracle were tiny, chamber overhead dominated, and an ordinary probe could identify a physical channel fault.
 
-Sable had little patience for demonstrations promoted into industries. The abandoned camps contained machines sold on promises
-extrapolated from cleaner rooms. Their pressure shells failed slowly. Their financing failed at once.
+"We spent half an hour proving that a future machine may avoid spending it," Mara said.
 
-Sana kept the smaller truth: one oracle call marked a state in the ideal model. Diffusion turned the mark into a certain outcome.
-Source, trace, assertion, agreement, no grandeur.
+Iona reclaimed the probe. "You have understood the research calendar."
 
-Beyond the search module, the main array waited for a transform over phase patterns. Its smallest form was Hadamard. The next needed
-controlled phase. A three-qubit version already waited in the ship's source catalog.
+Any advantage claim would need larger spaces, accounted oracle construction, repeated iterations, state-preparation cost, and error
+correction. The two-qubit execution established none of those conditions.
 
-Small enough to inspect. Large enough to be wrong.
+Sable distrusted demonstrations promoted into industries. Machines in the abandoned camps had been sold through extrapolations
+from cleaner laboratories. Financing vanished long before their pressure shells finished failing.
 
-Beyond the rack-room glass, shutters covered the outer truss. Dawn vanished. Cross. Evening. Deep.
+Sana recorded the result at its demonstrated scale. In the ideal model, one oracle call phase-marked a state and diffusion made its
+outcome certain. She attached source, trace, assertion, and agreement without an advantage claim.
 
-Only the central array remained open to Sable's sky. The station was preparing for the work that had cost its people years of
-distance.
+The main array required a transform over structured phase patterns. Hadamard supplied its one-qubit form. Larger forms added
+controlled phase, and *Vela* carried a three-qubit source ready for qualification.
 
-Iona opened [Far Instrument](11-far-instrument.md).
+Three qubits permitted complete inspection and sufficient room for a significant error.
+
+Shutters crossed the outer truss beyond the rack-room glass, covering Dawn, then Cross, Evening, and Deep.
+
+The central array alone remained open to the sky. Sable redirected years of maintained distance toward the coming comparison.
+
+Iona bound the inherited source to the [Far Instrument](11-far-instrument.md).

@@ -1,7 +1,7 @@
 ---
 sidebar_position: 6
 title: Contributions That Cancel
-description: Two possible paths meet at one detector. Together they can brighten, darken, or disappear.
+description: On Sable's approach, signed contributions meet where ordinary counts could never cancel.
 tutorial_id: CH05
 tutorial_steps: T30,T31,T32,T33,T34,T35
 tutorial_part: interference-foundations
@@ -14,14 +14,15 @@ tutorial_evidence: exact-arithmetic
 
 # Contributions That Cancel
 
-The next packet arrived during the radiator roll. *Vela* turned broadside to the star and offered her patched port wing to cold
-space. Sunlight crossed the inhabited rooms in bars. Shadow followed. Sunlight again.
+Sable's next packet arrived while *Vela* rolled her patched radiator toward open cold. The star moved across the cabins in bright
+bands, disappeared behind the hull, and returned.
 
-A loose galley line tapped the bulkhead once per rotation. Nobody repaired it. By then the sound belonged to the voyage.
+Once each roll, a loose galley line touched the bulkhead. The crew had lived with its tap long enough to count it as part of
+passage.
 
-Inside the model, two routes connected a calibration source to one detector. These were parts of a calculation, not secret paths
-inside the microwave signal now crossing the reach. Neither route carried a probability. Each brought a signed contribution to the
-same destination.
+The transmitted model joined one calibration source to a detector by two routes. They belonged to the calculation rather than the
+microwave packet carrying it. Each route contributed a signed value at the shared destination; neither value was itself a
+probability.
 
 ```text
 source
@@ -33,62 +34,63 @@ route A \
   +---- detector
 ```
 
-The diagram occupied a whole page. Earlier hands had added waves, arrows, even a pair of canals. Sana covered them.
+The diagram filled a leaf of the Common Book. Former crews had embellished it with waves, directional arrows, and two canals. Sana
+laid blank paper over every addition.
 
-"I liked the canals," Mara said.
+"The canals had character," Mara said.
 
-"The canals imply water."
+"They import fluid behavior," Sana replied.
 
-"I was not planning to drink the calculation."
+"I had no intention of drinking from it."
 
-The pictures could wait. First the arithmetic had to stand alone.
+They began with arithmetic before allowing a picture to choose the story.
 
-Tala began with equal positive entries.
+Tala entered two equal positive contributions.
 
 | Route | Contribution at detector |
 | --- | ---: |
 | A | `+1/2` |
 | B | `+1/2` |
 
-When alternatives met at one destination, their contributions added *before* any outcome weight appeared.
+Alternatives arriving at one modeled destination added their contributions *before* the calculation produced an outcome weight.
 
 ```text
 +1/2 + +1/2 = +1
 ```
 
-The routes reinforced. Mara called the answer before Tala uncovered it and leaned back as though prediction conferred ownership.
-Turn both signs negative and the total pointed the other way, but kept the same magnitude.
+The first pair reinforced. Mara announced the sum ahead of the display and accepted credit for arithmetic. With both signs
+negative, the total reversed direction while preserving magnitude.
 
 ```text
 -1/2 + -1/2 = -1
 ```
 
-Mara objected to the negative total on practical grounds. Detectors did not report minus one event.
+Mara distrusted the negative result because no detector delivered a debt of one event.
 
-"If they did," she said, "traffic accounting would become much easier."
+"Negative arrivals would simplify traffic ledgers," she said.
 
-Osei agreed with the objection, not her conclusion. These were not event counts. The signed sum came first. Probability would be
-made from its magnitude later.
+Osei accepted her physical objection and rejected the accounting. These values were contributions rather than observed counts.
+Their signed sum preceded the magnitude used for probability.
 
-Only one sign changed in the third packet.
+The third case reversed one contribution.
 
 | Route | Contribution at detector |
 | --- | ---: |
 | A | `+1/2` |
 | B | `-1/2` |
 
-Now the addition produced nothing at that destination.
+At the detector, the sum vanished.
 
 ```text
 +1/2 + -1/2 = 0
 ```
 
-Osei requested the packet again. Same checksum. He looked for a disabled route, a failed source, a detector discarding negative
-values, the ordinary failures first. The calculation contained none of them.
+Osei verified the checksum and began with ordinary faults: closed route, bad source, discarded negative value. Every part remained
+present in the calculation.
 
-Both routes remained. Both contributions remained. The destination went dark because equal magnitudes arrived with opposite signs.
+Equal magnitudes of opposing sign met at the destination and canceled. The modeled routes had not disappeared.
 
-Sana compared the three cases.
+Sana placed all four sign combinations together.
 
 | Route A | Route B | Sum | Squared magnitude |
 | ---: | ---: | ---: | ---: |
@@ -97,18 +99,19 @@ Sana compared the three cases.
 | `+1/2` | `-1/2` | `0` | `0` |
 | `-1/2` | `+1/2` | `0` | `0` |
 
-In the first two rows, both signs turned together and the squared magnitude held. In the last two, one relative sign erased the
-outcome. The relation mattered. The common direction did not.
+Turning both signs together preserved squared magnitude. Turning one changed their relation and canceled the destination. The
+observable prediction depended on relative sign rather than their shared direction.
 
-A timing record accompanied each route. The clocks descended from Sable's first navigation network, whose technicians had settled
-disagreements by carrying sealed oscillators through tunnels in the moon. Nobody needed to walk the clocks through rock anymore.
-The maintenance language still called every comparison a *meeting*.
+Each route carried timing lineage from Sable's original navigation clocks. Their keepers had once resolved disagreement by walking
+sealed oscillators through the moon's tunnels. Modern comparisons traveled through newer machinery, though maintenance speech
+still called the event a *meeting*.
 
-The manual called the relation between those signs **phase**. For now, two phases were enough: positive and negative. Other angles
-would come later. To draw the whole complex plane now would make notation look like explanation.
+The Common Book called the relation between those signs **phase**. For now, two
+phases were enough: positive and negative. Other angles would come later. Drawing
+the whole complex plane now would make notation look like explanation.
 
-Probability alone could not supply this arithmetic. Two ordinary probabilities were nonnegative. Adding them could increase or
-preserve a total, never cancel equal alternatives to zero.
+Ordinary probabilities could not reproduce the signed sum. Both probabilities would be nonnegative, so addition could never make
+two equal positive alternatives cancel to zero.
 
 ```text
 p(A) >= 0
@@ -116,54 +119,57 @@ p(B) >= 0
 therefore p(A) + p(B) >= 0
 ```
 
-Cancellation required another order of work: assign signed contributions. Add those that meet. Only then take the magnitude that
-becomes probability. Soon the contributions would receive their quantum name.
+The calculation required signed contributions first, their sum at each common destination, and magnitude afterward. The next
+instrument record would name those contributions as amplitudes.
 
-Osei recreated the four rows on a diagnostic panel. Instead of trusting the table, he covered the final columns and asked each
-crew member for the sum. Mara answered fastest on the reinforcing rows. Sana refused to square a value until its sign had been
-written down. Tala missed the final cancellation because she had carried a minus sign from the previous row.
+Osei rebuilt the rows on a diagnostic pane and concealed their results. Mara finished reinforcing sums first. Sana wrote every sign
+before squaring. Tala carried a minus from one row into the next and missed the final cancellation.
 
-Osei uncovered the answer without comment.
+Osei revealed the correct column in silence.
 
-"You can say it," Tala told him.
+"You may acknowledge the error," Tala said.
 
-"I can also reset the panel. One of those improves the next attempt."
+"Resetting the panel has better predictive value."
 
-They began again. Beyond the glass, sunlight crossed a radiator seam and the cabin flashed copper.
+They repeated the table while a radiator seam flashed copper light through the cabin.
 
-By the last row, *path* no longer meant a private history waiting to be observed.
+By the final row, Tala had stopped treating a modeled *path* as an unobserved private history.
 
-The diagram summed alternatives in a model. It said nothing about a particle secretly choosing one route, splitting into copies, or
-sending messages between paths. Preparation and experiment, not the picture, would decide when the sum predicted nature.
+The diagram specified how modeled alternatives contributed. It asserted no hidden route choice, duplicate particle, or message
+between paths. A named preparation and experiment determined whether its arithmetic predicted a physical observation.
 
-At the edge of sensor range, Sable appeared as absence against the dust-bright plane of the system. The first settlers came to
-anchor navigation clocks. They stayed because every clock required comparison, and every comparison required repair.
+Sable first registered as a missing patch in the system's bright dust. Settlement had begun with navigation clocks. Their keepers
+stayed because comparison demanded maintenance, and maintenance acquired families and law.
 
-Radiation storms drove the camps underground after erasing three years of exposed work. The modern station inherited the tunnels,
-the language of meetings, and a suspicion of anything advertised as permanent.
+Radiation storms drove the camps underground after erasing three years of
+exposed work. The charter houses later withdrew, leaving machines, debts, and
+pressure shells in separate legal accounts. The cooperative inherited the
+tunnels, the obligations it judged honest, the language of meetings, and a
+suspicion of anything advertised as permanent.
 
-The far instrument opened its receiving aperture. Towers emerged one by one from the moon's darkness, visible not by their light
-but by the stars they hid.
+The far instrument opened its receiving aperture. Towers emerged one by one from the moon's darkness as interruptions in the stars
+behind them.
 
-Then the habitation signal: water sufficient. Pressure holding. Five people. One visitor berth. No uncontained illness.
+The habitation signal followed: sufficient water, stable pressure, five residents, one visitor berth, no uncontained illness.
 
-Its identification packet declared a physical system with two distinguished measurement outcomes and a controlled interface for
-preparing it. A note from Iona Vale, the instrument's current keeper, accompanied the declaration.
+The target declaration named a physical system, two distinguished measurement outcomes, and controlled preparation. Iona Vale,
+keeper of the instrument, attached one sentence.
 
 ```text
 If the sums surprised you, keep them.
 You will need them more than the pictures.
 ```
 
-Osei read the note before Tala finished checking its identity. He knew Iona's habit of putting the instruction where a greeting
-might have gone. Six years had not altered that economy. His hand rested over the unanswered bearing message, then moved away.
+Osei read ahead while Tala verified identity. Iona still placed instructions where another person might put a greeting. His hand
+covered the unanswered bearing packet for a moment and then returned to the console.
 
-For the first time, the manual printed the word it had withheld.
+At the foot of the page, the Common Book finally printed the word it had
+withheld.
 
 ```text
 QUBIT
 ```
 
-The word arrived as Sable's dark horizon filled half the forward glass.
+Sable's black horizon filled half the glass when the withheld term appeared.
 
-Beside it: [One Qubit](06-one-qubit.md).
+The next account gave it physical work: [One Qubit](06-one-qubit.md).

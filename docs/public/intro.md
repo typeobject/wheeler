@@ -2,14 +2,18 @@
 sidebar_position: 1
 slug: /
 title: What is Wheeler?
-description: Wheeler's reversible, quantum, and systems programming model, its executable core, and the work still in progress.
+description: The Catenary account of Wheeler's reversible, quantum, and systems model, its accepted core, and its unfinished work.
 ---
 
 # What is Wheeler?
 
-_Wheeler is under active development. This page describes the implemented system and its current limits._
+_Issued from the Catenary compiler yard. This account names accepted behavior and
+leaves unfinished work outside the seal._
 
-Wheeler is a programming language for reversible computing, quantum computing, and software that uses both quantum and classical code.
+Wheeler is a programming language for reversible computing, quantum computing,
+and work that joins quantum and classical code. Its earliest forms traveled among
+ships and instrument stations, where heat, history, and remote observation made
+careless uses of *undo* expensive.
 
 Most languages let programs overwrite or discard information. For example, when a variable changes value, a temporary object disappears. A program prints output or calls an API, then keeps going.
 
@@ -30,7 +34,7 @@ Wheeler follows these rules:
 
 Each form lowers to one typed Wheeler IR. Reversibility here means careful information accounting. It does not mean that printing a message can somehow be undone.
 
-A destructive classical step records bounded rewind data. A host observation creates a barrier. A coherent call describes an exact finite permutation, while a unitary region has an adjoint. Measurement and workflow boundaries stay visible. Native code and provider circuits come from the same IR, so they do not replace its meaning.
+A destructive classical step records rewind data under the artifact's declared limits. A host observation creates a barrier. A coherent call describes an exact finite permutation, while a unitary region has an adjoint. Measurement and workflow boundaries stay visible. Native code and provider circuits come from the same IR, so they do not replace its meaning.
 
 Wheeler tracks what a program does, what information it uses, what can be undone, and what evidence supports its claims.
 
@@ -136,7 +140,7 @@ Quantum code often needs an adjoint. The adjoint reverses the operation order an
 
 A person can write and update that code by hand. The compiler can do it more consistently.
 
-A Wheeler `unitary` method gets a generated adjoint. The checked-in QFT example writes one forward circuit and then invokes it in reverse:
+A Wheeler `unitary` method gets a generated adjoint. The maintained QFT case writes one forward circuit and then invokes it in reverse:
 
 ```java
 quantum class QFT {
@@ -144,12 +148,12 @@ quantum class QFT {
   qreg q = new qreg(3);
 
   unitary void qft() {
-    H(q[0]);
-    CPhase(q[1], q[0], 1.5707963267948966);
-    CPhase(q[2], q[0], 0.7853981633974483);
-    H(q[1]);
-    CPhase(q[2], q[1], 1.5707963267948966);
     H(q[2]);
+    CPhase(q[1], q[2], 1.5707963267948966);
+    CPhase(q[0], q[2], 0.7853981633974483);
+    H(q[1]);
+    CPhase(q[0], q[1], 1.5707963267948966);
+    H(q[0]);
     Swap(q[0], q[2]);
   }
 
@@ -188,7 +192,7 @@ In practice, it must do work like this:
 9. update classical state.
 10. repeat when needed.
 
-Wheeler treats hybrid quantum and classical work as a durable lifecycle. The current runtime has content-identified tasks and events, recovery for accepted jobs, bounded persistence, result checks, branch quarantine, retry, cancellation, replay, and commit horizons. The source profile includes a bounded optimizer. Production continuation syntax and more dynamic applications remain unfinished.
+Wheeler treats hybrid quantum and classical work as a durable lifecycle. The current runtime has content-identified tasks and events, recovery for accepted jobs, size-limited persistence, result checks, branch quarantine, retry, cancellation, replay, and commit horizons. The source profile includes an optimizer with a fixed iteration limit. Production continuation syntax and more dynamic applications remain unfinished.
 
 A long-running optimizer can save a submission identity, recover its accepted result, and apply that result once. It may replay a recorded observation without buying another hardware run. A deliberate retry creates a new physical lineage instead.
 
@@ -218,11 +222,11 @@ Quantum software mixes normal bugs, mathematical claims, and probabilistic hardw
 
 Wheeler is meant to do more than express a few circuits and hand the rest of the work to Python.
 
-The executable core already has signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, bounded loops, and bounded regions. It also has factories for owned word, byte, UTF-8, and map storage, plus nonescaping storage borrows, strict validation, deterministic module linking, canonical bytecode, deterministic package formats, and exact offline dependency inputs.
+The executable core already has signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, loops with explicit limits, and fixed-capacity regions. It also has factories for owned word, byte, UTF-8, and map storage, plus nonescaping storage borrows, strict validation, deterministic module linking, canonical bytecode, deterministic package formats, and exact offline dependency inputs.
 
-Some major pieces are still under construction. These include owning parameters, returned loans, mutable slices, fuller UTF-8 strings, generic deterministic collections, complete nominal and package modules, and streaming effects. Explicit bounded UTF-8 and binary input already run, as does byte output with checked publish lengths.
+Some major pieces are still under construction. These include owning parameters, returned loans, mutable slices, fuller UTF-8 strings, generic deterministic collections, complete nominal and package modules, and streaming effects. Explicit size-limited UTF-8 and binary input already run, as does byte output with checked publish lengths.
 
-The production compiler is intended to be written in Wheeler. The same applies to the package manager, verifier, runtime, [OpenQASM](https://openqasm.com/) emitter, build planner, and test tools. A successful self-hosting bootstrap compiles the compiler twice and requires byte-identical canonical `.wbc` output.
+The production compiler is intended to be written in Wheeler. The same applies to the package manager, verifier, runtime, OpenQASM emitter, build planner, and test tools. A successful self-hosting bootstrap compiles the compiler twice and requires byte-identical canonical `.wbc` output.
 
 A compiler uses many parts of a general-purpose language. Building Wheeler with Wheeler will test whether those parts work together under real load.
 
@@ -230,11 +234,11 @@ A compiler uses many parts of a general-purpose language. Building Wheeler with 
 
 Wheeler already has an executable base.
 
-The repository includes:
+The maintained yards carry:
 
 - familiar class and method syntax with source-located diagnostics.
-- signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, recursion, conditionals, bounded loops, and function-local bounded regions.
-- affine mutable word and byte buffers, immutable UTF-8 owners, signed maps, and bounded classical function modules.
+- signed and Boolean values, immutable records, tagged variants, fixed arrays, nonescaping slices, typed calls, recursion, conditionals, loops with explicit limits, and function-local regions with declared capacity.
+- affine mutable word and byte buffers, immutable UTF-8 owners, signed maps, and classical function modules with declared graph ceilings.
 - generated inverses for the supported reversible subset.
 - one canonical `.wbc` format, strict decoding, semantic verification, disassembly, and exact VM rewind.
 - finite proof rules for generated inverses, generated adjoints, circuit rewrites, and static step bounds.
@@ -245,21 +249,25 @@ The repository includes:
 - exact offline locked builds, sealed-plan execution, explicit grants, and atomic output publication.
 - a Tree-sitter grammar, corpus, highlighting, and executable examples.
 
-The examples cover reversible state, typed aggregate values, bounded and recursive control, classical modules, coherent reuse, QFT with a generated adjoint, a bounded hybrid optimizer, circuit normalization, and static error-correction structure. Executable bootstrap, identity, compiler, package, and runtime probes live in a separate conformance package. They were useful examples only of how long a directory name can postpone an architectural decision.
+The maintained cases cover reversible state, typed aggregate values, finite and recursive control, classical modules, coherent reuse, QFT with a generated adjoint, a 64-iteration hybrid optimizer, circuit normalization, and static error-correction structure. Executable bootstrap, identity, compiler, package, and runtime probes live in a separate conformance package. They were useful examples only of how long a directory name can postpone an architectural decision.
 
-Large areas are still unfinished. They include borrowing, mutable slices, and compiler-scale region storage. The project also needs a standard library, self-hosted tools, and native Java-free execution. Dynamic target control, richer coherent arithmetic, complete application fixtures, and the full proof system remain open.
+Large areas are still unfinished. They include borrowing, mutable slices, and compiler-scale region storage. The yard plan also requires a standard library, self-hosted tools, and native Java-free execution. Dynamic target control, richer coherent arithmetic, complete application fixtures, and the full proof system remain open.
 
-Wheeler runs today, but the language is not complete. Public reference pages state the implemented boundary. Maintainers keep proposals and research sketches outside the published site.
+Wheeler runs today, and the language remains incomplete. The instrument
+appendices state its accepted boundary. Maintainers keep proposals and research
+sketches on the internal shelves until executable evidence earns their
+publication.
 
 ## Common questions
 
 ### Does Wheeler run on Java?
 
-The syntax is familiar, and the stage-0 implementation uses Java. Wheeler's runtime contract is independent of Java. The project plans to self-host, then remove the Java and Gradle path after the native Wheeler toolchain reaches conformance.
+The syntax is familiar, and the stage-0 implementation uses Java. Wheeler's runtime contract is independent of Java. The yard plan calls for self-hosting, followed by removal of the Java and Gradle
+path after the native Wheeler toolchain reaches conformance.
 
 ### Does Wheeler replace provider SDKs?
 
-Wheeler uses provider-neutral quantum regions and can lower supported programs to [OpenQASM 3](https://openqasm.com/). Qiskit or another SDK may consume that output outside Wheeler. Python APIs, credentials, provider objects, and SDK state do not become Wheeler values or artifact semantics.
+Wheeler uses provider-neutral quantum regions and can lower supported programs to OpenQASM 3. Qiskit or another SDK may consume that output outside Wheeler. Python APIs, credentials, provider objects, and SDK state do not become Wheeler values or artifact semantics.
 
 ### Can measurement be reversed?
 
@@ -281,14 +289,13 @@ You do not need a quantum computer to use these ideas. Reversible state, exact r
 
 When software crosses classical, reversible, quantum, and external-effect boundaries, Wheeler makes those boundaries visible and enforceable.
 
-## Further reading
+## Roads onward
 
-- [First-principles tutorials](tutorials/index.mdx)
-- [Language profile](reference/language-profile.md)
-- [Executable examples](examples.md)
-- [Bytecode format](reference/bytecode.md) and [virtual machine](reference/virtual-machine.md)
-- [Quantum targets](reference/quantum-targets.md)
-- [Hybrid runs, history, and replay](reference/hybrid-runs.md)
-- [Packages, locks, archives, and offline builds](reference/packages.md)
-- [Wheeler repository](https://github.com/typeobject/wheeler)
-- [Published documentation](https://wheeler.typeobject.com/)
+- [*Home Was the Easy Part*](tutorials/index.mdx), the *Vela* mission account
+- [The Reckoning of the Reach](appendix/index.mdx)
+- [The Wheeler Language](reference/language-profile.md)
+- [The program ledger](examples.md)
+- [Artifacts and Bytecode](reference/bytecode.md) and [The Ways of Return](reference/virtual-machine.md)
+- [Quantum Targets](reference/quantum-targets.md)
+- [Observations, Replay, and Retry](reference/hybrid-runs.md)
+- [Packages, Locks, and Builds](reference/packages.md)

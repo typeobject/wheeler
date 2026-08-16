@@ -1,71 +1,120 @@
-# Semantic coverage
+---
+title: Evidence and Coverage
+description: Transition observations, source relations, path reports, proof stages, and the limits of each account.
+---
 
-Wheeler's first semantic-coverage system watches successful VM transitions. It does not add counter instructions to `.wbc`, because those writes would change the program being measured.
+# Evidence and Coverage
+
+A machine account should show what it observed without placing unobserved roads
+under the same seal. Wheeler's first semantic coverage system watches successful
+VM transitions and leaves the measured artifact unchanged.
 
 ## Transition observations
 
-A `VirtualMachine` may receive a `TransitionObserver`. After each successful instruction, the VM emits an immutable observation with:
+A `TransitionObserver` receives an immutable event after each successful
+instruction. The event carries transition number, forward or language-inverse
+direction, function and instruction index, canonical opcode, and branch result.
 
-- a monotonic transition number.
-- `forward` or language-`inverse` direction.
-- function and instruction indexes.
-- the canonical opcode.
-- `taken` or `fallthrough` for `JUMP_IF_ZERO`, and `none` for other instructions.
+Rewind emits separate `rewind_forward` or `rewind_inverse` observations for the
+transition being restored. Failed validation and trapped instructions produce no
+transition event because the machine did not change state.
 
-Rewinding saved history emits a separate `rewind_forward` or `rewind_inverse` observation for the transition being undone. These observations do not erase the attempted execution. Failed validation and trapped instructions emit nothing because the machine made no transition.
+The observer has no mutable machine access and cannot alter artifact bytes,
+limits, history, effects, or snapshots.
 
-The observer cannot access mutable machine state. It also cannot change bytecode, instruction limits, history records, effects, or snapshots.
+## Canonical transition report
 
-The conformance suite runs the same proof-bearing reversible fixture with collection on and off. It compares both the terminal snapshots and the fully rewound snapshots, which must match.
+`SemanticCoverage` groups observations by direction, function, instruction, and
+opcode. Counts use checked arithmetic. Canonical profile
+`wheeler-transition-coverage-1` sorts rows independently of map insertion order
+and receives a domain-separated SHA-256 identity.
 
-## Stage-0 report
+Fresh classical cases selected by `wheeler test` carry this identity in their
+package report. Quantum cases omit the classical transition field.
 
-`SemanticCoverage` groups observations into points keyed by direction, function, instruction, and opcode. Counts use checked arithmetic.
-
-The canonical JSON profile is `wheeler-transition-coverage-1`. Points are sorted without depending on map insertion order, and the report identity is a domain-separated SHA-256 hash of those bytes.
-
-Fresh classical cases chosen by `wheeler test` collect this report. The test output prints its identity beside each case and includes it in the canonical package test report. Quantum cases do not include a classical transition identity.
-
-The report has no percentage. This first slice knows which transitions ran, but it does not yet define a complete source or IR denominator.
+The report publishes no percentage. It knows which transitions occurred and has
+no complete source or IR denominator.
 
 ## Wheeler reduction
 
-`wheeler.runtime.coverage_reducer` consumes at most 64 bounded canonical point fragments. Each input row separates its sort key from the rendered prefix and suffix. The library reducer validates every extent, insertion-sorts rows without a host collection, combines duplicate keys with exact counts, renders decimal counts, and returns the length only after the complete profile-1 report exists. `wheeler.conformance.runtime.native_coverage_reducer` is the executable boundary that publishes that exact returned extent. The runtime package therefore carries no hidden entry method.
+`wheeler.runtime.coverage_reducer` accepts at most 64 canonical point fragments,
+validates every range, sorts rows, combines duplicate keys with checked counts,
+and returns a length only after constructing the complete report.
 
-The differential fixture collects two forward-and-rewind executions, reverses arrival order, and compares every Wheeler-produced report byte with `SemanticCoverage.canonicalReport()`. This proves reducer parity for the accepted row format.
+The native bootstrap collector admits a linear trace made from `LOCAL_CONST`,
+`EXPECT_TRUE`, and `HALT`. Any other opcode fails before publication. Calls,
+branches, inverses, rewind, and multiple functions await richer native interpreter
+events.
 
-## Native bootstrap collection
+## Presentation forms
 
-`wheeler.conformance.runtime.native_coverage_run` closes the first source-to-native path. The Wheeler-native module compiler compiles a bounded assertion fixture to canonical `.wbc`. The Wheeler interpreter verifies and executes that artifact, retains its opcode trace outside the subject's state, and passes the measured fragment prefix to `reduceRange`. The Java harness transports source and artifact bytes and compares the final fixed report. It creates no `TransitionObserver`, point row, sort key, prefix, or suffix.
+`SemanticCoverageRenderer` emits terminal, JSON, LCOV, Cobertura XML, and static
+site forms from one immutable point table. Every form carries the semantic report
+identity and declares the same unsupported dimensions: source lines, source
+branches, proof obligations, quantum state, and empirical targets.
 
-`wheeler.runtime.bootstrap_coverage_fragments` admits the linear bootstrap trace made of `LOCAL_CONST`, `EXPECT_TRUE`, and `HALT`. It derives function and instruction coordinates from the verified entry and trace order. Any other opcode fails before fragment or report publication. A negative fixture executes a trace containing `LOCAL_MOVE` and proves the entire output remains zeroed. Calls, branches, inverses, rewind, and multiple functions require richer native interpreter events and remain outside this narrow bootstrap profile.
+LCOV and Cobertura use explicit synthetic coordinates such as
+`wheeler-bytecode/function-N`. They never call an instruction row a source line.
+Presentation bytes do not alter the semantic identity.
 
-## Presentation adapters
+## Policies and thresholds
 
-`SemanticCoverageRenderer` emits terminal, JSON, LCOV, Cobertura XML, and static website views from the immutable point table. Every view carries the semantic report identity and discloses the same unsupported dimensions: source lines, source branches, proof obligations, quantum state, and empirical targets.
+`SemanticCoveragePolicy` binds sorted direction and opcode exclusions, a minimum
+observed-point count, and a minimum hit count for each selected point. Evaluation
+produces its own canonical identity while preserving the underlying report.
 
-LCOV and Cobertura receive explicit synthetic `wheeler-bytecode/function-N` coordinates. They never label instruction rows as source lines. The website prints the unsupported list in visible text and metadata. Adapter generation leaves canonical report bytes and identity unchanged.
+A changed exclusion or threshold changes policy and evaluation identity. The
+policy cannot invent a percentage denominator or promote excluded source, proof,
+quantum, or physical dimensions into coverage evidence.
 
-## Exclusions and thresholds
+## Relations to source
 
-`SemanticCoveragePolicy` gives direction and opcode exclusions an explicit sorted identity. It also binds bounded minimum observed-point and minimum per-point hit requirements. Evaluation emits the policy, base coverage, included and excluded counts, thresholds, selected points, and pass result in canonical JSON with its own identity.
+`SemanticCoverageMap` binds one canonical artifact to normalized source ranges and
+contiguous runtime windows. Each relation names forward, inverse, or rewind
+direction, authored or generated origin, and a digest of the exact opcode window.
 
-Changing one exclusion or threshold changes both policy and evaluation identities. Caller set order does not. Evaluation never edits the underlying transition report. This profile has no hidden percentage denominator and cannot promote an excluded source, proof, quantum, or empirical dimension into coverage evidence.
+Construction rejects dangling coordinates, overlap, duplicate windows,
+generated-inverse labels over forward work, malformed source ranges, and forged
+opcode digests.
 
-## Source and generated-body relations
+Joining a transition report yields profile
+`wheeler-source-transition-coverage-1`, which keeps source path, line, column,
+bytecode coordinates, direction, origin, branch result, and hit count. Artifact,
+map, transition, and source-report identities remain separate.
 
-`SemanticCoverageMap` validates source-to-runtime relations against one exact canonical artifact. Each row binds a normalized source range, forward, inverse, or rewind direction, function, contiguous instruction window, authored or generated-inverse origin, and a digest of the exact opcode window.
+## Adjacent paths
 
-Map construction rejects dangling or unknown coordinates, duplicate and overlapping bytecode windows, generated-inverse claims over forward code, malformed source ranges, and forged opcode digests. Joining one transition report rejects missing relations and observed opcode or branch shapes that disagree with the artifact. The resulting `wheeler-source-transition-coverage-1` report names source path, line, column, bytecode coordinates, direction, origin, branch result, and hit count. Map, artifact, transition, and adjacent-path identities remain separate.
+Profile `wheeler-transition-path-coverage-1` reduces consecutive successful
+transitions into edges. An edge retains workflow epoch, task identity, direction,
+both bytecode endpoints, originating branch result, and count.
 
-`SemanticCoverage` also reduces consecutive successful transitions into `wheeler-transition-path-coverage-1`. An edge retains workflow epoch, hierarchical task identity, direction, both bytecode endpoints, the originating branch result, and a checked count. Forward and inverse edges require increasing task-local sequence. Rewind edges require decreasing sequence. A new run, task, workflow epoch, or direction cannot inherit the prior tail. The source join resolves both endpoints before publishing an edge.
+Forward and inverse edges require increasing task-local sequence. Rewind edges
+require decreasing sequence. A run, task, epoch, or direction boundary cannot
+inherit the previous tail.
 
-Adjacent-edge coverage reports observed path outcomes without inventing a complete path denominator. It does not claim MC/DC, loop-path exhaustion, or feasibility of an unobserved path.
+Observed adjacent edges establish no complete path denominator, MC/DC result,
+loop-path exhaustion, or feasibility statement about an absent edge.
 
 ## Proof stages
 
-`ProofObserver` records lookup, obligation construction, rule execution, acceptance, and rejection as distinct ordered stages. `ProofCoverage` keys points by proof rule, subject, and stage under `wheeler-proof-coverage-1`. A rejected certificate records rule execution and rejection, never acceptance. An accepted certificate records acceptance, never rejection.
+`ProofObserver` distinguishes lookup, obligation construction, rule execution,
+acceptance, and rejection. `ProofCoverage` keys rows by rule, subject, and stage
+under `wheeler-proof-coverage-1`.
 
-Proof-stage observation does not change kernel decisions or inhabit a theorem. Its report and identity remain separate from VM transition coverage, certificate identity, and proof validity.
+A rejected certificate records execution and rejection without acceptance. An
+accepted certificate records acceptance without rejection. Proof-stage coverage
+never changes a kernel decision or inhabits a theorem.
 
-Compound conditions, match-arm denominators, trapped attempts, attempt lineage, quantum structure, and general Wheeler-native observation collection remain part of WIP-0020. JaCoCo still measures only the Java seed implementation. It is not evidence about Wheeler semantics.
+Proof coverage, transition coverage, certificate identity, and proof validity
+remain different evidence.
+
+## The present horizon
+
+Compound-condition denominators, match-arm denominators, trapped attempts, attempt
+lineage, quantum structure, and general Wheeler-native observation collection are
+outside the current profiles. Host-language coverage measures the seed machinery
+only and says nothing about Wheeler semantic coverage.
+
+The [proof certificate section](bytecode.md#proof-certificates) gives the finite
+kernel rules. The [program ledger](../examples.md) names the maintained executable
+cases.

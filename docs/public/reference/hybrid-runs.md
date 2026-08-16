@@ -1,142 +1,167 @@
-# Hybrid runs and replay
+---
+title: Observations, Replay, and Retry
+description: The lifecycle of a hybrid run from deterministic work through target observation and recovery.
+---
 
-A quantum or hybrid Wheeler workflow runs as a `HybridRun`. The run owns its deterministic classical state, workflow continuation, acknowledged target jobs, accepted observations, active branch, transaction phase, and bounded semantic event log.
+# Observations, Replay, and Retry
 
-A remote queue wait does not block one VM instruction. The runtime advances deterministic workflow edges until it submits a measurement job. It records the acknowledged job identity, enters `WAITING`, and later resumes from the saved continuation after validating the result.
+A quantum result can cross the Reach in less time than the machinery that made it.
+A hybrid run keeps the resulting identities in order.
+
+`HybridRun` owns deterministic classical state, a workflow continuation,
+acknowledged target jobs, accepted observations, the active branch, transaction
+phase, and a finite semantic event log.
 
 ## Lifecycle
 
-A new run starts in `ACTIVE`:
+A new run begins in `ACTIVE`:
 
 ```java
 HybridRun run = HybridRun.start(program, target);
 RunStatus status = run.advance();
 ```
 
-`advance()` stops in one of these states:
+`advance()` stops at:
 
-- `WAITING`: a target acknowledged a quantum job.
-- `COMPLETED`: the workflow reached its verified halt.
-- `TRAPPED`: a bounded semantic failure stopped the run.
+| Status | Meaning |
+| --- | --- |
+| `WAITING` | A target acknowledged a quantum job. |
+| `COMPLETED` | The verified workflow halted. |
+| `TRAPPED` | A deterministic semantic failure stopped the run. |
 
-A waiting run accepts a result with a bounded timeout:
+A waiting run resumes through a declared timeout:
 
 ```java
 status = run.resume(Duration.ofSeconds(30));
 ```
 
-The local ideal simulator uses the same submit, acknowledge, validate, apply, and resume steps as a delayed target. Fast completion does not skip job or result identity checks.
-
-`runToCompletion()` is only a blocking helper around this state machine. It does not create another execution path.
+The ideal local target follows the same submit, acknowledge, validate, apply, and
+resume sequence as a distant queue. Fast work receives no shorter identity path.
+`runToCompletion()` is a blocking convenience around this lifecycle.
 
 ## Events
 
-Each semantic transition creates an immutable `HybridEvent` with:
+Every semantic transition creates an immutable `HybridEvent` carrying run,
+branch, sequence, workflow edge, event kind, relevant job and target identity,
+kind-specific value, and SHA-256 content identity.
 
-- run, branch, sequence, and workflow-edge identity.
-- an event kind.
-- bounded job and target identity.
-- a kind-specific bounded value and detail.
-- a SHA-256 content identity.
+The event set includes run start, target selection, transaction start or abort,
+submission, result application, cancellation request, branch discard, retry,
+commit, completion, and trap.
 
-The first event set covers run start, target selection, transaction start or abort, submission, result application, cancellation request, branch discard or retry, commit, completion, and trap.
+`HybridEventReducer` accepts unordered delivery and byte-identical duplicates. It
+sorts by sequence, removes duplicate bytes, and rejects gaps, conflicts at one
+sequence, mixed runs, changes to inactive branches, and result application without
+a matching submission.
 
-`HybridEventReducer` accepts unordered, at-least-once delivery. It sorts events by sequence and removes byte-identical duplicates. It rejects gaps, two different events at one sequence, mixed run identities, changes to an inactive branch, and result applications that lack a matching submission.
+Operational timestamps, polls, queue positions, and log arrival order never define
+semantic order.
 
-Arrival order does not define semantic order. Operational timestamps, polling attempts, queue positions, and log interleaving are not semantic events.
+## Applying an observation
 
-## Result application
+Before classical state changes, Wheeler checks:
 
-Before changing classical state, the run checks:
-
-- job identity.
-- target identity.
-- task content identity, including the `.wbc` artifact, register, basis state, circuit or adjoint sequence, shot request, and seed policy.
-- exact shot count.
-- full-register outcome width.
-- the active continuation and branch.
+- job and target identity.
+- task identity, including artifact, register, preparation, circuit or adjoint,
+  shots, and seed policy.
+- exact shot count and outcome width.
+- active workflow continuation and branch.
 - remaining event capacity.
 
-The runtime then applies the accepted observation event and its classical effect once. A second `resume()` fails because the lifecycle has already advanced. A malformed result leaves the continuation, global values, and event stream unchanged.
+One accepted observation changes classical state once. A second resume through
+the same continuation fails. A malformed result leaves globals, continuation, and
+events unchanged.
 
-Measurement outcomes use Wheeler's canonical little-endian integer form. Provider display strings never enter semantic event state.
+Measurement outcomes use canonical little-endian integers. Provider display text
+never enters semantic state.
 
-## Persistence and recovery
+## Snapshots and recovery
 
-`HybridRunStore` writes a `HybridRunSnapshot` as one canonical bounded binary record with a trailing SHA-256 integrity digest. A snapshot contains:
+`HybridRunStore` encodes one canonical binary snapshot with a trailing SHA-256
+digest. It contains schema, artifact, run, mode, status, branch, limits, commit
+horizon, typed globals, workflow edge, pending acknowledged job, transaction
+checkpoint, phase, and the complete event stream.
 
-- schema, artifact, run, mode, status, branch, and limits.
-- the commit horizon.
-- typed global values and the exact workflow edge.
-- a pending acknowledged job and target identity, when present.
-- a transaction checkpoint and phase, when active.
-- the complete bounded semantic event stream.
+Decoding rejects malformed magic, unknown rows, invalid counts, truncation,
+trailing bytes, digest failure, reducer disagreement, and continuation mismatch.
 
-When the host supports it, writes use temporary output and atomic replacement. Decoding rejects bad magic, unknown enums, invalid counts, truncated or extra data, integrity failure, disagreement between the header and reducer, and a mismatched continuation identity.
+Recovery starts from the beginning, repeats deterministic workflow edges, and
+applies the accepted observations. It then compares rebuilt globals with the
+persisted continuation.
 
-Recovery starts from the beginning and replays deterministic workflow edges plus accepted observations. It then compares the rebuilt globals with the persisted typed continuation.
+At a waiting edge, recovery calls `QuantumTarget.recover(jobId, task)`. It never
+turns an acknowledged job into another submission. Unknown or mismatched provider
+identity stops recovery.
 
-At a waiting edge, recovery calls `QuantumTarget.recover(jobId, task)`. It never turns an acknowledged job into a new submission. A target that cannot match the durable identity must fail recovery clearly.
-
-Provider SDK objects, credentials, host pointers, arbitrary object graphs, and raw quantum handles are never persisted.
-
-Atomic replacement can prevent a torn userspace publication on a supporting host. The current store does not return evidence that data, metadata, or the namespace survived a crash. WIP-0032 will place snapshot I/O under the unified operation lifecycle and typed receipt model.
-
-Until then, a successful snapshot write is not a proof of power-loss durability.
+Snapshots contain no provider SDK objects, credentials, host pointers, arbitrary
+object graphs, or raw quantum handles. Atomic replacement can prevent a torn
+userspace file on a supporting host. The current snapshot store issues no
+power-loss durability receipt.
 
 ## Replay and retry
-
-Replay and retry have different meanings.
 
 ```java
 ExecutionResult replayed = HybridRun.replay(program, recordedSnapshot);
 String newJob = waitingRun.retry();
 ```
 
-Replay requires a completed event stream with the exact artifact identity. It runs the classical workflow from recorded accepted observations and never calls a target.
+Replay requires a completed event stream and the exact artifact identity. It runs
+the classical workflow using recorded accepted observations and never contacts a
+target.
 
-Retry asks to cancel the current job, discards that branch, creates a new one, and makes a fresh physical submission. The new job may produce another valid observation. A late result from the discarded branch has no active continuation that can change state.
+Retry requests cancellation of the current job, discards that branch, creates a
+new branch, and makes a fresh physical submission. Its systems, job identity, and
+observation lineage are new. A late result from the discarded branch has no active
+continuation capable of changing state.
 
-Cancellation is only a request. Its return value does not prove that remote hardware stopped.
+Cancellation remains a request. Its return does not prove that remote hardware
+stopped.
 
 ## Transactions
 
-A transaction begins only at an active, clean workflow boundary:
+A transaction begins at an active clean workflow boundary:
 
 ```java
 run.beginTransaction();
 ```
 
-Its phase changes as effects occur:
-
 | Phase | Abort behavior |
 | --- | --- |
 | `REVERSIBLE` | Restore the typed classical checkpoint. |
 | `PREPARED_EXTERNAL` | Restore classical state, request cancellation, and quarantine the acknowledged job branch. |
-| `OBSERVED` | Restore classical state and discard the observation branch. The measured physical state is not restored. |
+| `OBSERVED` | Restore classical state and discard the observation branch. The measured physical state remains spent. |
 | `COMMITTED` | Reject abort. |
 
-`abortTransaction()` reports whether it requested cancellation and whether it discarded an accepted observation. An abort after an external edge creates a new branch. Running forward again performs a new preparation and submission.
+An abort after an external edge creates another branch. Running forward again
+performs another preparation and submission.
 
-`commitTransaction()` records a commit event, clears local rewind history, and advances the event commit horizon. A workflow `commit()` makes the same horizon change for an active transaction.
-
-Rollback never calls a quantum adjoint on hardware that has already been measured. Restoring a branch is also not physical time reversal.
+Commit appends a commit event, clears local rewind history, and advances the event
+horizon. Rollback never invokes an adjoint on hardware already measured.
 
 ## Limits and failures
 
-`HybridRunLimits` bounds events, branches, and retries. Program limits still bound workflow and VM steps. Target descriptors cap qubits and shots, while persistence has separate limits for encoded bytes, text fields, events, and globals.
+`HybridRunLimits` fixes event, branch, and retry maxima. Program limits govern VM
+and workflow transitions. Target descriptors govern logical qubits and shots.
+Snapshot encoding has separate maxima for bytes, text, events, and globals.
 
-A limit failure occurs before the runtime appends a new semantic event. Retry and transaction abort check event and branch capacity before they request external cancellation.
+A limit failure occurs before appending an event or requesting external
+cancellation. Trapped, cancelled, and committed paths reject incompatible resume
+operations. Wheeler never obtains fresh nondeterminism under an earlier
+observation identity.
 
-A trapped, cancelled, or committed path cannot resume through an incompatible API. Failure stays explicit, and the runtime never fetches fresh nondeterminism under an old observation identity.
+## Terms kept apart
 
-## Terminology
+| Term | Meaning |
+| --- | --- |
+| inverse | Run a verified method inverse. |
+| rewind | Consume retained VM history. |
+| uncompute | Clean coherent temporary state through inverse work. |
+| replay | Reuse accepted observations without target execution. |
+| retry | Create a fresh target lineage. |
+| cancel | Request that external work stop. |
+| discard | Prevent one branch from changing active state. |
+| compensate | Perform a separate declared external effect. |
 
-- Inverse execution runs a verified method inverse.
-- Rewind consumes local VM history.
-- Uncompute returns coherent temporary state to its required clean value.
-- Replay uses recorded observations without target execution.
-- Retry creates a fresh target lineage.
-- Cancel requests that external work stop.
-- Discard prevents a branch from changing active state.
-- Compensate is a separate declared external effect. Cancellation does not imply it.
+The [target appendix](quantum-targets.md) describes the physical job beneath a
+waiting edge. The [I/O appendix](io-lifecycle.md) gives cancellation and resource
+release their portable rows.

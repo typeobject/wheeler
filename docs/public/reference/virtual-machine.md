@@ -1,154 +1,180 @@
-# Reversible virtual machine
+---
+title: The Ways of Return
+description: Deterministic execution, generated inverses, retained-history rewind, commit horizons, and traps.
+---
 
-The current VM is Wheeler's deterministic, single-threaded transition kernel for bytecode format 1.0.
+# The Ways of Return
 
-## State
+The Common Book uses *return* for several roads. The virtual machine keeps their
+costs visible.
 
-The machine owns:
+Wheeler 1.0 runs a deterministic, single-threaded transition kernel. It accepts
+one verified immutable artifact and begins in `ready`. Execution moves through
+`running` to `halted` or `trapped`.
 
-- one verified, immutable program.
-- a status of `ready`, `running`, `halted`, or `trapped`.
-- a bounded stack of immutable control frames.
-- descriptor-typed signed and Boolean local registers in each frame.
-- typed signed 64-bit global locations.
-- separate bounded tables for immutable records, tagged variants, fixed arrays, and nonescaping slices.
-- bounded owned regions and mutable signed-word or byte buffers.
-- immutable frozen UTF-8 owners and fixed-capacity signed maps.
-- explicit live or dropped state with byte and object accounting.
-- an ordered bounded stack of step records.
-- a monotonic transition number for the current run.
+## Machine state
 
-Raw host pointers and masked segmented addresses are not machine values.
+A machine owns:
 
-Source compilation currently writes equal limits of 4,000,000 steps and 4,000,000 retained history records. The `run()` loop traps at the step limit. Every execution path traps before it exceeds the history limit. The history budget can therefore retain every transition in one default run. The physical bootstrap closure evidence uses `stepWithoutRewindHistory()` with a 70,000,000-transition test ceiling. That mode refuses a retained rewind tail and establishes an immediate rewind horizon after each successful transition. It is suitable for artifact comparisons that never rewind, not a cheaper spelling of reversible execution and not a durability claim. The complete 346-module graph validation finishes in 67,957,014 transitions. The test keeps that larger evidence run bounded without quietly changing source program policy. An artifact or embedding host may choose lower verified limits.
+- typed signed and Boolean globals.
+- immutable control frames with typed local registers.
+- separate tables for records, variants, arrays, and slices.
+- affine regions, buffers, UTF-8 owners, signed maps, and active loans.
+- the selected workflow task and scheduler cursor.
+- an ordered stack of transition records.
+- a monotonic transition number.
 
-A classical entry may borrow one strict UTF-8 input, one immutable binary `byteview`, one mutable byte output, or one input followed by the output. VM construction requires the exact declared effects and an explicit text or binary binding API.
+Raw host pointers and masked addresses never become machine values.
 
-Each input or output is capped at 16 MiB. Total live owned and host storage is capped at 32 MiB, allowing one full-size immutable input beside one full-size closure artifact arena. The VM copies input into external baseline storage and initializes only the declared borrow registers. Output has a fixed capacity and starts filled with zero bytes.
+Newly compiled source normally permits 4,000,000 transitions and 4,000,000 retained
+history entries. An artifact or host may choose lower values. `run()` traps before
+either limit is exceeded.
 
-`OUTPUT_LENGTH` selects a prefix only from the entry's output borrow. A wrong handle or a length outside `0..capacity` traps before mutation. The chosen length is part of snapshots and exact rewind, while `hostOutput()` returns a defensive copy of that prefix.
+The physical bootstrap comparison path may execute without a retained rewind tail
+only when history is empty. Each successful transition then advances the rewind
+horizon. That path supports large artifact comparisons and makes no claim of
+reversible execution or durable storage.
 
-Missing, extra, mismatched, malformed UTF-8, or oversized effects fail before the first step. Binary input is never decoded as text. Effect bytes and output capacity are runtime data, so they do not change `.wbc` identity.
+## One transition
 
-These entry loans are the narrow host boundary that exists today. They are not the planned asynchronous I/O API. WIP-0032 will lower submitted I/O through typed effects and continuations while keeping the same ownership and fail-closed rules.
-
-Live I/O remains a rewind barrier. Building a request doesn't submit it.
-
-## Wheeler-written bounded interpreter
-
-`NativeVm.w` imports `runtime/Interpreter.w` plus the Wheeler-written framing, payload, and instruction verifiers. It accepts immutable binary `.wbc` and verifies the bounded self-hosted compiler profile.
-
-The interpreter supports:
-
-- up to eight signed globals.
-- up to 512 interpreted instructions.
-- eight bounded frames.
-- up to 24 functions.
-- 256 typed locals per frame.
-- up to 512 instructions per function.
-
-Only the active function's local window is cleared. `compiler/ir/Opcodes.w`, `compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`, and `compiler/ir/ProofRules.w` define the names used at this boundary.
-
-`compiler/verification/FunctionVerifier.w` checks descriptor, type, and code windows. `compiler/verification/AggregateVerifier.w` checks immutable aggregate metadata. `compiler/verification/StorageVerifier.w` checks regions, buffers, maps, loans, and UTF-8 operands. `compiler/verification/ProofVerifier.w` verifies generated-inverse records and straight-line step bounds.
-
-The current opcode set includes:
-
-- reversible global add, subtract, and XOR.
-- local constants, state load or store, and moves.
-- checked arithmetic, including `LOCAL_AND` and `LOCAL_ROTR32`.
-- signed and Boolean equality or comparison.
-- bounded loop checks.
-- immutable records, finite variants, fixed arrays, and slices.
-- bounded owned regions and mutable word or byte buffers.
-- strict UTF-8 validation, count, scalar, width, and freeze operations.
-- read-only UTF-8 and byte loans.
-- mutable region, word, byte, and map loans.
-- owner-returning primitive-storage calls.
-- deterministic fixed-capacity signed maps.
-- instruction-index branches and global expectations.
-- zero-argument `CALL` and `UNCALL`.
-- typed `CALL_VALUE`, `CALL_VOID`, `RETURN`, and `RETURN_VALUE`.
-- checked `CALL_RESULT_SLOT`, `UNCALL_RESULT_SLOT`, `RESULT_FILL_CONSTANT`, `RESULT_FILL_SOURCE`, `RESULT_FILL_BINARY`, `RESULT_FILL_BINARY_SOURCES`, and `RETURN_RESULT_SLOT`.
-- `HALT`.
-
-The direct checked-update fixture matches the final global value produced by the stage-0 VM, and the outer Wheeler run rewinds exactly. The Wheeler compiler also emits the proof-bearing `Counter.w` artifact byte for byte with stage 0. The Wheeler interpreter runs its repeated forward and inverse calls, then finishes at zero.
-
-Differential tests also cover branches, a three-iteration bounded loop, signed calls, and Boolean logic in `FunctionValues.w`. Six-level recursion runs through `RecursiveValue.w`, while `LoopControl.w` covers early return, `break`, and `continue`.
-
-Data fixtures include nested `Records.w` values, payload-free `FiniteEnums.w`, payload-carrying `Variants.w`, arrays, slices, owned storage, valid and invalid UTF-8, `FrozenUtf8.w`, and signed maps. Every declared global, up to eight, must match stage 0 before exact rewind.
-
-Each successful interpreted instruction appends its two-byte opcode identity to a private 512-row trace. `NativeVm.w` hashes the exact ordered bytes with Wheeler SHA-256 and publishes the digest through eight 32-bit words. An independent stage-0 observer builds the same byte stream from Java VM transitions. Differential cases require all 32 digest bytes to agree. A malformed artifact or trapped interpreter path publishes no successful result or trace identity.
-
-Negative tests forge record-field, variant-tag, array-index-local, slice-index-local, word-index-local, byte-index-local, UTF-8-index-local, and map-key-local operands. They also forge step bounds, branch targets, and generated inverses. The Wheeler verifier must reject each case before interpretation.
-
-This remains a bounded interpreter slice. It is not yet the final transition kernel because host effects, workflows, and interpreter-level history still use stage-0 behavior. Missing effect, loan, or quantum opcodes remain real limits even when the surrounding types already exist.
-
-## Forward and reverse laws
-
-A successful step creates one new state and one minimal undo record:
+A successful instruction produces a new machine state and the information needed
+to restore the earlier state:
 
 ```text
 step(C, instruction) = (C', undo)
 unstep(C', undo) = C
 ```
 
-Intrinsic operations recover information through their inverse. Logged operations save the value they overwrite. Local-register and control operations retain the earlier immutable frame needed to restore the program counter and local values.
+Intrinsic reversible operations recover information through their inverse.
+Logged overwrite stores the value it replaced. Control and local-register work
+retain the earlier frame data. Region operations keep the changed bytes,
+accounting, drop state, and earlier table lengths required by that transition.
 
-Frames use persistent chunks of 32 registers. A control-only step shares all register storage. A local write copies only its chunk and the shallow chunk index.
+A rewind restores each transition once. The machine never restores an earlier
+state and then invokes another inverse handler for the same work.
 
-Snapshots still expose ordinary immutable lists, and equality stays structural. This keeps the declared history budget tied to actual changes instead of charging `records × every local × boxed object`.
+Persistent frame chunks contain 32 registers. A control-only transition shares
+register storage. A local write copies its chunk and shallow index. This keeps the
+history charge tied to actual change.
 
-Aggregate construction interns values by nominal type, variant tag when present, and ordered fields. Rewind restores earlier record, variant, array, and slice table lengths along with the frame.
+## Inverse execution
 
-Region operations save bounded deltas for accounting, changed buffer contents, drop state, and earlier table lengths. Call and return records keep the control data needed to restore frame depth.
+`CALL` enters a forward zero-argument function. `UNCALL` enters its generated
+inverse body and performs new transitions. Both calls add history.
 
-A reverse step restores state once. The VM never restores an earlier state and then also runs an inverse handler for the same step.
+```wheeler
+increment();
+reverse increment();
+```
 
-## Function inverse versus rewind
+Value calls move one initialized argument window into the callee and transfer one
+typed result back. Reversible scalar results exchange an adjacent vacant slot for
+a checked held value. Their inverse verifies that relation before restoring
+vacancy. A commit between the calls removes debugger history and leaves the
+generated inverse available.
 
-`CALL` runs the forward body of a zero-argument void function. `UNCALL` runs its
-generated inverse body as new forward work. Both descriptor offsets are relative to the
-code section. The inverse offset is not added to the forward offset. A two-helper
-differential fixture keeps the second inverse honest.
+A unitary call follows the same operational principle at a quantum target: its
+adjoint is another physical computation. VM rewind never fires gates on hardware.
 
-`CALL_VALUE` moves an exact initialized argument window into the callee's parameter registers. The window may include transient verified loans. It also names one caller register whose type matches the declared result.
+## Retained-history rewind
 
-`RETURN_VALUE` checks the result and moves it back to the caller. Every call and return adds history, including the write to the caller's result register, so each transition can be rewound.
+`rewindOne` consumes the newest transition record and restores the exact earlier
+machine state. It restores globals, frames, program counter, aggregate table
+lengths, storage deltas, ownership, loans, and selected output length.
 
-A reversible scalar result uses an adjacent Boolean tag and signed or Boolean payload
-owned by the caller. `CALL_RESULT_SLOT` requires exact vacancy before pushing a frame.
-`UNCALL_RESULT_SLOT` requires `Holding` of the constant, preserved source, or checked
-computed value expected by the generated inverse before pushing a frame. The result fill
-instructions perform their exact exchanges in the callee. Boolean relations admit a
-canonical literal or an unchanged Boolean source. `RESULT_FILL_BINARY` evaluates one
-signed source with one constant right operand before mutation.
-`RESULT_FILL_BINARY_SOURCES` evaluates two signed sources under the same checked operation.
-`RETURN_RESULT_SLOT` copies both slot registers back atomically. Its history
-record stores both previous caller registers for debugger rewind. Generated language
-inversion reads none of that history. Tests commit history between forward and inverse
-calls because a result relation that works only while the debugger remembers it is not
-much of a relation. The bounded Wheeler interpreter implements the same two-register
-exchange and both call directions. Differential fixtures compare every declared global
-with the Java VM.
+Rewind never calls a function inverse. It depends on the retained transition
+stack, including private data saved for logged overwrite.
 
-`rewindOne` consumes the newest step record and restores the exact earlier machine state. `VmDataRewinder` restores scalar data through semantic instruction roles before the VM restores control and aggregate deltas. Execution, preflight, call binding, storage checks, and aggregate checks use the same roles. `VmPreflight` owns the complete check-before-mutation pass. The execution loop does not carry a second validator or private operand positions that can drift from the registry. `rewindOne` does not call a function inverse.
+An optional observer receives an immutable event only after successful mutation.
+Forward, inverse, rewind-forward, and rewind-inverse remain distinct directions.
+The observer cannot inspect or alter mutable machine state.
 
 ## Commit horizons
 
-`COMMIT` advances successfully, then clears older step records. The VM cannot rewind before that point, even when an implementation still holds unrelated cached bytes. Hosts that need no rewind evidence may call `stepWithoutRewindHistory()` only at an empty history boundary. Each such step has the same irreversible retention consequence without pretending that provider output became durable.
+`COMMIT` advances successfully and clears earlier transition records. Rewind
+cannot cross that horizon even if an implementation still holds unrelated cached
+bytes.
 
-A future persistence layer will make checkpoint and replay availability explicit.
+A generated inverse compiled into the artifact remains callable after commit. A
+saved external observation may remain replayable. Neither property restores the
+history that commit closed.
 
-## Traps and limits
+## Host loans
 
-An optional transition observer receives an immutable function, instruction, opcode, and EventId observation only after a successful mutation. It reports forward, inverse, rewind-forward, and rewind-inverse transitions separately. Execution and rewind report the same stable event origin. The observer receives no mutable machine state.
+A classical entry may borrow strict UTF-8 input, immutable binary input, mutable
+byte output, or one input followed by output. Each side may contain at most
+16 MiB. Total live owned and host storage may contain at most 32 MiB.
 
-The implemented compatibility machine executes every current artifact through a canonical task table containing `TaskId.ROOT` in workflow epoch zero. Snapshots expose the selected task, scheduler cursor, epoch, immutable task statuses, and the task-to-frame map. Hierarchical TaskId construction and canonical round-robin selection are bounded and deterministic. Spawn, join, replay plans, and atomics remain WIP-0039 work.
+The host copies input into external baseline storage and initializes only the
+loans declared by the entry. Output begins as a zero-filled fixed-capacity owner.
+`OUTPUT_LENGTH` selects a prefix of that exact owner. `hostOutput()` returns a
+defensive copy after successful halt.
 
-The stage-0 semantic coverage reducer in [semantic coverage](coverage.md) uses this boundary without changing artifacts or history.
+Missing, extra, malformed, linked, or oversized bindings fail before the first
+transition. Binary input is never decoded as text. Input bytes and output capacity
+remain runtime data and do not change artifact identity.
 
-The VM traps deterministically on invalid expectations, overflow, or missing inverses. It also traps on bad local or branch access, register type mismatches, and non-Boolean conditions. Other failures include exhausted loop limits, call depth above 1,024 frames, escaped instruction pointers, full history, and an exceeded step limit.
+Live I/O establishes a rewind barrier when its completion is accepted. Constructing
+a request performs no external effect.
 
-Ownership checks cover moves, use after move or drop, and leaked owned locals. Storage checks cover region or buffer exhaustion, buffer kind and range, and live buffers during region drop. The VM also checks UTF-8 validity, malformed decoding, immutable-loan state, exclusive-loan aliasing, map capacity or missing keys, and ownership-divergent joins.
+## Interpreter recovery slice
 
-A failing instruction makes no partial change to globals, frames, region accounting, or buffer contents.
+The Wheeler-written recovery interpreter accepts the verified self-hosting
+profile with these ceilings:
+
+| Resource | Maximum |
+| --- | ---: |
+| signed globals | 8 |
+| interpreted trace rows | 512 |
+| frames | 8 |
+| functions | 24 |
+| locals per frame | 256 |
+| instructions per function | 512 |
+
+It supports the accepted scalar, call, loop, aggregate, storage, UTF-8, map,
+borrow, result-slot, and halt instructions described in
+[artifacts and bytecode](bytecode.md). It rejects missing effect and quantum
+opcodes rather than inventing behavior.
+
+The broader compatibility VM admits call depth up to 1,024 frames under the
+artifact's transition and history limits.
+
+## Tasks and workflow epoch
+
+Every current artifact enters a canonical task table with `TaskId.ROOT` in
+workflow epoch zero. Snapshots retain the selected task, scheduler cursor, epoch,
+immutable task statuses, and task-to-frame relation.
+
+Hierarchical task identities and canonical round-robin selection are deterministic.
+Spawn, join, replay plans, and atomic task scopes have no accepted artifact form
+in the present profile.
+
+## Traps
+
+The machine traps on:
+
+- failed assertions and expectations.
+- arithmetic overflow, invalid division, or invalid rotation.
+- bad local, global, function, branch, array, slice, map, or storage access.
+- type disagreement or a non-Boolean condition.
+- absent generated inverse or escaped instruction pointer.
+- exhausted loop, frame, transition, or history limits.
+- use after move or drop, leaked ownership, and ownership-divergent joins.
+- region, buffer, map, UTF-8, or loan violations.
+
+Preflight completes every check before mutation. A failing instruction leaves
+globals, frames, region accounting, buffers, and output length unchanged.
+
+## A compact reckoning
+
+| Road | What it spends | What it can restore |
+| --- | --- | --- |
+| generated inverse | an invertible relation in the artifact | every accepted output of that relation |
+| unitary adjoint | coherent target work | a quantum operation before measurement or loss |
+| VM rewind | retained transition entries | exact earlier VM state after the rewind horizon |
+| uncomputation | a coherent compute path | temporary workspace while preserving an effect elsewhere |
+| replay | one accepted observation | later classical decisions only |
+| retry | new preparation and target work | nothing. It creates another observation |
+
+The [hybrid-run appendix](hybrid-runs.md) follows observations after they leave a
+quantum target.

@@ -1,7 +1,7 @@
 ---
 sidebar_position: 8
 title: Two Systems
-description: A second qubit makes room for independence, entanglement, and a return that measurement forbids.
+description: Under Sable's local authority, Bell preparation separates correlation, entanglement, measurement, and adjoint work.
 tutorial_id: CH07
 tutorial_steps: T51,T52,T53,T54,T55,T56,T57,T58,T59,T60,T61,T62
 tutorial_part: two-qubits
@@ -14,19 +14,19 @@ tutorial_evidence: ideal-model-and-intended-seeded-samples
 
 # Two Systems
 
-When the second shield opened, the room found a lower note. A deeper pump entered through the deck. Status lights crossed the walls
-as isolation widened from one enclosure to two.
+Opening the second shield brought a deeper pump tone through the deck. Status lamps moved across the walls while the laboratory
+extended isolation around both enclosures.
 
-The second device had been made on Sable. Its access panels were cut by hand. Several residents shared the maker's mark. Nothing
-about it looked like a copy.
+Sable's machine shop had built the second device. Hand-cut access panels carried a maker's mark shared by several residents. Its
+construction claimed local ancestry rather than resemblance to the first.
 
-In the model, one qubit became two, and two basis states became four. The growth was small enough, still, to write in one line:
+Adding one qubit doubled the modeled basis from two states to four, still few enough to display together.
 
 ```text
 |00>  |01>  |10>  |11>
 ```
 
-Each label named both qubits. Wheeler read `q[0]` as the low-order bit when it turned the pair into a measurement integer.
+Every basis label specified the pair. When Wheeler encoded measurement as an integer, `q[0]` occupied the low-order position.
 
 | `q[1]` | `q[0]` | Basis label | Measurement integer |
 | ---: | ---: | --- | ---: |
@@ -35,7 +35,7 @@ Each label named both qubits. Wheeler read `q[0]` as the low-order bit when it t
 | `1` | `0` | ket one zero | `2` |
 | `1` | `1` | ket one one | `3` |
 
-Iona prepared the qubits separately, applied `H` to each, and paused. Their amplitude tables combined pair by pair, making a
+Iona prepared each qubit independently and applied `H` to both. Combining their separate amplitude tables pairwise produced a
 **product state**.
 
 ```text
@@ -46,13 +46,13 @@ Iona prepared the qubits separately, applied `H` to each, and paused. Their ampl
 = ( |00> + |01> + |10> + |11> ) / 2
 ```
 
-Here **tensor** named the rule that combined the state spaces. Two entries met two entries and produced four. Each amplitude had
-magnitude `1/2`. Each outcome, probability `1/4`.
+The **tensor** rule combined the two state spaces. Two amplitudes from one table paired with two from the other to make four. Joint
+amplitude magnitude `1/2` gave every basis outcome probability `1/4`.
 
-Tala covered the probabilities and asked Mara what could appear. Mara named all four, then objected to being examined beside a
-printed answer. Osei observed that print had offered them little protection at the Archive.
+Tala concealed the probability column and asked Mara for possible outcomes. Mara identified all four and objected to an examination
+conducted beside the answer. Osei reminded her how poorly visible records had protected them at the Archive.
 
-A seeded run of 2,048 fresh preparations under seed `57721` produced all four outcomes.
+They fixed seed `57721` and ran 2,048 fresh preparations. Every basis outcome appeared.
 
 ```text
 0  | ##################################################### 531
@@ -61,10 +61,10 @@ A seeded run of 2,048 fresh preparations under seed `57721` produced all four ou
 3  | ###################################################   512
 ```
 
-The counts wandered around equality. No outcome vanished. Independence had spread amplitude across all four basis states.
+Sample counts varied around equal model weights. Separate preparation had left nonzero amplitude on all four basis rows.
 
-Osei replaced the second Hadamard with a controlled operation. `CNOT(q[0], q[1])` used `q[0]` as control and flipped `q[1]` when
-the control basis value was one.
+Osei removed one Hadamard and substituted a controlled operation. In `CNOT(q[0], q[1])`, the low-order qubit controlled a flip of
+`q[1]` on basis components where `q[0]` was one.
 
 | Input `q[0]` | Input `q[1]` | Output `q[0]` | Output `q[1]` |
 | ---: | ---: | ---: | ---: |
@@ -73,18 +73,18 @@ the control basis value was one.
 | `1` | `0` | `1` | `1` |
 | `1` | `1` | `1` | `0` |
 
-On basis states, the table resembled a classical conditional flip. But no measurement turned the control into an ordinary branch.
-CNOT transformed the whole amplitude table at once.
+Its basis-state table resembled a classical conditional flip. No measurement created an ordinary branch inside the operation;
+CNOT transformed every amplitude component coherently.
 
-A transformation was **unitary** when it preserved normalization and had an adjoint capable of reversing it for every allowed
-state. Wheeler's `unitary` modifier made that mathematical promise. Hardware could still err while attempting the gates.
+A **unitary** transformation preserved normalization and possessed an adjoint that reversed it across all allowed states. Wheeler's
+`unitary` modifier declared that mathematical contract. A physical target could still implement its gates imperfectly.
 
-The compiler checked mathematics. The chamber supplied weather. Each considered the other outside its department.
+Compiler checks governed the transformation. Chamber weather governed its physical attempt. Neither authority absorbed the other.
 
-That difference returned them to the Bell program. Sana compared the copy received at Catenary with the one carried across the
-reach. The digests matched.
+Sana reopened the Bell source under that distinction and compared Catenary's copy with the artifact carried to Sable. Their digests
+were identical.
 
-The program had not changed. Its readers had.
+The bytes had remained fixed while the crew acquired better questions.
 
 ```wheeler
 quantum class BellPair {
@@ -104,19 +104,19 @@ quantum class BellPair {
 }
 ```
 
-Starting from `|00>`, the Hadamard created two contributions.
+From prepared `|00>`, Hadamard placed amplitude on two basis rows.
 
 ```text
 ( |00> + |01> ) / sqrt(2)
 ```
 
-Because `q[0]` occupied the right-hand position in the basis label, CNOT left `|00>` unchanged and carried `|01>` to `|11>`.
+The right-hand basis position represented `q[0]`. CNOT therefore preserved `|00>` and transformed `|01>` into `|11>`.
 
 ```text
 ( |00> + |11> ) / sqrt(2)
 ```
 
-Only two rows in the ideal amplitude table remained nonzero.
+The ideal amplitude table retained two nonzero rows.
 
 | Basis | Amplitude | Probability |
 | --- | ---: | ---: |
@@ -125,12 +125,15 @@ Only two rows in the ideal amplitude table remained nonzero.
 | ket one zero | `0` | `0` |
 | ket one one | `1 / sqrt(2)` | `1/2` |
 
-Before the run, Sable moved between the station and Catenary. Home disappeared from the relay panel.
+Sable occulted Catenary before execution. The home relay dropped into silence.
 
-For forty-three minutes no distant authority could approve, forbid, or misunderstand what happened there. Iona treated the silence
-as ordinary. At Sable, light itself enforced local responsibility.
+For forty-three minutes no distant authority could approve, forbid, or
+misunderstand what happened there. Iona treated the silence as ordinary. The
+Covenant of Air had placed emergency authority beside the system at risk; Sable's
+orbit enforced that principle more firmly than any court. Local responsibility
+lasted until light could carry an answer.
 
-Mara predicted that `0` and `3` would appear and refused to predict equal counts. Tala ran 2,048 shots with a fixed seed.
+Mara predicted outcomes `0` and `3` while declining to name their counts. Tala fixed the seed and requested 2,048 shots.
 
 ```bash
 wheeler run manual/BellPair.wbc \
@@ -146,20 +149,20 @@ wheeler run manual/BellPair.wbc \
 3  | ################################################### 1021
 ```
 
-Every pair matched. Under this preparation and simulator, the sample showed correlation. The bars alone could not say whether the
-state had been entangled.
+Every observed pair agreed. This simulator sample from the named preparation exhibited correlation, though the histogram alone did
+not establish entanglement.
 
-Sana answered with a record from the Archive's old two-key doors. Their controller chose an ordinary bit and copied it to two audit
-locations. That procedure also produced only `00` and `11`. With the right seed, even the bars could be made identical.
+Sana produced an Archive record from an old two-key door. Its classical controller selected one ordinary bit and copied it into two
+audit fields, also yielding only `00` and `11`. A chosen seed could make its histogram identical to the Bell sample.
 
-The Archive had displayed those records under *Perfect Agreement*. As an apprentice, Sana changed the label. Edrin changed it
-back. The dispute eventually required more storage than the example.
+The exhibit had once called those records *Perfect Agreement*. Apprentice Sana changed the label, and Edrin restored it. Their
+ensuing dispute consumed more storage than the controller trace.
 
-Different preparations. Same distribution. One made a classical mixture of definite records. The other made the amplitude state
-above. No enthusiasm applied to a histogram could erase the difference.
+The procedures shared an outcome distribution while preparing different states. One produced a classical mixture of definite
+records; Bell preparation produced the displayed pure amplitude state. A histogram could not recover that distinction.
 
-Iona asked whether the Bell amplitude table could be separated into independent one-qubit tables. Tala assigned symbolic entries
-`a` and `b` to the first qubit, then `c` and `d` to the second. A product state would have joint amplitudes
+Iona required Tala to test whether independent one-qubit tables could factor the Bell amplitudes. Tala used `a` and `b` for one
+qubit and `c` and `d` for the other. Any product state would then have joint amplitudes
 
 ```text
 |00>: a*c
@@ -168,32 +171,33 @@ Iona asked whether the Bell amplitude table could be separated into independent 
 |11>: b*d
 ```
 
-For the Bell table, `a*c` and `b*d` had to be nonzero, which made `a`, `b`, `c`, and `d` nonzero. It also required `a*d` and
-`b*c` to be zero. Those conditions could not all hold together. No pair of independent one-qubit tables produced the Bell state.
+Bell rows required nonzero `a*c` and `b*d`, forcing all four factors nonzero. Its zero rows simultaneously required `a*d` and
+`b*c` to vanish. No assignments satisfied both demands, so independent one-qubit tables could not produce the Bell state.
 
-A joint pure state that could not be factored into states of its parts was **entangled**. The word belonged to the joint state, not
-to messages sent faster than light, not to useful communication by measurement, and not to human intimacy borrowing scientific
-authority.
+A joint pure state with no factorization into states of its parts was **entangled**. The term described that mathematical relation.
+It implied neither faster-than-light messaging nor communication through measurement, and it offered no scientific authority to a
+metaphor about people.
 
-The matching bars agreed with that state. They did not define it. Iona allowed the noun only after the factorization failed. At
-Sable, impressive words were stored beside unlabeled spare parts: useful sometimes, dangerous by default.
+The observed bars were consistent with the entangled state while remaining insufficient to define it. Iona permitted the term only
+after factorization failed. Sable treated impressive nouns like unidentified spare parts: potentially useful and dangerous until
+examined.
 
-Mara returned to the CNOT table. When the target began at zero, the output target matched a known control basis value. "It copied
-the bit."
+Mara returned to the basis table. With a target initialized to zero, the output target matched the control's known basis value.
+"That operation copied it."
 
-"A known basis value," Iona said.
+"It copied known basis information," Iona corrected.
 
-"That qualification again," Mara said.
+"Your qualifications have become migratory."
 
-"You brought Sana across the reach. You have exceeded your complaint quota."
+"You transported Sana here. Complaints about qualification are now outside quota."
 
-With a superposed control, CNOT made the Bell state, not two independent copies. A true clone would have factored into identical
-one-qubit tables. This state would not. CNOT could copy known basis information into a clean target. It could not copy an unknown
-qubit.
+A superposed control led CNOT to the Bell state instead of independent duplicates. Cloning would require a product of identical
+one-qubit states, which this table could not factor into. CNOT copied known basis information to a clean target; it did not clone an
+unknown qubit.
 
-For the last experiment, Osei removed measurement. He paused over the empty line and left it visible in the diff.
+Osei prepared the final source by deleting measurement. He left the removed boundary visible in the comparison.
 
-One missing boundary changed the meaning of return.
+Removing that boundary opened a coherent road back.
 
 ```wheeler
 quantum class BellReturn {
@@ -215,11 +219,11 @@ quantum class BellReturn {
 }
 ```
 
-A generated **adjoint** took the gates in reverse order and inverted each one. CNOT undid itself. So did Hadamard. Before
-measurement, that new work restored `|00>` in the ideal model.
+The generated **adjoint** reversed gate order and replaced each operation by its adjoint. CNOT and Hadamard were each self-adjoint.
+Executed before measurement, their inverse sequence returned the ideal state to `|00>`.
 
-The scheduler gave the reverse gates their own duration. Nothing vanished from the station clock. Pumps ran. Controls fired. The
-crew waited for the work of going back.
+The target schedule allocated duration to every adjoint gate. Controls fired, pumps continued, and the station clock advanced while
+the machine performed the return.
 
 ```text
 BellReturn (quantum) halted after 6 steps
@@ -227,19 +231,21 @@ measured = 0
 measurements = [0]
 ```
 
-No VM history moved backward. The target performed the adjoint as new physical work. Nor could this touch the earlier measured Bell
-run. That state had crossed into a classical number.
+The operation consumed no VM history and reversed no clock. The target executed fresh adjoint work. It also had no access to the
+earlier measured Bell state, whose measurement had already produced a classical number.
 
-Sana placed the restored run beside the earlier `3`. They shared a preparation, then divided at measurement. One returned while it
-was still coherent. The other left a classical number: preservable, repeatable in a report, useless as a road back to the unknown
-state.
+Sana placed both runs together. Their preparations matched, and their roads separated at measurement. Coherent adjoint work
+restored one run before that boundary. The earlier run left the preservable observation `3`, which provided no path back to its
+unknown premeasurement state.
 
-Later, at home, the distinction would seem obvious. Here it was new enough to quiet them.
+Silence followed while the distinction was still new enough to change their language.
 
-Sable's shadow ended. Relay tones climbed through the room, one after another, until Catenary returned to the panel as a delayed
-clock and a waiting queue.
+Sable's shadow ended. Relay tones climbed through the room, one after another,
+until Catenary returned to the panel as a delayed clock and a waiting queue. The
+Second Navigation depended on decisions made through both conditions: local work
+during silence, shared judgment when the road reopened.
 
-Osei closed the second shield and opened the source for the classical XOR flip from the Archive. If a reversible finite permutation
-already knew how to go forward and backward, perhaps the quantum machine could use it without translating the logic by hand.
+Osei closed the enclosure and retrieved the Archive's classical XOR source. Its finite permutation already supported forward and
+inverse execution. He asked whether the quantum machine could use the same definition coherently.
 
-The manual called that crossing [Crossing](08-crossing.md).
+The Common Book called that crossing [Crossing](08-crossing.md).

@@ -1,6 +1,14 @@
-# Development guide
+---
+title: Yard Procedures
+description: Local acceptance, source formatting, manual publication, registries, and module direction.
+---
 
-## Local gate
+# Yard Procedures
+
+Catenary yards keep one rule above the build terminals: a successful command is an
+event, and its account must name the inputs that made it possible.
+
+## Local acceptance
 
 Use JDK 26 and the checked-in Gradle wrapper:
 
@@ -10,51 +18,87 @@ export PATH="$JAVA_HOME/bin:$PATH"
 ./bootstrap/gradlew -p bootstrap clean check treeSitterTest
 ```
 
-Java compilation enables every `javac` lint warning and treats warnings as errors. `check` runs JUnit, creates JaCoCo reports for modules with tests, and runs the source conformance gates. Wheeler adopts Error Prone-style checks when they are deterministic and high-signal. It does not accumulate suppressions or a ceremonial warning baseline.
+Java compilation enables every `javac` lint warning and treats warnings as
+errors. `check` runs JUnit, creates JaCoCo reports for tested modules, and runs
+source-conformance gates. Ordinary JUnit methods have a two-minute preemptive
+limit. Each worker quits after its first failure.
 
-`sourceHeaderTest` requires each authored Java, Wheeler, JavaScript, stylesheet, Gradle, Tree-sitter query, shell, and Python file to begin with a suitable documentation comment. `sourceLayoutTest` allows no more than ten Wheeler files in one physical source directory. Generated parser and website files are not part of the authored set.
+Hosted acceptance assigns sorted example classes to exactly one of eight shards.
+Each shard has a fifteen-minute hard stop.
 
-`treeSitterTest` installs the pinned CLI, regenerates the parser, runs the syntax corpus, and compiles the editor queries.
-
-Ordinary JUnit methods have a preemptive two-minute limit, and each test worker quits after its first failure. Hosted CI sorts the example test classes and assigns each class to exactly one of eight shards. Every shard has a fifteen-minute hard stop. This keeps the complete suite without letting one worker hide its current test for an hour.
-
-The complete physical compiler product rebuild is integration evidence, not a unit test. Changes to its module catalog, product relay, relocation, or linked container must run it explicitly:
+The complete physical compiler product rebuild is separate integration evidence:
 
 ```bash
 ./bootstrap/gradlew -p bootstrap :examples:closureEvidenceTest
 ```
 
-That task allows twenty minutes for each closure method and still stops after twenty-five minutes. It remains outside `check` so an ordinary patch cannot turn two hosted JDK jobs into unbounded closure rebuilds.
+Each closure method receives twenty minutes. The task stops after twenty-five.
 
-## Documentation style
+`sourceHeaderTest` requires an appropriate opening description in every authored
+Java, Wheeler, JavaScript, stylesheet, Gradle, Tree-sitter query, shell, and Python
+file. `sourceLayoutTest` permits at most ten Wheeler files in one physical source
+directory. Generated parser and site files are outside the authored set.
 
-Write in active voice and name the actor first. Address readers as `you` when you give instructions. Use direct sentences and simple words. Cut filler, clichés, repeated conclusions, and marketing language.
+`treeSitterTest` installs the pinned CLI, regenerates the parser, runs the syntax
+corpus, and compiles editor queries.
 
-Do not use semicolons, en dashes, or em dashes in prose. Code spans and fenced examples keep the punctuation that their syntax requires. Markdown keeps its own list, link, and emphasis markers.
+## Prose kept fit for service
 
-`DocumentationStyleTest` checks every maintained README, public page, internal proposal, future note, and conformance document. It rejects those punctuation forms, common filler phrases, and clear passive forms that hide an actor behind `by`. The check stays narrow on purpose. Review still catches vague claims, needless conditionals, awkward rhythm, and jokes that have outlived their patch.
+Use active voice and name the actor. Instructions may address the operator as
+`you`. Prefer concrete nouns, direct verbs, and stated limits. Cut repeated
+conclusions, filler, and promotional language.
 
-## Documentation check
+Public mission accounts may carry a lyrical cadence while preserving technical
+meaning. Standard terms such as *adjoint*, *measurement*, and *replay* should not
+be replaced for ornamental variety.
 
-`wheeler check-docs <file-or-directory>...` walks physical, nonsymlink `.w` files in lexical path order. It reads bounded strict UTF-8, prints stable `WDOC` diagnostics, and never changes source files.
+The maintained style gate rejects semicolons, en dashes, em dashes, selected
+filler phrases, and obvious passive forms that hide the actor. Code retains the
+punctuation required by its syntax. Mechanical checks remain narrow. Review must
+still catch weak causality, repeated rhetorical forms, and jokes whose work ended
+several revisions ago.
 
-`wheeler check-docs --stdin` checks one bounded buffer and reports its name as `<stdin>`. Duplicate normalized inputs, symbolic links, malformed UTF-8, non-`.w` files, and selections larger than 65,535 sources fail closed.
+## Wheeler source comments
 
-The current checker requires a nonempty `//!` file summary as the first content. It also requires adjacent, nonempty `///` documentation for public declarations and Wheeler-semantic members.
+```text
+wheeler check-docs <file-or-directory>...
+wheeler check-docs --stdin
+```
 
-The checker verifies canonical facet order and the required `Effects`, `Inverse`, `Coherent`, and `Adjoint` facets. Declaration attachment comes from parser-owned module, type, member, and block ranges. Parser recovery nodes never count as valid declarations.
+The command walks physical nonsymlink `.w` files in canonical path order, reads
+strict UTF-8, prints stable `WDOC` diagnostics, and changes no source.
 
-The command does not read configuration, use the network, or create placeholder text. The same parser boundary exports module identity and selected declaration details for the stage-0 documentation bundle. Those details include kind, name, source position, modifiers, summary, and ordered facets. A renderer consumes this model but cannot redefine what the source declares.
+Each file begins with a nonempty `//!` summary. Public declarations and
+Wheeler-semantic members receive adjacent nonempty `///` text. Facets follow their
+canonical order, including required `Effects`, `Inverse`, `Coherent`, and
+`Adjoint` entries.
 
-## Documentation bundle
+Selections may contain at most 65,535 files. Duplicate normalized paths, links,
+malformed UTF-8, and non-Wheeler inputs fail.
 
-`wheeler docs <manual-dir> --wheeler <source-dir>... -o <bundle-dir>` builds a renderer-neutral stage-0 bundle from explicit physical roots. Inputs must be strict UTF-8, nonsymlink files chosen in logical-path order.
+## Manual bundle
 
-The command validates Wheeler `//!` and `///` documentation through the compiler export. It then emits sorted manual, heading, and Wheeler API nodes. Explicit `manual:` and `wheeler:` links, along with root-contained relative manual links, become canonical edges.
+```text
+wheeler docs <manual-dir> --wheeler <source-dir>... -o <bundle-dir>
+```
 
-The bundle includes navigation and search indexes, inert `.md` and `.mdx` manual sources under `pages/`, exact executable results in `examples.json`, and a digest for every emitted file in `manifest.json`. Publication creates a new directory with one required atomic move.
+The command reads explicit physical roots, validates source comments through the
+compiler export, and emits profile `wheeler-doc-bundle-4`.
 
-An exact executable fence has one fixed header:
+The bundle contains:
+
+- canonical manual, heading, and Wheeler API nodes.
+- resolved local links and graph edges.
+- navigation and search indexes.
+- inert `.md` and `.mdx` source under `pages/`.
+- executable results in `examples.json`.
+- every emitted digest in `manifest.json`.
+
+Publication creates a new directory through one atomic move. Existing output,
+malformed source, missing titles, duplicate routes, failed examples, escaped
+links, and nonphysical parents fail first.
+
+An exact executable fence has this fixed header:
 
 ````text
 ```wheeler-exact name=answer output=2a
@@ -62,72 +106,102 @@ An exact executable fence has one fixed header:
 ```
 ````
 
-The name is a bounded lowercase identity. `output` is bounded lowercase hexadecimal. The semantic build compiles the module, runs two fresh machines, requires byte-identical replay, and compares the declared output. The graph receives an executable-example node and an `example-of` edge from its manual. `examples.json` binds source, bytecode artifact, output, and exact result identities. Failure or disagreement publishes nothing. This exact profile does not turn one execution into proof or sampled evidence.
+The name and output use lowercase canonical forms. The semantic build compiles the
+module, runs two fresh machines, requires byte-identical replay, and compares the
+declared output. The graph binds source, artifact, output, and result identities.
+One run supplies execution evidence rather than a theorem.
 
-Existing destinations, malformed source, missing manual titles, duplicate node, route, or example identities, failed examples, links in the input tree, and nonphysical parents all fail before publication.
+Manual IDs come from logical paths without `.md` or `.mdx`. Heading IDs use
+canonical suffixes when text repeats. Relative page and heading links remain
+inside one manual root.
 
-The current profile is `wheeler-doc-bundle-4`. Profile 4 adds exact executable-example nodes, edges, and `examples.json` to profile 3's MDX, index-route, and semantic-sidebar contract. It replaces profile 3 rather than changing that profile in place.
+## Static site
 
-Manual IDs come from logical paths without the `.md` or `.mdx` suffix. Heading text produces canonical heading IDs with deterministic suffixes for duplicates. Wheeler IDs use module or source identity plus the declaration name.
+```text
+wheeler site -o <directory>
+wheeler site --bundle <bundle-directory> -o <directory>
+```
 
-Relative links to `.md` or `.mdx` pages and canonical `#heading` anchors resolve only within the manual root. Escapes, missing targets, and noncanonical anchors fail. Repository source links remain normal site links instead of semantic manual edges.
+The first form builds a private semantic bundle from the fixed repository roots.
+The second begins from an immutable bundle, allowing render retry without
+regenerating semantics.
 
-`wheeler site -o <directory>` finds the fixed repository roots and builds the semantic bundle in private staging. `wheeler site --bundle <bundle-directory> -o <directory>` starts at an existing immutable bundle, which makes render retry independent of semantic generation. Both forms verify the exact profile, path, and digest closure. They render the inert Markdown and MDX subset as static HTML and CSS under `wheeler.doc-site/2`. One fixed local script adds a copy button to each code block. Documentation content cannot add scripts or handlers.
+Both forms verify profile, path, and digest closure before rendering static HTML
+and CSS under `wheeler.doc-site/2`. One fixed local script adds code-copy buttons.
+Manual content cannot add scripts or event handlers.
 
-Scalar MDX-style front matter becomes bounded metadata and is never printed as page text. `index.md` and `index.mdx` map to their directory route. An index may set `sidebar_children: false` to keep descendants routable and searchable while omitting them from navigation. Any page may set `sidebar: false` to omit itself. The renderer does not execute MDX or JSX.
+Front matter supplies scalar metadata and never appears as page prose. `index.md`
+and `index.mdx` own directory routes. `sidebar: false` omits one page from
+navigation. An index may set `sidebar_children: false` while leaving descendants
+routable and searchable.
 
-Navigation uses one fixed order: Manual, Story, then Reference. Proposals, future sketches, maintainer notes, and conformance programs stay under `docs/internal`. The bundle cannot discover them. The profile has one stylesheet, one fixed local copy script, no themes, no plugins, a restrictive content security policy, bounded output, and one atomic publication step.
+The renderer executes neither MDX nor JSX. It has one stylesheet, no plugin or
+theme graph, a restrictive content-security policy, fixed output limits, and one
+atomic publication step.
 
-`sitemap.xml` comes from every generated HTML route and includes a deterministic content-set digest. A page edit changes the sitemap without adding build time to the semantic inputs.
-
-`publication-manifest.json` binds the bundle, renderer classes, and every site file. Existing output is rejected. Atomic publication prevents a partial tree from becoming the selected tree. It is not a WIP-0032 data or namespace durability receipt.
-
-Java doclet nodes, proof references, and generated reference tables remain part of WIP-0019. Exact self-contained Wheeler examples are implemented. Sampled, hardware, cross-package, and proof-bearing examples remain outside profile 4. The current Java generator and renderer are stage-0 tools. WIP-0019 requires a Wheeler-written generator to reproduce the same bundle bytes before the Java implementation can be removed.
+`sitemap.xml` lists every HTML route and carries a content-set digest.
+`publication-manifest.json` binds the input bundle, renderer classes, and every
+site file. Atomic publication selects one complete userspace tree and issues no
+power-loss durability receipt.
 
 ## Instruction registry
 
-`registry/instructions.wreg` is the promoted classical instruction registry. Each bounded row owns one stable identity, named form, ordered role list, and reversibility class. `python3 bootstrap/registry/generate.py` publishes the Java and Wheeler views through atomic replacement. `--check` writes nothing and rejects a stale view. Gradle `instructionRegistryCheck` runs that check before subproject acceptance.
+`registry/instructions.wreg` owns promoted classical instruction identities,
+forms, ordered roles, and reversibility classes.
 
-Maintainers edit the promoted registry, not either generated view. The executable Java registry test compares every generated row against the VM's opcode metadata. The nonproduction Wheeler view under `registry/generated` provides the same identities, counts, packed ordered roles, and reversibility classes for native promotion without entering the physical compiler source closure or importing Java source.
+```bash
+python3 bootstrap/registry/generate.py
+python3 bootstrap/registry/generate.py --check
+```
+
+The first command publishes Java and Wheeler views through atomic replacement.
+The second writes nothing and rejects stale output. Maintainers edit the registry,
+rather than either generated view.
 
 ## Source formatting
 
-`wheeler format <file-or-directory>...` formats the same bounded, strict-UTF-8, physical `.w` input set in canonical path order. It parses every selected file before publication and stages changed bytes in verified sibling files. Where available, it keeps ordinary POSIX permission bits and requires atomic replacement.
+```text
+wheeler format <file-or-directory>...
+wheeler format --check <file-or-directory>...
+wheeler format --stdin
+```
 
-A validation failure publishes nothing. A crash during replacement may leave a sorted prefix updated, but running the idempotent command again converges. Atomic replacement controls visibility. It does not prove durable data or namespace state.
+Formatting reads the same physical strict-UTF-8 source set in canonical path
+order. It parses every input before staging verified sibling files and uses atomic
+replacement where available.
 
-`wheeler format --check <file-or-directory>...` writes nothing and reports each differing path as `WFMT001`. `wheeler format --stdin` writes one formatted UTF-8 document. Adding `--check` writes only a difference diagnostic.
+`--check` writes nothing and reports differences as `WFMT001`. `WFMT002` reports
+structural parse or formatter-limit failure, `WFMT003` reports the input boundary,
+and `WFMT004` reports publication failure.
 
-`WFMT002` reports a structural parse or formatter-limit failure. `WFMT003` covers the bounded input boundary, and `WFMT004` reports publication failure.
+The canonical style uses LF endings, one final newline, two-space indentation,
+regular braces and operators, and stable blank separators. Groups remain on one
+line when their normalized form fits within 100 Unicode scalar values. Longer
+comma groups place each item and closing delimiter on stable lines. Long binary
+expressions continue with leading operators.
 
-The current stage-0 style normalizes LF line endings, one final newline, two-space indentation, braces, semicolons, operators, comment markers, and blank separators. Module declarations and complete import groups each get one following blank line. Named declarations have one blank line between them.
+Comments and indivisible literals remain unchanged. Deeply indented tokens may
+cross the soft line target rather than change spelling.
 
-A finished conditional, loop, match, or `reverse` block gets one blank line before another statement in the same block. It gets no blank line before its closing brace, an `else`, or the next `case`.
+## Design and maintenance
 
-A parameter, argument, or record group stays on one line only when its full normalized form fits within 100 Unicode scalar values. Otherwise, each comma item and the closing delimiter get stable lines.
+Cross-cutting semantic changes begin as Wheeler Improvement Proposals. Public
+appendices describe accepted behavior. Proposals retain work that has not yet
+crossed its executable gate.
 
-Long binary expressions continue with leading operators at one fixed extra indent. Comments and indivisible literals stay unchanged instead of being wrapped. Canonical `/* parameter= */ value` labels remain adjacent to ambiguous literal arguments and participate in the same 100-scalar fit decision.
+Maintainers follow these rules:
 
-`WREAD001` rejects unlabeled adjacent literal `value` and `width` arguments to the compiler's signed and unsigned little-endian writers. The check is deliberately narrow: array fixtures and cryptographic tables do not need a novella between every comma. New mechanical checks need a stable diagnostic, positive and negative tests, and enough precision to run as errors from day one.
+- keep source files focused and below 1,000 lines.
+- place at most ten Wheeler files in one physical directory.
+- use the existing package and example map.
+- delete replaced implementations rather than retaining two authorities.
+- add negative cases at parser, verifier, capability, and lifecycle boundaries.
+- prefer immutable artifact models and pure transition functions.
+- keep credentials and provider objects outside canonical artifacts and persisted
+  language values.
+- accept each major feature through its full gate before promotion.
 
-Bounded-loop conditions, array initializers, and binary expressions use the same smallest-group rule. Generated rename, insertion, removal, nesting-depth, and line-fit variants preserve tokens and stable neighboring layout. Deeply indented indivisible tokens may exceed the soft target rather than change spelling.
-
-## Design workflow
-
-Cross-cutting semantic changes start as a Wheeler Improvement Proposal. Reference pages describe behavior that exists now. A WIP becomes Implemented only after its tests, documentation, migration, and required cleanup are complete.
-
-## Maintenance rules
-
-- Keep source files focused and under 1,000 lines.
-- Group Wheeler files by concern, with at most ten files in one physical directory.
-- Use the current compiler, package, and example directory map. `misc` is not a concern.
-- Delete replaced implementations instead of keeping two authorities.
-- Add negative tests for every parser, verifier, capability, and lifecycle boundary.
-- Prefer pure transition functions and immutable artifact models.
-- Keep provider objects and credentials out of canonical bytecode and persisted language values.
-- Commit and push each independently verified major feature.
-
-## Module dependency direction
+## Module direction
 
 ```text
 bootstrap/core <- bootstrap/stage0
@@ -137,24 +211,22 @@ bootstrap/core + stage0 + runtime + package <- bootstrap/tools
 bootstrap/core + stage0 + runtime + package <- bootstrap/examples tests
 ```
 
-All Java and Gradle files live below `bootstrap/`. There is no root Gradle project, and canonical Wheeler packages contain no Java source. Run the gate with `./bootstrap/gradlew -p bootstrap ...`.
+All Java and Gradle files live below `bootstrap/`. There is no root Gradle project.
+Bootstrap core has no runtime dependencies. Source parsing has no provider
+dependency. Quantum adapters implement runtime contracts and do not define
+language semantics.
 
-Bootstrap core has no runtime dependencies. Source parsing does not depend on a provider. Quantum adapters implement runtime contracts and do not define language semantics.
+The Wheeler compiler source has one home:
+`wheeler-compiler/src/main/wheeler`. The package exports a `compiler` tool and an
+entryless `library`. Core encoding and SHA-256 modules live under
+`wheeler-core/src/main/wheeler`. The interpreter lives under
+`wheeler-runtime/src/main/wheeler`. Package codecs live under
+`wheeler-package/src/main/wheeler`.
 
-The Wheeler compiler source has one home: `wheeler-compiler/src/main/wheeler`. Its package exposes a `compiler` tool and an entryless `library`.
+Hosted bootstrap work uses two JDK distributions and compares the complete emitted
+artifact trees byte for byte. This supplies host-diversity evidence for the current
+stage-0 design. It does not satisfy independent diverse compilation because both
+paths still descend from the same Java source.
 
-`wheeler-conformance` uses that library through its exact committed lock. `wheeler-examples` depends on the compiler only for the shared scanner used by its lexer demonstration. Workspace commands rebuild matching archives from canonical members in memory, and tests resolve source fixtures through those roots. Neither executable tree keeps duplicate compiler source.
-
-The first allocation-free library, binary-encoding, and SHA-256 modules live only under `wheeler-core/src/main/wheeler`. `wheeler.compiler`, `WorkQueue.w`, and other consumers reach them through the lock-verified `wheeler.core` workspace archive.
-
-The bounded interpreter follows the same rule under `wheeler-runtime/src/main/wheeler`, where it locks compiler verification and core primitives. Package codecs live under `wheeler-package/src/main/wheeler`. Its entryless `wheeler.packages` library uses core SHA-256, while package-format executables live in `wheeler-conformance`. The examples directory may now resume being self-explanatory.
-
-Hosted bootstrap CI builds the full workspace with both Temurin and Zulu JDK 26. It verifies each emitted `.wbc`, writes a canonical `wheeler.artifact-set/1` manifest inside each closed output tree, and compares the downloaded trees byte for byte.
-
-`wheeler manifest-artifacts <directory>` rejects empty, malformed, oversized, changing, symbolic, special, or unmanifested inputs. It then replaces one manifest atomically. This provides host-diversity evidence, but it is not the full diverse double compilation required by WIP-0007 because both paths still use the same Java source design.
-
-Later, `bootstrap/stage0` will compile the exact compiler package into stage 1, and stage 1 will compile it into stage 2. Byte-identical stages prove a fixed point, though they do not prove a safe ancestry.
-
-Recovery-seed promotion also needs WIP-0007's diverse compilation path, full provenance, and a comparison made before any candidate-produced code runs. `wheeler bootstrap-features` publishes the closed source-profile contract, and `wheeler bootstrap-modules` derives the exact compiler-tool module DAG and source identities from the canonical source archive. `wheeler bootstrap-manifest` performs the bounded byte comparisons and writes canonical `wheeler.bootstrap.yaml` atomically. It rejects unequal stages, different diagnostics, duplicate compiler identities, and stale acceptance trees.
-
-The [bootstrap evidence reference](bootstrap.md) defines every bound identity and the remaining pipeline-order requirement.
+[Bootstrap and trust](bootstrap.md) records the remaining seed and fixed-point
+work.

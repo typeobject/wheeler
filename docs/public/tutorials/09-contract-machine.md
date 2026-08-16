@@ -1,7 +1,7 @@
 ---
 sidebar_position: 10
 title: Contract Machine
-description: A machine answers one narrow question, and phase carries more than the answer seems to contain.
+description: An oracle plate, one paid call, and Venn's advancing deadline turn a Boolean promise into relative phase.
 tutorial_id: CH09
 tutorial_steps: T69,T70,T71,T72,T73,T74
 tutorial_part: algorithmic-interference
@@ -14,41 +14,43 @@ tutorial_evidence: intended-ideal-execution
 
 # Contract Machine
 
-Without its controls, the contract machine was an unremarkable rack. Optical ports crossed the front plate. One status lamp
-answered them. Beneath the new finish, the old survey-locker inventory remained faintly legible, anchors, oxygen, drilling charges.
+The contract machine occupied an ordinary equipment rack with optical ports and one status lamp. Beneath recent paint, Tala could
+still read the inventory from its first life as a survey locker: anchors, oxygen, drilling charges.
 
-Among those dead promises, cut deep enough to survive another reuse, stood the living one:
+A newer inscription had been cut deeply enough to survive its next use.
 
 ```text
 Uf |x,y> = |x, y xor f(x)>
 ```
 
-The machine accepted input bit `x` and target bit `y`. For a fixed Boolean function `f`, it preserved `x` and flipped `y` whenever
-`f(x)` was one. Nothing on the plate promised how `f` was built, what it cost, or whether anyone should care.
+For fixed Boolean function `f`, the map preserved input `x` and XORed `f(x)` into target `y`. The plate described no implementation
+cost, internal construction, or useful purpose.
 
-"An oracle," Mara said, with the disappointment of someone shown a very small cabinet after hearing a very large word.
+"This cabinet is the oracle?" Mara asked. The noun had promised her more architecture.
 
-The cabinet answered with its entire vocabulary.
+Its status lamp supplied the only available reply.
 
 ```text
 ORACLE READY
 calls remaining: 1
 ```
 
-Sable's first crews had called their thermal-fracture forecaster an *oracle*. It displayed a risk color and concealed the mapping,
-assumptions, geology. When a forecast failed, the vendor explained that Sable's captured-rock strata fell outside the service
-boundary. No such boundary had appeared on the camp display.
+Sable's first charter crews had called their thermal-fracture forecaster an
+*oracle*. It displayed a risk color and concealed the mapping, assumptions, and
+geology. When a forecast failed, the vendor explained that Sable's captured-rock
+strata fell outside the service boundary. The camp display had carried no such
+warning, and the vendor's charter ended before the repairs did.
 
-Afterward, the cooperative required every machine promise to fit on a plate durable enough to outlive vendor, housing, and brand.
-The quantum engineers kept *oracle* only after engraving the callable map where nobody could confuse it with prophecy.
+The cooperative later required every callable promise to fit on a plate that could outlast vendor and enclosure. Quantum engineers
+retained the inherited word *oracle* after placing its complete map where prophecy could not hide inside it.
 
-An **oracle** was a callable input-output map. It volunteered no explanation. If the map was difficult, somebody still had to build
-the difficulty into the box.
+An **oracle** supplied a callable input-output map and no explanation of its internals. Any computational difficulty remained real;
+someone had to implement it behind the interface.
 
-Behind an opaque screen, Iona loaded one of the possible one-bit functions. Sana sealed the implementation digest before anyone
-predicted. The crew did not know the answer. The record did.
+Iona selected one allowed one-bit function behind an opaque screen. Sana sealed its implementation digest before collecting
+predictions. The choice remained hidden from the crew and fixed in the record.
 
-Ignorance was part of the test. Missing parentage would have been a fault.
+The experiment required their ignorance. The evidence required known parentage.
 
 | Function | `f(0)` | `f(1)` | Class |
 | --- | ---: | ---: | --- |
@@ -57,52 +59,53 @@ Ignorance was part of the test. Missing parentage would have been a fault.
 | identity | `0` | `1` | balanced |
 | negation | `1` | `0` | balanced |
 
-The promise allowed two classes. A **constant** function gave the same output twice. A **balanced** one gave different outputs. Ask
-for only one input and either class might answer zero or one. Classically, both inputs were needed.
+The promise divided the allowed functions into two classes. A **constant** function returned one shared value for both inputs; a
+**balanced** function returned one of each value. One classical query could receive zero or one from either class, so classical
+classification required both inputs.
 
-The quantum circuit would call the oracle once. Tala disliked the restriction. In transit work she queried a system until enough
-records accumulated to betray it. Here they had to shape one interaction so equality or difference became visible while the
-individual values did not.
+The quantum procedure permitted one oracle call. Tala's transit practice had been to accumulate queries until inconsistency exposed
+itself. Here she had to arrange one interaction so the relation between two function values survived while the values themselves
+did not.
 
-"One question," she said.
+"We receive one question."
 
-"One paid question," Iona corrected.
+"The station pays for one call," Iona said.
 
-Mara nodded. Cost had supplied the first explanation she trusted immediately.
+Physical cost made the restriction immediately credible to Mara.
 
-Its target qubit began in `|1>` and passed through `H`.
+They prepared the target qubit in `|1>` and applied `H`.
 
 ```text
 H|1> = (|0> - |1>) / sqrt(2)
 ```
 
-This state, often written `|->`, had a useful response to `X`.
+The resulting state, written `|->`, responded to `X` by acquiring a global sign.
 
 ```text
 X|-> = -|->
 ```
 
-A flip changed only the target's global sign. Make that flip conditional on the input, however, and the sign became relative between
-input alternatives. The target returned locally unchanged. The function value appeared as phase on the joint state.
+An unconditional flip changed only global phase on the target. Conditioning that flip on input made the sign differ across input
+alternatives. The target's local state returned unchanged while the joint amplitudes carried `f(x)` in phase.
 
 ```text
 |x>|->  ->  (-1)^f(x) |x>|->
 ```
 
-This was **phase kickback**. Nothing traveled backward. The name survived from diagrams whose arrows suggested otherwise. Iona
-crossed out the arrows and kept the diagrams: scars were sometimes better teachers than clean paper.
+The effect was called **phase kickback**, though nothing propagated backward. Old diagrams had encouraged that mistake with
+backward arrows. Iona struck out the arrows and preserved the marked pages so their error could remain visible.
 
-The controlled operation had placed phase on the amplitude associated with its control.
+Control-dependent phase now belonged to the corresponding input amplitude.
 
-Tala prepared the input in an equal superposition, giving both promised function values a place to affect relative phase. For a
-constant function, both input amplitudes acquired the same sign.
+An equal input superposition exposed amplitude components for both promised values. Under a constant function, those components
+received matching signs.
 
 ```text
 (+,+) or (-,-)
 ```
 
-A final Hadamard sent either common-sign pattern to input outcome `0`. `(+,+)` and `(-,-)` still differed only globally: no
-measurement here could tell them apart.
+The final Hadamard mapped either shared-sign pattern to measured input `0`. Patterns `(+,+)` and `(-,-)` differed by global phase,
+which this measurement could not distinguish.
 
 ```wheeler
 quantum class DeutschConstant {
@@ -124,16 +127,16 @@ quantum class DeutschConstant {
 }
 ```
 
-`prepare(q, 2)` set low-order input `q[0]` to zero and target `q[1]` to one. The empty oracle implemented the constant-zero case.
-A constant-one oracle would apply `X` to the target and produce the same measured input result through a global sign.
+With `prepare(q, 2)`, low-order input `q[0]` began at zero and target `q[1]` at one. An empty oracle represented constant zero. A
+constant-one implementation would apply `X` to the target and differ only by the unobservable global sign in this procedure.
 
-For a balanced function, the two input alternatives acquired opposite signs.
+A balanced function assigned opposite signs to the input amplitude components.
 
 ```text
 (+,-) or (-,+)
 ```
 
-The final Hadamard made either relative-sign pattern visible as `1`.
+The last Hadamard converted either opposing-sign pattern into input outcome `1`.
 
 ```wheeler
 quantum class DeutschBalanced {
@@ -156,49 +159,57 @@ quantum class DeutschBalanced {
 }
 ```
 
-CNOT implemented the identity function by flipping the target exactly when input `q[0]` equaled one. The negation function would
-produce the other opposite-sign pattern and the same classification.
+CNOT supplied the identity oracle because it flipped the target when `q[0]` was one. A negation oracle would create the other
+relative-sign pattern and retain the same balanced classification.
 
-Iona loaded the two cases without telling Mara which implementation occupied the rack. Mara watched the control lights instead of
-the source and guessed wrong once.
+Iona concealed which case occupied the rack. Mara ignored the source, listened to the controls, and misclassified one run.
 
-"The left relay sounded balanced," she said.
+"The left relay has a balanced sound," Mara said.
 
-"The left relay is cooling," Iona replied.
+"The left relay operates refrigeration."
 
-The result showed that coolant relays leaked less useful information than a pilot might hope.
+Cooling hardware had revealed less about the oracle than Mara's ear requested.
 
-Without sampling uncertainty, the ideal runs separated the promise classes.
+The ideal executions classified both promised cases without sampling uncertainty.
 
 ```text
 DeutschConstant  result = 0
 DeutschBalanced  result = 1
 ```
 
-One call answered a question about the relation between two function values. The circuit had not read both in parallel or extracted
-the hidden table. It arranged the phase so that equality versus difference survived interference. The values themselves fell
-away.
+One oracle call answered whether the two function values agreed. The circuit neither read both values in parallel nor recovered the
+hidden table. It encoded their equality relation in phase, then used interference to preserve the classification while discarding
+the individual values.
 
-The tiny classification had no operational value at Sable. That was its virtue. The whole promised world fit in one table. A
-person could follow every contribution by hand. The station kept the module for the reason Catenary kept hand pumps beside automated water
-walls: small working things expose what large working things conceal.
+Sable gained no operational advantage from the tiny classification. Its value lay in a complete four-row world whose amplitudes
+could be followed by hand. The station kept it as Catenary kept hand pumps beside automated water walls: a small mechanism exposed
+the law hidden by larger machinery.
 
-Sana kept the promise, the oracle's map, its hidden implementation, the calling circuit, and the final outcome in separate records.
-Calling the whole bundle *the algorithm* would make later questions impossible to ask cleanly.
+Sana preserved separate identities for the promise, callable map, hidden implementation, calling circuit, and result. Collapsing
+them under *algorithm* would obstruct later questions about which part had failed.
 
-While she worked, a delayed message arrived from Catenary. Neris Venn, now director of traffic continuity, had signed it. The
-particle front had accelerated within forecast.
+A delayed Catenary message arrived while Sana completed the chain. Neris Venn had signed it as director of traffic continuity. The
+charged front was accelerating within its forecast range.
 
-The retuning deadline moved forward.
+Traffic control advanced the beacon-retuning deadline.
 
-The request named the physical sample, the intended application, and the chain between them. Six years earlier Venn had trusted a
-green transit display that hid fourteen cars. Tala could not tell whether the new care came from that failure or some later policy.
-It did not matter. The care was here.
+The request named the physical sample, the intended application, and the chain
+between them. An attached traffic plan showed the cost of failure. Catenary could
+keep the old beacon profile through the charged front by widening every approach
+interval. Ore and passengers would arrive. Air catalysts and garden trace metals
+would wait in outer orbits.
 
-No one at Sable could hurry light. They could only finish before the deadline, and leave Catenary no honest reason to refuse the
-result.
+The Second Navigation had taught Catenary that a common standard would fail if
+distant observations arrived as anonymous authority. Six years earlier Venn had
+trusted a green transit display that hid fourteen cars. Tala could not tell
+whether the new care came from that failure or some later policy. The care was
+here. She read Venn's signature three times and found that correction could
+travel without apology.
 
-After both cases passed, the contract machine unlocked its next module. Behind the panel lay a four-state search space and one
-marked basis value, small enough to inspect completely and large enough to demonstrate amplification.
+Sable could neither shorten light travel nor extend Catenary's traffic margins. Its crew could finish within the remaining window
+and make every link required for honest acceptance.
 
-Behind the open panel lay [Search](10-search.md).
+After both classifications passed, the rack released another module. It contained four basis states and one phase-marked value,
+allowing complete inspection of amplitude amplification.
+
+The abandoned camp names on its channels opened into [Search](10-search.md).
