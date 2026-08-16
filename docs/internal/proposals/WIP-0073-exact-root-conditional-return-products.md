@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-16 |
 | Updated | 2026-08-16 |
@@ -69,6 +69,14 @@ The local-type suffix contains two signed rows followed by the Boolean condition
 
 Focused fixtures cover byte-for-byte valid output, multiple children, and a nonliteral child return. Invalid fixtures leave the artifact length and publication flag at zero.
 
+## Bootstrap closure
+
+The compiler archive contains 2,946,639 bytes and has identity `fcb8b64ebf9dd54ba8111c1e917abafc994cf54793bb500c5a19ea38985e2c17`. The package manifest identity remains `e83091ee70e165f76eefcb2135d2b9620af0906f39affb8a0013e9e60bf894c2`. All four dependent locks name both identities.
+
+The bootstrap module manifest contains 172,344 bytes, 372 modules, two externals, and 1,813 imports. Native validation halts after 71,581,102 transitions under the 73,000,000-transition ceiling.
+
+The 96-product physical subset remains unchanged. It contains 228 functions and 8,286 instructions in 246,040 bytes. Its identity is `3d6e88c426f12d34912a1b14120cd59de093c243e101edf9c05efb30b5d6b679`.
+
 ## Acceptance
 
 - [x] Signed local, constant, and literal condition operands resolve from closed products.
@@ -79,9 +87,9 @@ Focused fixtures cover byte-for-byte valid output, multiple children, and a nonl
 - [x] Callable composition consumes the direct parent once and does not emit its child separately.
 - [x] `FourArgumentCalls.w` matches its 1,864-byte stage-0 artifact byte for byte.
 - [x] The complete physical product closure matches stage 0 byte for byte.
-- [ ] Compiler archive identities, dependent locks, and bootstrap budgets are current.
-- [ ] A fresh locked workspace build passes.
-- [ ] Source, documentation, layout, and directory-width policy pass.
+- [x] Compiler archive identities, dependent locks, and bootstrap budgets are current.
+- [x] A fresh locked workspace build passes.
+- [x] Source, documentation, layout, and directory-width policy pass.
 
 ## Rejected alternatives
 
