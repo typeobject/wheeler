@@ -150,6 +150,7 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0076 routes five bounded range decoders through direct scalar and conditional products. Their 17 functions and 477 instructions match 15,760 stage-0 artifact bytes without dependency-source projection.
 - [x] WIP-0077 emits exact ordinary signed constant returns in one local. `NamedConditionalBases.w` matches its three-function, 159-instruction, 4,592-byte stage-0 artifact byte for byte.
 - [x] WIP-0078 bounds root-block and conditional token lookups to their source products. The complete physical closure remains byte-identical under its existing evidence deadline.
+- [x] WIP-0079 emits exact ordinary signed-literal root and conditional returns in one local. The complete physical closure remains byte-identical without consuming a new direct-route slot.
 - [x] Every callable-free physical module compiles without dependency source.
 - [ ] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.

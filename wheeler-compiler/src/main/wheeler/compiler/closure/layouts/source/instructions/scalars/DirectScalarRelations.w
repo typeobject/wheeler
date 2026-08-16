@@ -9,6 +9,8 @@ import wheeler.compiler.closure.source_reversible_result_relations;
 import wheeler.compiler.closure.structured_source_coordinates;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
+import wheeler.compiler.source_scalars;
+import wheeler.compiler.tokens;
 
 classical class DirectScalarRelations {
   /// Carries one exact scalar relation over physical locals or an immediate.
@@ -259,6 +261,40 @@ classical class DirectScalarRelations {
     borrow mut words symbolValues,
     borrow mut words symbolResolved
   ) {
+    long signedWidth = signedNumberWidth(source, tokenKinds, tokenStarts, leftToken);
+    if (0 < signedWidth) {
+      if (tokenCount < leftToken + signedWidth + 1) {
+        return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+      }
+
+      if (
+        punctuationAt(
+          source,
+          tokenKinds,
+          tokenStarts,
+          leftToken + signedWidth,
+          PUNCTUATION_SEMICOLON
+        ) == false
+      ) {
+        return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+      }
+
+      if (signedNumberValid(source, tokenStarts, tokenLengths, leftToken) == false) {
+        return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+      }
+
+      return new DirectScalarRelationProduct(
+        RESULT_RELATION_LITERAL,
+        0,
+        parsedSignedNumber(source, tokenStarts, tokenLengths, leftToken),
+        0,
+        0,
+        TOKEN_LONG,
+        0,
+        true
+      );
+    }
+
     SourceReversibleResultRelation relation = sourceScalarRelation(
       source,
       leftToken,

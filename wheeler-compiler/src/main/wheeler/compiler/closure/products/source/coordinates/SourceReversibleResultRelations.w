@@ -17,6 +17,8 @@ classical class SourceReversibleResultRelations {
   public const long RESULT_RELATION_BINARY_SOURCES = 3;
   /// Names a signed result materialized from one exact constant product.
   public const long RESULT_RELATION_CONSTANT = 4;
+  /// Names a signed result materialized from one exact source literal.
+  public const long RESULT_RELATION_LITERAL = 5;
 
   /// Carries one exact reversible result relation.
   public record SourceReversibleResultRelation(

@@ -9,7 +9,7 @@
 | Area | Self-hosting compiler, constants, return products |
 | Depends on | WIP-0054, WIP-0069, WIP-0075 |
 | Supersedes | Local-only source relation for ordinary signed returns |
-| Superseded by | None |
+| Superseded by | WIP-0079 for signed source literals |
 
 ## Summary
 

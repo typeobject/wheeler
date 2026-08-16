@@ -68,6 +68,13 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
+  void emitsSignedLiteralReturnProducts() throws Exception {
+    assertArtifact(SOURCE.replace(
+        "    return length;\n",
+        "    return -1;\n"));
+  }
+
+  @Test
   void emitsEqualityReturnProducts() throws Exception {
     assertArtifact(SOURCE.replace(
         "public long copyOffset(",
@@ -285,6 +292,18 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
         "    long index = 0;\n",
         "    if (length < sourceStart) {\n"
             + "      return MAX_SOURCE_BYTES;\n"
+            + "    }\n\n"
+            + "    long index = 0;\n");
+
+    assertArtifact(conditional);
+  }
+
+  @Test
+  void emitsSignedLiteralConditionalReturnProducts() throws Exception {
+    String conditional = SOURCE.replace(
+        "    long index = 0;\n",
+        "    if (length < sourceStart) {\n"
+            + "      return -1;\n"
             + "    }\n\n"
             + "    long index = 0;\n");
 

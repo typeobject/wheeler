@@ -449,6 +449,10 @@ classical class DirectConditionalReturnProducts {
         binaryChild = false;
       }
 
+      if (childKind == RESULT_RELATION_LITERAL) {
+        binaryChild = false;
+      }
+
       if (binaryChild) {
         childLocalCount = 3;
         childInstructionCount = 4;

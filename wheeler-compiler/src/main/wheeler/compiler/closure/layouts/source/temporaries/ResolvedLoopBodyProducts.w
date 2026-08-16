@@ -95,6 +95,30 @@ classical class ResolvedLoopBodyProducts {
     }
 
     if (supportedReturn == false) {
+      long signedWidth = signedNumberWidth(source, tokenKinds, tokenStarts, childToken + 1);
+      if (0 < signedWidth) {
+        if (childToken + signedWidth + 1 < tokenCount) {
+          if (
+            punctuationAt(
+              source,
+              tokenKinds,
+              tokenStarts,
+              childToken + signedWidth + 1,
+              PUNCTUATION_SEMICOLON
+            )
+          ) {
+            supportedReturn = signedNumberValid(
+              source,
+              tokenStarts,
+              tokenLengths,
+              childToken + 1
+            );
+          }
+        }
+      }
+    }
+
+    if (supportedReturn == false) {
       SourceReversibleResultRelation relation = sourceScalarRelation(
         source,
         childToken + 1,
