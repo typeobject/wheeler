@@ -5,9 +5,11 @@ module wheeler.compiler.closure.source_value_products;
 import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
+import wheeler.compiler.closure.source_reversible_result_relations;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.local_opcodes;
+import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
@@ -30,6 +32,7 @@ classical class SourceValueProducts {
     long archiveSourceStart,
     long firstCallable,
     long callableCount,
+    long reversibleCallableCount,
     borrow mut words bodyStarts,
     long statementCount,
     borrow mut words statementRows,
@@ -45,6 +48,12 @@ classical class SourceValueProducts {
     assert(-1 < callableCount);
     assert(callableCount < MAX_LOCAL_CALLABLES + 1);
     assert(callableCount < MAX_CALLABLES - firstCallable + 1);
+    assert(-1 < reversibleCallableCount);
+    assert(reversibleCallableCount < callableCount + 1);
+    if (0 < reversibleCallableCount) {
+      assert(reversibleCallableCount == callableCount);
+    }
+
     assert(bufferLength(bodyStarts) == MAX_CALLABLES);
     assert(-1 < statementCount);
     assert(statementCount < MAX_STATEMENTS + 1);
@@ -400,6 +409,47 @@ classical class SourceValueProducts {
                 resultLocal = -1;
               } else {
                 valid = false;
+              }
+            }
+
+            if (valueHash == TOKEN_RETURN) {
+              if (
+                punctuationAt(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  statementToken + 1,
+                  PUNCTUATION_SEMICOLON
+                )
+              ) {
+                localWidth = 0;
+                resultLocal = -1;
+              } else {
+                if (tokenKinds[statementToken + 1] != 1) {
+                  localWidth = 1;
+                  resultLocal = -1;
+                } else {
+                  SourceReversibleResultRelation relation = sourceReversibleResultRelation(
+                    source,
+                    statementToken,
+                    semanticCount,
+                    tokenKinds,
+                    tokenStarts,
+                    tokenLengths
+                  );
+                  if (relation.valid == false) {
+                    valid = false;
+                  } else {
+                    if (reversibleCallableCount == 0) {
+                      localWidth = 1;
+                      if (relation.kind != RESULT_RELATION_SOURCE) {
+                        localWidth = 3;
+                      }
+                    }
+
+                    resultLocal = -1;
+                  }
+                }
               }
             }
           }

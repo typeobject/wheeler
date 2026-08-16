@@ -104,6 +104,9 @@ final class NativeCompilerPhysicalProductSource {
             if (physicalOwner == REVERSIBLE_SOURCE_MODULE_OWNER) {
               directSourceModule = true;
             }
+            if (physicalOwner == TYPE_KINDS_SOURCE_MODULE_OWNER) {
+              directSourceModule = true;
+            }
             if (directSourceModule) {
               SourceProductArtifactPlan directArtifact = compileStructuredArchiveModuleProduct(
                 archive,

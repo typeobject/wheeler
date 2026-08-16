@@ -200,6 +200,7 @@ final class NativeCompilerSourceStatementProductsExampleTest {
                 /* archiveSourceStart= */ 0,
                 /* firstCallable= */ 0,
                 /* callableCount= */ 2,
+                /* reversibleCallableCount= */ 0,
                 bodyStarts,
                 plan.statementCount,
                 statements,

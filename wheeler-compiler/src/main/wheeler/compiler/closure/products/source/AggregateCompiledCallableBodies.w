@@ -188,6 +188,7 @@ classical class AggregateCompiledCallableBodies {
       sourceStart,
       firstLocalCallable,
       localCallableCount,
+      /* reversibleCallableCount= */ 0,
       localCallableBodyStarts,
       sourceStatements.statementCount,
       stagedStatements,

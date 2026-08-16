@@ -378,6 +378,7 @@ classical class StructuredSourceModuleCompiler {
       archiveSourceStart,
       firstCallable,
       callableCount,
+      reversibleCallableCount,
       bodyStarts,
       loopPlan.statementCount,
       statements,
@@ -597,7 +598,15 @@ classical class StructuredSourceModuleCompiler {
 
     DirectStatementPlan directPlan = materializeDirectStatementProducts(
       source,
+      moduleOwner,
       reversibleCallableCount,
+      symbolCount,
+      symbolOwners,
+      symbolStarts,
+      symbolLengths,
+      symbolTypes,
+      symbolValues,
+      symbolResolved,
       loopPlan.statementCount,
       statements,
       resolvedCallCount,

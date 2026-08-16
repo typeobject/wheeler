@@ -1,5 +1,7 @@
 package com.typeobject.wheeler.examples;
 
+import static com.typeobject.wheeler.examples.SourceRanges.unsigned;
+
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -458,6 +460,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
               0,
               0,
               2,
+              /* reversibleCallableCount= */ 0,
               bodyStarts,
               loopPlan.statementCount,
               statements,
@@ -547,7 +550,15 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             }
             DirectStatementPlan directPlan = materializeDirectStatementProducts(
               input,
+              /* moduleOwner= */ 0,
               /* reversibleCallableCount= */ 0,
+              /* symbolCount= */ 1,
+              symbolOwners,
+              symbolStarts,
+              symbolLengths,
+              symbolTypes,
+              symbolValues,
+              symbolResolved,
               loopPlan.statementCount,
               statements,
               /* callCount= */ 0,
@@ -982,16 +993,6 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
             limitName,
             firstName,
             secondName));
-    return new WheelerCompiler().compileModuleFiles(
-        sources, "example.core_parsing_source_products");
+    return new WheelerCompiler().compileModuleFiles(sources, "example.core_parsing_source_products");
   }
-
-  private static long unsigned(byte[] bytes, int offset, int width) {
-    long value = 0;
-    for (int index = width - 1; index >= 0; index--) {
-      value = value * 256 + Byte.toUnsignedInt(bytes[offset + index]);
-    }
-    return value;
-  }
-
 }

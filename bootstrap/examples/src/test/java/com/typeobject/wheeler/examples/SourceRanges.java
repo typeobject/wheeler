@@ -15,4 +15,12 @@ final class SourceRanges {
     }
     throw new IllegalArgumentException("unclosed source range");
   }
+
+  static long unsigned(byte[] bytes, int offset, int width) {
+    long value = 0;
+    for (int index = width - 1; index >= 0; index--) {
+      value = value * 256 + Byte.toUnsignedInt(bytes[offset + index]);
+    }
+    return value;
+  }
 }

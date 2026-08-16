@@ -28,6 +28,10 @@ final class NativeCompilerArchiveClosureProgram {
           "wheeler.compiler.closure.reversible_token_coordinates"))
       .findFirst()
       .orElseThrow();
+  static final PhysicalModule PHYSICAL_TYPE_KINDS_MODULE = PHYSICAL_MODULES.stream()
+      .filter(module -> module.name().equals("wheeler.compiler.type_kinds"))
+      .findFirst()
+      .orElseThrow();
 
   private NativeCompilerArchiveClosureProgram() {}
 
@@ -972,6 +976,9 @@ final class NativeCompilerArchiveClosureProgram {
             .replace(
                 "REVERSIBLE_SOURCE_MODULE_OWNER",
                 Integer.toString(physicalOwner(PHYSICAL_REVERSIBLE_MODULE)))
+            .replace(
+                "TYPE_KINDS_SOURCE_MODULE_OWNER",
+                Integer.toString(physicalOwner(PHYSICAL_TYPE_KINDS_MODULE)))
             .replace("PHYSICAL_CLOSURE_MODULE_COUNT", Integer.toString(
                 CompilerSources.bootstrapModuleManifest().modules().size()))
             .replace(

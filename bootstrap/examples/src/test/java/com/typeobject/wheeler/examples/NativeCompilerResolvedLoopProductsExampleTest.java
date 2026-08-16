@@ -221,6 +221,7 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
               /* archiveSourceStart= */ 0,
               /* firstCallable= */ 0,
               /* callableCount= */ 1,
+              /* reversibleCallableCount= */ 0,
               bodyStarts,
               statementPlan.statementCount,
               sourceStatements,

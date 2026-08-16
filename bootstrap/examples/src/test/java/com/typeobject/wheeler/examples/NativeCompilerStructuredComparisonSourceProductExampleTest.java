@@ -54,6 +54,20 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
+  void emitsBinaryReturnProducts() throws Exception {
+    assertArtifact(SOURCE.replace(
+        "    return length;\n",
+        "    return length + sourceStart;\n"));
+  }
+
+  @Test
+  void rejectsMalformedBinaryReturnProducts() throws Exception {
+    assertNoArtifact(SOURCE.replace(
+        "    return length;\n",
+        "    return length +;\n"));
+  }
+
+  @Test
   void emitsABooleanReturnSlot() throws Exception {
     String booleanReturn = SOURCE.replace(
         "public long copyOffset(",
