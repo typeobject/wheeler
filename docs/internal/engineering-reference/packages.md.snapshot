@@ -89,7 +89,7 @@ Target kinds are exactly `deployable`, `library`, and `tool`. Examples use ordin
 
 A single-source target declares only `root`. A module target also declares its root module and a sorted `sources` list. Each selector names one file or one physical directory. A directory contributes regular nonsymlink `.w` files recursively in canonical logical-path order. It must contribute at least one file, and the expanded target may contain at most 1,024 files.
 
-Selectors must be unique and must include `root`. The compiler derives and checks the `module` declaration in each selected file. It then applies the closed module-graph rules in the [language profile](language-profile.md). File paths never imply module names.
+Selectors must be unique and must include `root`. The compiler derives and checks the `module` declaration in each selected file. It then applies the closed module-graph rules in the [language profile](language-profile.md.snapshot). File paths never imply module names.
 
 A `library` target must be modular, and its root must have no entry point. Stage 0 emits a verified library `.wbc` with one inert internal `$library` entry so the normal container remains valid. Consumers never call that entry.
 

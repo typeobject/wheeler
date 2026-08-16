@@ -157,4 +157,4 @@ Later, `bootstrap/stage0` will compile the exact compiler package into stage 1, 
 
 Recovery-seed promotion also needs WIP-0007's diverse compilation path, full provenance, and a comparison made before any candidate-produced code runs. `wheeler bootstrap-features` publishes the closed source-profile contract, and `wheeler bootstrap-modules` derives the exact compiler-tool module DAG and source identities from the canonical source archive. `wheeler bootstrap-manifest` performs the bounded byte comparisons and writes canonical `wheeler.bootstrap.yaml` atomically. It rejects unequal stages, different diagnostics, duplicate compiler identities, and stale acceptance trees.
 
-The [bootstrap evidence reference](bootstrap.md) defines every bound identity and the remaining pipeline-order requirement.
+The [bootstrap evidence reference](bootstrap.md.snapshot) defines every bound identity and the remaining pipeline-order requirement.

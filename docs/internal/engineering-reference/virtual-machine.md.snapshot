@@ -145,7 +145,7 @@ An optional transition observer receives an immutable function, instruction, opc
 
 The implemented compatibility machine executes every current artifact through a canonical task table containing `TaskId.ROOT` in workflow epoch zero. Snapshots expose the selected task, scheduler cursor, epoch, immutable task statuses, and the task-to-frame map. Hierarchical TaskId construction and canonical round-robin selection are bounded and deterministic. Spawn, join, replay plans, and atomics remain WIP-0039 work.
 
-The stage-0 semantic coverage reducer in [semantic coverage](coverage.md) uses this boundary without changing artifacts or history.
+The stage-0 semantic coverage reducer in [semantic coverage](coverage.md.snapshot) uses this boundary without changing artifacts or history.
 
 The VM traps deterministically on invalid expectations, overflow, or missing inverses. It also traps on bad local or branch access, register type mismatches, and non-Boolean conditions. Other failures include exhausted loop limits, call depth above 1,024 frames, escaped instruction pointers, full history, and an exceeded step limit.
 
