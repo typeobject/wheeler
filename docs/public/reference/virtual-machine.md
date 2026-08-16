@@ -20,11 +20,13 @@ A machine owns:
 - immutable control frames with typed local registers.
 - separate tables for records, variants, arrays, and slices.
 - affine regions, buffers, UTF-8 owners, signed maps, and active loans.
-- the selected workflow task and scheduler cursor.
+- the root task frame stack, status, and scheduler cursor.
 - an ordered stack of transition records.
 - a monotonic transition number.
 
-Raw host pointers and masked addresses never become machine values.
+Raw host pointers and masked addresses never become machine values. Wheeler 1.0
+publishes only root task zero. Hierarchical task identities remain reserved until
+task creation, joining, ownership transfer, and global rewind enter together.
 
 Newly compiled source normally permits 4,000,000 transitions and 4,000,000 retained
 history entries. An artifact or host may choose lower values. `run()` traps before
