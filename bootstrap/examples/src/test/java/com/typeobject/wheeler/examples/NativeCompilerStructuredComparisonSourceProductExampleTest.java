@@ -122,6 +122,20 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
+  void emitsBooleanEqualityDeclarationProducts() throws Exception {
+    String declaration = SOURCE.replace(
+        "    borrow mut bytes output\n",
+        "    borrow mut bytes output,\n"
+            + "    boolean result\n").replace(
+                "    long index = 0;\n",
+                "    boolean same = result == result;\n"
+                    + "    assert(same);\n"
+                    + "    long index = 0;\n");
+
+    assertArtifact(declaration);
+  }
+
+  @Test
   void emitsBooleanLiteralDeclarationProducts() throws Exception {
     assertArtifact(SOURCE.replace(
         "    long index = 0;\n",
@@ -232,6 +246,62 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
 
     assertTrue(booleanReturn.contains("public boolean copyOffset("));
     assertArtifact(booleanReturn);
+  }
+
+  @Test
+  void emitsBooleanEqualityReturnProducts() throws Exception {
+    String booleanReturn = SOURCE.replace(
+        "public long copyOffset(",
+        "public boolean copyOffset(").replace(
+            "    borrow mut bytes output\n",
+            "    borrow mut bytes output,\n"
+                + "    boolean result\n").replace(
+                    "    return length;\n",
+                    "    return result == result;\n");
+
+    assertArtifact(booleanReturn);
+  }
+
+  @Test
+  void emitsBooleanXorReturnProducts() throws Exception {
+    String booleanReturn = SOURCE.replace(
+        "public long copyOffset(",
+        "public boolean copyOffset(").replace(
+            "    borrow mut bytes output\n",
+            "    borrow mut bytes output,\n"
+                + "    boolean result\n").replace(
+                    "    return length;\n",
+                    "    return result ^ result;\n");
+
+    assertArtifact(booleanReturn);
+  }
+
+  @Test
+  void rejectsMixedBooleanEqualityReturnProducts() throws Exception {
+    String booleanReturn = SOURCE.replace(
+        "public long copyOffset(",
+        "public boolean copyOffset(").replace(
+            "    borrow mut bytes output\n",
+            "    borrow mut bytes output,\n"
+                + "    boolean result\n").replace(
+                    "    return length;\n",
+                    "    return result == length;\n");
+
+    assertNoArtifact(booleanReturn);
+  }
+
+  @Test
+  void rejectsBooleanLessThanReturnProducts() throws Exception {
+    String booleanReturn = SOURCE.replace(
+        "public long copyOffset(",
+        "public boolean copyOffset(").replace(
+            "    borrow mut bytes output\n",
+            "    borrow mut bytes output,\n"
+                + "    boolean result\n").replace(
+                    "    return length;\n",
+                    "    return result < result;\n");
+
+    assertNoArtifact(booleanReturn);
   }
 
   @Test

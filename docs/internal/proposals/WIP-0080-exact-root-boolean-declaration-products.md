@@ -9,7 +9,7 @@
 | Area | Self-hosting compiler, Boolean values, declaration products |
 | Depends on | WIP-0054, WIP-0056, WIP-0069, WIP-0070 |
 | Supersedes | Parser projection for root Boolean declarations |
-| Superseded by | None |
+| Superseded by | WIP-0082 for Boolean source-source equality |
 
 ## Summary
 
@@ -46,7 +46,7 @@ The declaration requires the `boolean` token, one destination identifier, `=`, o
 
 Literal initializers accept only `true` and `false`. Preserved-source initializers require a Boolean source. Comparison initializers currently require signed operands and `<` or `==`. Signed arithmetic, signed sources, incomplete relations, and trailing tokens fail before publication.
 
-Boolean equality over two Boolean sources remains outside this product. The shared ordinary comparison validator currently owns signed comparison operands.
+Boolean equality over two Boolean sources remains outside this product's initial scope. WIP-0082 extends the shared ordinary comparison validator with exact Boolean source-source equality.
 
 ## Encoding and widths
 

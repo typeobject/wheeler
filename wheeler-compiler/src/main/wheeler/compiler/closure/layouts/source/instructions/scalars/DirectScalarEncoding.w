@@ -218,6 +218,18 @@ classical class DirectScalarEncoding {
         return false;
       }
 
+      if (leftType == TOKEN_BOOLEAN) {
+        if (operation != OPCODE_LOCAL_EQ) {
+          return false;
+        }
+
+        if (kind != RESULT_RELATION_BINARY_SOURCES) {
+          return false;
+        }
+
+        return rightType == TOKEN_BOOLEAN;
+      }
+
       if (leftType != TOKEN_LONG) {
         return false;
       }
@@ -289,11 +301,18 @@ classical class DirectScalarEncoding {
       return new DirectScalarExtent(0, 0, 0, false);
     }
 
-    if (leftType != TOKEN_LONG) {
-      return new DirectScalarExtent(0, 0, 0, false);
+    boolean operandTypesValid = leftType == TOKEN_LONG;
+    if (rightType != TOKEN_LONG) {
+      operandTypesValid = false;
     }
 
-    if (rightType != TOKEN_LONG) {
+    if (operation == OPCODE_LOCAL_EQ) {
+      if (leftType == TOKEN_BOOLEAN) {
+        operandTypesValid = rightType == TOKEN_BOOLEAN;
+      }
+    }
+
+    if (operandTypesValid == false) {
       return new DirectScalarExtent(0, 0, 0, false);
     }
 
