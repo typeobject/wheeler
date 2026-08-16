@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-16 |
 | Updated | 2026-08-16 |
@@ -69,7 +69,15 @@ Both modules now appear once in the ordered direct-route list. The physical clos
 
 The conditional product reports distinct failures for a nonsigned child result, an invalid direct return type relation, an out-of-range child window, and a failed child encoding extent. The outer direct statement plan retains the source statement and failure code. It publishes no partial rows.
 
-Focused evidence compares a computed signed child byte for byte and rejects a Boolean comparison child. Multiple children remain invalid.
+Focused evidence compares preserved-source and computed signed children byte for byte and rejects a Boolean comparison child. Multiple children remain invalid.
+
+## Bootstrap closure
+
+The compiler archive contains 2,951,602 bytes and has identity `f185f2e500de251cb3bd1c4184d923075a1fae93a031a5d00629d07abd4ad904`. The package manifest identity remains `e83091ee70e165f76eefcb2135d2b9620af0906f39affb8a0013e9e60bf894c2`. All four dependent locks name both identities.
+
+The bootstrap module manifest contains 172,543 bytes, 372 modules, two externals, and 1,816 imports. Native validation halts after 71,675,897 transitions under the 73,000,000-transition ceiling.
+
+The 96-product physical subset remains unchanged. It contains 228 functions and 8,286 instructions in 246,040 bytes. Its identity is `3d6e88c426f12d34912a1b14120cd59de093c243e101edf9c05efb30b5d6b679`.
 
 ## Acceptance
 
@@ -80,9 +88,9 @@ Focused evidence compares a computed signed child byte for byte and rejects a Bo
 - [x] Boolean comparison children and multiple children publish no artifact.
 - [x] `ResolvedLocalEqualityKinds.w` and `ResolvedLocalInequalityKinds.w` match stage 0 byte for byte.
 - [x] The complete physical product closure matches stage 0 byte for byte.
-- [ ] Compiler archive identities, dependent locks, and bootstrap budgets are current.
-- [ ] A fresh locked workspace build passes.
-- [ ] Source, documentation, line, and directory-width policy pass.
+- [x] Compiler archive identities, dependent locks, and bootstrap budgets are current.
+- [x] A fresh locked workspace build passes.
+- [x] Source, documentation, line, and directory-width policy pass.
 
 ## Rejected alternatives
 
