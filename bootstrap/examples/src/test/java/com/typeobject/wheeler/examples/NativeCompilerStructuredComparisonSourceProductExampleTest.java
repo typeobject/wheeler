@@ -108,6 +108,51 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
+  void emitsBooleanComparisonDeclarationProducts() throws Exception {
+    assertArtifact(SOURCE.replace(
+        "    long index = 0;\n",
+        "    boolean before = length < sourceStart;\n"
+            + "    assert(before);\n"
+            + "    long index = 0;\n"));
+    assertArtifact(SOURCE.replace(
+        "    long index = 0;\n",
+        "    boolean same = length == sourceStart;\n"
+            + "    assert(same);\n"
+            + "    long index = 0;\n"));
+  }
+
+  @Test
+  void emitsBooleanLiteralDeclarationProducts() throws Exception {
+    assertArtifact(SOURCE.replace(
+        "    long index = 0;\n",
+        "    boolean before = true;\n"
+            + "    assert(before);\n"
+            + "    long index = 0;\n"));
+  }
+
+  @Test
+  void emitsBooleanSourceDeclarationProducts() throws Exception {
+    String declaration = SOURCE.replace(
+        "    borrow mut bytes output\n",
+        "    borrow mut bytes output,\n"
+            + "    boolean result\n").replace(
+                "    long index = 0;\n",
+                "    boolean before = result;\n"
+                    + "    assert(before);\n"
+                    + "    long index = 0;\n");
+
+    assertArtifact(declaration);
+  }
+
+  @Test
+  void rejectsSignedBooleanDeclarationProducts() throws Exception {
+    assertNoArtifact(SOURCE.replace(
+        "    long index = 0;\n",
+        "    boolean before = length + sourceStart;\n"
+            + "    long index = 0;\n"));
+  }
+
+  @Test
   void emitsImportedConstantDeclarationProducts() throws Exception {
     assertArtifact(SOURCE.replace(
         "    long index = 0;\n",

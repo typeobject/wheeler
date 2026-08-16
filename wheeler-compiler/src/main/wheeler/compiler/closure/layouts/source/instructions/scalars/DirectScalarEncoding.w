@@ -269,6 +269,7 @@ classical class DirectScalarEncoding {
     long operation,
     long right,
     long rightType,
+    long resultType,
     long immediate
   ) {
     assert(bufferLength(output) == MAX_CODE_BYTES);
@@ -284,7 +285,7 @@ classical class DirectScalarEncoding {
       return new DirectScalarExtent(0, 0, 0, false);
     }
 
-    if (comparisonOperation(operation)) {
+    if (directRelationResultType(operation, leftType) != resultType) {
       return new DirectScalarExtent(0, 0, 0, false);
     }
 

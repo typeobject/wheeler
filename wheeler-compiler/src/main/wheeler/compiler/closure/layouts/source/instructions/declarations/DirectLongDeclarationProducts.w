@@ -319,6 +319,7 @@ classical class DirectLongDeclarationProducts {
           initializer.operation,
           initializer.right,
           initializer.rightType,
+          TYPE_SIGNED,
           initializer.immediate
         );
         if (scalar.valid == false) {
