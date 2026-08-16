@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-16 |
 | Updated | 2026-08-16 |
@@ -67,6 +67,14 @@ Focused fixtures cover literal, preserved-source, signed binary, and signed cons
 
 The local closure run completes under the fixed method deadline with `CompilerMachineRunner.runWithoutRewindHistory`. The test retains the deadline rather than raising it.
 
+## Bootstrap closure
+
+The compiler archive contains 2,955,160 bytes and has identity `1b0b2abf972600fe7f3fe2ce2af202c471276c638a4482fde57b63d0df5039d7`. The package manifest identity remains `e83091ee70e165f76eefcb2135d2b9620af0906f39affb8a0013e9e60bf894c2`. All four dependent locks name both identities.
+
+The bootstrap module manifest remains 172,543 bytes with 372 modules, two externals, and 1,816 imports. Native validation halts after 71,675,747 transitions under the 73,000,000-transition ceiling.
+
+The 96-product physical subset remains unchanged. It contains 228 functions and 8,286 instructions in 246,040 bytes. Its identity is `3d6e88c426f12d34912a1b14120cd59de093c243e101edf9c05efb30b5d6b679`.
+
 ## Acceptance
 
 - [x] Root-block lookup runs once per contiguous callable-owner statement range.
@@ -77,9 +85,9 @@ The local closure run completes under the fixed method deadline with `CompilerMa
 - [x] Parent statements still resolve by exact root block and child-block identity.
 - [x] Focused conditional fixtures match stage 0 or fail before publication.
 - [x] The complete physical product closure matches stage 0 byte for byte under its existing deadline.
-- [ ] Compiler archive identities, dependent locks, and bootstrap budgets are current.
-- [ ] A fresh locked workspace build passes.
-- [ ] Source, documentation, line, and directory-width policy pass.
+- [x] Compiler archive identities, dependent locks, and bootstrap budgets are current.
+- [x] A fresh locked workspace build passes.
+- [x] Source, documentation, line, and directory-width policy pass.
 
 ## Rejected alternatives
 
