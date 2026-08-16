@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-16 |
 | Updated | 2026-08-16 |
@@ -71,6 +71,14 @@ A Boolean less-than return publishes no artifact. The existing Boolean XOR retur
 
 The complete physical product closure compiles and preserves every selected artifact and linked subset byte after the validator change.
 
+## Bootstrap closure
+
+The compiler archive contains 2,968,247 bytes and has identity `8a9561a333c2614b077f44ab670cf29243cbf7e2692ac99ed839f6159c1ad8ad`. The package manifest identity remains `e83091ee70e165f76eefcb2135d2b9620af0906f39affb8a0013e9e60bf894c2`. All four dependent locks name both identities.
+
+The bootstrap module manifest remains 173,585 bytes with 373 modules, two externals, and 1,832 imports. Native validation halts after 72,194,806 transitions under the 73,000,000-transition ceiling.
+
+The 96-product physical subset remains unchanged. It contains 228 functions and 8,286 instructions in 246,040 bytes. Its identity is `3d6e88c426f12d34912a1b14120cd59de093c243e101edf9c05efb30b5d6b679`.
+
 ## Acceptance
 
 - [x] Ordinary Boolean source-source equality passes exact type validation.
@@ -80,9 +88,9 @@ The complete physical product closure compiles and preserves every selected arti
 - [x] Reversible Boolean equality remains invalid.
 - [x] Focused return and declaration fixtures match stage 0 byte for byte.
 - [x] The complete physical product closure matches stage 0 byte for byte.
-- [ ] Compiler archive identities, dependent locks, and bootstrap budgets are current.
-- [ ] A fresh locked workspace build passes.
-- [ ] Source, documentation, line, and directory-width policy pass.
+- [x] Compiler archive identities, dependent locks, and bootstrap budgets are current.
+- [x] A fresh locked workspace build passes.
+- [x] Source, documentation, line, and directory-width policy pass.
 
 ## Rejected alternatives
 
