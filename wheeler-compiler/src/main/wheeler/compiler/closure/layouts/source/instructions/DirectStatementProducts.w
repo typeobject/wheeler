@@ -115,7 +115,7 @@ classical class DirectStatementProducts {
     words functionPrefixesComplete = allocate(staging, /* length= */ 64);
     bytes stagedCode = allocateBytes(staging, MAX_CODE_BYTES);
     long stagedStatement = 0;
-    while (stagedStatement < MAX_STATEMENTS) limit MAX_STATEMENTS {
+    while (stagedStatement < statementCount) limit MAX_STATEMENTS {
       set(stagedPhysicalWidths, stagedStatement, statementPhysicalWidths[stagedStatement]);
       stagedStatement += 1;
     }
@@ -675,8 +675,14 @@ classical class DirectStatementProducts {
 
     if (valid) {
       long row = 0;
-      while (row < DIRECT_ROWS) limit DIRECT_ROWS {
+      while (row < productCount) limit MAX_STATEMENTS {
         set(directRows, row, stagedRows[row]);
+        set(directRows, 4096 + row, stagedRows[4096 + row]);
+        set(directRows, 8192 + row, stagedRows[8192 + row]);
+        set(directRows, 12288 + row, stagedRows[12288 + row]);
+        set(directRows, 16384 + row, stagedRows[16384 + row]);
+        set(directRows, 20480 + row, stagedRows[20480 + row]);
+        set(directRows, 24576 + row, stagedRows[24576 + row]);
         row += 1;
       }
 
@@ -687,13 +693,15 @@ classical class DirectStatementProducts {
       }
 
       row = 0;
-      while (row < TYPE_ROWS) limit TYPE_ROWS {
+      while (row < typeCount) limit 4096 {
         set(typeRows, row, stagedTypes[row]);
+        set(typeRows, 4096 + row, stagedTypes[4096 + row]);
+        set(typeRows, 8192 + row, stagedTypes[8192 + row]);
         row += 1;
       }
 
       row = 0;
-      while (row < MAX_STATEMENTS) limit MAX_STATEMENTS {
+      while (row < statementCount) limit MAX_STATEMENTS {
         set(statementPhysicalWidths, row, stagedPhysicalWidths[row]);
         row += 1;
       }
