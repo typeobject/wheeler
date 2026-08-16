@@ -72,9 +72,9 @@ Focused fixtures compare root and conditional constant returns byte for byte. Ex
 
 ## Bootstrap closure
 
-The compiler archive contains 2,953,648 bytes and has identity `7df5e6235e2528544526ba8fbc38ed53ac7e853c19e2c4347594802301b7ab22`. The package manifest identity remains `e83091ee70e165f76eefcb2135d2b9620af0906f39affb8a0013e9e60bf894c2`. All four dependent locks name both identities.
+The compiler archive contains 2,955,226 bytes and has identity `1c1fc199fc87071d5341ad5b17a81b3dc0f524b8efe41f2dd01e5d0fcc8cf34e`. The package manifest identity remains `e83091ee70e165f76eefcb2135d2b9620af0906f39affb8a0013e9e60bf894c2`. All four dependent locks name both identities.
 
-The bootstrap module manifest remains 172,543 bytes with 372 modules, two externals, and 1,816 imports. Native validation halts after 71,675,819 transitions under the 73,000,000-transition ceiling.
+The bootstrap module manifest remains 172,543 bytes with 372 modules, two externals, and 1,816 imports. Native validation halts after 71,675,885 transitions under the 73,000,000-transition ceiling.
 
 The 96-product physical subset remains unchanged. It contains 228 functions and 8,286 instructions in 246,040 bytes. Its identity is `3d6e88c426f12d34912a1b14120cd59de093c243e101edf9c05efb30b5d6b679`.
 
