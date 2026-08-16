@@ -14,6 +14,10 @@ tutorial_evidence: intended-hardware-workflow-and-formal-records
 
 # Weather
 
+Refrigeration entered the handrail as Tala descended from the main-array gallery.
+Gravity weakened at each landing. By the chamber level, the vibration had grown
+strong enough to numb her palm.
+
 Three decks of machinery stood behind the target's single callable interface.
 
 Vacuum pumps pulled against leaks too small for human hearing. Nested shields carried heat toward refrigeration. Control racks

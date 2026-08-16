@@ -14,8 +14,14 @@ tutorial_evidence: intended-ideal-execution
 
 # Search
 
-Four outer-truss channels inherited the names of Sable's lost equatorial camps. Dawn had traveled the sunward rim, and Evening kept
-the opposing side. Cross maintained the surface road. Deep ended its migration in lava-tube shelter.
+The contract rack released its training module before the chamber schedule
+advanced to the next task. Four channel lamps faced Tala at shoulder height.
+Through the glass behind them, matching cables ran outward along the truss toward
+four timing cavities.
+
+The channels inherited the names of Sable's lost equatorial camps. Dawn had
+traveled the sunward rim, and Evening kept the opposing side. Cross maintained
+the surface road. Deep ended its migration in lava-tube shelter.
 
 The camps were gone. Their names remained in maintenance speech, beside a
 collapsed antenna field and debts the cooperative still honored. Charter

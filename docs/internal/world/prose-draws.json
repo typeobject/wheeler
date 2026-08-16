@@ -1,0 +1,268 @@
+{
+  "schema": 1,
+  "seed": 12560211606378549288,
+  "source": "operating-system entropy",
+  "method": "shuffle without replacement; reshuffle only after a deck is exhausted",
+  "cards": [
+    {
+      "opening_scale": "astronomical",
+      "physical_anchor": "a pressure seal",
+      "dominant_sense": "texture",
+      "exposition_method": "legal decision",
+      "cadence": "quiet sequence of medium sentences",
+      "closing_gesture": "altered meaning of an earlier object",
+      "forbidden_habit": "a list of three",
+      "assignment": "appendix-earth"
+    },
+    {
+      "opening_scale": "civic",
+      "physical_anchor": "a handwritten correction",
+      "dominant_sense": "temperature",
+      "exposition_method": "journey",
+      "cadence": "abrupt opening followed by patient observation",
+      "closing_gesture": "change of scale",
+      "forbidden_habit": "a closing aphorism",
+      "assignment": "appendix-charters"
+    },
+    {
+      "opening_scale": "historical",
+      "physical_anchor": "a repaired surface",
+      "dominant_sense": "smell",
+      "exposition_method": "work account",
+      "cadence": "dialogue framed by a slower descriptive passage",
+      "closing_gesture": "new obligation",
+      "forbidden_habit": "corrective dialogue",
+      "assignment": "appendix-withdrawal"
+    },
+    {
+      "opening_scale": "domestic",
+      "physical_anchor": "a worn piece of clothing",
+      "dominant_sense": "weight",
+      "exposition_method": "failed test",
+      "cadence": "short opening followed by gradual expansion",
+      "closing_gesture": "movement toward the next place",
+      "forbidden_habit": "an abstract opening sentence",
+      "assignment": "appendix-air-law"
+    },
+    {
+      "opening_scale": "institutional",
+      "physical_anchor": "an inherited tool",
+      "dominant_sense": "sound",
+      "exposition_method": "lesson by demonstration",
+      "cadence": "periodic sentence relieved by plain statements",
+      "closing_gesture": "unanswered practical question",
+      "forbidden_habit": "negative antithesis",
+      "assignment": "appendix-roads"
+    },
+    {
+      "opening_scale": "personal",
+      "physical_anchor": "a sound in the hull",
+      "dominant_sense": "light",
+      "exposition_method": "professional disagreement",
+      "cadence": "long approach ending in a short decision",
+      "closing_gesture": "irreversible action",
+      "forbidden_habit": "a row of fragments",
+      "assignment": "appendix-catenary"
+    },
+    {
+      "opening_scale": "mechanical",
+      "physical_anchor": "a public notice",
+      "dominant_sense": "motion",
+      "exposition_method": "ceremony",
+      "cadence": "dialogue framed by a slower descriptive passage",
+      "closing_gesture": "physical image",
+      "forbidden_habit": "the same noun in neighboring sentences",
+      "assignment": "appendix-archive"
+    },
+    {
+      "opening_scale": "domestic",
+      "physical_anchor": "a moving light",
+      "dominant_sense": "texture",
+      "exposition_method": "repair",
+      "cadence": "short opening followed by gradual expansion",
+      "closing_gesture": "change of scale",
+      "forbidden_habit": "negative antithesis",
+      "assignment": "appendix-sable"
+    },
+    {
+      "opening_scale": "mechanical",
+      "physical_anchor": "a shared meal",
+      "dominant_sense": "weight",
+      "exposition_method": "journey",
+      "cadence": "quiet sequence of medium sentences",
+      "closing_gesture": "irreversible action",
+      "forbidden_habit": "corrective dialogue",
+      "assignment": "appendix-families"
+    },
+    {
+      "opening_scale": "civic",
+      "physical_anchor": "a pressure seal",
+      "dominant_sense": "temperature",
+      "exposition_method": "lesson by demonstration",
+      "cadence": "long approach ending in a short decision",
+      "closing_gesture": "altered meaning of an earlier object",
+      "forbidden_habit": "the same noun in neighboring sentences",
+      "assignment": "appendix-wheeler"
+    },
+    {
+      "opening_scale": "institutional",
+      "physical_anchor": "a public notice",
+      "dominant_sense": "motion",
+      "exposition_method": "repair",
+      "cadence": "periodic sentence relieved by plain statements",
+      "closing_gesture": "movement toward the next place",
+      "forbidden_habit": "a closing aphorism",
+      "assignment": "appendix-calendar"
+    },
+    {
+      "opening_scale": "historical",
+      "physical_anchor": "a worn piece of clothing",
+      "dominant_sense": "sound",
+      "exposition_method": "work account",
+      "cadence": "abrupt opening followed by patient observation",
+      "closing_gesture": "physical image",
+      "forbidden_habit": "a row of fragments",
+      "assignment": "appendix-names"
+    },
+    {
+      "opening_scale": "personal",
+      "physical_anchor": "a handwritten correction",
+      "dominant_sense": "light",
+      "exposition_method": "legal decision",
+      "cadence": "periodic sentence relieved by plain statements",
+      "closing_gesture": "unanswered practical question",
+      "forbidden_habit": "an abstract opening sentence",
+      "assignment": "home"
+    },
+    {
+      "opening_scale": "astronomical",
+      "physical_anchor": "an inherited tool",
+      "dominant_sense": "smell",
+      "exposition_method": "ceremony",
+      "cadence": "quiet sequence of medium sentences",
+      "closing_gesture": "new obligation",
+      "forbidden_habit": "a list of three",
+      "assignment": "departure"
+    },
+    {
+      "opening_scale": "personal",
+      "physical_anchor": "a moving light",
+      "dominant_sense": "texture",
+      "exposition_method": "failed test",
+      "cadence": "long approach ending in a short decision",
+      "closing_gesture": "irreversible action",
+      "forbidden_habit": "an abstract opening sentence",
+      "assignment": "two-signals"
+    },
+    {
+      "opening_scale": "mechanical",
+      "physical_anchor": "a repaired surface",
+      "dominant_sense": "weight",
+      "exposition_method": "professional disagreement",
+      "cadence": "abrupt opening followed by patient observation",
+      "closing_gesture": "unanswered practical question",
+      "forbidden_habit": "negative antithesis",
+      "assignment": "archive"
+    },
+    {
+      "opening_scale": "institutional",
+      "physical_anchor": "a shared meal",
+      "dominant_sense": "temperature",
+      "exposition_method": "journey",
+      "cadence": "short opening followed by gradual expansion",
+      "closing_gesture": "new obligation",
+      "forbidden_habit": "corrective dialogue",
+      "assignment": "long-count"
+    },
+    {
+      "opening_scale": "historical",
+      "physical_anchor": "a sound in the hull",
+      "dominant_sense": "light",
+      "exposition_method": "work account",
+      "cadence": "dialogue framed by a slower descriptive passage",
+      "closing_gesture": "movement toward the next place",
+      "forbidden_habit": "a row of fragments",
+      "assignment": "contributions"
+    },
+    {
+      "opening_scale": "domestic",
+      "physical_anchor": "a public notice",
+      "dominant_sense": "smell",
+      "exposition_method": "repair",
+      "cadence": "quiet sequence of medium sentences",
+      "closing_gesture": "change of scale",
+      "forbidden_habit": "a closing aphorism",
+      "assignment": "one-qubit"
+    },
+    {
+      "opening_scale": "astronomical",
+      "physical_anchor": "a worn piece of clothing",
+      "dominant_sense": "motion",
+      "exposition_method": "professional disagreement",
+      "cadence": "long approach ending in a short decision",
+      "closing_gesture": "physical image",
+      "forbidden_habit": "the same noun in neighboring sentences",
+      "assignment": "two-systems"
+    },
+    {
+      "opening_scale": "civic",
+      "physical_anchor": "a handwritten correction",
+      "dominant_sense": "sound",
+      "exposition_method": "legal decision",
+      "cadence": "abrupt opening followed by patient observation",
+      "closing_gesture": "altered meaning of an earlier object",
+      "forbidden_habit": "a list of three",
+      "assignment": "crossing"
+    },
+    {
+      "opening_scale": "institutional",
+      "physical_anchor": "a shared meal",
+      "dominant_sense": "motion",
+      "exposition_method": "ceremony",
+      "cadence": "short opening followed by gradual expansion",
+      "closing_gesture": "irreversible action",
+      "forbidden_habit": "an abstract opening sentence",
+      "assignment": "contract-machine"
+    },
+    {
+      "opening_scale": "historical",
+      "physical_anchor": "a moving light",
+      "dominant_sense": "smell",
+      "exposition_method": "failed test",
+      "cadence": "periodic sentence relieved by plain statements",
+      "closing_gesture": "physical image",
+      "forbidden_habit": "negative antithesis",
+      "assignment": "search"
+    },
+    {
+      "opening_scale": "domestic",
+      "physical_anchor": "a sound in the hull",
+      "dominant_sense": "sound",
+      "exposition_method": "lesson by demonstration",
+      "cadence": "dialogue framed by a slower descriptive passage",
+      "closing_gesture": "altered meaning of an earlier object",
+      "forbidden_habit": "corrective dialogue",
+      "assignment": "far-instrument"
+    },
+    {
+      "opening_scale": "civic",
+      "physical_anchor": "a pressure seal",
+      "dominant_sense": "temperature",
+      "exposition_method": "ceremony",
+      "cadence": "periodic sentence relieved by plain statements",
+      "closing_gesture": "movement toward the next place",
+      "forbidden_habit": "a row of fragments",
+      "assignment": "weather"
+    },
+    {
+      "opening_scale": "personal",
+      "physical_anchor": "a repaired surface",
+      "dominant_sense": "texture",
+      "exposition_method": "lesson by demonstration",
+      "cadence": "quiet sequence of medium sentences",
+      "closing_gesture": "new obligation",
+      "forbidden_habit": "a closing aphorism",
+      "assignment": "tutorial-index"
+    }
+  ]
+}

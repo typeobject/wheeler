@@ -14,8 +14,14 @@ tutorial_evidence: exact-record-and-intended-seeded-sample
 
 # Long Count
 
-Twelve hours after the Archive, the last traffic return vanished. *Vela* crossed a region where aid required weeks and waste heat
-outshone every neighboring object.
+Tala woke because the ship had become too quiet. The drive was idle, and the
+traffic receiver had stopped murmuring through the bulkhead beside her berth. She
+pulled herself along the ceiling rail to the galley, where Sana had strapped the
+gray book to the chart table.
+
+The last traffic return had vanished during her sleep, twelve hours after the
+Archive fell behind them. *Vela* crossed a region where aid required weeks and the
+ship's waste heat outshone every neighboring object.
 
 Passage watches replaced station time. Mara divided sleep into short pieces. Osei listened through meals for changes in pump tone.
 Every morning Sana opened a new account page, even when vacuum had supplied nothing to enter.
@@ -35,16 +41,21 @@ Mara defended the arrangement as design, Osei as scheduling. Sana had opened an 
 
 The gray book traveled with the watch.
 
-Catenary turned close to the Giant, deep inside its restless magnetic field.
-Sable wandered a wide, irregular orbit near the sunward boundary, where the
-star's charged wind first pressed against that field. In this season the moon
-crossed the weather before Catenary did. Its clocks kept an independent rhythm.
-Its instruments felt the charged front while the inner habitats still had time
-to prepare.
+Tala opened the route map above the table. The Giant occupied its center as a
+striped disk. Catenary's wheels clustered deep inside the magnetic field to the
+right of *Vela*'s track. Sable moved far to sunward on an irregular captured
+orbit, close to the boundary where stellar wind first pressed against the
+Giant's field.
 
-That geography had given a small cooperative a place in the Second Navigation.
-Catenary supplied traffic and a common optical reference. Sable supplied the
-weatherward comparison. Neither could make the other's observation by decree.
+She advanced the weather layer. The charged front crossed Sable's path first.
+Only later did the model carry it inward to Catenary. Sable's independent clocks
+and instruments therefore felt a change while the traffic lanes still had time
+to act.
+
+The Second Navigation had grown around that geometry. Catenary supplied the
+traffic network and an optical reference. Sable supplied a comparison made on the
+weatherward side. No vote at either port could manufacture the other's
+observation.
 
 Early surveys had processed Sable's darkness as an absence in their data. The instrument orbiting that moon greeted *Vela* with
 thirty-two binary observations and no explanation.

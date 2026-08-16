@@ -1,0 +1,489 @@
+{
+  "schema": 1,
+  "files": [
+    "docs/public/tutorials/00-return-to-which-state.md",
+    "docs/public/tutorials/01-write-the-first-instruction.md",
+    "docs/public/tutorials/02-ask-the-machine-to-act.md",
+    "docs/public/tutorials/03-one-thing-to-remember.md",
+    "docs/public/tutorials/04-long-count.md",
+    "docs/public/tutorials/05-contributions-that-cancel.md",
+    "docs/public/tutorials/06-one-qubit.md",
+    "docs/public/tutorials/07-two-systems.md",
+    "docs/public/tutorials/08-crossing.md",
+    "docs/public/tutorials/09-contract-machine.md",
+    "docs/public/tutorials/10-search.md",
+    "docs/public/tutorials/11-far-instrument.md",
+    "docs/public/tutorials/12-weather.md",
+    "docs/public/tutorials/index.mdx",
+    "docs/public/appendix/index.mdx"
+  ],
+  "word_count": 20408,
+  "paragraph_count": 881,
+  "sentence_count": 1947,
+  "abstract_words": {
+    "bounded": 0,
+    "exact": 3,
+    "claim": 4,
+    "claims": 1,
+    "record": 9,
+    "records": 9,
+    "return": 23,
+    "returns": 1,
+    "state": 84,
+    "states": 16
+  },
+  "templates": {
+    "not_x_but_y": 0,
+    "not_x_it_was_y": 0,
+    "no_fragment_pair": 0,
+    "same_different": 0
+  },
+  "repeated_paragraph_openings": [
+    {
+      "opening": "the common book",
+      "count": 5
+    },
+    {
+      "opening": "the gray book",
+      "count": 3
+    },
+    {
+      "opening": "she compiled the",
+      "count": 2
+    },
+    {
+      "opening": "mara read the",
+      "count": 2
+    },
+    {
+      "opening": "mara had grown",
+      "count": 2
+    },
+    {
+      "opening": "the second navigation",
+      "count": 2
+    },
+    {
+      "opening": "sana opened the",
+      "count": 2
+    },
+    {
+      "opening": "the far instrument",
+      "count": 2
+    },
+    {
+      "opening": "iona made the",
+      "count": 2
+    },
+    {
+      "opening": "tala used the",
+      "count": 2
+    },
+    {
+      "opening": "the target schedule",
+      "count": 2
+    },
+    {
+      "opening": "iona opened the",
+      "count": 2
+    },
+    {
+      "opening": "mara returned to",
+      "count": 2
+    },
+    {
+      "opening": "the left relay",
+      "count": 2
+    },
+    {
+      "opening": "sana recorded the",
+      "count": 2
+    },
+    {
+      "opening": "the compiler emitted",
+      "count": 2
+    },
+    {
+      "opening": "sana arranged the",
+      "count": 2
+    },
+    {
+      "opening": "osei executed the",
+      "count": 2
+    }
+  ],
+  "repeated_four_grams": [
+    {
+      "phrase": "the common book of",
+      "count": 4
+    },
+    {
+      "phrase": "common book of return",
+      "count": 4
+    },
+    {
+      "phrase": "to the chart table",
+      "count": 3
+    },
+    {
+      "phrase": "the chart table the",
+      "count": 3
+    },
+    {
+      "phrase": "of the common book",
+      "count": 3
+    },
+    {
+      "phrase": "navigation clocks their keepers",
+      "count": 3
+    },
+    {
+      "phrase": "readings chamber receipts and",
+      "count": 2
+    },
+    {
+      "phrase": "director of traffic continuity",
+      "count": 2
+    },
+    {
+      "phrase": "it belonged to the",
+      "count": 2
+    },
+    {
+      "phrase": "apparently healthy machinery when",
+      "count": 2
+    },
+    {
+      "phrase": "healthy machinery when its",
+      "count": 2
+    },
+    {
+      "phrase": "machinery when its model",
+      "count": 2
+    },
+    {
+      "phrase": "when its model omitted",
+      "count": 2
+    },
+    {
+      "phrase": "its model omitted something",
+      "count": 2
+    },
+    {
+      "phrase": "model omitted something physical",
+      "count": 2
+    },
+    {
+      "phrase": "a pressure section and",
+      "count": 2
+    },
+    {
+      "phrase": "in the gray book",
+      "count": 2
+    },
+    {
+      "phrase": "the gray book an",
+      "count": 2
+    },
+    {
+      "phrase": "salvaging the wrong thing",
+      "count": 2
+    },
+    {
+      "phrase": "carried the black vault",
+      "count": 2
+    }
+  ],
+  "repeated_five_grams": [
+    {
+      "phrase": "the common book of return",
+      "count": 4
+    },
+    {
+      "phrase": "to the chart table the",
+      "count": 3
+    },
+    {
+      "phrase": "apparently healthy machinery when its",
+      "count": 2
+    },
+    {
+      "phrase": "healthy machinery when its model",
+      "count": 2
+    },
+    {
+      "phrase": "machinery when its model omitted",
+      "count": 2
+    },
+    {
+      "phrase": "when its model omitted something",
+      "count": 2
+    },
+    {
+      "phrase": "its model omitted something physical",
+      "count": 2
+    },
+    {
+      "phrase": "in the gray book an",
+      "count": 2
+    },
+    {
+      "phrase": "what is remembered can be",
+      "count": 2
+    },
+    {
+      "phrase": "did not ask you to",
+      "count": 2
+    },
+    {
+      "phrase": "kept her eyes on the",
+      "count": 2
+    },
+    {
+      "phrase": "recension of the common book",
+      "count": 2
+    }
+  ],
+  "similar_cadence_runs": [
+    {
+      "sentence": 29,
+      "word_lengths": [
+        10,
+        8,
+        8
+      ]
+    },
+    {
+      "sentence": 40,
+      "word_lengths": [
+        6,
+        6,
+        8
+      ]
+    },
+    {
+      "sentence": 46,
+      "word_lengths": [
+        10,
+        11,
+        10
+      ]
+    },
+    {
+      "sentence": 47,
+      "word_lengths": [
+        11,
+        10,
+        12
+      ]
+    },
+    {
+      "sentence": 60,
+      "word_lengths": [
+        6,
+        6,
+        6
+      ]
+    },
+    {
+      "sentence": 61,
+      "word_lengths": [
+        6,
+        6,
+        6
+      ]
+    },
+    {
+      "sentence": 79,
+      "word_lengths": [
+        7,
+        6,
+        6
+      ]
+    },
+    {
+      "sentence": 80,
+      "word_lengths": [
+        6,
+        6,
+        8
+      ]
+    },
+    {
+      "sentence": 81,
+      "word_lengths": [
+        6,
+        8,
+        8
+      ]
+    },
+    {
+      "sentence": 90,
+      "word_lengths": [
+        7,
+        8,
+        7
+      ]
+    },
+    {
+      "sentence": 110,
+      "word_lengths": [
+        9,
+        9,
+        10
+      ]
+    },
+    {
+      "sentence": 111,
+      "word_lengths": [
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "sentence": 121,
+      "word_lengths": [
+        14,
+        13,
+        13
+      ]
+    },
+    {
+      "sentence": 164,
+      "word_lengths": [
+        6,
+        5,
+        6
+      ]
+    },
+    {
+      "sentence": 177,
+      "word_lengths": [
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "sentence": 188,
+      "word_lengths": [
+        7,
+        9,
+        8
+      ]
+    },
+    {
+      "sentence": 204,
+      "word_lengths": [
+        10,
+        10,
+        11
+      ]
+    },
+    {
+      "sentence": 205,
+      "word_lengths": [
+        10,
+        11,
+        9
+      ]
+    },
+    {
+      "sentence": 227,
+      "word_lengths": [
+        4,
+        4,
+        5
+      ]
+    },
+    {
+      "sentence": 228,
+      "word_lengths": [
+        4,
+        5,
+        4
+      ]
+    },
+    {
+      "sentence": 229,
+      "word_lengths": [
+        5,
+        4,
+        5
+      ]
+    },
+    {
+      "sentence": 232,
+      "word_lengths": [
+        12,
+        11,
+        13
+      ]
+    },
+    {
+      "sentence": 239,
+      "word_lengths": [
+        11,
+        10,
+        10
+      ]
+    },
+    {
+      "sentence": 240,
+      "word_lengths": [
+        10,
+        10,
+        10
+      ]
+    },
+    {
+      "sentence": 244,
+      "word_lengths": [
+        14,
+        12,
+        12
+      ]
+    },
+    {
+      "sentence": 249,
+      "word_lengths": [
+        8,
+        9,
+        7
+      ]
+    },
+    {
+      "sentence": 253,
+      "word_lengths": [
+        11,
+        9,
+        9
+      ]
+    },
+    {
+      "sentence": 258,
+      "word_lengths": [
+        10,
+        9,
+        8
+      ]
+    },
+    {
+      "sentence": 268,
+      "word_lengths": [
+        5,
+        4,
+        6
+      ]
+    },
+    {
+      "sentence": 269,
+      "word_lengths": [
+        4,
+        6,
+        6
+      ]
+    }
+  ]
+}

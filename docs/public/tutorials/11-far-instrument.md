@@ -14,8 +14,12 @@ tutorial_evidence: current-ideal-model-and-intended-symbolic-certificate
 
 # Far Instrument
 
-Sable's oldest surviving truss carried the main array. Black vanes taller than Tala separated timing heads fixed toward the sky.
-Against the moon below, their edges drew a pale geometry across the gallery glass.
+Beyond the algorithm racks, the maintenance bridge narrowed into Sable's oldest
+surviving truss. Tala followed Iona until it opened into the main-array gallery.
+At the far end, a pressure stair descended toward the physical chamber.
+
+Black vanes taller than Tala separated timing heads fixed toward the sky. Through
+the gallery glass, their edges drew a pale geometry against the moon below.
 
 Two references traveled outward from Catenary. A narrow optical link carried its finest clock rhythm, while microwave carriers bore
 the navigation signal used by approaching ships.
@@ -138,14 +142,20 @@ eighteen months earlier.
 
 "It has now produced the intended motivation."
 
-They wrote the first body while sharing quarters and alternating target watch. Osei later accepted a Catenary refit expected to last
-one year. Iona refused a return date he could not control. He chose enough additional work to fill six years, and she eventually
-stopped reserving his place.
+Tala expanded the old commit metadata. The first body alternated their names on
+successive target watches and gave both the same quarters address. A later branch
+began at Catenary under Osei alone.
 
-Their love remained true in the past and insufficient in the present. Source continued crossing the Reach after their shared life
-ended because merging code required fewer promises.
+"The refit was supposed to take a year," he said.
 
-They removed both comments from the corrected source.
+Iona kept her eyes on the source. "I asked you not to promise a date you did not
+control. I did not ask you to fill six years with work."
+
+The blue cup in Sable's galley had already told Tala that affection survived.
+This exchange told her what it could not repair. Code had continued crossing the
+Reach because a merge required fewer promises than a shared life.
+
+Osei deleted his old comment. Iona deleted hers.
 
 ```wheeler
 quantum class QFT {

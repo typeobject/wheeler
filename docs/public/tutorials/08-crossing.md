@@ -14,7 +14,12 @@ tutorial_evidence: current-execution-and-intended-uncomputation
 
 # Crossing
 
-The Archive exercise had established XOR by one as a complete two-row permutation.
+After the Bell enclosure closed, Iona carried the accepted XOR source out of the
+laboratory. Tala followed her along the frost-lined corridor, through a pressure
+door, and onto the maintenance bridge where the station's shallow gravity fell
+away.
+
+At the Archive, XOR by one had been a complete two-row permutation.
 
 | Input | Output |
 | ---: | ---: |

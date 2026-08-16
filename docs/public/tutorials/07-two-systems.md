@@ -14,8 +14,13 @@ tutorial_evidence: ideal-model-and-intended-seeded-samples
 
 # Two Systems
 
-Opening the second shield brought a deeper pump tone through the deck. Status lamps moved across the walls while the laboratory
-extended isolation around both enclosures.
+When Tala returned after one station sleep, the laboratory had begun to feel
+located rather than merely enclosed. She knew where frost gathered beside the
+clean-room door and where shallow spin made a loose tool creep across a bench.
+
+Iona opened the second shield. A deeper pump tone entered through the deck, and
+status lamps moved across the walls while isolation widened around both
+enclosures.
 
 Sable's machine shop had built the second device. Hand-cut access panels carried a maker's mark shared by several residents. Its
 construction claimed local ancestry rather than resemblance to the first.

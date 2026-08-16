@@ -1,0 +1,483 @@
+{
+  "schema": 1,
+  "files": [
+    "docs/public/intro.md",
+    "docs/public/examples.md",
+    "docs/public/reference/bootstrap.md",
+    "docs/public/reference/bytecode.md",
+    "docs/public/reference/coverage.md",
+    "docs/public/reference/development.md",
+    "docs/public/reference/hybrid-runs.md",
+    "docs/public/reference/io-lifecycle.md",
+    "docs/public/reference/language-profile.md",
+    "docs/public/reference/packages.md",
+    "docs/public/reference/quantum-targets.md",
+    "docs/public/reference/virtual-machine.md",
+    "docs/public/reference/index.mdx"
+  ],
+  "word_count": 14128,
+  "paragraph_count": 626,
+  "sentence_count": 1323,
+  "abstract_words": {
+    "bounded": 0,
+    "exact": 66,
+    "claim": 4,
+    "claims": 7,
+    "record": 11,
+    "records": 35,
+    "return": 12,
+    "returns": 17,
+    "state": 58,
+    "states": 6
+  },
+  "templates": {
+    "not_x_but_y": 1,
+    "not_x_it_was_y": 0,
+    "no_fragment_pair": 0,
+    "same_different": 0
+  },
+  "repeated_paragraph_openings": [
+    {
+      "opening": "expected result the",
+      "count": 8
+    },
+    {
+      "opening": "measurement creates a",
+      "count": 2
+    },
+    {
+      "opening": "expected result and",
+      "count": 2
+    },
+    {
+      "opening": "expected result observed",
+      "count": 2
+    },
+    {
+      "opening": "expected result every",
+      "count": 2
+    },
+    {
+      "opening": "covers one exact",
+      "count": 2
+    },
+    {
+      "opening": "before classical state",
+      "count": 2
+    },
+    {
+      "opening": "a classical entry",
+      "count": 2
+    },
+    {
+      "opening": "the common book",
+      "count": 2
+    }
+  ],
+  "repeated_four_grams": [
+    {
+      "phrase": "expected result source covers",
+      "count": 16
+    },
+    {
+      "phrase": "may contain at most",
+      "count": 10
+    },
+    {
+      "phrase": "contain at most mib",
+      "count": 6
+    },
+    {
+      "phrase": "expected result files covers",
+      "count": 5
+    },
+    {
+      "phrase": "a generated adjoint certificate",
+      "count": 3
+    },
+    {
+      "phrase": "and source execution records",
+      "count": 3
+    },
+    {
+      "phrase": "source execution records source",
+      "count": 3
+    },
+    {
+      "phrase": "execution records source covers",
+      "count": 3
+    },
+    {
+      "phrase": "a target-resident boolean slot",
+      "count": 3
+    },
+    {
+      "phrase": "evidence rather than a",
+      "count": 3
+    },
+    {
+      "phrase": "at most mib the",
+      "count": 3
+    },
+    {
+      "phrase": "reversible and quantum programs",
+      "count": 2
+    },
+    {
+      "phrase": "the compiler and runtime",
+      "count": 2
+    },
+    {
+      "phrase": "lowers to one typed",
+      "count": 2
+    },
+    {
+      "phrase": "in reverse source order",
+      "count": 2
+    },
+    {
+      "phrase": "a generated adjoint is",
+      "count": 2
+    },
+    {
+      "phrase": "an executable conformance law",
+      "count": 2
+    },
+    {
+      "phrase": "signed and boolean values",
+      "count": 2
+    },
+    {
+      "phrase": "and boolean values immutable",
+      "count": 2
+    },
+    {
+      "phrase": "boolean values immutable records",
+      "count": 2
+    }
+  ],
+  "repeated_five_grams": [
+    {
+      "phrase": "may contain at most mib",
+      "count": 6
+    },
+    {
+      "phrase": "and source execution records source",
+      "count": 3
+    },
+    {
+      "phrase": "source execution records source covers",
+      "count": 3
+    },
+    {
+      "phrase": "contain at most mib the",
+      "count": 3
+    },
+    {
+      "phrase": "signed and boolean values immutable",
+      "count": 2
+    },
+    {
+      "phrase": "and boolean values immutable records",
+      "count": 2
+    },
+    {
+      "phrase": "boolean values immutable records tagged",
+      "count": 2
+    },
+    {
+      "phrase": "values immutable records tagged variants",
+      "count": 2
+    },
+    {
+      "phrase": "immutable records tagged variants fixed",
+      "count": 2
+    },
+    {
+      "phrase": "records tagged variants fixed arrays",
+      "count": 2
+    },
+    {
+      "phrase": "tagged variants fixed arrays nonescaping",
+      "count": 2
+    },
+    {
+      "phrase": "variants fixed arrays nonescaping slices",
+      "count": 2
+    },
+    {
+      "phrase": "fixed arrays nonescaping slices typed",
+      "count": 2
+    },
+    {
+      "phrase": "arrays nonescaping slices typed calls",
+      "count": 2
+    },
+    {
+      "phrase": "loops with explicit limits and",
+      "count": 2
+    },
+    {
+      "phrase": "utf- owners signed maps and",
+      "count": 2
+    },
+    {
+      "phrase": "measurement creates a classical observation",
+      "count": 2
+    },
+    {
+      "phrase": "source artifact output and result",
+      "count": 2
+    },
+    {
+      "phrase": "artifact output and result identities",
+      "count": 2
+    },
+    {
+      "phrase": "rewind expected result source covers",
+      "count": 2
+    }
+  ],
+  "similar_cadence_runs": [
+    {
+      "sentence": 17,
+      "word_lengths": [
+        10,
+        8,
+        8
+      ]
+    },
+    {
+      "sentence": 30,
+      "word_lengths": [
+        11,
+        11,
+        9
+      ]
+    },
+    {
+      "sentence": 31,
+      "word_lengths": [
+        11,
+        9,
+        9
+      ]
+    },
+    {
+      "sentence": 39,
+      "word_lengths": [
+        10,
+        9,
+        11
+      ]
+    },
+    {
+      "sentence": 44,
+      "word_lengths": [
+        8,
+        6,
+        7
+      ]
+    },
+    {
+      "sentence": 97,
+      "word_lengths": [
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "sentence": 98,
+      "word_lengths": [
+        5,
+        6,
+        5
+      ]
+    },
+    {
+      "sentence": 129,
+      "word_lengths": [
+        12,
+        14,
+        13
+      ]
+    },
+    {
+      "sentence": 131,
+      "word_lengths": [
+        13,
+        11,
+        11
+      ]
+    },
+    {
+      "sentence": 132,
+      "word_lengths": [
+        11,
+        11,
+        9
+      ]
+    },
+    {
+      "sentence": 242,
+      "word_lengths": [
+        10,
+        10,
+        9
+      ]
+    },
+    {
+      "sentence": 277,
+      "word_lengths": [
+        15,
+        15,
+        15
+      ]
+    },
+    {
+      "sentence": 340,
+      "word_lengths": [
+        15,
+        15,
+        16
+      ]
+    },
+    {
+      "sentence": 412,
+      "word_lengths": [
+        9,
+        9,
+        9
+      ]
+    },
+    {
+      "sentence": 416,
+      "word_lengths": [
+        7,
+        6,
+        7
+      ]
+    },
+    {
+      "sentence": 417,
+      "word_lengths": [
+        6,
+        7,
+        6
+      ]
+    },
+    {
+      "sentence": 418,
+      "word_lengths": [
+        7,
+        6,
+        7
+      ]
+    },
+    {
+      "sentence": 431,
+      "word_lengths": [
+        17,
+        17,
+        17
+      ]
+    },
+    {
+      "sentence": 480,
+      "word_lengths": [
+        7,
+        5,
+        5
+      ]
+    },
+    {
+      "sentence": 481,
+      "word_lengths": [
+        5,
+        5,
+        5
+      ]
+    },
+    {
+      "sentence": 487,
+      "word_lengths": [
+        10,
+        10,
+        10
+      ]
+    },
+    {
+      "sentence": 495,
+      "word_lengths": [
+        9,
+        8,
+        7
+      ]
+    },
+    {
+      "sentence": 518,
+      "word_lengths": [
+        7,
+        8,
+        8
+      ]
+    },
+    {
+      "sentence": 524,
+      "word_lengths": [
+        7,
+        5,
+        7
+      ]
+    },
+    {
+      "sentence": 530,
+      "word_lengths": [
+        10,
+        9,
+        8
+      ]
+    },
+    {
+      "sentence": 561,
+      "word_lengths": [
+        10,
+        9,
+        11
+      ]
+    },
+    {
+      "sentence": 562,
+      "word_lengths": [
+        9,
+        11,
+        9
+      ]
+    },
+    {
+      "sentence": 596,
+      "word_lengths": [
+        9,
+        9,
+        8
+      ]
+    },
+    {
+      "sentence": 604,
+      "word_lengths": [
+        20,
+        19,
+        21
+      ]
+    },
+    {
+      "sentence": 614,
+      "word_lengths": [
+        9,
+        8,
+        9
+      ]
+    }
+  ]
+}

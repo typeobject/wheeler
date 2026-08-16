@@ -14,38 +14,45 @@ tutorial_evidence: exact-source-display
 
 # Home
 
-Home assembled itself from lights.
+Catenary assembled itself in the forward glass while Tala watched from the
+starboard systems station. Six days of unbroken stars gave way first to traffic
+lamps, then yard beacons, then the pale rims of inhabited wheels. Human geometry
+crowded the constellations toward the edges.
 
-For six days, stars had owned the forward glass. Traffic lamps displaced them one by one. Yard beacons followed, then the pale
-rims of inhabited wheels, until human geometry crowded the constellations toward the edges.
+Mara sat on the bridge centerline with one hand near the burn cage. Osei worked
+to port, and Sana had unfolded her evidence desk beside the aft hatch. The braking
+clock showed eleven minutes.
 
-Catenary had no single spin or founding plan. Freight drums rolled beside garden wheels. Pressure neighborhoods clung to trusses
-whose builders had expected bare vacuum. The lights crossed at different rates, a city held together by negotiated motion.
+The nearest garden wheel rolled over Yard Nine and laid a moving green reflection
+across Mara's console. Behind it, a freight drum turned at half the rate. Air
+lines crossed the gap between them in flexible silver loops. The old charter
+builders had forbidden those connections; Tala could still see their separate
+seals on the hubs. The pipes had outlived the prohibition.
 
-The oldest wheels had arrived under separate charter seals: smelters, gardens,
-crew quarters, and yards whose owners expected them to remain apart. During the
-Long Withdrawal their pipes met first. Traffic law followed the air lines, and a
-city grew from agreements made by people who could no longer wait for distant
-titleholders.
+Her approach pane asked every person aboard to renew Catenary residency. Four
+names turned green. None of them had been born in the habitat. Membership here
+was a current obligation: match the city's motion, account for mass at the dock,
+and answer for whatever entered through its pressure seals.
 
-Birth had given none of *Vela*'s crew a place there. Residency had. Catenary asked its members to match motion, account for docked
-mass, and answer for every person or object they brought through a common pressure seal.
+Mara read burn times aloud. Each number shortened the room. Osei closed machinery
+that had remained open during passage, and the port-side schematic lost one blue
+branch after another. At Sana's desk, separate stores began feeding the mission
+chain onto a single pane.
 
-Mara spoke in burn times. Osei sealed the machinery opened during passage. Sana summoned the mission chain from its separate
-stores. Tala watched dawn move across Yard Nine and kept her eyes away from the dark rectangle reserved for *Vela*.
+The first link had arrived ahead of them by fallback radio: Sable's compact
+manifest, thin enough for the west bearing to carry after the narrow laser lost
+Catenary. The rest sat in sealed storage beneath Tala's boots. Clock comparisons,
+particle readings, chamber receipts, and every correction between them had needed
+a hull.
 
-A fallback carrier had already brought the far instrument's compact manifest inward. Sable's worn west bearing could hold radio
-while the narrow laser wandered off Catenary. The heavier account remained aboard *Vela*: clock comparisons, particle readings,
-chamber receipts, and the corrections made between them.
+That was how the Second Navigation crossed distance. Light brought warning.
+Someone still had to arrive carrying the grounds for trust.
 
-The division belonged to the Second Navigation. Light could bring a compact
-answer ahead of a ship; final trust still traveled with the weight behind it. A
-shared beacon network depended on both arriving while their calibration remained
-useful.
-
-Traffic continuity needed the chain before the charged front reached its peak. Rejection would return the beacons to their former
-profile. A missed burn would send *Vela* around Catenary for nineteen hours, consume Mara's reserve, and carry the evidence to a
-decision already made.
+A charged front was already folding around the Giant toward Catenary. Traffic
+control needed Sana's chain before it committed the beacons to a new profile. If
+Mara missed this burn, *Vela* would spend nineteen hours in the outer loop, use
+most of her reserve, and deliver the evidence after the decision it was meant to
+support.
 
 Eleven minutes before the burn, amber covered the approach plot.
 
@@ -79,19 +86,26 @@ result lineage   incomplete
 
 Sana turned toward him. "Your map chose its own border too."
 
-Each officer had read the line belonging to her duty. Mara saw mass inside a safe corridor. Osei saw machinery that had missed its
-promised earlier state. Sana saw accepted bytes with their ancestry broken. Tala saw *home* stretched across all three until the
-word concealed the disagreement.
+Tala touched `navigation`, and a line ran to Mara's approach solution: mass inside
+the corridor, velocity converging, no collision ahead. `workspace` opened Osei's
+restoration map and stopped at an amber branch. `lineage` crossed to Sana's desk,
+where one edge ended in empty space.
 
-No inventory could identify *Vela*'s oldest part. Survey plating formed her pressure hull. A hospital barge had donated the port
-radiator, and a racing tug had supplied a maneuvering model with very little respect for reserve. Refit after refit had changed the
-ship while her name continued through them.
+The report had given all three lines the value *home*.
 
-Inside source, *return* ended a call with an answer. Reversible work gave the word to inverse execution. The VM spent retained
-history to rewind. Pilots had used it for arrival long before Wheeler joined those meanings in one artifact.
+A vibration passed through the deck as the hospital-barge radiator changed flow.
+*Vela* herself made the word difficult. Survey plating enclosed them. A racing
+tug's maneuvering model counted their reserve. Refit crews had replaced hardware
+for decades without finding a moment when the ship ceased to be *Vela*.
 
-Most voyages never forced the meanings together. Freight survived a dirty workspace. A doubtful test could be run afresh. A ship
-with generous propellant could accept the outer orbit and arrive late.
+Tala searched the report for every use of *return*. Source methods returned
+answers. Reversible functions offered inverse execution. VM history could be
+spent in rewind. Mara used the word for arrival, a meaning older than any
+component aboard.
+
+On an ordinary voyage those meanings never needed to agree. Freight could arrive
+with dirty workspace. A doubtful test could be repeated. Spare propellant could
+buy another orbit.
 
 This observation had one physical past. Sable's chamber was cooling toward maintenance, and the charged weather would soon age its
 calibration beyond use. The crew could preserve the observation, reject it, or state its reach. The systems that produced it could

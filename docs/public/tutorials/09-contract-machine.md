@@ -14,8 +14,14 @@ tutorial_evidence: intended-ideal-execution
 
 # Contract Machine
 
-The contract machine occupied an ordinary equipment rack with optical ports and one status lamp. Beneath recent paint, Tala could
-still read the inventory from its first life as a survey locker: anchors, oxygen, drilling charges.
+On the next crossing, Tala's left hand found the rail weld with Osei's mark
+before she looked down. Sable filled the clear floor until Iona opened the
+algorithm-rack door and station structure closed around them.
+
+The contract machine stood immediately inside: an ordinary equipment rack with
+optical ports and one status lamp. Beneath recent paint, Tala could still read the
+inventory from its first life as a survey locker: anchors, oxygen, drilling
+charges.
 
 A newer inscription had been cut deeply enough to survive its next use.
 

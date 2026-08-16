@@ -14,48 +14,55 @@ tutorial_evidence: exact-classical-execution
 
 # Departure
 
-Thirty-seven days before the amber failure, Yard Nine still held *Vela* by nine clamps and several unresolved opinions.
+The service lock admitted Tala into a ship shaped like a narrow argument. One
+passage ran forward between four sleeping berths, crossed a galley scarcely wider
+than its table, and ended at the bridge. Behind the lock, the machine room pressed
+against the drive shielding. Nine clamps held all of it inside Yard Nine while
+the crew continued deciding whether *Vela* was ready to leave.
 
-Construction berths occupied Catenary's least fashionable wheel. The charter
-house that built it had vanished during the Withdrawal, leaving title in three
-registries and practical authority with the yard crews. Gravity changed from
-corridor to corridor. The air tasted of cut alloy and hot sealant. Every public
-wall carried two loads: what the architect had allowed and what the residents had
-since attached.
+Mara met her inside the lock, tested her suit seal, and pointed to every exit
+before offering a name. As they walked forward, local gravity changed direction
+twice. A cable bundle claimed one wall, family storage nets another. The vanished
+charter house still owned Yard Nine in three registries; the people who patched
+its air and paid its spin tax had stopped waiting for the law to notice.
 
-Welders traveled the vault on jointed tethers. *Vela* rested among fuel hoses and cooling trunks at the wheel's uncertain down. New
-plates shone under the berth lamps while old hull sections kept their reentry soot.
+Beyond each open service panel, welders traveled the vault on jointed tethers.
+Fuel hoses and cooling trunks descended toward *Vela*'s uncertain down. New hull
+plates shone under berth lamps beside sections that still carried reentry soot.
+The air tasted of cut alloy and hot sealant.
 
-Mara received Tala at the service lock by testing her suit seal and pointing out every exit. She asked about variable-gravity
-sickness, then presented the ship according to emergency priority. Coffee began below power and rose two places when Tala checked
-the galley herself.
+Mara presented the ship according to emergency priority as they moved: attitude,
+drive, navigation, power, air. Coffee began below power and rose two places when
+Tala stopped in the galley to test the unit herself.
 
 "You recognize life support," Mara said. "Promising."
 
 For most of the watch, her hospitality improved no further.
 
-Tala had spent seven years untangling Catenary transit systems. Their cars rode rails and their software copied freely, which had
-once made a green restoration display especially convincing. Fourteen passenger cars were still moving under local control beyond
-that copy.
+A green readiness lamp shone beside the machine-room rack. Tala disliked it on
+sight.
 
-Every copied byte was right. The world had continued for six minutes.
+The last green display she had trusted belonged to Catenary transit. It had shown
+a perfectly restored control state while fourteen passenger cars continued under
+local power beyond the copy. Six minutes separated the display from the physical
+network.
 
-Neris Venn had faced two crowded platforms whose air margins were falling while passengers tested the doors. As transit director,
-she ordered service reopened from the green copy. Tala invoked the safety veto. Venn needed circulation before a crowd became an
-emergency; Tala needed any circulation plan to include the fourteen cars absent from the display.
+She could still hear passengers striking the locked platform doors when Neris
+Venn ordered service reopened. Air margins were falling on two platforms. Tala
+used the safety veto because the missing cars were still on the rails. Venn had
+needed movement before the crowd became its own emergency; Tala had needed every
+movement to account for vehicles the green state had forgotten.
 
-Local crews recovered every car. The issued report described a restored service and attributed the remaining delay to Tala's
-veto. Its sentences were accurate. Their frame made the omission respectable.
+Local crews recovered the cars. The public report later called the service
+restored and assigned the remaining delay to Tala's veto. She had carried a folded
+copy ever since.
 
-Tala kept the report after it embarrassed Venn. Elsewhere in Catenary, the resulting reputation acquired the more useful name of
-expertise.
+Osei drew that copy from beneath the gray book where Tala had set it. Venn's
+reference contained no apology. It warned that Tala would stop apparently healthy
+machinery when its model omitted something physical, then listed the cost of
+giving her authority.
 
-Venn later wrote a reference with no apology in it. Tala, she warned, would halt apparently working machinery when its model had
-lost a physical fact. She also itemized the cost of giving such a person authority. The assessment was severe and complete.
-
-That transit failure opened *Vela*'s berth to Tala. Osei used their first meeting to explain how little it qualified her to do.
-
-He tapped the folded reference. "You have evidence against the color green."
+Osei tapped the paper. "You have evidence against the color green."
 
 "Seven years of it."
 
@@ -225,7 +232,7 @@ assert(signal == 2);
 The doubled `==` compared rather than assigned. At that point in execution, `assert` required `signal` to equal `2`. A true
 comparison allowed the run onward; a false one trapped before the runtime could report an ordinary successful halt.
 
-The passing assertion spoke only for this position in this execution. Sana approved of evidence that understood its size.
+The passing assertion spoke only for this position in this execution. Sana copied it into the account without enlarging the sentence.
 
 Catenary night lowered the yard lamps without quieting the wheel. One shift ate breakfast while another queued for fermented broth.
 Children pressed their palms to pressure windows. Freight crews painted constellations on scrap plates that would lose the stars at

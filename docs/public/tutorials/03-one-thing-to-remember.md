@@ -14,26 +14,35 @@ tutorial_evidence: exact-classical-execution
 
 # The Archive
 
-The Archive entered view as a dim inhabited wheel surrounding a perfect absence. Its rim carried people and heat. The Black Vault
-at its center refused the starlight behind it.
+The Archive's dock curved upward beyond *Vela*'s bridge glass. As the ship matched
+the inhabited rim, doors and signal lamps climbed the wheel until another berth
+hung above them like a ceiling. Farther inward, the Black Vault occupied the hub
+as a perfect absence in the stars.
+
+People and waste heat lit the rim. The vault returned no light.
 
 Whatever remained warm was current. The cold mass existed for earlier things.
 
-During the Charter Years, rival houses entrusted cargo title and engineering
-lineage to the Archive because each feared a competitor's ledger. Neutral storage
-became a court, then a polity. By the Withdrawal, companies were vanishing while
-their obligations remained legible in the cold.
+The dock wall carried six rival charter seals beneath the Archive's gray mark.
+Their owners had trusted a neutral vault before they trusted one another. By the
+time the companies vanished in the Withdrawal, cargo titles and engineering
+debts were still legible here. The keeper of their ledgers had become the court
+that interpreted them.
 
-Before assigning a dock, the port assigned incoming ships storage. *Vela* received volumes for approach telemetry and current ship
-state, plus a narrow directory titled *material regret may make valuable*.
+A storage offer reached *Vela* before docking instructions. The Archive reserved
+volumes for approach telemetry and current ship state, plus a narrow directory
+titled *material regret may make valuable*.
 
 "Does regret have an excess rate?" Mara asked.
 
 Sana continued through the terms. "Everything has an excess rate. Regret receives superior indexing."
 
-An Archive inheritance consisted of obligations in memory. Citizens received voting histories for water systems, the accumulated
-inspection of pressure walls, and ancestral correspondence left discourteously complete. Children learned handwriting beside
-compression. Marriage joined storage trusts. A funeral ended after witnesses divided or destroyed the dead person's keys.
+Through the lock port, Tala watched an Archive family gathered at a key desk.
+Two children held storage wafers while an elder and a gray-sealed witness divided
+access between them. A funeral notice on the wall listed the keys that would be
+destroyed at the next watch. Here inheritance meant responsibility for water
+votes, pressure-wall inspections, and correspondence the dead had left
+inconveniently complete.
 
 Mara rejected the regret directory. Osei duplicated the approach telemetry anyway. Sana reached the lock before equalization and
 watched the inner door with the patience of someone awaiting a known difficulty.
@@ -49,27 +58,14 @@ formal name before greeting the rest of the crew.
 
 Pressure reached equality. Tala's chosen instrument had nothing further to contribute.
 
-Edrin read the tags on Sana's case. He had trained her before she was old enough for vault access, teaching her to tether every
-statement to its source. She later learned how easily an honest source served a dishonest frame.
+Edrin read the paper tags on Sana's case without touching them. Tala had seen his
+hand in their shape: every statement tethered to a source, every uncertain date
+left uncertain. Sana had learned that discipline from him before either of them
+was old enough to hold their present silence.
 
-Nine years of correspondence lay between them, each message complete enough to justify the silence after it.
-
-Sana's answer entered the argument they had suspended rather than ended.
-
-The Archive's devotion to memory came from a pressure emergency a century earlier. During evacuation, automated repair overwrote
-the sole recoverable configuration of its pressure model. The wider habitat survived while twelve workers died beyond a sealed
-door.
-
-The custodians answered by retaining each transition of critical machinery. Procedure hardened around the catastrophe, and daily
-life grew around the procedure.
-
-As Edrin's apprentice, Sana cataloged the evacuation. Public history declared the damaged section *returned to service*. The phrase
-was operationally accurate and indecent beside twelve names.
-
-Edrin defended a record whose bytes contained no error. Sana accused its boundary of erasing the human event. She departed the
-Archive while both of them still regarded retreat as surrender.
-
-A sentence could remain accurate while carrying a lie in its chosen edge.
+They left the dock together. Edrin took the inward corridor, and the curve of the
+wheel carried the Black Vault from the floor-side windows toward the wall. Neither
+he nor Sana mentioned the nine years of careful messages between them.
 
 The route to verification crossed a public gallery of reconstructed machine histories. Behind glass, pumps withdrew from failure
 and valves closed ahead of old leaks. An ore carrier's guidance system backed through the arithmetic that had driven it into a
@@ -85,10 +81,24 @@ Edrin recited the public motto. "What is remembered can be returned."
 
 Osei examined the history counter. "What is remembered can be rewound."
 
-The additional word narrowed the claim. Edrin carried the correction in silence until they reached the evacuation.
+The additional word narrowed the claim. Edrin carried the correction in silence
+to the gallery's inward end, where a dark window looked across at the vault.
+Beside it stood the evacuation reconstruction.
 
-The pressure reconstruction advanced to the emergency and stopped. Retained transitions then vanished in reverse order. Alarms
-cleared and the damaged section opened. Across the glass, twelve names held their places while the machine state traveled away from
+Its first panel told Tala what the Archive had built its doctrine around. A
+century earlier, automated repair had overwritten the pressure system's sole recoverable
+configuration. The surrounding habitat survived. Twelve workers died behind a
+sealed door. Afterward, custodians began retaining every
+transition of critical machinery.
+
+Sana stopped before the public conclusion: *damaged section returned to service*.
+She had cataloged those words as Edrin's apprentice and left the Archive after he
+defended their byte-level accuracy. Twelve names now stood directly beneath the
+sentence.
+
+The reconstruction advanced to the old emergency and stopped. Retained
+transitions vanished in reverse order. Alarms cleared and the damaged section
+opened. The twelve names held their places while machine state traveled away from
 their deaths.
 
 Sana faced her teacher. "You added the names."
@@ -135,10 +145,11 @@ classical class EraseBit {
 }
 ```
 
-The run halted successfully. Mara accepted the endpoint; Osei continued staring at the road.
+The run halted successfully. Mara nodded at the final zero. Osei traced the two
+converging arrows with one finger and stopped where they met.
 
-Tala understood both reactions. Mara had received the requested final zero. Osei had received a state incapable of naming its own
-origin.
+Tala could account for both reactions. Mara had received the requested endpoint.
+Osei had received a state incapable of naming its own origin.
 
 One line of code carried two responsibilities. Mara needed its successful
 endpoint; Osei needed a road back from it. Neither enjoyed the other's

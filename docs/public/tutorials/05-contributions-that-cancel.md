@@ -14,8 +14,14 @@ tutorial_evidence: exact-arithmetic
 
 # Contributions That Cancel
 
-Sable's next packet arrived while *Vela* rolled her patched radiator toward open cold. The star moved across the cabins in bright
-bands, disappeared behind the hull, and returned.
+For five passage sleeps after Sable's greeting, the moon grew from a missing
+pixel into a dark bite in the dust ahead. Then Mara began the radiator roll for
+final approach. Tala strapped herself into the starboard bridge station before
+thrust ended. The next carrier packet arrived as *Vela* turned her patched port
+wing toward open cold.
+
+The star moved across the bridge in bright bands, disappeared behind the hull,
+and returned.
 
 Once each roll, a loose galley line touched the bulkhead. The crew had lived with its tap long enough to count it as part of
 passage.

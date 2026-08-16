@@ -14,24 +14,30 @@ tutorial_evidence: ideal-model-and-intended-seeded-samples
 
 # One Qubit
 
-The far instrument moved below *Vela* like a dark pane laid over Sable. Its captured moon rolled with the irregularity of foreign
-rock. Shield shadow concealed the small spin habitat, and laboratory trusses stretched far enough apart to keep one failed
-refrigerator from warming every chamber.
+Rotation settled weight into Tala's boots while *Vela*'s service lock joined the
+shielded habitat above Sable. Through a port below her shoulder, the far
+instrument lay across the moon like a dark pane on darker rock.
 
-Five people lived there. Their cooperative charter descended from the season
-when Sable's sponsors stopped sending relief and the resident crews opened the
-stores under witness. Mushrooms grew along the warm return lines. Once a month
-they voted on which delayed broadcasts deserved the bandwidth. A bad year was
-measured in parts machined from other parts.
+Sable rolled beneath it with the irregularity of captured stone. Shield shadow
+concealed most of the habitat, and laboratory trusses reached far enough apart to
+keep one failed refrigerator from warming every chamber.
 
-Target telemetry traveled beside personal mail. The cooperative accounted for drinking water in the same ledger as vacuum work.
+Five resident names appeared on the inner-lock witness panel. Below them, an old
+charter seal had been scored through and replaced by the cooperative's linked
+circles. The change dated from the season when relief stopped arriving and the
+crews opened their own stores under witness.
 
-The station prepared small physical systems, worked upon them with controlled
-fields, and measured what came out. The technology had grown from the Reach's
-investment in clocks and weather instruments while propulsion advanced by slower
-degrees. Catenary needed the comparison to distinguish drifting beacons from the
-charged weather moving toward the inner orbits. That need had carried *Vela*
-across the Reach.
+Warm air from the return lines smelled faintly of mushrooms. A bandwidth ballot
+shared the wall with personal messages and target telemetry. At the bottom, the
+same ledger counted drinking water, vacuum-pump work, and three replacement parts
+the machine shop would have to cut from older parts.
+
+A clock comparison moved across the overhead status strip: Catenary's optical
+reference arriving, Sable's local clock answering, charged weather thickening
+between them. The station prepared small physical systems, shaped them with
+controlled fields, and measured what came out because those angles could separate
+a drifting beacon from a changing path. That need had carried *Vela* across the
+Reach.
 
 Iona received them inside the pressure lock wearing a gray work coat threaded for conductivity. Her first inspection belonged to
 Sana's sealed case.

@@ -14,8 +14,13 @@ tutorial_evidence: exact-classical-execution
 
 # Two Signals
 
-Catenary receded into microwave speech. Its wheels shared official languages while keeping local accents, work whistles, and
-market codes. Traffic separation admitted a smaller vocabulary.
+The first outbound meal collected at the chart table one hatch aft of the
+bridge. Tala could see Mara's shoulders through the open hatch and, beyond them,
+Catenary shrinking behind the ship.
+
+The habitat had already receded into microwave speech. Its wheels shared official
+languages while keeping local accents, work whistles, and market codes. Traffic
+separation admitted a smaller vocabulary.
 
 Each pulse reached *Vela* as a faint analog disturbance. Receivers and threshold circuits worked through the noise until Mara's
 console could display one integer.
@@ -197,13 +202,15 @@ Recovering every input from its output will earn the next word.
 
 The flip appeared to satisfy it. Tala had seen enough green displays to distrust a rule demonstrated only by success.
 
-At the edge of traffic, *Vela* turned into the Archive corridor. The route was
-older than Catenary. Charter supply ships had followed it when the outer
-settlements were pressure tents and a message might arrive before the sender's
-legal identity. Rival houses had placed their titles in the Black Vault because
-none would accept a competitor's memory.
+Catenary disappeared during the third passage sleep. Two watches later, the first
+Archive buoy entered the forward plot and *Vela* turned into the old corridor.
 
-Navigation buoys now lined the corridor, each retaining the newest correction against failure in its neighbors.
+Each buoy carried the newest correction in case its neighbors failed. Beneath the
+current traffic code, their identity plates still bore rival charter seals.
+Supply ships had followed this route when the outer settlements were pressure
+tents and a message could arrive before the sender's legal identity. Those rivals
+had trusted their titles to the Black Vault because none would trust a
+competitor's memory.
 
 The Archive's law reached them hours before its inhabited wheel. Checksums crossed the receiver, followed by the sentence stamped
 into every public exchange.
