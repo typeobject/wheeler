@@ -15,6 +15,8 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.named_comparison_kinds",
       "wheeler.compiler.named_conditional_bases",
       "wheeler.compiler.named_local_assignment_kinds",
+      "wheeler.compiler.named_local_update_kinds",
+      "wheeler.compiler.named_long_operations",
       "wheeler.compiler.resolved_early_comparison_kinds",
       "wheeler.compiler.resolved_literal_comparison_kinds",
       "wheeler.compiler.resolved_local_copy_kinds",

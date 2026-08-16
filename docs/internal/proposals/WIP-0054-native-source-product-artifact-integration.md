@@ -155,6 +155,7 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0081 routes `NamedLocalAssignmentKinds.w` through direct conditional and scalar return products. Its two functions and 12 instructions match the 792-byte stage-0 artifact.
 - [x] WIP-0082 emits exact ordinary Boolean source-source equality returns and declarations. Mixed equality and Boolean less-than fail before artifact publication.
 - [x] WIP-0084 routes `NamedComparisonKinds.w` through repeated direct conditional windows and a final scalar return. Its three functions and 131 instructions match the 4,040-byte stage-0 artifact.
+- [x] WIP-0086 routes the named local-update and signed-operation classifiers through direct conditional, constant, and scalar return products. Their six functions and 279 instructions match 8,448 stage-0 bytes.
 - [x] Every callable-free physical module compiles without dependency source.
 - [x] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.
