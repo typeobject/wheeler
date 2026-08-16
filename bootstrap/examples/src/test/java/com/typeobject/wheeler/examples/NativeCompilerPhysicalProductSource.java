@@ -30,6 +30,9 @@ final class NativeCompilerPhysicalProductSource {
             if (physicalOwner == WIDE_RETURN_SOURCES_MODULE_OWNER) {
               directSourceModule = true;
             }
+            if (physicalOwner == LOCAL_TYPE_ENCODING_MODULE_OWNER) {
+              directSourceModule = true;
+            }
             long physicalImportedCount = writeDirectImportedValues(
               firstImports[physicalOwner],
               directImportCounts[physicalOwner],

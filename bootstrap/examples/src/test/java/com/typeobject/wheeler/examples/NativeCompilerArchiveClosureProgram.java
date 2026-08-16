@@ -14,30 +14,27 @@ final class NativeCompilerArchiveClosureProgram {
   static final List<PhysicalModule> PHYSICAL_MODULES = NativeCompilerPhysicalModules.all();
   static final List<PhysicalModule> PHYSICAL_CALLABLE_MODULES =
       NativeCompilerPhysicalModules.importedCallableProducts();
-  static final PhysicalModule PHYSICAL_AGGREGATE_MODULE = PHYSICAL_MODULES.stream()
-      .filter(module -> module.name().equals(
-          "wheeler.compiler.closure.aggregate_source_projection"))
-      .findFirst()
-      .orElseThrow();
-  static final PhysicalModule PHYSICAL_MANIFEST_MODULE = PHYSICAL_MODULES.stream()
-      .filter(module -> module.name().equals("wheeler.compiler.closure.manifest_syntax"))
-      .findFirst()
-      .orElseThrow();
-  static final PhysicalModule PHYSICAL_REVERSIBLE_MODULE = PHYSICAL_MODULES.stream()
-      .filter(module -> module.name().equals(
-          "wheeler.compiler.closure.reversible_token_coordinates"))
-      .findFirst()
-      .orElseThrow();
-  static final PhysicalModule PHYSICAL_TYPE_KINDS_MODULE = PHYSICAL_MODULES.stream()
-      .filter(module -> module.name().equals("wheeler.compiler.type_kinds"))
-      .findFirst()
-      .orElseThrow();
-  static final PhysicalModule PHYSICAL_WIDE_RETURN_SOURCES_MODULE = PHYSICAL_MODULES.stream()
-      .filter(module -> module.name().equals("wheeler.compiler.wide_return_sources"))
-      .findFirst()
-      .orElseThrow();
+  static final PhysicalModule PHYSICAL_AGGREGATE_MODULE = physicalModule(
+      "wheeler.compiler.closure.aggregate_source_projection");
+  static final PhysicalModule PHYSICAL_MANIFEST_MODULE =
+      physicalModule("wheeler.compiler.closure.manifest_syntax");
+  static final PhysicalModule PHYSICAL_REVERSIBLE_MODULE = physicalModule(
+      "wheeler.compiler.closure.reversible_token_coordinates");
+  static final PhysicalModule PHYSICAL_TYPE_KINDS_MODULE =
+      physicalModule("wheeler.compiler.type_kinds");
+  static final PhysicalModule PHYSICAL_WIDE_RETURN_SOURCES_MODULE =
+      physicalModule("wheeler.compiler.wide_return_sources");
+  static final PhysicalModule PHYSICAL_LOCAL_TYPE_ENCODING_MODULE =
+      physicalModule("wheeler.compiler.local_type_encoding");
 
   private NativeCompilerArchiveClosureProgram() {}
+
+  private static PhysicalModule physicalModule(String name) {
+    return PHYSICAL_MODULES.stream()
+        .filter(module -> module.name().equals(name))
+        .findFirst()
+        .orElseThrow();
+  }
 
   private static String physicalOwnerRows(
       List<PhysicalModule> comparableModules,
@@ -986,6 +983,9 @@ final class NativeCompilerArchiveClosureProgram {
             .replace(
                 "WIDE_RETURN_SOURCES_MODULE_OWNER",
                 Integer.toString(physicalOwner(PHYSICAL_WIDE_RETURN_SOURCES_MODULE)))
+            .replace(
+                "LOCAL_TYPE_ENCODING_MODULE_OWNER",
+                Integer.toString(physicalOwner(PHYSICAL_LOCAL_TYPE_ENCODING_MODULE)))
             .replace("PHYSICAL_CLOSURE_MODULE_COUNT", Integer.toString(
                 CompilerSources.bootstrapModuleManifest().modules().size()))
             .replace(

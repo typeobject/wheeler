@@ -212,8 +212,10 @@ classical class DirectScalarEncoding {
     long kind,
     long localBase,
     long left,
+    long leftType,
     long operation,
     long right,
+    long rightType,
     long immediate
   ) {
     assert(bufferLength(output) == MAX_CODE_BYTES);
@@ -226,6 +228,14 @@ classical class DirectScalarEncoding {
     }
 
     if (returnOperation(operation) == false) {
+      return new DirectScalarExtent(0, 0, 0, false);
+    }
+
+    if (leftType != TOKEN_LONG) {
+      return new DirectScalarExtent(0, 0, 0, false);
+    }
+
+    if (rightType != TOKEN_LONG) {
       return new DirectScalarExtent(0, 0, 0, false);
     }
 

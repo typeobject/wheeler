@@ -95,6 +95,22 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
+  void emitsRootByteMutationProducts() throws Exception {
+    assertArtifact(SOURCE.replace(
+        "    while (index < length) limit MAX_SOURCE_BYTES {\n",
+        "    setByte(output, index, length);\n"
+            + "    while (index < length) limit MAX_SOURCE_BYTES {\n"));
+  }
+
+  @Test
+  void rejectsMalformedRootByteMutationProducts() throws Exception {
+    assertNoArtifact(SOURCE.replace(
+        "    while (index < length) limit MAX_SOURCE_BYTES {\n",
+        "    setByte(output, index, length, index);\n"
+            + "    while (index < length) limit MAX_SOURCE_BYTES {\n"));
+  }
+
+  @Test
   void emitsABooleanReturnSlot() throws Exception {
     String booleanReturn = SOURCE.replace(
         "public long copyOffset(",
