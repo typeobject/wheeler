@@ -35,6 +35,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.resolved_local_less_than_kinds",
       "wheeler.compiler.resolved_local_literal_comparison_sources",
       "wheeler.compiler.resolved_local_literal_comparisons",
+      "wheeler.compiler.resolved_local_loop_kinds",
       "wheeler.compiler.resolved_local_loop_operands",
       "wheeler.compiler.resolved_local_pair_assertions",
       "wheeler.compiler.resolved_long_operations",
