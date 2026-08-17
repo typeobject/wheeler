@@ -177,6 +177,7 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0106 routes `ResolvedLocalUpdates.w` through exact update, source-kind, and target-local range products. Its three functions and 99 instructions match the 3,304-byte stage-0 artifact.
 - [x] WIP-0107 routes `ReturnOpcodeKinds.w` through exact imported statement constants and materialized signed return products. Its three functions and 83 instructions match the 2,776-byte stage-0 artifact.
 - [x] WIP-0108 routes `BooleanTokens.w` through exact token-hash equality and Boolean literal products. Its one function and 11 instructions match the 752-byte stage-0 artifact.
+- [x] WIP-0109 routes `IdentifierStarts.w` through exact uppercase, underscore, lowercase, and gap boundary products. Its one function and 39 instructions match the 1,464-byte stage-0 artifact.
 - [x] Every callable-free physical module compiles without dependency source.
 - [x] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.
