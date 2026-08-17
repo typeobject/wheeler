@@ -13,6 +13,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.four_argument_calls",
       "wheeler.compiler.literal_comparison_operations",
       "wheeler.compiler.local_type_encoding",
+      "wheeler.compiler.named_boolean_return_kinds",
       "wheeler.compiler.named_comparison_kinds",
       "wheeler.compiler.named_conditional_bases",
       "wheeler.compiler.named_literal_comparison_kinds",
