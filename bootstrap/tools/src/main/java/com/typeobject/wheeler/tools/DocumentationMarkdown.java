@@ -101,7 +101,7 @@ final class DocumentationMarkdown {
         .append(navigation(page))
         .append("</nav><main>\n")
         .append(body(page))
-        .append("</main></div>\n<footer>&ldquo;Remembered is not restored. Both matter.&rdquo; &mdash; Sana, aboard <em>Vela</em></footer>\n")
+        .append("</main></div>\n<footer>&ldquo;Remembered is not restored. Both matter.&rdquo; &mdash; Sana</footer>\n")
         .append("</body></html>\n");
     return html.toString();
   }
