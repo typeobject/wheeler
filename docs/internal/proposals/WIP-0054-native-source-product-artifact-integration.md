@@ -162,6 +162,7 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0090 routes `NamedReturnArithmeticKinds.w` through direct less-than, equality, and Boolean child products. Its two functions and 64 instructions match the 2,256-byte stage-0 artifact.
 - [x] WIP-0091 routes `NamedLiteralComparisonKinds.w` through seven direct conditional windows and one final equality. Its one function and 53 instructions match the 1,856-byte stage-0 artifact.
 - [x] WIP-0092 routes `NamedLocalConditionalValues.w` through seven direct conditional windows and one final equality. Its one function and 53 instructions match the 1,848-byte stage-0 artifact.
+- [x] WIP-0093 routes three resolved Boolean and assertion range decoders through direct less-than, subtraction, and child return products. Their nine functions and 87 instructions match 4,672 stage-0 bytes.
 - [x] Every callable-free physical module compiles without dependency source.
 - [x] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.
