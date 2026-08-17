@@ -30,6 +30,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.resolved_less_than_assertions",
       "wheeler.compiler.resolved_literal_comparison_kinds",
       "wheeler.compiler.resolved_local_assignments",
+      "wheeler.compiler.resolved_local_conditional_operands",
       "wheeler.compiler.resolved_local_copy_kinds",
       "wheeler.compiler.resolved_local_equality_kinds",
       "wheeler.compiler.resolved_local_inequality_kinds",
