@@ -19,7 +19,7 @@ The physical closure now sends every callable-free module through one bounded ar
 
 ## Problem
 
-A callable-free module still needs a valid `.wbc` artifact. The artifact carries the module program name, one `$library` entry, empty global and nominal-type sections, one empty function descriptor, and one `RETURN` instruction.
+A callable-free module still needs a valid `.wbc` artifact. The artifact carries the module program name, one `$library` entry, empty global and nominal-type sections, one empty function descriptor, and one `RETURN` instruction. WIP-0098 selects this builder before allocating target and relocation workspaces.
 
 The old closure projected source and invoked `compileMinimalCore` to produce those fixed sections. Running the complete structured callable pipeline would remove the parser retry, but it would allocate statement, loop, call, ownership, inverse, and proof products for a module that owns none of them. That route also forced zero-callable input through contracts written for one or more source callables.
 

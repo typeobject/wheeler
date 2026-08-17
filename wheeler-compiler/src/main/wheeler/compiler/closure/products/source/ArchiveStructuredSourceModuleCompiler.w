@@ -376,6 +376,16 @@ classical class ArchiveStructuredSourceModuleCompiler {
     borrow mut bytes artifact,
     borrow mut bytes identity
   ) {
+    if (callableCount == 0) {
+      return compileCallableFreeArchiveModule(
+        archive,
+        sourceStart,
+        sourceLength,
+        artifact,
+        identity
+      );
+    }
+
     region emptyTargets = new region(/* bytes= */ 1802240, /* allocations= */ 7);
     words importedTargetRows = allocate(emptyTargets, /* length= */ 32768);
     words importedTargetParameterRows = allocate(emptyTargets, /* length= */ 32768);
