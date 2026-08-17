@@ -184,6 +184,7 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0113 routes `TwoArgumentCallKinds.w` through all twelve exact result-type, argument-type, and argument-source statement identities. Its four functions and 156 instructions match the 4,808-byte stage-0 artifact.
 - [x] WIP-0114 routes `ResolvedLocalConditionalKinds.w` through exact half-open conditional, negation, assignment, and assignment-value regions. Its four functions and 100 instructions match the 3,472-byte stage-0 artifact.
 - [x] WIP-0116 routes `ResolvedLocalConditionalSources.w` through exact prior-value, subtraction, and XOR regions. Its three functions and 117 instructions match the 3,752-byte stage-0 artifact.
+- [x] WIP-0117 routes `EarlyReturnResultKinds.w` through exact helper, comparison, signed, and computed result identities. Its six functions and 80 instructions match the 3,184-byte stage-0 artifact.
 - [x] Every callable-free physical module compiles without dependency source.
 - [x] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.
