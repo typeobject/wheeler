@@ -168,6 +168,7 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0096 routes `ResolvedLocalLoopKinds.w` through one direct lower-bound guard and final upper-bound comparison. Its one function and 11 instructions match the 776-byte stage-0 artifact.
 - [x] WIP-0097 removes unconsumed parser-projected source staging from every direct physical product while preserving exact archive ranges and closed imported-value rows.
 - [x] WIP-0098 publishes zero-callable archive modules before allocating empty target and relocation workspaces, recovering physical closure deadline margin without changing artifact bytes.
+- [x] WIP-0099 emits exact ordinary `true` and `false` root return products with Boolean local types and fail-closed terminal punctuation.
 - [x] Every callable-free physical module compiles without dependency source.
 - [x] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.

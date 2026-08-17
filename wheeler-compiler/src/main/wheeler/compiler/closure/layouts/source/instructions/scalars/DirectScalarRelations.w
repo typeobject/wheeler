@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.direct_scalar_relations;
 
+import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.closure.direct_scalar_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
@@ -261,6 +262,46 @@ classical class DirectScalarRelations {
     borrow mut words symbolValues,
     borrow mut words symbolResolved
   ) {
+    if (-1 < leftToken) {
+      if (leftToken + 1 < tokenCount) {
+        long literalHash = tokenHash(source, tokenStarts, tokenLengths, leftToken);
+        boolean booleanLiteral = literalHash == TOKEN_TRUE;
+        if (literalHash == TOKEN_FALSE) {
+          booleanLiteral = true;
+        }
+
+        if (booleanLiteral) {
+          if (
+            punctuationAt(
+              source,
+              tokenKinds,
+              tokenStarts,
+              leftToken + 1,
+              PUNCTUATION_SEMICOLON
+            ) == false
+          ) {
+            return new DirectScalarRelationProduct(0, 0, 0, 0, 0, 0, 0, false);
+          }
+
+          long literalValue = 0;
+          if (literalHash == TOKEN_TRUE) {
+            literalValue = 1;
+          }
+
+          return new DirectScalarRelationProduct(
+            RESULT_RELATION_LITERAL,
+            0,
+            literalValue,
+            0,
+            0,
+            TOKEN_BOOLEAN,
+            0,
+            true
+          );
+        }
+      }
+    }
+
     long signedWidth = signedNumberWidth(source, tokenKinds, tokenStarts, leftToken);
     if (0 < signedWidth) {
       if (tokenCount < leftToken + signedWidth + 1) {

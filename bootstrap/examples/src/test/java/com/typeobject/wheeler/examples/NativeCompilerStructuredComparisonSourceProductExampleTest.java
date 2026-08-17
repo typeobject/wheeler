@@ -75,6 +75,29 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
+  void emitsBooleanLiteralReturnProducts() throws Exception {
+    assertArtifact(SOURCE.replace(
+        "public long copyOffset(",
+        "public boolean copyOffset(").replace(
+            "    return length;\n",
+            "    return true;\n"));
+    assertArtifact(SOURCE.replace(
+        "public long copyOffset(",
+        "public boolean copyOffset(").replace(
+            "    return length;\n",
+            "    return false;\n"));
+  }
+
+  @Test
+  void rejectsMalformedBooleanLiteralReturnProducts() throws Exception {
+    assertNoArtifact(SOURCE.replace(
+        "public long copyOffset(",
+        "public boolean copyOffset(").replace(
+            "    return length;\n",
+            "    return true false;\n"));
+  }
+
+  @Test
   void emitsEqualityReturnProducts() throws Exception {
     assertArtifact(SOURCE.replace(
         "public long copyOffset(",
