@@ -7,6 +7,7 @@ final class NativeCompilerPhysicalProductSource {
   private static final List<String> DIRECT_SOURCE_MODULES = List.of(
       "wheeler.compiler.boolean_declaration_kinds",
       "wheeler.compiler.boolean_tokens",
+      "wheeler.compiler.call_argument_sources",
       "wheeler.compiler.closure.aggregate_source_projection",
       "wheeler.compiler.closure.manifest_syntax",
       "wheeler.compiler.closure.reversible_token_coordinates",
