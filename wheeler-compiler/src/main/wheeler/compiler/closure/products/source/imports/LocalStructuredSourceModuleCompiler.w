@@ -34,18 +34,18 @@ classical class LocalStructuredSourceModuleCompiler {
     borrow mut bytes output,
     borrow mut bytes identity
   ) {
-    region emptyTargets = new region(/* bytes= */ 1835008, /* allocations= */ 8);
-    words importedRows = allocate(emptyTargets, /* length= */ 32768);
-    words importedParameterRows = allocate(emptyTargets, /* length= */ 32768);
-    bytes importedNames = allocateBytes(emptyTargets, /* length= */ 1048576);
-    bytes importedIdentities = allocateBytes(emptyTargets, /* length= */ 131072);
+    region emptyTargets = new region(/* bytes= */ 32832, /* allocations= */ 8);
+    words importedRows = allocate(emptyTargets, /* length= */ 1);
+    words importedParameterRows = allocate(emptyTargets, /* length= */ 1);
+    bytes importedNames = allocateBytes(emptyTargets, /* length= */ 1);
+    bytes importedIdentities = allocateBytes(emptyTargets, /* length= */ 1);
     region emptyRelocations = new region(/* bytes= */ 16384, /* allocations= */ 3);
     words relocationRows = allocate(emptyRelocations, /* length= */ 768);
     words relocationOwners = allocate(emptyRelocations, /* length= */ 256);
     bytes relocationIdentities = allocateBytes(emptyRelocations, /* length= */ 8192);
-    words qualifierNameStarts = allocate(emptyTargets, /* length= */ 4096);
-    words qualifierNameLengths = allocate(emptyTargets, /* length= */ 4096);
-    words qualifierRanks = allocate(emptyTargets, /* length= */ 4096);
+    words qualifierNameStarts = allocate(emptyTargets, /* length= */ 1);
+    words qualifierNameLengths = allocate(emptyTargets, /* length= */ 1);
+    words qualifierRanks = allocate(emptyTargets, /* length= */ 1);
     words callableEffects = allocate(emptyTargets, /* length= */ 4096);
     SourceProductArtifactPlan result = compileStructuredSourceModuleWithTargets(
       source,

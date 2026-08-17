@@ -8,7 +8,6 @@ classical class SourceCallTargetTable {
   private const long NAME_BYTES_LIMIT = 1048576;
   private const long PARAMETER_COUNT_LIMIT = 16384;
   private const long TARGET_COUNT_LIMIT = 4096;
-  private const long TARGET_ROWS = 32768;
 
   /// Reports one complete dense target table.
   public record SourceCallTargetTablePlan(
@@ -71,9 +70,6 @@ classical class SourceCallTargetTable {
     assert(bufferLength(localResultTypes) == TARGET_COUNT_LIMIT);
     assert(bufferLength(localEffects) == TARGET_COUNT_LIMIT);
     assert(bufferLength(localIdentities) == 131072);
-    assert(bufferLength(importedRows) == TARGET_ROWS);
-    assert(bufferLength(importedParameterRows) == 32768);
-    assert(bufferLength(importedIdentities) == 131072);
     assert(bufferLength(targetNames) == NAME_BYTES_LIMIT);
     assert(bufferLength(targetNameStarts) == TARGET_COUNT_LIMIT);
     assert(bufferLength(targetNameLengths) == TARGET_COUNT_LIMIT);

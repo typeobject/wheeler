@@ -171,6 +171,7 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0099 emits exact ordinary `true` and `false` root return products with Boolean local types and fail-closed terminal punctuation.
 - [x] WIP-0100 routes `ResolvedLocalLoopForms.w` through direct modulo, division, conditional, and Boolean literal return products. Its four functions and 21 instructions match the 1,392-byte stage-0 artifact.
 - [x] WIP-0101 routes `NamedBooleanReturnKinds.w` through exact comparison children and one forwarded local Boolean call. Its three functions and 40 instructions match the 1,800-byte stage-0 artifact.
+- [x] WIP-0102 replaces full-capacity empty imported-target workspaces with compact carriers while retaining nonempty capacity checks and local relocation output.
 - [x] Every callable-free physical module compiles without dependency source.
 - [x] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.

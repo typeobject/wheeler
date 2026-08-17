@@ -386,18 +386,18 @@ classical class ArchiveStructuredSourceModuleCompiler {
       );
     }
 
-    region emptyTargets = new region(/* bytes= */ 1802240, /* allocations= */ 7);
-    words importedTargetRows = allocate(emptyTargets, /* length= */ 32768);
-    words importedTargetParameterRows = allocate(emptyTargets, /* length= */ 32768);
-    bytes importedTargetNames = allocateBytes(emptyTargets, /* length= */ 1048576);
-    bytes importedTargetIdentities = allocateBytes(emptyTargets, /* length= */ 131072);
+    region emptyTargets = new region(/* bytes= */ 64, /* allocations= */ 7);
+    words importedTargetRows = allocate(emptyTargets, /* length= */ 1);
+    words importedTargetParameterRows = allocate(emptyTargets, /* length= */ 1);
+    bytes importedTargetNames = allocateBytes(emptyTargets, /* length= */ 1);
+    bytes importedTargetIdentities = allocateBytes(emptyTargets, /* length= */ 1);
     region emptyRelocations = new region(/* bytes= */ 16384, /* allocations= */ 3);
     words relocationRows = allocate(emptyRelocations, /* length= */ 768);
     words relocationOwners = allocate(emptyRelocations, /* length= */ 256);
     bytes relocationIdentities = allocateBytes(emptyRelocations, /* length= */ 8192);
-    words qualifierNameStarts = allocate(emptyTargets, /* length= */ 4096);
-    words qualifierNameLengths = allocate(emptyTargets, /* length= */ 4096);
-    words qualifierRanks = allocate(emptyTargets, /* length= */ 4096);
+    words qualifierNameStarts = allocate(emptyTargets, /* length= */ 1);
+    words qualifierNameLengths = allocate(emptyTargets, /* length= */ 1);
+    words qualifierRanks = allocate(emptyTargets, /* length= */ 1);
     SourceProductArtifactPlan result = compileStructuredArchiveModuleWithTargetView(
       archive,
       sourceStart,
@@ -554,10 +554,6 @@ classical class ArchiveStructuredSourceModuleCompiler {
     assert(callableCount < MAX_CALLABLES + 1);
     assert(-1 < importedTargetCount);
     assert(importedTargetCount < 4097);
-    assert(bufferLength(importedTargetRows) == 32768);
-    assert(bufferLength(importedTargetParameterRows) == 32768);
-    assert(bufferLength(importedTargetNames) == 1048576);
-    assert(bufferLength(importedTargetIdentities) == 131072);
     assert(bufferLength(callableBodyStarts) == 4096);
     assert(bufferLength(callableBodyLengths) == 4096);
     assert(-1 < importedCount);

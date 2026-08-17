@@ -89,11 +89,11 @@ classical class StructuredSourceModuleCompiler {
     assert(-1 < importedTargetCount);
     assert(importedTargetCount < 4097);
     assert(importedTargetCount < 4096 - callableCount + 1);
-    assert(bufferLength(importedTargetRows) == 32768);
-    assert(bufferLength(importedTargetParameterRows) == 32768);
-    assert(bufferLength(importedTargetNames) == 1048576);
-    assert(bufferLength(importedTargetIdentities) == 131072);
     if (0 < importedTargetCount) {
+      assert(bufferLength(importedTargetRows) == 32768);
+      assert(bufferLength(importedTargetParameterRows) == 32768);
+      assert(bufferLength(importedTargetNames) == 1048576);
+      assert(bufferLength(importedTargetIdentities) == 131072);
       assert(bufferLength(importedTargetQualifierNames) == 1048576);
       assert(4095 < bufferLength(importedTargetQualifierNameStarts));
       assert(4095 < bufferLength(importedTargetQualifierNameLengths));
