@@ -51,6 +51,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.result_slot_verifier",
       "wheeler.compiler.return_opcode_kinds",
       "wheeler.compiler.three_argument_calls",
+      "wheeler.compiler.two_argument_call_kinds",
       "wheeler.compiler.type_kinds",
       "wheeler.compiler.wide_return_sources");
 
