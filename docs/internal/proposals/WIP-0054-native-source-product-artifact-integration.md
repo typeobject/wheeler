@@ -186,6 +186,7 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0116 routes `ResolvedLocalConditionalSources.w` through exact prior-value, subtraction, and XOR regions. Its three functions and 117 instructions match the 3,752-byte stage-0 artifact.
 - [x] WIP-0117 routes `EarlyReturnResultKinds.w` through exact helper, comparison, signed, and computed result identities. Its six functions and 80 instructions match the 3,184-byte stage-0 artifact.
 - [x] WIP-0118 routes `VoidCallSourceKinds.w` through exact unresolved zero- through three-argument statement identities. Its one function and 25 instructions match the 1,128-byte stage-0 artifact.
+- [x] WIP-0119 routes `EarlyReturnSources.w` through exact helper and comparison guard column boundaries and base-relative sources. Its two functions and 107 instructions match the 3,464-byte stage-0 artifact.
 - [x] Every callable-free physical module compiles without dependency source.
 - [x] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.
