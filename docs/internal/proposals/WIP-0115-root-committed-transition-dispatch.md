@@ -29,6 +29,8 @@ The answer is always root. The complete native physical closure performs more th
 
 Execution receives the same prior machine status, root selection, root scheduler cursor, and root task status as the general path. It creates no `StepRecord`, increments the same sequence, publishes the same completed or runnable task status, and emits the same observation when the observer is not `TransitionObserver.NONE`.
 
+WIP-0125 removes the transient running and runnable writes from successful nonhalting committed transitions. The final published status and every failure state remain unchanged.
+
 A retained rewind tail still rejects committed execution before dispatch. The specialized method cannot run after a noncommitted step until the caller establishes a commit horizon.
 
 ## Observable state
@@ -89,3 +91,4 @@ Rejected. Containers alone do not implement WIP-0039 scheduling, ownership, join
 - [WIP-0044](WIP-0044-counted-native-compiler-closure-execution.md)
 - [WIP-0083](WIP-0083-zero-allocation-unobserved-transitions.md)
 - [WIP-0085](WIP-0085-root-task-state-specialization.md)
+- [WIP-0125](WIP-0125-lazy-committed-root-status-publication.md)

@@ -164,7 +164,7 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 - [x] WIP-0045 owns semantic module products. Scalar compilation transfers validated declarations and values instead of retaining linked source. The callable phase publishes 1,121 typed physical compiler signatures and body ranges. WIP-0049 now compiles complete primitive local classes against imported signatures without dependency bodies.
 - [x] WIP-0105 represents unwritten owned-buffer pages sparsely without changing logical quotas, snapshots, rewind, or observations.
 - [x] WIP-0115 dispatches committed transitions through the implemented root-task profile without a singleton runnable-set search.
-- [x] WIP-0123 closes exact local Boolean call-conditioned literal returns. Complete selected physical evidence with 60 callable-bearing direct routes passes in 18 minutes and 22 seconds under the fixed deadline.
+- [x] WIP-0123 closes exact local Boolean call-conditioned literal returns. WIP-0125 removes transient task-status writes from successful committed root transitions. Complete selected physical evidence with 60 callable-bearing direct routes passes in 17 minutes and 35 seconds under the fixed deadline.
 - [ ] The complete physical compiler closure compiles.
 
 ## Acceptance

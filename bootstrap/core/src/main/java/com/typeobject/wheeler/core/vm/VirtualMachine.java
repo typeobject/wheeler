@@ -156,20 +156,25 @@ public final class VirtualMachine {
       throw new VmTrap("Task machine has no runnable task");
     }
     scheduler.commit(TaskId.ROOT);
-    tasks.setSelectedStatus(TaskStatus.RUNNING);
     MachineStatus previousStatus = status;
     status = MachineStatus.RUNNING;
-    execute(
-        frame,
-        instruction,
-        previousStatus,
-        TaskId.ROOT,
-        TaskId.ROOT,
-        previousTaskStatus,
-        false);
+    try {
+      execute(
+          frame,
+          instruction,
+          previousStatus,
+          TaskId.ROOT,
+          TaskId.ROOT,
+          previousTaskStatus,
+          false);
+    } catch (RuntimeException exception) {
+      tasks.setSelectedStatus(TaskStatus.RUNNING);
+      throw exception;
+    }
     sequence = Math.addExact(sequence, 1);
-    tasks.setSelectedStatus(
-        status == MachineStatus.HALTED ? TaskStatus.COMPLETED : TaskStatus.RUNNABLE);
+    if (status == MachineStatus.HALTED) {
+      tasks.setSelectedStatus(TaskStatus.COMPLETED);
+    }
     if (observer != TransitionObserver.NONE) {
       observer.observe(
           TransitionObserver.execution(sequence, TaskId.ROOT, frame, instruction));
