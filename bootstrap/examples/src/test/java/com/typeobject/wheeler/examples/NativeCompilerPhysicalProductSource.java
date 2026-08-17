@@ -5,6 +5,7 @@ import java.util.List;
 /** Owns the physical source-product compilation transaction used by closure evidence. */
 final class NativeCompilerPhysicalProductSource {
   private static final List<String> DIRECT_SOURCE_MODULES = List.of(
+      "wheeler.compiler.boolean_declaration_kinds",
       "wheeler.compiler.closure.aggregate_source_projection",
       "wheeler.compiler.closure.manifest_syntax",
       "wheeler.compiler.closure.reversible_token_coordinates",
