@@ -57,6 +57,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.three_argument_calls",
       "wheeler.compiler.two_argument_call_kinds",
       "wheeler.compiler.type_kinds",
+      "wheeler.compiler.void_call_kinds",
       "wheeler.compiler.void_call_source_kinds",
       "wheeler.compiler.wide_return_sources");
 
