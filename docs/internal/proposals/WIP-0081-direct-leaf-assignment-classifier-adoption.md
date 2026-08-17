@@ -56,11 +56,11 @@ The route list is evidence, not feature detection. The physical closure must com
 
 The full physical product method retains its fixed twenty-minute deadline. The new route passes under that deadline without raising either the JUnit method limit or the Gradle task limit.
 
-This migration consumes the current measured local margin. A later route must first reduce native closure work or split the evidence transaction without weakening complete-product and linked-container checks.
+This migration consumed the measured local margin at adoption. WIP-0083 removed discarded observation records, WIP-0085 specialized current root-task state, and WIP-0087 bounded successful direct publication. Later routes use that recovered margin without changing the evidence deadlines or transaction.
 
 ## Evidence
 
-`NativeCompilerNamedLocalAssignmentKindsPhysicalProductExampleTest` compares the complete artifact with stage 0. `NativeCompilerArchiveClosureExampleTest` then compiles every physical product with the new route, compares all artifact bytes, retains exact local function prefixes, and links the unchanged 96-product subset.
+`NativeCompilerNamedLocalAssignmentKindsPhysicalProductExampleTest` compares the complete artifact with stage 0. `NativeCompilerPhysicalClosureExampleTest` then compiles every physical product with the new route, compares all artifact bytes, retains exact local function prefixes, and links the unchanged 96-product subset.
 
 No Wheeler package source changed. Compiler and bootstrap archive identities, manifests, locks, transition budgets, and linked subset identity remain unchanged.
 

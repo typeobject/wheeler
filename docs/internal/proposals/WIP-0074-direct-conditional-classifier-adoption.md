@@ -54,7 +54,7 @@ This migration also does not admit helper-call conditions or helper-call child r
 
 ## Evidence
 
-`NativeCompilerLiteralComparisonOperationsPhysicalProductExampleTest` compares the complete 4,880-byte artifact with stage 0. `NativeCompilerArchiveClosureExampleTest` compares every physical product after all four routes change. It then links the unchanged 96-product subset and retains the same function, instruction, byte, and identity products.
+`NativeCompilerLiteralComparisonOperationsPhysicalProductExampleTest` compares the complete 4,880-byte artifact with stage 0. `NativeCompilerPhysicalClosureExampleTest` compares every physical product after all four routes change. It then links the unchanged 96-product subset and retains the same function, instruction, byte, and identity products.
 
 No Wheeler package source changed. The compiler archive identity, module manifest, dependent locks, bootstrap transition budgets, and physical linked-container identity remain unchanged.
 

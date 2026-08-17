@@ -61,7 +61,7 @@ A signed constant used as the complete child expression remains outside WIP-0075
 
 ## Evidence
 
-The focused WIP-0075 fixtures cover preserved and binary signed children, literal Boolean children, malformed Boolean comparisons, and multiple-child rejection. `NativeCompilerArchiveClosureExampleTest` then compiles every physical module with the five new route selections. It compares the complete artifacts, retains every local function prefix, links the 96-product subset, verifies the container, and preserves its identity.
+The focused WIP-0075 fixtures cover preserved and binary signed children, literal Boolean children, malformed Boolean comparisons, and multiple-child rejection. `NativeCompilerPhysicalClosureExampleTest` then compiles every physical module with the five new route selections. It compares the complete artifacts, retains every local function prefix, links the 96-product subset, verifies the container, and preserves its identity.
 
 ## Acceptance
 
