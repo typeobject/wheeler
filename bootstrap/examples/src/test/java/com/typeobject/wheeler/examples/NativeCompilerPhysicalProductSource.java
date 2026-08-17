@@ -27,6 +27,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.named_return_arithmetic_kinds",
       "wheeler.compiler.named_return_comparison_operands",
       "wheeler.compiler.named_signed_return_kinds",
+      "wheeler.compiler.one_argument_calls",
       "wheeler.compiler.resolved_boolean_literal_assertions",
       "wheeler.compiler.resolved_boolean_literal_comparisons",
       "wheeler.compiler.resolved_early_comparison_kinds",
