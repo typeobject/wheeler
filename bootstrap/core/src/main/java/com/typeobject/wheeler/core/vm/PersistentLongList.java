@@ -23,15 +23,23 @@ final class PersistentLongList extends AbstractList<Long> implements RandomAcces
       return values;
     }
     int size = values.size();
-    long[][] chunks = new long[(size + CHUNK_SIZE - 1) / CHUNK_SIZE][];
-    for (int chunk = 0; chunk < chunks.length; chunk++) {
-      chunks[chunk] = new long[Math.min(CHUNK_SIZE, size - chunk * CHUNK_SIZE)];
-    }
+    long[][] chunks = new long[chunkCount(size)][];
     for (int index = 0; index < size; index++) {
-      chunks[index / CHUNK_SIZE][index % CHUNK_SIZE] =
+      int chunk = index / CHUNK_SIZE;
+      if (chunks[chunk] == null) {
+        chunks[chunk] = new long[chunkLength(size, chunk)];
+      }
+      chunks[chunk][index % CHUNK_SIZE] =
           Objects.requireNonNull(values.get(index), "value");
     }
     return new PersistentLongList(size, chunks);
+  }
+
+  static List<Long> zeros(int size) {
+    if (size < 0) {
+      throw new IllegalArgumentException("Negative persistent list size");
+    }
+    return new PersistentLongList(size, new long[chunkCount(size)][]);
   }
 
   static List<Long> with(List<Long> values, int index, long value) {
@@ -50,9 +58,9 @@ final class PersistentLongList extends AbstractList<Long> implements RandomAcces
     long[][] updated = source.chunks.clone();
     int firstChunk = firstIndex / CHUNK_SIZE;
     int lastChunk = (firstIndex + 2) / CHUNK_SIZE;
-    updated[firstChunk] = source.chunks[firstChunk].clone();
+    updated[firstChunk] = source.copyChunk(firstChunk);
     if (firstChunk != lastChunk) {
-      updated[lastChunk] = source.chunks[lastChunk].clone();
+      updated[lastChunk] = source.copyChunk(lastChunk);
     }
     updated[firstChunk][firstIndex % CHUNK_SIZE] = firstValue;
     int secondIndex = firstIndex + 1;
@@ -65,7 +73,8 @@ final class PersistentLongList extends AbstractList<Long> implements RandomAcces
   @Override
   public Long get(int index) {
     checkIndex(index);
-    return chunks[index / CHUNK_SIZE][index % CHUNK_SIZE];
+    long[] chunk = chunks[index / CHUNK_SIZE];
+    return chunk == null ? 0L : chunk[index % CHUNK_SIZE];
   }
 
   @Override
@@ -77,9 +86,22 @@ final class PersistentLongList extends AbstractList<Long> implements RandomAcces
     checkIndex(index);
     int chunk = index / CHUNK_SIZE;
     long[][] updated = chunks.clone();
-    updated[chunk] = chunks[chunk].clone();
+    updated[chunk] = copyChunk(chunk);
     updated[chunk][index % CHUNK_SIZE] = value;
     return new PersistentLongList(size, updated);
+  }
+
+  private long[] copyChunk(int chunk) {
+    long[] source = chunks[chunk];
+    return source == null ? new long[chunkLength(size, chunk)] : source.clone();
+  }
+
+  private static int chunkCount(int size) {
+    return (size + CHUNK_SIZE - 1) / CHUNK_SIZE;
+  }
+
+  private static int chunkLength(int size, int chunk) {
+    return Math.min(CHUNK_SIZE, size - chunk * CHUNK_SIZE);
   }
 
   private static PersistentLongList requirePersistent(List<Long> values) {

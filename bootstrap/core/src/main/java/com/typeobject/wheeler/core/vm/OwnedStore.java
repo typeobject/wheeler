@@ -1,7 +1,6 @@
 package com.typeobject.wheeler.core.vm;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /** Bounded region and owned-buffer state with explicit rewind deltas. */
@@ -101,7 +100,7 @@ final class OwnedStore {
         regionId,
         BufferKind.BYTES,
         length,
-        Collections.nCopies(length, 0L),
+        PersistentLongList.zeros(length),
         false));
     return bufferId + 1L;
   }
@@ -148,7 +147,7 @@ final class OwnedStore {
         region.id(),
         kind,
         length,
-        Collections.nCopies(kind.storageSlots(length), 0L),
+        PersistentLongList.zeros(kind.storageSlots(length)),
         false));
     return new Allocation(id + 1L, updated);
   }
