@@ -51,6 +51,8 @@ Hierarchical `TaskId` and deterministic `TaskScheduler` remain as stable semanti
 
 A WIP-0039 implementation must replace the root specialization atomically with a bounded task-tree store. That change must also provide spawn and join instructions, ownership transfer, runnable-set publication, global journal records, verifier rules, exact rewind, finite schedule evidence, and the bakery-mutex acceptance program. Retaining empty maps before those semantics exist does not advance that work.
 
+WIP-0115 extends the same boundary to committed transition dispatch. It avoids searching the singleton runnable set but keeps the root scheduler cursor and full observation stream.
+
 ## Evidence
 
 All core tests pass. They cover root task and event identities, scheduler wraparound, snapshots, observations, calls, returns, result transfer, traps, commits, ownership, aggregate state, and exact rewind.
@@ -94,3 +96,4 @@ Rejected. Task creation, ownership transfer, shared atomics, schedule plans, and
 - [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
 - [WIP-0044](WIP-0044-counted-native-compiler-closure-execution.md)
 - [WIP-0083](WIP-0083-zero-allocation-unobserved-transitions.md)
+- [WIP-0115](WIP-0115-root-committed-transition-dispatch.md)

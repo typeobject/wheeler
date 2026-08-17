@@ -162,7 +162,8 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 - [x] `ActiveSourceSlots.w` owns eight active linked sources, exact 32,768-byte publication, generation-checked leases, lowest-slot reuse, deterministic exhaustion, and byte destruction on release.
 - [x] `ClosureSchedule.w` stages every source in leaf-first order, transfers no archive loan, releases each lease after staging, and publishes per-module slot generations only after the complete pass. The 257-module chain reaches generation 257.
 - [x] WIP-0045 owns semantic module products. Scalar compilation transfers validated declarations and values instead of retaining linked source. The callable phase publishes 1,121 typed physical compiler signatures and body ranges. WIP-0049 now compiles complete primitive local classes against imported signatures without dependency bodies.
-- [x] WIP-0105 represents unwritten owned-buffer pages sparsely without changing logical quotas, snapshots, rewind, or observations. Complete selected physical evidence passes in 16 minutes and 2 seconds under the fixed deadline.
+- [x] WIP-0105 represents unwritten owned-buffer pages sparsely without changing logical quotas, snapshots, rewind, or observations.
+- [x] WIP-0115 dispatches committed transitions through the implemented root-task profile without a singleton runnable-set search. Complete selected physical evidence with fifty-one callable-bearing direct routes passes in 16 minutes and 12 seconds under the fixed deadline.
 - [ ] The complete physical compiler closure compiles.
 
 ## Acceptance

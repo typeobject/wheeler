@@ -137,7 +137,43 @@ public final class VirtualMachine {
     if (!history.isEmpty()) {
       throw new VmTrap("Cannot discard rewind state while retained history exists");
     }
-    step(false);
+    stepRootWithoutRewindHistory();
+  }
+
+  private void stepRootWithoutRewindHistory() {
+    if (status == MachineStatus.HALTED) {
+      throw new VmTrap("Cannot step a halted machine");
+    }
+    if (status == MachineStatus.TRAPPED) {
+      throw new VmTrap("Cannot step a trapped machine");
+    }
+
+    Frame frame = currentFrame();
+    Instruction instruction = fetch(frame);
+    validateBeforeMutation(instruction);
+    TaskStatus previousTaskStatus = tasks.selectedStatus();
+    if (previousTaskStatus != TaskStatus.RUNNABLE) {
+      throw new VmTrap("Task machine has no runnable task");
+    }
+    scheduler.commit(TaskId.ROOT);
+    tasks.setSelectedStatus(TaskStatus.RUNNING);
+    MachineStatus previousStatus = status;
+    status = MachineStatus.RUNNING;
+    execute(
+        frame,
+        instruction,
+        previousStatus,
+        TaskId.ROOT,
+        TaskId.ROOT,
+        previousTaskStatus,
+        false);
+    sequence = Math.addExact(sequence, 1);
+    tasks.setSelectedStatus(
+        status == MachineStatus.HALTED ? TaskStatus.COMPLETED : TaskStatus.RUNNABLE);
+    if (observer != TransitionObserver.NONE) {
+      observer.observe(
+          TransitionObserver.execution(sequence, TaskId.ROOT, frame, instruction));
+    }
   }
 
   private void step(boolean retainHistory) {
