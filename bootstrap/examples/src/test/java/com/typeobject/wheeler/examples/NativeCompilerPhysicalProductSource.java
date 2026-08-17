@@ -58,6 +58,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.resolved_local_returns",
       "wheeler.compiler.resolved_local_updates",
       "wheeler.compiler.resolved_long_operations",
+      "wheeler.compiler.resolved_return_call_kinds",
       "wheeler.compiler.result_slot_verifier",
       "wheeler.compiler.return_opcode_kinds",
       "wheeler.compiler.three_argument_calls",
