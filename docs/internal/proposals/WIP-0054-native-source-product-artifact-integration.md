@@ -192,6 +192,7 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0122 routes `AssignmentCallArities.w` through all unresolved named identities and half-open resolved target columns. Its one function and 121 instructions match the 3,528-byte stage-0 artifact.
 - [x] WIP-0123 emits exact local Boolean call-conditioned literal returns and routes `OpcodeKinds.w` and `ResolvedEarlyResultKinds.w` directly. Their complete 3,336-byte and 7,728-byte artifacts match stage 0.
 - [x] WIP-0124 routes `CallArguments.w` through exact seven-source selection and typed move or reborrow opcode products. Its two functions and 88 instructions match the 2,800-byte stage-0 artifact.
+- [x] WIP-0126 routes `NamedLocalConditionalKinds.w` through exact positive, negated, assignment, and assignment-value statement identities. Its four functions and 198 instructions match the 5,912-byte stage-0 artifact.
 - [x] Every callable-free physical module compiles without dependency source.
 - [x] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.
