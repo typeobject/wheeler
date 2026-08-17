@@ -10,6 +10,10 @@ classical class SourceCallLayoutProducts {
   private const long CALL_COUNT_LIMIT = 256;
   private const long CALL_ROWS = 1024;
   private const long CALL_VOID = 0;
+  /// Names a Boolean helper call guarding an exact `return false;` child.
+  public const long CALL_CONDITION_FALSE_BOOLEAN = 5;
+  /// Names a Boolean helper call guarding an exact `return true;` child.
+  public const long CALL_CONDITION_TRUE_BOOLEAN = 6;
   private const long CALL_FORWARD_BOOLEAN = 4;
   private const long CALL_FORWARD_SIGNED = 3;
   private const long CALL_VALUE_BOOLEAN = 2;
@@ -39,7 +43,24 @@ classical class SourceCallLayoutProducts {
       return true;
     }
 
-    return kind == CALL_FORWARD_BOOLEAN;
+    if (kind == CALL_FORWARD_BOOLEAN) {
+      return true;
+    }
+
+    if (kind == CALL_CONDITION_FALSE_BOOLEAN) {
+      return true;
+    }
+
+    return kind == CALL_CONDITION_TRUE_BOOLEAN;
+  }
+
+  /// Reports whether one Boolean call result controls a literal-return child.
+  public boolean sourceCallConditionsResult(long kind) {
+    if (kind == CALL_CONDITION_FALSE_BOOLEAN) {
+      return true;
+    }
+
+    return kind == CALL_CONDITION_TRUE_BOOLEAN;
   }
 
   /// Reports whether one value call returns its result directly.
@@ -64,6 +85,10 @@ classical class SourceCallLayoutProducts {
       return arity * 2 + 1;
     }
 
+    if (sourceCallConditionsResult(kind)) {
+      return arity * 2 + 5;
+    }
+
     return arity * 2 + 2;
   }
 
@@ -84,6 +109,10 @@ classical class SourceCallLayoutProducts {
       return arity * 48 + 56;
     }
 
+    if (sourceCallConditionsResult(kind)) {
+      return arity * 48 + 120;
+    }
+
     return arity * 48 + 64;
   }
 
@@ -97,6 +126,10 @@ classical class SourceCallLayoutProducts {
     }
 
     if (sourceCallForwardsResult(kind)) {
+      return arity * 2 + 1;
+    }
+
+    if (sourceCallConditionsResult(kind)) {
       return arity * 2 + 1;
     }
 

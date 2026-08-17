@@ -253,14 +253,23 @@ classical class CallableSourceComposition {
                   consumedDirect += 1;
                   directProduct = true;
                 } else {
-                  long loop = loopAtStatement(statement, loopCount, loopRows, statementRows);
-                  if (loop < 0) {
-                    valid = false;
+                  long structuredCall = callAtStatement(statement, callCount, callStatements);
+                  if (-1 < structuredCall) {
+                    codeStart = callWindowRows[structuredCall];
+                    codeLength = callWindowRows[512 + structuredCall];
+                    productInstructionCount = callWindowRows[256 + structuredCall];
+                    consumedCalls += 1;
+                    callProduct = true;
                   } else {
-                    codeStart = loopWindowRows[loop];
-                    codeLength = loopWindowRows[512 + loop];
-                    productInstructionCount = loopWindowRows[256 + loop];
-                    consumedLoops += 1;
+                    long loop = loopAtStatement(statement, loopCount, loopRows, statementRows);
+                    if (loop < 0) {
+                      valid = false;
+                    } else {
+                      codeStart = loopWindowRows[loop];
+                      codeLength = loopWindowRows[512 + loop];
+                      productInstructionCount = loopWindowRows[256 + loop];
+                      consumedLoops += 1;
+                    }
                   }
                 }
               }

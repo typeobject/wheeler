@@ -4,6 +4,7 @@ module wheeler.compiler.closure.direct_statement_products;
 
 import wheeler.compiler.closure.direct_boolean_declaration_products;
 import wheeler.compiler.closure.direct_byte_mutation_products;
+import wheeler.compiler.closure.direct_call_conditional_returns;
 import wheeler.compiler.closure.direct_conditional_return_products;
 import wheeler.compiler.closure.direct_long_declaration_products;
 import wheeler.compiler.closure.direct_scalar_encoding;
@@ -60,7 +61,9 @@ classical class DirectStatementProducts {
     long statementCount,
     borrow mut words statementRows,
     long callCount,
+    borrow mut words callRows,
     borrow mut words callStatements,
+    borrow mut words callLocalWidths,
     long valueCount,
     borrow mut words valueRows,
     borrow mut words statementLocalRows,
@@ -88,7 +91,9 @@ classical class DirectStatementProducts {
     assert(-1 < callCount);
     assert(callCount < 257);
     if (0 < callCount) {
+      assert(bufferLength(callRows) == 1024);
       assert(bufferLength(callStatements) == 256);
+      assert(bufferLength(callLocalWidths) == 256);
     }
 
     assert(-1 < valueCount);
@@ -102,7 +107,7 @@ classical class DirectStatementProducts {
     assert(bufferLength(typeRows) == TYPE_ROWS);
     assert(bufferLength(output) == MAX_CODE_BYTES);
 
-    region staging = new region(/* bytes= */ 886272, /* allocations= */ 11);
+    region staging = new region(/* bytes= */ 888320, /* allocations= */ 12);
     words tokenKinds = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(staging, MAX_COMPILER_TOKENS);
@@ -110,10 +115,17 @@ classical class DirectStatementProducts {
     words assertionBody = allocate(staging, BODY_ROWS);
     words stagedTypes = allocate(staging, TYPE_ROWS);
     words stagedResultTypes = allocate(staging, /* length= */ 64);
+    words stagedCallKinds = allocate(staging, /* length= */ 256);
     words stagedPhysicalWidths = allocate(staging, MAX_STATEMENTS);
     words functionInstructionCounts = allocate(staging, /* length= */ 64);
     words functionPrefixesComplete = allocate(staging, /* length= */ 64);
     bytes stagedCode = allocateBytes(staging, MAX_CODE_BYTES);
+    long stagedCall = 0;
+    while (stagedCall < callCount) limit 256 {
+      set(stagedCallKinds, stagedCall, callRows[256 + stagedCall]);
+      stagedCall += 1;
+    }
+
     long stagedStatement = 0;
     while (stagedStatement < statementCount) limit MAX_STATEMENTS {
       set(stagedPhysicalWidths, stagedStatement, statementPhysicalWidths[stagedStatement]);
@@ -203,62 +215,97 @@ classical class DirectStatementProducts {
             long productTypeStart = typeCount;
             long hash = rootHash;
             boolean preserveStatementWidth = false;
-            boolean selectedCall = -1 < callAtStatement(statement, callCount, callStatements);
+            long statementCall = callAtStatement(statement, callCount, callStatements);
+            boolean selectedCall = -1 < statementCall;
             if (hash == TOKEN_IF) {
               if (0 < reversibleCallableCount) {
                 statementValid = false;
               }
 
-              if (functionPrefixesComplete[owner] != 1) {
-                statementValid = false;
-              }
-
-              if (statementValid) {
-                DirectConditionalReturnProduct conditional = writeDirectConditionalReturn(
-                  source,
-                  token,
-                  semanticCount,
-                  tokenKinds,
-                  tokenStarts,
-                  tokenLengths,
-                  moduleOwner,
-                  owner,
-                  statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement],
-                  statement,
-                  statementCount,
-                  statementRows,
-                  statementLocalRows,
-                  statementPhysicalStarts,
-                  valueCount,
-                  valueRows,
-                  symbolCount,
-                  symbolOwners,
-                  symbolStarts,
-                  symbolLengths,
-                  symbolTypes,
-                  symbolValues,
-                  symbolResolved,
-                  stagedTypes,
-                  typeCount,
-                  stagedCode,
-                  cursor,
-                  functionInstructionCounts[owner]
-                );
-                if (conditional.valid) {
-                  cursor = conditional.next;
-                  typeCount = conditional.typeCount;
-                  productInstructions = conditional.instructionCount;
-                  preserveStatementWidth = true;
-                  if (stagedResultTypes[owner] == 0) {
-                    set(stagedResultTypes, owner, conditional.resultType);
-                  } else {
-                    if (stagedResultTypes[owner] != conditional.resultType) {
-                      statementValid = false;
+              if (selectedCall) {
+                if (statementValid) {
+                  DirectCallConditionalReturn callConditional = directCallConditionalReturn(
+                    source,
+                    token,
+                    semanticCount,
+                    tokenKinds,
+                    tokenStarts,
+                    tokenLengths,
+                    callRows[512 + statementCall],
+                    callLocalWidths[statementCall],
+                    owner,
+                    statement,
+                    statementCount,
+                    statementRows,
+                    statementLocalRows,
+                    statementPhysicalStarts
+                  );
+                  if (callConditional.valid) {
+                    set(stagedCallKinds, statementCall, callConditional.callKind);
+                    if (stagedResultTypes[owner] == 0) {
+                      set(stagedResultTypes, owner, TYPE_BOOLEAN);
+                    } else {
+                      if (stagedResultTypes[owner] != TYPE_BOOLEAN) {
+                        statementValid = false;
+                      }
                     }
+                  } else {
+                    failureCode = callConditional.failureCode;
+                    statementValid = false;
                   }
-                } else {
-                  failureCode = conditional.failureCode;
+                }
+              } else {
+                if (functionPrefixesComplete[owner] != 1) {
                   statementValid = false;
+                }
+
+                if (statementValid) {
+                  DirectConditionalReturnProduct conditional = writeDirectConditionalReturn(
+                    source,
+                    token,
+                    semanticCount,
+                    tokenKinds,
+                    tokenStarts,
+                    tokenLengths,
+                    moduleOwner,
+                    owner,
+                    statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement],
+                    statement,
+                    statementCount,
+                    statementRows,
+                    statementLocalRows,
+                    statementPhysicalStarts,
+                    valueCount,
+                    valueRows,
+                    symbolCount,
+                    symbolOwners,
+                    symbolStarts,
+                    symbolLengths,
+                    symbolTypes,
+                    symbolValues,
+                    symbolResolved,
+                    stagedTypes,
+                    typeCount,
+                    stagedCode,
+                    cursor,
+                    functionInstructionCounts[owner]
+                  );
+                  if (conditional.valid) {
+                    cursor = conditional.next;
+                    typeCount = conditional.typeCount;
+                    productInstructions = conditional.instructionCount;
+                    preserveStatementWidth = true;
+                    if (stagedResultTypes[owner] == 0) {
+                      set(stagedResultTypes, owner, conditional.resultType);
+                    } else {
+                      if (stagedResultTypes[owner] != conditional.resultType) {
+                        statementValid = false;
+                      }
+                    }
+                  } else {
+                    failureCode = conditional.failureCode;
+                    statementValid = false;
+                  }
                 }
               }
             } else {
@@ -628,7 +675,10 @@ classical class DirectStatementProducts {
             }
 
             if (selectedCall) {
-              statementValid = true;
+              if (hash != TOKEN_IF) {
+                statementValid = true;
+              }
+
               cursor = productStart;
               typeCount = productTypeStart;
               set(functionPrefixesComplete, owner, 0);
@@ -687,6 +737,12 @@ classical class DirectStatementProducts {
       }
 
       row = 0;
+      while (row < callCount) limit 256 {
+        set(callRows, 256 + row, stagedCallKinds[row]);
+        row += 1;
+      }
+
+      row = 0;
       while (row < 64) limit 64 {
         set(functionResultTypes, row, stagedResultTypes[row]);
         row += 1;
@@ -717,6 +773,7 @@ classical class DirectStatementProducts {
     drop(functionPrefixesComplete);
     drop(functionInstructionCounts);
     drop(stagedPhysicalWidths);
+    drop(stagedCallKinds);
     drop(stagedResultTypes);
     drop(stagedTypes);
     drop(assertionBody);

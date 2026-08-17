@@ -48,6 +48,32 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
   }
 
   @Test
+  void emitsAFalseReturnBehindALocalBooleanCall() throws Exception {
+    assertArtifact(callConditionalSource("return false;"), 1, 2, 0);
+  }
+
+  @Test
+  void rejectsMultipleCallConditionalChildrenBeforePublication() throws Exception {
+    assertRejected(callConditionalSource("return false;\n      return true;"), 1, 2, 0);
+  }
+
+  private static String callConditionalSource(String child) {
+    return """
+        module example.structured_call;
+
+        classical class StructuredCall {
+          public boolean recurse(boolean value) {
+            if (recurse(value)) {
+              CHILD
+            }
+
+            return true;
+          }
+        }
+        """.replace("CHILD", child);
+  }
+
+  @Test
   void emitsAReversibleResultSlotArtifact() throws Exception {
     assertReversibleArtifact("long", "long value", "value", 1, 1);
   }

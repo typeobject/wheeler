@@ -149,6 +149,7 @@ classical class LoopCallProducts {
     long cursor,
     long kind,
     long localBase,
+    long instructionStart,
     long target,
     long firstArgument,
     long arity,
@@ -201,6 +202,40 @@ classical class LoopCallProducts {
     cursor = writeUnsignedLittleEndian(output, cursor, argumentBase, U64);
     cursor = writeUnsignedLittleEndian(output, cursor, arity, U64);
     cursor = writeUnsignedLittleEndian(output, cursor, localBase + arity * 2, U64);
+    if (sourceCallConditionsResult(kind)) {
+      long branchTarget = instructionStart + sourceCallInstructionCount(kind, arity);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_JUMP_IF_ZERO,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + arity * 2, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, branchTarget, U64);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_CONST,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + arity * 2 + 1, U64);
+      long literal = 1;
+      if (kind == CALL_CONDITION_FALSE_BOOLEAN) {
+        literal = 0;
+      }
+
+      cursor = writeSignedLittleEndian(output, cursor, literal, U64);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_RETURN_VALUE,
+        INSTRUCTION_FORM_UNARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + arity * 2 + 1, U64);
+      cursor = writeInstructionHeader(output, cursor, OPCODE_JUMP, INSTRUCTION_FORM_UNARY);
+      return writeUnsignedLittleEndian(output, cursor, branchTarget, U64);
+    }
+
     if (sourceCallForwardsResult(kind)) {
       cursor = writeInstructionHeader(
         output,
@@ -253,6 +288,10 @@ classical class LoopCallProducts {
       }
 
       if (kind == CALL_FORWARD_BOOLEAN) {
+        resultType = TYPE_BOOLEAN;
+      }
+
+      if (sourceCallConditionsResult(kind)) {
         resultType = TYPE_BOOLEAN;
       }
 
@@ -437,7 +476,12 @@ classical class LoopCallProducts {
         }
       }
 
-      localTypeCount += selectedLocalCount;
+      long selectedTypeCount = selectedLocalCount;
+      if (sourceCallConditionsResult(kind)) {
+        selectedTypeCount += 1;
+      }
+
+      localTypeCount += selectedTypeCount;
       if (LOCAL_TYPE_COUNT_LIMIT < localTypeCount) {
         valid = false;
       }
@@ -497,6 +541,7 @@ classical class LoopCallProducts {
         cursor,
         emittedKind,
         emittedLocalBase,
+        callInstructionStarts[call],
         emittedTarget,
         emittedFirstArgument,
         emittedArity,
