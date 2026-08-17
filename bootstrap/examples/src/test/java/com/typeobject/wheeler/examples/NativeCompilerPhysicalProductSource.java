@@ -110,20 +110,24 @@ final class NativeCompilerPhysicalProductSource {
             if (0 < physicalImportedCount) {
               assert(0 < physicalImportedNameBytes);
             }
-            long physicalSourceLength = writeProductModuleSource(
-              archive,
-              archiveSourceStarts[physicalOwner],
-              archiveSourceLengths[physicalOwner],
-              moduleFirstSymbols[physicalOwner],
-              moduleSymbolCounts[physicalOwner],
-              symbolStarts,
-              symbolLengths,
-              physicalImportedRows,
-              physicalProductSource
-            );
-            assert(0 < physicalSourceLength);
+            long physicalSourceLength = 0;
+            if (!directSourceModule) {
+              physicalSourceLength = writeProductModuleSource(
+                archive,
+                archiveSourceStarts[physicalOwner],
+                archiveSourceLengths[physicalOwner],
+                moduleFirstSymbols[physicalOwner],
+                moduleSymbolCounts[physicalOwner],
+                symbolStarts,
+                symbolLengths,
+                physicalImportedRows,
+                physicalProductSource
+              );
+              assert(0 < physicalSourceLength);
+            }
             long physicalCallCount = 0;
             if (PHYSICAL_COMPARABLE_COUNT < physicalProduct + 1) {
+              assert(!directSourceModule);
               long physicalDependencyCount = packCallableDependencyProducts(
                 closure.moduleCount,
                 closure.externalCount,
