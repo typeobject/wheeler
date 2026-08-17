@@ -10,6 +10,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.boolean_declaration_kinds",
       "wheeler.compiler.boolean_tokens",
       "wheeler.compiler.call_argument_sources",
+      "wheeler.compiler.call_arguments",
       "wheeler.compiler.closure.aggregate_source_projection",
       "wheeler.compiler.closure.manifest_syntax",
       "wheeler.compiler.closure.reversible_token_coordinates",
