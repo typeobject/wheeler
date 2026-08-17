@@ -180,6 +180,7 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0109 routes `IdentifierStarts.w` through exact uppercase, underscore, lowercase, and gap boundary products. Its one function and 39 instructions match the 1,464-byte stage-0 artifact.
 - [x] WIP-0110 routes `CallArgumentSources.w` through exact first-local and second-local call statement identities. Its two functions and 78 instructions match the 2,592-byte stage-0 artifact.
 - [x] WIP-0111 routes `OneArgumentCalls.w` through exact argument-source and result-type statement identities. Its four functions and 79 instructions match the 2,840-byte stage-0 artifact.
+- [x] WIP-0112 routes `ThreeArgumentCalls.w` through exact named and packed statement identities, token offsets, and third-source decoding. Its five functions and 48 instructions match the 2,192-byte stage-0 artifact.
 - [x] Every callable-free physical module compiles without dependency source.
 - [x] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.
