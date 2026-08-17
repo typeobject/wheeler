@@ -47,7 +47,7 @@ The callable artifact remains quarantined until every statement, type row, code 
 
 The compiler archive contains 2,969,980 bytes and has SHA-256 `950531b99dc1808eae8a7d9407a186a792350afcde3dede0b9902ae240ca7482`. All four dependent package locks name that archive. The package manifest identity remains `e83091ee70e165f76eefcb2135d2b9620af0906f39affb8a0013e9e60bf894c2`.
 
-The new `boolean_tokens` dependency raises the bootstrap module manifest to 173,627 bytes, 373 modules, two externals, and 1,833 imports. Its SHA-256 is `c350e80c5c2f4a5e5d83daab56edeaf2037da34965ca955fefbcfde6e309cef2`. Native validation halts after 72,223,344 transitions under the unchanged 73,000,000-transition ceiling.
+The new `boolean_tokens` dependency raises the bootstrap module manifest to 173,627 bytes, 373 modules, two externals, and 1,833 imports. Its SHA-256 is `c350e80c5c2f4a5e5d83daab56edeaf2037da34965ca955fefbcfde6e309cef2`. Native validation halts after 72,223,344 transitions under the unchanged 73,000,000-transition ceiling. Wheeler-native SHA-256 hashes the manifest in 33,239,462 transitions.
 
 ## Evidence
 
