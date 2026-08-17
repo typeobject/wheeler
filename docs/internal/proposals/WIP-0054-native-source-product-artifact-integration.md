@@ -174,6 +174,7 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0102 replaces full-capacity empty imported-target workspaces with compact carriers while retaining nonempty capacity checks and local relocation output.
 - [x] WIP-0103 routes `ResolvedLocalConditionalOperands.w` through four exact arithmetic child windows and one final subtraction. Its one function and 40 instructions match the 1,592-byte stage-0 artifact.
 - [x] WIP-0104 routes `ResolvedLocalReturns.w` through exact signed and Boolean range predicates plus source-local subtraction products. Its three functions and 44 instructions match the 1,880-byte stage-0 artifact.
+- [x] WIP-0106 routes `ResolvedLocalUpdates.w` through exact update, source-kind, and target-local range products. Its three functions and 99 instructions match the 3,304-byte stage-0 artifact.
 - [x] Every callable-free physical module compiles without dependency source.
 - [x] Every physical multi-statement-loop module compiles without dependency source.
 - [ ] Every physical compiler module publishes one product-built artifact.

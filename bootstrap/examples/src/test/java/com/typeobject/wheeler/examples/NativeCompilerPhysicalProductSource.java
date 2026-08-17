@@ -42,6 +42,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.resolved_local_loop_operands",
       "wheeler.compiler.resolved_local_pair_assertions",
       "wheeler.compiler.resolved_local_returns",
+      "wheeler.compiler.resolved_local_updates",
       "wheeler.compiler.resolved_long_operations",
       "wheeler.compiler.result_slot_verifier",
       "wheeler.compiler.type_kinds",
