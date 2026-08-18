@@ -240,7 +240,7 @@ classical class SourceCallTargetTable {
       }
 
       long row = 0;
-      while (row < TARGET_COUNT_LIMIT) limit TARGET_COUNT_LIMIT {
+      while (row < target) limit TARGET_COUNT_LIMIT {
         set(targetNameStarts, row, stagedNameStarts[row]);
         set(targetNameLengths, row, stagedNameLengths[row]);
         set(targetParameterStarts, row, stagedParameterStarts[row]);
@@ -251,7 +251,7 @@ classical class SourceCallTargetTable {
       }
 
       row = 0;
-      while (row < PARAMETER_COUNT_LIMIT) limit PARAMETER_COUNT_LIMIT {
+      while (row < parameterCursor) limit PARAMETER_COUNT_LIMIT {
         set(targetParameterTypes, row, stagedParameterTypes[row]);
         row += 1;
       }
@@ -267,8 +267,9 @@ classical class SourceCallTargetTable {
       }
 
       row = 0;
-      while (row < 8192) limit 8192 {
+      while (row < importedCount) limit TARGET_COUNT_LIMIT {
         set(dependencyRows, row, stagedDependencies[row]);
+        set(dependencyRows, 4096 + row, stagedDependencies[4096 + row]);
         row += 1;
       }
     }
