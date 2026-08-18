@@ -1,8 +1,9 @@
-//! Validates exact helper-call conditions with Boolean literal returns.
+//! Validates exact helper-call conditions with scalar leaf returns.
 
 module wheeler.compiler.closure.direct_call_conditional_returns;
 
 import wheeler.compiler.boolean_tokens;
+import wheeler.compiler.closure.direct_scalar_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.source_call_layout_products;
 import wheeler.compiler.compiler_token_limits;
@@ -14,16 +15,17 @@ classical class DirectCallConditionalReturns {
   private const long MAX_STATEMENTS = 4096;
   private const long STATEMENT_FIRST_CHILD_ROW = 20480;
 
-  /// Reports one exact call-conditioned Boolean return product.
+  /// Reports one exact call-conditioned scalar return product.
   public record DirectCallConditionalReturn(
     long callKind,
     long childStatement,
+    long childValue,
     long failureCode,
     boolean valid
   ) {}
 
   private DirectCallConditionalReturn invalid(long failureCode) {
-    return new DirectCallConditionalReturn(0, 0, failureCode, false);
+    return new DirectCallConditionalReturn(0, 0, 0, failureCode, false);
   }
 
   private long childStatementForBlock(
@@ -84,7 +86,7 @@ classical class DirectCallConditionalReturns {
     return -1;
   }
 
-  /// Validates one exact `if (helper(args)) { return literal; }` product.
+  /// Validates one exact `if (helper(args)) { return scalar; }` product.
   public DirectCallConditionalReturn directCallConditionalReturn(
     borrow utf8 source,
     long token,
@@ -92,6 +94,14 @@ classical class DirectCallConditionalReturns {
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
+    long moduleOwner,
+    long symbolCount,
+    borrow mut words symbolOwners,
+    borrow mut words symbolStarts,
+    borrow mut words symbolLengths,
+    borrow mut words symbolTypes,
+    borrow mut words symbolValues,
+    borrow mut words symbolResolved,
     long callStart,
     long callLocalWidth,
     long owner,
@@ -185,11 +195,35 @@ classical class DirectCallConditionalReturns {
 
     long literalHash = tokenHash(source, tokenStarts, tokenLengths, childToken + 1);
     long callKind = CALL_CONDITION_TRUE_BOOLEAN;
+    long childValue = 1;
     if (literalHash == TOKEN_FALSE) {
       callKind = CALL_CONDITION_FALSE_BOOLEAN;
+      childValue = 0;
     } else {
       if (literalHash != TOKEN_TRUE) {
-        return invalid(15);
+        DirectReturnConstant constant = resolveDirectReturnConstant(
+          source,
+          moduleOwner,
+          tokenStarts[childToken + 1],
+          tokenLengths[childToken + 1],
+          symbolCount,
+          symbolOwners,
+          symbolStarts,
+          symbolLengths,
+          symbolTypes,
+          symbolValues,
+          symbolResolved
+        );
+        if (constant.found == false) {
+          return invalid(15);
+        }
+
+        if (constant.valid == false) {
+          return invalid(26);
+        }
+
+        callKind = CALL_CONDITION_SIGNED_CONSTANT;
+        childValue = constant.value;
       }
     }
 
@@ -243,6 +277,6 @@ classical class DirectCallConditionalReturns {
       return invalid(25);
     }
 
-    return new DirectCallConditionalReturn(callKind, childStatement, 0, true);
+    return new DirectCallConditionalReturn(callKind, childStatement, childValue, 0, true);
   }
 }

@@ -151,6 +151,7 @@ classical class LoopCallProducts {
     long localBase,
     long instructionStart,
     long target,
+    long conditionalValue,
     long firstArgument,
     long arity,
     borrow mut words argumentRows,
@@ -219,12 +220,7 @@ classical class LoopCallProducts {
         INSTRUCTION_FORM_BINARY
       );
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + arity * 2 + 1, U64);
-      long literal = 1;
-      if (kind == CALL_CONDITION_FALSE_BOOLEAN) {
-        literal = 0;
-      }
-
-      cursor = writeSignedLittleEndian(output, cursor, literal, U64);
+      cursor = writeSignedLittleEndian(output, cursor, conditionalValue, U64);
       cursor = writeInstructionHeader(
         output,
         cursor,
@@ -300,9 +296,14 @@ classical class LoopCallProducts {
       set(stagedTypes, 8192 + typeCursor, resultType);
       typeCursor += 1;
       if (sourceCallForwardsResult(kind) == false) {
+        long destinationType = resultType;
+        if (kind == CALL_CONDITION_SIGNED_CONSTANT) {
+          destinationType = TYPE_SIGNED;
+        }
+
         set(stagedTypes, typeCursor, owner);
         set(stagedTypes, 4096 + typeCursor, localBase + arity * 2 + 1);
-        set(stagedTypes, 8192 + typeCursor, resultType);
+        set(stagedTypes, 8192 + typeCursor, destinationType);
         typeCursor += 1;
       }
     }
@@ -330,6 +331,7 @@ classical class LoopCallProducts {
     borrow mut bytes relocationIdentities,
     borrow mut words localTypeRows,
     borrow mut words callLocalWidths,
+    borrow mut words callConditionalValues,
     borrow mut words statementPhysicalStarts,
     borrow mut words statementPhysicalWidths,
     borrow mut bytes output
@@ -354,6 +356,7 @@ classical class LoopCallProducts {
     assert(bufferLength(relocationIdentities) == RELOCATION_IDENTITY_BYTES);
     assert(bufferLength(localTypeRows) == LOCAL_TYPE_ROWS);
     assert(bufferLength(callLocalWidths) == CALL_COUNT_LIMIT);
+    assert(bufferLength(callConditionalValues) == CALL_COUNT_LIMIT);
     assert(bufferLength(statementPhysicalStarts) == STATEMENT_COUNT_LIMIT);
     assert(bufferLength(statementPhysicalWidths) == STATEMENT_COUNT_LIMIT);
     assert(bufferLength(output) == MAX_CODE_BYTES);
@@ -374,6 +377,25 @@ classical class LoopCallProducts {
       long instructionStart = callInstructionStarts[call];
       if (validSourceCallKind(kind) == false) {
         valid = false;
+      }
+
+      long conditionalValue = callConditionalValues[call];
+      if (kind == CALL_CONDITION_FALSE_BOOLEAN) {
+        if (conditionalValue != 0) {
+          valid = false;
+        }
+      } else {
+        if (kind == CALL_CONDITION_TRUE_BOOLEAN) {
+          if (conditionalValue != 1) {
+            valid = false;
+          }
+        } else {
+          if (kind != CALL_CONDITION_SIGNED_CONSTANT) {
+            if (conditionalValue != 0) {
+              valid = false;
+            }
+          }
+        }
       }
 
       if (statement < 0) {
@@ -543,6 +565,7 @@ classical class LoopCallProducts {
         emittedLocalBase,
         callInstructionStarts[call],
         emittedTarget,
+        callConditionalValues[call],
         emittedFirstArgument,
         emittedArity,
         argumentRows,

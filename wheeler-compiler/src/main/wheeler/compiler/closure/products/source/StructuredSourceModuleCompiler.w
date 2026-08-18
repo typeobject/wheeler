@@ -124,10 +124,10 @@ classical class StructuredSourceModuleCompiler {
     assert(bufferLength(identity) == 32);
 
     region sourceProofs = new region(/* bytes= */ 17920, /* allocations= */ 4);
-    bytes proofNames = allocateBytes(sourceProofs, /* length= */ 16384);
-    words proofNameStarts = allocate(sourceProofs, /* length= */ 64);
-    words proofNameLengths = allocate(sourceProofs, /* length= */ 64);
-    words proofSubjects = allocate(sourceProofs, /* length= */ 64);
+    bytes proofNames = allocateBytes(sourceProofs, 16384);
+    words proofNameStarts = allocate(sourceProofs, 64);
+    words proofNameLengths = allocate(sourceProofs, 64);
+    words proofSubjects = allocate(sourceProofs, 64);
     StructuredReversibleEvidencePlan reversibleEvidence = materializeStructuredReversibleEvidence(
       source,
       firstCallable,
@@ -148,31 +148,31 @@ classical class StructuredSourceModuleCompiler {
     long reversibleCallableCount = reversibleEvidence.reversibleCallableCount;
     long proofCount = reversibleEvidence.proofCount;
     region targetEffectProducts = new region(/* bytes= */ 98304, /* allocations= */ 3);
-    words localTargetEffects = allocate(targetEffectProducts, /* length= */ 4096);
-    words targetEffects = allocate(targetEffectProducts, /* length= */ 4096);
-    words retainedTargetEffects = allocate(targetEffectProducts, /* length= */ 4096);
+    words localTargetEffects = allocate(targetEffectProducts, 4096);
+    words targetEffects = allocate(targetEffectProducts, 4096);
+    words retainedTargetEffects = allocate(targetEffectProducts, 4096);
 
-    region products = new region(/* bytes= */ 5022720, /* allocations= */ 64);
-    words blocks = allocate(products, /* length= */ 6144);
-    words statements = allocate(products, /* length= */ 28672);
-    words sourceConditions = allocate(products, /* length= */ 1536);
-    words sourceLoops = allocate(products, /* length= */ 2304);
-    words values = allocate(products, /* length= */ 7168);
-    words functionLocalCounts = allocate(products, /* length= */ 64);
-    words statementLocalRows = allocate(products, /* length= */ 8192);
-    words bodyRows = allocate(products, /* length= */ 20480);
-    words nestedRows = allocate(products, /* length= */ 20480);
-    words statementPhysicalWidths = allocate(products, /* length= */ 4096);
-    words statementPhysicalStarts = allocate(products, /* length= */ 4096);
-    words resolvedConditions = allocate(products, /* length= */ 1536);
-    words resolvedLoops = allocate(products, /* length= */ 2304);
-    words loopLocalBases = allocate(products, /* length= */ 256);
-    words loopInstructionStarts = allocate(products, /* length= */ 256);
-    words loopWindowRows = allocate(products, /* length= */ 768);
-    bytes loopCode = allocateBytes(products, /* length= */ 262144);
-    words loopTypes = allocate(products, /* length= */ 12288);
-    words directRows = allocate(products, /* length= */ 28672);
-    words functionResultTypes = allocate(products, /* length= */ 64);
+    region products = new region(/* bytes= */ 5024768, /* allocations= */ 65);
+    words blocks = allocate(products, 6144);
+    words statements = allocate(products, 28672);
+    words sourceConditions = allocate(products, 1536);
+    words sourceLoops = allocate(products, 2304);
+    words values = allocate(products, 7168);
+    words functionLocalCounts = allocate(products, 64);
+    words statementLocalRows = allocate(products, 8192);
+    words bodyRows = allocate(products, 20480);
+    words nestedRows = allocate(products, 20480);
+    words statementPhysicalWidths = allocate(products, 4096);
+    words statementPhysicalStarts = allocate(products, 4096);
+    words resolvedConditions = allocate(products, 1536);
+    words resolvedLoops = allocate(products, 2304);
+    words loopLocalBases = allocate(products, 256);
+    words loopInstructionStarts = allocate(products, 256);
+    words loopWindowRows = allocate(products, 768);
+    bytes loopCode = allocateBytes(products, 262144);
+    words loopTypes = allocate(products, 12288);
+    words directRows = allocate(products, 28672);
+    words functionResultTypes = allocate(products, 64);
     words localTargetResultTypes = allocate(products, /* length= */ 4096);
     words returnRows = allocate(products, /* length= */ 192);
     words directTypes = allocate(products, /* length= */ 12288);
@@ -193,6 +193,7 @@ classical class StructuredSourceModuleCompiler {
     words callArgumentValues = allocate(products, /* length= */ 3584);
     words resolvedCalls = allocate(products, /* length= */ 1024);
     words callLocalWidths = allocate(products, /* length= */ 256);
+    words callConditionalValues = allocate(products, /* length= */ 256);
     words callInstructionStarts = allocate(products, /* length= */ 256);
     words callWindowRows = allocate(products, /* length= */ 768);
     words valuePhysicalStarts = allocate(products, /* length= */ 1024);
@@ -616,6 +617,7 @@ classical class StructuredSourceModuleCompiler {
       resolvedCalls,
       callStatements,
       callLocalWidths,
+      callConditionalValues,
       valuePlan.valueCount,
       values,
       statementLocalRows,
@@ -679,6 +681,7 @@ classical class StructuredSourceModuleCompiler {
       callRelocationIdentities,
       callTypes,
       callLocalWidths,
+      callConditionalValues,
       statementPhysicalStarts,
       statementPhysicalWidths,
       callCode
@@ -743,6 +746,7 @@ classical class StructuredSourceModuleCompiler {
       callRelocationIdentities,
       callTypes,
       callLocalWidths,
+      callConditionalValues,
       statementPhysicalStarts,
       statementPhysicalWidths,
       callCode
@@ -885,6 +889,7 @@ classical class StructuredSourceModuleCompiler {
     drop(valuePhysicalStarts);
     drop(callWindowRows);
     drop(callInstructionStarts);
+    drop(callConditionalValues);
     drop(callLocalWidths);
     drop(resolvedCalls);
     drop(callArgumentValues);

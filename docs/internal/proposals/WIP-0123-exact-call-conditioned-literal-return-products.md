@@ -9,7 +9,7 @@
 | Area | Self-hosting compiler, calls, conditionals, physical closure |
 | Depends on | WIP-0049, WIP-0054, WIP-0056, WIP-0057, WIP-0062, WIP-0073, WIP-0099 |
 | Supersedes | Parser projection for root helper-call conditions with literal returns |
-| Superseded by | None |
+| Superseded by | WIP-0135 extends the product to signed constant children |
 
 ## Summary
 
@@ -55,7 +55,7 @@ The call result remains Boolean. The child local remains Boolean. The condition 
 
 ## Boundaries
 
-The implemented child is one Boolean literal return. Signed children, source returns, computed children, nested blocks, negated helper calls, Boolean equality around calls, call results combined with another relation, and reversible call-conditioned returns remain outside this product.
+This WIP's implemented child is one Boolean literal return. WIP-0135 adds a uniquely resolved signed constant child without changing this layout. Source returns, computed children, nested blocks, negated helper calls, Boolean equality around calls, call results combined with another relation, and reversible call-conditioned returns remain outside the product.
 
 The helper call may carry zero through seven already resolved scalar arguments. Existing target and signature products decide whether the call returns Boolean before this product runs.
 
@@ -130,3 +130,4 @@ Rejected. The complete evidence transaction remains below its fixed deadline.
 - [WIP-0062](WIP-0062-atomic-source-call-link-publication.md)
 - [WIP-0073](WIP-0073-exact-root-conditional-return-products.md)
 - [WIP-0099](WIP-0099-exact-boolean-literal-return-products.md)
+- [WIP-0135](WIP-0135-exact-call-conditioned-constant-return-products.md)

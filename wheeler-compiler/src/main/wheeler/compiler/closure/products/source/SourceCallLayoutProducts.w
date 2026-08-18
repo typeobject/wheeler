@@ -14,6 +14,8 @@ classical class SourceCallLayoutProducts {
   public const long CALL_CONDITION_FALSE_BOOLEAN = 5;
   /// Names a Boolean helper call guarding an exact `return true;` child.
   public const long CALL_CONDITION_TRUE_BOOLEAN = 6;
+  /// Names a Boolean helper call guarding an exact signed-constant return.
+  public const long CALL_CONDITION_SIGNED_CONSTANT = 7;
   private const long CALL_FORWARD_BOOLEAN = 4;
   private const long CALL_FORWARD_SIGNED = 3;
   private const long CALL_VALUE_BOOLEAN = 2;
@@ -51,16 +53,24 @@ classical class SourceCallLayoutProducts {
       return true;
     }
 
-    return kind == CALL_CONDITION_TRUE_BOOLEAN;
+    if (kind == CALL_CONDITION_TRUE_BOOLEAN) {
+      return true;
+    }
+
+    return kind == CALL_CONDITION_SIGNED_CONSTANT;
   }
 
-  /// Reports whether one Boolean call result controls a literal-return child.
+  /// Reports whether one Boolean call result controls an exact return child.
   public boolean sourceCallConditionsResult(long kind) {
     if (kind == CALL_CONDITION_FALSE_BOOLEAN) {
       return true;
     }
 
-    return kind == CALL_CONDITION_TRUE_BOOLEAN;
+    if (kind == CALL_CONDITION_TRUE_BOOLEAN) {
+      return true;
+    }
+
+    return kind == CALL_CONDITION_SIGNED_CONSTANT;
   }
 
   /// Reports whether one value call returns its result directly.

@@ -15,6 +15,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.closure.manifest_syntax",
       "wheeler.compiler.closure.reversible_token_coordinates",
       "wheeler.compiler.core_parsing",
+      "wheeler.compiler.early_return_kinds",
       "wheeler.compiler.early_return_result_kinds",
       "wheeler.compiler.early_return_sources",
       "wheeler.compiler.four_argument_calls",

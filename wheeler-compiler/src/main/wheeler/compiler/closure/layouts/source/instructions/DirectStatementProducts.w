@@ -13,6 +13,7 @@ import wheeler.compiler.closure.direct_statement_coordinates;
 import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
+import wheeler.compiler.closure.source_call_layout_products;
 import wheeler.compiler.closure.source_reversible_result_relations;
 import wheeler.compiler.closure.structured_source_coordinates;
 import wheeler.compiler.compiler_token_limits;
@@ -64,6 +65,7 @@ classical class DirectStatementProducts {
     borrow mut words callRows,
     borrow mut words callStatements,
     borrow mut words callLocalWidths,
+    borrow mut words callConditionalValues,
     long valueCount,
     borrow mut words valueRows,
     borrow mut words statementLocalRows,
@@ -94,6 +96,7 @@ classical class DirectStatementProducts {
       assert(bufferLength(callRows) == 1024);
       assert(bufferLength(callStatements) == 256);
       assert(bufferLength(callLocalWidths) == 256);
+      assert(bufferLength(callConditionalValues) == 256);
     }
 
     assert(-1 < valueCount);
@@ -107,7 +110,7 @@ classical class DirectStatementProducts {
     assert(bufferLength(typeRows) == TYPE_ROWS);
     assert(bufferLength(output) == MAX_CODE_BYTES);
 
-    region staging = new region(/* bytes= */ 888320, /* allocations= */ 12);
+    region staging = new region(/* bytes= */ 890368, /* allocations= */ 13);
     words tokenKinds = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(staging, MAX_COMPILER_TOKENS);
@@ -116,6 +119,7 @@ classical class DirectStatementProducts {
     words stagedTypes = allocate(staging, TYPE_ROWS);
     words stagedResultTypes = allocate(staging, /* length= */ 64);
     words stagedCallKinds = allocate(staging, /* length= */ 256);
+    words stagedCallConditionalValues = allocate(staging, /* length= */ 256);
     words stagedPhysicalWidths = allocate(staging, MAX_STATEMENTS);
     words functionInstructionCounts = allocate(staging, /* length= */ 64);
     words functionPrefixesComplete = allocate(staging, /* length= */ 64);
@@ -123,6 +127,7 @@ classical class DirectStatementProducts {
     long stagedCall = 0;
     while (stagedCall < callCount) limit 256 {
       set(stagedCallKinds, stagedCall, callRows[256 + stagedCall]);
+      set(stagedCallConditionalValues, stagedCall, callConditionalValues[stagedCall]);
       stagedCall += 1;
     }
 
@@ -231,6 +236,14 @@ classical class DirectStatementProducts {
                     tokenKinds,
                     tokenStarts,
                     tokenLengths,
+                    moduleOwner,
+                    symbolCount,
+                    symbolOwners,
+                    symbolStarts,
+                    symbolLengths,
+                    symbolTypes,
+                    symbolValues,
+                    symbolResolved,
                     callRows[512 + statementCall],
                     callLocalWidths[statementCall],
                     owner,
@@ -242,10 +255,16 @@ classical class DirectStatementProducts {
                   );
                   if (callConditional.valid) {
                     set(stagedCallKinds, statementCall, callConditional.callKind);
+                    set(stagedCallConditionalValues, statementCall, callConditional.childValue);
+                    long conditionalResultType = TYPE_BOOLEAN;
+                    if (callConditional.callKind == CALL_CONDITION_SIGNED_CONSTANT) {
+                      conditionalResultType = TYPE_SIGNED;
+                    }
+
                     if (stagedResultTypes[owner] == 0) {
-                      set(stagedResultTypes, owner, TYPE_BOOLEAN);
+                      set(stagedResultTypes, owner, conditionalResultType);
                     } else {
-                      if (stagedResultTypes[owner] != TYPE_BOOLEAN) {
+                      if (stagedResultTypes[owner] != conditionalResultType) {
                         statementValid = false;
                       }
                     }
@@ -739,6 +758,7 @@ classical class DirectStatementProducts {
       row = 0;
       while (row < callCount) limit 256 {
         set(callRows, 256 + row, stagedCallKinds[row]);
+        set(callConditionalValues, row, stagedCallConditionalValues[row]);
         row += 1;
       }
 
@@ -773,6 +793,7 @@ classical class DirectStatementProducts {
     drop(functionPrefixesComplete);
     drop(functionInstructionCounts);
     drop(stagedPhysicalWidths);
+    drop(stagedCallConditionalValues);
     drop(stagedCallKinds);
     drop(stagedResultTypes);
     drop(stagedTypes);
