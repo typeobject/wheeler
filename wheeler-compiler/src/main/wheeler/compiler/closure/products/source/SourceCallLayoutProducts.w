@@ -201,12 +201,6 @@ classical class SourceCallLayoutProducts {
     words stagedCalls = allocate(staging, CALL_ROWS);
     words stagedWidths = allocate(staging, MAX_STATEMENTS);
     words stagedCallWidths = allocate(staging, CALL_COUNT_LIMIT);
-    long statement = 0;
-    while (statement < MAX_STATEMENTS) limit MAX_STATEMENTS {
-      set(stagedWidths, statement, statementPhysicalWidths[statement]);
-      statement += 1;
-    }
-
     boolean valid = true;
     long localTypeCount = 0;
     long argumentEnd = 0;
@@ -316,22 +310,27 @@ classical class SourceCallLayoutProducts {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < CALL_ROWS) limit CALL_ROWS {
-        set(resolvedCalls, row, stagedCalls[row]);
-        row += 1;
+      long column = 0;
+      while (column < 4) limit 4 {
+        long callRow = 0;
+        while (callRow < callCount) limit CALL_COUNT_LIMIT {
+          set(
+            resolvedCalls,
+            column * CALL_COUNT_LIMIT + callRow,
+            stagedCalls[column * CALL_COUNT_LIMIT + callRow]
+          );
+          callRow += 1;
+        }
+
+        column += 1;
       }
 
-      row = 0;
-      while (row < MAX_STATEMENTS) limit MAX_STATEMENTS {
-        set(statementPhysicalWidths, row, stagedWidths[row]);
-        row += 1;
-      }
-
-      row = 0;
-      while (row < CALL_COUNT_LIMIT) limit CALL_COUNT_LIMIT {
-        set(callLocalWidths, row, stagedCallWidths[row]);
-        row += 1;
+      long publishedCall = 0;
+      while (publishedCall < callCount) limit CALL_COUNT_LIMIT {
+        long publishedStatement = callStatements[publishedCall];
+        set(statementPhysicalWidths, publishedStatement, stagedWidths[publishedStatement]);
+        set(callLocalWidths, publishedCall, stagedCallWidths[publishedCall]);
+        publishedCall += 1;
       }
     }
 
