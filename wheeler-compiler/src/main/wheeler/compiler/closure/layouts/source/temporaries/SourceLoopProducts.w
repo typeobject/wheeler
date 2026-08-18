@@ -712,7 +712,7 @@ classical class SourceLoopProducts {
     region staging = new region(/* bytes= */ 32768, /* allocations= */ 1);
     words stagedWidths = allocate(staging, MAX_STATEMENTS);
     long statement = 0;
-    while (statement < MAX_STATEMENTS) limit MAX_STATEMENTS {
+    while (statement < statementCount) limit MAX_STATEMENTS {
       set(stagedWidths, statement, statementPhysicalWidths[statement]);
       statement += 1;
     }
@@ -750,7 +750,7 @@ classical class SourceLoopProducts {
 
     if (valid) {
       statement = 0;
-      while (statement < MAX_STATEMENTS) limit MAX_STATEMENTS {
+      while (statement < statementCount) limit MAX_STATEMENTS {
         set(statementPhysicalWidths, statement, stagedWidths[statement]);
         statement += 1;
       }

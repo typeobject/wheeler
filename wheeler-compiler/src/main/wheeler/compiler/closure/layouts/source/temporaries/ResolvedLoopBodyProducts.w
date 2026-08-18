@@ -217,7 +217,7 @@ classical class ResolvedLoopBodyProducts {
     words stagedPhysicalWidths = allocate(staging, MAX_STATEMENTS);
     words nextBodyLocals = allocate(staging, 64);
     long stagedStatement = 0;
-    while (stagedStatement < MAX_STATEMENTS) limit MAX_STATEMENTS {
+    while (stagedStatement < statementCount) limit MAX_STATEMENTS {
       set(stagedPhysicalWidths, stagedStatement, statementPhysicalWidths[stagedStatement]);
       stagedStatement += 1;
     }
@@ -419,20 +419,38 @@ classical class ResolvedLoopBodyProducts {
     }
 
     if (valid) {
+      long column = 0;
+      while (column < 5) limit 5 {
+        long bodyRow = 0;
+        while (bodyRow < bodyCount) limit MAX_STATEMENTS {
+          set(
+            bodyRows,
+            column * MAX_STATEMENTS + bodyRow,
+            stagedRows[column * MAX_STATEMENTS + bodyRow]
+          );
+          bodyRow += 1;
+        }
+
+        column += 1;
+      }
+
+      column = 0;
+      while (column < 5) limit 5 {
+        long nestedRow = 0;
+        while (nestedRow < nestedCount) limit MAX_STATEMENTS {
+          set(
+            nestedRows,
+            column * MAX_STATEMENTS + nestedRow,
+            stagedNestedRows[column * MAX_STATEMENTS + nestedRow]
+          );
+          nestedRow += 1;
+        }
+
+        column += 1;
+      }
+
       long row = 0;
-      while (row < BODY_ROWS) limit BODY_ROWS {
-        set(bodyRows, row, stagedRows[row]);
-        row += 1;
-      }
-
-      row = 0;
-      while (row < NESTED_ROWS) limit NESTED_ROWS {
-        set(nestedRows, row, stagedNestedRows[row]);
-        row += 1;
-      }
-
-      row = 0;
-      while (row < MAX_STATEMENTS) limit MAX_STATEMENTS {
+      while (row < statementCount) limit MAX_STATEMENTS {
         set(statementPhysicalWidths, row, stagedPhysicalWidths[row]);
         row += 1;
       }
