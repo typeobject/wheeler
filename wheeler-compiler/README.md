@@ -146,7 +146,7 @@ physical set with direct helper-call and width products. Structured imported tar
 loan types and publish imported relocations without relinking local calls. One buffer projection
 owner emits exact byte and word reads. `VoidCallSyntax.w` is the first physical module to cross
 that direct imported boundary. Assignment-call widths, void-call forms and widths, and the early
-comparison form now follow it without signature stubs. Imported relocation validation keeps its
+comparison form and assignment-call kind authority now follow it without signature stubs. Imported relocation validation keeps its
 full instruction-target table private instead of copying one MiB to the caller. Relocation linking
 publishes only the touched forward and inverse target rows. Imported target views likewise publish
 only active target and parameter rows. The combined source-call target table also publishes only its

@@ -9,6 +9,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.assignment_call_code_widths",
       "wheeler.compiler.assignment_call_columns",
       "wheeler.compiler.assignment_call_instruction_widths",
+      "wheeler.compiler.assignment_call_kinds",
       "wheeler.compiler.assignment_call_local_widths",
       "wheeler.compiler.boolean_declaration_kinds",
       "wheeler.compiler.boolean_tokens",
