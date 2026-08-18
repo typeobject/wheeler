@@ -176,14 +176,24 @@ classical class ReferencedSourceCallTargets {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < CALL_ROWS) limit CALL_ROWS {
-        set(targetCalls, row, stagedCalls[row]);
-        row += 1;
+      long column = 0;
+      while (column < 4) limit 4 {
+        long callRow = 0;
+        while (callRow < callCount) limit CALL_COUNT_LIMIT {
+          set(
+            targetCalls,
+            column * CALL_COUNT_LIMIT + callRow,
+            stagedCalls[column * CALL_COUNT_LIMIT + callRow]
+          );
+          callRow += 1;
+        }
+
+        column += 1;
       }
 
-      row = 0;
-      while (row < TARGET_COUNT_LIMIT) limit TARGET_COUNT_LIMIT {
+      long retainedTargetCount = localCount + retainedImported;
+      long row = 0;
+      while (row < retainedTargetCount) limit TARGET_COUNT_LIMIT {
         set(targetParameterStarts, row, stagedParameterStarts[row]);
         set(targetParameterCounts, row, stagedParameterCounts[row]);
         set(targetResultTypes, row, stagedResultTypes[row]);
@@ -192,7 +202,7 @@ classical class ReferencedSourceCallTargets {
       }
 
       row = 0;
-      while (row < PARAMETER_COUNT_LIMIT) limit PARAMETER_COUNT_LIMIT {
+      while (row < parameterCursor) limit PARAMETER_COUNT_LIMIT {
         set(targetParameterTypes, row, stagedParameterTypes[row]);
         row += 1;
       }

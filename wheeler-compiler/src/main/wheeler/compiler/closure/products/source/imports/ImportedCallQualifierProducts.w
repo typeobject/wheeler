@@ -133,7 +133,7 @@ classical class ImportedCallQualifierProducts {
       }
 
       long row = 0;
-      while (row < MAX_TARGETS) limit MAX_TARGETS {
+      while (row < targetCount) limit MAX_TARGETS {
         set(qualifierNameStarts, row, stagedStarts[row]);
         set(qualifierNameLengths, row, stagedLengths[row]);
         set(qualifierDependencyRanks, row, stagedRanks[row]);
