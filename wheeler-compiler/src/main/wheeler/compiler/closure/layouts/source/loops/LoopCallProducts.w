@@ -297,7 +297,7 @@ classical class LoopCallProducts {
       typeCursor += 1;
       if (sourceCallForwardsResult(kind) == false) {
         long destinationType = resultType;
-        if (kind == CALL_CONDITION_SIGNED_CONSTANT) {
+        if (sourceCallReturnsSignedChild(kind)) {
           destinationType = TYPE_SIGNED;
         }
 
@@ -390,7 +390,7 @@ classical class LoopCallProducts {
             valid = false;
           }
         } else {
-          if (kind != CALL_CONDITION_SIGNED_CONSTANT) {
+          if (sourceCallReturnsSignedChild(kind) == false) {
             if (conditionalValue != 0) {
               valid = false;
             }

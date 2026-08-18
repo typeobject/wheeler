@@ -20,6 +20,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.early_return_sources",
       "wheeler.compiler.four_argument_calls",
       "wheeler.compiler.identifier_starts",
+      "wheeler.compiler.instruction_forms",
       "wheeler.compiler.literal_comparison_operations",
       "wheeler.compiler.local_type_encoding",
       "wheeler.compiler.named_boolean_return_kinds",

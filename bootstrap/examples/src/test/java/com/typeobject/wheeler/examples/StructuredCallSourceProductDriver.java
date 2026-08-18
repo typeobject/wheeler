@@ -113,6 +113,7 @@ final class StructuredCallSourceProductDriver {
         import wheeler.compiler.closure.imported_callable_stubs;
         import wheeler.compiler.closure.source_product_artifact;
         import wheeler.compiler.closure.structured_source_module_compiler;
+        import wheeler.core.encoding.binary;
 
         classical class StructuredCallSourceProductExample {
           state long valid = 0;
@@ -126,6 +127,7 @@ final class StructuredCallSourceProductDriver {
           state long retainedFunctionCount = 0;
           state long excludedFunctionCount = 0;
           state long resolvedFunctionTarget = -1;
+          state long instructionFourSecondOperand = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
             region products = new region(/* bytes= */ 2936704, /* allocations= */ 21);
@@ -245,6 +247,12 @@ final class StructuredCallSourceProductDriver {
               functionRows,
               instructionRows
             );
+            if (4 < compiled.instructionCount) {
+              instructionFourSecondOperand = readSigned(
+                artifact,
+                instructionRows[8196] + 16
+              );
+            }
             RetainedFunctionProduct retained = retainLocalFunctionProduct(
               /* localFunctionCount= */ 1,
               compiled.functionCount,

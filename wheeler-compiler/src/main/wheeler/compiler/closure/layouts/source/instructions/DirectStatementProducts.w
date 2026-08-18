@@ -64,6 +64,7 @@ classical class DirectStatementProducts {
     long callCount,
     borrow mut words callRows,
     borrow mut words callStatements,
+    borrow mut words callArgumentCounts,
     borrow mut words callLocalWidths,
     borrow mut words callConditionalValues,
     long valueCount,
@@ -95,6 +96,7 @@ classical class DirectStatementProducts {
     if (0 < callCount) {
       assert(bufferLength(callRows) == 1024);
       assert(bufferLength(callStatements) == 256);
+      assert(bufferLength(callArgumentCounts) == 256);
       assert(bufferLength(callLocalWidths) == 256);
       assert(bufferLength(callConditionalValues) == 256);
     }
@@ -257,7 +259,7 @@ classical class DirectStatementProducts {
                     set(stagedCallKinds, statementCall, callConditional.callKind);
                     set(stagedCallConditionalValues, statementCall, callConditional.childValue);
                     long conditionalResultType = TYPE_BOOLEAN;
-                    if (callConditional.callKind == CALL_CONDITION_SIGNED_CONSTANT) {
+                    if (sourceCallReturnsSignedChild(callConditional.callKind)) {
                       conditionalResultType = TYPE_SIGNED;
                     }
 
@@ -700,7 +702,14 @@ classical class DirectStatementProducts {
 
               cursor = productStart;
               typeCount = productTypeStart;
-              set(functionPrefixesComplete, owner, 0);
+              set(
+                functionInstructionCounts,
+                owner,
+                functionInstructionCounts[owner] + sourceCallInstructionCount(
+                  stagedCallKinds[statementCall],
+                  callArgumentCounts[statementCall]
+                )
+              );
             }
 
             if (statementValid) {

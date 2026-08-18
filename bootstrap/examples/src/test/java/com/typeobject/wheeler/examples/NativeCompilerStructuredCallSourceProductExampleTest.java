@@ -62,6 +62,28 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
   }
 
   @Test
+  void emitsPositiveAndNegativeSignedLiteralReturnsBehindAnImportedBooleanCall()
+      throws Exception {
+    assertImportedSignedLiteralChild(3);
+    assertImportedSignedLiteralChild(-3);
+  }
+
+  @Test
+  void rejectsAnOverflowingCallConditionalLiteralBeforePublication() throws Exception {
+    String source = importedCallConditionalSource("return 9223372036854775808;");
+    int bodyStart = source.indexOf("{", source.indexOf("recurse("));
+    int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
+    Program driver = driver(bodyStart, bodyLength, 1, 2, 0, true, 2, 2);
+    VirtualMachine machine = new VirtualMachine(
+        driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
+
+    assertThrows(RuntimeException.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
+    assertEquals(0, machine.global("artifactLength"));
+    assertArrayEquals(new byte[32_768], machine.hostOutput());
+  }
+
+  @Test
   void emitsASignedConstantReturnBehindAnImportedBooleanCall() throws Exception {
     String source = """
         module example.structured_call;
@@ -127,6 +149,36 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
           }
         }
         """.replace("CHILD", child);
+  }
+
+  private static String importedCallConditionalSource(String child) {
+    return """
+        module example.structured_call;
+
+        classical class StructuredCall {
+          public long recurse(boolean value) {
+            if (remote(value)) {
+              CHILD
+            }
+
+            return -1;
+          }
+        }
+        """.replace("CHILD", child);
+  }
+
+  private static void assertImportedSignedLiteralChild(long expected) throws Exception {
+    String source = importedCallConditionalSource("return " + expected + ";");
+    int bodyStart = source.indexOf("{", source.indexOf("recurse("));
+    int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
+    Program driver = driver(bodyStart, bodyLength, 1, 2, 0, true, 2, 2);
+    VirtualMachine machine = new VirtualMachine(
+        driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
+
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+
+    assertEquals(expected, machine.global("instructionFourSecondOperand"));
+    assertEquals(1, machine.global("relocationCount"));
   }
 
   @Test

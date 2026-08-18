@@ -193,7 +193,9 @@ classical class DirectCallConditionalReturns {
       return invalid(14);
     }
 
-    long literalHash = tokenHash(source, tokenStarts, tokenLengths, childToken + 1);
+    long childValueToken = childToken + 1;
+    long childValueWidth = 1;
+    long literalHash = tokenHash(source, tokenStarts, tokenLengths, childValueToken);
     long callKind = CALL_CONDITION_TRUE_BOOLEAN;
     long childValue = 1;
     if (literalHash == TOKEN_FALSE) {
@@ -201,54 +203,72 @@ classical class DirectCallConditionalReturns {
       childValue = 0;
     } else {
       if (literalHash != TOKEN_TRUE) {
-        DirectReturnConstant constant = resolveDirectReturnConstant(
-          source,
-          moduleOwner,
-          tokenStarts[childToken + 1],
-          tokenLengths[childToken + 1],
-          symbolCount,
-          symbolOwners,
-          symbolStarts,
-          symbolLengths,
-          symbolTypes,
-          symbolValues,
-          symbolResolved
-        );
-        if (constant.found == false) {
-          return invalid(15);
-        }
+        long numberWidth = signedNumberWidth(source, tokenKinds, tokenStarts, childValueToken);
+        if (0 < numberWidth) {
+          if (
+            signedNumberValid(source, tokenStarts, tokenLengths, childValueToken) == false
+          ) {
+            return invalid(27);
+          }
 
-        if (constant.valid == false) {
-          return invalid(26);
-        }
+          callKind = CALL_CONDITION_SIGNED_LITERAL;
+          childValue = parsedSignedNumber(source, tokenStarts, tokenLengths, childValueToken);
+          childValueWidth = numberWidth;
+        } else {
+          DirectReturnConstant constant = resolveDirectReturnConstant(
+            source,
+            moduleOwner,
+            tokenStarts[childValueToken],
+            tokenLengths[childValueToken],
+            symbolCount,
+            symbolOwners,
+            symbolStarts,
+            symbolLengths,
+            symbolTypes,
+            symbolValues,
+            symbolResolved
+          );
+          if (constant.found == false) {
+            return invalid(15);
+          }
 
-        callKind = CALL_CONDITION_SIGNED_CONSTANT;
-        childValue = constant.value;
+          if (constant.valid == false) {
+            return invalid(26);
+          }
+
+          callKind = CALL_CONDITION_SIGNED_CONSTANT;
+          childValue = constant.value;
+        }
       }
     }
 
+    long semicolonToken = childValueToken + childValueWidth;
+    if (tokenCount < semicolonToken + 2) {
+      return invalid(12);
+    }
+
     if (
-      punctuationAt(source, tokenKinds, tokenStarts, childToken + 2, PUNCTUATION_SEMICOLON) == false
+      punctuationAt(source, tokenKinds, tokenStarts, semicolonToken, PUNCTUATION_SEMICOLON) == false
     ) {
       return invalid(16);
     }
 
     long expectedSemicolon = statementRows[LOOP_STATEMENT_START_ROW + childStatement]
       + statementRows[LOOP_STATEMENT_LENGTH_ROW + childStatement] - 1;
-    if (tokenStarts[childToken + 2] != expectedSemicolon) {
+    if (tokenStarts[semicolonToken] != expectedSemicolon) {
       return invalid(17);
     }
 
+    long closeToken = semicolonToken + 1;
     if (
-      punctuationAt(source, tokenKinds, tokenStarts, childToken + 3, PUNCTUATION_CLOSE_BRACE)
-        == false
+      punctuationAt(source, tokenKinds, tokenStarts, closeToken, PUNCTUATION_CLOSE_BRACE) == false
     ) {
       return invalid(18);
     }
 
     long statementEnd = statementRows[LOOP_STATEMENT_START_ROW + statement]
       + statementRows[LOOP_STATEMENT_LENGTH_ROW + statement];
-    if (tokenStarts[childToken + 3] + tokenLengths[childToken + 3] != statementEnd) {
+    if (tokenStarts[closeToken] + tokenLengths[closeToken] != statementEnd) {
       return invalid(19);
     }
 

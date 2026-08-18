@@ -616,6 +616,7 @@ classical class StructuredSourceModuleCompiler {
       resolvedCallCount,
       resolvedCalls,
       callStatements,
+      callArgumentCounts,
       callLocalWidths,
       callConditionalValues,
       valuePlan.valueCount,

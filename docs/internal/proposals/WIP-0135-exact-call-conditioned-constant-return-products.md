@@ -9,7 +9,7 @@
 | Area | Self-hosting compiler, calls, conditionals, scalar products |
 | Depends on | WIP-0049, WIP-0054, WIP-0056, WIP-0057, WIP-0062, WIP-0077, WIP-0123 |
 | Supersedes | Signed-constant child gap in WIP-0123 |
-| Superseded by | None |
+| Superseded by | WIP-0136 extends the product to signed literal children |
 
 ## Summary
 
@@ -39,7 +39,7 @@ A nonliteral child is accepted only when `resolveDirectReturnConstant` finds exa
 
 A missing, duplicate, unresolved, Boolean, foreign-owner, or out-of-range product invalidates the complete direct-statement transaction. The validator does not publish a call kind, child value, result type, local type, instruction, or relocation on failure.
 
-Boolean `true` and `false` remain their own call kinds. Signed children use `CALL_CONDITION_SIGNED_CONSTANT`. The kind states the layout relation. A separate 256-entry value column carries the exact signed result.
+Boolean `true` and `false` remain their own call kinds. Signed constants use `CALL_CONDITION_SIGNED_CONSTANT`. The kind states the layout relation. A separate 256-entry value column carries the exact signed result. WIP-0136 adds a distinct signed literal kind to the same column.
 
 ## Emission
 
@@ -124,3 +124,4 @@ Rejected. Removing redundant allocation labels keeps the orchestrator inside the
 - [WIP-0062](WIP-0062-atomic-source-call-link-publication.md)
 - [WIP-0077](WIP-0077-exact-constant-return-products.md)
 - [WIP-0123](WIP-0123-exact-call-conditioned-literal-return-products.md)
+- [WIP-0136](WIP-0136-exact-call-conditioned-signed-literal-products.md)
