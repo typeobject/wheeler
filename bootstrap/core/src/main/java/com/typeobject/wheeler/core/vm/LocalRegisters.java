@@ -48,6 +48,25 @@ final class LocalRegisters {
     return new LocalRegisters(size, updated);
   }
 
+  LocalRegisters withPair(
+      int firstIndex,
+      long firstValue,
+      int secondIndex,
+      long secondValue) {
+    checkIndex(firstIndex);
+    checkIndex(secondIndex);
+    int firstChunk = firstIndex / CHUNK_SIZE;
+    int secondChunk = secondIndex / CHUNK_SIZE;
+    long[][] updated = chunks.clone();
+    updated[firstChunk] = chunks[firstChunk].clone();
+    updated[firstChunk][firstIndex % CHUNK_SIZE] = firstValue;
+    if (secondChunk != firstChunk) {
+      updated[secondChunk] = chunks[secondChunk].clone();
+    }
+    updated[secondChunk][secondIndex % CHUNK_SIZE] = secondValue;
+    return new LocalRegisters(size, updated);
+  }
+
   List<Long> asList() {
     List<Long> result = new ArrayList<>(size);
     for (int index = 0; index < size; index++) {

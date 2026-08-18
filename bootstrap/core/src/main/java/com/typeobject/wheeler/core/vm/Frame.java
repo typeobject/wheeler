@@ -96,12 +96,41 @@ public final class Frame {
   }
 
   public Frame withLocal(int index, long value) {
+    return withLocals(locals.with(index, value));
+  }
+
+  Frame withLocalAndAdvance(int index, long value) {
     return new Frame(
         functionId,
         inverse,
-        programCounter,
+        Math.addExact(programCounter, 1),
         returnDestination,
         locals.with(index, value));
+  }
+
+  Frame withLocals(
+      int firstIndex,
+      long firstValue,
+      int secondIndex,
+      long secondValue) {
+    return withLocals(locals.withPair(firstIndex, firstValue, secondIndex, secondValue));
+  }
+
+  Frame withLocalsAndAdvance(
+      int firstIndex,
+      long firstValue,
+      int secondIndex,
+      long secondValue) {
+    return new Frame(
+        functionId,
+        inverse,
+        Math.addExact(programCounter, 1),
+        returnDestination,
+        locals.withPair(firstIndex, firstValue, secondIndex, secondValue));
+  }
+
+  private Frame withLocals(LocalRegisters updated) {
+    return new Frame(functionId, inverse, programCounter, returnDestination, updated);
   }
 
   @Override

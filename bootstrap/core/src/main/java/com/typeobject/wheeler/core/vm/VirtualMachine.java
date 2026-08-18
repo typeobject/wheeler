@@ -460,7 +460,7 @@ public final class VirtualMachine {
         int source = localIndex(instruction, SOURCE);
         long value = currentFrame().local(source);
         replaceCurrentFrame(
-            currentFrame().withLocal(source, 0).withLocal(destination, value).advance());
+            currentFrame().withLocalsAndAdvance(source, 0, destination, value));
       }
       case LOCAL_ADD -> setLocalAndAdvance(
           localIndex(instruction, DESTINATION),
@@ -590,7 +590,7 @@ public final class VirtualMachine {
             localIndex(instruction, DESTINATION), array.elements().get(slice.start() + index));
       }
       case REGION_NEW -> {
-        OwnedStore.Allocation allocation = owned.createRegion(
+        OwnedStore.Allocation allocation = owned.createRegionAfterValidation(
             instruction.operand(CAPACITY),
             Math.toIntExact(instruction.operand(ALLOCATION_LIMIT)),
             ownedChange);
@@ -600,7 +600,7 @@ public final class VirtualMachine {
       case WORDS_ALLOC, BYTES_ALLOC -> {
         BufferKind kind = opcode == Opcode.WORDS_ALLOC
             ? BufferKind.WORDS : BufferKind.BYTES;
-        OwnedStore.Allocation allocation = owned.allocate(
+        OwnedStore.Allocation allocation = owned.allocateAfterValidation(
             localValue(instruction, OWNER),
             Math.toIntExact(localValue(instruction, CAPACITY)),
             kind,
@@ -608,24 +608,16 @@ public final class VirtualMachine {
         ownedChange = allocation.change();
         setLocalAndAdvance(localIndex(instruction, DESTINATION), allocation.handle());
       }
-      case WORDS_GET, BYTES_GET -> {
-        BufferKind kind = opcode == Opcode.WORDS_GET
-            ? BufferKind.WORDS : BufferKind.BYTES;
-        setLocalAndAdvance(
-            localIndex(instruction, DESTINATION),
-            owned.get(
-                localValue(instruction, OWNER),
-                Math.toIntExact(localValue(instruction, INDEX)),
-                kind));
-      }
+      case WORDS_GET, BYTES_GET -> setLocalAndAdvance(
+          localIndex(instruction, DESTINATION),
+          owned.getAfterValidation(
+              localValue(instruction, OWNER),
+              Math.toIntExact(localValue(instruction, INDEX))));
       case WORDS_SET, BYTES_SET -> {
-        BufferKind kind = opcode == Opcode.WORDS_SET
-            ? BufferKind.WORDS : BufferKind.BYTES;
-        ownedChange = owned.set(
+        ownedChange = owned.setAfterValidation(
             localValue(instruction, OWNER),
             Math.toIntExact(localValue(instruction, INDEX)),
             localValue(instruction, SOURCE),
-            kind,
             ownedChange);
         advanceCurrentFrame();
       }
@@ -636,7 +628,8 @@ public final class VirtualMachine {
           localIndex(instruction, DESTINATION),
           Utf8.analyze(owned.utf8Bytes(localValue(instruction, SOURCE))).scalarCount());
       case BUFFER_LENGTH -> setLocalAndAdvance(
-          localIndex(instruction, DESTINATION), owned.length(localValue(instruction, SOURCE)));
+          localIndex(instruction, DESTINATION),
+          owned.lengthAfterValidation(localValue(instruction, SOURCE)));
       case UTF8_SCALAR, UTF8_WIDTH -> {
         Utf8.Scalar scalar = VmControlChecks.utf8Scalar(owned, currentFrame(), instruction);
         setLocalAndAdvance(
@@ -649,12 +642,12 @@ public final class VirtualMachine {
         int destination = localIndex(instruction, DESTINATION);
         int source = localIndex(instruction, SOURCE);
         long handle = currentFrame().local(source);
-        ownedChange = owned.freezeUtf8(handle, ownedChange);
+        ownedChange = owned.freezeUtf8AfterValidation(handle, ownedChange);
         replaceCurrentFrame(
-            currentFrame().withLocal(source, 0).withLocal(destination, handle).advance());
+            currentFrame().withLocalsAndAdvance(source, 0, destination, handle));
       }
       case MAP_ALLOC -> {
-        OwnedStore.Allocation allocation = owned.allocate(
+        OwnedStore.Allocation allocation = owned.allocateAfterValidation(
             localValue(instruction, OWNER),
             Math.toIntExact(localValue(instruction, CAPACITY)),
             BufferKind.LONG_MAP,
@@ -675,15 +668,18 @@ public final class VirtualMachine {
           owned.mapGet(localValue(instruction, OWNER), localValue(instruction, KEY)));
       case MAP_HAS -> setLocalAndAdvance(
           localIndex(instruction, DESTINATION),
-          owned.mapHas(localValue(instruction, OWNER), localValue(instruction, KEY)) ? 1 : 0);
+          owned.mapHasAfterValidation(
+              localValue(instruction, OWNER), localValue(instruction, KEY)) ? 1 : 0);
       case BUFFER_DROP -> {
         int local = localIndex(instruction, LOCAL);
-        ownedChange = owned.dropBuffer(currentFrame().local(local), ownedChange);
+        ownedChange = owned.dropBufferAfterValidation(
+            currentFrame().local(local), ownedChange);
         setLocalAndAdvance(local, 0);
       }
       case REGION_DROP -> {
         int local = localIndex(instruction, LOCAL);
-        ownedChange = owned.dropRegion(currentFrame().local(local), ownedChange);
+        ownedChange = owned.dropRegionAfterValidation(
+            currentFrame().local(local), ownedChange);
         setLocalAndAdvance(local, 0);
       }
       case OUTPUT_LENGTH -> {
@@ -743,13 +739,13 @@ public final class VirtualMachine {
             trap("Inverse result slot does not hold the expected " + relation);
           }
           replaceCurrentFrame(
-              currentFrame().withLocal(slot, 0).withLocal(slot + 1, 0).advance());
+              currentFrame().withLocalsAndAdvance(slot, 0, slot + 1, 0));
         } else {
           if (tag != 0 || payload != 0) {
             trap("Forward result slot is not vacant");
           }
           replaceCurrentFrame(
-              currentFrame().withLocal(slot, 1).withLocal(slot + 1, expected).advance());
+              currentFrame().withLocalsAndAdvance(slot, 1, slot + 1, expected));
         }
       }
       case RETURN -> {
@@ -776,8 +772,7 @@ public final class VirtualMachine {
         changedSecondaryLocal = destination + 1;
         previousSecondaryLocalValue = currentFrame().local(destination + 1);
         replaceCurrentFrame(currentFrame()
-            .withLocal(destination, tag)
-            .withLocal(destination + 1, payload));
+            .withLocals(destination, tag, destination + 1, payload));
         control = StepRecord.ControlChange.RETURN;
       }
       case EXPECT_EQ, EXPECT_TRUE, NOP, CHECKPOINT, COMMIT -> advanceCurrentFrame();
@@ -853,7 +848,7 @@ public final class VirtualMachine {
   }
 
   private void setLocalAndAdvance(int index, long value) {
-    replaceCurrentFrame(currentFrame().withLocal(index, value).advance());
+    replaceCurrentFrame(currentFrame().withLocalAndAdvance(index, value));
   }
 
   private void jumpCurrentFrame(int target) {

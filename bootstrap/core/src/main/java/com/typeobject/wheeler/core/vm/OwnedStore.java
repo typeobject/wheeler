@@ -117,9 +117,10 @@ final class OwnedStore {
 
   Allocation createRegion(long maxBytes, int maxObjects, Change change) {
     validateRegionLimits(maxBytes, maxObjects);
-    if (regions.size() >= MAX_REGIONS) {
-      throw new VmTrap("Region table limit exceeded");
-    }
+    return createRegionAfterValidation(maxBytes, maxObjects, change);
+  }
+
+  Allocation createRegionAfterValidation(long maxBytes, int maxObjects, Change change) {
     int id = regions.size();
     regions.add(new RegionValue(id, maxBytes, maxObjects, 0, 0, false));
     return new Allocation(id + 1L, change);
@@ -127,15 +128,14 @@ final class OwnedStore {
 
   Allocation allocate(
       long regionHandle, int length, BufferKind kind, Change change) {
-    RegionValue region = requireLiveRegion(regionHandle);
+    validateAllocation(regionHandle, length, kind);
+    return allocateAfterValidation(regionHandle, length, kind, change);
+  }
+
+  Allocation allocateAfterValidation(
+      long regionHandle, int length, BufferKind kind, Change change) {
+    RegionValue region = regions.get(Math.toIntExact(regionHandle - 1));
     long bytes = Math.multiplyExact((long) length, kind.elementBytes());
-    if (length <= 0
-        || bytes > region.maxBytes() - region.usedBytes()
-        || bytes > MAX_TOTAL_LIVE_BYTES - liveBytes()
-        || region.liveObjects() >= region.maxObjects()
-        || buffers.size() >= MAX_BUFFERS) {
-      throw new VmTrap("Region allocation limit exceeded");
-    }
     int regionIndex = region.id();
     Change updated = change == null ? null : change.region(regionIndex, region);
     regions.set(regionIndex, new RegionValue(
@@ -153,22 +153,23 @@ final class OwnedStore {
   }
 
   long get(long bufferHandle, int index, BufferKind kind) {
-    BufferValue buffer = requireLiveBuffer(bufferHandle);
-    requireKind(buffer, kind);
-    checkIndex(buffer, index);
-    requireLiveRegion(buffer.regionId() + 1L);
-    return buffer.elements().get(index);
+    validateGet(bufferHandle, index, kind);
+    return getAfterValidation(bufferHandle, index);
+  }
+
+  long getAfterValidation(long bufferHandle, int index) {
+    return buffer(bufferHandle).elements().get(index);
   }
 
   Change set(
       long bufferHandle, int index, long value, BufferKind kind, Change change) {
-    BufferValue buffer = requireLiveBuffer(bufferHandle);
-    requireKind(buffer, kind);
-    checkIndex(buffer, index);
-    requireLiveRegion(buffer.regionId() + 1L);
-    if (!buffer.kind().accepts(value)) {
-      throw new VmTrap("Buffer value is outside its element range: " + value);
-    }
+    validateSet(bufferHandle, index, value, kind);
+    return setAfterValidation(bufferHandle, index, value, change);
+  }
+
+  Change setAfterValidation(
+      long bufferHandle, int index, long value, Change change) {
+    BufferValue buffer = buffer(bufferHandle);
     List<Long> elements = PersistentLongList.with(buffer.elements(), index, value);
     buffers.set(buffer.id(), new BufferValue(
         buffer.id(), buffer.regionId(), buffer.kind(), buffer.length(), elements, false));
@@ -176,8 +177,13 @@ final class OwnedStore {
   }
 
   Change dropBuffer(long bufferHandle, Change change) {
-    BufferValue buffer = requireLiveBuffer(bufferHandle);
-    RegionValue region = requireLiveRegion(buffer.regionId() + 1L);
+    validateDropBuffer(bufferHandle);
+    return dropBufferAfterValidation(bufferHandle, change);
+  }
+
+  Change dropBufferAfterValidation(long bufferHandle, Change change) {
+    BufferValue buffer = buffer(bufferHandle);
+    RegionValue region = regions.get(buffer.regionId());
     long bytes = Math.multiplyExact(
         (long) buffer.length(), buffer.kind().elementBytes());
     Change updated = change == null
@@ -192,10 +198,12 @@ final class OwnedStore {
   }
 
   Change dropRegion(long regionHandle, Change change) {
-    RegionValue region = requireLiveRegion(regionHandle);
-    if (region.liveObjects() != 0 || region.usedBytes() != 0) {
-      throw new VmTrap("Cannot drop a region with live buffers");
-    }
+    validateDropRegion(regionHandle);
+    return dropRegionAfterValidation(regionHandle, change);
+  }
+
+  Change dropRegionAfterValidation(long regionHandle, Change change) {
+    RegionValue region = regions.get(Math.toIntExact(regionHandle - 1));
     regions.set(region.id(), new RegionValue(
         region.id(), region.maxBytes(), region.maxObjects(), 0, 0, true));
     return change == null ? null : change.region(region.id(), region);
@@ -269,8 +277,12 @@ final class OwnedStore {
   }
 
   boolean mapHas(long handle, long key) {
-    BufferValue map = requireMap(handle);
-    return findMapSlot(map, key) >= 0;
+    validateMap(handle);
+    return mapHasAfterValidation(handle, key);
+  }
+
+  boolean mapHasAfterValidation(long handle, long key) {
+    return findMapSlot(buffer(handle), key) >= 0;
   }
 
   void validateMapPut(long handle, long key) {
@@ -286,13 +298,17 @@ final class OwnedStore {
   }
 
   long length(long bufferHandle) {
-    BufferValue buffer = requireLiveBuffer(bufferHandle);
-    requireLiveRegion(buffer.regionId() + 1L);
-    return buffer.length();
+    validateBuffer(bufferHandle);
+    return lengthAfterValidation(bufferHandle);
+  }
+
+  int lengthAfterValidation(long bufferHandle) {
+    return buffer(bufferHandle).length();
   }
 
   void validateBuffer(long bufferHandle) {
-    length(bufferHandle);
+    BufferValue buffer = requireLiveBuffer(bufferHandle);
+    requireLiveRegion(buffer.regionId() + 1L);
   }
 
   List<Long> utf8Bytes(long bufferHandle) {
@@ -305,11 +321,12 @@ final class OwnedStore {
   }
 
   Change freezeUtf8(long bufferHandle, Change change) {
-    BufferValue buffer = requireLiveBuffer(bufferHandle);
-    requireKind(buffer, BufferKind.BYTES);
-    if (!Utf8.analyze(buffer.elements()).valid()) {
-      throw new VmTrap("Invalid UTF-8 byte sequence");
-    }
+    validateFreezeUtf8(bufferHandle);
+    return freezeUtf8AfterValidation(bufferHandle, change);
+  }
+
+  Change freezeUtf8AfterValidation(long bufferHandle, Change change) {
+    BufferValue buffer = buffer(bufferHandle);
     BufferValue frozen = new BufferValue(
         buffer.id(),
         buffer.regionId(),
@@ -371,6 +388,10 @@ final class OwnedStore {
 
   List<BufferValue> buffers() {
     return List.copyOf(buffers);
+  }
+
+  private BufferValue buffer(long handle) {
+    return buffers.get(Math.toIntExact(handle - 1));
   }
 
   private RegionValue requireLiveRegion(long handle) {

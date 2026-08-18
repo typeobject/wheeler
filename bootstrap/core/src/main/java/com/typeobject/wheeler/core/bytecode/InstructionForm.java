@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.core.bytecode;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -80,9 +81,15 @@ public enum InstructionForm {
   OUTPUT_LENGTH(OperandRole.OWNER, OperandRole.LENGTH);
 
   private final List<OperandRole> roles;
+  private final int[] roleIndices;
 
   InstructionForm(OperandRole... roles) {
     this.roles = List.of(roles);
+    this.roleIndices = new int[OperandRole.values().length];
+    Arrays.fill(roleIndices, -1);
+    for (int index = 0; index < roles.length; index++) {
+      roleIndices[roles[index].ordinal()] = index;
+    }
   }
 
   public int operandCount() {
@@ -91,6 +98,10 @@ public enum InstructionForm {
 
   public List<OperandRole> roles() {
     return roles;
+  }
+
+  int operandIndex(OperandRole role) {
+    return roleIndices[role.ordinal()];
   }
 
   /** Semantic field roles. Position is significant and never inferred from a mnemonic. */
