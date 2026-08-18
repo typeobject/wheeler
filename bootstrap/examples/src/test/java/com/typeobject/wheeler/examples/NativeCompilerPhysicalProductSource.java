@@ -250,7 +250,6 @@ final class NativeCompilerPhysicalProductSource {
                   directRelocationRows,
                   directRelocationOwners,
                   directRelocationIdentities,
-                  directInstructionTargets,
                   compiledCallableArtifact,
                   compiledCallableIdentity
                 );

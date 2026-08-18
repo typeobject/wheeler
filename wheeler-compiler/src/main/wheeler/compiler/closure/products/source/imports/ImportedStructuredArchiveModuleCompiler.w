@@ -66,14 +66,12 @@ classical class ImportedStructuredArchiveModuleCompiler {
     borrow mut words relocationRows,
     borrow mut words relocationOwners,
     borrow mut bytes relocationIdentities,
-    borrow mut words resolvedInstructionTargets,
     borrow mut bytes artifact,
     borrow mut bytes identity
   ) {
     assert(bufferLength(relocationRows) == 768);
     assert(bufferLength(relocationOwners) == 256);
     assert(bufferLength(relocationIdentities) == 8192);
-    assert(bufferLength(resolvedInstructionTargets) == 131072);
     assert(bufferLength(artifact) == 32768);
     assert(bufferLength(identity) == 32);
     region targets = new region(/* bytes= */ 1703936, /* allocations= */ 4);
@@ -271,16 +269,6 @@ classical class ImportedStructuredArchiveModuleCompiler {
       }
 
       relocation += 1;
-    }
-
-    long instructionTarget = 0;
-    while (instructionTarget < 131072) limit 131072 {
-      set(
-        resolvedInstructionTargets,
-        instructionTarget,
-        stagedInstructionTargets[instructionTarget]
-      );
-      instructionTarget += 1;
     }
 
     SourceProductArtifactPlan publishedResult = new SourceProductArtifactPlan(

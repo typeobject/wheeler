@@ -206,7 +206,7 @@ final class NativeCompilerArchiveClosureProgram {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 7692328, /* allocations= */ 99);
+            region columns = new region(/* bytes= */ 6643752, /* allocations= */ 98);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -296,7 +296,6 @@ final class NativeCompilerArchiveClosureProgram {
             words directRelocationRows = allocate(columns, /* length= */ 768);
             words directRelocationOwners = allocate(columns, /* length= */ 256);
             bytes directRelocationIdentities = allocateBytes(columns, /* length= */ 8192);
-            words directInstructionTargets = allocate(columns, /* length= */ 131072);
             words physicalStubCallableRows = allocate(columns, /* length= */ 64);
             PHYSICAL_MODULE_OWNERS
             bytes packageIdentity = allocateBytes(columns, /* length= */ 32);
@@ -828,7 +827,6 @@ final class NativeCompilerArchiveClosureProgram {
             drop(symbolIdentities);
             drop(packageIdentity);
             drop(physicalStubCallableRows);
-            drop(directInstructionTargets);
             drop(directRelocationIdentities);
             drop(directRelocationOwners);
             drop(directRelocationRows);
