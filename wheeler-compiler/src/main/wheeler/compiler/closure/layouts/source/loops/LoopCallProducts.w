@@ -522,19 +522,12 @@ classical class LoopCallProducts {
       return new LoopCallPlan(0, 0, 0, 0, false);
     }
 
-    region staging = new region(/* bytes= */ 409600, /* allocations= */ 6);
+    region staging = new region(/* bytes= */ 376832, /* allocations= */ 5);
     words stagedRelocations = allocate(staging, RELOCATION_ROWS);
     bytes stagedIdentities = allocateBytes(staging, RELOCATION_IDENTITY_BYTES);
     words stagedTypes = allocate(staging, LOCAL_TYPE_ROWS);
     words stagedLocalWidths = allocate(staging, CALL_COUNT_LIMIT);
-    words stagedStatementWidths = allocate(staging, STATEMENT_COUNT_LIMIT);
     bytes stagedCode = allocateBytes(staging, MAX_CODE_BYTES);
-    long statementRow = 0;
-    while (statementRow < STATEMENT_COUNT_LIMIT) limit STATEMENT_COUNT_LIMIT {
-      set(stagedStatementWidths, statementRow, statementPhysicalWidths[statementRow]);
-      statementRow += 1;
-    }
-
     long cursor = 0;
     long typeCursor = 0;
     call = 0;
@@ -587,33 +580,45 @@ classical class LoopCallProducts {
       call += 1;
     }
 
-    long row = 0;
-    while (row < RELOCATION_ROWS) limit RELOCATION_ROWS {
-      set(relocationRows, row, stagedRelocations[row]);
-      row += 1;
+    long column = 0;
+    while (column < 3) limit 3 {
+      long relocationRow = 0;
+      while (relocationRow < callCount) limit CALL_COUNT_LIMIT {
+        set(
+          relocationRows,
+          column * CALL_COUNT_LIMIT + relocationRow,
+          stagedRelocations[column * CALL_COUNT_LIMIT + relocationRow]
+        );
+        relocationRow += 1;
+      }
+
+      column += 1;
     }
 
     long identityOffset = 0;
-    while (identityOffset < RELOCATION_IDENTITY_BYTES) limit RELOCATION_IDENTITY_BYTES {
+    while (identityOffset < callCount * IDENTITY_BYTES) limit RELOCATION_IDENTITY_BYTES {
       setByte(relocationIdentities, identityOffset, stagedIdentities[identityOffset]);
       identityOffset += 1;
     }
 
-    row = 0;
-    while (row < LOCAL_TYPE_ROWS) limit LOCAL_TYPE_ROWS {
-      set(localTypeRows, row, stagedTypes[row]);
-      row += 1;
+    column = 0;
+    while (column < 3) limit 3 {
+      long typeRow = 0;
+      while (typeRow < typeCursor) limit LOCAL_TYPE_COUNT_LIMIT {
+        set(
+          localTypeRows,
+          column * LOCAL_TYPE_COUNT_LIMIT + typeRow,
+          stagedTypes[column * LOCAL_TYPE_COUNT_LIMIT + typeRow]
+        );
+        typeRow += 1;
+      }
+
+      column += 1;
     }
 
-    row = 0;
-    while (row < CALL_COUNT_LIMIT) limit CALL_COUNT_LIMIT {
+    long row = 0;
+    while (row < callCount) limit CALL_COUNT_LIMIT {
       set(callLocalWidths, row, stagedLocalWidths[row]);
-      row += 1;
-    }
-
-    row = 0;
-    while (row < STATEMENT_COUNT_LIMIT) limit STATEMENT_COUNT_LIMIT {
-      set(statementPhysicalWidths, row, stagedStatementWidths[row]);
       row += 1;
     }
 
@@ -624,7 +629,6 @@ classical class LoopCallProducts {
     }
 
     drop(stagedCode);
-    drop(stagedStatementWidths);
     drop(stagedLocalWidths);
     drop(stagedTypes);
     drop(stagedIdentities);
