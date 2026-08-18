@@ -15,6 +15,7 @@ classical class LoopNestedBlockProducts {
   private const long BLOCK_ROWS = 6144;
   private const long BODY_COUNT_LIMIT = 4096;
   private const long CONDITION_BOOLEAN = 3;
+  private const long CONDITION_BOOLEAN_EQ_LITERAL = 4;
   private const long CONDITION_EQ_LITERAL = 1;
   private const long CONDITION_LT_LITERAL = 2;
   private const long MAX_CODE_BYTES = 262144;
@@ -144,7 +145,9 @@ classical class LoopNestedBlockProducts {
     if (conditionKind != CONDITION_EQ_LITERAL) {
       if (conditionKind != CONDITION_LT_LITERAL) {
         if (conditionKind != CONDITION_BOOLEAN) {
-          valid = false;
+          if (conditionKind != CONDITION_BOOLEAN_EQ_LITERAL) {
+            valid = false;
+          }
         }
       }
     }

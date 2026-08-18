@@ -2,6 +2,8 @@
 
 module wheeler.compiler.closure.imported_source_call_targets;
 
+import wheeler.compiler.type_codes;
+
 classical class ImportedSourceCallTargets {
   private const long CALLABLE_COUNT_LIMIT = 4096;
   private const long DEPENDENCY_ROWS = 8192;
@@ -17,6 +19,38 @@ classical class ImportedSourceCallTargets {
     long nameBytes,
     boolean valid
   ) {}
+
+  private long localParameterType(long type, long mode) {
+    if (mode == 0) {
+      return type;
+    }
+
+    if (type == TYPE_REGION) {
+      return TYPE_REGION_BORROW;
+    }
+
+    if (type == TYPE_WORDS) {
+      return TYPE_WORDS_BORROW;
+    }
+
+    if (type == TYPE_BYTES) {
+      return TYPE_BYTES_BORROW;
+    }
+
+    if (type == TYPE_LONG_MAP) {
+      return TYPE_LONG_MAP_BORROW;
+    }
+
+    if (type == TYPE_UTF8) {
+      return TYPE_UTF8_BORROW;
+    }
+
+    if (type == TYPE_BYTE_VIEW) {
+      return TYPE_BYTE_VIEW;
+    }
+
+    return -1;
+  }
 
   private boolean identityBefore(borrow byteview identities, long left, long right) {
     long offset = 0;
@@ -245,12 +279,14 @@ classical class ImportedSourceCallTargets {
 
           long parameter = 0;
           while (parameter < parameterCount) limit 64 {
-            set(stagedParameters, parameterCursor, parameterTypes[firstParameter + parameter]);
-            set(
-              stagedParameters,
-              16384 + parameterCursor,
-              parameterModes[firstParameter + parameter]
-            );
+            long mode = parameterModes[firstParameter + parameter];
+            long type = localParameterType(parameterTypes[firstParameter + parameter], mode);
+            if (type < 0) {
+              valid = false;
+            }
+
+            set(stagedParameters, parameterCursor, type);
+            set(stagedParameters, 16384 + parameterCursor, mode);
             parameterCursor += 1;
             parameter += 1;
           }

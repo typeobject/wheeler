@@ -438,8 +438,12 @@ classical class LoopLocalTypeProducts {
                 if (nestedKind == 3) {
                   nestedLocalType = TYPE_BOOLEAN;
                 } else {
-                  if (nestedLocalOffset == 2) {
+                  if (nestedKind == 4) {
                     nestedLocalType = TYPE_BOOLEAN;
+                  } else {
+                    if (nestedLocalOffset == 2) {
+                      nestedLocalType = TYPE_BOOLEAN;
+                    }
                   }
                 }
 

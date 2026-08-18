@@ -320,6 +320,22 @@ classical class SourceValueProducts {
           long opcode = -1;
           long localWidth = 0;
           long resultLocal = -1;
+          long statementCall = -1;
+          long statementCallMatches = 0;
+          long candidateCall = 0;
+          while (candidateCall < callCount) limit 256 {
+            if (callStatements[candidateCall] == statement) {
+              statementCall = candidateCall;
+              statementCallMatches += 1;
+            }
+
+            candidateCall += 1;
+          }
+
+          if (1 < statementCallMatches) {
+            valid = false;
+          }
+
           if (-1 < statementToken) {
             opcode = statementOpcode(source, tokenStarts, tokenLengths, statementToken);
             if (-1 < opcode) {
@@ -492,6 +508,10 @@ classical class SourceValueProducts {
               if (statementRows[4096 + statement] == functionRootBlock) {
                 if (statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement] == 1) {
                   localWidth = 3;
+                  if (-1 < statementCall) {
+                    localWidth = callRows[512 + statementCall] * 2 + 1;
+                  }
+
                   resultLocal = -1;
                 }
               }
@@ -511,6 +531,18 @@ classical class SourceValueProducts {
                   localWidth = 4;
                   resultLocal = localBase + 3;
                 }
+              }
+
+              if (-1 < statementCall) {
+                localWidth = callRows[512 + statementCall] * 2 + 2;
+                resultLocal = localBase + localWidth - 1;
+              }
+            }
+
+            if (valueHash == TOKEN_BOOLEAN) {
+              if (-1 < statementCall) {
+                localWidth = callRows[512 + statementCall] * 2 + 2;
+                resultLocal = localBase + localWidth - 1;
               }
             }
 

@@ -2,7 +2,7 @@
 
 module wheeler.compiler.closure.direct_long_declaration_products;
 
-import wheeler.compiler.closure.direct_byte_projection_products;
+import wheeler.compiler.closure.direct_buffer_projection_products;
 import wheeler.compiler.closure.direct_scalar_encoding;
 import wheeler.compiler.closure.direct_scalar_relations;
 import wheeler.compiler.closure.direct_statement_coordinates;
@@ -109,7 +109,7 @@ classical class DirectLongDeclarationProducts {
       PUNCTUATION_OPEN_SQUARE
     );
     if (indexed) {
-      DirectByteProjectionProduct projection = writeDirectByteProjection(
+      DirectBufferProjectionProduct projection = writeDirectBufferProjection(
         source,
         sourceToken,
         tokenCount,

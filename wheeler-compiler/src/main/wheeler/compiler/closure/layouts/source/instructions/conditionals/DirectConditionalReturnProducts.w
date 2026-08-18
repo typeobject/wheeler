@@ -163,19 +163,30 @@ classical class DirectConditionalReturnProducts {
       return invalidConditionalReturn(6);
     }
 
-    if (
-      signedLoopBodyLocal(
-        source,
-        owner,
-        leftValue.local,
-        valueCount,
-        valueRows,
-        tokenCount,
-        tokenStarts,
-        tokenLengths
-      ) == false
-    ) {
-      return invalidConditionalReturn(7);
+    boolean signedCondition = signedLoopBodyLocal(
+      source,
+      owner,
+      leftValue.local,
+      valueCount,
+      valueRows,
+      tokenCount,
+      tokenStarts,
+      tokenLengths
+    );
+    boolean booleanCondition = booleanLoopBodyLocal(
+      source,
+      owner,
+      leftValue.local,
+      valueCount,
+      valueRows,
+      tokenCount,
+      tokenStarts,
+      tokenLengths
+    );
+    if (signedCondition == false) {
+      if (booleanCondition == false) {
+        return invalidConditionalReturn(7);
+      }
     }
 
     long left = physicalValueLocal(
@@ -195,82 +206,97 @@ classical class DirectConditionalReturnProducts {
     long right = 0;
     long rightOpcode = OPCODE_LOCAL_CONST;
     long rightWidth = 1;
-    if (tokenKinds[rightToken] == 1) {
-      DirectReturnConstant constant = resolveDirectReturnConstant(
-        source,
-        moduleOwner,
-        tokenStarts[rightToken],
-        tokenLengths[rightToken],
-        symbolCount,
-        symbolOwners,
-        symbolStarts,
-        symbolLengths,
-        symbolTypes,
-        symbolValues,
-        symbolResolved
-      );
-      if (constant.found) {
-        if (constant.valid == false) {
-          return invalidConditionalReturn(9);
-        }
+    if (booleanCondition) {
+      if (operation != OPCODE_LOCAL_EQ) {
+        return invalidConditionalReturn(39);
+      }
 
-        right = constant.value;
+      long booleanHash = tokenHash(source, tokenStarts, tokenLengths, rightToken);
+      if (booleanHash == TOKEN_TRUE) {
+        right = 1;
       } else {
-        LoopBodyValue rightValue = resolveLoopBodyValue(
-          source,
-          tokenStarts[rightToken],
-          tokenLengths[rightToken],
-          owner,
-          ordinal,
-          valueCount,
-          valueRows
-        );
-        if (rightValue.valid == false) {
-          return invalidConditionalReturn(10);
+        if (booleanHash != TOKEN_FALSE) {
+          return invalidConditionalReturn(40);
         }
-
-        if (
-          signedLoopBodyLocal(
-            source,
-            owner,
-            rightValue.local,
-            valueCount,
-            valueRows,
-            tokenCount,
-            tokenStarts,
-            tokenLengths
-          ) == false
-        ) {
-          return invalidConditionalReturn(11);
-        }
-
-        right = physicalValueLocal(
-          owner,
-          rightValue.local,
-          statementCount,
-          statementRows,
-          statementLocalRows,
-          valueCount,
-          valueRows,
-          statementPhysicalStarts
-        );
-        if (right < 0) {
-          return invalidConditionalReturn(12);
-        }
-
-        rightOpcode = OPCODE_LOCAL_MOVE;
       }
     } else {
-      rightWidth = signedNumberWidth(source, tokenKinds, tokenStarts, rightToken);
-      if (rightWidth < 1) {
-        return invalidConditionalReturn(13);
-      }
+      if (tokenKinds[rightToken] == 1) {
+        DirectReturnConstant constant = resolveDirectReturnConstant(
+          source,
+          moduleOwner,
+          tokenStarts[rightToken],
+          tokenLengths[rightToken],
+          symbolCount,
+          symbolOwners,
+          symbolStarts,
+          symbolLengths,
+          symbolTypes,
+          symbolValues,
+          symbolResolved
+        );
+        if (constant.found) {
+          if (constant.valid == false) {
+            return invalidConditionalReturn(9);
+          }
 
-      if (signedNumberValid(source, tokenStarts, tokenLengths, rightToken) == false) {
-        return invalidConditionalReturn(14);
-      }
+          right = constant.value;
+        } else {
+          LoopBodyValue rightValue = resolveLoopBodyValue(
+            source,
+            tokenStarts[rightToken],
+            tokenLengths[rightToken],
+            owner,
+            ordinal,
+            valueCount,
+            valueRows
+          );
+          if (rightValue.valid == false) {
+            return invalidConditionalReturn(10);
+          }
 
-      right = parsedSignedNumber(source, tokenStarts, tokenLengths, rightToken);
+          if (
+            signedLoopBodyLocal(
+              source,
+              owner,
+              rightValue.local,
+              valueCount,
+              valueRows,
+              tokenCount,
+              tokenStarts,
+              tokenLengths
+            ) == false
+          ) {
+            return invalidConditionalReturn(11);
+          }
+
+          right = physicalValueLocal(
+            owner,
+            rightValue.local,
+            statementCount,
+            statementRows,
+            statementLocalRows,
+            valueCount,
+            valueRows,
+            statementPhysicalStarts
+          );
+          if (right < 0) {
+            return invalidConditionalReturn(12);
+          }
+
+          rightOpcode = OPCODE_LOCAL_MOVE;
+        }
+      } else {
+        rightWidth = signedNumberWidth(source, tokenKinds, tokenStarts, rightToken);
+        if (rightWidth < 1) {
+          return invalidConditionalReturn(13);
+        }
+
+        if (signedNumberValid(source, tokenStarts, tokenLengths, rightToken) == false) {
+          return invalidConditionalReturn(14);
+        }
+
+        right = parsedSignedNumber(source, tokenStarts, tokenLengths, rightToken);
+      }
     }
 
     long closeToken = rightToken + rightWidth;
@@ -551,8 +577,12 @@ classical class DirectConditionalReturnProducts {
     long parentLocalOffset = 0;
     while (parentLocalOffset < 3) limit 3 {
       long parentLocalType = TYPE_SIGNED;
-      if (parentLocalOffset == 2) {
+      if (booleanCondition) {
         parentLocalType = TYPE_BOOLEAN;
+      } else {
+        if (parentLocalOffset == 2) {
+          parentLocalType = TYPE_BOOLEAN;
+        }
       }
 
       set(typeRows, typeCount, owner);

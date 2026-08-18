@@ -500,6 +500,46 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
     assertArtifact(source, 2, 1, 2);
   }
 
+  @Test
+  void emitsARootBorrowedWordProjection() throws Exception {
+    String source = """
+        module example.structured_call;
+
+        classical class StructuredCall {
+          public long recurse(borrow mut words values, long index) {
+            long selected = values[index];
+            return selected;
+          }
+        }
+        """;
+
+    assertArtifact(source, 2, 10, 1);
+  }
+
+  @Test
+  void emitsANestedBooleanLiteralCondition() throws Exception {
+    String source = """
+        module example.structured_call;
+
+        classical class StructuredCall {
+          public long recurse(boolean value) {
+            long cursor = 0;
+            while (cursor < 1) limit 1 {
+              if (value == false) {
+                cursor += 1;
+              }
+
+              cursor += 1;
+            }
+
+            return cursor;
+          }
+        }
+        """;
+
+    assertArtifact(source, 1, 2, 0);
+  }
+
   private static void assertImportedArtifact(
       String source,
       String callable,

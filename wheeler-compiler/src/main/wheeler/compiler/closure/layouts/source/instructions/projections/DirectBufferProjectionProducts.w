@@ -1,6 +1,6 @@
-//! Emits exact root byte-buffer projection products.
+//! Emits exact root buffer projection products.
 
-module wheeler.compiler.closure.direct_byte_projection_products;
+module wheeler.compiler.closure.direct_buffer_projection_products;
 
 import wheeler.compiler.closure.direct_statement_coordinates;
 import wheeler.compiler.closure.loop_body_layouts;
@@ -14,15 +14,15 @@ import wheeler.compiler.storage_opcodes;
 import wheeler.compiler.tokens;
 import wheeler.compiler.type_codes;
 
-classical class DirectByteProjectionProducts {
+classical class DirectBufferProjectionProducts {
   private const long MAX_CODE_BYTES = 262144;
   private const long U64 = ENCODING_WIDTH_U64;
 
-  /// Reports one exact byte projection instruction and type extent.
-  public record DirectByteProjectionProduct(long next, long typeCount, boolean valid) {}
+  /// Reports one exact buffer projection instruction and type extent.
+  public record DirectBufferProjectionProduct(long next, long typeCount, boolean valid) {}
 
   /// Writes one complete `long value = owner[index];` initializer product.
-  public DirectByteProjectionProduct writeDirectByteProjection(
+  public DirectBufferProjectionProduct writeDirectBufferProjection(
     borrow utf8 source,
     long token,
     long tokenCount,
@@ -48,41 +48,41 @@ classical class DirectByteProjectionProducts {
     assert(typeCount < 4093);
     assert(bufferLength(output) == MAX_CODE_BYTES);
     if (token < 0) {
-      return new DirectByteProjectionProduct(0, 0, false);
+      return new DirectBufferProjectionProduct(0, 0, false);
     }
 
     if (tokenCount < token + 5) {
-      return new DirectByteProjectionProduct(0, 0, false);
+      return new DirectBufferProjectionProduct(0, 0, false);
     }
 
     if (252 < localBase) {
-      return new DirectByteProjectionProduct(0, 0, false);
+      return new DirectBufferProjectionProduct(0, 0, false);
     }
 
     if (tokenKinds[token] != 1) {
-      return new DirectByteProjectionProduct(0, 0, false);
+      return new DirectBufferProjectionProduct(0, 0, false);
     }
 
     if (
       punctuationAt(source, tokenKinds, tokenStarts, token + 1, PUNCTUATION_OPEN_SQUARE) == false
     ) {
-      return new DirectByteProjectionProduct(0, 0, false);
+      return new DirectBufferProjectionProduct(0, 0, false);
     }
 
     if (tokenKinds[token + 2] != 1) {
-      return new DirectByteProjectionProduct(0, 0, false);
+      return new DirectBufferProjectionProduct(0, 0, false);
     }
 
     if (
       punctuationAt(source, tokenKinds, tokenStarts, token + 3, PUNCTUATION_CLOSE_SQUARE) == false
     ) {
-      return new DirectByteProjectionProduct(0, 0, false);
+      return new DirectBufferProjectionProduct(0, 0, false);
     }
 
     if (
       punctuationAt(source, tokenKinds, tokenStarts, token + 4, PUNCTUATION_SEMICOLON) == false
     ) {
-      return new DirectByteProjectionProduct(0, 0, false);
+      return new DirectBufferProjectionProduct(0, 0, false);
     }
 
     LoopBodyValue buffer = resolveLoopBodyValue(
@@ -104,11 +104,11 @@ classical class DirectByteProjectionProducts {
       valueRows
     );
     if (buffer.valid == false) {
-      return new DirectByteProjectionProduct(0, 0, false);
+      return new DirectBufferProjectionProduct(0, 0, false);
     }
 
     if (index.valid == false) {
-      return new DirectByteProjectionProduct(0, 0, false);
+      return new DirectBufferProjectionProduct(0, 0, false);
     }
 
     long bufferType = directBufferLocalType(
@@ -130,8 +130,15 @@ classical class DirectByteProjectionProducts {
       byteBuffer = true;
     }
 
+    boolean wordBuffer = bufferType == TYPE_WORDS;
+    if (bufferType == TYPE_WORDS_BORROW) {
+      wordBuffer = true;
+    }
+
     if (byteBuffer == false) {
-      return new DirectByteProjectionProduct(0, 0, false);
+      if (wordBuffer == false) {
+        return new DirectBufferProjectionProduct(0, 0, false);
+      }
     }
 
     if (
@@ -146,7 +153,7 @@ classical class DirectByteProjectionProducts {
         tokenLengths
       ) == false
     ) {
-      return new DirectByteProjectionProduct(0, 0, false);
+      return new DirectBufferProjectionProduct(0, 0, false);
     }
 
     long bufferLocal = physicalValueLocal(
@@ -170,15 +177,15 @@ classical class DirectByteProjectionProducts {
       statementPhysicalStarts
     );
     if (bufferLocal < 0) {
-      return new DirectByteProjectionProduct(0, 0, false);
+      return new DirectBufferProjectionProduct(0, 0, false);
     }
 
     if (indexLocal < 0) {
-      return new DirectByteProjectionProduct(0, 0, false);
+      return new DirectBufferProjectionProduct(0, 0, false);
     }
 
     if (MAX_CODE_BYTES - 104 < cursor) {
-      return new DirectByteProjectionProduct(0, 0, false);
+      return new DirectBufferProjectionProduct(0, 0, false);
     }
 
     long next = writeInstructionHeader(
@@ -192,7 +199,12 @@ classical class DirectByteProjectionProducts {
     next = writeInstructionHeader(output, next, OPCODE_LOCAL_MOVE, INSTRUCTION_FORM_BINARY);
     next = writeUnsignedLittleEndian(output, next, localBase + 1, U64);
     next = writeUnsignedLittleEndian(output, next, indexLocal, U64);
-    next = writeInstructionHeader(output, next, OPCODE_BYTES_GET, INSTRUCTION_FORM_TERNARY);
+    long projectionOpcode = OPCODE_BYTES_GET;
+    if (wordBuffer) {
+      projectionOpcode = OPCODE_WORDS_GET;
+    }
+
+    next = writeInstructionHeader(output, next, projectionOpcode, INSTRUCTION_FORM_TERNARY);
     next = writeUnsignedLittleEndian(output, next, localBase + 2, U64);
     next = writeUnsignedLittleEndian(output, next, localBase, U64);
     next = writeUnsignedLittleEndian(output, next, localBase + 1, U64);
@@ -212,6 +224,6 @@ classical class DirectByteProjectionProducts {
       offset += 1;
     }
 
-    return new DirectByteProjectionProduct(next, typeCount, true);
+    return new DirectBufferProjectionProduct(next, typeCount, true);
   }
 }

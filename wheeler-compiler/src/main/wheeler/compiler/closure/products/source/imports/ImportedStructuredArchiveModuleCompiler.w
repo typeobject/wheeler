@@ -11,6 +11,24 @@ import wheeler.compiler.closure.source_call_relocation_link_products;
 import wheeler.compiler.closure.source_product_artifact;
 
 classical class ImportedStructuredArchiveModuleCompiler {
+  private boolean sameIdentity(
+    borrow byteview left,
+    long leftRow,
+    borrow byteview right,
+    long rightRow
+  ) {
+    long offset = 0;
+    while (offset < 32) limit 32 {
+      if (left[leftRow * 32 + offset] != right[rightRow * 32 + offset]) {
+        return false;
+      }
+
+      offset += 1;
+    }
+
+    return true;
+  }
+
   /// Publishes one archive module from closed value and direct-callable products.
   public SourceProductArtifactPlan compileStructuredArchiveModuleWithImportedTargets(
     borrow byteview archive,
@@ -100,12 +118,15 @@ classical class ImportedStructuredArchiveModuleCompiler {
       qualifierDependencyRanks
     );
     assert(qualifierPlan.valid);
-    region publication = new region(/* bytes= */ 1097760, /* allocations= */ 6);
+    region publication = new region(/* bytes= */ 1114144, /* allocations= */ 9);
     bytes stagedArtifact = allocateBytes(publication, /* length= */ 32768);
     bytes stagedIdentity = allocateBytes(publication, /* length= */ 32);
     words stagedRelocations = allocate(publication, /* length= */ 768);
     words stagedRelocationOwners = allocate(publication, /* length= */ 256);
     bytes stagedRelocationIdentities = allocateBytes(publication, /* length= */ 8192);
+    words importedRelocations = allocate(publication, /* length= */ 768);
+    words importedRelocationOwners = allocate(publication, /* length= */ 256);
+    bytes importedRelocationIdentities = allocateBytes(publication, /* length= */ 8192);
     words stagedInstructionTargets = allocate(publication, /* length= */ 131072);
     SourceProductArtifactPlan result = compileStructuredArchiveModuleWithTargetView(
       archive,
@@ -144,6 +165,58 @@ classical class ImportedStructuredArchiveModuleCompiler {
       stagedArtifact,
       stagedIdentity
     );
+    long importedRelocationCount = 0;
+    long stagedRelocation = 0;
+    while (stagedRelocation < result.relocationCount) limit 256 {
+      long targetMatches = 0;
+      long target = 0;
+      while (target < targetPlan.targetCount) limit 4096 {
+        if (
+          sameIdentity(stagedRelocationIdentities, stagedRelocation, targetIdentities, target)
+        ) {
+          targetMatches += 1;
+        }
+
+        target += 1;
+      }
+
+      if (1 < targetMatches) {
+        assert(false);
+      }
+
+      if (targetMatches == 1) {
+        set(importedRelocations, importedRelocationCount, stagedRelocations[stagedRelocation]);
+        set(
+          importedRelocations,
+          256 + importedRelocationCount,
+          stagedRelocations[256 + stagedRelocation]
+        );
+        set(
+          importedRelocations,
+          512 + importedRelocationCount,
+          stagedRelocations[512 + stagedRelocation]
+        );
+        set(
+          importedRelocationOwners,
+          importedRelocationCount,
+          stagedRelocationOwners[stagedRelocation]
+        );
+        long filteredIdentityByte = 0;
+        while (filteredIdentityByte < 32) limit 32 {
+          setByte(
+            importedRelocationIdentities,
+            importedRelocationCount * 32 + filteredIdentityByte,
+            stagedRelocationIdentities[stagedRelocation * 32 + filteredIdentityByte]
+          );
+          filteredIdentityByte += 1;
+        }
+
+        importedRelocationCount += 1;
+      }
+
+      stagedRelocation += 1;
+    }
+
     region decoded = new region(/* bytes= */ 201728, /* allocations= */ 2);
     words functionRows = allocate(decoded, /* length= */ 640);
     words instructionRows = allocate(decoded, /* length= */ 24576);
@@ -158,17 +231,17 @@ classical class ImportedStructuredArchiveModuleCompiler {
       compiled.functionCount,
       compiled.instructionCount,
       instructionRows,
-      result.relocationCount,
-      stagedRelocations,
-      stagedRelocationOwners,
-      stagedRelocationIdentities,
+      importedRelocationCount,
+      importedRelocations,
+      importedRelocationOwners,
+      importedRelocationIdentities,
       finalFunctionCount,
       finalFunctionIdentities,
       hashSlots,
       hashFunctions,
       stagedInstructionTargets
     );
-    assert(linked.relocationCount == result.relocationCount);
+    assert(linked.relocationCount == importedRelocationCount);
     long artifactByte = 0;
     while (artifactByte < result.length) limit 32768 {
       setByte(artifact, artifactByte, stagedArtifact[artifactByte]);
@@ -182,17 +255,17 @@ classical class ImportedStructuredArchiveModuleCompiler {
     }
 
     long relocation = 0;
-    while (relocation < result.relocationCount) limit 256 {
-      set(relocationRows, relocation, stagedRelocations[relocation]);
-      set(relocationRows, 256 + relocation, stagedRelocations[256 + relocation]);
-      set(relocationRows, 512 + relocation, stagedRelocations[512 + relocation]);
-      set(relocationOwners, relocation, stagedRelocationOwners[relocation]);
+    while (relocation < importedRelocationCount) limit 256 {
+      set(relocationRows, relocation, importedRelocations[relocation]);
+      set(relocationRows, 256 + relocation, importedRelocations[256 + relocation]);
+      set(relocationRows, 512 + relocation, importedRelocations[512 + relocation]);
+      set(relocationOwners, relocation, importedRelocationOwners[relocation]);
       identityByte = 0;
       while (identityByte < 32) limit 32 {
         setByte(
           relocationIdentities,
           relocation * 32 + identityByte,
-          stagedRelocationIdentities[relocation * 32 + identityByte]
+          importedRelocationIdentities[relocation * 32 + identityByte]
         );
         identityByte += 1;
       }
@@ -210,10 +283,20 @@ classical class ImportedStructuredArchiveModuleCompiler {
       instructionTarget += 1;
     }
 
+    SourceProductArtifactPlan publishedResult = new SourceProductArtifactPlan(
+      result.length,
+      result.codeStart,
+      result.functionCount,
+      result.maxLocalCount,
+      importedRelocationCount
+    );
     drop(instructionRows);
     drop(functionRows);
     drop(decoded);
     drop(stagedInstructionTargets);
+    drop(importedRelocationIdentities);
+    drop(importedRelocationOwners);
+    drop(importedRelocations);
     drop(stagedRelocationIdentities);
     drop(stagedRelocationOwners);
     drop(stagedRelocations);
@@ -230,6 +313,6 @@ classical class ImportedStructuredArchiveModuleCompiler {
     drop(targetParameterRows);
     drop(targetRows);
     drop(targets);
-    return result;
+    return publishedResult;
   }
 }

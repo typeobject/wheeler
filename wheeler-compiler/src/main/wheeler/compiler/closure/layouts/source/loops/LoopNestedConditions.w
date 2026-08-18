@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.loop_nested_conditions;
 
+import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
@@ -101,28 +102,58 @@ classical class LoopNestedConditions {
         valid = false;
       }
 
-      if (
-        signedLoopBodyLocal(
-          source,
-          owner,
-          condition.local,
-          valueCount,
-          valueRows,
-          tokenCount,
-          tokenStarts,
-          tokenLengths
-        ) == false
-      ) {
-        valid = false;
+      long literalHash = tokenHash(source, tokenStarts, tokenLengths, literalToken);
+      boolean booleanLiteral = kind == 1;
+      if (literalHash == TOKEN_TRUE) {
+        literal = 1;
+      } else {
+        if (literalHash == TOKEN_FALSE) {
+          literal = 0;
+        } else {
+          booleanLiteral = false;
+        }
       }
 
-      if (signedNumberWidth(source, tokenKinds, tokenStarts, literalToken) != 1) {
-        valid = false;
-      } else {
-        if (signedNumberValid(source, tokenStarts, tokenLengths, literalToken)) {
-          literal = parsedSignedNumber(source, tokenStarts, tokenLengths, literalToken);
-        } else {
+      if (booleanLiteral) {
+        kind = 4;
+        if (
+          booleanLoopBodyLocal(
+            source,
+            owner,
+            condition.local,
+            valueCount,
+            valueRows,
+            tokenCount,
+            tokenStarts,
+            tokenLengths
+          ) == false
+        ) {
           valid = false;
+        }
+      } else {
+        if (
+          signedLoopBodyLocal(
+            source,
+            owner,
+            condition.local,
+            valueCount,
+            valueRows,
+            tokenCount,
+            tokenStarts,
+            tokenLengths
+          ) == false
+        ) {
+          valid = false;
+        }
+
+        if (signedNumberWidth(source, tokenKinds, tokenStarts, literalToken) != 1) {
+          valid = false;
+        } else {
+          if (signedNumberValid(source, tokenStarts, tokenLengths, literalToken)) {
+            literal = parsedSignedNumber(source, tokenStarts, tokenLengths, literalToken);
+          } else {
+            valid = false;
+          }
         }
       }
 
