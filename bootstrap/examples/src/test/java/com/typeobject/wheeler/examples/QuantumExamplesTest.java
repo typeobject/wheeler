@@ -12,6 +12,8 @@ import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.proof.ProofRule;
+import com.typeobject.wheeler.core.quantum.Gate;
+import com.typeobject.wheeler.core.quantum.GateOperation;
 import com.typeobject.wheeler.runtime.ExecutionResult;
 import com.typeobject.wheeler.runtime.WheelerRuntime;
 import com.typeobject.wheeler.runtime.hybrid.HybridRun;
@@ -48,6 +50,18 @@ class QuantumExamplesTest {
     ExecutionResult result = new WheelerRuntime().execute(decoded, new StateVectorTarget());
 
     assertArrayEquals(first, second);
+    if (file.equals("QFT.w")) {
+      assertEquals(
+          java.util.List.of(
+              GateOperation.of(Gate.H, 2),
+              new GateOperation(Gate.CPHASE, java.util.List.of(1, 2), Math.PI / 2),
+              new GateOperation(Gate.CPHASE, java.util.List.of(0, 2), Math.PI / 4),
+              GateOperation.of(Gate.H, 1),
+              new GateOperation(Gate.CPHASE, java.util.List.of(0, 1), Math.PI / 2),
+              GateOperation.of(Gate.H, 0),
+              GateOperation.of(Gate.SWAP, 0, 2)),
+          decoded.quantumCircuits().getFirst().operations());
+    }
     if (file.equals("QFT.w") || file.equals("GroverSearch.w")
         || file.equals("QuantumWalk.w") || file.equals("algorithms/StaticPhaseEstimation.w")
         || file.equals("algorithms/AmplitudeEstimation.w")

@@ -7,9 +7,9 @@ quantum class QFTProof {
   ///
   /// - Adjoint: Applies the compiler-generated reversed gate sequence.
   unitary void qft() {
-    H(register[0]);
-    CPhase(register[1], register[0], 1.5707963267948966);
     H(register[1]);
+    CPhase(register[0], register[1], 1.5707963267948966);
+    H(register[0]);
     Swap(register[0], register[1]);
   }
 

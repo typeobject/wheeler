@@ -8,12 +8,12 @@ quantum class QFT {
   ///
   /// - Adjoint: Applies the compiler-generated reversed gate sequence.
   unitary void qft() {
-    H(q[0]);
-    CPhase(q[1], q[0], 1.5707963267948966);
-    CPhase(q[2], q[0], 0.7853981633974483);
-    H(q[1]);
-    CPhase(q[2], q[1], 1.5707963267948966);
     H(q[2]);
+    CPhase(q[1], q[2], 1.5707963267948966);
+    CPhase(q[0], q[2], 0.7853981633974483);
+    H(q[1]);
+    CPhase(q[0], q[1], 1.5707963267948966);
+    H(q[0]);
     Swap(q[0], q[2]);
   }
 

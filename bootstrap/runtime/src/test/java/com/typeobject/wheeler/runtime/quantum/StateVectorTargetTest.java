@@ -275,6 +275,43 @@ class StateVectorTargetTest {
   }
 
   @Test
+  void littleEndianQftMatchesEveryFourierBasisRowAndRestoresEveryInput() {
+    QuantumRegister register = new QuantumRegister(0, "qft", 3);
+    QuantumCircuit circuit = new QuantumCircuit(
+        0,
+        "qft",
+        0,
+        List.of(
+            GateOperation.of(Gate.H, 2),
+            new GateOperation(Gate.CPHASE, List.of(1, 2), Math.PI / 2),
+            new GateOperation(Gate.CPHASE, List.of(0, 2), Math.PI / 4),
+            GateOperation.of(Gate.H, 1),
+            new GateOperation(Gate.CPHASE, List.of(0, 1), Math.PI / 2),
+            GateOperation.of(Gate.H, 0),
+            GateOperation.of(Gate.SWAP, 0, 2)));
+    Program program = program(register, circuit, List.of());
+    double scale = 1 / Math.sqrt(8);
+
+    for (int input = 0; input < 8; input++) {
+      StateVectorEngine simulator = new StateVectorEngine(100 + input);
+      simulator.prepare(register, input);
+      simulator.apply(program, circuit, false);
+      double[] expected = new double[16];
+      for (int output = 0; output < 8; output++) {
+        double phase = 2 * Math.PI * input * output / 8;
+        expected[output * 2] = scale * Math.cos(phase);
+        expected[output * 2 + 1] = scale * Math.sin(phase);
+      }
+      assertArrayEquals(expected, simulator.amplitudes(register), 1e-12);
+
+      simulator.apply(program, circuit, true);
+      expected = new double[16];
+      expected[input * 2] = 1;
+      assertArrayEquals(expected, simulator.amplitudes(register), 1e-12);
+    }
+  }
+
+  @Test
   void composedGroverOracleAndDiffusionHaveExactAmplitudeAndSeededCounts() {
     QuantumRegister register = new QuantumRegister(0, "search", 2);
     QuantumCircuit circuit = new QuantumCircuit(
