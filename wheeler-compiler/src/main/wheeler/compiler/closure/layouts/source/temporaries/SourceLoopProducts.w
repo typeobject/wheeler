@@ -650,22 +650,49 @@ classical class SourceLoopProducts {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < STATEMENT_ROWS) limit STATEMENT_ROWS {
-        set(statementRows, row, stagedStatements[row]);
-        row += 1;
+      long column = 0;
+      while (column < 7) limit 7 {
+        long statementRow = 0;
+        while (statementRow < statementCount) limit MAX_STATEMENTS {
+          set(
+            statementRows,
+            column * MAX_STATEMENTS + statementRow,
+            stagedStatements[column * MAX_STATEMENTS + statementRow]
+          );
+          statementRow += 1;
+        }
+
+        column += 1;
       }
 
-      row = 0;
-      while (row < CONDITION_ROWS) limit CONDITION_ROWS {
-        set(conditionRows, row, stagedConditions[row]);
-        row += 1;
+      column = 0;
+      while (column < 6) limit 6 {
+        long conditionRow = 0;
+        while (conditionRow < conditionCount) limit LOOP_COUNT_LIMIT {
+          set(
+            conditionRows,
+            column * LOOP_COUNT_LIMIT + conditionRow,
+            stagedConditions[column * LOOP_COUNT_LIMIT + conditionRow]
+          );
+          conditionRow += 1;
+        }
+
+        column += 1;
       }
 
-      row = 0;
-      while (row < LOOP_ROWS) limit LOOP_ROWS {
-        set(loopRows, row, stagedLoops[row]);
-        row += 1;
+      column = 0;
+      while (column < 9) limit 9 {
+        long loopRow = 0;
+        while (loopRow < loopCount) limit LOOP_COUNT_LIMIT {
+          set(
+            loopRows,
+            column * LOOP_COUNT_LIMIT + loopRow,
+            stagedLoops[column * LOOP_COUNT_LIMIT + loopRow]
+          );
+          loopRow += 1;
+        }
+
+        column += 1;
       }
     }
 

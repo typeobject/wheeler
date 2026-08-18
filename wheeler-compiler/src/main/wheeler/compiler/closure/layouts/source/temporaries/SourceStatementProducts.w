@@ -276,10 +276,19 @@ classical class SourceStatementProducts {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < SOURCE_STATEMENT_ROWS) limit SOURCE_STATEMENT_ROWS {
-        set(statementRows, row, stagedRows[row]);
-        row += 1;
+      long column = 0;
+      while (column < 6) limit 6 {
+        long row = 0;
+        while (row < statementCount) limit MAX_STATEMENTS {
+          set(
+            statementRows,
+            column * MAX_STATEMENTS + row,
+            stagedRows[column * MAX_STATEMENTS + row]
+          );
+          row += 1;
+        }
+
+        column += 1;
       }
     }
 
@@ -512,10 +521,15 @@ classical class SourceStatementProducts {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < BLOCK_ROWS) limit BLOCK_ROWS {
-        set(blockRows, row, stagedRows[row]);
-        row += 1;
+      long column = 0;
+      while (column < 6) limit 6 {
+        long row = 0;
+        while (row < blockCount) limit MAX_BLOCKS {
+          set(blockRows, column * MAX_BLOCKS + row, stagedRows[column * MAX_BLOCKS + row]);
+          row += 1;
+        }
+
+        column += 1;
       }
     }
 
