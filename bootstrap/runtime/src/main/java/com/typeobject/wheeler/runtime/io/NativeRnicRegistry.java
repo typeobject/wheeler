@@ -72,6 +72,7 @@ public final class NativeRnicRegistry implements AutoCloseable {
 
     /** Performs one native 64-bit compare-and-swap against a current registration. */
     IoProviderResult<NativeAtomicCompletion> compareAndSwap64(
+        long operation,
         NativeHandle target,
         int relativeOffset,
         long expected,
@@ -79,6 +80,7 @@ public final class NativeRnicRegistry implements AutoCloseable {
 
     /** Performs one native one-sided read against a current registration. */
     IoProviderResult<NativeReadCompletion> read(
+        long operation,
         NativeHandle source,
         int relativeOffset,
         OwnedIoBuffer destination,
@@ -87,11 +89,15 @@ public final class NativeRnicRegistry implements AutoCloseable {
 
     /** Performs one native one-sided write against a current registration. */
     IoProviderResult<NativeWriteCompletion> write(
+        long operation,
         NativeHandle target,
         int relativeOffset,
         OwnedIoBuffer source,
         int sourceOffset,
         int length);
+
+    /** Requests cancellation of one started native operation. */
+    void cancel(long operation);
 
     /** Revokes one native registration. */
     void deregister(NativeHandle handle);
@@ -345,6 +351,7 @@ public final class NativeRnicRegistry implements AutoCloseable {
   private final Backend backend;
   private final TreeMap<Long, Active> active = new TreeMap<>();
   private long generation;
+  private long operation;
   private boolean connected = true;
 
   /** Creates one bounded native registration registry. */
@@ -431,12 +438,15 @@ public final class NativeRnicRegistry implements AutoCloseable {
       throw new IllegalArgumentException("native RNIC atomic range or alignment is invalid");
     }
 
+    long currentOperation = nextOperation();
     return IoRequest.prepare(
-        "native-rnic-cas64:" + target.identity + ':' + relativeOffset
+        "native-rnic-cas64:" + currentOperation + ':' + target.identity + ':' + relativeOffset
             + ':' + expected + ':' + update,
         Long.BYTES,
         () -> executeCompareAndSwap64(
-            target, current.handle, relativeOffset, expected, update));
+            currentOperation, target, current.handle, relativeOffset, expected, update),
+        () -> {},
+        () -> backend.cancel(currentOperation));
   }
 
   /** Prepares one native one-sided read without running backend work. */
@@ -459,19 +469,23 @@ public final class NativeRnicRegistry implements AutoCloseable {
       throw new IllegalArgumentException("native RNIC read range is out of bounds");
     }
 
+    long currentOperation = nextOperation();
     destination.hold();
     try {
       return IoRequest.prepare(
-          "native-rnic-read:" + source.identity + ':' + relativeOffset + ':' + length,
+          "native-rnic-read:" + currentOperation + ':' + source.identity
+              + ':' + relativeOffset + ':' + length,
           length,
           () -> executeRead(
+              currentOperation,
               source,
               current.handle,
               relativeOffset,
               destination,
               destinationOffset,
               length),
-          destination::release);
+          destination::release,
+          () -> backend.cancel(currentOperation));
     } catch (RuntimeException failure) {
       destination.release();
       throw failure;
@@ -501,12 +515,15 @@ public final class NativeRnicRegistry implements AutoCloseable {
     byte[] content = new byte[length];
     System.arraycopy(sourceBytes, sourceOffset, content, 0, length);
     String contentIdentity = sha256(content);
+    long currentOperation = nextOperation();
     source.hold();
     try {
       return IoRequest.prepare(
-          "native-rnic-write:" + target.identity + ':' + relativeOffset + ':' + length,
+          "native-rnic-write:" + currentOperation + ':' + target.identity
+              + ':' + relativeOffset + ':' + length,
           length,
           () -> executeWrite(
+              currentOperation,
               target,
               current.handle,
               relativeOffset,
@@ -514,7 +531,8 @@ public final class NativeRnicRegistry implements AutoCloseable {
               sourceOffset,
               length,
               contentIdentity),
-          source::release);
+          source::release,
+          () -> backend.cancel(currentOperation));
     } catch (RuntimeException failure) {
       source.release();
       throw failure;
@@ -571,6 +589,7 @@ public final class NativeRnicRegistry implements AutoCloseable {
   }
 
   private IoProviderResult<AtomicCompleted> executeCompareAndSwap64(
+      long operation,
       Registration target,
       NativeHandle handle,
       int relativeOffset,
@@ -583,7 +602,7 @@ public final class NativeRnicRegistry implements AutoCloseable {
     }
 
     IoProviderResult<NativeAtomicCompletion> result = Objects.requireNonNull(
-        backend.compareAndSwap64(handle, relativeOffset, expected, update),
+        backend.compareAndSwap64(operation, handle, relativeOffset, expected, update),
         "native RNIC atomic result");
     if (result.kind() != IoProviderResult.Kind.SUCCESS) {
       return carryFailure(result);
@@ -623,6 +642,7 @@ public final class NativeRnicRegistry implements AutoCloseable {
   }
 
   private IoProviderResult<ReadCompleted> executeRead(
+      long operation,
       Registration source,
       NativeHandle handle,
       int relativeOffset,
@@ -636,7 +656,8 @@ public final class NativeRnicRegistry implements AutoCloseable {
     }
 
     IoProviderResult<NativeReadCompletion> result = Objects.requireNonNull(
-        backend.read(handle, relativeOffset, destination, destinationOffset, length),
+        backend.read(
+            operation, handle, relativeOffset, destination, destinationOffset, length),
         "native RNIC read result");
     if (result.kind() != IoProviderResult.Kind.SUCCESS) {
       return carryFailure(result);
@@ -675,6 +696,7 @@ public final class NativeRnicRegistry implements AutoCloseable {
   }
 
   private IoProviderResult<WriteCompleted> executeWrite(
+      long operation,
       Registration target,
       NativeHandle handle,
       int relativeOffset,
@@ -689,7 +711,7 @@ public final class NativeRnicRegistry implements AutoCloseable {
     }
 
     IoProviderResult<NativeWriteCompletion> result = Objects.requireNonNull(
-        backend.write(handle, relativeOffset, source, sourceOffset, length),
+        backend.write(operation, handle, relativeOffset, source, sourceOffset, length),
         "native RNIC write result");
     if (result.kind() != IoProviderResult.Kind.SUCCESS) {
       return carryFailure(result);
@@ -741,6 +763,13 @@ public final class NativeRnicRegistry implements AutoCloseable {
 
   private static boolean validHash(String value) {
     return value != null && value.matches("[0-9a-f]{64}");
+  }
+
+  private long nextOperation() {
+    if (operation == Long.MAX_VALUE) {
+      throw new IllegalStateException("RNIC operation identity exhausted");
+    }
+    return ++operation;
   }
 
   private Active requireCurrent(Registration registration) {

@@ -9,7 +9,7 @@
 | Area | Native I/O, RNIC atomics, completion |
 | Depends on | WIP-0032, WIP-0128, WIP-0129, WIP-0130 |
 | Supersedes | Native RNIC atomics outside the portable request lifecycle |
-| Superseded by | Native cancellation, peer, and persistence evidence stages |
+| Superseded by | WIP-0132 for operation cancellation, followed by peer and persistence stages |
 
 ## Summary
 

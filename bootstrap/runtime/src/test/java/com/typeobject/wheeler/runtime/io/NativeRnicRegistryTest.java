@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.typeobject.wheeler.runtime.io.IoCompletion.CancellationRelation;
 import com.typeobject.wheeler.runtime.io.IoCompletion.TerminalKind;
 import com.typeobject.wheeler.runtime.io.NativeRnicRegistry.NativeAtomicCompletion;
 import com.typeobject.wheeler.runtime.io.NativeRnicRegistry.NativeHandle;
@@ -15,6 +16,8 @@ import com.typeobject.wheeler.runtime.io.NativeRnicRegistry.Rights;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 /** Exercises bounded native RNIC registration and revocation authority. */
@@ -147,6 +150,63 @@ final class NativeRnicRegistryTest {
       assertEquals(TerminalKind.UNCERTAIN, scope.await(request).terminalKind());
     }
     assertEquals(0, backend.atomicCalls);
+    registry.close();
+  }
+
+  @Test
+  void queuedNativeCancellationRunsNoBackendHookAndReleasesTheSource() throws Exception {
+    RecordingBackend backend = new RecordingBackend();
+    NativeRnicRegistry registry = new NativeRnicRegistry("rnic-queued-cancel", 1, backend);
+    NativeRnicRegistry.Registration target = registry.register(
+        OwnedIoBuffer.allocate(4), 0, 4, Rights.REMOTE_WRITE);
+    OwnedIoBuffer source = OwnedIoBuffer.copyOf(new byte[] {1, 2, 3, 4});
+    CountDownLatch started = new CountDownLatch(1);
+    CountDownLatch release = new CountDownLatch(1);
+
+    try (ThreadedIo io = new ThreadedIo(1, 2);
+        IoScope scope = io.scope(new IoLimits(4, 4, 4, 4, 4, 16))) {
+      IoOperation<Integer> blocker = scope.submit(IoRequest.prepare(
+          "rnic-cancel-blocker", 1, () -> {
+            started.countDown();
+            awaitLatch(release);
+            return IoProviderResult.success(1, 1);
+          }));
+      assertTrue(started.await(2, TimeUnit.SECONDS));
+      IoOperation<NativeRnicRegistry.WriteCompleted> queued = scope.submit(
+          registry.write(target, 0, source, 0, 4));
+      assertTrue(queued.cancel());
+      assertEquals(TerminalKind.CANCELED, queued.await().terminalKind());
+      release.countDown();
+      blocker.await();
+    }
+    assertEquals(0, backend.writeCalls);
+    assertTrue(backend.canceledOperations.isEmpty());
+    assertEquals(4, source.snapshot().length);
+    registry.close();
+  }
+
+  @Test
+  void runningNativeCancellationUsesTheExactOperationIdentity() throws Exception {
+    CancelingBackend backend = new CancelingBackend();
+    NativeRnicRegistry registry = new NativeRnicRegistry("rnic-cancel", 1, backend);
+    NativeRnicRegistry.Registration target = registry.register(
+        OwnedIoBuffer.allocate(4), 0, 4, Rights.REMOTE_WRITE);
+    OwnedIoBuffer source = OwnedIoBuffer.copyOf(new byte[] {1, 2, 3, 4});
+
+    try (ThreadedIo io = new ThreadedIo(1, 1);
+        IoScope scope = io.scope(new IoLimits(4, 4, 4, 4, 4, 16))) {
+      IoOperation<NativeRnicRegistry.WriteCompleted> operation = scope.submit(
+          registry.write(target, 0, source, 0, 4));
+      assertTrue(backend.started.await(2, TimeUnit.SECONDS));
+      assertFalse(operation.cancel());
+      IoCompletion<NativeRnicRegistry.WriteCompleted> completion = operation.await();
+      assertEquals(TerminalKind.CANCELED, completion.terminalKind());
+      assertEquals(
+          CancellationRelation.CANCELED_BEFORE_EFFECT,
+          completion.cancellationRelation());
+    }
+    assertEquals(List.of(1L), backend.canceledOperations);
+    assertEquals(4, source.snapshot().length);
     registry.close();
   }
 
@@ -316,6 +376,17 @@ final class NativeRnicRegistryTest {
     registry.close();
   }
 
+  private static void awaitLatch(CountDownLatch latch) {
+    try {
+      if (!latch.await(2, TimeUnit.SECONDS)) {
+        throw new IllegalStateException("native test latch did not open");
+      }
+    } catch (InterruptedException interrupted) {
+      Thread.currentThread().interrupt();
+      throw new IllegalStateException("native test latch wait was interrupted", interrupted);
+    }
+  }
+
   private static List<Integer> unsigned(byte[] bytes) {
     List<Integer> values = new ArrayList<>();
     for (byte value : bytes) {
@@ -324,9 +395,10 @@ final class NativeRnicRegistryTest {
     return values;
   }
 
-  private static final class RecordingBackend implements NativeRnicRegistry.Backend {
+  private static class RecordingBackend implements NativeRnicRegistry.Backend {
     private final List<Long> deregisteredGenerations = new ArrayList<>();
     private final List<Integer> writtenBytes = new ArrayList<>();
+    protected final List<Long> canceledOperations = new ArrayList<>();
     private boolean aligned;
     private boolean malformed;
     private boolean malformedWrite;
@@ -357,6 +429,7 @@ final class NativeRnicRegistryTest {
 
     @Override
     public IoProviderResult<NativeAtomicCompletion> compareAndSwap64(
+        long operation,
         NativeHandle target,
         int relativeOffset,
         long expected,
@@ -374,6 +447,7 @@ final class NativeRnicRegistryTest {
 
     @Override
     public IoProviderResult<NativeReadCompletion> read(
+        long operation,
         NativeHandle source,
         int relativeOffset,
         OwnedIoBuffer destination,
@@ -393,6 +467,7 @@ final class NativeRnicRegistryTest {
 
     @Override
     public IoProviderResult<NativeWriteCompletion> write(
+        long operation,
         NativeHandle target,
         int relativeOffset,
         OwnedIoBuffer source,
@@ -412,6 +487,11 @@ final class NativeRnicRegistryTest {
     }
 
     @Override
+    public void cancel(long operation) {
+      canceledOperations.add(operation);
+    }
+
+    @Override
     public void deregister(NativeHandle handle) {
       deregisteredGenerations.add(handle.generation());
       if (handle.generation() == failedDeregistration) {
@@ -423,5 +503,30 @@ final class NativeRnicRegistryTest {
     public void disconnect() {
       disconnected = true;
     }
+  }
+
+  private static final class CancelingBackend extends RecordingBackend {
+    private final CountDownLatch started = new CountDownLatch(1);
+    private final CountDownLatch canceled = new CountDownLatch(1);
+
+    @Override
+    public IoProviderResult<NativeWriteCompletion> write(
+        long operation,
+        NativeHandle target,
+        int relativeOffset,
+        OwnedIoBuffer source,
+        int sourceOffset,
+        int length) {
+      started.countDown();
+      awaitLatch(canceled);
+      return IoProviderResult.canceledBeforeEffect("native-rnic-write-canceled");
+    }
+
+    @Override
+    public void cancel(long operation) {
+      super.cancel(operation);
+      canceled.countDown();
+    }
+
   }
 }

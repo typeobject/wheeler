@@ -209,6 +209,12 @@ read-write rights and reports the exact observed value. Exchange success derives
 from equality with the requested expected value. Native completion establishes
 no peer acknowledgement, application, persistence, or durability evidence.
 
+Every prepared native RNIC operation receives a monotonic operation identity.
+The backend receives that identity for execution and started-work cancellation.
+Queued cancellation invokes neither hook and returns captured owners. A
+cancellation request does not determine the outcome. Provider completion keeps
+success, partial cancellation, failure, and uncertainty distinct.
+
 ## Batches, selection, and graphs
 
 A batch contains independent work and creates no ordering edge. Selection reaps
