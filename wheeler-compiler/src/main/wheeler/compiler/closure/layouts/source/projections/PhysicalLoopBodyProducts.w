@@ -541,15 +541,38 @@ classical class PhysicalLoopBodyProducts {
     words stagedBodies = allocate(staging, BODY_ROWS);
     words stagedNested = allocate(staging, NESTED_ROWS);
     words stagedPhysicalStarts = allocate(staging, MAX_STATEMENTS);
-    long row = 0;
-    while (row < BODY_ROWS) limit BODY_ROWS {
-      set(stagedBodies, row, bodyRows[row]);
-      set(stagedNested, row, nestedRows[row]);
-      row += 1;
+    long column = 0;
+    while (column < 5) limit 5 {
+      long stagedBodyRow = 0;
+      while (stagedBodyRow < bodyCount) limit BODY_COUNT_LIMIT {
+        set(
+          stagedBodies,
+          column * BODY_COUNT_LIMIT + stagedBodyRow,
+          bodyRows[column * BODY_COUNT_LIMIT + stagedBodyRow]
+        );
+        stagedBodyRow += 1;
+      }
+
+      column += 1;
     }
 
-    row = 0;
-    while (row < MAX_STATEMENTS) limit MAX_STATEMENTS {
+    column = 0;
+    while (column < 5) limit 5 {
+      long stagedNestedRow = 0;
+      while (stagedNestedRow < nestedCount) limit NESTED_COUNT_LIMIT {
+        set(
+          stagedNested,
+          column * NESTED_COUNT_LIMIT + stagedNestedRow,
+          nestedRows[column * NESTED_COUNT_LIMIT + stagedNestedRow]
+        );
+        stagedNestedRow += 1;
+      }
+
+      column += 1;
+    }
+
+    long row = 0;
+    while (row < statementCount) limit MAX_STATEMENTS {
       set(stagedPhysicalStarts, row, statementPhysicalStarts[row]);
       row += 1;
     }
@@ -817,13 +840,35 @@ classical class PhysicalLoopBodyProducts {
     }
 
     if (valid) {
-      row = 0;
-      while (row < BODY_ROWS) limit BODY_ROWS {
-        set(bodyRows, row, stagedBodies[row]);
-        set(nestedRows, row, stagedNested[row]);
-        row += 1;
+      column = 0;
+      while (column < 5) limit 5 {
+        long publishedBodyRow = 0;
+        while (publishedBodyRow < bodyCount) limit BODY_COUNT_LIMIT {
+          set(
+            bodyRows,
+            column * BODY_COUNT_LIMIT + publishedBodyRow,
+            stagedBodies[column * BODY_COUNT_LIMIT + publishedBodyRow]
+          );
+          publishedBodyRow += 1;
+        }
+
+        column += 1;
       }
 
+      column = 0;
+      while (column < 5) limit 5 {
+        long publishedNestedRow = 0;
+        while (publishedNestedRow < nestedCount) limit NESTED_COUNT_LIMIT {
+          set(
+            nestedRows,
+            column * NESTED_COUNT_LIMIT + publishedNestedRow,
+            stagedNested[column * NESTED_COUNT_LIMIT + publishedNestedRow]
+          );
+          publishedNestedRow += 1;
+        }
+
+        column += 1;
+      }
     }
 
     drop(stagedPhysicalStarts);

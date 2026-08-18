@@ -520,10 +520,19 @@ classical class LoopLocalTypeProducts {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < TYPE_ROWS) limit TYPE_ROWS {
-        set(typeRows, row, stagedTypes[row]);
-        row += 1;
+      long column = 0;
+      while (column < 3) limit 3 {
+        long row = 0;
+        while (row < typeCount) limit TYPE_LOCAL_ROW {
+          set(
+            typeRows,
+            column * TYPE_LOCAL_ROW + row,
+            stagedTypes[column * TYPE_LOCAL_ROW + row]
+          );
+          row += 1;
+        }
+
+        column += 1;
       }
     }
 

@@ -580,16 +580,34 @@ classical class ResolvedLoopProducts {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < CONDITION_ROWS) limit CONDITION_ROWS {
-        set(resolvedConditionRows, row, stagedConditions[row]);
-        row += 1;
+      long column = 0;
+      while (column < 6) limit 6 {
+        long conditionRow = 0;
+        while (conditionRow < loopCount) limit LOOP_COUNT_LIMIT {
+          set(
+            resolvedConditionRows,
+            column * LOOP_COUNT_LIMIT + conditionRow,
+            stagedConditions[column * LOOP_COUNT_LIMIT + conditionRow]
+          );
+          conditionRow += 1;
+        }
+
+        column += 1;
       }
 
-      row = 0;
-      while (row < LOOP_ROWS) limit LOOP_ROWS {
-        set(resolvedLoopRows, row, stagedLoops[row]);
-        row += 1;
+      column = 0;
+      while (column < 9) limit 9 {
+        long loopRow = 0;
+        while (loopRow < loopCount) limit LOOP_COUNT_LIMIT {
+          set(
+            resolvedLoopRows,
+            column * LOOP_COUNT_LIMIT + loopRow,
+            stagedLoops[column * LOOP_COUNT_LIMIT + loopRow]
+          );
+          loopRow += 1;
+        }
+
+        column += 1;
       }
     }
 
