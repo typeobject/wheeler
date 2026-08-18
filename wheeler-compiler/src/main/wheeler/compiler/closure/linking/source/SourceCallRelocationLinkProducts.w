@@ -62,7 +62,7 @@ classical class SourceCallRelocationLinkProducts {
     return opcode == OPCODE_UNCALL_RESULT_SLOT;
   }
 
-  /// Excludes verifier suffixes and maps each stable identity onto one call instruction.
+  /// Excludes suffixes and maps each stable identity into a fresh zero target table.
   public SourceCallRelocationLinkPlan materializeSourceCallRelocationLinkProducts(
     long localFunctionCount,
     long compiledFunctionCount,
@@ -89,9 +89,11 @@ classical class SourceCallRelocationLinkProducts {
       compiledInstructionCount,
       instructionRows
     );
-    region staging = new region(/* bytes= */ 1572864, /* allocations= */ 2);
+    region staging = new region(/* bytes= */ 1576960, /* allocations= */ 3);
     words identityTargets = allocate(staging, /* length= */ 65536);
     words stagedTargets = allocate(staging, MAX_CLOSURE_INSTRUCTIONS);
+    words stagedTargetRows = allocate(staging, /* length= */ 512);
+    long stagedTargetCount = 0;
     resolveImportedIdentityFunctionTargets(
       relocationCount,
       relocationIdentities,
@@ -140,6 +142,8 @@ classical class SourceCallRelocationLinkProducts {
       }
 
       set(stagedTargets, selected, identityTargets[relocation]);
+      set(stagedTargetRows, stagedTargetCount, selected);
+      stagedTargetCount += 1;
       long inverseOpcode = inverseCallOpcode(instructionRows[12288 + selected]);
       if (-1 < inverseOpcode) {
         long forwardCount = 0;
@@ -181,17 +185,26 @@ classical class SourceCallRelocationLinkProducts {
         assert(-1 < inverseSelected);
         assert(instructionRows[12288 + inverseSelected] == inverseOpcode);
         set(stagedTargets, inverseSelected, identityTargets[relocation]);
+        set(stagedTargetRows, stagedTargetCount, inverseSelected);
+        stagedTargetCount += 1;
       }
 
       relocation += 1;
     }
 
     long target = 0;
-    while (target < MAX_CLOSURE_INSTRUCTIONS) limit MAX_CLOSURE_INSTRUCTIONS {
-      set(resolvedInstructionTargets, target, stagedTargets[target]);
+    while (target < stagedTargetCount) limit 512 {
+      assert(resolvedInstructionTargets[stagedTargetRows[target]] == 0);
+      target += 1;
+    }
+    target = 0;
+    while (target < stagedTargetCount) limit 512 {
+      long targetRow = stagedTargetRows[target];
+      set(resolvedInstructionTargets, targetRow, stagedTargets[targetRow]);
       target += 1;
     }
 
+    drop(stagedTargetRows);
     drop(stagedTargets);
     drop(identityTargets);
     drop(staging);
