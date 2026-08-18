@@ -198,12 +198,14 @@ and keys into one private-constructor authority. Revocation removes authority
 before native teardown. Disconnect revokes every registration in generation
 order and releases every owner even when a backend reports failure.
 
-A native one-sided write enters through ordinary `IoRequest` and `IoScope`.
-Request construction holds the exact source range but performs no backend work.
-Completion requires matching generation, target range, byte count, provider
-progress, source-content identity, and backend evidence. A revocation race or
-malformed provider success returns uncertainty. Native completion establishes no
-peer acknowledgement, application, persistence, or durability evidence.
+Native one-sided reads and writes enter through ordinary `IoRequest` and
+`IoScope`. Request construction holds the exact source or destination range but
+performs no backend work. Completion requires matching generation, registered
+range, byte count, provider progress, content identity, and backend evidence. A
+read hashes received bytes before returning the destination owner. A write hashes
+source bytes before capture. A revocation race or malformed provider success
+returns uncertainty. Native completion establishes no peer acknowledgement,
+application, persistence, or durability evidence.
 
 ## Batches, selection, and graphs
 

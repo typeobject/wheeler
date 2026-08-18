@@ -16,6 +16,10 @@ public final class NativeRnicRegistry implements AutoCloseable {
     REMOTE_WRITE,
     REMOTE_READ_WRITE;
 
+    private boolean permitsRead() {
+      return this == REMOTE_READ || this == REMOTE_READ_WRITE;
+    }
+
     private boolean permitsWrite() {
       return this == REMOTE_WRITE || this == REMOTE_READ_WRITE;
     }
@@ -28,6 +32,13 @@ public final class NativeRnicRegistry implements AutoCloseable {
       long localKey,
       long remoteKey,
       long generation) {}
+
+  /** Raw backend completion for one native one-sided read. */
+  public record NativeReadCompletion(
+      long generation,
+      int relativeOffset,
+      int bytes,
+      String evidenceIdentity) {}
 
   /** Raw backend completion for one native one-sided write. */
   public record NativeWriteCompletion(
@@ -45,6 +56,14 @@ public final class NativeRnicRegistry implements AutoCloseable {
         int length,
         Rights rights,
         long generation);
+
+    /** Performs one native one-sided read against a current registration. */
+    IoProviderResult<NativeReadCompletion> read(
+        NativeHandle source,
+        int relativeOffset,
+        OwnedIoBuffer destination,
+        int destinationOffset,
+        int length);
 
     /** Performs one native one-sided write against a current registration. */
     IoProviderResult<NativeWriteCompletion> write(
@@ -111,6 +130,61 @@ public final class NativeRnicRegistry implements AutoCloseable {
     }
 
     /** Returns the canonical registration identity. */
+    public String identity() {
+      return identity;
+    }
+  }
+
+  /** Exact native completion of one one-sided read, without peer or durability claims. */
+  public static final class ReadCompleted {
+    private final Registration registration;
+    private final int relativeOffset;
+    private final int bytes;
+    private final String contentIdentity;
+    private final String evidenceIdentity;
+    private final String identity;
+
+    private ReadCompleted(
+        Registration registration,
+        int relativeOffset,
+        int bytes,
+        String contentIdentity,
+        String evidenceIdentity,
+        String identity) {
+      this.registration = registration;
+      this.relativeOffset = relativeOffset;
+      this.bytes = bytes;
+      this.contentIdentity = contentIdentity;
+      this.evidenceIdentity = evidenceIdentity;
+      this.identity = identity;
+    }
+
+    /** Returns the exact source registration. */
+    public Registration registration() {
+      return registration;
+    }
+
+    /** Returns the first registration-relative byte read. */
+    public int relativeOffset() {
+      return relativeOffset;
+    }
+
+    /** Returns the exact completed byte count. */
+    public int bytes() {
+      return bytes;
+    }
+
+    /** Returns the exact received-content identity. */
+    public String contentIdentity() {
+      return contentIdentity;
+    }
+
+    /** Returns the backend completion evidence identity. */
+    public String evidenceIdentity() {
+      return evidenceIdentity;
+    }
+
+    /** Returns the canonical native read-completion identity. */
     public String identity() {
       return identity;
     }
@@ -254,6 +328,45 @@ public final class NativeRnicRegistry implements AutoCloseable {
     }
   }
 
+  /** Prepares one native one-sided read without running backend work. */
+  public synchronized IoRequest<ReadCompleted> read(
+      Registration source,
+      int relativeOffset,
+      OwnedIoBuffer destination,
+      int destinationOffset,
+      int length) {
+    Active current = requireCurrent(source);
+    if (!source.rights.permitsRead()) {
+      throw new IllegalStateException("RNIC registration does not permit remote reads");
+    }
+    Objects.requireNonNull(destination, "destination");
+    int destinationLength = destination.length();
+    if (relativeOffset < 0 || length < 1 || source.length < relativeOffset
+        || source.length - relativeOffset < length || destinationOffset < 0
+        || destinationLength < destinationOffset
+        || destinationLength - destinationOffset < length) {
+      throw new IllegalArgumentException("native RNIC read range is out of bounds");
+    }
+
+    destination.hold();
+    try {
+      return IoRequest.prepare(
+          "native-rnic-read:" + source.identity + ':' + relativeOffset + ':' + length,
+          length,
+          () -> executeRead(
+              source,
+              current.handle,
+              relativeOffset,
+              destination,
+              destinationOffset,
+              length),
+          destination::release);
+    } catch (RuntimeException failure) {
+      destination.release();
+      throw failure;
+    }
+  }
+
   /** Prepares one native one-sided write without running backend work. */
   public synchronized IoRequest<WriteCompleted> write(
       Registration target,
@@ -344,6 +457,58 @@ public final class NativeRnicRegistry implements AutoCloseable {
     if (failure != null) {
       throw failure;
     }
+  }
+
+  private IoProviderResult<ReadCompleted> executeRead(
+      Registration source,
+      NativeHandle handle,
+      int relativeOffset,
+      OwnedIoBuffer destination,
+      int destinationOffset,
+      int length) {
+    synchronized (this) {
+      if (!isCurrent(source)) {
+        return IoProviderResult.uncertain("native-rnic-registration-became-stale", 0);
+      }
+    }
+
+    IoProviderResult<NativeReadCompletion> result = Objects.requireNonNull(
+        backend.read(handle, relativeOffset, destination, destinationOffset, length),
+        "native RNIC read result");
+    if (result.kind() != IoProviderResult.Kind.SUCCESS) {
+      return carryFailure(result);
+    }
+
+    NativeReadCompletion completion = Objects.requireNonNull(
+        result.value(), "native RNIC read completion");
+    synchronized (this) {
+      if (!isCurrent(source)) {
+        return IoProviderResult.uncertain(
+            "native-rnic-registration-became-stale", boundedProgress(completion.bytes(), length));
+      }
+    }
+    if (completion.generation() != source.generation
+        || completion.relativeOffset() != relativeOffset
+        || completion.bytes() != length
+        || result.progress() != length
+        || !validHash(completion.evidenceIdentity())) {
+      return IoProviderResult.uncertain(
+          "native-rnic-completion-mismatch", boundedProgress(completion.bytes(), length));
+    }
+
+    byte[] content = new byte[length];
+    destination.copyTo(destinationOffset, content, 0, length);
+    String contentIdentity = sha256(content);
+    String canonical = source.identity + '\0' + relativeOffset + '\0' + length
+        + '\0' + contentIdentity + '\0' + completion.evidenceIdentity();
+    ReadCompleted completed = new ReadCompleted(
+        source,
+        relativeOffset,
+        length,
+        contentIdentity,
+        completion.evidenceIdentity(),
+        digest("wheeler-native-rnic-read-completion-1", canonical));
+    return IoProviderResult.success(completed, length);
   }
 
   private IoProviderResult<WriteCompleted> executeWrite(

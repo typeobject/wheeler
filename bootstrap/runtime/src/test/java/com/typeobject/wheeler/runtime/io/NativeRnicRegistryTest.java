@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.runtime.io.IoCompletion.TerminalKind;
 import com.typeobject.wheeler.runtime.io.NativeRnicRegistry.NativeHandle;
+import com.typeobject.wheeler.runtime.io.NativeRnicRegistry.NativeReadCompletion;
 import com.typeobject.wheeler.runtime.io.NativeRnicRegistry.NativeWriteCompletion;
 import com.typeobject.wheeler.runtime.io.NativeRnicRegistry.Rights;
 import java.lang.reflect.Modifier;
@@ -79,6 +80,38 @@ final class NativeRnicRegistryTest {
     assertNotEquals(firstRegistration.identity(), replacement.identity());
     first.close();
     second.close();
+  }
+
+  @Test
+  void oneSidedReadReturnsExactReceivedContentThroughThePortableLifecycle() {
+    RecordingBackend backend = new RecordingBackend();
+    NativeRnicRegistry registry = new NativeRnicRegistry("rnic-read", 2, backend);
+    OwnedIoBuffer sourceOwner = OwnedIoBuffer.allocate(8);
+    NativeRnicRegistry.Registration source = registry.register(
+        sourceOwner, 0, 8, Rights.REMOTE_READ);
+    OwnedIoBuffer destination = OwnedIoBuffer.allocate(5);
+
+    IoRequest<NativeRnicRegistry.ReadCompleted> request = registry.read(
+        source, 2, destination, 1, 3);
+
+    assertEquals(0, backend.readCalls);
+    assertThrows(IllegalStateException.class, destination::snapshot);
+    NativeRnicRegistry.ReadCompleted completed;
+    try (IoScope scope = new DeterministicIo(
+        DeterministicIo.Delivery.INLINE).scope(new IoLimits(4, 4, 4, 4, 4, 16))) {
+      completed = scope.await(request).value();
+    }
+    assertEquals(1, backend.readCalls);
+    assertEquals(source, completed.registration());
+    assertEquals(2, completed.relativeOffset());
+    assertEquals(3, completed.bytes());
+    assertEquals(
+        "2848698aa4b3431e3db06c343ca2cb0455f8aaf16c85cdd828c92ddf7dc134f8",
+        completed.contentIdentity());
+    assertEquals("c".repeat(64), completed.evidenceIdentity());
+    assertEquals(List.of(0, 3, 4, 5, 0), unsigned(destination.snapshot()));
+    assertFalse(DurabilityReceipt.class.isInstance(completed));
+    registry.close();
   }
 
   @Test
@@ -155,6 +188,11 @@ final class NativeRnicRegistryTest {
     OwnedIoBuffer writeOwner = OwnedIoBuffer.allocate(4);
     NativeRnicRegistry.Registration writable = registry.register(
         writeOwner, 0, 4, Rights.REMOTE_WRITE);
+    OwnedIoBuffer destination = OwnedIoBuffer.allocate(2);
+    assertThrows(
+        IllegalStateException.class,
+        () -> registry.read(writable, 0, destination, 0, 2));
+    assertEquals(2, destination.snapshot().length);
     IoRequest<NativeRnicRegistry.WriteCompleted> request = registry.write(
         writable, 0, source, 0, 2);
     registry.revoke(writable);
@@ -210,12 +248,21 @@ final class NativeRnicRegistryTest {
     registry.close();
   }
 
+  private static List<Integer> unsigned(byte[] bytes) {
+    List<Integer> values = new ArrayList<>();
+    for (byte value : bytes) {
+      values.add(Byte.toUnsignedInt(value));
+    }
+    return values;
+  }
+
   private static final class RecordingBackend implements NativeRnicRegistry.Backend {
     private final List<Long> deregisteredGenerations = new ArrayList<>();
     private final List<Integer> writtenBytes = new ArrayList<>();
     private boolean malformed;
     private boolean malformedWrite;
     private long failedDeregistration = -1;
+    private int readCalls;
     private int writeCalls;
     private boolean disconnected;
 
@@ -234,6 +281,25 @@ final class NativeRnicRegistryTest {
           100 + generation,
           200 + generation,
           handleGeneration);
+    }
+
+    @Override
+    public IoProviderResult<NativeReadCompletion> read(
+        NativeHandle source,
+        int relativeOffset,
+        OwnedIoBuffer destination,
+        int destinationOffset,
+        int length) {
+      readCalls += 1;
+      byte[] bytes = new byte[length];
+      for (int index = 0; index < length; index++) {
+        bytes[index] = (byte) (relativeOffset + index + 1);
+      }
+      destination.copyFrom(bytes, 0, destinationOffset, length);
+      return IoProviderResult.success(
+          new NativeReadCompletion(
+              source.generation(), relativeOffset, length, "c".repeat(64)),
+          length);
     }
 
     @Override
