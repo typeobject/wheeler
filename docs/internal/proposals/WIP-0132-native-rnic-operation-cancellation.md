@@ -9,7 +9,7 @@
 | Area | Native I/O, RNIC cancellation, lifecycle |
 | Depends on | WIP-0032, WIP-0128, WIP-0129, WIP-0130, WIP-0131 |
 | Supersedes | Association-wide cancellation without operation identity |
-| Superseded by | Native RNIC peer and persistence evidence stages |
+| Superseded by | WIP-0133 for peer and persistence evidence |
 
 ## Summary
 

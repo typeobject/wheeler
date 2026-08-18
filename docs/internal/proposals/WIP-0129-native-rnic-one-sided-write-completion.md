@@ -15,7 +15,7 @@
 
 Run bounded native one-sided writes through `IoRequest` and `IoScope`. The request captures one current write-capable registration, one registration-relative target range, one held source range, and the exact source-content identity.
 
-Backend work starts only after lifecycle submission. A successful backend result becomes `NativeRnicRegistry.WriteCompleted` only when generation, range, byte count, progress, and evidence identity all match the request.
+Backend work starts only after lifecycle submission. A successful backend result becomes `NativeRnicCompletion.Write` only when generation, range, byte count, progress, and evidence identity all match the request.
 
 Native completion remains below peer acknowledgement, peer application, remote persistence, and durability receipt authority.
 
@@ -58,13 +58,13 @@ registration NUL relative-offset NUL bytes
 NUL content-identity NUL backend-evidence-identity
 ```
 
-`WriteCompleted` has a private constructor. It exposes the exact registration, relative offset, completed bytes, source-content identity, backend evidence identity, and canonical completion identity.
+`NativeRnicCompletion.Write` has a private constructor. It exposes the exact registration, relative offset, completed bytes, source-content identity, backend evidence identity, and canonical completion identity.
 
-A malformed backend success publishes only `UNCERTAIN`. The registry bounds reported progress to the requested range. It publishes no `WriteCompleted` object.
+A malformed backend success publishes only `UNCERTAIN`. The registry bounds reported progress to the requested range. It publishes no `NativeRnicCompletion.Write` object.
 
 ## Authority boundary
 
-`WriteCompleted` proves that the configured native backend completed one local RNIC write operation against the exact registration generation. It does not prove:
+`NativeRnicCompletion.Write` proves that the configured native backend completed one local RNIC write operation against the exact registration generation. It does not prove:
 
 - remote CPU observation
 - peer protocol acknowledgement

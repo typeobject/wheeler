@@ -215,6 +215,13 @@ Queued cancellation invokes neither hook and returns captured owners. A
 cancellation request does not determine the outcome. Provider completion keeps
 success, partial cancellation, failure, and uncertainty distinct.
 
+Native peer acknowledgement consumes one exact write completion. Peer application
+consumes that acknowledgement. Remote persistence consumes the application and a
+SHA-256 profile identity naming backend assumptions. Each stage runs as another
+request and validates generation, predecessor, progress, and backend evidence.
+Remote persistence has no conversion to a durability receipt. Concrete hardware
+and power-interruption qualification remains a release requirement.
+
 ## Batches, selection, and graphs
 
 A batch contains independent work and creates no ordering edge. Selection reaps

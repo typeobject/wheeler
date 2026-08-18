@@ -87,6 +87,73 @@ final class NativeRnicRegistryTest {
   }
 
   @Test
+  void peerAcknowledgementApplicationAndPersistenceRemainOrdered() {
+    RecordingBackend backend = new RecordingBackend();
+    NativeRnicRegistry registry = new NativeRnicRegistry("rnic-peer", 1, backend);
+    NativeRnicRegistry.Registration target = registry.register(
+        OwnedIoBuffer.allocate(4), 0, 4, Rights.REMOTE_WRITE);
+    NativeRnicCompletion.Write write;
+    NativeRnicPeerEvidence.Acknowledgement acknowledgement;
+    NativeRnicPeerEvidence.Application application;
+    NativeRnicPeerEvidence.Persistence persistence;
+    try (IoScope scope = new DeterministicIo(
+        DeterministicIo.Delivery.INLINE).scope(new IoLimits(8, 8, 8, 8, 8, 32))) {
+      write = scope.await(registry.write(
+          target, 0, OwnedIoBuffer.copyOf(new byte[] {1, 2}), 0, 2)).value();
+      IoRequest<NativeRnicPeerEvidence.Acknowledgement> acknowledgementRequest =
+          registry.acknowledge(write);
+      assertTrue(backend.peerOperations.isEmpty());
+      acknowledgement = scope.await(acknowledgementRequest).value();
+      application = scope.await(registry.apply(acknowledgement)).value();
+      persistence = scope.await(registry.persist(application, "9".repeat(64))).value();
+    }
+
+    assertEquals(write, acknowledgement.write());
+    assertEquals(acknowledgement, application.acknowledgement());
+    assertEquals(application, persistence.application());
+    assertEquals("9".repeat(64), persistence.profileIdentity());
+    assertEquals(List.of("ack:2", "apply:3", "persist:4"), backend.peerOperations);
+    assertFalse(DurabilityReceipt.class.isInstance(persistence));
+    for (Class<?> type : List.of(
+        NativeRnicPeerEvidence.Acknowledgement.class,
+        NativeRnicPeerEvidence.Application.class,
+        NativeRnicPeerEvidence.Persistence.class)) {
+      assertTrue(Modifier.isPrivate(type.getDeclaredConstructors()[0].getModifiers()));
+    }
+    registry.close();
+  }
+
+  @Test
+  void malformedOrRevokedPeerEvidencePublishesOnlyUncertainty() {
+    RecordingBackend backend = new RecordingBackend();
+    NativeRnicRegistry registry = new NativeRnicRegistry("rnic-peer-fail", 1, backend);
+    NativeRnicRegistry.Registration target = registry.register(
+        OwnedIoBuffer.allocate(4), 0, 4, Rights.REMOTE_WRITE);
+    NativeRnicCompletion.Write write;
+    NativeRnicPeerEvidence.Acknowledgement acknowledgement;
+    try (IoScope scope = new DeterministicIo(
+        DeterministicIo.Delivery.INLINE).scope(new IoLimits(8, 8, 8, 8, 8, 32))) {
+      write = scope.await(registry.write(
+          target, 0, OwnedIoBuffer.copyOf(new byte[] {1}), 0, 1)).value();
+      acknowledgement = scope.await(registry.acknowledge(write)).value();
+      backend.malformedPeer = true;
+      assertEquals(
+          TerminalKind.UNCERTAIN,
+          scope.await(registry.apply(acknowledgement)).terminalKind());
+    }
+
+    backend.malformedPeer = false;
+    IoRequest<NativeRnicPeerEvidence.Application> stale = registry.apply(acknowledgement);
+    registry.revoke(target);
+    try (IoScope scope = new DeterministicIo(
+        DeterministicIo.Delivery.INLINE).scope(new IoLimits(8, 8, 8, 8, 8, 32))) {
+      assertEquals(TerminalKind.UNCERTAIN, scope.await(stale).terminalKind());
+    }
+    assertEquals(List.of("ack:2", "apply:3"), backend.peerOperations);
+    registry.close();
+  }
+
+  @Test
   void compareAndSwapPublishesObservedValueAndExactExchangeResult() {
     RecordingBackend backend = new RecordingBackend();
     backend.aligned = true;
@@ -95,13 +162,13 @@ final class NativeRnicRegistryTest {
     NativeRnicRegistry.Registration target = registry.register(
         OwnedIoBuffer.allocate(16), 0, 16, Rights.REMOTE_READ_WRITE);
 
-    IoRequest<NativeRnicRegistry.AtomicCompleted> exchange = registry.compareAndSwap64(
+    IoRequest<NativeRnicCompletion.Atomic> exchange = registry.compareAndSwap64(
         target, 0, 11, 19);
 
     assertEquals(0, backend.atomicCalls);
     try (IoScope scope = new DeterministicIo(
         DeterministicIo.Delivery.INLINE).scope(new IoLimits(4, 4, 4, 4, 4, 16))) {
-      NativeRnicRegistry.AtomicCompleted completed = scope.await(exchange).value();
+      NativeRnicCompletion.Atomic completed = scope.await(exchange).value();
       assertEquals(11, completed.observed());
       assertEquals(11, completed.expected());
       assertEquals(19, completed.update());
@@ -112,7 +179,7 @@ final class NativeRnicRegistryTest {
 
     try (IoScope scope = new DeterministicIo(
         DeterministicIo.Delivery.INLINE).scope(new IoLimits(4, 4, 4, 4, 4, 16))) {
-      NativeRnicRegistry.AtomicCompleted completed = scope.await(
+      NativeRnicCompletion.Atomic completed = scope.await(
           registry.compareAndSwap64(target, 0, 11, 23)).value();
       assertEquals(19, completed.observed());
       assertFalse(completed.exchanged());
@@ -142,7 +209,7 @@ final class NativeRnicRegistryTest {
     registry.revoke(unaligned);
     NativeRnicRegistry.Registration current = registry.register(
         OwnedIoBuffer.allocate(16), 0, 16, Rights.REMOTE_READ_WRITE);
-    IoRequest<NativeRnicRegistry.AtomicCompleted> request = registry.compareAndSwap64(
+    IoRequest<NativeRnicCompletion.Atomic> request = registry.compareAndSwap64(
         current, 0, 1, 2);
     registry.revoke(current);
     try (IoScope scope = new DeterministicIo(
@@ -172,7 +239,7 @@ final class NativeRnicRegistryTest {
             return IoProviderResult.success(1, 1);
           }));
       assertTrue(started.await(2, TimeUnit.SECONDS));
-      IoOperation<NativeRnicRegistry.WriteCompleted> queued = scope.submit(
+      IoOperation<NativeRnicCompletion.Write> queued = scope.submit(
           registry.write(target, 0, source, 0, 4));
       assertTrue(queued.cancel());
       assertEquals(TerminalKind.CANCELED, queued.await().terminalKind());
@@ -195,11 +262,11 @@ final class NativeRnicRegistryTest {
 
     try (ThreadedIo io = new ThreadedIo(1, 1);
         IoScope scope = io.scope(new IoLimits(4, 4, 4, 4, 4, 16))) {
-      IoOperation<NativeRnicRegistry.WriteCompleted> operation = scope.submit(
+      IoOperation<NativeRnicCompletion.Write> operation = scope.submit(
           registry.write(target, 0, source, 0, 4));
       assertTrue(backend.started.await(2, TimeUnit.SECONDS));
       assertFalse(operation.cancel());
-      IoCompletion<NativeRnicRegistry.WriteCompleted> completion = operation.await();
+      IoCompletion<NativeRnicCompletion.Write> completion = operation.await();
       assertEquals(TerminalKind.CANCELED, completion.terminalKind());
       assertEquals(
           CancellationRelation.CANCELED_BEFORE_EFFECT,
@@ -219,12 +286,12 @@ final class NativeRnicRegistryTest {
         sourceOwner, 0, 8, Rights.REMOTE_READ);
     OwnedIoBuffer destination = OwnedIoBuffer.allocate(5);
 
-    IoRequest<NativeRnicRegistry.ReadCompleted> request = registry.read(
+    IoRequest<NativeRnicCompletion.Read> request = registry.read(
         source, 2, destination, 1, 3);
 
     assertEquals(0, backend.readCalls);
     assertThrows(IllegalStateException.class, destination::snapshot);
-    NativeRnicRegistry.ReadCompleted completed;
+    NativeRnicCompletion.Read completed;
     try (IoScope scope = new DeterministicIo(
         DeterministicIo.Delivery.INLINE).scope(new IoLimits(4, 4, 4, 4, 4, 16))) {
       completed = scope.await(request).value();
@@ -251,12 +318,12 @@ final class NativeRnicRegistryTest {
         targetOwner, 0, 8, Rights.REMOTE_WRITE);
     OwnedIoBuffer source = OwnedIoBuffer.copyOf(new byte[] {9, 8, 7, 6});
 
-    IoRequest<NativeRnicRegistry.WriteCompleted> request = registry.write(
+    IoRequest<NativeRnicCompletion.Write> request = registry.write(
         target, 2, source, 1, 3);
 
     assertEquals(0, backend.writeCalls);
     assertThrows(IllegalStateException.class, source::snapshot);
-    NativeRnicRegistry.WriteCompleted completed;
+    NativeRnicCompletion.Write completed;
     try (IoScope scope = new DeterministicIo(
         DeterministicIo.Delivery.INLINE).scope(new IoLimits(4, 4, 4, 4, 4, 16))) {
       completed = scope.await(request).value();
@@ -289,7 +356,7 @@ final class NativeRnicRegistryTest {
 
     try (IoScope scope = new DeterministicIo(
         DeterministicIo.Delivery.INLINE).scope(new IoLimits(4, 4, 4, 4, 4, 16))) {
-      IoCompletion<NativeRnicRegistry.WriteCompleted> completion = scope.await(
+      IoCompletion<NativeRnicCompletion.Write> completion = scope.await(
           registry.write(target, 0, source, 0, 3));
       assertEquals(TerminalKind.UNCERTAIN, completion.terminalKind());
       assertEquals("native-rnic-completion-mismatch", completion.detail());
@@ -321,7 +388,7 @@ final class NativeRnicRegistryTest {
         IllegalStateException.class,
         () -> registry.read(writable, 0, destination, 0, 2));
     assertEquals(2, destination.snapshot().length);
-    IoRequest<NativeRnicRegistry.WriteCompleted> request = registry.write(
+    IoRequest<NativeRnicCompletion.Write> request = registry.write(
         writable, 0, source, 0, 2);
     registry.revoke(writable);
     try (IoScope scope = new DeterministicIo(
@@ -398,10 +465,12 @@ final class NativeRnicRegistryTest {
   private static class RecordingBackend implements NativeRnicRegistry.Backend {
     private final List<Long> deregisteredGenerations = new ArrayList<>();
     private final List<Integer> writtenBytes = new ArrayList<>();
+    private final List<String> peerOperations = new ArrayList<>();
     protected final List<Long> canceledOperations = new ArrayList<>();
     private boolean aligned;
     private boolean malformed;
     private boolean malformedWrite;
+    private boolean malformedPeer;
     private long failedDeregistration = -1;
     private int atomicCalls;
     private int readCalls;
@@ -484,6 +553,45 @@ final class NativeRnicRegistryTest {
           new NativeWriteCompletion(
               target.generation(), relativeOffset, completed, "d".repeat(64)),
           length);
+    }
+
+    @Override
+    public IoProviderResult<NativeRnicRegistry.NativePeerEvidence> acknowledge(
+        long operation,
+        NativeHandle target,
+        String writeCompletionIdentity) {
+      peerOperations.add("ack:" + operation);
+      return peer(target, writeCompletionIdentity, "a");
+    }
+
+    @Override
+    public IoProviderResult<NativeRnicRegistry.NativePeerEvidence> apply(
+        long operation,
+        NativeHandle target,
+        String acknowledgementIdentity) {
+      peerOperations.add("apply:" + operation);
+      return peer(target, acknowledgementIdentity, "b");
+    }
+
+    @Override
+    public IoProviderResult<NativeRnicRegistry.NativePeerEvidence> persist(
+        long operation,
+        NativeHandle target,
+        String applicationIdentity,
+        String profileIdentity) {
+      peerOperations.add("persist:" + operation);
+      return peer(target, applicationIdentity, "c");
+    }
+
+    private IoProviderResult<NativeRnicRegistry.NativePeerEvidence> peer(
+        NativeHandle target,
+        String predecessorIdentity,
+        String evidenceDigit) {
+      String predecessor = malformedPeer ? "0".repeat(64) : predecessorIdentity;
+      return IoProviderResult.success(
+          new NativeRnicRegistry.NativePeerEvidence(
+              target.generation(), predecessor, evidenceDigit.repeat(64)),
+          1);
     }
 
     @Override

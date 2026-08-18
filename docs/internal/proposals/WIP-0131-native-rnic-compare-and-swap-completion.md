@@ -43,7 +43,7 @@ A success row must preserve generation, offset, expected value, replacement valu
 
 `AtomicCompleted.exchanged()` returns `observed == expected`. If the comparison fails, completion remains successful and exposes the observed value. The registry does not claim a write occurred.
 
-Malformed success returns bounded uncertainty and no `AtomicCompleted` object.
+Malformed success returns bounded uncertainty and no `NativeRnicCompletion.Atomic` object.
 
 ## Identity
 
@@ -54,7 +54,7 @@ registration NUL relative-offset NUL expected
 NUL update NUL observed NUL backend-evidence-identity
 ```
 
-`AtomicCompleted` has a private constructor. It exposes the exact registration, range, requested values, observed value, derived exchange result, backend evidence, and canonical identity.
+`NativeRnicCompletion.Atomic` has a private constructor. It exposes the exact registration, range, requested values, observed value, derived exchange result, backend evidence, and canonical identity.
 
 ## Authority boundary
 

@@ -45,9 +45,9 @@ A successful backend result must match:
 - successful provider progress
 - lowercase SHA-256 evidence syntax
 
-The registry copies the exact completed destination range while ownership remains held and hashes it. `ReadCompleted` binds registration, range, count, received-content identity, backend evidence identity, and its own domain-separated identity.
+The registry copies the exact completed destination range while ownership remains held and hashes it. `NativeRnicCompletion.Read` binds registration, range, count, received-content identity, backend evidence identity, and its own domain-separated identity.
 
-A malformed success returns bounded uncertainty and publishes no `ReadCompleted` object.
+A malformed success returns bounded uncertainty and publishes no `NativeRnicCompletion.Read` object.
 
 ## Identity
 
@@ -58,13 +58,13 @@ registration NUL relative-offset NUL bytes
 NUL received-content-identity NUL backend-evidence-identity
 ```
 
-`ReadCompleted` has a private constructor. Destination ownership returns only through ordinary terminal resource release and reap.
+`NativeRnicCompletion.Read` has a private constructor. Destination ownership returns only through ordinary terminal resource release and reap.
 
 ## Authority boundary
 
 A native read completion says that the backend filled the requested destination range under the current registration generation. It does not prove that another machine acknowledged a protocol message, applied a write, persisted media, replicated state, or survived power loss.
 
-The API has no conversion from `ReadCompleted` to peer or durability evidence.
+The API has no conversion from `NativeRnicCompletion.Read` to peer or durability evidence.
 
 ## Evidence
 

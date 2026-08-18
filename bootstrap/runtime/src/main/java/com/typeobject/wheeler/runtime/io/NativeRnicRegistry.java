@@ -37,6 +37,12 @@ public final class NativeRnicRegistry implements AutoCloseable {
       long remoteKey,
       long generation) {}
 
+  /** Raw backend evidence for one ordered peer stage. */
+  public record NativePeerEvidence(
+      long generation,
+      String predecessorIdentity,
+      String evidenceIdentity) {}
+
   /** Raw backend completion for one native 64-bit compare-and-swap. */
   public record NativeAtomicCompletion(
       long generation,
@@ -95,6 +101,25 @@ public final class NativeRnicRegistry implements AutoCloseable {
         OwnedIoBuffer source,
         int sourceOffset,
         int length);
+
+    /** Obtains peer protocol acknowledgement for one exact write completion. */
+    IoProviderResult<NativePeerEvidence> acknowledge(
+        long operation,
+        NativeHandle target,
+        String writeCompletionIdentity);
+
+    /** Obtains peer application acceptance after exact acknowledgement. */
+    IoProviderResult<NativePeerEvidence> apply(
+        long operation,
+        NativeHandle target,
+        String acknowledgementIdentity);
+
+    /** Obtains profile-bound remote persistence after peer application. */
+    IoProviderResult<NativePeerEvidence> persist(
+        long operation,
+        NativeHandle target,
+        String applicationIdentity,
+        String profileIdentity);
 
     /** Requests cancellation of one started native operation. */
     void cancel(long operation);
@@ -161,182 +186,12 @@ public final class NativeRnicRegistry implements AutoCloseable {
     }
   }
 
-  /** Exact native completion of one 64-bit compare-and-swap. */
-  public static final class AtomicCompleted {
-    private final Registration registration;
-    private final int relativeOffset;
-    private final long expected;
-    private final long update;
-    private final long observed;
-    private final String evidenceIdentity;
-    private final String identity;
-
-    private AtomicCompleted(
-        Registration registration,
-        int relativeOffset,
-        long expected,
-        long update,
-        long observed,
-        String evidenceIdentity,
-        String identity) {
-      this.registration = registration;
-      this.relativeOffset = relativeOffset;
-      this.expected = expected;
-      this.update = update;
-      this.observed = observed;
-      this.evidenceIdentity = evidenceIdentity;
-      this.identity = identity;
-    }
-
-    /** Returns the exact target registration. */
-    public Registration registration() {
-      return registration;
-    }
-
-    /** Returns the first registration-relative atomic byte. */
-    public int relativeOffset() {
-      return relativeOffset;
-    }
-
-    /** Returns the requested comparison value. */
-    public long expected() {
-      return expected;
-    }
-
-    /** Returns the requested replacement value. */
-    public long update() {
-      return update;
-    }
-
-    /** Returns the value observed by the native atomic operation. */
-    public long observed() {
-      return observed;
-    }
-
-    /** Reports whether the comparison admitted the replacement. */
-    public boolean exchanged() {
-      return observed == expected;
-    }
-
-    /** Returns the backend completion evidence identity. */
-    public String evidenceIdentity() {
-      return evidenceIdentity;
-    }
-
-    /** Returns the canonical native atomic-completion identity. */
-    public String identity() {
-      return identity;
-    }
-  }
-
-  /** Exact native completion of one one-sided read, without peer or durability claims. */
-  public static final class ReadCompleted {
-    private final Registration registration;
-    private final int relativeOffset;
-    private final int bytes;
-    private final String contentIdentity;
-    private final String evidenceIdentity;
-    private final String identity;
-
-    private ReadCompleted(
-        Registration registration,
-        int relativeOffset,
-        int bytes,
-        String contentIdentity,
-        String evidenceIdentity,
-        String identity) {
-      this.registration = registration;
-      this.relativeOffset = relativeOffset;
-      this.bytes = bytes;
-      this.contentIdentity = contentIdentity;
-      this.evidenceIdentity = evidenceIdentity;
-      this.identity = identity;
-    }
-
-    /** Returns the exact source registration. */
-    public Registration registration() {
-      return registration;
-    }
-
-    /** Returns the first registration-relative byte read. */
-    public int relativeOffset() {
-      return relativeOffset;
-    }
-
-    /** Returns the exact completed byte count. */
-    public int bytes() {
-      return bytes;
-    }
-
-    /** Returns the exact received-content identity. */
-    public String contentIdentity() {
-      return contentIdentity;
-    }
-
-    /** Returns the backend completion evidence identity. */
-    public String evidenceIdentity() {
-      return evidenceIdentity;
-    }
-
-    /** Returns the canonical native read-completion identity. */
-    public String identity() {
-      return identity;
-    }
-  }
-
-  /** Exact native completion of one one-sided write, without peer or durability claims. */
-  public static final class WriteCompleted {
-    private final Registration registration;
-    private final int relativeOffset;
-    private final int bytes;
-    private final String contentIdentity;
-    private final String evidenceIdentity;
-    private final String identity;
-
-    private WriteCompleted(
-        Registration registration,
-        int relativeOffset,
-        int bytes,
-        String contentIdentity,
-        String evidenceIdentity,
-        String identity) {
-      this.registration = registration;
-      this.relativeOffset = relativeOffset;
-      this.bytes = bytes;
-      this.contentIdentity = contentIdentity;
-      this.evidenceIdentity = evidenceIdentity;
-      this.identity = identity;
-    }
-
-    /** Returns the exact target registration. */
-    public Registration registration() {
-      return registration;
-    }
-
-    /** Returns the first registration-relative byte written. */
-    public int relativeOffset() {
-      return relativeOffset;
-    }
-
-    /** Returns the exact completed byte count. */
-    public int bytes() {
-      return bytes;
-    }
-
-    /** Returns the exact source-content identity. */
-    public String contentIdentity() {
-      return contentIdentity;
-    }
-
-    /** Returns the backend completion evidence identity. */
-    public String evidenceIdentity() {
-      return evidenceIdentity;
-    }
-
-    /** Returns the canonical native write-completion identity. */
-    public String identity() {
-      return identity;
-    }
+  @FunctionalInterface
+  private interface PeerAction {
+    IoProviderResult<NativePeerEvidence> execute(
+        long operation,
+        NativeHandle handle,
+        String predecessorIdentity);
   }
 
   private record Active(
@@ -423,8 +278,92 @@ public final class NativeRnicRegistry implements AutoCloseable {
     }
   }
 
+  /** Prepares peer acknowledgement of one exact native write completion. */
+  public synchronized IoRequest<NativeRnicPeerEvidence.Acknowledgement> acknowledge(
+      NativeRnicCompletion.Write write) {
+    Objects.requireNonNull(write, "write");
+    Registration registration = write.registration();
+    Active current = requireCurrent(registration);
+    long currentOperation = nextOperation();
+    return IoRequest.prepare(
+        "native-rnic-ack:" + currentOperation + ':' + write.identity(),
+        1,
+        () -> executePeer(
+            currentOperation,
+            registration,
+            current.handle,
+            write.identity(),
+            backend::acknowledge).mapSuccess(evidence -> {
+              String identity = digest(
+                  "wheeler-native-rnic-peer-acknowledgement-1",
+                  write.identity() + '\0' + evidence.evidenceIdentity());
+              return NativeRnicPeerEvidence.acknowledgement(
+                  write, evidence.evidenceIdentity(), identity);
+            }),
+        () -> {},
+        () -> backend.cancel(currentOperation));
+  }
+
+  /** Prepares peer application acceptance after exact acknowledgement. */
+  public synchronized IoRequest<NativeRnicPeerEvidence.Application> apply(
+      NativeRnicPeerEvidence.Acknowledgement acknowledgement) {
+    Objects.requireNonNull(acknowledgement, "acknowledgement");
+    Registration registration = NativeRnicPeerEvidence.registration(acknowledgement);
+    Active current = requireCurrent(registration);
+    long currentOperation = nextOperation();
+    return IoRequest.prepare(
+        "native-rnic-apply:" + currentOperation + ':' + acknowledgement.identity(),
+        1,
+        () -> executePeer(
+            currentOperation,
+            registration,
+            current.handle,
+            acknowledgement.identity(),
+            backend::apply).mapSuccess(evidence -> {
+              String identity = digest(
+                  "wheeler-native-rnic-peer-application-1",
+                  acknowledgement.identity() + '\0' + evidence.evidenceIdentity());
+              return NativeRnicPeerEvidence.application(
+                  acknowledgement, evidence.evidenceIdentity(), identity);
+            }),
+        () -> {},
+        () -> backend.cancel(currentOperation));
+  }
+
+  /** Prepares profile-bound remote persistence after peer application. */
+  public synchronized IoRequest<NativeRnicPeerEvidence.Persistence> persist(
+      NativeRnicPeerEvidence.Application application,
+      String profileIdentity) {
+    Objects.requireNonNull(application, "application");
+    if (!validHash(profileIdentity)) {
+      throw new IllegalArgumentException("remote-persistence profile must be lowercase SHA-256");
+    }
+    Registration registration = NativeRnicPeerEvidence.registration(application);
+    Active current = requireCurrent(registration);
+    long currentOperation = nextOperation();
+    return IoRequest.prepare(
+        "native-rnic-persist:" + currentOperation + ':' + application.identity(),
+        1,
+        () -> executePeer(
+            currentOperation,
+            registration,
+            current.handle,
+            application.identity(),
+            (operation, handle, predecessor) -> backend.persist(
+                operation, handle, predecessor, profileIdentity)).mapSuccess(evidence -> {
+                  String identity = digest(
+                      "wheeler-native-rnic-remote-persistence-1",
+                      application.identity() + '\0' + profileIdentity
+                          + '\0' + evidence.evidenceIdentity());
+                  return NativeRnicPeerEvidence.persistence(
+                      application, profileIdentity, evidence.evidenceIdentity(), identity);
+                }),
+        () -> {},
+        () -> backend.cancel(currentOperation));
+  }
+
   /** Prepares one native 64-bit compare-and-swap without running backend work. */
-  public synchronized IoRequest<AtomicCompleted> compareAndSwap64(
+  public synchronized IoRequest<NativeRnicCompletion.Atomic> compareAndSwap64(
       Registration target,
       int relativeOffset,
       long expected,
@@ -450,7 +389,7 @@ public final class NativeRnicRegistry implements AutoCloseable {
   }
 
   /** Prepares one native one-sided read without running backend work. */
-  public synchronized IoRequest<ReadCompleted> read(
+  public synchronized IoRequest<NativeRnicCompletion.Read> read(
       Registration source,
       int relativeOffset,
       OwnedIoBuffer destination,
@@ -493,7 +432,7 @@ public final class NativeRnicRegistry implements AutoCloseable {
   }
 
   /** Prepares one native one-sided write without running backend work. */
-  public synchronized IoRequest<WriteCompleted> write(
+  public synchronized IoRequest<NativeRnicCompletion.Write> write(
       Registration target,
       int relativeOffset,
       OwnedIoBuffer source,
@@ -588,7 +527,44 @@ public final class NativeRnicRegistry implements AutoCloseable {
     }
   }
 
-  private IoProviderResult<AtomicCompleted> executeCompareAndSwap64(
+  private IoProviderResult<NativePeerEvidence> executePeer(
+      long operation,
+      Registration registration,
+      NativeHandle handle,
+      String predecessorIdentity,
+      PeerAction action) {
+    synchronized (this) {
+      if (!isCurrent(registration)) {
+        return IoProviderResult.uncertain("native-rnic-registration-became-stale", 0);
+      }
+    }
+
+    IoProviderResult<NativePeerEvidence> result = Objects.requireNonNull(
+        action.execute(operation, handle, predecessorIdentity),
+        "native RNIC peer result");
+    if (result.kind() != IoProviderResult.Kind.SUCCESS) {
+      return carryFailure(result);
+    }
+
+    NativePeerEvidence evidence = Objects.requireNonNull(
+        result.value(), "native RNIC peer evidence");
+    synchronized (this) {
+      if (!isCurrent(registration)) {
+        return IoProviderResult.uncertain(
+            "native-rnic-registration-became-stale", boundedProgress(result.progress(), 1));
+      }
+    }
+    if (evidence.generation() != registration.generation
+        || !predecessorIdentity.equals(evidence.predecessorIdentity())
+        || !validHash(evidence.evidenceIdentity())
+        || result.progress() != 1) {
+      return IoProviderResult.uncertain(
+          "native-rnic-peer-evidence-mismatch", boundedProgress(result.progress(), 1));
+    }
+    return result;
+  }
+
+  private IoProviderResult<NativeRnicCompletion.Atomic> executeCompareAndSwap64(
       long operation,
       Registration target,
       NativeHandle handle,
@@ -630,7 +606,7 @@ public final class NativeRnicRegistry implements AutoCloseable {
 
     String canonical = target.identity + '\0' + relativeOffset + '\0' + expected
         + '\0' + update + '\0' + completion.observed() + '\0' + completion.evidenceIdentity();
-    AtomicCompleted completed = new AtomicCompleted(
+    NativeRnicCompletion.Atomic completed = NativeRnicCompletion.atomic(
         target,
         relativeOffset,
         expected,
@@ -641,7 +617,7 @@ public final class NativeRnicRegistry implements AutoCloseable {
     return IoProviderResult.success(completed, Long.BYTES);
   }
 
-  private IoProviderResult<ReadCompleted> executeRead(
+  private IoProviderResult<NativeRnicCompletion.Read> executeRead(
       long operation,
       Registration source,
       NativeHandle handle,
@@ -685,7 +661,7 @@ public final class NativeRnicRegistry implements AutoCloseable {
     String contentIdentity = sha256(content);
     String canonical = source.identity + '\0' + relativeOffset + '\0' + length
         + '\0' + contentIdentity + '\0' + completion.evidenceIdentity();
-    ReadCompleted completed = new ReadCompleted(
+    NativeRnicCompletion.Read completed = NativeRnicCompletion.read(
         source,
         relativeOffset,
         length,
@@ -695,7 +671,7 @@ public final class NativeRnicRegistry implements AutoCloseable {
     return IoProviderResult.success(completed, length);
   }
 
-  private IoProviderResult<WriteCompleted> executeWrite(
+  private IoProviderResult<NativeRnicCompletion.Write> executeWrite(
       long operation,
       Registration target,
       NativeHandle handle,
@@ -736,7 +712,7 @@ public final class NativeRnicRegistry implements AutoCloseable {
 
     String canonical = target.identity + '\0' + relativeOffset + '\0' + length
         + '\0' + contentIdentity + '\0' + completion.evidenceIdentity();
-    WriteCompleted completed = new WriteCompleted(
+    NativeRnicCompletion.Write completed = NativeRnicCompletion.write(
         target,
         relativeOffset,
         length,
