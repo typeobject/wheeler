@@ -297,16 +297,34 @@ classical class ImportedSourceCallTargets {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < TARGET_ROWS) limit TARGET_ROWS {
-        set(targetRows, row, stagedTargets[row]);
-        row += 1;
+      long column = 0;
+      while (column < 8) limit 8 {
+        long targetPublishRow = 0;
+        while (targetPublishRow < target) limit CALLABLE_COUNT_LIMIT {
+          set(
+            targetRows,
+            column * CALLABLE_COUNT_LIMIT + targetPublishRow,
+            stagedTargets[column * CALLABLE_COUNT_LIMIT + targetPublishRow]
+          );
+          targetPublishRow += 1;
+        }
+
+        column += 1;
       }
 
-      row = 0;
-      while (row < 32768) limit 32768 {
-        set(targetParameterRows, row, stagedParameters[row]);
-        row += 1;
+      column = 0;
+      while (column < 2) limit 2 {
+        long parameterPublishRow = 0;
+        while (parameterPublishRow < parameterCursor) limit PARAMETER_COUNT_LIMIT {
+          set(
+            targetParameterRows,
+            column * PARAMETER_COUNT_LIMIT + parameterPublishRow,
+            stagedParameters[column * PARAMETER_COUNT_LIMIT + parameterPublishRow]
+          );
+          parameterPublishRow += 1;
+        }
+
+        column += 1;
       }
 
       long publishedNameByte = 0;
