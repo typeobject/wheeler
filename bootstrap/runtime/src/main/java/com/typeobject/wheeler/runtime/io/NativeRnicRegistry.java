@@ -23,6 +23,10 @@ public final class NativeRnicRegistry implements AutoCloseable {
     private boolean permitsWrite() {
       return this == REMOTE_WRITE || this == REMOTE_READ_WRITE;
     }
+
+    private boolean permitsAtomic() {
+      return this == REMOTE_READ_WRITE;
+    }
   }
 
   /** Opaque native registration fields returned by an RNIC backend. */
@@ -32,6 +36,15 @@ public final class NativeRnicRegistry implements AutoCloseable {
       long localKey,
       long remoteKey,
       long generation) {}
+
+  /** Raw backend completion for one native 64-bit compare-and-swap. */
+  public record NativeAtomicCompletion(
+      long generation,
+      int relativeOffset,
+      long expected,
+      long update,
+      long observed,
+      String evidenceIdentity) {}
 
   /** Raw backend completion for one native one-sided read. */
   public record NativeReadCompletion(
@@ -56,6 +69,13 @@ public final class NativeRnicRegistry implements AutoCloseable {
         int length,
         Rights rights,
         long generation);
+
+    /** Performs one native 64-bit compare-and-swap against a current registration. */
+    IoProviderResult<NativeAtomicCompletion> compareAndSwap64(
+        NativeHandle target,
+        int relativeOffset,
+        long expected,
+        long update);
 
     /** Performs one native one-sided read against a current registration. */
     IoProviderResult<NativeReadCompletion> read(
@@ -130,6 +150,74 @@ public final class NativeRnicRegistry implements AutoCloseable {
     }
 
     /** Returns the canonical registration identity. */
+    public String identity() {
+      return identity;
+    }
+  }
+
+  /** Exact native completion of one 64-bit compare-and-swap. */
+  public static final class AtomicCompleted {
+    private final Registration registration;
+    private final int relativeOffset;
+    private final long expected;
+    private final long update;
+    private final long observed;
+    private final String evidenceIdentity;
+    private final String identity;
+
+    private AtomicCompleted(
+        Registration registration,
+        int relativeOffset,
+        long expected,
+        long update,
+        long observed,
+        String evidenceIdentity,
+        String identity) {
+      this.registration = registration;
+      this.relativeOffset = relativeOffset;
+      this.expected = expected;
+      this.update = update;
+      this.observed = observed;
+      this.evidenceIdentity = evidenceIdentity;
+      this.identity = identity;
+    }
+
+    /** Returns the exact target registration. */
+    public Registration registration() {
+      return registration;
+    }
+
+    /** Returns the first registration-relative atomic byte. */
+    public int relativeOffset() {
+      return relativeOffset;
+    }
+
+    /** Returns the requested comparison value. */
+    public long expected() {
+      return expected;
+    }
+
+    /** Returns the requested replacement value. */
+    public long update() {
+      return update;
+    }
+
+    /** Returns the value observed by the native atomic operation. */
+    public long observed() {
+      return observed;
+    }
+
+    /** Reports whether the comparison admitted the replacement. */
+    public boolean exchanged() {
+      return observed == expected;
+    }
+
+    /** Returns the backend completion evidence identity. */
+    public String evidenceIdentity() {
+      return evidenceIdentity;
+    }
+
+    /** Returns the canonical native atomic-completion identity. */
     public String identity() {
       return identity;
     }
@@ -328,6 +416,29 @@ public final class NativeRnicRegistry implements AutoCloseable {
     }
   }
 
+  /** Prepares one native 64-bit compare-and-swap without running backend work. */
+  public synchronized IoRequest<AtomicCompleted> compareAndSwap64(
+      Registration target,
+      int relativeOffset,
+      long expected,
+      long update) {
+    Active current = requireCurrent(target);
+    if (!target.rights.permitsAtomic()) {
+      throw new IllegalStateException("RNIC registration does not permit remote atomics");
+    }
+    if (relativeOffset < 0 || target.length - Long.BYTES < relativeOffset
+        || ((current.handle.address() + relativeOffset) & (Long.BYTES - 1)) != 0) {
+      throw new IllegalArgumentException("native RNIC atomic range or alignment is invalid");
+    }
+
+    return IoRequest.prepare(
+        "native-rnic-cas64:" + target.identity + ':' + relativeOffset
+            + ':' + expected + ':' + update,
+        Long.BYTES,
+        () -> executeCompareAndSwap64(
+            target, current.handle, relativeOffset, expected, update));
+  }
+
   /** Prepares one native one-sided read without running backend work. */
   public synchronized IoRequest<ReadCompleted> read(
       Registration source,
@@ -459,6 +570,58 @@ public final class NativeRnicRegistry implements AutoCloseable {
     }
   }
 
+  private IoProviderResult<AtomicCompleted> executeCompareAndSwap64(
+      Registration target,
+      NativeHandle handle,
+      int relativeOffset,
+      long expected,
+      long update) {
+    synchronized (this) {
+      if (!isCurrent(target)) {
+        return IoProviderResult.uncertain("native-rnic-registration-became-stale", 0);
+      }
+    }
+
+    IoProviderResult<NativeAtomicCompletion> result = Objects.requireNonNull(
+        backend.compareAndSwap64(handle, relativeOffset, expected, update),
+        "native RNIC atomic result");
+    if (result.kind() != IoProviderResult.Kind.SUCCESS) {
+      return carryFailure(result);
+    }
+
+    NativeAtomicCompletion completion = Objects.requireNonNull(
+        result.value(), "native RNIC atomic completion");
+    synchronized (this) {
+      if (!isCurrent(target)) {
+        return IoProviderResult.uncertain(
+            "native-rnic-registration-became-stale",
+            boundedProgress(result.progress(), Long.BYTES));
+      }
+    }
+    if (completion.generation() != target.generation
+        || completion.relativeOffset() != relativeOffset
+        || completion.expected() != expected
+        || completion.update() != update
+        || result.progress() != Long.BYTES
+        || !validHash(completion.evidenceIdentity())) {
+      return IoProviderResult.uncertain(
+          "native-rnic-completion-mismatch",
+          boundedProgress(result.progress(), Long.BYTES));
+    }
+
+    String canonical = target.identity + '\0' + relativeOffset + '\0' + expected
+        + '\0' + update + '\0' + completion.observed() + '\0' + completion.evidenceIdentity();
+    AtomicCompleted completed = new AtomicCompleted(
+        target,
+        relativeOffset,
+        expected,
+        update,
+        completion.observed(),
+        completion.evidenceIdentity(),
+        digest("wheeler-native-rnic-cas64-completion-1", canonical));
+    return IoProviderResult.success(completed, Long.BYTES);
+  }
+
   private IoProviderResult<ReadCompleted> executeRead(
       Registration source,
       NativeHandle handle,
@@ -572,7 +735,7 @@ public final class NativeRnicRegistry implements AutoCloseable {
     };
   }
 
-  private static int boundedProgress(int progress, int length) {
+  private static long boundedProgress(long progress, long length) {
     return Math.max(0, Math.min(progress, length));
   }
 

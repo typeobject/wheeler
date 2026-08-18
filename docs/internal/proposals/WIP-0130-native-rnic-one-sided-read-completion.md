@@ -9,7 +9,7 @@
 | Area | Native I/O, RNIC transfer, completion |
 | Depends on | WIP-0032, WIP-0128, WIP-0129 |
 | Supersedes | Native reads outside the portable request lifecycle |
-| Superseded by | Native RNIC atomic, peer, and persistence evidence stages |
+| Superseded by | WIP-0131 for compare-and-swap, followed by peer and persistence stages |
 
 ## Summary
 

@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.runtime.io.IoCompletion.TerminalKind;
+import com.typeobject.wheeler.runtime.io.NativeRnicRegistry.NativeAtomicCompletion;
 import com.typeobject.wheeler.runtime.io.NativeRnicRegistry.NativeHandle;
 import com.typeobject.wheeler.runtime.io.NativeRnicRegistry.NativeReadCompletion;
 import com.typeobject.wheeler.runtime.io.NativeRnicRegistry.NativeWriteCompletion;
@@ -80,6 +81,73 @@ final class NativeRnicRegistryTest {
     assertNotEquals(firstRegistration.identity(), replacement.identity());
     first.close();
     second.close();
+  }
+
+  @Test
+  void compareAndSwapPublishesObservedValueAndExactExchangeResult() {
+    RecordingBackend backend = new RecordingBackend();
+    backend.aligned = true;
+    backend.atomicValue = 11;
+    NativeRnicRegistry registry = new NativeRnicRegistry("rnic-atomic", 1, backend);
+    NativeRnicRegistry.Registration target = registry.register(
+        OwnedIoBuffer.allocate(16), 0, 16, Rights.REMOTE_READ_WRITE);
+
+    IoRequest<NativeRnicRegistry.AtomicCompleted> exchange = registry.compareAndSwap64(
+        target, 0, 11, 19);
+
+    assertEquals(0, backend.atomicCalls);
+    try (IoScope scope = new DeterministicIo(
+        DeterministicIo.Delivery.INLINE).scope(new IoLimits(4, 4, 4, 4, 4, 16))) {
+      NativeRnicRegistry.AtomicCompleted completed = scope.await(exchange).value();
+      assertEquals(11, completed.observed());
+      assertEquals(11, completed.expected());
+      assertEquals(19, completed.update());
+      assertTrue(completed.exchanged());
+      assertEquals("e".repeat(64), completed.evidenceIdentity());
+    }
+    assertEquals(19, backend.atomicValue);
+
+    try (IoScope scope = new DeterministicIo(
+        DeterministicIo.Delivery.INLINE).scope(new IoLimits(4, 4, 4, 4, 4, 16))) {
+      NativeRnicRegistry.AtomicCompleted completed = scope.await(
+          registry.compareAndSwap64(target, 0, 11, 23)).value();
+      assertEquals(19, completed.observed());
+      assertFalse(completed.exchanged());
+    }
+    assertEquals(19, backend.atomicValue);
+    assertEquals(2, backend.atomicCalls);
+    registry.close();
+  }
+
+  @Test
+  void atomicRightsAlignmentAndRevocationFailClosed() {
+    RecordingBackend backend = new RecordingBackend();
+    NativeRnicRegistry registry = new NativeRnicRegistry("rnic-atomic-bounds", 2, backend);
+    NativeRnicRegistry.Registration readOnly = registry.register(
+        OwnedIoBuffer.allocate(16), 0, 16, Rights.REMOTE_READ);
+    assertThrows(
+        IllegalStateException.class,
+        () -> registry.compareAndSwap64(readOnly, 0, 1, 2));
+    registry.revoke(readOnly);
+
+    NativeRnicRegistry.Registration unaligned = registry.register(
+        OwnedIoBuffer.allocate(16), 0, 16, Rights.REMOTE_READ_WRITE);
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> registry.compareAndSwap64(unaligned, 0, 1, 2));
+    backend.aligned = true;
+    registry.revoke(unaligned);
+    NativeRnicRegistry.Registration current = registry.register(
+        OwnedIoBuffer.allocate(16), 0, 16, Rights.REMOTE_READ_WRITE);
+    IoRequest<NativeRnicRegistry.AtomicCompleted> request = registry.compareAndSwap64(
+        current, 0, 1, 2);
+    registry.revoke(current);
+    try (IoScope scope = new DeterministicIo(
+        DeterministicIo.Delivery.INLINE).scope(new IoLimits(4, 4, 4, 4, 4, 16))) {
+      assertEquals(TerminalKind.UNCERTAIN, scope.await(request).terminalKind());
+    }
+    assertEquals(0, backend.atomicCalls);
+    registry.close();
   }
 
   @Test
@@ -259,11 +327,14 @@ final class NativeRnicRegistryTest {
   private static final class RecordingBackend implements NativeRnicRegistry.Backend {
     private final List<Long> deregisteredGenerations = new ArrayList<>();
     private final List<Integer> writtenBytes = new ArrayList<>();
+    private boolean aligned;
     private boolean malformed;
     private boolean malformedWrite;
     private long failedDeregistration = -1;
+    private int atomicCalls;
     private int readCalls;
     private int writeCalls;
+    private long atomicValue;
     private boolean disconnected;
 
     @Override
@@ -275,12 +346,30 @@ final class NativeRnicRegistryTest {
         long generation) {
       assertThrows(IllegalStateException.class, owner::snapshot);
       long handleGeneration = malformed ? generation + 1 : generation;
+      long address = aligned ? 4_096 + generation * 8 : 4_096 + generation;
       return new NativeHandle(
-          4_096 + generation,
+          address,
           length,
           100 + generation,
           200 + generation,
           handleGeneration);
+    }
+
+    @Override
+    public IoProviderResult<NativeAtomicCompletion> compareAndSwap64(
+        NativeHandle target,
+        int relativeOffset,
+        long expected,
+        long update) {
+      atomicCalls += 1;
+      long observed = atomicValue;
+      if (observed == expected) {
+        atomicValue = update;
+      }
+      return IoProviderResult.success(
+          new NativeAtomicCompletion(
+              target.generation(), relativeOffset, expected, update, observed, "e".repeat(64)),
+          Long.BYTES);
     }
 
     @Override

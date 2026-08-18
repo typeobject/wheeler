@@ -204,8 +204,10 @@ performs no backend work. Completion requires matching generation, registered
 range, byte count, provider progress, content identity, and backend evidence. A
 read hashes received bytes before returning the destination owner. A write hashes
 source bytes before capture. A revocation race or malformed provider success
-returns uncertainty. Native completion establishes no peer acknowledgement,
-application, persistence, or durability evidence.
+returns uncertainty. Aligned 64-bit compare-and-swap additionally requires
+read-write rights and reports the exact observed value. Exchange success derives
+from equality with the requested expected value. Native completion establishes
+no peer acknowledgement, application, persistence, or durability evidence.
 
 ## Batches, selection, and graphs
 
