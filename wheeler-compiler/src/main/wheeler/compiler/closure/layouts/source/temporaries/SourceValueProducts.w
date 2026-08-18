@@ -698,22 +698,40 @@ classical class SourceValueProducts {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < VALUE_ROWS) limit VALUE_ROWS {
-        set(valueRows, row, stagedValues[row]);
-        row += 1;
+      long column = 0;
+      while (column < 7) limit 7 {
+        long valueRow = 0;
+        while (valueRow < valueCount) limit MAX_VALUES {
+          set(
+            valueRows,
+            column * MAX_VALUES + valueRow,
+            stagedValues[column * MAX_VALUES + valueRow]
+          );
+          valueRow += 1;
+        }
+
+        column += 1;
       }
 
-      row = 0;
-      while (row < FUNCTION_LOCAL_ROWS) limit FUNCTION_LOCAL_ROWS {
+      long row = 0;
+      while (row < callableCount) limit MAX_LOCAL_CALLABLES {
         set(functionLocalCounts, row, stagedLocalCounts[row]);
         row += 1;
       }
 
-      row = 0;
-      while (row < 8192) limit 8192 {
-        set(statementLocalRows, row, stagedStatementLocals[row]);
-        row += 1;
+      column = 0;
+      while (column < 2) limit 2 {
+        long statementRow = 0;
+        while (statementRow < statementCount) limit MAX_STATEMENTS {
+          set(
+            statementLocalRows,
+            column * MAX_STATEMENTS + statementRow,
+            stagedStatementLocals[column * MAX_STATEMENTS + statementRow]
+          );
+          statementRow += 1;
+        }
+
+        column += 1;
       }
     }
 
