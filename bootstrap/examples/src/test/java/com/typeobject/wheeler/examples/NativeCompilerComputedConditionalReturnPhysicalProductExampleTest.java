@@ -17,7 +17,7 @@ final class NativeCompilerComputedConditionalReturnPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesComputedConditionalReturnsByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.resolved_local_equality_kinds");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

@@ -17,7 +17,7 @@ final class NativeCompilerIdentifierStartsPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesIdentifierStartsByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.identifier_starts");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

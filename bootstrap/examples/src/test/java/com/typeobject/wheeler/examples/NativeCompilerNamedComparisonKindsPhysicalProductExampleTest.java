@@ -17,7 +17,7 @@ final class NativeCompilerNamedComparisonKindsPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesNamedComparisonKindsByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.named_comparison_kinds");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

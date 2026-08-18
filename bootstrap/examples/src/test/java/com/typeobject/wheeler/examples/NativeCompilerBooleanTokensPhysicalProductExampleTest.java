@@ -17,7 +17,7 @@ final class NativeCompilerBooleanTokensPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesBooleanTokensByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.boolean_tokens");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

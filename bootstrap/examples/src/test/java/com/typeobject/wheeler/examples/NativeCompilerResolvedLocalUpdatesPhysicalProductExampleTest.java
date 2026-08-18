@@ -17,7 +17,7 @@ final class NativeCompilerResolvedLocalUpdatesPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesResolvedLocalUpdatesByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.resolved_local_updates");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

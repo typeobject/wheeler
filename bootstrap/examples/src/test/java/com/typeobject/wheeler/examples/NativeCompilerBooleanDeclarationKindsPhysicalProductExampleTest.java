@@ -17,7 +17,7 @@ final class NativeCompilerBooleanDeclarationKindsPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesBooleanDeclarationKindsByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.boolean_declaration_kinds");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

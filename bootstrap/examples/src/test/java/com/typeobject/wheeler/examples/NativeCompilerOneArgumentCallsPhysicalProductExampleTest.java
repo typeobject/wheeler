@@ -17,7 +17,7 @@ final class NativeCompilerOneArgumentCallsPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesOneArgumentCallsByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.one_argument_calls");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

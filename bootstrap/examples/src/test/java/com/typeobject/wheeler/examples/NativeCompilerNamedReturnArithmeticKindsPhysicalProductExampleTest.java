@@ -17,7 +17,7 @@ final class NativeCompilerNamedReturnArithmeticKindsPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesNamedReturnArithmeticKindsByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.named_return_arithmetic_kinds");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

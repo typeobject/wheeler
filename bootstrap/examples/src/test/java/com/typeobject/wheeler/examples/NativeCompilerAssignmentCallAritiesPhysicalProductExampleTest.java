@@ -17,7 +17,7 @@ final class NativeCompilerAssignmentCallAritiesPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesAssignmentCallAritiesByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.assignment_call_arities");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

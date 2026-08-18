@@ -17,7 +17,7 @@ final class NativeCompilerOpcodeKindsPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesOpcodeKindsByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.opcode_kinds");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

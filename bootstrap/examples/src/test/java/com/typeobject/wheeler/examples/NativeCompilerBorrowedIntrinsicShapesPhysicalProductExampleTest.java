@@ -17,7 +17,7 @@ final class NativeCompilerBorrowedIntrinsicShapesPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesBorrowedIntrinsicShapesByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.borrowed_intrinsic_shapes");
     var expectedProgram = new WheelerCompiler().compileLibraryModuleFiles(
         CompilerSources.moduleClosure(module.name()), module.name());

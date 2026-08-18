@@ -17,7 +17,7 @@ final class NativeCompilerHelperSignaturesPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesHelperSignaturesByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.helper_signatures");
     var expectedProgram = new WheelerCompiler().compileLibraryModuleFiles(
         CompilerSources.moduleClosure(module.name()), module.name());

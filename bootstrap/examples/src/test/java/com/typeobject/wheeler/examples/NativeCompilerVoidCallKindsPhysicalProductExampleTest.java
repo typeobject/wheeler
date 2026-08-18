@@ -17,7 +17,7 @@ final class NativeCompilerVoidCallKindsPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesVoidCallKindsByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.void_call_kinds");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

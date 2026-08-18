@@ -17,7 +17,7 @@ final class NativeCompilerResolvedLocalConditionalOperandsPhysicalProductExample
   @Tag("closure-evidence")
   @Test
   void compilesResolvedLocalConditionalOperandsByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.resolved_local_conditional_operands");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

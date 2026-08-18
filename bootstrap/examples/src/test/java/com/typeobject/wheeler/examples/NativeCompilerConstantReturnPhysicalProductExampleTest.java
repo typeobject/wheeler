@@ -17,7 +17,7 @@ final class NativeCompilerConstantReturnPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesConstantReturnsByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.named_conditional_bases");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

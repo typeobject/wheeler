@@ -1,5 +1,9 @@
 package com.typeobject.wheeler.examples;
 
+import static com.typeobject.wheeler.examples.NativeCompilerPhysicalSelection.comparable;
+import static com.typeobject.wheeler.examples.NativeCompilerPhysicalSelection.owner;
+import static com.typeobject.wheeler.examples.NativeCompilerPhysicalSelection.ownerRows;
+
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
 import java.util.LinkedHashMap;
@@ -9,57 +13,24 @@ import java.util.Map;
 /** Builds the production counted archive-closure evidence program. */
 final class NativeCompilerArchiveClosureProgram {
   record PhysicalModule(String path, String name) {}
-  private static final List<String> MODULE_NAMES = CompilerSources.sortedModuleNames();
   static final List<PhysicalModule> PHYSICAL_MODULES = NativeCompilerPhysicalModules.all();
   static final List<PhysicalModule> PHYSICAL_CALLABLE_MODULES =
       NativeCompilerPhysicalModules.importedCallableProducts();
-  static final PhysicalModule PHYSICAL_AGGREGATE_MODULE = physicalModule(
-      "wheeler.compiler.closure.aggregate_source_projection");
+  static final PhysicalModule PHYSICAL_AGGREGATE_MODULE =
+      comparable("wheeler.compiler.closure.aggregate_source_projection");
   static final PhysicalModule PHYSICAL_MANIFEST_MODULE =
-      physicalModule("wheeler.compiler.closure.manifest_syntax");
-  static final PhysicalModule PHYSICAL_REVERSIBLE_MODULE = physicalModule(
-      "wheeler.compiler.closure.reversible_token_coordinates");
+      comparable("wheeler.compiler.closure.manifest_syntax");
+  static final PhysicalModule PHYSICAL_REVERSIBLE_MODULE =
+      comparable("wheeler.compiler.closure.reversible_token_coordinates");
   static final PhysicalModule PHYSICAL_TYPE_KINDS_MODULE =
-      physicalModule("wheeler.compiler.type_kinds");
+      comparable("wheeler.compiler.type_kinds");
   static final PhysicalModule PHYSICAL_WIDE_RETURN_SOURCES_MODULE =
-      physicalModule("wheeler.compiler.wide_return_sources");
+      comparable("wheeler.compiler.wide_return_sources");
   static final PhysicalModule PHYSICAL_LOCAL_TYPE_ENCODING_MODULE =
-      physicalModule("wheeler.compiler.local_type_encoding");
+      comparable("wheeler.compiler.local_type_encoding");
   static final PhysicalModule PHYSICAL_RESULT_SLOT_VERIFIER_MODULE =
-      physicalModule("wheeler.compiler.result_slot_verifier");
+      comparable("wheeler.compiler.result_slot_verifier");
   private NativeCompilerArchiveClosureProgram() {}
-
-  static PhysicalModule physicalModule(String name) {
-    return PHYSICAL_MODULES.stream()
-        .filter(module -> module.name().equals(name))
-        .findFirst()
-        .orElseThrow();
-  }
-
-  private static String physicalOwnerRows(
-      List<PhysicalModule> comparableModules,
-      List<PhysicalModule> callableModules) {
-    StringBuilder rows = new StringBuilder();
-    for (int index = 0; index < comparableModules.size(); index++) {
-      rows.append("set(physicalOwners, ").append(index).append(", ")
-          .append(physicalOwner(comparableModules.get(index))).append(");\n");
-    }
-    for (int index = 0; index < callableModules.size(); index++) {
-      rows.append("set(physicalOwners, ").append(comparableModules.size() + index)
-          .append(", ").append(physicalOwner(callableModules.get(index)))
-          .append(");\n");
-    }
-    return rows.toString();
-  }
-
-  static int physicalOwner(PhysicalModule module) {
-    int owner = MODULE_NAMES.indexOf(module.name());
-    if (owner < 0) {
-      throw new IllegalStateException(
-          "Physical module is outside compiler target: " + module.name());
-    }
-    return owner;
-  }
 
   static Program program() throws Exception {
     return program(
@@ -73,6 +44,13 @@ final class NativeCompilerArchiveClosureProgram {
         /* compilePhysicalProducts= */ true,
         List.of(module),
         List.of());
+  }
+
+  static Program physicalCallableProductProgram(PhysicalModule module) throws Exception {
+    return program(
+        /* compilePhysicalProducts= */ true,
+        List.of(),
+        List.of(module));
   }
 
   static Program metadataProgram() throws Exception {
@@ -112,6 +90,8 @@ final class NativeCompilerArchiveClosureProgram {
         "wheeler.compiler.closure.imported_callable_stubs"));
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.imported_constant_values"));
+    sources.putAll(CompilerSources.moduleClosure(
+        "wheeler.compiler.closure.imported_structured_archive_module_compiler"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.module_callables"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.module_symbols"));
     sources.putAll(CompilerSources.moduleClosure("wheeler.compiler.closure.package_target"));
@@ -138,6 +118,7 @@ final class NativeCompilerArchiveClosureProgram {
         import wheeler.compiler.closure.imported_call_relocations;
         import wheeler.compiler.closure.imported_callable_stubs;
         import wheeler.compiler.closure.imported_constant_values;
+        import wheeler.compiler.closure.imported_structured_archive_module_compiler;
         import wheeler.compiler.closure.module_callables;
         import wheeler.compiler.closure.module_manifest;
         import wheeler.compiler.closure.module_symbols;
@@ -246,7 +227,7 @@ final class NativeCompilerArchiveClosureProgram {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 6627368, /* allocations= */ 95);
+            region columns = new region(/* bytes= */ 7692328, /* allocations= */ 99);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -333,6 +314,10 @@ final class NativeCompilerArchiveClosureProgram {
             words callableFunctionRows = allocate(columns, /* length= */ 4096);
             words callablePublishedRows = allocate(columns, /* length= */ 4096);
             words physicalTargetRows = allocate(columns, /* length= */ 65536);
+            words directRelocationRows = allocate(columns, /* length= */ 768);
+            words directRelocationOwners = allocate(columns, /* length= */ 256);
+            bytes directRelocationIdentities = allocateBytes(columns, /* length= */ 8192);
+            words directInstructionTargets = allocate(columns, /* length= */ 131072);
             words physicalStubCallableRows = allocate(columns, /* length= */ 64);
             PHYSICAL_MODULE_OWNERS
             bytes packageIdentity = allocateBytes(columns, /* length= */ 32);
@@ -864,6 +849,10 @@ final class NativeCompilerArchiveClosureProgram {
             drop(symbolIdentities);
             drop(packageIdentity);
             drop(physicalStubCallableRows);
+            drop(directInstructionTargets);
+            drop(directRelocationIdentities);
+            drop(directRelocationOwners);
+            drop(directRelocationRows);
             drop(physicalTargetRows);
             drop(callablePublishedRows);
             drop(callableFunctionRows);
@@ -959,7 +948,7 @@ final class NativeCompilerArchiveClosureProgram {
         """
             .replace(
                 "PHYSICAL_MODULE_OWNERS",
-                physicalOwnerRows(comparableModules, callableModules))
+                ownerRows(comparableModules, callableModules))
             .replace(
                 "PHYSICAL_PRODUCT_COMPILATION",
                 compilePhysicalProducts ? NativeCompilerPhysicalProductSource.compilation() : "")
@@ -967,28 +956,28 @@ final class NativeCompilerArchiveClosureProgram {
             .replace("PHYSICAL_COMPARABLE_COUNT", Integer.toString(comparableModules.size()))
             .replace(
                 "STRUCTURED_SOURCE_MODULE_OWNER",
-                Integer.toString(physicalOwner(PHYSICAL_MODULES.getLast())))
+                Integer.toString(owner(PHYSICAL_MODULES.getLast())))
             .replace(
                 "AGGREGATE_SOURCE_MODULE_OWNER",
-                Integer.toString(physicalOwner(PHYSICAL_AGGREGATE_MODULE)))
+                Integer.toString(owner(PHYSICAL_AGGREGATE_MODULE)))
             .replace(
                 "MANIFEST_SOURCE_MODULE_OWNER",
-                Integer.toString(physicalOwner(PHYSICAL_MANIFEST_MODULE)))
+                Integer.toString(owner(PHYSICAL_MANIFEST_MODULE)))
             .replace(
                 "REVERSIBLE_SOURCE_MODULE_OWNER",
-                Integer.toString(physicalOwner(PHYSICAL_REVERSIBLE_MODULE)))
+                Integer.toString(owner(PHYSICAL_REVERSIBLE_MODULE)))
             .replace(
                 "TYPE_KINDS_SOURCE_MODULE_OWNER",
-                Integer.toString(physicalOwner(PHYSICAL_TYPE_KINDS_MODULE)))
+                Integer.toString(owner(PHYSICAL_TYPE_KINDS_MODULE)))
             .replace(
                 "WIDE_RETURN_SOURCES_MODULE_OWNER",
-                Integer.toString(physicalOwner(PHYSICAL_WIDE_RETURN_SOURCES_MODULE)))
+                Integer.toString(owner(PHYSICAL_WIDE_RETURN_SOURCES_MODULE)))
             .replace(
                 "LOCAL_TYPE_ENCODING_MODULE_OWNER",
-                Integer.toString(physicalOwner(PHYSICAL_LOCAL_TYPE_ENCODING_MODULE)))
+                Integer.toString(owner(PHYSICAL_LOCAL_TYPE_ENCODING_MODULE)))
             .replace(
                 "RESULT_SLOT_VERIFIER_MODULE_OWNER",
-                Integer.toString(physicalOwner(PHYSICAL_RESULT_SLOT_VERIFIER_MODULE)))
+                Integer.toString(owner(PHYSICAL_RESULT_SLOT_VERIFIER_MODULE)))
             .replace("PHYSICAL_CLOSURE_MODULE_COUNT", Integer.toString(
                 CompilerSources.bootstrapModuleManifest().modules().size()))
             .replace(

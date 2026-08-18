@@ -9,7 +9,7 @@
 | Area | Self-hosting compiler, byte buffers, calls, scalar returns |
 | Depends on | WIP-0049, WIP-0054, WIP-0057, WIP-0069, WIP-0070 |
 | Supersedes | Parser projection for root byte reads and forwarded result calls |
-| Superseded by | None |
+| Superseded by | WIP-0139 generalizes the product to byte and word buffers |
 
 ## Summary
 
@@ -32,7 +32,7 @@ The scalar relation product admitted arithmetic only. Source-call arguments reta
 
 ## Projection product
 
-`DirectByteProjectionProducts.w` accepts only this initializer:
+The original `DirectByteProjectionProducts.w` accepted only this initializer:
 
 ```wheeler
 owner[index];
@@ -47,7 +47,7 @@ Both operands must be identifiers. The owner resolves to `byteview`, `bytes`, or
 
 The local types are the exact retained owner type followed by three signed types. Local 252 is the highest admitted start for this four-local window. Any missing delimiter, trailing expression, wrong type, unresolved value, or out-of-range coordinate fails before publication.
 
-`SourceValueProducts.w` measures the same four-local window before physical coordinates publish. It keeps aggregate word projections on their existing path.
+`SourceValueProducts.w` measures the same four-local window before physical coordinates publish. WIP-0139 removes the byte-only owner. `DirectBufferProjectionProducts.w` retains this byte relation and adds exact owned and borrowed word projections through `WORDS_GET`.
 
 ## Signed declaration authority
 
@@ -126,3 +126,4 @@ Rejected. Source-value measurement and direct emission would disagree on the sta
 - [WIP-0057](WIP-0057-source-call-relocation-and-ownership-coordinate-products.md)
 - [WIP-0069](WIP-0069-exact-scalar-return-expression-products.md)
 - [WIP-0070](WIP-0070-exact-scalar-declaration-products.md)
+- [WIP-0139](WIP-0139-structured-imported-call-product-foundations.md)

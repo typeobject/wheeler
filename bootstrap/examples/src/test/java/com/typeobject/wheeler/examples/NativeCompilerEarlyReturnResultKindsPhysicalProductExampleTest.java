@@ -17,7 +17,7 @@ final class NativeCompilerEarlyReturnResultKindsPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesEarlyReturnResultKindsByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.early_return_result_kinds");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

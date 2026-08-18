@@ -17,7 +17,7 @@ final class NativeCompilerAssignmentCallColumnsPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesAssignmentCallColumnsByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.assignment_call_columns");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

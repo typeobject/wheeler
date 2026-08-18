@@ -563,7 +563,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     var modules = new ArrayList<>(NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES);
     modules.addAll(NativeCompilerArchiveClosureProgram.PHYSICAL_CALLABLE_MODULES);
     for (NativeCompilerArchiveClosureProgram.PhysicalModule module : modules) {
-      int owner = NativeCompilerArchiveClosureProgram.physicalOwner(module);
+      int owner = NativeCompilerPhysicalSelection.owner(module);
       BootstrapModuleManifest.Module manifestModule = manifest.modules().get(owner);
       assertEquals(module.name(), manifestModule.name());
       assertEquals("src/main/wheeler/" + module.path(), manifestModule.source());

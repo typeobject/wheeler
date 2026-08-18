@@ -17,7 +17,7 @@ final class NativeCompilerEarlyReturnSourcesPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesEarlyReturnSourcesByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.early_return_sources");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

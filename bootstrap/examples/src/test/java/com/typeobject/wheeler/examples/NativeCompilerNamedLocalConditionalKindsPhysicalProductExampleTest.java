@@ -17,7 +17,7 @@ final class NativeCompilerNamedLocalConditionalKindsPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesNamedLocalConditionalKindsByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.named_local_conditional_kinds");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

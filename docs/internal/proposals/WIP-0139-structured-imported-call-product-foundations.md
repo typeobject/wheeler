@@ -121,3 +121,4 @@ Rejected. The relation differs only by admitted owner type and canonical get opc
 - [WIP-0059](WIP-0059-imported-source-call-target-products.md)
 - [WIP-0062](WIP-0062-atomic-source-call-link-publication.md)
 - [WIP-0136](WIP-0136-exact-call-conditioned-signed-literal-products.md)
+- [WIP-0140](WIP-0140-direct-void-call-syntax-physical-product.md)

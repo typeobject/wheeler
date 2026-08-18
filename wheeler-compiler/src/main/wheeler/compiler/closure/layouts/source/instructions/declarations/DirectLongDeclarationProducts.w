@@ -6,6 +6,7 @@ import wheeler.compiler.closure.direct_buffer_projection_products;
 import wheeler.compiler.closure.direct_scalar_encoding;
 import wheeler.compiler.closure.direct_scalar_relations;
 import wheeler.compiler.closure.direct_statement_coordinates;
+import wheeler.compiler.closure.direct_utf8_scalar_products;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.closure.source_reversible_result_relations;
@@ -135,6 +136,42 @@ classical class DirectLongDeclarationProducts {
       }
 
       return new DirectLongDeclarationProduct(projection.next, 4, projection.typeCount, true);
+    }
+
+    boolean utf8ScalarInitializer = tokenHash(source, tokenStarts, tokenLengths, sourceToken)
+      == TOKEN_UTF8_SCALAR;
+    if (utf8ScalarInitializer) {
+      DirectUtf8ScalarProduct utf8Projection = writeDirectUtf8Scalar(
+        source,
+        sourceToken,
+        tokenCount,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        owner,
+        ordinal,
+        statementCount,
+        statementRows,
+        statementLocalRows,
+        statementPhysicalStarts,
+        valueCount,
+        valueRows,
+        typeRows,
+        typeCount,
+        output,
+        cursor,
+        localBase
+      );
+      if (utf8Projection.valid == false) {
+        return invalidLongDeclaration();
+      }
+
+      return new DirectLongDeclarationProduct(
+        utf8Projection.next,
+        4,
+        utf8Projection.typeCount,
+        true
+      );
     }
 
     boolean bufferLengthInitializer = false;

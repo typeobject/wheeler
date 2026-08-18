@@ -28,7 +28,7 @@ final class NativeCompilerNamedScalarClassifiersPhysicalProductExampleTest {
   }
 
   private static void assertPhysicalProduct(String name) throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(name);
+    var module = NativeCompilerPhysicalSelection.comparable(name);
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(
             CompilerSources.moduleClosure(module.name()), module.name()));

@@ -148,7 +148,7 @@ final class NativeCompilerPhysicalClosureExampleTest {
     String linkedIdentity = HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(functionMachine.hostOutput()));
     assertEquals(
-        3_307_600_029L,
+        3_329_096_648L,
         functionMachine.global("linkedIdentityPrefix"),
         () -> "sha256=" + linkedIdentity
             + " code=" + functionMachine.global("linkedCodeLength")
@@ -159,7 +159,7 @@ final class NativeCompilerPhysicalClosureExampleTest {
             + " localTypes=" + functionMachine.global("linkedLocalTypeCount")
             + " container=" + functionMachine.global("linkedContainerLength"));
     assertEquals(
-        "c525f89dc0e96226241d473c7e9e1693d084b08abf66a88a8257bd7e803a50a2",
+        "c66dfbc87b666ab587d36102c32e21798c210eba84a6b6176813346bfcf12e00",
         linkedIdentity,
         () -> "code=" + functionMachine.global("linkedCodeLength")
             + " functions=" + functionMachine.global("functionCount")
@@ -185,7 +185,7 @@ final class NativeCompilerPhysicalClosureExampleTest {
         functionClosure, physicalProducts, 4_194_304);
     CompilerMachineRunner.runWithoutRewindHistory(repeatedFunctionMachine);
     assertEquals(1, repeatedFunctionMachine.global("published"));
-    assertEquals(3_307_600_029L, repeatedFunctionMachine.global("linkedIdentityPrefix"));
+    assertEquals(3_329_096_648L, repeatedFunctionMachine.global("linkedIdentityPrefix"));
     assertArrayEquals(
         functionMachine.hostOutput(), repeatedFunctionMachine.hostOutput());
 
@@ -228,7 +228,7 @@ final class NativeCompilerPhysicalClosureExampleTest {
     var modules = new ArrayList<>(NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES);
     modules.addAll(NativeCompilerArchiveClosureProgram.PHYSICAL_CALLABLE_MODULES);
     for (NativeCompilerArchiveClosureProgram.PhysicalModule module : modules) {
-      int owner = NativeCompilerArchiveClosureProgram.physicalOwner(module);
+      int owner = NativeCompilerPhysicalSelection.owner(module);
       BootstrapModuleManifest.Module manifestModule = manifest.modules().get(owner);
       assertEquals(module.name(), manifestModule.name());
       assertEquals("src/main/wheeler/" + module.path(), manifestModule.source());

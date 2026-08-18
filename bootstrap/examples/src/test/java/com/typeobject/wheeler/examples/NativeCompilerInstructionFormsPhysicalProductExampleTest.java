@@ -18,7 +18,7 @@ final class NativeCompilerInstructionFormsPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
   void compilesInstructionFormsByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.instruction_forms");
     var expectedProgram = new WheelerCompiler().compileLibraryModuleFiles(
         CompilerSources.moduleClosure(module.name()), module.name());

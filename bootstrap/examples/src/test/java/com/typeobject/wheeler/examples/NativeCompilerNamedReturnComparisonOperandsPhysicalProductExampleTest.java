@@ -17,7 +17,7 @@ final class NativeCompilerNamedReturnComparisonOperandsPhysicalProductExampleTes
   @Tag("closure-evidence")
   @Test
   void compilesNamedReturnComparisonOperandsByteForByte() throws Exception {
-    var module = NativeCompilerArchiveClosureProgram.physicalModule(
+    var module = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.named_return_comparison_operands");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

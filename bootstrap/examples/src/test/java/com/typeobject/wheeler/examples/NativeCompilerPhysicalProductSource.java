@@ -70,6 +70,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.type_kinds",
       "wheeler.compiler.void_call_kinds",
       "wheeler.compiler.void_call_source_kinds",
+      "wheeler.compiler.void_call_syntax",
       "wheeler.compiler.wide_return_sources");
 
   private NativeCompilerPhysicalProductSource() {}
@@ -77,8 +78,8 @@ final class NativeCompilerPhysicalProductSource {
   private static String directSourceRouting() {
     StringBuilder routing = new StringBuilder();
     for (String moduleName : DIRECT_SOURCE_MODULES) {
-      int owner = NativeCompilerArchiveClosureProgram.physicalOwner(
-          NativeCompilerArchiveClosureProgram.physicalModule(moduleName));
+      int owner = NativeCompilerPhysicalSelection.owner(
+          NativeCompilerPhysicalSelection.selected(moduleName));
       routing.append("if (physicalOwner == ").append(owner).append(") {\n")
           .append("  directSourceModule = true;\n")
           .append("}\n");
@@ -154,73 +155,126 @@ final class NativeCompilerPhysicalProductSource {
               );
               assert(0 < physicalSourceLength);
             }
+            long physicalDependencyCount = packCallableDependencyProducts(
+              closure.moduleCount,
+              closure.externalCount,
+              physicalOwner,
+              firstImports,
+              directImportCounts,
+              edgeTargets,
+              moduleFirstCallables,
+              moduleCallableCounts,
+              callableVisibilities,
+              externalFirstCallables,
+              externalCallableCounts,
+              externalCallableVisibilities,
+              physicalDependencyRows
+            );
             long physicalCallCount = 0;
             if (PHYSICAL_COMPARABLE_COUNT < physicalProduct + 1) {
-              assert(!directSourceModule);
-              long physicalDependencyCount = packCallableDependencyProducts(
-                closure.moduleCount,
-                closure.externalCount,
-                physicalOwner,
-                firstImports,
-                directImportCounts,
-                edgeTargets,
-                moduleFirstCallables,
-                moduleCallableCounts,
-                callableVisibilities,
-                externalFirstCallables,
-                externalCallableCounts,
-                externalCallableVisibilities,
-                physicalDependencyRows
-              );
-              physicalCallCount = resolveProductSourceCallProducts(
-                physicalProductSource,
-                /* sourceStart= */ 0,
-                physicalSourceLength,
-                callableProductNames,
-                moduleFirstCallables[physicalOwner],
-                moduleCallableCounts[physicalOwner],
-                callableProductNameStarts,
-                callableNameLengths,
-                callableParameterCounts,
-                physicalDependencyCount,
-                physicalDependencyRows,
-                physicalCalls
-              );
-              assert(0 < physicalCallCount);
-              long physicalCall = 0;
-              while (physicalCall < physicalCallCount) limit 256 {
-                long physicalTarget = physicalCalls[768 + physicalCall];
-                assert(primitiveCallables[physicalTarget] == 1);
-                physicalCall += 1;
+              if (directSourceModule == false) {
+                physicalCallCount = resolveProductSourceCallProducts(
+                  physicalProductSource,
+                  /* sourceStart= */ 0,
+                  physicalSourceLength,
+                  callableProductNames,
+                  moduleFirstCallables[physicalOwner],
+                  moduleCallableCounts[physicalOwner],
+                  callableProductNameStarts,
+                  callableNameLengths,
+                  callableParameterCounts,
+                  physicalDependencyCount,
+                  physicalDependencyRows,
+                  physicalCalls
+                );
+                assert(0 < physicalCallCount);
+                long physicalCall = 0;
+                while (physicalCall < physicalCallCount) limit 256 {
+                  long physicalTarget = physicalCalls[768 + physicalCall];
+                  assert(primitiveCallables[physicalTarget] == 1);
+                  physicalCall += 1;
+                }
               }
             }
+            long physicalDirectRelocationCount = 0;
             CompiledCallableBody physicalModule = new CompiledCallableBody(0, 0, 0, 0);
             if (directSourceModule) {
-              SourceProductArtifactPlan directArtifact = compileStructuredArchiveModuleProduct(
-                archive,
-                archiveSourceStarts[physicalOwner],
-                archiveSourceLengths[physicalOwner],
-                physicalOwner,
-                moduleFirstCallables[physicalOwner],
-                moduleCallableCounts[physicalOwner],
-                callableBodyStarts,
-                callableBodyLengths,
-                physicalImportedCount,
-                physicalImportedRows,
-                callableProductNames,
-                physicalTargetRows,
-                callableFirstParameters,
-                callableParameterCounts,
-                physicalResultTypes,
-                callableEffects,
-                physicalParameterTypes,
-                parameterModes,
-                callableProductNames,
-                callableProductNameStarts,
-                callableNameLengths,
-                compiledCallableArtifact,
-                compiledCallableIdentity
+              SourceProductArtifactPlan directArtifact = new SourceProductArtifactPlan(
+                0,
+                0,
+                0,
+                0,
+                0
               );
+              if (PHYSICAL_COMPARABLE_COUNT < physicalProduct + 1) {
+                directArtifact = compileStructuredArchiveModuleWithImportedTargets(
+                  archive,
+                  archiveSourceStarts[physicalOwner],
+                  archiveSourceLengths[physicalOwner],
+                  physicalOwner,
+                  moduleFirstCallables[physicalOwner],
+                  moduleCallableCounts[physicalOwner],
+                  callableBodyStarts,
+                  callableBodyLengths,
+                  physicalImportedCount,
+                  physicalImportedRows,
+                  callableProductNames,
+                  physicalTargetRows,
+                  physicalDependencyCount,
+                  physicalDependencyRows,
+                  callableFirstParameters,
+                  callableParameterCounts,
+                  physicalResultTypes,
+                  callableEffects,
+                  physicalParameterTypes,
+                  parameterModes,
+                  callableProductNames,
+                  callableProductNameStarts,
+                  callableNameLengths,
+                  callableIdentities,
+                  callableOwners,
+                  archive,
+                  moduleProductNameStarts,
+                  moduleProductNameLengths,
+                  callables.callableCount,
+                  callableIdentities,
+                  callableHashSlots,
+                  callableHashFunctions,
+                  directRelocationRows,
+                  directRelocationOwners,
+                  directRelocationIdentities,
+                  directInstructionTargets,
+                  compiledCallableArtifact,
+                  compiledCallableIdentity
+                );
+                physicalDirectRelocationCount = directArtifact.relocationCount;
+              } else {
+                directArtifact = compileStructuredArchiveModuleProduct(
+                  archive,
+                  archiveSourceStarts[physicalOwner],
+                  archiveSourceLengths[physicalOwner],
+                  physicalOwner,
+                  moduleFirstCallables[physicalOwner],
+                  moduleCallableCounts[physicalOwner],
+                  callableBodyStarts,
+                  callableBodyLengths,
+                  physicalImportedCount,
+                  physicalImportedRows,
+                  callableProductNames,
+                  physicalTargetRows,
+                  callableFirstParameters,
+                  callableParameterCounts,
+                  physicalResultTypes,
+                  callableEffects,
+                  physicalParameterTypes,
+                  parameterModes,
+                  callableProductNames,
+                  callableProductNameStarts,
+                  callableNameLengths,
+                  compiledCallableArtifact,
+                  compiledCallableIdentity
+                );
+              }
               physicalModule = new CompiledCallableBody(
                 directArtifact.length,
                 directArtifact.codeStart,
@@ -267,7 +321,57 @@ final class NativeCompilerPhysicalProductSource {
               physicalRetainedFunctionCount += physicalRetained.functionCount;
               physicalRetainedInstructionCount += physicalRetained.instructionCount;
             }
-            if (PHYSICAL_COMPARABLE_COUNT < physicalProduct + 1) {
+            if (0 < physicalDirectRelocationCount) {
+              resolveImportedIdentityFunctionTargets(
+                physicalDirectRelocationCount,
+                directRelocationIdentities,
+                callables.callableCount,
+                callableIdentities,
+                callableHashSlots,
+                callableHashFunctions,
+                physicalTargetRows
+              );
+              long directRelocation = 0;
+              while (directRelocation < physicalDirectRelocationCount) limit 256 {
+                long directTarget = physicalTargetRows[directRelocation];
+                if (callableOwners[directTarget] != physicalOwner) {
+                  long directOwner = directRelocationOwners[directRelocation];
+                  long directOwnerInstruction = directRelocationRows[directRelocation];
+                  long directInstruction = 0;
+                  long directOwnerOrdinal = 0;
+                  long selectedInstruction = -1;
+                  while (
+                    directInstruction < physicalFunctions.instructionCount
+                  ) limit 4096 {
+                    if (physicalInstructionRows[directInstruction] == directOwner) {
+                      if (physicalInstructionRows[4096 + directInstruction] == 0) {
+                        if (directOwnerOrdinal == directOwnerInstruction) {
+                          assert(selectedInstruction == -1);
+                          selectedInstruction = directInstruction;
+                        }
+                        directOwnerOrdinal += 1;
+                      }
+                    }
+                    directInstruction += 1;
+                  }
+                  assert(-1 < selectedInstruction);
+                  long directFrame = physicalCallableRelocationCount;
+                  assert(directFrame < 2048);
+                  set(physicalRelocationRows, 2048 + directFrame, physicalProduct);
+                  set(physicalRelocationRows, 6144 + directFrame, selectedInstruction);
+                  set(physicalRelocationRows, 10240 + directFrame, directTarget);
+                  physicalCallableRelocationCount += 1;
+                  physicalResolvedCallableTargetCount += 1;
+                }
+                directRelocation += 1;
+              }
+            }
+            boolean parserCallableProduct = PHYSICAL_COMPARABLE_COUNT
+              < physicalProduct + 1;
+            if (directSourceModule) {
+              parserCallableProduct = false;
+            }
+            if (parserCallableProduct) {
               long physicalFunction = 0;
               while (physicalFunction < physicalFunctions.functionCount) limit 64 {
                 set(physicalFunctionOwners, physicalFunction, physicalOwner);
