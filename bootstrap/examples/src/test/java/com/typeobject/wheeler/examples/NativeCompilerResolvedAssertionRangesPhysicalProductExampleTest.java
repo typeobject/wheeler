@@ -33,7 +33,7 @@ final class NativeCompilerResolvedAssertionRangesPhysicalProductExampleTest {
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(
             CompilerSources.moduleClosure(module.name()), module.name()));
-    var productProgram = NativeCompilerArchiveClosureProgram.physicalProductProgram(module);
+    var productProgram = NativeCompilerPhysicalPrograms.comparable(module);
     var manifest = CompilerSources.bootstrapModuleManifest();
     VirtualMachine machine = VirtualMachine.withBinaryInput(
         productProgram,

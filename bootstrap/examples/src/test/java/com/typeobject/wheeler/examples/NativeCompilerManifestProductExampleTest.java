@@ -19,7 +19,7 @@ final class NativeCompilerManifestProductExampleTest {
   @Test
   void compilesManifestSyntaxThroughDirectProducts() throws Exception {
     var module = NativeCompilerArchiveClosureProgram.PHYSICAL_MANIFEST_MODULE;
-    Program productProgram = NativeCompilerArchiveClosureProgram.physicalProductProgram(
+    Program productProgram = NativeCompilerPhysicalPrograms.comparable(
         NativeCompilerArchiveClosureProgram.PHYSICAL_MANIFEST_MODULE);
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(

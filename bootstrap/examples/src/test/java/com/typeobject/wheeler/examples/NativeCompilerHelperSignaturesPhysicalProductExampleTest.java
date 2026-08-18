@@ -25,7 +25,7 @@ final class NativeCompilerHelperSignaturesPhysicalProductExampleTest {
     assertEquals(10, expectedProgram.functions().size());
     assertEquals(268, expectedProgram.functions().getFirst().forward().size());
 
-    var productProgram = NativeCompilerArchiveClosureProgram.physicalProductProgram(module);
+    var productProgram = NativeCompilerPhysicalPrograms.comparable(module);
     var manifest = CompilerSources.bootstrapModuleManifest();
     VirtualMachine machine = VirtualMachine.withBinaryInput(
         productProgram,

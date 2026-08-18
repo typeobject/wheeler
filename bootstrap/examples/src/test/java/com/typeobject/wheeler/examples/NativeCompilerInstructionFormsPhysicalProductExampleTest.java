@@ -27,7 +27,7 @@ final class NativeCompilerInstructionFormsPhysicalProductExampleTest {
     assertEquals(Opcode.CALL_VALUE, operandCount.forward().get(261).opcode());
     assertEquals(3, operandCount.forward().get(263).operands().get(1));
 
-    var productProgram = NativeCompilerArchiveClosureProgram.physicalProductProgram(module);
+    var productProgram = NativeCompilerPhysicalPrograms.comparable(module);
     var manifest = CompilerSources.bootstrapModuleManifest();
     VirtualMachine machine = VirtualMachine.withBinaryInput(
         productProgram,

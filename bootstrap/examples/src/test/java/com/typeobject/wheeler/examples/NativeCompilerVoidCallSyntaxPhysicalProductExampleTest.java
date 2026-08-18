@@ -25,7 +25,7 @@ final class NativeCompilerVoidCallSyntaxPhysicalProductExampleTest {
         .orElseThrow();
     assertEquals(134, expectedFunction.forward().size());
 
-    Program productProgram = NativeCompilerArchiveClosureProgram.physicalCallableProductProgram(
+    Program productProgram = NativeCompilerPhysicalPrograms.callable(
         module);
     var manifest = CompilerSources.bootstrapModuleManifest();
     VirtualMachine machine = VirtualMachine.withBinaryInput(

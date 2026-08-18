@@ -6,7 +6,10 @@ import java.util.List;
 final class NativeCompilerPhysicalProductSource {
   private static final List<String> DIRECT_SOURCE_MODULES = List.of(
       "wheeler.compiler.assignment_call_arities",
+      "wheeler.compiler.assignment_call_code_widths",
       "wheeler.compiler.assignment_call_columns",
+      "wheeler.compiler.assignment_call_instruction_widths",
+      "wheeler.compiler.assignment_call_local_widths",
       "wheeler.compiler.boolean_declaration_kinds",
       "wheeler.compiler.boolean_tokens",
       "wheeler.compiler.borrowed_intrinsic_shapes",

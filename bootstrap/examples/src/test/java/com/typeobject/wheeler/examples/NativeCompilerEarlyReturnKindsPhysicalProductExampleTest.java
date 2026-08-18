@@ -29,7 +29,7 @@ final class NativeCompilerEarlyReturnKindsPhysicalProductExampleTest {
     assertEquals(Opcode.CALL_VALUE, localCount.forward().get(37).opcode());
     assertEquals(4, localCount.forward().get(39).operands().get(1));
 
-    var productProgram = NativeCompilerArchiveClosureProgram.physicalProductProgram(module);
+    var productProgram = NativeCompilerPhysicalPrograms.comparable(module);
     var manifest = CompilerSources.bootstrapModuleManifest();
     VirtualMachine machine = VirtualMachine.withBinaryInput(
         productProgram,

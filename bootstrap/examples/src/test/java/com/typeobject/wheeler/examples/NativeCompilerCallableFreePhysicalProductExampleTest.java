@@ -23,7 +23,7 @@ final class NativeCompilerCallableFreePhysicalProductExampleTest {
         CompilerSources.moduleClosure(module.name()), module.name());
     byte[] expected = new BytecodeWriter().write(compiled);
     assertEquals(1, compiled.functions().size());
-    var productProgram = NativeCompilerArchiveClosureProgram.physicalProductProgram(module);
+    var productProgram = NativeCompilerPhysicalPrograms.comparable(module);
     byte[] archive = CompilerSources.packageArchive();
     byte[] manifest = CompilerSources.bootstrapModuleManifest().canonicalBytes();
     VirtualMachine machine = VirtualMachine.withBinaryInput(

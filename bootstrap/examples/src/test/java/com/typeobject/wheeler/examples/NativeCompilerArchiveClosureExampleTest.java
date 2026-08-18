@@ -33,7 +33,7 @@ final class NativeCompilerArchiveClosureExampleTest {
   @Tag("closure-evidence")
   @Test
   void joinsEveryPhysicalCompilerModuleToItsDigestCheckedArchiveRange() throws Exception {
-    Program program = NativeCompilerArchiveClosureProgram.metadataProgram();
+    Program program = NativeCompilerPhysicalPrograms.metadata();
     byte[] archive = CompilerSources.packageArchive();
     BootstrapModuleManifest manifest = CompilerSources.bootstrapModuleManifest();
     VirtualMachine machine = VirtualMachine.withBinaryInput(
@@ -115,7 +115,7 @@ final class NativeCompilerArchiveClosureExampleTest {
 
   @Test
   void productionClosureBuildsTheStructuredSourceProductRoute() throws Exception {
-    Program program = NativeCompilerArchiveClosureProgram.physicalProductProgram(
+    Program program = NativeCompilerPhysicalPrograms.comparable(
         NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES.getLast());
     assertTrue(program.functions().stream().anyMatch(function -> function.name().equals(
         "wheeler.compiler.closure.compiled_callable_bodies"
@@ -131,7 +131,7 @@ final class NativeCompilerArchiveClosureExampleTest {
         .filter(candidate -> candidate.name().endsWith("::nextSourceToken"))
         .findFirst()
         .orElseThrow();
-    Program productProgram = NativeCompilerArchiveClosureProgram.physicalProductProgram(module);
+    Program productProgram = NativeCompilerPhysicalPrograms.comparable(module);
 
     assertTrue(productProgram.functions().stream().anyMatch(candidate -> candidate.name().equals(
         "wheeler.compiler.closure.compiled_callable_bodies"

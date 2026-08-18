@@ -39,28 +39,7 @@ final class NativeCompilerArchiveClosureProgram {
         PHYSICAL_CALLABLE_MODULES);
   }
 
-  static Program physicalProductProgram(PhysicalModule module) throws Exception {
-    return program(
-        /* compilePhysicalProducts= */ true,
-        List.of(module),
-        List.of());
-  }
-
-  static Program physicalCallableProductProgram(PhysicalModule module) throws Exception {
-    return program(
-        /* compilePhysicalProducts= */ true,
-        List.of(),
-        List.of(module));
-  }
-
-  static Program metadataProgram() throws Exception {
-    return program(
-        /* compilePhysicalProducts= */ false,
-        PHYSICAL_MODULES,
-        PHYSICAL_CALLABLE_MODULES);
-  }
-
-  private static Program program(
+  static Program program(
       boolean compilePhysicalProducts,
       List<PhysicalModule> comparableModules,
       List<PhysicalModule> callableModules) throws Exception {

@@ -25,7 +25,7 @@ final class NativeCompilerBorrowedIntrinsicShapesPhysicalProductExampleTest {
     assertEquals(8, expectedProgram.functions().size());
     assertEquals(128, expectedProgram.functions().get(5).forward().size());
 
-    var productProgram = NativeCompilerArchiveClosureProgram.physicalProductProgram(module);
+    var productProgram = NativeCompilerPhysicalPrograms.comparable(module);
     var manifest = CompilerSources.bootstrapModuleManifest();
     VirtualMachine machine = VirtualMachine.withBinaryInput(
         productProgram,
