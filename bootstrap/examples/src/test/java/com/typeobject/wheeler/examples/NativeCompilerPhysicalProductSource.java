@@ -9,6 +9,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.assignment_call_columns",
       "wheeler.compiler.boolean_declaration_kinds",
       "wheeler.compiler.boolean_tokens",
+      "wheeler.compiler.borrowed_intrinsic_shapes",
       "wheeler.compiler.call_argument_sources",
       "wheeler.compiler.call_arguments",
       "wheeler.compiler.closure.aggregate_source_projection",
