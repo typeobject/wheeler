@@ -190,9 +190,15 @@ short transfer returns exact prefix placement evidence.
 `RemoteMemory` uses an epoch-scoped advertisement naming range, rights, and
 revocation epoch. Writes produce placement only. Peer acknowledgement, peer
 application, and persistence remain distinct stages. Reconnection advances the
-epoch and restores no earlier authority. The present profile establishes type and
-lifecycle boundaries without claiming an RNIC, transport, remote peer, or
-persistent-memory implementation.
+epoch and restores no earlier authority.
+
+`NativeRnicRegistry` owns the host RNIC registration boundary. It binds a held
+buffer range, remote rights, a monotonic generation, and backend-issued address
+and keys into one private-constructor authority. Revocation removes authority
+before native teardown. Disconnect revokes every registration in generation
+order and releases every owner even when a backend reports failure. Registration
+moves no bytes and establishes no completion, placement, peer, or persistence
+evidence.
 
 ## Batches, selection, and graphs
 
