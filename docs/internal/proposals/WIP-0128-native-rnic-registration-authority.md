@@ -9,7 +9,7 @@
 | Area | Native I/O, RNIC registration, ownership |
 | Depends on | WIP-0032 |
 | Supersedes | Unbounded host-owned RNIC registration handles |
-| Superseded by | A complete native RNIC transfer and persistence provider |
+| Superseded by | WIP-0129 for one-sided write completion, followed by later peer and persistence stages |
 
 ## Summary
 

@@ -6,7 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.typeobject.wheeler.runtime.io.IoCompletion.TerminalKind;
 import com.typeobject.wheeler.runtime.io.NativeRnicRegistry.NativeHandle;
+import com.typeobject.wheeler.runtime.io.NativeRnicRegistry.NativeWriteCompletion;
 import com.typeobject.wheeler.runtime.io.NativeRnicRegistry.Rights;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -80,6 +82,92 @@ final class NativeRnicRegistryTest {
   }
 
   @Test
+  void oneSidedWriteUsesThePortableLifecycleWithoutPeerOrDurabilityClaims() {
+    RecordingBackend backend = new RecordingBackend();
+    NativeRnicRegistry registry = new NativeRnicRegistry("rnic-write", 2, backend);
+    OwnedIoBuffer targetOwner = OwnedIoBuffer.allocate(8);
+    NativeRnicRegistry.Registration target = registry.register(
+        targetOwner, 0, 8, Rights.REMOTE_WRITE);
+    OwnedIoBuffer source = OwnedIoBuffer.copyOf(new byte[] {9, 8, 7, 6});
+
+    IoRequest<NativeRnicRegistry.WriteCompleted> request = registry.write(
+        target, 2, source, 1, 3);
+
+    assertEquals(0, backend.writeCalls);
+    assertThrows(IllegalStateException.class, source::snapshot);
+    NativeRnicRegistry.WriteCompleted completed;
+    try (IoScope scope = new DeterministicIo(
+        DeterministicIo.Delivery.INLINE).scope(new IoLimits(4, 4, 4, 4, 4, 16))) {
+      completed = scope.await(request).value();
+    }
+    assertEquals(1, backend.writeCalls);
+    assertEquals(List.of(8, 7, 6), backend.writtenBytes);
+    assertEquals(target, completed.registration());
+    assertEquals(2, completed.relativeOffset());
+    assertEquals(3, completed.bytes());
+    assertEquals(
+        "839aeb4316d7dfaca3d5d0c35009402f3d6b72e851ce3e03bc3446ddf819b0b8",
+        completed.contentIdentity());
+    assertEquals("d".repeat(64), completed.evidenceIdentity());
+    assertFalse(DurabilityReceipt.class.isInstance(completed));
+    assertFalse(RemoteMemory.PeerAcknowledgement.class.isInstance(completed));
+    assertEquals(4, source.snapshot().length);
+    assertThrows(IllegalStateException.class, targetOwner::snapshot);
+    registry.close();
+  }
+
+  @Test
+  void malformedNativeCompletionPublishesOnlyUncertainty() {
+    RecordingBackend backend = new RecordingBackend();
+    backend.malformedWrite = true;
+    NativeRnicRegistry registry = new NativeRnicRegistry("rnic-write-malformed", 1, backend);
+    OwnedIoBuffer targetOwner = OwnedIoBuffer.allocate(4);
+    NativeRnicRegistry.Registration target = registry.register(
+        targetOwner, 0, 4, Rights.REMOTE_WRITE);
+    OwnedIoBuffer source = OwnedIoBuffer.copyOf(new byte[] {5, 4, 3});
+
+    try (IoScope scope = new DeterministicIo(
+        DeterministicIo.Delivery.INLINE).scope(new IoLimits(4, 4, 4, 4, 4, 16))) {
+      IoCompletion<NativeRnicRegistry.WriteCompleted> completion = scope.await(
+          registry.write(target, 0, source, 0, 3));
+      assertEquals(TerminalKind.UNCERTAIN, completion.terminalKind());
+      assertEquals("native-rnic-completion-mismatch", completion.detail());
+      assertEquals(2, completion.progress());
+    }
+    assertEquals(3, source.snapshot().length);
+    registry.close();
+  }
+
+  @Test
+  void staleAndReadOnlyWritesFailBeforeNativeWork() {
+    RecordingBackend backend = new RecordingBackend();
+    NativeRnicRegistry registry = new NativeRnicRegistry("rnic-write-race", 2, backend);
+    OwnedIoBuffer readOwner = OwnedIoBuffer.allocate(4);
+    NativeRnicRegistry.Registration readOnly = registry.register(
+        readOwner, 0, 4, Rights.REMOTE_READ);
+    OwnedIoBuffer source = OwnedIoBuffer.copyOf(new byte[] {1, 2});
+    assertThrows(
+        IllegalStateException.class,
+        () -> registry.write(readOnly, 0, source, 0, 2));
+    assertEquals(2, source.snapshot().length);
+    registry.revoke(readOnly);
+
+    OwnedIoBuffer writeOwner = OwnedIoBuffer.allocate(4);
+    NativeRnicRegistry.Registration writable = registry.register(
+        writeOwner, 0, 4, Rights.REMOTE_WRITE);
+    IoRequest<NativeRnicRegistry.WriteCompleted> request = registry.write(
+        writable, 0, source, 0, 2);
+    registry.revoke(writable);
+    try (IoScope scope = new DeterministicIo(
+        DeterministicIo.Delivery.INLINE).scope(new IoLimits(4, 4, 4, 4, 4, 16))) {
+      assertEquals(TerminalKind.UNCERTAIN, scope.await(request).terminalKind());
+    }
+    assertEquals(0, backend.writeCalls);
+    assertEquals(2, source.snapshot().length);
+    registry.close();
+  }
+
+  @Test
   void malformedBackendRegistrationNeverPublishesAndReleasesTheOwner() {
     RecordingBackend backend = new RecordingBackend();
     backend.malformed = true;
@@ -124,8 +212,11 @@ final class NativeRnicRegistryTest {
 
   private static final class RecordingBackend implements NativeRnicRegistry.Backend {
     private final List<Long> deregisteredGenerations = new ArrayList<>();
+    private final List<Integer> writtenBytes = new ArrayList<>();
     private boolean malformed;
+    private boolean malformedWrite;
     private long failedDeregistration = -1;
+    private int writeCalls;
     private boolean disconnected;
 
     @Override
@@ -143,6 +234,26 @@ final class NativeRnicRegistryTest {
           100 + generation,
           200 + generation,
           handleGeneration);
+    }
+
+    @Override
+    public IoProviderResult<NativeWriteCompletion> write(
+        NativeHandle target,
+        int relativeOffset,
+        OwnedIoBuffer source,
+        int sourceOffset,
+        int length) {
+      writeCalls += 1;
+      byte[] bytes = new byte[length];
+      source.copyTo(sourceOffset, bytes, 0, length);
+      for (byte value : bytes) {
+        writtenBytes.add(Byte.toUnsignedInt(value));
+      }
+      int completed = malformedWrite ? length - 1 : length;
+      return IoProviderResult.success(
+          new NativeWriteCompletion(
+              target.generation(), relativeOffset, completed, "d".repeat(64)),
+          length);
     }
 
     @Override

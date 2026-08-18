@@ -196,9 +196,14 @@ epoch and restores no earlier authority.
 buffer range, remote rights, a monotonic generation, and backend-issued address
 and keys into one private-constructor authority. Revocation removes authority
 before native teardown. Disconnect revokes every registration in generation
-order and releases every owner even when a backend reports failure. Registration
-moves no bytes and establishes no completion, placement, peer, or persistence
-evidence.
+order and releases every owner even when a backend reports failure.
+
+A native one-sided write enters through ordinary `IoRequest` and `IoScope`.
+Request construction holds the exact source range but performs no backend work.
+Completion requires matching generation, target range, byte count, provider
+progress, source-content identity, and backend evidence. A revocation race or
+malformed provider success returns uncertainty. Native completion establishes no
+peer acknowledgement, application, persistence, or durability evidence.
 
 ## Batches, selection, and graphs
 

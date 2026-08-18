@@ -14,7 +14,11 @@ public final class NativeRnicRegistry implements AutoCloseable {
   public enum Rights {
     REMOTE_READ,
     REMOTE_WRITE,
-    REMOTE_READ_WRITE
+    REMOTE_READ_WRITE;
+
+    private boolean permitsWrite() {
+      return this == REMOTE_WRITE || this == REMOTE_READ_WRITE;
+    }
   }
 
   /** Opaque native registration fields returned by an RNIC backend. */
@@ -25,6 +29,13 @@ public final class NativeRnicRegistry implements AutoCloseable {
       long remoteKey,
       long generation) {}
 
+  /** Raw backend completion for one native one-sided write. */
+  public record NativeWriteCompletion(
+      long generation,
+      int relativeOffset,
+      int bytes,
+      String evidenceIdentity) {}
+
   /** Host RNIC registration and disconnect boundary. */
   public interface Backend {
     /** Pins or maps the held owner and returns its exact native registration. */
@@ -34,6 +45,14 @@ public final class NativeRnicRegistry implements AutoCloseable {
         int length,
         Rights rights,
         long generation);
+
+    /** Performs one native one-sided write against a current registration. */
+    IoProviderResult<NativeWriteCompletion> write(
+        NativeHandle target,
+        int relativeOffset,
+        OwnedIoBuffer source,
+        int sourceOffset,
+        int length);
 
     /** Revokes one native registration. */
     void deregister(NativeHandle handle);
@@ -92,6 +111,61 @@ public final class NativeRnicRegistry implements AutoCloseable {
     }
 
     /** Returns the canonical registration identity. */
+    public String identity() {
+      return identity;
+    }
+  }
+
+  /** Exact native completion of one one-sided write, without peer or durability claims. */
+  public static final class WriteCompleted {
+    private final Registration registration;
+    private final int relativeOffset;
+    private final int bytes;
+    private final String contentIdentity;
+    private final String evidenceIdentity;
+    private final String identity;
+
+    private WriteCompleted(
+        Registration registration,
+        int relativeOffset,
+        int bytes,
+        String contentIdentity,
+        String evidenceIdentity,
+        String identity) {
+      this.registration = registration;
+      this.relativeOffset = relativeOffset;
+      this.bytes = bytes;
+      this.contentIdentity = contentIdentity;
+      this.evidenceIdentity = evidenceIdentity;
+      this.identity = identity;
+    }
+
+    /** Returns the exact target registration. */
+    public Registration registration() {
+      return registration;
+    }
+
+    /** Returns the first registration-relative byte written. */
+    public int relativeOffset() {
+      return relativeOffset;
+    }
+
+    /** Returns the exact completed byte count. */
+    public int bytes() {
+      return bytes;
+    }
+
+    /** Returns the exact source-content identity. */
+    public String contentIdentity() {
+      return contentIdentity;
+    }
+
+    /** Returns the backend completion evidence identity. */
+    public String evidenceIdentity() {
+      return evidenceIdentity;
+    }
+
+    /** Returns the canonical native write-completion identity. */
     public String identity() {
       return identity;
     }
@@ -180,6 +254,49 @@ public final class NativeRnicRegistry implements AutoCloseable {
     }
   }
 
+  /** Prepares one native one-sided write without running backend work. */
+  public synchronized IoRequest<WriteCompleted> write(
+      Registration target,
+      int relativeOffset,
+      OwnedIoBuffer source,
+      int sourceOffset,
+      int length) {
+    Active current = requireCurrent(target);
+    if (!target.rights.permitsWrite()) {
+      throw new IllegalStateException("RNIC registration does not permit remote writes");
+    }
+    Objects.requireNonNull(source, "source");
+    byte[] sourceBytes = source.snapshot();
+    int sourceLength = sourceBytes.length;
+    if (relativeOffset < 0 || length < 1 || target.length < relativeOffset
+        || target.length - relativeOffset < length || sourceOffset < 0
+        || sourceLength < sourceOffset || sourceLength - sourceOffset < length) {
+      throw new IllegalArgumentException("native RNIC write range is out of bounds");
+    }
+
+    byte[] content = new byte[length];
+    System.arraycopy(sourceBytes, sourceOffset, content, 0, length);
+    String contentIdentity = sha256(content);
+    source.hold();
+    try {
+      return IoRequest.prepare(
+          "native-rnic-write:" + target.identity + ':' + relativeOffset + ':' + length,
+          length,
+          () -> executeWrite(
+              target,
+              current.handle,
+              relativeOffset,
+              source,
+              sourceOffset,
+              length,
+              contentIdentity),
+          source::release);
+    } catch (RuntimeException failure) {
+      source.release();
+      throw failure;
+    }
+  }
+
   /** Reports whether this registry still owns the exact registration generation. */
   public synchronized boolean isCurrent(Registration registration) {
     if (registration == null || !identity.equals(registration.providerIdentity)) {
@@ -229,6 +346,75 @@ public final class NativeRnicRegistry implements AutoCloseable {
     }
   }
 
+  private IoProviderResult<WriteCompleted> executeWrite(
+      Registration target,
+      NativeHandle handle,
+      int relativeOffset,
+      OwnedIoBuffer source,
+      int sourceOffset,
+      int length,
+      String contentIdentity) {
+    synchronized (this) {
+      if (!isCurrent(target)) {
+        return IoProviderResult.uncertain("native-rnic-registration-became-stale", 0);
+      }
+    }
+
+    IoProviderResult<NativeWriteCompletion> result = Objects.requireNonNull(
+        backend.write(handle, relativeOffset, source, sourceOffset, length),
+        "native RNIC write result");
+    if (result.kind() != IoProviderResult.Kind.SUCCESS) {
+      return carryFailure(result);
+    }
+
+    NativeWriteCompletion completion = Objects.requireNonNull(
+        result.value(), "native RNIC write completion");
+    synchronized (this) {
+      if (!isCurrent(target)) {
+        return IoProviderResult.uncertain(
+            "native-rnic-registration-became-stale", boundedProgress(completion.bytes(), length));
+      }
+    }
+    if (completion.generation() != target.generation
+        || completion.relativeOffset() != relativeOffset
+        || completion.bytes() != length
+        || result.progress() != length
+        || !validHash(completion.evidenceIdentity())) {
+      return IoProviderResult.uncertain(
+          "native-rnic-completion-mismatch", boundedProgress(completion.bytes(), length));
+    }
+
+    String canonical = target.identity + '\0' + relativeOffset + '\0' + length
+        + '\0' + contentIdentity + '\0' + completion.evidenceIdentity();
+    WriteCompleted completed = new WriteCompleted(
+        target,
+        relativeOffset,
+        length,
+        contentIdentity,
+        completion.evidenceIdentity(),
+        digest("wheeler-native-rnic-write-completion-1", canonical));
+    return IoProviderResult.success(completed, length);
+  }
+
+  private static <T> IoProviderResult<T> carryFailure(IoProviderResult<?> result) {
+    return switch (result.kind()) {
+      case SUCCESS -> throw new IllegalArgumentException("expected nonsuccess RNIC result");
+      case FAILURE -> IoProviderResult.failure(result.detail(), result.progress());
+      case CANCELED_BEFORE_EFFECT -> IoProviderResult.canceledBeforeEffect(result.detail());
+      case CANCELED_AFTER_PARTIAL_EFFECT ->
+          IoProviderResult.canceledAfterPartial(result.detail(), result.progress());
+      case UNCERTAIN -> IoProviderResult.uncertain(result.detail(), result.progress());
+    };
+  }
+
+  private static int boundedProgress(int progress, int length) {
+    return Math.max(0, Math.min(progress, length));
+  }
+
+  private static boolean validHash(String value) {
+    return value != null && value.matches("[0-9a-f]{64}");
+  }
+
   private Active requireCurrent(Registration registration) {
     Objects.requireNonNull(registration, "registration");
     if (!identity.equals(registration.providerIdentity)) {
@@ -269,8 +455,11 @@ public final class NativeRnicRegistry implements AutoCloseable {
   }
 
   private static String digest(String domain, String canonical) {
+    return sha256((domain + '\0' + canonical).getBytes(StandardCharsets.UTF_8));
+  }
+
+  private static String sha256(byte[] bytes) {
     try {
-      byte[] bytes = (domain + '\0' + canonical).getBytes(StandardCharsets.UTF_8);
       return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
     } catch (NoSuchAlgorithmException impossible) {
       throw new IllegalStateException("SHA-256 is unavailable", impossible);
