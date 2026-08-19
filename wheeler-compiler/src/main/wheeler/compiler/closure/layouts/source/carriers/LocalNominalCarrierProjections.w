@@ -185,10 +185,19 @@ classical class LocalNominalCarrierProjections {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < PROJECTION_ROWS) limit PROJECTION_ROWS {
-        set(projectionRows, row, stagedRows[row]);
-        row += 1;
+      long column = 0;
+      while (column < 8) limit 8 {
+        long row = 0;
+        while (row < referenceCount) limit MAX_REFERENCES {
+          set(
+            projectionRows,
+            column * MAX_REFERENCES + row,
+            stagedRows[column * MAX_REFERENCES + row]
+          );
+          row += 1;
+        }
+
+        column += 1;
       }
     }
 

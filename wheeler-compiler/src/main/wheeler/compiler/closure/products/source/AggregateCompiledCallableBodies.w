@@ -494,10 +494,19 @@ classical class AggregateCompiledCallableBodies {
       identityByte += 1;
     }
 
-    long projectionRow = 0;
-    while (projectionRow < 49152) limit 49152 {
-      set(nominalProjectionRows, projectionRow, stagedProjections[projectionRow]);
-      projectionRow += 1;
+    long nominalColumn = 0;
+    while (nominalColumn < 3) limit 3 {
+      long nominalProjection = 0;
+      while (nominalProjection < nominals.projectionCount) limit 4096 {
+        set(
+          nominalProjectionRows,
+          nominalColumn * 16384 + nominalProjection,
+          stagedProjections[nominalColumn * 16384 + nominalProjection]
+        );
+        nominalProjection += 1;
+      }
+
+      nominalColumn += 1;
     }
 
     long constructorTargetRow = 0;
@@ -581,14 +590,19 @@ classical class AggregateCompiledCallableBodies {
       bindingRow += 1;
     }
 
-    long localProjectionRow = 0;
-    while (localProjectionRow < 4096) limit 4096 {
-      set(
-        localNominalProjectionRows,
-        localProjectionRow,
-        stagedLocalProjections[localProjectionRow]
-      );
-      localProjectionRow += 1;
+    long localProjectionColumn = 0;
+    while (localProjectionColumn < 8) limit 8 {
+      long localProjection = 0;
+      while (localProjection < localProjectionPlan.projectionCount) limit 512 {
+        set(
+          localNominalProjectionRows,
+          localProjectionColumn * 512 + localProjection,
+          stagedLocalProjections[localProjectionColumn * 512 + localProjection]
+        );
+        localProjection += 1;
+      }
+
+      localProjectionColumn += 1;
     }
 
     long valueRow = 0;
@@ -609,14 +623,19 @@ classical class AggregateCompiledCallableBodies {
       statementRow += 1;
     }
 
-    long carrierProjectionRow = 0;
-    while (carrierProjectionRow < 65536) limit 65536 {
-      set(
-        carrierProjectionRows,
-        carrierProjectionRow,
-        stagedCarrierProjections[carrierProjectionRow]
-      );
-      carrierProjectionRow += 1;
+    long carrierProjectionColumn = 0;
+    while (carrierProjectionColumn < 4) limit 4 {
+      long carrierProjection = 0;
+      while (carrierProjection < carrierProjectionPlan.projectionCount) limit 4096 {
+        set(
+          carrierProjectionRows,
+          carrierProjectionColumn * 16384 + carrierProjection,
+          stagedCarrierProjections[carrierProjectionColumn * 16384 + carrierProjection]
+        );
+        carrierProjection += 1;
+      }
+
+      carrierProjectionColumn += 1;
     }
 
     drop(stagedCarrierProjections);
