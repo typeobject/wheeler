@@ -44,13 +44,22 @@ classical class AggregateExpressionTemporaries {
     region staging = new region(/* bytes= */ 57856, /* allocations= */ 2);
     words stagedValues = allocate(staging, VALUE_ROWS);
     words stagedLocalCounts = allocate(staging, FUNCTION_LOCAL_ROWS);
-    long row = 0;
-    while (row < VALUE_ROWS) limit VALUE_ROWS {
-      set(stagedValues, row, valueRows[row]);
-      row += 1;
+    long copiedValueColumn = 0;
+    while (copiedValueColumn < 7) limit 7 {
+      long copiedValue = 0;
+      while (copiedValue < valueCount) limit MAX_VALUES {
+        set(
+          stagedValues,
+          copiedValueColumn * MAX_VALUES + copiedValue,
+          valueRows[copiedValueColumn * MAX_VALUES + copiedValue]
+        );
+        copiedValue += 1;
+      }
+
+      copiedValueColumn += 1;
     }
 
-    row = 0;
+    long row = 0;
     while (row < FUNCTION_LOCAL_ROWS) limit FUNCTION_LOCAL_ROWS {
       set(stagedLocalCounts, row, functionLocalCounts[row]);
       row += 1;
@@ -197,10 +206,19 @@ classical class AggregateExpressionTemporaries {
     }
 
     if (valid) {
-      row = 0;
-      while (row < VALUE_ROWS) limit VALUE_ROWS {
-        set(valueRows, row, stagedValues[row]);
-        row += 1;
+      long publishedValueColumn = 0;
+      while (publishedValueColumn < 7) limit 7 {
+        long publishedValue = 0;
+        while (publishedValue < valueCount + temporaryCount) limit MAX_VALUES {
+          set(
+            valueRows,
+            publishedValueColumn * MAX_VALUES + publishedValue,
+            stagedValues[publishedValueColumn * MAX_VALUES + publishedValue]
+          );
+          publishedValue += 1;
+        }
+
+        publishedValueColumn += 1;
       }
 
       row = 0;
