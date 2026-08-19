@@ -217,10 +217,19 @@ classical class AggregatePlaceholderPlacements {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < PLACEMENT_ROWS) limit PLACEMENT_ROWS {
-        set(placementRows, row, stagedPlacements[row]);
-        row += 1;
+      long column = 0;
+      while (column < 3) limit 3 {
+        long row = 0;
+        while (row < operationCount) limit MAX_OPERATIONS {
+          set(
+            placementRows,
+            column * MAX_OPERATIONS + row,
+            stagedPlacements[column * MAX_OPERATIONS + row]
+          );
+          row += 1;
+        }
+
+        column += 1;
       }
     }
 
