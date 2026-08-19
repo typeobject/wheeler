@@ -605,6 +605,7 @@ classical class StructuredSourceModuleCompiler {
       source,
       moduleOwner,
       reversibleCallableCount,
+      callableCount,
       symbolCount,
       symbolOwners,
       symbolStarts,

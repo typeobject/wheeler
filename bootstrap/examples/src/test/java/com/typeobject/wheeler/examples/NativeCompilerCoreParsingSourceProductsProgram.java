@@ -89,6 +89,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
           state long directInstructionCount = 0;
           state long directLength = 0;
           state long directTypeCount = 0;
+          state long inactiveFunctionResultType = 0;
           state long directWidthsValid = 0;
           state long loopFrameWidthsValid = 0;
           state long coordinateValid = 0;
@@ -193,6 +194,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             words artifactLengths = allocate(products, /* length= */ 512);
             bytes bodyArchive = allocateBytes(products, /* length= */ 16777216);
             words unusedCallInstructionStarts = allocate(products, /* length= */ 256);
+            set(functionResultTypes, 63, 91);
             set(bodyStarts, 0, %d);
             set(bodyLengths, 0, %d);
             set(bodyStarts, 1, %d);
@@ -358,6 +360,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
               input,
               /* moduleOwner= */ 0,
               /* reversibleCallableCount= */ 0,
+              /* functionCount= */ 2,
               /* symbolCount= */ 1,
               symbolOwners,
               symbolStarts,
@@ -683,6 +686,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             directInstructionCount = directPlan.instructionCount;
             directLength = directPlan.length;
             directTypeCount = directPlan.typeCount;
+            inactiveFunctionResultType = functionResultTypes[63];
             composedInstructionCount = compositionPlan.instructionCount;
             composedLength = compositionPlan.length;
             composedTypeCount = compositionPlan.typeCount;

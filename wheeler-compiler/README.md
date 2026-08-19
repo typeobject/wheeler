@@ -181,7 +181,8 @@ event and relocation extents. Source-planned and instruction-decoded ownership c
 same active event bounds. Local nominal source rewrites carry only measured carrier and projection
 rows. Local nominal references and imported nominal stub projections publish only active ranges.
 Primitive dependency views admit only public callables with complete available signatures.
-Qualified-call width staging follows the closed statement count. Loop instruction staging follows
+Qualified-call width staging follows the closed statement count. Direct result-type staging follows
+the closed function count. Loop instruction staging follows
 active body, loop, and call counts. Aggregate target, owner, and
 slice sentinel staging follows active operation counts. `StatementKinds.w` owns 139 unresolved statement identities. `LoopKinds.w` owns six loop-form
 identities. `ResolvedStatements.w` owns ninety-two resolved columns. `BorrowedIntrinsicKinds.w`

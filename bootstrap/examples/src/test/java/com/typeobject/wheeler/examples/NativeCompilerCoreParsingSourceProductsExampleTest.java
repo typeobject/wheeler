@@ -151,6 +151,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
       }
     }
     assertEquals(directTypeCount, machine.global("directTypeCount"));
+    assertEquals(91, machine.global("inactiveFunctionResultType"));
     assertEquals(1, machine.global("directWidthsValid"));
     assertEquals(1, machine.global("loopFrameWidthsValid"));
     assertEquals(1, machine.global("coordinateValid"));

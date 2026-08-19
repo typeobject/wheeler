@@ -52,6 +52,7 @@ classical class DirectStatementProducts {
     borrow utf8 source,
     long moduleOwner,
     long reversibleCallableCount,
+    long functionCount,
     long symbolCount,
     borrow mut words symbolOwners,
     borrow mut words symbolStarts,
@@ -80,6 +81,8 @@ classical class DirectStatementProducts {
     assert(-1 < moduleOwner);
     assert(-1 < reversibleCallableCount);
     assert(reversibleCallableCount < 65);
+    assert(-1 < functionCount);
+    assert(functionCount < 65);
     assert(-1 < symbolCount);
     assert(symbolCount < 16385);
     assert(bufferLength(symbolOwners) == 16384);
@@ -140,7 +143,7 @@ classical class DirectStatementProducts {
     }
 
     long resultCallable = 0;
-    while (resultCallable < 64) limit 64 {
+    while (resultCallable < functionCount) limit 64 {
       set(stagedResultTypes, resultCallable, functionResultTypes[resultCallable]);
       set(functionPrefixesComplete, resultCallable, 1);
       resultCallable += 1;
@@ -772,7 +775,7 @@ classical class DirectStatementProducts {
       }
 
       row = 0;
-      while (row < 64) limit 64 {
+      while (row < functionCount) limit 64 {
         set(functionResultTypes, row, stagedResultTypes[row]);
         row += 1;
       }
