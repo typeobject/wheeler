@@ -152,10 +152,19 @@ classical class LocalNominalCarriers {
     bytes stagedSource = allocateBytes(staging, MAX_SOURCE_BYTES);
     words stagedRows = allocate(staging, CARRIER_ROWS);
     words stagedProjections = allocate(staging, PROJECTION_ROWS);
-    long projectionRow = 0;
-    while (projectionRow < PROJECTION_ROWS) limit PROJECTION_ROWS {
-      set(stagedProjections, projectionRow, projectionRows[projectionRow]);
-      projectionRow += 1;
+    long copiedProjectionColumn = 0;
+    while (copiedProjectionColumn < 8) limit 8 {
+      long copiedProjection = 0;
+      while (copiedProjection < referenceCount) limit MAX_REFERENCES {
+        set(
+          stagedProjections,
+          copiedProjectionColumn * MAX_REFERENCES + copiedProjection,
+          projectionRows[copiedProjectionColumn * MAX_REFERENCES + copiedProjection]
+        );
+        copiedProjection += 1;
+      }
+
+      copiedProjectionColumn += 1;
     }
 
     long sourceCursor = 0;
@@ -212,16 +221,34 @@ classical class LocalNominalCarriers {
         outputByte += 1;
       }
 
-      long row = 0;
-      while (row < CARRIER_ROWS) limit CARRIER_ROWS {
-        set(carrierRows, row, stagedRows[row]);
-        row += 1;
+      long column = 0;
+      while (column < 4) limit 4 {
+        long carrier = 0;
+        while (carrier < referenceCount) limit MAX_REFERENCES {
+          set(
+            carrierRows,
+            column * MAX_REFERENCES + carrier,
+            stagedRows[column * MAX_REFERENCES + carrier]
+          );
+          carrier += 1;
+        }
+
+        column += 1;
       }
 
-      row = 0;
-      while (row < PROJECTION_ROWS) limit PROJECTION_ROWS {
-        set(projectionRows, row, stagedProjections[row]);
-        row += 1;
+      column = 0;
+      while (column < 8) limit 8 {
+        long projection = 0;
+        while (projection < referenceCount) limit MAX_REFERENCES {
+          set(
+            projectionRows,
+            column * MAX_REFERENCES + projection,
+            stagedProjections[column * MAX_REFERENCES + projection]
+          );
+          projection += 1;
+        }
+
+        column += 1;
       }
     }
 
