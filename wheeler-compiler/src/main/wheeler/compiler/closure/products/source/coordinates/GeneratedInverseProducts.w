@@ -315,10 +315,19 @@ classical class GeneratedInverseProducts {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < INVERSE_ROWS) limit INVERSE_ROWS {
-        set(inverseRows, row, stagedRows[row]);
-        row += 1;
+      long column = 0;
+      while (column < 3) limit 3 {
+        long row = 0;
+        while (row < callableCount) limit MAX_CALLABLES {
+          set(
+            inverseRows,
+            column * MAX_CALLABLES + row,
+            stagedRows[column * MAX_CALLABLES + row]
+          );
+          row += 1;
+        }
+
+        column += 1;
       }
 
       long codeByte = 0;

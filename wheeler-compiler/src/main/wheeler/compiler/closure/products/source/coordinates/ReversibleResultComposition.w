@@ -279,10 +279,19 @@ classical class ReversibleResultComposition {
     }
 
     if (valid) {
-      long publishedType = 0;
-      while (publishedType < TYPE_ROWS) limit TYPE_ROWS {
-        set(composedTypes, publishedType, stagedTypes[publishedType]);
-        publishedType += 1;
+      long column = 0;
+      while (column < 3) limit 3 {
+        long publishedType = 0;
+        while (publishedType < stagedTypeCount) limit MAX_LOCAL_TYPES {
+          set(
+            composedTypes,
+            column * MAX_LOCAL_TYPES + publishedType,
+            stagedTypes[column * MAX_LOCAL_TYPES + publishedType]
+          );
+          publishedType += 1;
+        }
+
+        column += 1;
       }
 
       long publishedTypeStart = 0;

@@ -188,20 +188,29 @@ classical class GeneratedInverseRelocations {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < RELOCATION_ROWS) limit RELOCATION_ROWS {
-        set(inverseRelocationRows, row, stagedRows[row]);
-        row += 1;
+      long column = 0;
+      while (column < 3) limit 3 {
+        long relocationRow = 0;
+        while (relocationRow < relocationCount) limit MAX_CALLS {
+          set(
+            inverseRelocationRows,
+            column * MAX_CALLS + relocationRow,
+            stagedRows[column * MAX_CALLS + relocationRow]
+          );
+          relocationRow += 1;
+        }
+
+        column += 1;
       }
 
-      row = 0;
-      while (row < MAX_CALLS) limit MAX_CALLS {
-        set(inverseRelocationOwners, row, stagedOwners[row]);
-        row += 1;
+      long ownerRow = 0;
+      while (ownerRow < relocationCount) limit MAX_CALLS {
+        set(inverseRelocationOwners, ownerRow, stagedOwners[ownerRow]);
+        ownerRow += 1;
       }
 
       long identityOffset = 0;
-      while (identityOffset < RELOCATION_IDENTITY_BYTES) limit RELOCATION_IDENTITY_BYTES {
+      while (identityOffset < relocationCount * IDENTITY_BYTES) limit RELOCATION_IDENTITY_BYTES {
         setByte(inverseRelocationIdentities, identityOffset, stagedIdentities[identityOffset]);
         identityOffset += 1;
       }

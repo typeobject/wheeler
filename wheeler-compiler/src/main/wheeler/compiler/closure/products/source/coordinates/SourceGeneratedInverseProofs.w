@@ -395,7 +395,7 @@ classical class SourceGeneratedInverseProofs {
 
     if (valid) {
       long publishedProof = 0;
-      while (publishedProof < MAX_CALLABLES) limit MAX_CALLABLES {
+      while (publishedProof < proofCount) limit MAX_CALLABLES {
         set(proofNameStarts, publishedProof, stagedProofNameStarts[publishedProof]);
         set(proofNameLengths, publishedProof, stagedProofNameLengths[publishedProof]);
         set(proofSubjects, publishedProof, stagedProofSubjects[publishedProof]);
@@ -403,7 +403,7 @@ classical class SourceGeneratedInverseProofs {
       }
 
       long publishedNameByte = 0;
-      while (publishedNameByte < 16384) limit 16384 {
+      while (publishedNameByte < proofNameCursor) limit 16384 {
         setByte(proofNames, publishedNameByte, stagedProofNames[publishedNameByte]);
         publishedNameByte += 1;
       }
