@@ -514,6 +514,10 @@ classical class SourceAggregateOperations {
           cursor += 1;
         }
       }
+
+      if (valid == false) {
+        cursor = semanticCount;
+      }
     }
 
     long orderedOperation = 0;

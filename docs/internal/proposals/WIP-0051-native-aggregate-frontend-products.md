@@ -136,6 +136,7 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 - [x] WIP-0186 stages and publishes local nominal carrier and projection rows through exact reference counts.
 - [x] WIP-0187 publishes local nominal references and imported nominal stub projections through exact counts.
 - [x] WIP-0189 limits aggregate target, owner, and slice sentinel staging to active operations.
+- [x] WIP-0193 makes aggregate-operation failure terminal instead of exhausting the token loop.
 - [ ] Every physical compiler module publishes frontend products without dependency source.
 
 ## Acceptance
@@ -186,4 +187,5 @@ Rejected. Coordinates are temporary evidence and are unstable under canonical fo
 - [WIP-0186: Sparse local nominal-carrier rewrite](WIP-0186-sparse-local-nominal-carrier-rewrite.md)
 - [WIP-0187: Sparse nominal-reference publication](WIP-0187-sparse-nominal-reference-publication.md)
 - [WIP-0189: Sparse aggregate-operation staging](WIP-0189-sparse-aggregate-operation-staging.md)
+- [WIP-0193: Terminal aggregate-operation failure](WIP-0193-terminal-aggregate-operation-failure.md)
 - [Bootstrap evidence](../../public/reference/bootstrap.md)

@@ -2,10 +2,12 @@ package com.typeobject.wheeler.examples;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
+import com.typeobject.wheeler.core.vm.VmTrap;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -171,6 +173,17 @@ final class NativeCompilerSourceAggregateOperationsExampleTest {
     assertEquals(0, machine.global("operationCount"));
     assertEquals(0, machine.global("valid"));
     assertArrayEquals(new byte[0], machine.hostOutput());
+  }
+
+  @Test
+  void trailingConstructorSeparatorFailsWithoutSpinning() throws Exception {
+    VirtualMachine machine = new VirtualMachine(program(),
+        "new Pair(value, )".getBytes(StandardCharsets.UTF_8), 280);
+
+    assertThrows(VmTrap.class, machine::run);
+
+    assertEquals(0, machine.global("valid"));
+    assertArrayEquals(new byte[280], machine.hostOutput());
   }
 
   private static Program nestedProgram() throws Exception {
