@@ -13,7 +13,8 @@ classical class CallableDependencyProducts {
   private long publicCallableCount(
     long firstCallable,
     long callableCount,
-    borrow mut words visibilities
+    borrow mut words visibilities,
+    borrow mut words availableCallables
   ) {
     assert(-1 < firstCallable);
     assert(-1 < callableCount);
@@ -26,8 +27,15 @@ classical class CallableDependencyProducts {
         assert(visibility == 1);
       }
 
+      long available = availableCallables[firstCallable + offset];
+      if (available == 0) {} else {
+        assert(available == 1);
+      }
+
       if (visibility == 1) {
-        count += 1;
+        if (available == 1) {
+          count += 1;
+        }
       }
 
       offset += 1;
@@ -47,9 +55,11 @@ classical class CallableDependencyProducts {
     borrow mut words moduleFirstCallables,
     borrow mut words moduleCallableCounts,
     borrow mut words localVisibilities,
+    borrow mut words localAvailableCallables,
     borrow mut words externalFirstCallables,
     borrow mut words externalCallableCounts,
     borrow mut words externalVisibilities,
+    borrow mut words externalAvailableCallables,
     borrow mut words dependencyRows
   ) {
     assert(0 < moduleCount);
@@ -64,9 +74,11 @@ classical class CallableDependencyProducts {
     assert(bufferLength(moduleFirstCallables) == MAX_MODULES);
     assert(bufferLength(moduleCallableCounts) == MAX_MODULES);
     assert(bufferLength(localVisibilities) == MAX_CALLABLES);
+    assert(bufferLength(localAvailableCallables) == MAX_CALLABLES);
     assert(bufferLength(externalFirstCallables) == MAX_EXTERNALS);
     assert(bufferLength(externalCallableCounts) == MAX_EXTERNALS);
     assert(bufferLength(externalVisibilities) == MAX_CALLABLES);
+    assert(bufferLength(externalAvailableCallables) == MAX_CALLABLES);
     assert(bufferLength(dependencyRows) == DEPENDENCY_ROWS);
     long firstImport = firstImports[module];
     long directImportCount = directImportCounts[module];
@@ -84,7 +96,8 @@ classical class CallableDependencyProducts {
         productCount += publicCallableCount(
           moduleFirstCallables[target],
           moduleCallableCounts[target],
-          localVisibilities
+          localVisibilities,
+          localAvailableCallables
         );
       } else {
         long external = 0 - target - 1;
@@ -93,7 +106,8 @@ classical class CallableDependencyProducts {
         productCount += publicCallableCount(
           externalFirstCallables[external],
           externalCallableCounts[external],
-          externalVisibilities
+          externalVisibilities,
+          externalAvailableCallables
         );
       }
 
@@ -122,19 +136,23 @@ classical class CallableDependencyProducts {
       while (offset < callableCount) limit MAX_CALLABLES {
         long callable = firstCallable + offset;
         long visibility = localVisibilities[callable];
+        long available = localAvailableCallables[callable];
         if (externalProduct) {
           visibility = externalVisibilities[callable];
+          available = externalAvailableCallables[callable];
         }
 
         if (visibility == 1) {
-          set(dependencyRows, product, rank);
-          if (externalProduct) {
-            set(dependencyRows, 4096 + product, 0 - callable - 1);
-          } else {
-            set(dependencyRows, 4096 + product, callable);
-          }
+          if (available == 1) {
+            set(dependencyRows, product, rank);
+            if (externalProduct) {
+              set(dependencyRows, 4096 + product, 0 - callable - 1);
+            } else {
+              set(dependencyRows, 4096 + product, callable);
+            }
 
-          product += 1;
+            product += 1;
+          }
         }
 
         offset += 1;

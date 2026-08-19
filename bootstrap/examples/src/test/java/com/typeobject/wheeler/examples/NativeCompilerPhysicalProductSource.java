@@ -178,9 +178,11 @@ final class NativeCompilerPhysicalProductSource {
               moduleFirstCallables,
               moduleCallableCounts,
               callableVisibilities,
+              primitiveCallables,
               externalFirstCallables,
               externalCallableCounts,
               externalCallableVisibilities,
+              externalPrimitiveCallables,
               physicalDependencyRows
             );
             long physicalCallCount = 0;

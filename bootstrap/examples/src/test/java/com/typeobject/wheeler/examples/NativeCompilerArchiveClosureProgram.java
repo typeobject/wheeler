@@ -206,7 +206,7 @@ final class NativeCompilerArchiveClosureProgram {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 6643752, /* allocations= */ 98);
+            region columns = new region(/* bytes= */ 6676520, /* allocations= */ 99);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -281,6 +281,7 @@ final class NativeCompilerArchiveClosureProgram {
             words externalFirstCallables = allocate(columns, /* length= */ 64);
             words externalCallableCounts = allocate(columns, /* length= */ 64);
             words externalCallableVisibilities = allocate(columns, /* length= */ 4096);
+            words externalPrimitiveCallables = allocate(columns, /* length= */ 4096);
             words physicalFunctionRows = allocate(columns, /* length= */ 640);
             words physicalInstructionRows = allocate(columns, /* length= */ 24576);
             words physicalFunctionOwners = allocate(columns, /* length= */ 64);
@@ -842,6 +843,7 @@ final class NativeCompilerArchiveClosureProgram {
             drop(physicalFunctionOwners);
             drop(physicalInstructionRows);
             drop(physicalFunctionRows);
+            drop(externalPrimitiveCallables);
             drop(externalCallableVisibilities);
             drop(externalCallableCounts);
             drop(externalFirstCallables);

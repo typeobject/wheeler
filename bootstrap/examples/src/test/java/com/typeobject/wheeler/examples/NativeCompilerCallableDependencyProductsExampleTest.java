@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 /** Native evidence for header-ranked public callable dependency products. */
 final class NativeCompilerCallableDependencyProductsExampleTest {
   @Test
-  void packsOnlyPublicLocalAndLockedExternalCallables() throws Exception {
+  void packsOnlyAvailablePublicLocalAndLockedExternalCallables() throws Exception {
     VirtualMachine machine = new VirtualMachine(program(false));
 
     machine.run();
@@ -57,16 +57,18 @@ final class NativeCompilerCallableDependencyProductsExampleTest {
           state long published = 0;
 
           entry void main() {
-            region rows = new region(/* bytes= */ 173056, /* allocations= */ 12);
+            region rows = new region(/* bytes= */ 238592, /* allocations= */ 14);
             words firstImports = allocate(rows, /* length= */ 512);
             words directImportCounts = allocate(rows, /* length= */ 512);
             words edgeTargets = allocate(rows, /* length= */ 3072);
             words moduleFirstCallables = allocate(rows, /* length= */ 512);
             words moduleCallableCounts = allocate(rows, /* length= */ 512);
             words localVisibilities = allocate(rows, /* length= */ 4096);
+            words localAvailableCallables = allocate(rows, /* length= */ 4096);
             words externalFirstCallables = allocate(rows, /* length= */ 64);
             words externalCallableCounts = allocate(rows, /* length= */ 64);
             words externalVisibilities = allocate(rows, /* length= */ 4096);
+            words externalAvailableCallables = allocate(rows, /* length= */ 4096);
             words dependencyRows = allocate(rows, /* length= */ 8192);
             set(firstImports, 0, 0);
             set(directImportCounts, 0, 2);
@@ -75,12 +77,15 @@ final class NativeCompilerCallableDependencyProductsExampleTest {
             set(moduleFirstCallables, 1, 0);
             set(moduleCallableCounts, 1, 3);
             set(localVisibilities, 0, 1);
-            set(localVisibilities, 1, 0);
+            set(localVisibilities, 1, 1);
             set(localVisibilities, 2, 1);
+            set(localAvailableCallables, 0, 1);
+            set(localAvailableCallables, 2, 1);
             set(externalFirstCallables, 0, 0);
             set(externalCallableCounts, 0, 2);
             set(externalVisibilities, 0, 1);
             set(externalVisibilities, 1, 0);
+            set(externalAvailableCallables, 0, 1);
             productCount = packCallableDependencyProducts(
               /* moduleCount= */ 3,
               /* externalCount= */ EXTERNAL_COUNT,
@@ -91,9 +96,11 @@ final class NativeCompilerCallableDependencyProductsExampleTest {
               moduleFirstCallables,
               moduleCallableCounts,
               localVisibilities,
+              localAvailableCallables,
               externalFirstCallables,
               externalCallableCounts,
               externalVisibilities,
+              externalAvailableCallables,
               dependencyRows
             );
             firstRank = dependencyRows[0];
@@ -104,9 +111,11 @@ final class NativeCompilerCallableDependencyProductsExampleTest {
             thirdTarget = dependencyRows[4098];
             published = 1;
             drop(dependencyRows);
+            drop(externalAvailableCallables);
             drop(externalVisibilities);
             drop(externalCallableCounts);
             drop(externalFirstCallables);
+            drop(localAvailableCallables);
             drop(localVisibilities);
             drop(moduleCallableCounts);
             drop(moduleFirstCallables);
