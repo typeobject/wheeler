@@ -621,16 +621,34 @@ classical class SourceAggregateOperations {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < OPERATION_ROWS) limit OPERATION_ROWS {
-        set(operationRows, row, normalizedRows[row]);
-        row += 1;
+      long publishedColumn = 0;
+      while (publishedColumn < 8) limit 8 {
+        long operationRow = 0;
+        while (operationRow < operationCount) limit MAX_OPERATIONS {
+          set(
+            operationRows,
+            publishedColumn * MAX_OPERATIONS + operationRow,
+            normalizedRows[publishedColumn * MAX_OPERATIONS + operationRow]
+          );
+          operationRow += 1;
+        }
+
+        publishedColumn += 1;
       }
 
-      long argumentRow = 0;
-      while (argumentRow < ARGUMENT_ROWS) limit ARGUMENT_ROWS {
-        set(argumentRows, argumentRow, normalizedArguments[argumentRow]);
-        argumentRow += 1;
+      publishedColumn = 0;
+      while (publishedColumn < 4) limit 4 {
+        long argumentRow = 0;
+        while (argumentRow < argumentCount) limit MAX_ARGUMENTS {
+          set(
+            argumentRows,
+            publishedColumn * MAX_ARGUMENTS + argumentRow,
+            normalizedArguments[publishedColumn * MAX_ARGUMENTS + argumentRow]
+          );
+          argumentRow += 1;
+        }
+
+        publishedColumn += 1;
       }
     }
 

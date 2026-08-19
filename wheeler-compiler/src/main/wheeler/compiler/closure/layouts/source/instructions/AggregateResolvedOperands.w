@@ -251,10 +251,19 @@ classical class AggregateResolvedOperands {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < RESOLVED_ROWS) limit RESOLVED_ROWS {
-        set(resolvedRows, row, stagedRows[row]);
-        row += 1;
+      long column = 0;
+      while (column < 6) limit 6 {
+        long row = 0;
+        while (row < operationCount) limit MAX_OPERATIONS {
+          set(
+            resolvedRows,
+            column * MAX_OPERATIONS + row,
+            stagedRows[column * MAX_OPERATIONS + row]
+          );
+          row += 1;
+        }
+
+        column += 1;
       }
     }
 
