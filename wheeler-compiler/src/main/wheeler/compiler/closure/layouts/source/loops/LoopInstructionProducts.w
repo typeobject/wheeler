@@ -274,20 +274,38 @@ classical class LoopInstructionProducts {
     words stagedInstructionStarts = allocate(staging, LOOP_COUNT_LIMIT);
     words stagedCallInstructionStarts = allocate(staging, CALL_COUNT_LIMIT);
     words ownerInstructionBiases = allocate(staging, /* length= */ 64);
+    long column = 0;
+    while (column < 5) limit 5 {
+      long copiedBody = 0;
+      while (copiedBody < bodyCount) limit BODY_COUNT_LIMIT {
+        set(
+          stagedBodies,
+          column * BODY_COUNT_LIMIT + copiedBody,
+          bodyRows[column * BODY_COUNT_LIMIT + copiedBody]
+        );
+        copiedBody += 1;
+      }
+
+      column += 1;
+    }
+
+    column = 0;
+    while (column < 6) limit 6 {
+      long condition = 0;
+      while (condition < loopCount) limit LOOP_COUNT_LIMIT {
+        set(
+          stagedConditions,
+          column * LOOP_COUNT_LIMIT + condition,
+          conditionRows[column * LOOP_COUNT_LIMIT + condition]
+        );
+        condition += 1;
+      }
+
+      column += 1;
+    }
+
     long row = 0;
-    while (row < BODY_ROWS) limit BODY_ROWS {
-      set(stagedBodies, row, bodyRows[row]);
-      row += 1;
-    }
-
-    row = 0;
-    while (row < CONDITION_ROWS) limit CONDITION_ROWS {
-      set(stagedConditions, row, conditionRows[row]);
-      row += 1;
-    }
-
-    row = 0;
-    while (row < CALL_COUNT_LIMIT) limit CALL_COUNT_LIMIT {
+    while (row < callCount) limit CALL_COUNT_LIMIT {
       set(stagedCallInstructionStarts, row, callInstructionStarts[row]);
       row += 1;
     }
@@ -552,7 +570,7 @@ classical class LoopInstructionProducts {
     assert(cursor == requiredLength);
     assert(instructionCount == requiredInstructions);
     row = 0;
-    while (row < CALL_COUNT_LIMIT) limit CALL_COUNT_LIMIT {
+    while (row < callCount) limit CALL_COUNT_LIMIT {
       set(callInstructionStarts, row, stagedCallInstructionStarts[row]);
       row += 1;
     }
