@@ -91,7 +91,7 @@ classical class SourceProductArtifact {
     long codeDirectory = 40 + 5 * 32;
     long codeStart = readUnsigned(stagedArtifact, codeDirectory + 8, 8);
     long outputByte = 0;
-    while (outputByte < ARTIFACT_BYTES) limit ARTIFACT_BYTES {
+    while (outputByte < artifactLength) limit ARTIFACT_BYTES {
       setByte(output, outputByte, stagedArtifact[outputByte]);
       outputByte += 1;
     }

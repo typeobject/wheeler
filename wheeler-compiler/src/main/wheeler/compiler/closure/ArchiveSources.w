@@ -343,16 +343,15 @@ classical class ArchiveSources {
       }
     }
 
-    long publish = 0;
-    while (publish < MAX_ARCHIVE_ENTRIES) limit MAX_ARCHIVE_ENTRIES {
-      if (valid) {
+    if (valid) {
+      long publish = 0;
+      while (publish < entryCount) limit MAX_ARCHIVE_ENTRIES {
         set(pathStarts, publish, scratchPathStarts[publish]);
         set(pathLengths, publish, scratchPathLengths[publish]);
         set(dataStarts, publish, scratchDataStarts[publish]);
         set(dataLengths, publish, scratchDataLengths[publish]);
+        publish += 1;
       }
-
-      publish += 1;
     }
 
     drop(digest);
