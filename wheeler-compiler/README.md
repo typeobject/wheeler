@@ -147,7 +147,8 @@ loan types and publish imported relocations without relinking local calls. One b
 owner emits exact byte and word reads. `VoidCallSyntax.w` is the first physical module to cross
 that direct imported boundary. Assignment-call widths, void-call forms and widths, and the early
 comparison form, assignment-call kind, general call-form, helper-result kind, helper-value kind, and
-void-call operand authorities now follow it without signature stubs. Imported
+void-call operand authorities now follow it without signature stubs. Assignment-call operand
+products remove the final physical signature-stub route. Imported
 relocation validation keeps its
 full instruction-target table private instead of copying one MiB to the caller. Relocation linking
 publishes only the touched forward and inverse target rows. Imported target views likewise publish
