@@ -255,15 +255,24 @@ classical class SourceCallInstructionProducts {
 
     if (valid) {
       long row = 0;
-      while (row < CALL_COUNT_LIMIT) limit CALL_COUNT_LIMIT {
+      while (row < callCount) limit CALL_COUNT_LIMIT {
         set(callInstructionStarts, row, stagedStarts[row]);
         row += 1;
       }
 
-      row = 0;
-      while (row < 768) limit 768 {
-        set(callWindowRows, row, stagedWindows[row]);
-        row += 1;
+      long column = 0;
+      while (column < 3) limit 3 {
+        row = 0;
+        while (row < callCount) limit CALL_COUNT_LIMIT {
+          set(
+            callWindowRows,
+            column * CALL_COUNT_LIMIT + row,
+            stagedWindows[column * CALL_COUNT_LIMIT + row]
+          );
+          row += 1;
+        }
+
+        column += 1;
       }
     }
 

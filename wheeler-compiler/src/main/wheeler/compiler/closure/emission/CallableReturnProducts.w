@@ -169,10 +169,15 @@ classical class CallableReturnProducts {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < 192) limit 192 {
-        set(returnRows, row, staged[row]);
-        row += 1;
+      long column = 0;
+      while (column < 3) limit 3 {
+        long row = 0;
+        while (row < callableCount) limit CALLABLE_LIMIT {
+          set(returnRows, column * CALLABLE_LIMIT + row, staged[column * CALLABLE_LIMIT + row]);
+          row += 1;
+        }
+
+        column += 1;
       }
     }
 
