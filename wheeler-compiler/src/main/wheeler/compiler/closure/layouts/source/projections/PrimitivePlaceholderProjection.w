@@ -311,10 +311,19 @@ classical class PrimitivePlaceholderProjection {
     words stagedFunctions = allocate(staging, FUNCTION_ROWS);
     words stagedInstructions = allocate(staging, INSTRUCTION_ROWS);
     words stagedPlacements = allocate(staging, PLACEMENT_ROWS);
-    long row = 0;
-    while (row < FUNCTION_ROWS) limit FUNCTION_ROWS {
-      set(stagedFunctions, row, primitiveFunctionRows[row]);
-      row += 1;
+    long copiedColumn = 0;
+    while (copiedColumn < 10) limit 10 {
+      long copiedFunctionRow = 0;
+      while (copiedFunctionRow < functionCount) limit MAX_FUNCTIONS {
+        set(
+          stagedFunctions,
+          copiedColumn * MAX_FUNCTIONS + copiedFunctionRow,
+          primitiveFunctionRows[copiedColumn * MAX_FUNCTIONS + copiedFunctionRow]
+        );
+        copiedFunctionRow += 1;
+      }
+
+      copiedColumn += 1;
     }
 
     long projectedCount = 0;
@@ -478,22 +487,49 @@ classical class PrimitivePlaceholderProjection {
       placeholder += 1;
     }
 
-    row = 0;
-    while (row < FUNCTION_ROWS) limit FUNCTION_ROWS {
-      set(projectedFunctionRows, row, stagedFunctions[row]);
-      row += 1;
+    long publishedColumn = 0;
+    while (publishedColumn < 10) limit 10 {
+      long publishedFunctionRow = 0;
+      while (publishedFunctionRow < functionCount) limit MAX_FUNCTIONS {
+        set(
+          projectedFunctionRows,
+          publishedColumn * MAX_FUNCTIONS + publishedFunctionRow,
+          stagedFunctions[publishedColumn * MAX_FUNCTIONS + publishedFunctionRow]
+        );
+        publishedFunctionRow += 1;
+      }
+
+      publishedColumn += 1;
     }
 
-    row = 0;
-    while (row < INSTRUCTION_ROWS) limit INSTRUCTION_ROWS {
-      set(projectedInstructionRows, row, stagedInstructions[row]);
-      row += 1;
+    publishedColumn = 0;
+    while (publishedColumn < 6) limit 6 {
+      long publishedInstructionRow = 0;
+      while (publishedInstructionRow < projectedCount) limit MAX_INSTRUCTIONS {
+        set(
+          projectedInstructionRows,
+          publishedColumn * MAX_INSTRUCTIONS + publishedInstructionRow,
+          stagedInstructions[publishedColumn * MAX_INSTRUCTIONS + publishedInstructionRow]
+        );
+        publishedInstructionRow += 1;
+      }
+
+      publishedColumn += 1;
     }
 
-    row = 0;
-    while (row < PLACEMENT_ROWS) limit PLACEMENT_ROWS {
-      set(projectedPlacementRows, row, stagedPlacements[row]);
-      row += 1;
+    publishedColumn = 0;
+    while (publishedColumn < 3) limit 3 {
+      long publishedPlacementRow = 0;
+      while (publishedPlacementRow < operationCount) limit MAX_OPERATIONS {
+        set(
+          projectedPlacementRows,
+          publishedColumn * MAX_OPERATIONS + publishedPlacementRow,
+          stagedPlacements[publishedColumn * MAX_OPERATIONS + publishedPlacementRow]
+        );
+        publishedPlacementRow += 1;
+      }
+
+      publishedColumn += 1;
     }
 
     drop(stagedPlacements);
