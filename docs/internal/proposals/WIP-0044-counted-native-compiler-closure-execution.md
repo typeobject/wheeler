@@ -166,6 +166,7 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 - [x] WIP-0115 dispatches committed transitions through the implemented root-task profile without a singleton runnable-set search.
 - [x] WIP-0123 closes exact local Boolean call-conditioned literal returns. WIP-0125 removes transient task-status writes from successful committed root transitions. Complete selected physical evidence with 62 callable-bearing direct routes passes in 18 minutes and 43 seconds under the fixed deadline.
 - [x] WIP-0134 indexes operand roles directly, fuses immutable frame updates, and consumes owned-storage preflight once. A same-host `ResolvedReturnCallKinds.w` route falls from 286.44 to 273.59 seconds with byte-identical output.
+- [x] WIP-0158 gives no-history owned buffers private committed chunks while preserving persistent snapshots and rewind boundaries. The same focused physical route remains byte-identical and falls to 230.90 seconds under sustained host load.
 - [ ] The complete physical compiler closure compiles.
 
 ## Acceptance

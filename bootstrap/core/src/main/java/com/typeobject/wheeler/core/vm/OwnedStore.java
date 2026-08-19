@@ -170,10 +170,17 @@ final class OwnedStore {
   Change setAfterValidation(
       long bufferHandle, int index, long value, Change change) {
     BufferValue buffer = buffer(bufferHandle);
-    List<Long> elements = PersistentLongList.with(buffer.elements(), index, value);
+    if (change == null) {
+      List<Long> elements = PersistentLongList.withCommitted(
+          buffer.elements(), index, value);
+      replaceElements(buffer, elements);
+      return null;
+    }
+    BufferValue previous = persistentBuffer(buffer);
+    List<Long> elements = PersistentLongList.with(previous.elements(), index, value);
     buffers.set(buffer.id(), new BufferValue(
         buffer.id(), buffer.regionId(), buffer.kind(), buffer.length(), elements, false));
-    return change == null ? null : change.buffer(buffer.id(), buffer);
+    return change.buffer(buffer.id(), previous);
   }
 
   Change dropBuffer(long bufferHandle, Change change) {
@@ -188,7 +195,7 @@ final class OwnedStore {
         (long) buffer.length(), buffer.kind().elementBytes());
     Change updated = change == null
         ? null
-        : change.region(region.id(), region).buffer(buffer.id(), buffer);
+        : change.region(region.id(), region).buffer(buffer.id(), persistentBuffer(buffer));
     buffers.set(buffer.id(), new BufferValue(
         buffer.id(), buffer.regionId(), buffer.kind(), buffer.length(), List.of(), true));
     regions.set(region.id(), new RegionValue(
@@ -263,11 +270,18 @@ final class OwnedStore {
     BufferValue map = requireMap(handle);
     int slot = mapSlot(map, key, true);
     int base = slot * 3;
+    if (change == null) {
+      List<Long> elements = PersistentLongList.withThreeCommitted(
+          map.elements(), base, 1, key, value);
+      replaceElements(map, elements);
+      return null;
+    }
+    BufferValue previous = persistentBuffer(map);
     List<Long> elements = PersistentLongList.withThree(
-        map.elements(), base, 1, key, value);
+        previous.elements(), base, 1, key, value);
     buffers.set(map.id(), new BufferValue(
         map.id(), map.regionId(), map.kind(), map.length(), elements, false));
-    return change == null ? null : change.buffer(map.id(), map);
+    return change.buffer(map.id(), previous);
   }
 
   long mapGet(long handle, long key) {
@@ -327,15 +341,16 @@ final class OwnedStore {
 
   Change freezeUtf8AfterValidation(long bufferHandle, Change change) {
     BufferValue buffer = buffer(bufferHandle);
+    BufferValue previous = change == null ? buffer : persistentBuffer(buffer);
     BufferValue frozen = new BufferValue(
         buffer.id(),
         buffer.regionId(),
         BufferKind.UTF8,
         buffer.length(),
-        buffer.elements(),
+        previous.elements(),
         false);
     buffers.set(buffer.id(), frozen);
-    return change == null ? null : change.buffer(buffer.id(), buffer);
+    return change == null ? null : change.buffer(buffer.id(), previous);
   }
 
   void validateUtf8Bytes(long bufferHandle) {
@@ -387,7 +402,31 @@ final class OwnedStore {
   }
 
   List<BufferValue> buffers() {
-    return List.copyOf(buffers);
+    List<BufferValue> snapshot = new ArrayList<>(buffers.size());
+    for (BufferValue buffer : buffers) {
+      snapshot.add(persistentBuffer(buffer));
+    }
+    return List.copyOf(snapshot);
+  }
+
+  private void replaceElements(BufferValue buffer, List<Long> elements) {
+    if (elements != buffer.elements()) {
+      buffers.set(buffer.id(), new BufferValue(
+          buffer.id(), buffer.regionId(), buffer.kind(), buffer.length(), elements, false));
+    }
+  }
+
+  private static BufferValue persistentBuffer(BufferValue buffer) {
+    if (buffer.dropped()) {
+      return buffer;
+    }
+    return new BufferValue(
+        buffer.id(),
+        buffer.regionId(),
+        buffer.kind(),
+        buffer.length(),
+        PersistentLongList.persistentCopy(buffer.elements()),
+        false);
   }
 
   private BufferValue buffer(long handle) {

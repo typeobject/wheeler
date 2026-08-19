@@ -69,7 +69,7 @@ The benchmark includes Gradle process and compilation overhead. It therefore und
 
 A prototype replaced persistent output pages with a second mutable list implementation during committed execution. It retained snapshot immutability through freeze-on-snapshot copy-on-write.
 
-The extra list shape made the dominant read path polymorphic. The same focused route regressed to 352.87 seconds. An earlier version also copied complete logical capacities and exceeded the task deadline. Both forms were removed. Wheeler keeps one persistent buffer representation and improves only validation and frame dispatch.
+The extra list shape made the dominant read path polymorphic. The same focused route regressed to 352.87 seconds. An earlier version also copied complete logical capacities and exceeded the task deadline. Both forms were removed. WIP-0158 later keeps one list representation and adds explicit committed chunk ownership inside it. Reads remain monomorphic; only the admitted no-history write path enters committed ownership.
 
 ## Acceptance
 
@@ -113,3 +113,4 @@ Rejected. The second list shape regressed the physical compiler workload and com
 - [WIP-0044](WIP-0044-counted-native-compiler-closure-execution.md)
 - [WIP-0115](WIP-0115-root-committed-transition-dispatch.md)
 - [WIP-0125](WIP-0125-lazy-committed-root-status-publication.md)
+- [WIP-0158](WIP-0158-committed-owned-storage.md)

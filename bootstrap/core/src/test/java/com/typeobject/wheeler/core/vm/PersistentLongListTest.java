@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/** Tests sparse immutable signed-word storage. */
+/** Tests sparse persistent and committed signed-word storage. */
 final class PersistentLongListTest {
   @Test
   void zeroListsAllocateChunksOnlyThroughImmutableUpdates() {
@@ -33,6 +33,21 @@ final class PersistentLongListTest {
     assertEquals(5L, updated.get(64));
     assertEquals(6L, updated.get(65));
     assertEquals(0L, updated.get(66));
+  }
+
+  @Test
+  void committedUpdatesFreezeToIndependentPersistentCopies() {
+    List<Long> values = PersistentLongList.zeros(128);
+    values = PersistentLongList.withCommitted(values, 63, 4);
+    List<Long> snapshot = PersistentLongList.persistentCopy(values);
+
+    values = PersistentLongList.withThreeCommitted(values, 63, 7, 8, 9);
+
+    assertEquals(4L, snapshot.get(63));
+    assertEquals(0L, snapshot.get(64));
+    assertEquals(7L, values.get(63));
+    assertEquals(8L, values.get(64));
+    assertEquals(9L, values.get(65));
   }
 
   @Test

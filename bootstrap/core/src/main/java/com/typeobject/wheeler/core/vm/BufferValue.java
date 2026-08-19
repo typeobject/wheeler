@@ -2,7 +2,7 @@ package com.typeobject.wheeler.core.vm;
 
 import java.util.List;
 
-/** Immutable snapshot of one region-owned signed-word buffer. */
+/** Typed state row for one region-owned signed-word buffer. */
 public record BufferValue(
     int id,
     int regionId,

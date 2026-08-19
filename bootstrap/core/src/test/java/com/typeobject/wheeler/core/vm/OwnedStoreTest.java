@@ -59,6 +59,32 @@ class OwnedStoreTest {
   }
 
   @Test
+  void committedUpdatesPreserveSnapshotsAndFreezeBeforeRewind() {
+    OwnedStore store = new OwnedStore();
+    OwnedStore.Allocation region = store.createRegion(40, 2, store.mark());
+    OwnedStore.Allocation words = store.allocate(
+        region.handle(), 2, BufferKind.WORDS, store.mark());
+    OwnedStore.Allocation map = store.allocate(
+        region.handle(), 1, BufferKind.LONG_MAP, store.mark());
+
+    store.set(words.handle(), 0, 5, BufferKind.WORDS, null);
+    store.mapPut(map.handle(), 7, 11, null);
+    var snapshot = store.buffers();
+    store.set(words.handle(), 0, 13, BufferKind.WORDS, null);
+    store.mapPut(map.handle(), 7, 17, null);
+
+    assertEquals(5, snapshot.getFirst().elements().getFirst());
+    assertEquals(11, snapshot.getLast().elements().get(2));
+    OwnedStore.Change wordUpdate = store.set(
+        words.handle(), 0, 19, BufferKind.WORDS, store.mark());
+    OwnedStore.Change mapUpdate = store.mapPut(map.handle(), 7, 23, store.mark());
+    store.rewind(mapUpdate);
+    store.rewind(wordUpdate);
+    assertEquals(13, store.get(words.handle(), 0, BufferKind.WORDS));
+    assertEquals(17, store.mapGet(map.handle(), 7));
+  }
+
+  @Test
   void absentMapLookupAndWrongBufferKindsTrap() {
     OwnedStore store = new OwnedStore();
     OwnedStore.Allocation region = store.createRegion(32, 2, store.mark());
