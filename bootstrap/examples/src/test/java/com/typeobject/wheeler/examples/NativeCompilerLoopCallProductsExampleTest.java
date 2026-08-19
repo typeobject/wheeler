@@ -182,7 +182,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
             assert(bufferLength(input) == 0);
-            region products = new region(/* bytes= */ 589824, /* allocations= */ 18);
+            region products = new region(/* bytes= */ 591872, /* allocations= */ 19);
             words calls = allocate(products, /* length= */ 1024);
             words callArgumentStarts = allocate(products, /* length= */ 256);
             words callArgumentCounts = allocate(products, /* length= */ 256);
@@ -199,6 +199,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
             bytes relocationIdentities = allocateBytes(products, /* length= */ 8192);
             words types = allocate(products, /* length= */ 12288);
             words localWidths = allocate(products, /* length= */ 256);
+            words conditionalValues = allocate(products, /* length= */ 256);
             words statementStarts = allocate(products, /* length= */ 4096);
             words statementWidths = allocate(products, /* length= */ 4096);
             set(calls, 0, 7);
@@ -241,6 +242,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
               relocationIdentities,
               types,
               localWidths,
+              conditionalValues,
               statementStarts,
               statementWidths,
               output
@@ -273,6 +275,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
             firstOutputByte = output[0];
             drop(statementWidths);
             drop(statementStarts);
+            drop(conditionalValues);
             drop(localWidths);
             drop(types);
             drop(relocationIdentities);
@@ -332,7 +335,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
             assert(bufferLength(input) == 0);
-            region products = new region(/* bytes= */ 589824, /* allocations= */ 18);
+            region products = new region(/* bytes= */ 591872, /* allocations= */ 19);
             words calls = allocate(products, /* length= */ 1024);
             words callArgumentStarts = allocate(products, /* length= */ 256);
             words callArgumentCounts = allocate(products, /* length= */ 256);
@@ -349,6 +352,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
             bytes relocationIdentities = allocateBytes(products, /* length= */ 8192);
             words types = allocate(products, /* length= */ 12288);
             words localWidths = allocate(products, /* length= */ 256);
+            words conditionalValues = allocate(products, /* length= */ 256);
             words statementStarts = allocate(products, /* length= */ 4096);
             words statementWidths = allocate(products, /* length= */ 4096);
             set(calls, 0, 7);
@@ -413,6 +417,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
               relocationIdentities,
               types,
               localWidths,
+              conditionalValues,
               statementStarts,
               statementWidths,
               output
@@ -439,6 +444,7 @@ final class NativeCompilerLoopCallProductsExampleTest {
             firstOutputByte = output[0];
             drop(statementWidths);
             drop(statementStarts);
+            drop(conditionalValues);
             drop(localWidths);
             drop(types);
             drop(relocationIdentities);
