@@ -496,16 +496,34 @@ classical class CallableSourceComposition {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < CALLABLE_ROWS) limit CALLABLE_ROWS {
-        set(callableRows, row, stagedCallables[row]);
-        row += 1;
+      long column = 0;
+      while (column < 5) limit 5 {
+        long callableRow = 0;
+        while (callableRow < callableCount) limit MAX_CALLABLES {
+          set(
+            callableRows,
+            column * MAX_CALLABLES + callableRow,
+            stagedCallables[column * MAX_CALLABLES + callableRow]
+          );
+          callableRow += 1;
+        }
+
+        column += 1;
       }
 
-      row = 0;
-      while (row < TYPE_ROWS) limit TYPE_ROWS {
-        set(outputTypes, row, stagedTypes[row]);
-        row += 1;
+      column = 0;
+      while (column < 3) limit 3 {
+        long typeRow = 0;
+        while (typeRow < typeCount) limit MAX_TYPES {
+          set(
+            outputTypes,
+            column * MAX_TYPES + typeRow,
+            stagedTypes[column * MAX_TYPES + typeRow]
+          );
+          typeRow += 1;
+        }
+
+        column += 1;
       }
 
       long outputCodeByte = 0;

@@ -417,16 +417,34 @@ classical class CallableCoordinateProducts {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < CALLABLE_ROWS) limit CALLABLE_ROWS {
-        set(callableRows, row, stagedCallables[row]);
-        row += 1;
+      long column = 0;
+      while (column < 5) limit 5 {
+        long callableRow = 0;
+        while (callableRow < callableCount) limit MAX_CALLABLES {
+          set(
+            callableRows,
+            column * MAX_CALLABLES + callableRow,
+            stagedCallables[column * MAX_CALLABLES + callableRow]
+          );
+          callableRow += 1;
+        }
+
+        column += 1;
       }
 
-      row = 0;
-      while (row < RESULT_ROWS) limit RESULT_ROWS {
-        set(coordinateRows, row, stagedCoordinates[row]);
-        row += 1;
+      column = 0;
+      while (column < 9) limit 9 {
+        long coordinateRow = 0;
+        while (coordinateRow < productCount) limit MAX_PRODUCTS {
+          set(
+            coordinateRows,
+            column * MAX_PRODUCTS + coordinateRow,
+            stagedCoordinates[column * MAX_PRODUCTS + coordinateRow]
+          );
+          coordinateRow += 1;
+        }
+
+        column += 1;
       }
     }
 

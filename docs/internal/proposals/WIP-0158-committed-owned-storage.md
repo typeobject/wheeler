@@ -23,7 +23,7 @@ The compiler writes large staging products one scalar at a time. Copying a chunk
 
 A persistent list owns immutable chunk references. `with` and `withThree` return new roots and copy only touched chunks. Rewind records continue to retain those roots directly.
 
-A committed list owns a private outer chunk table and a private ownership bit for each chunk. Its first write to a chunk copies that chunk. Later writes mutate the private chunk. The active buffer state row is replaced once, when the persistent list enters committed ownership; later writes retain that row.
+A committed list owns a private outer chunk table and a private ownership bit for each chunk. Its first write to a chunk copies that chunk. Later writes mutate the private chunk. The active buffer state row is replaced once when the persistent list enters committed ownership. Later writes retain that row.
 
 There is no second list implementation and no polymorphic read path. Sparse zero chunks remain unallocated until first write.
 
@@ -41,7 +41,7 @@ The active committed list does not share writable chunks with a prior persistent
 
 ## Maps and byte buffers
 
-Word and byte writes use one-element committed updates. Long-map insertion and replacement use one three-element update for presence, key, and value. The first and last words may cross a 64-word chunk boundary; each touched chunk is copied at most once for the committed lifetime.
+Word and byte writes use one-element committed updates. Long-map insertion and replacement use one three-element update for presence, key, and value. The first and last words may cross a 64-word chunk boundary. Each touched chunk is copied at most once for the committed lifetime.
 
 UTF-8 validation, buffer reads, map probes, host output, region accounting, kind checks, range checks, and live-storage limits retain the same representation and validation order.
 
