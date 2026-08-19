@@ -28,6 +28,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.four_argument_calls",
       "wheeler.compiler.helper_result_kinds",
       "wheeler.compiler.helper_signatures",
+      "wheeler.compiler.helper_value_kinds",
       "wheeler.compiler.identifier_starts",
       "wheeler.compiler.instruction_forms",
       "wheeler.compiler.literal_comparison_operations",
