@@ -112,7 +112,7 @@ classical class AggregateSourceOwners {
 
     if (valid) {
       long row = 0;
-      while (row < OWNER_ROWS) limit OWNER_ROWS {
+      while (row < operationCount) limit MAX_OPERATIONS {
         set(ownerAggregateRows, row, stagedAggregates[row]);
         set(ownerCaseRows, row, stagedCases[row]);
         row += 1;

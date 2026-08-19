@@ -130,6 +130,7 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 - [x] WIP-0180 publishes and transfers imported nominal references, imported carriers, and local carriers through exact projection counts.
 - [x] WIP-0181 transfers every remaining aggregate-aware body product through its producer's exact count.
 - [x] WIP-0182 stages and publishes seven aggregate expression value columns through exact input and expanded counts.
+- [x] WIP-0183 stages and publishes aggregate owners, indexed owners, slice descriptors, and structural values through exact operation and value counts.
 - [ ] Every physical compiler module publishes frontend products without dependency source.
 
 ## Acceptance
@@ -174,4 +175,5 @@ Rejected. Coordinates are temporary evidence and are unstable under canonical fo
 - [WIP-0180: Sparse nominal-projection publication](WIP-0180-sparse-nominal-projection-publication.md)
 - [WIP-0181: Sparse aggregate body-product transfer](WIP-0181-sparse-aggregate-body-product-transfer.md)
 - [WIP-0182: Sparse aggregate-expression values](WIP-0182-sparse-aggregate-expression-values.md)
+- [WIP-0183: Sparse aggregate-owner publication](WIP-0183-sparse-aggregate-owner-publication.md)
 - [Bootstrap evidence](../../public/reference/bootstrap.md)

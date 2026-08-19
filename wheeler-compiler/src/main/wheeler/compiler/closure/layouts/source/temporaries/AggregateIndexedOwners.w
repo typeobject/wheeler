@@ -96,7 +96,7 @@ classical class AggregateIndexedOwners {
     words stagedSlices = allocate(staging, OWNER_ROWS);
     words stagedValueStructures = allocate(staging, VALUE_STRUCTURAL_ROWS);
     long row = 0;
-    while (row < OWNER_ROWS) limit OWNER_ROWS {
+    while (row < operationCount) limit MAX_OPERATIONS {
       set(stagedAggregates, row, ownerAggregateRows[row]);
       set(stagedCases, row, ownerCaseRows[row]);
       set(stagedSlices, row, sliceDescriptorRows[row]);
@@ -236,7 +236,7 @@ classical class AggregateIndexedOwners {
 
     if (valid) {
       row = 0;
-      while (row < OWNER_ROWS) limit OWNER_ROWS {
+      while (row < operationCount) limit MAX_OPERATIONS {
         set(ownerAggregateRows, row, stagedAggregates[row]);
         set(ownerCaseRows, row, stagedCases[row]);
         set(sliceDescriptorRows, row, stagedSlices[row]);
@@ -244,7 +244,7 @@ classical class AggregateIndexedOwners {
       }
 
       row = 0;
-      while (row < VALUE_STRUCTURAL_ROWS) limit VALUE_STRUCTURAL_ROWS {
+      while (row < valueCount) limit MAX_VALUES {
         set(valueStructuralRows, row, stagedValueStructures[row]);
         row += 1;
       }
@@ -302,13 +302,13 @@ classical class AggregateIndexedOwners {
     words stagedOwners = allocate(staging, OWNER_ROWS);
     words stagedStructures = allocate(staging, VALUE_STRUCTURAL_ROWS);
     long row = 0;
-    while (row < OWNER_ROWS) limit OWNER_ROWS {
+    while (row < operationCount) limit MAX_OPERATIONS {
       set(stagedOwners, row, ownerAggregateRows[row]);
       row += 1;
     }
 
     row = 0;
-    while (row < VALUE_STRUCTURAL_ROWS) limit VALUE_STRUCTURAL_ROWS {
+    while (row < valueCount) limit MAX_VALUES {
       set(stagedStructures, row, -1);
       row += 1;
     }
@@ -430,13 +430,13 @@ classical class AggregateIndexedOwners {
 
     if (valid) {
       row = 0;
-      while (row < OWNER_ROWS) limit OWNER_ROWS {
+      while (row < operationCount) limit MAX_OPERATIONS {
         set(ownerAggregateRows, row, stagedOwners[row]);
         row += 1;
       }
 
       row = 0;
-      while (row < VALUE_STRUCTURAL_ROWS) limit VALUE_STRUCTURAL_ROWS {
+      while (row < valueCount) limit MAX_VALUES {
         set(valueStructuralRows, row, stagedStructures[row]);
         row += 1;
       }
