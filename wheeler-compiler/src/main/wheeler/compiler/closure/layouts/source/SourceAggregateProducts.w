@@ -503,22 +503,49 @@ classical class SourceAggregateProducts {
     }
 
     if (valid) {
-      long aggregateRow = 0;
-      while (aggregateRow < AGGREGATE_ROWS) limit AGGREGATE_ROWS {
-        set(aggregateRows, aggregateRow, scratchAggregates[aggregateRow]);
-        aggregateRow += 1;
+      long column = 0;
+      while (column < 13) limit 13 {
+        long aggregateRow = 0;
+        while (aggregateRow < aggregateCount) limit MAX_AGGREGATES {
+          set(
+            aggregateRows,
+            column * MAX_AGGREGATES + aggregateRow,
+            scratchAggregates[column * MAX_AGGREGATES + aggregateRow]
+          );
+          aggregateRow += 1;
+        }
+
+        column += 1;
       }
 
-      long caseRow = 0;
-      while (caseRow < CASE_ROWS) limit CASE_ROWS {
-        set(caseRows, caseRow, scratchCases[caseRow]);
-        caseRow += 1;
+      column = 0;
+      while (column < 5) limit 5 {
+        long caseRow = 0;
+        while (caseRow < caseCount) limit MAX_CASES {
+          set(
+            caseRows,
+            column * MAX_CASES + caseRow,
+            scratchCases[column * MAX_CASES + caseRow]
+          );
+          caseRow += 1;
+        }
+
+        column += 1;
       }
 
-      long memberRow = 0;
-      while (memberRow < MEMBER_ROWS) limit MEMBER_ROWS {
-        set(memberRows, memberRow, scratchMembers[memberRow]);
-        memberRow += 1;
+      column = 0;
+      while (column < 8) limit 8 {
+        long memberRow = 0;
+        while (memberRow < memberCount) limit MAX_MEMBERS {
+          set(
+            memberRows,
+            column * MAX_MEMBERS + memberRow,
+            scratchMembers[column * MAX_MEMBERS + memberRow]
+          );
+          memberRow += 1;
+        }
+
+        column += 1;
       }
     }
 

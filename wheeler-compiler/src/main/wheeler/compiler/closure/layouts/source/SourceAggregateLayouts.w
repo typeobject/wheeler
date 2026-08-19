@@ -299,29 +299,56 @@ classical class SourceAggregateLayouts {
       aggregate += 1;
     }
 
-    long row = 0;
-    while (row < AGGREGATE_ROWS) limit AGGREGATE_ROWS {
-      set(projectedAggregates, row, stagedAggregates[row]);
-      row += 1;
+    long column = 0;
+    while (column < 9) limit 9 {
+      long aggregateRow = 0;
+      while (aggregateRow < aggregateCount) limit MAX_AGGREGATES {
+        set(
+          projectedAggregates,
+          column * MAX_AGGREGATES + aggregateRow,
+          stagedAggregates[column * MAX_AGGREGATES + aggregateRow]
+        );
+        aggregateRow += 1;
+      }
+
+      column += 1;
     }
 
-    row = 0;
-    while (row < CASE_ROWS) limit CASE_ROWS {
-      set(projectedCases, row, stagedCases[row]);
-      row += 1;
+    column = 0;
+    while (column < 4) limit 4 {
+      long caseRow = 0;
+      while (caseRow < outputCaseCount) limit MAX_CASES {
+        set(
+          projectedCases,
+          column * MAX_CASES + caseRow,
+          stagedCases[column * MAX_CASES + caseRow]
+        );
+        caseRow += 1;
+      }
+
+      column += 1;
     }
 
-    row = 0;
-    while (row < MEMBER_ROWS) limit MEMBER_ROWS {
-      set(projectedMembers, row, stagedMembers[row]);
-      row += 1;
+    column = 0;
+    while (column < 4) limit 4 {
+      long memberRow = 0;
+      while (memberRow < outputMemberCount) limit MAX_MEMBERS {
+        set(
+          projectedMembers,
+          column * MAX_MEMBERS + memberRow,
+          stagedMembers[column * MAX_MEMBERS + memberRow]
+        );
+        memberRow += 1;
+      }
+
+      column += 1;
     }
 
-    row = 0;
-    while (row < 512) limit 512 {
-      set(stringStarts, row, stagedStringStarts[row]);
-      set(stringLengths, row, stagedStringLengths[row]);
-      row += 1;
+    long stringRow = 0;
+    while (stringRow < stringCount) limit 512 {
+      set(stringStarts, stringRow, stagedStringStarts[stringRow]);
+      set(stringLengths, stringRow, stagedStringLengths[stringRow]);
+      stringRow += 1;
     }
 
     drop(stagedStringLengths);

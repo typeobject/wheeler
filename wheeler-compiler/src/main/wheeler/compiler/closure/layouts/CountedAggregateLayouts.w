@@ -266,22 +266,41 @@ classical class CountedAggregateLayouts {
     words aggregates = allocate(localRows, LOCAL_AGGREGATE_ROWS);
     words cases = allocate(localRows, LOCAL_CASE_ROWS);
     words members = allocate(localRows, LOCAL_MEMBER_ROWS);
-    long row = 0;
-    while (row < LOCAL_AGGREGATE_ROWS) limit LOCAL_AGGREGATE_ROWS {
-      set(aggregates, row, sourceAggregates[row]);
-      row += 1;
+    long column = 0;
+    while (column < 9) limit 9 {
+      long aggregateRow = 0;
+      while (aggregateRow < localAggregateCount) limit 64 {
+        set(
+          aggregates,
+          column * 64 + aggregateRow,
+          sourceAggregates[column * 64 + aggregateRow]
+        );
+        aggregateRow += 1;
+      }
+
+      column += 1;
     }
 
-    row = 0;
-    while (row < LOCAL_CASE_ROWS) limit LOCAL_CASE_ROWS {
-      set(cases, row, sourceCases[row]);
-      row += 1;
+    column = 0;
+    while (column < 4) limit 4 {
+      long caseRow = 0;
+      while (caseRow < localCaseCount) limit 128 {
+        set(cases, column * 128 + caseRow, sourceCases[column * 128 + caseRow]);
+        caseRow += 1;
+      }
+
+      column += 1;
     }
 
-    row = 0;
-    while (row < LOCAL_MEMBER_ROWS) limit LOCAL_MEMBER_ROWS {
-      set(members, row, sourceMembers[row]);
-      row += 1;
+    column = 0;
+    while (column < 4) limit 4 {
+      long memberRow = 0;
+      while (memberRow < localMemberCount) limit 256 {
+        set(members, column * 256 + memberRow, sourceMembers[column * 256 + memberRow]);
+        memberRow += 1;
+      }
+
+      column += 1;
     }
 
     CountedAggregateLayoutPlan result = appendLocalAggregateLayouts(

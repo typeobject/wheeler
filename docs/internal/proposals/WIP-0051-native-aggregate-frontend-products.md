@@ -121,6 +121,7 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 - [x] `AggregateSourceProjection.w` removes aggregate-only declarations from primitive compilation without moving newlines or following source offsets. Native evidence compares every projected byte and traps on overlapping declaration ranges before mutation.
 - [x] `SourceAggregateOperations.w` normalizes nested constructors, field chains, and postfix slice indexes into evaluation postorder and remaps their argument owners.
 - [x] Product and linker fixtures reproduce the complete stage-0 record-bearing artifact and its canonical aggregate sections byte for byte. Focused native fixtures cover variant construction and payloads, fixed-array construction and indexing, slice construction and indexing, field chains, and instruction ownership. Whole-artifact equality for every focused form remains part of physical-closure publication.
+- [x] WIP-0173 publishes parsed and descriptor-compatible aggregate, case, member, and string rows through exact counts. WIP-0174 carries measured projected rows into counted closure staging.
 - [ ] Every physical compiler module publishes frontend products without dependency source.
 
 ## Acceptance
@@ -155,4 +156,6 @@ Rejected. Coordinates are temporary evidence and are unstable under canonical fo
 
 - [WIP-0049: Bounded native source-product compilation](WIP-0049-bounded-native-source-product-compilation.md)
 - [WIP-0050: Native aggregate source lowering](WIP-0050-native-aggregate-source-lowering.md)
+- [WIP-0173: Sparse source-aggregate publication](WIP-0173-sparse-source-aggregate-publication.md)
+- [WIP-0174: Sparse counted-aggregate projection](WIP-0174-sparse-counted-aggregate-projection.md)
 - [Bootstrap evidence](../../public/reference/bootstrap.md)
