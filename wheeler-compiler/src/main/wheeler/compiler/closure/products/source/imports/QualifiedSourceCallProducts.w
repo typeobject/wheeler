@@ -161,6 +161,7 @@ classical class QualifiedSourceCallProducts {
   public boolean materializeQualifiedCallStatementWidths(
     borrow utf8 source,
     long callCount,
+    long statementCount,
     borrow mut words callRows,
     borrow mut words callStatements,
     borrow mut words targetResultTypes,
@@ -168,6 +169,8 @@ classical class QualifiedSourceCallProducts {
   ) {
     assert(-1 < callCount);
     assert(callCount < MAX_CALLS + 1);
+    assert(-1 < statementCount);
+    assert(statementCount < MAX_CALLABLES + 1);
     assert(bufferLength(callRows) == CALL_ROWS);
     assert(bufferLength(callStatements) == MAX_CALLS);
     assert(bufferLength(targetResultTypes) == MAX_CALLABLES);
@@ -175,7 +178,7 @@ classical class QualifiedSourceCallProducts {
     region staging = new region(/* bytes= */ 32768, /* allocations= */ 1);
     words stagedWidths = allocate(staging, MAX_CALLABLES);
     long statement = 0;
-    while (statement < MAX_CALLABLES) limit MAX_CALLABLES {
+    while (statement < statementCount) limit MAX_CALLABLES {
       set(stagedWidths, statement, statementWidths[statement]);
       statement += 1;
     }
@@ -257,7 +260,7 @@ classical class QualifiedSourceCallProducts {
 
     if (valid) {
       statement = 0;
-      while (statement < MAX_CALLABLES) limit MAX_CALLABLES {
+      while (statement < statementCount) limit MAX_CALLABLES {
         set(statementWidths, statement, stagedWidths[statement]);
         statement += 1;
       }

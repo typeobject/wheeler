@@ -422,6 +422,7 @@ classical class StructuredSourceModuleCompiler {
     boolean qualifiedWidthsValid = materializeQualifiedCallStatementWidths(
       source,
       resolvedCallCount,
+      loopPlan.statementCount,
       calls,
       callStatements,
       retainedTargetResultTypes,
