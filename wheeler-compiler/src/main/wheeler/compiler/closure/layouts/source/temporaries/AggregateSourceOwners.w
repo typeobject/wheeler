@@ -44,7 +44,7 @@ classical class AggregateSourceOwners {
     words stagedAggregates = allocate(staging, OWNER_ROWS);
     words stagedCases = allocate(staging, OWNER_ROWS);
     long operation = 0;
-    while (operation < MAX_OPERATIONS) limit MAX_OPERATIONS {
+    while (operation < operationCount) limit MAX_OPERATIONS {
       set(stagedAggregates, operation, -1);
       set(stagedCases, operation, -1);
       operation += 1;

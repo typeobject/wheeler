@@ -135,6 +135,7 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 - [x] WIP-0185 publishes source-planned and instruction-decoded ownership coordinates through exact event counts.
 - [x] WIP-0186 stages and publishes local nominal carrier and projection rows through exact reference counts.
 - [x] WIP-0187 publishes local nominal references and imported nominal stub projections through exact counts.
+- [x] WIP-0189 limits aggregate target, owner, and slice sentinel staging to active operations.
 - [ ] Every physical compiler module publishes frontend products without dependency source.
 
 ## Acceptance
@@ -184,4 +185,5 @@ Rejected. Coordinates are temporary evidence and are unstable under canonical fo
 - [WIP-0185: Sparse ownership-coordinate publication](WIP-0185-sparse-ownership-coordinate-publication.md)
 - [WIP-0186: Sparse local nominal-carrier rewrite](WIP-0186-sparse-local-nominal-carrier-rewrite.md)
 - [WIP-0187: Sparse nominal-reference publication](WIP-0187-sparse-nominal-reference-publication.md)
+- [WIP-0189: Sparse aggregate-operation staging](WIP-0189-sparse-aggregate-operation-staging.md)
 - [Bootstrap evidence](../../public/reference/bootstrap.md)

@@ -161,7 +161,7 @@ classical class AggregateCompiledCallableBodies {
     assert(bufferLength(localComposedInstructionRows) == 24576);
     assert(bufferLength(localArtifactSelectors) == 4096);
     long sliceDescriptor = 0;
-    while (sliceDescriptor < 256) limit 256 {
+    while (sliceDescriptor < operationCount) limit 256 {
       set(stagedSliceDescriptors, sliceDescriptor, -1);
       sliceDescriptor += 1;
     }

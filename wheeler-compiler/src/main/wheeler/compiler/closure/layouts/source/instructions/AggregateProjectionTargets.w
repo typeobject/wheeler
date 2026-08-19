@@ -78,7 +78,7 @@ classical class AggregateProjectionTargets {
     region scratch = new region(/* bytes= */ 8192, /* allocations= */ 1);
     words stagedTargets = allocate(scratch, TARGET_ROWS);
     long operation = 0;
-    while (operation < MAX_OPERATIONS) limit MAX_OPERATIONS {
+    while (operation < operationCount) limit MAX_OPERATIONS {
       set(stagedTargets, 256 + operation, -1);
       set(stagedTargets, 512 + operation, -1);
       set(stagedTargets, 768 + operation, -1);
