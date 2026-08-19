@@ -132,6 +132,7 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 - [x] WIP-0182 stages and publishes seven aggregate expression value columns through exact input and expanded counts.
 - [x] WIP-0183 stages and publishes aggregate owners, indexed owners, slice descriptors, and structural values through exact operation and value counts.
 - [x] WIP-0184 publishes ownership projections and aggregate operand relocations through exact event and relocation counts.
+- [x] WIP-0185 publishes source-planned and instruction-decoded ownership coordinates through exact event counts.
 - [ ] Every physical compiler module publishes frontend products without dependency source.
 
 ## Acceptance
@@ -178,4 +179,5 @@ Rejected. Coordinates are temporary evidence and are unstable under canonical fo
 - [WIP-0182: Sparse aggregate-expression values](WIP-0182-sparse-aggregate-expression-values.md)
 - [WIP-0183: Sparse aggregate-owner publication](WIP-0183-sparse-aggregate-owner-publication.md)
 - [WIP-0184: Sparse aggregate ownership projection](WIP-0184-sparse-aggregate-ownership-projection.md)
+- [WIP-0185: Sparse ownership-coordinate publication](WIP-0185-sparse-ownership-coordinate-publication.md)
 - [Bootstrap evidence](../../public/reference/bootstrap.md)

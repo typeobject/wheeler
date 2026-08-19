@@ -174,10 +174,19 @@ classical class SourceOwnershipProducts {
       return new SourceOwnershipPlan(0, false);
     }
 
-    long row = 0;
-    while (row < COORDINATE_ROWS) limit COORDINATE_ROWS {
-      set(coordinateRows, row, stagedCoordinates[row]);
-      row += 1;
+    long column = 0;
+    while (column < 4) limit 4 {
+      long row = 0;
+      while (row < effectCount) limit EFFECT_COUNT_LIMIT {
+        set(
+          coordinateRows,
+          column * EFFECT_COUNT_LIMIT + row,
+          stagedCoordinates[column * EFFECT_COUNT_LIMIT + row]
+        );
+        row += 1;
+      }
+
+      column += 1;
     }
 
     drop(stagedCoordinates);

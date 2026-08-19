@@ -297,10 +297,19 @@ classical class InstructionOwnershipProducts {
       return new OwnershipCoordinatePlan(0, false);
     }
 
-    long row = 0;
-    while (row < OWNERSHIP_COORDINATE_ROWS) limit OWNERSHIP_COORDINATE_ROWS {
-      set(coordinateRows, row, stagedCoordinates[row]);
-      row += 1;
+    long column = 0;
+    while (column < 4) limit 4 {
+      long row = 0;
+      while (row < eventCount) limit MAX_EVENTS_PER_MODULE {
+        set(
+          coordinateRows,
+          column * MAX_EVENTS_PER_MODULE + row,
+          stagedCoordinates[column * MAX_EVENTS_PER_MODULE + row]
+        );
+        row += 1;
+      }
+
+      column += 1;
     }
 
     drop(stagedCoordinates);
