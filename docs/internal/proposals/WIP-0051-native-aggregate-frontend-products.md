@@ -126,6 +126,7 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 - [x] WIP-0176 publishes constructor and projection target columns through exact operation counts.
 - [x] WIP-0177 publishes destination, owner, argument, provisional placement, and validated primitive placeholder rows through exact counts.
 - [x] WIP-0178 stages and publishes filtered primitive function, instruction, and adjusted placement rows through exact counts.
+- [x] WIP-0179 composes primitive and aggregate function, instruction, and selector products through exact counts.
 - [ ] Every physical compiler module publishes frontend products without dependency source.
 
 ## Acceptance
@@ -166,4 +167,5 @@ Rejected. Coordinates are temporary evidence and are unstable under canonical fo
 - [WIP-0176: Sparse aggregate-target publication](WIP-0176-sparse-aggregate-target-publication.md)
 - [WIP-0177: Sparse aggregate frontend-binding publication](WIP-0177-sparse-aggregate-frontend-binding-publication.md)
 - [WIP-0178: Sparse primitive-placeholder projection](WIP-0178-sparse-primitive-placeholder-projection.md)
+- [WIP-0179: Sparse aggregate-instruction composition](WIP-0179-sparse-aggregate-instruction-composition.md)
 - [Bootstrap evidence](../../public/reference/bootstrap.md)

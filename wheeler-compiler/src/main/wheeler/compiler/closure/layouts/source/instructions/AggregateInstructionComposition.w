@@ -202,10 +202,19 @@ classical class AggregateInstructionComposition {
     words stagedFunctions = allocate(staging, FUNCTION_ROWS);
     words stagedInstructions = allocate(staging, INSTRUCTION_ROWS);
     words stagedSelectors = allocate(staging, SELECTOR_ROWS);
-    long functionRow = 0;
-    while (functionRow < FUNCTION_ROWS) limit FUNCTION_ROWS {
-      set(stagedFunctions, functionRow, primitiveFunctionRows[functionRow]);
-      functionRow += 1;
+    long copiedColumn = 0;
+    while (copiedColumn < 10) limit 10 {
+      long functionRow = 0;
+      while (functionRow < functionCount) limit MAX_FUNCTIONS {
+        set(
+          stagedFunctions,
+          copiedColumn * MAX_FUNCTIONS + functionRow,
+          primitiveFunctionRows[copiedColumn * MAX_FUNCTIONS + functionRow]
+        );
+        functionRow += 1;
+      }
+
+      copiedColumn += 1;
     }
 
     long composedCount = 0;
@@ -342,22 +351,40 @@ classical class AggregateInstructionComposition {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < FUNCTION_ROWS) limit FUNCTION_ROWS {
-        set(composedFunctionRows, row, stagedFunctions[row]);
-        row += 1;
+      long publishedColumn = 0;
+      while (publishedColumn < 10) limit 10 {
+        long publishedFunctionRow = 0;
+        while (publishedFunctionRow < functionCount) limit MAX_FUNCTIONS {
+          set(
+            composedFunctionRows,
+            publishedColumn * MAX_FUNCTIONS + publishedFunctionRow,
+            stagedFunctions[publishedColumn * MAX_FUNCTIONS + publishedFunctionRow]
+          );
+          publishedFunctionRow += 1;
+        }
+
+        publishedColumn += 1;
       }
 
-      row = 0;
-      while (row < INSTRUCTION_ROWS) limit INSTRUCTION_ROWS {
-        set(composedInstructionRows, row, stagedInstructions[row]);
-        row += 1;
+      publishedColumn = 0;
+      while (publishedColumn < 6) limit 6 {
+        long instructionRow = 0;
+        while (instructionRow < composedCount) limit MAX_INSTRUCTIONS {
+          set(
+            composedInstructionRows,
+            publishedColumn * MAX_INSTRUCTIONS + instructionRow,
+            stagedInstructions[publishedColumn * MAX_INSTRUCTIONS + instructionRow]
+          );
+          instructionRow += 1;
+        }
+
+        publishedColumn += 1;
       }
 
-      row = 0;
-      while (row < SELECTOR_ROWS) limit SELECTOR_ROWS {
-        set(artifactSelectors, row, stagedSelectors[row]);
-        row += 1;
+      long selector = 0;
+      while (selector < composedCount) limit MAX_INSTRUCTIONS {
+        set(artifactSelectors, selector, stagedSelectors[selector]);
+        selector += 1;
       }
     }
 
