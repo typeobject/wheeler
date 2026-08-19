@@ -213,10 +213,19 @@ classical class AggregateProjectionTargets {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < TARGET_ROWS) limit TARGET_ROWS {
-        set(targetRows, row, stagedTargets[row]);
-        row += 1;
+      long column = 0;
+      while (column < 4) limit 4 {
+        long row = 0;
+        while (row < operationCount) limit MAX_OPERATIONS {
+          set(
+            targetRows,
+            column * MAX_OPERATIONS + row,
+            stagedTargets[column * MAX_OPERATIONS + row]
+          );
+          row += 1;
+        }
+
+        column += 1;
       }
     }
 

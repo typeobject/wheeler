@@ -123,6 +123,7 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 - [x] Product and linker fixtures reproduce the complete stage-0 record-bearing artifact and its canonical aggregate sections byte for byte. Focused native fixtures cover variant construction and payloads, fixed-array construction and indexing, slice construction and indexing, field chains, and instruction ownership. Whole-artifact equality for every focused form remains part of physical-closure publication.
 - [x] WIP-0173 publishes parsed and descriptor-compatible aggregate, case, member, and string rows through exact counts. WIP-0174 carries measured projected rows into counted closure staging.
 - [x] WIP-0175 publishes normalized source operations, arguments, and resolved canonical operands through exact operation and argument counts.
+- [x] WIP-0176 publishes constructor and projection target columns through exact operation counts.
 - [ ] Every physical compiler module publishes frontend products without dependency source.
 
 ## Acceptance
@@ -160,4 +161,5 @@ Rejected. Coordinates are temporary evidence and are unstable under canonical fo
 - [WIP-0173: Sparse source-aggregate publication](WIP-0173-sparse-source-aggregate-publication.md)
 - [WIP-0174: Sparse counted-aggregate projection](WIP-0174-sparse-counted-aggregate-projection.md)
 - [WIP-0175: Sparse aggregate-operation publication](WIP-0175-sparse-aggregate-operation-publication.md)
+- [WIP-0176: Sparse aggregate-target publication](WIP-0176-sparse-aggregate-target-publication.md)
 - [Bootstrap evidence](../../public/reference/bootstrap.md)
