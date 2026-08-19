@@ -171,14 +171,23 @@ classical class AggregateOperandProjections {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < RELOCATION_ROWS) limit RELOCATION_ROWS {
-        set(relocationRows, row, stagedRows[row]);
-        row += 1;
+      long column = 0;
+      while (column < 3) limit 3 {
+        long row = 0;
+        while (row < relocationCount) limit MAX_INSTRUCTIONS {
+          set(
+            relocationRows,
+            column * MAX_INSTRUCTIONS + row,
+            stagedRows[column * MAX_INSTRUCTIONS + row]
+          );
+          row += 1;
+        }
+
+        column += 1;
       }
 
       long identity = 0;
-      while (identity < RELOCATION_IDENTITIES) limit RELOCATION_IDENTITIES {
+      while (identity < relocationCount * IDENTITY_BYTES) limit RELOCATION_IDENTITIES {
         setByte(relocationIdentities, identity, stagedIdentities[identity]);
         identity += 1;
       }

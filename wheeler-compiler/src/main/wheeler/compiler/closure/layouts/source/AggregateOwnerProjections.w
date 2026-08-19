@@ -135,10 +135,15 @@ classical class AggregateOwnerProjections {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < EVENT_PROJECTION_ROWS) limit EVENT_PROJECTION_ROWS {
-        set(eventProjectionRows, row, staged[row]);
-        row += 1;
+      long column = 0;
+      while (column < 2) limit 2 {
+        long row = 0;
+        while (row < eventCount) limit MAX_EVENTS {
+          set(eventProjectionRows, column * MAX_EVENTS + row, staged[column * MAX_EVENTS + row]);
+          row += 1;
+        }
+
+        column += 1;
       }
     }
 
