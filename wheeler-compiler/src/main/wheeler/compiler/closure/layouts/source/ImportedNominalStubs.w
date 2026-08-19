@@ -7,6 +7,7 @@ classical class ImportedNominalStubs {
   private const long MAX_AGGREGATES = 4096;
   private const long MAX_SOURCE_BYTES = 32768;
   private const long MAX_STUBS = 64;
+  private const long PROJECTION_COLUMN_ROWS = 16384;
   private const long PROJECTION_ROWS = 49152;
   private const long STAGING_BYTES = 458752;
 
@@ -253,10 +254,19 @@ classical class ImportedNominalStubs {
       outputByte += 1;
     }
 
-    long projectionRow = 0;
-    while (projectionRow < PROJECTION_ROWS) limit PROJECTION_ROWS {
-      set(projectionRows, projectionRow, stagedProjections[projectionRow]);
-      projectionRow += 1;
+    long projectionColumn = 0;
+    while (projectionColumn < 3) limit 3 {
+      long projectionRow = 0;
+      while (projectionRow < projectionCount) limit MAX_AGGREGATES {
+        set(
+          projectionRows,
+          projectionColumn * PROJECTION_COLUMN_ROWS + projectionRow,
+          stagedProjections[projectionColumn * PROJECTION_COLUMN_ROWS + projectionRow]
+        );
+        projectionRow += 1;
+      }
+
+      projectionColumn += 1;
     }
 
     drop(stagedProjections);

@@ -205,10 +205,19 @@ classical class LocalNominalReferences {
     }
 
     if (valid) {
-      long row = 0;
-      while (row < REFERENCE_ROWS) limit REFERENCE_ROWS {
-        set(referenceRows, row, stagedReferences[row]);
-        row += 1;
+      long column = 0;
+      while (column < 3) limit 3 {
+        long row = 0;
+        while (row < referenceCount) limit MAX_REFERENCES {
+          set(
+            referenceRows,
+            column * MAX_REFERENCES + row,
+            stagedReferences[column * MAX_REFERENCES + row]
+          );
+          row += 1;
+        }
+
+        column += 1;
       }
     }
 
