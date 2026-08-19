@@ -329,16 +329,34 @@ classical class CompiledFunctionProducts {
     assert(typeStart + expectedTypeOffset * 4 == functions.start + functions.length);
     assert(expectedCodeOffset == code.length);
 
-    long row = 0;
-    while (row < FUNCTION_ROWS) limit FUNCTION_ROWS {
-      set(functionRows, row, stagedFunctions[row]);
-      row += 1;
+    long column = 0;
+    while (column < 10) limit 10 {
+      long functionRow = 0;
+      while (functionRow < functionCount) limit MAX_FUNCTIONS_PER_MODULE {
+        set(
+          functionRows,
+          column * MAX_FUNCTIONS_PER_MODULE + functionRow,
+          stagedFunctions[column * MAX_FUNCTIONS_PER_MODULE + functionRow]
+        );
+        functionRow += 1;
+      }
+
+      column += 1;
     }
 
-    row = 0;
-    while (row < INSTRUCTION_ROWS) limit INSTRUCTION_ROWS {
-      set(instructionRows, row, stagedInstructions[row]);
-      row += 1;
+    column = 0;
+    while (column < 6) limit 6 {
+      long instructionRow = 0;
+      while (instructionRow < instructionCount) limit MAX_INSTRUCTIONS_PER_MODULE {
+        set(
+          instructionRows,
+          column * MAX_INSTRUCTIONS_PER_MODULE + instructionRow,
+          stagedInstructions[column * MAX_INSTRUCTIONS_PER_MODULE + instructionRow]
+        );
+        instructionRow += 1;
+      }
+
+      column += 1;
     }
 
     drop(stagedInstructions);
