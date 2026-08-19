@@ -120,7 +120,7 @@ classical class StructuredArtifactDirections {
       drop(inverses);
     } else {
       long artifactByte = 0;
-      while (artifactByte < 32768) limit 32768 {
+      while (artifactByte < forwardResult.length) limit 32768 {
         setByte(output, artifactByte, forwardArtifact[artifactByte]);
         artifactByte += 1;
       }

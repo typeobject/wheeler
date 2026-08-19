@@ -233,8 +233,8 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
-  void rejectsNonByteRootProjectionOwners() throws Exception {
-    assertNoArtifact(SOURCE.replace(
+  void emitsRootWordProjectionProducts() throws Exception {
+    assertArtifact(SOURCE.replace(
         "    long index = 0;\n",
         "    long projected = rows[sourceStart];\n"
             + "    long index = 0;\n"));
