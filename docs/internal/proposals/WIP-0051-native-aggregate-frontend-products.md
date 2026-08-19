@@ -128,6 +128,7 @@ A bound breach publishes nothing. No buffer capacity implies another count.
 - [x] WIP-0178 stages and publishes filtered primitive function, instruction, and adjusted placement rows through exact counts.
 - [x] WIP-0179 composes primitive and aggregate function, instruction, and selector products through exact counts.
 - [x] WIP-0180 publishes and transfers imported nominal references, imported carriers, and local carriers through exact projection counts.
+- [x] WIP-0181 transfers every remaining aggregate-aware body product through its producer's exact count.
 - [ ] Every physical compiler module publishes frontend products without dependency source.
 
 ## Acceptance
@@ -170,4 +171,5 @@ Rejected. Coordinates are temporary evidence and are unstable under canonical fo
 - [WIP-0178: Sparse primitive-placeholder projection](WIP-0178-sparse-primitive-placeholder-projection.md)
 - [WIP-0179: Sparse aggregate-instruction composition](WIP-0179-sparse-aggregate-instruction-composition.md)
 - [WIP-0180: Sparse nominal-projection publication](WIP-0180-sparse-nominal-projection-publication.md)
+- [WIP-0181: Sparse aggregate body-product transfer](WIP-0181-sparse-aggregate-body-product-transfer.md)
 - [Bootstrap evidence](../../public/reference/bootstrap.md)

@@ -509,38 +509,53 @@ classical class AggregateCompiledCallableBodies {
       nominalColumn += 1;
     }
 
-    long constructorTargetRow = 0;
-    while (constructorTargetRow < 768) limit 768 {
-      set(
-        localConstructorTargetRows,
-        constructorTargetRow,
-        stagedConstructorTargets[constructorTargetRow]
-      );
-      constructorTargetRow += 1;
+    long constructorColumn = 0;
+    while (constructorColumn < 3) limit 3 {
+      long constructorTarget = 0;
+      while (constructorTarget < operationCount) limit 256 {
+        set(
+          localConstructorTargetRows,
+          constructorColumn * 256 + constructorTarget,
+          stagedConstructorTargets[constructorColumn * 256 + constructorTarget]
+        );
+        constructorTarget += 1;
+      }
+
+      constructorColumn += 1;
     }
 
-    long composedFunctionRow = 0;
-    while (composedFunctionRow < 640) limit 640 {
-      set(
-        localComposedFunctionRows,
-        composedFunctionRow,
-        stagedComposedFunctions[composedFunctionRow]
-      );
-      composedFunctionRow += 1;
+    long composedFunctionColumn = 0;
+    while (composedFunctionColumn < 10) limit 10 {
+      long composedFunction = 0;
+      while (composedFunction < primitiveFunctions.functionCount) limit 64 {
+        set(
+          localComposedFunctionRows,
+          composedFunctionColumn * 64 + composedFunction,
+          stagedComposedFunctions[composedFunctionColumn * 64 + composedFunction]
+        );
+        composedFunction += 1;
+      }
+
+      composedFunctionColumn += 1;
     }
 
-    long composedInstructionRow = 0;
-    while (composedInstructionRow < 24576) limit 24576 {
-      set(
-        localComposedInstructionRows,
-        composedInstructionRow,
-        stagedComposedInstructions[composedInstructionRow]
-      );
-      composedInstructionRow += 1;
+    long composedInstructionColumn = 0;
+    while (composedInstructionColumn < 6) limit 6 {
+      long composedInstruction = 0;
+      while (composedInstruction < composition.instructionCount) limit 4096 {
+        set(
+          localComposedInstructionRows,
+          composedInstructionColumn * 4096 + composedInstruction,
+          stagedComposedInstructions[composedInstructionColumn * 4096 + composedInstruction]
+        );
+        composedInstruction += 1;
+      }
+
+      composedInstructionColumn += 1;
     }
 
     long artifactSelector = 0;
-    while (artifactSelector < 4096) limit 4096 {
+    while (artifactSelector < composition.instructionCount) limit 4096 {
       set(localArtifactSelectors, artifactSelector, stagedArtifactSelectors[artifactSelector]);
       artifactSelector += 1;
     }
@@ -551,43 +566,62 @@ classical class AggregateCompiledCallableBodies {
       supplementalByte += 1;
     }
 
-    long resolvedOperationRow = 0;
-    while (resolvedOperationRow < 1536) limit 1536 {
-      set(
-        localResolvedOperationRows,
-        resolvedOperationRow,
-        stagedResolvedOperations[resolvedOperationRow]
-      );
-      resolvedOperationRow += 1;
+    long resolvedOperationColumn = 0;
+    while (resolvedOperationColumn < 6) limit 6 {
+      long resolvedOperation = 0;
+      while (resolvedOperation < operationCount) limit 256 {
+        set(
+          localResolvedOperationRows,
+          resolvedOperationColumn * 256 + resolvedOperation,
+          stagedResolvedOperations[resolvedOperationColumn * 256 + resolvedOperation]
+        );
+        resolvedOperation += 1;
+      }
+
+      resolvedOperationColumn += 1;
     }
 
-    long projectionTargetRow = 0;
-    while (projectionTargetRow < 1024) limit 1024 {
-      set(
-        localProjectionTargetRows,
-        projectionTargetRow,
-        stagedProjectionTargets[projectionTargetRow]
-      );
-      projectionTargetRow += 1;
+    long projectionTargetColumn = 0;
+    while (projectionTargetColumn < 4) limit 4 {
+      long projectionTarget = 0;
+      while (projectionTarget < operationCount) limit 256 {
+        set(
+          localProjectionTargetRows,
+          projectionTargetColumn * 256 + projectionTarget,
+          stagedProjectionTargets[projectionTargetColumn * 256 + projectionTarget]
+        );
+        projectionTarget += 1;
+      }
+
+      projectionTargetColumn += 1;
     }
 
     long bindingRow = 0;
-    while (bindingRow < 256) limit 256 {
+    while (bindingRow < operationCount) limit 256 {
       set(localDestinationRows, bindingRow, stagedDestinations[bindingRow]);
       set(localOwnerRows, bindingRow, stagedOwners[bindingRow]);
       bindingRow += 1;
     }
 
     bindingRow = 0;
-    while (bindingRow < 1024) limit 1024 {
+    while (bindingRow < argumentCount) limit 1024 {
       set(localArgumentRows, bindingRow, stagedArguments[bindingRow]);
       bindingRow += 1;
     }
 
-    bindingRow = 0;
-    while (bindingRow < 768) limit 768 {
-      set(localPlacementRows, bindingRow, stagedPlacements[bindingRow]);
-      bindingRow += 1;
+    long placementColumn = 0;
+    while (placementColumn < 3) limit 3 {
+      bindingRow = 0;
+      while (bindingRow < operationCount) limit 256 {
+        set(
+          localPlacementRows,
+          placementColumn * 256 + bindingRow,
+          stagedPlacements[placementColumn * 256 + bindingRow]
+        );
+        bindingRow += 1;
+      }
+
+      placementColumn += 1;
     }
 
     long localProjectionColumn = 0;
@@ -605,22 +639,40 @@ classical class AggregateCompiledCallableBodies {
       localProjectionColumn += 1;
     }
 
-    long valueRow = 0;
-    while (valueRow < 7168) limit 7168 {
-      set(localValueRows, valueRow, stagedValues[valueRow]);
-      valueRow += 1;
+    long valueColumn = 0;
+    while (valueColumn < 7) limit 7 {
+      long valueRow = 0;
+      while (valueRow < expressionValues.valueCount) limit 1024 {
+        set(
+          localValueRows,
+          valueColumn * 1024 + valueRow,
+          stagedValues[valueColumn * 1024 + valueRow]
+        );
+        valueRow += 1;
+      }
+
+      valueColumn += 1;
     }
 
     long localCountRow = 0;
-    while (localCountRow < 64) limit 64 {
+    while (localCountRow < localCallableCount) limit 64 {
       set(localFunctionLocalCounts, localCountRow, stagedLocalCounts[localCountRow]);
       localCountRow += 1;
     }
 
-    long statementRow = 0;
-    while (statementRow < 24576) limit 24576 {
-      set(localStatementRows, statementRow, stagedStatements[statementRow]);
-      statementRow += 1;
+    long statementColumn = 0;
+    while (statementColumn < 6) limit 6 {
+      long statementRow = 0;
+      while (statementRow < sourceStatements.statementCount) limit 4096 {
+        set(
+          localStatementRows,
+          statementColumn * 4096 + statementRow,
+          stagedStatements[statementColumn * 4096 + statementRow]
+        );
+        statementRow += 1;
+      }
+
+      statementColumn += 1;
     }
 
     long carrierProjectionColumn = 0;
