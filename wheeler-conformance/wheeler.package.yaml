@@ -194,6 +194,13 @@ targets:
       - "src/main/wheeler/testing/NativeTestShard.w"
     test: false
   - kind: "deployable"
+    name: "nativetestsummary"
+    root: "src/main/wheeler/testing/NativeTestSummary.w"
+    module: "wheeler.conformance.testing.native_test_summary"
+    sources:
+      - "src/main/wheeler/testing/NativeTestSummary.w"
+    test: false
+  - kind: "deployable"
     name: "nativetoolchainidentity"
     root: "src/main/wheeler/bootstrap/NativeToolchainIdentity.w"
     module: "wheeler.conformance.bootstrap.toolchain_identity"

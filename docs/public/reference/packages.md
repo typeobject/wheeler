@@ -324,9 +324,10 @@ canonical JSON, and JUnit XML are presentation forms outside the semantic identi
 
 `--shard INDEX/COUNT` assigns cases by complete case-identity digest. Shards are
 disjoint and reduce to the serial report in any arrival order. The
-`nativetestcaseidentity` and `nativetestshard` conformance targets reproduce the
-case digest and assignment without Java. Discovery, execution, and report
-reduction still use the stage-0 runner. Repeated `--tag` arguments select their
+`nativetestcaseidentity`, `nativetestshard`, and `nativetestsummary` conformance
+targets reproduce the case digest, shard assignment, canonical outcome order,
+and summary counts without Java. Discovery, execution, full profile-2 report
+reduction, and rendering still use the stage-0 runner. Repeated `--tag` arguments select their
 intersection.
 
 ## Vendored and locked work
