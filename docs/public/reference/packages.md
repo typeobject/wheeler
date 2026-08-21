@@ -323,8 +323,10 @@ count, transition coverage where applicable, and final report identity. Terminal
 canonical JSON, and JUnit XML are presentation forms outside the semantic identity.
 
 `--shard INDEX/COUNT` assigns cases by complete case-identity digest. Shards are
-disjoint and reduce to the serial report in any arrival order. Repeated `--tag`
-arguments select their intersection.
+disjoint and reduce to the serial report in any arrival order. The
+`nativetestshard` conformance target reproduces this assignment without Java. Discovery, execution, and report
+reduction still use the stage-0 runner. Repeated
+`--tag` arguments select their intersection.
 
 ## Vendored and locked work
 

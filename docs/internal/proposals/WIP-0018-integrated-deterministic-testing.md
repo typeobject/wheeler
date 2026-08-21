@@ -279,7 +279,7 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 - [x] The scalar stage-0 descriptor profile accepts reachable modular qualification, parameterless or one-scalar declarations, bounded inline cases, canonical tags, per-case step and history limits, and the first unparameterized lifecycle fixture declaration. Capability-bearing fixtures, generators, target capabilities, and wider parameter products remain later descriptor extensions.
 - [x] Two Wheeler cases compile from one exact package target, run in separate fresh VMs, carry distinct identities and coverage reports, and reduce into one rerun-stable report.
 - [x] Bounded inline `long` and `boolean` parameter rows parse, receive indexed stable names, compile through a synthetic no-argument entry wrapper, and execute independently.
-- [x] Bounded scalar parameter products and digest-assigned deterministic shards execute for the accepted profile.
+- [x] Bounded scalar parameter products and digest-assigned deterministic shards execute for the accepted profile. WIP-0194 reproduces the complete case-identity shard assignment in a Wheeler conformance target.
 - [x] Bounded canonical dotted tags attach to test declarations, survive modular linking, and sort in descriptor metadata. Repeated `--tag` filters select the intersection without an ambient registry.
 - [x] Optional `limits(steps = N, history = M)` metadata survives modular linking and rewrites only that case artifact's verified machine ceilings before hashing and execution.
 - [x] The first source-declared lifecycle fixture profile names four distinct zero-argument `void` functions in `fixtures(suite_acquire = ..., case_acquire = ..., case_release = ..., suite_release = ...)`. The compiler resolves exact artifact function identities. The runner executes the phases around one unparameterized case in that order and attempts both releases after pass, assertion failure, runtime trap, or case-release failure.
@@ -357,3 +357,4 @@ Assertions may inspect task trees, deadlock diagnostics, EventIds, atomic observ
 - [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md)
 - [WIP-0021](WIP-0021-uniform-call-and-assertion-syntax.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
+- [WIP-0194](WIP-0194-native-test-shard-assignment.md)
