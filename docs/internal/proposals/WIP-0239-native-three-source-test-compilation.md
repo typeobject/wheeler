@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, module compilation |
 | Depends on | WIP-0235, WIP-0238 |
 | Supersedes | WIP-0238 two-source compilation bound |
-| Superseded by | Native four-source test compilation |
+| Superseded by | WIP-0240 native source compilation authority |
 
 ## Summary
 
@@ -37,7 +37,7 @@ For three sources the runner allocates source zero, one, and two by validated or
 
 The runner uses independent exhaustive equality checks rather than an unsupported `else if` form. Complete manifest validation proves the root ordinal is in range before dispatch.
 
-`compileTwoImportedTestSources` validates all three source bounds, requires exact artifact recovery capacity, delegates to `compileMinimalWithConstantImports`, and returns only a nonempty committed artifact length.
+The original `compileTwoImportedTestSources` wrapper validated all three source bounds, required exact artifact recovery capacity, delegated to `compileMinimalWithConstantImports`, and returned only a nonempty committed artifact length. WIP-0240 folds that dispatch into one source-plan compilation authority.
 
 ## Atomicity
 
@@ -92,3 +92,4 @@ Rejected. The counted compiler path needs a package graph input and larger resou
 
 - [WIP-0235](WIP-0235-native-import-cycle-rejection.md)
 - [WIP-0238](WIP-0238-native-two-source-test-compilation.md)
+- [WIP-0240](WIP-0240-native-source-compilation-authority.md)

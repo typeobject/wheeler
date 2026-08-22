@@ -15,7 +15,7 @@
 
 Compile and execute one bounded Wheeler test source in a single native invocation.
 
-`wheeler.runtime.testing.runners.test_source_execution` invokes the canonical native compiler driver and returns the exact verified artifact length in caller-owned storage. The original `NativeSourceTestRun.w` cut point copied that committed prefix into exact-size owned storage, invoked runtime artifact execution once, and published a fixed outcome.
+The original `wheeler.runtime.testing.runners.test_source_execution` invoked the canonical native compiler driver and returned the exact verified artifact length in caller-owned storage. WIP-0240 removes that wrapper after moving its role into source-plan compilation authority. The original `NativeSourceTestRun.w` cut point copied that committed prefix into exact-size owned storage, invoked runtime artifact execution once, and published a fixed outcome.
 
 This is the first test path in which Java supplies source bytes rather than a precompiled artifact. Java launches the VM and checks independent expected bytes. It does not compile the artifact consumed by the native runtime.
 

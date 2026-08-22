@@ -40,7 +40,7 @@ The preflight scan sees every descriptor and rejects a source marker in a multi-
 
 `TestSourcePlan.w` owns extraction from its validated frame. `validatedSingleSourceLength` and `copyValidatedSingleSource` accept only a plan which has already passed `validTargetSourcePlan`. They assert the one-source count and preserve the exact source bytes. They do not parse modules or repair text.
 
-The runner freezes the copied bytes as UTF-8 only after strict UTF-8 and module validation. `compileTestSource` delegates to `wheeler.compiler.driver::compileMinimal` and returns its committed artifact length.
+The original runner froze copied bytes as UTF-8 only after strict UTF-8 and module validation. WIP-0240 moves that ownership into `compileValidatedSourcePlan`, which delegates to the matching canonical compiler driver operation and returns its committed artifact length.
 
 ## Artifact ownership
 

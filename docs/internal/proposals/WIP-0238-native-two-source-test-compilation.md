@@ -43,7 +43,7 @@ The earlier one-source-only helpers are deleted rather than retained as aliases.
 
 A zero-length one-case descriptor accepts one or two sources. Every source remains bounded to 4,096 bytes.
 
-For one source, the runner calls `compileTestSource` as before. For two sources, it derives `importedOrdinal = 1 - rootOrdinal`, freezes both exact source frames, and calls `compileImportedTestSource`. That operation delegates to `wheeler.compiler.driver::compileMinimalWithConstantImport`.
+The original runner called `compileTestSource` for one source. For two sources, it derived `importedOrdinal = 1 - rootOrdinal`, froze both exact source frames, and called `compileImportedTestSource`. WIP-0240 moves both branches into one source-plan compilation operation while preserving `wheeler.compiler.driver::compileMinimalWithConstantImport` as compiler authority.
 
 The current two-module driver accepts the bounded graph profile already proven by native compiler closure tests. Unsupported source shapes trap before artifact publication. General counted graph compilation remains separate work.
 

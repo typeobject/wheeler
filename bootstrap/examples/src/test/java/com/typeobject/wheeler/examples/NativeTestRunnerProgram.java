@@ -41,7 +41,7 @@ final class NativeTestRunnerProgram {
       modules.put(source + ".w", RuntimeSources.read("runtime/testing/" + source + ".w"));
     }
     for (String source : List.of(
-        "TestDescriptors", "TestManifest", "TestPackageLock", "TestSourceExecution",
+        "TestDescriptors", "TestManifest", "TestPackageLock", "TestSourceCompilation",
         "TestSourceModules", "TestSourcePlan", "TestRunner")) {
       modules.put(
           source + ".w", RuntimeSources.read("runtime/testing/runners/" + source + ".w"));
