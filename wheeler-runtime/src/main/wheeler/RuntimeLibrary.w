@@ -10,6 +10,7 @@ import wheeler.runtime.io.lifecycle;
 import wheeler.runtime.io.portable;
 import wheeler.runtime.io.receipts;
 import wheeler.runtime.testing.runners.test_runner;
+import wheeler.runtime.testing.runners.test_source_execution;
 import wheeler.runtime.testing.test_artifact_execution_identity;
 import wheeler.runtime.testing.test_artifact_metadata;
 import wheeler.runtime.testing.test_artifact_report;

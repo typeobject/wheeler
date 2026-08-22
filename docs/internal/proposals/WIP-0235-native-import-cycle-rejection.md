@@ -9,7 +9,7 @@
 | Area | Native testing, source plans, module graph |
 | Depends on | WIP-0009, WIP-0018, WIP-0234 |
 | Supersedes | Resolved native import graphs without acyclicity proof |
-| Superseded by | Native dependency import graphs |
+| Superseded by | WIP-0236 native source test execution |
 
 ## Summary
 
@@ -80,3 +80,4 @@ Rejected. Canonical path order is not dependency order.
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0234](WIP-0234-native-canonical-import-order.md)
+- [WIP-0236](WIP-0236-native-source-test-execution.md)
