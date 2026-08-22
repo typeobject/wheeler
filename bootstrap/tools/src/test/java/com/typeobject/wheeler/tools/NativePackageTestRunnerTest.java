@@ -1,9 +1,13 @@
 package com.typeobject.wheeler.tools;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.typeobject.wheeler.core.vm.VmTrap;
+import com.typeobject.wheeler.runtime.WheelerRuntime;
+import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
@@ -13,6 +17,23 @@ import org.junit.jupiter.api.io.TempDir;
 /** Proves package-command invocation of the native fixed test profile. */
 class NativePackageTestRunnerTest {
   @TempDir Path temporary;
+
+  @Test
+  void reducesPackageTargetsIndependentOfArrivalOrder() throws Exception {
+    var reducer = PackageProject.load(Path.of("wheeler-conformance"))
+        .compileRunnable("nativetestpackagereportidentity");
+    byte[] first = packageRows(1, 2);
+    byte[] second = packageRows(2, 1);
+    byte[] firstOutput = new WheelerRuntime().executeBinaryInput(reducer, first, 38).output();
+    byte[] secondOutput = new WheelerRuntime().executeBinaryInput(reducer, second, 38).output();
+
+    assertArrayEquals(firstOutput, secondOutput);
+    assertEquals(3, unsigned16(firstOutput, 32));
+    assertEquals(2, unsigned16(firstOutput, 34));
+    assertEquals(1, unsigned16(firstOutput, 36));
+    assertThrows(VmTrap.class, () -> new WheelerRuntime().executeBinaryInput(
+        reducer, packageRows(1, 1), 38));
+  }
 
   @Test
   void invokesEveryNativePackageTestTarget() throws Exception {
@@ -129,6 +150,30 @@ class NativePackageTestRunnerTest {
     assertEquals(1, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
     assertEquals(1, report.passed());
+  }
+
+  private static byte[] packageRows(int firstIdentity, int secondIdentity) {
+    ByteArrayOutputStream rows = new ByteArrayOutputStream();
+    rows.write(2);
+    writeTargetRow(rows, firstIdentity, firstIdentity);
+    writeTargetRow(rows, secondIdentity, secondIdentity);
+    return rows.toByteArray();
+  }
+
+  private static void writeTargetRow(
+      ByteArrayOutputStream rows, int identity, int selected) {
+    rows.writeBytes(new byte[31]);
+    rows.write(identity);
+    rows.write(selected);
+    rows.write(0);
+    rows.write(1);
+    rows.write(0);
+    rows.write(selected - 1);
+    rows.write(0);
+  }
+
+  private static int unsigned16(byte[] input, int offset) {
+    return Byte.toUnsignedInt(input[offset]) + Byte.toUnsignedInt(input[offset + 1]) * 256;
   }
 
   @Test

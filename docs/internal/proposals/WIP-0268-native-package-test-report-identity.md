@@ -63,6 +63,8 @@ The host does not hash target identities.
 
 `invokesEveryNativePackageTestTarget` runs two tagged package targets. The native package adapter retains two target identities, invokes the package reducer, checks two selected and two passed cases, and exposes one 64-digit package identity.
 
+`reducesPackageTargetsIndependentOfArrivalOrder` supplies two target rows in both orders and requires byte-identical output. It also supplies a duplicate identity and requires native rejection.
+
 Single-target and local-import package tests pass through the same reducer with one target row. Unknown-tag metadata probes do not enter package report reduction.
 
 Runtime and conformance package checks prove that the new authority is reachable through exact package sources and lock provenance.
