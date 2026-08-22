@@ -14,12 +14,12 @@ The package groups source by the contract under test:
 - `io/` exercises lifecycle and durability contracts.
 - `packages/` validates manifests, locks, plans, archives, snapshots, and workspaces.
 - `runtime/` interprets verified bounded bytecode.
-- `testing/` publishes runtime-owned case identities, shard assignments, canonical summaries, and one-case report identities.
+- `testing/` publishes runtime-owned case identities, shard assignments, canonical summaries, report identities for up to 64 cases, and bounded artifact outcomes.
 
 Every deployable target consumes exact locked archives from `wheeler.compiler`, `wheeler.core`,
 `wheeler.packages`, and `wheeler.runtime`. The package carries no private copy of those sources.
 A conformance program may fail closed. It may not quietly become specification authority because
-a test happened to like its output. Test identity and shard semantics live in `wheeler.runtime`.
+a test happened to like its output. Test identity, shard, summary, report, and artifact-execution semantics live in `wheeler.runtime`.
 The conformance entry points contain only publication effects.
 
 Run its package gate from the repository root:

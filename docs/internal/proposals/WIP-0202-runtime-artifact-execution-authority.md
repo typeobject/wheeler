@@ -91,3 +91,4 @@ Rejected. Runtime execution reports mechanism. Test and coverage consumers own p
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md)
+- [WIP-0203](WIP-0203-native-test-artifact-outcomes.md)
