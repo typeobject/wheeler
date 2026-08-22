@@ -14,7 +14,7 @@ The package groups source by the contract under test:
 - `io/` exercises lifecycle and durability contracts.
 - `packages/` validates manifests, locks, plans, archives, snapshots, and workspaces.
 - `runtime/` interprets verified bounded bytecode.
-- `testing/` publishes runtime-owned case, execution, and coverage identities, shard assignments, canonical summaries, report identities for up to 64 cases, bounded artifact outcomes, verified artifact metadata, composed artifact execution identities, and a bounded zero-to-64-case test publisher over one natively hashed canonical package manifest with native package and test-target checks, runtime-owned descriptor validation, one natively validated strict-UTF-8 canonical target-source plan and identity, strictly ordered complete case names, shard selection, execution, diagnostics, and reduction.
+- `testing/` publishes runtime-owned case, execution, and coverage identities, shard assignments, canonical summaries, report identities for up to 64 cases, bounded artifact outcomes, verified artifact metadata, composed artifact execution identities, and a bounded zero-to-64-case test publisher over one natively hashed canonical package manifest with native package and test-target checks, one root-bound dependency-free lock, runtime-owned descriptor validation, one natively validated strict-UTF-8 canonical target-source plan and identity, strictly ordered complete case names, shard selection, execution, diagnostics, and reduction.
 
 Every deployable target consumes exact locked archives from `wheeler.compiler`, `wheeler.core`,
 `wheeler.packages`, and `wheeler.runtime`. The package carries no private copy of those sources.

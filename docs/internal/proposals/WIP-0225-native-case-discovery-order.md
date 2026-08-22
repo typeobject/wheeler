@@ -9,7 +9,7 @@
 | Area | Native testing, case discovery, canonical order |
 | Depends on | WIP-0018, WIP-0195, WIP-0224 |
 | Supersedes | Unordered native descriptor inputs |
-| Superseded by | None |
+| Superseded by | WIP-0226 native root lock provenance |
 
 ## Summary
 
@@ -81,3 +81,4 @@ Rejected. The accepted stage-0 declaration and scalar-row grammar has a smaller 
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0195](WIP-0195-native-test-case-identity.md)
 - [WIP-0224](WIP-0224-native-target-source-utf8.md)
+- [WIP-0226](WIP-0226-native-root-lock-provenance.md)

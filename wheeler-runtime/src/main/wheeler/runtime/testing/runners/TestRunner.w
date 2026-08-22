@@ -6,6 +6,7 @@ import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
 import wheeler.runtime.testing.runners.test_descriptors;
 import wheeler.runtime.testing.runners.test_manifest;
+import wheeler.runtime.testing.runners.test_package_lock;
 import wheeler.runtime.testing.runners.test_source_plan;
 import wheeler.runtime.testing.test_artifact_report;
 import wheeler.runtime.testing.test_case_identity;
@@ -108,6 +109,13 @@ classical class TestRunner {
     assert(cursor + manifestLength + 4 < bufferLength(input));
     long manifestStart = cursor;
     cursor += manifestLength;
+    long lockLength = readUnsigned(input, cursor, /* width= */ 4);
+    assert(0 < lockLength);
+    assert(lockLength < 4097);
+    cursor += 4;
+    assert(cursor + lockLength + 4 < bufferLength(input));
+    long lockStart = cursor;
+    cursor += lockLength;
     long sourcePlanLength = readUnsigned(input, cursor, /* width= */ 4);
     assert(0 < sourcePlanLength);
     assert(sourcePlanLength < MAX_PAYLOAD_BYTES + 1);
@@ -188,6 +196,10 @@ classical class TestRunner {
     assert(validTargetSourcePlan(input, sourcePlanStart, sourcePlanLength));
     bytes rawManifestIdentity = allocateBytes(staging, /* length= */ 32);
     hashSha256Range(input, manifestStart, manifestLength, rawManifestIdentity, staging);
+    bytes manifestIdentity = allocateBytes(staging, /* length= */ 64);
+    long manifestIdentityLength = writeTestIdentityText(rawManifestIdentity, manifestIdentity);
+    assert(manifestIdentityLength == 64);
+    assert(validEmptyPackageLock(input, lockStart, lockLength, manifestIdentity));
     bytes rawSourceIdentity = allocateBytes(staging, /* length= */ 32);
     hashSha256Range(input, sourcePlanStart, sourcePlanLength, rawSourceIdentity, staging);
     bytes sourceIdentity = allocateBytes(staging, /* length= */ 64);
@@ -214,12 +226,14 @@ classical class TestRunner {
       copied = copyRange(input, nameStart, nameLength, caseName, /* outputStart= */ 0);
       assert(copied == nameLength);
       bytes caseInput = allocateBytes(staging, 130 + nameLength);
-      long manifestIdentityLength = writeTestIdentityTextAt(
-        rawManifestIdentity,
+      copied = copyRange(
+        manifestIdentity,
+        /* inputStart= */ 0,
+        /* length= */ 64,
         caseInput,
         /* outputStart= */ 0
       );
-      assert(manifestIdentityLength == 64);
+      assert(copied == 64);
       copied = copyRange(
         sourceIdentity,
         /* inputStart= */ 0,
@@ -371,6 +385,7 @@ classical class TestRunner {
     drop(reportRows);
     drop(sourceIdentity);
     drop(rawSourceIdentity);
+    drop(manifestIdentity);
     drop(rawManifestIdentity);
     drop(target);
     drop(packageVersion);

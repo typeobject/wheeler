@@ -160,7 +160,10 @@ final class NativeCoverageRunExampleTest {
 
     byte[] overLimit = input.clone();
     overLimit[
-        27 + TEST_MANIFEST.getBytes(StandardCharsets.UTF_8).length + targetSourcePlan().length] = 65;
+        31
+            + TEST_MANIFEST.getBytes(StandardCharsets.UTF_8).length
+            + testLock().length
+            + targetSourcePlan().length] = 65;
     VirtualMachine invalidCount = VirtualMachine.withBinaryInput(nativeTestRunner(), overLimit, 39);
     assertThrows(
         VmTrap.class,
@@ -194,7 +197,17 @@ final class NativeCoverageRunExampleTest {
         () -> CompilerMachineRunner.runWithoutRewindHistory(invalidManifest));
     assertArrayEquals(new byte[39], invalidManifest.hostOutput());
 
-    int sourcePlanStart = 27 + TEST_MANIFEST.getBytes(StandardCharsets.UTF_8).length;
+    int lockStart = 27 + TEST_MANIFEST.getBytes(StandardCharsets.UTF_8).length;
+    byte[] wrongLockRoot = input.clone();
+    wrongLockRoot[lockStart + 17] = wrongLockRoot[lockStart + 17] == '0' ? (byte) '1' : (byte) '0';
+    VirtualMachine invalidLock = VirtualMachine.withBinaryInput(
+        nativeTestRunner(), wrongLockRoot, 39);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(invalidLock));
+    assertArrayEquals(new byte[39], invalidLock.hostOutput());
+
+    int sourcePlanStart = lockStart + testLock().length + 4;
     byte[] emptySourcePlan = input.clone();
     emptySourcePlan[sourcePlanStart + 3] = 0;
     VirtualMachine invalidSourceCount = VirtualMachine.withBinaryInput(
@@ -424,12 +437,27 @@ final class NativeCoverageRunExampleTest {
     input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
         .putInt(manifest.length).array());
     input.writeBytes(manifest);
+    byte[] lock = testLock();
+    input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
+        .putInt(lock.length).array());
+    input.writeBytes(lock);
     byte[] sourcePlan = targetSourcePlan();
     input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
         .putInt(sourcePlan.length).array());
     input.writeBytes(sourcePlan);
     input.write(caseCount);
     return input;
+  }
+
+  private static byte[] testLock() {
+    try {
+      String root = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(
+          TEST_MANIFEST.getBytes(StandardCharsets.UTF_8)));
+      return ("schema: 3\nroot: \"" + root + "\"\npackages: []\n")
+          .getBytes(StandardCharsets.UTF_8);
+    } catch (Exception exception) {
+      throw new AssertionError(exception);
+    }
   }
 
   private static void writeShortText(ByteArrayOutputStream output, String value) {
@@ -700,6 +728,9 @@ final class NativeCoverageRunExampleTest {
     modules.put(
         "TestManifest.w",
         RuntimeSources.read("runtime/testing/runners/TestManifest.w"));
+    modules.put(
+        "TestPackageLock.w",
+        RuntimeSources.read("runtime/testing/runners/TestPackageLock.w"));
     modules.put(
         "TestSourcePlan.w",
         RuntimeSources.read("runtime/testing/runners/TestSourcePlan.w"));
