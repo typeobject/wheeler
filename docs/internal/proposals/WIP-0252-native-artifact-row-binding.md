@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, artifact authorization |
 | Depends on | WIP-0249, WIP-0250, WIP-0251 |
 | Supersedes | Function-only authorization for parameterized artifacts |
-| Superseded by | Native test artifact source compilation |
+| Superseded by | WIP-0253 native parameterless test compilation |
 
 ## Summary
 
@@ -112,3 +112,4 @@ Rejected. The first profile has one canonical stage-0 synthetic entry.
 - [WIP-0249](WIP-0249-native-parameter-row-discovery.md)
 - [WIP-0250](WIP-0250-single-pass-artifact-verification.md)
 - [WIP-0251](WIP-0251-native-artifact-function-binding.md)
+- [WIP-0253](WIP-0253-native-parameterless-test-compilation.md)

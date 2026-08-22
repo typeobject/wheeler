@@ -283,6 +283,81 @@ classical class TestSourceTests {
     return true;
   }
 
+  /// Copies one discovered parameterless declaration as a canonical entry source.
+  public void copyParameterlessEntrySource(
+    borrow byteview input,
+    long planStart,
+    long planLength,
+    long rootOrdinal,
+    long declarationNameLength,
+    borrow mut bytes output
+  ) {
+    long sourceLength = validatedSourceLength(input, planStart, planLength, rootOrdinal);
+    assert(bufferLength(output) == sourceLength + 5 - declarationNameLength);
+    region arena = new region(/* bytes= */ 106496, /* allocations= */ 4);
+    bytes sourceBytes = allocateBytes(arena, sourceLength);
+    copyValidatedSource(input, planStart, planLength, rootOrdinal, sourceBytes);
+    utf8 source = freezeUtf8(sourceBytes);
+    words tokenKinds = allocate(arena, MAX_COMPILER_TOKENS);
+    words tokenStarts = allocate(arena, MAX_COMPILER_TOKENS);
+    words tokenLengths = allocate(arena, MAX_COMPILER_TOKENS);
+    ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);
+    long tokenCount = 0;
+    match (scanned) {
+      case ScanResult.Value(long count) {
+        tokenCount = count;
+      }
+      case ScanResult.Error(ScanDiagnostic diagnostic) {
+        assert(diagnostic.offset < 0);
+      }
+    }
+
+    long testStart = -1;
+    long nameStart = -1;
+    long token = 0;
+    while (token + 4 < tokenCount) limit MAX_COMPILER_TOKENS {
+      if (tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_TEST) {
+        if (tokenHash(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID) {
+          assert(testStart < 0);
+          assert(tokenLengths[token] == 4);
+          assert(tokenLengths[token + 2] == declarationNameLength);
+          testStart = tokenStarts[token];
+          nameStart = tokenStarts[token + 2];
+        }
+      }
+
+      token += 1;
+    }
+
+    assert(-1 < testStart);
+    assert(testStart < nameStart);
+    long sourceStart = validatedSourceStart(input, planStart, planLength, rootOrdinal);
+    long offset = 0;
+    while (offset < testStart) limit 4096 {
+      setByte(output, offset, input[sourceStart + offset]);
+      offset += 1;
+    }
+
+    writeAscii(output, testStart, "entry");
+    offset = testStart + 4;
+    while (offset < nameStart) limit 4096 {
+      setByte(output, offset + 1, input[sourceStart + offset]);
+      offset += 1;
+    }
+    writeAscii(output, nameStart + 1, "main");
+    offset = nameStart + declarationNameLength;
+    while (offset < sourceLength) limit 4096 {
+      setByte(output, offset + 5 - declarationNameLength, input[sourceStart + offset]);
+      offset += 1;
+    }
+
+    drop(tokenLengths);
+    drop(tokenStarts);
+    drop(tokenKinds);
+    drop(source);
+    drop(arena);
+  }
+
   /// Discovers and binds the bounded root-test profile.
   public SourceTestDiscovery discoverRootTests(
     borrow byteview input,

@@ -251,6 +251,17 @@ final class NativeCompiledTestRunnerExampleTest {
   }
 
   @Test
+  void compilesOneDiscoveredParameterlessTestNatively() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", DECLARED_TEST));
+
+    byte[] report = execute(runner, descriptor(MANIFEST, sources, new byte[0], "test::passes"));
+
+    assertEquals(1, report[32]);
+    assertEquals(1, report[34]);
+  }
+
+  @Test
   void discoversOneParameterlessRootTestNatively() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
     var testCase = new WheelerCompiler().compilePackageTests(

@@ -296,7 +296,9 @@ classical class TestRunner {
       copied = copyRange(input, nameStart, nameLength, caseName, /* outputStart= */ 0);
       assert(copied == nameLength);
       if (compileSource) {
-        assert(validEntryCaseName(caseName, /* start= */ 0, nameLength, target));
+        if (discovery.count == 0) {
+          assert(validEntryCaseName(caseName, /* start= */ 0, nameLength, target));
+        }
       }
 
       bytes caseInput = allocateBytes(staging, 130 + nameLength);
@@ -350,13 +352,26 @@ classical class TestRunner {
         bytes artifactStorage = allocateBytes(staging, MAX_PAYLOAD_BYTES);
         long executionArtifactLength = artifactLength;
         if (artifactLength == 0) {
-          executionArtifactLength = compileValidatedSourcePlan(
-            input,
-            sourcePlanStart,
-            sourcePlanLength,
-            compiledRootOrdinal,
-            artifactStorage
-          );
+          if (0 < discovery.count) {
+            assert(caseCount == 1);
+            assert(caseKinds[descriptor] == 1);
+            executionArtifactLength = compileValidatedParameterlessTest(
+              input,
+              sourcePlanStart,
+              sourcePlanLength,
+              compiledRootOrdinal,
+              nameLength - targetLength - 2,
+              artifactStorage
+            );
+          } else {
+            executionArtifactLength = compileValidatedSourcePlan(
+              input,
+              sourcePlanStart,
+              sourcePlanLength,
+              compiledRootOrdinal,
+              artifactStorage
+            );
+          }
         } else {
           copied = copyRange(
             input,
@@ -423,7 +438,12 @@ classical class TestRunner {
         assert(copied == expectedProgramLength);
         bytes result = allocateBytes(staging, CASE_RESULT_BYTES);
         long resultLength = 0;
-        if (0 < discovery.count) {
+        boolean bindTransportedArtifact = 0 < discovery.count;
+        if (artifactLength == 0) {
+          bindTransportedArtifact = false;
+        }
+
+        if (bindTransportedArtifact) {
           resultLength = writeNamedArtifactCaseResult(
             artifact,
             expectedProgram,

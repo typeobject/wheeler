@@ -4,6 +4,7 @@ module wheeler.runtime.testing.runners.test_source_compilation;
 
 import wheeler.compiler.driver;
 import wheeler.runtime.testing.runners.test_source_plan;
+import wheeler.runtime.testing.runners.test_source_tests;
 
 classical class TestSourceCompilation {
   private const long MAX_COMPILED_SOURCES = 8;
@@ -53,7 +54,38 @@ classical class TestSourceCompilation {
     return true;
   }
 
-  /// Compiles one validated one-to-three-source plan into recovery storage.
+  /// Compiles one discovered parameterless root test as a direct native entry.
+  public long compileValidatedParameterlessTest(
+    borrow byteview input,
+    long start,
+    long length,
+    long rootOrdinal,
+    long declarationNameLength,
+    borrow mut bytes artifact
+  ) {
+    assert(validCompilableSourcePlan(input, start, length));
+    assert(validatedSourceCount(input, start, length) == 1);
+    assert(rootOrdinal == 0);
+    assert(bufferLength(artifact) == TEST_ARTIFACT_BYTES);
+    long sourceLength = validatedSourceLength(input, start, length, rootOrdinal);
+    region source = new region(/* bytes= */ 4101, /* allocations= */ 1);
+    bytes entryBytes = allocateBytes(source, sourceLength + 5 - declarationNameLength);
+    copyParameterlessEntrySource(
+      input,
+      start,
+      length,
+      rootOrdinal,
+      declarationNameLength,
+      entryBytes
+    );
+    utf8 entrySource = freezeUtf8(entryBytes);
+    long artifactLength = checkedLength(compileMinimal(entrySource, artifact));
+    drop(entrySource);
+    drop(source);
+    return artifactLength;
+  }
+
+  /// Compiles one validated one-to-eight-source plan into recovery storage.
   public long compileValidatedSourcePlan(
     borrow byteview input,
     long start,
