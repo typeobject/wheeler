@@ -8,6 +8,7 @@ import wheeler.runtime.testing.test_case_identity;
 import wheeler.runtime.testing.test_identity_text;
 import wheeler.runtime.testing.test_report_identity;
 import wheeler.runtime.testing.test_shard;
+import wheeler.runtime.testing.test_summary;
 
 classical class NativeTwoCaseTestRunner {
   private long copyRange(
@@ -43,7 +44,7 @@ classical class NativeTwoCaseTestRunner {
     assert(secondLength < 32769);
     assert(secondHeader + 4 + secondLength == bufferLength(input));
 
-    region staging = new region(/* bytes= */ 88234, /* allocations= */ 18);
+    region staging = new region(/* bytes= */ 88373, /* allocations= */ 22);
     bytes firstArtifact = allocateBytes(staging, firstLength);
     long firstCopied = copyRange(
       input,
@@ -103,11 +104,11 @@ classical class NativeTwoCaseTestRunner {
     setByte(caseInput, /* index= */ 128, /* nameLengthLow= */ 4);
     setByte(caseInput, /* index= */ 129, /* nameLengthHigh= */ 0);
     writeAscii(caseInput, /* offset= */ 130, "test");
-    bytes rawCase = allocateBytes(staging, /* length= */ 32);
-    long rawLength = deriveTestCaseIdentity(caseInput, rawCase);
+    bytes firstRawCase = allocateBytes(staging, /* length= */ 32);
+    long rawLength = deriveTestCaseIdentity(caseInput, firstRawCase);
     assert(rawLength == 32);
     bytes firstCase = allocateBytes(staging, /* length= */ 64);
-    long firstCaseLength = writeTestIdentityText(rawCase, firstCase);
+    long firstCaseLength = writeTestIdentityText(firstRawCase, firstCase);
     assert(firstCaseLength == 64);
     copiedSource = copyRange(
       secondSource,
@@ -117,10 +118,11 @@ classical class NativeTwoCaseTestRunner {
       /* outputStart= */ 64
     );
     assert(copiedSource == 128);
-    rawLength = deriveTestCaseIdentity(caseInput, rawCase);
+    bytes secondRawCase = allocateBytes(staging, /* length= */ 32);
+    rawLength = deriveTestCaseIdentity(caseInput, secondRawCase);
     assert(rawLength == 32);
     bytes secondCase = allocateBytes(staging, /* length= */ 64);
-    long secondCaseLength = writeTestIdentityText(rawCase, secondCase);
+    long secondCaseLength = writeTestIdentityText(secondRawCase, secondCase);
     assert(secondCaseLength == 64);
     bytes shardInput = allocateBytes(staging, /* length= */ 68);
     long shardCursor = copyRange(
@@ -205,9 +207,56 @@ classical class NativeTwoCaseTestRunner {
     }
 
     assert(cursor == frameLength);
-    long length = deriveTestReportIdentity(frame, output);
-    setOutputLength(output, length);
+    assert(bufferLength(output) == 39);
+    bytes reportIdentity = allocateBytes(staging, /* length= */ 32);
+    long reportLength = deriveTestReportIdentity(frame, reportIdentity);
+    assert(reportLength == 32);
+    bytes summaryInput = allocateBytes(staging, 2 + caseCount * 33);
+    setByte(summaryInput, /* index= */ 0, caseCount);
+    setByte(summaryInput, /* index= */ 1, /* caseCountHigh= */ 0);
+    long summaryCursor = 2;
+    if (firstSelected) {
+      summaryCursor = copyRange(
+        firstRawCase,
+        /* inputStart= */ 0,
+        /* length= */ 32,
+        summaryInput,
+        summaryCursor
+      );
+      setByte(summaryInput, summaryCursor, /* pass= */ 0);
+      summaryCursor += 1;
+    }
 
+    if (secondSelected) {
+      summaryCursor = copyRange(
+        secondRawCase,
+        /* inputStart= */ 0,
+        /* length= */ 32,
+        summaryInput,
+        summaryCursor
+      );
+      setByte(summaryInput, summaryCursor, /* fail= */ 1);
+      summaryCursor += 1;
+    }
+
+    assert(summaryCursor == bufferLength(summaryInput));
+    bytes summary = allocateBytes(staging, /* length= */ 7);
+    long summaryLength = reduceTestSummary(summaryInput, summary);
+    assert(summaryLength == 7);
+    long published = copyRange(
+      reportIdentity,
+      /* inputStart= */ 0,
+      /* length= */ 32,
+      output,
+      /* outputStart= */ 0
+    );
+    published = copyRange(summary, /* inputStart= */ 0, /* length= */ 7, output, published);
+    assert(published == 39);
+    setOutputLength(output, published);
+
+    drop(summary);
+    drop(summaryInput);
+    drop(reportIdentity);
     drop(frame);
     drop(secondResult);
     drop(firstResult);
@@ -216,7 +265,8 @@ classical class NativeTwoCaseTestRunner {
     drop(failureCode);
     drop(secondCase);
     drop(firstCase);
-    drop(rawCase);
+    drop(secondRawCase);
+    drop(firstRawCase);
     drop(caseInput);
     drop(secondSource);
     drop(firstSource);

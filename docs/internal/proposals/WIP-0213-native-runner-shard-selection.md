@@ -9,7 +9,7 @@
 | Area | Native testing, shard selection, execution scheduling |
 | Depends on | WIP-0018, WIP-0197, WIP-0212 |
 | Supersedes | Unconditional two-case native execution |
-| Superseded by | None |
+| Superseded by | WIP-0214 identity and summary publication |
 
 ## Summary
 
@@ -83,3 +83,4 @@ Rejected. Host filtering would remain discovery and scheduling authority.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0197](WIP-0197-runtime-test-selection-authority.md)
 - [WIP-0212](WIP-0212-native-runner-case-identities.md)
+- [WIP-0214](WIP-0214-native-runner-summary-publication.md)
