@@ -187,6 +187,13 @@ targets:
       - "src/main/wheeler/testing/NativeTestCaseIdentity.w"
     test: false
   - kind: "deployable"
+    name: "nativetestreportidentity"
+    root: "src/main/wheeler/testing/NativeTestReportIdentity.w"
+    module: "wheeler.conformance.testing.native_test_report_identity"
+    sources:
+      - "src/main/wheeler/testing/NativeTestReportIdentity.w"
+    test: false
+  - kind: "deployable"
     name: "nativetestshard"
     root: "src/main/wheeler/testing/NativeTestShard.w"
     module: "wheeler.conformance.testing.native_test_shard"
