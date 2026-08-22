@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -77,6 +78,15 @@ final class NativeCoverageRunExampleTest {
         VmTrap.class,
         () -> CompilerMachineRunner.runWithoutRewindHistory(oversized));
     assertArrayEquals(new byte[32], oversized.hostOutput());
+  }
+
+  @Test
+  void nativeOneCaseRunnerPublishesStageZeroReportIdentity() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] artifact = NativeModuleCompilerHarness.compile(compiler, List.of(), SUBJECT);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(oneCaseRunner(), artifact, 32);
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+    assertArrayEquals(expectedOneCaseReport(artifact), machine.hostOutput());
   }
 
   @Test
@@ -176,6 +186,61 @@ final class NativeCoverageRunExampleTest {
             "../wheeler-conformance/src/main/wheeler/testing/NativeTestCoverageIdentity.w")));
     return new WheelerCompiler().compileModuleFiles(
         modules, "wheeler.conformance.testing.native_test_coverage_identity");
+  }
+
+  private static byte[] expectedOneCaseReport(byte[] artifact) throws Exception {
+    MessageDigest execution = MessageDigest.getInstance("SHA-256");
+    digestField(execution, "wheeler.test-execution/1");
+    digestField(execution, "CoverageSubject");
+    digestField(execution, "CLASSICAL");
+    digestInteger(execution, 0);
+    digestInteger(execution, 0);
+    digestInteger(execution, 0);
+    digestInteger(execution, 0);
+    digestInteger(execution, 0);
+    String executionIdentity = HexFormat.of().formatHex(execution.digest());
+    MessageDigest coverage = MessageDigest.getInstance("SHA-256");
+    coverage.update("wheeler-transition-coverage-1\0".getBytes(StandardCharsets.UTF_8));
+    String coverageIdentity = HexFormat.of().formatHex(coverage.digest(EXPECTED));
+
+    MessageDigest report = MessageDigest.getInstance("SHA-256");
+    digestField(report, "wheeler.test-report/2");
+    digestField(report, "%064x".formatted(1));
+    digestInteger(report, 1);
+    digestField(report, "pkg");
+    digestField(report, "1");
+    digestField(report, "test");
+    digestField(report, "%064x".formatted(2));
+    digestField(report, "%064x".formatted(3));
+    digestField(report, HexFormat.of().formatHex(
+        MessageDigest.getInstance("SHA-256").digest(artifact)));
+    digestField(report, "PASS");
+    digestField(report, "");
+    digestField(report, "");
+    digestInteger(report, 1);
+    digestInteger(report, 0);
+    digestField(report, executionIdentity);
+    digestField(report, coverageIdentity);
+    return report.digest();
+  }
+
+  private static Program oneCaseRunner() throws Exception {
+    var modules = runtimeModules();
+    modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
+    modules.put("BootstrapCoverageFragments.w",
+        RuntimeSources.read("runtime/BootstrapCoverageFragments.w"));
+    modules.put("CoverageReducer.w", RuntimeSources.read("runtime/CoverageReducer.w"));
+    for (String source : List.of(
+        "TestArtifactMetadata", "TestExecutionIdentity", "TestArtifactExecutionIdentity",
+        "TestCoverageIdentity", "TestReportIdentity", "TestArtifactPassReport")) {
+      modules.put(source + ".w", RuntimeSources.read("runtime/testing/" + source + ".w"));
+    }
+    modules.put(
+        "NativeOneCaseTestRunner.w",
+        Files.readString(Path.of(
+            "../wheeler-conformance/src/main/wheeler/testing/NativeOneCaseTestRunner.w")));
+    return new WheelerCompiler().compileModuleFiles(
+        modules, "wheeler.conformance.testing.native_one_case_test_runner");
   }
 
   private static Program artifactExecutionIdentity() throws Exception {

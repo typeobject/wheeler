@@ -11,6 +11,7 @@ import wheeler.runtime.io.portable;
 import wheeler.runtime.io.receipts;
 import wheeler.runtime.testing.test_artifact_execution_identity;
 import wheeler.runtime.testing.test_artifact_metadata;
+import wheeler.runtime.testing.test_artifact_pass_report;
 import wheeler.runtime.testing.test_case_identity;
 import wheeler.runtime.testing.test_coverage_identity;
 import wheeler.runtime.testing.test_execution_identity;

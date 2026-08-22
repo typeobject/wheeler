@@ -11,16 +11,21 @@ classical class TestCoverageIdentity {
   private const long OUTPUT_BYTES = 32;
   private const long STAGING_BYTES = 33886;
 
-  /// Writes the raw stage-0 identity of one canonical transition coverage report.
-  public long deriveTestCoverageIdentity(borrow byteview report, borrow mut bytes output) {
+  /// Writes the raw stage-0 identity of one canonical transition coverage report range.
+  public long deriveTestCoverageIdentityRange(
+    borrow byteview report,
+    long reportLength,
+    borrow mut bytes output
+  ) {
     assert(bufferLength(output) == OUTPUT_BYTES);
-    assert(bufferLength(report) < MAX_REPORT_BYTES + 1);
+    assert(reportLength < MAX_REPORT_BYTES + 1);
+    assert(reportLength < bufferLength(report) + 1);
     region staging = new region(/* bytes= */ STAGING_BYTES, /* allocations= */ 4);
     bytes transcript = allocateBytes(staging, DOMAIN_BYTES + MAX_REPORT_BYTES);
     writeAscii(transcript, /* offset= */ 0, "wheeler-transition-coverage-1");
     setByte(transcript, /* index= */ 29, /* value= */ 0);
     long offset = 0;
-    while (offset < bufferLength(report)) limit MAX_REPORT_BYTES {
+    while (offset < reportLength) limit MAX_REPORT_BYTES {
       setByte(transcript, DOMAIN_BYTES + offset, report[offset]);
       offset += 1;
     }
@@ -28,12 +33,17 @@ classical class TestCoverageIdentity {
     hashSha256Range(
       transcript,
       /* inputStart= */ 0,
-      DOMAIN_BYTES + bufferLength(report),
+      DOMAIN_BYTES + reportLength,
       output,
       staging
     );
     drop(transcript);
     drop(staging);
     return OUTPUT_BYTES;
+  }
+
+  /// Writes the raw stage-0 identity of one complete canonical transition report.
+  public long deriveTestCoverageIdentity(borrow byteview report, borrow mut bytes output) {
+    return deriveTestCoverageIdentityRange(report, bufferLength(report), output);
   }
 }

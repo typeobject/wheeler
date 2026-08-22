@@ -87,3 +87,4 @@ Rejected. The composition profile records only values produced by the current na
 - [WIP-0204](WIP-0204-native-test-execution-identity.md)
 - [WIP-0206](WIP-0206-complete-native-artifact-outcomes.md)
 - [WIP-0207](WIP-0207-native-test-artifact-metadata.md)
+- [WIP-0209](WIP-0209-native-one-case-test-runner.md)

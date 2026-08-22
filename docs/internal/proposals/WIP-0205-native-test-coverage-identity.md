@@ -35,7 +35,7 @@ The operation owns 33,886 private bytes in four allocations, including the 33,79
 
 This operation hashes an already canonical report. It does not accept coverage fragments, sort points, or decide which transitions count. `CoverageReducer.w` retains those semantics under WIP-0020.
 
-The conformance wrapper only publishes the 32-byte digest.
+The conformance wrapper only publishes the 32-byte digest. WIP-0209 adds a range form so a native runner can hash the measured report prefix without copying it into a second exact-sized buffer.
 
 ## Failure behavior
 
@@ -79,3 +79,4 @@ Rejected. Native passing-case reports require the same identity without a host c
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md)
 - [WIP-0204](WIP-0204-native-test-execution-identity.md)
+- [WIP-0209](WIP-0209-native-one-case-test-runner.md)

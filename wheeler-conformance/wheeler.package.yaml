@@ -180,6 +180,13 @@ targets:
       - "src/main/wheeler/packages/identity/NativeSnapshotIdentity.w"
     test: false
   - kind: "deployable"
+    name: "nativeonecasetestrunner"
+    root: "src/main/wheeler/testing/NativeOneCaseTestRunner.w"
+    module: "wheeler.conformance.testing.native_one_case_test_runner"
+    sources:
+      - "src/main/wheeler/testing/NativeOneCaseTestRunner.w"
+    test: false
+  - kind: "deployable"
     name: "nativetestartifactexecutionidentity"
     root: "src/main/wheeler/testing/NativeTestArtifactExecutionIdentity.w"
     module: "wheeler.conformance.testing.native_test_artifact_execution_identity"
