@@ -8,6 +8,7 @@ import wheeler.crypto.sha256;
 import wheeler.runtime.testing.runners.test_descriptors;
 import wheeler.runtime.testing.runners.test_discovered_descriptors;
 import wheeler.runtime.testing.runners.test_manifest;
+import wheeler.runtime.testing.runners.test_package_dependencies;
 import wheeler.runtime.testing.runners.test_package_lock;
 import wheeler.runtime.testing.runners.test_source_compilation;
 import wheeler.runtime.testing.runners.test_source_modules;
@@ -290,6 +291,15 @@ classical class TestRunner {
     long manifestIdentityLength = writeTestIdentityText(rawManifestIdentity, manifestIdentity);
     assert(manifestIdentityLength == 64);
     assert(validPackageLock(input, lockStart, lockLength, manifestIdentity));
+    assert(
+      validManifestLockDependencies(
+        input,
+        manifestStart,
+        manifestLength,
+        lockStart,
+        lockLength
+      )
+    );
     bytes constructedNames = allocateBytes(staging, MAX_CASES * 255);
     words constructedNameLengths = allocate(staging, MAX_CASES);
     words caseKinds = allocate(staging, MAX_CASES);

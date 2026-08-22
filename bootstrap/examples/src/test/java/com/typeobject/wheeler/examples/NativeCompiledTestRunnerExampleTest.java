@@ -299,12 +299,12 @@ final class NativeCompiledTestRunnerExampleTest {
   @Test
   void validatesNativeDependencyLockEntries() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
-    String manifest = MANIFEST.replace("dependencies: []", """
-        dependencies:
-          - kind: "library"
-            name: "demo.dep"
-            version: "^1.0.0"
-        """);
+    String manifest = MANIFEST.replace(
+        "dependencies: []",
+        "dependencies:\n"
+            + "  - kind: \"normal\"\n"
+            + "    name: \"demo.dep\"\n"
+            + "    version: \"^1.0.0\"");
     String root = new String(
         NativeTestManifestInput.emptyLock(manifest), StandardCharsets.UTF_8).substring(17, 81);
     String digest = "0".repeat(64);
@@ -327,6 +327,17 @@ final class NativeCompiledTestRunnerExampleTest {
 
     assertEquals(1, report[32]);
     assertEquals(1, report[34]);
+
+    byte[] mismatchedLock = new String(lock, StandardCharsets.UTF_8)
+        .replace("demo.dep", "demo.bad")
+        .getBytes(StandardCharsets.UTF_8);
+    VirtualMachine invalid = VirtualMachine.withBinaryInput(
+        runner,
+        descriptorTransport(
+            manifest, sources, List.of(), List.of(), true, mismatchedLock),
+        39);
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(invalid));
+    assertArrayEquals(new byte[39], invalid.hostOutput());
   }
 
   @Test

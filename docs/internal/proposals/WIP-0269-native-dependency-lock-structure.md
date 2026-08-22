@@ -9,7 +9,7 @@
 | Area | Self-hosting, package locks, native testing |
 | Depends on | WIP-0226 |
 | Supersedes | Dependency-free-only native lock parsing |
-| Superseded by | Native manifest-to-lock dependency binding |
+| Superseded by | WIP-0270 direct dependency binding |
 
 ## Summary
 
@@ -98,3 +98,4 @@ Rejected. Manifest constraints and archive source provenance remain unbound.
 
 - [WIP-0226](WIP-0226-native-root-lock-provenance.md)
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
+- [WIP-0270](WIP-0270-native-direct-dependency-binding.md)
