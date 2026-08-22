@@ -297,7 +297,7 @@ The launcher grants read-only source inputs and one atomic artifact destination.
   - The outer execution rewinds exactly. Wider bytecode coverage and native code remain WIP-0008 work.
 - [x] `NativeSha256.w` and `crypto/Sha256.w` compute bounded, provider-free SHA-256 from immutable binary input into caller-owned output. The implementation uses 1,088 bytes across three explicit scratch buffers. Checked signed `&` and bounded `rotateRight32` lower to canonical `LOCAL_AND` and `LOCAL_ROTR32`. Empty input, `abc`, the 55-, 56-, and 64-byte padding boundaries, and arbitrary two-block input match the independent stage-0 result. `crypto/ContentIdentity.w` now centralizes bounded ownership and all-or-nothing digest publication for canonical textual metadata. Rewind restores the empty-input baseline. This code provides portable content identity. It is not a password-hashing API.
 - [x] A classical entry may receive strict UTF-8 or immutable binary `byteview` input. It may also receive a bounded mutable byte-output borrow with a rewindable published length. Type code 13 allows checked byte reads and length queries, but not writes, ownership, results, or aggregates. VM and runtime APIs enforce the declared input kind, defensive copies, a 16 MiB bound, physical nonsymlink input, and no ambient lookup. `wheeler run --input` and `--input-bytes` are mutually exclusive. Output is published atomically after success, and rewind returns to the external-effect baseline.
-- [ ] Wheeler semantic analysis and lowering compile all examples.
+- [ ] Wheeler semantic analysis and lowering compile all examples. WIP-0279 adds a native compiler package suite over seven physical constant modules at the fixed eight-source test boundary. The complete compiler graph remains.
 - [ ] Stage 1 and stage 2 reach a byte-identical fixed point.
 - [ ] Ordinary builds use the Wheeler compiler and the Java compiler path is deleted.
 
@@ -367,5 +367,6 @@ Rejected. The canonical executable is `.wbc`. Provider formats and host-native i
 - [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
+- [WIP-0279](WIP-0279-native-compiler-package-suite.md)
 - [Wheeler source language profile](../../public/reference/language-profile.md)
 - [Ken Thompson, "Reflections on Trusting Trust"](https://dl.acm.org/doi/10.1145/358198.358210)

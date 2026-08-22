@@ -27,8 +27,8 @@ import java.util.Set;
 /** Invokes native source discovery, compilation, and reporting for the fixed package profile. */
 final class NativePackageTestRunner {
   private static final int MAX_SOURCES = 8;
-  private static final int MAX_SOURCE_BYTES = 4_096;
   private static final int MAX_PLAN_BYTES = 32_768;
+  private static final int MAX_SOURCE_BYTES = MAX_PLAN_BYTES;
   private static final int COMPACT_OUTPUT_BYTES = 39;
   private static final int MAX_CASE_RESULT_BYTES = 5_345;
   private static final String RUNNER_IDENTITY = "0".repeat(63) + "1";
@@ -309,8 +309,13 @@ final class NativePackageTestRunner {
         continue;
       }
       String text = Files.readString(root.resolve(source), StandardCharsets.UTF_8);
+      int constants = 0;
       int declaration = text.indexOf("public const long ");
-      if (declaration < 0 || text.indexOf("public const long ", declaration + 1) >= 0) {
+      while (declaration >= 0) {
+        constants++;
+        declaration = text.indexOf("public const long ", declaration + 1);
+      }
+      if (constants < 1 || constants > 64) {
         return false;
       }
       if (text.indexOf('(') >= 0 || text.contains("test void ") || text.contains("entry void ")) {
@@ -357,7 +362,7 @@ final class NativePackageTestRunner {
       }
       byte[] text = Files.readAllBytes(file);
       if (text.length > MAX_SOURCE_BYTES) {
-        throw new IOException("Native test source exceeds 4,096 bytes: " + source);
+        throw new IOException("Native test source exceeds 32,768 bytes: " + source);
       }
       writeBig32(output, path.length);
       output.writeBytes(path);

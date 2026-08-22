@@ -22,6 +22,26 @@ class NativePackageTestRunnerTest {
   @TempDir Path temporary;
 
   @Test
+  void testsThePhysicalCompilerSpineNatively() throws Exception {
+    Path compiler = Path.of("wheeler-compiler");
+    PackageProject project = PackageProject.load(compiler);
+
+    var result = NativePackageTestRunner.run(
+        compiler, project.manifest(), 0, 1, Set.of());
+    TestReport report = project.test();
+
+    assertTrue(result.isPresent());
+    assertEquals(1, result.orElseThrow().selected());
+    assertEquals(1, result.orElseThrow().passed());
+    assertEquals(0, result.orElseThrow().failed());
+    assertEquals(result.orElseThrow().report().identity(), report.identity());
+    assertEquals(
+        "nativecompilerspinetests::wheeler.compiler.tests.native_compiler_spine::"
+            + "compilesPhysicalCompilerSpine",
+        report.cases().getFirst().targetName());
+  }
+
+  @Test
   void reducesPackageTargetsIndependentOfArrivalOrder() throws Exception {
     var reducer = PackageProject.load(Path.of("wheeler-conformance"))
         .compileRunnable("nativetestpackagereportidentity");

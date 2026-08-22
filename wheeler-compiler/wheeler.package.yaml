@@ -42,6 +42,20 @@ targets:
       - "src/main/wheeler/compiler"
       - "src/main/wheeler/lexer"
     test: false
+  - kind: "tool"
+    name: "nativecompilerspinetests"
+    root: "src/test/wheeler/compiler/NativeCompilerSpineTests.w"
+    module: "wheeler.compiler.tests.native_compiler_spine"
+    sources:
+      - "src/main/wheeler/compiler/backend/EncodingWidths.w"
+      - "src/main/wheeler/compiler/ir/Opcodes.w"
+      - "src/main/wheeler/compiler/ir/ProofRules.w"
+      - "src/main/wheeler/compiler/ir/TypeCodes.w"
+      - "src/main/wheeler/compiler/ir/limits/CompilerProgramLimits.w"
+      - "src/main/wheeler/compiler/syntax/LoopKinds.w"
+      - "src/main/wheeler/compiler/syntax/tokens/CompilerTokenLimits.w"
+      - "src/test/wheeler/compiler/NativeCompilerSpineTests.w"
+    test: true
 dependencies:
   - kind: "normal"
     name: "wheeler.core"

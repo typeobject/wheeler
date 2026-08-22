@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, module compilation |
 | Depends on | WIP-0235, WIP-0244 |
 | Supersedes | WIP-0244 seven-source compiler bound |
-| Superseded by | WIP-0246 native entry-case identity |
+| Superseded by | WIP-0246 entry identity and WIP-0279 physical compiler package suite |
 
 ## Summary
 
@@ -29,6 +29,8 @@ Eight sources are not an arbitrary limit chosen by the runner. They close every 
 Every source remains bounded to 4,096 bytes and the complete plan remains bounded to 32,768 bytes. The eight-source source arena therefore matches the complete plan ceiling. Source count beyond eight rejects before manifest identity, lock validation, shard selection, compilation, or publication.
 
 The next expansion must use a counted graph compiler API. Adding another hand-written argument permutation without such an API is forbidden.
+
+WIP-0279 later raises the per-source admission check to the same 32,768-byte plan ceiling while retaining the eight-source and complete-plan bounds. That extension admits physical compiler modules larger than 4,096 bytes without increasing total source storage.
 
 ## Dispatch
 
@@ -85,3 +87,4 @@ Rejected. Byte parity through one canonical report path is stronger and smaller.
 - [WIP-0235](WIP-0235-native-import-cycle-rejection.md)
 - [WIP-0244](WIP-0244-native-seven-source-test-compilation.md)
 - [WIP-0246](WIP-0246-native-entry-case-identity.md)
+- [WIP-0279](WIP-0279-native-compiler-package-suite.md)

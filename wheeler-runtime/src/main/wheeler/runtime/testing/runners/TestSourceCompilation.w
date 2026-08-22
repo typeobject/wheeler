@@ -9,7 +9,7 @@ import wheeler.runtime.testing.runners.test_source_plan;
 classical class TestSourceCompilation {
   private const long MAX_COMPILED_SOURCES = 8;
   private const long MAX_LOWERED_PLAN_BYTES = 33048;
-  private const long MAX_TEST_SOURCE_BYTES = 4096;
+  private const long MAX_TEST_SOURCE_BYTES = 32768;
   private const long TEST_ARTIFACT_BYTES = 32768;
 
   private long copyRange(

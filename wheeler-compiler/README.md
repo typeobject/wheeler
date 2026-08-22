@@ -4,6 +4,10 @@ This directory owns the Wheeler-written compiler package. Sources under
 `src/main/wheeler` define the scanner, compiler, verifier, codecs, and package driver.
 Java does not get a weekend cottage here.
 
+## Native package suite
+
+`wheeler test wheeler-compiler` discovers and executes the checked-in `nativecompilerspinetests` target through the Wheeler runtime. The target compiles seven physical compiler constant modules and one test root. Java does not discover or execute the case. The complete compiler graph is not yet inside this package suite.
+
 ## Package boundary
 
 `compiler/Core.w` owns canonical lowering and artifact verification. `compiler/Driver.w`
