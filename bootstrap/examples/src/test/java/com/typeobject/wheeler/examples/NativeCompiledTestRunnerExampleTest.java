@@ -309,6 +309,31 @@ final class NativeCompiledTestRunnerExampleTest {
     assertEquals(1, report[32]);
     assertEquals(1, report[34]);
 
+    byte[] transitiveReport = execute(runner, descriptorTransport(
+        manifest,
+        sources,
+        List.of(),
+        List.of(),
+        true,
+        dependencyLockWithEdge(manifest, true)));
+    assertEquals(1, transitiveReport[32]);
+    assertEquals(1, transitiveReport[34]);
+
+    VirtualMachine missingEdge = VirtualMachine.withBinaryInput(
+        runner,
+        descriptorTransport(
+            manifest,
+            sources,
+            List.of(),
+            List.of(),
+            true,
+            dependencyLockWithEdge(manifest, false)),
+        39);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(missingEdge));
+    assertArrayEquals(new byte[39], missingEdge.hostOutput());
+
     byte[] mismatchedLock = new String(lock, StandardCharsets.UTF_8)
         .replace("demo.dep", "demo.bad")
         .getBytes(StandardCharsets.UTF_8);
@@ -892,6 +917,24 @@ final class NativeCompiledTestRunnerExampleTest {
             manifest: "%s"
             dependencies: []
         """).formatted(root, name, version, digest, digest, digest, digest)
+        .getBytes(StandardCharsets.UTF_8);
+  }
+
+  private static byte[] dependencyLockWithEdge(String manifest, boolean includeTarget) {
+    String lock = new String(
+        dependencyLock(manifest, "demo.dep", "1.0.0"), StandardCharsets.UTF_8);
+    String edge = "    dependencies:\n      - \"demo.transitive\"\n";
+    if (includeTarget) {
+      String digest = "0".repeat(64);
+      edge += ("  - name: \"demo.transitive\"\n"
+          + "    version: \"1.0.0\"\n"
+          + "    repository: \"%s\"\n"
+          + "    snapshot: \"%s\"\n"
+          + "    archive: \"%s\"\n"
+          + "    manifest: \"%s\"\n"
+          + "    dependencies: []\n").formatted(digest, digest, digest, digest);
+    }
+    return lock.replace("    dependencies: []\n", edge)
         .getBytes(StandardCharsets.UTF_8);
   }
 

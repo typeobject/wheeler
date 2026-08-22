@@ -9,7 +9,7 @@
 | Area | Self-hosting, package locks, native testing |
 | Depends on | WIP-0271 |
 | Supersedes | Stable-only native dependency constraints |
-| Superseded by | Native archive-source binding |
+| Superseded by | WIP-0273 lock edge closure, then archive-source binding |
 
 ## Summary
 
@@ -85,3 +85,4 @@ Rejected. Ignored bytes would create distinct lock transports with equal package
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0271](WIP-0271-native-stable-dependency-versions.md)
+- [WIP-0273](WIP-0273-native-lock-edge-closure.md)

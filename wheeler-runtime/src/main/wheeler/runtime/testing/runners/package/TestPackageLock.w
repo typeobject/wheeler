@@ -108,6 +108,41 @@ classical class TestPackageLock {
     return true;
   }
 
+  private boolean containsPackageName(
+    borrow byteview input,
+    long start,
+    long length,
+    long nameStart,
+    long nameLength
+  ) {
+    long end = start + length;
+    long cursor = start;
+    while (cursor < end) limit MAX_LOCK_BYTES {
+      long found = lineEnd(input, cursor, end);
+      if (found < 0) {
+        return false;
+      }
+
+      if (found - cursor == nameLength + 12) {
+        if (rangeHash(input, cursor, /* length= */ 11) == 586558766) {
+          if (input[found - 1] != 34) {
+            return false;
+          }
+
+          if (
+            compareRanges(input, cursor + 11, nameLength, nameStart, nameLength) == 0
+          ) {
+            return true;
+          }
+        }
+      }
+
+      cursor = found + 1;
+    }
+
+    return false;
+  }
+
   private long compareRanges(
     borrow byteview input,
     long leftStart,
@@ -321,6 +356,13 @@ classical class TestPackageLock {
                   ) {
                     return false;
                   }
+                }
+
+                if (
+                  containsPackageName(input, start, length, dependencyStart, dependencyLength)
+                    == false
+                ) {
+                  return false;
                 }
 
                 previousDependencyStart = dependencyStart;
