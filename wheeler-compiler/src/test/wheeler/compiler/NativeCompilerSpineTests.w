@@ -15,7 +15,17 @@ classical class NativeCompilerSpineTests {
     assert(true);
   }
 
-  test void compilesPhysicalCompilerSpine() {
+  test void checksCompilerProgramLimit() {
+    long statementLimit = MAX_MINIMAL_STATEMENTS;
+    assert(statementLimit == 64);
+  }
+
+  test void checksCompilerTokenLimit() {
+    long tokenLimit = MAX_COMPILER_TOKENS;
+    assert(tokenLimit == 4096);
+  }
+
+  test void checksEncodingWidth() {
     long width = ENCODING_WIDTH_U16;
     assert(width == 2);
     long doubled = width + width;
@@ -33,5 +43,25 @@ classical class NativeCompilerSpineTests {
     long toggled = width ^ 3;
     assert(toggled == 1);
     assert(width < doubled);
+  }
+
+  test void checksLoopKind() {
+    long loopKind = STATEMENT_LOCAL_WHILE_CONDITION_NAMED;
+    assert(loopKind == 1);
+  }
+
+  test void checksOpcode() {
+    long halt = OPCODE_HALT;
+    assert(halt == 1);
+  }
+
+  test void checksProofRule() {
+    long generatedInverse = PROOF_GENERATED_INVERSE;
+    assert(generatedInverse == 1);
+  }
+
+  test void checksTypeCode() {
+    long signedType = TYPE_SIGNED;
+    assert(signedType == 1);
   }
 }

@@ -31,14 +31,13 @@ class NativePackageTestRunnerTest {
     TestReport report = project.test();
 
     assertTrue(result.isPresent());
-    assertEquals(1, result.orElseThrow().selected());
-    assertEquals(1, result.orElseThrow().passed());
+    assertEquals(7, result.orElseThrow().selected());
+    assertEquals(7, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
     assertEquals(result.orElseThrow().report().identity(), report.identity());
-    assertEquals(
+    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
         "nativecompilerspinetests::wheeler.compiler.tests.native_compiler_spine::"
-            + "compilesPhysicalCompilerSpine",
-        report.cases().getFirst().targetName());
+            + "checksEncodingWidth")));
   }
 
   @Test
