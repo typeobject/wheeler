@@ -9,7 +9,7 @@
 | Area | Self-hosting, package testing, reports |
 | Depends on | WIP-0268, WIP-0275 |
 | Supersedes | Native summary parity followed by Java package discovery and execution |
-| Superseded by | Native external import source binding and self-host compiler suite migration |
+| Superseded by | WIP-0277 canonical target rows, then external import binding and compiler suite migration |
 
 ## Summary
 
@@ -115,3 +115,4 @@ Rejected. Once an eligible transport enters native execution, failure is final.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0268](WIP-0268-native-package-test-report-identity.md)
 - [WIP-0275](WIP-0275-native-locked-package-test-gate.md)
+- [WIP-0277](WIP-0277-canonical-native-target-rows.md)

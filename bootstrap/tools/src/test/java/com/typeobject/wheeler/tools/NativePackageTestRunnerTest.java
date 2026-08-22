@@ -110,6 +110,42 @@ class NativePackageTestRunnerTest {
   }
 
   @Test
+  void publishesTargetRowsInCaseIdentityOrder() throws Exception {
+    Path project = temporary.resolve("native-row-order");
+    Files.createDirectories(project.resolve("src"));
+    Files.writeString(project.resolve("wheeler.package.yaml"), """
+        schema: 1
+        package:
+          name: "demo.native.order"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "tool"
+            name: "laws"
+            root: "src/Main.w"
+            module: "demo.native.order.tests"
+            sources:
+              - "src/Main.w"
+            test: true
+        dependencies: []
+        capabilities: []
+        """);
+    Files.writeString(project.resolve("src/Main.w"), """
+        module demo.native.order.tests;
+        classical class NativeOrderTests {
+          test void alpha() { assert(true); }
+          test void beta() { assert(true); }
+        }
+        """);
+
+    TestReport report = PackageProject.load(project).test();
+
+    assertEquals(2, report.selected());
+    assertTrue(report.cases().get(0).caseIdentity()
+        .compareTo(report.cases().get(1).caseIdentity()) < 0);
+  }
+
+  @Test
   void publishesCompleteNativeFailureRows() throws Exception {
     Path project = temporary.resolve("native-failure-rows");
     Files.createDirectories(project.resolve("src"));

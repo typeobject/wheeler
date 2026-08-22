@@ -1,11 +1,12 @@
 package com.typeobject.wheeler.tools;
 
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.vm.MachineStatus;
+import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.packageformat.PackageLock;
 import com.typeobject.wheeler.packageformat.PackageManifest;
 import com.typeobject.wheeler.packageformat.PackageManifest.Target;
-import com.typeobject.wheeler.runtime.WheelerRuntime;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -28,7 +29,8 @@ final class NativePackageTestRunner {
   private static final int MAX_SOURCES = 8;
   private static final int MAX_SOURCE_BYTES = 4_096;
   private static final int MAX_PLAN_BYTES = 32_768;
-  private static final int OUTPUT_BYTES = 342_123;
+  private static final int COMPACT_OUTPUT_BYTES = 39;
+  private static final int MAX_CASE_RESULT_BYTES = 5_345;
   private static final String RUNNER_IDENTITY = "0".repeat(63) + "1";
   private static Program packageReportReducer;
   private static Program runner;
@@ -93,9 +95,8 @@ final class NativePackageTestRunner {
             shardCount,
             Set.of(selectedTag),
             252);
-        byte[] probeOutput = new WheelerRuntime()
-            .executeBinaryInput(nativeRunner, probeInput, OUTPUT_BYTES)
-            .output();
+        byte[] probeOutput = execute(
+            nativeRunner, probeInput, COMPACT_OUTPUT_BYTES);
         if (unsigned16(probeOutput, 32) > 0) {
           found = true;
         }
@@ -103,6 +104,23 @@ final class NativePackageTestRunner {
       if (!found) {
         throw new PackageFormatException("Unknown test tags: " + selectedTag);
       }
+    }
+
+    java.util.ArrayList<Integer> outputCapacities = new java.util.ArrayList<>();
+    for (int index = 0; index < testTargets.size(); index++) {
+      byte[] countInput = transport(
+          packageRoot,
+          manifest,
+          testTargets.get(index),
+          plans.get(index),
+          shardIndex,
+          shardCount,
+          selectedTags,
+          252);
+      byte[] countOutput = execute(
+          nativeRunner, countInput, COMPACT_OUTPUT_BYTES);
+      int caseCount = unsigned16(countOutput, 32);
+      outputCapacities.add(Math.addExact(43, Math.multiplyExact(caseCount, MAX_CASE_RESULT_BYTES)));
     }
 
     java.util.ArrayList<String> identities = new java.util.ArrayList<>();
@@ -122,9 +140,8 @@ final class NativePackageTestRunner {
           shardCount,
           selectedTags,
           testTargets.size() > 1 ? 253 : 254);
-      byte[] output = new WheelerRuntime()
-          .executeBinaryInput(nativeRunner, input, OUTPUT_BYTES)
-          .output();
+      byte[] output = execute(
+          nativeRunner, input, outputCapacities.get(index));
       identities.add(HexFormat.of().formatHex(output, 0, 32));
       nativeCases.addAll(readNativeCases(output));
       packageRows.writeBytes(java.util.Arrays.copyOf(output, 38));
@@ -132,9 +149,8 @@ final class NativePackageTestRunner {
       passed = Math.addExact(passed, unsigned16(output, 34));
       failed = Math.addExact(failed, unsigned16(output, 36));
     }
-    byte[] packageOutput = new WheelerRuntime()
-        .executeBinaryInput(nativePackageReducer, packageRows.toByteArray(), 38)
-        .output();
+    byte[] packageOutput = execute(
+        nativePackageReducer, packageRows.toByteArray(), 38);
     if (selected != unsigned16(packageOutput, 32)
         || passed != unsigned16(packageOutput, 34)
         || failed != unsigned16(packageOutput, 36)) {
@@ -149,6 +165,14 @@ final class NativePackageTestRunner {
         failed));
   }
 
+  private static byte[] execute(Program program, byte[] input, int outputCapacity) {
+    VirtualMachine machine = VirtualMachine.withBinaryInput(program, input, outputCapacity);
+    while (machine.status() != MachineStatus.HALTED) {
+      machine.stepWithoutRewindHistory();
+    }
+    return machine.hostOutput();
+  }
+
   private static List<TestReport.CaseResult> readNativeCases(byte[] output) throws IOException {
     if (output.length < 43) {
       throw new PackageFormatException("Native test row publication is truncated");
@@ -159,6 +183,7 @@ final class NativePackageTestRunner {
     }
     int expectedCases = unsigned16(output, 32);
     java.util.ArrayList<TestReport.CaseResult> cases = new java.util.ArrayList<>();
+    String previousIdentity = null;
     int cursor = 43;
     while (cursor < output.length) {
       String[] fields = new String[10];
@@ -186,6 +211,10 @@ final class NativePackageTestRunner {
       if (status > 1) {
         throw new PackageFormatException("Native test row has an unknown status");
       }
+      if (previousIdentity != null && previousIdentity.compareTo(fields[3]) >= 0) {
+        throw new PackageFormatException("Native test rows are not in canonical order");
+      }
+      previousIdentity = fields[3];
       cases.add(new TestReport.CaseResult(
           fields[0],
           fields[1],
