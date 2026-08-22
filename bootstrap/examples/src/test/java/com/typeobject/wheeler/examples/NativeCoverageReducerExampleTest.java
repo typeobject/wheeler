@@ -72,6 +72,20 @@ class NativeCoverageReducerExampleTest {
     assertArrayEquals(
         stageZero.canonicalReport().getBytes(StandardCharsets.UTF_8),
         reduced);
+
+    Row repeated = rows.getFirst();
+    byte[] maximum = new WheelerRuntime()
+        .executeBinaryInput(reducer, encode(Collections.nCopies(128, repeated)), 32_768)
+        .output();
+    ByteArrayOutputStream expectedMaximum = new ByteArrayOutputStream();
+    expectedMaximum.writeBytes("{\"points\":[".getBytes(StandardCharsets.UTF_8));
+    expectedMaximum.writeBytes(repeated.prefix());
+    expectedMaximum.writeBytes(",\"count\":128".getBytes(StandardCharsets.UTF_8));
+    expectedMaximum.writeBytes(repeated.suffix());
+    expectedMaximum.writeBytes(
+        "],\"profile\":\"wheeler-transition-coverage-1\"}\n"
+            .getBytes(StandardCharsets.UTF_8));
+    assertArrayEquals(expectedMaximum.toByteArray(), maximum);
   }
 
   private static Row row(TransitionObserver.Observation observation) {
@@ -105,7 +119,7 @@ class NativeCoverageReducerExampleTest {
   }
 
   private static byte[] encode(List<Row> rows) {
-    if (rows.size() > 64) {
+    if (rows.size() > 128) {
       throw new IllegalArgumentException("coverage fixture exceeds the Wheeler row bound");
     }
     ByteArrayOutputStream encoded = new ByteArrayOutputStream();

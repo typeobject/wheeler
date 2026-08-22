@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler testing, semantic coverage |
 | Depends on | WIP-0281 |
 | Supersedes | Addition-only native compiler arithmetic coverage |
-| Superseded by | Native bitwise and ordered-comparison coverage |
+| Superseded by | WIP-0283 bounded native bitwise coverage |
 
 ## Summary
 
@@ -83,3 +83,4 @@ Rejected. Negative coverage must remain outside the admitted vocabulary.
 
 - [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md)
 - [WIP-0281](WIP-0281-native-compiler-arithmetic-coverage.md)
+- [WIP-0283](WIP-0283-bounded-native-bitwise-coverage.md)

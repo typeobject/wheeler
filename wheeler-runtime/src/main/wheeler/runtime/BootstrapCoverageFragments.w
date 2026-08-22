@@ -5,7 +5,7 @@ module wheeler.runtime.bootstrap_coverage_fragments;
 import wheeler.compiler.opcodes;
 
 classical class BootstrapCoverageFragments {
-  private const long MAX_TRANSITIONS = 64;
+  private const long MAX_TRANSITIONS = 128;
   private const long KEY_FIXED_BYTES = 21;
   private const long PREFIX_BYTES = 16;
   private const long SUFFIX_FIXED_BYTES = 62;
@@ -41,6 +41,18 @@ classical class BootstrapCoverageFragments {
 
     if (opcode == OPCODE_LOCAL_MOD) {
       return 9;
+    }
+
+    if (opcode == OPCODE_LOCAL_XOR) {
+      return 9;
+    }
+
+    if (opcode == OPCODE_LOCAL_AND) {
+      return 9;
+    }
+
+    if (opcode == OPCODE_LOCAL_LT) {
+      return 8;
     }
 
     if (opcode == OPCODE_CALL) {
@@ -156,6 +168,21 @@ classical class BootstrapCoverageFragments {
     if (opcode == OPCODE_LOCAL_MOD) {
       writeAscii(output, cursor, "LOCAL_MOD");
       return cursor + 9;
+    }
+
+    if (opcode == OPCODE_LOCAL_XOR) {
+      writeAscii(output, cursor, "LOCAL_XOR");
+      return cursor + 9;
+    }
+
+    if (opcode == OPCODE_LOCAL_AND) {
+      writeAscii(output, cursor, "LOCAL_AND");
+      return cursor + 9;
+    }
+
+    if (opcode == OPCODE_LOCAL_LT) {
+      writeAscii(output, cursor, "LOCAL_LT");
+      return cursor + 8;
     }
 
     if (opcode == OPCODE_CALL) {

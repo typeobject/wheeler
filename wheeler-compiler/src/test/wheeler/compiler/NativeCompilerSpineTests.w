@@ -28,5 +28,10 @@ classical class NativeCompilerSpineTests {
     assert(quotient == 2);
     long remainder = product % 3;
     assert(remainder == 1);
+    long masked = width & 3;
+    assert(masked == 2);
+    long toggled = width ^ 3;
+    assert(toggled == 1);
+    assert(width < doubled);
   }
 }
