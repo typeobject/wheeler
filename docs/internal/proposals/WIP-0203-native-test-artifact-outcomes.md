@@ -73,3 +73,4 @@ Rejected. WIP-0202 made the runtime library authoritative for that storage.
 
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0202](WIP-0202-runtime-artifact-execution-authority.md)
+- [WIP-0204](WIP-0204-native-test-execution-identity.md)
