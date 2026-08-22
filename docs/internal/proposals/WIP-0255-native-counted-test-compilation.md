@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, source compilation |
 | Depends on | WIP-0248, WIP-0254 |
 | Supersedes | One-declaration native test compilation |
-| Superseded by | Native parameter-row compilation |
+| Superseded by | WIP-0257 native parameter-row compilation |
 
 ## Summary
 
@@ -100,3 +100,4 @@ Rejected. Discovery authorizes the suite, but scheduling owns compiler attempts.
 - [WIP-0248](WIP-0248-native-counted-test-discovery.md)
 - [WIP-0254](WIP-0254-native-imported-test-compilation.md)
 - [WIP-0256](WIP-0256-native-test-lowering-authority.md)
+- [WIP-0257](WIP-0257-native-parameter-row-compilation.md)

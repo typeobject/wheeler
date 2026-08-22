@@ -192,6 +192,21 @@ final class NativeCompiledTestRunnerExampleTest {
   }
 
   @Test
+  void compilesCanonicalLongAndBooleanRowsNatively() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", PARAMETERIZED_TESTS));
+    byte[] report = execute(runner, descriptors(MANIFEST, sources, List.of(
+        new NamedArtifact("test::flags[0]", new byte[0]),
+        new NamedArtifact("test::flags[1]", new byte[0]),
+        new NamedArtifact("test::longs[0]", new byte[0]),
+        new NamedArtifact("test::longs[1]", new byte[0]),
+        new NamedArtifact("test::longs[2]", new byte[0]))));
+
+    assertEquals(5, report[32]);
+    assertEquals(5, report[34]);
+  }
+
+  @Test
   void rejectsArtifactsWithTheWrongParameterRow() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
     var testCases = new WheelerCompiler().compilePackageTests(

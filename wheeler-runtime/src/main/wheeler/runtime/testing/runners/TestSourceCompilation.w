@@ -8,7 +8,7 @@ import wheeler.runtime.testing.runners.test_source_plan;
 
 classical class TestSourceCompilation {
   private const long MAX_COMPILED_SOURCES = 8;
-  private const long MAX_LOWERED_PLAN_BYTES = 32772;
+  private const long MAX_LOWERED_PLAN_BYTES = 33048;
   private const long MAX_TEST_SOURCE_BYTES = 4096;
   private const long TEST_ARTIFACT_BYTES = 32768;
 
@@ -78,8 +78,8 @@ classical class TestSourceCompilation {
     return true;
   }
 
-  /// Compiles one discovered parameterless root test as a direct native entry.
-  public long compileValidatedParameterlessTest(
+  /// Compiles one discovered root test case as a direct native entry.
+  public long compileValidatedTest(
     borrow byteview input,
     long start,
     long length,
@@ -87,7 +87,8 @@ classical class TestSourceCompilation {
     borrow byteview selectedName,
     long selectedNameStart,
     long selectedNameLength,
-    long testCount,
+    long caseKind,
+    long caseValue,
     borrow mut bytes artifact
   ) {
     assert(validCompilableSourcePlan(input, start, length));
@@ -96,21 +97,51 @@ classical class TestSourceCompilation {
     long sourceLength = validatedSourceLength(input, start, length, rootOrdinal);
     long sourceStart = validatedSourceStart(input, start, length, rootOrdinal);
     long loweredSourceLength = sourceLength + 5 - selectedNameLength;
+    if (1 < caseKind) {
+      loweredSourceLength = parameterizedEntrySourceLength(
+        input,
+        start,
+        length,
+        rootOrdinal,
+        selectedName,
+        selectedNameStart,
+        selectedNameLength,
+        caseKind,
+        caseValue
+      );
+    }
+
+    assert(loweredSourceLength < MAX_TEST_SOURCE_BYTES + 1);
     long loweredPlanLength = length + loweredSourceLength - sourceLength;
     assert(loweredPlanLength < MAX_LOWERED_PLAN_BYTES + 1);
-    region lowering = new region(/* bytes= */ 36873, /* allocations= */ 2);
+    region lowering = new region(/* bytes= */ 37144, /* allocations= */ 2);
     bytes entryBytes = allocateBytes(lowering, loweredSourceLength);
-    copyParameterlessEntrySource(
-      input,
-      start,
-      length,
-      rootOrdinal,
-      selectedName,
-      selectedNameStart,
-      selectedNameLength,
-      testCount,
-      entryBytes
-    );
+    if (caseKind == 1) {
+      copyParameterlessEntrySource(
+        input,
+        start,
+        length,
+        rootOrdinal,
+        selectedName,
+        selectedNameStart,
+        selectedNameLength,
+        entryBytes
+      );
+    } else {
+      copyParameterizedEntrySource(
+        input,
+        start,
+        length,
+        rootOrdinal,
+        selectedName,
+        selectedNameStart,
+        selectedNameLength,
+        caseKind,
+        caseValue,
+        entryBytes
+      );
+    }
+
     bytes plan = allocateBytes(lowering, loweredPlanLength);
     long sourceLengthOffset = sourceStart - 4;
     long cursor = copyRange(

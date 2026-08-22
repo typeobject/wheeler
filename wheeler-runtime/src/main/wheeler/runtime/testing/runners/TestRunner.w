@@ -272,13 +272,6 @@ classical class TestRunner {
     );
     if (0 < discovery.count) {
       assert(discovery.matched);
-      if (compileSource) {
-        long nativeCase = 0;
-        while (nativeCase < caseCount) limit MAX_CASES {
-          assert(caseKinds[nativeCase] == 1);
-          nativeCase += 1;
-        }
-      }
     }
 
     bytes rawSourceIdentity = allocateBytes(staging, /* length= */ 32);
@@ -364,16 +357,30 @@ classical class TestRunner {
         long executionArtifactLength = artifactLength;
         if (artifactLength == 0) {
           if (0 < discovery.count) {
-            assert(caseKinds[descriptor] == 1);
-            executionArtifactLength = compileValidatedParameterlessTest(
+            long declarationNameLength = nameLength - targetLength - 2;
+            if (1 < caseKinds[descriptor]) {
+              long rowSuffix = nameLength - 2;
+              boolean scanningRowSuffix = true;
+              while (scanningRowSuffix) limit 4 {
+                if (caseName[rowSuffix] == 91) {
+                  declarationNameLength = rowSuffix - targetLength - 2;
+                  scanningRowSuffix = false;
+                } else {
+                  rowSuffix -= 1;
+                }
+              }
+            }
+
+            executionArtifactLength = compileValidatedTest(
               input,
               sourcePlanStart,
               sourcePlanLength,
               compiledRootOrdinal,
               caseName,
               targetLength + 2,
-              nameLength - targetLength - 2,
-              discovery.count,
+              declarationNameLength,
+              caseKinds[descriptor],
+              caseValues[descriptor],
               artifactStorage
             );
           } else {
