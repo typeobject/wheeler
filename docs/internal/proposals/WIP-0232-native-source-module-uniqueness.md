@@ -9,7 +9,7 @@
 | Area | Native testing, source plans, module graph |
 | Depends on | WIP-0009, WIP-0018, WIP-0231 |
 | Supersedes | Syntax-only native source module validation |
-| Superseded by | Native complete import-graph validation |
+| Superseded by | WIP-0233 native local import resolution |
 
 ## Summary
 
@@ -73,3 +73,4 @@ Rejected. The recovery bound is small. Exact bounded comparisons avoid collision
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0231](WIP-0231-native-source-module-declarations.md)
+- [WIP-0233](WIP-0233-native-local-import-resolution.md)

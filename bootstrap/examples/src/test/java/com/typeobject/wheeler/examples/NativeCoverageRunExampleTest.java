@@ -287,6 +287,26 @@ final class NativeCoverageRunExampleTest {
         () -> CompilerMachineRunner.runWithoutRewindHistory(invalidModuleSet));
     assertArrayEquals(new byte[39], invalidModuleSet.hostOutput());
 
+    String importedSubject = SUBJECT.replace(
+        "module pkg.pass;\n",
+        "module pkg.pass;\nimport pkg.fail;\n");
+    assertArrayEquals(
+        expectedEmptyReport(),
+        executeTests(descriptorHeader(
+            0, 1, 0, targetSourcePlan(importedSubject)).toByteArray()));
+    byte[] unresolvedImport = descriptorHeader(
+        0,
+        1,
+        0,
+        targetSourcePlan(importedSubject.replace("import pkg.fail;", "import pkg.xail;")))
+        .toByteArray();
+    VirtualMachine invalidImport = VirtualMachine.withBinaryInput(
+        nativeTestRunner(), unresolvedImport, 39);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(invalidImport));
+    assertArrayEquals(new byte[39], invalidImport.hostOutput());
+
     byte[] malformedSource = input.clone();
     malformedSource[sourcePlanStart + 22] = (byte) 0xff;
     VirtualMachine invalidSourceText = VirtualMachine.withBinaryInput(
@@ -314,7 +334,8 @@ final class NativeCoverageRunExampleTest {
     assertNotEquals(passingShard, failingShard);
     assertNotEquals(passingShard, runtimeShard);
     assertNotEquals(failingShard, runtimeShard);
-    int emptyShard = firstUnusedShard(shardCount, passingShard, failingShard, runtimeShard);
+    int emptyShard = NativeTestShards.firstUnused(
+        shardCount, passingShard, failingShard, runtimeShard);
 
     byte[] invalidFailing = failing.clone();
     invalidFailing[0] ^= 1;
@@ -514,6 +535,11 @@ final class NativeCoverageRunExampleTest {
 
   private static ByteArrayOutputStream descriptorHeader(
       int shardIndex, int shardCount, int caseCount) {
+    return descriptorHeader(shardIndex, shardCount, caseCount, targetSourcePlan());
+  }
+
+  private static ByteArrayOutputStream descriptorHeader(
+      int shardIndex, int shardCount, int caseCount, byte[] sourcePlan) {
     ByteArrayOutputStream input = new ByteArrayOutputStream();
     input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
         .putShort((short) shardIndex).putShort((short) shardCount).array());
@@ -528,7 +554,6 @@ final class NativeCoverageRunExampleTest {
     input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
         .putInt(lock.length).array());
     input.writeBytes(lock);
-    byte[] sourcePlan = targetSourcePlan();
     input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
         .putInt(sourcePlan.length).array());
     input.writeBytes(sourcePlan);
@@ -590,9 +615,13 @@ final class NativeCoverageRunExampleTest {
   }
 
   private static byte[] targetSourcePlan() {
+    return targetSourcePlan(SUBJECT);
+  }
+
+  private static byte[] targetSourcePlan(String passSource) {
     return NativeTestSourcePlan.write(List.of(
         new NativeTestSourcePlan.Source("src/Fail.w", FAILING_SUBJECT),
-        new NativeTestSourcePlan.Source("src/Pass.w", SUBJECT),
+        new NativeTestSourcePlan.Source("src/Pass.w", passSource),
         new NativeTestSourcePlan.Source("src/Runtime.w", RUNTIME_FAILURE_SUBJECT)));
   }
 
@@ -790,19 +819,6 @@ final class NativeCoverageRunExampleTest {
         MessageDigest.getInstance("SHA-256").digest(targetSourcePlan()));
     String identity = derivedCaseIdentity(sourceIdentity, caseName(source));
     return new BigInteger(identity, 16).mod(BigInteger.valueOf(shardCount)).intValueExact();
-  }
-
-  private static int firstUnusedShard(int shardCount, int... used) {
-    for (int candidate = 0; candidate < shardCount; candidate++) {
-      boolean available = true;
-      for (int value : used) {
-        available &= candidate != value;
-      }
-      if (available) {
-        return candidate;
-      }
-    }
-    throw new AssertionError("no unused shard");
   }
 
   private static String derivedCaseIdentity(String sourceIdentity, String caseName)

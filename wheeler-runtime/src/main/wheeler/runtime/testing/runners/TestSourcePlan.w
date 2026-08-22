@@ -452,6 +452,219 @@ classical class TestSourcePlan {
     return input[sourceModuleStart + moduleLength + 1] == 10;
   }
 
+  private boolean validModuleNameRange(borrow byteview input, long start, long length) {
+    if (length == 0) {
+      return false;
+    }
+
+    boolean segmentStart = true;
+    long offset = 0;
+    while (offset < length) limit MAX_PATH_BYTES {
+      long scalar = input[start + offset];
+      if (scalar == 46) {
+        if (segmentStart) {
+          return false;
+        }
+
+        segmentStart = true;
+      } else {
+        if (segmentStart) {
+          if (moduleInitial(scalar) == false) {
+            return false;
+          }
+
+          segmentStart = false;
+        } else {
+          if (moduleContinuation(scalar) == false) {
+            return false;
+          }
+        }
+      }
+
+      offset += 1;
+    }
+
+    return segmentStart == false;
+  }
+
+  private boolean moduleRangeMatchesSource(
+    borrow byteview input,
+    long moduleStart,
+    long moduleLength,
+    long sourceStart,
+    long sourceLength
+  ) {
+    long sourceModule = moduleNameStart(input, sourceStart, sourceLength);
+    long sourceModuleLength = moduleNameLength(input, sourceStart, sourceLength);
+    if (moduleLength != sourceModuleLength) {
+      return false;
+    }
+
+    long offset = 0;
+    while (offset < moduleLength) limit MAX_PATH_BYTES {
+      if (input[moduleStart + offset] != input[sourceModule + offset]) {
+        return false;
+      }
+
+      offset += 1;
+    }
+
+    return true;
+  }
+
+  private boolean moduleInPlan(
+    borrow byteview input,
+    long planStart,
+    long sourceCount,
+    long moduleStart,
+    long moduleLength
+  ) {
+    long cursor = planStart + 4;
+    long source = 0;
+    while (source < sourceCount) limit MAX_SOURCES {
+      long pathLength = readUnsigned32BigEndian(input, cursor);
+      cursor += 4 + pathLength;
+      long sourceLength = readUnsigned32BigEndian(input, cursor);
+      long sourceStart = cursor + 4;
+      if (
+        moduleRangeMatchesSource(input, moduleStart, moduleLength, sourceStart, sourceLength)
+      ) {
+        return true;
+      }
+
+      cursor = sourceStart + sourceLength;
+      source += 1;
+    }
+
+    return false;
+  }
+
+  private boolean validSourceImports(
+    borrow byteview input,
+    long planStart,
+    long sourceCount,
+    long sourceStart,
+    long sourceLength
+  ) {
+    long ownModuleStart = moduleNameStart(input, sourceStart, sourceLength);
+    long ownModuleLength = moduleNameLength(input, sourceStart, sourceLength);
+    long cursor = ownModuleStart + ownModuleLength + 2;
+    long end = sourceStart + sourceLength;
+    boolean scanning = true;
+    while (scanning) limit MAX_SOURCES {
+      while (cursor < end) limit MAX_PLAN_BYTES {
+        if (input[cursor] == 10) {
+          cursor += 1;
+        } else {
+          break;
+        }
+      }
+
+      if (end - cursor < 8) {
+        scanning = false;
+      } else {
+        boolean imported = input[cursor] == 105;
+        if (imported) {
+          imported = input[cursor + 1] == 109;
+        }
+
+        if (imported) {
+          imported = input[cursor + 2] == 112;
+        }
+
+        if (imported) {
+          imported = input[cursor + 3] == 111;
+        }
+
+        if (imported) {
+          imported = input[cursor + 4] == 114;
+        }
+
+        if (imported) {
+          imported = input[cursor + 5] == 116;
+        }
+
+        if (imported) {
+          imported = input[cursor + 6] == 32;
+        }
+
+        if (imported == false) {
+          scanning = false;
+        } else {
+          long importStart = cursor + 7;
+          long importEnd = importStart;
+          while (importEnd < end) limit MAX_PATH_BYTES {
+            if (input[importEnd] == 59) {
+              break;
+            }
+
+            importEnd += 1;
+          }
+
+          if (end - importEnd < 2) {
+            return false;
+          }
+
+          if (input[importEnd] != 59) {
+            return false;
+          }
+
+          if (input[importEnd + 1] != 10) {
+            return false;
+          }
+
+          long importLength = importEnd - importStart;
+          if (validModuleNameRange(input, importStart, importLength) == false) {
+            return false;
+          }
+
+          if (
+            moduleRangeMatchesSource(
+              input,
+              importStart,
+              importLength,
+              sourceStart,
+              sourceLength
+            )
+          ) {
+            return false;
+          }
+
+          if (
+            moduleInPlan(input, planStart, sourceCount, importStart, importLength) == false
+          ) {
+            return false;
+          }
+
+          cursor = importEnd + 2;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  private boolean validPlanImports(borrow byteview input, long start, long sourceCount) {
+    long cursor = start + 4;
+    long source = 0;
+    while (source < sourceCount) limit MAX_SOURCES {
+      long pathLength = readUnsigned32BigEndian(input, cursor);
+      cursor += 4 + pathLength;
+      long sourceLength = readUnsigned32BigEndian(input, cursor);
+      long sourceStart = cursor + 4;
+      if (
+        validSourceImports(input, start, sourceCount, sourceStart, sourceLength) == false
+      ) {
+        return false;
+      }
+
+      cursor = sourceStart + sourceLength;
+      source += 1;
+    }
+
+    return true;
+  }
+
   private long comparePath(
     borrow byteview input,
     long leftStart,
@@ -579,6 +792,10 @@ classical class TestSourcePlan {
       source += 1;
     }
 
-    return cursor == end;
+    if (cursor != end) {
+      return false;
+    }
+
+    return validPlanImports(input, start, sourceCount);
   }
 }
