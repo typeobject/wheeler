@@ -75,6 +75,56 @@ classical class TestManifest {
     return true;
   }
 
+  private boolean rootModule(
+    borrow byteview input,
+    long sourceStart,
+    long sourceLength,
+    long moduleStart,
+    long moduleLength
+  ) {
+    if (sourceLength < moduleLength + 9) {
+      return false;
+    }
+
+    if (input[sourceStart] != 109) {
+      return false;
+    }
+
+    if (input[sourceStart + 1] != 111) {
+      return false;
+    }
+
+    if (input[sourceStart + 2] != 100) {
+      return false;
+    }
+
+    if (input[sourceStart + 3] != 117) {
+      return false;
+    }
+
+    if (input[sourceStart + 4] != 108) {
+      return false;
+    }
+
+    if (input[sourceStart + 5] != 101) {
+      return false;
+    }
+
+    if (input[sourceStart + 6] != 32) {
+      return false;
+    }
+
+    if (sameRange(input, sourceStart + 7, moduleStart, moduleLength) == false) {
+      return false;
+    }
+
+    if (input[sourceStart + 7 + moduleLength] != 59) {
+      return false;
+    }
+
+    return input[sourceStart + 8 + moduleLength] == 10;
+  }
+
   private boolean sourceLine(
     borrow byteview input,
     long start,
@@ -208,10 +258,15 @@ classical class TestManifest {
     boolean candidate = false;
     boolean sourceSection = false;
     boolean rootSelected = false;
+    boolean selectedRootPath = false;
     boolean selected = false;
     boolean dependencies = false;
     long rootStart = 0;
     long rootLength = 0;
+    long rootSourceStart = 0;
+    long rootSourceLength = 0;
+    long moduleStart = 0;
+    long moduleLength = 0;
     while (cursor < end) limit MAX_MANIFEST_BYTES {
       found = lineEnd(input, cursor, end);
       long lineLength = found - cursor;
@@ -237,6 +292,10 @@ classical class TestManifest {
           rootSelected = false;
           rootStart = 0;
           rootLength = 0;
+          rootSourceStart = 0;
+          rootSourceLength = 0;
+          moduleStart = 0;
+          moduleLength = 0;
           sourceCursor = sourcePlanStart + 4;
           selectedSources = 0;
         }
@@ -272,6 +331,20 @@ classical class TestManifest {
           }
         }
 
+        if (13 < lineLength) {
+          if (rangeHash(input, cursor, /* length= */ 13) == 3005111940) {
+            if (input[found - 1] != 34) {
+              return false;
+            }
+
+            moduleStart = cursor + 13;
+            moduleLength = lineLength - 14;
+            if (moduleLength == 0) {
+              return false;
+            }
+          }
+        }
+
         if (exactLine(input, cursor, found, /* length= */ 12, /* hash= */ 515471674)) {
           sourceSection = true;
         } else {
@@ -285,22 +358,38 @@ classical class TestManifest {
                 return false;
               }
 
+              selectedRootPath = false;
               if (sourcePathLength == rootLength) {
                 if (sameRange(input, sourcePathStart, rootStart, rootLength)) {
                   rootSelected = true;
+                  selectedRootPath = true;
                 }
               }
 
               sourceCursor += 4 + sourcePathLength;
               long sourceLength = readUnsigned32BigEndian(input, sourceCursor);
-              sourceCursor += 4 + sourceLength;
+              sourceCursor += 4;
+              if (selectedRootPath) {
+                rootSourceStart = sourceCursor;
+                rootSourceLength = sourceLength;
+              }
+
+              sourceCursor += sourceLength;
               selectedSources += 1;
             } else {
               if (
                 exactLine(input, cursor, found, /* length= */ 14, /* hash= */ 4023520342)
               ) {
                 if (rootSelected) {
-                  selected = sourceCursor == sourcePlanStart + sourcePlanLength;
+                  if (sourceCursor == sourcePlanStart + sourcePlanLength) {
+                    selected = rootModule(
+                      input,
+                      rootSourceStart,
+                      rootSourceLength,
+                      moduleStart,
+                      moduleLength
+                    );
+                  }
                 }
 
                 sourceSection = false;

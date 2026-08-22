@@ -9,7 +9,7 @@
 | Area | Native testing, package manifests, runnable targets |
 | Depends on | WIP-0009, WIP-0018, WIP-0228 |
 | Supersedes | Name-only native target selection |
-| Superseded by | Complete native target-field validation |
+| Superseded by | WIP-0230 native root module binding |
 
 ## Summary
 
@@ -83,3 +83,4 @@ Rejected. The selected package target authorizes compilation before an artifact 
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0228](WIP-0228-native-multi-source-selection.md)
+- [WIP-0230](WIP-0230-native-root-module-binding.md)

@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 /** Source-to-native evidence for Wheeler-owned transition collection and reduction. */
 final class NativeCoverageRunExampleTest {
   private static final String SUBJECT = """
+      module pkg.pass;
       classical class CoverageSubject {
         entry void main() {
           assert(true);
@@ -34,6 +35,7 @@ final class NativeCoverageRunExampleTest {
       }
       """;
   private static final String FAILING_SUBJECT = """
+      module pkg.fail;
       classical class FailingSubject {
         entry void main() {
           assert(false);
@@ -41,6 +43,7 @@ final class NativeCoverageRunExampleTest {
       }
       """;
   private static final String RUNTIME_FAILURE_SUBJECT = """
+      module pkg.runtime;
       classical class RuntimeFailureSubject {
         entry void main() {
           long index = 0;
@@ -60,7 +63,7 @@ final class NativeCoverageRunExampleTest {
         - kind: "deployable"
           name: "test"
           root: "src/Pass.w"
-          module: "pkg.test"
+          module: "pkg.pass"
           sources:
             - "src/Fail.w"
             - "src/Pass.w"
@@ -249,6 +252,16 @@ final class NativeCoverageRunExampleTest {
         VmTrap.class,
         () -> CompilerMachineRunner.runWithoutRewindHistory(invalidSourceSelection));
     assertArrayEquals(new byte[39], invalidSourceSelection.hostOutput());
+
+    byte[] mismatchedRootModule = input.clone();
+    int passSource = sourcePayloadOffset(targetSourcePlan(), "src/Pass.w");
+    mismatchedRootModule[sourcePlanStart + passSource + "module pkg.".length()] = (byte) 'x';
+    VirtualMachine invalidRootModule = VirtualMachine.withBinaryInput(
+        nativeTestRunner(), mismatchedRootModule, 39);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(invalidRootModule));
+    assertArrayEquals(new byte[39], invalidRootModule.hostOutput());
 
     byte[] malformedSource = input.clone();
     malformedSource[sourcePlanStart + 22] = (byte) 0xff;
@@ -559,6 +572,21 @@ final class NativeCoverageRunExampleTest {
     writePlanSource(plan, "src/Pass.w", SUBJECT);
     writePlanSource(plan, "src/Runtime.w", RUNTIME_FAILURE_SUBJECT);
     return plan.toByteArray();
+  }
+
+  private static int sourcePayloadOffset(byte[] plan, String selectedPath) {
+    ByteBuffer input = ByteBuffer.wrap(plan);
+    int sourceCount = input.getInt();
+    for (int source = 0; source < sourceCount; source++) {
+      byte[] path = new byte[input.getInt()];
+      input.get(path);
+      int sourceLength = input.getInt();
+      if (new String(path, StandardCharsets.UTF_8).equals(selectedPath)) {
+        return input.position();
+      }
+      input.position(input.position() + sourceLength);
+    }
+    throw new AssertionError("missing source " + selectedPath);
   }
 
   private static void writePlanSource(
