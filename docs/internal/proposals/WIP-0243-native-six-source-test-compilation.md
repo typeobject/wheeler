@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, module compilation |
 | Depends on | WIP-0235, WIP-0242 |
 | Supersedes | WIP-0242 five-source compiler bound |
-| Superseded by | Native seven-source test compilation |
+| Superseded by | WIP-0244 native seven-source test compilation |
 
 ## Summary
 
@@ -70,3 +70,4 @@ Rejected. Six source slots remain a fixed bounded profile.
 
 - [WIP-0235](WIP-0235-native-import-cycle-rejection.md)
 - [WIP-0242](WIP-0242-native-five-source-test-compilation.md)
+- [WIP-0244](WIP-0244-native-seven-source-test-compilation.md)

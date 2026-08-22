@@ -51,6 +51,11 @@ final class NativeCompiledTestRunnerExampleTest {
       "      - \"src/Test.w\"",
       "      - \"src/A.w\"\n      - \"src/B.w\"\n      - \"src/C.w\"\n"
           + "      - \"src/D.w\"\n      - \"src/E.w\"\n      - \"src/Test.w\"");
+  private static final String SEVEN_SOURCE_MANIFEST = MANIFEST.replace(
+      "      - \"src/Test.w\"",
+      "      - \"src/A.w\"\n      - \"src/B.w\"\n      - \"src/C.w\"\n"
+          + "      - \"src/D.w\"\n      - \"src/E.w\"\n      - \"src/F.w\"\n"
+          + "      - \"src/Test.w\"");
   private static final String PASSING = """
       module pkg.test;
       classical class SourceTest {
@@ -88,6 +93,12 @@ final class NativeCompiledTestRunnerExampleTest {
       module pkg.fifth;
       classical class Fifth {
         public const long FIFTH = 19;
+      }
+      """;
+  private static final String IMPORTED_SIX = """
+      module pkg.sixth;
+      classical class Sixth {
+        public const long SIXTH = 23;
       }
       """;
   private static final String IMPORTING = """
@@ -206,6 +217,34 @@ final class NativeCompiledTestRunnerExampleTest {
     assertArrayEquals(
         execute(runner, descriptor(SIX_SOURCE_MANIFEST, sources, artifact)),
         execute(runner, descriptor(SIX_SOURCE_MANIFEST, sources, new byte[0])));
+  }
+
+  @Test
+  void compilesTheManifestRootWithSixLocalImports() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    String root = IMPORTING.replace("import pkg.helper;", """
+        import pkg.fifth;
+        import pkg.fourth;
+        import pkg.helper;
+        import pkg.second;
+        import pkg.sixth;
+        import pkg.third;""");
+    var sources = List.of(
+        new NativeTestSourcePlan.Source("src/A.w", IMPORTED),
+        new NativeTestSourcePlan.Source("src/B.w", IMPORTED_TWO),
+        new NativeTestSourcePlan.Source("src/C.w", IMPORTED_THREE),
+        new NativeTestSourcePlan.Source("src/D.w", IMPORTED_FOUR),
+        new NativeTestSourcePlan.Source("src/E.w", IMPORTED_FIVE),
+        new NativeTestSourcePlan.Source("src/F.w", IMPORTED_SIX),
+        new NativeTestSourcePlan.Source("src/Test.w", root));
+    byte[] artifact = new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+        Map.of("A.w", IMPORTED, "B.w", IMPORTED_TWO, "C.w", IMPORTED_THREE,
+            "D.w", IMPORTED_FOUR, "E.w", IMPORTED_FIVE, "F.w", IMPORTED_SIX,
+            "Test.w", root), "pkg.test"));
+
+    assertArrayEquals(
+        execute(runner, descriptor(SEVEN_SOURCE_MANIFEST, sources, artifact)),
+        execute(runner, descriptor(SEVEN_SOURCE_MANIFEST, sources, new byte[0])));
   }
 
   private static void assertCanonicalReport(

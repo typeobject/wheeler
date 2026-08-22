@@ -6,7 +6,7 @@ import wheeler.compiler.driver;
 import wheeler.runtime.testing.runners.test_source_plan;
 
 classical class TestSourceCompilation {
-  private const long MAX_COMPILED_SOURCES = 6;
+  private const long MAX_COMPILED_SOURCES = 7;
   private const long MAX_TEST_SOURCE_BYTES = 4096;
   private const long TEST_ARTIFACT_BYTES = 32768;
 
@@ -65,7 +65,7 @@ classical class TestSourceCompilation {
     assert(bufferLength(artifact) == TEST_ARTIFACT_BYTES);
     long sourceCount = validatedSourceCount(input, start, length);
     assert(rootOrdinal < sourceCount);
-    region sources = new region(/* bytes= */ 24576, /* allocations= */ 6);
+    region sources = new region(/* bytes= */ 28672, /* allocations= */ 7);
     long artifactLength = 0;
 
     if (sourceCount == 1) {
@@ -346,6 +346,128 @@ classical class TestSourceCompilation {
       drop(sixThird);
       drop(sixSecond);
       drop(sixFirst);
+    }
+
+    if (sourceCount == 7) {
+      utf8 sevenFirst = sourceAt(input, start, length, /* ordinal= */ 0, sources);
+      utf8 sevenSecond = sourceAt(input, start, length, /* ordinal= */ 1, sources);
+      utf8 sevenThird = sourceAt(input, start, length, /* ordinal= */ 2, sources);
+      utf8 sevenFourth = sourceAt(input, start, length, /* ordinal= */ 3, sources);
+      utf8 sevenFifth = sourceAt(input, start, length, /* ordinal= */ 4, sources);
+      utf8 sevenSixth = sourceAt(input, start, length, /* ordinal= */ 5, sources);
+      utf8 sevenSeventh = sourceAt(input, start, length, /* ordinal= */ 6, sources);
+      if (rootOrdinal == 0) {
+        artifactLength = checkedLength(
+          compileMinimalWithSixConstantImports(
+            sevenSecond,
+            sevenThird,
+            sevenFourth,
+            sevenFifth,
+            sevenSixth,
+            sevenSeventh,
+            sevenFirst,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 1) {
+        artifactLength = checkedLength(
+          compileMinimalWithSixConstantImports(
+            sevenFirst,
+            sevenThird,
+            sevenFourth,
+            sevenFifth,
+            sevenSixth,
+            sevenSeventh,
+            sevenSecond,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 2) {
+        artifactLength = checkedLength(
+          compileMinimalWithSixConstantImports(
+            sevenFirst,
+            sevenSecond,
+            sevenFourth,
+            sevenFifth,
+            sevenSixth,
+            sevenSeventh,
+            sevenThird,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 3) {
+        artifactLength = checkedLength(
+          compileMinimalWithSixConstantImports(
+            sevenFirst,
+            sevenSecond,
+            sevenThird,
+            sevenFifth,
+            sevenSixth,
+            sevenSeventh,
+            sevenFourth,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 4) {
+        artifactLength = checkedLength(
+          compileMinimalWithSixConstantImports(
+            sevenFirst,
+            sevenSecond,
+            sevenThird,
+            sevenFourth,
+            sevenSixth,
+            sevenSeventh,
+            sevenFifth,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 5) {
+        artifactLength = checkedLength(
+          compileMinimalWithSixConstantImports(
+            sevenFirst,
+            sevenSecond,
+            sevenThird,
+            sevenFourth,
+            sevenFifth,
+            sevenSeventh,
+            sevenSixth,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 6) {
+        artifactLength = checkedLength(
+          compileMinimalWithSixConstantImports(
+            sevenFirst,
+            sevenSecond,
+            sevenThird,
+            sevenFourth,
+            sevenFifth,
+            sevenSixth,
+            sevenSeventh,
+            artifact
+          )
+        );
+      }
+
+      drop(sevenSeventh);
+      drop(sevenSixth);
+      drop(sevenFifth);
+      drop(sevenFourth);
+      drop(sevenThird);
+      drop(sevenSecond);
+      drop(sevenFirst);
     }
 
     assert(0 < artifactLength);
