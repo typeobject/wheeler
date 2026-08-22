@@ -211,6 +211,17 @@ final class NativeCoverageRunExampleTest {
         () -> CompilerMachineRunner.runWithoutRewindHistory(invalidLock));
     assertArrayEquals(new byte[39], invalidLock.hostOutput());
 
+    for (byte[] invalidSelection : List.of(
+        replacedManifestInput(input, "src/Pass.w", "src/Xass.w"),
+        replacedManifestInput(input, "deployable", "xxxloyable"))) {
+      VirtualMachine invalidTarget = VirtualMachine.withBinaryInput(
+          nativeTestRunner(), invalidSelection, 39);
+      assertThrows(
+          VmTrap.class,
+          () -> CompilerMachineRunner.runWithoutRewindHistory(invalidTarget));
+      assertArrayEquals(new byte[39], invalidTarget.hostOutput());
+    }
+
     int sourcePlanStart = lockStart + testLock().length + 4;
     byte[] emptySourcePlan = input.clone();
     emptySourcePlan[sourcePlanStart + 3] = 0;
@@ -486,6 +497,24 @@ final class NativeCoverageRunExampleTest {
     input.writeBytes(sourcePlan);
     input.write(caseCount);
     return input;
+  }
+
+  private static byte[] replacedManifestInput(
+      byte[] input, String original, String replacement) throws Exception {
+    assertEquals(original.length(), replacement.length());
+    int valueOffset = TEST_MANIFEST.indexOf(original);
+    byte[] manifest = TEST_MANIFEST.getBytes(StandardCharsets.UTF_8);
+    byte[] replacementBytes = replacement.getBytes(StandardCharsets.UTF_8);
+    System.arraycopy(replacementBytes, 0, manifest, valueOffset, replacementBytes.length);
+
+    byte[] replaced = input.clone();
+    System.arraycopy(replacementBytes, 0, replaced, 23 + valueOffset, replacementBytes.length);
+    byte[] manifestIdentity = HexFormat.of().formatHex(
+        MessageDigest.getInstance("SHA-256").digest(manifest))
+        .getBytes(StandardCharsets.UTF_8);
+    int lockStart = 27 + manifest.length;
+    System.arraycopy(manifestIdentity, 0, replaced, lockStart + 17, manifestIdentity.length);
+    return replaced;
   }
 
   private static byte[] testLock() {

@@ -9,7 +9,7 @@
 | Area | Native testing, package manifests, source selection |
 | Depends on | WIP-0009, WIP-0018, WIP-0227 |
 | Supersedes | One-entry native source selection |
-| Superseded by | Native directory-selector expansion |
+| Superseded by | WIP-0229 runnable-root binding, then native directory-selector expansion |
 
 ## Summary
 
@@ -88,3 +88,4 @@ Rejected. The producer must provide canonical package order. The runtime only va
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0227](WIP-0227-native-single-source-selection.md)
+- [WIP-0229](WIP-0229-native-runnable-target-root.md)

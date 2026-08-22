@@ -204,10 +204,14 @@ classical class TestManifest {
     long sourceCount = readUnsigned32BigEndian(input, sourcePlanStart);
     long sourceCursor = sourcePlanStart + 4;
     long selectedSources = 0;
+    boolean runnableKind = false;
     boolean candidate = false;
     boolean sourceSection = false;
+    boolean rootSelected = false;
     boolean selected = false;
     boolean dependencies = false;
+    long rootStart = 0;
+    long rootLength = 0;
     while (cursor < end) limit MAX_MANIFEST_BYTES {
       found = lineEnd(input, cursor, end);
       long lineLength = found - cursor;
@@ -221,8 +225,18 @@ classical class TestManifest {
 
       if (9 < lineLength) {
         if (rangeHash(input, cursor, /* length= */ 10) == 2457211845) {
+          runnableKind = exactLine(
+            input,
+            cursor,
+            found,
+            /* length= */ 22,
+            /* hash= */ 2378483464
+          );
           candidate = false;
           sourceSection = false;
+          rootSelected = false;
+          rootStart = 0;
+          rootLength = 0;
           sourceCursor = sourcePlanStart + 4;
           selectedSources = 0;
         }
@@ -238,12 +252,26 @@ classical class TestManifest {
           targetName
         )
       ) {
-        candidate = true;
+        candidate = runnableKind;
         sourceCursor = sourcePlanStart + 4;
         selectedSources = 0;
       }
 
       if (candidate) {
+        if (11 < lineLength) {
+          if (rangeHash(input, cursor, /* length= */ 11) == 2520394854) {
+            if (input[found - 1] != 34) {
+              return false;
+            }
+
+            rootStart = cursor + 11;
+            rootLength = lineLength - 12;
+            if (rootLength == 0) {
+              return false;
+            }
+          }
+        }
+
         if (exactLine(input, cursor, found, /* length= */ 12, /* hash= */ 515471674)) {
           sourceSection = true;
         } else {
@@ -257,6 +285,12 @@ classical class TestManifest {
                 return false;
               }
 
+              if (sourcePathLength == rootLength) {
+                if (sameRange(input, sourcePathStart, rootStart, rootLength)) {
+                  rootSelected = true;
+                }
+              }
+
               sourceCursor += 4 + sourcePathLength;
               long sourceLength = readUnsigned32BigEndian(input, sourceCursor);
               sourceCursor += 4 + sourceLength;
@@ -265,7 +299,10 @@ classical class TestManifest {
               if (
                 exactLine(input, cursor, found, /* length= */ 14, /* hash= */ 4023520342)
               ) {
-                selected = sourceCursor == sourcePlanStart + sourcePlanLength;
+                if (rootSelected) {
+                  selected = sourceCursor == sourcePlanStart + sourcePlanLength;
+                }
+
                 sourceSection = false;
               } else {
                 return false;
