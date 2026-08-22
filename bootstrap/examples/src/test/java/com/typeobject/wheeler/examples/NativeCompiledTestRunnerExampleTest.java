@@ -210,6 +210,21 @@ final class NativeCompiledTestRunnerExampleTest {
   }
 
   @Test
+  void rejectsArtifactProgramsOutsideTheRootModule() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    String foreignSource = DECLARED_TEST.replace("module pkg.test;", "module pkg.other;");
+    byte[] foreignArtifact = new BytecodeWriter().write(new WheelerCompiler()
+        .compilePackageTests(Map.of("Test.w", foreignSource), Map.of(), "pkg.other")
+        .getFirst().program());
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", DECLARED_TEST));
+    VirtualMachine invalid = VirtualMachine.withBinaryInput(
+        runner, descriptor(MANIFEST, sources, foreignArtifact, "test::passes"), 39);
+
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(invalid));
+    assertArrayEquals(new byte[39], invalid.hostOutput());
+  }
+
+  @Test
   void discoversOneParameterlessRootTestNatively() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
     var testCase = new WheelerCompiler().compilePackageTests(

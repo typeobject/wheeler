@@ -854,7 +854,7 @@ final class NativeCoverageRunExampleTest {
         RuntimeSources.read("runtime/BootstrapCoverageFragments.w"));
     modules.put("CoverageReducer.w", RuntimeSources.read("runtime/CoverageReducer.w"));
     for (String source : List.of(
-        "TestArtifactExecutionIdentity", "TestArtifactMetadata", "TestCoverageIdentity",
+        "TestArtifactExecutionIdentity", "TestCoverageIdentity",
         "TestExecutionIdentity", "TestIdentityText", "TestReportIdentity", "TestArtifactReport")) {
       modules.put(source + ".w", RuntimeSources.read("runtime/testing/" + source + ".w"));
     }
@@ -869,9 +869,6 @@ final class NativeCoverageRunExampleTest {
   private static Program artifactExecutionIdentity() throws Exception {
     var modules = runtimeModules();
     modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
-    modules.put(
-        "TestArtifactMetadata.w",
-        RuntimeSources.read("runtime/testing/TestArtifactMetadata.w"));
     modules.put(
         "TestExecutionIdentity.w",
         RuntimeSources.read("runtime/testing/TestExecutionIdentity.w"));
@@ -888,9 +885,6 @@ final class NativeCoverageRunExampleTest {
 
   private static Program artifactMetadata() throws Exception {
     var modules = runtimeModules();
-    modules.put(
-        "TestArtifactMetadata.w",
-        RuntimeSources.read("runtime/testing/TestArtifactMetadata.w"));
     modules.put(
         "NativeTestArtifactMetadata.w",
         Files.readString(Path.of(
@@ -947,6 +941,7 @@ final class NativeCoverageRunExampleTest {
     modules.put(
         "AggregateInterpreter.w",
         RuntimeSources.read("runtime/AggregateInterpreter.w"));
+    modules.put("ArtifactMetadata.w", RuntimeSources.read("runtime/ArtifactMetadata.w"));
     modules.put(
         "ArtifactExecution.w",
         RuntimeSources.read("runtime/ArtifactExecution.w"));

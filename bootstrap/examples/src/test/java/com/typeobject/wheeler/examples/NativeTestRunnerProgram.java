@@ -25,7 +25,7 @@ final class NativeTestRunnerProgram {
     var modules = new LinkedHashMap<>(CompilerSources.compilerDriverModules());
     CoreSources.addBinaryClosure(modules);
     for (String source : List.of(
-        "AggregateInterpreter", "ArtifactExecution", "Interpreter", "MapInterpreter",
+        "AggregateInterpreter", "ArtifactExecution", "ArtifactMetadata", "Interpreter", "MapInterpreter",
         "ResultSlots", "StorageInterpreter", "Utf8Interpreter")) {
       modules.put(source + ".w", RuntimeSources.read("runtime/" + source + ".w"));
     }
@@ -35,7 +35,7 @@ final class NativeTestRunnerProgram {
         RuntimeSources.read("runtime/BootstrapCoverageFragments.w"));
     modules.put("CoverageReducer.w", RuntimeSources.read("runtime/CoverageReducer.w"));
     for (String source : List.of(
-        "TestArtifactMetadata", "TestExecutionIdentity", "TestArtifactExecutionIdentity",
+        "TestExecutionIdentity", "TestArtifactExecutionIdentity",
         "TestCoverageIdentity", "TestIdentityText", "TestReportIdentity", "TestArtifactReport",
         "TestCaseIdentity", "TestShard", "TestSummary")) {
       modules.put(source + ".w", RuntimeSources.read("runtime/testing/" + source + ".w"));

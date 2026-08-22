@@ -8,6 +8,7 @@ import wheeler.runtime.testing.runners.test_descriptors;
 import wheeler.runtime.testing.runners.test_manifest;
 import wheeler.runtime.testing.runners.test_package_lock;
 import wheeler.runtime.testing.runners.test_source_compilation;
+import wheeler.runtime.testing.runners.test_source_modules;
 import wheeler.runtime.testing.runners.test_source_plan;
 import wheeler.runtime.testing.runners.test_source_tests;
 import wheeler.runtime.testing.test_artifact_report;
@@ -168,7 +169,7 @@ classical class TestRunner {
 
     assert(scan == bufferLength(input));
 
-    region staging = new region(/* bytes= */ 740000, /* allocations= */ 36);
+    region staging = new region(/* bytes= */ 741000, /* allocations= */ 37);
     bytes runner = allocateBytes(staging, /* length= */ 64);
     writeAscii(
       runner,
@@ -224,6 +225,23 @@ classical class TestRunner {
       sourcePlanStart
     );
     assert(-1 < rootOrdinal);
+    long rootSourceStart = validatedSourceStart(
+      input,
+      sourcePlanStart,
+      sourcePlanLength,
+      rootOrdinal
+    );
+    long rootSourceLength = validatedSourceLength(
+      input,
+      sourcePlanStart,
+      sourcePlanLength,
+      rootOrdinal
+    );
+    SourceModuleText rootModule = validatedSourceModuleText(
+      input,
+      rootSourceStart,
+      rootSourceLength
+    );
     if (compileSource) {
       compiledRootOrdinal = rootOrdinal;
       assert(compiledRootOrdinal < compiledSourceCount);
@@ -355,16 +373,75 @@ classical class TestRunner {
           /* outputStart= */ 0
         );
         assert(copied == executionArtifactLength);
-        bytes result = allocateBytes(staging, CASE_RESULT_BYTES);
-        long resultLength = writeArtifactCaseResult(
-          artifact,
-          packageName,
-          packageVersion,
-          caseName,
-          caseIdentity,
-          sourceIdentity,
-          result
+        long caseSuffixLength = 0;
+        if (targetLength + 2 < nameLength) {
+          caseSuffixLength = nameLength - targetLength - 2;
+        }
+
+        if (0 < discovery.count) {
+          if (caseName[nameLength - 1] == 93) {
+            long suffixScan = nameLength - 2;
+            boolean scanningSuffix = true;
+            while (scanningSuffix) limit 255 {
+              if (caseName[suffixScan] == 91) {
+                caseSuffixLength = suffixScan - targetLength - 2;
+                scanningSuffix = false;
+              } else {
+                if (targetLength + 2 < suffixScan) {
+                  suffixScan -= 1;
+                } else {
+                  scanningSuffix = false;
+                }
+              }
+            }
+          }
+        }
+
+        long expectedProgramLength = rootModule.length + caseSuffixLength + 2;
+        bytes expectedProgram = allocateBytes(staging, expectedProgramLength);
+        copied = copyRange(
+          input,
+          rootModule.start,
+          rootModule.length,
+          expectedProgram,
+          /* outputStart= */ 0
         );
+        assert(copied == rootModule.length);
+        setByte(expectedProgram, rootModule.length, 58);
+        setByte(expectedProgram, rootModule.length + 1, 58);
+        copied = copyRange(
+          caseName,
+          targetLength + 2,
+          caseSuffixLength,
+          expectedProgram,
+          rootModule.length + 2
+        );
+        assert(copied == expectedProgramLength);
+        bytes result = allocateBytes(staging, CASE_RESULT_BYTES);
+        long resultLength = 0;
+        if (0 < discovery.count) {
+          resultLength = writeNamedArtifactCaseResult(
+            artifact,
+            expectedProgram,
+            packageName,
+            packageVersion,
+            caseName,
+            caseIdentity,
+            sourceIdentity,
+            result
+          );
+        } else {
+          resultLength = writeArtifactCaseResult(
+            artifact,
+            packageName,
+            packageVersion,
+            caseName,
+            caseIdentity,
+            sourceIdentity,
+            result
+          );
+        }
+
         reportRowsLength = copyRange(
           result,
           /* inputStart= */ 0,
@@ -384,6 +461,7 @@ classical class TestRunner {
         setByte(statusRows, selectedCount, resultStatus(result, resultLength));
         selectedCount += 1;
         drop(result);
+        drop(expectedProgram);
         drop(artifact);
         drop(artifactStorage);
       }

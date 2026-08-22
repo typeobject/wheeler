@@ -264,9 +264,48 @@ classical class TestArtifactReport {
     return cursor;
   }
 
-  /// Executes one artifact and writes its complete counted-report case row.
-  public long writeArtifactCaseResult(
+  private long writeOutcomeCaseResult(
     borrow byteview artifact,
+    ArtifactOutcome outcome,
+    borrow byteview trace,
+    borrow byteview packageName,
+    borrow byteview packageVersion,
+    borrow byteview targetName,
+    borrow byteview caseIdentity,
+    borrow byteview sourceIdentity,
+    borrow mut bytes output
+  ) {
+    if (outcome.passed) {
+      return writePassingCaseResult(
+        artifact,
+        outcome,
+        trace,
+        packageName,
+        packageVersion,
+        targetName,
+        caseIdentity,
+        sourceIdentity,
+        output
+      );
+    }
+
+    return writeFailedCaseResult(
+      artifact,
+      outcome,
+      trace,
+      packageName,
+      packageVersion,
+      targetName,
+      caseIdentity,
+      sourceIdentity,
+      output
+    );
+  }
+
+  private long writeArtifactCaseResultWithProgram(
+    borrow byteview artifact,
+    borrow byteview expectedProgram,
+    boolean bindProgram,
     borrow byteview packageName,
     borrow byteview packageVersion,
     borrow byteview targetName,
@@ -278,12 +317,13 @@ classical class TestArtifactReport {
     assert(bufferLength(output) == CASE_RESULT_BYTES);
     region execution = new region(/* bytes= */ 32768, /* allocations= */ 1);
     bytes trace = allocateBytes(execution, MAX_INTERPRETED_STEPS * 2);
-    ArtifactOutcome outcome = executeBoundedArtifact(artifact, trace);
     long length = 0;
-    if (outcome.passed) {
-      length = writePassingCaseResult(
+    if (bindProgram) {
+      ArtifactOutcome named = executeBoundedNamedArtifact(artifact, expectedProgram, trace);
+      assert(named.authorized);
+      length = writeOutcomeCaseResult(
         artifact,
-        outcome,
+        named,
         trace,
         packageName,
         packageVersion,
@@ -293,9 +333,10 @@ classical class TestArtifactReport {
         output
       );
     } else {
-      length = writeFailedCaseResult(
+      ArtifactOutcome generic = executeBoundedArtifact(artifact, trace);
+      length = writeOutcomeCaseResult(
         artifact,
-        outcome,
+        generic,
         trace,
         packageName,
         packageVersion,
@@ -310,6 +351,53 @@ classical class TestArtifactReport {
     drop(trace);
     drop(execution);
     return length;
+  }
+
+  /// Executes one artifact and writes its complete counted-report case row.
+  public long writeArtifactCaseResult(
+    borrow byteview artifact,
+    borrow byteview packageName,
+    borrow byteview packageVersion,
+    borrow byteview targetName,
+    borrow byteview caseIdentity,
+    borrow byteview sourceIdentity,
+    borrow mut bytes output
+  ) {
+    return writeArtifactCaseResultWithProgram(
+      artifact,
+      artifact,
+      /* bindProgram= */ false,
+      packageName,
+      packageVersion,
+      targetName,
+      caseIdentity,
+      sourceIdentity,
+      output
+    );
+  }
+
+  /// Executes one program-name-bound artifact and writes its counted case row.
+  public long writeNamedArtifactCaseResult(
+    borrow byteview artifact,
+    borrow byteview expectedProgram,
+    borrow byteview packageName,
+    borrow byteview packageVersion,
+    borrow byteview targetName,
+    borrow byteview caseIdentity,
+    borrow byteview sourceIdentity,
+    borrow mut bytes output
+  ) {
+    return writeArtifactCaseResultWithProgram(
+      artifact,
+      expectedProgram,
+      /* bindProgram= */ true,
+      packageName,
+      packageVersion,
+      targetName,
+      caseIdentity,
+      sourceIdentity,
+      output
+    );
   }
 
   /// Executes one artifact and reduces its one-case semantic report identity.

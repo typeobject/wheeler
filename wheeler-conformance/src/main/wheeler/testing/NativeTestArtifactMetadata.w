@@ -4,7 +4,7 @@ module wheeler.conformance.testing.native_test_artifact_metadata;
 
 import wheeler.compiler.opcodes;
 import wheeler.runtime.artifact_execution;
-import wheeler.runtime.testing.test_artifact_metadata;
+import wheeler.runtime.artifact_metadata;
 
 classical class NativeTestArtifactMetadata {
   private long writeText(

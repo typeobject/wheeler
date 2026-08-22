@@ -15,7 +15,7 @@
 
 Project program kind, program name, and ordered global names from a verified artifact inside the Wheeler runtime.
 
-`TestArtifactMetadata.w` reads canonical manifest, string, and type sections. It returns borrowed ranges into the artifact rather than copying or allocating names. The native runner can now pair WIP-0206 values with their exact names before invoking WIP-0204 execution identity derivation.
+`ArtifactMetadata.w` reads canonical manifest, string, function, and type sections. WIP-0251 moved the implemented authority from the old test-scoped module into `wheeler.runtime.artifact_metadata` and deleted the old name. It returns borrowed ranges into the artifact rather than copying or allocating names. The native runner can now pair WIP-0206 values with their exact names before invoking WIP-0204 execution identity derivation.
 
 ## Verification boundary
 
@@ -77,4 +77,5 @@ Rejected. Projection relies on canonical section and string-table bounds establi
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0204](WIP-0204-native-test-execution-identity.md)
 - [WIP-0206](WIP-0206-complete-native-artifact-outcomes.md)
+- [WIP-0251](WIP-0251-native-artifact-function-binding.md)
 - [WIP-0208](WIP-0208-native-artifact-execution-identity.md)

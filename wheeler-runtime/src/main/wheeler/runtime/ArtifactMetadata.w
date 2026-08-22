@@ -1,10 +1,10 @@
 //! Projects test-report metadata from one verified artifact.
 
-module wheeler.runtime.testing.test_artifact_metadata;
+module wheeler.runtime.artifact_metadata;
 
 import wheeler.core.encoding.binary;
 
-classical class TestArtifactMetadata {
+classical class ArtifactMetadata {
   public record ArtifactText(long start, long length) {}
 
   private long sectionOffset(borrow byteview artifact, long section) {
@@ -37,6 +37,57 @@ classical class TestArtifactMetadata {
     long manifest = sectionOffset(artifact, /* section= */ 0);
     long name = readUnsigned(artifact, manifest, /* width= */ 4);
     return stringText(artifact, name);
+  }
+
+  /// Checks the verified manifest program name against exact expected bytes.
+  public boolean artifactProgramMatches(borrow byteview artifact, borrow byteview expectedProgram) {
+    ArtifactText program = artifactProgramText(artifact);
+    if (program.length != bufferLength(expectedProgram)) {
+      return false;
+    }
+
+    long offset = 0;
+    while (offset < program.length) limit 255 {
+      if (artifact[program.start + offset] != expectedProgram[offset]) {
+        return false;
+      }
+
+      offset += 1;
+    }
+
+    return true;
+  }
+
+  /// Returns one verified function name range in descriptor order.
+  public ArtifactText artifactFunctionText(borrow byteview artifact, long function) {
+    long functions = sectionOffset(artifact, /* section= */ 4);
+    long count = readUnsigned(artifact, functions, /* width= */ 4);
+    assert(function < count);
+    long name = readUnsigned(artifact, functions + 8 + function * 40, /* width= */ 4);
+    return stringText(artifact, name);
+  }
+
+  /// Checks one verified function name against exact expected bytes.
+  public boolean artifactFunctionMatches(
+    borrow byteview artifact,
+    long function,
+    borrow byteview expectedFunction
+  ) {
+    ArtifactText name = artifactFunctionText(artifact, function);
+    if (name.length != bufferLength(expectedFunction)) {
+      return false;
+    }
+
+    long offset = 0;
+    while (offset < name.length) limit 255 {
+      if (artifact[name.start + offset] != expectedFunction[offset]) {
+        return false;
+      }
+
+      offset += 1;
+    }
+
+    return true;
   }
 
   /// Returns the verified manifest program kind code.

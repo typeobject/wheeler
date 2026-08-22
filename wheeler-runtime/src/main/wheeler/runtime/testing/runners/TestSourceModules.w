@@ -7,6 +7,9 @@ classical class TestSourceModules {
   private const long MAX_PLAN_BYTES = 32768;
   private const long MAX_SOURCES = 64;
 
+  /// Identifies one validated module-name range in source storage.
+  public record SourceModuleText(long start, long length) {}
+
   private long readUnsigned32BigEndian(borrow byteview input, long offset) {
     return input[offset] * 16777216 + input[offset + 1] * 65536 + input[offset + 2] * 256
       + input[offset + 3];
@@ -170,6 +173,19 @@ classical class TestSourceModules {
     }
 
     return -1;
+  }
+
+  /// Returns the module-name range after canonical source validation.
+  public SourceModuleText validatedSourceModuleText(
+    borrow byteview input,
+    long start,
+    long length
+  ) {
+    long moduleStart = moduleNameStart(input, start, length);
+    long moduleLength = moduleNameLength(input, start, length);
+    assert(-1 < moduleStart);
+    assert(0 < moduleLength);
+    return new SourceModuleText(moduleStart, moduleLength);
   }
 
   private boolean sameSourceModule(

@@ -285,6 +285,11 @@ classical class TestSourcePlan {
     return readUnsigned32BigEndian(input, sourceLengthOffset);
   }
 
+  /// Returns one source start from a previously validated plan.
+  public long validatedSourceStart(borrow byteview input, long start, long length, long ordinal) {
+    return validatedSourceLengthOffset(input, start, length, ordinal) + 4;
+  }
+
   /// Copies one source from a previously validated plan.
   public void copyValidatedSource(
     borrow byteview input,

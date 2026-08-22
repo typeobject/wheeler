@@ -3,7 +3,7 @@
 module wheeler.runtime.testing.test_artifact_execution_identity;
 
 import wheeler.runtime.artifact_execution;
-import wheeler.runtime.testing.test_artifact_metadata;
+import wheeler.runtime.artifact_metadata;
 import wheeler.runtime.testing.test_execution_identity;
 
 classical class TestArtifactExecutionIdentity {

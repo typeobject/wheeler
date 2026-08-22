@@ -3,6 +3,7 @@
 module wheeler.runtime.library;
 
 import wheeler.runtime.artifact_execution;
+import wheeler.runtime.artifact_metadata;
 import wheeler.runtime.bootstrap_coverage_fragments;
 import wheeler.runtime.coverage_reducer;
 import wheeler.runtime.interpreter;
@@ -13,7 +14,6 @@ import wheeler.runtime.testing.runners.test_runner;
 import wheeler.runtime.testing.runners.test_source_compilation;
 import wheeler.runtime.testing.runners.test_source_tests;
 import wheeler.runtime.testing.test_artifact_execution_identity;
-import wheeler.runtime.testing.test_artifact_metadata;
 import wheeler.runtime.testing.test_artifact_report;
 import wheeler.runtime.testing.test_case_identity;
 import wheeler.runtime.testing.test_coverage_identity;

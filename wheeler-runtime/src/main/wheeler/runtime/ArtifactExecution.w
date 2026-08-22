@@ -4,11 +4,13 @@ module wheeler.runtime.artifact_execution;
 
 import wheeler.compiler.opcodes;
 import wheeler.compiler.verifier;
+import wheeler.runtime.artifact_metadata;
 import wheeler.runtime.interpreter;
 
 classical class ArtifactExecution {
   public record ArtifactOutcome(
     boolean verified,
+    boolean authorized,
     boolean passed,
     long steps,
     long globalCount,
@@ -23,9 +25,10 @@ classical class ArtifactExecution {
     long errorOffset
   ) {}
 
-  /// Executes one artifact and returns its terminal interpreter outcome.
-  public ArtifactOutcome executeBoundedArtifact(
+  private ArtifactOutcome executeBoundedArtifactWithFunction(
     borrow byteview artifact,
+    borrow byteview expectedFunction,
+    boolean bindFunction,
     borrow mut bytes traceOpcodes
   ) {
     assert(bufferLength(traceOpcodes) == MAX_INTERPRETED_STEPS * 2);
@@ -51,6 +54,13 @@ classical class ArtifactExecution {
     words storageRegionLiveObjects = allocate(executionArena, INTERPRETER_STORAGE_COUNT);
     words storageData = allocate(executionArena, INTERPRETER_STORAGE_WORDS);
     boolean verified = verifyArtifact(artifact, bufferLength(artifact)) == 1;
+    boolean authorized = true;
+    if (verified) {
+      if (bindFunction) {
+        authorized = artifactFunctionMatches(artifact, /* function= */ 0, expectedFunction);
+      }
+    }
+
     boolean passed = false;
     long steps = 0;
     long globalCount = 0;
@@ -63,7 +73,12 @@ classical class ArtifactExecution {
     long globalSix = 0;
     long globalSeven = 0;
     long errorOffset = 0;
-    if (verified) {
+    boolean executable = verified;
+    if (authorized == false) {
+      executable = false;
+    }
+
+    if (executable) {
       ExecutionResult result = executeVerifiedArtifact(
         artifact,
         globals,
@@ -143,6 +158,7 @@ classical class ArtifactExecution {
     drop(executionArena);
     return new ArtifactOutcome(
       verified,
+      authorized,
       passed,
       steps,
       globalCount,
@@ -155,6 +171,33 @@ classical class ArtifactExecution {
       globalSix,
       globalSeven,
       errorOffset
+    );
+  }
+
+  /// Verifies and executes one artifact without a program-name constraint.
+  public ArtifactOutcome executeBoundedArtifact(
+    borrow byteview artifact,
+    borrow mut bytes traceOpcodes
+  ) {
+    return executeBoundedArtifactWithFunction(
+      artifact,
+      artifact,
+      /* bindFunction= */ false,
+      traceOpcodes
+    );
+  }
+
+  /// Verifies, authorizes, and executes one exact named test artifact.
+  public ArtifactOutcome executeBoundedNamedArtifact(
+    borrow byteview artifact,
+    borrow byteview expectedFunction,
+    borrow mut bytes traceOpcodes
+  ) {
+    return executeBoundedArtifactWithFunction(
+      artifact,
+      expectedFunction,
+      /* bindFunction= */ true,
+      traceOpcodes
     );
   }
 }
