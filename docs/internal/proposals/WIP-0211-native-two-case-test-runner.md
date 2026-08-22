@@ -9,7 +9,7 @@
 | Area | Native testing, multi-case execution, canonical reduction |
 | Depends on | WIP-0018, WIP-0201, WIP-0210 |
 | Supersedes | One-case-only native runner composition |
-| Superseded by | None |
+| Superseded by | WIP-0212 native case-identity derivation |
 
 ## Summary
 
@@ -78,3 +78,4 @@ Rejected. Worker or transport order cannot enter semantic identity.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0201](WIP-0201-bounded-native-multi-case-reports.md)
 - [WIP-0210](WIP-0210-native-failing-test-reports.md)
+- [WIP-0212](WIP-0212-native-runner-case-identities.md)

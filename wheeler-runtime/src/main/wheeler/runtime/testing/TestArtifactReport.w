@@ -10,6 +10,7 @@ import wheeler.runtime.bootstrap_coverage_fragments;
 import wheeler.runtime.coverage_reducer;
 import wheeler.runtime.testing.test_artifact_execution_identity;
 import wheeler.runtime.testing.test_coverage_identity;
+import wheeler.runtime.testing.test_identity_text;
 import wheeler.runtime.testing.test_report_identity;
 
 classical class TestArtifactReport {
@@ -59,28 +60,12 @@ classical class TestArtifactReport {
     return cursor + length;
   }
 
-  private long hexDigit(long value) {
-    if (value < 10) {
-      return value + 48;
-    }
-
-    return value + 87;
-  }
-
   private long writeIdentity(borrow byteview identity, borrow mut bytes frame, long cursor) {
     assert(bufferLength(identity) == IDENTITY_BYTES);
     setByte(frame, cursor, /* lengthLow= */ 64);
     setByte(frame, cursor + 1, /* lengthHigh= */ 0);
     cursor += 2;
-    long offset = 0;
-    while (offset < IDENTITY_BYTES) limit IDENTITY_BYTES {
-      long value = identity[offset];
-      setByte(frame, cursor + offset * 2, hexDigit(value / 16));
-      setByte(frame, cursor + offset * 2 + 1, hexDigit(value % 16));
-      offset += 1;
-    }
-
-    return cursor + 64;
+    return writeTestIdentityTextAt(identity, frame, cursor);
   }
 
   private long writeSigned(long value, borrow mut bytes frame, long cursor) {

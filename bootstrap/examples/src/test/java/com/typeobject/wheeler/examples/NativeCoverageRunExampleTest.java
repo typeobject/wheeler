@@ -233,7 +233,7 @@ final class NativeCoverageRunExampleTest {
     digestField(report, "wheeler.test-report/2");
     digestField(report, "%064x".formatted(1));
     digestInteger(report, 2);
-    digestCasePrefix(report, failing, 2, 3);
+    digestCasePrefix(report, failing, 3);
     digestField(report, "FAIL");
     digestField(report, "WTEST003");
     digestField(report, "native test assertion failed");
@@ -241,7 +241,7 @@ final class NativeCoverageRunExampleTest {
     digestInteger(report, 0);
     digestField(report, "");
     digestField(report, "");
-    digestCasePrefix(report, passing, 4, 5);
+    digestCasePrefix(report, passing, 5);
     digestField(report, "PASS");
     digestField(report, "");
     digestField(report, "");
@@ -300,14 +300,23 @@ final class NativeCoverageRunExampleTest {
   }
 
   private static void digestCasePrefix(
-      MessageDigest report, byte[] artifact, int caseValue, int sourceValue) throws Exception {
+      MessageDigest report, byte[] artifact, int sourceValue) throws Exception {
     digestField(report, "pkg");
     digestField(report, "1");
     digestField(report, "test");
-    digestField(report, "%064x".formatted(caseValue));
+    digestField(report, derivedCaseIdentity(sourceValue));
     digestField(report, "%064x".formatted(sourceValue));
     digestField(report, HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(artifact)));
+  }
+
+  private static String derivedCaseIdentity(int sourceValue) throws Exception {
+    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+    digestField(digest, "wheeler.test-case/1");
+    digestField(digest, "%064x".formatted(6));
+    digestField(digest, "test");
+    digestField(digest, "%064x".formatted(sourceValue));
+    return HexFormat.of().formatHex(digest.digest());
   }
 
   private static MessageDigest reportPrefix() throws Exception {
@@ -325,6 +334,9 @@ final class NativeCoverageRunExampleTest {
 
   private static Program twoCaseRunner() throws Exception {
     var modules = testRunnerModules();
+    modules.put(
+        "TestCaseIdentity.w",
+        RuntimeSources.read("runtime/testing/TestCaseIdentity.w"));
     modules.put(
         "NativeTwoCaseTestRunner.w",
         Files.readString(Path.of(
@@ -351,7 +363,8 @@ final class NativeCoverageRunExampleTest {
     modules.put("CoverageReducer.w", RuntimeSources.read("runtime/CoverageReducer.w"));
     for (String source : List.of(
         "TestArtifactMetadata", "TestExecutionIdentity", "TestArtifactExecutionIdentity",
-        "TestCoverageIdentity", "TestReportIdentity", "TestArtifactReport")) {
+        "TestCoverageIdentity", "TestIdentityText",
+        "TestReportIdentity", "TestArtifactReport")) {
       modules.put(source + ".w", RuntimeSources.read("runtime/testing/" + source + ".w"));
     }
     return modules;

@@ -15,6 +15,7 @@ import wheeler.runtime.testing.test_artifact_report;
 import wheeler.runtime.testing.test_case_identity;
 import wheeler.runtime.testing.test_coverage_identity;
 import wheeler.runtime.testing.test_execution_identity;
+import wheeler.runtime.testing.test_identity_text;
 import wheeler.runtime.testing.test_report_identity;
 import wheeler.runtime.testing.test_shard;
 import wheeler.runtime.testing.test_summary;

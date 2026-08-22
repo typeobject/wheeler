@@ -4,6 +4,8 @@ module wheeler.conformance.testing.runners.native_two_case_test_runner;
 
 import wheeler.core.encoding.binary;
 import wheeler.runtime.testing.test_artifact_report;
+import wheeler.runtime.testing.test_case_identity;
+import wheeler.runtime.testing.test_identity_text;
 import wheeler.runtime.testing.test_report_identity;
 
 classical class NativeTwoCaseTestRunner {
@@ -40,7 +42,7 @@ classical class NativeTwoCaseTestRunner {
     assert(secondLength < 32769);
     assert(secondHeader + 4 + secondLength == bufferLength(input));
 
-    region staging = new region(/* bytes= */ 88000, /* allocations= */ 15);
+    region staging = new region(/* bytes= */ 88166, /* allocations= */ 17);
     bytes firstArtifact = allocateBytes(staging, firstLength);
     long firstCopied = copyRange(
       input,
@@ -71,23 +73,11 @@ classical class NativeTwoCaseTestRunner {
     writeAscii(packageVersion, /* offset= */ 0, "1");
     bytes target = allocateBytes(staging, /* length= */ 4);
     writeAscii(target, /* offset= */ 0, "test");
-    bytes firstCase = allocateBytes(staging, /* length= */ 64);
-    writeAscii(
-      firstCase,
-      /* offset= */ 0,
-      "0000000000000000000000000000000000000000000000000000000000000004"
-    );
     bytes firstSource = allocateBytes(staging, /* length= */ 64);
     writeAscii(
       firstSource,
       /* offset= */ 0,
       "0000000000000000000000000000000000000000000000000000000000000005"
-    );
-    bytes secondCase = allocateBytes(staging, /* length= */ 64);
-    writeAscii(
-      secondCase,
-      /* offset= */ 0,
-      "0000000000000000000000000000000000000000000000000000000000000002"
     );
     bytes secondSource = allocateBytes(staging, /* length= */ 64);
     writeAscii(
@@ -95,6 +85,42 @@ classical class NativeTwoCaseTestRunner {
       /* offset= */ 0,
       "0000000000000000000000000000000000000000000000000000000000000003"
     );
+    bytes caseInput = allocateBytes(staging, /* length= */ 134);
+    writeAscii(
+      caseInput,
+      /* offset= */ 0,
+      "0000000000000000000000000000000000000000000000000000000000000006"
+    );
+    long copiedSource = copyRange(
+      firstSource,
+      /* inputStart= */ 0,
+      /* length= */ 64,
+      caseInput,
+      /* outputStart= */ 64
+    );
+    assert(copiedSource == 128);
+    setByte(caseInput, /* index= */ 128, /* nameLengthLow= */ 4);
+    setByte(caseInput, /* index= */ 129, /* nameLengthHigh= */ 0);
+    writeAscii(caseInput, /* offset= */ 130, "test");
+    bytes rawCase = allocateBytes(staging, /* length= */ 32);
+    long rawLength = deriveTestCaseIdentity(caseInput, rawCase);
+    assert(rawLength == 32);
+    bytes firstCase = allocateBytes(staging, /* length= */ 64);
+    long firstCaseLength = writeTestIdentityText(rawCase, firstCase);
+    assert(firstCaseLength == 64);
+    copiedSource = copyRange(
+      secondSource,
+      /* inputStart= */ 0,
+      /* length= */ 64,
+      caseInput,
+      /* outputStart= */ 64
+    );
+    assert(copiedSource == 128);
+    rawLength = deriveTestCaseIdentity(caseInput, rawCase);
+    assert(rawLength == 32);
+    bytes secondCase = allocateBytes(staging, /* length= */ 64);
+    long secondCaseLength = writeTestIdentityText(rawCase, secondCase);
+    assert(secondCaseLength == 64);
     bytes failureCode = allocateBytes(staging, /* length= */ 8);
     writeAscii(failureCode, /* offset= */ 0, "WTEST003");
     bytes failureMessage = allocateBytes(staging, /* length= */ 28);
@@ -141,10 +167,12 @@ classical class NativeTwoCaseTestRunner {
     drop(firstResult);
     drop(failureMessage);
     drop(failureCode);
-    drop(secondSource);
     drop(secondCase);
-    drop(firstSource);
     drop(firstCase);
+    drop(rawCase);
+    drop(caseInput);
+    drop(secondSource);
+    drop(firstSource);
     drop(target);
     drop(packageVersion);
     drop(packageName);
