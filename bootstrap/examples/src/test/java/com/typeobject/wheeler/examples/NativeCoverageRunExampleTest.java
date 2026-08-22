@@ -138,7 +138,7 @@ final class NativeCoverageRunExampleTest {
     assertArrayEquals(new byte[39], invalid.hostOutput());
 
     byte[] overLimit = input.clone();
-    overLimit[15] = 65;
+    overLimit[47] = 65;
     VirtualMachine invalidCount = VirtualMachine.withBinaryInput(nativeTestRunner(), overLimit, 39);
     assertThrows(
         VmTrap.class,
@@ -323,6 +323,7 @@ final class NativeCoverageRunExampleTest {
     writeShortText(input, "pkg");
     writeShortText(input, "1");
     writeShortText(input, "test");
+    input.writeBytes(ByteBuffer.allocate(32).putLong(24, 6).array());
     input.write(caseCount);
     return input;
   }
@@ -335,7 +336,6 @@ final class NativeCoverageRunExampleTest {
 
   private static void writeCaseInput(
       ByteArrayOutputStream output, String source, byte[] artifact) {
-    output.writeBytes(ByteBuffer.allocate(32).putLong(24, 6).array());
     writeShortText(output, "test");
     byte[] sourceBytes = source.getBytes(StandardCharsets.UTF_8);
     output.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)

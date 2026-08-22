@@ -44,8 +44,7 @@ classical class TestRunner {
 
   private long checkedCaseEnd(borrow byteview input, long start) {
     long cursor = start;
-    assert(cursor + 36 < bufferLength(input));
-    cursor += 32;
+    assert(cursor < bufferLength(input));
     long nameLength = input[cursor];
     assert(0 < nameLength);
     cursor += 1;
@@ -104,6 +103,9 @@ classical class TestRunner {
     assert(cursor + targetLength < bufferLength(input));
     long targetStart = cursor;
     cursor += targetLength;
+    assert(cursor + 32 < bufferLength(input));
+    long manifestIdentityStart = cursor;
+    cursor += 32;
     long caseCount = input[cursor];
     assert(caseCount < MAX_CASES + 1);
     cursor += 1;
@@ -145,6 +147,15 @@ classical class TestRunner {
     bytes target = allocateBytes(staging, targetLength);
     copied = copyRange(input, targetStart, targetLength, target, /* outputStart= */ 0);
     assert(copied == targetLength);
+    bytes rawManifestIdentity = allocateBytes(staging, /* length= */ 32);
+    copied = copyRange(
+      input,
+      manifestIdentityStart,
+      /* length= */ 32,
+      rawManifestIdentity,
+      /* outputStart= */ 0
+    );
+    assert(copied == 32);
     bytes reportRows = allocateBytes(staging, REPORT_ROWS_BYTES);
     bytes summaryRows = allocateBytes(staging, SUMMARY_ROWS_BYTES);
     bytes statusRows = allocateBytes(staging, MAX_CASES);
@@ -153,8 +164,6 @@ classical class TestRunner {
     long reportRowsLength = 0;
     long descriptor = 0;
     while (descriptor < caseCount) limit MAX_CASES {
-      long declarationStart = cursor;
-      cursor += 32;
       long nameLength = input[cursor];
       cursor += 1;
       long nameStart = cursor;
@@ -168,27 +177,18 @@ classical class TestRunner {
       long artifactStart = cursor;
       cursor += artifactLength;
 
-      bytes rawDeclaration = allocateBytes(staging, /* length= */ 32);
-      copied = copyRange(
-        input,
-        declarationStart,
-        /* length= */ 32,
-        rawDeclaration,
-        /* outputStart= */ 0
-      );
-      assert(copied == 32);
       bytes rawSource = allocateBytes(staging, /* length= */ 32);
       hashSha256Range(input, sourceStart, sourceLength, rawSource, staging);
       bytes sourceIdentity = allocateBytes(staging, /* length= */ 64);
       long sourceIdentityLength = writeTestIdentityText(rawSource, sourceIdentity);
       assert(sourceIdentityLength == 64);
       bytes caseInput = allocateBytes(staging, 130 + nameLength);
-      long declarationLength = writeTestIdentityTextAt(
-        rawDeclaration,
+      long manifestIdentityLength = writeTestIdentityTextAt(
+        rawManifestIdentity,
         caseInput,
         /* outputStart= */ 0
       );
-      assert(declarationLength == 64);
+      assert(manifestIdentityLength == 64);
       copied = copyRange(
         sourceIdentity,
         /* inputStart= */ 0,
@@ -269,7 +269,6 @@ classical class TestRunner {
       drop(caseInput);
       drop(sourceIdentity);
       drop(rawSource);
-      drop(rawDeclaration);
       descriptor += 1;
     }
 
@@ -334,6 +333,7 @@ classical class TestRunner {
     drop(statusRows);
     drop(summaryRows);
     drop(reportRows);
+    drop(rawManifestIdentity);
     drop(target);
     drop(packageVersion);
     drop(packageName);

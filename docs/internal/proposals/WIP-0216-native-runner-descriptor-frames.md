@@ -13,7 +13,7 @@
 
 ## Summary
 
-Replace fixture-coded package metadata, declaration identity, case name, and source identity in the native two-case runner with a bounded descriptor transport.
+Replace fixture-coded package metadata, manifest identity, case name, and source identity in the native two-case runner with a bounded descriptor transport.
 
 The runner now receives two complete discovered descriptors beside their artifacts. It validates the transport, hashes exact source bytes, converts raw identities to canonical lowercase text, derives each case identity, assigns shards, executes selected artifacts, and reduces the report and summary. No report metadata depends on constants in the conformance executable.
 
@@ -21,7 +21,7 @@ The runner now receives two complete discovered descriptors beside their artifac
 
 The frame begins with two little-endian shard fields, followed by one-byte-length package name, version, and target UTF-8 fields. Each of two cases then contains:
 
-1. raw 32-byte declaration identity
+1. raw 32-byte manifest identity
 2. one-byte-length case name
 3. four-byte source length and exact source bytes
 4. four-byte artifact length and exact artifact bytes
@@ -36,11 +36,11 @@ Each source identity is SHA-256 over the exact transported source bytes. `TestId
 
 The case transcript remains WIP-0195:
 
-- declaration identity
+- manifest identity
 - case name
 - source identity
 
-Raw declaration identities prevent text normalization from entering the transport. Package, version, target, case, source, and artifact identities all reach the WIP-0201 report row through Wheeler-owned code.
+Raw manifest identities prevent text normalization from entering the transport. Package, version, target, case, source, and artifact identities all reach the WIP-0201 report row through Wheeler-owned code.
 
 ## Ownership
 
@@ -63,7 +63,7 @@ The conformance archive contains 143,607 bytes with SHA-256 `57eacd5ce6264bbb30b
 ## Acceptance
 
 - [x] Package, version, and target metadata come from the input frame.
-- [x] Declaration identities and case names come from per-case descriptors.
+- [x] Manifest identities and case names come from per-case descriptors.
 - [x] Source identities derive from exact source bytes inside Wheeler.
 - [x] Case, shard, report, and summary semantics consume transported descriptors.
 - [x] Every descriptor boundary rejects malformed input before publication.

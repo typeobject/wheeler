@@ -9,7 +9,7 @@
 | Area | Native testing, bounded scheduling, report composition |
 | Depends on | WIP-0018, WIP-0201, WIP-0217 |
 | Supersedes | Fixed two-case runtime runner |
-| Superseded by | None |
+| Superseded by | WIP-0219 shared package manifest identity |
 
 ## Summary
 
@@ -27,7 +27,7 @@ The preflight pass checks every name, source, and artifact boundary and requires
 
 The execution pass handles descriptors in transport order. Each case receives:
 
-- its transported declaration identity and name
+- its transported package manifest identity and case name
 - a native SHA-256 source identity
 - a native case identity
 - full-digest shard assignment
@@ -100,3 +100,4 @@ Rejected. Malformed trailing descriptors must reject before any product becomes 
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0201](WIP-0201-bounded-native-multi-case-reports.md)
 - [WIP-0217](WIP-0217-runtime-test-runner-authority.md)
+- [WIP-0219](WIP-0219-shared-runner-manifest-identity.md)
