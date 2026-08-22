@@ -298,6 +298,7 @@ classical class TestSourceTests {
     long selectionCount,
     boolean constructDescriptors,
     boolean qualifyModule,
+    boolean allowSelectedTagAbsence,
     long rootModuleStart,
     long rootModuleLength,
     borrow mut bytes constructedNames,
@@ -521,13 +522,15 @@ classical class TestSourceTests {
       token += 1;
     }
 
-    long selectedTag = 0;
-    while (selectedTag < selectionCount) limit MAX_CASES {
-      if (knownTags[selectedTag] == 0) {
-        supported = false;
-      }
+    if (allowSelectedTagAbsence == false) {
+      long selectedTag = 0;
+      while (selectedTag < selectionCount) limit MAX_CASES {
+        if (knownTags[selectedTag] == 0) {
+          supported = false;
+        }
 
-      selectedTag += 1;
+        selectedTag += 1;
+      }
     }
 
     boolean matched = supported;

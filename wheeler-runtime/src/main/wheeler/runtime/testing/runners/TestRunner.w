@@ -138,7 +138,12 @@ classical class TestRunner {
     assert(selection.end < bufferLength(input));
     cursor = selection.end;
     long encodedCaseCount = input[cursor];
+    boolean allowTargetTagAbsence = encodedCaseCount == 253;
     boolean qualifyConstructedNames = encodedCaseCount == 254;
+    if (allowTargetTagAbsence) {
+      qualifyConstructedNames = true;
+    }
+
     boolean constructDescriptors = encodedCaseCount == 255;
     if (qualifyConstructedNames) {
       constructDescriptors = true;
@@ -297,6 +302,7 @@ classical class TestRunner {
       selectionCount,
       constructDescriptors,
       qualifyConstructedNames,
+      allowTargetTagAbsence,
       rootModule.start,
       rootModule.length,
       constructedNames,

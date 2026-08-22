@@ -44,9 +44,7 @@ final class NativePackageTestRunner {
       int shardCount,
       Set<String> selectedTags) throws IOException {
     List<Target> testTargets = manifest.targets().stream().filter(Target::test).toList();
-    if (testTargets.isEmpty()
-        || !manifest.dependencies().isEmpty()
-        || (testTargets.size() > 1 && !selectedTags.isEmpty())) {
+    if (testTargets.isEmpty() || !manifest.dependencies().isEmpty()) {
       return Optional.empty();
     }
     java.util.ArrayList<byte[]> plans = new java.util.ArrayList<>();
@@ -81,7 +79,8 @@ final class NativePackageTestRunner {
           plans.get(index),
           shardIndex,
           shardCount,
-          selectedTags);
+          selectedTags,
+          testTargets.size() > 1);
       byte[] output = new WheelerRuntime()
           .executeBinaryInput(nativeRunner, input, OUTPUT_BYTES)
           .output();
@@ -150,7 +149,8 @@ final class NativePackageTestRunner {
       byte[] sourcePlan,
       int shardIndex,
       int shardCount,
-      Set<String> selectedTags) throws IOException {
+      Set<String> selectedTags,
+      boolean allowTargetTagAbsence) throws IOException {
     if (shardIndex < 0 || shardIndex >= shardCount || shardCount < 1 || shardCount > 65_535) {
       throw new IllegalArgumentException("Invalid native test shard");
     }
@@ -172,7 +172,7 @@ final class NativePackageTestRunner {
     for (String tag : tags) {
       writeShortText(output, tag);
     }
-    output.write(254);
+    output.write(allowTargetTagAbsence ? 253 : 254);
     return output.toByteArray();
   }
 

@@ -44,13 +44,13 @@ class NativePackageTestRunnerTest {
     Files.writeString(project.resolve("src/Alpha.w"), """
         module demo.native.targets.alpha;
         classical class AlphaTests {
-          test void passes() { assert(true); }
+          test void passes() tags(fast) { assert(true); }
         }
         """);
     Files.writeString(project.resolve("src/Beta.w"), """
         module demo.native.targets.beta;
         classical class BetaTests {
-          test void passes() { assert(true); }
+          test void passes() tags(slow) { assert(true); }
         }
         """);
     PackageProject packageProject = PackageProject.load(project);
@@ -58,6 +58,9 @@ class NativePackageTestRunnerTest {
     var result = NativePackageTestRunner.run(
         project, packageProject.manifest(), 0, 1, Set.of());
     TestReport report = packageProject.test();
+    var fastResult = NativePackageTestRunner.run(
+        project, packageProject.manifest(), 0, 1, Set.of("fast"));
+    TestReport fastReport = packageProject.test(0, 1, Set.of("fast"));
 
     assertTrue(result.isPresent());
     assertEquals(2, result.orElseThrow().identities().size());
@@ -65,6 +68,10 @@ class NativePackageTestRunnerTest {
     assertEquals(2, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
     assertEquals(2, report.passed());
+    assertTrue(fastResult.isPresent());
+    assertEquals(1, fastResult.orElseThrow().selected());
+    assertEquals(1, fastResult.orElseThrow().passed());
+    assertEquals(1, fastReport.passed());
   }
 
   @Test
