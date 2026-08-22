@@ -9,7 +9,7 @@
 | Area | Native testing, descriptor discovery, source identity |
 | Depends on | WIP-0018, WIP-0212, WIP-0215 |
 | Supersedes | Fixture-coded two-case metadata and source identities |
-| Superseded by | None |
+| Superseded by | WIP-0217 canonical runtime runner authority |
 
 ## Summary
 
@@ -89,3 +89,4 @@ Rejected. JSON adds escaping and number semantics to a bootstrap transport that 
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0212](WIP-0212-native-runner-case-identities.md)
 - [WIP-0215](WIP-0215-native-test-failure-diagnostics.md)
+- [WIP-0217](WIP-0217-runtime-test-runner-authority.md)

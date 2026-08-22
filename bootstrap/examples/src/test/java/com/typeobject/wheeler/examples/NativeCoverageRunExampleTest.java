@@ -500,6 +500,9 @@ final class NativeCoverageRunExampleTest {
         "TestSummary.w",
         RuntimeSources.read("runtime/testing/TestSummary.w"));
     modules.put(
+        "TwoCaseTestRunner.w",
+        RuntimeSources.read("runtime/testing/runners/TwoCaseTestRunner.w"));
+    modules.put(
         "NativeTwoCaseTestRunner.w",
         Files.readString(Path.of(
             "../wheeler-conformance/src/main/wheeler/testing/runners/NativeTwoCaseTestRunner.w")));
