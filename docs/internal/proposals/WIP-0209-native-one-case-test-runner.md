@@ -9,13 +9,13 @@
 | Area | Native testing, semantic reports, runner composition |
 | Depends on | WIP-0018, WIP-0020, WIP-0205, WIP-0208 |
 | Supersedes | Host composition of one passing native test report |
-| Superseded by | None |
+| Superseded by | WIP-0210 passing and failing report composition |
 
 ## Summary
 
 Execute one bounded classical test artifact and publish its byte-identical profile-2 report identity entirely inside Wheeler.
 
-`TestArtifactPassReport.w` composes native execution, artifact hashing, execution identity, transition coverage, coverage identity, assertion counting, case framing, and canonical report reduction. `NativeOneCaseTestRunner.w` supplies one fixed conformance case's package metadata and performs only final publication.
+The superseded `TestArtifactPassReport.w` composed native execution, artifact hashing, execution identity, transition coverage, coverage identity, assertion counting, case framing, and canonical report reduction. `NativeOneCaseTestRunner.w` supplies one fixed conformance case's package metadata and performs only final publication.
 
 This closes the first Wheeler-written runner vertical slice. Discovery, multi-case scheduling, and failing-case diagnostics remain separate WIP-0018 work.
 
@@ -89,3 +89,4 @@ Rejected. Execution identity, assertions, and coverage must describe one attempt
 - [WIP-0201](WIP-0201-bounded-native-multi-case-reports.md)
 - [WIP-0205](WIP-0205-native-test-coverage-identity.md)
 - [WIP-0208](WIP-0208-native-artifact-execution-identity.md)
+- [WIP-0210](WIP-0210-native-failing-test-reports.md)

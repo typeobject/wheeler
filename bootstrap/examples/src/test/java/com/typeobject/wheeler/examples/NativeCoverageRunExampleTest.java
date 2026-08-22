@@ -29,6 +29,13 @@ final class NativeCoverageRunExampleTest {
         }
       }
       """;
+  private static final String FAILING_SUBJECT = """
+      classical class FailingSubject {
+        entry void main() {
+          assert(false);
+        }
+      }
+      """;
   private static final String GLOBAL_SUBJECT = """
       classical class GlobalSubject {
         state long first = 7;
@@ -87,6 +94,13 @@ final class NativeCoverageRunExampleTest {
     VirtualMachine machine = VirtualMachine.withBinaryInput(oneCaseRunner(), artifact, 32);
     CompilerMachineRunner.runWithoutRewindHistory(machine);
     assertArrayEquals(expectedOneCaseReport(artifact), machine.hostOutput());
+
+    byte[] failingArtifact = NativeModuleCompilerHarness.compile(
+        compiler, List.of(), FAILING_SUBJECT);
+    VirtualMachine failure = VirtualMachine.withBinaryInput(
+        oneCaseRunner(), failingArtifact, 32);
+    CompilerMachineRunner.runWithoutRewindHistory(failure);
+    assertArrayEquals(expectedFailedOneCaseReport(failingArtifact), failure.hostOutput());
   }
 
   @Test
@@ -188,6 +202,20 @@ final class NativeCoverageRunExampleTest {
         modules, "wheeler.conformance.testing.native_test_coverage_identity");
   }
 
+  private static byte[] expectedFailedOneCaseReport(byte[] artifact) throws Exception {
+    MessageDigest report = reportPrefix();
+    digestField(report, HexFormat.of().formatHex(
+        MessageDigest.getInstance("SHA-256").digest(artifact)));
+    digestField(report, "FAIL");
+    digestField(report, "WTEST003");
+    digestField(report, "native test assertion failed");
+    digestInteger(report, 1);
+    digestInteger(report, 0);
+    digestField(report, "");
+    digestField(report, "");
+    return report.digest();
+  }
+
   private static byte[] expectedOneCaseReport(byte[] artifact) throws Exception {
     MessageDigest execution = MessageDigest.getInstance("SHA-256");
     digestField(execution, "wheeler.test-execution/1");
@@ -203,15 +231,7 @@ final class NativeCoverageRunExampleTest {
     coverage.update("wheeler-transition-coverage-1\0".getBytes(StandardCharsets.UTF_8));
     String coverageIdentity = HexFormat.of().formatHex(coverage.digest(EXPECTED));
 
-    MessageDigest report = MessageDigest.getInstance("SHA-256");
-    digestField(report, "wheeler.test-report/2");
-    digestField(report, "%064x".formatted(1));
-    digestInteger(report, 1);
-    digestField(report, "pkg");
-    digestField(report, "1");
-    digestField(report, "test");
-    digestField(report, "%064x".formatted(2));
-    digestField(report, "%064x".formatted(3));
+    MessageDigest report = reportPrefix();
     digestField(report, HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(artifact)));
     digestField(report, "PASS");
@@ -224,6 +244,19 @@ final class NativeCoverageRunExampleTest {
     return report.digest();
   }
 
+  private static MessageDigest reportPrefix() throws Exception {
+    MessageDigest report = MessageDigest.getInstance("SHA-256");
+    digestField(report, "wheeler.test-report/2");
+    digestField(report, "%064x".formatted(1));
+    digestInteger(report, 1);
+    digestField(report, "pkg");
+    digestField(report, "1");
+    digestField(report, "test");
+    digestField(report, "%064x".formatted(2));
+    digestField(report, "%064x".formatted(3));
+    return report;
+  }
+
   private static Program oneCaseRunner() throws Exception {
     var modules = runtimeModules();
     modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
@@ -232,7 +265,7 @@ final class NativeCoverageRunExampleTest {
     modules.put("CoverageReducer.w", RuntimeSources.read("runtime/CoverageReducer.w"));
     for (String source : List.of(
         "TestArtifactMetadata", "TestExecutionIdentity", "TestArtifactExecutionIdentity",
-        "TestCoverageIdentity", "TestReportIdentity", "TestArtifactPassReport")) {
+        "TestCoverageIdentity", "TestReportIdentity", "TestArtifactReport")) {
       modules.put(source + ".w", RuntimeSources.read("runtime/testing/" + source + ".w"));
     }
     modules.put(

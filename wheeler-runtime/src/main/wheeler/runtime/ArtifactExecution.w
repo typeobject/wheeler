@@ -100,6 +100,18 @@ classical class ArtifactExecution {
       }
       case ExecutionResult.Error(long offset) {
         errorOffset = offset;
+        boolean traced = true;
+        while (traced) limit MAX_INTERPRETED_STEPS {
+          traced = traceOpcodes[steps * 2] != 0;
+          if (!traced) {
+            traced = traceOpcodes[steps * 2 + 1] != 0;
+          }
+
+          if (traced) {
+            steps += 1;
+            traced = steps < MAX_INTERPRETED_STEPS;
+          }
+        }
       }
     }
 
