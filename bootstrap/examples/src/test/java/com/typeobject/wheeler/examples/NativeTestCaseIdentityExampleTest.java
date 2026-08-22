@@ -97,6 +97,10 @@ final class NativeTestCaseIdentityExampleTest {
     CoreSources.addBinaryClosure(sources);
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     sources.put(
+        "TestCaseIdentity.w",
+        Files.readString(Path.of(
+            "../wheeler-runtime/src/main/wheeler/runtime/testing/TestCaseIdentity.w")));
+    sources.put(
         "NativeTestCaseIdentity.w",
         Files.readString(Path.of(
             "../wheeler-conformance/src/main/wheeler/testing/NativeTestCaseIdentity.w")));

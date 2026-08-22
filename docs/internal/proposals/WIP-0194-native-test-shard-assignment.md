@@ -9,13 +9,13 @@
 | Area | Native testing, deterministic sharding, Java-free execution |
 | Depends on | WIP-0018 |
 | Supersedes | None |
-| Superseded by | None |
+| Superseded by | WIP-0197 runtime library ownership |
 
 ## Summary
 
 Move deterministic test-case shard assignment across the Wheeler boundary.
 
-`NativeTestShard.w` accepts one complete lowercase SHA-256 case identity, a little-endian shard index, and a little-endian shard count. It publishes one byte only after validating the complete frame.
+`TestShard.w` accepts one complete lowercase SHA-256 case identity, a little-endian shard index, and a little-endian shard count. `NativeTestShard.w` publishes its Boolean result through a one-byte conformance boundary.
 
 This is not a test runner. Discovery, case execution, report reduction, and adapters remain with WIP-0018.
 
@@ -53,7 +53,7 @@ The output buffer has one byte. Success publishes zero or one and sets the exact
 
 ## Package boundary
 
-`wheeler.conformance` exports the `nativetestshard` deployable target. The target reads no package graph, source tree, environment, clock, random source, or network state.
+`wheeler.runtime` owns shard assignment under WIP-0197. `wheeler.conformance` exports the `nativetestshard` deployable boundary. Neither operation reads a package graph, source tree, environment, clock, random source, or network state.
 
 ## Evidence
 
@@ -90,4 +90,5 @@ Rejected. Worker and discovery order are not semantic inputs.
 ## References
 
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
+- [WIP-0197](WIP-0197-runtime-test-selection-authority.md)
 - [Package testing reference](../../public/reference/packages.md#tests)

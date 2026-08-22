@@ -9,13 +9,13 @@
 | Area | Native testing, case identity, Java-free execution |
 | Depends on | WIP-0018, WIP-0194 |
 | Supersedes | None |
-| Superseded by | None |
+| Superseded by | WIP-0197 runtime library ownership |
 
 ## Summary
 
 Derive profile-2 test-case identities inside Wheeler.
 
-`NativeTestCaseIdentity.w` reproduces stage 0's `wheeler.test-case/1` SHA-256 transcript from the package manifest identity, complete selected case name, and source identity. It publishes the raw 32-byte digest.
+`TestCaseIdentity.w` reproduces stage 0's `wheeler.test-case/1` SHA-256 transcript from the package manifest identity, complete selected case name, and source identity. `NativeTestCaseIdentity.w` publishes its raw 32-byte digest through the conformance boundary.
 
 WIP-0194 can consume the lowercase hexadecimal form of that digest for deterministic shard assignment. Discovery, compilation, execution, and report reduction remain separate WIP-0018 work.
 
@@ -57,7 +57,7 @@ The transcript and hash state remain invocation-owned. No partial digest becomes
 
 ## Package boundary
 
-`wheeler.conformance` exports the `nativetestcaseidentity` deployable target. It reads no source tree, lock, environment, locale, clock, random source, or network state.
+`wheeler.runtime` owns derivation under WIP-0197. `wheeler.conformance` exports the `nativetestcaseidentity` deployable boundary. Neither operation reads a source tree, lock, environment, locale, clock, random source, or network state.
 
 ## Evidence
 
@@ -95,4 +95,5 @@ Rejected. The raw digest is the smallest native product. Presentation belongs at
 
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0194](WIP-0194-native-test-shard-assignment.md)
+- [WIP-0197](WIP-0197-runtime-test-selection-authority.md)
 - [Package testing reference](../../public/reference/packages.md#tests)
