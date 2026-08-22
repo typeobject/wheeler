@@ -229,6 +229,13 @@ targets:
       - "src/main/wheeler/testing/NativeTestExecutionIdentity.w"
     test: false
   - kind: "deployable"
+    name: "nativetestpackagereportidentity"
+    root: "src/main/wheeler/testing/NativeTestPackageReportIdentity.w"
+    module: "wheeler.conformance.testing.native_test_package_report_identity"
+    sources:
+      - "src/main/wheeler/testing/NativeTestPackageReportIdentity.w"
+    test: false
+  - kind: "deployable"
     name: "nativetestreportidentity"
     root: "src/main/wheeler/testing/NativeTestReportIdentity.w"
     module: "wheeler.conformance.testing.native_test_report_identity"

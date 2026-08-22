@@ -27,10 +27,16 @@ final class NativePackageTestRunner {
   private static final int MAX_SOURCE_BYTES = 4_096;
   private static final int MAX_PLAN_BYTES = 32_768;
   private static final int OUTPUT_BYTES = 39;
+  private static Program packageReportReducer;
   private static Program runner;
   private static Path runnerRoot;
 
-  record Result(List<String> identities, int selected, int passed, int failed) {
+  record Result(
+      List<String> identities,
+      String packageIdentity,
+      int selected,
+      int passed,
+      int failed) {
     Result {
       identities = List.copyOf(identities);
     }
@@ -68,6 +74,7 @@ final class NativePackageTestRunner {
     }
 
     Program nativeRunner = runner(conformance.orElseThrow());
+    Program nativePackageReducer = packageReportReducer;
     for (String selectedTag : selectedTags.stream().sorted().toList()) {
       boolean found = false;
       for (int index = 0; index < testTargets.size(); index++) {
@@ -93,6 +100,8 @@ final class NativePackageTestRunner {
     }
 
     java.util.ArrayList<String> identities = new java.util.ArrayList<>();
+    ByteArrayOutputStream packageRows = new ByteArrayOutputStream();
+    packageRows.write(testTargets.size());
     int selected = 0;
     int passed = 0;
     int failed = 0;
@@ -110,17 +119,33 @@ final class NativePackageTestRunner {
           .executeBinaryInput(nativeRunner, input, OUTPUT_BYTES)
           .output();
       identities.add(HexFormat.of().formatHex(output, 0, 32));
+      packageRows.writeBytes(java.util.Arrays.copyOf(output, 38));
       selected = Math.addExact(selected, unsigned16(output, 32));
       passed = Math.addExact(passed, unsigned16(output, 34));
       failed = Math.addExact(failed, unsigned16(output, 36));
     }
-    return Optional.of(new Result(identities, selected, passed, failed));
+    byte[] packageOutput = new WheelerRuntime()
+        .executeBinaryInput(nativePackageReducer, packageRows.toByteArray(), 38)
+        .output();
+    if (selected != unsigned16(packageOutput, 32)
+        || passed != unsigned16(packageOutput, 34)
+        || failed != unsigned16(packageOutput, 36)) {
+      throw new PackageFormatException("Native package test reduction changed summary counts");
+    }
+    return Optional.of(new Result(
+        identities,
+        HexFormat.of().formatHex(packageOutput, 0, 32),
+        selected,
+        passed,
+        failed));
   }
 
   private static synchronized Program runner(Path conformanceRoot) throws IOException {
     Path canonical = conformanceRoot.toRealPath(LinkOption.NOFOLLOW_LINKS);
     if (runner == null || !canonical.equals(runnerRoot)) {
-      runner = PackageProject.load(canonical).compileRunnable("nativetestrunner");
+      PackageProject project = PackageProject.load(canonical);
+      runner = project.compileRunnable("nativetestrunner");
+      packageReportReducer = project.compileRunnable("nativetestpackagereportidentity");
       runnerRoot = canonical;
     }
     return runner;

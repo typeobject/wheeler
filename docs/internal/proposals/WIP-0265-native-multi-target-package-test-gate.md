@@ -9,7 +9,7 @@
 | Area | Self-hosting, package testing, target selection |
 | Depends on | WIP-0262, WIP-0264 |
 | Supersedes | Single-test-target native package gating |
-| Superseded by | WIP-0266 multi-target tag gating and package-wide reduction |
+| Superseded by | WIP-0266 multi-target tags and WIP-0268 package report identity |
 
 ## Summary
 
@@ -85,3 +85,4 @@ Rejected. Case identity already provides canonical native assignment.
 - [WIP-0264](WIP-0264-native-fixed-import-package-test-gate.md)
 - [WIP-0213](WIP-0213-native-runner-shard-selection.md)
 - [WIP-0266](WIP-0266-native-multi-target-tag-gate.md)
+- [WIP-0268](WIP-0268-native-package-test-report-identity.md)

@@ -72,6 +72,7 @@ class NativePackageTestRunnerTest {
 
     assertTrue(result.isPresent());
     assertEquals(2, result.orElseThrow().identities().size());
+    assertEquals(64, result.orElseThrow().packageIdentity().length());
     assertEquals(2, result.orElseThrow().selected());
     assertEquals(2, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
@@ -171,6 +172,7 @@ class NativePackageTestRunnerTest {
     assertEquals(0, result.orElseThrow().failed());
     assertEquals(1, result.orElseThrow().identities().size());
     assertEquals(64, result.orElseThrow().identities().getFirst().length());
+    assertEquals(64, result.orElseThrow().packageIdentity().length());
     assertEquals(1, report.selected());
     assertEquals(1, report.passed());
   }
