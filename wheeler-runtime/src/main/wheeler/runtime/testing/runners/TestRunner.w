@@ -183,6 +183,9 @@ classical class TestRunner {
     bytes target = allocateBytes(staging, targetLength);
     copied = copyRange(input, targetStart, targetLength, target, /* outputStart= */ 0);
     assert(copied == targetLength);
+    assert(validTargetSourcePlan(input, sourcePlanStart, sourcePlanLength));
+    long sourcePathLength = firstSourcePathLength(input, sourcePlanStart);
+    long sourcePathStart = sourcePlanStart + 8;
     assert(
       validTestManifest(
         input,
@@ -190,10 +193,11 @@ classical class TestRunner {
         manifestLength,
         packageName,
         packageVersion,
-        target
+        target,
+        sourcePathStart,
+        sourcePathLength
       )
     );
-    assert(validTargetSourcePlan(input, sourcePlanStart, sourcePlanLength));
     bytes rawManifestIdentity = allocateBytes(staging, /* length= */ 32);
     hashSha256Range(input, manifestStart, manifestLength, rawManifestIdentity, staging);
     bytes manifestIdentity = allocateBytes(staging, /* length= */ 64);

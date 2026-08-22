@@ -57,6 +57,41 @@ classical class TestManifest {
     return true;
   }
 
+  private boolean sameRange(borrow byteview input, long leftStart, long rightStart, long length) {
+    long offset = 0;
+    while (offset < length) limit 255 {
+      if (input[leftStart + offset] != input[rightStart + offset]) {
+        return false;
+      }
+
+      offset += 1;
+    }
+
+    return true;
+  }
+
+  private boolean sourceLine(
+    borrow byteview input,
+    long start,
+    long end,
+    long sourcePathStart,
+    long sourcePathLength
+  ) {
+    if (end - start != sourcePathLength + 10) {
+      return false;
+    }
+
+    if (rangeHash(input, start, /* length= */ 9) != 1271526807) {
+      return false;
+    }
+
+    if (sameRange(input, start + 9, sourcePathStart, sourcePathLength) == false) {
+      return false;
+    }
+
+    return input[end - 1] == 34;
+  }
+
   private boolean fieldLine(
     borrow byteview input,
     long start,
@@ -87,7 +122,9 @@ classical class TestManifest {
     long length,
     borrow byteview packageName,
     borrow byteview packageVersion,
-    borrow byteview targetName
+    borrow byteview targetName,
+    long sourcePathStart,
+    long sourcePathLength
   ) {
     assert(0 < length);
     assert(length < MAX_MANIFEST_BYTES + 1);
@@ -160,6 +197,8 @@ classical class TestManifest {
     cursor = found + 1;
 
     boolean candidate = false;
+    boolean sourceSection = false;
+    boolean sourceSelected = false;
     boolean selected = false;
     boolean dependencies = false;
     while (cursor < end) limit MAX_MANIFEST_BYTES {
@@ -176,6 +215,8 @@ classical class TestManifest {
       if (9 < lineLength) {
         if (rangeHash(input, cursor, /* length= */ 10) == 2457211845) {
           candidate = false;
+          sourceSection = false;
+          sourceSelected = false;
         }
       }
 
@@ -193,10 +234,27 @@ classical class TestManifest {
       }
 
       if (candidate) {
-        if (
-          exactLine(input, cursor, found, /* length= */ 14, /* hash= */ 4023520342)
-        ) {
-          selected = true;
+        if (exactLine(input, cursor, found, /* length= */ 12, /* hash= */ 515471674)) {
+          sourceSection = true;
+        } else {
+          if (sourceSection) {
+            sourceSelected = sourceLine(
+              input,
+              cursor,
+              found,
+              sourcePathStart,
+              sourcePathLength
+            );
+            sourceSection = false;
+          }
+        }
+
+        if (sourceSelected) {
+          if (
+            exactLine(input, cursor, found, /* length= */ 14, /* hash= */ 4023520342)
+          ) {
+            selected = true;
+          }
         }
       }
 

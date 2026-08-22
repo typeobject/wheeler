@@ -9,7 +9,7 @@
 | Area | Native testing, package locks, provenance |
 | Depends on | WIP-0009, WIP-0018, WIP-0220, WIP-0225 |
 | Supersedes | Native test transports without lock provenance |
-| Superseded by | Full native dependency-entry lock validation |
+| Superseded by | WIP-0227 source-selection binding, then full native dependency-entry lock validation |
 
 ## Summary
 
@@ -81,3 +81,4 @@ Rejected. Partial entry parsing would claim provenance it does not establish.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0220](WIP-0220-native-runner-manifest-hashing.md)
 - [WIP-0225](WIP-0225-native-case-discovery-order.md)
+- [WIP-0227](WIP-0227-native-single-source-selection.md)
