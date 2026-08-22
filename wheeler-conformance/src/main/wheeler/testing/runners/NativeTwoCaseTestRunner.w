@@ -3,6 +3,7 @@
 module wheeler.conformance.testing.runners.native_two_case_test_runner;
 
 import wheeler.core.encoding.binary;
+import wheeler.crypto.sha256;
 import wheeler.runtime.testing.test_artifact_report;
 import wheeler.runtime.testing.test_case_identity;
 import wheeler.runtime.testing.test_identity_text;
@@ -35,20 +36,75 @@ classical class NativeTwoCaseTestRunner {
   }
 
   entry void main(borrow byteview input, borrow mut bytes output) {
-    assert(11 < bufferLength(input));
-    long firstLength = readUnsigned(input, /* offset= */ 4, /* width= */ 4);
-    assert(firstLength < 32769);
-    assert(firstLength < bufferLength(input) - 11);
-    long secondHeader = 8 + firstLength;
-    long secondLength = readUnsigned(input, secondHeader, /* width= */ 4);
-    assert(secondLength < 32769);
-    assert(secondHeader + 4 + secondLength == bufferLength(input));
+    assert(19 < bufferLength(input));
+    long cursor = 4;
+    long packageLength = input[cursor];
+    assert(0 < packageLength);
+    cursor += 1;
+    assert(cursor + packageLength < bufferLength(input));
+    long packageStart = cursor;
+    cursor += packageLength;
+    long versionLength = input[cursor];
+    assert(0 < versionLength);
+    cursor += 1;
+    assert(cursor + versionLength < bufferLength(input));
+    long versionStart = cursor;
+    cursor += versionLength;
+    long targetLength = input[cursor];
+    assert(0 < targetLength);
+    cursor += 1;
+    assert(cursor + targetLength + 36 < bufferLength(input));
+    long targetStart = cursor;
+    cursor += targetLength;
 
-    region staging = new region(/* bytes= */ 88337, /* allocations= */ 20);
+    long firstDeclarationStart = cursor;
+    cursor += 32;
+    long firstNameLength = input[cursor];
+    assert(0 < firstNameLength);
+    cursor += 1;
+    assert(cursor + firstNameLength + 7 < bufferLength(input));
+    long firstNameStart = cursor;
+    cursor += firstNameLength;
+    long firstSourceLength = readUnsigned(input, cursor, /* width= */ 4);
+    assert(0 < firstSourceLength);
+    assert(firstSourceLength < 32769);
+    cursor += 4;
+    assert(cursor + firstSourceLength + 3 < bufferLength(input));
+    long firstSourceStart = cursor;
+    cursor += firstSourceLength;
+    long firstLength = readUnsigned(input, cursor, /* width= */ 4);
+    assert(firstLength < 32769);
+    cursor += 4;
+    assert(cursor + firstLength + 36 < bufferLength(input));
+    long firstArtifactStart = cursor;
+    cursor += firstLength;
+
+    long secondDeclarationStart = cursor;
+    cursor += 32;
+    long secondNameLength = input[cursor];
+    assert(0 < secondNameLength);
+    cursor += 1;
+    assert(cursor + secondNameLength + 7 < bufferLength(input));
+    long secondNameStart = cursor;
+    cursor += secondNameLength;
+    long secondSourceLength = readUnsigned(input, cursor, /* width= */ 4);
+    assert(0 < secondSourceLength);
+    assert(secondSourceLength < 32769);
+    cursor += 4;
+    assert(cursor + secondSourceLength + 3 < bufferLength(input));
+    long secondSourceStart = cursor;
+    cursor += secondSourceLength;
+    long secondLength = readUnsigned(input, cursor, /* width= */ 4);
+    assert(secondLength < 32769);
+    cursor += 4;
+    assert(cursor + secondLength == bufferLength(input));
+    long secondArtifactStart = cursor;
+
+    region staging = new region(/* bytes= */ 90914, /* allocations= */ 30);
     bytes firstArtifact = allocateBytes(staging, firstLength);
     long firstCopied = copyRange(
       input,
-      /* inputStart= */ 8,
+      firstArtifactStart,
       firstLength,
       firstArtifact,
       /* outputStart= */ 0
@@ -57,7 +113,7 @@ classical class NativeTwoCaseTestRunner {
     bytes secondArtifact = allocateBytes(staging, secondLength);
     long secondCopied = copyRange(
       input,
-      secondHeader + 4,
+      secondArtifactStart,
       secondLength,
       secondArtifact,
       /* outputStart= */ 0
@@ -69,57 +125,114 @@ classical class NativeTwoCaseTestRunner {
       /* offset= */ 0,
       "0000000000000000000000000000000000000000000000000000000000000001"
     );
-    bytes packageName = allocateBytes(staging, /* length= */ 3);
-    writeAscii(packageName, /* offset= */ 0, "pkg");
-    bytes packageVersion = allocateBytes(staging, /* length= */ 1);
-    writeAscii(packageVersion, /* offset= */ 0, "1");
-    bytes target = allocateBytes(staging, /* length= */ 4);
-    writeAscii(target, /* offset= */ 0, "test");
+    bytes packageName = allocateBytes(staging, packageLength);
+    long metadataCopied = copyRange(
+      input,
+      packageStart,
+      packageLength,
+      packageName,
+      /* outputStart= */ 0
+    );
+    assert(metadataCopied == packageLength);
+    bytes packageVersion = allocateBytes(staging, versionLength);
+    metadataCopied = copyRange(
+      input,
+      versionStart,
+      versionLength,
+      packageVersion,
+      /* outputStart= */ 0
+    );
+    assert(metadataCopied == versionLength);
+    bytes target = allocateBytes(staging, targetLength);
+    metadataCopied = copyRange(input, targetStart, targetLength, target, /* outputStart= */ 0);
+    assert(metadataCopied == targetLength);
+
+    bytes firstRawSource = allocateBytes(staging, /* length= */ 32);
+    hashSha256Range(input, firstSourceStart, firstSourceLength, firstRawSource, staging);
     bytes firstSource = allocateBytes(staging, /* length= */ 64);
-    writeAscii(
-      firstSource,
-      /* offset= */ 0,
-      "0000000000000000000000000000000000000000000000000000000000000005"
-    );
+    long firstSourceTextLength = writeTestIdentityText(firstRawSource, firstSource);
+    assert(firstSourceTextLength == 64);
+    bytes secondRawSource = allocateBytes(staging, /* length= */ 32);
+    hashSha256Range(input, secondSourceStart, secondSourceLength, secondRawSource, staging);
     bytes secondSource = allocateBytes(staging, /* length= */ 64);
-    writeAscii(
-      secondSource,
-      /* offset= */ 0,
-      "0000000000000000000000000000000000000000000000000000000000000003"
+    long secondSourceTextLength = writeTestIdentityText(secondRawSource, secondSource);
+    assert(secondSourceTextLength == 64);
+
+    bytes rawDeclaration = allocateBytes(staging, /* length= */ 32);
+    metadataCopied = copyRange(
+      input,
+      firstDeclarationStart,
+      /* length= */ 32,
+      rawDeclaration,
+      /* outputStart= */ 0
     );
-    bytes caseInput = allocateBytes(staging, /* length= */ 134);
-    writeAscii(
-      caseInput,
-      /* offset= */ 0,
-      "0000000000000000000000000000000000000000000000000000000000000006"
+    assert(metadataCopied == 32);
+    bytes firstCaseInput = allocateBytes(staging, 130 + firstNameLength);
+    long declarationLength = writeTestIdentityTextAt(
+      rawDeclaration,
+      firstCaseInput,
+      /* outputStart= */ 0
     );
+    assert(declarationLength == 64);
     long copiedSource = copyRange(
       firstSource,
       /* inputStart= */ 0,
       /* length= */ 64,
-      caseInput,
+      firstCaseInput,
       /* outputStart= */ 64
     );
     assert(copiedSource == 128);
-    setByte(caseInput, /* index= */ 128, /* nameLengthLow= */ 4);
-    setByte(caseInput, /* index= */ 129, /* nameLengthHigh= */ 0);
-    writeAscii(caseInput, /* offset= */ 130, "test");
+    setByte(firstCaseInput, /* index= */ 128, firstNameLength);
+    setByte(firstCaseInput, /* index= */ 129, /* nameLengthHigh= */ 0);
+    long nameEnd = copyRange(
+      input,
+      firstNameStart,
+      firstNameLength,
+      firstCaseInput,
+      /* outputStart= */ 130
+    );
+    assert(nameEnd == bufferLength(firstCaseInput));
     bytes firstRawCase = allocateBytes(staging, /* length= */ 32);
-    long rawLength = deriveTestCaseIdentity(caseInput, firstRawCase);
+    long rawLength = deriveTestCaseIdentity(firstCaseInput, firstRawCase);
     assert(rawLength == 32);
     bytes firstCase = allocateBytes(staging, /* length= */ 64);
     long firstCaseLength = writeTestIdentityText(firstRawCase, firstCase);
     assert(firstCaseLength == 64);
+    metadataCopied = copyRange(
+      input,
+      secondDeclarationStart,
+      /* length= */ 32,
+      rawDeclaration,
+      /* outputStart= */ 0
+    );
+    assert(metadataCopied == 32);
+    bytes secondCaseInput = allocateBytes(staging, 130 + secondNameLength);
+    declarationLength = writeTestIdentityTextAt(
+      rawDeclaration,
+      secondCaseInput,
+      /* outputStart= */ 0
+    );
+    assert(declarationLength == 64);
     copiedSource = copyRange(
       secondSource,
       /* inputStart= */ 0,
       /* length= */ 64,
-      caseInput,
+      secondCaseInput,
       /* outputStart= */ 64
     );
     assert(copiedSource == 128);
+    setByte(secondCaseInput, /* index= */ 128, secondNameLength);
+    setByte(secondCaseInput, /* index= */ 129, /* nameLengthHigh= */ 0);
+    nameEnd = copyRange(
+      input,
+      secondNameStart,
+      secondNameLength,
+      secondCaseInput,
+      /* outputStart= */ 130
+    );
+    assert(nameEnd == bufferLength(secondCaseInput));
     bytes secondRawCase = allocateBytes(staging, /* length= */ 32);
-    rawLength = deriveTestCaseIdentity(caseInput, secondRawCase);
+    rawLength = deriveTestCaseIdentity(secondCaseInput, secondRawCase);
     assert(rawLength == 32);
     bytes secondCase = allocateBytes(staging, /* length= */ 64);
     long secondCaseLength = writeTestIdentityText(secondRawCase, secondCase);
@@ -177,7 +290,7 @@ classical class NativeTwoCaseTestRunner {
 
     long frameLength = 68 + firstResultLength + secondResultLength;
     bytes frame = allocateBytes(staging, frameLength);
-    long cursor = writeField(runner, frame, /* cursor= */ 0);
+    long reportCursor = writeField(runner, frame, /* cursor= */ 0);
     long caseCount = 0;
     if (firstSelected) {
       caseCount += 1;
@@ -187,18 +300,30 @@ classical class NativeTwoCaseTestRunner {
       caseCount += 1;
     }
 
-    setByte(frame, cursor, caseCount);
-    setByte(frame, cursor + 1, /* caseCountHigh= */ 0);
-    cursor += 2;
+    setByte(frame, reportCursor, caseCount);
+    setByte(frame, reportCursor + 1, /* caseCountHigh= */ 0);
+    reportCursor += 2;
     if (firstSelected) {
-      cursor = copyRange(firstResult, /* inputStart= */ 0, firstResultLength, frame, cursor);
+      reportCursor = copyRange(
+        firstResult,
+        /* inputStart= */ 0,
+        firstResultLength,
+        frame,
+        reportCursor
+      );
     }
 
     if (secondSelected) {
-      cursor = copyRange(secondResult, /* inputStart= */ 0, secondResultLength, frame, cursor);
+      reportCursor = copyRange(
+        secondResult,
+        /* inputStart= */ 0,
+        secondResultLength,
+        frame,
+        reportCursor
+      );
     }
 
-    assert(cursor == frameLength);
+    assert(reportCursor == frameLength);
     assert(bufferLength(output) == 39);
     bytes reportIdentity = allocateBytes(staging, /* length= */ 32);
     long reportLength = deriveTestReportIdentity(frame, reportIdentity);
@@ -257,9 +382,13 @@ classical class NativeTwoCaseTestRunner {
     drop(firstCase);
     drop(secondRawCase);
     drop(firstRawCase);
-    drop(caseInput);
+    drop(secondCaseInput);
+    drop(firstCaseInput);
+    drop(rawDeclaration);
     drop(secondSource);
+    drop(secondRawSource);
     drop(firstSource);
+    drop(firstRawSource);
     drop(target);
     drop(packageVersion);
     drop(packageName);

@@ -9,7 +9,7 @@
 | Area | Native testing, diagnostics, execution failures |
 | Depends on | WIP-0018, WIP-0203, WIP-0214 |
 | Supersedes | Caller-supplied native failure diagnostics |
-| Superseded by | None |
+| Superseded by | WIP-0216 transported test descriptors |
 
 ## Summary
 
@@ -80,3 +80,4 @@ Rejected. A valid artifact can fail before a nonzero opcode enters the trace.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0203](WIP-0203-native-test-artifact-outcomes.md)
 - [WIP-0214](WIP-0214-native-runner-summary-publication.md)
+- [WIP-0216](WIP-0216-native-runner-descriptor-frames.md)
