@@ -30,6 +30,16 @@ final class NativeTestReportIdentityExampleTest {
   private static Program compiledProgram;
 
   @Test
+  void reproducesTheEmptyStageZeroReport() throws Exception {
+    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+    field(digest, "wheeler.test-report/2");
+    field(digest, RUNNER);
+    integer(digest, 0);
+
+    assertArrayEquals(digest.digest(), execute(emptyFrame()));
+  }
+
+  @Test
   void reproducesPassingAndFailingStageZeroReports() throws Exception {
     ReportCase pass = new ReportCase(
         "wheeler.compiler", "0.1.0", "self::compiles[0]", CASE, SOURCE,
@@ -78,6 +88,15 @@ final class NativeTestReportIdentityExampleTest {
     field(digest, value.executionIdentity());
     field(digest, value.coverageIdentity());
     return digest.digest();
+  }
+
+  private static byte[] emptyFrame() {
+    byte[] runner = RUNNER.getBytes(StandardCharsets.US_ASCII);
+    return ByteBuffer.allocate(2 + runner.length)
+        .order(ByteOrder.LITTLE_ENDIAN)
+        .putShort((short) runner.length)
+        .put(runner)
+        .array();
   }
 
   private static byte[] frame(ReportCase value) {

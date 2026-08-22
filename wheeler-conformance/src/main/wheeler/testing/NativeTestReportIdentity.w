@@ -9,7 +9,7 @@ classical class NativeTestReportIdentity {
   ///
   /// - Effects: Publishes only after validating and hashing the complete report.
   entry void main(borrow byteview input, borrow mut bytes output) {
-    long length = deriveOneCaseReportIdentity(input, output);
+    long length = deriveTestReportIdentity(input, output);
     setOutputLength(output, length);
   }
 }

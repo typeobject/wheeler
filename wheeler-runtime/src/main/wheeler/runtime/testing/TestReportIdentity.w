@@ -6,6 +6,8 @@ import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
 
 classical class TestReportIdentity {
+  private const long EMPTY_MESSAGE_BYTES = 109;
+  private const long EMPTY_STAGING_BYTES = 1197;
   private const long FIELD_COUNT = 11;
   private const long HASH_ARENA_BYTES = 1088;
   private const long IDENTITY_BYTES = 64;
@@ -93,8 +95,31 @@ classical class TestReportIdentity {
     return writeRange(input, start, length, output, cursor);
   }
 
+  /// Writes the raw SHA-256 identity for an empty or one-case profile-2 report.
+  public long deriveTestReportIdentity(borrow byteview input, borrow mut bytes output) {
+    if (bufferLength(input) == 66) {
+      assert(bufferLength(output) == OUTPUT_BYTES);
+      long runnerLength = readUnsigned(input, /* offset= */ 0, /* width= */ 2);
+      validateIdentity(input, /* start= */ 2, runnerLength, /* optional= */ false);
+      region emptyStaging = new region(/* bytes= */ EMPTY_STAGING_BYTES, /* allocations= */ 4);
+      bytes emptyMessage = allocateBytes(emptyStaging, EMPTY_MESSAGE_BYTES);
+      long emptyCursor = writeLong(/* length= */ 21, emptyMessage, /* cursor= */ 0);
+      writeAscii(emptyMessage, emptyCursor, "wheeler.test-report/2");
+      emptyCursor += 21;
+      emptyCursor = writeField(input, /* start= */ 2, runnerLength, emptyMessage, emptyCursor);
+      emptyCursor = writeLong(/* caseCount= */ 0, emptyMessage, emptyCursor);
+      assert(emptyCursor == EMPTY_MESSAGE_BYTES);
+      hashSha256(emptyMessage, output, emptyStaging);
+      drop(emptyMessage);
+      drop(emptyStaging);
+      return OUTPUT_BYTES;
+    }
+
+    return deriveOneCaseReportIdentity(input, output);
+  }
+
   /// Writes the raw SHA-256 identity for one complete profile-2 case report.
-  public long deriveOneCaseReportIdentity(borrow byteview input, borrow mut bytes output) {
+  private long deriveOneCaseReportIdentity(borrow byteview input, borrow mut bytes output) {
     assert(bufferLength(output) == OUTPUT_BYTES);
     region staging = new region(/* bytes= */ STAGING_BYTES, /* allocations= */ 6);
     words starts = allocate(staging, FIELD_COUNT);
