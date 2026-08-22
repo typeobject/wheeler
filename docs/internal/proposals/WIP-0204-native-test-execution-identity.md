@@ -75,3 +75,4 @@ Rejected. Native report construction cannot depend on a host-private identity.
 
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0203](WIP-0203-native-test-artifact-outcomes.md)
+- [WIP-0205](WIP-0205-native-test-coverage-identity.md)

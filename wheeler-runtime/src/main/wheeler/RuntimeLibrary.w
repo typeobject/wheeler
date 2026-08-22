@@ -10,6 +10,7 @@ import wheeler.runtime.io.lifecycle;
 import wheeler.runtime.io.portable;
 import wheeler.runtime.io.receipts;
 import wheeler.runtime.testing.test_case_identity;
+import wheeler.runtime.testing.test_coverage_identity;
 import wheeler.runtime.testing.test_execution_identity;
 import wheeler.runtime.testing.test_report_identity;
 import wheeler.runtime.testing.test_shard;

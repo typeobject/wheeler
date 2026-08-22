@@ -13,6 +13,7 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
 import java.util.LinkedHashMap;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,23 @@ final class NativeCoverageRunExampleTest {
   }
 
   @Test
+  void nativeCoverageIdentityMatchesStageZero() throws Exception {
+    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+    digest.update("wheeler-transition-coverage-1\0".getBytes(StandardCharsets.UTF_8));
+    byte[] expected = digest.digest(EXPECTED);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(coverageIdentity(), EXPECTED, 32);
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+    assertArrayEquals(expected, machine.hostOutput());
+
+    VirtualMachine oversized = VirtualMachine.withBinaryInput(
+        coverageIdentity(), new byte[32_769], 32);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(oversized));
+    assertArrayEquals(new byte[32], oversized.hostOutput());
+  }
+
+  @Test
   void nativeTestExecutionClassifiesValuesAndVerifierErrors() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     byte[] artifact = NativeModuleCompilerHarness.compile(compiler, List.of(), SUBJECT);
@@ -87,6 +105,20 @@ final class NativeCoverageRunExampleTest {
 
     assertEquals(0, machine.global("reportLength"));
     assertArrayEquals(new byte[32_768], machine.hostOutput());
+  }
+
+  private static Program coverageIdentity() throws Exception {
+    var modules = new LinkedHashMap<String, String>();
+    modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
+    modules.put(
+        "TestCoverageIdentity.w",
+        RuntimeSources.read("runtime/testing/TestCoverageIdentity.w"));
+    modules.put(
+        "NativeTestCoverageIdentity.w",
+        Files.readString(Path.of(
+            "../wheeler-conformance/src/main/wheeler/testing/NativeTestCoverageIdentity.w")));
+    return new WheelerCompiler().compileModuleFiles(
+        modules, "wheeler.conformance.testing.native_test_coverage_identity");
   }
 
   private static Program artifactRunner() throws Exception {
