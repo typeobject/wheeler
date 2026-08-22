@@ -181,10 +181,10 @@ targets:
     test: false
   - kind: "deployable"
     name: "nativeonecasetestrunner"
-    root: "src/main/wheeler/testing/NativeOneCaseTestRunner.w"
-    module: "wheeler.conformance.testing.native_one_case_test_runner"
+    root: "src/main/wheeler/testing/runners/NativeOneCaseTestRunner.w"
+    module: "wheeler.conformance.testing.runners.native_one_case_test_runner"
     sources:
-      - "src/main/wheeler/testing/NativeOneCaseTestRunner.w"
+      - "src/main/wheeler/testing/runners/NativeOneCaseTestRunner.w"
     test: false
   - kind: "deployable"
     name: "nativetestartifactexecutionidentity"
@@ -248,6 +248,13 @@ targets:
     module: "wheeler.conformance.testing.native_test_summary"
     sources:
       - "src/main/wheeler/testing/NativeTestSummary.w"
+    test: false
+  - kind: "deployable"
+    name: "nativetwocasetestrunner"
+    root: "src/main/wheeler/testing/runners/NativeTwoCaseTestRunner.w"
+    module: "wheeler.conformance.testing.runners.native_two_case_test_runner"
+    sources:
+      - "src/main/wheeler/testing/runners/NativeTwoCaseTestRunner.w"
     test: false
   - kind: "deployable"
     name: "nativetoolchainidentity"

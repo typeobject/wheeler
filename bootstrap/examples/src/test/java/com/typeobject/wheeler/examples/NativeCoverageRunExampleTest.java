@@ -9,6 +9,7 @@ import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -101,6 +102,31 @@ final class NativeCoverageRunExampleTest {
         oneCaseRunner(), failingArtifact, 32);
     CompilerMachineRunner.runWithoutRewindHistory(failure);
     assertArrayEquals(expectedFailedOneCaseReport(failingArtifact), failure.hostOutput());
+  }
+
+  @Test
+  void nativeTwoCaseRunnerSortsOppositeCompletionOrder() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] passing = NativeModuleCompilerHarness.compile(compiler, List.of(), SUBJECT);
+    byte[] failing = NativeModuleCompilerHarness.compile(compiler, List.of(), FAILING_SUBJECT);
+    ByteArrayOutputStream input = new ByteArrayOutputStream();
+    input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
+        .putInt(passing.length).array());
+    input.writeBytes(passing);
+    input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
+        .putInt(failing.length).array());
+    input.writeBytes(failing);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        twoCaseRunner(), input.toByteArray(), 32);
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+    assertArrayEquals(expectedTwoCaseReport(passing, failing), machine.hostOutput());
+
+    byte[] truncated = java.util.Arrays.copyOf(input.toByteArray(), input.size() - 1);
+    VirtualMachine invalid = VirtualMachine.withBinaryInput(twoCaseRunner(), truncated, 32);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(invalid));
+    assertArrayEquals(new byte[32], invalid.hostOutput());
   }
 
   @Test
@@ -202,6 +228,30 @@ final class NativeCoverageRunExampleTest {
         modules, "wheeler.conformance.testing.native_test_coverage_identity");
   }
 
+  private static byte[] expectedTwoCaseReport(byte[] passing, byte[] failing) throws Exception {
+    MessageDigest report = MessageDigest.getInstance("SHA-256");
+    digestField(report, "wheeler.test-report/2");
+    digestField(report, "%064x".formatted(1));
+    digestInteger(report, 2);
+    digestCasePrefix(report, failing, 2, 3);
+    digestField(report, "FAIL");
+    digestField(report, "WTEST003");
+    digestField(report, "native test assertion failed");
+    digestInteger(report, 1);
+    digestInteger(report, 0);
+    digestField(report, "");
+    digestField(report, "");
+    digestCasePrefix(report, passing, 4, 5);
+    digestField(report, "PASS");
+    digestField(report, "");
+    digestField(report, "");
+    digestInteger(report, 1);
+    digestInteger(report, 0);
+    digestField(report, passExecutionIdentity());
+    digestField(report, passCoverageIdentity());
+    return report.digest();
+  }
+
   private static byte[] expectedFailedOneCaseReport(byte[] artifact) throws Exception {
     MessageDigest report = reportPrefix();
     digestField(report, HexFormat.of().formatHex(
@@ -217,6 +267,20 @@ final class NativeCoverageRunExampleTest {
   }
 
   private static byte[] expectedOneCaseReport(byte[] artifact) throws Exception {
+    MessageDigest report = reportPrefix();
+    digestField(report, HexFormat.of().formatHex(
+        MessageDigest.getInstance("SHA-256").digest(artifact)));
+    digestField(report, "PASS");
+    digestField(report, "");
+    digestField(report, "");
+    digestInteger(report, 1);
+    digestInteger(report, 0);
+    digestField(report, passExecutionIdentity());
+    digestField(report, passCoverageIdentity());
+    return report.digest();
+  }
+
+  private static String passExecutionIdentity() throws Exception {
     MessageDigest execution = MessageDigest.getInstance("SHA-256");
     digestField(execution, "wheeler.test-execution/1");
     digestField(execution, "CoverageSubject");
@@ -226,22 +290,24 @@ final class NativeCoverageRunExampleTest {
     digestInteger(execution, 0);
     digestInteger(execution, 0);
     digestInteger(execution, 0);
-    String executionIdentity = HexFormat.of().formatHex(execution.digest());
+    return HexFormat.of().formatHex(execution.digest());
+  }
+
+  private static String passCoverageIdentity() throws Exception {
     MessageDigest coverage = MessageDigest.getInstance("SHA-256");
     coverage.update("wheeler-transition-coverage-1\0".getBytes(StandardCharsets.UTF_8));
-    String coverageIdentity = HexFormat.of().formatHex(coverage.digest(EXPECTED));
+    return HexFormat.of().formatHex(coverage.digest(EXPECTED));
+  }
 
-    MessageDigest report = reportPrefix();
+  private static void digestCasePrefix(
+      MessageDigest report, byte[] artifact, int caseValue, int sourceValue) throws Exception {
+    digestField(report, "pkg");
+    digestField(report, "1");
+    digestField(report, "test");
+    digestField(report, "%064x".formatted(caseValue));
+    digestField(report, "%064x".formatted(sourceValue));
     digestField(report, HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(artifact)));
-    digestField(report, "PASS");
-    digestField(report, "");
-    digestField(report, "");
-    digestInteger(report, 1);
-    digestInteger(report, 0);
-    digestField(report, executionIdentity);
-    digestField(report, coverageIdentity);
-    return report.digest();
   }
 
   private static MessageDigest reportPrefix() throws Exception {
@@ -257,7 +323,27 @@ final class NativeCoverageRunExampleTest {
     return report;
   }
 
+  private static Program twoCaseRunner() throws Exception {
+    var modules = testRunnerModules();
+    modules.put(
+        "NativeTwoCaseTestRunner.w",
+        Files.readString(Path.of(
+            "../wheeler-conformance/src/main/wheeler/testing/runners/NativeTwoCaseTestRunner.w")));
+    return new WheelerCompiler().compileModuleFiles(
+        modules, "wheeler.conformance.testing.runners.native_two_case_test_runner");
+  }
+
   private static Program oneCaseRunner() throws Exception {
+    var modules = testRunnerModules();
+    modules.put(
+        "NativeOneCaseTestRunner.w",
+        Files.readString(Path.of(
+            "../wheeler-conformance/src/main/wheeler/testing/runners/NativeOneCaseTestRunner.w")));
+    return new WheelerCompiler().compileModuleFiles(
+        modules, "wheeler.conformance.testing.runners.native_one_case_test_runner");
+  }
+
+  private static LinkedHashMap<String, String> testRunnerModules() throws Exception {
     var modules = runtimeModules();
     modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     modules.put("BootstrapCoverageFragments.w",
@@ -268,12 +354,7 @@ final class NativeCoverageRunExampleTest {
         "TestCoverageIdentity", "TestReportIdentity", "TestArtifactReport")) {
       modules.put(source + ".w", RuntimeSources.read("runtime/testing/" + source + ".w"));
     }
-    modules.put(
-        "NativeOneCaseTestRunner.w",
-        Files.readString(Path.of(
-            "../wheeler-conformance/src/main/wheeler/testing/NativeOneCaseTestRunner.w")));
-    return new WheelerCompiler().compileModuleFiles(
-        modules, "wheeler.conformance.testing.native_one_case_test_runner");
+    return modules;
   }
 
   private static Program artifactExecutionIdentity() throws Exception {

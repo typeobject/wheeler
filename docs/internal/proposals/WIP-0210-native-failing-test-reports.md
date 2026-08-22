@@ -9,7 +9,7 @@
 | Area | Native testing, failure diagnostics, semantic reports |
 | Depends on | WIP-0018, WIP-0203, WIP-0209 |
 | Supersedes | Pass-only native artifact report composition |
-| Superseded by | None |
+| Superseded by | WIP-0211 shared multi-case row composition |
 
 ## Summary
 
@@ -83,3 +83,4 @@ Rejected. Duplicate case framing would drift at the report boundary.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0203](WIP-0203-native-test-artifact-outcomes.md)
 - [WIP-0209](WIP-0209-native-one-case-test-runner.md)
+- [WIP-0211](WIP-0211-native-two-case-test-runner.md)

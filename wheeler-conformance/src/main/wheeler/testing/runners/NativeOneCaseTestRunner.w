@@ -1,6 +1,6 @@
 //! Executes one bounded artifact and publishes its passing profile-2 report identity.
 
-module wheeler.conformance.testing.native_one_case_test_runner;
+module wheeler.conformance.testing.runners.native_one_case_test_runner;
 
 import wheeler.runtime.testing.test_artifact_report;
 
