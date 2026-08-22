@@ -111,7 +111,7 @@ classical class TestSourceTests {
     return true;
   }
 
-  private boolean declarationMatchesOneDescriptor(
+  private long matchingDescriptor(
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
@@ -123,7 +123,7 @@ classical class TestSourceTests {
     long caseIndex
   ) {
     long cursor = descriptorStart;
-    long matched = 0;
+    long selected = -1;
     long testcase = 0;
     while (testcase < caseCount) limit MAX_CASES {
       long nameLength = descriptors[cursor];
@@ -141,7 +141,8 @@ classical class TestSourceTests {
           caseIndex
         )
       ) {
-        matched += 1;
+        assert(selected < 0);
+        selected = testcase;
       }
 
       long artifactLengthOffset = nameStart + nameLength;
@@ -150,7 +151,7 @@ classical class TestSourceTests {
       testcase += 1;
     }
 
-    return matched == 1;
+    return selected;
   }
 
   private SourceTestRows parameterRows(
@@ -290,8 +291,12 @@ classical class TestSourceTests {
     long rootOrdinal,
     long descriptorStart,
     long caseCount,
-    borrow byteview targetName
+    borrow byteview targetName,
+    borrow mut words caseKinds,
+    borrow mut words caseValues
   ) {
+    assert(bufferLength(caseKinds) == MAX_CASES);
+    assert(bufferLength(caseValues) == MAX_CASES);
     long sourceLength = validatedSourceLength(input, planStart, planLength, rootOrdinal);
     region arena = new region(/* bytes= */ 107008, /* allocations= */ 5);
     bytes sourceBytes = allocateBytes(arena, sourceLength);
@@ -341,19 +346,20 @@ classical class TestSourceTests {
           }
 
           if (parameterless) {
-            if (
-              declarationMatchesOneDescriptor(
-                source,
-                tokenStarts,
-                tokenLengths,
-                token + 2,
-                input,
-                descriptorStart,
-                caseCount,
-                targetName,
-                -1
-              )
-            ) {
+            long matchedCase = matchingDescriptor(
+              source,
+              tokenStarts,
+              tokenLengths,
+              token + 2,
+              input,
+              descriptorStart,
+              caseCount,
+              targetName,
+              -1
+            );
+            if (-1 < matchedCase) {
+              set(caseKinds, matchedCase, /* parameterless= */ 1);
+              set(caseValues, matchedCase, 0);
               matchedDeclarations += 1;
             }
 
@@ -372,21 +378,29 @@ classical class TestSourceTests {
               supported = false;
             }
 
+            long caseKind = 2;
+            if (
+              tokenHash(source, tokenStarts, tokenLengths, token + 4) == TOKEN_BOOLEAN
+            ) {
+              caseKind = 3;
+            }
+
             long row = 0;
             while (row < rows.count) limit MAX_CASES {
-              if (
-                declarationMatchesOneDescriptor(
-                  source,
-                  tokenStarts,
-                  tokenLengths,
-                  token + 2,
-                  input,
-                  descriptorStart,
-                  caseCount,
-                  targetName,
-                  row
-                )
-              ) {
+              long matchedRowCase = matchingDescriptor(
+                source,
+                tokenStarts,
+                tokenLengths,
+                token + 2,
+                input,
+                descriptorStart,
+                caseCount,
+                targetName,
+                row
+              );
+              if (-1 < matchedRowCase) {
+                set(caseKinds, matchedRowCase, caseKind);
+                set(caseValues, matchedRowCase, rowValues[row]);
                 matchedDeclarations += 1;
               }
 

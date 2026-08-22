@@ -306,6 +306,8 @@ classical class TestArtifactReport {
     borrow byteview artifact,
     borrow byteview expectedProgram,
     boolean bindProgram,
+    long caseKind,
+    long caseValue,
     borrow byteview packageName,
     borrow byteview packageVersion,
     borrow byteview targetName,
@@ -319,7 +321,13 @@ classical class TestArtifactReport {
     bytes trace = allocateBytes(execution, MAX_INTERPRETED_STEPS * 2);
     long length = 0;
     if (bindProgram) {
-      ArtifactOutcome named = executeBoundedNamedArtifact(artifact, expectedProgram, trace);
+      ArtifactOutcome named = executeBoundedNamedArtifact(
+        artifact,
+        expectedProgram,
+        caseKind,
+        caseValue,
+        trace
+      );
       assert(named.authorized);
       length = writeOutcomeCaseResult(
         artifact,
@@ -367,6 +375,8 @@ classical class TestArtifactReport {
       artifact,
       artifact,
       /* bindProgram= */ false,
+      /* caseKind= */ 0,
+      /* caseValue= */ 0,
       packageName,
       packageVersion,
       targetName,
@@ -380,6 +390,8 @@ classical class TestArtifactReport {
   public long writeNamedArtifactCaseResult(
     borrow byteview artifact,
     borrow byteview expectedProgram,
+    long caseKind,
+    long caseValue,
     borrow byteview packageName,
     borrow byteview packageVersion,
     borrow byteview targetName,
@@ -391,6 +403,8 @@ classical class TestArtifactReport {
       artifact,
       expectedProgram,
       /* bindProgram= */ true,
+      caseKind,
+      caseValue,
       packageName,
       packageVersion,
       targetName,

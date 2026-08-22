@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, artifact authorization |
 | Depends on | WIP-0230, WIP-0249, WIP-0250 |
 | Supersedes | Caller-selected transported test function identity |
-| Superseded by | Native test artifact source binding |
+| Superseded by | WIP-0252 native artifact row binding |
 
 ## Summary
 
@@ -110,3 +110,4 @@ Rejected. Source-to-artifact mismatch is malformed transport, not test-body beha
 - [WIP-0230](WIP-0230-native-root-module-binding.md)
 - [WIP-0249](WIP-0249-native-parameter-row-discovery.md)
 - [WIP-0250](WIP-0250-single-pass-artifact-verification.md)
+- [WIP-0252](WIP-0252-native-artifact-row-binding.md)

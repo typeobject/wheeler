@@ -2,6 +2,7 @@
 
 module wheeler.runtime.artifact_metadata;
 
+import wheeler.compiler.opcodes;
 import wheeler.core.encoding.binary;
 
 classical class ArtifactMetadata {
@@ -88,6 +89,124 @@ classical class ArtifactMetadata {
     }
 
     return true;
+  }
+
+  private boolean instructionMatches(
+    borrow byteview artifact,
+    long start,
+    long opcode,
+    long operandCount,
+    long length
+  ) {
+    if (readUnsigned(artifact, start, /* width= */ 2) != opcode) {
+      return false;
+    }
+
+    if (readUnsigned(artifact, start + 2, /* width= */ 2) != operandCount) {
+      return false;
+    }
+
+    return readUnsigned(artifact, start + 4, /* width= */ 4) == length;
+  }
+
+  /// Checks the verified synthetic entry for one discovered source case.
+  public boolean artifactTestEntryMatches(
+    borrow byteview artifact,
+    long function,
+    long caseKind,
+    long caseValue
+  ) {
+    long manifest = sectionOffset(artifact, /* section= */ 0);
+    long entry = readUnsigned(artifact, manifest + 4, /* width= */ 4);
+    long functions = sectionOffset(artifact, /* section= */ 4);
+    long functionCount = readUnsigned(artifact, functions, /* width= */ 4);
+    if (entry < functionCount) {} else {
+      return false;
+    }
+
+    long entryDescriptor = functions + 4 + entry * 40;
+    long code = sectionOffset(artifact, /* section= */ 5);
+    long cursor = code + readUnsigned(artifact, entryDescriptor + 12, /* width= */ 4);
+    long length = readUnsigned(artifact, entryDescriptor + 16, /* width= */ 4);
+    if (caseKind == 1) {
+      if (length != 40) {
+        return false;
+      }
+
+      if (instructionMatches(artifact, cursor, OPCODE_CALL_VOID, 3, 32) == false) {
+        return false;
+      }
+
+      if (readUnsigned(artifact, cursor + 8, /* width= */ 8) != function) {
+        return false;
+      }
+
+      if (readUnsigned(artifact, cursor + 16, /* width= */ 8) != 0) {
+        return false;
+      }
+
+      if (readUnsigned(artifact, cursor + 24, /* width= */ 8) != 0) {
+        return false;
+      }
+
+      return instructionMatches(artifact, cursor + 32, OPCODE_HALT, 0, 8);
+    }
+
+    if (caseKind < 2) {
+      return false;
+    }
+
+    if (3 < caseKind) {
+      return false;
+    }
+
+    if (length != 88) {
+      return false;
+    }
+
+    if (instructionMatches(artifact, cursor, OPCODE_LOCAL_CONST, 2, 24) == false) {
+      return false;
+    }
+
+    if (readUnsigned(artifact, cursor + 8, /* width= */ 8) != 0) {
+      return false;
+    }
+
+    if (readSigned(artifact, cursor + 16) != caseValue) {
+      return false;
+    }
+
+    cursor += 24;
+    if (instructionMatches(artifact, cursor, OPCODE_LOCAL_MOVE, 2, 24) == false) {
+      return false;
+    }
+
+    if (readUnsigned(artifact, cursor + 8, /* width= */ 8) != 1) {
+      return false;
+    }
+
+    if (readUnsigned(artifact, cursor + 16, /* width= */ 8) != 0) {
+      return false;
+    }
+
+    cursor += 24;
+    if (instructionMatches(artifact, cursor, OPCODE_CALL_VOID, 3, 32) == false) {
+      return false;
+    }
+
+    if (readUnsigned(artifact, cursor + 8, /* width= */ 8) != function) {
+      return false;
+    }
+
+    if (readUnsigned(artifact, cursor + 16, /* width= */ 8) != 1) {
+      return false;
+    }
+
+    if (readUnsigned(artifact, cursor + 24, /* width= */ 8) != 1) {
+      return false;
+    }
+
+    return instructionMatches(artifact, cursor + 32, OPCODE_HALT, 0, 8);
   }
 
   /// Returns the verified manifest program kind code.

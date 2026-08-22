@@ -169,7 +169,7 @@ classical class TestRunner {
 
     assert(scan == bufferLength(input));
 
-    region staging = new region(/* bytes= */ 741000, /* allocations= */ 37);
+    region staging = new region(/* bytes= */ 742024, /* allocations= */ 39);
     bytes runner = allocateBytes(staging, /* length= */ 64);
     writeAscii(
       runner,
@@ -253,6 +253,8 @@ classical class TestRunner {
     long manifestIdentityLength = writeTestIdentityText(rawManifestIdentity, manifestIdentity);
     assert(manifestIdentityLength == 64);
     assert(validEmptyPackageLock(input, lockStart, lockLength, manifestIdentity));
+    words caseKinds = allocate(staging, MAX_CASES);
+    words caseValues = allocate(staging, MAX_CASES);
     SourceTestDiscovery discovery = discoverRootTests(
       input,
       sourcePlanStart,
@@ -260,7 +262,9 @@ classical class TestRunner {
       rootOrdinal,
       cursor,
       caseCount,
-      target
+      target,
+      caseKinds,
+      caseValues
     );
     if (0 < discovery.count) {
       assert(discovery.matched);
@@ -423,6 +427,8 @@ classical class TestRunner {
           resultLength = writeNamedArtifactCaseResult(
             artifact,
             expectedProgram,
+            caseKinds[descriptor],
+            caseValues[descriptor],
             packageName,
             packageVersion,
             caseName,
@@ -534,6 +540,8 @@ classical class TestRunner {
     drop(frame);
     drop(statusRows);
     drop(summaryRows);
+    drop(caseValues);
+    drop(caseKinds);
     drop(reportRows);
     drop(sourceIdentity);
     drop(rawSourceIdentity);

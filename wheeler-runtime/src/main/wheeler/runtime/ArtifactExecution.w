@@ -29,6 +29,8 @@ classical class ArtifactExecution {
     borrow byteview artifact,
     borrow byteview expectedFunction,
     boolean bindFunction,
+    long caseKind,
+    long caseValue,
     borrow mut bytes traceOpcodes
   ) {
     assert(bufferLength(traceOpcodes) == MAX_INTERPRETED_STEPS * 2);
@@ -58,6 +60,14 @@ classical class ArtifactExecution {
     if (verified) {
       if (bindFunction) {
         authorized = artifactFunctionMatches(artifact, /* function= */ 0, expectedFunction);
+        if (authorized) {
+          authorized = artifactTestEntryMatches(
+            artifact,
+            /* function= */ 0,
+            caseKind,
+            caseValue
+          );
+        }
       }
     }
 
@@ -183,6 +193,8 @@ classical class ArtifactExecution {
       artifact,
       artifact,
       /* bindFunction= */ false,
+      /* caseKind= */ 0,
+      /* caseValue= */ 0,
       traceOpcodes
     );
   }
@@ -191,12 +203,16 @@ classical class ArtifactExecution {
   public ArtifactOutcome executeBoundedNamedArtifact(
     borrow byteview artifact,
     borrow byteview expectedFunction,
+    long caseKind,
+    long caseValue,
     borrow mut bytes traceOpcodes
   ) {
     return executeBoundedArtifactWithFunction(
       artifact,
       expectedFunction,
       /* bindFunction= */ true,
+      caseKind,
+      caseValue,
       traceOpcodes
     );
   }

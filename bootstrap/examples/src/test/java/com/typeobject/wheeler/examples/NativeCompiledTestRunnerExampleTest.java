@@ -190,6 +190,32 @@ final class NativeCompiledTestRunnerExampleTest {
   }
 
   @Test
+  void rejectsArtifactsWithTheWrongParameterRow() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    var testCases = new WheelerCompiler().compilePackageTests(
+        Map.of("Test.w", PARAMETERIZED_TESTS), Map.of(), "pkg.test");
+    var artifacts = new java.util.ArrayList<NamedArtifact>();
+    for (int index = 0; index < testCases.size(); index++) {
+      int artifactIndex = index;
+      if (index == 0) {
+        artifactIndex = 1;
+      } else if (index == 1) {
+        artifactIndex = 0;
+      }
+      var testcase = testCases.get(index);
+      artifacts.add(new NamedArtifact(
+          "test::" + testcase.name().substring(testcase.name().lastIndexOf("::") + 2),
+          new BytecodeWriter().write(testCases.get(artifactIndex).program())));
+    }
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", PARAMETERIZED_TESTS));
+    VirtualMachine invalid = VirtualMachine.withBinaryInput(
+        runner, descriptors(MANIFEST, sources, artifacts), 39);
+
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(invalid));
+    assertArrayEquals(new byte[39], invalid.hostOutput());
+  }
+
+  @Test
   void rejectsDuplicateNativeParameterRows() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
     var testCases = new WheelerCompiler().compilePackageTests(
