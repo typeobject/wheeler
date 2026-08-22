@@ -7,6 +7,7 @@ import wheeler.runtime.testing.test_artifact_report;
 import wheeler.runtime.testing.test_case_identity;
 import wheeler.runtime.testing.test_identity_text;
 import wheeler.runtime.testing.test_report_identity;
+import wheeler.runtime.testing.test_shard;
 
 classical class NativeTwoCaseTestRunner {
   private long copyRange(
@@ -33,20 +34,20 @@ classical class NativeTwoCaseTestRunner {
   }
 
   entry void main(borrow byteview input, borrow mut bytes output) {
-    assert(7 < bufferLength(input));
-    long firstLength = readUnsigned(input, /* offset= */ 0, /* width= */ 4);
+    assert(11 < bufferLength(input));
+    long firstLength = readUnsigned(input, /* offset= */ 4, /* width= */ 4);
     assert(firstLength < 32769);
-    assert(firstLength < bufferLength(input) - 7);
-    long secondHeader = 4 + firstLength;
+    assert(firstLength < bufferLength(input) - 11);
+    long secondHeader = 8 + firstLength;
     long secondLength = readUnsigned(input, secondHeader, /* width= */ 4);
     assert(secondLength < 32769);
     assert(secondHeader + 4 + secondLength == bufferLength(input));
 
-    region staging = new region(/* bytes= */ 88166, /* allocations= */ 17);
+    region staging = new region(/* bytes= */ 88234, /* allocations= */ 18);
     bytes firstArtifact = allocateBytes(staging, firstLength);
     long firstCopied = copyRange(
       input,
-      /* inputStart= */ 4,
+      /* inputStart= */ 8,
       firstLength,
       firstArtifact,
       /* outputStart= */ 0
@@ -121,43 +122,88 @@ classical class NativeTwoCaseTestRunner {
     bytes secondCase = allocateBytes(staging, /* length= */ 64);
     long secondCaseLength = writeTestIdentityText(rawCase, secondCase);
     assert(secondCaseLength == 64);
+    bytes shardInput = allocateBytes(staging, /* length= */ 68);
+    long shardCursor = copyRange(
+      firstCase,
+      /* inputStart= */ 0,
+      /* length= */ 64,
+      shardInput,
+      /* outputStart= */ 0
+    );
+    assert(shardCursor == 64);
+    setByte(shardInput, /* index= */ 64, input[0]);
+    setByte(shardInput, /* index= */ 65, input[1]);
+    setByte(shardInput, /* index= */ 66, input[2]);
+    setByte(shardInput, /* index= */ 67, input[3]);
+    boolean firstSelected = assignedToShard(shardInput);
+    shardCursor = copyRange(
+      secondCase,
+      /* inputStart= */ 0,
+      /* length= */ 64,
+      shardInput,
+      /* outputStart= */ 0
+    );
+    assert(shardCursor == 64);
+    boolean secondSelected = assignedToShard(shardInput);
     bytes failureCode = allocateBytes(staging, /* length= */ 8);
     writeAscii(failureCode, /* offset= */ 0, "WTEST003");
     bytes failureMessage = allocateBytes(staging, /* length= */ 28);
     writeAscii(failureMessage, /* offset= */ 0, "native test assertion failed");
     bytes firstResult = allocateBytes(staging, /* length= */ 5345);
-    long firstResultLength = writeArtifactCaseResult(
-      firstArtifact,
-      packageName,
-      packageVersion,
-      target,
-      firstCase,
-      firstSource,
-      failureCode,
-      failureMessage,
-      firstResult
-    );
+    long firstResultLength = 0;
+    if (firstSelected) {
+      firstResultLength = writeArtifactCaseResult(
+        firstArtifact,
+        packageName,
+        packageVersion,
+        target,
+        firstCase,
+        firstSource,
+        failureCode,
+        failureMessage,
+        firstResult
+      );
+    }
+
     bytes secondResult = allocateBytes(staging, /* length= */ 5345);
-    long secondResultLength = writeArtifactCaseResult(
-      secondArtifact,
-      packageName,
-      packageVersion,
-      target,
-      secondCase,
-      secondSource,
-      failureCode,
-      failureMessage,
-      secondResult
-    );
+    long secondResultLength = 0;
+    if (secondSelected) {
+      secondResultLength = writeArtifactCaseResult(
+        secondArtifact,
+        packageName,
+        packageVersion,
+        target,
+        secondCase,
+        secondSource,
+        failureCode,
+        failureMessage,
+        secondResult
+      );
+    }
 
     long frameLength = 68 + firstResultLength + secondResultLength;
     bytes frame = allocateBytes(staging, frameLength);
     long cursor = writeField(runner, frame, /* cursor= */ 0);
-    setByte(frame, cursor, /* caseCountLow= */ 2);
+    long caseCount = 0;
+    if (firstSelected) {
+      caseCount += 1;
+    }
+
+    if (secondSelected) {
+      caseCount += 1;
+    }
+
+    setByte(frame, cursor, caseCount);
     setByte(frame, cursor + 1, /* caseCountHigh= */ 0);
     cursor += 2;
-    cursor = copyRange(firstResult, /* inputStart= */ 0, firstResultLength, frame, cursor);
-    cursor = copyRange(secondResult, /* inputStart= */ 0, secondResultLength, frame, cursor);
+    if (firstSelected) {
+      cursor = copyRange(firstResult, /* inputStart= */ 0, firstResultLength, frame, cursor);
+    }
+
+    if (secondSelected) {
+      cursor = copyRange(secondResult, /* inputStart= */ 0, secondResultLength, frame, cursor);
+    }
+
     assert(cursor == frameLength);
     long length = deriveTestReportIdentity(frame, output);
     setOutputLength(output, length);
@@ -166,6 +212,7 @@ classical class NativeTwoCaseTestRunner {
     drop(secondResult);
     drop(firstResult);
     drop(failureMessage);
+    drop(shardInput);
     drop(failureCode);
     drop(secondCase);
     drop(firstCase);

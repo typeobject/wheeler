@@ -9,7 +9,7 @@
 | Area | Native testing, case discovery, identity composition |
 | Depends on | WIP-0018, WIP-0197, WIP-0211 |
 | Supersedes | Hard-coded case identities in the two-case native runner |
-| Superseded by | None |
+| Superseded by | WIP-0213 native pre-execution shard selection |
 
 ## Summary
 
@@ -79,3 +79,4 @@ Rejected. WIP-0018 orders semantic results by derived case identity.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0197](WIP-0197-runtime-test-selection-authority.md)
 - [WIP-0211](WIP-0211-native-two-case-test-runner.md)
+- [WIP-0213](WIP-0213-native-runner-shard-selection.md)
