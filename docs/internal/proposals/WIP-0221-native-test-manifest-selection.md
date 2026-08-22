@@ -9,7 +9,7 @@
 | Area | Native testing, package manifests, target selection |
 | Depends on | WIP-0009, WIP-0018, WIP-0220 |
 | Supersedes | Unchecked runner package and target header fields |
-| Superseded by | None |
+| Superseded by | WIP-0222 canonical target source identity |
 
 ## Summary
 
@@ -84,3 +84,4 @@ Rejected. This slice validates the fields needed for test selection. The canonic
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0220](WIP-0220-native-runner-manifest-hashing.md)
+- [WIP-0222](WIP-0222-native-target-source-identity.md)

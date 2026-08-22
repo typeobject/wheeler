@@ -159,7 +159,8 @@ final class NativeCoverageRunExampleTest {
     assertArrayEquals(new byte[39], invalid.hostOutput());
 
     byte[] overLimit = input.clone();
-    overLimit[23 + TEST_MANIFEST.getBytes(StandardCharsets.UTF_8).length] = 65;
+    overLimit[
+        27 + TEST_MANIFEST.getBytes(StandardCharsets.UTF_8).length + targetSourcePlan().length] = 65;
     VirtualMachine invalidCount = VirtualMachine.withBinaryInput(nativeTestRunner(), overLimit, 39);
     assertThrows(
         VmTrap.class,
@@ -197,10 +198,10 @@ final class NativeCoverageRunExampleTest {
     invalidFailing[0] ^= 1;
     assertArrayEquals(
         expectedSelectedReport(passing, SUBJECT, true),
-        executeTests(twoCaseInput(2, 4, SUBJECT, passing, FAILING_SUBJECT, invalidFailing)));
+        executeTests(twoCaseInput(3, 5, SUBJECT, passing, FAILING_SUBJECT, invalidFailing)));
     assertArrayEquals(
         expectedSelectedReport(failing, FAILING_SUBJECT, false),
-        executeTests(twoCaseInput(1, 4, SUBJECT, passing, FAILING_SUBJECT, failing)));
+        executeTests(twoCaseInput(2, 5, SUBJECT, passing, FAILING_SUBJECT, failing)));
     assertArrayEquals(
         expectedSelectedReport(
             runtimeFailure,
@@ -210,7 +211,7 @@ final class NativeCoverageRunExampleTest {
             "native artifact execution failed",
             0),
         executeTests(twoCaseInput(
-            0, 4, SUBJECT, passing, RUNTIME_FAILURE_SUBJECT, runtimeFailure)));
+            4, 5, SUBJECT, passing, RUNTIME_FAILURE_SUBJECT, runtimeFailure)));
     assertArrayEquals(
         expectedSelectedReport(
             invalidFailing,
@@ -220,13 +221,13 @@ final class NativeCoverageRunExampleTest {
             "native artifact verification failed",
             0),
         executeTests(twoCaseInput(
-            1, 4, SUBJECT, passing, FAILING_SUBJECT, invalidFailing)));
+            2, 5, SUBJECT, passing, FAILING_SUBJECT, invalidFailing)));
     byte[] invalidPassing = passing.clone();
     invalidPassing[0] ^= 1;
     assertArrayEquals(
         expectedEmptyReport(),
         executeTests(twoCaseInput(
-            3, 4, SUBJECT, invalidPassing, FAILING_SUBJECT, invalidFailing)));
+            0, 5, SUBJECT, invalidPassing, FAILING_SUBJECT, invalidFailing)));
   }
 
   @Test
@@ -336,17 +337,17 @@ final class NativeCoverageRunExampleTest {
       String failingSource,
       byte[] failing) {
     ByteArrayOutputStream input = descriptorHeader(shardIndex, shardCount, 2);
-    writeCaseInput(input, passingSource, passing);
-    writeCaseInput(input, failingSource, failing);
+    writeCaseInput(input, caseName(passingSource), passing);
+    writeCaseInput(input, caseName(failingSource), failing);
     return input.toByteArray();
   }
 
   private static byte[] threeCaseInput(
       byte[] passing, byte[] failing, byte[] runtimeFailure) {
     ByteArrayOutputStream input = descriptorHeader(0, 1, 3);
-    writeCaseInput(input, SUBJECT, passing);
-    writeCaseInput(input, FAILING_SUBJECT, failing);
-    writeCaseInput(input, RUNTIME_FAILURE_SUBJECT, runtimeFailure);
+    writeCaseInput(input, caseName(SUBJECT), passing);
+    writeCaseInput(input, caseName(FAILING_SUBJECT), failing);
+    writeCaseInput(input, caseName(RUNTIME_FAILURE_SUBJECT), runtimeFailure);
     return input.toByteArray();
   }
 
@@ -366,6 +367,10 @@ final class NativeCoverageRunExampleTest {
     input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
         .putInt(manifest.length).array());
     input.writeBytes(manifest);
+    byte[] sourcePlan = targetSourcePlan();
+    input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
+        .putInt(sourcePlan.length).array());
+    input.writeBytes(sourcePlan);
     input.write(caseCount);
     return input;
   }
@@ -377,15 +382,34 @@ final class NativeCoverageRunExampleTest {
   }
 
   private static void writeCaseInput(
-      ByteArrayOutputStream output, String source, byte[] artifact) {
-    writeShortText(output, "test");
-    byte[] sourceBytes = source.getBytes(StandardCharsets.UTF_8);
-    output.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
-        .putInt(sourceBytes.length).array());
-    output.writeBytes(sourceBytes);
+      ByteArrayOutputStream output, String caseName, byte[] artifact) {
+    writeShortText(output, caseName);
     output.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
         .putInt(artifact.length).array());
     output.writeBytes(artifact);
+  }
+
+  private static String caseName(String source) {
+    if (source.equals(SUBJECT)) {
+      return "test::pass";
+    }
+    if (source.equals(FAILING_SUBJECT)) {
+      return "test::fail";
+    }
+    return "test::runtime";
+  }
+
+  private static byte[] targetSourcePlan() {
+    byte[] path = "src/Test.w".getBytes(StandardCharsets.UTF_8);
+    byte[] source = (SUBJECT + FAILING_SUBJECT + RUNTIME_FAILURE_SUBJECT)
+        .getBytes(StandardCharsets.UTF_8);
+    return ByteBuffer.allocate(12 + path.length + source.length)
+        .putInt(1)
+        .putInt(path.length)
+        .put(path)
+        .putInt(source.length)
+        .put(source)
+        .array();
   }
 
   private static byte[] executeTests(byte[] input) throws Exception {
@@ -451,9 +475,9 @@ final class NativeCoverageRunExampleTest {
     digestField(report, "wheeler.test-report/2");
     digestField(report, "%064x".formatted(1));
     digestInteger(report, 2);
-    digestPassingCase(report, passing);
     digestFailedCase(
         report, failing, FAILING_SUBJECT, "WTEST003", "native test assertion failed", 1);
+    digestPassingCase(report, passing);
     return withSummary(report.digest(), 2, 1);
   }
 
@@ -463,6 +487,8 @@ final class NativeCoverageRunExampleTest {
     digestField(report, "wheeler.test-report/2");
     digestField(report, "%064x".formatted(1));
     digestInteger(report, 3);
+    digestFailedCase(
+        report, failing, FAILING_SUBJECT, "WTEST003", "native test assertion failed", 1);
     digestPassingCase(report, passing);
     digestFailedCase(
         report,
@@ -471,8 +497,6 @@ final class NativeCoverageRunExampleTest {
         "WTEST005",
         "native artifact execution failed",
         0);
-    digestFailedCase(
-        report, failing, FAILING_SUBJECT, "WTEST003", "native test assertion failed", 1);
     return withSummary(report.digest(), 3, 1);
   }
 
@@ -566,23 +590,25 @@ final class NativeCoverageRunExampleTest {
   private static void digestCasePrefix(
       MessageDigest report, byte[] artifact, String source) throws Exception {
     String sourceIdentity = HexFormat.of().formatHex(
-        MessageDigest.getInstance("SHA-256").digest(source.getBytes(StandardCharsets.UTF_8)));
+        MessageDigest.getInstance("SHA-256").digest(targetSourcePlan()));
+    String caseName = caseName(source);
     digestField(report, "pkg");
     digestField(report, "1.0.0");
-    digestField(report, "test");
-    digestField(report, derivedCaseIdentity(sourceIdentity));
+    digestField(report, caseName);
+    digestField(report, derivedCaseIdentity(sourceIdentity, caseName));
     digestField(report, sourceIdentity);
     digestField(report, HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(artifact)));
   }
 
-  private static String derivedCaseIdentity(String sourceIdentity) throws Exception {
+  private static String derivedCaseIdentity(String sourceIdentity, String caseName)
+      throws Exception {
     MessageDigest digest = MessageDigest.getInstance("SHA-256");
     digestField(digest, "wheeler.test-case/1");
     digestField(digest, HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(
             TEST_MANIFEST.getBytes(StandardCharsets.UTF_8))));
-    digestField(digest, "test");
+    digestField(digest, caseName);
     digestField(digest, sourceIdentity);
     return HexFormat.of().formatHex(digest.digest());
   }
