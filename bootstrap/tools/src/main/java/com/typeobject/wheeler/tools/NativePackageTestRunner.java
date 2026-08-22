@@ -29,7 +29,11 @@ final class NativePackageTestRunner {
   private static Program runner;
   private static Path runnerRoot;
 
-  record Result(String identity, int selected, int passed, int failed) {}
+  record Result(List<String> identities, int selected, int passed, int failed) {
+    Result {
+      identities = List.copyOf(identities);
+    }
+  }
 
   private NativePackageTestRunner() {}
 
@@ -40,36 +44,53 @@ final class NativePackageTestRunner {
       int shardCount,
       Set<String> selectedTags) throws IOException {
     List<Target> testTargets = manifest.targets().stream().filter(Target::test).toList();
-    if (!manifest.dependencies().isEmpty() || testTargets.size() != 1) {
+    if (testTargets.isEmpty()
+        || !manifest.dependencies().isEmpty()
+        || (testTargets.size() > 1 && !selectedTags.isEmpty())) {
       return Optional.empty();
     }
-    Target target = testTargets.getFirst();
-    if (!target.modular()
-        || target.sources().isEmpty()
-        || target.sources().size() > MAX_SOURCES) {
-      return Optional.empty();
+    java.util.ArrayList<byte[]> plans = new java.util.ArrayList<>();
+    for (Target target : testTargets) {
+      if (!target.modular()
+          || target.sources().isEmpty()
+          || target.sources().size() > MAX_SOURCES) {
+        return Optional.empty();
+      }
+      byte[] plan = sourcePlan(packageRoot, target);
+      if (plan.length > MAX_PLAN_BYTES || !fixedImportProfile(packageRoot, target)) {
+        return Optional.empty();
+      }
+      plans.add(plan);
     }
 
-    byte[] plan = sourcePlan(packageRoot, target);
-    if (plan.length > MAX_PLAN_BYTES || !fixedImportProfile(packageRoot, target)) {
-      return Optional.empty();
-    }
     Optional<Path> conformance = findConformancePackage(packageRoot);
     if (conformance.isEmpty()) {
       return Optional.empty();
     }
 
     Program nativeRunner = runner(conformance.orElseThrow());
-    byte[] input = transport(
-        packageRoot, manifest, target, plan, shardIndex, shardCount, selectedTags);
-    byte[] output = new WheelerRuntime()
-        .executeBinaryInput(nativeRunner, input, OUTPUT_BYTES)
-        .output();
-    return Optional.of(new Result(
-        HexFormat.of().formatHex(output, 0, 32),
-        unsigned16(output, 32),
-        unsigned16(output, 34),
-        unsigned16(output, 36)));
+    java.util.ArrayList<String> identities = new java.util.ArrayList<>();
+    int selected = 0;
+    int passed = 0;
+    int failed = 0;
+    for (int index = 0; index < testTargets.size(); index++) {
+      byte[] input = transport(
+          packageRoot,
+          manifest,
+          testTargets.get(index),
+          plans.get(index),
+          shardIndex,
+          shardCount,
+          selectedTags);
+      byte[] output = new WheelerRuntime()
+          .executeBinaryInput(nativeRunner, input, OUTPUT_BYTES)
+          .output();
+      identities.add(HexFormat.of().formatHex(output, 0, 32));
+      selected = Math.addExact(selected, unsigned16(output, 32));
+      passed = Math.addExact(passed, unsigned16(output, 34));
+      failed = Math.addExact(failed, unsigned16(output, 36));
+    }
+    return Optional.of(new Result(identities, selected, passed, failed));
   }
 
   private static synchronized Program runner(Path conformanceRoot) throws IOException {

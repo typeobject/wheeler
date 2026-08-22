@@ -9,7 +9,7 @@
 | Area | Self-hosting, package testing, local imports |
 | Depends on | WIP-0245, WIP-0262 |
 | Supersedes | One-source-only native package gating |
-| Superseded by | Native general-import and locked-dependency package testing |
+| Superseded by | WIP-0265 multi-target gating, then general imports and locked dependencies |
 
 ## Summary
 
@@ -90,3 +90,4 @@ Rejected. Imported callables remain outside the fixed physical dispatch.
 - [WIP-0245](WIP-0245-native-eight-source-test-compilation.md)
 - [WIP-0262](WIP-0262-native-one-source-package-test-gate.md)
 - [WIP-0234](WIP-0234-native-canonical-import-order.md)
+- [WIP-0265](WIP-0265-native-multi-target-package-test-gate.md)

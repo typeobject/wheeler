@@ -14,6 +14,60 @@ class NativePackageTestRunnerTest {
   @TempDir Path temporary;
 
   @Test
+  void invokesEveryNativePackageTestTarget() throws Exception {
+    Path project = temporary.resolve("native-target-tests");
+    Files.createDirectories(project.resolve("src"));
+    Files.writeString(project.resolve("wheeler.package.yaml"), """
+        schema: 1
+        package:
+          name: "demo.native.targets"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "tool"
+            name: "alpha"
+            root: "src/Alpha.w"
+            module: "demo.native.targets.alpha"
+            sources:
+              - "src/Alpha.w"
+            test: true
+          - kind: "tool"
+            name: "beta"
+            root: "src/Beta.w"
+            module: "demo.native.targets.beta"
+            sources:
+              - "src/Beta.w"
+            test: true
+        dependencies: []
+        capabilities: []
+        """);
+    Files.writeString(project.resolve("src/Alpha.w"), """
+        module demo.native.targets.alpha;
+        classical class AlphaTests {
+          test void passes() { assert(true); }
+        }
+        """);
+    Files.writeString(project.resolve("src/Beta.w"), """
+        module demo.native.targets.beta;
+        classical class BetaTests {
+          test void passes() { assert(true); }
+        }
+        """);
+    PackageProject packageProject = PackageProject.load(project);
+
+    var result = NativePackageTestRunner.run(
+        project, packageProject.manifest(), 0, 1, Set.of());
+    TestReport report = packageProject.test();
+
+    assertTrue(result.isPresent());
+    assertEquals(2, result.orElseThrow().identities().size());
+    assertEquals(2, result.orElseThrow().selected());
+    assertEquals(2, result.orElseThrow().passed());
+    assertEquals(0, result.orElseThrow().failed());
+    assertEquals(2, report.passed());
+  }
+
+  @Test
   void invokesNativeDiscoveryAcrossCanonicalLocalImports() throws Exception {
     Path project = temporary.resolve("native-import-tests");
     Files.createDirectories(project.resolve("src"));
@@ -100,7 +154,8 @@ class NativePackageTestRunnerTest {
     assertEquals(1, result.orElseThrow().selected());
     assertEquals(1, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
-    assertEquals(64, result.orElseThrow().identity().length());
+    assertEquals(1, result.orElseThrow().identities().size());
+    assertEquals(64, result.orElseThrow().identities().getFirst().length());
     assertEquals(1, report.selected());
     assertEquals(1, report.passed());
   }
