@@ -9,7 +9,7 @@
 | Area | Native testing, runtime ownership, conformance boundaries |
 | Depends on | WIP-0018, WIP-0202, WIP-0216 |
 | Supersedes | Conformance-owned two-case scheduling and reduction |
-| Superseded by | None |
+| Superseded by | WIP-0218 counted descriptor scheduling |
 
 ## Summary
 
@@ -74,3 +74,4 @@ Rejected. Host output publication belongs to the executable boundary. The runtim
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0202](WIP-0202-runtime-artifact-execution-authority.md)
 - [WIP-0216](WIP-0216-native-runner-descriptor-frames.md)
+- [WIP-0218](WIP-0218-bounded-native-descriptor-runner.md)

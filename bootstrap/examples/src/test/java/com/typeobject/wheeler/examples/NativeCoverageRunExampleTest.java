@@ -115,28 +115,40 @@ final class NativeCoverageRunExampleTest {
   }
 
   @Test
-  void nativeTwoCaseRunnerReducesTransportDescriptors() throws Exception {
+  void nativeRunnerReducesTransportDescriptors() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     byte[] passing = NativeModuleCompilerHarness.compile(compiler, List.of(), SUBJECT);
     byte[] failing = NativeModuleCompilerHarness.compile(compiler, List.of(), FAILING_SUBJECT);
     byte[] runtimeFailure = NativeModuleCompilerHarness.compile(
         compiler, List.of(), RUNTIME_FAILURE_SUBJECT);
     byte[] input = twoCaseInput(0, 1, SUBJECT, passing, FAILING_SUBJECT, failing);
-    VirtualMachine machine = VirtualMachine.withBinaryInput(twoCaseRunner(), input, 39);
+    VirtualMachine machine = VirtualMachine.withBinaryInput(nativeTestRunner(), input, 39);
     CompilerMachineRunner.runWithoutRewindHistory(machine);
     assertArrayEquals(expectedTwoCaseReport(passing, failing), machine.hostOutput());
+    assertArrayEquals(
+        expectedThreeCaseReport(passing, failing, runtimeFailure),
+        executeTests(threeCaseInput(passing, failing, runtimeFailure)));
+    assertArrayEquals(expectedEmptyReport(), executeTests(emptyCaseInput()));
 
     byte[] truncated = java.util.Arrays.copyOf(input, input.length - 1);
-    VirtualMachine invalid = VirtualMachine.withBinaryInput(twoCaseRunner(), truncated, 39);
+    VirtualMachine invalid = VirtualMachine.withBinaryInput(nativeTestRunner(), truncated, 39);
     assertThrows(
         VmTrap.class,
         () -> CompilerMachineRunner.runWithoutRewindHistory(invalid));
     assertArrayEquals(new byte[39], invalid.hostOutput());
 
+    byte[] overLimit = input.clone();
+    overLimit[15] = 65;
+    VirtualMachine invalidCount = VirtualMachine.withBinaryInput(nativeTestRunner(), overLimit, 39);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(invalidCount));
+    assertArrayEquals(new byte[39], invalidCount.hostOutput());
+
     byte[] missingPackage = input.clone();
     missingPackage[4] = 0;
     VirtualMachine invalidMetadata = VirtualMachine.withBinaryInput(
-        twoCaseRunner(), missingPackage, 39);
+        nativeTestRunner(), missingPackage, 39);
     assertThrows(
         VmTrap.class,
         () -> CompilerMachineRunner.runWithoutRewindHistory(invalidMetadata));
@@ -146,10 +158,10 @@ final class NativeCoverageRunExampleTest {
     invalidFailing[0] ^= 1;
     assertArrayEquals(
         expectedSelectedReport(passing, SUBJECT, true),
-        executeTwoCase(twoCaseInput(2, 8, SUBJECT, passing, FAILING_SUBJECT, invalidFailing)));
+        executeTests(twoCaseInput(2, 8, SUBJECT, passing, FAILING_SUBJECT, invalidFailing)));
     assertArrayEquals(
         expectedSelectedReport(failing, FAILING_SUBJECT, false),
-        executeTwoCase(twoCaseInput(6, 8, SUBJECT, passing, FAILING_SUBJECT, failing)));
+        executeTests(twoCaseInput(6, 8, SUBJECT, passing, FAILING_SUBJECT, failing)));
     assertArrayEquals(
         expectedSelectedReport(
             runtimeFailure,
@@ -158,7 +170,7 @@ final class NativeCoverageRunExampleTest {
             "WTEST005",
             "native artifact execution failed",
             0),
-        executeTwoCase(twoCaseInput(
+        executeTests(twoCaseInput(
             7, 8, SUBJECT, passing, RUNTIME_FAILURE_SUBJECT, runtimeFailure)));
     assertArrayEquals(
         expectedSelectedReport(
@@ -168,13 +180,13 @@ final class NativeCoverageRunExampleTest {
             "WTEST004",
             "native artifact verification failed",
             0),
-        executeTwoCase(twoCaseInput(
+        executeTests(twoCaseInput(
             6, 8, SUBJECT, passing, FAILING_SUBJECT, invalidFailing)));
     byte[] invalidPassing = passing.clone();
     invalidPassing[0] ^= 1;
     assertArrayEquals(
         expectedEmptyReport(),
-        executeTwoCase(twoCaseInput(
+        executeTests(twoCaseInput(
             0, 8, SUBJECT, invalidPassing, FAILING_SUBJECT, invalidFailing)));
   }
 
@@ -284,15 +296,35 @@ final class NativeCoverageRunExampleTest {
       byte[] passing,
       String failingSource,
       byte[] failing) {
+    ByteArrayOutputStream input = descriptorHeader(shardIndex, shardCount, 2);
+    writeCaseInput(input, passingSource, passing);
+    writeCaseInput(input, failingSource, failing);
+    return input.toByteArray();
+  }
+
+  private static byte[] threeCaseInput(
+      byte[] passing, byte[] failing, byte[] runtimeFailure) {
+    ByteArrayOutputStream input = descriptorHeader(0, 1, 3);
+    writeCaseInput(input, SUBJECT, passing);
+    writeCaseInput(input, FAILING_SUBJECT, failing);
+    writeCaseInput(input, RUNTIME_FAILURE_SUBJECT, runtimeFailure);
+    return input.toByteArray();
+  }
+
+  private static byte[] emptyCaseInput() {
+    return descriptorHeader(0, 1, 0).toByteArray();
+  }
+
+  private static ByteArrayOutputStream descriptorHeader(
+      int shardIndex, int shardCount, int caseCount) {
     ByteArrayOutputStream input = new ByteArrayOutputStream();
     input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
         .putShort((short) shardIndex).putShort((short) shardCount).array());
     writeShortText(input, "pkg");
     writeShortText(input, "1");
     writeShortText(input, "test");
-    writeCaseInput(input, passingSource, passing);
-    writeCaseInput(input, failingSource, failing);
-    return input.toByteArray();
+    input.write(caseCount);
+    return input;
   }
 
   private static void writeShortText(ByteArrayOutputStream output, String value) {
@@ -314,8 +346,8 @@ final class NativeCoverageRunExampleTest {
     output.writeBytes(artifact);
   }
 
-  private static byte[] executeTwoCase(byte[] input) throws Exception {
-    VirtualMachine machine = VirtualMachine.withBinaryInput(twoCaseRunner(), input, 39);
+  private static byte[] executeTests(byte[] input) throws Exception {
+    VirtualMachine machine = VirtualMachine.withBinaryInput(nativeTestRunner(), input, 39);
     CompilerMachineRunner.runWithoutRewindHistory(machine);
     return machine.hostOutput();
   }
@@ -394,6 +426,39 @@ final class NativeCoverageRunExampleTest {
     digestField(report, passExecutionIdentity());
     digestField(report, passCoverageIdentity());
     return withSummary(report.digest(), 2, 1);
+  }
+
+  private static byte[] expectedThreeCaseReport(
+      byte[] passing, byte[] failing, byte[] runtimeFailure) throws Exception {
+    MessageDigest report = MessageDigest.getInstance("SHA-256");
+    digestField(report, "wheeler.test-report/2");
+    digestField(report, "%064x".formatted(1));
+    digestInteger(report, 3);
+    digestCasePrefix(report, failing, FAILING_SUBJECT);
+    digestField(report, "FAIL");
+    digestField(report, "WTEST003");
+    digestField(report, "native test assertion failed");
+    digestInteger(report, 1);
+    digestInteger(report, 0);
+    digestField(report, "");
+    digestField(report, "");
+    digestCasePrefix(report, passing, SUBJECT);
+    digestField(report, "PASS");
+    digestField(report, "");
+    digestField(report, "");
+    digestInteger(report, 1);
+    digestInteger(report, 0);
+    digestField(report, passExecutionIdentity());
+    digestField(report, passCoverageIdentity());
+    digestCasePrefix(report, runtimeFailure, RUNTIME_FAILURE_SUBJECT);
+    digestField(report, "FAIL");
+    digestField(report, "WTEST005");
+    digestField(report, "native artifact execution failed");
+    digestInteger(report, 0);
+    digestInteger(report, 0);
+    digestField(report, "");
+    digestField(report, "");
+    return withSummary(report.digest(), 3, 1);
   }
 
   private static byte[] withSummary(byte[] identity, int selected, int passed) {
@@ -488,7 +553,7 @@ final class NativeCoverageRunExampleTest {
     return report;
   }
 
-  private static Program twoCaseRunner() throws Exception {
+  private static Program nativeTestRunner() throws Exception {
     var modules = testRunnerModules();
     modules.put(
         "TestCaseIdentity.w",
@@ -500,14 +565,14 @@ final class NativeCoverageRunExampleTest {
         "TestSummary.w",
         RuntimeSources.read("runtime/testing/TestSummary.w"));
     modules.put(
-        "TwoCaseTestRunner.w",
-        RuntimeSources.read("runtime/testing/runners/TwoCaseTestRunner.w"));
+        "TestRunner.w",
+        RuntimeSources.read("runtime/testing/runners/TestRunner.w"));
     modules.put(
-        "NativeTwoCaseTestRunner.w",
+        "NativeTestRunner.w",
         Files.readString(Path.of(
-            "../wheeler-conformance/src/main/wheeler/testing/runners/NativeTwoCaseTestRunner.w")));
+            "../wheeler-conformance/src/main/wheeler/testing/runners/NativeTestRunner.w")));
     return new WheelerCompiler().compileModuleFiles(
-        modules, "wheeler.conformance.testing.runners.native_two_case_test_runner");
+        modules, "wheeler.conformance.testing.runners.native_test_runner");
   }
 
   private static Program oneCaseRunner() throws Exception {

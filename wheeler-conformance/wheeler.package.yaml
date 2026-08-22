@@ -250,11 +250,11 @@ targets:
       - "src/main/wheeler/testing/NativeTestSummary.w"
     test: false
   - kind: "deployable"
-    name: "nativetwocasetestrunner"
-    root: "src/main/wheeler/testing/runners/NativeTwoCaseTestRunner.w"
-    module: "wheeler.conformance.testing.runners.native_two_case_test_runner"
+    name: "nativetestrunner"
+    root: "src/main/wheeler/testing/runners/NativeTestRunner.w"
+    module: "wheeler.conformance.testing.runners.native_test_runner"
     sources:
-      - "src/main/wheeler/testing/runners/NativeTwoCaseTestRunner.w"
+      - "src/main/wheeler/testing/runners/NativeTestRunner.w"
     test: false
   - kind: "deployable"
     name: "nativetoolchainidentity"
