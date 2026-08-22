@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, compiler dispatch |
 | Depends on | WIP-0237, WIP-0238, WIP-0239 |
 | Supersedes | Runner-local source extraction and fixed-arity dispatch |
-| Superseded by | None |
+| Superseded by | WIP-0241 native four-source test compilation |
 
 ## Summary
 
@@ -108,3 +108,4 @@ Rejected. No external package API uses them, and aliases would retain dead autho
 - [WIP-0237](WIP-0237-native-compiled-test-reports.md)
 - [WIP-0238](WIP-0238-native-two-source-test-compilation.md)
 - [WIP-0239](WIP-0239-native-three-source-test-compilation.md)
+- [WIP-0241](WIP-0241-native-four-source-test-compilation.md)

@@ -6,7 +6,7 @@ import wheeler.compiler.driver;
 import wheeler.runtime.testing.runners.test_source_plan;
 
 classical class TestSourceCompilation {
-  private const long MAX_COMPILED_SOURCES = 3;
+  private const long MAX_COMPILED_SOURCES = 4;
   private const long MAX_TEST_SOURCE_BYTES = 4096;
   private const long TEST_ARTIFACT_BYTES = 32768;
 
@@ -65,7 +65,7 @@ classical class TestSourceCompilation {
     assert(bufferLength(artifact) == TEST_ARTIFACT_BYTES);
     long sourceCount = validatedSourceCount(input, start, length);
     assert(rootOrdinal < sourceCount);
-    region sources = new region(/* bytes= */ 12288, /* allocations= */ 3);
+    region sources = new region(/* bytes= */ 16384, /* allocations= */ 4);
     long artifactLength = 0;
 
     if (sourceCount == 1) {
@@ -110,6 +110,65 @@ classical class TestSourceCompilation {
       drop(third);
       drop(second);
       drop(first);
+    }
+
+    if (sourceCount == 4) {
+      utf8 fourFirst = sourceAt(input, start, length, /* ordinal= */ 0, sources);
+      utf8 fourSecond = sourceAt(input, start, length, /* ordinal= */ 1, sources);
+      utf8 fourThird = sourceAt(input, start, length, /* ordinal= */ 2, sources);
+      utf8 fourFourth = sourceAt(input, start, length, /* ordinal= */ 3, sources);
+      if (rootOrdinal == 0) {
+        artifactLength = checkedLength(
+          compileMinimalWithThreeConstantImports(
+            fourSecond,
+            fourThird,
+            fourFourth,
+            fourFirst,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 1) {
+        artifactLength = checkedLength(
+          compileMinimalWithThreeConstantImports(
+            fourFirst,
+            fourThird,
+            fourFourth,
+            fourSecond,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 2) {
+        artifactLength = checkedLength(
+          compileMinimalWithThreeConstantImports(
+            fourFirst,
+            fourSecond,
+            fourFourth,
+            fourThird,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 3) {
+        artifactLength = checkedLength(
+          compileMinimalWithThreeConstantImports(
+            fourFirst,
+            fourSecond,
+            fourThird,
+            fourFourth,
+            artifact
+          )
+        );
+      }
+
+      drop(fourFourth);
+      drop(fourThird);
+      drop(fourSecond);
+      drop(fourFirst);
     }
 
     assert(0 < artifactLength);
