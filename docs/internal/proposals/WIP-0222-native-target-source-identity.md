@@ -9,7 +9,7 @@
 | Area | Native testing, target sources, case discovery |
 | Depends on | WIP-0009, WIP-0018, WIP-0195, WIP-0221 |
 | Supersedes | Per-descriptor source identity inputs |
-| Superseded by | None |
+| Superseded by | WIP-0223 native source-plan validation |
 
 ## Summary
 
@@ -104,3 +104,4 @@ Rejected. Parameter rows and multiple declarations require complete distinct dis
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0195](WIP-0195-native-test-case-identity.md)
 - [WIP-0221](WIP-0221-native-test-manifest-selection.md)
+- [WIP-0223](WIP-0223-native-target-source-plan-validation.md)

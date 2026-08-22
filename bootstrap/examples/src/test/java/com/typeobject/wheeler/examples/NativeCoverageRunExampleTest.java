@@ -194,6 +194,25 @@ final class NativeCoverageRunExampleTest {
         () -> CompilerMachineRunner.runWithoutRewindHistory(invalidManifest));
     assertArrayEquals(new byte[39], invalidManifest.hostOutput());
 
+    int sourcePlanStart = 27 + TEST_MANIFEST.getBytes(StandardCharsets.UTF_8).length;
+    byte[] emptySourcePlan = input.clone();
+    emptySourcePlan[sourcePlanStart + 3] = 0;
+    VirtualMachine invalidSourceCount = VirtualMachine.withBinaryInput(
+        nativeTestRunner(), emptySourcePlan, 39);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(invalidSourceCount));
+    assertArrayEquals(new byte[39], invalidSourceCount.hostOutput());
+
+    byte[] absoluteSourcePath = input.clone();
+    absoluteSourcePath[sourcePlanStart + 8] = (byte) '/';
+    VirtualMachine invalidSourcePath = VirtualMachine.withBinaryInput(
+        nativeTestRunner(), absoluteSourcePath, 39);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(invalidSourcePath));
+    assertArrayEquals(new byte[39], invalidSourcePath.hostOutput());
+
     byte[] invalidFailing = failing.clone();
     invalidFailing[0] ^= 1;
     assertArrayEquals(
@@ -640,6 +659,9 @@ final class NativeCoverageRunExampleTest {
     modules.put(
         "TestManifest.w",
         RuntimeSources.read("runtime/testing/runners/TestManifest.w"));
+    modules.put(
+        "TestSourcePlan.w",
+        RuntimeSources.read("runtime/testing/runners/TestSourcePlan.w"));
     modules.put(
         "TestRunner.w",
         RuntimeSources.read("runtime/testing/runners/TestRunner.w"));
