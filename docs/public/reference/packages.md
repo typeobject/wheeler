@@ -324,11 +324,13 @@ canonical JSON, and JUnit XML are presentation forms outside the semantic identi
 
 `--shard INDEX/COUNT` assigns cases by complete case-identity digest. Shards are
 disjoint and reduce to the serial report in any arrival order. The
-`nativetestcaseidentity`, `nativetestshard`, and `nativetestsummary` conformance
-targets reproduce the case digest, shard assignment, canonical outcome order,
-summary counts, complete execution and coverage identities, semantic report identities for up to 64 cases, and zero-to-64-case classical artifact-to-report runs over one natively hashed canonical package manifest with native package, deployable-target, root-module, and test-selection checks, one root-bound canonical dependency-free lock, runtime-owned descriptor validation, one manifest-selected, natively validated strict-UTF-8 unique-module, acyclic canonically ordered local-import target-source plan and identity, strictly ordered complete discovered case names, pre-execution shard selection, canonical summary publication, failure diagnostics, one direct native source-to-execution probe, and no Java semantic callback. Case identity, shard assignment, execution, report reduction, and summary reduction are canonical
-`wheeler.runtime` library operations. The deployable targets only publish results. Package source discovery, descriptor compilation, and rendering still use the stage-0 runner. Native execution hashes the canonical discovered source plan once for every selected case. Repeated `--tag` arguments select their
-intersection.
+The native conformance targets reproduce case identity, shard assignment, canonical outcome order, summaries, execution and coverage identities, failure diagnostics, and report identities for up to 64 cases.
+
+`nativetestrunner` validates a canonical package manifest, dependency-free root lock, deployable target, root module, ordered case names, descriptors, and one manifest-selected source plan before execution. Source plans require strict UTF-8, unique modules, resolved acyclic ordered local imports, and exact source identity. Shard selection precedes verification, compilation, and execution.
+
+A one-case, one-source descriptor may carry zero artifact bytes. The runtime then compiles the validated source natively and feeds the exact committed artifact into the same profile-2 path as transported bytes. Case identity, execution, diagnostics, report reduction, and summary reduction remain `wheeler.runtime` operations. Conformance targets only publish results and make no Java semantic callback.
+
+Package source discovery, descriptor construction, and rendering still use the stage-0 runner. Native execution hashes the canonical discovered source plan once for every selected case. Repeated `--tag` arguments select their intersection.
 
 ## Vendored and locked work
 

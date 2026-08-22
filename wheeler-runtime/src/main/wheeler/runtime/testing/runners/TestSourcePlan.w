@@ -245,6 +245,36 @@ classical class TestSourcePlan {
     return 0;
   }
 
+  /// Returns the source length from a previously validated one-source plan.
+  public long validatedSingleSourceLength(borrow byteview input, long start, long length) {
+    assert(0 < length);
+    assert(readUnsigned32BigEndian(input, start) == 1);
+    long pathLength = readUnsigned32BigEndian(input, start + 4);
+    long sourceLengthOffset = start + 8 + pathLength;
+    return readUnsigned32BigEndian(input, sourceLengthOffset);
+  }
+
+  /// Copies source bytes from a previously validated one-source plan.
+  public void copyValidatedSingleSource(
+    borrow byteview input,
+    long start,
+    long length,
+    borrow mut bytes output
+  ) {
+    assert(0 < length);
+    assert(readUnsigned32BigEndian(input, start) == 1);
+    long pathLength = readUnsigned32BigEndian(input, start + 4);
+    long sourceLengthOffset = start + 8 + pathLength;
+    long sourceLength = readUnsigned32BigEndian(input, sourceLengthOffset);
+    assert(bufferLength(output) == sourceLength);
+    long sourceStart = sourceLengthOffset + 4;
+    long offset = 0;
+    while (offset < sourceLength) limit MAX_PLAN_BYTES {
+      setByte(output, offset, input[sourceStart + offset]);
+      offset += 1;
+    }
+  }
+
   /// Checks exact bounded count, paths, ordering, and source boundaries.
   public boolean validTargetSourcePlan(borrow byteview input, long start, long length) {
     if (length < 13) {

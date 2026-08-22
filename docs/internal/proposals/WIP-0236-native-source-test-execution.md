@@ -9,13 +9,13 @@
 | Area | Self-hosting, native testing, source compilation |
 | Depends on | WIP-0007, WIP-0018, WIP-0202, WIP-0235 |
 | Supersedes | Separate native source-compilation and artifact-execution probes |
-| Superseded by | Native package test descriptor compilation |
+| Superseded by | WIP-0237 native compiled test reports |
 
 ## Summary
 
 Compile and execute one bounded Wheeler test source in a single native invocation.
 
-`wheeler.runtime.testing.runners.test_source_execution` invokes the canonical native compiler driver and returns the exact verified artifact length in caller-owned storage. `NativeSourceTestRun.w` copies that committed prefix into exact-size owned storage, invokes runtime artifact execution once, and publishes a fixed outcome.
+`wheeler.runtime.testing.runners.test_source_execution` invokes the canonical native compiler driver and returns the exact verified artifact length in caller-owned storage. The original `NativeSourceTestRun.w` cut point copied that committed prefix into exact-size owned storage, invoked runtime artifact execution once, and published a fixed outcome.
 
 This is the first test path in which Java supplies source bytes rather than a precompiled artifact. Java launches the VM and checks independent expected bytes. It does not compile the artifact consumed by the native runtime.
 
@@ -28,11 +28,11 @@ This is the first test path in which Java supplies source bytes rather than a pr
 
 It calls `wheeler.compiler.driver::compileMinimal`, requires a nonempty bounded result, and returns the committed artifact length. The wrapper adds no parser, lowering rule, verifier, or artifact encoder.
 
-The compiler writes into fixed recovery storage. Artifact execution must not consume unused capacity, because trailing zeros are not artifact bytes. The conformance publisher copies exactly `artifactLength` bytes into a second owned buffer before verification and execution.
+The compiler writes into fixed recovery storage. Artifact execution must not consume unused capacity, because trailing zeros are not artifact bytes. The original conformance publisher copied exactly `artifactLength` bytes into a second owned buffer before verification and execution. WIP-0237 preserves this rule in the canonical test runner.
 
 ## Execution
 
-`NativeSourceTestRun.w` allocates fresh compiler artifact, exact executable, and 1,024-byte trace buffers. It calls `executeBoundedArtifact` once and publishes 14 bytes:
+The original `NativeSourceTestRun.w` allocated fresh compiler artifact, exact executable, and 1,024-byte trace buffers. It called `executeBoundedArtifact` once and published 14 bytes:
 
 ```text
 u32 artifact_length
@@ -42,15 +42,15 @@ u8  global_count
 u32 error_offset
 ```
 
-Integers use little-endian encoding. The publisher sets output length only after compilation and execution complete, then drops every owned buffer and region.
+Integers used little-endian encoding. The publisher set output length only after compilation and execution completed, then dropped every owned buffer and region.
 
-This frame is conformance evidence, not profile-2 report authority. The next package-runner step must feed the compiled artifact into the canonical case/report composition path rather than adding another report format.
+This frame was conformance evidence, not profile-2 report authority. WIP-0237 moved the proven boundary into canonical case and report composition, then deleted the fixed frame and publisher.
 
 ## Evidence
 
-`NativeSourceTestRunExampleTest` constructs one combined native compiler and runtime program. It sends passing and assertion-failing module sources as UTF-8 host input.
+The original `NativeSourceTestRunExampleTest` constructed one combined native compiler and runtime program. It sent passing and assertion-failing module sources as UTF-8 host input.
 
-For each source the test independently compiles stage-0 module bytes and checks the native artifact length. It checks nonzero execution steps, zero globals, pass classification, error presence, and terminal publication. The runtime compiles and executes each source exactly once with fresh storage.
+For each source the test independently compiled stage-0 module bytes and checked the native artifact length. It checked nonzero execution steps, zero globals, pass classification, error presence, and terminal publication. WIP-0237 replaced this temporary evidence with complete canonical report parity.
 
 The runtime archive contains 229,767 bytes with SHA-256 `562ab741696bd7cc3450ee67deccabacb1051c04487ef0ee08125c59db8b6349` and root manifest identity `42cb579e63bea46fd92ce5da3789f9b491b35537a43d50d07fca8139657c3ad5`.
 
@@ -88,3 +88,4 @@ Rejected. The fixed frame is a conformance probe. Canonical reporting remains pr
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0202](WIP-0202-runtime-artifact-execution-authority.md)
 - [WIP-0235](WIP-0235-native-import-cycle-rejection.md)
+- [WIP-0237](WIP-0237-native-compiled-test-reports.md)

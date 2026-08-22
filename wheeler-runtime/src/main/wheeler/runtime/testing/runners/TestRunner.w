@@ -7,6 +7,7 @@ import wheeler.crypto.sha256;
 import wheeler.runtime.testing.runners.test_descriptors;
 import wheeler.runtime.testing.runners.test_manifest;
 import wheeler.runtime.testing.runners.test_package_lock;
+import wheeler.runtime.testing.runners.test_source_execution;
 import wheeler.runtime.testing.runners.test_source_plan;
 import wheeler.runtime.testing.test_artifact_report;
 import wheeler.runtime.testing.test_case_identity;
@@ -131,6 +132,7 @@ classical class TestRunner {
     long scannedCase = 0;
     long previousNameStart = 0;
     long previousNameLength = 0;
+    boolean compileSource = false;
     while (scannedCase < caseCount) limit MAX_CASES {
       long scannedNameLength = input[scan];
       long scannedNameStart = scan + 1;
@@ -149,13 +151,23 @@ classical class TestRunner {
 
       previousNameStart = scannedNameStart;
       previousNameLength = scannedNameLength;
+      long scannedArtifactLength = readUnsigned(
+        input,
+        scannedNameStart + scannedNameLength,
+        /* width= */ 4
+      );
+      if (scannedArtifactLength == 0) {
+        assert(caseCount == 1);
+        compileSource = true;
+      }
+
       scan = checkedCaseEnd(input, scan);
       scannedCase += 1;
     }
 
     assert(scan == bufferLength(input));
 
-    region staging = new region(/* bytes= */ 700000, /* allocations= */ 32);
+    region staging = new region(/* bytes= */ 740000, /* allocations= */ 36);
     bytes runner = allocateBytes(staging, /* length= */ 64);
     writeAscii(
       runner,
@@ -184,6 +196,16 @@ classical class TestRunner {
     copied = copyRange(input, targetStart, targetLength, target, /* outputStart= */ 0);
     assert(copied == targetLength);
     assert(validTargetSourcePlan(input, sourcePlanStart, sourcePlanLength));
+    long compiledSourceLength = 0;
+    if (compileSource) {
+      compiledSourceLength = validatedSingleSourceLength(
+        input,
+        sourcePlanStart,
+        sourcePlanLength
+      );
+      assert(compiledSourceLength < 4097);
+    }
+
     assert(
       validTestManifest(
         input,
@@ -275,15 +297,34 @@ classical class TestRunner {
       setByte(shardInput, /* index= */ 67, input[3]);
 
       if (assignedToShard(shardInput)) {
-        bytes artifact = allocateBytes(staging, artifactLength);
+        bytes artifactStorage = allocateBytes(staging, MAX_PAYLOAD_BYTES);
+        long executionArtifactLength = artifactLength;
+        if (artifactLength == 0) {
+          bytes sourceBytes = allocateBytes(staging, compiledSourceLength);
+          copyValidatedSingleSource(input, sourcePlanStart, sourcePlanLength, sourceBytes);
+          utf8 sourceText = freezeUtf8(sourceBytes);
+          executionArtifactLength = compileTestSource(sourceText, artifactStorage);
+          drop(sourceText);
+        } else {
+          copied = copyRange(
+            input,
+            artifactStart,
+            artifactLength,
+            artifactStorage,
+            /* outputStart= */ 0
+          );
+          assert(copied == artifactLength);
+        }
+
+        bytes artifact = allocateBytes(staging, executionArtifactLength);
         copied = copyRange(
-          input,
-          artifactStart,
-          artifactLength,
+          artifactStorage,
+          /* inputStart= */ 0,
+          executionArtifactLength,
           artifact,
           /* outputStart= */ 0
         );
-        assert(copied == artifactLength);
+        assert(copied == executionArtifactLength);
         bytes result = allocateBytes(staging, CASE_RESULT_BYTES);
         long resultLength = writeArtifactCaseResult(
           artifact,
@@ -314,6 +355,7 @@ classical class TestRunner {
         selectedCount += 1;
         drop(result);
         drop(artifact);
+        drop(artifactStorage);
       }
 
       drop(shardInput);

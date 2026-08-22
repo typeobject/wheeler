@@ -842,66 +842,18 @@ final class NativeCoverageRunExampleTest {
     return report;
   }
 
-  private static Program nativeTestRunner() throws Exception {
-    var modules = testRunnerModules();
-    modules.put(
-        "TestCaseIdentity.w",
-        RuntimeSources.read("runtime/testing/TestCaseIdentity.w"));
-    modules.put(
-        "TestShard.w",
-        RuntimeSources.read("runtime/testing/TestShard.w"));
-    modules.put(
-        "TestSummary.w",
-        RuntimeSources.read("runtime/testing/TestSummary.w"));
-    modules.put(
-        "TestDescriptors.w",
-        RuntimeSources.read("runtime/testing/runners/TestDescriptors.w"));
-    modules.put(
-        "TestManifest.w",
-        RuntimeSources.read("runtime/testing/runners/TestManifest.w"));
-    modules.put(
-        "TestPackageLock.w",
-        RuntimeSources.read("runtime/testing/runners/TestPackageLock.w"));
-    modules.put(
-        "TestSourceModules.w",
-        RuntimeSources.read("runtime/testing/runners/TestSourceModules.w"));
-    modules.put(
-        "TestSourcePlan.w",
-        RuntimeSources.read("runtime/testing/runners/TestSourcePlan.w"));
-    modules.put(
-        "TestRunner.w",
-        RuntimeSources.read("runtime/testing/runners/TestRunner.w"));
-    modules.put(
-        "NativeTestRunner.w",
-        Files.readString(Path.of(
-            "../wheeler-conformance/src/main/wheeler/testing/runners/NativeTestRunner.w")));
-    return new WheelerCompiler().compileModuleFiles(
-        modules, "wheeler.conformance.testing.runners.native_test_runner");
+  static Program nativeTestRunner() throws Exception {
+    return NativeTestRunnerProgram.program();
   }
 
   private static Program oneCaseRunner() throws Exception {
-    var modules = testRunnerModules();
+    var modules = NativeTestRunnerProgram.modules();
     modules.put(
         "NativeOneCaseTestRunner.w",
         Files.readString(Path.of(
             "../wheeler-conformance/src/main/wheeler/testing/runners/NativeOneCaseTestRunner.w")));
     return new WheelerCompiler().compileModuleFiles(
         modules, "wheeler.conformance.testing.runners.native_one_case_test_runner");
-  }
-
-  private static LinkedHashMap<String, String> testRunnerModules() throws Exception {
-    var modules = runtimeModules();
-    modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
-    modules.put("BootstrapCoverageFragments.w",
-        RuntimeSources.read("runtime/BootstrapCoverageFragments.w"));
-    modules.put("CoverageReducer.w", RuntimeSources.read("runtime/CoverageReducer.w"));
-    for (String source : List.of(
-        "TestArtifactMetadata", "TestExecutionIdentity", "TestArtifactExecutionIdentity",
-        "TestCoverageIdentity", "TestIdentityText",
-        "TestReportIdentity", "TestArtifactReport")) {
-      modules.put(source + ".w", RuntimeSources.read("runtime/testing/" + source + ".w"));
-    }
-    return modules;
   }
 
   private static Program artifactExecutionIdentity() throws Exception {
