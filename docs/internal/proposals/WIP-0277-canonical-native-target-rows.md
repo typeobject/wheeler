@@ -9,7 +9,7 @@
 | Area | Self-hosting, package testing, reports |
 | Depends on | WIP-0276 |
 | Supersedes | Descriptor-order native row publication |
-| Superseded by | Native package-wide row reduction |
+| Superseded by | WIP-0278 native package row reduction |
 
 ## Summary
 
@@ -84,3 +84,4 @@ Rejected. Case identities, not names or completion order, define report order.
 
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0276](WIP-0276-native-package-case-rows.md)
+- [WIP-0278](WIP-0278-native-package-row-reduction.md)

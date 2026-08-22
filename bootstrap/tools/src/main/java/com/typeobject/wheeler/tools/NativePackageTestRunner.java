@@ -33,6 +33,7 @@ final class NativePackageTestRunner {
   private static final int MAX_CASE_RESULT_BYTES = 5_345;
   private static final String RUNNER_IDENTITY = "0".repeat(63) + "1";
   private static Program packageReportReducer;
+  private static Program reportRowReducer;
   private static Program runner;
   private static Path runnerRoot;
 
@@ -45,6 +46,13 @@ final class NativePackageTestRunner {
       int failed) {
     Result {
       identities = List.copyOf(identities);
+    }
+  }
+
+  private record NativeRows(List<TestReport.CaseResult> cases, byte[] bytes) {
+    NativeRows {
+      cases = List.copyOf(cases);
+      bytes = bytes.clone();
     }
   }
 
@@ -107,6 +115,7 @@ final class NativePackageTestRunner {
     }
 
     java.util.ArrayList<Integer> outputCapacities = new java.util.ArrayList<>();
+    int discoveredCases = 0;
     for (int index = 0; index < testTargets.size(); index++) {
       byte[] countInput = transport(
           packageRoot,
@@ -120,11 +129,15 @@ final class NativePackageTestRunner {
       byte[] countOutput = execute(
           nativeRunner, countInput, COMPACT_OUTPUT_BYTES);
       int caseCount = unsigned16(countOutput, 32);
+      discoveredCases = Math.addExact(discoveredCases, caseCount);
       outputCapacities.add(Math.addExact(43, Math.multiplyExact(caseCount, MAX_CASE_RESULT_BYTES)));
+    }
+    if (discoveredCases > 64) {
+      return Optional.empty();
     }
 
     java.util.ArrayList<String> identities = new java.util.ArrayList<>();
-    java.util.ArrayList<TestReport.CaseResult> nativeCases = new java.util.ArrayList<>();
+    ByteArrayOutputStream combinedRows = new ByteArrayOutputStream();
     ByteArrayOutputStream packageRows = new ByteArrayOutputStream();
     packageRows.write(testTargets.size());
     int selected = 0;
@@ -143,7 +156,8 @@ final class NativePackageTestRunner {
       byte[] output = execute(
           nativeRunner, input, outputCapacities.get(index));
       identities.add(HexFormat.of().formatHex(output, 0, 32));
-      nativeCases.addAll(readNativeCases(output));
+      NativeRows targetRows = readNativeRows(output);
+      combinedRows.writeBytes(targetRows.bytes());
       packageRows.writeBytes(java.util.Arrays.copyOf(output, 38));
       selected = Math.addExact(selected, unsigned16(output, 32));
       passed = Math.addExact(passed, unsigned16(output, 34));
@@ -156,10 +170,20 @@ final class NativePackageTestRunner {
         || failed != unsigned16(packageOutput, 36)) {
       throw new PackageFormatException("Native package test reduction changed summary counts");
     }
+    ByteArrayOutputStream rowInput = new ByteArrayOutputStream();
+    rowInput.write(selected % 256);
+    rowInput.write(selected / 256);
+    writeLittle32(rowInput, combinedRows.size());
+    rowInput.writeBytes(combinedRows.toByteArray());
+    byte[] reducedRows = execute(
+        reportRowReducer,
+        rowInput.toByteArray(),
+        36 + combinedRows.size());
+    NativeRows packageNativeRows = readReducedRows(reducedRows, selected);
     return Optional.of(new Result(
         identities,
         HexFormat.of().formatHex(packageOutput, 0, 32),
-        new TestReport(nativeCases, RUNNER_IDENTITY),
+        new TestReport(packageNativeRows.cases(), RUNNER_IDENTITY),
         selected,
         passed,
         failed));
@@ -173,7 +197,7 @@ final class NativePackageTestRunner {
     return machine.hostOutput();
   }
 
-  private static List<TestReport.CaseResult> readNativeCases(byte[] output) throws IOException {
+  private static NativeRows readNativeRows(byte[] output) throws IOException {
     if (output.length < 43) {
       throw new PackageFormatException("Native test row publication is truncated");
     }
@@ -182,24 +206,46 @@ final class NativePackageTestRunner {
       throw new PackageFormatException("Native test row publication has a bad boundary");
     }
     int expectedCases = unsigned16(output, 32);
+    NativeRows rows = parseRows(output, 43, rowBytes, expectedCases);
+    requireReportIdentity(output, rows.cases());
+    return rows;
+  }
+
+  private static NativeRows readReducedRows(byte[] output, int expectedCases)
+      throws IOException {
+    if (output.length < 36) {
+      throw new PackageFormatException("Native package rows are truncated");
+    }
+    int rowBytes = ByteBuffer.wrap(output, 32, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
+    if (rowBytes < 0 || output.length != 36 + rowBytes) {
+      throw new PackageFormatException("Native package rows have a bad boundary");
+    }
+    NativeRows rows = parseRows(output, 36, rowBytes, expectedCases);
+    requireReportIdentity(output, rows.cases());
+    return rows;
+  }
+
+  private static NativeRows parseRows(
+      byte[] output, int rowStart, int rowBytes, int expectedCases) {
     java.util.ArrayList<TestReport.CaseResult> cases = new java.util.ArrayList<>();
     String previousIdentity = null;
-    int cursor = 43;
-    while (cursor < output.length) {
+    int cursor = rowStart;
+    int end = rowStart + rowBytes;
+    while (cursor < end) {
       String[] fields = new String[10];
       for (int field = 0; field < fields.length; field++) {
-        if (output.length - cursor < 2) {
+        if (end - cursor < 2) {
           throw new PackageFormatException("Native test row field is truncated");
         }
         int length = unsigned16(output, cursor);
         cursor += 2;
-        if (length > output.length - cursor) {
+        if (length > end - cursor) {
           throw new PackageFormatException("Native test row value is truncated");
         }
         fields[field] = new String(output, cursor, length, StandardCharsets.UTF_8);
         cursor += length;
       }
-      if (output.length - cursor < 17) {
+      if (end - cursor < 17) {
         throw new PackageFormatException("Native test row outcome is truncated");
       }
       int status = Byte.toUnsignedInt(output[cursor]);
@@ -230,16 +276,19 @@ final class NativePackageTestRunner {
           fields[8],
           fields[9]));
     }
-    if (cases.size() != expectedCases) {
-      throw new PackageFormatException("Native test rows disagree with the summary count");
+    if (cursor != end || cases.size() != expectedCases) {
+      throw new PackageFormatException("Native test rows disagree with their count");
     }
-    List<TestReport.CaseResult> published = List.copyOf(cases);
-    TestReport targetReport = new TestReport(published, RUNNER_IDENTITY);
+    return new NativeRows(cases, java.util.Arrays.copyOfRange(output, rowStart, end));
+  }
+
+  private static void requireReportIdentity(
+      byte[] output, List<TestReport.CaseResult> cases) throws IOException {
+    TestReport report = new TestReport(cases, RUNNER_IDENTITY);
     String publishedIdentity = HexFormat.of().formatHex(output, 0, 32);
-    if (!publishedIdentity.equals(targetReport.identity())) {
+    if (!publishedIdentity.equals(report.identity())) {
       throw new PackageFormatException("Native test rows disagree with the report identity");
     }
-    return published;
   }
 
   private static synchronized Program runner(Path conformanceRoot) throws IOException {
@@ -248,6 +297,7 @@ final class NativePackageTestRunner {
       PackageProject project = PackageProject.load(canonical);
       runner = project.compileRunnable("nativetestrunner");
       packageReportReducer = project.compileRunnable("nativetestpackagereportidentity");
+      reportRowReducer = project.compileRunnable("nativetestreportrows");
       runnerRoot = canonical;
     }
     return runner;
@@ -407,6 +457,11 @@ final class NativePackageTestRunner {
     output.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
         .putInt(bytes.length).array());
     output.writeBytes(bytes);
+  }
+
+  private static void writeLittle32(ByteArrayOutputStream output, int value) {
+    output.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
+        .putInt(value).array());
   }
 
   private static void writeBig32(ByteArrayOutputStream output, int value) {

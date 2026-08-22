@@ -202,11 +202,11 @@ final class NativeTestReportIdentityExampleTest {
     sources.put(
         "TestReportIdentity.w",
         Files.readString(Path.of(
-            "../wheeler-runtime/src/main/wheeler/runtime/testing/TestReportIdentity.w")));
+            "../wheeler-runtime/src/main/wheeler/runtime/testing/reports/TestReportIdentity.w")));
     sources.put(
         "NativeTestReportIdentity.w",
         Files.readString(Path.of(
-            "../wheeler-conformance/src/main/wheeler/testing/NativeTestReportIdentity.w")));
+            "../wheeler-conformance/src/main/wheeler/testing/reports/NativeTestReportIdentity.w")));
     compiledProgram = new WheelerCompiler().compileModuleFiles(
         sources, "wheeler.conformance.testing.native_test_report_identity");
     return compiledProgram;

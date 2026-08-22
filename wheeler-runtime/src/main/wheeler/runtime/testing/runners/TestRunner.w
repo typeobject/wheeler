@@ -21,6 +21,7 @@ import wheeler.runtime.testing.test_artifact_report;
 import wheeler.runtime.testing.test_case_identity;
 import wheeler.runtime.testing.test_identity_text;
 import wheeler.runtime.testing.test_report_identity;
+import wheeler.runtime.testing.test_report_rows;
 import wheeler.runtime.testing.test_shard;
 import wheeler.runtime.testing.test_summary;
 
@@ -54,108 +55,6 @@ classical class TestRunner {
     setByte(output, cursor, length % 256);
     setByte(output, cursor + 1, length / 256);
     return copyRange(input, /* inputStart= */ 0, length, output, cursor + 2);
-  }
-
-  private long publishedRowEnd(borrow byteview rows, long start, long publishedLength) {
-    long cursor = start;
-    long field = 0;
-    while (field < 10) limit 10 {
-      assert(cursor + 2 < publishedLength + 1);
-      long length = rows[cursor] + rows[cursor + 1] * 256;
-      cursor += 2;
-      assert(cursor + length < publishedLength + 1);
-      cursor += length;
-      field += 1;
-    }
-
-    assert(cursor + 17 < publishedLength + 1);
-    return cursor + 17;
-  }
-
-  private long publishedIdentityStart(borrow byteview rows, long rowStart) {
-    long cursor = rowStart;
-    long field = 0;
-    while (field < 3) limit 3 {
-      long length = rows[cursor] + rows[cursor + 1] * 256;
-      cursor += 2 + length;
-      field += 1;
-    }
-
-    assert(rows[cursor] == 64);
-    assert(rows[cursor + 1] == 0);
-    return cursor + 2;
-  }
-
-  private long comparePublishedIdentities(
-    borrow byteview rows,
-    long leftRowStart,
-    long rightRowStart
-  ) {
-    long left = publishedIdentityStart(rows, leftRowStart);
-    long right = publishedIdentityStart(rows, rightRowStart);
-    long offset = 0;
-    while (offset < 64) limit 64 {
-      if (rows[left + offset] < rows[right + offset]) {
-        return -1;
-      }
-
-      if (rows[right + offset] < rows[left + offset]) {
-        return 1;
-      }
-
-      offset += 1;
-    }
-
-    return 0;
-  }
-
-  private void preparePublishedRows(
-    borrow byteview rows,
-    long publishedLength,
-    long count,
-    borrow mut words starts,
-    borrow mut words lengths,
-    borrow mut words order
-  ) {
-    long cursor = 0;
-    long row = 0;
-    while (row < count) limit MAX_CASES {
-      set(starts, row, cursor);
-      long end = publishedRowEnd(rows, cursor, publishedLength);
-      set(lengths, row, end - cursor);
-      set(order, row, row);
-      cursor = end;
-      row += 1;
-    }
-
-    assert(cursor == publishedLength);
-    row = 1;
-    while (row < count) limit MAX_CASES {
-      long selected = order[row];
-      long position = row;
-      boolean shifting = 0 < position;
-      while (shifting) limit MAX_CASES {
-        long prior = order[position - 1];
-        if (comparePublishedIdentities(rows, starts[selected], starts[prior]) < 0) {
-          set(order, position, prior);
-          position -= 1;
-          shifting = 0 < position;
-        } else {
-          shifting = false;
-        }
-      }
-
-      set(order, position, selected);
-      row += 1;
-    }
-
-    row = 1;
-    while (row < count) limit MAX_CASES {
-      assert(
-        comparePublishedIdentities(rows, starts[order[row - 1]], starts[order[row]]) == -1
-      );
-      row += 1;
-    }
   }
 
   private long checkedCaseEnd(borrow byteview input, long start) {
@@ -832,7 +731,7 @@ classical class TestRunner {
     published = copyRange(summary, /* inputStart= */ 0, /* length= */ 7, output, published);
     assert(published == 39);
     if (publishRows) {
-      preparePublishedRows(
+      prepareCanonicalReportRows(
         reportRows,
         reportRowsLength,
         selectedCount,

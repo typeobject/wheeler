@@ -36,9 +36,14 @@ final class NativeTestRunnerProgram {
     modules.put("CoverageReducer.w", RuntimeSources.read("runtime/CoverageReducer.w"));
     for (String source : List.of(
         "TestExecutionIdentity", "TestArtifactExecutionIdentity",
-        "TestCoverageIdentity", "TestIdentityText", "TestReportIdentity", "TestArtifactReport",
+        "TestCoverageIdentity", "TestIdentityText", "TestArtifactReport",
         "TestCaseIdentity", "TestShard", "TestSummary")) {
       modules.put(source + ".w", RuntimeSources.read("runtime/testing/" + source + ".w"));
+    }
+    for (String source : List.of("TestReportIdentity", "TestReportRows")) {
+      modules.put(
+          source + ".w",
+          RuntimeSources.read("runtime/testing/reports/" + source + ".w"));
     }
     for (String source : List.of(
         "TestDescriptors", "TestDiscoveredDescriptors", "TestSourceCompilation", "TestSourceLowering", "TestSourceModules", "TestSourcePlan", "TestSourceTests",
