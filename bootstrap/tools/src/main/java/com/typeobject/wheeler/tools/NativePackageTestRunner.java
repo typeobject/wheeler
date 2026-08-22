@@ -131,7 +131,7 @@ final class NativePackageTestRunner {
     for (String tag : tags) {
       writeShortText(output, tag);
     }
-    output.write(255);
+    output.write(254);
     return output.toByteArray();
   }
 

@@ -23,6 +23,10 @@ classical class TestDiscoveredDescriptors {
     borrow mut words tokenLengths,
     long nameToken,
     borrow byteview targetName,
+    borrow byteview moduleInput,
+    long moduleStart,
+    long moduleLength,
+    boolean qualifyModule,
     long row,
     long ordinal,
     borrow mut bytes names,
@@ -33,6 +37,10 @@ classical class TestDiscoveredDescriptors {
     assert(ordinal < MAX_CASES);
     long targetLength = bufferLength(targetName);
     long nameLength = targetLength + 2 + tokenLengths[nameToken];
+    if (qualifyModule) {
+      nameLength += moduleLength + 2;
+    }
+
     if (-1 < row) {
       nameLength += rowSuffixLength(row);
     }
@@ -49,6 +57,19 @@ classical class TestDiscoveredDescriptors {
     setByte(names, cursor, 58);
     setByte(names, cursor + 1, 58);
     cursor += 2;
+    if (qualifyModule) {
+      offset = 0;
+      while (offset < moduleLength) limit MAX_NAME_BYTES {
+        setByte(names, cursor, moduleInput[moduleStart + offset]);
+        cursor += 1;
+        offset += 1;
+      }
+
+      setByte(names, cursor, 58);
+      setByte(names, cursor + 1, 58);
+      cursor += 2;
+    }
+
     offset = 0;
     while (offset < tokenLengths[nameToken]) limit MAX_NAME_BYTES {
       setByte(names, cursor, utf8Scalar(source, tokenStarts[nameToken] + offset));

@@ -138,7 +138,12 @@ classical class TestRunner {
     assert(selection.end < bufferLength(input));
     cursor = selection.end;
     long encodedCaseCount = input[cursor];
+    boolean qualifyConstructedNames = encodedCaseCount == 254;
     boolean constructDescriptors = encodedCaseCount == 255;
+    if (qualifyConstructedNames) {
+      constructDescriptors = true;
+    }
+
     long caseCount = encodedCaseCount;
     if (constructDescriptors) {
       caseCount = 0;
@@ -291,6 +296,9 @@ classical class TestRunner {
       selectionStart,
       selectionCount,
       constructDescriptors,
+      qualifyConstructedNames,
+      rootModule.start,
+      rootModule.length,
       constructedNames,
       constructedNameLengths,
       caseKinds,
@@ -421,13 +429,14 @@ classical class TestRunner {
         long executionArtifactLength = artifactLength;
         if (artifactLength == 0) {
           if (0 < discovery.count) {
-            long declarationNameLength = nameLength - targetLength - 2;
+            long declarationNameStart = targetLength + 2;
+            long declarationNameEnd = nameLength;
             if (1 < caseKinds[descriptor]) {
               long rowSuffix = nameLength - 2;
               boolean scanningRowSuffix = true;
               while (scanningRowSuffix) limit 4 {
                 if (caseName[rowSuffix] == 91) {
-                  declarationNameLength = rowSuffix - targetLength - 2;
+                  declarationNameEnd = rowSuffix;
                   scanningRowSuffix = false;
                 } else {
                   rowSuffix -= 1;
@@ -435,13 +444,31 @@ classical class TestRunner {
               }
             }
 
+            if (qualifyConstructedNames) {
+              long qualifier = declarationNameEnd - 1;
+              boolean scanningQualifier = true;
+              while (scanningQualifier) limit 255 {
+                if (caseName[qualifier] == 58) {
+                  if (caseName[qualifier - 1] == 58) {
+                    declarationNameStart = qualifier + 1;
+                    scanningQualifier = false;
+                  } else {
+                    qualifier -= 1;
+                  }
+                } else {
+                  qualifier -= 1;
+                }
+              }
+            }
+
+            long declarationNameLength = declarationNameEnd - declarationNameStart;
             executionArtifactLength = compileValidatedTest(
               input,
               sourcePlanStart,
               sourcePlanLength,
               compiledRootOrdinal,
               caseName,
-              targetLength + 2,
+              declarationNameStart,
               declarationNameLength,
               caseKinds[descriptor],
               caseValues[descriptor],

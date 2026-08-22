@@ -9,7 +9,7 @@
 | Area | Self-hosting, package testing, native invocation |
 | Depends on | WIP-0261 |
 | Supersedes | Example-only native test invocation for the fixed profile |
-| Superseded by | Native multi-source and locked-dependency package testing |
+| Superseded by | WIP-0263 package case names, then multi-source and locked-dependency testing |
 
 ## Summary
 
@@ -24,7 +24,7 @@ An eligible package has:
 - At most 4,096 source bytes and a source plan no larger than 32,768 bytes.
 - No more than 64 native-discovered cases or selected tags.
 
-The tools adapter builds only manifest, empty root lock, source plan, shard, and sorted tag transport. It requests WIP-0261 mode 255. It supplies no case name and no artifact.
+The tools adapter builds only manifest, empty root lock, source plan, shard, and sorted tag transport. It originally requested WIP-0261 mode 255. WIP-0263 assigns mode 254 to module-qualified package case construction. It supplies no case name and no artifact.
 
 The native runner discovers, selects, constructs, compiles, verifies, executes, reduces, and publishes the 39-byte report identity and summary product. The existing stage-0 report remains the rendering adapter. The command rejects when selected, passed, or failed counts differ.
 
@@ -60,7 +60,7 @@ Peer tests and production entries therefore cannot create a second physical entr
 
 Native output currently carries report identity and summary counts, not complete case rows. Java still compiles and executes an independent stage-0 run to render terminal, JSON, and JUnit XML adapters.
 
-For the eligible profile, native selected, passed, and failed counts are a mandatory gate. A disagreement rejects instead of publishing either rendering. Case-name and full report-identity parity remain separate work because stage 0 currently renders module-qualified display names while the native profile uses target-qualified declaration names.
+For the eligible profile, native selected, passed, and failed counts are a mandatory gate. A disagreement rejects instead of publishing either rendering. WIP-0263 aligns module-qualified package display names. Full report-identity parity remains separate work because native and stage-0 test artifacts are not yet proven byte-identical.
 
 The Java run is not an artifact provider for native mode. Native compilation has already consumed only validated Wheeler source.
 
@@ -120,3 +120,4 @@ Rejected. One selected case owns one direct physical entry.
 - [WIP-0261](WIP-0261-native-test-descriptor-construction.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
+- [WIP-0263](WIP-0263-native-package-case-names.md)
