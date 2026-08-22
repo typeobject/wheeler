@@ -2,7 +2,7 @@
 
 module wheeler.runtime.testing.runners.test_manifest;
 
-import wheeler.runtime.testing.runners.test_source_plan;
+import wheeler.runtime.testing.runners.test_source_modules;
 
 classical class TestManifest {
   private const long MAX_MANIFEST_BYTES = 4096;

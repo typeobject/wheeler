@@ -215,8 +215,10 @@ final class NativeCoverageRunExampleTest {
     assertArrayEquals(new byte[39], invalidLock.hostOutput());
 
     for (byte[] invalidSelection : List.of(
-        replacedManifestInput(input, "src/Pass.w", "src/Xass.w"),
-        replacedManifestInput(input, "deployable", "xxxloyable"))) {
+        NativeTestManifestInput.replace(
+            input, TEST_MANIFEST, "src/Pass.w", "src/Xass.w"),
+        NativeTestManifestInput.replace(
+            input, TEST_MANIFEST, "deployable", "xxxloyable"))) {
       VirtualMachine invalidTarget = VirtualMachine.withBinaryInput(
           nativeTestRunner(), invalidSelection, 39);
       assertThrows(
@@ -294,18 +296,21 @@ final class NativeCoverageRunExampleTest {
         expectedEmptyReport(),
         executeTests(descriptorHeader(
             0, 1, 0, targetSourcePlan(importedSubject)).toByteArray()));
-    byte[] unresolvedImport = descriptorHeader(
-        0,
-        1,
-        0,
-        targetSourcePlan(importedSubject.replace("import pkg.fail;", "import pkg.xail;")))
-        .toByteArray();
-    VirtualMachine invalidImport = VirtualMachine.withBinaryInput(
-        nativeTestRunner(), unresolvedImport, 39);
-    assertThrows(
-        VmTrap.class,
-        () -> CompilerMachineRunner.runWithoutRewindHistory(invalidImport));
-    assertArrayEquals(new byte[39], invalidImport.hostOutput());
+    for (String invalidSubject : List.of(
+        importedSubject.replace("import pkg.fail;", "import pkg.xail;"),
+        importedSubject.replace("import pkg.fail;", "import pkg.fail;\nimport pkg.fail;"),
+        importedSubject.replace(
+            "import pkg.fail;",
+            "import pkg.runtime;\nimport pkg.fail;"))) {
+      byte[] invalidImports = descriptorHeader(
+          0, 1, 0, targetSourcePlan(invalidSubject)).toByteArray();
+      VirtualMachine invalidImport = VirtualMachine.withBinaryInput(
+          nativeTestRunner(), invalidImports, 39);
+      assertThrows(
+          VmTrap.class,
+          () -> CompilerMachineRunner.runWithoutRewindHistory(invalidImport));
+      assertArrayEquals(new byte[39], invalidImport.hostOutput());
+    }
 
     byte[] malformedSource = input.clone();
     malformedSource[sourcePlanStart + 22] = (byte) 0xff;
@@ -559,24 +564,6 @@ final class NativeCoverageRunExampleTest {
     input.writeBytes(sourcePlan);
     input.write(caseCount);
     return input;
-  }
-
-  private static byte[] replacedManifestInput(
-      byte[] input, String original, String replacement) throws Exception {
-    assertEquals(original.length(), replacement.length());
-    int valueOffset = TEST_MANIFEST.indexOf(original);
-    byte[] manifest = TEST_MANIFEST.getBytes(StandardCharsets.UTF_8);
-    byte[] replacementBytes = replacement.getBytes(StandardCharsets.UTF_8);
-    System.arraycopy(replacementBytes, 0, manifest, valueOffset, replacementBytes.length);
-
-    byte[] replaced = input.clone();
-    System.arraycopy(replacementBytes, 0, replaced, 23 + valueOffset, replacementBytes.length);
-    byte[] manifestIdentity = HexFormat.of().formatHex(
-        MessageDigest.getInstance("SHA-256").digest(manifest))
-        .getBytes(StandardCharsets.UTF_8);
-    int lockStart = 27 + manifest.length;
-    System.arraycopy(manifestIdentity, 0, replaced, lockStart + 17, manifestIdentity.length);
-    return replaced;
   }
 
   private static byte[] testLock() {
@@ -866,6 +853,9 @@ final class NativeCoverageRunExampleTest {
     modules.put(
         "TestPackageLock.w",
         RuntimeSources.read("runtime/testing/runners/TestPackageLock.w"));
+    modules.put(
+        "TestSourceModules.w",
+        RuntimeSources.read("runtime/testing/runners/TestSourceModules.w"));
     modules.put(
         "TestSourcePlan.w",
         RuntimeSources.read("runtime/testing/runners/TestSourcePlan.w"));

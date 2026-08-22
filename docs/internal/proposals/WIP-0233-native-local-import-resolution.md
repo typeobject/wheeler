@@ -9,7 +9,7 @@
 | Area | Native testing, source plans, module graph |
 | Depends on | WIP-0009, WIP-0018, WIP-0232 |
 | Supersedes | Native source plans without import resolution |
-| Superseded by | Native dependency imports and cycle validation |
+| Superseded by | WIP-0234 canonical import order |
 
 ## Summary
 
@@ -91,3 +91,4 @@ Rejected. External resolution requires explicit locked package provenance.
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0232](WIP-0232-native-source-module-uniqueness.md)
+- [WIP-0234](WIP-0234-native-canonical-import-order.md)
