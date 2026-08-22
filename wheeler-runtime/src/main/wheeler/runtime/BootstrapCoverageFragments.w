@@ -15,6 +15,18 @@ classical class BootstrapCoverageFragments {
       return 11;
     }
 
+    if (opcode == OPCODE_CALL) {
+      return 4;
+    }
+
+    if (opcode == OPCODE_CALL_VOID) {
+      return 9;
+    }
+
+    if (opcode == OPCODE_RETURN) {
+      return 6;
+    }
+
     if (opcode == OPCODE_EXPECT_TRUE) {
       return 11;
     }
@@ -81,6 +93,21 @@ classical class BootstrapCoverageFragments {
     if (opcode == OPCODE_LOCAL_CONST) {
       writeAscii(output, cursor, "LOCAL_CONST");
       return cursor + 11;
+    }
+
+    if (opcode == OPCODE_CALL) {
+      writeAscii(output, cursor, "CALL");
+      return cursor + 4;
+    }
+
+    if (opcode == OPCODE_CALL_VOID) {
+      writeAscii(output, cursor, "CALL_VOID");
+      return cursor + 9;
+    }
+
+    if (opcode == OPCODE_RETURN) {
+      writeAscii(output, cursor, "RETURN");
+      return cursor + 6;
     }
 
     if (opcode == OPCODE_EXPECT_TRUE) {

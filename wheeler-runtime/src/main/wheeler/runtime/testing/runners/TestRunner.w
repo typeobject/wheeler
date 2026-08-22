@@ -9,6 +9,7 @@ import wheeler.runtime.testing.runners.test_manifest;
 import wheeler.runtime.testing.runners.test_package_lock;
 import wheeler.runtime.testing.runners.test_source_compilation;
 import wheeler.runtime.testing.runners.test_source_plan;
+import wheeler.runtime.testing.runners.test_source_tests;
 import wheeler.runtime.testing.test_artifact_report;
 import wheeler.runtime.testing.test_case_identity;
 import wheeler.runtime.testing.test_identity_text;
@@ -215,15 +216,16 @@ classical class TestRunner {
         sourcePlanLength
       )
     );
+    long rootOrdinal = validatedRootSourceOrdinal(
+      input,
+      manifestStart,
+      manifestLength,
+      target,
+      sourcePlanStart
+    );
+    assert(-1 < rootOrdinal);
     if (compileSource) {
-      compiledRootOrdinal = validatedRootSourceOrdinal(
-        input,
-        manifestStart,
-        manifestLength,
-        target,
-        sourcePlanStart
-      );
-      assert(-1 < compiledRootOrdinal);
+      compiledRootOrdinal = rootOrdinal;
       assert(compiledRootOrdinal < compiledSourceCount);
     }
 
@@ -233,6 +235,29 @@ classical class TestRunner {
     long manifestIdentityLength = writeTestIdentityText(rawManifestIdentity, manifestIdentity);
     assert(manifestIdentityLength == 64);
     assert(validEmptyPackageLock(input, lockStart, lockLength, manifestIdentity));
+    long discoveredNameStart = cursor;
+    long discoveredNameLength = 0;
+    if (0 < caseCount) {
+      discoveredNameStart = cursor + 1;
+      discoveredNameLength = input[cursor];
+    }
+
+    SourceTestDiscovery discovery = discoverRootTest(
+      input,
+      sourcePlanStart,
+      sourcePlanLength,
+      rootOrdinal,
+      input,
+      discoveredNameStart,
+      discoveredNameLength,
+      target
+    );
+    if (0 < discovery.count) {
+      assert(discovery.count == 1);
+      assert(caseCount == 1);
+      assert(discovery.matched);
+    }
+
     bytes rawSourceIdentity = allocateBytes(staging, /* length= */ 32);
     hashSha256Range(input, sourcePlanStart, sourcePlanLength, rawSourceIdentity, staging);
     bytes sourceIdentity = allocateBytes(staging, /* length= */ 64);

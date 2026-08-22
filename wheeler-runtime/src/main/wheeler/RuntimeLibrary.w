@@ -11,6 +11,7 @@ import wheeler.runtime.io.portable;
 import wheeler.runtime.io.receipts;
 import wheeler.runtime.testing.runners.test_runner;
 import wheeler.runtime.testing.runners.test_source_compilation;
+import wheeler.runtime.testing.runners.test_source_tests;
 import wheeler.runtime.testing.test_artifact_execution_identity;
 import wheeler.runtime.testing.test_artifact_metadata;
 import wheeler.runtime.testing.test_artifact_report;

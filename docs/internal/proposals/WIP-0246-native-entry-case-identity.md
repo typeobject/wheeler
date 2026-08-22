@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, case discovery |
 | Depends on | WIP-0212, WIP-0225, WIP-0237, WIP-0245 |
 | Supersedes | Caller-selected source-mode case names |
-| Superseded by | Native `test` declaration discovery |
+| Superseded by | WIP-0247 native parameterless test discovery |
 
 ## Summary
 
@@ -86,3 +86,4 @@ Rejected. Entry-case derivation does not parse source-level test declarations or
 - [WIP-0225](WIP-0225-native-case-discovery-order.md)
 - [WIP-0237](WIP-0237-native-compiled-test-reports.md)
 - [WIP-0245](WIP-0245-native-eight-source-test-compilation.md)
+- [WIP-0247](WIP-0247-native-parameterless-test-discovery.md)

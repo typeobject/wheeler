@@ -77,6 +77,14 @@ final class NativeCompiledTestRunnerExampleTest {
       }
       """;
   private static final String FAILING = PASSING.replace("assert(true);", "assert(false);");
+  private static final String DECLARED_TEST = """
+      module pkg.test;
+      classical class DeclaredTest {
+        test void passes() {
+          assert(true);
+        }
+      }
+      """;
   private static final String IMPORTED = """
       module pkg.helper;
       classical class Helper {
@@ -140,6 +148,23 @@ final class NativeCompiledTestRunnerExampleTest {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
     assertCanonicalReport(runner, PASSING, 0);
     assertCanonicalReport(runner, FAILING, 1);
+  }
+
+  @Test
+  void discoversOneParameterlessRootTestNatively() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    var testCase = new WheelerCompiler().compilePackageTests(
+        Map.of("Test.w", DECLARED_TEST), Map.of(), "pkg.test").getFirst();
+    byte[] artifact = new BytecodeWriter().write(testCase.program());
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", DECLARED_TEST));
+    byte[] report = execute(runner, descriptor(MANIFEST, sources, artifact, "test::passes"));
+
+    assertEquals(1, report[32]);
+    assertEquals(1, report[34]);
+    VirtualMachine invalid = VirtualMachine.withBinaryInput(
+        runner, descriptor(MANIFEST, sources, artifact, "test::other"), 39);
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(invalid));
+    assertArrayEquals(new byte[39], invalid.hostOutput());
   }
 
   @Test
@@ -362,6 +387,14 @@ final class NativeCompiledTestRunnerExampleTest {
 
   private static byte[] descriptor(
       String manifest, List<NativeTestSourcePlan.Source> sources, byte[] artifact) {
+    return descriptor(manifest, sources, artifact, "test::entry");
+  }
+
+  private static byte[] descriptor(
+      String manifest,
+      List<NativeTestSourcePlan.Source> sources,
+      byte[] artifact,
+      String caseName) {
     byte[] plan = NativeTestSourcePlan.write(sources);
     ByteArrayOutputStream input = new ByteArrayOutputStream();
     input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
@@ -373,7 +406,7 @@ final class NativeCompiledTestRunnerExampleTest {
     writeBytes(input, NativeTestManifestInput.emptyLock(manifest));
     writeBytes(input, plan);
     input.write(1);
-    writeShortText(input, "test::entry");
+    writeShortText(input, caseName);
     writeBytes(input, artifact);
     return input.toByteArray();
   }
