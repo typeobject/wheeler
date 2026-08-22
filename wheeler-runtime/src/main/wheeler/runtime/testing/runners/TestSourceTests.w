@@ -1,4 +1,4 @@
-//! Discovers bounded parameterless test declarations in a validated root source.
+//! Discovers bounded test cases in a validated root source.
 
 module wheeler.runtime.testing.runners.test_source_tests;
 
@@ -11,10 +11,15 @@ import wheeler.runtime.testing.runners.test_source_plan;
 
 classical class TestSourceTests {
   private const long MAX_CASES = 64;
+  private const long TOKEN_CASES = 94432067;
+  private const long TOKEN_FALSE = 97196323;
   private const long TOKEN_TEST = 3556498;
+  private const long TOKEN_TRUE = 3569038;
 
-  /// Reports the discovered declaration count and complete descriptor match.
+  /// Reports the discovered case count and complete descriptor match.
   public record SourceTestDiscovery(long count, boolean matched) {}
+
+  private record SourceTestRows(long count, boolean supported) {}
 
   private long readUnsigned32LittleEndian(borrow byteview input, long offset) {
     return input[offset] + input[offset + 1] * 256 + input[offset + 2] * 65536 + input[offset + 3]
@@ -29,11 +34,20 @@ classical class TestSourceTests {
     borrow byteview descriptor,
     long descriptorStart,
     long descriptorLength,
-    borrow byteview targetName
+    borrow byteview targetName,
+    long caseIndex
   ) {
     long targetLength = bufferLength(targetName);
     long nameLength = tokenLengths[nameToken];
-    if (descriptorLength != targetLength + nameLength + 2) {
+    long suffixLength = 0;
+    if (-1 < caseIndex) {
+      suffixLength = 3;
+      if (9 < caseIndex) {
+        suffixLength = 4;
+      }
+    }
+
+    if (descriptorLength != targetLength + nameLength + suffixLength + 2) {
       return false;
     }
 
@@ -69,6 +83,31 @@ classical class TestSourceTests {
       offset += 1;
     }
 
+    if (-1 < caseIndex) {
+      long suffixStart = descriptorStart + targetLength + 2 + nameLength;
+      if (descriptor[suffixStart] != 91) {
+        return false;
+      }
+
+      if (caseIndex < 10) {
+        if (descriptor[suffixStart + 1] != 48 + caseIndex) {
+          return false;
+        }
+      } else {
+        if (descriptor[suffixStart + 1] != 48 + caseIndex / 10) {
+          return false;
+        }
+
+        if (descriptor[suffixStart + 2] != 48 + caseIndex % 10) {
+          return false;
+        }
+      }
+
+      if (descriptor[descriptorStart + descriptorLength - 1] != 93) {
+        return false;
+      }
+    }
+
     return true;
   }
 
@@ -80,7 +119,8 @@ classical class TestSourceTests {
     borrow byteview descriptors,
     long descriptorStart,
     long caseCount,
-    borrow byteview targetName
+    borrow byteview targetName,
+    long caseIndex
   ) {
     long cursor = descriptorStart;
     long matched = 0;
@@ -97,7 +137,8 @@ classical class TestSourceTests {
           descriptors,
           nameStart,
           nameLength,
-          targetName
+          targetName,
+          caseIndex
         )
       ) {
         matched += 1;
@@ -110,6 +151,113 @@ classical class TestSourceTests {
     }
 
     return matched == 1;
+  }
+
+  private SourceTestRows parameterRows(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long tokenCount,
+    long declaration,
+    borrow mut words rowValues
+  ) {
+    if (tokenCount < declaration + 10) {
+      return new SourceTestRows(0, false);
+    }
+
+    long typeHash = tokenHash(source, tokenStarts, tokenLengths, declaration + 4);
+    boolean longRows = typeHash == TOKEN_LONG;
+    if (longRows == false) {
+      if (typeHash != TOKEN_BOOLEAN) {
+        return new SourceTestRows(0, false);
+      }
+    }
+
+    if (tokenKinds[declaration + 5] != 1) {
+      return new SourceTestRows(0, false);
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, declaration + 6, PUNCTUATION_CLOSE_PAREN)
+        == false
+    ) {
+      return new SourceTestRows(0, false);
+    }
+
+    if (tokenHash(source, tokenStarts, tokenLengths, declaration + 7) != TOKEN_CASES) {
+      return new SourceTestRows(0, false);
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, declaration + 8, PUNCTUATION_OPEN_PAREN)
+        == false
+    ) {
+      return new SourceTestRows(0, false);
+    }
+
+    long cursor = declaration + 9;
+    long rowCount = 0;
+    while (rowCount < MAX_CASES) limit MAX_CASES {
+      if (cursor < tokenCount) {} else {
+        return new SourceTestRows(rowCount, false);
+      }
+
+      long value = 0;
+      if (longRows) {
+        long width = signedNumberWidth(source, tokenKinds, tokenStarts, cursor);
+        if (width < 1) {
+          return new SourceTestRows(rowCount, false);
+        }
+
+        if (signedNumberValid(source, tokenStarts, tokenLengths, cursor) == false) {
+          return new SourceTestRows(rowCount, false);
+        }
+
+        value = parsedSignedNumber(source, tokenStarts, tokenLengths, cursor);
+        cursor += width;
+      } else {
+        long valueHash = tokenHash(source, tokenStarts, tokenLengths, cursor);
+        if (valueHash == TOKEN_TRUE) {
+          value = 1;
+        } else {
+          if (valueHash != TOKEN_FALSE) {
+            return new SourceTestRows(rowCount, false);
+          }
+        }
+
+        cursor += 1;
+      }
+
+      long prior = 0;
+      while (prior < rowCount) limit MAX_CASES {
+        if (rowValues[prior] == value) {
+          return new SourceTestRows(rowCount, false);
+        }
+
+        prior += 1;
+      }
+
+      set(rowValues, rowCount, value);
+      rowCount += 1;
+      if (cursor < tokenCount) {} else {
+        return new SourceTestRows(rowCount, false);
+      }
+
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_CLOSE_PAREN)
+      ) {
+        return new SourceTestRows(rowCount, true);
+      }
+
+      if (punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_COMMA)) {
+        cursor += 1;
+      } else {
+        return new SourceTestRows(rowCount, false);
+      }
+    }
+
+    return new SourceTestRows(rowCount, false);
   }
 
   private boolean uniqueTestName(
@@ -134,7 +282,7 @@ classical class TestSourceTests {
     return true;
   }
 
-  /// Discovers and binds the bounded parameterless root-test profile.
+  /// Discovers and binds the bounded root-test profile.
   public SourceTestDiscovery discoverRootTests(
     borrow byteview input,
     long planStart,
@@ -145,13 +293,14 @@ classical class TestSourceTests {
     borrow byteview targetName
   ) {
     long sourceLength = validatedSourceLength(input, planStart, planLength, rootOrdinal);
-    region arena = new region(/* bytes= */ 106496, /* allocations= */ 4);
+    region arena = new region(/* bytes= */ 107008, /* allocations= */ 5);
     bytes sourceBytes = allocateBytes(arena, sourceLength);
     copyValidatedSource(input, planStart, planLength, rootOrdinal, sourceBytes);
     utf8 source = freezeUtf8(sourceBytes);
     words tokenKinds = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(arena, MAX_COMPILER_TOKENS);
+    words rowValues = allocate(arena, MAX_CASES);
     long tokenCount = 0;
     ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);
     match (scanned) {
@@ -170,7 +319,6 @@ classical class TestSourceTests {
     while (token + 4 < tokenCount) limit MAX_COMPILER_TOKENS {
       if (tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_TEST) {
         if (tokenHash(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID) {
-          discovered += 1;
           if (uniqueTestName(source, tokenStarts, tokenLengths, token + 2) == false) {
             supported = false;
           }
@@ -202,13 +350,49 @@ classical class TestSourceTests {
                 input,
                 descriptorStart,
                 caseCount,
-                targetName
+                targetName,
+                -1
               )
             ) {
               matchedDeclarations += 1;
             }
+
+            discovered += 1;
           } else {
-            supported = false;
+            SourceTestRows rows = parameterRows(
+              source,
+              tokenKinds,
+              tokenStarts,
+              tokenLengths,
+              tokenCount,
+              token,
+              rowValues
+            );
+            if (rows.supported == false) {
+              supported = false;
+            }
+
+            long row = 0;
+            while (row < rows.count) limit MAX_CASES {
+              if (
+                declarationMatchesOneDescriptor(
+                  source,
+                  tokenStarts,
+                  tokenLengths,
+                  token + 2,
+                  input,
+                  descriptorStart,
+                  caseCount,
+                  targetName,
+                  row
+                )
+              ) {
+                matchedDeclarations += 1;
+              }
+
+              discovered += 1;
+              row += 1;
+            }
           }
         }
       }
@@ -225,6 +409,7 @@ classical class TestSourceTests {
       matched = false;
     }
 
+    drop(rowValues);
     drop(tokenLengths);
     drop(tokenStarts);
     drop(tokenKinds);

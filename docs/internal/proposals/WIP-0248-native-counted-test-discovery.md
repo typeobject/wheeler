@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, source discovery |
 | Depends on | WIP-0218, WIP-0225, WIP-0247 |
 | Supersedes | WIP-0247 one-declaration discovery bound |
-| Superseded by | Native parameter-row discovery |
+| Superseded by | WIP-0249 native parameter-row discovery |
 
 ## Summary
 
@@ -89,3 +89,4 @@ Rejected. Silent omission would preserve Java discovery authority.
 - [WIP-0218](WIP-0218-bounded-native-descriptor-runner.md)
 - [WIP-0225](WIP-0225-native-case-discovery-order.md)
 - [WIP-0247](WIP-0247-native-parameterless-test-discovery.md)
+- [WIP-0249](WIP-0249-native-parameter-row-discovery.md)

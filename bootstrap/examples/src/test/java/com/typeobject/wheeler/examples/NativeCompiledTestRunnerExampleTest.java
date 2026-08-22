@@ -96,6 +96,17 @@ final class NativeCompiledTestRunnerExampleTest {
         }
       }
       """;
+  private static final String PARAMETERIZED_TESTS = """
+      module pkg.test;
+      classical class ParameterizedTests {
+        test void longs(long input) cases(-1, 0, 2) {
+          assert(true);
+        }
+        test void flags(boolean input) cases(false, true) {
+          assert(true);
+        }
+      }
+      """;
   private static final String IMPORTED = """
       module pkg.helper;
       classical class Helper {
@@ -159,6 +170,43 @@ final class NativeCompiledTestRunnerExampleTest {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
     assertCanonicalReport(runner, PASSING, 0);
     assertCanonicalReport(runner, FAILING, 1);
+  }
+
+  @Test
+  void discoversCanonicalLongAndBooleanParameterRows() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    var testCases = new WheelerCompiler().compilePackageTests(
+        Map.of("Test.w", PARAMETERIZED_TESTS), Map.of(), "pkg.test");
+    var artifacts = testCases.stream()
+        .map(testcase -> new NamedArtifact(
+            "test::" + testcase.name().substring(testcase.name().lastIndexOf("::") + 2),
+            new BytecodeWriter().write(testcase.program())))
+        .toList();
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", PARAMETERIZED_TESTS));
+    byte[] report = execute(runner, descriptors(MANIFEST, sources, artifacts));
+
+    assertEquals(5, report[32]);
+    assertEquals(5, report[34]);
+  }
+
+  @Test
+  void rejectsDuplicateNativeParameterRows() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    var testCases = new WheelerCompiler().compilePackageTests(
+        Map.of("Test.w", PARAMETERIZED_TESTS), Map.of(), "pkg.test");
+    var artifacts = testCases.stream()
+        .map(testcase -> new NamedArtifact(
+            "test::" + testcase.name().substring(testcase.name().lastIndexOf("::") + 2),
+            new BytecodeWriter().write(testcase.program())))
+        .toList();
+    String duplicateRows = PARAMETERIZED_TESTS.replace(
+        "cases(false, true)", "cases(false, false)");
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", duplicateRows));
+
+    VirtualMachine invalid = VirtualMachine.withBinaryInput(
+        runner, descriptors(MANIFEST, sources, artifacts), 39);
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(invalid));
+    assertArrayEquals(new byte[39], invalid.hostOutput());
   }
 
   @Test
