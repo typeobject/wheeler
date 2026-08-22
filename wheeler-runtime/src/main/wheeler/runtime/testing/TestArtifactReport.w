@@ -3,6 +3,7 @@
 module wheeler.runtime.testing.test_artifact_report;
 
 import wheeler.compiler.opcodes;
+import wheeler.compiler.verifier;
 import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
 import wheeler.runtime.artifact_execution;
@@ -118,6 +119,54 @@ classical class TestArtifactReport {
     return assertions;
   }
 
+  private boolean assertionFailed(borrow byteview artifact, ArtifactOutcome outcome) {
+    assert(outcome.errorOffset + 1 < bufferLength(artifact));
+    long opcode = readUnsigned(artifact, outcome.errorOffset, /* width= */ 2);
+    if (opcode == OPCODE_EXPECT_EQ) {
+      return true;
+    }
+
+    return opcode == OPCODE_EXPECT_TRUE;
+  }
+
+  private long writeFailureDiagnostic(
+    borrow byteview artifact,
+    ArtifactOutcome outcome,
+    borrow mut bytes output,
+    long cursor
+  ) {
+    setByte(output, cursor, /* codeLengthLow= */ 8);
+    setByte(output, cursor + 1, /* codeLengthHigh= */ 0);
+    cursor += 2;
+    if (verifyArtifact(artifact, bufferLength(artifact)) != 1) {
+      writeAscii(output, cursor, "WTEST004");
+      cursor += 8;
+      setByte(output, cursor, /* messageLengthLow= */ 35);
+      setByte(output, cursor + 1, /* messageLengthHigh= */ 0);
+      cursor += 2;
+      writeAscii(output, cursor, "native artifact verification failed");
+      return cursor + 35;
+    }
+
+    if (assertionFailed(artifact, outcome)) {
+      writeAscii(output, cursor, "WTEST003");
+      cursor += 8;
+      setByte(output, cursor, /* messageLengthLow= */ 28);
+      setByte(output, cursor + 1, /* messageLengthHigh= */ 0);
+      cursor += 2;
+      writeAscii(output, cursor, "native test assertion failed");
+      return cursor + 28;
+    }
+
+    writeAscii(output, cursor, "WTEST005");
+    cursor += 8;
+    setByte(output, cursor, /* messageLengthLow= */ 32);
+    setByte(output, cursor + 1, /* messageLengthHigh= */ 0);
+    cursor += 2;
+    writeAscii(output, cursor, "native artifact execution failed");
+    return cursor + 32;
+  }
+
   private long writePassingCaseResult(
     borrow byteview artifact,
     ArtifactOutcome outcome,
@@ -187,14 +236,9 @@ classical class TestArtifactReport {
     borrow byteview targetName,
     borrow byteview caseIdentity,
     borrow byteview sourceIdentity,
-    borrow byteview diagnosticCode,
-    borrow byteview diagnosticMessage,
     borrow mut bytes output
   ) {
     assert(!outcome.passed);
-    assert(0 < bufferLength(diagnosticCode));
-    assert(bufferLength(diagnosticCode) < MAX_METADATA_BYTES + 1);
-    assert(bufferLength(diagnosticMessage) < MAX_DIAGNOSTIC_BYTES + 1);
     region staging = new region(/* bytes= */ 1120, /* allocations= */ 4);
     bytes artifactIdentity = allocateBytes(staging, IDENTITY_BYTES);
     hashSha256(artifact, artifactIdentity, staging);
@@ -205,8 +249,7 @@ classical class TestArtifactReport {
     cursor = writeField(caseIdentity, output, cursor);
     cursor = writeField(sourceIdentity, output, cursor);
     cursor = writeIdentity(artifactIdentity, output, cursor);
-    cursor = writeField(diagnosticCode, output, cursor);
-    cursor = writeField(diagnosticMessage, output, cursor);
+    cursor = writeFailureDiagnostic(artifact, outcome, output, cursor);
     setByte(output, cursor, /* executionIdentityLengthLow= */ 0);
     setByte(output, cursor + 1, /* executionIdentityLengthHigh= */ 0);
     setByte(output, cursor + 2, /* coverageIdentityLengthLow= */ 0);
@@ -230,8 +273,6 @@ classical class TestArtifactReport {
     borrow byteview targetName,
     borrow byteview caseIdentity,
     borrow byteview sourceIdentity,
-    borrow byteview failureCode,
-    borrow byteview failureMessage,
     borrow mut bytes output
   ) {
     validateMetadata(packageName, packageVersion, targetName, caseIdentity, sourceIdentity);
@@ -262,8 +303,6 @@ classical class TestArtifactReport {
         targetName,
         caseIdentity,
         sourceIdentity,
-        failureCode,
-        failureMessage,
         output
       );
     }
@@ -283,8 +322,6 @@ classical class TestArtifactReport {
     borrow byteview targetName,
     borrow byteview caseIdentity,
     borrow byteview sourceIdentity,
-    borrow byteview failureCode,
-    borrow byteview failureMessage,
     borrow mut bytes output
   ) {
     assert(bufferLength(runnerIdentity) == 64);
@@ -298,8 +335,6 @@ classical class TestArtifactReport {
       targetName,
       caseIdentity,
       sourceIdentity,
-      failureCode,
-      failureMessage,
       caseResult
     );
     long frameLength = 68 + caseLength;

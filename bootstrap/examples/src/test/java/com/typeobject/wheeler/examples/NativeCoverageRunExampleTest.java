@@ -37,6 +37,16 @@ final class NativeCoverageRunExampleTest {
         }
       }
       """;
+  private static final String RUNTIME_FAILURE_SUBJECT = """
+      classical class RuntimeFailureSubject {
+        entry void main() {
+          long index = 0;
+          while (index < 5000) limit 5000 {
+            index += 1;
+          }
+        }
+      }
+      """;
   private static final String GLOBAL_SUBJECT = """
       classical class GlobalSubject {
         state long first = 7;
@@ -109,6 +119,8 @@ final class NativeCoverageRunExampleTest {
     Program compiler = NativeModuleCompilerHarness.program();
     byte[] passing = NativeModuleCompilerHarness.compile(compiler, List.of(), SUBJECT);
     byte[] failing = NativeModuleCompilerHarness.compile(compiler, List.of(), FAILING_SUBJECT);
+    byte[] runtimeFailure = NativeModuleCompilerHarness.compile(
+        compiler, List.of(), RUNTIME_FAILURE_SUBJECT);
     byte[] input = twoCaseInput(0, 1, passing, failing);
     VirtualMachine machine = VirtualMachine.withBinaryInput(twoCaseRunner(), input, 39);
     CompilerMachineRunner.runWithoutRewindHistory(machine);
@@ -129,6 +141,22 @@ final class NativeCoverageRunExampleTest {
     assertArrayEquals(
         expectedSelectedReport(failing, false),
         executeTwoCase(twoCaseInput(2, 3, passing, failing)));
+    assertArrayEquals(
+        expectedSelectedReport(
+            runtimeFailure,
+            false,
+            "WTEST005",
+            "native artifact execution failed",
+            0),
+        executeTwoCase(twoCaseInput(2, 3, passing, runtimeFailure)));
+    assertArrayEquals(
+        expectedSelectedReport(
+            invalidFailing,
+            false,
+            "WTEST004",
+            "native artifact verification failed",
+            0),
+        executeTwoCase(twoCaseInput(2, 3, passing, invalidFailing)));
     byte[] invalidPassing = passing.clone();
     invalidPassing[0] ^= 1;
     assertArrayEquals(
@@ -265,6 +293,21 @@ final class NativeCoverageRunExampleTest {
 
   private static byte[] expectedSelectedReport(byte[] artifact, boolean passing)
       throws Exception {
+    return expectedSelectedReport(
+        artifact,
+        passing,
+        passing ? "" : "WTEST003",
+        passing ? "" : "native test assertion failed",
+        1);
+  }
+
+  private static byte[] expectedSelectedReport(
+      byte[] artifact,
+      boolean passing,
+      String diagnosticCode,
+      String diagnosticMessage,
+      int assertionCount)
+      throws Exception {
     MessageDigest report = MessageDigest.getInstance("SHA-256");
     digestField(report, "wheeler.test-report/2");
     digestField(report, "%064x".formatted(1));
@@ -280,9 +323,9 @@ final class NativeCoverageRunExampleTest {
       digestField(report, passCoverageIdentity());
     } else {
       digestField(report, "FAIL");
-      digestField(report, "WTEST003");
-      digestField(report, "native test assertion failed");
-      digestInteger(report, 1);
+      digestField(report, diagnosticCode);
+      digestField(report, diagnosticMessage);
+      digestInteger(report, assertionCount);
       digestInteger(report, 0);
       digestField(report, "");
       digestField(report, "");

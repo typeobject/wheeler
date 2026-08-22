@@ -6,7 +6,7 @@ import wheeler.runtime.testing.test_artifact_report;
 
 classical class NativeOneCaseTestRunner {
   entry void main(borrow byteview artifact, borrow mut bytes output) {
-    region metadata = new region(/* bytes= */ 236, /* allocations= */ 8);
+    region metadata = new region(/* bytes= */ 200, /* allocations= */ 6);
     bytes runner = allocateBytes(metadata, /* length= */ 64);
     writeAscii(
       runner,
@@ -31,10 +31,6 @@ classical class NativeOneCaseTestRunner {
       /* offset= */ 0,
       "0000000000000000000000000000000000000000000000000000000000000003"
     );
-    bytes failureCode = allocateBytes(metadata, /* length= */ 8);
-    writeAscii(failureCode, /* offset= */ 0, "WTEST003");
-    bytes failureMessage = allocateBytes(metadata, /* length= */ 28);
-    writeAscii(failureMessage, /* offset= */ 0, "native test assertion failed");
     long length = deriveArtifactReportIdentity(
       artifact,
       runner,
@@ -43,13 +39,9 @@ classical class NativeOneCaseTestRunner {
       target,
       caseIdentity,
       sourceIdentity,
-      failureCode,
-      failureMessage,
       output
     );
     setOutputLength(output, length);
-    drop(failureMessage);
-    drop(failureCode);
     drop(sourceIdentity);
     drop(caseIdentity);
     drop(target);

@@ -44,7 +44,7 @@ classical class NativeTwoCaseTestRunner {
     assert(secondLength < 32769);
     assert(secondHeader + 4 + secondLength == bufferLength(input));
 
-    region staging = new region(/* bytes= */ 88373, /* allocations= */ 22);
+    region staging = new region(/* bytes= */ 88337, /* allocations= */ 20);
     bytes firstArtifact = allocateBytes(staging, firstLength);
     long firstCopied = copyRange(
       input,
@@ -147,10 +147,6 @@ classical class NativeTwoCaseTestRunner {
     );
     assert(shardCursor == 64);
     boolean secondSelected = assignedToShard(shardInput);
-    bytes failureCode = allocateBytes(staging, /* length= */ 8);
-    writeAscii(failureCode, /* offset= */ 0, "WTEST003");
-    bytes failureMessage = allocateBytes(staging, /* length= */ 28);
-    writeAscii(failureMessage, /* offset= */ 0, "native test assertion failed");
     bytes firstResult = allocateBytes(staging, /* length= */ 5345);
     long firstResultLength = 0;
     if (firstSelected) {
@@ -161,8 +157,6 @@ classical class NativeTwoCaseTestRunner {
         target,
         firstCase,
         firstSource,
-        failureCode,
-        failureMessage,
         firstResult
       );
     }
@@ -177,8 +171,6 @@ classical class NativeTwoCaseTestRunner {
         target,
         secondCase,
         secondSource,
-        failureCode,
-        failureMessage,
         secondResult
       );
     }
@@ -260,9 +252,7 @@ classical class NativeTwoCaseTestRunner {
     drop(frame);
     drop(secondResult);
     drop(firstResult);
-    drop(failureMessage);
     drop(shardInput);
-    drop(failureCode);
     drop(secondCase);
     drop(firstCase);
     drop(secondRawCase);

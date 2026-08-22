@@ -9,7 +9,7 @@
 | Area | Native testing, report summaries, publication |
 | Depends on | WIP-0018, WIP-0198, WIP-0213 |
 | Supersedes | Identity-only two-case runner output |
-| Superseded by | None |
+| Superseded by | WIP-0215 runtime-owned failure diagnostics |
 
 ## Summary
 
@@ -87,3 +87,4 @@ Rejected. Both products become visible only after every selected case reduces su
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0198](WIP-0198-runtime-test-summary-authority.md)
 - [WIP-0213](WIP-0213-native-runner-shard-selection.md)
+- [WIP-0215](WIP-0215-native-test-failure-diagnostics.md)
