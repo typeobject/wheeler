@@ -34,6 +34,9 @@ final class NativeCompiledTestRunnerExampleTest {
       dependencies: []
       capabilities: []
       """;
+  private static final String TWO_SOURCE_MANIFEST = MANIFEST.replace(
+      "      - \"src/Test.w\"",
+      "      - \"src/A.w\"\n      - \"src/Test.w\"");
   private static final String PASSING = """
       module pkg.test;
       classical class SourceTest {
@@ -43,12 +46,41 @@ final class NativeCompiledTestRunnerExampleTest {
       }
       """;
   private static final String FAILING = PASSING.replace("assert(true);", "assert(false);");
+  private static final String IMPORTED = """
+      module pkg.helper;
+      classical class Helper {
+        public const long ANSWER = 7;
+      }
+      """;
+  private static final String IMPORTING = """
+      module pkg.test;
+      import pkg.helper;
+      classical class SourceTest {
+        entry void main() {
+          assert(true);
+        }
+      }
+      """;
 
   @Test
   void compiledSourcesProduceCanonicalArtifactReports() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
     assertCanonicalReport(runner, PASSING, 0);
     assertCanonicalReport(runner, FAILING, 1);
+  }
+
+  @Test
+  void compilesTheManifestRootWithItsLocalImport() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    var sources = List.of(
+        new NativeTestSourcePlan.Source("src/A.w", IMPORTED),
+        new NativeTestSourcePlan.Source("src/Test.w", IMPORTING));
+    byte[] artifact = new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+        Map.of("A.w", IMPORTED, "Test.w", IMPORTING), "pkg.test"));
+
+    assertArrayEquals(
+        execute(runner, descriptor(TWO_SOURCE_MANIFEST, sources, artifact)),
+        execute(runner, descriptor(TWO_SOURCE_MANIFEST, sources, new byte[0])));
   }
 
   private static void assertCanonicalReport(
@@ -64,16 +96,23 @@ final class NativeCompiledTestRunnerExampleTest {
   }
 
   private static byte[] descriptor(String source, byte[] artifact) {
-    byte[] plan = NativeTestSourcePlan.write(List.of(
-        new NativeTestSourcePlan.Source("src/Test.w", source)));
+    return descriptor(
+        MANIFEST,
+        List.of(new NativeTestSourcePlan.Source("src/Test.w", source)),
+        artifact);
+  }
+
+  private static byte[] descriptor(
+      String manifest, List<NativeTestSourcePlan.Source> sources, byte[] artifact) {
+    byte[] plan = NativeTestSourcePlan.write(sources);
     ByteArrayOutputStream input = new ByteArrayOutputStream();
     input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
         .putShort((short) 0).putShort((short) 1).array());
     writeShortText(input, "pkg");
     writeShortText(input, "1.0.0");
     writeShortText(input, "test");
-    writeBytes(input, MANIFEST.getBytes(StandardCharsets.UTF_8));
-    writeBytes(input, NativeTestManifestInput.emptyLock(MANIFEST));
+    writeBytes(input, manifest.getBytes(StandardCharsets.UTF_8));
+    writeBytes(input, NativeTestManifestInput.emptyLock(manifest));
     writeBytes(input, plan);
     input.write(1);
     writeShortText(input, "test::source");

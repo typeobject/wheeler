@@ -196,14 +196,30 @@ classical class TestRunner {
     copied = copyRange(input, targetStart, targetLength, target, /* outputStart= */ 0);
     assert(copied == targetLength);
     assert(validTargetSourcePlan(input, sourcePlanStart, sourcePlanLength));
-    long compiledSourceLength = 0;
+    long compiledSourceCount = 0;
+    long firstCompiledSourceLength = 0;
+    long secondCompiledSourceLength = 0;
+    long compiledRootOrdinal = 0;
     if (compileSource) {
-      compiledSourceLength = validatedSingleSourceLength(
+      compiledSourceCount = validatedSourceCount(input, sourcePlanStart, sourcePlanLength);
+      assert(0 < compiledSourceCount);
+      assert(compiledSourceCount < 3);
+      firstCompiledSourceLength = validatedSourceLength(
         input,
         sourcePlanStart,
-        sourcePlanLength
+        sourcePlanLength,
+        /* ordinal= */ 0
       );
-      assert(compiledSourceLength < 4097);
+      assert(firstCompiledSourceLength < 4097);
+      if (compiledSourceCount == 2) {
+        secondCompiledSourceLength = validatedSourceLength(
+          input,
+          sourcePlanStart,
+          sourcePlanLength,
+          /* ordinal= */ 1
+        );
+        assert(secondCompiledSourceLength < 4097);
+      }
     }
 
     assert(
@@ -218,6 +234,18 @@ classical class TestRunner {
         sourcePlanLength
       )
     );
+    if (compileSource) {
+      compiledRootOrdinal = validatedRootSourceOrdinal(
+        input,
+        manifestStart,
+        manifestLength,
+        target,
+        sourcePlanStart
+      );
+      assert(-1 < compiledRootOrdinal);
+      assert(compiledRootOrdinal < compiledSourceCount);
+    }
+
     bytes rawManifestIdentity = allocateBytes(staging, /* length= */ 32);
     hashSha256Range(input, manifestStart, manifestLength, rawManifestIdentity, staging);
     bytes manifestIdentity = allocateBytes(staging, /* length= */ 64);
@@ -300,11 +328,53 @@ classical class TestRunner {
         bytes artifactStorage = allocateBytes(staging, MAX_PAYLOAD_BYTES);
         long executionArtifactLength = artifactLength;
         if (artifactLength == 0) {
-          bytes sourceBytes = allocateBytes(staging, compiledSourceLength);
-          copyValidatedSingleSource(input, sourcePlanStart, sourcePlanLength, sourceBytes);
-          utf8 sourceText = freezeUtf8(sourceBytes);
-          executionArtifactLength = compileTestSource(sourceText, artifactStorage);
-          drop(sourceText);
+          if (compiledSourceCount == 1) {
+            bytes sourceBytes = allocateBytes(staging, firstCompiledSourceLength);
+            copyValidatedSource(
+              input,
+              sourcePlanStart,
+              sourcePlanLength,
+              compiledRootOrdinal,
+              sourceBytes
+            );
+            utf8 sourceText = freezeUtf8(sourceBytes);
+            executionArtifactLength = compileTestSource(sourceText, artifactStorage);
+            drop(sourceText);
+          } else {
+            long importedOrdinal = 1 - compiledRootOrdinal;
+            long rootLength = firstCompiledSourceLength;
+            long importedLength = secondCompiledSourceLength;
+            if (compiledRootOrdinal == 1) {
+              rootLength = secondCompiledSourceLength;
+              importedLength = firstCompiledSourceLength;
+            }
+
+            bytes importedBytes = allocateBytes(staging, importedLength);
+            copyValidatedSource(
+              input,
+              sourcePlanStart,
+              sourcePlanLength,
+              importedOrdinal,
+              importedBytes
+            );
+            bytes rootBytes = allocateBytes(staging, rootLength);
+            copyValidatedSource(
+              input,
+              sourcePlanStart,
+              sourcePlanLength,
+              compiledRootOrdinal,
+              rootBytes
+            );
+            utf8 importedSource = freezeUtf8(importedBytes);
+            utf8 rootSource = freezeUtf8(rootBytes);
+            executionArtifactLength = compileImportedTestSource(
+              importedSource,
+              rootSource,
+              artifactStorage
+            );
+            drop(rootSource);
+            drop(importedSource);
+          }
         } else {
           copied = copyRange(
             input,

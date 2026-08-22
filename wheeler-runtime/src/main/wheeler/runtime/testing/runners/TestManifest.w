@@ -6,6 +6,7 @@ import wheeler.runtime.testing.runners.test_source_modules;
 
 classical class TestManifest {
   private const long MAX_MANIFEST_BYTES = 4096;
+  private const long MAX_SOURCES = 64;
 
   private long lineEnd(borrow byteview input, long cursor, long end) {
     long scan = cursor;
@@ -120,6 +121,81 @@ classical class TestManifest {
     }
 
     return input[end - 1] == 34;
+  }
+
+  /// Finds the root source ordinal after complete manifest and plan validation.
+  public long validatedRootSourceOrdinal(
+    borrow byteview input,
+    long start,
+    long length,
+    borrow byteview targetName,
+    long sourcePlanStart
+  ) {
+    long end = start + length;
+    long cursor = start;
+    boolean runnableKind = false;
+    boolean candidate = false;
+    while (cursor < end) limit MAX_MANIFEST_BYTES {
+      long found = lineEnd(input, cursor, end);
+      long lineLength = found - cursor;
+      if (9 < lineLength) {
+        if (rangeHash(input, cursor, /* length= */ 10) == 2457211845) {
+          runnableKind = exactLine(
+            input,
+            cursor,
+            found,
+            /* length= */ 22,
+            /* hash= */ 2378483464
+          );
+          candidate = false;
+        }
+      }
+
+      if (
+        fieldLine(
+          input,
+          cursor,
+          found,
+          /* prefixLength= */ 11,
+          /* prefixHash= */ 3709182977,
+          targetName
+        )
+      ) {
+        candidate = runnableKind;
+      }
+
+      if (candidate) {
+        if (11 < lineLength) {
+          if (rangeHash(input, cursor, /* length= */ 11) == 2520394854) {
+            long rootStart = cursor + 11;
+            long rootLength = lineLength - 12;
+            long sourceCount = readUnsigned32BigEndian(input, sourcePlanStart);
+            long sourceCursor = sourcePlanStart + 4;
+            long source = 0;
+            while (source < sourceCount) limit MAX_SOURCES {
+              long pathLength = readUnsigned32BigEndian(input, sourceCursor);
+              long pathStart = sourceCursor + 4;
+              if (pathLength == rootLength) {
+                if (sameRange(input, pathStart, rootStart, rootLength)) {
+                  return source;
+                }
+              }
+
+              sourceCursor += 4 + pathLength;
+              long sourceLength = readUnsigned32BigEndian(input, sourceCursor);
+              sourceCursor += 4 + sourceLength;
+              source += 1;
+            }
+
+            return -1;
+          }
+        }
+      }
+
+      cursor = found + 1;
+    }
+
+    return -1;
   }
 
   /// Checks canonical header fields and one test-selected target before execution.

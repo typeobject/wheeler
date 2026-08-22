@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, report authority |
 | Depends on | WIP-0018, WIP-0217, WIP-0235, WIP-0236 |
 | Supersedes | WIP-0236 fixed source-execution conformance frame |
-| Superseded by | Native multi-source test compilation and discovery |
+| Superseded by | WIP-0238 native two-source test compilation |
 
 ## Summary
 
@@ -107,3 +107,4 @@ Rejected. The minimal compiler operation accepts one source. Import graph compil
 - [WIP-0217](WIP-0217-runtime-test-runner-authority.md)
 - [WIP-0235](WIP-0235-native-import-cycle-rejection.md)
 - [WIP-0236](WIP-0236-native-source-test-execution.md)
+- [WIP-0238](WIP-0238-native-two-source-test-compilation.md)

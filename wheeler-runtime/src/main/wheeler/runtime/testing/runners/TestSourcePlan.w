@@ -245,26 +245,55 @@ classical class TestSourcePlan {
     return 0;
   }
 
-  /// Returns the source length from a previously validated one-source plan.
-  public long validatedSingleSourceLength(borrow byteview input, long start, long length) {
-    assert(0 < length);
-    assert(readUnsigned32BigEndian(input, start) == 1);
-    long pathLength = readUnsigned32BigEndian(input, start + 4);
-    long sourceLengthOffset = start + 8 + pathLength;
-    return readUnsigned32BigEndian(input, sourceLengthOffset);
-  }
-
-  /// Copies source bytes from a previously validated one-source plan.
-  public void copyValidatedSingleSource(
+  private long validatedSourceLengthOffset(
     borrow byteview input,
     long start,
     long length,
-    borrow mut bytes output
+    long ordinal
   ) {
     assert(0 < length);
-    assert(readUnsigned32BigEndian(input, start) == 1);
-    long pathLength = readUnsigned32BigEndian(input, start + 4);
-    long sourceLengthOffset = start + 8 + pathLength;
+    long sourceCount = readUnsigned32BigEndian(input, start);
+    assert(ordinal < sourceCount);
+    long cursor = start + 4;
+    long source = 0;
+    while (source < ordinal) limit MAX_SOURCES {
+      long pathLength = readUnsigned32BigEndian(input, cursor);
+      cursor += 4 + pathLength;
+      long sourceLength = readUnsigned32BigEndian(input, cursor);
+      cursor += 4 + sourceLength;
+      source += 1;
+    }
+
+    long selectedPathLength = readUnsigned32BigEndian(input, cursor);
+    return cursor + 4 + selectedPathLength;
+  }
+
+  /// Returns the source count from a previously validated plan.
+  public long validatedSourceCount(borrow byteview input, long start, long length) {
+    assert(0 < length);
+    return readUnsigned32BigEndian(input, start);
+  }
+
+  /// Returns one source length from a previously validated plan.
+  public long validatedSourceLength(
+    borrow byteview input,
+    long start,
+    long length,
+    long ordinal
+  ) {
+    long sourceLengthOffset = validatedSourceLengthOffset(input, start, length, ordinal);
+    return readUnsigned32BigEndian(input, sourceLengthOffset);
+  }
+
+  /// Copies one source from a previously validated plan.
+  public void copyValidatedSource(
+    borrow byteview input,
+    long start,
+    long length,
+    long ordinal,
+    borrow mut bytes output
+  ) {
+    long sourceLengthOffset = validatedSourceLengthOffset(input, start, length, ordinal);
     long sourceLength = readUnsigned32BigEndian(input, sourceLengthOffset);
     assert(bufferLength(output) == sourceLength);
     long sourceStart = sourceLengthOffset + 4;
