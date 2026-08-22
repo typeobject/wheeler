@@ -9,7 +9,7 @@
 | Area | Self-hosting, package locks, native testing |
 | Depends on | WIP-0270 |
 | Supersedes | Name-only direct dependency binding |
-| Superseded by | Native prerelease constraints and archive-source binding |
+| Superseded by | WIP-0272 prerelease constraints, then archive-source binding |
 
 ## Summary
 
@@ -89,3 +89,4 @@ Rejected. Stable-only rejection is preferable to false compatibility.
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0270](WIP-0270-native-direct-dependency-binding.md)
+- [WIP-0272](WIP-0272-native-prerelease-dependency-versions.md)

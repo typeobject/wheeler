@@ -467,7 +467,7 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 - [x] The Wheeler compiler slice is promoted into `wheeler.compiler` with canonical tool and entryless library targets. Example roots import it from the exact locked archive. No second compiler source tree remains.
 - [x] The bounded manifest, lock, workspace, plan, archive, canonical-line, and name/path/version modules are promoted into the entryless `wheeler.packages` library. It locks its scanner dependency to `wheeler.compiler` and its binary/SHA-256 primitives to `wheeler.core`. Examples lock the exact graph and retain only executable roots.
 - [ ] Wheeler-written package execution, binary-library linkage, and migration of the complete workspace remain.
-- [ ] Native no-Java recovery uses only committed manifests, locks, and workspace sources or an exported verified vendor closure. WIP-0269 validates complete schema-3 lock structure and ordering in the native test path. WIP-0270 binds direct manifest dependency names to that package set. WIP-0271 checks exact, caret, and tilde stable constraints against locked versions. Prerelease constraints and external import provenance remain.
+- [ ] Native no-Java recovery uses only committed manifests, locks, and workspace sources or an exported verified vendor closure. WIP-0269 validates complete schema-3 lock structure and ordering in the native test path. WIP-0270 binds direct manifest dependency names to that package set. WIP-0271 checks exact, caret, and tilde stable constraints against locked versions. WIP-0272 adds complete prerelease grammar, precedence, and stable-range exclusion. External import provenance remains.
 - [ ] Gradle and duplicate build paths are deleted.
 - [x] Local file-repository publication is content-addressed, immutable, idempotent, and fail-closed.
 - [ ] Authenticated network publication, signing, yanking, and namespace ownership remain.
@@ -555,6 +555,7 @@ Worker count and native scheduling do not enter package identity. Required physi
 - [WIP-0269](WIP-0269-native-dependency-lock-structure.md)
 - [WIP-0270](WIP-0270-native-direct-dependency-binding.md)
 - [WIP-0271](WIP-0271-native-stable-dependency-versions.md)
+- [WIP-0272](WIP-0272-native-prerelease-dependency-versions.md)
 - [YAML 1.2.2](https://yaml.org/spec/1.2.2/)
 - [Python packaging: `pyproject.toml`](https://packaging.python.org/en/latest/specifications/pyproject-toml/)
 - [Conan 2 remotes](https://docs.conan.io/2/reference/commands/remote.html)

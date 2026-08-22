@@ -1,11 +1,18 @@
-//! Checks stable semantic-version constraints against locked package versions.
+//! Checks semantic-version constraints against locked package versions.
 
 module wheeler.runtime.testing.runners.test_package_versions;
 
 classical class TestPackageVersions {
   private const long MAX_METADATA_BYTES = 4096;
 
-  private record StableVersion(boolean valid, long major, long minor, long patch) {}
+  private record SemanticVersion(
+    boolean valid,
+    long major,
+    long minor,
+    long patch,
+    long prereleaseStart,
+    long prereleaseLength
+  ) {}
 
   private record LockedVersion(boolean found, long start, long length) {}
 
@@ -155,8 +162,78 @@ classical class TestPackageVersions {
     return value;
   }
 
-  private StableVersion stableVersion(borrow byteview input, long start, long length) {
-    StableVersion invalid = new StableVersion(false, 0, 0, 0);
+  private boolean validPrereleaseIdentifier(borrow byteview input, long start, long end) {
+    if (start < end) {} else {
+      return false;
+    }
+
+    boolean numeric = true;
+    long cursor = start;
+    while (cursor < end) limit 255 {
+      long value = input[cursor];
+      boolean digit = 47 < value;
+      if (digit) {
+        digit = value < 58;
+      }
+
+      boolean upper = 64 < value;
+      if (upper) {
+        upper = value < 91;
+      }
+
+      boolean lower = 96 < value;
+      if (lower) {
+        lower = value < 123;
+      }
+
+      if (digit == false) {
+        numeric = false;
+        if (upper == false) {
+          if (lower == false) {
+            if (value != 45) {
+              return false;
+            }
+          }
+        }
+      }
+
+      cursor += 1;
+    }
+
+    if (numeric) {
+      if (input[start] == 48) {
+        return end - start == 1;
+      }
+    }
+
+    return true;
+  }
+
+  private boolean validPrerelease(borrow byteview input, long start, long length) {
+    if (length < 1) {
+      return false;
+    }
+
+    long end = start + length;
+    long identifierStart = start;
+    long cursor = start;
+    while (cursor < end) limit 255 {
+      if (input[cursor] == 46) {
+        if (validPrereleaseIdentifier(input, identifierStart, cursor) == false) {
+          return false;
+        }
+
+        identifierStart = cursor + 1;
+      }
+
+      cursor += 1;
+    }
+
+    return validPrereleaseIdentifier(input, identifierStart, end);
+  }
+
+  private SemanticVersion semanticVersion(borrow byteview input, long start, long length) {
+    SemanticVersion invalid = new SemanticVersion(false, 0, 0, 0, 0, 0);
     if (length < 5) {
       return invalid;
     }
@@ -177,14 +254,23 @@ classical class TestPackageVersions {
       return invalid;
     }
 
+    long releaseEnd = end;
     long cursor = patchStart;
-    while (cursor < end) limit 18 {
-      if (input[cursor] < 48) {
-        return invalid;
-      }
+    boolean foundPrerelease = false;
+    while (cursor < end) limit 255 {
+      if (foundPrerelease == false) {
+        if (input[cursor] == 45) {
+          releaseEnd = cursor;
+          foundPrerelease = true;
+        } else {
+          if (input[cursor] < 48) {
+            return invalid;
+          }
 
-      if (57 < input[cursor]) {
-        return invalid;
+          if (57 < input[cursor]) {
+            return invalid;
+          }
+        }
       }
 
       cursor += 1;
@@ -192,7 +278,7 @@ classical class TestPackageVersions {
 
     long major = decimalValue(input, start, first);
     long minor = decimalValue(input, first + 1, second);
-    long patch = decimalValue(input, patchStart, end);
+    long patch = decimalValue(input, patchStart, releaseEnd);
     if (major < 0) {
       return invalid;
     }
@@ -205,10 +291,20 @@ classical class TestPackageVersions {
       return invalid;
     }
 
-    return new StableVersion(true, major, minor, patch);
+    long prereleaseStart = end;
+    long prereleaseLength = 0;
+    if (foundPrerelease) {
+      prereleaseStart = releaseEnd + 1;
+      prereleaseLength = end - prereleaseStart;
+      if (validPrerelease(input, prereleaseStart, prereleaseLength) == false) {
+        return invalid;
+      }
+    }
+
+    return new SemanticVersion(true, major, minor, patch, prereleaseStart, prereleaseLength);
   }
 
-  private long compareStableVersions(StableVersion left, StableVersion right) {
+  private long compareRelease(SemanticVersion left, SemanticVersion right) {
     if (left.major < right.major) {
       return -1;
     }
@@ -236,7 +332,158 @@ classical class TestPackageVersions {
     return 0;
   }
 
-  /// Checks exact, caret, or tilde stable constraints for one locked package.
+  private long identifierEnd(borrow byteview input, long start, long end) {
+    long cursor = start;
+    while (cursor < end) limit 255 {
+      if (input[cursor] == 46) {
+        return cursor;
+      }
+
+      cursor += 1;
+    }
+
+    return end;
+  }
+
+  private boolean numericIdentifier(borrow byteview input, long start, long end) {
+    long cursor = start;
+    while (cursor < end) limit 255 {
+      if (input[cursor] < 48) {
+        return false;
+      }
+
+      if (57 < input[cursor]) {
+        return false;
+      }
+
+      cursor += 1;
+    }
+
+    return true;
+  }
+
+  private long compareIdentifier(
+    borrow byteview input,
+    long leftStart,
+    long leftEnd,
+    long rightStart,
+    long rightEnd
+  ) {
+    boolean leftNumeric = numericIdentifier(input, leftStart, leftEnd);
+    boolean rightNumeric = numericIdentifier(input, rightStart, rightEnd);
+    if (leftNumeric) {
+      if (rightNumeric == false) {
+        return -1;
+      }
+
+      if (leftEnd - leftStart < rightEnd - rightStart) {
+        return -1;
+      }
+
+      if (rightEnd - rightStart < leftEnd - leftStart) {
+        return 1;
+      }
+    } else {
+      if (rightNumeric) {
+        return 1;
+      }
+    }
+
+    long leftLength = leftEnd - leftStart;
+    long rightLength = rightEnd - rightStart;
+    long length = leftLength;
+    if (rightLength < length) {
+      length = rightLength;
+    }
+
+    long offset = 0;
+    while (offset < length) limit 255 {
+      if (input[leftStart + offset] < input[rightStart + offset]) {
+        return -1;
+      }
+
+      if (input[rightStart + offset] < input[leftStart + offset]) {
+        return 1;
+      }
+
+      offset += 1;
+    }
+
+    if (leftLength < rightLength) {
+      return -1;
+    }
+
+    if (rightLength < leftLength) {
+      return 1;
+    }
+
+    return 0;
+  }
+
+  private long comparePrerelease(
+    borrow byteview input,
+    SemanticVersion left,
+    SemanticVersion right
+  ) {
+    if (left.prereleaseLength == 0) {
+      if (right.prereleaseLength == 0) {
+        return 0;
+      }
+
+      return 1;
+    }
+
+    if (right.prereleaseLength == 0) {
+      return -1;
+    }
+
+    long leftEnd = left.prereleaseStart + left.prereleaseLength;
+    long rightEnd = right.prereleaseStart + right.prereleaseLength;
+    long leftCursor = left.prereleaseStart;
+    long rightCursor = right.prereleaseStart;
+    while (leftCursor < leftEnd) limit 64 {
+      if (rightCursor < rightEnd) {} else {
+        return 1;
+      }
+
+      long leftIdentifierEnd = identifierEnd(input, leftCursor, leftEnd);
+      long rightIdentifierEnd = identifierEnd(input, rightCursor, rightEnd);
+      long comparison = compareIdentifier(
+        input,
+        leftCursor,
+        leftIdentifierEnd,
+        rightCursor,
+        rightIdentifierEnd
+      );
+      if (comparison != 0) {
+        return comparison;
+      }
+
+      leftCursor = leftIdentifierEnd + 1;
+      rightCursor = rightIdentifierEnd + 1;
+    }
+
+    if (rightCursor < rightEnd) {
+      return -1;
+    }
+
+    return 0;
+  }
+
+  private long compareSemanticVersions(
+    borrow byteview input,
+    SemanticVersion left,
+    SemanticVersion right
+  ) {
+    long release = compareRelease(left, right);
+    if (release != 0) {
+      return release;
+    }
+
+    return comparePrerelease(input, left, right);
+  }
+
+  /// Checks exact, caret, or tilde constraints for one locked package.
   public boolean lockedVersionAcceptsConstraint(
     borrow byteview input,
     long lockStart,
@@ -264,8 +511,8 @@ classical class TestPackageVersions {
       }
     }
 
-    StableVersion minimum = stableVersion(input, constraintStart + 1, constraintLength - 1);
-    StableVersion candidate = stableVersion(input, locked.start, locked.length);
+    SemanticVersion minimum = semanticVersion(input, constraintStart + 1, constraintLength - 1);
+    SemanticVersion candidate = semanticVersion(input, locked.start, locked.length);
     if (minimum.valid == false) {
       return false;
     }
@@ -274,7 +521,13 @@ classical class TestPackageVersions {
       return false;
     }
 
-    long comparison = compareStableVersions(candidate, minimum);
+    if (candidate.prereleaseLength != 0) {
+      if (minimum.prereleaseLength == 0) {
+        return false;
+      }
+    }
+
+    long comparison = compareSemanticVersions(input, candidate, minimum);
     if (comparison < 0) {
       return false;
     }

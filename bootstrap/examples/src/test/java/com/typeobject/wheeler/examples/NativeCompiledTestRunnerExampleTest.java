@@ -355,6 +355,36 @@ final class NativeCompiledTestRunnerExampleTest {
   }
 
   @Test
+  void enforcesNativePrereleaseDependencyConstraints() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", DECLARED_TEST));
+    String previewManifest = dependencyManifest("^1.0.0-beta.2");
+    byte[] report = execute(runner, descriptorTransport(
+        previewManifest,
+        sources,
+        List.of(),
+        List.of(),
+        true,
+        dependencyLock(previewManifest, "demo.dep", "1.0.0-beta.11")));
+    assertEquals(1, report[32]);
+    assertEquals(1, report[34]);
+
+    String stableManifest = dependencyManifest("^1.0.0");
+    VirtualMachine invalid = VirtualMachine.withBinaryInput(
+        runner,
+        descriptorTransport(
+            stableManifest,
+            sources,
+            List.of(),
+            List.of(),
+            true,
+            dependencyLock(stableManifest, "demo.dep", "1.1.0-beta")),
+        39);
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(invalid));
+    assertArrayEquals(new byte[39], invalid.hostOutput());
+  }
+
+  @Test
   void compilesOneDiscoveredParameterlessTestNatively() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
     var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", DECLARED_TEST));
