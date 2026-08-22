@@ -18,5 +18,7 @@ classical class NativeCompilerSpineTests {
   test void compilesPhysicalCompilerSpine() {
     long width = ENCODING_WIDTH_U16;
     assert(width == 2);
+    long doubled = width + width;
+    assert(doubled == 4);
   }
 }

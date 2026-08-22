@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler testing, semantic coverage |
 | Depends on | WIP-0020, WIP-0279 |
 | Supersedes | Structural-only native compiler spine test |
-| Superseded by | Broader native compiler source assertions |
+| Superseded by | WIP-0281 native compiler arithmetic coverage |
 
 ## Summary
 
@@ -83,3 +83,4 @@ Rejected. The accepted local-binding shape is the proven boundary.
 
 - [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md)
 - [WIP-0279](WIP-0279-native-compiler-package-suite.md)
+- [WIP-0281](WIP-0281-native-compiler-arithmetic-coverage.md)

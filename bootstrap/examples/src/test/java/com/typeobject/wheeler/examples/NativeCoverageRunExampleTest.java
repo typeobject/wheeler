@@ -84,8 +84,8 @@ final class NativeCoverageRunExampleTest {
       classical class UnsupportedCoverageSubject {
         entry void main() {
           long value = 1;
-          long sum = value + 1;
-          assert(sum == 2);
+          long difference = value - 1;
+          assert(difference == 0);
         }
       }
       """;
