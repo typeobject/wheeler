@@ -338,6 +338,10 @@ classical class TestSourcePlan {
       return false;
     }
 
-    return validPlanImports(input, start, sourceCount);
+    if (validPlanImports(input, start, sourceCount) == false) {
+      return false;
+    }
+
+    return validAcyclicImports(input, start, sourceCount);
   }
 }

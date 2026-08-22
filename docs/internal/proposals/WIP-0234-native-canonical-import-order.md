@@ -9,7 +9,7 @@
 | Area | Native testing, source plans, module graph |
 | Depends on | WIP-0009, WIP-0018, WIP-0233 |
 | Supersedes | Unordered native local import declarations |
-| Superseded by | Native import-cycle validation |
+| Superseded by | WIP-0235 native import cycle rejection |
 
 ## Summary
 
@@ -89,3 +89,4 @@ Rejected. Framing and module-graph policy have distinct change boundaries.
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0233](WIP-0233-native-local-import-resolution.md)
+- [WIP-0235](WIP-0235-native-import-cycle-rejection.md)

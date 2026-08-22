@@ -296,6 +296,18 @@ final class NativeCoverageRunExampleTest {
         expectedEmptyReport(),
         executeTests(descriptorHeader(
             0, 1, 0, targetSourcePlan(importedSubject)).toByteArray()));
+    String importingFailingSubject = FAILING_SUBJECT.replace(
+        "module pkg.fail;\n",
+        "module pkg.fail;\nimport pkg.pass;\n");
+    byte[] cyclicImports = descriptorHeader(
+        0, 1, 0, targetSourcePlan(importingFailingSubject, importedSubject)).toByteArray();
+    VirtualMachine invalidCycle = VirtualMachine.withBinaryInput(
+        nativeTestRunner(), cyclicImports, 39);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(invalidCycle));
+    assertArrayEquals(new byte[39], invalidCycle.hostOutput());
+
     for (String invalidSubject : List.of(
         importedSubject.replace("import pkg.fail;", "import pkg.xail;"),
         importedSubject.replace("import pkg.fail;", "import pkg.fail;\nimport pkg.fail;"),
@@ -567,14 +579,7 @@ final class NativeCoverageRunExampleTest {
   }
 
   private static byte[] testLock() {
-    try {
-      String root = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(
-          TEST_MANIFEST.getBytes(StandardCharsets.UTF_8)));
-      return ("schema: 3\nroot: \"" + root + "\"\npackages: []\n")
-          .getBytes(StandardCharsets.UTF_8);
-    } catch (Exception exception) {
-      throw new AssertionError(exception);
-    }
+    return NativeTestManifestInput.emptyLock(TEST_MANIFEST);
   }
 
   private static void writeShortText(ByteArrayOutputStream output, String value) {
@@ -606,8 +611,12 @@ final class NativeCoverageRunExampleTest {
   }
 
   private static byte[] targetSourcePlan(String passSource) {
+    return targetSourcePlan(FAILING_SUBJECT, passSource);
+  }
+
+  private static byte[] targetSourcePlan(String failSource, String passSource) {
     return NativeTestSourcePlan.write(List.of(
-        new NativeTestSourcePlan.Source("src/Fail.w", FAILING_SUBJECT),
+        new NativeTestSourcePlan.Source("src/Fail.w", failSource),
         new NativeTestSourcePlan.Source("src/Pass.w", passSource),
         new NativeTestSourcePlan.Source("src/Runtime.w", RUNTIME_FAILURE_SUBJECT)));
   }

@@ -509,6 +509,184 @@ classical class TestSourceModules {
     return true;
   }
 
+  private long sourceBit(long source) {
+    long shift = source % 32;
+    long bit = 1;
+    long offset = 0;
+    while (offset < shift) limit 31 {
+      bit = bit * 2;
+      offset += 1;
+    }
+
+    return bit;
+  }
+
+  private boolean sourceSetContains(long low, long high, long source) {
+    long bit = sourceBit(source);
+    if (source < 32) {
+      return(low & bit) == bit;
+    }
+
+    return(high & bit) == bit;
+  }
+
+  private long moduleIndex(
+    borrow byteview input,
+    long planStart,
+    long sourceCount,
+    long moduleStart,
+    long moduleLength
+  ) {
+    long cursor = planStart + 4;
+    long source = 0;
+    while (source < sourceCount) limit MAX_SOURCES {
+      long pathLength = readUnsigned32BigEndian(input, cursor);
+      cursor += 4 + pathLength;
+      long sourceLength = readUnsigned32BigEndian(input, cursor);
+      long sourceStart = cursor + 4;
+      if (
+        moduleRangeMatchesSource(input, moduleStart, moduleLength, sourceStart, sourceLength)
+      ) {
+        return source;
+      }
+
+      cursor = sourceStart + sourceLength;
+      source += 1;
+    }
+
+    return -1;
+  }
+
+  /// Rejects cycles in the completely validated local import graph.
+  public boolean validAcyclicImports(borrow byteview input, long start, long sourceCount) {
+    long root = 0;
+    while (root < sourceCount) limit MAX_SOURCES {
+      long rootBit = sourceBit(root);
+      long visitedLow = 0;
+      long visitedHigh = 0;
+      long frontierLow = 0;
+      long frontierHigh = 0;
+      if (root < 32) {
+        visitedLow = rootBit;
+        frontierLow = rootBit;
+      } else {
+        visitedHigh = rootBit;
+        frontierHigh = rootBit;
+      }
+
+      boolean active = frontierLow != 0;
+      if (active == false) {
+        active = frontierHigh != 0;
+      }
+
+      while (active) limit MAX_SOURCES {
+        long nextLow = 0;
+        long nextHigh = 0;
+        long planCursor = start + 4;
+        long source = 0;
+        while (source < sourceCount) limit MAX_SOURCES {
+          long pathLength = readUnsigned32BigEndian(input, planCursor);
+          planCursor += 4 + pathLength;
+          long sourceLength = readUnsigned32BigEndian(input, planCursor);
+          long sourceStart = planCursor + 4;
+          if (sourceSetContains(frontierLow, frontierHigh, source)) {
+            long ownModuleStart = moduleNameStart(input, sourceStart, sourceLength);
+            long ownModuleLength = moduleNameLength(input, sourceStart, sourceLength);
+            long importCursor = ownModuleStart + ownModuleLength + 2;
+            long sourceEnd = sourceStart + sourceLength;
+            boolean scanning = true;
+            while (scanning) limit MAX_SOURCES {
+              while (importCursor < sourceEnd) limit MAX_PLAN_BYTES {
+                if (input[importCursor] == 10) {
+                  importCursor += 1;
+                } else {
+                  break;
+                }
+              }
+
+              if (sourceEnd - importCursor < 8) {
+                scanning = false;
+              } else {
+                boolean imported = input[importCursor] == 105;
+                if (imported) {
+                  imported = input[importCursor + 1] == 109;
+                }
+
+                if (imported) {
+                  imported = input[importCursor + 2] == 112;
+                }
+
+                if (imported) {
+                  imported = input[importCursor + 3] == 111;
+                }
+
+                if (imported) {
+                  imported = input[importCursor + 4] == 114;
+                }
+
+                if (imported) {
+                  imported = input[importCursor + 5] == 116;
+                }
+
+                if (imported) {
+                  imported = input[importCursor + 6] == 32;
+                }
+
+                if (imported == false) {
+                  scanning = false;
+                } else {
+                  long importStart = importCursor + 7;
+                  long importEnd = importStart;
+                  while (input[importEnd] != 59) limit MAX_PATH_BYTES {
+                    importEnd += 1;
+                  }
+
+                  long target = moduleIndex(
+                    input,
+                    start,
+                    sourceCount,
+                    importStart,
+                    importEnd - importStart
+                  );
+                  if (target == root) {
+                    return false;
+                  }
+
+                  if (sourceSetContains(visitedLow, visitedHigh, target) == false) {
+                    long targetBit = sourceBit(target);
+                    if (target < 32) {
+                      visitedLow += targetBit;
+                      nextLow += targetBit;
+                    } else {
+                      visitedHigh += targetBit;
+                      nextHigh += targetBit;
+                    }
+                  }
+
+                  importCursor = importEnd + 2;
+                }
+              }
+            }
+          }
+
+          planCursor = sourceStart + sourceLength;
+          source += 1;
+        }
+
+        frontierLow = nextLow;
+        frontierHigh = nextHigh;
+        active = frontierLow != 0;
+        if (active == false) {
+          active = frontierHigh != 0;
+        }
+      }
+
+      root += 1;
+    }
+
+    return true;
+  }
+
   public boolean validPlanImports(borrow byteview input, long start, long sourceCount) {
     long cursor = start + 4;
     long source = 0;

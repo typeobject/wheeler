@@ -8,6 +8,17 @@ import java.util.HexFormat;
 final class NativeTestManifestInput {
   private NativeTestManifestInput() {}
 
+  static byte[] emptyLock(String manifestText) {
+    try {
+      String root = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(
+          manifestText.getBytes(StandardCharsets.UTF_8)));
+      return ("schema: 3\nroot: \"" + root + "\"\npackages: []\n")
+          .getBytes(StandardCharsets.UTF_8);
+    } catch (Exception exception) {
+      throw new AssertionError(exception);
+    }
+  }
+
   static byte[] replace(
       byte[] input, String manifestText, String original, String replacement) throws Exception {
     if (original.length() != replacement.length()) {
