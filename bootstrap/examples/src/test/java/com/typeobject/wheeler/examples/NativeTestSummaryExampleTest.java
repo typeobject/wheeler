@@ -89,6 +89,10 @@ final class NativeTestSummaryExampleTest {
     Map<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
     sources.put(
+        "TestSummary.w",
+        Files.readString(Path.of(
+            "../wheeler-runtime/src/main/wheeler/runtime/testing/TestSummary.w")));
+    sources.put(
         "NativeTestSummary.w",
         Files.readString(Path.of(
             "../wheeler-conformance/src/main/wheeler/testing/NativeTestSummary.w")));

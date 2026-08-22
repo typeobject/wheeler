@@ -9,13 +9,13 @@
 | Area | Native testing, canonical reduction, Java-free execution |
 | Depends on | WIP-0018, WIP-0195 |
 | Supersedes | None |
-| Superseded by | None |
+| Superseded by | WIP-0198 runtime library ownership |
 
 ## Summary
 
 Reduce a complete bounded set of test outcomes without host collections.
 
-`NativeTestSummary.w` sorts raw case identities, rejects duplicates and unknown statuses, and publishes selected, passed, failed, and successful fields. Input arrival order does not affect the product.
+`TestSummary.w` sorts raw case identities, rejects duplicates and unknown statuses, and writes selected, passed, failed, and successful fields. `NativeTestSummary.w` publishes the result. Input arrival order does not affect the product.
 
 This closes the ordering and summary kernel. Profile-2 case payload hashing, diagnostic reduction, rendering, discovery, and execution remain with WIP-0018.
 
@@ -67,7 +67,7 @@ Rows, bucket counts, and sorted order remain invocation-owned. The caller sees o
 
 ## Package boundary
 
-`wheeler.conformance` exports the `nativetestsummary` deployable target. It reads no package graph, source tree, environment, clock, random source, worker identity, or network state.
+`wheeler.runtime` owns summary reduction under WIP-0198. `wheeler.conformance` exports the `nativetestsummary` deployable boundary. It reads no package graph, source tree, environment, clock, random source, worker identity, or network state.
 
 ## Evidence
 
@@ -106,4 +106,5 @@ Rejected. A duplicate terminal row must never enter report identity or counts.
 
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0195](WIP-0195-native-test-case-identity.md)
+- [WIP-0198](WIP-0198-runtime-test-summary-authority.md)
 - [Package testing reference](../../public/reference/packages.md#tests)

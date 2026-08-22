@@ -10,5 +10,6 @@ import wheeler.runtime.io.portable;
 import wheeler.runtime.io.receipts;
 import wheeler.runtime.testing.test_case_identity;
 import wheeler.runtime.testing.test_shard;
+import wheeler.runtime.testing.test_summary;
 
 classical class RuntimeLibrary {}
