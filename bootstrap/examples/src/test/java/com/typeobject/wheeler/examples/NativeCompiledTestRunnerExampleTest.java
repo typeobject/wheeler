@@ -107,6 +107,17 @@ final class NativeCompiledTestRunnerExampleTest {
         }
       }
       """;
+  private static final String TAGGED_TESTS = """
+      module pkg.test;
+      classical class TaggedTests {
+        test void alpha() tags(fast, unit.core) limits(steps = 512, history = 1) {
+          assert(true);
+        }
+        test void beta() tags(slow) {
+          assert(true);
+        }
+      }
+      """;
   private static final String IMPORTED = """
       module pkg.helper;
       classical class Helper {
@@ -306,12 +317,50 @@ final class NativeCompiledTestRunnerExampleTest {
   }
 
   @Test
-  void rejectsUnsupportedNativeTestTags() throws Exception {
+  void selectsCanonicalNativeTestTags() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
-    String tagged = DECLARED_TEST.replace("passes() {", "passes() tags(fast) {");
-    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", tagged));
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", TAGGED_TESTS));
+    byte[] report = execute(runner, descriptors(
+        MANIFEST,
+        sources,
+        List.of(new NamedArtifact("test::alpha", new byte[0])),
+        List.of("fast", "unit.core")));
+
+    assertEquals(1, report[32]);
+    assertEquals(1, report[34]);
+  }
+
+  @Test
+  void rejectsDuplicateNativeSourceTags() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    String duplicate = TAGGED_TESTS.replace("fast, unit.core", "fast, fast");
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", duplicate));
     VirtualMachine invalid = VirtualMachine.withBinaryInput(
-        runner, descriptor(MANIFEST, sources, new byte[0], "test::passes"), 39);
+        runner, descriptors(MANIFEST, sources, List.of(
+            new NamedArtifact("test::alpha", new byte[0]),
+            new NamedArtifact("test::beta", new byte[0]))), 39);
+
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(invalid));
+    assertArrayEquals(new byte[39], invalid.hostOutput());
+  }
+
+  @Test
+  void rejectsUnknownNativeTestTags() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", TAGGED_TESTS));
+    VirtualMachine invalid = VirtualMachine.withBinaryInput(
+        runner, descriptors(MANIFEST, sources, List.of(), List.of("missing")), 39);
+
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(invalid));
+    assertArrayEquals(new byte[39], invalid.hostOutput());
+  }
+
+  @Test
+  void rejectsNoncanonicalNativeTagSelection() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", TAGGED_TESTS));
+    VirtualMachine invalid = VirtualMachine.withBinaryInput(
+        runner, descriptors(MANIFEST, sources, List.of(), List.of("slow", "fast")), 39);
 
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(invalid));
     assertArrayEquals(new byte[39], invalid.hostOutput());
@@ -649,6 +698,14 @@ final class NativeCompiledTestRunnerExampleTest {
       String manifest,
       List<NativeTestSourcePlan.Source> sources,
       List<NamedArtifact> cases) {
+    return descriptors(manifest, sources, cases, List.of());
+  }
+
+  private static byte[] descriptors(
+      String manifest,
+      List<NativeTestSourcePlan.Source> sources,
+      List<NamedArtifact> cases,
+      List<String> selectedTags) {
     byte[] plan = NativeTestSourcePlan.write(sources);
     ByteArrayOutputStream input = new ByteArrayOutputStream();
     input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
@@ -659,6 +716,8 @@ final class NativeCompiledTestRunnerExampleTest {
     writeBytes(input, manifest.getBytes(StandardCharsets.UTF_8));
     writeBytes(input, NativeTestManifestInput.emptyLock(manifest));
     writeBytes(input, plan);
+    input.write(selectedTags.size());
+    selectedTags.forEach(tag -> writeShortText(input, tag));
     input.write(cases.size());
     for (NamedArtifact testcase : cases) {
       writeShortText(input, testcase.name());

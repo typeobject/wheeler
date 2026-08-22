@@ -47,6 +47,11 @@ final class NativeTestRunnerProgram {
       modules.put(
           source + ".w", RuntimeSources.read("runtime/testing/runners/" + source + ".w"));
     }
+    for (String source : List.of("TestSourceMetadata", "TestTagSelection")) {
+      modules.put(
+          source + ".w",
+          RuntimeSources.read("runtime/testing/runners/metadata/" + source + ".w"));
+    }
     return modules;
   }
 }

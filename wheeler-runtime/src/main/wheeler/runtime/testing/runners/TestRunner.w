@@ -12,6 +12,7 @@ import wheeler.runtime.testing.runners.test_source_compilation;
 import wheeler.runtime.testing.runners.test_source_modules;
 import wheeler.runtime.testing.runners.test_source_plan;
 import wheeler.runtime.testing.runners.test_source_tests;
+import wheeler.runtime.testing.runners.test_tag_selection;
 import wheeler.runtime.testing.test_artifact_report;
 import wheeler.runtime.testing.test_case_identity;
 import wheeler.runtime.testing.test_identity_text;
@@ -127,6 +128,14 @@ classical class TestRunner {
     assert(cursor + sourcePlanLength < bufferLength(input));
     long sourcePlanStart = cursor;
     cursor += sourcePlanLength;
+    long selectionCount = input[cursor];
+    assert(selectionCount < MAX_CASES + 1);
+    cursor += 1;
+    long selectionStart = cursor;
+    TagSelection selection = validatedTagSelection(input, selectionStart, selectionCount);
+    assert(selection.valid);
+    assert(selection.end < bufferLength(input));
+    cursor = selection.end;
     long caseCount = input[cursor];
     assert(caseCount < MAX_CASES + 1);
     cursor += 1;
@@ -269,12 +278,18 @@ classical class TestRunner {
       cursor,
       caseCount,
       target,
+      selectionStart,
+      selectionCount,
       caseKinds,
       caseValues,
       caseStepLimits
     );
     if (0 < discovery.count) {
       assert(discovery.matched);
+    } else {
+      if (0 < selectionCount) {
+        assert(discovery.matched);
+      }
     }
 
     bytes rawSourceIdentity = allocateBytes(staging, /* length= */ 32);

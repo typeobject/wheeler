@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, bounded execution |
 | Depends on | WIP-0258 |
 | Supersedes | Rejection of canonical `limits(...)` metadata |
-| Superseded by | Native test tag selection |
+| Superseded by | WIP-0260 native test tag selection |
 
 ## Summary
 
@@ -21,7 +21,7 @@ Native discovery accepts either an immediate body brace or this exact suffix:
 limits(steps = 100, history = 90) {
 ```
 
-Both values must be canonical positive integers no greater than 4,000,000. Field order, punctuation, and body placement are fixed. Unknown metadata and `tags(...)` still reject closed.
+Both values must be canonical positive integers no greater than 4,000,000. Field order, punctuation, and body placement are fixed. Unknown metadata rejected closed. WIP-0260 subsequently admits canonical tags before limits.
 
 The source step limit now reaches the interpreter for transported and native-compiled artifacts. Exhausting the limit produces the existing stable execution-failure row. It is report data, not a runner trap.
 
@@ -59,7 +59,7 @@ Both parameterless and parameter-row lowering remove the complete declaration he
 
 `enforcesNativeParameterRowStepLimits` attaches a one-step limit to two Boolean rows while three long rows retain the default. The canonical report publishes five selected and three passed cases.
 
-`rejectsInvalidNativeSourceLimits` supplies zero steps. Discovery traps with all 39 output bytes untouched. `rejectsUnsupportedNativeTestTags` preserves the closed tag boundary.
+`rejectsInvalidNativeSourceLimits` supplies zero steps. Discovery traps with all 39 output bytes untouched. WIP-0260 separately proves canonical tag selection and malformed-tag rejection.
 
 The runtime archive contains 306,211 bytes with SHA-256 `3f61ee9ef8de6ceabe2664e643ef794dfcc6755bab626b8ba40388450f7336a8` and root manifest identity `42cb579e63bea46fd92ce5da3789f9b491b35537a43d50d07fca8139657c3ad5`.
 
@@ -106,3 +106,4 @@ Rejected. Host execution machinery is not native test semantics.
 
 - [WIP-0258](WIP-0258-native-bare-test-metadata-profile.md)
 - [WIP-0206](WIP-0206-complete-native-artifact-outcomes.md)
+- [WIP-0260](WIP-0260-native-test-tag-selection.md)

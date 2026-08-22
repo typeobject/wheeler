@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, metadata validation |
 | Depends on | WIP-0249, WIP-0257 |
 | Supersedes | Implicit acceptance of unimplemented test metadata |
-| Superseded by | WIP-0259 native limits and future tag authority |
+| Superseded by | WIP-0259 native limits and WIP-0260 native tags |
 
 ## Summary
 
@@ -22,13 +22,13 @@ The initial native source profile required the declaration body opening brace im
 - `test void name()`
 - `test void name(type value) cases(...)`
 
-WIP-0259 admits exact canonical `limits(...)` syntax. Tags and every unknown suffix still reject before identity, sharding, lowering, compilation, verification, execution, or publication.
+WIP-0259 admits exact canonical `limits(...)` syntax. WIP-0260 admits canonical tags with an explicit selection frame. Every unknown suffix still rejects before identity, sharding, lowering, compilation, verification, execution, or publication.
 
 ## Parser boundary
 
 `SourceTestRows` now retains the token after the canonical closing `cases` parenthesis. Discovery requires that token to be the opening body brace. Parameterless discovery performs the same check at the fixed token offset after `)`.
 
-This closed valid and malformed metadata alike before WIP-0259 split enforced limits from unsupported tags. It does not search raw source for `tags` or `limits`, and it does not silently ignore unknown suffixes. The canonical lexer and punctuation vocabulary remain authority.
+This closed valid and malformed metadata alike before WIP-0259 and WIP-0260 split supported limits and tags from unknown suffixes. It does not search raw source for `tags` or `limits`, and it does not silently ignore unknown suffixes. The canonical lexer and punctuation vocabulary remain authority.
 
 The profile is intentionally narrower than stage 0. Native tags require selection transport and canonical set validation. Native limits require interpreter step and history enforcement. Those features must cross the complete boundary before this rejection is relaxed.
 
@@ -40,9 +40,9 @@ A rejected declaration leaves all output bytes untouched. Java cannot make metad
 
 ## Evidence
 
-`rejectsUnsupportedNativeTestMetadata` inserts `tags(fast)` between the discovered declaration and body while retaining a valid zero-artifact descriptor. Native discovery rejects before compiler invocation, and all 39 output bytes remain zero.
+The original bare-profile evidence inserted metadata between the discovered declaration and body while retaining a valid zero-artifact descriptor. Native discovery rejected before compiler invocation with all 39 output bytes zero. WIP-0259 and WIP-0260 replace that broad rejection with focused positive and negative metadata evidence.
 
-Parameterless, counted, imported, and mixed scalar-row source compilation remain green under the explicit bare profile.
+Parameterless, counted, imported, and mixed scalar-row source compilation remain green under the explicit metadata profile.
 
 The runtime archive contains 298,415 bytes with SHA-256 `33256baca89da2bc97d99ac155f6eb91cc62512be8da570c59fafd83b1d82707` and root manifest identity `42cb579e63bea46fd92ce5da3789f9b491b35537a43d50d07fca8139657c3ad5`.
 
@@ -52,7 +52,7 @@ The conformance archive remains 131,094 bytes with SHA-256 `b866164f0216db3c6b2e
 
 - [x] Parameterless declarations require an immediate body brace.
 - [x] Parameterized declarations require an immediate body brace after `cases(...)`.
-- [x] Unsupported tags and unknown suffixes reject alike.
+- [x] Unknown declaration suffixes reject.
 - [x] Rejection precedes identity, sharding, compilation, and execution.
 - [x] Transported artifacts cannot bypass source metadata validation.
 - [x] Rejection leaves all output bytes untouched.
@@ -82,3 +82,4 @@ Rejected. A feature cannot be half-effective in canonical reports.
 - [WIP-0249](WIP-0249-native-parameter-row-discovery.md)
 - [WIP-0257](WIP-0257-native-parameter-row-compilation.md)
 - [WIP-0259](WIP-0259-native-test-step-limits.md)
+- [WIP-0260](WIP-0260-native-test-tag-selection.md)

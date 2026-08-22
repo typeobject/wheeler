@@ -574,6 +574,7 @@ final class NativeCoverageRunExampleTest {
     input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
         .putInt(sourcePlan.length).array());
     input.writeBytes(sourcePlan);
+    input.write(0);
     input.write(caseCount);
     return input;
   }
