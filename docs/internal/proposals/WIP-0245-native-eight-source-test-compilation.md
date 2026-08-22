@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, module compilation |
 | Depends on | WIP-0235, WIP-0244 |
 | Supersedes | WIP-0244 seven-source compiler bound |
-| Superseded by | Counted native source-graph compilation |
+| Superseded by | WIP-0246 native entry-case identity |
 
 ## Summary
 
@@ -84,3 +84,4 @@ Rejected. Byte parity through one canonical report path is stronger and smaller.
 
 - [WIP-0235](WIP-0235-native-import-cycle-rejection.md)
 - [WIP-0244](WIP-0244-native-seven-source-test-compilation.md)
+- [WIP-0246](WIP-0246-native-entry-case-identity.md)

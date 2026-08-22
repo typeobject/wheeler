@@ -302,6 +302,17 @@ final class NativeCompiledTestRunnerExampleTest {
   }
 
   @Test
+  void rejectsCallerNamedNativeEntryCases() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    byte[] input = descriptor(PASSING, new byte[0]);
+    input[input.length - 5] = (byte) 'x';
+    VirtualMachine machine = VirtualMachine.withBinaryInput(runner, input, 39);
+
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
+    assertArrayEquals(new byte[39], machine.hostOutput());
+  }
+
+  @Test
   void rejectsSourceCountsBeyondTheFixedCompilerProfile() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
     String root = IMPORTING.replace("import pkg.helper;", """
@@ -362,7 +373,7 @@ final class NativeCompiledTestRunnerExampleTest {
     writeBytes(input, NativeTestManifestInput.emptyLock(manifest));
     writeBytes(input, plan);
     input.write(1);
-    writeShortText(input, "test::source");
+    writeShortText(input, "test::entry");
     writeBytes(input, artifact);
     return input.toByteArray();
   }

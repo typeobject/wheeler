@@ -77,6 +77,54 @@ classical class TestDescriptors {
     return true;
   }
 
+  /// Checks the derived entry case name for native source compilation.
+  public boolean validEntryCaseName(
+    borrow byteview input,
+    long start,
+    long length,
+    borrow byteview targetName
+  ) {
+    long targetLength = bufferLength(targetName);
+    if (length != targetLength + 7) {
+      return false;
+    }
+
+    long offset = 0;
+    while (offset < targetLength) limit MAX_CASE_NAME_BYTES {
+      if (input[start + offset] != targetName[offset]) {
+        return false;
+      }
+
+      offset += 1;
+    }
+
+    if (input[start + targetLength] != 58) {
+      return false;
+    }
+
+    if (input[start + targetLength + 1] != 58) {
+      return false;
+    }
+
+    if (input[start + targetLength + 2] != 101) {
+      return false;
+    }
+
+    if (input[start + targetLength + 3] != 110) {
+      return false;
+    }
+
+    if (input[start + targetLength + 4] != 116) {
+      return false;
+    }
+
+    if (input[start + targetLength + 5] != 114) {
+      return false;
+    }
+
+    return input[start + targetLength + 6] == 121;
+  }
+
   /// Compares two names by unsigned canonical UTF-8 bytes.
   public long compareCaseName(
     borrow byteview input,

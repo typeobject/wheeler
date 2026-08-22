@@ -258,6 +258,10 @@ classical class TestRunner {
       bytes caseName = allocateBytes(staging, nameLength);
       copied = copyRange(input, nameStart, nameLength, caseName, /* outputStart= */ 0);
       assert(copied == nameLength);
+      if (compileSource) {
+        assert(validEntryCaseName(caseName, /* start= */ 0, nameLength, target));
+      }
+
       bytes caseInput = allocateBytes(staging, 130 + nameLength);
       copied = copyRange(
         manifestIdentity,
