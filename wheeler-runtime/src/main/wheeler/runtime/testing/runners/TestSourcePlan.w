@@ -103,6 +103,108 @@ classical class TestSourcePlan {
     return 0 < segmentLength;
   }
 
+  private boolean continuation(long scalar) {
+    if (127 < scalar) {
+      return scalar < 192;
+    }
+
+    return false;
+  }
+
+  private boolean validUtf8(borrow byteview input, long start, long length) {
+    long cursor = start;
+    long end = start + length;
+    long second = 0;
+    while (cursor < end) limit MAX_PLAN_BYTES {
+      long first = input[cursor];
+      if (first < 128) {
+        cursor += 1;
+      } else {
+        if (193 < first) {
+          if (first < 224) {
+            if (end - cursor < 2) {
+              return false;
+            }
+
+            if (continuation(input[cursor + 1]) == false) {
+              return false;
+            }
+
+            cursor += 2;
+          } else {
+            if (first < 240) {
+              if (end - cursor < 3) {
+                return false;
+              }
+
+              second = input[cursor + 1];
+              if (continuation(second) == false) {
+                return false;
+              }
+
+              if (continuation(input[cursor + 2]) == false) {
+                return false;
+              }
+
+              if (first == 224) {
+                if (second < 160) {
+                  return false;
+                }
+              }
+
+              if (first == 237) {
+                if (159 < second) {
+                  return false;
+                }
+              }
+
+              cursor += 3;
+            } else {
+              if (first < 245) {
+                if (end - cursor < 4) {
+                  return false;
+                }
+
+                second = input[cursor + 1];
+                if (continuation(second) == false) {
+                  return false;
+                }
+
+                if (continuation(input[cursor + 2]) == false) {
+                  return false;
+                }
+
+                if (continuation(input[cursor + 3]) == false) {
+                  return false;
+                }
+
+                if (first == 240) {
+                  if (second < 144) {
+                    return false;
+                  }
+                }
+
+                if (first == 244) {
+                  if (143 < second) {
+                    return false;
+                  }
+                }
+
+                cursor += 4;
+              } else {
+                return false;
+              }
+            }
+          }
+        } else {
+          return false;
+        }
+      }
+    }
+
+    return cursor == end;
+  }
+
   private long comparePath(
     borrow byteview input,
     long leftStart,
@@ -209,6 +311,10 @@ classical class TestSourcePlan {
 
       cursor += 4;
       if (end - cursor < sourceLength) {
+        return false;
+      }
+
+      if (validUtf8(input, cursor, sourceLength) == false) {
         return false;
       }
 

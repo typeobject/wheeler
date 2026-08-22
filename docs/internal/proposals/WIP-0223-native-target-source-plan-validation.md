@@ -9,7 +9,7 @@
 | Area | Native testing, target sources, canonical framing |
 | Depends on | WIP-0009, WIP-0018, WIP-0222 |
 | Supersedes | Opaque runner target-source plans |
-| Superseded by | None |
+| Superseded by | WIP-0224 strict target-source UTF-8 |
 
 ## Summary
 
@@ -85,3 +85,4 @@ Rejected. Comparing each path with its predecessor proves strict canonical order
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0222](WIP-0222-native-target-source-identity.md)
+- [WIP-0224](WIP-0224-native-target-source-utf8.md)
