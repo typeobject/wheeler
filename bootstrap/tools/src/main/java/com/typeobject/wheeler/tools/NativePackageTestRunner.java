@@ -22,6 +22,7 @@ import java.util.Set;
 
 /** Invokes native source discovery, compilation, and reporting for the fixed package profile. */
 final class NativePackageTestRunner {
+  private static final int MAX_SOURCES = 8;
   private static final int MAX_SOURCE_BYTES = 4_096;
   private static final int MAX_PLAN_BYTES = 32_768;
   private static final int OUTPUT_BYTES = 39;
@@ -43,12 +44,14 @@ final class NativePackageTestRunner {
       return Optional.empty();
     }
     Target target = testTargets.getFirst();
-    if (!target.modular() || target.sources().size() != 1) {
+    if (!target.modular()
+        || target.sources().isEmpty()
+        || target.sources().size() > MAX_SOURCES) {
       return Optional.empty();
     }
 
     byte[] plan = sourcePlan(packageRoot, target);
-    if (plan.length > MAX_PLAN_BYTES) {
+    if (plan.length > MAX_PLAN_BYTES || !fixedImportProfile(packageRoot, target)) {
       return Optional.empty();
     }
     Optional<Path> conformance = findConformancePackage(packageRoot);
@@ -76,6 +79,23 @@ final class NativePackageTestRunner {
       runnerRoot = canonical;
     }
     return runner;
+  }
+
+  private static boolean fixedImportProfile(Path root, Target target) throws IOException {
+    for (String source : target.sources()) {
+      if (source.equals(target.root())) {
+        continue;
+      }
+      String text = Files.readString(root.resolve(source), StandardCharsets.UTF_8);
+      int declaration = text.indexOf("public const long ");
+      if (declaration < 0 || text.indexOf("public const long ", declaration + 1) >= 0) {
+        return false;
+      }
+      if (text.indexOf('(') >= 0 || text.contains("test void ") || text.contains("entry void ")) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private static byte[] sourcePlan(Path root, Target target) throws IOException {

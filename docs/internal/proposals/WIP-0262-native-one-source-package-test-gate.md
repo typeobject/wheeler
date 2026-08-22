@@ -9,7 +9,7 @@
 | Area | Self-hosting, package testing, native invocation |
 | Depends on | WIP-0261 |
 | Supersedes | Example-only native test invocation for the fixed profile |
-| Superseded by | WIP-0263 package case names, then multi-source and locked-dependency testing |
+| Superseded by | WIP-0263 package case names and WIP-0264 fixed local imports |
 
 ## Summary
 
@@ -121,3 +121,4 @@ Rejected. One selected case owns one direct physical entry.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
 - [WIP-0263](WIP-0263-native-package-case-names.md)
+- [WIP-0264](WIP-0264-native-fixed-import-package-test-gate.md)
