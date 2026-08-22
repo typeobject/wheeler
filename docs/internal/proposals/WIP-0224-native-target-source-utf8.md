@@ -9,7 +9,7 @@
 | Area | Native testing, target sources, UTF-8 |
 | Depends on | WIP-0009, WIP-0018, WIP-0223 |
 | Supersedes | Byte-opaque source payloads in validated target plans |
-| Superseded by | None |
+| Superseded by | WIP-0225 canonical native case order |
 
 ## Summary
 
@@ -79,3 +79,4 @@ Rejected. Package framing promises strict UTF-8, not a temporary ASCII dialect.
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0223](WIP-0223-native-target-source-plan-validation.md)
+- [WIP-0225](WIP-0225-native-case-discovery-order.md)

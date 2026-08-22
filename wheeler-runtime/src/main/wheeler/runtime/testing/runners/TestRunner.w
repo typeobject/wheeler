@@ -4,6 +4,7 @@ module wheeler.runtime.testing.runners.test_runner;
 
 import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
+import wheeler.runtime.testing.runners.test_descriptors;
 import wheeler.runtime.testing.runners.test_manifest;
 import wheeler.runtime.testing.runners.test_source_plan;
 import wheeler.runtime.testing.test_artifact_report;
@@ -120,7 +121,26 @@ classical class TestRunner {
 
     long scan = cursor;
     long scannedCase = 0;
+    long previousNameStart = 0;
+    long previousNameLength = 0;
     while (scannedCase < caseCount) limit MAX_CASES {
+      long scannedNameLength = input[scan];
+      long scannedNameStart = scan + 1;
+      assert(validCaseName(input, scannedNameStart, scannedNameLength));
+      if (0 < scannedCase) {
+        assert(
+          compareCaseName(
+            input,
+            previousNameStart,
+            previousNameLength,
+            scannedNameStart,
+            scannedNameLength
+          ) == -1
+        );
+      }
+
+      previousNameStart = scannedNameStart;
+      previousNameLength = scannedNameLength;
       scan = checkedCaseEnd(input, scan);
       scannedCase += 1;
     }

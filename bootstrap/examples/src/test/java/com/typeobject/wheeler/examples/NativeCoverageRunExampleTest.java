@@ -222,6 +222,17 @@ final class NativeCoverageRunExampleTest {
         () -> CompilerMachineRunner.runWithoutRewindHistory(invalidSourceText));
     assertArrayEquals(new byte[39], invalidSourceText.hostOutput());
 
+    for (byte[] invalidCases : List.of(
+        invalidCaseInput(passing, failing, true),
+        invalidCaseInput(passing, failing, false))) {
+      VirtualMachine invalidDescriptors = VirtualMachine.withBinaryInput(
+          nativeTestRunner(), invalidCases, 39);
+      assertThrows(
+          VmTrap.class,
+          () -> CompilerMachineRunner.runWithoutRewindHistory(invalidDescriptors));
+      assertArrayEquals(new byte[39], invalidDescriptors.hostOutput());
+    }
+
     byte[] invalidFailing = failing.clone();
     invalidFailing[0] ^= 1;
     assertArrayEquals(
@@ -365,22 +376,40 @@ final class NativeCoverageRunExampleTest {
       String failingSource,
       byte[] failing) {
     ByteArrayOutputStream input = descriptorHeader(shardIndex, shardCount, 2);
-    writeCaseInput(input, caseName(passingSource), passing);
-    writeCaseInput(input, caseName(failingSource), failing);
+    if (caseName(passingSource).compareTo(caseName(failingSource)) < 0) {
+      writeCaseInput(input, caseName(passingSource), passing);
+      writeCaseInput(input, caseName(failingSource), failing);
+    } else {
+      writeCaseInput(input, caseName(failingSource), failing);
+      writeCaseInput(input, caseName(passingSource), passing);
+    }
     return input.toByteArray();
   }
 
   private static byte[] threeCaseInput(
       byte[] passing, byte[] failing, byte[] runtimeFailure) {
     ByteArrayOutputStream input = descriptorHeader(0, 1, 3);
-    writeCaseInput(input, caseName(SUBJECT), passing);
     writeCaseInput(input, caseName(FAILING_SUBJECT), failing);
+    writeCaseInput(input, caseName(SUBJECT), passing);
     writeCaseInput(input, caseName(RUNTIME_FAILURE_SUBJECT), runtimeFailure);
     return input.toByteArray();
   }
 
   private static byte[] emptyCaseInput() {
     return descriptorHeader(0, 1, 0).toByteArray();
+  }
+
+  private static byte[] invalidCaseInput(
+      byte[] passing, byte[] failing, boolean duplicate) {
+    ByteArrayOutputStream input = descriptorHeader(0, 1, 2);
+    if (duplicate) {
+      writeCaseInput(input, "test::same", passing);
+      writeCaseInput(input, "test::same", failing);
+    } else {
+      writeCaseInput(input, caseName(SUBJECT), passing);
+      writeCaseInput(input, caseName(FAILING_SUBJECT), failing);
+    }
+    return input.toByteArray();
   }
 
   private static ByteArrayOutputStream descriptorHeader(
@@ -665,6 +694,9 @@ final class NativeCoverageRunExampleTest {
     modules.put(
         "TestSummary.w",
         RuntimeSources.read("runtime/testing/TestSummary.w"));
+    modules.put(
+        "TestDescriptors.w",
+        RuntimeSources.read("runtime/testing/runners/TestDescriptors.w"));
     modules.put(
         "TestManifest.w",
         RuntimeSources.read("runtime/testing/runners/TestManifest.w"));
