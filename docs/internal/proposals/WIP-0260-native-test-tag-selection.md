@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, selection |
 | Depends on | WIP-0258, WIP-0259 |
 | Supersedes | Native rejection of canonical test tags |
-| Superseded by | Native package test descriptor construction |
+| Superseded by | WIP-0261 native test descriptor construction |
 
 ## Summary
 
@@ -119,3 +119,4 @@ Rejected. Declaration discovery, metadata grammar, and transport framing have se
 - [WIP-0258](WIP-0258-native-bare-test-metadata-profile.md)
 - [WIP-0259](WIP-0259-native-test-step-limits.md)
 - [WIP-0197](WIP-0197-runtime-test-selection-authority.md)
+- [WIP-0261](WIP-0261-native-test-descriptor-construction.md)

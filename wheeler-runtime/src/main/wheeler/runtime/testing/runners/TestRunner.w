@@ -6,6 +6,7 @@ import wheeler.compiler.opcodes;
 import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
 import wheeler.runtime.testing.runners.test_descriptors;
+import wheeler.runtime.testing.runners.test_discovered_descriptors;
 import wheeler.runtime.testing.runners.test_manifest;
 import wheeler.runtime.testing.runners.test_package_lock;
 import wheeler.runtime.testing.runners.test_source_compilation;
@@ -136,15 +137,22 @@ classical class TestRunner {
     assert(selection.valid);
     assert(selection.end < bufferLength(input));
     cursor = selection.end;
-    long caseCount = input[cursor];
-    assert(caseCount < MAX_CASES + 1);
+    long encodedCaseCount = input[cursor];
+    boolean constructDescriptors = encodedCaseCount == 255;
+    long caseCount = encodedCaseCount;
+    if (constructDescriptors) {
+      caseCount = 0;
+    } else {
+      assert(caseCount < MAX_CASES + 1);
+    }
+
     cursor += 1;
 
     long scan = cursor;
     long scannedCase = 0;
     long previousNameStart = 0;
     long previousNameLength = 0;
-    boolean compileSource = false;
+    boolean compileSource = constructDescriptors;
     boolean transportArtifacts = false;
     while (scannedCase < caseCount) limit MAX_CASES {
       long scannedNameLength = input[scan];
@@ -183,7 +191,7 @@ classical class TestRunner {
 
     assert(scan == bufferLength(input));
 
-    region staging = new region(/* bytes= */ 742536, /* allocations= */ 40);
+    region staging = new region(/* bytes= */ 759368, /* allocations= */ 42);
     bytes runner = allocateBytes(staging, /* length= */ 64);
     writeAscii(
       runner,
@@ -267,6 +275,8 @@ classical class TestRunner {
     long manifestIdentityLength = writeTestIdentityText(rawManifestIdentity, manifestIdentity);
     assert(manifestIdentityLength == 64);
     assert(validEmptyPackageLock(input, lockStart, lockLength, manifestIdentity));
+    bytes constructedNames = allocateBytes(staging, MAX_CASES * 255);
+    words constructedNameLengths = allocate(staging, MAX_CASES);
     words caseKinds = allocate(staging, MAX_CASES);
     words caseValues = allocate(staging, MAX_CASES);
     words caseStepLimits = allocate(staging, MAX_CASES);
@@ -280,6 +290,9 @@ classical class TestRunner {
       target,
       selectionStart,
       selectionCount,
+      constructDescriptors,
+      constructedNames,
+      constructedNameLengths,
       caseKinds,
       caseValues,
       caseStepLimits
@@ -290,6 +303,19 @@ classical class TestRunner {
       if (0 < selectionCount) {
         assert(discovery.matched);
       }
+    }
+
+    if (constructDescriptors) {
+      assert(discovery.matched);
+      caseCount = discovery.count;
+      sortDiscoveredCases(
+        constructedNames,
+        constructedNameLengths,
+        caseKinds,
+        caseValues,
+        caseStepLimits,
+        caseCount
+      );
     }
 
     bytes rawSourceIdentity = allocateBytes(staging, /* length= */ 32);
@@ -305,17 +331,37 @@ classical class TestRunner {
     long reportRowsLength = 0;
     long descriptor = 0;
     while (descriptor < caseCount) limit MAX_CASES {
-      long nameLength = input[cursor];
-      cursor += 1;
-      long nameStart = cursor;
-      cursor += nameLength;
-      long artifactLength = readUnsigned(input, cursor, /* width= */ 4);
-      cursor += 4;
-      long artifactStart = cursor;
-      cursor += artifactLength;
+      long nameLength = 0;
+      long nameStart = 0;
+      long artifactLength = 0;
+      long artifactStart = 0;
+      if (constructDescriptors) {
+        nameLength = constructedNameLengths[descriptor];
+        nameStart = descriptor * 255;
+      } else {
+        nameLength = input[cursor];
+        cursor += 1;
+        nameStart = cursor;
+        cursor += nameLength;
+        artifactLength = readUnsigned(input, cursor, /* width= */ 4);
+        cursor += 4;
+        artifactStart = cursor;
+        cursor += artifactLength;
+      }
 
       bytes caseName = allocateBytes(staging, nameLength);
-      copied = copyRange(input, nameStart, nameLength, caseName, /* outputStart= */ 0);
+      if (constructDescriptors) {
+        copied = copyRange(
+          constructedNames,
+          nameStart,
+          nameLength,
+          caseName,
+          /* outputStart= */ 0
+        );
+      } else {
+        copied = copyRange(input, nameStart, nameLength, caseName, /* outputStart= */ 0);
+      }
+
       assert(copied == nameLength);
       if (compileSource) {
         if (discovery.count == 0) {
@@ -609,6 +655,8 @@ classical class TestRunner {
     drop(caseStepLimits);
     drop(caseValues);
     drop(caseKinds);
+    drop(constructedNameLengths);
+    drop(constructedNames);
     drop(reportRows);
     drop(sourceIdentity);
     drop(rawSourceIdentity);

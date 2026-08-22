@@ -218,6 +218,23 @@ final class NativeCompiledTestRunnerExampleTest {
   }
 
   @Test
+  void constructsCanonicalNativeParameterRowDescriptors() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", PARAMETERIZED_TESTS));
+    byte[] explicit = execute(runner, descriptors(MANIFEST, sources, List.of(
+        new NamedArtifact("test::flags[0]", new byte[0]),
+        new NamedArtifact("test::flags[1]", new byte[0]),
+        new NamedArtifact("test::longs[0]", new byte[0]),
+        new NamedArtifact("test::longs[1]", new byte[0]),
+        new NamedArtifact("test::longs[2]", new byte[0]))));
+    byte[] discovered = execute(runner, discoveredDescriptors(MANIFEST, sources, List.of()));
+
+    assertArrayEquals(explicit, discovered);
+    assertEquals(5, discovered[32]);
+    assertEquals(5, discovered[34]);
+  }
+
+  @Test
   void rejectsArtifactsWithTheWrongParameterRow() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
     var testCases = new WheelerCompiler().compilePackageTests(
@@ -320,14 +337,17 @@ final class NativeCompiledTestRunnerExampleTest {
   void selectsCanonicalNativeTestTags() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
     var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", TAGGED_TESTS));
-    byte[] report = execute(runner, descriptors(
+    byte[] explicit = execute(runner, descriptors(
         MANIFEST,
         sources,
         List.of(new NamedArtifact("test::alpha", new byte[0])),
         List.of("fast", "unit.core")));
+    byte[] discovered = execute(
+        runner, discoveredDescriptors(MANIFEST, sources, List.of("fast", "unit.core")));
 
-    assertEquals(1, report[32]);
-    assertEquals(1, report[34]);
+    assertArrayEquals(explicit, discovered);
+    assertEquals(1, discovered[32]);
+    assertEquals(1, discovered[34]);
   }
 
   @Test
@@ -706,6 +726,22 @@ final class NativeCompiledTestRunnerExampleTest {
       List<NativeTestSourcePlan.Source> sources,
       List<NamedArtifact> cases,
       List<String> selectedTags) {
+    return descriptorTransport(manifest, sources, cases, selectedTags, false);
+  }
+
+  private static byte[] discoveredDescriptors(
+      String manifest,
+      List<NativeTestSourcePlan.Source> sources,
+      List<String> selectedTags) {
+    return descriptorTransport(manifest, sources, List.of(), selectedTags, true);
+  }
+
+  private static byte[] descriptorTransport(
+      String manifest,
+      List<NativeTestSourcePlan.Source> sources,
+      List<NamedArtifact> cases,
+      List<String> selectedTags,
+      boolean discoverDescriptors) {
     byte[] plan = NativeTestSourcePlan.write(sources);
     ByteArrayOutputStream input = new ByteArrayOutputStream();
     input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
@@ -718,7 +754,7 @@ final class NativeCompiledTestRunnerExampleTest {
     writeBytes(input, plan);
     input.write(selectedTags.size());
     selectedTags.forEach(tag -> writeShortText(input, tag));
-    input.write(cases.size());
+    input.write(discoverDescriptors ? 255 : cases.size());
     for (NamedArtifact testcase : cases) {
       writeShortText(input, testcase.name());
       writeBytes(input, testcase.artifact());

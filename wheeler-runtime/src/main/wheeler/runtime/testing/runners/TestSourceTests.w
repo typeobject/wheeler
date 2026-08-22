@@ -7,6 +7,7 @@ import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
+import wheeler.runtime.testing.runners.test_discovered_descriptors;
 import wheeler.runtime.testing.runners.test_source_metadata;
 import wheeler.runtime.testing.runners.test_source_plan;
 
@@ -295,10 +296,15 @@ classical class TestSourceTests {
     borrow byteview targetName,
     long selectionStart,
     long selectionCount,
+    boolean constructDescriptors,
+    borrow mut bytes constructedNames,
+    borrow mut words constructedNameLengths,
     borrow mut words caseKinds,
     borrow mut words caseValues,
     borrow mut words caseStepLimits
   ) {
+    assert(bufferLength(constructedNames) == MAX_CASES * 255);
+    assert(bufferLength(constructedNameLengths) == MAX_CASES);
     assert(bufferLength(caseKinds) == MAX_CASES);
     assert(bufferLength(caseValues) == MAX_CASES);
     assert(bufferLength(caseStepLimits) == MAX_CASES);
@@ -375,17 +381,34 @@ classical class TestSourceTests {
             }
 
             if (parameterlessMetadata.selected) {
-              long matchedCase = matchingDescriptor(
-                source,
-                tokenStarts,
-                tokenLengths,
-                token + 2,
-                input,
-                descriptorStart,
-                caseCount,
-                targetName,
-                -1
-              );
+              long matchedCase = -1;
+              if (constructDescriptors) {
+                matchedCase = discovered;
+                writeDiscoveredCaseName(
+                  source,
+                  tokenStarts,
+                  tokenLengths,
+                  token + 2,
+                  targetName,
+                  /* row= */ -1,
+                  discovered,
+                  constructedNames,
+                  constructedNameLengths
+                );
+              } else {
+                matchedCase = matchingDescriptor(
+                  source,
+                  tokenStarts,
+                  tokenLengths,
+                  token + 2,
+                  input,
+                  descriptorStart,
+                  caseCount,
+                  targetName,
+                  -1
+                );
+              }
+
               if (-1 < matchedCase) {
                 set(caseKinds, matchedCase, /* parameterless= */ 1);
                 set(caseValues, matchedCase, 0);
@@ -439,17 +462,32 @@ classical class TestSourceTests {
             while (row < rows.count) limit MAX_CASES {
               long matchedRowCase = -1;
               if (rowMetadata.selected) {
-                matchedRowCase = matchingDescriptor(
-                  source,
-                  tokenStarts,
-                  tokenLengths,
-                  token + 2,
-                  input,
-                  descriptorStart,
-                  caseCount,
-                  targetName,
-                  row
-                );
+                if (constructDescriptors) {
+                  matchedRowCase = discovered;
+                  writeDiscoveredCaseName(
+                    source,
+                    tokenStarts,
+                    tokenLengths,
+                    token + 2,
+                    targetName,
+                    row,
+                    discovered,
+                    constructedNames,
+                    constructedNameLengths
+                  );
+                } else {
+                  matchedRowCase = matchingDescriptor(
+                    source,
+                    tokenStarts,
+                    tokenLengths,
+                    token + 2,
+                    input,
+                    descriptorStart,
+                    caseCount,
+                    targetName,
+                    row
+                  );
+                }
               }
 
               if (-1 < matchedRowCase) {
@@ -482,8 +520,10 @@ classical class TestSourceTests {
     }
 
     boolean matched = supported;
-    if (discovered != caseCount) {
-      matched = false;
+    if (constructDescriptors == false) {
+      if (discovered != caseCount) {
+        matched = false;
+      }
     }
 
     if (matchedDeclarations != discovered) {
