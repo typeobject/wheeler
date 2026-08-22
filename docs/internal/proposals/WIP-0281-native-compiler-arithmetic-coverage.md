@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler testing, semantic coverage |
 | Depends on | WIP-0280 |
 | Supersedes | Imported compiler constant equality without arithmetic |
-| Superseded by | Broader native arithmetic coverage |
+| Superseded by | WIP-0282 native compiler scalar arithmetic |
 
 ## Summary
 
@@ -81,3 +81,4 @@ Rejected. Each fragment needs executable evidence and an atomic negative boundar
 
 - [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md)
 - [WIP-0280](WIP-0280-native-compiler-constant-assertion.md)
+- [WIP-0282](WIP-0282-native-compiler-scalar-arithmetic.md)

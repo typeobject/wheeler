@@ -20,5 +20,13 @@ classical class NativeCompilerSpineTests {
     assert(width == 2);
     long doubled = width + width;
     assert(doubled == 4);
+    long difference = doubled - width;
+    assert(difference == 2);
+    long product = difference * width;
+    assert(product == 4);
+    long quotient = product / width;
+    assert(quotient == 2);
+    long remainder = product % 3;
+    assert(remainder == 1);
   }
 }
