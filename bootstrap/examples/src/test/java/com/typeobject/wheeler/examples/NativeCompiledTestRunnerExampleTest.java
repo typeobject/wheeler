@@ -37,6 +37,9 @@ final class NativeCompiledTestRunnerExampleTest {
   private static final String TWO_SOURCE_MANIFEST = MANIFEST.replace(
       "      - \"src/Test.w\"",
       "      - \"src/A.w\"\n      - \"src/Test.w\"");
+  private static final String THREE_SOURCE_MANIFEST = MANIFEST.replace(
+      "      - \"src/Test.w\"",
+      "      - \"src/A.w\"\n      - \"src/B.w\"\n      - \"src/Test.w\"");
   private static final String PASSING = """
       module pkg.test;
       classical class SourceTest {
@@ -50,6 +53,12 @@ final class NativeCompiledTestRunnerExampleTest {
       module pkg.helper;
       classical class Helper {
         public const long ANSWER = 7;
+      }
+      """;
+  private static final String IMPORTED_TWO = """
+      module pkg.second;
+      classical class Second {
+        public const long SECOND = 11;
       }
       """;
   private static final String IMPORTING = """
@@ -81,6 +90,24 @@ final class NativeCompiledTestRunnerExampleTest {
     assertArrayEquals(
         execute(runner, descriptor(TWO_SOURCE_MANIFEST, sources, artifact)),
         execute(runner, descriptor(TWO_SOURCE_MANIFEST, sources, new byte[0])));
+  }
+
+  @Test
+  void compilesTheManifestRootWithTwoLocalImports() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    String root = IMPORTING.replace("import pkg.helper;", """
+        import pkg.helper;
+        import pkg.second;""");
+    var sources = List.of(
+        new NativeTestSourcePlan.Source("src/A.w", IMPORTED),
+        new NativeTestSourcePlan.Source("src/B.w", IMPORTED_TWO),
+        new NativeTestSourcePlan.Source("src/Test.w", root));
+    byte[] artifact = new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+        Map.of("A.w", IMPORTED, "B.w", IMPORTED_TWO, "Test.w", root), "pkg.test"));
+
+    assertArrayEquals(
+        execute(runner, descriptor(THREE_SOURCE_MANIFEST, sources, artifact)),
+        execute(runner, descriptor(THREE_SOURCE_MANIFEST, sources, new byte[0])));
   }
 
   private static void assertCanonicalReport(

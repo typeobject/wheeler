@@ -16,7 +16,7 @@ The package groups source by the contract under test:
 - `runtime/` interprets verified bounded bytecode.
 - `testing/` publishes runtime-owned identities, summaries, reports, outcomes, and metadata.
   `testing/runners/NativeTestRunner.w` accepts up to 64 ordered artifact cases. It checks the package, deployable target, root module, dependency-free lock, source plan, strict UTF-8 modules, acyclic ordered local imports, descriptors, and shard selection before execution.
-  A one-case descriptor over one source or one local imported source plus its manifest-selected root may request native compilation with zero artifact length. The resulting artifact enters the same profile-2 report path as transported bytes.
+  A one-case descriptor over one root and up to two local imported sources may request native compilation with zero artifact length. The resulting artifact enters the same profile-2 report path as transported bytes.
 
 Every deployable target consumes exact locked archives from `wheeler.compiler`, `wheeler.core`,
 `wheeler.packages`, and `wheeler.runtime`. The package carries no private copy of those sources.

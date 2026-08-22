@@ -37,4 +37,25 @@ classical class TestSourceExecution {
     assert(bufferLength(artifact) == TEST_ARTIFACT_BYTES);
     return checkedLength(compileMinimalWithConstantImport(importedSource, rootSource, artifact));
   }
+
+  /// Compiles two imported sources and their canonical root.
+  public long compileTwoImportedTestSources(
+    borrow utf8 firstImportedSource,
+    borrow utf8 secondImportedSource,
+    borrow utf8 rootSource,
+    borrow mut bytes artifact
+  ) {
+    validateSource(firstImportedSource);
+    validateSource(secondImportedSource);
+    validateSource(rootSource);
+    assert(bufferLength(artifact) == TEST_ARTIFACT_BYTES);
+    return checkedLength(
+      compileMinimalWithConstantImports(
+        firstImportedSource,
+        secondImportedSource,
+        rootSource,
+        artifact
+      )
+    );
+  }
 }

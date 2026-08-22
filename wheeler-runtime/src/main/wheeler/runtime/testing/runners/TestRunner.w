@@ -199,11 +199,12 @@ classical class TestRunner {
     long compiledSourceCount = 0;
     long firstCompiledSourceLength = 0;
     long secondCompiledSourceLength = 0;
+    long thirdCompiledSourceLength = 0;
     long compiledRootOrdinal = 0;
     if (compileSource) {
       compiledSourceCount = validatedSourceCount(input, sourcePlanStart, sourcePlanLength);
       assert(0 < compiledSourceCount);
-      assert(compiledSourceCount < 3);
+      assert(compiledSourceCount < 4);
       firstCompiledSourceLength = validatedSourceLength(
         input,
         sourcePlanStart,
@@ -211,7 +212,7 @@ classical class TestRunner {
         /* ordinal= */ 0
       );
       assert(firstCompiledSourceLength < 4097);
-      if (compiledSourceCount == 2) {
+      if (1 < compiledSourceCount) {
         secondCompiledSourceLength = validatedSourceLength(
           input,
           sourcePlanStart,
@@ -219,6 +220,16 @@ classical class TestRunner {
           /* ordinal= */ 1
         );
         assert(secondCompiledSourceLength < 4097);
+      }
+
+      if (compiledSourceCount == 3) {
+        thirdCompiledSourceLength = validatedSourceLength(
+          input,
+          sourcePlanStart,
+          sourcePlanLength,
+          /* ordinal= */ 2
+        );
+        assert(thirdCompiledSourceLength < 4097);
       }
     }
 
@@ -340,7 +351,9 @@ classical class TestRunner {
             utf8 sourceText = freezeUtf8(sourceBytes);
             executionArtifactLength = compileTestSource(sourceText, artifactStorage);
             drop(sourceText);
-          } else {
+          }
+
+          if (compiledSourceCount == 2) {
             long importedOrdinal = 1 - compiledRootOrdinal;
             long rootLength = firstCompiledSourceLength;
             long importedLength = secondCompiledSourceLength;
@@ -374,6 +387,66 @@ classical class TestRunner {
             );
             drop(rootSource);
             drop(importedSource);
+          }
+
+          if (compiledSourceCount == 3) {
+            bytes firstSourceBytes = allocateBytes(staging, firstCompiledSourceLength);
+            copyValidatedSource(
+              input,
+              sourcePlanStart,
+              sourcePlanLength,
+              /* ordinal= */ 0,
+              firstSourceBytes
+            );
+            bytes secondSourceBytes = allocateBytes(staging, secondCompiledSourceLength);
+            copyValidatedSource(
+              input,
+              sourcePlanStart,
+              sourcePlanLength,
+              /* ordinal= */ 1,
+              secondSourceBytes
+            );
+            bytes thirdSourceBytes = allocateBytes(staging, thirdCompiledSourceLength);
+            copyValidatedSource(
+              input,
+              sourcePlanStart,
+              sourcePlanLength,
+              /* ordinal= */ 2,
+              thirdSourceBytes
+            );
+            utf8 firstSource = freezeUtf8(firstSourceBytes);
+            utf8 secondSource = freezeUtf8(secondSourceBytes);
+            utf8 thirdSource = freezeUtf8(thirdSourceBytes);
+            if (compiledRootOrdinal == 0) {
+              executionArtifactLength = compileTwoImportedTestSources(
+                secondSource,
+                thirdSource,
+                firstSource,
+                artifactStorage
+              );
+            }
+
+            if (compiledRootOrdinal == 1) {
+              executionArtifactLength = compileTwoImportedTestSources(
+                firstSource,
+                thirdSource,
+                secondSource,
+                artifactStorage
+              );
+            }
+
+            if (compiledRootOrdinal == 2) {
+              executionArtifactLength = compileTwoImportedTestSources(
+                firstSource,
+                secondSource,
+                thirdSource,
+                artifactStorage
+              );
+            }
+
+            drop(thirdSource);
+            drop(secondSource);
+            drop(firstSource);
           }
         } else {
           copied = copyRange(

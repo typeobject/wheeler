@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, module compilation |
 | Depends on | WIP-0233, WIP-0235, WIP-0237 |
 | Supersedes | WIP-0237 one-source compilation bound |
-| Superseded by | Counted native test source-graph compilation |
+| Superseded by | WIP-0239 native three-source test compilation |
 
 ## Summary
 
@@ -101,3 +101,4 @@ Rejected. The current public driver call has one imported-source slot. Counted g
 - [WIP-0233](WIP-0233-native-local-import-resolution.md)
 - [WIP-0235](WIP-0235-native-import-cycle-rejection.md)
 - [WIP-0237](WIP-0237-native-compiled-test-reports.md)
+- [WIP-0239](WIP-0239-native-three-source-test-compilation.md)
