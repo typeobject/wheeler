@@ -205,6 +205,180 @@ classical class TestSourcePlan {
     return cursor == end;
   }
 
+  private long moduleNameStart(borrow byteview input, long start, long length) {
+    long cursor = start;
+    long end = start + length;
+    boolean scanning = true;
+    while (scanning) limit MAX_PLAN_BYTES {
+      if (cursor < end) {
+        if (input[cursor] == 10) {
+          cursor += 1;
+        } else {
+          if (end - cursor < 2) {
+            scanning = false;
+          } else {
+            if (input[cursor] == 47) {
+              if (input[cursor + 1] == 47) {
+                while (cursor < end) limit MAX_PLAN_BYTES {
+                  if (input[cursor] == 10) {
+                    cursor += 1;
+                    break;
+                  }
+
+                  cursor += 1;
+                }
+              } else {
+                scanning = false;
+              }
+            } else {
+              scanning = false;
+            }
+          }
+        }
+      } else {
+        scanning = false;
+      }
+    }
+
+    if (end - cursor < 10) {
+      return -1;
+    }
+
+    if (input[cursor] != 109) {
+      return -1;
+    }
+
+    if (input[cursor + 1] != 111) {
+      return -1;
+    }
+
+    if (input[cursor + 2] != 100) {
+      return -1;
+    }
+
+    if (input[cursor + 3] != 117) {
+      return -1;
+    }
+
+    if (input[cursor + 4] != 108) {
+      return -1;
+    }
+
+    if (input[cursor + 5] != 101) {
+      return -1;
+    }
+
+    if (input[cursor + 6] != 32) {
+      return -1;
+    }
+
+    return cursor + 7;
+  }
+
+  private boolean moduleInitial(long scalar) {
+    if (96 < scalar) {
+      return scalar < 123;
+    }
+
+    return false;
+  }
+
+  private boolean moduleContinuation(long scalar) {
+    if (moduleInitial(scalar)) {
+      return true;
+    }
+
+    if (47 < scalar) {
+      if (scalar < 58) {
+        return true;
+      }
+    }
+
+    return scalar == 95;
+  }
+
+  /// Checks one canonical source preamble and dotted module declaration.
+  public boolean validCanonicalSourceModule(borrow byteview input, long start, long length) {
+    long cursor = moduleNameStart(input, start, length);
+    if (cursor < 0) {
+      return false;
+    }
+
+    long end = start + length;
+    boolean segmentStart = true;
+    while (cursor < end) limit MAX_PATH_BYTES {
+      long scalar = input[cursor];
+      if (scalar == 59) {
+        if (segmentStart) {
+          return false;
+        }
+
+        if (end - cursor < 2) {
+          return false;
+        }
+
+        return input[cursor + 1] == 10;
+      }
+
+      if (scalar == 46) {
+        if (segmentStart) {
+          return false;
+        }
+
+        segmentStart = true;
+      } else {
+        if (segmentStart) {
+          if (moduleInitial(scalar) == false) {
+            return false;
+          }
+
+          segmentStart = false;
+        } else {
+          if (moduleContinuation(scalar) == false) {
+            return false;
+          }
+        }
+      }
+
+      cursor += 1;
+    }
+
+    return false;
+  }
+
+  /// Compares a canonical source declaration with one manifest module range.
+  public boolean sourceModuleMatches(
+    borrow byteview input,
+    long sourceStart,
+    long sourceLength,
+    long moduleStart,
+    long moduleLength
+  ) {
+    long sourceModuleStart = moduleNameStart(input, sourceStart, sourceLength);
+    if (sourceModuleStart < 0) {
+      return false;
+    }
+
+    if (sourceStart + sourceLength < sourceModuleStart + moduleLength + 2) {
+      return false;
+    }
+
+    long offset = 0;
+    while (offset < moduleLength) limit MAX_PATH_BYTES {
+      if (input[sourceModuleStart + offset] != input[moduleStart + offset]) {
+        return false;
+      }
+
+      offset += 1;
+    }
+
+    if (input[sourceModuleStart + moduleLength] != 59) {
+      return false;
+    }
+
+    return input[sourceModuleStart + moduleLength + 1] == 10;
+  }
+
   private long comparePath(
     borrow byteview input,
     long leftStart,
@@ -315,6 +489,10 @@ classical class TestSourcePlan {
       }
 
       if (validUtf8(input, cursor, sourceLength) == false) {
+        return false;
+      }
+
+      if (validCanonicalSourceModule(input, cursor, sourceLength) == false) {
         return false;
       }
 

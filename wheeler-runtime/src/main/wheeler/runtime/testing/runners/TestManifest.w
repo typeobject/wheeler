@@ -2,6 +2,8 @@
 
 module wheeler.runtime.testing.runners.test_manifest;
 
+import wheeler.runtime.testing.runners.test_source_plan;
+
 classical class TestManifest {
   private const long MAX_MANIFEST_BYTES = 4096;
 
@@ -73,56 +75,6 @@ classical class TestManifest {
     }
 
     return true;
-  }
-
-  private boolean rootModule(
-    borrow byteview input,
-    long sourceStart,
-    long sourceLength,
-    long moduleStart,
-    long moduleLength
-  ) {
-    if (sourceLength < moduleLength + 9) {
-      return false;
-    }
-
-    if (input[sourceStart] != 109) {
-      return false;
-    }
-
-    if (input[sourceStart + 1] != 111) {
-      return false;
-    }
-
-    if (input[sourceStart + 2] != 100) {
-      return false;
-    }
-
-    if (input[sourceStart + 3] != 117) {
-      return false;
-    }
-
-    if (input[sourceStart + 4] != 108) {
-      return false;
-    }
-
-    if (input[sourceStart + 5] != 101) {
-      return false;
-    }
-
-    if (input[sourceStart + 6] != 32) {
-      return false;
-    }
-
-    if (sameRange(input, sourceStart + 7, moduleStart, moduleLength) == false) {
-      return false;
-    }
-
-    if (input[sourceStart + 7 + moduleLength] != 59) {
-      return false;
-    }
-
-    return input[sourceStart + 8 + moduleLength] == 10;
   }
 
   private boolean sourceLine(
@@ -382,7 +334,7 @@ classical class TestManifest {
               ) {
                 if (rootSelected) {
                   if (sourceCursor == sourcePlanStart + sourcePlanLength) {
-                    selected = rootModule(
+                    selected = sourceModuleMatches(
                       input,
                       rootSourceStart,
                       rootSourceLength,

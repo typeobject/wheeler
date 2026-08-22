@@ -263,6 +263,15 @@ final class NativeCoverageRunExampleTest {
         () -> CompilerMachineRunner.runWithoutRewindHistory(invalidRootModule));
     assertArrayEquals(new byte[39], invalidRootModule.hostOutput());
 
+    byte[] malformedSourceModule = input.clone();
+    malformedSourceModule[sourcePlanStart + 22 + "module pkg".length()] = (byte) '/';
+    VirtualMachine invalidSourceModule = VirtualMachine.withBinaryInput(
+        nativeTestRunner(), malformedSourceModule, 39);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(invalidSourceModule));
+    assertArrayEquals(new byte[39], invalidSourceModule.hostOutput());
+
     byte[] malformedSource = input.clone();
     malformedSource[sourcePlanStart + 22] = (byte) 0xff;
     VirtualMachine invalidSourceText = VirtualMachine.withBinaryInput(

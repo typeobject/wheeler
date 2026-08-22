@@ -9,7 +9,7 @@
 | Area | Native testing, package manifests, module identity |
 | Depends on | WIP-0009, WIP-0018, WIP-0229 |
 | Supersedes | Unchecked native target module fields |
-| Superseded by | Native complete module-graph validation |
+| Superseded by | WIP-0231 canonical source module declarations |
 
 ## Summary
 
@@ -88,3 +88,4 @@ Rejected. Only the canonical opening declaration owns module identity.
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0229](WIP-0229-native-runnable-target-root.md)
+- [WIP-0231](WIP-0231-native-source-module-declarations.md)
