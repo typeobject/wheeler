@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, module compilation |
 | Depends on | WIP-0235, WIP-0243 |
 | Supersedes | WIP-0243 six-source compiler bound |
-| Superseded by | Native eight-source test compilation |
+| Superseded by | WIP-0245 native eight-source test compilation |
 
 ## Summary
 
@@ -70,3 +70,4 @@ Rejected. Seven fixed slots are still a bounded bootstrap profile.
 
 - [WIP-0235](WIP-0235-native-import-cycle-rejection.md)
 - [WIP-0243](WIP-0243-native-six-source-test-compilation.md)
+- [WIP-0245](WIP-0245-native-eight-source-test-compilation.md)

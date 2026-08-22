@@ -2,11 +2,13 @@ package com.typeobject.wheeler.examples;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
+import com.typeobject.wheeler.core.vm.VmTrap;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -56,6 +58,16 @@ final class NativeCompiledTestRunnerExampleTest {
       "      - \"src/A.w\"\n      - \"src/B.w\"\n      - \"src/C.w\"\n"
           + "      - \"src/D.w\"\n      - \"src/E.w\"\n      - \"src/F.w\"\n"
           + "      - \"src/Test.w\"");
+  private static final String EIGHT_SOURCE_MANIFEST = MANIFEST.replace(
+      "      - \"src/Test.w\"",
+      "      - \"src/A.w\"\n      - \"src/B.w\"\n      - \"src/C.w\"\n"
+          + "      - \"src/D.w\"\n      - \"src/E.w\"\n      - \"src/F.w\"\n"
+          + "      - \"src/G.w\"\n      - \"src/Test.w\"");
+  private static final String NINE_SOURCE_MANIFEST = MANIFEST.replace(
+      "      - \"src/Test.w\"",
+      "      - \"src/A.w\"\n      - \"src/B.w\"\n      - \"src/C.w\"\n"
+          + "      - \"src/D.w\"\n      - \"src/E.w\"\n      - \"src/F.w\"\n"
+          + "      - \"src/G.w\"\n      - \"src/H.w\"\n      - \"src/Test.w\"");
   private static final String PASSING = """
       module pkg.test;
       classical class SourceTest {
@@ -99,6 +111,18 @@ final class NativeCompiledTestRunnerExampleTest {
       module pkg.sixth;
       classical class Sixth {
         public const long SIXTH = 23;
+      }
+      """;
+  private static final String IMPORTED_SEVEN = """
+      module pkg.seventh;
+      classical class Seventh {
+        public const long SEVENTH = 29;
+      }
+      """;
+  private static final String IMPORTED_EIGHT = """
+      module pkg.eighth;
+      classical class Eighth {
+        public const long EIGHTH = 31;
       }
       """;
   private static final String IMPORTING = """
@@ -245,6 +269,65 @@ final class NativeCompiledTestRunnerExampleTest {
     assertArrayEquals(
         execute(runner, descriptor(SEVEN_SOURCE_MANIFEST, sources, artifact)),
         execute(runner, descriptor(SEVEN_SOURCE_MANIFEST, sources, new byte[0])));
+  }
+
+  @Test
+  void compilesTheManifestRootWithSevenLocalImports() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    String root = IMPORTING.replace("import pkg.helper;", """
+        import pkg.fifth;
+        import pkg.fourth;
+        import pkg.helper;
+        import pkg.second;
+        import pkg.seventh;
+        import pkg.sixth;
+        import pkg.third;""");
+    var sources = List.of(
+        new NativeTestSourcePlan.Source("src/A.w", IMPORTED),
+        new NativeTestSourcePlan.Source("src/B.w", IMPORTED_TWO),
+        new NativeTestSourcePlan.Source("src/C.w", IMPORTED_THREE),
+        new NativeTestSourcePlan.Source("src/D.w", IMPORTED_FOUR),
+        new NativeTestSourcePlan.Source("src/E.w", IMPORTED_FIVE),
+        new NativeTestSourcePlan.Source("src/F.w", IMPORTED_SIX),
+        new NativeTestSourcePlan.Source("src/G.w", IMPORTED_SEVEN),
+        new NativeTestSourcePlan.Source("src/Test.w", root));
+    byte[] artifact = new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+        Map.of("A.w", IMPORTED, "B.w", IMPORTED_TWO, "C.w", IMPORTED_THREE,
+            "D.w", IMPORTED_FOUR, "E.w", IMPORTED_FIVE, "F.w", IMPORTED_SIX,
+            "G.w", IMPORTED_SEVEN, "Test.w", root), "pkg.test"));
+
+    assertArrayEquals(
+        execute(runner, descriptor(EIGHT_SOURCE_MANIFEST, sources, artifact)),
+        execute(runner, descriptor(EIGHT_SOURCE_MANIFEST, sources, new byte[0])));
+  }
+
+  @Test
+  void rejectsSourceCountsBeyondTheFixedCompilerProfile() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    String root = IMPORTING.replace("import pkg.helper;", """
+        import pkg.eighth;
+        import pkg.fifth;
+        import pkg.fourth;
+        import pkg.helper;
+        import pkg.second;
+        import pkg.seventh;
+        import pkg.sixth;
+        import pkg.third;""");
+    var sources = List.of(
+        new NativeTestSourcePlan.Source("src/A.w", IMPORTED),
+        new NativeTestSourcePlan.Source("src/B.w", IMPORTED_TWO),
+        new NativeTestSourcePlan.Source("src/C.w", IMPORTED_THREE),
+        new NativeTestSourcePlan.Source("src/D.w", IMPORTED_FOUR),
+        new NativeTestSourcePlan.Source("src/E.w", IMPORTED_FIVE),
+        new NativeTestSourcePlan.Source("src/F.w", IMPORTED_SIX),
+        new NativeTestSourcePlan.Source("src/G.w", IMPORTED_SEVEN),
+        new NativeTestSourcePlan.Source("src/H.w", IMPORTED_EIGHT),
+        new NativeTestSourcePlan.Source("src/Test.w", root));
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        runner, descriptor(NINE_SOURCE_MANIFEST, sources, new byte[0]), 39);
+
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
+    assertArrayEquals(new byte[39], machine.hostOutput());
   }
 
   private static void assertCanonicalReport(

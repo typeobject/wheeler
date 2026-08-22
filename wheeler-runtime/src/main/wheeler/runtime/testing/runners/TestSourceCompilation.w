@@ -6,7 +6,7 @@ import wheeler.compiler.driver;
 import wheeler.runtime.testing.runners.test_source_plan;
 
 classical class TestSourceCompilation {
-  private const long MAX_COMPILED_SOURCES = 7;
+  private const long MAX_COMPILED_SOURCES = 8;
   private const long MAX_TEST_SOURCE_BYTES = 4096;
   private const long TEST_ARTIFACT_BYTES = 32768;
 
@@ -65,7 +65,7 @@ classical class TestSourceCompilation {
     assert(bufferLength(artifact) == TEST_ARTIFACT_BYTES);
     long sourceCount = validatedSourceCount(input, start, length);
     assert(rootOrdinal < sourceCount);
-    region sources = new region(/* bytes= */ 28672, /* allocations= */ 7);
+    region sources = new region(/* bytes= */ 32768, /* allocations= */ 8);
     long artifactLength = 0;
 
     if (sourceCount == 1) {
@@ -468,6 +468,153 @@ classical class TestSourceCompilation {
       drop(sevenThird);
       drop(sevenSecond);
       drop(sevenFirst);
+    }
+
+    if (sourceCount == 8) {
+      utf8 eightFirst = sourceAt(input, start, length, /* ordinal= */ 0, sources);
+      utf8 eightSecond = sourceAt(input, start, length, /* ordinal= */ 1, sources);
+      utf8 eightThird = sourceAt(input, start, length, /* ordinal= */ 2, sources);
+      utf8 eightFourth = sourceAt(input, start, length, /* ordinal= */ 3, sources);
+      utf8 eightFifth = sourceAt(input, start, length, /* ordinal= */ 4, sources);
+      utf8 eightSixth = sourceAt(input, start, length, /* ordinal= */ 5, sources);
+      utf8 eightSeventh = sourceAt(input, start, length, /* ordinal= */ 6, sources);
+      utf8 eightEighth = sourceAt(input, start, length, /* ordinal= */ 7, sources);
+      if (rootOrdinal == 0) {
+        artifactLength = checkedLength(
+          compileMinimalWithSevenConstantImports(
+            eightSecond,
+            eightThird,
+            eightFourth,
+            eightFifth,
+            eightSixth,
+            eightSeventh,
+            eightEighth,
+            eightFirst,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 1) {
+        artifactLength = checkedLength(
+          compileMinimalWithSevenConstantImports(
+            eightFirst,
+            eightThird,
+            eightFourth,
+            eightFifth,
+            eightSixth,
+            eightSeventh,
+            eightEighth,
+            eightSecond,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 2) {
+        artifactLength = checkedLength(
+          compileMinimalWithSevenConstantImports(
+            eightFirst,
+            eightSecond,
+            eightFourth,
+            eightFifth,
+            eightSixth,
+            eightSeventh,
+            eightEighth,
+            eightThird,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 3) {
+        artifactLength = checkedLength(
+          compileMinimalWithSevenConstantImports(
+            eightFirst,
+            eightSecond,
+            eightThird,
+            eightFifth,
+            eightSixth,
+            eightSeventh,
+            eightEighth,
+            eightFourth,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 4) {
+        artifactLength = checkedLength(
+          compileMinimalWithSevenConstantImports(
+            eightFirst,
+            eightSecond,
+            eightThird,
+            eightFourth,
+            eightSixth,
+            eightSeventh,
+            eightEighth,
+            eightFifth,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 5) {
+        artifactLength = checkedLength(
+          compileMinimalWithSevenConstantImports(
+            eightFirst,
+            eightSecond,
+            eightThird,
+            eightFourth,
+            eightFifth,
+            eightSeventh,
+            eightEighth,
+            eightSixth,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 6) {
+        artifactLength = checkedLength(
+          compileMinimalWithSevenConstantImports(
+            eightFirst,
+            eightSecond,
+            eightThird,
+            eightFourth,
+            eightFifth,
+            eightSixth,
+            eightEighth,
+            eightSeventh,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 7) {
+        artifactLength = checkedLength(
+          compileMinimalWithSevenConstantImports(
+            eightFirst,
+            eightSecond,
+            eightThird,
+            eightFourth,
+            eightFifth,
+            eightSixth,
+            eightSeventh,
+            eightEighth,
+            artifact
+          )
+        );
+      }
+
+      drop(eightEighth);
+      drop(eightSeventh);
+      drop(eightSixth);
+      drop(eightFifth);
+      drop(eightFourth);
+      drop(eightThird);
+      drop(eightSecond);
+      drop(eightFirst);
     }
 
     assert(0 < artifactLength);
