@@ -1,0 +1,212 @@
+//! Validates package and selected-target fields in canonical runner manifests.
+
+module wheeler.runtime.testing.runners.test_manifest;
+
+classical class TestManifest {
+  private const long MAX_MANIFEST_BYTES = 4096;
+
+  private long lineEnd(borrow byteview input, long cursor, long end) {
+    long scan = cursor;
+    while (scan < end) limit MAX_MANIFEST_BYTES {
+      if (input[scan] == 10) {
+        return scan;
+      }
+
+      assert(input[scan] != 13);
+      scan += 1;
+    }
+
+    return -1;
+  }
+
+  private long rangeHash(borrow byteview input, long start, long length) {
+    long hash = 0;
+    long offset = 0;
+    while (offset < length) limit MAX_MANIFEST_BYTES {
+      hash = (hash * 131 + input[start + offset]) % 4294967296;
+      offset += 1;
+    }
+
+    return hash;
+  }
+
+  private boolean exactLine(
+    borrow byteview input,
+    long start,
+    long end,
+    long length,
+    long hash
+  ) {
+    if (end - start != length) {
+      return false;
+    }
+
+    return rangeHash(input, start, length) == hash;
+  }
+
+  private boolean sameValue(borrow byteview input, long inputStart, borrow byteview value) {
+    long offset = 0;
+    while (offset < bufferLength(value)) limit 255 {
+      if (input[inputStart + offset] != value[offset]) {
+        return false;
+      }
+
+      offset += 1;
+    }
+
+    return true;
+  }
+
+  private boolean fieldLine(
+    borrow byteview input,
+    long start,
+    long end,
+    long prefixLength,
+    long prefixHash,
+    borrow byteview value
+  ) {
+    if (end - start != prefixLength + bufferLength(value) + 1) {
+      return false;
+    }
+
+    if (rangeHash(input, start, prefixLength) != prefixHash) {
+      return false;
+    }
+
+    if (sameValue(input, start + prefixLength, value) == false) {
+      return false;
+    }
+
+    return input[end - 1] == 34;
+  }
+
+  /// Checks canonical header fields and one test-selected target before execution.
+  public boolean validTestManifest(
+    borrow byteview input,
+    long start,
+    long length,
+    borrow byteview packageName,
+    borrow byteview packageVersion,
+    borrow byteview targetName
+  ) {
+    assert(0 < length);
+    assert(length < MAX_MANIFEST_BYTES + 1);
+    long end = start + length;
+    assert(end < bufferLength(input) + 1);
+    assert(input[end - 1] == 10);
+
+    long cursor = start;
+    long found = lineEnd(input, cursor, end);
+    if (
+      exactLine(input, cursor, found, /* length= */ 9, /* hash= */ 2571233518) == false
+    ) {
+      return false;
+    }
+
+    cursor = found + 1;
+    found = lineEnd(input, cursor, end);
+    if (
+      exactLine(input, cursor, found, /* length= */ 8, /* hash= */ 1538262944) == false
+    ) {
+      return false;
+    }
+
+    cursor = found + 1;
+    found = lineEnd(input, cursor, end);
+    if (
+      fieldLine(
+        input,
+        cursor,
+        found,
+        /* prefixLength= */ 9,
+        /* prefixHash= */ 2276377217,
+        packageName
+      ) == false
+    ) {
+      return false;
+    }
+
+    cursor = found + 1;
+    found = lineEnd(input, cursor, end);
+    if (
+      fieldLine(
+        input,
+        cursor,
+        found,
+        /* prefixLength= */ 12,
+        /* prefixHash= */ 1752260728,
+        packageVersion
+      ) == false
+    ) {
+      return false;
+    }
+
+    cursor = found + 1;
+    found = lineEnd(input, cursor, end);
+    if (
+      exactLine(input, cursor, found, /* length= */ 24, /* hash= */ 1491761755) == false
+    ) {
+      return false;
+    }
+
+    cursor = found + 1;
+    found = lineEnd(input, cursor, end);
+    if (
+      exactLine(input, cursor, found, /* length= */ 8, /* hash= */ 2958901072) == false
+    ) {
+      return false;
+    }
+
+    cursor = found + 1;
+
+    boolean candidate = false;
+    boolean selected = false;
+    boolean dependencies = false;
+    while (cursor < end) limit MAX_MANIFEST_BYTES {
+      found = lineEnd(input, cursor, end);
+      long lineLength = found - cursor;
+      if (12 < lineLength) {
+        if (rangeHash(input, cursor, /* length= */ 13) == 344468657) {
+          dependencies = true;
+          cursor = found + 1;
+          break;
+        }
+      }
+
+      if (9 < lineLength) {
+        if (rangeHash(input, cursor, /* length= */ 10) == 2457211845) {
+          candidate = false;
+        }
+      }
+
+      if (
+        fieldLine(
+          input,
+          cursor,
+          found,
+          /* prefixLength= */ 11,
+          /* prefixHash= */ 3709182977,
+          targetName
+        )
+      ) {
+        candidate = true;
+      }
+
+      if (candidate) {
+        if (
+          exactLine(input, cursor, found, /* length= */ 14, /* hash= */ 4023520342)
+        ) {
+          selected = true;
+        }
+      }
+
+      cursor = found + 1;
+    }
+
+    if (dependencies) {
+      return selected;
+    }
+
+    return false;
+  }
+}

@@ -4,6 +4,7 @@ module wheeler.runtime.testing.runners.test_runner;
 
 import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
+import wheeler.runtime.testing.runners.test_manifest;
 import wheeler.runtime.testing.test_artifact_report;
 import wheeler.runtime.testing.test_case_identity;
 import wheeler.runtime.testing.test_identity_text;
@@ -152,6 +153,16 @@ classical class TestRunner {
     bytes target = allocateBytes(staging, targetLength);
     copied = copyRange(input, targetStart, targetLength, target, /* outputStart= */ 0);
     assert(copied == targetLength);
+    assert(
+      validTestManifest(
+        input,
+        manifestStart,
+        manifestLength,
+        packageName,
+        packageVersion,
+        target
+      )
+    );
     bytes rawManifestIdentity = allocateBytes(staging, /* length= */ 32);
     hashSha256Range(input, manifestStart, manifestLength, rawManifestIdentity, staging);
     bytes reportRows = allocateBytes(staging, REPORT_ROWS_BYTES);

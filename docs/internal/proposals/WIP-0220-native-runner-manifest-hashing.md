@@ -9,7 +9,7 @@
 | Area | Native testing, package manifests, identity provenance |
 | Depends on | WIP-0009, WIP-0018, WIP-0219 |
 | Supersedes | Host-supplied runner manifest digests |
-| Superseded by | None |
+| Superseded by | WIP-0221 native test-target selection |
 
 ## Summary
 
@@ -82,3 +82,4 @@ Rejected. Identity provenance and manifest interpretation are separate checks.
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0219](WIP-0219-shared-runner-manifest-identity.md)
+- [WIP-0221](WIP-0221-native-test-manifest-selection.md)

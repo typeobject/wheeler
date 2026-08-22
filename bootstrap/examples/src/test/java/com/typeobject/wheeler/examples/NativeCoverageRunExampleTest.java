@@ -175,6 +175,24 @@ final class NativeCoverageRunExampleTest {
         () -> CompilerMachineRunner.runWithoutRewindHistory(invalidMetadata));
     assertArrayEquals(new byte[39], invalidMetadata.hostOutput());
 
+    byte[] wrongVersion = input.clone();
+    wrongVersion[9] = (byte) '2';
+    VirtualMachine invalidVersion = VirtualMachine.withBinaryInput(
+        nativeTestRunner(), wrongVersion, 39);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(invalidVersion));
+    assertArrayEquals(new byte[39], invalidVersion.hostOutput());
+
+    byte[] wrongManifest = input.clone();
+    wrongManifest[23 + TEST_MANIFEST.indexOf("pkg")] = (byte) 'q';
+    VirtualMachine invalidManifest = VirtualMachine.withBinaryInput(
+        nativeTestRunner(), wrongManifest, 39);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(invalidManifest));
+    assertArrayEquals(new byte[39], invalidManifest.hostOutput());
+
     byte[] invalidFailing = failing.clone();
     invalidFailing[0] ^= 1;
     assertArrayEquals(
@@ -593,6 +611,9 @@ final class NativeCoverageRunExampleTest {
     modules.put(
         "TestSummary.w",
         RuntimeSources.read("runtime/testing/TestSummary.w"));
+    modules.put(
+        "TestManifest.w",
+        RuntimeSources.read("runtime/testing/runners/TestManifest.w"));
     modules.put(
         "TestRunner.w",
         RuntimeSources.read("runtime/testing/runners/TestRunner.w"));
