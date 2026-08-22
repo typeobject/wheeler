@@ -9,7 +9,7 @@
 | Area | Self-hosting, package locks, native testing |
 | Depends on | WIP-0273 |
 | Supersedes | Edge-closed but unchecked native lock graphs |
-| Superseded by | Native archive-source binding |
+| Superseded by | WIP-0275 locked package gate, then archive-source binding |
 
 ## Summary
 
@@ -101,3 +101,4 @@ Rejected. The native execution boundary must stand on the transported bytes itse
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0273](WIP-0273-native-lock-edge-closure.md)
+- [WIP-0275](WIP-0275-native-locked-package-test-gate.md)

@@ -8,8 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import com.typeobject.wheeler.runtime.WheelerRuntime;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.util.HexFormat;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -102,6 +105,63 @@ class NativePackageTestRunnerTest {
     assertEquals(1, fastResult.orElseThrow().selected());
     assertEquals(1, fastResult.orElseThrow().passed());
     assertEquals(1, fastReport.passed());
+  }
+
+  @Test
+  void invokesNativeTestsWithAnUnusedLockedDependency() throws Exception {
+    Path project = temporary.resolve("native-dependency-tests");
+    Files.createDirectories(project.resolve("src"));
+    String manifest = """
+        schema: 1
+        package:
+          name: "demo.native.dependency"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "tool"
+            name: "laws"
+            root: "src/Main.w"
+            module: "demo.native.dependency.tests"
+            sources:
+              - "src/Main.w"
+            test: true
+        dependencies:
+          - kind: "normal"
+            name: "demo.dep"
+            version: "^1.0.0"
+        capabilities: []
+        """;
+    Files.writeString(project.resolve("wheeler.package.yaml"), manifest);
+    Files.writeString(project.resolve("src/Main.w"), """
+        module demo.native.dependency.tests;
+        classical class NativeDependencyTests {
+          test void passes() { assert(true); }
+        }
+        """);
+    String root = HexFormat.of().formatHex(
+        MessageDigest.getInstance("SHA-256").digest(manifest.getBytes(StandardCharsets.UTF_8)));
+    String digest = "0".repeat(64);
+    Files.writeString(project.resolve("wheeler.package.lock.yaml"), ("""
+        schema: 3
+        root: "%s"
+        packages:
+          - name: "demo.dep"
+            version: "1.0.0"
+            repository: "%s"
+            snapshot: "%s"
+            archive: "%s"
+            manifest: "%s"
+            dependencies: []
+        """).formatted(root, digest, digest, digest, digest));
+    PackageProject packageProject = PackageProject.load(project);
+
+    var result = NativePackageTestRunner.run(
+        project, packageProject.manifest(), 0, 1, Set.of());
+
+    assertTrue(result.isPresent());
+    assertEquals(1, result.orElseThrow().selected());
+    assertEquals(1, result.orElseThrow().passed());
+    assertEquals(0, result.orElseThrow().failed());
   }
 
   @Test

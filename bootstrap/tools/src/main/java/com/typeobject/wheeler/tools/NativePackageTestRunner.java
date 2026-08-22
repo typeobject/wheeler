@@ -2,6 +2,7 @@ package com.typeobject.wheeler.tools;
 
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.packageformat.PackageFormatException;
+import com.typeobject.wheeler.packageformat.PackageLock;
 import com.typeobject.wheeler.packageformat.PackageManifest;
 import com.typeobject.wheeler.packageformat.PackageManifest.Target;
 import com.typeobject.wheeler.runtime.WheelerRuntime;
@@ -16,6 +17,7 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
@@ -51,7 +53,7 @@ final class NativePackageTestRunner {
       int shardCount,
       Set<String> selectedTags) throws IOException {
     List<Target> testTargets = manifest.targets().stream().filter(Target::test).toList();
-    if (testTargets.isEmpty() || !manifest.dependencies().isEmpty()) {
+    if (testTargets.isEmpty()) {
       return Optional.empty();
     }
     java.util.ArrayList<byte[]> plans = new java.util.ArrayList<>();
@@ -62,7 +64,9 @@ final class NativePackageTestRunner {
         return Optional.empty();
       }
       byte[] plan = sourcePlan(packageRoot, target);
-      if (plan.length > MAX_PLAN_BYTES || !fixedImportProfile(packageRoot, target)) {
+      if (plan.length > MAX_PLAN_BYTES
+          || !fixedImportProfile(packageRoot, target)
+          || !localImportProfile(packageRoot, target)) {
         return Optional.empty();
       }
       plans.add(plan);
@@ -168,6 +172,29 @@ final class NativePackageTestRunner {
     return true;
   }
 
+  private static boolean localImportProfile(Path root, Target target) throws IOException {
+    Set<String> modules = new HashSet<>();
+    for (String source : target.sources()) {
+      for (String line : Files.readAllLines(root.resolve(source), StandardCharsets.UTF_8)) {
+        String text = line.strip();
+        if (text.startsWith("module ") && text.endsWith(";")) {
+          modules.add(text.substring(7, text.length() - 1));
+        }
+      }
+    }
+    for (String source : target.sources()) {
+      for (String line : Files.readAllLines(root.resolve(source), StandardCharsets.UTF_8)) {
+        String text = line.strip();
+        if (text.startsWith("import ") && text.endsWith(";")) {
+          if (!modules.contains(text.substring(7, text.length() - 1))) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
   private static byte[] sourcePlan(Path root, Target target) throws IOException {
     ByteArrayOutputStream output = new ByteArrayOutputStream();
     List<String> sources = target.sources().stream().sorted().toList();
@@ -212,7 +239,7 @@ final class NativePackageTestRunner {
     writeShortText(output, target.name());
     byte[] manifestBytes = Files.readAllBytes(root.resolve(PackageProject.MANIFEST_NAME));
     writeLittleBytes(output, manifestBytes);
-    writeLittleBytes(output, emptyLock(manifestBytes));
+    writeLittleBytes(output, packageLock(root, manifest, manifestBytes));
     writeLittleBytes(output, sourcePlan);
     List<String> tags = selectedTags.stream().sorted(Comparator.naturalOrder()).toList();
     if (tags.size() > 64) {
@@ -244,6 +271,18 @@ final class NativePackageTestRunner {
       cursor = cursor.getParent();
     }
     return Optional.empty();
+  }
+
+  private static byte[] packageLock(
+      Path root, PackageManifest manifest, byte[] manifestBytes) throws IOException {
+    if (manifest.dependencies().isEmpty()) {
+      return emptyLock(manifestBytes);
+    }
+    Path lock = root.resolve(PackageLock.FILE_NAME);
+    if (!Files.isRegularFile(lock, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(lock)) {
+      throw new IOException("Native dependency test requires a physical package lock");
+    }
+    return Files.readAllBytes(lock);
   }
 
   private static byte[] emptyLock(byte[] manifest) {
