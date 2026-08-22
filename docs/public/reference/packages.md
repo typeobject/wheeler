@@ -326,7 +326,7 @@ canonical JSON, and JUnit XML are presentation forms outside the semantic identi
 disjoint and reduce to the serial report in any arrival order. The
 `nativetestcaseidentity`, `nativetestshard`, and `nativetestsummary` conformance
 targets reproduce the case digest, shard assignment, canonical outcome order,
-summary counts, complete execution and coverage identities, semantic report identities for up to 64 cases, and zero-to-64-case classical artifact-to-report runs over one shared package manifest identity, runtime-owned descriptor validation, native source and case identities, pre-execution shard selection, canonical summary publication, failure diagnostics, and no Java semantic callback. Case identity, shard assignment, execution, report reduction, and summary reduction are canonical
+summary counts, complete execution and coverage identities, semantic report identities for up to 64 cases, and zero-to-64-case classical artifact-to-report runs over one natively hashed canonical package manifest, runtime-owned descriptor validation, native source and case identities, pre-execution shard selection, canonical summary publication, failure diagnostics, and no Java semantic callback. Case identity, shard assignment, execution, report reduction, and summary reduction are canonical
 `wheeler.runtime` library operations. The deployable targets only publish results. Package source discovery, descriptor compilation, and rendering still use the stage-0 runner. Repeated `--tag` arguments select their
 intersection.
 

@@ -103,9 +103,14 @@ classical class TestRunner {
     assert(cursor + targetLength < bufferLength(input));
     long targetStart = cursor;
     cursor += targetLength;
-    assert(cursor + 32 < bufferLength(input));
-    long manifestIdentityStart = cursor;
-    cursor += 32;
+    assert(cursor + 4 < bufferLength(input));
+    long manifestLength = readUnsigned(input, cursor, /* width= */ 4);
+    assert(0 < manifestLength);
+    assert(manifestLength < 4097);
+    cursor += 4;
+    assert(cursor + manifestLength < bufferLength(input));
+    long manifestStart = cursor;
+    cursor += manifestLength;
     long caseCount = input[cursor];
     assert(caseCount < MAX_CASES + 1);
     cursor += 1;
@@ -148,14 +153,7 @@ classical class TestRunner {
     copied = copyRange(input, targetStart, targetLength, target, /* outputStart= */ 0);
     assert(copied == targetLength);
     bytes rawManifestIdentity = allocateBytes(staging, /* length= */ 32);
-    copied = copyRange(
-      input,
-      manifestIdentityStart,
-      /* length= */ 32,
-      rawManifestIdentity,
-      /* outputStart= */ 0
-    );
-    assert(copied == 32);
+    hashSha256Range(input, manifestStart, manifestLength, rawManifestIdentity, staging);
     bytes reportRows = allocateBytes(staging, REPORT_ROWS_BYTES);
     bytes summaryRows = allocateBytes(staging, SUMMARY_ROWS_BYTES);
     bytes statusRows = allocateBytes(staging, MAX_CASES);

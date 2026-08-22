@@ -9,7 +9,7 @@
 | Area | Native testing, package identity, descriptor framing |
 | Depends on | WIP-0018, WIP-0195, WIP-0218 |
 | Supersedes | Per-descriptor manifest identity fields |
-| Superseded by | None |
+| Superseded by | WIP-0220 native manifest hashing |
 
 ## Summary
 
@@ -85,3 +85,4 @@ Rejected. Framing closes identity use. A later package parser must close identit
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0195](WIP-0195-native-test-case-identity.md)
 - [WIP-0218](WIP-0218-bounded-native-descriptor-runner.md)
+- [WIP-0220](WIP-0220-native-runner-manifest-hashing.md)
