@@ -73,6 +73,9 @@ final class NativeCoverageRunExampleTest {
         "AggregateInterpreter.w",
         RuntimeSources.read("runtime/AggregateInterpreter.w"));
     modules.put(
+        "ArtifactExecution.w",
+        RuntimeSources.read("runtime/ArtifactExecution.w"));
+    modules.put(
         "BootstrapCoverageFragments.w",
         RuntimeSources.read("runtime/BootstrapCoverageFragments.w"));
     modules.put("CoverageReducer.w", RuntimeSources.read("runtime/CoverageReducer.w"));

@@ -274,6 +274,8 @@ The production task transition kernel is Wheeler code. ABI shims may provide thr
 
 The one-thread interpreter is the oracle. Parallel execution must emit the same EventIds, observations, traps, history use, and final state. Thread identity, core number, work-stealing order, futex identity, and completion arrival never enter portable state.
 
+WIP-0202 moves fresh bounded artifact execution, storage teardown, and closed success or error outcomes into the runtime library. Native coverage is its first consumer. Native test policy remains with WIP-0018.
+
 ## References
 - [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
 - [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
@@ -284,6 +286,7 @@ The one-thread interpreter is the oracle. Parallel execution must emit the same 
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0010](WIP-0010-executable-application-portfolio.md)
+- [WIP-0202](WIP-0202-runtime-artifact-execution-authority.md)
 - [WIP-0023](WIP-0023-recipe-repositories-and-reproducible-builds.md)
 - [WIP-0025](WIP-0025-native-ffi-and-system-integration.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
