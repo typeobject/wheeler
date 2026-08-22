@@ -235,26 +235,16 @@ classical class TestRunner {
     long manifestIdentityLength = writeTestIdentityText(rawManifestIdentity, manifestIdentity);
     assert(manifestIdentityLength == 64);
     assert(validEmptyPackageLock(input, lockStart, lockLength, manifestIdentity));
-    long discoveredNameStart = cursor;
-    long discoveredNameLength = 0;
-    if (0 < caseCount) {
-      discoveredNameStart = cursor + 1;
-      discoveredNameLength = input[cursor];
-    }
-
-    SourceTestDiscovery discovery = discoverRootTest(
+    SourceTestDiscovery discovery = discoverRootTests(
       input,
       sourcePlanStart,
       sourcePlanLength,
       rootOrdinal,
-      input,
-      discoveredNameStart,
-      discoveredNameLength,
+      cursor,
+      caseCount,
       target
     );
     if (0 < discovery.count) {
-      assert(discovery.count == 1);
-      assert(caseCount == 1);
       assert(discovery.matched);
     }
 

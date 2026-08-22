@@ -85,6 +85,17 @@ final class NativeCompiledTestRunnerExampleTest {
         }
       }
       """;
+  private static final String DECLARED_TESTS = """
+      module pkg.test;
+      classical class DeclaredTests {
+        test void beta() {
+          assert(true);
+        }
+        test void alpha() {
+          assert(true);
+        }
+      }
+      """;
   private static final String IMPORTED = """
       module pkg.helper;
       classical class Helper {
@@ -165,6 +176,20 @@ final class NativeCompiledTestRunnerExampleTest {
         runner, descriptor(MANIFEST, sources, artifact, "test::other"), 39);
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(invalid));
     assertArrayEquals(new byte[39], invalid.hostOutput());
+  }
+
+  @Test
+  void discoversMultipleRootTestsInCanonicalDescriptorOrder() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    var testCases = new WheelerCompiler().compilePackageTests(
+        Map.of("Test.w", DECLARED_TESTS), Map.of(), "pkg.test");
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", DECLARED_TESTS));
+    byte[] report = execute(runner, descriptors(MANIFEST, sources, List.of(
+        new NamedArtifact("test::alpha", new BytecodeWriter().write(testCases.get(0).program())),
+        new NamedArtifact("test::beta", new BytecodeWriter().write(testCases.get(1).program())))));
+
+    assertEquals(2, report[32]);
+    assertEquals(2, report[34]);
   }
 
   @Test
@@ -395,6 +420,13 @@ final class NativeCompiledTestRunnerExampleTest {
       List<NativeTestSourcePlan.Source> sources,
       byte[] artifact,
       String caseName) {
+    return descriptors(manifest, sources, List.of(new NamedArtifact(caseName, artifact)));
+  }
+
+  private static byte[] descriptors(
+      String manifest,
+      List<NativeTestSourcePlan.Source> sources,
+      List<NamedArtifact> cases) {
     byte[] plan = NativeTestSourcePlan.write(sources);
     ByteArrayOutputStream input = new ByteArrayOutputStream();
     input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
@@ -405,9 +437,11 @@ final class NativeCompiledTestRunnerExampleTest {
     writeBytes(input, manifest.getBytes(StandardCharsets.UTF_8));
     writeBytes(input, NativeTestManifestInput.emptyLock(manifest));
     writeBytes(input, plan);
-    input.write(1);
-    writeShortText(input, caseName);
-    writeBytes(input, artifact);
+    input.write(cases.size());
+    for (NamedArtifact testcase : cases) {
+      writeShortText(input, testcase.name());
+      writeBytes(input, testcase.artifact());
+    }
     return input.toByteArray();
   }
 
@@ -422,6 +456,8 @@ final class NativeCompiledTestRunnerExampleTest {
         .putInt(bytes.length).array());
     output.writeBytes(bytes);
   }
+
+  private record NamedArtifact(String name, byte[] artifact) {}
 
   private static byte[] execute(Program runner, byte[] input) {
     VirtualMachine machine = VirtualMachine.withBinaryInput(runner, input, 39);

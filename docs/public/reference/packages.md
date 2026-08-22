@@ -330,7 +330,7 @@ The native conformance targets reproduce case identity, shard assignment, canoni
 
 A one-case descriptor over one root and up to seven local imported sources may carry zero artifact bytes. Its case name must be the selected target plus `::entry`. The runtime compiles the validated source set natively and feeds the exact committed artifact into the same profile-2 path as transported bytes.
 
-For a transported artifact, the native runner discovers one parameterless root `test void` declaration through the canonical lexer. It requires `<target>::<declaration>` before identity or execution. Multiple declarations and parameter rows remain outside this native discovery profile and reject closed. Case identity, execution, diagnostics, report reduction, and summary reduction remain `wheeler.runtime` operations. Conformance targets only publish results and make no Java semantic callback.
+For transported artifacts, the native runner discovers up to 64 parameterless root `test void` declarations through the canonical lexer. It requires complete, unique `<target>::<declaration>` descriptors in canonical order before identity or execution. Parameter rows remain outside this native discovery profile and reject closed. Case identity, execution, diagnostics, report reduction, and summary reduction remain `wheeler.runtime` operations. Conformance targets only publish results and make no Java semantic callback.
 
 Package source discovery, descriptor construction, and rendering still use the stage-0 runner. Native execution hashes the canonical discovered source plan once for every selected case. Repeated `--tag` arguments select their intersection.
 

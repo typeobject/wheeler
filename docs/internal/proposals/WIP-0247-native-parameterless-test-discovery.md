@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, source discovery |
 | Depends on | WIP-0205, WIP-0225, WIP-0231, WIP-0246 |
 | Supersedes | Caller-provided names for one transported root test |
-| Superseded by | Counted native test declaration discovery |
+| Superseded by | WIP-0248 native counted test discovery |
 
 ## Summary
 
@@ -93,3 +93,4 @@ Rejected. Execution and coverage identities must describe the same attempt.
 - [WIP-0225](WIP-0225-native-case-discovery-order.md)
 - [WIP-0231](WIP-0231-native-source-module-declarations.md)
 - [WIP-0246](WIP-0246-native-entry-case-identity.md)
+- [WIP-0248](WIP-0248-native-counted-test-discovery.md)
