@@ -29,6 +29,7 @@ classical class TestRunner {
   private const long MAX_CASES = 64;
   private const long MAX_COPY_BYTES = 342080;
   private const long MAX_PAYLOAD_BYTES = 32768;
+  private const long PUBLISHED_REPORT_BYTES = 342123;
   private const long REPORT_ROWS_BYTES = 342080;
   private const long SUMMARY_ROWS_BYTES = 2048;
 
@@ -353,7 +354,9 @@ classical class TestRunner {
     }
 
     if (metadataOnly) {
-      assert(bufferLength(output) == 39);
+      if (bufferLength(output) == PUBLISHED_REPORT_BYTES) {} else {
+        assert(bufferLength(output) == 39);
+      }
       setByte(output, /* index= */ 32, caseCount);
       setByte(output, /* index= */ 33, /* caseCountHigh= */ 0);
       drop(caseStepLimits);
@@ -707,7 +710,11 @@ classical class TestRunner {
     long summaryLength = reduceTestSummary(summaryInput, summary);
     assert(summaryLength == 7);
 
-    assert(bufferLength(output) == 39);
+    boolean publishRows = bufferLength(output) == PUBLISHED_REPORT_BYTES;
+    if (publishRows == false) {
+      assert(bufferLength(output) == 39);
+    }
+
     long published = copyRange(
       reportIdentity,
       /* inputStart= */ 0,
@@ -717,6 +724,20 @@ classical class TestRunner {
     );
     published = copyRange(summary, /* inputStart= */ 0, /* length= */ 7, output, published);
     assert(published == 39);
+    if (publishRows) {
+      setByte(output, published, reportRowsLength % 256);
+      setByte(output, published + 1, reportRowsLength / 256 % 256);
+      setByte(output, published + 2, reportRowsLength / 65536 % 256);
+      setByte(output, published + 3, reportRowsLength / 16777216);
+      published += 4;
+      published = copyRange(
+        reportRows,
+        /* inputStart= */ 0,
+        reportRowsLength,
+        output,
+        published
+      );
+    }
 
     drop(summary);
     drop(summaryInput);

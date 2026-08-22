@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.tools;
 
+import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.runtime.ExecutionResult;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -21,8 +22,16 @@ final class TestReport {
   private static final int MAX_DIAGNOSTIC_CHARS = 4_096;
   private final List<CaseResult> cases;
   private final String identity;
+  private final String runnerIdentity;
 
   TestReport(List<CaseResult> cases) throws IOException {
+    this(cases, Stage0CompilerIdentity.current());
+  }
+
+  TestReport(List<CaseResult> cases, String runnerIdentity) throws IOException {
+    if (!CaseResult.hex(runnerIdentity)) {
+      throw new IllegalArgumentException("Invalid test runner identity");
+    }
     if (cases.size() > MAX_CASES) {
       throw new IllegalArgumentException("Test report exceeds 65,535 cases");
     }
@@ -35,7 +44,7 @@ final class TestReport {
       }
     }
     this.cases = List.copyOf(sorted);
-    String runnerIdentity = Stage0CompilerIdentity.current();
+    this.runnerIdentity = runnerIdentity;
     identity = digest(digest -> {
       field(digest, "wheeler.test-report/2");
       field(digest, runnerIdentity);
@@ -47,7 +56,14 @@ final class TestReport {
   static TestReport combine(List<TestReport> reports) throws IOException {
     List<CaseResult> cases = new ArrayList<>();
     reports.forEach(report -> cases.addAll(report.cases));
-    return new TestReport(cases);
+    if (reports.isEmpty()) {
+      return new TestReport(cases);
+    }
+    String runnerIdentity = reports.getFirst().runnerIdentity;
+    if (reports.stream().anyMatch(report -> !report.runnerIdentity.equals(runnerIdentity))) {
+      throw new PackageFormatException("Cannot combine reports from different test runners");
+    }
+    return new TestReport(cases, runnerIdentity);
   }
 
   static boolean assignedToShard(String caseIdentity, int shardIndex, int shardCount) {

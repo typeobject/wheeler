@@ -114,31 +114,15 @@ final class PackageProject {
   }
 
   TestReport test(int shardIndex, int shardCount, Set<String> selectedTags) throws IOException {
-    Optional<NativePackageTestRunner.Result> nativeResult = Optional.empty();
-    if (!selectedTags.isEmpty()) {
-      nativeResult = NativePackageTestRunner.run(
-          root, manifest, shardIndex, shardCount, selectedTags);
+    Optional<NativePackageTestRunner.Result> nativeResult = NativePackageTestRunner.run(
+        root, manifest, shardIndex, shardCount, selectedTags);
+    if (nativeResult.isPresent()) {
+      return nativeResult.orElseThrow().report();
     }
+
     TestRun run = testRun(shardIndex, shardCount, selectedTags);
     rejectUnknownTags(selectedTags, run.availableTags());
-    if (selectedTags.isEmpty()) {
-      nativeResult = NativePackageTestRunner.run(
-          root, manifest, shardIndex, shardCount, selectedTags);
-    }
-    nativeResult.ifPresent(result -> requireNativeParity(result, run.report()));
     return run.report();
-  }
-
-  private static void requireNativeParity(
-      NativePackageTestRunner.Result nativeResult, TestReport report) {
-    if (nativeResult.selected() != report.selected()
-        || nativeResult.passed() != report.passed()
-        || nativeResult.failed() != report.failed()) {
-      throw new PackageFormatException(
-          "Native test summary " + nativeResult.selected() + "/" + nativeResult.passed()
-              + "/" + nativeResult.failed() + " disagrees with stage-0 "
-              + report.selected() + "/" + report.passed() + "/" + report.failed());
-    }
   }
 
   TestRun testRun(int shardIndex, int shardCount, Set<String> selectedTags) throws IOException {

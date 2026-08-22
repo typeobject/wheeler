@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.core.bytecode.ProgramKind;
+import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.runtime.ExecutionResult;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +62,10 @@ final class TestReportShardTest {
     TestReport report = new TestReport(List.of(result));
     assertThrows(IllegalArgumentException.class,
         () -> TestReport.combine(List.of(report, report)));
+    TestReport nativeEmpty = new TestReport(List.of(), "0".repeat(63) + "1");
+    assertThrows(
+        PackageFormatException.class,
+        () -> TestReport.combine(List.of(report, nativeEmpty)));
 
     List<TestReport.CaseResult> oversized = new ArrayList<>(65_536);
     for (int index = 0; index < 65_536; index++) {

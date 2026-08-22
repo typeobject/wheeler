@@ -9,7 +9,7 @@
 | Area | Self-hosting, package testing, package locks |
 | Depends on | WIP-0274 |
 | Supersedes | Dependency-free-only native package test invocation |
-| Superseded by | Native external import source binding |
+| Superseded by | WIP-0276 native case rows, then external import source binding |
 
 ## Summary
 
@@ -81,3 +81,4 @@ Rejected. Java transports physical bytes. Wheeler decides their meaning.
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0274](WIP-0274-native-lock-graph-validation.md)
+- [WIP-0276](WIP-0276-native-package-case-rows.md)

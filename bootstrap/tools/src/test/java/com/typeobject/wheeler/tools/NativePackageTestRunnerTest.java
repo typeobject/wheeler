@@ -101,10 +101,51 @@ class NativePackageTestRunnerTest {
     assertEquals(2, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
     assertEquals(2, report.passed());
+    assertEquals(result.orElseThrow().report().cases(), report.cases());
+    assertEquals(result.orElseThrow().report().identity(), report.identity());
     assertTrue(fastResult.isPresent());
     assertEquals(1, fastResult.orElseThrow().selected());
     assertEquals(1, fastResult.orElseThrow().passed());
     assertEquals(1, fastReport.passed());
+  }
+
+  @Test
+  void publishesCompleteNativeFailureRows() throws Exception {
+    Path project = temporary.resolve("native-failure-rows");
+    Files.createDirectories(project.resolve("src"));
+    Files.writeString(project.resolve("wheeler.package.yaml"), """
+        schema: 1
+        package:
+          name: "demo.native.failure"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "tool"
+            name: "laws"
+            root: "src/Main.w"
+            module: "demo.native.failure.tests"
+            sources:
+              - "src/Main.w"
+            test: true
+        dependencies: []
+        capabilities: []
+        """);
+    Files.writeString(project.resolve("src/Main.w"), """
+        module demo.native.failure.tests;
+        classical class NativeFailureTests {
+          test void fails() { assert(false); }
+        }
+        """);
+    PackageProject packageProject = PackageProject.load(project);
+
+    TestReport report = packageProject.test();
+
+    assertEquals(1, report.selected());
+    assertEquals(0, report.passed());
+    assertEquals(1, report.failed());
+    assertEquals("WTEST003", report.cases().getFirst().diagnosticCode());
+    assertEquals(1, report.cases().getFirst().assertions());
+    assertEquals(64, report.identity().length());
   }
 
   @Test
