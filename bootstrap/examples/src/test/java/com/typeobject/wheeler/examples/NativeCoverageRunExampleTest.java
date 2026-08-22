@@ -80,6 +80,27 @@ final class NativeCoverageRunExampleTest {
   }
 
   @Test
+  void nativeArtifactMetadataProjectsProgramAndGlobalNames() throws Exception {
+    byte[] artifact = new BytecodeWriter().write(new WheelerCompiler().compile(GLOBAL_SUBJECT));
+    VirtualMachine machine = VirtualMachine.withBinaryInput(artifactMetadata(), artifact, 4096);
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+    ByteBuffer result = ByteBuffer.wrap(machine.hostOutput()).order(ByteOrder.LITTLE_ENDIAN);
+    assertEquals("GlobalSubject", readText(result));
+    assertEquals(0, Byte.toUnsignedInt(result.get()));
+    assertEquals(2, Byte.toUnsignedInt(result.get()));
+    assertEquals("first", readText(result));
+    assertEquals("second", readText(result));
+    assertEquals(0, result.remaining());
+
+    artifact[0] ^= 1;
+    VirtualMachine invalid = VirtualMachine.withBinaryInput(artifactMetadata(), artifact, 4096);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(invalid));
+    assertArrayEquals(new byte[4096], invalid.hostOutput());
+  }
+
+  @Test
   void nativeTestExecutionClassifiesValuesAndVerifierErrors() throws Exception {
     byte[] artifact = new BytecodeWriter().write(new WheelerCompiler().compile(GLOBAL_SUBJECT));
     VirtualMachine success = VirtualMachine.withBinaryInput(artifactRunner(), artifact, 89);
@@ -132,6 +153,26 @@ final class NativeCoverageRunExampleTest {
             "../wheeler-conformance/src/main/wheeler/testing/NativeTestCoverageIdentity.w")));
     return new WheelerCompiler().compileModuleFiles(
         modules, "wheeler.conformance.testing.native_test_coverage_identity");
+  }
+
+  private static Program artifactMetadata() throws Exception {
+    var modules = runtimeModules();
+    modules.put(
+        "TestArtifactMetadata.w",
+        RuntimeSources.read("runtime/testing/TestArtifactMetadata.w"));
+    modules.put(
+        "NativeTestArtifactMetadata.w",
+        Files.readString(Path.of(
+            "../wheeler-conformance/src/main/wheeler/testing/NativeTestArtifactMetadata.w")));
+    return new WheelerCompiler().compileModuleFiles(
+        modules, "wheeler.conformance.testing.native_test_artifact_metadata");
+  }
+
+  private static String readText(ByteBuffer input) {
+    int length = Short.toUnsignedInt(input.getShort());
+    byte[] value = new byte[length];
+    input.get(value);
+    return new String(value, StandardCharsets.UTF_8);
   }
 
   private static Program artifactRunner() throws Exception {

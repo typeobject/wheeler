@@ -180,6 +180,13 @@ targets:
       - "src/main/wheeler/packages/identity/NativeSnapshotIdentity.w"
     test: false
   - kind: "deployable"
+    name: "nativetestartifactmetadata"
+    root: "src/main/wheeler/testing/NativeTestArtifactMetadata.w"
+    module: "wheeler.conformance.testing.native_test_artifact_metadata"
+    sources:
+      - "src/main/wheeler/testing/NativeTestArtifactMetadata.w"
+    test: false
+  - kind: "deployable"
     name: "nativetestartifactrun"
     root: "src/main/wheeler/testing/NativeTestArtifactRun.w"
     module: "wheeler.conformance.testing.native_test_artifact_run"

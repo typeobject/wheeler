@@ -82,3 +82,4 @@ Rejected. The runtime operation must not discard semantic result data.
 - [WIP-0202](WIP-0202-runtime-artifact-execution-authority.md)
 - [WIP-0203](WIP-0203-native-test-artifact-outcomes.md)
 - [WIP-0204](WIP-0204-native-test-execution-identity.md)
+- [WIP-0207](WIP-0207-native-test-artifact-metadata.md)
