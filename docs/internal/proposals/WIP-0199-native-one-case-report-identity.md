@@ -9,7 +9,7 @@
 | Area | Native testing, semantic reports, Java-free execution |
 | Depends on | WIP-0018, WIP-0195, WIP-0198 |
 | Supersedes | None |
-| Superseded by | WIP-0200 empty and one-case dispatch |
+| Superseded by | WIP-0201 counted multi-case report framing |
 
 ## Summary
 
@@ -108,4 +108,5 @@ Rejected. This slice fixes the case count at one and says so.
 - [WIP-0195](WIP-0195-native-test-case-identity.md)
 - [WIP-0198](WIP-0198-runtime-test-summary-authority.md)
 - [WIP-0200](WIP-0200-native-empty-report-identity.md)
+- [WIP-0201](WIP-0201-bounded-native-multi-case-reports.md)
 - [Package testing reference](../../public/reference/packages.md#tests)

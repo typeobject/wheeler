@@ -9,7 +9,7 @@
 | Area | Native testing, semantic reports, zero-case execution |
 | Depends on | WIP-0018, WIP-0199 |
 | Supersedes | One-case-only report identity dispatch |
-| Superseded by | None |
+| Superseded by | WIP-0201 counted multi-case report framing |
 
 ## Summary
 
@@ -77,3 +77,4 @@ Rejected. Frame dispatch belongs inside the runtime authority.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0198](WIP-0198-runtime-test-summary-authority.md)
 - [WIP-0199](WIP-0199-native-one-case-report-identity.md)
+- [WIP-0201](WIP-0201-bounded-native-multi-case-reports.md)

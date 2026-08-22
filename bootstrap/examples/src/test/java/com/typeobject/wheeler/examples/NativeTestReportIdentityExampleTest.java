@@ -53,6 +53,19 @@ final class NativeTestReportIdentityExampleTest {
   }
 
   @Test
+  void sortsMultipleCasesAndRejectsDuplicates() throws Exception {
+    ReportCase alpha = new ReportCase(
+        "pkg", "1", "alpha", identityText(10), SOURCE, ARTIFACT, 0,
+        "", "", 1, 2, EXECUTION, "");
+    ReportCase beta = new ReportCase(
+        "pkg", "1", "beta", identityText(20), SOURCE, "", 1,
+        "WTEST002", "trap", 0, 0, "", "");
+
+    assertArrayEquals(expected(List.of(alpha, beta)), execute(frame(List.of(beta, alpha))));
+    assertRejected(frame(List.of(alpha, beta, alpha)));
+  }
+
+  @Test
   void rejectsIncompleteRowsBeforePublication() throws Exception {
     ReportCase passWithDiagnostic = new ReportCase(
         "pkg", "1", "target", CASE, SOURCE, ARTIFACT, 0,
@@ -70,62 +83,86 @@ final class NativeTestReportIdentityExampleTest {
   }
 
   private static byte[] expected(ReportCase value) throws Exception {
+    return expected(List.of(value));
+  }
+
+  private static byte[] expected(List<ReportCase> values) throws Exception {
     MessageDigest digest = MessageDigest.getInstance("SHA-256");
     field(digest, "wheeler.test-report/2");
     field(digest, RUNNER);
-    integer(digest, 1);
-    field(digest, value.packageName());
-    field(digest, value.packageVersion());
-    field(digest, value.targetName());
-    field(digest, value.caseIdentity());
-    field(digest, value.sourceIdentity());
-    field(digest, value.artifactIdentity());
-    field(digest, value.status() == 0 ? "PASS" : "FAIL");
-    field(digest, value.diagnosticCode());
-    field(digest, value.diagnosticMessage());
-    integer(digest, value.assertions());
-    integer(digest, value.workflowSteps());
-    field(digest, value.executionIdentity());
-    field(digest, value.coverageIdentity());
+    integer(digest, values.size());
+    for (ReportCase value : values.stream()
+        .sorted(java.util.Comparator.comparing(ReportCase::caseIdentity))
+        .toList()) {
+      field(digest, value.packageName());
+      field(digest, value.packageVersion());
+      field(digest, value.targetName());
+      field(digest, value.caseIdentity());
+      field(digest, value.sourceIdentity());
+      field(digest, value.artifactIdentity());
+      field(digest, value.status() == 0 ? "PASS" : "FAIL");
+      field(digest, value.diagnosticCode());
+      field(digest, value.diagnosticMessage());
+      integer(digest, value.assertions());
+      integer(digest, value.workflowSteps());
+      field(digest, value.executionIdentity());
+      field(digest, value.coverageIdentity());
+    }
     return digest.digest();
   }
 
   private static byte[] emptyFrame() {
     byte[] runner = RUNNER.getBytes(StandardCharsets.US_ASCII);
-    return ByteBuffer.allocate(2 + runner.length)
+    return ByteBuffer.allocate(4 + runner.length)
         .order(ByteOrder.LITTLE_ENDIAN)
         .putShort((short) runner.length)
         .put(runner)
+        .putShort((short) 0)
         .array();
   }
 
   private static byte[] frame(ReportCase value) {
+    return frame(List.of(value));
+  }
+
+  private static byte[] frame(List<ReportCase> values) {
     ByteArrayOutputStream output = new ByteArrayOutputStream();
-    for (String field : List.of(
-        RUNNER,
-        value.packageName(),
-        value.packageVersion(),
-        value.targetName(),
-        value.caseIdentity(),
-        value.sourceIdentity(),
-        value.artifactIdentity(),
-        value.diagnosticCode(),
-        value.diagnosticMessage(),
-        value.executionIdentity(),
-        value.coverageIdentity())) {
-      byte[] bytes = field.getBytes(StandardCharsets.UTF_8);
-      output.writeBytes(ByteBuffer.allocate(2)
-          .order(ByteOrder.LITTLE_ENDIAN)
-          .putShort((short) bytes.length)
-          .array());
-      output.writeBytes(bytes);
-    }
-    output.write(value.status());
-    output.writeBytes(ByteBuffer.allocate(16)
+    byte[] runner = RUNNER.getBytes(StandardCharsets.US_ASCII);
+    output.writeBytes(ByteBuffer.allocate(2)
         .order(ByteOrder.LITTLE_ENDIAN)
-        .putLong(value.assertions())
-        .putLong(value.workflowSteps())
+        .putShort((short) runner.length)
         .array());
+    output.writeBytes(runner);
+    output.writeBytes(ByteBuffer.allocate(2)
+        .order(ByteOrder.LITTLE_ENDIAN)
+        .putShort((short) values.size())
+        .array());
+    for (ReportCase value : values) {
+      for (String field : List.of(
+          value.packageName(),
+          value.packageVersion(),
+          value.targetName(),
+          value.caseIdentity(),
+          value.sourceIdentity(),
+          value.artifactIdentity(),
+          value.diagnosticCode(),
+          value.diagnosticMessage(),
+          value.executionIdentity(),
+          value.coverageIdentity())) {
+        byte[] bytes = field.getBytes(StandardCharsets.UTF_8);
+        output.writeBytes(ByteBuffer.allocate(2)
+            .order(ByteOrder.LITTLE_ENDIAN)
+            .putShort((short) bytes.length)
+            .array());
+        output.writeBytes(bytes);
+      }
+      output.write(value.status());
+      output.writeBytes(ByteBuffer.allocate(16)
+          .order(ByteOrder.LITTLE_ENDIAN)
+          .putLong(value.assertions())
+          .putLong(value.workflowSteps())
+          .array());
+    }
     return output.toByteArray();
   }
 
