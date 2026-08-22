@@ -12,11 +12,6 @@ classical class TestSourcePlan {
       + input[offset + 3];
   }
 
-  /// Reports the first path length after complete plan validation.
-  public long firstSourcePathLength(borrow byteview input, long start) {
-    return readUnsigned32BigEndian(input, start + 4);
-  }
-
   private boolean pathScalar(long scalar) {
     if (47 < scalar) {
       if (scalar < 58) {

@@ -57,6 +57,11 @@ classical class TestManifest {
     return true;
   }
 
+  private long readUnsigned32BigEndian(borrow byteview input, long offset) {
+    return input[offset] * 16777216 + input[offset + 1] * 65536 + input[offset + 2] * 256
+      + input[offset + 3];
+  }
+
   private boolean sameRange(borrow byteview input, long leftStart, long rightStart, long length) {
     long offset = 0;
     while (offset < length) limit 255 {
@@ -123,8 +128,8 @@ classical class TestManifest {
     borrow byteview packageName,
     borrow byteview packageVersion,
     borrow byteview targetName,
-    long sourcePathStart,
-    long sourcePathLength
+    long sourcePlanStart,
+    long sourcePlanLength
   ) {
     assert(0 < length);
     assert(length < MAX_MANIFEST_BYTES + 1);
@@ -196,9 +201,11 @@ classical class TestManifest {
 
     cursor = found + 1;
 
+    long sourceCount = readUnsigned32BigEndian(input, sourcePlanStart);
+    long sourceCursor = sourcePlanStart + 4;
+    long selectedSources = 0;
     boolean candidate = false;
     boolean sourceSection = false;
-    boolean sourceSelected = false;
     boolean selected = false;
     boolean dependencies = false;
     while (cursor < end) limit MAX_MANIFEST_BYTES {
@@ -216,7 +223,8 @@ classical class TestManifest {
         if (rangeHash(input, cursor, /* length= */ 10) == 2457211845) {
           candidate = false;
           sourceSection = false;
-          sourceSelected = false;
+          sourceCursor = sourcePlanStart + 4;
+          selectedSources = 0;
         }
       }
 
@@ -231,6 +239,8 @@ classical class TestManifest {
         )
       ) {
         candidate = true;
+        sourceCursor = sourcePlanStart + 4;
+        selectedSources = 0;
       }
 
       if (candidate) {
@@ -238,22 +248,29 @@ classical class TestManifest {
           sourceSection = true;
         } else {
           if (sourceSection) {
-            sourceSelected = sourceLine(
-              input,
-              cursor,
-              found,
-              sourcePathStart,
-              sourcePathLength
-            );
-            sourceSection = false;
-          }
-        }
+            if (selectedSources < sourceCount) {
+              long sourcePathLength = readUnsigned32BigEndian(input, sourceCursor);
+              long sourcePathStart = sourceCursor + 4;
+              if (
+                sourceLine(input, cursor, found, sourcePathStart, sourcePathLength) == false
+              ) {
+                return false;
+              }
 
-        if (sourceSelected) {
-          if (
-            exactLine(input, cursor, found, /* length= */ 14, /* hash= */ 4023520342)
-          ) {
-            selected = true;
+              sourceCursor += 4 + sourcePathLength;
+              long sourceLength = readUnsigned32BigEndian(input, sourceCursor);
+              sourceCursor += 4 + sourceLength;
+              selectedSources += 1;
+            } else {
+              if (
+                exactLine(input, cursor, found, /* length= */ 14, /* hash= */ 4023520342)
+              ) {
+                selected = sourceCursor == sourcePlanStart + sourcePlanLength;
+                sourceSection = false;
+              } else {
+                return false;
+              }
+            }
           }
         }
       }

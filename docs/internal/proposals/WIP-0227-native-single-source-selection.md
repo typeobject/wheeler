@@ -9,7 +9,7 @@
 | Area | Native testing, package manifests, source selection |
 | Depends on | WIP-0009, WIP-0018, WIP-0223, WIP-0226 |
 | Supersedes | Independently validated manifest and source-plan paths |
-| Superseded by | Native multi-selector source expansion |
+| Superseded by | WIP-0228 native multi-source selection |
 
 ## Summary
 
@@ -85,3 +85,4 @@ Rejected. Directory expansion needs its own complete lexical and deduplication c
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0223](WIP-0223-native-target-source-plan-validation.md)
 - [WIP-0226](WIP-0226-native-root-lock-provenance.md)
+- [WIP-0228](WIP-0228-native-multi-source-selection.md)

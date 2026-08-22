@@ -184,8 +184,6 @@ classical class TestRunner {
     copied = copyRange(input, targetStart, targetLength, target, /* outputStart= */ 0);
     assert(copied == targetLength);
     assert(validTargetSourcePlan(input, sourcePlanStart, sourcePlanLength));
-    long sourcePathLength = firstSourcePathLength(input, sourcePlanStart);
-    long sourcePathStart = sourcePlanStart + 8;
     assert(
       validTestManifest(
         input,
@@ -194,8 +192,8 @@ classical class TestRunner {
         packageName,
         packageVersion,
         target,
-        sourcePathStart,
-        sourcePathLength
+        sourcePlanStart,
+        sourcePlanLength
       )
     );
     bytes rawManifestIdentity = allocateBytes(staging, /* length= */ 32);

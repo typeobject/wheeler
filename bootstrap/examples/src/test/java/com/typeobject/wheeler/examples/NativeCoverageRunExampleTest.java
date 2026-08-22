@@ -2,6 +2,7 @@ package com.typeobject.wheeler.examples;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
@@ -11,6 +12,7 @@ import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import com.typeobject.wheeler.packageformat.PackageManifestParser;
 import java.io.ByteArrayOutputStream;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -57,10 +59,12 @@ final class NativeCoverageRunExampleTest {
       targets:
         - kind: "deployable"
           name: "test"
-          root: "src/Test.w"
+          root: "src/Pass.w"
           module: "pkg.test"
           sources:
-            - "src/Test.w"
+            - "src/Fail.w"
+            - "src/Pass.w"
+            - "src/Runtime.w"
           test: true
       dependencies: []
       capabilities: []
@@ -255,14 +259,25 @@ final class NativeCoverageRunExampleTest {
       assertArrayEquals(new byte[39], invalidDescriptors.hostOutput());
     }
 
+    int shardCount = 257;
+    int passingShard = caseShard(SUBJECT, shardCount);
+    int failingShard = caseShard(FAILING_SUBJECT, shardCount);
+    int runtimeShard = caseShard(RUNTIME_FAILURE_SUBJECT, shardCount);
+    assertNotEquals(passingShard, failingShard);
+    assertNotEquals(passingShard, runtimeShard);
+    assertNotEquals(failingShard, runtimeShard);
+    int emptyShard = firstUnusedShard(shardCount, passingShard, failingShard, runtimeShard);
+
     byte[] invalidFailing = failing.clone();
     invalidFailing[0] ^= 1;
     assertArrayEquals(
         expectedSelectedReport(passing, SUBJECT, true),
-        executeTests(twoCaseInput(3, 5, SUBJECT, passing, FAILING_SUBJECT, invalidFailing)));
+        executeTests(twoCaseInput(
+            passingShard, shardCount, SUBJECT, passing, FAILING_SUBJECT, invalidFailing)));
     assertArrayEquals(
         expectedSelectedReport(failing, FAILING_SUBJECT, false),
-        executeTests(twoCaseInput(2, 5, SUBJECT, passing, FAILING_SUBJECT, failing)));
+        executeTests(twoCaseInput(
+            failingShard, shardCount, SUBJECT, passing, FAILING_SUBJECT, failing)));
     assertArrayEquals(
         expectedSelectedReport(
             runtimeFailure,
@@ -272,7 +287,12 @@ final class NativeCoverageRunExampleTest {
             "native artifact execution failed",
             0),
         executeTests(twoCaseInput(
-            4, 5, SUBJECT, passing, RUNTIME_FAILURE_SUBJECT, runtimeFailure)));
+            runtimeShard,
+            shardCount,
+            SUBJECT,
+            passing,
+            RUNTIME_FAILURE_SUBJECT,
+            runtimeFailure)));
     assertArrayEquals(
         expectedSelectedReport(
             invalidFailing,
@@ -282,13 +302,23 @@ final class NativeCoverageRunExampleTest {
             "native artifact verification failed",
             0),
         executeTests(twoCaseInput(
-            2, 5, SUBJECT, passing, FAILING_SUBJECT, invalidFailing)));
+            failingShard,
+            shardCount,
+            SUBJECT,
+            passing,
+            FAILING_SUBJECT,
+            invalidFailing)));
     byte[] invalidPassing = passing.clone();
     invalidPassing[0] ^= 1;
     assertArrayEquals(
         expectedEmptyReport(),
         executeTests(twoCaseInput(
-            0, 5, SUBJECT, invalidPassing, FAILING_SUBJECT, invalidFailing)));
+            emptyShard,
+            shardCount,
+            SUBJECT,
+            invalidPassing,
+            FAILING_SUBJECT,
+            invalidFailing)));
   }
 
   @Test
@@ -494,16 +524,22 @@ final class NativeCoverageRunExampleTest {
   }
 
   private static byte[] targetSourcePlan() {
-    byte[] path = "src/Test.w".getBytes(StandardCharsets.UTF_8);
-    byte[] source = (SUBJECT + FAILING_SUBJECT + RUNTIME_FAILURE_SUBJECT)
-        .getBytes(StandardCharsets.UTF_8);
-    return ByteBuffer.allocate(12 + path.length + source.length)
-        .putInt(1)
-        .putInt(path.length)
-        .put(path)
-        .putInt(source.length)
-        .put(source)
-        .array();
+    ByteArrayOutputStream plan = new ByteArrayOutputStream();
+    plan.writeBytes(ByteBuffer.allocate(4).putInt(3).array());
+    writePlanSource(plan, "src/Fail.w", FAILING_SUBJECT);
+    writePlanSource(plan, "src/Pass.w", SUBJECT);
+    writePlanSource(plan, "src/Runtime.w", RUNTIME_FAILURE_SUBJECT);
+    return plan.toByteArray();
+  }
+
+  private static void writePlanSource(
+      ByteArrayOutputStream plan, String path, String source) {
+    byte[] pathBytes = path.getBytes(StandardCharsets.UTF_8);
+    byte[] sourceBytes = source.getBytes(StandardCharsets.UTF_8);
+    plan.writeBytes(ByteBuffer.allocate(4).putInt(pathBytes.length).array());
+    plan.writeBytes(pathBytes);
+    plan.writeBytes(ByteBuffer.allocate(4).putInt(sourceBytes.length).array());
+    plan.writeBytes(sourceBytes);
   }
 
   private static byte[] executeTests(byte[] input) throws Exception {
@@ -693,6 +729,26 @@ final class NativeCoverageRunExampleTest {
     digestField(report, sourceIdentity);
     digestField(report, HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(artifact)));
+  }
+
+  private static int caseShard(String source, int shardCount) throws Exception {
+    String sourceIdentity = HexFormat.of().formatHex(
+        MessageDigest.getInstance("SHA-256").digest(targetSourcePlan()));
+    String identity = derivedCaseIdentity(sourceIdentity, caseName(source));
+    return new BigInteger(identity, 16).mod(BigInteger.valueOf(shardCount)).intValueExact();
+  }
+
+  private static int firstUnusedShard(int shardCount, int... used) {
+    for (int candidate = 0; candidate < shardCount; candidate++) {
+      boolean available = true;
+      for (int value : used) {
+        available &= candidate != value;
+      }
+      if (available) {
+        return candidate;
+      }
+    }
+    throw new AssertionError("no unused shard");
   }
 
   private static String derivedCaseIdentity(String sourceIdentity, String caseName)
