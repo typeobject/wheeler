@@ -25,7 +25,7 @@ This is the execution seam required by the Wheeler-written test runner. Coverage
 
 - whether execution reached a value
 - committed interpreter steps
-- final global zero on success
+- active global count and all eight bounded global slots on success
 - verifier or interpreter error offset on failure
 
 The result does not publish host output and does not classify an interpreter error as a test diagnostic. Test policy remains with WIP-0018.
@@ -92,3 +92,4 @@ Rejected. Runtime execution reports mechanism. Test and coverage consumers own p
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md)
 - [WIP-0203](WIP-0203-native-test-artifact-outcomes.md)
+- [WIP-0206](WIP-0206-complete-native-artifact-outcomes.md)

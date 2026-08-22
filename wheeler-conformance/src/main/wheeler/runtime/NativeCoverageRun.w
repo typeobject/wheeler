@@ -34,7 +34,7 @@ classical class NativeCoverageRun {
     transitionCount = outcome.steps;
     assert(0 < transitionCount);
     assert(transitionCount < 65);
-    finalGlobal = outcome.finalGlobal;
+    finalGlobal = outcome.globalZero;
 
     long function = entryFunction(artifact);
     long fragmentLength = measuredTransitionFragments(traceOpcodes, transitionCount, function);

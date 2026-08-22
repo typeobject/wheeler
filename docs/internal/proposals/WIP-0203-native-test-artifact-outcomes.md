@@ -9,17 +9,17 @@
 | Area | Native testing, artifact execution, terminal outcomes |
 | Depends on | WIP-0018, WIP-0202 |
 | Supersedes | None |
-| Superseded by | None |
+| Superseded by | WIP-0206 complete bounded global outcomes |
 
 ## Summary
 
 Classify one test artifact through the Wheeler-owned execution seam without a Java VM or exception deciding the terminal result.
 
-`NativeTestArtifactRun.w` is a thin conformance entry point over `executeBoundedArtifact`. It publishes the closed runtime outcome in a fixed 25-byte frame. This is the first runner slice that treats verifier failure as data rather than trapping in the host harness.
+`NativeTestArtifactRun.w` was introduced as a thin conformance entry point over `executeBoundedArtifact`. It published the closed runtime outcome in a fixed 25-byte frame. This was the first runner slice that treats verifier failure as data rather than trapping in the host harness.
 
 ## Output
 
-The frame contains:
+The transitional frame contained:
 
 1. one status byte: zero for an execution value, one for an error
 2. eight-byte little-endian committed step count
@@ -74,3 +74,4 @@ Rejected. WIP-0202 made the runtime library authoritative for that storage.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0202](WIP-0202-runtime-artifact-execution-authority.md)
 - [WIP-0204](WIP-0204-native-test-execution-identity.md)
+- [WIP-0206](WIP-0206-complete-native-artifact-outcomes.md)

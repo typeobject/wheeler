@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
+import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
@@ -25,6 +26,14 @@ final class NativeCoverageRunExampleTest {
         entry void main() {
           assert(true);
         }
+      }
+      """;
+  private static final String GLOBAL_SUBJECT = """
+      classical class GlobalSubject {
+        state long first = 7;
+        state long second = -4;
+
+        entry void main() {}
       }
       """;
   private static final String UNSUPPORTED_SUBJECT = """
@@ -72,24 +81,28 @@ final class NativeCoverageRunExampleTest {
 
   @Test
   void nativeTestExecutionClassifiesValuesAndVerifierErrors() throws Exception {
-    Program compiler = NativeModuleCompilerHarness.program();
-    byte[] artifact = NativeModuleCompilerHarness.compile(compiler, List.of(), SUBJECT);
-    VirtualMachine success = VirtualMachine.withBinaryInput(artifactRunner(), artifact, 25);
+    byte[] artifact = new BytecodeWriter().write(new WheelerCompiler().compile(GLOBAL_SUBJECT));
+    VirtualMachine success = VirtualMachine.withBinaryInput(artifactRunner(), artifact, 89);
     CompilerMachineRunner.runWithoutRewindHistory(success);
     ByteBuffer successOutput = ByteBuffer.wrap(success.hostOutput()).order(ByteOrder.LITTLE_ENDIAN);
     assertEquals(0, successOutput.get());
-    assertEquals(3, successOutput.getLong());
-    assertEquals(0, successOutput.getLong());
+    assertEquals(1, successOutput.getLong());
+    assertEquals(2, successOutput.getLong());
+    assertEquals(7, successOutput.getLong());
+    assertEquals(-4, successOutput.getLong());
+    while (successOutput.position() < 81) {
+      assertEquals(0, successOutput.getLong());
+    }
     assertEquals(0, successOutput.getLong());
 
     artifact[0] ^= 1;
-    VirtualMachine failure = VirtualMachine.withBinaryInput(artifactRunner(), artifact, 25);
+    VirtualMachine failure = VirtualMachine.withBinaryInput(artifactRunner(), artifact, 89);
     CompilerMachineRunner.runWithoutRewindHistory(failure);
     ByteBuffer failureOutput = ByteBuffer.wrap(failure.hostOutput()).order(ByteOrder.LITTLE_ENDIAN);
     assertEquals(1, failureOutput.get());
-    assertEquals(0, failureOutput.getLong());
-    assertEquals(0, failureOutput.getLong());
-    assertEquals(0, failureOutput.getLong());
+    while (failureOutput.hasRemaining()) {
+      assertEquals(0, failureOutput.getLong());
+    }
   }
 
   @Test
