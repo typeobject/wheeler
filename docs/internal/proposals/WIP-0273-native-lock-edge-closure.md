@@ -9,7 +9,7 @@
 | Area | Self-hosting, package locks, native testing |
 | Depends on | WIP-0272 |
 | Supersedes | Native lock dependency names without package targets |
-| Superseded by | Native lock reachability and cycle validation |
+| Superseded by | WIP-0274 lock graph validation |
 
 ## Summary
 
@@ -74,3 +74,4 @@ Rejected. Test execution consumes an exact offline lock. It does not resolve one
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0272](WIP-0272-native-prerelease-dependency-versions.md)
+- [WIP-0274](WIP-0274-native-lock-graph-validation.md)

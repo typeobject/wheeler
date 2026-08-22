@@ -9,6 +9,7 @@ import wheeler.runtime.testing.runners.test_descriptors;
 import wheeler.runtime.testing.runners.test_discovered_descriptors;
 import wheeler.runtime.testing.runners.test_manifest;
 import wheeler.runtime.testing.runners.test_package_dependencies;
+import wheeler.runtime.testing.runners.test_package_graph;
 import wheeler.runtime.testing.runners.test_package_lock;
 import wheeler.runtime.testing.runners.test_package_versions;
 import wheeler.runtime.testing.runners.test_source_compilation;
@@ -300,6 +301,9 @@ classical class TestRunner {
         lockStart,
         lockLength
       )
+    );
+    assert(
+      validManifestLockGraph(input, manifestStart, manifestLength, lockStart, lockLength)
     );
     bytes constructedNames = allocateBytes(staging, MAX_CASES * 255);
     words constructedNameLengths = allocate(staging, MAX_CASES);
