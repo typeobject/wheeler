@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.tools;
 
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.packageformat.PackageManifest;
 import com.typeobject.wheeler.packageformat.PackageManifest.Target;
 import com.typeobject.wheeler.runtime.WheelerRuntime;
@@ -67,6 +68,30 @@ final class NativePackageTestRunner {
     }
 
     Program nativeRunner = runner(conformance.orElseThrow());
+    for (String selectedTag : selectedTags.stream().sorted().toList()) {
+      boolean found = false;
+      for (int index = 0; index < testTargets.size(); index++) {
+        byte[] probeInput = transport(
+            packageRoot,
+            manifest,
+            testTargets.get(index),
+            plans.get(index),
+            shardIndex,
+            shardCount,
+            Set.of(selectedTag),
+            252);
+        byte[] probeOutput = new WheelerRuntime()
+            .executeBinaryInput(nativeRunner, probeInput, OUTPUT_BYTES)
+            .output();
+        if (unsigned16(probeOutput, 32) > 0) {
+          found = true;
+        }
+      }
+      if (!found) {
+        throw new PackageFormatException("Unknown test tags: " + selectedTag);
+      }
+    }
+
     java.util.ArrayList<String> identities = new java.util.ArrayList<>();
     int selected = 0;
     int passed = 0;
@@ -80,7 +105,7 @@ final class NativePackageTestRunner {
           shardIndex,
           shardCount,
           selectedTags,
-          testTargets.size() > 1);
+          testTargets.size() > 1 ? 253 : 254);
       byte[] output = new WheelerRuntime()
           .executeBinaryInput(nativeRunner, input, OUTPUT_BYTES)
           .output();
@@ -150,7 +175,7 @@ final class NativePackageTestRunner {
       int shardIndex,
       int shardCount,
       Set<String> selectedTags,
-      boolean allowTargetTagAbsence) throws IOException {
+      int descriptorMode) throws IOException {
     if (shardIndex < 0 || shardIndex >= shardCount || shardCount < 1 || shardCount > 65_535) {
       throw new IllegalArgumentException("Invalid native test shard");
     }
@@ -172,7 +197,7 @@ final class NativePackageTestRunner {
     for (String tag : tags) {
       writeShortText(output, tag);
     }
-    output.write(allowTargetTagAbsence ? 253 : 254);
+    output.write(descriptorMode);
     return output.toByteArray();
   }
 

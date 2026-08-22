@@ -138,7 +138,12 @@ classical class TestRunner {
     assert(selection.end < bufferLength(input));
     cursor = selection.end;
     long encodedCaseCount = input[cursor];
+    boolean metadataOnly = encodedCaseCount == 252;
     boolean allowTargetTagAbsence = encodedCaseCount == 253;
+    if (metadataOnly) {
+      allowTargetTagAbsence = true;
+    }
+
     boolean qualifyConstructedNames = encodedCaseCount == 254;
     if (allowTargetTagAbsence) {
       qualifyConstructedNames = true;
@@ -330,6 +335,25 @@ classical class TestRunner {
         caseStepLimits,
         caseCount
       );
+    }
+
+    if (metadataOnly) {
+      assert(bufferLength(output) == 39);
+      setByte(output, /* index= */ 32, caseCount);
+      setByte(output, /* index= */ 33, /* caseCountHigh= */ 0);
+      drop(caseStepLimits);
+      drop(caseValues);
+      drop(caseKinds);
+      drop(constructedNameLengths);
+      drop(constructedNames);
+      drop(manifestIdentity);
+      drop(rawManifestIdentity);
+      drop(target);
+      drop(packageVersion);
+      drop(packageName);
+      drop(runner);
+      drop(staging);
+      return 39;
     }
 
     bytes rawSourceIdentity = allocateBytes(staging, /* length= */ 32);

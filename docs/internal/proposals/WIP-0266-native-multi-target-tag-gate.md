@@ -9,7 +9,7 @@
 | Area | Self-hosting, package testing, tag selection |
 | Depends on | WIP-0260, WIP-0265 |
 | Supersedes | Empty-tag-only multi-target native gating |
-| Superseded by | Native package-wide unknown-tag reduction |
+| Superseded by | WIP-0267 native package tag existence |
 
 ## Summary
 
@@ -94,3 +94,4 @@ Rejected. Mode 253 deliberately lacks the cross-target union.
 - [WIP-0260](WIP-0260-native-test-tag-selection.md)
 - [WIP-0265](WIP-0265-native-multi-target-package-test-gate.md)
 - [WIP-0197](WIP-0197-runtime-test-selection-authority.md)
+- [WIP-0267](WIP-0267-native-package-tag-existence.md)

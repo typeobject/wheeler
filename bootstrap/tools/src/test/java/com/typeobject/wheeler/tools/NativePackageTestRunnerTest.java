@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.tools;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
@@ -61,6 +62,13 @@ class NativePackageTestRunnerTest {
     var fastResult = NativePackageTestRunner.run(
         project, packageProject.manifest(), 0, 1, Set.of("fast"));
     TestReport fastReport = packageProject.test(0, 1, Set.of("fast"));
+    assertThrows(
+        com.typeobject.wheeler.packageformat.PackageFormatException.class,
+        () -> NativePackageTestRunner.run(
+            project, packageProject.manifest(), 0, 1, Set.of("missing")));
+    assertThrows(
+        com.typeobject.wheeler.packageformat.PackageFormatException.class,
+        () -> packageProject.test(0, 1, Set.of("missing")));
 
     assertTrue(result.isPresent());
     assertEquals(2, result.orElseThrow().identities().size());

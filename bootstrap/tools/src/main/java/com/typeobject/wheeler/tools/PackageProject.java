@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Stream;
@@ -113,10 +114,18 @@ final class PackageProject {
   }
 
   TestReport test(int shardIndex, int shardCount, Set<String> selectedTags) throws IOException {
+    Optional<NativePackageTestRunner.Result> nativeResult = Optional.empty();
+    if (!selectedTags.isEmpty()) {
+      nativeResult = NativePackageTestRunner.run(
+          root, manifest, shardIndex, shardCount, selectedTags);
+    }
     TestRun run = testRun(shardIndex, shardCount, selectedTags);
     rejectUnknownTags(selectedTags, run.availableTags());
-    NativePackageTestRunner.run(root, manifest, shardIndex, shardCount, selectedTags)
-        .ifPresent(nativeResult -> requireNativeParity(nativeResult, run.report()));
+    if (selectedTags.isEmpty()) {
+      nativeResult = NativePackageTestRunner.run(
+          root, manifest, shardIndex, shardCount, selectedTags);
+    }
+    nativeResult.ifPresent(result -> requireNativeParity(result, run.report()));
     return run.report();
   }
 
