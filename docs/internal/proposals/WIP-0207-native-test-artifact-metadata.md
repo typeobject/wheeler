@@ -77,3 +77,4 @@ Rejected. Projection relies on canonical section and string-table bounds establi
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0204](WIP-0204-native-test-execution-identity.md)
 - [WIP-0206](WIP-0206-complete-native-artifact-outcomes.md)
+- [WIP-0208](WIP-0208-native-artifact-execution-identity.md)

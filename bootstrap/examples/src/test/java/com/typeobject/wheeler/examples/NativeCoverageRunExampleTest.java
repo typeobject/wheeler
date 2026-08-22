@@ -80,6 +80,29 @@ final class NativeCoverageRunExampleTest {
   }
 
   @Test
+  void nativeArtifactExecutionIdentityMatchesStageZero() throws Exception {
+    byte[] artifact = new BytecodeWriter().write(new WheelerCompiler().compile(GLOBAL_SUBJECT));
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        artifactExecutionIdentity(), artifact, 32);
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+
+    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+    digestField(digest, "wheeler.test-execution/1");
+    digestField(digest, "GlobalSubject");
+    digestField(digest, "CLASSICAL");
+    digestInteger(digest, 2);
+    digestField(digest, "first");
+    digestInteger(digest, 7);
+    digestField(digest, "second");
+    digestInteger(digest, -4);
+    digestInteger(digest, 0);
+    digestInteger(digest, 0);
+    digestInteger(digest, 0);
+    digestInteger(digest, 0);
+    assertArrayEquals(digest.digest(), machine.hostOutput());
+  }
+
+  @Test
   void nativeArtifactMetadataProjectsProgramAndGlobalNames() throws Exception {
     byte[] artifact = new BytecodeWriter().write(new WheelerCompiler().compile(GLOBAL_SUBJECT));
     VirtualMachine machine = VirtualMachine.withBinaryInput(artifactMetadata(), artifact, 4096);
@@ -155,6 +178,26 @@ final class NativeCoverageRunExampleTest {
         modules, "wheeler.conformance.testing.native_test_coverage_identity");
   }
 
+  private static Program artifactExecutionIdentity() throws Exception {
+    var modules = runtimeModules();
+    modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
+    modules.put(
+        "TestArtifactMetadata.w",
+        RuntimeSources.read("runtime/testing/TestArtifactMetadata.w"));
+    modules.put(
+        "TestExecutionIdentity.w",
+        RuntimeSources.read("runtime/testing/TestExecutionIdentity.w"));
+    modules.put(
+        "TestArtifactExecutionIdentity.w",
+        RuntimeSources.read("runtime/testing/TestArtifactExecutionIdentity.w"));
+    modules.put(
+        "NativeTestArtifactExecutionIdentity.w",
+        Files.readString(Path.of(
+            "../wheeler-conformance/src/main/wheeler/testing/NativeTestArtifactExecutionIdentity.w")));
+    return new WheelerCompiler().compileModuleFiles(
+        modules, "wheeler.conformance.testing.native_test_artifact_execution_identity");
+  }
+
   private static Program artifactMetadata() throws Exception {
     var modules = runtimeModules();
     modules.put(
@@ -166,6 +209,16 @@ final class NativeCoverageRunExampleTest {
             "../wheeler-conformance/src/main/wheeler/testing/NativeTestArtifactMetadata.w")));
     return new WheelerCompiler().compileModuleFiles(
         modules, "wheeler.conformance.testing.native_test_artifact_metadata");
+  }
+
+  private static void digestField(MessageDigest digest, String value) {
+    byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+    digestInteger(digest, bytes.length);
+    digest.update(bytes);
+  }
+
+  private static void digestInteger(MessageDigest digest, long value) {
+    digest.update(ByteBuffer.allocate(8).putLong(value).array());
   }
 
   private static String readText(ByteBuffer input) {
