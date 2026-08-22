@@ -346,6 +346,79 @@ classical class TestSourcePlan {
     return false;
   }
 
+  private long moduleNameLength(borrow byteview input, long start, long length) {
+    long moduleStart = moduleNameStart(input, start, length);
+    if (moduleStart < 0) {
+      return -1;
+    }
+
+    long cursor = moduleStart;
+    long end = start + length;
+    while (cursor < end) limit MAX_PATH_BYTES {
+      if (input[cursor] == 59) {
+        return cursor - moduleStart;
+      }
+
+      cursor += 1;
+    }
+
+    return -1;
+  }
+
+  private boolean sameSourceModule(
+    borrow byteview input,
+    long leftStart,
+    long leftLength,
+    long rightStart,
+    long rightLength
+  ) {
+    long leftModule = moduleNameStart(input, leftStart, leftLength);
+    long rightModule = moduleNameStart(input, rightStart, rightLength);
+    long leftModuleLength = moduleNameLength(input, leftStart, leftLength);
+    long rightModuleLength = moduleNameLength(input, rightStart, rightLength);
+    if (leftModuleLength != rightModuleLength) {
+      return false;
+    }
+
+    long offset = 0;
+    while (offset < leftModuleLength) limit MAX_PATH_BYTES {
+      if (input[leftModule + offset] != input[rightModule + offset]) {
+        return false;
+      }
+
+      offset += 1;
+    }
+
+    return true;
+  }
+
+  private boolean uniqueSourceModule(
+    borrow byteview input,
+    long planStart,
+    long sourceIndex,
+    long sourceStart,
+    long sourceLength
+  ) {
+    long cursor = planStart + 4;
+    long prior = 0;
+    while (prior < sourceIndex) limit MAX_SOURCES {
+      long pathLength = readUnsigned32BigEndian(input, cursor);
+      cursor += 4 + pathLength;
+      long priorSourceLength = readUnsigned32BigEndian(input, cursor);
+      long priorSourceStart = cursor + 4;
+      if (
+        sameSourceModule(input, priorSourceStart, priorSourceLength, sourceStart, sourceLength)
+      ) {
+        return false;
+      }
+
+      cursor = priorSourceStart + priorSourceLength;
+      prior += 1;
+    }
+
+    return true;
+  }
+
   /// Compares a canonical source declaration with one manifest module range.
   public boolean sourceModuleMatches(
     borrow byteview input,
@@ -493,6 +566,10 @@ classical class TestSourcePlan {
       }
 
       if (validCanonicalSourceModule(input, cursor, sourceLength) == false) {
+        return false;
+      }
+
+      if (uniqueSourceModule(input, start, source, cursor, sourceLength) == false) {
         return false;
       }
 

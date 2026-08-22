@@ -9,7 +9,7 @@
 | Area | Native testing, source plans, module syntax |
 | Depends on | WIP-0009, WIP-0018, WIP-0224, WIP-0230 |
 | Supersedes | Root-only native module declaration checks |
-| Superseded by | Native complete module-graph validation |
+| Superseded by | WIP-0232 native source module uniqueness |
 
 ## Summary
 
@@ -82,3 +82,4 @@ Rejected. Two declaration grammars will drift at comments, line endings, or name
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0224](WIP-0224-native-target-source-utf8.md)
 - [WIP-0230](WIP-0230-native-root-module-binding.md)
+- [WIP-0232](WIP-0232-native-source-module-uniqueness.md)

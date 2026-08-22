@@ -254,7 +254,7 @@ final class NativeCoverageRunExampleTest {
     assertArrayEquals(new byte[39], invalidSourceSelection.hostOutput());
 
     byte[] mismatchedRootModule = input.clone();
-    int passSource = sourcePayloadOffset(targetSourcePlan(), "src/Pass.w");
+    int passSource = NativeTestSourcePlan.payloadOffset(targetSourcePlan(), "src/Pass.w");
     mismatchedRootModule[sourcePlanStart + passSource + "module pkg.".length()] = (byte) 'x';
     VirtualMachine invalidRootModule = VirtualMachine.withBinaryInput(
         nativeTestRunner(), mismatchedRootModule, 39);
@@ -271,6 +271,21 @@ final class NativeCoverageRunExampleTest {
         VmTrap.class,
         () -> CompilerMachineRunner.runWithoutRewindHistory(invalidSourceModule));
     assertArrayEquals(new byte[39], invalidSourceModule.hostOutput());
+
+    byte[] duplicateSourceModule = input.clone();
+    byte[] passModuleSuffix = "pass".getBytes(StandardCharsets.UTF_8);
+    System.arraycopy(
+        passModuleSuffix,
+        0,
+        duplicateSourceModule,
+        sourcePlanStart + 22 + "module pkg.".length(),
+        passModuleSuffix.length);
+    VirtualMachine invalidModuleSet = VirtualMachine.withBinaryInput(
+        nativeTestRunner(), duplicateSourceModule, 39);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(invalidModuleSet));
+    assertArrayEquals(new byte[39], invalidModuleSet.hostOutput());
 
     byte[] malformedSource = input.clone();
     malformedSource[sourcePlanStart + 22] = (byte) 0xff;
@@ -575,37 +590,10 @@ final class NativeCoverageRunExampleTest {
   }
 
   private static byte[] targetSourcePlan() {
-    ByteArrayOutputStream plan = new ByteArrayOutputStream();
-    plan.writeBytes(ByteBuffer.allocate(4).putInt(3).array());
-    writePlanSource(plan, "src/Fail.w", FAILING_SUBJECT);
-    writePlanSource(plan, "src/Pass.w", SUBJECT);
-    writePlanSource(plan, "src/Runtime.w", RUNTIME_FAILURE_SUBJECT);
-    return plan.toByteArray();
-  }
-
-  private static int sourcePayloadOffset(byte[] plan, String selectedPath) {
-    ByteBuffer input = ByteBuffer.wrap(plan);
-    int sourceCount = input.getInt();
-    for (int source = 0; source < sourceCount; source++) {
-      byte[] path = new byte[input.getInt()];
-      input.get(path);
-      int sourceLength = input.getInt();
-      if (new String(path, StandardCharsets.UTF_8).equals(selectedPath)) {
-        return input.position();
-      }
-      input.position(input.position() + sourceLength);
-    }
-    throw new AssertionError("missing source " + selectedPath);
-  }
-
-  private static void writePlanSource(
-      ByteArrayOutputStream plan, String path, String source) {
-    byte[] pathBytes = path.getBytes(StandardCharsets.UTF_8);
-    byte[] sourceBytes = source.getBytes(StandardCharsets.UTF_8);
-    plan.writeBytes(ByteBuffer.allocate(4).putInt(pathBytes.length).array());
-    plan.writeBytes(pathBytes);
-    plan.writeBytes(ByteBuffer.allocate(4).putInt(sourceBytes.length).array());
-    plan.writeBytes(sourceBytes);
+    return NativeTestSourcePlan.write(List.of(
+        new NativeTestSourcePlan.Source("src/Fail.w", FAILING_SUBJECT),
+        new NativeTestSourcePlan.Source("src/Pass.w", SUBJECT),
+        new NativeTestSourcePlan.Source("src/Runtime.w", RUNTIME_FAILURE_SUBJECT)));
   }
 
   private static byte[] executeTests(byte[] input) throws Exception {
