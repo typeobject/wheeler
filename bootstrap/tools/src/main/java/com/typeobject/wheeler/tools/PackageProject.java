@@ -115,7 +115,21 @@ final class PackageProject {
   TestReport test(int shardIndex, int shardCount, Set<String> selectedTags) throws IOException {
     TestRun run = testRun(shardIndex, shardCount, selectedTags);
     rejectUnknownTags(selectedTags, run.availableTags());
+    NativePackageTestRunner.run(root, manifest, shardIndex, shardCount, selectedTags)
+        .ifPresent(nativeResult -> requireNativeParity(nativeResult, run.report()));
     return run.report();
+  }
+
+  private static void requireNativeParity(
+      NativePackageTestRunner.Result nativeResult, TestReport report) {
+    if (nativeResult.selected() != report.selected()
+        || nativeResult.passed() != report.passed()
+        || nativeResult.failed() != report.failed()) {
+      throw new PackageFormatException(
+          "Native test summary " + nativeResult.selected() + "/" + nativeResult.passed()
+              + "/" + nativeResult.failed() + " disagrees with stage-0 "
+              + report.selected() + "/" + report.passed() + "/" + report.failed());
+    }
   }
 
   TestRun testRun(int shardIndex, int shardCount, Set<String> selectedTags) throws IOException {

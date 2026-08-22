@@ -116,6 +116,7 @@ final class NativeCompiledTestRunnerExampleTest {
         test void beta() tags(slow) {
           assert(true);
         }
+        entry void main() { assert(false); }
       }
       """;
   private static final String IMPORTED = """

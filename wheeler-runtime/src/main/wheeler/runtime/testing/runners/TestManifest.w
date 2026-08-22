@@ -47,6 +47,14 @@ classical class TestManifest {
     return rangeHash(input, start, length) == hash;
   }
 
+  private boolean runnableKindLine(borrow byteview input, long start, long end) {
+    if (exactLine(input, start, end, /* length= */ 22, /* hash= */ 2378483464)) {
+      return true;
+    }
+
+    return exactLine(input, start, end, /* length= */ 16, /* hash= */ 1372494201);
+  }
+
   private boolean sameValue(borrow byteview input, long inputStart, borrow byteview value) {
     long offset = 0;
     while (offset < bufferLength(value)) limit 255 {
@@ -140,13 +148,7 @@ classical class TestManifest {
       long lineLength = found - cursor;
       if (9 < lineLength) {
         if (rangeHash(input, cursor, /* length= */ 10) == 2457211845) {
-          runnableKind = exactLine(
-            input,
-            cursor,
-            found,
-            /* length= */ 22,
-            /* hash= */ 2378483464
-          );
+          runnableKind = runnableKindLine(input, cursor, found);
           candidate = false;
         }
       }
@@ -308,13 +310,7 @@ classical class TestManifest {
 
       if (9 < lineLength) {
         if (rangeHash(input, cursor, /* length= */ 10) == 2457211845) {
-          runnableKind = exactLine(
-            input,
-            cursor,
-            found,
-            /* length= */ 22,
-            /* hash= */ 2378483464
-          );
+          runnableKind = runnableKindLine(input, cursor, found);
           candidate = false;
           sourceSection = false;
           rootSelected = false;

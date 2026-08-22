@@ -10,6 +10,7 @@ import wheeler.lexer.scanner;
 import wheeler.runtime.testing.runners.test_source_plan;
 
 classical class TestSourceLowering {
+  private const long TOKEN_ENTRY = 96667762;
   private const long TOKEN_TEST = 3556498;
 
   private boolean tokenMatchesRange(
@@ -338,6 +339,34 @@ classical class TestSourceLowering {
     long selected = 0;
     long token = 0;
     while (token + 4 < tokenCount) limit MAX_COMPILER_TOKENS {
+      if (tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_ENTRY) {
+        if (tokenHash(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID) {
+          long entryStart = tokenStarts[token];
+          while (inputCursor < entryStart) limit 4096 {
+            setByte(output, outputCursor, input[sourceStart + inputCursor]);
+            inputCursor += 1;
+            outputCursor += 1;
+          }
+
+          long entryEnd = declarationEndByte(
+            source,
+            tokenKinds,
+            tokenStarts,
+            tokenLengths,
+            tokenCount,
+            token
+          );
+          assert(entryStart < entryEnd);
+          inputCursor = entryEnd;
+          long entryBlank = entryStart;
+          while (entryBlank < entryEnd) limit 4096 {
+            setByte(output, outputCursor, 32);
+            outputCursor += 1;
+            entryBlank += 1;
+          }
+        }
+      }
+
       if (tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_TEST) {
         if (tokenHash(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID) {
           long testStart = tokenStarts[token];
@@ -444,6 +473,34 @@ classical class TestSourceLowering {
     long selected = 0;
     long token = 0;
     while (token + 8 < tokenCount) limit MAX_COMPILER_TOKENS {
+      if (tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_ENTRY) {
+        if (tokenHash(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID) {
+          long entryStart = tokenStarts[token];
+          while (inputCursor < entryStart) limit 4096 {
+            setByte(output, outputCursor, input[sourceStart + inputCursor]);
+            inputCursor += 1;
+            outputCursor += 1;
+          }
+
+          long entryEnd = declarationEndByte(
+            source,
+            tokenKinds,
+            tokenStarts,
+            tokenLengths,
+            tokenCount,
+            token
+          );
+          assert(entryStart < entryEnd);
+          inputCursor = entryEnd;
+          long entryBlank = entryStart;
+          while (entryBlank < entryEnd) limit 4096 {
+            setByte(output, outputCursor, 32);
+            outputCursor += 1;
+            entryBlank += 1;
+          }
+        }
+      }
+
       if (tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_TEST) {
         if (tokenHash(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID) {
           long testStart = tokenStarts[token];

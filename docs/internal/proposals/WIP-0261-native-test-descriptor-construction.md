@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, descriptor authority |
 | Depends on | WIP-0248, WIP-0249, WIP-0260 |
 | Supersedes | Caller-supplied descriptor names for native source mode |
-| Superseded by | Native package test invocation |
+| Superseded by | WIP-0262 native one-source package test gate |
 
 ## Summary
 
@@ -121,3 +121,4 @@ Rejected. Complete discovery and canonical case identity precede scheduling.
 - [WIP-0248](WIP-0248-native-counted-test-discovery.md)
 - [WIP-0249](WIP-0249-native-parameter-row-discovery.md)
 - [WIP-0260](WIP-0260-native-test-tag-selection.md)
+- [WIP-0262](WIP-0262-native-one-source-package-test-gate.md)

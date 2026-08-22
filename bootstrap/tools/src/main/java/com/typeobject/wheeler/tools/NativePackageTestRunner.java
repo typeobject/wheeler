@@ -1,0 +1,191 @@
+package com.typeobject.wheeler.tools;
+
+import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.packageformat.PackageManifest;
+import com.typeobject.wheeler.packageformat.PackageManifest.Target;
+import com.typeobject.wheeler.runtime.WheelerRuntime;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Comparator;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+/** Invokes native source discovery, compilation, and reporting for the fixed package profile. */
+final class NativePackageTestRunner {
+  private static final int MAX_SOURCE_BYTES = 4_096;
+  private static final int MAX_PLAN_BYTES = 32_768;
+  private static final int OUTPUT_BYTES = 39;
+  private static Program runner;
+  private static Path runnerRoot;
+
+  record Result(String identity, int selected, int passed, int failed) {}
+
+  private NativePackageTestRunner() {}
+
+  static Optional<Result> run(
+      Path packageRoot,
+      PackageManifest manifest,
+      int shardIndex,
+      int shardCount,
+      Set<String> selectedTags) throws IOException {
+    List<Target> testTargets = manifest.targets().stream().filter(Target::test).toList();
+    if (!manifest.dependencies().isEmpty() || testTargets.size() != 1) {
+      return Optional.empty();
+    }
+    Target target = testTargets.getFirst();
+    if (!target.modular() || target.sources().size() != 1) {
+      return Optional.empty();
+    }
+
+    byte[] plan = sourcePlan(packageRoot, target);
+    if (plan.length > MAX_PLAN_BYTES) {
+      return Optional.empty();
+    }
+    Optional<Path> conformance = findConformancePackage(packageRoot);
+    if (conformance.isEmpty()) {
+      return Optional.empty();
+    }
+
+    Program nativeRunner = runner(conformance.orElseThrow());
+    byte[] input = transport(
+        packageRoot, manifest, target, plan, shardIndex, shardCount, selectedTags);
+    byte[] output = new WheelerRuntime()
+        .executeBinaryInput(nativeRunner, input, OUTPUT_BYTES)
+        .output();
+    return Optional.of(new Result(
+        HexFormat.of().formatHex(output, 0, 32),
+        unsigned16(output, 32),
+        unsigned16(output, 34),
+        unsigned16(output, 36)));
+  }
+
+  private static synchronized Program runner(Path conformanceRoot) throws IOException {
+    Path canonical = conformanceRoot.toRealPath(LinkOption.NOFOLLOW_LINKS);
+    if (runner == null || !canonical.equals(runnerRoot)) {
+      runner = PackageProject.load(canonical).compileRunnable("nativetestrunner");
+      runnerRoot = canonical;
+    }
+    return runner;
+  }
+
+  private static byte[] sourcePlan(Path root, Target target) throws IOException {
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    List<String> sources = target.sources().stream().sorted().toList();
+    writeBig32(output, sources.size());
+    for (String source : sources) {
+      byte[] path = source.getBytes(StandardCharsets.UTF_8);
+      Path file = root.resolve(source).normalize();
+      if (!file.startsWith(root)
+          || !Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS)
+          || Files.isSymbolicLink(file)) {
+        throw new IOException("Native test source is not a physical package file: " + source);
+      }
+      byte[] text = Files.readAllBytes(file);
+      if (text.length > MAX_SOURCE_BYTES) {
+        throw new IOException("Native test source exceeds 4,096 bytes: " + source);
+      }
+      writeBig32(output, path.length);
+      output.writeBytes(path);
+      writeBig32(output, text.length);
+      output.writeBytes(text);
+    }
+    return output.toByteArray();
+  }
+
+  private static byte[] transport(
+      Path root,
+      PackageManifest manifest,
+      Target target,
+      byte[] sourcePlan,
+      int shardIndex,
+      int shardCount,
+      Set<String> selectedTags) throws IOException {
+    if (shardIndex < 0 || shardIndex >= shardCount || shardCount < 1 || shardCount > 65_535) {
+      throw new IllegalArgumentException("Invalid native test shard");
+    }
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    output.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
+        .putShort((short) shardIndex).putShort((short) shardCount).array());
+    writeShortText(output, manifest.name());
+    writeShortText(output, manifest.version());
+    writeShortText(output, target.name());
+    byte[] manifestBytes = Files.readAllBytes(root.resolve(PackageProject.MANIFEST_NAME));
+    writeLittleBytes(output, manifestBytes);
+    writeLittleBytes(output, emptyLock(manifestBytes));
+    writeLittleBytes(output, sourcePlan);
+    List<String> tags = selectedTags.stream().sorted(Comparator.naturalOrder()).toList();
+    if (tags.size() > 64) {
+      throw new IllegalArgumentException("Native test selection exceeds 64 tags");
+    }
+    output.write(tags.size());
+    for (String tag : tags) {
+      writeShortText(output, tag);
+    }
+    output.write(255);
+    return output.toByteArray();
+  }
+
+  private static Optional<Path> findConformancePackage(Path packageRoot) {
+    Path cursor = packageRoot.toAbsolutePath().normalize();
+    while (cursor != null) {
+      Path candidate = cursor.resolve("wheeler-conformance");
+      if (Files.isRegularFile(candidate.resolve(PackageProject.MANIFEST_NAME))) {
+        return Optional.of(candidate);
+      }
+      cursor = cursor.getParent();
+    }
+    cursor = Path.of("").toAbsolutePath().normalize();
+    while (cursor != null) {
+      Path candidate = cursor.resolve("wheeler-conformance");
+      if (Files.isRegularFile(candidate.resolve(PackageProject.MANIFEST_NAME))) {
+        return Optional.of(candidate);
+      }
+      cursor = cursor.getParent();
+    }
+    return Optional.empty();
+  }
+
+  private static byte[] emptyLock(byte[] manifest) {
+    try {
+      String identity = HexFormat.of().formatHex(
+          MessageDigest.getInstance("SHA-256").digest(manifest));
+      return ("schema: 3\nroot: \"" + identity + "\"\npackages: []\n")
+          .getBytes(StandardCharsets.UTF_8);
+    } catch (NoSuchAlgorithmException exception) {
+      throw new IllegalStateException("SHA-256 is unavailable", exception);
+    }
+  }
+
+  private static void writeShortText(ByteArrayOutputStream output, String text) {
+    byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
+    if (bytes.length < 1 || bytes.length > 255) {
+      throw new IllegalArgumentException("Native test text is outside the one-byte frame");
+    }
+    output.write(bytes.length);
+    output.writeBytes(bytes);
+  }
+
+  private static void writeLittleBytes(ByteArrayOutputStream output, byte[] bytes) {
+    output.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
+        .putInt(bytes.length).array());
+    output.writeBytes(bytes);
+  }
+
+  private static void writeBig32(ByteArrayOutputStream output, int value) {
+    output.writeBytes(ByteBuffer.allocate(4).putInt(value).array());
+  }
+
+  private static int unsigned16(byte[] input, int offset) {
+    return Byte.toUnsignedInt(input[offset]) + Byte.toUnsignedInt(input[offset + 1]) * 256;
+  }
+}

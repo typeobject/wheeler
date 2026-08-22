@@ -276,6 +276,8 @@ The one-thread interpreter is the oracle. Parallel execution must emit the same 
 
 WIP-0202 moves fresh bounded artifact execution, storage teardown, and closed success or error outcomes into the runtime library. Native coverage is its first consumer. Native test policy remains with WIP-0018.
 
+WIP-0262 invokes native source discovery, descriptor construction, compilation, and summary reduction from `wheeler test` for the first one-source package profile. Stage 0 still renders complete rows and remains outside the final cutover boundary.
+
 ## References
 - [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
 - [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
@@ -290,6 +292,7 @@ WIP-0202 moves fresh bounded artifact execution, storage teardown, and closed su
 - [WIP-0023](WIP-0023-recipe-repositories-and-reproducible-builds.md)
 - [WIP-0025](WIP-0025-native-ffi-and-system-integration.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
+- [WIP-0262](WIP-0262-native-one-source-package-test-gate.md)
 - [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
