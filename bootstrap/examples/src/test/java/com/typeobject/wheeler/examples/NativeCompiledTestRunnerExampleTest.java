@@ -43,6 +43,10 @@ final class NativeCompiledTestRunnerExampleTest {
   private static final String FOUR_SOURCE_MANIFEST = MANIFEST.replace(
       "      - \"src/Test.w\"",
       "      - \"src/A.w\"\n      - \"src/B.w\"\n      - \"src/C.w\"\n      - \"src/Test.w\"");
+  private static final String FIVE_SOURCE_MANIFEST = MANIFEST.replace(
+      "      - \"src/Test.w\"",
+      "      - \"src/A.w\"\n      - \"src/B.w\"\n      - \"src/C.w\"\n"
+          + "      - \"src/D.w\"\n      - \"src/Test.w\"");
   private static final String PASSING = """
       module pkg.test;
       classical class SourceTest {
@@ -68,6 +72,12 @@ final class NativeCompiledTestRunnerExampleTest {
       module pkg.third;
       classical class Third {
         public const long THIRD = 13;
+      }
+      """;
+  private static final String IMPORTED_FOUR = """
+      module pkg.fourth;
+      classical class Fourth {
+        public const long FOURTH = 17;
       }
       """;
   private static final String IMPORTING = """
@@ -138,6 +148,29 @@ final class NativeCompiledTestRunnerExampleTest {
     assertArrayEquals(
         execute(runner, descriptor(FOUR_SOURCE_MANIFEST, sources, artifact)),
         execute(runner, descriptor(FOUR_SOURCE_MANIFEST, sources, new byte[0])));
+  }
+
+  @Test
+  void compilesTheManifestRootWithFourLocalImports() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    String root = IMPORTING.replace("import pkg.helper;", """
+        import pkg.fourth;
+        import pkg.helper;
+        import pkg.second;
+        import pkg.third;""");
+    var sources = List.of(
+        new NativeTestSourcePlan.Source("src/A.w", IMPORTED),
+        new NativeTestSourcePlan.Source("src/B.w", IMPORTED_TWO),
+        new NativeTestSourcePlan.Source("src/C.w", IMPORTED_THREE),
+        new NativeTestSourcePlan.Source("src/D.w", IMPORTED_FOUR),
+        new NativeTestSourcePlan.Source("src/Test.w", root));
+    byte[] artifact = new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+        Map.of("A.w", IMPORTED, "B.w", IMPORTED_TWO, "C.w", IMPORTED_THREE,
+            "D.w", IMPORTED_FOUR, "Test.w", root), "pkg.test"));
+
+    assertArrayEquals(
+        execute(runner, descriptor(FIVE_SOURCE_MANIFEST, sources, artifact)),
+        execute(runner, descriptor(FIVE_SOURCE_MANIFEST, sources, new byte[0])));
   }
 
   private static void assertCanonicalReport(

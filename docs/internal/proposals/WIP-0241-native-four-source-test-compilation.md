@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, module compilation |
 | Depends on | WIP-0235, WIP-0240 |
 | Supersedes | WIP-0240 three-source compiler bound |
-| Superseded by | Native five-source test compilation |
+| Superseded by | WIP-0242 native five-source test compilation |
 
 ## Summary
 
@@ -80,3 +80,4 @@ Rejected. Four fixed source slots do not establish the bounds or API for arbitra
 
 - [WIP-0235](WIP-0235-native-import-cycle-rejection.md)
 - [WIP-0240](WIP-0240-native-source-compilation-authority.md)
+- [WIP-0242](WIP-0242-native-five-source-test-compilation.md)

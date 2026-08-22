@@ -6,7 +6,7 @@ import wheeler.compiler.driver;
 import wheeler.runtime.testing.runners.test_source_plan;
 
 classical class TestSourceCompilation {
-  private const long MAX_COMPILED_SOURCES = 4;
+  private const long MAX_COMPILED_SOURCES = 5;
   private const long MAX_TEST_SOURCE_BYTES = 4096;
   private const long TEST_ARTIFACT_BYTES = 32768;
 
@@ -65,7 +65,7 @@ classical class TestSourceCompilation {
     assert(bufferLength(artifact) == TEST_ARTIFACT_BYTES);
     long sourceCount = validatedSourceCount(input, start, length);
     assert(rootOrdinal < sourceCount);
-    region sources = new region(/* bytes= */ 16384, /* allocations= */ 4);
+    region sources = new region(/* bytes= */ 20480, /* allocations= */ 5);
     long artifactLength = 0;
 
     if (sourceCount == 1) {
@@ -169,6 +169,84 @@ classical class TestSourceCompilation {
       drop(fourThird);
       drop(fourSecond);
       drop(fourFirst);
+    }
+
+    if (sourceCount == 5) {
+      utf8 fiveFirst = sourceAt(input, start, length, /* ordinal= */ 0, sources);
+      utf8 fiveSecond = sourceAt(input, start, length, /* ordinal= */ 1, sources);
+      utf8 fiveThird = sourceAt(input, start, length, /* ordinal= */ 2, sources);
+      utf8 fiveFourth = sourceAt(input, start, length, /* ordinal= */ 3, sources);
+      utf8 fiveFifth = sourceAt(input, start, length, /* ordinal= */ 4, sources);
+      if (rootOrdinal == 0) {
+        artifactLength = checkedLength(
+          compileMinimalWithFourConstantImports(
+            fiveSecond,
+            fiveThird,
+            fiveFourth,
+            fiveFifth,
+            fiveFirst,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 1) {
+        artifactLength = checkedLength(
+          compileMinimalWithFourConstantImports(
+            fiveFirst,
+            fiveThird,
+            fiveFourth,
+            fiveFifth,
+            fiveSecond,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 2) {
+        artifactLength = checkedLength(
+          compileMinimalWithFourConstantImports(
+            fiveFirst,
+            fiveSecond,
+            fiveFourth,
+            fiveFifth,
+            fiveThird,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 3) {
+        artifactLength = checkedLength(
+          compileMinimalWithFourConstantImports(
+            fiveFirst,
+            fiveSecond,
+            fiveThird,
+            fiveFifth,
+            fiveFourth,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 4) {
+        artifactLength = checkedLength(
+          compileMinimalWithFourConstantImports(
+            fiveFirst,
+            fiveSecond,
+            fiveThird,
+            fiveFourth,
+            fiveFifth,
+            artifact
+          )
+        );
+      }
+
+      drop(fiveFifth);
+      drop(fiveFourth);
+      drop(fiveThird);
+      drop(fiveSecond);
+      drop(fiveFirst);
     }
 
     assert(0 < artifactLength);
