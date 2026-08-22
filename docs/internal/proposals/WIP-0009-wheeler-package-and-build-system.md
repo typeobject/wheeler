@@ -467,7 +467,7 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 - [x] The Wheeler compiler slice is promoted into `wheeler.compiler` with canonical tool and entryless library targets. Example roots import it from the exact locked archive. No second compiler source tree remains.
 - [x] The bounded manifest, lock, workspace, plan, archive, canonical-line, and name/path/version modules are promoted into the entryless `wheeler.packages` library. It locks its scanner dependency to `wheeler.compiler` and its binary/SHA-256 primitives to `wheeler.core`. Examples lock the exact graph and retain only executable roots.
 - [ ] Wheeler-written package execution, binary-library linkage, and migration of the complete workspace remain.
-- [ ] Native no-Java recovery uses only committed manifests, locks, and workspace sources or an exported verified vendor closure.
+- [ ] Native no-Java recovery uses only committed manifests, locks, and workspace sources or an exported verified vendor closure. WIP-0269 validates complete schema-3 lock structure and ordering in the native test path. Manifest constraint and external import provenance binding remain.
 - [ ] Gradle and duplicate build paths are deleted.
 - [x] Local file-repository publication is content-addressed, immutable, idempotent, and fail-closed.
 - [ ] Authenticated network publication, signing, yanking, and namespace ownership remain.
@@ -552,6 +552,7 @@ Worker count and native scheduling do not enter package identity. Required physi
 - [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
+- [WIP-0269](WIP-0269-native-dependency-lock-structure.md)
 - [YAML 1.2.2](https://yaml.org/spec/1.2.2/)
 - [Python packaging: `pyproject.toml`](https://packaging.python.org/en/latest/specifications/pyproject-toml/)
 - [Conan 2 remotes](https://docs.conan.io/2/reference/commands/remote.html)

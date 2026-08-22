@@ -289,7 +289,7 @@ classical class TestRunner {
     bytes manifestIdentity = allocateBytes(staging, /* length= */ 64);
     long manifestIdentityLength = writeTestIdentityText(rawManifestIdentity, manifestIdentity);
     assert(manifestIdentityLength == 64);
-    assert(validEmptyPackageLock(input, lockStart, lockLength, manifestIdentity));
+    assert(validPackageLock(input, lockStart, lockLength, manifestIdentity));
     bytes constructedNames = allocateBytes(staging, MAX_CASES * 255);
     words constructedNameLengths = allocate(staging, MAX_CASES);
     words caseKinds = allocate(staging, MAX_CASES);

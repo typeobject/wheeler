@@ -297,6 +297,39 @@ final class NativeCompiledTestRunnerExampleTest {
   }
 
   @Test
+  void validatesNativeDependencyLockEntries() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    String manifest = MANIFEST.replace("dependencies: []", """
+        dependencies:
+          - kind: "library"
+            name: "demo.dep"
+            version: "^1.0.0"
+        """);
+    String root = new String(
+        NativeTestManifestInput.emptyLock(manifest), StandardCharsets.UTF_8).substring(17, 81);
+    String digest = "0".repeat(64);
+    byte[] lock = ("""
+        schema: 3
+        root: "%s"
+        packages:
+          - name: "demo.dep"
+            version: "1.0.0"
+            repository: "%s"
+            snapshot: "%s"
+            archive: "%s"
+            manifest: "%s"
+            dependencies: []
+        """).formatted(root, digest, digest, digest, digest).getBytes(StandardCharsets.UTF_8);
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", DECLARED_TEST));
+
+    byte[] report = execute(runner, descriptorTransport(
+        manifest, sources, List.of(), List.of(), true, lock));
+
+    assertEquals(1, report[32]);
+    assertEquals(1, report[34]);
+  }
+
+  @Test
   void compilesOneDiscoveredParameterlessTestNatively() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
     var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", DECLARED_TEST));
@@ -743,6 +776,22 @@ final class NativeCompiledTestRunnerExampleTest {
       List<NamedArtifact> cases,
       List<String> selectedTags,
       boolean discoverDescriptors) {
+    return descriptorTransport(
+        manifest,
+        sources,
+        cases,
+        selectedTags,
+        discoverDescriptors,
+        NativeTestManifestInput.emptyLock(manifest));
+  }
+
+  private static byte[] descriptorTransport(
+      String manifest,
+      List<NativeTestSourcePlan.Source> sources,
+      List<NamedArtifact> cases,
+      List<String> selectedTags,
+      boolean discoverDescriptors,
+      byte[] lock) {
     byte[] plan = NativeTestSourcePlan.write(sources);
     ByteArrayOutputStream input = new ByteArrayOutputStream();
     input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
@@ -751,7 +800,7 @@ final class NativeCompiledTestRunnerExampleTest {
     writeShortText(input, "1.0.0");
     writeShortText(input, "test");
     writeBytes(input, manifest.getBytes(StandardCharsets.UTF_8));
-    writeBytes(input, NativeTestManifestInput.emptyLock(manifest));
+    writeBytes(input, lock);
     writeBytes(input, plan);
     input.write(selectedTags.size());
     selectedTags.forEach(tag -> writeShortText(input, tag));
