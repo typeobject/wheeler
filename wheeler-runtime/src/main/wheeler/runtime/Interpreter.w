@@ -6,7 +6,6 @@ import wheeler.compiler.opcode_kinds;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.storage_opcodes;
 import wheeler.compiler.type_codes;
-import wheeler.compiler.verifier;
 import wheeler.core.encoding.binary;
 import wheeler.runtime.aggregate_interpreter;
 import wheeler.runtime.result_slots;
@@ -104,7 +103,7 @@ classical class Interpreter {
   }
 
   /// Executes `artifact` under explicit bootstrap bounds.
-  public ExecutionResult executeArtifact(
+  public ExecutionResult executeVerifiedArtifact(
     borrow byteview artifact,
     borrow mut words globals,
     borrow mut words locals,
@@ -129,11 +128,6 @@ classical class Interpreter {
     borrow mut bytes traceOpcodes
   ) {
     assert(bufferLength(traceOpcodes) == MAX_INTERPRETED_STEPS * 2);
-    long fileLength = bufferLength(artifact);
-    if (verifyArtifact(artifact, fileLength) == 1) {} else {
-      return new ExecutionResult.Error(0);
-    }
-
     long manifestOffset = sectionOffset(artifact, 0);
     long typesOffset = sectionOffset(artifact, 2);
     long functionsOffset = sectionOffset(artifact, 4);

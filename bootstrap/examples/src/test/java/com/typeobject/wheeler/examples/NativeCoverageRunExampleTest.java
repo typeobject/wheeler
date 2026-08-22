@@ -847,7 +847,17 @@ final class NativeCoverageRunExampleTest {
   }
 
   private static Program oneCaseRunner() throws Exception {
-    var modules = NativeTestRunnerProgram.modules();
+    var modules = runtimeModules();
+    modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
+    modules.put(
+        "BootstrapCoverageFragments.w",
+        RuntimeSources.read("runtime/BootstrapCoverageFragments.w"));
+    modules.put("CoverageReducer.w", RuntimeSources.read("runtime/CoverageReducer.w"));
+    for (String source : List.of(
+        "TestArtifactExecutionIdentity", "TestArtifactMetadata", "TestCoverageIdentity",
+        "TestExecutionIdentity", "TestIdentityText", "TestReportIdentity", "TestArtifactReport")) {
+      modules.put(source + ".w", RuntimeSources.read("runtime/testing/" + source + ".w"));
+    }
     modules.put(
         "NativeOneCaseTestRunner.w",
         Files.readString(Path.of(

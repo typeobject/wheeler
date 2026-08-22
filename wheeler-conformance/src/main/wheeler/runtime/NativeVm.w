@@ -30,8 +30,8 @@ classical class NativeVm {
   state long artifactLength = 0;
 
   private long digestWord(borrow mut bytes digest, long start) {
-    return digest[start] * 16777216 + digest[start + 1] * 65536
-      + digest[start + 2] * 256 + digest[start + 3];
+    return digest[start] * 16777216 + digest[start + 1] * 65536 + digest[start + 2] * 256
+      + digest[start + 3];
   }
 
   /// Runs the bounded `NativeVm` fixture.
@@ -61,7 +61,8 @@ classical class NativeVm {
     words storageData = allocate(arena, INTERPRETER_STORAGE_WORDS);
     bytes traceOpcodes = allocateBytes(arena, MAX_INTERPRETED_STEPS * 2);
     bytes traceDigest = allocateBytes(arena, 32);
-    ExecutionResult result = executeArtifact(
+    assert(verifyArtifact(artifact, bufferLength(artifact)) == 1);
+    ExecutionResult result = executeVerifiedArtifact(
       artifact,
       globals,
       locals,

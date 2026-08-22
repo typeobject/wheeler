@@ -3,7 +3,6 @@
 module wheeler.runtime.testing.test_artifact_report;
 
 import wheeler.compiler.opcodes;
-import wheeler.compiler.verifier;
 import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
 import wheeler.runtime.artifact_execution;
@@ -138,7 +137,7 @@ classical class TestArtifactReport {
     setByte(output, cursor, /* codeLengthLow= */ 8);
     setByte(output, cursor + 1, /* codeLengthHigh= */ 0);
     cursor += 2;
-    if (verifyArtifact(artifact, bufferLength(artifact)) != 1) {
+    if (outcome.verified == false) {
       writeAscii(output, cursor, "WTEST004");
       cursor += 8;
       setByte(output, cursor, /* messageLengthLow= */ 35);

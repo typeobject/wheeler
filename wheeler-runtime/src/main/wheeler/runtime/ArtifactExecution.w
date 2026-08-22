@@ -3,10 +3,12 @@
 module wheeler.runtime.artifact_execution;
 
 import wheeler.compiler.opcodes;
+import wheeler.compiler.verifier;
 import wheeler.runtime.interpreter;
 
 classical class ArtifactExecution {
   public record ArtifactOutcome(
+    boolean verified,
     boolean passed,
     long steps,
     long globalCount,
@@ -48,30 +50,7 @@ classical class ArtifactExecution {
     words storageRegionUsedBytes = allocate(executionArena, INTERPRETER_STORAGE_COUNT);
     words storageRegionLiveObjects = allocate(executionArena, INTERPRETER_STORAGE_COUNT);
     words storageData = allocate(executionArena, INTERPRETER_STORAGE_WORDS);
-    ExecutionResult result = executeArtifact(
-      artifact,
-      globals,
-      locals,
-      returnCursors,
-      returnStarts,
-      returnEnds,
-      returnDestinations,
-      aggregateTypes,
-      aggregateTags,
-      aggregateStarts,
-      aggregateCounts,
-      aggregateFields,
-      storageKinds,
-      storageStarts,
-      storageLengths,
-      storageSizes,
-      storageOwners,
-      storageLive,
-      storageRegionUsedBytes,
-      storageRegionLiveObjects,
-      storageData,
-      traceOpcodes
-    );
+    boolean verified = verifyArtifact(artifact, bufferLength(artifact)) == 1;
     boolean passed = false;
     long steps = 0;
     long globalCount = 0;
@@ -84,32 +63,58 @@ classical class ArtifactExecution {
     long globalSix = 0;
     long globalSeven = 0;
     long errorOffset = 0;
-    match (result) {
-      case ExecutionResult.Value(Execution execution) {
-        passed = true;
-        steps = execution.steps;
-        globalCount = execution.globalCount;
-        globalZero = execution.globalZero;
-        globalOne = execution.globalOne;
-        globalTwo = execution.globalTwo;
-        globalThree = execution.globalThree;
-        globalFour = execution.globalFour;
-        globalFive = execution.globalFive;
-        globalSix = execution.globalSix;
-        globalSeven = execution.globalSeven;
-      }
-      case ExecutionResult.Error(long offset) {
-        errorOffset = offset;
-        boolean traced = true;
-        while (traced) limit MAX_INTERPRETED_STEPS {
-          traced = traceOpcodes[steps * 2] != 0;
-          if (!traced) {
-            traced = traceOpcodes[steps * 2 + 1] != 0;
-          }
+    if (verified) {
+      ExecutionResult result = executeVerifiedArtifact(
+        artifact,
+        globals,
+        locals,
+        returnCursors,
+        returnStarts,
+        returnEnds,
+        returnDestinations,
+        aggregateTypes,
+        aggregateTags,
+        aggregateStarts,
+        aggregateCounts,
+        aggregateFields,
+        storageKinds,
+        storageStarts,
+        storageLengths,
+        storageSizes,
+        storageOwners,
+        storageLive,
+        storageRegionUsedBytes,
+        storageRegionLiveObjects,
+        storageData,
+        traceOpcodes
+      );
+      match (result) {
+        case ExecutionResult.Value(Execution execution) {
+          passed = true;
+          steps = execution.steps;
+          globalCount = execution.globalCount;
+          globalZero = execution.globalZero;
+          globalOne = execution.globalOne;
+          globalTwo = execution.globalTwo;
+          globalThree = execution.globalThree;
+          globalFour = execution.globalFour;
+          globalFive = execution.globalFive;
+          globalSix = execution.globalSix;
+          globalSeven = execution.globalSeven;
+        }
+        case ExecutionResult.Error(long offset) {
+          errorOffset = offset;
+          boolean traced = true;
+          while (traced) limit MAX_INTERPRETED_STEPS {
+            traced = traceOpcodes[steps * 2] != 0;
+            if (!traced) {
+              traced = traceOpcodes[steps * 2 + 1] != 0;
+            }
 
-          if (traced) {
-            steps += 1;
-            traced = steps < MAX_INTERPRETED_STEPS;
+            if (traced) {
+              steps += 1;
+              traced = steps < MAX_INTERPRETED_STEPS;
+            }
           }
         }
       }
@@ -137,6 +142,7 @@ classical class ArtifactExecution {
     drop(globals);
     drop(executionArena);
     return new ArtifactOutcome(
+      verified,
       passed,
       steps,
       globalCount,
