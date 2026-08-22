@@ -299,27 +299,8 @@ final class NativeCompiledTestRunnerExampleTest {
   @Test
   void validatesNativeDependencyLockEntries() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
-    String manifest = MANIFEST.replace(
-        "dependencies: []",
-        "dependencies:\n"
-            + "  - kind: \"normal\"\n"
-            + "    name: \"demo.dep\"\n"
-            + "    version: \"^1.0.0\"");
-    String root = new String(
-        NativeTestManifestInput.emptyLock(manifest), StandardCharsets.UTF_8).substring(17, 81);
-    String digest = "0".repeat(64);
-    byte[] lock = ("""
-        schema: 3
-        root: "%s"
-        packages:
-          - name: "demo.dep"
-            version: "1.0.0"
-            repository: "%s"
-            snapshot: "%s"
-            archive: "%s"
-            manifest: "%s"
-            dependencies: []
-        """).formatted(root, digest, digest, digest, digest).getBytes(StandardCharsets.UTF_8);
+    String manifest = dependencyManifest("^1.0.0");
+    byte[] lock = dependencyLock(manifest, "demo.dep", "1.0.0");
     var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", DECLARED_TEST));
 
     byte[] report = execute(runner, descriptorTransport(
@@ -338,6 +319,39 @@ final class NativeCompiledTestRunnerExampleTest {
         39);
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(invalid));
     assertArrayEquals(new byte[39], invalid.hostOutput());
+
+    VirtualMachine incompatible = VirtualMachine.withBinaryInput(
+        runner,
+        descriptorTransport(
+            manifest,
+            sources,
+            List.of(),
+            List.of(),
+            true,
+            dependencyLock(manifest, "demo.dep", "2.0.0")),
+        39);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(incompatible));
+    assertArrayEquals(new byte[39], incompatible.hostOutput());
+  }
+
+  @Test
+  void acceptsNativeStableDependencyConstraintKinds() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", DECLARED_TEST));
+    for (String constraint : List.of("=1.0.0", "~1.0.0")) {
+      String manifest = dependencyManifest(constraint);
+      byte[] report = execute(runner, descriptorTransport(
+          manifest,
+          sources,
+          List.of(),
+          List.of(),
+          true,
+          dependencyLock(manifest, "demo.dep", "1.0.0")));
+      assertEquals(1, report[32]);
+      assertEquals(1, report[34]);
+    }
   }
 
   @Test
@@ -821,6 +835,34 @@ final class NativeCompiledTestRunnerExampleTest {
       writeBytes(input, testcase.artifact());
     }
     return input.toByteArray();
+  }
+
+  private static String dependencyManifest(String constraint) {
+    return MANIFEST.replace(
+        "dependencies: []",
+        "dependencies:\n"
+            + "  - kind: \"normal\"\n"
+            + "    name: \"demo.dep\"\n"
+            + "    version: \"" + constraint + "\"");
+  }
+
+  private static byte[] dependencyLock(String manifest, String name, String version) {
+    String root = new String(
+        NativeTestManifestInput.emptyLock(manifest), StandardCharsets.UTF_8).substring(17, 81);
+    String digest = "0".repeat(64);
+    return ("""
+        schema: 3
+        root: "%s"
+        packages:
+          - name: "%s"
+            version: "%s"
+            repository: "%s"
+            snapshot: "%s"
+            archive: "%s"
+            manifest: "%s"
+            dependencies: []
+        """).formatted(root, name, version, digest, digest, digest, digest)
+        .getBytes(StandardCharsets.UTF_8);
   }
 
   private static void writeShortText(ByteArrayOutputStream output, String text) {

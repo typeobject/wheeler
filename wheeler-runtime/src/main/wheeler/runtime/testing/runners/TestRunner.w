@@ -10,6 +10,7 @@ import wheeler.runtime.testing.runners.test_discovered_descriptors;
 import wheeler.runtime.testing.runners.test_manifest;
 import wheeler.runtime.testing.runners.test_package_dependencies;
 import wheeler.runtime.testing.runners.test_package_lock;
+import wheeler.runtime.testing.runners.test_package_versions;
 import wheeler.runtime.testing.runners.test_source_compilation;
 import wheeler.runtime.testing.runners.test_source_modules;
 import wheeler.runtime.testing.runners.test_source_plan;

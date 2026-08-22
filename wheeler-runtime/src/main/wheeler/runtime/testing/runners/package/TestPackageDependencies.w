@@ -2,6 +2,8 @@
 
 module wheeler.runtime.testing.runners.test_package_dependencies;
 
+import wheeler.runtime.testing.runners.test_package_versions;
+
 classical class TestPackageDependencies {
   private const long MAX_MANIFEST_BYTES = 4096;
   private const long MAX_DEPENDENCIES = 64;
@@ -288,6 +290,20 @@ classical class TestPackageDependencies {
           }
 
           if (quotedField(input, cursor, found, 14, 42952952) == false) {
+            return false;
+          }
+
+          if (
+            lockedVersionAcceptsConstraint(
+              input,
+              lockStart,
+              lockLength,
+              nameStart,
+              nameLength,
+              cursor + 14,
+              found - cursor - 15
+            ) == false
+          ) {
             return false;
           }
 

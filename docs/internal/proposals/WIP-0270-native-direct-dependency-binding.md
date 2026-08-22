@@ -9,7 +9,7 @@
 | Area | Self-hosting, package locks, native testing |
 | Depends on | WIP-0269 |
 | Supersedes | Structurally valid but manifest-unbound native lock package names |
-| Superseded by | Native version-constraint and archive-source binding |
+| Superseded by | WIP-0271 stable version constraints, then archive-source binding |
 
 ## Summary
 
@@ -105,3 +105,4 @@ Rejected. Constraint parsing is a separate semantic boundary.
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0269](WIP-0269-native-dependency-lock-structure.md)
+- [WIP-0271](WIP-0271-native-stable-dependency-versions.md)
