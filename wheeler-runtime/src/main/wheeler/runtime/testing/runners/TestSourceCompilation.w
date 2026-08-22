@@ -96,7 +96,15 @@ classical class TestSourceCompilation {
     assert(bufferLength(artifact) == TEST_ARTIFACT_BYTES);
     long sourceLength = validatedSourceLength(input, start, length, rootOrdinal);
     long sourceStart = validatedSourceStart(input, start, length, rootOrdinal);
-    long loweredSourceLength = sourceLength + 5 - selectedNameLength;
+    long loweredSourceLength = parameterlessEntrySourceLength(
+      input,
+      start,
+      length,
+      rootOrdinal,
+      selectedName,
+      selectedNameStart,
+      selectedNameLength
+    );
     if (1 < caseKind) {
       loweredSourceLength = parameterizedEntrySourceLength(
         input,

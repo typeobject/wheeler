@@ -147,14 +147,16 @@ classical class TestArtifactReport {
       return cursor + 35;
     }
 
-    if (assertionFailed(artifact, outcome)) {
-      writeAscii(output, cursor, "WTEST003");
-      cursor += 8;
-      setByte(output, cursor, /* messageLengthLow= */ 28);
-      setByte(output, cursor + 1, /* messageLengthHigh= */ 0);
-      cursor += 2;
-      writeAscii(output, cursor, "native test assertion failed");
-      return cursor + 28;
+    if (outcome.exhausted == false) {
+      if (assertionFailed(artifact, outcome)) {
+        writeAscii(output, cursor, "WTEST003");
+        cursor += 8;
+        setByte(output, cursor, /* messageLengthLow= */ 28);
+        setByte(output, cursor + 1, /* messageLengthHigh= */ 0);
+        cursor += 2;
+        writeAscii(output, cursor, "native test assertion failed");
+        return cursor + 28;
+      }
     }
 
     writeAscii(output, cursor, "WTEST005");
@@ -308,6 +310,7 @@ classical class TestArtifactReport {
     boolean bindProgram,
     long caseKind,
     long caseValue,
+    long stepLimit,
     borrow byteview packageName,
     borrow byteview packageVersion,
     borrow byteview targetName,
@@ -326,6 +329,7 @@ classical class TestArtifactReport {
         expectedProgram,
         caseKind,
         caseValue,
+        stepLimit,
         trace
       );
       assert(named.authorized);
@@ -341,7 +345,7 @@ classical class TestArtifactReport {
         output
       );
     } else {
-      ArtifactOutcome generic = executeBoundedArtifact(artifact, trace);
+      ArtifactOutcome generic = executeBoundedArtifactWithStepLimit(artifact, stepLimit, trace);
       length = writeOutcomeCaseResult(
         artifact,
         generic,
@@ -377,6 +381,7 @@ classical class TestArtifactReport {
       /* bindProgram= */ false,
       /* caseKind= */ 0,
       /* caseValue= */ 0,
+      MAX_INTERPRETED_STEPS,
       packageName,
       packageVersion,
       targetName,
@@ -392,6 +397,7 @@ classical class TestArtifactReport {
     borrow byteview expectedProgram,
     long caseKind,
     long caseValue,
+    long stepLimit,
     borrow byteview packageName,
     borrow byteview packageVersion,
     borrow byteview targetName,
@@ -405,6 +411,34 @@ classical class TestArtifactReport {
       /* bindProgram= */ true,
       caseKind,
       caseValue,
+      stepLimit,
+      packageName,
+      packageVersion,
+      targetName,
+      caseIdentity,
+      sourceIdentity,
+      output
+    );
+  }
+
+  /// Executes one native-compiled artifact under its source step limit.
+  public long writeCompiledArtifactCaseResult(
+    borrow byteview artifact,
+    long stepLimit,
+    borrow byteview packageName,
+    borrow byteview packageVersion,
+    borrow byteview targetName,
+    borrow byteview caseIdentity,
+    borrow byteview sourceIdentity,
+    borrow mut bytes output
+  ) {
+    return writeArtifactCaseResultWithProgram(
+      artifact,
+      artifact,
+      /* bindProgram= */ false,
+      /* caseKind= */ 0,
+      /* caseValue= */ 0,
+      stepLimit,
       packageName,
       packageVersion,
       targetName,

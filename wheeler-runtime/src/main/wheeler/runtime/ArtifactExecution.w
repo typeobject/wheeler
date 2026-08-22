@@ -12,6 +12,7 @@ classical class ArtifactExecution {
     boolean verified,
     boolean authorized,
     boolean passed,
+    boolean exhausted,
     long steps,
     long globalCount,
     long globalZero,
@@ -25,15 +26,36 @@ classical class ArtifactExecution {
     long errorOffset
   ) {}
 
+  private long tracedStepCount(borrow byteview traceOpcodes) {
+    long steps = 0;
+    boolean traced = true;
+    while (traced) limit MAX_INTERPRETED_STEPS {
+      traced = traceOpcodes[steps * 2] != 0;
+      if (!traced) {
+        traced = traceOpcodes[steps * 2 + 1] != 0;
+      }
+
+      if (traced) {
+        steps += 1;
+        traced = steps < MAX_INTERPRETED_STEPS;
+      }
+    }
+
+    return steps;
+  }
+
   private ArtifactOutcome executeBoundedArtifactWithFunction(
     borrow byteview artifact,
     borrow byteview expectedFunction,
     boolean bindFunction,
     long caseKind,
     long caseValue,
+    long stepLimit,
     borrow mut bytes traceOpcodes
   ) {
     assert(bufferLength(traceOpcodes) == MAX_INTERPRETED_STEPS * 2);
+    assert(0 < stepLimit);
+    assert(stepLimit < MAX_INTERPRETED_STEPS + 1);
     region executionArena = new region(/* bytes= */ 24000, /* allocations= */ 25);
     words globals = allocate(executionArena, INTERPRETER_GLOBAL_COUNT);
     words locals = allocate(executionArena, INTERPRETER_LOCAL_CAPACITY);
@@ -72,6 +94,7 @@ classical class ArtifactExecution {
     }
 
     boolean passed = false;
+    boolean exhausted = false;
     long steps = 0;
     long globalCount = 0;
     long globalZero = 0;
@@ -91,6 +114,7 @@ classical class ArtifactExecution {
     if (executable) {
       ExecutionResult result = executeVerifiedArtifact(
         artifact,
+        stepLimit,
         globals,
         locals,
         returnCursors,
@@ -129,20 +153,16 @@ classical class ArtifactExecution {
         }
         case ExecutionResult.Error(long offset) {
           errorOffset = offset;
-          boolean traced = true;
-          while (traced) limit MAX_INTERPRETED_STEPS {
-            traced = traceOpcodes[steps * 2] != 0;
-            if (!traced) {
-              traced = traceOpcodes[steps * 2 + 1] != 0;
-            }
-
-            if (traced) {
-              steps += 1;
-              traced = steps < MAX_INTERPRETED_STEPS;
-            }
-          }
+        }
+        case ExecutionResult.Limit(long limitOffset) {
+          exhausted = true;
+          errorOffset = limitOffset;
         }
       }
+    }
+
+    if (passed == false) {
+      steps = tracedStepCount(traceOpcodes);
     }
 
     drop(storageData);
@@ -170,6 +190,7 @@ classical class ArtifactExecution {
       verified,
       authorized,
       passed,
+      exhausted,
       steps,
       globalCount,
       globalZero,
@@ -195,6 +216,24 @@ classical class ArtifactExecution {
       /* bindFunction= */ false,
       /* caseKind= */ 0,
       /* caseValue= */ 0,
+      MAX_INTERPRETED_STEPS,
+      traceOpcodes
+    );
+  }
+
+  /// Verifies and executes one artifact under a selected source step limit.
+  public ArtifactOutcome executeBoundedArtifactWithStepLimit(
+    borrow byteview artifact,
+    long stepLimit,
+    borrow mut bytes traceOpcodes
+  ) {
+    return executeBoundedArtifactWithFunction(
+      artifact,
+      artifact,
+      /* bindFunction= */ false,
+      /* caseKind= */ 0,
+      /* caseValue= */ 0,
+      stepLimit,
       traceOpcodes
     );
   }
@@ -205,6 +244,7 @@ classical class ArtifactExecution {
     borrow byteview expectedFunction,
     long caseKind,
     long caseValue,
+    long stepLimit,
     borrow mut bytes traceOpcodes
   ) {
     return executeBoundedArtifactWithFunction(
@@ -213,6 +253,7 @@ classical class ArtifactExecution {
       /* bindFunction= */ true,
       caseKind,
       caseValue,
+      stepLimit,
       traceOpcodes
     );
   }

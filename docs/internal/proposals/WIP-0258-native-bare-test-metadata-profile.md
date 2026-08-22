@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, metadata validation |
 | Depends on | WIP-0249, WIP-0257 |
 | Supersedes | Implicit acceptance of unimplemented test metadata |
-| Superseded by | Native tags and limits authority |
+| Superseded by | WIP-0259 native limits and future tag authority |
 
 ## Summary
 
@@ -17,18 +17,18 @@ Reject test metadata that the native runner cannot yet enforce.
 
 The source compiler accepts `tags(...)` and `limits(...)`. Native discovery previously stopped after the parameter list or `cases(...)` rows. It could therefore authorize a descriptor, strip trailing metadata during source lowering, and execute with neither tag selection nor declared limits.
 
-The initial native source profile now requires the declaration body opening brace immediately after:
+The initial native source profile required the declaration body opening brace immediately after:
 
 - `test void name()`
 - `test void name(type value) cases(...)`
 
-Any intervening token rejects discovery before identity, sharding, lowering, compilation, verification, execution, or publication.
+WIP-0259 admits exact canonical `limits(...)` syntax. Tags and every unknown suffix still reject before identity, sharding, lowering, compilation, verification, execution, or publication.
 
 ## Parser boundary
 
 `SourceTestRows` now retains the token after the canonical closing `cases` parenthesis. Discovery requires that token to be the opening body brace. Parameterless discovery performs the same check at the fixed token offset after `)`.
 
-This closes valid and malformed metadata alike. It does not search raw source for `tags` or `limits`, and it does not silently ignore unknown suffixes. The canonical lexer and punctuation vocabulary remain authority.
+This closed valid and malformed metadata alike before WIP-0259 split enforced limits from unsupported tags. It does not search raw source for `tags` or `limits`, and it does not silently ignore unknown suffixes. The canonical lexer and punctuation vocabulary remain authority.
 
 The profile is intentionally narrower than stage 0. Native tags require selection transport and canonical set validation. Native limits require interpreter step and history enforcement. Those features must cross the complete boundary before this rejection is relaxed.
 
@@ -52,7 +52,7 @@ The conformance archive remains 131,094 bytes with SHA-256 `b866164f0216db3c6b2e
 
 - [x] Parameterless declarations require an immediate body brace.
 - [x] Parameterized declarations require an immediate body brace after `cases(...)`.
-- [x] Valid and malformed unsupported metadata reject alike.
+- [x] Unsupported tags and unknown suffixes reject alike.
 - [x] Rejection precedes identity, sharding, compilation, and execution.
 - [x] Transported artifacts cannot bypass source metadata validation.
 - [x] Rejection leaves all output bytes untouched.
@@ -81,3 +81,4 @@ Rejected. A feature cannot be half-effective in canonical reports.
 
 - [WIP-0249](WIP-0249-native-parameter-row-discovery.md)
 - [WIP-0257](WIP-0257-native-parameter-row-compilation.md)
+- [WIP-0259](WIP-0259-native-test-step-limits.md)

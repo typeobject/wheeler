@@ -64,6 +64,7 @@ classical class NativeVm {
     assert(verifyArtifact(artifact, bufferLength(artifact)) == 1);
     ExecutionResult result = executeVerifiedArtifact(
       artifact,
+      MAX_INTERPRETED_STEPS,
       globals,
       locals,
       returnCursors,
@@ -109,6 +110,9 @@ classical class NativeVm {
         traceSeven = digestWord(traceDigest, 28);
       }
       case ExecutionResult.Error(long offset) {
+        assert(artifactLength == 1);
+      }
+      case ExecutionResult.Limit(long limitOffset) {
         assert(artifactLength == 1);
       }
     }

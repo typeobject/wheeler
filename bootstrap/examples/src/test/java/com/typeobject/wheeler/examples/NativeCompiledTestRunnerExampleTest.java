@@ -306,10 +306,60 @@ final class NativeCompiledTestRunnerExampleTest {
   }
 
   @Test
-  void rejectsUnsupportedNativeTestMetadata() throws Exception {
+  void rejectsUnsupportedNativeTestTags() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
     String tagged = DECLARED_TEST.replace("passes() {", "passes() tags(fast) {");
     var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", tagged));
+    VirtualMachine invalid = VirtualMachine.withBinaryInput(
+        runner, descriptor(MANIFEST, sources, new byte[0], "test::passes"), 39);
+
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(invalid));
+    assertArrayEquals(new byte[39], invalid.hostOutput());
+  }
+
+  @Test
+  void enforcesNativeSourceStepLimits() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    String limited = DECLARED_TEST.replace(
+        "passes() {", "passes() limits(steps = 1, history = 1) {");
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", limited));
+    byte[] artifact = new BytecodeWriter().write(new WheelerCompiler().compilePackageTests(
+        Map.of("Test.w", limited), Map.of(), "pkg.test").getFirst().program());
+
+    byte[] compiled = execute(
+        runner, descriptor(MANIFEST, sources, new byte[0], "test::passes"));
+    byte[] transported = execute(
+        runner, descriptor(MANIFEST, sources, artifact, "test::passes"));
+
+    assertEquals(1, compiled[32]);
+    assertEquals(0, compiled[34]);
+    assertEquals(1, transported[32]);
+    assertEquals(0, transported[34]);
+  }
+
+  @Test
+  void enforcesNativeParameterRowStepLimits() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    String limited = PARAMETERIZED_TESTS.replace(
+        "cases(false, true) {", "cases(false, true) limits(steps = 1, history = 1) {");
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", limited));
+    byte[] report = execute(runner, descriptors(MANIFEST, sources, List.of(
+        new NamedArtifact("test::flags[0]", new byte[0]),
+        new NamedArtifact("test::flags[1]", new byte[0]),
+        new NamedArtifact("test::longs[0]", new byte[0]),
+        new NamedArtifact("test::longs[1]", new byte[0]),
+        new NamedArtifact("test::longs[2]", new byte[0]))));
+
+    assertEquals(5, report[32]);
+    assertEquals(3, report[34]);
+  }
+
+  @Test
+  void rejectsInvalidNativeSourceLimits() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    String invalidLimits = DECLARED_TEST.replace(
+        "passes() {", "passes() limits(steps = 0, history = 1) {");
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", invalidLimits));
     VirtualMachine invalid = VirtualMachine.withBinaryInput(
         runner, descriptor(MANIFEST, sources, new byte[0], "test::passes"), 39);
 

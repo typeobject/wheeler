@@ -151,6 +151,70 @@ classical class TestSourceLowering {
     return 4;
   }
 
+  /// Derives one parameterless selected-entry source length.
+  public long parameterlessEntrySourceLength(
+    borrow byteview input,
+    long planStart,
+    long planLength,
+    long rootOrdinal,
+    borrow byteview selectedName,
+    long selectedNameStart,
+    long selectedNameLength
+  ) {
+    long sourceLength = validatedSourceLength(input, planStart, planLength, rootOrdinal);
+    region arena = new region(/* bytes= */ 106496, /* allocations= */ 4);
+    bytes sourceBytes = allocateBytes(arena, sourceLength);
+    copyValidatedSource(input, planStart, planLength, rootOrdinal, sourceBytes);
+    utf8 source = freezeUtf8(sourceBytes);
+    words tokenKinds = allocate(arena, MAX_COMPILER_TOKENS);
+    words tokenStarts = allocate(arena, MAX_COMPILER_TOKENS);
+    words tokenLengths = allocate(arena, MAX_COMPILER_TOKENS);
+    ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);
+    long tokenCount = 0;
+    match (scanned) {
+      case ScanResult.Value(long count) {
+        tokenCount = count;
+      }
+      case ScanResult.Error(ScanDiagnostic diagnostic) {
+        assert(diagnostic.offset < 0);
+      }
+    }
+
+    long loweredLength = -1;
+    long token = 0;
+    while (token + 4 < tokenCount) limit MAX_COMPILER_TOKENS {
+      if (tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_TEST) {
+        if (tokenHash(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID) {
+          if (
+            tokenMatchesRange(
+              source,
+              tokenStarts,
+              tokenLengths,
+              token + 2,
+              selectedName,
+              selectedNameStart,
+              selectedNameLength
+            )
+          ) {
+            long body = bodyOpenToken(source, tokenKinds, tokenStarts, tokenCount, token);
+            assert(-1 < body);
+            loweredLength = sourceLength + 19 - (tokenStarts[body] + 1 - tokenStarts[token]);
+          }
+        }
+      }
+
+      token += 1;
+    }
+
+    assert(0 < loweredLength);
+    drop(tokenLengths);
+    drop(tokenStarts);
+    drop(tokenKinds);
+    drop(source);
+    drop(arena);
+    return loweredLength;
+  }
+
   /// Derives one parameterized selected-entry source length.
   public long parameterizedEntrySourceLength(
     borrow byteview input,
@@ -239,7 +303,15 @@ classical class TestSourceLowering {
     borrow mut bytes output
   ) {
     long sourceLength = validatedSourceLength(input, planStart, planLength, rootOrdinal);
-    long loweredLength = sourceLength + 5 - selectedNameLength;
+    long loweredLength = parameterlessEntrySourceLength(
+      input,
+      planStart,
+      planLength,
+      rootOrdinal,
+      selectedName,
+      selectedNameStart,
+      selectedNameLength
+    );
     assert(bufferLength(output) == loweredLength);
     region arena = new region(/* bytes= */ 106496, /* allocations= */ 4);
     bytes sourceBytes = allocateBytes(arena, sourceLength);
@@ -269,7 +341,6 @@ classical class TestSourceLowering {
       if (tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_TEST) {
         if (tokenHash(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID) {
           long testStart = tokenStarts[token];
-          long nameStart = tokenStarts[token + 2];
           while (inputCursor < testStart) limit 4096 {
             setByte(output, outputCursor, input[sourceStart + inputCursor]);
             inputCursor += 1;
@@ -286,18 +357,11 @@ classical class TestSourceLowering {
             selectedNameLength
           );
           if (selectedDeclaration) {
-            inputCursor = testStart + 4;
-            writeAscii(output, outputCursor, "entry");
-            outputCursor += 5;
-            while (inputCursor < nameStart) limit 4096 {
-              setByte(output, outputCursor, input[sourceStart + inputCursor]);
-              inputCursor += 1;
-              outputCursor += 1;
-            }
-
-            writeAscii(output, outputCursor, "main");
-            outputCursor += 4;
-            inputCursor = nameStart + selectedNameLength;
+            long body = bodyOpenToken(source, tokenKinds, tokenStarts, tokenCount, token);
+            assert(-1 < body);
+            writeAscii(output, outputCursor, "entry void main() {");
+            outputCursor += 19;
+            inputCursor = tokenStarts[body] + 1;
             selected += 1;
           } else {
             long declarationEnd = declarationEndByte(

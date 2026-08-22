@@ -2,6 +2,7 @@
 
 module wheeler.runtime.testing.runners.test_runner;
 
+import wheeler.compiler.opcodes;
 import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
 import wheeler.runtime.testing.runners.test_descriptors;
@@ -173,7 +174,7 @@ classical class TestRunner {
 
     assert(scan == bufferLength(input));
 
-    region staging = new region(/* bytes= */ 742024, /* allocations= */ 39);
+    region staging = new region(/* bytes= */ 742536, /* allocations= */ 40);
     bytes runner = allocateBytes(staging, /* length= */ 64);
     writeAscii(
       runner,
@@ -259,6 +260,7 @@ classical class TestRunner {
     assert(validEmptyPackageLock(input, lockStart, lockLength, manifestIdentity));
     words caseKinds = allocate(staging, MAX_CASES);
     words caseValues = allocate(staging, MAX_CASES);
+    words caseStepLimits = allocate(staging, MAX_CASES);
     SourceTestDiscovery discovery = discoverRootTests(
       input,
       sourcePlanStart,
@@ -268,7 +270,8 @@ classical class TestRunner {
       caseCount,
       target,
       caseKinds,
-      caseValues
+      caseValues,
+      caseStepLimits
     );
     if (0 < discovery.count) {
       assert(discovery.matched);
@@ -463,12 +466,19 @@ classical class TestRunner {
           bindTransportedArtifact = false;
         }
 
+        long stepLimit = MAX_INTERPRETED_STEPS;
+        if (0 < discovery.count) {
+          stepLimit = caseStepLimits[descriptor];
+          assert(0 < stepLimit);
+        }
+
         if (bindTransportedArtifact) {
           resultLength = writeNamedArtifactCaseResult(
             artifact,
             expectedProgram,
             caseKinds[descriptor],
             caseValues[descriptor],
+            stepLimit,
             packageName,
             packageVersion,
             caseName,
@@ -477,8 +487,9 @@ classical class TestRunner {
             result
           );
         } else {
-          resultLength = writeArtifactCaseResult(
+          resultLength = writeCompiledArtifactCaseResult(
             artifact,
+            stepLimit,
             packageName,
             packageVersion,
             caseName,
@@ -580,6 +591,7 @@ classical class TestRunner {
     drop(frame);
     drop(statusRows);
     drop(summaryRows);
+    drop(caseStepLimits);
     drop(caseValues);
     drop(caseKinds);
     drop(reportRows);

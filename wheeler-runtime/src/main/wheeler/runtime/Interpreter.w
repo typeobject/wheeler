@@ -30,6 +30,7 @@ classical class Interpreter {
   public variant ExecutionResult {
     case Value(Execution execution);
     case Error(long offset);
+    case Limit(long offset);
   }
 
   private long sectionOffset(borrow byteview artifact, long section) {
@@ -105,6 +106,7 @@ classical class Interpreter {
   /// Executes `artifact` under explicit bootstrap bounds.
   public ExecutionResult executeVerifiedArtifact(
     borrow byteview artifact,
+    long stepLimit,
     borrow mut words globals,
     borrow mut words locals,
     borrow mut words returnCursors,
@@ -128,6 +130,8 @@ classical class Interpreter {
     borrow mut bytes traceOpcodes
   ) {
     assert(bufferLength(traceOpcodes) == MAX_INTERPRETED_STEPS * 2);
+    assert(0 < stepLimit);
+    assert(stepLimit < MAX_INTERPRETED_STEPS + 1);
     long manifestOffset = sectionOffset(artifact, 0);
     long typesOffset = sectionOffset(artifact, 2);
     long functionsOffset = sectionOffset(artifact, 4);
@@ -161,7 +165,7 @@ classical class Interpreter {
       clear += 1;
     }
 
-    while (steps < MAX_INTERPRETED_STEPS) limit MAX_INTERPRETED_STEPS {
+    while (steps < stepLimit) limit MAX_INTERPRETED_STEPS {
       if (end - cursor < 8) {
         return new ExecutionResult.Error(cursor);
       }
@@ -975,6 +979,6 @@ classical class Interpreter {
       }
     }
 
-    return new ExecutionResult.Error(cursor);
+    return new ExecutionResult.Limit(cursor);
   }
 }

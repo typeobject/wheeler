@@ -4,6 +4,7 @@ module wheeler.runtime.testing.runners.test_source_tests;
 
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
+import wheeler.compiler.opcodes;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
@@ -12,7 +13,11 @@ import wheeler.runtime.testing.runners.test_source_plan;
 classical class TestSourceTests {
   private const long MAX_CASES = 64;
   private const long TOKEN_CASES = 94432067;
+  private const long MAX_DECLARED_LIMIT = 4000000;
   private const long TOKEN_FALSE = 97196323;
+  private const long TOKEN_HISTORY = 95416214676;
+  private const long TOKEN_LIMITS = 3192269848;
+  private const long TOKEN_STEPS = 109761319;
   private const long TOKEN_TEST = 3556498;
   private const long TOKEN_TRUE = 3569038;
 
@@ -20,6 +25,8 @@ classical class TestSourceTests {
   public record SourceTestDiscovery(long count, boolean matched) {}
 
   private record SourceTestRows(long count, boolean supported, long nextToken) {}
+
+  private record SourceTestMetadata(boolean supported, long stepLimit) {}
 
   private long readUnsigned32LittleEndian(borrow byteview input, long offset) {
     return input[offset] + input[offset + 1] * 256 + input[offset + 2] * 65536 + input[offset + 3]
@@ -261,6 +268,122 @@ classical class TestSourceTests {
     return new SourceTestRows(rowCount, false, 0);
   }
 
+  private SourceTestMetadata testMetadata(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long tokenCount,
+    long start
+  ) {
+    if (start < tokenCount) {} else {
+      return new SourceTestMetadata(false, 0);
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, start, PUNCTUATION_OPEN_BRACE)
+    ) {
+      return new SourceTestMetadata(true, MAX_INTERPRETED_STEPS);
+    }
+
+    if (tokenHash(source, tokenStarts, tokenLengths, start) != TOKEN_LIMITS) {
+      return new SourceTestMetadata(false, 0);
+    }
+
+    if (start + 10 < tokenCount) {} else {
+      return new SourceTestMetadata(false, 0);
+    }
+
+    boolean valid = punctuationAt(
+      source,
+      tokenKinds,
+      tokenStarts,
+      start + 1,
+      PUNCTUATION_OPEN_PAREN
+    );
+    if (tokenHash(source, tokenStarts, tokenLengths, start + 2) != TOKEN_STEPS) {
+      valid = false;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, start + 3, PUNCTUATION_ASSIGN) == false
+    ) {
+      valid = false;
+    }
+
+    if (signedNumberWidth(source, tokenKinds, tokenStarts, start + 4) != 1) {
+      return new SourceTestMetadata(false, 0);
+    }
+
+    if (signedNumberValid(source, tokenStarts, tokenLengths, start + 4) == false) {
+      return new SourceTestMetadata(false, 0);
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, start + 5, PUNCTUATION_COMMA) == false
+    ) {
+      valid = false;
+    }
+
+    if (tokenHash(source, tokenStarts, tokenLengths, start + 6) != TOKEN_HISTORY) {
+      valid = false;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, start + 7, PUNCTUATION_ASSIGN) == false
+    ) {
+      valid = false;
+    }
+
+    if (signedNumberWidth(source, tokenKinds, tokenStarts, start + 8) != 1) {
+      return new SourceTestMetadata(false, 0);
+    }
+
+    if (signedNumberValid(source, tokenStarts, tokenLengths, start + 8) == false) {
+      return new SourceTestMetadata(false, 0);
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, start + 9, PUNCTUATION_CLOSE_PAREN) == false
+    ) {
+      valid = false;
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, start + 10, PUNCTUATION_OPEN_BRACE) == false
+    ) {
+      valid = false;
+    }
+
+    if (valid == false) {
+      return new SourceTestMetadata(false, 0);
+    }
+
+    long steps = parsedSignedNumber(source, tokenStarts, tokenLengths, start + 4);
+    long history = parsedSignedNumber(source, tokenStarts, tokenLengths, start + 8);
+    if (steps < 1) {
+      return new SourceTestMetadata(false, 0);
+    }
+
+    if (MAX_DECLARED_LIMIT < steps) {
+      return new SourceTestMetadata(false, 0);
+    }
+
+    if (history < 1) {
+      return new SourceTestMetadata(false, 0);
+    }
+
+    if (MAX_DECLARED_LIMIT < history) {
+      return new SourceTestMetadata(false, 0);
+    }
+
+    if (MAX_INTERPRETED_STEPS < steps) {
+      steps = MAX_INTERPRETED_STEPS;
+    }
+
+    return new SourceTestMetadata(true, steps);
+  }
+
   private boolean uniqueTestName(
     borrow utf8 source,
     borrow mut words tokenStarts,
@@ -293,10 +416,12 @@ classical class TestSourceTests {
     long caseCount,
     borrow byteview targetName,
     borrow mut words caseKinds,
-    borrow mut words caseValues
+    borrow mut words caseValues,
+    borrow mut words caseStepLimits
   ) {
     assert(bufferLength(caseKinds) == MAX_CASES);
     assert(bufferLength(caseValues) == MAX_CASES);
+    assert(bufferLength(caseStepLimits) == MAX_CASES);
     long sourceLength = validatedSourceLength(input, planStart, planLength, rootOrdinal);
     region arena = new region(/* bytes= */ 107008, /* allocations= */ 5);
     bytes sourceBytes = allocateBytes(arena, sourceLength);
@@ -346,19 +471,15 @@ classical class TestSourceTests {
           }
 
           if (parameterless) {
-            if (token + 5 < tokenCount) {
-              if (
-                punctuationAt(
-                  source,
-                  tokenKinds,
-                  tokenStarts,
-                  token + 5,
-                  PUNCTUATION_OPEN_BRACE
-                ) == false
-              ) {
-                supported = false;
-              }
-            } else {
+            SourceTestMetadata parameterlessMetadata = testMetadata(
+              source,
+              tokenKinds,
+              tokenStarts,
+              tokenLengths,
+              tokenCount,
+              token + 5
+            );
+            if (parameterlessMetadata.supported == false) {
               supported = false;
             }
 
@@ -376,6 +497,7 @@ classical class TestSourceTests {
             if (-1 < matchedCase) {
               set(caseKinds, matchedCase, /* parameterless= */ 1);
               set(caseValues, matchedCase, 0);
+              set(caseStepLimits, matchedCase, parameterlessMetadata.stepLimit);
               matchedDeclarations += 1;
             }
 
@@ -390,24 +512,20 @@ classical class TestSourceTests {
               token,
               rowValues
             );
+            SourceTestMetadata rowMetadata = testMetadata(
+              source,
+              tokenKinds,
+              tokenStarts,
+              tokenLengths,
+              tokenCount,
+              rows.nextToken
+            );
             if (rows.supported == false) {
               supported = false;
-            } else {
-              if (rows.nextToken < tokenCount) {
-                if (
-                  punctuationAt(
-                    source,
-                    tokenKinds,
-                    tokenStarts,
-                    rows.nextToken,
-                    PUNCTUATION_OPEN_BRACE
-                  ) == false
-                ) {
-                  supported = false;
-                }
-              } else {
-                supported = false;
-              }
+            }
+
+            if (rowMetadata.supported == false) {
+              supported = false;
             }
 
             long caseKind = 2;
@@ -433,6 +551,7 @@ classical class TestSourceTests {
               if (-1 < matchedRowCase) {
                 set(caseKinds, matchedRowCase, caseKind);
                 set(caseValues, matchedRowCase, rowValues[row]);
+                set(caseStepLimits, matchedRowCase, rowMetadata.stepLimit);
                 matchedDeclarations += 1;
               }
 
