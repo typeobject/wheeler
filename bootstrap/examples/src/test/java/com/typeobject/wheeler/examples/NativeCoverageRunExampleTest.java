@@ -84,7 +84,8 @@ final class NativeCoverageRunExampleTest {
       classical class UnsupportedCoverageSubject {
         entry void main() {
           long value = 1;
-          assert(value == 1);
+          long sum = value + 1;
+          assert(sum == 2);
         }
       }
       """;
@@ -856,9 +857,12 @@ final class NativeCoverageRunExampleTest {
     modules.put("CoverageReducer.w", RuntimeSources.read("runtime/CoverageReducer.w"));
     for (String source : List.of(
         "TestArtifactExecutionIdentity", "TestCoverageIdentity",
-        "TestExecutionIdentity", "TestIdentityText", "TestReportIdentity", "TestArtifactReport")) {
+        "TestExecutionIdentity", "TestIdentityText", "TestArtifactReport")) {
       modules.put(source + ".w", RuntimeSources.read("runtime/testing/" + source + ".w"));
     }
+    modules.put(
+        "TestReportIdentity.w",
+        RuntimeSources.read("runtime/testing/reports/TestReportIdentity.w"));
     modules.put(
         "NativeOneCaseTestRunner.w",
         Files.readString(Path.of(

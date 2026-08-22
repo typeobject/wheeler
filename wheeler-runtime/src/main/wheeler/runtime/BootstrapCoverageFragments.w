@@ -19,6 +19,10 @@ classical class BootstrapCoverageFragments {
       return 10;
     }
 
+    if (opcode == OPCODE_LOCAL_EQ) {
+      return 8;
+    }
+
     if (opcode == OPCODE_CALL) {
       return 4;
     }
@@ -102,6 +106,11 @@ classical class BootstrapCoverageFragments {
     if (opcode == OPCODE_LOCAL_MOVE) {
       writeAscii(output, cursor, "LOCAL_MOVE");
       return cursor + 10;
+    }
+
+    if (opcode == OPCODE_LOCAL_EQ) {
+      writeAscii(output, cursor, "LOCAL_EQ");
+      return cursor + 8;
     }
 
     if (opcode == OPCODE_CALL) {

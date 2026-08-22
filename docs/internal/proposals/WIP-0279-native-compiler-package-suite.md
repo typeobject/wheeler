@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler, package testing |
 | Depends on | WIP-0018, WIP-0245, WIP-0278 |
 | Supersedes | Compiler packages with no native test-selected target |
-| Superseded by | Full self-hosted compiler package suite |
+| Superseded by | WIP-0280 imported constant assertion, then the full compiler suite |
 
 ## Summary
 
@@ -112,3 +112,4 @@ Rejected. The current native test-expression compiler does not prove it.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0245](WIP-0245-native-eight-source-test-compilation.md)
 - [WIP-0278](WIP-0278-native-package-row-reduction.md)
+- [WIP-0280](WIP-0280-native-compiler-constant-assertion.md)
