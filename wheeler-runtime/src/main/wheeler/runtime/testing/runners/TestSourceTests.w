@@ -19,7 +19,7 @@ classical class TestSourceTests {
   /// Reports the discovered case count and complete descriptor match.
   public record SourceTestDiscovery(long count, boolean matched) {}
 
-  private record SourceTestRows(long count, boolean supported) {}
+  private record SourceTestRows(long count, boolean supported, long nextToken) {}
 
   private long readUnsigned32LittleEndian(borrow byteview input, long offset) {
     return input[offset] + input[offset + 1] * 256 + input[offset + 2] * 65536 + input[offset + 3]
@@ -164,55 +164,55 @@ classical class TestSourceTests {
     borrow mut words rowValues
   ) {
     if (tokenCount < declaration + 10) {
-      return new SourceTestRows(0, false);
+      return new SourceTestRows(0, false, 0);
     }
 
     long typeHash = tokenHash(source, tokenStarts, tokenLengths, declaration + 4);
     boolean longRows = typeHash == TOKEN_LONG;
     if (longRows == false) {
       if (typeHash != TOKEN_BOOLEAN) {
-        return new SourceTestRows(0, false);
+        return new SourceTestRows(0, false, 0);
       }
     }
 
     if (tokenKinds[declaration + 5] != 1) {
-      return new SourceTestRows(0, false);
+      return new SourceTestRows(0, false, 0);
     }
 
     if (
       punctuationAt(source, tokenKinds, tokenStarts, declaration + 6, PUNCTUATION_CLOSE_PAREN)
         == false
     ) {
-      return new SourceTestRows(0, false);
+      return new SourceTestRows(0, false, 0);
     }
 
     if (tokenHash(source, tokenStarts, tokenLengths, declaration + 7) != TOKEN_CASES) {
-      return new SourceTestRows(0, false);
+      return new SourceTestRows(0, false, 0);
     }
 
     if (
       punctuationAt(source, tokenKinds, tokenStarts, declaration + 8, PUNCTUATION_OPEN_PAREN)
         == false
     ) {
-      return new SourceTestRows(0, false);
+      return new SourceTestRows(0, false, 0);
     }
 
     long cursor = declaration + 9;
     long rowCount = 0;
     while (rowCount < MAX_CASES) limit MAX_CASES {
       if (cursor < tokenCount) {} else {
-        return new SourceTestRows(rowCount, false);
+        return new SourceTestRows(rowCount, false, 0);
       }
 
       long value = 0;
       if (longRows) {
         long width = signedNumberWidth(source, tokenKinds, tokenStarts, cursor);
         if (width < 1) {
-          return new SourceTestRows(rowCount, false);
+          return new SourceTestRows(rowCount, false, 0);
         }
 
         if (signedNumberValid(source, tokenStarts, tokenLengths, cursor) == false) {
-          return new SourceTestRows(rowCount, false);
+          return new SourceTestRows(rowCount, false, 0);
         }
 
         value = parsedSignedNumber(source, tokenStarts, tokenLengths, cursor);
@@ -223,7 +223,7 @@ classical class TestSourceTests {
           value = 1;
         } else {
           if (valueHash != TOKEN_FALSE) {
-            return new SourceTestRows(rowCount, false);
+            return new SourceTestRows(rowCount, false, 0);
           }
         }
 
@@ -233,7 +233,7 @@ classical class TestSourceTests {
       long prior = 0;
       while (prior < rowCount) limit MAX_CASES {
         if (rowValues[prior] == value) {
-          return new SourceTestRows(rowCount, false);
+          return new SourceTestRows(rowCount, false, 0);
         }
 
         prior += 1;
@@ -242,23 +242,23 @@ classical class TestSourceTests {
       set(rowValues, rowCount, value);
       rowCount += 1;
       if (cursor < tokenCount) {} else {
-        return new SourceTestRows(rowCount, false);
+        return new SourceTestRows(rowCount, false, 0);
       }
 
       if (
         punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_CLOSE_PAREN)
       ) {
-        return new SourceTestRows(rowCount, true);
+        return new SourceTestRows(rowCount, true, cursor + 1);
       }
 
       if (punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_COMMA)) {
         cursor += 1;
       } else {
-        return new SourceTestRows(rowCount, false);
+        return new SourceTestRows(rowCount, false, 0);
       }
     }
 
-    return new SourceTestRows(rowCount, false);
+    return new SourceTestRows(rowCount, false, 0);
   }
 
   private boolean uniqueTestName(
@@ -346,6 +346,22 @@ classical class TestSourceTests {
           }
 
           if (parameterless) {
+            if (token + 5 < tokenCount) {
+              if (
+                punctuationAt(
+                  source,
+                  tokenKinds,
+                  tokenStarts,
+                  token + 5,
+                  PUNCTUATION_OPEN_BRACE
+                ) == false
+              ) {
+                supported = false;
+              }
+            } else {
+              supported = false;
+            }
+
             long matchedCase = matchingDescriptor(
               source,
               tokenStarts,
@@ -376,6 +392,22 @@ classical class TestSourceTests {
             );
             if (rows.supported == false) {
               supported = false;
+            } else {
+              if (rows.nextToken < tokenCount) {
+                if (
+                  punctuationAt(
+                    source,
+                    tokenKinds,
+                    tokenStarts,
+                    rows.nextToken,
+                    PUNCTUATION_OPEN_BRACE
+                  ) == false
+                ) {
+                  supported = false;
+                }
+              } else {
+                supported = false;
+              }
             }
 
             long caseKind = 2;

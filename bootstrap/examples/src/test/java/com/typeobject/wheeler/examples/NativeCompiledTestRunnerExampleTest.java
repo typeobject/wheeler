@@ -306,6 +306,18 @@ final class NativeCompiledTestRunnerExampleTest {
   }
 
   @Test
+  void rejectsUnsupportedNativeTestMetadata() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    String tagged = DECLARED_TEST.replace("passes() {", "passes() tags(fast) {");
+    var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", tagged));
+    VirtualMachine invalid = VirtualMachine.withBinaryInput(
+        runner, descriptor(MANIFEST, sources, new byte[0], "test::passes"), 39);
+
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(invalid));
+    assertArrayEquals(new byte[39], invalid.hostOutput());
+  }
+
+  @Test
   void discoversOneParameterlessRootTestNatively() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
     var testCase = new WheelerCompiler().compilePackageTests(
