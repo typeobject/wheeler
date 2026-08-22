@@ -99,3 +99,4 @@ Rejected. Discovery authorizes the suite, but scheduling owns compiler attempts.
 
 - [WIP-0248](WIP-0248-native-counted-test-discovery.md)
 - [WIP-0254](WIP-0254-native-imported-test-compilation.md)
+- [WIP-0256](WIP-0256-native-test-lowering-authority.md)

@@ -3,8 +3,8 @@
 module wheeler.runtime.testing.runners.test_source_compilation;
 
 import wheeler.compiler.driver;
+import wheeler.runtime.testing.runners.test_source_lowering;
 import wheeler.runtime.testing.runners.test_source_plan;
-import wheeler.runtime.testing.runners.test_source_tests;
 
 classical class TestSourceCompilation {
   private const long MAX_COMPILED_SOURCES = 8;
