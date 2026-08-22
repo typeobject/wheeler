@@ -8,8 +8,32 @@ import wheeler.runtime.testing.runners.test_source_tests;
 
 classical class TestSourceCompilation {
   private const long MAX_COMPILED_SOURCES = 8;
+  private const long MAX_LOWERED_PLAN_BYTES = 32772;
   private const long MAX_TEST_SOURCE_BYTES = 4096;
   private const long TEST_ARTIFACT_BYTES = 32768;
+
+  private long copyRange(
+    borrow byteview input,
+    long inputStart,
+    long length,
+    borrow mut bytes output,
+    long outputStart
+  ) {
+    long offset = 0;
+    while (offset < length) limit MAX_LOWERED_PLAN_BYTES {
+      setByte(output, outputStart + offset, input[inputStart + offset]);
+      offset += 1;
+    }
+
+    return outputStart + length;
+  }
+
+  private void writeUnsigned32BigEndian(borrow mut bytes output, long start, long value) {
+    setByte(output, start, value / 16777216 % 256);
+    setByte(output, start + 1, value / 65536 % 256);
+    setByte(output, start + 2, value / 256 % 256);
+    setByte(output, start + 3, value % 256);
+  }
 
   private long checkedLength(Compilation compiled) {
     assert(0 < compiled.length);
@@ -64,12 +88,15 @@ classical class TestSourceCompilation {
     borrow mut bytes artifact
   ) {
     assert(validCompilableSourcePlan(input, start, length));
-    assert(validatedSourceCount(input, start, length) == 1);
-    assert(rootOrdinal == 0);
+    assert(rootOrdinal < validatedSourceCount(input, start, length));
     assert(bufferLength(artifact) == TEST_ARTIFACT_BYTES);
     long sourceLength = validatedSourceLength(input, start, length, rootOrdinal);
-    region source = new region(/* bytes= */ 4101, /* allocations= */ 1);
-    bytes entryBytes = allocateBytes(source, sourceLength + 5 - declarationNameLength);
+    long sourceStart = validatedSourceStart(input, start, length, rootOrdinal);
+    long loweredSourceLength = sourceLength + 5 - declarationNameLength;
+    long loweredPlanLength = length + loweredSourceLength - sourceLength;
+    assert(loweredPlanLength < MAX_LOWERED_PLAN_BYTES + 1);
+    region lowering = new region(/* bytes= */ 36873, /* allocations= */ 2);
+    bytes entryBytes = allocateBytes(lowering, loweredSourceLength);
     copyParameterlessEntrySource(
       input,
       start,
@@ -78,10 +105,31 @@ classical class TestSourceCompilation {
       declarationNameLength,
       entryBytes
     );
-    utf8 entrySource = freezeUtf8(entryBytes);
-    long artifactLength = checkedLength(compileMinimal(entrySource, artifact));
-    drop(entrySource);
-    drop(source);
+    bytes plan = allocateBytes(lowering, loweredPlanLength);
+    long sourceLengthOffset = sourceStart - 4;
+    long cursor = copyRange(
+      input,
+      start,
+      sourceLengthOffset - start,
+      plan,
+      /* outputStart= */ 0
+    );
+    writeUnsigned32BigEndian(plan, cursor, loweredSourceLength);
+    cursor += 4;
+    cursor = copyRange(entryBytes, /* inputStart= */ 0, loweredSourceLength, plan, cursor);
+    long sourceEnd = sourceStart + sourceLength;
+    cursor = copyRange(input, sourceEnd, start + length - sourceEnd, plan, cursor);
+    assert(cursor == loweredPlanLength);
+    long artifactLength = compileValidatedSourcePlan(
+      plan,
+      /* start= */ 0,
+      loweredPlanLength,
+      rootOrdinal,
+      artifact
+    );
+    drop(plan);
+    drop(entryBytes);
+    drop(lowering);
     return artifactLength;
   }
 

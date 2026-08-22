@@ -164,6 +164,8 @@ final class NativeCompiledTestRunnerExampleTest {
         }
       }
       """;
+  private static final String IMPORTING_TEST = IMPORTING
+      .replace("entry void main()", "test void imported()");
 
   @Test
   void compiledSourcesProduceCanonicalArtifactReports() throws Exception {
@@ -256,6 +258,21 @@ final class NativeCompiledTestRunnerExampleTest {
     var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", DECLARED_TEST));
 
     byte[] report = execute(runner, descriptor(MANIFEST, sources, new byte[0], "test::passes"));
+
+    assertEquals(1, report[32]);
+    assertEquals(1, report[34]);
+  }
+
+  @Test
+  void compilesOneImportedParameterlessTestNatively() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    var sources = List.of(
+        new NativeTestSourcePlan.Source("src/A.w", IMPORTED),
+        new NativeTestSourcePlan.Source("src/Test.w", IMPORTING_TEST));
+
+    byte[] report = execute(
+        runner,
+        descriptor(TWO_SOURCE_MANIFEST, sources, new byte[0], "test::imported"));
 
     assertEquals(1, report[32]);
     assertEquals(1, report[34]);
@@ -449,6 +466,22 @@ final class NativeCompiledTestRunnerExampleTest {
     assertArrayEquals(
         execute(runner, descriptor(EIGHT_SOURCE_MANIFEST, sources, artifact)),
         execute(runner, descriptor(EIGHT_SOURCE_MANIFEST, sources, new byte[0])));
+
+    String testRoot = root.replace("entry void main()", "test void imported()");
+    var testSources = List.of(
+        new NativeTestSourcePlan.Source("src/A.w", IMPORTED),
+        new NativeTestSourcePlan.Source("src/B.w", IMPORTED_TWO),
+        new NativeTestSourcePlan.Source("src/C.w", IMPORTED_THREE),
+        new NativeTestSourcePlan.Source("src/D.w", IMPORTED_FOUR),
+        new NativeTestSourcePlan.Source("src/E.w", IMPORTED_FIVE),
+        new NativeTestSourcePlan.Source("src/F.w", IMPORTED_SIX),
+        new NativeTestSourcePlan.Source("src/G.w", IMPORTED_SEVEN),
+        new NativeTestSourcePlan.Source("src/Test.w", testRoot));
+    byte[] testReport = execute(
+        runner,
+        descriptor(EIGHT_SOURCE_MANIFEST, testSources, new byte[0], "test::imported"));
+    assertEquals(1, testReport[32]);
+    assertEquals(1, testReport[34]);
   }
 
   @Test

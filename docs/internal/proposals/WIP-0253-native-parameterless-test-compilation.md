@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, source compilation |
 | Depends on | WIP-0237, WIP-0247, WIP-0252 |
 | Supersedes | Transported artifacts for one parameterless root test |
-| Superseded by | Counted native test compilation |
+| Superseded by | WIP-0254 native imported test compilation |
 
 ## Summary
 
@@ -127,3 +127,4 @@ Rejected. Differential artifacts may supply evidence, not runtime input.
 - [WIP-0237](WIP-0237-native-compiled-test-reports.md)
 - [WIP-0247](WIP-0247-native-parameterless-test-discovery.md)
 - [WIP-0252](WIP-0252-native-artifact-row-binding.md)
+- [WIP-0254](WIP-0254-native-imported-test-compilation.md)
