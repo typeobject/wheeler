@@ -84,7 +84,10 @@ classical class TestSourceCompilation {
     long start,
     long length,
     long rootOrdinal,
-    long declarationNameLength,
+    borrow byteview selectedName,
+    long selectedNameStart,
+    long selectedNameLength,
+    long testCount,
     borrow mut bytes artifact
   ) {
     assert(validCompilableSourcePlan(input, start, length));
@@ -92,7 +95,7 @@ classical class TestSourceCompilation {
     assert(bufferLength(artifact) == TEST_ARTIFACT_BYTES);
     long sourceLength = validatedSourceLength(input, start, length, rootOrdinal);
     long sourceStart = validatedSourceStart(input, start, length, rootOrdinal);
-    long loweredSourceLength = sourceLength + 5 - declarationNameLength;
+    long loweredSourceLength = sourceLength + 5 - selectedNameLength;
     long loweredPlanLength = length + loweredSourceLength - sourceLength;
     assert(loweredPlanLength < MAX_LOWERED_PLAN_BYTES + 1);
     region lowering = new region(/* bytes= */ 36873, /* allocations= */ 2);
@@ -102,7 +105,10 @@ classical class TestSourceCompilation {
       start,
       length,
       rootOrdinal,
-      declarationNameLength,
+      selectedName,
+      selectedNameStart,
+      selectedNameLength,
+      testCount,
       entryBytes
     );
     bytes plan = allocateBytes(lowering, loweredPlanLength);

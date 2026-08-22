@@ -135,6 +135,7 @@ classical class TestRunner {
     long previousNameStart = 0;
     long previousNameLength = 0;
     boolean compileSource = false;
+    boolean transportArtifacts = false;
     while (scannedCase < caseCount) limit MAX_CASES {
       long scannedNameLength = input[scan];
       long scannedNameStart = scan + 1;
@@ -159,8 +160,11 @@ classical class TestRunner {
         /* width= */ 4
       );
       if (scannedArtifactLength == 0) {
-        assert(caseCount == 1);
+        assert(transportArtifacts == false);
         compileSource = true;
+      } else {
+        assert(compileSource == false);
+        transportArtifacts = true;
       }
 
       scan = checkedCaseEnd(input, scan);
@@ -268,6 +272,13 @@ classical class TestRunner {
     );
     if (0 < discovery.count) {
       assert(discovery.matched);
+      if (compileSource) {
+        long nativeCase = 0;
+        while (nativeCase < caseCount) limit MAX_CASES {
+          assert(caseKinds[nativeCase] == 1);
+          nativeCase += 1;
+        }
+      }
     }
 
     bytes rawSourceIdentity = allocateBytes(staging, /* length= */ 32);
@@ -353,14 +364,16 @@ classical class TestRunner {
         long executionArtifactLength = artifactLength;
         if (artifactLength == 0) {
           if (0 < discovery.count) {
-            assert(caseCount == 1);
             assert(caseKinds[descriptor] == 1);
             executionArtifactLength = compileValidatedParameterlessTest(
               input,
               sourcePlanStart,
               sourcePlanLength,
               compiledRootOrdinal,
+              caseName,
+              targetLength + 2,
               nameLength - targetLength - 2,
+              discovery.count,
               artifactStorage
             );
           } else {

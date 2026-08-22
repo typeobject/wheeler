@@ -9,7 +9,7 @@
 | Area | Self-hosting, native testing, source compilation |
 | Depends on | WIP-0245, WIP-0253 |
 | Supersedes | WIP-0253 one-source compilation bound |
-| Superseded by | Counted native test compilation |
+| Superseded by | WIP-0255 native counted test compilation |
 
 ## Summary
 
@@ -100,3 +100,4 @@ Rejected. Counted graph compilation remains separate work.
 
 - [WIP-0245](WIP-0245-native-eight-source-test-compilation.md)
 - [WIP-0253](WIP-0253-native-parameterless-test-compilation.md)
+- [WIP-0255](WIP-0255-native-counted-test-compilation.md)
