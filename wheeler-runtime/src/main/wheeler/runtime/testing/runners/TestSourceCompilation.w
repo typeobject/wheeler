@@ -6,7 +6,7 @@ import wheeler.compiler.driver;
 import wheeler.runtime.testing.runners.test_source_plan;
 
 classical class TestSourceCompilation {
-  private const long MAX_COMPILED_SOURCES = 5;
+  private const long MAX_COMPILED_SOURCES = 6;
   private const long MAX_TEST_SOURCE_BYTES = 4096;
   private const long TEST_ARTIFACT_BYTES = 32768;
 
@@ -65,7 +65,7 @@ classical class TestSourceCompilation {
     assert(bufferLength(artifact) == TEST_ARTIFACT_BYTES);
     long sourceCount = validatedSourceCount(input, start, length);
     assert(rootOrdinal < sourceCount);
-    region sources = new region(/* bytes= */ 20480, /* allocations= */ 5);
+    region sources = new region(/* bytes= */ 24576, /* allocations= */ 6);
     long artifactLength = 0;
 
     if (sourceCount == 1) {
@@ -247,6 +247,105 @@ classical class TestSourceCompilation {
       drop(fiveThird);
       drop(fiveSecond);
       drop(fiveFirst);
+    }
+
+    if (sourceCount == 6) {
+      utf8 sixFirst = sourceAt(input, start, length, /* ordinal= */ 0, sources);
+      utf8 sixSecond = sourceAt(input, start, length, /* ordinal= */ 1, sources);
+      utf8 sixThird = sourceAt(input, start, length, /* ordinal= */ 2, sources);
+      utf8 sixFourth = sourceAt(input, start, length, /* ordinal= */ 3, sources);
+      utf8 sixFifth = sourceAt(input, start, length, /* ordinal= */ 4, sources);
+      utf8 sixSixth = sourceAt(input, start, length, /* ordinal= */ 5, sources);
+      if (rootOrdinal == 0) {
+        artifactLength = checkedLength(
+          compileMinimalWithFiveConstantImports(
+            sixSecond,
+            sixThird,
+            sixFourth,
+            sixFifth,
+            sixSixth,
+            sixFirst,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 1) {
+        artifactLength = checkedLength(
+          compileMinimalWithFiveConstantImports(
+            sixFirst,
+            sixThird,
+            sixFourth,
+            sixFifth,
+            sixSixth,
+            sixSecond,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 2) {
+        artifactLength = checkedLength(
+          compileMinimalWithFiveConstantImports(
+            sixFirst,
+            sixSecond,
+            sixFourth,
+            sixFifth,
+            sixSixth,
+            sixThird,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 3) {
+        artifactLength = checkedLength(
+          compileMinimalWithFiveConstantImports(
+            sixFirst,
+            sixSecond,
+            sixThird,
+            sixFifth,
+            sixSixth,
+            sixFourth,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 4) {
+        artifactLength = checkedLength(
+          compileMinimalWithFiveConstantImports(
+            sixFirst,
+            sixSecond,
+            sixThird,
+            sixFourth,
+            sixSixth,
+            sixFifth,
+            artifact
+          )
+        );
+      }
+
+      if (rootOrdinal == 5) {
+        artifactLength = checkedLength(
+          compileMinimalWithFiveConstantImports(
+            sixFirst,
+            sixSecond,
+            sixThird,
+            sixFourth,
+            sixFifth,
+            sixSixth,
+            artifact
+          )
+        );
+      }
+
+      drop(sixSixth);
+      drop(sixFifth);
+      drop(sixFourth);
+      drop(sixThird);
+      drop(sixSecond);
+      drop(sixFirst);
     }
 
     assert(0 < artifactLength);
