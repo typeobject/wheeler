@@ -18,6 +18,9 @@ dependencies:
   - kind: "normal"
     name: "wheeler.core"
     version: "=0.1.0"
+  - kind: "normal"
+    name: "wheeler.packages"
+    version: "=0.1.0"
 capabilities:
   - name: "build.read"
     path: "src/main/wheeler/**"

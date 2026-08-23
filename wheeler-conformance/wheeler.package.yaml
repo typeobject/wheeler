@@ -103,6 +103,13 @@ targets:
       - "src/main/wheeler/io/NativeDurabilityReceipts.w"
     test: false
   - kind: "deployable"
+    name: "nativeexternalsourceplan"
+    root: "src/main/wheeler/testing/runners/NativeExternalSourcePlan.w"
+    module: "wheeler.conformance.testing.runners.native_external_source_plan"
+    sources:
+      - "src/main/wheeler/testing/runners/NativeExternalSourcePlan.w"
+    test: false
+  - kind: "deployable"
     name: "nativeiolifecycle"
     root: "src/main/wheeler/io/NativeIoLifecycle.w"
     module: "wheeler.conformance.io.io_lifecycle"

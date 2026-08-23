@@ -62,6 +62,23 @@ class NativeArchiveExampleTest {
         Files.readString(root.resolve("NativeLockedArchiveSource.w")));
     Program sourceProjection = new WheelerCompiler().compileModuleFiles(
         sourceModules, "wheeler.conformance.packages.locked_archive_source");
+    Map<String, String> sourcePlanModules = new HashMap<>(provenanceModules);
+    sourcePlanModules.remove("NativeLockedArchiveProvenance.w");
+    sourcePlanModules.put(
+        "NativeExternalSourcePlan.w",
+        Files.readString(Path.of(
+            "../wheeler-conformance/src/main/wheeler/testing/runners/NativeExternalSourcePlan.w")));
+    sourcePlanModules.put(
+        "TestExternalSourcePlan.w",
+        RuntimeSources.read("runtime/testing/runners/TestExternalSourcePlan.w"));
+    sourcePlanModules.put(
+        "TestSourceModules.w",
+        RuntimeSources.read("runtime/testing/runners/TestSourceModules.w"));
+    sourcePlanModules.put(
+        "TestSourcePlan.w",
+        RuntimeSources.read("runtime/testing/runners/TestSourcePlan.w"));
+    Program sourcePlanComposer = new WheelerCompiler().compileModuleFiles(
+        sourcePlanModules, "wheeler.conformance.testing.runners.native_external_source_plan");
     String manifestText = """
         schema: 1
         package:
@@ -129,6 +146,32 @@ class NativeArchiveExampleTest {
     assertProvenanceRejected(
         sourceProjection,
         sourceInput(rootIdentity, lock, manifest.name(), encoded, /* ordinal= */ 1));
+
+    byte[] externalSource = "module demo.external;\nclassical class External {}\n"
+        .getBytes(StandardCharsets.UTF_8);
+    byte[] externalArchive = new PackageArchive().encode(
+        manifest, Map.of("src/Main.w", externalSource));
+    String externalLock = lockedArchive(
+        rootIdentity, manifest.identity(), new PackageArchive().identity(externalArchive));
+    byte[] localSource = "module demo.local;\nclassical class Local {}\n"
+        .getBytes(StandardCharsets.UTF_8);
+    byte[] localPlan = sourcePlan(Map.of("src/Root.w", localSource));
+    VirtualMachine planMachine = VirtualMachine.withBinaryInput(
+        sourcePlanComposer,
+        externalPlanInput(
+            rootIdentity,
+            externalLock,
+            manifest.name(),
+            externalArchive,
+            /* ordinal= */ 0,
+            localPlan),
+        /* outputCapacity= */ 32768);
+    planMachine.run();
+    assertEquals(
+        ByteBuffer.wrap(sourcePlan(Map.of(
+            "dependencies/demo.archive/src/Main.w", externalSource,
+            "src/Root.w", localSource))),
+        ByteBuffer.wrap(planMachine.hostOutput()));
 
     byte[] changedArchive = encoded.clone();
     changedArchive[changedArchive.length - 1] ^= 1;
@@ -255,8 +298,40 @@ class NativeArchiveExampleTest {
     return result;
   }
 
+  private static byte[] externalPlanInput(
+      String rootIdentity,
+      String lock,
+      String packageName,
+      byte[] archive,
+      int ordinal,
+      byte[] localPlan) {
+    byte[] source = sourceInput(rootIdentity, lock, packageName, archive, ordinal);
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    output.writeBytes(source);
+    writeLittle32(output, localPlan.length);
+    output.writeBytes(localPlan);
+    return output.toByteArray();
+  }
+
+  private static byte[] sourcePlan(Map<String, byte[]> sources) {
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    writeBig32(output, sources.size());
+    sources.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+      byte[] path = entry.getKey().getBytes(StandardCharsets.UTF_8);
+      writeBig32(output, path.length);
+      output.writeBytes(path);
+      writeBig32(output, entry.getValue().length);
+      output.writeBytes(entry.getValue());
+    });
+    return output.toByteArray();
+  }
+
   private static void writeLittle32(ByteArrayOutputStream output, int value) {
     output.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(value).array());
+  }
+
+  private static void writeBig32(ByteArrayOutputStream output, int value) {
+    output.writeBytes(ByteBuffer.allocate(4).putInt(value).array());
   }
 
   private static void assertRejected(Program inspector, byte[] archive) {

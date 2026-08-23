@@ -9,7 +9,7 @@
 | Area | Self-hosting, package archives, external source provenance |
 | Depends on | WIP-0294 |
 | Supersedes | Locked archive validation without entry projection |
-| Superseded by | Native external test-source plan composition |
+| Superseded by | WIP-0296 native external source-plan composition |
 
 ## Summary
 
@@ -80,3 +80,4 @@ Rejected. Package qualification and root-manifest source selection must be defin
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0294](WIP-0294-native-locked-archive-provenance.md)
+- [WIP-0296](WIP-0296-native-external-source-plan.md)
