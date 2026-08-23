@@ -31,8 +31,8 @@ final class NativePackageTestRunner {
   private static final int MAX_DEPENDENCY_CONSTANTS = 256;
   private static final int MAX_DEPENDENCY_FUNCTIONS = 23;
   private static final int MAX_SOURCES = 8;
-  private static final int MAX_PLAN_BYTES = 32_768;
-  private static final int MAX_SOURCE_BYTES = MAX_PLAN_BYTES;
+  private static final int MAX_PLAN_BYTES = 40_960;
+  private static final int MAX_SOURCE_BYTES = 32_768;
   private static final int COMPACT_OUTPUT_BYTES = 39;
   private static final int MAX_CASE_RESULT_BYTES = 5_345;
   private static final String RUNNER_IDENTITY = "0".repeat(63) + "1";

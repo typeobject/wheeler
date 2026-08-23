@@ -9,7 +9,8 @@ import wheeler.runtime.testing.runners.test_package_lock;
 classical class NativeExternalSourcePlan {
   private const long MAX_ARCHIVE_BYTES = 32768;
   private const long MAX_LOCK_BYTES = 4096;
-  private const long MAX_PLAN_BYTES = 32768;
+  private const long MAX_COPY_BYTES = 40960;
+  private const long MAX_PLAN_BYTES = 40960;
 
   private long copyRange(
     borrow byteview input,
@@ -18,7 +19,7 @@ classical class NativeExternalSourcePlan {
     borrow mut bytes output
   ) {
     long offset = 0;
-    while (offset < length) limit MAX_ARCHIVE_BYTES {
+    while (offset < length) limit MAX_COPY_BYTES {
       setByte(output, offset, input[start + offset]);
       offset += 1;
     }

@@ -8,7 +8,7 @@ import wheeler.runtime.testing.runners.test_source_plan;
 
 classical class TestSourceCompilation {
   private const long MAX_COMPILED_SOURCES = 8;
-  private const long MAX_LOWERED_PLAN_BYTES = 33048;
+  private const long MAX_LOWERED_PLAN_BYTES = 41240;
   private const long MAX_TEST_SOURCE_BYTES = 32768;
   private const long TEST_ARTIFACT_BYTES = 32768;
 
@@ -122,7 +122,7 @@ classical class TestSourceCompilation {
     assert(loweredSourceLength < MAX_TEST_SOURCE_BYTES + 1);
     long loweredPlanLength = length + loweredSourceLength - sourceLength;
     assert(loweredPlanLength < MAX_LOWERED_PLAN_BYTES + 1);
-    region lowering = new region(/* bytes= */ 37144, /* allocations= */ 2);
+    region lowering = new region(/* bytes= */ 74008, /* allocations= */ 2);
     bytes entryBytes = allocateBytes(lowering, loweredSourceLength);
     if (caseKind == 1) {
       copyParameterlessEntrySource(
@@ -190,7 +190,7 @@ classical class TestSourceCompilation {
     assert(bufferLength(artifact) == TEST_ARTIFACT_BYTES);
     long sourceCount = validatedSourceCount(input, start, length);
     assert(rootOrdinal < sourceCount);
-    region sources = new region(/* bytes= */ 32768, /* allocations= */ 8);
+    region sources = new region(/* bytes= */ 40960, /* allocations= */ 8);
     long artifactLength = 0;
 
     if (sourceCount == 1) {

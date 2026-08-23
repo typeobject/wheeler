@@ -31,7 +31,8 @@ classical class TestRunner {
   private const long CASE_RESULT_BYTES = MAX_TEST_CASE_RESULT_BYTES;
   private const long MAX_CASES = MAX_TEST_CASES;
   private const long MAX_COPY_BYTES = MAX_TEST_REPORT_ROWS_BYTES;
-  private const long MAX_PAYLOAD_BYTES = 32768;
+  private const long MAX_ARTIFACT_BYTES = 32768;
+  private const long MAX_SOURCE_PLAN_BYTES = 40960;
   private const long PUBLISHED_REPORT_BYTES = MAX_TEST_REPORT_PUBLICATION_BYTES;
   private const long REPORT_ROWS_BYTES = MAX_TEST_REPORT_ROWS_BYTES;
   private const long SUMMARY_ROWS_BYTES = MAX_TEST_SUMMARY_ROWS_BYTES;
@@ -68,7 +69,7 @@ classical class TestRunner {
     assert(cursor + nameLength + 3 < bufferLength(input));
     cursor += nameLength;
     long artifactLength = readUnsigned(input, cursor, /* width= */ 4);
-    assert(artifactLength < MAX_PAYLOAD_BYTES + 1);
+    assert(artifactLength < MAX_ARTIFACT_BYTES + 1);
     cursor += 4;
     assert(cursor + artifactLength < bufferLength(input) + 1);
     return cursor + artifactLength;
@@ -133,7 +134,7 @@ classical class TestRunner {
     cursor = externalArchives.end;
     long sourcePlanLength = readUnsigned(input, cursor, /* width= */ 4);
     assert(0 < sourcePlanLength);
-    assert(sourcePlanLength < MAX_PAYLOAD_BYTES + 1);
+    assert(sourcePlanLength < MAX_SOURCE_PLAN_BYTES + 1);
     cursor += 4;
     assert(cursor + sourcePlanLength < bufferLength(input));
     long sourcePlanStart = cursor;
@@ -490,7 +491,7 @@ classical class TestRunner {
       setByte(shardInput, /* index= */ 67, input[3]);
 
       if (assignedToShard(shardInput)) {
-        bytes artifactStorage = allocateBytes(staging, MAX_PAYLOAD_BYTES);
+        bytes artifactStorage = allocateBytes(staging, MAX_ARTIFACT_BYTES);
         long executionArtifactLength = artifactLength;
         if (artifactLength == 0) {
           if (0 < discovery.count) {

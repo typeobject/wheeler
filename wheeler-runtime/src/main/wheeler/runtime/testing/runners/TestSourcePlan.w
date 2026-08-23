@@ -6,7 +6,7 @@ import wheeler.runtime.testing.runners.test_source_modules;
 
 classical class TestSourcePlan {
   private const long MAX_PATH_BYTES = 255;
-  private const long MAX_PLAN_BYTES = 32768;
+  private const long MAX_PLAN_BYTES = 40960;
   private const long MAX_SOURCES = 64;
 
   private long readUnsigned32BigEndian(borrow byteview input, long offset) {

@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0351 |
 | Supersedes | Product-only conditional range evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0353 native 40 KiB source-plan bound |
 
 ## Summary
 
@@ -90,3 +90,4 @@ Rejected. The complete manifest remains below the 28,672-byte bound established 
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0351](WIP-0351-native-compiler-conditional-value-suite.md)
+- [WIP-0353](WIP-0353-native-40k-source-plan-bound.md)

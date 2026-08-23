@@ -7,7 +7,7 @@ import wheeler.packages.archive_provenance;
 import wheeler.runtime.testing.runners.test_source_plan;
 
 classical class TestExternalSourcePlan {
-  private const long MAX_PLAN_BYTES = 32768;
+  private const long MAX_PLAN_BYTES = 40960;
   private const long MAX_SOURCES = 64;
   private const long PREFIX_BYTES = 13;
 

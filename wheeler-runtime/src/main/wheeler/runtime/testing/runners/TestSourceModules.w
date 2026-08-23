@@ -4,7 +4,7 @@ module wheeler.runtime.testing.runners.test_source_modules;
 
 classical class TestSourceModules {
   private const long MAX_PATH_BYTES = 255;
-  private const long MAX_PLAN_BYTES = 32768;
+  private const long MAX_PLAN_BYTES = 40960;
   private const long MAX_SOURCES = 64;
 
   /// Identifies one validated module-name range in source storage.

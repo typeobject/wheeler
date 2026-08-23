@@ -9,7 +9,7 @@
 | Area | Self-hosting, package commands, dependency graphs |
 | Depends on | WIP-0308 |
 | Supersedes | Two-module native transitive archive evidence |
-| Superseded by | Broader native dependency graph profiles |
+| Superseded by | WIP-0353 native 40 KiB source-plan bound |
 
 ## Summary
 
@@ -80,3 +80,4 @@ Rejected. Package, manifest, archive, and lock-edge identities remain separate e
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0302](WIP-0302-native-transitive-archive-closure.md)
 - [WIP-0308](WIP-0308-native-external-source-plan-bound.md)
+- [WIP-0353](WIP-0353-native-40k-source-plan-bound.md)

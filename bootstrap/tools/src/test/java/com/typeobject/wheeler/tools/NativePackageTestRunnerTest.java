@@ -70,6 +70,24 @@ class NativePackageTestRunnerTest {
   }
 
   @Test
+  void enforcesNativeSourcePlanByteLimit() throws Exception {
+    Path admittedRoot = temporary.resolve("native-large-source-plan-tests");
+    PackageProject admitted = largeSourcePlanProject(admittedRoot, 3900);
+    assertEquals(40960, sourcePlanLength(admittedRoot));
+    var result = NativePackageTestRunner.run(
+        admittedRoot, admitted.manifest(), 0, 1, Set.of());
+    assertTrue(result.isPresent());
+    assertEquals(1, result.orElseThrow().selected());
+    assertEquals(1, result.orElseThrow().passed());
+
+    Path rejectedRoot = temporary.resolve("native-oversized-source-plan-tests");
+    PackageProject rejected = largeSourcePlanProject(rejectedRoot, 3901);
+    assertEquals(40961, sourcePlanLength(rejectedRoot));
+    assertTrue(NativePackageTestRunner.run(
+        rejectedRoot, rejected.manifest(), 0, 1, Set.of()).isEmpty());
+  }
+
+  @Test
   void reducesPackageTargetsIndependentOfArrivalOrder() throws Exception {
     var reducer = PackageProject.load(Path.of("wheeler-conformance"))
         .compileRunnable("nativetestpackagereportidentity");
@@ -797,6 +815,70 @@ class NativePackageTestRunnerTest {
     assertEquals(64, result.orElseThrow().packageIdentity().length());
     assertEquals(1, report.selected());
     assertEquals(1, report.passed());
+  }
+
+  private static PackageProject largeSourcePlanProject(Path root, int rootLength)
+      throws Exception {
+    Files.createDirectories(root.resolve("src"));
+    Files.writeString(root.resolve("wheeler.package.yaml"), """
+        schema: 1
+        package:
+          name: "demo.large.source.plan"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "tool"
+            name: "laws"
+            root: "src/Main.w"
+            module: "demo.large.source.plan.tests"
+            sources:
+              - "src/ImportA.w"
+              - "src/ImportB.w"
+              - "src/Main.w"
+            test: true
+        dependencies: []
+        capabilities: []
+        """);
+    String firstImport = """
+        module demo.large.source.plan.values_a;
+        classical class ValuesA {
+          public const long VALUE_A = 1;
+        }
+        """;
+    Files.writeString(
+        root.resolve("src/ImportA.w"),
+        firstImport + " ".repeat(18498 - firstImport.length()));
+    String secondImport = """
+        module demo.large.source.plan.values_b;
+        classical class ValuesB {
+          public const long VALUE_B = 2;
+        }
+        """;
+    Files.writeString(
+        root.resolve("src/ImportB.w"),
+        secondImport + " ".repeat(18498 - secondImport.length()));
+    String source = """
+        module demo.large.source.plan.tests;
+        import demo.large.source.plan.values_a;
+        import demo.large.source.plan.values_b;
+        classical class LargeSourcePlanTests {
+          test void passes() {
+            assert(true);
+          }
+        }
+        """;
+    Files.writeString(
+        root.resolve("src/Main.w"), source + " ".repeat(rootLength - source.length()));
+    return PackageProject.load(root);
+  }
+
+  private static long sourcePlanLength(Path root) throws Exception {
+    return 4 + 4 + "src/ImportA.w".length() + 4
+        + Files.size(root.resolve("src/ImportA.w"))
+        + 4 + "src/ImportB.w".length() + 4
+        + Files.size(root.resolve("src/ImportB.w"))
+        + 4 + "src/Main.w".length() + 4
+        + Files.size(root.resolve("src/Main.w"));
   }
 
   private static PackageProject largeManifestProject(
