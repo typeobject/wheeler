@@ -38,8 +38,8 @@ class NativePackageTestRunnerTest {
 
     assertTrue(result.isPresent());
     TestReport report = result.orElseThrow().report();
-    assertEquals(26, result.orElseThrow().selected());
-    assertEquals(26, result.orElseThrow().passed());
+    assertEquals(28, result.orElseThrow().selected());
+    assertEquals(28, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
     assertEquals(result.orElseThrow().report().identity(), report.identity());
     assertEquals(
@@ -78,6 +78,14 @@ class NativePackageTestRunnerTest {
         "nativecompilervoidcalloperandtests::"
             + "wheeler.compiler.tests.native_compiler_void_call_operand::"
             + "checksTrailingSevenArgumentSource")));
+    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
+        "nativecompilervoidcallsourcewidthtests::"
+            + "wheeler.compiler.tests.native_compiler_void_call_source_widths::"
+            + "checksSevenArgumentSourceLocalWidth")));
+    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
+        "nativecompilervoidcallsourcewidthtests::"
+            + "wheeler.compiler.tests.native_compiler_void_call_source_widths::"
+            + "checksSevenArgumentResolvedLocalWidth")));
     assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
         "nativecompilervoidcallwidthtests::wheeler.compiler.tests.native_compiler_void_call_widths::"
             + "checksSevenArgumentCodeWidth")));

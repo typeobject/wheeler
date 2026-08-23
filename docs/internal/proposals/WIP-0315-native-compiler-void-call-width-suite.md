@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0313, WIP-0314 |
 | Supersedes | Standalone void-call width evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0316 native compiler void-call source-width suite |
 
 ## Summary
 
@@ -74,3 +74,4 @@ Rejected. Independent lowering keeps each selected artifact and coverage identit
 - [WIP-0293](WIP-0293-native-compiler-call-syntax-suite.md)
 - [WIP-0313](WIP-0313-native-compiler-void-call-operand-suite.md)
 - [WIP-0314](WIP-0314-native-255-transition-coverage.md)
+- [WIP-0316](WIP-0316-native-compiler-void-call-source-width-suite.md)
