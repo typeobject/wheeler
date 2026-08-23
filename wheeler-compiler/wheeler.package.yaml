@@ -140,6 +140,14 @@ targets:
       - "src/test/wheeler/compiler/ir/NativeCompilerOpcodeKindTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilerresolvedlocalreturntests"
+    root: "src/test/wheeler/compiler/returns/NativeCompilerResolvedLocalReturnTests.w"
+    module: "wheeler.compiler.tests.native_compiler_resolved_local_returns"
+    sources:
+      - "src/main/wheeler/compiler/syntax/returns/ResolvedLocalReturns.w"
+      - "src/test/wheeler/compiler/returns/NativeCompilerResolvedLocalReturnTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerspinetests"
     root: "src/test/wheeler/compiler/NativeCompilerSpineTests.w"
     module: "wheeler.compiler.tests.native_compiler_spine"

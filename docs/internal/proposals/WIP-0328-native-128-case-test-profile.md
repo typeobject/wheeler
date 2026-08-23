@@ -9,7 +9,7 @@
 | Area | Native testing, reports, package execution |
 | Depends on | WIP-0327 |
 | Supersedes | The 64-case native test and package profile |
-| Superseded by | Larger profiles backed by complete boundary evidence |
+| Superseded by | WIP-0329 native compiler resolved local-return suite |
 
 ## Summary
 
@@ -94,3 +94,4 @@ Rejected. The runner accepts the complete selected set or none of it. Truncation
 - [WIP-0255](WIP-0255-native-counted-test-compilation.md)
 - [WIP-0278](WIP-0278-native-package-row-reduction.md)
 - [WIP-0327](WIP-0327-native-single-imported-helper-ownership.md)
+- [WIP-0329](WIP-0329-native-compiler-resolved-local-return-suite.md)
