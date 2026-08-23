@@ -55,6 +55,28 @@ class NativePackageTestRunnerTest {
   }
 
   @Test
+  void enforcesNativeManifestByteLimit() throws Exception {
+    Path admittedRoot = temporary.resolve("native-large-manifest-tests");
+    PackageProject admitted = largeManifestProject(admittedRoot, 2);
+    long admittedLength = Files.size(admittedRoot.resolve("wheeler.package.yaml"));
+    assertTrue(4096 < admittedLength);
+    assertTrue(admittedLength < 8193);
+    var result = NativePackageTestRunner.run(
+        admittedRoot, admitted.manifest(), 0, 1, Set.of());
+    assertTrue(result.isPresent());
+    assertEquals(1, result.orElseThrow().selected());
+    assertEquals(1, result.orElseThrow().passed());
+
+    Path rejectedRoot = temporary.resolve("native-oversized-manifest-tests");
+    PackageProject rejected = largeManifestProject(rejectedRoot, 5);
+    assertTrue(8192 < Files.size(rejectedRoot.resolve("wheeler.package.yaml")));
+    assertThrows(
+        VmTrap.class,
+        () -> NativePackageTestRunner.run(
+            rejectedRoot, rejected.manifest(), 0, 1, Set.of()));
+  }
+
+  @Test
   void reducesPackageTargetsIndependentOfArrivalOrder() throws Exception {
     var reducer = PackageProject.load(Path.of("wheeler-conformance"))
         .compileRunnable("nativetestpackagereportidentity");
@@ -708,5 +730,44 @@ class NativePackageTestRunnerTest {
     assertEquals(64, result.orElseThrow().packageIdentity().length());
     assertEquals(1, report.selected());
     assertEquals(1, report.passed());
+  }
+
+  private static PackageProject largeManifestProject(Path root, int capabilityCount)
+      throws Exception {
+    Files.createDirectories(root.resolve("src"));
+    StringBuilder capabilities = new StringBuilder();
+    for (int index = 0; index < capabilityCount; index++) {
+      capabilities.append("  - name: \"build.%c\"\n    path: \"%c/%s\"\n".formatted(
+          'a' + index,
+          'a' + index,
+          "x".repeat(1900)));
+    }
+    String manifest = """
+        schema: 1
+        package:
+          name: "demo.large.manifest"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "tool"
+            name: "laws"
+            root: "src/Main.w"
+            module: "demo.large.manifest.tests"
+            sources:
+              - "src/Main.w"
+            test: true
+        dependencies: []
+        capabilities:
+        """ + capabilities;
+    Files.writeString(root.resolve("wheeler.package.yaml"), manifest);
+    Files.writeString(root.resolve("src/Main.w"), """
+        module demo.large.manifest.tests;
+        classical class LargeManifestTests {
+          test void passes() {
+            assert(true);
+          }
+        }
+        """);
+    return PackageProject.load(root);
   }
 }
