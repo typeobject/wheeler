@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Timeout;
 /** Proves the complete checked-in compiler package suite through the native runner. */
 final class NativeCompilerPackageTest {
   @Test
-  @Timeout(value = 6, unit = TimeUnit.MINUTES)
+  @Timeout(value = 7, unit = TimeUnit.MINUTES)
   void testsThePhysicalCompilerSpineNatively() throws Exception {
     Path compiler = Path.of("wheeler-compiler");
     PackageProject project = PackageProject.load(compiler);
@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(77, result.selected());
-    assertEquals(77, result.passed());
+    assertEquals(85, result.selected());
+    assertEquals(85, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -68,6 +68,28 @@ final class NativeCompilerPackageTest {
           report,
           "nativecompilerresolvedlocalinequalitytests",
           "native_compiler_resolved_local_inequality",
+          name);
+    }
+    for (String name : List.of(
+        "checksResolvedLongAssertionMembership",
+        "checksResolvedLongCopyMembership",
+        "checksResolvedBooleanCopyMembership",
+        "checksResolvedBooleanNegationMembership")) {
+      assertCase(
+          report,
+          "nativecompilerresolvedlocalcopytests",
+          "native_compiler_resolved_local_copies",
+          name);
+    }
+    for (String name : List.of(
+        "checksResolvedLongBinaryMembership",
+        "checksResolvedLongBinarySource",
+        "checksResolvedLongPairMembership",
+        "checksResolvedLongPairSource")) {
+      assertCase(
+          report,
+          "nativecompilerresolvedlongoperationtests",
+          "native_compiler_resolved_long_operations",
           name);
     }
     for (String name : List.of(

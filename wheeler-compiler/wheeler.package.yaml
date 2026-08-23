@@ -149,6 +149,15 @@ targets:
       - "src/test/wheeler/compiler/assignments/NativeCompilerResolvedLocalAssignmentTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilerresolvedlocalcopytests"
+    root: "src/test/wheeler/compiler/locals/NativeCompilerResolvedLocalCopyTests.w"
+    module: "wheeler.compiler.tests.native_compiler_resolved_local_copies"
+    sources:
+      - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
+      - "src/main/wheeler/compiler/syntax/locals/ResolvedLocalCopyKinds.w"
+      - "src/test/wheeler/compiler/locals/NativeCompilerResolvedLocalCopyTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerresolvedlocalequalitytests"
     root: "src/test/wheeler/compiler/locals/NativeCompilerResolvedLocalEqualityTests.w"
     module: "wheeler.compiler.tests.native_compiler_resolved_local_equality"
@@ -173,6 +182,15 @@ targets:
     sources:
       - "src/main/wheeler/compiler/syntax/returns/ResolvedLocalReturns.w"
       - "src/test/wheeler/compiler/returns/NativeCompilerResolvedLocalReturnTests.w"
+    test: true
+  - kind: "tool"
+    name: "nativecompilerresolvedlongoperationtests"
+    root: "src/test/wheeler/compiler/locals/NativeCompilerResolvedLongOperationTests.w"
+    module: "wheeler.compiler.tests.native_compiler_resolved_long_operations"
+    sources:
+      - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
+      - "src/main/wheeler/compiler/syntax/locals/ResolvedLongOperations.w"
+      - "src/test/wheeler/compiler/locals/NativeCompilerResolvedLongOperationTests.w"
     test: true
   - kind: "tool"
     name: "nativecompilerspinetests"

@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0333 |
 | Supersedes | Product-only resolved local-assignment evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0335 native compiler resolved local-operation suites |
 
 ## Summary
 
@@ -77,3 +77,4 @@ Rejected. The complete package run remains bounded. Native artifacts retain thei
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0333](WIP-0333-native-compiler-resolved-local-inequality-suite.md)
+- [WIP-0335](WIP-0335-native-compiler-resolved-local-operation-suites.md)

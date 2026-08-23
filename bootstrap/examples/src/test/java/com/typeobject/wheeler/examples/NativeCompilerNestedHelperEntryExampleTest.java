@@ -395,6 +395,60 @@ final class NativeCompilerNestedHelperEntryExampleTest {
   }
 
   @Test
+  void compilesPhysicalResolvedLocalCopiesIntoEntryByteForByte() throws Exception {
+    String opcodes = CompilerSources.read("compiler/ir/ResolvedStatements.w");
+    String copies = CompilerSources.read("compiler/syntax/locals/ResolvedLocalCopyKinds.w");
+    String root = """
+        module example.resolved_local_copy_entry;
+        import wheeler.compiler.resolved_local_copy_kinds;
+        classical class ResolvedLocalCopyEntry {
+          entry void main() {
+            boolean assertion = resolvedLocalLongAssertion(2303);
+            boolean copy = resolvedLocalLongCopy(2559);
+            boolean booleanCopy = resolvedLocalBooleanCopy(4351);
+            boolean negation = resolvedLocalBooleanNot(4607);
+            assert(assertion);
+            assert(copy);
+            assert(booleanCopy);
+            assert(negation);
+          }
+        }
+        """;
+    assertPhysicalEntry(
+        List.of(opcodes, copies),
+        Map.of("Opcodes.w", opcodes, "Copies.w", copies, "Entry.w", root),
+        root,
+        "example.resolved_local_copy_entry");
+  }
+
+  @Test
+  void compilesPhysicalResolvedLongOperationsIntoEntryByteForByte() throws Exception {
+    String opcodes = CompilerSources.read("compiler/ir/ResolvedStatements.w");
+    String operations = CompilerSources.read("compiler/syntax/locals/ResolvedLongOperations.w");
+    String root = """
+        module example.resolved_long_operation_entry;
+        import wheeler.compiler.resolved_long_operations;
+        classical class ResolvedLongOperationEntry {
+          entry void main() {
+            boolean binary = resolvedLocalLongBinary(15103);
+            long binarySource = resolvedLocalLongBinarySource(14848);
+            boolean pair = resolvedLocalLongPair(15359);
+            long pairSource = resolvedLocalLongPairSource(15104);
+            assert(binary);
+            assert(binarySource == 0);
+            assert(pair);
+            assert(pairSource == 0);
+          }
+        }
+        """;
+    assertPhysicalEntry(
+        List.of(opcodes, operations),
+        Map.of("Opcodes.w", opcodes, "Operations.w", operations, "Entry.w", root),
+        root,
+        "example.resolved_long_operation_entry");
+  }
+
+  @Test
   void compilesPhysicalResolvedLocalReturnsIntoEntryByteForByte() throws Exception {
     String returns = CompilerSources.read("compiler/syntax/returns/ResolvedLocalReturns.w");
     String root = """
@@ -549,6 +603,19 @@ final class NativeCompilerNestedHelperEntryExampleTest {
         long result = wideReturnSeventhSource(921360);
         assert(result == 16);
         """);
+  }
+
+  private static void assertPhysicalEntry(
+      List<String> dependencies,
+      Map<String, String> sources,
+      String root,
+      String rootModule) throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] artifact = NativeModuleCompilerHarness.compile(compiler, dependencies, root);
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileModuleFiles(sources, rootModule));
+    assertArrayEquals(expected, artifact);
+    new VirtualMachine(new BytecodeReader().read(artifact)).run();
   }
 
   private static void compileWideReturnSource(Program compiler, String statements)
