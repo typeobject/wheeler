@@ -9,7 +9,7 @@
 | Area | Self-hosting, package tests, transport limits |
 | Depends on | WIP-0303, WIP-0317 |
 | Supersedes | WIP-0303 8,192-byte native test manifest transport |
-| Superseded by | Broader native package test manifests |
+| Superseded by | WIP-0331 native 16 KiB test-manifest bound |
 
 ## Summary
 
@@ -73,3 +73,4 @@ Rejected. Capacity remains local to the exhausted transport.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0303](WIP-0303-native-test-manifest-bound.md)
 - [WIP-0317](WIP-0317-native-compiler-void-call-source-form-suite.md)
+- [WIP-0331](WIP-0331-native-16k-test-manifest-bound.md)

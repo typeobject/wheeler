@@ -51,9 +51,9 @@ class NativePackageTestRunnerTest {
   @Test
   void enforcesNativeManifestByteLimit() throws Exception {
     Path admittedRoot = temporary.resolve("native-large-manifest-tests");
-    PackageProject admitted = largeManifestProject(admittedRoot, 6, 2299);
+    PackageProject admitted = largeManifestProject(admittedRoot, 9, 590);
     long admittedLength = Files.size(admittedRoot.resolve("wheeler.package.yaml"));
-    assertEquals(12288, admittedLength);
+    assertEquals(16384, admittedLength);
     var result = NativePackageTestRunner.run(
         admittedRoot, admitted.manifest(), 0, 1, Set.of());
     assertTrue(result.isPresent());
@@ -61,8 +61,8 @@ class NativePackageTestRunnerTest {
     assertEquals(1, result.orElseThrow().passed());
 
     Path rejectedRoot = temporary.resolve("native-oversized-manifest-tests");
-    PackageProject rejected = largeManifestProject(rejectedRoot, 7, 1900);
-    assertTrue(12288 < Files.size(rejectedRoot.resolve("wheeler.package.yaml")));
+    PackageProject rejected = largeManifestProject(rejectedRoot, 9, 591);
+    assertEquals(16385, Files.size(rejectedRoot.resolve("wheeler.package.yaml")));
     assertThrows(
         VmTrap.class,
         () -> NativePackageTestRunner.run(

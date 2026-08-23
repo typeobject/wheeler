@@ -9,7 +9,7 @@
 | Area | Self-hosting, package tests, compiler limits |
 | Depends on | WIP-0017, WIP-0329 |
 | Supersedes | Native 64-constant dependency admission |
-| Superseded by | Wider profiles backed by terminal boundary evidence |
+| Superseded by | WIP-0331 native 16 KiB test-manifest bound |
 
 ## Summary
 
@@ -67,3 +67,4 @@ Rejected. The terminal imported constant must pass native parsing, constant eval
 - [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0329](WIP-0329-native-compiler-resolved-local-return-suite.md)
+- [WIP-0331](WIP-0331-native-16k-test-manifest-bound.md)
