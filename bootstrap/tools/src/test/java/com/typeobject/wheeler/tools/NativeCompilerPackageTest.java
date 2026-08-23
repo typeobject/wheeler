@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(58, result.selected());
-    assertEquals(58, result.passed());
+    assertEquals(59, result.selected());
+    assertEquals(59, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -86,6 +86,11 @@ final class NativeCompilerPackageTest {
         "nativecompilerhelpersignaturetests",
         "native_compiler_helper_signatures",
         "checksBooleanParameterHelper");
+    assertCase(
+        report,
+        "nativecompilerinstructionformtests",
+        "native_compiler_instruction_forms",
+        "checksRecordProjectionOperandCount");
     assertCase(report, "nativecompilercallaritytests", "native_compiler_call_arity", "checksSevenArgumentAssignmentCall");
     assertCase(report, "nativecompilercallkindtests", "native_compiler_call_kinds", "checksSevenArgumentSourceMembership");
     assertCase(report, "nativecompilercallkindtests", "native_compiler_call_kinds", "checksSevenArgumentResolvedMembership");

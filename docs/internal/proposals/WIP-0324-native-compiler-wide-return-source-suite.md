@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0323 |
 | Supersedes | Stub-only wide-return source evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0325 native compiler instruction-form suite |
 
 ## Summary
 
@@ -83,3 +83,4 @@ Rejected. Entry typing owns one signed wide-call family. Keeping four through se
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0323](WIP-0323-native-compiler-helper-signature-suite.md)
+- [WIP-0325](WIP-0325-native-compiler-instruction-form-suite.md)

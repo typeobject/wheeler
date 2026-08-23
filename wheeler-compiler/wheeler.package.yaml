@@ -113,6 +113,16 @@ targets:
       - "src/test/wheeler/compiler/helpers/NativeCompilerHelperSignatureTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilerinstructionformtests"
+    root: "src/test/wheeler/compiler/ir/NativeCompilerInstructionFormTests.w"
+    module: "wheeler.compiler.tests.native_compiler_instruction_forms"
+    sources:
+      - "src/main/wheeler/compiler/ir/InstructionForms.w"
+      - "src/main/wheeler/compiler/ir/Opcodes.w"
+      - "src/main/wheeler/compiler/ir/StorageOpcodes.w"
+      - "src/test/wheeler/compiler/ir/NativeCompilerInstructionFormTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerspinetests"
     root: "src/test/wheeler/compiler/NativeCompilerSpineTests.w"
     module: "wheeler.compiler.tests.native_compiler_spine"

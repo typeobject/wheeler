@@ -307,6 +307,37 @@ final class NativeCompilerNestedHelperEntryExampleTest {
   }
 
   @Test
+  void compilesPhysicalInstructionFormsIntoEntryByteForByte() throws Exception {
+    String opcodes = CompilerSources.read("compiler/ir/Opcodes.w");
+    String storageOpcodes = CompilerSources.read("compiler/ir/StorageOpcodes.w");
+    String forms = CompilerSources.read("compiler/ir/InstructionForms.w");
+    String root = """
+        module example.instruction_form_entry;
+        import wheeler.compiler.instruction_forms;
+        classical class InstructionFormEntry {
+          entry void main() {
+            long operands = expectedOperandCount(1362);
+            long unknown = expectedOperandCount(99999);
+            assert(operands == 3);
+            assert(unknown == -1);
+          }
+        }
+        """;
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] artifact = NativeModuleCompilerHarness.compile(
+        compiler, List.of(opcodes, storageOpcodes, forms), root);
+    byte[] expected = new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+        Map.of(
+            "Opcodes.w", opcodes,
+            "StorageOpcodes.w", storageOpcodes,
+            "Forms.w", forms,
+            "Entry.w", root),
+        "example.instruction_form_entry"));
+    assertArrayEquals(expected, artifact);
+    new VirtualMachine(new BytecodeReader().read(artifact)).run();
+  }
+
+  @Test
   void compilesPhysicalWideReturnSourcesIntoEntryByteForByte() throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
     compileWideReturnSource(compiler, """
