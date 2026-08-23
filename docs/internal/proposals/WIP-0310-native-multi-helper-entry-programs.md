@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler frontend, code generation |
 | Depends on | WIP-0305 |
 | Supersedes | One-helper native entry profile |
-| Superseded by | Complete native compiler package graph |
+| Superseded by | WIP-0311 native compiler call-width suite |
 
 ## Summary
 
@@ -83,3 +83,4 @@ Rejected. The complete helper-table parser already owns bounded table resolution
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0285](WIP-0285-native-compiler-callable-suite.md)
 - [WIP-0305](WIP-0305-native-compiler-call-arity-suite.md)
+- [WIP-0311](WIP-0311-native-compiler-call-width-suite.md)

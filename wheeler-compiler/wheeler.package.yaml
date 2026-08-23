@@ -62,6 +62,18 @@ targets:
       - "src/test/wheeler/compiler/NativeCompilerCallSyntaxTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilercallwidthtests"
+    root: "src/test/wheeler/compiler/NativeCompilerCallWidthTests.w"
+    module: "wheeler.compiler.tests.native_compiler_call_widths"
+    sources:
+      - "src/main/wheeler/compiler/syntax/calls/assignment/AssignmentCallArities.w"
+      - "src/main/wheeler/compiler/syntax/calls/assignment/AssignmentCallCodeWidths.w"
+      - "src/main/wheeler/compiler/syntax/calls/assignment/AssignmentCallIdentities.w"
+      - "src/main/wheeler/compiler/syntax/calls/assignment/AssignmentCallInstructionWidths.w"
+      - "src/main/wheeler/compiler/syntax/calls/assignment/AssignmentCallLocalWidths.w"
+      - "src/test/wheeler/compiler/NativeCompilerCallWidthTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerspinetests"
     root: "src/test/wheeler/compiler/NativeCompilerSpineTests.w"
     module: "wheeler.compiler.tests.native_compiler_spine"
