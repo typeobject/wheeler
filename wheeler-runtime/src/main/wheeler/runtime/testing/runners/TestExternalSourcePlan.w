@@ -169,8 +169,8 @@ classical class TestExternalSourcePlan {
     );
   }
 
-  /// Reports whether a previously validated plan contains package-qualified external source.
-  public boolean validatedPlanHasExternalSource(
+  /// Counts package-qualified sources in one previously validated plan.
+  public long validatedExternalSourceCount(
     borrow byteview input,
     long start,
     long length
@@ -178,11 +178,12 @@ classical class TestExternalSourcePlan {
     long sourceCount = readUnsigned32BigEndian(input, start);
     long cursor = start + 4;
     long source = 0;
+    long external = 0;
     while (source < sourceCount) limit MAX_SOURCES {
       long pathLength = readUnsigned32BigEndian(input, cursor);
       long pathStart = cursor + 4;
       if (dependencyPath(input, pathStart, pathLength)) {
-        return true;
+        external += 1;
       }
 
       cursor = pathStart + pathLength;
@@ -192,7 +193,16 @@ classical class TestExternalSourcePlan {
     }
 
     assert(cursor == start + length);
-    return false;
+    return external;
+  }
+
+  /// Reports whether a previously validated plan contains package-qualified external source.
+  public boolean validatedPlanHasExternalSource(
+    borrow byteview input,
+    long start,
+    long length
+  ) {
+    return 0 < validatedExternalSourceCount(input, start, length);
   }
 
   /// Writes one canonical source plan containing the local plan and one locked external entry.
@@ -319,15 +329,42 @@ classical class TestExternalSourcePlan {
       return false;
     }
 
+    long packagePrefixLength = PREFIX_BYTES + bufferLength(packageName) + 1;
+    if (255 < packagePrefixLength) {
+      return false;
+    }
+
+    bytes packagePrefix = allocateBytes(arena, packagePrefixLength);
+    writeAscii(packagePrefix, /* offset= */ 0, "dependencies/");
+    long packagePrefixCursor = copyRange(
+      packageName,
+      /* inputStart= */ 0,
+      bufferLength(packageName),
+      packagePrefix,
+      PREFIX_BYTES
+    );
+    setByte(packagePrefix, packagePrefixCursor, /* value= */ 47);
+    packagePrefixCursor += 1;
+    assert(packagePrefixCursor == packagePrefixLength);
     long sourceCount = readUnsigned32BigEndian(plan, /* offset= */ 0);
     long cursor = 4;
     long source = 0;
-    long externalCount = 0;
+    long packageSourceCount = 0;
     while (source < sourceCount) limit MAX_SOURCES {
       long pathLength = readUnsigned32BigEndian(plan, cursor);
       long pathStart = cursor + 4;
-      if (dependencyPath(plan, pathStart, pathLength)) {
-        externalCount += 1;
+      if (packagePrefixLength < pathLength) {
+        if (
+          sameRange(
+            plan,
+            pathStart,
+            packagePrefix,
+            /* rightStart= */ 0,
+            packagePrefixLength
+          )
+        ) {
+          packageSourceCount += 1;
+        }
       }
 
       cursor = pathStart + pathLength;
@@ -337,10 +374,12 @@ classical class TestExternalSourcePlan {
     }
 
     if (cursor != bufferLength(plan)) {
+      drop(packagePrefix);
       return false;
     }
 
-    if (externalCount != entryCount) {
+    if (packageSourceCount != entryCount) {
+      drop(packagePrefix);
       return false;
     }
 
@@ -358,6 +397,7 @@ classical class TestExternalSourcePlan {
       long qualifiedLength = PREFIX_BYTES + bufferLength(packageName) + 1
         + selected.pathLength;
       if (255 < qualifiedLength) {
+        drop(packagePrefix);
         return false;
       }
 
@@ -412,6 +452,7 @@ classical class TestExternalSourcePlan {
       ordinal += 1;
     }
 
+    drop(packagePrefix);
     return foundCount == entryCount;
   }
 }

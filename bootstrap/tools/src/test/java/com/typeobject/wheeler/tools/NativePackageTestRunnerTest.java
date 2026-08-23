@@ -432,8 +432,8 @@ class NativePackageTestRunnerTest {
         archive);
     PackageProject packageProject = PackageProject.load(project);
     var selected = LockedPackageSet.load(project, packageProject.manifest())
-        .fixedNativeArchiveSources(Set.of("demo.dep.constants"));
-    assertTrue(selected.isPresent());
+        .fixedNativeArchives(Set.of("demo.dep.constants"));
+    assertEquals(1, selected.size());
 
     var result = NativePackageTestRunner.run(
         project, packageProject.manifest(), 0, 1, Set.of());
@@ -542,11 +542,29 @@ class NativePackageTestRunnerTest {
     Files.write(vendor.resolve("demo.dep-1.0.0-" + archiveIdentity + ".wpk"), archive);
     PackageProject packageProject = PackageProject.load(project);
     var selected = LockedPackageSet.load(project, packageProject.manifest())
-        .fixedNativeArchiveSources(Set.of("demo.dep.a", "demo.dep.b"));
-    assertTrue(selected.isPresent());
+        .fixedNativeArchives(Set.of("demo.dep.a", "demo.dep.b"));
+    assertEquals(1, selected.size());
 
     var result = NativePackageTestRunner.run(
         project, packageProject.manifest(), 0, 1, Set.of());
+
+    assertTrue(result.isPresent());
+    assertEquals(1, result.orElseThrow().selected());
+    assertEquals(1, result.orElseThrow().passed());
+    assertEquals(0, result.orElseThrow().failed());
+    assertEquals(2, result.orElseThrow().report().cases().getFirst().assertions());
+  }
+
+  @Test
+  void invokesTwoLockedExternalPackagesNatively() throws Exception {
+    var fixture = NativeTwoPackageExternalFixture.create(
+        temporary.resolve("native-two-external-package-tests"));
+    var selected = LockedPackageSet.load(fixture.root(), fixture.project().manifest())
+        .fixedNativeArchives(fixture.modules());
+    assertEquals(2, selected.size());
+
+    var result = NativePackageTestRunner.run(
+        fixture.root(), fixture.project().manifest(), 0, 1, Set.of());
 
     assertTrue(result.isPresent());
     assertEquals(1, result.orElseThrow().selected());

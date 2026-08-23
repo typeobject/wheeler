@@ -11,6 +11,7 @@ import wheeler.runtime.io.lifecycle;
 import wheeler.runtime.io.portable;
 import wheeler.runtime.io.receipts;
 import wheeler.runtime.testing.runners.test_external_source_plan;
+import wheeler.runtime.testing.runners.test_external_source_transport;
 import wheeler.runtime.testing.runners.test_runner;
 import wheeler.runtime.testing.runners.test_source_compilation;
 import wheeler.runtime.testing.runners.test_source_tests;

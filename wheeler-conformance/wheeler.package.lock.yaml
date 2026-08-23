@@ -29,7 +29,7 @@ packages:
     version: "0.1.0"
     repository: "ee9855ff0d7866533c49b81a7eeb7d1a2cac9d7efbd300c583d29e699516efb0"
     snapshot: "069dffe3bf801c0b482c47e2bf2bc66bddacf7efb8aa35fb7a564d47f3e9bf54"
-    archive: "fba03ad15dc117bc5d0baec0672fd8c448ae4b1a2e9c0114935fbf4e5cd0b586"
+    archive: "7575d3d0b4658d8429d2905f9a40ad4fb1bd8dc9f2938839d3b5acec1a194c52"
     manifest: "42011c887d887364ca16bc2255bc28374882559192e9ab6dbf5f674ce0ae1f49"
     dependencies:
       - "wheeler.compiler"

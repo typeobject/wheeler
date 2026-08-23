@@ -9,7 +9,7 @@
 | Area | Self-hosting, package commands, external module graphs |
 | Depends on | WIP-0298 |
 | Supersedes | Single-entry native package import transport |
-| Superseded by | Multi-package native import transport |
+| Superseded by | WIP-0300 native two-package import |
 
 ## Summary
 
@@ -95,3 +95,4 @@ Rejected. One archive-set selector owns both bounded cases.
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0298](WIP-0298-native-package-external-import.md)
+- [WIP-0300](WIP-0300-native-two-package-import.md)

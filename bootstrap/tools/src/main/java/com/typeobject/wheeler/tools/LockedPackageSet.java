@@ -203,23 +203,23 @@ final class LockedPackageSet {
     return moduleSourcesFor(rootDependencies);
   }
 
-  java.util.Optional<NativeArchiveSources> fixedNativeArchiveSources(
-      Set<String> moduleNames) {
-    if (moduleNames.isEmpty() || 2 < moduleNames.size()) {
-      return java.util.Optional.empty();
+  List<NativeArchiveSources> fixedNativeArchives(Set<String> moduleNames) {
+    if (moduleNames.isEmpty() || 4 < moduleNames.size()) {
+      return List.of();
     }
-    NativeArchiveSources selected = null;
+    List<NativeArchiveSources> selected = new ArrayList<>();
+    Set<String> foundModules = new HashSet<>();
     PackageArchive codec = new PackageArchive();
     Map<String, String> directSources = directModuleSources();
     for (Dependency dependency : rootDependencies.stream()
         .filter(candidate -> candidate.kind() == DependencyKind.NORMAL)
         .sorted(java.util.Comparator.comparing(Dependency::name)).toList()) {
       DecodedPackage decoded = packages.get(dependency.name());
-      if (decoded == null || decoded.entries().size() != moduleNames.size()) {
+      if (decoded == null || decoded.entries().isEmpty() || 2 < decoded.entries().size()) {
         continue;
       }
       List<NativeModuleEntry> entries = new ArrayList<>();
-      Set<String> foundModules = new HashSet<>();
+      Set<String> packageModules = new HashSet<>();
       for (Map.Entry<String, byte[]> entry : decoded.entries().entrySet()) {
         String text = new String(entry.getValue(), StandardCharsets.UTF_8);
         if (!java.util.Arrays.equals(entry.getValue(), text.getBytes(StandardCharsets.UTF_8))
@@ -232,26 +232,32 @@ final class LockedPackageSet {
             .filter(line -> line.startsWith("module ") && line.endsWith(";"))
             .map(line -> line.substring(7, line.length() - 1))
             .findFirst().orElse("");
-        if (!moduleNames.contains(declared) || !foundModules.add(declared)) {
+        if (!moduleNames.contains(declared)
+            || !packageModules.add(declared)
+            || foundModules.contains(declared)) {
           entries.clear();
           break;
         }
         entries.add(new NativeModuleEntry(entry.getKey(), text));
       }
-      if (entries.size() != moduleNames.size() || !foundModules.equals(moduleNames)) {
+      if (entries.size() != decoded.entries().size()) {
         continue;
-      }
-      if (selected != null) {
-        throw new PackageFormatException("Locked modules occur in multiple direct packages");
       }
       byte[] archive = codec.encode(decoded.manifest(), decoded.entries());
       if (!codec.identity(archive).equals(decoded.identity())) {
         throw new PackageFormatException(
             "Canonical archive reconstruction changed " + dependency.name());
       }
-      selected = new NativeArchiveSources(dependency.name(), entries, archive);
+      foundModules.addAll(packageModules);
+      selected.add(new NativeArchiveSources(dependency.name(), entries, archive));
+      if (2 < selected.size()) {
+        return List.of();
+      }
     }
-    return java.util.Optional.ofNullable(selected);
+    if (!foundModules.equals(moduleNames)) {
+      return List.of();
+    }
+    return List.copyOf(selected);
   }
 
   private Map<String, String> allModuleSources() {

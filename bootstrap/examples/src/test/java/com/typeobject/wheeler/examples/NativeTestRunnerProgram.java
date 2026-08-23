@@ -54,7 +54,7 @@ final class NativeTestRunnerProgram {
     }
     for (String source : List.of(
         "TestDescriptors", "TestDiscoveredDescriptors", "TestExternalSourcePlan",
-        "TestSourceCompilation", "TestSourceLowering", "TestSourceModules", "TestSourcePlan",
+        "TestExternalSourceTransport", "TestSourceCompilation", "TestSourceLowering", "TestSourceModules", "TestSourcePlan",
         "TestSourceTests", "TestRunner")) {
       modules.put(
           source + ".w", RuntimeSources.read("runtime/testing/runners/" + source + ".w"));

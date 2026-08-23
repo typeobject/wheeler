@@ -94,7 +94,7 @@ final class NativePackageTestRunner {
       return Optional.empty();
     }
     java.util.ArrayList<byte[]> plans = new java.util.ArrayList<>();
-    java.util.ArrayList<Optional<NativeArchiveSources>> externalSources = new java.util.ArrayList<>();
+    java.util.ArrayList<List<NativeArchiveSources>> externalSources = new java.util.ArrayList<>();
     LockedPackageSet lockedPackages = null;
     for (Target target : testTargets) {
       if (!target.modular()
@@ -103,10 +103,10 @@ final class NativePackageTestRunner {
         return Optional.empty();
       }
       Set<String> imported = externalImports(packageRoot, target);
-      if (2 < imported.size()) {
+      if (4 < imported.size()) {
         return Optional.empty();
       }
-      Optional<NativeArchiveSources> externalSource = Optional.empty();
+      List<NativeArchiveSources> externalArchives = List.of();
       if (!imported.isEmpty()) {
         Path vendor = packageRoot.resolve(LockedPackageSet.VENDOR_DIRECTORY);
         if (!Files.isDirectory(vendor, LinkOption.NOFOLLOW_LINKS)
@@ -116,26 +116,29 @@ final class NativePackageTestRunner {
         if (lockedPackages == null) {
           lockedPackages = LockedPackageSet.load(packageRoot, manifest);
         }
-        externalSource = lockedPackages.fixedNativeArchiveSources(imported);
-        if (externalSource.isEmpty()) {
+        externalArchives = lockedPackages.fixedNativeArchives(imported);
+        if (externalArchives.isEmpty()) {
           return Optional.empty();
         }
-        for (var entry : externalSource.orElseThrow().entries()) {
-          if (!fixedSourceProfile(entry.text())) {
-            return Optional.empty();
+        for (NativeArchiveSources archive : externalArchives) {
+          for (var entry : archive.entries()) {
+            if (!fixedSourceProfile(entry.text())) {
+              return Optional.empty();
+            }
           }
         }
       }
-      if (MAX_SOURCES < target.sources().size()
-          + (externalSource.isPresent() ? externalSource.orElseThrow().entries().size() : 0)) {
+      int externalSourceCount = externalArchives.stream()
+          .mapToInt(archive -> archive.entries().size()).sum();
+      if (MAX_SOURCES < target.sources().size() + externalSourceCount) {
         return Optional.empty();
       }
-      byte[] plan = sourcePlan(packageRoot, target, externalSource);
+      byte[] plan = sourcePlan(packageRoot, target, externalArchives);
       if (plan.length > MAX_PLAN_BYTES || !fixedImportProfile(packageRoot, target)) {
         return Optional.empty();
       }
       plans.add(plan);
-      externalSources.add(externalSource);
+      externalSources.add(externalArchives);
     }
 
     Optional<Path> conformance = findConformancePackage(packageRoot);
@@ -484,7 +487,7 @@ final class NativePackageTestRunner {
   }
 
   private static byte[] sourcePlan(
-      Path root, Target target, Optional<NativeArchiveSources> externalSource) throws IOException {
+      Path root, Target target, List<NativeArchiveSources> externalArchives) throws IOException {
     java.util.TreeMap<String, byte[]> sources = new java.util.TreeMap<>();
     for (String source : target.sources()) {
       Path file = root.resolve(source).normalize();
@@ -499,8 +502,7 @@ final class NativePackageTestRunner {
       }
       sources.put(source, text);
     }
-    if (externalSource.isPresent()) {
-      NativeArchiveSources selected = externalSource.orElseThrow();
+    for (NativeArchiveSources selected : externalArchives) {
       for (var entry : selected.entries()) {
         String path = "dependencies/" + selected.packageName() + "/" + entry.path();
         if (sources.put(path, entry.text().getBytes(StandardCharsets.UTF_8)) != null) {
@@ -525,7 +527,7 @@ final class NativePackageTestRunner {
       PackageManifest manifest,
       Target target,
       byte[] sourcePlan,
-      Optional<NativeArchiveSources> externalSource,
+      List<NativeArchiveSources> externalArchives,
       int shardIndex,
       int shardCount,
       Set<String> selectedTags,
@@ -542,9 +544,8 @@ final class NativePackageTestRunner {
     byte[] manifestBytes = Files.readAllBytes(root.resolve(PackageProject.MANIFEST_NAME));
     writeLittleBytes(output, manifestBytes);
     writeLittleBytes(output, packageLock(root, manifest, manifestBytes));
-    output.write(externalSource.isPresent() ? 1 : 0);
-    if (externalSource.isPresent()) {
-      NativeArchiveSources selected = externalSource.orElseThrow();
+    output.write(externalArchives.size());
+    for (NativeArchiveSources selected : externalArchives) {
       writeShortText(output, selected.packageName());
       writeLittleBytes(output, selected.archive());
     }

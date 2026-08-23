@@ -7,7 +7,7 @@ import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
 import wheeler.runtime.testing.runners.test_descriptors;
 import wheeler.runtime.testing.runners.test_discovered_descriptors;
-import wheeler.runtime.testing.runners.test_external_source_plan;
+import wheeler.runtime.testing.runners.test_external_source_transport;
 import wheeler.runtime.testing.runners.test_manifest;
 import wheeler.runtime.testing.runners.test_package_dependencies;
 import wheeler.runtime.testing.runners.test_package_graph;
@@ -128,29 +128,8 @@ classical class TestRunner {
     assert(cursor + lockLength + 5 < bufferLength(input));
     long lockStart = cursor;
     cursor += lockLength;
-    long archiveCount = input[cursor];
-    assert(archiveCount < 2);
-    cursor += 1;
-    long archiveNameStart = 0;
-    long archiveNameLength = 0;
-    long archiveStart = 0;
-    long archiveLength = 0;
-    if (archiveCount == 1) {
-      archiveNameLength = input[cursor];
-      assert(0 < archiveNameLength);
-      cursor += 1;
-      assert(cursor + archiveNameLength + 4 < bufferLength(input));
-      archiveNameStart = cursor;
-      cursor += archiveNameLength;
-      archiveLength = readUnsigned(input, cursor, /* width= */ 4);
-      assert(0 < archiveLength);
-      assert(archiveLength < MAX_PAYLOAD_BYTES + 1);
-      cursor += 4;
-      assert(cursor + archiveLength + 4 < bufferLength(input));
-      archiveStart = cursor;
-      cursor += archiveLength;
-    }
-
+    ExternalSourceArchives externalArchives = validatedExternalSourceArchives(input, cursor);
+    cursor = externalArchives.end;
     long sourcePlanLength = readUnsigned(input, cursor, /* width= */ 4);
     assert(0 < sourcePlanLength);
     assert(sourcePlanLength < MAX_PAYLOAD_BYTES + 1);
@@ -264,17 +243,6 @@ classical class TestRunner {
     copied = copyRange(input, targetStart, targetLength, target, /* outputStart= */ 0);
     assert(copied == targetLength);
     assert(validTargetSourcePlan(input, sourcePlanStart, sourcePlanLength));
-    boolean planHasExternalSource = validatedPlanHasExternalSource(
-      input,
-      sourcePlanStart,
-      sourcePlanLength
-    );
-    if (archiveCount == 1) {
-      assert(planHasExternalSource);
-    } else {
-      assert(planHasExternalSource == false);
-    }
-
     long compiledSourceCount = 0;
     long compiledRootOrdinal = 0;
     if (compileSource) {
@@ -342,55 +310,17 @@ classical class TestRunner {
     assert(
       validManifestLockGraph(input, manifestStart, manifestLength, lockStart, lockLength)
     );
-    if (archiveCount == 1) {
-      bytes externalLock = allocateBytes(staging, lockLength);
-      copied = copyRange(input, lockStart, lockLength, externalLock, /* outputStart= */ 0);
-      assert(copied == lockLength);
-      bytes externalName = allocateBytes(staging, archiveNameLength);
-      copied = copyRange(
+    assert(
+      validFramedExternalSourcePlan(
         input,
-        archiveNameStart,
-        archiveNameLength,
-        externalName,
-        /* outputStart= */ 0
-      );
-      assert(copied == archiveNameLength);
-      bytes externalArchive = allocateBytes(staging, archiveLength);
-      copied = copyRange(
-        input,
-        archiveStart,
-        archiveLength,
-        externalArchive,
-        /* outputStart= */ 0
-      );
-      assert(copied == archiveLength);
-      bytes externalPlan = allocateBytes(staging, sourcePlanLength);
-      copied = copyRange(
-        input,
+        externalArchives,
+        lockStart,
+        lockLength,
         sourcePlanStart,
         sourcePlanLength,
-        externalPlan,
-        /* outputStart= */ 0
-      );
-      assert(copied == sourcePlanLength);
-      bytes externalDigest = allocateBytes(staging, /* length= */ 32);
-      assert(
-        validLockedExternalSourcePlan(
-          externalPlan,
-          externalLock,
-          externalName,
-          externalArchive,
-          externalDigest,
-          staging
-        )
-      );
-      drop(externalDigest);
-      drop(externalPlan);
-      drop(externalArchive);
-      drop(externalName);
-      drop(externalLock);
-    }
-
+        staging
+      )
+    );
     bytes constructedNames = allocateBytes(staging, MAX_CASES * 255);
     words constructedNameLengths = allocate(staging, MAX_CASES);
     words caseKinds = allocate(staging, MAX_CASES);
