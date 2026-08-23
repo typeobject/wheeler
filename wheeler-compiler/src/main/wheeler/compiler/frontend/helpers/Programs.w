@@ -589,6 +589,9 @@ classical class HelperPrograms {
       entrySequence.opcodes,
       entrySequence.operands,
       entrySequence.secondaryOperands,
+      emptyHelperCallIdentities(),
+      emptyHelperCallIdentities(),
+      0,
       1,
       new HelperBody(
         helper,

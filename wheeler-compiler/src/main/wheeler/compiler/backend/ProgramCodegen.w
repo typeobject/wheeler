@@ -478,7 +478,26 @@ classical class ProgramCodegen {
         helper += 1;
       }
 
-      return cursor;
+      if (program.library) {
+        return cursor;
+      }
+
+      return writeSequence(
+        output,
+        cursor,
+        program.statementOpcodes,
+        program.statementOperands,
+        program.statementSecondaryOperands,
+        program.statementCount,
+        emptyHelperBody().parameterTypes,
+        0,
+        false,
+        0,
+        program.entryCallStatements,
+        program.entryCallFunctions,
+        program.entryCallCount,
+        -1
+      );
     }
 
     if (resultSlotProgram) {

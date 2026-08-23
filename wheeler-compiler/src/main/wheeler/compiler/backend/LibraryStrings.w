@@ -59,6 +59,22 @@ classical class LibraryStrings {
     return program.helperCount + 1;
   }
 
+  private long mainScalar(long index) {
+    if (index == 0) {
+      return 109;
+    }
+
+    if (index == 1) {
+      return 97;
+    }
+
+    if (index == 2) {
+      return 105;
+    }
+
+    return 110;
+  }
+
   private HelperBody candidateHelper(MinimalProgram program, long candidate) {
     return helperAt(program, candidate - FIRST_HELPER);
   }
@@ -87,7 +103,11 @@ classical class LibraryStrings {
     }
 
     if (candidate == entryCandidate(program)) {
-      return 8;
+      if (program.library) {
+        return 8;
+      }
+
+      return rootModule.length + 6;
     }
 
     HelperBody helper = candidateHelper(program, candidate);
@@ -113,7 +133,20 @@ classical class LibraryStrings {
     }
 
     if (candidate == entryCandidate(program)) {
-      return libraryScalar(index);
+      if (program.library) {
+        return libraryScalar(index);
+      }
+
+      if (index < rootModule.length) {
+        return utf8Scalar(source, rootModule.start + index);
+      }
+
+      long suffix = index - rootModule.length;
+      if (suffix < 2) {
+        return 58;
+      }
+
+      return mainScalar(suffix - 2);
     }
 
     SourceRange moduleName = candidateModule(rootModule, owners, candidate);

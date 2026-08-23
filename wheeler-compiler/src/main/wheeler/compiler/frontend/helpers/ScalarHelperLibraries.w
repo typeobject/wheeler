@@ -14,6 +14,7 @@ import wheeler.compiler.early_comparison_forms;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.encoding;
 import wheeler.compiler.helper_abi;
+import wheeler.compiler.helper_call_sites;
 import wheeler.compiler.helper_parameter_types;
 import wheeler.compiler.helper_result_kinds;
 import wheeler.compiler.helper_signatures;
@@ -769,88 +770,14 @@ classical class ScalarHelperLibraries {
       return invalidHelper();
     }
 
-    region callArena = new region(/* bytes= */ 1536, /* allocations= */ 3);
-    words callTargetStartWork = allocate(callArena, MAX_SCALAR_HELPER_CALLS);
-    words callTargetLengthWork = allocate(callArena, MAX_SCALAR_HELPER_CALLS);
-    words callStatementWork = allocate(callArena, MAX_SCALAR_HELPER_CALLS);
-    long callCount = 0;
-    long sourceStatement = 0;
-    while (sourceStatement < statements.count) limit MAX_MINIMAL_STATEMENTS {
-      long sourceOpcode = statementOpcode(
-        source,
-        tokenStarts,
-        tokenLengths,
-        statementStarts[sourceStatement]
-      );
-      boolean helperCall = sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_TRUE_NAMED;
-      if (sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_FALSE_NAMED) {
-        helperCall = true;
-      }
-
-      if (sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_LONG_NAMED) {
-        helperCall = true;
-      }
-
-      boolean forwardingGuard = sourceOpcode == STATEMENT_IF_HELPER_CALL_RETURN_HELPER_CALL_NAMED;
-      if (forwardingGuard) {
-        helperCall = true;
-      }
-
-      long targetToken = statementStarts[sourceStatement] + 2;
-      if (anyVoidCallSourceStatement(sourceOpcode)) {
-        helperCall = true;
-        targetToken = statementStarts[sourceStatement];
-      }
-
-      if (sourceOpcode == STATEMENT_RETURN_HELPER_CALL_NAMED) {
-        helperCall = true;
-        targetToken = statementStarts[sourceStatement] + 1;
-      }
-
-      if (sourceOpcode == STATEMENT_IF_EQ_RETURN_UTF8_CALL_NAMED) {
-        helperCall = true;
-        targetToken = earlyUtf8CallTargetToken(statementStarts[sourceStatement]);
-      }
-
-      if (scalarResultCallStatement(sourceOpcode)) {
-        helperCall = true;
-        targetToken = statementStarts[sourceStatement] + 3;
-      }
-
-      if (assignmentCallSourceStatement(sourceOpcode)) {
-        helperCall = true;
-        targetToken = statementStarts[sourceStatement] + 2;
-      }
-
-      if (helperCall) {
-        if (callCount < MAX_SCALAR_HELPER_CALLS) {
-          set(callTargetStartWork, callCount, tokenStarts[targetToken]);
-          set(callTargetLengthWork, callCount, tokenLengths[targetToken]);
-          set(callStatementWork, callCount, sourceStatement);
-        }
-
-        callCount += 1;
-      }
-
-      if (forwardingGuard) {
-        long returnTargetToken = statementStarts[sourceStatement] + 9;
-        if (callCount < MAX_SCALAR_HELPER_CALLS) {
-          set(callTargetStartWork, callCount, tokenStarts[returnTargetToken]);
-          set(callTargetLengthWork, callCount, tokenLengths[returnTargetToken]);
-          set(callStatementWork, callCount, sourceStatement);
-        }
-
-        callCount += 1;
-      }
-
-      sourceStatement += 1;
-    }
-
-    if (callCount < MAX_SCALAR_HELPER_CALLS + 1) {} else {
-      drop(callStatementWork);
-      drop(callTargetLengthWork);
-      drop(callTargetStartWork);
-      drop(callArena);
+    CallSites callSites = collectCallSites(
+      source,
+      tokenStarts,
+      tokenLengths,
+      statementStarts,
+      statements.count
+    );
+    if (callSites.valid) {} else {
       return invalidHelper();
     }
 
@@ -898,21 +825,8 @@ classical class ScalarHelperLibraries {
       parameterCount
     );
     if (scalarSequenceValid(sequence, kind, parameterTypes, parameterCount)) {} else {
-      drop(callStatementWork);
-      drop(callTargetLengthWork);
-      drop(callTargetStartWork);
-      drop(callArena);
       return invalidHelper();
     }
-
-    long[64] callTargetStarts = freezeHelperCallColumn(callTargetStartWork);
-    long[64] callTargetLengths = freezeHelperCallColumn(callTargetLengthWork);
-    long[64] callStatements = freezeHelperCallColumn(callStatementWork);
-    long[64] callFunctions = emptyHelperCallIdentities();
-    drop(callStatementWork);
-    drop(callTargetLengthWork);
-    drop(callTargetStartWork);
-    drop(callArena);
 
     HelperBody body = new HelperBody(
       new SourceRange(tokenStarts[nameToken], tokenLengths[nameToken]),
@@ -924,11 +838,11 @@ classical class ScalarHelperLibraries {
       parameterTypes,
       sequence.count,
       sequence.count - 1,
-      callTargetStarts,
-      callTargetLengths,
-      callStatements,
-      callFunctions,
-      callCount
+      callSites.targetStarts,
+      callSites.targetLengths,
+      callSites.statements,
+      emptyHelperCallIdentities(),
+      callSites.count
     );
     return new ParsedScalarHelper(body, statements.end + 1, true);
   }

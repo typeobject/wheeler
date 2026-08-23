@@ -73,15 +73,36 @@ final class CompilerSources {
     return Files.readString(path(logicalPath));
   }
 
+  private static List<String> packageTargetPaths(PackageManifest.Target target)
+      throws IOException {
+    TreeSet<String> paths = new TreeSet<>();
+    for (String selector : target.sources()) {
+      Path selected = PACKAGE.resolve(selector).normalize();
+      if (!selected.startsWith(PACKAGE)) {
+        throw new IOException("Compiler package source escapes its root: " + selector);
+      }
+      if (Files.isRegularFile(selected)) {
+        paths.add(selector);
+      } else {
+        try (var files = Files.walk(selected)) {
+          files.filter(Files::isRegularFile)
+              .filter(path -> path.getFileName().toString().endsWith(".w"))
+              .map(PACKAGE::relativize)
+              .map(Path::toString)
+              .forEach(paths::add);
+        }
+      }
+    }
+    return List.copyOf(paths);
+  }
+
   /** Encodes the complete current compiler package without consulting build output. */
   static byte[] packageArchive() throws Exception {
     PackageManifest manifest = new PackageManifestParser().parse(
         Files.readString(PACKAGE.resolve("wheeler.package.yaml")));
     TreeSet<String> paths = new TreeSet<>();
     for (PackageManifest.Target target : manifest.targets()) {
-      for (String logicalPath : targetPaths(target.name())) {
-        paths.add(SOURCE_PREFIX + logicalPath);
-      }
+      paths.addAll(packageTargetPaths(target));
     }
 
     Map<String, byte[]> sources = new LinkedHashMap<>();

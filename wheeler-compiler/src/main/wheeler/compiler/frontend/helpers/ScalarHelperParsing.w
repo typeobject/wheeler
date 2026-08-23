@@ -4,6 +4,7 @@ module wheeler.compiler.scalar_helper_parsing;
 
 import wheeler.compiler.class_layouts;
 import wheeler.compiler.ir;
+import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.scalar_helper_libraries;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
@@ -35,6 +36,7 @@ classical class ScalarHelperParsing {
     HelperBody twentyFirst,
     HelperBody twentySecond,
     HelperBody twentyThird,
+    long nextToken,
     boolean valid
   ) {}
 
@@ -64,8 +66,41 @@ classical class ScalarHelperParsing {
       emptyHelperBody(),
       emptyHelperBody(),
       emptyHelperBody(),
+      0,
       false
     );
+  }
+
+  private boolean scalarHelperStartsAt(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long token
+  ) {
+    long declaration = token;
+    long first = tokenHash(source, tokenStarts, tokenLengths, declaration);
+    if (first == TOKEN_PUBLIC) {
+      declaration += 1;
+    } else {
+      if (first == TOKEN_PRIVATE) {
+        declaration += 1;
+      }
+    }
+
+    if (tokenHash(source, tokenStarts, tokenLengths, declaration) == TOKEN_REV) {
+      declaration += 1;
+    }
+
+    long result = tokenHash(source, tokenStarts, tokenLengths, declaration);
+    if (result == TOKEN_VOID) {
+      return true;
+    }
+
+    if (result == TOKEN_LONG) {
+      return true;
+    }
+
+    return result == TOKEN_BOOLEAN;
   }
 
   /// Parses one through twenty-three scalar helper declarations in source order.
@@ -97,9 +132,7 @@ classical class ScalarHelperParsing {
     long helperCount = 1;
     long classClose = first.nextToken;
     ParsedScalarHelper second = invalidHelper();
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       second = parseScalarHelper(
         source,
         tokenKinds,
@@ -137,9 +170,7 @@ classical class ScalarHelperParsing {
     ParsedScalarHelper twentyFirst = invalidHelper();
     ParsedScalarHelper twentySecond = invalidHelper();
     ParsedScalarHelper twentyThird = invalidHelper();
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       third = parseScalarHelper(
         source,
         tokenKinds,
@@ -156,9 +187,7 @@ classical class ScalarHelperParsing {
       classClose = third.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       fourth = parseScalarHelper(
         source,
         tokenKinds,
@@ -175,9 +204,7 @@ classical class ScalarHelperParsing {
       classClose = fourth.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       fifth = parseScalarHelper(
         source,
         tokenKinds,
@@ -194,9 +221,7 @@ classical class ScalarHelperParsing {
       classClose = fifth.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       sixth = parseScalarHelper(
         source,
         tokenKinds,
@@ -213,9 +238,7 @@ classical class ScalarHelperParsing {
       classClose = sixth.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       seventh = parseScalarHelper(
         source,
         tokenKinds,
@@ -232,9 +255,7 @@ classical class ScalarHelperParsing {
       classClose = seventh.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       eighth = parseScalarHelper(
         source,
         tokenKinds,
@@ -251,9 +272,7 @@ classical class ScalarHelperParsing {
       classClose = eighth.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       ninth = parseScalarHelper(
         source,
         tokenKinds,
@@ -270,9 +289,7 @@ classical class ScalarHelperParsing {
       classClose = ninth.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       tenth = parseScalarHelper(
         source,
         tokenKinds,
@@ -289,9 +306,7 @@ classical class ScalarHelperParsing {
       classClose = tenth.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       eleventh = parseScalarHelper(
         source,
         tokenKinds,
@@ -308,9 +323,7 @@ classical class ScalarHelperParsing {
       classClose = eleventh.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       twelfth = parseScalarHelper(
         source,
         tokenKinds,
@@ -327,9 +340,7 @@ classical class ScalarHelperParsing {
       classClose = twelfth.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       thirteenth = parseScalarHelper(
         source,
         tokenKinds,
@@ -346,9 +357,7 @@ classical class ScalarHelperParsing {
       classClose = thirteenth.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       fourteenth = parseScalarHelper(
         source,
         tokenKinds,
@@ -365,9 +374,7 @@ classical class ScalarHelperParsing {
       classClose = fourteenth.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       fifteenth = parseScalarHelper(
         source,
         tokenKinds,
@@ -384,9 +391,7 @@ classical class ScalarHelperParsing {
       classClose = fifteenth.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       sixteenth = parseScalarHelper(
         source,
         tokenKinds,
@@ -403,9 +408,7 @@ classical class ScalarHelperParsing {
       classClose = sixteenth.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       seventeenth = parseScalarHelper(
         source,
         tokenKinds,
@@ -422,9 +425,7 @@ classical class ScalarHelperParsing {
       classClose = seventeenth.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       eighteenth = parseScalarHelper(
         source,
         tokenKinds,
@@ -441,9 +442,7 @@ classical class ScalarHelperParsing {
       classClose = eighteenth.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       nineteenth = parseScalarHelper(
         source,
         tokenKinds,
@@ -460,9 +459,7 @@ classical class ScalarHelperParsing {
       classClose = nineteenth.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       twentieth = parseScalarHelper(
         source,
         tokenKinds,
@@ -479,9 +476,7 @@ classical class ScalarHelperParsing {
       classClose = twentieth.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       twentyFirst = parseScalarHelper(
         source,
         tokenKinds,
@@ -498,9 +493,7 @@ classical class ScalarHelperParsing {
       classClose = twentyFirst.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       twentySecond = parseScalarHelper(
         source,
         tokenKinds,
@@ -517,9 +510,7 @@ classical class ScalarHelperParsing {
       classClose = twentySecond.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE) == false
-    ) {
+    if (scalarHelperStartsAt(source, tokenStarts, tokenLengths, classClose)) {
       twentyThird = parseScalarHelper(
         source,
         tokenKinds,
@@ -536,14 +527,21 @@ classical class ScalarHelperParsing {
       classClose = twentyThird.nextToken;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, classClose, PUNCTUATION_CLOSE_BRACE)
-    ) {} else {
-      return invalidTable();
-    }
-
-    if (count == classClose + 1) {} else {
-      return invalidTable();
+    boolean library = punctuationAt(
+      source,
+      tokenKinds,
+      tokenStarts,
+      classClose,
+      PUNCTUATION_CLOSE_BRACE
+    );
+    if (library) {
+      if (count == classClose + 1) {} else {
+        return invalidTable();
+      }
+    } else {
+      if (tokenHash(source, tokenStarts, tokenLengths, classClose) == TOKEN_ENTRY) {} else {
+        return invalidTable();
+      }
     }
 
     return new ScalarHelperTable(
@@ -571,6 +569,7 @@ classical class ScalarHelperParsing {
       twentyFirst.body,
       twentySecond.body,
       twentyThird.body,
+      classClose,
       true
     );
   }
