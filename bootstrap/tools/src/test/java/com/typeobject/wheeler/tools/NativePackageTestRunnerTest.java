@@ -28,11 +28,11 @@ class NativePackageTestRunnerTest {
 
     var result = NativePackageTestRunner.run(
         compiler, project.manifest(), 0, 1, Set.of());
-    TestReport report = project.test();
 
     assertTrue(result.isPresent());
-    assertEquals(7, result.orElseThrow().selected());
-    assertEquals(7, result.orElseThrow().passed());
+    TestReport report = result.orElseThrow().report();
+    assertEquals(14, result.orElseThrow().selected());
+    assertEquals(14, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
     assertEquals(result.orElseThrow().report().identity(), report.identity());
     assertEquals(

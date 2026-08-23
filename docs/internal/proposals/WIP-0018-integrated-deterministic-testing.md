@@ -300,7 +300,7 @@ JUnit adapters consume semantic reports during migration. They do not discover W
 - [x] The accepted scalar profile rejects malformed result rows, duplicate inline cases, duplicate report identities, unknown selected tags, a 1,025th parameter row, and a 65,536th report row before publication. General descriptor kinds and remaining execution limits stay outside this closure.
 - [x] `--shard INDEX/COUNT` assigns each implemented case by its complete case-identity digest. Shards are disjoint and complete. Canonical reduction sorts arrival-independent rows, rejects duplicate case identities, and reproduces the serial profile-2 report identity.
 - [x] Terminal, canonical JSON, and JUnit XML adapters consume one sorted profile-2 report. Each carries the same case status, diagnostics, assertion count, source, artifact, execution, coverage, and report identities. WIP-0289 moves exact empty, passing, and failing JSON rendering into the runtime for native package commands. WIP-0290 adds byte-identical native terminal rendering and one shared adapter-frame parser. WIP-0291 adds byte-identical native JUnit XML. All three formats now render inside the runtime for admitted package suites. Adapter bytes remain outside semantic identity.
-- [ ] An end-to-end package suite compiles and tests the complete self-hosted compiler using no Java discovery. WIP-0279 proves the package command and native case-row path over a seven-module physical compiler spine. The complete source graph remains.
+- [ ] An end-to-end package suite compiles and tests the complete self-hosted compiler using no Java discovery. WIP-0279 proves the package command and native case-row path over a seven-module physical compiler spine. WIP-0292 adds a second seven-module physical compiler partition and raises the checked-in suite to fourteen native cases. The complete source graph remains.
 - [x] `reference/packages.md` and `reference/language-profile.md` describe only the implemented stage-0 runner: selected root tests, bounded scalar cases, fresh VMs, the first in-process lifecycle fixture profile, canonical order, identities, diagnostics, assertion attempts, transition coverage, and the zero-case report. Capability-bearing fixtures, generators, non-root modules, and new adapters remain explicitly assigned to this WIP.
 
 ## Alternatives
@@ -453,3 +453,4 @@ Assertions may inspect task trees, deadlock diagnostics, EventIds, atomic observ
 - [WIP-0289](WIP-0289-native-test-json.md)
 - [WIP-0290](WIP-0290-native-test-terminal.md)
 - [WIP-0291](WIP-0291-native-test-junit.md)
+- [WIP-0292](WIP-0292-native-compiler-syntax-suite.md)

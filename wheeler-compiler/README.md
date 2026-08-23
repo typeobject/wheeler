@@ -6,7 +6,7 @@ Java does not get a weekend cottage here.
 
 ## Native package suite
 
-`wheeler test wheeler-compiler` discovers and executes the checked-in `nativecompilerspinetests` target through the Wheeler runtime. The target compiles six physical compiler constant modules, the callable `BooleanTokens.w` module, and one test root into seven independent cases. It resolves `ENCODING_WIDTH_U16` from production source, checks the value, carries it through checked addition, subtraction, multiplication, division, remainder, bitwise AND, bitwise XOR, and signed ordering, and checks every result natively. Java does not discover or execute the case. The complete compiler graph is not yet inside this package suite.
+`wheeler test wheeler-compiler` discovers and executes the checked-in `nativecompilerspinetests` target through the Wheeler runtime. The two targets compile fourteen distinct physical compiler modules through separate eight-source graphs and publish fourteen independent cases. The spine includes callable `BooleanTokens.w`. The syntax partition covers storage, loops, helper ABI, borrowed intrinsics, keywords, and source scalars. It resolves `ENCODING_WIDTH_U16` from production source, checks the value, carries it through checked addition, subtraction, multiplication, division, remainder, bitwise AND, bitwise XOR, and signed ordering, and checks every result natively. Java does not discover or execute the case. The complete compiler graph is not yet inside this package suite.
 
 ## Package boundary
 

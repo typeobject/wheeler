@@ -408,7 +408,6 @@ final class NativePackageTestRunner {
         return false;
       }
       int functions = occurrences(text, "public long ")
-          - occurrences(text, "public const long ")
           + occurrences(text, "public boolean ");
       if (functions > 1 || text.contains("test void ") || text.contains("entry void ")) {
         return false;

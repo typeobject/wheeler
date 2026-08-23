@@ -114,3 +114,4 @@ Rejected. The current native test-expression compiler does not prove it.
 - [WIP-0278](WIP-0278-native-package-row-reduction.md)
 - [WIP-0280](WIP-0280-native-compiler-constant-assertion.md)
 - [WIP-0284](WIP-0284-native-compiler-constant-suite.md)
+- [WIP-0292](WIP-0292-native-compiler-syntax-suite.md)
