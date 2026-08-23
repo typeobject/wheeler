@@ -294,6 +294,15 @@ targets:
       - "src/test/wheeler/compiler/locals/NativeCompilerResolvedLongOperationTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilerresolvedreturncalltests"
+    root: "src/test/wheeler/compiler/returns/NativeCompilerResolvedReturnCallTests.w"
+    module: "wheeler.compiler.tests.native_compiler_resolved_return_calls"
+    sources:
+      - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
+      - "src/main/wheeler/compiler/syntax/returns/ResolvedReturnCallKinds.w"
+      - "src/test/wheeler/compiler/returns/NativeCompilerResolvedReturnCallTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerspinetests"
     root: "src/test/wheeler/compiler/NativeCompilerSpineTests.w"
     module: "wheeler.compiler.tests.native_compiler_spine"

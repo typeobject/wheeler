@@ -9,7 +9,7 @@
 | Area | Native testing, manifests, package execution |
 | Depends on | WIP-0339, WIP-0344 |
 | Supersedes | Native 20,480-byte test-manifest bound |
-| Superseded by | Wider bounds backed by exact exhaustion evidence |
+| Superseded by | WIP-0346 native compiler resolved return-call suite |
 
 ## Summary
 
@@ -67,3 +67,4 @@ Rejected. Their capacities are not exhausted.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0339](WIP-0339-native-20k-test-manifest-bound.md)
 - [WIP-0344](WIP-0344-native-compiler-resolved-early-result-suite.md)
+- [WIP-0346](WIP-0346-native-compiler-resolved-return-call-suite.md)

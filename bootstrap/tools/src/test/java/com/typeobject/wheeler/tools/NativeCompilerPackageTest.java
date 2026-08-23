@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Timeout;
 /** Proves the complete checked-in compiler package suite through the native runner. */
 final class NativeCompilerPackageTest {
   @Test
-  @Timeout(value = 11, unit = TimeUnit.MINUTES)
+  @Timeout(value = 12, unit = TimeUnit.MINUTES)
   void testsThePhysicalCompilerSpineNatively() throws Exception {
     Path compiler = Path.of("wheeler-compiler");
     PackageProject project = PackageProject.load(compiler);
@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(119, result.selected());
-    assertEquals(119, result.passed());
+    assertEquals(125, result.selected());
+    assertEquals(125, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -162,6 +162,19 @@ final class NativeCompilerPackageTest {
           report,
           "nativecompilerresolvedlocalliteralsourcetests",
           "native_compiler_resolved_local_literal_sources",
+          name);
+    }
+    for (String name : List.of(
+        "classifiesSevenArgumentReturnCall",
+        "decodesSevenArgumentReturnCallArity",
+        "decodesFinalFourArgumentFirstSource",
+        "decodesFinalFourArgumentSecondSource",
+        "decodesFinalFourArgumentThirdSource",
+        "decodesFinalFourArgumentFourthSource")) {
+      assertCase(
+          report,
+          "nativecompilerresolvedreturncalltests",
+          "native_compiler_resolved_return_calls",
           name);
     }
     assertCase(

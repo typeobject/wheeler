@@ -45,6 +45,38 @@ final class NativeCompilerResolvedReturnEntryExampleTest {
   }
 
   @Test
+  void compilesPhysicalResolvedReturnCallKindsIntoEntryByteForByte() throws Exception {
+    String opcodes = CompilerSources.read("compiler/ir/ResolvedStatements.w");
+    String kinds = CompilerSources.read(
+        "compiler/syntax/returns/ResolvedReturnCallKinds.w");
+    String root = """
+        module example.resolved_return_call_kinds_entry;
+        import wheeler.compiler.resolved_return_call_kinds;
+        classical class ResolvedReturnCallKindsEntry {
+          entry void main() {
+            boolean present = resolvedReturnHelperCall(29952);
+            long arity = returnHelperCallArity(29952);
+            long first = returnHelperCallFirstSource(4328521727);
+            long second = returnHelperCallSecondSource(4328521727);
+            long third = returnHelperCallThirdSource(4328521727);
+            long fourth = returnHelperCallFourthSource(4328521727);
+            assert(present);
+            assert(arity == 7);
+            assert(first == 255);
+            assert(second == 255);
+            assert(third == 255);
+            assert(fourth == 255);
+          }
+        }
+        """;
+    assertPhysicalEntry(
+        List.of(opcodes, kinds),
+        Map.of("Opcodes.w", opcodes, "Kinds.w", kinds, "Entry.w", root),
+        root,
+        "example.resolved_return_call_kinds_entry");
+  }
+
+  @Test
   void compilesPhysicalResolvedEarlyComparisonKindsIntoEntryByteForByte() throws Exception {
     String opcodes = CompilerSources.read("compiler/ir/ResolvedStatements.w");
     String kinds = CompilerSources.read(
