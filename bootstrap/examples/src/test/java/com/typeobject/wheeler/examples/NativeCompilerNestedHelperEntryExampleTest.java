@@ -158,7 +158,23 @@ final class NativeCompilerNestedHelperEntryExampleTest {
         classical class HelperSignatureEntry {
           entry void main() {
             long count = parameterCountForHelper(48);
+            long signedKind = signedScalarHelperKind(16);
+            long booleanKind = booleanScalarHelperKind(16);
+            long utf8Kind = utf8ScalarHelperKind(10);
+            boolean reversible = reversibleHelper(12);
+            boolean resultSlot = resultSlotHelper(12);
+            boolean utf8 = utf8ResultHelper(82);
+            boolean booleanResult = booleanResultHelper(80);
+            boolean booleanParameter = booleanParameterHelper(7);
             assert(count == 16);
+            assert(signedKind == 48);
+            assert(booleanKind == 80);
+            assert(utf8Kind == 82);
+            assert(reversible);
+            assert(resultSlot);
+            assert(utf8);
+            assert(booleanResult);
+            assert(booleanParameter);
           }
         }
         """;

@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0321 |
 | Supersedes | Standalone helper-signature parameter evidence |
-| Superseded by | Complete native helper-signature package coverage |
+| Superseded by | WIP-0323 native compiler helper-signature suite |
 
 ## Summary
 
@@ -69,3 +69,4 @@ Rejected. The bounded native compiler already retains it byte for byte.
 - [WIP-0137](WIP-0137-direct-helper-signature-adoption.md)
 - [WIP-0310](WIP-0310-native-multi-helper-entry-programs.md)
 - [WIP-0321](WIP-0321-native-compiler-call-kind-suite.md)
+- [WIP-0323](WIP-0323-native-compiler-helper-signature-suite.md)

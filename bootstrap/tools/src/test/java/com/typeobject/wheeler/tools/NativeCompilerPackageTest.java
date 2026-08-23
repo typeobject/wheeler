@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Timeout;
 /** Proves the complete checked-in compiler package suite through the native runner. */
 final class NativeCompilerPackageTest {
   @Test
-  @Timeout(value = 3, unit = TimeUnit.MINUTES)
+  @Timeout(value = 4, unit = TimeUnit.MINUTES)
   void testsThePhysicalCompilerSpineNatively() throws Exception {
     Path compiler = Path.of("wheeler-compiler");
     PackageProject project = PackageProject.load(compiler);
@@ -22,8 +22,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(41, result.selected());
-    assertEquals(41, result.passed());
+    assertEquals(49, result.selected());
+    assertEquals(49, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -45,6 +45,46 @@ final class NativeCompilerPackageTest {
         "nativecompilerhelpersignaturetests",
         "native_compiler_helper_signatures",
         "checksSixteenParameterHelper");
+    assertCase(
+        report,
+        "nativecompilerhelpersignaturetests",
+        "native_compiler_helper_signatures",
+        "checksSixteenParameterSignedKind");
+    assertCase(
+        report,
+        "nativecompilerhelpersignaturetests",
+        "native_compiler_helper_signatures",
+        "checksSixteenParameterBooleanKind");
+    assertCase(
+        report,
+        "nativecompilerhelpersignaturetests",
+        "native_compiler_helper_signatures",
+        "checksTenParameterUtf8Kind");
+    assertCase(
+        report,
+        "nativecompilerhelpersignaturetests",
+        "native_compiler_helper_signatures",
+        "checksReversibleHelper");
+    assertCase(
+        report,
+        "nativecompilerhelpersignaturetests",
+        "native_compiler_helper_signatures",
+        "checksResultSlotHelper");
+    assertCase(
+        report,
+        "nativecompilerhelpersignaturetests",
+        "native_compiler_helper_signatures",
+        "checksUtf8ResultHelper");
+    assertCase(
+        report,
+        "nativecompilerhelpersignaturetests",
+        "native_compiler_helper_signatures",
+        "checksBooleanResultHelper");
+    assertCase(
+        report,
+        "nativecompilerhelpersignaturetests",
+        "native_compiler_helper_signatures",
+        "checksBooleanParameterHelper");
     assertCase(report, "nativecompilercallaritytests", "native_compiler_call_arity", "checksSevenArgumentAssignmentCall");
     assertCase(report, "nativecompilercallkindtests", "native_compiler_call_kinds", "checksSevenArgumentSourceMembership");
     assertCase(report, "nativecompilercallkindtests", "native_compiler_call_kinds", "checksSevenArgumentResolvedMembership");
