@@ -861,6 +861,7 @@ final class NativeCoverageRunExampleTest {
         "TestExecutionIdentity", "TestIdentityText", "TestArtifactReport")) {
       modules.put(source + ".w", RuntimeSources.read("runtime/testing/" + source + ".w"));
     }
+    modules.put("TestLimits.w", RuntimeSources.read("runtime/testing/TestLimits.w"));
     modules.put(
         "TestReportIdentity.w",
         RuntimeSources.read("runtime/testing/reports/TestReportIdentity.w"));

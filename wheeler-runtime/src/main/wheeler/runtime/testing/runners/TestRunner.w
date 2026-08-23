@@ -21,19 +21,20 @@ import wheeler.runtime.testing.runners.test_tag_selection;
 import wheeler.runtime.testing.test_artifact_report;
 import wheeler.runtime.testing.test_case_identity;
 import wheeler.runtime.testing.test_identity_text;
+import wheeler.runtime.testing.test_limits;
 import wheeler.runtime.testing.test_report_identity;
 import wheeler.runtime.testing.test_report_rows;
 import wheeler.runtime.testing.test_shard;
 import wheeler.runtime.testing.test_summary;
 
 classical class TestRunner {
-  private const long CASE_RESULT_BYTES = 5345;
-  private const long MAX_CASES = 64;
-  private const long MAX_COPY_BYTES = 342080;
+  private const long CASE_RESULT_BYTES = MAX_TEST_CASE_RESULT_BYTES;
+  private const long MAX_CASES = MAX_TEST_CASES;
+  private const long MAX_COPY_BYTES = MAX_TEST_REPORT_ROWS_BYTES;
   private const long MAX_PAYLOAD_BYTES = 32768;
-  private const long PUBLISHED_REPORT_BYTES = 342123;
-  private const long REPORT_ROWS_BYTES = 342080;
-  private const long SUMMARY_ROWS_BYTES = 2048;
+  private const long PUBLISHED_REPORT_BYTES = MAX_TEST_REPORT_PUBLICATION_BYTES;
+  private const long REPORT_ROWS_BYTES = MAX_TEST_REPORT_ROWS_BYTES;
+  private const long SUMMARY_ROWS_BYTES = MAX_TEST_SUMMARY_ROWS_BYTES;
 
   private long copyRange(
     borrow byteview input,
@@ -214,7 +215,7 @@ classical class TestRunner {
 
     assert(scan == bufferLength(input));
 
-    region staging = new region(/* bytes= */ 901120, /* allocations= */ 64);
+    region staging = new region(/* bytes= */ 1802240, /* allocations= */ 64);
     bytes runner = allocateBytes(staging, /* length= */ 64);
     writeAscii(
       runner,

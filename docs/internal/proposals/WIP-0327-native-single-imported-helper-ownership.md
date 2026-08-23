@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler linking, package tests |
 | Depends on | WIP-0326 |
 | Supersedes | Root-qualified one-helper imports |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0328 native 128-case test profile |
 
 ## Summary
 
@@ -86,3 +86,4 @@ Rejected. Imported ownership belongs to the compiler core and string planner, no
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0310](WIP-0310-native-multi-helper-entry-programs.md)
 - [WIP-0326](WIP-0326-native-compiler-opcode-kind-suite.md)
+- [WIP-0328](WIP-0328-native-128-case-test-profile.md)

@@ -2,11 +2,12 @@
 
 module wheeler.runtime.testing.test_report_rows;
 
+import wheeler.runtime.testing.test_limits;
 import wheeler.runtime.testing.test_report_identity;
 
 classical class TestReportRows {
-  private const long MAX_CASES = 64;
-  private const long MAX_ROW_BYTES = 342080;
+  private const long MAX_CASES = MAX_TEST_CASES;
+  private const long MAX_ROW_BYTES = MAX_TEST_REPORT_ROWS_BYTES;
 
   private long copyRange(
     borrow byteview input,
@@ -138,7 +139,7 @@ classical class TestReportRows {
     assert(bufferLength(input) == 6 + rowLength);
     assert(35 + rowLength < bufferLength(output) + 1);
 
-    region staging = new region(/* bytes= */ 684260, /* allocations= */ 6);
+    region staging = new region(/* bytes= */ 1368520, /* allocations= */ 6);
     words starts = allocate(staging, MAX_CASES);
     words lengths = allocate(staging, MAX_CASES);
     words order = allocate(staging, MAX_CASES);

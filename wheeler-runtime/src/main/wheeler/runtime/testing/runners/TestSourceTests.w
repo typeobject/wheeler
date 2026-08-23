@@ -10,9 +10,11 @@ import wheeler.lexer.scanner;
 import wheeler.runtime.testing.runners.test_discovered_descriptors;
 import wheeler.runtime.testing.runners.test_source_metadata;
 import wheeler.runtime.testing.runners.test_source_plan;
+import wheeler.runtime.testing.test_limits;
 
 classical class TestSourceTests {
-  private const long MAX_CASES = 64;
+  private const long MAX_CASES = MAX_TEST_CASES;
+  private const long MAX_TAGS = 64;
   private const long TOKEN_CASES = 94432067;
   private const long TOKEN_FALSE = 97196323;
   private const long TOKEN_TEST = 3556498;
@@ -46,6 +48,10 @@ classical class TestSourceTests {
       suffixLength = 3;
       if (9 < caseIndex) {
         suffixLength = 4;
+      }
+
+      if (99 < caseIndex) {
+        suffixLength = 5;
       }
     }
 
@@ -96,12 +102,26 @@ classical class TestSourceTests {
           return false;
         }
       } else {
-        if (descriptor[suffixStart + 1] != 48 + caseIndex / 10) {
-          return false;
-        }
+        if (caseIndex < 100) {
+          if (descriptor[suffixStart + 1] != 48 + caseIndex / 10) {
+            return false;
+          }
 
-        if (descriptor[suffixStart + 2] != 48 + caseIndex % 10) {
-          return false;
+          if (descriptor[suffixStart + 2] != 48 + caseIndex % 10) {
+            return false;
+          }
+        } else {
+          if (descriptor[suffixStart + 1] != 48 + caseIndex / 100) {
+            return false;
+          }
+
+          if (descriptor[suffixStart + 2] != 48 + caseIndex / 10 % 10) {
+            return false;
+          }
+
+          if (descriptor[suffixStart + 3] != 48 + caseIndex % 10) {
+            return false;
+          }
         }
       }
 
@@ -313,7 +333,7 @@ classical class TestSourceTests {
     assert(bufferLength(caseValues) == MAX_CASES);
     assert(bufferLength(caseStepLimits) == MAX_CASES);
     long sourceLength = validatedSourceLength(input, planStart, planLength, rootOrdinal);
-    region arena = new region(/* bytes= */ 109056, /* allocations= */ 9);
+    region arena = new region(/* bytes= */ 109568, /* allocations= */ 9);
     bytes sourceBytes = allocateBytes(arena, sourceLength);
     copyValidatedSource(input, planStart, planLength, rootOrdinal, sourceBytes);
     utf8 source = freezeUtf8(sourceBytes);
@@ -321,10 +341,10 @@ classical class TestSourceTests {
     words tokenStarts = allocate(arena, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(arena, MAX_COMPILER_TOKENS);
     words rowValues = allocate(arena, MAX_CASES);
-    words knownTags = allocate(arena, MAX_CASES);
-    words declarationMatches = allocate(arena, MAX_CASES);
-    words metadataTagStarts = allocate(arena, MAX_CASES);
-    words metadataTagEnds = allocate(arena, MAX_CASES);
+    words knownTags = allocate(arena, MAX_TAGS);
+    words declarationMatches = allocate(arena, MAX_TAGS);
+    words metadataTagStarts = allocate(arena, MAX_TAGS);
+    words metadataTagEnds = allocate(arena, MAX_TAGS);
     long tokenCount = 0;
     ScanResult scanned = scan(source, tokenKinds, tokenStarts, tokenLengths);
     match (scanned) {

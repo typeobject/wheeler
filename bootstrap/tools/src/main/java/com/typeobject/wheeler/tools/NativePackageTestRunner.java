@@ -27,6 +27,7 @@ import java.util.Set;
 
 /** Invokes native source discovery, compilation, and reporting for the fixed package profile. */
 final class NativePackageTestRunner {
+  private static final int MAX_CASES = 128;
   private static final int MAX_SOURCES = 8;
   private static final int MAX_PLAN_BYTES = 32_768;
   private static final int MAX_SOURCE_BYTES = MAX_PLAN_BYTES;
@@ -191,7 +192,7 @@ final class NativePackageTestRunner {
       discoveredCases = Math.addExact(discoveredCases, caseCount);
       outputCapacities.add(Math.addExact(43, Math.multiplyExact(caseCount, MAX_CASE_RESULT_BYTES)));
     }
-    if (discoveredCases > 64) {
+    if (discoveredCases > MAX_CASES) {
       return Optional.empty();
     }
 

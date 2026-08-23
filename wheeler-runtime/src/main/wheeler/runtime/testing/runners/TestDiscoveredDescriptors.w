@@ -2,8 +2,10 @@
 
 module wheeler.runtime.testing.runners.test_discovered_descriptors;
 
+import wheeler.runtime.testing.test_limits;
+
 classical class TestDiscoveredDescriptors {
-  private const long MAX_CASES = 64;
+  private const long MAX_CASES = MAX_TEST_CASES;
   private const long MAX_NAME_BYTES = 255;
   private const long NAME_STRIDE = 255;
 
@@ -12,8 +14,12 @@ classical class TestDiscoveredDescriptors {
       return 3;
     }
 
-    assert(row < 64);
-    return 4;
+    if (row < 100) {
+      return 4;
+    }
+
+    assert(row < MAX_CASES);
+    return 5;
   }
 
   /// Writes one selected source case name into fixed discovery storage.
@@ -84,9 +90,16 @@ classical class TestDiscoveredDescriptors {
         setByte(names, cursor, 48 + row);
         cursor += 1;
       } else {
-        setByte(names, cursor, 48 + row / 10);
-        setByte(names, cursor + 1, 48 + row % 10);
-        cursor += 2;
+        if (row < 100) {
+          setByte(names, cursor, 48 + row / 10);
+          setByte(names, cursor + 1, 48 + row % 10);
+          cursor += 2;
+        } else {
+          setByte(names, cursor, 48 + row / 100);
+          setByte(names, cursor + 1, 48 + row / 10 % 10);
+          setByte(names, cursor + 2, 48 + row % 10);
+          cursor += 3;
+        }
       }
 
       setByte(names, cursor, 93);

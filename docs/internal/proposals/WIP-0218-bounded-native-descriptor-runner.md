@@ -101,3 +101,4 @@ Rejected. Malformed trailing descriptors must reject before any product becomes 
 - [WIP-0201](WIP-0201-bounded-native-multi-case-reports.md)
 - [WIP-0217](WIP-0217-runtime-test-runner-authority.md)
 - [WIP-0219](WIP-0219-shared-runner-manifest-identity.md)
+- [WIP-0328](WIP-0328-native-128-case-test-profile.md)

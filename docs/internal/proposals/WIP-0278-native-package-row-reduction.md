@@ -97,3 +97,4 @@ Rejected. Source layout is not a compatibility API.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0268](WIP-0268-native-package-test-report-identity.md)
 - [WIP-0277](WIP-0277-canonical-native-target-rows.md)
+- [WIP-0328](WIP-0328-native-128-case-test-profile.md)

@@ -4,17 +4,18 @@ module wheeler.runtime.testing.test_report_identity;
 
 import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
+import wheeler.runtime.testing.test_limits;
 
 classical class TestReportIdentity {
   private const long CASE_FIELD_COUNT = 10;
   private const long HASH_ARENA_BYTES = 1088;
   private const long IDENTITY_BYTES = 64;
-  private const long MAX_CASES = 64;
+  private const long MAX_CASES = MAX_TEST_CASES;
   private const long MAX_DIAGNOSTIC_BYTES = 4096;
   private const long MAX_FIELD_BYTES = 255;
-  private const long MESSAGE_BYTES = 354925;
+  private const long MESSAGE_BYTES = 709741;
   private const long OUTPUT_BYTES = 32;
-  private const long STAGING_BYTES = 367277;
+  private const long STAGING_BYTES = 733357;
 
   private long hexNibble(long value) {
     if (47 < value) {

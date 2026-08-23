@@ -44,7 +44,7 @@ final class NativeTestRunnerProgram {
     for (String source : List.of(
         "TestExecutionIdentity", "TestArtifactExecutionIdentity",
         "TestCoverageIdentity", "TestIdentityText", "TestArtifactReport",
-        "TestCaseIdentity", "TestShard", "TestSummary")) {
+        "TestCaseIdentity", "TestLimits", "TestShard", "TestSummary")) {
       modules.put(source + ".w", RuntimeSources.read("runtime/testing/" + source + ".w"));
     }
     for (String source : List.of("TestReportIdentity", "TestReportRows")) {

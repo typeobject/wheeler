@@ -662,6 +662,29 @@ final class NativeCompiledTestRunnerExampleTest {
   }
 
   @Test
+  void admitsOneHundredTwentyEightDiscoveredCasesAndRejectsTheNext() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    byte[] acceptedInput = metadataOnlyDiscoveredTests(128);
+    byte[] report = execute(runner, acceptedInput);
+    assertEquals(128, Byte.toUnsignedInt(report[32]));
+    assertEquals(0, report[33]);
+
+    byte[] parameterReport = execute(runner, metadataOnlyParameterRows(128));
+    assertEquals(128, Byte.toUnsignedInt(parameterReport[32]));
+    assertEquals(0, parameterReport[33]);
+
+    byte[] executedReport = execute(runner, discoveredTests(128));
+    assertEquals(128, Byte.toUnsignedInt(executedReport[32]));
+    assertEquals(128, Byte.toUnsignedInt(executedReport[34]));
+    assertEquals(0, executedReport[36]);
+
+    byte[] rejectedInput = metadataOnlyDiscoveredTests(129);
+    VirtualMachine rejected = VirtualMachine.withBinaryInput(runner, rejectedInput, 39);
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(rejected));
+    assertArrayEquals(new byte[39], rejected.hostOutput());
+  }
+
+  @Test
   void rejectsCallerNamedNativeEntryCases() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
     byte[] input = descriptor(PASSING, new byte[0]);
@@ -711,6 +734,57 @@ final class NativeCompiledTestRunnerExampleTest {
 
     assertArrayEquals(artifactReport, compiledReport);
     assertEquals(expectedFailures, compiledReport[36]);
+  }
+
+  private static byte[] metadataOnlyParameterRows(int count) {
+    StringBuilder source = new StringBuilder("""
+        module pkg.test;
+        classical class BoundedRows {
+          test void rows(long input) cases(
+        """);
+    for (int index = 0; index < count; index++) {
+      if (0 < index) {
+        source.append(", ");
+      }
+      source.append(index);
+    }
+    source.append(") { assert(true); }\n}\n");
+    return metadataOnlyDiscoveredTests(source.toString());
+  }
+
+  private static byte[] discoveredTests(int count) {
+    StringBuilder source = new StringBuilder("""
+        module pkg.test;
+        classical class BoundedTests {
+        """);
+    for (int index = 0; index < count; index++) {
+      source.append("  test void case")
+          .append(index / 100)
+          .append(index / 10 % 10)
+          .append(index % 10)
+          .append("() { assert(true); }\n");
+    }
+    source.append("}\n");
+    return discoveredDescriptors(
+        MANIFEST,
+        List.of(new NativeTestSourcePlan.Source("src/Test.w", source.toString())),
+        List.of());
+  }
+
+  private static byte[] metadataOnlyDiscoveredTests(int count) {
+    return metadataOnlyDiscoveredTests(discoveredTests(count));
+  }
+
+  private static byte[] metadataOnlyDiscoveredTests(String source) {
+    return metadataOnlyDiscoveredTests(discoveredDescriptors(
+        MANIFEST,
+        List.of(new NativeTestSourcePlan.Source("src/Test.w", source)),
+        List.of()));
+  }
+
+  private static byte[] metadataOnlyDiscoveredTests(byte[] input) {
+    input[input.length - 1] = (byte) 252;
+    return input;
   }
 
   private static byte[] descriptor(String source, byte[] artifact) {

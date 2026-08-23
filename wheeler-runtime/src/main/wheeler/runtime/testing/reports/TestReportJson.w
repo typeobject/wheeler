@@ -2,10 +2,11 @@
 
 module wheeler.runtime.testing.test_report_json;
 
+import wheeler.runtime.testing.test_limits;
 import wheeler.runtime.testing.test_report_adapter;
 
 classical class TestReportJson {
-  private const long MAX_CASES = 64;
+  private const long MAX_CASES = MAX_TEST_CASES;
   private const long MAX_FIELD_BYTES = 4096;
   private const long LABEL_SCHEMA = 0;
   private const long LABEL_REPORT = 1;

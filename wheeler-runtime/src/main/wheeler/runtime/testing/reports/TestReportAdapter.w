@@ -3,11 +3,12 @@
 module wheeler.runtime.testing.test_report_adapter;
 
 import wheeler.core.encoding.binary;
+import wheeler.runtime.testing.test_limits;
 
 classical class TestReportAdapter {
-  private const long MAX_CASES = 64;
+  private const long MAX_CASES = MAX_TEST_CASES;
   private const long MAX_FIELD_BYTES = 4096;
-  private const long MAX_ROW_BYTES = 342080;
+  private const long MAX_ROW_BYTES = MAX_TEST_REPORT_ROWS_BYTES;
 
   /// Defines one validated complete adapter transport header.
   public record AdapterHeader(

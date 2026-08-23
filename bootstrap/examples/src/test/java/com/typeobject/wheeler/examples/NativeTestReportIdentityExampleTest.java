@@ -66,6 +66,13 @@ final class NativeTestReportIdentityExampleTest {
   }
 
   @Test
+  void admitsOneHundredTwentyEightReportRowsAndRejectsTheNext() throws Exception {
+    List<ReportCase> accepted = boundedCases(128);
+    assertArrayEquals(expected(accepted), execute(frame(accepted)));
+    assertRejected(frame(boundedCases(129)));
+  }
+
+  @Test
   void rejectsIncompleteRowsBeforePublication() throws Exception {
     ReportCase passWithDiagnostic = new ReportCase(
         "pkg", "1", "target", CASE, SOURCE, ARTIFACT, 0,
@@ -80,6 +87,27 @@ final class NativeTestReportIdentityExampleTest {
     assertRejected(frame(passWithDiagnostic));
     assertRejected(frame(failWithoutCode));
     assertRejected(frame(negativeAssertions));
+  }
+
+  private static List<ReportCase> boundedCases(int count) {
+    java.util.ArrayList<ReportCase> cases = new java.util.ArrayList<>();
+    for (int index = 0; index < count; index++) {
+      cases.add(new ReportCase(
+          "pkg",
+          "1",
+          "target::case" + index,
+          identityText(100 + index),
+          SOURCE,
+          ARTIFACT,
+          0,
+          "",
+          "",
+          1,
+          0,
+          EXECUTION,
+          COVERAGE));
+    }
+    return List.copyOf(cases);
   }
 
   private static byte[] expected(ReportCase value) throws Exception {
@@ -199,6 +227,10 @@ final class NativeTestReportIdentityExampleTest {
     Map<String, String> sources = new LinkedHashMap<>();
     CoreSources.addBinaryClosure(sources);
     sources.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
+    sources.put(
+        "TestLimits.w",
+        Files.readString(Path.of(
+            "../wheeler-runtime/src/main/wheeler/runtime/testing/TestLimits.w")));
     sources.put(
         "TestReportIdentity.w",
         Files.readString(Path.of(
