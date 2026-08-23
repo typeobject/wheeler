@@ -364,6 +364,37 @@ final class NativeCompilerNestedHelperEntryExampleTest {
   }
 
   @Test
+  void compilesPhysicalResolvedLocalAssignmentsIntoEntryByteForByte() throws Exception {
+    String opcodes = CompilerSources.read("compiler/ir/ResolvedStatements.w");
+    String assignments = CompilerSources.read(
+        "compiler/syntax/assignments/ResolvedLocalAssignments.w");
+    String root = """
+        module example.resolved_local_assignment_entry;
+        import wheeler.compiler.resolved_local_assignments;
+        classical class ResolvedLocalAssignmentEntry {
+          entry void main() {
+            boolean present = resolvedLocalAssignment(18687);
+            boolean named = resolvedLocalAssignmentNamed(17920);
+            boolean typed = resolvedLocalAssignmentBoolean(18176);
+            long target = resolvedLocalAssignmentTarget(18432);
+            assert(present);
+            assert(named);
+            assert(typed);
+            assert(target == 0);
+          }
+        }
+        """;
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] artifact = NativeModuleCompilerHarness.compile(
+        compiler, List.of(opcodes, assignments), root);
+    byte[] expected = new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+        Map.of("Opcodes.w", opcodes, "Assignments.w", assignments, "Entry.w", root),
+        "example.resolved_local_assignment_entry"));
+    assertArrayEquals(expected, artifact);
+    new VirtualMachine(new BytecodeReader().read(artifact)).run();
+  }
+
+  @Test
   void compilesPhysicalResolvedLocalReturnsIntoEntryByteForByte() throws Exception {
     String returns = CompilerSources.read("compiler/syntax/returns/ResolvedLocalReturns.w");
     String root = """

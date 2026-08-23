@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0332 |
 | Supersedes | Product-only resolved local-inequality evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0334 native compiler resolved local-assignment suite |
 
 ## Summary
 
@@ -75,3 +75,4 @@ Rejected. Independent cases preserve distinct artifact, execution, and coverage 
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0332](WIP-0332-native-compiler-resolved-local-equality-suite.md)
+- [WIP-0334](WIP-0334-native-compiler-resolved-local-assignment-suite.md)

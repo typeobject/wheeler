@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Timeout;
 /** Proves the complete checked-in compiler package suite through the native runner. */
 final class NativeCompilerPackageTest {
   @Test
-  @Timeout(value = 5, unit = TimeUnit.MINUTES)
+  @Timeout(value = 6, unit = TimeUnit.MINUTES)
   void testsThePhysicalCompilerSpineNatively() throws Exception {
     Path compiler = Path.of("wheeler-compiler");
     PackageProject project = PackageProject.load(compiler);
@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(73, result.selected());
-    assertEquals(73, result.passed());
+    assertEquals(77, result.selected());
+    assertEquals(77, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -39,6 +39,17 @@ final class NativeCompilerPackageTest {
             report, project.manifest().name(), TestReportRenderer.Format.JUNIT_XML),
         new String(result.junit(), StandardCharsets.UTF_8));
 
+    for (String name : List.of(
+        "checksResolvedAssignmentMembership",
+        "checksResolvedNamedAssignmentMembership",
+        "checksResolvedBooleanAssignmentMembership",
+        "checksResolvedAssignmentTarget")) {
+      assertCase(
+          report,
+          "nativecompilerresolvedlocalassignmenttests",
+          "native_compiler_resolved_local_assignments",
+          name);
+    }
     for (String name : List.of(
         "checksResolvedEqualityMembership",
         "checksResolvedSignedEqualityMembership",
