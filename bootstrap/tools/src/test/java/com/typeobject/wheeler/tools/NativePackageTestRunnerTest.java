@@ -38,8 +38,8 @@ class NativePackageTestRunnerTest {
 
     assertTrue(result.isPresent());
     TestReport report = result.orElseThrow().report();
-    assertEquals(36, result.orElseThrow().selected());
-    assertEquals(36, result.orElseThrow().passed());
+    assertEquals(40, result.orElseThrow().selected());
+    assertEquals(40, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
     assertEquals(result.orElseThrow().report().identity(), report.identity());
     assertEquals(
@@ -62,6 +62,18 @@ class NativePackageTestRunnerTest {
     assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
         "nativecompilercallaritytests::wheeler.compiler.tests.native_compiler_call_arity::"
             + "checksSevenArgumentAssignmentCall")));
+    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
+        "nativecompilercallkindtests::wheeler.compiler.tests.native_compiler_call_kinds::"
+            + "checksSevenArgumentSourceMembership")));
+    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
+        "nativecompilercallkindtests::wheeler.compiler.tests.native_compiler_call_kinds::"
+            + "checksSevenArgumentResolvedMembership")));
+    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
+        "nativecompilercallkindtests::wheeler.compiler.tests.native_compiler_call_kinds::"
+            + "checksSevenArgumentResolvedIdentity")));
+    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
+        "nativecompilercallkindtests::wheeler.compiler.tests.native_compiler_call_kinds::"
+            + "checksSevenArgumentResolvedTarget")));
     assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
         "nativecompilercallcolumntests::wheeler.compiler.tests.native_compiler_call_columns::"
             + "checksSevenArgumentSourceKind")));

@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0319 |
 | Supersedes | Standalone assignment-call column evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0321 native compiler call-kind suite |
 
 ## Summary
 
@@ -73,3 +73,4 @@ Rejected. Independent artifacts retain exact function and coverage evidence.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0311](WIP-0311-native-compiler-call-width-suite.md)
 - [WIP-0319](WIP-0319-native-compiler-void-call-kind-suite.md)
+- [WIP-0321](WIP-0321-native-compiler-call-kind-suite.md)

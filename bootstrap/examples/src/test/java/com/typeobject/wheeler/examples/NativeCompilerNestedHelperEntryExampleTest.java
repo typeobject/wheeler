@@ -14,6 +14,47 @@ import org.junit.jupiter.api.Test;
 /** Differential evidence for nested native scalar helpers called from an entry. */
 final class NativeCompilerNestedHelperEntryExampleTest {
   @Test
+  void compilesPhysicalAssignmentCallKindsIntoEntryByteForByte() throws Exception {
+    String identities = CompilerSources.read(
+        "compiler/syntax/calls/assignment/AssignmentCallIdentities.w");
+    String arities = CompilerSources.read(
+        "compiler/syntax/calls/assignment/AssignmentCallArities.w");
+    String columns = CompilerSources.read(
+        "compiler/syntax/calls/assignment/AssignmentCallColumns.w");
+    String kinds = CompilerSources.read(
+        "compiler/syntax/calls/assignment/AssignmentCallKinds.w");
+    String root = """
+        module example.assignment_call_kind_entry;
+        import wheeler.compiler.assignment_call_kinds;
+        classical class AssignmentCallKindEntry {
+          entry void main() {
+            boolean source = assignmentCallSourceStatement(933);
+            boolean resolved = assignmentCallStatement(41834);
+            long opcode = resolvedAssignmentCall(7, 42);
+            long target = assignmentCallTarget(41834);
+            assert(source);
+            assert(resolved);
+            assert(opcode == 41834);
+            assert(target == 42);
+          }
+        }
+        """;
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] artifact = NativeModuleCompilerHarness.compile(
+        compiler, List.of(identities, arities, columns, kinds), root);
+    byte[] expected = new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+        Map.of(
+            "Identities.w", identities,
+            "Arities.w", arities,
+            "Columns.w", columns,
+            "Kinds.w", kinds,
+            "Entry.w", root),
+        "example.assignment_call_kind_entry"));
+    assertArrayEquals(expected, artifact);
+    new VirtualMachine(new BytecodeReader().read(artifact)).run();
+  }
+
+  @Test
   void compilesPhysicalAssignmentCallColumnsIntoEntryByteForByte() throws Exception {
     String identities = CompilerSources.read(
         "compiler/syntax/calls/assignment/AssignmentCallIdentities.w");
