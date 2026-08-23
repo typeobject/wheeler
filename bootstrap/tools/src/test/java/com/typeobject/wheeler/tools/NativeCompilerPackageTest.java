@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Timeout;
 /** Proves the complete checked-in compiler package suite through the native runner. */
 final class NativeCompilerPackageTest {
   @Test
-  @Timeout(value = 8, unit = TimeUnit.MINUTES)
+  @Timeout(value = 9, unit = TimeUnit.MINUTES)
   void testsThePhysicalCompilerSpineNatively() throws Exception {
     Path compiler = Path.of("wheeler-compiler");
     PackageProject project = PackageProject.load(compiler);
@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(100, result.selected());
-    assertEquals(100, result.passed());
+    assertEquals(109, result.selected());
+    assertEquals(109, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -39,6 +39,36 @@ final class NativeCompilerPackageTest {
             report, project.manifest().name(), TestReportRenderer.Format.JUNIT_XML),
         new String(result.junit(), StandardCharsets.UTF_8));
 
+    for (String name : List.of(
+        "classifiesFinalBooleanLiteralAssertion",
+        "decodesFinalBooleanLiteralAssertionSource")) {
+      assertCase(
+          report,
+          "nativecompilerresolvedbooleanliteralassertiontests",
+          "native_compiler_resolved_boolean_literal_assertions",
+          name);
+    }
+    for (String name : List.of(
+        "classifiesFinalLocalLessThanAssertion",
+        "classifiesFinalLiteralLessThanAssertion",
+        "decodesFinalLiteralLessThanAssertionSource")) {
+      assertCase(
+          report,
+          "nativecompilerresolvedlessthanassertiontests",
+          "native_compiler_resolved_less_than_assertions",
+          name);
+    }
+    for (String name : List.of(
+        "classifiesFinalBooleanPairAssertion",
+        "classifiesFinalSignedPairAssertion",
+        "decodesFinalSignedPairAssertionSource",
+        "decodesFinalBooleanPairAssertionSource")) {
+      assertCase(
+          report,
+          "nativecompilerresolvedlocalpairassertiontests",
+          "native_compiler_resolved_local_pair_assertions",
+          name);
+    }
     for (String name : List.of(
         "checksResolvedAssignmentMembership",
         "checksResolvedNamedAssignmentMembership",
