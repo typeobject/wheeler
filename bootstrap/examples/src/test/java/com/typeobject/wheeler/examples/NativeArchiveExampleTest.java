@@ -55,6 +55,13 @@ class NativeArchiveExampleTest {
         RuntimeSources.read("runtime/testing/runners/package/TestPackageLock.w"));
     Program provenance = new WheelerCompiler().compileModuleFiles(
         provenanceModules, "wheeler.conformance.packages.locked_archive_provenance");
+    Map<String, String> sourceModules = new HashMap<>(provenanceModules);
+    sourceModules.remove("NativeLockedArchiveProvenance.w");
+    sourceModules.put(
+        "NativeLockedArchiveSource.w",
+        Files.readString(root.resolve("NativeLockedArchiveSource.w")));
+    Program sourceProjection = new WheelerCompiler().compileModuleFiles(
+        sourceModules, "wheeler.conformance.packages.locked_archive_source");
     String manifestText = """
         schema: 1
         package:
@@ -106,6 +113,22 @@ class NativeArchiveExampleTest {
         provenance, provenanceInput, /* outputCapacity= */ 1);
     provenanceMachine.run();
     assertEquals(1, provenanceMachine.hostOutput()[0]);
+
+    VirtualMachine sourceMachine = VirtualMachine.withBinaryInput(
+        sourceProjection,
+        sourceInput(rootIdentity, lock, manifest.name(), encoded, /* ordinal= */ 0),
+        /* outputCapacity= */ 32);
+    sourceMachine.run();
+    ByteBuffer projected = ByteBuffer.wrap(sourceMachine.hostOutput()).order(ByteOrder.LITTLE_ENDIAN);
+    byte[] projectedPath = new byte[projected.getInt()];
+    projected.get(projectedPath);
+    byte[] projectedSource = new byte[projected.getInt()];
+    projected.get(projectedSource);
+    assertEquals("src/Main.w", new String(projectedPath, StandardCharsets.UTF_8));
+    assertEquals(ByteBuffer.wrap(new byte[] {1, 2, 3, (byte) 255}), ByteBuffer.wrap(projectedSource));
+    assertProvenanceRejected(
+        sourceProjection,
+        sourceInput(rootIdentity, lock, manifest.name(), encoded, /* ordinal= */ 1));
 
     byte[] changedArchive = encoded.clone();
     changedArchive[changedArchive.length - 1] ^= 1;
@@ -218,6 +241,18 @@ class NativeArchiveExampleTest {
     writeLittle32(output, archive.length);
     output.writeBytes(archive);
     return output.toByteArray();
+  }
+
+  private static byte[] sourceInput(
+      String rootIdentity,
+      String lock,
+      String packageName,
+      byte[] archive,
+      int ordinal) {
+    byte[] provenance = provenanceInput(rootIdentity, lock, packageName, archive);
+    byte[] result = java.util.Arrays.copyOf(provenance, provenance.length + 1);
+    result[result.length - 1] = (byte) ordinal;
+    return result;
   }
 
   private static void writeLittle32(ByteArrayOutputStream output, int value) {

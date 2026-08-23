@@ -2,10 +2,18 @@
 
 module wheeler.packages.archive_provenance;
 
+import wheeler.core.encoding.binary;
 import wheeler.crypto.sha256;
 import wheeler.packages.archive;
 
 classical class ArchiveProvenance {
+  /// Identifies one path and source range inside a validated locked archive.
+  public record LockedArchiveEntry(
+    long pathStart,
+    long pathLength,
+    long sourceStart,
+    long sourceLength
+  ) {}
   private const long MAX_ARCHIVE_BYTES = 32768;
   private const long MAX_LOCK_BYTES = 4096;
 
@@ -264,5 +272,34 @@ classical class ArchiveProvenance {
 
     hashSha256Range(archive, /* sourceStart= */ 16, manifestLength, digest, arena);
     return digestMatchesHex(digest, lock, manifestIdentityStart);
+  }
+
+  /// Returns one entry range after repeating complete archive and lock validation.
+  public LockedArchiveEntry validatedLockedArchiveEntry(
+    borrow byteview lock,
+    borrow byteview packageName,
+    borrow byteview archive,
+    long ordinal,
+    borrow mut bytes digest,
+    borrow mut region arena
+  ) {
+    assert(validLockedArchive(lock, packageName, archive, digest, arena));
+    long manifestLength = readUnsigned(archive, /* offset= */ 8, /* width= */ 4);
+    long entryCount = readUnsigned(archive, /* offset= */ 12, /* width= */ 4);
+    assert(ordinal < entryCount);
+    long cursor = 16 + manifestLength;
+    long entry = 0;
+    while (entry < ordinal) limit 2 {
+      long priorPathLength = readUnsigned(archive, cursor, /* width= */ 4);
+      long priorSourceLength = readUnsigned(archive, cursor + 4, /* width= */ 8);
+      cursor += 12 + priorPathLength + 32 + priorSourceLength;
+      entry += 1;
+    }
+
+    long pathLength = readUnsigned(archive, cursor, /* width= */ 4);
+    long sourceLength = readUnsigned(archive, cursor + 4, /* width= */ 8);
+    long pathStart = cursor + 12;
+    long sourceStart = pathStart + pathLength + 32;
+    return new LockedArchiveEntry(pathStart, pathLength, sourceStart, sourceLength);
   }
 }

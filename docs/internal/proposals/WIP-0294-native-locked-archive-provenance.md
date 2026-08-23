@@ -9,7 +9,7 @@
 | Area | Self-hosting, package archives, package locks |
 | Depends on | WIP-0275 |
 | Supersedes | Structural lock evidence without native archive evidence |
-| Superseded by | Native external test-source transport |
+| Superseded by | WIP-0295 native locked archive source projection |
 
 ## Summary
 
@@ -79,3 +79,4 @@ Rejected. Source-plan composition and archive entry projection are separate auth
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0275](WIP-0275-native-locked-package-test-gate.md)
+- [WIP-0295](WIP-0295-native-locked-archive-source.md)
