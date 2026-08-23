@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0342 |
 | Supersedes | Product-only resolved early-comparison evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0344 native compiler resolved early-result suite |
 
 ## Summary
 
@@ -72,3 +72,4 @@ Rejected. The complete suite came within twenty-three seconds of it without exha
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0342](WIP-0342-native-compiler-resolved-assertion-suite.md)
+- [WIP-0344](WIP-0344-native-compiler-resolved-early-result-suite.md)

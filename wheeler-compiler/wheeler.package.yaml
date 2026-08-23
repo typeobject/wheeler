@@ -158,6 +158,15 @@ targets:
       - "src/test/wheeler/compiler/returns/NativeCompilerResolvedEarlyComparisonTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilerresolvedearlyresulttests"
+    root: "src/test/wheeler/compiler/returns/NativeCompilerResolvedEarlyResultTests.w"
+    module: "wheeler.compiler.tests.native_compiler_resolved_early_results"
+    sources:
+      - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
+      - "src/main/wheeler/compiler/syntax/returns/ResolvedEarlyResultKinds.w"
+      - "src/test/wheeler/compiler/returns/NativeCompilerResolvedEarlyResultTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerresolvedlessthanassertiontests"
     root: "src/test/wheeler/compiler/assertions/NativeCompilerResolvedLessThanAssertionTests.w"
     module: "wheeler.compiler.tests.native_compiler_resolved_less_than_assertions"
