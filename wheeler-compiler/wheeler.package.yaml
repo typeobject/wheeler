@@ -43,6 +43,15 @@ targets:
       - "src/main/wheeler/lexer"
     test: false
   - kind: "tool"
+    name: "nativecompilercallaritytests"
+    root: "src/test/wheeler/compiler/NativeCompilerCallArityTests.w"
+    module: "wheeler.compiler.tests.native_compiler_call_arity"
+    sources:
+      - "src/main/wheeler/compiler/syntax/calls/assignment/AssignmentCallArities.w"
+      - "src/main/wheeler/compiler/syntax/calls/assignment/AssignmentCallIdentities.w"
+      - "src/test/wheeler/compiler/NativeCompilerCallArityTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilercallsyntaxtests"
     root: "src/test/wheeler/compiler/NativeCompilerCallSyntaxTests.w"
     module: "wheeler.compiler.tests.native_compiler_call_syntax"

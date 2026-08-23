@@ -34,8 +34,8 @@ class NativePackageTestRunnerTest {
 
     assertTrue(result.isPresent());
     TestReport report = result.orElseThrow().report();
-    assertEquals(18, result.orElseThrow().selected());
-    assertEquals(18, result.orElseThrow().passed());
+    assertEquals(19, result.orElseThrow().selected());
+    assertEquals(19, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
     assertEquals(result.orElseThrow().report().identity(), report.identity());
     assertEquals(
@@ -55,6 +55,9 @@ class NativePackageTestRunnerTest {
     assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
         "nativecompilertypekindtests::wheeler.compiler.tests.native_compiler_type_kinds::"
             + "checksTypeDescriptor")));
+    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
+        "nativecompilercallaritytests::wheeler.compiler.tests.native_compiler_call_arity::"
+            + "checksSevenArgumentAssignmentCall")));
   }
 
   @Test

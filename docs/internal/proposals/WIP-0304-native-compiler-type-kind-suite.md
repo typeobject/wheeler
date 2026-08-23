@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler testing, imported callables |
 | Depends on | WIP-0293 and WIP-0303 |
 | Supersedes | Seventeen-case native compiler package suite |
-| Superseded by | Additional native compiler source partitions |
+| Superseded by | WIP-0305 native compiler call-arity suite |
 
 ## Summary
 
@@ -74,3 +74,4 @@ Rejected. The spine already occupies the eight-source compiler boundary with its
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0293](WIP-0293-native-compiler-call-syntax-suite.md)
 - [WIP-0303](WIP-0303-native-test-manifest-bound.md)
+- [WIP-0305](WIP-0305-native-compiler-call-arity-suite.md)
