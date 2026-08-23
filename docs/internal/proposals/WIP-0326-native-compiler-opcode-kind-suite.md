@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0325 |
 | Supersedes | Constant-only opcode package coverage |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0327 native single imported helper ownership |
 
 ## Summary
 
@@ -74,3 +74,4 @@ Rejected. Constants and arithmetic ranges do not replace the physical predicates
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0325](WIP-0325-native-compiler-instruction-form-suite.md)
+- [WIP-0327](WIP-0327-native-single-imported-helper-ownership.md)

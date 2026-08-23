@@ -113,6 +113,14 @@ targets:
       - "src/test/wheeler/compiler/helpers/NativeCompilerHelperSignatureTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompileridentifierstarttests"
+    root: "src/test/wheeler/compiler/syntax/NativeCompilerIdentifierStartTests.w"
+    module: "wheeler.compiler.tests.native_compiler_identifier_starts"
+    sources:
+      - "src/main/wheeler/compiler/syntax/IdentifierStarts.w"
+      - "src/test/wheeler/compiler/syntax/NativeCompilerIdentifierStartTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerinstructionformtests"
     root: "src/test/wheeler/compiler/ir/NativeCompilerInstructionFormTests.w"
     module: "wheeler.compiler.tests.native_compiler_instruction_forms"

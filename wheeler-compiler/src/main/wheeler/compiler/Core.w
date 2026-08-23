@@ -310,7 +310,12 @@ classical class CompilerCore {
     SourceRange moduleName = new SourceRange(moduleRange[0], moduleRange[1]);
     StringTablePlan strings = planStringTable(source, program, moduleName);
     LibraryStringPlan libraryStrings = planLibraryStrings(source, program, moduleName, owners);
-    if (1 < program.helperCount) {
+    boolean useLibraryStrings = 1 < program.helperCount;
+    if (0 < owners.ownerCount) {
+      useLibraryStrings = true;
+    }
+
+    if (useLibraryStrings) {
       if (libraryStrings.valid == 0) {
         assert(0 == 1);
       }
@@ -326,7 +331,7 @@ classical class CompilerCore {
     long proofIndex = strings.proofIndex;
     long mainIndex = strings.mainIndex;
     long stringsLength = strings.encodedLength;
-    if (1 < program.helperCount) {
+    if (useLibraryStrings) {
       nameIndex = libraryStrings.nameIndex;
       helperIndex = libraryStrings.helperIndices[0];
       mainIndex = libraryStrings.entryIndex;
@@ -481,7 +486,7 @@ classical class CompilerCore {
     cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 0, ENCODING_WIDTH_U32);
     cursor = writeUnsignedLittleEndian(output, cursor, /* value= */ 4000000, ENCODING_WIDTH_U64);
 
-    if (1 < program.helperCount) {
+    if (useLibraryStrings) {
       cursor = writeLibraryStrings(
         output,
         cursor,

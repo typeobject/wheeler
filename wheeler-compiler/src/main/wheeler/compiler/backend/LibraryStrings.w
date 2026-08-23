@@ -1,4 +1,4 @@
-//! Plans canonical string tables for bounded multi-helper libraries.
+//! Plans canonical string tables for bounded helper libraries.
 
 module wheeler.compiler.library_strings;
 
@@ -229,7 +229,7 @@ classical class LibraryStrings {
     return index;
   }
 
-  /// Computes canonical indices and encoded width for two through twenty-three helpers.
+  /// Computes canonical indices and encoded width for one through twenty-three helpers.
   public LibraryStringPlan planLibraryStrings(
     borrow utf8 source,
     MinimalProgram program,
@@ -238,10 +238,8 @@ classical class LibraryStrings {
   ) {
     long stringCount = program.helperCount + 2;
     long valid = 1;
-    if (2 < program.helperCount) {} else {
-      if (program.helperCount == 2) {} else {
-        valid = 0;
-      }
+    if (0 < program.helperCount) {} else {
+      valid = 0;
     }
 
     if (program.helperCount < MAX_HELPERS + 1) {} else {
@@ -283,14 +281,18 @@ classical class LibraryStrings {
       FIRST_HELPER,
       stringCount
     );
-    long secondIndex = candidateIndex(
-      source,
-      program,
-      rootModule,
-      owners,
-      FIRST_HELPER + 1,
-      stringCount
-    );
+    long secondIndex = 0;
+    if (1 < program.helperCount) {
+      secondIndex = candidateIndex(
+        source,
+        program,
+        rootModule,
+        owners,
+        FIRST_HELPER + 1,
+        stringCount
+      );
+    }
+
     long thirdIndex = 0;
     long fourthIndex = 0;
     long fifthIndex = 0;

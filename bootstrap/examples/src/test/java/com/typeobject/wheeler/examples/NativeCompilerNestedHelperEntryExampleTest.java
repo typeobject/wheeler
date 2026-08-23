@@ -307,6 +307,28 @@ final class NativeCompilerNestedHelperEntryExampleTest {
   }
 
   @Test
+  void compilesPhysicalIdentifierStartsIntoEntryByteForByte() throws Exception {
+    String starts = CompilerSources.read("compiler/syntax/IdentifierStarts.w");
+    String root = """
+        module example.identifier_start_entry;
+        import wheeler.compiler.identifier_starts;
+        classical class IdentifierStartEntry {
+          entry void main() {
+            boolean lower = identifierStart(122);
+            assert(lower);
+          }
+        }
+        """;
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] artifact = NativeModuleCompilerHarness.compile(compiler, List.of(starts), root);
+    byte[] expected = new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+        Map.of("Starts.w", starts, "Entry.w", root),
+        "example.identifier_start_entry"));
+    assertArrayEquals(expected, artifact);
+    new VirtualMachine(new BytecodeReader().read(artifact)).run();
+  }
+
+  @Test
   void compilesPhysicalOpcodeKindsIntoEntryByteForByte() throws Exception {
     String opcodes = CompilerSources.read("compiler/ir/Opcodes.w");
     String kinds = CompilerSources.read("compiler/ir/OpcodeKinds.w");
