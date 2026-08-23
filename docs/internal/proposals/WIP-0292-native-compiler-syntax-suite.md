@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler testing, physical source coverage |
 | Depends on | WIP-0291 |
 | Supersedes | One-target native compiler package suite |
-| Superseded by | Additional native compiler source partitions |
+| Superseded by | WIP-0293 native compiler call syntax suite |
 
 ## Summary
 
@@ -81,3 +81,4 @@ Rejected. Structural gates must represent the source they admit.
 - [WIP-0279](WIP-0279-native-compiler-package-suite.md)
 - [WIP-0285](WIP-0285-native-compiler-callable-suite.md)
 - [WIP-0291](WIP-0291-native-test-junit.md)
+- [WIP-0293](WIP-0293-native-compiler-call-syntax-suite.md)

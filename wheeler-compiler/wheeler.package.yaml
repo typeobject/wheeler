@@ -43,6 +43,16 @@ targets:
       - "src/main/wheeler/lexer"
     test: false
   - kind: "tool"
+    name: "nativecompilercallsyntaxtests"
+    root: "src/test/wheeler/compiler/NativeCompilerCallSyntaxTests.w"
+    module: "wheeler.compiler.tests.native_compiler_call_syntax"
+    sources:
+      - "src/main/wheeler/compiler/closure/layouts/source/carriers/LoopBodyLayouts.w"
+      - "src/main/wheeler/compiler/syntax/calls/VoidCallSourceKinds.w"
+      - "src/main/wheeler/compiler/syntax/calls/assignment/AssignmentCallIdentities.w"
+      - "src/test/wheeler/compiler/NativeCompilerCallSyntaxTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerspinetests"
     root: "src/test/wheeler/compiler/NativeCompilerSpineTests.w"
     module: "wheeler.compiler.tests.native_compiler_spine"

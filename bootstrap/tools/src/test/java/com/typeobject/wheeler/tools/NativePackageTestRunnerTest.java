@@ -31,8 +31,8 @@ class NativePackageTestRunnerTest {
 
     assertTrue(result.isPresent());
     TestReport report = result.orElseThrow().report();
-    assertEquals(14, result.orElseThrow().selected());
-    assertEquals(14, result.orElseThrow().passed());
+    assertEquals(17, result.orElseThrow().selected());
+    assertEquals(17, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
     assertEquals(result.orElseThrow().report().identity(), report.identity());
     assertEquals(
