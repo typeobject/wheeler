@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0316 |
 | Supersedes | Standalone void-call source-form evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0319 native compiler void-call kind suite |
 
 ## Summary
 
@@ -74,3 +74,4 @@ Rejected. Bounded directory shape keeps source ownership visible.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0293](WIP-0293-native-compiler-call-syntax-suite.md)
 - [WIP-0316](WIP-0316-native-compiler-void-call-source-width-suite.md)
+- [WIP-0319](WIP-0319-native-compiler-void-call-kind-suite.md)

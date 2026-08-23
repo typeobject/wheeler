@@ -121,6 +121,14 @@ targets:
       - "src/test/wheeler/compiler/NativeCompilerTypeKindTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilervoidcallkindtests"
+    root: "src/test/wheeler/compiler/calls/NativeCompilerVoidCallKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_void_call_kinds"
+    sources:
+      - "src/main/wheeler/compiler/syntax/calls/VoidCallKinds.w"
+      - "src/test/wheeler/compiler/calls/NativeCompilerVoidCallKindTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilervoidcalloperandtests"
     root: "src/test/wheeler/compiler/NativeCompilerVoidCallOperandTests.w"
     module: "wheeler.compiler.tests.native_compiler_void_call_operand"

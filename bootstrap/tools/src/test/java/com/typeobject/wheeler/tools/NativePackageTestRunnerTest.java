@@ -38,8 +38,8 @@ class NativePackageTestRunnerTest {
 
     assertTrue(result.isPresent());
     TestReport report = result.orElseThrow().report();
-    assertEquals(31, result.orElseThrow().selected());
-    assertEquals(31, result.orElseThrow().passed());
+    assertEquals(34, result.orElseThrow().selected());
+    assertEquals(34, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
     assertEquals(result.orElseThrow().report().identity(), report.identity());
     assertEquals(
@@ -74,6 +74,15 @@ class NativePackageTestRunnerTest {
     assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
         "nativecompilercallwidthtests::wheeler.compiler.tests.native_compiler_call_widths::"
             + "checksSevenArgumentLocalWidth")));
+    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
+        "nativecompilervoidcallkindtests::wheeler.compiler.tests.native_compiler_void_call_kinds::"
+            + "checksSevenArgumentResolvedMembership")));
+    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
+        "nativecompilervoidcallkindtests::wheeler.compiler.tests.native_compiler_void_call_kinds::"
+            + "checksSevenArgumentResolvedArity")));
+    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
+        "nativecompilervoidcallkindtests::wheeler.compiler.tests.native_compiler_void_call_kinds::"
+            + "checksThreeArgumentResolvedSource")));
     assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
         "nativecompilervoidcalloperandtests::"
             + "wheeler.compiler.tests.native_compiler_void_call_operand::"
@@ -126,10 +135,9 @@ class NativePackageTestRunnerTest {
   @Test
   void enforcesNativeManifestByteLimit() throws Exception {
     Path admittedRoot = temporary.resolve("native-large-manifest-tests");
-    PackageProject admitted = largeManifestProject(admittedRoot, 2);
+    PackageProject admitted = largeManifestProject(admittedRoot, 6, 2299);
     long admittedLength = Files.size(admittedRoot.resolve("wheeler.package.yaml"));
-    assertTrue(4096 < admittedLength);
-    assertTrue(admittedLength < 8193);
+    assertEquals(12288, admittedLength);
     var result = NativePackageTestRunner.run(
         admittedRoot, admitted.manifest(), 0, 1, Set.of());
     assertTrue(result.isPresent());
@@ -137,8 +145,8 @@ class NativePackageTestRunnerTest {
     assertEquals(1, result.orElseThrow().passed());
 
     Path rejectedRoot = temporary.resolve("native-oversized-manifest-tests");
-    PackageProject rejected = largeManifestProject(rejectedRoot, 5);
-    assertTrue(8192 < Files.size(rejectedRoot.resolve("wheeler.package.yaml")));
+    PackageProject rejected = largeManifestProject(rejectedRoot, 7, 1900);
+    assertTrue(12288 < Files.size(rejectedRoot.resolve("wheeler.package.yaml")));
     assertThrows(
         VmTrap.class,
         () -> NativePackageTestRunner.run(
@@ -862,15 +870,15 @@ class NativePackageTestRunnerTest {
     assertEquals(1, report.passed());
   }
 
-  private static PackageProject largeManifestProject(Path root, int capabilityCount)
-      throws Exception {
+  private static PackageProject largeManifestProject(
+      Path root, int capabilityCount, int lastPathLength) throws Exception {
     Files.createDirectories(root.resolve("src"));
     StringBuilder capabilities = new StringBuilder();
     for (int index = 0; index < capabilityCount; index++) {
       capabilities.append("  - name: \"build.%c\"\n    path: \"%c/%s\"\n".formatted(
           'a' + index,
           'a' + index,
-          "x".repeat(1900)));
+          "x".repeat(index + 1 == capabilityCount ? lastPathLength : 1900)));
     }
     String manifest = """
         schema: 1

@@ -9,7 +9,7 @@
 | Area | Self-hosting, package tests, transport limits |
 | Depends on | WIP-0302 |
 | Supersedes | 4,096-byte native test manifest transport |
-| Superseded by | Broader native package test manifests |
+| Superseded by | WIP-0318 12,288-byte native test manifest bound |
 
 ## Summary
 
@@ -76,3 +76,4 @@ Rejected. Renaming targets and omitting exact sources would hide the boundary ra
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0220](WIP-0220-native-runner-manifest-hashing.md)
 - [WIP-0302](WIP-0302-native-transitive-archive-closure.md)
+- [WIP-0318](WIP-0318-native-test-manifest-bound.md)
