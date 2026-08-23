@@ -574,6 +574,25 @@ class NativePackageTestRunnerTest {
   }
 
   @Test
+  void invokesOneTransitiveLockedImportNatively() throws Exception {
+    var fixture = NativeTwoPackageExternalFixture.createTransitive(
+        temporary.resolve("native-transitive-external-package-tests"));
+    var locked = LockedPackageSet.load(fixture.root(), fixture.project().manifest());
+    var selected = locked.fixedNativeArchives(fixture.modules());
+    assertEquals(2, selected.size());
+    assertTrue(locked.fixedNativeArchives(Set.of("demo.b.constants")).isEmpty());
+
+    var result = NativePackageTestRunner.run(
+        fixture.root(), fixture.project().manifest(), 0, 1, Set.of());
+
+    assertTrue(result.isPresent());
+    assertEquals(1, result.orElseThrow().selected());
+    assertEquals(1, result.orElseThrow().passed());
+    assertEquals(0, result.orElseThrow().failed());
+    assertEquals(1, result.orElseThrow().report().cases().getFirst().assertions());
+  }
+
+  @Test
   void invokesNativeDiscoveryAcrossCanonicalLocalImports() throws Exception {
     Path project = temporary.resolve("native-import-tests");
     Files.createDirectories(project.resolve("src"));

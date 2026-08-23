@@ -105,6 +105,119 @@ final class NativeTwoPackageExternalFixture {
     return new Fixture(project, PackageProject.load(project));
   }
 
+  static Fixture createTransitive(Path project) throws Exception {
+    Files.createDirectories(project.resolve("src"));
+    String manifestText = """
+        schema: 1
+        package:
+          name: "demo.native.external.transitive"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "tool"
+            name: "laws"
+            root: "src/Main.w"
+            module: "demo.native.external.transitive.tests"
+            sources:
+              - "src/Main.w"
+            test: true
+        dependencies:
+          - kind: "normal"
+            name: "demo.a"
+            version: "=1.0.0"
+        capabilities: []
+        """;
+    Files.writeString(project.resolve("wheeler.package.yaml"), manifestText);
+    Files.writeString(project.resolve("src/Main.w"), """
+        module demo.native.external.transitive.tests;
+        import demo.a.constants;
+        classical class NativeTransitiveImportTests {
+          test void readsThroughLockedDependency() {
+            long answer = MARKER_A;
+            assert(answer == 41);
+          }
+        }
+        """);
+    PackageManifest root = new PackageManifestParser().parse(manifestText);
+    PackageArchive codec = new PackageArchive();
+    LockedArchive second = archive(
+        codec,
+        "demo.b",
+        "demo.b.constants",
+        "ANSWER_B",
+        42,
+        "src/B.w");
+    String firstManifestText = """
+        schema: 1
+        package:
+          name: "demo.a"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "library"
+            name: "library"
+            root: "src/A.w"
+            module: "demo.a.constants"
+            sources:
+              - "src/A.w"
+            test: false
+        dependencies:
+          - kind: "normal"
+            name: "demo.b"
+            version: "=1.0.0"
+        capabilities: []
+        """;
+    PackageManifest firstManifest = new PackageManifestParser().parse(firstManifestText);
+    String firstSource = """
+        module demo.a.constants;
+        import demo.b.constants;
+        classical class ConstantsA {
+          public const long MARKER_A = 41;
+        }
+        """;
+    byte[] firstBytes = codec.encode(
+        firstManifest,
+        Map.of("src/A.w", firstSource.getBytes(StandardCharsets.UTF_8)));
+    LockedArchive first = new LockedArchive(
+        "demo.a", firstManifest, codec.identity(firstBytes), firstBytes);
+    String lock = ("""
+        schema: 3
+        root: "%s"
+        packages:
+          - name: "demo.a"
+            version: "1.0.0"
+            repository: "%s"
+            snapshot: "%s"
+            archive: "%s"
+            manifest: "%s"
+            dependencies:
+              - "demo.b"
+          - name: "demo.b"
+            version: "1.0.0"
+            repository: "%s"
+            snapshot: "%s"
+            archive: "%s"
+            manifest: "%s"
+            dependencies: []
+        """).formatted(
+            root.identity(),
+            "1".repeat(64),
+            "2".repeat(64),
+            first.identity(),
+            first.manifest().identity(),
+            "1".repeat(64),
+            "2".repeat(64),
+            second.identity(),
+            second.manifest().identity());
+    Files.writeString(project.resolve("wheeler.package.lock.yaml"), lock);
+    Path vendor = project.resolve("vendor");
+    Files.createDirectory(vendor);
+    Files.writeString(vendor.resolve("wheeler.package.lock.yaml"), lock);
+    writeArchive(vendor, first);
+    writeArchive(vendor, second);
+    return new Fixture(project, PackageProject.load(project));
+  }
+
   private static LockedArchive archive(
       PackageArchive codec,
       String packageName,
@@ -150,6 +263,9 @@ final class NativeTwoPackageExternalFixture {
 
   record Fixture(Path root, PackageProject project) {
     Set<String> modules() {
+      if (project.manifest().name().equals("demo.native.external.transitive")) {
+        return Set.of("demo.a.constants");
+      }
       return Set.of("demo.a.constants", "demo.b.constants");
     }
   }

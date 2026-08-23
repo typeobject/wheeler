@@ -207,58 +207,143 @@ final class LockedPackageSet {
     if (moduleNames.isEmpty() || 4 < moduleNames.size()) {
       return List.of();
     }
-    List<NativeArchiveSources> selected = new ArrayList<>();
-    Set<String> foundModules = new HashSet<>();
     PackageArchive codec = new PackageArchive();
-    Map<String, String> directSources = directModuleSources();
-    for (Dependency dependency : rootDependencies.stream()
-        .filter(candidate -> candidate.kind() == DependencyKind.NORMAL)
-        .sorted(java.util.Comparator.comparing(Dependency::name)).toList()) {
-      DecodedPackage decoded = packages.get(dependency.name());
-      if (decoded == null || decoded.entries().isEmpty() || 2 < decoded.entries().size()) {
+    Map<String, NativeArchiveCandidate> providers = new HashMap<>();
+    Map<String, NativeArchiveCandidate> candidates = new TreeMap<>();
+    for (String packageName : buildOrder) {
+      DecodedPackage decoded = packages.get(packageName);
+      if (decoded.entries().isEmpty() || 2 < decoded.entries().size()) {
         continue;
       }
-      List<NativeModuleEntry> entries = new ArrayList<>();
-      Set<String> packageModules = new HashSet<>();
+      Set<String> libraryPaths = librarySourcePaths(decoded);
+      Map<String, NativeModuleEntry> moduleEntries = new TreeMap<>();
       for (Map.Entry<String, byte[]> entry : decoded.entries().entrySet()) {
         String text = new String(entry.getValue(), StandardCharsets.UTF_8);
         if (!java.util.Arrays.equals(entry.getValue(), text.getBytes(StandardCharsets.UTF_8))
-            || !directSources.containsValue(text)) {
-          entries.clear();
+            || !libraryPaths.contains(entry.getKey())) {
+          moduleEntries.clear();
           break;
         }
-        String declared = text.lines()
-            .map(String::strip)
-            .filter(line -> line.startsWith("module ") && line.endsWith(";"))
-            .map(line -> line.substring(7, line.length() - 1))
-            .findFirst().orElse("");
-        if (!moduleNames.contains(declared)
-            || !packageModules.add(declared)
-            || foundModules.contains(declared)) {
-          entries.clear();
+        String declared = declaredModule(text);
+        if (declared.isEmpty()
+            || moduleEntries.put(declared, new NativeModuleEntry(entry.getKey(), text)) != null) {
+          moduleEntries.clear();
           break;
         }
-        entries.add(new NativeModuleEntry(entry.getKey(), text));
       }
-      if (entries.size() != decoded.entries().size()) {
+      if (moduleEntries.size() != decoded.entries().size()) {
         continue;
       }
       byte[] archive = codec.encode(decoded.manifest(), decoded.entries());
       if (!codec.identity(archive).equals(decoded.identity())) {
         throw new PackageFormatException(
-            "Canonical archive reconstruction changed " + dependency.name());
+            "Canonical archive reconstruction changed " + packageName);
       }
-      foundModules.addAll(packageModules);
-      selected.add(new NativeArchiveSources(dependency.name(), entries, archive));
+      Set<String> dependencies = decoded.manifest().dependencies().stream()
+          .filter(dependency -> dependency.kind() == DependencyKind.NORMAL)
+          .map(Dependency::name)
+          .collect(java.util.stream.Collectors.toUnmodifiableSet());
+      NativeArchiveSources sources = new NativeArchiveSources(
+          packageName, List.copyOf(moduleEntries.values()), archive);
+      NativeArchiveCandidate candidate = new NativeArchiveCandidate(
+          sources, Map.copyOf(moduleEntries), dependencies);
+      candidates.put(packageName, candidate);
+      for (String module : moduleEntries.keySet()) {
+        if (providers.put(module, candidate) != null) {
+          throw new PackageFormatException("Duplicate locked module " + module);
+        }
+      }
+    }
+
+    Set<String> directPackages = rootDependencies.stream()
+        .filter(dependency -> dependency.kind() == DependencyKind.NORMAL)
+        .map(Dependency::name)
+        .collect(java.util.stream.Collectors.toUnmodifiableSet());
+    java.util.ArrayDeque<String> pending = new java.util.ArrayDeque<>();
+    Set<String> neededModules = new TreeSet<>();
+    for (String module : moduleNames.stream().sorted().toList()) {
+      NativeArchiveCandidate provider = providers.get(module);
+      if (provider == null || !directPackages.contains(provider.sources().packageName())) {
+        return List.of();
+      }
+      neededModules.add(module);
+      pending.add(module);
+    }
+
+    Map<String, NativeArchiveSources> selected = new TreeMap<>();
+    while (!pending.isEmpty()) {
+      String module = pending.removeFirst();
+      NativeArchiveCandidate candidate = providers.get(module);
+      if (candidate == null) {
+        return List.of();
+      }
+      selected.putIfAbsent(candidate.sources().packageName(), candidate.sources());
       if (2 < selected.size()) {
         return List.of();
       }
+      for (String imported : importedModules(candidate.entries().get(module).text())) {
+        if (candidate.entries().containsKey(imported)) {
+          if (neededModules.add(imported)) {
+            pending.add(imported);
+          }
+          continue;
+        }
+        NativeArchiveCandidate provider = providers.get(imported);
+        if (provider == null
+            || !candidate.dependencies().contains(provider.sources().packageName())) {
+          return List.of();
+        }
+        if (neededModules.add(imported)) {
+          pending.add(imported);
+        }
+      }
     }
-    if (!foundModules.equals(moduleNames)) {
-      return List.of();
+    for (String packageName : selected.keySet()) {
+      if (!neededModules.containsAll(candidates.get(packageName).entries().keySet())) {
+        return List.of();
+      }
     }
-    return List.copyOf(selected);
+    return List.copyOf(selected.values());
   }
+
+  private static Set<String> librarySourcePaths(DecodedPackage dependency) {
+    Set<String> result = new TreeSet<>();
+    for (PackageManifest.Target target : dependency.manifest().targets()) {
+      if (target.kind() == TargetKind.LIBRARY) {
+        if (!target.modular()) {
+          throw new PackageFormatException(
+              "Library target must declare an exact module source set: " + target.name());
+        }
+        for (String path : TargetSourceSet.strictText(target, dependency.entries()).keySet()) {
+          if (!result.add(path)) {
+            throw new PackageFormatException("Duplicate library source " + path);
+          }
+        }
+      }
+    }
+    return Set.copyOf(result);
+  }
+
+  private static String declaredModule(String text) {
+    return text.lines()
+        .map(String::strip)
+        .filter(line -> line.startsWith("module ") && line.endsWith(";"))
+        .map(line -> line.substring(7, line.length() - 1))
+        .findFirst().orElse("");
+  }
+
+  private static List<String> importedModules(String text) {
+    return text.lines()
+        .map(String::strip)
+        .filter(line -> line.startsWith("import ") && line.endsWith(";"))
+        .map(line -> line.substring(7, line.length() - 1))
+        .toList();
+  }
+
+  private record NativeArchiveCandidate(
+      NativeArchiveSources sources,
+      Map<String, NativeModuleEntry> entries,
+      Set<String> dependencies) {}
 
   private Map<String, String> allModuleSources() {
     return allModuleSourcesExcept(null);

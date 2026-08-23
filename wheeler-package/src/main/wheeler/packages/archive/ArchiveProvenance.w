@@ -366,15 +366,24 @@ classical class ArchiveProvenance {
         return false;
       }
 
-      if (
-        exactLine(
+      boolean capabilities = exactLine(
+        archive,
+        manifestCursor,
+        manifestLineEnd,
+        /* length= */ 13,
+        /* hash= */ 1665807620
+      );
+      if (capabilities == false) {
+        capabilities = exactLine(
           archive,
           manifestCursor,
           manifestLineEnd,
-          /* length= */ 13,
-          /* hash= */ 1665807620
-        )
-      ) {
+          /* length= */ 16,
+          /* hash= */ 2054217082
+        );
+      }
+
+      if (capabilities) {
         scanning = false;
       } else {
         if (

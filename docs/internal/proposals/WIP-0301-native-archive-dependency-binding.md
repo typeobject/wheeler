@@ -9,7 +9,7 @@
 | Area | Self-hosting, package archives, dependency graphs |
 | Depends on | WIP-0300 |
 | Supersedes | Archive identity without archive-to-lock edge binding |
-| Superseded by | Native transitive archive closure transport |
+| Superseded by | WIP-0302 native transitive archive closure |
 
 ## Summary
 
@@ -77,3 +77,4 @@ Rejected. Native package tests compile against normal runtime dependencies. Buil
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0294](WIP-0294-native-locked-archive-provenance.md)
 - [WIP-0300](WIP-0300-native-two-package-import.md)
+- [WIP-0302](WIP-0302-native-transitive-archive-closure.md)

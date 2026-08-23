@@ -190,7 +190,7 @@ Resolution:
 
 A locked build does not re-resolve. If a locked archive disappears or has different bytes, the build fails. It does not choose a convenient replacement.
 
-WIP-0294 adds Wheeler-native archive provenance at the test boundary. The package authority validates canonical archive framing and entry digests, hashes the complete archive and embedded manifest, and binds both identities plus the manifest package name to one exact lock row. WIP-0295 projects one exact checked path and source range from that archive. WIP-0296 composes that entry into a canonical package-qualified source plan. WIP-0297 authorizes, compiles, and executes one external test import natively. WIP-0298 carries that path through `wheeler test` for one exact vendored direct dependency. WIP-0299 closes the same path over both entries of one bounded archive and an external-to-external import edge. WIP-0300 transports complete archives from two direct package namespaces. WIP-0301 binds each archive manifest's normal dependency names to its exact lock-row edges.
+WIP-0294 adds Wheeler-native archive provenance at the test boundary. The package authority validates canonical archive framing and entry digests, hashes the complete archive and embedded manifest, and binds both identities plus the manifest package name to one exact lock row. WIP-0295 projects one exact checked path and source range from that archive. WIP-0296 composes that entry into a canonical package-qualified source plan. WIP-0297 authorizes, compiles, and executes one external test import natively. WIP-0298 carries that path through `wheeler test` for one exact vendored direct dependency. WIP-0299 closes the same path over both entries of one bounded archive and an external-to-external import edge. WIP-0300 transports complete archives from two direct package namespaces. WIP-0301 binds each archive manifest's normal dependency names to its exact lock-row edges. WIP-0302 follows one such edge to compile a bounded transitive archive closure without granting transitive imports to root source.
 
 The initial resolver may require one version of each package identity in a final graph. Multiple-version support requires explicit type and resource identity rules and is deferred until demonstrated necessary.
 
@@ -555,6 +555,7 @@ Worker count and native scheduling do not enter package identity. Required physi
 - [WIP-0299](WIP-0299-native-two-source-archive-import.md)
 - [WIP-0300](WIP-0300-native-two-package-import.md)
 - [WIP-0301](WIP-0301-native-archive-dependency-binding.md)
+- [WIP-0302](WIP-0302-native-transitive-archive-closure.md)
 - [WIP-0025](WIP-0025-native-ffi-and-system-integration.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
