@@ -149,6 +149,24 @@ targets:
       - "src/test/wheeler/compiler/returns/NativeCompilerNamedBooleanReturnKindTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilernamedliteralcomparisonkindtests"
+    root: "src/test/wheeler/compiler/conditionals/NativeCompilerNamedLiteralComparisonKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_named_literal_comparison_kinds"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/conditionals/NamedLiteralComparisonKinds.w"
+      - "src/test/wheeler/compiler/conditionals/NativeCompilerNamedLiteralComparisonKindTests.w"
+    test: true
+  - kind: "tool"
+    name: "nativecompilernamedlocalconditionalvaluetests"
+    root: "src/test/wheeler/compiler/conditionals/NativeCompilerNamedLocalConditionalValueTests.w"
+    module: "wheeler.compiler.tests.native_compiler_named_local_conditional_values"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/conditionals/NamedLocalConditionalValues.w"
+      - "src/test/wheeler/compiler/conditionals/NativeCompilerNamedLocalConditionalValueTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilernamedreturnarithmetickindtests"
     root: "src/test/wheeler/compiler/returns/NativeCompilerNamedReturnArithmeticKindTests.w"
     module: "wheeler.compiler.tests.native_compiler_named_return_arithmetic_kinds"
@@ -228,6 +246,15 @@ targets:
       - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
       - "src/main/wheeler/compiler/syntax/assignments/ResolvedLocalAssignments.w"
       - "src/test/wheeler/compiler/assignments/NativeCompilerResolvedLocalAssignmentTests.w"
+    test: true
+  - kind: "tool"
+    name: "nativecompilerresolvedlocalconditionaloperandtests"
+    root: "src/test/wheeler/compiler/conditionals/NativeCompilerResolvedLocalConditionalOperandTests.w"
+    module: "wheeler.compiler.tests.native_compiler_resolved_local_conditional_operands"
+    sources:
+      - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
+      - "src/main/wheeler/compiler/syntax/conditionals/ResolvedLocalConditionalOperands.w"
+      - "src/test/wheeler/compiler/conditionals/NativeCompilerResolvedLocalConditionalOperandTests.w"
     test: true
   - kind: "tool"
     name: "nativecompilerresolvedlocalcopytests"

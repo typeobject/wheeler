@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Timeout;
 /** Proves the complete checked-in compiler package suite through the native runner. */
 final class NativeCompilerPackageTest {
   @Test
-  @Timeout(value = 13, unit = TimeUnit.MINUTES)
+  @Timeout(value = 14, unit = TimeUnit.MINUTES)
   void testsThePhysicalCompilerSpineNatively() throws Exception {
     Path compiler = Path.of("wheeler-compiler");
     PackageProject project = PackageProject.load(compiler);
@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(136, result.selected());
-    assertEquals(136, result.passed());
+    assertEquals(139, result.selected());
+    assertEquals(139, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -39,6 +39,21 @@ final class NativeCompilerPackageTest {
             report, project.manifest().name(), TestReportRenderer.Format.JUNIT_XML),
         new String(result.junit(), StandardCharsets.UTF_8));
 
+    assertCase(
+        report,
+        "nativecompilernamedliteralcomparisonkindtests",
+        "native_compiler_named_literal_comparison_kinds",
+        "classifiesFinalLiteralComparisonConditional");
+    assertCase(
+        report,
+        "nativecompilernamedlocalconditionalvaluetests",
+        "native_compiler_named_local_conditional_values",
+        "classifiesFinalNamedConditionalValue");
+    assertCase(
+        report,
+        "nativecompilerresolvedlocalconditionaloperandtests",
+        "native_compiler_resolved_local_conditional_operands",
+        "decodesFinalConditionalSource");
     for (String name : List.of(
         "classifiesFinalBooleanEqualityReturn",
         "classifiesFinalBooleanInequalityReturn",
