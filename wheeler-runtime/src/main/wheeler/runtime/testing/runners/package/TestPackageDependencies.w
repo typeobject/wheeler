@@ -5,7 +5,7 @@ module wheeler.runtime.testing.runners.test_package_dependencies;
 import wheeler.runtime.testing.runners.test_package_versions;
 
 classical class TestPackageDependencies {
-  private const long MAX_MANIFEST_BYTES = 20480;
+  private const long MAX_MANIFEST_BYTES = 24576;
   private const long MAX_DEPENDENCIES = 64;
 
   private long rangeHash(borrow byteview input, long start, long length) {

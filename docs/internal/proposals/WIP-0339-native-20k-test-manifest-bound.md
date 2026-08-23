@@ -9,7 +9,7 @@
 | Area | Native testing, manifests, package execution |
 | Depends on | WIP-0331, WIP-0338 |
 | Supersedes | Native 16,384-byte test-manifest bound |
-| Superseded by | WIP-0340 native compiler resolved local less-than suite |
+| Superseded by | WIP-0340 local less-than, then WIP-0345 native 24 KiB manifests |
 
 ## Summary
 
@@ -68,3 +68,4 @@ Rejected. Their capacities are not exhausted.
 - [WIP-0331](WIP-0331-native-16k-test-manifest-bound.md)
 - [WIP-0338](WIP-0338-native-compiler-resolved-local-loop-kind-suite.md)
 - [WIP-0340](WIP-0340-native-compiler-resolved-local-less-than-suite.md)
+- [WIP-0345](WIP-0345-native-24k-test-manifest-bound.md)

@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0343 |
 | Supersedes | Product-only resolved early-result evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0345 native 24 KiB test-manifest bound |
 
 ## Summary
 
@@ -77,3 +77,4 @@ Rejected. The complete suite came within twenty-five seconds of it without exhau
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0343](WIP-0343-native-compiler-resolved-early-comparison-suite.md)
+- [WIP-0345](WIP-0345-native-24k-test-manifest-bound.md)
