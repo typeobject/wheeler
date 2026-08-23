@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0334 |
 | Supersedes | Product-only resolved copy and signed-operation evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0336 native compiler resolved local-loop form suite |
 
 ## Summary
 
@@ -91,3 +91,4 @@ Rejected. Independent public queries require independent artifact and coverage i
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0334](WIP-0334-native-compiler-resolved-local-assignment-suite.md)
+- [WIP-0336](WIP-0336-native-compiler-resolved-local-loop-form-suite.md)

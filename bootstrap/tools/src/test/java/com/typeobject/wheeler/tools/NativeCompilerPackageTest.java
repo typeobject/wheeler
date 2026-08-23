@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(85, result.selected());
-    assertEquals(85, result.passed());
+    assertEquals(89, result.selected());
+    assertEquals(89, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -90,6 +90,17 @@ final class NativeCompilerPackageTest {
           report,
           "nativecompilerresolvedlongoperationtests",
           "native_compiler_resolved_long_operations",
+          name);
+    }
+    for (String name : List.of(
+        "checksNamedConditionBit",
+        "checksNamedLimitPair",
+        "checksReversedCondition",
+        "checksReversedUpdateBits")) {
+      assertCase(
+          report,
+          "nativecompilerresolvedlocalloopformtests",
+          "native_compiler_resolved_local_loop_forms",
           name);
     }
     for (String name : List.of(
