@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0337 |
 | Supersedes | Product-only resolved local-loop classification evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0339 native 20 KiB test-manifest bound |
 
 ## Summary
 
@@ -69,3 +69,4 @@ Rejected. Quotient and remainder decoders do not execute the classifier's lower 
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0337](WIP-0337-native-compiler-resolved-local-loop-operand-suite.md)
+- [WIP-0339](WIP-0339-native-20k-test-manifest-bound.md)

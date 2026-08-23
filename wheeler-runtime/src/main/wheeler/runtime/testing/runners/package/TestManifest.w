@@ -5,7 +5,7 @@ module wheeler.runtime.testing.runners.test_manifest;
 import wheeler.runtime.testing.runners.test_source_modules;
 
 classical class TestManifest {
-  private const long MAX_MANIFEST_BYTES = 16384;
+  private const long MAX_MANIFEST_BYTES = 20480;
   private const long MAX_SOURCES = 64;
 
   private long lineEnd(borrow byteview input, long cursor, long end) {
