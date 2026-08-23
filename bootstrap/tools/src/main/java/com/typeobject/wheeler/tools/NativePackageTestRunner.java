@@ -33,6 +33,7 @@ final class NativePackageTestRunner {
   private static final int MAX_CASE_RESULT_BYTES = 5_345;
   private static final String RUNNER_IDENTITY = "0".repeat(63) + "1";
   private static Program jsonRenderer;
+  private static Program junitRenderer;
   private static Program packageReportReducer;
   private static Program reportRowReducer;
   private static Program runner;
@@ -44,6 +45,7 @@ final class NativePackageTestRunner {
       String packageIdentity,
       TestReport report,
       byte[] json,
+      byte[] junit,
       byte[] terminal,
       int selected,
       int passed,
@@ -51,12 +53,18 @@ final class NativePackageTestRunner {
     Result {
       identities = List.copyOf(identities);
       json = json.clone();
+      junit = junit.clone();
       terminal = terminal.clone();
     }
 
     @Override
     public byte[] json() {
       return json.clone();
+    }
+
+    @Override
+    public byte[] junit() {
+      return junit.clone();
     }
 
     @Override
@@ -212,6 +220,14 @@ final class NativePackageTestRunner {
         failed,
         reducedRows,
         packageNativeRows.bytes());
+    byte[] junit = renderAdapter(
+        junitRenderer,
+        manifest.name(),
+        selected,
+        passed,
+        failed,
+        reducedRows,
+        packageNativeRows.bytes());
     byte[] terminal = renderAdapter(
         terminalRenderer,
         manifest.name(),
@@ -225,6 +241,7 @@ final class NativePackageTestRunner {
         HexFormat.of().formatHex(packageOutput, 0, 32),
         report,
         json,
+        junit,
         terminal,
         selected,
         passed,
@@ -367,6 +384,7 @@ final class NativePackageTestRunner {
       runner = project.compileRunnable("nativetestrunner");
       packageReportReducer = project.compileRunnable("nativetestpackagereportidentity");
       jsonRenderer = project.compileRunnable("nativetestreportjson");
+      junitRenderer = project.compileRunnable("nativetestreportjunit");
       reportRowReducer = project.compileRunnable("nativetestreportrows");
       terminalRenderer = project.compileRunnable("nativetestreportterminal");
       runnerRoot = canonical;

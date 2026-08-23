@@ -22,6 +22,7 @@ import wheeler.runtime.testing.test_identity_text;
 import wheeler.runtime.testing.test_package_report_identity;
 import wheeler.runtime.testing.test_report_identity;
 import wheeler.runtime.testing.test_report_json;
+import wheeler.runtime.testing.test_report_junit;
 import wheeler.runtime.testing.test_report_terminal;
 import wheeler.runtime.testing.test_shard;
 import wheeler.runtime.testing.test_summary;

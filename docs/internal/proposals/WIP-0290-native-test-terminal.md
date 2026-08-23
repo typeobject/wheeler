@@ -9,7 +9,7 @@
 | Area | Native testing, report adapters, Java retirement |
 | Depends on | WIP-0289 |
 | Supersedes | Java terminal rendering for native package tests |
-| Superseded by | Native JUnit XML adapter |
+| Superseded by | WIP-0291 native test JUnit XML |
 
 ## Summary
 
@@ -82,3 +82,4 @@ Rejected. Host callers must not mutate retained products.
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0289](WIP-0289-native-test-json.md)
+- [WIP-0291](WIP-0291-native-test-junit.md)

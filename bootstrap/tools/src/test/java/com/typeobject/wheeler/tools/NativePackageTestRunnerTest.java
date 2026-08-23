@@ -42,6 +42,10 @@ class NativePackageTestRunnerTest {
         TestReportRenderer.render(
             report, project.manifest().name(), TestReportRenderer.Format.TERMINAL),
         new String(result.orElseThrow().terminal(), StandardCharsets.UTF_8));
+    assertEquals(
+        TestReportRenderer.render(
+            report, project.manifest().name(), TestReportRenderer.Format.JUNIT_XML),
+        new String(result.orElseThrow().junit(), StandardCharsets.UTF_8));
     assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
         "nativecompilerspinetests::wheeler.compiler.tests.native_compiler_spine::"
             + "checksEncodingWidth")));
@@ -182,6 +186,12 @@ class NativePackageTestRunnerTest {
             packageProject.manifest().name(),
             TestReportRenderer.Format.TERMINAL),
         new String(result.orElseThrow().terminal(), StandardCharsets.UTF_8));
+    assertEquals(
+        TestReportRenderer.render(
+            result.orElseThrow().report(),
+            packageProject.manifest().name(),
+            TestReportRenderer.Format.JUNIT_XML),
+        new String(result.orElseThrow().junit(), StandardCharsets.UTF_8));
   }
 
   @Test
@@ -260,6 +270,10 @@ class NativePackageTestRunnerTest {
         TestReportRenderer.render(
             report, packageProject.manifest().name(), TestReportRenderer.Format.TERMINAL),
         new String(result.nativeTerminal(), StandardCharsets.UTF_8));
+    assertEquals(
+        TestReportRenderer.render(
+            report, packageProject.manifest().name(), TestReportRenderer.Format.JUNIT_XML),
+        new String(result.nativeJunit(), StandardCharsets.UTF_8));
     assertEquals(1, report.selected());
     assertEquals(0, report.passed());
     assertEquals(1, report.failed());

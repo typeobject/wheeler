@@ -250,6 +250,13 @@ targets:
       - "src/main/wheeler/testing/reports/NativeTestReportJson.w"
     test: false
   - kind: "deployable"
+    name: "nativetestreportjunit"
+    root: "src/main/wheeler/testing/reports/NativeTestReportJunit.w"
+    module: "wheeler.conformance.testing.reports.native_test_report_junit"
+    sources:
+      - "src/main/wheeler/testing/reports/NativeTestReportJunit.w"
+    test: false
+  - kind: "deployable"
     name: "nativetestreportrows"
     root: "src/main/wheeler/testing/reports/NativeTestReportRows.w"
     module: "wheeler.conformance.testing.native_test_report_rows"
