@@ -32,6 +32,7 @@ final class NativePackageTestRunner {
   private static final int COMPACT_OUTPUT_BYTES = 39;
   private static final int MAX_CASE_RESULT_BYTES = 5_345;
   private static final String RUNNER_IDENTITY = "0".repeat(63) + "1";
+  private static Program jsonRenderer;
   private static Program packageReportReducer;
   private static Program reportRowReducer;
   private static Program runner;
@@ -41,11 +42,18 @@ final class NativePackageTestRunner {
       List<String> identities,
       String packageIdentity,
       TestReport report,
+      byte[] json,
       int selected,
       int passed,
       int failed) {
     Result {
       identities = List.copyOf(identities);
+      json = json.clone();
+    }
+
+    @Override
+    public byte[] json() {
+      return json.clone();
     }
   }
 
@@ -175,15 +183,26 @@ final class NativePackageTestRunner {
     rowInput.write(selected / 256);
     writeLittle32(rowInput, combinedRows.size());
     rowInput.writeBytes(combinedRows.toByteArray());
-    byte[] reducedRows = execute(
-        reportRowReducer,
-        rowInput.toByteArray(),
-        36 + combinedRows.size());
+    byte[] reducedRows;
+    if (selected == 0) {
+      reducedRows = new byte[36];
+      byte[] emptyIdentity = HexFormat.of().parseHex(identities.getFirst());
+      System.arraycopy(emptyIdentity, 0, reducedRows, 0, emptyIdentity.length);
+    } else {
+      reducedRows = execute(
+          reportRowReducer,
+          rowInput.toByteArray(),
+          36 + combinedRows.size());
+    }
     NativeRows packageNativeRows = readReducedRows(reducedRows, selected);
+    TestReport report = new TestReport(packageNativeRows.cases(), RUNNER_IDENTITY);
+    byte[] json = renderJson(
+        manifest.name(), selected, passed, failed, reducedRows, packageNativeRows.bytes());
     return Optional.of(new Result(
         identities,
         HexFormat.of().formatHex(packageOutput, 0, 32),
-        new TestReport(packageNativeRows.cases(), RUNNER_IDENTITY),
+        report,
+        json,
         selected,
         passed,
         failed));
@@ -195,6 +214,32 @@ final class NativePackageTestRunner {
       machine.stepWithoutRewindHistory();
     }
     return machine.hostOutput();
+  }
+
+  private static byte[] renderJson(
+      String subject,
+      int selected,
+      int passed,
+      int failed,
+      byte[] reducedRows,
+      byte[] rows) {
+    byte[] subjectBytes = subject.getBytes(StandardCharsets.UTF_8);
+    if (subjectBytes.length > 255) {
+      throw new PackageFormatException("Native test subject exceeds 255 bytes");
+    }
+    ByteArrayOutputStream input = new ByteArrayOutputStream();
+    input.writeBytes(java.util.Arrays.copyOf(reducedRows, 32));
+    writeLittle16(input, subjectBytes.length);
+    input.writeBytes(subjectBytes);
+    writeLittle16(input, selected);
+    writeLittle16(input, passed);
+    writeLittle16(input, failed);
+    writeLittle32(input, rows.length);
+    input.writeBytes(rows);
+    int capacity = Math.addExact(
+        512,
+        Math.addExact(Math.multiplyExact(rows.length, 2), Math.multiplyExact(selected, 256)));
+    return execute(jsonRenderer, input.toByteArray(), capacity);
   }
 
   private static NativeRows readNativeRows(byte[] output) throws IOException {
@@ -297,6 +342,7 @@ final class NativePackageTestRunner {
       PackageProject project = PackageProject.load(canonical);
       runner = project.compileRunnable("nativetestrunner");
       packageReportReducer = project.compileRunnable("nativetestpackagereportidentity");
+      jsonRenderer = project.compileRunnable("nativetestreportjson");
       reportRowReducer = project.compileRunnable("nativetestreportrows");
       runnerRoot = canonical;
     }
@@ -475,6 +521,14 @@ final class NativePackageTestRunner {
     output.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
         .putInt(bytes.length).array());
     output.writeBytes(bytes);
+  }
+
+  private static void writeLittle16(ByteArrayOutputStream output, int value) {
+    if (value < 0 || value > 65_535) {
+      throw new IllegalArgumentException("Value is outside unsigned 16-bit range");
+    }
+    output.write(value);
+    output.write(value >>> 8);
   }
 
   private static void writeLittle32(ByteArrayOutputStream output, int value) {

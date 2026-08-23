@@ -303,16 +303,24 @@ public final class Wheeler {
     Path root = Path.of(args[1]);
     TestReport report;
     String name;
+    byte[] nativeJson = new byte[0];
     if (WorkspaceProject.exists(root)) {
       WorkspaceProject workspace = WorkspaceProject.load(root);
       report = workspace.test(shardIndex, shardCount, selectedTags);
       name = "workspace " + workspace.manifest().name();
     } else {
       PackageProject project = PackageProject.load(root);
-      report = project.test(shardIndex, shardCount, selectedTags);
+      PackageProject.TestOutput result = project.testOutput(
+          shardIndex, shardCount, selectedTags);
+      report = result.report();
+      nativeJson = result.nativeJson();
       name = project.manifest().name();
     }
-    out.print(TestReportRenderer.render(report, name, format));
+    if (format == TestReportRenderer.Format.JSON && nativeJson.length > 0) {
+      out.write(nativeJson, 0, nativeJson.length);
+    } else {
+      out.print(TestReportRenderer.render(report, name, format));
+    }
     return report.successful() ? 0 : 1;
   }
 

@@ -202,7 +202,7 @@ Recovery releases are signed or content-addressed by release policy. Bootstrap s
   - The graph accepts the bounded self-hosted compiler profile, rejects damaged artifacts, and rewinds exactly.
   - This is a Wheeler-executed verifier milestone, not a native machine-code verifier.
 - [x] The accepted aggregate, storage, UTF-8, map, and transition interpreters live only in the entryless `wheeler.runtime` package, locked to `wheeler.compiler` verification and `wheeler.core` binary primitives. The conformance programs consume its exact locked archive. Readable examples need not depend on a runtime implementation merely to prove one exists. No runtime implementation remains in compiler, conformance, or example source.
-- [x] `NativeVm.w` and `runtime/Interpreter.w` execute the verified bounded compiler profile inside Wheeler. WIP-0286 moves canonical section, descriptor, frame, parameter, and instruction coordinates into the focused `InterpreterLayout.w` authority. WIP-0287 publishes physical call and conditional coordinates from that interpreter without host observation. WIP-0288 carries canonical inverse direction through native uncall frames.
+- [x] `NativeVm.w` and `runtime/Interpreter.w` execute the verified bounded compiler profile inside Wheeler. WIP-0286 moves canonical section, descriptor, frame, parameter, and instruction coordinates into the focused `InterpreterLayout.w` authority. WIP-0287 publishes physical call and conditional coordinates from that interpreter without host observation. WIP-0288 carries canonical inverse direction through native uncall frames. WIP-0289 renders the JSON test adapter inside the runtime for admitted native package suites.
   - The profile supports up to eight signed globals, eight frames, 256 typed locals per frame, 512 instructions per function, and eight functions. Only the active function window is cleared.
   - It executes constants, loads, stores, moves, arithmetic, comparisons, branches, bounded loops, expectations, reversible global operations, `CALL`, `UNCALL`, `CALL_VALUE`, `CALL_VOID`, `RETURN`, `RETURN_VALUE`, and `HALT`. Existing `RETURN_VALUE` retains its ordinary direct-result meaning. WIP-0041 result-slot forms need separate registry identities and native parity before promotion.
   - Aggregate support covers immutable records, finite variants, fixed arrays, and slices. It includes construction, inspection, indexed or field reads, and equality.
@@ -296,6 +296,7 @@ WIP-0262 invokes native source discovery, descriptor construction, compilation, 
 - [WIP-0286](WIP-0286-native-interpreter-layout-authority.md)
 - [WIP-0287](WIP-0287-native-call-branch-coverage.md)
 - [WIP-0288](WIP-0288-native-inverse-coverage.md)
+- [WIP-0289](WIP-0289-native-test-json.md)
 - [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)

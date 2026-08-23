@@ -35,6 +35,9 @@ class NativePackageTestRunnerTest {
     assertEquals(7, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
     assertEquals(result.orElseThrow().report().identity(), report.identity());
+    assertEquals(
+        TestReportRenderer.render(report, project.manifest().name(), TestReportRenderer.Format.JSON),
+        new String(result.orElseThrow().json(), StandardCharsets.UTF_8));
     assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
         "nativecompilerspinetests::wheeler.compiler.tests.native_compiler_spine::"
             + "checksEncodingWidth")));
@@ -129,6 +132,49 @@ class NativePackageTestRunnerTest {
   }
 
   @Test
+  void rendersAnEmptyNativeSelection() throws Exception {
+    Path project = temporary.resolve("native-empty-render");
+    Files.createDirectories(project.resolve("src"));
+    Files.writeString(project.resolve("wheeler.package.yaml"), """
+        schema: 1
+        package:
+          name: "demo.native.empty"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "tool"
+            name: "laws"
+            root: "src/Main.w"
+            module: "demo.native.empty.tests"
+            sources:
+              - "src/Main.w"
+            test: true
+        dependencies: []
+        capabilities: []
+        """);
+    Files.writeString(project.resolve("src/Main.w"), """
+        module demo.native.empty.tests;
+        classical class NativeEmptyTests {
+          test void fastCase() tags(fast) { assert(true); }
+          test void slowCase() tags(slow) { assert(true); }
+        }
+        """);
+    PackageProject packageProject = PackageProject.load(project);
+
+    var result = NativePackageTestRunner.run(
+        project, packageProject.manifest(), 0, 1, Set.of("fast", "slow"));
+
+    assertTrue(result.isPresent());
+    assertEquals(0, result.orElseThrow().selected());
+    assertEquals(
+        TestReportRenderer.render(
+            result.orElseThrow().report(),
+            packageProject.manifest().name(),
+            TestReportRenderer.Format.JSON),
+        new String(result.orElseThrow().json(), StandardCharsets.UTF_8));
+  }
+
+  @Test
   void publishesTargetRowsInCaseIdentityOrder() throws Exception {
     Path project = temporary.resolve("native-row-order");
     Files.createDirectories(project.resolve("src"));
@@ -193,8 +239,13 @@ class NativePackageTestRunnerTest {
         """);
     PackageProject packageProject = PackageProject.load(project);
 
-    TestReport report = packageProject.test();
+    PackageProject.TestOutput result = packageProject.testOutput(0, 1, Set.of());
+    TestReport report = result.report();
 
+    assertEquals(
+        TestReportRenderer.render(
+            report, packageProject.manifest().name(), TestReportRenderer.Format.JSON),
+        new String(result.nativeJson(), StandardCharsets.UTF_8));
     assertEquals(1, report.selected());
     assertEquals(0, report.passed());
     assertEquals(1, report.failed());
