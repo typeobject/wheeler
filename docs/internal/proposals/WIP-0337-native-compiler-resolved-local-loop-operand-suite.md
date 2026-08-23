@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0336 |
 | Supersedes | Product-only resolved local-loop operand evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0338 native compiler resolved local-loop kind suite |
 
 ## Summary
 
@@ -76,3 +76,4 @@ Rejected. Each public decoder retains its own artifact and coverage evidence.
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0336](WIP-0336-native-compiler-resolved-local-loop-form-suite.md)
+- [WIP-0338](WIP-0338-native-compiler-resolved-local-loop-kind-suite.md)

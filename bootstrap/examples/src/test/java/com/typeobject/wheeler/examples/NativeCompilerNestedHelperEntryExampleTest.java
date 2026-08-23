@@ -504,6 +504,32 @@ final class NativeCompilerNestedHelperEntryExampleTest {
   }
 
   @Test
+  void compilesPhysicalResolvedLocalLoopKindsIntoEntryByteForByte() throws Exception {
+    String opcodes = CompilerSources.read("compiler/ir/ResolvedStatements.w");
+    String kinds = CompilerSources.read("compiler/syntax/LoopKinds.w");
+    String loops = CompilerSources.read("compiler/syntax/loops/ResolvedLocalLoopKinds.w");
+    String root = """
+        module example.resolved_local_loop_kind_entry;
+        import wheeler.compiler.resolved_local_loop_kinds;
+        classical class ResolvedLocalLoopKindEntry {
+          entry void main() {
+            boolean present = resolvedLocalWhile(24831);
+            assert(present);
+          }
+        }
+        """;
+    assertPhysicalEntry(
+        List.of(opcodes, kinds, loops),
+        Map.of(
+            "Opcodes.w", opcodes,
+            "Kinds.w", kinds,
+            "Loops.w", loops,
+            "Entry.w", root),
+        root,
+        "example.resolved_local_loop_kind_entry");
+  }
+
+  @Test
   void compilesPhysicalResolvedLocalReturnsIntoEntryByteForByte() throws Exception {
     String returns = CompilerSources.read("compiler/syntax/returns/ResolvedLocalReturns.w");
     String root = """

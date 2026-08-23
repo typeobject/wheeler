@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(91, result.selected());
-    assertEquals(91, result.passed());
+    assertEquals(92, result.selected());
+    assertEquals(92, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -103,6 +103,11 @@ final class NativeCompilerPackageTest {
           "native_compiler_resolved_local_loop_forms",
           name);
     }
+    assertCase(
+        report,
+        "nativecompilerresolvedlocalloopkindtests",
+        "native_compiler_resolved_local_loop_kinds",
+        "checksFinalResolvedLocalLoop");
     for (String name : List.of(
         "checksResolvedLoopTarget",
         "checksResolvedLoopForm")) {
