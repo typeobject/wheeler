@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0311 |
 | Supersedes | Standalone assignment-call operand evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0313 native compiler void-call operand suite |
 
 ## Summary
 
@@ -79,3 +79,4 @@ Rejected. Source ownership and private call identity belong to the physical modu
 - [WIP-0293](WIP-0293-native-compiler-call-syntax-suite.md)
 - [WIP-0310](WIP-0310-native-multi-helper-entry-programs.md)
 - [WIP-0311](WIP-0311-native-compiler-call-width-suite.md)
+- [WIP-0313](WIP-0313-native-compiler-void-call-operand-suite.md)

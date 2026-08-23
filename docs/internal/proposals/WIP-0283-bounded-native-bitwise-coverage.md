@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler testing, semantic coverage |
 | Depends on | WIP-0282 |
 | Supersedes | Sixty-four-transition compiler package coverage |
-| Superseded by | Broader native control-flow coverage |
+| Superseded by | WIP-0314 native 255-transition coverage |
 
 ## Summary
 
@@ -85,3 +85,4 @@ Rejected. Coverage families enter with executable evidence.
 
 - [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md)
 - [WIP-0282](WIP-0282-native-compiler-scalar-arithmetic.md)
+- [WIP-0314](WIP-0314-native-255-transition-coverage.md)

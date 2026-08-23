@@ -5,7 +5,7 @@ module wheeler.runtime.bootstrap_coverage_fragments;
 import wheeler.compiler.opcodes;
 
 classical class BootstrapCoverageFragments {
-  private const long MAX_TRANSITIONS = 128;
+  private const long MAX_TRANSITIONS = 255;
   private const long KEY_FIXED_BYTES = 10;
   private const long PREFIX_FIXED_BYTES = 12;
   private const long SUFFIX_FIXED_BYTES = 55;

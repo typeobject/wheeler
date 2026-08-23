@@ -3,7 +3,7 @@
 module wheeler.runtime.coverage_reducer;
 
 classical class CoverageReducer {
-  const long MAX_ROWS = 128;
+  const long MAX_ROWS = 255;
   const long MAX_ROW_BYTES = 256;
 
   long readUnsigned16(borrow byteview input, long offset) {
@@ -156,7 +156,7 @@ classical class CoverageReducer {
     assert(inputLength < bufferLength(input) + 1);
     long rowCount = input[0];
     assert(rowCount < MAX_ROWS + 1);
-    region arena = new region(8192, 7);
+    region arena = new region(16384, 7);
     words keyStarts = allocate(arena, MAX_ROWS);
     words keyLengths = allocate(arena, MAX_ROWS);
     words prefixStarts = allocate(arena, MAX_ROWS);

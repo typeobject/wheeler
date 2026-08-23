@@ -18,7 +18,7 @@ classical class TestArtifactReport {
   private const long IDENTITY_BYTES = 32;
   private const long MAX_DIAGNOSTIC_BYTES = 4096;
   private const long MAX_METADATA_BYTES = 255;
-  private const long PASS_STAGING_BYTES = 66720;
+  private const long PASS_STAGING_BYTES = 132256;
   private const long REPORT_FRAME_BYTES = 5413;
 
   private long writeField(borrow byteview value, borrow mut bytes frame, long cursor) {
@@ -188,7 +188,7 @@ classical class TestArtifactReport {
       traceControl,
       outcome.steps
     );
-    bytes fragments = allocateBytes(staging, /* length= */ 32768);
+    bytes fragments = allocateBytes(staging, /* length= */ 65536);
     writeTransitionFragments(
       trace,
       traceFunctions,
@@ -197,7 +197,7 @@ classical class TestArtifactReport {
       outcome.steps,
       fragments
     );
-    bytes coverageReport = allocateBytes(staging, /* length= */ 32768);
+    bytes coverageReport = allocateBytes(staging, /* length= */ 65536);
     long coverageLength = reduceRange(fragments, fragmentLength, coverageReport);
     bytes coverageIdentity = allocateBytes(staging, IDENTITY_BYTES);
     long coverageIdentityLength = deriveTestCoverageIdentityRange(

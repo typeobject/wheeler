@@ -2,6 +2,7 @@ package com.typeobject.wheeler.tools;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -34,8 +35,8 @@ class NativePackageTestRunnerTest {
 
     assertTrue(result.isPresent());
     TestReport report = result.orElseThrow().report();
-    assertEquals(23, result.orElseThrow().selected());
-    assertEquals(23, result.orElseThrow().passed());
+    assertEquals(24, result.orElseThrow().selected());
+    assertEquals(24, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
     assertEquals(result.orElseThrow().report().identity(), report.identity());
     assertEquals(
@@ -70,6 +71,27 @@ class NativePackageTestRunnerTest {
     assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
         "nativecompilercallwidthtests::wheeler.compiler.tests.native_compiler_call_widths::"
             + "checksSevenArgumentLocalWidth")));
+    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
+        "nativecompilervoidcalloperandtests::"
+            + "wheeler.compiler.tests.native_compiler_void_call_operand::"
+            + "checksTrailingSevenArgumentSource")));
+  }
+
+  @Test
+  void boundsNativeDependencyOwnerMembers() {
+    StringBuilder source = new StringBuilder("""
+        module demo.members;
+        classical class Members {
+        """);
+    for (int index = 0; index < 23; index++) {
+      source.append("  public long member").append(index).append("() { return ")
+          .append(index).append("; }\n");
+    }
+    source.append("}\n");
+
+    assertTrue(NativePackageTestRunner.fixedSourceProfile(source.toString()));
+    source.insert(source.length() - 2, "  public long excess() { return 23; }\n");
+    assertFalse(NativePackageTestRunner.fixedSourceProfile(source.toString()));
   }
 
   @Test

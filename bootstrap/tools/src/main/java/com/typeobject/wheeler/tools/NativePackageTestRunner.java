@@ -441,15 +441,12 @@ final class NativePackageTestRunner {
     return true;
   }
 
-  private static boolean fixedSourceProfile(String text) {
+  static boolean fixedSourceProfile(String text) {
     int constants = occurrences(text, "public const long ");
-    if (constants > 64) {
-      return false;
-    }
     int functions = occurrences(text, "public long ")
         + occurrences(text, "public boolean ");
-    boolean product = 0 < constants || functions == 1;
-    return product && functions < 2
+    boolean product = 0 < constants || 0 < functions;
+    return product && constants <= 64 && functions <= 23
         && !text.contains("test void ") && !text.contains("entry void ");
   }
 
