@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(67, result.selected());
-    assertEquals(67, result.passed());
+    assertEquals(70, result.selected());
+    assertEquals(70, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -39,6 +39,16 @@ final class NativeCompilerPackageTest {
             report, project.manifest().name(), TestReportRenderer.Format.JUNIT_XML),
         new String(result.junit(), StandardCharsets.UTF_8));
 
+    for (String name : List.of(
+        "checksResolvedEqualityMembership",
+        "checksResolvedSignedEqualityMembership",
+        "checksResolvedBooleanEqualitySource")) {
+      assertCase(
+          report,
+          "nativecompilerresolvedlocalequalitytests",
+          "native_compiler_resolved_local_equality",
+          name);
+    }
     for (String name : List.of(
         "checksResolvedReturnMembership",
         "checksSignedReturnMembership",

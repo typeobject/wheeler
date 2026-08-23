@@ -307,6 +307,34 @@ final class NativeCompilerNestedHelperEntryExampleTest {
   }
 
   @Test
+  void compilesPhysicalResolvedLocalEqualityIntoEntryByteForByte() throws Exception {
+    String opcodes = CompilerSources.read("compiler/ir/ResolvedStatements.w");
+    String equality = CompilerSources.read("compiler/syntax/locals/ResolvedLocalEqualityKinds.w");
+    String root = """
+        module example.resolved_local_equality_entry;
+        import wheeler.compiler.resolved_local_equality_kinds;
+        classical class ResolvedLocalEqualityEntry {
+          entry void main() {
+            boolean present = resolvedLocalEquality(5119);
+            boolean signed = resolvedLocalEqualitySigned(4864);
+            long source = resolvedLocalEqualitySource(4608);
+            assert(present);
+            assert(signed);
+            assert(source == 0);
+          }
+        }
+        """;
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] artifact = NativeModuleCompilerHarness.compile(
+        compiler, List.of(opcodes, equality), root);
+    byte[] expected = new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+        Map.of("Opcodes.w", opcodes, "Equality.w", equality, "Entry.w", root),
+        "example.resolved_local_equality_entry"));
+    assertArrayEquals(expected, artifact);
+    new VirtualMachine(new BytecodeReader().read(artifact)).run();
+  }
+
+  @Test
   void compilesPhysicalResolvedLocalReturnsIntoEntryByteForByte() throws Exception {
     String returns = CompilerSources.read("compiler/syntax/returns/ResolvedLocalReturns.w");
     String root = """

@@ -140,6 +140,15 @@ targets:
       - "src/test/wheeler/compiler/ir/NativeCompilerOpcodeKindTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilerresolvedlocalequalitytests"
+    root: "src/test/wheeler/compiler/locals/NativeCompilerResolvedLocalEqualityTests.w"
+    module: "wheeler.compiler.tests.native_compiler_resolved_local_equality"
+    sources:
+      - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
+      - "src/main/wheeler/compiler/syntax/locals/ResolvedLocalEqualityKinds.w"
+      - "src/test/wheeler/compiler/locals/NativeCompilerResolvedLocalEqualityTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerresolvedlocalreturntests"
     root: "src/test/wheeler/compiler/returns/NativeCompilerResolvedLocalReturnTests.w"
     module: "wheeler.compiler.tests.native_compiler_resolved_local_returns"
