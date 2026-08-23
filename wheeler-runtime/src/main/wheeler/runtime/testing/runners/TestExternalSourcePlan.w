@@ -78,11 +78,7 @@ classical class TestExternalSourcePlan {
     return 0;
   }
 
-  private boolean dependencyPath(
-    borrow byteview input,
-    long start,
-    long length
-  ) {
+  private boolean dependencyPath(borrow byteview input, long start, long length) {
     if (length < 14) {
       return false;
     }
@@ -132,13 +128,7 @@ classical class TestExternalSourcePlan {
     );
     setByte(qualifiedPath, cursor, /* value= */ 47);
     cursor += 1;
-    return copyRange(
-      archive,
-      selected.pathStart,
-      selected.pathLength,
-      qualifiedPath,
-      cursor
-    );
+    return copyRange(archive, selected.pathStart, selected.pathLength, qualifiedPath, cursor);
   }
 
   private long copyExternalEntry(
@@ -160,21 +150,11 @@ classical class TestExternalSourcePlan {
     );
     writeUnsigned32BigEndian(output, cursor, selected.sourceLength);
     cursor += 4;
-    return copyRange(
-      archive,
-      selected.sourceStart,
-      selected.sourceLength,
-      output,
-      cursor
-    );
+    return copyRange(archive, selected.sourceStart, selected.sourceLength, output, cursor);
   }
 
   /// Counts package-qualified sources in one previously validated plan.
-  public long validatedExternalSourceCount(
-    borrow byteview input,
-    long start,
-    long length
-  ) {
+  public long validatedExternalSourceCount(borrow byteview input, long start, long length) {
     long sourceCount = readUnsigned32BigEndian(input, start);
     long cursor = start + 4;
     long source = 0;
@@ -197,11 +177,7 @@ classical class TestExternalSourcePlan {
   }
 
   /// Reports whether a previously validated plan contains package-qualified external source.
-  public boolean validatedPlanHasExternalSource(
-    borrow byteview input,
-    long start,
-    long length
-  ) {
+  public boolean validatedPlanHasExternalSource(borrow byteview input, long start, long length) {
     return 0 < validatedExternalSourceCount(input, start, length);
   }
 
@@ -234,12 +210,7 @@ classical class TestExternalSourcePlan {
     assert(required < bufferLength(output) + 1);
 
     bytes qualifiedPath = allocateBytes(arena, qualifiedLength);
-    long qualifiedCursor = writeQualifiedPath(
-      packageName,
-      archive,
-      selected,
-      qualifiedPath
-    );
+    long qualifiedCursor = writeQualifiedPath(packageName, archive, selected, qualifiedPath);
     assert(qualifiedCursor == qualifiedLength);
 
     writeUnsigned32BigEndian(output, /* offset= */ 0, sourceCount + 1);
@@ -287,13 +258,7 @@ classical class TestExternalSourcePlan {
     }
 
     if (externalWritten == false) {
-      outputCursor = copyExternalEntry(
-        qualifiedPath,
-        archive,
-        selected,
-        output,
-        outputCursor
-      );
+      outputCursor = copyExternalEntry(qualifiedPath, archive, selected, output, outputCursor);
     }
 
     assert(inputCursor == bufferLength(localPlan));
@@ -359,13 +324,7 @@ classical class TestExternalSourcePlan {
       long pathStart = cursor + 4;
       if (packagePrefixLength < pathLength) {
         if (
-          sameRange(
-            plan,
-            pathStart,
-            packagePrefix,
-            /* rightStart= */ 0,
-            packagePrefixLength
-          )
+          sameRange(plan, pathStart, packagePrefix, /* rightStart= */ 0, packagePrefixLength)
         ) {
           packageSourceCount += 1;
         }
@@ -398,20 +357,14 @@ classical class TestExternalSourcePlan {
         digest,
         arena
       );
-      long qualifiedLength = PREFIX_BYTES + bufferLength(packageName) + 1
-        + selected.pathLength;
+      long qualifiedLength = PREFIX_BYTES + bufferLength(packageName) + 1 + selected.pathLength;
       if (255 < qualifiedLength) {
         drop(packagePrefix);
         return false;
       }
 
       bytes qualifiedPath = allocateBytes(arena, qualifiedLength);
-      long qualifiedCursor = writeQualifiedPath(
-        packageName,
-        archive,
-        selected,
-        qualifiedPath
-      );
+      long qualifiedCursor = writeQualifiedPath(packageName, archive, selected, qualifiedPath);
       assert(qualifiedCursor == qualifiedLength);
       cursor = 4;
       source = 0;

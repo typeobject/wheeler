@@ -33,78 +33,97 @@ classical class TestReportJson {
       writeAscii(output, cursor, "schema");
       return cursor + 6;
     }
+
     if (label == LABEL_REPORT) {
       writeAscii(output, cursor, "report");
       return cursor + 6;
     }
+
     if (label == LABEL_SUBJECT) {
       writeAscii(output, cursor, "subject");
       return cursor + 7;
     }
+
     if (label == LABEL_SELECTED) {
       writeAscii(output, cursor, "selected");
       return cursor + 8;
     }
+
     if (label == LABEL_PASSED) {
       writeAscii(output, cursor, "passed");
       return cursor + 6;
     }
+
     if (label == LABEL_FAILED) {
       writeAscii(output, cursor, "failed");
       return cursor + 6;
     }
+
     if (label == LABEL_CASES) {
       writeAscii(output, cursor, "cases");
       return cursor + 5;
     }
+
     if (label == LABEL_PACKAGE) {
       writeAscii(output, cursor, "package");
       return cursor + 7;
     }
+
     if (label == LABEL_VERSION) {
       writeAscii(output, cursor, "version");
       return cursor + 7;
     }
+
     if (label == LABEL_TARGET) {
       writeAscii(output, cursor, "target");
       return cursor + 6;
     }
+
     if (label == LABEL_CASE) {
       writeAscii(output, cursor, "case");
       return cursor + 4;
     }
+
     if (label == LABEL_SOURCE) {
       writeAscii(output, cursor, "source");
       return cursor + 6;
     }
+
     if (label == LABEL_ARTIFACT) {
       writeAscii(output, cursor, "artifact");
       return cursor + 8;
     }
+
     if (label == LABEL_STATUS) {
       writeAscii(output, cursor, "status");
       return cursor + 6;
     }
+
     if (label == LABEL_DIAGNOSTIC_CODE) {
       writeAscii(output, cursor, "diagnostic_code");
       return cursor + 15;
     }
+
     if (label == LABEL_DIAGNOSTIC_MESSAGE) {
       writeAscii(output, cursor, "diagnostic_message");
       return cursor + 18;
     }
+
     if (label == LABEL_ASSERTIONS) {
       writeAscii(output, cursor, "assertions");
       return cursor + 10;
     }
+
     if (label == LABEL_WORKFLOW_STEPS) {
       writeAscii(output, cursor, "workflow_steps");
       return cursor + 14;
     }
+
     if (label == LABEL_EXECUTION) {
       writeAscii(output, cursor, "execution");
       return cursor + 9;
     }
+
     assert(label == LABEL_COVERAGE);
     writeAscii(output, cursor, "coverage");
     return cursor + 8;
@@ -120,6 +139,7 @@ classical class TestReportJson {
       setByte(output, cursor, 44);
       cursor += 1;
     }
+
     setByte(output, cursor, 34);
     cursor = writeLabelName(output, cursor + 1, label);
     setByte(output, cursor, 34);
@@ -240,13 +260,7 @@ classical class TestReportJson {
     cursor = writeTestReportIdentity(input, 0, output, cursor + 1);
     setByte(output, cursor, 34);
     cursor = writeLabel(output, cursor + 1, LABEL_SUBJECT, true);
-    cursor = writeJsonRange(
-      input,
-      header.subjectStart,
-      header.subjectLength,
-      output,
-      cursor
-    );
+    cursor = writeJsonRange(input, header.subjectStart, header.subjectLength, output, cursor);
     cursor = writeLabel(output, cursor, LABEL_SELECTED, true);
     cursor = writeTestReportDecimal(output, cursor, header.selected);
     cursor = writeLabel(output, cursor, LABEL_PASSED, true);
@@ -265,21 +279,8 @@ classical class TestReportJson {
         cursor += 1;
       }
 
-      AdapterRow adapterRow = validatedTestReportRow(
-        input,
-        inputCursor,
-        starts,
-        lengths
-      );
-      cursor = writeCase(
-        input,
-        adapterRow,
-        starts,
-        lengths,
-        output,
-        cursor,
-        summary
-      );
+      AdapterRow adapterRow = validatedTestReportRow(input, inputCursor, starts, lengths);
+      cursor = writeCase(input, adapterRow, starts, lengths, output, cursor, summary);
       inputCursor = adapterRow.end;
       row += 1;
     }

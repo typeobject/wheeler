@@ -922,9 +922,19 @@ classical class Interpreter {
 
           if (opcode == OPCODE_JUMP_IF_ZERO) {
             long condition = readUnsigned(artifact, cursor + 8, 8);
-            setByte(traceControl, steps, direction * 4 + /* fallthrough= */ 1);
+            setByte(
+              traceControl,
+              steps,
+              direction * 4 + /* fallthrough= */
+              1
+            );
             if (locals[localIndex(depth, condition)] == 0) {
-              setByte(traceControl, steps, direction * 4 + /* taken= */ 2);
+              setByte(
+                traceControl,
+                steps,
+                direction * 4 + /* taken= */
+                2
+              );
               long conditionalTarget = readUnsigned(artifact, cursor + 16, 8);
               nextInstruction = conditionalTarget;
               next = instructionCursor(artifact, start, end, conditionalTarget);

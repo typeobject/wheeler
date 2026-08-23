@@ -195,6 +195,14 @@ targets:
       - "src/main/wheeler/compiler/syntax/calls/VoidCallWidths.w"
       - "src/test/wheeler/compiler/NativeCompilerVoidCallWidthTests.w"
     test: true
+  - kind: "tool"
+    name: "nativecompilerwidereturnsourcetests"
+    root: "src/test/wheeler/compiler/returns/NativeCompilerWideReturnSourceTests.w"
+    module: "wheeler.compiler.tests.native_compiler_wide_return_sources"
+    sources:
+      - "src/main/wheeler/compiler/resolution/returns/WideReturnSources.w"
+      - "src/test/wheeler/compiler/returns/NativeCompilerWideReturnSourceTests.w"
+    test: true
 dependencies:
   - kind: "normal"
     name: "wheeler.core"

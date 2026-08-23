@@ -307,6 +307,79 @@ final class NativeCompilerNestedHelperEntryExampleTest {
   }
 
   @Test
+  void compilesPhysicalWideReturnSourcesIntoEntryByteForByte() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    compileWideReturnSource(compiler, """
+        long first = 10;
+        long second = 11;
+        long third = 12;
+        long fourth = 13;
+        long result = packWideReturnFirstSources(first, second, third, fourth);
+        assert(result == 168496141);
+        """);
+    compileWideReturnSource(compiler, """
+        long fifth = 14;
+        long sixth = 15;
+        long seventh = 16;
+        long result = packWideReturnLastSources(fifth, sixth, seventh);
+        assert(result == 921360);
+        """);
+    compileWideReturnSource(compiler, """
+        long result = wideReturnFirstSource(168496141);
+        assert(result == 10);
+        """);
+    compileWideReturnSource(compiler, """
+        long result = wideReturnSecondSource(168496141);
+        assert(result == 11);
+        """);
+    compileWideReturnSource(compiler, """
+        long result = wideReturnThirdSource(168496141);
+        assert(result == 12);
+        """);
+    compileWideReturnSource(compiler, """
+        long result = wideReturnFourthSource(168496141);
+        assert(result == 13);
+        """);
+    compileWideReturnSource(compiler, """
+        long result = wideReturnFifthSource(921360);
+        assert(result == 14);
+        """);
+    compileWideReturnSource(compiler, """
+        long result = wideReturnSixthSource(921360);
+        assert(result == 15);
+        """);
+    compileWideReturnSource(compiler, """
+        long result = wideReturnSeventhSource(921360);
+        assert(result == 16);
+        """);
+  }
+
+  private static void compileWideReturnSource(Program compiler, String statements)
+      throws Exception {
+    String sources =
+        CompilerSources.read("compiler/resolution/returns/WideReturnSources.w");
+    String root = """
+        module example.wide_return_source_entry;
+        import wheeler.compiler.wide_return_sources;
+        classical class WideReturnSourceEntry {
+          entry void main() {
+        """ + statements.indent(4) + """
+          }
+        }
+        """;
+    byte[] artifact = NativeModuleCompilerHarness.compile(compiler, List.of(sources), root);
+    byte[] expected =
+        new BytecodeWriter()
+            .write(
+                new WheelerCompiler()
+                    .compileModuleFiles(
+                        Map.of("Sources.w", sources, "Entry.w", root),
+                        "example.wide_return_source_entry"));
+    assertArrayEquals(expected, artifact);
+    new VirtualMachine(new BytecodeReader().read(artifact)).run();
+  }
+
+  @Test
   void compilesNestedScalarHelpersIntoEntryByteForByte() throws Exception {
     String arities = """
         module example.arities;

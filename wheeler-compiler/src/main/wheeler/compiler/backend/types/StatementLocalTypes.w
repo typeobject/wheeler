@@ -50,6 +50,17 @@ classical class StatementLocalTypes {
   /// Writes canonical local type codes for one parsed statement.
   public long writeStatementLocalTypes(borrow mut bytes output, long cursor, long opcode) {
     long count = statementLocalCount(opcode);
+    long wideCallArity = wideLocalCallArity(opcode);
+    if (-1 < wideCallArity) {
+      long wideCallLocal = 0;
+      while (wideCallLocal < count) limit MAX_STATEMENT_LOCALS {
+        cursor = writeSignedLocalType(output, cursor);
+        wideCallLocal += 1;
+      }
+
+      return cursor;
+    }
+
     if (opcode == STATEMENT_LOCAL_BYTES_ALLOCATE_NAMED) {
       cursor = writeLocalType(output, cursor, TYPE_REGION_BORROW);
       cursor = writeLocalType(output, cursor, TYPE_SIGNED);

@@ -39,10 +39,7 @@ classical class TestExternalSourceTransport {
   }
 
   /// Parses complete archive boundaries without validating archive semantics.
-  public ExternalSourceArchives validatedExternalSourceArchives(
-    borrow byteview input,
-    long start
-  ) {
+  public ExternalSourceArchives validatedExternalSourceArchives(borrow byteview input, long start) {
     assert(start < bufferLength(input));
     long count = input[start];
     assert(count < 3);
@@ -150,17 +147,9 @@ classical class TestExternalSourceTransport {
       return false;
     }
 
-    long committedCount = readUnsigned(
-      input,
-      archives.firstArchiveStart + 12,
-      /* width= */ 4
-    );
+    long committedCount = readUnsigned(input, archives.firstArchiveStart + 12, /* width= */ 4);
     if (archives.count == 2) {
-      committedCount += readUnsigned(
-        input,
-        archives.secondArchiveStart + 12,
-        /* width= */ 4
-      );
+      committedCount += readUnsigned(input, archives.secondArchiveStart + 12, /* width= */ 4);
     }
 
     if (7 < committedCount) {

@@ -14,6 +14,7 @@ classical class ArchiveProvenance {
     long sourceStart,
     long sourceLength
   ) {}
+
   private const long MAX_ARCHIVE_BYTES = 32768;
   private const long MAX_LOCK_BYTES = 4096;
 
@@ -97,7 +98,9 @@ classical class ArchiveProvenance {
             return -1;
           }
 
-          if (sameRange(lock, cursor + 11, packageName, /* rightStart= */ 0, nameLength)) {
+          if (
+            sameRange(lock, cursor + 11, packageName, /* rightStart= */ 0, nameLength)
+          ) {
             cursor = found + 1;
             long field = 1;
             while (field < fieldOrdinal) limit 5 {
@@ -161,11 +164,7 @@ classical class ArchiveProvenance {
     return -1;
   }
 
-  private boolean digestMatchesHex(
-    borrow byteview digest,
-    borrow byteview text,
-    long textStart
-  ) {
+  private boolean digestMatchesHex(borrow byteview digest, borrow byteview text, long textStart) {
     long offset = 0;
     while (offset < 32) limit 32 {
       long high = hexadecimalNibble(text[textStart + offset * 2]);
@@ -202,18 +201,16 @@ classical class ArchiveProvenance {
       return false;
     }
 
-    if (sameRange(archive, /* leftStart= */ 44, packageName, /* rightStart= */ 0, nameLength)
-        == false) {
+    if (
+      sameRange(archive, /* leftStart= */ 44, packageName, /* rightStart= */ 0, nameLength) == false
+    ) {
       return false;
     }
 
     return archive[44 + nameLength] == 34;
   }
 
-  private long lockedDependenciesStart(
-    borrow byteview lock,
-    borrow byteview packageName
-  ) {
+  private long lockedDependenciesStart(borrow byteview lock, borrow byteview packageName) {
     long cursor = 0;
     while (cursor < bufferLength(lock)) limit MAX_LOCK_BYTES {
       long found = lineEnd(lock, cursor);
@@ -228,7 +225,9 @@ classical class ArchiveProvenance {
             return -1;
           }
 
-          if (sameRange(lock, cursor + 11, packageName, /* rightStart= */ 0, nameLength)) {
+          if (
+            sameRange(lock, cursor + 11, packageName, /* rightStart= */ 0, nameLength)
+          ) {
             cursor = found + 1;
             long field = 0;
             while (field < 5) limit 5 {
@@ -291,13 +290,7 @@ classical class ArchiveProvenance {
     );
     if (emptyLock == false) {
       if (
-        exactLine(
-          lock,
-          lockCursor,
-          lockEnd,
-          /* length= */ 17,
-          /* hash= */ 1805921201
-        ) == false
+        exactLine(lock, lockCursor, lockEnd, /* length= */ 17, /* hash= */ 1805921201) == false
       ) {
         return false;
       }
@@ -435,13 +428,7 @@ classical class ArchiveProvenance {
         }
 
         if (
-          sameRange(
-            archive,
-            manifestCursor + 11,
-            lock,
-            lockCursor + 9,
-            nameLength
-          ) == false
+          sameRange(archive, manifestCursor + 11, lock, lockCursor + 9, nameLength) == false
         ) {
           return false;
         }
@@ -532,13 +519,7 @@ classical class ArchiveProvenance {
       return false;
     }
 
-    hashSha256Range(
-      archive,
-      /* sourceStart= */ 0,
-      bufferLength(archive),
-      digest,
-      arena
-    );
+    hashSha256Range(archive, /* sourceStart= */ 0, bufferLength(archive), digest, arena);
     if (digestMatchesHex(digest, lock, archiveIdentityStart) == false) {
       return false;
     }

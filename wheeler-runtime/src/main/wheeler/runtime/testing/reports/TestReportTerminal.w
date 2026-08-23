@@ -25,6 +25,7 @@ classical class TestReportTerminal {
       cursor += 1;
       offset += 1;
     }
+
     return cursor;
   }
 
@@ -45,6 +46,7 @@ classical class TestReportTerminal {
       set(summary, 2, summary[2] + 1);
       writeAscii(output, cursor, "FAIL");
     }
+
     cursor += 4;
     setByte(output, cursor, 32);
     cursor = writeRange(input, starts[0], lengths[0], output, cursor + 1);
@@ -61,12 +63,14 @@ classical class TestReportTerminal {
       cursor += 10;
       cursor = writeRange(input, starts[9], lengths[9], output, cursor);
     }
+
     if (0 < lengths[6]) {
       setByte(output, cursor, 32);
       cursor = writeRange(input, starts[6], lengths[6], output, cursor + 1);
       setByte(output, cursor, 32);
       cursor = writeRange(input, starts[7], lengths[7], output, cursor + 1);
     }
+
     setByte(output, cursor, 10);
     return cursor + 1;
   }
@@ -95,13 +99,7 @@ classical class TestReportTerminal {
     assert(summary[2] == header.failed);
     writeAscii(output, cursor, "tested ");
     cursor += 7;
-    cursor = writeRange(
-      input,
-      header.subjectStart,
-      header.subjectLength,
-      output,
-      cursor
-    );
+    cursor = writeRange(input, header.subjectStart, header.subjectLength, output, cursor);
     setByte(output, cursor, 32);
     setByte(output, cursor + 1, 40);
     cursor = writeTestReportDecimal(output, cursor + 2, header.selected);

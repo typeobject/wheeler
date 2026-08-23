@@ -21,20 +21,15 @@ classical class TestReportAdapter {
   ) {}
 
   /// Defines one validated complete profile-2 row.
-  public record AdapterRow(
-    long end,
-    long status,
-    long assertions,
-    long workflowSteps
-  ) {}
+  public record AdapterRow(long end, long status, long assertions, long workflowSteps) {}
 
   private long readUnsigned16(borrow byteview input, long cursor) {
     return input[cursor] + input[cursor + 1] * 256;
   }
 
   private long readUnsigned32(borrow byteview input, long cursor) {
-    return input[cursor] + input[cursor + 1] * 256 + input[cursor + 2] * 65536
-      + input[cursor + 3] * 16777216;
+    return input[cursor] + input[cursor + 1] * 256 + input[cursor + 2] * 65536 + input[cursor + 3]
+      * 16777216;
   }
 
   /// Validates and projects one complete adapter transport header.

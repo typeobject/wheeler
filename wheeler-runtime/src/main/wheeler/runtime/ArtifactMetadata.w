@@ -6,6 +6,7 @@ import wheeler.compiler.opcodes;
 import wheeler.core.encoding.binary;
 
 classical class ArtifactMetadata {
+  /// Carries one validated text range inside the artifact.
   public record ArtifactText(long start, long length) {}
 
   private long sectionOffset(borrow byteview artifact, long section) {

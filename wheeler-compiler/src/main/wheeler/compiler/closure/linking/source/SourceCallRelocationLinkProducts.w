@@ -197,6 +197,7 @@ classical class SourceCallRelocationLinkProducts {
       assert(resolvedInstructionTargets[stagedTargetRows[target]] == 0);
       target += 1;
     }
+
     target = 0;
     while (target < stagedTargetCount) limit 512 {
       long targetRow = stagedTargetRows[target];

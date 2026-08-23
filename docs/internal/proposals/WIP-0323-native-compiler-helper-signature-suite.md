@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0322 |
 | Supersedes | Partial native helper-signature package coverage |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0324 native compiler wide-return source suite |
 
 ## Summary
 
@@ -81,3 +81,4 @@ Rejected. The imported declaration owner is canonical input.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0137](WIP-0137-direct-helper-signature-adoption.md)
 - [WIP-0322](WIP-0322-native-compiler-helper-parameter-suite.md)
+- [WIP-0324](WIP-0324-native-compiler-wide-return-source-suite.md)

@@ -436,8 +436,8 @@ classical class BootstrapCoverageFragments {
       long nameLength = opcodeNameLength(tracedOpcode(traceOpcodes, transition));
       long keyLength = KEY_FIXED_BYTES + nameLength + branchLength + directionLength;
       long prefixLength = PREFIX_FIXED_BYTES + branchLength;
-      long suffixLength = SUFFIX_FIXED_BYTES + decimalDigits(function)
-        + decimalDigits(instruction) + nameLength + directionLength;
+      long suffixLength = SUFFIX_FIXED_BYTES + decimalDigits(function) + decimalDigits(instruction)
+        + nameLength + directionLength;
       length += 6 + keyLength + prefixLength + suffixLength;
       transition += 1;
     }
@@ -477,18 +477,10 @@ classical class BootstrapCoverageFragments {
       long nameLength = opcodeNameLength(opcode);
       long keyLength = KEY_FIXED_BYTES + nameLength + branchLength + directionLength;
       long prefixLength = PREFIX_FIXED_BYTES + branchLength;
-      long suffixLength = SUFFIX_FIXED_BYTES + decimalDigits(function)
-        + decimalDigits(instruction) + nameLength + directionLength;
+      long suffixLength = SUFFIX_FIXED_BYTES + decimalDigits(function) + decimalDigits(instruction)
+        + nameLength + directionLength;
       cursor = writeUnsigned16(output, cursor, keyLength);
-      cursor = writeKey(
-        output,
-        cursor,
-        function,
-        instruction,
-        opcode,
-        branch,
-        direction
-      );
+      cursor = writeKey(output, cursor, function, instruction, opcode, branch, direction);
       cursor = writeUnsigned16(output, cursor, prefixLength);
       cursor = writePrefix(output, cursor, branch);
       cursor = writeUnsigned16(output, cursor, suffixLength);

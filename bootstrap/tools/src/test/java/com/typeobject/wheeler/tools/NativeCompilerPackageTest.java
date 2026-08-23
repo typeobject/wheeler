@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
@@ -22,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(49, result.selected());
-    assertEquals(49, result.passed());
+    assertEquals(58, result.selected());
+    assertEquals(58, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -98,6 +99,22 @@ final class NativeCompilerPackageTest {
     assertCase(report, "nativecompilervoidcallsourceformtests", "native_compiler_void_call_source_forms", "checksSevenArgumentSourceKind");
     assertCase(report, "nativecompilervoidcallsourcewidthtests", "native_compiler_void_call_source_widths", "checksSevenArgumentResolvedLocalWidth");
     assertCase(report, "nativecompilervoidcallwidthtests", "native_compiler_void_call_widths", "checksSevenArgumentInstructionWidth");
+    for (String name : List.of(
+        "checksLeadingWideReturnSources",
+        "checksTrailingWideReturnSources",
+        "checksFirstWideReturnSource",
+        "checksSecondWideReturnSource",
+        "checksThirdWideReturnSource",
+        "checksFourthWideReturnSource",
+        "checksFifthWideReturnSource",
+        "checksSixthWideReturnSource",
+        "checksSeventhWideReturnSource")) {
+      assertCase(
+          report,
+          "nativecompilerwidereturnsourcetests",
+          "native_compiler_wide_return_sources",
+          name);
+    }
   }
 
   private static void assertCase(

@@ -8,6 +8,7 @@ import wheeler.runtime.artifact_metadata;
 import wheeler.runtime.interpreter;
 
 classical class ArtifactExecution {
+  /// Carries the complete verified execution result and bounded globals.
   public record ArtifactOutcome(
     boolean verified,
     boolean authorized,

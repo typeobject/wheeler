@@ -257,7 +257,9 @@ classical class Archive {
         }
 
         if (entriesValid) {
-          if (digestMatches(source, dataStart, dataLength, entryDigest, digest, arena)) {} else {
+          if (
+            digestMatches(source, dataStart, dataLength, entryDigest, digest, arena)
+          ) {} else {
             entriesValid = false;
           }
         }

@@ -48,8 +48,10 @@ classical class TestReportJunit {
           }
         }
       }
+
       offset += 1;
     }
+
     return cursor;
   }
 
@@ -139,11 +141,7 @@ classical class TestReportJunit {
     return cursor + 17;
   }
 
-  private long writeHeader(
-    borrow byteview input,
-    AdapterHeader header,
-    borrow mut bytes output
-  ) {
+  private long writeHeader(borrow byteview input, AdapterHeader header, borrow mut bytes output) {
     long cursor = 0;
     writeAscii(output, cursor, "<?xml version=");
     setByte(output, cursor + 14, 34);

@@ -108,11 +108,7 @@ classical class TestManifest {
     return input[end - 1] == 34;
   }
 
-  private boolean dependencyPath(
-    borrow byteview input,
-    long pathStart,
-    long pathLength
-  ) {
+  private boolean dependencyPath(borrow byteview input, long pathStart, long pathLength) {
     if (pathLength < 14) {
       return false;
     }
@@ -120,11 +116,7 @@ classical class TestManifest {
     return rangeHash(input, pathStart, /* length= */ 13) == 344468646;
   }
 
-  private long externalSourceCount(
-    borrow byteview input,
-    long sourcePlanStart,
-    long sourceCount
-  ) {
+  private long externalSourceCount(borrow byteview input, long sourcePlanStart, long sourceCount) {
     long count = 0;
     long cursor = sourcePlanStart + 4;
     long source = 0;
@@ -424,7 +416,9 @@ classical class TestManifest {
                 sourceCursor = sourcePathStart + sourcePathLength;
                 long sourceLength = readUnsigned32BigEndian(input, sourceCursor);
                 long sourceStart = sourceCursor + 4;
-                if (sourceLine(input, cursor, found, sourcePathStart, sourcePathLength)) {
+                if (
+                  sourceLine(input, cursor, found, sourcePathStart, sourcePathLength)
+                ) {
                   matchedSource = true;
                   selectedRootPath = false;
                   if (sourcePathLength == rootLength) {
@@ -453,11 +447,7 @@ classical class TestManifest {
               if (
                 exactLine(input, cursor, found, /* length= */ 14, /* hash= */ 4023520342)
               ) {
-                long externalSources = externalSourceCount(
-                  input,
-                  sourcePlanStart,
-                  sourceCount
-                );
+                long externalSources = externalSourceCount(input, sourcePlanStart, sourceCount);
                 if (sourceCount == selectedSources + externalSources) {
                   if (rootSelected) {
                     selected = sourceModuleMatches(

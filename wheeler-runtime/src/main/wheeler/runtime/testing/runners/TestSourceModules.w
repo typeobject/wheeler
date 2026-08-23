@@ -215,6 +215,7 @@ classical class TestSourceModules {
     return true;
   }
 
+  /// Checks that one source declares no module used by an earlier plan entry.
   public boolean uniqueSourceModule(
     borrow byteview input,
     long planStart,
@@ -703,6 +704,7 @@ classical class TestSourceModules {
     return true;
   }
 
+  /// Checks every source import against the complete canonical source plan.
   public boolean validPlanImports(borrow byteview input, long start, long sourceCount) {
     long cursor = start + 4;
     long source = 0;
