@@ -2,6 +2,7 @@
 
 module wheeler.runtime.testing.runners.test_external_source_plan;
 
+import wheeler.core.encoding.binary;
 import wheeler.packages.archive_provenance;
 import wheeler.runtime.testing.runners.test_source_plan;
 
@@ -77,6 +78,69 @@ classical class TestExternalSourcePlan {
     return 0;
   }
 
+  private boolean dependencyPath(
+    borrow byteview input,
+    long start,
+    long length
+  ) {
+    if (length < 14) {
+      return false;
+    }
+
+    long hash = 0;
+    long offset = 0;
+    while (offset < PREFIX_BYTES) limit PREFIX_BYTES {
+      hash = (hash * 131 + input[start + offset]) % 4294967296;
+      offset += 1;
+    }
+
+    return hash == 344468646;
+  }
+
+  private boolean sameRange(
+    borrow byteview left,
+    long leftStart,
+    borrow byteview right,
+    long rightStart,
+    long length
+  ) {
+    long offset = 0;
+    while (offset < length) limit MAX_PLAN_BYTES {
+      if (left[leftStart + offset] != right[rightStart + offset]) {
+        return false;
+      }
+
+      offset += 1;
+    }
+
+    return true;
+  }
+
+  private long writeQualifiedPath(
+    borrow byteview packageName,
+    borrow byteview archive,
+    LockedArchiveEntry selected,
+    borrow mut bytes qualifiedPath
+  ) {
+    writeAscii(qualifiedPath, /* offset= */ 0, "dependencies/");
+    long cursor = copyRange(
+      packageName,
+      /* inputStart= */ 0,
+      bufferLength(packageName),
+      qualifiedPath,
+      PREFIX_BYTES
+    );
+    setByte(qualifiedPath, cursor, /* value= */ 47);
+    cursor += 1;
+    return copyRange(
+      archive,
+      selected.pathStart,
+      selected.pathLength,
+      qualifiedPath,
+      cursor
+    );
+  }
+
   private long copyExternalEntry(
     borrow byteview qualifiedPath,
     borrow byteview archive,
@@ -103,6 +167,32 @@ classical class TestExternalSourcePlan {
       output,
       cursor
     );
+  }
+
+  /// Reports whether a previously validated plan contains package-qualified external source.
+  public boolean validatedPlanHasExternalSource(
+    borrow byteview input,
+    long start,
+    long length
+  ) {
+    long sourceCount = readUnsigned32BigEndian(input, start);
+    long cursor = start + 4;
+    long source = 0;
+    while (source < sourceCount) limit MAX_SOURCES {
+      long pathLength = readUnsigned32BigEndian(input, cursor);
+      long pathStart = cursor + 4;
+      if (dependencyPath(input, pathStart, pathLength)) {
+        return true;
+      }
+
+      cursor = pathStart + pathLength;
+      long sourceLength = readUnsigned32BigEndian(input, cursor);
+      cursor += 4 + sourceLength;
+      source += 1;
+    }
+
+    assert(cursor == start + length);
+    return false;
   }
 
   /// Writes one canonical source plan containing the local plan and one locked external entry.
@@ -134,22 +224,11 @@ classical class TestExternalSourcePlan {
     assert(required < bufferLength(output) + 1);
 
     bytes qualifiedPath = allocateBytes(arena, qualifiedLength);
-    writeAscii(qualifiedPath, /* offset= */ 0, "dependencies/");
-    long qualifiedCursor = copyRange(
+    long qualifiedCursor = writeQualifiedPath(
       packageName,
-      /* inputStart= */ 0,
-      bufferLength(packageName),
-      qualifiedPath,
-      PREFIX_BYTES
-    );
-    setByte(qualifiedPath, qualifiedCursor, /* value= */ 47);
-    qualifiedCursor += 1;
-    qualifiedCursor = copyRange(
       archive,
-      selected.pathStart,
-      selected.pathLength,
-      qualifiedPath,
-      qualifiedCursor
+      selected,
+      qualifiedPath
     );
     assert(qualifiedCursor == qualifiedLength);
 
@@ -212,5 +291,102 @@ classical class TestExternalSourcePlan {
     assert(validTargetSourcePlan(output, /* start= */ 0, outputCursor));
     drop(qualifiedPath);
     return outputCursor;
+  }
+
+  /// Checks that one plan contains exactly one source bound to one complete locked archive.
+  public boolean validLockedExternalSourcePlan(
+    borrow byteview plan,
+    borrow byteview lock,
+    borrow byteview packageName,
+    borrow byteview archive,
+    borrow mut bytes digest,
+    borrow mut region arena
+  ) {
+    if (validTargetSourcePlan(plan, /* start= */ 0, bufferLength(plan)) == false) {
+      return false;
+    }
+
+    if (bufferLength(archive) < 16) {
+      return false;
+    }
+
+    if (readUnsigned(archive, /* offset= */ 12, /* width= */ 4) != 1) {
+      return false;
+    }
+
+    LockedArchiveEntry selected = validatedLockedArchiveEntry(
+      lock,
+      packageName,
+      archive,
+      /* ordinal= */ 0,
+      digest,
+      arena
+    );
+    long qualifiedLength = PREFIX_BYTES + bufferLength(packageName) + 1 + selected.pathLength;
+    if (255 < qualifiedLength) {
+      return false;
+    }
+
+    bytes qualifiedPath = allocateBytes(arena, qualifiedLength);
+    long qualifiedCursor = writeQualifiedPath(
+      packageName,
+      archive,
+      selected,
+      qualifiedPath
+    );
+    assert(qualifiedCursor == qualifiedLength);
+    long sourceCount = readUnsigned32BigEndian(plan, /* offset= */ 0);
+    long cursor = 4;
+    long source = 0;
+    long externalCount = 0;
+    boolean found = false;
+    while (source < sourceCount) limit MAX_SOURCES {
+      long pathLength = readUnsigned32BigEndian(plan, cursor);
+      long pathStart = cursor + 4;
+      cursor = pathStart + pathLength;
+      long sourceLength = readUnsigned32BigEndian(plan, cursor);
+      long sourceStart = cursor + 4;
+      if (PREFIX_BYTES < pathLength + 1) {
+        if (
+          sameRange(
+            plan,
+            pathStart,
+            qualifiedPath,
+            /* rightStart= */ 0,
+            PREFIX_BYTES
+          )
+        ) {
+          externalCount += 1;
+        }
+      }
+
+      if (pathLength == qualifiedLength) {
+        if (sameRange(plan, pathStart, qualifiedPath, /* rightStart= */ 0, pathLength)) {
+          if (sourceLength == selected.sourceLength) {
+            found = sameRange(
+              plan,
+              sourceStart,
+              archive,
+              selected.sourceStart,
+              sourceLength
+            );
+          }
+        }
+      }
+
+      cursor = sourceStart + sourceLength;
+      source += 1;
+    }
+
+    drop(qualifiedPath);
+    if (cursor != bufferLength(plan)) {
+      return false;
+    }
+
+    if (externalCount != 1) {
+      return false;
+    }
+
+    return found;
   }
 }

@@ -170,7 +170,8 @@ final class NativeCoverageRunExampleTest {
         31
             + TEST_MANIFEST.getBytes(StandardCharsets.UTF_8).length
             + testLock().length
-            + targetSourcePlan().length] = 65;
+            + targetSourcePlan().length
+            + 1] = 65;
     VirtualMachine invalidCount = VirtualMachine.withBinaryInput(nativeTestRunner(), overLimit, 39);
     assertThrows(
         VmTrap.class,
@@ -227,7 +228,7 @@ final class NativeCoverageRunExampleTest {
       assertArrayEquals(new byte[39], invalidTarget.hostOutput());
     }
 
-    int sourcePlanStart = lockStart + testLock().length + 4;
+    int sourcePlanStart = lockStart + testLock().length + 5;
     byte[] emptySourcePlan = input.clone();
     emptySourcePlan[sourcePlanStart + 3] = 0;
     VirtualMachine invalidSourceCount = VirtualMachine.withBinaryInput(
@@ -571,6 +572,7 @@ final class NativeCoverageRunExampleTest {
     input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
         .putInt(lock.length).array());
     input.writeBytes(lock);
+    input.write(0);
     input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
         .putInt(sourcePlan.length).array());
     input.writeBytes(sourcePlan);

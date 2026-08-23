@@ -109,6 +109,7 @@ final class NativeTestDependencyLockExampleTest {
     writeShortText(input, "test");
     writeBytes(input, manifest.getBytes(StandardCharsets.UTF_8));
     writeBytes(input, lock);
+    input.write(0);
     writeBytes(input, plan);
     input.write(0);
     input.write(255);

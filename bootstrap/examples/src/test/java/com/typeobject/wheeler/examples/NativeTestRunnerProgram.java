@@ -33,6 +33,10 @@ final class NativeTestRunnerProgram {
         "InterpreterLayout.w",
         RuntimeSources.read("runtime/interpreter/InterpreterLayout.w"));
     modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
+    modules.put("Archive.w", PackageSources.read("packages/archive/Archive.w"));
+    modules.put(
+        "ArchiveProvenance.w",
+        PackageSources.read("packages/archive/ArchiveProvenance.w"));
     modules.put(
         "BootstrapCoverageFragments.w",
         RuntimeSources.read("runtime/BootstrapCoverageFragments.w"));
@@ -49,8 +53,9 @@ final class NativeTestRunnerProgram {
           RuntimeSources.read("runtime/testing/reports/" + source + ".w"));
     }
     for (String source : List.of(
-        "TestDescriptors", "TestDiscoveredDescriptors", "TestSourceCompilation", "TestSourceLowering", "TestSourceModules", "TestSourcePlan", "TestSourceTests",
-        "TestRunner")) {
+        "TestDescriptors", "TestDiscoveredDescriptors", "TestExternalSourcePlan",
+        "TestSourceCompilation", "TestSourceLowering", "TestSourceModules", "TestSourcePlan",
+        "TestSourceTests", "TestRunner")) {
       modules.put(
           source + ".w", RuntimeSources.read("runtime/testing/runners/" + source + ".w"));
     }

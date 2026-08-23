@@ -9,7 +9,7 @@
 | Area | Self-hosting, external imports, source plans |
 | Depends on | WIP-0295 |
 | Supersedes | Locked archive entry projection without plan composition |
-| Superseded by | Native external import compilation |
+| Superseded by | WIP-0297 native external import compilation |
 
 ## Summary
 
@@ -85,3 +85,4 @@ Rejected. Manifest-local source selection and external module authorization stil
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0295](WIP-0295-native-locked-archive-source.md)
+- [WIP-0297](WIP-0297-native-external-import-compilation.md)

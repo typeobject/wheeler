@@ -494,6 +494,7 @@ final class NativePackageTestRunner {
     byte[] manifestBytes = Files.readAllBytes(root.resolve(PackageProject.MANIFEST_NAME));
     writeLittleBytes(output, manifestBytes);
     writeLittleBytes(output, packageLock(root, manifest, manifestBytes));
+    output.write(0);
     writeLittleBytes(output, sourcePlan);
     List<String> tags = selectedTags.stream().sorted(Comparator.naturalOrder()).toList();
     if (tags.size() > 64) {

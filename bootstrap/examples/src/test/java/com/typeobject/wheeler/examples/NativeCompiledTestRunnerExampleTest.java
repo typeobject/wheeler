@@ -483,6 +483,24 @@ final class NativeCompiledTestRunnerExampleTest {
   }
 
   @Test
+  void compilesOneLockedExternalImportNatively() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    var fixture = NativeExternalSourceTestInput.create(MANIFEST);
+    byte[] report = execute(runner, fixture.transport());
+
+    assertEquals(1, report[32]);
+    assertEquals(1, report[34]);
+    VirtualMachine missingArchive = VirtualMachine.withBinaryInput(
+        runner,
+        discoveredDescriptors(fixture.manifest(), fixture.sources(), List.of()),
+        39);
+    assertThrows(
+        VmTrap.class,
+        () -> CompilerMachineRunner.runWithoutRewindHistory(missingArchive));
+    assertArrayEquals(new byte[39], missingArchive.hostOutput());
+  }
+
+  @Test
   void compilesTheManifestRootWithTwoLocalImports() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
     String root = IMPORTING.replace("import pkg.helper;", """
@@ -768,6 +786,7 @@ final class NativeCompiledTestRunnerExampleTest {
     writeShortText(input, "test");
     writeBytes(input, manifest.getBytes(StandardCharsets.UTF_8));
     writeBytes(input, lock);
+    input.write(0);
     writeBytes(input, plan);
     input.write(selectedTags.size());
     selectedTags.forEach(tag -> writeShortText(input, tag));

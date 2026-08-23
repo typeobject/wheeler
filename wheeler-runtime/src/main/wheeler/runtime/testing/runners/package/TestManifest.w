@@ -108,6 +108,42 @@ classical class TestManifest {
     return input[end - 1] == 34;
   }
 
+  private boolean dependencyPath(
+    borrow byteview input,
+    long pathStart,
+    long pathLength
+  ) {
+    if (pathLength < 14) {
+      return false;
+    }
+
+    return rangeHash(input, pathStart, /* length= */ 13) == 344468646;
+  }
+
+  private long externalSourceCount(
+    borrow byteview input,
+    long sourcePlanStart,
+    long sourceCount
+  ) {
+    long count = 0;
+    long cursor = sourcePlanStart + 4;
+    long source = 0;
+    while (source < sourceCount) limit MAX_SOURCES {
+      long pathLength = readUnsigned32BigEndian(input, cursor);
+      long pathStart = cursor + 4;
+      if (dependencyPath(input, pathStart, pathLength)) {
+        count += 1;
+      }
+
+      cursor = pathStart + pathLength;
+      long sourceLength = readUnsigned32BigEndian(input, cursor);
+      cursor += 4 + sourceLength;
+      source += 1;
+    }
+
+    return count;
+  }
+
   private boolean fieldLine(
     borrow byteview input,
     long start,
@@ -373,39 +409,57 @@ classical class TestManifest {
           sourceSection = true;
         } else {
           if (sourceSection) {
-            if (selectedSources < sourceCount) {
-              long sourcePathLength = readUnsigned32BigEndian(input, sourceCursor);
-              long sourcePathStart = sourceCursor + 4;
-              if (
-                sourceLine(input, cursor, found, sourcePathStart, sourcePathLength) == false
-              ) {
+            boolean sourceItem = false;
+            if (9 < lineLength) {
+              sourceItem = rangeHash(input, cursor, /* length= */ 9) == 1271526807;
+            }
+
+            if (sourceItem) {
+              sourceCursor = sourcePlanStart + 4;
+              long sourceIndex = 0;
+              boolean matchedSource = false;
+              while (sourceIndex < sourceCount) limit MAX_SOURCES {
+                long sourcePathLength = readUnsigned32BigEndian(input, sourceCursor);
+                long sourcePathStart = sourceCursor + 4;
+                sourceCursor = sourcePathStart + sourcePathLength;
+                long sourceLength = readUnsigned32BigEndian(input, sourceCursor);
+                long sourceStart = sourceCursor + 4;
+                if (sourceLine(input, cursor, found, sourcePathStart, sourcePathLength)) {
+                  matchedSource = true;
+                  selectedRootPath = false;
+                  if (sourcePathLength == rootLength) {
+                    if (sameRange(input, sourcePathStart, rootStart, rootLength)) {
+                      rootSelected = true;
+                      selectedRootPath = true;
+                    }
+                  }
+
+                  if (selectedRootPath) {
+                    rootSourceStart = sourceStart;
+                    rootSourceLength = sourceLength;
+                  }
+                }
+
+                sourceCursor = sourceStart + sourceLength;
+                sourceIndex += 1;
+              }
+
+              if (matchedSource == false) {
                 return false;
               }
 
-              selectedRootPath = false;
-              if (sourcePathLength == rootLength) {
-                if (sameRange(input, sourcePathStart, rootStart, rootLength)) {
-                  rootSelected = true;
-                  selectedRootPath = true;
-                }
-              }
-
-              sourceCursor += 4 + sourcePathLength;
-              long sourceLength = readUnsigned32BigEndian(input, sourceCursor);
-              sourceCursor += 4;
-              if (selectedRootPath) {
-                rootSourceStart = sourceCursor;
-                rootSourceLength = sourceLength;
-              }
-
-              sourceCursor += sourceLength;
               selectedSources += 1;
             } else {
               if (
                 exactLine(input, cursor, found, /* length= */ 14, /* hash= */ 4023520342)
               ) {
-                if (rootSelected) {
-                  if (sourceCursor == sourcePlanStart + sourcePlanLength) {
+                long externalSources = externalSourceCount(
+                  input,
+                  sourcePlanStart,
+                  sourceCount
+                );
+                if (sourceCount == selectedSources + externalSources) {
+                  if (rootSelected) {
                     selected = sourceModuleMatches(
                       input,
                       rootSourceStart,
