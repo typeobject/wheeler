@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler, package testing |
 | Depends on | WIP-0018, WIP-0245, WIP-0278 |
 | Supersedes | Compiler packages with no native test-selected target |
-| Superseded by | WIP-0280 imported constant assertion, then the full compiler suite |
+| Superseded by | WIP-0280 imported constant assertion, then WIP-0330 256-constant owners |
 
 ## Summary
 

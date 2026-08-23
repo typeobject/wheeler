@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0328 |
 | Supersedes | Product-only resolved local-return evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0330 native 256-constant owner profile |
 
 ## Summary
 
@@ -76,3 +76,4 @@ Rejected. Host scheduling jitter is not a native semantic failure. The test stil
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0328](WIP-0328-native-128-case-test-profile.md)
+- [WIP-0330](WIP-0330-native-256-constant-owner-profile.md)

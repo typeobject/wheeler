@@ -9,7 +9,7 @@
 | Area | Self-hosting, package commands, external imports |
 | Depends on | WIP-0297 |
 | Supersedes | Package-local-only native package test invocation |
-| Superseded by | WIP-0299 native two-source archive import |
+| Superseded by | WIP-0299 native two-source archive import, then WIP-0330 256-constant owners |
 
 ## Summary
 

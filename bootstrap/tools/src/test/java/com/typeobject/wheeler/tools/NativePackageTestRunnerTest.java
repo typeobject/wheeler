@@ -40,6 +40,12 @@ class NativePackageTestRunnerTest {
     assertTrue(NativePackageTestRunner.fixedSourceProfile(source.toString()));
     source.insert(source.length() - 2, "  public long excess() { return 23; }\n");
     assertFalse(NativePackageTestRunner.fixedSourceProfile(source.toString()));
+
+    StringBuilder constants = nativeConstantOwner(256);
+    assertTrue(NativePackageTestRunner.fixedSourceProfile(constants.toString()));
+    constants.insert(
+        constants.length() - 2, "  public const long VALUE_256 = 256;\n");
+    assertFalse(NativePackageTestRunner.fixedSourceProfile(constants.toString()));
   }
 
   @Test
@@ -684,17 +690,15 @@ class NativePackageTestRunnerTest {
         dependencies: []
         capabilities: []
         """);
-    Files.writeString(project.resolve("src/Helper.w"), """
-        module demo.native.imports.helper;
-        classical class Helper {
-          public const long ANSWER = 42;
-        }
-        """);
+    Files.writeString(project.resolve("src/Helper.w"), nativeConstantOwner(256));
     Files.writeString(project.resolve("src/Main.w"), """
         module demo.native.imports.tests;
         import demo.native.imports.helper;
         classical class NativeImportTests {
-          test void passes() { assert(true); }
+          test void passes() {
+            long value = VALUE_255;
+            assert(value == 255);
+          }
         }
         """);
     PackageProject packageProject = PackageProject.load(project);
@@ -708,6 +712,21 @@ class NativePackageTestRunnerTest {
     assertEquals(1, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
     assertEquals(1, report.passed());
+  }
+
+  private static StringBuilder nativeConstantOwner(int count) {
+    StringBuilder source = new StringBuilder("""
+        module demo.native.imports.helper;
+        classical class Helper {
+        """);
+    for (int index = 0; index < count; index++) {
+      source.append("  public const long VALUE_")
+          .append(index)
+          .append(" = ")
+          .append(index)
+          .append(";\n");
+    }
+    return source.append("}\n");
   }
 
   private static byte[] packageRows(int firstIdentity, int secondIdentity) {

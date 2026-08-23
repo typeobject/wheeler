@@ -28,6 +28,8 @@ import java.util.Set;
 /** Invokes native source discovery, compilation, and reporting for the fixed package profile. */
 final class NativePackageTestRunner {
   private static final int MAX_CASES = 128;
+  private static final int MAX_DEPENDENCY_CONSTANTS = 256;
+  private static final int MAX_DEPENDENCY_FUNCTIONS = 23;
   private static final int MAX_SOURCES = 8;
   private static final int MAX_PLAN_BYTES = 32_768;
   private static final int MAX_SOURCE_BYTES = MAX_PLAN_BYTES;
@@ -447,7 +449,9 @@ final class NativePackageTestRunner {
     int functions = occurrences(text, "public long ")
         + occurrences(text, "public boolean ");
     boolean product = 0 < constants || 0 < functions;
-    return product && constants <= 64 && functions <= 23
+    return product
+        && constants <= MAX_DEPENDENCY_CONSTANTS
+        && functions <= MAX_DEPENDENCY_FUNCTIONS
         && !text.contains("test void ") && !text.contains("entry void ");
   }
 
