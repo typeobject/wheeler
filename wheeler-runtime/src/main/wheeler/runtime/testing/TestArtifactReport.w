@@ -165,7 +165,7 @@ classical class TestArtifactReport {
     borrow byteview trace,
     borrow mut words traceFunctions,
     borrow mut words traceInstructions,
-    borrow byteview traceBranches,
+    borrow byteview traceControl,
     borrow byteview packageName,
     borrow byteview packageVersion,
     borrow byteview targetName,
@@ -185,7 +185,7 @@ classical class TestArtifactReport {
       trace,
       traceFunctions,
       traceInstructions,
-      traceBranches,
+      traceControl,
       outcome.steps
     );
     bytes fragments = allocateBytes(staging, /* length= */ 32768);
@@ -193,7 +193,7 @@ classical class TestArtifactReport {
       trace,
       traceFunctions,
       traceInstructions,
-      traceBranches,
+      traceControl,
       outcome.steps,
       fragments
     );
@@ -278,7 +278,7 @@ classical class TestArtifactReport {
     borrow byteview trace,
     borrow mut words traceFunctions,
     borrow mut words traceInstructions,
-    borrow byteview traceBranches,
+    borrow byteview traceControl,
     borrow byteview packageName,
     borrow byteview packageVersion,
     borrow byteview targetName,
@@ -293,7 +293,7 @@ classical class TestArtifactReport {
         trace,
         traceFunctions,
         traceInstructions,
-        traceBranches,
+        traceControl,
         packageName,
         packageVersion,
         targetName,
@@ -336,7 +336,7 @@ classical class TestArtifactReport {
     bytes trace = allocateBytes(execution, MAX_INTERPRETED_STEPS * 2);
     words traceFunctions = allocate(execution, MAX_INTERPRETED_STEPS);
     words traceInstructions = allocate(execution, MAX_INTERPRETED_STEPS);
-    bytes traceBranches = allocateBytes(execution, MAX_INTERPRETED_STEPS);
+    bytes traceControl = allocateBytes(execution, MAX_INTERPRETED_STEPS);
     long length = 0;
     if (bindProgram) {
       ArtifactOutcome named = executeBoundedNamedArtifact(
@@ -348,7 +348,7 @@ classical class TestArtifactReport {
         trace,
         traceFunctions,
         traceInstructions,
-        traceBranches
+        traceControl
       );
       assert(named.authorized);
       length = writeOutcomeCaseResult(
@@ -357,7 +357,7 @@ classical class TestArtifactReport {
         trace,
         traceFunctions,
         traceInstructions,
-        traceBranches,
+        traceControl,
         packageName,
         packageVersion,
         targetName,
@@ -372,7 +372,7 @@ classical class TestArtifactReport {
         trace,
         traceFunctions,
         traceInstructions,
-        traceBranches
+        traceControl
       );
       length = writeOutcomeCaseResult(
         artifact,
@@ -380,7 +380,7 @@ classical class TestArtifactReport {
         trace,
         traceFunctions,
         traceInstructions,
-        traceBranches,
+        traceControl,
         packageName,
         packageVersion,
         targetName,
@@ -391,7 +391,7 @@ classical class TestArtifactReport {
     }
 
     assert(length < CASE_RESULT_BYTES + 1);
-    drop(traceBranches);
+    drop(traceControl);
     drop(traceInstructions);
     drop(traceFunctions);
     drop(trace);

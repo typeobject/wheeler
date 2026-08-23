@@ -6,11 +6,19 @@ import wheeler.compiler.opcodes;
 
 classical class BootstrapCoverageFragments {
   private const long MAX_TRANSITIONS = 128;
-  private const long KEY_FIXED_BYTES = 17;
+  private const long KEY_FIXED_BYTES = 10;
   private const long PREFIX_FIXED_BYTES = 12;
-  private const long SUFFIX_FIXED_BYTES = 62;
+  private const long SUFFIX_FIXED_BYTES = 55;
 
   private long opcodeNameLength(long opcode) {
+    if (opcode == OPCODE_ADD_CONST) {
+      return 9;
+    }
+
+    if (opcode == OPCODE_SUB_CONST) {
+      return 9;
+    }
+
     if (opcode == OPCODE_LOCAL_CONST) {
       return 11;
     }
@@ -59,6 +67,10 @@ classical class BootstrapCoverageFragments {
       return 4;
     }
 
+    if (opcode == OPCODE_UNCALL) {
+      return 6;
+    }
+
     if (opcode == OPCODE_CALL_VALUE) {
       return 10;
     }
@@ -89,6 +101,12 @@ classical class BootstrapCoverageFragments {
 
     assert(false);
     return 0;
+  }
+
+  private long directionNameLength(long direction) {
+    assert(-1 < direction);
+    assert(direction < 2);
+    return 7;
   }
 
   private long branchNameLength(long branch) {
@@ -154,6 +172,17 @@ classical class BootstrapCoverageFragments {
     return cursor;
   }
 
+  private long writeDirectionName(borrow mut bytes output, long cursor, long direction) {
+    if (direction == 0) {
+      writeAscii(output, cursor, "forward");
+      return cursor + 7;
+    }
+
+    assert(direction == 1);
+    writeAscii(output, cursor, "inverse");
+    return cursor + 7;
+  }
+
   private long writeBranchName(borrow mut bytes output, long cursor, long branch) {
     if (branch == 0) {
       writeAscii(output, cursor, "none");
@@ -171,6 +200,16 @@ classical class BootstrapCoverageFragments {
   }
 
   private long writeOpcodeName(borrow mut bytes output, long cursor, long opcode) {
+    if (opcode == OPCODE_ADD_CONST) {
+      writeAscii(output, cursor, "ADD_CONST");
+      return cursor + 9;
+    }
+
+    if (opcode == OPCODE_SUB_CONST) {
+      writeAscii(output, cursor, "SUB_CONST");
+      return cursor + 9;
+    }
+
     if (opcode == OPCODE_LOCAL_CONST) {
       writeAscii(output, cursor, "LOCAL_CONST");
       return cursor + 11;
@@ -231,6 +270,11 @@ classical class BootstrapCoverageFragments {
       return cursor + 4;
     }
 
+    if (opcode == OPCODE_UNCALL) {
+      writeAscii(output, cursor, "UNCALL");
+      return cursor + 6;
+    }
+
     if (opcode == OPCODE_CALL_VALUE) {
       writeAscii(output, cursor, "CALL_VALUE");
       return cursor + 10;
@@ -276,10 +320,10 @@ classical class BootstrapCoverageFragments {
     long function,
     long instruction,
     long opcode,
-    long branch
+    long branch,
+    long direction
   ) {
-    writeAscii(output, cursor, "forward");
-    cursor += 7;
+    cursor = writeDirectionName(output, cursor, direction);
     setByte(output, cursor, 0);
     cursor += 1;
     cursor = writeUnsigned32BigEndian(output, cursor, function);
@@ -302,21 +346,25 @@ classical class BootstrapCoverageFragments {
     return cursor + 1;
   }
 
-  private long writeDirectionAndFunctionLabel(borrow mut bytes output, long cursor) {
+  private long writeDirectionAndFunctionLabel(
+    borrow mut bytes output,
+    long cursor,
+    long direction
+  ) {
     setByte(output, cursor, 44);
     setByte(output, cursor + 1, 34);
     writeAscii(output, cursor + 2, "direction");
     setByte(output, cursor + 11, 34);
     setByte(output, cursor + 12, 58);
     setByte(output, cursor + 13, 34);
-    writeAscii(output, cursor + 14, "forward");
-    setByte(output, cursor + 21, 34);
-    setByte(output, cursor + 22, 44);
-    setByte(output, cursor + 23, 34);
-    writeAscii(output, cursor + 24, "function");
-    setByte(output, cursor + 32, 34);
-    setByte(output, cursor + 33, 58);
-    return cursor + 34;
+    cursor = writeDirectionName(output, cursor + 14, direction);
+    setByte(output, cursor, 34);
+    setByte(output, cursor + 1, 44);
+    setByte(output, cursor + 2, 34);
+    writeAscii(output, cursor + 3, "function");
+    setByte(output, cursor + 11, 34);
+    setByte(output, cursor + 12, 58);
+    return cursor + 13;
   }
 
   private long writeInstructionLabel(borrow mut bytes output, long cursor) {
@@ -343,9 +391,10 @@ classical class BootstrapCoverageFragments {
     long cursor,
     long function,
     long instruction,
-    long opcode
+    long opcode,
+    long direction
   ) {
-    cursor = writeDirectionAndFunctionLabel(output, cursor);
+    cursor = writeDirectionAndFunctionLabel(output, cursor, direction);
     cursor = writeDecimal(output, cursor, function);
     cursor = writeInstructionLabel(output, cursor);
     cursor = writeDecimal(output, cursor, instruction);
@@ -365,7 +414,7 @@ classical class BootstrapCoverageFragments {
     borrow byteview traceOpcodes,
     borrow mut words traceFunctions,
     borrow mut words traceInstructions,
-    borrow byteview traceBranches,
+    borrow byteview traceControl,
     long transitionCount
   ) {
     assert(0 < transitionCount);
@@ -373,20 +422,22 @@ classical class BootstrapCoverageFragments {
     assert(bufferLength(traceOpcodes) == MAX_INTERPRETED_STEPS * 2);
     assert(bufferLength(traceFunctions) == MAX_INTERPRETED_STEPS);
     assert(bufferLength(traceInstructions) == MAX_INTERPRETED_STEPS);
-    assert(bufferLength(traceBranches) == MAX_INTERPRETED_STEPS);
+    assert(bufferLength(traceControl) == MAX_INTERPRETED_STEPS);
     long length = 1;
     long transition = 0;
     while (transition < transitionCount) limit MAX_TRANSITIONS {
       long function = traceFunctions[transition];
       long instruction = traceInstructions[transition];
-      long branchLength = branchNameLength(traceBranches[transition]);
+      long control = traceControl[transition];
+      long branchLength = branchNameLength(control % 4);
+      long directionLength = directionNameLength(control / 4);
       assert(-1 < function);
       assert(-1 < instruction);
       long nameLength = opcodeNameLength(tracedOpcode(traceOpcodes, transition));
-      long keyLength = KEY_FIXED_BYTES + nameLength + branchLength;
+      long keyLength = KEY_FIXED_BYTES + nameLength + branchLength + directionLength;
       long prefixLength = PREFIX_FIXED_BYTES + branchLength;
       long suffixLength = SUFFIX_FIXED_BYTES + decimalDigits(function)
-        + decimalDigits(instruction) + nameLength;
+        + decimalDigits(instruction) + nameLength + directionLength;
       length += 6 + keyLength + prefixLength + suffixLength;
       transition += 1;
     }
@@ -399,7 +450,7 @@ classical class BootstrapCoverageFragments {
     borrow byteview traceOpcodes,
     borrow mut words traceFunctions,
     borrow mut words traceInstructions,
-    borrow byteview traceBranches,
+    borrow byteview traceControl,
     long transitionCount,
     borrow mut bytes output
   ) {
@@ -407,7 +458,7 @@ classical class BootstrapCoverageFragments {
       traceOpcodes,
       traceFunctions,
       traceInstructions,
-      traceBranches,
+      traceControl,
       transitionCount
     );
     assert(measured < bufferLength(output) + 1);
@@ -417,20 +468,31 @@ classical class BootstrapCoverageFragments {
     while (transition < transitionCount) limit MAX_TRANSITIONS {
       long function = traceFunctions[transition];
       long instruction = traceInstructions[transition];
-      long branch = traceBranches[transition];
+      long control = traceControl[transition];
+      long branch = control % 4;
+      long direction = control / 4;
       long branchLength = branchNameLength(branch);
+      long directionLength = directionNameLength(direction);
       long opcode = tracedOpcode(traceOpcodes, transition);
       long nameLength = opcodeNameLength(opcode);
-      long keyLength = KEY_FIXED_BYTES + nameLength + branchLength;
+      long keyLength = KEY_FIXED_BYTES + nameLength + branchLength + directionLength;
       long prefixLength = PREFIX_FIXED_BYTES + branchLength;
       long suffixLength = SUFFIX_FIXED_BYTES + decimalDigits(function)
-        + decimalDigits(instruction) + nameLength;
+        + decimalDigits(instruction) + nameLength + directionLength;
       cursor = writeUnsigned16(output, cursor, keyLength);
-      cursor = writeKey(output, cursor, function, instruction, opcode, branch);
+      cursor = writeKey(
+        output,
+        cursor,
+        function,
+        instruction,
+        opcode,
+        branch,
+        direction
+      );
       cursor = writeUnsigned16(output, cursor, prefixLength);
       cursor = writePrefix(output, cursor, branch);
       cursor = writeUnsigned16(output, cursor, suffixLength);
-      cursor = writeSuffix(output, cursor, function, instruction, opcode);
+      cursor = writeSuffix(output, cursor, function, instruction, opcode, direction);
       transition += 1;
     }
 

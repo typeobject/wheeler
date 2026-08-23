@@ -9,7 +9,7 @@
 | Area | Semantic coverage, native execution, self-hosting |
 | Depends on | WIP-0286 |
 | Supersedes | Linear entry-function native coverage projection |
-| Superseded by | Native direction and rewind coverage |
+| Superseded by | WIP-0288 native inverse coverage |
 
 ## Summary
 
@@ -87,3 +87,4 @@ Rejected. Opcode trace identity and semantic coverage are separate contracts.
 - [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md)
 - [WIP-0285](WIP-0285-native-compiler-callable-suite.md)
 - [WIP-0286](WIP-0286-native-interpreter-layout-authority.md)
+- [WIP-0288](WIP-0288-native-inverse-coverage.md)

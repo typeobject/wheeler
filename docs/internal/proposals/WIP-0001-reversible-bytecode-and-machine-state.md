@@ -316,7 +316,7 @@ Submitting or awaiting external I/O remains a typed `EFFECT_CALL` barrier unless
 - [x] Deterministic mutation and fuzz corpora reject every truncated prefix plus overlap, arithmetic overflow, invalid IDs/types/targets, invalid UTF-8, oversized artifacts, bad flags, bad alignment, and unknown opcodes through one checked failure boundary.
 - [x] Registry-wide tests cover every opcode identity, operand role, verifier diagnostic label, generated inverse pair, encoded bound, and canonical disassembly spelling. VM transition suites cover the admitted forward, rewind, trap, and limit domains.
 - [x] Property tests establish `unstep(step(C).state, step(C).undo) == C` over valid generated arithmetic states.
-- [x] Paired instruction and `CALL`/`UNCALL` tests restore exact typed globals and frames.
+- [x] Paired instruction and `CALL`/`UNCALL` tests restore exact typed globals and frames. WIP-0288 also carries forward and inverse direction through the Wheeler-native interpreter and reproduces stage-zero semantic coverage byte for byte.
 - [x] Logged writes restore destroyed values and history exhaustion traps before mutation.
 - [x] Commit barriers prevent earlier rewind while later language-level inverse calls remain executable and independently rewindable.
 - [x] Checkpoint, complete rewind, and fresh execution agree exactly with uninterrupted machine state.
@@ -370,6 +370,7 @@ WIP-0040 source inverse remains new forward execution over explicit witnesses. I
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [WIP-0038](WIP-0038-regular-instruction-forms-and-extension-registry.md)
+- [WIP-0288](WIP-0288-native-inverse-coverage.md)
 - [Proposal process](index.mdx)
 - [Bytecode reference](../../public/reference/bytecode.md)
 - [Virtual-machine reference](../../public/reference/virtual-machine.md)

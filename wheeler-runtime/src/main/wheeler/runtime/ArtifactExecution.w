@@ -54,12 +54,12 @@ classical class ArtifactExecution {
     borrow mut bytes traceOpcodes,
     borrow mut words traceFunctions,
     borrow mut words traceInstructions,
-    borrow mut bytes traceBranches
+    borrow mut bytes traceControl
   ) {
     assert(bufferLength(traceOpcodes) == MAX_INTERPRETED_STEPS * 2);
     assert(bufferLength(traceFunctions) == MAX_INTERPRETED_STEPS);
     assert(bufferLength(traceInstructions) == MAX_INTERPRETED_STEPS);
-    assert(bufferLength(traceBranches) == MAX_INTERPRETED_STEPS);
+    assert(bufferLength(traceControl) == MAX_INTERPRETED_STEPS);
     assert(0 < stepLimit);
     assert(stepLimit < MAX_INTERPRETED_STEPS + 1);
     region executionArena = new region(/* bytes= */ 24000, /* allocations= */ 25);
@@ -71,6 +71,7 @@ classical class ArtifactExecution {
     words returnDestinations = allocate(executionArena, INTERPRETER_FRAME_COUNT);
     words returnFunctions = allocate(executionArena, INTERPRETER_FRAME_COUNT);
     words returnInstructions = allocate(executionArena, INTERPRETER_FRAME_COUNT);
+    words returnDirections = allocate(executionArena, INTERPRETER_FRAME_COUNT);
     words aggregateTypes = allocate(executionArena, INTERPRETER_AGGREGATE_COUNT);
     words aggregateTags = allocate(executionArena, INTERPRETER_AGGREGATE_COUNT);
     words aggregateStarts = allocate(executionArena, INTERPRETER_AGGREGATE_COUNT);
@@ -131,6 +132,7 @@ classical class ArtifactExecution {
         returnDestinations,
         returnFunctions,
         returnInstructions,
+        returnDirections,
         aggregateTypes,
         aggregateTags,
         aggregateStarts,
@@ -148,7 +150,7 @@ classical class ArtifactExecution {
         traceOpcodes,
         traceFunctions,
         traceInstructions,
-        traceBranches
+        traceControl
       );
       match (result) {
         case ExecutionResult.Value(Execution execution) {
@@ -192,6 +194,7 @@ classical class ArtifactExecution {
     drop(aggregateStarts);
     drop(aggregateTags);
     drop(aggregateTypes);
+    drop(returnDirections);
     drop(returnInstructions);
     drop(returnFunctions);
     drop(returnDestinations);
@@ -226,7 +229,7 @@ classical class ArtifactExecution {
     borrow mut bytes traceOpcodes,
     borrow mut words traceFunctions,
     borrow mut words traceInstructions,
-    borrow mut bytes traceBranches
+    borrow mut bytes traceControl
   ) {
     return executeBoundedArtifactWithFunction(
       artifact,
@@ -238,7 +241,7 @@ classical class ArtifactExecution {
       traceOpcodes,
       traceFunctions,
       traceInstructions,
-      traceBranches
+      traceControl
     );
   }
 
@@ -249,7 +252,7 @@ classical class ArtifactExecution {
     borrow mut bytes traceOpcodes,
     borrow mut words traceFunctions,
     borrow mut words traceInstructions,
-    borrow mut bytes traceBranches
+    borrow mut bytes traceControl
   ) {
     return executeBoundedArtifactWithFunction(
       artifact,
@@ -261,7 +264,7 @@ classical class ArtifactExecution {
       traceOpcodes,
       traceFunctions,
       traceInstructions,
-      traceBranches
+      traceControl
     );
   }
 
@@ -275,7 +278,7 @@ classical class ArtifactExecution {
     borrow mut bytes traceOpcodes,
     borrow mut words traceFunctions,
     borrow mut words traceInstructions,
-    borrow mut bytes traceBranches
+    borrow mut bytes traceControl
   ) {
     return executeBoundedArtifactWithFunction(
       artifact,
@@ -287,7 +290,7 @@ classical class ArtifactExecution {
       traceOpcodes,
       traceFunctions,
       traceInstructions,
-      traceBranches
+      traceControl
     );
   }
 }

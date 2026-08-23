@@ -12,17 +12,17 @@ classical class NativeTestArtifactExecutionIdentity {
     bytes traceOpcodes = allocateBytes(traceArena, MAX_INTERPRETED_STEPS * 2);
     words traceFunctions = allocate(traceArena, MAX_INTERPRETED_STEPS);
     words traceInstructions = allocate(traceArena, MAX_INTERPRETED_STEPS);
-    bytes traceBranches = allocateBytes(traceArena, MAX_INTERPRETED_STEPS);
+    bytes traceControl = allocateBytes(traceArena, MAX_INTERPRETED_STEPS);
     ArtifactOutcome outcome = executeBoundedArtifact(
       artifact,
       traceOpcodes,
       traceFunctions,
       traceInstructions,
-      traceBranches
+      traceControl
     );
     long length = deriveArtifactExecutionIdentity(artifact, outcome, output);
     setOutputLength(output, length);
-    drop(traceBranches);
+    drop(traceControl);
     drop(traceInstructions);
     drop(traceFunctions);
     drop(traceOpcodes);

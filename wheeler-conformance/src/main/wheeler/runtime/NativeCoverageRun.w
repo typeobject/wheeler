@@ -20,13 +20,13 @@ classical class NativeCoverageRun {
     bytes traceOpcodes = allocateBytes(arena, MAX_INTERPRETED_STEPS * 2);
     words traceFunctions = allocate(arena, MAX_INTERPRETED_STEPS);
     words traceInstructions = allocate(arena, MAX_INTERPRETED_STEPS);
-    bytes traceBranches = allocateBytes(arena, MAX_INTERPRETED_STEPS);
+    bytes traceControl = allocateBytes(arena, MAX_INTERPRETED_STEPS);
     ArtifactOutcome outcome = executeBoundedArtifact(
       artifact,
       traceOpcodes,
       traceFunctions,
       traceInstructions,
-      traceBranches
+      traceControl
     );
     assert(outcome.passed);
     transitionCount = outcome.steps;
@@ -38,7 +38,7 @@ classical class NativeCoverageRun {
       traceOpcodes,
       traceFunctions,
       traceInstructions,
-      traceBranches,
+      traceControl,
       transitionCount
     );
     bytes fragments = allocateBytes(arena, /* length= */ 32768);
@@ -46,14 +46,14 @@ classical class NativeCoverageRun {
       traceOpcodes,
       traceFunctions,
       traceInstructions,
-      traceBranches,
+      traceControl,
       transitionCount,
       fragments
     );
     reportLength = reduceRange(fragments, fragmentLength, output);
     setOutputLength(output, reportLength);
     drop(fragments);
-    drop(traceBranches);
+    drop(traceControl);
     drop(traceInstructions);
     drop(traceFunctions);
     drop(traceOpcodes);

@@ -46,6 +46,7 @@ classical class Interpreter {
     borrow mut words returnDestinations,
     borrow mut words returnFunctions,
     borrow mut words returnInstructions,
+    borrow mut words returnDirections,
     borrow mut words aggregateTypes,
     borrow mut words aggregateTags,
     borrow mut words aggregateStarts,
@@ -63,12 +64,12 @@ classical class Interpreter {
     borrow mut bytes traceOpcodes,
     borrow mut words traceFunctions,
     borrow mut words traceInstructions,
-    borrow mut bytes traceBranches
+    borrow mut bytes traceControl
   ) {
     assert(bufferLength(traceOpcodes) == MAX_INTERPRETED_STEPS * 2);
     assert(bufferLength(traceFunctions) == MAX_INTERPRETED_STEPS);
     assert(bufferLength(traceInstructions) == MAX_INTERPRETED_STEPS);
-    assert(bufferLength(traceBranches) == MAX_INTERPRETED_STEPS);
+    assert(bufferLength(traceControl) == MAX_INTERPRETED_STEPS);
     assert(0 < stepLimit);
     assert(stepLimit < MAX_INTERPRETED_STEPS + 1);
     long manifestOffset = sectionOffset(artifact, 0);
@@ -95,6 +96,7 @@ classical class Interpreter {
     long depth = 0;
     long function = entry;
     long instruction = 0;
+    long direction = 0;
     long aggregateCount = 0;
     long aggregateFieldCursor = 0;
     long storageCount = 0;
@@ -116,7 +118,7 @@ classical class Interpreter {
       setByte(traceOpcodes, steps * 2 + 1, opcode / 256);
       set(traceFunctions, steps, function);
       set(traceInstructions, steps, instruction);
-      setByte(traceBranches, steps, /* none= */ 0);
+      setByte(traceControl, steps, direction * 4);
       long instructionLength = readUnsigned(artifact, cursor + 4, 4);
       long next = cursor + instructionLength;
       long nextInstruction = instruction + 1;
@@ -160,6 +162,7 @@ classical class Interpreter {
           end = returnEnds[depth];
           function = returnFunctions[depth];
           instruction = returnInstructions[depth];
+          direction = returnDirections[depth];
           set(locals, localIndex(depth, resultSlotDestination), returnSlotTag);
           set(locals, localIndex(depth, resultSlotDestination + 1), returnSlotPayload);
           steps += 1;
@@ -178,6 +181,7 @@ classical class Interpreter {
             end = returnEnds[depth];
             function = returnFunctions[depth];
             instruction = returnInstructions[depth];
+            direction = returnDirections[depth];
             steps += 1;
           } else {
             return new ExecutionResult.Error(cursor);
@@ -201,6 +205,7 @@ classical class Interpreter {
             end = returnEnds[depth];
             function = returnFunctions[depth];
             instruction = returnInstructions[depth];
+            direction = returnDirections[depth];
             set(locals, localIndex(depth, returnDestination), returnValue);
             steps += 1;
           } else {
@@ -253,9 +258,11 @@ classical class Interpreter {
               set(returnDestinations, depth, -1);
               set(returnFunctions, depth, function);
               set(returnInstructions, depth, nextInstruction);
+              set(returnDirections, depth, direction);
               depth += 1;
               function = callTarget;
               instruction = 0;
+              direction = 0;
               long callDescriptor = descriptorBase(functionsOffset, callTarget);
               cursor = codeOffset + readUnsigned(artifact, callDescriptor + 12, 4);
               start = cursor;
@@ -284,9 +291,11 @@ classical class Interpreter {
               set(returnDestinations, depth, -1);
               set(returnFunctions, depth, function);
               set(returnInstructions, depth, nextInstruction);
+              set(returnDirections, depth, direction);
               depth += 1;
               function = uncallTarget;
               instruction = 0;
+              direction = 1;
               long uncallDescriptor = descriptorBase(functionsOffset, uncallTarget);
               long inverseOffset = readUnsigned(artifact, uncallDescriptor + 20, 4);
               cursor = codeOffset + inverseOffset;
@@ -365,9 +374,15 @@ classical class Interpreter {
               set(returnDestinations, depth, resultDestination);
               set(returnFunctions, depth, function);
               set(returnInstructions, depth, nextInstruction);
+              set(returnDirections, depth, direction);
               depth += 1;
               function = resultTarget;
               instruction = 0;
+              direction = 0;
+              if (inverseResultSlotCall) {
+                direction = 1;
+              }
+
               long resultDescriptor = descriptorBase(functionsOffset, resultTarget);
               long resultBodyOffset = readUnsigned(artifact, resultDescriptor + 12, 4);
               long resultBodyLength = readUnsigned(artifact, resultDescriptor + 16, 4);
@@ -429,9 +444,11 @@ classical class Interpreter {
               set(returnDestinations, depth, valueDestination);
               set(returnFunctions, depth, function);
               set(returnInstructions, depth, nextInstruction);
+              set(returnDirections, depth, direction);
               depth += 1;
               function = valueTarget;
               instruction = 0;
+              direction = 0;
               long valueDescriptor = descriptorBase(functionsOffset, valueTarget);
               cursor = codeOffset + readUnsigned(artifact, valueDescriptor + 12, 4);
               start = cursor;
@@ -481,9 +498,11 @@ classical class Interpreter {
               set(returnDestinations, depth, -1);
               set(returnFunctions, depth, function);
               set(returnInstructions, depth, nextInstruction);
+              set(returnDirections, depth, direction);
               depth += 1;
               function = voidTarget;
               instruction = 0;
+              direction = 0;
               long voidDescriptor = descriptorBase(functionsOffset, voidTarget);
               cursor = codeOffset + readUnsigned(artifact, voidDescriptor + 12, 4);
               start = cursor;
@@ -903,9 +922,9 @@ classical class Interpreter {
 
           if (opcode == OPCODE_JUMP_IF_ZERO) {
             long condition = readUnsigned(artifact, cursor + 8, 8);
-            setByte(traceBranches, steps, /* fallthrough= */ 1);
+            setByte(traceControl, steps, direction * 4 + /* fallthrough= */ 1);
             if (locals[localIndex(depth, condition)] == 0) {
-              setByte(traceBranches, steps, /* taken= */ 2);
+              setByte(traceControl, steps, direction * 4 + /* taken= */ 2);
               long conditionalTarget = readUnsigned(artifact, cursor + 16, 8);
               nextInstruction = conditionalTarget;
               next = instructionCursor(artifact, start, end, conditionalTarget);
