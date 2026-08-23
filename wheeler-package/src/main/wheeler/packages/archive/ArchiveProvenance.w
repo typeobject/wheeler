@@ -45,6 +45,20 @@ classical class ArchiveProvenance {
     return -1;
   }
 
+  private boolean exactLine(
+    borrow byteview input,
+    long start,
+    long end,
+    long length,
+    long hash
+  ) {
+    if (end - start != length) {
+      return false;
+    }
+
+    return rangeHash(input, start, length) == hash;
+  }
+
   private boolean sameRange(
     borrow byteview left,
     long leftStart,
@@ -194,6 +208,256 @@ classical class ArchiveProvenance {
     }
 
     return archive[44 + nameLength] == 34;
+  }
+
+  private long lockedDependenciesStart(
+    borrow byteview lock,
+    borrow byteview packageName
+  ) {
+    long cursor = 0;
+    while (cursor < bufferLength(lock)) limit MAX_LOCK_BYTES {
+      long found = lineEnd(lock, cursor);
+      if (found < 0) {
+        return -1;
+      }
+
+      long nameLength = bufferLength(packageName);
+      if (found - cursor == nameLength + 12) {
+        if (rangeHash(lock, cursor, /* length= */ 11) == 586558766) {
+          if (lock[found - 1] != 34) {
+            return -1;
+          }
+
+          if (sameRange(lock, cursor + 11, packageName, /* rightStart= */ 0, nameLength)) {
+            cursor = found + 1;
+            long field = 0;
+            while (field < 5) limit 5 {
+              found = lineEnd(lock, cursor);
+              if (found < 0) {
+                return -1;
+              }
+
+              cursor = found + 1;
+              field += 1;
+            }
+
+            return cursor;
+          }
+        }
+      }
+
+      cursor = found + 1;
+    }
+
+    return -1;
+  }
+
+  /// Matches canonical normal dependency names in a validated archive and lock row.
+  public boolean lockedArchiveDependenciesMatch(
+    borrow byteview lock,
+    borrow byteview packageName,
+    borrow byteview archive
+  ) {
+    if (MAX_LOCK_BYTES < bufferLength(lock)) {
+      return false;
+    }
+
+    if (bufferLength(archive) < 17) {
+      return false;
+    }
+
+    long manifestLength = readUnsigned(archive, /* offset= */ 8, /* width= */ 4);
+    long manifestEnd = 16 + manifestLength;
+    if (bufferLength(archive) < manifestEnd) {
+      return false;
+    }
+
+    long lockCursor = lockedDependenciesStart(lock, packageName);
+    if (lockCursor < 0) {
+      return false;
+    }
+
+    long lockEnd = lineEnd(lock, lockCursor);
+    if (lockEnd < 0) {
+      return false;
+    }
+
+    boolean emptyLock = exactLine(
+      lock,
+      lockCursor,
+      lockEnd,
+      /* length= */ 20,
+      /* hash= */ 1528119609
+    );
+    if (emptyLock == false) {
+      if (
+        exactLine(
+          lock,
+          lockCursor,
+          lockEnd,
+          /* length= */ 17,
+          /* hash= */ 1805921201
+        ) == false
+      ) {
+        return false;
+      }
+
+      lockCursor = lockEnd + 1;
+    }
+
+    long manifestCursor = 16;
+    long manifestLineEnd = -1;
+    boolean foundDependencies = false;
+    while (manifestCursor < manifestEnd) limit 4096 {
+      manifestLineEnd = lineEnd(archive, manifestCursor);
+      if (manifestLineEnd < 0) {
+        return false;
+      }
+
+      if (manifestEnd < manifestLineEnd + 1) {
+        return false;
+      }
+
+      if (
+        exactLine(
+          archive,
+          manifestCursor,
+          manifestLineEnd,
+          /* length= */ 16,
+          /* hash= */ 1399774265
+        )
+      ) {
+        return emptyLock;
+      }
+
+      if (
+        exactLine(
+          archive,
+          manifestCursor,
+          manifestLineEnd,
+          /* length= */ 13,
+          /* hash= */ 344468657
+        )
+      ) {
+        foundDependencies = true;
+        manifestCursor = manifestLineEnd + 1;
+        break;
+      }
+
+      manifestCursor = manifestLineEnd + 1;
+    }
+
+    if (foundDependencies == false) {
+      return false;
+    }
+
+    if (emptyLock) {
+      return false;
+    }
+
+    boolean scanning = true;
+    while (scanning) limit 64 {
+      if (manifestCursor < manifestEnd) {} else {
+        return false;
+      }
+
+      manifestLineEnd = lineEnd(archive, manifestCursor);
+      if (manifestLineEnd < 0) {
+        return false;
+      }
+
+      if (
+        exactLine(
+          archive,
+          manifestCursor,
+          manifestLineEnd,
+          /* length= */ 13,
+          /* hash= */ 1665807620
+        )
+      ) {
+        scanning = false;
+      } else {
+        if (
+          exactLine(
+            archive,
+            manifestCursor,
+            manifestLineEnd,
+            /* length= */ 18,
+            /* hash= */ 3944386646
+          ) == false
+        ) {
+          return false;
+        }
+
+        manifestCursor = manifestLineEnd + 1;
+        manifestLineEnd = lineEnd(archive, manifestCursor);
+        if (manifestLineEnd < 0) {
+          return false;
+        }
+
+        if (manifestLineEnd - manifestCursor < 13) {
+          return false;
+        }
+
+        if (rangeHash(archive, manifestCursor, /* length= */ 11) != 3709182977) {
+          return false;
+        }
+
+        long nameLength = manifestLineEnd - manifestCursor - 12;
+        if (archive[manifestLineEnd - 1] != 34) {
+          return false;
+        }
+
+        lockEnd = lineEnd(lock, lockCursor);
+        if (lockEnd < 0) {
+          return false;
+        }
+
+        if (lockEnd - lockCursor != nameLength + 10) {
+          return false;
+        }
+
+        if (rangeHash(lock, lockCursor, /* length= */ 9) != 1271526807) {
+          return false;
+        }
+
+        if (lock[lockEnd - 1] != 34) {
+          return false;
+        }
+
+        if (
+          sameRange(
+            archive,
+            manifestCursor + 11,
+            lock,
+            lockCursor + 9,
+            nameLength
+          ) == false
+        ) {
+          return false;
+        }
+
+        manifestCursor = manifestLineEnd + 1;
+        manifestLineEnd = lineEnd(archive, manifestCursor);
+        if (manifestLineEnd < 0) {
+          return false;
+        }
+
+        manifestCursor = manifestLineEnd + 1;
+        lockCursor = lockEnd + 1;
+      }
+    }
+
+    lockEnd = lineEnd(lock, lockCursor);
+    if (lockEnd < 0) {
+      return lockCursor == bufferLength(lock);
+    }
+
+    if (lockEnd - lockCursor < 9) {
+      return true;
+    }
+
+    return rangeHash(lock, lockCursor, /* length= */ 9) != 1271526807;
   }
 
   /// Validates archive structure and binds its package, manifest, and full identity to one lock row.

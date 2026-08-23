@@ -130,6 +130,34 @@ class NativeArchiveExampleTest {
         provenance, provenanceInput, /* outputCapacity= */ 1);
     provenanceMachine.run();
     assertEquals(1, provenanceMachine.hostOutput()[0]);
+    assertProvenanceRejected(
+        provenance,
+        provenanceInput(
+            rootIdentity,
+            lock.replace("demo.base", "demo.basa"),
+            manifest.name(),
+            encoded));
+    assertProvenanceRejected(
+        provenance,
+        provenanceInput(
+            rootIdentity,
+            lock.replace("    dependencies:\n      - \"demo.base\"", "    dependencies: []"),
+            manifest.name(),
+            encoded));
+    String extraEdgeLock = lock.replace(
+        "      - \"demo.base\"\n  - name: \"demo.base\"",
+        "      - \"demo.base\"\n      - \"demo.extra\"\n  - name: \"demo.base\"") + """
+          - name: "demo.extra"
+            version: "1.0.0"
+            repository: "%s"
+            snapshot: "%s"
+            archive: "%s"
+            manifest: "%s"
+            dependencies: []
+        """.formatted("8".repeat(64), "9".repeat(64), "a".repeat(64), "b".repeat(64));
+    assertProvenanceRejected(
+        provenance,
+        provenanceInput(rootIdentity, extraEdgeLock, manifest.name(), encoded));
 
     VirtualMachine sourceMachine = VirtualMachine.withBinaryInput(
         sourceProjection,
@@ -266,9 +294,25 @@ class NativeArchiveExampleTest {
             snapshot: "%s"
             archive: "%s"
             manifest: "%s"
+            dependencies:
+              - "demo.base"
+          - name: "demo.base"
+            version: "1.0.0"
+            repository: "%s"
+            snapshot: "%s"
+            archive: "%s"
+            manifest: "%s"
             dependencies: []
         """).formatted(
-            rootIdentity, "2".repeat(64), "3".repeat(64), archiveIdentity, manifestIdentity);
+            rootIdentity,
+            "2".repeat(64),
+            "3".repeat(64),
+            archiveIdentity,
+            manifestIdentity,
+            "4".repeat(64),
+            "5".repeat(64),
+            "6".repeat(64),
+            "7".repeat(64));
   }
 
   private static byte[] provenanceInput(

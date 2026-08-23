@@ -60,6 +60,7 @@ classical class NativeLockedArchiveProvenance {
     assert(validPackageLock(lock, /* start= */ 0, lockLength, rootIdentity));
     bytes digest = allocateBytes(arena, /* length= */ 32);
     assert(validLockedArchive(lock, packageName, archive, digest, arena));
+    assert(lockedArchiveDependenciesMatch(lock, packageName, archive));
     setByte(output, /* index= */ 0, /* value= */ 1);
     setOutputLength(output, /* length= */ 1);
     drop(digest);

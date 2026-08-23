@@ -9,7 +9,7 @@
 | Area | Self-hosting, package commands, dependency graphs |
 | Depends on | WIP-0299 |
 | Supersedes | One-archive native external import transport |
-| Superseded by | Broader native dependency graph transport |
+| Superseded by | WIP-0301 native archive dependency binding |
 
 ## Summary
 
@@ -102,3 +102,4 @@ Rejected. One archive is the size-one case of one archive-list authority.
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0299](WIP-0299-native-two-source-archive-import.md)
+- [WIP-0301](WIP-0301-native-archive-dependency-binding.md)

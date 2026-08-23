@@ -329,6 +329,10 @@ classical class TestExternalSourcePlan {
       return false;
     }
 
+    if (lockedArchiveDependenciesMatch(lock, packageName, archive) == false) {
+      return false;
+    }
+
     long packagePrefixLength = PREFIX_BYTES + bufferLength(packageName) + 1;
     if (255 < packagePrefixLength) {
       return false;
