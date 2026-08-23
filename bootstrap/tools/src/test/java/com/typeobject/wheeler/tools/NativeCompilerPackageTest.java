@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Timeout;
 /** Proves the complete checked-in compiler package suite through the native runner. */
 final class NativeCompilerPackageTest {
   @Test
-  @Timeout(value = 9, unit = TimeUnit.MINUTES)
+  @Timeout(value = 10, unit = TimeUnit.MINUTES)
   void testsThePhysicalCompilerSpineNatively() throws Exception {
     Path compiler = Path.of("wheeler-compiler");
     PackageProject project = PackageProject.load(compiler);
@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(109, result.selected());
-    assertEquals(109, result.passed());
+    assertEquals(111, result.selected());
+    assertEquals(111, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -46,6 +46,14 @@ final class NativeCompilerPackageTest {
           report,
           "nativecompilerresolvedbooleanliteralassertiontests",
           "native_compiler_resolved_boolean_literal_assertions",
+          name);
+    }
+    for (String name : List.of(
+        "classifiesFinalEqualityLocalReturn", "classifiesFinalLessThanAdditionReturn")) {
+      assertCase(
+          report,
+          "nativecompilerresolvedearlycomparisontests",
+          "native_compiler_resolved_early_comparisons",
           name);
     }
     for (String name : List.of(
