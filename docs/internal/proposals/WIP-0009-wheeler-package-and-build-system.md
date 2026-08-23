@@ -190,7 +190,7 @@ Resolution:
 
 A locked build does not re-resolve. If a locked archive disappears or has different bytes, the build fails. It does not choose a convenient replacement.
 
-WIP-0294 adds Wheeler-native archive provenance at the test boundary. The package authority validates canonical archive framing and entry digests, hashes the complete archive and embedded manifest, and binds both identities plus the manifest package name to one exact lock row. WIP-0295 projects one exact checked path and source range from that archive. WIP-0296 composes that entry into a canonical package-qualified source plan. WIP-0297 authorizes, compiles, and executes one external test import natively. Package-adapter archive transport remains separate work.
+WIP-0294 adds Wheeler-native archive provenance at the test boundary. The package authority validates canonical archive framing and entry digests, hashes the complete archive and embedded manifest, and binds both identities plus the manifest package name to one exact lock row. WIP-0295 projects one exact checked path and source range from that archive. WIP-0296 composes that entry into a canonical package-qualified source plan. WIP-0297 authorizes, compiles, and executes one external test import natively. WIP-0298 carries that path through `wheeler test` for one exact vendored direct dependency.
 
 The initial resolver may require one version of each package identity in a final graph. Multiple-version support requires explicit type and resource identity rules and is deferred until demonstrated necessary.
 
@@ -551,6 +551,7 @@ Worker count and native scheduling do not enter package identity. Required physi
 - [WIP-0295](WIP-0295-native-locked-archive-source.md)
 - [WIP-0296](WIP-0296-native-external-source-plan.md)
 - [WIP-0297](WIP-0297-native-external-import-compilation.md)
+- [WIP-0298](WIP-0298-native-package-external-import.md)
 - [WIP-0025](WIP-0025-native-ffi-and-system-integration.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)

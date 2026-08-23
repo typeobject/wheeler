@@ -9,7 +9,7 @@
 | Area | Self-hosting, external imports, native test compilation |
 | Depends on | WIP-0296 |
 | Supersedes | Composed external source plans without runner authorization |
-| Superseded by | Native package adapter archive transport |
+| Superseded by | WIP-0298 native package external import |
 
 ## Summary
 
@@ -94,3 +94,4 @@ Rejected. This boundary exists to move import compilation authority into Wheeler
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0296](WIP-0296-native-external-source-plan.md)
+- [WIP-0298](WIP-0298-native-package-external-import.md)

@@ -15,6 +15,7 @@ import com.typeobject.wheeler.packageformat.PackageManifest.DependencyKind;
 import com.typeobject.wheeler.packageformat.PackageManifest.TargetKind;
 import com.typeobject.wheeler.packageformat.VersionConstraint;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -32,6 +33,17 @@ import java.util.stream.Stream;
 /** Exact offline package inputs loaded from a package-local vendor tree. */
 final class LockedPackageSet {
   static final String VENDOR_DIRECTORY = "vendor";
+
+  record NativeModuleSource(String packageName, String path, String text, byte[] archive) {
+    NativeModuleSource {
+      archive = archive.clone();
+    }
+
+    @Override
+    public byte[] archive() {
+      return archive.clone();
+    }
+  }
 
   private final PackageLock lock;
   private final Map<String, DecodedPackage> packages;
@@ -185,6 +197,40 @@ final class LockedPackageSet {
 
   Map<String, String> directModuleSources() {
     return moduleSourcesFor(rootDependencies);
+  }
+
+  java.util.Optional<NativeModuleSource> fixedNativeModuleSource(String moduleName) {
+    NativeModuleSource selected = null;
+    PackageArchive codec = new PackageArchive();
+    for (Dependency dependency : rootDependencies.stream()
+        .filter(candidate -> candidate.kind() == DependencyKind.NORMAL)
+        .sorted(java.util.Comparator.comparing(Dependency::name)).toList()) {
+      DecodedPackage decoded = packages.get(dependency.name());
+      if (decoded == null || decoded.entries().size() != 1) {
+        continue;
+      }
+      Map.Entry<String, byte[]> entry = decoded.entries().entrySet().iterator().next();
+      String text = new String(entry.getValue(), StandardCharsets.UTF_8);
+      if (!java.util.Arrays.equals(entry.getValue(), text.getBytes(StandardCharsets.UTF_8))) {
+        continue;
+      }
+      boolean declared = text.lines()
+          .map(String::strip)
+          .anyMatch(line -> line.equals("module " + moduleName + ";"));
+      if (!declared || !directModuleSources().containsValue(text)) {
+        continue;
+      }
+      if (selected != null) {
+        throw new PackageFormatException("Duplicate locked module " + moduleName);
+      }
+      byte[] archive = codec.encode(decoded.manifest(), decoded.entries());
+      if (!codec.identity(archive).equals(decoded.identity())) {
+        throw new PackageFormatException(
+            "Canonical archive reconstruction changed " + dependency.name());
+      }
+      selected = new NativeModuleSource(dependency.name(), entry.getKey(), text, archive);
+    }
+    return java.util.Optional.ofNullable(selected);
   }
 
   private Map<String, String> allModuleSources() {

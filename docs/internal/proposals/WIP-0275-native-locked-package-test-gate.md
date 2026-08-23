@@ -9,7 +9,7 @@
 | Area | Self-hosting, package testing, package locks |
 | Depends on | WIP-0274 |
 | Supersedes | Dependency-free-only native package test invocation |
-| Superseded by | WIP-0276 native case rows and WIP-0294 native locked archive provenance |
+| Superseded by | WIP-0276 native case rows, WIP-0294 native locked archive provenance, and WIP-0298 native package external import |
 
 ## Summary
 
@@ -83,3 +83,4 @@ Rejected. Java transports physical bytes. Wheeler decides their meaning.
 - [WIP-0274](WIP-0274-native-lock-graph-validation.md)
 - [WIP-0276](WIP-0276-native-package-case-rows.md)
 - [WIP-0294](WIP-0294-native-locked-archive-provenance.md)
+- [WIP-0298](WIP-0298-native-package-external-import.md)

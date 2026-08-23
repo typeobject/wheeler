@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.core.vm.VmTrap;
+import com.typeobject.wheeler.packageformat.PackageArchive;
+import com.typeobject.wheeler.packageformat.PackageManifestParser;
 import com.typeobject.wheeler.runtime.WheelerRuntime;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -13,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.HexFormat;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -337,6 +340,109 @@ class NativePackageTestRunnerTest {
     assertEquals(1, result.orElseThrow().selected());
     assertEquals(1, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
+  }
+
+  @Test
+  void invokesOneLockedExternalImportNatively() throws Exception {
+    Path project = temporary.resolve("native-external-import-tests");
+    Files.createDirectories(project.resolve("src"));
+    String manifestText = """
+        schema: 1
+        package:
+          name: "demo.native.external"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "tool"
+            name: "laws"
+            root: "src/Main.w"
+            module: "demo.native.external.tests"
+            sources:
+              - "src/Main.w"
+            test: true
+        dependencies:
+          - kind: "normal"
+            name: "demo.dep"
+            version: "=1.0.0"
+        capabilities: []
+        """;
+    Files.writeString(project.resolve("wheeler.package.yaml"), manifestText);
+    Files.writeString(project.resolve("src/Main.w"), """
+        module demo.native.external.tests;
+        import demo.dep.constants;
+        classical class NativeExternalImportTests {
+          test void readsLockedConstant() {
+            long answer = ANSWER;
+            assert(answer == 42);
+          }
+        }
+        """);
+    String dependencyManifestText = """
+        schema: 1
+        package:
+          name: "demo.dep"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "library"
+            name: "library"
+            root: "src/Constants.w"
+            module: "demo.dep.constants"
+            sources:
+              - "src/Constants.w"
+            test: false
+        dependencies: []
+        capabilities: []
+        """;
+    var dependencyManifest = new PackageManifestParser().parse(dependencyManifestText);
+    PackageArchive codec = new PackageArchive();
+    byte[] archive = codec.encode(dependencyManifest, Map.of(
+        "src/Constants.w",
+        """
+        module demo.dep.constants;
+        classical class Constants {
+          public const long ANSWER = 42;
+        }
+        """.getBytes(StandardCharsets.UTF_8)));
+    String archiveIdentity = codec.identity(archive);
+    String rootIdentity = new PackageManifestParser().parse(manifestText).identity();
+    String lock = ("""
+        schema: 3
+        root: "%s"
+        packages:
+          - name: "demo.dep"
+            version: "1.0.0"
+            repository: "%s"
+            snapshot: "%s"
+            archive: "%s"
+            manifest: "%s"
+            dependencies: []
+        """).formatted(
+            rootIdentity,
+            "1".repeat(64),
+            "2".repeat(64),
+            archiveIdentity,
+            dependencyManifest.identity());
+    Files.writeString(project.resolve("wheeler.package.lock.yaml"), lock);
+    Path vendor = project.resolve("vendor");
+    Files.createDirectory(vendor);
+    Files.writeString(vendor.resolve("wheeler.package.lock.yaml"), lock);
+    Files.write(
+        vendor.resolve("demo.dep-1.0.0-" + archiveIdentity + ".wpk"),
+        archive);
+    PackageProject packageProject = PackageProject.load(project);
+    var selected = LockedPackageSet.load(project, packageProject.manifest())
+        .fixedNativeModuleSource("demo.dep.constants");
+    assertTrue(selected.isPresent());
+
+    var result = NativePackageTestRunner.run(
+        project, packageProject.manifest(), 0, 1, Set.of());
+
+    assertTrue(result.isPresent());
+    assertEquals(1, result.orElseThrow().selected());
+    assertEquals(1, result.orElseThrow().passed());
+    assertEquals(0, result.orElseThrow().failed());
+    assertEquals(1, result.orElseThrow().report().cases().getFirst().assertions());
   }
 
   @Test

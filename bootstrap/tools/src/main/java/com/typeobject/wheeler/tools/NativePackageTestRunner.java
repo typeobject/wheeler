@@ -7,6 +7,7 @@ import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.packageformat.PackageLock;
 import com.typeobject.wheeler.packageformat.PackageManifest;
 import com.typeobject.wheeler.packageformat.PackageManifest.Target;
+import com.typeobject.wheeler.tools.LockedPackageSet.NativeModuleSource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -93,19 +94,42 @@ final class NativePackageTestRunner {
       return Optional.empty();
     }
     java.util.ArrayList<byte[]> plans = new java.util.ArrayList<>();
+    java.util.ArrayList<Optional<NativeModuleSource>> externalSources = new java.util.ArrayList<>();
+    LockedPackageSet lockedPackages = null;
     for (Target target : testTargets) {
       if (!target.modular()
           || target.sources().isEmpty()
           || target.sources().size() > MAX_SOURCES) {
         return Optional.empty();
       }
-      byte[] plan = sourcePlan(packageRoot, target);
-      if (plan.length > MAX_PLAN_BYTES
-          || !fixedImportProfile(packageRoot, target)
-          || !localImportProfile(packageRoot, target)) {
+      Set<String> imported = externalImports(packageRoot, target);
+      if (1 < imported.size()) {
+        return Optional.empty();
+      }
+      Optional<NativeModuleSource> externalSource = Optional.empty();
+      if (!imported.isEmpty()) {
+        Path vendor = packageRoot.resolve(LockedPackageSet.VENDOR_DIRECTORY);
+        if (!Files.isDirectory(vendor, LinkOption.NOFOLLOW_LINKS)
+            || Files.isSymbolicLink(vendor)) {
+          return Optional.empty();
+        }
+        if (lockedPackages == null) {
+          lockedPackages = LockedPackageSet.load(packageRoot, manifest);
+        }
+        externalSource = lockedPackages.fixedNativeModuleSource(imported.iterator().next());
+        if (externalSource.isEmpty() || !fixedSourceProfile(externalSource.orElseThrow().text())) {
+          return Optional.empty();
+        }
+      }
+      if (MAX_SOURCES < target.sources().size() + (externalSource.isPresent() ? 1 : 0)) {
+        return Optional.empty();
+      }
+      byte[] plan = sourcePlan(packageRoot, target, externalSource);
+      if (plan.length > MAX_PLAN_BYTES || !fixedImportProfile(packageRoot, target)) {
         return Optional.empty();
       }
       plans.add(plan);
+      externalSources.add(externalSource);
     }
 
     Optional<Path> conformance = findConformancePackage(packageRoot);
@@ -123,6 +147,7 @@ final class NativePackageTestRunner {
             manifest,
             testTargets.get(index),
             plans.get(index),
+            externalSources.get(index),
             shardIndex,
             shardCount,
             Set.of(selectedTag),
@@ -146,6 +171,7 @@ final class NativePackageTestRunner {
           manifest,
           testTargets.get(index),
           plans.get(index),
+          externalSources.get(index),
           shardIndex,
           shardCount,
           selectedTags,
@@ -173,6 +199,7 @@ final class NativePackageTestRunner {
           manifest,
           testTargets.get(index),
           plans.get(index),
+          externalSources.get(index),
           shardIndex,
           shardCount,
           selectedTags,
@@ -398,22 +425,21 @@ final class NativePackageTestRunner {
         continue;
       }
       String text = Files.readString(root.resolve(source), StandardCharsets.UTF_8);
-      int constants = 0;
-      int declaration = text.indexOf("public const long ");
-      while (declaration >= 0) {
-        constants++;
-        declaration = text.indexOf("public const long ", declaration + 1);
-      }
-      if (constants < 1 || constants > 64) {
-        return false;
-      }
-      int functions = occurrences(text, "public long ")
-          + occurrences(text, "public boolean ");
-      if (functions > 1 || text.contains("test void ") || text.contains("entry void ")) {
+      if (!fixedSourceProfile(text)) {
         return false;
       }
     }
     return true;
+  }
+
+  private static boolean fixedSourceProfile(String text) {
+    int constants = occurrences(text, "public const long ");
+    if (constants < 1 || constants > 64) {
+      return false;
+    }
+    int functions = occurrences(text, "public long ")
+        + occurrences(text, "public boolean ");
+    return functions < 2 && !text.contains("test void ") && !text.contains("entry void ");
   }
 
   private static int occurrences(String text, String value) {
@@ -426,7 +452,7 @@ final class NativePackageTestRunner {
     return count;
   }
 
-  private static boolean localImportProfile(Path root, Target target) throws IOException {
+  private static Set<String> externalImports(Path root, Target target) throws IOException {
     Set<String> modules = new HashSet<>();
     for (String source : target.sources()) {
       for (String line : Files.readAllLines(root.resolve(source), StandardCharsets.UTF_8)) {
@@ -436,25 +462,25 @@ final class NativePackageTestRunner {
         }
       }
     }
+    Set<String> external = new java.util.TreeSet<>();
     for (String source : target.sources()) {
       for (String line : Files.readAllLines(root.resolve(source), StandardCharsets.UTF_8)) {
         String text = line.strip();
         if (text.startsWith("import ") && text.endsWith(";")) {
-          if (!modules.contains(text.substring(7, text.length() - 1))) {
-            return false;
+          String imported = text.substring(7, text.length() - 1);
+          if (!modules.contains(imported)) {
+            external.add(imported);
           }
         }
       }
     }
-    return true;
+    return Set.copyOf(external);
   }
 
-  private static byte[] sourcePlan(Path root, Target target) throws IOException {
-    ByteArrayOutputStream output = new ByteArrayOutputStream();
-    List<String> sources = target.sources().stream().sorted().toList();
-    writeBig32(output, sources.size());
-    for (String source : sources) {
-      byte[] path = source.getBytes(StandardCharsets.UTF_8);
+  private static byte[] sourcePlan(
+      Path root, Target target, Optional<NativeModuleSource> externalSource) throws IOException {
+    java.util.TreeMap<String, byte[]> sources = new java.util.TreeMap<>();
+    for (String source : target.sources()) {
       Path file = root.resolve(source).normalize();
       if (!file.startsWith(root)
           || !Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS)
@@ -465,10 +491,23 @@ final class NativePackageTestRunner {
       if (text.length > MAX_SOURCE_BYTES) {
         throw new IOException("Native test source exceeds 32,768 bytes: " + source);
       }
+      sources.put(source, text);
+    }
+    if (externalSource.isPresent()) {
+      NativeModuleSource selected = externalSource.orElseThrow();
+      String path = "dependencies/" + selected.packageName() + "/" + selected.path();
+      if (sources.put(path, selected.text().getBytes(StandardCharsets.UTF_8)) != null) {
+        throw new PackageFormatException("Duplicate native test source " + path);
+      }
+    }
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    writeBig32(output, sources.size());
+    for (var source : sources.entrySet()) {
+      byte[] path = source.getKey().getBytes(StandardCharsets.UTF_8);
       writeBig32(output, path.length);
       output.writeBytes(path);
-      writeBig32(output, text.length);
-      output.writeBytes(text);
+      writeBig32(output, source.getValue().length);
+      output.writeBytes(source.getValue());
     }
     return output.toByteArray();
   }
@@ -478,6 +517,7 @@ final class NativePackageTestRunner {
       PackageManifest manifest,
       Target target,
       byte[] sourcePlan,
+      Optional<NativeModuleSource> externalSource,
       int shardIndex,
       int shardCount,
       Set<String> selectedTags,
@@ -494,7 +534,12 @@ final class NativePackageTestRunner {
     byte[] manifestBytes = Files.readAllBytes(root.resolve(PackageProject.MANIFEST_NAME));
     writeLittleBytes(output, manifestBytes);
     writeLittleBytes(output, packageLock(root, manifest, manifestBytes));
-    output.write(0);
+    output.write(externalSource.isPresent() ? 1 : 0);
+    if (externalSource.isPresent()) {
+      NativeModuleSource selected = externalSource.orElseThrow();
+      writeShortText(output, selected.packageName());
+      writeLittleBytes(output, selected.archive());
+    }
     writeLittleBytes(output, sourcePlan);
     List<String> tags = selectedTags.stream().sorted(Comparator.naturalOrder()).toList();
     if (tags.size() > 64) {
