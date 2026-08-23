@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(125, result.selected());
-    assertEquals(125, result.passed());
+    assertEquals(128, result.selected());
+    assertEquals(128, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -39,6 +39,19 @@ final class NativeCompilerPackageTest {
             report, project.manifest().name(), TestReportRenderer.Format.JUNIT_XML),
         new String(result.junit(), StandardCharsets.UTF_8));
 
+    assertCase(
+        report,
+        "nativecompilernamedreturncomparisonoperandtests",
+        "native_compiler_named_return_comparison_operands",
+        "classifiesFinalLocalRightComparison");
+    for (String name : List.of(
+        "decodesFinalHelperForwardingSource", "decodesFinalComparisonAdditionSource")) {
+      assertCase(
+          report,
+          "nativecompilerearlyreturnsourcetests",
+          "native_compiler_early_return_sources",
+          name);
+    }
     for (String name : List.of(
         "classifiesFinalBooleanLiteralAssertion",
         "decodesFinalBooleanLiteralAssertionSource")) {

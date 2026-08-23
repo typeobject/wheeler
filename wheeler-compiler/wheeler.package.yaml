@@ -104,6 +104,15 @@ targets:
       - "src/test/wheeler/compiler/NativeCompilerCallWidthTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilerearlyreturnsourcetests"
+    root: "src/test/wheeler/compiler/returns/NativeCompilerEarlyReturnSourceTests.w"
+    module: "wheeler.compiler.tests.native_compiler_early_return_sources"
+    sources:
+      - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
+      - "src/main/wheeler/compiler/syntax/returns/EarlyReturnSources.w"
+      - "src/test/wheeler/compiler/returns/NativeCompilerEarlyReturnSourceTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerhelpersignaturetests"
     root: "src/test/wheeler/compiler/helpers/NativeCompilerHelperSignatureTests.w"
     module: "wheeler.compiler.tests.native_compiler_helper_signatures"
@@ -129,6 +138,15 @@ targets:
       - "src/main/wheeler/compiler/ir/Opcodes.w"
       - "src/main/wheeler/compiler/ir/StorageOpcodes.w"
       - "src/test/wheeler/compiler/ir/NativeCompilerInstructionFormTests.w"
+    test: true
+  - kind: "tool"
+    name: "nativecompilernamedreturncomparisonoperandtests"
+    root: "src/test/wheeler/compiler/returns/NativeCompilerNamedReturnComparisonOperandTests.w"
+    module: "wheeler.compiler.tests.native_compiler_named_return_comparison_operands"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/returns/NamedReturnComparisonOperands.w"
+      - "src/test/wheeler/compiler/returns/NativeCompilerNamedReturnComparisonOperandTests.w"
     test: true
   - kind: "tool"
     name: "nativecompileropcodekindtests"

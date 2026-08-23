@@ -9,6 +9,51 @@ import org.junit.jupiter.api.Test;
 /** Proves physical resolved return owners through native entry artifacts. */
 final class NativeCompilerResolvedReturnEntryExampleTest {
   @Test
+  void compilesPhysicalNamedReturnComparisonOperandsIntoEntryByteForByte() throws Exception {
+    String opcodes = CompilerSources.read("compiler/ir/StatementKinds.w");
+    String operands = CompilerSources.read(
+        "compiler/syntax/returns/NamedReturnComparisonOperands.w");
+    String root = """
+        module example.named_return_comparison_operands_entry;
+        import wheeler.compiler.named_return_comparison_operands;
+        classical class NamedReturnComparisonOperandsEntry {
+          entry void main() {
+            boolean local = returnComparisonLocalRight(877);
+            assert(local);
+          }
+        }
+        """;
+    assertPhysicalEntry(
+        List.of(opcodes, operands),
+        Map.of("Opcodes.w", opcodes, "Operands.w", operands, "Entry.w", root),
+        root,
+        "example.named_return_comparison_operands_entry");
+  }
+
+  @Test
+  void compilesPhysicalEarlyReturnSourcesIntoEntryByteForByte() throws Exception {
+    String opcodes = CompilerSources.read("compiler/ir/ResolvedStatements.w");
+    String sources = CompilerSources.read("compiler/syntax/returns/EarlyReturnSources.w");
+    String root = """
+        module example.early_return_sources_entry;
+        import wheeler.compiler.early_return_sources;
+        classical class EarlyReturnSourcesEntry {
+          entry void main() {
+            long helper = earlyHelperReturnSource(28671);
+            long comparison = earlyComparisonReturnSource(32255);
+            assert(helper == 255);
+            assert(comparison == 255);
+          }
+        }
+        """;
+    assertPhysicalEntry(
+        List.of(opcodes, sources),
+        Map.of("Opcodes.w", opcodes, "Sources.w", sources, "Entry.w", root),
+        root,
+        "example.early_return_sources_entry");
+  }
+
+  @Test
   void compilesPhysicalResolvedEarlyResultKindsIntoEntryByteForByte() throws Exception {
     String opcodes = CompilerSources.read("compiler/ir/ResolvedStatements.w");
     String kinds = CompilerSources.read(

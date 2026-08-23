@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0345 |
 | Supersedes | Product-only resolved forwarding return-call evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0347 native compiler terminal return profile |
 
 ## Summary
 
@@ -78,3 +78,4 @@ Rejected. The physical production module remains decoder authority.
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0345](WIP-0345-native-24k-test-manifest-bound.md)
+- [WIP-0347](WIP-0347-native-compiler-terminal-return-profile.md)
