@@ -38,7 +38,7 @@ No test owner copies a base, end, or source count.
 
 ## Evidence
 
-`NativeCompilerNestedHelperEntryExampleTest` compiles one physical entry per graph. Each native artifact matches stage 0 byte for byte and executes successfully.
+`NativeCompilerResolvedAssertionEntryExampleTest` compiles one physical entry per graph. Each native artifact matches stage 0 byte for byte and executes successfully.
 
 | Case | Artifact identity | Coverage identity |
 | --- | --- | --- |
