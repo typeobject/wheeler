@@ -9,6 +9,80 @@ import org.junit.jupiter.api.Test;
 /** Proves physical resolved return owners through native entry artifacts. */
 final class NativeCompilerResolvedReturnEntryExampleTest {
   @Test
+  void compilesPhysicalNamedReturnArithmeticKindsIntoEntryByteForByte() throws Exception {
+    String opcodes = CompilerSources.read("compiler/ir/StatementKinds.w");
+    String kinds = CompilerSources.read(
+        "compiler/syntax/returns/NamedReturnArithmeticKinds.w");
+    String root = """
+        module example.named_return_arithmetic_kinds_entry;
+        import wheeler.compiler.named_return_arithmetic_kinds;
+        classical class NamedReturnArithmeticKindsEntry {
+          entry void main() {
+            boolean local = returnLocalBinaryStatement(860);
+            boolean pair = returnLocalPairStatement(861);
+            assert(local);
+            assert(pair);
+          }
+        }
+        """;
+    assertPhysicalEntry(
+        List.of(opcodes, kinds),
+        Map.of("Opcodes.w", opcodes, "Kinds.w", kinds, "Entry.w", root),
+        root,
+        "example.named_return_arithmetic_kinds_entry");
+  }
+
+  @Test
+  void compilesPhysicalNamedBooleanReturnKindsIntoEntryByteForByte() throws Exception {
+    String opcodes = CompilerSources.read("compiler/ir/StatementKinds.w");
+    String kinds = CompilerSources.read("compiler/syntax/returns/NamedBooleanReturnKinds.w");
+    String root = """
+        module example.named_boolean_return_kinds_entry;
+        import wheeler.compiler.named_boolean_return_kinds;
+        classical class NamedBooleanReturnKindsEntry {
+          entry void main() {
+            boolean equality = returnBooleanEqualityStatement(857);
+            boolean inequality = returnBooleanInequalityStatement(865);
+            boolean comparison = returnBooleanComparisonStatement(865);
+            assert(equality);
+            assert(inequality);
+            assert(comparison);
+          }
+        }
+        """;
+    assertPhysicalEntry(
+        List.of(opcodes, kinds),
+        Map.of("Opcodes.w", opcodes, "Kinds.w", kinds, "Entry.w", root),
+        root,
+        "example.named_boolean_return_kinds_entry");
+  }
+
+  @Test
+  void compilesPhysicalNamedSignedReturnKindsIntoEntryByteForByte() throws Exception {
+    String opcodes = CompilerSources.read("compiler/ir/StatementKinds.w");
+    String kinds = CompilerSources.read("compiler/syntax/returns/NamedSignedReturnKinds.w");
+    String root = """
+        module example.named_signed_return_kinds_entry;
+        import wheeler.compiler.named_signed_return_kinds;
+        classical class NamedSignedReturnKindsEntry {
+          entry void main() {
+            boolean equality = returnSignedEqualityStatement(873);
+            boolean inequality = returnSignedInequalityStatement(875);
+            boolean lessThan = returnSignedLessThanStatement(877);
+            assert(equality);
+            assert(inequality);
+            assert(lessThan);
+          }
+        }
+        """;
+    assertPhysicalEntry(
+        List.of(opcodes, kinds),
+        Map.of("Opcodes.w", opcodes, "Kinds.w", kinds, "Entry.w", root),
+        root,
+        "example.named_signed_return_kinds_entry");
+  }
+
+  @Test
   void compilesPhysicalNamedReturnComparisonOperandsIntoEntryByteForByte() throws Exception {
     String opcodes = CompilerSources.read("compiler/ir/StatementKinds.w");
     String operands = CompilerSources.read(

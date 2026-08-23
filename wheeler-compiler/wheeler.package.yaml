@@ -140,6 +140,24 @@ targets:
       - "src/test/wheeler/compiler/ir/NativeCompilerInstructionFormTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilernamedbooleanreturnkindtests"
+    root: "src/test/wheeler/compiler/returns/NativeCompilerNamedBooleanReturnKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_named_boolean_return_kinds"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/returns/NamedBooleanReturnKinds.w"
+      - "src/test/wheeler/compiler/returns/NativeCompilerNamedBooleanReturnKindTests.w"
+    test: true
+  - kind: "tool"
+    name: "nativecompilernamedreturnarithmetickindtests"
+    root: "src/test/wheeler/compiler/returns/NativeCompilerNamedReturnArithmeticKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_named_return_arithmetic_kinds"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/returns/NamedReturnArithmeticKinds.w"
+      - "src/test/wheeler/compiler/returns/NativeCompilerNamedReturnArithmeticKindTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilernamedreturncomparisonoperandtests"
     root: "src/test/wheeler/compiler/returns/NativeCompilerNamedReturnComparisonOperandTests.w"
     module: "wheeler.compiler.tests.native_compiler_named_return_comparison_operands"
@@ -147,6 +165,15 @@ targets:
       - "src/main/wheeler/compiler/ir/StatementKinds.w"
       - "src/main/wheeler/compiler/syntax/returns/NamedReturnComparisonOperands.w"
       - "src/test/wheeler/compiler/returns/NativeCompilerNamedReturnComparisonOperandTests.w"
+    test: true
+  - kind: "tool"
+    name: "nativecompilernamedsignedreturnkindtests"
+    root: "src/test/wheeler/compiler/returns/NativeCompilerNamedSignedReturnKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_named_signed_return_kinds"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/returns/NamedSignedReturnKinds.w"
+      - "src/test/wheeler/compiler/returns/NativeCompilerNamedSignedReturnKindTests.w"
     test: true
   - kind: "tool"
     name: "nativecompileropcodekindtests"

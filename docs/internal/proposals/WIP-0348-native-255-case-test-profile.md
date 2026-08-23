@@ -9,7 +9,7 @@
 | Area | Native testing, reports, package execution |
 | Depends on | WIP-0328, WIP-0347 |
 | Supersedes | Native 128-case test profile |
-| Superseded by | A wider framing profile with a multi-byte compact count |
+| Superseded by | WIP-0349 native compiler named return suite |
 
 ## Summary
 
@@ -86,3 +86,4 @@ Rejected. The terminal profile must pass native discovery, lowering, compilation
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0328](WIP-0328-native-128-case-test-profile.md)
 - [WIP-0347](WIP-0347-native-compiler-terminal-return-profile.md)
+- [WIP-0349](WIP-0349-native-compiler-named-return-suite.md)

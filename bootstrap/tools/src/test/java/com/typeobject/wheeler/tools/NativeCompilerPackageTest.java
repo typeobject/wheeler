@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Timeout;
 /** Proves the complete checked-in compiler package suite through the native runner. */
 final class NativeCompilerPackageTest {
   @Test
-  @Timeout(value = 12, unit = TimeUnit.MINUTES)
+  @Timeout(value = 13, unit = TimeUnit.MINUTES)
   void testsThePhysicalCompilerSpineNatively() throws Exception {
     Path compiler = Path.of("wheeler-compiler");
     PackageProject project = PackageProject.load(compiler);
@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(128, result.selected());
-    assertEquals(128, result.passed());
+    assertEquals(136, result.selected());
+    assertEquals(136, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -39,6 +39,34 @@ final class NativeCompilerPackageTest {
             report, project.manifest().name(), TestReportRenderer.Format.JUNIT_XML),
         new String(result.junit(), StandardCharsets.UTF_8));
 
+    for (String name : List.of(
+        "classifiesFinalBooleanEqualityReturn",
+        "classifiesFinalBooleanInequalityReturn",
+        "classifiesFinalBooleanComparisonReturn")) {
+      assertCase(
+          report,
+          "nativecompilernamedbooleanreturnkindtests",
+          "native_compiler_named_boolean_return_kinds",
+          name);
+    }
+    for (String name : List.of(
+        "classifiesFinalLocalBinaryReturn", "classifiesFinalLocalPairReturn")) {
+      assertCase(
+          report,
+          "nativecompilernamedreturnarithmetickindtests",
+          "native_compiler_named_return_arithmetic_kinds",
+          name);
+    }
+    for (String name : List.of(
+        "classifiesFinalSignedEqualityReturn",
+        "classifiesFinalSignedInequalityReturn",
+        "classifiesFinalSignedLessThanReturn")) {
+      assertCase(
+          report,
+          "nativecompilernamedsignedreturnkindtests",
+          "native_compiler_named_signed_return_kinds",
+          name);
+    }
     assertCase(
         report,
         "nativecompilernamedreturncomparisonoperandtests",
