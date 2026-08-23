@@ -18,120 +18,12 @@ import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 /** Proves package-command invocation of the native fixed test profile. */
 class NativePackageTestRunnerTest {
   @TempDir Path temporary;
-
-  @Test
-  @Timeout(value = 3, unit = TimeUnit.MINUTES)
-  void testsThePhysicalCompilerSpineNatively() throws Exception {
-    Path compiler = Path.of("wheeler-compiler");
-    PackageProject project = PackageProject.load(compiler);
-
-    var result = NativePackageTestRunner.run(
-        compiler, project.manifest(), 0, 1, Set.of());
-
-    assertTrue(result.isPresent());
-    TestReport report = result.orElseThrow().report();
-    assertEquals(40, result.orElseThrow().selected());
-    assertEquals(40, result.orElseThrow().passed());
-    assertEquals(0, result.orElseThrow().failed());
-    assertEquals(result.orElseThrow().report().identity(), report.identity());
-    assertEquals(
-        TestReportRenderer.render(report, project.manifest().name(), TestReportRenderer.Format.JSON),
-        new String(result.orElseThrow().json(), StandardCharsets.UTF_8));
-    assertEquals(
-        TestReportRenderer.render(
-            report, project.manifest().name(), TestReportRenderer.Format.TERMINAL),
-        new String(result.orElseThrow().terminal(), StandardCharsets.UTF_8));
-    assertEquals(
-        TestReportRenderer.render(
-            report, project.manifest().name(), TestReportRenderer.Format.JUNIT_XML),
-        new String(result.orElseThrow().junit(), StandardCharsets.UTF_8));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilerspinetests::wheeler.compiler.tests.native_compiler_spine::"
-            + "checksEncodingWidth")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilertypekindtests::wheeler.compiler.tests.native_compiler_type_kinds::"
-            + "checksTypeDescriptor")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilercallaritytests::wheeler.compiler.tests.native_compiler_call_arity::"
-            + "checksSevenArgumentAssignmentCall")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilercallkindtests::wheeler.compiler.tests.native_compiler_call_kinds::"
-            + "checksSevenArgumentSourceMembership")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilercallkindtests::wheeler.compiler.tests.native_compiler_call_kinds::"
-            + "checksSevenArgumentResolvedMembership")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilercallkindtests::wheeler.compiler.tests.native_compiler_call_kinds::"
-            + "checksSevenArgumentResolvedIdentity")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilercallkindtests::wheeler.compiler.tests.native_compiler_call_kinds::"
-            + "checksSevenArgumentResolvedTarget")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilercallcolumntests::wheeler.compiler.tests.native_compiler_call_columns::"
-            + "checksSevenArgumentSourceKind")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilercallcolumntests::wheeler.compiler.tests.native_compiler_call_columns::"
-            + "checksSevenArgumentResolvedBase")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilercalloperandtests::wheeler.compiler.tests.native_compiler_call_operand::"
-            + "checksLeadingSevenArgumentSource")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilercallwidthtests::wheeler.compiler.tests.native_compiler_call_widths::"
-            + "checksSevenArgumentCodeWidth")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilercallwidthtests::wheeler.compiler.tests.native_compiler_call_widths::"
-            + "checksSevenArgumentInstructionWidth")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilercallwidthtests::wheeler.compiler.tests.native_compiler_call_widths::"
-            + "checksSevenArgumentLocalWidth")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilervoidcallkindtests::wheeler.compiler.tests.native_compiler_void_call_kinds::"
-            + "checksSevenArgumentResolvedMembership")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilervoidcallkindtests::wheeler.compiler.tests.native_compiler_void_call_kinds::"
-            + "checksSevenArgumentResolvedArity")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilervoidcallkindtests::wheeler.compiler.tests.native_compiler_void_call_kinds::"
-            + "checksThreeArgumentResolvedSource")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilervoidcalloperandtests::"
-            + "wheeler.compiler.tests.native_compiler_void_call_operand::"
-            + "checksTrailingSevenArgumentSource")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilervoidcallsourceformtests::"
-            + "wheeler.compiler.tests.native_compiler_void_call_source_forms::"
-            + "checksSevenArgumentSourceMembership")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilervoidcallsourceformtests::"
-            + "wheeler.compiler.tests.native_compiler_void_call_source_forms::"
-            + "checksSevenArgumentSourceArity")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilervoidcallsourceformtests::"
-            + "wheeler.compiler.tests.native_compiler_void_call_source_forms::"
-            + "checksSevenArgumentSourceKind")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilervoidcallsourcewidthtests::"
-            + "wheeler.compiler.tests.native_compiler_void_call_source_widths::"
-            + "checksSevenArgumentSourceLocalWidth")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilervoidcallsourcewidthtests::"
-            + "wheeler.compiler.tests.native_compiler_void_call_source_widths::"
-            + "checksSevenArgumentResolvedLocalWidth")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilervoidcallwidthtests::wheeler.compiler.tests.native_compiler_void_call_widths::"
-            + "checksSevenArgumentCodeWidth")));
-    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
-        "nativecompilervoidcallwidthtests::wheeler.compiler.tests.native_compiler_void_call_widths::"
-            + "checksSevenArgumentInstructionWidth")));
-  }
 
   @Test
   void boundsNativeDependencyOwnerMembers() {

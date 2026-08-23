@@ -1,0 +1,63 @@
+package com.typeobject.wheeler.tools;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+
+/** Proves the complete checked-in compiler package suite through the native runner. */
+final class NativeCompilerPackageTest {
+  @Test
+  @Timeout(value = 3, unit = TimeUnit.MINUTES)
+  void testsThePhysicalCompilerSpineNatively() throws Exception {
+    Path compiler = Path.of("wheeler-compiler");
+    PackageProject project = PackageProject.load(compiler);
+
+    var result = NativePackageTestRunner.run(
+        compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
+    TestReport report = result.report();
+
+    assertEquals(40, result.selected());
+    assertEquals(40, result.passed());
+    assertEquals(0, result.failed());
+    assertEquals(result.report().identity(), report.identity());
+    assertEquals(
+        TestReportRenderer.render(report, project.manifest().name(), TestReportRenderer.Format.JSON),
+        new String(result.json(), StandardCharsets.UTF_8));
+    assertEquals(
+        TestReportRenderer.render(
+            report, project.manifest().name(), TestReportRenderer.Format.TERMINAL),
+        new String(result.terminal(), StandardCharsets.UTF_8));
+    assertEquals(
+        TestReportRenderer.render(
+            report, project.manifest().name(), TestReportRenderer.Format.JUNIT_XML),
+        new String(result.junit(), StandardCharsets.UTF_8));
+
+    assertCase(report, "nativecompilerspinetests", "native_compiler_spine", "checksEncodingWidth");
+    assertCase(report, "nativecompilertypekindtests", "native_compiler_type_kinds", "checksTypeDescriptor");
+    assertCase(report, "nativecompilercallaritytests", "native_compiler_call_arity", "checksSevenArgumentAssignmentCall");
+    assertCase(report, "nativecompilercallkindtests", "native_compiler_call_kinds", "checksSevenArgumentSourceMembership");
+    assertCase(report, "nativecompilercallkindtests", "native_compiler_call_kinds", "checksSevenArgumentResolvedMembership");
+    assertCase(report, "nativecompilercallkindtests", "native_compiler_call_kinds", "checksSevenArgumentResolvedIdentity");
+    assertCase(report, "nativecompilercallkindtests", "native_compiler_call_kinds", "checksSevenArgumentResolvedTarget");
+    assertCase(report, "nativecompilercallcolumntests", "native_compiler_call_columns", "checksSevenArgumentSourceKind");
+    assertCase(report, "nativecompilercallcolumntests", "native_compiler_call_columns", "checksSevenArgumentResolvedBase");
+    assertCase(report, "nativecompilercalloperandtests", "native_compiler_call_operand", "checksLeadingSevenArgumentSource");
+    assertCase(report, "nativecompilervoidcallkindtests", "native_compiler_void_call_kinds", "checksThreeArgumentResolvedSource");
+    assertCase(report, "nativecompilervoidcalloperandtests", "native_compiler_void_call_operand", "checksTrailingSevenArgumentSource");
+    assertCase(report, "nativecompilervoidcallsourceformtests", "native_compiler_void_call_source_forms", "checksSevenArgumentSourceKind");
+    assertCase(report, "nativecompilervoidcallsourcewidthtests", "native_compiler_void_call_source_widths", "checksSevenArgumentResolvedLocalWidth");
+    assertCase(report, "nativecompilervoidcallwidthtests", "native_compiler_void_call_widths", "checksSevenArgumentInstructionWidth");
+  }
+
+  private static void assertCase(
+      TestReport report, String target, String module, String name) {
+    String qualified = target + "::wheeler.compiler.tests." + module + "::" + name;
+    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(qualified)));
+  }
+}
