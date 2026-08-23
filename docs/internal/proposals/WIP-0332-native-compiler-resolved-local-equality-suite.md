@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0330, WIP-0331 |
 | Supersedes | Product-only resolved local-equality evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0333 native compiler resolved local-inequality suite |
 
 ## Summary
 
@@ -80,3 +80,4 @@ Rejected. Differential parity proves graph compilation. Independent native cases
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0330](WIP-0330-native-256-constant-owner-profile.md)
 - [WIP-0331](WIP-0331-native-16k-test-manifest-bound.md)
+- [WIP-0333](WIP-0333-native-compiler-resolved-local-inequality-suite.md)

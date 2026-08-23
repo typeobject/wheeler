@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(70, result.selected());
-    assertEquals(70, result.passed());
+    assertEquals(73, result.selected());
+    assertEquals(73, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -47,6 +47,16 @@ final class NativeCompilerPackageTest {
           report,
           "nativecompilerresolvedlocalequalitytests",
           "native_compiler_resolved_local_equality",
+          name);
+    }
+    for (String name : List.of(
+        "checksResolvedInequalityMembership",
+        "checksResolvedSignedInequalityMembership",
+        "checksResolvedBooleanInequalitySource")) {
+      assertCase(
+          report,
+          "nativecompilerresolvedlocalinequalitytests",
+          "native_compiler_resolved_local_inequality",
           name);
     }
     for (String name : List.of(

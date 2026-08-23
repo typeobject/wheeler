@@ -149,6 +149,15 @@ targets:
       - "src/test/wheeler/compiler/locals/NativeCompilerResolvedLocalEqualityTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilerresolvedlocalinequalitytests"
+    root: "src/test/wheeler/compiler/locals/NativeCompilerResolvedLocalInequalityTests.w"
+    module: "wheeler.compiler.tests.native_compiler_resolved_local_inequality"
+    sources:
+      - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
+      - "src/main/wheeler/compiler/syntax/locals/ResolvedLocalInequalityKinds.w"
+      - "src/test/wheeler/compiler/locals/NativeCompilerResolvedLocalInequalityTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerresolvedlocalreturntests"
     root: "src/test/wheeler/compiler/returns/NativeCompilerResolvedLocalReturnTests.w"
     module: "wheeler.compiler.tests.native_compiler_resolved_local_returns"
