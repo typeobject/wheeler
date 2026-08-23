@@ -22,8 +22,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(40, result.selected());
-    assertEquals(40, result.passed());
+    assertEquals(41, result.selected());
+    assertEquals(41, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -40,6 +40,11 @@ final class NativeCompilerPackageTest {
 
     assertCase(report, "nativecompilerspinetests", "native_compiler_spine", "checksEncodingWidth");
     assertCase(report, "nativecompilertypekindtests", "native_compiler_type_kinds", "checksTypeDescriptor");
+    assertCase(
+        report,
+        "nativecompilerhelpersignaturetests",
+        "native_compiler_helper_signatures",
+        "checksSixteenParameterHelper");
     assertCase(report, "nativecompilercallaritytests", "native_compiler_call_arity", "checksSevenArgumentAssignmentCall");
     assertCase(report, "nativecompilercallkindtests", "native_compiler_call_kinds", "checksSevenArgumentSourceMembership");
     assertCase(report, "nativecompilercallkindtests", "native_compiler_call_kinds", "checksSevenArgumentResolvedMembership");

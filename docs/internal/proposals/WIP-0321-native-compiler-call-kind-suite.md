@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0320 |
 | Supersedes | Standalone assignment-call kind evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0322 native compiler helper-parameter suite |
 
 ## Summary
 
@@ -81,3 +81,4 @@ Rejected. The physical edges are the evidence.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0310](WIP-0310-native-multi-helper-entry-programs.md)
 - [WIP-0320](WIP-0320-native-compiler-call-column-suite.md)
+- [WIP-0322](WIP-0322-native-compiler-helper-parameter-suite.md)

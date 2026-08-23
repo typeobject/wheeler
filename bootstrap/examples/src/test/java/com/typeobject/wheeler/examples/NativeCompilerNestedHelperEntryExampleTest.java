@@ -148,6 +148,31 @@ final class NativeCompilerNestedHelperEntryExampleTest {
   }
 
   @Test
+  void compilesPhysicalHelperSignaturesIntoEntryByteForByte() throws Exception {
+    String abi = CompilerSources.read("compiler/syntax/helpers/HelperAbi.w");
+    String signatures = CompilerSources.read(
+        "compiler/syntax/helpers/HelperSignatures.w");
+    String root = """
+        module example.helper_signature_entry;
+        import wheeler.compiler.helper_signatures;
+        classical class HelperSignatureEntry {
+          entry void main() {
+            long count = parameterCountForHelper(48);
+            assert(count == 16);
+          }
+        }
+        """;
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] artifact = NativeModuleCompilerHarness.compile(
+        compiler, List.of(abi, signatures), root);
+    byte[] expected = new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+        Map.of("Abi.w", abi, "Signatures.w", signatures, "Entry.w", root),
+        "example.helper_signature_entry"));
+    assertArrayEquals(expected, artifact);
+    new VirtualMachine(new BytecodeReader().read(artifact)).run();
+  }
+
+  @Test
   void compilesPhysicalVoidCallKindsIntoEntryByteForByte() throws Exception {
     String kinds = CompilerSources.read("compiler/syntax/calls/VoidCallKinds.w");
     String root = """

@@ -104,6 +104,15 @@ targets:
       - "src/test/wheeler/compiler/NativeCompilerCallWidthTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilerhelpersignaturetests"
+    root: "src/test/wheeler/compiler/helpers/NativeCompilerHelperSignatureTests.w"
+    module: "wheeler.compiler.tests.native_compiler_helper_signatures"
+    sources:
+      - "src/main/wheeler/compiler/syntax/helpers/HelperAbi.w"
+      - "src/main/wheeler/compiler/syntax/helpers/HelperSignatures.w"
+      - "src/test/wheeler/compiler/helpers/NativeCompilerHelperSignatureTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerspinetests"
     root: "src/test/wheeler/compiler/NativeCompilerSpineTests.w"
     module: "wheeler.compiler.tests.native_compiler_spine"
