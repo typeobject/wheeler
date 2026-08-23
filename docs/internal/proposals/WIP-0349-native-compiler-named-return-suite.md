@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0348 |
 | Supersedes | Product-only unresolved return classification evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0350 native 28 KiB test-manifest bound |
 
 ## Summary
 
@@ -88,3 +88,4 @@ Rejected. The canonical 139-constant statement owner remains archive-backed inpu
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0348](WIP-0348-native-255-case-test-profile.md)
+- [WIP-0350](WIP-0350-native-28k-test-manifest-bound.md)
