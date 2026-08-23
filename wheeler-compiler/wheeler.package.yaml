@@ -123,6 +123,15 @@ targets:
       - "src/test/wheeler/compiler/ir/NativeCompilerInstructionFormTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompileropcodekindtests"
+    root: "src/test/wheeler/compiler/ir/NativeCompilerOpcodeKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_opcode_kinds"
+    sources:
+      - "src/main/wheeler/compiler/ir/OpcodeKinds.w"
+      - "src/main/wheeler/compiler/ir/Opcodes.w"
+      - "src/test/wheeler/compiler/ir/NativeCompilerOpcodeKindTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerspinetests"
     root: "src/test/wheeler/compiler/NativeCompilerSpineTests.w"
     module: "wheeler.compiler.tests.native_compiler_spine"

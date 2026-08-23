@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0324 |
 | Supersedes | Product-only instruction-form evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0326 native compiler opcode-kind suite |
 
 ## Summary
 
@@ -81,3 +81,4 @@ Rejected. The instruction-form owner already has that direct dependency. Root vi
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0314](WIP-0314-native-255-transition-coverage.md)
 - [WIP-0324](WIP-0324-native-compiler-wide-return-source-suite.md)
+- [WIP-0326](WIP-0326-native-compiler-opcode-kind-suite.md)

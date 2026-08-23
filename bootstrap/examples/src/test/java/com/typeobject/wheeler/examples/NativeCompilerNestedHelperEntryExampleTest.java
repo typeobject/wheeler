@@ -307,6 +307,36 @@ final class NativeCompilerNestedHelperEntryExampleTest {
   }
 
   @Test
+  void compilesPhysicalOpcodeKindsIntoEntryByteForByte() throws Exception {
+    String opcodes = CompilerSources.read("compiler/ir/Opcodes.w");
+    String kinds = CompilerSources.read("compiler/ir/OpcodeKinds.w");
+    String root = """
+        module example.opcode_kind_entry;
+        import wheeler.compiler.opcode_kinds;
+        classical class OpcodeKindEntry {
+          entry void main() {
+            boolean global = isGlobalConstantOpcode(258);
+            boolean fill = isResultFillOpcode(523);
+            boolean binary = isResultBinaryOperation(1046);
+            boolean math = isLocalMathOpcode(1047);
+            assert(global);
+            assert(fill);
+            assert(binary);
+            assert(math);
+          }
+        }
+        """;
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] artifact = NativeModuleCompilerHarness.compile(
+        compiler, List.of(opcodes, kinds), root);
+    byte[] expected = new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+        Map.of("Opcodes.w", opcodes, "Kinds.w", kinds, "Entry.w", root),
+        "example.opcode_kind_entry"));
+    assertArrayEquals(expected, artifact);
+    new VirtualMachine(new BytecodeReader().read(artifact)).run();
+  }
+
+  @Test
   void compilesPhysicalInstructionFormsIntoEntryByteForByte() throws Exception {
     String opcodes = CompilerSources.read("compiler/ir/Opcodes.w");
     String storageOpcodes = CompilerSources.read("compiler/ir/StorageOpcodes.w");
