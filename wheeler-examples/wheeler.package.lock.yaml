@@ -5,8 +5,8 @@ packages:
     version: "0.1.0"
     repository: "ee9855ff0d7866533c49b81a7eeb7d1a2cac9d7efbd300c583d29e699516efb0"
     snapshot: "069dffe3bf801c0b482c47e2bf2bc66bddacf7efb8aa35fb7a564d47f3e9bf54"
-    archive: "1b9d60c8257ba2227d5d187d9ee1da534f51c1950e1e5f033c0f27e7ed7c90f7"
-    manifest: "8ca1126edccaa2e857e34d7b186bb7eeb445a2ade52707d093b50799b31ab719"
+    archive: "f368a20b722ed114247166df99f4a482fb099041d5ebfa4858a0c192429da70f"
+    manifest: "9b2cebe76654d6f2cb4d2ec3e3c2762bfc8e72009a796f7e28adf5903428bb99"
     dependencies:
       - "wheeler.core"
   - name: "wheeler.core"

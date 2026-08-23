@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler testing, package reports |
 | Depends on | WIP-0283 |
 | Supersedes | One-declaration native compiler spine target |
-| Superseded by | Native callable compiler module suite |
+| Superseded by | WIP-0285 native compiler callable suite |
 
 ## Summary
 
@@ -80,3 +80,4 @@ Rejected. Cases and artifacts have separate identity domains.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0279](WIP-0279-native-compiler-package-suite.md)
 - [WIP-0283](WIP-0283-bounded-native-bitwise-coverage.md)
+- [WIP-0285](WIP-0285-native-compiler-callable-suite.md)

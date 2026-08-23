@@ -2,10 +2,10 @@
 
 module wheeler.compiler.tests.native_compiler_spine;
 
+import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.encoding_widths;
-import wheeler.compiler.loop_kinds;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.proof_rules;
 import wheeler.compiler.type_codes;
@@ -16,16 +16,22 @@ classical class NativeCompilerSpineTests {
   }
 
   test void checksCompilerProgramLimit() {
+    boolean token = booleanTokenHash(3569038);
+    assert(token);
     long statementLimit = MAX_MINIMAL_STATEMENTS;
     assert(statementLimit == 64);
   }
 
   test void checksCompilerTokenLimit() {
+    boolean token = booleanTokenHash(3569038);
+    assert(token);
     long tokenLimit = MAX_COMPILER_TOKENS;
     assert(tokenLimit == 4096);
   }
 
   test void checksEncodingWidth() {
+    boolean token = booleanTokenHash(3569038);
+    assert(token);
     long width = ENCODING_WIDTH_U16;
     assert(width == 2);
     long doubled = width + width;
@@ -45,22 +51,28 @@ classical class NativeCompilerSpineTests {
     assert(width < doubled);
   }
 
-  test void checksLoopKind() {
-    long loopKind = STATEMENT_LOCAL_WHILE_CONDITION_NAMED;
-    assert(loopKind == 1);
+  test void checksBooleanToken() {
+    boolean token = booleanTokenHash(3569038);
+    assert(token);
   }
 
   test void checksOpcode() {
+    boolean token = booleanTokenHash(3569038);
+    assert(token);
     long halt = OPCODE_HALT;
     assert(halt == 1);
   }
 
   test void checksProofRule() {
+    boolean token = booleanTokenHash(3569038);
+    assert(token);
     long generatedInverse = PROOF_GENERATED_INVERSE;
     assert(generatedInverse == 1);
   }
 
   test void checksTypeCode() {
+    boolean token = booleanTokenHash(3569038);
+    assert(token);
     long signedType = TYPE_SIGNED;
     assert(signedType == 1);
   }

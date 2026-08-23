@@ -52,7 +52,7 @@ targets:
       - "src/main/wheeler/compiler/ir/ProofRules.w"
       - "src/main/wheeler/compiler/ir/TypeCodes.w"
       - "src/main/wheeler/compiler/ir/limits/CompilerProgramLimits.w"
-      - "src/main/wheeler/compiler/syntax/LoopKinds.w"
+      - "src/main/wheeler/compiler/syntax/booleans/BooleanTokens.w"
       - "src/main/wheeler/compiler/syntax/tokens/CompilerTokenLimits.w"
       - "src/test/wheeler/compiler/NativeCompilerSpineTests.w"
     test: true

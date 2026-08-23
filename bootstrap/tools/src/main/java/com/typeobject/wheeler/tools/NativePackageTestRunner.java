@@ -318,11 +318,24 @@ final class NativePackageTestRunner {
       if (constants < 1 || constants > 64) {
         return false;
       }
-      if (text.indexOf('(') >= 0 || text.contains("test void ") || text.contains("entry void ")) {
+      int functions = occurrences(text, "public long ")
+          - occurrences(text, "public const long ")
+          + occurrences(text, "public boolean ");
+      if (functions > 1 || text.contains("test void ") || text.contains("entry void ")) {
         return false;
       }
     }
     return true;
+  }
+
+  private static int occurrences(String text, String value) {
+    int count = 0;
+    int offset = text.indexOf(value);
+    while (offset >= 0) {
+      count++;
+      offset = text.indexOf(value, offset + value.length());
+    }
+    return count;
   }
 
   private static boolean localImportProfile(Path root, Target target) throws IOException {
