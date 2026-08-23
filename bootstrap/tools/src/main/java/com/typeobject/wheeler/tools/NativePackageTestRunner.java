@@ -103,7 +103,7 @@ final class NativePackageTestRunner {
         return Optional.empty();
       }
       Set<String> imported = externalImports(packageRoot, target);
-      if (4 < imported.size()) {
+      if (7 < imported.size()) {
         return Optional.empty();
       }
       List<NativeArchiveSources> externalArchives = List.of();

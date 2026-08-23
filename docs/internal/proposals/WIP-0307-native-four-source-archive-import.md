@@ -9,7 +9,7 @@
 | Area | Self-hosting, package commands, external source graphs |
 | Depends on | WIP-0306 |
 | Supersedes | Three-source native archive execution evidence |
-| Superseded by | Broader native archive and source-plan profiles |
+| Superseded by | WIP-0308 native external source-plan bound |
 
 ## Summary
 
@@ -66,3 +66,4 @@ Rejected. Four is the reviewed archive and external-module capacity. A fifth bel
 - [WIP-0009](WIP-0009-wheeler-package-and-build-system.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0306](WIP-0306-native-four-entry-archives.md)
+- [WIP-0308](WIP-0308-native-external-source-plan-bound.md)

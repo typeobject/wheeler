@@ -204,7 +204,7 @@ final class LockedPackageSet {
   }
 
   List<NativeArchiveSources> fixedNativeArchives(Set<String> moduleNames) {
-    if (moduleNames.isEmpty() || 4 < moduleNames.size()) {
+    if (moduleNames.isEmpty() || 7 < moduleNames.size()) {
       return List.of();
     }
     PackageArchive codec = new PackageArchive();
@@ -284,7 +284,7 @@ final class LockedPackageSet {
       for (String imported : importedModules(candidate.entries().get(module).text())) {
         if (candidate.entries().containsKey(imported)) {
           if (neededModules.add(imported)) {
-            if (4 < neededModules.size()) {
+            if (7 < neededModules.size()) {
               return List.of();
             }
             pending.add(imported);
@@ -297,7 +297,7 @@ final class LockedPackageSet {
           return List.of();
         }
         if (neededModules.add(imported)) {
-          if (4 < neededModules.size()) {
+          if (7 < neededModules.size()) {
             return List.of();
           }
           pending.add(imported);
