@@ -1,5 +1,5 @@
 schema: 3
-root: "54562a486b20ce546b24d97a58bd24c75b11dbaf33f3765e323dd47c8e0418cc"
+root: "8e66c79670385f5c9aafdecdf45d4eb3dd61c48647c371af0ba726f3cdf65ba1"
 packages:
   - name: "wheeler.core"
     version: "0.1.0"

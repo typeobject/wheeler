@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0339 |
 | Supersedes | Product-only resolved local less-than evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0341 native compiler local-literal comparison suite |
 
 ## Summary
 
@@ -68,3 +68,4 @@ Rejected. The production owner and archive remain semantic authority.
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0339](WIP-0339-native-20k-test-manifest-bound.md)
+- [WIP-0341](WIP-0341-native-compiler-local-literal-comparison-suite.md)

@@ -471,6 +471,61 @@ final class NativeCompilerNestedHelperEntryExampleTest {
   }
 
   @Test
+  void compilesPhysicalResolvedLocalLiteralComparisonSourcesIntoEntryByteForByte()
+      throws Exception {
+    String opcodes = CompilerSources.read("compiler/ir/ResolvedStatements.w");
+    String sources = CompilerSources.read(
+        "compiler/syntax/locals/ResolvedLocalLiteralComparisonSources.w");
+    String root = """
+        module example.resolved_local_literal_comparison_sources_entry;
+        import wheeler.compiler.resolved_local_literal_comparison_sources;
+        classical class ResolvedLocalLiteralComparisonSourcesEntry {
+          entry void main() {
+            long equality = resolvedLocalLiteralComparisonSource(12031);
+            long lessThan = resolvedLocalLiteralComparisonSource(12287);
+            long inequality = resolvedLocalLiteralComparisonSource(16127);
+            assert(equality == 255);
+            assert(lessThan == 255);
+            assert(inequality == 255);
+          }
+        }
+        """;
+    assertPhysicalEntry(
+        List.of(opcodes, sources),
+        Map.of("Opcodes.w", opcodes, "Sources.w", sources, "Entry.w", root),
+        root,
+        "example.resolved_local_literal_comparison_sources_entry");
+  }
+
+  @Test
+  void compilesPhysicalResolvedLocalLiteralComparisonsIntoEntryByteForByte() throws Exception {
+    String opcodes = CompilerSources.read("compiler/ir/ResolvedStatements.w");
+    String comparisons = CompilerSources.read(
+        "compiler/syntax/locals/ResolvedLocalLiteralComparisons.w");
+    String root = """
+        module example.resolved_local_literal_comparisons_entry;
+        import wheeler.compiler.resolved_local_literal_comparisons;
+        classical class ResolvedLocalLiteralComparisonsEntry {
+          entry void main() {
+            boolean equality = resolvedLocalLiteralEquality(12031);
+            boolean inequality = resolvedLocalLiteralInequality(16127);
+            boolean lessThan = resolvedLocalLiteralLessThan(12287);
+            boolean comparison = resolvedLocalLiteralComparison(16127);
+            assert(equality);
+            assert(inequality);
+            assert(lessThan);
+            assert(comparison);
+          }
+        }
+        """;
+    assertPhysicalEntry(
+        List.of(opcodes, comparisons),
+        Map.of("Opcodes.w", opcodes, "Comparisons.w", comparisons, "Entry.w", root),
+        root,
+        "example.resolved_local_literal_comparisons_entry");
+  }
+
+  @Test
   void compilesPhysicalResolvedLocalLoopFormsIntoEntryByteForByte() throws Exception {
     String kinds = CompilerSources.read("compiler/syntax/LoopKinds.w");
     String forms = CompilerSources.read("compiler/syntax/loops/ResolvedLocalLoopForms.w");

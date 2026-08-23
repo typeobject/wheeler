@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Timeout;
 /** Proves the complete checked-in compiler package suite through the native runner. */
 final class NativeCompilerPackageTest {
   @Test
-  @Timeout(value = 7, unit = TimeUnit.MINUTES)
+  @Timeout(value = 8, unit = TimeUnit.MINUTES)
   void testsThePhysicalCompilerSpineNatively() throws Exception {
     Path compiler = Path.of("wheeler-compiler");
     PackageProject project = PackageProject.load(compiler);
@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(93, result.selected());
-    assertEquals(93, result.passed());
+    assertEquals(100, result.selected());
+    assertEquals(100, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -90,6 +90,25 @@ final class NativeCompilerPackageTest {
           report,
           "nativecompilerresolvedlongoperationtests",
           "native_compiler_resolved_long_operations",
+          name);
+    }
+    for (String name : List.of(
+        "classifiesEquality",
+        "classifiesInequality",
+        "classifiesLessThan",
+        "classifiesComparison")) {
+      assertCase(
+          report,
+          "nativecompilerresolvedlocalliteralcomparisontests",
+          "native_compiler_resolved_local_literal_comparisons",
+          name);
+    }
+    for (String name : List.of(
+        "decodesEqualitySource", "decodesLessThanSource", "decodesInequalitySource")) {
+      assertCase(
+          report,
+          "nativecompilerresolvedlocalliteralsourcetests",
+          "native_compiler_resolved_local_literal_sources",
           name);
     }
     assertCase(
