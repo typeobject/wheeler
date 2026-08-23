@@ -3,6 +3,7 @@
 module wheeler.packages.library;
 
 import wheeler.packages.archive;
+import wheeler.packages.archive_provenance;
 import wheeler.packages.emitter;
 import wheeler.packages.lock;
 import wheeler.packages.plan;

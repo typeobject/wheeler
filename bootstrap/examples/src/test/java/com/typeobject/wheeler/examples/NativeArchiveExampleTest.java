@@ -9,12 +9,14 @@ import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import com.typeobject.wheeler.packageformat.PackageArchive;
 import com.typeobject.wheeler.packageformat.PackageManifestParser;
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -23,8 +25,7 @@ class NativeArchiveExampleTest {
   @Test
   void wheelerInspectsOuterAndEntryDigestCheckedArchive() throws Exception {
     Path root = Path.of("../wheeler-conformance/src/main/wheeler/packages");
-    Program inspector = new WheelerCompiler().compileModuleFiles(
-        Map.ofEntries(
+    Map<String, String> modules = Map.ofEntries(
             Map.entry("Archive.w", PackageSources.read("packages/archive/Archive.w")),
             Map.entry("Binary.w", CoreSources.read("encoding/Binary.w")),
             Map.entry("FixedBinary.w", CoreSources.read("encoding/FixedBinary.w")),
@@ -38,8 +39,22 @@ class NativeArchiveExampleTest {
             Map.entry("Paths.w", CompilerSources.read("compiler/packages/Paths.w")),
             Map.entry("Scanner.w", CompilerSources.read("lexer/Scanner.w")),
             Map.entry("Semver.w", CompilerSources.read("compiler/packages/Semver.w")),
-            Map.entry("Sha256.w", CoreSources.read("crypto/Sha256.w"))),
-        "wheeler.conformance.packages.archive_main");
+            Map.entry("Sha256.w", CoreSources.read("crypto/Sha256.w")));
+    Program inspector = new WheelerCompiler().compileModuleFiles(
+        modules, "wheeler.conformance.packages.archive_main");
+    Map<String, String> provenanceModules = new HashMap<>(modules);
+    provenanceModules.remove("NativeArchive.w");
+    provenanceModules.put(
+        "ArchiveProvenance.w",
+        PackageSources.read("packages/archive/ArchiveProvenance.w"));
+    provenanceModules.put(
+        "NativeLockedArchiveProvenance.w",
+        Files.readString(root.resolve("NativeLockedArchiveProvenance.w")));
+    provenanceModules.put(
+        "TestPackageLock.w",
+        RuntimeSources.read("runtime/testing/runners/package/TestPackageLock.w"));
+    Program provenance = new WheelerCompiler().compileModuleFiles(
+        provenanceModules, "wheeler.conformance.packages.locked_archive_provenance");
     String manifestText = """
         schema: 1
         package:
@@ -81,6 +96,36 @@ class NativeArchiveExampleTest {
     }
     assertEquals(initial, machine.snapshot());
     new PackageArchive().decode(encoded);
+
+    String rootIdentity = "1".repeat(64);
+    String archiveIdentity = new PackageArchive().identity(encoded);
+    String lock = lockedArchive(rootIdentity, manifest.identity(), archiveIdentity);
+    byte[] provenanceInput = provenanceInput(
+        rootIdentity, lock, manifest.name(), encoded);
+    VirtualMachine provenanceMachine = VirtualMachine.withBinaryInput(
+        provenance, provenanceInput, /* outputCapacity= */ 1);
+    provenanceMachine.run();
+    assertEquals(1, provenanceMachine.hostOutput()[0]);
+
+    byte[] changedArchive = encoded.clone();
+    changedArchive[changedArchive.length - 1] ^= 1;
+    assertProvenanceRejected(
+        provenance,
+        provenanceInput(rootIdentity, lock, manifest.name(), changedArchive));
+    assertProvenanceRejected(
+        provenance,
+        provenanceInput(
+            rootIdentity,
+            lockedArchive(rootIdentity, manifest.identity(), "0".repeat(64)),
+            manifest.name(),
+            encoded));
+    assertProvenanceRejected(
+        provenance,
+        provenanceInput(
+            rootIdentity,
+            lockedArchive(rootIdentity, "0".repeat(64), archiveIdentity),
+            manifest.name(),
+            encoded));
 
     String modularManifestText = """
         schema: 1
@@ -143,8 +188,50 @@ class NativeArchiveExampleTest {
     assertRejected(inspector, noncanonicalManifest);
   }
 
+  private static String lockedArchive(
+      String rootIdentity, String manifestIdentity, String archiveIdentity) {
+    return ("""
+        schema: 3
+        root: "%s"
+        packages:
+          - name: "demo.archive"
+            version: "1.0.0"
+            repository: "%s"
+            snapshot: "%s"
+            archive: "%s"
+            manifest: "%s"
+            dependencies: []
+        """).formatted(
+            rootIdentity, "2".repeat(64), "3".repeat(64), archiveIdentity, manifestIdentity);
+  }
+
+  private static byte[] provenanceInput(
+      String rootIdentity, String lock, String packageName, byte[] archive) {
+    byte[] lockBytes = lock.getBytes(StandardCharsets.UTF_8);
+    byte[] nameBytes = packageName.getBytes(StandardCharsets.UTF_8);
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    output.writeBytes(rootIdentity.getBytes(StandardCharsets.US_ASCII));
+    writeLittle32(output, lockBytes.length);
+    output.writeBytes(lockBytes);
+    output.write(nameBytes.length);
+    output.writeBytes(nameBytes);
+    writeLittle32(output, archive.length);
+    output.writeBytes(archive);
+    return output.toByteArray();
+  }
+
+  private static void writeLittle32(ByteArrayOutputStream output, int value) {
+    output.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(value).array());
+  }
+
   private static void assertRejected(Program inspector, byte[] archive) {
     VirtualMachine machine = VirtualMachine.withBinaryInput(inspector, archive);
+    assertThrows(VmTrap.class, machine::run);
+  }
+
+  private static void assertProvenanceRejected(Program provenance, byte[] input) {
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        provenance, input, /* outputCapacity= */ 1);
     assertThrows(VmTrap.class, machine::run);
   }
 

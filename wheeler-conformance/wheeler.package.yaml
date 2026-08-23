@@ -117,6 +117,13 @@ targets:
       - "src/main/wheeler/packages/NativeLock.w"
     test: false
   - kind: "deployable"
+    name: "nativelockedarchiveprovenance"
+    root: "src/main/wheeler/packages/NativeLockedArchiveProvenance.w"
+    module: "wheeler.conformance.packages.locked_archive_provenance"
+    sources:
+      - "src/main/wheeler/packages/NativeLockedArchiveProvenance.w"
+    test: false
+  - kind: "deployable"
     name: "nativelockidentity"
     root: "src/main/wheeler/packages/identity/NativeLockIdentity.w"
     module: "wheeler.conformance.packages.lock_identity"

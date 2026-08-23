@@ -190,6 +190,8 @@ Resolution:
 
 A locked build does not re-resolve. If a locked archive disappears or has different bytes, the build fails. It does not choose a convenient replacement.
 
+WIP-0294 adds Wheeler-native archive provenance at the test boundary. The package authority validates canonical archive framing and entry digests, hashes the complete archive and embedded manifest, and binds both identities plus the manifest package name to one exact lock row. External test-source projection remains separate work.
+
 The initial resolver may require one version of each package identity in a final graph. Multiple-version support requires explicit type and resource identity rules and is deferred until demonstrated necessary.
 
 ## Lockfile
@@ -545,6 +547,7 @@ Worker count and native scheduling do not enter package identity. Required physi
 - [WIP-0022](WIP-0022-package-instances-and-resolution.md)
 - [WIP-0023](WIP-0023-recipe-repositories-and-reproducible-builds.md)
 - [WIP-0024](WIP-0024-system-package-exports.md)
+- [WIP-0294](WIP-0294-native-locked-archive-provenance.md)
 - [WIP-0025](WIP-0025-native-ffi-and-system-integration.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
