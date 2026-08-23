@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler testing, imported callables |
 | Depends on | WIP-0292 |
 | Supersedes | Fourteen-case native compiler package suite |
-| Superseded by | Additional native compiler source partitions |
+| Superseded by | WIP-0304 native compiler type-kind suite |
 
 ## Summary
 
@@ -71,3 +71,4 @@ Rejected. The fixed source boundary is already full in both existing partitions.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0285](WIP-0285-native-compiler-callable-suite.md)
 - [WIP-0292](WIP-0292-native-compiler-syntax-suite.md)
+- [WIP-0304](WIP-0304-native-compiler-type-kind-suite.md)

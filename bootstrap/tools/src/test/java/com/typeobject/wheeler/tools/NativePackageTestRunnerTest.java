@@ -34,8 +34,8 @@ class NativePackageTestRunnerTest {
 
     assertTrue(result.isPresent());
     TestReport report = result.orElseThrow().report();
-    assertEquals(17, result.orElseThrow().selected());
-    assertEquals(17, result.orElseThrow().passed());
+    assertEquals(18, result.orElseThrow().selected());
+    assertEquals(18, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
     assertEquals(result.orElseThrow().report().identity(), report.identity());
     assertEquals(
@@ -52,6 +52,9 @@ class NativePackageTestRunnerTest {
     assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
         "nativecompilerspinetests::wheeler.compiler.tests.native_compiler_spine::"
             + "checksEncodingWidth")));
+    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
+        "nativecompilertypekindtests::wheeler.compiler.tests.native_compiler_type_kinds::"
+            + "checksTypeDescriptor")));
   }
 
   @Test

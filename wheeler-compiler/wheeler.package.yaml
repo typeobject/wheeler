@@ -80,6 +80,15 @@ targets:
       - "src/main/wheeler/compiler/syntax/tokens/SourceScalars.w"
       - "src/test/wheeler/compiler/NativeCompilerSyntaxTests.w"
     test: true
+  - kind: "tool"
+    name: "nativecompilertypekindtests"
+    root: "src/test/wheeler/compiler/NativeCompilerTypeKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_type_kinds"
+    sources:
+      - "src/main/wheeler/compiler/ir/TypeCodes.w"
+      - "src/main/wheeler/compiler/ir/TypeKinds.w"
+      - "src/test/wheeler/compiler/NativeCompilerTypeKindTests.w"
+    test: true
 dependencies:
   - kind: "normal"
     name: "wheeler.core"
