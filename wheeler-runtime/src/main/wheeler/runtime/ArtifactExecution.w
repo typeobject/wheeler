@@ -51,9 +51,15 @@ classical class ArtifactExecution {
     long caseKind,
     long caseValue,
     long stepLimit,
-    borrow mut bytes traceOpcodes
+    borrow mut bytes traceOpcodes,
+    borrow mut words traceFunctions,
+    borrow mut words traceInstructions,
+    borrow mut bytes traceBranches
   ) {
     assert(bufferLength(traceOpcodes) == MAX_INTERPRETED_STEPS * 2);
+    assert(bufferLength(traceFunctions) == MAX_INTERPRETED_STEPS);
+    assert(bufferLength(traceInstructions) == MAX_INTERPRETED_STEPS);
+    assert(bufferLength(traceBranches) == MAX_INTERPRETED_STEPS);
     assert(0 < stepLimit);
     assert(stepLimit < MAX_INTERPRETED_STEPS + 1);
     region executionArena = new region(/* bytes= */ 24000, /* allocations= */ 25);
@@ -63,6 +69,8 @@ classical class ArtifactExecution {
     words returnStarts = allocate(executionArena, INTERPRETER_FRAME_COUNT);
     words returnEnds = allocate(executionArena, INTERPRETER_FRAME_COUNT);
     words returnDestinations = allocate(executionArena, INTERPRETER_FRAME_COUNT);
+    words returnFunctions = allocate(executionArena, INTERPRETER_FRAME_COUNT);
+    words returnInstructions = allocate(executionArena, INTERPRETER_FRAME_COUNT);
     words aggregateTypes = allocate(executionArena, INTERPRETER_AGGREGATE_COUNT);
     words aggregateTags = allocate(executionArena, INTERPRETER_AGGREGATE_COUNT);
     words aggregateStarts = allocate(executionArena, INTERPRETER_AGGREGATE_COUNT);
@@ -121,6 +129,8 @@ classical class ArtifactExecution {
         returnStarts,
         returnEnds,
         returnDestinations,
+        returnFunctions,
+        returnInstructions,
         aggregateTypes,
         aggregateTags,
         aggregateStarts,
@@ -135,7 +145,10 @@ classical class ArtifactExecution {
         storageRegionUsedBytes,
         storageRegionLiveObjects,
         storageData,
-        traceOpcodes
+        traceOpcodes,
+        traceFunctions,
+        traceInstructions,
+        traceBranches
       );
       match (result) {
         case ExecutionResult.Value(Execution execution) {
@@ -179,6 +192,8 @@ classical class ArtifactExecution {
     drop(aggregateStarts);
     drop(aggregateTags);
     drop(aggregateTypes);
+    drop(returnInstructions);
+    drop(returnFunctions);
     drop(returnDestinations);
     drop(returnEnds);
     drop(returnStarts);
@@ -208,7 +223,10 @@ classical class ArtifactExecution {
   /// Verifies and executes one artifact without a program-name constraint.
   public ArtifactOutcome executeBoundedArtifact(
     borrow byteview artifact,
-    borrow mut bytes traceOpcodes
+    borrow mut bytes traceOpcodes,
+    borrow mut words traceFunctions,
+    borrow mut words traceInstructions,
+    borrow mut bytes traceBranches
   ) {
     return executeBoundedArtifactWithFunction(
       artifact,
@@ -217,7 +235,10 @@ classical class ArtifactExecution {
       /* caseKind= */ 0,
       /* caseValue= */ 0,
       MAX_INTERPRETED_STEPS,
-      traceOpcodes
+      traceOpcodes,
+      traceFunctions,
+      traceInstructions,
+      traceBranches
     );
   }
 
@@ -225,7 +246,10 @@ classical class ArtifactExecution {
   public ArtifactOutcome executeBoundedArtifactWithStepLimit(
     borrow byteview artifact,
     long stepLimit,
-    borrow mut bytes traceOpcodes
+    borrow mut bytes traceOpcodes,
+    borrow mut words traceFunctions,
+    borrow mut words traceInstructions,
+    borrow mut bytes traceBranches
   ) {
     return executeBoundedArtifactWithFunction(
       artifact,
@@ -234,7 +258,10 @@ classical class ArtifactExecution {
       /* caseKind= */ 0,
       /* caseValue= */ 0,
       stepLimit,
-      traceOpcodes
+      traceOpcodes,
+      traceFunctions,
+      traceInstructions,
+      traceBranches
     );
   }
 
@@ -245,7 +272,10 @@ classical class ArtifactExecution {
     long caseKind,
     long caseValue,
     long stepLimit,
-    borrow mut bytes traceOpcodes
+    borrow mut bytes traceOpcodes,
+    borrow mut words traceFunctions,
+    borrow mut words traceInstructions,
+    borrow mut bytes traceBranches
   ) {
     return executeBoundedArtifactWithFunction(
       artifact,
@@ -254,7 +284,10 @@ classical class ArtifactExecution {
       caseKind,
       caseValue,
       stepLimit,
-      traceOpcodes
+      traceOpcodes,
+      traceFunctions,
+      traceInstructions,
+      traceBranches
     );
   }
 }

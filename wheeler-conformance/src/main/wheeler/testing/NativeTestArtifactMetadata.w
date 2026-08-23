@@ -28,9 +28,18 @@ classical class NativeTestArtifactMetadata {
   /// Publishes the program name, kind, and ordered global names after execution verifies.
   entry void main(borrow byteview artifact, borrow mut bytes output) {
     assert(bufferLength(output) == 4096);
-    region staging = new region(/* bytes= */ 32896, /* allocations= */ 3);
+    region staging = new region(/* bytes= */ 32896, /* allocations= */ 6);
     bytes traceOpcodes = allocateBytes(staging, MAX_INTERPRETED_STEPS * 2);
-    ArtifactOutcome outcome = executeBoundedArtifact(artifact, traceOpcodes);
+    words traceFunctions = allocate(staging, MAX_INTERPRETED_STEPS);
+    words traceInstructions = allocate(staging, MAX_INTERPRETED_STEPS);
+    bytes traceBranches = allocateBytes(staging, MAX_INTERPRETED_STEPS);
+    ArtifactOutcome outcome = executeBoundedArtifact(
+      artifact,
+      traceOpcodes,
+      traceFunctions,
+      traceInstructions,
+      traceBranches
+    );
     assert(outcome.passed);
     ArtifactText program = artifactProgramText(artifact);
     assert(program.length < 256);
@@ -68,6 +77,9 @@ classical class NativeTestArtifactMetadata {
     setOutputLength(output, cursor);
     drop(lengths);
     drop(starts);
+    drop(traceBranches);
+    drop(traceInstructions);
+    drop(traceFunctions);
     drop(traceOpcodes);
     drop(staging);
   }

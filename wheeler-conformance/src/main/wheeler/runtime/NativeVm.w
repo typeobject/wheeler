@@ -38,13 +38,15 @@ classical class NativeVm {
   ///
   /// - Effects: Mutates only the fixture's declared state.
   entry void main(borrow byteview artifact) {
-    region arena = new region(24000, 25);
+    region arena = new region(/* bytes= */ 40000, /* allocations= */ 30);
     words globals = allocate(arena, INTERPRETER_GLOBAL_COUNT);
     words locals = allocate(arena, INTERPRETER_LOCAL_CAPACITY);
     words returnCursors = allocate(arena, INTERPRETER_FRAME_COUNT);
     words returnStarts = allocate(arena, INTERPRETER_FRAME_COUNT);
     words returnEnds = allocate(arena, INTERPRETER_FRAME_COUNT);
     words returnDestinations = allocate(arena, INTERPRETER_FRAME_COUNT);
+    words returnFunctions = allocate(arena, INTERPRETER_FRAME_COUNT);
+    words returnInstructions = allocate(arena, INTERPRETER_FRAME_COUNT);
     words aggregateTypes = allocate(arena, INTERPRETER_AGGREGATE_COUNT);
     words aggregateTags = allocate(arena, INTERPRETER_AGGREGATE_COUNT);
     words aggregateStarts = allocate(arena, INTERPRETER_AGGREGATE_COUNT);
@@ -60,6 +62,9 @@ classical class NativeVm {
     words storageRegionLiveObjects = allocate(arena, INTERPRETER_STORAGE_COUNT);
     words storageData = allocate(arena, INTERPRETER_STORAGE_WORDS);
     bytes traceOpcodes = allocateBytes(arena, MAX_INTERPRETED_STEPS * 2);
+    words traceFunctions = allocate(arena, MAX_INTERPRETED_STEPS);
+    words traceInstructions = allocate(arena, MAX_INTERPRETED_STEPS);
+    bytes traceBranches = allocateBytes(arena, MAX_INTERPRETED_STEPS);
     bytes traceDigest = allocateBytes(arena, 32);
     assert(verifyArtifact(artifact, bufferLength(artifact)) == 1);
     ExecutionResult result = executeVerifiedArtifact(
@@ -71,6 +76,8 @@ classical class NativeVm {
       returnStarts,
       returnEnds,
       returnDestinations,
+      returnFunctions,
+      returnInstructions,
       aggregateTypes,
       aggregateTags,
       aggregateStarts,
@@ -85,7 +92,10 @@ classical class NativeVm {
       storageRegionUsedBytes,
       storageRegionLiveObjects,
       storageData,
-      traceOpcodes
+      traceOpcodes,
+      traceFunctions,
+      traceInstructions,
+      traceBranches
     );
     match (result) {
       case ExecutionResult.Value(Execution execution) {
@@ -119,6 +129,9 @@ classical class NativeVm {
 
     artifactLength = bufferLength(artifact);
     drop(traceDigest);
+    drop(traceBranches);
+    drop(traceInstructions);
+    drop(traceFunctions);
     drop(traceOpcodes);
     drop(storageData);
     drop(storageRegionLiveObjects);
@@ -134,6 +147,8 @@ classical class NativeVm {
     drop(aggregateStarts);
     drop(aggregateTags);
     drop(aggregateTypes);
+    drop(returnInstructions);
+    drop(returnFunctions);
     drop(returnDestinations);
     drop(returnEnds);
     drop(returnStarts);

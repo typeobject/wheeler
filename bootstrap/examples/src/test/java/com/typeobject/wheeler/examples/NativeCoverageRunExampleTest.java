@@ -924,7 +924,7 @@ final class NativeCoverageRunExampleTest {
         modules, "wheeler.conformance.testing.native_test_artifact_run");
   }
 
-  private static Program runner() throws Exception {
+  static Program runner() throws Exception {
     var modules = runtimeModules();
     modules.put(
         "BootstrapCoverageFragments.w",

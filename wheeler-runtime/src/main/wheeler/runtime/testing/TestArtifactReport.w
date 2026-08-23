@@ -21,15 +21,6 @@ classical class TestArtifactReport {
   private const long PASS_STAGING_BYTES = 66720;
   private const long REPORT_FRAME_BYTES = 5413;
 
-  private long sectionOffset(borrow byteview artifact, long section) {
-    return readUnsigned(artifact, 40 + section * 32 + 8, /* width= */ 8);
-  }
-
-  private long entryFunction(borrow byteview artifact) {
-    long manifest = sectionOffset(artifact, /* section= */ 0);
-    return readUnsigned(artifact, manifest + 4, /* width= */ 4);
-  }
-
   private long writeField(borrow byteview value, borrow mut bytes frame, long cursor) {
     long length = bufferLength(value);
     assert(length < MAX_DIAGNOSTIC_BYTES + 1);
@@ -172,6 +163,9 @@ classical class TestArtifactReport {
     borrow byteview artifact,
     ArtifactOutcome outcome,
     borrow byteview trace,
+    borrow mut words traceFunctions,
+    borrow mut words traceInstructions,
+    borrow byteview traceBranches,
     borrow byteview packageName,
     borrow byteview packageVersion,
     borrow byteview targetName,
@@ -187,10 +181,22 @@ classical class TestArtifactReport {
     long executionLength = deriveArtifactExecutionIdentity(artifact, outcome, executionIdentity);
     assert(executionLength == IDENTITY_BYTES);
 
-    long function = entryFunction(artifact);
-    long fragmentLength = measuredTransitionFragments(trace, outcome.steps, function);
+    long fragmentLength = measuredTransitionFragments(
+      trace,
+      traceFunctions,
+      traceInstructions,
+      traceBranches,
+      outcome.steps
+    );
     bytes fragments = allocateBytes(staging, /* length= */ 32768);
-    writeTransitionFragments(trace, outcome.steps, function, fragments);
+    writeTransitionFragments(
+      trace,
+      traceFunctions,
+      traceInstructions,
+      traceBranches,
+      outcome.steps,
+      fragments
+    );
     bytes coverageReport = allocateBytes(staging, /* length= */ 32768);
     long coverageLength = reduceRange(fragments, fragmentLength, coverageReport);
     bytes coverageIdentity = allocateBytes(staging, IDENTITY_BYTES);
@@ -270,6 +276,9 @@ classical class TestArtifactReport {
     borrow byteview artifact,
     ArtifactOutcome outcome,
     borrow byteview trace,
+    borrow mut words traceFunctions,
+    borrow mut words traceInstructions,
+    borrow byteview traceBranches,
     borrow byteview packageName,
     borrow byteview packageVersion,
     borrow byteview targetName,
@@ -282,6 +291,9 @@ classical class TestArtifactReport {
         artifact,
         outcome,
         trace,
+        traceFunctions,
+        traceInstructions,
+        traceBranches,
         packageName,
         packageVersion,
         targetName,
@@ -320,8 +332,11 @@ classical class TestArtifactReport {
   ) {
     validateMetadata(packageName, packageVersion, targetName, caseIdentity, sourceIdentity);
     assert(bufferLength(output) == CASE_RESULT_BYTES);
-    region execution = new region(/* bytes= */ 32768, /* allocations= */ 1);
+    region execution = new region(/* bytes= */ 32768, /* allocations= */ 4);
     bytes trace = allocateBytes(execution, MAX_INTERPRETED_STEPS * 2);
+    words traceFunctions = allocate(execution, MAX_INTERPRETED_STEPS);
+    words traceInstructions = allocate(execution, MAX_INTERPRETED_STEPS);
+    bytes traceBranches = allocateBytes(execution, MAX_INTERPRETED_STEPS);
     long length = 0;
     if (bindProgram) {
       ArtifactOutcome named = executeBoundedNamedArtifact(
@@ -330,13 +345,19 @@ classical class TestArtifactReport {
         caseKind,
         caseValue,
         stepLimit,
-        trace
+        trace,
+        traceFunctions,
+        traceInstructions,
+        traceBranches
       );
       assert(named.authorized);
       length = writeOutcomeCaseResult(
         artifact,
         named,
         trace,
+        traceFunctions,
+        traceInstructions,
+        traceBranches,
         packageName,
         packageVersion,
         targetName,
@@ -345,11 +366,21 @@ classical class TestArtifactReport {
         output
       );
     } else {
-      ArtifactOutcome generic = executeBoundedArtifactWithStepLimit(artifact, stepLimit, trace);
+      ArtifactOutcome generic = executeBoundedArtifactWithStepLimit(
+        artifact,
+        stepLimit,
+        trace,
+        traceFunctions,
+        traceInstructions,
+        traceBranches
+      );
       length = writeOutcomeCaseResult(
         artifact,
         generic,
         trace,
+        traceFunctions,
+        traceInstructions,
+        traceBranches,
         packageName,
         packageVersion,
         targetName,
@@ -360,6 +391,9 @@ classical class TestArtifactReport {
     }
 
     assert(length < CASE_RESULT_BYTES + 1);
+    drop(traceBranches);
+    drop(traceInstructions);
+    drop(traceFunctions);
     drop(trace);
     drop(execution);
     return length;

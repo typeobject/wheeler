@@ -9,7 +9,7 @@
 | Area | Native runtime, interpreter maintenance |
 | Depends on | WIP-0285 |
 | Supersedes | Interpreter-local layout helpers |
-| Superseded by | Native branch event publication |
+| Superseded by | WIP-0287 native call and branch coverage |
 
 ## Summary
 
@@ -69,3 +69,4 @@ Rejected. The limit exposes missing module boundaries.
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
 - [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md)
 - [WIP-0285](WIP-0285-native-compiler-callable-suite.md)
+- [WIP-0287](WIP-0287-native-call-branch-coverage.md)

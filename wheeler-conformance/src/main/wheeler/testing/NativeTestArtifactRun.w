@@ -24,9 +24,18 @@ classical class NativeTestArtifactRun {
   /// Publishes one complete closed interpreter outcome for a runner-owned artifact.
   entry void main(borrow byteview artifact, borrow mut bytes output) {
     assert(bufferLength(output) == 89);
-    region traceArena = new region(/* bytes= */ 32768, /* allocations= */ 1);
+    region traceArena = new region(/* bytes= */ 32768, /* allocations= */ 4);
     bytes traceOpcodes = allocateBytes(traceArena, MAX_INTERPRETED_STEPS * 2);
-    ArtifactOutcome outcome = executeBoundedArtifact(artifact, traceOpcodes);
+    words traceFunctions = allocate(traceArena, MAX_INTERPRETED_STEPS);
+    words traceInstructions = allocate(traceArena, MAX_INTERPRETED_STEPS);
+    bytes traceBranches = allocateBytes(traceArena, MAX_INTERPRETED_STEPS);
+    ArtifactOutcome outcome = executeBoundedArtifact(
+      artifact,
+      traceOpcodes,
+      traceFunctions,
+      traceInstructions,
+      traceBranches
+    );
     if (outcome.passed) {
       setByte(output, /* index= */ 0, /* value= */ 0);
     } else {
@@ -44,6 +53,9 @@ classical class NativeTestArtifactRun {
     writeLong(outcome.globalSix, output, /* cursor= */ 65);
     writeLong(outcome.globalSeven, output, /* cursor= */ 73);
     writeLong(outcome.errorOffset, output, /* cursor= */ 81);
+    drop(traceBranches);
+    drop(traceInstructions);
+    drop(traceFunctions);
     drop(traceOpcodes);
     drop(traceArena);
   }

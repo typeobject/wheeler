@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler testing, imported callables |
 | Depends on | WIP-0284 |
 | Supersedes | Constant-only native compiler spine imports |
-| Superseded by | Broader native callable compiler modules |
+| Superseded by | WIP-0287 native call and branch coverage |
 
 ## Summary
 
@@ -82,3 +82,4 @@ Rejected. The fixed profile admits one scalar function per imported module. The 
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md)
 - [WIP-0284](WIP-0284-native-compiler-constant-suite.md)
+- [WIP-0287](WIP-0287-native-call-branch-coverage.md)
