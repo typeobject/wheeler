@@ -449,6 +449,28 @@ final class NativeCompilerNestedHelperEntryExampleTest {
   }
 
   @Test
+  void compilesPhysicalResolvedLocalLessThanIntoEntryByteForByte() throws Exception {
+    String opcodes = CompilerSources.read("compiler/ir/ResolvedStatements.w");
+    String lessThan = CompilerSources.read(
+        "compiler/syntax/locals/ResolvedLocalLessThanKinds.w");
+    String root = """
+        module example.resolved_local_less_than_entry;
+        import wheeler.compiler.resolved_local_less_than_kinds;
+        classical class ResolvedLocalLessThanEntry {
+          entry void main() {
+            boolean present = resolvedLocalLongLessThan(5375);
+            assert(present);
+          }
+        }
+        """;
+    assertPhysicalEntry(
+        List.of(opcodes, lessThan),
+        Map.of("Opcodes.w", opcodes, "LessThan.w", lessThan, "Entry.w", root),
+        root,
+        "example.resolved_local_less_than_entry");
+  }
+
+  @Test
   void compilesPhysicalResolvedLocalLoopFormsIntoEntryByteForByte() throws Exception {
     String kinds = CompilerSources.read("compiler/syntax/LoopKinds.w");
     String forms = CompilerSources.read("compiler/syntax/loops/ResolvedLocalLoopForms.w");

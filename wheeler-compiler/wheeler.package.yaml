@@ -176,6 +176,15 @@ targets:
       - "src/test/wheeler/compiler/locals/NativeCompilerResolvedLocalInequalityTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilerresolvedlocallessthantests"
+    root: "src/test/wheeler/compiler/locals/NativeCompilerResolvedLocalLessThanTests.w"
+    module: "wheeler.compiler.tests.native_compiler_resolved_local_less_than"
+    sources:
+      - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
+      - "src/main/wheeler/compiler/syntax/locals/ResolvedLocalLessThanKinds.w"
+      - "src/test/wheeler/compiler/locals/NativeCompilerResolvedLocalLessThanTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerresolvedlocalloopformtests"
     root: "src/test/wheeler/compiler/loops/NativeCompilerResolvedLocalLoopFormTests.w"
     module: "wheeler.compiler.tests.native_compiler_resolved_local_loop_forms"
