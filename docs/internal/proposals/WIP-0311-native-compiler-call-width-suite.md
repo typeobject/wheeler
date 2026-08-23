@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0310 |
 | Supersedes | Standalone assignment-call width evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0312 native compiler call-operand suite |
 
 ## Summary
 
@@ -81,3 +81,4 @@ Rejected. The graph linker already owns shared dependency deduplication. Copying
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0305](WIP-0305-native-compiler-call-arity-suite.md)
 - [WIP-0310](WIP-0310-native-multi-helper-entry-programs.md)
+- [WIP-0312](WIP-0312-native-compiler-call-operand-suite.md)

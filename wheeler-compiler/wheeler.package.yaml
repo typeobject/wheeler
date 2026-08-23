@@ -52,6 +52,16 @@ targets:
       - "src/test/wheeler/compiler/NativeCompilerCallArityTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilercalloperandtests"
+    root: "src/test/wheeler/compiler/NativeCompilerCallOperandTests.w"
+    module: "wheeler.compiler.tests.native_compiler_call_operand"
+    sources:
+      - "src/main/wheeler/compiler/syntax/calls/assignment/AssignmentCallArities.w"
+      - "src/main/wheeler/compiler/syntax/calls/assignment/AssignmentCallIdentities.w"
+      - "src/main/wheeler/compiler/syntax/calls/assignment/AssignmentCallOperands.w"
+      - "src/test/wheeler/compiler/NativeCompilerCallOperandTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilercallsyntaxtests"
     root: "src/test/wheeler/compiler/NativeCompilerCallSyntaxTests.w"
     module: "wheeler.compiler.tests.native_compiler_call_syntax"

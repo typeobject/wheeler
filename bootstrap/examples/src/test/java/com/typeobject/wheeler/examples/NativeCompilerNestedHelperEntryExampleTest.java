@@ -14,6 +14,42 @@ import org.junit.jupiter.api.Test;
 /** Differential evidence for nested native scalar helpers called from an entry. */
 final class NativeCompilerNestedHelperEntryExampleTest {
   @Test
+  void compilesPhysicalAssignmentCallOperandsIntoEntryByteForByte() throws Exception {
+    String identities = CompilerSources.read(
+        "compiler/syntax/calls/assignment/AssignmentCallIdentities.w");
+    String arities = CompilerSources.read(
+        "compiler/syntax/calls/assignment/AssignmentCallArities.w");
+    String operands = CompilerSources.read(
+        "compiler/syntax/calls/assignment/AssignmentCallOperands.w");
+    String root = """
+        module example.assignment_call_operand_entry;
+        import wheeler.compiler.assignment_call_operands;
+        classical class AssignmentCallOperandEntry {
+          entry void main() {
+            long opcode = 933;
+            long leading = 218893066;
+            long trailing = 2828841;
+            long source = 0;
+            long decoded = assignmentCallSource(opcode, leading, trailing, source);
+            assert(decoded == 10);
+          }
+        }
+        """;
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] artifact = NativeModuleCompilerHarness.compile(
+        compiler, List.of(identities, arities, operands), root);
+    byte[] expected = new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+        Map.of(
+            "Identities.w", identities,
+            "Arities.w", arities,
+            "Operands.w", operands,
+            "Entry.w", root),
+        "example.assignment_call_operand_entry"));
+    assertArrayEquals(expected, artifact);
+    new VirtualMachine(new BytecodeReader().read(artifact)).run();
+  }
+
+  @Test
   void compilesNestedScalarHelpersIntoEntryByteForByte() throws Exception {
     String arities = """
         module example.arities;
