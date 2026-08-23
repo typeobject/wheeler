@@ -7,7 +7,7 @@ import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.packageformat.PackageLock;
 import com.typeobject.wheeler.packageformat.PackageManifest;
 import com.typeobject.wheeler.packageformat.PackageManifest.Target;
-import com.typeobject.wheeler.tools.LockedPackageSet.NativeModuleSource;
+import com.typeobject.wheeler.tools.LockedPackageSet.NativeArchiveSources;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -94,7 +94,7 @@ final class NativePackageTestRunner {
       return Optional.empty();
     }
     java.util.ArrayList<byte[]> plans = new java.util.ArrayList<>();
-    java.util.ArrayList<Optional<NativeModuleSource>> externalSources = new java.util.ArrayList<>();
+    java.util.ArrayList<Optional<NativeArchiveSources>> externalSources = new java.util.ArrayList<>();
     LockedPackageSet lockedPackages = null;
     for (Target target : testTargets) {
       if (!target.modular()
@@ -103,10 +103,10 @@ final class NativePackageTestRunner {
         return Optional.empty();
       }
       Set<String> imported = externalImports(packageRoot, target);
-      if (1 < imported.size()) {
+      if (2 < imported.size()) {
         return Optional.empty();
       }
-      Optional<NativeModuleSource> externalSource = Optional.empty();
+      Optional<NativeArchiveSources> externalSource = Optional.empty();
       if (!imported.isEmpty()) {
         Path vendor = packageRoot.resolve(LockedPackageSet.VENDOR_DIRECTORY);
         if (!Files.isDirectory(vendor, LinkOption.NOFOLLOW_LINKS)
@@ -116,12 +116,18 @@ final class NativePackageTestRunner {
         if (lockedPackages == null) {
           lockedPackages = LockedPackageSet.load(packageRoot, manifest);
         }
-        externalSource = lockedPackages.fixedNativeModuleSource(imported.iterator().next());
-        if (externalSource.isEmpty() || !fixedSourceProfile(externalSource.orElseThrow().text())) {
+        externalSource = lockedPackages.fixedNativeArchiveSources(imported);
+        if (externalSource.isEmpty()) {
           return Optional.empty();
         }
+        for (var entry : externalSource.orElseThrow().entries()) {
+          if (!fixedSourceProfile(entry.text())) {
+            return Optional.empty();
+          }
+        }
       }
-      if (MAX_SOURCES < target.sources().size() + (externalSource.isPresent() ? 1 : 0)) {
+      if (MAX_SOURCES < target.sources().size()
+          + (externalSource.isPresent() ? externalSource.orElseThrow().entries().size() : 0)) {
         return Optional.empty();
       }
       byte[] plan = sourcePlan(packageRoot, target, externalSource);
@@ -478,7 +484,7 @@ final class NativePackageTestRunner {
   }
 
   private static byte[] sourcePlan(
-      Path root, Target target, Optional<NativeModuleSource> externalSource) throws IOException {
+      Path root, Target target, Optional<NativeArchiveSources> externalSource) throws IOException {
     java.util.TreeMap<String, byte[]> sources = new java.util.TreeMap<>();
     for (String source : target.sources()) {
       Path file = root.resolve(source).normalize();
@@ -494,10 +500,12 @@ final class NativePackageTestRunner {
       sources.put(source, text);
     }
     if (externalSource.isPresent()) {
-      NativeModuleSource selected = externalSource.orElseThrow();
-      String path = "dependencies/" + selected.packageName() + "/" + selected.path();
-      if (sources.put(path, selected.text().getBytes(StandardCharsets.UTF_8)) != null) {
-        throw new PackageFormatException("Duplicate native test source " + path);
+      NativeArchiveSources selected = externalSource.orElseThrow();
+      for (var entry : selected.entries()) {
+        String path = "dependencies/" + selected.packageName() + "/" + entry.path();
+        if (sources.put(path, entry.text().getBytes(StandardCharsets.UTF_8)) != null) {
+          throw new PackageFormatException("Duplicate native test source " + path);
+        }
       }
     }
     ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -517,7 +525,7 @@ final class NativePackageTestRunner {
       PackageManifest manifest,
       Target target,
       byte[] sourcePlan,
-      Optional<NativeModuleSource> externalSource,
+      Optional<NativeArchiveSources> externalSource,
       int shardIndex,
       int shardCount,
       Set<String> selectedTags,
@@ -536,7 +544,7 @@ final class NativePackageTestRunner {
     writeLittleBytes(output, packageLock(root, manifest, manifestBytes));
     output.write(externalSource.isPresent() ? 1 : 0);
     if (externalSource.isPresent()) {
-      NativeModuleSource selected = externalSource.orElseThrow();
+      NativeArchiveSources selected = externalSource.orElseThrow();
       writeShortText(output, selected.packageName());
       writeLittleBytes(output, selected.archive());
     }

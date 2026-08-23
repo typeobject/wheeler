@@ -9,7 +9,7 @@
 | Area | Self-hosting, package commands, external imports |
 | Depends on | WIP-0297 |
 | Supersedes | Package-local-only native package test invocation |
-| Superseded by | Multi-entry and multi-package native import transport |
+| Superseded by | WIP-0299 native two-source archive import |
 
 ## Summary
 
@@ -97,3 +97,4 @@ Rejected. Once external native eligibility selects physical provenance, malforme
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0275](WIP-0275-native-locked-package-test-gate.md)
 - [WIP-0297](WIP-0297-native-external-import-compilation.md)
+- [WIP-0299](WIP-0299-native-two-source-archive-import.md)

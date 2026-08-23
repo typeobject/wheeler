@@ -235,7 +235,7 @@ classical class TestRunner {
 
     assert(scan == bufferLength(input));
 
-    region staging = new region(/* bytes= */ 861760, /* allocations= */ 48);
+    region staging = new region(/* bytes= */ 901120, /* allocations= */ 64);
     bytes runner = allocateBytes(staging, /* length= */ 64);
     writeAscii(
       runner,

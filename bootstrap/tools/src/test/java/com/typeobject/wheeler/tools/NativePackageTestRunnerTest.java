@@ -432,7 +432,7 @@ class NativePackageTestRunnerTest {
         archive);
     PackageProject packageProject = PackageProject.load(project);
     var selected = LockedPackageSet.load(project, packageProject.manifest())
-        .fixedNativeModuleSource("demo.dep.constants");
+        .fixedNativeArchiveSources(Set.of("demo.dep.constants"));
     assertTrue(selected.isPresent());
 
     var result = NativePackageTestRunner.run(
@@ -443,6 +443,116 @@ class NativePackageTestRunnerTest {
     assertEquals(1, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
     assertEquals(1, result.orElseThrow().report().cases().getFirst().assertions());
+  }
+
+  @Test
+  void invokesTwoLockedExternalImportsNatively() throws Exception {
+    Path project = temporary.resolve("native-two-external-import-tests");
+    Files.createDirectories(project.resolve("src"));
+    String manifestText = """
+        schema: 1
+        package:
+          name: "demo.native.external.two"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "tool"
+            name: "laws"
+            root: "src/Main.w"
+            module: "demo.native.external.two.tests"
+            sources:
+              - "src/Main.w"
+            test: true
+        dependencies:
+          - kind: "normal"
+            name: "demo.dep"
+            version: "=1.0.0"
+        capabilities: []
+        """;
+    Files.writeString(project.resolve("wheeler.package.yaml"), manifestText);
+    Files.writeString(project.resolve("src/Main.w"), """
+        module demo.native.external.two.tests;
+        import demo.dep.a;
+        import demo.dep.b;
+        classical class NativeExternalImportTests {
+          test void readsLockedConstants() {
+            long answerA = ANSWER_A;
+            assert(answerA == 41);
+            long answerB = ANSWER_B;
+            assert(answerB == 42);
+          }
+        }
+        """);
+    String dependencyManifestText = """
+        schema: 1
+        package:
+          name: "demo.dep"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "library"
+            name: "library"
+            root: "src/A.w"
+            module: "demo.dep.a"
+            sources:
+              - "src/A.w"
+              - "src/B.w"
+            test: false
+        dependencies: []
+        capabilities: []
+        """;
+    var dependencyManifest = new PackageManifestParser().parse(dependencyManifestText);
+    PackageArchive codec = new PackageArchive();
+    byte[] archive = codec.encode(dependencyManifest, Map.of(
+        "src/A.w", """
+        module demo.dep.a;
+        import demo.dep.b;
+        classical class ConstantsA {
+          public const long ANSWER_A = 41;
+        }
+        """.getBytes(StandardCharsets.UTF_8),
+        "src/B.w", """
+        module demo.dep.b;
+        classical class ConstantsB {
+          public const long ANSWER_B = 42;
+        }
+        """.getBytes(StandardCharsets.UTF_8)));
+    String archiveIdentity = codec.identity(archive);
+    String lock = ("""
+        schema: 3
+        root: "%s"
+        packages:
+          - name: "demo.dep"
+            version: "1.0.0"
+            repository: "%s"
+            snapshot: "%s"
+            archive: "%s"
+            manifest: "%s"
+            dependencies: []
+        """).formatted(
+            new PackageManifestParser().parse(manifestText).identity(),
+            "1".repeat(64),
+            "2".repeat(64),
+            archiveIdentity,
+            dependencyManifest.identity());
+    Files.writeString(project.resolve("wheeler.package.lock.yaml"), lock);
+    Path vendor = project.resolve("vendor");
+    Files.createDirectory(vendor);
+    Files.writeString(vendor.resolve("wheeler.package.lock.yaml"), lock);
+    Files.write(vendor.resolve("demo.dep-1.0.0-" + archiveIdentity + ".wpk"), archive);
+    PackageProject packageProject = PackageProject.load(project);
+    var selected = LockedPackageSet.load(project, packageProject.manifest())
+        .fixedNativeArchiveSources(Set.of("demo.dep.a", "demo.dep.b"));
+    assertTrue(selected.isPresent());
+
+    var result = NativePackageTestRunner.run(
+        project, packageProject.manifest(), 0, 1, Set.of());
+
+    assertTrue(result.isPresent());
+    assertEquals(1, result.orElseThrow().selected());
+    assertEquals(1, result.orElseThrow().passed());
+    assertEquals(0, result.orElseThrow().failed());
+    assertEquals(2, result.orElseThrow().report().cases().getFirst().assertions());
   }
 
   @Test

@@ -293,7 +293,7 @@ classical class TestExternalSourcePlan {
     return outputCursor;
   }
 
-  /// Checks that one plan contains exactly one source bound to one complete locked archive.
+  /// Checks that one plan contains every source from one complete locked archive.
   public boolean validLockedExternalSourcePlan(
     borrow byteview plan,
     borrow byteview lock,
@@ -310,83 +310,108 @@ classical class TestExternalSourcePlan {
       return false;
     }
 
-    if (readUnsigned(archive, /* offset= */ 12, /* width= */ 4) != 1) {
+    long entryCount = readUnsigned(archive, /* offset= */ 12, /* width= */ 4);
+    if (entryCount < 1) {
       return false;
     }
 
-    LockedArchiveEntry selected = validatedLockedArchiveEntry(
-      lock,
-      packageName,
-      archive,
-      /* ordinal= */ 0,
-      digest,
-      arena
-    );
-    long qualifiedLength = PREFIX_BYTES + bufferLength(packageName) + 1 + selected.pathLength;
-    if (255 < qualifiedLength) {
+    if (2 < entryCount) {
       return false;
     }
 
-    bytes qualifiedPath = allocateBytes(arena, qualifiedLength);
-    long qualifiedCursor = writeQualifiedPath(
-      packageName,
-      archive,
-      selected,
-      qualifiedPath
-    );
-    assert(qualifiedCursor == qualifiedLength);
     long sourceCount = readUnsigned32BigEndian(plan, /* offset= */ 0);
     long cursor = 4;
     long source = 0;
     long externalCount = 0;
-    boolean found = false;
     while (source < sourceCount) limit MAX_SOURCES {
       long pathLength = readUnsigned32BigEndian(plan, cursor);
       long pathStart = cursor + 4;
+      if (dependencyPath(plan, pathStart, pathLength)) {
+        externalCount += 1;
+      }
+
       cursor = pathStart + pathLength;
       long sourceLength = readUnsigned32BigEndian(plan, cursor);
-      long sourceStart = cursor + 4;
-      if (PREFIX_BYTES < pathLength + 1) {
-        if (
-          sameRange(
-            plan,
-            pathStart,
-            qualifiedPath,
-            /* rightStart= */ 0,
-            PREFIX_BYTES
-          )
-        ) {
-          externalCount += 1;
-        }
-      }
-
-      if (pathLength == qualifiedLength) {
-        if (sameRange(plan, pathStart, qualifiedPath, /* rightStart= */ 0, pathLength)) {
-          if (sourceLength == selected.sourceLength) {
-            found = sameRange(
-              plan,
-              sourceStart,
-              archive,
-              selected.sourceStart,
-              sourceLength
-            );
-          }
-        }
-      }
-
-      cursor = sourceStart + sourceLength;
+      cursor += 4 + sourceLength;
       source += 1;
     }
 
-    drop(qualifiedPath);
     if (cursor != bufferLength(plan)) {
       return false;
     }
 
-    if (externalCount != 1) {
+    if (externalCount != entryCount) {
       return false;
     }
 
-    return found;
+    long foundCount = 0;
+    long ordinal = 0;
+    while (ordinal < entryCount) limit 2 {
+      LockedArchiveEntry selected = validatedLockedArchiveEntry(
+        lock,
+        packageName,
+        archive,
+        ordinal,
+        digest,
+        arena
+      );
+      long qualifiedLength = PREFIX_BYTES + bufferLength(packageName) + 1
+        + selected.pathLength;
+      if (255 < qualifiedLength) {
+        return false;
+      }
+
+      bytes qualifiedPath = allocateBytes(arena, qualifiedLength);
+      long qualifiedCursor = writeQualifiedPath(
+        packageName,
+        archive,
+        selected,
+        qualifiedPath
+      );
+      assert(qualifiedCursor == qualifiedLength);
+      cursor = 4;
+      source = 0;
+      boolean found = false;
+      while (source < sourceCount) limit MAX_SOURCES {
+        long matchedPathLength = readUnsigned32BigEndian(plan, cursor);
+        long matchedPathStart = cursor + 4;
+        cursor = matchedPathStart + matchedPathLength;
+        long matchedSourceLength = readUnsigned32BigEndian(plan, cursor);
+        long matchedSourceStart = cursor + 4;
+        if (matchedPathLength == qualifiedLength) {
+          if (
+            sameRange(
+              plan,
+              matchedPathStart,
+              qualifiedPath,
+              /* rightStart= */ 0,
+              matchedPathLength
+            )
+          ) {
+            if (matchedSourceLength == selected.sourceLength) {
+              found = sameRange(
+                plan,
+                matchedSourceStart,
+                archive,
+                selected.sourceStart,
+                matchedSourceLength
+              );
+            }
+          }
+        }
+
+        cursor = matchedSourceStart + matchedSourceLength;
+        source += 1;
+      }
+
+      drop(qualifiedPath);
+      if (found) {
+        foundCount += 1;
+      }
+
+      ordinal += 1;
+    }
+
+    return foundCount == entryCount;
   }
 }

@@ -34,8 +34,12 @@ import java.util.stream.Stream;
 final class LockedPackageSet {
   static final String VENDOR_DIRECTORY = "vendor";
 
-  record NativeModuleSource(String packageName, String path, String text, byte[] archive) {
-    NativeModuleSource {
+  record NativeModuleEntry(String path, String text) {}
+
+  record NativeArchiveSources(
+      String packageName, List<NativeModuleEntry> entries, byte[] archive) {
+    NativeArchiveSources {
+      entries = List.copyOf(entries);
       archive = archive.clone();
     }
 
@@ -199,36 +203,53 @@ final class LockedPackageSet {
     return moduleSourcesFor(rootDependencies);
   }
 
-  java.util.Optional<NativeModuleSource> fixedNativeModuleSource(String moduleName) {
-    NativeModuleSource selected = null;
+  java.util.Optional<NativeArchiveSources> fixedNativeArchiveSources(
+      Set<String> moduleNames) {
+    if (moduleNames.isEmpty() || 2 < moduleNames.size()) {
+      return java.util.Optional.empty();
+    }
+    NativeArchiveSources selected = null;
     PackageArchive codec = new PackageArchive();
+    Map<String, String> directSources = directModuleSources();
     for (Dependency dependency : rootDependencies.stream()
         .filter(candidate -> candidate.kind() == DependencyKind.NORMAL)
         .sorted(java.util.Comparator.comparing(Dependency::name)).toList()) {
       DecodedPackage decoded = packages.get(dependency.name());
-      if (decoded == null || decoded.entries().size() != 1) {
+      if (decoded == null || decoded.entries().size() != moduleNames.size()) {
         continue;
       }
-      Map.Entry<String, byte[]> entry = decoded.entries().entrySet().iterator().next();
-      String text = new String(entry.getValue(), StandardCharsets.UTF_8);
-      if (!java.util.Arrays.equals(entry.getValue(), text.getBytes(StandardCharsets.UTF_8))) {
-        continue;
+      List<NativeModuleEntry> entries = new ArrayList<>();
+      Set<String> foundModules = new HashSet<>();
+      for (Map.Entry<String, byte[]> entry : decoded.entries().entrySet()) {
+        String text = new String(entry.getValue(), StandardCharsets.UTF_8);
+        if (!java.util.Arrays.equals(entry.getValue(), text.getBytes(StandardCharsets.UTF_8))
+            || !directSources.containsValue(text)) {
+          entries.clear();
+          break;
+        }
+        String declared = text.lines()
+            .map(String::strip)
+            .filter(line -> line.startsWith("module ") && line.endsWith(";"))
+            .map(line -> line.substring(7, line.length() - 1))
+            .findFirst().orElse("");
+        if (!moduleNames.contains(declared) || !foundModules.add(declared)) {
+          entries.clear();
+          break;
+        }
+        entries.add(new NativeModuleEntry(entry.getKey(), text));
       }
-      boolean declared = text.lines()
-          .map(String::strip)
-          .anyMatch(line -> line.equals("module " + moduleName + ";"));
-      if (!declared || !directModuleSources().containsValue(text)) {
+      if (entries.size() != moduleNames.size() || !foundModules.equals(moduleNames)) {
         continue;
       }
       if (selected != null) {
-        throw new PackageFormatException("Duplicate locked module " + moduleName);
+        throw new PackageFormatException("Locked modules occur in multiple direct packages");
       }
       byte[] archive = codec.encode(decoded.manifest(), decoded.entries());
       if (!codec.identity(archive).equals(decoded.identity())) {
         throw new PackageFormatException(
             "Canonical archive reconstruction changed " + dependency.name());
       }
-      selected = new NativeModuleSource(dependency.name(), entry.getKey(), text, archive);
+      selected = new NativeArchiveSources(dependency.name(), entries, archive);
     }
     return java.util.Optional.ofNullable(selected);
   }
