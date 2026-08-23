@@ -27,7 +27,7 @@ import java.util.Set;
 
 /** Invokes native source discovery, compilation, and reporting for the fixed package profile. */
 final class NativePackageTestRunner {
-  private static final int MAX_CASES = 128;
+  private static final int MAX_CASES = 255;
   private static final int MAX_DEPENDENCY_CONSTANTS = 256;
   private static final int MAX_DEPENDENCY_FUNCTIONS = 23;
   private static final int MAX_SOURCES = 8;

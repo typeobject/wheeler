@@ -66,10 +66,10 @@ final class NativeTestReportIdentityExampleTest {
   }
 
   @Test
-  void admitsOneHundredTwentyEightReportRowsAndRejectsTheNext() throws Exception {
-    List<ReportCase> accepted = boundedCases(128);
+  void admitsTwoHundredFiftyFiveReportRowsAndRejectsTheNext() throws Exception {
+    List<ReportCase> accepted = boundedCases(255);
     assertArrayEquals(expected(accepted), execute(frame(accepted)));
-    assertRejected(frame(boundedCases(129)));
+    assertRejected(frame(boundedCases(256)));
   }
 
   @Test

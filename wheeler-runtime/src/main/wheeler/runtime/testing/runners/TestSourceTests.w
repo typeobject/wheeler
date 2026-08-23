@@ -333,7 +333,7 @@ classical class TestSourceTests {
     assert(bufferLength(caseValues) == MAX_CASES);
     assert(bufferLength(caseStepLimits) == MAX_CASES);
     long sourceLength = validatedSourceLength(input, planStart, planLength, rootOrdinal);
-    region arena = new region(/* bytes= */ 109568, /* allocations= */ 9);
+    region arena = new region(/* bytes= */ 135160, /* allocations= */ 9);
     bytes sourceBytes = allocateBytes(arena, sourceLength);
     copyValidatedSource(input, planStart, planLength, rootOrdinal, sourceBytes);
     utf8 source = freezeUtf8(sourceBytes);

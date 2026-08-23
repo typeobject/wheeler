@@ -662,23 +662,23 @@ final class NativeCompiledTestRunnerExampleTest {
   }
 
   @Test
-  void admitsOneHundredTwentyEightDiscoveredCasesAndRejectsTheNext() throws Exception {
+  void admitsTwoHundredFiftyFiveDiscoveredCasesAndRejectsTheNext() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
-    byte[] acceptedInput = metadataOnlyDiscoveredTests(128);
+    byte[] acceptedInput = metadataOnlyDiscoveredTests(255);
     byte[] report = execute(runner, acceptedInput);
-    assertEquals(128, Byte.toUnsignedInt(report[32]));
+    assertEquals(255, Byte.toUnsignedInt(report[32]));
     assertEquals(0, report[33]);
 
-    byte[] parameterReport = execute(runner, metadataOnlyParameterRows(128));
-    assertEquals(128, Byte.toUnsignedInt(parameterReport[32]));
+    byte[] parameterReport = execute(runner, metadataOnlyParameterRows(255));
+    assertEquals(255, Byte.toUnsignedInt(parameterReport[32]));
     assertEquals(0, parameterReport[33]);
 
-    byte[] executedReport = execute(runner, discoveredTests(128));
-    assertEquals(128, Byte.toUnsignedInt(executedReport[32]));
-    assertEquals(128, Byte.toUnsignedInt(executedReport[34]));
+    byte[] executedReport = execute(runner, discoveredTests(255));
+    assertEquals(255, Byte.toUnsignedInt(executedReport[32]));
+    assertEquals(255, Byte.toUnsignedInt(executedReport[34]));
     assertEquals(0, executedReport[36]);
 
-    byte[] rejectedInput = metadataOnlyDiscoveredTests(129);
+    byte[] rejectedInput = metadataOnlyDiscoveredTests(256);
     VirtualMachine rejected = VirtualMachine.withBinaryInput(runner, rejectedInput, 39);
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(rejected));
     assertArrayEquals(new byte[39], rejected.hostOutput());

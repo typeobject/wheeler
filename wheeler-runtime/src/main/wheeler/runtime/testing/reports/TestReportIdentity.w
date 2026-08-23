@@ -13,9 +13,9 @@ classical class TestReportIdentity {
   private const long MAX_CASES = MAX_TEST_CASES;
   private const long MAX_DIAGNOSTIC_BYTES = 4096;
   private const long MAX_FIELD_BYTES = 255;
-  private const long MESSAGE_BYTES = 709741;
+  private const long MESSAGE_BYTES = 1413829;
   private const long OUTPUT_BYTES = 32;
-  private const long STAGING_BYTES = 733357;
+  private const long STAGING_BYTES = 1459797;
 
   private long hexNibble(long value) {
     if (47 < value) {

@@ -163,7 +163,7 @@ classical class TestSourceLowering {
     long selectedNameLength
   ) {
     long sourceLength = validatedSourceLength(input, planStart, planLength, rootOrdinal);
-    region arena = new region(/* bytes= */ 106496, /* allocations= */ 4);
+    region arena = new region(/* bytes= */ 131072, /* allocations= */ 4);
     bytes sourceBytes = allocateBytes(arena, sourceLength);
     copyValidatedSource(input, planStart, planLength, rootOrdinal, sourceBytes);
     utf8 source = freezeUtf8(sourceBytes);
@@ -229,7 +229,7 @@ classical class TestSourceLowering {
     long caseValue
   ) {
     long sourceLength = validatedSourceLength(input, planStart, planLength, rootOrdinal);
-    region arena = new region(/* bytes= */ 106496, /* allocations= */ 4);
+    region arena = new region(/* bytes= */ 131072, /* allocations= */ 4);
     bytes sourceBytes = allocateBytes(arena, sourceLength);
     copyValidatedSource(input, planStart, planLength, rootOrdinal, sourceBytes);
     utf8 source = freezeUtf8(sourceBytes);
@@ -314,7 +314,7 @@ classical class TestSourceLowering {
       selectedNameLength
     );
     assert(bufferLength(output) == loweredLength);
-    region arena = new region(/* bytes= */ 106496, /* allocations= */ 4);
+    region arena = new region(/* bytes= */ 131072, /* allocations= */ 4);
     bytes sourceBytes = allocateBytes(arena, sourceLength);
     copyValidatedSource(input, planStart, planLength, rootOrdinal, sourceBytes);
     utf8 source = freezeUtf8(sourceBytes);
@@ -448,7 +448,7 @@ classical class TestSourceLowering {
     borrow mut bytes output
   ) {
     long sourceLength = validatedSourceLength(input, planStart, planLength, rootOrdinal);
-    region arena = new region(/* bytes= */ 106496, /* allocations= */ 4);
+    region arena = new region(/* bytes= */ 131072, /* allocations= */ 4);
     bytes sourceBytes = allocateBytes(arena, sourceLength);
     copyValidatedSource(input, planStart, planLength, rootOrdinal, sourceBytes);
     utf8 source = freezeUtf8(sourceBytes);

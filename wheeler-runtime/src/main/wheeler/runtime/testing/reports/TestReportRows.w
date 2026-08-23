@@ -139,7 +139,7 @@ classical class TestReportRows {
     assert(bufferLength(input) == 6 + rowLength);
     assert(35 + rowLength < bufferLength(output) + 1);
 
-    region staging = new region(/* bytes= */ 1368520, /* allocations= */ 6);
+    region staging = new region(/* bytes= */ 2726150, /* allocations= */ 6);
     words starts = allocate(staging, MAX_CASES);
     words lengths = allocate(staging, MAX_CASES);
     words order = allocate(staging, MAX_CASES);

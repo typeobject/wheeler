@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0328, WIP-0346 |
 | Supersedes | Product-only early-source and named return-operand evidence |
-| Superseded by | A wider case profile backed by exact exhaustion evidence |
+| Superseded by | WIP-0348 native 255-case test profile |
 
 ## Summary
 
@@ -81,3 +81,4 @@ Rejected. The canonical profile admits exactly 128 cases. A wider profile requir
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0328](WIP-0328-native-128-case-test-profile.md)
 - [WIP-0346](WIP-0346-native-compiler-resolved-return-call-suite.md)
+- [WIP-0348](WIP-0348-native-255-case-test-profile.md)

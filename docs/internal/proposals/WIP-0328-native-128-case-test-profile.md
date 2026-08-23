@@ -9,7 +9,7 @@
 | Area | Native testing, reports, package execution |
 | Depends on | WIP-0327 |
 | Supersedes | The 64-case native test and package profile |
-| Superseded by | WIP-0329 local returns, then WIP-0347 terminal return profile |
+| Superseded by | WIP-0329 local returns, WIP-0347 terminal profile, then WIP-0348 255 cases |
 
 ## Summary
 
@@ -96,3 +96,4 @@ Rejected. The runner accepts the complete selected set or none of it. Truncation
 - [WIP-0327](WIP-0327-native-single-imported-helper-ownership.md)
 - [WIP-0329](WIP-0329-native-compiler-resolved-local-return-suite.md)
 - [WIP-0347](WIP-0347-native-compiler-terminal-return-profile.md)
+- [WIP-0348](WIP-0348-native-255-case-test-profile.md)

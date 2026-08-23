@@ -20,12 +20,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/** Native evidence for the complete 128-case report and adapter boundary. */
+/** Native evidence for the complete 255-case report and adapter boundary. */
 final class NativeTestReportBoundExampleTest {
-  private static final int MAX_CASES = 128;
+  private static final int MAX_CASES = 255;
 
   @Test
-  void reducesOneHundredTwentyEightRowsAndRejectsTheNext() throws Exception {
+  void reducesTwoHundredFiftyFiveRowsAndRejectsTheNext() throws Exception {
     Program reducer = reportRowsProgram();
     byte[] rows = rows(MAX_CASES);
     byte[] input = rowInput(MAX_CASES, rows);
@@ -44,7 +44,7 @@ final class NativeTestReportBoundExampleTest {
   }
 
   @Test
-  void rendersOneHundredTwentyEightCanonicalRows() throws Exception {
+  void rendersTwoHundredFiftyFiveCanonicalRows() throws Exception {
     byte[] rows = rows(MAX_CASES);
     byte[] reduced = execute(
         reportRowsProgram(), rowInput(MAX_CASES, rows), 36 + rows.length);
@@ -65,9 +65,9 @@ final class NativeTestReportBoundExampleTest {
         adapterInput,
         capacity));
 
-    assertTrue(json.contains("\"selected\":128"));
-    assertTrue(junit.contains("tests=\"128\""));
-    assertTrue(terminal.contains("(128 cases, 128 passed"));
+    assertTrue(json.contains("\"selected\":255"));
+    assertTrue(junit.contains("tests=\"255\""));
+    assertTrue(terminal.contains("(255 cases, 255 passed"));
   }
 
   private static Program reportRowsProgram() throws Exception {
