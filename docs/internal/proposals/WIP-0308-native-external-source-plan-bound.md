@@ -9,7 +9,7 @@
 | Area | Self-hosting, package commands, external source graphs |
 | Depends on | WIP-0307 |
 | Supersedes | Four-module native external source transport |
-| Superseded by | Broader native source compiler profiles |
+| Superseded by | WIP-0309 native transitive source-plan bound |
 
 ## Summary
 
@@ -80,3 +80,4 @@ Rejected. This slice fills the existing compiler capacity. It does not allocate 
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0245](WIP-0245-native-eight-source-test-compilation.md)
 - [WIP-0307](WIP-0307-native-four-source-archive-import.md)
+- [WIP-0309](WIP-0309-native-transitive-source-plan-bound.md)

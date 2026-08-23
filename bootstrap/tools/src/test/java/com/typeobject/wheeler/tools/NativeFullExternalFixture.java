@@ -70,8 +70,8 @@ final class NativeFullExternalFixture {
         }
         """);
     PackageArchive codec = new PackageArchive();
-    LockedArchive first = archive(codec, "demo.a", "A", 4, 40);
-    LockedArchive second = archive(codec, "demo.b", "B", 3, 44);
+    LockedArchive first = archive(codec, "demo.a", "A", 4, 40, null);
+    LockedArchive second = archive(codec, "demo.b", "B", 3, 44, null);
     String rootIdentity = new PackageManifestParser().parse(manifestText).identity();
     String lock = ("""
         schema: 3
@@ -110,31 +110,121 @@ final class NativeFullExternalFixture {
     return new Fixture(project, PackageProject.load(project));
   }
 
+  static Fixture createTransitive(Path project) throws Exception {
+    Files.createDirectories(project.resolve("src"));
+    String manifestText = """
+        schema: 1
+        package:
+          name: "demo.native.external.full.transitive"
+          version: "1.0.0"
+          profile: "bootstrap-1"
+        targets:
+          - kind: "tool"
+            name: "laws"
+            root: "src/Main.w"
+            module: "demo.native.external.full.transitive.tests"
+            sources:
+              - "src/Main.w"
+            test: true
+        dependencies:
+          - kind: "normal"
+            name: "demo.a"
+            version: "=1.0.0"
+        capabilities: []
+        """;
+    Files.writeString(project.resolve("wheeler.package.yaml"), manifestText);
+    Files.writeString(project.resolve("src/Main.w"), """
+        module demo.native.external.full.transitive.tests;
+        import demo.a.m0;
+        import demo.a.m1;
+        import demo.a.m2;
+        import demo.a.m3;
+        classical class NativeFullTransitiveImportTests {
+          test void readsFourDirectLockedConstants() {
+            long valueA0 = VALUE_A0;
+            assert(valueA0 == 40);
+            long valueA1 = VALUE_A1;
+            assert(valueA1 == 41);
+            long valueA2 = VALUE_A2;
+            assert(valueA2 == 42);
+            long valueA3 = VALUE_A3;
+            assert(valueA3 == 43);
+          }
+        }
+        """);
+    PackageArchive codec = new PackageArchive();
+    LockedArchive first = archive(codec, "demo.a", "A", 4, 40, "demo.b");
+    LockedArchive second = archive(codec, "demo.b", "B", 3, 44, null);
+    String rootIdentity = new PackageManifestParser().parse(manifestText).identity();
+    String lock = ("""
+        schema: 3
+        root: "%s"
+        packages:
+          - name: "demo.a"
+            version: "1.0.0"
+            repository: "%s"
+            snapshot: "%s"
+            archive: "%s"
+            manifest: "%s"
+            dependencies:
+              - "demo.b"
+          - name: "demo.b"
+            version: "1.0.0"
+            repository: "%s"
+            snapshot: "%s"
+            archive: "%s"
+            manifest: "%s"
+            dependencies: []
+        """).formatted(
+            rootIdentity,
+            "1".repeat(64),
+            "2".repeat(64),
+            first.identity(),
+            first.manifest().identity(),
+            "1".repeat(64),
+            "2".repeat(64),
+            second.identity(),
+            second.manifest().identity());
+    Files.writeString(project.resolve("wheeler.package.lock.yaml"), lock);
+    Path vendor = project.resolve("vendor");
+    Files.createDirectory(vendor);
+    Files.writeString(vendor.resolve("wheeler.package.lock.yaml"), lock);
+    writeArchive(vendor, first);
+    writeArchive(vendor, second);
+    return new Fixture(project, PackageProject.load(project));
+  }
+
   private static LockedArchive archive(
       PackageArchive codec,
       String packageName,
       String label,
       int count,
-      int firstValue) {
+      int firstValue,
+      String dependencyPackage) {
     StringBuilder sources = new StringBuilder();
     Map<String, byte[]> entries = new LinkedHashMap<>();
     for (int index = 0; index < count; index++) {
       String path = "src/M" + index + ".w";
       sources.append("      - \"").append(path).append("\"\n");
-      String text = """
-          module %s.m%d;
+      String imported = "";
+      if (dependencyPackage != null && index < 3) {
+        imported = "import " + dependencyPackage + ".m" + index + ";\n";
+      }
+      String text = "module %s.m%d;\n%s".formatted(packageName, index, imported) + """
           classical class Constants%s%d {
             public const long VALUE_%s%d = %d;
           }
-          """.formatted(
-              packageName,
-              index,
-              label,
-              index,
-              label,
-              index,
-              firstValue + index);
+          """.formatted(label, index, label, index, firstValue + index);
       entries.put(path, text.getBytes(StandardCharsets.UTF_8));
+    }
+    String dependencies = "dependencies: []\n";
+    if (dependencyPackage != null) {
+      dependencies = """
+          dependencies:
+            - kind: "normal"
+              name: "%s"
+              version: "=1.0.0"
+          """.formatted(dependencyPackage);
     }
     String manifestText = """
         schema: 1
@@ -149,9 +239,8 @@ final class NativeFullExternalFixture {
             module: "%s.m0"
             sources:
         %s    test: false
-        dependencies: []
-        capabilities: []
-        """.formatted(packageName, packageName, sources);
+        %scapabilities: []
+        """.formatted(packageName, packageName, sources, dependencies);
     PackageManifest manifest = new PackageManifestParser().parse(manifestText);
     byte[] bytes = codec.encode(manifest, entries);
     return new LockedArchive(packageName, manifest, codec.identity(bytes), bytes);
@@ -174,8 +263,10 @@ final class NativeFullExternalFixture {
       for (int index = 0; index < 4; index++) {
         result.add("demo.a.m" + index);
       }
-      for (int index = 0; index < 3; index++) {
-        result.add("demo.b.m" + index);
+      if (!project.manifest().name().endsWith("transitive")) {
+        for (int index = 0; index < 3; index++) {
+          result.add("demo.b.m" + index);
+        }
       }
       return Set.copyOf(result);
     }
