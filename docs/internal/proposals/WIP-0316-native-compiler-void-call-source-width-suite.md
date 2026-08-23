@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0315 |
 | Supersedes | Standalone void-call source-width evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0317 native compiler void-call source-form suite |
 
 ## Summary
 
@@ -73,3 +73,4 @@ Rejected. Source-local layout and encoded artifact layout are separate authoriti
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0293](WIP-0293-native-compiler-call-syntax-suite.md)
 - [WIP-0315](WIP-0315-native-compiler-void-call-width-suite.md)
+- [WIP-0317](WIP-0317-native-compiler-void-call-source-form-suite.md)

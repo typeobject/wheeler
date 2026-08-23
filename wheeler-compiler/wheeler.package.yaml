@@ -130,6 +130,16 @@ targets:
       - "src/test/wheeler/compiler/NativeCompilerVoidCallOperandTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilervoidcallsourceformtests"
+    root: "src/test/wheeler/compiler/calls/NativeCompilerVoidCallSourceFormTests.w"
+    module: "wheeler.compiler.tests.native_compiler_void_call_source_forms"
+    sources:
+      - "src/main/wheeler/compiler/syntax/calls/VoidCallKinds.w"
+      - "src/main/wheeler/compiler/syntax/calls/VoidCallSourceKinds.w"
+      - "src/main/wheeler/compiler/syntax/calls/void/VoidCallSourceForms.w"
+      - "src/test/wheeler/compiler/calls/NativeCompilerVoidCallSourceFormTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilervoidcallsourcewidthtests"
     root: "src/test/wheeler/compiler/NativeCompilerVoidCallSourceWidthTests.w"
     module: "wheeler.compiler.tests.native_compiler_void_call_source_widths"

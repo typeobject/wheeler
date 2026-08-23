@@ -79,6 +79,41 @@ final class NativeCompilerNestedHelperEntryExampleTest {
   }
 
   @Test
+  void compilesPhysicalVoidCallSourceFormsIntoEntryByteForByte() throws Exception {
+    String kinds = CompilerSources.read("compiler/syntax/calls/VoidCallKinds.w");
+    String sourceKinds = CompilerSources.read(
+        "compiler/syntax/calls/VoidCallSourceKinds.w");
+    String forms = CompilerSources.read(
+        "compiler/syntax/calls/void/VoidCallSourceForms.w");
+    String root = """
+        module example.void_call_source_form_entry;
+        import wheeler.compiler.void_call_source_forms;
+        classical class VoidCallSourceFormEntry {
+          entry void main() {
+            boolean present = anyVoidCallSourceStatement(925);
+            long arity = voidCallSourceArity(925);
+            long kind = voidCallSourceKind(7);
+            assert(present);
+            assert(arity == 7);
+            assert(kind == 925);
+          }
+        }
+        """;
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] artifact = NativeModuleCompilerHarness.compile(
+        compiler, List.of(kinds, sourceKinds, forms), root);
+    byte[] expected = new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+        Map.of(
+            "Kinds.w", kinds,
+            "SourceKinds.w", sourceKinds,
+            "Forms.w", forms,
+            "Entry.w", root),
+        "example.void_call_source_form_entry"));
+    assertArrayEquals(expected, artifact);
+    new VirtualMachine(new BytecodeReader().read(artifact)).run();
+  }
+
+  @Test
   void compilesPhysicalVoidCallSourceWidthsIntoEntryByteForByte() throws Exception {
     String kinds = CompilerSources.read("compiler/syntax/calls/VoidCallKinds.w");
     String sourceKinds = CompilerSources.read(
