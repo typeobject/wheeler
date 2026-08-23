@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0350 |
 | Supersedes | Product-only conditional classifier and operand evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0352 native compiler conditional classifier suite |
 
 ## Summary
 
@@ -82,3 +82,4 @@ Rejected. Physical production owners remain decoder and classifier authority.
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0350](WIP-0350-native-28k-test-manifest-bound.md)
+- [WIP-0352](WIP-0352-native-compiler-conditional-classifier-suite.md)

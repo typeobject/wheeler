@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Timeout;
 /** Proves the complete checked-in compiler package suite through the native runner. */
 final class NativeCompilerPackageTest {
   @Test
-  @Timeout(value = 14, unit = TimeUnit.MINUTES)
+  @Timeout(value = 17, unit = TimeUnit.MINUTES)
   void testsThePhysicalCompilerSpineNatively() throws Exception {
     Path compiler = Path.of("wheeler-compiler");
     PackageProject project = PackageProject.load(compiler);
@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(139, result.selected());
-    assertEquals(139, result.passed());
+    assertEquals(152, result.selected());
+    assertEquals(152, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -44,16 +44,57 @@ final class NativeCompilerPackageTest {
         "nativecompilernamedliteralcomparisonkindtests",
         "native_compiler_named_literal_comparison_kinds",
         "classifiesFinalLiteralComparisonConditional");
+    for (String name : List.of(
+        "classifiesFinalNamedLocalConditional",
+        "classifiesFinalNegatedNamedLocalConditional",
+        "classifiesFinalNamedLocalAssignment",
+        "classifiesFinalNamedLocalAssignmentValue")) {
+      assertCase(
+          report,
+          "nativecompilernamedlocalconditionalkindtests",
+          "native_compiler_named_local_conditional_kinds",
+          name);
+    }
     assertCase(
         report,
         "nativecompilernamedlocalconditionalvaluetests",
         "native_compiler_named_local_conditional_values",
         "classifiesFinalNamedConditionalValue");
+    for (String name : List.of(
+        "classifiesFinalResolvedLiteralComparison",
+        "decodesFinalResolvedLiteralComparisonSource")) {
+      assertCase(
+          report,
+          "nativecompilerresolvedliteralcomparisonkindtests",
+          "native_compiler_resolved_literal_comparison_kinds",
+          name);
+    }
+    for (String name : List.of(
+        "classifiesFinalResolvedLocalConditional",
+        "classifiesFinalNegatedResolvedLocalConditional",
+        "classifiesFinalResolvedLocalAssignment",
+        "classifiesFinalResolvedLocalAssignmentValue")) {
+      assertCase(
+          report,
+          "nativecompilerresolvedlocalconditionalkindtests",
+          "native_compiler_resolved_local_conditional_kinds",
+          name);
+    }
     assertCase(
         report,
         "nativecompilerresolvedlocalconditionaloperandtests",
         "native_compiler_resolved_local_conditional_operands",
         "decodesFinalConditionalSource");
+    for (String name : List.of(
+        "classifiesFinalResolvedLocalConditionalValue",
+        "classifiesFinalResolvedLocalConditionalSubtract",
+        "classifiesFinalResolvedLocalConditionalXor")) {
+      assertCase(
+          report,
+          "nativecompilerresolvedlocalconditionalsourcetests",
+          "native_compiler_resolved_local_conditional_sources",
+          name);
+    }
     for (String name : List.of(
         "classifiesFinalBooleanEqualityReturn",
         "classifiesFinalBooleanInequalityReturn",
