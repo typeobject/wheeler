@@ -18,7 +18,9 @@ import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 /** Proves package-command invocation of the native fixed test profile. */
@@ -26,6 +28,7 @@ class NativePackageTestRunnerTest {
   @TempDir Path temporary;
 
   @Test
+  @Timeout(value = 3, unit = TimeUnit.MINUTES)
   void testsThePhysicalCompilerSpineNatively() throws Exception {
     Path compiler = Path.of("wheeler-compiler");
     PackageProject project = PackageProject.load(compiler);
@@ -35,8 +38,8 @@ class NativePackageTestRunnerTest {
 
     assertTrue(result.isPresent());
     TestReport report = result.orElseThrow().report();
-    assertEquals(24, result.orElseThrow().selected());
-    assertEquals(24, result.orElseThrow().passed());
+    assertEquals(26, result.orElseThrow().selected());
+    assertEquals(26, result.orElseThrow().passed());
     assertEquals(0, result.orElseThrow().failed());
     assertEquals(result.orElseThrow().report().identity(), report.identity());
     assertEquals(
@@ -75,6 +78,12 @@ class NativePackageTestRunnerTest {
         "nativecompilervoidcalloperandtests::"
             + "wheeler.compiler.tests.native_compiler_void_call_operand::"
             + "checksTrailingSevenArgumentSource")));
+    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
+        "nativecompilervoidcallwidthtests::wheeler.compiler.tests.native_compiler_void_call_widths::"
+            + "checksSevenArgumentCodeWidth")));
+    assertTrue(report.cases().stream().anyMatch(testcase -> testcase.targetName().equals(
+        "nativecompilervoidcallwidthtests::wheeler.compiler.tests.native_compiler_void_call_widths::"
+            + "checksSevenArgumentInstructionWidth")));
   }
 
   @Test

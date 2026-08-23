@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0312, WIP-0314 |
 | Supersedes | Standalone void-call operand evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0315 native compiler void-call width suite |
 
 ## Summary
 
@@ -78,3 +78,4 @@ Rejected. The linker already admits bounded member groups. Source ownership shou
 - [WIP-0310](WIP-0310-native-multi-helper-entry-programs.md)
 - [WIP-0312](WIP-0312-native-compiler-call-operand-suite.md)
 - [WIP-0314](WIP-0314-native-255-transition-coverage.md)
+- [WIP-0315](WIP-0315-native-compiler-void-call-width-suite.md)
