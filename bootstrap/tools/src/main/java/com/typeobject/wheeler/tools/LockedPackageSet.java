@@ -212,7 +212,7 @@ final class LockedPackageSet {
     Map<String, NativeArchiveCandidate> candidates = new TreeMap<>();
     for (String packageName : buildOrder) {
       DecodedPackage decoded = packages.get(packageName);
-      if (decoded.entries().isEmpty() || 2 < decoded.entries().size()) {
+      if (decoded.entries().isEmpty() || 4 < decoded.entries().size()) {
         continue;
       }
       Set<String> libraryPaths = librarySourcePaths(decoded);
@@ -284,6 +284,9 @@ final class LockedPackageSet {
       for (String imported : importedModules(candidate.entries().get(module).text())) {
         if (candidate.entries().containsKey(imported)) {
           if (neededModules.add(imported)) {
+            if (4 < neededModules.size()) {
+              return List.of();
+            }
             pending.add(imported);
           }
           continue;
@@ -294,6 +297,9 @@ final class LockedPackageSet {
           return List.of();
         }
         if (neededModules.add(imported)) {
+          if (4 < neededModules.size()) {
+            return List.of();
+          }
           pending.add(imported);
         }
       }

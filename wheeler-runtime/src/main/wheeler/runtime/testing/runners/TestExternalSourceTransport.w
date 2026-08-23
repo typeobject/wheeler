@@ -163,6 +163,10 @@ classical class TestExternalSourceTransport {
       );
     }
 
+    if (4 < committedCount) {
+      return false;
+    }
+
     if (externalCount != committedCount) {
       return false;
     }

@@ -235,6 +235,8 @@ class NativeArchiveExampleTest {
             sources:
               - "a"
               - "b"
+              - "c"
+              - "d"
             test: false
         dependencies:
           - kind: "normal"
@@ -246,15 +248,31 @@ class NativeArchiveExampleTest {
         """;
     byte[] modular = new PackageArchive().encode(
         new PackageManifestParser().parse(modularManifestText),
-        Map.of("a", new byte[] {5}, "b", new byte[] {6}));
+        Map.of(
+            "a", new byte[] {5},
+            "b", new byte[] {6},
+            "c", new byte[] {7},
+            "d", new byte[] {8}));
     VirtualMachine modularMachine = VirtualMachine.withBinaryInput(inspector, modular);
     modularMachine.run();
-    assertEquals(2, modularMachine.global("entryCount"));
+    assertEquals(4, modularMachine.global("entryCount"));
     assertEquals(1, modularMachine.global("pathLength"));
     assertEquals(1, modularMachine.global("dataLength"));
     assertEquals(1, modularMachine.global("secondPathLength"));
     assertEquals(1, modularMachine.global("secondDataLength"));
     new PackageArchive().decode(modular);
+    String oversizedManifestText = modularManifestText.replace(
+        "              - \"d\"\n",
+        "              - \"d\"\n              - \"e\"\n");
+    byte[] oversized = new PackageArchive().encode(
+        new PackageManifestParser().parse(oversizedManifestText),
+        Map.of(
+            "a", new byte[] {5},
+            "b", new byte[] {6},
+            "c", new byte[] {7},
+            "d", new byte[] {8},
+            "e", new byte[] {9}));
+    assertRejected(inspector, oversized);
 
     byte[] badOuterDigest = encoded.clone();
     badOuterDigest[badOuterDigest.length - 1] ^= 1;

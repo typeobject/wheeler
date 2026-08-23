@@ -190,7 +190,7 @@ Resolution:
 
 A locked build does not re-resolve. If a locked archive disappears or has different bytes, the build fails. It does not choose a convenient replacement.
 
-WIP-0294 adds Wheeler-native archive provenance at the test boundary. The package authority validates canonical archive framing and entry digests, hashes the complete archive and embedded manifest, and binds both identities plus the manifest package name to one exact lock row. WIP-0295 projects one exact checked path and source range from that archive. WIP-0296 composes that entry into a canonical package-qualified source plan. WIP-0297 authorizes, compiles, and executes one external test import natively. WIP-0298 carries that path through `wheeler test` for one exact vendored direct dependency. WIP-0299 closes the same path over both entries of one bounded archive and an external-to-external import edge. WIP-0300 transports complete archives from two direct package namespaces. WIP-0301 binds each archive manifest's normal dependency names to its exact lock-row edges. WIP-0302 follows one such edge to compile a bounded transitive archive closure without granting transitive imports to root source. WIP-0303 raises the native test-manifest transport ceiling to 8,192 bytes without widening locks or source plans.
+WIP-0294 adds Wheeler-native archive provenance at the test boundary. The package authority validates canonical archive framing and entry digests, hashes the complete archive and embedded manifest, and binds both identities plus the manifest package name to one exact lock row. WIP-0295 projects one exact checked path and source range from that archive. WIP-0296 composes that entry into a canonical package-qualified source plan. WIP-0297 authorizes, compiles, and executes one external test import natively. WIP-0298 carries that path through `wheeler test` for one exact vendored direct dependency. WIP-0299 closes the same path over both entries of one bounded archive and an external-to-external import edge. WIP-0300 transports complete archives from two direct package namespaces. WIP-0301 binds each archive manifest's normal dependency names to its exact lock-row edges. WIP-0302 follows one such edge to compile a bounded transitive archive closure without granting transitive imports to root source. WIP-0303 raises the native test-manifest transport ceiling to 8,192 bytes without widening locks or source plans. WIP-0306 validates up to four canonical archive entries and carries one complete three-entry dependency through native package tests.
 
 The initial resolver may require one version of each package identity in a final graph. Multiple-version support requires explicit type and resource identity rules and is deferred until demonstrated necessary.
 
@@ -433,12 +433,12 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 - [x] `NativeManifestIdentity.w` validates bounded binary manifest input through the full canonical parser before hashing. A one-tool manifest agrees with stage 0. Schema drift, a second target beyond the fixture table, and oversized input fail without digest output.
 - [x] `NativeWorkspaceIdentity.w` validates two sorted caller-owned member rows before hashing. Its identity matches stage 0 with exact rewind. A third member, wrong schema, or oversized input leaves digest output untouched.
 - [x] `wheeler.core.encoding.binary` owns bounded little-endian reads and ASCII name, version, and path checks for binary package codecs. `Plan.w` no longer keeps a private copy of those rules. One shared module now defines that security boundary.
-- [x] `NativeArchive.w` and `packages/archive/Archive.w` verify a Wheeler-computed outer SHA-256 digest and one entry-data digest. They also check schema framing, exact lengths, complete consumption, and stage-0 decode compatibility.
+- [x] `NativeArchive.w` and `packages/archive/Archive.w` verify a Wheeler-computed outer SHA-256 digest and every entry-data digest. They also check schema framing, exact lengths, complete consumption, and stage-0 decode compatibility.
 - [x] `NativeArchiveIdentity.w` computes the final content identity only after complete archive, embedded-manifest, and source-closure validation. Its one-file archive identity matches stage 0 and rewinds exactly. Payload-digest damage or oversized input leaves output untouched.
   - The manifest is copied, frozen, parsed by shared scanner and manifest modules, and re-emitted as exact canonical lines.
-  - One or two sorted ASCII logical paths must match the declared target source set.
+  - One through four sorted ASCII logical paths must match the declared target source set.
   - Outer corruption, re-signed data corruption, traversal, undeclared source paths, and noncanonical manifest text fail.
-  - Successful runs rewind exactly. Reserved-path checks, the wider manifest, Unicode paths, and more than two entries remain.
+  - Successful runs rewind exactly. Reserved-path checks, the wider manifest, Unicode paths, and more than four entries remain.
 - [x] `NativePlan.w`, `packages/resolution/Plan.w`, and `PlanIdentity.w` read canonical binary plans. They verify framing, schema, payload length, and a Wheeler-computed payload SHA-256.
 - [x] `NativePlanIdentity.w` computes the final plan identity only after payload and node identities reverify. The one-node result matches stage 0 with exact rewind. Digest damage or oversized input publishes no identity.
   - The current slice decodes one node with at most one package input and one requested capability. An optional grant must equal that request.
@@ -557,6 +557,7 @@ Worker count and native scheduling do not enter package identity. Required physi
 - [WIP-0301](WIP-0301-native-archive-dependency-binding.md)
 - [WIP-0302](WIP-0302-native-transitive-archive-closure.md)
 - [WIP-0303](WIP-0303-native-test-manifest-bound.md)
+- [WIP-0306](WIP-0306-native-four-entry-archives.md)
 - [WIP-0025](WIP-0025-native-ffi-and-system-integration.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)

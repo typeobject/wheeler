@@ -325,7 +325,7 @@ classical class TestExternalSourcePlan {
       return false;
     }
 
-    if (2 < entryCount) {
+    if (4 < entryCount) {
       return false;
     }
 
@@ -389,7 +389,7 @@ classical class TestExternalSourcePlan {
 
     long foundCount = 0;
     long ordinal = 0;
-    while (ordinal < entryCount) limit 2 {
+    while (ordinal < entryCount) limit 4 {
       LockedArchiveEntry selected = validatedLockedArchiveEntry(
         lock,
         packageName,

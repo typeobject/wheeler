@@ -584,6 +584,25 @@ class NativePackageTestRunnerTest {
   }
 
   @Test
+  void invokesThreeLockedExternalImportsNatively() throws Exception {
+    var fixture = NativeMultiEntryExternalFixture.create(
+        temporary.resolve("native-three-external-import-tests"));
+    var selected = LockedPackageSet.load(fixture.root(), fixture.project().manifest())
+        .fixedNativeArchives(fixture.modules());
+    assertEquals(1, selected.size());
+    assertEquals(3, selected.getFirst().entries().size());
+
+    var result = NativePackageTestRunner.run(
+        fixture.root(), fixture.project().manifest(), 0, 1, Set.of());
+
+    assertTrue(result.isPresent());
+    assertEquals(1, result.orElseThrow().selected());
+    assertEquals(1, result.orElseThrow().passed());
+    assertEquals(0, result.orElseThrow().failed());
+    assertEquals(3, result.orElseThrow().report().cases().getFirst().assertions());
+  }
+
+  @Test
   void invokesTwoLockedExternalPackagesNatively() throws Exception {
     var fixture = NativeTwoPackageExternalFixture.create(
         temporary.resolve("native-two-external-package-tests"));

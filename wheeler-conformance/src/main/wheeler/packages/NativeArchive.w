@@ -21,17 +21,30 @@ classical class NativeArchive {
   ///
   /// - Effects: Mutates only the fixture's declared state.
   entry void main(borrow byteview source) {
-    region arena = new region(12288, 10);
+    region arena = new region(12288, 12);
     bytes digest = allocateBytes(arena, 32);
     ArchiveResult parsed = inspectArchive(source, digest, arena);
     match (parsed) {
       case ArchiveResult.Value(ArchiveModel archive) {
         manifestLength = archive.manifestLength;
         entryCount = archive.entryCount;
-        pathLength = archive.pathLength;
-        dataLength = archive.dataLength;
-        secondPathLength = archive.secondPathLength;
-        secondDataLength = archive.secondDataLength;
+        ArchiveEntry first = validatedArchiveEntry(
+          source,
+          archive.manifestLength,
+          /* ordinal= */ 0
+        );
+        pathLength = first.pathLength;
+        dataLength = first.sourceLength;
+        if (1 < archive.entryCount) {
+          ArchiveEntry second = validatedArchiveEntry(
+            source,
+            archive.manifestLength,
+            /* ordinal= */ 1
+          );
+          secondPathLength = second.pathLength;
+          secondDataLength = second.sourceLength;
+        }
+
         packageLength = archive.packageLength;
         targetCount = archive.targetCount;
       }

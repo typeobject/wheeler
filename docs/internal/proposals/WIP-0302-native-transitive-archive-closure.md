@@ -9,7 +9,7 @@
 | Area | Self-hosting, package commands, dependency graphs |
 | Depends on | WIP-0301 |
 | Supersedes | Direct-only native archive selection |
-| Superseded by | Broader native dependency closure transport |
+| Superseded by | WIP-0306 native four-entry archives |
 
 ## Summary
 
@@ -100,3 +100,4 @@ Rejected. Complete archives are the provenance unit. A subset cannot prove the m
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0300](WIP-0300-native-two-package-import.md)
 - [WIP-0301](WIP-0301-native-archive-dependency-binding.md)
+- [WIP-0306](WIP-0306-native-four-entry-archives.md)

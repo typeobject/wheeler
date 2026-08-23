@@ -562,7 +562,7 @@ classical class ArchiveProvenance {
     assert(ordinal < entryCount);
     long cursor = 16 + manifestLength;
     long entry = 0;
-    while (entry < ordinal) limit 2 {
+    while (entry < ordinal) limit 4 {
       long priorPathLength = readUnsigned(archive, cursor, /* width= */ 4);
       long priorSourceLength = readUnsigned(archive, cursor + 4, /* width= */ 8);
       cursor += 12 + priorPathLength + 32 + priorSourceLength;
