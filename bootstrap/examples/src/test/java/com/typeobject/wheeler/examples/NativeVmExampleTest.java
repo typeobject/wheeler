@@ -42,6 +42,9 @@ class NativeVmExampleTest {
     CoreSources.addBinaryClosure(modules);
     modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     modules.put("Interpreter.w", RuntimeSources.read("runtime/Interpreter.w"));
+    modules.put(
+        "InterpreterLayout.w",
+        RuntimeSources.read("runtime/interpreter/InterpreterLayout.w"));
     modules.put("MapInterpreter.w", RuntimeSources.read("runtime/MapInterpreter.w"));
     modules.put(
         "NativeVm.w",

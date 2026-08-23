@@ -29,6 +29,9 @@ final class NativeTestRunnerProgram {
         "ResultSlots", "StorageInterpreter", "Utf8Interpreter")) {
       modules.put(source + ".w", RuntimeSources.read("runtime/" + source + ".w"));
     }
+    modules.put(
+        "InterpreterLayout.w",
+        RuntimeSources.read("runtime/interpreter/InterpreterLayout.w"));
     modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     modules.put(
         "BootstrapCoverageFragments.w",

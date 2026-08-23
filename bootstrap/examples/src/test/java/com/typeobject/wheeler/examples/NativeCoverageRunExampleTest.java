@@ -950,6 +950,9 @@ final class NativeCoverageRunExampleTest {
         "ArtifactExecution.w",
         RuntimeSources.read("runtime/ArtifactExecution.w"));
     modules.put("Interpreter.w", RuntimeSources.read("runtime/Interpreter.w"));
+    modules.put(
+        "InterpreterLayout.w",
+        RuntimeSources.read("runtime/interpreter/InterpreterLayout.w"));
     modules.put("MapInterpreter.w", RuntimeSources.read("runtime/MapInterpreter.w"));
     modules.put("ResultSlots.w", RuntimeSources.read("runtime/ResultSlots.w"));
     modules.put("StorageInterpreter.w", RuntimeSources.read("runtime/StorageInterpreter.w"));
