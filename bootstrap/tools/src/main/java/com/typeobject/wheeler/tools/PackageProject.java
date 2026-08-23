@@ -40,14 +40,20 @@ final class PackageProject {
   static final String MANIFEST_NAME = "wheeler.package.yaml";
   private static final int MAX_EXPANDED_SOURCES = 1_024;
 
-  record TestOutput(TestReport report, byte[] nativeJson) {
+  record TestOutput(TestReport report, byte[] nativeJson, byte[] nativeTerminal) {
     TestOutput {
       nativeJson = nativeJson.clone();
+      nativeTerminal = nativeTerminal.clone();
     }
 
     @Override
     public byte[] nativeJson() {
       return nativeJson.clone();
+    }
+
+    @Override
+    public byte[] nativeTerminal() {
+      return nativeTerminal.clone();
     }
   }
 
@@ -134,12 +140,12 @@ final class PackageProject {
         root, manifest, shardIndex, shardCount, selectedTags);
     if (nativeResult.isPresent()) {
       NativePackageTestRunner.Result result = nativeResult.orElseThrow();
-      return new TestOutput(result.report(), result.json());
+      return new TestOutput(result.report(), result.json(), result.terminal());
     }
 
     TestRun run = testRun(shardIndex, shardCount, selectedTags);
     rejectUnknownTags(selectedTags, run.availableTags());
-    return new TestOutput(run.report(), new byte[0]);
+    return new TestOutput(run.report(), new byte[0], new byte[0]);
   }
 
   TestRun testRun(int shardIndex, int shardCount, Set<String> selectedTags) throws IOException {

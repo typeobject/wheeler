@@ -2,12 +2,11 @@
 
 module wheeler.runtime.testing.test_report_json;
 
-import wheeler.core.encoding.binary;
+import wheeler.runtime.testing.test_report_adapter;
 
 classical class TestReportJson {
   private const long MAX_CASES = 64;
   private const long MAX_FIELD_BYTES = 4096;
-  private const long MAX_ROW_BYTES = 342080;
   private const long LABEL_SCHEMA = 0;
   private const long LABEL_REPORT = 1;
   private const long LABEL_SUBJECT = 2;
@@ -28,15 +27,6 @@ classical class TestReportJson {
   private const long LABEL_WORKFLOW_STEPS = 17;
   private const long LABEL_EXECUTION = 18;
   private const long LABEL_COVERAGE = 19;
-
-  private long readUnsigned16(borrow byteview input, long cursor) {
-    return input[cursor] + input[cursor + 1] * 256;
-  }
-
-  private long readUnsigned32(borrow byteview input, long cursor) {
-    return input[cursor] + input[cursor + 1] * 256 + input[cursor + 2] * 65536
-      + input[cursor + 3] * 16777216;
-  }
 
   private long writeLabelName(borrow mut bytes output, long cursor, long label) {
     if (label == LABEL_SCHEMA) {
@@ -137,56 +127,6 @@ classical class TestReportJson {
     return cursor + 2;
   }
 
-  private long writeDecimal(borrow mut bytes output, long cursor, long value) {
-    assert(-1 < value);
-    long digits = 1;
-    long divisor = 1;
-    long remaining = value;
-    while (9 < remaining) limit 20 {
-      remaining = remaining / 10;
-      divisor = divisor * 10;
-      digits += 1;
-    }
-
-    long offset = 0;
-    while (offset < digits) limit 20 {
-      setByte(output, cursor, value / divisor % 10 + 48);
-      divisor = divisor / 10;
-      cursor += 1;
-      offset += 1;
-    }
-
-    return cursor;
-  }
-
-  private long writeIdentity(
-    borrow byteview input,
-    long start,
-    borrow mut bytes output,
-    long cursor
-  ) {
-    long offset = 0;
-    while (offset < 32) limit 32 {
-      long octet = input[start + offset];
-      long high = octet / 16;
-      long low = octet % 16;
-      setByte(output, cursor, high + 48);
-      if (9 < high) {
-        setByte(output, cursor, high + 87);
-      }
-
-      setByte(output, cursor + 1, low + 48);
-      if (9 < low) {
-        setByte(output, cursor + 1, low + 87);
-      }
-
-      cursor += 2;
-      offset += 1;
-    }
-
-    return cursor;
-  }
-
   private long writeJsonRange(
     borrow byteview input,
     long start,
@@ -223,40 +163,15 @@ classical class TestReportJson {
 
   private long writeCase(
     borrow byteview input,
-    long rowStart,
-    long rowEnd,
+    AdapterRow row,
     borrow mut words starts,
     borrow mut words lengths,
     borrow mut bytes output,
     long cursor,
     borrow mut words summary
   ) {
-    long inputCursor = rowStart;
-    long field = 0;
-    while (field < 10) limit 10 {
-      assert(inputCursor + 2 < rowEnd + 1);
-      long length = readUnsigned16(input, inputCursor);
-      assert(length < MAX_FIELD_BYTES + 1);
-      inputCursor += 2;
-      assert(inputCursor + length < rowEnd + 1);
-      set(starts, field, inputCursor);
-      set(lengths, field, length);
-      inputCursor += length;
-      field += 1;
-    }
-
-    assert(inputCursor + 17 < rowEnd + 1);
-    long status = input[inputCursor];
-    assert(status < 2);
-    long assertions = readSigned(input, inputCursor + 1);
-    long workflowSteps = readSigned(input, inputCursor + 9);
-    assert(-1 < assertions);
-    assert(-1 < workflowSteps);
-    inputCursor += 17;
-    assert(inputCursor < rowEnd + 1);
-
     set(summary, 0, summary[0] + 1);
-    if (status == 0) {
+    if (row.status == 0) {
       set(summary, 1, summary[1] + 1);
     } else {
       set(summary, 2, summary[2] + 1);
@@ -278,7 +193,7 @@ classical class TestReportJson {
     cursor = writeLabel(output, cursor, LABEL_STATUS, true);
     setByte(output, cursor, 34);
     cursor += 1;
-    if (status == 0) {
+    if (row.status == 0) {
       writeAscii(output, cursor, "PASS");
       cursor += 4;
     } else {
@@ -293,9 +208,9 @@ classical class TestReportJson {
     cursor = writeLabel(output, cursor, LABEL_DIAGNOSTIC_MESSAGE, true);
     cursor = writeJsonRange(input, starts[7], lengths[7], output, cursor);
     cursor = writeLabel(output, cursor, LABEL_ASSERTIONS, true);
-    cursor = writeDecimal(output, cursor, assertions);
+    cursor = writeTestReportDecimal(output, cursor, row.assertions);
     cursor = writeLabel(output, cursor, LABEL_WORKFLOW_STEPS, true);
-    cursor = writeDecimal(output, cursor, workflowSteps);
+    cursor = writeTestReportDecimal(output, cursor, row.workflowSteps);
     cursor = writeLabel(output, cursor, LABEL_EXECUTION, true);
     cursor = writeJsonRange(input, starts[8], lengths[8], output, cursor);
     cursor = writeLabel(output, cursor, LABEL_COVERAGE, true);
@@ -306,21 +221,7 @@ classical class TestReportJson {
 
   /// Renders one complete canonical row transport and returns its exact byte length.
   public long renderTestReportJson(borrow byteview input, borrow mut bytes output) {
-    assert(43 < bufferLength(input));
-    long subjectLength = readUnsigned16(input, 32);
-    assert(subjectLength < 256);
-    long subjectStart = 34;
-    long summaryStart = subjectStart + subjectLength;
-    assert(summaryStart + 10 < bufferLength(input) + 1);
-    long selected = readUnsigned16(input, summaryStart);
-    long passed = readUnsigned16(input, summaryStart + 2);
-    long failed = readUnsigned16(input, summaryStart + 4);
-    long rowLength = readUnsigned32(input, summaryStart + 6);
-    long rowStart = summaryStart + 10;
-    assert(selected < MAX_CASES + 1);
-    assert(rowLength < MAX_ROW_BYTES + 1);
-    assert(rowStart + rowLength == bufferLength(input));
-    assert(selected == passed + failed);
+    AdapterHeader header = validatedTestReportAdapter(input);
 
     region staging = new region(/* bytes= */ 256, /* allocations= */ 3);
     words starts = allocate(staging, /* length= */ 10);
@@ -336,57 +237,57 @@ classical class TestReportJson {
     setByte(output, cursor, 34);
     cursor = writeLabel(output, cursor + 1, LABEL_REPORT, true);
     setByte(output, cursor, 34);
-    cursor = writeIdentity(input, 0, output, cursor + 1);
+    cursor = writeTestReportIdentity(input, 0, output, cursor + 1);
     setByte(output, cursor, 34);
     cursor = writeLabel(output, cursor + 1, LABEL_SUBJECT, true);
-    cursor = writeJsonRange(input, subjectStart, subjectLength, output, cursor);
+    cursor = writeJsonRange(
+      input,
+      header.subjectStart,
+      header.subjectLength,
+      output,
+      cursor
+    );
     cursor = writeLabel(output, cursor, LABEL_SELECTED, true);
-    cursor = writeDecimal(output, cursor, selected);
+    cursor = writeTestReportDecimal(output, cursor, header.selected);
     cursor = writeLabel(output, cursor, LABEL_PASSED, true);
-    cursor = writeDecimal(output, cursor, passed);
+    cursor = writeTestReportDecimal(output, cursor, header.passed);
     cursor = writeLabel(output, cursor, LABEL_FAILED, true);
-    cursor = writeDecimal(output, cursor, failed);
+    cursor = writeTestReportDecimal(output, cursor, header.failed);
     cursor = writeLabel(output, cursor, LABEL_CASES, true);
     setByte(output, cursor, 91);
     cursor += 1;
 
-    long inputCursor = rowStart;
+    long inputCursor = header.rowStart;
     long row = 0;
-    while (row < selected) limit MAX_CASES {
+    while (row < header.selected) limit MAX_CASES {
       if (0 < row) {
         setByte(output, cursor, 44);
         cursor += 1;
       }
 
-      long rowEnd = inputCursor;
-      long field = 0;
-      while (field < 10) limit 10 {
-        assert(rowEnd + 2 < bufferLength(input) + 1);
-        long length = readUnsigned16(input, rowEnd);
-        rowEnd += 2 + length;
-        field += 1;
-      }
-
-      rowEnd += 17;
-      assert(rowEnd < bufferLength(input) + 1);
-      cursor = writeCase(
+      AdapterRow adapterRow = validatedTestReportRow(
         input,
         inputCursor,
-        rowEnd,
+        starts,
+        lengths
+      );
+      cursor = writeCase(
+        input,
+        adapterRow,
         starts,
         lengths,
         output,
         cursor,
         summary
       );
-      inputCursor = rowEnd;
+      inputCursor = adapterRow.end;
       row += 1;
     }
 
     assert(inputCursor == bufferLength(input));
-    assert(summary[0] == selected);
-    assert(summary[1] == passed);
-    assert(summary[2] == failed);
+    assert(summary[0] == header.selected);
+    assert(summary[1] == header.passed);
+    assert(summary[2] == header.failed);
     setByte(output, cursor, 93);
     setByte(output, cursor + 1, 125);
     setByte(output, cursor + 2, 10);

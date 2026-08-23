@@ -304,6 +304,7 @@ public final class Wheeler {
     TestReport report;
     String name;
     byte[] nativeJson = new byte[0];
+    byte[] nativeTerminal = new byte[0];
     if (WorkspaceProject.exists(root)) {
       WorkspaceProject workspace = WorkspaceProject.load(root);
       report = workspace.test(shardIndex, shardCount, selectedTags);
@@ -314,10 +315,13 @@ public final class Wheeler {
           shardIndex, shardCount, selectedTags);
       report = result.report();
       nativeJson = result.nativeJson();
+      nativeTerminal = result.nativeTerminal();
       name = project.manifest().name();
     }
     if (format == TestReportRenderer.Format.JSON && nativeJson.length > 0) {
       out.write(nativeJson, 0, nativeJson.length);
+    } else if (format == TestReportRenderer.Format.TERMINAL && nativeTerminal.length > 0) {
+      out.write(nativeTerminal, 0, nativeTerminal.length);
     } else {
       out.print(TestReportRenderer.render(report, name, format));
     }

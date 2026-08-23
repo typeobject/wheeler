@@ -257,6 +257,13 @@ targets:
       - "src/main/wheeler/testing/reports/NativeTestReportRows.w"
     test: false
   - kind: "deployable"
+    name: "nativetestreportterminal"
+    root: "src/main/wheeler/testing/reports/NativeTestReportTerminal.w"
+    module: "wheeler.conformance.testing.reports.native_test_report_terminal"
+    sources:
+      - "src/main/wheeler/testing/reports/NativeTestReportTerminal.w"
+    test: false
+  - kind: "deployable"
     name: "nativetestrunner"
     root: "src/main/wheeler/testing/runners/NativeTestRunner.w"
     module: "wheeler.conformance.testing.runners.native_test_runner"

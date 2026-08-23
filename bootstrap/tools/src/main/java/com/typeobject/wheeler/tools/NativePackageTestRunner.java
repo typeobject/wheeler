@@ -36,6 +36,7 @@ final class NativePackageTestRunner {
   private static Program packageReportReducer;
   private static Program reportRowReducer;
   private static Program runner;
+  private static Program terminalRenderer;
   private static Path runnerRoot;
 
   record Result(
@@ -43,17 +44,24 @@ final class NativePackageTestRunner {
       String packageIdentity,
       TestReport report,
       byte[] json,
+      byte[] terminal,
       int selected,
       int passed,
       int failed) {
     Result {
       identities = List.copyOf(identities);
       json = json.clone();
+      terminal = terminal.clone();
     }
 
     @Override
     public byte[] json() {
       return json.clone();
+    }
+
+    @Override
+    public byte[] terminal() {
+      return terminal.clone();
     }
   }
 
@@ -196,13 +204,28 @@ final class NativePackageTestRunner {
     }
     NativeRows packageNativeRows = readReducedRows(reducedRows, selected);
     TestReport report = new TestReport(packageNativeRows.cases(), RUNNER_IDENTITY);
-    byte[] json = renderJson(
-        manifest.name(), selected, passed, failed, reducedRows, packageNativeRows.bytes());
+    byte[] json = renderAdapter(
+        jsonRenderer,
+        manifest.name(),
+        selected,
+        passed,
+        failed,
+        reducedRows,
+        packageNativeRows.bytes());
+    byte[] terminal = renderAdapter(
+        terminalRenderer,
+        manifest.name(),
+        selected,
+        passed,
+        failed,
+        reducedRows,
+        packageNativeRows.bytes());
     return Optional.of(new Result(
         identities,
         HexFormat.of().formatHex(packageOutput, 0, 32),
         report,
         json,
+        terminal,
         selected,
         passed,
         failed));
@@ -216,7 +239,8 @@ final class NativePackageTestRunner {
     return machine.hostOutput();
   }
 
-  private static byte[] renderJson(
+  private static byte[] renderAdapter(
+      Program renderer,
       String subject,
       int selected,
       int passed,
@@ -239,7 +263,7 @@ final class NativePackageTestRunner {
     int capacity = Math.addExact(
         512,
         Math.addExact(Math.multiplyExact(rows.length, 2), Math.multiplyExact(selected, 256)));
-    return execute(jsonRenderer, input.toByteArray(), capacity);
+    return execute(renderer, input.toByteArray(), capacity);
   }
 
   private static NativeRows readNativeRows(byte[] output) throws IOException {
@@ -344,6 +368,7 @@ final class NativePackageTestRunner {
       packageReportReducer = project.compileRunnable("nativetestpackagereportidentity");
       jsonRenderer = project.compileRunnable("nativetestreportjson");
       reportRowReducer = project.compileRunnable("nativetestreportrows");
+      terminalRenderer = project.compileRunnable("nativetestreportterminal");
       runnerRoot = canonical;
     }
     return runner;

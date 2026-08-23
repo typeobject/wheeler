@@ -9,7 +9,7 @@
 | Area | Native testing, report adapters, Java retirement |
 | Depends on | WIP-0288 |
 | Supersedes | Java JSON rendering for native package tests |
-| Superseded by | Native terminal and JUnit adapters |
+| Superseded by | WIP-0290 native test terminal |
 
 ## Summary
 
@@ -86,3 +86,4 @@ Rejected. The bootstrap profile is printable ASCII and must fail closed outside 
 - [WIP-0268](WIP-0268-native-package-test-report-identity.md)
 - [WIP-0276](WIP-0276-native-package-case-rows.md)
 - [WIP-0288](WIP-0288-native-inverse-coverage.md)
+- [WIP-0290](WIP-0290-native-test-terminal.md)
