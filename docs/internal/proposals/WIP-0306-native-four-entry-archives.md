@@ -9,7 +9,7 @@
 | Area | Self-hosting, package archives, external source graphs |
 | Depends on | WIP-0302 |
 | Supersedes | Two-entry native archive authority |
-| Superseded by | Broader native archive and source-plan profiles |
+| Superseded by | WIP-0307 native four-source archive import |
 
 ## Summary
 
@@ -93,3 +93,4 @@ Rejected. This change removes an archive-specific two-entry restriction. It does
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0299](WIP-0299-native-two-source-archive-import.md)
 - [WIP-0302](WIP-0302-native-transitive-archive-closure.md)
+- [WIP-0307](WIP-0307-native-four-source-archive-import.md)

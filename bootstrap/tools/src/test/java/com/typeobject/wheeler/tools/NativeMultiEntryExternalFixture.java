@@ -8,7 +8,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
 
-/** Physical three-entry dependency archive for the bounded native package profile. */
+/** Physical four-entry dependency archive for the bounded native package profile. */
 final class NativeMultiEntryExternalFixture {
   private NativeMultiEntryExternalFixture() {}
 
@@ -17,14 +17,14 @@ final class NativeMultiEntryExternalFixture {
     String manifestText = """
         schema: 1
         package:
-          name: "demo.native.external.three"
+          name: "demo.native.external.four"
           version: "1.0.0"
           profile: "bootstrap-1"
         targets:
           - kind: "tool"
             name: "laws"
             root: "src/Main.w"
-            module: "demo.native.external.three.tests"
+            module: "demo.native.external.four.tests"
             sources:
               - "src/Main.w"
             test: true
@@ -36,18 +36,21 @@ final class NativeMultiEntryExternalFixture {
         """;
     Files.writeString(project.resolve("wheeler.package.yaml"), manifestText);
     Files.writeString(project.resolve("src/Main.w"), """
-        module demo.native.external.three.tests;
+        module demo.native.external.four.tests;
         import demo.dep.a;
         import demo.dep.b;
         import demo.dep.c;
-        classical class NativeThreeEntryImportTests {
-          test void readsThreeLockedConstants() {
+        import demo.dep.d;
+        classical class NativeFourEntryImportTests {
+          test void readsFourLockedConstants() {
             long answerA = ANSWER_A;
             assert(answerA == 40);
             long answerB = ANSWER_B;
             assert(answerB == 41);
             long answerC = ANSWER_C;
             assert(answerC == 42);
+            long answerD = ANSWER_D;
+            assert(answerD == 43);
           }
         }
         """);
@@ -66,6 +69,7 @@ final class NativeMultiEntryExternalFixture {
               - "src/A.w"
               - "src/B.w"
               - "src/C.w"
+              - "src/D.w"
             test: false
         dependencies: []
         capabilities: []
@@ -74,7 +78,8 @@ final class NativeMultiEntryExternalFixture {
     Map<String, byte[]> entries = Map.of(
         "src/A.w", source("demo.dep.a", "ConstantsA", "ANSWER_A", 40),
         "src/B.w", source("demo.dep.b", "ConstantsB", "ANSWER_B", 41),
-        "src/C.w", source("demo.dep.c", "ConstantsC", "ANSWER_C", 42));
+        "src/C.w", source("demo.dep.c", "ConstantsC", "ANSWER_C", 42),
+        "src/D.w", source("demo.dep.d", "ConstantsD", "ANSWER_D", 43));
     PackageArchive codec = new PackageArchive();
     byte[] archive = codec.encode(dependencyManifest, entries);
     String archiveIdentity = codec.identity(archive);
@@ -116,7 +121,7 @@ final class NativeMultiEntryExternalFixture {
 
   record Fixture(Path root, PackageProject project) {
     Set<String> modules() {
-      return Set.of("demo.dep.a", "demo.dep.b", "demo.dep.c");
+      return Set.of("demo.dep.a", "demo.dep.b", "demo.dep.c", "demo.dep.d");
     }
   }
 }
