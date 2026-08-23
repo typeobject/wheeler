@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0317, WIP-0318 |
 | Supersedes | Indirect void-call kind execution evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0320 native compiler call-column suite |
 
 ## Summary
 
@@ -63,3 +63,4 @@ Rejected. The three shape queries are a bounded owner already admitted by the co
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0317](WIP-0317-native-compiler-void-call-source-form-suite.md)
 - [WIP-0318](WIP-0318-native-test-manifest-bound.md)
+- [WIP-0320](WIP-0320-native-compiler-call-column-suite.md)

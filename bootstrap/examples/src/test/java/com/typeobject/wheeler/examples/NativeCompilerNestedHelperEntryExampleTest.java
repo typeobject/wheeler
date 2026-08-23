@@ -14,6 +14,34 @@ import org.junit.jupiter.api.Test;
 /** Differential evidence for nested native scalar helpers called from an entry. */
 final class NativeCompilerNestedHelperEntryExampleTest {
   @Test
+  void compilesPhysicalAssignmentCallColumnsIntoEntryByteForByte() throws Exception {
+    String identities = CompilerSources.read(
+        "compiler/syntax/calls/assignment/AssignmentCallIdentities.w");
+    String columns = CompilerSources.read(
+        "compiler/syntax/calls/assignment/AssignmentCallColumns.w");
+    String root = """
+        module example.assignment_call_column_entry;
+        import wheeler.compiler.assignment_call_columns;
+        classical class AssignmentCallColumnEntry {
+          entry void main() {
+            long source = sourceKind(7);
+            long resolved = resolvedBase(7);
+            assert(source == 933);
+            assert(resolved == 41792);
+          }
+        }
+        """;
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] artifact = NativeModuleCompilerHarness.compile(
+        compiler, List.of(identities, columns), root);
+    byte[] expected = new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
+        Map.of("Identities.w", identities, "Columns.w", columns, "Entry.w", root),
+        "example.assignment_call_column_entry"));
+    assertArrayEquals(expected, artifact);
+    new VirtualMachine(new BytecodeReader().read(artifact)).run();
+  }
+
+  @Test
   void compilesPhysicalAssignmentCallOperandsIntoEntryByteForByte() throws Exception {
     String identities = CompilerSources.read(
         "compiler/syntax/calls/assignment/AssignmentCallIdentities.w");
