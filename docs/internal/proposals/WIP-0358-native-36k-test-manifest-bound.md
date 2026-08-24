@@ -9,7 +9,7 @@
 | Area | Native testing, manifests, package execution |
 | Depends on | WIP-0355, WIP-0357 |
 | Supersedes | Native 32,768-byte test-manifest bound |
-| Superseded by | WIP-0359 native compiler call classifier suite |
+| Superseded by | WIP-0359 call classifiers, then WIP-0362 native 40 KiB manifests |
 
 ## Summary
 
@@ -64,3 +64,4 @@ Rejected. No adjacent capacity is exhausted.
 - [WIP-0355](WIP-0355-native-32k-test-manifest-bound.md)
 - [WIP-0357](WIP-0357-native-compiler-comparison-suite.md)
 - [WIP-0359](WIP-0359-native-compiler-call-classifier-suite.md)
+- [WIP-0362](WIP-0362-native-40k-test-manifest-bound.md)

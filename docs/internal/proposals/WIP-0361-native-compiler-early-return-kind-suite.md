@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0360 |
 | Supersedes | Product-only unresolved early-return kind evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0362 native 40 KiB test-manifest bound |
 
 ## Summary
 
@@ -80,3 +80,4 @@ Rejected. Independent public-query identities preserve exact failure ownership.
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0360](WIP-0360-native-128-target-report-profile.md)
+- [WIP-0362](WIP-0362-native-40k-test-manifest-bound.md)
