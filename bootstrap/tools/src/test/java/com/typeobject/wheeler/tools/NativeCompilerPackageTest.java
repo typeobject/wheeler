@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Timeout;
 /** Proves the complete checked-in compiler package suite through the native runner. */
 final class NativeCompilerPackageTest {
   @Test
-  @Timeout(value = 25, unit = TimeUnit.MINUTES)
+  @Timeout(value = 28, unit = TimeUnit.MINUTES)
   void testsThePhysicalCompilerSpineNatively() throws Exception {
     Path compiler = Path.of("wheeler-compiler");
     PackageProject project = PackageProject.load(compiler);
@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(168, result.selected());
-    assertEquals(168, result.passed());
+    assertEquals(179, result.selected());
+    assertEquals(179, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -56,6 +56,21 @@ final class NativeCompilerPackageTest {
           report,
           "nativecompilernamedconditionalbasetests",
           "native_compiler_named_conditional_bases",
+          name);
+    }
+    assertCase(
+        report,
+        "nativecompilerbooleandeclarationkindtests",
+        "native_compiler_boolean_declaration_kinds",
+        "classifiesFinalBooleanDeclaration");
+    for (String name : List.of(
+        "classifiesFinalDirectComparisonReturn",
+        "classifiesFinalDirectInequalityReturn",
+        "classifiesFinalDirectSignedComparisonReturn")) {
+      assertCase(
+          report,
+          "nativecompilernamedcomparisonkindtests",
+          "native_compiler_named_comparison_kinds",
           name);
     }
     assertCase(
@@ -175,6 +190,17 @@ final class NativeCompilerPackageTest {
           report,
           "nativecompilerearlyreturnsourcetests",
           "native_compiler_early_return_sources",
+          name);
+    }
+    for (String name : List.of(
+        "classifiesFinalBooleanLiteralEquality",
+        "classifiesFinalBooleanLiteralInequality",
+        "classifiesFinalBooleanLiteralComparison",
+        "decodesFinalBooleanLiteralComparisonSource")) {
+      assertCase(
+          report,
+          "nativecompilerresolvedbooleanliteralcomparisontests",
+          "native_compiler_resolved_boolean_literal_comparisons",
           name);
     }
     for (String name : List.of(
@@ -323,6 +349,16 @@ final class NativeCompilerPackageTest {
           report,
           "nativecompilerresolvedreturncalltests",
           "native_compiler_resolved_return_calls",
+          name);
+    }
+    for (String name : List.of(
+        "selectsFinalSignedAmbiguousOpcode",
+        "selectsFinalLiteralComparisonOpcode",
+        "selectsFinalLiteralArithmeticOpcode")) {
+      assertCase(
+          report,
+          "nativecompilerreturnopcodekindtests",
+          "native_compiler_return_opcode_kinds",
           name);
     }
     assertCase(

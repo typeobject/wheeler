@@ -43,6 +43,15 @@ targets:
       - "src/main/wheeler/lexer"
     test: false
   - kind: "tool"
+    name: "nativecompilerbooleandeclarationkindtests"
+    root: "src/test/wheeler/compiler/booleans/NativeCompilerBooleanDeclarationKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_boolean_declaration_kinds"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/BooleanDeclarationKinds.w"
+      - "src/test/wheeler/compiler/booleans/NativeCompilerBooleanDeclarationKindTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilercallaritytests"
     root: "src/test/wheeler/compiler/NativeCompilerCallArityTests.w"
     module: "wheeler.compiler.tests.native_compiler_call_arity"
@@ -159,6 +168,15 @@ targets:
       - "src/test/wheeler/compiler/returns/NativeCompilerNamedBooleanReturnKindTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilernamedcomparisonkindtests"
+    root: "src/test/wheeler/compiler/comparisons/NativeCompilerNamedComparisonKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_named_comparison_kinds"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/comparisons/NamedComparisonKinds.w"
+      - "src/test/wheeler/compiler/comparisons/NativeCompilerNamedComparisonKindTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilernamedconditionalbasetests"
     root: "src/test/wheeler/compiler/conditionals/NativeCompilerNamedConditionalBaseTests.w"
     module: "wheeler.compiler.tests.native_compiler_named_conditional_bases"
@@ -267,6 +285,15 @@ targets:
       - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
       - "src/main/wheeler/compiler/syntax/assertions/ResolvedBooleanLiteralAssertions.w"
       - "src/test/wheeler/compiler/assertions/NativeCompilerResolvedBooleanLiteralAssertionTests.w"
+    test: true
+  - kind: "tool"
+    name: "nativecompilerresolvedbooleanliteralcomparisontests"
+    root: "src/test/wheeler/compiler/booleans/NativeCompilerResolvedBooleanLiteralComparisonTests.w"
+    module: "wheeler.compiler.tests.native_compiler_resolved_boolean_literal_comparisons"
+    sources:
+      - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
+      - "src/main/wheeler/compiler/syntax/booleans/ResolvedBooleanLiteralComparisons.w"
+      - "src/test/wheeler/compiler/booleans/NativeCompilerResolvedBooleanLiteralComparisonTests.w"
     test: true
   - kind: "tool"
     name: "nativecompilerresolvedearlycomparisontests"
@@ -466,6 +493,15 @@ targets:
       - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
       - "src/main/wheeler/compiler/syntax/returns/ResolvedReturnCallKinds.w"
       - "src/test/wheeler/compiler/returns/NativeCompilerResolvedReturnCallTests.w"
+    test: true
+  - kind: "tool"
+    name: "nativecompilerreturnopcodekindtests"
+    root: "src/test/wheeler/compiler/returns/opcodes/NativeCompilerReturnOpcodeKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_return_opcode_kinds"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/resolution/returns/ReturnOpcodeKinds.w"
+      - "src/test/wheeler/compiler/returns/opcodes/NativeCompilerReturnOpcodeKindTests.w"
     test: true
   - kind: "tool"
     name: "nativecompilerspinetests"

@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0355 |
 | Supersedes | Product-only local assignment, update, and operation evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0357 native compiler comparison suite |
 
 ## Summary
 
@@ -111,3 +111,4 @@ Rejected. The small owners share one local-operation authority and package evide
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0355](WIP-0355-native-32k-test-manifest-bound.md)
+- [WIP-0357](WIP-0357-native-compiler-comparison-suite.md)
