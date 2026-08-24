@@ -31,6 +31,7 @@ final class NativePackageTestRunner {
   private static final int MAX_DEPENDENCY_CONSTANTS = 256;
   private static final int MAX_DEPENDENCY_FUNCTIONS = 23;
   private static final int MAX_SOURCES = 8;
+  private static final int MAX_TARGETS = 128;
   private static final int MAX_PLAN_BYTES = 40_960;
   private static final int MAX_SOURCE_BYTES = 32_768;
   private static final int COMPACT_OUTPUT_BYTES = 39;
@@ -93,7 +94,7 @@ final class NativePackageTestRunner {
       int shardCount,
       Set<String> selectedTags) throws IOException {
     List<Target> testTargets = manifest.targets().stream().filter(Target::test).toList();
-    if (testTargets.isEmpty()) {
+    if (testTargets.isEmpty() || testTargets.size() > MAX_TARGETS) {
       return Optional.empty();
     }
     java.util.ArrayList<byte[]> plans = new java.util.ArrayList<>();
@@ -287,7 +288,7 @@ final class NativePackageTestRunner {
         failed));
   }
 
-  private static byte[] execute(Program program, byte[] input, int outputCapacity) {
+  static byte[] execute(Program program, byte[] input, int outputCapacity) {
     VirtualMachine machine = VirtualMachine.withBinaryInput(program, input, outputCapacity);
     while (machine.status() != MachineStatus.HALTED) {
       machine.stepWithoutRewindHistory();

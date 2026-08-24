@@ -105,6 +105,18 @@ class NativePackageTestRunnerTest {
   }
 
   @Test
+  void enforcesNativePackageTargetLimit() throws Exception {
+    var reducer = PackageProject.load(Path.of("wheeler-conformance"))
+        .compileRunnable("nativetestpackagereportidentity");
+    byte[] admitted = NativePackageTestRunner.execute(reducer, packageRows(128), 38);
+    assertEquals(8256, unsigned16(admitted, 32));
+    assertEquals(128, unsigned16(admitted, 34));
+    assertEquals(8128, unsigned16(admitted, 36));
+    assertThrows(VmTrap.class, () -> NativePackageTestRunner.execute(
+        reducer, packageRows(129), 38));
+  }
+
+  @Test
   void invokesEveryNativePackageTestTarget() throws Exception {
     Path project = temporary.resolve("native-target-tests");
     Files.createDirectories(project.resolve("src"));
@@ -752,6 +764,15 @@ class NativePackageTestRunnerTest {
     rows.write(2);
     writeTargetRow(rows, firstIdentity, firstIdentity);
     writeTargetRow(rows, secondIdentity, secondIdentity);
+    return rows.toByteArray();
+  }
+
+  private static byte[] packageRows(int count) {
+    ByteArrayOutputStream rows = new ByteArrayOutputStream();
+    rows.write(count);
+    for (int identity = 1; identity <= count; identity++) {
+      writeTargetRow(rows, identity, identity);
+    }
     return rows.toByteArray();
   }
 

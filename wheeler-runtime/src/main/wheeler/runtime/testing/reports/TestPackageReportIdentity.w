@@ -6,7 +6,7 @@ import wheeler.crypto.sha256;
 
 classical class TestPackageReportIdentity {
   private const long IDENTITY_BYTES = 32;
-  private const long MAX_TARGETS = 64;
+  private const long MAX_TARGETS = 128;
   private const long ROW_BYTES = 38;
 
   private long readCount(borrow byteview input, long start) {
@@ -80,7 +80,7 @@ classical class TestPackageReportIdentity {
     assert(0 < count);
     assert(count < MAX_TARGETS + 1);
     assert(bufferLength(input) == 1 + count * ROW_BYTES);
-    region staging = new region(/* bytes= */ 8192, /* allocations= */ 8);
+    region staging = new region(/* bytes= */ 16384, /* allocations= */ 8);
     bytes rows = allocateBytes(staging, MAX_TARGETS * ROW_BYTES);
     long inputCursor = 1;
     long row = 0;

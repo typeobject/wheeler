@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0358 |
 | Supersedes | Product-only one- through four-argument call evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0360 native 128-target report profile |
 
 ## Summary
 
@@ -88,3 +88,4 @@ Rejected. Tests call production decoders at the final representable source colum
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0358](WIP-0358-native-36k-test-manifest-bound.md)
+- [WIP-0360](WIP-0360-native-128-target-report-profile.md)

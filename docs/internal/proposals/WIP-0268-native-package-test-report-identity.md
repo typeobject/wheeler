@@ -9,7 +9,7 @@
 | Area | Self-hosting, package testing, report reduction |
 | Depends on | WIP-0265 |
 | Supersedes | Unreduced lists of native target report identities |
-| Superseded by | Full native package case-row publication |
+| Superseded by | Native case rows, then WIP-0360 128-target reports |
 
 ## Summary
 
@@ -110,3 +110,4 @@ Rejected. It commits to target reports, not complete package case rows.
 
 - [WIP-0265](WIP-0265-native-multi-target-package-test-gate.md)
 - [WIP-0201](WIP-0201-bounded-native-multi-case-reports.md)
+- [WIP-0360](WIP-0360-native-128-target-report-profile.md)
