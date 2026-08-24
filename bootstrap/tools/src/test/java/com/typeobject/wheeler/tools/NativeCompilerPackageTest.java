@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(206, result.selected());
-    assertEquals(206, result.passed());
+    assertEquals(210, result.selected());
+    assertEquals(210, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -77,6 +77,17 @@ final class NativeCompilerPackageTest {
           report,
           "nativecompilerearlyreturnresultkindtests",
           "native_compiler_early_return_result_kinds",
+          name);
+    }
+    for (String name : List.of(
+        "mapsResolvedLocalBufferLengthWidth",
+        "mapsResolvedLocalBufferLengthResult",
+        "mapsResolvedUtf8WidthCodeLength",
+        "mapsResolvedUtf8WidthInstructionCount")) {
+      assertCase(
+          report,
+          "nativecompilerborrowedintrinsicshapetests",
+          "native_compiler_borrowed_intrinsic_shapes",
           name);
     }
     for (String name : List.of(

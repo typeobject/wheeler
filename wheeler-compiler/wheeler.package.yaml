@@ -52,6 +52,15 @@ targets:
       - "src/test/wheeler/compiler/booleans/NativeCompilerBooleanDeclarationKindTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilerborrowedintrinsicshapetests"
+    root: "src/test/wheeler/compiler/backend/NativeCompilerBorrowedIntrinsicShapeTests.w"
+    module: "wheeler.compiler.tests.native_compiler_borrowed_intrinsic_shapes"
+    sources:
+      - "src/main/wheeler/compiler/frontend/intrinsics/BorrowedIntrinsicShapes.w"
+      - "src/main/wheeler/compiler/syntax/intrinsics/BorrowedIntrinsicKinds.w"
+      - "src/test/wheeler/compiler/backend/NativeCompilerBorrowedIntrinsicShapeTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilercallargumentsourcetests"
     root: "src/test/wheeler/compiler/calls/NativeCompilerCallArgumentSourceTests.w"
     module: "wheeler.compiler.tests.native_compiler_call_argument_sources"

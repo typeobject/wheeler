@@ -9,7 +9,7 @@
 | Area | Self-hosting compiler, physical closure, borrowed intrinsics |
 | Depends on | WIP-0049, WIP-0054, WIP-0056, WIP-0073, WIP-0099, WIP-0123, WIP-0136 |
 | Supersedes | Parser projection for `BorrowedIntrinsicShapes.w` |
-| Superseded by | None |
+| Superseded by | WIP-0363 native compiler borrowed-intrinsic shape suite |
 
 ## Summary
 
@@ -98,3 +98,4 @@ Rejected. Existing call, conditional, literal, assignment, and final-return prod
 - [WIP-0099](WIP-0099-exact-boolean-literal-return-products.md)
 - [WIP-0123](WIP-0123-exact-call-conditioned-literal-return-products.md)
 - [WIP-0136](WIP-0136-exact-call-conditioned-signed-literal-products.md)
+- [WIP-0363](WIP-0363-native-compiler-borrowed-intrinsic-shape-suite.md)

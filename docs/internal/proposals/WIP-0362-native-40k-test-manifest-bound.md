@@ -9,7 +9,7 @@
 | Area | Native testing, manifests, package execution |
 | Depends on | WIP-0358, WIP-0361 |
 | Supersedes | Native 36,864-byte test-manifest bound |
-| Superseded by | Wider bounds backed by exact exhaustion evidence |
+| Superseded by | WIP-0363 native compiler borrowed-intrinsic shape suite |
 
 ## Summary
 
@@ -64,3 +64,4 @@ Rejected. Those boundaries are not exhausted by this change.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0358](WIP-0358-native-36k-test-manifest-bound.md)
 - [WIP-0361](WIP-0361-native-compiler-early-return-kind-suite.md)
+- [WIP-0363](WIP-0363-native-compiler-borrowed-intrinsic-shape-suite.md)
