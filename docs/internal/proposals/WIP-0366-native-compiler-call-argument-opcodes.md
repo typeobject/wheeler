@@ -29,7 +29,7 @@ NativeCompilerCallArgumentTests
 
 All four production owners remain complete. The test root carries numeric type inputs and expected bytecode identities so it does not add redundant direct edges to constant owners.
 
-The source-column function remains in the compiled owner with all eight signed parameters. It is not projected away merely because the root exercises the opcode query. `NativeCompilerSelfSourceExampleTest` compiles the complete four-module graph through the native module compiler and compares the complete artifact with stage 0 byte for byte.
+The source-column function remains in the compiled owner with all eight signed parameters. It is not projected away merely because the root exercises the opcode query. `NativeCompilerSelfSourceExampleTest` compiles the complete four-module graph through the native module compiler and compares the complete artifact with stage 0 byte for byte. `NativeCompilerCallArgumentsPhysicalProductExampleTest` also retains both functions and every relocation from the complete 512-module closure profile.
 
 ## Mapping
 
@@ -47,7 +47,7 @@ One selected artifact executes the seven calls and seven assertions once with fr
 
 The complete compiler package publishes 223 selected, 223 passed, and zero failed cases across 70 native targets. The canonical workspace checks 176 targets. The full run completes in thirty-five minutes and fifty-nine seconds under a forty-one-minute guard.
 
-The canonical compiler manifest contains 37,404 bytes with identity `2c863b3bef2e3ecef2a7c4f670e46a3818bcc817348f054ff8827e37e3bea3c8`. The compiler archive contains 3,126,842 bytes with SHA-256 `38eb7156f9e3e3e6db8c3341510e1f660aecc59487839e8e587946eb7d88ac53`.
+The canonical compiler manifest contains 37,404 bytes with identity `2c863b3bef2e3ecef2a7c4f670e46a3818bcc817348f054ff8827e37e3bea3c8`. The compiler archive contains 3,127,335 bytes with SHA-256 `0ff40dc01d5d92d23cdb9e9d01221b5e1a0efe2b8235ce63da70c779fcff492c`.
 
 ## Acceptance
 

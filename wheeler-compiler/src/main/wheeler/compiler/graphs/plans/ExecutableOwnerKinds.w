@@ -13,7 +13,7 @@ import wheeler.compiler.tokens;
 classical class ExecutableOwnerKinds {
   private const long EXECUTABLE_KIND_ARENA_BYTES = 98400;
 
-  /// Carries one validated physical module name and executable-member count.
+  /// Carries one validated module and its complete scalar-helper count, when applicable.
   public record ExecutableOwnerKind(
     long moduleStart,
     long moduleLength,
@@ -110,9 +110,12 @@ classical class ExecutableOwnerKinds {
         }
 
         if (declarationsValid) {
-          long helperCount = 0;
           long closeToken = tokenCount - 1;
-          while (member < closeToken) limit MAX_SCALAR_HELPERS {
+          boolean executable = member < closeToken;
+          long helperCount = 0;
+          boolean helperMembers = true;
+          boolean scanningHelpers = member < closeToken;
+          while (scanningHelpers) limit MAX_SCALAR_HELPERS {
             long helperNext = executableFunctionEnd(
               source,
               tokenKinds,
@@ -124,9 +127,23 @@ classical class ExecutableOwnerKinds {
               member = helperNext;
               helperCount += 1;
             } else {
-              declarationsValid = false;
+              helperMembers = false;
               member = closeToken;
             }
+
+            scanningHelpers = member < closeToken;
+            if (helperCount == MAX_SCALAR_HELPERS) {
+              scanningHelpers = false;
+            }
+          }
+
+          if (member < closeToken) {
+            helperMembers = false;
+            member = closeToken;
+          }
+
+          if (helperMembers == false) {
+            helperCount = 0;
           }
 
           if (member == closeToken) {
@@ -134,8 +151,8 @@ classical class ExecutableOwnerKinds {
               module[0],
               module[1],
               helperCount,
-              0 < helperCount,
-              declarationsValid
+              executable,
+              true
             );
           }
         }

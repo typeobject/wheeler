@@ -23,6 +23,8 @@ The old executor learned an owner's function count from a successful direct impo
 
 The graph executor installs that count during initial owner classification. Later import plans must reproduce it through `recordOwnHelperCount`. They no longer establish it. Owner filtering therefore has complete physical boundaries before the first executable edge is linked.
 
+The broader closure classifier uses the same module-kind record but does not require scalar-helper boundaries. Aggregate, theorem-bearing, and larger executable modules remain valid executable owners with a zero scalar-helper count. The fixed graph path still rejects zero before helper filtering. This keeps the 23-function graph profile separate from the 512-module physical closure.
+
 This is not a recovery path. Malformed functions, excess members, private substitutions, unresolved imports, inconsistent later counts, and noncanonical owner orders still reject. The executor neither guesses boundaries nor repairs the graph.
 
 ## Evidence
@@ -48,7 +50,8 @@ The canonical compiler manifest contains 36,867 bytes with identity `760cc6739bc
 
 - [x] Physical helper counts exist before executable-edge linking.
 - [x] Counts include complete public and private function groups.
-- [x] The fixed 23-function source profile remains the only admitted bound.
+- [x] The fixed 23-function source profile remains the only admitted graph bound.
+- [x] Broader physical closure owners remain classifiable without helper projection.
 - [x] A two-edge executable-owner chain links in either source-frame order.
 - [x] Native and stage-0 artifacts are byte-identical.
 - [x] Private target substitution still rejects.
