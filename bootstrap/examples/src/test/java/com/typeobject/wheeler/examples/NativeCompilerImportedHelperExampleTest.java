@@ -793,6 +793,51 @@ final class NativeCompilerImportedHelperExampleTest {
         root);
   }
 
+  @Test
+  void compilesNestedImportedComparisonHelpersByteForByte() throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    String constants = CompilerSources.read("compiler/ir/ResolvedStatements.w");
+    String predicate = CompilerSources.read(
+        "compiler/syntax/returns/ResolvedEarlyComparisonKinds.w");
+    String forms = CompilerSources.read("compiler/syntax/returns/EarlyComparisonForms.w");
+    String root = """
+        module example.early_comparison_use;
+
+        import wheeler.compiler.early_comparison_forms;
+
+        classical class EarlyComparisonUse {
+          public boolean accepted(long opcode) {
+            return resolvedEarlyComparisonReturn(opcode);
+          }
+        }
+        """;
+
+    List<String> sources = List.of(constants, predicate, forms);
+    byte[] artifact = NativeModuleCompilerHarness.compile(compiler, sources, root);
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of(
+            "compiler/ir/ResolvedStatements.w", constants,
+            "compiler/syntax/returns/ResolvedEarlyComparisonKinds.w", predicate,
+            "compiler/syntax/returns/EarlyComparisonForms.w", forms,
+            "EarlyComparisonUse.w", root),
+        "example.early_comparison_use");
+    byte[] expectedArtifact = new BytecodeWriter().write(expected);
+    assertArrayEquals(expectedArtifact, artifact);
+    assertArrayEquals(
+        expectedArtifact,
+        NativeModuleCompilerHarness.compile(compiler, sources.reversed(), root));
+    Program decoded = new BytecodeReader().read(artifact);
+    assertEquals(
+        "wheeler.compiler.resolved_early_comparison_kinds::resolvedEarlyEqualityReturn",
+        decoded.functions().getFirst().name());
+    assertEquals(
+        "wheeler.compiler.early_comparison_forms::resolvedEarlyComparisonReturn",
+        decoded.functions().get(2).name());
+    assertEquals(
+        "example.early_comparison_use::accepted",
+        decoded.functions().get(3).name());
+  }
+
   private static List<List<String>> cyclicOrders(List<String> sources) {
     List<List<String>> orders = new ArrayList<>();
     for (int shift = 0; shift < sources.size(); shift += 1) {

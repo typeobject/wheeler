@@ -9,7 +9,7 @@
 | Area | Self-hosting compiler, physical closure, early comparisons |
 | Depends on | WIP-0049, WIP-0054, WIP-0057, WIP-0139, WIP-0140 |
 | Supersedes | Signature-stub physical routing for `EarlyComparisonForms.w` |
-| Superseded by | None |
+| Superseded by | WIP-0365 nested helper-owner graph execution |
 
 ## Summary
 
@@ -74,3 +74,4 @@ Rejected. WIP-0139 closes the direct imported product path.
 - [WIP-0136](WIP-0136-exact-call-conditioned-signed-literal-products.md)
 - [WIP-0139](WIP-0139-structured-imported-call-product-foundations.md)
 - [WIP-0140](WIP-0140-direct-void-call-syntax-physical-product.md)
+- [WIP-0365](WIP-0365-nested-helper-owner-graph-execution.md)

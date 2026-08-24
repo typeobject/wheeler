@@ -4,19 +4,66 @@ module wheeler.compiler.graphs.executable_owner_kinds;
 
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.constant_declarations;
+import wheeler.compiler.helper_abi;
 import wheeler.compiler.module_headers;
 import wheeler.compiler.module_linker;
+import wheeler.compiler.source_scalars;
+import wheeler.compiler.tokens;
 
 classical class ExecutableOwnerKinds {
   private const long EXECUTABLE_KIND_ARENA_BYTES = 98400;
 
-  /// Carries one validated physical module name and executable-member bit.
+  /// Carries one validated physical module name and executable-member count.
   public record ExecutableOwnerKind(
     long moduleStart,
     long moduleLength,
+    long helperCount,
     boolean executable,
     boolean valid
   ) {}
+
+  /// Returns the token after one complete bounded executable member.
+  public long executableFunctionEnd(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    long start,
+    long closeToken
+  ) {
+    long cursor = start;
+    while (cursor < closeToken) limit MAX_COMPILER_TOKENS {
+      if (
+        punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_OPEN_BRACE)
+      ) {
+        long depth = 1;
+        cursor += 1;
+        while (cursor < closeToken) limit MAX_COMPILER_TOKENS {
+          if (
+            punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_OPEN_BRACE)
+          ) {
+            depth += 1;
+          }
+
+          if (
+            punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_CLOSE_BRACE)
+          ) {
+            depth -= 1;
+            if (depth == 0) {
+              return cursor + 1;
+            }
+          }
+
+          cursor += 1;
+        }
+
+        return -1;
+      }
+
+      cursor += 1;
+    }
+
+    return -1;
+  }
 
   /// Classifies executable members without requiring imported constants or helpers.
   public ExecutableOwnerKind classifyExecutableOwner(borrow utf8 source) {
@@ -26,7 +73,7 @@ classical class ExecutableOwnerKinds {
     words tokenLengths = allocate(scratch, MAX_COMPILER_TOKENS);
     words module = allocate(scratch, 2);
     long tokenCount = scanSemanticTokens(source, tokenKinds, tokenStarts, tokenLengths);
-    ExecutableOwnerKind result = new ExecutableOwnerKind(0, 0, false, false);
+    ExecutableOwnerKind result = new ExecutableOwnerKind(0, 0, 0, false, false);
     if (-1 < tokenCount) {
       long body = moduleBodyStart(
         source,
@@ -63,12 +110,32 @@ classical class ExecutableOwnerKinds {
         }
 
         if (declarationsValid) {
-          if (member < tokenCount) {
+          long helperCount = 0;
+          long closeToken = tokenCount - 1;
+          while (member < closeToken) limit MAX_SCALAR_HELPERS {
+            long helperNext = executableFunctionEnd(
+              source,
+              tokenKinds,
+              tokenStarts,
+              member,
+              closeToken
+            );
+            if (member < helperNext) {
+              member = helperNext;
+              helperCount += 1;
+            } else {
+              declarationsValid = false;
+              member = closeToken;
+            }
+          }
+
+          if (member == closeToken) {
             result = new ExecutableOwnerKind(
               module[0],
               module[1],
-              member < tokenCount - 1,
-              true
+              helperCount,
+              0 < helperCount,
+              declarationsValid
             );
           }
         }

@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(220, result.selected());
-    assertEquals(220, result.passed());
+    assertEquals(222, result.selected());
+    assertEquals(222, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -56,6 +56,14 @@ final class NativeCompilerPackageTest {
           report,
           "nativecompilernamedconditionalbasetests",
           "native_compiler_named_conditional_bases",
+          name);
+    }
+    for (String name : List.of(
+        "classifiesFirstResolvedEqualityForm", "classifiesFinalResolvedOrderingForm")) {
+      assertCase(
+          report,
+          "nativecompilerearlycomparisonformtests",
+          "native_compiler_early_comparison_forms",
           name);
     }
     for (String name : List.of(

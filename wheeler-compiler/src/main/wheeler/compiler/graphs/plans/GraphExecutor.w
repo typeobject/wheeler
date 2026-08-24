@@ -183,7 +183,7 @@ classical class BoundedGraphPlanExecutor {
       if (kind.valid) {
         if (kind.executable) {
           result = new ExecutableOwnerProbe(
-            /* helperCount= */ 0,
+            kind.helperCount,
             kind.moduleStart,
             kind.moduleLength,
             true

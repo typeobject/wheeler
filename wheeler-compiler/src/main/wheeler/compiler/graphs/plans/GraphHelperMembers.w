@@ -4,57 +4,14 @@ module wheeler.compiler.graphs.helper_members;
 
 import wheeler.compiler.class_constants;
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.graphs.executable_owner_kinds;
 import wheeler.compiler.module_headers;
 import wheeler.compiler.module_linker;
-import wheeler.compiler.source_scalars;
-import wheeler.compiler.tokens;
 
 classical class GraphHelperMembers {
   private const long HELPER_MEMBER_ARENA_BYTES = 98400;
   private const long MAX_GRAPH_NODES = 7;
   private const long MAX_HELPERS = 23;
-
-  private long functionEnd(
-    borrow utf8 source,
-    borrow mut words tokenKinds,
-    borrow mut words tokenStarts,
-    long start,
-    long closeToken
-  ) {
-    long cursor = start;
-    while (cursor < closeToken) limit MAX_COMPILER_TOKENS {
-      if (
-        punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_OPEN_BRACE)
-      ) {
-        long depth = 1;
-        cursor += 1;
-        while (cursor < closeToken) limit MAX_COMPILER_TOKENS {
-          if (
-            punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_OPEN_BRACE)
-          ) {
-            depth += 1;
-          }
-
-          if (
-            punctuationAt(source, tokenKinds, tokenStarts, cursor, PUNCTUATION_CLOSE_BRACE)
-          ) {
-            depth -= 1;
-            if (depth == 0) {
-              return cursor + 1;
-            }
-          }
-
-          cursor += 1;
-        }
-
-        return -1;
-      }
-
-      cursor += 1;
-    }
-
-    return -1;
-  }
 
   private long helperBoundary(
     borrow utf8 source,
@@ -67,7 +24,7 @@ classical class GraphHelperMembers {
     long cursor = memberStart;
     long helper = 0;
     while (helper < helperCount) limit MAX_HELPERS {
-      long next = functionEnd(source, tokenKinds, tokenStarts, cursor, closeToken);
+      long next = executableFunctionEnd(source, tokenKinds, tokenStarts, cursor, closeToken);
       if (cursor < next) {} else {
         return -1;
       }

@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests, helper syntax |
 | Depends on | WIP-0363 |
 | Supersedes | Product-only helper-value classifier evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0365 nested helper-owner graph execution |
 
 ## Summary
 
@@ -83,3 +83,4 @@ Rejected. One physical classifier and one evidence boundary own the work.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0170](WIP-0170-direct-helper-value-kind-physical-product.md)
 - [WIP-0363](WIP-0363-native-compiler-borrowed-intrinsic-shape-suite.md)
+- [WIP-0365](WIP-0365-nested-helper-owner-graph-execution.md)

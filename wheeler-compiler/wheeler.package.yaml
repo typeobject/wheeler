@@ -131,6 +131,16 @@ targets:
       - "src/test/wheeler/compiler/NativeCompilerCallWidthTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilerearlycomparisonformtests"
+    root: "src/test/wheeler/compiler/returns/comparisons/NativeCompilerEarlyComparisonFormTests.w"
+    module: "wheeler.compiler.tests.native_compiler_early_comparison_forms"
+    sources:
+      - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
+      - "src/main/wheeler/compiler/syntax/returns/EarlyComparisonForms.w"
+      - "src/main/wheeler/compiler/syntax/returns/ResolvedEarlyComparisonKinds.w"
+      - "src/test/wheeler/compiler/returns/comparisons/NativeCompilerEarlyComparisonFormTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerearlyreturnkindtests"
     root: "src/test/wheeler/compiler/returns/early/NativeCompilerEarlyReturnKindTests.w"
     module: "wheeler.compiler.tests.native_compiler_early_return_kinds"

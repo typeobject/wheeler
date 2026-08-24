@@ -9,7 +9,7 @@
 | Area | Self-hosting, modules, linking, graph execution |
 | Depends on | WIP-0007, WIP-0017, WIP-0028 |
 | Supersedes | The topology-specific execution work remaining in WIP-0007 |
-| Superseded by | WIP-0044 closure execution, then WIP-0356 36 KiB linked slots |
+| Superseded by | WIP-0044 closure execution, WIP-0356 36 KiB linked slots, then WIP-0365 nested helper owners |
 
 ## Summary
 
@@ -21,7 +21,7 @@ The first bound remains seven imported modules and 32,768 bytes per physical or 
 
 The old compiler validated graph facts before linking, then spread execution across direct, chain, fork, nested, mixed, and shared-DAG owners. A new legal edge pattern needed a classifier identity and an executor path. The redundant two-module chain was the last small example: the leaf fed its dependent while both remained direct root imports.
 
-Scalar constants and helpers no longer have that defect. One executor accepts every rooted acyclic constant or scalar-helper plan from two through seven imported modules. Direct, mixed, private, shared, redundant, chain, fork, and diamond graphs use the same plan facts. The plan records executable-owner kinds before linking an edge.
+Scalar constants and helpers no longer have that defect. One executor accepts every rooted acyclic constant or scalar-helper plan from two through seven imported modules. Direct, mixed, private, shared, redundant, chain, fork, and diamond graphs use the same plan facts. The plan records executable-owner kinds before linking an edge. WIP-0365 completes that invariant for nested executable chains by recording each physical owner's function count before graph mutation.
 
 This does not scale to the physical compiler closure. Real module graphs contain redundant direct edges, shared dependencies, independent branches, constants beside functions, and imports retained for their own public API. A closed list of picturesque trees cannot become a module system by acquiring more pictures.
 
