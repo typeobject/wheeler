@@ -7,7 +7,8 @@ import wheeler.compiler.graphs.matrix;
 classical class GraphOwnerMetadata {
   private const long MAX_GRAPH_NODES = 7;
   private const long MAX_LINKED_SOURCE_BYTES = 36864;
-  private const long MAX_SOURCE_BYTES = 32768;
+  private const long MAX_PHYSICAL_SOURCE_BYTES = 32768;
+  private const long SOURCE_TABLE_SLOT_BYTES = 36864;
   private const long OWNER_MARKER_BYTES = 4;
   private const long SOURCE_BYTE_LIMIT = 36865;
 
@@ -324,11 +325,11 @@ classical class GraphOwnerMetadata {
         setByte(sourceStorage, cursor, 47);
         setByte(sourceStorage, cursor + 1, 42);
         long moduleCursor = 0;
-        while (moduleCursor < moduleLengths[node]) limit MAX_SOURCE_BYTES {
+        while (moduleCursor < moduleLengths[node]) limit MAX_PHYSICAL_SOURCE_BYTES {
           setByte(
             sourceStorage,
             cursor + 2 + moduleCursor,
-            tableStorage[node * MAX_SOURCE_BYTES + moduleStarts[node] + moduleCursor]
+            tableStorage[node * SOURCE_TABLE_SLOT_BYTES + moduleStarts[node] + moduleCursor]
           );
           moduleCursor += 1;
         }

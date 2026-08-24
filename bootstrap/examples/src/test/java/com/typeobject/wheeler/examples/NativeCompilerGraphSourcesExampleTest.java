@@ -21,7 +21,7 @@ final class NativeCompilerGraphSourcesExampleTest {
 
         classical class CountedSourceTable {
           entry void main(borrow utf8 replacement, borrow mut bytes output) {
-            region tableArena = new region(/* bytes= */ 229432, /* allocations= */ 2);
+            region tableArena = new region(/* bytes= */ 258104, /* allocations= */ 2);
             bytes storage = allocateBytes(tableArena, SOURCE_TABLE_BYTES);
             words lengths = allocate(tableArena, SOURCE_TABLE_LENGTH_WORDS);
             region physicalArena = new region(/* bytes= */ 1, /* allocations= */ 1);
@@ -50,7 +50,7 @@ final class NativeCompilerGraphSourcesExampleTest {
             );
             assert(replaced);
             long length = sourceTableSlotLength(1, 2, lengths);
-            region copyArena = new region(/* bytes= */ 32768, /* allocations= */ 1);
+            region copyArena = new region(/* bytes= */ 36864, /* allocations= */ 1);
             bytes copiedBytes = allocateBytes(copyArena, length);
             long written = copySourceTableSlot(1, 2, storage, lengths, copiedBytes);
             assert(written == length);
@@ -73,10 +73,10 @@ final class NativeCompilerGraphSourcesExampleTest {
         "example.counted_source_table");
     VirtualMachine accepted = new VirtualMachine(
         acceptedProgram,
-        "linked".getBytes(StandardCharsets.UTF_8),
+        "x".repeat(36_864).getBytes(StandardCharsets.UTF_8),
         1);
 
-    accepted.run();
+    CompilerMachineRunner.runWithoutRewindHistory(accepted);
 
     assertArrayEquals(new byte[] {1}, accepted.hostOutput());
 
@@ -93,10 +93,10 @@ final class NativeCompilerGraphSourcesExampleTest {
         "example.counted_source_table");
     VirtualMachine oversized = new VirtualMachine(
         rejectedProgram,
-        "x".repeat(32_769).getBytes(StandardCharsets.UTF_8),
+        "x".repeat(36_865).getBytes(StandardCharsets.UTF_8),
         1);
 
-    oversized.run();
+    CompilerMachineRunner.runWithoutRewindHistory(oversized);
 
     assertArrayEquals(new byte[] {1}, oversized.hostOutput());
 
@@ -110,7 +110,7 @@ final class NativeCompilerGraphSourcesExampleTest {
         "linked".getBytes(StandardCharsets.UTF_8),
         1);
 
-    invalidIndex.run();
+    CompilerMachineRunner.runWithoutRewindHistory(invalidIndex);
 
     assertArrayEquals(new byte[] {1}, invalidIndex.hostOutput());
   }
@@ -125,7 +125,7 @@ final class NativeCompilerGraphSourcesExampleTest {
 
         classical class SourceTableCount {
           entry void main(borrow utf8 source, borrow mut bytes output) {
-            region tableArena = new region(/* bytes= */ 229432, /* allocations= */ 2);
+            region tableArena = new region(/* bytes= */ 258104, /* allocations= */ 2);
             bytes storage = allocateBytes(tableArena, SOURCE_TABLE_BYTES);
             words lengths = allocate(tableArena, SOURCE_TABLE_LENGTH_WORDS);
             boolean initialized = initializeSourceTable(

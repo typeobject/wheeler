@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Timeout;
 /** Proves the complete checked-in compiler package suite through the native runner. */
 final class NativeCompilerPackageTest {
   @Test
-  @Timeout(value = 22, unit = TimeUnit.MINUTES)
+  @Timeout(value = 25, unit = TimeUnit.MINUTES)
   void testsThePhysicalCompilerSpineNatively() throws Exception {
     Path compiler = Path.of("wheeler-compiler");
     PackageProject project = PackageProject.load(compiler);
@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(158, result.selected());
-    assertEquals(158, result.passed());
+    assertEquals(168, result.selected());
+    assertEquals(168, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -63,6 +63,11 @@ final class NativeCompilerPackageTest {
         "nativecompilernamedliteralcomparisonkindtests",
         "native_compiler_named_literal_comparison_kinds",
         "classifiesFinalLiteralComparisonConditional");
+    assertCase(
+        report,
+        "nativecompilernamedlocalassignmentkindtests",
+        "native_compiler_named_local_assignment_kinds",
+        "classifiesFinalNamedLocalAssignment");
     for (String name : List.of(
         "classifiesFinalNamedLocalConditional",
         "classifiesFinalNegatedNamedLocalConditional",
@@ -112,6 +117,23 @@ final class NativeCompilerPackageTest {
           report,
           "nativecompilerresolvedlocalconditionalsourcetests",
           "native_compiler_resolved_local_conditional_sources",
+          name);
+    }
+    assertCase(
+        report,
+        "nativecompilernamedlocalupdatekindtests",
+        "native_compiler_named_local_update_kinds",
+        "classifiesFinalNamedLocalUpdate");
+    for (String name : List.of(
+        "mapsFinalNamedLongLiteralBase",
+        "mapsFinalNamedLongPairBase",
+        "classifiesFinalNamedLongBinary",
+        "classifiesFinalNamedLongPair",
+        "classifiesFinalNamedGlobalUpdate")) {
+      assertCase(
+          report,
+          "nativecompilernamedlongoperationtests",
+          "native_compiler_named_long_operations",
           name);
     }
     for (String name : List.of(
@@ -237,6 +259,16 @@ final class NativeCompilerPackageTest {
           report,
           "nativecompilerresolvedlocalinequalitytests",
           "native_compiler_resolved_local_inequality",
+          name);
+    }
+    for (String name : List.of(
+        "classifiesFinalResolvedLocalUpdate",
+        "classifiesFinalNamedResolvedLocalUpdate",
+        "decodesFinalResolvedLocalUpdateTarget")) {
+      assertCase(
+          report,
+          "nativecompilerresolvedlocalupdatetests",
+          "native_compiler_resolved_local_updates",
           name);
     }
     for (String name : List.of(

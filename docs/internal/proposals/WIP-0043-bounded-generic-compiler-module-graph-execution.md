@@ -9,7 +9,7 @@
 | Area | Self-hosting, modules, linking, graph execution |
 | Depends on | WIP-0007, WIP-0017, WIP-0028 |
 | Supersedes | The topology-specific execution work remaining in WIP-0007 |
-| Superseded by | None |
+| Superseded by | WIP-0044 closure execution, then WIP-0356 36 KiB linked slots |
 
 ## Summary
 

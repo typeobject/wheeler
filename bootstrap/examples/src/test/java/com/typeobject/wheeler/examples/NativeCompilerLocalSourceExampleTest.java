@@ -20,6 +20,17 @@ class NativeCompilerLocalSourceExampleTest {
   }
 
   @Test
+  void compilesCanonicalNamedLongOperationsByteForByte() throws Exception {
+    assertCanonicalLocalModule(
+        "syntax/locals/NamedLongOperations.w",
+        "named_long_operations",
+        "namedLongLiteralBase",
+        6,
+        "compiler/ir/ResolvedStatements.w",
+        "compiler/ir/StatementKinds.w");
+  }
+
+  @Test
   void compilesCanonicalNamedLocalUpdateKindsByteForByte() throws Exception {
     assertCanonicalLocalModule(
         "syntax/updates/NamedLocalUpdateKinds.w",

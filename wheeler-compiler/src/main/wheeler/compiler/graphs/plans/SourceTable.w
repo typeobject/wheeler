@@ -3,14 +3,16 @@
 module wheeler.compiler.graphs.source_table;
 
 classical class BoundedSourceTable {
-  private const long MAX_SOURCE_BYTES = 32768;
-  private const long SOURCE_BYTE_LIMIT = 32769;
+  private const long MAX_PHYSICAL_SOURCE_BYTES = 32768;
+  private const long SOURCE_TABLE_SLOT_BYTES = 36864;
+  private const long PHYSICAL_SOURCE_BYTE_LIMIT = 32769;
+  private const long SOURCE_TABLE_SLOT_BYTE_LIMIT = 36865;
   /// Names the number of length words required by one source table.
   public const long SOURCE_TABLE_LENGTH_WORDS = 7;
   /// Names the complete fixed-slot source table byte capacity.
-  public const long SOURCE_TABLE_BYTES = 229376;
+  public const long SOURCE_TABLE_BYTES = 258048;
   /// Names the byte arena for one table and its seven-word length column.
-  public const long SOURCE_TABLE_ARENA_BYTES = 229432;
+  public const long SOURCE_TABLE_ARENA_BYTES = 258104;
   private const long SOURCE_TABLE_COUNT_LIMIT = 8;
 
   private boolean tableStorageValid(borrow mut bytes storage, borrow mut words lengths) {
@@ -21,14 +23,32 @@ classical class BoundedSourceTable {
     return bufferLength(lengths) == SOURCE_TABLE_LENGTH_WORDS;
   }
 
-  private boolean sourceFits(borrow utf8 source) {
+  private boolean physicalSourceFits(borrow utf8 source) {
     long length = bufferLength(source);
-    if (length < SOURCE_BYTE_LIMIT) {} else {
+    if (length < PHYSICAL_SOURCE_BYTE_LIMIT) {} else {
       return false;
     }
 
     long cursor = 0;
-    while (cursor < length) limit MAX_SOURCE_BYTES {
+    while (cursor < length) limit MAX_PHYSICAL_SOURCE_BYTES {
+      if (utf8Width(source, cursor) == 1) {} else {
+        return false;
+      }
+
+      cursor += 1;
+    }
+
+    return true;
+  }
+
+  private boolean linkedSourceFits(borrow utf8 source) {
+    long length = bufferLength(source);
+    if (length < SOURCE_TABLE_SLOT_BYTE_LIMIT) {} else {
+      return false;
+    }
+
+    long cursor = 0;
+    while (cursor < length) limit SOURCE_TABLE_SLOT_BYTES {
       if (utf8Width(source, cursor) == 1) {} else {
         return false;
       }
@@ -47,14 +67,14 @@ classical class BoundedSourceTable {
   ) {
     long length = bufferLength(source);
     long oldLength = lengths[index];
-    long slotStart = index * MAX_SOURCE_BYTES;
+    long slotStart = index * SOURCE_TABLE_SLOT_BYTES;
     long cursor = 0;
-    while (cursor < length) limit MAX_SOURCE_BYTES {
+    while (cursor < length) limit SOURCE_TABLE_SLOT_BYTES {
       setByte(storage, slotStart + cursor, utf8Scalar(source, cursor));
       cursor += 1;
     }
 
-    while (cursor < oldLength) limit MAX_SOURCE_BYTES {
+    while (cursor < oldLength) limit SOURCE_TABLE_SLOT_BYTES {
       setByte(storage, slotStart + cursor, 0);
       cursor += 1;
     }
@@ -87,39 +107,39 @@ classical class BoundedSourceTable {
       return false;
     }
 
-    boolean valid = sourceFits(firstSource);
+    boolean valid = physicalSourceFits(firstSource);
     if (1 < sourceCount) {
-      if (sourceFits(secondSource)) {} else {
+      if (physicalSourceFits(secondSource)) {} else {
         valid = false;
       }
     }
 
     if (2 < sourceCount) {
-      if (sourceFits(thirdSource)) {} else {
+      if (physicalSourceFits(thirdSource)) {} else {
         valid = false;
       }
     }
 
     if (3 < sourceCount) {
-      if (sourceFits(fourthSource)) {} else {
+      if (physicalSourceFits(fourthSource)) {} else {
         valid = false;
       }
     }
 
     if (4 < sourceCount) {
-      if (sourceFits(fifthSource)) {} else {
+      if (physicalSourceFits(fifthSource)) {} else {
         valid = false;
       }
     }
 
     if (5 < sourceCount) {
-      if (sourceFits(sixthSource)) {} else {
+      if (physicalSourceFits(sixthSource)) {} else {
         valid = false;
       }
     }
 
     if (6 < sourceCount) {
-      if (sourceFits(seventhSource)) {} else {
+      if (physicalSourceFits(seventhSource)) {} else {
         valid = false;
       }
     }
@@ -184,7 +204,7 @@ classical class BoundedSourceTable {
       return false;
     }
 
-    boolean validReplacement = sourceFits(replacement);
+    boolean validReplacement = linkedSourceFits(replacement);
     if (validReplacement) {} else {
       return false;
     }
@@ -201,7 +221,7 @@ classical class BoundedSourceTable {
     assert(0 < index + 1);
     assert(index < sourceCount);
     long length = lengths[index];
-    assert(length < SOURCE_BYTE_LIMIT);
+    assert(length < SOURCE_TABLE_SLOT_BYTE_LIMIT);
     return length;
   }
 
@@ -216,9 +236,9 @@ classical class BoundedSourceTable {
     long length = sourceTableSlotLength(index, sourceCount, lengths);
     assert(bufferLength(storage) == SOURCE_TABLE_BYTES);
     assert(bufferLength(output) == length);
-    long slotStart = index * MAX_SOURCE_BYTES;
+    long slotStart = index * SOURCE_TABLE_SLOT_BYTES;
     long cursor = 0;
-    while (cursor < length) limit MAX_SOURCE_BYTES {
+    while (cursor < length) limit SOURCE_TABLE_SLOT_BYTES {
       setByte(output, cursor, storage[slotStart + cursor]);
       cursor += 1;
     }

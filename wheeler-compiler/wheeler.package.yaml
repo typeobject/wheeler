@@ -178,6 +178,15 @@ targets:
       - "src/test/wheeler/compiler/conditionals/NativeCompilerNamedLiteralComparisonKindTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilernamedlocalassignmentkindtests"
+    root: "src/test/wheeler/compiler/assignments/NativeCompilerNamedLocalAssignmentKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_named_local_assignment_kinds"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/assignments/NamedLocalAssignmentKinds.w"
+      - "src/test/wheeler/compiler/assignments/NativeCompilerNamedLocalAssignmentKindTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilernamedlocalconditionalkindtests"
     root: "src/test/wheeler/compiler/conditionals/NativeCompilerNamedLocalConditionalKindTests.w"
     module: "wheeler.compiler.tests.native_compiler_named_local_conditional_kinds"
@@ -194,6 +203,25 @@ targets:
       - "src/main/wheeler/compiler/ir/StatementKinds.w"
       - "src/main/wheeler/compiler/syntax/conditionals/NamedLocalConditionalValues.w"
       - "src/test/wheeler/compiler/conditionals/NativeCompilerNamedLocalConditionalValueTests.w"
+    test: true
+  - kind: "tool"
+    name: "nativecompilernamedlocalupdatekindtests"
+    root: "src/test/wheeler/compiler/updates/NativeCompilerNamedLocalUpdateKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_named_local_update_kinds"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/updates/NamedLocalUpdateKinds.w"
+      - "src/test/wheeler/compiler/updates/NativeCompilerNamedLocalUpdateKindTests.w"
+    test: true
+  - kind: "tool"
+    name: "nativecompilernamedlongoperationtests"
+    root: "src/test/wheeler/compiler/locals/NativeCompilerNamedLongOperationTests.w"
+    module: "wheeler.compiler.tests.native_compiler_named_long_operations"
+    sources:
+      - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/locals/NamedLongOperations.w"
+      - "src/test/wheeler/compiler/locals/NativeCompilerNamedLongOperationTests.w"
     test: true
   - kind: "tool"
     name: "nativecompilernamedreturnarithmetickindtests"
@@ -411,6 +439,15 @@ targets:
     sources:
       - "src/main/wheeler/compiler/syntax/returns/ResolvedLocalReturns.w"
       - "src/test/wheeler/compiler/returns/NativeCompilerResolvedLocalReturnTests.w"
+    test: true
+  - kind: "tool"
+    name: "nativecompilerresolvedlocalupdatetests"
+    root: "src/test/wheeler/compiler/updates/NativeCompilerResolvedLocalUpdateTests.w"
+    module: "wheeler.compiler.tests.native_compiler_resolved_local_updates"
+    sources:
+      - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
+      - "src/main/wheeler/compiler/syntax/updates/ResolvedLocalUpdates.w"
+      - "src/test/wheeler/compiler/updates/NativeCompilerResolvedLocalUpdateTests.w"
     test: true
   - kind: "tool"
     name: "nativecompilerresolvedlongoperationtests"
