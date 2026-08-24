@@ -9,7 +9,7 @@
 | Area | Native testing, manifests, package execution |
 | Depends on | WIP-0350, WIP-0354 |
 | Supersedes | Native 28,672-byte test-manifest bound |
-| Superseded by | WIP-0356 native compiler local update suite |
+| Superseded by | WIP-0356 local updates, then WIP-0358 native 36 KiB manifests |
 
 ## Summary
 
@@ -65,3 +65,4 @@ Rejected. Their capacities are not exhausted.
 - [WIP-0350](WIP-0350-native-28k-test-manifest-bound.md)
 - [WIP-0354](WIP-0354-native-compiler-conditional-mapping-suite.md)
 - [WIP-0356](WIP-0356-native-compiler-local-update-suite.md)
+- [WIP-0358](WIP-0358-native-36k-test-manifest-bound.md)

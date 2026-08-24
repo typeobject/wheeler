@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0356 |
 | Supersedes | Product-only Boolean and return-comparison evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0358 native 36 KiB test-manifest bound |
 
 ## Summary
 
@@ -91,3 +91,4 @@ Rejected. The four small owners share one scalar comparison boundary and the sam
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0356](WIP-0356-native-compiler-local-update-suite.md)
+- [WIP-0358](WIP-0358-native-36k-test-manifest-bound.md)
