@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(198, result.selected());
-    assertEquals(198, result.passed());
+    assertEquals(206, result.selected());
+    assertEquals(206, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -56,6 +56,27 @@ final class NativeCompilerPackageTest {
           report,
           "nativecompilernamedconditionalbasetests",
           "native_compiler_named_conditional_bases",
+          name);
+    }
+    for (String name : List.of(
+        "classifiesFinalEarlyReturn", "mapsFinalEarlyReturnLocalCount")) {
+      assertCase(
+          report,
+          "nativecompilerearlyreturnkindtests",
+          "native_compiler_early_return_kinds",
+          name);
+    }
+    for (String name : List.of(
+        "classifiesFinalSignedHelperGuardResult",
+        "classifiesFinalSignedComparisonGuardResult",
+        "classifiesFinalComputedComparisonGuardResult",
+        "classifiesComparisonGuardAdditionResult",
+        "classifiesComparisonGuardRemainderResult",
+        "classifiesComparisonGuardDivisionResult")) {
+      assertCase(
+          report,
+          "nativecompilerearlyreturnresultkindtests",
+          "native_compiler_early_return_result_kinds",
           name);
     }
     for (String name : List.of(

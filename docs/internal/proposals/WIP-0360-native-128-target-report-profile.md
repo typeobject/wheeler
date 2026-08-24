@@ -9,7 +9,7 @@
 | Area | Native testing, package reports, package commands |
 | Depends on | WIP-0268, WIP-0359 |
 | Supersedes | Native 64-target package report profile |
-| Superseded by | Wider profiles backed by exact exhaustion evidence |
+| Superseded by | WIP-0361 native compiler early-return kind suite |
 
 ## Summary
 
@@ -62,3 +62,4 @@ Rejected. Package reduction is single-pass authority. Persistent snapshots exhau
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0268](WIP-0268-native-package-test-report-identity.md)
 - [WIP-0359](WIP-0359-native-compiler-call-classifier-suite.md)
+- [WIP-0361](WIP-0361-native-compiler-early-return-kind-suite.md)

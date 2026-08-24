@@ -122,6 +122,24 @@ targets:
       - "src/test/wheeler/compiler/NativeCompilerCallWidthTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilerearlyreturnkindtests"
+    root: "src/test/wheeler/compiler/returns/early/NativeCompilerEarlyReturnKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_early_return_kinds"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/EarlyReturnKinds.w"
+      - "src/test/wheeler/compiler/returns/early/NativeCompilerEarlyReturnKindTests.w"
+    test: true
+  - kind: "tool"
+    name: "nativecompilerearlyreturnresultkindtests"
+    root: "src/test/wheeler/compiler/returns/early/NativeCompilerEarlyReturnResultKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_early_return_result_kinds"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/EarlyReturnResultKinds.w"
+      - "src/test/wheeler/compiler/returns/early/NativeCompilerEarlyReturnResultKindTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerearlyreturnsourcetests"
     root: "src/test/wheeler/compiler/returns/NativeCompilerEarlyReturnSourceTests.w"
     module: "wheeler.compiler.tests.native_compiler_early_return_sources"
