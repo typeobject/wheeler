@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests, borrowed storage |
 | Depends on | WIP-0362 |
 | Supersedes | Product-only borrowed-intrinsic shape evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0364 native compiler helper-value suite |
 
 ## Summary
 
@@ -75,3 +75,4 @@ Rejected. Opcode identity and lowering layout have separate semantic ownership.
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0138](WIP-0138-direct-borrowed-intrinsic-shape-adoption.md)
 - [WIP-0362](WIP-0362-native-40k-test-manifest-bound.md)
+- [WIP-0364](WIP-0364-native-compiler-helper-value-suite.md)

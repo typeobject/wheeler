@@ -9,7 +9,7 @@
 | Area | Self-hosting compiler, physical closure, helper values |
 | Depends on | WIP-0049, WIP-0139, WIP-0169 |
 | Supersedes | Signature-stub routing for `HelperValueKinds.w` |
-| Superseded by | None |
+| Superseded by | WIP-0364 native compiler helper-value suite |
 
 ## Summary
 
@@ -84,3 +84,4 @@ Rejected. This migration replaces one existing route in place.
 - [WIP-0049](WIP-0049-bounded-native-source-product-compilation.md)
 - [WIP-0139](WIP-0139-structured-imported-call-product-foundations.md)
 - [WIP-0169](WIP-0169-direct-helper-result-kind-physical-product.md)
+- [WIP-0364](WIP-0364-native-compiler-helper-value-suite.md)

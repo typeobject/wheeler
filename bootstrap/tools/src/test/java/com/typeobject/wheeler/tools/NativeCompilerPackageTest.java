@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Timeout;
 /** Proves the complete checked-in compiler package suite through the native runner. */
 final class NativeCompilerPackageTest {
   @Test
-  @Timeout(value = 31, unit = TimeUnit.MINUTES)
+  @Timeout(value = 41, unit = TimeUnit.MINUTES)
   void testsThePhysicalCompilerSpineNatively() throws Exception {
     Path compiler = Path.of("wheeler-compiler");
     PackageProject project = PackageProject.load(compiler);
@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(210, result.selected());
-    assertEquals(210, result.passed());
+    assertEquals(220, result.selected());
+    assertEquals(220, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -533,6 +533,23 @@ final class NativeCompilerPackageTest {
         "nativecompilerhelpersignaturetests",
         "native_compiler_helper_signatures",
         "checksBooleanParameterHelper");
+    for (String name : List.of(
+        "classifiesOwnedAllocation",
+        "classifiesSevenArgumentVoidCall",
+        "classifiesBorrowedMapMutation",
+        "classifiesSevenLocalCall",
+        "classifiesTerminalLocalCallRange",
+        "classifiesTerminalLocalReturnRange",
+        "classifiesTerminalBooleanReturnRange",
+        "classifiesHelperCallReturn",
+        "classifiesFinalBorrowedReturn",
+        "classifiesFinalBorrowedLocal")) {
+      assertCase(
+          report,
+          "nativecompilerhelpervaluekindtests",
+          "native_compiler_helper_value_kinds",
+          name);
+    }
     assertCase(
         report,
         "nativecompileridentifierstarttests",

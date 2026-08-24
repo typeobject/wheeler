@@ -176,6 +176,17 @@ targets:
       - "src/test/wheeler/compiler/helpers/NativeCompilerHelperSignatureTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilerhelpervaluekindtests"
+    root: "src/test/wheeler/compiler/helpers/NativeCompilerHelperValueKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_helper_value_kinds"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/calls/VoidCallSourceKinds.w"
+      - "src/main/wheeler/compiler/syntax/helpers/HelperValueKinds.w"
+      - "src/main/wheeler/compiler/syntax/intrinsics/BorrowedIntrinsicKinds.w"
+      - "src/test/wheeler/compiler/helpers/NativeCompilerHelperValueKindTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompileridentifierstarttests"
     root: "src/test/wheeler/compiler/syntax/NativeCompilerIdentifierStartTests.w"
     module: "wheeler.compiler.tests.native_compiler_identifier_starts"
