@@ -3,6 +3,7 @@ package com.typeobject.wheeler.tools;
 import com.typeobject.wheeler.compiler.SourceDocumentation;
 import com.typeobject.wheeler.compiler.SourceDocumentation.Declaration;
 import com.typeobject.wheeler.compiler.SourceDocumentation.FileDocumentation;
+import com.typeobject.wheeler.compiler.SourceTooling;
 import com.typeobject.wheeler.packageformat.PackageFormatException;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -91,13 +92,14 @@ final class DocumentationBundleCommand {
           "exact result " + example.resultIdentity()));
     }
     for (Input source : wheeler) {
-      List<SourceDocumentation.Diagnostic> diagnostics = SourceDocumentation.checkFile(source.text());
-      if (!diagnostics.isEmpty()) {
-        var first = diagnostics.getFirst();
+      SourceDocumentation.Analysis checked = SourceTooling.checkDocumentation(
+          source.text().getBytes(StandardCharsets.UTF_8));
+      if (!checked.diagnostics().isEmpty()) {
+        var first = checked.diagnostics().getFirst();
         throw new PackageFormatException(first.code() + " " + source.logicalPath() + ":"
             + first.line() + ":" + first.column() + " " + first.message());
       }
-      FileDocumentation documentation = SourceDocumentation.extract(source.text());
+      FileDocumentation documentation = checked.documentation();
       String owner = documentation.module().isEmpty()
           ? "source/" + stripSuffix(source.logicalPath(), ".w")
           : documentation.module();

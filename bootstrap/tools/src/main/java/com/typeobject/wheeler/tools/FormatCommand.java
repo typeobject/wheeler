@@ -1,7 +1,7 @@
 package com.typeobject.wheeler.tools;
 
 import com.typeobject.wheeler.compiler.CompilerException;
-import com.typeobject.wheeler.compiler.SourceFormatter;
+import com.typeobject.wheeler.compiler.SourceTooling;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -52,22 +52,22 @@ final class FormatCommand {
       PrintStream out,
       PrintStream error) throws IOException {
     String source = SourceCommandInputs.readStdin(input, "Formatter");
-    String formatted;
+    byte[] original = source.getBytes(StandardCharsets.UTF_8);
+    byte[] formatted;
     try {
-      formatted = SourceFormatter.format(source);
+      formatted = SourceTooling.format(original).source();
     } catch (CompilerException exception) {
       syntaxDiagnostic("<stdin>", exception, error);
       return 1;
     }
-    byte[] bytes = formatted.getBytes(StandardCharsets.UTF_8);
-    requireOutputLimit(bytes, "<stdin>");
+    requireOutputLimit(formatted, "<stdin>");
     if (check) {
-      if (!formatted.equals(source)) {
+      if (!Arrays.equals(formatted, original)) {
         differenceDiagnostic("<stdin>", out);
         return 1;
       }
     } else {
-      out.write(bytes);
+      out.write(formatted);
       out.flush();
     }
     return 0;
@@ -83,8 +83,7 @@ final class FormatCommand {
     boolean syntaxFailure = false;
     for (SourceCommandInputs.SourceFile source : sources) {
       try {
-        String text = SourceFormatter.format(source.text());
-        byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
+        byte[] bytes = SourceTooling.format(source.bytes()).source();
         requireOutputLimit(bytes, source.path().toString());
         formatted.add(new FormattedSource(source, bytes));
       } catch (CompilerException exception) {

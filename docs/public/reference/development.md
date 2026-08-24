@@ -76,6 +76,12 @@ canonical order, including required `Effects`, `Inverse`, `Coherent`, and
 Selections may contain at most 65,535 files. Duplicate normalized paths, links,
 malformed UTF-8, and non-Wheeler inputs fail.
 
+The hosted bootstrap routes formatting, documentation checks, and bundle API
+extraction through one byte-oriented source-tooling boundary. It returns owned
+canonical bytes and one minimal single edit, or parser-owned documentation and
+ordered diagnostics from one lossless scan. No editor adapter ships yet, and this
+hosted API does not claim the remaining Wheeler-native cutover.
+
 ## Manual bundle
 
 ```text

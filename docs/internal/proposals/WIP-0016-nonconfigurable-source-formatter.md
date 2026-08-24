@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler tools, compiler, syntax, documentation, and package maintainers |
 | Created | 2026-07-18 |
-| Updated | 2026-08-13 |
+| Updated | 2026-08-24 |
 | Area | Source formatting, documentation comments, diagnostics, editor and build tooling |
 | Depends on | WIP-0005, WIP-0006 |
 | Supersedes | None |
@@ -740,6 +740,7 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 - [x] Parser-owned bootstrap member ranges cover public, entry, reversible, coherent, unitary, theorem, and experiment declarations. They also enforce private-helper exemptions, adjacent summaries, canonical facet order, duplicate facets, and required `Effects`, `Inverse`, `Coherent`, and `Adjoint` facets through `WDOC002..004` and `WDOC006..010`. Malformed delimiter recovery stops formatting before output.
 - [x] `wheeler format`, `--check`, and `--stdin` share bounded strict-UTF-8 physical traversal with `check-docs`, parse every input before publication, report stable `WFMT001..004` diagnostics, preserve ordinary POSIX modes, validate sibling temporary files, and require atomic canonical-order replacement.
 - [x] `wheeler check-docs` and `--stdin` perform bounded strict-UTF-8 reads, reject duplicate/unsafe/non-source inputs, traverse physical files in canonical path order, print stable ordered `WDOC` diagnostics, and write nothing.
+- [x] The hosted formatter and documentation checker expose one byte-oriented `SourceTooling` boundary. It accepts only explicit strict UTF-8, returns cloned canonical bytes and one longest-common-prefix/suffix edit, and exports documentation records plus diagnostics from one lossless scan. Formatter, documentation, and bundle commands consume that boundary.
 - [x] Every checked-in `.w` example has an authored first-content `//!` summary and every required declaration has adjacent `///` documentation with required facets. The compiler test walks the complete source tree.
 - [x] Every checked-in `.w` example is canonical under the stage-0 formatter. The compiler test rejects drift and the command check is clean.
 - [ ] Editor integrations call shared libraries instead of reproduce rules.
@@ -781,6 +782,8 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 - [x] LF, one final newline, two-space indentation, and fixed code layout derive only from formatter constants. Differential LF, CRLF, and CR fixtures produce identical canonical bytes.
 
 - [x] The formatter and checker APIs accept only explicit source bytes and paths. They read no configuration, environment, locale, terminal, editor, clock, random, or network state. Line width and indentation are compile-time constants.
+
+- [x] The byte API returns owned output arrays, an exactly applicable minimal single edit, parser-owned documentation, and immutable ordered diagnostics. Malformed UTF-8 produces no result.
 
 - [ ] Stage-0 and Wheeler implementations agree byte-for-byte on formatting and by code, target, and source range on documentation diagnostics.
 

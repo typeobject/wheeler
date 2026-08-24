@@ -48,11 +48,30 @@ public final class SourceDocumentation {
     }
   }
 
+  /** Parser-owned documentation and diagnostics from one lossless source scan. */
+  public record Analysis(FileDocumentation documentation, List<Diagnostic> diagnostics) {
+    public Analysis {
+      if (documentation == null || diagnostics == null) {
+        throw new IllegalArgumentException("Invalid source documentation analysis");
+      }
+      diagnostics = List.copyOf(diagnostics);
+    }
+  }
+
   private SourceDocumentation() {}
 
-  /** Exports parser-owned module and selected declaration documentation without reparsing syntax. */
-  public static FileDocumentation extract(String source) {
+  /** Extracts and checks documentation through one shared lossless source scan. */
+  public static Analysis analyze(String source) {
     SourceConcreteSyntax.Document document = SourceConcreteSyntax.scan(source);
+    return new Analysis(extract(document), checkFile(document));
+  }
+
+  /** Exports parser-owned module and selected declaration documentation. */
+  public static FileDocumentation extract(String source) {
+    return extract(SourceConcreteSyntax.scan(source));
+  }
+
+  private static FileDocumentation extract(SourceConcreteSyntax.Document document) {
     Map<Integer, List<Element>> comments = leadingDeclarationDocumentation(document);
     String module = "";
     List<Declaration> declarations = new ArrayList<>();
@@ -88,7 +107,10 @@ public final class SourceDocumentation {
 
   /** Checks file documentation rules implemented by the initial concrete-syntax slice. */
   public static List<Diagnostic> checkFile(String source) {
-    SourceConcreteSyntax.Document document = SourceConcreteSyntax.scan(source);
+    return checkFile(SourceConcreteSyntax.scan(source));
+  }
+
+  private static List<Diagnostic> checkFile(SourceConcreteSyntax.Document document) {
     List<SourceConcreteSyntax.Element> elements = document.elements();
     int first = firstContent(elements);
     int documentation = findFileDocumentation(elements);
