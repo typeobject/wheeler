@@ -9,7 +9,7 @@
 | Area | Native testing, source plans, package execution |
 | Depends on | WIP-0309, WIP-0352 |
 | Supersedes | Native 32,768-byte source-plan bound |
-| Superseded by | Wider bounds backed by exact exhaustion evidence |
+| Superseded by | WIP-0354 native compiler conditional mapping suite |
 
 ## Summary
 
@@ -68,3 +68,4 @@ Rejected. Source transport and compiled artifacts have separate validation and s
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0309](WIP-0309-native-transitive-source-plan-bound.md)
 - [WIP-0352](WIP-0352-native-compiler-conditional-classifier-suite.md)
+- [WIP-0354](WIP-0354-native-compiler-conditional-mapping-suite.md)

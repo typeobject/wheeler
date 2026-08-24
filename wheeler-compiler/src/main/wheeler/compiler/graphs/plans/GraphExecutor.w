@@ -16,9 +16,9 @@ import wheeler.compiler.module_linker;
 
 classical class BoundedGraphPlanExecutor {
   private const long MAX_GRAPH_NODES = 7;
-  private const long MAX_LINKED_SOURCE_BYTES = 32768;
+  private const long MAX_LINKED_SOURCE_BYTES = 36864;
   private const long OWNER_METADATA_ARENA_BYTES = 1472;
-  private const long SOURCE_BYTE_LIMIT = 32769;
+  private const long SOURCE_BYTE_LIMIT = 36865;
 
   /// Carries one bounded graph-plan execution result.
   public record GraphPlanExecution(long length, long codeStart) {}

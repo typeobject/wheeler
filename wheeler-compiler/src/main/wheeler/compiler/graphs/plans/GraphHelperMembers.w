@@ -13,7 +13,6 @@ classical class GraphHelperMembers {
   private const long HELPER_MEMBER_ARENA_BYTES = 98400;
   private const long MAX_GRAPH_NODES = 7;
   private const long MAX_HELPERS = 23;
-  private const long MAX_LINKED_SOURCE_BYTES = 32768;
 
   private long functionEnd(
     borrow utf8 source,

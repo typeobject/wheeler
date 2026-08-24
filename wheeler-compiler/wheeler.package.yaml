@@ -140,6 +140,16 @@ targets:
       - "src/test/wheeler/compiler/ir/NativeCompilerInstructionFormTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilerliteralcomparisonoperationtests"
+    root: "src/test/wheeler/compiler/conditionals/NativeCompilerLiteralComparisonOperationTests.w"
+    module: "wheeler.compiler.tests.native_compiler_literal_comparison_operations"
+    sources:
+      - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/conditionals/LiteralComparisonOperations.w"
+      - "src/test/wheeler/compiler/conditionals/NativeCompilerLiteralComparisonOperationTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilernamedbooleanreturnkindtests"
     root: "src/test/wheeler/compiler/returns/NativeCompilerNamedBooleanReturnKindTests.w"
     module: "wheeler.compiler.tests.native_compiler_named_boolean_return_kinds"
@@ -147,6 +157,16 @@ targets:
       - "src/main/wheeler/compiler/ir/StatementKinds.w"
       - "src/main/wheeler/compiler/syntax/returns/NamedBooleanReturnKinds.w"
       - "src/test/wheeler/compiler/returns/NativeCompilerNamedBooleanReturnKindTests.w"
+    test: true
+  - kind: "tool"
+    name: "nativecompilernamedconditionalbasetests"
+    root: "src/test/wheeler/compiler/conditionals/NativeCompilerNamedConditionalBaseTests.w"
+    module: "wheeler.compiler.tests.native_compiler_named_conditional_bases"
+    sources:
+      - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/conditionals/NamedConditionalBases.w"
+      - "src/test/wheeler/compiler/conditionals/NativeCompilerNamedConditionalBaseTests.w"
     test: true
   - kind: "tool"
     name: "nativecompilernamedliteralcomparisonkindtests"

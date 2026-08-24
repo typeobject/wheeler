@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Timeout;
 /** Proves the complete checked-in compiler package suite through the native runner. */
 final class NativeCompilerPackageTest {
   @Test
-  @Timeout(value = 17, unit = TimeUnit.MINUTES)
+  @Timeout(value = 22, unit = TimeUnit.MINUTES)
   void testsThePhysicalCompilerSpineNatively() throws Exception {
     Path compiler = Path.of("wheeler-compiler");
     PackageProject project = PackageProject.load(compiler);
@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(152, result.selected());
-    assertEquals(152, result.passed());
+    assertEquals(158, result.selected());
+    assertEquals(158, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -39,6 +39,25 @@ final class NativeCompilerPackageTest {
             report, project.manifest().name(), TestReportRenderer.Format.JUNIT_XML),
         new String(result.junit(), StandardCharsets.UTF_8));
 
+    for (String name : List.of(
+        "classifiesFinalLiteralComparisonLessThan",
+        "classifiesFinalLiteralComparisonSubtract",
+        "classifiesFinalLiteralComparisonXor",
+        "classifiesFinalLiteralComparisonAssignment")) {
+      assertCase(
+          report,
+          "nativecompilerliteralcomparisonoperationtests",
+          "native_compiler_literal_comparison_operations",
+          name);
+    }
+    for (String name : List.of(
+        "mapsFinalNamedLiteralComparisonBase", "mapsFinalNamedLocalConditionalBase")) {
+      assertCase(
+          report,
+          "nativecompilernamedconditionalbasetests",
+          "native_compiler_named_conditional_bases",
+          name);
+    }
     assertCase(
         report,
         "nativecompilernamedliteralcomparisonkindtests",

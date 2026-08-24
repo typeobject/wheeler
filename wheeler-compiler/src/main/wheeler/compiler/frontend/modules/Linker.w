@@ -17,7 +17,7 @@ classical class ModuleLinker {
   private const long LINKER_TOKEN_ARENA_BYTES = 98304;
 
   /// Caps the first native linked-source slice.
-  public const long MAX_LINKED_SOURCE_BYTES = 32768;
+  public const long MAX_LINKED_SOURCE_BYTES = 36864;
   /// Caps canonical qualification rewrites in one linked root.
   public const long MAX_LINKED_QUALIFICATIONS = 64;
   /// Names the two-byte canonical module separator.

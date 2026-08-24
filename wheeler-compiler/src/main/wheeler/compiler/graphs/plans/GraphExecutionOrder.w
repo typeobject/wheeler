@@ -8,7 +8,7 @@ import wheeler.compiler.module_headers;
 
 classical class GraphExecutionOrder {
   private const long MAX_GRAPH_NODES = 7;
-  private const long MAX_LINKED_SOURCE_BYTES = 32768;
+  private const long MAX_LINKED_SOURCE_BYTES = 36864;
 
   private utf8 copySource(
     long node,
