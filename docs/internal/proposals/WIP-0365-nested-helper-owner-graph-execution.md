@@ -9,7 +9,7 @@
 | Area | Self-hosting, module graphs, helper linking, compiler package tests |
 | Depends on | WIP-0043, WIP-0143, WIP-0343, WIP-0364 |
 | Supersedes | Deferred helper counts for nested executable-owner chains |
-| Superseded by | Broader physical compiler graph execution |
+| Superseded by | WIP-0366 native compiler call-argument opcodes |
 
 ## Summary
 
@@ -82,3 +82,4 @@ Rejected. Owner counting belongs to physical source classification, not one topo
 - [WIP-0143](WIP-0143-direct-early-comparison-form-product.md)
 - [WIP-0343](WIP-0343-native-compiler-resolved-early-comparison-suite.md)
 - [WIP-0364](WIP-0364-native-compiler-helper-value-suite.md)
+- [WIP-0366](WIP-0366-native-compiler-call-argument-opcodes.md)

@@ -70,6 +70,17 @@ targets:
       - "src/test/wheeler/compiler/calls/NativeCompilerCallArgumentSourceTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilercallargumenttests"
+    root: "src/test/wheeler/compiler/backend/NativeCompilerCallArgumentTests.w"
+    module: "wheeler.compiler.tests.native_compiler_call_arguments"
+    sources:
+      - "src/main/wheeler/compiler/backend/calls/CallArguments.w"
+      - "src/main/wheeler/compiler/ir/Opcodes.w"
+      - "src/main/wheeler/compiler/ir/StorageOpcodes.w"
+      - "src/main/wheeler/compiler/ir/TypeCodes.w"
+      - "src/test/wheeler/compiler/backend/NativeCompilerCallArgumentTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilercallaritytests"
     root: "src/test/wheeler/compiler/NativeCompilerCallArityTests.w"
     module: "wheeler.compiler.tests.native_compiler_call_arity"

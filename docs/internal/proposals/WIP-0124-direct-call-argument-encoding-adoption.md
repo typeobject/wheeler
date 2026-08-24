@@ -9,7 +9,7 @@
 | Area | Self-hosting compiler, physical closure, call arguments |
 | Depends on | WIP-0049, WIP-0054, WIP-0056, WIP-0069, WIP-0073, WIP-0077 |
 | Supersedes | Parser projection for `CallArguments.w` |
-| Superseded by | None |
+| Superseded by | WIP-0366 native compiler call-argument opcodes |
 
 ## Summary
 
@@ -84,3 +84,4 @@ Rejected. Existing direct source-child and constant-child products close the art
 - [WIP-0069](WIP-0069-exact-scalar-return-expression-products.md)
 - [WIP-0073](WIP-0073-exact-root-conditional-return-products.md)
 - [WIP-0077](WIP-0077-exact-constant-return-products.md)
+- [WIP-0366](WIP-0366-native-compiler-call-argument-opcodes.md)
