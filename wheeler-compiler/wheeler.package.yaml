@@ -52,6 +52,15 @@ targets:
       - "src/test/wheeler/compiler/booleans/NativeCompilerBooleanDeclarationKindTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilercallargumentsourcetests"
+    root: "src/test/wheeler/compiler/calls/NativeCompilerCallArgumentSourceTests.w"
+    module: "wheeler.compiler.tests.native_compiler_call_argument_sources"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/calls/CallArgumentSources.w"
+      - "src/test/wheeler/compiler/calls/NativeCompilerCallArgumentSourceTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilercallaritytests"
     root: "src/test/wheeler/compiler/NativeCompilerCallArityTests.w"
     module: "wheeler.compiler.tests.native_compiler_call_arity"
@@ -120,6 +129,15 @@ targets:
       - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
       - "src/main/wheeler/compiler/syntax/returns/EarlyReturnSources.w"
       - "src/test/wheeler/compiler/returns/NativeCompilerEarlyReturnSourceTests.w"
+    test: true
+  - kind: "tool"
+    name: "nativecompilerfourargumentcalltests"
+    root: "src/test/wheeler/compiler/calls/NativeCompilerFourArgumentCallTests.w"
+    module: "wheeler.compiler.tests.native_compiler_four_argument_calls"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/calls/FourArgumentCalls.w"
+      - "src/test/wheeler/compiler/calls/NativeCompilerFourArgumentCallTests.w"
     test: true
   - kind: "tool"
     name: "nativecompilerhelpersignaturetests"
@@ -267,6 +285,15 @@ targets:
       - "src/main/wheeler/compiler/ir/StatementKinds.w"
       - "src/main/wheeler/compiler/syntax/returns/NamedSignedReturnKinds.w"
       - "src/test/wheeler/compiler/returns/NativeCompilerNamedSignedReturnKindTests.w"
+    test: true
+  - kind: "tool"
+    name: "nativecompileroneargumentcalltests"
+    root: "src/test/wheeler/compiler/calls/NativeCompilerOneArgumentCallTests.w"
+    module: "wheeler.compiler.tests.native_compiler_one_argument_calls"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/calls/OneArgumentCalls.w"
+      - "src/test/wheeler/compiler/calls/NativeCompilerOneArgumentCallTests.w"
     test: true
   - kind: "tool"
     name: "nativecompileropcodekindtests"
@@ -530,6 +557,24 @@ targets:
       - "src/main/wheeler/compiler/syntax/tokens/KeywordTokens.w"
       - "src/main/wheeler/compiler/syntax/tokens/SourceScalars.w"
       - "src/test/wheeler/compiler/NativeCompilerSyntaxTests.w"
+    test: true
+  - kind: "tool"
+    name: "nativecompilerthreeargumentcalltests"
+    root: "src/test/wheeler/compiler/calls/NativeCompilerThreeArgumentCallTests.w"
+    module: "wheeler.compiler.tests.native_compiler_three_argument_calls"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/calls/ThreeArgumentCalls.w"
+      - "src/test/wheeler/compiler/calls/NativeCompilerThreeArgumentCallTests.w"
+    test: true
+  - kind: "tool"
+    name: "nativecompilertwoargumentcallkindtests"
+    root: "src/test/wheeler/compiler/calls/NativeCompilerTwoArgumentCallKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_two_argument_call_kinds"
+    sources:
+      - "src/main/wheeler/compiler/ir/StatementKinds.w"
+      - "src/main/wheeler/compiler/syntax/calls/TwoArgumentCallKinds.w"
+      - "src/test/wheeler/compiler/calls/NativeCompilerTwoArgumentCallKindTests.w"
     test: true
   - kind: "tool"
     name: "nativecompilertypekindtests"

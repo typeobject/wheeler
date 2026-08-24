@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Timeout;
 /** Proves the complete checked-in compiler package suite through the native runner. */
 final class NativeCompilerPackageTest {
   @Test
-  @Timeout(value = 28, unit = TimeUnit.MINUTES)
+  @Timeout(value = 31, unit = TimeUnit.MINUTES)
   void testsThePhysicalCompilerSpineNatively() throws Exception {
     Path compiler = Path.of("wheeler-compiler");
     PackageProject project = PackageProject.load(compiler);
@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(179, result.selected());
-    assertEquals(179, result.passed());
+    assertEquals(198, result.selected());
+    assertEquals(198, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -56,6 +56,59 @@ final class NativeCompilerPackageTest {
           report,
           "nativecompilernamedconditionalbasetests",
           "native_compiler_named_conditional_bases",
+          name);
+    }
+    for (String name : List.of(
+        "classifiesFinalFirstNamedCallArgument", "classifiesFinalSecondNamedCallArgument")) {
+      assertCase(
+          report,
+          "nativecompilercallargumentsourcetests",
+          "native_compiler_call_argument_sources",
+          name);
+    }
+    for (String name : List.of(
+        "classifiesFinalFourArgumentCall",
+        "mapsFinalFourArgumentToken",
+        "decodesFinalFourArgumentThirdSource",
+        "decodesFinalFourArgumentFourthSource")) {
+      assertCase(
+          report,
+          "nativecompilerfourargumentcalltests",
+          "native_compiler_four_argument_calls",
+          name);
+    }
+    for (String name : List.of(
+        "classifiesFinalOneArgumentCall",
+        "classifiesFinalNamedOneArgumentCall",
+        "classifiesFinalBooleanOneArgumentCall",
+        "classifiesFinalSignedBooleanOneArgumentCall")) {
+      assertCase(
+          report,
+          "nativecompileroneargumentcalltests",
+          "native_compiler_one_argument_calls",
+          name);
+    }
+    for (String name : List.of(
+        "classifiesFinalThreeArgumentCall",
+        "mapsFinalThreeArgumentFirstToken",
+        "mapsFinalThreeArgumentSecondToken",
+        "mapsFinalThreeArgumentThirdToken",
+        "decodesFinalThreeArgumentSource")) {
+      assertCase(
+          report,
+          "nativecompilerthreeargumentcalltests",
+          "native_compiler_three_argument_calls",
+          name);
+    }
+    for (String name : List.of(
+        "classifiesFinalTwoArgumentCall",
+        "classifiesFinalSignedResultTwoArgumentCall",
+        "classifiesFinalBooleanTwoArgumentCall",
+        "classifiesFinalSignedBooleanTwoArgumentCall")) {
+      assertCase(
+          report,
+          "nativecompilertwoargumentcallkindtests",
+          "native_compiler_two_argument_call_kinds",
           name);
     }
     assertCase(
