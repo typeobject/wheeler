@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler documentation, compiler, package, tools, and website maintainers |
 | Created | 2026-07-18 |
-| Updated | 2026-08-13 |
+| Updated | 2026-08-24 |
 | Area | Wheeler API docs, Markdown manuals, fixed static rendering, links, search, publication |
 | Depends on | WIP-0006, WIP-0007, WIP-0009, WIP-0011, WIP-0016, WIP-0018 |
 | Supersedes | None |
@@ -281,6 +281,7 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 - [x] Schema-4 search, local manual and Wheeler API links, exact executable-example records, relative-page anchors, canonical heading anchors, root-escape rejection, missing-link diagnostics, strict bundle verification, deterministic serial and parallel generation, and malformed-source atomicity pass. Cross-package version links and proof references remain.
 - [ ] A Wheeler-written generator emits the stage-0 bundle byte-for-byte.
 - [x] Manuals and Wheeler declarations occupy disjoint identity namespaces. Generated API nodes come only from explicit `.w` roots, duplicate identities fail before publication, and no hand-authored API-page or Java extraction path can shadow them.
+- [x] Package-root `check-docs` walks validate public Wheeler sources and omit conventional `src/test/wheeler` fixtures by default. `--include-tests` adds those declarations explicitly. Standard input remains exact. Undocumented tests cannot weaken validation of `src/main/wheeler`.
 
 ## Testing and acceptance
 
@@ -297,7 +298,7 @@ WIP-0018 owns executable examples. The proof kernel owns proof validity. The pac
 - [x] `wheeler site --bundle <bundle-directory> -o <directory>` verifies and renders an existing immutable bundle without consulting manual or Wheeler source roots. Independent retries produce the same publication manifest.
 - [x] Bundle generation validates every manual, source, node, edge, and output before atomic directory publication. Malformed source and missing links leave no partial destination, and existing destinations are never overwritten.
 - [x] Schema-4 search contains each graph node once, and navigation contains each metadata-selected manual node once. `sidebar_children: false` excludes child pages from navigation without deleting their graph nodes. Package-private API selection remains.
-- [x] `reference/development.md` documents the implemented `wheeler docs` bundle, validation graph, inert payload copy, manifest, navigation, search, and atomic publication boundary. It also documents the local-only static `wheeler site` renderer.
+- [x] `reference/development.md` documents the implemented `wheeler docs` bundle, validation graph, inert payload copy, manifest, navigation, search, and atomic publication boundary. It also documents the local-only static `wheeler site` renderer and the public-source default for package-root documentation checks.
 
 ## Alternatives
 

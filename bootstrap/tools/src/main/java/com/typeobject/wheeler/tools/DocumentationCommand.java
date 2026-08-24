@@ -5,6 +5,8 @@ import com.typeobject.wheeler.compiler.SourceTooling;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -23,12 +25,31 @@ final class DocumentationCommand {
           SourceCommandInputs.readStdin(input, "Documentation").getBytes(StandardCharsets.UTF_8),
           out);
     }
-    if (args.length < 2 || Arrays.stream(args, 1, args.length)
-        .anyMatch(argument -> argument.startsWith("--"))) {
+    if (args.length < 2) {
       return usage(error);
     }
+    boolean includeTests = false;
+    ArrayList<String> inputs = new ArrayList<>();
+    for (String argument : Arrays.asList(args).subList(1, args.length)) {
+      if (argument.equals("--include-tests")) {
+        if (includeTests) {
+          return usage(error);
+        }
+        includeTests = true;
+      } else if (argument.startsWith("--")) {
+        return usage(error);
+      } else {
+        inputs.add(argument);
+      }
+    }
+    if (inputs.isEmpty()) {
+      return usage(error);
+    }
+    boolean includeTestSources = includeTests;
     List<SourceCommandInputs.SourceFile> sources = SourceCommandInputs.collect(
-        Arrays.asList(args).subList(1, args.length), "Documentation");
+        inputs,
+        "Documentation",
+        path -> includeTestSources || !isTestSource(path));
     int diagnostics = 0;
     for (SourceCommandInputs.SourceFile source : sources) {
       diagnostics += check(source.path().toString(), source.bytes(), out);
@@ -45,8 +66,20 @@ final class DocumentationCommand {
     return diagnostics.size();
   }
 
+  private static boolean isTestSource(Path path) {
+    for (int index = 0; index + 2 < path.getNameCount(); index++) {
+      if (path.getName(index).toString().equals("src")
+          && path.getName(index + 1).toString().equals("test")
+          && path.getName(index + 2).toString().equals("wheeler")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private static int usage(PrintStream error) {
-    error.println("Usage: wheeler check-docs <file-or-directory>... | --stdin");
+    error.println(
+        "Usage: wheeler check-docs [--include-tests] <file-or-directory>... | --stdin");
     return 2;
   }
 }

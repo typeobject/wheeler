@@ -62,11 +62,15 @@ several revisions ago.
 
 ```text
 wheeler check-docs <file-or-directory>...
+wheeler check-docs --include-tests <file-or-directory>...
 wheeler check-docs --stdin
 ```
 
 The command walks physical nonsymlink `.w` files in canonical path order, reads
-strict UTF-8, prints stable `WDOC` diagnostics, and changes no source.
+strict UTF-8, prints stable `WDOC` diagnostics, and changes no source. Directory
+walks validate public package sources by default and omit the conventional
+`src/test/wheeler` subtree. `--include-tests` adds that subtree. Standard input
+always validates the supplied source.
 
 Each file begins with a nonempty `//!` summary. Public declarations and
 Wheeler-semantic members receive adjacent nonempty `///` text. Facets follow their

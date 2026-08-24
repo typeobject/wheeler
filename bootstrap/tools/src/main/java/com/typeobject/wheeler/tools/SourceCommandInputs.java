@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /** Shared bounded, strict-UTF-8 input boundary for Wheeler source commands. */
 final class SourceCommandInputs {
@@ -26,7 +27,14 @@ final class SourceCommandInputs {
   private SourceCommandInputs() {}
 
   static List<SourceFile> collect(List<String> arguments, String commandName) throws IOException {
-    List<Path> paths = collectPaths(arguments, commandName);
+    return collect(arguments, commandName, ignored -> true);
+  }
+
+  static List<SourceFile> collect(
+      List<String> arguments,
+      String commandName,
+      Predicate<Path> included) throws IOException {
+    List<Path> paths = collectPaths(arguments, commandName, included);
     List<SourceFile> result = new ArrayList<>(paths.size());
     for (Path path : paths) {
       result.add(read(path, commandName));
@@ -43,26 +51,33 @@ final class SourceCommandInputs {
   }
 
   private static List<Path> collectPaths(
-      List<String> arguments, String commandName) throws IOException {
+      List<String> arguments,
+      String commandName,
+      Predicate<Path> included) throws IOException {
     List<Path> result = new ArrayList<>();
     Set<Path> identities = new HashSet<>();
     for (String argument : arguments) {
       Path requested = Path.of(argument).normalize();
       requirePhysical(requested, commandName);
       if (Files.isRegularFile(requested, LinkOption.NOFOLLOW_LINKS)) {
-        addSource(requested, identities, result, commandName);
+        if (included.test(requested)) {
+          addSource(requested, identities, result, commandName);
+        }
       } else if (Files.isDirectory(requested, LinkOption.NOFOLLOW_LINKS)) {
         List<Path> walked;
         try (var paths = Files.walk(requested)) {
           walked = paths.toList();
         }
         for (Path path : walked) {
-          if (Files.isSymbolicLink(path)) {
-            throw new IOException(commandName + " input contains a symbolic link: " + path);
-          }
-          if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)
-              && path.getFileName().toString().endsWith(".w")) {
-            addSource(path.normalize(), identities, result, commandName);
+          Path normalized = path.normalize();
+          if (included.test(normalized)) {
+            if (Files.isSymbolicLink(path)) {
+              throw new IOException(commandName + " input contains a symbolic link: " + path);
+            }
+            if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)
+                && path.getFileName().toString().endsWith(".w")) {
+              addSource(normalized, identities, result, commandName);
+            }
           }
         }
       } else {

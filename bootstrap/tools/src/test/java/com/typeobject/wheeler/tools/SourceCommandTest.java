@@ -86,6 +86,56 @@ class SourceCommandTest {
   }
 
   @Test
+  void checkDocsKeepsTestDeclarationsOutsideThePublicScopeByDefault() throws Exception {
+    Path packageRoot = temporary.resolve("package");
+    Path main = packageRoot.resolve("src/main/wheeler/Documented.w");
+    Path test = packageRoot.resolve("src/test/wheeler/UndocumentedTests.w");
+    Files.createDirectories(main.getParent());
+    Files.createDirectories(test.getParent());
+    Files.writeString(main, """
+        //! Documented public source.
+        classical class Documented {}
+        """);
+    Files.writeString(test, "classical class UndocumentedTests {}\n");
+    ByteArrayOutputStream outputBytes = new ByteArrayOutputStream();
+    PrintStream output = new PrintStream(outputBytes, true, StandardCharsets.UTF_8);
+    PrintStream error = new PrintStream(new ByteArrayOutputStream());
+
+    assertEquals(
+        0,
+        Wheeler.execute(
+            new String[] {"check-docs", packageRoot.toString()}, output, error));
+    assertEquals("", outputBytes.toString(StandardCharsets.UTF_8));
+
+    assertEquals(
+        1,
+        Wheeler.execute(
+            new String[] {
+                "check-docs", "--include-tests", packageRoot.toString()
+            },
+            output,
+            error));
+    assertTrue(outputBytes.toString(StandardCharsets.UTF_8).contains(
+        "WDOC001 " + test + ":1:1 source file requires nonempty //! documentation"));
+
+    Files.write(test, new byte[] {(byte) 0xc0});
+    outputBytes.reset();
+    assertEquals(
+        0,
+        Wheeler.execute(
+            new String[] {"check-docs", packageRoot.toString()}, output, error));
+    assertEquals("", outputBytes.toString(StandardCharsets.UTF_8));
+    assertThrows(
+        IOException.class,
+        () -> Wheeler.execute(
+            new String[] {
+                "check-docs", "--include-tests", packageRoot.toString()
+            },
+            output,
+            error));
+  }
+
+  @Test
   void formatCommandChecksStdinAndPublishesValidatedFiles() throws Exception {
     Path directory = temporary.resolve("format");
     Files.createDirectories(directory);
