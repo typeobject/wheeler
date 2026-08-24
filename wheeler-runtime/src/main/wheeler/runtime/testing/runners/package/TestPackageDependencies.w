@@ -269,7 +269,7 @@ classical class TestPackageDependencies {
                 previousNameLength,
                 nameStart,
                 nameLength
-              ) != - 1
+              ) != -1
             ) {
               return false;
             }

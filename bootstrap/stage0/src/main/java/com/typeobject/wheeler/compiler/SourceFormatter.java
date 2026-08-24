@@ -13,7 +13,7 @@ import java.util.Set;
 /** Initial deterministic Wheeler source layout engine over lossless lexical ranges. */
 public final class SourceFormatter {
   private static final Set<String> OPERATORS = Set.of(
-      "=", "==", "+=", "-=", "^=", "+", "-", "*", "/", "%", "!", "&", "^", "<");
+      "=", "==", "!=", "+=", "-=", "^=", "+", "-", "*", "/", "%", "!", "&", "^", "<");
   private static final Set<String> CONTROL_HEADERS = Set.of(
       "if", "while", "for", "match", "switch", "catch", "reverse");
   private static final int LINE_TARGET = 100;

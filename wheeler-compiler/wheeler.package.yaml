@@ -590,6 +590,15 @@ targets:
       - "src/test/wheeler/compiler/returns/opcodes/NativeCompilerReturnOpcodeKindTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilerreversibletokentests"
+    root: "src/test/wheeler/compiler/closure/NativeCompilerReversibleTokenTests.w"
+    module: "wheeler.compiler.tests.native_compiler_reversible_tokens"
+    sources:
+      - "src/main/wheeler/compiler/closure/products/source/coordinates/ReversibleTokenCoordinates.w"
+      - "src/main/wheeler/compiler/syntax/tokens/SourceScalars.w"
+      - "src/test/wheeler/compiler/closure/NativeCompilerReversibleTokenTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerspinetests"
     root: "src/test/wheeler/compiler/NativeCompilerSpineTests.w"
     module: "wheeler.compiler.tests.native_compiler_spine"

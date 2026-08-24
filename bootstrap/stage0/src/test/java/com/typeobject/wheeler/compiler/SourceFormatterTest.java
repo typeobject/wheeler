@@ -248,16 +248,19 @@ class SourceFormatterTest {
         + "long secondArgument, long thirdArgument, long fourthArgument, "
         + "long fifthArgument) { call(firstArgument, secondArgument, thirdArgument, "
         + "fourthArgument, fifthArgument, firstArgument, secondArgument, "
-        + "thirdArgument, fourthArgument, -1); assert(!!false); return -2; } }";
+        + "thirdArgument, fourthArgument, -1); assert(!!false); assert(firstArgument != -3); "
+        + "return -2; } }";
 
     String formatted = SourceFormatter.format(source);
 
     assertTrue(formatted.contains("\n      -1\n"));
     assertTrue(formatted.contains("return -2;"));
     assertTrue(formatted.contains("assert(!!false);"));
+    assertTrue(formatted.contains("firstArgument != -3"));
     assertFalse(formatted.contains("! !"));
     assertFalse(formatted.contains("- 1"));
     assertFalse(formatted.contains("- 2"));
+    assertFalse(formatted.contains("- 3"));
   }
 
   @Test

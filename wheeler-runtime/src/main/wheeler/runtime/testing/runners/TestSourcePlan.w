@@ -363,7 +363,7 @@ classical class TestSourcePlan {
 
       if (0 < source) {
         if (
-          comparePath(input, previousPathStart, previousPathLength, pathStart, pathLength) != - 1
+          comparePath(input, previousPathStart, previousPathLength, pathStart, pathLength) != -1
         ) {
           return false;
         }

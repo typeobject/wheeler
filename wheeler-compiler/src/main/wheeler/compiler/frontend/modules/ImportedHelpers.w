@@ -5,6 +5,7 @@ module wheeler.compiler.imported_helpers;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.helper_abi;
+import wheeler.compiler.helper_proofs;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.module_headers;
 import wheeler.compiler.module_linker;
@@ -130,14 +131,23 @@ classical class ImportedHelpers {
         }
       }
 
-      long name = cursor + 2;
-      if (name < closeToken) {} else {
+      long name = helperNameToken(
+        importedSource,
+        importedKinds,
+        importedStarts,
+        cursor,
+        closeToken
+      );
+      if (-1 < name) {} else {
         return invalidFacts();
       }
 
-      if (importedKinds[name] == 1) {} else {
-        return invalidFacts();
-      }
+      boolean reversible = helperReversible(
+        importedSource,
+        importedStarts,
+        importedLengths,
+        cursor
+      );
 
       if (visibility == TOKEN_PRIVATE) {
         if (
@@ -169,7 +179,26 @@ classical class ImportedHelpers {
         return invalidFacts();
       }
 
-      cursor = next;
+      long proofNext = helperProofEnd(
+        importedSource,
+        importedKinds,
+        importedStarts,
+        importedLengths,
+        next,
+        closeToken,
+        name
+      );
+      if (proofNext < 0) {
+        return invalidFacts();
+      }
+
+      if (reversible) {} else {
+        if (proofNext == next) {} else {
+          return invalidFacts();
+        }
+      }
+
+      cursor = proofNext;
       count += 1;
     }
 

@@ -5,6 +5,7 @@ module wheeler.compiler.graphs.executable_owner_kinds;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.constant_declarations;
 import wheeler.compiler.helper_abi;
+import wheeler.compiler.helper_proofs;
 import wheeler.compiler.module_headers;
 import wheeler.compiler.module_linker;
 import wheeler.compiler.source_scalars;
@@ -115,26 +116,58 @@ classical class ExecutableOwnerKinds {
           long helperCount = 0;
           boolean helperMembers = true;
           boolean scanningHelpers = member < closeToken;
-          while (scanningHelpers) limit MAX_SCALAR_HELPERS {
-            long helperNext = executableFunctionEnd(
-              source,
-              tokenKinds,
-              tokenStarts,
-              member,
-              closeToken
-            );
-            if (member < helperNext) {
-              member = helperNext;
-              helperCount += 1;
+          while (scanningHelpers) limit MAX_COMPILER_TOKENS {
+            if (helperCount < MAX_SCALAR_HELPERS) {
+              long helperName = helperNameToken(
+                source,
+                tokenKinds,
+                tokenStarts,
+                member,
+                closeToken
+              );
+              long helperNext = executableFunctionEnd(
+                source,
+                tokenKinds,
+                tokenStarts,
+                member,
+                closeToken
+              );
+              if (-1 < helperName) {
+                if (member < helperNext) {
+                  long proofNext = helperProofEnd(
+                    source,
+                    tokenKinds,
+                    tokenStarts,
+                    tokenLengths,
+                    helperNext,
+                    closeToken,
+                    helperName
+                  );
+                  if (helperNext < proofNext) {
+                    helperNext = proofNext;
+                  } else {
+                    if (proofNext < 0) {
+                      helperNext = -1;
+                    }
+                  }
+                }
+              } else {
+                helperNext = -1;
+              }
+
+              if (member < helperNext) {
+                member = helperNext;
+                helperCount += 1;
+              } else {
+                helperMembers = false;
+                member = closeToken;
+              }
             } else {
               helperMembers = false;
               member = closeToken;
             }
 
             scanningHelpers = member < closeToken;
-            if (helperCount == MAX_SCALAR_HELPERS) {
-              scanningHelpers = false;
-            }
           }
 
           if (member < closeToken) {

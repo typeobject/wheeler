@@ -448,7 +448,8 @@ final class NativePackageTestRunner {
   static boolean fixedSourceProfile(String text) {
     int constants = occurrences(text, "public const long ");
     int functions = occurrences(text, "public long ")
-        + occurrences(text, "public boolean ");
+        + occurrences(text, "public boolean ")
+        + occurrences(text, "public rev long ");
     boolean product = 0 < constants || 0 < functions;
     return product
         && constants <= MAX_DEPENDENCY_CONSTANTS

@@ -264,7 +264,7 @@ classical class TestPackageLock {
       long nameStart = cursor + 11;
       if (0 < packageCount) {
         if (
-          compareRanges(input, previousNameStart, previousNameLength, nameStart, nameLength) != - 1
+          compareRanges(input, previousNameStart, previousNameLength, nameStart, nameLength) != -1
         ) {
           return false;
         }
@@ -352,7 +352,7 @@ classical class TestPackageLock {
                       previousDependencyLength,
                       dependencyStart,
                       dependencyLength
-                    ) != - 1
+                    ) != -1
                   ) {
                     return false;
                   }

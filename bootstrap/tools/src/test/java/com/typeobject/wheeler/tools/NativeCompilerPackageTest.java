@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(223, result.selected());
-    assertEquals(223, result.passed());
+    assertEquals(224, result.selected());
+    assertEquals(224, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -103,6 +103,11 @@ final class NativeCompilerPackageTest {
         "nativecompilercallargumenttests",
         "native_compiler_call_arguments",
         "mapsCallArgumentOpcodes");
+    assertCase(
+        report,
+        "nativecompilerreversibletokentests",
+        "native_compiler_reversible_tokens",
+        "advancesSourceTokensReversibly");
     for (String name : List.of(
         "classifiesFinalFirstNamedCallArgument", "classifiesFinalSecondNamedCallArgument")) {
       assertCase(

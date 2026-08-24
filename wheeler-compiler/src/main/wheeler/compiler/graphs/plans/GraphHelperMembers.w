@@ -5,6 +5,7 @@ module wheeler.compiler.graphs.helper_members;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.graphs.executable_owner_kinds;
+import wheeler.compiler.helper_proofs;
 import wheeler.compiler.module_headers;
 import wheeler.compiler.module_linker;
 
@@ -17,6 +18,7 @@ classical class GraphHelperMembers {
     borrow utf8 source,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
     long memberStart,
     long helperCount,
     long closeToken
@@ -24,12 +26,30 @@ classical class GraphHelperMembers {
     long cursor = memberStart;
     long helper = 0;
     while (helper < helperCount) limit MAX_HELPERS {
+      long name = helperNameToken(source, tokenKinds, tokenStarts, cursor, closeToken);
+      if (-1 < name) {} else {
+        return -1;
+      }
+
       long next = executableFunctionEnd(source, tokenKinds, tokenStarts, cursor, closeToken);
       if (cursor < next) {} else {
         return -1;
       }
 
-      cursor = next;
+      long proofNext = helperProofEnd(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        next,
+        closeToken,
+        name
+      );
+      if (proofNext < 0) {
+        return -1;
+      }
+
+      cursor = proofNext;
       helper += 1;
     }
 
@@ -103,6 +123,7 @@ classical class GraphHelperMembers {
         source,
         tokenKinds,
         tokenStarts,
+        tokenLengths,
         tokenCursor,
         helperCounts[ownerNode],
         tokenCount - 1
@@ -127,6 +148,7 @@ classical class GraphHelperMembers {
         source,
         tokenKinds,
         tokenStarts,
+        tokenLengths,
         tokenCursor,
         helperCounts[ownerNode],
         tokenCount - 1
@@ -191,6 +213,7 @@ classical class GraphHelperMembers {
       source,
       tokenKinds,
       tokenStarts,
+      tokenLengths,
       member,
       prependedHelperCount,
       tokenCount - 1
@@ -200,6 +223,7 @@ classical class GraphHelperMembers {
       source,
       tokenKinds,
       tokenStarts,
+      tokenLengths,
       prependedEnd,
       existingHelperCount,
       tokenCount - 1

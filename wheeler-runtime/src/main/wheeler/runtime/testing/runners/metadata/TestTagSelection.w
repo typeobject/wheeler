@@ -136,7 +136,7 @@ classical class TestTagSelection {
       }
 
       if (0 < tag) {
-        if (compareTag(input, previousStart, previousLength, cursor, length) != - 1) {
+        if (compareTag(input, previousStart, previousLength, cursor, length) != -1) {
           return new TagSelection(false, cursor);
         }
       }

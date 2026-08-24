@@ -38,6 +38,14 @@ class NativePackageTestRunnerTest {
     source.append("}\n");
 
     assertTrue(NativePackageTestRunner.fixedSourceProfile(source.toString()));
+    String reversible = source.toString().replace(
+        "public long member0()",
+        "public rev long member0()");
+    assertTrue(NativePackageTestRunner.fixedSourceProfile(reversible));
+    String reversibleExcess = reversible.substring(0, reversible.length() - 2)
+        + "  public rev long excess() { return 23; }\n}\n";
+    assertFalse(NativePackageTestRunner.fixedSourceProfile(reversibleExcess));
+
     source.insert(source.length() - 2, "  public long excess() { return 23; }\n");
     assertFalse(NativePackageTestRunner.fixedSourceProfile(source.toString()));
 

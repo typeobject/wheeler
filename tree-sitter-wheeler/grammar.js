@@ -351,7 +351,7 @@ module.exports = grammar({
     ),
     parenthesized_expression: $ => seq('(', $.expression, ')'),
     unary_expression: $ => prec(8, seq(
-      field('operator', '!'),
+      field('operator', choice('!', '-')),
       field('operand', $.expression),
     )),
     binary_expression: $ => choice(
@@ -397,11 +397,11 @@ module.exports = grammar({
 
     boolean_literal: _ => choice('true', 'false'),
     integer_literal: _ => token(choice(
-      /-?[0-9][0-9_]*/,
-      /-?0[xX][0-9a-fA-F][0-9a-fA-F_]*/,
-      /-?0[bB][01][01_]*/,
+      /[0-9][0-9_]*/,
+      /0[xX][0-9a-fA-F][0-9a-fA-F_]*/,
+      /0[bB][01][01_]*/,
     )),
-    number_literal: _ => token(/-?[0-9][0-9_]*\.[0-9][0-9_]*(?:[eE][+-]?[0-9]+)?/),
+    number_literal: _ => token(/[0-9][0-9_]*\.[0-9][0-9_]*(?:[eE][+-]?[0-9]+)?/),
     ascii_literal: _ => token(/"[\x20-\x21\x23-\x7e]*"/),
     type_identifier: _ => /[A-Za-z_][A-Za-z0-9_]*/,
     identifier: _ => /[A-Za-z_][A-Za-z0-9_]*/,

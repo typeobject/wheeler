@@ -11,13 +11,14 @@ classical class LibraryStrings {
   private const long CLASS_NAME = 0;
   private const long FIRST_HELPER = 1;
   private const long MAX_HELPERS = MAX_SCALAR_HELPERS;
-  private const long MAX_STRING_COUNT = MAX_HELPERS + 2;
+  private const long MAX_STRING_COUNT = MAX_HELPERS + 3;
 
   /// Defines immutable bounded library string-table plans.
   public record LibraryStringPlan(
     long nameIndex,
     long[23] helperIndices,
     long entryIndex,
+    long proofIndex,
     long stringCount,
     long encodedLength,
     long valid
@@ -57,6 +58,10 @@ classical class LibraryStrings {
 
   private long entryCandidate(MinimalProgram program) {
     return program.helperCount + 1;
+  }
+
+  private long proofCandidate(MinimalProgram program) {
+    return program.helperCount + 2;
   }
 
   private long mainScalar(long index) {
@@ -110,6 +115,16 @@ classical class LibraryStrings {
       return rootModule.length + 6;
     }
 
+    if (candidate == proofCandidate(program)) {
+      SourceRange proofModule = candidateModule(rootModule, owners, FIRST_HELPER);
+      long proofLength = program.proofName.length;
+      if (0 < proofModule.length) {
+        proofLength += proofModule.length + 2;
+      }
+
+      return proofLength;
+    }
+
     HelperBody helper = candidateHelper(program, candidate);
     SourceRange moduleName = candidateModule(rootModule, owners, candidate);
     long length = helper.name.length;
@@ -147,6 +162,25 @@ classical class LibraryStrings {
       }
 
       return mainScalar(suffix - 2);
+    }
+
+    if (candidate == proofCandidate(program)) {
+      SourceRange proofModule = candidateModule(rootModule, owners, FIRST_HELPER);
+      if (index < proofModule.length) {
+        return utf8Scalar(source, proofModule.start + index);
+      }
+
+      long proofIndex = index;
+      if (0 < proofModule.length) {
+        proofIndex -= proofModule.length;
+        if (proofIndex < 2) {
+          return 58;
+        }
+
+        proofIndex -= 2;
+      }
+
+      return utf8Scalar(source, program.proofName.start + proofIndex);
     }
 
     SourceRange moduleName = candidateModule(rootModule, owners, candidate);
@@ -236,7 +270,7 @@ classical class LibraryStrings {
     SourceRange rootModule,
     HelperOwners owners
   ) {
-    long stringCount = program.helperCount + 2;
+    long stringCount = program.helperCount + 2 + program.proofCount;
     long valid = 1;
     if (0 < program.helperCount) {} else {
       valid = 0;
@@ -570,6 +604,18 @@ classical class LibraryStrings {
       twentySecondIndex,
       twentyThirdIndex
     );
+    long proofIndex = 0;
+    if (program.proofCount == 1) {
+      proofIndex = candidateIndex(
+        source,
+        program,
+        rootModule,
+        owners,
+        proofCandidate(program),
+        stringCount
+      );
+    }
+
     return new LibraryStringPlan(
       candidateIndex(source, program, rootModule, owners, CLASS_NAME, stringCount),
       helperIndices,
@@ -581,6 +627,7 @@ classical class LibraryStrings {
         entryCandidate(program),
         stringCount
       ),
+      proofIndex,
       stringCount,
       encodedLength,
       valid
@@ -603,6 +650,12 @@ classical class LibraryStrings {
       }
 
       helper += 1;
+    }
+
+    if (program.proofCount == 1) {
+      if (stringIndex == plan.proofIndex) {
+        return proofCandidate(program);
+      }
     }
 
     return entryCandidate(program);

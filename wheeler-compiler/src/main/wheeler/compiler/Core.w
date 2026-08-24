@@ -335,6 +335,7 @@ classical class CompilerCore {
       nameIndex = libraryStrings.nameIndex;
       helperIndex = libraryStrings.helperIndices[0];
       mainIndex = libraryStrings.entryIndex;
+      proofIndex = libraryStrings.proofIndex;
       stringsLength = libraryStrings.encodedLength;
     }
 

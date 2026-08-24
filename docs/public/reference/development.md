@@ -181,7 +181,7 @@ structural parse or formatter-limit failure, `WFMT003` reports the input boundar
 and `WFMT004` reports publication failure.
 
 The canonical style uses LF endings, one final newline, two-space indentation,
-regular braces and operators, and stable blank separators. Groups remain on one
+regular braces and operators, tight unary operators, and stable blank separators. Groups remain on one
 line when their normalized form fits within 100 Unicode scalar values. Longer
 comma groups place each item and closing delimiter on stable lines. Long binary
 expressions continue with leading operators.

@@ -491,7 +491,7 @@ classical class TestSourceModules {
                 previousImportLength,
                 importStart,
                 importLength
-              ) != - 1
+              ) != -1
             ) {
               return false;
             }

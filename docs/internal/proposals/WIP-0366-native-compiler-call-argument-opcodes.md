@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests, call ABI |
 | Depends on | WIP-0310, WIP-0323, WIP-0365 |
 | Supersedes | Product-only typed call-argument opcode evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0367 reversible helper-owner execution |
 
 ## Summary
 
@@ -81,3 +81,4 @@ Rejected. All branches belong to one public query and one immutable owner. One a
 - [WIP-0310](WIP-0310-native-multi-helper-entry-programs.md)
 - [WIP-0323](WIP-0323-native-compiler-helper-signature-suite.md)
 - [WIP-0365](WIP-0365-nested-helper-owner-graph-execution.md)
+- [WIP-0367](WIP-0367-reversible-helper-owner-execution.md)
