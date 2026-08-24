@@ -23,6 +23,7 @@ final class SourceDeclarationDocumentation {
   private record Declaration(
       int node,
       String name,
+      int characterOffset,
       int line,
       int column,
       boolean required,
@@ -49,6 +50,7 @@ final class SourceDeclarationDocumentation {
           || !targets.containsKey(attachment.targetNode())) {
         diagnostics.add(new Diagnostic(
             "WDOC004",
+            comment.offset(),
             comment.line(),
             comment.column(),
             "/// documentation must be adjacent to a declaration"));
@@ -61,6 +63,7 @@ final class SourceDeclarationDocumentation {
         if (declaration.required()) {
           diagnostics.add(new Diagnostic(
               "WDOC002",
+              declaration.characterOffset(),
               declaration.line(),
               declaration.column(),
               "declaration '" + declaration.name() + "' requires /// documentation"));
@@ -71,6 +74,7 @@ final class SourceDeclarationDocumentation {
         Element first = comments.getFirst();
         diagnostics.add(new Diagnostic(
             "WDOC003",
+            first.offset(),
             first.line(),
             first.column(),
             "documentation block requires a nonempty summary"));
@@ -122,6 +126,7 @@ final class SourceDeclarationDocumentation {
       if (!result.add(label) || order < previous) {
         diagnostics.add(new Diagnostic(
             "WDOC006",
+            comment.offset(),
             comment.line(),
             comment.column(),
             "duplicate or out-of-order documentation facet '" + label + "'"));
@@ -150,6 +155,7 @@ final class SourceDeclarationDocumentation {
     };
     diagnostics.add(new Diagnostic(
         code,
+        declaration.characterOffset(),
         declaration.line(),
         declaration.column(),
         kind + " declaration '" + declaration.name() + "' requires a " + facet + " facet"));
@@ -179,6 +185,7 @@ final class SourceDeclarationDocumentation {
       result.add(new Declaration(
           index,
           node.name(),
+          start.offset(),
           start.line(),
           start.column(),
           node.modifiers().contains("public") || semantic,

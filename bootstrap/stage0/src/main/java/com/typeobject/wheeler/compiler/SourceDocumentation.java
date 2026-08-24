@@ -38,11 +38,12 @@ public final class SourceDocumentation {
   /** Stable source documentation diagnostic. */
   public record Diagnostic(
       String code,
+      int characterOffset,
       int line,
       int column,
       String message) {
     public Diagnostic {
-      if (code == null || line < 1 || column < 1 || message == null) {
+      if (code == null || characterOffset < 0 || line < 1 || column < 1 || message == null) {
         throw new IllegalArgumentException("Invalid documentation diagnostic");
       }
     }
@@ -124,6 +125,7 @@ public final class SourceDocumentation {
       SourceConcreteSyntax.Element misplaced = elements.get(documentation);
       return List.of(new Diagnostic(
           "WDOC005",
+          misplaced.offset(),
           misplaced.line(),
           misplaced.column(),
           "//! documentation must be the first source content"));
@@ -132,6 +134,7 @@ public final class SourceDocumentation {
       SourceConcreteSyntax.Element empty = elements.get(documentation);
       return List.of(new Diagnostic(
           "WDOC003",
+          empty.offset(),
           empty.line(),
           empty.column(),
           "documentation block requires a nonempty summary"));
@@ -238,6 +241,7 @@ public final class SourceDocumentation {
   private static Diagnostic missingFileDocumentation() {
     return new Diagnostic(
         "WDOC001",
+        0,
         1,
         1,
         "source file requires nonempty //! documentation");

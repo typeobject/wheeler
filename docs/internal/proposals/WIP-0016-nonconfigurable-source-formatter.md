@@ -172,12 +172,13 @@ The initial documentation-check command forms are:
 
 ```text
 wheeler check-docs <file-or-directory>...
+wheeler check-docs --include-tests <file-or-directory>...
 wheeler check-docs --stdin
 ```
 
 `format --check` checks formatting only. `check-docs` checks documentation only. A repository or package gate may invoke both.
 
-Directories are walked through physical nonsymlink paths in lexical logical-path order and include only `.w` files. Duplicate paths after normalization are rejected. `--stdin` reads one bounded strict-UTF-8 document. Formatter stdin mode writes formatted bytes to standard output unless `--check` is present. Documentation stdin mode writes diagnostics only.
+Directories are walked through physical nonsymlink paths in lexical logical-path order and include only `.w` files. Documentation walks omit `src/test/wheeler` unless `--include-tests` is present. Duplicate paths after normalization are rejected. `--stdin` reads one bounded strict-UTF-8 document. Formatter stdin mode writes formatted bytes to standard output unless `--check` is present. Documentation stdin mode writes diagnostics only.
 
 Unknown options fail. There is no short alias, configuration discovery, exclusion glob, line-width option, project style, documentation bypass, editor-specific mode, locale-sensitive mode, or network-backed resolver.
 
@@ -743,7 +744,7 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 - [x] The hosted formatter and documentation checker expose one byte-oriented `SourceTooling` boundary. It accepts only explicit strict UTF-8, returns cloned canonical bytes and one longest-common-prefix/suffix edit, and exports documentation records plus diagnostics from one lossless scan. Formatter, documentation, and bundle commands consume that boundary.
 - [x] Every checked-in `.w` example has an authored first-content `//!` summary and every required declaration has adjacent `///` documentation with required facets. The compiler test walks the complete source tree.
 - [x] Every checked-in `.w` example is canonical under the stage-0 formatter. The compiler test rejects drift and the command check is clean.
-- [ ] Editor integrations call shared libraries instead of reproduce rules.
+- [x] The hosted editor adapter calls `SourceTooling` instead of reproducing syntax or style rules. It maps the canonical result to one scalar-aligned edit with zero-based UTF-16 coordinates, does not split CRLF boundaries, and maps parser-owned documentation offsets to point diagnostics. Strict-UTF-8 rejection occurs before an editor result exists.
 - [ ] A Wheeler-written formatter and documentation checker match stage 0 byte-for-byte.
 - [ ] Stage-0 and duplicate tooling paths are deleted at native cutover.
 
@@ -784,6 +785,8 @@ Documentation payload is treated as inert text. Renderers escape unsupported mar
 - [x] The formatter and checker APIs accept only explicit source bytes and paths. They read no configuration, environment, locale, terminal, editor, clock, random, or network state. Line width and indentation are compile-time constants.
 
 - [x] The byte API returns owned output arrays, an exactly applicable minimal single edit, parser-owned documentation, and immutable ordered diagnostics. Malformed UTF-8 produces no result.
+
+- [x] The editor adapter returns one applicable scalar-aligned edit and zero-based UTF-16 coordinates without splitting a surrogate pair or CRLF boundary. Documentation diagnostics retain parser-owned codes, messages, and source offsets. Unicode, CRLF, canonical, and malformed-input fixtures cover the adapter boundary.
 
 - [ ] Stage-0 and Wheeler implementations agree byte-for-byte on formatting and by code, target, and source range on documentation diagnostics.
 
