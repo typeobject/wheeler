@@ -5,6 +5,9 @@ module wheeler.runtime.testing.runners.test_source_plan;
 import wheeler.runtime.testing.runners.test_source_modules;
 
 classical class TestSourcePlan {
+  /// Bounds every physical source admitted to native compilation and lowering.
+  public const long MAX_TEST_SOURCE_BYTES = 32768;
+
   private const long MAX_PATH_BYTES = 255;
   private const long MAX_PLAN_BYTES = 40960;
   private const long MAX_SOURCES = 64;

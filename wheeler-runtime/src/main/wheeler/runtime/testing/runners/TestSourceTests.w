@@ -10,6 +10,7 @@ import wheeler.lexer.scanner;
 import wheeler.runtime.testing.runners.test_discovered_descriptors;
 import wheeler.runtime.testing.runners.test_source_metadata;
 import wheeler.runtime.testing.runners.test_source_plan;
+import wheeler.runtime.testing.runners.test_source_tokens;
 import wheeler.runtime.testing.test_limits;
 
 classical class TestSourceTests {
@@ -189,7 +190,7 @@ classical class TestSourceTests {
       return new SourceTestRows(0, false, 0);
     }
 
-    long typeHash = tokenHash(source, tokenStarts, tokenLengths, declaration + 4);
+    long typeHash = boundedSourceTokenHash(source, tokenStarts, tokenLengths, declaration + 4);
     boolean longRows = typeHash == TOKEN_LONG;
     if (longRows == false) {
       if (typeHash != TOKEN_BOOLEAN) {
@@ -208,7 +209,9 @@ classical class TestSourceTests {
       return new SourceTestRows(0, false, 0);
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, declaration + 7) != TOKEN_CASES) {
+    if (
+      boundedSourceTokenHash(source, tokenStarts, tokenLengths, declaration + 7) != TOKEN_CASES
+    ) {
       return new SourceTestRows(0, false, 0);
     }
 
@@ -240,7 +243,7 @@ classical class TestSourceTests {
         value = parsedSignedNumber(source, tokenStarts, tokenLengths, cursor);
         cursor += width;
       } else {
-        long valueHash = tokenHash(source, tokenStarts, tokenLengths, cursor);
+        long valueHash = boundedSourceTokenHash(source, tokenStarts, tokenLengths, cursor);
         if (valueHash == TOKEN_TRUE) {
           value = 1;
         } else {
@@ -291,8 +294,12 @@ classical class TestSourceTests {
   ) {
     long prior = 0;
     while (prior + 2 < nameToken) limit MAX_COMPILER_TOKENS {
-      if (tokenHash(source, tokenStarts, tokenLengths, prior) == TOKEN_TEST) {
-        if (tokenHash(source, tokenStarts, tokenLengths, prior + 1) == TOKEN_VOID) {
+      if (
+        boundedSourceTokenHash(source, tokenStarts, tokenLengths, prior) == TOKEN_TEST
+      ) {
+        if (
+          boundedSourceTokenHash(source, tokenStarts, tokenLengths, prior + 1) == TOKEN_VOID
+        ) {
           if (sameTokenText(source, tokenStarts, tokenLengths, prior + 2, nameToken)) {
             return false;
           }
@@ -361,8 +368,12 @@ classical class TestSourceTests {
     boolean supported = true;
     long token = 0;
     while (token + 4 < tokenCount) limit MAX_COMPILER_TOKENS {
-      if (tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_TEST) {
-        if (tokenHash(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID) {
+      if (
+        boundedSourceTokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_TEST
+      ) {
+        if (
+          boundedSourceTokenHash(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID
+        ) {
           if (uniqueTestName(source, tokenStarts, tokenLengths, token + 2) == false) {
             supported = false;
           }
@@ -481,7 +492,7 @@ classical class TestSourceTests {
 
             long caseKind = 2;
             if (
-              tokenHash(source, tokenStarts, tokenLengths, token + 4) == TOKEN_BOOLEAN
+              boundedSourceTokenHash(source, tokenStarts, tokenLengths, token + 4) == TOKEN_BOOLEAN
             ) {
               caseKind = 3;
             }

@@ -7,9 +7,11 @@ import wheeler.runtime.testing.runners.test_source_lowering;
 import wheeler.runtime.testing.runners.test_source_plan;
 
 classical class TestSourceCompilation {
+  // One scalar parameter insertion may add at most 280 bytes to its source and plan.
+  private const long LOWERING_ARENA_BYTES = 74288;
   private const long MAX_COMPILED_SOURCES = 8;
   private const long MAX_LOWERED_PLAN_BYTES = 41240;
-  private const long MAX_TEST_SOURCE_BYTES = 32768;
+  private const long MAX_LOWERED_SOURCE_BYTES = 33048;
   private const long TEST_ARTIFACT_BYTES = 32768;
 
   private long copyRange(
@@ -54,8 +56,12 @@ classical class TestSourceCompilation {
     return freezeUtf8(sourceBytes);
   }
 
-  /// Checks compiler source-count and per-source byte bounds after plan validation.
-  public boolean validCompilableSourcePlan(borrow byteview input, long start, long length) {
+  private boolean validCompilableSourcePlanWithin(
+    borrow byteview input,
+    long start,
+    long length,
+    long sourceLimit
+  ) {
     long sourceCount = validatedSourceCount(input, start, length);
     if (sourceCount == 0) {
       return false;
@@ -68,7 +74,7 @@ classical class TestSourceCompilation {
     long source = 0;
     while (source < sourceCount) limit MAX_COMPILED_SOURCES {
       long sourceLength = validatedSourceLength(input, start, length, source);
-      if (MAX_TEST_SOURCE_BYTES < sourceLength) {
+      if (sourceLimit < sourceLength) {
         return false;
       }
 
@@ -76,6 +82,11 @@ classical class TestSourceCompilation {
     }
 
     return true;
+  }
+
+  /// Checks compiler source-count and physical source-byte bounds after plan validation.
+  public boolean validCompilableSourcePlan(borrow byteview input, long start, long length) {
+    return validCompilableSourcePlanWithin(input, start, length, MAX_TEST_SOURCE_BYTES);
   }
 
   /// Compiles one discovered root test case as a direct native entry.
@@ -119,10 +130,10 @@ classical class TestSourceCompilation {
       );
     }
 
-    assert(loweredSourceLength < MAX_TEST_SOURCE_BYTES + 1);
+    assert(loweredSourceLength < MAX_LOWERED_SOURCE_BYTES + 1);
     long loweredPlanLength = length + loweredSourceLength - sourceLength;
     assert(loweredPlanLength < MAX_LOWERED_PLAN_BYTES + 1);
-    region lowering = new region(/* bytes= */ 74008, /* allocations= */ 2);
+    region lowering = new region(/* bytes= */ LOWERING_ARENA_BYTES, /* allocations= */ 2);
     bytes entryBytes = allocateBytes(lowering, loweredSourceLength);
     if (caseKind == 1) {
       copyParameterlessEntrySource(
@@ -165,11 +176,12 @@ classical class TestSourceCompilation {
     long sourceEnd = sourceStart + sourceLength;
     cursor = copyRange(input, sourceEnd, start + length - sourceEnd, plan, cursor);
     assert(cursor == loweredPlanLength);
-    long artifactLength = compileValidatedSourcePlan(
+    long artifactLength = compileValidatedSourcePlanWithin(
       plan,
       /* start= */ 0,
       loweredPlanLength,
       rootOrdinal,
+      MAX_LOWERED_SOURCE_BYTES,
       artifact
     );
     drop(plan);
@@ -178,7 +190,7 @@ classical class TestSourceCompilation {
     return artifactLength;
   }
 
-  /// Compiles one validated one-to-eight-source plan into recovery storage.
+  /// Compiles one validated one-to-eight-source physical plan into recovery storage.
   public long compileValidatedSourcePlan(
     borrow byteview input,
     long start,
@@ -186,11 +198,29 @@ classical class TestSourceCompilation {
     long rootOrdinal,
     borrow mut bytes artifact
   ) {
-    assert(validCompilableSourcePlan(input, start, length));
+    return compileValidatedSourcePlanWithin(
+      input,
+      start,
+      length,
+      rootOrdinal,
+      MAX_TEST_SOURCE_BYTES,
+      artifact
+    );
+  }
+
+  private long compileValidatedSourcePlanWithin(
+    borrow byteview input,
+    long start,
+    long length,
+    long rootOrdinal,
+    long sourceLimit,
+    borrow mut bytes artifact
+  ) {
+    assert(validCompilableSourcePlanWithin(input, start, length, sourceLimit));
     assert(bufferLength(artifact) == TEST_ARTIFACT_BYTES);
     long sourceCount = validatedSourceCount(input, start, length);
     assert(rootOrdinal < sourceCount);
-    region sources = new region(/* bytes= */ 40960, /* allocations= */ 8);
+    region sources = new region(/* bytes= */ MAX_LOWERED_PLAN_BYTES, /* allocations= */ 8);
     long artifactLength = 0;
 
     if (sourceCount == 1) {

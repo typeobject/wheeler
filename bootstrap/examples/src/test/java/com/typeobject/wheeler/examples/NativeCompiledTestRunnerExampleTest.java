@@ -1,5 +1,9 @@
 package com.typeobject.wheeler.examples;
 
+import static com.typeobject.wheeler.examples.NativeTestRunnerInput.descriptor;
+import static com.typeobject.wheeler.examples.NativeTestRunnerInput.descriptors;
+import static com.typeobject.wheeler.examples.NativeTestRunnerInput.discoveredDescriptors;
+import static com.typeobject.wheeler.examples.NativeTestRunnerInput.execute;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -9,9 +13,7 @@ import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
-import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import com.typeobject.wheeler.examples.NativeTestRunnerInput.NamedArtifact;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -305,6 +307,58 @@ final class NativeCompiledTestRunnerExampleTest {
 
     assertEquals(1, report[32]);
     assertEquals(1, report[34]);
+  }
+
+  @Test
+  void lowersCompletePhysicalSourcesWithoutIncidentalCopyBounds() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    String parameterless = paddedSource("""
+          test void selected() {
+            assert(true);
+          }
+        """);
+    String parameterized = paddedSource("""
+          test void selected(long input) cases(7) {
+            assert(input == 7);
+          }
+        """);
+
+    assertEquals(32_768, parameterless.getBytes(StandardCharsets.UTF_8).length);
+    assertEquals(32_768, parameterized.getBytes(StandardCharsets.UTF_8).length);
+
+    byte[] parameterlessReport = execute(
+        runner,
+        descriptors(
+            MANIFEST,
+            List.of(new NativeTestSourcePlan.Source("src/Test.w", parameterless)),
+            List.of(
+                new NamedArtifact("test::peer", new byte[0]),
+                new NamedArtifact("test::selected", new byte[0]))));
+    byte[] parameterizedReport = execute(
+        runner,
+        descriptors(
+            MANIFEST,
+            List.of(new NativeTestSourcePlan.Source("src/Test.w", parameterized)),
+            List.of(
+                new NamedArtifact("test::peer", new byte[0]),
+                new NamedArtifact("test::selected[0]", new byte[0]))));
+
+    assertEquals(2, parameterlessReport[32]);
+    assertEquals(2, parameterlessReport[34]);
+    assertEquals(2, parameterizedReport[32]);
+    assertEquals(2, parameterizedReport[34]);
+
+    String oversizedSource = parameterless + " ";
+    byte[] oversizedInput = descriptors(
+        MANIFEST,
+        List.of(new NativeTestSourcePlan.Source("src/Test.w", oversizedSource)),
+        List.of(
+            new NamedArtifact("test::peer", new byte[0]),
+            new NamedArtifact("test::selected", new byte[0])));
+    VirtualMachine oversized = VirtualMachine.withBinaryInput(runner, oversizedInput, 39);
+
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(oversized));
+    assertArrayEquals(new byte[39], oversized.hostOutput());
   }
 
   @Test
@@ -687,7 +741,7 @@ final class NativeCompiledTestRunnerExampleTest {
   @Test
   void rejectsCallerNamedNativeEntryCases() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
-    byte[] input = descriptor(PASSING, new byte[0]);
+    byte[] input = sourceDescriptor(PASSING, new byte[0]);
     input[input.length - 5] = (byte) 'x';
     VirtualMachine machine = VirtualMachine.withBinaryInput(runner, input, 39);
 
@@ -729,8 +783,8 @@ final class NativeCompiledTestRunnerExampleTest {
     Program expectedProgram = new WheelerCompiler().compileModuleFiles(
         Map.of("Test.w", source), "pkg.test");
     byte[] expectedArtifact = new BytecodeWriter().write(expectedProgram);
-    byte[] compiledReport = execute(runner, descriptor(source, new byte[0]));
-    byte[] artifactReport = execute(runner, descriptor(source, expectedArtifact));
+    byte[] compiledReport = execute(runner, sourceDescriptor(source, new byte[0]));
+    byte[] artifactReport = execute(runner, sourceDescriptor(source, expectedArtifact));
 
     assertArrayEquals(artifactReport, compiledReport);
     assertEquals(expectedFailures, compiledReport[36]);
@@ -782,113 +836,37 @@ final class NativeCompiledTestRunnerExampleTest {
         List.of()));
   }
 
+  private static String paddedSource(String selectedDeclaration) {
+    String padding = "    //" + "x".repeat(5_000) + "\n";
+    String source = """
+        module pkg.test;
+        classical class FullSource {
+          entry void ignored() {
+        %s    assert(false);
+          }
+          test void peer() {
+        %s    assert(true);
+          }
+        %s%s%s}
+        """.formatted(
+            padding,
+            padding,
+            padding,
+            selectedDeclaration,
+            padding);
+    int terminalPadding = 32_768 - source.length() - 3;
+    return source + "//" + "x".repeat(terminalPadding) + "\n";
+  }
+
   private static byte[] metadataOnlyDiscoveredTests(byte[] input) {
     input[input.length - 1] = (byte) 252;
     return input;
   }
 
-  private static byte[] descriptor(String source, byte[] artifact) {
+  private static byte[] sourceDescriptor(String source, byte[] artifact) {
     return descriptor(
         MANIFEST,
         List.of(new NativeTestSourcePlan.Source("src/Test.w", source)),
         artifact);
-  }
-
-  private static byte[] descriptor(
-      String manifest, List<NativeTestSourcePlan.Source> sources, byte[] artifact) {
-    return descriptor(manifest, sources, artifact, "test::entry");
-  }
-
-  private static byte[] descriptor(
-      String manifest,
-      List<NativeTestSourcePlan.Source> sources,
-      byte[] artifact,
-      String caseName) {
-    return descriptors(manifest, sources, List.of(new NamedArtifact(caseName, artifact)));
-  }
-
-  private static byte[] descriptors(
-      String manifest,
-      List<NativeTestSourcePlan.Source> sources,
-      List<NamedArtifact> cases) {
-    return descriptors(manifest, sources, cases, List.of());
-  }
-
-  private static byte[] descriptors(
-      String manifest,
-      List<NativeTestSourcePlan.Source> sources,
-      List<NamedArtifact> cases,
-      List<String> selectedTags) {
-    return descriptorTransport(manifest, sources, cases, selectedTags, false);
-  }
-
-  private static byte[] discoveredDescriptors(
-      String manifest,
-      List<NativeTestSourcePlan.Source> sources,
-      List<String> selectedTags) {
-    return descriptorTransport(manifest, sources, List.of(), selectedTags, true);
-  }
-
-  private static byte[] descriptorTransport(
-      String manifest,
-      List<NativeTestSourcePlan.Source> sources,
-      List<NamedArtifact> cases,
-      List<String> selectedTags,
-      boolean discoverDescriptors) {
-    return descriptorTransport(
-        manifest,
-        sources,
-        cases,
-        selectedTags,
-        discoverDescriptors,
-        NativeTestManifestInput.emptyLock(manifest));
-  }
-
-  private static byte[] descriptorTransport(
-      String manifest,
-      List<NativeTestSourcePlan.Source> sources,
-      List<NamedArtifact> cases,
-      List<String> selectedTags,
-      boolean discoverDescriptors,
-      byte[] lock) {
-    byte[] plan = NativeTestSourcePlan.write(sources);
-    ByteArrayOutputStream input = new ByteArrayOutputStream();
-    input.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
-        .putShort((short) 0).putShort((short) 1).array());
-    writeShortText(input, "pkg");
-    writeShortText(input, "1.0.0");
-    writeShortText(input, "test");
-    writeBytes(input, manifest.getBytes(StandardCharsets.UTF_8));
-    writeBytes(input, lock);
-    input.write(0);
-    writeBytes(input, plan);
-    input.write(selectedTags.size());
-    selectedTags.forEach(tag -> writeShortText(input, tag));
-    input.write(discoverDescriptors ? 255 : cases.size());
-    for (NamedArtifact testcase : cases) {
-      writeShortText(input, testcase.name());
-      writeBytes(input, testcase.artifact());
-    }
-    return input.toByteArray();
-  }
-
-  private static void writeShortText(ByteArrayOutputStream output, String text) {
-    byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
-    output.write(bytes.length);
-    output.writeBytes(bytes);
-  }
-
-  private static void writeBytes(ByteArrayOutputStream output, byte[] bytes) {
-    output.writeBytes(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
-        .putInt(bytes.length).array());
-    output.writeBytes(bytes);
-  }
-
-  private record NamedArtifact(String name, byte[] artifact) {}
-
-  private static byte[] execute(Program runner, byte[] input) {
-    VirtualMachine machine = VirtualMachine.withBinaryInput(runner, input, 39);
-    CompilerMachineRunner.runWithoutRewindHistory(machine);
-    return machine.hostOutput();
   }
 }
