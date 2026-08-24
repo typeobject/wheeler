@@ -9,7 +9,7 @@
 | Area | Native testing, manifests, package execution |
 | Depends on | WIP-0345, WIP-0349 |
 | Supersedes | Native 24,576-byte test-manifest bound |
-| Superseded by | WIP-0351 native compiler conditional value suite |
+| Superseded by | WIP-0351 conditional values, then WIP-0355 native 32 KiB manifests |
 
 ## Summary
 
@@ -68,3 +68,4 @@ Rejected. Their capacities are not exhausted.
 - [WIP-0345](WIP-0345-native-24k-test-manifest-bound.md)
 - [WIP-0349](WIP-0349-native-compiler-named-return-suite.md)
 - [WIP-0351](WIP-0351-native-compiler-conditional-value-suite.md)
+- [WIP-0355](WIP-0355-native-32k-test-manifest-bound.md)

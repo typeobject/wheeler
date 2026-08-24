@@ -9,7 +9,7 @@
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0353 |
 | Supersedes | Product-only conditional operation and base-map evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | WIP-0355 native 32 KiB test-manifest bound |
 
 ## Summary
 
@@ -88,3 +88,4 @@ Rejected. Both small owners share the same imports, linked-root limit, and packa
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0018](WIP-0018-integrated-deterministic-testing.md)
 - [WIP-0353](WIP-0353-native-40k-source-plan-bound.md)
+- [WIP-0355](WIP-0355-native-32k-test-manifest-bound.md)

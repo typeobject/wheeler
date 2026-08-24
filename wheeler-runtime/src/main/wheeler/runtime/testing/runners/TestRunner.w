@@ -118,7 +118,7 @@ classical class TestRunner {
     assert(cursor + 4 < bufferLength(input));
     long manifestLength = readUnsigned(input, cursor, /* width= */ 4);
     assert(0 < manifestLength);
-    assert(manifestLength < 28673);
+    assert(manifestLength < 32769);
     cursor += 4;
     assert(cursor + manifestLength + 4 < bufferLength(input));
     long manifestStart = cursor;
