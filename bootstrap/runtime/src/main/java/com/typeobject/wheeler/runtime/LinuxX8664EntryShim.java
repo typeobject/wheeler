@@ -16,7 +16,7 @@ public final class LinuxX8664EntryShim {
   public static final int MALFORMED_IMAGE_STATUS = 125;
   private static final int PAGE_BYTES = 4096;
   private static final byte[] SUCCESS_OUTPUT = "Wheeler\n".getBytes(StandardCharsets.US_ASCII);
-  private static final byte[] RUNTIME_TEXT = assemble(SUCCESS_STATUS);
+  private static final byte[] RUNTIME_TEXT = runtimeText(SUCCESS_STATUS);
   private static final String RUNTIME_IDENTITY = identity(RUNTIME_TEXT);
 
   private LinuxX8664EntryShim() {}
@@ -30,7 +30,19 @@ public final class LinuxX8664EntryShim {
     if (successStatus < 0 || successStatus >= MALFORMED_IMAGE_STATUS) {
       throw new IllegalArgumentException("Native success status must be between 0 and 124");
     }
-    return assemble(successStatus);
+    Code status = new Code();
+    status.bytes(0xbf);
+    status.integer(successStatus);
+    return assemble(status.finish());
+  }
+
+  static byte[] runtimeText(byte[] processStatusCode) {
+    if (processStatusCode == null
+        || processStatusCode.length == 0
+        || processStatusCode.length > 4096) {
+      throw new IllegalArgumentException("Native process-status code is invalid");
+    }
+    return assemble(processStatusCode.clone());
   }
 
   /** SHA-256 identity of the exact runtime text. */
@@ -43,25 +55,25 @@ public final class LinuxX8664EntryShim {
     return SUCCESS_OUTPUT.clone();
   }
 
-  private static byte[] assemble(int successStatus) {
+  private static byte[] assemble(byte[] processStatusCode) {
     Code code = new Code();
+    boolean wideBranches = processStatusCode.length > 64;
     code.bytes(0x48, 0x8d, 0x1d);
     int locatorDisplacement = code.reserveInt();
     code.bytes(0x48, 0xb9);
     code.word(magicWord(ElfImage.locatorMagic()));
-    code.bytes(0x48, 0x39, 0x0b, 0x75);
-    int badLocatorJump = code.reserveByte();
+    code.bytes(0x48, 0x39, 0x0b);
+    int badLocatorJump = code.notEqual(wideBranches);
 
     code.bytes(0x8b, 0x43, ElfImage.LOCATOR_CAPSULE_OFFSET_FIELD, 0x3d);
     int capsuleOffsetValue = code.reserveInt();
-    code.bytes(0x75);
-    int badCapsuleOffsetJump = code.reserveByte();
+    int badCapsuleOffsetJump = code.notEqual(wideBranches);
     code.bytes(0x48, 0x8d, 0x8b);
     code.integer(-ElfImage.LOCATOR_FILE_OFFSET);
     code.bytes(0x48, 0x01, 0xc8, 0x48, 0xb9);
     code.word(magicWord(ApplicationCapsule.framingMagic()));
-    code.bytes(0x48, 0x39, 0x08, 0x75);
-    int badCapsuleJump = code.reserveByte();
+    code.bytes(0x48, 0x39, 0x08);
+    int badCapsuleJump = code.notEqual(wideBranches);
 
     code.bytes(0x48, 0x8d, 0x35);
     int outputDisplacement = code.reserveInt();
@@ -71,10 +83,9 @@ public final class LinuxX8664EntryShim {
     code.integer(SUCCESS_OUTPUT.length);
     code.bytes(0xb8);
     code.integer(1);
-    code.bytes(0x0f, 0x05, 0x83, 0xf8, SUCCESS_OUTPUT.length, 0x75);
-    int shortWriteJump = code.reserveByte();
-    code.bytes(0xbf);
-    code.integer(successStatus);
+    code.bytes(0x0f, 0x05, 0x83, 0xf8, SUCCESS_OUTPUT.length);
+    int shortWriteJump = code.notEqual(wideBranches);
+    code.raw(processStatusCode);
     code.bytes(0xeb);
     int exitJump = code.reserveByte();
 
@@ -95,10 +106,10 @@ public final class LinuxX8664EntryShim {
         capsuleOffsetValue,
         align(ElfImage.RUNTIME_FILE_OFFSET + code.position(), PAGE_BYTES));
     code.patchRelativeInt(outputDisplacement, output);
-    code.patchRelativeByte(badLocatorJump, failure);
-    code.patchRelativeByte(badCapsuleOffsetJump, failure);
-    code.patchRelativeByte(badCapsuleJump, failure);
-    code.patchRelativeByte(shortWriteJump, failure);
+    code.patchJump(badLocatorJump, failure, wideBranches);
+    code.patchJump(badCapsuleOffsetJump, failure, wideBranches);
+    code.patchJump(badCapsuleJump, failure, wideBranches);
+    code.patchJump(shortWriteJump, failure, wideBranches);
     code.patchRelativeByte(exitJump, exit);
     return code.finish();
   }
@@ -146,6 +157,15 @@ public final class LinuxX8664EntryShim {
       return offset;
     }
 
+    int notEqual(boolean wide) {
+      if (wide) {
+        bytes(0x0f, 0x85);
+        return reserveInt();
+      }
+      bytes(0x75);
+      return reserveByte();
+    }
+
     int reserveInt() {
       int offset = position();
       integer(0);
@@ -161,6 +181,14 @@ public final class LinuxX8664EntryShim {
     void word(long value) {
       for (int shift = 0; shift < Long.SIZE; shift += Byte.SIZE) {
         output.write((int) (value >>> shift));
+      }
+    }
+
+    void patchJump(int displacementOffset, int target, boolean wide) {
+      if (wide) {
+        patchRelativeInt(displacementOffset, target);
+      } else {
+        patchRelativeByte(displacementOffset, target);
       }
     }
 

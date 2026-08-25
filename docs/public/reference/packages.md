@@ -330,8 +330,9 @@ capabilities.
 
 `image runtime-elf-x86-64` atomically publishes the maintained 113-byte
 import-free Linux entry shim. It is loader and framing evidence, not a WBC
-runtime. `image runtime-elf-x86-64-aot` verifies one closed three-instruction WBC
-profile and publishes runtime text carrying its source-declared process status.
+runtime. `image runtime-elf-x86-64-aot` verifies one closed straight-line scalar
+WBC profile and publishes runtime text carrying its computed source-declared
+process status.
 
 `image build-elf`, `image build-macho`, and `image build-pe` consume an exact
 capsule, runtime text, canonical native image plan, and canonical platform ABI.

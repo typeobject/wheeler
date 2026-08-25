@@ -13,9 +13,9 @@
 
 ## Summary
 
-The first native backend leaf lowers verified canonical Wheeler bytecode into x86-64 Linux runtime text. One closed scalar profile writes a source-declared status global and returns that value as process status after mapped capsule entry.
+The first native backend leaf lowers verified canonical Wheeler bytecode into x86-64 Linux runtime text. One closed straight-line scalar profile computes a source-declared status global and returns that value as process status after mapped capsule entry.
 
-This is AOT evidence, not the classical bootstrap backend. It does not lower arithmetic, branches, calls, history, inverse execution, ownership, aggregates, storage, effects, quantum regions, workflows, proofs, or general entry signatures. It does not perform complete in-process capsule or WBC verification. WIP-0008 retains those boundaries.
+This is AOT evidence, not the classical bootstrap backend. It does not lower branches, calls, history, inverse execution, ownership, aggregates, storage, effects, quantum regions, workflows, proofs, or general entry signatures. It does not perform complete in-process capsule or WBC verification. WIP-0008 retains those boundaries.
 
 ## Accepted WBC profile
 
@@ -25,9 +25,11 @@ This is AOT evidence, not the classical bootstrap backend. It does not lower ari
 - No record, variant, array, slice, proof, quantum, workflow, or extension section.
 - One signed global named `status`, initially zero.
 - One entry function and no helper.
-- Zero parameters, one signed local, no result, no result slot, and no inverse.
-- Exact forward code `LOCAL_CONST 0, N`, `LOCAL_STORE_GLOBAL 0, 0`, `HALT`.
-- Process status `N` from 0 through 124.
+- Zero parameters, one through 32 signed locals, no result, no result slot, and no inverse.
+- Three through 128 forward instructions.
+- Fresh-destination `LOCAL_CONST`, `LOCAL_MOVE`, `LOCAL_ADD`, `LOCAL_SUB`, `LOCAL_MUL`, `LOCAL_DIV`, `LOCAL_MOD`, `LOCAL_AND`, and `LOCAL_XOR` instructions.
+- One terminal `LOCAL_STORE_GLOBAL 0, result`, then `HALT`.
+- Computed process status from 0 through 124.
 
 Status 125 remains the native malformed-image result. Larger and negative source values reject during lowering rather than wrapping through the host exit convention.
 
@@ -40,14 +42,17 @@ classical class Hello {
   state long status = 0;
 
   entry void main() {
-    status = 73;
+    long left = 70;
+    long right = 3;
+    long result = left + right;
+    status = result;
   }
 }
 ```
 
 ## Lowering
 
-The lowerer retains the exact portable-artifact SHA-256, extracts the verified literal, and asks the WIP-0376 instruction assembler for owned position-independent runtime text carrying that status. No source text, host path, assembler, linker, dynamic import, relocation, clock, environment, locale, or random state enters output.
+The lowerer retains the exact portable-artifact SHA-256, validates single-assignment local flow, and evaluates checked constants to establish the expected status. It emits x86-64 stack locals, moves, signed checked addition, subtraction, multiplication, division, remainder, and bitwise operations. Runtime range and overflow guards lead to process status 126. The WIP-0376 entry assembler wraps that owned position-independent code. No source text, host path, assembler, linker, dynamic import, relocation, clock, environment, locale, or random state enters output.
 
 Every accepted artifact maps deterministically to one runtime. Changing the source status changes both WBC and runtime identities. Returned runtime arrays are owned.
 
@@ -65,11 +70,11 @@ WIP-0372 now admits `aot` mode for ELF when plan, capsule root, portable artifac
 
 The generated runtime follows the same mapped-entry boundary as WIP-0376. It validates locator magic, exact capsule offset, and capsule framing magic. It then completes the fixed eight-byte standard-output probe and exits with the Wheeler-declared scalar.
 
-The source-declared status is the sole native semantic observation in this profile. Fixed probe output establishes the host write leaf but does not derive application output from WBC.
+The source-declared computed status is the sole native semantic observation in this profile. Fixed probe output establishes the host write leaf but does not derive application output from WBC.
 
 ## Failure boundary
 
-Reject malformed or noncanonical WBC, unsupported program kind, any extra semantic section, extension, global, function, local, instruction, parameter, result, inverse, or entry effect, a renamed or nonzero-initialized status global, and status outside 0 through 124.
+Reject malformed or noncanonical WBC, unsupported program kind, any extra semantic section, extension, global, function, unsupported local or instruction, parameter, result, inverse, or entry effect, a renamed or nonzero-initialized status global, unassigned reads, destination reuse, checked arithmetic failure, and final status outside 0 through 124.
 
 Image construction separately rejects mode, plan, ABI, capsule, root WBC, runtime, target, locator, permission, or canonical-byte disagreement before publication. Loaded entry retains WIP-0376 framing-failure status 125.
 
@@ -77,26 +82,27 @@ The backend does not project a larger program down to this profile. Unsupported 
 
 ## Evidence
 
-`LinuxX8664ScalarAotCompilerTest` constructs canonical WBC at statuses 17, 42, and 73. It requires stable lowering, owned bytes, exact portable identity, distinct WBC and runtime identities, canonical AOT ELF construction, and rejection of status 125, renamed state, extra instructions, and damaged artifacts.
+`LinuxX8664ScalarAotCompilerTest` constructs canonical literal WBC at statuses 17 and 42 and an arithmetic status-73 WBC. It executes addition, subtraction, multiplication, division, remainder, AND, and XOR products that each compute 42. It requires stable lowering, owned bytes, exact portable identity, distinct WBC and runtime identities, canonical AOT ELF construction, and rejection of status 125, renamed state, unsupported instructions, overflow, division by zero, and damaged artifacts.
 
-On x86-64 Linux the test launches the status-73 AOT image through the kernel and requires exact `Wheeler\n` output, process status 73, and empty standard error. `ImageCommandTest` independently compiles the source form, publishes runtime text through the physical AOT command, builds and verifies its complete AOT capsule image, and repeats native launch on Linux.
+On x86-64 Linux the test launches one status-73 AOT image containing every admitted arithmetic and bitwise opcode. It requires exact `Wheeler\n` output, process status 73, and empty standard error. `ImageCommandTest` independently compiles the source form, publishes runtime text through the physical AOT command, builds and verifies its complete AOT capsule image, and repeats native launch on Linux.
 
-An independent Alpine 3.22 kernel under x86-64 emulation launched the 5,104-byte image and observed `Wheeler\n` followed by status 73.
+An independent Alpine 3.22 kernel under x86-64 emulation launched the 5,728-byte all-operations image and observed `Wheeler\n` followed by status 73.
 
 The status-73 fixture identities are:
 
 | Product | Identity |
 | --- | --- |
-| WBC | `c8af845b4cc1722d55e807211f2320fbf83a66a5332537cc57d2171cbf1243f3` |
-| runtime | `d2e3874039662e3668852d5255b0f5bcf89ba215962f49110e0e336e4691a9f5` |
-| capsule | `a0f55d2ba640f4038b4b4fb9bd9fb8517cfc4bd0e98c19782a977af1d57ebe0c` |
-| native plan | `200a42afcd771abaee0973c73dac85d7f9d3f98c2f64dec0389ae6cb09c02dd6` |
-| unsigned PREV | `e8b3ae8b764b3035f4d51655eae29872af6b60d3edc3c387e1c7fc35000518a9` |
+| WBC | `4cafb3e54d2df73acb40ab43167a4c3aac4f443ee89f9dad50d16956fc84d4b9` |
+| runtime | `43c8d4b7aafef0570d3946e22fc266f3b2a05394e708b1a8950a58720c19be9b` |
+| capsule | `5415a99509fbbd128df1e73da4edaee2c600df2dd56372e7cf16ddc8d3fb411d` |
+| native plan | `e57825e776b9b4598ac3135ed7f6630b04e9c6170da26bf5a574a8552ebeeccc` |
+| unsigned PREV | `b2111e116204152bf8de5f54b8ed362b5fa695728a9a3478071d72db5dba2f30` |
 
 ## Acceptance
 
 - [x] Canonical WBC verification and reconstruction precede lowering.
-- [x] One closed source-declared signed status reaches x86-64 machine code.
+- [x] One closed straight-line signed status computation reaches x86-64 machine code.
+- [x] Checked arithmetic and bitwise operations preserve accepted scalar results.
 - [x] Status changes alter portable and runtime identities deterministically.
 - [x] Unsupported programs reject without projection or fallback.
 - [x] Physical lowering and image publication are bounded and atomic.
@@ -110,9 +116,9 @@ The status-73 fixture identities are:
 
 Rejected. Native lowering consumes verified canonical WBC. Source spelling cannot become a second semantic input.
 
-### Accept any final constant in a larger program
+### Accept any final computation in a larger program
 
-Rejected. Ignoring unsupported instructions would compile a different program. The complete closed profile must match.
+Rejected. Ignoring unsupported instructions or dataflow would compile a different program. The complete closed profile must match.
 
 ### Wrap arbitrary signed values to eight-bit exit status
 

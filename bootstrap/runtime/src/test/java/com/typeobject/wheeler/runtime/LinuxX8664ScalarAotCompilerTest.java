@@ -51,9 +51,11 @@ final class LinuxX8664ScalarAotCompilerTest {
     assertEquals(identity(artifact), first.portableArtifact());
     assertEquals(42, first.processStatus());
     assertArrayEquals(first.runtimeText(), second.runtimeText());
-    assertArrayEquals(LinuxX8664EntryShim.runtimeText(), first.runtimeText());
+    assertNotEquals(
+        identity(LinuxX8664EntryShim.runtimeText()),
+        identity(first.runtimeText()));
     assertEquals(
-        "220690e44353796c912558f5fddd1680e4828244b899083392b1a0406d0aa954",
+        "a6120ecf0cdd80e0d9cff2be022fd627bee45467ec534656d8901e2b3878bde5",
         identity(first.runtimeText()));
 
     byte[] returned = first.runtimeText();
@@ -73,6 +75,25 @@ final class LinuxX8664ScalarAotCompilerTest {
   }
 
   @Test
+  void lowersCheckedArithmeticAndBitwiseOperations() {
+    for (ArithmeticCase operation : List.of(
+        new ArithmeticCase(Opcode.LOCAL_ADD, 34, 8),
+        new ArithmeticCase(Opcode.LOCAL_SUB, 50, 8),
+        new ArithmeticCase(Opcode.LOCAL_MUL, 6, 7),
+        new ArithmeticCase(Opcode.LOCAL_DIV, 84, 2),
+        new ArithmeticCase(Opcode.LOCAL_MOD, 100, 58),
+        new ArithmeticCase(Opcode.LOCAL_AND, 47, 58),
+        new ArithmeticCase(Opcode.LOCAL_XOR, 16, 58))) {
+      var lowered = LinuxX8664ScalarAotCompiler.lower(
+          arithmeticArtifact(operation.opcode(), operation.left(), operation.right()));
+      assertEquals(42, lowered.processStatus());
+      assertNotEquals(
+          identity(LinuxX8664ScalarAotCompiler.lower(artifact(42)).runtimeText()),
+          lowered.runtimeIdentity());
+    }
+  }
+
+  @Test
   void rejectsProgramsOutsideTheClosedAotProfile() {
     assertThrows(
         IllegalArgumentException.class,
@@ -83,6 +104,14 @@ final class LinuxX8664ScalarAotCompilerTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> LinuxX8664ScalarAotCompiler.lower(artifact("status", 42, true)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(
+            arithmeticArtifact(Opcode.LOCAL_ADD, Long.MAX_VALUE, 1)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(
+            arithmeticArtifact(Opcode.LOCAL_DIV, 42, 0)));
 
     byte[] damaged = artifact(42);
     damaged[damaged.length - 1] ^= 1;
@@ -91,7 +120,7 @@ final class LinuxX8664ScalarAotCompilerTest {
 
   @Test
   void buildsAndLaunchesOneAotCapsuleImage() throws Exception {
-    byte[] artifact = artifact(73);
+    byte[] artifact = allOperationsArtifact();
     LinuxX8664ScalarAotCompiler.LoweredRuntime lowered =
         LinuxX8664ScalarAotCompiler.lower(artifact);
     Fixture fixture = fixture(artifact, lowered.runtimeText());
@@ -131,6 +160,66 @@ final class LinuxX8664ScalarAotCompilerTest {
 
   private static byte[] artifact(long status) {
     return artifact("status", status, false);
+  }
+
+  private static byte[] allOperationsArtifact() {
+    List<Instruction> instructions = new java.util.ArrayList<>();
+    Opcode[] opcodes = {
+        Opcode.LOCAL_ADD,
+        Opcode.LOCAL_SUB,
+        Opcode.LOCAL_MUL,
+        Opcode.LOCAL_DIV,
+        Opcode.LOCAL_MOD,
+        Opcode.LOCAL_AND,
+        Opcode.LOCAL_XOR
+    };
+    long[] left = {70, 100, 73, 146, 173, 73, 72};
+    long[] right = {3, 27, 1, 2, 100, 127, 1};
+    for (int operation = 0; operation < opcodes.length; operation++) {
+      int base = operation * 3;
+      instructions.add(Instruction.of(Opcode.LOCAL_CONST, base, left[operation]));
+      instructions.add(Instruction.of(Opcode.LOCAL_CONST, base + 1, right[operation]));
+      instructions.add(Instruction.of(opcodes[operation], base + 2, base, base + 1));
+    }
+    instructions.add(Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 20));
+    instructions.add(Instruction.of(Opcode.HALT));
+    Program program = new Program(
+        "scalar-aot-all-operations",
+        0,
+        List.of(new Global("status", 0)),
+        List.of(new FunctionBody(
+            0,
+            "example.app::main",
+            false,
+            0,
+            java.util.Collections.nCopies(21, ValueType.SIGNED),
+            null,
+            instructions,
+            List.of())));
+    return new BytecodeWriter().write(program);
+  }
+
+  private static byte[] arithmeticArtifact(
+      Opcode opcode, long left, long right) {
+    Program program = new Program(
+        "scalar-aot-arithmetic",
+        0,
+        List.of(new Global("status", 0)),
+        List.of(new FunctionBody(
+            0,
+            "example.app::main",
+            false,
+            0,
+            List.of(ValueType.SIGNED, ValueType.SIGNED, ValueType.SIGNED),
+            null,
+            List.of(
+                Instruction.of(Opcode.LOCAL_CONST, 0, left),
+                Instruction.of(Opcode.LOCAL_CONST, 1, right),
+                Instruction.of(opcode, 2, 0, 1),
+                Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 2),
+                Instruction.of(Opcode.HALT)),
+            List.of())));
+    return new BytecodeWriter().write(program);
   }
 
   private static byte[] artifact(String globalName, long status, boolean extraInstruction) {
@@ -261,6 +350,8 @@ final class LinuxX8664ScalarAotCompilerTest {
   private static String hash(int value) {
     return "%064x".formatted(value);
   }
+
+  private record ArithmeticCase(Opcode opcode, long left, long right) {}
 
   private record Fixture(
       PlatformAbi abi,
