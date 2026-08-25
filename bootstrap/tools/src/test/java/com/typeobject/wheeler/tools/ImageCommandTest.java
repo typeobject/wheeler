@@ -28,9 +28,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -115,10 +117,12 @@ final class ImageCommandTest {
   }
 
   @Test
-  void buildsAndVerifiesOneCompleteElfFromPhysicalInputs() throws Exception {
-    byte[] runtime = {
-        (byte) 0xb8, 0x3c, 0, 0, 0, 0x31, (byte) 0xff, 0x0f, 0x05
-    };
+  void buildsInspectsVerifiesAndLaunchesOneCompleteElf() throws Exception {
+    Path runtimeFile = temporary.resolve("runtime.bin");
+    CommandResult runtimePublication = execute(
+        "image", "runtime-elf-x86-64", "-o", runtimeFile.toString());
+    assertEquals(0, runtimePublication.status());
+    byte[] runtime = Files.readAllBytes(runtimeFile);
     PlatformAbi abi = platformAbi();
     ApplicationCapsule capsule = nativeCapsule(validWbc(), abi);
     CapsuleEntry rootWbc = capsule.entries().getFirst();
@@ -139,7 +143,6 @@ final class ImageCommandTest {
         hash(24),
         hash(25));
     Path capsuleFile = write("app.capsule", capsule.canonicalBytes());
-    Path runtimeFile = write("runtime.bin", runtime);
     Path planFile = write("native-image.yaml", plan.canonicalBytes());
     Path abiFile = write("platform-abi.yaml", abi.canonicalBytes());
     Path imageFile = temporary.resolve("app");
@@ -170,6 +173,16 @@ final class ImageCommandTest {
     assertEquals(0, verify.status());
     assertTrue(verify.output().startsWith("verified ELF "));
     assertTrue(verify.output().contains("1 WBC artifacts"));
+
+    if (nativeLinuxHost()) {
+      Process process = new ProcessBuilder(imageFile.toString()).start();
+      assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(LinuxX8664EntryShim.SUCCESS_STATUS, process.exitValue());
+      assertArrayEquals(
+          LinuxX8664EntryShim.successOutput(),
+          process.getInputStream().readAllBytes());
+      assertEquals(0, process.getErrorStream().readAllBytes().length);
+    }
 
     Path victim = write("victim", new byte[] {7, 8, 9});
     Path linkedOutput = temporary.resolve("linked-output");
@@ -482,6 +495,13 @@ final class ImageCommandTest {
           outputBytes.toString(StandardCharsets.UTF_8),
           errorBytes.toString(StandardCharsets.UTF_8));
     }
+  }
+
+  private static boolean nativeLinuxHost() {
+    String os = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT);
+    String architecture = System.getProperty("os.arch", "").toLowerCase(java.util.Locale.ROOT);
+    return os.equals("linux")
+        && (architecture.equals("amd64") || architecture.equals("x86_64"));
   }
 
   private static void assertInspection(

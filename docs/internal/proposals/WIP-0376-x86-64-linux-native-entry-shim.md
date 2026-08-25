@@ -71,7 +71,7 @@ This slice deliberately relies on the canonical image precondition for segment r
 
 ## Evidence
 
-`LinuxX8664EntryShimTest` checks byte identity, returned ownership, exact size, canonical ELF construction, runtime entry offset, and read-only capsule placement. `ImageCommandTest` publishes and replaces one physical runtime leaf, checks exact bytes and identity, and retains atomic-output rejection behavior. On an x86-64 Linux host it launches the complete ELF through the kernel, requires exact `Wheeler\n` output and status 42, separately damages locator magic, capsule offset, and capsule magic, relaunches each image, and requires no output and status 125. Other hosts skip only the OS-launch case.
+`LinuxX8664EntryShimTest` checks byte identity, returned ownership, exact size, canonical ELF construction, runtime entry offset, and read-only capsule placement. `ImageCommandTest` publishes and replaces one physical runtime leaf, checks exact bytes and identity, builds and verifies a capsule image from that leaf, and launches the complete command-produced ELF on x86-64 Linux. It retains atomic-output rejection behavior. On an x86-64 Linux host it launches the complete ELF through the kernel, requires exact `Wheeler\n` output and status 42, separately damages locator magic, capsule offset, and capsule magic, relaunches each image, and requires no output and status 125. Other hosts skip only the OS-launch case.
 
 Independent assembly and disassembly reproduce all 113 bytes. The complete runtime contains no relocation or imported symbol.
 

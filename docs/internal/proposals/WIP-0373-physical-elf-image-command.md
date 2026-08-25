@@ -89,7 +89,7 @@ The output remains unsigned. Signing and notarization must consume the published
 
 ## Evidence
 
-`ImageCommandTest` compiles one Wheeler module and builds independently ABI-bound ELF, Mach-O, and PE capsules. It writes each capsule, runtime, plan, and ABI to separate physical files, invokes all three build commands, and compares published bytes against direct adapter construction. Every command PREV matches independent verification.
+`ImageCommandTest` compiles one Wheeler module and builds independently ABI-bound ELF, Mach-O, and PE capsules. It writes each capsule, runtime, plan, and ABI to separate physical files, invokes all three build commands, and compares published bytes against direct adapter construction. Every command PREV matches independent verification. On x86-64 Linux the ELF case publishes the WIP-0376 runtime through its physical command, builds the image from that retained leaf, and launches the command-produced executable through the OS loader.
 
 The test invokes all three inspect commands and requires their deterministic format and range records to match direct adapter evidence. It then invokes all three verify commands and requires complete plan, capsule, and one-WBC evidence. A separately damaged ELF rejects. An output link rejects without replacing the link or changing its target bytes. Existing command cases retain deterministic capsule inspection, malformed-WBC separation, wrong-root rejection, usage rejection, and nonphysical-input rejection.
 
