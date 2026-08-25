@@ -139,7 +139,7 @@ Capsule verification does not establish that a WBC is well-formed, that proof da
 
 The same suite admits exactly 128 entries and 64 package receipts, round-trips that terminal profile, and rejects entry 129 and receipt 65. It also rejects duplicate paths and package instances, missing roots, parent paths, unpaired Unicode surrogates, non-power-of-two alignment, startup resources, and unordered capabilities.
 
-`ApplicationCapsuleExampleTest` builds one root WBC and immutable resource, verifies the capsule without adjacent files, and binds its computed identity into a native image plan.
+`ApplicationCapsuleExampleTest` builds one root WBC and immutable resource, verifies the capsule without adjacent files, binds its computed identity into a native image plan, and executes the no-authority root through WIP-0371 startup.
 
 ## Acceptance
 
@@ -182,3 +182,4 @@ Rejected. Framing owns byte integrity. The bytecode verifier owns executable sem
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0368](WIP-0368-platform-abi-and-native-image-identities.md)
 - [WIP-0370](WIP-0370-application-capsule-inspection.md)
+- [WIP-0371](WIP-0371-embedded-application-capsule-startup.md)

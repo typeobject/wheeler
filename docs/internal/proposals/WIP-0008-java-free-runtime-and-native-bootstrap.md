@@ -221,7 +221,8 @@ Recovery releases are signed or content-addressed by release policy. Bootstrap s
   - Opcode-family guards avoid running aggregate or storage checks for scalar instructions. A `LOCAL_MOVE` does not scan unrelated heap state.
   - Returned public loans, interpreter-level rewind records, workflows, and native machine code remain unfinished.
 - [x] WIP-0368 fixes the profile-1 platform ABI and native image plan identity. Canonical descriptors bind target layout, explicit host services, hard bounds, portable WBC, capsule, backend, runtime, compiler, sysroot, providers, options, and linkage. Status values, spans, handles, and service signatures are fixed. Ambient host services and output/signing identities remain outside the plan.
-- [x] WIP-0369 and WIP-0370 fix application-capsule framing and add nonexecuting inspection plus complete WBC and root verification. The runtime authority accepts retained bytes rather than paths. Native segment, platform, provider, proof, and capability checks remain before startup.
+- [x] WIP-0369 and WIP-0370 fix application-capsule framing and add nonexecuting inspection plus complete WBC and root verification. The runtime authority accepts retained bytes rather than paths.
+- [x] WIP-0371 adds format-neutral embedded-VM startup. It matches capsule and profile identities, exact capability grants, supported entry I/O, every WBC, and the qualified root before one fresh classical execution. Native segment and platform adapters remain.
 - [ ] Native backend executes the classical bootstrap profile.
 - [x] The Wheeler-written verifier and bounded interpreter hash each successful ordered two-byte opcode trace with Wheeler SHA-256. Independent Java VM observations reproduce all 32 bytes across direct updates, branches, calls, generated inverses, recursion, aggregates, ownership, storage, UTF-8, and result slots while terminal globals agree. Malformed artifacts trap before a trace identity is published.
 - [ ] Wheeler-written compiler reaches the WIP-0007 fixed point.
@@ -302,6 +303,7 @@ WIP-0262 invokes native source discovery, descriptor construction, compilation, 
 - [WIP-0368](WIP-0368-platform-abi-and-native-image-identities.md)
 - [WIP-0369](WIP-0369-canonical-application-capsules.md)
 - [WIP-0370](WIP-0370-application-capsule-inspection.md)
+- [WIP-0371](WIP-0371-embedded-application-capsule-startup.md)
 - [WIP-0291](WIP-0291-native-test-junit.md)
 - [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)

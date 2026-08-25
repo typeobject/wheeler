@@ -80,7 +80,14 @@ verify <application.capsule>` additionally verifies and canonically re-encodes
 every WBC, then requires the startup WBC's entry function to match the root
 exactly. Both commands consume one bounded physical file and perform no package
 resolution, adjacent lookup, extraction, provider loading, or capability grant.
-No native backend or recovery image ships yet.
+
+Format-neutral embedded startup accepts the retained capsule bytes and an explicit
+launch context. Capsule, runtime, bytecode, proof, target, platform, and limit
+identities must match. The sorted capability grant must equal the root request and
+the verified entry's no-input, UTF-8, binary, output, or duplex signature. Startup
+rejects AOT, nonclassical roots, and external proof or native-provider payloads,
+then executes one fresh root exactly once. It never accepts a path. Native segment
+location, page checks, host ABI shims, process exit, and a recovery image remain.
 
 ## Deriving the profile and graph
 

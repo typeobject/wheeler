@@ -10,6 +10,7 @@ import com.typeobject.wheeler.packageformat.CapsulePackageReceipt;
 import com.typeobject.wheeler.packageformat.CapsuleRoot;
 import com.typeobject.wheeler.packageformat.NativeImagePlan;
 import com.typeobject.wheeler.packageformat.PlatformAbi;
+import com.typeobject.wheeler.runtime.ApplicationCapsuleLauncher;
 import com.typeobject.wheeler.runtime.ApplicationCapsuleVerifier;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -41,7 +42,7 @@ final class ApplicationCapsuleExampleTest {
         hash(6),
         hash(7),
         NativeImagePlan.RuntimeMode.EMBEDDED_VM,
-        List.of("io:stdout/1"));
+        List.of());
     CapsulePackageReceipt receipt = new CapsulePackageReceipt(
         hash(8),
         "wheeler.hello@1.0.0",
@@ -85,7 +86,24 @@ final class ApplicationCapsuleExampleTest {
         hash(18),
         hash(19));
 
+    ApplicationCapsuleLauncher.CapsuleExecution execution =
+        ApplicationCapsuleLauncher.launch(
+            capsule.canonicalBytes(),
+            new ApplicationCapsuleLauncher.LaunchContext(
+                capsule.identity(),
+                root.runtimeProfile(),
+                root.bytecodeProfile(),
+                root.proofProfile(),
+                root.targetProfile(),
+                root.platformAbi(),
+                root.executionLimits(),
+                List.of(),
+                ApplicationCapsuleLauncher.InputMode.NONE,
+                null,
+                -1));
+
     assertEquals(verified.capsule().identity(), image.capsule());
+    assertEquals(1, execution.execution().workflowSteps());
     assertEquals("bin/hello.wbc", verified.capsule().entries().getFirst().name());
     assertEquals("example.hello::main",
         verified.rootProgram().function(verified.rootProgram().entryFunctionId()).name());

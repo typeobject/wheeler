@@ -30,7 +30,7 @@ Inspection reports authenticated framing. Verification adds executable bytecode 
 
 The verifier then selects the WBC named by the root descriptor. That program's bytecode entry function must have the root descriptor's exact qualified name. A missing program, different entry, malformed secondary WBC, noncanonical WBC, unsupported required section, failed bytecode proof, bad instruction, or type error rejects the complete capsule result.
 
-The returned program map follows canonical capsule entry order and is immutable. The result carries the already verified capsule and exact root program. Callers receive no fallback program and cannot substitute a program by package, module, or function name.
+The returned program map follows canonical capsule entry order and is immutable. The result carries the already verified capsule and exact root program. Only the verifier can construct that result. Callers receive no fallback program and cannot substitute a program by package, module, or function name.
 
 The runtime verifier does not interpret resource, proof, provider, provenance, or package-receipt payloads. Their format authorities remain separate. Native startup must compose those checks before execution.
 
@@ -103,3 +103,4 @@ Rejected. Verification must remain safe for audit tooling and hostile capsules. 
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0369](WIP-0369-canonical-application-capsules.md)
+- [WIP-0371](WIP-0371-embedded-application-capsule-startup.md)

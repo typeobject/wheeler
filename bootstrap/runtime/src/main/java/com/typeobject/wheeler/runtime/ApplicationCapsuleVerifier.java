@@ -45,14 +45,30 @@ public final class ApplicationCapsuleVerifier {
   }
 
   /** Fully framed capsule with canonical verified WBC programs and one bound root. */
-  public record VerifiedCapsule(
-      ApplicationCapsule capsule,
-      Map<String, Program> programs,
-      Program rootProgram) {
-    public VerifiedCapsule {
-      Objects.requireNonNull(capsule, "capsule");
-      programs = Collections.unmodifiableMap(new LinkedHashMap<>(programs));
-      Objects.requireNonNull(rootProgram, "rootProgram");
+  public static final class VerifiedCapsule {
+    private final ApplicationCapsule capsule;
+    private final Map<String, Program> programs;
+    private final Program rootProgram;
+
+    private VerifiedCapsule(
+        ApplicationCapsule capsule,
+        Map<String, Program> programs,
+        Program rootProgram) {
+      this.capsule = Objects.requireNonNull(capsule, "capsule");
+      this.programs = Collections.unmodifiableMap(new LinkedHashMap<>(programs));
+      this.rootProgram = Objects.requireNonNull(rootProgram, "rootProgram");
+    }
+
+    public ApplicationCapsule capsule() {
+      return capsule;
+    }
+
+    public Map<String, Program> programs() {
+      return programs;
+    }
+
+    public Program rootProgram() {
+      return rootProgram;
     }
   }
 }
