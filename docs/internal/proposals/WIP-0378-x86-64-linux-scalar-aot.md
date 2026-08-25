@@ -15,7 +15,7 @@
 
 The first native backend leaf lowers verified canonical Wheeler bytecode into x86-64 Linux runtime text. One closed acyclic scalar profile computes a source-declared status global and returns that value as process status after mapped capsule entry.
 
-This is AOT evidence, not the classical bootstrap backend. WIP-0379 extends this base profile with bounded zero-argument helper calls. This WIP alone does not specify loops, calls, history, inverse execution, ownership, aggregates, storage, effects, quantum regions, workflows, proofs, or general entry signatures. It does not perform complete in-process capsule or WBC verification. WIP-0008 retains those boundaries.
+This is AOT evidence, not the classical bootstrap backend. WIP-0379 extends this base profile with bounded helper calls, and WIP-0381 adds bounded loops. This WIP alone does not specify loops, calls, history, inverse execution, ownership, aggregates, storage, effects, quantum regions, workflows, proofs, or general entry signatures. It does not perform complete in-process capsule or WBC verification. WIP-0008 retains those boundaries.
 
 ## Accepted WBC profile
 
@@ -27,7 +27,7 @@ This is AOT evidence, not the classical bootstrap backend. WIP-0379 extends this
 - One entry function and no helper in the base profile.
 - Zero parameters, one through 32 signed or Boolean locals, no result, no result slot, and no inverse.
 - Three through 128 forward instructions.
-- Path-local fresh-destination `LOCAL_CONST`, `LOCAL_MOVE`, `LOCAL_ADD`, `LOCAL_SUB`, `LOCAL_MUL`, `LOCAL_DIV`, `LOCAL_MOD`, `LOCAL_AND`, `LOCAL_XOR`, `LOCAL_EQ`, and `LOCAL_LT` instructions.
+- Scalar-destination `LOCAL_CONST`, `LOCAL_MOVE`, `LOCAL_ADD`, `LOCAL_SUB`, `LOCAL_MUL`, `LOCAL_DIV`, `LOCAL_MOD`, `LOCAL_AND`, `LOCAL_XOR`, `LOCAL_EQ`, and `LOCAL_LT` instructions.
 - Forward-only `JUMP` and `JUMP_IF_ZERO` control flow.
 - One or more path-selected `LOCAL_STORE_GLOBAL 0, result` instructions and one terminal `HALT`.
 - Computed process status from 0 through 124.
@@ -57,7 +57,7 @@ classical class Hello {
 
 ## Lowering
 
-The lowerer retains the exact portable-artifact SHA-256, validates single-assignment local flow, and evaluates checked constants to establish the expected status. It emits x86-64 stack locals, moves, signed checked addition, subtraction, multiplication, division, remainder, bitwise operations, signed equality and ordering, forward branches, and one stack-owned status global. Runtime range and overflow guards lead to process status 126. The WIP-0376 entry assembler wraps that owned position-independent code. No source text, host path, assembler, linker, dynamic import, relocation, clock, environment, locale, or random state enters output.
+The lowerer retains the exact portable-artifact SHA-256, validates scalar local flow, and evaluates checked constants to establish the expected status. It emits x86-64 stack locals, moves, signed checked addition, subtraction, multiplication, division, remainder, bitwise operations, signed equality and ordering, forward branches, and one stack-owned status global. Runtime range and overflow guards lead to process status 126. The WIP-0376 entry assembler wraps that owned position-independent code. No source text, host path, assembler, linker, dynamic import, relocation, clock, environment, locale, or random state enters output.
 
 Every accepted artifact maps deterministically to one runtime. Changing the source status changes both WBC and runtime identities. Returned runtime arrays are owned.
 
@@ -79,7 +79,7 @@ The source-declared computed status is the sole native semantic observation in t
 
 ## Failure boundary
 
-Reject malformed or noncanonical WBC, unsupported program kind, any extra semantic section, extension, global, function graph outside WIP-0379, unsupported local or instruction, parameter, entry result, inverse, or effect, a renamed or nonzero-initialized status global, unassigned reads, path-local destination reuse, backward or escaping branches, checked arithmetic failure, an unstored path, and final status outside 0 through 124.
+Reject malformed or noncanonical WBC, unsupported program kind, any extra semantic section, extension, global, function graph outside WIP-0379, unsupported local or instruction, parameter, entry result, inverse, or effect, a renamed or nonzero-initialized status global, unassigned reads, invalid scalar updates, unchecked or escaping branches, checked arithmetic failure, an unstored path, and final status outside 0 through 124.
 
 Image construction separately rejects mode, plan, ABI, capsule, root WBC, runtime, target, locator, permission, or canonical-byte disagreement before publication. Loaded entry retains WIP-0376 framing-failure status 125.
 
@@ -146,3 +146,4 @@ Rejected. The loaded runtime still checks framing rather than complete capsule a
 - [WIP-0372](WIP-0372-canonical-elf-capsule-images.md)
 - [WIP-0376](WIP-0376-x86-64-linux-native-entry-shim.md)
 - [WIP-0379](WIP-0379-x86-64-linux-scalar-helper-calls.md)
+- [WIP-0381](WIP-0381-x86-64-linux-bounded-scalar-loops.md)

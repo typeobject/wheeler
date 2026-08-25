@@ -13,6 +13,8 @@ public final class ScalarAotProgram {
   public static final int MAX_PARAMETERS = 6;
   public static final int MAX_LOCALS = 32;
   public static final int MAX_INSTRUCTIONS = 128;
+  public static final int MAX_LOOP_ITERATIONS = 255;
+  private static final int MAX_EVALUATED_INSTRUCTIONS = 65_536;
 
   private final Program program;
   private final int processStatus;
@@ -103,13 +105,14 @@ public final class ScalarAotProgram {
             LOCAL_EQ, LOCAL_LT -> validateBinary(function, instruction);
         case JUMP -> {
           requireOperands(instruction, 1);
-          forwardTarget(instruction.operands().get(0), pc, last);
+          branchTarget(function, instruction.operands().get(0), pc, last);
         }
         case JUMP_IF_ZERO -> {
           requireOperands(instruction, 2);
           local(instruction.operands().get(0), function.localCount());
-          forwardTarget(instruction.operands().get(1), pc, last);
+          branchTarget(function, instruction.operands().get(1), pc, last);
         }
+        case LOCAL_LOOP_CHECK -> validateLoopCheck(function, instruction, pc);
         case CALL_VALUE -> validateCall(program, function, instruction);
         case LOCAL_STORE_GLOBAL -> {
           if (!entry) {
@@ -160,6 +163,58 @@ public final class ScalarAotProgram {
     local(instruction.operands().get(2), function.localCount());
   }
 
+  private static void validateLoopCheck(
+      FunctionBody function, Instruction instruction, int pc) {
+    requireOperands(instruction, 2);
+    int iteration = local(instruction.operands().get(0), function.localCount());
+    int limit = local(instruction.operands().get(1), function.localCount());
+    if (!function.localType(iteration).equals(ValueType.SIGNED)
+        || !function.localType(limit).equals(ValueType.SIGNED)
+        || iteration == limit) {
+      throw new IllegalArgumentException("Scalar AOT loop locals are invalid");
+    }
+    int iterationConstants = 0;
+    int limitConstants = 0;
+    long limitValue = -1;
+    for (int index = 0; index < function.forward().size(); index++) {
+      Instruction candidate = function.forward().get(index);
+      int written = writtenLocal(candidate);
+      if (written == iteration) {
+        if (candidate.opcode() == Opcode.LOCAL_CONST
+            && index < pc
+            && candidate.operands().get(1) == 0) {
+          iterationConstants++;
+        } else if (candidate.opcode() != Opcode.LOCAL_LOOP_CHECK) {
+          throw new IllegalArgumentException("Scalar AOT loop counter is not stable");
+        }
+      }
+      if (written == limit) {
+        if (candidate.opcode() == Opcode.LOCAL_CONST && index < pc) {
+          limitConstants++;
+          limitValue = candidate.operands().get(1);
+        } else {
+          throw new IllegalArgumentException("Scalar AOT loop limit is not stable");
+        }
+      }
+    }
+    if (iterationConstants != 1
+        || limitConstants != 1
+        || limitValue < 1
+        || limitValue > MAX_LOOP_ITERATIONS) {
+      throw new IllegalArgumentException("Scalar AOT loop bound is outside 1 through 255");
+    }
+  }
+
+  private static int writtenLocal(Instruction instruction) {
+    return switch (instruction.opcode()) {
+      case LOCAL_CONST, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD,
+          LOCAL_AND, LOCAL_XOR, LOCAL_EQ, LOCAL_LT, LOCAL_LOOP_CHECK ->
+          Math.toIntExact(instruction.operands().get(0));
+      case CALL_VALUE -> Math.toIntExact(instruction.operands().get(3));
+      default -> -1;
+    };
+  }
+
   private static void validateCall(
       Program program, FunctionBody owner, Instruction instruction) {
     requireOperands(instruction, 4);
@@ -197,27 +252,30 @@ public final class ScalarAotProgram {
     long status = 0;
     boolean stored = false;
     int pc = 0;
+    int steps = 0;
     while (pc < function.forward().size()) {
+      if (++steps > MAX_EVALUATED_INSTRUCTIONS) {
+        throw new IllegalArgumentException("Scalar AOT evaluation step bound exceeded");
+      }
       Instruction instruction = function.forward().get(pc);
       try {
         switch (instruction.opcode()) {
           case LOCAL_CONST -> {
-            int destination = freshDestination(instruction, assigned);
+            int destination = destination(instruction, 0, assigned);
             values[destination] = instruction.operands().get(1);
             assigned[destination] = true;
             pc++;
           }
           case LOCAL_MOVE -> {
-            int destination = freshDestination(instruction, assigned);
+            int destination = destination(instruction, 0, assigned);
             int source = assignedLocal(instruction, 1, assigned);
             values[destination] = values[source];
-            assigned[source] = false;
             assigned[destination] = true;
             pc++;
           }
           case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR,
               LOCAL_EQ, LOCAL_LT -> {
-            int destination = freshDestination(instruction, assigned);
+            int destination = destination(instruction, 0, assigned);
             int left = assignedLocal(instruction, 1, assigned);
             int right = assignedLocal(instruction, 2, assigned);
             values[destination] = evaluateBinary(
@@ -232,8 +290,20 @@ public final class ScalarAotProgram {
                 ? Math.toIntExact(instruction.operands().get(1))
                 : pc + 1;
           }
+          case LOCAL_LOOP_CHECK -> {
+            int iteration = assignedLocal(instruction, 0, assigned);
+            int limit = assignedLocal(instruction, 1, assigned);
+            if (values[iteration] < 0
+                || values[limit] < 0
+                || values[iteration] >= values[limit]
+                || values[limit] > MAX_LOOP_ITERATIONS) {
+              throw new ArithmeticException("Loop iteration limit exceeded");
+            }
+            values[iteration] = Math.addExact(values[iteration], 1);
+            pc++;
+          }
           case CALL_VALUE -> {
-            int destination = freshDestination(instruction, 3, assigned);
+            int destination = destination(instruction, 3, assigned);
             int argumentBase = Math.toIntExact(instruction.operands().get(1));
             int argumentCount = Math.toIntExact(instruction.operands().get(2));
             long[] callArguments = new long[argumentCount];
@@ -298,17 +368,9 @@ public final class ScalarAotProgram {
     };
   }
 
-  private static int freshDestination(Instruction instruction, boolean[] assigned) {
-    return freshDestination(instruction, 0, assigned);
-  }
-
-  private static int freshDestination(
+  private static int destination(
       Instruction instruction, int operand, boolean[] assigned) {
-    int destination = local(instruction.operands().get(operand), assigned.length);
-    if (assigned[destination]) {
-      throw new IllegalArgumentException("Scalar AOT destination is already assigned");
-    }
-    return destination;
+    return local(instruction.operands().get(operand), assigned.length);
   }
 
   private static int assignedLocal(
@@ -328,12 +390,17 @@ public final class ScalarAotProgram {
     return result;
   }
 
-  private static int forwardTarget(long value, int pc, int last) {
+  private static void branchTarget(
+      FunctionBody function, long value, int pc, int last) {
     int target = Math.toIntExact(value);
-    if (target <= pc || target > last) {
-      throw new IllegalArgumentException("Scalar AOT branch is not forward and bounded");
+    if (target < 0 || target > last || target == pc) {
+      throw new IllegalArgumentException("Scalar AOT branch target is not bounded");
     }
-    return target;
+    if (target < pc
+        && function.forward().subList(target, pc).stream()
+            .noneMatch(candidate -> candidate.opcode() == Opcode.LOCAL_LOOP_CHECK)) {
+      throw new IllegalArgumentException("Scalar AOT backward branch has no loop check");
+    }
   }
 
   private static void requireOperands(Instruction instruction, int count) {

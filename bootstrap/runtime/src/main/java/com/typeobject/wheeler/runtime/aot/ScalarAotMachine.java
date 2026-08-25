@@ -132,6 +132,12 @@ public final class ScalarAotMachine {
           branches.add(new MachineBranch(
               code.reserveInt(), Math.toIntExact(instruction.operands().get(1))));
         }
+        case LOCAL_LOOP_CHECK -> {
+          code.loadRax(local(instruction, 0));
+          code.loadRcx(local(instruction, 1));
+          code.loopCheck(traps);
+          code.storeRax(local(instruction, 0));
+        }
         case CALL_VALUE -> {
           int argumentBase = Math.toIntExact(instruction.operands().get(1));
           int argumentCount = Math.toIntExact(instruction.operands().get(2));
@@ -290,6 +296,17 @@ public final class ScalarAotMachine {
         case LOCAL_XOR -> bytes(0x48, 0x31, 0xc8);
         default -> throw new IllegalStateException("Validated scalar AOT arithmetic changed");
       }
+    }
+
+    void loopCheck(ArrayList<Integer> traps) {
+      bytes(0x48, 0x85, 0xc0, 0x0f, 0x88);
+      traps.add(reserveInt());
+      bytes(0x48, 0x85, 0xc9, 0x0f, 0x88);
+      traps.add(reserveInt());
+      bytes(0x48, 0x39, 0xc8, 0x0f, 0x8d);
+      traps.add(reserveInt());
+      bytes(0x48, 0x83, 0xc0, 0x01, 0x0f, 0x80);
+      traps.add(reserveInt());
     }
 
     void comparison(Opcode opcode) {

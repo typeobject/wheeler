@@ -15,7 +15,7 @@
 
 The x86-64 Linux scalar AOT call boundary carries up to six signed or Boolean arguments. Each `CALL_VALUE` binds one exact contiguous caller-local range to the target's declared parameter types. The callee copies those register arguments into its own stack frame before executing Wheeler instructions.
 
-This WIP extends the private WIP-0379 call convention. It does not establish an external ABI or admit owned values, loans, aggregates, result slots, variadic calls, void calls, recursion, imports, or effects.
+This WIP extends the private WIP-0379 call convention. WIP-0381 adds bounded loops without changing this register boundary. It does not establish an external ABI or admit owned values, loans, aggregates, result slots, variadic calls, void calls, recursion, imports, or effects.
 
 ## Accepted calls
 
@@ -116,3 +116,4 @@ Rejected. The callee owns its incoming arguments first. Trap state becomes autho
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0379](WIP-0379-x86-64-linux-scalar-helper-calls.md)
+- [WIP-0381](WIP-0381-x86-64-linux-bounded-scalar-loops.md)

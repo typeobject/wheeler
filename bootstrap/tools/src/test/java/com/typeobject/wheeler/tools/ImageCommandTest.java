@@ -74,7 +74,10 @@ final class ImageCommandTest {
               }
 
               entry void main() {
-                long result = code(70, 3);
+                long result = code(70, 0);
+                while (result < 73) limit 3 {
+                  result += 1;
+                }
                 if (result == 73) {
                   status = 73;
                 } else {

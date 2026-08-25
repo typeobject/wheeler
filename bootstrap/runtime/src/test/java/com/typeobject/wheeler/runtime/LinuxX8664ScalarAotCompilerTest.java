@@ -113,6 +113,25 @@ final class LinuxX8664ScalarAotCompilerTest {
   }
 
   @Test
+  void lowersBoundedScalarLoops() {
+    var shortLoop = LinuxX8664ScalarAotCompiler.lower(loopArtifact(3, 70));
+    var terminalBound = LinuxX8664ScalarAotCompiler.lower(loopArtifact(255, -182));
+
+    assertEquals(73, shortLoop.processStatus());
+    assertEquals(73, terminalBound.processStatus());
+    assertNotEquals(shortLoop.runtimeIdentity(), terminalBound.runtimeIdentity());
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(loopArtifact(2, 70)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(loopArtifact(256, 70)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(uncheckedBackwardBranchArtifact()));
+  }
+
+  @Test
   void lowersBoundedPriorHelperCalls() {
     var nested = LinuxX8664ScalarAotCompiler.lower(helperArtifact(3));
     var terminal = LinuxX8664ScalarAotCompiler.lower(helperArtifact(8));
@@ -238,6 +257,66 @@ final class LinuxX8664ScalarAotCompilerTest {
                 Instruction.of(Opcode.HALT)),
             List.of())));
     return new BytecodeWriter().write(program);
+  }
+
+  private static byte[] loopArtifact(long limit, long initial) {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-loop",
+        0,
+        List.of(new Global("status", 0)),
+        List.of(new FunctionBody(
+            0,
+            "example.app::main",
+            false,
+            0,
+            List.of(
+                ValueType.SIGNED,
+                ValueType.SIGNED,
+                ValueType.SIGNED,
+                ValueType.SIGNED,
+                ValueType.SIGNED,
+                ValueType.SIGNED,
+                ValueType.BOOLEAN,
+                ValueType.SIGNED,
+                ValueType.SIGNED),
+            null,
+            List.of(
+                Instruction.of(Opcode.LOCAL_CONST, 0, initial),
+                Instruction.of(Opcode.LOCAL_MOVE, 1, 0),
+                Instruction.of(Opcode.LOCAL_CONST, 2, limit),
+                Instruction.of(Opcode.LOCAL_CONST, 3, 0),
+                Instruction.of(Opcode.LOCAL_MOVE, 4, 1),
+                Instruction.of(Opcode.LOCAL_CONST, 5, 73),
+                Instruction.of(Opcode.LOCAL_LT, 6, 4, 5),
+                Instruction.of(Opcode.JUMP_IF_ZERO, 6, 12),
+                Instruction.of(Opcode.LOCAL_LOOP_CHECK, 3, 2),
+                Instruction.of(Opcode.LOCAL_CONST, 7, 1),
+                Instruction.of(Opcode.LOCAL_ADD, 1, 1, 7),
+                Instruction.of(Opcode.JUMP, 4),
+                Instruction.of(Opcode.LOCAL_MOVE, 8, 1),
+                Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 8),
+                Instruction.of(Opcode.HALT)),
+            List.of()))));
+  }
+
+  private static byte[] uncheckedBackwardBranchArtifact() {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-unchecked-loop",
+        0,
+        List.of(new Global("status", 0)),
+        List.of(new FunctionBody(
+            0,
+            "example.app::main",
+            false,
+            0,
+            List.of(ValueType.SIGNED),
+            null,
+            List.of(
+                Instruction.of(Opcode.LOCAL_CONST, 0, 73),
+                Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
+                Instruction.of(Opcode.JUMP, 1),
+                Instruction.of(Opcode.HALT)),
+            List.of()))));
   }
 
   private static byte[] helperArtifact(int functionCount) {
