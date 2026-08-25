@@ -171,3 +171,4 @@ Rejected. The adapter binds bytes and layout. Recovery policy must separately es
 - [WIP-0369](WIP-0369-canonical-application-capsules.md)
 - [WIP-0371](WIP-0371-embedded-application-capsule-startup.md)
 - [WIP-0373](WIP-0373-physical-elf-image-command.md)
+- [WIP-0374](WIP-0374-canonical-mach-o-capsule-images.md)

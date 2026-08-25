@@ -152,3 +152,4 @@ Rejected. Host discovery would make authority and identity depend on the launch 
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [WIP-0372](WIP-0372-canonical-elf-capsule-images.md)
+- [WIP-0374](WIP-0374-canonical-mach-o-capsule-images.md)
