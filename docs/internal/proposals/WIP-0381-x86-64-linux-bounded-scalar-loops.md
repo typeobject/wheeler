@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, x86-64 control flow, bounded loops |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0380 |
 | Supersedes | Forward-only scalar AOT control flow as the complete branch profile |
-| Superseded by | None |
+| Superseded by | WIP-0388 for the 4,096-iteration profile |
 
 ## Summary
 
@@ -113,3 +113,4 @@ Rejected. Only owned and borrowed values transfer. Clearing a signed source chan
 - [WIP-0380](WIP-0380-x86-64-linux-scalar-call-arguments.md)
 - [WIP-0382](WIP-0382-x86-64-linux-scalar-state-checks.md)
 - [WIP-0387](WIP-0387-x86-64-linux-scalar-execution-bound.md)
+- [WIP-0388](WIP-0388-x86-64-linux-4096-iteration-byte-loops.md)

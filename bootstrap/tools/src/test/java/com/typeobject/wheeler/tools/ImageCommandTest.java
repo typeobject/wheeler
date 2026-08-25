@@ -77,12 +77,16 @@ final class ImageCommandTest {
                 assert(value == 73);
               }
 
-              void writeFirst(
+              void copy(
                 borrow byteview input,
                 borrow mut bytes output
               ) {
-                assert(bufferLength(input) == 1);
-                setByte(output, 0, input[0]);
+                long length = bufferLength(input);
+                long index = 0;
+                while (index < length) limit 4096 {
+                  setByte(output, index, input[index]);
+                  index += 1;
+                }
               }
 
               entry void main(
@@ -96,14 +100,9 @@ final class ImageCommandTest {
                   result += 1;
                 }
                 check(result);
-                setByte(output, 1, 97);
-                setByte(output, 2, 116);
-                setByte(output, 3, 105);
-                setByte(output, 4, 118);
-                setByte(output, 5, 101);
-                setByte(output, 6, 10);
-                setOutputLength(output, 7);
-                writeFirst(input, output);
+                long outputLength = bufferLength(input);
+                setOutputLength(output, outputLength);
+                copy(input, output);
                 status = result;
               }
             }
@@ -155,7 +154,8 @@ final class ImageCommandTest {
 
     if (nativeLinuxHost()) {
       Process process = new ProcessBuilder(imageFile.toString()).start();
-      process.getOutputStream().write('N');
+      process.getOutputStream().write(
+          "Native\n".getBytes(StandardCharsets.US_ASCII));
       process.getOutputStream().close();
       assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
       assertEquals(73, process.exitValue());

@@ -554,6 +554,10 @@ public final class ScalarAotMachine {
       traps.add(reserveInt());
       bytes(0x48, 0x85, 0xc9, 0x0f, 0x88);
       traps.add(reserveInt());
+      bytes(0x48, 0x81, 0xf9);
+      integer(ScalarAotProgram.MAX_LOOP_ITERATIONS);
+      bytes(0x0f, 0x8f);
+      traps.add(reserveInt());
       bytes(0x48, 0x39, 0xc8, 0x0f, 0x8d);
       traps.add(reserveInt());
       bytes(0x48, 0x83, 0xc0, 0x01, 0x0f, 0x80);

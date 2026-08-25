@@ -131,7 +131,7 @@ ships yet.
 first native backend leaf. It accepts one canonical classical WBC containing one
 zero-initialized `status` global, one to eight dense functions, bounded constants, scalar updates, checked signed
 arithmetic, bitwise and 32-bit rotate operations, comparisons, assertions,
-status reads, forward branches and 255-iteration checked loops, prior
+status reads, forward branches and 4,096-iteration checked loops, prior
 signed-result or void helper calls with up to six exact signed or Boolean
 arguments, status stores, returns, and halt. An output-bearing entry may retain
 up to 4,096 constant application bytes and 64 locals. An exact

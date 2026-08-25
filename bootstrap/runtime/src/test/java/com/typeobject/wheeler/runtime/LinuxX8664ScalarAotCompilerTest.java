@@ -148,7 +148,7 @@ final class LinuxX8664ScalarAotCompilerTest {
   @Test
   void lowersBoundedScalarLoops() {
     var shortLoop = LinuxX8664ScalarAotCompiler.lower(loopArtifact(3, 70));
-    var terminalBound = LinuxX8664ScalarAotCompiler.lower(loopArtifact(255, -182));
+    var terminalBound = LinuxX8664ScalarAotCompiler.lower(loopArtifact(4096, -4023));
 
     assertEquals(73, shortLoop.processStatus());
     assertEquals(73, terminalBound.processStatus());
@@ -158,7 +158,7 @@ final class LinuxX8664ScalarAotCompilerTest {
         () -> LinuxX8664ScalarAotCompiler.lower(loopArtifact(2, 70)));
     assertThrows(
         IllegalArgumentException.class,
-        () -> LinuxX8664ScalarAotCompiler.lower(loopArtifact(256, 70)));
+        () -> LinuxX8664ScalarAotCompiler.lower(loopArtifact(4097, 70)));
     assertThrows(
         IllegalArgumentException.class,
         () -> LinuxX8664ScalarAotCompiler.lower(uncheckedBackwardBranchArtifact()));

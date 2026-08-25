@@ -14,7 +14,7 @@ public final class ScalarAotProgram {
   public static final int MAX_LOCALS = 32;
   public static final int MAX_OUTPUT_LOCALS = 64;
   public static final int MAX_INSTRUCTIONS = 128;
-  public static final int MAX_LOOP_ITERATIONS = 255;
+  public static final int MAX_LOOP_ITERATIONS = 4096;
   public static final int MAX_INPUT_BYTES = 4096;
   public static final int MAX_OUTPUT_BYTES = 4096;
   public static final int MAX_EXECUTED_INSTRUCTIONS = 65_536;
@@ -361,7 +361,7 @@ public final class ScalarAotProgram {
         || limitConstants != 1
         || limitValue < 1
         || limitValue > MAX_LOOP_ITERATIONS) {
-      throw new IllegalArgumentException("Scalar AOT loop bound is outside 1 through 255");
+      throw new IllegalArgumentException("Scalar AOT loop bound is outside 1 through 4096");
     }
   }
 

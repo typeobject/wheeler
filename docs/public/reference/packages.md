@@ -332,7 +332,8 @@ capabilities.
 import-free Linux entry shim. It is loader and framing evidence, not a WBC
 runtime. `image runtime-elf-x86-64-aot` verifies one closed bounded scalar
 WBC profile with at most seven prior signed-result or void helpers, up to six
-exact scalar arguments per call, checked loops, status reads, assertions, and up
+exact scalar arguments per call, checked loops through 4,096 iterations, status
+reads, assertions, and up
 to 4,096 constant application-output bytes. An exact input-and-output entry may
 instead consume complete stdin through 4,096 bytes and compute stdout and status
 in native code. Canonical `BUFFER_BORROW` values may pass input and output

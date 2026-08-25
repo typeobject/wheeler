@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, execution bounds, trap parity |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0381, WIP-0386 |
 | Supersedes | Per-evaluation call budgets and structurally bounded native execution |
-| Superseded by | None |
+| Superseded by | WIP-0388 for 4,096-iteration local loop bounds |
 
 ## Summary
 
@@ -21,7 +21,7 @@ This closes the exponential prior-call graph left by per-function instruction an
 
 The budget counts canonical WBC instructions on the selected execution path. A call instruction consumes one unit in its caller. Every selected instruction in the callee consumes another unit, including its terminal return. Untaken branch bodies consume nothing. Host framing, input admission, output zeroing, final status validation, and the one host output write are outside the Wheeler instruction count.
 
-The bound applies across the complete root call tree. A helper does not receive a fresh budget. A second process launch receives fresh storage and a fresh budget.
+The bound applies across the complete root call tree. A helper does not receive a fresh budget. A second process launch receives fresh storage and a fresh budget. WIP-0388 widens the independent local loop limit to 4,096.
 
 ## Compile-time evaluation
 
@@ -113,3 +113,4 @@ Rejected. Scheduler and host load would become semantic inputs and would not ide
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0381](WIP-0381-x86-64-linux-bounded-scalar-loops.md)
 - [WIP-0386](WIP-0386-x86-64-linux-borrowed-byte-helpers.md)
+- [WIP-0388](WIP-0388-x86-64-linux-4096-iteration-byte-loops.md)
