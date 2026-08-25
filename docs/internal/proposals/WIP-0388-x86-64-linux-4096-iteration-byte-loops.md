@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, bounded loops, byte I/O |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0381, WIP-0385, WIP-0387 |
 | Supersedes | The 255-iteration scalar AOT loop profile |
-| Superseded by | None |
+| Superseded by | WIP-0389 for strict UTF-8 input traversal |
 
 ## Summary
 
@@ -110,3 +110,4 @@ Rejected. Loop and transport capacities remain separate authorities and must exh
 - [WIP-0381](WIP-0381-x86-64-linux-bounded-scalar-loops.md)
 - [WIP-0385](WIP-0385-x86-64-linux-dynamic-byte-io.md)
 - [WIP-0387](WIP-0387-x86-64-linux-scalar-execution-bound.md)
+- [WIP-0389](WIP-0389-x86-64-linux-strict-utf8-input.md)

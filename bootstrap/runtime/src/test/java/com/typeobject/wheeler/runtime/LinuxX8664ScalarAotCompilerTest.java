@@ -16,6 +16,7 @@ import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.outputArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.parameterHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.stateCheckArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.uncheckedBackwardBranchArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.utf8IoArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.voidHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.zeroOutputArtifact;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -262,6 +263,34 @@ final class LinuxX8664ScalarAotCompilerTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> LinuxX8664ScalarAotCompiler.lower(invalidOutputWriteArtifact(0, 256)));
+  }
+
+  @Test
+  void decodesStrictUtf8ApplicationInput() throws Exception {
+    byte[] artifact = utf8IoArtifact();
+    var lowered = LinuxX8664ScalarAotCompiler.lower(artifact);
+    Fixture fixture = fixture(artifact, lowered.runtimeText());
+    byte[] image = ElfImage.build(
+        fixture.plan(), fixture.abi(), fixture.capsule(), lowered.runtimeText(), 0);
+    ElfImage.verify(image, fixture.plan(), fixture.abi());
+    if (nativeLinuxHost()) {
+      Process valid = new ProcessBuilder(writeExecutable(image).toString()).start();
+      valid.getOutputStream().write("A🙂".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+      valid.getOutputStream().close();
+      assertTrue(valid.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(4, valid.exitValue());
+      assertArrayEquals(new byte[] {0, 4}, valid.getInputStream().readAllBytes());
+      assertEquals(0, valid.getErrorStream().readAllBytes().length);
+
+      Process malformed = new ProcessBuilder(writeExecutable(image).toString()).start();
+      malformed.getOutputStream().write(new byte[] {(byte) 0xc0, (byte) 0x80});
+      malformed.getOutputStream().close();
+      assertTrue(malformed.waitFor(
+          Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(ScalarAotMachine.EXECUTION_TRAP_STATUS, malformed.exitValue());
+      assertEquals(0, malformed.getInputStream().readAllBytes().length);
+      assertEquals(0, malformed.getErrorStream().readAllBytes().length);
+    }
   }
 
   @Test

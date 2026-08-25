@@ -214,6 +214,51 @@ final class ScalarAotArtifacts {
         List.of());
   }
 
+  static byte[] utf8IoArtifact() {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-utf8-io",
+        0,
+        List.of(new Global("status", 0)),
+        List.of(new FunctionBody(
+            0,
+            "example.app::main",
+            false,
+            2,
+            List.of(
+                ValueType.UTF8_BORROW,
+                ValueType.BYTES_BORROW,
+                ValueType.BOOLEAN,
+                ValueType.SIGNED,
+                ValueType.SIGNED,
+                ValueType.SIGNED,
+                ValueType.SIGNED,
+                ValueType.SIGNED,
+                ValueType.BOOLEAN,
+                ValueType.SIGNED,
+                ValueType.BOOLEAN,
+                ValueType.SIGNED),
+            null,
+            List.of(
+                Instruction.of(Opcode.UTF8_VALID, 2, 0),
+                Instruction.of(Opcode.EXPECT_TRUE, 2),
+                Instruction.of(Opcode.UTF8_COUNT, 3, 0),
+                Instruction.of(Opcode.LOCAL_CONST, 4, 1),
+                Instruction.of(Opcode.UTF8_SCALAR, 5, 0, 4),
+                Instruction.of(Opcode.UTF8_WIDTH, 6, 0, 4),
+                Instruction.of(Opcode.LOCAL_CONST, 7, 0x1f642),
+                Instruction.of(Opcode.LOCAL_EQ, 8, 5, 7),
+                Instruction.of(Opcode.EXPECT_TRUE, 8),
+                Instruction.of(Opcode.LOCAL_CONST, 9, 2),
+                Instruction.of(Opcode.LOCAL_EQ, 10, 3, 9),
+                Instruction.of(Opcode.EXPECT_TRUE, 10),
+                Instruction.of(Opcode.BYTES_SET, 1, 4, 6),
+                Instruction.of(Opcode.LOCAL_CONST, 11, 2),
+                Instruction.of(Opcode.OUTPUT_LENGTH, 1, 11),
+                Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 6),
+                Instruction.of(Opcode.HALT)),
+            List.of()))));
+  }
+
   static byte[] dynamicIoHelperArtifact() {
     return new BytecodeWriter().write(new Program(
         "scalar-aot-dynamic-io-helper",

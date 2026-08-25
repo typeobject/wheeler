@@ -35,7 +35,7 @@ The admitted dynamic instructions are:
 - `BYTES_SET output, index, value` with runtime-checked index and byte value.
 - `OUTPUT_LENGTH output, length` with a runtime-checked length from 1 through 4,096.
 
-This WIP keeps input and output handles in the entry. Scalar values derived from input may cross existing signed or Boolean helper calls. WIP-0386 adds canonical borrowed byte helpers.
+This WIP keeps input and output handles in the entry. Scalar values derived from input may cross existing signed or Boolean helper calls. WIP-0386 adds canonical borrowed byte helpers. WIP-0389 adds typed strict UTF-8 input.
 
 The source boundary covers:
 
@@ -132,3 +132,4 @@ Rejected. A trapping execution must not publish application bytes.
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0384](WIP-0384-x86-64-linux-constant-byte-output.md)
 - [WIP-0386](WIP-0386-x86-64-linux-borrowed-byte-helpers.md)
+- [WIP-0389](WIP-0389-x86-64-linux-strict-utf8-input.md)

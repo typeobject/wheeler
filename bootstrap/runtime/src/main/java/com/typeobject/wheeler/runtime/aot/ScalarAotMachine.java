@@ -20,11 +20,20 @@ public final class ScalarAotMachine {
     int[] functionOffsets = new int[scalar.program().functions().size()];
     IoLayout io = scalar.usesDynamicApplicationIo()
         ? IoLayout.create(scalar.entry().localCount()) : null;
+    boolean utf8 = scalar.program().functions().stream()
+        .flatMap(function -> function.forward().stream())
+        .anyMatch(instruction -> switch (instruction.opcode()) {
+          case UTF8_VALID, UTF8_COUNT, UTF8_SCALAR, UTF8_WIDTH -> true;
+          default -> false;
+        });
     ArrayList<CallPatch> calls = new ArrayList<>();
     int entryJump = -1;
-    if (functionOffsets.length > 1) {
+    if (functionOffsets.length > 1 || utf8) {
       code.bytes(0xe9);
       entryJump = code.reserveInt();
+    }
+    if (utf8) {
+      code.installUtf8Decoder(io);
     }
     for (FunctionBody function : scalar.program().functions()) {
       functionOffsets[function.id()] = code.position();
@@ -148,7 +157,7 @@ public final class ScalarAotMachine {
           code.loadRax(globalSlot);
           code.storeRax(local(instruction, 0));
         }
-        case LOCAL_MOVE, BUFFER_BORROW -> {
+        case LOCAL_MOVE, BUFFER_BORROW, UTF8_BORROW -> {
           int destination = local(instruction, 0);
           code.loadRax(local(instruction, 1));
           code.storeRax(destination);
@@ -157,8 +166,21 @@ public final class ScalarAotMachine {
           code.bufferLength(local(instruction, 1));
           code.storeRax(local(instruction, 0));
         }
+        case UTF8_VALID, UTF8_COUNT -> {
+          code.utf8Whole(
+              local(instruction, 1), instruction.opcode(), traps);
+          code.storeRax(local(instruction, 0));
+        }
         case BYTES_GET -> {
           code.inputByte(local(instruction, 1), local(instruction, 2), io, traps);
+          code.storeRax(local(instruction, 0));
+        }
+        case UTF8_SCALAR, UTF8_WIDTH -> {
+          code.utf8At(
+              local(instruction, 1),
+              local(instruction, 2),
+              instruction.opcode(),
+              traps);
           code.storeRax(local(instruction, 0));
         }
         case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR,
@@ -301,6 +323,7 @@ public final class ScalarAotMachine {
   private static final class X86 {
     private final ByteArrayOutputStream output = new ByteArrayOutputStream(2048);
     private final ArrayList<RelativePatch> relativePatches = new ArrayList<>();
+    private int utf8DecoderOffset = -1;
 
     int position() {
       return output.size();
@@ -347,6 +370,11 @@ public final class ScalarAotMachine {
 
     void loadRcx(int local) {
       bytes(0x48, 0x8b, 0x8c, 0x24);
+      integer(local * Long.BYTES);
+    }
+
+    void loadR8(int local) {
+      bytes(0x4c, 0x8b, 0x84, 0x24);
       integer(local * Long.BYTES);
     }
 
@@ -442,6 +470,262 @@ public final class ScalarAotMachine {
       patchRelativeInt(fullJump, full);
       patchRelativeInt(completeJump, complete);
       patchRelativeInt(loopJump, loop);
+    }
+
+    void installUtf8Decoder(IoLayout io) {
+      if (io == null || utf8DecoderOffset >= 0) {
+        throw new IllegalStateException("UTF-8 decoder installation changed");
+      }
+      utf8DecoderOffset = position();
+      ArrayList<Integer> invalid = new ArrayList<>();
+      ArrayList<Integer> valid = new ArrayList<>();
+
+      bytes(0x31, 0xd2, 0x4c, 0x89, 0xc0, 0x48, 0x85, 0xc0, 0x0f, 0x88);
+      invalid.add(reserveInt());
+      bytes(0x4d, 0x8b, 0x0a, 0x4d, 0x39, 0xc8, 0x0f, 0x83);
+      invalid.add(reserveInt());
+      utf8ByteToEax(io.inputDataOffset());
+      bytes(0x3d);
+      integer(0x7f);
+      bytes(0x0f, 0x86);
+      int ascii = reserveInt();
+      bytes(0x3d);
+      integer(0xc2);
+      bytes(0x0f, 0x82);
+      invalid.add(reserveInt());
+      bytes(0x3d);
+      integer(0xdf);
+      bytes(0x0f, 0x86);
+      int two = reserveInt();
+      bytes(0x3d);
+      integer(0xef);
+      bytes(0x0f, 0x86);
+      int three = reserveInt();
+      bytes(0x3d);
+      integer(0xf4);
+      bytes(0x0f, 0x86);
+      int four = reserveInt();
+      bytes(0xe9);
+      invalid.add(reserveInt());
+
+      int asciiTarget = position();
+      bytes(0xb9);
+      integer(1);
+      bytes(0xe9);
+      valid.add(reserveInt());
+
+      int twoTarget = position();
+      bytes(0x89, 0xc7, 0x4d, 0x8d, 0x58, 0x01, 0x4d, 0x39, 0xcb, 0x0f, 0x83);
+      invalid.add(reserveInt());
+      utf8ByteToR11(io.inputDataOffset() + 1);
+      continuationR11(invalid);
+      bytes(0x89, 0xf8, 0x83, 0xe0, 0x1f, 0xc1, 0xe0, 0x06);
+      bytes(0x41, 0x83, 0xe3, 0x3f, 0x4c, 0x09, 0xd8, 0xb9);
+      integer(2);
+      bytes(0xe9);
+      valid.add(reserveInt());
+
+      int threeTarget = position();
+      bytes(0x89, 0xc7, 0x4d, 0x8d, 0x58, 0x02, 0x4d, 0x39, 0xcb, 0x0f, 0x83);
+      invalid.add(reserveInt());
+      utf8ByteToR11(io.inputDataOffset() + 1);
+      continuationR11(invalid);
+      bytes(0x81, 0xff);
+      integer(0xe0);
+      bytes(0x0f, 0x85);
+      int notE0 = reserveInt();
+      bytes(0x41, 0x81, 0xfb);
+      integer(0xa0);
+      bytes(0x0f, 0x82);
+      invalid.add(reserveInt());
+      int afterE0 = position();
+      bytes(0x81, 0xff);
+      integer(0xed);
+      bytes(0x0f, 0x85);
+      int notEd = reserveInt();
+      bytes(0x41, 0x81, 0xfb);
+      integer(0x9f);
+      bytes(0x0f, 0x87);
+      invalid.add(reserveInt());
+      int afterEd = position();
+      utf8ByteToEsi(io.inputDataOffset() + 2);
+      continuationEsi(invalid);
+      bytes(0x89, 0xf8, 0x83, 0xe0, 0x0f, 0xc1, 0xe0, 0x0c);
+      bytes(0x41, 0x83, 0xe3, 0x3f, 0x41, 0xc1, 0xe3, 0x06);
+      bytes(0x83, 0xe6, 0x3f, 0x4c, 0x09, 0xd8, 0x48, 0x09, 0xf0, 0xb9);
+      integer(3);
+      bytes(0xe9);
+      valid.add(reserveInt());
+
+      int fourTarget = position();
+      bytes(0x89, 0xc7, 0x4d, 0x8d, 0x58, 0x03, 0x4d, 0x39, 0xcb, 0x0f, 0x83);
+      invalid.add(reserveInt());
+      utf8ByteToR11(io.inputDataOffset() + 1);
+      continuationR11(invalid);
+      bytes(0x81, 0xff);
+      integer(0xf0);
+      bytes(0x0f, 0x85);
+      int notF0 = reserveInt();
+      bytes(0x41, 0x81, 0xfb);
+      integer(0x90);
+      bytes(0x0f, 0x82);
+      invalid.add(reserveInt());
+      int afterF0 = position();
+      bytes(0x81, 0xff);
+      integer(0xf4);
+      bytes(0x0f, 0x85);
+      int notF4 = reserveInt();
+      bytes(0x41, 0x81, 0xfb);
+      integer(0x8f);
+      bytes(0x0f, 0x87);
+      invalid.add(reserveInt());
+      int afterF4 = position();
+      utf8ByteToEsi(io.inputDataOffset() + 2);
+      continuationEsi(invalid);
+      utf8ByteToEdx(io.inputDataOffset() + 3);
+      continuationEdx(invalid);
+      bytes(0x89, 0xf8, 0x83, 0xe0, 0x07, 0xc1, 0xe0, 0x12);
+      bytes(0x41, 0x83, 0xe3, 0x3f, 0x41, 0xc1, 0xe3, 0x0c);
+      bytes(0x83, 0xe6, 0x3f, 0xc1, 0xe6, 0x06, 0x83, 0xe2, 0x3f);
+      bytes(0x4c, 0x09, 0xd8, 0x48, 0x09, 0xf0, 0x48, 0x09, 0xd0, 0xb9);
+      integer(4);
+      bytes(0xe9);
+      valid.add(reserveInt());
+
+      int validTarget = position();
+      bytes(0xba);
+      integer(1);
+      bytes(0xc3);
+      int invalidTarget = position();
+      bytes(0x31, 0xc0, 0x31, 0xc9, 0x31, 0xd2, 0xc3);
+
+      patchRelativeInt(ascii, asciiTarget);
+      patchRelativeInt(two, twoTarget);
+      patchRelativeInt(three, threeTarget);
+      patchRelativeInt(four, fourTarget);
+      patchRelativeInt(notE0, afterE0);
+      patchRelativeInt(notEd, afterEd);
+      patchRelativeInt(notF0, afterF0);
+      patchRelativeInt(notF4, afterF4);
+      for (int patch : valid) {
+        patchRelativeInt(patch, validTarget);
+      }
+      for (int patch : invalid) {
+        patchRelativeInt(patch, invalidTarget);
+      }
+    }
+
+    void utf8Whole(int ownerLocal, Opcode opcode, ArrayList<Integer> traps) {
+      loadR10(ownerLocal);
+      bytes(0x45, 0x31, 0xc0, 0x45, 0x31, 0xe4);
+      int loop = position();
+      bytes(0x4d, 0x8b, 0x0a, 0x4d, 0x39, 0xc8, 0x0f, 0x83);
+      int doneJump = reserveInt();
+      callUtf8Decoder();
+      bytes(0x85, 0xd2, 0x0f, 0x84);
+      int invalidJump = reserveInt();
+      bytes(0x49, 0x01, 0xc8, 0x49, 0xff, 0xc4, 0xe9);
+      int loopJump = reserveInt();
+      int invalid = position();
+      patchRelativeInt(invalidJump, invalid);
+      int completeJump = -1;
+      if (opcode == Opcode.UTF8_VALID) {
+        bytes(0x31, 0xc0, 0xe9);
+        completeJump = reserveInt();
+      } else {
+        bytes(0xe9);
+        traps.add(reserveInt());
+      }
+      int done = position();
+      patchRelativeInt(doneJump, done);
+      if (opcode == Opcode.UTF8_VALID) {
+        bytes(0xb8);
+        integer(1);
+      } else {
+        bytes(0x4c, 0x89, 0xe0);
+      }
+      int complete = position();
+      patchRelativeInt(loopJump, loop);
+      if (completeJump >= 0) {
+        patchRelativeInt(completeJump, complete);
+      }
+    }
+
+    void utf8At(
+        int ownerLocal,
+        int indexLocal,
+        Opcode opcode,
+        ArrayList<Integer> traps) {
+      loadR10(ownerLocal);
+      loadR8(indexLocal);
+      callUtf8Decoder();
+      bytes(0x85, 0xd2, 0x0f, 0x84);
+      traps.add(reserveInt());
+      if (opcode == Opcode.UTF8_WIDTH) {
+        bytes(0x48, 0x89, 0xc8);
+      }
+    }
+
+    private void callUtf8Decoder() {
+      if (utf8DecoderOffset < 0) {
+        throw new IllegalStateException("UTF-8 decoder is not installed");
+      }
+      bytes(0xe8);
+      int displacement = reserveInt();
+      patchRelativeInt(displacement, utf8DecoderOffset);
+    }
+
+    private void utf8ByteToEax(int displacement) {
+      bytes(0x43, 0x0f, 0xb6, 0x84, 0x02);
+      integer(displacement);
+    }
+
+    private void utf8ByteToR11(int displacement) {
+      bytes(0x47, 0x0f, 0xb6, 0x9c, 0x02);
+      integer(displacement);
+    }
+
+    private void utf8ByteToEsi(int displacement) {
+      bytes(0x43, 0x0f, 0xb6, 0xb4, 0x02);
+      integer(displacement);
+    }
+
+    private void utf8ByteToEdx(int displacement) {
+      bytes(0x43, 0x0f, 0xb6, 0x94, 0x02);
+      integer(displacement);
+    }
+
+    private void continuationR11(ArrayList<Integer> invalid) {
+      bytes(0x41, 0x81, 0xfb);
+      integer(0x80);
+      bytes(0x0f, 0x82);
+      invalid.add(reserveInt());
+      bytes(0x41, 0x81, 0xfb);
+      integer(0xbf);
+      bytes(0x0f, 0x87);
+      invalid.add(reserveInt());
+    }
+
+    private void continuationEsi(ArrayList<Integer> invalid) {
+      bytes(0x81, 0xfe);
+      integer(0x80);
+      bytes(0x0f, 0x82);
+      invalid.add(reserveInt());
+      bytes(0x81, 0xfe);
+      integer(0xbf);
+      bytes(0x0f, 0x87);
+      invalid.add(reserveInt());
+    }
+
+    private void continuationEdx(ArrayList<Integer> invalid) {
+      bytes(0x81, 0xfa);
+      integer(0x80);
+      bytes(0x0f, 0x82);
+      invalid.add(reserveInt());
+      bytes(0x81, 0xfa);
+      integer(0xbf);
+      bytes(0x0f, 0x87);
+      invalid.add(reserveInt());
     }
 
     void bufferLength(int ownerLocal) {

@@ -224,6 +224,69 @@ final class ImageCommandTest {
   }
 
   @Test
+  void lowersStrictUtf8ThroughBorrowedHelpers() throws Exception {
+    byte[] artifact = new WheelerCompiler().compileModulesToBytecode(
+        Map.of("example.utf8", """
+            module example.utf8;
+            classical class Utf8Input {
+              state long status = 0;
+
+              void validate(borrow utf8 input) {
+                assert(utf8Valid(input));
+                assert(utf8Count(input) == 4);
+              }
+
+              long asciiWidth(borrow utf8 input) {
+                assert(utf8Scalar(input, 0) == 0x41);
+                return utf8Width(input, 0);
+              }
+
+              long twoByteWidth(borrow utf8 input) {
+                assert(utf8Scalar(input, 1) == 0xa2);
+                return utf8Width(input, 1);
+              }
+
+              long threeByteWidth(borrow utf8 input) {
+                assert(utf8Scalar(input, 3) == 0x20ac);
+                return utf8Width(input, 3);
+              }
+
+              long fourByteWidth(borrow utf8 input) {
+                assert(utf8Scalar(input, 6) == 0x1f642);
+                return utf8Width(input, 6);
+              }
+
+              entry void main(
+                borrow utf8 input,
+                borrow mut bytes output
+              ) {
+                validate(input);
+                long first = asciiWidth(input);
+                long second = twoByteWidth(input);
+                long third = threeByteWidth(input);
+                long fourth = fourByteWidth(input);
+                assert(first + second + third + fourth == 10);
+                setByte(output, 0, fourth);
+                setOutputLength(output, 1);
+                status = fourth;
+              }
+            }
+            """),
+        "example.utf8");
+    Path artifactFile = write("utf8-helper.wbc", artifact);
+    Path runtimeFile = temporary.resolve("utf8-helper.bin");
+
+    CommandResult lowering = execute(
+        "image", "runtime-elf-x86-64-aot", artifactFile.toString(),
+        "-o", runtimeFile.toString());
+
+    assertEquals(0, lowering.status());
+    assertTrue(lowering.output().contains("input-dependent status"));
+    assertTrue(lowering.output().contains("dynamic stdin/stdout"));
+    assertTrue(Files.size(runtimeFile) > 0);
+  }
+
+  @Test
   void lowersConstantOutputThroughOneBorrowedHelper() throws Exception {
     byte[] artifact = new WheelerCompiler().compileModulesToBytecode(
         Map.of("example.output", """

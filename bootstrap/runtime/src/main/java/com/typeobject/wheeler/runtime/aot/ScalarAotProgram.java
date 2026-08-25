@@ -147,7 +147,8 @@ public final class ScalarAotProgram {
             !type.equals(ValueType.SIGNED)
                 && !type.equals(ValueType.BOOLEAN)
                 && !(output && type.equals(ValueType.BYTES_BORROW))
-                && !(dynamicIo && type.equals(ValueType.BYTE_VIEW)))
+                && !(dynamicIo && (type.equals(ValueType.BYTE_VIEW)
+                    || type.equals(ValueType.UTF8_BORROW))))
         || function.implicitResultSlot()
         || !function.inverse().isEmpty()
         || function.forward().size() < 2
@@ -164,11 +165,15 @@ public final class ScalarAotProgram {
       Instruction instruction = function.forward().get(pc);
       switch (instruction.opcode()) {
         case NOP -> requireOperands(instruction, 0);
-        case LOCAL_CONST, LOCAL_MOVE, BUFFER_BORROW ->
+        case LOCAL_CONST, LOCAL_MOVE, BUFFER_BORROW, UTF8_BORROW ->
           validateUnary(function, instruction);
         case LOCAL_LOAD_GLOBAL -> validateGlobalLoad(function, instruction, entry);
         case BUFFER_LENGTH -> validateInputLength(function, instruction, dynamicIo);
+        case UTF8_VALID, UTF8_COUNT ->
+          validateUtf8Whole(function, instruction, dynamicIo);
         case BYTES_GET -> validateInputRead(function, instruction, dynamicIo);
+        case UTF8_SCALAR, UTF8_WIDTH ->
+          validateInputRead(function, instruction, dynamicIo);
         case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR,
             LOCAL_ROTR32, LOCAL_EQ, LOCAL_LT -> validateBinary(function, instruction);
         case JUMP -> {
@@ -240,7 +245,8 @@ public final class ScalarAotProgram {
         || function.parameterCount() == 1
             && function.localType(0).equals(ValueType.BYTES_BORROW)
         || function.parameterCount() == 2
-            && function.localType(0).equals(ValueType.BYTE_VIEW)
+            && (function.localType(0).equals(ValueType.BYTE_VIEW)
+                || function.localType(0).equals(ValueType.UTF8_BORROW))
             && function.localType(1).equals(ValueType.BYTES_BORROW);
   }
 
@@ -248,7 +254,8 @@ public final class ScalarAotProgram {
     requireOperands(instruction, 2);
     local(instruction.operands().get(0), function.localCount());
     if (instruction.opcode() == Opcode.LOCAL_MOVE
-        || instruction.opcode() == Opcode.BUFFER_BORROW) {
+        || instruction.opcode() == Opcode.BUFFER_BORROW
+        || instruction.opcode() == Opcode.UTF8_BORROW) {
       local(instruction.operands().get(1), function.localCount());
     }
   }
@@ -260,8 +267,23 @@ public final class ScalarAotProgram {
     int source = local(instruction.operands().get(1), function.localCount());
     if (!dynamicIo
         || !function.localType(destination).equals(ValueType.SIGNED)
-        || !function.localType(source).equals(ValueType.BYTE_VIEW)) {
+        || !(function.localType(source).equals(ValueType.BYTE_VIEW)
+            || function.localType(source).equals(ValueType.UTF8_BORROW))) {
       throw new IllegalArgumentException("Scalar AOT input length is invalid");
+    }
+  }
+
+  private static void validateUtf8Whole(
+      FunctionBody function, Instruction instruction, boolean dynamicIo) {
+    requireOperands(instruction, 2);
+    int destination = local(instruction.operands().get(0), function.localCount());
+    int source = local(instruction.operands().get(1), function.localCount());
+    ValueType expected = instruction.opcode() == Opcode.UTF8_VALID
+        ? ValueType.BOOLEAN : ValueType.SIGNED;
+    if (!dynamicIo
+        || !function.localType(destination).equals(expected)
+        || !function.localType(source).equals(ValueType.UTF8_BORROW)) {
+      throw new IllegalArgumentException("Scalar AOT UTF-8 analysis is invalid");
     }
   }
 
@@ -271,9 +293,11 @@ public final class ScalarAotProgram {
     int destination = local(instruction.operands().get(0), function.localCount());
     int owner = local(instruction.operands().get(1), function.localCount());
     int index = local(instruction.operands().get(2), function.localCount());
+    ValueType expectedOwner = instruction.opcode() == Opcode.BYTES_GET
+        ? ValueType.BYTE_VIEW : ValueType.UTF8_BORROW;
     if (!dynamicIo
         || !function.localType(destination).equals(ValueType.SIGNED)
-        || !function.localType(owner).equals(ValueType.BYTE_VIEW)
+        || !function.localType(owner).equals(expectedOwner)
         || !function.localType(index).equals(ValueType.SIGNED)) {
       throw new IllegalArgumentException("Scalar AOT input byte read is invalid");
     }
@@ -367,10 +391,10 @@ public final class ScalarAotProgram {
 
   private static int writtenLocal(Instruction instruction) {
     return switch (instruction.opcode()) {
-      case LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, BUFFER_BORROW,
-          LOCAL_ADD, LOCAL_SUB, LOCAL_MUL,
-          LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR, LOCAL_ROTR32, LOCAL_EQ, LOCAL_LT,
-          LOCAL_LOOP_CHECK ->
+      case LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, BUFFER_BORROW, UTF8_BORROW,
+          BUFFER_LENGTH, BYTES_GET, UTF8_VALID, UTF8_COUNT, UTF8_SCALAR, UTF8_WIDTH,
+          LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR,
+          LOCAL_ROTR32, LOCAL_EQ, LOCAL_LT, LOCAL_LOOP_CHECK ->
           Math.toIntExact(instruction.operands().get(0));
       case CALL_VALUE -> Math.toIntExact(instruction.operands().get(3));
       default -> -1;
@@ -442,7 +466,7 @@ public final class ScalarAotProgram {
             assigned[destination] = true;
             pc++;
           }
-          case LOCAL_MOVE, BUFFER_BORROW -> {
+          case LOCAL_MOVE, BUFFER_BORROW, UTF8_BORROW -> {
             int destination = destination(instruction, 0, assigned);
             int source = assignedLocal(instruction, 1, assigned);
             values[destination] = values[source];

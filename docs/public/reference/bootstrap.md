@@ -135,7 +135,8 @@ status reads, forward branches and 4,096-iteration checked loops, prior
 signed-result or void helper calls with up to six exact signed or Boolean
 arguments, status stores, returns, and halt. An output-bearing entry may retain
 up to 4,096 constant application bytes and 64 locals. An exact
-`byteview, bytes` entry may instead read up to 4,096 complete stdin bytes and
+`byteview, bytes` or `utf8, bytes` entry may instead read up to 4,096 complete
+stdin bytes and
 compute bounded stdout and process status at runtime. Canonical reborrows may
 carry those byte handles through prior helper calls. One 65,536-instruction fuel
 cell bounds the selected entry and complete helper call tree. Other entries retain 32
@@ -146,7 +147,9 @@ fixed loader probe with exact source-declared bytes. Dynamic I/O repeats native
 reads until EOF, rejects input byte 4,097, validates status before output, and
 reports that status as input-dependent. Borrowed helpers retain the same frame
 bounds and cannot return or store handles as scalar values. Fuel instruction
-65,537 traps before an effect and before application output publication. The status-73 fixture launches
+65,537 traps before an effect and before application output publication. Typed
+UTF-8 input uses strict RFC 3629 validity, scalar count, scalar, and width
+operations without locale or replacement. The status-73 fixture launches
 as a complete AOT ELF, but general bytecode execution and in-process verification
 remain.
 

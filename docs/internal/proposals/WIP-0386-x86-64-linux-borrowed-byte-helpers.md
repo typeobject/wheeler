@@ -21,7 +21,7 @@ Helpers may inspect input length, read input bytes, and write output bytes. Cano
 
 A dynamic input handle points at the retained input-length cell. A dynamic output handle points at the committed output-length cell. Data begins at a fixed checked displacement from each cell. The handle therefore gives one authority for both active bounds and bytes without embedding an absolute image or stack address in runtime text.
 
-The entry constructs both handles after complete input admission and output zeroing. `BUFFER_BORROW` copies a handle into a fresh local. Calls transfer up to six exact signed, Boolean, `byteview`, or mutable `bytes` values in the existing register order. A helper stores those values in its own frame before executing. Nested prior-helper calls may pass another canonical reborrow. WIP-0387 bounds the complete selected call tree to 65,536 instructions.
+The entry constructs both handles after complete input admission and output zeroing. `BUFFER_BORROW` copies a handle into a fresh local. Calls transfer up to six exact signed, Boolean, `byteview`, or mutable `bytes` values in the existing register order. A helper stores those values in its own frame before executing. Nested prior-helper calls may pass another canonical reborrow. WIP-0387 bounds the complete selected call tree to 65,536 instructions. WIP-0389 extends this handle ABI to immutable UTF-8 reborrows.
 
 The machine never converts a handle to an application scalar. Borrowed values cannot be returned, stored in status, or escape the bounded prior-call graph. The complete WBC verifier remains authoritative for local assignment, borrow windows, call consumption, and exact argument types.
 
@@ -130,3 +130,4 @@ Rejected for this profile. Canonical WBC assigns that host-effect boundary to th
 - [WIP-0379](WIP-0379-x86-64-linux-scalar-helper-calls.md)
 - [WIP-0385](WIP-0385-x86-64-linux-dynamic-byte-io.md)
 - [WIP-0387](WIP-0387-x86-64-linux-scalar-execution-bound.md)
+- [WIP-0389](WIP-0389-x86-64-linux-strict-utf8-input.md)
