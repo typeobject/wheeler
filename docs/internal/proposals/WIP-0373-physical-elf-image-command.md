@@ -55,7 +55,7 @@ The command reads no current project, package cache, repository, adjacent lock, 
 7. Set deterministic executable permissions on the temporary file and atomically publish the complete new output.
 8. Print output path, byte count, and unsigned PREV.
 
-No output path is touched before step 7. A malformed WBC cannot be hidden inside a structurally valid image. A runtime or capsule identity mismatch fails before publication. Existing atomic-output policy rejects links and partial replacement.
+No output path is touched before step 7. A malformed WBC cannot be hidden inside a structurally valid image. A runtime or capsule identity mismatch fails before publication. The shared atomic-output boundary rejects an existing link or nonregular path before staging. Replacement accepts only an existing physical file or an absent leaf. A failed publication removes its private temporary file.
 
 The command does not invoke a linker. Runtime text is exact prebuilt input whose SHA-256 must equal the plan runtime identity.
 
@@ -79,7 +79,7 @@ The output remains unsigned. Signing and notarization must consume the published
 
 `ImageCommandTest` compiles one Wheeler module, builds a canonical capsule, writes capsule, runtime, plan, and ABI to separate physical files, invokes `build-elf`, and compares published bytes against direct `ElfImage` construction. The command's PREV matches independent verification.
 
-The test then invokes `verify-elf` and requires complete plan, capsule, and one-WBC evidence. A separately damaged ELF rejects. Existing command cases retain deterministic capsule inspection, malformed-WBC separation, wrong-root rejection, usage rejection, and nonphysical-input rejection.
+The test then invokes `verify-elf` and requires complete plan, capsule, and one-WBC evidence. A separately damaged ELF rejects. An output link rejects without replacing the link or changing its target bytes. Existing command cases retain deterministic capsule inspection, malformed-WBC separation, wrong-root rejection, usage rejection, and nonphysical-input rejection.
 
 Focused command evidence completes in one second.
 

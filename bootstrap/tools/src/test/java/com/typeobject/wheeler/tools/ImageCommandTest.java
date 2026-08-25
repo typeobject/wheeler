@@ -144,6 +144,21 @@ final class ImageCommandTest {
     assertTrue(verify.output().startsWith("verified ELF "));
     assertTrue(verify.output().contains("1 WBC artifacts"));
 
+    Path victim = write("victim", new byte[] {7, 8, 9});
+    Path linkedOutput = temporary.resolve("linked-output");
+    Files.createSymbolicLink(linkedOutput, victim.getFileName());
+    assertThrows(
+        IOException.class,
+        () -> execute(
+            "image", "build-elf", capsuleFile.toString(),
+            "--runtime", runtimeFile.toString(),
+            "--entry", "0",
+            "--plan", planFile.toString(),
+            "--abi", abiFile.toString(),
+            "-o", linkedOutput.toString()));
+    assertTrue(Files.isSymbolicLink(linkedOutput));
+    assertArrayEquals(new byte[] {7, 8, 9}, Files.readAllBytes(victim));
+
     byte[] damaged = expected.clone();
     damaged[damaged.length - 1] ^= 1;
     Path damagedFile = write("damaged-elf", damaged);

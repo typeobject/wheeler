@@ -635,6 +635,11 @@ final class PackageProject {
       throw new IOException("Output has no parent: " + destination);
     }
     Files.createDirectories(parent);
+    if (Files.exists(absolute, LinkOption.NOFOLLOW_LINKS)
+        && (!Files.isRegularFile(absolute, LinkOption.NOFOLLOW_LINKS)
+            || Files.isSymbolicLink(absolute))) {
+      throw new IOException("Output must be a physical file or absent: " + destination);
+    }
     Path temporary = Files.createTempFile(parent, ".wheeler-", ".tmp");
     try {
       Files.write(temporary, bytes);
