@@ -17,6 +17,7 @@ import com.typeobject.wheeler.packageformat.ElfImage;
 import com.typeobject.wheeler.packageformat.MachOImage;
 import com.typeobject.wheeler.packageformat.NativeImagePlan;
 import com.typeobject.wheeler.packageformat.PackageFormatException;
+import com.typeobject.wheeler.packageformat.PeImage;
 import com.typeobject.wheeler.packageformat.PlatformAbi;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -226,6 +227,57 @@ final class ImageCommandTest {
   }
 
   @Test
+  void buildsAndVerifiesOneCompletePeFromPhysicalInputs() throws Exception {
+    byte[] runtime = {(byte) 0xb8, 0x2a, 0, 0, 0, (byte) 0xc3};
+    PlatformAbi abi = platformAbi(
+        PlatformAbi.Format.PE_COFF, "x86_64", "windows-msvc", "kernel32");
+    ApplicationCapsule capsule = nativeCapsule(validWbc(), abi);
+    CapsuleEntry rootWbc = capsule.entries().getFirst();
+    NativeImagePlan plan = new NativeImagePlan(
+        PlatformAbi.Format.PE_COFF,
+        "x86_64-pc-windows-msvc",
+        NativeImagePlan.RuntimeMode.EMBEDDED_VM,
+        true,
+        true,
+        rootWbc.identity(),
+        abi.identity(),
+        capsule.identity(),
+        hash(40),
+        identity(runtime),
+        hash(41),
+        hash(42),
+        hash(43),
+        hash(44),
+        hash(45));
+    Path capsuleFile = write("windows.capsule", capsule.canonicalBytes());
+    Path runtimeFile = write("runtime-x86_64-windows.bin", runtime);
+    Path planFile = write("native-image-windows.yaml", plan.canonicalBytes());
+    Path abiFile = write("platform-abi-windows.yaml", abi.canonicalBytes());
+    Path imageFile = temporary.resolve("app.exe");
+
+    CommandResult build = execute(
+        "image", "build-pe", capsuleFile.toString(),
+        "--runtime", runtimeFile.toString(),
+        "--entry", "0",
+        "--plan", planFile.toString(),
+        "--abi", abiFile.toString(),
+        "-o", imageFile.toString());
+    byte[] expected = PeImage.build(plan, abi, capsule, runtime, 0);
+    assertEquals(0, build.status());
+    assertArrayEquals(expected, Files.readAllBytes(imageFile));
+    assertTrue(Files.isExecutable(imageFile));
+    assertTrue(build.output().contains(PeImage.verify(expected, plan, abi).prev()));
+
+    CommandResult verify = execute(
+        "image", "verify-pe", imageFile.toString(),
+        "--plan", planFile.toString(),
+        "--abi", abiFile.toString());
+    assertEquals(0, verify.status());
+    assertTrue(verify.output().startsWith("verified PE "));
+    assertTrue(verify.output().contains("1 WBC artifacts"));
+  }
+
+  @Test
   void rejectsUsageAndNonphysicalInput() throws Exception {
     CommandResult usage = execute("image", "run", "missing.capsule");
     assertEquals(2, usage.status());
@@ -235,6 +287,8 @@ final class ImageCommandTest {
     assertTrue(usage.error().contains("verify-elf"));
     assertTrue(usage.error().contains("build-macho"));
     assertTrue(usage.error().contains("verify-macho"));
+    assertTrue(usage.error().contains("build-pe"));
+    assertTrue(usage.error().contains("verify-pe"));
 
     Path directory = Files.createDirectory(temporary.resolve("directory.capsule"));
     assertThrows(

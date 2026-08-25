@@ -7,6 +7,7 @@ import com.typeobject.wheeler.packageformat.CapsuleRoot;
 import com.typeobject.wheeler.packageformat.ElfImage;
 import com.typeobject.wheeler.packageformat.MachOImage;
 import com.typeobject.wheeler.packageformat.NativeImagePlan;
+import com.typeobject.wheeler.packageformat.PeImage;
 import com.typeobject.wheeler.packageformat.PlatformAbi;
 import com.typeobject.wheeler.runtime.ApplicationCapsuleVerifier;
 import java.io.IOException;
@@ -35,6 +36,8 @@ final class ImageCommand {
       case "verify-elf" -> verifyNative(args, out, error, NativeFormat.ELF);
       case "build-macho" -> buildNative(args, out, error, NativeFormat.MACH_O);
       case "verify-macho" -> verifyNative(args, out, error, NativeFormat.MACH_O);
+      case "build-pe" -> buildNative(args, out, error, NativeFormat.PE);
+      case "verify-pe" -> verifyNative(args, out, error, NativeFormat.PE);
       default -> usage(error);
     };
   }
@@ -82,6 +85,7 @@ final class ImageCommand {
     byte[] image = switch (format) {
       case ELF -> ElfImage.build(plan, abi, capsule, runtime, entry);
       case MACH_O -> MachOImage.build(plan, abi, capsule, runtime, entry);
+      case PE -> PeImage.build(plan, abi, capsule, runtime, entry);
     };
     VerifiedNativeImage verified = verifyNativeBytes(image, plan, abi, format);
     Path output = Path.of(args[12]);
@@ -126,6 +130,11 @@ final class ImageCommand {
       }
       case MACH_O -> {
         MachOImage.VerifiedImage verified = MachOImage.verify(image, plan, abi);
+        yield new VerifiedNativeImage(
+            verified.prev(), verified.planIdentity(), verified.capsule());
+      }
+      case PE -> {
+        PeImage.VerifiedImage verified = PeImage.verify(image, plan, abi);
         yield new VerifiedNativeImage(
             verified.prev(), verified.planIdentity(), verified.capsule());
       }
@@ -263,17 +272,18 @@ final class ImageCommand {
 
   private static int usage(PrintStream error) {
     error.println("Usage: wheeler image <inspect|verify> <application.capsule>");
-    error.println("   or: wheeler image <build-elf|build-macho> <application.capsule>"
+    error.println("   or: wheeler image <build-elf|build-macho|build-pe> <application.capsule>"
         + " --runtime <runtime.bin> --entry <offset> --plan <plan.yaml>"
         + " --abi <abi.yaml> -o <application>");
-    error.println("   or: wheeler image <verify-elf|verify-macho> <application>"
+    error.println("   or: wheeler image <verify-elf|verify-macho|verify-pe> <application>"
         + " --plan <plan.yaml> --abi <abi.yaml>");
     return 2;
   }
 
   private enum NativeFormat {
     ELF("ELF", ElfImage.MAX_RUNTIME_BYTES, ElfImage.MAX_IMAGE_BYTES),
-    MACH_O("Mach-O", MachOImage.MAX_RUNTIME_BYTES, MachOImage.MAX_IMAGE_BYTES);
+    MACH_O("Mach-O", MachOImage.MAX_RUNTIME_BYTES, MachOImage.MAX_IMAGE_BYTES),
+    PE("PE", PeImage.MAX_RUNTIME_BYTES, PeImage.MAX_IMAGE_BYTES);
 
     private final String label;
     private final int maximumRuntimeBytes;

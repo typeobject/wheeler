@@ -277,6 +277,8 @@ wheeler image build-elf <application.capsule> --runtime <runtime.bin> --entry <o
 wheeler image verify-elf <application> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image build-macho <application.capsule> --runtime <runtime.bin> --entry <offset> --plan <plan.yaml> --abi <abi.yaml> -o <application>
 wheeler image verify-macho <application> --plan <plan.yaml> --abi <abi.yaml>
+wheeler image build-pe <application.capsule> --runtime <runtime.bin> --entry <offset> --plan <plan.yaml> --abi <abi.yaml> -o <application.exe>
+wheeler image verify-pe <application.exe> --plan <plan.yaml> --abi <abi.yaml>
 wheeler resolve <package-directory> [--repository <alias> ... | --catalog <archive-directory>] [-o wheeler.package.lock.yaml] [--development] [--update <package> ... | --update-all]
 wheeler verify-lock <wheeler.package.lock.yaml>
 wheeler vendor <wheeler.package.lock.yaml> --catalog <archive-directory> -o <vendor-directory>
@@ -317,12 +319,12 @@ Both commands read one bounded physical nonsymlink file. They do not resolve
 packages, follow adjacent files, load providers, extract content, or grant
 capabilities.
 
-`image build-elf` and `image build-macho` consume an exact capsule, runtime text,
-canonical native image plan, and canonical platform ABI. Each command verifies
-every WBC, builds the selected permissioned native image, verifies the complete
-output, and only then publishes atomically. `image verify-elf` and
-`image verify-macho` compose native-format, capsule, WBC, and root verification.
-None of these commands executes supplied runtime text.
+`image build-elf`, `image build-macho`, and `image build-pe` consume an exact
+capsule, runtime text, canonical native image plan, and canonical platform ABI.
+Each command verifies every WBC, builds the selected permissioned native image,
+verifies the complete output, and only then publishes atomically. The matching
+`verify-elf`, `verify-macho`, and `verify-pe` commands compose native-format,
+capsule, WBC, and root verification. None executes supplied runtime text.
 
 Atomic replacement controls which complete userspace tree becomes visible. It
 alone does not prove survival through power loss.

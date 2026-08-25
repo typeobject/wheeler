@@ -17,7 +17,7 @@ Define canonical Wheeler PE32+ images for `x86_64-pc-windows-msvc` and `aarch64-
 
 The image contains exact position-independent runtime text and one complete application capsule. A read-execute `.text` section contains a fixed Wheeler locator followed by runtime text. A separate read-only `.wheel` section contains exact capsule bytes and canonical file-alignment padding. The image contains no imports, exports, relocations, symbols, debug records, resources, exception table, CLR header, timestamp, checksum, certificate, source path, UUID, or adjacent-file lookup.
 
-This WIP defines unsigned image construction and independent verification. It does not supply Wheeler runtime machine code, a Windows host-service shim, Authenticode, installation, or launch evidence.
+This WIP defines unsigned image construction and independent verification. WIP-0373 exposes both through exact physical build and verify commands. This WIP does not supply Wheeler runtime machine code, a Windows host-service shim, Authenticode, installation, or launch evidence.
 
 ## Profile
 
@@ -155,4 +155,5 @@ Rejected. Valid PE layout does not prove maintained runtime code, host ABI behav
 - [WIP-0369](WIP-0369-canonical-application-capsules.md)
 - [WIP-0371](WIP-0371-embedded-application-capsule-startup.md)
 - [WIP-0372](WIP-0372-canonical-elf-capsule-images.md)
+- [WIP-0373](WIP-0373-physical-elf-image-command.md)
 - [WIP-0374](WIP-0374-canonical-mach-o-capsule-images.md)
