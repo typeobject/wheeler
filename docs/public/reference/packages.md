@@ -273,6 +273,8 @@ wheeler package <package-directory> [-o package.wpk]
 wheeler verify <package.wpk>
 wheeler image inspect <application.capsule>
 wheeler image verify <application.capsule>
+wheeler image build-elf <application.capsule> --runtime <runtime.bin> --entry <offset> --plan <plan.yaml> --abi <abi.yaml> -o <application>
+wheeler image verify-elf <application> --plan <plan.yaml> --abi <abi.yaml>
 wheeler resolve <package-directory> [--repository <alias> ... | --catalog <archive-directory>] [-o wheeler.package.lock.yaml] [--development] [--update <package> ... | --update-all]
 wheeler verify-lock <wheeler.package.lock.yaml>
 wheeler vendor <wheeler.package.lock.yaml> --catalog <archive-directory> -o <vendor-directory>
@@ -312,6 +314,12 @@ canonically re-encodes every WBC, then binds the exact qualified root function.
 Both commands read one bounded physical nonsymlink file. They do not resolve
 packages, follow adjacent files, load providers, extract content, or grant
 capabilities.
+
+`image build-elf` consumes an exact capsule, runtime text, canonical native image
+plan, and canonical platform ABI. It verifies every WBC, builds the permissioned
+ELF64 image, verifies the complete output, and only then publishes atomically.
+`image verify-elf` composes ELF, capsule, WBC, and root verification. Neither
+command executes supplied runtime text.
 
 Atomic replacement controls which complete userspace tree becomes visible. It
 alone does not prove survival through power loss.

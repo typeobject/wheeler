@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.tools;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -12,14 +13,19 @@ import com.typeobject.wheeler.packageformat.ApplicationCapsule;
 import com.typeobject.wheeler.packageformat.CapsuleEntry;
 import com.typeobject.wheeler.packageformat.CapsulePackageReceipt;
 import com.typeobject.wheeler.packageformat.CapsuleRoot;
+import com.typeobject.wheeler.packageformat.ElfImage;
 import com.typeobject.wheeler.packageformat.NativeImagePlan;
 import com.typeobject.wheeler.packageformat.PackageFormatException;
+import com.typeobject.wheeler.packageformat.PlatformAbi;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -88,10 +94,75 @@ final class ImageCommandTest {
   }
 
   @Test
+  void buildsAndVerifiesOneCompleteElfFromPhysicalInputs() throws Exception {
+    byte[] runtime = {
+        (byte) 0xb8, 0x3c, 0, 0, 0, 0x31, (byte) 0xff, 0x0f, 0x05
+    };
+    PlatformAbi abi = platformAbi();
+    ApplicationCapsule capsule = elfCapsule(validWbc(), abi);
+    CapsuleEntry rootWbc = capsule.entries().getFirst();
+    NativeImagePlan plan = new NativeImagePlan(
+        PlatformAbi.Format.ELF,
+        "x86_64-unknown-linux-gnu",
+        NativeImagePlan.RuntimeMode.EMBEDDED_VM,
+        true,
+        true,
+        rootWbc.identity(),
+        abi.identity(),
+        capsule.identity(),
+        hash(20),
+        identity(runtime),
+        hash(21),
+        hash(22),
+        hash(23),
+        hash(24),
+        hash(25));
+    Path capsuleFile = write("app.capsule", capsule.canonicalBytes());
+    Path runtimeFile = write("runtime.bin", runtime);
+    Path planFile = write("native-image.yaml", plan.canonicalBytes());
+    Path abiFile = write("platform-abi.yaml", abi.canonicalBytes());
+    Path imageFile = temporary.resolve("app");
+
+    CommandResult build = execute(
+        "image", "build-elf", capsuleFile.toString(),
+        "--runtime", runtimeFile.toString(),
+        "--entry", "0",
+        "--plan", planFile.toString(),
+        "--abi", abiFile.toString(),
+        "-o", imageFile.toString());
+    byte[] expected = ElfImage.build(plan, abi, capsule, runtime, 0);
+    assertEquals(0, build.status());
+    assertArrayEquals(expected, Files.readAllBytes(imageFile));
+    assertTrue(Files.isExecutable(imageFile));
+    assertTrue(build.output().contains(ElfImage.verify(expected, plan, abi).prev()));
+
+    CommandResult verify = execute(
+        "image", "verify-elf", imageFile.toString(),
+        "--plan", planFile.toString(),
+        "--abi", abiFile.toString());
+    assertEquals(0, verify.status());
+    assertTrue(verify.output().startsWith("verified ELF "));
+    assertTrue(verify.output().contains("1 WBC artifacts"));
+
+    byte[] damaged = expected.clone();
+    damaged[damaged.length - 1] ^= 1;
+    Path damagedFile = write("damaged-elf", damaged);
+    assertThrows(
+        PackageFormatException.class,
+        () -> execute(
+            "image", "verify-elf", damagedFile.toString(),
+            "--plan", planFile.toString(),
+            "--abi", abiFile.toString()));
+  }
+
+  @Test
   void rejectsUsageAndNonphysicalInput() throws Exception {
     CommandResult usage = execute("image", "run", "missing.capsule");
     assertEquals(2, usage.status());
-    assertEquals("Usage: wheeler image <inspect|verify> <application.capsule>\n", usage.error());
+    assertTrue(usage.error().startsWith(
+        "Usage: wheeler image <inspect|verify> <application.capsule>\n"));
+    assertTrue(usage.error().contains("build-elf"));
+    assertTrue(usage.error().contains("verify-elf"));
 
     Path directory = Files.createDirectory(temporary.resolve("directory.capsule"));
     assertThrows(
@@ -154,6 +225,60 @@ final class ImageCommandTest {
             wbc));
   }
 
+  private static ApplicationCapsule elfCapsule(byte[] wbc, PlatformAbi abi) {
+    CapsuleRoot root = new CapsuleRoot(
+        hash(1),
+        "hello",
+        "bin/hello.wbc",
+        "example.hello::main",
+        hash(2),
+        hash(3),
+        hash(4),
+        hash(5),
+        abi.identity(),
+        hash(7),
+        NativeImagePlan.RuntimeMode.EMBEDDED_VM,
+        List.of());
+    CapsuleEntry entry = new CapsuleEntry(
+        CapsuleEntry.Kind.WBC,
+        root.rootWbc(),
+        8,
+        CapsuleEntry.REQUIRED | CapsuleEntry.STARTUP,
+        wbc);
+    return new ApplicationCapsule(root, receipts(), List.of(entry));
+  }
+
+  private static PlatformAbi platformAbi() {
+    return new PlatformAbi(
+        PlatformAbi.Format.ELF,
+        "x86_64",
+        "linux-gnu",
+        64,
+        PlatformAbi.Endianness.LITTLE,
+        4096,
+        16,
+        256,
+        1024 * 1024,
+        4096,
+        1024,
+        64L * 1024 * 1024,
+        List.of("baseline"),
+        List.of("libc.so.6"),
+        List.of(
+            PlatformAbi.Service.CAPABILITY_FILE_OPEN,
+            PlatformAbi.Service.DIRECTORY_MANIFEST,
+            PlatformAbi.Service.FILE_ATOMIC_REPLACE,
+            PlatformAbi.Service.FILE_READ_AT,
+            PlatformAbi.Service.MEMORY_PROTECT,
+            PlatformAbi.Service.MEMORY_RELEASE,
+            PlatformAbi.Service.MEMORY_RESERVE,
+            PlatformAbi.Service.PROCESS_ARGUMENTS,
+            PlatformAbi.Service.PROCESS_EXIT,
+            PlatformAbi.Service.STDERR_WRITE,
+            PlatformAbi.Service.STDIN_READ,
+            PlatformAbi.Service.STDOUT_WRITE));
+  }
+
   private static byte[] validWbc() {
     String source = """
         module example.hello;
@@ -181,6 +306,14 @@ final class ImageCommandTest {
           status,
           outputBytes.toString(StandardCharsets.UTF_8),
           errorBytes.toString(StandardCharsets.UTF_8));
+    }
+  }
+
+  private static String identity(byte[] bytes) {
+    try {
+      return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+    } catch (NoSuchAlgorithmException exception) {
+      throw new IllegalStateException(exception);
     }
   }
 

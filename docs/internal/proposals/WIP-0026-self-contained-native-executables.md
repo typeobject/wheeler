@@ -204,6 +204,7 @@ Reject malformed native structure, overlapping or escaping ranges, a writable an
 - [x] WIP-0370 adds bounded physical capsule inspection and complete WBC verification. Runtime authority verifies and canonically re-encodes every WBC, then binds the exact root function. Deterministic inspection remains nonexecuting and distinguishes valid framing from executable verification.
 - [x] WIP-0371 adds format-neutral embedded-VM startup over loader-mapped bytes. It matches capsule and semantic profile identities, requires exact capability grants, rejects unverified proof and provider payloads, verifies every WBC and the root, binds supported host I/O, and executes one fresh classical root. Native segment location, platform record verification, and process exit remain.
 - [x] WIP-0372 adds canonical position-independent ELF64 layout and verification for x86-64 and AArch64 Linux. Runtime text and capsule occupy separate R-X and R-- load segments. A fixed locator, nonexecutable stack, absent section table, exact plan bindings, canonical rebuilding, and unsigned PREV are enforced. Runtime machine code remains.
+- [x] WIP-0373 adds physical ELF build and verify commands. They read exact bounded nonsymlink inputs once, strictly parse plan and ABI records, verify every WBC before build, self-verify output before atomic publication, and compose ELF and WBC verification without execution.
 - [ ] ELF and Mach-O images reproduce with signing separation.
 - [ ] Sealed providers and system export integrate.
 - [ ] PE/COFF implemented and AOT conformance defined.
@@ -244,6 +245,7 @@ Adjacent launch directories permit substitution and partial updates. Opaque trai
 - [WIP-0370](WIP-0370-application-capsule-inspection.md)
 - [WIP-0371](WIP-0371-embedded-application-capsule-startup.md)
 - [WIP-0372](WIP-0372-canonical-elf-capsule-images.md)
+- [WIP-0373](WIP-0373-physical-elf-image-command.md)
 - [ELF program loading](https://gabi.xinuos.com/elf/07-loading-intro.html)
 - [Mach-O overview](https://developer.apple.com/library/archive/documentation/Performance/Conceptual/CodeFootprint/Articles/MachOOverview.html)
 - [Microsoft PE format](https://learn.microsoft.com/en-us/windows/win32/debug/pe-format)

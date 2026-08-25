@@ -96,8 +96,14 @@ runtime text. A separate page-aligned R-- segment contains the capsule. The stac
 is nonexecutable, section headers are absent, and no segment is writable and
 executable. Verification checks every loader field and identity, rebuilds exact
 bytes, and publishes the unsigned PREV only after success. Runtime text is an
-input bound by the image plan. No maintained native runtime text, host ABI shim,
-process entry, or recovery image ships yet.
+input bound by the image plan.
+
+`wheeler image build-elf` consumes exact physical capsule, runtime, plan, and ABI
+files. It verifies all WBC before construction, self-verifies the ELF before
+atomic publication, and prints the unsigned PREV. `wheeler image verify-elf`
+repeats structural and executable-artifact verification without execution. No
+maintained native runtime text, host ABI shim, process entry, or recovery image
+ships yet.
 
 ## Deriving the profile and graph
 

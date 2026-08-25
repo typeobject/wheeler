@@ -4,6 +4,9 @@ import com.typeobject.wheeler.packageformat.ApplicationCapsule;
 import com.typeobject.wheeler.packageformat.CapsuleEntry;
 import com.typeobject.wheeler.packageformat.CapsulePackageReceipt;
 import com.typeobject.wheeler.packageformat.CapsuleRoot;
+import com.typeobject.wheeler.packageformat.ElfImage;
+import com.typeobject.wheeler.packageformat.NativeImagePlan;
+import com.typeobject.wheeler.packageformat.PlatformAbi;
 import com.typeobject.wheeler.runtime.ApplicationCapsuleVerifier;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -17,16 +20,29 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Set;
 
-/** Inspects and verifies canonical application capsules without executing them. */
+/** Builds, inspects, and verifies canonical capsule and ELF images without execution. */
 final class ImageCommand {
   private ImageCommand() {}
 
   static int execute(String[] args, PrintStream out, PrintStream error) throws IOException {
-    if (args.length != 3 || !args[1].equals("inspect") && !args[1].equals("verify")) {
+    if (args.length < 2) {
       return usage(error);
     }
-    Path path = Path.of(args[2]);
-    ApplicationCapsule capsule = ApplicationCapsule.parse(readCapsule(path));
+    return switch (args[1]) {
+      case "inspect", "verify" -> capsule(args, out, error);
+      case "build-elf" -> buildElf(args, out, error);
+      case "verify-elf" -> verifyElf(args, out, error);
+      default -> usage(error);
+    };
+  }
+
+  private static int capsule(String[] args, PrintStream out, PrintStream error)
+      throws IOException {
+    if (args.length != 3) {
+      return usage(error);
+    }
+    ApplicationCapsule capsule = ApplicationCapsule.parse(readPhysical(
+        Path.of(args[2]), ApplicationCapsule.MAX_CAPSULE_BYTES, "application capsule"));
     if (args[1].equals("inspect")) {
       out.print(render(capsule));
       return 0;
@@ -37,17 +53,63 @@ final class ImageCommand {
     return 0;
   }
 
-  private static byte[] readCapsule(Path path) throws IOException {
+  private static int buildElf(String[] args, PrintStream out, PrintStream error)
+      throws IOException {
+    if (args.length != 13
+        || !args[3].equals("--runtime")
+        || !args[5].equals("--entry")
+        || !args[7].equals("--plan")
+        || !args[9].equals("--abi")
+        || !args[11].equals("-o")) {
+      return usage(error);
+    }
+    ApplicationCapsule capsule = ApplicationCapsule.parse(readPhysical(
+        Path.of(args[2]), ApplicationCapsule.MAX_CAPSULE_BYTES, "application capsule"));
+    ApplicationCapsuleVerifier.verify(capsule);
+    byte[] runtime = readPhysical(
+        Path.of(args[4]), ElfImage.MAX_RUNTIME_BYTES, "ELF runtime text");
+    NativeImagePlan plan = NativeImagePlan.parse(readPhysical(
+        Path.of(args[8]), 16 * 1024, "native image plan"));
+    PlatformAbi abi = PlatformAbi.parse(readPhysical(
+        Path.of(args[10]), 16 * 1024, "platform ABI"));
+    int entry = nonnegativeInteger(args[6], "ELF runtime entry");
+    byte[] image = ElfImage.build(plan, abi, capsule, runtime, entry);
+    ElfImage.VerifiedImage verified = ElfImage.verify(image, plan, abi);
+    Path output = Path.of(args[12]);
+    PackageProject.writeExecutableAtomically(output, image);
+    out.println("wrote " + output + " (" + image.length + " bytes, PREV "
+        + verified.prev() + ")");
+    return 0;
+  }
+
+  private static int verifyElf(String[] args, PrintStream out, PrintStream error)
+      throws IOException {
+    if (args.length != 7 || !args[3].equals("--plan") || !args[5].equals("--abi")) {
+      return usage(error);
+    }
+    byte[] image = readPhysical(Path.of(args[2]), ElfImage.MAX_IMAGE_BYTES, "ELF image");
+    NativeImagePlan plan = NativeImagePlan.parse(readPhysical(
+        Path.of(args[4]), 16 * 1024, "native image plan"));
+    PlatformAbi abi = PlatformAbi.parse(readPhysical(
+        Path.of(args[6]), 16 * 1024, "platform ABI"));
+    ElfImage.VerifiedImage verified = ElfImage.verify(image, plan, abi);
+    int wbc = ApplicationCapsuleVerifier.verify(verified.capsule()).programs().size();
+    out.println("verified ELF " + verified.prev() + " (plan " + verified.planIdentity()
+        + ", capsule " + verified.capsule().identity() + ", " + wbc + " WBC artifacts)");
+    return 0;
+  }
+
+  private static byte[] readPhysical(Path path, int maximumBytes, String description)
+      throws IOException {
     if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)
         || Files.isSymbolicLink(path)) {
-      throw new IOException(
-          "Application capsule must be one bounded physical file: " + path);
+      throw new IOException(description + " must be one bounded physical file: " + path);
     }
     Set<OpenOption> options = Set.of(StandardOpenOption.READ, LinkOption.NOFOLLOW_LINKS);
     try (SeekableByteChannel channel = Files.newByteChannel(path, options)) {
       long size = channel.size();
-      if (size < 0 || size > ApplicationCapsule.MAX_CAPSULE_BYTES) {
-        throw new IOException("Application capsule is oversized: " + path);
+      if (size < 0 || size > maximumBytes) {
+        throw new IOException(description + " is oversized: " + path);
       }
       ByteBuffer bytes = ByteBuffer.allocate(Math.toIntExact(size));
       while (bytes.hasRemaining() && channel.read(bytes) >= 0) {
@@ -55,9 +117,21 @@ final class ImageCommand {
       }
       ByteBuffer extra = ByteBuffer.allocate(1);
       if (bytes.hasRemaining() || channel.read(extra) >= 0) {
-        throw new IOException("Application capsule changed while being read: " + path);
+        throw new IOException(description + " changed while being read: " + path);
       }
       return bytes.array();
+    }
+  }
+
+  private static int nonnegativeInteger(String value, String description) {
+    try {
+      int result = Integer.parseInt(value);
+      if (result < 0) {
+        throw new NumberFormatException();
+      }
+      return result;
+    } catch (NumberFormatException exception) {
+      throw new IllegalArgumentException(description + " must be a nonnegative integer", exception);
     }
   }
 
@@ -156,6 +230,11 @@ final class ImageCommand {
 
   private static int usage(PrintStream error) {
     error.println("Usage: wheeler image <inspect|verify> <application.capsule>");
+    error.println("   or: wheeler image build-elf <application.capsule>"
+        + " --runtime <runtime.bin> --entry <offset> --plan <plan.yaml>"
+        + " --abi <abi.yaml> -o <application>");
+    error.println("   or: wheeler image verify-elf <application>"
+        + " --plan <plan.yaml> --abi <abi.yaml>");
     return 2;
   }
 }

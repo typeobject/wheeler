@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFilePermission;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -619,6 +620,15 @@ final class PackageProject {
   }
 
   static void writeAtomically(Path destination, byte[] bytes) throws IOException {
+    writeAtomically(destination, bytes, false);
+  }
+
+  static void writeExecutableAtomically(Path destination, byte[] bytes) throws IOException {
+    writeAtomically(destination, bytes, true);
+  }
+
+  private static void writeAtomically(
+      Path destination, byte[] bytes, boolean executable) throws IOException {
     Path absolute = destination.toAbsolutePath().normalize();
     Path parent = absolute.getParent();
     if (parent == null) {
@@ -628,6 +638,9 @@ final class PackageProject {
     Path temporary = Files.createTempFile(parent, ".wheeler-", ".tmp");
     try {
       Files.write(temporary, bytes);
+      if (executable) {
+        setExecutable(temporary);
+      }
       try {
         Files.move(
             temporary,
@@ -639,6 +652,23 @@ final class PackageProject {
       }
     } finally {
       Files.deleteIfExists(temporary);
+    }
+  }
+
+  private static void setExecutable(Path path) throws IOException {
+    try {
+      Files.setPosixFilePermissions(path, Set.of(
+          PosixFilePermission.OWNER_READ,
+          PosixFilePermission.OWNER_WRITE,
+          PosixFilePermission.OWNER_EXECUTE,
+          PosixFilePermission.GROUP_READ,
+          PosixFilePermission.GROUP_EXECUTE,
+          PosixFilePermission.OTHERS_READ,
+          PosixFilePermission.OTHERS_EXECUTE));
+    } catch (UnsupportedOperationException exception) {
+      if (!path.toFile().setExecutable(true, false)) {
+        throw new IOException("Cannot make native image executable: " + path, exception);
+      }
     }
   }
 }
