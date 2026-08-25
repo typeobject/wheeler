@@ -362,9 +362,11 @@ transitive source remains unavailable. There is no process-wide classpath.
 The accepted package graph is source-package based and uses one selected instance
 of each package name. Application capsules and native image plans now have bounded
 stage-0 schemas, nonexecuting inspection, and format-neutral embedded-VM startup
-over retained bytes and exact launch policy. No platform-native image is built or
-located by an OS adapter. Coexisting package instances, complete recipe revisions,
-system-package exports, native FFI providers, network mirrors, and executable
+over retained bytes and exact launch policy. A canonical ELF64 adapter can place
+exact supplied runtime text and the capsule in separate permissioned load segments
+and verify the unsigned PREV. No maintained runtime machine code or OS entry runs
+that image yet. Coexisting package instances, complete recipe revisions,
+system-package exports, native FFI providers, network mirrors, and production
 image output remain.
 
 Credentials, environment variables, home paths, clocks, mutable calibration, and

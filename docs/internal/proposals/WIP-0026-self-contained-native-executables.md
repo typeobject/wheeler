@@ -203,6 +203,7 @@ Reject malformed native structure, overlapping or escaping ranges, a writable an
 - [x] WIP-0369 accepts canonical bounded application capsules, root descriptors, package receipts, and immutable entry records. Schema 1 fixes binary framing, exact profile identities, sorted entry and receipt tables, zero alignment padding, per-entry SHA-256, whole-capsule identity, ownership, and terminal 128-entry and 64-receipt bounds.
 - [x] WIP-0370 adds bounded physical capsule inspection and complete WBC verification. Runtime authority verifies and canonically re-encodes every WBC, then binds the exact root function. Deterministic inspection remains nonexecuting and distinguishes valid framing from executable verification.
 - [x] WIP-0371 adds format-neutral embedded-VM startup over loader-mapped bytes. It matches capsule and semantic profile identities, requires exact capability grants, rejects unverified proof and provider payloads, verifies every WBC and the root, binds supported host I/O, and executes one fresh classical root. Native segment location, platform record verification, and process exit remain.
+- [x] WIP-0372 adds canonical position-independent ELF64 layout and verification for x86-64 and AArch64 Linux. Runtime text and capsule occupy separate R-X and R-- load segments. A fixed locator, nonexecutable stack, absent section table, exact plan bindings, canonical rebuilding, and unsigned PREV are enforced. Runtime machine code remains.
 - [ ] ELF and Mach-O images reproduce with signing separation.
 - [ ] Sealed providers and system export integrate.
 - [ ] PE/COFF implemented and AOT conformance defined.
@@ -242,6 +243,7 @@ Adjacent launch directories permit substitution and partial updates. Opaque trai
 - [WIP-0369](WIP-0369-canonical-application-capsules.md)
 - [WIP-0370](WIP-0370-application-capsule-inspection.md)
 - [WIP-0371](WIP-0371-embedded-application-capsule-startup.md)
+- [WIP-0372](WIP-0372-canonical-elf-capsule-images.md)
 - [ELF program loading](https://gabi.xinuos.com/elf/07-loading-intro.html)
 - [Mach-O overview](https://developer.apple.com/library/archive/documentation/Performance/Conceptual/CodeFootprint/Articles/MachOOverview.html)
 - [Microsoft PE format](https://learn.microsoft.com/en-us/windows/win32/debug/pe-format)

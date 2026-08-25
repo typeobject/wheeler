@@ -86,8 +86,16 @@ launch context. Capsule, runtime, bytecode, proof, target, platform, and limit
 identities must match. The sorted capability grant must equal the root request and
 the verified entry's no-input, UTF-8, binary, output, or duplex signature. Startup
 rejects AOT, nonclassical roots, and external proof or native-provider payloads,
-then executes one fresh root exactly once. It never accepts a path. Native segment
-location, page checks, host ABI shims, process exit, and a recovery image remain.
+then executes one fresh root exactly once. It never accepts a path.
+
+The first ELF64 adapter emits position-independent x86-64 or AArch64 Linux images.
+One R-X load segment contains headers, a fixed image-relative locator, and exact
+runtime text. A separate page-aligned R-- segment contains the capsule. The stack
+is nonexecutable, section headers are absent, and no segment is writable and
+executable. Verification checks every loader field and identity, rebuilds exact
+bytes, and publishes the unsigned PREV only after success. Runtime text is an
+input bound by the image plan. No maintained native runtime text, host ABI shim,
+process entry, or recovery image ships yet.
 
 ## Deriving the profile and graph
 

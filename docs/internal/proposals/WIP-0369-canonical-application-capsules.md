@@ -183,3 +183,4 @@ Rejected. Framing owns byte integrity. The bytecode verifier owns executable sem
 - [WIP-0368](WIP-0368-platform-abi-and-native-image-identities.md)
 - [WIP-0370](WIP-0370-application-capsule-inspection.md)
 - [WIP-0371](WIP-0371-embedded-application-capsule-startup.md)
+- [WIP-0372](WIP-0372-canonical-elf-capsule-images.md)

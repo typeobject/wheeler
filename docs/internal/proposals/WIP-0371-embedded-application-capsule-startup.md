@@ -99,7 +99,7 @@ Exact profile identity matching is not semantic profile decoding. The native ada
 
 Negative cases change capsule identity, runtime profile, capability grant, and input mode. AOT mode, an unverified provider payload, and capability drift from a no-argument entry reject before execution.
 
-`ApplicationCapsuleExampleTest` now compiles a physical Wheeler module, builds and verifies its capsule, binds the capsule identity into a native image plan, launches the no-authority root from retained bytes, and checks normal halt. It reads no adjacent Wheeler artifact.
+`ApplicationCapsuleExampleTest` now compiles a physical Wheeler module, builds and verifies its capsule, binds the capsule into a native image plan and canonical ELF, launches the no-authority root from retained capsule bytes, and checks normal halt. The ELF runtime text remains structural input and is not used for this format-neutral execution. The example reads no adjacent Wheeler artifact.
 
 ## Acceptance
 
@@ -141,3 +141,4 @@ Rejected. Native adapters hand startup the already located mapped range. Path lo
 - [WIP-0368](WIP-0368-platform-abi-and-native-image-identities.md)
 - [WIP-0369](WIP-0369-canonical-application-capsules.md)
 - [WIP-0370](WIP-0370-application-capsule-inspection.md)
+- [WIP-0372](WIP-0372-canonical-elf-capsule-images.md)
