@@ -39,7 +39,7 @@ public final class LinuxX8664ScalarAotCompiler {
     return new LoweredRuntime(
         identity(artifact),
         plan.processStatus(),
-        LinuxX8664EntryShim.runtimeText(machineCode(entry, plan.resultLocal())));
+        LinuxX8664EntryShim.runtimeText(machineCode(entry)));
   }
 
   private static FunctionBody requireProgram(Program program) {
@@ -65,7 +65,8 @@ public final class LinuxX8664ScalarAotCompiler {
         || entry.parameterCount() != 0
         || entry.localCount() == 0
         || entry.localCount() > MAX_LOCALS
-        || entry.localTypes().stream().anyMatch(type -> !type.equals(ValueType.SIGNED))
+        || entry.localTypes().stream().anyMatch(type ->
+            !type.equals(ValueType.SIGNED) && !type.equals(ValueType.BOOLEAN))
         || entry.resultType() != null
         || entry.implicitResultSlot()
         || !entry.inverse().isEmpty()
@@ -77,60 +78,130 @@ public final class LinuxX8664ScalarAotCompiler {
   }
 
   private static ScalarPlan scalarPlan(FunctionBody entry) {
+    validateInstructions(entry);
     long[] values = new long[entry.localCount()];
     boolean[] assigned = new boolean[entry.localCount()];
-    for (int index = 0; index < entry.forward().size() - 2; index++) {
-      Instruction instruction = entry.forward().get(index);
-      int operandCount = switch (instruction.opcode()) {
-        case LOCAL_CONST, LOCAL_MOVE -> 2;
-        case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR -> 3;
-        default -> throw new IllegalArgumentException(
-            "Unsupported scalar AOT opcode " + instruction.opcode());
-      };
-      requireOperands(instruction, operandCount);
-      int destination = local(instruction.operands().get(0), entry.localCount());
-      if (assigned[destination]) {
-        throw new IllegalArgumentException("Scalar AOT destination is already assigned");
-      }
+    long status = 0;
+    boolean stored = false;
+    int pc = 0;
+    while (pc < entry.forward().size()) {
+      Instruction instruction = entry.forward().get(pc);
       try {
         switch (instruction.opcode()) {
           case LOCAL_CONST -> {
+            int destination = freshDestination(instruction, assigned);
             values[destination] = instruction.operands().get(1);
+            assigned[destination] = true;
+            pc++;
           }
           case LOCAL_MOVE -> {
+            int destination = freshDestination(instruction, assigned);
             int source = assignedLocal(instruction, 1, assigned);
             values[destination] = values[source];
             assigned[source] = false;
+            assigned[destination] = true;
+            pc++;
           }
-          case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR -> {
+          case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR,
+              LOCAL_EQ, LOCAL_LT -> {
+            int destination = freshDestination(instruction, assigned);
             int left = assignedLocal(instruction, 1, assigned);
             int right = assignedLocal(instruction, 2, assigned);
             values[destination] = evaluate(
                 instruction.opcode(), values[left], values[right]);
+            assigned[destination] = true;
+            pc++;
           }
-          default -> throw new IllegalArgumentException(
-              "Unsupported scalar AOT opcode " + instruction.opcode());
+          case JUMP -> pc = Math.toIntExact(instruction.operands().get(0));
+          case JUMP_IF_ZERO -> {
+            int condition = assignedLocal(instruction, 0, assigned);
+            pc = values[condition] == 0
+                ? Math.toIntExact(instruction.operands().get(1))
+                : pc + 1;
+          }
+          case LOCAL_STORE_GLOBAL -> {
+            status = values[assignedLocal(instruction, 1, assigned)];
+            stored = true;
+            pc++;
+          }
+          case HALT -> pc = entry.forward().size();
+          default -> throw new IllegalStateException("Validated scalar AOT opcode changed");
         }
       } catch (ArithmeticException exception) {
         throw new IllegalArgumentException("Scalar AOT arithmetic traps", exception);
       }
-      assigned[destination] = true;
     }
-    Instruction store = entry.forward().get(entry.forward().size() - 2);
-    Instruction halt = entry.forward().getLast();
-    requireOperands(store, 2);
-    if (store.opcode() != Opcode.LOCAL_STORE_GLOBAL
-        || store.operands().get(0) != 0
-        || halt.opcode() != Opcode.HALT
-        || !halt.operands().isEmpty()) {
-      throw new IllegalArgumentException("Scalar AOT entry has no terminal status store");
-    }
-    int result = assignedLocal(store, 1, assigned);
-    long status = values[result];
-    if (status < 0 || status >= LinuxX8664EntryShim.MALFORMED_IMAGE_STATUS) {
+    if (!stored || status < 0 || status >= LinuxX8664EntryShim.MALFORMED_IMAGE_STATUS) {
       throw new IllegalArgumentException("AOT process status must be between 0 and 124");
     }
-    return new ScalarPlan(Math.toIntExact(status), result);
+    return new ScalarPlan(Math.toIntExact(status));
+  }
+
+  private static void validateInstructions(FunctionBody entry) {
+    int stores = 0;
+    int last = entry.forward().size() - 1;
+    for (int pc = 0; pc < entry.forward().size(); pc++) {
+      Instruction instruction = entry.forward().get(pc);
+      switch (instruction.opcode()) {
+        case LOCAL_CONST, LOCAL_MOVE -> {
+          requireOperands(instruction, 2);
+          local(instruction.operands().get(0), entry.localCount());
+          if (instruction.opcode() == Opcode.LOCAL_MOVE) {
+            local(instruction.operands().get(1), entry.localCount());
+          }
+        }
+        case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR,
+            LOCAL_EQ, LOCAL_LT -> {
+          requireOperands(instruction, 3);
+          local(instruction.operands().get(0), entry.localCount());
+          local(instruction.operands().get(1), entry.localCount());
+          local(instruction.operands().get(2), entry.localCount());
+        }
+        case JUMP -> {
+          requireOperands(instruction, 1);
+          forwardTarget(instruction.operands().get(0), pc, last);
+        }
+        case JUMP_IF_ZERO -> {
+          requireOperands(instruction, 2);
+          local(instruction.operands().get(0), entry.localCount());
+          forwardTarget(instruction.operands().get(1), pc, last);
+        }
+        case LOCAL_STORE_GLOBAL -> {
+          requireOperands(instruction, 2);
+          if (instruction.operands().get(0) != 0) {
+            throw new IllegalArgumentException("Scalar AOT store targets an unknown global");
+          }
+          local(instruction.operands().get(1), entry.localCount());
+          stores++;
+        }
+        case HALT -> {
+          if (pc != last || !instruction.operands().isEmpty()) {
+            throw new IllegalArgumentException("Scalar AOT halt must be terminal");
+          }
+        }
+        default -> throw new IllegalArgumentException(
+            "Unsupported scalar AOT opcode " + instruction.opcode());
+      }
+    }
+    if (stores == 0 || entry.forward().getLast().opcode() != Opcode.HALT) {
+      throw new IllegalArgumentException("Scalar AOT entry has no status store and halt");
+    }
+  }
+
+  private static int freshDestination(Instruction instruction, boolean[] assigned) {
+    int destination = local(instruction.operands().get(0), assigned.length);
+    if (assigned[destination]) {
+      throw new IllegalArgumentException("Scalar AOT destination is already assigned");
+    }
+    return destination;
+  }
+
+  private static int forwardTarget(long value, int pc, int last) {
+    int target = Math.toIntExact(value);
+    if (target <= pc || target > last) {
+      throw new IllegalArgumentException("Scalar AOT branch is not forward and bounded");
+    }
+    return target;
   }
 
   private static long evaluate(Opcode opcode, long left, long right) {
@@ -152,37 +223,68 @@ public final class LinuxX8664ScalarAotCompiler {
       }
       case LOCAL_AND -> left & right;
       case LOCAL_XOR -> left ^ right;
+      case LOCAL_EQ -> left == right ? 1 : 0;
+      case LOCAL_LT -> left < right ? 1 : 0;
       default -> throw new IllegalArgumentException("Unsupported scalar AOT arithmetic");
     };
   }
 
-  private static byte[] machineCode(FunctionBody entry, int resultLocal) {
+  private static byte[] machineCode(FunctionBody entry) {
     X86 code = new X86();
-    int frameBytes = Math.multiplyExact(entry.localCount(), Long.BYTES);
+    int globalSlot = entry.localCount();
+    int frameBytes = Math.multiplyExact(globalSlot + 1, Long.BYTES);
     code.stack(-frameBytes);
+    code.bytes(0x31, 0xc0);
+    code.storeRax(globalSlot);
+    int[] instructionOffsets = new int[entry.forward().size()];
+    ArrayList<MachineBranch> branches = new ArrayList<>();
     ArrayList<Integer> trapBranches = new ArrayList<>();
-    for (int index = 0; index < entry.forward().size() - 2; index++) {
-      Instruction instruction = entry.forward().get(index);
-      int destination = Math.toIntExact(instruction.operands().get(0));
+    for (int pc = 0; pc < entry.forward().size(); pc++) {
+      instructionOffsets[pc] = code.position();
+      Instruction instruction = entry.forward().get(pc);
       switch (instruction.opcode()) {
         case LOCAL_CONST -> {
           code.moveImmediateToRax(instruction.operands().get(1));
-          code.storeRax(destination);
+          code.storeRax(Math.toIntExact(instruction.operands().get(0)));
         }
         case LOCAL_MOVE -> {
           code.loadRax(Math.toIntExact(instruction.operands().get(1)));
-          code.storeRax(destination);
+          code.storeRax(Math.toIntExact(instruction.operands().get(0)));
         }
         case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR -> {
           code.loadRax(Math.toIntExact(instruction.operands().get(1)));
           code.loadRcx(Math.toIntExact(instruction.operands().get(2)));
           code.arithmetic(instruction.opcode(), trapBranches);
-          code.storeRax(destination);
+          code.storeRax(Math.toIntExact(instruction.operands().get(0)));
+        }
+        case LOCAL_EQ, LOCAL_LT -> {
+          code.loadRax(Math.toIntExact(instruction.operands().get(1)));
+          code.loadRcx(Math.toIntExact(instruction.operands().get(2)));
+          code.comparison(instruction.opcode());
+          code.storeRax(Math.toIntExact(instruction.operands().get(0)));
+        }
+        case JUMP -> {
+          code.bytes(0xe9);
+          branches.add(new MachineBranch(
+              code.reserveInt(), Math.toIntExact(instruction.operands().get(0))));
+        }
+        case JUMP_IF_ZERO -> {
+          code.loadRax(Math.toIntExact(instruction.operands().get(0)));
+          code.bytes(0x48, 0x85, 0xc0, 0x0f, 0x84);
+          branches.add(new MachineBranch(
+              code.reserveInt(), Math.toIntExact(instruction.operands().get(1))));
+        }
+        case LOCAL_STORE_GLOBAL -> {
+          code.loadRax(Math.toIntExact(instruction.operands().get(1)));
+          code.storeRax(globalSlot);
+        }
+        case HALT -> {
+          // The terminal instruction falls into process-status validation.
         }
         default -> throw new IllegalStateException("Validated scalar AOT opcode changed");
       }
     }
-    code.loadRax(resultLocal);
+    code.loadRax(globalSlot);
     code.bytes(0x48, 0x85, 0xc0, 0x0f, 0x88);
     trapBranches.add(code.reserveInt());
     code.bytes(0x48, 0x83, 0xf8, 124, 0x0f, 0x8f);
@@ -195,6 +297,9 @@ public final class LinuxX8664ScalarAotCompiler {
     code.bytes(0xbf);
     code.integer(ARITHMETIC_TRAP_STATUS);
     int end = code.position();
+    for (MachineBranch branch : branches) {
+      code.patchRelativeInt(branch.displacement(), instructionOffsets[branch.target()]);
+    }
     for (int branch : trapBranches) {
       code.patchRelativeInt(branch, trap);
     }
@@ -233,7 +338,9 @@ public final class LinuxX8664ScalarAotCompiler {
     }
   }
 
-  private record ScalarPlan(int processStatus, int resultLocal) {}
+  private record ScalarPlan(int processStatus) {}
+
+  private record MachineBranch(int displacement, int target) {}
 
   private static final class X86 {
     private final ByteArrayOutputStream output = new ByteArrayOutputStream(1024);
@@ -311,6 +418,18 @@ public final class LinuxX8664ScalarAotCompiler {
         case LOCAL_XOR -> bytes(0x48, 0x31, 0xc8);
         default -> throw new IllegalStateException("Validated scalar AOT arithmetic changed");
       }
+    }
+
+    void comparison(Opcode opcode) {
+      bytes(0x48, 0x39, 0xc8);
+      if (opcode == Opcode.LOCAL_EQ) {
+        bytes(0x0f, 0x94, 0xc0);
+      } else if (opcode == Opcode.LOCAL_LT) {
+        bytes(0x0f, 0x9c, 0xc0);
+      } else {
+        throw new IllegalStateException("Validated scalar AOT comparison changed");
+      }
+      bytes(0x48, 0x0f, 0xb6, 0xc0);
     }
 
     void division(Opcode opcode) {

@@ -72,7 +72,11 @@ final class ImageCommandTest {
                 long left = 70;
                 long right = 3;
                 long result = left + right;
-                status = result;
+                if (result == 73) {
+                  status = 73;
+                } else {
+                  status = 74;
+                }
               }
             }
             """),

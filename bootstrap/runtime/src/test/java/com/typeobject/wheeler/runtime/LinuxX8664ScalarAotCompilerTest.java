@@ -55,7 +55,7 @@ final class LinuxX8664ScalarAotCompilerTest {
         identity(LinuxX8664EntryShim.runtimeText()),
         identity(first.runtimeText()));
     assertEquals(
-        "a6120ecf0cdd80e0d9cff2be022fd627bee45467ec534656d8901e2b3878bde5",
+        "19aba7cc648438b351e35378ef84e630e08a82fe488f83fe92a34dff7fb5d2c0",
         identity(first.runtimeText()));
 
     byte[] returned = first.runtimeText();
@@ -91,6 +91,25 @@ final class LinuxX8664ScalarAotCompilerTest {
           identity(LinuxX8664ScalarAotCompiler.lower(artifact(42)).runtimeText()),
           lowered.runtimeIdentity());
     }
+  }
+
+  @Test
+  void lowersComparisonsAndForwardConditionalBranches() {
+    var less = LinuxX8664ScalarAotCompiler.lower(
+        conditionalArtifact(Opcode.LOCAL_LT, 70, 71));
+    var notLess = LinuxX8664ScalarAotCompiler.lower(
+        conditionalArtifact(Opcode.LOCAL_LT, 71, 70));
+    var equal = LinuxX8664ScalarAotCompiler.lower(
+        conditionalArtifact(Opcode.LOCAL_EQ, 73, 73));
+    var unequal = LinuxX8664ScalarAotCompiler.lower(
+        conditionalArtifact(Opcode.LOCAL_EQ, 73, 74));
+
+    assertEquals(73, less.processStatus());
+    assertEquals(74, notLess.processStatus());
+    assertEquals(73, equal.processStatus());
+    assertEquals(74, unequal.processStatus());
+    assertNotEquals(less.runtimeIdentity(), notLess.runtimeIdentity());
+    assertNotEquals(equal.runtimeIdentity(), unequal.runtimeIdentity());
   }
 
   @Test
@@ -162,6 +181,39 @@ final class LinuxX8664ScalarAotCompilerTest {
     return artifact("status", status, false);
   }
 
+  private static byte[] conditionalArtifact(
+      Opcode comparison, long left, long right) {
+    Program program = new Program(
+        "scalar-aot-conditional",
+        0,
+        List.of(new Global("status", 0)),
+        List.of(new FunctionBody(
+            0,
+            "example.app::main",
+            false,
+            0,
+            List.of(
+                ValueType.SIGNED,
+                ValueType.SIGNED,
+                ValueType.BOOLEAN,
+                ValueType.SIGNED,
+                ValueType.SIGNED),
+            null,
+            List.of(
+                Instruction.of(Opcode.LOCAL_CONST, 0, left),
+                Instruction.of(Opcode.LOCAL_CONST, 1, right),
+                Instruction.of(comparison, 2, 0, 1),
+                Instruction.of(Opcode.JUMP_IF_ZERO, 2, 7),
+                Instruction.of(Opcode.LOCAL_CONST, 3, 73),
+                Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 3),
+                Instruction.of(Opcode.JUMP, 9),
+                Instruction.of(Opcode.LOCAL_CONST, 4, 74),
+                Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 4),
+                Instruction.of(Opcode.HALT)),
+            List.of())));
+    return new BytecodeWriter().write(program);
+  }
+
   private static byte[] allOperationsArtifact() {
     List<Instruction> instructions = new java.util.ArrayList<>();
     Opcode[] opcodes = {
@@ -181,7 +233,14 @@ final class LinuxX8664ScalarAotCompilerTest {
       instructions.add(Instruction.of(Opcode.LOCAL_CONST, base + 1, right[operation]));
       instructions.add(Instruction.of(opcodes[operation], base + 2, base, base + 1));
     }
-    instructions.add(Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 20));
+    instructions.add(Instruction.of(Opcode.LOCAL_CONST, 21, 73));
+    instructions.add(Instruction.of(Opcode.LOCAL_EQ, 22, 20, 21));
+    instructions.add(Instruction.of(Opcode.JUMP_IF_ZERO, 22, 27));
+    instructions.add(Instruction.of(Opcode.LOCAL_CONST, 23, 73));
+    instructions.add(Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 23));
+    instructions.add(Instruction.of(Opcode.JUMP, 29));
+    instructions.add(Instruction.of(Opcode.LOCAL_CONST, 24, 74));
+    instructions.add(Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 24));
     instructions.add(Instruction.of(Opcode.HALT));
     Program program = new Program(
         "scalar-aot-all-operations",
@@ -192,7 +251,9 @@ final class LinuxX8664ScalarAotCompilerTest {
             "example.app::main",
             false,
             0,
-            java.util.Collections.nCopies(21, ValueType.SIGNED),
+            java.util.stream.IntStream.range(0, 25)
+                .mapToObj(index -> index == 22 ? ValueType.BOOLEAN : ValueType.SIGNED)
+                .toList(),
             null,
             instructions,
             List.of())));
