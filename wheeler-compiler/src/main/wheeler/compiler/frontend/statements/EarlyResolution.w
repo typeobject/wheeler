@@ -169,6 +169,19 @@ classical class EarlyStatementResolution {
         return STATEMENT_IF_SIGNED_EQ_RETURN_LOCAL_BASE + sourceLocal;
       }
 
+      long equalityReturnedBoolean = resolvePriorDeclaration(
+        source,
+        tokenStarts,
+        tokenLengths,
+        previousStarts,
+        previousCount,
+        equalityReturnedToken,
+        false
+      );
+      if (-1 < equalityReturnedBoolean) {
+        return STATEMENT_IF_SIGNED_EQ_RETURN_BOOLEAN_LOCAL_BASE + sourceLocal;
+      }
+
       if (loopOperandNamed(source, tokenStarts, equalityReturnedToken)) {
         if (
           classConstantHasType(source, tokenStarts, tokenLengths, equalityReturnedToken, true)

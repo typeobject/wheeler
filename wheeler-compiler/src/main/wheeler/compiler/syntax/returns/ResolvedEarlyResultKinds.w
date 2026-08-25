@@ -40,6 +40,9 @@ classical class ResolvedEarlyResultKinds {
   /// Ends resolved ordering guards returning prior locals.
   private const long SIGNED_LT_RETURN_LOCAL_END = STATEMENT_IF_SIGNED_LT_RETURN_LOCAL_BASE
     + RESOLVED_SOURCE_COUNT;
+  /// Ends resolved equality guards returning prior Boolean locals.
+  private const long SIGNED_EQ_RETURN_BOOLEAN_LOCAL_END
+    = STATEMENT_IF_SIGNED_EQ_RETURN_BOOLEAN_LOCAL_BASE + RESOLVED_SOURCE_COUNT;
 
   /// Checks whether an opcode forwards a call result behind a helper-call guard.
   public boolean resolvedEarlyHelperForwardingReturn(long opcode) {
@@ -125,11 +128,11 @@ classical class ResolvedEarlyResultKinds {
       return true;
     }
 
-    return resolvedEarlyLocalReturn(opcode);
+    return resolvedEarlySignedLocalReturn(opcode);
   }
 
-  /// Checks whether one resolved comparison guard returns a prior local.
-  public boolean resolvedEarlyLocalReturn(long opcode) {
+  /// Checks whether one resolved comparison guard returns a prior signed local.
+  private boolean resolvedEarlySignedLocalReturn(long opcode) {
     if (opcode < STATEMENT_IF_SIGNED_EQ_RETURN_LOCAL_BASE) {
       return false;
     }
@@ -143,6 +146,24 @@ classical class ResolvedEarlyResultKinds {
     }
 
     return opcode < SIGNED_LT_RETURN_LOCAL_END;
+  }
+
+  /// Checks whether one resolved equality guard returns a prior Boolean local.
+  private boolean resolvedEarlyBooleanLocalReturn(long opcode) {
+    if (opcode < STATEMENT_IF_SIGNED_EQ_RETURN_BOOLEAN_LOCAL_BASE) {
+      return false;
+    }
+
+    return opcode < SIGNED_EQ_RETURN_BOOLEAN_LOCAL_END;
+  }
+
+  /// Checks whether one resolved comparison guard returns a prior local.
+  public boolean resolvedEarlyLocalReturn(long opcode) {
+    if (resolvedEarlySignedLocalReturn(opcode)) {
+      return true;
+    }
+
+    return resolvedEarlyBooleanLocalReturn(opcode);
   }
 
   /// Checks whether one resolved guard computes a signed result.

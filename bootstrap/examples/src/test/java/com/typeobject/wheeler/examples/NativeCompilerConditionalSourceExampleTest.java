@@ -64,6 +64,43 @@ class NativeCompilerConditionalSourceExampleTest {
   }
 
   @Test
+  void compilesBooleanLocalEqualityReturnsByteForByte() throws Exception {
+    String source = """
+        module examples.boolean_local_guard_return;
+        classical class BooleanLocalGuardReturn {
+          public boolean profileByte(
+            long scalar,
+            boolean allowPunctuation,
+            boolean valid
+          ) {
+            if (scalar == 45) { return allowPunctuation; }
+            if (scalar == 46) { return allowPunctuation; }
+            if (scalar == 95) { return allowPunctuation; }
+            if (scalar < 48) { return false; }
+            if (scalar < 58) { return true; }
+            if (scalar < 65) { return false; }
+            if (scalar < 91) { return true; }
+            if (scalar < 97) { return false; }
+            if (scalar < 123) { return true; }
+            return valid;
+          }
+        }
+        """;
+    Program compiler = CompilerSources.minimalCompilerProgram();
+    VirtualMachine writer = NativeCompilerSelfSourceExampleTest.nativeWriter(compiler, source);
+
+    CompilerMachineRunner.runWithoutRewindHistory(writer);
+
+    Program expected = new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("BooleanLocalGuardReturn.w", source),
+        "examples.boolean_local_guard_return");
+    assertArrayEquals(new BytecodeWriter().write(expected), writer.hostOutput());
+    NativeCompilerSelfSourceExampleTest.assertNoPublication(
+        compiler,
+        source.replace("return allowPunctuation;", "return scalar;"));
+  }
+
+  @Test
   void compilesEarlyLocalAdditionByteForByte() throws Exception {
     String source = """
         module examples.early_local_addition;

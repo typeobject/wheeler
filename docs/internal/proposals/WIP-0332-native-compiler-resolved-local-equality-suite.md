@@ -46,7 +46,7 @@ The tests check the last admitted equality opcode, the first signed equality opc
 ## Acceptance
 
 - [x] Every public resolved local-equality query has an independent native case.
-- [x] The complete ninety-two-constant opcode owner remains physical input.
+- [x] The then-complete ninety-two-constant opcode owner remains physical input.
 - [x] Membership reaches the final admitted equality opcode.
 - [x] Signed membership starts at the exact signed column.
 - [x] Source decoding starts at the exact Boolean column.

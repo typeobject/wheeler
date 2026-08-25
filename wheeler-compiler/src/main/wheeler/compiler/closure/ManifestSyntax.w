@@ -71,45 +71,40 @@ classical class ClosureManifestSyntax {
 
   /// Checks one canonical bootstrap profile byte.
   public boolean profileByte(long scalar, boolean allowPunctuation, boolean valid) {
-    long once = 0;
-    while (once < 1) limit 1 {
-      if (scalar < 123) {
-        valid = true;
-      }
+    if (scalar == 45) {
+      return allowPunctuation;
+    }
 
-      if (scalar < 97) {
-        valid = false;
-      }
+    if (scalar == 46) {
+      return allowPunctuation;
+    }
 
-      if (scalar < 91) {
-        valid = true;
-      }
+    if (scalar == 95) {
+      return allowPunctuation;
+    }
 
-      if (scalar < 65) {
-        valid = false;
-      }
+    if (scalar < 48) {
+      return false;
+    }
 
-      if (scalar < 58) {
-        valid = true;
-      }
+    if (scalar < 58) {
+      return true;
+    }
 
-      if (scalar < 48) {
-        valid = false;
-      }
+    if (scalar < 65) {
+      return false;
+    }
 
-      if (scalar == 45) {
-        valid = allowPunctuation;
-      }
+    if (scalar < 91) {
+      return true;
+    }
 
-      if (scalar == 46) {
-        valid = allowPunctuation;
-      }
+    if (scalar < 97) {
+      return false;
+    }
 
-      if (scalar == 95) {
-        valid = allowPunctuation;
-      }
-
-      once += 1;
+    if (scalar < 123) {
+      return true;
     }
 
     return valid;

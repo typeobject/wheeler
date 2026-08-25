@@ -15,7 +15,7 @@
 
 Execute every public query in `ResolvedLocalInequalityKinds.w` through an independent native compiler package case.
 
-The suite retains `ResolvedStatements.w` as physical input. Equality and inequality now share one complete ninety-two-constant opcode authority without projecting either column into test source.
+The suite retains `ResolvedStatements.w` as physical input. Equality and inequality share the then-complete ninety-two-constant opcode authority without projecting either column into test source.
 
 ## Graph
 

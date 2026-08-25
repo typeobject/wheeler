@@ -37,6 +37,9 @@ classical class ResolvedEarlyComparisonKinds {
   /// Ends resolved ordering guards returning prior locals.
   private const long SIGNED_LT_RETURN_LOCAL_END = STATEMENT_IF_SIGNED_LT_RETURN_LOCAL_BASE
     + RESOLVED_SOURCE_COUNT;
+  /// Ends resolved equality guards returning prior Boolean locals.
+  private const long SIGNED_EQ_RETURN_BOOLEAN_LOCAL_END
+    = STATEMENT_IF_SIGNED_EQ_RETURN_BOOLEAN_LOCAL_BASE + RESOLVED_SOURCE_COUNT;
 
   /// Checks whether an opcode guards one resolved parameter equality.
   public boolean resolvedEarlyEqualityReturn(long opcode) {
@@ -60,7 +63,15 @@ classical class ResolvedEarlyComparisonKinds {
       return false;
     }
 
-    return opcode < SIGNED_EQ_RETURN_LOCAL_END;
+    if (opcode < SIGNED_EQ_RETURN_LOCAL_END) {
+      return true;
+    }
+
+    if (opcode < STATEMENT_IF_SIGNED_EQ_RETURN_BOOLEAN_LOCAL_BASE) {
+      return false;
+    }
+
+    return opcode < SIGNED_EQ_RETURN_BOOLEAN_LOCAL_END;
   }
 
   /// Checks whether an opcode guards one resolved parameter ordering.

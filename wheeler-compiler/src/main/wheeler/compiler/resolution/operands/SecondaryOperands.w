@@ -326,6 +326,7 @@ classical class SecondaryOperands {
 
     if (resolvedEarlyLocalReturn(opcode)) {
       long returnToken = earlyComparisonReturnToken(source, tokenStarts, statementStart, opcode);
+      boolean signedResult = resolvedEarlySignedReturn(opcode);
       return resolvePriorDeclaration(
         source,
         tokenStarts,
@@ -333,7 +334,7 @@ classical class SecondaryOperands {
         previousStarts,
         previousCount,
         returnToken,
-        true
+        signedResult
       );
     }
 
