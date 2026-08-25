@@ -38,10 +38,12 @@ public final class ScalarAotProgram {
   /** Validates and independently evaluates one decoded program without projection. */
   public static ScalarAotProgram validate(Program program) {
     requireProgramShape(program);
-    for (FunctionBody function : program.functions()) {
-      validateFunction(program, function);
-    }
     FunctionBody entry = program.function(program.entryFunctionId());
+    boolean dynamicIo = entry.parameterCount() == 2;
+    boolean outputBearing = entry.parameterCount() > 0;
+    for (FunctionBody function : program.functions()) {
+      validateFunction(program, function, dynamicIo, outputBearing);
+    }
     if (entry.parameterCount() == 2) {
       return new ScalarAotProgram(program, null, null, true);
     }
@@ -125,7 +127,11 @@ public final class ScalarAotProgram {
     }
   }
 
-  private static void validateFunction(Program program, FunctionBody function) {
+  private static void validateFunction(
+      Program program,
+      FunctionBody function,
+      boolean dynamicIo,
+      boolean output) {
     boolean entry = function.id() == program.entryFunctionId();
     if (function.coherent()
         || entry && !validEntryParameters(function)
@@ -136,8 +142,8 @@ public final class ScalarAotProgram {
         || function.localTypes().stream().anyMatch(type ->
             !type.equals(ValueType.SIGNED)
                 && !type.equals(ValueType.BOOLEAN)
-                && !(entry && (type.equals(ValueType.BYTES_BORROW)
-                    || type.equals(ValueType.BYTE_VIEW))))
+                && !(output && type.equals(ValueType.BYTES_BORROW))
+                && !(dynamicIo && type.equals(ValueType.BYTE_VIEW)))
         || function.implicitResultSlot()
         || !function.inverse().isEmpty()
         || function.forward().size() < 2
@@ -154,10 +160,11 @@ public final class ScalarAotProgram {
       Instruction instruction = function.forward().get(pc);
       switch (instruction.opcode()) {
         case NOP -> requireOperands(instruction, 0);
-        case LOCAL_CONST, LOCAL_MOVE -> validateUnary(function, instruction);
+        case LOCAL_CONST, LOCAL_MOVE, BUFFER_BORROW ->
+          validateUnary(function, instruction);
         case LOCAL_LOAD_GLOBAL -> validateGlobalLoad(function, instruction, entry);
-        case BUFFER_LENGTH -> validateInputLength(function, instruction, entry);
-        case BYTES_GET -> validateInputRead(function, instruction, entry);
+        case BUFFER_LENGTH -> validateInputLength(function, instruction, dynamicIo);
+        case BYTES_GET -> validateInputRead(function, instruction, dynamicIo);
         case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR,
             LOCAL_ROTR32, LOCAL_EQ, LOCAL_LT -> validateBinary(function, instruction);
         case JUMP -> {
@@ -170,8 +177,8 @@ public final class ScalarAotProgram {
           branchTarget(function, instruction.operands().get(1), pc, last);
         }
         case LOCAL_LOOP_CHECK -> validateLoopCheck(function, instruction, pc);
-        case BYTES_SET -> validateOutputWrite(function, instruction, entry);
-        case OUTPUT_LENGTH -> validateOutputLength(function, instruction, entry);
+        case BYTES_SET -> validateOutputWrite(function, instruction, output);
+        case OUTPUT_LENGTH -> validateOutputLength(function, instruction, output);
         case EXPECT_TRUE -> {
           requireOperands(instruction, 1);
           int condition = local(instruction.operands().get(0), function.localCount());
@@ -236,18 +243,18 @@ public final class ScalarAotProgram {
   private static void validateUnary(FunctionBody function, Instruction instruction) {
     requireOperands(instruction, 2);
     local(instruction.operands().get(0), function.localCount());
-    if (instruction.opcode() == Opcode.LOCAL_MOVE) {
+    if (instruction.opcode() == Opcode.LOCAL_MOVE
+        || instruction.opcode() == Opcode.BUFFER_BORROW) {
       local(instruction.operands().get(1), function.localCount());
     }
   }
 
   private static void validateInputLength(
-      FunctionBody function, Instruction instruction, boolean entry) {
+      FunctionBody function, Instruction instruction, boolean dynamicIo) {
     requireOperands(instruction, 2);
     int destination = local(instruction.operands().get(0), function.localCount());
     int source = local(instruction.operands().get(1), function.localCount());
-    if (!entry
-        || function.parameterCount() != 2
+    if (!dynamicIo
         || !function.localType(destination).equals(ValueType.SIGNED)
         || !function.localType(source).equals(ValueType.BYTE_VIEW)) {
       throw new IllegalArgumentException("Scalar AOT input length is invalid");
@@ -255,13 +262,12 @@ public final class ScalarAotProgram {
   }
 
   private static void validateInputRead(
-      FunctionBody function, Instruction instruction, boolean entry) {
+      FunctionBody function, Instruction instruction, boolean dynamicIo) {
     requireOperands(instruction, 3);
     int destination = local(instruction.operands().get(0), function.localCount());
     int owner = local(instruction.operands().get(1), function.localCount());
     int index = local(instruction.operands().get(2), function.localCount());
-    if (!entry
-        || function.parameterCount() != 2
+    if (!dynamicIo
         || !function.localType(destination).equals(ValueType.SIGNED)
         || !function.localType(owner).equals(ValueType.BYTE_VIEW)
         || !function.localType(index).equals(ValueType.SIGNED)) {
@@ -270,13 +276,12 @@ public final class ScalarAotProgram {
   }
 
   private static void validateOutputWrite(
-      FunctionBody function, Instruction instruction, boolean entry) {
+      FunctionBody function, Instruction instruction, boolean output) {
     requireOperands(instruction, 3);
     int owner = local(instruction.operands().get(0), function.localCount());
     int index = local(instruction.operands().get(1), function.localCount());
     int value = local(instruction.operands().get(2), function.localCount());
-    if (!entry
-        || function.parameterCount() == 0
+    if (!output
         || !function.localType(owner).equals(ValueType.BYTES_BORROW)
         || !function.localType(index).equals(ValueType.SIGNED)
         || !function.localType(value).equals(ValueType.SIGNED)) {
@@ -285,12 +290,11 @@ public final class ScalarAotProgram {
   }
 
   private static void validateOutputLength(
-      FunctionBody function, Instruction instruction, boolean entry) {
+      FunctionBody function, Instruction instruction, boolean output) {
     requireOperands(instruction, 2);
     int owner = local(instruction.operands().get(0), function.localCount());
     int length = local(instruction.operands().get(1), function.localCount());
-    if (!entry
-        || function.parameterCount() == 0
+    if (!output
         || !function.localType(owner).equals(ValueType.BYTES_BORROW)
         || !function.localType(length).equals(ValueType.SIGNED)) {
       throw new IllegalArgumentException("Scalar AOT output length is invalid");
@@ -359,7 +363,8 @@ public final class ScalarAotProgram {
 
   private static int writtenLocal(Instruction instruction) {
     return switch (instruction.opcode()) {
-      case LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB, LOCAL_MUL,
+      case LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, BUFFER_BORROW,
+          LOCAL_ADD, LOCAL_SUB, LOCAL_MUL,
           LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR, LOCAL_ROTR32, LOCAL_EQ, LOCAL_LT,
           LOCAL_LOOP_CHECK ->
           Math.toIntExact(instruction.operands().get(0));
@@ -435,7 +440,7 @@ public final class ScalarAotProgram {
             assigned[destination] = true;
             pc++;
           }
-          case LOCAL_MOVE -> {
+          case LOCAL_MOVE, BUFFER_BORROW -> {
             int destination = destination(instruction, 0, assigned);
             int source = assignedLocal(instruction, 1, assigned);
             values[destination] = values[source];

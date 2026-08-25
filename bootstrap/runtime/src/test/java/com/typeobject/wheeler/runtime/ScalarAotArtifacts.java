@@ -140,6 +140,51 @@ final class ScalarAotArtifacts {
             List.of()))));
   }
 
+  static byte[] dynamicIoHelperArtifact() {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-dynamic-io-helper",
+        1,
+        List.of(new Global("status", 0)),
+        List.of(
+            new FunctionBody(
+                0,
+                "example.app::echo",
+                false,
+                2,
+                List.of(
+                    ValueType.BYTE_VIEW,
+                    ValueType.BYTES_BORROW,
+                    ValueType.SIGNED,
+                    ValueType.SIGNED,
+                    ValueType.SIGNED),
+                ValueType.SIGNED,
+                List.of(
+                    Instruction.of(Opcode.BUFFER_LENGTH, 2, 0),
+                    Instruction.of(Opcode.LOCAL_CONST, 3, 0),
+                    Instruction.of(Opcode.BYTES_GET, 4, 0, 3),
+                    Instruction.of(Opcode.BYTES_SET, 1, 3, 4),
+                    Instruction.of(Opcode.RETURN_VALUE, 4)),
+                List.of()),
+            new FunctionBody(
+                1,
+                "example.app::main",
+                false,
+                2,
+                List.of(
+                    ValueType.BYTE_VIEW,
+                    ValueType.BYTES_BORROW,
+                    ValueType.SIGNED,
+                    ValueType.SIGNED),
+                null,
+                List.of(
+                    Instruction.of(Opcode.LOCAL_CONST, 2, 1),
+                    Instruction.of(Opcode.OUTPUT_LENGTH, 1, 2),
+                    Instruction.of(Opcode.CALL_VALUE, 0, 0, 2, 3),
+                    Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 3),
+                    Instruction.of(Opcode.HALT)),
+                List.of()))));
+  }
+
   static byte[] dynamicIoArtifact() {
     return new BytecodeWriter().write(new Program(
         "scalar-aot-dynamic-io",

@@ -228,7 +228,7 @@ Recovery releases are signed or content-addressed by release policy. Bootstrap s
 - [x] WIP-0375 adds canonical x86-64 and arm64 PE32+ layout and verification. Exact DOS, COFF, optional-header, data-directory, section, locator, alignment, padding, and unsigned PREV boundaries are enforced.
 - [x] WIP-0373 exposes ELF, Mach-O, and PE adapters through physical build, inspect, and verify commands with strict metadata parsing, exact structural reports, complete WBC verification, output self-verification, and atomic publication.
 - [x] WIP-0376 adds the first maintained x86-64 Linux runtime text. The import-free entry locates mapped ELF capsule framing without a path, checks locator and capsule magic, completes one bounded standard-output call, and exits through the kernel. A physical image command publishes the exact runtime input atomically. It is loader and host-shim evidence, not WBC execution.
-- [x] WIPs 0378 through 0385 add the first verified WBC-to-x86-64 lowering leaf. One closed bounded scalar program computes a bounded source-declared status through moves, checked arithmetic, bitwise operations, comparisons, forward branches, up to seven prior helpers, six exact scalar arguments per call, checked loops through 255 iterations, status reads, rotates, assertions, void helper calls, 4,096-byte constant output, and 4,096-byte input-dependent native I/O, then returns it through Linux process exit. Distinct WBC values produce distinct native observations without fallback.
+- [x] WIPs 0378 through 0386 add the first verified WBC-to-x86-64 lowering leaf. One closed bounded scalar program computes a bounded source-declared status through moves, checked arithmetic, bitwise operations, comparisons, forward branches, up to seven prior helpers, six exact scalar arguments per call, checked loops through 255 iterations, status reads, rotates, assertions, void helper calls, 4,096-byte constant output, 4,096-byte input-dependent native I/O, and borrowed byte helpers, then returns it through Linux process exit. Distinct WBC values produce distinct native observations without fallback.
 - [ ] Native backend executes the classical bootstrap profile.
 - [x] The Wheeler-written verifier and bounded interpreter hash each successful ordered two-byte opcode trace with Wheeler SHA-256. Independent Java VM observations reproduce all 32 bytes across direct updates, branches, calls, generated inverses, recursion, aggregates, ownership, storage, UTF-8, and result slots while terminal globals agree. Malformed artifacts trap before a trace identity is published.
 - [ ] Wheeler-written compiler reaches the WIP-0007 fixed point.
@@ -322,6 +322,7 @@ WIP-0262 invokes native source discovery, descriptor construction, compilation, 
 - [WIP-0383](WIP-0383-x86-64-linux-void-helper-calls.md)
 - [WIP-0384](WIP-0384-x86-64-linux-constant-byte-output.md)
 - [WIP-0385](WIP-0385-x86-64-linux-dynamic-byte-io.md)
+- [WIP-0386](WIP-0386-x86-64-linux-borrowed-byte-helpers.md)
 - [WIP-0291](WIP-0291-native-test-junit.md)
 - [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)

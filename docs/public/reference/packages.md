@@ -335,7 +335,8 @@ WBC profile with at most seven prior signed-result or void helpers, up to six
 exact scalar arguments per call, checked loops, status reads, assertions, and up
 to 4,096 constant application-output bytes. An exact input-and-output entry may
 instead consume complete stdin through 4,096 bytes and compute stdout and status
-in native code.
+in native code. Canonical `BUFFER_BORROW` values may pass input and output
+handles through the same bounded prior-helper graph.
 
 `image build-elf`, `image build-macho`, and `image build-pe` consume an exact
 capsule, runtime text, canonical native image plan, and canonical platform ABI.

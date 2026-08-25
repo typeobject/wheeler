@@ -3,7 +3,6 @@ package com.typeobject.wheeler.runtime.aot;
 import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
-import com.typeobject.wheeler.core.bytecode.ValueType;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -19,6 +18,8 @@ public final class ScalarAotMachine {
   public static byte[] lower(ScalarAotProgram scalar) {
     X86 code = new X86();
     int[] functionOffsets = new int[scalar.program().functions().size()];
+    IoLayout io = scalar.usesDynamicApplicationIo()
+        ? IoLayout.create(scalar.entry().localCount()) : null;
     ArrayList<CallPatch> calls = new ArrayList<>();
     int entryJump = -1;
     if (functionOffsets.length > 1) {
@@ -28,9 +29,9 @@ public final class ScalarAotMachine {
     for (FunctionBody function : scalar.program().functions()) {
       functionOffsets[function.id()] = code.position();
       if (function.id() == scalar.entry().id()) {
-        emitEntry(code, function, calls, scalar.usesDynamicApplicationIo());
+        emitEntry(code, function, calls, io);
       } else {
-        emitHelper(code, function, calls);
+        emitHelper(code, function, calls, io);
       }
     }
     for (CallPatch call : calls) {
@@ -46,9 +47,8 @@ public final class ScalarAotMachine {
       X86 code,
       FunctionBody entry,
       ArrayList<CallPatch> calls,
-      boolean dynamicIo) {
+      IoLayout io) {
     int globalSlot = entry.localCount();
-    IoLayout io = dynamicIo ? IoLayout.create(globalSlot) : null;
     int frameBytes = io == null ? frameBytes(globalSlot + 1) : io.frameBytes();
     code.stack(-frameBytes);
     code.bytes(0x31, 0xc0);
@@ -58,6 +58,13 @@ public final class ScalarAotMachine {
       code.storeRax(io.outputLengthSlot());
       code.readInput(io, prologueTraps);
       code.zeroOutput(io);
+      code.leaRax(io.inputLengthSlot() * Long.BYTES);
+      code.storeRax(0);
+      code.leaRax(io.outputLengthSlot() * Long.BYTES);
+      code.storeRax(1);
+    } else if (entry.parameterCount() == 1) {
+      code.moveImmediateToRax(1);
+      code.storeRax(0);
     }
     FunctionPatches patches = emitBody(code, entry, globalSlot, calls, io);
     patches.traps().addAll(prologueTraps);
@@ -84,13 +91,16 @@ public final class ScalarAotMachine {
   }
 
   private static void emitHelper(
-      X86 code, FunctionBody helper, ArrayList<CallPatch> calls) {
+      X86 code,
+      FunctionBody helper,
+      ArrayList<CallPatch> calls,
+      IoLayout io) {
     int frameBytes = frameBytes(helper.localCount());
     code.stack(-frameBytes);
     for (int parameter = 0; parameter < helper.parameterCount(); parameter++) {
       code.storeArgument(parameter);
     }
-    FunctionPatches patches = emitBody(code, helper, -1, calls, null);
+    FunctionPatches patches = emitBody(code, helper, -1, calls, io);
 
     Instruction returned = helper.forward().getLast();
     if (returned.opcode() == Opcode.RETURN_VALUE) {
@@ -133,20 +143,17 @@ public final class ScalarAotMachine {
           code.loadRax(globalSlot);
           code.storeRax(local(instruction, 0));
         }
-        case LOCAL_MOVE -> {
+        case LOCAL_MOVE, BUFFER_BORROW -> {
           int destination = local(instruction, 0);
-          if (!function.localType(destination).equals(ValueType.BYTES_BORROW)
-              && !function.localType(destination).equals(ValueType.BYTE_VIEW)) {
-            code.loadRax(local(instruction, 1));
-            code.storeRax(destination);
-          }
+          code.loadRax(local(instruction, 1));
+          code.storeRax(destination);
         }
         case BUFFER_LENGTH -> {
-          code.loadRax(io.inputLengthSlot());
+          code.bufferLength(local(instruction, 1));
           code.storeRax(local(instruction, 0));
         }
         case BYTES_GET -> {
-          code.inputByte(local(instruction, 2), io, traps);
+          code.inputByte(local(instruction, 1), local(instruction, 2), io, traps);
           code.storeRax(local(instruction, 0));
         }
         case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR,
@@ -175,12 +182,18 @@ public final class ScalarAotMachine {
         }
         case BYTES_SET -> {
           if (io != null) {
-            code.outputByte(local(instruction, 1), local(instruction, 2), io, traps);
+            code.outputByte(
+                local(instruction, 0),
+                local(instruction, 1),
+                local(instruction, 2),
+                io,
+                traps);
           }
         }
         case OUTPUT_LENGTH -> {
           if (io != null) {
-            code.outputLength(local(instruction, 1), io, traps);
+            code.outputLength(
+                local(instruction, 0), local(instruction, 1), io, traps);
           }
         }
         case EXPECT_TRUE -> {
@@ -259,6 +272,14 @@ public final class ScalarAotMachine {
       return new IoLayout(
           inputLengthSlot, outputLengthSlot, inputOffset, outputOffset, frameBytes);
     }
+
+    int inputDataOffset() {
+      return inputOffset - inputLengthSlot * Long.BYTES;
+    }
+
+    int outputDataOffset() {
+      return outputOffset - outputLengthSlot * Long.BYTES;
+    }
   }
 
   private record CallPatch(int displacement, int target) {}
@@ -324,6 +345,11 @@ public final class ScalarAotMachine {
       integer(local * Long.BYTES);
     }
 
+    void loadR10(int local) {
+      bytes(0x4c, 0x8b, 0x94, 0x24);
+      integer(local * Long.BYTES);
+    }
+
     void storeRax(int local) {
       bytes(0x48, 0x89, 0x84, 0x24);
       integer(local * Long.BYTES);
@@ -353,6 +379,11 @@ public final class ScalarAotMachine {
         default -> throw new IllegalStateException("Validated scalar AOT parameter changed");
       }
       integer(argument * Long.BYTES);
+    }
+
+    void leaRax(int stackOffset) {
+      bytes(0x48, 0x8d, 0x84, 0x24);
+      integer(stackOffset);
     }
 
     void zeroOutput(IoLayout io) {
@@ -398,18 +429,28 @@ public final class ScalarAotMachine {
       patchRelativeInt(loopJump, loop);
     }
 
-    void inputByte(int indexLocal, IoLayout io, ArrayList<Integer> traps) {
+    void bufferLength(int ownerLocal) {
+      loadR10(ownerLocal);
+      bytes(0x49, 0x8b, 0x02);
+    }
+
+    void inputByte(
+        int ownerLocal,
+        int indexLocal,
+        IoLayout io,
+        ArrayList<Integer> traps) {
       loadRax(indexLocal);
       bytes(0x48, 0x85, 0xc0, 0x0f, 0x88);
       traps.add(reserveInt());
-      loadRcx(io.inputLengthSlot());
-      bytes(0x48, 0x39, 0xc8, 0x0f, 0x83);
+      loadR10(ownerLocal);
+      bytes(0x49, 0x8b, 0x0a, 0x48, 0x39, 0xc8, 0x0f, 0x83);
       traps.add(reserveInt());
-      bytes(0x0f, 0xb6, 0x84, 0x04);
-      integer(io.inputOffset());
+      bytes(0x41, 0x0f, 0xb6, 0x84, 0x02);
+      integer(io.inputDataOffset());
     }
 
     void outputByte(
+        int ownerLocal,
         int indexLocal,
         int valueLocal,
         IoLayout io,
@@ -428,14 +469,20 @@ public final class ScalarAotMachine {
       integer(255);
       bytes(0x0f, 0x87);
       traps.add(reserveInt());
-      bytes(0x88, 0x8c, 0x04);
-      integer(io.outputOffset());
+      loadR10(ownerLocal);
+      bytes(0x41, 0x88, 0x8c, 0x02);
+      integer(io.outputDataOffset());
     }
 
-    void outputLength(int lengthLocal, IoLayout io, ArrayList<Integer> traps) {
+    void outputLength(
+        int ownerLocal,
+        int lengthLocal,
+        IoLayout io,
+        ArrayList<Integer> traps) {
       loadRax(lengthLocal);
       validOutputLength(traps);
-      storeRax(io.outputLengthSlot());
+      loadR10(ownerLocal);
+      bytes(0x49, 0x89, 0x02);
     }
 
     void writeOutput(IoLayout io, ArrayList<Integer> traps) {

@@ -6,6 +6,7 @@ import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.booleanParameter
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.conditionalArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dormantUnsupportedHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dynamicIoArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dynamicIoHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.forwardHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.helperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.invalidOutputWriteArtifact;
@@ -259,6 +260,27 @@ final class LinuxX8664ScalarAotCompilerTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> LinuxX8664ScalarAotCompiler.lower(invalidOutputWriteArtifact(0, 256)));
+  }
+
+  @Test
+  void passesDynamicInputAndOutputBorrowsThroughHelpers() throws Exception {
+    byte[] artifact = dynamicIoHelperArtifact();
+    var lowered = LinuxX8664ScalarAotCompiler.lower(artifact);
+
+    assertTrue(lowered.usesDynamicApplicationIo());
+    Fixture fixture = fixture(artifact, lowered.runtimeText());
+    byte[] image = ElfImage.build(
+        fixture.plan(), fixture.abi(), fixture.capsule(), lowered.runtimeText(), 0);
+    ElfImage.verify(image, fixture.plan(), fixture.abi());
+    if (nativeLinuxHost()) {
+      Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
+      process.getOutputStream().write('Q');
+      process.getOutputStream().close();
+      assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals('Q', process.exitValue());
+      assertArrayEquals(new byte[] {'Q'}, process.getInputStream().readAllBytes());
+      assertEquals(0, process.getErrorStream().readAllBytes().length);
+    }
   }
 
   @Test

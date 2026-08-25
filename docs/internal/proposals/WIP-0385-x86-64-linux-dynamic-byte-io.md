@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, standard input, dynamic byte output |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0384 |
 | Supersedes | Constant-only application output as the complete AOT I/O profile |
-| Superseded by | None |
+| Superseded by | WIP-0386 for helper byte access |
 
 ## Summary
 
@@ -35,7 +35,7 @@ The admitted dynamic instructions are:
 - `BYTES_SET output, index, value` with runtime-checked index and byte value.
 - `OUTPUT_LENGTH output, length` with a runtime-checked length from 1 through 4,096.
 
-Input and output handles cannot enter helpers. Scalar values derived from input may cross existing signed or Boolean helper calls.
+This WIP keeps input and output handles in the entry. Scalar values derived from input may cross existing signed or Boolean helper calls. WIP-0386 adds canonical borrowed byte helpers.
 
 The source boundary covers:
 
@@ -131,3 +131,4 @@ Rejected. A trapping execution must not publish application bytes.
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0384](WIP-0384-x86-64-linux-constant-byte-output.md)
+- [WIP-0386](WIP-0386-x86-64-linux-borrowed-byte-helpers.md)

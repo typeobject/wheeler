@@ -77,6 +77,14 @@ final class ImageCommandTest {
                 assert(value == 73);
               }
 
+              void writeFirst(
+                borrow byteview input,
+                borrow mut bytes output
+              ) {
+                assert(bufferLength(input) == 1);
+                setByte(output, 0, input[0]);
+              }
+
               entry void main(
                 borrow byteview input,
                 borrow mut bytes output
@@ -88,8 +96,6 @@ final class ImageCommandTest {
                   result += 1;
                 }
                 check(result);
-                assert(bufferLength(input) == 1);
-                setByte(output, 0, input[0]);
                 setByte(output, 1, 97);
                 setByte(output, 2, 116);
                 setByte(output, 3, 105);
@@ -97,6 +103,7 @@ final class ImageCommandTest {
                 setByte(output, 5, 101);
                 setByte(output, 6, 10);
                 setOutputLength(output, 7);
+                writeFirst(input, output);
                 status = result;
               }
             }
@@ -214,6 +221,39 @@ final class ImageCommandTest {
     assertThrows(
         PackageFormatException.class,
         () -> execute("image", "inspect", damaged.toString()));
+  }
+
+  @Test
+  void lowersConstantOutputThroughOneBorrowedHelper() throws Exception {
+    byte[] artifact = new WheelerCompiler().compileModulesToBytecode(
+        Map.of("example.output", """
+            module example.output;
+            classical class Output {
+              state long status = 0;
+
+              void write(borrow mut bytes output) {
+                setByte(output, 0, 88);
+              }
+
+              entry void main(borrow mut bytes output) {
+                setOutputLength(output, 1);
+                write(output);
+                status = 73;
+              }
+            }
+            """),
+        "example.output");
+    Path artifactFile = write("constant-helper.wbc", artifact);
+    Path runtimeFile = temporary.resolve("constant-helper.bin");
+
+    CommandResult lowering = execute(
+        "image", "runtime-elf-x86-64-aot", artifactFile.toString(),
+        "-o", runtimeFile.toString());
+
+    assertEquals(0, lowering.status());
+    assertTrue(lowering.output().contains("status 73"));
+    assertTrue(lowering.output().contains("output 1 bytes"));
+    assertTrue(Files.size(runtimeFile) > 0);
   }
 
   @Test

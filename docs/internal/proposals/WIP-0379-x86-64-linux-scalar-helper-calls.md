@@ -15,7 +15,7 @@
 
 The x86-64 Linux scalar AOT leaf lowers a bounded graph of Wheeler helper calls. Up to seven signed, zero-argument helpers precede one entry function. `CALL_VALUE` transfers control through generated machine-code calls and returns the helper's signed value to a fresh caller local.
 
-This is the first native call-stack slice. WIP-0380 extends it with up to six scalar parameters, and WIP-0383 adds void helpers. It is not a general Wheeler ABI. This WIP alone does not specify parameters, void calls, result slots, recursion, imported functions, dynamic targets, inverse calls, and effects remain outside the profile.
+This is the first native call-stack slice. WIP-0380 extends it with up to six scalar parameters, WIP-0383 adds void helpers, and WIP-0386 adds bounded byte borrows. It is not a general Wheeler ABI. This WIP alone does not specify parameters, void calls, result slots, recursion, imported functions, dynamic targets, inverse calls, and effects remain outside the profile.
 
 ## Function graph
 
@@ -118,4 +118,5 @@ Rejected. Complete-artifact validation precedes reachability. Dormant unsupporte
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0378](WIP-0378-x86-64-linux-scalar-aot.md)
 - [WIP-0380](WIP-0380-x86-64-linux-scalar-call-arguments.md)
+- [WIP-0386](WIP-0386-x86-64-linux-borrowed-byte-helpers.md)
 - [WIP-0383](WIP-0383-x86-64-linux-void-helper-calls.md)
