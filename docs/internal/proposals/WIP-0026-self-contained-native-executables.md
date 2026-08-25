@@ -209,7 +209,7 @@ Reject malformed native structure, overlapping or escaping ranges, a writable an
 - [x] WIP-0375 adds canonical x86-64 and arm64 PE32+ bytes. It fixes DOS, COFF, optional-header, empty data-directory, R-X text, R-- capsule, entry-RVA, alignment, padding, canonical rebuilding, and unsigned PREV boundaries without claiming Authenticode or launch.
 - [x] WIP-0376 adds an import-free x86-64 Linux entry shim. It enters through the OS loader, derives mapped capsule framing from the ELF locator without reopening the image, writes one bounded probe, and exits through the kernel. Complete WBC startup remains.
 - [x] WIP-0377 records complete adapter-verified unsigned outputs and separate ELF repository, Apple code-signature, and PE Authenticode distribution identities. Physical commands publish those records atomically from bounded files. They do not perform or trust platform signing.
-- [x] WIP-0378 lowers one closed acyclic scalar WBC profile to x86-64 Linux AOT and observes its computed source-declared process status through a complete ELF launch. General AOT equivalence remains.
+- [x] WIPs 0378 and 0379 lower one closed acyclic scalar WBC profile, including up to seven prior zero-argument helper calls, to x86-64 Linux AOT and observe its computed source-declared process status through a complete ELF launch. General AOT equivalence remains.
 - [ ] ELF, Mach-O, and PE images reproduce with signing separation.
 - [ ] Sealed providers and system export integrate.
 - [ ] AOT conformance defined.
@@ -255,6 +255,7 @@ Adjacent launch directories permit substitution and partial updates. Opaque trai
 - [WIP-0375](WIP-0375-canonical-pe-capsule-images.md)
 - [WIP-0377](WIP-0377-native-image-release-records.md)
 - [WIP-0378](WIP-0378-x86-64-linux-scalar-aot.md)
+- [WIP-0379](WIP-0379-x86-64-linux-scalar-helper-calls.md)
 - [ELF program loading](https://gabi.xinuos.com/elf/07-loading-intro.html)
 - [Mach-O overview](https://developer.apple.com/library/archive/documentation/Performance/Conceptual/CodeFootprint/Articles/MachOOverview.html)
 - [Microsoft PE format](https://learn.microsoft.com/en-us/windows/win32/debug/pe-format)

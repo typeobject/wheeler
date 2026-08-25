@@ -113,6 +113,28 @@ final class LinuxX8664ScalarAotCompilerTest {
   }
 
   @Test
+  void lowersBoundedPriorHelperCalls() {
+    var nested = LinuxX8664ScalarAotCompiler.lower(helperArtifact(3));
+    var terminal = LinuxX8664ScalarAotCompiler.lower(helperArtifact(8));
+
+    assertEquals(73, nested.processStatus());
+    assertEquals(73, terminal.processStatus());
+    assertNotEquals(nested.runtimeIdentity(), terminal.runtimeIdentity());
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(helperArtifact(9)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(argumentHelperArtifact()));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(dormantUnsupportedHelperArtifact()));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(forwardHelperArtifact()));
+  }
+
+  @Test
   void rejectsProgramsOutsideTheClosedAotProfile() {
     assertThrows(
         IllegalArgumentException.class,
@@ -212,6 +234,160 @@ final class LinuxX8664ScalarAotCompilerTest {
                 Instruction.of(Opcode.HALT)),
             List.of())));
     return new BytecodeWriter().write(program);
+  }
+
+  private static byte[] helperArtifact(int functionCount) {
+    List<FunctionBody> functions = new java.util.ArrayList<>();
+    functions.add(new FunctionBody(
+        0,
+        "example.app::literal",
+        false,
+        0,
+        List.of(ValueType.SIGNED),
+        ValueType.SIGNED,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 73),
+            Instruction.of(Opcode.RETURN_VALUE, 0)),
+        List.of()));
+    for (int id = 1; id < functionCount - 1; id++) {
+      functions.add(new FunctionBody(
+          id,
+          "example.app::helper" + id,
+          false,
+          0,
+          List.of(ValueType.SIGNED),
+          ValueType.SIGNED,
+          List.of(
+              Instruction.of(Opcode.CALL_VALUE, id - 1, 0, 0, 0),
+              Instruction.of(Opcode.RETURN_VALUE, 0)),
+          List.of()));
+    }
+    int entry = functionCount - 1;
+    functions.add(new FunctionBody(
+        entry,
+        "example.app::main",
+        false,
+        0,
+        List.of(ValueType.SIGNED),
+        null,
+        List.of(
+            Instruction.of(Opcode.CALL_VALUE, entry - 1, 0, 0, 0),
+            Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
+            Instruction.of(Opcode.HALT)),
+        List.of()));
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-helpers",
+        entry,
+        List.of(new Global("status", 0)),
+        functions));
+  }
+
+  private static byte[] argumentHelperArtifact() {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-argument-helper",
+        1,
+        List.of(new Global("status", 0)),
+        List.of(
+            new FunctionBody(
+                0,
+                "example.app::identity",
+                false,
+                1,
+                List.of(ValueType.SIGNED),
+                ValueType.SIGNED,
+                List.of(Instruction.of(Opcode.RETURN_VALUE, 0)),
+                List.of()),
+            new FunctionBody(
+                1,
+                "example.app::main",
+                false,
+                0,
+                List.of(ValueType.SIGNED, ValueType.SIGNED),
+                null,
+                List.of(
+                    Instruction.of(Opcode.LOCAL_CONST, 0, 73),
+                    Instruction.of(Opcode.CALL_VALUE, 0, 0, 1, 1),
+                    Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 1),
+                    Instruction.of(Opcode.HALT)),
+                List.of()))));
+  }
+
+  private static byte[] dormantUnsupportedHelperArtifact() {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-dormant-helper",
+        1,
+        List.of(new Global("status", 0)),
+        List.of(
+            new FunctionBody(
+                0,
+                "example.app::unused",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                ValueType.SIGNED,
+                List.of(
+                    Instruction.of(Opcode.LOCAL_CONST, 0, 73),
+                    Instruction.of(Opcode.NOP),
+                    Instruction.of(Opcode.RETURN_VALUE, 0)),
+                List.of()),
+            statusEntry(1, 73))));
+  }
+
+  private static byte[] forwardHelperArtifact() {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-forward-helper",
+        2,
+        List.of(new Global("status", 0)),
+        List.of(
+            new FunctionBody(
+                0,
+                "example.app::forward",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                ValueType.SIGNED,
+                List.of(
+                    Instruction.of(Opcode.CALL_VALUE, 1, 0, 0, 0),
+                    Instruction.of(Opcode.RETURN_VALUE, 0)),
+                List.of()),
+            new FunctionBody(
+                1,
+                "example.app::literal",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                ValueType.SIGNED,
+                List.of(
+                    Instruction.of(Opcode.LOCAL_CONST, 0, 73),
+                    Instruction.of(Opcode.RETURN_VALUE, 0)),
+                List.of()),
+            new FunctionBody(
+                2,
+                "example.app::main",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                null,
+                List.of(
+                    Instruction.of(Opcode.CALL_VALUE, 0, 0, 0, 0),
+                    Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
+                    Instruction.of(Opcode.HALT)),
+                List.of()))));
+  }
+
+  private static FunctionBody statusEntry(int id, long status) {
+    return new FunctionBody(
+        id,
+        "example.app::main",
+        false,
+        0,
+        List.of(ValueType.SIGNED),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, status),
+            Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
+            Instruction.of(Opcode.HALT)),
+        List.of());
   }
 
   private static byte[] allOperationsArtifact() {

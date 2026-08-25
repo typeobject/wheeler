@@ -68,10 +68,15 @@ final class ImageCommandTest {
             module example.hello;
             classical class Hello {
               state long status = 0;
-              entry void main() {
+
+              long code() {
                 long left = 70;
                 long right = 3;
-                long result = left + right;
+                return left + right;
+              }
+
+              entry void main() {
+                long result = code();
                 if (result == 73) {
                   status = 73;
                 } else {
