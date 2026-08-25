@@ -15,7 +15,7 @@
 
 The x86-64 Linux scalar AOT leaf publishes source-declared constant byte output. An entry may accept one `borrow mut bytes` output parameter, execute bounded `BYTES_SET` instructions, commit one `OUTPUT_LENGTH`, and return a scalar process status. The lowerer retains the exact resulting byte prefix in runtime text, and the Linux shim writes that prefix instead of its loader probe.
 
-This is constant-output AOT. The complete output is independently evaluated before image construction. It admits no input-dependent bytes, output reads, dynamic allocation, helper access to the output owner, multiple output owners, partial host writes, standard error, files, or network effects.
+WIP-0385 extends the same bounded owners to input-dependent native execution. This is constant-output AOT. The complete output is independently evaluated before image construction. It admits no input-dependent bytes, output reads, dynamic allocation, helper access to the output owner, multiple output owners, partial host writes, standard error, files, or network effects.
 
 ## Accepted output profile
 
@@ -126,3 +126,4 @@ Rejected. The maintained machine encoding and evidence boundary is 4,096 bytes. 
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0383](WIP-0383-x86-64-linux-void-helper-calls.md)
+- [WIP-0385](WIP-0385-x86-64-linux-dynamic-byte-io.md)

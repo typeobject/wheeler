@@ -15,7 +15,7 @@
 
 The first maintained native runtime text enters through the x86-64 Linux loader. It finds the WIP-0372 locator relative to its instruction pointer, checks the locator and mapped capsule framing magics, writes one fixed probe through standard output, and exits through the Linux process service.
 
-This is the platform entry and locator slice. It is not the embedded VM. It does not verify capsule digests, decode WBC, bind capabilities, allocate runtime state, or call the root. WIP-0371 remains the format-neutral startup authority. WIP-0384 lets a completely verified constant-output AOT entry replace the probe with application bytes. That partial evaluation does not satisfy embedded startup.
+This is the platform entry and locator slice. It is not the embedded VM. It does not verify capsule digests, decode WBC, bind capabilities, allocate runtime state, or call the root. WIP-0371 remains the format-neutral startup authority. WIP-0384 lets a completely verified constant-output AOT entry replace the probe with application bytes. WIP-0385 lets an input-dependent AOT body own bounded standard-input and standard-output calls. That partial evaluation does not satisfy embedded startup.
 
 ## Contract
 
@@ -113,3 +113,4 @@ Rejected. A fixed exit stub can launch while ignoring the capsule. Damaged mappe
 - [WIP-0372](WIP-0372-canonical-elf-capsule-images.md)
 - [WIP-0373](WIP-0373-physical-elf-image-command.md)
 - [WIP-0384](WIP-0384-x86-64-linux-constant-byte-output.md)
+- [WIP-0385](WIP-0385-x86-64-linux-dynamic-byte-io.md)

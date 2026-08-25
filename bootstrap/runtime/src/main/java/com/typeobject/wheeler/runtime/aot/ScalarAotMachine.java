@@ -28,7 +28,7 @@ public final class ScalarAotMachine {
     for (FunctionBody function : scalar.program().functions()) {
       functionOffsets[function.id()] = code.position();
       if (function.id() == scalar.entry().id()) {
-        emitEntry(code, function, calls);
+        emitEntry(code, function, calls, scalar.usesDynamicApplicationIo());
       } else {
         emitHelper(code, function, calls);
       }
@@ -43,19 +43,34 @@ public final class ScalarAotMachine {
   }
 
   private static void emitEntry(
-      X86 code, FunctionBody entry, ArrayList<CallPatch> calls) {
+      X86 code,
+      FunctionBody entry,
+      ArrayList<CallPatch> calls,
+      boolean dynamicIo) {
     int globalSlot = entry.localCount();
-    int frameBytes = frameBytes(globalSlot + 1);
+    IoLayout io = dynamicIo ? IoLayout.create(globalSlot) : null;
+    int frameBytes = io == null ? frameBytes(globalSlot + 1) : io.frameBytes();
     code.stack(-frameBytes);
     code.bytes(0x31, 0xc0);
     code.storeRax(globalSlot);
-    FunctionPatches patches = emitBody(code, entry, globalSlot, calls);
+    ArrayList<Integer> prologueTraps = new ArrayList<>();
+    if (io != null) {
+      code.storeRax(io.outputLengthSlot());
+      code.readInput(io, prologueTraps);
+      code.zeroOutput(io);
+    }
+    FunctionPatches patches = emitBody(code, entry, globalSlot, calls, io);
+    patches.traps().addAll(prologueTraps);
 
     code.loadRax(globalSlot);
     code.bytes(0x48, 0x85, 0xc0, 0x0f, 0x88);
     patches.traps().add(code.reserveInt());
     code.bytes(0x48, 0x83, 0xf8, 124, 0x0f, 0x8f);
     patches.traps().add(code.reserveInt());
+    if (io != null) {
+      code.writeOutput(io, patches.traps());
+      code.loadRax(globalSlot);
+    }
     code.stack(frameBytes);
     code.bytes(0x89, 0xc7, 0xe9);
     int successJump = code.reserveInt();
@@ -75,7 +90,7 @@ public final class ScalarAotMachine {
     for (int parameter = 0; parameter < helper.parameterCount(); parameter++) {
       code.storeArgument(parameter);
     }
-    FunctionPatches patches = emitBody(code, helper, -1, calls);
+    FunctionPatches patches = emitBody(code, helper, -1, calls, null);
 
     Instruction returned = helper.forward().getLast();
     if (returned.opcode() == Opcode.RETURN_VALUE) {
@@ -98,7 +113,8 @@ public final class ScalarAotMachine {
       X86 code,
       FunctionBody function,
       int globalSlot,
-      ArrayList<CallPatch> calls) {
+      ArrayList<CallPatch> calls,
+      IoLayout io) {
     int[] instructionOffsets = new int[function.forward().size()];
     ArrayList<MachineBranch> branches = new ArrayList<>();
     ArrayList<Integer> traps = new ArrayList<>();
@@ -119,10 +135,19 @@ public final class ScalarAotMachine {
         }
         case LOCAL_MOVE -> {
           int destination = local(instruction, 0);
-          if (!function.localType(destination).equals(ValueType.BYTES_BORROW)) {
+          if (!function.localType(destination).equals(ValueType.BYTES_BORROW)
+              && !function.localType(destination).equals(ValueType.BYTE_VIEW)) {
             code.loadRax(local(instruction, 1));
             code.storeRax(destination);
           }
+        }
+        case BUFFER_LENGTH -> {
+          code.loadRax(io.inputLengthSlot());
+          code.storeRax(local(instruction, 0));
+        }
+        case BYTES_GET -> {
+          code.inputByte(local(instruction, 2), io, traps);
+          code.storeRax(local(instruction, 0));
         }
         case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR,
             LOCAL_ROTR32 -> {
@@ -148,8 +173,15 @@ public final class ScalarAotMachine {
           branches.add(new MachineBranch(
               code.reserveInt(), Math.toIntExact(instruction.operands().get(1))));
         }
-        case BYTES_SET, OUTPUT_LENGTH -> {
-          // Constant output is retained in the enclosing entry shim.
+        case BYTES_SET -> {
+          if (io != null) {
+            code.outputByte(local(instruction, 1), local(instruction, 2), io, traps);
+          }
+        }
+        case OUTPUT_LENGTH -> {
+          if (io != null) {
+            code.outputLength(local(instruction, 1), io, traps);
+          }
         }
         case EXPECT_TRUE -> {
           code.loadRax(local(instruction, 0));
@@ -205,8 +237,28 @@ public final class ScalarAotMachine {
   }
 
   private static int frameBytes(int slots) {
-    int bytes = Math.multiplyExact(slots, Long.BYTES);
+    return alignBytes(Math.multiplyExact(slots, Long.BYTES));
+  }
+
+  private static int alignBytes(int bytes) {
     return Math.addExact(bytes, 15) & -16;
+  }
+
+  private record IoLayout(
+      int inputLengthSlot,
+      int outputLengthSlot,
+      int inputOffset,
+      int outputOffset,
+      int frameBytes) {
+    static IoLayout create(int globalSlot) {
+      int inputLengthSlot = globalSlot + 1;
+      int outputLengthSlot = globalSlot + 2;
+      int inputOffset = ScalarAotMachine.frameBytes(globalSlot + 3);
+      int outputOffset = inputOffset + ScalarAotProgram.MAX_INPUT_BYTES;
+      int frameBytes = alignBytes(outputOffset + ScalarAotProgram.MAX_OUTPUT_BYTES);
+      return new IoLayout(
+          inputLengthSlot, outputLengthSlot, inputOffset, outputOffset, frameBytes);
+    }
   }
 
   private record CallPatch(int displacement, int target) {}
@@ -301,6 +353,116 @@ public final class ScalarAotMachine {
         default -> throw new IllegalStateException("Validated scalar AOT parameter changed");
       }
       integer(argument * Long.BYTES);
+    }
+
+    void zeroOutput(IoLayout io) {
+      bytes(0x48, 0x8d, 0xbc, 0x24);
+      integer(io.outputOffset());
+      bytes(0x31, 0xc0, 0xb9);
+      integer(ScalarAotProgram.MAX_OUTPUT_BYTES / Long.BYTES);
+      bytes(0xfc, 0xf3, 0x48, 0xab);
+    }
+
+    void readInput(IoLayout io, ArrayList<Integer> traps) {
+      bytes(0x31, 0xc0);
+      storeRax(io.inputLengthSlot());
+      int loop = position();
+      loadRax(io.inputLengthSlot());
+      bytes(0x48, 0x3d);
+      integer(ScalarAotProgram.MAX_INPUT_BYTES);
+      bytes(0x0f, 0x84);
+      int fullJump = reserveInt();
+      bytes(0x48, 0x8d, 0xb4, 0x04);
+      integer(io.inputOffset());
+      bytes(0xba);
+      integer(ScalarAotProgram.MAX_INPUT_BYTES);
+      bytes(0x29, 0xc2, 0x31, 0xff, 0x31, 0xc0, 0x0f, 0x05);
+      bytes(0x48, 0x85, 0xc0, 0x0f, 0x88);
+      traps.add(reserveInt());
+      bytes(0x48, 0x85, 0xc0, 0x0f, 0x84);
+      int completeJump = reserveInt();
+      bytes(0x48, 0x01, 0x84, 0x24);
+      integer(io.inputLengthSlot() * Long.BYTES);
+      bytes(0xe9);
+      int loopJump = reserveInt();
+      int full = position();
+      bytes(0x31, 0xff);
+      leaRsi(io.outputOffset());
+      bytes(0xba);
+      integer(1);
+      bytes(0x31, 0xc0, 0x0f, 0x05, 0x48, 0x85, 0xc0, 0x0f, 0x85);
+      traps.add(reserveInt());
+      int complete = position();
+      patchRelativeInt(fullJump, full);
+      patchRelativeInt(completeJump, complete);
+      patchRelativeInt(loopJump, loop);
+    }
+
+    void inputByte(int indexLocal, IoLayout io, ArrayList<Integer> traps) {
+      loadRax(indexLocal);
+      bytes(0x48, 0x85, 0xc0, 0x0f, 0x88);
+      traps.add(reserveInt());
+      loadRcx(io.inputLengthSlot());
+      bytes(0x48, 0x39, 0xc8, 0x0f, 0x83);
+      traps.add(reserveInt());
+      bytes(0x0f, 0xb6, 0x84, 0x04);
+      integer(io.inputOffset());
+    }
+
+    void outputByte(
+        int indexLocal,
+        int valueLocal,
+        IoLayout io,
+        ArrayList<Integer> traps) {
+      loadRax(indexLocal);
+      bytes(0x48, 0x85, 0xc0, 0x0f, 0x88);
+      traps.add(reserveInt());
+      bytes(0x48, 0x3d);
+      integer(ScalarAotProgram.MAX_OUTPUT_BYTES - 1);
+      bytes(0x0f, 0x87);
+      traps.add(reserveInt());
+      loadRcx(valueLocal);
+      bytes(0x48, 0x85, 0xc9, 0x0f, 0x88);
+      traps.add(reserveInt());
+      bytes(0x48, 0x81, 0xf9);
+      integer(255);
+      bytes(0x0f, 0x87);
+      traps.add(reserveInt());
+      bytes(0x88, 0x8c, 0x04);
+      integer(io.outputOffset());
+    }
+
+    void outputLength(int lengthLocal, IoLayout io, ArrayList<Integer> traps) {
+      loadRax(lengthLocal);
+      validOutputLength(traps);
+      storeRax(io.outputLengthSlot());
+    }
+
+    void writeOutput(IoLayout io, ArrayList<Integer> traps) {
+      loadRax(io.outputLengthSlot());
+      validOutputLength(traps);
+      bytes(0x48, 0x89, 0xc2);
+      leaRsi(io.outputOffset());
+      bytes(0xbf);
+      integer(1);
+      bytes(0xb8);
+      integer(1);
+      bytes(0x0f, 0x05, 0x48, 0x39, 0xd0, 0x0f, 0x85);
+      traps.add(reserveInt());
+    }
+
+    private void validOutputLength(ArrayList<Integer> traps) {
+      bytes(0x48, 0x85, 0xc0, 0x0f, 0x8e);
+      traps.add(reserveInt());
+      bytes(0x48, 0x3d);
+      integer(ScalarAotProgram.MAX_OUTPUT_BYTES);
+      bytes(0x0f, 0x8f);
+      traps.add(reserveInt());
+    }
+
+    private void leaRsi(int stackOffset) {
+      bytes(0x48, 0x8d, 0xb4, 0x24);
+      integer(stackOffset);
     }
 
     void arithmetic(Opcode opcode, ArrayList<Integer> traps) {

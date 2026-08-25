@@ -83,9 +83,11 @@ final class ImageCommand {
     out.println("wrote x86-64 Linux scalar AOT runtime " + output + " ("
         + lowered.runtimeText().length + " bytes, " + lowered.runtimeIdentity()
         + ", WBC " + lowered.portableArtifact()
-        + ", status " + lowered.processStatus()
+        + (lowered.hasStaticProcessStatus()
+            ? ", status " + lowered.processStatus() : ", input-dependent status")
         + (lowered.writesApplicationOutput()
             ? ", output " + lowered.applicationOutput().length + " bytes" : "")
+        + (lowered.usesDynamicApplicationIo() ? ", dynamic stdin/stdout" : "")
         + ")");
     return 0;
   }

@@ -134,11 +134,15 @@ arithmetic, bitwise and 32-bit rotate operations, comparisons, assertions,
 status reads, forward branches and 255-iteration checked loops, prior
 signed-result or void helper calls with up to six exact signed or Boolean
 arguments, status stores, returns, and halt. An output-bearing entry may retain
-up to 4,096 constant application bytes and 64 locals. Other entries retain 32
+up to 4,096 constant application bytes and 64 locals. An exact
+`byteview, bytes` entry may instead read up to 4,096 complete stdin bytes and
+compute bounded stdout and process status at runtime. Other entries retain 32
 locals. Computed values 0 through 124 become distinct x86-64 Linux process
 statuses. Unsupported
 programs reject without projection or fallback. Output-bearing AOT replaces the
-fixed loader probe with exact source-declared bytes. The status-73 fixture launches
+fixed loader probe with exact source-declared bytes. Dynamic I/O repeats native
+reads until EOF, rejects input byte 4,097, validates status before output, and
+reports that status as input-dependent. The status-73 fixture launches
 as a complete AOT ELF, but general bytecode execution and in-process verification
 remain.
 

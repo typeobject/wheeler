@@ -77,7 +77,10 @@ final class ImageCommandTest {
                 assert(value == 73);
               }
 
-              entry void main(borrow mut bytes output) {
+              entry void main(
+                borrow byteview input,
+                borrow mut bytes output
+              ) {
                 status = 70;
                 long seed = status;
                 long result = code(seed, 0);
@@ -85,7 +88,8 @@ final class ImageCommandTest {
                   result += 1;
                 }
                 check(result);
-                setByte(output, 0, 78);
+                assert(bufferLength(input) == 1);
+                setByte(output, 0, input[0]);
                 setByte(output, 1, 97);
                 setByte(output, 2, 116);
                 setByte(output, 3, 105);
@@ -106,8 +110,8 @@ final class ImageCommandTest {
     byte[] runtime = Files.readAllBytes(runtimeFile);
     assertEquals(0, lowering.status());
     assertTrue(lowering.output().contains(identity(artifact)));
-    assertTrue(lowering.output().contains("status 73"));
-    assertTrue(lowering.output().contains("output 7 bytes"));
+    assertTrue(lowering.output().contains("input-dependent status"));
+    assertTrue(lowering.output().contains("dynamic stdin/stdout"));
 
     PlatformAbi abi = platformAbi();
     ApplicationCapsule capsule = nativeCapsule(
@@ -144,6 +148,8 @@ final class ImageCommandTest {
 
     if (nativeLinuxHost()) {
       Process process = new ProcessBuilder(imageFile.toString()).start();
+      process.getOutputStream().write('N');
+      process.getOutputStream().close();
       assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
       assertEquals(73, process.exitValue());
       assertArrayEquals(

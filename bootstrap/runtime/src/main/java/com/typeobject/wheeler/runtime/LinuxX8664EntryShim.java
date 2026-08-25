@@ -57,6 +57,15 @@ public final class LinuxX8664EntryShim {
     return assemble(processStatusCode.clone(), applicationOutput.clone());
   }
 
+  static byte[] runtimeTextWithApplicationIo(byte[] applicationCode) {
+    if (applicationCode == null
+        || applicationCode.length == 0
+        || applicationCode.length > 16 * 1024) {
+      throw new IllegalArgumentException("Native application code is invalid");
+    }
+    return assemble(applicationCode.clone(), null);
+  }
+
   /** SHA-256 identity of the exact runtime text. */
   public static String runtimeIdentity() {
     return RUNTIME_IDENTITY;
@@ -87,22 +96,26 @@ public final class LinuxX8664EntryShim {
     code.bytes(0x48, 0x39, 0x08);
     int badCapsuleJump = code.notEqual(wideBranches);
 
-    code.bytes(0x48, 0x8d, 0x35);
-    int outputDisplacement = code.reserveInt();
-    code.bytes(0xbf);
-    code.integer(1);
-    code.bytes(0xba);
-    code.integer(applicationOutput.length);
-    code.bytes(0xb8);
-    code.integer(1);
-    code.bytes(0x0f, 0x05);
-    if (applicationOutput.length <= Byte.MAX_VALUE) {
-      code.bytes(0x83, 0xf8, applicationOutput.length);
-    } else {
-      code.bytes(0x3d);
+    int outputDisplacement = -1;
+    int shortWriteJump = -1;
+    if (applicationOutput != null) {
+      code.bytes(0x48, 0x8d, 0x35);
+      outputDisplacement = code.reserveInt();
+      code.bytes(0xbf);
+      code.integer(1);
+      code.bytes(0xba);
       code.integer(applicationOutput.length);
+      code.bytes(0xb8);
+      code.integer(1);
+      code.bytes(0x0f, 0x05);
+      if (applicationOutput.length <= Byte.MAX_VALUE) {
+        code.bytes(0x83, 0xf8, applicationOutput.length);
+      } else {
+        code.bytes(0x3d);
+        code.integer(applicationOutput.length);
+      }
+      shortWriteJump = code.notEqual(wideBranches);
     }
-    int shortWriteJump = code.notEqual(wideBranches);
     code.raw(processStatusCode);
     code.bytes(0xeb);
     int exitJump = code.reserveByte();
@@ -115,7 +128,9 @@ public final class LinuxX8664EntryShim {
     code.integer(60);
     code.bytes(0x0f, 0x05);
     int output = code.position();
-    code.raw(applicationOutput);
+    if (applicationOutput != null) {
+      code.raw(applicationOutput);
+    }
 
     code.patchRelativeInt(
         locatorDisplacement,
@@ -123,11 +138,13 @@ public final class LinuxX8664EntryShim {
     code.patchInt(
         capsuleOffsetValue,
         align(ElfImage.RUNTIME_FILE_OFFSET + code.position(), PAGE_BYTES));
-    code.patchRelativeInt(outputDisplacement, output);
+    if (applicationOutput != null) {
+      code.patchRelativeInt(outputDisplacement, output);
+      code.patchJump(shortWriteJump, failure, wideBranches);
+    }
     code.patchJump(badLocatorJump, failure, wideBranches);
     code.patchJump(badCapsuleOffsetJump, failure, wideBranches);
     code.patchJump(badCapsuleJump, failure, wideBranches);
-    code.patchJump(shortWriteJump, failure, wideBranches);
     code.patchRelativeByte(exitJump, exit);
     return code.finish();
   }

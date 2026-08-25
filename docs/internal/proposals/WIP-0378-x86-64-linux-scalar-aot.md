@@ -15,7 +15,7 @@
 
 The first native backend leaf lowers verified canonical Wheeler bytecode into x86-64 Linux runtime text. One closed acyclic scalar profile computes a source-declared status global and returns that value as process status after mapped capsule entry.
 
-This is AOT evidence, not the classical bootstrap backend. WIP-0379 extends this base profile with bounded helper calls, WIP-0381 adds bounded loops, WIP-0382 adds state reads and assertions, and WIP-0384 adds bounded constant byte output. This WIP alone does not specify loops, calls, history, inverse execution, ownership, aggregates, storage, effects, quantum regions, workflows, proofs, or general entry signatures. It does not perform complete in-process capsule or WBC verification. WIP-0008 retains those boundaries.
+This is AOT evidence, not the classical bootstrap backend. WIP-0379 extends this base profile with bounded helper calls, WIP-0381 adds bounded loops, WIP-0382 adds state reads and assertions, WIP-0384 adds bounded constant byte output, and WIP-0385 adds input-dependent byte I/O. This WIP alone does not specify loops, calls, history, inverse execution, ownership, aggregates, storage, effects, quantum regions, workflows, proofs, or general entry signatures. It does not perform complete in-process capsule or WBC verification. WIP-0008 retains those boundaries.
 
 ## Accepted WBC profile
 
@@ -149,3 +149,4 @@ Rejected. The loaded runtime still checks framing rather than complete capsule a
 - [WIP-0381](WIP-0381-x86-64-linux-bounded-scalar-loops.md)
 - [WIP-0382](WIP-0382-x86-64-linux-scalar-state-checks.md)
 - [WIP-0384](WIP-0384-x86-64-linux-constant-byte-output.md)
+- [WIP-0385](WIP-0385-x86-64-linux-dynamic-byte-io.md)

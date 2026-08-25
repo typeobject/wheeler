@@ -27,13 +27,16 @@ public final class LinuxX8664ScalarAotCompiler {
     }
     ScalarAotProgram scalar = ScalarAotProgram.validate(program);
     byte[] machineCode = ScalarAotMachine.lower(scalar);
-    byte[] runtimeText = scalar.writesApplicationOutput()
-        ? LinuxX8664EntryShim.runtimeText(machineCode, scalar.applicationOutput())
-        : LinuxX8664EntryShim.runtimeText(machineCode);
+    byte[] runtimeText = scalar.usesDynamicApplicationIo()
+        ? LinuxX8664EntryShim.runtimeTextWithApplicationIo(machineCode)
+        : scalar.writesApplicationOutput()
+            ? LinuxX8664EntryShim.runtimeText(machineCode, scalar.applicationOutput())
+            : LinuxX8664EntryShim.runtimeText(machineCode);
     return new LoweredRuntime(
         identity(artifact),
-        scalar.processStatus(),
+        scalar.hasStaticProcessStatus() ? scalar.processStatus() : null,
         scalar.writesApplicationOutput() ? scalar.applicationOutput() : null,
+        scalar.usesDynamicApplicationIo(),
         runtimeText);
   }
 
@@ -48,19 +51,22 @@ public final class LinuxX8664ScalarAotCompiler {
   /** Owned scalar AOT output and its portable semantic input identity. */
   public static final class LoweredRuntime {
     private final String portableArtifact;
-    private final int processStatus;
+    private final Integer processStatus;
     private final byte[] applicationOutput;
+    private final boolean dynamicApplicationIo;
     private final byte[] runtimeText;
     private final String runtimeIdentity;
 
     private LoweredRuntime(
         String portableArtifact,
-        int processStatus,
+        Integer processStatus,
         byte[] applicationOutput,
+        boolean dynamicApplicationIo,
         byte[] runtimeText) {
       this.portableArtifact = portableArtifact;
       this.processStatus = processStatus;
       this.applicationOutput = applicationOutput == null ? null : applicationOutput.clone();
+      this.dynamicApplicationIo = dynamicApplicationIo;
       this.runtimeText = runtimeText.clone();
       this.runtimeIdentity = identity(runtimeText);
     }
@@ -69,8 +75,19 @@ public final class LinuxX8664ScalarAotCompiler {
       return portableArtifact;
     }
 
+    public boolean hasStaticProcessStatus() {
+      return processStatus != null;
+    }
+
     public int processStatus() {
+      if (processStatus == null) {
+        throw new IllegalStateException("Lowered runtime has input-dependent process status");
+      }
       return processStatus;
+    }
+
+    public boolean usesDynamicApplicationIo() {
+      return dynamicApplicationIo;
     }
 
     public boolean writesApplicationOutput() {
