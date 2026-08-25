@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.module_manifest;
 
+import wheeler.compiler.closure.manifest_assertions;
 import wheeler.compiler.closure.manifest_profile;
 import wheeler.compiler.closure.manifest_syntax;
 

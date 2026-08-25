@@ -18,21 +18,34 @@ import org.junit.jupiter.api.Test;
 
 /** Native byte parity for the direct manifest-syntax product. */
 final class NativeCompilerManifestProductExampleTest {
+  private static final String ASSERTIONS =
+      "compiler/closure/syntax/ManifestAssertions.w";
+  private static final String ASSERTIONS_MODULE =
+      "wheeler.compiler.closure.manifest_assertions";
   private static final String PROFILE = "compiler/closure/syntax/ManifestProfile.w";
   private static final String PROFILE_MODULE = "wheeler.compiler.closure.manifest_profile";
 
   @Test
+  void compilesPhysicalManifestAssertionsByteForByte() throws Exception {
+    assertPhysicalLibrary(ASSERTIONS, ASSERTIONS_MODULE, "requireMetadata");
+  }
+
+  @Test
   void compilesPhysicalManifestProfileByteForByte() throws Exception {
-    String source = CompilerSources.read(PROFILE);
+    assertPhysicalLibrary(PROFILE, PROFILE_MODULE, "profileByte");
+  }
+
+  private static void assertPhysicalLibrary(
+      String path, String module, String function) throws Exception {
+    String source = CompilerSources.read(path);
     byte[] actual = NativeModuleCompilerHarness.compile(
         NativeModuleCompilerHarness.program(), List.of(), source);
     byte[] expected = new BytecodeWriter().write(
-        new WheelerCompiler().compileLibraryModuleFiles(
-            Map.of(PROFILE, source), PROFILE_MODULE));
+        new WheelerCompiler().compileLibraryModuleFiles(Map.of(path, source), module));
 
     assertArrayEquals(expected, actual);
     var decoded = new BytecodeReader().read(actual);
-    assertEquals(PROFILE_MODULE + "::profileByte", decoded.functions().getFirst().name());
+    assertEquals(module + "::" + function, decoded.functions().getFirst().name());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 

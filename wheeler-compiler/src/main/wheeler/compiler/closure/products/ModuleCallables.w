@@ -4,7 +4,7 @@ module wheeler.compiler.closure.module_callables;
 
 import wheeler.compiler.closure.active_source_slots;
 import wheeler.compiler.closure.callable_signature_products;
-import wheeler.compiler.closure.manifest_syntax;
+import wheeler.compiler.closure.manifest_assertions;
 import wheeler.compiler.closure.plan;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;

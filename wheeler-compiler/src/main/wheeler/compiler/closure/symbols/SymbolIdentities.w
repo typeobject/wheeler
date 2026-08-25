@@ -2,7 +2,7 @@
 
 module wheeler.compiler.closure.symbol_identities;
 
-import wheeler.compiler.closure.manifest_syntax;
+import wheeler.compiler.closure.manifest_assertions;
 import wheeler.compiler.closure.plan;
 import wheeler.crypto.sha256;
 

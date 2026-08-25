@@ -77,6 +77,8 @@ final class NativeArtifactSetIdentityExampleTest {
     return new WheelerCompiler().compileModuleFiles(
         Map.of(
             "NativeArtifactSetIdentity.w", Files.readString(FIXTURE),
+            "ManifestAssertions.w",
+                CompilerSources.read("compiler/closure/syntax/ManifestAssertions.w"),
             "ManifestSyntax.w", CompilerSources.read("compiler/closure/ManifestSyntax.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
         "wheeler.conformance.bootstrap.artifact_set_identity");

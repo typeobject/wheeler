@@ -3,7 +3,7 @@
 module wheeler.compiler.closure.archive_module_sources;
 
 import wheeler.compiler.closure.archive_sources;
-import wheeler.compiler.closure.manifest_syntax;
+import wheeler.compiler.closure.manifest_assertions;
 import wheeler.compiler.closure.module_manifest;
 
 classical class ArchiveModuleSources {

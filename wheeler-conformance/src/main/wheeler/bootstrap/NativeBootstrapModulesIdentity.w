@@ -2,7 +2,7 @@
 
 module wheeler.conformance.bootstrap.modules_identity;
 
-import wheeler.compiler.closure.manifest_syntax;
+import wheeler.compiler.closure.manifest_assertions;
 import wheeler.compiler.closure.module_manifest;
 import wheeler.crypto.content_identity;
 

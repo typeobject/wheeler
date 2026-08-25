@@ -4,7 +4,7 @@ module wheeler.compiler.closure.module_symbols;
 
 import wheeler.compiler.closure.active_source_slots;
 import wheeler.compiler.closure.imported_constant_values;
-import wheeler.compiler.closure.manifest_syntax;
+import wheeler.compiler.closure.manifest_assertions;
 import wheeler.compiler.closure.plan;
 import wheeler.compiler.closure.symbol_identities;
 import wheeler.compiler.compiler_token_limits;

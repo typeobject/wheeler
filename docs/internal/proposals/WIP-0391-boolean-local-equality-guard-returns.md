@@ -100,4 +100,4 @@ Rejected. Less-than Boolean-local returns and helper-call variants need their ow
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0343](WIP-0343-native-compiler-resolved-early-comparison-suite.md)
 - [WIP-0344](WIP-0344-native-compiler-resolved-early-result-suite.md)
-- [WIP-0392](WIP-0392-physical-bootstrap-profile-classifier.md)
+- [WIP-0392](WIP-0392-physical-bootstrap-manifest-primitives.md)

@@ -2,6 +2,7 @@
 
 module wheeler.conformance.bootstrap.artifact_set_identity;
 
+import wheeler.compiler.closure.manifest_assertions;
 import wheeler.compiler.closure.manifest_syntax;
 import wheeler.crypto.sha256;
 

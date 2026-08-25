@@ -85,6 +85,8 @@ final class NativeBootstrapManifestIdentityExampleTest {
         Map.of(
             "NativeBootstrapManifestIdentity.w",
             Files.readString(ROOT.resolve("NativeBootstrapManifestIdentity.w")),
+            "ManifestAssertions.w",
+                CompilerSources.read("compiler/closure/syntax/ManifestAssertions.w"),
             "ManifestProfile.w",
                 CompilerSources.read("compiler/closure/syntax/ManifestProfile.w"),
             "ManifestSyntax.w", CompilerSources.read("compiler/closure/ManifestSyntax.w"),

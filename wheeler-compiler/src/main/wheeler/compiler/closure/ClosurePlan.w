@@ -2,7 +2,7 @@
 
 module wheeler.compiler.closure.plan;
 
-import wheeler.compiler.closure.manifest_syntax;
+import wheeler.compiler.closure.manifest_assertions;
 import wheeler.compiler.closure.module_manifest;
 import wheeler.compiler.graphs.executable_owner_kinds;
 

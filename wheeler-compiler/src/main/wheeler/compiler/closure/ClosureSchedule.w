@@ -3,7 +3,7 @@
 module wheeler.compiler.closure.schedule;
 
 import wheeler.compiler.closure.active_source_slots;
-import wheeler.compiler.closure.manifest_syntax;
+import wheeler.compiler.closure.manifest_assertions;
 import wheeler.compiler.closure.plan;
 
 classical class ClosureSchedules {

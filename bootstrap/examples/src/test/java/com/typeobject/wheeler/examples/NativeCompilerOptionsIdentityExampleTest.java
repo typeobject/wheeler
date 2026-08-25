@@ -65,6 +65,8 @@ final class NativeCompilerOptionsIdentityExampleTest {
         Map.of(
             "NativeCompilerOptionsIdentity.w",
             Files.readString(ROOT.resolve("NativeCompilerOptionsIdentity.w")),
+            "ManifestAssertions.w",
+                CompilerSources.read("compiler/closure/syntax/ManifestAssertions.w"),
             "ManifestProfile.w",
                 CompilerSources.read("compiler/closure/syntax/ManifestProfile.w"),
             "ManifestSyntax.w", CompilerSources.read("compiler/closure/ManifestSyntax.w"),

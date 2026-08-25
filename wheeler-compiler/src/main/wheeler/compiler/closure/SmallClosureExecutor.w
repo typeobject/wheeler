@@ -2,7 +2,7 @@
 
 module wheeler.compiler.closure.small_executor;
 
-import wheeler.compiler.closure.manifest_syntax;
+import wheeler.compiler.closure.manifest_assertions;
 import wheeler.compiler.closure.plan;
 import wheeler.compiler.graphs.executor;
 import wheeler.compiler.graphs.matrix;

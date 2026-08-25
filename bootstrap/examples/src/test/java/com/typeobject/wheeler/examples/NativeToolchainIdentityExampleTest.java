@@ -67,6 +67,8 @@ final class NativeToolchainIdentityExampleTest {
     return new WheelerCompiler().compileModuleFiles(
         Map.of(
             "NativeToolchainIdentity.w", Files.readString(ROOT.resolve("NativeToolchainIdentity.w")),
+            "ManifestAssertions.w",
+                CompilerSources.read("compiler/closure/syntax/ManifestAssertions.w"),
             "ManifestSyntax.w", CompilerSources.read("compiler/closure/ManifestSyntax.w"),
             "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
