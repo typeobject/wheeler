@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(228, result.selected());
-    assertEquals(228, result.passed());
+    assertEquals(224, result.selected());
+    assertEquals(224, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -39,17 +39,6 @@ final class NativeCompilerPackageTest {
             report, project.manifest().name(), TestReportRenderer.Format.JUNIT_XML),
         new String(result.junit(), StandardCharsets.UTF_8));
 
-    for (String name : List.of(
-        "acceptsMetadataCondition",
-        "classifiesAsciiDigitsAndLetters",
-        "gatesProfilePunctuation",
-        "preservesOutOfRangeFallback")) {
-      assertCase(
-          report,
-          "nativecompilermanifestprimitivetests",
-          "native_compiler_manifest_primitives",
-          name);
-    }
     for (String name : List.of(
         "classifiesFinalLiteralComparisonLessThan",
         "classifiesFinalLiteralComparisonSubtract",

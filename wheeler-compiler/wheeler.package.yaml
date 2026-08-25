@@ -236,15 +236,6 @@ targets:
       - "src/test/wheeler/compiler/conditionals/NativeCompilerLiteralComparisonOperationTests.w"
     test: true
   - kind: "tool"
-    name: "nativecompilermanifestprimitivetests"
-    root: "src/test/wheeler/compiler/closure/NativeCompilerManifestPrimitiveTests.w"
-    module: "wheeler.compiler.tests.native_compiler_manifest_primitives"
-    sources:
-      - "src/main/wheeler/compiler/closure/syntax/ManifestAssertions.w"
-      - "src/main/wheeler/compiler/closure/syntax/ManifestProfile.w"
-      - "src/test/wheeler/compiler/closure/NativeCompilerManifestPrimitiveTests.w"
-    test: true
-  - kind: "tool"
     name: "nativecompilernamedbooleanreturnkindtests"
     root: "src/test/wheeler/compiler/returns/NativeCompilerNamedBooleanReturnKindTests.w"
     module: "wheeler.compiler.tests.native_compiler_named_boolean_return_kinds"

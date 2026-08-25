@@ -741,14 +741,36 @@ final class NativeCompiledTestRunnerExampleTest {
   }
 
   @Test
-  @Timeout(value = 3, unit = TimeUnit.MINUTES)
-  void executesTwoHundredFiftyFiveDiscoveredCases() throws Exception {
-    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
-    byte[] executedReport = execute(runner, discoveredTests(255));
+  @Timeout(value = 2, unit = TimeUnit.MINUTES)
+  void executesFirstHalfOfTerminalDiscoveredCases() throws Exception {
+    byte[] executedReport = execute(
+        NativeCoverageRunExampleTest.nativeTestRunner(),
+        shard(discoveredTests(255), 0, 2));
 
-    assertEquals(255, Byte.toUnsignedInt(executedReport[32]));
-    assertEquals(255, Byte.toUnsignedInt(executedReport[34]));
+    assertEquals(117, Byte.toUnsignedInt(executedReport[32]));
+    assertEquals(117, Byte.toUnsignedInt(executedReport[34]));
     assertEquals(0, executedReport[36]);
+  }
+
+  @Test
+  @Timeout(value = 2, unit = TimeUnit.MINUTES)
+  void executesSecondHalfOfTerminalDiscoveredCases() throws Exception {
+    byte[] executedReport = execute(
+        NativeCoverageRunExampleTest.nativeTestRunner(),
+        shard(discoveredTests(255), 1, 2));
+
+    assertEquals(138, Byte.toUnsignedInt(executedReport[32]));
+    assertEquals(138, Byte.toUnsignedInt(executedReport[34]));
+    assertEquals(0, executedReport[36]);
+  }
+
+  private static byte[] shard(byte[] input, int index, int count) {
+    byte[] sharded = input.clone();
+    sharded[0] = (byte) index;
+    sharded[1] = (byte) (index >>> 8);
+    sharded[2] = (byte) count;
+    sharded[3] = (byte) (count >>> 8);
+    return sharded;
   }
 
   @Test

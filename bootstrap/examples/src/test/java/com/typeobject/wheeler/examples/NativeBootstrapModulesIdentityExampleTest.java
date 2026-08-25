@@ -44,7 +44,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
       transitions += 1;
     }
 
-    assertEquals(73_964_287, transitions);
+    assertEquals(73_964_407, transitions);
     assertEquals(MachineStatus.HALTED, machine.status());
     assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(manifest.canonicalBytes()),
         machine.hostOutput());
@@ -59,12 +59,12 @@ final class NativeBootstrapModulesIdentityExampleTest {
     String source = CompilerSources.read("compiler/closure/ModuleManifest.w");
 
     assertTrue(source.contains("private const long MAX_LOCAL_MODULES = 512;"));
-    assertTrue(source.contains("requireMetadata(parsedModules < MAX_LOCAL_MODULES, source);"));
+    assertTrue(source.contains("requireMetadata(parsedModules < MAX_LOCAL_MODULES);"));
     assertTrue(source.contains("private const long MAX_IMPORTS = 3072;"));
-    assertTrue(source.contains("requireMetadata(parsedImports < MAX_IMPORTS, source);"));
+    assertTrue(source.contains("requireMetadata(parsedImports < MAX_IMPORTS);"));
     assertTrue(source.contains("private const long MAX_MANIFEST_BYTES = 262144;"));
     assertTrue(source.contains(
-        "requireMetadata(bufferLength(source) < MAX_MANIFEST_BYTES + 1, source);"));
+        "requireMetadata(bufferLength(source) < MAX_MANIFEST_BYTES + 1);"));
   }
 
   @Test
