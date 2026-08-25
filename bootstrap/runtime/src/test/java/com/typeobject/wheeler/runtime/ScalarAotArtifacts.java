@@ -7,6 +7,7 @@ import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.ValueType;
+import java.util.ArrayList;
 import java.util.List;
 
 /** Canonical scalar AOT artifacts shared by focused runtime evidence. */
@@ -138,6 +139,79 @@ final class ScalarAotArtifacts {
                 Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 3),
                 Instruction.of(Opcode.HALT)),
             List.of()))));
+  }
+
+  static byte[] executionBoundArtifact(boolean dynamicIo, int entryCalls) {
+    ArrayList<Instruction> leafInstructions = repeatedCalls(-1, 3);
+    ArrayList<Instruction> innerInstructions = repeatedCalls(0, 61);
+    ArrayList<Instruction> outerInstructions = repeatedCalls(1, 3);
+    ArrayList<Instruction> entryInstructions = new ArrayList<>();
+    List<ValueType> entryTypes;
+    if (dynamicIo) {
+      entryTypes = List.of(
+          ValueType.BYTE_VIEW,
+          ValueType.BYTES_BORROW,
+          ValueType.SIGNED,
+          ValueType.SIGNED,
+          ValueType.SIGNED,
+          ValueType.SIGNED);
+      entryInstructions.add(Instruction.of(Opcode.LOCAL_CONST, 2, 0));
+      entryInstructions.add(Instruction.of(Opcode.LOCAL_CONST, 3, 88));
+      entryInstructions.add(Instruction.of(Opcode.BYTES_SET, 1, 2, 3));
+      entryInstructions.add(Instruction.of(Opcode.LOCAL_CONST, 4, 1));
+      entryInstructions.add(Instruction.of(Opcode.OUTPUT_LENGTH, 1, 4));
+    } else {
+      entryTypes = List.of(ValueType.SIGNED);
+    }
+    for (int call = 0; call < entryCalls; call++) {
+      entryInstructions.add(Instruction.of(Opcode.CALL_VOID, 2, 0, 0));
+    }
+    int statusLocal = dynamicIo ? 5 : 0;
+    entryInstructions.add(Instruction.of(Opcode.LOCAL_CONST, statusLocal, 73));
+    entryInstructions.add(Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, statusLocal));
+    entryInstructions.add(Instruction.of(Opcode.HALT));
+
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-execution-bound",
+        3,
+        List.of(new Global("status", 0)),
+        List.of(
+            voidHelper(0, "leaf", leafInstructions),
+            voidHelper(1, "inner", innerInstructions),
+            voidHelper(2, "outer", outerInstructions),
+            new FunctionBody(
+                3,
+                "example.app::main",
+                false,
+                dynamicIo ? 2 : 0,
+                entryTypes,
+                null,
+                entryInstructions,
+                List.of()))));
+  }
+
+  private static ArrayList<Instruction> repeatedCalls(int target, int count) {
+    ArrayList<Instruction> result = new ArrayList<>();
+    for (int instruction = 0; instruction < count; instruction++) {
+      result.add(target < 0
+          ? Instruction.of(Opcode.NOP)
+          : Instruction.of(Opcode.CALL_VOID, target, 0, 0));
+    }
+    result.add(Instruction.of(Opcode.RETURN));
+    return result;
+  }
+
+  private static FunctionBody voidHelper(
+      int id, String name, List<Instruction> instructions) {
+    return new FunctionBody(
+        id,
+        "example.app::" + name,
+        false,
+        0,
+        List.of(ValueType.SIGNED),
+        null,
+        instructions,
+        List.of());
   }
 
   static byte[] dynamicIoHelperArtifact() {

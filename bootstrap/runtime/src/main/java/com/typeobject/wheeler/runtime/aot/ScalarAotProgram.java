@@ -17,7 +17,7 @@ public final class ScalarAotProgram {
   public static final int MAX_LOOP_ITERATIONS = 255;
   public static final int MAX_INPUT_BYTES = 4096;
   public static final int MAX_OUTPUT_BYTES = 4096;
-  private static final int MAX_EVALUATED_INSTRUCTIONS = 65_536;
+  public static final int MAX_EXECUTED_INSTRUCTIONS = 65_536;
 
   private final Program program;
   private final Integer processStatus;
@@ -50,7 +50,11 @@ public final class ScalarAotProgram {
     OutputState output = new OutputState();
     long[] arguments = entry.parameterCount() == 0 ? new long[0] : new long[] {1};
     Evaluation evaluation = evaluate(
-        program, program.entryFunctionId(), arguments, output);
+        program,
+        program.entryFunctionId(),
+        arguments,
+        output,
+        new EvaluationBudget());
     if (!evaluation.stored()
         || evaluation.value() < 0
         || evaluation.value() > 124) {
@@ -410,7 +414,8 @@ public final class ScalarAotProgram {
       Program program,
       int functionId,
       long[] arguments,
-      OutputState output) {
+      OutputState output,
+      EvaluationBudget budget) {
     FunctionBody function = program.function(functionId);
     long[] values = new long[function.localCount()];
     boolean[] assigned = new boolean[function.localCount()];
@@ -419,11 +424,8 @@ public final class ScalarAotProgram {
     long status = 0;
     boolean stored = false;
     int pc = 0;
-    int steps = 0;
     while (pc < function.forward().size()) {
-      if (++steps > MAX_EVALUATED_INSTRUCTIONS) {
-        throw new IllegalArgumentException("Scalar AOT evaluation step bound exceeded");
-      }
+      budget.consume();
       Instruction instruction = function.forward().get(pc);
       try {
         switch (instruction.opcode()) {
@@ -523,7 +525,8 @@ public final class ScalarAotProgram {
                 program,
                 Math.toIntExact(instruction.operands().get(0)),
                 callArguments,
-                output);
+                output,
+                budget);
             if (instruction.opcode() == Opcode.CALL_VALUE) {
               int destination = destination(instruction, 3, assigned);
               values[destination] = result.value();
@@ -628,6 +631,16 @@ public final class ScalarAotProgram {
   }
 
   private record Evaluation(long value, boolean stored) {}
+
+  private static final class EvaluationBudget {
+    private int remaining = MAX_EXECUTED_INSTRUCTIONS;
+
+    void consume() {
+      if (remaining-- == 0) {
+        throw new IllegalArgumentException("Scalar AOT execution bound exceeded");
+      }
+    }
+  }
 
   private static final class OutputState {
     private final byte[] bytes = new byte[MAX_OUTPUT_BYTES];

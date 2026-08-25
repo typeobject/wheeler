@@ -7,6 +7,7 @@ import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.conditionalArtif
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dormantUnsupportedHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dynamicIoArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dynamicIoHelperArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.executionBoundArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.forwardHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.helperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.invalidOutputWriteArtifact;
@@ -25,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.core.bytecode.Opcode;
+import com.typeobject.wheeler.runtime.aot.ScalarAotMachine;
 import com.typeobject.wheeler.packageformat.ApplicationCapsule;
 import com.typeobject.wheeler.packageformat.CapsuleEntry;
 import com.typeobject.wheeler.packageformat.CapsulePackageReceipt;
@@ -68,7 +70,7 @@ final class LinuxX8664ScalarAotCompilerTest {
         identity(LinuxX8664EntryShim.runtimeText()),
         identity(first.runtimeText()));
     assertEquals(
-        "19aba7cc648438b351e35378ef84e630e08a82fe488f83fe92a34dff7fb5d2c0",
+        "0618a0f9c854fa85240871b1b9df5cc0d40093ef166bc9b8dff0328d4274c524",
         identity(first.runtimeText()));
 
     byte[] returned = first.runtimeText();
@@ -260,6 +262,50 @@ final class LinuxX8664ScalarAotCompilerTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> LinuxX8664ScalarAotCompiler.lower(invalidOutputWriteArtifact(0, 256)));
+  }
+
+  @Test
+  void enforcesOneSharedExecutionBound() throws Exception {
+    byte[] terminalArtifact = executionBoundArtifact(false, 71);
+    var terminal = LinuxX8664ScalarAotCompiler.lower(terminalArtifact);
+    assertEquals(73, terminal.processStatus());
+    Fixture terminalFixture = fixture(terminalArtifact, terminal.runtimeText());
+    byte[] terminalImage = ElfImage.build(
+        terminalFixture.plan(),
+        terminalFixture.abi(),
+        terminalFixture.capsule(),
+        terminal.runtimeText(),
+        0);
+    ElfImage.verify(terminalImage, terminalFixture.plan(), terminalFixture.abi());
+    IllegalArgumentException rejected = assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(executionBoundArtifact(false, 72)));
+    assertTrue(rejected.getMessage().contains("execution bound"));
+
+    byte[] artifact = executionBoundArtifact(true, 72);
+    var lowered = LinuxX8664ScalarAotCompiler.lower(artifact);
+    Fixture fixture = fixture(artifact, lowered.runtimeText());
+    byte[] image = ElfImage.build(
+        fixture.plan(), fixture.abi(), fixture.capsule(), lowered.runtimeText(), 0);
+    ElfImage.verify(image, fixture.plan(), fixture.abi());
+    if (nativeLinuxHost()) {
+      Process terminalProcess =
+          new ProcessBuilder(writeExecutable(terminalImage).toString()).start();
+      assertTrue(terminalProcess.waitFor(
+          Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(73, terminalProcess.exitValue());
+      assertArrayEquals(
+          LinuxX8664EntryShim.successOutput(),
+          terminalProcess.getInputStream().readAllBytes());
+      assertEquals(0, terminalProcess.getErrorStream().readAllBytes().length);
+
+      Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
+      process.getOutputStream().close();
+      assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(ScalarAotMachine.EXECUTION_TRAP_STATUS, process.exitValue());
+      assertEquals(0, process.getInputStream().readAllBytes().length);
+      assertEquals(0, process.getErrorStream().readAllBytes().length);
+    }
   }
 
   @Test

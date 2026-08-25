@@ -49,10 +49,14 @@ public final class ScalarAotMachine {
       ArrayList<CallPatch> calls,
       IoLayout io) {
     int globalSlot = entry.localCount();
-    int frameBytes = io == null ? frameBytes(globalSlot + 1) : io.frameBytes();
+    int fuelSlot = globalSlot + 1;
+    int frameBytes = io == null ? frameBytes(globalSlot + 2) : io.frameBytes();
     code.stack(-frameBytes);
     code.bytes(0x31, 0xc0);
     code.storeRax(globalSlot);
+    code.moveImmediateToRax(ScalarAotProgram.MAX_EXECUTED_INSTRUCTIONS);
+    code.storeRax(fuelSlot);
+    code.leaR15(fuelSlot * Long.BYTES);
     ArrayList<Integer> prologueTraps = new ArrayList<>();
     if (io != null) {
       code.storeRax(io.outputLengthSlot());
@@ -130,6 +134,7 @@ public final class ScalarAotMachine {
     ArrayList<Integer> traps = new ArrayList<>();
     for (int pc = 0; pc < function.forward().size(); pc++) {
       instructionOffsets[pc] = code.position();
+      code.consumeFuel(traps);
       Instruction instruction = function.forward().get(pc);
       switch (instruction.opcode()) {
         case NOP -> {
@@ -264,9 +269,9 @@ public final class ScalarAotMachine {
       int outputOffset,
       int frameBytes) {
     static IoLayout create(int globalSlot) {
-      int inputLengthSlot = globalSlot + 1;
-      int outputLengthSlot = globalSlot + 2;
-      int inputOffset = ScalarAotMachine.frameBytes(globalSlot + 3);
+      int inputLengthSlot = globalSlot + 2;
+      int outputLengthSlot = globalSlot + 3;
+      int inputOffset = ScalarAotMachine.frameBytes(globalSlot + 4);
       int outputOffset = inputOffset + ScalarAotProgram.MAX_INPUT_BYTES;
       int frameBytes = alignBytes(outputOffset + ScalarAotProgram.MAX_OUTPUT_BYTES);
       return new IoLayout(
@@ -384,6 +389,16 @@ public final class ScalarAotMachine {
     void leaRax(int stackOffset) {
       bytes(0x48, 0x8d, 0x84, 0x24);
       integer(stackOffset);
+    }
+
+    void leaR15(int stackOffset) {
+      bytes(0x4c, 0x8d, 0xbc, 0x24);
+      integer(stackOffset);
+    }
+
+    void consumeFuel(ArrayList<Integer> traps) {
+      bytes(0x49, 0x83, 0x2f, 0x01, 0x0f, 0x88);
+      traps.add(reserveInt());
     }
 
     void zeroOutput(IoLayout io) {

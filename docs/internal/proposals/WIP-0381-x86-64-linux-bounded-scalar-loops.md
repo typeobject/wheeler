@@ -50,7 +50,7 @@ classical class Hello {
 
 A backward WBC edge becomes one checked relative x86-64 branch. `LOCAL_LOOP_CHECK` loads the counter and limit from the active stack frame, rejects negative values and `counter >= limit`, increments the counter with overflow detection, and stores it back before the body continues. Failure reaches the function's existing trap epilogue and process status 126.
 
-WIP-0382 names status 126 as the common execution trap and adds state reads and assertions. The native body does not trust the build-time result in place of loop checks. Build-time evaluation and generated machine control flow are separate evidence over the same WBC. No host timer, signal, thread, stack limit, or watchdog defines loop semantics.
+WIP-0382 names status 126 as the common execution trap and adds state reads and assertions. WIP-0387 adds one instruction budget across loops and the complete helper call tree. The native body does not trust the build-time result in place of loop checks. Build-time evaluation and generated machine control flow are separate evidence over the same WBC. No host timer, signal, thread, stack limit, or watchdog defines loop semantics.
 
 ## Failure boundary
 
@@ -112,3 +112,4 @@ Rejected. Only owned and borrowed values transfer. Clearing a signed source chan
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0380](WIP-0380-x86-64-linux-scalar-call-arguments.md)
 - [WIP-0382](WIP-0382-x86-64-linux-scalar-state-checks.md)
+- [WIP-0387](WIP-0387-x86-64-linux-scalar-execution-bound.md)
