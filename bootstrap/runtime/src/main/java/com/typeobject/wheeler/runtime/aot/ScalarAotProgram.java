@@ -15,7 +15,7 @@ public final class ScalarAotProgram {
   public static final int MAX_OUTPUT_LOCALS = 64;
   public static final int MAX_INSTRUCTIONS = 128;
   public static final int MAX_LOOP_ITERATIONS = 255;
-  public static final int MAX_OUTPUT_BYTES = 127;
+  public static final int MAX_OUTPUT_BYTES = 4096;
   private static final int MAX_EVALUATED_INSTRUCTIONS = 65_536;
 
   private final Program program;

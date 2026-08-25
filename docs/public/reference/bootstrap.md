@@ -134,7 +134,7 @@ arithmetic, bitwise and 32-bit rotate operations, comparisons, assertions,
 status reads, forward branches and 255-iteration checked loops, prior
 signed-result or void helper calls with up to six exact signed or Boolean
 arguments, status stores, returns, and halt. An output-bearing entry may retain
-up to 127 constant application bytes and 64 locals. Other entries retain 32
+up to 4,096 constant application bytes and 64 locals. Other entries retain 32
 locals. Computed values 0 through 124 become distinct x86-64 Linux process
 statuses. Unsupported
 programs reject without projection or fallback. Output-bearing AOT replaces the

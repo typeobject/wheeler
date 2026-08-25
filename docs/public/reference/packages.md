@@ -332,7 +332,7 @@ capabilities.
 import-free Linux entry shim. It is loader and framing evidence, not a WBC
 runtime. `image runtime-elf-x86-64-aot` verifies one closed bounded scalar
 WBC profile with at most seven prior signed-result or void helpers, up to six exact scalar
-arguments per call, checked loops, status reads, assertions, and up to 127 constant application-output bytes, then
+arguments per call, checked loops, status reads, assertions, and up to 4,096 constant application-output bytes, then
 publishes runtime text carrying its computed source-declared process status and
 output.
 

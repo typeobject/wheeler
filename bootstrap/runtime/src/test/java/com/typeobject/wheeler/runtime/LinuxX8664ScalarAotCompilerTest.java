@@ -236,8 +236,8 @@ final class LinuxX8664ScalarAotCompilerTest {
     returned[0] ^= 1;
     assertArrayEquals(message, lowered.applicationOutput());
     assertEquals(
-        127,
-        LinuxX8664ScalarAotCompiler.lower(zeroOutputArtifact(127))
+        4096,
+        LinuxX8664ScalarAotCompiler.lower(zeroOutputArtifact(4096))
             .applicationOutput().length);
     assertEquals(
         1,
@@ -248,13 +248,13 @@ final class LinuxX8664ScalarAotCompilerTest {
         () -> LinuxX8664ScalarAotCompiler.lower(zeroOutputArtifact(0)));
     assertThrows(
         IllegalArgumentException.class,
-        () -> LinuxX8664ScalarAotCompiler.lower(zeroOutputArtifact(128)));
+        () -> LinuxX8664ScalarAotCompiler.lower(zeroOutputArtifact(4097)));
     assertThrows(
         IllegalArgumentException.class,
         () -> LinuxX8664ScalarAotCompiler.lower(zeroOutputArtifact(1, 65)));
     assertThrows(
         IllegalArgumentException.class,
-        () -> LinuxX8664ScalarAotCompiler.lower(invalidOutputWriteArtifact(127, 1)));
+        () -> LinuxX8664ScalarAotCompiler.lower(invalidOutputWriteArtifact(4096, 1)));
     assertThrows(
         IllegalArgumentException.class,
         () -> LinuxX8664ScalarAotCompiler.lower(invalidOutputWriteArtifact(0, 256)));

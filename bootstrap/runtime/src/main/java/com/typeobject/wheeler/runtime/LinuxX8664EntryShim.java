@@ -51,7 +51,7 @@ public final class LinuxX8664EntryShim {
         || processStatusCode.length > 4096
         || applicationOutput == null
         || applicationOutput.length == 0
-        || applicationOutput.length > 127) {
+        || applicationOutput.length > 4096) {
       throw new IllegalArgumentException("Native process code or application output is invalid");
     }
     return assemble(processStatusCode.clone(), applicationOutput.clone());
@@ -95,7 +95,13 @@ public final class LinuxX8664EntryShim {
     code.integer(applicationOutput.length);
     code.bytes(0xb8);
     code.integer(1);
-    code.bytes(0x0f, 0x05, 0x83, 0xf8, applicationOutput.length);
+    code.bytes(0x0f, 0x05);
+    if (applicationOutput.length <= Byte.MAX_VALUE) {
+      code.bytes(0x83, 0xf8, applicationOutput.length);
+    } else {
+      code.bytes(0x3d);
+      code.integer(applicationOutput.length);
+    }
     int shortWriteJump = code.notEqual(wideBranches);
     code.raw(processStatusCode);
     code.bytes(0xeb);
