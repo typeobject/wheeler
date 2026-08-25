@@ -100,9 +100,11 @@ public final class ScalarAotProgram {
     for (int pc = 0; pc < function.forward().size(); pc++) {
       Instruction instruction = function.forward().get(pc);
       switch (instruction.opcode()) {
+        case NOP -> requireOperands(instruction, 0);
         case LOCAL_CONST, LOCAL_MOVE -> validateUnary(function, instruction);
+        case LOCAL_LOAD_GLOBAL -> validateGlobalLoad(function, instruction, entry);
         case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR,
-            LOCAL_EQ, LOCAL_LT -> validateBinary(function, instruction);
+            LOCAL_ROTR32, LOCAL_EQ, LOCAL_LT -> validateBinary(function, instruction);
         case JUMP -> {
           requireOperands(instruction, 1);
           branchTarget(function, instruction.operands().get(0), pc, last);
@@ -113,6 +115,13 @@ public final class ScalarAotProgram {
           branchTarget(function, instruction.operands().get(1), pc, last);
         }
         case LOCAL_LOOP_CHECK -> validateLoopCheck(function, instruction, pc);
+        case EXPECT_TRUE -> {
+          requireOperands(instruction, 1);
+          int condition = local(instruction.operands().get(0), function.localCount());
+          if (!function.localType(condition).equals(ValueType.BOOLEAN)) {
+            throw new IllegalArgumentException("Scalar AOT assertion condition is not Boolean");
+          }
+        }
         case CALL_VALUE -> validateCall(program, function, instruction);
         case LOCAL_STORE_GLOBAL -> {
           if (!entry) {
@@ -153,6 +162,17 @@ public final class ScalarAotProgram {
     local(instruction.operands().get(0), function.localCount());
     if (instruction.opcode() == Opcode.LOCAL_MOVE) {
       local(instruction.operands().get(1), function.localCount());
+    }
+  }
+
+  private static void validateGlobalLoad(
+      FunctionBody function, Instruction instruction, boolean entry) {
+    requireOperands(instruction, 2);
+    int destination = local(instruction.operands().get(0), function.localCount());
+    if (!entry
+        || instruction.operands().get(1) != 0
+        || !function.localType(destination).equals(ValueType.SIGNED)) {
+      throw new IllegalArgumentException("Scalar AOT global load is outside entry status state");
     }
   }
 
@@ -207,8 +227,9 @@ public final class ScalarAotProgram {
 
   private static int writtenLocal(Instruction instruction) {
     return switch (instruction.opcode()) {
-      case LOCAL_CONST, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD,
-          LOCAL_AND, LOCAL_XOR, LOCAL_EQ, LOCAL_LT, LOCAL_LOOP_CHECK ->
+      case LOCAL_CONST, LOCAL_LOAD_GLOBAL, LOCAL_MOVE, LOCAL_ADD, LOCAL_SUB, LOCAL_MUL,
+          LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR, LOCAL_ROTR32, LOCAL_EQ, LOCAL_LT,
+          LOCAL_LOOP_CHECK ->
           Math.toIntExact(instruction.operands().get(0));
       case CALL_VALUE -> Math.toIntExact(instruction.operands().get(3));
       default -> -1;
@@ -266,6 +287,13 @@ public final class ScalarAotProgram {
             assigned[destination] = true;
             pc++;
           }
+          case NOP -> pc++;
+          case LOCAL_LOAD_GLOBAL -> {
+            int destination = destination(instruction, 0, assigned);
+            values[destination] = status;
+            assigned[destination] = true;
+            pc++;
+          }
           case LOCAL_MOVE -> {
             int destination = destination(instruction, 0, assigned);
             int source = assignedLocal(instruction, 1, assigned);
@@ -274,7 +302,7 @@ public final class ScalarAotProgram {
             pc++;
           }
           case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR,
-              LOCAL_EQ, LOCAL_LT -> {
+              LOCAL_ROTR32, LOCAL_EQ, LOCAL_LT -> {
             int destination = destination(instruction, 0, assigned);
             int left = assignedLocal(instruction, 1, assigned);
             int right = assignedLocal(instruction, 2, assigned);
@@ -300,6 +328,12 @@ public final class ScalarAotProgram {
               throw new ArithmeticException("Loop iteration limit exceeded");
             }
             values[iteration] = Math.addExact(values[iteration], 1);
+            pc++;
+          }
+          case EXPECT_TRUE -> {
+            if (values[assignedLocal(instruction, 0, assigned)] == 0) {
+              throw new ArithmeticException("Scalar AOT assertion failed");
+            }
             pc++;
           }
           case CALL_VALUE -> {
@@ -362,6 +396,12 @@ public final class ScalarAotProgram {
       }
       case LOCAL_AND -> left & right;
       case LOCAL_XOR -> left ^ right;
+      case LOCAL_ROTR32 -> {
+        if (right < 0 || right > 31) {
+          throw new ArithmeticException("32-bit rotate amount is out of range");
+        }
+        yield Integer.toUnsignedLong(Integer.rotateRight((int) left, Math.toIntExact(right)));
+      }
       case LOCAL_EQ -> left == right ? 1 : 0;
       case LOCAL_LT -> left < right ? 1 : 0;
       default -> throw new IllegalStateException("Validated scalar AOT arithmetic changed");

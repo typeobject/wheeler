@@ -83,7 +83,8 @@ final class LinuxX8664ScalarAotCompilerTest {
         new ArithmeticCase(Opcode.LOCAL_DIV, 84, 2),
         new ArithmeticCase(Opcode.LOCAL_MOD, 100, 58),
         new ArithmeticCase(Opcode.LOCAL_AND, 47, 58),
-        new ArithmeticCase(Opcode.LOCAL_XOR, 16, 58))) {
+        new ArithmeticCase(Opcode.LOCAL_XOR, 16, 58),
+        new ArithmeticCase(Opcode.LOCAL_ROTR32, 0x540, 5))) {
       var lowered = LinuxX8664ScalarAotCompiler.lower(
           arithmeticArtifact(operation.opcode(), operation.left(), operation.right()));
       assertEquals(42, lowered.processStatus());
@@ -110,6 +111,23 @@ final class LinuxX8664ScalarAotCompilerTest {
     assertEquals(74, unequal.processStatus());
     assertNotEquals(less.runtimeIdentity(), notLess.runtimeIdentity());
     assertNotEquals(equal.runtimeIdentity(), unequal.runtimeIdentity());
+  }
+
+  @Test
+  void lowersStatusStateRotationsAndAssertions() {
+    var lowered = LinuxX8664ScalarAotCompiler.lower(stateCheckArtifact(42));
+    var terminalRotation = LinuxX8664ScalarAotCompiler.lower(
+        arithmeticArtifact(Opcode.LOCAL_ROTR32, 0x8000_0000L, 31));
+
+    assertEquals(73, lowered.processStatus());
+    assertEquals(1, terminalRotation.processStatus());
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(stateCheckArtifact(41)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(
+            arithmeticArtifact(Opcode.LOCAL_ROTR32, 42, 32)));
   }
 
   @Test
@@ -257,6 +275,42 @@ final class LinuxX8664ScalarAotCompilerTest {
                 Instruction.of(Opcode.HALT)),
             List.of())));
     return new BytecodeWriter().write(program);
+  }
+
+  private static byte[] stateCheckArtifact(long expected) {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-state-check",
+        0,
+        List.of(new Global("status", 0)),
+        List.of(new FunctionBody(
+            0,
+            "example.app::main",
+            false,
+            0,
+            List.of(
+                ValueType.SIGNED,
+                ValueType.SIGNED,
+                ValueType.SIGNED,
+                ValueType.SIGNED,
+                ValueType.SIGNED,
+                ValueType.BOOLEAN,
+                ValueType.SIGNED),
+            null,
+            List.of(
+                Instruction.of(Opcode.LOCAL_CONST, 0, 0x540),
+                Instruction.of(Opcode.LOCAL_CONST, 1, 5),
+                Instruction.of(Opcode.LOCAL_ROTR32, 2, 0, 1),
+                Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 2),
+                Instruction.of(Opcode.LOCAL_LOAD_GLOBAL, 3, 0),
+                Instruction.of(Opcode.LOCAL_CONST, 4, expected),
+                Instruction.of(Opcode.LOCAL_EQ, 5, 3, 4),
+                Instruction.of(Opcode.EXPECT_TRUE, 5),
+                Instruction.of(Opcode.LOCAL_CONST, 6, 31),
+                Instruction.of(Opcode.LOCAL_ADD, 3, 3, 6),
+                Instruction.of(Opcode.NOP),
+                Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 3),
+                Instruction.of(Opcode.HALT)),
+            List.of()))));
   }
 
   private static byte[] loopArtifact(long limit, long initial) {
@@ -468,7 +522,7 @@ final class LinuxX8664ScalarAotCompilerTest {
                 ValueType.SIGNED,
                 List.of(
                     Instruction.of(Opcode.LOCAL_CONST, 0, 73),
-                    Instruction.of(Opcode.NOP),
+                    Instruction.of(Opcode.CHECKPOINT),
                     Instruction.of(Opcode.RETURN_VALUE, 0)),
                 List.of()),
             statusEntry(1, 73))));
@@ -604,7 +658,7 @@ final class LinuxX8664ScalarAotCompilerTest {
     List<Instruction> forward = extraInstruction
         ? List.of(
             Instruction.of(Opcode.LOCAL_CONST, 0, status),
-            Instruction.of(Opcode.NOP),
+            Instruction.of(Opcode.CHECKPOINT),
             Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
             Instruction.of(Opcode.HALT))
         : List.of(

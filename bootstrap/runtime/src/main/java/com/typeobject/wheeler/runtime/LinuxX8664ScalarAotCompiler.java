@@ -12,7 +12,7 @@ import java.util.HexFormat;
 
 /** x86-64 Linux AOT leaf for a bounded Wheeler process-status program. */
 public final class LinuxX8664ScalarAotCompiler {
-  public static final int ARITHMETIC_TRAP_STATUS = ScalarAotMachine.ARITHMETIC_TRAP_STATUS;
+  public static final int EXECUTION_TRAP_STATUS = ScalarAotMachine.EXECUTION_TRAP_STATUS;
 
   private LinuxX8664ScalarAotCompiler() {}
 

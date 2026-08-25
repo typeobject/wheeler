@@ -54,7 +54,7 @@ classical class Hello {
 
 `ScalarAotProgram` owns complete profile validation and independent constant evaluation. It rejects the complete artifact if any helper signature, instruction, branch, call edge, local flow, return, or status path falls outside the profile. It does not remove unsupported functions or rewrite calls.
 
-`ScalarAotMachine` emits helper bodies before the entry body and places one checked relative call at each admitted edge. Every function owns a 16-byte-aligned stack frame. Helpers return their signed value in RAX and a trap flag in RDX. A caller checks RDX before committing the returned local. Arithmetic failure propagates through each active helper frame to entry, where status 126 remains the native arithmetic trap. Entry alone owns the status global and process result.
+`ScalarAotMachine` emits helper bodies before the entry body and places one checked relative call at each admitted edge. Every function owns a 16-byte-aligned stack frame. Helpers return their signed value in RAX and a trap flag in RDX. A caller checks RDX before committing the returned local. Arithmetic failure propagates through each active helper frame to entry, where status 126 remains the native execution trap. Entry alone owns the status global and process result.
 
 The generated call convention is private to this closed image. It does not claim the platform C ABI, preserve registers for external code, expose symbols, or admit ambient linking.
 

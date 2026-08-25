@@ -130,8 +130,9 @@ ships yet.
 `wheeler image runtime-elf-x86-64-aot <root.wbc> -o <runtime.bin>` adds the
 first native backend leaf. It accepts one canonical classical WBC containing one
 zero-initialized `status` global, one to eight dense functions, bounded constants, scalar updates, checked signed
-arithmetic, bitwise operations, comparisons, forward branches and
-255-iteration checked loops, prior signed-helper calls with up to six exact signed or
+arithmetic, bitwise and 32-bit rotate operations, comparisons, assertions,
+status reads, forward branches and 255-iteration checked loops, prior
+signed-helper calls with up to six exact signed or
 Boolean arguments, status stores, returns, and halt. Computed values 0 through 124 become distinct x86-64 Linux process
 statuses. Unsupported
 programs reject without projection or fallback. The status-73 fixture launches as

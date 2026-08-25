@@ -74,15 +74,14 @@ final class ImageCommandTest {
               }
 
               entry void main() {
-                long result = code(70, 0);
+                status = 70;
+                long seed = status;
+                long result = code(seed, 0);
                 while (result < 73) limit 3 {
                   result += 1;
                 }
-                if (result == 73) {
-                  status = 73;
-                } else {
-                  status = 74;
-                }
+                assert(result == 73);
+                status = result;
               }
             }
             """),

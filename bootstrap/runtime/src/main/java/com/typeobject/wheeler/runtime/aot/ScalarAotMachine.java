@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 /** Position-independent x86-64 lowering for one validated scalar AOT program. */
 public final class ScalarAotMachine {
-  public static final int ARITHMETIC_TRAP_STATUS = 126;
+  public static final int EXECUTION_TRAP_STATUS = 126;
 
   private ScalarAotMachine() {}
 
@@ -61,7 +61,7 @@ public final class ScalarAotMachine {
     int trap = code.position();
     code.stack(frameBytes);
     code.bytes(0xbf);
-    code.integer(ARITHMETIC_TRAP_STATUS);
+    code.integer(EXECUTION_TRAP_STATUS);
     int end = code.position();
     patchFunction(code, patches, trap);
     code.patchRelativeInt(successJump, end);
@@ -101,15 +101,23 @@ public final class ScalarAotMachine {
       instructionOffsets[pc] = code.position();
       Instruction instruction = function.forward().get(pc);
       switch (instruction.opcode()) {
+        case NOP -> {
+          // Canonical NOP has no machine effect.
+        }
         case LOCAL_CONST -> {
           code.moveImmediateToRax(instruction.operands().get(1));
+          code.storeRax(local(instruction, 0));
+        }
+        case LOCAL_LOAD_GLOBAL -> {
+          code.loadRax(globalSlot);
           code.storeRax(local(instruction, 0));
         }
         case LOCAL_MOVE -> {
           code.loadRax(local(instruction, 1));
           code.storeRax(local(instruction, 0));
         }
-        case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR -> {
+        case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR,
+            LOCAL_ROTR32 -> {
           code.loadRax(local(instruction, 1));
           code.loadRcx(local(instruction, 2));
           code.arithmetic(instruction.opcode(), traps);
@@ -131,6 +139,11 @@ public final class ScalarAotMachine {
           code.bytes(0x48, 0x85, 0xc0, 0x0f, 0x84);
           branches.add(new MachineBranch(
               code.reserveInt(), Math.toIntExact(instruction.operands().get(1))));
+        }
+        case EXPECT_TRUE -> {
+          code.loadRax(local(instruction, 0));
+          code.bytes(0x48, 0x85, 0xc0, 0x0f, 0x84);
+          traps.add(code.reserveInt());
         }
         case LOCAL_LOOP_CHECK -> {
           code.loadRax(local(instruction, 0));
@@ -294,6 +307,7 @@ public final class ScalarAotMachine {
         case LOCAL_DIV, LOCAL_MOD -> division(opcode);
         case LOCAL_AND -> bytes(0x48, 0x21, 0xc8);
         case LOCAL_XOR -> bytes(0x48, 0x31, 0xc8);
+        case LOCAL_ROTR32 -> bytes(0xd3, 0xc8);
         default -> throw new IllegalStateException("Validated scalar AOT arithmetic changed");
       }
     }

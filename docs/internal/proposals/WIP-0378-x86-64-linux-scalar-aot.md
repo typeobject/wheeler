@@ -15,7 +15,7 @@
 
 The first native backend leaf lowers verified canonical Wheeler bytecode into x86-64 Linux runtime text. One closed acyclic scalar profile computes a source-declared status global and returns that value as process status after mapped capsule entry.
 
-This is AOT evidence, not the classical bootstrap backend. WIP-0379 extends this base profile with bounded helper calls, and WIP-0381 adds bounded loops. This WIP alone does not specify loops, calls, history, inverse execution, ownership, aggregates, storage, effects, quantum regions, workflows, proofs, or general entry signatures. It does not perform complete in-process capsule or WBC verification. WIP-0008 retains those boundaries.
+This is AOT evidence, not the classical bootstrap backend. WIP-0379 extends this base profile with bounded helper calls, WIP-0381 adds bounded loops, and WIP-0382 adds state reads and assertions. This WIP alone does not specify loops, calls, history, inverse execution, ownership, aggregates, storage, effects, quantum regions, workflows, proofs, or general entry signatures. It does not perform complete in-process capsule or WBC verification. WIP-0008 retains those boundaries.
 
 ## Accepted WBC profile
 
@@ -57,7 +57,7 @@ classical class Hello {
 
 ## Lowering
 
-The lowerer retains the exact portable-artifact SHA-256, validates scalar local flow, and evaluates checked constants to establish the expected status. It emits x86-64 stack locals, moves, signed checked addition, subtraction, multiplication, division, remainder, bitwise operations, signed equality and ordering, forward branches, and one stack-owned status global. Runtime range and overflow guards lead to process status 126. The WIP-0376 entry assembler wraps that owned position-independent code. No source text, host path, assembler, linker, dynamic import, relocation, clock, environment, locale, or random state enters output.
+The lowerer retains the exact portable-artifact SHA-256, validates scalar local flow, and evaluates checked constants to establish the expected status. It emits x86-64 stack locals, moves, signed checked addition, subtraction, multiplication, division, remainder, bitwise operations, signed equality and ordering, checked branches and loops, state loads, assertions, and one stack-owned status global. Runtime execution guards lead to process status 126. The WIP-0376 entry assembler wraps that owned position-independent code. No source text, host path, assembler, linker, dynamic import, relocation, clock, environment, locale, or random state enters output.
 
 Every accepted artifact maps deterministically to one runtime. Changing the source status changes both WBC and runtime identities. Returned runtime arrays are owned.
 
@@ -147,3 +147,4 @@ Rejected. The loaded runtime still checks framing rather than complete capsule a
 - [WIP-0376](WIP-0376-x86-64-linux-native-entry-shim.md)
 - [WIP-0379](WIP-0379-x86-64-linux-scalar-helper-calls.md)
 - [WIP-0381](WIP-0381-x86-64-linux-bounded-scalar-loops.md)
+- [WIP-0382](WIP-0382-x86-64-linux-scalar-state-checks.md)
