@@ -60,8 +60,10 @@ Unsigned native bytes receive a separate PREV. `UnsignedNativeImageRecord`
 binds complete adapter-verified format, target, plan, ABI, capsule, PREV, and byte
 count. `NativeImageSigningRecord` separately binds ELF repository signatures,
 Apple code signatures, or PE Authenticode distribution bytes and evidence.
-Signing products cannot alter the plan or PREV. These metadata records do not
-perform cryptographic verification, notarization, or trust policy.
+Signing products cannot alter the plan or PREV. `image record-elf`,
+`record-macho`, `record-pe`, and `record-signing` publish the strict records from
+bounded physical inputs. These commands do not invoke a signer. The metadata
+records do not perform cryptographic verification, notarization, or trust policy.
 
 Platform ABI, image plan, output, and signing records have strict 16 KiB canonical
 parsers. They reject malformed UTF-8, schema or field drift, unknown values,

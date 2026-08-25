@@ -208,7 +208,7 @@ Reject malformed native structure, overlapping or escaping ranges, a writable an
 - [x] WIP-0373 adds physical ELF, Mach-O, and PE build, inspect, and verify commands. They read exact bounded nonsymlink inputs once, strictly parse plan and ABI records, verify every WBC before build, self-verify output before atomic publication, report exact structural identities and ranges, and compose native-format and WBC verification without execution.
 - [x] WIP-0375 adds canonical x86-64 and arm64 PE32+ bytes. It fixes DOS, COFF, optional-header, empty data-directory, R-X text, R-- capsule, entry-RVA, alignment, padding, canonical rebuilding, and unsigned PREV boundaries without claiming Authenticode or launch.
 - [x] WIP-0376 adds an import-free x86-64 Linux entry shim. It enters through the OS loader, derives mapped capsule framing from the ELF locator without reopening the image, writes one bounded probe, and exits through the kernel. Complete WBC startup remains.
-- [x] WIP-0377 records complete adapter-verified unsigned outputs and separate ELF repository, Apple code-signature, and PE Authenticode distribution identities. It does not perform or trust platform signing.
+- [x] WIP-0377 records complete adapter-verified unsigned outputs and separate ELF repository, Apple code-signature, and PE Authenticode distribution identities. Physical commands publish those records atomically from bounded files. They do not perform or trust platform signing.
 - [ ] ELF, Mach-O, and PE images reproduce with signing separation.
 - [ ] Sealed providers and system export integrate.
 - [ ] AOT conformance defined.

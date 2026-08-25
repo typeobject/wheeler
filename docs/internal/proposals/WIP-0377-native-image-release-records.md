@@ -71,6 +71,19 @@ Distribution artifacts admit at most 75,497,472 bytes. Signature evidence admits
 
 The signing record repeats unsigned PREV for direct audit but also binds the complete unsigned record identity. It does not alter that record, the plan identity, capsule identity, or PREV.
 
+## Physical commands
+
+The image command publishes records only after reading exact bounded nonsymlink files:
+
+```text
+wheeler image record-elf <application> --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>
+wheeler image record-macho <application> --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>
+wheeler image record-pe <application.exe> --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>
+wheeler image record-signing <unsigned-record.yaml> --unsigned <application> --method <method> --distribution <artifact> --signature <evidence> --signer <identity> --tool <identity> -o <signing-record.yaml>
+```
+
+Output uses the shared atomic physical-leaf boundary. A linked or nonregular output rejects without mutation. No record command invokes a signer, searches for credentials, reads trust policy, or executes native bytes.
+
 ## Parsing and rejection
 
 Both parsers accept only strict UTF-8, exact schema and field sets, canonical field order, canonical quoted scalars, lowercase SHA-256 identities, canonical positive decimal lengths, exact reconstruction, and complete consumption.
@@ -86,6 +99,8 @@ Parsers do not repair release metadata. A valid hash record remains evidence of 
 The fixture constructs a detached repository record over exact unsigned bytes and separate signature evidence. It requires stable record identities, exact unsigned links, and rejection of changed distribution or evidence bytes. Separate Mach-O and PE records prove attached distribution identity and format-specific method rejection.
 
 Malformed schema, unknown methods, extra fields, malformed UTF-8, noncanonical decimals, zero lengths, and oversized transports reject.
+
+`ImageCommandTest` publishes unsigned records for independently built ELF, Mach-O, and PE images. Each record matches direct adapter construction. The ELF case then consumes retained unsigned image and signature-evidence files to publish and reverify one detached signing record.
 
 The canonical ELF output-record identity is:
 
@@ -108,6 +123,7 @@ e00e64063584d4d31bee456bd360cb1a0e779dba3fccf689367ae6074bf3fc94
 - [x] Mach-O and PE attached signing require changed distribution bytes.
 - [x] Signature evidence, signer, and signing tool have separate identities.
 - [x] Strict parsers reject malformed, mixed, repaired, or noncanonical records.
+- [x] Physical commands publish each output and signing record atomically after complete input checks.
 - [x] Signing products do not feed back into build-input identity or unsigned PREV.
 - [x] No cryptographic verification, notarization, or trust claim is made.
 

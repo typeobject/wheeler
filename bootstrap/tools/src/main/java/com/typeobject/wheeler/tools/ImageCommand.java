@@ -7,8 +7,10 @@ import com.typeobject.wheeler.packageformat.CapsuleRoot;
 import com.typeobject.wheeler.packageformat.ElfImage;
 import com.typeobject.wheeler.packageformat.MachOImage;
 import com.typeobject.wheeler.packageformat.NativeImagePlan;
+import com.typeobject.wheeler.packageformat.NativeImageSigningRecord;
 import com.typeobject.wheeler.packageformat.PeImage;
 import com.typeobject.wheeler.packageformat.PlatformAbi;
+import com.typeobject.wheeler.packageformat.UnsignedNativeImageRecord;
 import com.typeobject.wheeler.runtime.ApplicationCapsuleVerifier;
 import com.typeobject.wheeler.runtime.LinuxX8664EntryShim;
 import java.io.IOException;
@@ -34,6 +36,10 @@ final class ImageCommand {
     return switch (args[1]) {
       case "inspect", "verify" -> capsule(args, out, error);
       case "runtime-elf-x86-64" -> publishLinuxRuntime(args, out, error);
+      case "record-elf" -> recordNativeOutput(args, out, error, NativeFormat.ELF);
+      case "record-macho" -> recordNativeOutput(args, out, error, NativeFormat.MACH_O);
+      case "record-pe" -> recordNativeOutput(args, out, error, NativeFormat.PE);
+      case "record-signing" -> recordNativeSigning(args, out, error);
       case "build-elf" -> buildNative(args, out, error, NativeFormat.ELF);
       case "inspect-elf" -> inspectNative(args, out, error, NativeFormat.ELF);
       case "verify-elf" -> verifyNative(args, out, error, NativeFormat.ELF);
@@ -58,6 +64,83 @@ final class ImageCommand {
     out.println("wrote x86-64 Linux entry shim " + output + " ("
         + runtime.length + " bytes, " + LinuxX8664EntryShim.runtimeIdentity() + ")");
     return 0;
+  }
+
+  private static int recordNativeOutput(
+      String[] args,
+      PrintStream out,
+      PrintStream error,
+      NativeFormat format) throws IOException {
+    if (args.length != 9
+        || !args[3].equals("--plan")
+        || !args[5].equals("--abi")
+        || !args[7].equals("-o")) {
+      return usage(error);
+    }
+    byte[] image = readPhysical(
+        Path.of(args[2]), format.maximumImageBytes, format.label + " image");
+    NativeImagePlan plan = NativeImagePlan.parse(readPhysical(
+        Path.of(args[4]), 16 * 1024, "native image plan"));
+    PlatformAbi abi = PlatformAbi.parse(readPhysical(
+        Path.of(args[6]), 16 * 1024, "platform ABI"));
+    if (plan.format() != format.planFormat) {
+      throw new IllegalArgumentException("Native output record format does not match its plan");
+    }
+    UnsignedNativeImageRecord record = UnsignedNativeImageRecord.from(image, plan, abi);
+    Path output = Path.of(args[8]);
+    PackageProject.writeAtomically(output, record.canonicalBytes());
+    out.println("wrote unsigned " + format.label + " record " + output
+        + " (" + record.identity() + ", PREV " + record.prev() + ")");
+    return 0;
+  }
+
+  private static int recordNativeSigning(
+      String[] args, PrintStream out, PrintStream error) throws IOException {
+    if (args.length != 17
+        || !args[3].equals("--unsigned")
+        || !args[5].equals("--method")
+        || !args[7].equals("--distribution")
+        || !args[9].equals("--signature")
+        || !args[11].equals("--signer")
+        || !args[13].equals("--tool")
+        || !args[15].equals("-o")) {
+      return usage(error);
+    }
+    UnsignedNativeImageRecord unsigned = UnsignedNativeImageRecord.parse(readPhysical(
+        Path.of(args[2]), UnsignedNativeImageRecord.MAX_RECORD_BYTES,
+        "unsigned native image record"));
+    byte[] unsignedImage = readPhysical(
+        Path.of(args[4]), 64 * 1024 * 1024, "unsigned native image");
+    NativeImageSigningRecord.SigningMethod method = signingMethod(args[6]);
+    byte[] distribution = readPhysical(
+        Path.of(args[8]), NativeImageSigningRecord.MAX_DISTRIBUTION_BYTES,
+        "signed distribution artifact");
+    byte[] signature = readPhysical(
+        Path.of(args[10]), NativeImageSigningRecord.MAX_SIGNATURE_BYTES,
+        "native image signature evidence");
+    NativeImageSigningRecord record = NativeImageSigningRecord.create(
+        unsigned,
+        unsignedImage,
+        method,
+        distribution,
+        signature,
+        args[12],
+        args[14]);
+    Path output = Path.of(args[16]);
+    PackageProject.writeAtomically(output, record.canonicalBytes());
+    out.println("wrote native image signing record " + output
+        + " (" + record.identity() + ", unsigned PREV " + record.unsignedPrev() + ")");
+    return 0;
+  }
+
+  private static NativeImageSigningRecord.SigningMethod signingMethod(String value) {
+    for (NativeImageSigningRecord.SigningMethod method
+        : NativeImageSigningRecord.SigningMethod.values()) {
+      if (method.wireName().equals(value)) {
+        return method;
+      }
+    }
+    throw new IllegalArgumentException("Unknown native image signing method " + value);
   }
 
   private static int capsule(String[] args, PrintStream out, PrintStream error)
@@ -343,6 +426,12 @@ final class ImageCommand {
   private static int usage(PrintStream error) {
     error.println("Usage: wheeler image <inspect|verify> <application.capsule>");
     error.println("   or: wheeler image runtime-elf-x86-64 -o <runtime.bin>");
+    error.println("   or: wheeler image <record-elf|record-macho|record-pe> <application>"
+        + " --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>");
+    error.println("   or: wheeler image record-signing <unsigned-record.yaml>"
+        + " --unsigned <application> --method <method> --distribution <artifact>"
+        + " --signature <evidence> --signer <identity> --tool <identity>"
+        + " -o <signing-record.yaml>");
     error.println("   or: wheeler image <build-elf|build-macho|build-pe> <application.capsule>"
         + " --runtime <runtime.bin> --entry <offset> --plan <plan.yaml>"
         + " --abi <abi.yaml> -o <application>");
@@ -353,22 +442,31 @@ final class ImageCommand {
   }
 
   private enum NativeFormat {
-    ELF("elf", "ELF", ElfImage.MAX_RUNTIME_BYTES, ElfImage.MAX_IMAGE_BYTES),
-    MACH_O("mach-o", "Mach-O", MachOImage.MAX_RUNTIME_BYTES, MachOImage.MAX_IMAGE_BYTES),
-    PE("pe", "PE", PeImage.MAX_RUNTIME_BYTES, PeImage.MAX_IMAGE_BYTES);
+    ELF(
+        "elf", "ELF", PlatformAbi.Format.ELF,
+        ElfImage.MAX_RUNTIME_BYTES, ElfImage.MAX_IMAGE_BYTES),
+    MACH_O(
+        "mach-o", "Mach-O", PlatformAbi.Format.MACH_O,
+        MachOImage.MAX_RUNTIME_BYTES, MachOImage.MAX_IMAGE_BYTES),
+    PE(
+        "pe", "PE", PlatformAbi.Format.PE_COFF,
+        PeImage.MAX_RUNTIME_BYTES, PeImage.MAX_IMAGE_BYTES);
 
     private final String keyword;
     private final String label;
+    private final PlatformAbi.Format planFormat;
     private final int maximumRuntimeBytes;
     private final int maximumImageBytes;
 
     NativeFormat(
         String keyword,
         String label,
+        PlatformAbi.Format planFormat,
         int maximumRuntimeBytes,
         int maximumImageBytes) {
       this.keyword = keyword;
       this.label = label;
+      this.planFormat = planFormat;
       this.maximumRuntimeBytes = maximumRuntimeBytes;
       this.maximumImageBytes = maximumImageBytes;
     }

@@ -26,9 +26,15 @@ wheeler image verify-macho <application> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image build-pe <application.capsule> --runtime <runtime.bin> --entry <offset> --plan <plan.yaml> --abi <abi.yaml> -o <application.exe>
 wheeler image inspect-pe <application.exe> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image verify-pe <application.exe> --plan <plan.yaml> --abi <abi.yaml>
+wheeler image record-elf <application> --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>
+wheeler image record-macho <application> --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>
+wheeler image record-pe <application.exe> --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>
+wheeler image record-signing <unsigned-record.yaml> --unsigned <application> --method <method> --distribution <artifact> --signature <evidence> --signer <identity> --tool <identity> -o <signing-record.yaml>
 ```
 
 WIP-0376's runtime command atomically publishes the maintained import-free x86-64 Linux entry text used by the first loader probe. It performs no discovery or native execution.
+
+WIP-0377's record commands verify complete unsigned images or retained signing inputs before atomically publishing separate release metadata. They do not invoke signing tools.
 
 Each build command reads its explicit physical inputs once, parses canonical plan and ABI transports, verifies every capsule WBC and root, invokes the selected WIP-0372, WIP-0374, or WIP-0375 adapter, verifies those bytes through the independent reader, and only then publishes one output atomically. Each inspect command verifies complete native structure and capsule framing before returning deterministic JSON. Each verify command additionally checks every WBC and the exact root before printing success.
 
@@ -97,7 +103,7 @@ Focused command evidence completes in one second.
 
 ## Acceptance
 
-- [x] Maintained x86-64 Linux runtime publication is exact and atomic.
+- [x] Maintained x86-64 Linux runtime and WIP-0377 release-record publication are exact and atomic.
 - [x] Build, inspection, and verification consume only explicit bounded physical inputs.
 - [x] Canonical plan and ABI parsers run before image construction.
 - [x] Every WBC and the exact root verify before output publication.
@@ -140,3 +146,4 @@ Rejected. Arbitrary runtime text remains untrusted input. Native execution begin
 - [WIP-0374](WIP-0374-canonical-mach-o-capsule-images.md)
 - [WIP-0375](WIP-0375-canonical-pe-capsule-images.md)
 - [WIP-0376](WIP-0376-x86-64-linux-native-entry-shim.md)
+- [WIP-0377](WIP-0377-native-image-release-records.md)

@@ -16,9 +16,11 @@ import com.typeobject.wheeler.packageformat.CapsuleRoot;
 import com.typeobject.wheeler.packageformat.ElfImage;
 import com.typeobject.wheeler.packageformat.MachOImage;
 import com.typeobject.wheeler.packageformat.NativeImagePlan;
+import com.typeobject.wheeler.packageformat.NativeImageSigningRecord;
 import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.packageformat.PeImage;
 import com.typeobject.wheeler.packageformat.PlatformAbi;
+import com.typeobject.wheeler.packageformat.UnsignedNativeImageRecord;
 import com.typeobject.wheeler.runtime.LinuxX8664EntryShim;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -174,6 +176,36 @@ final class ImageCommandTest {
     assertTrue(verify.output().startsWith("verified ELF "));
     assertTrue(verify.output().contains("1 WBC artifacts"));
 
+    Path outputRecordFile = temporary.resolve("unsigned-elf.yaml");
+    CommandResult outputRecord = execute(
+        "image", "record-elf", imageFile.toString(),
+        "--plan", planFile.toString(),
+        "--abi", abiFile.toString(),
+        "-o", outputRecordFile.toString());
+    UnsignedNativeImageRecord unsigned =
+        UnsignedNativeImageRecord.parse(Files.readAllBytes(outputRecordFile));
+    assertEquals(0, outputRecord.status());
+    assertEquals(UnsignedNativeImageRecord.from(expected, plan, abi), unsigned);
+    assertTrue(outputRecord.output().contains(unsigned.identity()));
+
+    byte[] signatureEvidence = "detached-signature".getBytes(StandardCharsets.US_ASCII);
+    Path signatureFile = write("elf.sig", signatureEvidence);
+    Path signingRecordFile = temporary.resolve("signed-elf.yaml");
+    CommandResult signingRecord = execute(
+        "image", "record-signing", outputRecordFile.toString(),
+        "--unsigned", imageFile.toString(),
+        "--method", "repository-detached",
+        "--distribution", imageFile.toString(),
+        "--signature", signatureFile.toString(),
+        "--signer", hash(90),
+        "--tool", hash(91),
+        "-o", signingRecordFile.toString());
+    NativeImageSigningRecord signing =
+        NativeImageSigningRecord.parse(Files.readAllBytes(signingRecordFile));
+    assertEquals(0, signingRecord.status());
+    assertTrue(signingRecord.output().contains(signing.identity()));
+    signing.verify(unsigned, expected, expected, signatureEvidence);
+
     if (nativeLinuxHost()) {
       Process process = new ProcessBuilder(imageFile.toString()).start();
       assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
@@ -268,6 +300,9 @@ final class ImageCommandTest {
     assertEquals(0, verify.status());
     assertTrue(verify.output().startsWith("verified Mach-O "));
     assertTrue(verify.output().contains("1 WBC artifacts"));
+    assertOutputRecord(
+        "record-macho", "unsigned-mach-o.yaml", imageFile, planFile, abiFile,
+        UnsignedNativeImageRecord.from(expected, plan, abi));
   }
 
   @Test
@@ -325,6 +360,9 @@ final class ImageCommandTest {
     assertEquals(0, verify.status());
     assertTrue(verify.output().startsWith("verified PE "));
     assertTrue(verify.output().contains("1 WBC artifacts"));
+    assertOutputRecord(
+        "record-pe", "unsigned-pe.yaml", imageFile, planFile, abiFile,
+        UnsignedNativeImageRecord.from(expected, plan, abi));
   }
 
   @Test
@@ -343,6 +381,10 @@ final class ImageCommandTest {
     assertTrue(usage.error().contains("inspect-macho"));
     assertTrue(usage.error().contains("inspect-pe"));
     assertTrue(usage.error().contains("runtime-elf-x86-64"));
+    assertTrue(usage.error().contains("record-elf"));
+    assertTrue(usage.error().contains("record-macho"));
+    assertTrue(usage.error().contains("record-pe"));
+    assertTrue(usage.error().contains("record-signing"));
 
     Path directory = Files.createDirectory(temporary.resolve("directory.capsule"));
     assertThrows(
@@ -495,6 +537,26 @@ final class ImageCommandTest {
           outputBytes.toString(StandardCharsets.UTF_8),
           errorBytes.toString(StandardCharsets.UTF_8));
     }
+  }
+
+  private void assertOutputRecord(
+      String command,
+      String outputName,
+      Path image,
+      Path plan,
+      Path abi,
+      UnsignedNativeImageRecord expected) throws Exception {
+    Path output = temporary.resolve(outputName);
+    CommandResult result = execute(
+        "image", command, image.toString(),
+        "--plan", plan.toString(),
+        "--abi", abi.toString(),
+        "-o", output.toString());
+    assertEquals(0, result.status());
+    UnsignedNativeImageRecord actual =
+        UnsignedNativeImageRecord.parse(Files.readAllBytes(output));
+    assertEquals(expected, actual);
+    assertTrue(result.output().contains(actual.identity()));
   }
 
   private static boolean nativeLinuxHost() {

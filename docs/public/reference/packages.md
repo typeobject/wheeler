@@ -283,6 +283,10 @@ wheeler image verify-macho <application> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image build-pe <application.capsule> --runtime <runtime.bin> --entry <offset> --plan <plan.yaml> --abi <abi.yaml> -o <application.exe>
 wheeler image inspect-pe <application.exe> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image verify-pe <application.exe> --plan <plan.yaml> --abi <abi.yaml>
+wheeler image record-elf <application> --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>
+wheeler image record-macho <application> --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>
+wheeler image record-pe <application.exe> --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>
+wheeler image record-signing <unsigned-record.yaml> --unsigned <application> --method <method> --distribution <artifact> --signature <evidence> --signer <identity> --tool <identity> -o <signing-record.yaml>
 wheeler resolve <package-directory> [--repository <alias> ... | --catalog <archive-directory>] [-o wheeler.package.lock.yaml] [--development] [--update <package> ... | --update-all]
 wheeler verify-lock <wheeler.package.lock.yaml>
 wheeler vendor <wheeler.package.lock.yaml> --catalog <archive-directory> -o <vendor-directory>
@@ -334,7 +338,9 @@ image, verifies the complete output, and only then publishes atomically. The
 matching `inspect-elf`, `inspect-macho`, and `inspect-pe` commands canonically
 rebuild native structure and report exact identities and ranges without claiming
 WBC validity. The verify commands additionally compose capsule, WBC, and root
-authority. None executes supplied runtime text.
+authority. Record commands publish strict unsigned-output or post-build signing
+metadata after bounded physical checks. They do not invoke a signer or establish
+trust. None executes supplied runtime text.
 
 Atomic replacement controls which complete userspace tree becomes visible. It
 alone does not prove survival through power loss.
