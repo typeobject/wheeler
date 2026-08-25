@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler compiler, runtime, bytecode, native, package, security, platform, and release maintainers |
 | Created | 2026-07-19 |
-| Updated | 2026-07-19 |
+| Updated | 2026-08-24 |
 | Area | Native executable images, embedded WBC, startup, ELF, Mach-O, PE/COFF, reproducibility |
 | Depends on | WIP-0001, WIP-0007, WIP-0008, WIP-0009, WIP-0022, WIP-0023 |
 | Supersedes | None |
@@ -200,6 +200,7 @@ Reject malformed native structure, overlapping or escaping ranges, a writable an
 
 ## Progress
 
+- [x] WIP-0368 accepts the canonical native image build-input plan. It binds loader format, target, runtime mode, sealing and stripping policy, portable WBC, platform ABI, capsule, backend, runtime, compiler, sysroot, provider closure, options, and link arguments. Unsigned output PREV and signing remain separate identities.
 - [ ] Capsule, entry, and receipt schemas accepted.
 - [ ] Capsule inspect/verify and embedded-VM startup implemented.
 - [ ] ELF and Mach-O images reproduce with signing separation.
@@ -237,6 +238,7 @@ Adjacent launch directories permit substitution and partial updates. Opaque trai
 - [WIP-0024](WIP-0024-system-package-exports.md)
 - [WIP-0025](WIP-0025-native-ffi-and-system-integration.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
+- [WIP-0368](WIP-0368-platform-abi-and-native-image-identities.md)
 - [ELF program loading](https://gabi.xinuos.com/elf/07-loading-intro.html)
 - [Mach-O overview](https://developer.apple.com/library/archive/documentation/Performance/Conceptual/CodeFootprint/Articles/MachOOverview.html)
 - [Microsoft PE format](https://learn.microsoft.com/en-us/windows/win32/debug/pe-format)

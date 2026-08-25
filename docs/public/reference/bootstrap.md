@@ -30,19 +30,34 @@ This supplies routine reproduction of the current alternate implementation. It
 is neither a Wheeler fixed point nor an independent derivation.
 
 The current Wheeler-native path can parse, plan, and classify the complete
-364-module compiler closure with 1,721 imports and a 165,565-byte module manifest.
-Its native identity run completes in 67,957,014 transitions. A physical executable
-subset currently links 95 framed artifacts into a 238,296-byte classical
-container containing 227 functions and 8,014 instructions. Its recorded identity
-is:
+376-module compiler closure with 1,872 imports and a 176,197-byte module manifest.
+Its native identity run completes in 73,615,774 transitions. The native compiler
+package separately compiles 89 production modules through bounded physical source
+graphs and executes 224 cases. Physical linker evidence produces an executable
+classical subset, but the complete compiler has not reached a fixed point.
 
-```text
-748050b3cf5e9a915ca2da3ee896d53599566f5e749d4b3ff42949fbc8723da6
-```
+## Platform ABI and native image plans
 
-That container executes a synthetic library halt and passes the independent
-stage-0 reader. It remains evidence for the physical subset, rather than a claim
-that the whole compiler is self-hosting.
+The first native profile has a canonical platform descriptor. It fixes loader
+format, architecture, minimum OS ABI, little-endian 64-bit pointers, page and
+alignment rules, resource bounds, CPU features, baseline libraries, and an exact
+host-service set. Required services cover process arguments and exit, standard
+streams, capability-relative file access and atomic replacement, directory
+manifests, and raw page reservation, release, and protection. Monotonic deadlines
+and target submission are optional named services.
+
+Host calls use fixed-width scalars, checked byte spans, owned handles, and stable
+status codes. They do not pass host objects or exceptions through Wheeler frames.
+Profile 1 has no environment, wall-clock, network, random-device, unrestricted
+path, dynamic-loader, or process-creation service. A host cannot grant one by
+quietly noticing that its operating system has it.
+
+`PlatformAbi` emits canonical schema-1 bytes and their SHA-256 identity.
+`NativeImagePlan` binds that identity beside the portable WBC, capsule, backend,
+runtime, compiler, sysroot, provider closure, options, link arguments, target,
+runtime mode, and sealing and stripping policy. The plan identifies build inputs.
+Unsigned native bytes receive a separate PREV. Signatures and notarization bind
+that PREV later. No native backend or recovery image ships yet.
 
 ## Deriving the profile and graph
 
