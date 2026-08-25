@@ -100,7 +100,11 @@ classical class ScalarHelperParsing {
       return true;
     }
 
-    return result == TOKEN_BOOLEAN;
+    if (result == TOKEN_BOOLEAN) {
+      return true;
+    }
+
+    return result == TOKEN_UTF8;
   }
 
   /// Parses one through twenty-three scalar helper declarations in source order.
