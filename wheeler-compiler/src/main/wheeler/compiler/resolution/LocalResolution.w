@@ -197,6 +197,44 @@ classical class LocalResolution {
     return opcode == STATEMENT_LOCAL_LONG_LT_LITERAL_NAMED;
   }
 
+  /// Resolves one signed or Boolean source name without choosing its type.
+  public long resolvePriorScalarDeclaration(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    borrow mut words previousStarts,
+    long previousCount,
+    long assertedName
+  ) {
+    long signedLocal = resolvePriorDeclaration(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      assertedName,
+      true
+    );
+    long booleanLocal = resolvePriorDeclaration(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      assertedName,
+      false
+    );
+    if (-1 < signedLocal) {
+      if (booleanLocal < 0) {
+        return signedLocal;
+      }
+
+      return -1;
+    }
+
+    return booleanLocal;
+  }
+
   /// Resolves one source name through the bounded typed declaration history.
   public long resolvePriorDeclaration(
     borrow utf8 source,

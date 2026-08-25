@@ -17,14 +17,13 @@ classical class WideLocalCallResolution {
     long statementStart,
     long argument
   ) {
-    return resolvePriorDeclaration(
+    return resolvePriorScalarDeclaration(
       source,
       tokenStarts,
       tokenLengths,
       previousStarts,
       previousCount,
-      wideLocalCallArgumentToken(statementStart, argument),
-      true
+      wideLocalCallArgumentToken(statementStart, argument)
     );
   }
 

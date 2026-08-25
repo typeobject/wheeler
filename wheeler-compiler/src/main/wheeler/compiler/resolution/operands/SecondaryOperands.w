@@ -459,14 +459,13 @@ classical class SecondaryOperands {
     }
 
     if (wideLocalCallStatement(opcode)) {
-      return resolvePriorDeclaration(
+      return resolvePriorScalarDeclaration(
         source,
         tokenStarts,
         tokenLengths,
         previousStarts,
         previousCount,
-        threeArgumentSecondToken(statementStart),
-        true
+        threeArgumentSecondToken(statementStart)
       );
     }
 

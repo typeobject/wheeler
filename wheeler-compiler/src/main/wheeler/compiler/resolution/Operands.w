@@ -522,14 +522,13 @@ classical class Operands {
     }
 
     if (wideLocalCallStatement(opcode)) {
-      return resolvePriorDeclaration(
+      return resolvePriorScalarDeclaration(
         source,
         tokenStarts,
         tokenLengths,
         previousStarts,
         previousCount,
-        threeArgumentFirstToken(statementStart),
-        true
+        threeArgumentFirstToken(statementStart)
       );
     }
 

@@ -299,32 +299,29 @@ classical class CallResolution {
       return opcode;
     }
 
-    long first = resolvePriorDeclaration(
+    long first = resolvePriorScalarDeclaration(
       source,
       tokenStarts,
       tokenLengths,
       previousStarts,
       previousCount,
-      threeArgumentFirstToken(statementStart),
-      true
+      threeArgumentFirstToken(statementStart)
     );
-    long second = resolvePriorDeclaration(
+    long second = resolvePriorScalarDeclaration(
       source,
       tokenStarts,
       tokenLengths,
       previousStarts,
       previousCount,
-      threeArgumentSecondToken(statementStart),
-      true
+      threeArgumentSecondToken(statementStart)
     );
-    long third = resolvePriorDeclaration(
+    long third = resolvePriorScalarDeclaration(
       source,
       tokenStarts,
       tokenLengths,
       previousStarts,
       previousCount,
-      threeArgumentThirdToken(statementStart),
-      true
+      threeArgumentThirdToken(statementStart)
     );
     if (-1 < first) {
       if (-1 < second) {
@@ -350,41 +347,37 @@ classical class CallResolution {
       return opcode;
     }
 
-    long first = resolvePriorDeclaration(
+    long first = resolvePriorScalarDeclaration(
       source,
       tokenStarts,
       tokenLengths,
       previousStarts,
       previousCount,
-      threeArgumentFirstToken(statementStart),
-      true
+      threeArgumentFirstToken(statementStart)
     );
-    long second = resolvePriorDeclaration(
+    long second = resolvePriorScalarDeclaration(
       source,
       tokenStarts,
       tokenLengths,
       previousStarts,
       previousCount,
-      threeArgumentSecondToken(statementStart),
-      true
+      threeArgumentSecondToken(statementStart)
     );
-    long third = resolvePriorDeclaration(
+    long third = resolvePriorScalarDeclaration(
       source,
       tokenStarts,
       tokenLengths,
       previousStarts,
       previousCount,
-      threeArgumentThirdToken(statementStart),
-      true
+      threeArgumentThirdToken(statementStart)
     );
-    long fourth = resolvePriorDeclaration(
+    long fourth = resolvePriorScalarDeclaration(
       source,
       tokenStarts,
       tokenLengths,
       previousStarts,
       previousCount,
-      fourArgumentCallFourthToken(statementStart),
-      true
+      fourArgumentCallFourthToken(statementStart)
     );
     if (-1 < first) {
       if (-1 < second) {

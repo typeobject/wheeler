@@ -1,4 +1,4 @@
-//! Classifies the bounded three-local signed helper call.
+//! Classifies the bounded three-local scalar helper call.
 
 module wheeler.compiler.three_argument_calls;
 
