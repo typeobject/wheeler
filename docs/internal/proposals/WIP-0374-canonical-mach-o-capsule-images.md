@@ -153,3 +153,4 @@ Rejected. Valid layout does not prove maintained runtime code, host ABI behavior
 - [WIP-0371](WIP-0371-embedded-application-capsule-startup.md)
 - [WIP-0372](WIP-0372-canonical-elf-capsule-images.md)
 - [WIP-0373](WIP-0373-physical-elf-image-command.md)
+- [WIP-0375](WIP-0375-canonical-pe-capsule-images.md)

@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler compiler, runtime, bytecode, native, package, security, platform, and release maintainers |
 | Created | 2026-07-19 |
-| Updated | 2026-08-24 |
+| Updated | 2026-08-25 |
 | Area | Native executable images, embedded WBC, startup, ELF, Mach-O, PE/COFF, reproducibility |
 | Depends on | WIP-0001, WIP-0007, WIP-0008, WIP-0009, WIP-0022, WIP-0023 |
 | Supersedes | None |
@@ -206,9 +206,10 @@ Reject malformed native structure, overlapping or escaping ranges, a writable an
 - [x] WIP-0372 adds canonical position-independent ELF64 layout and verification for x86-64 and AArch64 Linux. Runtime text and capsule occupy separate R-X and R-- load segments. A fixed locator, nonexecutable stack, absent section table, exact plan bindings, canonical rebuilding, and unsigned PREV are enforced. Runtime machine code remains.
 - [x] WIP-0374 adds canonical static arm64 Mach-O bytes. It fixes page-zero, R-X text, R-- capsule, entry-state, platform-version, locator, canonical rebuilding, and unsigned PREV boundaries without claiming signing or launch.
 - [x] WIP-0373 adds physical ELF and Mach-O build and verify commands. They read exact bounded nonsymlink inputs once, strictly parse plan and ABI records, verify every WBC before build, self-verify output before atomic publication, and compose native-format and WBC verification without execution.
-- [ ] ELF and Mach-O images reproduce with signing separation.
+- [x] WIP-0375 adds canonical x86-64 and arm64 PE32+ bytes. It fixes DOS, COFF, optional-header, empty data-directory, R-X text, R-- capsule, entry-RVA, alignment, padding, canonical rebuilding, and unsigned PREV boundaries without claiming Authenticode or launch.
+- [ ] ELF, Mach-O, and PE images reproduce with signing separation.
 - [ ] Sealed providers and system export integrate.
-- [ ] PE/COFF implemented and AOT conformance defined.
+- [ ] AOT conformance defined.
 - [ ] Adjacent-WBC release path deleted.
 
 ## Testing and acceptance
@@ -248,6 +249,7 @@ Adjacent launch directories permit substitution and partial updates. Opaque trai
 - [WIP-0372](WIP-0372-canonical-elf-capsule-images.md)
 - [WIP-0373](WIP-0373-physical-elf-image-command.md)
 - [WIP-0374](WIP-0374-canonical-mach-o-capsule-images.md)
+- [WIP-0375](WIP-0375-canonical-pe-capsule-images.md)
 - [ELF program loading](https://gabi.xinuos.com/elf/07-loading-intro.html)
 - [Mach-O overview](https://developer.apple.com/library/archive/documentation/Performance/Conceptual/CodeFootprint/Articles/MachOOverview.html)
 - [Microsoft PE format](https://learn.microsoft.com/en-us/windows/win32/debug/pe-format)

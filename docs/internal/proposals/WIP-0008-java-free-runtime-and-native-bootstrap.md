@@ -225,7 +225,8 @@ Recovery releases are signed or content-addressed by release policy. Bootstrap s
 - [x] WIP-0371 adds format-neutral embedded-VM startup. It matches capsule and profile identities, exact capability grants, supported entry I/O, every WBC, and the qualified root before one fresh classical execution.
 - [x] WIP-0372 adds canonical x86-64 and AArch64 Linux ELF64 image layout. Exact runtime text and the capsule occupy separate permissioned load segments and bind one locator, native image plan, and unsigned PREV.
 - [x] WIP-0374 adds canonical static arm64 Mach-O layout and verification. Separate R-X runtime and R-- capsule segments, exact entry state, fixed platform version, canonical rebuilding, and unsigned PREV are enforced.
-- [x] WIP-0373 exposes both ELF and Mach-O adapters through physical build and verify commands with strict metadata parsing, complete WBC verification, output self-verification, and atomic publication. Wheeler runtime machine code, host shims, Apple signing, and native launch remain.
+- [x] WIP-0375 adds canonical x86-64 and arm64 PE32+ layout and verification. Exact DOS, COFF, optional-header, data-directory, section, locator, alignment, padding, and unsigned PREV boundaries are enforced.
+- [x] WIP-0373 exposes ELF and Mach-O adapters through physical build and verify commands with strict metadata parsing, complete WBC verification, output self-verification, and atomic publication. Wheeler runtime machine code, host shims, platform signing, and native launch remain.
 - [ ] Native backend executes the classical bootstrap profile.
 - [x] The Wheeler-written verifier and bounded interpreter hash each successful ordered two-byte opcode trace with Wheeler SHA-256. Independent Java VM observations reproduce all 32 bytes across direct updates, branches, calls, generated inverses, recursion, aggregates, ownership, storage, UTF-8, and result slots while terminal globals agree. Malformed artifacts trap before a trace identity is published.
 - [ ] Wheeler-written compiler reaches the WIP-0007 fixed point.
@@ -310,6 +311,7 @@ WIP-0262 invokes native source discovery, descriptor construction, compilation, 
 - [WIP-0372](WIP-0372-canonical-elf-capsule-images.md)
 - [WIP-0373](WIP-0373-physical-elf-image-command.md)
 - [WIP-0374](WIP-0374-canonical-mach-o-capsule-images.md)
+- [WIP-0375](WIP-0375-canonical-pe-capsule-images.md)
 - [WIP-0291](WIP-0291-native-test-junit.md)
 - [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)

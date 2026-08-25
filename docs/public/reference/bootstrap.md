@@ -91,14 +91,16 @@ rejects AOT, nonclassical roots, and external proof or native-provider payloads,
 then executes one fresh root exactly once. It never accepts a path.
 
 The first native adapters emit position-independent ELF64 for x86-64 or AArch64
-Linux and static Mach-O for arm64 Darwin. One R-X segment contains headers, a
-fixed image-relative locator, and exact runtime text. A separate page-aligned R--
-segment contains the capsule. ELF keeps the stack nonexecutable and omits section
-headers. Mach-O fixes page-zero, arm64 entry state, and platform-version commands.
-Neither format maps writable executable bytes. Verification checks every loader
-field and identity, rebuilds exact bytes, and publishes the unsigned PREV only
-after success. Runtime text is an input bound by the image plan. Mach-O signing
-and notarization remain separate output identities.
+Linux, static Mach-O for arm64 Darwin, and PE32+ for x86-64 or arm64 Windows.
+One R-X segment or section contains a fixed image-relative locator and exact
+runtime text. A separate page-aligned R-- segment or section contains the capsule.
+ELF keeps the stack nonexecutable and omits section headers. Mach-O fixes page-zero,
+arm64 entry state, and platform-version commands. PE fixes DOS, COFF, optional,
+data-directory, section, alignment, and padding fields. No format maps writable
+executable bytes. Verification checks every loader field and identity, rebuilds
+exact bytes, and publishes the unsigned PREV only after success. Runtime text is
+an input bound by the image plan. Signing and notarization remain separate output
+identities.
 
 `wheeler image build-elf` and `wheeler image build-macho` consume exact physical
 capsule, runtime, plan, and ABI files. They verify all WBC before construction,
