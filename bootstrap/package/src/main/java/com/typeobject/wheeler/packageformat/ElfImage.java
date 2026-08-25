@@ -207,7 +207,8 @@ public final class ElfImage {
     if (plan.format() != PlatformAbi.Format.ELF
         || abi.format() != PlatformAbi.Format.ELF
         || !plan.stripped()
-        || plan.runtimeMode() != NativeImagePlan.RuntimeMode.EMBEDDED_VM
+        || (plan.runtimeMode() != NativeImagePlan.RuntimeMode.EMBEDDED_VM
+            && plan.runtimeMode() != NativeImagePlan.RuntimeMode.AOT)
         || !plan.platformAbi().equals(abi.identity())
         || !plan.capsule().equals(capsule.identity())
         || !plan.runtime().equals(identity(runtime))

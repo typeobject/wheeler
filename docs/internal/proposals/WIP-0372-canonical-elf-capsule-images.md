@@ -28,7 +28,7 @@ Schema 1 accepts these targets:
 | `x86_64` | 62 | `x86_64-unknown-linux-gnu` |
 | `aarch64` | 183 | `aarch64-unknown-linux-gnu` |
 
-The ABI must be schema-1 ELF, little-endian, 64-bit, and `linux-gnu`. `PlatformAbi` already enforces pointer width and byte order. The plan must select ELF, embedded-VM mode, stripping, the exact ABI identity, exact capsule identity, exact runtime-text identity, and the ABI-derived target. The capsule must select the same platform ABI and runtime mode.
+The ABI must be schema-1 ELF, little-endian, 64-bit, and `linux-gnu`. `PlatformAbi` already enforces pointer width and byte order. The plan must select ELF, stripping, the exact ABI identity, exact capsule identity, exact runtime-text identity, and the ABI-derived target. It may select embedded-VM mode or WIP-0378's closed scalar AOT mode. The capsule root must select the same mode. The capsule must select the same platform ABI and runtime mode.
 
 The plan's portable artifact is the root WBC entry identity. This first profile does not choose another WBC at load time.
 
@@ -115,7 +115,7 @@ The maintained x86-64 fixture contains 4,652 bytes. Runtime text starts at offse
 
 ## Failure boundary
 
-Reject malformed identification, noncanonical header widths, unknown machine, section tables, changed entry, changed flags, writable-executable loading, executable stack, locator damage, reserved bits, range escape, misalignment, nonzero padding, runtime damage, capsule damage, plan disagreement, ABI disagreement, unsupported target, unstripped policy, AOT mode, wrong portable artifact, empty runtime, bad entry offset, and excess output.
+Reject malformed identification, noncanonical header widths, unknown machine, section tables, changed entry, changed flags, writable-executable loading, executable stack, locator damage, reserved bits, range escape, misalignment, nonzero padding, runtime damage, capsule damage, plan disagreement, ABI disagreement, unsupported target, unstripped policy, unsupported runtime mode, wrong portable artifact, empty runtime, bad entry offset, and excess output.
 
 A structurally valid ELF and valid capsule do not prove that runtime text implements Wheeler startup. Runtime code identity is bound, not interpreted. Recovery release policy must name an independently reproduced runtime implementing WIP-0371 and the WIP-0368 service ABI before treating the image as runnable Wheeler output.
 
@@ -171,5 +171,6 @@ Rejected. The adapter binds bytes and layout. Recovery policy must separately es
 - [WIP-0369](WIP-0369-canonical-application-capsules.md)
 - [WIP-0371](WIP-0371-embedded-application-capsule-startup.md)
 - [WIP-0376](WIP-0376-x86-64-linux-native-entry-shim.md)
+- [WIP-0378](WIP-0378-x86-64-linux-scalar-aot.md)
 - [WIP-0373](WIP-0373-physical-elf-image-command.md)
 - [WIP-0374](WIP-0374-canonical-mach-o-capsule-images.md)

@@ -62,6 +62,71 @@ final class ImageCommandTest {
   }
 
   @Test
+  void lowersBuildsAndLaunchesOnePhysicalScalarAotImage() throws Exception {
+    byte[] artifact = new WheelerCompiler().compileModulesToBytecode(
+        Map.of("example.hello", """
+            module example.hello;
+            classical class Hello {
+              state long status = 0;
+              entry void main() { status = 73; }
+            }
+            """),
+        "example.hello");
+    Path artifactFile = write("scalar-aot.wbc", artifact);
+    Path runtimeFile = temporary.resolve("scalar-aot-runtime.bin");
+    CommandResult lowering = execute(
+        "image", "runtime-elf-x86-64-aot", artifactFile.toString(),
+        "-o", runtimeFile.toString());
+    byte[] runtime = Files.readAllBytes(runtimeFile);
+    assertEquals(0, lowering.status());
+    assertTrue(lowering.output().contains(identity(artifact)));
+    assertTrue(lowering.output().contains("status 73"));
+
+    PlatformAbi abi = platformAbi();
+    ApplicationCapsule capsule = nativeCapsule(
+        artifact, abi, NativeImagePlan.RuntimeMode.AOT);
+    NativeImagePlan plan = new NativeImagePlan(
+        PlatformAbi.Format.ELF,
+        "x86_64-unknown-linux-gnu",
+        NativeImagePlan.RuntimeMode.AOT,
+        true,
+        true,
+        capsule.entries().getFirst().identity(),
+        abi.identity(),
+        capsule.identity(),
+        hash(92),
+        identity(runtime),
+        hash(93),
+        hash(94),
+        hash(95),
+        hash(96),
+        hash(97));
+    Path capsuleFile = write("scalar-aot.capsule", capsule.canonicalBytes());
+    Path planFile = write("scalar-aot-plan.yaml", plan.canonicalBytes());
+    Path abiFile = write("scalar-aot-abi.yaml", abi.canonicalBytes());
+    Path imageFile = temporary.resolve("scalar-aot-app");
+    CommandResult build = execute(
+        "image", "build-elf", capsuleFile.toString(),
+        "--runtime", runtimeFile.toString(),
+        "--entry", "0",
+        "--plan", planFile.toString(),
+        "--abi", abiFile.toString(),
+        "-o", imageFile.toString());
+    assertEquals(0, build.status());
+    ElfImage.verify(Files.readAllBytes(imageFile), plan, abi);
+
+    if (nativeLinuxHost()) {
+      Process process = new ProcessBuilder(imageFile.toString()).start();
+      assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(73, process.exitValue());
+      assertArrayEquals(
+          LinuxX8664EntryShim.successOutput(),
+          process.getInputStream().readAllBytes());
+      assertEquals(0, process.getErrorStream().readAllBytes().length);
+    }
+  }
+
+  @Test
   void inspectsEveryRootReceiptAndEntryIdentityDeterministically() throws Exception {
     ApplicationCapsule capsule = capsule(validWbc(), null);
     Path file = write("hello.capsule", capsule.canonicalBytes());
@@ -381,6 +446,7 @@ final class ImageCommandTest {
     assertTrue(usage.error().contains("inspect-macho"));
     assertTrue(usage.error().contains("inspect-pe"));
     assertTrue(usage.error().contains("runtime-elf-x86-64"));
+    assertTrue(usage.error().contains("runtime-elf-x86-64-aot"));
     assertTrue(usage.error().contains("record-elf"));
     assertTrue(usage.error().contains("record-macho"));
     assertTrue(usage.error().contains("record-pe"));
@@ -448,6 +514,13 @@ final class ImageCommandTest {
   }
 
   private static ApplicationCapsule nativeCapsule(byte[] wbc, PlatformAbi abi) {
+    return nativeCapsule(wbc, abi, NativeImagePlan.RuntimeMode.EMBEDDED_VM);
+  }
+
+  private static ApplicationCapsule nativeCapsule(
+      byte[] wbc,
+      PlatformAbi abi,
+      NativeImagePlan.RuntimeMode runtimeMode) {
     CapsuleRoot root = new CapsuleRoot(
         hash(1),
         "hello",
@@ -459,7 +532,7 @@ final class ImageCommandTest {
         hash(5),
         abi.identity(),
         hash(7),
-        NativeImagePlan.RuntimeMode.EMBEDDED_VM,
+        runtimeMode,
         List.of());
     CapsuleEntry entry = new CapsuleEntry(
         CapsuleEntry.Kind.WBC,

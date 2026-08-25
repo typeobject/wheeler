@@ -16,7 +16,7 @@ public final class LinuxX8664EntryShim {
   public static final int MALFORMED_IMAGE_STATUS = 125;
   private static final int PAGE_BYTES = 4096;
   private static final byte[] SUCCESS_OUTPUT = "Wheeler\n".getBytes(StandardCharsets.US_ASCII);
-  private static final byte[] RUNTIME_TEXT = assemble();
+  private static final byte[] RUNTIME_TEXT = assemble(SUCCESS_STATUS);
   private static final String RUNTIME_IDENTITY = identity(RUNTIME_TEXT);
 
   private LinuxX8664EntryShim() {}
@@ -24,6 +24,13 @@ public final class LinuxX8664EntryShim {
   /** Position-independent runtime text with no relocations or external imports. */
   public static byte[] runtimeText() {
     return RUNTIME_TEXT.clone();
+  }
+
+  static byte[] runtimeText(int successStatus) {
+    if (successStatus < 0 || successStatus >= MALFORMED_IMAGE_STATUS) {
+      throw new IllegalArgumentException("Native success status must be between 0 and 124");
+    }
+    return assemble(successStatus);
   }
 
   /** SHA-256 identity of the exact runtime text. */
@@ -36,7 +43,7 @@ public final class LinuxX8664EntryShim {
     return SUCCESS_OUTPUT.clone();
   }
 
-  private static byte[] assemble() {
+  private static byte[] assemble(int successStatus) {
     Code code = new Code();
     code.bytes(0x48, 0x8d, 0x1d);
     int locatorDisplacement = code.reserveInt();
@@ -67,7 +74,7 @@ public final class LinuxX8664EntryShim {
     code.bytes(0x0f, 0x05, 0x83, 0xf8, SUCCESS_OUTPUT.length, 0x75);
     int shortWriteJump = code.reserveByte();
     code.bytes(0xbf);
-    code.integer(SUCCESS_STATUS);
+    code.integer(successStatus);
     code.bytes(0xeb);
     int exitJump = code.reserveByte();
 

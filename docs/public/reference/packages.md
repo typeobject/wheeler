@@ -274,6 +274,7 @@ wheeler verify <package.wpk>
 wheeler image inspect <application.capsule>
 wheeler image verify <application.capsule>
 wheeler image runtime-elf-x86-64 -o <runtime.bin>
+wheeler image runtime-elf-x86-64-aot <root.wbc> -o <runtime.bin>
 wheeler image build-elf <application.capsule> --runtime <runtime.bin> --entry <offset> --plan <plan.yaml> --abi <abi.yaml> -o <application>
 wheeler image inspect-elf <application> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image verify-elf <application> --plan <plan.yaml> --abi <abi.yaml>
@@ -329,7 +330,8 @@ capabilities.
 
 `image runtime-elf-x86-64` atomically publishes the maintained 113-byte
 import-free Linux entry shim. It is loader and framing evidence, not a WBC
-runtime.
+runtime. `image runtime-elf-x86-64-aot` verifies one closed three-instruction WBC
+profile and publishes runtime text carrying its source-declared process status.
 
 `image build-elf`, `image build-macho`, and `image build-pe` consume an exact
 capsule, runtime text, canonical native image plan, and canonical platform ABI.

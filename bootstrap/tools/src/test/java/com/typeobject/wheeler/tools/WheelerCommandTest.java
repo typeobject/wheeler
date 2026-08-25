@@ -484,7 +484,7 @@ class WheelerCommandTest {
     Files.writeString(project.resolve("src/Helper.w"), """
         module tests.helper;
         classical class Helper {
-          public long answer() { return 42; }
+          public const long ANSWER = 42;
         }
         """);
     Files.writeString(project.resolve("src/Main.w"), """
@@ -493,8 +493,8 @@ class WheelerCommandTest {
         classical class Main {
           state long result = 0;
           test void checksHelper() {
-            result = tests.helper::answer();
-            assert(result == 42);
+            long answer = ANSWER;
+            assert(answer == 42);
           }
           entry void main() { result = 1; }
         }

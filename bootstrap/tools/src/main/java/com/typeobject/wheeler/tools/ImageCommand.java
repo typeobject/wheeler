@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.tools;
 
+import com.typeobject.wheeler.core.bytecode.BytecodeFormat;
 import com.typeobject.wheeler.packageformat.ApplicationCapsule;
 import com.typeobject.wheeler.packageformat.CapsuleEntry;
 import com.typeobject.wheeler.packageformat.CapsulePackageReceipt;
@@ -13,6 +14,7 @@ import com.typeobject.wheeler.packageformat.PlatformAbi;
 import com.typeobject.wheeler.packageformat.UnsignedNativeImageRecord;
 import com.typeobject.wheeler.runtime.ApplicationCapsuleVerifier;
 import com.typeobject.wheeler.runtime.LinuxX8664EntryShim;
+import com.typeobject.wheeler.runtime.LinuxX8664ScalarAotCompiler;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
@@ -36,6 +38,7 @@ final class ImageCommand {
     return switch (args[1]) {
       case "inspect", "verify" -> capsule(args, out, error);
       case "runtime-elf-x86-64" -> publishLinuxRuntime(args, out, error);
+      case "runtime-elf-x86-64-aot" -> publishLinuxScalarAot(args, out, error);
       case "record-elf" -> recordNativeOutput(args, out, error, NativeFormat.ELF);
       case "record-macho" -> recordNativeOutput(args, out, error, NativeFormat.MACH_O);
       case "record-pe" -> recordNativeOutput(args, out, error, NativeFormat.PE);
@@ -63,6 +66,24 @@ final class ImageCommand {
     PackageProject.writeAtomically(output, runtime);
     out.println("wrote x86-64 Linux entry shim " + output + " ("
         + runtime.length + " bytes, " + LinuxX8664EntryShim.runtimeIdentity() + ")");
+    return 0;
+  }
+
+  private static int publishLinuxScalarAot(
+      String[] args, PrintStream out, PrintStream error) throws IOException {
+    if (args.length != 5 || !args[3].equals("-o")) {
+      return usage(error);
+    }
+    byte[] artifact = readPhysical(
+        Path.of(args[2]), BytecodeFormat.MAX_ARTIFACT_BYTES, "portable WBC artifact");
+    LinuxX8664ScalarAotCompiler.LoweredRuntime lowered =
+        LinuxX8664ScalarAotCompiler.lower(artifact);
+    Path output = Path.of(args[4]);
+    PackageProject.writeAtomically(output, lowered.runtimeText());
+    out.println("wrote x86-64 Linux scalar AOT runtime " + output + " ("
+        + lowered.runtimeText().length + " bytes, " + lowered.runtimeIdentity()
+        + ", WBC " + lowered.portableArtifact()
+        + ", status " + lowered.processStatus() + ")");
     return 0;
   }
 
@@ -426,6 +447,8 @@ final class ImageCommand {
   private static int usage(PrintStream error) {
     error.println("Usage: wheeler image <inspect|verify> <application.capsule>");
     error.println("   or: wheeler image runtime-elf-x86-64 -o <runtime.bin>");
+    error.println("   or: wheeler image runtime-elf-x86-64-aot <root.wbc>"
+        + " -o <runtime.bin>");
     error.println("   or: wheeler image <record-elf|record-macho|record-pe> <application>"
         + " --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>");
     error.println("   or: wheeler image record-signing <unsigned-record.yaml>"

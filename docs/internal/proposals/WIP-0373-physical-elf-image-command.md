@@ -17,6 +17,7 @@ Add physical build and verification commands for canonical ELF, Mach-O, and PE c
 
 ```text
 wheeler image runtime-elf-x86-64 -o <runtime.bin>
+wheeler image runtime-elf-x86-64-aot <root.wbc> -o <runtime.bin>
 wheeler image build-elf <application.capsule> --runtime <runtime.bin> --entry <offset> --plan <plan.yaml> --abi <abi.yaml> -o <application>
 wheeler image inspect-elf <application> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image verify-elf <application> --plan <plan.yaml> --abi <abi.yaml>
@@ -32,7 +33,7 @@ wheeler image record-pe <application.exe> --plan <plan.yaml> --abi <abi.yaml> -o
 wheeler image record-signing <unsigned-record.yaml> --unsigned <application> --method <method> --distribution <artifact> --signature <evidence> --signer <identity> --tool <identity> -o <signing-record.yaml>
 ```
 
-WIP-0376's runtime command atomically publishes the maintained import-free x86-64 Linux entry text used by the first loader probe. It performs no discovery or native execution.
+WIP-0376's runtime command atomically publishes the maintained import-free x86-64 Linux entry text used by the first loader probe. WIP-0378's AOT command verifies one closed scalar WBC profile and publishes runtime text carrying its process-status observation. Neither command performs discovery or native execution.
 
 WIP-0377's record commands verify complete unsigned images or retained signing inputs before atomically publishing separate release metadata. They do not invoke signing tools.
 
@@ -147,3 +148,4 @@ Rejected. Arbitrary runtime text remains untrusted input. Native execution begin
 - [WIP-0375](WIP-0375-canonical-pe-capsule-images.md)
 - [WIP-0376](WIP-0376-x86-64-linux-native-entry-shim.md)
 - [WIP-0377](WIP-0377-native-image-release-records.md)
+- [WIP-0378](WIP-0378-x86-64-linux-scalar-aot.md)
