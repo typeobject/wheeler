@@ -57,7 +57,22 @@ quietly noticing that its operating system has it.
 runtime, compiler, sysroot, provider closure, options, link arguments, target,
 runtime mode, and sealing and stripping policy. The plan identifies build inputs.
 Unsigned native bytes receive a separate PREV. Signatures and notarization bind
-that PREV later. No native backend or recovery image ships yet.
+that PREV later.
+
+The format-neutral application capsule is also fixed. Its bounded binary header
+carries exact lengths and counts. One root binds the package instance, selected
+target, qualified entry function, WBC, runtime mode, required capabilities, and
+runtime, bytecode, proof, target, platform, and limit profiles. Sorted package
+receipts bind repository, package revision, build input, PREV, export, and package
+instance evidence without performing runtime resolution.
+
+A sorted entry table carries WBC, immutable resources, proof data, native provider
+data, and provenance. Each uncompressed entry has one logical name, SHA-256
+identity, checked absolute range, power-of-two alignment, and fixed flags. The
+sole startup flag belongs to the root WBC. Padding is zero, the transport is
+consumed exactly, and SHA-256 of the complete canonical bytes is the capsule
+identity. Schema 1 admits at most 128 entries, 64 receipts, 32 capabilities, and
+32 MiB in total. No native backend or recovery image ships yet.
 
 ## Deriving the profile and graph
 

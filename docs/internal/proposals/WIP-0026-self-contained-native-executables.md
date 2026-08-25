@@ -56,7 +56,6 @@ A platform-native executable begins with the target's native header. Its immutab
 ```text
 application_capsule {
     schema
-    capsule_id
     root_package_instance
     root_target
     root_wbc
@@ -201,7 +200,7 @@ Reject malformed native structure, overlapping or escaping ranges, a writable an
 ## Progress
 
 - [x] WIP-0368 accepts the canonical native image build-input plan. It binds loader format, target, runtime mode, sealing and stripping policy, portable WBC, platform ABI, capsule, backend, runtime, compiler, sysroot, provider closure, options, and link arguments. Unsigned output PREV and signing remain separate identities.
-- [ ] Capsule, entry, and receipt schemas accepted.
+- [x] WIP-0369 accepts canonical bounded application capsules, root descriptors, package receipts, and immutable entry records. Schema 1 fixes binary framing, exact profile identities, sorted entry and receipt tables, zero alignment padding, per-entry SHA-256, whole-capsule identity, ownership, and terminal 128-entry and 64-receipt bounds.
 - [ ] Capsule inspect/verify and embedded-VM startup implemented.
 - [ ] ELF and Mach-O images reproduce with signing separation.
 - [ ] Sealed providers and system export integrate.
@@ -210,7 +209,7 @@ Reject malformed native structure, overlapping or escaping ranges, a writable an
 
 ## Testing and acceptance
 
-- [ ] Capsule ordering/digests/limits are canonical and malformed inputs fail.
+- [x] Capsule ordering, digests, framing, ownership, and limits are canonical. Exact terminal profiles pass, and malformed transports fail.
 - [ ] Startup locates mapped data without path/environment/cache/network and verifies every WBC.
 - [ ] Root/capabilities/exit status are deterministic.
 - [ ] ELF/Mach-O/PE structures, permissions, alignment, stripping, imports, signing order, and reproducibility pass.
@@ -226,7 +225,7 @@ Adjacent launch directories permit substitution and partial updates. Opaque trai
 
 ## Open questions
 
-- Which canonical capsule encoding and deterministic compression profile (owner: format maintainers. Decision point: schema freeze)?
+- Which successor schema, if any, earns deterministic compression after the uncompressed startup path is complete (owner: format maintainers. Decision point: measured image evidence)?
 - Exact ELF locator/note and first Linux baseline (owner: ELF/runtime maintainers. Decision point: ELF adapter)?
 - First macOS versions/slices and universal duplication policy (owner: platform maintainers. Decision point: Mach-O adapter)?
 - Which host-input capabilities are required for the first CLI (owner: standard-library maintainers. Decision point: startup)?
@@ -239,6 +238,7 @@ Adjacent launch directories permit substitution and partial updates. Opaque trai
 - [WIP-0025](WIP-0025-native-ffi-and-system-integration.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
 - [WIP-0368](WIP-0368-platform-abi-and-native-image-identities.md)
+- [WIP-0369](WIP-0369-canonical-application-capsules.md)
 - [ELF program loading](https://gabi.xinuos.com/elf/07-loading-intro.html)
 - [Mach-O overview](https://developer.apple.com/library/archive/documentation/Performance/Conceptual/CodeFootprint/Articles/MachOOverview.html)
 - [Microsoft PE format](https://learn.microsoft.com/en-us/windows/win32/debug/pe-format)

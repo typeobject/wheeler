@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler package, build, compiler, security, and release maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-08-13 |
+| Updated | 2026-08-24 |
 | Area | Packages, modules, builds, registry, tooling |
 | Depends on | WIP-0007, WIP-0008 |
 | Supersedes | None |
@@ -435,6 +435,7 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 - [x] `wheeler.core.encoding.binary` owns bounded little-endian reads and ASCII name, version, and path checks for binary package codecs. `Plan.w` no longer keeps a private copy of those rules. One shared module now defines that security boundary.
 - [x] `NativeArchive.w` and `packages/archive/Archive.w` verify a Wheeler-computed outer SHA-256 digest and every entry-data digest. They also check schema framing, exact lengths, complete consumption, and stage-0 decode compatibility.
 - [x] `NativeArchiveIdentity.w` computes the final content identity only after complete archive, embedded-manifest, and source-closure validation. Its one-file archive identity matches stage 0 and rewinds exactly. Payload-digest damage or oversized input leaves output untouched.
+- [x] WIP-0369 fixes the format-neutral application capsule consumed by native image work. Its bounded binary schema binds one root, exact semantic profiles, package receipts, WBC, resources, proofs, providers, and provenance without runtime resolution or adjacent-file lookup.
   - The manifest is copied, frozen, parsed by shared scanner and manifest modules, and re-emitted as exact canonical lines.
   - One through four sorted ASCII logical paths must match the declared target source set.
   - Outer corruption, re-signed data corruption, traversal, undeclared source paths, and noncanonical manifest text fail.
@@ -579,6 +580,7 @@ Worker count and native scheduling do not enter package identity. Required physi
 - [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md)
 - [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
+- [WIP-0369](WIP-0369-canonical-application-capsules.md)
 - [WIP-0269](WIP-0269-native-dependency-lock-structure.md)
 - [WIP-0270](WIP-0270-native-direct-dependency-binding.md)
 - [WIP-0271](WIP-0271-native-stable-dependency-versions.md)
