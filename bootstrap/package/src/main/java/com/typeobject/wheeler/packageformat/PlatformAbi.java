@@ -209,6 +209,11 @@ public record PlatformAbi(
     }
   }
 
+  /** Parses one exact canonical schema-1 descriptor. */
+  public static PlatformAbi parse(byte[] bytes) {
+    return new PlatformAbiParser().parse(bytes);
+  }
+
   /** Returns canonical schema-1 YAML. */
   public String canonicalText() {
     return "schema: " + SCHEMA_VERSION + "\n"

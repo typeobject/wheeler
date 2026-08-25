@@ -77,6 +77,11 @@ public record NativeImagePlan(
     }
   }
 
+  /** Parses one exact canonical schema-1 image plan. */
+  public static NativeImagePlan parse(byte[] bytes) {
+    return new NativeImagePlanParser().parse(bytes);
+  }
+
   /** Returns canonical schema-1 YAML. */
   public String canonicalText() {
     return "schema: " + SCHEMA_VERSION + "\n"

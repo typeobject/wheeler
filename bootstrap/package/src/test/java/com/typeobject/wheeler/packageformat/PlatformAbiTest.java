@@ -58,6 +58,7 @@ final class PlatformAbiTest {
         "3a5f3c8d56a3ce57b02d04cb4f8cbc55d38c5fc4355cb3bf851686f7ae332f6d",
         abi.identity());
     assertEquals(abi.canonicalText(), new String(abi.canonicalBytes(), StandardCharsets.UTF_8));
+    assertEquals(abi, PlatformAbi.parse(abi.canonicalBytes()));
     assertEquals(0, PlatformAbi.Status.OK.code());
     assertEquals(8, PlatformAbi.Status.CHANGED.code());
     assertEquals(
@@ -188,6 +189,20 @@ final class PlatformAbiTest {
             baseline.cpuFeatures(),
             baseline.baselineLibraries(),
             baseline.services().subList(1, baseline.services().size())));
+    assertThrows(
+        PackageFormatException.class,
+        () -> PlatformAbi.parse(baseline.canonicalText()
+            .replace("schema: 1", "schema: 2").getBytes(StandardCharsets.UTF_8)));
+    assertThrows(
+        PackageFormatException.class,
+        () -> PlatformAbi.parse((baseline.canonicalText() + "# trailing\n")
+            .getBytes(StandardCharsets.UTF_8)));
+    assertThrows(
+        PackageFormatException.class,
+        () -> PlatformAbi.parse(new byte[] {(byte) 0xc3, 0x28}));
+    assertThrows(
+        PackageFormatException.class,
+        () -> PlatformAbi.parse(new byte[16 * 1024 + 1]));
   }
 
   private static PlatformAbi baseline() {

@@ -96,6 +96,18 @@ final class CanonicalYaml {
     throw new PackageFormatException("Expected YAML integer for " + description);
   }
 
+  static long longInteger(Value value, String description) {
+    if (value instanceof Scalar scalar && scalar.kind() == ScalarKind.INTEGER) {
+      try {
+        return Long.parseLong(scalar.text());
+      } catch (NumberFormatException exception) {
+        throw new PackageFormatException("YAML integer is out of range for " + description,
+            exception);
+      }
+    }
+    throw new PackageFormatException("Expected YAML integer for " + description);
+  }
+
   static boolean bool(Value value, String description) {
     if (value instanceof Scalar scalar && scalar.kind() == ScalarKind.BOOLEAN) {
       return Boolean.parseBoolean(scalar.text());

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.HexFormat;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,7 @@ final class NativeImagePlanTest {
     assertEquals(
         "4e944b6b0ce56e164f22bb079e867eb951b6f60de8b676d2216431d2d35603e9",
         plan.identity());
+    assertEquals(plan, NativeImagePlan.parse(plan.canonicalBytes()));
   }
 
   @Test
@@ -80,6 +82,18 @@ final class NativeImagePlanTest {
             valid.providers(),
             valid.options(),
             valid.linkArguments()));
+    assertThrows(
+        PackageFormatException.class,
+        () -> NativeImagePlan.parse(valid.canonicalText()
+            .replace("runtime-mode: \"embedded-vm\"", "runtime-mode: \"jit\"")
+            .getBytes(StandardCharsets.UTF_8)));
+    assertThrows(
+        PackageFormatException.class,
+        () -> NativeImagePlan.parse((valid.canonicalText() + "# trailing\n")
+            .getBytes(StandardCharsets.UTF_8)));
+    assertThrows(
+        PackageFormatException.class,
+        () -> NativeImagePlan.parse(new byte[] {(byte) 0xc3, 0x28}));
   }
 
   private static NativeImagePlan plan(

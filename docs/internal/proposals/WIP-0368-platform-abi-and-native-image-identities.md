@@ -104,13 +104,15 @@ The unsigned executable PREV is the digest of output bytes produced from this pl
 
 Construction rejects malformed identities, noncanonical targets, unsupported pointer width or endianness, invalid page geometry, misaligned memory bounds, excess lists, duplicate or unordered names, missing required services, and ambient service invention. No repair, sorting, default service insertion, target inference, or host probing occurs.
 
-A future parser must reproduce the constructor's exact record and bytes. A future backend must reject a runtime, object, sysroot, provider, target, or ABI identity that differs from the plan before code generation or execution.
+`PlatformAbiParser` and `NativeImagePlanParser` accept at most 16,384 strict-UTF-8 bytes, require exact schema and field sets, construct the same bounded records, and compare the complete input against canonical output. Comments, reordered fields or lists, unknown fields or enum values, malformed UTF-8, excess bytes, and numeric overflow reject instead of normalizing.
+
+WIP-0372 consumes the parsed records and rejects a runtime, portable artifact, capsule, target, or ABI identity that differs from the plan before ELF publication.
 
 ## Evidence
 
-`PlatformAbiTest` snapshots every canonical byte, recomputes SHA-256 independently, checks fixed status and service signatures, changes page and service inputs, and rejects incomplete, unordered, 32-bit, and non-power-of-two profiles.
+`PlatformAbiTest` snapshots every canonical byte, recomputes SHA-256 independently, round-trips the strict parser, checks fixed status and service signatures, changes page and service inputs, and rejects incomplete, unordered, 32-bit, non-power-of-two, malformed-UTF-8, noncanonical, and oversized profiles. The parser retains the 64-bit memory bound without narrowing it through a host integer.
 
-`NativeImagePlanTest` snapshots every canonical byte and identity. It proves that the portable artifact, runtime mode, sealing policy, and stripping policy enter identity and rejects malformed identities and targets.
+`NativeImagePlanTest` snapshots every canonical byte and identity and round-trips the strict parser. It proves that the portable artifact, runtime mode, sealing policy, and stripping policy enter identity and rejects malformed identities, targets, transports, and runtime modes.
 
 The focused package-format suite performs no host calls and completes in two seconds.
 
@@ -119,8 +121,8 @@ The focused package-format suite performs no host calls and completes in two sec
 - [x] The first platform ABI fixes scalar width, endianness, status codes, spans, handles, services, and bounds.
 - [x] Required and optional services are explicit and canonically ordered.
 - [x] Ambient environment, network, randomness, clocks, paths, loading, and process creation are absent.
-- [x] The platform descriptor has deterministic canonical bytes and SHA-256 identity.
-- [x] The native image plan binds portable semantics, ABI, capsule, tools, runtime, providers, options, and linkage.
+- [x] The platform descriptor has deterministic canonical bytes, strict parsing, and SHA-256 identity.
+- [x] The native image plan binds portable semantics, ABI, capsule, tools, runtime, providers, options, and linkage through the same strict transport.
 - [x] Unsigned output PREV and signing identities remain outside build-input identity.
 - [x] Malformed, incomplete, unordered, duplicated, unsupported, and out-of-bound inputs reject.
 - [x] Focused byte, identity, mutation, and negative evidence passes.

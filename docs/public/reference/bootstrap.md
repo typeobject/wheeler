@@ -57,7 +57,9 @@ quietly noticing that its operating system has it.
 runtime, compiler, sysroot, provider closure, options, link arguments, target,
 runtime mode, and sealing and stripping policy. The plan identifies build inputs.
 Unsigned native bytes receive a separate PREV. Signatures and notarization bind
-that PREV later.
+that PREV later. Both records also have strict 16 KiB canonical parsers. They
+reject malformed UTF-8, schema or field drift, unknown values, reordered records,
+comments, trailing data, and numeric overflow rather than repairing transport.
 
 The format-neutral application capsule is also fixed. Its bounded binary header
 carries exact lengths and counts. One root binds the package instance, selected
