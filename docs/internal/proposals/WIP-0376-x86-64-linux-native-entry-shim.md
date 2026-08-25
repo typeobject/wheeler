@@ -33,6 +33,14 @@ Entry assumes the loader mapped a canonical WIP-0372 ELF image. The shim compute
 
 A bad locator, bad capsule framing value, or short write reaches `exit(125)`. Framing failure occurs before output. Linux system calls are the first two host-shim leaves for WIP-0368 `stdout-write` and `process-exit`. Their raw register ABI remains private to this target shim.
 
+The physical command publishes those exact bytes atomically as nonexecutable runtime input:
+
+```text
+wheeler image runtime-elf-x86-64 -o <runtime.bin>
+```
+
+It accepts no input file, configuration, or target inference. Existing links and nonregular output leaves reject under the shared physical publication boundary.
+
 The runtime digest is:
 
 ```text
@@ -63,7 +71,7 @@ This slice deliberately relies on the canonical image precondition for segment r
 
 ## Evidence
 
-`LinuxX8664EntryShimTest` checks byte identity, returned ownership, exact size, canonical ELF construction, runtime entry offset, and read-only capsule placement. On an x86-64 Linux host it launches the complete ELF through the kernel, requires exact `Wheeler\n` output and status 42, separately damages locator magic, capsule offset, and capsule magic, relaunches each image, and requires no output and status 125. Other hosts skip only the OS-launch case.
+`LinuxX8664EntryShimTest` checks byte identity, returned ownership, exact size, canonical ELF construction, runtime entry offset, and read-only capsule placement. `ImageCommandTest` publishes and replaces one physical runtime leaf, checks exact bytes and identity, and retains atomic-output rejection behavior. On an x86-64 Linux host it launches the complete ELF through the kernel, requires exact `Wheeler\n` output and status 42, separately damages locator magic, capsule offset, and capsule magic, relaunches each image, and requires no output and status 125. Other hosts skip only the OS-launch case.
 
 Independent assembly and disassembly reproduce all 113 bytes. The complete runtime contains no relocation or imported symbol.
 
@@ -73,6 +81,7 @@ Independent assembly and disassembly reproduce all 113 bytes. The complete runti
 - [x] Entry locates the mapped capsule without a path, environment, cache, or adjacent file.
 - [x] Locator and capsule framing failures precede successful output.
 - [x] Standard-output completion and process exit use bounded fixed target calls.
+- [x] Physical command publication is atomic and returns the generated identity.
 - [x] Canonical ELF construction and verification retain the exact runtime bytes.
 - [x] Native x86-64 Linux launch evidence covers success and damaged framing.
 - [x] The implementation makes no WBC execution or complete startup claim.

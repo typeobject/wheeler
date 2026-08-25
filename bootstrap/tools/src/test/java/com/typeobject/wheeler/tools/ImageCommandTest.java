@@ -19,6 +19,7 @@ import com.typeobject.wheeler.packageformat.NativeImagePlan;
 import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.packageformat.PeImage;
 import com.typeobject.wheeler.packageformat.PlatformAbi;
+import com.typeobject.wheeler.runtime.LinuxX8664EntryShim;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -37,6 +38,24 @@ import org.junit.jupiter.api.io.TempDir;
 final class ImageCommandTest {
   @TempDir
   Path temporary;
+
+  @Test
+  void publishesTheMaintainedLinuxRuntimeAtomically() throws Exception {
+    Path runtime = temporary.resolve("runtime.bin");
+    CommandResult first = execute(
+        "image", "runtime-elf-x86-64", "-o", runtime.toString());
+
+    assertEquals(0, first.status());
+    assertArrayEquals(LinuxX8664EntryShim.runtimeText(), Files.readAllBytes(runtime));
+    assertTrue(first.output().contains(LinuxX8664EntryShim.runtimeIdentity()));
+    assertEquals("", first.error());
+
+    Files.write(runtime, new byte[] {1, 2, 3});
+    CommandResult replacement = execute(
+        "image", "runtime-elf-x86-64", "-o", runtime.toString());
+    assertEquals(0, replacement.status());
+    assertArrayEquals(LinuxX8664EntryShim.runtimeText(), Files.readAllBytes(runtime));
+  }
 
   @Test
   void inspectsEveryRootReceiptAndEntryIdentityDeterministically() throws Exception {
@@ -310,6 +329,7 @@ final class ImageCommandTest {
     assertTrue(usage.error().contains("inspect-elf"));
     assertTrue(usage.error().contains("inspect-macho"));
     assertTrue(usage.error().contains("inspect-pe"));
+    assertTrue(usage.error().contains("runtime-elf-x86-64"));
 
     Path directory = Files.createDirectory(temporary.resolve("directory.capsule"));
     assertThrows(

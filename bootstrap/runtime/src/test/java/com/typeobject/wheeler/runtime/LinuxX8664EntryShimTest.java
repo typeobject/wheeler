@@ -41,7 +41,8 @@ final class LinuxX8664EntryShimTest {
     assertEquals(113, first.length);
     assertEquals(
         "220690e44353796c912558f5fddd1680e4828244b899083392b1a0406d0aa954",
-        identity(first));
+        LinuxX8664EntryShim.runtimeIdentity());
+    assertEquals(LinuxX8664EntryShim.runtimeIdentity(), identity(first));
     first[0] ^= 1;
     assertFalse(java.util.Arrays.equals(first, LinuxX8664EntryShim.runtimeText()));
   }

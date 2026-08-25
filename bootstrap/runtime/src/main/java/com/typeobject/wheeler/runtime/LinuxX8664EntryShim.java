@@ -6,6 +6,9 @@ import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 
 /** Minimal x86-64 Linux entry shim for mapped canonical ELF capsules. */
 public final class LinuxX8664EntryShim {
@@ -14,12 +17,18 @@ public final class LinuxX8664EntryShim {
   private static final int PAGE_BYTES = 4096;
   private static final byte[] SUCCESS_OUTPUT = "Wheeler\n".getBytes(StandardCharsets.US_ASCII);
   private static final byte[] RUNTIME_TEXT = assemble();
+  private static final String RUNTIME_IDENTITY = identity(RUNTIME_TEXT);
 
   private LinuxX8664EntryShim() {}
 
   /** Position-independent runtime text with no relocations or external imports. */
   public static byte[] runtimeText() {
     return RUNTIME_TEXT.clone();
+  }
+
+  /** SHA-256 identity of the exact runtime text. */
+  public static String runtimeIdentity() {
+    return RUNTIME_IDENTITY;
   }
 
   /** Exact successful standard-output bytes. */
@@ -85,6 +94,14 @@ public final class LinuxX8664EntryShim {
     code.patchRelativeByte(shortWriteJump, failure);
     code.patchRelativeByte(exitJump, exit);
     return code.finish();
+  }
+
+  private static String identity(byte[] bytes) {
+    try {
+      return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+    } catch (NoSuchAlgorithmException exception) {
+      throw new IllegalStateException("SHA-256 is unavailable", exception);
+    }
   }
 
   private static int align(int value, int alignment) {

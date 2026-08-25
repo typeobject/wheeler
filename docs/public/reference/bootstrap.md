@@ -110,9 +110,10 @@ publication, and print the unsigned PREV. Their matching `inspect-elf`,
 identities, and ranges. The verify commands additionally check every WBC and the
 exact root without execution.
 
-The first maintained x86-64 Linux entry shim is 113 import-free bytes. It locates
-mapped ELF capsule framing without reopening the image, checks the locator and
-capsule magic, completes one fixed standard-output write, and exits through the
+`wheeler image runtime-elf-x86-64 -o <runtime.bin>` atomically publishes the
+first maintained x86-64 Linux entry shim. Its 113 import-free bytes locate
+mapped ELF capsule framing without reopening the image, check the locator and
+capsule magic, complete one fixed standard-output write, and exit through the
 kernel. This proves loader entry and two host-service leaves. It does not verify
 WBC or execute the capsule root. No complete native runtime or recovery image
 ships yet.

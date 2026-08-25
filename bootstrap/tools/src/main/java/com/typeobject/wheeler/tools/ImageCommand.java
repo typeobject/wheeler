@@ -10,6 +10,7 @@ import com.typeobject.wheeler.packageformat.NativeImagePlan;
 import com.typeobject.wheeler.packageformat.PeImage;
 import com.typeobject.wheeler.packageformat.PlatformAbi;
 import com.typeobject.wheeler.runtime.ApplicationCapsuleVerifier;
+import com.typeobject.wheeler.runtime.LinuxX8664EntryShim;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
@@ -32,6 +33,7 @@ final class ImageCommand {
     }
     return switch (args[1]) {
       case "inspect", "verify" -> capsule(args, out, error);
+      case "runtime-elf-x86-64" -> publishLinuxRuntime(args, out, error);
       case "build-elf" -> buildNative(args, out, error, NativeFormat.ELF);
       case "inspect-elf" -> inspectNative(args, out, error, NativeFormat.ELF);
       case "verify-elf" -> verifyNative(args, out, error, NativeFormat.ELF);
@@ -43,6 +45,19 @@ final class ImageCommand {
       case "verify-pe" -> verifyNative(args, out, error, NativeFormat.PE);
       default -> usage(error);
     };
+  }
+
+  private static int publishLinuxRuntime(
+      String[] args, PrintStream out, PrintStream error) throws IOException {
+    if (args.length != 4 || !args[2].equals("-o")) {
+      return usage(error);
+    }
+    byte[] runtime = LinuxX8664EntryShim.runtimeText();
+    Path output = Path.of(args[3]);
+    PackageProject.writeAtomically(output, runtime);
+    out.println("wrote x86-64 Linux entry shim " + output + " ("
+        + runtime.length + " bytes, " + LinuxX8664EntryShim.runtimeIdentity() + ")");
+    return 0;
   }
 
   private static int capsule(String[] args, PrintStream out, PrintStream error)
@@ -327,6 +342,7 @@ final class ImageCommand {
 
   private static int usage(PrintStream error) {
     error.println("Usage: wheeler image <inspect|verify> <application.capsule>");
+    error.println("   or: wheeler image runtime-elf-x86-64 -o <runtime.bin>");
     error.println("   or: wheeler image <build-elf|build-macho|build-pe> <application.capsule>"
         + " --runtime <runtime.bin> --entry <offset> --plan <plan.yaml>"
         + " --abi <abi.yaml> -o <application>");

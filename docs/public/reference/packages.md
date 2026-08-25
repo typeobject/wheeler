@@ -273,6 +273,7 @@ wheeler package <package-directory> [-o package.wpk]
 wheeler verify <package.wpk>
 wheeler image inspect <application.capsule>
 wheeler image verify <application.capsule>
+wheeler image runtime-elf-x86-64 -o <runtime.bin>
 wheeler image build-elf <application.capsule> --runtime <runtime.bin> --entry <offset> --plan <plan.yaml> --abi <abi.yaml> -o <application>
 wheeler image inspect-elf <application> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image verify-elf <application> --plan <plan.yaml> --abi <abi.yaml>
@@ -321,6 +322,10 @@ canonically re-encodes every WBC, then binds the exact qualified root function.
 Both commands read one bounded physical nonsymlink file. They do not resolve
 packages, follow adjacent files, load providers, extract content, or grant
 capabilities.
+
+`image runtime-elf-x86-64` atomically publishes the maintained 113-byte
+import-free Linux entry shim. It is loader and framing evidence, not a WBC
+runtime.
 
 `image build-elf`, `image build-macho`, and `image build-pe` consume an exact
 capsule, runtime text, canonical native image plan, and canonical platform ABI.
