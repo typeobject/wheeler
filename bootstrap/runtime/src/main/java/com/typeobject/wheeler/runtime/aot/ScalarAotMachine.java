@@ -3,6 +3,7 @@ package com.typeobject.wheeler.runtime.aot;
 import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
+import com.typeobject.wheeler.core.bytecode.ValueType;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -117,8 +118,11 @@ public final class ScalarAotMachine {
           code.storeRax(local(instruction, 0));
         }
         case LOCAL_MOVE -> {
-          code.loadRax(local(instruction, 1));
-          code.storeRax(local(instruction, 0));
+          int destination = local(instruction, 0);
+          if (!function.localType(destination).equals(ValueType.BYTES_BORROW)) {
+            code.loadRax(local(instruction, 1));
+            code.storeRax(destination);
+          }
         }
         case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR,
             LOCAL_ROTR32 -> {
@@ -143,6 +147,9 @@ public final class ScalarAotMachine {
           code.bytes(0x48, 0x85, 0xc0, 0x0f, 0x84);
           branches.add(new MachineBranch(
               code.reserveInt(), Math.toIntExact(instruction.operands().get(1))));
+        }
+        case BYTES_SET, OUTPUT_LENGTH -> {
+          // Constant output is retained in the enclosing entry shim.
         }
         case EXPECT_TRUE -> {
           code.loadRax(local(instruction, 0));

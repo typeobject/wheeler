@@ -33,7 +33,7 @@ public final class LinuxX8664EntryShim {
     Code status = new Code();
     status.bytes(0xbf);
     status.integer(successStatus);
-    return assemble(status.finish());
+    return assemble(status.finish(), SUCCESS_OUTPUT);
   }
 
   static byte[] runtimeText(byte[] processStatusCode) {
@@ -42,7 +42,19 @@ public final class LinuxX8664EntryShim {
         || processStatusCode.length > 4096) {
       throw new IllegalArgumentException("Native process-status code is invalid");
     }
-    return assemble(processStatusCode.clone());
+    return assemble(processStatusCode.clone(), SUCCESS_OUTPUT);
+  }
+
+  static byte[] runtimeText(byte[] processStatusCode, byte[] applicationOutput) {
+    if (processStatusCode == null
+        || processStatusCode.length == 0
+        || processStatusCode.length > 4096
+        || applicationOutput == null
+        || applicationOutput.length == 0
+        || applicationOutput.length > 127) {
+      throw new IllegalArgumentException("Native process code or application output is invalid");
+    }
+    return assemble(processStatusCode.clone(), applicationOutput.clone());
   }
 
   /** SHA-256 identity of the exact runtime text. */
@@ -55,7 +67,7 @@ public final class LinuxX8664EntryShim {
     return SUCCESS_OUTPUT.clone();
   }
 
-  private static byte[] assemble(byte[] processStatusCode) {
+  private static byte[] assemble(byte[] processStatusCode, byte[] applicationOutput) {
     Code code = new Code();
     boolean wideBranches = processStatusCode.length > 64;
     code.bytes(0x48, 0x8d, 0x1d);
@@ -80,10 +92,10 @@ public final class LinuxX8664EntryShim {
     code.bytes(0xbf);
     code.integer(1);
     code.bytes(0xba);
-    code.integer(SUCCESS_OUTPUT.length);
+    code.integer(applicationOutput.length);
     code.bytes(0xb8);
     code.integer(1);
-    code.bytes(0x0f, 0x05, 0x83, 0xf8, SUCCESS_OUTPUT.length);
+    code.bytes(0x0f, 0x05, 0x83, 0xf8, applicationOutput.length);
     int shortWriteJump = code.notEqual(wideBranches);
     code.raw(processStatusCode);
     code.bytes(0xeb);
@@ -97,7 +109,7 @@ public final class LinuxX8664EntryShim {
     code.integer(60);
     code.bytes(0x0f, 0x05);
     int output = code.position();
-    code.raw(SUCCESS_OUTPUT);
+    code.raw(applicationOutput);
 
     code.patchRelativeInt(
         locatorDisplacement,

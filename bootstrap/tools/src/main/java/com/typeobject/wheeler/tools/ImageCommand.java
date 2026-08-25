@@ -83,7 +83,10 @@ final class ImageCommand {
     out.println("wrote x86-64 Linux scalar AOT runtime " + output + " ("
         + lowered.runtimeText().length + " bytes, " + lowered.runtimeIdentity()
         + ", WBC " + lowered.portableArtifact()
-        + ", status " + lowered.processStatus() + ")");
+        + ", status " + lowered.processStatus()
+        + (lowered.writesApplicationOutput()
+            ? ", output " + lowered.applicationOutput().length + " bytes" : "")
+        + ")");
     return 0;
   }
 

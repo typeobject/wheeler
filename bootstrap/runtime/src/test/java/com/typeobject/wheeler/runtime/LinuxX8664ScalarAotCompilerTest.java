@@ -50,6 +50,8 @@ final class LinuxX8664ScalarAotCompilerTest {
 
     assertEquals(identity(artifact), first.portableArtifact());
     assertEquals(42, first.processStatus());
+    assertFalse(first.writesApplicationOutput());
+    assertThrows(IllegalStateException.class, first::applicationOutput);
     assertArrayEquals(first.runtimeText(), second.runtimeText());
     assertNotEquals(
         identity(LinuxX8664EntryShim.runtimeText()),
@@ -211,8 +213,48 @@ final class LinuxX8664ScalarAotCompilerTest {
   }
 
   @Test
+  void lowersBoundedApplicationOutput() {
+    byte[] message = "Native Wheeler\n".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+    var lowered = LinuxX8664ScalarAotCompiler.lower(outputArtifact(message));
+    var changed = LinuxX8664ScalarAotCompiler.lower(outputArtifact(
+        "Native wheeler\n".getBytes(java.nio.charset.StandardCharsets.US_ASCII)));
+
+    assertEquals(73, lowered.processStatus());
+    assertTrue(lowered.writesApplicationOutput());
+    assertArrayEquals(message, lowered.applicationOutput());
+    assertNotEquals(lowered.runtimeIdentity(), changed.runtimeIdentity());
+    byte[] returned = lowered.applicationOutput();
+    returned[0] ^= 1;
+    assertArrayEquals(message, lowered.applicationOutput());
+    assertEquals(
+        127,
+        LinuxX8664ScalarAotCompiler.lower(zeroOutputArtifact(127))
+            .applicationOutput().length);
+    assertEquals(
+        1,
+        LinuxX8664ScalarAotCompiler.lower(zeroOutputArtifact(1, 64))
+            .applicationOutput().length);
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(zeroOutputArtifact(0)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(zeroOutputArtifact(128)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(zeroOutputArtifact(1, 65)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(invalidOutputWriteArtifact(127, 1)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(invalidOutputWriteArtifact(0, 256)));
+  }
+
+  @Test
   void buildsAndLaunchesOneAotCapsuleImage() throws Exception {
-    byte[] artifact = allOperationsArtifact();
+    byte[] artifact = outputArtifact(
+        "Native Wheeler\n".getBytes(java.nio.charset.StandardCharsets.US_ASCII));
     LinuxX8664ScalarAotCompiler.LoweredRuntime lowered =
         LinuxX8664ScalarAotCompiler.lower(artifact);
     Fixture fixture = fixture(artifact, lowered.runtimeText());
@@ -234,7 +276,7 @@ final class LinuxX8664ScalarAotCompilerTest {
       assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
       assertEquals(73, process.exitValue());
       assertArrayEquals(
-          LinuxX8664EntryShim.successOutput(),
+          lowered.applicationOutput(),
           process.getInputStream().readAllBytes());
       assertEquals(0, process.getErrorStream().readAllBytes().length);
     }
@@ -285,6 +327,96 @@ final class LinuxX8664ScalarAotCompilerTest {
                 Instruction.of(Opcode.HALT)),
             List.of())));
     return new BytecodeWriter().write(program);
+  }
+
+  private static byte[] outputArtifact(byte[] output) {
+    List<Instruction> instructions = new java.util.ArrayList<>();
+    instructions.add(Instruction.of(Opcode.LOCAL_MOVE, 1, 0));
+    for (int index = 0; index < output.length; index++) {
+      instructions.add(Instruction.of(Opcode.LOCAL_CONST, 2, index));
+      instructions.add(Instruction.of(Opcode.LOCAL_CONST, 3, output[index] & 0xff));
+      instructions.add(Instruction.of(Opcode.BYTES_SET, 1, 2, 3));
+    }
+    instructions.add(Instruction.of(Opcode.LOCAL_CONST, 4, output.length));
+    instructions.add(Instruction.of(Opcode.OUTPUT_LENGTH, 1, 4));
+    instructions.add(Instruction.of(Opcode.LOCAL_CONST, 5, 73));
+    instructions.add(Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 5));
+    instructions.add(Instruction.of(Opcode.HALT));
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-output",
+        0,
+        List.of(new Global("status", 0)),
+        List.of(new FunctionBody(
+            0,
+            "example.app::main",
+            false,
+            1,
+            List.of(
+                ValueType.BYTES_BORROW,
+                ValueType.BYTES_BORROW,
+                ValueType.SIGNED,
+                ValueType.SIGNED,
+                ValueType.SIGNED,
+                ValueType.SIGNED),
+            null,
+            instructions,
+            List.of()))));
+  }
+
+  private static byte[] zeroOutputArtifact(long length) {
+    return zeroOutputArtifact(length, 3);
+  }
+
+  private static byte[] zeroOutputArtifact(long length, int localCount) {
+    List<ValueType> localTypes = new java.util.ArrayList<>(
+        java.util.Collections.nCopies(localCount, ValueType.SIGNED));
+    localTypes.set(0, ValueType.BYTES_BORROW);
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-zero-output",
+        0,
+        List.of(new Global("status", 0)),
+        List.of(new FunctionBody(
+            0,
+            "example.app::main",
+            false,
+            1,
+            localTypes,
+            null,
+            List.of(
+                Instruction.of(Opcode.LOCAL_CONST, 1, length),
+                Instruction.of(Opcode.OUTPUT_LENGTH, 0, 1),
+                Instruction.of(Opcode.LOCAL_CONST, 2, 73),
+                Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 2),
+                Instruction.of(Opcode.HALT)),
+            List.of()))));
+  }
+
+  private static byte[] invalidOutputWriteArtifact(long index, long value) {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-invalid-output",
+        0,
+        List.of(new Global("status", 0)),
+        List.of(new FunctionBody(
+            0,
+            "example.app::main",
+            false,
+            1,
+            List.of(
+                ValueType.BYTES_BORROW,
+                ValueType.SIGNED,
+                ValueType.SIGNED,
+                ValueType.SIGNED),
+            null,
+            List.of(
+                Instruction.of(Opcode.LOCAL_CONST, 1, index),
+                Instruction.of(Opcode.LOCAL_CONST, 2, value),
+                Instruction.of(Opcode.BYTES_SET, 0, 1, 2),
+                Instruction.of(Opcode.LOCAL_CONST, 1, 1),
+                Instruction.of(Opcode.OUTPUT_LENGTH, 0, 1),
+                Instruction.of(Opcode.LOCAL_CONST, 3, 73),
+                Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 3),
+                Instruction.of(Opcode.HALT)),
+            List.of()))));
   }
 
   private static byte[] voidHelperArtifact(long value) {

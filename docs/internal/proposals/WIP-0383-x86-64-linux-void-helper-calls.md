@@ -15,7 +15,7 @@
 
 The x86-64 Linux scalar AOT leaf lowers parameterized void helpers. `CALL_VOID` passes zero through six exact signed or Boolean arguments to one prior helper. The helper terminates with `RETURN`, carries no result local back, and returns only execution-trap state.
 
-Void helpers provide a native assertion and validation boundary without granting global state or host effects. They do not admit output, storage mutation, ownership transfer, imported functions, result slots, inverse calls, or recursion.
+WIP-0384 adds output ownership to entry without granting it to helpers. Void helpers provide a native assertion and validation boundary without granting global state or host effects. They do not admit output, storage mutation, ownership transfer, imported functions, result slots, inverse calls, or recursion.
 
 ## Accepted void helpers
 
@@ -118,3 +118,4 @@ Rejected. The native call, frame, assertion, return, and trap-check boundaries a
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0382](WIP-0382-x86-64-linux-scalar-state-checks.md)
+- [WIP-0384](WIP-0384-x86-64-linux-constant-byte-output.md)

@@ -26,10 +26,15 @@ public final class LinuxX8664ScalarAotCompiler {
       throw new IllegalArgumentException("AOT input WBC is not canonical");
     }
     ScalarAotProgram scalar = ScalarAotProgram.validate(program);
+    byte[] machineCode = ScalarAotMachine.lower(scalar);
+    byte[] runtimeText = scalar.writesApplicationOutput()
+        ? LinuxX8664EntryShim.runtimeText(machineCode, scalar.applicationOutput())
+        : LinuxX8664EntryShim.runtimeText(machineCode);
     return new LoweredRuntime(
         identity(artifact),
         scalar.processStatus(),
-        LinuxX8664EntryShim.runtimeText(ScalarAotMachine.lower(scalar)));
+        scalar.writesApplicationOutput() ? scalar.applicationOutput() : null,
+        runtimeText);
   }
 
   private static String identity(byte[] bytes) {
@@ -44,15 +49,18 @@ public final class LinuxX8664ScalarAotCompiler {
   public static final class LoweredRuntime {
     private final String portableArtifact;
     private final int processStatus;
+    private final byte[] applicationOutput;
     private final byte[] runtimeText;
     private final String runtimeIdentity;
 
     private LoweredRuntime(
         String portableArtifact,
         int processStatus,
+        byte[] applicationOutput,
         byte[] runtimeText) {
       this.portableArtifact = portableArtifact;
       this.processStatus = processStatus;
+      this.applicationOutput = applicationOutput == null ? null : applicationOutput.clone();
       this.runtimeText = runtimeText.clone();
       this.runtimeIdentity = identity(runtimeText);
     }
@@ -63,6 +71,17 @@ public final class LinuxX8664ScalarAotCompiler {
 
     public int processStatus() {
       return processStatus;
+    }
+
+    public boolean writesApplicationOutput() {
+      return applicationOutput != null;
+    }
+
+    public byte[] applicationOutput() {
+      if (applicationOutput == null) {
+        throw new IllegalStateException("Lowered runtime has no application output");
+      }
+      return applicationOutput.clone();
     }
 
     public byte[] runtimeText() {

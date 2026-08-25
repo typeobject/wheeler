@@ -133,10 +133,13 @@ zero-initialized `status` global, one to eight dense functions, bounded constant
 arithmetic, bitwise and 32-bit rotate operations, comparisons, assertions,
 status reads, forward branches and 255-iteration checked loops, prior
 signed-result or void helper calls with up to six exact signed or Boolean
-arguments, status stores, returns, and halt. Computed values 0 through 124 become distinct x86-64 Linux process
+arguments, status stores, returns, and halt. An output-bearing entry may retain
+up to 127 constant application bytes and 64 locals. Other entries retain 32
+locals. Computed values 0 through 124 become distinct x86-64 Linux process
 statuses. Unsupported
-programs reject without projection or fallback. The status-73 fixture launches as
-a complete AOT ELF, but general bytecode execution and in-process verification
+programs reject without projection or fallback. Output-bearing AOT replaces the
+fixed loader probe with exact source-declared bytes. The status-73 fixture launches
+as a complete AOT ELF, but general bytecode execution and in-process verification
 remain.
 
 ## Deriving the profile and graph

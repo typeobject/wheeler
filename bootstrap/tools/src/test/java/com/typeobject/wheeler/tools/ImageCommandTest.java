@@ -77,7 +77,7 @@ final class ImageCommandTest {
                 assert(value == 73);
               }
 
-              entry void main() {
+              entry void main(borrow mut bytes output) {
                 status = 70;
                 long seed = status;
                 long result = code(seed, 0);
@@ -85,6 +85,14 @@ final class ImageCommandTest {
                   result += 1;
                 }
                 check(result);
+                setByte(output, 0, 78);
+                setByte(output, 1, 97);
+                setByte(output, 2, 116);
+                setByte(output, 3, 105);
+                setByte(output, 4, 118);
+                setByte(output, 5, 101);
+                setByte(output, 6, 10);
+                setOutputLength(output, 7);
                 status = result;
               }
             }
@@ -99,6 +107,7 @@ final class ImageCommandTest {
     assertEquals(0, lowering.status());
     assertTrue(lowering.output().contains(identity(artifact)));
     assertTrue(lowering.output().contains("status 73"));
+    assertTrue(lowering.output().contains("output 7 bytes"));
 
     PlatformAbi abi = platformAbi();
     ApplicationCapsule capsule = nativeCapsule(
@@ -138,7 +147,7 @@ final class ImageCommandTest {
       assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
       assertEquals(73, process.exitValue());
       assertArrayEquals(
-          LinuxX8664EntryShim.successOutput(),
+          "Native\n".getBytes(StandardCharsets.US_ASCII),
           process.getInputStream().readAllBytes());
       assertEquals(0, process.getErrorStream().readAllBytes().length);
     }

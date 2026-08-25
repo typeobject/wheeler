@@ -12,16 +12,20 @@ public final class ScalarAotProgram {
   public static final int MAX_FUNCTIONS = 8;
   public static final int MAX_PARAMETERS = 6;
   public static final int MAX_LOCALS = 32;
+  public static final int MAX_OUTPUT_LOCALS = 64;
   public static final int MAX_INSTRUCTIONS = 128;
   public static final int MAX_LOOP_ITERATIONS = 255;
+  public static final int MAX_OUTPUT_BYTES = 127;
   private static final int MAX_EVALUATED_INSTRUCTIONS = 65_536;
 
   private final Program program;
   private final int processStatus;
+  private final byte[] applicationOutput;
 
-  private ScalarAotProgram(Program program, int processStatus) {
+  private ScalarAotProgram(Program program, int processStatus, byte[] applicationOutput) {
     this.program = program;
     this.processStatus = processStatus;
+    this.applicationOutput = applicationOutput == null ? null : applicationOutput.clone();
   }
 
   /** Validates and independently evaluates one decoded program without projection. */
@@ -30,13 +34,25 @@ public final class ScalarAotProgram {
     for (FunctionBody function : program.functions()) {
       validateFunction(program, function);
     }
-    Evaluation evaluation = evaluate(program, program.entryFunctionId(), new long[0]);
+    FunctionBody entry = program.function(program.entryFunctionId());
+    OutputState output = new OutputState();
+    long[] arguments = entry.parameterCount() == 0 ? new long[0] : new long[] {1};
+    Evaluation evaluation = evaluate(
+        program, program.entryFunctionId(), arguments, output);
     if (!evaluation.stored()
         || evaluation.value() < 0
         || evaluation.value() > 124) {
       throw new IllegalArgumentException("AOT process status must be between 0 and 124");
     }
-    return new ScalarAotProgram(program, Math.toIntExact(evaluation.value()));
+    byte[] applicationOutput = null;
+    if (entry.parameterCount() == 1) {
+      if (output.length < 0) {
+        throw new IllegalArgumentException("Scalar AOT output length was not committed");
+      }
+      applicationOutput = java.util.Arrays.copyOf(output.bytes, output.length);
+    }
+    return new ScalarAotProgram(
+        program, Math.toIntExact(evaluation.value()), applicationOutput);
   }
 
   public Program program() {
@@ -49,6 +65,17 @@ public final class ScalarAotProgram {
 
   public int processStatus() {
     return processStatus;
+  }
+
+  public boolean writesApplicationOutput() {
+    return applicationOutput != null;
+  }
+
+  public byte[] applicationOutput() {
+    if (applicationOutput == null) {
+      throw new IllegalStateException("Scalar AOT program has no application output");
+    }
+    return applicationOutput.clone();
   }
 
   private static void requireProgramShape(Program program) {
@@ -80,12 +107,15 @@ public final class ScalarAotProgram {
   private static void validateFunction(Program program, FunctionBody function) {
     boolean entry = function.id() == program.entryFunctionId();
     if (function.coherent()
-        || function.parameterCount() > MAX_PARAMETERS
-        || entry && function.parameterCount() != 0
+        || entry && !validEntryParameters(function)
+        || !entry && function.parameterCount() > MAX_PARAMETERS
         || function.localCount() == 0
-        || function.localCount() > MAX_LOCALS
+        || function.localCount() > (entry && function.parameterCount() == 1
+            ? MAX_OUTPUT_LOCALS : MAX_LOCALS)
         || function.localTypes().stream().anyMatch(type ->
-            !type.equals(ValueType.SIGNED) && !type.equals(ValueType.BOOLEAN))
+            !type.equals(ValueType.SIGNED)
+                && !type.equals(ValueType.BOOLEAN)
+                && !(entry && type.equals(ValueType.BYTES_BORROW)))
         || function.implicitResultSlot()
         || !function.inverse().isEmpty()
         || function.forward().size() < 2
@@ -116,6 +146,8 @@ public final class ScalarAotProgram {
           branchTarget(function, instruction.operands().get(1), pc, last);
         }
         case LOCAL_LOOP_CHECK -> validateLoopCheck(function, instruction, pc);
+        case BYTES_SET -> validateOutputWrite(function, instruction, entry);
+        case OUTPUT_LENGTH -> validateOutputLength(function, instruction, entry);
         case EXPECT_TRUE -> {
           requireOperands(instruction, 1);
           int condition = local(instruction.operands().get(0), function.localCount());
@@ -168,11 +200,45 @@ public final class ScalarAotProgram {
     }
   }
 
+  private static boolean validEntryParameters(FunctionBody function) {
+    return function.parameterCount() == 0
+        || function.parameterCount() == 1
+            && function.localType(0).equals(ValueType.BYTES_BORROW);
+  }
+
   private static void validateUnary(FunctionBody function, Instruction instruction) {
     requireOperands(instruction, 2);
     local(instruction.operands().get(0), function.localCount());
     if (instruction.opcode() == Opcode.LOCAL_MOVE) {
       local(instruction.operands().get(1), function.localCount());
+    }
+  }
+
+  private static void validateOutputWrite(
+      FunctionBody function, Instruction instruction, boolean entry) {
+    requireOperands(instruction, 3);
+    int owner = local(instruction.operands().get(0), function.localCount());
+    int index = local(instruction.operands().get(1), function.localCount());
+    int value = local(instruction.operands().get(2), function.localCount());
+    if (!entry
+        || function.parameterCount() != 1
+        || !function.localType(owner).equals(ValueType.BYTES_BORROW)
+        || !function.localType(index).equals(ValueType.SIGNED)
+        || !function.localType(value).equals(ValueType.SIGNED)) {
+      throw new IllegalArgumentException("Scalar AOT byte output write is invalid");
+    }
+  }
+
+  private static void validateOutputLength(
+      FunctionBody function, Instruction instruction, boolean entry) {
+    requireOperands(instruction, 2);
+    int owner = local(instruction.operands().get(0), function.localCount());
+    int length = local(instruction.operands().get(1), function.localCount());
+    if (!entry
+        || function.parameterCount() != 1
+        || !function.localType(owner).equals(ValueType.BYTES_BORROW)
+        || !function.localType(length).equals(ValueType.SIGNED)) {
+      throw new IllegalArgumentException("Scalar AOT output length is invalid");
     }
   }
 
@@ -281,7 +347,10 @@ public final class ScalarAotProgram {
   }
 
   private static Evaluation evaluate(
-      Program program, int functionId, long[] arguments) {
+      Program program,
+      int functionId,
+      long[] arguments,
+      OutputState output) {
     FunctionBody function = program.function(functionId);
     long[] values = new long[function.localCount()];
     boolean[] assigned = new boolean[function.localCount()];
@@ -347,6 +416,32 @@ public final class ScalarAotProgram {
             values[iteration] = Math.addExact(values[iteration], 1);
             pc++;
           }
+          case BYTES_SET -> {
+            int owner = assignedLocal(instruction, 0, assigned);
+            int index = assignedLocal(instruction, 1, assigned);
+            int value = assignedLocal(instruction, 2, assigned);
+            if (values[owner] != 1
+                || values[index] < 0
+                || values[index] >= MAX_OUTPUT_BYTES
+                || values[value] < 0
+                || values[value] > 255) {
+              throw new ArithmeticException("Scalar AOT byte output write is out of range");
+            }
+            output.bytes[Math.toIntExact(values[index])] = (byte) values[value];
+            pc++;
+          }
+          case OUTPUT_LENGTH -> {
+            int owner = assignedLocal(instruction, 0, assigned);
+            int length = assignedLocal(instruction, 1, assigned);
+            if (values[owner] != 1
+                || values[length] < 1
+                || values[length] > MAX_OUTPUT_BYTES
+                || output.length >= 0) {
+              throw new ArithmeticException("Scalar AOT output length is invalid");
+            }
+            output.length = Math.toIntExact(values[length]);
+            pc++;
+          }
           case EXPECT_TRUE -> {
             if (values[assignedLocal(instruction, 0, assigned)] == 0) {
               throw new ArithmeticException("Scalar AOT assertion failed");
@@ -367,7 +462,8 @@ public final class ScalarAotProgram {
             Evaluation result = evaluate(
                 program,
                 Math.toIntExact(instruction.operands().get(0)),
-                callArguments);
+                callArguments,
+                output);
             if (instruction.opcode() == Opcode.CALL_VALUE) {
               int destination = destination(instruction, 3, assigned);
               values[destination] = result.value();
@@ -472,4 +568,9 @@ public final class ScalarAotProgram {
   }
 
   private record Evaluation(long value, boolean stored) {}
+
+  private static final class OutputState {
+    private final byte[] bytes = new byte[MAX_OUTPUT_BYTES];
+    private int length = -1;
+  }
 }
