@@ -17,7 +17,9 @@ import com.typeobject.wheeler.examples.NativeTestRunnerInput.NamedArtifact;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 /** Canonical report evidence for source compiled by the native test runner. */
 final class NativeCompiledTestRunnerExampleTest {
@@ -739,6 +741,7 @@ final class NativeCompiledTestRunnerExampleTest {
   }
 
   @Test
+  @Timeout(value = 3, unit = TimeUnit.MINUTES)
   void executesTwoHundredFiftyFiveDiscoveredCases() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
     byte[] executedReport = execute(runner, discoveredTests(255));
