@@ -47,7 +47,7 @@ The machine-code shape remains the canonical four-local, seven-instruction equal
 
 ## Manifest profile
 
-`ClosureManifestSyntax.profileByte` now uses ordered early returns. ASCII letters and digits return literal verdicts. Hyphen, dot, and underscore return `allowPunctuation`. Bytes outside the profile return the caller's `valid` fallback.
+`BootstrapManifestProfile.profileByte` uses ordered early returns. ASCII letters and digits return literal verdicts. Hyphen, dot, and underscore return `allowPunctuation`. Bytes outside the profile return the caller's `valid` fallback.
 
 The rewrite is equivalent to the former chain of assignments inside a one-iteration loop. It removes dead loop state and gives every policy exit an explicit source form. Existing bootstrap-manifest and compiler-options identity tests retain the complete accepted and rejected transport behavior.
 
@@ -67,7 +67,7 @@ A failed resolution emits no artifact. The compiler does not reinterpret a signe
 
 ## Evidence
 
-`NativeCompilerConditionalSourceExampleTest.compilesBooleanLocalEqualityReturnsByteForByte` compiles the complete profile-byte decision chain through the physical Wheeler recovery compiler and compares the artifact byte for byte with stage 0. Replacing the Boolean result with the signed guard source rejects before publication.
+`NativeCompilerConditionalSourceExampleTest.compilesBooleanLocalEqualityReturnsByteForByte` compiles the complete profile-byte decision chain through the Wheeler recovery compiler and compares the artifact byte for byte with stage 0. WIP-0392 moves those exact production bytes into a focused physical owner. Replacing the Boolean result with the signed guard source rejects before publication.
 
 `NativeBootstrapManifestIdentityExampleTest` and `NativeCompilerOptionsIdentityExampleTest` execute the rewritten canonical classifier through valid and invalid metadata transports. The focused early-return source, result-kind, comparison-kind, operand, type, and code-generation suites remain byte-identical.
 
@@ -100,3 +100,4 @@ Rejected. Less-than Boolean-local returns and helper-call variants need their ow
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0343](WIP-0343-native-compiler-resolved-early-comparison-suite.md)
 - [WIP-0344](WIP-0344-native-compiler-resolved-early-result-suite.md)
+- [WIP-0392](WIP-0392-physical-bootstrap-profile-classifier.md)

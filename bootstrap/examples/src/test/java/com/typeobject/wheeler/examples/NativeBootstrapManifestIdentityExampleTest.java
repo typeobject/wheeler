@@ -85,6 +85,8 @@ final class NativeBootstrapManifestIdentityExampleTest {
         Map.of(
             "NativeBootstrapManifestIdentity.w",
             Files.readString(ROOT.resolve("NativeBootstrapManifestIdentity.w")),
+            "ManifestProfile.w",
+                CompilerSources.read("compiler/closure/syntax/ManifestProfile.w"),
             "ManifestSyntax.w", CompilerSources.read("compiler/closure/ManifestSyntax.w"),
             "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
