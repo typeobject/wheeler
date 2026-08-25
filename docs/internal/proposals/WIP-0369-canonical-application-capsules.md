@@ -137,7 +137,7 @@ Capsule verification does not establish that a WBC is well-formed, that proof da
 
 `ApplicationCapsuleTest` fixes the canonical fixture bytes, lengths, identity, root, receipts, ordering, and alignments. It mutates header, reserved space, UTF-8, padding, entry bytes, startup flags, and trailing bytes independently. It checks identity sensitivity for runtime mode, package PREV, and resource content.
 
-The same suite admits exactly 128 entries and 64 package receipts, round-trips that terminal profile, and rejects entry 129 and receipt 65. It also rejects duplicate paths and package instances, missing roots, parent paths, non-power-of-two alignment, startup resources, and unordered capabilities.
+The same suite admits exactly 128 entries and 64 package receipts, round-trips that terminal profile, and rejects entry 129 and receipt 65. It also rejects duplicate paths and package instances, missing roots, parent paths, unpaired Unicode surrogates, non-power-of-two alignment, startup resources, and unordered capabilities.
 
 `ApplicationCapsuleExampleTest` builds one root WBC and immutable resource, verifies the capsule without adjacent files, and binds its computed identity into a native image plan.
 
@@ -181,3 +181,4 @@ Rejected. Framing owns byte integrity. The bytecode verifier owns executable sem
 - [WIP-0023](WIP-0023-recipe-repositories-and-reproducible-builds.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0368](WIP-0368-platform-abi-and-native-image-identities.md)
+- [WIP-0370](WIP-0370-application-capsule-inspection.md)

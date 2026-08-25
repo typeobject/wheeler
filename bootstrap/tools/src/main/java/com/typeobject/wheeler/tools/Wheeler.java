@@ -75,6 +75,7 @@ public final class Wheeler {
       case "publish" -> publish(args, out, error);
       case "fetch" -> fetch(args, out, error);
       case "repository" -> RepositoryCommand.execute(args, out, error);
+      case "image" -> ImageCommand.execute(args, out, error);
       case "plan" -> plan(args, out, error);
       case "verify-plan" -> verifyPlan(args, out, error);
       case "execute-plan" -> executePlan(args, out, error);
@@ -736,7 +737,7 @@ public final class Wheeler {
   private static void usage(PrintStream error) {
     error.println(
         "Usage: wheeler <run|compile|check|check-docs|docs|site|format|build|cache|test|clean|package|verify|resolve|verify-lock|vendor|"
-            + "publish|fetch|repository|plan|verify-plan|execute-plan|manifest-artifacts|"
+            + "publish|fetch|repository|image|plan|verify-plan|execute-plan|manifest-artifacts|"
             + "bootstrap-features|bootstrap-modules|bootstrap-manifest|disassemble|qasm> ...");
   }
 }

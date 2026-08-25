@@ -1,6 +1,7 @@
 // Java stage-0 runtime oracle layered strictly above canonical core semantics.
 dependencies {
     implementation project(':core')
+    implementation project(':package')
 }
 
 def wheelerRoot = new File(rootProject.repositoryRoot, 'wheeler-runtime')

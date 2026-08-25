@@ -72,7 +72,15 @@ identity, checked absolute range, power-of-two alignment, and fixed flags. The
 sole startup flag belongs to the root WBC. Padding is zero, the transport is
 consumed exactly, and SHA-256 of the complete canonical bytes is the capsule
 identity. Schema 1 admits at most 128 entries, 64 receipts, 32 capabilities, and
-32 MiB in total. No native backend or recovery image ships yet.
+32 MiB in total.
+
+`wheeler image inspect <application.capsule>` verifies this framing and renders
+root, profile, receipt, and entry metadata without execution. `wheeler image
+verify <application.capsule>` additionally verifies and canonically re-encodes
+every WBC, then requires the startup WBC's entry function to match the root
+exactly. Both commands consume one bounded physical file and perform no package
+resolution, adjacent lookup, extraction, provider loading, or capability grant.
+No native backend or recovery image ships yet.
 
 ## Deriving the profile and graph
 

@@ -182,6 +182,10 @@ final class ApplicationCapsuleTest {
             CapsuleEntry.STARTUP, wbcBytes()));
     assertThrows(
         PackageFormatException.class,
+        () -> new CapsuleEntry(CapsuleEntry.Kind.RESOURCE, "resources/\ud800", 1,
+            0, resourceBytes()));
+    assertThrows(
+        PackageFormatException.class,
         () -> new CapsuleEntry(CapsuleEntry.Kind.WBC, "bin/app.wbc", 3,
             CapsuleEntry.STARTUP, wbcBytes()));
     assertThrows(

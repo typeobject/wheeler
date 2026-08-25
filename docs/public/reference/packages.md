@@ -271,6 +271,8 @@ wheeler clean <package-or-workspace-directory>
 wheeler cache gc
 wheeler package <package-directory> [-o package.wpk]
 wheeler verify <package.wpk>
+wheeler image inspect <application.capsule>
+wheeler image verify <application.capsule>
 wheeler resolve <package-directory> [--repository <alias> ... | --catalog <archive-directory>] [-o wheeler.package.lock.yaml] [--development] [--update <package> ... | --update-all]
 wheeler verify-lock <wheeler.package.lock.yaml>
 wheeler vendor <wheeler.package.lock.yaml> --catalog <archive-directory> -o <vendor-directory>
@@ -303,6 +305,13 @@ contains no links or unexpected file kinds.
 binary view. `--output <file> --output-bytes <count>` supplies a zero-filled owner
 and publishes the selected prefix only after success. Each effect path must be a
 physical nonsymlink file and must agree with the entry signature.
+
+`image inspect` verifies complete capsule framing and renders deterministic JSON
+without executing entries. `image verify` additionally parses, verifies, and
+canonically re-encodes every WBC, then binds the exact qualified root function.
+Both commands read one bounded physical nonsymlink file. They do not resolve
+packages, follow adjacent files, load providers, extract content, or grant
+capabilities.
 
 Atomic replacement controls which complete userspace tree becomes visible. It
 alone does not prove survival through power loss.
@@ -351,9 +360,10 @@ transitive source remains unavailable. There is no process-wide classpath.
 ## Present boundary
 
 The accepted package graph is source-package based and uses one selected instance
-of each package name. Coexisting instances, complete recipe revisions, variants,
-system-package exports, native FFI providers, network mirrors, and self-contained
-platform images have no accepted schema fields.
+of each package name. Application capsules and native image plans now have bounded
+stage-0 schemas and nonexecuting inspection, but no platform-native image is built
+or started. Coexisting package instances, complete recipe revisions, system-package
+exports, native FFI providers, network mirrors, and executable image output remain.
 
 Credentials, environment variables, home paths, clocks, mutable calibration, and
 provider sessions never enter canonical manifests or archives. Content identity

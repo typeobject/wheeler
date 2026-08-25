@@ -1,5 +1,8 @@
 package com.typeobject.wheeler.packageformat;
 
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -86,8 +89,18 @@ public record CapsuleRoot(
   }
 
   private static void requireBytes(String value, String description) {
-    if (value.getBytes(StandardCharsets.UTF_8).length > MAX_NAME_BYTES) {
-      throw new PackageFormatException("Oversized capsule " + description);
+    try {
+      int bytes = StandardCharsets.UTF_8.newEncoder()
+          .onMalformedInput(CodingErrorAction.REPORT)
+          .onUnmappableCharacter(CodingErrorAction.REPORT)
+          .encode(CharBuffer.wrap(value))
+          .remaining();
+      if (bytes > MAX_NAME_BYTES) {
+        throw new PackageFormatException("Oversized capsule " + description);
+      }
+    } catch (CharacterCodingException exception) {
+      throw new PackageFormatException(
+          "Capsule " + description + " is not Unicode scalar text", exception);
     }
   }
 }
