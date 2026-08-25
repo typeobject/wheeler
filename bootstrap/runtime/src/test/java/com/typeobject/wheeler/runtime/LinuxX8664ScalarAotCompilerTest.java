@@ -176,6 +176,16 @@ final class LinuxX8664ScalarAotCompilerTest {
   }
 
   @Test
+  void lowersParameterizedVoidHelperChecks() {
+    var lowered = LinuxX8664ScalarAotCompiler.lower(voidHelperArtifact(73));
+
+    assertEquals(73, lowered.processStatus());
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(voidHelperArtifact(72)));
+  }
+
+  @Test
   void rejectsProgramsOutsideTheClosedAotProfile() {
     assertThrows(
         IllegalArgumentException.class,
@@ -275,6 +285,40 @@ final class LinuxX8664ScalarAotCompilerTest {
                 Instruction.of(Opcode.HALT)),
             List.of())));
     return new BytecodeWriter().write(program);
+  }
+
+  private static byte[] voidHelperArtifact(long value) {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-void-helper",
+        1,
+        List.of(new Global("status", 0)),
+        List.of(
+            new FunctionBody(
+                0,
+                "example.app::check",
+                false,
+                1,
+                List.of(ValueType.SIGNED, ValueType.SIGNED, ValueType.BOOLEAN),
+                null,
+                List.of(
+                    Instruction.of(Opcode.LOCAL_CONST, 1, 73),
+                    Instruction.of(Opcode.LOCAL_EQ, 2, 0, 1),
+                    Instruction.of(Opcode.EXPECT_TRUE, 2),
+                    Instruction.of(Opcode.RETURN)),
+                List.of()),
+            new FunctionBody(
+                1,
+                "example.app::main",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                null,
+                List.of(
+                    Instruction.of(Opcode.LOCAL_CONST, 0, value),
+                    Instruction.of(Opcode.CALL_VOID, 0, 0, 1),
+                    Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
+                    Instruction.of(Opcode.HALT)),
+                List.of()))));
   }
 
   private static byte[] stateCheckArtifact(long expected) {

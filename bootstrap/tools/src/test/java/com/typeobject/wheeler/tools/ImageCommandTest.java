@@ -73,6 +73,10 @@ final class ImageCommandTest {
                 return left + right;
               }
 
+              void check(long value) {
+                assert(value == 73);
+              }
+
               entry void main() {
                 status = 70;
                 long seed = status;
@@ -80,7 +84,7 @@ final class ImageCommandTest {
                 while (result < 73) limit 3 {
                   result += 1;
                 }
-                assert(result == 73);
+                check(result);
                 status = result;
               }
             }

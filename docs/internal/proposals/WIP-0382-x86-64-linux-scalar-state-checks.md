@@ -15,7 +15,7 @@
 
 The x86-64 Linux scalar AOT leaf reads its bounded status state, enforces canonical Boolean assertions, lowers 32-bit rotate-right, and accepts semantic no-ops. Process status 126 is the common execution trap for arithmetic overflow, invalid loop state, propagated helper failure, assertion failure, and final status range failure.
 
-This WIP does not add general globals, history, rollback, reversible effects, external input, or assertion diagnostics. The sole state cell remains signed `status`, initialized to zero and owned by entry.
+WIP-0383 uses this assertion boundary in parameterized void helpers. This WIP does not add general globals, history, rollback, reversible effects, external input, or assertion diagnostics. The sole state cell remains signed `status`, initialized to zero and owned by entry.
 
 ## Accepted instructions
 
@@ -114,3 +114,4 @@ Rejected. Assertions and loop checks made that name false. One execution-trap id
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0381](WIP-0381-x86-64-linux-bounded-scalar-loops.md)
+- [WIP-0383](WIP-0383-x86-64-linux-void-helper-calls.md)

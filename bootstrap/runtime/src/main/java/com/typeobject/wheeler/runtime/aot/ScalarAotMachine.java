@@ -77,7 +77,11 @@ public final class ScalarAotMachine {
     FunctionPatches patches = emitBody(code, helper, -1, calls);
 
     Instruction returned = helper.forward().getLast();
-    code.loadRax(Math.toIntExact(returned.operands().get(0)));
+    if (returned.opcode() == Opcode.RETURN_VALUE) {
+      code.loadRax(Math.toIntExact(returned.operands().get(0)));
+    } else {
+      code.bytes(0x31, 0xc0);
+    }
     code.bytes(0x31, 0xd2);
     code.stack(frameBytes);
     code.bytes(0xc3);
@@ -151,7 +155,7 @@ public final class ScalarAotMachine {
           code.loopCheck(traps);
           code.storeRax(local(instruction, 0));
         }
-        case CALL_VALUE -> {
+        case CALL_VALUE, CALL_VOID -> {
           int argumentBase = Math.toIntExact(instruction.operands().get(1));
           int argumentCount = Math.toIntExact(instruction.operands().get(2));
           for (int argument = 0; argument < argumentCount; argument++) {
@@ -162,13 +166,15 @@ public final class ScalarAotMachine {
               code.reserveInt(), Math.toIntExact(instruction.operands().get(0))));
           code.bytes(0x48, 0x85, 0xd2, 0x0f, 0x85);
           traps.add(code.reserveInt());
-          code.storeRax(local(instruction, 3));
+          if (instruction.opcode() == Opcode.CALL_VALUE) {
+            code.storeRax(local(instruction, 3));
+          }
         }
         case LOCAL_STORE_GLOBAL -> {
           code.loadRax(local(instruction, 1));
           code.storeRax(globalSlot);
         }
-        case RETURN_VALUE, HALT -> {
+        case RETURN, RETURN_VALUE, HALT -> {
           // The function epilogue owns its terminal instruction.
         }
         default -> throw new IllegalStateException("Validated scalar AOT opcode changed");

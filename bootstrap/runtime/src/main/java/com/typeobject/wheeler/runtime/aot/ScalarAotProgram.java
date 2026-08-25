@@ -90,8 +90,9 @@ public final class ScalarAotProgram {
         || !function.inverse().isEmpty()
         || function.forward().size() < 2
         || function.forward().size() > MAX_INSTRUCTIONS
-        || entry != (function.resultType() == null)
-        || !entry && !function.resultType().equals(ValueType.SIGNED)) {
+        || entry && function.resultType() != null
+        || !entry && function.resultType() != null
+            && !function.resultType().equals(ValueType.SIGNED)) {
       throw new IllegalArgumentException("AOT function signature is outside the scalar profile");
     }
 
@@ -122,7 +123,8 @@ public final class ScalarAotProgram {
             throw new IllegalArgumentException("Scalar AOT assertion condition is not Boolean");
           }
         }
-        case CALL_VALUE -> validateCall(program, function, instruction);
+        case CALL_VALUE -> validateCall(program, function, instruction, true);
+        case CALL_VOID -> validateCall(program, function, instruction, false);
         case LOCAL_STORE_GLOBAL -> {
           if (!entry) {
             throw new IllegalArgumentException("Scalar AOT helper stores global state");
@@ -134,8 +136,16 @@ public final class ScalarAotProgram {
           local(instruction.operands().get(1), function.localCount());
           stores++;
         }
+        case RETURN -> {
+          if (entry
+              || function.resultType() != null
+              || pc != last
+              || !instruction.operands().isEmpty()) {
+            throw new IllegalArgumentException("Scalar AOT void helper return is not terminal");
+          }
+        }
         case RETURN_VALUE -> {
-          if (entry || pc != last) {
+          if (entry || function.resultType() == null || pc != last) {
             throw new IllegalArgumentException("Scalar AOT helper return is not terminal");
           }
           requireOperands(instruction, 1);
@@ -152,7 +162,8 @@ public final class ScalarAotProgram {
     }
     Opcode terminal = function.forward().getLast().opcode();
     if (entry && (stores == 0 || terminal != Opcode.HALT)
-        || !entry && terminal != Opcode.RETURN_VALUE) {
+        || !entry && function.resultType() == null && terminal != Opcode.RETURN
+        || !entry && function.resultType() != null && terminal != Opcode.RETURN_VALUE) {
       throw new IllegalArgumentException("Scalar AOT function has no canonical terminal");
     }
   }
@@ -237,8 +248,11 @@ public final class ScalarAotProgram {
   }
 
   private static void validateCall(
-      Program program, FunctionBody owner, Instruction instruction) {
-    requireOperands(instruction, 4);
+      Program program,
+      FunctionBody owner,
+      Instruction instruction,
+      boolean returnsValue) {
+    requireOperands(instruction, returnsValue ? 4 : 3);
     int target = Math.toIntExact(instruction.operands().get(0));
     int argumentBase = Math.toIntExact(instruction.operands().get(1));
     int argumentCount = Math.toIntExact(instruction.operands().get(2));
@@ -249,7 +263,8 @@ public final class ScalarAotProgram {
     if (argumentCount != callee.parameterCount()
         || argumentBase < 0
         || argumentBase > owner.localCount() - argumentCount
-        || !callee.resultType().equals(ValueType.SIGNED)) {
+        || returnsValue != (callee.resultType() != null)
+        || returnsValue && !callee.resultType().equals(ValueType.SIGNED)) {
       throw new IllegalArgumentException("Scalar AOT call signature does not match its helper");
     }
     for (int parameter = 0; parameter < argumentCount; parameter++) {
@@ -257,9 +272,11 @@ public final class ScalarAotProgram {
         throw new IllegalArgumentException("Scalar AOT call argument type does not match");
       }
     }
-    int destination = local(instruction.operands().get(3), owner.localCount());
-    if (!owner.localType(destination).equals(ValueType.SIGNED)) {
-      throw new IllegalArgumentException("Scalar AOT call destination is not signed");
+    if (returnsValue) {
+      int destination = local(instruction.operands().get(3), owner.localCount());
+      if (!owner.localType(destination).equals(ValueType.SIGNED)) {
+        throw new IllegalArgumentException("Scalar AOT call destination is not signed");
+      }
     }
   }
 
@@ -336,8 +353,7 @@ public final class ScalarAotProgram {
             }
             pc++;
           }
-          case CALL_VALUE -> {
-            int destination = destination(instruction, 3, assigned);
+          case CALL_VALUE, CALL_VOID -> {
             int argumentBase = Math.toIntExact(instruction.operands().get(1));
             int argumentCount = Math.toIntExact(instruction.operands().get(2));
             long[] callArguments = new long[argumentCount];
@@ -352,14 +368,20 @@ public final class ScalarAotProgram {
                 program,
                 Math.toIntExact(instruction.operands().get(0)),
                 callArguments);
-            values[destination] = result.value();
-            assigned[destination] = true;
+            if (instruction.opcode() == Opcode.CALL_VALUE) {
+              int destination = destination(instruction, 3, assigned);
+              values[destination] = result.value();
+              assigned[destination] = true;
+            }
             pc++;
           }
           case LOCAL_STORE_GLOBAL -> {
             status = values[assignedLocal(instruction, 1, assigned)];
             stored = true;
             pc++;
+          }
+          case RETURN -> {
+            return new Evaluation(0, false);
           }
           case RETURN_VALUE -> {
             return new Evaluation(
