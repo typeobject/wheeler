@@ -390,8 +390,11 @@ x86-64 or arm64 PE32+ adapters place exact supplied runtime text and the capsule
 in separate permissioned segments or sections and verify the unsigned PREV. The
 first x86-64 Linux entry shim locates mapped ELF capsule framing, performs one
 fixed standard-output write, and exits through the kernel without a path or
-import. It does not verify WBC or execute the root. Coexisting package instances,
-complete recipe revisions, system-package exports, native FFI providers, network
+import. It does not verify WBC or execute the root. Canonical unsigned output
+records bind adapter-verified format, target, plan, ABI, capsule, PREV, and byte
+count. Separate signing records bind detached ELF, Apple code-signature, or PE
+Authenticode distribution identities without changing unsigned PREV. Coexisting
+package instances, complete recipe revisions, system-package exports, native FFI providers, network
 mirrors, and production image output remain.
 
 Credentials, environment variables, home paths, clocks, mutable calibration, and

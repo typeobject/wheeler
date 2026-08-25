@@ -152,6 +152,7 @@ Reject paths or links that escape, special files, duplicate ownership, undeclare
 - [ ] Install-image, role, profile, and mapping schemas accepted.
 - [ ] Debian and RPM output reproduce.
 - [ ] Typed lifecycle and sealed-root suite pass.
+- [x] WIP-0377 supplies native unsigned-output and post-build signing record identities without feeding distribution signatures into PREV. Cryptographic verification, notarization, install-image provenance, and repository trust remain.
 - [ ] Provenance, native mappings, and signing separation are complete.
 - [ ] Ad hoc paths are deleted.
 

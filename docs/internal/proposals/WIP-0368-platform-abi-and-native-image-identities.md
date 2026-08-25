@@ -98,7 +98,7 @@ All content references are lowercase SHA-256 identities. The schema contains no 
 4e944b6b0ce56e164f22bb079e867eb951b6f60de8b676d2216431d2d35603e9
 ```
 
-The unsigned executable PREV is the digest of output bytes produced from this plan. Signing, notarization, and packaging bind that PREV under separate release records. These records do not feed back into the plan or capsule identity.
+The unsigned executable PREV is the digest of output bytes produced from this plan. Signing, notarization, and packaging bind that PREV under separate release records. These records do not feed back into the plan or capsule identity. WIP-0377 implements strict unsigned-output and post-build signing records for ELF, Mach-O, and PE distribution boundaries.
 
 ## Failure boundary
 
@@ -123,7 +123,7 @@ The focused package-format suite performs no host calls and completes in two sec
 - [x] Ambient environment, network, randomness, clocks, paths, loading, and process creation are absent.
 - [x] The platform descriptor has deterministic canonical bytes, strict parsing, and SHA-256 identity.
 - [x] The native image plan binds portable semantics, ABI, capsule, tools, runtime, providers, options, and linkage through the same strict transport.
-- [x] Unsigned output PREV and signing identities remain outside build-input identity.
+- [x] Unsigned output PREV and WIP-0377 signing identities remain outside build-input identity.
 - [x] Malformed, incomplete, unordered, duplicated, unsupported, and out-of-bound inputs reject.
 - [x] Focused byte, identity, mutation, and negative evidence passes.
 
@@ -154,3 +154,4 @@ Rejected. Host discovery would make authority and identity depend on the launch 
 - [WIP-0372](WIP-0372-canonical-elf-capsule-images.md)
 - [WIP-0374](WIP-0374-canonical-mach-o-capsule-images.md)
 - [WIP-0375](WIP-0375-canonical-pe-capsule-images.md)
+- [WIP-0377](WIP-0377-native-image-release-records.md)
