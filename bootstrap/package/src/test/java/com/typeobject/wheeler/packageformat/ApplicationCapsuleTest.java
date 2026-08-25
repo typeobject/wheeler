@@ -44,6 +44,12 @@ final class ApplicationCapsuleTest {
     assertTrue(wbcOffset >= littleInt(bytes, 12));
     assertTrue(resourceOffset > wbcOffset);
 
+    byte[] returnedMagic = ApplicationCapsule.framingMagic();
+    returnedMagic[0] ^= 1;
+    assertArrayEquals(
+        Arrays.copyOf(bytes, Long.BYTES),
+        ApplicationCapsule.framingMagic());
+
     byte[] owned = decoded.entries().getFirst().bytes();
     owned[0] ^= 1;
     byte[] returnedCapsule = decoded.canonicalBytes();

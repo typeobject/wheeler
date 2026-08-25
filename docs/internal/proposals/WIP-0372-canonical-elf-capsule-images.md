@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler native, runtime, package, security, and release maintainers |
 | Created | 2026-08-24 |
-| Updated | 2026-08-24 |
+| Updated | 2026-08-25 |
 | Area | Native bootstrap, ELF64, capsule segments, locators, unsigned PREV |
 | Depends on | WIP-0008, WIP-0023, WIP-0026, WIP-0368, WIP-0369, WIP-0371 |
 | Supersedes | Appended capsule trailers and section-header locators |
@@ -127,7 +127,7 @@ Independent mutations damage ELF class, locator magic, segment permissions, runt
 
 `ApplicationCapsuleExampleTest` threads one compiled Wheeler artifact through capsule verification, image-plan binding, canonical ELF construction, ELF verification, and the separate format-neutral startup authority. The supplied ELF text is treated only as bound native input and is not executed as Wheeler runtime code.
 
-Focused package-format evidence completes in one second and invokes no linker or platform loader.
+Focused package-format evidence completes in one second and invokes no linker or platform loader. WIP-0376 separately consumes the published locator coordinates and supplies the first loader-executed x86-64 Linux entry shim without changing this adapter's structural authority.
 
 ## Acceptance
 
@@ -170,5 +170,6 @@ Rejected. The adapter binds bytes and layout. Recovery policy must separately es
 - [WIP-0368](WIP-0368-platform-abi-and-native-image-identities.md)
 - [WIP-0369](WIP-0369-canonical-application-capsules.md)
 - [WIP-0371](WIP-0371-embedded-application-capsule-startup.md)
+- [WIP-0376](WIP-0376-x86-64-linux-native-entry-shim.md)
 - [WIP-0373](WIP-0373-physical-elf-image-command.md)
 - [WIP-0374](WIP-0374-canonical-mach-o-capsule-images.md)

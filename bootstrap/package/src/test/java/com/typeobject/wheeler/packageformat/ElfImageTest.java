@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -32,11 +33,21 @@ final class ElfImageTest {
 
     assertArrayEquals(first, second);
     assertArrayEquals(new byte[] {0x7f, 'E', 'L', 'F'},
-        java.util.Arrays.copyOf(first, 4));
+        Arrays.copyOf(first, 4));
     assertEquals(3, Short.toUnsignedInt(elf.getShort(16)));
     assertEquals(62, Short.toUnsignedInt(elf.getShort(18)));
     assertEquals(336, elf.getLong(24));
     assertEquals(3, Short.toUnsignedInt(elf.getShort(56)));
+    byte[] returnedLocatorMagic = ElfImage.locatorMagic();
+    returnedLocatorMagic[0] ^= 1;
+    assertArrayEquals(
+        Arrays.copyOfRange(
+            first,
+            ElfImage.LOCATOR_FILE_OFFSET,
+            ElfImage.LOCATOR_FILE_OFFSET + Long.BYTES),
+        ElfImage.locatorMagic());
+    assertEquals(4096, elf.getInt(
+        ElfImage.LOCATOR_FILE_OFFSET + ElfImage.LOCATOR_CAPSULE_OFFSET_FIELD));
     assertEquals(5, elf.getInt(68));
     assertEquals(4, elf.getInt(124));
     assertEquals(6, elf.getInt(180));

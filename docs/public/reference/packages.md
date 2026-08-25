@@ -382,10 +382,12 @@ of each package name. Application capsules and native image plans now have bound
 stage-0 schemas, nonexecuting inspection, and format-neutral embedded-VM startup
 over retained bytes and exact launch policy. Canonical ELF64, arm64 Mach-O, and
 x86-64 or arm64 PE32+ adapters place exact supplied runtime text and the capsule
-in separate permissioned segments or sections and verify the unsigned PREV. No
-maintained runtime machine code or OS entry runs those images yet. Coexisting package instances, complete recipe revisions,
-system-package exports, native FFI providers, network mirrors, and production
-image output remain.
+in separate permissioned segments or sections and verify the unsigned PREV. The
+first x86-64 Linux entry shim locates mapped ELF capsule framing, performs one
+fixed standard-output write, and exits through the kernel without a path or
+import. It does not verify WBC or execute the root. Coexisting package instances,
+complete recipe revisions, system-package exports, native FFI providers, network
+mirrors, and production image output remain.
 
 Credentials, environment variables, home paths, clocks, mutable calibration, and
 provider sessions never enter canonical manifests or archives. Content identity

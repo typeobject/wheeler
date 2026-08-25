@@ -45,6 +45,11 @@ public final class ApplicationCapsule {
   private final List<CapsuleEntry> entries;
   private final byte[] canonicalBytes;
 
+  /** Stable framing magic consumed before allocation by embedded startup. */
+  public static byte[] framingMagic() {
+    return MAGIC.clone();
+  }
+
   public ApplicationCapsule(
       CapsuleRoot root,
       List<CapsulePackageReceipt> receipts,

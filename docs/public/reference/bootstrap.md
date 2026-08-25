@@ -108,8 +108,14 @@ all WBC before construction, self-verify the selected image before atomic
 publication, and print the unsigned PREV. Their matching `inspect-elf`,
 `inspect-macho`, and `inspect-pe` commands report canonically verified structure,
 identities, and ranges. The verify commands additionally check every WBC and the
-exact root without execution. No maintained native
-runtime text, host ABI shim, process entry, or recovery image ships yet.
+exact root without execution.
+
+The first maintained x86-64 Linux entry shim is 113 import-free bytes. It locates
+mapped ELF capsule framing without reopening the image, checks the locator and
+capsule magic, completes one fixed standard-output write, and exits through the
+kernel. This proves loader entry and two host-service leaves. It does not verify
+WBC or execute the capsule root. No complete native runtime or recovery image
+ships yet.
 
 ## Deriving the profile and graph
 

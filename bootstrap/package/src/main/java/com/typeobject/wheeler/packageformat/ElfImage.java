@@ -16,10 +16,11 @@ public final class ElfImage {
   private static final int ELF_HEADER_BYTES = 64;
   private static final int PROGRAM_HEADER_BYTES = 56;
   private static final int PROGRAM_HEADER_COUNT = 3;
-  private static final int LOCATOR_OFFSET =
+  public static final int LOCATOR_FILE_OFFSET =
       ELF_HEADER_BYTES + PROGRAM_HEADER_BYTES * PROGRAM_HEADER_COUNT;
+  public static final int RUNTIME_FILE_OFFSET = 336;
+  public static final int LOCATOR_CAPSULE_OFFSET_FIELD = 48;
   private static final int LOCATOR_BYTES = 96;
-  private static final int RUNTIME_OFFSET = 336;
   private static final int PT_LOAD = 1;
   private static final int PT_GNU_STACK = 0x6474_e551;
   private static final int PF_EXECUTE = 1;
@@ -29,6 +30,11 @@ public final class ElfImage {
   private static final byte[] LOCATOR_MAGIC = {'W', 'H', 'L', 'L', 'O', 'C', '0', '1'};
 
   private ElfImage() {}
+
+  /** Stable locator magic consumed by the mapped Linux entry shim. */
+  public static byte[] locatorMagic() {
+    return LOCATOR_MAGIC.clone();
+  }
 
   public static byte[] build(
       NativeImagePlan plan,
@@ -52,7 +58,7 @@ public final class ElfImage {
     Objects.requireNonNull(image, "image");
     Objects.requireNonNull(plan, "plan");
     Objects.requireNonNull(abi, "abi");
-    if (image.length < RUNTIME_OFFSET + 1 || image.length > MAX_IMAGE_BYTES) {
+    if (image.length < RUNTIME_FILE_OFFSET + 1 || image.length > MAX_IMAGE_BYTES) {
       throw new PackageFormatException("Invalid ELF image length");
     }
     ByteBuffer input = ByteBuffer.wrap(image).order(ByteOrder.LITTLE_ENDIAN);
@@ -91,7 +97,7 @@ public final class ElfImage {
     Locator locator = readLocator(image);
     if (!locator.planIdentity().equals(plan.identity())
         || !locator.capsuleIdentity().equals(plan.capsule())
-        || locator.runtimeOffset() != RUNTIME_OFFSET
+        || locator.runtimeOffset() != RUNTIME_FILE_OFFSET
         || locator.runtimeLength() <= 0
         || locator.runtimeLength() > MAX_RUNTIME_BYTES
         || locator.runtimeEntryOffset() < 0
@@ -136,14 +142,14 @@ public final class ElfImage {
       byte[] capsule,
       byte[] runtime,
       int entryOffset) {
-    int runtimeEnd = Math.addExact(RUNTIME_OFFSET, runtime.length);
+    int runtimeEnd = Math.addExact(RUNTIME_FILE_OFFSET, runtime.length);
     int capsuleOffset = Math.toIntExact(align(runtimeEnd, abi.pageBytes()));
     int totalBytes = Math.addExact(capsuleOffset, capsule.length);
     if (totalBytes > MAX_IMAGE_BYTES || totalBytes > abi.maximumMemoryBytes()) {
       throw new PackageFormatException("ELF image is oversized");
     }
     ByteArrayOutputStream output = new ByteArrayOutputStream(totalBytes);
-    writeElfHeader(output, machine(abi), RUNTIME_OFFSET + entryOffset);
+    writeElfHeader(output, machine(abi), RUNTIME_FILE_OFFSET + entryOffset);
     writeProgramHeader(
         output,
         PT_LOAD,
@@ -171,7 +177,7 @@ public final class ElfImage {
         capsule.length,
         entryOffset,
         plan.capsule());
-    while (output.size() < RUNTIME_OFFSET) {
+    while (output.size() < RUNTIME_FILE_OFFSET) {
       output.write(0);
     }
     output.writeBytes(runtime);
@@ -266,7 +272,7 @@ public final class ElfImage {
 
   private static Locator readLocator(byte[] image) {
     ByteBuffer input = ByteBuffer.wrap(image).order(ByteOrder.LITTLE_ENDIAN);
-    input.position(LOCATOR_OFFSET);
+    input.position(LOCATOR_FILE_OFFSET);
     byte[] magic = new byte[LOCATOR_MAGIC.length];
     input.get(magic);
     if (!Arrays.equals(magic, LOCATOR_MAGIC)) {
@@ -345,14 +351,14 @@ public final class ElfImage {
       String capsule) {
     output.writeBytes(LOCATOR_MAGIC);
     output.writeBytes(HexFormat.of().parseHex(plan));
-    writeInt(output, RUNTIME_OFFSET);
+    writeInt(output, RUNTIME_FILE_OFFSET);
     writeInt(output, runtimeLength);
     writeInt(output, capsuleOffset);
     writeInt(output, capsuleLength);
     writeInt(output, entryOffset);
     writeInt(output, 0);
     output.writeBytes(HexFormat.of().parseHex(capsule));
-    if (output.size() != LOCATOR_OFFSET + LOCATOR_BYTES) {
+    if (output.size() != LOCATOR_FILE_OFFSET + LOCATOR_BYTES) {
       throw new IllegalStateException("Wheeler ELF locator has the wrong encoded size");
     }
   }
