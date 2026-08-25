@@ -17,7 +17,7 @@ Define the first canonical Wheeler Mach-O image for `aarch64-apple-darwin`.
 
 The image contains exact position-independent runtime text and one complete application capsule. Runtime text occupies the executable `__TEXT` segment. The capsule occupies a separate page-aligned, read-only `__WHEELER` segment. A static `LC_UNIXTHREAD` state enters the runtime at the plan-bound offset. The image has no writable load segment, dynamic loader command, section table, symbol table, relocation table, source path, timestamp, UUID, signature, entitlement, or adjacent-file lookup.
 
-This WIP defines image construction and independent verification. It does not supply Wheeler runtime machine code, an Apple host-service shim, signing, notarization, or launch evidence.
+This WIP defines image construction and independent verification. WIP-0373 exposes both through exact physical build and verify commands. This WIP does not supply Wheeler runtime machine code, an Apple host-service shim, signing, notarization, or launch evidence.
 
 ## Profile
 
@@ -152,3 +152,4 @@ Rejected. Valid layout does not prove maintained runtime code, host ABI behavior
 - [WIP-0369](WIP-0369-canonical-application-capsules.md)
 - [WIP-0371](WIP-0371-embedded-application-capsule-startup.md)
 - [WIP-0372](WIP-0372-canonical-elf-capsule-images.md)
+- [WIP-0373](WIP-0373-physical-elf-image-command.md)

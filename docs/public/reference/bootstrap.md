@@ -100,12 +100,12 @@ field and identity, rebuilds exact bytes, and publishes the unsigned PREV only
 after success. Runtime text is an input bound by the image plan. Mach-O signing
 and notarization remain separate output identities.
 
-`wheeler image build-elf` consumes exact physical capsule, runtime, plan, and ABI
-files. It verifies all WBC before construction, self-verifies the ELF before
-atomic publication, and prints the unsigned PREV. `wheeler image verify-elf`
-repeats structural and executable-artifact verification without execution. No
-maintained native runtime text, host ABI shim, process entry, or recovery image
-ships yet.
+`wheeler image build-elf` and `wheeler image build-macho` consume exact physical
+capsule, runtime, plan, and ABI files. They verify all WBC before construction,
+self-verify the selected image before atomic publication, and print the unsigned
+PREV. `wheeler image verify-elf` and `wheeler image verify-macho` repeat structural
+and executable-artifact verification without execution. No maintained native
+runtime text, host ABI shim, process entry, or recovery image ships yet.
 
 ## Deriving the profile and graph
 

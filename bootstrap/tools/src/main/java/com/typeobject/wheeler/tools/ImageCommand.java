@@ -5,6 +5,7 @@ import com.typeobject.wheeler.packageformat.CapsuleEntry;
 import com.typeobject.wheeler.packageformat.CapsulePackageReceipt;
 import com.typeobject.wheeler.packageformat.CapsuleRoot;
 import com.typeobject.wheeler.packageformat.ElfImage;
+import com.typeobject.wheeler.packageformat.MachOImage;
 import com.typeobject.wheeler.packageformat.NativeImagePlan;
 import com.typeobject.wheeler.packageformat.PlatformAbi;
 import com.typeobject.wheeler.runtime.ApplicationCapsuleVerifier;
@@ -20,7 +21,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Set;
 
-/** Builds, inspects, and verifies canonical capsule and ELF images without execution. */
+/** Builds, inspects, and verifies canonical capsule and native images without execution. */
 final class ImageCommand {
   private ImageCommand() {}
 
@@ -30,8 +31,10 @@ final class ImageCommand {
     }
     return switch (args[1]) {
       case "inspect", "verify" -> capsule(args, out, error);
-      case "build-elf" -> buildElf(args, out, error);
-      case "verify-elf" -> verifyElf(args, out, error);
+      case "build-elf" -> buildNative(args, out, error, NativeFormat.ELF);
+      case "verify-elf" -> verifyNative(args, out, error, NativeFormat.ELF);
+      case "build-macho" -> buildNative(args, out, error, NativeFormat.MACH_O);
+      case "verify-macho" -> verifyNative(args, out, error, NativeFormat.MACH_O);
       default -> usage(error);
     };
   }
@@ -53,8 +56,11 @@ final class ImageCommand {
     return 0;
   }
 
-  private static int buildElf(String[] args, PrintStream out, PrintStream error)
-      throws IOException {
+  private static int buildNative(
+      String[] args,
+      PrintStream out,
+      PrintStream error,
+      NativeFormat format) throws IOException {
     if (args.length != 13
         || !args[3].equals("--runtime")
         || !args[5].equals("--entry")
@@ -67,14 +73,17 @@ final class ImageCommand {
         Path.of(args[2]), ApplicationCapsule.MAX_CAPSULE_BYTES, "application capsule"));
     ApplicationCapsuleVerifier.verify(capsule);
     byte[] runtime = readPhysical(
-        Path.of(args[4]), ElfImage.MAX_RUNTIME_BYTES, "ELF runtime text");
+        Path.of(args[4]), format.maximumRuntimeBytes, format.label + " runtime text");
     NativeImagePlan plan = NativeImagePlan.parse(readPhysical(
         Path.of(args[8]), 16 * 1024, "native image plan"));
     PlatformAbi abi = PlatformAbi.parse(readPhysical(
         Path.of(args[10]), 16 * 1024, "platform ABI"));
-    int entry = nonnegativeInteger(args[6], "ELF runtime entry");
-    byte[] image = ElfImage.build(plan, abi, capsule, runtime, entry);
-    ElfImage.VerifiedImage verified = ElfImage.verify(image, plan, abi);
+    int entry = nonnegativeInteger(args[6], format.label + " runtime entry");
+    byte[] image = switch (format) {
+      case ELF -> ElfImage.build(plan, abi, capsule, runtime, entry);
+      case MACH_O -> MachOImage.build(plan, abi, capsule, runtime, entry);
+    };
+    VerifiedNativeImage verified = verifyNativeBytes(image, plan, abi, format);
     Path output = Path.of(args[12]);
     PackageProject.writeExecutableAtomically(output, image);
     out.println("wrote " + output + " (" + image.length + " bytes, PREV "
@@ -82,21 +91,45 @@ final class ImageCommand {
     return 0;
   }
 
-  private static int verifyElf(String[] args, PrintStream out, PrintStream error)
-      throws IOException {
+  private static int verifyNative(
+      String[] args,
+      PrintStream out,
+      PrintStream error,
+      NativeFormat format) throws IOException {
     if (args.length != 7 || !args[3].equals("--plan") || !args[5].equals("--abi")) {
       return usage(error);
     }
-    byte[] image = readPhysical(Path.of(args[2]), ElfImage.MAX_IMAGE_BYTES, "ELF image");
+    byte[] image = readPhysical(
+        Path.of(args[2]), format.maximumImageBytes, format.label + " image");
     NativeImagePlan plan = NativeImagePlan.parse(readPhysical(
         Path.of(args[4]), 16 * 1024, "native image plan"));
     PlatformAbi abi = PlatformAbi.parse(readPhysical(
         Path.of(args[6]), 16 * 1024, "platform ABI"));
-    ElfImage.VerifiedImage verified = ElfImage.verify(image, plan, abi);
+    VerifiedNativeImage verified = verifyNativeBytes(image, plan, abi, format);
     int wbc = ApplicationCapsuleVerifier.verify(verified.capsule()).programs().size();
-    out.println("verified ELF " + verified.prev() + " (plan " + verified.planIdentity()
-        + ", capsule " + verified.capsule().identity() + ", " + wbc + " WBC artifacts)");
+    out.println("verified " + format.label + " " + verified.prev() + " (plan "
+        + verified.planIdentity() + ", capsule " + verified.capsule().identity()
+        + ", " + wbc + " WBC artifacts)");
     return 0;
+  }
+
+  private static VerifiedNativeImage verifyNativeBytes(
+      byte[] image,
+      NativeImagePlan plan,
+      PlatformAbi abi,
+      NativeFormat format) {
+    return switch (format) {
+      case ELF -> {
+        ElfImage.VerifiedImage verified = ElfImage.verify(image, plan, abi);
+        yield new VerifiedNativeImage(
+            verified.prev(), verified.planIdentity(), verified.capsule());
+      }
+      case MACH_O -> {
+        MachOImage.VerifiedImage verified = MachOImage.verify(image, plan, abi);
+        yield new VerifiedNativeImage(
+            verified.prev(), verified.planIdentity(), verified.capsule());
+      }
+    };
   }
 
   private static byte[] readPhysical(Path path, int maximumBytes, String description)
@@ -230,11 +263,31 @@ final class ImageCommand {
 
   private static int usage(PrintStream error) {
     error.println("Usage: wheeler image <inspect|verify> <application.capsule>");
-    error.println("   or: wheeler image build-elf <application.capsule>"
+    error.println("   or: wheeler image <build-elf|build-macho> <application.capsule>"
         + " --runtime <runtime.bin> --entry <offset> --plan <plan.yaml>"
         + " --abi <abi.yaml> -o <application>");
-    error.println("   or: wheeler image verify-elf <application>"
+    error.println("   or: wheeler image <verify-elf|verify-macho> <application>"
         + " --plan <plan.yaml> --abi <abi.yaml>");
     return 2;
   }
+
+  private enum NativeFormat {
+    ELF("ELF", ElfImage.MAX_RUNTIME_BYTES, ElfImage.MAX_IMAGE_BYTES),
+    MACH_O("Mach-O", MachOImage.MAX_RUNTIME_BYTES, MachOImage.MAX_IMAGE_BYTES);
+
+    private final String label;
+    private final int maximumRuntimeBytes;
+    private final int maximumImageBytes;
+
+    NativeFormat(String label, int maximumRuntimeBytes, int maximumImageBytes) {
+      this.label = label;
+      this.maximumRuntimeBytes = maximumRuntimeBytes;
+      this.maximumImageBytes = maximumImageBytes;
+    }
+  }
+
+  private record VerifiedNativeImage(
+      String prev,
+      String planIdentity,
+      ApplicationCapsule capsule) {}
 }

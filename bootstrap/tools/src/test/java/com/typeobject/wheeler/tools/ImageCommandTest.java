@@ -14,6 +14,7 @@ import com.typeobject.wheeler.packageformat.CapsuleEntry;
 import com.typeobject.wheeler.packageformat.CapsulePackageReceipt;
 import com.typeobject.wheeler.packageformat.CapsuleRoot;
 import com.typeobject.wheeler.packageformat.ElfImage;
+import com.typeobject.wheeler.packageformat.MachOImage;
 import com.typeobject.wheeler.packageformat.NativeImagePlan;
 import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.packageformat.PlatformAbi;
@@ -99,7 +100,7 @@ final class ImageCommandTest {
         (byte) 0xb8, 0x3c, 0, 0, 0, 0x31, (byte) 0xff, 0x0f, 0x05
     };
     PlatformAbi abi = platformAbi();
-    ApplicationCapsule capsule = elfCapsule(validWbc(), abi);
+    ApplicationCapsule capsule = nativeCapsule(validWbc(), abi);
     CapsuleEntry rootWbc = capsule.entries().getFirst();
     NativeImagePlan plan = new NativeImagePlan(
         PlatformAbi.Format.ELF,
@@ -171,6 +172,60 @@ final class ImageCommandTest {
   }
 
   @Test
+  void buildsAndVerifiesOneCompleteMachOFromPhysicalInputs() throws Exception {
+    byte[] runtime = {
+        0x00, 0x00, (byte) 0x80, (byte) 0xd2,
+        0x01, 0x00, 0x00, (byte) 0xd4
+    };
+    PlatformAbi abi = platformAbi(
+        PlatformAbi.Format.MACH_O, "aarch64", "darwin", "libsystem");
+    ApplicationCapsule capsule = nativeCapsule(validWbc(), abi);
+    CapsuleEntry rootWbc = capsule.entries().getFirst();
+    NativeImagePlan plan = new NativeImagePlan(
+        PlatformAbi.Format.MACH_O,
+        "aarch64-apple-darwin",
+        NativeImagePlan.RuntimeMode.EMBEDDED_VM,
+        true,
+        true,
+        rootWbc.identity(),
+        abi.identity(),
+        capsule.identity(),
+        hash(30),
+        identity(runtime),
+        hash(31),
+        hash(32),
+        hash(33),
+        hash(34),
+        hash(35));
+    Path capsuleFile = write("mac.capsule", capsule.canonicalBytes());
+    Path runtimeFile = write("runtime-arm64.bin", runtime);
+    Path planFile = write("native-image-mac.yaml", plan.canonicalBytes());
+    Path abiFile = write("platform-abi-mac.yaml", abi.canonicalBytes());
+    Path imageFile = temporary.resolve("mac-app");
+
+    CommandResult build = execute(
+        "image", "build-macho", capsuleFile.toString(),
+        "--runtime", runtimeFile.toString(),
+        "--entry", "0",
+        "--plan", planFile.toString(),
+        "--abi", abiFile.toString(),
+        "-o", imageFile.toString());
+    byte[] expected = MachOImage.build(plan, abi, capsule, runtime, 0);
+    assertEquals(0, build.status());
+    assertArrayEquals(expected, Files.readAllBytes(imageFile));
+    assertTrue(Files.isExecutable(imageFile));
+    assertTrue(build.output().contains(MachOImage.verify(expected, plan, abi).prev()));
+
+    CommandResult verify = execute(
+        "image", "verify-macho", imageFile.toString(),
+        "--plan", planFile.toString(),
+        "--abi", abiFile.toString());
+    assertEquals(0, verify.status());
+    assertTrue(verify.output().startsWith("verified Mach-O "));
+    assertTrue(verify.output().contains("1 WBC artifacts"));
+  }
+
+  @Test
   void rejectsUsageAndNonphysicalInput() throws Exception {
     CommandResult usage = execute("image", "run", "missing.capsule");
     assertEquals(2, usage.status());
@@ -178,6 +233,8 @@ final class ImageCommandTest {
         "Usage: wheeler image <inspect|verify> <application.capsule>\n"));
     assertTrue(usage.error().contains("build-elf"));
     assertTrue(usage.error().contains("verify-elf"));
+    assertTrue(usage.error().contains("build-macho"));
+    assertTrue(usage.error().contains("verify-macho"));
 
     Path directory = Files.createDirectory(temporary.resolve("directory.capsule"));
     assertThrows(
@@ -240,7 +297,7 @@ final class ImageCommandTest {
             wbc));
   }
 
-  private static ApplicationCapsule elfCapsule(byte[] wbc, PlatformAbi abi) {
+  private static ApplicationCapsule nativeCapsule(byte[] wbc, PlatformAbi abi) {
     CapsuleRoot root = new CapsuleRoot(
         hash(1),
         "hello",
@@ -264,10 +321,18 @@ final class ImageCommandTest {
   }
 
   private static PlatformAbi platformAbi() {
+    return platformAbi(PlatformAbi.Format.ELF, "x86_64", "linux-gnu", "libc.so.6");
+  }
+
+  private static PlatformAbi platformAbi(
+      PlatformAbi.Format format,
+      String architecture,
+      String osAbi,
+      String library) {
     return new PlatformAbi(
-        PlatformAbi.Format.ELF,
-        "x86_64",
-        "linux-gnu",
+        format,
+        architecture,
+        osAbi,
         64,
         PlatformAbi.Endianness.LITTLE,
         4096,
@@ -278,7 +343,7 @@ final class ImageCommandTest {
         1024,
         64L * 1024 * 1024,
         List.of("baseline"),
-        List.of("libc.so.6"),
+        List.of(library),
         List.of(
             PlatformAbi.Service.CAPABILITY_FILE_OPEN,
             PlatformAbi.Service.DIRECTORY_MANIFEST,
