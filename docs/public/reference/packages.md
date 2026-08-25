@@ -339,7 +339,9 @@ instead consume complete stdin through 4,096 bytes and compute stdout and status
 in native code. The input may retain raw `byteview` bytes or strict RFC 3629
 UTF-8 operations. Canonical `BUFFER_BORROW` values may pass input and output
 handles through the same bounded prior-helper graph. One 65,536-instruction
-budget covers the selected entry and all nested calls.
+budget covers the selected entry and all nested calls. Up to 32 signed globals
+share exact initial and updated state across those calls. Global zero remains the
+entry-owned process status.
 
 `image build-elf`, `image build-macho`, and `image build-pe` consume an exact
 capsule, runtime text, canonical native image plan, and canonical platform ABI.

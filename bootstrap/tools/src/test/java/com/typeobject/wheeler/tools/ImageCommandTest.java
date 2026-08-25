@@ -224,6 +224,41 @@ final class ImageCommandTest {
   }
 
   @Test
+  void lowersSharedScalarStateThroughHelpers() throws Exception {
+    byte[] artifact = new WheelerCompiler().compileModulesToBytecode(
+        Map.of("example.state", """
+            module example.state;
+            classical class SharedState {
+              state long status = 0;
+              state long counter = 40;
+              state long mask = 3;
+
+              long update() {
+                counter += 1;
+                return counter ^ mask;
+              }
+
+              entry void main() {
+                long result = update();
+                result = update();
+                status = result;
+              }
+            }
+            """),
+        "example.state");
+    Path artifactFile = write("shared-state.wbc", artifact);
+    Path runtimeFile = temporary.resolve("shared-state.bin");
+
+    CommandResult lowering = execute(
+        "image", "runtime-elf-x86-64-aot", artifactFile.toString(),
+        "-o", runtimeFile.toString());
+
+    assertEquals(0, lowering.status());
+    assertTrue(lowering.output().contains("status 41"));
+    assertTrue(Files.size(runtimeFile) > 0);
+  }
+
+  @Test
   void lowersStrictUtf8ThroughBorrowedHelpers() throws Exception {
     byte[] artifact = new WheelerCompiler().compileModulesToBytecode(
         Map.of("example.utf8", """

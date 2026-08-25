@@ -19,7 +19,9 @@ public final class ScalarAotMachine {
     X86 code = new X86();
     int[] functionOffsets = new int[scalar.program().functions().size()];
     IoLayout io = scalar.usesDynamicApplicationIo()
-        ? IoLayout.create(scalar.entry().localCount()) : null;
+        ? IoLayout.create(
+            scalar.entry().localCount() + scalar.program().globals().size())
+        : null;
     boolean utf8 = scalar.program().functions().stream()
         .flatMap(function -> function.forward().stream())
         .anyMatch(instruction -> switch (instruction.opcode()) {
@@ -38,7 +40,7 @@ public final class ScalarAotMachine {
     for (FunctionBody function : scalar.program().functions()) {
       functionOffsets[function.id()] = code.position();
       if (function.id() == scalar.entry().id()) {
-        emitEntry(code, function, calls, io);
+        emitEntry(code, scalar, calls, io);
       } else {
         emitHelper(code, function, calls, io);
       }
@@ -54,20 +56,25 @@ public final class ScalarAotMachine {
 
   private static void emitEntry(
       X86 code,
-      FunctionBody entry,
+      ScalarAotProgram scalar,
       ArrayList<CallPatch> calls,
       IoLayout io) {
-    int globalSlot = entry.localCount();
-    int fuelSlot = globalSlot + 1;
-    int frameBytes = io == null ? frameBytes(globalSlot + 2) : io.frameBytes();
+    FunctionBody entry = scalar.entry();
+    int globalBase = entry.localCount();
+    int fuelSlot = globalBase + scalar.program().globals().size();
+    int frameBytes = io == null ? frameBytes(fuelSlot + 1) : io.frameBytes();
     code.stack(-frameBytes);
-    code.bytes(0x31, 0xc0);
-    code.storeRax(globalSlot);
+    for (int global = 0; global < scalar.program().globals().size(); global++) {
+      code.moveImmediateToRax(scalar.program().globals().get(global).initialValue());
+      code.storeRax(globalBase + global);
+    }
+    code.leaR14(globalBase * Long.BYTES);
     code.moveImmediateToRax(ScalarAotProgram.MAX_EXECUTED_INSTRUCTIONS);
     code.storeRax(fuelSlot);
     code.leaR15(fuelSlot * Long.BYTES);
     ArrayList<Integer> prologueTraps = new ArrayList<>();
     if (io != null) {
+      code.bytes(0x31, 0xc0);
       code.storeRax(io.outputLengthSlot());
       code.readInput(io, prologueTraps);
       code.zeroOutput(io);
@@ -79,17 +86,17 @@ public final class ScalarAotMachine {
       code.moveImmediateToRax(1);
       code.storeRax(0);
     }
-    FunctionPatches patches = emitBody(code, entry, globalSlot, calls, io);
+    FunctionPatches patches = emitBody(code, entry, calls, io);
     patches.traps().addAll(prologueTraps);
 
-    code.loadRax(globalSlot);
+    code.loadGlobal(0);
     code.bytes(0x48, 0x85, 0xc0, 0x0f, 0x88);
     patches.traps().add(code.reserveInt());
     code.bytes(0x48, 0x83, 0xf8, 124, 0x0f, 0x8f);
     patches.traps().add(code.reserveInt());
     if (io != null) {
       code.writeOutput(io, patches.traps());
-      code.loadRax(globalSlot);
+      code.loadGlobal(0);
     }
     code.stack(frameBytes);
     code.bytes(0x89, 0xc7, 0xe9);
@@ -113,7 +120,7 @@ public final class ScalarAotMachine {
     for (int parameter = 0; parameter < helper.parameterCount(); parameter++) {
       code.storeArgument(parameter);
     }
-    FunctionPatches patches = emitBody(code, helper, -1, calls, io);
+    FunctionPatches patches = emitBody(code, helper, calls, io);
 
     Instruction returned = helper.forward().getLast();
     if (returned.opcode() == Opcode.RETURN_VALUE) {
@@ -135,7 +142,6 @@ public final class ScalarAotMachine {
   private static FunctionPatches emitBody(
       X86 code,
       FunctionBody function,
-      int globalSlot,
       ArrayList<CallPatch> calls,
       IoLayout io) {
     int[] instructionOffsets = new int[function.forward().size()];
@@ -154,7 +160,7 @@ public final class ScalarAotMachine {
           code.storeRax(local(instruction, 0));
         }
         case LOCAL_LOAD_GLOBAL -> {
-          code.loadRax(globalSlot);
+          code.loadGlobal(Math.toIntExact(instruction.operands().get(1)));
           code.storeRax(local(instruction, 0));
         }
         case LOCAL_MOVE, BUFFER_BORROW, UTF8_BORROW -> {
@@ -251,7 +257,7 @@ public final class ScalarAotMachine {
         }
         case LOCAL_STORE_GLOBAL -> {
           code.loadRax(local(instruction, 1));
-          code.storeRax(globalSlot);
+          code.storeGlobal(Math.toIntExact(instruction.operands().get(0)));
         }
         case RETURN, RETURN_VALUE, HALT -> {
           // The function epilogue owns its terminal instruction.
@@ -290,10 +296,10 @@ public final class ScalarAotMachine {
       int inputOffset,
       int outputOffset,
       int frameBytes) {
-    static IoLayout create(int globalSlot) {
-      int inputLengthSlot = globalSlot + 2;
-      int outputLengthSlot = globalSlot + 3;
-      int inputOffset = ScalarAotMachine.frameBytes(globalSlot + 4);
+    static IoLayout create(int fuelSlot) {
+      int inputLengthSlot = fuelSlot + 1;
+      int outputLengthSlot = fuelSlot + 2;
+      int inputOffset = ScalarAotMachine.frameBytes(fuelSlot + 3);
       int outputOffset = inputOffset + ScalarAotProgram.MAX_INPUT_BYTES;
       int frameBytes = alignBytes(outputOffset + ScalarAotProgram.MAX_OUTPUT_BYTES);
       return new IoLayout(
@@ -388,6 +394,16 @@ public final class ScalarAotMachine {
       integer(local * Long.BYTES);
     }
 
+    void loadGlobal(int global) {
+      bytes(0x49, 0x8b, 0x86);
+      integer(global * Long.BYTES);
+    }
+
+    void storeGlobal(int global) {
+      bytes(0x49, 0x89, 0x86);
+      integer(global * Long.BYTES);
+    }
+
     void loadArgument(int argument, int local) {
       switch (argument) {
         case 0 -> bytes(0x48, 0x8b, 0xbc, 0x24);
@@ -416,6 +432,11 @@ public final class ScalarAotMachine {
 
     void leaRax(int stackOffset) {
       bytes(0x48, 0x8d, 0x84, 0x24);
+      integer(stackOffset);
+    }
+
+    void leaR14(int stackOffset) {
+      bytes(0x4c, 0x8d, 0xb4, 0x24);
       integer(stackOffset);
     }
 

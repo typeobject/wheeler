@@ -209,7 +209,7 @@ Reject malformed native structure, overlapping or escaping ranges, a writable an
 - [x] WIP-0375 adds canonical x86-64 and arm64 PE32+ bytes. It fixes DOS, COFF, optional-header, empty data-directory, R-X text, R-- capsule, entry-RVA, alignment, padding, canonical rebuilding, and unsigned PREV boundaries without claiming Authenticode or launch.
 - [x] WIP-0376 adds an import-free x86-64 Linux entry shim. It enters through the OS loader, derives mapped capsule framing from the ELF locator without reopening the image, writes one bounded probe, and exits through the kernel. Complete WBC startup remains.
 - [x] WIP-0377 records complete adapter-verified unsigned outputs and separate ELF repository, Apple code-signature, and PE Authenticode distribution identities. Physical commands publish those records atomically from bounded files. They do not perform or trust platform signing.
-- [x] WIPs 0378 through 0389 lower one closed bounded scalar WBC profile, including up to seven prior helpers, six exact scalar arguments per call, checked loops through 4,096 iterations, status reads, rotates, assertions, void helper calls, 4,096-byte constant output, 4,096-byte input-dependent native I/O, borrowed byte helpers, whole-execution fuel, and strict UTF-8 input, to x86-64 Linux AOT and observe its computed source-declared process status through a complete ELF launch. General AOT equivalence remains.
+- [x] WIPs 0378 through 0390 lower one closed bounded scalar WBC profile, including up to seven prior helpers, six exact scalar arguments per call, checked loops through 4,096 iterations, status reads, rotates, assertions, void helper calls, 4,096-byte constant output, 4,096-byte input-dependent native I/O, borrowed byte helpers, whole-execution fuel, strict UTF-8 input, and 32 shared scalar globals, to x86-64 Linux AOT and observe its computed source-declared process status through a complete ELF launch. General AOT equivalence remains.
 - [ ] ELF, Mach-O, and PE images reproduce with signing separation.
 - [ ] Sealed providers and system export integrate.
 - [ ] AOT conformance defined.
@@ -266,6 +266,7 @@ Adjacent launch directories permit substitution and partial updates. Opaque trai
 - [WIP-0387](WIP-0387-x86-64-linux-scalar-execution-bound.md)
 - [WIP-0388](WIP-0388-x86-64-linux-4096-iteration-byte-loops.md)
 - [WIP-0389](WIP-0389-x86-64-linux-strict-utf8-input.md)
+- [WIP-0390](WIP-0390-x86-64-linux-shared-scalar-globals.md)
 - [ELF program loading](https://gabi.xinuos.com/elf/07-loading-intro.html)
 - [Mach-O overview](https://developer.apple.com/library/archive/documentation/Performance/Conceptual/CodeFootprint/Articles/MachOOverview.html)
 - [Microsoft PE format](https://learn.microsoft.com/en-us/windows/win32/debug/pe-format)

@@ -214,6 +214,55 @@ final class ScalarAotArtifacts {
         List.of());
   }
 
+  static byte[] scalarGlobalArtifact(int globalCount) {
+    ArrayList<Global> globals = new ArrayList<>();
+    globals.add(new Global("status", 0));
+    globals.add(new Global("counter", 40));
+    globals.add(new Global("mask", 3));
+    for (int global = globals.size(); global < globalCount; global++) {
+      globals.add(new Global("state" + global, global));
+    }
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-globals",
+        1,
+        globals,
+        List.of(
+            new FunctionBody(
+                0,
+                "example.app::update",
+                false,
+                0,
+                List.of(
+                    ValueType.SIGNED,
+                    ValueType.SIGNED,
+                    ValueType.SIGNED,
+                    ValueType.SIGNED,
+                    ValueType.SIGNED),
+                ValueType.SIGNED,
+                List.of(
+                    Instruction.of(Opcode.LOCAL_LOAD_GLOBAL, 0, 1),
+                    Instruction.of(Opcode.LOCAL_CONST, 1, 1),
+                    Instruction.of(Opcode.LOCAL_ADD, 2, 0, 1),
+                    Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 1, 2),
+                    Instruction.of(Opcode.LOCAL_LOAD_GLOBAL, 3, 2),
+                    Instruction.of(Opcode.LOCAL_XOR, 4, 2, 3),
+                    Instruction.of(Opcode.RETURN_VALUE, 4)),
+                List.of()),
+            new FunctionBody(
+                1,
+                "example.app::main",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                null,
+                List.of(
+                    Instruction.of(Opcode.CALL_VALUE, 0, 0, 0, 0),
+                    Instruction.of(Opcode.CALL_VALUE, 0, 0, 0, 0),
+                    Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
+                    Instruction.of(Opcode.HALT)),
+                List.of()))));
+  }
+
   static byte[] utf8IoArtifact() {
     return new BytecodeWriter().write(new Program(
         "scalar-aot-utf8-io",

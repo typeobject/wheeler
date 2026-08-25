@@ -10,6 +10,7 @@ import com.typeobject.wheeler.core.bytecode.ValueType;
 /** Closed semantic profile accepted by the x86-64 scalar AOT leaf. */
 public final class ScalarAotProgram {
   public static final int MAX_FUNCTIONS = 8;
+  public static final int MAX_GLOBALS = 32;
   public static final int MAX_PARAMETERS = 6;
   public static final int MAX_LOCALS = 32;
   public static final int MAX_OUTPUT_LOCALS = 64;
@@ -48,12 +49,14 @@ public final class ScalarAotProgram {
       return new ScalarAotProgram(program, null, null, true);
     }
     OutputState output = new OutputState();
+    EvaluationState state = new EvaluationState(program);
     long[] arguments = entry.parameterCount() == 0 ? new long[0] : new long[] {1};
     Evaluation evaluation = evaluate(
         program,
         program.entryFunctionId(),
         arguments,
         output,
+        state,
         new EvaluationBudget());
     if (!evaluation.stored()
         || evaluation.value() < 0
@@ -116,7 +119,8 @@ public final class ScalarAotProgram {
         || !program.quantumCircuits().isEmpty()
         || !program.workflow().isEmpty()
         || !program.requiredInstructionExtensions().isEmpty()
-        || program.globals().size() != 1
+        || program.globals().isEmpty()
+        || program.globals().size() > MAX_GLOBALS
         || !program.globals().getFirst().name().equals("status")
         || program.globals().getFirst().initialValue() != 0
         || program.functions().isEmpty()
@@ -167,7 +171,7 @@ public final class ScalarAotProgram {
         case NOP -> requireOperands(instruction, 0);
         case LOCAL_CONST, LOCAL_MOVE, BUFFER_BORROW, UTF8_BORROW ->
           validateUnary(function, instruction);
-        case LOCAL_LOAD_GLOBAL -> validateGlobalLoad(function, instruction, entry);
+        case LOCAL_LOAD_GLOBAL -> validateGlobalLoad(program, function, instruction);
         case BUFFER_LENGTH -> validateInputLength(function, instruction, dynamicIo);
         case UTF8_VALID, UTF8_COUNT ->
           validateUtf8Whole(function, instruction, dynamicIo);
@@ -198,15 +202,16 @@ public final class ScalarAotProgram {
         case CALL_VALUE -> validateCall(program, function, instruction, true);
         case CALL_VOID -> validateCall(program, function, instruction, false);
         case LOCAL_STORE_GLOBAL -> {
-          if (!entry) {
-            throw new IllegalArgumentException("Scalar AOT helper stores global state");
-          }
           requireOperands(instruction, 2);
-          if (instruction.operands().get(0) != 0) {
-            throw new IllegalArgumentException("Scalar AOT store targets an unknown global");
+          int global = global(instruction.operands().get(0), program.globals().size());
+          int source = local(instruction.operands().get(1), function.localCount());
+          if (!function.localType(source).equals(ValueType.SIGNED)
+              || global == 0 && !entry) {
+            throw new IllegalArgumentException("Scalar AOT global store is invalid");
           }
-          local(instruction.operands().get(1), function.localCount());
-          stores++;
+          if (global == 0) {
+            stores++;
+          }
         }
         case RETURN -> {
           if (entry
@@ -330,13 +335,12 @@ public final class ScalarAotProgram {
   }
 
   private static void validateGlobalLoad(
-      FunctionBody function, Instruction instruction, boolean entry) {
+      Program program, FunctionBody function, Instruction instruction) {
     requireOperands(instruction, 2);
     int destination = local(instruction.operands().get(0), function.localCount());
-    if (!entry
-        || instruction.operands().get(1) != 0
-        || !function.localType(destination).equals(ValueType.SIGNED)) {
-      throw new IllegalArgumentException("Scalar AOT global load is outside entry status state");
+    global(instruction.operands().get(1), program.globals().size());
+    if (!function.localType(destination).equals(ValueType.SIGNED)) {
+      throw new IllegalArgumentException("Scalar AOT global load is invalid");
     }
   }
 
@@ -439,14 +443,13 @@ public final class ScalarAotProgram {
       int functionId,
       long[] arguments,
       OutputState output,
+      EvaluationState state,
       EvaluationBudget budget) {
     FunctionBody function = program.function(functionId);
     long[] values = new long[function.localCount()];
     boolean[] assigned = new boolean[function.localCount()];
     System.arraycopy(arguments, 0, values, 0, arguments.length);
     java.util.Arrays.fill(assigned, 0, arguments.length, true);
-    long status = 0;
-    boolean stored = false;
     int pc = 0;
     while (pc < function.forward().size()) {
       budget.consume();
@@ -462,7 +465,8 @@ public final class ScalarAotProgram {
           case NOP -> pc++;
           case LOCAL_LOAD_GLOBAL -> {
             int destination = destination(instruction, 0, assigned);
-            values[destination] = status;
+            int source = Math.toIntExact(instruction.operands().get(1));
+            values[destination] = state.globals[source];
             assigned[destination] = true;
             pc++;
           }
@@ -550,6 +554,7 @@ public final class ScalarAotProgram {
                 Math.toIntExact(instruction.operands().get(0)),
                 callArguments,
                 output,
+                state,
                 budget);
             if (instruction.opcode() == Opcode.CALL_VALUE) {
               int destination = destination(instruction, 3, assigned);
@@ -559,8 +564,11 @@ public final class ScalarAotProgram {
             pc++;
           }
           case LOCAL_STORE_GLOBAL -> {
-            status = values[assignedLocal(instruction, 1, assigned)];
-            stored = true;
+            int destination = Math.toIntExact(instruction.operands().get(0));
+            state.globals[destination] = values[assignedLocal(instruction, 1, assigned)];
+            if (destination == 0) {
+              state.statusStored = true;
+            }
             pc++;
           }
           case RETURN -> {
@@ -571,7 +579,7 @@ public final class ScalarAotProgram {
                 values[assignedLocal(instruction, 0, assigned)], false);
           }
           case HALT -> {
-            return new Evaluation(status, stored);
+            return new Evaluation(state.globals[0], state.statusStored);
           }
           default -> throw new IllegalStateException("Validated scalar AOT opcode changed");
         }
@@ -635,6 +643,14 @@ public final class ScalarAotProgram {
     return result;
   }
 
+  private static int global(long value, int count) {
+    int result = Math.toIntExact(value);
+    if (result < 0 || result >= count) {
+      throw new IllegalArgumentException("Scalar AOT global is out of range");
+    }
+    return result;
+  }
+
   private static void branchTarget(
       FunctionBody function, long value, int pc, int last) {
     int target = Math.toIntExact(value);
@@ -655,6 +671,17 @@ public final class ScalarAotProgram {
   }
 
   private record Evaluation(long value, boolean stored) {}
+
+  private static final class EvaluationState {
+    private final long[] globals;
+    private boolean statusStored;
+
+    EvaluationState(Program program) {
+      globals = program.globals().stream()
+          .mapToLong(global -> global.initialValue())
+          .toArray();
+    }
+  }
 
   private static final class EvaluationBudget {
     private int remaining = MAX_EXECUTED_INSTRUCTIONS;

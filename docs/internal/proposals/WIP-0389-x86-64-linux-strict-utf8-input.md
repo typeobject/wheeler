@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, UTF-8, application input |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0386, WIP-0387, WIP-0388 |
 | Supersedes | Raw-byte-only scalar AOT input inspection |
-| Superseded by | None |
+| Superseded by | WIP-0390 for shared scalar state |
 
 ## Summary
 
@@ -119,3 +119,4 @@ Rejected. Wheeler counts Unicode scalar values and indexes UTF-8 operations by r
 - [WIP-0386](WIP-0386-x86-64-linux-borrowed-byte-helpers.md)
 - [WIP-0387](WIP-0387-x86-64-linux-scalar-execution-bound.md)
 - [WIP-0388](WIP-0388-x86-64-linux-4096-iteration-byte-loops.md)
+- [WIP-0390](WIP-0390-x86-64-linux-shared-scalar-globals.md)

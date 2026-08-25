@@ -129,7 +129,8 @@ ships yet.
 
 `wheeler image runtime-elf-x86-64-aot <root.wbc> -o <runtime.bin>` adds the
 first native backend leaf. It accepts one canonical classical WBC containing one
-zero-initialized `status` global, one to eight dense functions, bounded constants, scalar updates, checked signed
+zero-initialized `status` global, up to 31 additional shared signed globals, one
+to eight dense functions, bounded constants, scalar updates, checked signed
 arithmetic, bitwise and 32-bit rotate operations, comparisons, assertions,
 status reads, forward branches and 4,096-iteration checked loops, prior
 signed-result or void helper calls with up to six exact signed or Boolean
@@ -149,7 +150,8 @@ reports that status as input-dependent. Borrowed helpers retain the same frame
 bounds and cannot return or store handles as scalar values. Fuel instruction
 65,537 traps before an effect and before application output publication. Typed
 UTF-8 input uses strict RFC 3629 validity, scalar count, scalar, and width
-operations without locale or replacement. The status-73 fixture launches
+operations without locale or replacement. Helpers share non-status global state.
+Only the entry commits final process status. The status-73 fixture launches
 as a complete AOT ELF, but general bytecode execution and in-process verification
 remain.
 

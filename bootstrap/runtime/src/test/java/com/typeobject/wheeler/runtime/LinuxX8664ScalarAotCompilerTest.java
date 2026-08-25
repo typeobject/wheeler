@@ -14,6 +14,7 @@ import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.invalidOutputWri
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.loopArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.outputArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.parameterHelperArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.scalarGlobalArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.stateCheckArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.uncheckedBackwardBranchArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.utf8IoArtifact;
@@ -71,7 +72,7 @@ final class LinuxX8664ScalarAotCompilerTest {
         identity(LinuxX8664EntryShim.runtimeText()),
         identity(first.runtimeText()));
     assertEquals(
-        "0618a0f9c854fa85240871b1b9df5cc0d40093ef166bc9b8dff0328d4274c524",
+        "8fec2bdc281a22469752ddefb169a213c59f3c3d3623833a4932a9dd358ab4c3",
         identity(first.runtimeText()));
 
     byte[] returned = first.runtimeText();
@@ -263,6 +264,33 @@ final class LinuxX8664ScalarAotCompilerTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> LinuxX8664ScalarAotCompiler.lower(invalidOutputWriteArtifact(0, 256)));
+  }
+
+  @Test
+  void lowersBoundedSharedScalarGlobals() throws Exception {
+    byte[] artifact = scalarGlobalArtifact(3);
+    var lowered = LinuxX8664ScalarAotCompiler.lower(artifact);
+    var terminal = LinuxX8664ScalarAotCompiler.lower(scalarGlobalArtifact(32));
+
+    assertEquals(41, lowered.processStatus());
+    assertEquals(41, terminal.processStatus());
+    assertNotEquals(lowered.runtimeIdentity(), terminal.runtimeIdentity());
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(scalarGlobalArtifact(33)));
+
+    Fixture fixture = fixture(artifact, lowered.runtimeText());
+    byte[] image = ElfImage.build(
+        fixture.plan(), fixture.abi(), fixture.capsule(), lowered.runtimeText(), 0);
+    ElfImage.verify(image, fixture.plan(), fixture.abi());
+    if (nativeLinuxHost()) {
+      Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
+      assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(41, process.exitValue());
+      assertArrayEquals(
+          LinuxX8664EntryShim.successOutput(), process.getInputStream().readAllBytes());
+      assertEquals(0, process.getErrorStream().readAllBytes().length);
+    }
   }
 
   @Test
