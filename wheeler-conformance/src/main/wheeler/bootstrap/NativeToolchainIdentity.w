@@ -15,8 +15,8 @@ classical class NativeToolchainIdentity {
   ///
   /// - Effects: Mutates fixture state and caller-owned identity output.
   entry void main(borrow byteview source, borrow mut bytes identity) {
-    requireMetadata(bufferLength(source) < 513, source);
-    requireMetadata(31 < bufferLength(identity), source);
+    requireMetadata(bufferLength(source) < 513);
+    requireMetadata(31 < bufferLength(identity));
     region arena = new region(1800, 6);
     bytes expected = allocateBytes(arena, 512);
     writeAscii(expected, 0, "schema: 1");
@@ -47,7 +47,7 @@ classical class NativeToolchainIdentity {
       acceptedKind = 3;
     }
 
-    requireMetadata(0 < acceptedKind, source);
+    requireMetadata(0 < acceptedKind);
 
     setByte(expected, 0, 34);
     setByte(expected, 1, 10);
@@ -68,7 +68,7 @@ classical class NativeToolchainIdentity {
     cursor = consumeQuotedIdentity(source, cursor);
     setByte(expected, 0, 10);
     cursor = consumeMetadata(source, cursor, expected, 1);
-    requireMetadata(cursor == bufferLength(source), source);
+    requireMetadata(cursor == bufferLength(source));
 
     publishSha256(source, identity, arena);
     kindCode = acceptedKind;

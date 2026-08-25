@@ -491,9 +491,9 @@ classical class CountedModuleCallables {
     borrow mut words parameterTypeLengths,
     borrow mut words parameterModes
   ) {
-    requireMetadata(0 < plan.moduleCount, manifest);
-    requireMetadata(plan.moduleCount < MAX_LOCAL_MODULES + 1, manifest);
-    requireMetadata(plan.importCount < MAX_IMPORTS + 1, manifest);
+    requireMetadata(0 < plan.moduleCount);
+    requireMetadata(plan.moduleCount < MAX_LOCAL_MODULES + 1);
+    requireMetadata(plan.importCount < MAX_IMPORTS + 1);
     requireMetadata(
       columnsValid(
         moduleFirstCallables,
@@ -517,8 +517,7 @@ classical class CountedModuleCallables {
         parameterTypeStarts,
         parameterTypeLengths,
         parameterModes
-      ),
-      manifest
+      )
     );
 
     region slotArena = new region(
@@ -561,24 +560,24 @@ classical class CountedModuleCallables {
     long position = 0;
     while (position < plan.moduleCount) limit MAX_LOCAL_MODULES {
       long module = leafFirstOrder[position];
-      requireMetadata(-1 < module, manifest);
-      requireMetadata(module < plan.moduleCount, manifest);
-      requireMetadata(processed[module] == 0, manifest);
+      requireMetadata(-1 < module);
+      requireMetadata(module < plan.moduleCount);
+      requireMetadata(processed[module] == 0);
       long firstImport = firstImports[module];
       long importCount = directImportCounts[module];
-      requireMetadata(-1 < firstImport, manifest);
-      requireMetadata(-1 < importCount, manifest);
-      requireMetadata(importCount < MAX_DIRECT_IMPORTS + 1, manifest);
+      requireMetadata(-1 < firstImport);
+      requireMetadata(-1 < importCount);
+      requireMetadata(importCount < MAX_DIRECT_IMPORTS + 1);
       long importedCount = 0;
       long rank = 0;
       while (rank < importCount) limit MAX_DIRECT_IMPORTS {
         long edge = firstImport + rank;
-        requireMetadata(edge < plan.importCount, manifest);
+        requireMetadata(edge < plan.importCount);
         long dependency = edgeTargets[edge];
         long visible = 0;
         if (-1 < dependency) {
-          requireMetadata(dependency < plan.moduleCount, manifest);
-          requireMetadata(processed[dependency] == 1, manifest);
+          requireMetadata(dependency < plan.moduleCount);
+          requireMetadata(processed[dependency] == 1);
           long dependencyFirst = scratchFirstCallables[dependency];
           long dependencyCount = scratchCallableCounts[dependency];
           long dependencyOffset = 0;
@@ -619,11 +618,11 @@ classical class CountedModuleCallables {
           selected = handle;
         }
         case ActiveSourceAcquireResult.Full(long failedOwner) {
-          requireMetadata(failedOwner < 0, manifest);
+          requireMetadata(failedOwner < 0);
         }
       }
 
-      requireMetadata(-1 < selected.slot, manifest);
+      requireMetadata(-1 < selected.slot);
       requireMetadata(
         publishActiveSource(
           selected,
@@ -633,8 +632,7 @@ classical class CountedModuleCallables {
           generations,
           activeLengths,
           live
-        ),
-        manifest
+        )
       );
       bytes activeBytes = allocateBytes(sourceArena, sourceLengths[module]);
       requireMetadata(
@@ -646,8 +644,7 @@ classical class CountedModuleCallables {
           activeLengths,
           live,
           activeBytes
-        ),
-        manifest
+        )
       );
       utf8 activeSource = freezeUtf8(activeBytes);
       region tokenArena = new region(/* bytes= */ TOKEN_ARENA_BYTES, /* allocations= */ 3);
@@ -683,16 +680,15 @@ classical class CountedModuleCallables {
         scratchParameterModes,
         parameterTotal
       );
-      requireMetadata(-1 < localCallables, manifest);
+      requireMetadata(-1 < localCallables);
       callableCount += localCallables;
-      requireMetadata(callableCount < MAX_CALLABLES + 1, manifest);
+      requireMetadata(callableCount < MAX_CALLABLES + 1);
       set(scratchCallableCounts, module, localCallables);
       set(scratchImportedCounts, module, importedCount);
       set(processed, module, 1);
       finalGeneration = selected.generation;
       requireMetadata(
-        releaseActiveSource(selected, storage, owners, generations, activeLengths, live),
-        manifest
+        releaseActiveSource(selected, storage, owners, generations, activeLengths, live)
       );
       drop(tokenLengths);
       drop(tokenStarts);

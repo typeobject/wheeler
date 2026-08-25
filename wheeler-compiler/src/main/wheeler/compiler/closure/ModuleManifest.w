@@ -57,20 +57,20 @@ classical class BootstrapModuleManifestParser {
       }
 
       if (scalar == 46) {
-        requireMetadata(first == false, source);
+        requireMetadata(first == false);
         first = true;
       } else {
-        requireMetadata(moduleByte(scalar, first), source);
+        requireMetadata(moduleByte(scalar, first));
         first = false;
       }
 
       cursor += 1;
     }
 
-    requireMetadata(start < cursor, source);
-    requireMetadata(first == false, source);
-    requireMetadata(cursor - start < 129, source);
-    requireMetadata(source[cursor] == 34, source);
+    requireMetadata(start < cursor);
+    requireMetadata(first == false);
+    requireMetadata(cursor - start < 129);
+    requireMetadata(source[cursor] == 34);
     return cursor;
   }
 
@@ -159,30 +159,30 @@ classical class BootstrapModuleManifestParser {
 
       boolean punctuation = false;
       if (scalar == 46) {
-        requireMetadata(separator == false, source);
+        requireMetadata(separator == false);
         separator = true;
         punctuation = true;
       }
 
       if (scalar == 47) {
-        requireMetadata(separator == false, source);
+        requireMetadata(separator == false);
         separator = true;
         punctuation = true;
       }
 
       if (punctuation == false) {
-        requireMetadata(ordinary, source);
+        requireMetadata(ordinary);
         separator = false;
       }
 
       cursor += 1;
     }
 
-    requireMetadata(start + 2 < cursor, source);
-    requireMetadata(separator == false, source);
-    requireMetadata(source[cursor - 2] == 46, source);
-    requireMetadata(source[cursor - 1] == 119, source);
-    requireMetadata(source[cursor] == 34, source);
+    requireMetadata(start + 2 < cursor);
+    requireMetadata(separator == false);
+    requireMetadata(source[cursor - 2] == 46);
+    requireMetadata(source[cursor - 1] == 119);
+    requireMetadata(source[cursor] == 34);
     return cursor;
   }
 
@@ -256,7 +256,7 @@ classical class BootstrapModuleManifestParser {
 
       }
 
-      requireMetadata(-1 < candidate, source);
+      requireMetadata(-1 < candidate);
       set(removed, candidate, 1);
       edge = 0;
       while (edge < importCount) limit MAX_IMPORTS {
@@ -278,7 +278,7 @@ classical class BootstrapModuleManifestParser {
 
     long reached = 0;
     while (reached < moduleCount) limit MAX_LOCAL_MODULES {
-      requireMetadata(reachable[reached] == 1, source);
+      requireMetadata(reachable[reached] == 1);
       reached += 1;
     }
 
@@ -306,7 +306,7 @@ classical class BootstrapModuleManifestParser {
     borrow mut words edgeLengths,
     borrow mut words edgeTargets
   ) {
-    requireMetadata(bufferLength(source) < MAX_MANIFEST_BYTES + 1, source);
+    requireMetadata(bufferLength(source) < MAX_MANIFEST_BYTES + 1);
     writeAscii(expected, 0, "schema: 1");
     setByte(expected, 9, 10);
     writeAscii(expected, 10, "profile: ");
@@ -318,15 +318,12 @@ classical class BootstrapModuleManifestParser {
         break;
       }
 
-      requireMetadata(
-        profileByte(source[cursor], cursor != profileStart, /* valid= */ false),
-        source
-      );
+      requireMetadata(profileByte(source[cursor], cursor != profileStart, /* valid= */ false));
       cursor += 1;
     }
 
-    requireMetadata(profileStart < cursor, source);
-    requireMetadata(cursor - profileStart < 129, source);
+    requireMetadata(profileStart < cursor);
+    requireMetadata(cursor - profileStart < 129);
     setByte(expected, 0, 34);
     setByte(expected, 1, 10);
     writeAscii(expected, 2, "root: ");
@@ -352,13 +349,12 @@ classical class BootstrapModuleManifestParser {
       cursor = consumeMetadata(source, cursor, expected, 6);
       boolean moreExternals = true;
       while (moreExternals) limit MAX_EXTERNAL_MODULES {
-        requireMetadata(parsedExternals < MAX_EXTERNAL_MODULES, source);
+        requireMetadata(parsedExternals < MAX_EXTERNAL_MODULES);
         long nameStart = cursor;
         cursor = consumeModuleName(source, cursor);
         long nameLength = cursor - nameStart;
         requireMetadata(
-          sameText(source, rootStart, rootLength, nameStart, nameLength) == false,
-          source
+          sameText(source, rootStart, rootLength, nameStart, nameLength) == false
         );
         if (0 < parsedExternals) {
           requireMetadata(
@@ -368,8 +364,7 @@ classical class BootstrapModuleManifestParser {
               externalLengths[parsedExternals - 1],
               nameStart,
               nameLength
-            ),
-            source
+            )
           );
         }
 
@@ -397,7 +392,7 @@ classical class BootstrapModuleManifestParser {
     long parsedImports = 0;
     boolean moreModules = true;
     while (moreModules) limit MAX_LOCAL_MODULES {
-      requireMetadata(parsedModules < MAX_LOCAL_MODULES, source);
+      requireMetadata(parsedModules < MAX_LOCAL_MODULES);
       long moduleStart = cursor;
       cursor = consumeModuleName(source, cursor);
       long moduleLength = cursor - moduleStart;
@@ -409,8 +404,7 @@ classical class BootstrapModuleManifestParser {
             moduleLengths[parsedModules - 1],
             moduleStart,
             moduleLength
-          ),
-          source
+          )
         );
       }
 
@@ -433,8 +427,7 @@ classical class BootstrapModuleManifestParser {
             sourceLengths[previousSource],
             sourceStart,
             sourceLength
-          ) == false,
-          source
+          ) == false
         );
         previousSource += 1;
       }
@@ -463,8 +456,8 @@ classical class BootstrapModuleManifestParser {
         cursor = consumeMetadata(source, cursor, expected, 10);
         boolean moreImports = true;
         while (moreImports) limit MAX_IMPORTS_PER_MODULE {
-          requireMetadata(moduleImportCount < MAX_IMPORTS_PER_MODULE, source);
-          requireMetadata(parsedImports < MAX_IMPORTS, source);
+          requireMetadata(moduleImportCount < MAX_IMPORTS_PER_MODULE);
+          requireMetadata(parsedImports < MAX_IMPORTS);
           long importStart = cursor;
           cursor = consumeModuleName(source, cursor);
           long importLength = cursor - importStart;
@@ -476,8 +469,7 @@ classical class BootstrapModuleManifestParser {
                 edgeLengths[parsedImports - 1],
                 importStart,
                 importLength
-              ),
-              source
+              )
             );
           }
 
@@ -511,7 +503,7 @@ classical class BootstrapModuleManifestParser {
       }
     }
 
-    requireMetadata(0 < parsedModules, source);
+    requireMetadata(0 < parsedModules);
     long rootModule = listedIndex(
       source,
       moduleStarts,
@@ -520,7 +512,7 @@ classical class BootstrapModuleManifestParser {
       rootStart,
       rootLength
     );
-    requireMetadata(-1 < rootModule, source);
+    requireMetadata(-1 < rootModule);
     long external = 0;
     while (external < parsedExternals) limit MAX_EXTERNAL_MODULES {
       requireMetadata(
@@ -531,8 +523,7 @@ classical class BootstrapModuleManifestParser {
           parsedModules,
           externalStarts[external],
           externalLengths[external]
-        ) < 0,
-        source
+        ) < 0
       );
       external += 1;
     }
@@ -561,8 +552,8 @@ classical class BootstrapModuleManifestParser {
         resolved = -1 < externalTarget;
       }
 
-      requireMetadata(resolved, source);
-      requireMetadata((localTarget == edgeOwners[edge]) == false, source);
+      requireMetadata(resolved);
+      requireMetadata((localTarget == edgeOwners[edge]) == false);
       long resolvedTarget = localTarget;
       if (resolvedTarget < 0) {
         resolvedTarget = 0 - externalTarget - 1;
@@ -572,7 +563,7 @@ classical class BootstrapModuleManifestParser {
       edge += 1;
     }
 
-    requireMetadata(cursor == bufferLength(source), source);
+    requireMetadata(cursor == bufferLength(source));
     validateGraph(source, parsedModules, rootModule, parsedImports, edgeOwners, edgeTargets);
     return new BootstrapModuleManifestPlan(
       parsedModules,

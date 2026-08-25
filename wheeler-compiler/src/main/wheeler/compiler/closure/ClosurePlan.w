@@ -66,12 +66,12 @@ classical class ClosurePlans {
     borrow mut words importRanks,
     borrow mut words leafFirstOrder
   ) {
-    requireMetadata(0 < manifestPlan.moduleCount, manifest);
-    requireMetadata(manifestPlan.moduleCount < MAX_LOCAL_MODULES + 1, manifest);
-    requireMetadata(manifestPlan.externalCount < MAX_EXTERNAL_MODULES + 1, manifest);
-    requireMetadata(manifestPlan.importCount < MAX_IMPORTS + 1, manifest);
-    requireMetadata(-1 < manifestPlan.rootModule, manifest);
-    requireMetadata(manifestPlan.rootModule < manifestPlan.moduleCount, manifest);
+    requireMetadata(0 < manifestPlan.moduleCount);
+    requireMetadata(manifestPlan.moduleCount < MAX_LOCAL_MODULES + 1);
+    requireMetadata(manifestPlan.externalCount < MAX_EXTERNAL_MODULES + 1);
+    requireMetadata(manifestPlan.importCount < MAX_IMPORTS + 1);
+    requireMetadata(-1 < manifestPlan.rootModule);
+    requireMetadata(manifestPlan.rootModule < manifestPlan.moduleCount);
     region scratchArena = new region(/* bytes= */ PLAN_ARENA_BYTES, /* allocations= */ 8);
     words scratchSourceStarts = allocate(scratchArena, MAX_LOCAL_MODULES);
     words scratchSourceLengths = allocate(scratchArena, MAX_LOCAL_MODULES);
@@ -85,15 +85,15 @@ classical class ClosurePlans {
     long module = 0;
     while (module < manifestPlan.moduleCount) limit MAX_LOCAL_MODULES {
       long entry = moduleArchiveEntries[module];
-      requireMetadata(-1 < entry, manifest);
-      requireMetadata(entry < MAX_ARCHIVE_ENTRIES, manifest);
+      requireMetadata(-1 < entry);
+      requireMetadata(entry < MAX_ARCHIVE_ENTRIES);
       long sourceStart = archiveDataStarts[entry];
       long sourceLength = archiveDataLengths[entry];
-      requireMetadata(-1 < sourceStart, manifest);
-      requireMetadata(-1 < sourceLength, manifest);
-      requireMetadata(sourceLength < MAX_SOURCE_BYTES + 1, manifest);
-      requireMetadata(sourceStart < bufferLength(archive) + 1, manifest);
-      requireMetadata(sourceLength < bufferLength(archive) - sourceStart + 1, manifest);
+      requireMetadata(-1 < sourceStart);
+      requireMetadata(-1 < sourceLength);
+      requireMetadata(sourceLength < MAX_SOURCE_BYTES + 1);
+      requireMetadata(sourceStart < bufferLength(archive) + 1);
+      requireMetadata(sourceLength < bufferLength(archive) - sourceStart + 1);
       set(scratchSourceStarts, module, sourceStart);
       set(scratchSourceLengths, module, sourceLength);
       module += 1;
@@ -108,19 +108,19 @@ classical class ClosurePlans {
       long rank = 0;
       boolean more = edge < manifestPlan.importCount;
       if (more) {
-        requireMetadata(module < edgeOwners[edge] + 1, manifest);
+        requireMetadata(module < edgeOwners[edge] + 1);
         more = edgeOwners[edge] == module;
       }
 
       while (more) limit 64 {
         long target = edgeTargets[edge];
         if (-1 < target) {
-          requireMetadata(target < manifestPlan.moduleCount, manifest);
+          requireMetadata(target < manifestPlan.moduleCount);
           set(remainingDependencies, module, remainingDependencies[module] + 1);
         } else {
           long externalTarget = 0 - target - 1;
-          requireMetadata(-1 < externalTarget, manifest);
-          requireMetadata(externalTarget < manifestPlan.externalCount, manifest);
+          requireMetadata(-1 < externalTarget);
+          requireMetadata(externalTarget < manifestPlan.externalCount);
         }
 
         set(scratchRanks, edge, rank);
@@ -137,7 +137,7 @@ classical class ClosurePlans {
 
     }
 
-    requireMetadata(edge == manifestPlan.importCount, manifest);
+    requireMetadata(edge == manifestPlan.importCount);
 
     long ordered = 0;
     while (ordered < manifestPlan.moduleCount) limit MAX_LOCAL_MODULES {
@@ -157,7 +157,7 @@ classical class ClosurePlans {
 
       }
 
-      requireMetadata(-1 < candidate, manifest);
+      requireMetadata(-1 < candidate);
       set(scratchOrder, ordered, candidate);
       set(removed, candidate, 1);
       edge = 0;
@@ -173,10 +173,7 @@ classical class ClosurePlans {
       ordered += 1;
     }
 
-    requireMetadata(
-      scratchOrder[manifestPlan.moduleCount - 1] == manifestPlan.rootModule,
-      manifest
-    );
+    requireMetadata(scratchOrder[manifestPlan.moduleCount - 1] == manifestPlan.rootModule);
 
     module = 0;
 
@@ -233,7 +230,7 @@ classical class ClosurePlans {
     while (module < plan.moduleCount) limit MAX_LOCAL_MODULES {
       long sourceStart = sourceStarts[module];
       long sourceLength = sourceLengths[module];
-      requireMetadata(sourceLength < MAX_SOURCE_BYTES + 1, manifest);
+      requireMetadata(sourceLength < MAX_SOURCE_BYTES + 1);
       region sourceArena = new region(/* bytes= */ SOURCE_ARENA_BYTES, /* allocations= */ 1);
       bytes sourceBytes = allocateBytes(sourceArena, sourceLength);
       long cursor = 0;
@@ -244,7 +241,7 @@ classical class ClosurePlans {
 
       utf8 source = freezeUtf8(sourceBytes);
       ExecutableOwnerKind kind = classifyExecutableOwner(source);
-      requireMetadata(kind.valid, manifest);
+      requireMetadata(kind.valid);
       requireMetadata(
         sameModuleName(
           manifest,
@@ -253,8 +250,7 @@ classical class ClosurePlans {
           source,
           kind.moduleStart,
           kind.moduleLength
-        ),
-        manifest
+        )
       );
       long executable = 0;
       if (kind.executable) {

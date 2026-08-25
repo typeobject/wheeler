@@ -22,8 +22,8 @@ classical class NativeBootstrapModulesIdentity {
   ///
   /// - Effects: Mutates fixture state and caller-owned identity output.
   entry void main(borrow byteview source, borrow mut bytes identity) {
-    requireMetadata(bufferLength(source) < MAX_MANIFEST_BYTES + 1, source);
-    requireMetadata(31 < bufferLength(identity), source);
+    requireMetadata(bufferLength(source) < MAX_MANIFEST_BYTES + 1);
+    requireMetadata(31 < bufferLength(identity));
     region arena = new region(/* bytes= */ MODULE_COLUMN_ARENA_BYTES, /* allocations= */ 16);
     bytes expected = allocateBytes(arena, /* length= */ 256);
     words externalStarts = allocate(arena, MAX_EXTERNAL_MODULES);

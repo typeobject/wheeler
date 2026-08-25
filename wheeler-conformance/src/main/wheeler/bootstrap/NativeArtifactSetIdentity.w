@@ -291,8 +291,8 @@ classical class NativeArtifactSetIdentity {
   ///
   /// - Effects: Mutates fixture state and caller-owned identity output.
   entry void main(borrow byteview source, borrow mut bytes identity) {
-    requireMetadata(bufferLength(source) < 4097, source);
-    requireMetadata(31 < bufferLength(identity), source);
+    requireMetadata(bufferLength(source) < 4097);
+    requireMetadata(31 < bufferLength(identity));
     region arena = new region(5600, 8);
     bytes canonical = allocateBytes(arena, 4096);
     bytes expected = allocateBytes(arena, 64);
@@ -326,13 +326,13 @@ classical class NativeArtifactSetIdentity {
         }
       }
 
-      requireMetadata(0 < byteLength, source);
+      requireMetadata(0 < byteLength);
       if (source[bytesStart] == 48) {
-        requireMetadata(false, source);
+        requireMetadata(false);
       }
 
-      requireMetadata(0 < bytesValue, source);
-      requireMetadata(bytesValue < 16777217, source);
+      requireMetadata(0 < bytesValue);
+      requireMetadata(bytesValue < 16777217);
       validationPhase = 2;
       expectedLength = writeNamedStringPrefix(expected, 44, false);
       cursor = consumeMetadata(source, cursor, expected, expectedLength);
@@ -347,17 +347,16 @@ classical class NativeArtifactSetIdentity {
 
       long pathLength = cursor - pathStart;
       validationPhase = 3;
-      requireMetadata(validPath(source, pathStart, pathLength), source);
+      requireMetadata(validPath(source, pathStart, pathLength));
       if (0 < count) {
         requireMetadata(
-          comparePaths(source, previousPathStart, previousPathLength, pathStart, pathLength) < 0,
-          source
+          comparePaths(source, previousPathStart, previousPathLength, pathStart, pathLength) < 0
         );
       }
 
       previousPathStart = pathStart;
       previousPathLength = pathLength;
-      requireMetadata(source[cursor] == 34, source);
+      requireMetadata(source[cursor] == 34);
       cursor += 1;
       validationPhase = 4;
       expectedLength = writeNamedStringPrefix(expected, 44, true);
@@ -365,7 +364,7 @@ classical class NativeArtifactSetIdentity {
       long shaStart = cursor;
       long shaIndex = 0;
       while (shaIndex < 64) limit 64 {
-        requireMetadata(lowercaseHex(source[cursor + shaIndex]), source);
+        requireMetadata(lowercaseHex(source[cursor + shaIndex]));
         shaIndex += 1;
       }
 
@@ -386,7 +385,7 @@ classical class NativeArtifactSetIdentity {
       }
     }
 
-    requireMetadata(0 < count, source);
+    requireMetadata(0 < count);
     validationPhase = 7;
     expectedLength = writeIdentityPrefix(expected);
     cursor = consumeMetadata(source, cursor, expected, expectedLength);
@@ -395,10 +394,10 @@ classical class NativeArtifactSetIdentity {
     validationPhase = 8;
     expectedLength = writeProfileSuffix(expected);
     cursor = consumeMetadata(source, cursor, expected, expectedLength);
-    requireMetadata(cursor == bufferLength(source), source);
+    requireMetadata(cursor == bufferLength(source));
     validationPhase = 9;
     hashSha256Range(canonical, 0, encoded, digest, arena);
-    requireMetadata(digestMatches(source, identityStart, digest), source);
+    requireMetadata(digestMatches(source, identityStart, digest));
     long outputIndex = 0;
     while (outputIndex < 32) limit 32 {
       setByte(identity, outputIndex, digest[outputIndex]);

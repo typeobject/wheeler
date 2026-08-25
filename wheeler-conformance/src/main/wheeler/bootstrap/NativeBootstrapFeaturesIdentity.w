@@ -43,8 +43,8 @@ classical class NativeBootstrapFeaturesIdentity {
   ///
   /// - Effects: Mutates fixture state and caller-owned identity output.
   entry void main(borrow byteview source, borrow mut bytes identity) {
-    requireMetadata(bufferLength(source) < 2049, source);
-    requireMetadata(31 < bufferLength(identity), source);
+    requireMetadata(bufferLength(source) < 2049);
+    requireMetadata(31 < bufferLength(identity));
     region arena = new region(3300, 6);
     bytes expected = allocateBytes(arena, 2048);
     long cursor = writeHeader(expected);
@@ -102,7 +102,7 @@ classical class NativeBootstrapFeaturesIdentity {
     cursor = writeFeatureSuffix(expected, cursor + 12);
 
     long consumed = consumeMetadata(source, 0, expected, cursor);
-    requireMetadata(consumed == bufferLength(source), source);
+    requireMetadata(consumed == bufferLength(source));
     publishSha256(source, identity, arena);
     featureCount = 17;
     manifestLength = cursor;

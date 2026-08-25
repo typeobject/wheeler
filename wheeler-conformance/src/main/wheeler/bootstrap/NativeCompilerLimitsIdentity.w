@@ -43,13 +43,13 @@ classical class NativeCompilerLimitsIdentity {
       }
     }
 
-    requireMetadata(digitStart < cursor, source);
+    requireMetadata(digitStart < cursor);
     if (source[digitStart] == 48) {
-      requireMetadata(false, source);
+      requireMetadata(false);
     }
 
-    requireMetadata(0 < value, source);
-    requireMetadata(value < 1073741825, source);
+    requireMetadata(0 < value);
+    requireMetadata(value < 1073741825);
     setByte(expected, 0, 10);
     cursor = consumeMetadata(source, cursor, expected, 1);
     return new ParsedLimit(cursor, value);
@@ -59,8 +59,8 @@ classical class NativeCompilerLimitsIdentity {
   ///
   /// - Effects: Mutates fixture state and caller-owned identity output.
   entry void main(borrow byteview source, borrow mut bytes identity) {
-    requireMetadata(bufferLength(source) < 513, source);
-    requireMetadata(31 < bufferLength(identity), source);
+    requireMetadata(bufferLength(source) < 513);
+    requireMetadata(31 < bufferLength(identity));
     region arena = new region(1400, 6);
     bytes expected = allocateBytes(arena, 64);
     long headerLength = writeHeader(expected);
@@ -96,7 +96,7 @@ classical class NativeCompilerLimitsIdentity {
     writeAscii(expected, 0, "  steps: ");
     ParsedLimit steps = parseLimit(source, cursor, expected, 9);
     cursor = steps.cursor;
-    requireMetadata(cursor == bufferLength(source), source);
+    requireMetadata(cursor == bufferLength(source));
 
     publishSha256(source, identity, arena);
     limitCount = 10;

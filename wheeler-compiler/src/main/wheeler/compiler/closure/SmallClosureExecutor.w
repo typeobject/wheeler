@@ -69,10 +69,10 @@ classical class SmallClosureExecutor {
     borrow mut words sourceLengths,
     borrow mut bytes output
   ) {
-    requireMetadata(plan.moduleCount == FIXTURE_MODULE_COUNT, manifest);
-    requireMetadata(plan.externalCount == 0, manifest);
-    requireMetadata(-1 < plan.rootModule, manifest);
-    requireMetadata(plan.rootModule < plan.moduleCount, manifest);
+    requireMetadata(plan.moduleCount == FIXTURE_MODULE_COUNT);
+    requireMetadata(plan.externalCount == 0);
+    requireMetadata(-1 < plan.rootModule);
+    requireMetadata(plan.rootModule < plan.moduleCount);
     region planArena = new region(/* bytes= */ PLAN_ARENA_BYTES, /* allocations= */ 5);
     words graph = allocate(planArena, MAX_IMPORTED_MODULES * MAX_IMPORTED_MODULES);
     words rootDirect = allocate(planArena, MAX_IMPORTED_MODULES);
@@ -84,16 +84,16 @@ classical class SmallClosureExecutor {
     while (owner < plan.moduleCount) limit FIXTURE_MODULE_COUNT {
       long firstImport = firstImports[owner];
       long directCount = directImportCounts[owner];
-      requireMetadata(directCount < MAX_IMPORTED_MODULES + 1, manifest);
+      requireMetadata(directCount < MAX_IMPORTED_MODULES + 1);
       long rank = 0;
       while (rank < directCount) limit MAX_IMPORTED_MODULES {
         long edge = firstImport + rank;
-        requireMetadata(-1 < edge, manifest);
-        requireMetadata(edge < plan.importCount, manifest);
+        requireMetadata(-1 < edge);
+        requireMetadata(edge < plan.importCount);
         long target = edgeTargets[edge];
-        requireMetadata(-1 < target, manifest);
-        requireMetadata(target < plan.moduleCount, manifest);
-        requireMetadata((target == plan.rootModule) == false, manifest);
+        requireMetadata(-1 < target);
+        requireMetadata(target < plan.moduleCount);
+        requireMetadata((target == plan.rootModule) == false);
         long compactTarget = compactModule(target, plan.rootModule);
         if (owner == plan.rootModule) {
           set(rootDirect, compactTarget, 1);
@@ -117,7 +117,7 @@ classical class SmallClosureExecutor {
       order,
       reachable
     );
-    requireMetadata(bounded.valid, manifest);
+    requireMetadata(bounded.valid);
     region sourceArena = new region(/* bytes= */ SOURCE_ARENA_BYTES, /* allocations= */ 8);
     utf8 firstSource = copyClosureSource(
       archive,

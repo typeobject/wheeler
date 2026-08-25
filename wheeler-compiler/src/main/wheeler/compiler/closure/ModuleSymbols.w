@@ -387,9 +387,9 @@ classical class CountedModuleSymbols {
     borrow mut words symbolValues,
     borrow mut words symbolResolved
   ) {
-    requireMetadata(0 < plan.moduleCount, manifest);
-    requireMetadata(plan.moduleCount < MAX_LOCAL_MODULES + 1, manifest);
-    requireMetadata(plan.importCount < MAX_IMPORTS + 1, manifest);
+    requireMetadata(0 < plan.moduleCount);
+    requireMetadata(plan.moduleCount < MAX_LOCAL_MODULES + 1);
+    requireMetadata(plan.importCount < MAX_IMPORTS + 1);
     requireMetadata(
       columnsValid(
         moduleFirstSymbols,
@@ -406,8 +406,7 @@ classical class CountedModuleSymbols {
         symbolTypes,
         symbolValues,
         symbolResolved
-      ),
-      manifest
+      )
     );
 
     region slotArena = new region(
@@ -443,20 +442,20 @@ classical class CountedModuleSymbols {
     long position = 0;
     while (position < plan.moduleCount) limit MAX_LOCAL_MODULES {
       long module = leafFirstOrder[position];
-      requireMetadata(-1 < module, manifest);
-      requireMetadata(module < plan.moduleCount, manifest);
-      requireMetadata(processed[module] == 0, manifest);
+      requireMetadata(-1 < module);
+      requireMetadata(module < plan.moduleCount);
+      requireMetadata(processed[module] == 0);
       long importedCount = 0;
       long rank = 0;
       while (rank < directImportCounts[module]) limit 64 {
         long edge = firstImports[module] + rank;
-        requireMetadata(edge < plan.importCount, manifest);
-        requireMetadata(importRanks[edge] == rank, manifest);
+        requireMetadata(edge < plan.importCount);
+        requireMetadata(importRanks[edge] == rank);
         long dependency = edgeTargets[edge];
         long edgeCount = 0;
         if (-1 < dependency) {
-          requireMetadata(dependency < plan.moduleCount, manifest);
-          requireMetadata(processed[dependency] == 1, manifest);
+          requireMetadata(dependency < plan.moduleCount);
+          requireMetadata(processed[dependency] == 1);
           edgeCount = publicSymbolCount(
             dependency,
             scratchFirstSymbols,
@@ -486,13 +485,13 @@ classical class CountedModuleSymbols {
         scratchResolved,
         scratchImportedRows
       );
-      requireMetadata(packedImported == importedCount, manifest);
+      requireMetadata(packedImported == importedCount);
       long sourceStart = sourceStarts[module];
       long sourceLength = sourceLengths[module];
-      requireMetadata(0 < sourceLength, manifest);
-      requireMetadata(sourceLength < MAX_SOURCE_BYTES + 1, manifest);
-      requireMetadata(-1 < sourceStart, manifest);
-      requireMetadata(sourceLength < bufferLength(archive) - sourceStart + 1, manifest);
+      requireMetadata(0 < sourceLength);
+      requireMetadata(sourceLength < MAX_SOURCE_BYTES + 1);
+      requireMetadata(-1 < sourceStart);
+      requireMetadata(sourceLength < bufferLength(archive) - sourceStart + 1);
       region sourceArena = new region(/* bytes= */ 65536, /* allocations= */ 2);
       bytes archiveBytes = allocateBytes(sourceArena, sourceLength);
       long cursor = 0;
@@ -516,7 +515,7 @@ classical class CountedModuleSymbols {
           selected = handle;
         }
         case ActiveSourceAcquireResult.Full(long owner) {
-          requireMetadata(owner < 0, manifest);
+          requireMetadata(owner < 0);
         }
       }
 
@@ -529,8 +528,7 @@ classical class CountedModuleSymbols {
           generations,
           activeLengths,
           live
-        ),
-        manifest
+        )
       );
       bytes activeBytes = allocateBytes(sourceArena, sourceLength);
       requireMetadata(
@@ -542,8 +540,7 @@ classical class CountedModuleSymbols {
           activeLengths,
           live,
           activeBytes
-        ),
-        manifest
+        )
       );
       utf8 activeSource = freezeUtf8(activeBytes);
       region tokenArena = new region(/* bytes= */ TOKEN_ARENA_BYTES, /* allocations= */ 4);
@@ -572,18 +569,17 @@ classical class CountedModuleSymbols {
         scratchValues,
         scratchResolved
       );
-      requireMetadata(-1 < localSymbols, manifest);
+      requireMetadata(-1 < localSymbols);
       set(scratchModuleNameStarts, module, sourceStart + moduleRange[0]);
       set(scratchModuleNameLengths, module, moduleRange[1]);
       symbolCount += localSymbols;
-      requireMetadata(symbolCount < MAX_CLOSURE_SYMBOLS + 1, manifest);
+      requireMetadata(symbolCount < MAX_CLOSURE_SYMBOLS + 1);
       set(scratchSymbolCounts, module, localSymbols);
       set(scratchImportedCounts, module, importedCount);
       set(processed, module, 1);
       finalGeneration = selected.generation;
       requireMetadata(
-        releaseActiveSource(selected, storage, owners, generations, activeLengths, live),
-        manifest
+        releaseActiveSource(selected, storage, owners, generations, activeLengths, live)
       );
       drop(moduleRange);
       drop(tokenLengths);

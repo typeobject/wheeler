@@ -88,8 +88,8 @@ classical class ArchiveModuleSources {
     borrow mut words moduleIdentityStarts,
     borrow mut words moduleArchiveEntries
   ) {
-    requireMetadata(manifestPlan.moduleCount < MAX_LOCAL_MODULES + 1, manifest);
-    requireMetadata(archiveIndex.entryCount < MAX_ARCHIVE_ENTRIES + 1, manifest);
+    requireMetadata(manifestPlan.moduleCount < MAX_LOCAL_MODULES + 1);
+    requireMetadata(archiveIndex.entryCount < MAX_ARCHIVE_ENTRIES + 1);
     region scratchArena = new region(/* bytes= */ SOURCE_ENTRY_ARENA_BYTES, /* allocations= */ 1);
     words scratchEntries = allocate(scratchArena, MAX_LOCAL_MODULES);
     long module = 0;
@@ -107,23 +107,22 @@ classical class ArchiveModuleSources {
             moduleSourceLengths[module]
           )
         ) {
-          requireMetadata(found < 0, manifest);
+          requireMetadata(found < 0);
           found = entry;
         }
 
         entry += 1;
       }
 
-      requireMetadata(-1 < found, manifest);
-      requireMetadata(archiveDataLengths[found] < MAX_SOURCE_BYTES + 1, manifest);
+      requireMetadata(-1 < found);
+      requireMetadata(archiveDataLengths[found] < MAX_SOURCE_BYTES + 1);
       requireMetadata(
         sameIdentity(
           archive,
           archiveDataStarts[found] - 32,
           manifest,
           moduleIdentityStarts[module]
-        ),
-        manifest
+        )
       );
       set(scratchEntries, module, found);
       module += 1;

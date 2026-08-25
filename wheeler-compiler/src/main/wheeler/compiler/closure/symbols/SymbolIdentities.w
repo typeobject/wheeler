@@ -87,10 +87,10 @@ classical class CountedSymbolIdentities {
     borrow mut bytes packageIdentity,
     borrow mut bytes symbolIdentities
   ) {
-    requireMetadata(-1 < symbolCount, manifest);
-    requireMetadata(symbolCount < MAX_CLOSURE_SYMBOLS + 1, manifest);
-    requireMetadata(bufferLength(packageIdentity) == SYMBOL_IDENTITY_BYTES, manifest);
-    requireMetadata(bufferLength(symbolIdentities) == SYMBOL_IDENTITY_STORAGE_BYTES, manifest);
+    requireMetadata(-1 < symbolCount);
+    requireMetadata(symbolCount < MAX_CLOSURE_SYMBOLS + 1);
+    requireMetadata(bufferLength(packageIdentity) == SYMBOL_IDENTITY_BYTES);
+    requireMetadata(bufferLength(symbolIdentities) == SYMBOL_IDENTITY_STORAGE_BYTES);
     region identityArena = new region(/* bytes= */ 540000, /* allocations= */ 4);
     bytes scratchPackageIdentity = allocateBytes(identityArena, SYMBOL_IDENTITY_BYTES);
     bytes scratchIdentities = allocateBytes(identityArena, SYMBOL_IDENTITY_STORAGE_BYTES);
@@ -101,20 +101,20 @@ classical class CountedSymbolIdentities {
     long symbol = 0;
     while (symbol < symbolCount) limit MAX_CLOSURE_SYMBOLS {
       long owner = symbolOwners[symbol];
-      requireMetadata(-1 < owner, manifest);
-      requireMetadata(owner < plan.moduleCount, manifest);
+      requireMetadata(-1 < owner);
+      requireMetadata(owner < plan.moduleCount);
       long nameStart = symbolStarts[symbol];
       long nameLength = symbolLengths[symbol];
-      requireMetadata(-1 < nameStart, manifest);
-      requireMetadata(0 < nameLength, manifest);
-      requireMetadata(nameLength < 257, manifest);
-      requireMetadata(nameStart < bufferLength(archive), manifest);
-      requireMetadata(nameLength < bufferLength(archive) - nameStart + 1, manifest);
-      requireMetadata(symbolKinds[symbol] == MODULE_SYMBOL_CONSTANT, manifest);
-      requireMetadata(-1 < symbolVisibilities[symbol], manifest);
-      requireMetadata(symbolVisibilities[symbol] < 2, manifest);
-      requireMetadata(0 < symbolTypes[symbol], manifest);
-      requireMetadata(symbolTypes[symbol] < 3, manifest);
+      requireMetadata(-1 < nameStart);
+      requireMetadata(0 < nameLength);
+      requireMetadata(nameLength < 257);
+      requireMetadata(nameStart < bufferLength(archive));
+      requireMetadata(nameLength < bufferLength(archive) - nameStart + 1);
+      requireMetadata(symbolKinds[symbol] == MODULE_SYMBOL_CONSTANT);
+      requireMetadata(-1 < symbolVisibilities[symbol]);
+      requireMetadata(symbolVisibilities[symbol] < 2);
+      requireMetadata(0 < symbolTypes[symbol]);
+      requireMetadata(symbolTypes[symbol] < 3);
       writeIdentityInput(
         archive,
         manifest,

@@ -33,7 +33,7 @@ classical class NativeBootstrapManifestIdentity {
       index += 1;
     }
 
-    requireMetadata(same, source);
+    requireMetadata(same);
   }
 
   private void requireDifferentIdentity(borrow byteview source, long left, long right) {
@@ -47,15 +47,15 @@ classical class NativeBootstrapManifestIdentity {
       index += 1;
     }
 
-    requireMetadata(different, source);
+    requireMetadata(different);
   }
 
   /// Publishes SHA-256 only for canonical schema-2 recovery evidence.
   ///
   /// - Effects: Mutates fixture state and caller-owned identity output.
   entry void main(borrow byteview source, borrow mut bytes identity) {
-    requireMetadata(bufferLength(source) < 2049, source);
-    requireMetadata(31 < bufferLength(identity), source);
+    requireMetadata(bufferLength(source) < 2049);
+    requireMetadata(31 < bufferLength(identity));
     region arena = new region(1500, 6);
     bytes expected = allocateBytes(arena, 256);
     writeAscii(expected, 0, "schema: 2");
@@ -81,15 +81,12 @@ classical class NativeBootstrapManifestIdentity {
         break;
       }
 
-      requireMetadata(
-        profileByte(source[cursor], cursor != profileStart, /* valid= */ false),
-        source
-      );
+      requireMetadata(profileByte(source[cursor], cursor != profileStart, /* valid= */ false));
       cursor += 1;
     }
 
-    requireMetadata(profileStart < cursor, source);
-    requireMetadata(cursor - profileStart < 129, source);
+    requireMetadata(profileStart < cursor);
+    requireMetadata(cursor - profileStart < 129);
 
     setByte(expected, 0, 34);
     setByte(expected, 1, 10);
@@ -171,7 +168,7 @@ classical class NativeBootstrapManifestIdentity {
     cursor = consumeIdentity(source, cursor, expected, 29);
     setByte(expected, 0, 10);
     cursor = consumeMetadata(source, cursor, expected, 1);
-    requireMetadata(cursor == bufferLength(source), source);
+    requireMetadata(cursor == bufferLength(source));
 
     publishSha256(source, identity, arena);
     identityCount = 21;

@@ -37,8 +37,8 @@ classical class NativeCompilerOptionsIdentity {
   ///
   /// - Effects: Mutates fixture state and caller-owned identity output.
   entry void main(borrow byteview source, borrow mut bytes identity) {
-    requireMetadata(bufferLength(source) < 257, source);
-    requireMetadata(31 < bufferLength(identity), source);
+    requireMetadata(bufferLength(source) < 257);
+    requireMetadata(31 < bufferLength(identity));
     region arena = new region(1300, 6);
     bytes expected = allocateBytes(arena, 64);
     long expectedLength = writeHeader(expected);
@@ -49,16 +49,13 @@ classical class NativeCompilerOptionsIdentity {
         break;
       }
 
-      requireMetadata(
-        profileByte(source[cursor], cursor != profileStart, /* valid= */ false),
-        source
-      );
+      requireMetadata(profileByte(source[cursor], cursor != profileStart, /* valid= */ false));
       cursor += 1;
     }
 
     long parsedProfileLength = cursor - profileStart;
-    requireMetadata(0 < parsedProfileLength, source);
-    requireMetadata(parsedProfileLength < 129, source);
+    requireMetadata(0 < parsedProfileLength);
+    requireMetadata(parsedProfileLength < 129);
     expectedLength = writeSourceMapsPrefix(expected);
     cursor = consumeMetadata(source, cursor, expected, expectedLength);
     long parsedSourceMaps = 0;
@@ -73,7 +70,7 @@ classical class NativeCompilerOptionsIdentity {
 
     setByte(expected, 0, 10);
     cursor = consumeMetadata(source, cursor, expected, 1);
-    requireMetadata(cursor == bufferLength(source), source);
+    requireMetadata(cursor == bufferLength(source));
     publishSha256(source, identity, arena);
     profileLength = parsedProfileLength;
     sourceMaps = parsedSourceMaps;
