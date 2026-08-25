@@ -17,14 +17,17 @@ Add physical build and verification commands for canonical ELF, Mach-O, and PE c
 
 ```text
 wheeler image build-elf <application.capsule> --runtime <runtime.bin> --entry <offset> --plan <plan.yaml> --abi <abi.yaml> -o <application>
+wheeler image inspect-elf <application> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image verify-elf <application> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image build-macho <application.capsule> --runtime <runtime.bin> --entry <offset> --plan <plan.yaml> --abi <abi.yaml> -o <application>
+wheeler image inspect-macho <application> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image verify-macho <application> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image build-pe <application.capsule> --runtime <runtime.bin> --entry <offset> --plan <plan.yaml> --abi <abi.yaml> -o <application.exe>
+wheeler image inspect-pe <application.exe> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image verify-pe <application.exe> --plan <plan.yaml> --abi <abi.yaml>
 ```
 
-Each build command reads its explicit physical inputs once, parses canonical plan and ABI transports, verifies every capsule WBC and root, invokes the selected WIP-0372, WIP-0374, or WIP-0375 adapter, verifies those bytes through the independent reader, and only then publishes one output atomically. Each verify command checks the complete native image, plan, ABI, capsule, every WBC, and root before printing success.
+Each build command reads its explicit physical inputs once, parses canonical plan and ABI transports, verifies every capsule WBC and root, invokes the selected WIP-0372, WIP-0374, or WIP-0375 adapter, verifies those bytes through the independent reader, and only then publishes one output atomically. Each inspect command verifies complete native structure and capsule framing before returning deterministic JSON. Each verify command additionally checks every WBC and the exact root before printing success.
 
 Neither command executes runtime text or the capsule.
 
@@ -63,9 +66,11 @@ No output path is touched before step 7. A malformed WBC cannot be hidden inside
 
 The command does not invoke a linker. Runtime text is exact prebuilt input whose SHA-256 must equal the plan runtime identity.
 
-## Verification order
+## Inspection and verification order
 
-`verify-elf`, `verify-macho`, and `verify-pe` read the image, plan, and ABI through the same physical boundary. WIP-0372, WIP-0374, or WIP-0375 then verifies and canonically rebuilds the complete native image. Runtime authority verifies every WBC extracted from the accepted capsule and binds its root. Only then does the command print one format-named result:
+`inspect-elf`, `inspect-macho`, and `inspect-pe` read the image, plan, and ABI through the same physical boundary. The selected adapter verifies and canonically rebuilds the complete image before inspection reports format, PREV, plan, capsule, image bytes, runtime bytes, runtime entry offset, and capsule offset. Inspection authenticates structure and capsule framing. It does not claim WBC validity.
+
+`verify-elf`, `verify-macho`, and `verify-pe` perform the same structural work. Runtime authority then verifies every WBC extracted from the accepted capsule and binds its root. Only then does the command print one format-named result:
 
 ```text
 verified <ELF|Mach-O|PE> <prev> (plan <plan-id>, capsule <capsule-id>, <count> WBC artifacts)
@@ -83,20 +88,21 @@ The output remains unsigned. Signing and notarization must consume the published
 
 `ImageCommandTest` compiles one Wheeler module and builds independently ABI-bound ELF, Mach-O, and PE capsules. It writes each capsule, runtime, plan, and ABI to separate physical files, invokes all three build commands, and compares published bytes against direct adapter construction. Every command PREV matches independent verification.
 
-The test then invokes all three verify commands and requires complete plan, capsule, and one-WBC evidence. A separately damaged ELF rejects. An output link rejects without replacing the link or changing its target bytes. Existing command cases retain deterministic capsule inspection, malformed-WBC separation, wrong-root rejection, usage rejection, and nonphysical-input rejection.
+The test invokes all three inspect commands and requires their deterministic format and range records to match direct adapter evidence. It then invokes all three verify commands and requires complete plan, capsule, and one-WBC evidence. A separately damaged ELF rejects. An output link rejects without replacing the link or changing its target bytes. Existing command cases retain deterministic capsule inspection, malformed-WBC separation, wrong-root rejection, usage rejection, and nonphysical-input rejection.
 
 Focused command evidence completes in one second.
 
 ## Acceptance
 
-- [x] Build and verification consume only explicit bounded physical inputs.
+- [x] Build, inspection, and verification consume only explicit bounded physical inputs.
 - [x] Canonical plan and ABI parsers run before image construction.
 - [x] Every WBC and the exact root verify before output publication.
 - [x] Each built ELF, Mach-O, or PE image passes its independent canonical verifier before publication.
 - [x] Atomic output contains exactly the verified bytes and executable permissions.
+- [x] Inspection reports selected native format, PREV, plan, capsule, and exact ranges after canonical reconstruction.
 - [x] Verification composes the selected native format, capsule, WBC, and root authorities.
-- [x] Success output binds PREV, plan, capsule, and WBC count.
-- [x] Neither command links, executes, signs, resolves, searches, or repairs.
+- [x] Verification output binds PREV, plan, capsule, and WBC count.
+- [x] No command links, executes, signs, resolves, searches, or repairs.
 
 ## Rejected alternatives
 

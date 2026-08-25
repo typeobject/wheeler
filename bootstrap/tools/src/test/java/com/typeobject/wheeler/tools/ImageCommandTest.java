@@ -138,6 +138,12 @@ final class ImageCommandTest {
     assertTrue(Files.isExecutable(imageFile));
     assertTrue(build.output().contains(ElfImage.verify(expected, plan, abi).prev()));
 
+    CommandResult inspect = execute(
+        "image", "inspect-elf", imageFile.toString(),
+        "--plan", planFile.toString(),
+        "--abi", abiFile.toString());
+    assertInspection(inspect, "elf", expected.length, runtime.length, 4096);
+
     CommandResult verify = execute(
         "image", "verify-elf", imageFile.toString(),
         "--plan", planFile.toString(),
@@ -217,6 +223,12 @@ final class ImageCommandTest {
     assertTrue(Files.isExecutable(imageFile));
     assertTrue(build.output().contains(MachOImage.verify(expected, plan, abi).prev()));
 
+    CommandResult inspect = execute(
+        "image", "inspect-macho", imageFile.toString(),
+        "--plan", planFile.toString(),
+        "--abi", abiFile.toString());
+    assertInspection(inspect, "mach-o", expected.length, runtime.length, 4096);
+
     CommandResult verify = execute(
         "image", "verify-macho", imageFile.toString(),
         "--plan", planFile.toString(),
@@ -268,6 +280,12 @@ final class ImageCommandTest {
     assertTrue(Files.isExecutable(imageFile));
     assertTrue(build.output().contains(PeImage.verify(expected, plan, abi).prev()));
 
+    CommandResult inspect = execute(
+        "image", "inspect-pe", imageFile.toString(),
+        "--plan", planFile.toString(),
+        "--abi", abiFile.toString());
+    assertInspection(inspect, "pe", expected.length, runtime.length, 1024);
+
     CommandResult verify = execute(
         "image", "verify-pe", imageFile.toString(),
         "--plan", planFile.toString(),
@@ -289,6 +307,9 @@ final class ImageCommandTest {
     assertTrue(usage.error().contains("verify-macho"));
     assertTrue(usage.error().contains("build-pe"));
     assertTrue(usage.error().contains("verify-pe"));
+    assertTrue(usage.error().contains("inspect-elf"));
+    assertTrue(usage.error().contains("inspect-macho"));
+    assertTrue(usage.error().contains("inspect-pe"));
 
     Path directory = Files.createDirectory(temporary.resolve("directory.capsule"));
     assertThrows(
@@ -441,6 +462,20 @@ final class ImageCommandTest {
           outputBytes.toString(StandardCharsets.UTF_8),
           errorBytes.toString(StandardCharsets.UTF_8));
     }
+  }
+
+  private static void assertInspection(
+      CommandResult result,
+      String format,
+      int imageBytes,
+      int runtimeBytes,
+      int capsuleOffset) {
+    assertEquals(0, result.status());
+    assertTrue(result.output().startsWith("{\n  \"format\": \"" + format + "\","));
+    assertTrue(result.output().contains("\n  \"bytes\": " + imageBytes + ","));
+    assertTrue(result.output().contains("\n  \"runtime-bytes\": " + runtimeBytes + ","));
+    assertTrue(result.output().contains("\n  \"runtime-entry-offset\": 0,"));
+    assertTrue(result.output().contains("\n  \"capsule-offset\": " + capsuleOffset + "\n"));
   }
 
   private static String identity(byte[] bytes) {

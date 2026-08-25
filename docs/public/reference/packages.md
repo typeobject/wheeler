@@ -274,10 +274,13 @@ wheeler verify <package.wpk>
 wheeler image inspect <application.capsule>
 wheeler image verify <application.capsule>
 wheeler image build-elf <application.capsule> --runtime <runtime.bin> --entry <offset> --plan <plan.yaml> --abi <abi.yaml> -o <application>
+wheeler image inspect-elf <application> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image verify-elf <application> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image build-macho <application.capsule> --runtime <runtime.bin> --entry <offset> --plan <plan.yaml> --abi <abi.yaml> -o <application>
+wheeler image inspect-macho <application> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image verify-macho <application> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image build-pe <application.capsule> --runtime <runtime.bin> --entry <offset> --plan <plan.yaml> --abi <abi.yaml> -o <application.exe>
+wheeler image inspect-pe <application.exe> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image verify-pe <application.exe> --plan <plan.yaml> --abi <abi.yaml>
 wheeler resolve <package-directory> [--repository <alias> ... | --catalog <archive-directory>] [-o wheeler.package.lock.yaml] [--development] [--update <package> ... | --update-all]
 wheeler verify-lock <wheeler.package.lock.yaml>
@@ -321,10 +324,12 @@ capabilities.
 
 `image build-elf`, `image build-macho`, and `image build-pe` consume an exact
 capsule, runtime text, canonical native image plan, and canonical platform ABI.
-Each command verifies every WBC, builds the selected permissioned native image,
-verifies the complete output, and only then publishes atomically. The matching
-`verify-elf`, `verify-macho`, and `verify-pe` commands compose native-format,
-capsule, WBC, and root verification. None executes supplied runtime text.
+Each build command verifies every WBC, builds the selected permissioned native
+image, verifies the complete output, and only then publishes atomically. The
+matching `inspect-elf`, `inspect-macho`, and `inspect-pe` commands canonically
+rebuild native structure and report exact identities and ranges without claiming
+WBC validity. The verify commands additionally compose capsule, WBC, and root
+authority. None executes supplied runtime text.
 
 Atomic replacement controls which complete userspace tree becomes visible. It
 alone does not prove survival through power loss.

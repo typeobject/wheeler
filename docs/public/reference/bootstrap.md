@@ -105,9 +105,10 @@ identities.
 `wheeler image build-elf`, `wheeler image build-macho`, and `wheeler image
 build-pe` consume exact physical capsule, runtime, plan, and ABI files. They verify
 all WBC before construction, self-verify the selected image before atomic
-publication, and print the unsigned PREV. Their matching `verify-elf`,
-`verify-macho`, and `verify-pe` commands repeat structural and executable-artifact
-verification without execution. No maintained native
+publication, and print the unsigned PREV. Their matching `inspect-elf`,
+`inspect-macho`, and `inspect-pe` commands report canonically verified structure,
+identities, and ranges. The verify commands additionally check every WBC and the
+exact root without execution. No maintained native
 runtime text, host ABI shim, process entry, or recovery image ships yet.
 
 ## Deriving the profile and graph
