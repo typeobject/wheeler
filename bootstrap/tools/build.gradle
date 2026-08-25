@@ -24,6 +24,29 @@ def repositoryInputs = fileTree(rootProject.repositoryRoot) {
 tasks.named('test') {
     workingDir rootProject.repositoryRoot
     inputs.files(repositoryInputs).withPathSensitivity(PathSensitivity.RELATIVE)
+    exclude '**/NativeCompilerPackageTest.class'
+}
+
+tasks.register('nativeCompilerPackageTest', Test) {
+    group = 'verification'
+    description = 'Executes the complete Wheeler-owned compiler package suite.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/NativeCompilerPackageTest.class'
+    workingDir = rootProject.repositoryRoot
+    inputs.files(repositoryInputs).withPathSensitivity(PathSensitivity.RELATIVE)
+    useJUnitPlatform()
+    maxParallelForks = 1
+    forkEvery = 0
+    failFast = true
+    maxHeapSize = '1024m'
+    jvmArgs '-XX:ActiveProcessorCount=2'
+    systemProperty 'junit.jupiter.execution.timeout.default', '2 m'
+    systemProperty 'junit.jupiter.execution.timeout.thread.mode.default', 'separate_thread'
+    testLogging {
+        events 'started', 'failed', 'skipped'
+        exceptionFormat = 'full'
+    }
 }
 
 tasks.register('wheeler', JavaExec) {

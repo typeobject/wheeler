@@ -23,6 +23,18 @@ errors. `check` runs JUnit, creates JaCoCo reports for tested modules, and runs
 source-conformance gates. Ordinary JUnit methods have a two-minute preemptive
 limit. Each worker quits after its first failure.
 
+The complete Wheeler-owned compiler package suite is deliberate integration
+evidence and does not run twice inside ordinary `tools:check` matrices:
+
+```bash
+./bootstrap/gradlew -p bootstrap :tools:nativeCompilerPackageTest
+```
+
+It executes 224 cases across 89 physical compiler modules. One fresh retained
+attempt supplies execution, report, and adapter evidence. The test has a
+forty-one-minute hard stop. CI runs it once on Temurin after both ordinary build
+matrices finish, which keeps the long suite from starving bounded example jobs.
+
 Hosted acceptance assigns sorted example classes to exactly one of eight shards.
 Each shard has a fifteen-minute hard stop.
 
