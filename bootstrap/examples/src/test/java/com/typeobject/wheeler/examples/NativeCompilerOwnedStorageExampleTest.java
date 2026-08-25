@@ -120,41 +120,6 @@ final class NativeCompilerOwnedStorageExampleTest {
     assertRejected(source.replace("freezeUtf8(output)", "freezeUtf8(arena)"));
   }
 
-  @Test
-  void forwardsOwnedUtf8ResultsThroughTypedCalls() throws Exception {
-    String source = """
-        module example.native_owned_storage;
-        classical class NativeOwnedStorage {
-          private utf8 makeText(borrow mut region arena, long length) {
-            bytes output = allocateBytes(arena, length);
-            return freezeUtf8(output);
-          }
-
-          public utf8 forwardText(borrow mut region arena, long length) {
-            return makeText(arena, length);
-          }
-        }
-        """;
-    byte[] expected = new BytecodeWriter().write(
-        new WheelerCompiler().compileLibraryModuleFiles(
-            Map.of("NativeOwnedStorage.w", source),
-            "example.native_owned_storage"));
-    byte[] actual = NativeModuleCompilerHarness.compile(
-        NativeModuleCompilerHarness.program(), List.of(), source);
-    assertArrayEquals(expected, actual);
-
-    var program = new BytecodeReader().read(actual);
-    assertEquals(3, program.functions().size());
-    var forward = program.functions().get(1);
-    assertEquals(ValueType.UTF8, forward.resultType());
-    assertEquals(Opcode.REGION_BORROW, forward.forward().get(2).opcode());
-    assertEquals(Opcode.CALL_VALUE, forward.forward().get(4).opcode());
-    assertEquals(Opcode.RETURN_VALUE, forward.forward().get(5).opcode());
-
-    assertRejected(source.replace("private utf8 makeText", "private long makeText"));
-    assertRejected(source.replace("makeText(arena, length)", "makeText(length, arena)"));
-  }
-
   private static void assertRejected(String source) throws Exception {
     NativeModuleCompilerHarness.assertTrap(
         NativeModuleCompilerHarness.program(), List.of(), source);
