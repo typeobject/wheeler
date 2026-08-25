@@ -116,16 +116,20 @@ final class LinuxX8664ScalarAotCompilerTest {
   void lowersBoundedPriorHelperCalls() {
     var nested = LinuxX8664ScalarAotCompiler.lower(helperArtifact(3));
     var terminal = LinuxX8664ScalarAotCompiler.lower(helperArtifact(8));
+    var parameters = LinuxX8664ScalarAotCompiler.lower(parameterHelperArtifact(6));
+    var booleanParameter = LinuxX8664ScalarAotCompiler.lower(booleanParameterArtifact());
 
     assertEquals(73, nested.processStatus());
     assertEquals(73, terminal.processStatus());
+    assertEquals(73, parameters.processStatus());
+    assertEquals(73, booleanParameter.processStatus());
     assertNotEquals(nested.runtimeIdentity(), terminal.runtimeIdentity());
     assertThrows(
         IllegalArgumentException.class,
         () -> LinuxX8664ScalarAotCompiler.lower(helperArtifact(9)));
     assertThrows(
         IllegalArgumentException.class,
-        () -> LinuxX8664ScalarAotCompiler.lower(argumentHelperArtifact()));
+        () -> LinuxX8664ScalarAotCompiler.lower(parameterHelperArtifact(7)));
     assertThrows(
         IllegalArgumentException.class,
         () -> LinuxX8664ScalarAotCompiler.lower(dormantUnsupportedHelperArtifact()));
@@ -282,32 +286,90 @@ final class LinuxX8664ScalarAotCompilerTest {
         functions));
   }
 
-  private static byte[] argumentHelperArtifact() {
+  private static byte[] parameterHelperArtifact(int parameterCount) {
+    List<Instruction> helper = new java.util.ArrayList<>();
+    int result = 0;
+    for (int parameter = 1; parameter < parameterCount; parameter++) {
+      result = parameterCount + parameter - 1;
+      int left = parameter == 1 ? 0 : result - 1;
+      helper.add(Instruction.of(Opcode.LOCAL_ADD, result, left, parameter));
+    }
+    helper.add(Instruction.of(Opcode.RETURN_VALUE, result));
+
+    List<Instruction> entry = new java.util.ArrayList<>();
+    for (int parameter = 0; parameter < parameterCount; parameter++) {
+      long value = parameter + 1 == parameterCount
+          ? 73 - parameter
+          : 1;
+      entry.add(Instruction.of(Opcode.LOCAL_CONST, parameter, value));
+    }
+    entry.add(Instruction.of(
+        Opcode.CALL_VALUE, 0, 0, parameterCount, parameterCount));
+    entry.add(Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, parameterCount));
+    entry.add(Instruction.of(Opcode.HALT));
+
     return new BytecodeWriter().write(new Program(
-        "scalar-aot-argument-helper",
+        "scalar-aot-parameter-helper",
         1,
         List.of(new Global("status", 0)),
         List.of(
             new FunctionBody(
                 0,
-                "example.app::identity",
+                "example.app::sum",
                 false,
-                1,
-                List.of(ValueType.SIGNED),
+                parameterCount,
+                java.util.Collections.nCopies(
+                    Math.max(1, parameterCount * 2 - 1), ValueType.SIGNED),
                 ValueType.SIGNED,
-                List.of(Instruction.of(Opcode.RETURN_VALUE, 0)),
+                helper,
                 List.of()),
             new FunctionBody(
                 1,
                 "example.app::main",
                 false,
                 0,
-                List.of(ValueType.SIGNED, ValueType.SIGNED),
+                java.util.Collections.nCopies(parameterCount + 1, ValueType.SIGNED),
+                null,
+                entry,
+                List.of()))));
+  }
+
+  private static byte[] booleanParameterArtifact() {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-boolean-parameter",
+        1,
+        List.of(new Global("status", 0)),
+        List.of(
+            new FunctionBody(
+                0,
+                "example.app::select",
+                false,
+                2,
+                List.of(ValueType.BOOLEAN, ValueType.SIGNED, ValueType.SIGNED),
+                ValueType.SIGNED,
+                List.of(
+                    Instruction.of(Opcode.LOCAL_MOVE, 2, 1),
+                    Instruction.of(Opcode.RETURN_VALUE, 2)),
+                List.of()),
+            new FunctionBody(
+                1,
+                "example.app::main",
+                false,
+                0,
+                List.of(
+                    ValueType.SIGNED,
+                    ValueType.SIGNED,
+                    ValueType.BOOLEAN,
+                    ValueType.SIGNED,
+                    ValueType.SIGNED),
                 null,
                 List.of(
-                    Instruction.of(Opcode.LOCAL_CONST, 0, 73),
-                    Instruction.of(Opcode.CALL_VALUE, 0, 0, 1, 1),
-                    Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 1),
+                    Instruction.of(Opcode.LOCAL_CONST, 0, 1),
+                    Instruction.of(Opcode.LOCAL_CONST, 1, 1),
+                    Instruction.of(Opcode.LOCAL_EQ, 2, 0, 1),
+                    Instruction.of(Opcode.LOCAL_CONST, 3, 73),
+                    Instruction.of(Opcode.CALL_VALUE, 0, 2, 2, 4),
+                    Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 4),
                     Instruction.of(Opcode.HALT)),
                 List.of()))));
   }

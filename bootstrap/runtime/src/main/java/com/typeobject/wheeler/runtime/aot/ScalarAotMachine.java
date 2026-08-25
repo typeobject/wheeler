@@ -71,6 +71,9 @@ public final class ScalarAotMachine {
       X86 code, FunctionBody helper, ArrayList<CallPatch> calls) {
     int frameBytes = frameBytes(helper.localCount());
     code.stack(-frameBytes);
+    for (int parameter = 0; parameter < helper.parameterCount(); parameter++) {
+      code.storeArgument(parameter);
+    }
     FunctionPatches patches = emitBody(code, helper, -1, calls);
 
     Instruction returned = helper.forward().getLast();
@@ -130,6 +133,11 @@ public final class ScalarAotMachine {
               code.reserveInt(), Math.toIntExact(instruction.operands().get(1))));
         }
         case CALL_VALUE -> {
+          int argumentBase = Math.toIntExact(instruction.operands().get(1));
+          int argumentCount = Math.toIntExact(instruction.operands().get(2));
+          for (int argument = 0; argument < argumentCount; argument++) {
+            code.loadArgument(argument, argumentBase + argument);
+          }
           code.bytes(0xe8);
           calls.add(new CallPatch(
               code.reserveInt(), Math.toIntExact(instruction.operands().get(0))));
@@ -235,6 +243,32 @@ public final class ScalarAotMachine {
     void storeRax(int local) {
       bytes(0x48, 0x89, 0x84, 0x24);
       integer(local * Long.BYTES);
+    }
+
+    void loadArgument(int argument, int local) {
+      switch (argument) {
+        case 0 -> bytes(0x48, 0x8b, 0xbc, 0x24);
+        case 1 -> bytes(0x48, 0x8b, 0xb4, 0x24);
+        case 2 -> bytes(0x48, 0x8b, 0x94, 0x24);
+        case 3 -> bytes(0x48, 0x8b, 0x8c, 0x24);
+        case 4 -> bytes(0x4c, 0x8b, 0x84, 0x24);
+        case 5 -> bytes(0x4c, 0x8b, 0x8c, 0x24);
+        default -> throw new IllegalStateException("Validated scalar AOT argument changed");
+      }
+      integer(local * Long.BYTES);
+    }
+
+    void storeArgument(int argument) {
+      switch (argument) {
+        case 0 -> bytes(0x48, 0x89, 0xbc, 0x24);
+        case 1 -> bytes(0x48, 0x89, 0xb4, 0x24);
+        case 2 -> bytes(0x48, 0x89, 0x94, 0x24);
+        case 3 -> bytes(0x48, 0x89, 0x8c, 0x24);
+        case 4 -> bytes(0x4c, 0x89, 0x84, 0x24);
+        case 5 -> bytes(0x4c, 0x89, 0x8c, 0x24);
+        default -> throw new IllegalStateException("Validated scalar AOT parameter changed");
+      }
+      integer(argument * Long.BYTES);
     }
 
     void arithmetic(Opcode opcode, ArrayList<Integer> traps) {

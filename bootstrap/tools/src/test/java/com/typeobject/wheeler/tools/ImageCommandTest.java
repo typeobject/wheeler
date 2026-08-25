@@ -69,14 +69,12 @@ final class ImageCommandTest {
             classical class Hello {
               state long status = 0;
 
-              long code() {
-                long left = 70;
-                long right = 3;
+              long code(long left, long right) {
                 return left + right;
               }
 
               entry void main() {
-                long result = code();
+                long result = code(70, 3);
                 if (result == 73) {
                   status = 73;
                 } else {

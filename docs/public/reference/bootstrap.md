@@ -131,8 +131,8 @@ ships yet.
 first native backend leaf. It accepts one canonical classical WBC containing one
 zero-initialized `status` global, one to eight dense functions, bounded acyclic
 constants, moves, checked signed arithmetic, bitwise operations, comparisons,
-forward branches, prior zero-argument signed-helper calls, status stores, returns,
-and halt. Computed values 0 through 124 become distinct x86-64 Linux process
+forward branches, prior signed-helper calls with up to six exact signed or
+Boolean arguments, status stores, returns, and halt. Computed values 0 through 124 become distinct x86-64 Linux process
 statuses. Unsupported
 programs reject without projection or fallback. The status-73 fixture launches as
 a complete AOT ELF, but general bytecode execution and in-process verification

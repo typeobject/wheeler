@@ -10,6 +10,7 @@ import com.typeobject.wheeler.core.bytecode.ValueType;
 /** Closed semantic profile accepted by the x86-64 scalar AOT leaf. */
 public final class ScalarAotProgram {
   public static final int MAX_FUNCTIONS = 8;
+  public static final int MAX_PARAMETERS = 6;
   public static final int MAX_LOCALS = 32;
   public static final int MAX_INSTRUCTIONS = 128;
 
@@ -27,7 +28,7 @@ public final class ScalarAotProgram {
     for (FunctionBody function : program.functions()) {
       validateFunction(program, function);
     }
-    Evaluation evaluation = evaluate(program, program.entryFunctionId());
+    Evaluation evaluation = evaluate(program, program.entryFunctionId(), new long[0]);
     if (!evaluation.stored()
         || evaluation.value() < 0
         || evaluation.value() > 124) {
@@ -77,7 +78,8 @@ public final class ScalarAotProgram {
   private static void validateFunction(Program program, FunctionBody function) {
     boolean entry = function.id() == program.entryFunctionId();
     if (function.coherent()
-        || function.parameterCount() != 0
+        || function.parameterCount() > MAX_PARAMETERS
+        || entry && function.parameterCount() != 0
         || function.localCount() == 0
         || function.localCount() > MAX_LOCALS
         || function.localTypes().stream().anyMatch(type ->
@@ -162,20 +164,36 @@ public final class ScalarAotProgram {
       Program program, FunctionBody owner, Instruction instruction) {
     requireOperands(instruction, 4);
     int target = Math.toIntExact(instruction.operands().get(0));
-    if (target < 0
-        || target >= owner.id()
-        || instruction.operands().get(1) != 0
-        || instruction.operands().get(2) != 0
-        || !program.function(target).resultType().equals(ValueType.SIGNED)) {
-      throw new IllegalArgumentException("Scalar AOT call is not a prior zero-argument helper");
+    int argumentBase = Math.toIntExact(instruction.operands().get(1));
+    int argumentCount = Math.toIntExact(instruction.operands().get(2));
+    if (target < 0 || target >= owner.id()) {
+      throw new IllegalArgumentException("Scalar AOT call target is not a prior helper");
     }
-    local(instruction.operands().get(3), owner.localCount());
+    FunctionBody callee = program.function(target);
+    if (argumentCount != callee.parameterCount()
+        || argumentBase < 0
+        || argumentBase > owner.localCount() - argumentCount
+        || !callee.resultType().equals(ValueType.SIGNED)) {
+      throw new IllegalArgumentException("Scalar AOT call signature does not match its helper");
+    }
+    for (int parameter = 0; parameter < argumentCount; parameter++) {
+      if (!owner.localType(argumentBase + parameter).equals(callee.localType(parameter))) {
+        throw new IllegalArgumentException("Scalar AOT call argument type does not match");
+      }
+    }
+    int destination = local(instruction.operands().get(3), owner.localCount());
+    if (!owner.localType(destination).equals(ValueType.SIGNED)) {
+      throw new IllegalArgumentException("Scalar AOT call destination is not signed");
+    }
   }
 
-  private static Evaluation evaluate(Program program, int functionId) {
+  private static Evaluation evaluate(
+      Program program, int functionId, long[] arguments) {
     FunctionBody function = program.function(functionId);
     long[] values = new long[function.localCount()];
     boolean[] assigned = new boolean[function.localCount()];
+    System.arraycopy(arguments, 0, values, 0, arguments.length);
+    java.util.Arrays.fill(assigned, 0, arguments.length, true);
     long status = 0;
     boolean stored = false;
     int pc = 0;
@@ -216,8 +234,20 @@ public final class ScalarAotProgram {
           }
           case CALL_VALUE -> {
             int destination = freshDestination(instruction, 3, assigned);
+            int argumentBase = Math.toIntExact(instruction.operands().get(1));
+            int argumentCount = Math.toIntExact(instruction.operands().get(2));
+            long[] callArguments = new long[argumentCount];
+            for (int argument = 0; argument < argumentCount; argument++) {
+              int source = argumentBase + argument;
+              if (!assigned[source]) {
+                throw new IllegalArgumentException("Scalar AOT call reads an unassigned local");
+              }
+              callArguments[argument] = values[source];
+            }
             Evaluation result = evaluate(
-                program, Math.toIntExact(instruction.operands().get(0)));
+                program,
+                Math.toIntExact(instruction.operands().get(0)),
+                callArguments);
             values[destination] = result.value();
             assigned[destination] = true;
             pc++;
