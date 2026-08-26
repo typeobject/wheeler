@@ -6,6 +6,7 @@ import wheeler.compiler.assignment_call_arities;
 import wheeler.compiler.assignment_call_identities;
 import wheeler.compiler.assignment_call_kinds;
 import wheeler.compiler.assignment_call_operands;
+import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.encoding;
@@ -35,13 +36,34 @@ classical class ScalarHelperTables {
     return booleanResultHelper(kind);
   }
 
-  private long callerLocalType(HelperBody caller, long opcode, long local) {
-    if (oneArgumentBooleanCall(opcode)) {
-      return TYPE_BOOLEAN;
+  private long callerLocalType(HelperBody caller, long opcode, long local, long argument) {
+    if (oneArgumentCallStatement(opcode)) {
+      if (oneArgumentCallNamed(opcode)) {
+        return helperLocalType(caller, local);
+      }
+
+      if (oneArgumentBooleanCall(opcode)) {
+        return TYPE_BOOLEAN;
+      }
+
+      return TYPE_SIGNED;
     }
 
-    if (twoArgumentBooleanCall(opcode)) {
-      return TYPE_BOOLEAN;
+    if (twoArgumentCallStatement(opcode)) {
+      boolean named = twoArgumentCallFirstNamed(opcode);
+      if (argument == 1) {
+        named = twoArgumentCallSecondNamed(opcode);
+      }
+
+      if (named) {
+        return helperLocalType(caller, local);
+      }
+
+      if (twoArgumentBooleanCall(opcode)) {
+        return TYPE_BOOLEAN;
+      }
+
+      return TYPE_SIGNED;
     }
 
     return helperLocalType(caller, local);
@@ -75,7 +97,7 @@ classical class ScalarHelperTables {
           assignmentArgument
         );
         if (
-          callerLocalType(caller, opcode, assignmentSource)
+          callerLocalType(caller, opcode, assignmentSource, assignmentArgument)
             == candidate.parameterTypes[assignmentArgument]
         ) {} else {
           return false;
@@ -97,7 +119,8 @@ classical class ScalarHelperTables {
           voidArgument
         );
         if (
-          callerLocalType(caller, opcode, voidSource) == candidate.parameterTypes[voidArgument]
+          callerLocalType(caller, opcode, voidSource, voidArgument)
+            == candidate.parameterTypes[voidArgument]
         ) {} else {
           return false;
         }
@@ -113,7 +136,7 @@ classical class ScalarHelperTables {
       while (argument < argumentCount) limit MAX_WIDE_LOCAL_CALL_ARGUMENTS {
         long source = wideLocalCallSource(opcode, wideFirstSources, wideLastSources, argument);
         if (
-          callerLocalType(caller, opcode, source) == candidate.parameterTypes[argument]
+          callerLocalType(caller, opcode, source, argument) == candidate.parameterTypes[argument]
         ) {} else {
           return false;
         }
@@ -145,7 +168,9 @@ classical class ScalarHelperTables {
       }
     }
 
-    if (callerLocalType(caller, opcode, firstSource) == candidate.parameterTypes[0]) {} else {
+    if (
+      callerLocalType(caller, opcode, firstSource, 0) == candidate.parameterTypes[0]
+    ) {} else {
       return false;
     }
 
@@ -153,7 +178,9 @@ classical class ScalarHelperTables {
       return true;
     }
 
-    if (callerLocalType(caller, opcode, secondSource) == candidate.parameterTypes[1]) {} else {
+    if (
+      callerLocalType(caller, opcode, secondSource, 1) == candidate.parameterTypes[1]
+    ) {} else {
       return false;
     }
 
@@ -180,7 +207,9 @@ classical class ScalarHelperTables {
       }
     }
 
-    if (callerLocalType(caller, opcode, thirdSource) == candidate.parameterTypes[2]) {} else {
+    if (
+      callerLocalType(caller, opcode, thirdSource, 2) == candidate.parameterTypes[2]
+    ) {} else {
       return false;
     }
 
@@ -197,7 +226,9 @@ classical class ScalarHelperTables {
       }
     }
 
-    if (callerLocalType(caller, opcode, fourthSource) == candidate.parameterTypes[3]) {} else {
+    if (
+      callerLocalType(caller, opcode, fourthSource, 3) == candidate.parameterTypes[3]
+    ) {} else {
       return false;
     }
 
@@ -206,7 +237,9 @@ classical class ScalarHelperTables {
     }
 
     long fifthSource = wideReturnFifthSource(wideLastSources);
-    if (callerLocalType(caller, opcode, fifthSource) == candidate.parameterTypes[4]) {} else {
+    if (
+      callerLocalType(caller, opcode, fifthSource, 4) == candidate.parameterTypes[4]
+    ) {} else {
       return false;
     }
 
@@ -215,7 +248,9 @@ classical class ScalarHelperTables {
     }
 
     long sixthSource = wideReturnSixthSource(wideLastSources);
-    if (callerLocalType(caller, opcode, sixthSource) == candidate.parameterTypes[5]) {} else {
+    if (
+      callerLocalType(caller, opcode, sixthSource, 5) == candidate.parameterTypes[5]
+    ) {} else {
       return false;
     }
 
@@ -224,7 +259,7 @@ classical class ScalarHelperTables {
     }
 
     long seventhSource = wideReturnSeventhSource(wideLastSources);
-    return callerLocalType(caller, opcode, seventhSource) == candidate.parameterTypes[6];
+    return callerLocalType(caller, opcode, seventhSource, 6) == candidate.parameterTypes[6];
   }
 
   /// Compares two helper names in one source.

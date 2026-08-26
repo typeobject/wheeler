@@ -47,11 +47,11 @@ For each owner, the recovery compiler parses complete physical bytes and publish
 
 ## Closure accounting
 
-The physical compiler closure contains 379 modules and 1,892 imports. Its canonical manifest contains 177,773 bytes. Native validation halts after exactly 74,172,747 committed transitions.
+The physical compiler closure contains 379 modules and 1,893 imports. Its canonical manifest contains 177,822 bytes. Native validation halts after exactly 74,201,200 committed transitions.
 
 The former 74,000,000 host guard rejected the enlarged complete closure before it halted. The evidence guard is now 75,000,000 transitions. This changes no Wheeler semantic limit. It leaves a bounded host cancellation margin above the exact retained result.
 
-Wheeler-native SHA-256 consumes the current manifest in exactly 34,021,744 transitions and matches the independent host digest.
+Wheeler-native SHA-256 consumes the current manifest in exactly 34,034,110 transitions and matches the independent host digest.
 
 ## Failure boundary
 
