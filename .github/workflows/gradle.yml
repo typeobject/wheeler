@@ -3,6 +3,7 @@
 name: Wheeler bootstrap CI
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "master" ]
     paths-ignore:
