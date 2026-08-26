@@ -30,10 +30,10 @@ This supplies routine reproduction of the current alternate implementation. It
 is neither a Wheeler fixed point nor an independent derivation.
 
 The current Wheeler-native path can parse, plan, and classify the complete
-379-module compiler closure with 1,891 imports and a 177,722-byte module manifest.
-Its native identity run completes in 74,158,826 transitions. The native compiler
+379-module compiler closure with 1,892 imports and a 177,773-byte module manifest.
+Its native identity run completes in 74,172,747 transitions. The native compiler
 package separately compiles 91 production modules through bounded physical source
-graphs and executes 240 cases. The source path preserves typed Boolean-local
+graphs and executes 243 cases. The source path preserves typed Boolean-local
 results behind signed equality guards. Signed- and Boolean-result calls with
 three through seven named arguments resolve mixed signed and Boolean locals
 before exact signature matching. Boolean locals also pass through ordinary void

@@ -47,11 +47,11 @@ For each owner, the recovery compiler parses complete physical bytes and publish
 
 ## Closure accounting
 
-The physical compiler closure contains 379 modules and 1,891 imports. Its canonical manifest contains 177,722 bytes. Native validation halts after exactly 74,158,826 committed transitions.
+The physical compiler closure contains 379 modules and 1,892 imports. Its canonical manifest contains 177,773 bytes. Native validation halts after exactly 74,172,747 committed transitions.
 
 The former 74,000,000 host guard rejected the enlarged complete closure before it halted. The evidence guard is now 75,000,000 transitions. This changes no Wheeler semantic limit. It leaves a bounded host cancellation margin above the exact retained result.
 
-Wheeler-native SHA-256 consumes the current manifest in exactly 34,023,214 transitions and matches the independent host digest.
+Wheeler-native SHA-256 consumes the current manifest in exactly 34,021,744 transitions and matches the independent host digest.
 
 ## Failure boundary
 
@@ -72,7 +72,7 @@ Metadata fragment loops and quoted identity loops remain in `ManifestSyntax.w`. 
 
 `NativeCompilerManifestProductExampleTest` reads both checked-in sources. Its focused tests compile each source through the physical Wheeler recovery compiler and through stage 0, compare complete artifacts, and require the qualified production function plus canonical `$library` entry.
 
-The `manifest.primitive` tag selects one three-source physical target. Sixteen native cases execute assertion success, each ASCII digit and letter boundary, each punctuation verdict, and each out-of-range fallback verdict. Every case stays below the 255-transition coverage bound and all sixteen pass through `NativePackageTestRunner`. WIP-0394 supplies the mixed Boolean-result and Boolean void-call paths used by the target. The complete compiler package now covers 91 production modules and 240 cases.
+The `manifest.primitive` tag selects one three-source physical target. Sixteen native cases execute assertion success, each ASCII digit and letter boundary, each punctuation verdict, and each out-of-range fallback verdict. Every case stays below the 255-transition coverage bound and all sixteen pass through `NativePackageTestRunner`. The canonical report identity is `49c8f35ceda3ca897810bed62cce4b52699a30aa5a29ec376bc58a0763c01f0e`. WIP-0394 supplies the mixed Boolean-result and Boolean void-call paths used by the target. The complete compiler package now covers 91 production modules and 243 cases.
 
 Bootstrap feature, manifest, module, compiler-limit, compiler-options, toolchain, and artifact-set identity examples execute the explicit assertion dependency over accepted and rejected transports. Manifest and options examples also execute the profile dependency. `NativeBootstrapModulesIdentityExampleTest` validates the complete enlarged closure. `NativeSha256ExampleTest` hashes the exact enlarged manifest.
 

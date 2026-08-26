@@ -39,7 +39,7 @@ example.entry -> example.widths -> example.arities
 
 The entry calls helper one. Helper one calls helper zero. The native artifact is byte-identical to stage 0 and executes its assertion. Replacing the entry target with an absent name traps before output. Calling the transitive helper from the entry also traps because flattening does not grant root visibility.
 
-The complete imported-helper differential still passes all one- through seven-owner and twenty-three-helper partitions. The checked-in compiler package still publishes nineteen passing native cases. The bounded physical compiler closure now contains 379 modules, 1,891 imports, and a 177,722-byte canonical module manifest. Native validation halts after exactly 74,158,826 transitions.
+The complete imported-helper differential still passes all one- through seven-owner and twenty-three-helper partitions. The checked-in compiler package still publishes nineteen passing native cases. The bounded physical compiler closure now contains 379 modules, 1,892 imports, and a 177,773-byte canonical module manifest. Native validation halts after exactly 74,172,747 transitions.
 
 ## Acceptance
 

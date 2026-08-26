@@ -29,7 +29,7 @@ Boolean-result calls own unresolved identities 940 through 944 for arities three
 
 Resolved three-argument calls pack their third source in the half-open range 33,024 through 33,280. Resolved four-argument calls pack their final two sources in the half-open range 327,680 through 393,216. The existing owned UTF-8 copy-loop column occupies 393,216 through 393,472. Fixed five-, six-, and seven-argument Boolean calls use 393,472, 393,473, and 393,474.
 
-No identity aliases a signed call, void call, assignment call, loop-body row, or owner-copy column. Registry checks retain that property.
+No identity aliases another top-level statement family. Loop-body rows remain in their separate nested domain. Registry checks retain both properties.
 
 ## Resolution
 
@@ -41,17 +41,17 @@ No identity aliases a signed call, void call, assignment call, loop-body row, or
 
 `HelperCallLocalTypes.w` derives local call results from the call identity rather than the caller's return type. Boolean calls receive Boolean result and destination locals even when they occur in a void or signed caller.
 
-`HelperSourceTypes.w` owns one bounded walk over the caller's resolved statement sequence. Parameters retain their declared types. Named Boolean literal, copy, negation, and call results retain Boolean type after their source declarations have become resolved opcodes. Call matching and code generation consume that same query. The former signed fallback is gone.
+`HelperSourceTypes.w` owns one bounded walk over the caller's resolved statement sequence. Parameters retain their declared types. Named Boolean literal, copy, negation, and call results retain Boolean type after their source declarations have become resolved opcodes. Signed expression temporaries retain the type fixed by their call form. Call matching, local rows, and code generation consume the same authority. An unresolved named source still rejects during resolution.
 
-`VoidCallResolution.w` uses the same scalar-name authority for Boolean, signed, and affine sources. `CompilerIr.entryBody` carries entry statements through the helper-body type shape, so local rows and code generation no longer guess that every entry call source is signed. The package preflight counts public void dependency functions under the same twenty-three-function bound. Tagged package reduction omits zero-selection target rows unless the whole selection is empty, preventing duplicate empty identities from entering the canonical sorter.
+`VoidCallResolution.w` uses the same scalar-name authority for Boolean, signed, and affine sources. `CompilerIr.entryBody` carries entry statements through the helper-body type shape. Entry local rows and code generation select that shape only when every source is a parameter or prior statement result. Literal call forms retain their opcode-defined rows. Four-argument source decoding normalizes the adjacent signed and Boolean packed ranges before division, keeping the body inside the physical compiler profile. The package preflight counts public void dependency functions under the same twenty-three-function bound. Tagged package reduction omits zero-selection target rows unless the whole selection is empty, preventing duplicate empty identities from entering the canonical sorter.
 
 ## Evidence
 
 `NativeCompilerMixedCallArgumentsExampleTest` compares complete Wheeler and stage-0 artifacts for an imported mixed three-argument Boolean call and local mixed four-, five-, six-, and seven-argument Boolean calls. A second fixture passes prior Boolean copy and literal results into signed- and Boolean-result calls. Replacing those declarations with signed locals rejects before publication. A dependency with the wrong result type also rejects. The signed-result fixtures remain byte-identical.
 
-The `manifest.primitive` package tag selects the exact three-source manifest target. Sixteen focused cases cover the void assertion dependency, each ASCII digit and letter boundary, each punctuation verdict, and each out-of-range fallback verdict. Every case stays within the 255-transition coverage bound. All sixteen compile, execute, and pass through `NativePackageTestRunner`.
+`NativeCompilerFourArgumentCallTests.w` executes the first Boolean identity and both terminal source decoders as three independent native cases. The `call.boolean` report identity is `efec5decdf5f5d58eec5e64773c4ee132593f550ae28a172f01e9cea67bd1874`. The `manifest.primitive` package tag selects the exact three-source manifest target. Sixteen focused cases cover the void assertion dependency, each ASCII digit and letter boundary, each punctuation verdict, and each out-of-range fallback verdict. Every case stays within the 255-transition coverage bound. All sixteen compile, execute, and pass through `NativePackageTestRunner`. The canonical report identity is `49c8f35ceda3ca897810bed62cce4b52699a30aa5a29ec376bc58a0763c01f0e`.
 
-The canonical workspace checks 178 targets. The complete physical closure contains 379 modules, 1,891 imports, and 177,722 canonical manifest bytes. Native validation halts after 74,158,826 committed transitions. Wheeler SHA-256 consumes the same manifest in 34,023,214 transitions.
+The canonical workspace checks 178 targets. The complete physical closure contains 379 modules, 1,892 imports, and 177,773 canonical manifest bytes. Native validation halts after 74,172,747 committed transitions. Wheeler SHA-256 consumes the same manifest in 34,021,744 transitions.
 
 ## Rejection
 
@@ -70,6 +70,7 @@ Reject a literal in the admitted wide named family, a missing or ambiguous sourc
 - [x] Tagged package reduction excludes unselected target rows.
 - [x] Imported three-argument and local four- through seven-argument artifacts match stage 0 byte for byte.
 - [x] Wrong result type and malformed source calls reject without output.
+- [x] Three Boolean four-argument range cases execute and pass natively.
 - [x] Sixteen manifest-primitive package cases execute and pass natively.
 - [x] Signed-result call evidence remains unchanged.
 - [x] Closure validation and manifest hashing remain bounded and exact.

@@ -69,7 +69,12 @@ classical class ProgramCodegen {
       long fifthSourceType = TYPE_SIGNED;
       long sixthSourceType = TYPE_SIGNED;
       long seventhSourceType = TYPE_SIGNED;
-      if (typedHelper) {
+      boolean typedStatement = typedHelper;
+      if (!typedStatement) {
+        typedStatement = statementUsesDeclaredSources(body, index);
+      }
+
+      if (typedStatement) {
         long opcode = opcodes[index];
         firstSourceType = helperSourceType(
           opcode,
@@ -479,7 +484,7 @@ classical class ProgramCodegen {
         program.statementSecondaryOperands,
         program.statementCount,
         entryBody(program),
-        true,
+        false,
         0,
         program.entryCallStatements,
         program.entryCallFunctions,
@@ -508,7 +513,7 @@ classical class ProgramCodegen {
         program.statementSecondaryOperands,
         program.statementCount,
         entryBody(program),
-        true,
+        false,
         0,
         emptyHelperCallIdentities(),
         emptyHelperCallIdentities(),

@@ -35,7 +35,15 @@ classical class ScalarHelperTables {
     return booleanResultHelper(kind);
   }
 
-  private long callerLocalType(HelperBody caller, long local) {
+  private long callerLocalType(HelperBody caller, long opcode, long local) {
+    if (oneArgumentBooleanCall(opcode)) {
+      return TYPE_BOOLEAN;
+    }
+
+    if (twoArgumentBooleanCall(opcode)) {
+      return TYPE_BOOLEAN;
+    }
+
     return helperLocalType(caller, local);
   }
 
@@ -67,7 +75,8 @@ classical class ScalarHelperTables {
           assignmentArgument
         );
         if (
-          callerLocalType(caller, assignmentSource) == candidate.parameterTypes[assignmentArgument]
+          callerLocalType(caller, opcode, assignmentSource)
+            == candidate.parameterTypes[assignmentArgument]
         ) {} else {
           return false;
         }
@@ -88,7 +97,7 @@ classical class ScalarHelperTables {
           voidArgument
         );
         if (
-          callerLocalType(caller, voidSource) == candidate.parameterTypes[voidArgument]
+          callerLocalType(caller, opcode, voidSource) == candidate.parameterTypes[voidArgument]
         ) {} else {
           return false;
         }
@@ -103,7 +112,9 @@ classical class ScalarHelperTables {
       long argument = 0;
       while (argument < argumentCount) limit MAX_WIDE_LOCAL_CALL_ARGUMENTS {
         long source = wideLocalCallSource(opcode, wideFirstSources, wideLastSources, argument);
-        if (callerLocalType(caller, source) == candidate.parameterTypes[argument]) {} else {
+        if (
+          callerLocalType(caller, opcode, source) == candidate.parameterTypes[argument]
+        ) {} else {
           return false;
         }
 
@@ -134,7 +145,7 @@ classical class ScalarHelperTables {
       }
     }
 
-    if (callerLocalType(caller, firstSource) == candidate.parameterTypes[0]) {} else {
+    if (callerLocalType(caller, opcode, firstSource) == candidate.parameterTypes[0]) {} else {
       return false;
     }
 
@@ -142,7 +153,7 @@ classical class ScalarHelperTables {
       return true;
     }
 
-    if (callerLocalType(caller, secondSource) == candidate.parameterTypes[1]) {} else {
+    if (callerLocalType(caller, opcode, secondSource) == candidate.parameterTypes[1]) {} else {
       return false;
     }
 
@@ -169,7 +180,7 @@ classical class ScalarHelperTables {
       }
     }
 
-    if (callerLocalType(caller, thirdSource) == candidate.parameterTypes[2]) {} else {
+    if (callerLocalType(caller, opcode, thirdSource) == candidate.parameterTypes[2]) {} else {
       return false;
     }
 
@@ -186,7 +197,7 @@ classical class ScalarHelperTables {
       }
     }
 
-    if (callerLocalType(caller, fourthSource) == candidate.parameterTypes[3]) {} else {
+    if (callerLocalType(caller, opcode, fourthSource) == candidate.parameterTypes[3]) {} else {
       return false;
     }
 
@@ -195,7 +206,7 @@ classical class ScalarHelperTables {
     }
 
     long fifthSource = wideReturnFifthSource(wideLastSources);
-    if (callerLocalType(caller, fifthSource) == candidate.parameterTypes[4]) {} else {
+    if (callerLocalType(caller, opcode, fifthSource) == candidate.parameterTypes[4]) {} else {
       return false;
     }
 
@@ -204,7 +215,7 @@ classical class ScalarHelperTables {
     }
 
     long sixthSource = wideReturnSixthSource(wideLastSources);
-    if (callerLocalType(caller, sixthSource) == candidate.parameterTypes[5]) {} else {
+    if (callerLocalType(caller, opcode, sixthSource) == candidate.parameterTypes[5]) {} else {
       return false;
     }
 
@@ -213,7 +224,7 @@ classical class ScalarHelperTables {
     }
 
     long seventhSource = wideReturnSeventhSource(wideLastSources);
-    return callerLocalType(caller, seventhSource) == candidate.parameterTypes[6];
+    return callerLocalType(caller, opcode, seventhSource) == candidate.parameterTypes[6];
   }
 
   /// Compares two helper names in one source.

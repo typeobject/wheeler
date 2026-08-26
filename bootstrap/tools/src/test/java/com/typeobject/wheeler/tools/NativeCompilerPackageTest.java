@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(240, result.selected());
-    assertEquals(240, result.passed());
+    assertEquals(243, result.selected());
+    assertEquals(243, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(

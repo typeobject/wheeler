@@ -11,13 +11,15 @@ classical class FourArgumentCalls {
   public const long STATEMENT_LOCAL_BOOLEAN_CALL_FOUR_LOCALS_BASE = 327680;
   /// Bounds one packed source by the canonical local window.
   public const long LOCAL_VALUE_CALL_SOURCE_COUNT = 256;
+  /// Counts identities in one packed four-source result range.
+  private const long LOCAL_VALUE_CALL_RANGE = LOCAL_VALUE_CALL_SOURCE_COUNT
+    * LOCAL_VALUE_CALL_SOURCE_COUNT;
   /// Names the exclusive end of packed signed-result calls.
   private const long STATEMENT_LOCAL_CALL_FOUR_LOCALS_LIMIT = STATEMENT_LOCAL_CALL_FOUR_LOCALS_BASE
-    + LOCAL_VALUE_CALL_SOURCE_COUNT * LOCAL_VALUE_CALL_SOURCE_COUNT;
+    + LOCAL_VALUE_CALL_RANGE;
   /// Names the exclusive end of packed Boolean-result calls.
   private const long STATEMENT_LOCAL_BOOLEAN_CALL_FOUR_LOCALS_LIMIT
-    = STATEMENT_LOCAL_BOOLEAN_CALL_FOUR_LOCALS_BASE + LOCAL_VALUE_CALL_SOURCE_COUNT
-    * LOCAL_VALUE_CALL_SOURCE_COUNT;
+    = STATEMENT_LOCAL_BOOLEAN_CALL_FOUR_LOCALS_BASE + LOCAL_VALUE_CALL_RANGE;
 
   /// Checks for an unresolved or resolved four-local call identity.
   public boolean fourArgumentCallStatement(long opcode) {
@@ -62,21 +64,16 @@ classical class FourArgumentCalls {
     return statementStart + 11;
   }
 
-  private long fourArgumentPackedSources(long opcode) {
-    if (fourArgumentBooleanCall(opcode)) {
-      return opcode - STATEMENT_LOCAL_BOOLEAN_CALL_FOUR_LOCALS_BASE;
-    }
-
-    return opcode - STATEMENT_LOCAL_CALL_FOUR_LOCALS_BASE;
-  }
-
   /// Decodes the packed third source from one validated four-local identity.
   public long fourArgumentCallThirdSource(long opcode) {
-    return fourArgumentPackedSources(opcode) / LOCAL_VALUE_CALL_SOURCE_COUNT;
+    long packed = opcode - STATEMENT_LOCAL_CALL_FOUR_LOCALS_BASE;
+    long normalized = packed % LOCAL_VALUE_CALL_RANGE;
+    return normalized / LOCAL_VALUE_CALL_SOURCE_COUNT;
   }
 
   /// Decodes the packed fourth source from one validated four-local identity.
   public long fourArgumentCallFourthSource(long opcode) {
-    return fourArgumentPackedSources(opcode) % LOCAL_VALUE_CALL_SOURCE_COUNT;
+    long packed = opcode - STATEMENT_LOCAL_CALL_FOUR_LOCALS_BASE;
+    return packed % LOCAL_VALUE_CALL_SOURCE_COUNT;
   }
 }

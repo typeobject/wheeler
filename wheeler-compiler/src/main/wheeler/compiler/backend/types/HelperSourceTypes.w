@@ -20,6 +20,7 @@ import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.three_argument_calls;
+import wheeler.compiler.two_argument_call_kinds;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
 import wheeler.compiler.void_call_operands;
@@ -27,10 +28,10 @@ import wheeler.compiler.wide_local_calls;
 import wheeler.compiler.wide_return_sources;
 
 classical class HelperSourceTypes {
-  /// Returns the exact type of one parameter or named statement result.
+  /// Returns one exact named type or the signed expression-temporary type.
   public long helperLocalType(HelperBody body, long local) {
     if (local < 0) {
-      return 0;
+      return TYPE_SIGNED;
     }
 
     if (local < body.parameterCount) {
@@ -67,14 +68,14 @@ classical class HelperSourceTypes {
           return TYPE_SIGNED;
         }
 
-        return 0;
+        return TYPE_SIGNED;
       }
 
       localBase += statementLocalCount(opcode);
       statement += 1;
     }
 
-    return 0;
+    return TYPE_SIGNED;
   }
 
   private long firstSource(long opcode, long operand) {
@@ -196,21 +197,20 @@ classical class HelperSourceTypes {
       return wideReturnFirstSource(operand);
     }
 
-    long helperSource = returnHelperCallFirstSource(opcode);
     if (returnArity == 1) {
-      return helperSource;
+      return returnHelperCallFirstSource(opcode);
     }
 
     if (returnArity == 4) {
-      return helperSource;
+      return returnHelperCallFirstSource(opcode);
     }
 
     if (returnArity == 3) {
-      return helperSource;
+      return returnHelperCallFirstSource(opcode);
     }
 
     if (returnArity == 2) {
-      return helperSource - RETURN_HELPER_CALL_TWO_SOURCE_OFFSET;
+      return returnHelperCallFirstSource(opcode) - RETURN_HELPER_CALL_TWO_SOURCE_OFFSET;
     }
 
     return -1;
@@ -231,13 +231,12 @@ classical class HelperSourceTypes {
       return wideReturnThirdSource(operand);
     }
 
-    long helperSource = returnHelperCallThirdSource(opcode);
     if (returnArity == 3) {
-      return helperSource;
+      return returnHelperCallThirdSource(opcode);
     }
 
     if (returnArity == 4) {
-      return helperSource;
+      return returnHelperCallThirdSource(opcode);
     }
 
     return directSource;
@@ -310,17 +309,16 @@ classical class HelperSourceTypes {
       return wideReturnSecondSource(operand);
     }
 
-    long helperSource = returnHelperCallSecondSource(opcode);
     if (returnArity == 2) {
-      return helperSource;
+      return returnHelperCallSecondSource(opcode);
     }
 
     if (returnArity == 3) {
-      return helperSource;
+      return returnHelperCallSecondSource(opcode);
     }
 
     if (returnArity == 4) {
-      return helperSource;
+      return returnHelperCallSecondSource(opcode);
     }
 
     return -1;
@@ -336,9 +334,8 @@ classical class HelperSourceTypes {
       return wideReturnFourthSource(operand);
     }
 
-    long helperSource = returnHelperCallFourthSource(opcode);
     if (returnArity == 4) {
-      return helperSource;
+      return returnHelperCallFourthSource(opcode);
     }
 
     return -1;
@@ -368,6 +365,98 @@ classical class HelperSourceTypes {
     return -1;
   }
 
+  private long statementSource(long opcode, long operand, long secondaryOperand, long source) {
+    if (assignmentCallStatement(opcode)) {
+      return assignmentCallSource(opcode, operand, secondaryOperand, source);
+    }
+
+    if (voidCallStatement(opcode)) {
+      return voidCallSource(opcode, operand, secondaryOperand, source);
+    }
+
+    if (wideLocalCallStatement(opcode)) {
+      return wideLocalCallSource(opcode, operand, secondaryOperand, source);
+    }
+
+    if (source == 0) {
+      return firstSource(opcode, operand);
+    }
+
+    if (source == 1) {
+      if (4 < returnHelperCallArity(opcode)) {
+        return wideReturnSecondSource(operand);
+      }
+
+      return secondSource(opcode, secondaryOperand);
+    }
+
+    if (source == 2) {
+      return thirdSource(opcode, operand);
+    }
+
+    if (source == 3) {
+      return fourthSource(opcode, operand);
+    }
+
+    if (source == 4) {
+      return fifthSource(opcode, secondaryOperand);
+    }
+
+    if (source == 5) {
+      return sixthSource(opcode, secondaryOperand);
+    }
+
+    return seventhSource(opcode, secondaryOperand);
+  }
+
+  private boolean localDeclaredBefore(HelperBody body, long statement, long local) {
+    if (local < 0) {
+      return false;
+    }
+
+    if (local < body.parameterCount) {
+      return true;
+    }
+
+    long localBase = body.parameterCount;
+    long previous = 0;
+    while (previous < statement) limit MAX_MINIMAL_STATEMENTS {
+      if (statementResultLocal(body.opcodes[previous], localBase) == local) {
+        return true;
+      }
+
+      localBase += statementLocalCount(body.opcodes[previous]);
+      previous += 1;
+    }
+
+    return false;
+  }
+
+  /// Checks whether every source names a parameter or prior statement result.
+  public boolean statementUsesDeclaredSources(HelperBody body, long statement) {
+    long source = 0;
+    boolean found = false;
+    while (source < 7) limit 7 {
+      long selected = statementSource(
+        body.opcodes[statement],
+        body.operands[statement],
+        body.secondaryOperands[statement],
+        source
+      );
+      if (-1 < selected) {
+        if (!localDeclaredBefore(body, statement, selected)) {
+          return false;
+        }
+
+        found = true;
+      }
+
+      source += 1;
+    }
+
+    return found;
+  }
+
   /// Returns one canonical source type for a typed statement.
   public long helperSourceType(
     long opcode,
@@ -382,50 +471,14 @@ classical class HelperSourceTypes {
       }
     }
 
-    long selected = -1;
-    if (assignmentCallStatement(opcode)) {
-      selected = assignmentCallSource(opcode, operand, secondaryOperand, source);
-    } else {
-      if (voidCallStatement(opcode)) {
-        selected = voidCallSource(opcode, operand, secondaryOperand, source);
-      } else {
-        if (wideLocalCallStatement(opcode)) {
-          selected = wideLocalCallSource(opcode, operand, secondaryOperand, source);
-        } else {
-          if (source == 0) {
-            selected = firstSource(opcode, operand);
-          }
-
-          if (source == 1) {
-            selected = secondSource(opcode, secondaryOperand);
-            if (4 < returnHelperCallArity(opcode)) {
-              selected = wideReturnSecondSource(operand);
-            }
-          }
-
-          if (source == 2) {
-            selected = thirdSource(opcode, operand);
-          }
-
-          if (source == 3) {
-            selected = fourthSource(opcode, operand);
-          }
-
-          if (source == 4) {
-            selected = fifthSource(opcode, secondaryOperand);
-          }
-
-          if (source == 5) {
-            selected = sixthSource(opcode, secondaryOperand);
-          }
-
-          if (source == 6) {
-            selected = seventhSource(opcode, secondaryOperand);
-          }
-        }
-      }
+    if (oneArgumentBooleanCall(opcode)) {
+      return TYPE_BOOLEAN;
     }
 
-    return helperLocalType(body, selected);
+    if (twoArgumentBooleanCall(opcode)) {
+      return TYPE_BOOLEAN;
+    }
+
+    return helperLocalType(body, statementSource(opcode, operand, secondaryOperand, source));
   }
 }
