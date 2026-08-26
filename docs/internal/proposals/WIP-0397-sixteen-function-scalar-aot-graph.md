@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, function bounds, call depth |
 | Depends on | WIP-0008, WIP-0026, WIP-0387, WIP-0396 |
 | Supersedes | Eight-function scalar AOT graph ceiling |
-| Superseded by | None |
+| Superseded by | WIP-0398 |
 
 ## Summary
 
@@ -94,3 +94,4 @@ Rejected. Fuel bounds executed instructions. Acyclic function count supplies the
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0387](WIP-0387-x86-64-linux-scalar-execution-bound.md)
 - [WIP-0396](WIP-0396-order-independent-scalar-aot-calls.md)
+- [WIP-0398](WIP-0398-compiler-width-scalar-aot-graph.md)

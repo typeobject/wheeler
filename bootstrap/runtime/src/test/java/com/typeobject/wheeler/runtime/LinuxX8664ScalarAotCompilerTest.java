@@ -172,7 +172,7 @@ final class LinuxX8664ScalarAotCompilerTest {
   @Test
   void lowersBoundedPriorHelperCalls() throws Exception {
     var nested = LinuxX8664ScalarAotCompiler.lower(helperArtifact(3));
-    byte[] terminalArtifact = helperArtifact(16);
+    byte[] terminalArtifact = helperArtifact(24);
     var terminal = LinuxX8664ScalarAotCompiler.lower(terminalArtifact);
     var registerParameters = LinuxX8664ScalarAotCompiler.lower(parameterHelperArtifact(6));
     byte[] stackArtifact = parameterHelperArtifact(7);
@@ -190,7 +190,7 @@ final class LinuxX8664ScalarAotCompilerTest {
     assertNotEquals(registerParameters.runtimeIdentity(), stackParameter.runtimeIdentity());
     assertThrows(
         IllegalArgumentException.class,
-        () -> LinuxX8664ScalarAotCompiler.lower(helperArtifact(17)));
+        () -> LinuxX8664ScalarAotCompiler.lower(helperArtifact(25)));
     assertThrows(
         IllegalArgumentException.class,
         () -> LinuxX8664ScalarAotCompiler.lower(parameterHelperArtifact(8)));
@@ -228,19 +228,19 @@ final class LinuxX8664ScalarAotCompilerTest {
     ElfImage.VerifiedImage terminalVerified = ElfImage.verify(
         terminalImage, terminalFixture.plan(), terminalFixture.abi());
     assertEquals(
-        "ef233c168ccd94d2037740d7c1d007b5fb137214a8f45c4bf839cc78a12d0da5",
+        "582736d63c4d58465e0cd68b633c4d7e315c56817cf2d011db2a3ae6fda05084",
         identity(terminalArtifact));
     assertEquals(
-        "5c8cebfe0dfa7ae8a7a51b670979883d541ecca04929c8c074041ff27255ff5c",
+        "a8e0dfd175d35bc84e04ef3bea2cb1ca271ccdc006d5e6b25cc39e89363e4b16",
         terminal.runtimeIdentity());
     assertEquals(
-        "5b513275e8a6e4205a819b32765f7bd834de1e2647d8e18cc4f973614f2382b9",
+        "4896f1b210c3b6ac0f405164467ac2f27f263aed30a6e6150f3679907beb795b",
         terminalFixture.capsule().identity());
     assertEquals(
-        "88a05d2d4e917ee9280984f1f34b15030a223e9c2a5992f7755a58616b5fcc4d",
+        "1fb2f458bff81b0534ccfcb119fd8dde7fe202bad1e345dc89f02b0ef53ca565",
         terminalFixture.plan().identity());
     assertEquals(
-        "0dfe8ffa291e9e52f9badb02a5f4dd4ed2aa9d9e5ff699b3b2a5bacf1e2f972d",
+        "fa543a706e5907aca33fd6c415c0d238cbd95eaa833cec6d6c8e04dc37c610f6",
         terminalVerified.prev());
     if (nativeLinuxHost()) {
       Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
