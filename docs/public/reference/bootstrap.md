@@ -147,8 +147,7 @@ up to 4,096 constant application bytes and 64 locals. An exact
 stdin bytes and
 compute bounded stdout and process status at runtime. Canonical reborrows may
 carry those byte handles through acyclic helper calls. One 65,536-instruction fuel
-cell bounds the selected entry and complete helper call tree. Other entries retain 32
-locals. Computed values 0 through 124 become distinct x86-64 Linux process
+cell bounds the selected entry and complete helper call tree. Other entries retain up to 256 locals and 512 instructions per function. Computed values 0 through 124 become distinct x86-64 Linux process
 statuses. Unsupported
 programs reject without projection or fallback. Output-bearing AOT replaces the
 fixed loader probe with exact source-declared bytes. Dynamic I/O repeats native

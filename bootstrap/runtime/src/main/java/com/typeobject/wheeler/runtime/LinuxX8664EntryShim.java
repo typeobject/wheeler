@@ -15,6 +15,7 @@ public final class LinuxX8664EntryShim {
   public static final int SUCCESS_STATUS = 42;
   public static final int MALFORMED_IMAGE_STATUS = 125;
   private static final int PAGE_BYTES = 4096;
+  private static final int MAX_APPLICATION_CODE_BYTES = 16 * 1024;
   private static final byte[] SUCCESS_OUTPUT = "Wheeler\n".getBytes(StandardCharsets.US_ASCII);
   private static final byte[] RUNTIME_TEXT = runtimeText(SUCCESS_STATUS);
   private static final String RUNTIME_IDENTITY = identity(RUNTIME_TEXT);
@@ -39,7 +40,7 @@ public final class LinuxX8664EntryShim {
   static byte[] runtimeText(byte[] processStatusCode) {
     if (processStatusCode == null
         || processStatusCode.length == 0
-        || processStatusCode.length > 4096) {
+        || processStatusCode.length > MAX_APPLICATION_CODE_BYTES) {
       throw new IllegalArgumentException("Native process-status code is invalid");
     }
     return assemble(processStatusCode.clone(), SUCCESS_OUTPUT);
@@ -48,7 +49,7 @@ public final class LinuxX8664EntryShim {
   static byte[] runtimeText(byte[] processStatusCode, byte[] applicationOutput) {
     if (processStatusCode == null
         || processStatusCode.length == 0
-        || processStatusCode.length > 4096
+        || processStatusCode.length > MAX_APPLICATION_CODE_BYTES
         || applicationOutput == null
         || applicationOutput.length == 0
         || applicationOutput.length > 4096) {
@@ -60,7 +61,7 @@ public final class LinuxX8664EntryShim {
   static byte[] runtimeTextWithApplicationIo(byte[] applicationCode) {
     if (applicationCode == null
         || applicationCode.length == 0
-        || applicationCode.length > 16 * 1024) {
+        || applicationCode.length > MAX_APPLICATION_CODE_BYTES) {
       throw new IllegalArgumentException("Native application code is invalid");
     }
     return assemble(applicationCode.clone(), null);

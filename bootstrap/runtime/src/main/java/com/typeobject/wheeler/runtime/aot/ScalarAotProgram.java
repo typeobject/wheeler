@@ -12,9 +12,9 @@ public final class ScalarAotProgram {
   public static final int MAX_FUNCTIONS = 24;
   public static final int MAX_GLOBALS = 32;
   public static final int MAX_PARAMETERS = 16;
-  public static final int MAX_LOCALS = 32;
+  public static final int MAX_LOCALS = 256;
   public static final int MAX_OUTPUT_LOCALS = 64;
-  public static final int MAX_INSTRUCTIONS = 128;
+  public static final int MAX_INSTRUCTIONS = 512;
   public static final int MAX_LOOP_ITERATIONS = 4096;
   public static final int MAX_INPUT_BYTES = 4096;
   public static final int MAX_OUTPUT_BYTES = 4096;

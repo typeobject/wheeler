@@ -810,6 +810,48 @@ final class ScalarAotArtifacts {
                 List.of()))));
   }
 
+  static byte[] localBoundArtifact(int localCount) {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-local-bound",
+        0,
+        List.of(new Global("status", 0)),
+        List.of(new FunctionBody(
+            0,
+            "example.app::main",
+            false,
+            0,
+            java.util.Collections.nCopies(localCount, ValueType.SIGNED),
+            null,
+            List.of(
+                Instruction.of(Opcode.LOCAL_CONST, localCount - 1, 73),
+                Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, localCount - 1),
+                Instruction.of(Opcode.HALT)),
+            List.of()))));
+  }
+
+  static byte[] instructionBoundArtifact(int instructionCount) {
+    List<Instruction> instructions = new java.util.ArrayList<>();
+    for (int instruction = 0; instruction < instructionCount - 3; instruction++) {
+      instructions.add(Instruction.of(Opcode.NOP));
+    }
+    instructions.add(Instruction.of(Opcode.LOCAL_CONST, 255, 73));
+    instructions.add(Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 255));
+    instructions.add(Instruction.of(Opcode.HALT));
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-instruction-bound",
+        0,
+        List.of(new Global("status", 0)),
+        List.of(new FunctionBody(
+            0,
+            "example.app::main",
+            false,
+            0,
+            java.util.Collections.nCopies(256, ValueType.SIGNED),
+            null,
+            instructions,
+            List.of()))));
+  }
+
   static FunctionBody statusEntry(int id, long status) {
     return new FunctionBody(
         id,
