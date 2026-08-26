@@ -114,5 +114,6 @@ Rejected. Assertions and loop checks made that name false. One execution-trap id
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0381](WIP-0381-x86-64-linux-bounded-scalar-loops.md)
+- [WIP-0403](WIP-0403-scalar-global-instruction-aot.md)
 - [WIP-0390](WIP-0390-x86-64-linux-shared-scalar-globals.md)
 - [WIP-0383](WIP-0383-x86-64-linux-void-helper-calls.md)

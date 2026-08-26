@@ -186,6 +186,13 @@ public final class ScalarAotProgram {
         case LOCAL_CONST, LOCAL_MOVE, BUFFER_BORROW, UTF8_BORROW ->
           validateUnary(function, instruction);
         case LOCAL_LOAD_GLOBAL -> validateGlobalLoad(program, function, instruction);
+        case ADD_CONST, SUB_CONST, XOR_CONST -> {
+          int global = validateGlobalInstruction(program, function, instruction, entry, true);
+          if (global == 0) {
+            stores++;
+          }
+        }
+        case EXPECT_EQ -> validateGlobalInstruction(program, function, instruction, entry, false);
         case BUFFER_LENGTH -> validateInputLength(function, instruction, dynamicIo);
         case UTF8_VALID, UTF8_COUNT ->
           validateUtf8Whole(function, instruction, dynamicIo);
@@ -346,6 +353,20 @@ public final class ScalarAotProgram {
         || !function.localType(length).equals(ValueType.SIGNED)) {
       throw new IllegalArgumentException("Scalar AOT output length is invalid");
     }
+  }
+
+  private static int validateGlobalInstruction(
+      Program program,
+      FunctionBody function,
+      Instruction instruction,
+      boolean entry,
+      boolean mutation) {
+    requireOperands(instruction, 2);
+    int selected = global(instruction.operands().get(0), program.globals().size());
+    if (mutation && selected == 0 && !entry) {
+      throw new IllegalArgumentException("Scalar AOT status mutation is not entry-owned");
+    }
+    return selected;
   }
 
   private static void validateGlobalLoad(
@@ -513,6 +534,27 @@ public final class ScalarAotProgram {
             int source = Math.toIntExact(instruction.operands().get(1));
             values[destination] = state.globals[source];
             assigned[destination] = true;
+            pc++;
+          }
+          case ADD_CONST, SUB_CONST, XOR_CONST -> {
+            int target = Math.toIntExact(instruction.operands().get(0));
+            long immediate = instruction.operands().get(1);
+            state.globals[target] = switch (instruction.opcode()) {
+              case ADD_CONST -> Math.addExact(state.globals[target], immediate);
+              case SUB_CONST -> Math.subtractExact(state.globals[target], immediate);
+              case XOR_CONST -> state.globals[target] ^ immediate;
+              default -> throw new IllegalStateException("Scalar global update changed");
+            };
+            if (target == 0) {
+              state.statusStored = true;
+            }
+            pc++;
+          }
+          case EXPECT_EQ -> {
+            int target = Math.toIntExact(instruction.operands().get(0));
+            if (state.globals[target] != instruction.operands().get(1)) {
+              throw new ArithmeticException("Scalar AOT global expectation failed");
+            }
             pc++;
           }
           case LOCAL_MOVE, BUFFER_BORROW, UTF8_BORROW -> {

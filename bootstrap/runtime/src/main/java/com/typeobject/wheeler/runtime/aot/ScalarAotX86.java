@@ -52,6 +52,11 @@ final class ScalarAotX86 {
     word(value);
   }
 
+  private void moveImmediateToRcx(long value) {
+    bytes(0x48, 0xb9);
+    word(value);
+  }
+
   void loadRax(int local) {
     loadRaxOffset(local * Long.BYTES);
   }
@@ -93,6 +98,30 @@ final class ScalarAotX86 {
   void storeGlobal(int global) {
     bytes(0x49, 0x89, 0x86);
     integer(global * Long.BYTES);
+  }
+
+  void updateGlobal(
+      Opcode opcode,
+      int global,
+      long immediate,
+      ArrayList<Integer> traps) {
+    loadGlobal(global);
+    moveImmediateToRcx(immediate);
+    Opcode localOpcode = switch (opcode) {
+      case ADD_CONST -> Opcode.LOCAL_ADD;
+      case SUB_CONST -> Opcode.LOCAL_SUB;
+      case XOR_CONST -> Opcode.LOCAL_XOR;
+      default -> throw new IllegalStateException("Validated scalar global update changed");
+    };
+    arithmetic(localOpcode, traps);
+    storeGlobal(global);
+  }
+
+  void expectGlobal(int global, long expected, ArrayList<Integer> traps) {
+    loadGlobal(global);
+    moveImmediateToRcx(expected);
+    bytes(0x48, 0x39, 0xc8, 0x0f, 0x85);
+    traps.add(reserveInt());
   }
 
   int loadArguments(int argumentBase, int argumentCount) {

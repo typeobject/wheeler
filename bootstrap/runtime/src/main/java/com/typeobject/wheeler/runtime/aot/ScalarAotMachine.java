@@ -171,6 +171,17 @@ public final class ScalarAotMachine {
           code.loadGlobal(Math.toIntExact(instruction.operands().get(1)));
           code.storeRax(local(instruction, 0));
         }
+        case ADD_CONST, SUB_CONST, XOR_CONST -> {
+          code.updateGlobal(
+              instruction.opcode(),
+              Math.toIntExact(instruction.operands().get(0)),
+              instruction.operands().get(1),
+              traps);
+        }
+        case EXPECT_EQ -> code.expectGlobal(
+            Math.toIntExact(instruction.operands().get(0)),
+            instruction.operands().get(1),
+            traps);
         case LOCAL_MOVE, BUFFER_BORROW, UTF8_BORROW -> {
           int destination = local(instruction, 0);
           code.loadRax(local(instruction, 1));

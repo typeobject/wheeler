@@ -10,6 +10,8 @@ import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.dormantUnsup
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dynamicIoArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dynamicIoHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.executionBoundArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.globalInstructionArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.globalOverflowArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.forwardHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.helperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.instructionBoundArtifact;
@@ -135,6 +137,50 @@ final class LinuxX8664ScalarAotCompilerTest {
     assertEquals(74, unequal.processStatus());
     assertNotEquals(less.runtimeIdentity(), notLess.runtimeIdentity());
     assertNotEquals(equal.runtimeIdentity(), unequal.runtimeIdentity());
+  }
+
+  @Test
+  void lowersScalarGlobalInstructions() throws Exception {
+    byte[] artifact = globalInstructionArtifact();
+    var lowered = LinuxX8664ScalarAotCompiler.lower(artifact);
+
+    assertEquals(73, lowered.processStatus());
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(
+            globalOverflowArtifact(Opcode.ADD_CONST, Long.MAX_VALUE, 1)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(
+            globalOverflowArtifact(Opcode.SUB_CONST, Long.MIN_VALUE, 1)));
+
+    Fixture fixture = fixture(artifact, lowered.runtimeText());
+    byte[] image = ElfImage.build(
+        fixture.plan(), fixture.abi(), fixture.capsule(), lowered.runtimeText(), 0);
+    ElfImage.VerifiedImage verified = ElfImage.verify(image, fixture.plan(), fixture.abi());
+    assertEquals(
+        "378b6b4441e29c95d7b32051d9b8820f59c7e68c9b230c5a6297649274ac6efb",
+        identity(artifact));
+    assertEquals(
+        "229c253086efa6127072efaa32b203fdbbc27db11f5f29f6a6d695bb63cefafe",
+        lowered.runtimeIdentity());
+    assertEquals(
+        "845dd69143793cba8301d6865688ace9b0ee60c7b8d241ace22643c7e1d0c112",
+        fixture.capsule().identity());
+    assertEquals(
+        "839f02237e4890afdfcab9883d3deae78ccdbc08d57d201a3dc3f05fec334628",
+        fixture.plan().identity());
+    assertEquals(
+        "07c48c8eefa6ef31f243794aebb981cddf123a5d81a845d2c5774771f17797a6",
+        verified.prev());
+    if (nativeLinuxHost()) {
+      Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
+      assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(73, process.exitValue());
+      assertArrayEquals(
+          LinuxX8664EntryShim.successOutput(), process.getInputStream().readAllBytes());
+      assertEquals(0, process.getErrorStream().readAllBytes().length);
+    }
   }
 
   @Test

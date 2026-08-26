@@ -136,8 +136,8 @@ ships yet.
 `wheeler image runtime-elf-x86-64-aot <root.wbc> -o <runtime.bin>` adds the
 first native backend leaf. It accepts one canonical classical WBC containing one
 zero-initialized `status` global, up to 31 additional shared signed globals, one
-to twenty-four dense functions, bounded constants, scalar updates, checked signed
-arithmetic, bitwise and 32-bit rotate operations, comparisons, assertions,
+to twenty-four dense functions, bounded constants, checked global addition and subtraction, global XOR and
+expectations, scalar updates, checked signed arithmetic, bitwise and 32-bit rotate operations, comparisons, assertions,
 status reads, forward branches and 4,096-iteration checked loops, bounded
 recursive signed-result, Boolean-result, or void helper calls, up to sixteen exact signed or
 Boolean arguments, status stores, returns, and halt. Recursion stops at 64

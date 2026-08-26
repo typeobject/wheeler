@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, scalar state, helper calls |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0382, WIP-0387, WIP-0389 |
 | Supersedes | The one-global scalar AOT process-status profile |
-| Superseded by | None |
+| Superseded by | WIP-0403 for direct global instructions |
 
 ## Summary
 
@@ -128,3 +128,4 @@ Rejected for this profile. Entry ownership keeps final process policy visible at
 - [WIP-0382](WIP-0382-x86-64-linux-scalar-state-checks.md)
 - [WIP-0387](WIP-0387-x86-64-linux-scalar-execution-bound.md)
 - [WIP-0389](WIP-0389-x86-64-linux-strict-utf8-input.md)
+- [WIP-0403](WIP-0403-scalar-global-instruction-aot.md)

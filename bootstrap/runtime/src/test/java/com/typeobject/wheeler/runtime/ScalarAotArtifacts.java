@@ -417,6 +417,51 @@ final class ScalarAotArtifacts {
                 List.of()))));
   }
 
+  static byte[] globalInstructionArtifact() {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-global-instructions",
+        0,
+        List.of(new Global("status", 0), new Global("value", 40)),
+        List.of(new FunctionBody(
+            0,
+            "example.app::main",
+            false,
+            0,
+            List.of(ValueType.SIGNED),
+            null,
+            List.of(
+                Instruction.of(Opcode.ADD_CONST, 1, 4),
+                Instruction.of(Opcode.EXPECT_EQ, 1, 44),
+                Instruction.of(Opcode.SUB_CONST, 1, 2),
+                Instruction.of(Opcode.EXPECT_EQ, 1, 42),
+                Instruction.of(Opcode.XOR_CONST, 1, 99),
+                Instruction.of(Opcode.EXPECT_EQ, 1, 73),
+                Instruction.of(Opcode.LOCAL_LOAD_GLOBAL, 0, 1),
+                Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
+                Instruction.of(Opcode.HALT)),
+            List.of()))));
+  }
+
+  static byte[] globalOverflowArtifact(Opcode opcode, long initial, long immediate) {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-global-overflow",
+        0,
+        List.of(new Global("status", 0), new Global("value", initial)),
+        List.of(new FunctionBody(
+            0,
+            "example.app::main",
+            false,
+            0,
+            List.of(ValueType.SIGNED),
+            null,
+            List.of(
+                Instruction.of(opcode, 1, immediate),
+                Instruction.of(Opcode.LOCAL_LOAD_GLOBAL, 0, 1),
+                Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
+                Instruction.of(Opcode.HALT)),
+            List.of()))));
+  }
+
   static byte[] stateCheckArtifact(long expected) {
     return new BytecodeWriter().write(new Program(
         "scalar-aot-state-check",
