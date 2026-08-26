@@ -178,8 +178,8 @@ public final class ScalarAotMachine {
       code.consumeFuel(traps);
       Instruction instruction = body.get(pc);
       switch (instruction.opcode()) {
-        case NOP -> {
-          // Canonical NOP has no machine effect.
+        case NOP, CHECKPOINT, COMMIT -> {
+          // Each instruction has no forward machine-state effect.
         }
         case LOCAL_CONST -> {
           code.moveImmediateToRax(instruction.operands().get(1));

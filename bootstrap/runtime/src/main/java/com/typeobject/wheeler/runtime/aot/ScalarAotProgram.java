@@ -202,7 +202,7 @@ public final class ScalarAotProgram {
     for (int pc = 0; pc < body.size(); pc++) {
       Instruction instruction = body.get(pc);
       switch (instruction.opcode()) {
-        case NOP -> requireOperands(instruction, 0);
+        case NOP, CHECKPOINT, COMMIT -> requireOperands(instruction, 0);
         case LOCAL_CONST, LOCAL_MOVE, BUFFER_BORROW, UTF8_BORROW ->
           validateUnary(function, instruction);
         case LOCAL_LOAD_GLOBAL -> validateGlobalLoad(program, function, instruction);
@@ -582,7 +582,7 @@ public final class ScalarAotProgram {
             assigned[destination] = true;
             pc++;
           }
-          case NOP -> pc++;
+          case NOP, CHECKPOINT, COMMIT -> pc++;
           case LOCAL_LOAD_GLOBAL -> {
             int destination = destination(instruction, 0, assigned);
             int source = Math.toIntExact(instruction.operands().get(1));

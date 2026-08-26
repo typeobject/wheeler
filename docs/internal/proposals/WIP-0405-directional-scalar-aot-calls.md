@@ -51,7 +51,7 @@ The inverse body shares R14 globals, R15 fuel, optional R13 call depth, and the 
 
 An inverse body is verified executable code. `UNCALL` running that code is not equivalent to rewinding a completed `CALL` unless the program's proof and history conditions establish that relation.
 
-This profile does not retain prior locals or logged global values after return. It does not expose reverse instruction stepping. It does not lower `CHECKPOINT`, `COMMIT`, result-slot calls, or history exhaustion. WIP-0001 parity remains open until those observations agree with the Wheeler interpreter.
+This profile does not retain prior locals or logged global values after return. It does not expose reverse instruction stepping. WIP-0406 lowers the forward value transition for `CHECKPOINT` and `COMMIT`. It does not retain their history observations, result-slot calls, or history exhaustion. WIP-0001 parity remains open until those observations agree with the Wheeler interpreter.
 
 ## Failure boundary
 
@@ -109,3 +109,4 @@ Rejected. Rewind includes retained machine history and control observations abse
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0401](WIP-0401-bounded-recursive-scalar-aot-calls.md)
 - [WIP-0404](WIP-0404-scalar-global-replacement-aot.md)
+- [WIP-0406](WIP-0406-forward-control-marker-aot.md)

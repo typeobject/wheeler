@@ -362,6 +362,8 @@ The base StepRecord law remains authoritative for artifacts without the extensio
 WIP-0040 source inverse remains new forward execution over explicit witnesses. It never consumes the WIP-0039 journal.
 
 ## References
+
+- [WIP-0406](WIP-0406-forward-control-marker-aot.md)
 - [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
 - [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 

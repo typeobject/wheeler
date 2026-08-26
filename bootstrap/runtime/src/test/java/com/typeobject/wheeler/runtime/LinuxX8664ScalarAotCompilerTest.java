@@ -2,12 +2,14 @@ package com.typeobject.wheeler.runtime;
 
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.arithmeticArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.artifact;
+import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.artifactWithGlobal;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.booleanParameterArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.booleanResultHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.cyclicHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.conditionalArtifact;
-import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.dormantUnsupportedHelperArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.dormantStatusMutationHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dynamicIoArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.controlMarkerArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.directionalCallArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dynamicIoHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.executionBoundArtifact;
@@ -41,31 +43,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.runtime.aot.ScalarAotMachine;
-import com.typeobject.wheeler.packageformat.ApplicationCapsule;
-import com.typeobject.wheeler.packageformat.CapsuleEntry;
-import com.typeobject.wheeler.packageformat.CapsulePackageReceipt;
-import com.typeobject.wheeler.packageformat.CapsuleRoot;
 import com.typeobject.wheeler.packageformat.ElfImage;
 import com.typeobject.wheeler.packageformat.NativeImagePlan;
-import com.typeobject.wheeler.packageformat.PlatformAbi;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.PosixFilePermission;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
-import java.util.HexFormat;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 /** Verified scalar WBC lowering and native process-status evidence. */
-final class LinuxX8664ScalarAotCompilerTest {
-  @TempDir
-  Path temporaryDirectory;
+final class LinuxX8664ScalarAotCompilerTest extends ScalarAotNativeTest {
 
   @Test
   void lowersOneCanonicalScalarProgramDeterministically() {
@@ -180,6 +167,41 @@ final class LinuxX8664ScalarAotCompilerTest {
       Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
       assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
       assertEquals(73, process.exitValue());
+      assertArrayEquals(
+          LinuxX8664EntryShim.successOutput(), process.getInputStream().readAllBytes());
+      assertEquals(0, process.getErrorStream().readAllBytes().length);
+    }
+  }
+
+  @Test
+  void lowersForwardControlMarkers() throws Exception {
+    byte[] artifact = controlMarkerArtifact();
+    var lowered = LinuxX8664ScalarAotCompiler.lower(artifact);
+
+    assertEquals(41, lowered.processStatus());
+    Fixture fixture = fixture(artifact, lowered.runtimeText());
+    byte[] image = ElfImage.build(
+        fixture.plan(), fixture.abi(), fixture.capsule(), lowered.runtimeText(), 0);
+    ElfImage.VerifiedImage verified = ElfImage.verify(image, fixture.plan(), fixture.abi());
+    assertEquals(
+        "7b7f7222338a4b77b1604305eb98c20cde67693f37c99d6e6ecefece70e1f288",
+        identity(artifact));
+    assertEquals(
+        "f3f7233445269902a30f6b0cfa71967f9e847c1eaf69d416b4ee52ca1b392737",
+        lowered.runtimeIdentity());
+    assertEquals(
+        "2c6ce55839b61b9c1378de4c5e0d1f0d47c533de3ed6dbdbd64ea0bd7029e01d",
+        fixture.capsule().identity());
+    assertEquals(
+        "166a7fc54958ae07d7bcbe2a52efd219aa70a9516f2c54bb5e637a38e4c41f9b",
+        fixture.plan().identity());
+    assertEquals(
+        "811a7d9f2be0d6200c383656f27af81c041ba80fa7b3c081cb8b298634cf077a",
+        verified.prev());
+    if (nativeLinuxHost()) {
+      Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
+      assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(41, process.exitValue());
       assertArrayEquals(
           LinuxX8664EntryShim.successOutput(), process.getInputStream().readAllBytes());
       assertEquals(0, process.getErrorStream().readAllBytes().length);
@@ -327,7 +349,7 @@ final class LinuxX8664ScalarAotCompilerTest {
         () -> LinuxX8664ScalarAotCompiler.lower(parameterHelperArtifact(17)));
     assertThrows(
         IllegalArgumentException.class,
-        () -> LinuxX8664ScalarAotCompiler.lower(dormantUnsupportedHelperArtifact()));
+        () -> LinuxX8664ScalarAotCompiler.lower(dormantStatusMutationHelperArtifact()));
 
     Fixture fixture = fixture(stackArtifact, stackParameter.runtimeText());
     byte[] image = ElfImage.build(
@@ -571,10 +593,7 @@ final class LinuxX8664ScalarAotCompilerTest {
         () -> LinuxX8664ScalarAotCompiler.lower(artifact(125)));
     assertThrows(
         IllegalArgumentException.class,
-        () -> LinuxX8664ScalarAotCompiler.lower(artifact("result", 42, false)));
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> LinuxX8664ScalarAotCompiler.lower(artifact("status", 42, true)));
+        () -> LinuxX8664ScalarAotCompiler.lower(artifactWithGlobal("result", 42)));
     assertThrows(
         IllegalArgumentException.class,
         () -> LinuxX8664ScalarAotCompiler.lower(
@@ -804,122 +823,5 @@ final class LinuxX8664ScalarAotCompilerTest {
     }
   }
 
-  private Path writeExecutable(byte[] image) throws IOException {
-    Path path = temporaryDirectory.resolve("scalar-aot");
-    Files.write(path, image);
-    Files.setPosixFilePermissions(path, Set.of(
-        PosixFilePermission.OWNER_READ,
-        PosixFilePermission.OWNER_WRITE,
-        PosixFilePermission.OWNER_EXECUTE));
-    return path;
-  }
-
-  private static Fixture fixture(byte[] artifact, byte[] runtime) {
-    PlatformAbi abi = new PlatformAbi(
-        PlatformAbi.Format.ELF,
-        "x86_64",
-        "linux-gnu",
-        64,
-        PlatformAbi.Endianness.LITTLE,
-        4096,
-        16,
-        256,
-        1024 * 1024,
-        4096,
-        1024,
-        64L * 1024 * 1024,
-        List.of("x86-64-v1"),
-        List.of(),
-        requiredServices());
-    CapsuleEntry wbc = new CapsuleEntry(
-        CapsuleEntry.Kind.WBC,
-        "bin/app.wbc",
-        8,
-        CapsuleEntry.REQUIRED | CapsuleEntry.STARTUP,
-        artifact);
-    CapsuleRoot root = new CapsuleRoot(
-        hash(1),
-        "app",
-        wbc.name(),
-        "example.app::main",
-        hash(2),
-        hash(3),
-        hash(4),
-        hash(5),
-        abi.identity(),
-        hash(7),
-        NativeImagePlan.RuntimeMode.AOT,
-        List.of());
-    ApplicationCapsule capsule = new ApplicationCapsule(
-        root,
-        List.of(new CapsulePackageReceipt(
-            hash(8),
-            "wheeler.app@1.0.0",
-            hash(9),
-            "release",
-            hash(10),
-            hash(11),
-            "app",
-            hash(1))),
-        List.of(wbc));
-    NativeImagePlan plan = new NativeImagePlan(
-        PlatformAbi.Format.ELF,
-        "x86_64-unknown-linux-gnu",
-        NativeImagePlan.RuntimeMode.AOT,
-        true,
-        true,
-        wbc.identity(),
-        abi.identity(),
-        capsule.identity(),
-        hash(12),
-        identity(runtime),
-        hash(13),
-        hash(14),
-        hash(15),
-        hash(16),
-        hash(17));
-    return new Fixture(abi, capsule, plan);
-  }
-
-  private static List<PlatformAbi.Service> requiredServices() {
-    return List.of(
-        PlatformAbi.Service.CAPABILITY_FILE_OPEN,
-        PlatformAbi.Service.DIRECTORY_MANIFEST,
-        PlatformAbi.Service.FILE_ATOMIC_REPLACE,
-        PlatformAbi.Service.FILE_READ_AT,
-        PlatformAbi.Service.MEMORY_PROTECT,
-        PlatformAbi.Service.MEMORY_RELEASE,
-        PlatformAbi.Service.MEMORY_RESERVE,
-        PlatformAbi.Service.PROCESS_ARGUMENTS,
-        PlatformAbi.Service.PROCESS_EXIT,
-        PlatformAbi.Service.STDERR_WRITE,
-        PlatformAbi.Service.STDIN_READ,
-        PlatformAbi.Service.STDOUT_WRITE);
-  }
-
-  private static boolean nativeLinuxHost() {
-    String os = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT);
-    String architecture = System.getProperty("os.arch", "").toLowerCase(java.util.Locale.ROOT);
-    return os.equals("linux")
-        && (architecture.equals("amd64") || architecture.equals("x86_64"));
-  }
-
-  private static String identity(byte[] bytes) {
-    try {
-      return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
-    } catch (NoSuchAlgorithmException exception) {
-      throw new IllegalStateException(exception);
-    }
-  }
-
-  private static String hash(int value) {
-    return "%064x".formatted(value);
-  }
-
   private record ArithmeticCase(Opcode opcode, long left, long right) {}
-
-  private record Fixture(
-      PlatformAbi abi,
-      ApplicationCapsule capsule,
-      NativeImagePlan plan) {}
 }

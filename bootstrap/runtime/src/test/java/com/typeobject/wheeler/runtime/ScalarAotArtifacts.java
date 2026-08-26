@@ -15,7 +15,7 @@ final class ScalarAotArtifacts {
   private ScalarAotArtifacts() {}
 
   static byte[] artifact(long status) {
-    return artifact("status", status, false);
+    return artifactWithGlobal("status", status);
   }
 
   static byte[] conditionalArtifact(
@@ -442,6 +442,31 @@ final class ScalarAotArtifacts {
             List.of()))));
   }
 
+  static byte[] controlMarkerArtifact() {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-control-markers",
+        0,
+        List.of(new Global("status", 0), new Global("value", 1)),
+        List.of(new FunctionBody(
+            0,
+            "example.app::main",
+            false,
+            0,
+            List.of(ValueType.SIGNED),
+            null,
+            List.of(
+                Instruction.of(Opcode.SET_LOGGED, 1, 40),
+                Instruction.of(Opcode.CHECKPOINT),
+                Instruction.of(Opcode.ADD_CONST, 1, 2),
+                Instruction.of(Opcode.EXPECT_EQ, 1, 42),
+                Instruction.of(Opcode.COMMIT),
+                Instruction.of(Opcode.SUB_CONST, 1, 1),
+                Instruction.of(Opcode.LOCAL_LOAD_GLOBAL, 0, 1),
+                Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
+                Instruction.of(Opcode.HALT)),
+            List.of()))));
+  }
+
   static byte[] directionalCallArtifact() {
     return new BytecodeWriter().write(new Program(
         "scalar-aot-directional-call",
@@ -706,17 +731,11 @@ final class ScalarAotArtifacts {
     return new BytecodeWriter().write(program);
   }
 
-  static byte[] artifact(String globalName, long status, boolean extraInstruction) {
-    List<Instruction> forward = extraInstruction
-        ? List.of(
-            Instruction.of(Opcode.LOCAL_CONST, 0, status),
-            Instruction.of(Opcode.CHECKPOINT),
-            Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
-            Instruction.of(Opcode.HALT))
-        : List.of(
-            Instruction.of(Opcode.LOCAL_CONST, 0, status),
-            Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
-            Instruction.of(Opcode.HALT));
+  static byte[] artifactWithGlobal(String globalName, long status) {
+    List<Instruction> forward = List.of(
+        Instruction.of(Opcode.LOCAL_CONST, 0, status),
+        Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
+        Instruction.of(Opcode.HALT));
     Program program = new Program(
         "scalar-aot",
         0,

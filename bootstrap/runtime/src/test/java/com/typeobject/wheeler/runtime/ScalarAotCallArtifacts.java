@@ -205,7 +205,7 @@ final class ScalarAotCallArtifacts {
         List.of(helper, entry)));
   }
 
-  static byte[] dormantUnsupportedHelperArtifact() {
+  static byte[] dormantStatusMutationHelperArtifact() {
     return new BytecodeWriter().write(new Program(
         "scalar-aot-dormant-helper",
         1,
@@ -219,8 +219,8 @@ final class ScalarAotCallArtifacts {
                 List.of(ValueType.SIGNED),
                 ValueType.SIGNED,
                 List.of(
+                    Instruction.of(Opcode.SET_LOGGED, 0, 73),
                     Instruction.of(Opcode.LOCAL_CONST, 0, 73),
-                    Instruction.of(Opcode.CHECKPOINT),
                     Instruction.of(Opcode.RETURN_VALUE, 0)),
                 List.of()),
             ScalarAotArtifacts.statusEntry(1, 73))));
