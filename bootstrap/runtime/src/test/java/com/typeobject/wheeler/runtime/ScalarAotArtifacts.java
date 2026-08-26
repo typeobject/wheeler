@@ -560,6 +560,14 @@ final class ScalarAotArtifacts {
   }
 
   static byte[] parameterHelperArtifact(int parameterCount) {
+    return parameterHelperArtifact(parameterCount, true);
+  }
+
+  static byte[] parameterVoidHelperArtifact(int parameterCount) {
+    return parameterHelperArtifact(parameterCount, false);
+  }
+
+  private static byte[] parameterHelperArtifact(int parameterCount, boolean returnsValue) {
     List<Instruction> helper = new java.util.ArrayList<>();
     int result = 0;
     for (int parameter = 1; parameter < parameterCount; parameter++) {
@@ -567,7 +575,12 @@ final class ScalarAotArtifacts {
       int left = parameter == 1 ? 0 : result - 1;
       helper.add(Instruction.of(Opcode.LOCAL_ADD, result, left, parameter));
     }
-    helper.add(Instruction.of(Opcode.RETURN_VALUE, result));
+    if (returnsValue) {
+      helper.add(Instruction.of(Opcode.RETURN_VALUE, result));
+    } else {
+      helper.add(Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 1, result));
+      helper.add(Instruction.of(Opcode.RETURN));
+    }
 
     List<Instruction> entry = new java.util.ArrayList<>();
     for (int parameter = 0; parameter < parameterCount; parameter++) {
@@ -576,15 +589,24 @@ final class ScalarAotArtifacts {
           : 1;
       entry.add(Instruction.of(Opcode.LOCAL_CONST, parameter, value));
     }
-    entry.add(Instruction.of(
-        Opcode.CALL_VALUE, 0, 0, parameterCount, parameterCount));
-    entry.add(Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, parameterCount));
+    if (returnsValue) {
+      entry.add(Instruction.of(
+          Opcode.CALL_VALUE, 0, 0, parameterCount, parameterCount));
+      entry.add(Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, parameterCount));
+    } else {
+      entry.add(Instruction.of(Opcode.CALL_VOID, 0, 0, parameterCount));
+      entry.add(Instruction.of(Opcode.LOCAL_LOAD_GLOBAL, parameterCount, 1));
+      entry.add(Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, parameterCount));
+    }
     entry.add(Instruction.of(Opcode.HALT));
 
+    List<Global> globals = returnsValue
+        ? List.of(new Global("status", 0))
+        : List.of(new Global("status", 0), new Global("result", 0));
     return new BytecodeWriter().write(new Program(
         "scalar-aot-parameter-helper",
         1,
-        List.of(new Global("status", 0)),
+        globals,
         List.of(
             new FunctionBody(
                 0,
@@ -593,7 +615,7 @@ final class ScalarAotArtifacts {
                 parameterCount,
                 java.util.Collections.nCopies(
                     Math.max(1, parameterCount * 2 - 1), ValueType.SIGNED),
-                ValueType.SIGNED,
+                returnsValue ? ValueType.SIGNED : null,
                 helper,
                 List.of()),
             new FunctionBody(
@@ -601,7 +623,8 @@ final class ScalarAotArtifacts {
                 "example.app::main",
                 false,
                 0,
-                java.util.Collections.nCopies(parameterCount + 1, ValueType.SIGNED),
+                java.util.Collections.nCopies(
+                    parameterCount + 1, ValueType.SIGNED),
                 null,
                 entry,
                 List.of()))));

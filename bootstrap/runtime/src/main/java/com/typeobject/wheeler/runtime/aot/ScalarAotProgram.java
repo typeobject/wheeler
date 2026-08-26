@@ -11,7 +11,7 @@ import com.typeobject.wheeler.core.bytecode.ValueType;
 public final class ScalarAotProgram {
   public static final int MAX_FUNCTIONS = 8;
   public static final int MAX_GLOBALS = 32;
-  public static final int MAX_PARAMETERS = 6;
+  public static final int MAX_PARAMETERS = 7;
   public static final int MAX_LOCALS = 32;
   public static final int MAX_OUTPUT_LOCALS = 64;
   public static final int MAX_INSTRUCTIONS = 128;

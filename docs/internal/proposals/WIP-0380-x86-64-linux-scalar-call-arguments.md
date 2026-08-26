@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, x86-64 call ABI, scalar parameters |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0379 |
 | Supersedes | Zero-argument-only scalar helper calls as the complete AOT call profile |
-| Superseded by | None |
+| Superseded by | WIP-0395 |
 
 ## Summary
 
@@ -117,3 +117,4 @@ Rejected. The callee owns its incoming arguments first. Trap state becomes autho
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0379](WIP-0379-x86-64-linux-scalar-helper-calls.md)
 - [WIP-0381](WIP-0381-x86-64-linux-bounded-scalar-loops.md)
+- [WIP-0395](WIP-0395-x86-64-linux-seventh-scalar-argument.md)

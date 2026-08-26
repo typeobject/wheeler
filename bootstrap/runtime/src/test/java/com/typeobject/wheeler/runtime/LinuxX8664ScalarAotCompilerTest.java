@@ -14,6 +14,7 @@ import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.invalidOutputWri
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.loopArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.outputArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.parameterHelperArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.parameterVoidHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.scalarGlobalArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.stateCheckArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.uncheckedBackwardBranchArtifact;
@@ -167,29 +168,63 @@ final class LinuxX8664ScalarAotCompilerTest {
   }
 
   @Test
-  void lowersBoundedPriorHelperCalls() {
+  void lowersBoundedPriorHelperCalls() throws Exception {
     var nested = LinuxX8664ScalarAotCompiler.lower(helperArtifact(3));
     var terminal = LinuxX8664ScalarAotCompiler.lower(helperArtifact(8));
-    var parameters = LinuxX8664ScalarAotCompiler.lower(parameterHelperArtifact(6));
+    var registerParameters = LinuxX8664ScalarAotCompiler.lower(parameterHelperArtifact(6));
+    byte[] stackArtifact = parameterHelperArtifact(7);
+    var stackParameter = LinuxX8664ScalarAotCompiler.lower(stackArtifact);
+    var stackVoidParameter = LinuxX8664ScalarAotCompiler.lower(parameterVoidHelperArtifact(7));
     var booleanParameter = LinuxX8664ScalarAotCompiler.lower(booleanParameterArtifact());
 
     assertEquals(73, nested.processStatus());
     assertEquals(73, terminal.processStatus());
-    assertEquals(73, parameters.processStatus());
+    assertEquals(73, registerParameters.processStatus());
+    assertEquals(73, stackParameter.processStatus());
+    assertEquals(73, stackVoidParameter.processStatus());
     assertEquals(73, booleanParameter.processStatus());
     assertNotEquals(nested.runtimeIdentity(), terminal.runtimeIdentity());
+    assertNotEquals(registerParameters.runtimeIdentity(), stackParameter.runtimeIdentity());
     assertThrows(
         IllegalArgumentException.class,
         () -> LinuxX8664ScalarAotCompiler.lower(helperArtifact(9)));
     assertThrows(
         IllegalArgumentException.class,
-        () -> LinuxX8664ScalarAotCompiler.lower(parameterHelperArtifact(7)));
+        () -> LinuxX8664ScalarAotCompiler.lower(parameterHelperArtifact(8)));
     assertThrows(
         IllegalArgumentException.class,
         () -> LinuxX8664ScalarAotCompiler.lower(dormantUnsupportedHelperArtifact()));
     assertThrows(
         IllegalArgumentException.class,
         () -> LinuxX8664ScalarAotCompiler.lower(forwardHelperArtifact()));
+
+    Fixture fixture = fixture(stackArtifact, stackParameter.runtimeText());
+    byte[] image = ElfImage.build(
+        fixture.plan(), fixture.abi(), fixture.capsule(), stackParameter.runtimeText(), 0);
+    ElfImage.VerifiedImage verified = ElfImage.verify(image, fixture.plan(), fixture.abi());
+    assertEquals(
+        "39fa0ef551020f30afc0a7d2c81b34e65330e3a7ae20d3b6d38db7bfb0e34b11",
+        identity(stackArtifact));
+    assertEquals(
+        "e0b6bf9c822359d43495ac305a3e1c49fb54f283276e0c98ce6a60d778dee97f",
+        stackParameter.runtimeIdentity());
+    assertEquals(
+        "e17bcfd33634ed7c3e38ec2d075ed3c77a1a59f99766ada479c50bfb85b3d907",
+        fixture.capsule().identity());
+    assertEquals(
+        "810b549d557a3ace9a6918d979574157a15f2432821e5209b2da00cf29540bd8",
+        fixture.plan().identity());
+    assertEquals(
+        "38b9e08e56f24613c57b667e5d368aa7a34617814f82292b4222d3537410484e",
+        verified.prev());
+    if (nativeLinuxHost()) {
+      Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
+      assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(73, process.exitValue());
+      assertArrayEquals(
+          LinuxX8664EntryShim.successOutput(), process.getInputStream().readAllBytes());
+      assertEquals(0, process.getErrorStream().readAllBytes().length);
+    }
   }
 
   @Test

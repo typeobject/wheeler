@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, void helpers, assertion boundaries |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0382 |
 | Supersedes | Signed-result-only helpers as the complete scalar AOT call profile |
-| Superseded by | None |
+| Superseded by | WIP-0395 |
 
 ## Summary
 
@@ -112,10 +112,13 @@ Rejected. Helper global access remains an ambient dynamic-link problem. Pass the
 
 Rejected. The native call, frame, assertion, return, and trap-check boundaries are the evidence.
 
+WIP-0395 raises the shared private call boundary to seven arguments without changing void-return semantics.
+
 ## References
 
 - [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md)
 - [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0382](WIP-0382-x86-64-linux-scalar-state-checks.md)
+- [WIP-0395](WIP-0395-x86-64-linux-seventh-scalar-argument.md)
 - [WIP-0384](WIP-0384-x86-64-linux-constant-byte-output.md)
