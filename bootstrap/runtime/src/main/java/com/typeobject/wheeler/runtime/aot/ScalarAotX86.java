@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 /** Bounded position-independent x86-64 instruction encoder for scalar AOT. */
 final class ScalarAotX86 {
-  private static final int STACK_ARGUMENT_BYTES = 16;
+  private static final int REGISTER_ARGUMENTS = 6;
 
   private final ByteArrayOutputStream output = new ByteArrayOutputStream(2048);
   private final ArrayList<RelativePatch> relativePatches = new ArrayList<>();
@@ -53,8 +53,12 @@ final class ScalarAotX86 {
   }
 
   void loadRax(int local) {
+    loadRaxOffset(local * Long.BYTES);
+  }
+
+  private void loadRaxOffset(int offset) {
     bytes(0x48, 0x8b, 0x84, 0x24);
-    integer(local * Long.BYTES);
+    integer(offset);
   }
 
   void loadRcx(int local) {
@@ -73,8 +77,12 @@ final class ScalarAotX86 {
   }
 
   void storeRax(int local) {
+    storeRaxOffset(local * Long.BYTES);
+  }
+
+  private void storeRaxOffset(int offset) {
     bytes(0x48, 0x89, 0x84, 0x24);
-    integer(local * Long.BYTES);
+    integer(offset);
   }
 
   void loadGlobal(int global) {
@@ -87,7 +95,35 @@ final class ScalarAotX86 {
     integer(global * Long.BYTES);
   }
 
-  void loadArgument(int argument, int local) {
+  int loadArguments(int argumentBase, int argumentCount) {
+    if (argumentCount < 0 || ScalarAotProgram.MAX_PARAMETERS < argumentCount) {
+      throw new IllegalStateException("Validated scalar AOT argument width changed");
+    }
+
+    int stackArguments = Math.max(0, argumentCount - REGISTER_ARGUMENTS);
+    int callAreaBytes = alignBytes(Math.multiplyExact(stackArguments, Long.BYTES));
+    if (0 < callAreaBytes) {
+      stack(-callAreaBytes);
+    }
+
+    int registerArguments = Math.min(argumentCount, REGISTER_ARGUMENTS);
+    for (int argument = 0; argument < registerArguments; argument++) {
+      loadRegisterArgument(argument, argumentBase + argument, callAreaBytes);
+    }
+    for (int argument = REGISTER_ARGUMENTS; argument < argumentCount; argument++) {
+      loadRaxOffset((argumentBase + argument) * Long.BYTES + callAreaBytes);
+      storeRaxOffset((argument - REGISTER_ARGUMENTS) * Long.BYTES);
+    }
+    return callAreaBytes;
+  }
+
+  void closeArguments(int callAreaBytes) {
+    if (0 < callAreaBytes) {
+      stack(callAreaBytes);
+    }
+  }
+
+  private void loadRegisterArgument(int argument, int local, int callAreaBytes) {
     switch (argument) {
       case 0 -> bytes(0x48, 0x8b, 0xbc, 0x24);
       case 1 -> bytes(0x48, 0x8b, 0xb4, 0x24);
@@ -95,22 +131,20 @@ final class ScalarAotX86 {
       case 3 -> bytes(0x48, 0x8b, 0x8c, 0x24);
       case 4 -> bytes(0x4c, 0x8b, 0x84, 0x24);
       case 5 -> bytes(0x4c, 0x8b, 0x8c, 0x24);
-      default -> throw new IllegalStateException("Validated scalar AOT argument changed");
+      default -> throw new IllegalStateException("Validated scalar AOT register changed");
     }
-    integer(local * Long.BYTES);
-  }
-
-  void openStackArgument(int local) {
-    loadRax(local);
-    stack(-STACK_ARGUMENT_BYTES);
-    storeRax(0);
-  }
-
-  void closeStackArgument() {
-    stack(STACK_ARGUMENT_BYTES);
+    integer(local * Long.BYTES + callAreaBytes);
   }
 
   void storeArgument(int argument, int frameBytes) {
+    if (REGISTER_ARGUMENTS <= argument) {
+      int stackOffset = frameBytes + Long.BYTES
+          + (argument - REGISTER_ARGUMENTS) * Long.BYTES;
+      loadRaxOffset(stackOffset);
+      storeRax(argument);
+      return;
+    }
+
     switch (argument) {
       case 0 -> bytes(0x48, 0x89, 0xbc, 0x24);
       case 1 -> bytes(0x48, 0x89, 0xb4, 0x24);
@@ -118,12 +152,6 @@ final class ScalarAotX86 {
       case 3 -> bytes(0x48, 0x89, 0x8c, 0x24);
       case 4 -> bytes(0x4c, 0x89, 0x84, 0x24);
       case 5 -> bytes(0x4c, 0x89, 0x8c, 0x24);
-      case 6 -> {
-        bytes(0x48, 0x8b, 0x84, 0x24);
-        integer(frameBytes + Long.BYTES);
-        storeRax(argument);
-        return;
-      }
       default -> throw new IllegalStateException("Validated scalar AOT parameter changed");
     }
     integer(argument * Long.BYTES);

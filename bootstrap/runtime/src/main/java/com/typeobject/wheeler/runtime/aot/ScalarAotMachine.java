@@ -8,7 +8,6 @@ import java.util.ArrayList;
 /** Position-independent x86-64 lowering for one validated scalar AOT program. */
 public final class ScalarAotMachine {
   public static final int EXECUTION_TRAP_STATUS = 126;
-  private static final int REGISTER_ARGUMENTS = 6;
 
   private ScalarAotMachine() {}
 
@@ -241,23 +240,11 @@ public final class ScalarAotMachine {
         case CALL_VALUE, CALL_VOID -> {
           int argumentBase = Math.toIntExact(instruction.operands().get(1));
           int argumentCount = Math.toIntExact(instruction.operands().get(2));
-          if (REGISTER_ARGUMENTS + 1 < argumentCount) {
-            throw new IllegalStateException("Validated scalar AOT argument width changed");
-          }
-          int registerArguments = Math.min(argumentCount, REGISTER_ARGUMENTS);
-          for (int argument = 0; argument < registerArguments; argument++) {
-            code.loadArgument(argument, argumentBase + argument);
-          }
-          boolean stackArgument = REGISTER_ARGUMENTS < argumentCount;
-          if (stackArgument) {
-            code.openStackArgument(argumentBase + REGISTER_ARGUMENTS);
-          }
+          int callAreaBytes = code.loadArguments(argumentBase, argumentCount);
           code.bytes(0xe8);
           calls.add(new CallPatch(
               code.reserveInt(), Math.toIntExact(instruction.operands().get(0))));
-          if (stackArgument) {
-            code.closeStackArgument();
-          }
+          code.closeArguments(callAreaBytes);
           code.bytes(0x48, 0x85, 0xd2, 0x0f, 0x85);
           traps.add(code.reserveInt());
           if (instruction.opcode() == Opcode.CALL_VALUE) {

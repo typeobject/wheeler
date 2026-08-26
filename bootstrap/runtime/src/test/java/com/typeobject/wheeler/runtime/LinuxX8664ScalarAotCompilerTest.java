@@ -175,9 +175,9 @@ final class LinuxX8664ScalarAotCompilerTest {
     byte[] terminalArtifact = helperArtifact(24);
     var terminal = LinuxX8664ScalarAotCompiler.lower(terminalArtifact);
     var registerParameters = LinuxX8664ScalarAotCompiler.lower(parameterHelperArtifact(6));
-    byte[] stackArtifact = parameterHelperArtifact(7);
+    byte[] stackArtifact = parameterHelperArtifact(16);
     var stackParameter = LinuxX8664ScalarAotCompiler.lower(stackArtifact);
-    var stackVoidParameter = LinuxX8664ScalarAotCompiler.lower(parameterVoidHelperArtifact(7));
+    var stackVoidParameter = LinuxX8664ScalarAotCompiler.lower(parameterVoidHelperArtifact(16));
     var booleanParameter = LinuxX8664ScalarAotCompiler.lower(booleanParameterArtifact());
 
     assertEquals(73, nested.processStatus());
@@ -193,7 +193,7 @@ final class LinuxX8664ScalarAotCompilerTest {
         () -> LinuxX8664ScalarAotCompiler.lower(helperArtifact(25)));
     assertThrows(
         IllegalArgumentException.class,
-        () -> LinuxX8664ScalarAotCompiler.lower(parameterHelperArtifact(8)));
+        () -> LinuxX8664ScalarAotCompiler.lower(parameterHelperArtifact(17)));
     assertThrows(
         IllegalArgumentException.class,
         () -> LinuxX8664ScalarAotCompiler.lower(dormantUnsupportedHelperArtifact()));
@@ -203,19 +203,19 @@ final class LinuxX8664ScalarAotCompilerTest {
         fixture.plan(), fixture.abi(), fixture.capsule(), stackParameter.runtimeText(), 0);
     ElfImage.VerifiedImage verified = ElfImage.verify(image, fixture.plan(), fixture.abi());
     assertEquals(
-        "39fa0ef551020f30afc0a7d2c81b34e65330e3a7ae20d3b6d38db7bfb0e34b11",
+        "6940835cec9eecb155ac4de2efb9a6514b0b316dadf0f546057d1f064dff0cf1",
         identity(stackArtifact));
     assertEquals(
-        "e0b6bf9c822359d43495ac305a3e1c49fb54f283276e0c98ce6a60d778dee97f",
+        "9cc36d6cfcb6e57acf2c163daf50d271ca0ce9ced3326bc0060e8acea28cc8b9",
         stackParameter.runtimeIdentity());
     assertEquals(
-        "e17bcfd33634ed7c3e38ec2d075ed3c77a1a59f99766ada479c50bfb85b3d907",
+        "36c72ed8eb1a550bd5c25834005bdd00f50f9b7b5c1635a935b36bd4e2a42438",
         fixture.capsule().identity());
     assertEquals(
-        "810b549d557a3ace9a6918d979574157a15f2432821e5209b2da00cf29540bd8",
+        "2e216025596f3f4c5605b088d97fee3f832ab29984570740b605b2bb6a6c93b0",
         fixture.plan().identity());
     assertEquals(
-        "38b9e08e56f24613c57b667e5d368aa7a34617814f82292b4222d3537410484e",
+        "a3f31213083fd7208a347a252569e932367754c4cae962105876c3a819633d85",
         verified.prev());
 
     Fixture terminalFixture = fixture(terminalArtifact, terminal.runtimeText());

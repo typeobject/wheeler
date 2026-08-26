@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, x86-64 call ABI, scalar parameters |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0379 |
 | Supersedes | Zero-argument-only scalar helper calls as the complete AOT call profile |
-| Superseded by | WIP-0395 for argument width, WIP-0396 for function order |
+| Superseded by | WIP-0396 for function order, WIP-0399 for argument width |
 
 ## Summary
 
@@ -119,3 +119,4 @@ Rejected. The callee owns its incoming arguments first. Trap state becomes autho
 - [WIP-0381](WIP-0381-x86-64-linux-bounded-scalar-loops.md)
 - [WIP-0395](WIP-0395-x86-64-linux-seventh-scalar-argument.md)
 - [WIP-0396](WIP-0396-order-independent-scalar-aot-calls.md)
+- [WIP-0399](WIP-0399-compiler-width-scalar-aot-arguments.md)

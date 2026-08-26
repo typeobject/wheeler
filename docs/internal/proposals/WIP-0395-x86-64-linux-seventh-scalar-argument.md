@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, x86-64 calls, stack arguments |
 | Depends on | WIP-0008, WIP-0026, WIP-0380, WIP-0383, WIP-0386 |
 | Supersedes | Six-register scalar AOT call ceiling |
-| Superseded by | WIP-0396 for function order |
+| Superseded by | WIP-0396 for function order, WIP-0399 for argument width |
 
 ## Summary
 
@@ -99,3 +99,4 @@ Rejected. RAX is result and scratch state. The callee must own the incoming valu
 - [WIP-0383](WIP-0383-x86-64-linux-void-helper-calls.md)
 - [WIP-0386](WIP-0386-x86-64-linux-borrowed-byte-helpers.md)
 - [WIP-0396](WIP-0396-order-independent-scalar-aot-calls.md)
+- [WIP-0399](WIP-0399-compiler-width-scalar-aot-arguments.md)

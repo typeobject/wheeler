@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, void helpers, assertion boundaries |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0382 |
 | Supersedes | Signed-result-only helpers as the complete scalar AOT call profile |
-| Superseded by | WIP-0395 for argument width, WIP-0396 for function order |
+| Superseded by | WIP-0396 for function order, WIP-0399 for argument width |
 
 ## Summary
 
@@ -122,4 +122,5 @@ WIP-0395 raises the shared private call boundary to seven arguments without chan
 - [WIP-0382](WIP-0382-x86-64-linux-scalar-state-checks.md)
 - [WIP-0395](WIP-0395-x86-64-linux-seventh-scalar-argument.md)
 - [WIP-0396](WIP-0396-order-independent-scalar-aot-calls.md)
+- [WIP-0399](WIP-0399-compiler-width-scalar-aot-arguments.md)
 - [WIP-0384](WIP-0384-x86-64-linux-constant-byte-output.md)

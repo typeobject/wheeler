@@ -139,9 +139,9 @@ zero-initialized `status` global, up to 31 additional shared signed globals, one
 to twenty-four dense functions, bounded constants, scalar updates, checked signed
 arithmetic, bitwise and 32-bit rotate operations, comparisons, assertions,
 status reads, forward branches and 4,096-iteration checked loops, acyclic
-signed-result or void helper calls with up to seven exact signed or Boolean
+signed-result or void helper calls with up to sixteen exact signed or Boolean
 arguments, status stores, returns, and halt. Six arguments use the private
-register order. The seventh uses one aligned caller-owned stack area. An output-bearing entry may retain
+register order. Up to ten more use one aligned caller-owned stack area. An output-bearing entry may retain
 up to 4,096 constant application bytes and 64 locals. An exact
 `byteview, bytes` or `utf8, bytes` entry may instead read up to 4,096 complete
 stdin bytes and
