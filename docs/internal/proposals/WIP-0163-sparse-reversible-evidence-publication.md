@@ -82,7 +82,7 @@ Focused suites cover result-slot local rebuilding, inverse opcode generation, in
 
 The compiler archive contains 3,008,259 bytes with SHA-256 `0909abc6008e399ff067fecae04594b22b1369f8eebf98ac2b27e5e18a60b78f`. Exact dependent locks name that archive.
 
-`NativeCompilerPhysicalClosureExampleTest` now compares all 99 selected artifacts, retained prefixes, and relocations. WIP-0411 adds the direct assignment-syntax product and closes the wide-local dependency named by `CallForms.w`. The test links 262 functions and 9,998 instructions twice, retains 7,204 local types and 235,304 code bytes, and reproduces SHA-256 `be94a337291a615a99ca3b072fe382d086d60aeb2d6aad1b338d5afec20afb0b`. Complete evidence passes in 20 minutes and 35 seconds under the twenty-four-minute method deadline.
+`NativeCompilerPhysicalClosureExampleTest` now compares all 100 selected artifacts, retained prefixes, and relocations. WIP-0411 adds the direct assignment-syntax product and closes the wide-local dependency named by `CallForms.w`. WIP-0413 adds the guarded UTF-8 call owner without a broad token-module edge. The test links 278 functions and 10,611 instructions twice, retains 7,771 local types and 250,392 code bytes, and reproduces SHA-256 `152204b3a8b93ec880959353fb0abab702191fcafe1e30545d3b454ed7466f09`. Complete evidence passes in 23 minutes and 16 seconds under the twenty-four-minute method deadline.
 
 ## Acceptance
 

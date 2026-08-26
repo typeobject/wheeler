@@ -68,7 +68,7 @@ No row merges report bytes with another row. Completeness comes from the exhaust
 
 Local endpoint runs prove both admitted index bounds, nonempty selection, native execution, and all three report adapters. The ordinary tools test continues to exclude the integration class. Hosted run `32985905791` passes all sixteen package rows, both build matrices, all eight example shards, and byte-identical bootstrap output comparison. The slowest package row completes in 10 minutes and 15 seconds.
 
-The compiler archive lock in every dependent workspace now names SHA-256 `4a4d2b612afaf874528712b7de080e1e075fcb63a444a5563ab5e6b9dd618582`. Package loading rejects the superseded archive identity before any shard executes.
+The compiler archive lock in every dependent workspace named SHA-256 `4a4d2b612afaf874528712b7de080e1e075fcb63a444a5563ab5e6b9dd618582` for this evidence run. WIP-0413 replaces that source archive without changing shard assignment. Package loading rejects either superseded identity before any shard executes.
 
 ## Acceptance
 

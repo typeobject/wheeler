@@ -47,7 +47,7 @@ For each owner, the recovery compiler parses complete physical bytes and publish
 
 ## Closure accounting
 
-The physical compiler closure contains 379 modules and 1,893 imports. Its canonical manifest contains 177,822 bytes. Native validation halts after exactly 74,201,056 committed transitions.
+At this WIP, the physical compiler closure contained 379 modules and 1,893 imports. Its canonical manifest contained 177,822 bytes. Native validation halted after exactly 74,201,056 committed transitions.
 
 The former 74,000,000 host guard rejected the enlarged complete closure before it halted. The evidence guard is now 75,000,000 transitions. This changes no Wheeler semantic limit. It leaves a bounded host cancellation margin above the exact retained result.
 

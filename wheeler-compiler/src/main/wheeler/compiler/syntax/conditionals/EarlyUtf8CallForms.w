@@ -2,9 +2,7 @@
 
 module wheeler.compiler.early_utf8_call_forms;
 
-import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.source_scalars;
-import wheeler.compiler.tokens;
 
 classical class EarlyUtf8CallForms {
   /// Names the unresolved exact guarded two-argument UTF-8 call.
@@ -15,6 +13,8 @@ classical class EarlyUtf8CallForms {
   public const long EARLY_UTF8_SELECTOR_COUNT = 8;
   /// Packs two source locals into one statement operand.
   public const long EARLY_UTF8_CALL_SOURCE_SCALE = 256;
+  /// Excludes selectors beyond eight packed source rows.
+  private const long EARLY_UTF8_CALL_LIMIT = 460800;
   /// Names the exact token width of one guarded call.
   private const long EARLY_UTF8_CALL_TOKEN_WIDTH = 17;
   /// Names condition, argument, reborrow, and result locals.
@@ -30,18 +30,19 @@ classical class EarlyUtf8CallForms {
       return false;
     }
 
-    return opcode < STATEMENT_IF_EQ_RETURN_UTF8_CALL_BASE + EARLY_UTF8_CALL_SOURCE_SCALE
-      * EARLY_UTF8_SELECTOR_COUNT;
+    return opcode < EARLY_UTF8_CALL_LIMIT;
   }
 
   /// Returns the guarded call's condition local.
   public long earlyUtf8ConditionLocal(long opcode) {
-    return(opcode - STATEMENT_IF_EQ_RETURN_UTF8_CALL_BASE) / EARLY_UTF8_SELECTOR_COUNT;
+    long relative = opcode - STATEMENT_IF_EQ_RETURN_UTF8_CALL_BASE;
+    return relative / EARLY_UTF8_SELECTOR_COUNT;
   }
 
   /// Returns the guarded call's selector literal.
   public long earlyUtf8Selector(long opcode) {
-    return(opcode - STATEMENT_IF_EQ_RETURN_UTF8_CALL_BASE) % EARLY_UTF8_SELECTOR_COUNT;
+    long relative = opcode - STATEMENT_IF_EQ_RETURN_UTF8_CALL_BASE;
+    return relative % EARLY_UTF8_SELECTOR_COUNT;
   }
 
   /// Returns the first call-argument token.
@@ -96,6 +97,232 @@ classical class EarlyUtf8CallForms {
     return -1;
   }
 
+  private boolean punctuationAt(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    long token,
+    long scalar
+  ) {
+    long kind = tokenKinds[token];
+    boolean punctuation = kind == 3;
+    if (punctuation == false) {
+      return false;
+    }
+
+    long start = tokenStarts[token];
+    long actual = utf8Scalar(source, start);
+    return actual == scalar;
+  }
+
+  private boolean returnTokenAt(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long token
+  ) {
+    long length = tokenLengths[token];
+    boolean validLength = length == 6;
+    if (validLength == false) {
+      return false;
+    }
+
+    long start = tokenStarts[token];
+    long first = utf8Scalar(source, start);
+    boolean validFirst = first == 114;
+    if (validFirst == false) {
+      return false;
+    }
+
+    long secondStart = start + 1;
+    long second = utf8Scalar(source, secondStart);
+    boolean validSecond = second == 101;
+    if (validSecond == false) {
+      return false;
+    }
+
+    long thirdStart = start + 2;
+    long third = utf8Scalar(source, thirdStart);
+    boolean validThird = third == 116;
+    if (validThird == false) {
+      return false;
+    }
+
+    long fourthStart = start + 3;
+    long fourth = utf8Scalar(source, fourthStart);
+    boolean validFourth = fourth == 117;
+    if (validFourth == false) {
+      return false;
+    }
+
+    long fifthStart = start + 4;
+    long fifth = utf8Scalar(source, fifthStart);
+    boolean validFifth = fifth == 114;
+    if (validFifth == false) {
+      return false;
+    }
+
+    long sixthStart = start + 5;
+    long sixth = utf8Scalar(source, sixthStart);
+    return sixth == 110;
+  }
+
+  private boolean validEarlyUtf8Condition(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart
+  ) {
+    long openParen = PUNCTUATION_OPEN_PAREN;
+    long assignment = PUNCTUATION_ASSIGN;
+    long closeParen = PUNCTUATION_CLOSE_PAREN;
+    long openBrace = PUNCTUATION_OPEN_BRACE;
+    long openCondition = statementStart + 1;
+    boolean validOpenCondition = punctuationAt(
+      source,
+      tokenKinds,
+      tokenStarts,
+      openCondition,
+      openParen
+    );
+    if (validOpenCondition == false) {
+      return false;
+    }
+
+    long conditionLocal = statementStart + 2;
+    long conditionKind = tokenKinds[conditionLocal];
+    boolean validConditionKind = conditionKind == 1;
+    if (validConditionKind == false) {
+      return false;
+    }
+
+    long firstAssignment = statementStart + 3;
+    boolean validFirstAssignment = punctuationAt(
+      source,
+      tokenKinds,
+      tokenStarts,
+      firstAssignment,
+      assignment
+    );
+    if (validFirstAssignment == false) {
+      return false;
+    }
+
+    long secondAssignment = statementStart + 4;
+    boolean validSecondAssignment = punctuationAt(
+      source,
+      tokenKinds,
+      tokenStarts,
+      secondAssignment,
+      assignment
+    );
+    if (validSecondAssignment == false) {
+      return false;
+    }
+
+    long selector = statementStart + 5;
+    long selectorKind = tokenKinds[selector];
+    boolean validSelectorKind = selectorKind == 2;
+    if (validSelectorKind == false) {
+      return false;
+    }
+
+    long closeCondition = statementStart + 6;
+    boolean validCloseCondition = punctuationAt(
+      source,
+      tokenKinds,
+      tokenStarts,
+      closeCondition,
+      closeParen
+    );
+    if (validCloseCondition == false) {
+      return false;
+    }
+
+    long openBody = statementStart + 7;
+    return punctuationAt(source, tokenKinds, tokenStarts, openBody, openBrace);
+  }
+
+  private boolean validEarlyUtf8CallBody(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long statementStart
+  ) {
+    long openParen = PUNCTUATION_OPEN_PAREN;
+    long comma = PUNCTUATION_COMMA;
+    long closeParen = PUNCTUATION_CLOSE_PAREN;
+    long semicolon = PUNCTUATION_SEMICOLON;
+    long closeBrace = PUNCTUATION_CLOSE_BRACE;
+    long returnKeyword = statementStart + 8;
+    boolean validReturnToken = returnTokenAt(source, tokenStarts, tokenLengths, returnKeyword);
+    if (validReturnToken == false) {
+      return false;
+    }
+
+    long callTarget = statementStart + 9;
+    long callTargetKind = tokenKinds[callTarget];
+    boolean validCallTargetKind = callTargetKind == 1;
+    if (validCallTargetKind == false) {
+      return false;
+    }
+
+    long openArguments = statementStart + 10;
+    boolean validOpenArguments = punctuationAt(
+      source,
+      tokenKinds,
+      tokenStarts,
+      openArguments,
+      openParen
+    );
+    if (validOpenArguments == false) {
+      return false;
+    }
+
+    long firstSource = statementStart + 11;
+    long firstSourceKind = tokenKinds[firstSource];
+    boolean validFirstSourceKind = firstSourceKind == 1;
+    if (validFirstSourceKind == false) {
+      return false;
+    }
+
+    long separator = statementStart + 12;
+    boolean validSeparator = punctuationAt(source, tokenKinds, tokenStarts, separator, comma);
+    if (validSeparator == false) {
+      return false;
+    }
+
+    long secondSource = statementStart + 13;
+    long secondSourceKind = tokenKinds[secondSource];
+    boolean validSecondSourceKind = secondSourceKind == 1;
+    if (validSecondSourceKind == false) {
+      return false;
+    }
+
+    long closeArguments = statementStart + 14;
+    boolean validCloseArguments = punctuationAt(
+      source,
+      tokenKinds,
+      tokenStarts,
+      closeArguments,
+      closeParen
+    );
+    if (validCloseArguments == false) {
+      return false;
+    }
+
+    long callEnd = statementStart + 15;
+    boolean validCallEnd = punctuationAt(source, tokenKinds, tokenStarts, callEnd, semicolon);
+    if (validCallEnd == false) {
+      return false;
+    }
+
+    long closeBody = statementStart + 16;
+    return punctuationAt(source, tokenKinds, tokenStarts, closeBody, closeBrace);
+  }
+
   /// Validates one exact guarded two-argument UTF-8 call.
   public long earlyUtf8CallWidth(
     borrow utf8 source,
@@ -104,134 +331,28 @@ classical class EarlyUtf8CallForms {
     borrow mut words tokenLengths,
     long statementStart
   ) {
-    if (
-      punctuationAt(
-        source,
-        tokenKinds,
-        tokenStarts,
-        statementStart + 1,
-        PUNCTUATION_OPEN_PAREN
-      )
-    ) {} else {
+    boolean conditionValid = validEarlyUtf8Condition(
+      source,
+      tokenKinds,
+      tokenStarts,
+      tokenLengths,
+      statementStart
+    );
+    if (conditionValid == false) {
       return -1;
     }
 
-    if (tokenKinds[statementStart + 2] == 1) {} else {
+    boolean callValid = validEarlyUtf8CallBody(
+      source,
+      tokenKinds,
+      tokenStarts,
+      tokenLengths,
+      statementStart
+    );
+    if (callValid == false) {
       return -1;
     }
 
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 3, PUNCTUATION_ASSIGN)
-    ) {} else {
-      return -1;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 4, PUNCTUATION_ASSIGN)
-    ) {} else {
-      return -1;
-    }
-
-    if (tokenKinds[statementStart + 5] == 2) {} else {
-      return -1;
-    }
-
-    if (
-      punctuationAt(
-        source,
-        tokenKinds,
-        tokenStarts,
-        statementStart + 6,
-        PUNCTUATION_CLOSE_PAREN
-      )
-    ) {} else {
-      return -1;
-    }
-
-    if (
-      punctuationAt(
-        source,
-        tokenKinds,
-        tokenStarts,
-        statementStart + 7,
-        PUNCTUATION_OPEN_BRACE
-      )
-    ) {} else {
-      return -1;
-    }
-
-    if (
-      tokenHash(source, tokenStarts, tokenLengths, statementStart + 8) == TOKEN_RETURN
-    ) {} else {
-      return -1;
-    }
-
-    if (tokenKinds[statementStart + 9] == 1) {} else {
-      return -1;
-    }
-
-    if (
-      punctuationAt(
-        source,
-        tokenKinds,
-        tokenStarts,
-        statementStart + 10,
-        PUNCTUATION_OPEN_PAREN
-      )
-    ) {} else {
-      return -1;
-    }
-
-    if (tokenKinds[statementStart + 11] == 1) {} else {
-      return -1;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, statementStart + 12, PUNCTUATION_COMMA)
-    ) {} else {
-      return -1;
-    }
-
-    if (tokenKinds[statementStart + 13] == 1) {} else {
-      return -1;
-    }
-
-    if (
-      punctuationAt(
-        source,
-        tokenKinds,
-        tokenStarts,
-        statementStart + 14,
-        PUNCTUATION_CLOSE_PAREN
-      )
-    ) {} else {
-      return -1;
-    }
-
-    if (
-      punctuationAt(
-        source,
-        tokenKinds,
-        tokenStarts,
-        statementStart + 15,
-        PUNCTUATION_SEMICOLON
-      )
-    ) {} else {
-      return -1;
-    }
-
-    if (
-      punctuationAt(
-        source,
-        tokenKinds,
-        tokenStarts,
-        statementStart + 16,
-        PUNCTUATION_CLOSE_BRACE
-      )
-    ) {
-      return EARLY_UTF8_CALL_TOKEN_WIDTH;
-    }
-
-    return -1;
+    return EARLY_UTF8_CALL_TOKEN_WIDTH;
   }
 }

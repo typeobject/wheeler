@@ -30,8 +30,8 @@ This supplies routine reproduction of the current alternate implementation. It
 is neither a Wheeler fixed point nor an independent derivation.
 
 The current Wheeler-native path can parse, plan, and classify the complete
-379-module compiler closure with 1,893 imports and a 177,822-byte module manifest.
-Its native identity run completes in 74,201,056 transitions. The native compiler
+379-module compiler closure with 1,891 imports and a 177,746-byte module manifest.
+Its native identity run completes in 74,162,601 transitions. The native compiler
 package separately compiles 91 production modules through bounded physical source
 graphs and executes 243 cases. CI assigns those complete case identities to sixteen
 disjoint shards before compilation. The source path preserves typed Boolean-local
@@ -40,9 +40,10 @@ three through seven named arguments resolve mixed signed and Boolean locals
 before exact signature matching. Boolean locals also pass through ordinary void
 calls in helper and entry bodies. The checked-in metadata assertion and
 bootstrap-profile classifiers are dependency-free physical owners that compile
-byte for byte without synthetic loop state. Physical linker evidence compares 99
-selected artifacts with stage 0 and closes every relocation. Its executable subset
-contains 262 functions and 9,998 instructions. The complete compiler has not reached
+byte for byte without synthetic loop state. Guarded UTF-8 call syntax now follows
+the same direct path with fixed local token checks. Physical linker evidence compares
+100 selected artifacts with stage 0 and closes every relocation. Its executable subset
+contains 278 functions and 10,611 instructions. The complete compiler has not reached
 a fixed point.
 
 ## Platform ABI and native image plans

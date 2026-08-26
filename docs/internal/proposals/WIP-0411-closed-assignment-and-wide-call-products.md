@@ -64,9 +64,9 @@ Invalid source, unresolved targets, duplicate generated names, unsorted strings,
 
 `NativeCompilerWideLocalCallsPhysicalProductExampleTest` retains fourteen local functions, 877 forward-plus-inverse instructions, and eight resolved relocations. The complete source decoder contains 120 forward instructions. Its verifier-only artifact contains unique sorted stub strings and passes both independent verifiers before the stubs are removed.
 
-`NativeCompilerPhysicalClosureExampleTest` compares all 99 selected physical artifacts with stage 0. It links 262 functions and 9,998 instructions, retains 7,204 local types, reduces 460 retained source strings to 362 canonical strings, and emits 235,304 code bytes in a 295,568-byte container. Two fresh links reproduce SHA-256 `be94a337291a615a99ca3b072fe382d086d60aeb2d6aad1b338d5afec20afb0b`. Malformed footer and relocation transports still publish nothing.
+This WIP's `NativeCompilerPhysicalClosureExampleTest` compared all 99 selected physical artifacts with stage 0. It links 262 functions and 9,998 instructions, retains 7,204 local types, reduces 460 retained source strings to 362 canonical strings, and emits 235,304 code bytes in a 295,568-byte container. Two fresh links reproduce SHA-256 `be94a337291a615a99ca3b072fe382d086d60aeb2d6aad1b338d5afec20afb0b`. Malformed footer and relocation transports still publish nothing.
 
-The compiler package manifest identity remains `939e0e2994c11157b73386901ba3185e5ab5573987686aebb95d0c88410c07c7`. Its 3,164,913-byte source archive has SHA-256 `4a4d2b612afaf874528712b7de080e1e075fcb63a444a5563ab5e6b9dd618582`. The 177,822-byte bootstrap module manifest still contains 379 modules and 1,893 imports. Native validation now halts after 74,201,056 committed transitions.
+The compiler package manifest identity for this evidence run was `939e0e2994c11157b73386901ba3185e5ab5573987686aebb95d0c88410c07c7`. Its 3,164,913-byte source archive has SHA-256 `4a4d2b612afaf874528712b7de080e1e075fcb63a444a5563ab5e6b9dd618582`. The 177,822-byte bootstrap module manifest contained 379 modules and 1,893 imports. Native validation halted after 74,201,056 committed transitions.
 
 ## Acceptance
 

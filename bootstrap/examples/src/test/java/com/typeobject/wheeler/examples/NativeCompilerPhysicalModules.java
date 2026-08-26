@@ -22,6 +22,7 @@ final class NativeCompilerPhysicalModules {
         physical("compiler/syntax/EarlyReturnKinds.w", "early_return_kinds"),
         physical("compiler/syntax/EarlyReturnResultKinds.w", "early_return_result_kinds"),
         physical("compiler/syntax/returns/EarlyReturnSources.w", "early_return_sources"),
+        physical("compiler/syntax/conditionals/EarlyUtf8CallForms.w", "early_utf8_call_forms"),
         physical("compiler/backend/EncodingWidths.w", "encoding_widths"),
         physical("compiler/syntax/calls/FourArgumentCalls.w", "four_argument_calls"),
         physical("compiler/syntax/helpers/HelperAbi.w", "helper_abi"),

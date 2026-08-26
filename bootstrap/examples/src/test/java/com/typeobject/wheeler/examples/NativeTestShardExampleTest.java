@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 /** Native evidence for stage-0-compatible test shard assignment. */
 final class NativeTestShardExampleTest {
   private static final String IDENTITY =
-      "be94a337291a615a99ca3b072fe382d086d60aeb2d6aad1b338d5afec20afb0b";
+      "152204b3a8b93ec880959353fb0abab702191fcafe1e30545d3b454ed7466f09";
   private static Program compiledProgram;
 
   @Test

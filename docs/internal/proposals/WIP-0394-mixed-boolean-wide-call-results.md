@@ -51,7 +51,7 @@ No identity aliases another top-level statement family. Loop-body rows remain in
 
 `NativeCompilerFourArgumentCallTests.w` executes the first Boolean identity and both terminal source decoders as three independent native cases. The `call.boolean` report identity is `efec5decdf5f5d58eec5e64773c4ee132593f550ae28a172f01e9cea67bd1874`. The `manifest.primitive` package tag selects the exact three-source manifest target. Sixteen focused cases cover the void assertion dependency, each ASCII digit and letter boundary, each punctuation verdict, and each out-of-range fallback verdict. Every case stays within the 255-transition coverage bound. All sixteen compile, execute, and pass through `NativePackageTestRunner`. The canonical report identity is `49c8f35ceda3ca897810bed62cce4b52699a30aa5a29ec376bc58a0763c01f0e`.
 
-The canonical workspace checks 178 targets. The complete physical closure contains 379 modules, 1,893 imports, and 177,822 canonical manifest bytes. Native validation halts after 74,201,056 committed transitions. Wheeler SHA-256 consumes the same manifest in 34,034,110 transitions.
+The canonical workspace checks 178 targets. This evidence run used 379 modules, 1,893 imports, and 177,822 canonical manifest bytes. Native validation halted after 74,201,056 committed transitions. Wheeler SHA-256 consumed the same manifest in 34,034,110 transitions.
 
 ## Rejection
 

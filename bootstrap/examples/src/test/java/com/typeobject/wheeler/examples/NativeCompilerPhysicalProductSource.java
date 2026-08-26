@@ -25,6 +25,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.core_parsing",
       "wheeler.compiler.early_comparison_forms",
       "wheeler.compiler.early_return_kinds",
+      "wheeler.compiler.early_utf8_call_forms",
       "wheeler.compiler.early_return_result_kinds",
       "wheeler.compiler.early_return_sources",
       "wheeler.compiler.four_argument_calls",
