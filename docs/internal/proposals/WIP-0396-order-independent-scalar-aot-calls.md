@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, call graphs, function layout |
 | Depends on | WIP-0008, WIP-0026, WIP-0379, WIP-0395 |
 | Supersedes | Prior-function-only scalar AOT calls |
-| Superseded by | WIP-0397 for graph width |
+| Superseded by | WIP-0397 for graph width, WIP-0401 for recursion |
 
 ## Summary
 
@@ -95,3 +95,4 @@ Rejected. Dormant malformed functions cannot enter a verified native image.
 - [WIP-0379](WIP-0379-x86-64-linux-scalar-helper-calls.md)
 - [WIP-0395](WIP-0395-x86-64-linux-seventh-scalar-argument.md)
 - [WIP-0397](WIP-0397-sixteen-function-scalar-aot-graph.md)
+- [WIP-0401](WIP-0401-bounded-recursive-scalar-aot-calls.md)

@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, compiler profile, function bounds |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0397 |
 | Supersedes | Sixteen-function scalar AOT graph ceiling |
-| Superseded by | WIP-0400 for frame bounds |
+| Superseded by | WIP-0400 for frame bounds, WIP-0401 for recursion |
 
 ## Summary
 
@@ -94,3 +94,4 @@ Rejected. A bound without its first rejected value is not a measured profile.
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0397](WIP-0397-sixteen-function-scalar-aot-graph.md)
 - [WIP-0400](WIP-0400-compiler-frame-scalar-aot-bounds.md)
+- [WIP-0401](WIP-0401-bounded-recursive-scalar-aot-calls.md)

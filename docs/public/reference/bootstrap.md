@@ -138,17 +138,18 @@ first native backend leaf. It accepts one canonical classical WBC containing one
 zero-initialized `status` global, up to 31 additional shared signed globals, one
 to twenty-four dense functions, bounded constants, scalar updates, checked signed
 arithmetic, bitwise and 32-bit rotate operations, comparisons, assertions,
-status reads, forward branches and 4,096-iteration checked loops, acyclic
-signed-result or void helper calls with up to sixteen exact signed or Boolean
-arguments, status stores, returns, and halt. Six arguments use the private
-register order. Up to ten more use one aligned caller-owned stack area. An output-bearing entry may retain
+status reads, forward branches and 4,096-iteration checked loops, bounded
+recursive signed-result or void helper calls, up to sixteen exact signed or
+Boolean arguments, status stores, returns, and halt. Recursion stops at 64
+simultaneous calls. Six arguments use the private register order. Up to ten more
+use one aligned caller-owned stack area. An output-bearing entry may retain
 up to 4,096 constant application bytes and 64 locals. An exact
 `byteview, bytes` or `utf8, bytes` entry may instead read up to 4,096 complete
 stdin bytes and
 compute bounded stdout and process status at runtime. Canonical reborrows may
-carry those byte handles through acyclic helper calls. One 65,536-instruction fuel
-cell bounds the selected entry and complete helper call tree. Other entries retain up to 256 locals and 512 instructions per function. Computed values 0 through 124 become distinct x86-64 Linux process
-statuses. Unsupported
+carry those byte handles through bounded helper calls. One 65,536-instruction fuel
+cell bounds the selected entry and complete helper call tree. Other entries retain up to 256 locals and 512 instructions per function.
+Computed values 0 through 124 become distinct x86-64 Linux process statuses. Unsupported
 programs reject without projection or fallback. Output-bearing AOT replaces the
 fixed loader probe with exact source-declared bytes. Dynamic I/O repeats native
 reads until EOF, rejects input byte 4,097, validates status before output, and

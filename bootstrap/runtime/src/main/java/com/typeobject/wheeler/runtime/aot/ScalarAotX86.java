@@ -162,6 +162,11 @@ final class ScalarAotX86 {
     integer(stackOffset);
   }
 
+  void leaR13(int stackOffset) {
+    bytes(0x4c, 0x8d, 0xac, 0x24);
+    integer(stackOffset);
+  }
+
   void leaR14(int stackOffset) {
     bytes(0x4c, 0x8d, 0xb4, 0x24);
     integer(stackOffset);
@@ -175,6 +180,17 @@ final class ScalarAotX86 {
   void consumeFuel(ArrayList<Integer> traps) {
     bytes(0x49, 0x83, 0x2f, 0x01, 0x0f, 0x88);
     traps.add(reserveInt());
+  }
+
+  void enterCall(ArrayList<Integer> traps) {
+    bytes(0x49, 0x83, 0x45, 0x00, 0x01);
+    bytes(0x49, 0x83, 0x7d, 0x00, ScalarAotProgram.MAX_CALL_DEPTH);
+    bytes(0x0f, 0x8f);
+    traps.add(reserveInt());
+  }
+
+  void leaveCall() {
+    bytes(0x49, 0x83, 0x6d, 0x00, 0x01);
   }
 
   void zeroOutput(IoLayout io) {

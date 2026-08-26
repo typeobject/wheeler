@@ -2,24 +2,25 @@ package com.typeobject.wheeler.runtime;
 
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.arithmeticArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.artifact;
-import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.booleanParameterArtifact;
-import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.cyclicHelperArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.booleanParameterArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.cyclicHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.conditionalArtifact;
-import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dormantUnsupportedHelperArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.dormantUnsupportedHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dynamicIoArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dynamicIoHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.executionBoundArtifact;
-import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.forwardHelperArtifact;
-import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.helperArtifact;
-import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.instructionBoundArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.forwardHelperArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.helperArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.instructionBoundArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.invalidOutputWriteArtifact;
-import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.localBoundArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.localBoundArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.loopArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.outputArtifact;
-import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.parameterHelperArtifact;
-import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.parameterVoidHelperArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.parameterHelperArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.parameterVoidHelperArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.recursiveHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.scalarGlobalArtifact;
-import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.selfCallingHelperArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.selfCallingHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.stateCheckArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.uncheckedBackwardBranchArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.utf8IoArtifact;
@@ -340,6 +341,45 @@ final class LinuxX8664ScalarAotCompilerTest {
         fixture.plan().identity());
     assertEquals(
         "415d9635abbd85765f6e01664008c38907727187e48f09d320d61dbbf74a3ffb",
+        verified.prev());
+    if (nativeLinuxHost()) {
+      Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
+      assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(73, process.exitValue());
+      assertArrayEquals(
+          LinuxX8664EntryShim.successOutput(), process.getInputStream().readAllBytes());
+      assertEquals(0, process.getErrorStream().readAllBytes().length);
+    }
+  }
+
+  @Test
+  void lowersBoundedRecursiveHelperCalls() throws Exception {
+    byte[] artifact = recursiveHelperArtifact(63);
+    var lowered = LinuxX8664ScalarAotCompiler.lower(artifact);
+
+    assertEquals(73, lowered.processStatus());
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(recursiveHelperArtifact(64)));
+
+    Fixture fixture = fixture(artifact, lowered.runtimeText());
+    byte[] image = ElfImage.build(
+        fixture.plan(), fixture.abi(), fixture.capsule(), lowered.runtimeText(), 0);
+    ElfImage.VerifiedImage verified = ElfImage.verify(image, fixture.plan(), fixture.abi());
+    assertEquals(
+        "1b493683700357eb469afcb02a45d06137bbb15d443e287c9677e76beb2c47bc",
+        identity(artifact));
+    assertEquals(
+        "0f8eef2985778f5c9332b5cd3906b2ee98b220a39769ee7fd6c3c4382fabe8e4",
+        lowered.runtimeIdentity());
+    assertEquals(
+        "8397f3b9cd6592a4a955a6c2342bd3e0755d24b01350fbed111ac570999f49e4",
+        fixture.capsule().identity());
+    assertEquals(
+        "795acd712b7e9d2370b5372d2ce773381f1793d0c4537d2cc6a85d0bcdb3c245",
+        fixture.plan().identity());
+    assertEquals(
+        "3974b9d50ed1a6f36ecd8620aea7ac48fd85dea43383217969f2f732cff4eadc",
         verified.prev());
     if (nativeLinuxHost()) {
       Process process = new ProcessBuilder(writeExecutable(image).toString()).start();

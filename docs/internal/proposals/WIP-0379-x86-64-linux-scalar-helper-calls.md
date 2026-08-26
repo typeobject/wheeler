@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, x86-64 calls, scalar helpers |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0378 |
 | Supersedes | Single-function scalar AOT as the complete call boundary |
-| Superseded by | WIP-0380 for arguments, WIP-0396 for function order |
+| Superseded by | WIP-0380 for arguments, WIP-0396 for order, WIP-0401 for recursion |
 
 ## Summary
 
@@ -121,3 +121,4 @@ Rejected. Complete-artifact validation precedes reachability. Dormant unsupporte
 - [WIP-0386](WIP-0386-x86-64-linux-borrowed-byte-helpers.md)
 - [WIP-0383](WIP-0383-x86-64-linux-void-helper-calls.md)
 - [WIP-0396](WIP-0396-order-independent-scalar-aot-calls.md)
+- [WIP-0401](WIP-0401-bounded-recursive-scalar-aot-calls.md)

@@ -19,21 +19,25 @@ public final class ScalarAotProgram {
   public static final int MAX_INPUT_BYTES = 4096;
   public static final int MAX_OUTPUT_BYTES = 4096;
   public static final int MAX_EXECUTED_INSTRUCTIONS = 65_536;
+  public static final int MAX_CALL_DEPTH = 64;
 
   private final Program program;
   private final Integer processStatus;
   private final byte[] applicationOutput;
   private final boolean dynamicApplicationIo;
+  private final boolean boundedRecursion;
 
   private ScalarAotProgram(
       Program program,
       Integer processStatus,
       byte[] applicationOutput,
-      boolean dynamicApplicationIo) {
+      boolean dynamicApplicationIo,
+      boolean boundedRecursion) {
     this.program = program;
     this.processStatus = processStatus;
     this.applicationOutput = applicationOutput == null ? null : applicationOutput.clone();
     this.dynamicApplicationIo = dynamicApplicationIo;
+    this.boundedRecursion = boundedRecursion;
   }
 
   /** Validates and independently evaluates one decoded program without projection. */
@@ -45,9 +49,9 @@ public final class ScalarAotProgram {
     for (FunctionBody function : program.functions()) {
       validateFunction(program, function, dynamicIo, outputBearing);
     }
-    validateCallGraph(program);
+    boolean boundedRecursion = hasRecursiveCalls(program);
     if (entry.parameterCount() == 2) {
-      return new ScalarAotProgram(program, null, null, true);
+      return new ScalarAotProgram(program, null, null, true, boundedRecursion);
     }
     OutputState output = new OutputState();
     EvaluationState state = new EvaluationState(program);
@@ -72,7 +76,11 @@ public final class ScalarAotProgram {
       applicationOutput = java.util.Arrays.copyOf(output.bytes, output.length);
     }
     return new ScalarAotProgram(
-        program, Math.toIntExact(evaluation.value()), applicationOutput, false);
+        program,
+        Math.toIntExact(evaluation.value()),
+        applicationOutput,
+        false,
+        boundedRecursion);
   }
 
   public Program program() {
@@ -96,6 +104,10 @@ public final class ScalarAotProgram {
 
   public boolean usesDynamicApplicationIo() {
     return dynamicApplicationIo;
+  }
+
+  public boolean usesBoundedRecursion() {
+    return boundedRecursion;
   }
 
   public boolean writesApplicationOutput() {
@@ -439,32 +451,36 @@ public final class ScalarAotProgram {
     }
   }
 
-  private static void validateCallGraph(Program program) {
+  private static boolean hasRecursiveCalls(Program program) {
     int[] states = new int[program.functions().size()];
+    boolean recursive = false;
     for (FunctionBody function : program.functions()) {
-      validateCallGraph(program, function.id(), states);
+      recursive = visitCalls(program, function.id(), states) || recursive;
     }
+    return recursive;
   }
 
-  private static void validateCallGraph(Program program, int functionId, int[] states) {
+  private static boolean visitCalls(Program program, int functionId, int[] states) {
     if (states[functionId] == 2) {
-      return;
+      return false;
     }
     if (states[functionId] == 1) {
-      throw new IllegalArgumentException("Scalar AOT call graph contains a cycle");
+      return true;
     }
 
     states[functionId] = 1;
+    boolean recursive = false;
     for (Instruction instruction : program.function(functionId).forward()) {
       if (instruction.opcode() == Opcode.CALL_VALUE
           || instruction.opcode() == Opcode.CALL_VOID) {
-        validateCallGraph(
+        recursive = visitCalls(
             program,
             Math.toIntExact(instruction.operands().get(0)),
-            states);
+            states) || recursive;
       }
     }
     states[functionId] = 2;
+    return recursive;
   }
 
   private static Evaluation evaluate(
@@ -578,13 +594,19 @@ public final class ScalarAotProgram {
               }
               callArguments[argument] = values[source];
             }
-            Evaluation result = evaluate(
-                program,
-                Math.toIntExact(instruction.operands().get(0)),
-                callArguments,
-                output,
-                state,
-                budget);
+            budget.enterCall();
+            Evaluation result;
+            try {
+              result = evaluate(
+                  program,
+                  Math.toIntExact(instruction.operands().get(0)),
+                  callArguments,
+                  output,
+                  state,
+                  budget);
+            } finally {
+              budget.leaveCall();
+            }
             if (instruction.opcode() == Opcode.CALL_VALUE) {
               int destination = destination(instruction, 3, assigned);
               values[destination] = result.value();
@@ -714,11 +736,23 @@ public final class ScalarAotProgram {
 
   private static final class EvaluationBudget {
     private int remaining = MAX_EXECUTED_INSTRUCTIONS;
+    private int callDepth;
 
     void consume() {
       if (remaining-- == 0) {
         throw new IllegalArgumentException("Scalar AOT execution bound exceeded");
       }
+    }
+
+    void enterCall() {
+      callDepth++;
+      if (MAX_CALL_DEPTH < callDepth) {
+        throw new IllegalArgumentException("Scalar AOT call depth exceeded");
+      }
+    }
+
+    void leaveCall() {
+      callDepth--;
     }
   }
 

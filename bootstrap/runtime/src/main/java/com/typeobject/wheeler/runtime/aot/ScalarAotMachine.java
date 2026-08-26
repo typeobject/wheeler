@@ -15,9 +15,10 @@ public final class ScalarAotMachine {
   public static byte[] lower(ScalarAotProgram scalar) {
     ScalarAotX86 code = new ScalarAotX86();
     int[] functionOffsets = new int[scalar.program().functions().size()];
+    int fuelSlot = scalar.entry().localCount() + scalar.program().globals().size();
+    int finalStateSlot = fuelSlot + (scalar.usesBoundedRecursion() ? 1 : 0);
     ScalarAotX86.IoLayout io = scalar.usesDynamicApplicationIo()
-        ? ScalarAotX86.IoLayout.create(
-            scalar.entry().localCount() + scalar.program().globals().size())
+        ? ScalarAotX86.IoLayout.create(finalStateSlot)
         : null;
     boolean utf8 = scalar.program().functions().stream()
         .flatMap(function -> function.forward().stream())
@@ -39,7 +40,7 @@ public final class ScalarAotMachine {
       if (function.id() == scalar.entry().id()) {
         emitEntry(code, scalar, calls, io);
       } else {
-        emitHelper(code, function, calls, io);
+        emitHelper(code, function, calls, io, scalar.usesBoundedRecursion());
       }
     }
     for (CallPatch call : calls) {
@@ -59,7 +60,9 @@ public final class ScalarAotMachine {
     FunctionBody entry = scalar.entry();
     int globalBase = entry.localCount();
     int fuelSlot = globalBase + scalar.program().globals().size();
-    int frameBytes = io == null ? frameBytes(fuelSlot + 1) : io.frameBytes();
+    int callDepthSlot = scalar.usesBoundedRecursion() ? fuelSlot + 1 : -1;
+    int frameSlots = fuelSlot + (scalar.usesBoundedRecursion() ? 2 : 1);
+    int frameBytes = io == null ? frameBytes(frameSlots) : io.frameBytes();
     code.stack(-frameBytes);
     for (int global = 0; global < scalar.program().globals().size(); global++) {
       code.moveImmediateToRax(scalar.program().globals().get(global).initialValue());
@@ -69,6 +72,11 @@ public final class ScalarAotMachine {
     code.moveImmediateToRax(ScalarAotProgram.MAX_EXECUTED_INSTRUCTIONS);
     code.storeRax(fuelSlot);
     code.leaR15(fuelSlot * Long.BYTES);
+    if (scalar.usesBoundedRecursion()) {
+      code.bytes(0x31, 0xc0);
+      code.storeRax(callDepthSlot);
+      code.leaR13(callDepthSlot * Long.BYTES);
+    }
     ArrayList<Integer> prologueTraps = new ArrayList<>();
     if (io != null) {
       code.bytes(0x31, 0xc0);
@@ -83,7 +91,8 @@ public final class ScalarAotMachine {
       code.moveImmediateToRax(1);
       code.storeRax(0);
     }
-    FunctionPatches patches = emitBody(code, entry, calls, io);
+    FunctionPatches patches = emitBody(
+        code, entry, calls, io, scalar.usesBoundedRecursion());
     patches.traps().addAll(prologueTraps);
 
     code.loadGlobal(0);
@@ -111,13 +120,14 @@ public final class ScalarAotMachine {
       ScalarAotX86 code,
       FunctionBody helper,
       ArrayList<CallPatch> calls,
-      ScalarAotX86.IoLayout io) {
+      ScalarAotX86.IoLayout io,
+      boolean boundedRecursion) {
     int frameBytes = frameBytes(helper.localCount());
     code.stack(-frameBytes);
     for (int parameter = 0; parameter < helper.parameterCount(); parameter++) {
       code.storeArgument(parameter, frameBytes);
     }
-    FunctionPatches patches = emitBody(code, helper, calls, io);
+    FunctionPatches patches = emitBody(code, helper, calls, io, boundedRecursion);
 
     Instruction returned = helper.forward().getLast();
     if (returned.opcode() == Opcode.RETURN_VALUE) {
@@ -140,7 +150,8 @@ public final class ScalarAotMachine {
       ScalarAotX86 code,
       FunctionBody function,
       ArrayList<CallPatch> calls,
-      ScalarAotX86.IoLayout io) {
+      ScalarAotX86.IoLayout io,
+      boolean boundedRecursion) {
     int[] instructionOffsets = new int[function.forward().size()];
     ArrayList<MachineBranch> branches = new ArrayList<>();
     ArrayList<Integer> traps = new ArrayList<>();
@@ -241,10 +252,16 @@ public final class ScalarAotMachine {
           int argumentBase = Math.toIntExact(instruction.operands().get(1));
           int argumentCount = Math.toIntExact(instruction.operands().get(2));
           int callAreaBytes = code.loadArguments(argumentBase, argumentCount);
+          if (boundedRecursion) {
+            code.enterCall(traps);
+          }
           code.bytes(0xe8);
           calls.add(new CallPatch(
               code.reserveInt(), Math.toIntExact(instruction.operands().get(0))));
           code.closeArguments(callAreaBytes);
+          if (boundedRecursion) {
+            code.leaveCall();
+          }
           code.bytes(0x48, 0x85, 0xd2, 0x0f, 0x85);
           traps.add(code.reserveInt());
           if (instruction.opcode() == Opcode.CALL_VALUE) {

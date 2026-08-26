@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, compiler profile, stack arguments |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0395, WIP-0398 |
 | Supersedes | Seven-argument scalar AOT call ceiling |
-| Superseded by | None |
+| Superseded by | WIP-0401 for recursion |
 
 ## Summary
 
@@ -106,3 +106,4 @@ Rejected. The register names and stack geometry are image-private Wheeler loweri
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0395](WIP-0395-x86-64-linux-seventh-scalar-argument.md)
 - [WIP-0398](WIP-0398-compiler-width-scalar-aot-graph.md)
+- [WIP-0401](WIP-0401-bounded-recursive-scalar-aot-calls.md)
