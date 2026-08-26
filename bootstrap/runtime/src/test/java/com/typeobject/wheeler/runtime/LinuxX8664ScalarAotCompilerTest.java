@@ -7,7 +7,7 @@ import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.booleanParam
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.booleanResultHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.cyclicHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.conditionalArtifact;
-import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.dormantStatusMutationHelperArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.dormantParameterizedInverseArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dynamicIoArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.controlMarkerArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.directionalCallArtifact;
@@ -16,13 +16,14 @@ import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.executionBoundAr
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.globalInstructionArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.globalOverflowArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.globalReplacementArtifact;
-import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.helperStatusMutationArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.helperStatusArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.forwardHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.helperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.instructionBoundArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.invalidOutputWriteArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.localBoundArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.loopArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.noStatusWriterArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.outputArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.parameterHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.parameterVoidHelperArtifact;
@@ -174,6 +175,44 @@ final class LinuxX8664ScalarAotCompilerTest extends ScalarAotNativeTest {
   }
 
   @Test
+  void publishesStatusThroughDirectionalHelpers() throws Exception {
+    byte[] artifact = helperStatusArtifact();
+    var lowered = LinuxX8664ScalarAotCompiler.lower(artifact);
+
+    assertEquals(1, lowered.processStatus());
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(noStatusWriterArtifact()));
+    Fixture fixture = fixture(artifact, lowered.runtimeText());
+    byte[] image = ElfImage.build(
+        fixture.plan(), fixture.abi(), fixture.capsule(), lowered.runtimeText(), 0);
+    ElfImage.VerifiedImage verified = ElfImage.verify(image, fixture.plan(), fixture.abi());
+    assertEquals(
+        "ede040399a9e6f3e37c4a47856ca4e6b8e620be87cdd6c74e03c0c54b686dd7c",
+        identity(artifact));
+    assertEquals(
+        "1b4958e3a26eecb93a893fcd26c44074b406d9efe3fb54895f2470baaf2aae8d",
+        lowered.runtimeIdentity());
+    assertEquals(
+        "ef1d0ec4128b0f79d3f42cdef45893c12e5a443b8e775108c14b0f47b012aa44",
+        fixture.capsule().identity());
+    assertEquals(
+        "1b616081b1d742118ba5ceb2bdda3d17ae826debfece9b518ac05068c395301f",
+        fixture.plan().identity());
+    assertEquals(
+        "73c723eccaf12687951d909ff7be5acef4edd230b9a580da29db312a2e03a3a2",
+        verified.prev());
+    if (nativeLinuxHost()) {
+      Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
+      assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(1, process.exitValue());
+      assertArrayEquals(
+          LinuxX8664EntryShim.successOutput(), process.getInputStream().readAllBytes());
+      assertEquals(0, process.getErrorStream().readAllBytes().length);
+    }
+  }
+
+  @Test
   void lowersForwardControlMarkers() throws Exception {
     byte[] artifact = controlMarkerArtifact();
     var lowered = LinuxX8664ScalarAotCompiler.lower(artifact);
@@ -249,14 +288,6 @@ final class LinuxX8664ScalarAotCompilerTest extends ScalarAotNativeTest {
     var lowered = LinuxX8664ScalarAotCompiler.lower(artifact);
 
     assertEquals(51, lowered.processStatus());
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> LinuxX8664ScalarAotCompiler.lower(
-            helperStatusMutationArtifact(Opcode.SET_LOGGED)));
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> LinuxX8664ScalarAotCompiler.lower(
-            helperStatusMutationArtifact(Opcode.SWAP)));
     Fixture fixture = fixture(artifact, lowered.runtimeText());
     byte[] image = ElfImage.build(
         fixture.plan(), fixture.abi(), fixture.capsule(), lowered.runtimeText(), 0);
@@ -349,7 +380,7 @@ final class LinuxX8664ScalarAotCompilerTest extends ScalarAotNativeTest {
         () -> LinuxX8664ScalarAotCompiler.lower(parameterHelperArtifact(17)));
     assertThrows(
         IllegalArgumentException.class,
-        () -> LinuxX8664ScalarAotCompiler.lower(dormantStatusMutationHelperArtifact()));
+        () -> LinuxX8664ScalarAotCompiler.lower(dormantParameterizedInverseArtifact()));
 
     Fixture fixture = fixture(stackArtifact, stackParameter.runtimeText());
     byte[] image = ElfImage.build(

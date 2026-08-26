@@ -9,11 +9,11 @@
 | Area | Native bootstrap, AOT lowering, scalar state, helper calls |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0382, WIP-0387, WIP-0389 |
 | Supersedes | The one-global scalar AOT process-status profile |
-| Superseded by | WIPs 0403 and 0404 for direct global instructions |
+| Superseded by | WIPs 0403 and 0404 for direct global instructions, WIP-0407 for status ownership |
 
 ## Summary
 
-Scalar AOT admits one through 32 signed global state slots. Global zero remains the process `status` authority. Helpers may load any global and may store non-status globals. Entry code alone commits process status.
+Scalar AOT admits one through 32 signed global state slots. Global zero remains the process `status` authority. Helpers may load and store any global. WIP-0407 removes the initial entry-only status restriction.
 
 Compile-time evaluation and generated x86-64 share one mutable global array across the complete prior-helper call tree. Calls do not copy, reset, or reconstruct state.
 
@@ -29,7 +29,7 @@ A valid program has:
 - Signed sources for `LOCAL_STORE_GLOBAL`.
 - At least one entry-owned store to global zero on the selected static path.
 
-Helpers may read status but cannot store it. Helpers may read and store globals one through 31. Entry code may read and store every admitted global. Final process status still validates the value in global zero from 0 through 124 before application output.
+Helpers and entry code may read and store every admitted global. Final process status still validates the value in global zero from 0 through 124 before application output. One writer must be reachable from the entry.
 
 WBC globals are scalar state, not owned buffers, pointers, capabilities, host handles, or thread-local storage.
 
@@ -37,7 +37,7 @@ WBC globals are scalar state, not owned buffers, pointers, capabilities, host ha
 
 `EvaluationState` owns one array initialized from the canonical WBC global table. The entry and every nested evaluator call receive the same object. A helper store is immediately visible to its caller and to later calls.
 
-The status-written flag also belongs to shared evaluation state. Helper stores cannot satisfy it because helpers cannot target global zero. The independent 65,536-instruction budget remains shared beside global state.
+The status-written flag also belongs to shared evaluation state. A reachable helper store may satisfy it. The independent 65,536-instruction budget remains shared beside global state.
 
 ## Machine layout
 
@@ -72,7 +72,7 @@ The first call observes counter 40, stores 41, and returns 42. The second observ
 
 ## Failure boundary
 
-Reject zero globals, global 33, a nonzero or renamed status global, an out-of-range global index, a nonsigned local operand, helper writes to status, an entry path without a status store, and every prior scalar-profile failure.
+Reject zero globals, global 33, a nonzero or renamed status global, an out-of-range global index, a nonsigned local operand, a call graph without a reachable status writer, and every prior scalar-profile failure.
 
 Do not infer process status from the last written non-status global. Only canonical global zero supplies the final native exit value.
 
@@ -96,8 +96,8 @@ An independent Alpine 3.22 x86-64 guest launched the 5,584-byte physical source 
 
 - [x] One through 32 globals retain exact initial values.
 - [x] Entry and helpers observe one shared state array.
-- [x] Helpers mutate non-status globals without copying state.
-- [x] Entry alone commits status global zero.
+- [x] Helpers mutate globals without copying state.
+- [x] WIP-0407 admits reachable helper publication of status global zero.
 - [x] Global 32 succeeds and global 33 rejects.
 - [x] Evaluator and native process agree on status 41.
 - [x] Independent Linux evidence uses physical source.
@@ -116,9 +116,9 @@ Rejected. Native exit authority must remain one canonical named slot.
 
 Rejected. The current canonical ELF profile has executable runtime text and read-only capsule data. Per-process state belongs in the entry stack.
 
-### Permit helper writes to status
+### Require an entry copy of helper status
 
-Rejected for this profile. Entry ownership keeps final process policy visible at the root boundary.
+Rejected by WIP-0407. Shared global semantics already make the helper result visible to the checked entry epilogue.
 
 ## References
 
@@ -130,3 +130,4 @@ Rejected for this profile. Entry ownership keeps final process policy visible at
 - [WIP-0389](WIP-0389-x86-64-linux-strict-utf8-input.md)
 - [WIP-0403](WIP-0403-scalar-global-instruction-aot.md)
 - [WIP-0404](WIP-0404-scalar-global-replacement-aot.md)
+- [WIP-0407](WIP-0407-helper-owned-process-status-aot.md)

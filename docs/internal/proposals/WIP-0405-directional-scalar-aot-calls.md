@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, reversible calls, inverse bodies |
 | Depends on | WIP-0001, WIP-0008, WIP-0026, WIP-0401, WIP-0404 |
 | Supersedes | Forward-body-only scalar AOT function admission |
-| Superseded by | None |
+| Superseded by | WIP-0407 for status ownership |
 
 ## Summary
 
@@ -45,7 +45,7 @@ Both call forms:
 4. Restore depth after return.
 5. Inspect the callee trap flag before continuing.
 
-The inverse body shares R14 globals, R15 fuel, optional R13 call depth, and the entry's bounded I/O state. It receives no ambient authority and cannot mutate process status from a helper.
+The inverse body shares R14 globals, R15 fuel, optional R13 call depth, and the entry's bounded I/O state. It receives no ambient authority. WIP-0407 permits it to mutate shared process status without granting direct exit authority.
 
 ## Reversibility boundary
 
@@ -55,7 +55,7 @@ This profile does not retain prior locals or logged global values after return. 
 
 ## Failure boundary
 
-Reject an inverse on the entry, a parameterized or result-bearing directional helper, an oversized body, `UNCALL` without an inverse, a malformed branch or operand in either direction, helper status mutation, call-depth exhaustion, fuel exhaustion, or any prior scalar-profile failure.
+Reject an inverse on the entry, a parameterized or result-bearing directional helper, an oversized body, `UNCALL` without an inverse, a malformed branch or operand in either direction, a call graph without a reachable status writer, call-depth exhaustion, fuel exhaustion, or any prior scalar-profile failure.
 
 Static failure publishes no runtime text. Runtime depth, arithmetic, assertion, or fuel failure exits with status 126 and publishes no application output.
 
@@ -110,3 +110,4 @@ Rejected. Rewind includes retained machine history and control observations abse
 - [WIP-0401](WIP-0401-bounded-recursive-scalar-aot-calls.md)
 - [WIP-0404](WIP-0404-scalar-global-replacement-aot.md)
 - [WIP-0406](WIP-0406-forward-control-marker-aot.md)
+- [WIP-0407](WIP-0407-helper-owned-process-status-aot.md)

@@ -205,7 +205,7 @@ final class ScalarAotCallArtifacts {
         List.of(helper, entry)));
   }
 
-  static byte[] dormantStatusMutationHelperArtifact() {
+  static byte[] dormantParameterizedInverseArtifact() {
     return new BytecodeWriter().write(new Program(
         "scalar-aot-dormant-helper",
         1,
@@ -215,14 +215,11 @@ final class ScalarAotCallArtifacts {
                 0,
                 "example.app::unused",
                 false,
-                0,
+                1,
                 List.of(ValueType.SIGNED),
-                ValueType.SIGNED,
-                List.of(
-                    Instruction.of(Opcode.SET_LOGGED, 0, 73),
-                    Instruction.of(Opcode.LOCAL_CONST, 0, 73),
-                    Instruction.of(Opcode.RETURN_VALUE, 0)),
-                List.of()),
+                null,
+                List.of(Instruction.of(Opcode.NOP), Instruction.of(Opcode.RETURN)),
+                List.of(Instruction.of(Opcode.NOP), Instruction.of(Opcode.RETURN))),
             ScalarAotArtifacts.statusEntry(1, 73))));
   }
 

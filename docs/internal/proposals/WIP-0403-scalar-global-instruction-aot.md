@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, scalar globals, checked updates |
 | Depends on | WIP-0008, WIP-0026, WIP-0382, WIP-0390, WIP-0401 |
 | Supersedes | Local-store-only scalar global mutation in AOT |
-| Superseded by | None |
+| Superseded by | WIP-0407 for status ownership |
 
 ## Summary
 
@@ -21,7 +21,7 @@ This admits the direct global instruction forms used by stateful classical progr
 
 Each instruction carries one in-range global index and one signed immediate. All AOT globals already belong to the signed scalar profile.
 
-Helpers may update nonstatus globals and inspect any global. Only the entry may update global zero. This retains the existing process-status ownership rule. An entry update of global zero counts as one status publication, while helper writes to status still reject.
+Helpers may update and inspect any global. WIP-0407 removes the initial entry-only restriction on global zero. A writer must remain reachable from the entry.
 
 `EXPECT_EQ` is read-only. It does not satisfy the entry's requirement to publish final process status.
 
@@ -50,7 +50,7 @@ No immediate truncation, host relocation, source path, symbol lookup, or dynamic
 
 ## Failure boundary
 
-Reject an out-of-range global, helper mutation of status, malformed operands, signed overflow, expectation mismatch, fuel exhaustion, or any prior scalar-profile failure. Static failure returns no runtime text. Dynamic failure publishes no application output and exits with status 126.
+Reject an out-of-range global, malformed operands, signed overflow, expectation mismatch, fuel exhaustion, or any prior scalar-profile failure. Static failure returns no runtime text. Dynamic failure publishes no application output and exits with status 126.
 
 This WIP executes only the forward instruction stream. Reversible inverse and rewind semantics remain outside scalar AOT.
 
@@ -73,8 +73,8 @@ This WIP executes only the forward instruction stream. Reversible inverse and re
 - [x] Checked global addition and subtraction retain signed overflow traps.
 - [x] Global XOR retains exact 64-bit values.
 - [x] Global equality expectation traps on mismatch.
-- [x] Entry and helpers share nonstatus global updates.
-- [x] Only the entry may mutate process status.
+- [x] Entry and helpers share global updates.
+- [x] WIP-0407 admits reachable helper mutation of process status.
 - [x] Every global instruction consumes shared fuel.
 - [x] Overflow fixtures reject before publication.
 - [x] WBC, runtime, capsule, plan, ELF, and PREV identities remain exact.
@@ -90,9 +90,9 @@ Rejected. Canonical WBC opcode identity is semantic input to AOT.
 
 Rejected. Wheeler immediates are signed 64-bit values.
 
-### Let helpers write status
+### Require an entry status copy
 
-Rejected. Final process status remains entry-owned.
+Rejected by WIP-0407. The checked entry epilogue already owns process exit.
 
 ### Claim rewind or inverse parity
 
@@ -106,3 +106,4 @@ Rejected. This leaf executes only the verified forward body.
 - [WIP-0390](WIP-0390-x86-64-linux-shared-scalar-globals.md)
 - [WIP-0401](WIP-0401-bounded-recursive-scalar-aot-calls.md)
 - [WIP-0404](WIP-0404-scalar-global-replacement-aot.md)
+- [WIP-0407](WIP-0407-helper-owned-process-status-aot.md)

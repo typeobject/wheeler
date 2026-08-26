@@ -417,6 +417,58 @@ final class ScalarAotArtifacts {
                 List.of()))));
   }
 
+  static byte[] helperStatusArtifact() {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-helper-status",
+        1,
+        List.of(new Global("status", 0)),
+        List.of(
+            new FunctionBody(
+                0,
+                "example.app::incrementStatus",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                null,
+                List.of(
+                    Instruction.of(Opcode.ADD_CONST, 0, 1),
+                    Instruction.of(Opcode.RETURN)),
+                List.of(
+                    Instruction.of(Opcode.SUB_CONST, 0, 1),
+                    Instruction.of(Opcode.RETURN))),
+            new FunctionBody(
+                1,
+                "example.app::main",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                null,
+                List.of(
+                    Instruction.of(Opcode.CALL, 0),
+                    Instruction.of(Opcode.CALL, 0),
+                    Instruction.of(Opcode.EXPECT_EQ, 0, 2),
+                    Instruction.of(Opcode.UNCALL, 0),
+                    Instruction.of(Opcode.EXPECT_EQ, 0, 1),
+                    Instruction.of(Opcode.HALT)),
+                List.of()))));
+  }
+
+  static byte[] noStatusWriterArtifact() {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-missing-status",
+        0,
+        List.of(new Global("status", 0)),
+        List.of(new FunctionBody(
+            0,
+            "example.app::main",
+            false,
+            0,
+            List.of(ValueType.SIGNED),
+            null,
+            List.of(Instruction.of(Opcode.NOP), Instruction.of(Opcode.HALT)),
+            List.of()))));
+  }
+
   static byte[] globalInstructionArtifact() {
     return new BytecodeWriter().write(new Program(
         "scalar-aot-global-instructions",
@@ -539,39 +591,6 @@ final class ScalarAotArtifacts {
                     Instruction.of(Opcode.EXPECT_EQ, 2, 51),
                     Instruction.of(Opcode.SWAP, 1, 2),
                     Instruction.of(Opcode.LOCAL_LOAD_GLOBAL, 0, 1),
-                    Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
-                    Instruction.of(Opcode.HALT)),
-                List.of()))));
-  }
-
-  static byte[] helperStatusMutationArtifact(Opcode opcode) {
-    Instruction mutation = opcode == Opcode.SWAP
-        ? Instruction.of(opcode, 0, 1)
-        : Instruction.of(opcode, 0, 51);
-    return new BytecodeWriter().write(new Program(
-        "scalar-aot-helper-status-mutation",
-        1,
-        List.of(new Global("status", 0), new Global("value", 1)),
-        List.of(
-            new FunctionBody(
-                0,
-                "example.app::mutate",
-                false,
-                0,
-                List.of(ValueType.SIGNED),
-                null,
-                List.of(mutation, Instruction.of(Opcode.RETURN)),
-                List.of()),
-            new FunctionBody(
-                1,
-                "example.app::main",
-                false,
-                0,
-                List.of(ValueType.SIGNED),
-                null,
-                List.of(
-                    Instruction.of(Opcode.CALL_VOID, 0, 0, 0),
-                    Instruction.of(Opcode.LOCAL_CONST, 0, 0),
                     Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
                     Instruction.of(Opcode.HALT)),
                 List.of()))));

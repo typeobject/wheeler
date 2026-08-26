@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, global state, logged replacement |
 | Depends on | WIP-0008, WIP-0026, WIP-0390, WIP-0403 |
 | Supersedes | Load-and-store substitution for scalar global replacement |
-| Superseded by | None |
+| Superseded by | WIP-0407 for status ownership |
 
 ## Summary
 
@@ -21,7 +21,7 @@ This leaf executes one forward native process. It does not claim a native histor
 
 `SWAP` carries two in-range global indexes. Equal indexes remain the canonical no-op defined by the bytecode verifier. `SET_LOGGED` carries one in-range global and one signed 64-bit immediate.
 
-The entry may mutate every admitted scalar global. A helper may mutate only nonstatus globals. A swap involving global zero counts as process-status publication and rejects inside a helper. Logged replacement of global zero follows the same rule.
+The entry and helpers may mutate every admitted scalar global. A swap or logged replacement involving global zero counts as process-status publication when its body is reachable from the entry.
 
 Every accepted function still has one canonical terminal. Read-only expectations do not replace the entry's final status publication.
 
@@ -29,7 +29,7 @@ Every accepted function still has one canonical terminal. Read-only expectations
 
 Independent static evaluation exchanges both selected global values or replaces the selected value with the complete immediate. The evaluator uses the same global array across every call frame. A helper replacement is therefore visible to its caller and subsequent helpers.
 
-Static evaluation computes the final status before runtime text is published. It also rejects helper status mutation before machine-code generation.
+Static evaluation computes the final status before runtime text is published. WIP-0407 carries helper status mutation through the same shared state.
 
 ## Machine lowering
 
@@ -49,11 +49,11 @@ The absence of rewind is explicit rather than represented by a partial log or an
 
 ## Failure boundary
 
-Reject malformed operands, out-of-range globals, helper status mutation, unsupported history operations, fuel exhaustion, or any prior scalar-profile failure. Rejection publishes no runtime text. Runtime fuel failure exits with status 126 and publishes no application output.
+Reject malformed operands, out-of-range globals, unsupported history operations, fuel exhaustion, or any prior scalar-profile failure. Rejection publishes no runtime text. Runtime fuel failure exits with status 126 and publishes no application output.
 
 ## Evidence
 
-`ScalarAotArtifacts.globalReplacementArtifact` starts `left` at 11 and `right` at 22. A void helper swaps them and replaces `right` with 51. The entry checks both values, swaps again, and publishes 51 as process status. Dedicated malformed fixtures attempt helper `SET_LOGGED` and `SWAP` operations over status. Both reject before lowering.
+`ScalarAotArtifacts.globalReplacementArtifact` starts `left` at 11 and `right` at 22. A void helper swaps them and replaces `right` with 51. The entry checks both values, swaps again, and publishes 51 as process status. WIP-0407 replaces the former helper-status rejection fixtures with direct helper publication evidence.
 
 `LinuxX8664ScalarAotCompilerTest.lowersScalarGlobalReplacement` binds the accepted WBC to a canonical capsule, native image plan, and ELF. On x86-64 Linux the image executes both global forms through the helper boundary, exits with status 51, writes exact `Wheeler\n`, and writes no standard error.
 
@@ -71,9 +71,9 @@ Reject malformed operands, out-of-range globals, helper status mutation, unsuppo
 - [x] Logged replacement retains the complete signed immediate.
 - [x] Helper mutations are visible to the entry.
 - [x] Equal-index swaps retain canonical no-op behavior.
-- [x] Helpers cannot mutate process status.
+- [x] WIP-0407 admits helper mutation of process status.
 - [x] Every accepted mutation consumes shared fuel.
-- [x] Malformed status-ownership fixtures reject before publication.
+- [x] Missing reachable status writers reject before publication.
 - [x] WBC, runtime, capsule, plan, ELF, and PREV identities remain exact.
 - [x] Native x86-64 Linux launch observes exact status and output.
 
@@ -102,3 +102,4 @@ Rejected. A forward-only backend must not claim rewind authority.
 - [WIP-0390](WIP-0390-x86-64-linux-shared-scalar-globals.md)
 - [WIP-0403](WIP-0403-scalar-global-instruction-aot.md)
 - [WIP-0405](WIP-0405-directional-scalar-aot-calls.md)
+- [WIP-0407](WIP-0407-helper-owned-process-status-aot.md)

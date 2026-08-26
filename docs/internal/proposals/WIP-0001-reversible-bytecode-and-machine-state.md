@@ -364,6 +364,7 @@ WIP-0040 source inverse remains new forward execution over explicit witnesses. I
 ## References
 
 - [WIP-0406](WIP-0406-forward-control-marker-aot.md)
+- [WIP-0407](WIP-0407-helper-owned-process-status-aot.md)
 - [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
 - [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 

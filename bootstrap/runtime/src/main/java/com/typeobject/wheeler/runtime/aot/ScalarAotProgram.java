@@ -50,6 +50,9 @@ public final class ScalarAotProgram {
     for (FunctionBody function : program.functions()) {
       validateFunction(program, function, dynamicIo, outputBearing);
     }
+    if (!hasReachableStatusWriter(program)) {
+      throw new IllegalArgumentException("Scalar AOT entry cannot publish process status");
+    }
     boolean boundedRecursion = hasRecursiveCalls(program);
     if (entry.parameterCount() == 2) {
       return new ScalarAotProgram(program, null, null, true, boundedRecursion);
@@ -197,7 +200,6 @@ public final class ScalarAotProgram {
     if (body.size() < 2 || body.size() > MAX_INSTRUCTIONS) {
       throw new IllegalArgumentException("Scalar AOT function body is outside the profile");
     }
-    int stores = 0;
     int last = body.size() - 1;
     for (int pc = 0; pc < body.size(); pc++) {
       Instruction instruction = body.get(pc);
@@ -206,24 +208,14 @@ public final class ScalarAotProgram {
         case LOCAL_CONST, LOCAL_MOVE, BUFFER_BORROW, UTF8_BORROW ->
           validateUnary(function, instruction);
         case LOCAL_LOAD_GLOBAL -> validateGlobalLoad(program, function, instruction);
-        case ADD_CONST, SUB_CONST, XOR_CONST, SET_LOGGED -> {
-          int global = validateGlobalInstruction(program, function, instruction, entry, true);
-          if (global == 0) {
-            stores++;
-          }
-        }
+        case ADD_CONST, SUB_CONST, XOR_CONST, SET_LOGGED ->
+          validateGlobalInstruction(program, instruction);
         case SWAP -> {
           requireOperands(instruction, 2);
-          int left = global(instruction.operands().get(0), program.globals().size());
-          int right = global(instruction.operands().get(1), program.globals().size());
-          if (!entry && (left == 0 || right == 0)) {
-            throw new IllegalArgumentException("Scalar AOT status swap is not entry-owned");
-          }
-          if (left == 0 || right == 0) {
-            stores++;
-          }
+          global(instruction.operands().get(0), program.globals().size());
+          global(instruction.operands().get(1), program.globals().size());
         }
-        case EXPECT_EQ -> validateGlobalInstruction(program, function, instruction, entry, false);
+        case EXPECT_EQ -> validateGlobalInstruction(program, instruction);
         case BUFFER_LENGTH -> validateInputLength(function, instruction, dynamicIo);
         case UTF8_VALID, UTF8_COUNT ->
           validateUtf8Whole(function, instruction, dynamicIo);
@@ -256,14 +248,10 @@ public final class ScalarAotProgram {
         case CALL, UNCALL -> validateDirectionalCall(program, instruction);
         case LOCAL_STORE_GLOBAL -> {
           requireOperands(instruction, 2);
-          int global = global(instruction.operands().get(0), program.globals().size());
+          global(instruction.operands().get(0), program.globals().size());
           int source = local(instruction.operands().get(1), function.localCount());
-          if (!function.localType(source).equals(ValueType.SIGNED)
-              || global == 0 && !entry) {
+          if (!function.localType(source).equals(ValueType.SIGNED)) {
             throw new IllegalArgumentException("Scalar AOT global store is invalid");
-          }
-          if (global == 0) {
-            stores++;
           }
         }
         case RETURN -> {
@@ -291,7 +279,7 @@ public final class ScalarAotProgram {
       }
     }
     Opcode terminal = body.getLast().opcode();
-    if (entry && (stores == 0 || terminal != Opcode.HALT)
+    if (entry && terminal != Opcode.HALT
         || !entry && function.resultType() == null && terminal != Opcode.RETURN
         || !entry && function.resultType() != null && terminal != Opcode.RETURN_VALUE) {
       throw new IllegalArgumentException("Scalar AOT function has no canonical terminal");
@@ -387,18 +375,10 @@ public final class ScalarAotProgram {
     }
   }
 
-  private static int validateGlobalInstruction(
-      Program program,
-      FunctionBody function,
-      Instruction instruction,
-      boolean entry,
-      boolean mutation) {
+  private static void validateGlobalInstruction(
+      Program program, Instruction instruction) {
     requireOperands(instruction, 2);
-    int selected = global(instruction.operands().get(0), program.globals().size());
-    if (mutation && selected == 0 && !entry) {
-      throw new IllegalArgumentException("Scalar AOT status mutation is not entry-owned");
-    }
-    return selected;
+    global(instruction.operands().get(0), program.globals().size());
   }
 
   private static void validateGlobalLoad(
@@ -517,6 +497,48 @@ public final class ScalarAotProgram {
         throw new IllegalArgumentException("Scalar AOT call destination type does not match");
       }
     }
+  }
+
+  private static boolean hasReachableStatusWriter(Program program) {
+    boolean[][] visited = new boolean[program.functions().size()][2];
+    return reachesStatusWriter(program, program.entryFunctionId(), false, visited);
+  }
+
+  private static boolean reachesStatusWriter(
+      Program program,
+      int functionId,
+      boolean inverse,
+      boolean[][] visited) {
+    int direction = inverse ? 1 : 0;
+    if (visited[functionId][direction]) {
+      return false;
+    }
+    visited[functionId][direction] = true;
+    for (Instruction instruction : program.function(functionId).body(inverse)) {
+      if (writesStatus(instruction)) {
+        return true;
+      }
+      if (instruction.opcode() == Opcode.CALL
+          || instruction.opcode() == Opcode.UNCALL
+          || instruction.opcode() == Opcode.CALL_VALUE
+          || instruction.opcode() == Opcode.CALL_VOID) {
+        int target = Math.toIntExact(instruction.operands().get(0));
+        boolean targetInverse = instruction.opcode() == Opcode.UNCALL;
+        if (reachesStatusWriter(program, target, targetInverse, visited)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private static boolean writesStatus(Instruction instruction) {
+    return switch (instruction.opcode()) {
+      case ADD_CONST, SUB_CONST, XOR_CONST, SET_LOGGED, LOCAL_STORE_GLOBAL ->
+        instruction.operands().get(0) == 0;
+      case SWAP -> instruction.operands().get(0) == 0 || instruction.operands().get(1) == 0;
+      default -> false;
+    };
   }
 
   private static boolean hasRecursiveCalls(Program program) {

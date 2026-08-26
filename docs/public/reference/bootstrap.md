@@ -138,7 +138,7 @@ first native backend leaf. It accepts one canonical classical WBC containing one
 zero-initialized `status` global, up to 31 additional shared signed globals, one
 to twenty-four dense functions, bounded constants, checked global addition and subtraction, global XOR and
 expectations, shared swaps, logged global replacement, forward checkpoint and commit markers, scalar updates, checked signed arithmetic, bitwise and 32-bit rotate operations, comparisons, assertions,
-status reads, forward branches and 4,096-iteration checked loops, bounded
+status reads and helper-owned status publication, forward branches and 4,096-iteration checked loops, bounded
 recursive signed-result, Boolean-result, or void calls and parameterless forward or inverse
 helper calls, up to sixteen exact signed or Boolean arguments, status stores, returns, and halt. Recursion stops at 64
 simultaneous calls. Six arguments use the private register order. Up to ten more
@@ -157,8 +157,9 @@ reports that status as input-dependent. Borrowed helpers retain the same frame
 bounds and cannot return or store handles as scalar values. Fuel instruction
 65,537 traps before an effect and before application output publication. Typed
 UTF-8 input uses strict RFC 3629 validity, scalar count, scalar, and width
-operations without locale or replacement. Helpers share non-status global state.
-Only the entry commits final process status. The status-73 fixture launches
+operations without locale or replacement. Helpers share all scalar global state,
+including status. One status writer must be reachable from the entry. The checked
+entry epilogue alone commits final process status. The status-73 fixture launches
 as a complete AOT ELF, but general bytecode execution and in-process verification
 remain.
 
