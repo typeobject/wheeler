@@ -222,7 +222,7 @@ A reversible function has either:
 - a declared inverse function validated for compatible signature and effects, or
 - an intrinsic body from the normative registry.
 
-`CALL` selects the forward body. `UNCALL` selects the inverse body. Call and return continuations remain ordinary reversible machine state. WIP-0041 adds checked caller-owned result slots for non-`void` reversible calls. Their generated inverse inspects current typed state and never reads a `StepRecord`. Runtime rewind uses step records and remains independent of `UNCALL`.
+`CALL` selects the forward body. `UNCALL` selects the inverse body. Call and return continuations remain ordinary reversible machine state. WIP-0041 adds checked caller-owned result slots for non-`void` reversible calls. Their generated inverse inspects current typed state and never reads a `StepRecord`. Runtime rewind uses step records and remains independent of `UNCALL`. WIP-0408 lowers the signed and Boolean scalar result-slot relations in both directions without claiming retained-history rewind.
 
 ### Effects and output
 
@@ -365,6 +365,7 @@ WIP-0040 source inverse remains new forward execution over explicit witnesses. I
 
 - [WIP-0406](WIP-0406-forward-control-marker-aot.md)
 - [WIP-0407](WIP-0407-helper-owned-process-status-aot.md)
+- [WIP-0408](WIP-0408-reversible-scalar-result-slot-aot.md)
 - [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md)
 - [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md)
 

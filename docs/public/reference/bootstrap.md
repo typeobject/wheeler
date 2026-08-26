@@ -147,7 +147,10 @@ up to 4,096 constant application bytes and 64 locals. An exact
 `byteview, bytes` or `utf8, bytes` entry may instead read up to 4,096 complete
 stdin bytes and
 compute bounded stdout and process status at runtime. Canonical reborrows may
-carry those byte handles through bounded helper calls. One 65,536-instruction fuel
+carry those byte handles through bounded helper calls. Signed and Boolean helpers
+may fill and exactly clear caller-owned result slots through forward and inverse
+relations. Those inverse calls prove current state and do not claim history rewind.
+One 65,536-instruction fuel
 cell bounds the selected entry and complete helper call tree. Other entries retain up to 256 locals and 512 instructions per function.
 Computed values 0 through 124 become distinct x86-64 Linux process statuses. Unsupported
 programs reject without projection or fallback. Output-bearing AOT replaces the

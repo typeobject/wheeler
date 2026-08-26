@@ -101,3 +101,4 @@ Rejected. This backend does not rewrite calls into jumps or prove tail position.
 - [WIP-0396](WIP-0396-order-independent-scalar-aot-calls.md)
 - [WIP-0400](WIP-0400-compiler-frame-scalar-aot-bounds.md)
 - [WIP-0405](WIP-0405-directional-scalar-aot-calls.md)
+- [WIP-0408](WIP-0408-reversible-scalar-result-slot-aot.md)

@@ -46,11 +46,13 @@ public final class ScalarAotMachine {
         emitEntry(code, scalar, calls, io);
       } else {
         emitHelper(
-            code, function, function.forward(), calls, io, scalar.usesBoundedRecursion());
+            code, function, function.forward(), false, calls, io,
+            scalar.usesBoundedRecursion());
         if (!function.inverse().isEmpty()) {
           inverseOffsets[function.id()] = code.position();
           emitHelper(
-              code, function, function.inverse(), calls, io, scalar.usesBoundedRecursion());
+              code, function, function.inverse(), true, calls, io,
+              scalar.usesBoundedRecursion());
         }
       }
     }
@@ -107,7 +109,8 @@ public final class ScalarAotMachine {
       code.storeRax(0);
     }
     FunctionPatches patches = emitBody(
-        code, entry, entry.forward(), calls, io, scalar.usesBoundedRecursion());
+        code, entry, entry.forward(), false, calls, io,
+        scalar.usesBoundedRecursion());
     patches.traps().addAll(prologueTraps);
 
     code.loadGlobal(0);
@@ -135,6 +138,7 @@ public final class ScalarAotMachine {
       ScalarAotX86 code,
       FunctionBody helper,
       List<Instruction> body,
+      boolean inverse,
       ArrayList<CallPatch> calls,
       ScalarAotX86.IoLayout io,
       boolean boundedRecursion) {
@@ -143,12 +147,19 @@ public final class ScalarAotMachine {
     for (int parameter = 0; parameter < helper.parameterCount(); parameter++) {
       code.storeArgument(parameter, frameBytes);
     }
+    if (helper.implicitResultSlot()) {
+      code.storeResultArguments(helper.resultSlotBase());
+    }
     FunctionPatches patches = emitBody(
-        code, helper, body, calls, io, boundedRecursion);
+        code, helper, body, inverse, calls, io, boundedRecursion);
 
     Instruction returned = body.getLast();
     if (returned.opcode() == Opcode.RETURN_VALUE) {
-      code.loadRax(Math.toIntExact(returned.operands().get(0)));
+      code.loadRax(Math.toIntExact(returned.operands().getFirst()));
+    } else if (returned.opcode() == Opcode.RETURN_RESULT_SLOT) {
+      int slot = Math.toIntExact(returned.operands().getFirst());
+      code.loadR8(slot + 1);
+      code.loadRax(slot);
     } else {
       code.bytes(0x31, 0xc0);
     }
@@ -167,6 +178,7 @@ public final class ScalarAotMachine {
       ScalarAotX86 code,
       FunctionBody function,
       List<Instruction> body,
+      boolean inverse,
       ArrayList<CallPatch> calls,
       ScalarAotX86.IoLayout io,
       boolean boundedRecursion) {
@@ -318,17 +330,66 @@ public final class ScalarAotMachine {
             code.storeRax(local(instruction, 3));
           }
         }
+        case CALL_RESULT_SLOT, UNCALL_RESULT_SLOT -> {
+          int argumentBase = Math.toIntExact(instruction.operands().get(1));
+          int argumentCount = Math.toIntExact(instruction.operands().get(2));
+          int slot = local(instruction, 3);
+          int callAreaBytes = code.loadArguments(argumentBase, argumentCount);
+          code.loadResultArguments(slot, callAreaBytes);
+          if (boundedRecursion) {
+            code.enterCall(traps);
+          }
+          code.bytes(0xe8);
+          calls.add(new CallPatch(
+              code.reserveInt(),
+              Math.toIntExact(instruction.operands().getFirst()),
+              instruction.opcode() == Opcode.UNCALL_RESULT_SLOT));
+          code.closeArguments(callAreaBytes);
+          if (boundedRecursion) {
+            code.leaveCall();
+          }
+          code.bytes(0x48, 0x85, 0xd2, 0x0f, 0x85);
+          traps.add(code.reserveInt());
+          code.storeRax(slot);
+          code.storeR8(slot + 1);
+        }
+        case RESULT_FILL_CONSTANT, RESULT_FILL_SOURCE, RESULT_FILL_BINARY,
+            RESULT_FILL_BINARY_SOURCES -> {
+          emitResultExpected(code, instruction, traps);
+          code.transitionResultSlot(function.resultSlotBase(), inverse, traps);
+        }
         case LOCAL_STORE_GLOBAL -> {
           code.loadRax(local(instruction, 1));
           code.storeGlobal(Math.toIntExact(instruction.operands().get(0)));
         }
-        case RETURN, RETURN_VALUE, HALT -> {
+        case RETURN, RETURN_VALUE, RETURN_RESULT_SLOT, HALT -> {
           // The function epilogue owns its terminal instruction.
         }
         default -> throw new IllegalStateException("Validated scalar AOT opcode changed");
       }
     }
     return new FunctionPatches(instructionOffsets, branches, traps);
+  }
+
+  private static void emitResultExpected(
+      ScalarAotX86 code,
+      Instruction instruction,
+      ArrayList<Integer> traps) {
+    switch (instruction.opcode()) {
+      case RESULT_FILL_CONSTANT -> code.moveImmediateToRax(instruction.operands().get(1));
+      case RESULT_FILL_SOURCE -> code.loadRax(local(instruction, 1));
+      case RESULT_FILL_BINARY, RESULT_FILL_BINARY_SOURCES -> {
+        code.loadRax(local(instruction, 1));
+        if (instruction.opcode() == Opcode.RESULT_FILL_BINARY) {
+          code.moveImmediateToRcx(instruction.operands().get(3));
+        } else {
+          code.loadRcx(local(instruction, 3));
+        }
+        code.arithmetic(
+            Opcode.fromCode(Math.toIntExact(instruction.operands().get(2))), traps);
+      }
+      default -> throw new IllegalStateException("Validated scalar result fill changed");
+    }
   }
 
   private static void patchFunction(ScalarAotX86 code, FunctionPatches patches, int trap) {

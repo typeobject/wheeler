@@ -7,6 +7,7 @@ import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.ValueType;
+import java.util.ArrayList;
 import java.util.List;
 
 /** Scalar AOT call, graph, and frame artifacts. */
@@ -168,6 +169,195 @@ final class ScalarAotCallArtifacts {
                     Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 4),
                     Instruction.of(Opcode.HALT)),
                 List.of()))));
+  }
+
+  static byte[] resultSlotArtifact() {
+    FunctionBody constant = resultSlotHelper(
+        0,
+        "constant",
+        0,
+        List.of(ValueType.BOOLEAN, ValueType.SIGNED),
+        ValueType.SIGNED,
+        Instruction.of(Opcode.RESULT_FILL_CONSTANT, 0, 7));
+    FunctionBody source = resultSlotHelper(
+        1,
+        "source",
+        1,
+        List.of(ValueType.SIGNED, ValueType.BOOLEAN, ValueType.SIGNED),
+        ValueType.SIGNED,
+        Instruction.of(Opcode.RESULT_FILL_SOURCE, 1, 0));
+    FunctionBody binary = resultSlotHelper(
+        2,
+        "binary",
+        1,
+        List.of(ValueType.SIGNED, ValueType.BOOLEAN, ValueType.SIGNED),
+        ValueType.SIGNED,
+        Instruction.of(Opcode.RESULT_FILL_BINARY, 1, 0, Opcode.LOCAL_ADD.code(), 9));
+    FunctionBody binarySources = resultSlotHelper(
+        3,
+        "binarySources",
+        2,
+        List.of(
+            ValueType.SIGNED,
+            ValueType.SIGNED,
+            ValueType.BOOLEAN,
+            ValueType.SIGNED),
+        ValueType.SIGNED,
+        Instruction.of(
+            Opcode.RESULT_FILL_BINARY_SOURCES, 2, 0, Opcode.LOCAL_ADD.code(), 1));
+    FunctionBody booleanSource = resultSlotHelper(
+        4,
+        "booleanSource",
+        1,
+        List.of(ValueType.BOOLEAN, ValueType.BOOLEAN, ValueType.BOOLEAN),
+        ValueType.BOOLEAN,
+        Instruction.of(Opcode.RESULT_FILL_SOURCE, 1, 0));
+    FunctionBody entry = new FunctionBody(
+        5,
+        "example.app::main",
+        false,
+        0,
+        List.of(
+            ValueType.SIGNED,
+            ValueType.SIGNED,
+            ValueType.BOOLEAN,
+            ValueType.BOOLEAN,
+            ValueType.SIGNED,
+            ValueType.BOOLEAN,
+            ValueType.BOOLEAN),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 20),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 22),
+            Instruction.of(Opcode.LOCAL_CONST, 2, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 3, 0),
+            Instruction.of(Opcode.LOCAL_CONST, 4, 0),
+            Instruction.of(Opcode.LOCAL_CONST, 5, 0),
+            Instruction.of(Opcode.LOCAL_CONST, 6, 0),
+            Instruction.of(Opcode.CALL_RESULT_SLOT, 0, 0, 0, 3),
+            Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 4),
+            Instruction.of(Opcode.EXPECT_EQ, 0, 7),
+            Instruction.of(Opcode.UNCALL_RESULT_SLOT, 0, 0, 0, 3),
+            Instruction.of(Opcode.CALL_RESULT_SLOT, 1, 0, 1, 3),
+            Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 4),
+            Instruction.of(Opcode.EXPECT_EQ, 0, 20),
+            Instruction.of(Opcode.UNCALL_RESULT_SLOT, 1, 0, 1, 3),
+            Instruction.of(Opcode.CALL_RESULT_SLOT, 2, 0, 1, 3),
+            Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 4),
+            Instruction.of(Opcode.EXPECT_EQ, 0, 29),
+            Instruction.of(Opcode.UNCALL_RESULT_SLOT, 2, 0, 1, 3),
+            Instruction.of(Opcode.CALL_RESULT_SLOT, 3, 0, 2, 3),
+            Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 4),
+            Instruction.of(Opcode.EXPECT_EQ, 0, 42),
+            Instruction.of(Opcode.UNCALL_RESULT_SLOT, 3, 0, 2, 3),
+            Instruction.of(Opcode.CALL_RESULT_SLOT, 4, 2, 1, 5),
+            Instruction.of(Opcode.EXPECT_TRUE, 6),
+            Instruction.of(Opcode.UNCALL_RESULT_SLOT, 4, 2, 1, 5),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-result-slots",
+        5,
+        List.of(new Global("status", 0)),
+        List.of(constant, source, binary, binarySources, booleanSource, entry)));
+  }
+
+  static byte[] wideResultSlotArtifact(int parameters) {
+    ArrayList<ValueType> helperTypes = new ArrayList<>();
+    ArrayList<ValueType> entryTypes = new ArrayList<>();
+    ArrayList<Instruction> entryBody = new ArrayList<>();
+    for (int parameter = 0; parameter < parameters; parameter++) {
+      helperTypes.add(ValueType.SIGNED);
+      entryTypes.add(ValueType.SIGNED);
+      entryBody.add(Instruction.of(
+          Opcode.LOCAL_CONST, parameter, parameter + 1 == parameters ? 42 : parameter));
+    }
+    helperTypes.add(ValueType.BOOLEAN);
+    helperTypes.add(ValueType.SIGNED);
+    entryTypes.add(ValueType.BOOLEAN);
+    entryTypes.add(ValueType.SIGNED);
+    int slot = parameters;
+    entryBody.add(Instruction.of(Opcode.LOCAL_CONST, slot, 0));
+    entryBody.add(Instruction.of(Opcode.LOCAL_CONST, slot + 1, 0));
+    entryBody.add(Instruction.of(
+        Opcode.CALL_RESULT_SLOT, 0, 0, parameters, slot));
+    entryBody.add(Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, slot + 1));
+    entryBody.add(Instruction.of(
+        Opcode.UNCALL_RESULT_SLOT, 0, 0, parameters, slot));
+    entryBody.add(Instruction.of(Opcode.HALT));
+    FunctionBody helper = resultSlotHelper(
+        0,
+        "wide",
+        parameters,
+        helperTypes,
+        ValueType.SIGNED,
+        Instruction.of(Opcode.RESULT_FILL_SOURCE, slot, parameters - 1));
+    FunctionBody entry = new FunctionBody(
+        1,
+        "example.app::main",
+        false,
+        0,
+        entryTypes,
+        null,
+        entryBody,
+        List.of());
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-wide-result-slot",
+        1,
+        List.of(new Global("status", 0)),
+        List.of(helper, entry)));
+  }
+
+  static byte[] occupiedResultSlotArtifact() {
+    FunctionBody helper = resultSlotHelper(
+        0,
+        "constant",
+        0,
+        List.of(ValueType.BOOLEAN, ValueType.SIGNED),
+        ValueType.SIGNED,
+        Instruction.of(Opcode.RESULT_FILL_CONSTANT, 0, 7));
+    FunctionBody entry = new FunctionBody(
+        1,
+        "example.app::main",
+        false,
+        0,
+        List.of(ValueType.BOOLEAN, ValueType.SIGNED),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 0),
+            Instruction.of(Opcode.LOCAL_CONST, 1, 0),
+            Instruction.of(Opcode.CALL_RESULT_SLOT, 0, 0, 0, 0),
+            Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 1),
+            Instruction.of(Opcode.CALL_RESULT_SLOT, 0, 0, 0, 0),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-occupied-result-slot",
+        1,
+        List.of(new Global("status", 0)),
+        List.of(helper, entry)));
+  }
+
+  private static FunctionBody resultSlotHelper(
+      int id,
+      String name,
+      int parameters,
+      List<ValueType> locals,
+      ValueType result,
+      Instruction relation) {
+    int slot = locals.size() - 2;
+    List<Instruction> body = List.of(
+        relation, Instruction.of(Opcode.RETURN_RESULT_SLOT, slot));
+    return new FunctionBody(
+        id,
+        "example.app::" + name,
+        false,
+        parameters,
+        locals,
+        result,
+        true,
+        body,
+        body);
   }
 
   static byte[] booleanResultHelperArtifact() {

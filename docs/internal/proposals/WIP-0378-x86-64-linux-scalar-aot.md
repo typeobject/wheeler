@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, x86-64 Linux, process status |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0368, WIP-0372, WIP-0376 |
 | Supersedes | Fixed-status native entry probes as AOT evidence |
-| Superseded by | None |
+| Superseded by | WIPs 0379 through 0408 |
 
 ## Summary
 
@@ -155,3 +155,4 @@ Rejected. The loaded runtime still checks framing rather than complete capsule a
 - [WIP-0388](WIP-0388-x86-64-linux-4096-iteration-byte-loops.md)
 - [WIP-0389](WIP-0389-x86-64-linux-strict-utf8-input.md)
 - [WIP-0390](WIP-0390-x86-64-linux-shared-scalar-globals.md)
+- [WIP-0408](WIP-0408-reversible-scalar-result-slot-aot.md)

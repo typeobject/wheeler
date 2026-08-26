@@ -98,3 +98,4 @@ Rejected. No rewind interface or history observation exists in this profile.
 - [WIP-0404](WIP-0404-scalar-global-replacement-aot.md)
 - [WIP-0405](WIP-0405-directional-scalar-aot-calls.md)
 - [WIP-0407](WIP-0407-helper-owned-process-status-aot.md)
+- [WIP-0408](WIP-0408-reversible-scalar-result-slot-aot.md)

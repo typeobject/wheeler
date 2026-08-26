@@ -99,3 +99,4 @@ Rejected. Canonical Wheeler global ownership does not contain that rule.
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0390](WIP-0390-x86-64-linux-shared-scalar-globals.md)
 - [WIP-0405](WIP-0405-directional-scalar-aot-calls.md)
+- [WIP-0408](WIP-0408-reversible-scalar-result-slot-aot.md)

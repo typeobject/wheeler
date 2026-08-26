@@ -1,0 +1,432 @@
+package com.typeobject.wheeler.runtime.aot;
+
+import com.typeobject.wheeler.core.bytecode.FunctionBody;
+import com.typeobject.wheeler.core.bytecode.Instruction;
+import com.typeobject.wheeler.core.bytecode.Opcode;
+import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.bytecode.ResultBinaryOperation;
+import java.util.Arrays;
+import java.util.List;
+
+/** Independent bounded evaluator for the admitted scalar AOT profile. */
+final class ScalarAotEvaluator {
+  private ScalarAotEvaluator() {}
+
+  static Result evaluate(Program program, long[] arguments) {
+    OutputState output = new OutputState();
+    Evaluation evaluation = execute(
+        program,
+        program.entryFunctionId(),
+        false,
+        arguments,
+        null,
+        output,
+        new EvaluationState(program),
+        new EvaluationBudget());
+    byte[] applicationOutput = output.length < 0
+        ? null : Arrays.copyOf(output.bytes, output.length);
+    return new Result(evaluation.value(), evaluation.stored(), applicationOutput);
+  }
+
+  private static Evaluation execute(
+      Program program,
+      int functionId,
+      boolean inverse,
+      long[] arguments,
+      ResultSlotValue resultSlot,
+      OutputState output,
+      EvaluationState state,
+      EvaluationBudget budget) {
+    FunctionBody function = program.function(functionId);
+    long[] values = new long[function.localCount()];
+    boolean[] assigned = new boolean[function.localCount()];
+    System.arraycopy(arguments, 0, values, 0, arguments.length);
+    java.util.Arrays.fill(assigned, 0, arguments.length, true);
+    if (function.implicitResultSlot()) {
+      if (resultSlot == null) {
+        throw new IllegalArgumentException("Scalar AOT result-slot call state is absent");
+      }
+      int slot = function.resultSlotBase();
+      values[slot] = resultSlot.tag();
+      values[slot + 1] = resultSlot.payload();
+      assigned[slot] = true;
+      assigned[slot + 1] = true;
+    }
+    List<Instruction> body = function.body(inverse);
+    int pc = 0;
+    while (pc < body.size()) {
+      budget.consume();
+      Instruction instruction = body.get(pc);
+      try {
+        switch (instruction.opcode()) {
+          case LOCAL_CONST -> {
+            int destination = destination(instruction, 0, assigned);
+            values[destination] = instruction.operands().get(1);
+            assigned[destination] = true;
+            pc++;
+          }
+          case NOP, CHECKPOINT, COMMIT -> pc++;
+          case LOCAL_LOAD_GLOBAL -> {
+            int destination = destination(instruction, 0, assigned);
+            int source = Math.toIntExact(instruction.operands().get(1));
+            values[destination] = state.globals[source];
+            assigned[destination] = true;
+            pc++;
+          }
+          case ADD_CONST, SUB_CONST, XOR_CONST, SET_LOGGED -> {
+            int target = Math.toIntExact(instruction.operands().get(0));
+            long immediate = instruction.operands().get(1);
+            state.globals[target] = switch (instruction.opcode()) {
+              case ADD_CONST -> Math.addExact(state.globals[target], immediate);
+              case SUB_CONST -> Math.subtractExact(state.globals[target], immediate);
+              case XOR_CONST -> state.globals[target] ^ immediate;
+              case SET_LOGGED -> immediate;
+              default -> throw new IllegalStateException("Scalar global update changed");
+            };
+            if (target == 0) {
+              state.statusStored = true;
+            }
+            pc++;
+          }
+          case SWAP -> {
+            int left = Math.toIntExact(instruction.operands().get(0));
+            int right = Math.toIntExact(instruction.operands().get(1));
+            long held = state.globals[left];
+            state.globals[left] = state.globals[right];
+            state.globals[right] = held;
+            if (left == 0 || right == 0) {
+              state.statusStored = true;
+            }
+            pc++;
+          }
+          case EXPECT_EQ -> {
+            int target = Math.toIntExact(instruction.operands().get(0));
+            if (state.globals[target] != instruction.operands().get(1)) {
+              throw new ArithmeticException("Scalar AOT global expectation failed");
+            }
+            pc++;
+          }
+          case LOCAL_MOVE, BUFFER_BORROW, UTF8_BORROW -> {
+            int destination = destination(instruction, 0, assigned);
+            int source = assignedLocal(instruction, 1, assigned);
+            values[destination] = values[source];
+            assigned[destination] = true;
+            pc++;
+          }
+          case LOCAL_ADD, LOCAL_SUB, LOCAL_MUL, LOCAL_DIV, LOCAL_MOD, LOCAL_AND, LOCAL_XOR,
+              LOCAL_ROTR32, LOCAL_EQ, LOCAL_LT -> {
+            int destination = destination(instruction, 0, assigned);
+            int left = assignedLocal(instruction, 1, assigned);
+            int right = assignedLocal(instruction, 2, assigned);
+            values[destination] = evaluateBinary(
+                instruction.opcode(), values[left], values[right]);
+            assigned[destination] = true;
+            pc++;
+          }
+          case JUMP -> pc = Math.toIntExact(instruction.operands().get(0));
+          case JUMP_IF_ZERO -> {
+            int condition = assignedLocal(instruction, 0, assigned);
+            pc = values[condition] == 0
+                ? Math.toIntExact(instruction.operands().get(1))
+                : pc + 1;
+          }
+          case LOCAL_LOOP_CHECK -> {
+            int iteration = assignedLocal(instruction, 0, assigned);
+            int limit = assignedLocal(instruction, 1, assigned);
+            if (values[iteration] < 0
+                || values[limit] < 0
+                || values[iteration] >= values[limit]
+                || values[limit] > ScalarAotProgram.MAX_LOOP_ITERATIONS) {
+              throw new ArithmeticException("Loop iteration limit exceeded");
+            }
+            values[iteration] = Math.addExact(values[iteration], 1);
+            pc++;
+          }
+          case BYTES_SET -> {
+            int owner = assignedLocal(instruction, 0, assigned);
+            int index = assignedLocal(instruction, 1, assigned);
+            int value = assignedLocal(instruction, 2, assigned);
+            if (values[owner] != 1
+                || values[index] < 0
+                || values[index] >= ScalarAotProgram.MAX_OUTPUT_BYTES
+                || values[value] < 0
+                || values[value] > 255) {
+              throw new ArithmeticException("Scalar AOT byte output write is out of range");
+            }
+            output.bytes[Math.toIntExact(values[index])] = (byte) values[value];
+            pc++;
+          }
+          case OUTPUT_LENGTH -> {
+            int owner = assignedLocal(instruction, 0, assigned);
+            int length = assignedLocal(instruction, 1, assigned);
+            if (values[owner] != 1
+                || values[length] < 1
+                || values[length] > ScalarAotProgram.MAX_OUTPUT_BYTES
+                || output.length >= 0) {
+              throw new ArithmeticException("Scalar AOT output length is invalid");
+            }
+            output.length = Math.toIntExact(values[length]);
+            pc++;
+          }
+          case EXPECT_TRUE -> {
+            if (values[assignedLocal(instruction, 0, assigned)] == 0) {
+              throw new ArithmeticException("Scalar AOT assertion failed");
+            }
+            pc++;
+          }
+          case CALL, UNCALL -> {
+            budget.enterCall();
+            try {
+              execute(
+                  program,
+                  Math.toIntExact(instruction.operands().get(0)),
+                  instruction.opcode() == Opcode.UNCALL,
+                  new long[0],
+                  null,
+                  output,
+                  state,
+                  budget);
+            } finally {
+              budget.leaveCall();
+            }
+            pc++;
+          }
+          case CALL_VALUE, CALL_VOID -> {
+            int argumentBase = Math.toIntExact(instruction.operands().get(1));
+            int argumentCount = Math.toIntExact(instruction.operands().get(2));
+            long[] callArguments = new long[argumentCount];
+            for (int argument = 0; argument < argumentCount; argument++) {
+              int source = argumentBase + argument;
+              if (!assigned[source]) {
+                throw new IllegalArgumentException("Scalar AOT call reads an unassigned local");
+              }
+              callArguments[argument] = values[source];
+            }
+            budget.enterCall();
+            Evaluation result;
+            try {
+              result = execute(
+                  program,
+                  Math.toIntExact(instruction.operands().get(0)),
+                  false,
+                  callArguments,
+                  null,
+                  output,
+                  state,
+                  budget);
+            } finally {
+              budget.leaveCall();
+            }
+            if (instruction.opcode() == Opcode.CALL_VALUE) {
+              int destination = destination(instruction, 3, assigned);
+              values[destination] = result.value();
+              assigned[destination] = true;
+            }
+            pc++;
+          }
+          case CALL_RESULT_SLOT, UNCALL_RESULT_SLOT -> {
+            int argumentBase = Math.toIntExact(instruction.operands().get(1));
+            int argumentCount = Math.toIntExact(instruction.operands().get(2));
+            long[] callArguments = new long[argumentCount];
+            for (int argument = 0; argument < argumentCount; argument++) {
+              int source = argumentBase + argument;
+              if (!assigned[source]) {
+                throw new IllegalArgumentException(
+                    "Scalar AOT result-slot call reads an unassigned local");
+              }
+              callArguments[argument] = values[source];
+            }
+            int slot = Math.toIntExact(instruction.operands().get(3));
+            if (!assigned[slot] || !assigned[slot + 1]) {
+              throw new IllegalArgumentException("Scalar AOT result slot is unassigned");
+            }
+            budget.enterCall();
+            Evaluation result;
+            try {
+              result = execute(
+                  program,
+                  Math.toIntExact(instruction.operands().getFirst()),
+                  instruction.opcode() == Opcode.UNCALL_RESULT_SLOT,
+                  callArguments,
+                  new ResultSlotValue(values[slot], values[slot + 1]),
+                  output,
+                  state,
+                  budget);
+            } finally {
+              budget.leaveCall();
+            }
+            values[slot] = result.resultSlot().tag();
+            values[slot + 1] = result.resultSlot().payload();
+            assigned[slot] = true;
+            assigned[slot + 1] = true;
+            pc++;
+          }
+          case RESULT_FILL_CONSTANT, RESULT_FILL_SOURCE, RESULT_FILL_BINARY,
+              RESULT_FILL_BINARY_SOURCES -> {
+            int slot = function.resultSlotBase();
+            long expected = switch (instruction.opcode()) {
+              case RESULT_FILL_CONSTANT -> instruction.operands().get(1);
+              case RESULT_FILL_SOURCE -> values[assignedLocal(instruction, 1, assigned)];
+              case RESULT_FILL_BINARY -> ResultBinaryOperation.apply(
+                  instruction.operands().get(2),
+                  values[assignedLocal(instruction, 1, assigned)],
+                  instruction.operands().get(3));
+              case RESULT_FILL_BINARY_SOURCES -> ResultBinaryOperation.apply(
+                  instruction.operands().get(2),
+                  values[assignedLocal(instruction, 1, assigned)],
+                  values[assignedLocal(instruction, 3, assigned)]);
+              default -> throw new IllegalStateException("Scalar AOT result fill changed");
+            };
+            if (inverse) {
+              if (values[slot] != 1 || values[slot + 1] != expected) {
+                throw new ArithmeticException("Inverse scalar AOT result relation failed");
+              }
+              values[slot] = 0;
+              values[slot + 1] = 0;
+            } else {
+              if (values[slot] != 0 || values[slot + 1] != 0) {
+                throw new ArithmeticException("Forward scalar AOT result slot is not vacant");
+              }
+              values[slot] = 1;
+              values[slot + 1] = expected;
+            }
+            pc++;
+          }
+          case LOCAL_STORE_GLOBAL -> {
+            int destination = Math.toIntExact(instruction.operands().get(0));
+            state.globals[destination] = values[assignedLocal(instruction, 1, assigned)];
+            if (destination == 0) {
+              state.statusStored = true;
+            }
+            pc++;
+          }
+          case RETURN -> {
+            return new Evaluation(0, false, null);
+          }
+          case RETURN_VALUE -> {
+            return new Evaluation(
+                values[assignedLocal(instruction, 0, assigned)], false, null);
+          }
+          case RETURN_RESULT_SLOT -> {
+            int slot = function.resultSlotBase();
+            return new Evaluation(
+                0, false, new ResultSlotValue(values[slot], values[slot + 1]));
+          }
+          case HALT -> {
+            return new Evaluation(state.globals[0], state.statusStored, null);
+          }
+          default -> throw new IllegalStateException("Validated scalar AOT opcode changed");
+        }
+      } catch (ArithmeticException exception) {
+        throw new IllegalArgumentException("Scalar AOT arithmetic traps", exception);
+      }
+    }
+    throw new IllegalStateException("Validated scalar AOT function did not terminate");
+  }
+
+  private static long evaluateBinary(Opcode opcode, long left, long right) {
+    return switch (opcode) {
+      case LOCAL_ADD -> Math.addExact(left, right);
+      case LOCAL_SUB -> Math.subtractExact(left, right);
+      case LOCAL_MUL -> Math.multiplyExact(left, right);
+      case LOCAL_DIV -> {
+        if (right == 0 || left == Long.MIN_VALUE && right == -1) {
+          throw new ArithmeticException("Invalid bounded division");
+        }
+        yield left / right;
+      }
+      case LOCAL_MOD -> {
+        if (right == 0) {
+          throw new ArithmeticException("Invalid bounded remainder");
+        }
+        yield left % right;
+      }
+      case LOCAL_AND -> left & right;
+      case LOCAL_XOR -> left ^ right;
+      case LOCAL_ROTR32 -> {
+        if (right < 0 || right > 31) {
+          throw new ArithmeticException("32-bit rotate amount is out of range");
+        }
+        yield Integer.toUnsignedLong(Integer.rotateRight((int) left, Math.toIntExact(right)));
+      }
+      case LOCAL_EQ -> left == right ? 1 : 0;
+      case LOCAL_LT -> left < right ? 1 : 0;
+      default -> throw new IllegalStateException("Validated scalar AOT arithmetic changed");
+    };
+  }
+
+  private static int destination(
+      Instruction instruction, int operand, boolean[] assigned) {
+    return local(instruction.operands().get(operand), assigned.length);
+  }
+
+  private static int assignedLocal(
+      Instruction instruction, int operand, boolean[] assigned) {
+    int result = local(instruction.operands().get(operand), assigned.length);
+    if (!assigned[result]) {
+      throw new IllegalArgumentException("Scalar AOT reads an unassigned local");
+    }
+    return result;
+  }
+  private static int local(long value, int count) {
+    int result = Math.toIntExact(value);
+    if (result < 0 || result >= count) {
+      throw new IllegalArgumentException("Scalar AOT local is out of range");
+    }
+    return result;
+  }
+
+  record Result(long status, boolean stored, byte[] applicationOutput) {
+    Result {
+      applicationOutput = applicationOutput == null ? null : applicationOutput.clone();
+    }
+
+    @Override
+    public byte[] applicationOutput() {
+      return applicationOutput == null ? null : applicationOutput.clone();
+    }
+  }
+
+  private record Evaluation(
+      long value, boolean stored, ResultSlotValue resultSlot) {}
+
+  private record ResultSlotValue(long tag, long payload) {}
+
+  private static final class EvaluationState {
+    private final long[] globals;
+    private boolean statusStored;
+
+    EvaluationState(Program program) {
+      globals = program.globals().stream()
+          .mapToLong(global -> global.initialValue())
+          .toArray();
+    }
+  }
+
+  private static final class EvaluationBudget {
+    private int remaining = ScalarAotProgram.MAX_EXECUTED_INSTRUCTIONS;
+    private int callDepth;
+
+    void consume() {
+      if (remaining-- == 0) {
+        throw new IllegalArgumentException("Scalar AOT execution bound exceeded");
+      }
+    }
+
+    void enterCall() {
+      callDepth++;
+      if (ScalarAotProgram.MAX_CALL_DEPTH < callDepth) {
+        throw new IllegalArgumentException("Scalar AOT call depth exceeded");
+      }
+    }
+
+    void leaveCall() {
+      callDepth--;
+    }
+  }
+
+  private static final class OutputState {
+    private final byte[] bytes = new byte[ScalarAotProgram.MAX_OUTPUT_BYTES];
+    private int length = -1;
+  }
+}

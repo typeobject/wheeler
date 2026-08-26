@@ -52,7 +52,7 @@ final class ScalarAotX86 {
     word(value);
   }
 
-  private void moveImmediateToRcx(long value) {
+  void moveImmediateToRcx(long value) {
     bytes(0x48, 0xb9);
     word(value);
   }
@@ -83,6 +83,11 @@ final class ScalarAotX86 {
 
   void storeRax(int local) {
     storeRaxOffset(local * Long.BYTES);
+  }
+
+  void storeR8(int local) {
+    bytes(0x4c, 0x89, 0x84, 0x24);
+    integer(local * Long.BYTES);
   }
 
   private void storeRaxOffset(int offset) {
@@ -138,6 +143,35 @@ final class ScalarAotX86 {
     traps.add(reserveInt());
   }
 
+  void transitionResultSlot(
+      int slot, boolean inverse, ArrayList<Integer> traps) {
+    bytes(0x48, 0x89, 0xc1);
+    loadRax(slot);
+    if (inverse) {
+      bytes(0x48, 0x83, 0xf8, 0x01, 0x0f, 0x85);
+    } else {
+      bytes(0x48, 0x85, 0xc0, 0x0f, 0x85);
+    }
+    traps.add(reserveInt());
+    loadRax(slot + 1);
+    if (inverse) {
+      bytes(0x48, 0x39, 0xc8, 0x0f, 0x85);
+    } else {
+      bytes(0x48, 0x85, 0xc0, 0x0f, 0x85);
+    }
+    traps.add(reserveInt());
+    if (inverse) {
+      bytes(0x31, 0xc0);
+      storeRax(slot);
+      storeRax(slot + 1);
+    } else {
+      moveImmediateToRax(1);
+      storeRax(slot);
+      bytes(0x48, 0x89, 0xc8);
+      storeRax(slot + 1);
+    }
+  }
+
   int loadArguments(int argumentBase, int argumentCount) {
     if (argumentCount < 0 || ScalarAotProgram.MAX_PARAMETERS < argumentCount) {
       throw new IllegalStateException("Validated scalar AOT argument width changed");
@@ -158,6 +192,20 @@ final class ScalarAotX86 {
       storeRaxOffset((argument - REGISTER_ARGUMENTS) * Long.BYTES);
     }
     return callAreaBytes;
+  }
+
+  void loadResultArguments(int slot, int callAreaBytes) {
+    bytes(0x4c, 0x8b, 0x94, 0x24);
+    integer(slot * Long.BYTES + callAreaBytes);
+    bytes(0x4c, 0x8b, 0x9c, 0x24);
+    integer((slot + 1) * Long.BYTES + callAreaBytes);
+  }
+
+  void storeResultArguments(int slot) {
+    bytes(0x4c, 0x89, 0x94, 0x24);
+    integer(slot * Long.BYTES);
+    bytes(0x4c, 0x89, 0x9c, 0x24);
+    integer((slot + 1) * Long.BYTES);
   }
 
   void closeArguments(int callAreaBytes) {
@@ -632,7 +680,7 @@ final class ScalarAotX86 {
         bytes(0x48, 0x0f, 0xaf, 0xc1, 0x0f, 0x80);
         traps.add(reserveInt());
       }
-      case LOCAL_DIV, LOCAL_MOD -> division(opcode);
+      case LOCAL_DIV, LOCAL_MOD -> division(opcode, traps);
       case LOCAL_AND -> bytes(0x48, 0x21, 0xc8);
       case LOCAL_XOR -> bytes(0x48, 0x31, 0xc8);
       case LOCAL_ROTR32 -> bytes(0xd3, 0xc8);
@@ -667,10 +715,32 @@ final class ScalarAotX86 {
     bytes(0x48, 0x0f, 0xb6, 0xc0);
   }
 
-  void division(Opcode opcode) {
+  void division(Opcode opcode, ArrayList<Integer> traps) {
+    bytes(0x48, 0x85, 0xc9, 0x0f, 0x84);
+    traps.add(reserveInt());
+    bytes(0x49, 0xb8);
+    word(Long.MIN_VALUE);
+    bytes(0x4c, 0x39, 0xc0, 0x0f, 0x85);
+    int ordinaryLeft = reserveInt();
+    bytes(0x48, 0x83, 0xf9, 0xff, 0x0f, 0x85);
+    int ordinaryRight = reserveInt();
+    if (opcode == Opcode.LOCAL_DIV) {
+      bytes(0xe9);
+      traps.add(reserveInt());
+    } else {
+      bytes(0x31, 0xc0, 0xe9);
+    }
+    int specialEnd = opcode == Opcode.LOCAL_MOD ? reserveInt() : -1;
+    int ordinary = position();
     bytes(0x48, 0x99, 0x48, 0xf7, 0xf9);
     if (opcode == Opcode.LOCAL_MOD) {
       bytes(0x48, 0x89, 0xd0);
+    }
+    int end = position();
+    patchRelativeInt(ordinaryLeft, ordinary);
+    patchRelativeInt(ordinaryRight, ordinary);
+    if (specialEnd >= 0) {
+      patchRelativeInt(specialEnd, end);
     }
   }
 

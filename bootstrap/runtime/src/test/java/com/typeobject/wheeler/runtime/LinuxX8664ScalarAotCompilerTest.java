@@ -26,8 +26,11 @@ import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.loopArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.noStatusWriterArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.outputArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.parameterHelperArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.occupiedResultSlotArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.parameterVoidHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.recursiveHelperArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.resultSlotArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.wideResultSlotArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.scalarGlobalArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.selfCallingHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.stateCheckArtifact;
@@ -108,6 +111,32 @@ final class LinuxX8664ScalarAotCompilerTest extends ScalarAotNativeTest {
       assertNotEquals(
           identity(LinuxX8664ScalarAotCompiler.lower(artifact(42)).runtimeText()),
           lowered.runtimeIdentity());
+    }
+  }
+
+  @Test
+  void lowersCanonicalRemainderEdge() throws Exception {
+    byte[] artifact = arithmeticArtifact(Opcode.LOCAL_MOD, Long.MIN_VALUE, -1);
+    var lowered = LinuxX8664ScalarAotCompiler.lower(artifact);
+
+    assertEquals(0, lowered.processStatus());
+    Fixture fixture = fixture(artifact, lowered.runtimeText());
+    byte[] image = ElfImage.build(
+        fixture.plan(), fixture.abi(), fixture.capsule(), lowered.runtimeText(), 0);
+    ElfImage.verify(image, fixture.plan(), fixture.abi());
+    assertEquals(
+        "b58f22ae80febf5f4eb312ffe55b2bb6137db3f60f9fa695ffafbac1fe7b7b98",
+        identity(artifact));
+    assertEquals(
+        "933e22071d51952c7f5abb3e7d03ff9fff0e8a3bbfa9ea233a5d070d8ef7a026",
+        lowered.runtimeIdentity());
+    if (nativeLinuxHost()) {
+      Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
+      assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(0, process.exitValue());
+      assertArrayEquals(
+          LinuxX8664EntryShim.successOutput(), process.getInputStream().readAllBytes());
+      assertEquals(0, process.getErrorStream().readAllBytes().length);
     }
   }
 
@@ -527,6 +556,74 @@ final class LinuxX8664ScalarAotCompilerTest extends ScalarAotNativeTest {
       Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
       assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
       assertEquals(73, process.exitValue());
+      assertArrayEquals(
+          LinuxX8664EntryShim.successOutput(), process.getInputStream().readAllBytes());
+      assertEquals(0, process.getErrorStream().readAllBytes().length);
+    }
+  }
+
+  @Test
+  void lowersReversibleScalarResultSlots() throws Exception {
+    byte[] artifact = resultSlotArtifact();
+    var lowered = LinuxX8664ScalarAotCompiler.lower(artifact);
+
+    assertEquals(42, lowered.processStatus());
+    IllegalArgumentException occupied = assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(occupiedResultSlotArtifact()));
+    assertEquals("Scalar AOT arithmetic traps", occupied.getMessage());
+    Fixture fixture = fixture(artifact, lowered.runtimeText());
+    byte[] image = ElfImage.build(
+        fixture.plan(), fixture.abi(), fixture.capsule(), lowered.runtimeText(), 0);
+    ElfImage.VerifiedImage verified = ElfImage.verify(image, fixture.plan(), fixture.abi());
+    assertEquals(
+        "961b66d9f5e73540a95f9425f6403f7697e513eef64c7c2f907a9d678a5db34a",
+        identity(artifact));
+    assertEquals(
+        "480022e7d0bc97ddd745dbb7d77b567cbede3efbb7f09396b957fb99dc5f2300",
+        lowered.runtimeIdentity());
+    assertEquals(
+        "d88799a39344339e1e9210b814fb2a9b6c2154fb19b63c2fcc690a0771413156",
+        fixture.capsule().identity());
+    assertEquals(
+        "c868b08c922cc5d4a53a5dce961d0948cf27200b0f04c0f26a0764e4acff8c3c",
+        fixture.plan().identity());
+    assertEquals(
+        "7b8f8769e083a7152836aa2ef13a21c080839b3eb2563e2b4922e78d20e1b7f6",
+        verified.prev());
+    if (nativeLinuxHost()) {
+      Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
+      assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(42, process.exitValue());
+      assertArrayEquals(
+          LinuxX8664EntryShim.successOutput(), process.getInputStream().readAllBytes());
+      assertEquals(0, process.getErrorStream().readAllBytes().length);
+    }
+  }
+
+  @Test
+  void lowersSixteenArgumentResultSlots() throws Exception {
+    byte[] artifact = wideResultSlotArtifact(16);
+    var lowered = LinuxX8664ScalarAotCompiler.lower(artifact);
+
+    assertEquals(42, lowered.processStatus());
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(wideResultSlotArtifact(17)));
+    Fixture fixture = fixture(artifact, lowered.runtimeText());
+    byte[] image = ElfImage.build(
+        fixture.plan(), fixture.abi(), fixture.capsule(), lowered.runtimeText(), 0);
+    ElfImage.verify(image, fixture.plan(), fixture.abi());
+    assertEquals(
+        "8307662a8e1ed6723fc39266911cc2ca444897e43d35d787eaa6ae32e937ace9",
+        identity(artifact));
+    assertEquals(
+        "3aab2bc57ae9fa0b13cb3196253e7b46d1b1c1d7bfe0edc5686fa415e7f5a431",
+        lowered.runtimeIdentity());
+    if (nativeLinuxHost()) {
+      Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
+      assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(42, process.exitValue());
       assertArrayEquals(
           LinuxX8664EntryShim.successOutput(), process.getInputStream().readAllBytes());
       assertEquals(0, process.getErrorStream().readAllBytes().length);
