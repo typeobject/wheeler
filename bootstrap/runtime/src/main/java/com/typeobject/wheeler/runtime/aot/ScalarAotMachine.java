@@ -4,6 +4,8 @@ import com.typeobject.wheeler.core.bytecode.FunctionBody;
 import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /** Position-independent x86-64 lowering for one validated scalar AOT program. */
 public final class ScalarAotMachine {
@@ -15,13 +17,16 @@ public final class ScalarAotMachine {
   public static byte[] lower(ScalarAotProgram scalar) {
     ScalarAotX86 code = new ScalarAotX86();
     int[] functionOffsets = new int[scalar.program().functions().size()];
+    int[] inverseOffsets = new int[scalar.program().functions().size()];
+    Arrays.fill(inverseOffsets, -1);
     int fuelSlot = scalar.entry().localCount() + scalar.program().globals().size();
     int finalStateSlot = fuelSlot + (scalar.usesBoundedRecursion() ? 1 : 0);
     ScalarAotX86.IoLayout io = scalar.usesDynamicApplicationIo()
         ? ScalarAotX86.IoLayout.create(finalStateSlot)
         : null;
     boolean utf8 = scalar.program().functions().stream()
-        .flatMap(function -> function.forward().stream())
+        .flatMap(function -> java.util.stream.Stream.concat(
+            function.forward().stream(), function.inverse().stream()))
         .anyMatch(instruction -> switch (instruction.opcode()) {
           case UTF8_VALID, UTF8_COUNT, UTF8_SCALAR, UTF8_WIDTH -> true;
           default -> false;
@@ -40,11 +45,21 @@ public final class ScalarAotMachine {
       if (function.id() == scalar.entry().id()) {
         emitEntry(code, scalar, calls, io);
       } else {
-        emitHelper(code, function, calls, io, scalar.usesBoundedRecursion());
+        emitHelper(
+            code, function, function.forward(), calls, io, scalar.usesBoundedRecursion());
+        if (!function.inverse().isEmpty()) {
+          inverseOffsets[function.id()] = code.position();
+          emitHelper(
+              code, function, function.inverse(), calls, io, scalar.usesBoundedRecursion());
+        }
       }
     }
     for (CallPatch call : calls) {
-      code.patchRelativeInt(call.displacement(), functionOffsets[call.target()]);
+      int target = call.inverse() ? inverseOffsets[call.target()] : functionOffsets[call.target()];
+      if (target < 0) {
+        throw new IllegalStateException("Validated scalar inverse target is absent");
+      }
+      code.patchRelativeInt(call.displacement(), target);
     }
     if (entryJump >= 0) {
       code.patchRelativeInt(entryJump, functionOffsets[scalar.entry().id()]);
@@ -92,7 +107,7 @@ public final class ScalarAotMachine {
       code.storeRax(0);
     }
     FunctionPatches patches = emitBody(
-        code, entry, calls, io, scalar.usesBoundedRecursion());
+        code, entry, entry.forward(), calls, io, scalar.usesBoundedRecursion());
     patches.traps().addAll(prologueTraps);
 
     code.loadGlobal(0);
@@ -119,6 +134,7 @@ public final class ScalarAotMachine {
   private static void emitHelper(
       ScalarAotX86 code,
       FunctionBody helper,
+      List<Instruction> body,
       ArrayList<CallPatch> calls,
       ScalarAotX86.IoLayout io,
       boolean boundedRecursion) {
@@ -127,9 +143,10 @@ public final class ScalarAotMachine {
     for (int parameter = 0; parameter < helper.parameterCount(); parameter++) {
       code.storeArgument(parameter, frameBytes);
     }
-    FunctionPatches patches = emitBody(code, helper, calls, io, boundedRecursion);
+    FunctionPatches patches = emitBody(
+        code, helper, body, calls, io, boundedRecursion);
 
-    Instruction returned = helper.forward().getLast();
+    Instruction returned = body.getLast();
     if (returned.opcode() == Opcode.RETURN_VALUE) {
       code.loadRax(Math.toIntExact(returned.operands().get(0)));
     } else {
@@ -149,16 +166,17 @@ public final class ScalarAotMachine {
   private static FunctionPatches emitBody(
       ScalarAotX86 code,
       FunctionBody function,
+      List<Instruction> body,
       ArrayList<CallPatch> calls,
       ScalarAotX86.IoLayout io,
       boolean boundedRecursion) {
-    int[] instructionOffsets = new int[function.forward().size()];
+    int[] instructionOffsets = new int[body.size()];
     ArrayList<MachineBranch> branches = new ArrayList<>();
     ArrayList<Integer> traps = new ArrayList<>();
-    for (int pc = 0; pc < function.forward().size(); pc++) {
+    for (int pc = 0; pc < body.size(); pc++) {
       instructionOffsets[pc] = code.position();
       code.consumeFuel(traps);
-      Instruction instruction = function.forward().get(pc);
+      Instruction instruction = body.get(pc);
       switch (instruction.opcode()) {
         case NOP -> {
           // Canonical NOP has no machine effect.
@@ -265,6 +283,21 @@ public final class ScalarAotMachine {
           code.loopCheck(traps);
           code.storeRax(local(instruction, 0));
         }
+        case CALL, UNCALL -> {
+          if (boundedRecursion) {
+            code.enterCall(traps);
+          }
+          code.bytes(0xe8);
+          calls.add(new CallPatch(
+              code.reserveInt(),
+              Math.toIntExact(instruction.operands().get(0)),
+              instruction.opcode() == Opcode.UNCALL));
+          if (boundedRecursion) {
+            code.leaveCall();
+          }
+          code.bytes(0x48, 0x85, 0xd2, 0x0f, 0x85);
+          traps.add(code.reserveInt());
+        }
         case CALL_VALUE, CALL_VOID -> {
           int argumentBase = Math.toIntExact(instruction.operands().get(1));
           int argumentCount = Math.toIntExact(instruction.operands().get(2));
@@ -274,7 +307,7 @@ public final class ScalarAotMachine {
           }
           code.bytes(0xe8);
           calls.add(new CallPatch(
-              code.reserveInt(), Math.toIntExact(instruction.operands().get(0))));
+              code.reserveInt(), Math.toIntExact(instruction.operands().get(0)), false));
           code.closeArguments(callAreaBytes);
           if (boundedRecursion) {
             code.leaveCall();
@@ -320,7 +353,7 @@ public final class ScalarAotMachine {
     return Math.addExact(bytes, 15) & -16;
   }
 
-  private record CallPatch(int displacement, int target) {}
+  private record CallPatch(int displacement, int target, boolean inverse) {}
 
   private record MachineBranch(int displacement, int target) {}
 

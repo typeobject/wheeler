@@ -442,6 +442,44 @@ final class ScalarAotArtifacts {
             List.of()))));
   }
 
+  static byte[] directionalCallArtifact() {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-directional-call",
+        1,
+        List.of(new Global("status", 0), new Global("counter", 0)),
+        List.of(
+            new FunctionBody(
+                0,
+                "example.app::increment",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                null,
+                List.of(
+                    Instruction.of(Opcode.ADD_CONST, 1, 1),
+                    Instruction.of(Opcode.RETURN)),
+                List.of(
+                    Instruction.of(Opcode.SUB_CONST, 1, 1),
+                    Instruction.of(Opcode.RETURN))),
+            new FunctionBody(
+                1,
+                "example.app::main",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                null,
+                List.of(
+                    Instruction.of(Opcode.CALL, 0),
+                    Instruction.of(Opcode.CALL, 0),
+                    Instruction.of(Opcode.EXPECT_EQ, 1, 2),
+                    Instruction.of(Opcode.UNCALL, 0),
+                    Instruction.of(Opcode.EXPECT_EQ, 1, 1),
+                    Instruction.of(Opcode.LOCAL_LOAD_GLOBAL, 0, 1),
+                    Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
+                    Instruction.of(Opcode.HALT)),
+                List.of()))));
+  }
+
   static byte[] globalReplacementArtifact() {
     return new BytecodeWriter().write(new Program(
         "scalar-aot-global-replacement",

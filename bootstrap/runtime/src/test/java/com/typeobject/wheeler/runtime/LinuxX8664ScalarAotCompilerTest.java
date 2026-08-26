@@ -8,6 +8,7 @@ import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.cyclicHelper
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.conditionalArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.dormantUnsupportedHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dynamicIoArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.directionalCallArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dynamicIoHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.executionBoundArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.globalInstructionArtifact;
@@ -179,6 +180,41 @@ final class LinuxX8664ScalarAotCompilerTest {
       Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
       assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
       assertEquals(73, process.exitValue());
+      assertArrayEquals(
+          LinuxX8664EntryShim.successOutput(), process.getInputStream().readAllBytes());
+      assertEquals(0, process.getErrorStream().readAllBytes().length);
+    }
+  }
+
+  @Test
+  void lowersForwardAndInverseScalarCalls() throws Exception {
+    byte[] artifact = directionalCallArtifact();
+    var lowered = LinuxX8664ScalarAotCompiler.lower(artifact);
+
+    assertEquals(1, lowered.processStatus());
+    Fixture fixture = fixture(artifact, lowered.runtimeText());
+    byte[] image = ElfImage.build(
+        fixture.plan(), fixture.abi(), fixture.capsule(), lowered.runtimeText(), 0);
+    ElfImage.VerifiedImage verified = ElfImage.verify(image, fixture.plan(), fixture.abi());
+    assertEquals(
+        "b5907c5d8e3169c09a5e5d04a3b9b7a73dbc190d6d7ba4fc8984c3fda6186763",
+        identity(artifact));
+    assertEquals(
+        "cc5edc6502c39037e7c7eba018855b901845ef4391e69399159eb29fca036209",
+        lowered.runtimeIdentity());
+    assertEquals(
+        "69e3db35fb636680c5e3df441e264ef27a5031863c1477a15439fad3d6367e8c",
+        fixture.capsule().identity());
+    assertEquals(
+        "728420ab46abb7aa066b93d8e1fbc5531000570b53eb486a7f34a893de3f9fc3",
+        fixture.plan().identity());
+    assertEquals(
+        "17723dda0eee581a9d7b5a3623cb0324098647dac057fc8e8ffdc20543c5a7c1",
+        verified.prev());
+    if (nativeLinuxHost()) {
+      Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
+      assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(1, process.exitValue());
       assertArrayEquals(
           LinuxX8664EntryShim.successOutput(), process.getInputStream().readAllBytes());
       assertEquals(0, process.getErrorStream().readAllBytes().length);

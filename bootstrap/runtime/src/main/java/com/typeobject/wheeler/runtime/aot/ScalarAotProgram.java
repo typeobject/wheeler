@@ -6,6 +6,7 @@ import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.ProgramKind;
 import com.typeobject.wheeler.core.bytecode.ValueType;
+import java.util.List;
 
 /** Closed semantic profile accepted by the x86-64 scalar AOT leaf. */
 public final class ScalarAotProgram {
@@ -59,6 +60,7 @@ public final class ScalarAotProgram {
     Evaluation evaluation = evaluate(
         program,
         program.entryFunctionId(),
+        false,
         arguments,
         output,
         state,
@@ -167,9 +169,11 @@ public final class ScalarAotProgram {
                 && !(dynamicIo && (type.equals(ValueType.BYTE_VIEW)
                     || type.equals(ValueType.UTF8_BORROW))))
         || function.implicitResultSlot()
-        || !function.inverse().isEmpty()
         || function.forward().size() < 2
         || function.forward().size() > MAX_INSTRUCTIONS
+        || function.inverse().size() > MAX_INSTRUCTIONS
+        || !function.inverse().isEmpty()
+            && (entry || function.parameterCount() != 0 || function.resultType() != null)
         || entry && function.resultType() != null
         || !entry && function.resultType() != null
             && !function.resultType().equals(ValueType.SIGNED)
@@ -177,10 +181,26 @@ public final class ScalarAotProgram {
       throw new IllegalArgumentException("AOT function signature is outside the scalar profile");
     }
 
+    validateBody(program, function, function.forward(), entry, dynamicIo, output);
+    if (!function.inverse().isEmpty()) {
+      validateBody(program, function, function.inverse(), false, dynamicIo, output);
+    }
+  }
+
+  private static void validateBody(
+      Program program,
+      FunctionBody function,
+      List<Instruction> body,
+      boolean entry,
+      boolean dynamicIo,
+      boolean output) {
+    if (body.size() < 2 || body.size() > MAX_INSTRUCTIONS) {
+      throw new IllegalArgumentException("Scalar AOT function body is outside the profile");
+    }
     int stores = 0;
-    int last = function.forward().size() - 1;
-    for (int pc = 0; pc < function.forward().size(); pc++) {
-      Instruction instruction = function.forward().get(pc);
+    int last = body.size() - 1;
+    for (int pc = 0; pc < body.size(); pc++) {
+      Instruction instruction = body.get(pc);
       switch (instruction.opcode()) {
         case NOP -> requireOperands(instruction, 0);
         case LOCAL_CONST, LOCAL_MOVE, BUFFER_BORROW, UTF8_BORROW ->
@@ -233,6 +253,7 @@ public final class ScalarAotProgram {
         }
         case CALL_VALUE -> validateCall(program, function, instruction, true);
         case CALL_VOID -> validateCall(program, function, instruction, false);
+        case CALL, UNCALL -> validateDirectionalCall(program, instruction);
         case LOCAL_STORE_GLOBAL -> {
           requireOperands(instruction, 2);
           int global = global(instruction.operands().get(0), program.globals().size());
@@ -269,7 +290,7 @@ public final class ScalarAotProgram {
             "Unsupported scalar AOT opcode " + instruction.opcode());
       }
     }
-    Opcode terminal = function.forward().getLast().opcode();
+    Opcode terminal = body.getLast().opcode();
     if (entry && (stores == 0 || terminal != Opcode.HALT)
         || !entry && function.resultType() == null && terminal != Opcode.RETURN
         || !entry && function.resultType() != null && terminal != Opcode.RETURN_VALUE) {
@@ -451,6 +472,21 @@ public final class ScalarAotProgram {
     };
   }
 
+  private static void validateDirectionalCall(
+      Program program, Instruction instruction) {
+    requireOperands(instruction, 1);
+    int target = Math.toIntExact(instruction.operands().get(0));
+    if (target < 0 || target >= program.entryFunctionId()) {
+      throw new IllegalArgumentException("Scalar AOT directional call target is not a helper");
+    }
+    FunctionBody callee = program.function(target);
+    if (callee.parameterCount() != 0
+        || callee.resultType() != null
+        || instruction.opcode() == Opcode.UNCALL && callee.inverse().isEmpty()) {
+      throw new IllegalArgumentException("Scalar AOT directional call signature is invalid");
+    }
+  }
+
   private static void validateCall(
       Program program,
       FunctionBody owner,
@@ -502,13 +538,18 @@ public final class ScalarAotProgram {
 
     states[functionId] = 1;
     boolean recursive = false;
-    for (Instruction instruction : program.function(functionId).forward()) {
-      if (instruction.opcode() == Opcode.CALL_VALUE
-          || instruction.opcode() == Opcode.CALL_VOID) {
-        recursive = visitCalls(
-            program,
-            Math.toIntExact(instruction.operands().get(0)),
-            states) || recursive;
+    FunctionBody function = program.function(functionId);
+    for (List<Instruction> body : List.of(function.forward(), function.inverse())) {
+      for (Instruction instruction : body) {
+        if (instruction.opcode() == Opcode.CALL
+            || instruction.opcode() == Opcode.UNCALL
+            || instruction.opcode() == Opcode.CALL_VALUE
+            || instruction.opcode() == Opcode.CALL_VOID) {
+          recursive = visitCalls(
+              program,
+              Math.toIntExact(instruction.operands().get(0)),
+              states) || recursive;
+        }
       }
     }
     states[functionId] = 2;
@@ -518,6 +559,7 @@ public final class ScalarAotProgram {
   private static Evaluation evaluate(
       Program program,
       int functionId,
+      boolean inverse,
       long[] arguments,
       OutputState output,
       EvaluationState state,
@@ -527,10 +569,11 @@ public final class ScalarAotProgram {
     boolean[] assigned = new boolean[function.localCount()];
     System.arraycopy(arguments, 0, values, 0, arguments.length);
     java.util.Arrays.fill(assigned, 0, arguments.length, true);
+    List<Instruction> body = function.body(inverse);
     int pc = 0;
-    while (pc < function.forward().size()) {
+    while (pc < body.size()) {
       budget.consume();
-      Instruction instruction = function.forward().get(pc);
+      Instruction instruction = body.get(pc);
       try {
         switch (instruction.opcode()) {
           case LOCAL_CONST -> {
@@ -648,6 +691,22 @@ public final class ScalarAotProgram {
             }
             pc++;
           }
+          case CALL, UNCALL -> {
+            budget.enterCall();
+            try {
+              evaluate(
+                  program,
+                  Math.toIntExact(instruction.operands().get(0)),
+                  instruction.opcode() == Opcode.UNCALL,
+                  new long[0],
+                  output,
+                  state,
+                  budget);
+            } finally {
+              budget.leaveCall();
+            }
+            pc++;
+          }
           case CALL_VALUE, CALL_VOID -> {
             int argumentBase = Math.toIntExact(instruction.operands().get(1));
             int argumentCount = Math.toIntExact(instruction.operands().get(2));
@@ -665,6 +724,7 @@ public final class ScalarAotProgram {
               result = evaluate(
                   program,
                   Math.toIntExact(instruction.operands().get(0)),
+                  false,
                   callArguments,
                   output,
                   state,

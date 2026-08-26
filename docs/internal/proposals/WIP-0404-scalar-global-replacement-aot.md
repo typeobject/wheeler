@@ -43,7 +43,7 @@ Both instructions consume the shared execution fuel before mutation. They add no
 
 `SWAP` is intrinsically reversible. Its forward machine sequence preserves enough value information for the process result, but this AOT leaf exposes no inverse entry.
 
-`SET_LOGGED` is reversible only with its prior value in Wheeler history. The generated one-way executable does not fabricate that history. Native inverse execution and rewind remain required before the complete classical bootstrap profile can replace the Wheeler interpreter.
+`SET_LOGGED` is reversible only with its prior value in Wheeler history. The generated one-way executable does not fabricate that history. WIP-0405 adds bounded inverse helper calls. Native rewind remains required before the complete classical bootstrap profile can replace the Wheeler interpreter.
 
 The absence of rewind is explicit rather than represented by a partial log or an unchecked local rewrite.
 
@@ -101,3 +101,4 @@ Rejected. A forward-only backend must not claim rewind authority.
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0390](WIP-0390-x86-64-linux-shared-scalar-globals.md)
 - [WIP-0403](WIP-0403-scalar-global-instruction-aot.md)
+- [WIP-0405](WIP-0405-directional-scalar-aot-calls.md)
