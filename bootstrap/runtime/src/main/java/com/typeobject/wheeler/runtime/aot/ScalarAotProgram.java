@@ -9,7 +9,7 @@ import com.typeobject.wheeler.core.bytecode.ValueType;
 
 /** Closed semantic profile accepted by the x86-64 scalar AOT leaf. */
 public final class ScalarAotProgram {
-  public static final int MAX_FUNCTIONS = 8;
+  public static final int MAX_FUNCTIONS = 16;
   public static final int MAX_GLOBALS = 32;
   public static final int MAX_PARAMETERS = 7;
   public static final int MAX_LOCALS = 32;
