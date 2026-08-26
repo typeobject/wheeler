@@ -104,6 +104,7 @@ final class NativeCompilerPhysicalModules {
         physical("compiler/syntax/calls/assignment/AssignmentCallKinds.w", "assignment_call_kinds"),
         physical("compiler/syntax/calls/assignment/AssignmentCallLocalWidths.w", "assignment_call_local_widths"),
         physical("compiler/syntax/calls/assignment/AssignmentCallOperands.w", "assignment_call_operands"),
+        physical("compiler/syntax/calls/assignment/AssignmentCallSyntax.w", "assignment_call_syntax"),
         physical("compiler/syntax/CallForms.w", "call_forms"),
         physical("compiler/syntax/returns/EarlyComparisonForms.w", "early_comparison_forms"),
         physical("compiler/syntax/helpers/HelperResultKinds.w", "helper_result_kinds"),
@@ -112,7 +113,8 @@ final class NativeCompilerPhysicalModules {
         physical("compiler/frontend/calls/VoidCallSyntax.w", "void_call_syntax"),
         physical("compiler/syntax/calls/void/VoidCallSourceForms.w", "void_call_source_forms"),
         physical("compiler/syntax/calls/VoidCallSourceWidths.w", "void_call_source_widths"),
-        physical("compiler/syntax/calls/VoidCallWidths.w", "void_call_widths"));
+        physical("compiler/syntax/calls/VoidCallWidths.w", "void_call_widths"),
+        physical("compiler/syntax/calls/WideLocalCalls.w", "wide_local_calls"));
   }
 
   private static NativeCompilerArchiveClosureProgram.PhysicalModule physical(

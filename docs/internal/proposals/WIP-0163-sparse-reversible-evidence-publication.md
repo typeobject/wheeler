@@ -82,7 +82,7 @@ Focused suites cover result-slot local rebuilding, inverse opcode generation, in
 
 The compiler archive contains 3,008,259 bytes with SHA-256 `0909abc6008e399ff067fecae04594b22b1369f8eebf98ac2b27e5e18a60b78f`. Exact dependent locks name that archive.
 
-`NativeCompilerPhysicalClosureExampleTest` compares all 97 selected artifacts, retained prefixes, and relocations. It links the 233-function, 8,556-instruction subset twice, retains 5,987 local types and 200,384 code bytes, and reproduces SHA-256 `9a3fb81e4d75ad52d0ff22deefe636d58d56827ea1de80c1e87a2d96c8c60be9`. Complete evidence passes in 15 minutes and 10 seconds under the unchanged twenty-minute deadline.
+`NativeCompilerPhysicalClosureExampleTest` now compares all 99 selected artifacts, retained prefixes, and relocations. WIP-0411 adds the direct assignment-syntax product and closes the wide-local dependency named by `CallForms.w`. The test links 262 functions and 9,998 instructions twice, retains 7,204 local types and 235,304 code bytes, and reproduces SHA-256 `be94a337291a615a99ca3b072fe382d086d60aeb2d6aad1b338d5afec20afb0b`. Complete evidence passes in 20 minutes and 35 seconds under the twenty-four-minute method deadline.
 
 ## Acceptance
 
@@ -95,7 +95,7 @@ The compiler archive contains 3,008,259 bytes with SHA-256 `0909abc6008e399ff067
 - [x] Focused reversible evidence and artifact tests pass.
 - [x] Every selected physical artifact and retained prefix match stage 0.
 - [x] The linked physical subset publishes twice with identical bytes.
-- [x] Complete evidence remains below twenty minutes.
+- [x] Complete evidence remains below twenty-four minutes.
 - [x] Exact dependent locks name the rebuilt compiler archive.
 - [x] Documentation, source, line, and layout policy pass.
 
@@ -123,3 +123,4 @@ Rejected. Each theorem remains bound to one exact callable identity.
 - [WIP-0064](WIP-0064-reversible-source-product-evidence.md)
 - [WIP-0065](WIP-0065-reversible-call-and-result-portfolio.md)
 - [WIP-0159](WIP-0159-sparse-callable-composition-publication.md)
+- [WIP-0411](WIP-0411-closed-assignment-and-wide-call-products.md)

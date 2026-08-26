@@ -18,6 +18,44 @@ classical class WideLocalCalls {
   /// Names the first source stored in the trailing packed operand.
   private const long WIDE_LOCAL_TRAILING_SOURCE = 4;
 
+  private long namedWideLocalCallKindAfterArguments(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    long arity,
+    long cursor,
+    boolean booleanResult
+  ) {
+    long currentKind = wideLocalCallKind(arity, booleanResult);
+    if (arity == MAX_WIDE_LOCAL_CALL_ARGUMENTS) {
+      return currentKind;
+    }
+
+    long punctuationOffset = tokenStarts[cursor];
+    long punctuation = utf8Scalar(source, punctuationOffset);
+    boolean comma = punctuation == PUNCTUATION_COMMA;
+    if (comma == false) {
+      return currentKind;
+    }
+
+    long argumentToken = cursor + 1;
+    long argumentOffset = tokenStarts[argumentToken];
+    long argument = utf8Scalar(source, argumentOffset);
+    boolean starts = identifierStart(argument);
+    if (starts == false) {
+      return currentKind;
+    }
+
+    long nextArity = arity + 1;
+    long nextCursor = cursor + 2;
+    return namedWideLocalCallKindAfterArguments(
+      source,
+      tokenStarts,
+      nextArity,
+      nextCursor,
+      booleanResult
+    );
+  }
+
   /// Returns the unresolved statement kind for an exact named arity and result type.
   public long namedWideLocalCallKind(
     borrow utf8 source,
@@ -27,46 +65,44 @@ classical class WideLocalCalls {
   ) {
     long arity = 3;
     long cursor = statementStart + 10;
-    while (arity < MAX_WIDE_LOCAL_CALL_ARGUMENTS) limit MAX_WIDE_LOCAL_CALL_ARGUMENTS {
-      if (utf8Scalar(source, tokenStarts[cursor]) == PUNCTUATION_COMMA) {} else {
-        return wideLocalCallKind(arity, booleanResult);
-      }
+    return namedWideLocalCallKindAfterArguments(
+      source,
+      tokenStarts,
+      arity,
+      cursor,
+      booleanResult
+    );
+  }
 
-      if (identifierStart(utf8Scalar(source, tokenStarts[cursor + 1]))) {} else {
-        return wideLocalCallKind(arity, booleanResult);
-      }
-
-      arity += 1;
-      cursor += 2;
+  private long namedBooleanWideLocalCallKind(long arity) {
+    if (arity == 3) {
+      return STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_NAMED;
     }
 
-    return wideLocalCallKind(arity, booleanResult);
+    if (arity == 4) {
+      return STATEMENT_LOCAL_BOOLEAN_CALL_FOUR_LOCALS_NAMED;
+    }
+
+    if (arity == 5) {
+      return STATEMENT_LOCAL_BOOLEAN_CALL_FIVE_LOCALS_NAMED;
+    }
+
+    if (arity == 6) {
+      return STATEMENT_LOCAL_BOOLEAN_CALL_SIX_LOCALS_NAMED;
+    }
+
+    if (arity == MAX_WIDE_LOCAL_CALL_ARGUMENTS) {
+      return STATEMENT_LOCAL_BOOLEAN_CALL_SEVEN_LOCALS_NAMED;
+    }
+
+    return -1;
   }
 
   /// Returns one exact unresolved wide-local statement kind.
   public long wideLocalCallKind(long arity, boolean booleanResult) {
-    if (booleanResult) {
-      if (arity == 3) {
-        return STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_NAMED;
-      }
-
-      if (arity == 4) {
-        return STATEMENT_LOCAL_BOOLEAN_CALL_FOUR_LOCALS_NAMED;
-      }
-
-      if (arity == 5) {
-        return STATEMENT_LOCAL_BOOLEAN_CALL_FIVE_LOCALS_NAMED;
-      }
-
-      if (arity == 6) {
-        return STATEMENT_LOCAL_BOOLEAN_CALL_SIX_LOCALS_NAMED;
-      }
-
-      if (arity == MAX_WIDE_LOCAL_CALL_ARGUMENTS) {
-        return STATEMENT_LOCAL_BOOLEAN_CALL_SEVEN_LOCALS_NAMED;
-      }
-
-      return -1;
+    long booleanKind = namedBooleanWideLocalCallKind(arity);
+    if (booleanResult == true) {
+      return booleanKind;
     }
 
     if (arity == 3) {
@@ -92,22 +128,27 @@ classical class WideLocalCalls {
     return -1;
   }
 
+  private long resolvedBooleanWideLocalCall(long arity) {
+    if (arity == 5) {
+      return STATEMENT_LOCAL_BOOLEAN_CALL_FIVE_LOCALS;
+    }
+
+    if (arity == 6) {
+      return STATEMENT_LOCAL_BOOLEAN_CALL_SIX_LOCALS;
+    }
+
+    if (arity == MAX_WIDE_LOCAL_CALL_ARGUMENTS) {
+      return STATEMENT_LOCAL_BOOLEAN_CALL_SEVEN_LOCALS;
+    }
+
+    return -1;
+  }
+
   /// Returns one exact resolved wide-local statement identity.
   public long resolvedWideLocalCall(long arity, boolean booleanResult) {
-    if (booleanResult) {
-      if (arity == 5) {
-        return STATEMENT_LOCAL_BOOLEAN_CALL_FIVE_LOCALS;
-      }
-
-      if (arity == 6) {
-        return STATEMENT_LOCAL_BOOLEAN_CALL_SIX_LOCALS;
-      }
-
-      if (arity == MAX_WIDE_LOCAL_CALL_ARGUMENTS) {
-        return STATEMENT_LOCAL_BOOLEAN_CALL_SEVEN_LOCALS;
-      }
-
-      return -1;
+    long booleanKind = resolvedBooleanWideLocalCall(arity);
+    if (booleanResult == true) {
+      return booleanKind;
     }
 
     if (arity == 5) {
@@ -270,7 +311,51 @@ classical class WideLocalCalls {
 
   /// Returns one source token in a named wide-local call.
   public long wideLocalCallArgumentToken(long statementStart, long argument) {
-    return statementStart + 5 + argument * 2;
+    long doubled = argument * 2;
+    long first = statementStart + 5;
+    return first + doubled;
+  }
+
+  private long wideLocalArgumentsEnd(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    long argument,
+    long arity,
+    long cursor
+  ) {
+    if (argument == arity) {
+      return cursor;
+    }
+
+    long kind = tokenKinds[cursor];
+    boolean validKind = kind == 1;
+    if (validKind == false) {
+      return -1;
+    }
+
+    long nextArgument = argument + 1;
+    long nextCursor = cursor + 1;
+    if (nextArgument == arity) {
+      return nextCursor;
+    }
+
+    long commaOffset = tokenStarts[nextCursor];
+    long commaScalar = utf8Scalar(source, commaOffset);
+    boolean comma = commaScalar == PUNCTUATION_COMMA;
+    if (comma == false) {
+      return -1;
+    }
+
+    long followingCursor = nextCursor + 1;
+    return wideLocalArgumentsEnd(
+      source,
+      tokenKinds,
+      tokenStarts,
+      nextArgument,
+      arity,
+      followingCursor
+    );
   }
 
   /// Validates and measures one exact wide-local source statement.
@@ -281,60 +366,86 @@ classical class WideLocalCalls {
     long statementStart,
     long statementKind
   ) {
-    if (tokenKinds[statementStart + 1] == 1) {} else {
+    long targetToken = statementStart + 1;
+    long targetKind = tokenKinds[targetToken];
+    boolean validTarget = targetKind == 1;
+    if (validTarget == false) {
       return -1;
     }
 
-    if (utf8Scalar(source, tokenStarts[statementStart + 2]) == PUNCTUATION_ASSIGN) {} else {
+    long assignmentToken = statementStart + 2;
+    long assignmentOffset = tokenStarts[assignmentToken];
+    long assignment = utf8Scalar(source, assignmentOffset);
+    boolean validAssignment = assignment == PUNCTUATION_ASSIGN;
+    if (validAssignment == false) {
       return -1;
     }
 
-    if (tokenKinds[statementStart + 3] == 1) {} else {
+    long helperToken = statementStart + 3;
+    long helperKind = tokenKinds[helperToken];
+    boolean validHelper = helperKind == 1;
+    if (validHelper == false) {
       return -1;
     }
 
-    if (utf8Scalar(source, tokenStarts[statementStart + 4]) == PUNCTUATION_OPEN_PAREN) {} else {
+    long openingToken = statementStart + 4;
+    long openingOffset = tokenStarts[openingToken];
+    long opening = utf8Scalar(source, openingOffset);
+    boolean validOpening = opening == PUNCTUATION_OPEN_PAREN;
+    if (validOpening == false) {
       return -1;
     }
 
     long arity = wideLocalCallArity(statementKind);
-    long argument = 0;
-    long cursor = statementStart + 5;
-    while (argument < arity) limit MAX_WIDE_LOCAL_CALL_ARGUMENTS {
-      if (tokenKinds[cursor] == 1) {} else {
-        return -1;
-      }
-
-      cursor += 1;
-      argument += 1;
-      if (argument < arity) {
-        if (utf8Scalar(source, tokenStarts[cursor]) == PUNCTUATION_COMMA) {} else {
-          return -1;
-        }
-
-        cursor += 1;
-      }
-    }
-
-    if (utf8Scalar(source, tokenStarts[cursor]) == PUNCTUATION_CLOSE_PAREN) {} else {
+    if (arity < 0) {
       return -1;
     }
 
-    if (utf8Scalar(source, tokenStarts[cursor + 1]) == PUNCTUATION_SEMICOLON) {
-      return cursor - statementStart + 2;
+    long argument = 0;
+    long firstArgument = statementStart + 5;
+    long cursor = wideLocalArgumentsEnd(
+      source,
+      tokenKinds,
+      tokenStarts,
+      argument,
+      arity,
+      firstArgument
+    );
+    if (cursor < 0) {
+      return -1;
+    }
+
+    long closingOffset = tokenStarts[cursor];
+    long closing = utf8Scalar(source, closingOffset);
+    boolean validClosing = closing == PUNCTUATION_CLOSE_PAREN;
+    if (validClosing == false) {
+      return -1;
+    }
+
+    long semicolonToken = cursor + 1;
+    long semicolonOffset = tokenStarts[semicolonToken];
+    long semicolon = utf8Scalar(source, semicolonOffset);
+    long width = cursor - statementStart;
+    long result = width + 2;
+    if (semicolon == PUNCTUATION_SEMICOLON) {
+      return result;
     }
 
     return -1;
   }
 
-  private long packedSource(long packed, long source, long base) {
-    long selected = base;
-    while (selected < source) limit MAX_WIDE_LOCAL_CALL_ARGUMENTS {
-      packed = packed / WIDE_LOCAL_SOURCE_RADIX;
-      selected += 1;
+  private long packedSource(long packed, long source, long selected) {
+    if (source < selected) {
+      return -1;
     }
 
-    return packed % WIDE_LOCAL_SOURCE_RADIX;
+    if (selected == source) {
+      return packed % WIDE_LOCAL_SOURCE_RADIX;
+    }
+
+    long reduced = packed / WIDE_LOCAL_SOURCE_RADIX;
+    long next = selected + 1;
+    return packedSource(reduced, source, next);
   }
 
   /// Decodes one validated wide-local source.
@@ -344,42 +455,52 @@ classical class WideLocalCalls {
       return -1;
     }
 
-    if (source < arity) {} else {
+    boolean validSource = source < arity;
+    if (validSource == false) {
       return -1;
     }
 
-    if (arity == 3) {
-      if (source == 0) {
-        return operand;
-      }
-
-      if (source == 1) {
-        return secondaryOperand;
-      }
-
-      return threeArgumentThirdSource(opcode);
+    long threeThird = threeArgumentThirdSource(opcode);
+    long fourThird = fourArgumentCallThirdSource(opcode);
+    long fourFourth = fourArgumentCallFourthSource(opcode);
+    long firstBase = 0;
+    long firstSource = packedSource(operand, source, firstBase);
+    long trailingBase = WIDE_LOCAL_TRAILING_SOURCE;
+    long trailingSource = packedSource(secondaryOperand, source, trailingBase);
+    long scaledArity = arity * 8;
+    long selector = scaledArity + source;
+    if (selector == 24) {
+      return operand;
     }
 
-    if (arity == 4) {
-      if (source == 0) {
-        return operand;
-      }
+    if (selector == 25) {
+      return secondaryOperand;
+    }
 
-      if (source == 1) {
-        return secondaryOperand;
-      }
+    if (selector == 26) {
+      return threeThird;
+    }
 
-      if (source == 2) {
-        return fourArgumentCallThirdSource(opcode);
-      }
+    if (selector == 32) {
+      return operand;
+    }
 
-      return fourArgumentCallFourthSource(opcode);
+    if (selector == 33) {
+      return secondaryOperand;
+    }
+
+    if (selector == 34) {
+      return fourThird;
+    }
+
+    if (selector == 35) {
+      return fourFourth;
     }
 
     if (source < WIDE_LOCAL_TRAILING_SOURCE) {
-      return packedSource(operand, source, 0);
+      return firstSource;
     }
 
-    return packedSource(secondaryOperand, source, WIDE_LOCAL_TRAILING_SOURCE);
+    return trailingSource;
   }
 }

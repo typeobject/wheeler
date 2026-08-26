@@ -65,6 +65,16 @@ classical class CompiledStringProducts {
     return new StringSection(selectedStart, selectedLength);
   }
 
+  private long stubHexScalar(long digit) {
+    assert(-1 < digit);
+    assert(digit < 16);
+    if (digit < 10) {
+      return digit + 48;
+    }
+
+    return digit + 87;
+  }
+
   private long compareRanges(
     borrow byteview artifact,
     long leftStart,
@@ -101,7 +111,7 @@ classical class CompiledStringProducts {
     return 0;
   }
 
-  /// Appends one completely validated canonical string section.
+  /// Appends canonical source strings after validating and removing verifier stubs.
   public CompiledStringPlan appendCompiledStringProducts(
     borrow byteview artifact,
     long artifactLength,
@@ -124,7 +134,7 @@ classical class CompiledStringProducts {
     long sectionStart = strings.start;
     long stringCount = readUnsigned(artifact, sectionStart, 4);
     assert(0 < stringCount);
-    assert(stringCount < MAX_STRINGS - closureStringCount + 1);
+    assert(stringCount < MAX_STRINGS + 1);
 
     region staging = new region(/* bytes= */ STAGING_BYTES, /* allocations= */ 2);
     words stagedStarts = allocate(staging, MAX_STRINGS);
@@ -132,6 +142,9 @@ classical class CompiledStringProducts {
     long cursor = sectionStart + 4;
     long previousStart = -1;
     long previousLength = 0;
+    long retainedStringCount = 0;
+    long stubCount = 0;
+    boolean stubSuffix = false;
     long string = 0;
     while (string < stringCount) limit MAX_STRINGS {
       long length = readUnsigned(artifact, cursor, 4);
@@ -151,8 +164,21 @@ classical class CompiledStringProducts {
         assert(compareRanges(artifact, previousStart, previousLength, cursor, length) < 0);
       }
 
-      set(stagedStarts, string, artifactBase + cursor);
-      set(stagedLengths, string, length);
+      boolean verifierStub = artifact[cursor] == 126;
+      if (verifierStub) {
+        assert(length == 3);
+        assert(stubCount < 64);
+        assert(artifact[cursor + 1] == stubHexScalar(stubCount / 16));
+        assert(artifact[cursor + 2] == stubHexScalar(stubCount % 16));
+        stubSuffix = true;
+        stubCount += 1;
+      } else {
+        assert(stubSuffix == false);
+        set(stagedStarts, retainedStringCount, artifactBase + cursor);
+        set(stagedLengths, retainedStringCount, length);
+        retainedStringCount += 1;
+      }
+
       previousStart = cursor;
       previousLength = length;
       cursor += length;
@@ -160,9 +186,11 @@ classical class CompiledStringProducts {
     }
 
     assert(cursor == sectionStart + strings.length);
+    assert(0 < retainedStringCount);
+    assert(retainedStringCount < MAX_STRINGS - closureStringCount + 1);
 
     string = 0;
-    while (string < stringCount) limit MAX_STRINGS {
+    while (string < retainedStringCount) limit MAX_STRINGS {
       long target = closureStringCount + string;
       set(stringArtifactRanks, target, artifactRank);
       set(stringStarts, target, stagedStarts[string]);
@@ -175,8 +203,8 @@ classical class CompiledStringProducts {
     drop(staging);
     return new CompiledStringPlan(
       closureStringCount,
-      stringCount,
-      closureStringCount + stringCount
+      retainedStringCount,
+      closureStringCount + retainedStringCount
     );
   }
 }

@@ -88,6 +88,7 @@ classical class SourceModuleProductArtifact {
     borrow byteview strings,
     long stringBytes,
     long stringCount,
+    long stubCount,
     borrow mut words stringStarts,
     borrow mut words stringLengths,
     borrow mut bytes output,
@@ -96,11 +97,13 @@ classical class SourceModuleProductArtifact {
     assert(-1 < stringBytes);
     assert(stringBytes < bufferLength(strings) + 1);
     assert(0 < stringCount);
-    assert(stringCount < MAX_STRINGS + 1);
+    assert(-1 < stubCount);
+    assert(stubCount < MAX_CALLABLES + 1);
+    assert(stringCount < MAX_STRINGS - stubCount + 1);
     assert(bufferLength(stringStarts) == MAX_STRINGS);
     assert(bufferLength(stringLengths) == MAX_STRINGS);
     long cursor = outputStart;
-    writeUnsigned(output, cursor, 4, stringCount);
+    writeUnsigned(output, cursor, 4, stringCount + stubCount);
     cursor += 4;
     long string = 0;
     while (string < stringCount) limit MAX_STRINGS {
@@ -120,6 +123,30 @@ classical class SourceModuleProductArtifact {
       }
 
       string += 1;
+    }
+
+    // `~xx` is unique per verifier stub and sorts after every source identifier.
+    long stub = 0;
+    while (stub < stubCount) limit MAX_CALLABLES {
+      writeUnsigned(output, cursor, 4, 3);
+      cursor += 4;
+      setByte(output, cursor, 126);
+      long high = stub / 16;
+      long low = stub % 16;
+      long highScalar = high + 48;
+      long lowScalar = low + 48;
+      if (9 < high) {
+        highScalar = high + 87;
+      }
+
+      if (9 < low) {
+        lowScalar = low + 87;
+      }
+
+      setByte(output, cursor + 1, highScalar);
+      setByte(output, cursor + 2, lowScalar);
+      cursor += 3;
+      stub += 1;
     }
 
     return cursor - outputStart;
@@ -256,6 +283,7 @@ classical class SourceModuleProductArtifact {
       strings,
       stringBytes,
       stringCount,
+      stubCount,
       stringStarts,
       stringLengths,
       sectionArchive,
@@ -387,7 +415,7 @@ classical class SourceModuleProductArtifact {
 
       assert(stubEffectValid);
       writeUnsigned(sectionArchive, stubDescriptor, 4, callableCount + stub);
-      writeUnsigned(sectionArchive, stubDescriptor + 4, 4, 0);
+      writeUnsigned(sectionArchive, stubDescriptor + 4, 4, stringCount + stub);
       long stubFlags = 0;
       if (0 < stubResultType) {
         stubFlags = 4;

@@ -12,6 +12,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.assignment_call_kinds",
       "wheeler.compiler.assignment_call_local_widths",
       "wheeler.compiler.assignment_call_operands",
+      "wheeler.compiler.assignment_call_syntax",
       "wheeler.compiler.boolean_declaration_kinds",
       "wheeler.compiler.boolean_tokens",
       "wheeler.compiler.borrowed_intrinsic_shapes",
@@ -84,6 +85,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.void_call_source_widths",
       "wheeler.compiler.void_call_syntax",
       "wheeler.compiler.void_call_widths",
+      "wheeler.compiler.wide_local_calls",
       "wheeler.compiler.wide_return_sources");
 
   private NativeCompilerPhysicalProductSource() {}
