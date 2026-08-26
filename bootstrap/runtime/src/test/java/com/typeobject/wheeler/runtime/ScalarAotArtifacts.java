@@ -442,6 +442,78 @@ final class ScalarAotArtifacts {
             List.of()))));
   }
 
+  static byte[] globalReplacementArtifact() {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-global-replacement",
+        1,
+        List.of(
+            new Global("status", 0),
+            new Global("left", 11),
+            new Global("right", 22)),
+        List.of(
+            new FunctionBody(
+                0,
+                "example.app::replace",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                null,
+                List.of(
+                    Instruction.of(Opcode.SWAP, 1, 2),
+                    Instruction.of(Opcode.SET_LOGGED, 2, 51),
+                    Instruction.of(Opcode.RETURN)),
+                List.of()),
+            new FunctionBody(
+                1,
+                "example.app::main",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                null,
+                List.of(
+                    Instruction.of(Opcode.CALL_VOID, 0, 0, 0),
+                    Instruction.of(Opcode.EXPECT_EQ, 1, 22),
+                    Instruction.of(Opcode.EXPECT_EQ, 2, 51),
+                    Instruction.of(Opcode.SWAP, 1, 2),
+                    Instruction.of(Opcode.LOCAL_LOAD_GLOBAL, 0, 1),
+                    Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
+                    Instruction.of(Opcode.HALT)),
+                List.of()))));
+  }
+
+  static byte[] helperStatusMutationArtifact(Opcode opcode) {
+    Instruction mutation = opcode == Opcode.SWAP
+        ? Instruction.of(opcode, 0, 1)
+        : Instruction.of(opcode, 0, 51);
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-helper-status-mutation",
+        1,
+        List.of(new Global("status", 0), new Global("value", 1)),
+        List.of(
+            new FunctionBody(
+                0,
+                "example.app::mutate",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                null,
+                List.of(mutation, Instruction.of(Opcode.RETURN)),
+                List.of()),
+            new FunctionBody(
+                1,
+                "example.app::main",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                null,
+                List.of(
+                    Instruction.of(Opcode.CALL_VOID, 0, 0, 0),
+                    Instruction.of(Opcode.LOCAL_CONST, 0, 0),
+                    Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
+                    Instruction.of(Opcode.HALT)),
+                List.of()))));
+  }
+
   static byte[] globalOverflowArtifact(Opcode opcode, long initial, long immediate) {
     return new BytecodeWriter().write(new Program(
         "scalar-aot-global-overflow",

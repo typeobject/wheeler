@@ -186,9 +186,20 @@ public final class ScalarAotProgram {
         case LOCAL_CONST, LOCAL_MOVE, BUFFER_BORROW, UTF8_BORROW ->
           validateUnary(function, instruction);
         case LOCAL_LOAD_GLOBAL -> validateGlobalLoad(program, function, instruction);
-        case ADD_CONST, SUB_CONST, XOR_CONST -> {
+        case ADD_CONST, SUB_CONST, XOR_CONST, SET_LOGGED -> {
           int global = validateGlobalInstruction(program, function, instruction, entry, true);
           if (global == 0) {
+            stores++;
+          }
+        }
+        case SWAP -> {
+          requireOperands(instruction, 2);
+          int left = global(instruction.operands().get(0), program.globals().size());
+          int right = global(instruction.operands().get(1), program.globals().size());
+          if (!entry && (left == 0 || right == 0)) {
+            throw new IllegalArgumentException("Scalar AOT status swap is not entry-owned");
+          }
+          if (left == 0 || right == 0) {
             stores++;
           }
         }
@@ -536,16 +547,28 @@ public final class ScalarAotProgram {
             assigned[destination] = true;
             pc++;
           }
-          case ADD_CONST, SUB_CONST, XOR_CONST -> {
+          case ADD_CONST, SUB_CONST, XOR_CONST, SET_LOGGED -> {
             int target = Math.toIntExact(instruction.operands().get(0));
             long immediate = instruction.operands().get(1);
             state.globals[target] = switch (instruction.opcode()) {
               case ADD_CONST -> Math.addExact(state.globals[target], immediate);
               case SUB_CONST -> Math.subtractExact(state.globals[target], immediate);
               case XOR_CONST -> state.globals[target] ^ immediate;
+              case SET_LOGGED -> immediate;
               default -> throw new IllegalStateException("Scalar global update changed");
             };
             if (target == 0) {
+              state.statusStored = true;
+            }
+            pc++;
+          }
+          case SWAP -> {
+            int left = Math.toIntExact(instruction.operands().get(0));
+            int right = Math.toIntExact(instruction.operands().get(1));
+            long held = state.globals[left];
+            state.globals[left] = state.globals[right];
+            state.globals[right] = held;
+            if (left == 0 || right == 0) {
               state.statusStored = true;
             }
             pc++;

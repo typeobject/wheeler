@@ -105,3 +105,4 @@ Rejected. This leaf executes only the verified forward body.
 - [WIP-0382](WIP-0382-x86-64-linux-scalar-state-checks.md)
 - [WIP-0390](WIP-0390-x86-64-linux-shared-scalar-globals.md)
 - [WIP-0401](WIP-0401-bounded-recursive-scalar-aot-calls.md)
+- [WIP-0404](WIP-0404-scalar-global-replacement-aot.md)

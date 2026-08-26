@@ -100,6 +100,20 @@ final class ScalarAotX86 {
     integer(global * Long.BYTES);
   }
 
+  void setGlobal(int global, long value) {
+    moveImmediateToRax(value);
+    storeGlobal(global);
+  }
+
+  void swapGlobals(int left, int right) {
+    loadGlobal(left);
+    bytes(0x49, 0x8b, 0x8e);
+    integer(right * Long.BYTES);
+    storeGlobal(right);
+    bytes(0x48, 0x89, 0xc8);
+    storeGlobal(left);
+  }
+
   void updateGlobal(
       Opcode opcode,
       int global,

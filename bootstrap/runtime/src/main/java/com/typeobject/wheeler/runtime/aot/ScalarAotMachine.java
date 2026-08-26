@@ -178,6 +178,12 @@ public final class ScalarAotMachine {
               instruction.operands().get(1),
               traps);
         }
+        case SET_LOGGED -> code.setGlobal(
+            Math.toIntExact(instruction.operands().get(0)),
+            instruction.operands().get(1));
+        case SWAP -> code.swapGlobals(
+            Math.toIntExact(instruction.operands().get(0)),
+            Math.toIntExact(instruction.operands().get(1)));
         case EXPECT_EQ -> code.expectGlobal(
             Math.toIntExact(instruction.operands().get(0)),
             instruction.operands().get(1),

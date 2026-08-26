@@ -12,6 +12,8 @@ import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dynamicIoHelperA
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.executionBoundArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.globalInstructionArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.globalOverflowArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.globalReplacementArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.helperStatusMutationArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.forwardHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.helperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.instructionBoundArtifact;
@@ -177,6 +179,49 @@ final class LinuxX8664ScalarAotCompilerTest {
       Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
       assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
       assertEquals(73, process.exitValue());
+      assertArrayEquals(
+          LinuxX8664EntryShim.successOutput(), process.getInputStream().readAllBytes());
+      assertEquals(0, process.getErrorStream().readAllBytes().length);
+    }
+  }
+
+  @Test
+  void lowersScalarGlobalReplacement() throws Exception {
+    byte[] artifact = globalReplacementArtifact();
+    var lowered = LinuxX8664ScalarAotCompiler.lower(artifact);
+
+    assertEquals(51, lowered.processStatus());
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(
+            helperStatusMutationArtifact(Opcode.SET_LOGGED)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(
+            helperStatusMutationArtifact(Opcode.SWAP)));
+    Fixture fixture = fixture(artifact, lowered.runtimeText());
+    byte[] image = ElfImage.build(
+        fixture.plan(), fixture.abi(), fixture.capsule(), lowered.runtimeText(), 0);
+    ElfImage.VerifiedImage verified = ElfImage.verify(image, fixture.plan(), fixture.abi());
+    assertEquals(
+        "c8536b97e8b990f2e8e830c9dfe8dcc9d443bb990462b81714cf10031dc6e3a6",
+        identity(artifact));
+    assertEquals(
+        "be7420324c82eb8a07bf59a5285646ad3dde8e62a7db38747d43fd207629348a",
+        lowered.runtimeIdentity());
+    assertEquals(
+        "524256617fa8ef2f9d14e2ea575d9869584c0cf947a704d323432312991a5c07",
+        fixture.capsule().identity());
+    assertEquals(
+        "96df771e3c861ff848bfcd8f4629161b92c91527539c8fa846982dbb96079ebe",
+        fixture.plan().identity());
+    assertEquals(
+        "a7108a33b4b5144c5e4e8b0086ee80d302ac2a95fdfcb53b375faf293b5f1895",
+        verified.prev());
+    if (nativeLinuxHost()) {
+      Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
+      assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(51, process.exitValue());
       assertArrayEquals(
           LinuxX8664EntryShim.successOutput(), process.getInputStream().readAllBytes());
       assertEquals(0, process.getErrorStream().readAllBytes().length);
