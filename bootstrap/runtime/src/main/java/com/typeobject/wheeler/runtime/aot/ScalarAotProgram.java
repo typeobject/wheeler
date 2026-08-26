@@ -172,7 +172,8 @@ public final class ScalarAotProgram {
         || function.forward().size() > MAX_INSTRUCTIONS
         || entry && function.resultType() != null
         || !entry && function.resultType() != null
-            && !function.resultType().equals(ValueType.SIGNED)) {
+            && !function.resultType().equals(ValueType.SIGNED)
+            && !function.resultType().equals(ValueType.BOOLEAN)) {
       throw new IllegalArgumentException("AOT function signature is outside the scalar profile");
     }
 
@@ -434,8 +435,7 @@ public final class ScalarAotProgram {
     if (argumentCount != callee.parameterCount()
         || argumentBase < 0
         || argumentBase > owner.localCount() - argumentCount
-        || returnsValue != (callee.resultType() != null)
-        || returnsValue && !callee.resultType().equals(ValueType.SIGNED)) {
+        || returnsValue != (callee.resultType() != null)) {
       throw new IllegalArgumentException("Scalar AOT call signature does not match its helper");
     }
     for (int parameter = 0; parameter < argumentCount; parameter++) {
@@ -445,8 +445,8 @@ public final class ScalarAotProgram {
     }
     if (returnsValue) {
       int destination = local(instruction.operands().get(3), owner.localCount());
-      if (!owner.localType(destination).equals(ValueType.SIGNED)) {
-        throw new IllegalArgumentException("Scalar AOT call destination is not signed");
+      if (!owner.localType(destination).equals(callee.resultType())) {
+        throw new IllegalArgumentException("Scalar AOT call destination type does not match");
       }
     }
   }

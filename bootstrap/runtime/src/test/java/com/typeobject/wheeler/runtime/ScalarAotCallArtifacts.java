@@ -170,6 +170,41 @@ final class ScalarAotCallArtifacts {
                 List.of()))));
   }
 
+  static byte[] booleanResultHelperArtifact() {
+    FunctionBody helper = new FunctionBody(
+        0,
+        "example.app::accepted",
+        false,
+        1,
+        List.of(ValueType.SIGNED, ValueType.SIGNED, ValueType.BOOLEAN),
+        ValueType.BOOLEAN,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 1, 73),
+            Instruction.of(Opcode.LOCAL_EQ, 2, 0, 1),
+            Instruction.of(Opcode.RETURN_VALUE, 2)),
+        List.of());
+    FunctionBody entry = new FunctionBody(
+        1,
+        "example.app::main",
+        false,
+        0,
+        List.of(ValueType.SIGNED, ValueType.BOOLEAN, ValueType.SIGNED),
+        null,
+        List.of(
+            Instruction.of(Opcode.LOCAL_CONST, 0, 73),
+            Instruction.of(Opcode.CALL_VALUE, 0, 0, 1, 1),
+            Instruction.of(Opcode.EXPECT_TRUE, 1),
+            Instruction.of(Opcode.LOCAL_CONST, 2, 73),
+            Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 2),
+            Instruction.of(Opcode.HALT)),
+        List.of());
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-boolean-result-helper",
+        1,
+        List.of(new Global("status", 0)),
+        List.of(helper, entry)));
+  }
+
   static byte[] dormantUnsupportedHelperArtifact() {
     return new BytecodeWriter().write(new Program(
         "scalar-aot-dormant-helper",

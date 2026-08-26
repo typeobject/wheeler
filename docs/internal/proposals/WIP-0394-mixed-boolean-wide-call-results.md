@@ -82,4 +82,5 @@ Reject a literal in the admitted wide named family, a missing or ambiguous sourc
 - [WIP-0391](WIP-0391-boolean-local-equality-guard-returns.md)
 - [WIP-0392](WIP-0392-physical-bootstrap-manifest-primitives.md)
 - [WIP-0393](WIP-0393-mixed-scalar-wide-call-sources.md)
+- [WIP-0402](WIP-0402-boolean-result-scalar-aot-helpers.md)
 - [Bootstrap reference](../../public/reference/bootstrap.md)

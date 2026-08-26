@@ -139,7 +139,7 @@ zero-initialized `status` global, up to 31 additional shared signed globals, one
 to twenty-four dense functions, bounded constants, scalar updates, checked signed
 arithmetic, bitwise and 32-bit rotate operations, comparisons, assertions,
 status reads, forward branches and 4,096-iteration checked loops, bounded
-recursive signed-result or void helper calls, up to sixteen exact signed or
+recursive signed-result, Boolean-result, or void helper calls, up to sixteen exact signed or
 Boolean arguments, status stores, returns, and halt. Recursion stops at 64
 simultaneous calls. Six arguments use the private register order. Up to ten more
 use one aligned caller-owned stack area. An output-bearing entry may retain

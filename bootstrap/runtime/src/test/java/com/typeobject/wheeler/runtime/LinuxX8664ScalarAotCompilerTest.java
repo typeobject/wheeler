@@ -3,6 +3,7 @@ package com.typeobject.wheeler.runtime;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.arithmeticArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.artifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.booleanParameterArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.booleanResultHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.cyclicHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.conditionalArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotCallArtifacts.dormantUnsupportedHelperArtifact;
@@ -341,6 +342,41 @@ final class LinuxX8664ScalarAotCompilerTest {
         fixture.plan().identity());
     assertEquals(
         "415d9635abbd85765f6e01664008c38907727187e48f09d320d61dbbf74a3ffb",
+        verified.prev());
+    if (nativeLinuxHost()) {
+      Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
+      assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(73, process.exitValue());
+      assertArrayEquals(
+          LinuxX8664EntryShim.successOutput(), process.getInputStream().readAllBytes());
+      assertEquals(0, process.getErrorStream().readAllBytes().length);
+    }
+  }
+
+  @Test
+  void lowersBooleanResultHelpers() throws Exception {
+    byte[] artifact = booleanResultHelperArtifact();
+    var lowered = LinuxX8664ScalarAotCompiler.lower(artifact);
+
+    assertEquals(73, lowered.processStatus());
+    Fixture fixture = fixture(artifact, lowered.runtimeText());
+    byte[] image = ElfImage.build(
+        fixture.plan(), fixture.abi(), fixture.capsule(), lowered.runtimeText(), 0);
+    ElfImage.VerifiedImage verified = ElfImage.verify(image, fixture.plan(), fixture.abi());
+    assertEquals(
+        "6dc5168e89f91976d6e30e199c786fbb11b88351a2b0dfeb01b3e4c762731e90",
+        identity(artifact));
+    assertEquals(
+        "10cb2cfc9d342eb5f4931c004bf6e29c5b981a27aae2ff3ec245e6cbbdcbcd10",
+        lowered.runtimeIdentity());
+    assertEquals(
+        "89bfcb13e03cd645bed30bc43a7987ae854ce6591e726539910a968f8fdd07f9",
+        fixture.capsule().identity());
+    assertEquals(
+        "e42257216000efe849c5980eef426780d2365e659587fae905de44deae88661f",
+        fixture.plan().identity());
+    assertEquals(
+        "35c1afdb6504e16a75bf7bb5a629567e7f46f9b83c41a1ee9869537faf31c39c",
         verified.prev());
     if (nativeLinuxHost()) {
       Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
