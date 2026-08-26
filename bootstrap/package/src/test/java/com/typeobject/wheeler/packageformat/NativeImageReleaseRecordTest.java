@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -53,21 +55,28 @@ final class NativeImageReleaseRecordTest {
   }
 
   @Test
-  void recordsDetachedSigningWithoutChangingUnsignedIdentity() {
+  void recordsDetachedSigningWithoutChangingUnsignedIdentity() throws Exception {
     Fixture fixture = fixture();
     byte[] image = ElfImage.build(
         fixture.plan(), fixture.abi(), fixture.capsule(), RUNTIME, 0);
     UnsignedNativeImageRecord unsigned =
         UnsignedNativeImageRecord.from(image, fixture.plan(), fixture.abi());
-    byte[] evidence = "repository-signature".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
-    NativeImageSigningRecord signing = NativeImageSigningRecord.create(
-        unsigned,
-        image,
-        NativeImageSigningRecord.SigningMethod.REPOSITORY_DETACHED,
-        image.clone(),
-        evidence,
-        hash(50),
-        hash(51));
+    KeyPair key = KeyPairGenerator.getInstance("Ed25519").generateKeyPair();
+    RepositoryNativeImageSignature authorization = RepositoryNativeImageSignature.sign(
+        hash(49), unsigned, image, key.getPrivate(), key.getPublic());
+    byte[] evidence = authorization.canonicalBytes();
+    NativeImageSigningRecord signing = NativeImageSigningRecord.createRepositoryDetached(
+        hash(49), unsigned, image, authorization, key.getPublic(), hash(51));
+    assertThrows(
+        PackageFormatException.class,
+        () -> NativeImageSigningRecord.create(
+            unsigned,
+            image,
+            NativeImageSigningRecord.SigningMethod.REPOSITORY_DETACHED,
+            image,
+            evidence,
+            authorization.keyIdentity(),
+            hash(51)));
     NativeImageSigningRecord parsed =
         NativeImageSigningRecord.parse(signing.canonicalBytes());
 
@@ -77,27 +86,35 @@ final class NativeImageReleaseRecordTest {
     assertEquals(image.length, signing.distributionBytes());
     assertEquals(identity(evidence), signing.signatureEvidence());
     assertEquals(evidence.length, signing.signatureBytes());
+    assertEquals(authorization.keyIdentity(), signing.signer());
     assertEquals(signing, parsed);
     assertNotEquals(unsigned.identity(), signing.identity());
-    assertEquals(
-        "e00e64063584d4d31bee456bd360cb1a0e779dba3fccf689367ae6074bf3fc94",
-        signing.identity());
-    signing.verify(unsigned, image, image, evidence);
+    signing.verifyRepositoryDetached(
+        hash(49), unsigned, image, authorization, key.getPublic());
 
-    byte[] changedEvidence = evidence.clone();
-    changedEvidence[0] ^= 1;
+    byte[] forged = java.util.Base64.getDecoder().decode(authorization.signature());
+    forged[0] ^= 1;
+    RepositoryNativeImageSignature changed = new RepositoryNativeImageSignature(
+        authorization.schemaVersion(),
+        authorization.repositoryIdentity(),
+        authorization.unsignedRecord(),
+        authorization.unsignedPrev(),
+        authorization.distributionArtifact(),
+        authorization.keyIdentity(),
+        authorization.algorithm(),
+        java.util.Base64.getEncoder().encodeToString(forged));
     assertThrows(
         PackageFormatException.class,
-        () -> signing.verify(unsigned, image, image, changedEvidence));
+        () -> signing.verifyRepositoryDetached(
+            hash(49), unsigned, image, changed, key.getPublic()));
     assertThrows(
         PackageFormatException.class,
-        () -> NativeImageSigningRecord.create(
+        () -> NativeImageSigningRecord.createRepositoryDetached(
+            hash(49),
             unsigned,
-            image,
-            NativeImageSigningRecord.SigningMethod.REPOSITORY_DETACHED,
             append(image, (byte) 1),
-            evidence,
-            hash(50),
+            authorization,
+            key.getPublic(),
             hash(51)));
   }
 
@@ -171,15 +188,16 @@ final class NativeImageReleaseRecordTest {
         fixture.plan(), fixture.abi(), fixture.capsule(), RUNTIME, 0);
     UnsignedNativeImageRecord unsigned =
         UnsignedNativeImageRecord.from(image, fixture.plan(), fixture.abi());
-    byte[] evidence = {1};
-    NativeImageSigningRecord signing = NativeImageSigningRecord.create(
-        unsigned,
-        image,
+    NativeImageSigningRecord signing = new NativeImageSigningRecord(
         NativeImageSigningRecord.SigningMethod.REPOSITORY_DETACHED,
-        image,
-        evidence,
+        unsigned.identity(),
+        unsigned.prev(),
+        unsigned.prev(),
+        image.length,
         hash(80),
-        hash(81));
+        64,
+        hash(81),
+        hash(82));
 
     assertThrows(
         PackageFormatException.class,

@@ -3,6 +3,7 @@ package com.typeobject.wheeler.packageformat;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.regex.Pattern;
@@ -65,7 +66,7 @@ public record NativeImageSigningRecord(
     }
   }
 
-  /** Constructs a record only after exact unsigned, distribution, and evidence bytes exist. */
+  /** Constructs an attached-signing record after all exact evidence bytes exist. */
   public static NativeImageSigningRecord create(
       UnsignedNativeImageRecord unsigned,
       byte[] unsignedImage,
@@ -76,6 +77,10 @@ public record NativeImageSigningRecord(
       String signingTool) {
     if (unsigned == null || method == null) {
       throw new NullPointerException("Unsigned image record and signing method are required");
+    }
+    if (method == SigningMethod.REPOSITORY_DETACHED) {
+      throw new PackageFormatException(
+          "Repository detached records require cryptographic verification");
     }
     validateInputs(unsigned, unsignedImage, method, distribution, signatureEvidence);
     return new NativeImageSigningRecord(
@@ -90,7 +95,38 @@ public record NativeImageSigningRecord(
         signingTool);
   }
 
-  /** Requires all retained signing inputs to reproduce this record. */
+  /** Constructs one detached ELF record after Ed25519 verification. */
+  public static NativeImageSigningRecord createRepositoryDetached(
+      String repositoryIdentity,
+      UnsignedNativeImageRecord unsigned,
+      byte[] unsignedImage,
+      RepositoryNativeImageSignature authorization,
+      PublicKey publicKey,
+      String signingTool) {
+    if (authorization == null || publicKey == null) {
+      throw new NullPointerException("Repository authorization and public key are required");
+    }
+    authorization.verify(repositoryIdentity, unsigned, unsignedImage, publicKey);
+    byte[] evidence = authorization.canonicalBytes();
+    validateInputs(
+        unsigned,
+        unsignedImage,
+        SigningMethod.REPOSITORY_DETACHED,
+        unsignedImage,
+        evidence);
+    return new NativeImageSigningRecord(
+        SigningMethod.REPOSITORY_DETACHED,
+        unsigned.identity(),
+        unsigned.prev(),
+        identity(unsignedImage),
+        unsignedImage.length,
+        identity(evidence),
+        evidence.length,
+        authorization.keyIdentity(),
+        signingTool);
+  }
+
+  /** Requires all retained attached-signing inputs to reproduce this record. */
   public void verify(
       UnsignedNativeImageRecord unsigned,
       byte[] unsignedImage,
@@ -98,6 +134,10 @@ public record NativeImageSigningRecord(
       byte[] evidence) {
     if (unsigned == null) {
       throw new NullPointerException("Unsigned native image record is required");
+    }
+    if (method == SigningMethod.REPOSITORY_DETACHED) {
+      throw new PackageFormatException(
+          "Repository detached records require cryptographic verification");
     }
     validateInputs(unsigned, unsignedImage, method, distribution, evidence);
     if (!unsignedRecord.equals(unsigned.identity())
@@ -107,6 +147,31 @@ public record NativeImageSigningRecord(
         || signatureBytes != evidence.length
         || !signatureEvidence.equals(identity(evidence))) {
       throw new PackageFormatException("Native image signing record does not match its inputs");
+    }
+  }
+
+  /** Repeats detached Ed25519 verification against all retained inputs. */
+  public void verifyRepositoryDetached(
+      String repositoryIdentity,
+      UnsignedNativeImageRecord unsigned,
+      byte[] unsignedImage,
+      RepositoryNativeImageSignature authorization,
+      PublicKey publicKey) {
+    if (method != SigningMethod.REPOSITORY_DETACHED) {
+      throw new PackageFormatException("Native signing record is not repository detached");
+    }
+    authorization.verify(repositoryIdentity, unsigned, unsignedImage, publicKey);
+    byte[] evidence = authorization.canonicalBytes();
+    validateInputs(unsigned, unsignedImage, method, unsignedImage, evidence);
+    if (!unsignedRecord.equals(unsigned.identity())
+        || !unsignedPrev.equals(unsigned.prev())
+        || distributionBytes != unsignedImage.length
+        || !distributionArtifact.equals(identity(unsignedImage))
+        || signatureBytes != evidence.length
+        || !signatureEvidence.equals(identity(evidence))
+        || !signer.equals(authorization.keyIdentity())) {
+      throw new PackageFormatException(
+          "Repository native signing record does not match its authorization");
     }
   }
 

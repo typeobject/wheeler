@@ -20,6 +20,8 @@ import com.typeobject.wheeler.packageformat.NativeImagePlan;
 import com.typeobject.wheeler.packageformat.NativeImageSigningRecord;
 import com.typeobject.wheeler.packageformat.PackageFormatException;
 import com.typeobject.wheeler.packageformat.PeImage;
+import com.typeobject.wheeler.packageformat.RepositoryNativeImageSignature;
+import com.typeobject.wheeler.packageformat.RepositoryPolicy;
 import com.typeobject.wheeler.packageformat.PlatformAbi;
 import com.typeobject.wheeler.packageformat.UnsignedNativeImageRecord;
 import com.typeobject.wheeler.runtime.LinuxX8664EntryShim;
@@ -29,6 +31,8 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
@@ -428,23 +432,76 @@ final class ImageCommandTest {
     assertEquals(UnsignedNativeImageRecord.from(expected, plan, abi), unsigned);
     assertTrue(outputRecord.output().contains(unsigned.identity()));
 
-    byte[] signatureEvidence = "detached-signature".getBytes(StandardCharsets.US_ASCII);
-    Path signatureFile = write("elf.sig", signatureEvidence);
+    KeyPair key = KeyPairGenerator.getInstance("Ed25519").generateKeyPair();
+    RepositoryNativeImageSignature authorization = RepositoryNativeImageSignature.sign(
+        hash(90), unsigned, expected, key.getPrivate(), key.getPublic());
+    Path signatureFile = write("elf.sig", authorization.canonicalBytes());
+    RepositoryPolicy policy = new RepositoryPolicy(
+        RepositoryPolicy.SCHEMA_VERSION,
+        List.of(new RepositoryPolicy.Repository(
+            "release",
+            hash(90),
+            RepositoryPolicy.Transport.FILE,
+            temporary.toString(),
+            true,
+            List.of("*"),
+            List.of(RepositoryPolicy.TrustedKey.from(key.getPublic())))));
+    Path policyFile = write("repositories.yaml", policy.canonicalText().getBytes(StandardCharsets.UTF_8));
     Path signingRecordFile = temporary.resolve("signed-elf.yaml");
     CommandResult signingRecord = execute(
-        "image", "record-signing", outputRecordFile.toString(),
+        "image", "record-repository-signing", outputRecordFile.toString(),
         "--unsigned", imageFile.toString(),
-        "--method", "repository-detached",
-        "--distribution", imageFile.toString(),
+        "--policy", policyFile.toString(),
+        "--repository", "release",
         "--signature", signatureFile.toString(),
-        "--signer", hash(90),
         "--tool", hash(91),
         "-o", signingRecordFile.toString());
     NativeImageSigningRecord signing =
         NativeImageSigningRecord.parse(Files.readAllBytes(signingRecordFile));
     assertEquals(0, signingRecord.status());
     assertTrue(signingRecord.output().contains(signing.identity()));
-    signing.verify(unsigned, expected, expected, signatureEvidence);
+    signing.verifyRepositoryDetached(
+        hash(90), unsigned, expected, authorization, key.getPublic());
+
+    Path opaqueOutput = temporary.resolve("opaque-signing.yaml");
+    assertThrows(
+        PackageFormatException.class,
+        () -> execute(
+            "image", "record-signing", outputRecordFile.toString(),
+            "--unsigned", imageFile.toString(),
+            "--method", "repository-detached",
+            "--distribution", imageFile.toString(),
+            "--signature", signatureFile.toString(),
+            "--signer", authorization.keyIdentity(),
+            "--tool", hash(91),
+            "-o", opaqueOutput.toString()));
+    assertFalse(Files.exists(opaqueOutput));
+
+    RepositoryPolicy untrustedPolicy = new RepositoryPolicy(
+        RepositoryPolicy.SCHEMA_VERSION,
+        List.of(new RepositoryPolicy.Repository(
+            "release",
+            hash(90),
+            RepositoryPolicy.Transport.FILE,
+            temporary.toString(),
+            true,
+            List.of("*"),
+            List.of())));
+    Path untrustedPolicyFile = write(
+        "untrusted-repositories.yaml",
+        untrustedPolicy.canonicalText().getBytes(StandardCharsets.UTF_8));
+    Path untrustedOutput = temporary.resolve("untrusted-signing.yaml");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> execute(
+            "image", "record-repository-signing", outputRecordFile.toString(),
+            "--unsigned", imageFile.toString(),
+            "--policy", untrustedPolicyFile.toString(),
+            "--repository", "release",
+            "--signature", signatureFile.toString(),
+            "--tool", hash(91),
+            "-o", untrustedOutput.toString()));
+    assertFalse(Files.exists(untrustedOutput));
 
     if (nativeLinuxHost()) {
       Process process = new ProcessBuilder(imageFile.toString()).start();
@@ -626,6 +683,7 @@ final class ImageCommandTest {
     assertTrue(usage.error().contains("record-macho"));
     assertTrue(usage.error().contains("record-pe"));
     assertTrue(usage.error().contains("record-signing"));
+    assertTrue(usage.error().contains("record-repository-signing"));
 
     Path unbound = write("unbound.wbc", validWbc());
     CommandResult unboundResult = execute(

@@ -9,13 +9,13 @@
 | Area | Native release, unsigned PREV, signing, reproducibility |
 | Depends on | WIP-0023, WIP-0024, WIP-0026, WIP-0368, WIP-0372, WIP-0374, WIP-0375 |
 | Supersedes | Signing fields inside native build identity |
-| Superseded by | None |
+| Superseded by | WIP-0410 for detached ELF authorization |
 
 ## Summary
 
 Canonical release records separate reproducible unsigned native output from later platform signing. `UnsignedNativeImageRecord` names one complete adapter-verified image. `NativeImageSigningRecord` names one post-build distribution artifact and its signature evidence without feeding either into the native image plan or unsigned PREV.
 
-This WIP records signing products. It does not sign, trust a signer, verify a cryptographic signature, notarize an Apple artifact, validate an Authenticode certificate chain, or define repository policy. WIP-0024 owns those effects and trust decisions.
+This WIP records signing products. WIP-0410 adds detached ELF signing, verification, and repository-policy authorization. Apple notarization and Authenticode certificate validation remain outside this record layer.
 
 ## Unsigned output record
 
@@ -61,11 +61,11 @@ Three methods are closed in schema 1:
 
 | Method | Format | Distribution rule |
 | --- | --- | --- |
-| `repository-detached` | ELF | Distribution bytes equal the exact unsigned image. Signature evidence is separate. |
+| `repository-detached` | ELF | Distribution bytes equal the exact unsigned image. WIP-0410 requires canonical Ed25519 authorization evidence. |
 | `apple-code-signature` | Mach-O | Distribution bytes differ from the unsigned image. |
 | `authenticode` | PE/COFF | Distribution bytes differ from the unsigned image. |
 
-A method for one format cannot sign another format record. Attached signing must change distribution bytes. Detached signing must retain them byte for byte. All methods require nonempty separately identified signature evidence, signer identity, and signing-tool identity.
+A method for one format cannot sign another format record. Attached signing must change distribution bytes. Detached signing must retain them byte for byte. All methods require nonempty separately identified signature evidence, signer identity, and signing-tool identity. WIP-0410 makes the detached signer the verified repository key and closes opaque detached construction.
 
 Distribution artifacts admit at most 75,497,472 bytes. Signature evidence admits at most 1,048,576 bytes. The signing record transport admits at most 16,384 bytes. Record construction consumes retained arrays, stores only content identities and lengths, and exposes no mutable input.
 
@@ -79,10 +79,11 @@ The image command publishes records only after reading exact bounded nonsymlink 
 wheeler image record-elf <application> --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>
 wheeler image record-macho <application> --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>
 wheeler image record-pe <application.exe> --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>
-wheeler image record-signing <unsigned-record.yaml> --unsigned <application> --method <method> --distribution <artifact> --signature <evidence> --signer <identity> --tool <identity> -o <signing-record.yaml>
+wheeler image record-signing <unsigned-record.yaml> --unsigned <application> --method <apple-code-signature|authenticode> --distribution <artifact> --signature <evidence> --signer <identity> --tool <identity> -o <signing-record.yaml>
+wheeler image record-repository-signing <unsigned-record.yaml> --unsigned <application> --policy <repositories.yaml> --repository <alias> --signature <authorization.yaml> --tool <identity> -o <signing-record.yaml>
 ```
 
-Output uses the shared atomic physical-leaf boundary. A linked or nonregular output rejects without mutation. No record command invokes a signer, searches for credentials, reads trust policy, or executes native bytes.
+Output uses the shared atomic physical-leaf boundary. A linked or nonregular output rejects without mutation. No record command invokes a signer, searches for credentials, or executes native bytes. WIP-0410's detached command reads one explicit repository policy and verifies authorization before publication.
 
 ## Parsing and rejection
 
@@ -96,11 +97,11 @@ Parsers do not repair release metadata. A valid hash record remains evidence of 
 
 `NativeImageReleaseRecordTest` builds and independently verifies one complete canonical ELF, derives its unsigned record, round-trips strict transport, and requires repeat verification against exact image, plan, and ABI. Damage to the image rejects.
 
-The fixture constructs a detached repository record over exact unsigned bytes and separate signature evidence. It requires stable record identities, exact unsigned links, and rejection of changed distribution or evidence bytes. Separate Mach-O and PE records prove attached distribution identity and format-specific method rejection.
+The fixture constructs a detached repository record over exact unsigned bytes and WIP-0410 Ed25519 authorization evidence. It requires exact unsigned links and rejection of changed distribution, repository, key, or evidence bytes. Separate Mach-O and PE records prove attached distribution identity and format-specific method rejection.
 
 Malformed schema, unknown methods, extra fields, malformed UTF-8, noncanonical decimals, zero lengths, and oversized transports reject.
 
-`ImageCommandTest` publishes unsigned records for independently built ELF, Mach-O, and PE images. Each record matches direct adapter construction. The ELF case then consumes retained unsigned image and signature-evidence files to publish and reverify one detached signing record.
+`ImageCommandTest` publishes unsigned records for independently built ELF, Mach-O, and PE images. Each record matches direct adapter construction. The ELF case then consumes retained unsigned image, Ed25519 authorization, and repository-policy files to publish and reverify one detached signing record.
 
 The canonical ELF output-record identity is:
 
@@ -108,11 +109,7 @@ The canonical ELF output-record identity is:
 84a4fb6195bbf6cb7248b2779855c97d4ef57b5d248857357041d45db3106ee4
 ```
 
-Its detached signing-record identity is:
-
-```text
-e00e64063584d4d31bee456bd360cb1a0e779dba3fccf689367ae6074bf3fc94
-```
+WIP-0410 pins the deterministic repository authorization identity. Signing-record identity also binds the selected release key and authorization bytes.
 
 ## Acceptance
 
@@ -125,7 +122,7 @@ e00e64063584d4d31bee456bd360cb1a0e779dba3fccf689367ae6074bf3fc94
 - [x] Strict parsers reject malformed, mixed, repaired, or noncanonical records.
 - [x] Physical commands publish each output and signing record atomically after complete input checks.
 - [x] Signing products do not feed back into build-input identity or unsigned PREV.
-- [x] No cryptographic verification, notarization, or trust claim is made.
+- [x] WIP-0410 adds cryptographic and repository trust for detached ELF records without overclaiming attached formats.
 
 ## Rejected alternatives
 
@@ -158,3 +155,4 @@ Rejected. Repeating PREV alone would lose target, plan, ABI, capsule, and byte-c
 - [WIP-0372](WIP-0372-canonical-elf-capsule-images.md)
 - [WIP-0374](WIP-0374-canonical-mach-o-capsule-images.md)
 - [WIP-0375](WIP-0375-canonical-pe-capsule-images.md)
+- [WIP-0410](WIP-0410-cryptographic-elf-repository-authorization.md)

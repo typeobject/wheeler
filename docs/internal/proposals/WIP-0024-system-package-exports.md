@@ -152,7 +152,7 @@ Reject paths or links that escape, special files, duplicate ownership, undeclare
 - [ ] Install-image, role, profile, and mapping schemas accepted.
 - [ ] Debian and RPM output reproduce.
 - [ ] Typed lifecycle and sealed-root suite pass.
-- [x] WIP-0377 supplies native unsigned-output and post-build signing record identities without feeding distribution signatures into PREV. Cryptographic verification, notarization, install-image provenance, and repository trust remain.
+- [x] WIP-0377 supplies native unsigned-output and post-build signing record identities without feeding distribution signatures into PREV. WIP-0410 adds Ed25519 verification and explicit repository trust for detached ELF releases. Apple notarization, Authenticode validation, and install-image provenance remain.
 - [ ] Provenance, native mappings, and signing separation are complete.
 - [ ] Ad hoc paths are deleted.
 
@@ -184,5 +184,7 @@ Direct distro emission from package manifests mixes policy layers. Arbitrary spe
 - [WIP-0025](WIP-0025-native-ffi-and-system-integration.md)
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md)
+- [WIP-0377](WIP-0377-native-image-release-records.md)
+- [WIP-0410](WIP-0410-cryptographic-elf-repository-authorization.md)
 - [Debian Policy](https://www.debian.org/doc/debian-policy/)
 - [RPM spec format](https://rpm-software-management.github.io/rpm/manual/spec.html)

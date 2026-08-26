@@ -67,9 +67,11 @@ binds complete adapter-verified format, target, plan, ABI, capsule, PREV, and by
 count. `NativeImageSigningRecord` separately binds ELF repository signatures,
 Apple code signatures, or PE Authenticode distribution bytes and evidence.
 Signing products cannot alter the plan or PREV. `image record-elf`,
-`record-macho`, `record-pe`, and `record-signing` publish the strict records from
-bounded physical inputs. These commands do not invoke a signer. The metadata
-records do not perform cryptographic verification, notarization, or trust policy.
+`record-macho`, and `record-pe` publish unsigned records. `record-signing`
+publishes attached Apple or Authenticode metadata. `record-repository-signing`
+requires a domain-separated Ed25519 authorization and a matching key in one
+enabled repository policy entry. These commands do not invoke a signer. Apple
+notarization and Authenticode certificate validation remain outside this profile.
 
 Platform ABI, image plan, output, and signing records have strict 16 KiB canonical
 parsers. They reject malformed UTF-8, schema or field drift, unknown values,

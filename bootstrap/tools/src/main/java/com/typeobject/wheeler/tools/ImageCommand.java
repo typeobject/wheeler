@@ -10,6 +10,9 @@ import com.typeobject.wheeler.packageformat.MachOImage;
 import com.typeobject.wheeler.packageformat.NativeImagePlan;
 import com.typeobject.wheeler.packageformat.NativeImageSigningRecord;
 import com.typeobject.wheeler.packageformat.PeImage;
+import com.typeobject.wheeler.packageformat.RepositoryNativeImageSignature;
+import com.typeobject.wheeler.packageformat.RepositoryPolicy;
+import com.typeobject.wheeler.packageformat.RepositoryPolicyParser;
 import com.typeobject.wheeler.packageformat.PlatformAbi;
 import com.typeobject.wheeler.packageformat.UnsignedNativeImageRecord;
 import com.typeobject.wheeler.runtime.ApplicationCapsuleVerifier;
@@ -43,6 +46,7 @@ final class ImageCommand {
       case "record-macho" -> recordNativeOutput(args, out, error, NativeFormat.MACH_O);
       case "record-pe" -> recordNativeOutput(args, out, error, NativeFormat.PE);
       case "record-signing" -> recordNativeSigning(args, out, error);
+      case "record-repository-signing" -> recordRepositorySigning(args, out, error);
       case "build-elf" -> buildNative(args, out, error, NativeFormat.ELF);
       case "inspect-elf" -> inspectNative(args, out, error, NativeFormat.ELF);
       case "verify-elf" -> verifyNative(args, out, error, NativeFormat.ELF);
@@ -122,6 +126,48 @@ final class ImageCommand {
     PackageProject.writeAtomically(output, record.canonicalBytes());
     out.println("wrote unsigned " + format.label + " record " + output
         + " (" + record.identity() + ", PREV " + record.prev() + ")");
+    return 0;
+  }
+
+  private static int recordRepositorySigning(
+      String[] args, PrintStream out, PrintStream error) throws IOException {
+    if (args.length != 15
+        || !args[3].equals("--unsigned")
+        || !args[5].equals("--policy")
+        || !args[7].equals("--repository")
+        || !args[9].equals("--signature")
+        || !args[11].equals("--tool")
+        || !args[13].equals("-o")) {
+      return usage(error);
+    }
+    UnsignedNativeImageRecord unsigned = UnsignedNativeImageRecord.parse(readPhysical(
+        Path.of(args[2]), UnsignedNativeImageRecord.MAX_RECORD_BYTES,
+        "unsigned native image record"));
+    byte[] image = readPhysical(
+        Path.of(args[4]), 64 * 1024 * 1024, "unsigned native image");
+    RepositoryPolicy policy = new RepositoryPolicyParser().parse(readPhysical(
+        Path.of(args[6]), 1024 * 1024, "repository policy"));
+    RepositoryPolicy.Repository repository = policy.require(args[8]);
+    if (!repository.enabled()) {
+      throw new IllegalArgumentException("Native signing repository is disabled");
+    }
+    RepositoryNativeImageSignature authorization = RepositoryNativeImageSignature.parse(
+        readPhysical(
+            Path.of(args[10]),
+            RepositoryNativeImageSignature.MAX_BYTES,
+            "native repository signature"));
+    RepositoryPolicy.TrustedKey trusted = repository.keys().stream()
+        .filter(key -> key.identity().equals(authorization.keyIdentity()))
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException(
+            "Native signing key is not trusted by the repository"));
+    var publicKey = trusted.decoded();
+    NativeImageSigningRecord record = NativeImageSigningRecord.createRepositoryDetached(
+        repository.identity(), unsigned, image, authorization, publicKey, args[12]);
+    Path output = Path.of(args[14]);
+    PackageProject.writeAtomically(output, record.canonicalBytes());
+    out.println("wrote verified repository native signing record " + output
+        + " (" + record.identity() + ", key " + authorization.keyIdentity() + ")");
     return 0;
   }
 
@@ -462,9 +508,12 @@ final class ImageCommand {
     error.println("   or: wheeler image <record-elf|record-macho|record-pe> <application>"
         + " --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>");
     error.println("   or: wheeler image record-signing <unsigned-record.yaml>"
-        + " --unsigned <application> --method <method> --distribution <artifact>"
-        + " --signature <evidence> --signer <identity> --tool <identity>"
-        + " -o <signing-record.yaml>");
+        + " --unsigned <application> --method <apple-code-signature|authenticode>"
+        + " --distribution <artifact> --signature <evidence> --signer <identity>"
+        + " --tool <identity> -o <signing-record.yaml>");
+    error.println("   or: wheeler image record-repository-signing <unsigned-record.yaml>"
+        + " --unsigned <application> --policy <repositories.yaml> --repository <alias>"
+        + " --signature <authorization> --tool <identity> -o <signing-record.yaml>");
     error.println("   or: wheeler image <build-elf|build-macho|build-pe> <application.capsule>"
         + " --runtime <runtime.bin> --entry <offset> --plan <plan.yaml>"
         + " --abi <abi.yaml> -o <application>");

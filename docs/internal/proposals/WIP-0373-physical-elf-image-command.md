@@ -9,7 +9,7 @@
 | Area | Native bootstrap, ELF, Mach-O, and PE commands, physical inputs, atomic publication |
 | Depends on | WIP-0008, WIP-0026, WIP-0368, WIP-0370, WIP-0372, WIP-0374, WIP-0375 |
 | Supersedes | In-memory-only native image adapter demonstrations |
-| Superseded by | WIP-0409 for capsule-bound scalar AOT publication |
+| Superseded by | WIP-0409 for capsule-bound scalar AOT publication, WIP-0410 for detached ELF signing |
 
 ## Summary
 
@@ -30,7 +30,8 @@ wheeler image verify-pe <application.exe> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image record-elf <application> --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>
 wheeler image record-macho <application> --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>
 wheeler image record-pe <application.exe> --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>
-wheeler image record-signing <unsigned-record.yaml> --unsigned <application> --method <method> --distribution <artifact> --signature <evidence> --signer <identity> --tool <identity> -o <signing-record.yaml>
+wheeler image record-signing <unsigned-record.yaml> --unsigned <application> --method <apple-code-signature|authenticode> --distribution <artifact> --signature <evidence> --signer <identity> --tool <identity> -o <signing-record.yaml>
+wheeler image record-repository-signing <unsigned-record.yaml> --unsigned <application> --policy <repositories.yaml> --repository <alias> --signature <authorization.yaml> --tool <identity> -o <signing-record.yaml>
 ```
 
 WIP-0376's runtime command atomically publishes the maintained import-free x86-64 Linux entry text used by the first loader probe. WIP-0378's AOT command verifies one closed scalar WBC profile and publishes runtime text carrying its process-status observation. Neither command performs discovery or native execution.
@@ -149,4 +150,5 @@ Rejected. Arbitrary runtime text remains untrusted input. Native execution begin
 - [WIP-0376](WIP-0376-x86-64-linux-native-entry-shim.md)
 - [WIP-0377](WIP-0377-native-image-release-records.md)
 - [WIP-0409](WIP-0409-exact-native-capsule-binding.md)
+- [WIP-0410](WIP-0410-cryptographic-elf-repository-authorization.md)
 - [WIP-0378](WIP-0378-x86-64-linux-scalar-aot.md)

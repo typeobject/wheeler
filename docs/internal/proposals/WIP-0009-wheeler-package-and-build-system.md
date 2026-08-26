@@ -421,6 +421,7 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
   - Native build execution and stable binary-library linkage remain.
 - [x] The stage-0 resolver selects one version per package with deterministic backtracking. A 10,000-unit total-work budget bounds the search. Root and dependency profiles must match exactly. Still-valid exact lock selections are preferred, while targeted and full update modes are explicit. Development dependencies apply only to the root and never propagate. Cycles are rejected. Stable ranges ignore prereleases unless the requirement names one.
 - [x] Physical catalogs, exact vendor trees, and immutable local file publication and fetch are bounded and integrity-checked. The closed YAML repository policy records trust order, identity, enabled state, file transport, and sorted namespace authority. XDG fallback and override paths are explicit. Relative overrides are diagnosed and ignored. Policy updates are atomic, publication defaults to `local`, and exact fetch uses the first authoritative match.
+- [x] WIP-0410 applies the same explicit repository trust policy to detached native ELF releases. Domain-separated Ed25519 authorization binds the complete unsigned record and image bytes. An enabled repository and exact trusted key are required before signing-record publication.
 - [x] Unlocked stage-0 resolution scans canonical release mappings in configured repository order, filters namespace authority, chooses the first repository with a profile/range-admissible release, and never merges its candidates with lower trust domains.
 - [x] Lock schema 3 binds each package to the repository identity that owned its candidates and the complete snapshot used for selection. Aliases, URLs, list positions, and paths never enter lock identity. A valid existing exact choice remains preferred, but a new lock records the current snapshot even when only an unrelated release changed. Sealed catalogs use one domain-separated bootstrap repository identity and a content-derived snapshot.
 - [x] Exact fetch uses the XDG artifact root as a disposable package-object cache only after an authoritative release mapping supplies expected package/archive/manifest identities. Every hit is fully decoded and compared. Corrupt or oversized regular objects are deleted and refetched, cache deletion changes no bytes, and cached objects never become resolver candidates. `wheeler cache gc` performs bounded lexical verification, removes malformed regular objects, and refuses links or special files.
@@ -589,6 +590,7 @@ Worker count and native scheduling do not enter package identity. Required physi
 - [WIP-0274](WIP-0274-native-lock-graph-validation.md)
 - [WIP-0275](WIP-0275-native-locked-package-test-gate.md)
 - [WIP-0276](WIP-0276-native-package-case-rows.md)
+- [WIP-0410](WIP-0410-cryptographic-elf-repository-authorization.md)
 - [YAML 1.2.2](https://yaml.org/spec/1.2.2/)
 - [Python packaging: `pyproject.toml`](https://packaging.python.org/en/latest/specifications/pyproject-toml/)
 - [Conan 2 remotes](https://docs.conan.io/2/reference/commands/remote.html)

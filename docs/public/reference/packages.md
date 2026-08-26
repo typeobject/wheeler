@@ -287,7 +287,8 @@ wheeler image verify-pe <application.exe> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image record-elf <application> --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>
 wheeler image record-macho <application> --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>
 wheeler image record-pe <application.exe> --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>
-wheeler image record-signing <unsigned-record.yaml> --unsigned <application> --method <method> --distribution <artifact> --signature <evidence> --signer <identity> --tool <identity> -o <signing-record.yaml>
+wheeler image record-signing <unsigned-record.yaml> --unsigned <application> --method <apple-code-signature|authenticode> --distribution <artifact> --signature <evidence> --signer <identity> --tool <identity> -o <signing-record.yaml>
+wheeler image record-repository-signing <unsigned-record.yaml> --unsigned <application> --policy <repositories.yaml> --repository <alias> --signature <authorization.yaml> --tool <identity> -o <signing-record.yaml>
 wheeler resolve <package-directory> [--repository <alias> ... | --catalog <archive-directory>] [-o wheeler.package.lock.yaml] [--development] [--update <package> ... | --update-all]
 wheeler verify-lock <wheeler.package.lock.yaml>
 wheeler vendor <wheeler.package.lock.yaml> --catalog <archive-directory> -o <vendor-directory>
@@ -410,8 +411,10 @@ first x86-64 Linux entry shim locates mapped ELF capsule framing, performs one
 fixed standard-output write, and exits through the kernel without a path or
 import. It does not verify WBC or execute the root. Canonical unsigned output
 records bind adapter-verified format, target, plan, ABI, capsule, PREV, and byte
-count. Separate signing records bind detached ELF, Apple code-signature, or PE
-Authenticode distribution identities without changing unsigned PREV. Coexisting
+count. Detached ELF records require domain-separated Ed25519 authorization by a
+key trusted in one enabled repository policy entry. Apple code-signature and PE
+Authenticode records remain attached evidence without a cryptographic trust claim.
+No signing record changes unsigned PREV. Coexisting
 package instances, complete recipe revisions, system-package exports, native FFI providers, network
 mirrors, and production image output remain.
 
