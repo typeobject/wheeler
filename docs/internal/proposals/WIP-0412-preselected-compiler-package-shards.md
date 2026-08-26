@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementing |
+| Status | Implemented |
 | Owners | Wheeler testing, compiler package, build, and CI maintainers |
 | Created | 2026-08-26 |
 | Updated | 2026-08-26 |
@@ -66,7 +66,7 @@ No row merges report bytes with another row. Completeness comes from the exhaust
 
 ## Evidence
 
-Local endpoint runs prove both admitted index bounds, nonempty selection, native execution, and all three report adapters. The ordinary tools test continues to exclude the integration class. CI matrix evidence remains pending for commit publication.
+Local endpoint runs prove both admitted index bounds, nonempty selection, native execution, and all three report adapters. The ordinary tools test continues to exclude the integration class. Hosted run `32985905791` passes all sixteen package rows, both build matrices, all eight example shards, and byte-identical bootstrap output comparison. The slowest package row completes in 10 minutes and 15 seconds.
 
 The compiler archive lock in every dependent workspace now names SHA-256 `4a4d2b612afaf874528712b7de080e1e075fcb63a444a5563ab5e6b9dd618582`. Package loading rejects the superseded archive identity before any shard executes.
 
@@ -80,8 +80,8 @@ The compiler archive lock in every dependent workspace now names SHA-256 `4a4d2b
 - [x] Ordinary tools tests exclude the integration class.
 - [x] The duplicate Java case inventory is deleted.
 - [x] Every dependent workspace lock names the current compiler archive.
-- [ ] All sixteen hosted matrix rows pass for one commit.
-- [ ] Documentation, style, source, and file-length checks pass on that commit.
+- [x] All sixteen hosted matrix rows pass for one commit.
+- [x] Documentation, style, source, and file-length checks pass on that commit.
 
 ## Rejected alternatives
 
