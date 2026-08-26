@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, scalar globals, checked updates |
 | Depends on | WIP-0008, WIP-0026, WIP-0382, WIP-0390, WIP-0401 |
 | Supersedes | Local-store-only scalar global mutation in AOT |
-| Superseded by | WIP-0407 for status ownership |
+| Superseded by | WIP-0407 for status ownership, WIP-0409 for capsule binding |
 
 ## Summary
 
@@ -63,10 +63,10 @@ This WIP executes only the forward instruction stream. Reversible inverse and re
 | Product | Identity |
 | --- | --- |
 | WBC | `378b6b4441e29c95d7b32051d9b8820f59c7e68c9b230c5a6297649274ac6efb` |
-| runtime | `229c253086efa6127072efaa32b203fdbbc27db11f5f29f6a6d695bb63cefafe` |
+| runtime | `057c1b85b48a29c7c373ebf8699f748bd31b0fb47a6a36b6af4bba667c641a68` |
 | capsule | `845dd69143793cba8301d6865688ace9b0ee60c7b8d241ace22643c7e1d0c112` |
-| native plan | `839f02237e4890afdfcab9883d3deae78ccdbc08d57d201a3dc3f05fec334628` |
-| unsigned PREV | `07c48c8eefa6ef31f243794aebb981cddf123a5d81a845d2c5774771f17797a6` |
+| native plan | `91f376e5c967d5e502e9a6294c44e93a3fe8535d97a8b5e6b87d17b3f3d8ad14` |
+| unsigned PREV | `ef3029999b2b079bdc7bb7a5601bef9f5a7c6d4922859e2ca959632a9f3fadbc` |
 
 ## Acceptance
 
@@ -107,3 +107,4 @@ Rejected. This leaf executes only the verified forward body.
 - [WIP-0401](WIP-0401-bounded-recursive-scalar-aot-calls.md)
 - [WIP-0404](WIP-0404-scalar-global-replacement-aot.md)
 - [WIP-0407](WIP-0407-helper-owned-process-status-aot.md)
+- [WIP-0409](WIP-0409-exact-native-capsule-binding.md)

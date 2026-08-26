@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, checkpoint, commit, forward execution |
 | Depends on | WIP-0001, WIP-0008, WIP-0026, WIP-0404, WIP-0405 |
 | Supersedes | Rejection of forward-only checkpoint and commit markers |
-| Superseded by | None |
+| Superseded by | WIP-0409 for capsule binding |
 
 ## Summary
 
@@ -56,10 +56,10 @@ Reject malformed operands, missing status publication, unsupported rewind-bearin
 | Product | Identity |
 | --- | --- |
 | WBC | `7b7f7222338a4b77b1604305eb98c20cde67693f37c99d6e6ecefece70e1f288` |
-| runtime | `f3f7233445269902a30f6b0cfa71967f9e847c1eaf69d416b4ee52ca1b392737` |
+| runtime | `3edc4e58f037392d63fd5e823c1ab395b4e75ac086f1a5859404f242a17cf741` |
 | capsule | `2c6ce55839b61b9c1378de4c5e0d1f0d47c533de3ed6dbdbd64ea0bd7029e01d` |
-| native plan | `166a7fc54958ae07d7bcbe2a52efd219aa70a9516f2c54bb5e637a38e4c41f9b` |
-| unsigned PREV | `811a7d9f2be0d6200c383656f27af81c041ba80fa7b3c081cb8b298634cf077a` |
+| native plan | `f52e0e561e04374b5e626b51691fe74c8b689b80a8aa29e1f69a4c1948649c12` |
+| unsigned PREV | `dec745548190f7f59a27cd33ac9b86df8788918b2ae1b57ebcef13cdfb7e83f8` |
 
 ## Acceptance
 
@@ -99,3 +99,4 @@ Rejected. No rewind interface or history observation exists in this profile.
 - [WIP-0405](WIP-0405-directional-scalar-aot-calls.md)
 - [WIP-0407](WIP-0407-helper-owned-process-status-aot.md)
 - [WIP-0408](WIP-0408-reversible-scalar-result-slot-aot.md)
+- [WIP-0409](WIP-0409-exact-native-capsule-binding.md)

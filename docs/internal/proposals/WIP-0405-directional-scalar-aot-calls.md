@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, reversible calls, inverse bodies |
 | Depends on | WIP-0001, WIP-0008, WIP-0026, WIP-0401, WIP-0404 |
 | Supersedes | Forward-body-only scalar AOT function admission |
-| Superseded by | WIP-0407 for status ownership, WIP-0408 for result-slot directions |
+| Superseded by | WIP-0407 for status ownership, WIP-0408 for result-slot directions, WIP-0409 for capsule binding |
 
 ## Summary
 
@@ -68,10 +68,10 @@ Static failure publishes no runtime text. Runtime depth, arithmetic, assertion, 
 | Product | Identity |
 | --- | --- |
 | WBC | `b5907c5d8e3169c09a5e5d04a3b9b7a73dbc190d6d7ba4fc8984c3fda6186763` |
-| runtime | `cc5edc6502c39037e7c7eba018855b901845ef4391e69399159eb29fca036209` |
+| runtime | `555ce2b4b14a0cb04cd1130ef9dc29cf90f9cf5d1db620e48da74cf2a51a8915` |
 | capsule | `69e3db35fb636680c5e3df441e264ef27a5031863c1477a15439fad3d6367e8c` |
-| native plan | `728420ab46abb7aa066b93d8e1fbc5531000570b53eb486a7f34a893de3f9fc3` |
-| unsigned PREV | `17723dda0eee581a9d7b5a3623cb0324098647dac057fc8e8ffdc20543c5a7c1` |
+| native plan | `fc57f075e085da5b8397aa5b0ce7f5e2db237ed2a17a05f251e8d69d168a0d09` |
+| unsigned PREV | `222e85033fe43ddaa9d7dbf042e87576593510140af5f2461fd988958d441689` |
 
 ## Acceptance
 
@@ -112,3 +112,4 @@ Rejected. Rewind includes retained machine history and control observations abse
 - [WIP-0406](WIP-0406-forward-control-marker-aot.md)
 - [WIP-0407](WIP-0407-helper-owned-process-status-aot.md)
 - [WIP-0408](WIP-0408-reversible-scalar-result-slot-aot.md)
+- [WIP-0409](WIP-0409-exact-native-capsule-binding.md)

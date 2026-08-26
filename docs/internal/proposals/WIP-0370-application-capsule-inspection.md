@@ -9,7 +9,7 @@
 | Area | Native bootstrap, capsule inspection, bytecode verification, root binding |
 | Depends on | WIP-0008, WIP-0026, WIP-0369 |
 | Supersedes | Ad hoc capsule dumps and partial WBC checks |
-| Superseded by | None |
+| Superseded by | WIP-0371 for embedded startup, WIP-0409 for scalar AOT startup |
 
 ## Summary
 
@@ -104,3 +104,4 @@ Rejected. Verification must remain safe for audit tooling and hostile capsules. 
 - [WIP-0026](WIP-0026-self-contained-native-executables.md)
 - [WIP-0369](WIP-0369-canonical-application-capsules.md)
 - [WIP-0371](WIP-0371-embedded-application-capsule-startup.md)
+- [WIP-0409](WIP-0409-exact-native-capsule-binding.md)

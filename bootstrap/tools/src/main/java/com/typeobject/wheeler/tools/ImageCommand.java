@@ -71,18 +71,23 @@ final class ImageCommand {
 
   private static int publishLinuxScalarAot(
       String[] args, PrintStream out, PrintStream error) throws IOException {
-    if (args.length != 5 || !args[3].equals("-o")) {
+    if (args.length != 7
+        || !args[3].equals("--capsule")
+        || !args[5].equals("-o")) {
       return usage(error);
     }
     byte[] artifact = readPhysical(
         Path.of(args[2]), BytecodeFormat.MAX_ARTIFACT_BYTES, "portable WBC artifact");
+    ApplicationCapsule capsule = ApplicationCapsule.parse(readPhysical(
+        Path.of(args[4]), ApplicationCapsule.MAX_CAPSULE_BYTES, "application capsule"));
     LinuxX8664ScalarAotCompiler.LoweredRuntime lowered =
-        LinuxX8664ScalarAotCompiler.lower(artifact);
-    Path output = Path.of(args[4]);
+        LinuxX8664ScalarAotCompiler.lower(artifact, capsule);
+    Path output = Path.of(args[6]);
     PackageProject.writeAtomically(output, lowered.runtimeText());
     out.println("wrote x86-64 Linux scalar AOT runtime " + output + " ("
         + lowered.runtimeText().length + " bytes, " + lowered.runtimeIdentity()
         + ", WBC " + lowered.portableArtifact()
+        + ", capsule " + lowered.capsuleIdentity()
         + (lowered.hasStaticProcessStatus()
             ? ", status " + lowered.processStatus() : ", input-dependent status")
         + (lowered.writesApplicationOutput()
@@ -453,7 +458,7 @@ final class ImageCommand {
     error.println("Usage: wheeler image <inspect|verify> <application.capsule>");
     error.println("   or: wheeler image runtime-elf-x86-64 -o <runtime.bin>");
     error.println("   or: wheeler image runtime-elf-x86-64-aot <root.wbc>"
-        + " -o <runtime.bin>");
+        + " --capsule <application.capsule> -o <runtime.bin>");
     error.println("   or: wheeler image <record-elf|record-macho|record-pe> <application>"
         + " --plan <plan.yaml> --abi <abi.yaml> -o <unsigned-record.yaml>");
     error.println("   or: wheeler image record-signing <unsigned-record.yaml>"

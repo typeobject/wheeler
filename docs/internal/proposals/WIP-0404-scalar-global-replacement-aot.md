@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, global state, logged replacement |
 | Depends on | WIP-0008, WIP-0026, WIP-0390, WIP-0403 |
 | Supersedes | Load-and-store substitution for scalar global replacement |
-| Superseded by | WIP-0407 for status ownership |
+| Superseded by | WIP-0407 for status ownership, WIP-0409 for capsule binding |
 
 ## Summary
 
@@ -60,10 +60,10 @@ Reject malformed operands, out-of-range globals, unsupported history operations,
 | Product | Identity |
 | --- | --- |
 | WBC | `c8536b97e8b990f2e8e830c9dfe8dcc9d443bb990462b81714cf10031dc6e3a6` |
-| runtime | `be7420324c82eb8a07bf59a5285646ad3dde8e62a7db38747d43fd207629348a` |
+| runtime | `bfb148909213143318d0b39316de7094f75679b3c868237399b8012d6b54fb18` |
 | capsule | `524256617fa8ef2f9d14e2ea575d9869584c0cf947a704d323432312991a5c07` |
-| native plan | `96df771e3c861ff848bfcd8f4629161b92c91527539c8fa846982dbb96079ebe` |
-| unsigned PREV | `a7108a33b4b5144c5e4e8b0086ee80d302ac2a95fdfcb53b375faf293b5f1895` |
+| native plan | `e849cccdf7e3b36ad0260c266583889636e0565ff42d62eceeb6a8a094820232` |
+| unsigned PREV | `4324c04fb30dd57d9b160482912835340673d05c5afcb7557d4bf18af26d4255` |
 
 ## Acceptance
 
@@ -103,3 +103,4 @@ Rejected. A forward-only backend must not claim rewind authority.
 - [WIP-0403](WIP-0403-scalar-global-instruction-aot.md)
 - [WIP-0405](WIP-0405-directional-scalar-aot-calls.md)
 - [WIP-0407](WIP-0407-helper-owned-process-status-aot.md)
+- [WIP-0409](WIP-0409-exact-native-capsule-binding.md)

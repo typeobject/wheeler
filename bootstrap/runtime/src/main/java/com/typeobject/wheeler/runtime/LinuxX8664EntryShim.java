@@ -16,6 +16,7 @@ public final class LinuxX8664EntryShim {
   public static final int MALFORMED_IMAGE_STATUS = 125;
   private static final int PAGE_BYTES = 4096;
   private static final int MAX_APPLICATION_CODE_BYTES = 16 * 1024;
+  private static final int MAX_BOUND_CAPSULE_BYTES = ElfImage.MAX_RUNTIME_BYTES - 64 * 1024;
   private static final byte[] SUCCESS_OUTPUT = "Wheeler\n".getBytes(StandardCharsets.US_ASCII);
   private static final byte[] RUNTIME_TEXT = runtimeText(SUCCESS_STATUS);
   private static final String RUNTIME_IDENTITY = identity(RUNTIME_TEXT);
@@ -34,37 +35,32 @@ public final class LinuxX8664EntryShim {
     Code status = new Code();
     status.bytes(0xbf);
     status.integer(successStatus);
-    return assemble(status.finish(), SUCCESS_OUTPUT);
+    return assemble(status.finish(), SUCCESS_OUTPUT, null);
   }
 
-  static byte[] runtimeText(byte[] processStatusCode) {
-    if (processStatusCode == null
-        || processStatusCode.length == 0
-        || processStatusCode.length > MAX_APPLICATION_CODE_BYTES) {
-      throw new IllegalArgumentException("Native process-status code is invalid");
-    }
-    return assemble(processStatusCode.clone(), SUCCESS_OUTPUT);
+  static byte[] boundRuntimeText(byte[] processStatusCode, byte[] capsule) {
+    requireApplicationCode(processStatusCode);
+    requireBoundCapsule(capsule);
+    return assemble(processStatusCode.clone(), SUCCESS_OUTPUT, capsule.clone());
   }
 
-  static byte[] runtimeText(byte[] processStatusCode, byte[] applicationOutput) {
-    if (processStatusCode == null
-        || processStatusCode.length == 0
-        || processStatusCode.length > MAX_APPLICATION_CODE_BYTES
-        || applicationOutput == null
+  static byte[] boundRuntimeText(
+      byte[] processStatusCode, byte[] applicationOutput, byte[] capsule) {
+    requireApplicationCode(processStatusCode);
+    if (applicationOutput == null
         || applicationOutput.length == 0
         || applicationOutput.length > 4096) {
-      throw new IllegalArgumentException("Native process code or application output is invalid");
+      throw new IllegalArgumentException("Native application output is invalid");
     }
-    return assemble(processStatusCode.clone(), applicationOutput.clone());
+    requireBoundCapsule(capsule);
+    return assemble(processStatusCode.clone(), applicationOutput.clone(), capsule.clone());
   }
 
-  static byte[] runtimeTextWithApplicationIo(byte[] applicationCode) {
-    if (applicationCode == null
-        || applicationCode.length == 0
-        || applicationCode.length > MAX_APPLICATION_CODE_BYTES) {
-      throw new IllegalArgumentException("Native application code is invalid");
-    }
-    return assemble(applicationCode.clone(), null);
+  static byte[] boundRuntimeTextWithApplicationIo(
+      byte[] applicationCode, byte[] capsule) {
+    requireApplicationCode(applicationCode);
+    requireBoundCapsule(capsule);
+    return assemble(applicationCode.clone(), null, capsule.clone());
   }
 
   /** SHA-256 identity of the exact runtime text. */
@@ -77,9 +73,22 @@ public final class LinuxX8664EntryShim {
     return SUCCESS_OUTPUT.clone();
   }
 
-  private static byte[] assemble(byte[] processStatusCode, byte[] applicationOutput) {
+  private static void requireApplicationCode(byte[] code) {
+    if (code == null || code.length == 0 || code.length > MAX_APPLICATION_CODE_BYTES) {
+      throw new IllegalArgumentException("Native application code is invalid");
+    }
+  }
+
+  private static void requireBoundCapsule(byte[] capsule) {
+    if (capsule == null || capsule.length == 0 || capsule.length > MAX_BOUND_CAPSULE_BYTES) {
+      throw new IllegalArgumentException("Native bound capsule is invalid");
+    }
+  }
+
+  private static byte[] assemble(
+      byte[] processStatusCode, byte[] applicationOutput, byte[] expectedCapsule) {
     Code code = new Code();
-    boolean wideBranches = processStatusCode.length > 64;
+    boolean wideBranches = processStatusCode.length > 64 || expectedCapsule != null;
     code.bytes(0x48, 0x8d, 0x1d);
     int locatorDisplacement = code.reserveInt();
     code.bytes(0x48, 0xb9);
@@ -96,6 +105,21 @@ public final class LinuxX8664EntryShim {
     code.word(magicWord(ApplicationCapsule.framingMagic()));
     code.bytes(0x48, 0x39, 0x08);
     int badCapsuleJump = code.notEqual(wideBranches);
+
+    int expectedCapsuleDisplacement = -1;
+    int badCapsuleLengthJump = -1;
+    int badCapsuleIdentityJump = -1;
+    if (expectedCapsule != null) {
+      code.bytes(0x81, 0x78, ApplicationCapsule.totalLengthOffset());
+      code.integer(expectedCapsule.length);
+      badCapsuleLengthJump = code.notEqual(true);
+      code.bytes(0x48, 0x89, 0xc7, 0x48, 0x8d, 0x35);
+      expectedCapsuleDisplacement = code.reserveInt();
+      code.bytes(0xb9);
+      code.integer(expectedCapsule.length);
+      code.bytes(0xfc, 0xf3, 0xa6);
+      badCapsuleIdentityJump = code.notEqual(true);
+    }
 
     int outputDisplacement = -1;
     int shortWriteJump = -1;
@@ -132,6 +156,10 @@ public final class LinuxX8664EntryShim {
     if (applicationOutput != null) {
       code.raw(applicationOutput);
     }
+    int expectedCapsuleOffset = code.position();
+    if (expectedCapsule != null) {
+      code.raw(expectedCapsule);
+    }
 
     code.patchRelativeInt(
         locatorDisplacement,
@@ -146,6 +174,11 @@ public final class LinuxX8664EntryShim {
     code.patchJump(badLocatorJump, failure, wideBranches);
     code.patchJump(badCapsuleOffsetJump, failure, wideBranches);
     code.patchJump(badCapsuleJump, failure, wideBranches);
+    if (expectedCapsule != null) {
+      code.patchRelativeInt(expectedCapsuleDisplacement, expectedCapsuleOffset);
+      code.patchJump(badCapsuleLengthJump, failure, true);
+      code.patchJump(badCapsuleIdentityJump, failure, true);
+    }
     code.patchRelativeByte(exitJump, exit);
     return code.finish();
   }

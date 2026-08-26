@@ -53,10 +53,10 @@ Complete-artifact validation remains mandatory. An unused twenty-fifth function 
 | Product | Identity |
 | --- | --- |
 | WBC | `582736d63c4d58465e0cd68b633c4d7e315c56817cf2d011db2a3ae6fda05084` |
-| runtime | `a8e0dfd175d35bc84e04ef3bea2cb1ca271ccdc006d5e6b25cc39e89363e4b16` |
+| runtime | `dae64eb303909a71f7cfbf57914e9375bec59472c60b6326cfafa3c5e313aa4c` |
 | capsule | `4896f1b210c3b6ac0f405164467ac2f27f263aed30a6e6150f3679907beb795b` |
-| native plan | `1fb2f458bff81b0534ccfcb119fd8dde7fe202bad1e345dc89f02b0ef53ca565` |
-| unsigned PREV | `fa543a706e5907aca33fd6c415c0d238cbd95eaa833cec6d6c8e04dc37c610f6` |
+| native plan | `4305d67e7d68db434c4ca22609c97a6e782e520f2f63406556db6b8432ca07d1` |
+| unsigned PREV | `357624a9ae08755079a5e1e6ad3c59c8f751037df78a13f1370cba0df4dd970a` |
 
 ## Acceptance
 

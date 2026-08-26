@@ -9,7 +9,7 @@
 | Area | Native bootstrap, Linux entry, ELF locator, host services |
 | Depends on | WIP-0008, WIP-0026, WIP-0368, WIP-0372, WIP-0373 |
 | Supersedes | None |
-| Superseded by | None |
+| Superseded by | WIP-0409 for scalar AOT startup |
 
 ## Summary
 
@@ -114,3 +114,4 @@ Rejected. A fixed exit stub can launch while ignoring the capsule. Damaged mappe
 - [WIP-0373](WIP-0373-physical-elf-image-command.md)
 - [WIP-0384](WIP-0384-x86-64-linux-constant-byte-output.md)
 - [WIP-0385](WIP-0385-x86-64-linux-dynamic-byte-io.md)
+- [WIP-0409](WIP-0409-exact-native-capsule-binding.md)

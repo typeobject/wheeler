@@ -9,7 +9,7 @@
 | Area | Native bootstrap, ELF, Mach-O, and PE commands, physical inputs, atomic publication |
 | Depends on | WIP-0008, WIP-0026, WIP-0368, WIP-0370, WIP-0372, WIP-0374, WIP-0375 |
 | Supersedes | In-memory-only native image adapter demonstrations |
-| Superseded by | None |
+| Superseded by | WIP-0409 for capsule-bound scalar AOT publication |
 
 ## Summary
 
@@ -17,7 +17,7 @@ Add physical build and verification commands for canonical ELF, Mach-O, and PE c
 
 ```text
 wheeler image runtime-elf-x86-64 -o <runtime.bin>
-wheeler image runtime-elf-x86-64-aot <root.wbc> -o <runtime.bin>
+wheeler image runtime-elf-x86-64-aot <root.wbc> --capsule <application.capsule> -o <runtime.bin>
 wheeler image build-elf <application.capsule> --runtime <runtime.bin> --entry <offset> --plan <plan.yaml> --abi <abi.yaml> -o <application>
 wheeler image inspect-elf <application> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image verify-elf <application> --plan <plan.yaml> --abi <abi.yaml>
@@ -148,4 +148,5 @@ Rejected. Arbitrary runtime text remains untrusted input. Native execution begin
 - [WIP-0375](WIP-0375-canonical-pe-capsule-images.md)
 - [WIP-0376](WIP-0376-x86-64-linux-native-entry-shim.md)
 - [WIP-0377](WIP-0377-native-image-release-records.md)
+- [WIP-0409](WIP-0409-exact-native-capsule-binding.md)
 - [WIP-0378](WIP-0378-x86-64-linux-scalar-aot.md)

@@ -50,6 +50,11 @@ public final class ApplicationCapsule {
     return MAGIC.clone();
   }
 
+  /** Byte offset of the canonical little-endian total-length field. */
+  public static int totalLengthOffset() {
+    return MAGIC.length;
+  }
+
   public ApplicationCapsule(
       CapsuleRoot root,
       List<CapsulePackageReceipt> receipts,

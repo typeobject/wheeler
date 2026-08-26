@@ -46,10 +46,17 @@ final class LinuxX8664EntryShimTest {
     assertEquals(LinuxX8664EntryShim.runtimeIdentity(), identity(first));
     first[0] ^= 1;
     assertFalse(java.util.Arrays.equals(first, LinuxX8664EntryShim.runtimeText()));
-    assertTrue(LinuxX8664EntryShim.runtimeText(new byte[16 * 1024]).length > 16 * 1024);
+    byte[] capsule = fixture().capsule().canonicalBytes();
+    assertTrue(LinuxX8664EntryShim.boundRuntimeText(
+        new byte[16 * 1024], capsule).length > 16 * 1024);
     assertThrows(
         IllegalArgumentException.class,
-        () -> LinuxX8664EntryShim.runtimeText(new byte[16 * 1024 + 1]));
+        () -> LinuxX8664EntryShim.boundRuntimeText(
+            new byte[16 * 1024 + 1], capsule));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664EntryShim.boundRuntimeText(
+            new byte[] {1}, new byte[ElfImage.MAX_RUNTIME_BYTES]));
   }
 
   @Test

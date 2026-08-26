@@ -57,10 +57,10 @@ A nonterminating self or mutual cycle fails independent evaluation at the depth 
 | Product | Identity |
 | --- | --- |
 | WBC | `1b493683700357eb469afcb02a45d06137bbb15d443e287c9677e76beb2c47bc` |
-| runtime | `0f8eef2985778f5c9332b5cd3906b2ee98b220a39769ee7fd6c3c4382fabe8e4` |
+| runtime | `78407f68225aa0b9cf500ea4bfbabf42f740ee62d4b357867874c7405142c047` |
 | capsule | `8397f3b9cd6592a4a955a6c2342bd3e0755d24b01350fbed111ac570999f49e4` |
-| native plan | `795acd712b7e9d2370b5372d2ce773381f1793d0c4537d2cc6a85d0bcdb3c245` |
-| unsigned PREV | `3974b9d50ed1a6f36ecd8620aea7ac48fd85dea43383217969f2f732cff4eadc` |
+| native plan | `d1cd444773b02a01c55cf55aa8d6ab046d10cd63fcc18e91f491d7b40aec45ef` |
+| unsigned PREV | `ca9bce8267fb7147847b27ccd1a7d689964631ae3db701cd1e322cfa6ad94167` |
 
 ## Acceptance
 

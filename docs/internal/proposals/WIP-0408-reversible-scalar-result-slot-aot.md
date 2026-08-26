@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, reversible calls, result slots |
 | Depends on | WIP-0001, WIP-0008, WIP-0026, WIP-0041, WIP-0401, WIP-0405 |
 | Supersedes | Scalar AOT rejection of implicit result-slot functions |
-| Superseded by | None |
+| Superseded by | WIP-0409 for capsule-bound runtime identity |
 
 ## Summary
 
@@ -64,17 +64,17 @@ An occupied forward slot is valid WBC but invalid execution state. Independent e
 
 ## Evidence
 
-`ScalarAotCallArtifacts.resultSlotArtifact` contains five helpers. It exercises constant, source, immediate-binary, source-binary, and Boolean-source relations. The entry fills and clears each caller slot, observes every payload, and publishes status 42. `occupiedResultSlotArtifact` performs a second forward call without an inverse clear and fails during independent evaluation. `wideResultSlotArtifact` succeeds with sixteen arguments across registers and the aligned stack area. Argument seventeen rejects before lowering. Its WBC is `8307662a8e1ed6723fc39266911cc2ca444897e43d35d787eaa6ae32e937ace9` and its runtime is `3aab2bc57ae9fa0b13cb3196253e7b46d1b1c1d7bfe0edc5686fa415e7f5a431`.
+`ScalarAotCallArtifacts.resultSlotArtifact` contains five helpers. It exercises constant, source, immediate-binary, source-binary, and Boolean-source relations. The entry fills and clears each caller slot, observes every payload, and publishes status 42. `occupiedResultSlotArtifact` performs a second forward call without an inverse clear and fails during independent evaluation. `wideResultSlotArtifact` succeeds with sixteen arguments across registers and the aligned stack area. Argument seventeen rejects before lowering. Its WBC is `8307662a8e1ed6723fc39266911cc2ca444897e43d35d787eaa6ae32e937ace9` and its runtime is `31d088538869046de4274c6b3c6e654ac574cd7708b19e981a60a8cc24682ba0`.
 
-`LinuxX8664ScalarAotCompilerTest.lowersReversibleScalarResultSlots` binds the accepted WBC to a canonical capsule, native plan, and ELF and checks every identity. On x86-64 Linux the ELF executes every relation in both directions, exits with status 42, writes exact `Wheeler\n`, and writes no standard error. `lowersCanonicalRemainderEdge` independently launches the minimum-signed remainder by minus one, observes status zero, and pins WBC `b58f22ae80febf5f4eb312ffe55b2bb6137db3f60f9fa695ffafbac1fe7b7b98` and runtime `933e22071d51952c7f5abb3e7d03ff9fff0e8a3bbfa9ea233a5d070d8ef7a026`.
+`LinuxX8664ScalarAotReversibleTest.lowersReversibleScalarResultSlots` binds the accepted WBC to a canonical capsule, native plan, and ELF and checks every identity. On x86-64 Linux the ELF executes every relation in both directions, exits with status 42, writes exact `Wheeler\n`, and writes no standard error. `lowersCanonicalRemainderEdge` independently launches the minimum-signed remainder by minus one, observes status zero, and pins WBC `b58f22ae80febf5f4eb312ffe55b2bb6137db3f60f9fa695ffafbac1fe7b7b98` and runtime `db700e89962bb623920677eb978c4cf5a430c951b24de1e78f1db0452a290482`.
 
 | Product | Identity |
 | --- | --- |
 | WBC | `961b66d9f5e73540a95f9425f6403f7697e513eef64c7c2f907a9d678a5db34a` |
-| runtime | `480022e7d0bc97ddd745dbb7d77b567cbede3efbb7f09396b957fb99dc5f2300` |
+| runtime | `a395cc0e14f299865aa6d0b55f57a7584be001a55a25c1fb194426658b71bb38` |
 | capsule | `d88799a39344339e1e9210b814fb2a9b6c2154fb19b63c2fcc690a0771413156` |
-| native plan | `c868b08c922cc5d4a53a5dce961d0948cf27200b0f04c0f26a0764e4acff8c3c` |
-| unsigned PREV | `7b8f8769e083a7152836aa2ef13a21c080839b3eb2563e2b4922e78d20e1b7f6` |
+| native plan | `3b65ab91ce786ba05aac0aa5c90d503a0570341882726274fdbf8934658c5d86` |
+| unsigned PREV | `1eb690345b06700c95722565a516b8c0d5e72ba91c09fd8dd07242564a73c6f5` |
 
 ## Acceptance
 
@@ -115,3 +115,4 @@ Rejected. The inverse proves a current-state relation. It does not restore retai
 - [WIP-0401](WIP-0401-bounded-recursive-scalar-aot-calls.md)
 - [WIP-0405](WIP-0405-directional-scalar-aot-calls.md)
 - [WIP-0407](WIP-0407-helper-owned-process-status-aot.md)
+- [WIP-0409](WIP-0409-exact-native-capsule-binding.md)

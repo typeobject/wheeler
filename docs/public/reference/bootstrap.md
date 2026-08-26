@@ -133,8 +133,12 @@ kernel. This proves loader entry and two host-service leaves. It does not verify
 WBC or execute the capsule root. No complete native runtime or recovery image
 ships yet.
 
-`wheeler image runtime-elf-x86-64-aot <root.wbc> -o <runtime.bin>` adds the
-first native backend leaf. It accepts one canonical classical WBC containing one
+`wheeler image runtime-elf-x86-64-aot <root.wbc> --capsule
+<application.capsule> -o <runtime.bin>` adds the first native backend leaf.
+Lowering verifies every capsule WBC, the exact root bytes and function, AOT mode,
+and entry capabilities. The loaded runtime compares the complete mapped capsule
+with one immutable copy of those verified canonical bytes before application
+execution. The former unbound WBC-only path is gone. It accepts one canonical classical WBC containing one
 zero-initialized `status` global, up to 31 additional shared signed globals, one
 to twenty-four dense functions, bounded constants, checked global addition and subtraction, global XOR and
 expectations, shared swaps, logged global replacement, forward checkpoint and commit markers, scalar updates, checked signed arithmetic, bitwise and 32-bit rotate operations, comparisons, assertions,
@@ -163,8 +167,7 @@ UTF-8 input uses strict RFC 3629 validity, scalar count, scalar, and width
 operations without locale or replacement. Helpers share all scalar global state,
 including status. One status writer must be reachable from the entry. The checked
 entry epilogue alone commits final process status. The status-73 fixture launches
-as a complete AOT ELF, but general bytecode execution and in-process verification
-remain.
+as a complete capsule-bound AOT ELF. General classical bytecode execution remains.
 
 ## Deriving the profile and graph
 

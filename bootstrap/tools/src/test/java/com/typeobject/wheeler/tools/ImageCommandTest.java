@@ -2,6 +2,7 @@ package com.typeobject.wheeler.tools;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -109,19 +110,20 @@ final class ImageCommandTest {
             """),
         "example.hello");
     Path artifactFile = write("scalar-aot.wbc", artifact);
+    PlatformAbi abi = platformAbi();
+    ApplicationCapsule capsule = nativeCapsule(
+        artifact, abi, NativeImagePlan.RuntimeMode.AOT);
+    Path capsuleFile = write("scalar-aot.capsule", capsule.canonicalBytes());
     Path runtimeFile = temporary.resolve("scalar-aot-runtime.bin");
     CommandResult lowering = execute(
         "image", "runtime-elf-x86-64-aot", artifactFile.toString(),
-        "-o", runtimeFile.toString());
+        "--capsule", capsuleFile.toString(), "-o", runtimeFile.toString());
     byte[] runtime = Files.readAllBytes(runtimeFile);
     assertEquals(0, lowering.status());
     assertTrue(lowering.output().contains(identity(artifact)));
     assertTrue(lowering.output().contains("input-dependent status"));
     assertTrue(lowering.output().contains("dynamic stdin/stdout"));
 
-    PlatformAbi abi = platformAbi();
-    ApplicationCapsule capsule = nativeCapsule(
-        artifact, abi, NativeImagePlan.RuntimeMode.AOT);
     NativeImagePlan plan = new NativeImagePlan(
         PlatformAbi.Format.ELF,
         "x86_64-unknown-linux-gnu",
@@ -138,7 +140,6 @@ final class ImageCommandTest {
         hash(95),
         hash(96),
         hash(97));
-    Path capsuleFile = write("scalar-aot.capsule", capsule.canonicalBytes());
     Path planFile = write("scalar-aot-plan.yaml", plan.canonicalBytes());
     Path abiFile = write("scalar-aot-abi.yaml", abi.canonicalBytes());
     Path imageFile = temporary.resolve("scalar-aot-app");
@@ -247,11 +248,12 @@ final class ImageCommandTest {
             """),
         "example.state");
     Path artifactFile = write("shared-state.wbc", artifact);
+    Path capsuleFile = writeAotCapsule("shared-state.capsule", artifact);
     Path runtimeFile = temporary.resolve("shared-state.bin");
 
     CommandResult lowering = execute(
         "image", "runtime-elf-x86-64-aot", artifactFile.toString(),
-        "-o", runtimeFile.toString());
+        "--capsule", capsuleFile.toString(), "-o", runtimeFile.toString());
 
     assertEquals(0, lowering.status());
     assertTrue(lowering.output().contains("status 41"));
@@ -309,11 +311,12 @@ final class ImageCommandTest {
             """),
         "example.utf8");
     Path artifactFile = write("utf8-helper.wbc", artifact);
+    Path capsuleFile = writeAotCapsule("utf8-helper.capsule", artifact);
     Path runtimeFile = temporary.resolve("utf8-helper.bin");
 
     CommandResult lowering = execute(
         "image", "runtime-elf-x86-64-aot", artifactFile.toString(),
-        "-o", runtimeFile.toString());
+        "--capsule", capsuleFile.toString(), "-o", runtimeFile.toString());
 
     assertEquals(0, lowering.status());
     assertTrue(lowering.output().contains("input-dependent status"));
@@ -342,11 +345,12 @@ final class ImageCommandTest {
             """),
         "example.output");
     Path artifactFile = write("constant-helper.wbc", artifact);
+    Path capsuleFile = writeAotCapsule("constant-helper.capsule", artifact);
     Path runtimeFile = temporary.resolve("constant-helper.bin");
 
     CommandResult lowering = execute(
         "image", "runtime-elf-x86-64-aot", artifactFile.toString(),
-        "-o", runtimeFile.toString());
+        "--capsule", capsuleFile.toString(), "-o", runtimeFile.toString());
 
     assertEquals(0, lowering.status());
     assertTrue(lowering.output().contains("status 73"));
@@ -623,6 +627,13 @@ final class ImageCommandTest {
     assertTrue(usage.error().contains("record-pe"));
     assertTrue(usage.error().contains("record-signing"));
 
+    Path unbound = write("unbound.wbc", validWbc());
+    CommandResult unboundResult = execute(
+        "image", "runtime-elf-x86-64-aot", unbound.toString(),
+        "-o", temporary.resolve("unbound.bin").toString());
+    assertEquals(2, unboundResult.status());
+    assertFalse(Files.exists(temporary.resolve("unbound.bin")));
+
     Path directory = Files.createDirectory(temporary.resolve("directory.capsule"));
     assertThrows(
         IOException.class,
@@ -692,11 +703,17 @@ final class ImageCommandTest {
       byte[] wbc,
       PlatformAbi abi,
       NativeImagePlan.RuntimeMode runtimeMode) {
+    Program program = new BytecodeReader().read(wbc);
+    int parameters = program.function(program.entryFunctionId()).parameterCount();
+    List<String> capabilities = runtimeMode != NativeImagePlan.RuntimeMode.AOT
+        || parameters == 0 ? List.of()
+        : parameters == 1 ? List.of("io:stdout/1")
+        : List.of("io:stdin/1", "io:stdout/1");
     CapsuleRoot root = new CapsuleRoot(
         hash(1),
         "hello",
         "bin/hello.wbc",
-        "example.hello::main",
+        program.function(program.entryFunctionId()).name(),
         hash(2),
         hash(3),
         hash(4),
@@ -704,7 +721,7 @@ final class ImageCommandTest {
         abi.identity(),
         hash(7),
         runtimeMode,
-        List.of());
+        capabilities);
     CapsuleEntry entry = new CapsuleEntry(
         CapsuleEntry.Kind.WBC,
         root.rootWbc(),
@@ -762,6 +779,12 @@ final class ImageCommandTest {
         """;
     return new WheelerCompiler().compileModulesToBytecode(
         Map.of("example.hello", source), "example.hello");
+  }
+
+  private Path writeAotCapsule(String name, byte[] artifact) throws IOException {
+    ApplicationCapsule capsule = nativeCapsule(
+        artifact, platformAbi(), NativeImagePlan.RuntimeMode.AOT);
+    return write(name, capsule.canonicalBytes());
   }
 
   private Path write(String name, byte[] bytes) throws IOException {

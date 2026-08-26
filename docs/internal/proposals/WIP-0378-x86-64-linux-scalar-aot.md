@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, x86-64 Linux, process status |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0368, WIP-0372, WIP-0376 |
 | Supersedes | Fixed-status native entry probes as AOT evidence |
-| Superseded by | WIPs 0379 through 0408 |
+| Superseded by | WIPs 0379 through 0409 |
 
 ## Summary
 
@@ -64,7 +64,9 @@ Every accepted artifact maps deterministically to one runtime. Changing the sour
 The physical command is:
 
 ```text
-wheeler image runtime-elf-x86-64-aot <root.wbc> -o <runtime.bin>
+wheeler image runtime-elf-x86-64-aot <root.wbc> \\
+  --capsule <application.capsule> \\
+  -o <runtime.bin>
 ```
 
 It reads one bounded physical WBC, verifies and lowers it, atomically publishes exact runtime bytes, and reports byte count, runtime identity, WBC identity, and process status. It does not build or execute an image.
@@ -73,7 +75,7 @@ WIP-0372 now admits `aot` mode for ELF when plan, capsule root, portable artifac
 
 ## Native observation
 
-The generated runtime follows the same mapped-entry boundary as WIP-0376. It validates locator magic, exact capsule offset, and capsule framing magic. It then completes the fixed eight-byte standard-output probe and exits with the Wheeler-declared scalar.
+The generated runtime follows the same mapped-entry boundary as WIP-0376. It validates locator magic, exact capsule offset, and capsule framing magic. WIP-0409 then checks complete verified capsule bytes before application execution. The base fixture completes the fixed eight-byte standard-output probe and exits with the Wheeler-declared scalar.
 
 The source-declared computed status is the sole native semantic observation in this profile. Fixed probe output establishes the host write leaf but does not derive application output from WBC.
 
@@ -133,9 +135,9 @@ Rejected. Host truncation would hide semantic distinctions. The first profile ad
 
 Rejected. Loader entry proves native mechanics, not bytecode lowering. This WIP requires at least two WBC values to produce distinct native observations.
 
-### Claim build-time WBC verification as complete startup
+### Rely only on build-time WBC verification
 
-Rejected. The loaded runtime still checks framing rather than complete capsule and WBC identities. Full in-process startup remains required before release use.
+Rejected. WIP-0409 couples build verification to a complete loaded-capsule byte comparison. General classical startup remains required before release use.
 
 ## References
 
@@ -155,4 +157,5 @@ Rejected. The loaded runtime still checks framing rather than complete capsule a
 - [WIP-0388](WIP-0388-x86-64-linux-4096-iteration-byte-loops.md)
 - [WIP-0389](WIP-0389-x86-64-linux-strict-utf8-input.md)
 - [WIP-0390](WIP-0390-x86-64-linux-shared-scalar-globals.md)
+- [WIP-0409](WIP-0409-exact-native-capsule-binding.md)
 - [WIP-0408](WIP-0408-reversible-scalar-result-slot-aot.md)

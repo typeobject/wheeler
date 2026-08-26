@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, process status, helper state |
 | Depends on | WIP-0001, WIP-0008, WIP-0026, WIP-0390, WIP-0405 |
 | Supersedes | Entry-only mutation of scalar global zero |
-| Superseded by | None |
+| Superseded by | WIP-0409 for capsule binding |
 
 ## Summary
 
@@ -58,10 +58,10 @@ Reject a program with no reachable status writer, malformed call direction, inva
 | Product | Identity |
 | --- | --- |
 | WBC | `ede040399a9e6f3e37c4a47856ca4e6b8e620be87cdd6c74e03c0c54b686dd7c` |
-| runtime | `1b4958e3a26eecb93a893fcd26c44074b406d9efe3fb54895f2470baaf2aae8d` |
+| runtime | `8080b55ad8724f148f857273b42341328d51057fe8dc42865f646173842e96d5` |
 | capsule | `ef1d0ec4128b0f79d3f42cdef45893c12e5a443b8e775108c14b0f47b012aa44` |
-| native plan | `1b616081b1d742118ba5ceb2bdda3d17ae826debfece9b518ac05068c395301f` |
-| unsigned PREV | `73c723eccaf12687951d909ff7be5acef4edd230b9a580da29db312a2e03a3a2` |
+| native plan | `0fbedea0eface26051ba4faf0d639c03af6b930bbd6f04266e31361bc34e63a6` |
+| unsigned PREV | `55cccb4b0e7780dce302b0be50a113db4c32bac98efe1370fcf496dc6452b847` |
 
 ## Acceptance
 
@@ -100,3 +100,4 @@ Rejected. Canonical Wheeler global ownership does not contain that rule.
 - [WIP-0390](WIP-0390-x86-64-linux-shared-scalar-globals.md)
 - [WIP-0405](WIP-0405-directional-scalar-aot-calls.md)
 - [WIP-0408](WIP-0408-reversible-scalar-result-slot-aot.md)
+- [WIP-0409](WIP-0409-exact-native-capsule-binding.md)

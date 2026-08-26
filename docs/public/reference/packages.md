@@ -274,7 +274,7 @@ wheeler verify <package.wpk>
 wheeler image inspect <application.capsule>
 wheeler image verify <application.capsule>
 wheeler image runtime-elf-x86-64 -o <runtime.bin>
-wheeler image runtime-elf-x86-64-aot <root.wbc> -o <runtime.bin>
+wheeler image runtime-elf-x86-64-aot <root.wbc> --capsule <application.capsule> -o <runtime.bin>
 wheeler image build-elf <application.capsule> --runtime <runtime.bin> --entry <offset> --plan <plan.yaml> --abi <abi.yaml> -o <application>
 wheeler image inspect-elf <application> --plan <plan.yaml> --abi <abi.yaml>
 wheeler image verify-elf <application> --plan <plan.yaml> --abi <abi.yaml>
@@ -330,18 +330,18 @@ capabilities.
 
 `image runtime-elf-x86-64` atomically publishes the maintained 113-byte
 import-free Linux entry shim. It is loader and framing evidence, not a WBC
-runtime. `image runtime-elf-x86-64-aot` verifies one closed bounded scalar
-WBC profile with at most seven prior signed-result or void helpers, up to six
-exact scalar arguments per call, checked loops through 4,096 iterations, status
-reads, assertions, and up
-to 4,096 constant application-output bytes. An exact input-and-output entry may
-instead consume complete stdin through 4,096 bytes and compute stdout and status
-in native code. The input may retain raw `byteview` bytes or strict RFC 3629
-UTF-8 operations. Canonical `BUFFER_BORROW` values may pass input and output
-handles through the same bounded prior-helper graph. One 65,536-instruction
-budget covers the selected entry and all nested calls. Up to 32 signed globals
-share exact initial and updated state across those calls. Global zero remains the
-entry-owned process status.
+runtime. `image runtime-elf-x86-64-aot` requires the complete application
+capsule beside its root WBC. It verifies every WBC, exact root, AOT mode, and
+entry capabilities before publishing capsule-specific runtime text. Loaded code
+compares the complete mapped capsule with those verified canonical bytes before
+application execution. No WBC-only scalar runtime path remains.
+
+The closed scalar profile admits at most twenty-three signed-, Boolean-, void-,
+or result-slot helpers and sixteen exact scalar arguments per call. It retains
+checked loops through 4,096 iterations, assertions, forward and inverse calls,
+32 shared globals, and up to 4,096 application-I/O bytes. One 65,536-instruction
+budget covers the selected entry and all nested calls. Any reachable helper may
+write global zero, the process-status slot.
 
 `image build-elf`, `image build-macho`, and `image build-pe` consume an exact
 capsule, runtime text, canonical native image plan, and canonical platform ABI.
