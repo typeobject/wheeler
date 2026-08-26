@@ -48,7 +48,7 @@ The imported three-argument fixture passes `long, boolean, boolean` to a public 
 
 The local four-argument fixture passes `long, boolean, boolean, long`. The wide fixture independently compiles five, six, and seven arguments with alternating signed and Boolean types. Every helper and caller retains the exact parameter column.
 
-The complete physical closure remains 379 modules, 1,885 imports, and 177,466 canonical manifest bytes. Native validation halts after 74,021,533 committed transitions. Wheeler SHA-256 consumes the same manifest in 33,974,230 transitions.
+The complete physical closure remains 379 modules, 1,891 imports, and 177,722 canonical manifest bytes. Native validation halts after 74,158,826 committed transitions. Wheeler SHA-256 consumes the same manifest in 34,023,214 transitions.
 
 ## Acceptance
 

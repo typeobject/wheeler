@@ -71,7 +71,8 @@ classical class LocalResolution {
     return statementLocalCount(opcode);
   }
 
-  private boolean declarationMatches(long opcode, boolean signed) {
+  /// Checks whether one declaration result has the selected scalar type.
+  public boolean declarationMatches(long opcode, boolean signed) {
     if (signed) {
       if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH_NAMED) {
         return true;

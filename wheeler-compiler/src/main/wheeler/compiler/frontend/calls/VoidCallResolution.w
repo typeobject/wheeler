@@ -22,14 +22,13 @@ classical class VoidCallResolution {
     long statementStart,
     long argument
   ) {
-    return resolvePriorDeclaration(
+    return resolvePriorScalarDeclaration(
       source,
       tokenStarts,
       tokenLengths,
       previousStarts,
       previousCount,
-      statementStart + 2 + argument * 2,
-      true
+      statementStart + 2 + argument * 2
     );
   }
 

@@ -28,8 +28,7 @@ classical class ProgramCodegen {
     long[64] operands,
     long[64] secondaryOperands,
     long count,
-    long[16] parameterTypes,
-    long parameterCount,
+    HelperBody body,
     boolean typedHelper,
     long localBase,
     long[64] callStatements,
@@ -77,56 +76,49 @@ classical class ProgramCodegen {
           operands[index],
           secondaryOperands[index],
           0,
-          parameterTypes,
-          parameterCount
+          body
         );
         secondSourceType = helperSourceType(
           opcode,
           operands[index],
           secondaryOperands[index],
           1,
-          parameterTypes,
-          parameterCount
+          body
         );
         thirdSourceType = helperSourceType(
           opcode,
           operands[index],
           secondaryOperands[index],
           2,
-          parameterTypes,
-          parameterCount
+          body
         );
         fourthSourceType = helperSourceType(
           opcode,
           operands[index],
           secondaryOperands[index],
           3,
-          parameterTypes,
-          parameterCount
+          body
         );
         fifthSourceType = helperSourceType(
           opcode,
           operands[index],
           secondaryOperands[index],
           4,
-          parameterTypes,
-          parameterCount
+          body
         );
         sixthSourceType = helperSourceType(
           opcode,
           operands[index],
           secondaryOperands[index],
           5,
-          parameterTypes,
-          parameterCount
+          body
         );
         seventhSourceType = helperSourceType(
           opcode,
           operands[index],
           secondaryOperands[index],
           6,
-          parameterTypes,
-          parameterCount
+          body
         );
 
         cursor = writeHelperStatement(
@@ -332,8 +324,7 @@ classical class ProgramCodegen {
       helperAt(program, 0).operands,
       helperAt(program, 0).secondaryOperands,
       helperAt(program, 0).statementCount,
-      helperAt(program, 0).parameterTypes,
-      helperAt(program, 0).parameterCount,
+      helperAt(program, 0),
       true,
       helperLocalBase,
       helperAt(program, 0).callStatements,
@@ -434,8 +425,7 @@ classical class ProgramCodegen {
         program.statementOperands,
         program.statementSecondaryOperands,
         program.statementCount,
-        emptyHelperBody().parameterTypes,
-        0,
+        emptyHelperBody(),
         false,
         0,
         emptyHelperCallIdentities(),
@@ -457,8 +447,7 @@ classical class ProgramCodegen {
           body.operands,
           body.secondaryOperands,
           body.statementCount,
-          body.parameterTypes,
-          body.parameterCount,
+          body,
           true,
           body.parameterCount,
           body.callStatements,
@@ -489,9 +478,8 @@ classical class ProgramCodegen {
         program.statementOperands,
         program.statementSecondaryOperands,
         program.statementCount,
-        emptyHelperBody().parameterTypes,
-        0,
-        false,
+        entryBody(program),
+        true,
         0,
         program.entryCallStatements,
         program.entryCallFunctions,
@@ -519,9 +507,8 @@ classical class ProgramCodegen {
         program.statementOperands,
         program.statementSecondaryOperands,
         program.statementCount,
-        emptyHelperBody().parameterTypes,
-        0,
-        false,
+        entryBody(program),
+        true,
         0,
         emptyHelperCallIdentities(),
         emptyHelperCallIdentities(),

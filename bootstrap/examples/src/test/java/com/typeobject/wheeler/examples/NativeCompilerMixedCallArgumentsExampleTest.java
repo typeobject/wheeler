@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
+import com.typeobject.wheeler.core.bytecode.Program;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -182,6 +183,47 @@ final class NativeCompilerMixedCallArgumentsExampleTest {
   }
 
   @Test
+  void compilesBooleanLocalWideCallSourcesByteForByte() throws Exception {
+    String source = """
+        module example.mixed_boolean_locals;
+        classical class MixedBooleanLocals {
+          private long signedSelect(
+            long value,
+            boolean selected,
+            boolean fallback,
+            long limit
+          ) {
+            return value;
+          }
+
+          private boolean booleanSelect(long value, boolean selected, boolean fallback) {
+            return selected;
+          }
+
+          public long signedRelay(long value, boolean selected, long limit) {
+            boolean copied = selected;
+            boolean fallback = false;
+            long result = signedSelect(value, copied, fallback, limit);
+            return result;
+          }
+
+          public boolean booleanRelay(long value, boolean selected) {
+            boolean copied = selected;
+            boolean fallback = false;
+            boolean result = booleanSelect(value, copied, fallback);
+            return result;
+          }
+        }
+        """;
+
+    Program compiler = assertLocalLibrary(source, "example.mixed_boolean_locals");
+    NativeModuleCompilerHarness.assertTrap(
+        compiler,
+        List.of(),
+        source.replace("boolean fallback = false;", "long fallback = 0;"));
+  }
+
+  @Test
   void compilesMixedBooleanFourThroughSevenArgumentCallsByteForByte() throws Exception {
     String source = """
         module example.mixed_boolean_wide;
@@ -250,11 +292,12 @@ final class NativeCompilerMixedCallArgumentsExampleTest {
     assertLocalLibrary(source, "example.mixed_boolean_wide");
   }
 
-  private static void assertLocalLibrary(String source, String module) throws Exception {
-    byte[] actual = NativeModuleCompilerHarness.compile(
-        NativeModuleCompilerHarness.program(), List.of(), source);
+  private static Program assertLocalLibrary(String source, String module) throws Exception {
+    Program compiler = NativeModuleCompilerHarness.program();
+    byte[] actual = NativeModuleCompilerHarness.compile(compiler, List.of(), source);
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(Map.of("MixedCalls.w", source), module));
     assertArrayEquals(expected, actual);
+    return compiler;
   }
 }

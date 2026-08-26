@@ -12,6 +12,7 @@ import wheeler.compiler.encoding;
 import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_signatures;
+import wheeler.compiler.helper_source_types;
 import wheeler.compiler.ir;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_return_call_kinds;
@@ -35,15 +36,7 @@ classical class ScalarHelperTables {
   }
 
   private long callerLocalType(HelperBody caller, long local) {
-    if (local < 0) {
-      return 0;
-    }
-
-    if (local < caller.parameterCount) {
-      return caller.parameterTypes[local];
-    }
-
-    return TYPE_SIGNED;
+    return helperLocalType(caller, local);
   }
 
   private boolean callParametersMatch(

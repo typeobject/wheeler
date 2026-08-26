@@ -7,13 +7,18 @@ import wheeler.compiler.assignment_call_operands;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
+import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.four_argument_calls;
+import wheeler.compiler.ir;
+import wheeler.compiler.local_opcodes;
+import wheeler.compiler.local_resolution;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.resolved_local_copy_kinds;
 import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.resolved_statements;
+import wheeler.compiler.statement_kinds;
 import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.type_codes;
 import wheeler.compiler.void_call_kinds;
@@ -22,17 +27,54 @@ import wheeler.compiler.wide_local_calls;
 import wheeler.compiler.wide_return_sources;
 
 classical class HelperSourceTypes {
-  private long sequenceLocalType(long[16] parameterTypes, long parameterCount, long local) {
+  /// Returns the exact type of one parameter or named statement result.
+  public long helperLocalType(HelperBody body, long local) {
     if (local < 0) {
-      return TYPE_SIGNED;
+      return 0;
     }
 
-    long remaining = parameterCount - local;
-    if (remaining < 1) {
-      return TYPE_SIGNED;
+    if (local < body.parameterCount) {
+      return body.parameterTypes[local];
     }
 
-    return parameterTypes[local];
+    long localBase = body.parameterCount;
+    long statement = 0;
+    while (statement < body.statementCount) limit MAX_MINIMAL_STATEMENTS {
+      long opcode = body.opcodes[statement];
+      long result = statementResultLocal(opcode, localBase);
+      if (result == local) {
+        if (opcode == STATEMENT_LOCAL_BYTES_ALLOCATE_NAMED) {
+          return TYPE_BYTES;
+        }
+
+        if (booleanResultCallStatement(opcode)) {
+          return TYPE_BOOLEAN;
+        }
+
+        if (resolvedLocalBooleanCopy(opcode)) {
+          return TYPE_BOOLEAN;
+        }
+
+        if (resolvedLocalBooleanNot(opcode)) {
+          return TYPE_BOOLEAN;
+        }
+
+        if (declarationMatches(opcode, false)) {
+          return TYPE_BOOLEAN;
+        }
+
+        if (declarationMatches(opcode, true)) {
+          return TYPE_SIGNED;
+        }
+
+        return 0;
+      }
+
+      localBase += statementLocalCount(opcode);
+      statement += 1;
+    }
+
+    return 0;
   }
 
   private long firstSource(long opcode, long operand) {
@@ -332,8 +374,7 @@ classical class HelperSourceTypes {
     long operand,
     long secondaryOperand,
     long source,
-    long[16] parameterTypes,
-    long parameterCount
+    HelperBody body
   ) {
     if (source == 0) {
       if (opcode == STATEMENT_SET_OWNED_BYTE) {
@@ -385,6 +426,6 @@ classical class HelperSourceTypes {
       }
     }
 
-    return sequenceLocalType(parameterTypes, parameterCount, selected);
+    return helperLocalType(body, selected);
   }
 }

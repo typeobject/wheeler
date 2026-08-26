@@ -144,14 +144,13 @@ classical class SecondaryOperands {
     }
 
     if (wideVoidCall) {
-      return resolvePriorDeclaration(
+      return resolvePriorScalarDeclaration(
         source,
         tokenStarts,
         tokenLengths,
         previousStarts,
         previousCount,
-        statementStart + 4,
-        true
+        statementStart + 4
       );
     }
 

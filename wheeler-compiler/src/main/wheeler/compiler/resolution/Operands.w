@@ -135,14 +135,13 @@ classical class Operands {
     }
 
     if (sourceOpcode == STATEMENT_CALL_VOID_ONE_NAMED) {
-      return resolvePriorDeclaration(
+      return resolvePriorScalarDeclaration(
         source,
         tokenStarts,
         tokenLengths,
         previousStarts,
         previousCount,
-        statementStart + 2,
-        true
+        statementStart + 2
       );
     }
 
@@ -152,14 +151,13 @@ classical class Operands {
     }
 
     if (wideVoidCall) {
-      return resolvePriorDeclaration(
+      return resolvePriorScalarDeclaration(
         source,
         tokenStarts,
         tokenLengths,
         previousStarts,
         previousCount,
-        statementStart + 2,
-        true
+        statementStart + 2
       );
     }
 

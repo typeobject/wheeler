@@ -23,8 +23,8 @@ final class NativeCompilerPackageTest {
         compiler, project.manifest(), 0, 1, Set.of()).orElseThrow();
     TestReport report = result.report();
 
-    assertEquals(228, result.selected());
-    assertEquals(228, result.passed());
+    assertEquals(240, result.selected());
+    assertEquals(240, result.passed());
     assertEquals(0, result.failed());
     assertEquals(result.report().identity(), report.identity());
     assertEquals(
@@ -41,9 +41,21 @@ final class NativeCompilerPackageTest {
 
     for (String name : List.of(
         "acceptsMetadataCondition",
-        "classifiesAsciiDigitsAndLetters",
-        "gatesProfilePunctuation",
-        "preservesOutOfRangeFallback")) {
+        "acceptsAsciiDigitStart",
+        "acceptsAsciiDigitEnd",
+        "acceptsAsciiUpperStart",
+        "acceptsAsciiUpperEnd",
+        "acceptsAsciiLowerStart",
+        "acceptsAsciiLowerEnd",
+        "acceptsPackageDash",
+        "acceptsPackageDot",
+        "acceptsPackageUnderscore",
+        "rejectsPlainDash",
+        "rejectsPlainDot",
+        "rejectsPlainUnderscore",
+        "rejectsLowerGapDespiteFallback",
+        "acceptsHighFallback",
+        "rejectsDisabledHighFallback")) {
       assertCase(
           report,
           "nativecompilermanifestprimitivetests",

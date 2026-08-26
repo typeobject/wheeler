@@ -54,6 +54,16 @@ class NativePackageTestRunnerTest {
     constants.insert(
         constants.length() - 2, "  public const long VALUE_256 = 256;\n");
     assertFalse(NativePackageTestRunner.fixedSourceProfile(constants.toString()));
+
+    String voidOwner = """
+        module demo.void_member;
+        classical class VoidMember {
+          public void require(boolean accepted) { assert(accepted); }
+        }
+        """;
+    assertTrue(NativePackageTestRunner.fixedSourceProfile(voidOwner));
+    assertFalse(NativePackageTestRunner.fixedSourceProfile(
+        voidOwner.replace("public void", "private void")));
   }
 
   @Test

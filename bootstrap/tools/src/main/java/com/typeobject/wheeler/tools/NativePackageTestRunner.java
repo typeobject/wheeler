@@ -201,8 +201,9 @@ final class NativePackageTestRunner {
 
     java.util.ArrayList<String> identities = new java.util.ArrayList<>();
     ByteArrayOutputStream combinedRows = new ByteArrayOutputStream();
-    ByteArrayOutputStream packageRows = new ByteArrayOutputStream();
-    packageRows.write(testTargets.size());
+    ByteArrayOutputStream selectedPackageRows = new ByteArrayOutputStream();
+    byte[] emptyPackageRow = null;
+    int selectedTargetCount = 0;
     int selected = 0;
     int passed = 0;
     int failed = 0;
@@ -222,10 +223,26 @@ final class NativePackageTestRunner {
       identities.add(HexFormat.of().formatHex(output, 0, 32));
       NativeRows targetRows = readNativeRows(output);
       combinedRows.writeBytes(targetRows.bytes());
-      packageRows.writeBytes(java.util.Arrays.copyOf(output, 38));
-      selected = Math.addExact(selected, unsigned16(output, 32));
+      byte[] packageRow = java.util.Arrays.copyOf(output, 38);
+      if (emptyPackageRow == null) {
+        emptyPackageRow = packageRow;
+      }
+      int targetSelected = unsigned16(output, 32);
+      if (0 < targetSelected) {
+        selectedPackageRows.writeBytes(packageRow);
+        selectedTargetCount += 1;
+      }
+      selected = Math.addExact(selected, targetSelected);
       passed = Math.addExact(passed, unsigned16(output, 34));
       failed = Math.addExact(failed, unsigned16(output, 36));
+    }
+    ByteArrayOutputStream packageRows = new ByteArrayOutputStream();
+    if (selectedTargetCount == 0) {
+      packageRows.write(1);
+      packageRows.writeBytes(emptyPackageRow);
+    } else {
+      packageRows.write(selectedTargetCount);
+      packageRows.writeBytes(selectedPackageRows.toByteArray());
     }
     byte[] packageOutput = execute(
         nativePackageReducer, packageRows.toByteArray(), 38);
@@ -449,7 +466,8 @@ final class NativePackageTestRunner {
     int constants = occurrences(text, "public const long ");
     int functions = occurrences(text, "public long ")
         + occurrences(text, "public boolean ")
-        + occurrences(text, "public rev long ");
+        + occurrences(text, "public rev long ")
+        + occurrences(text, "public void ");
     boolean product = 0 < constants || 0 < functions;
     return product
         && constants <= MAX_DEPENDENCY_CONSTANTS

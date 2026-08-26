@@ -10,32 +10,134 @@ classical class NativeCompilerManifestPrimitiveTests {
     assert(true);
   }
 
-  test void acceptsMetadataCondition() tags(manifest.primitive) {
-    requireMetadata(true);
-    assert(true);
+  test void acceptsMetadataCondition() tags(manifest.assertion, manifest.primitive) {
+    boolean accepted = true;
+    requireMetadata(accepted);
+    assert(accepted);
   }
 
-  test void classifiesAsciiDigitsAndLetters() tags(manifest.primitive) {
-    assert(profileByte(48, false, false));
-    assert(profileByte(57, false, false));
-    assert(profileByte(65, false, false));
-    assert(profileByte(90, false, false));
-    assert(profileByte(97, false, false));
-    assert(profileByte(122, false, false));
+  test void acceptsAsciiDigitStart() tags(manifest.primitive, manifest.range) {
+    long value = 48;
+    boolean packagePunctuation = false;
+    boolean fallback = false;
+    boolean accepted = profileByte(value, packagePunctuation, fallback);
+    assert(accepted);
   }
 
-  test void gatesProfilePunctuation() tags(manifest.primitive) {
-    assert(profileByte(45, true, false));
-    assert(profileByte(46, true, false));
-    assert(profileByte(95, true, false));
-    assert(profileByte(45, false, false) == false);
-    assert(profileByte(46, false, false) == false);
-    assert(profileByte(95, false, false) == false);
+  test void acceptsAsciiDigitEnd() tags(manifest.primitive, manifest.range) {
+    long value = 57;
+    boolean packagePunctuation = false;
+    boolean fallback = false;
+    boolean accepted = profileByte(value, packagePunctuation, fallback);
+    assert(accepted);
   }
 
-  test void preservesOutOfRangeFallback() tags(manifest.primitive) {
-    assert(profileByte(47, true, true) == false);
-    assert(profileByte(123, false, true));
-    assert(profileByte(123, true, false) == false);
+  test void acceptsAsciiUpperStart() tags(manifest.primitive, manifest.range) {
+    long value = 65;
+    boolean packagePunctuation = false;
+    boolean fallback = false;
+    boolean accepted = profileByte(value, packagePunctuation, fallback);
+    assert(accepted);
+  }
+
+  test void acceptsAsciiUpperEnd() tags(manifest.primitive, manifest.range) {
+    long value = 90;
+    boolean packagePunctuation = false;
+    boolean fallback = false;
+    boolean accepted = profileByte(value, packagePunctuation, fallback);
+    assert(accepted);
+  }
+
+  test void acceptsAsciiLowerStart() tags(manifest.primitive, manifest.range) {
+    long value = 97;
+    boolean packagePunctuation = false;
+    boolean fallback = false;
+    boolean accepted = profileByte(value, packagePunctuation, fallback);
+    assert(accepted);
+  }
+
+  test void acceptsAsciiLowerEnd() tags(manifest.primitive, manifest.range) {
+    long value = 122;
+    boolean packagePunctuation = false;
+    boolean fallback = false;
+    boolean accepted = profileByte(value, packagePunctuation, fallback);
+    assert(accepted);
+  }
+
+  test void acceptsPackageDash() tags(manifest.primitive, manifest.punctuation) {
+    long value = 45;
+    boolean packagePunctuation = true;
+    boolean fallback = false;
+    boolean accepted = profileByte(value, packagePunctuation, fallback);
+    assert(accepted);
+  }
+
+  test void acceptsPackageDot() tags(manifest.primitive, manifest.punctuation) {
+    long value = 46;
+    boolean packagePunctuation = true;
+    boolean fallback = false;
+    boolean accepted = profileByte(value, packagePunctuation, fallback);
+    assert(accepted);
+  }
+
+  test void acceptsPackageUnderscore() tags(manifest.primitive, manifest.punctuation) {
+    long value = 95;
+    boolean packagePunctuation = true;
+    boolean fallback = false;
+    boolean accepted = profileByte(value, packagePunctuation, fallback);
+    assert(accepted);
+  }
+
+  test void rejectsPlainDash() tags(manifest.primitive, manifest.punctuation) {
+    long value = 45;
+    boolean packagePunctuation = false;
+    boolean fallback = false;
+    boolean accepted = profileByte(value, packagePunctuation, fallback);
+    boolean rejected = !accepted;
+    assert(rejected);
+  }
+
+  test void rejectsPlainDot() tags(manifest.primitive, manifest.punctuation) {
+    long value = 46;
+    boolean packagePunctuation = false;
+    boolean fallback = false;
+    boolean accepted = profileByte(value, packagePunctuation, fallback);
+    boolean rejected = !accepted;
+    assert(rejected);
+  }
+
+  test void rejectsPlainUnderscore() tags(manifest.primitive, manifest.punctuation) {
+    long value = 95;
+    boolean packagePunctuation = false;
+    boolean fallback = false;
+    boolean accepted = profileByte(value, packagePunctuation, fallback);
+    boolean rejected = !accepted;
+    assert(rejected);
+  }
+
+  test void rejectsLowerGapDespiteFallback() tags(manifest.fallback, manifest.primitive) {
+    long value = 47;
+    boolean packagePunctuation = true;
+    boolean fallback = true;
+    boolean accepted = profileByte(value, packagePunctuation, fallback);
+    boolean rejected = !accepted;
+    assert(rejected);
+  }
+
+  test void acceptsHighFallback() tags(manifest.fallback, manifest.primitive) {
+    long value = 123;
+    boolean packagePunctuation = false;
+    boolean fallback = true;
+    boolean accepted = profileByte(value, packagePunctuation, fallback);
+    assert(accepted);
+  }
+
+  test void rejectsDisabledHighFallback() tags(manifest.fallback, manifest.primitive) {
+    long value = 123;
+    boolean packagePunctuation = true;
+    boolean fallback = false;
+    boolean accepted = profileByte(value, packagePunctuation, fallback);
+    boolean rejected = !accepted;
+    assert(rejected);
   }
 }

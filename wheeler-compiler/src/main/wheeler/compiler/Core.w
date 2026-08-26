@@ -612,12 +612,7 @@ classical class CompilerCore {
         typedHelper += 1;
       }
 
-      cursor = writeSequenceLocalTypes(
-        output,
-        cursor,
-        program.statementOpcodes,
-        program.statementCount
-      );
+      cursor = writeSequenceLocalTypes(output, cursor, program);
     } else {
       if (program.helperCount == 1) {
         long helperFlags = helperAt(program, 0).kind;
@@ -707,12 +702,7 @@ classical class CompilerCore {
             resultEntryType += 1;
           }
         } else {
-          cursor = writeSequenceLocalTypes(
-            output,
-            cursor,
-            program.statementOpcodes,
-            program.statementCount
-          );
+          cursor = writeSequenceLocalTypes(output, cursor, program);
         }
       } else {
         cursor = writeFunctionDescriptor(
@@ -729,12 +719,7 @@ classical class CompilerCore {
           localCount,
           0
         );
-        cursor = writeSequenceLocalTypes(
-          output,
-          cursor,
-          program.statementOpcodes,
-          program.statementCount
-        );
+        cursor = writeSequenceLocalTypes(output, cursor, program);
       }
     }
 

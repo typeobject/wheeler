@@ -16,16 +16,9 @@ classical class CoreLocalTypes {
   public long writeSequenceLocalTypes(
     borrow mut bytes output,
     long cursor,
-    long[64] opcodes,
-    long count
+    MinimalProgram program
   ) {
-    long index = 0;
-    while (index < count) limit MAX_MINIMAL_STATEMENTS {
-      cursor = writeStatementLocalTypes(output, cursor, opcodes[index]);
-      index += 1;
-    }
-
-    return cursor;
+    return writeHelperSequenceLocalTypes(output, cursor, program, entryBody(program));
   }
 
   /// Encodes resolved local type windows for one helper statement sequence.
@@ -52,56 +45,49 @@ classical class CoreLocalTypes {
         body.operands[statement],
         body.secondaryOperands[statement],
         0,
-        body.parameterTypes,
-        body.parameterCount
+        body
       );
       long secondType = helperSourceType(
         opcode,
         body.operands[statement],
         body.secondaryOperands[statement],
         1,
-        body.parameterTypes,
-        body.parameterCount
+        body
       );
       long thirdType = helperSourceType(
         opcode,
         body.operands[statement],
         body.secondaryOperands[statement],
         2,
-        body.parameterTypes,
-        body.parameterCount
+        body
       );
       long fourthType = helperSourceType(
         opcode,
         body.operands[statement],
         body.secondaryOperands[statement],
         3,
-        body.parameterTypes,
-        body.parameterCount
+        body
       );
       long fifthType = helperSourceType(
         opcode,
         body.operands[statement],
         body.secondaryOperands[statement],
         4,
-        body.parameterTypes,
-        body.parameterCount
+        body
       );
       long sixthType = helperSourceType(
         opcode,
         body.operands[statement],
         body.secondaryOperands[statement],
         5,
-        body.parameterTypes,
-        body.parameterCount
+        body
       );
       long seventhType = helperSourceType(
         opcode,
         body.operands[statement],
         body.secondaryOperands[statement],
         6,
-        body.parameterTypes,
-        body.parameterCount
+        body
       );
       firstType = canonicalProgramType(program, firstType);
       secondType = canonicalProgramType(program, secondType);

@@ -30,7 +30,7 @@ evidence and does not run twice inside ordinary `tools:check` matrices:
 ./bootstrap/gradlew -p bootstrap :tools:nativeCompilerPackageTest
 ```
 
-It executes 228 cases across 91 physical compiler modules. One fresh retained
+It executes 240 cases across 91 physical compiler modules. One fresh retained
 attempt supplies execution, report, and adapter evidence. The test has a
 forty-one-minute hard stop. CI runs it once on Temurin after both ordinary build
 matrices finish, which keeps the long suite from starving bounded example jobs.

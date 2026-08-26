@@ -41,13 +41,17 @@ No identity aliases a signed call, void call, assignment call, loop-body row, or
 
 `HelperCallLocalTypes.w` derives local call results from the call identity rather than the caller's return type. Boolean calls receive Boolean result and destination locals even when they occur in a void or signed caller.
 
+`HelperSourceTypes.w` owns one bounded walk over the caller's resolved statement sequence. Parameters retain their declared types. Named Boolean literal, copy, negation, and call results retain Boolean type after their source declarations have become resolved opcodes. Call matching and code generation consume that same query. The former signed fallback is gone.
+
+`VoidCallResolution.w` uses the same scalar-name authority for Boolean, signed, and affine sources. `CompilerIr.entryBody` carries entry statements through the helper-body type shape, so local rows and code generation no longer guess that every entry call source is signed. The package preflight counts public void dependency functions under the same twenty-three-function bound. Tagged package reduction omits zero-selection target rows unless the whole selection is empty, preventing duplicate empty identities from entering the canonical sorter.
+
 ## Evidence
 
-`NativeCompilerMixedCallArgumentsExampleTest` compares complete Wheeler and stage-0 artifacts for an imported mixed three-argument Boolean call and local mixed four-, five-, six-, and seven-argument Boolean calls. A dependency with the wrong result type rejects before publication. The signed-result fixtures remain byte-identical.
+`NativeCompilerMixedCallArgumentsExampleTest` compares complete Wheeler and stage-0 artifacts for an imported mixed three-argument Boolean call and local mixed four-, five-, six-, and seven-argument Boolean calls. A second fixture passes prior Boolean copy and literal results into signed- and Boolean-result calls. Replacing those declarations with signed locals rejects before publication. A dependency with the wrong result type also rejects. The signed-result fixtures remain byte-identical.
 
-The `manifest.primitive` package tag selects the exact three-source manifest target. All four cases pass. They cover the void assertion dependency, ASCII digit and letter boundaries, punctuation policy, and out-of-range fallback. The canonical report identity is `42dc6cea338d7621b503263c310b92b4fab4b7c26846d0715b70d0ad66223e85`.
+The `manifest.primitive` package tag selects the exact three-source manifest target. Sixteen focused cases cover the void assertion dependency, each ASCII digit and letter boundary, each punctuation verdict, and each out-of-range fallback verdict. Every case stays within the 255-transition coverage bound. All sixteen compile, execute, and pass through `NativePackageTestRunner`.
 
-The canonical workspace checks 178 targets. The complete physical closure contains 379 modules, 1,885 imports, and 177,466 canonical manifest bytes. Native validation halts after 74,021,533 committed transitions. Wheeler SHA-256 consumes the same manifest in 33,974,230 transitions.
+The canonical workspace checks 178 targets. The complete physical closure contains 379 modules, 1,891 imports, and 177,722 canonical manifest bytes. Native validation halts after 74,158,826 committed transitions. Wheeler SHA-256 consumes the same manifest in 34,023,214 transitions.
 
 ## Rejection
 
@@ -56,13 +60,17 @@ Reject a literal in the admitted wide named family, a missing or ambiguous sourc
 ## Acceptance
 
 - [x] Three- through seven-argument Boolean-result calls retain disjoint identities.
-- [x] Mixed signed and Boolean names resolve to exact prior locals.
+- [x] Mixed signed and Boolean names resolve to exact parameters and prior locals.
+- [x] One bounded type query serves helper matching, local rows, and code generation.
 - [x] Primary and secondary operands preserve every selected source.
 - [x] Complete helper result and parameter types match before publication.
 - [x] Local type rows retain the Boolean call result independently of caller type.
+- [x] Boolean locals pass to ordinary void helpers from helper and entry bodies.
+- [x] Public void dependencies remain inside the twenty-three-function package profile.
+- [x] Tagged package reduction excludes unselected target rows.
 - [x] Imported three-argument and local four- through seven-argument artifacts match stage 0 byte for byte.
 - [x] Wrong result type and malformed source calls reject without output.
-- [x] Four manifest-primitive package cases execute and pass natively.
+- [x] Sixteen manifest-primitive package cases execute and pass natively.
 - [x] Signed-result call evidence remains unchanged.
 - [x] Closure validation and manifest hashing remain bounded and exact.
 

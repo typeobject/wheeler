@@ -222,6 +222,26 @@ classical class CompilerIr {
     );
   }
 
+  /// Returns the entry statement sequence through the shared helper-body shape.
+  public HelperBody entryBody(MinimalProgram program) {
+    return new HelperBody(
+      program.name,
+      program.statementOpcodes,
+      program.statementOperands,
+      program.statementSecondaryOperands,
+      HELPER_VOID,
+      0,
+      scalarHelperParameterTypes(HELPER_VOID, 0),
+      program.statementCount,
+      0,
+      emptyHelperCallOffsets(),
+      emptyHelperCallOffsets(),
+      program.entryCallStatements,
+      program.entryCallFunctions,
+      program.entryCallCount
+    );
+  }
+
   /// Freezes one mutable helper-call column after bounded parsing or resolution.
   public long[64] freezeHelperCallColumn(borrow mut words values) {
     return new long[64](
