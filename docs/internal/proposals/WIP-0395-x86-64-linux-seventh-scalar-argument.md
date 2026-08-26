@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, x86-64 calls, stack arguments |
 | Depends on | WIP-0008, WIP-0026, WIP-0380, WIP-0383, WIP-0386 |
 | Supersedes | Six-register scalar AOT call ceiling |
-| Superseded by | None |
+| Superseded by | WIP-0396 for function order |
 
 ## Summary
 
@@ -19,7 +19,7 @@ This closes the source compiler's zero- through seven-argument scalar call width
 
 ## Call boundary
 
-`ScalarAotProgram.MAX_PARAMETERS` is seven. Validation still requires an exact argument count, one contiguous caller-local span, exact local types, a prior callee, and an in-range destination. Parameter eight rejects before machine bytes exist.
+`ScalarAotProgram.MAX_PARAMETERS` is seven. Validation still requires an exact argument count, one contiguous caller-local span, exact local types, one scalar callee, and an in-range destination. Parameter eight rejects before machine bytes exist.
 
 For zero through six arguments, `ScalarAotMachine` retains RDI, RSI, RDX, RCX, R8, and R9 in source order. A seven-argument caller:
 
@@ -27,7 +27,7 @@ For zero through six arguments, `ScalarAotMachine` retains RDI, RSI, RDX, RCX, R
 2. Loads argument six into RAX.
 3. Reserves a 16-byte call area.
 4. Stores the seventh value at offset zero in that area.
-5. Calls the prior helper.
+5. Calls the selected helper.
 6. Releases the complete call area before checking trap state or storing a result.
 
 The 16-byte area preserves the existing call-site stack alignment. It contains one eight-byte value and one unused alignment word. No red-zone storage or host stack default enters the contract.
@@ -42,7 +42,7 @@ Signed, Boolean, immutable byte-view, mutable byte, and UTF-8 handle values use 
 
 ## Failure boundary
 
-Reject an eighth parameter, count disagreement, a noncontiguous source span, a type mismatch, an invalid destination, a forward or recursive target, a parameterized entry, or any unsupported opcode. Rejection returns no runtime text, capsule, image plan, or native image.
+Reject an eighth parameter, count disagreement, a noncontiguous source span, a type mismatch, an invalid destination, a recursive target, a parameterized entry, or any unsupported opcode. Rejection returns no runtime text, capsule, image plan, or native image.
 
 Machine emission treats a validated count above six as exactly one stack argument. A later increase in `MAX_PARAMETERS` cannot silently allocate further stack slots.
 
@@ -98,3 +98,4 @@ Rejected. RAX is result and scratch state. The callee must own the incoming valu
 - [WIP-0380](WIP-0380-x86-64-linux-scalar-call-arguments.md)
 - [WIP-0383](WIP-0383-x86-64-linux-void-helper-calls.md)
 - [WIP-0386](WIP-0386-x86-64-linux-borrowed-byte-helpers.md)
+- [WIP-0396](WIP-0396-order-independent-scalar-aot-calls.md)

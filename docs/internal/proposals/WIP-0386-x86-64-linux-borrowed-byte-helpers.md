@@ -9,7 +9,7 @@
 | Area | Native bootstrap, AOT lowering, byte borrows, helper calls |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0379, WIP-0385 |
 | Supersedes | Entry-only native byte access |
-| Superseded by | WIP-0387 for whole-execution bounds, WIP-0395 for argument width |
+| Superseded by | WIP-0387 for execution bounds, WIP-0395 for width, WIP-0396 for order |
 
 ## Summary
 
@@ -132,5 +132,6 @@ WIP-0395 carries one seventh exact scalar or handle value in the aligned private
 - [WIP-0379](WIP-0379-x86-64-linux-scalar-helper-calls.md)
 - [WIP-0385](WIP-0385-x86-64-linux-dynamic-byte-io.md)
 - [WIP-0395](WIP-0395-x86-64-linux-seventh-scalar-argument.md)
+- [WIP-0396](WIP-0396-order-independent-scalar-aot-calls.md)
 - [WIP-0387](WIP-0387-x86-64-linux-scalar-execution-bound.md)
 - [WIP-0389](WIP-0389-x86-64-linux-strict-utf8-input.md)

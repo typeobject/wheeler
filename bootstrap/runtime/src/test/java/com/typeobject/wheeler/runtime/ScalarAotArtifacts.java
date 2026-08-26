@@ -733,6 +733,83 @@ final class ScalarAotArtifacts {
                 List.of()))));
   }
 
+  static byte[] cyclicHelperArtifact() {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-cyclic-helper",
+        2,
+        List.of(new Global("status", 0)),
+        List.of(
+            new FunctionBody(
+                0,
+                "example.app::left",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                ValueType.SIGNED,
+                List.of(
+                    Instruction.of(Opcode.CALL_VALUE, 1, 0, 0, 0),
+                    Instruction.of(Opcode.RETURN_VALUE, 0)),
+                List.of()),
+            new FunctionBody(
+                1,
+                "example.app::right",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                ValueType.SIGNED,
+                List.of(
+                    Instruction.of(Opcode.CALL_VALUE, 0, 0, 0, 0),
+                    Instruction.of(Opcode.RETURN_VALUE, 0)),
+                List.of()),
+            new FunctionBody(
+                2,
+                "example.app::main",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                null,
+                List.of(
+                    Instruction.of(Opcode.CALL_VALUE, 0, 0, 0, 0),
+                    Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
+                    Instruction.of(Opcode.HALT)),
+                List.of()))));
+  }
+
+  static byte[] selfCallingHelperArtifact() {
+    return invalidCallGraphArtifact(0);
+  }
+
+  private static byte[] invalidCallGraphArtifact(int target) {
+    return new BytecodeWriter().write(new Program(
+        "scalar-aot-invalid-call-graph",
+        1,
+        List.of(new Global("status", 0)),
+        List.of(
+            new FunctionBody(
+                0,
+                "example.app::helper",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                ValueType.SIGNED,
+                List.of(
+                    Instruction.of(Opcode.CALL_VALUE, target, 0, 0, 0),
+                    Instruction.of(Opcode.RETURN_VALUE, 0)),
+                List.of()),
+            new FunctionBody(
+                1,
+                "example.app::main",
+                false,
+                0,
+                List.of(ValueType.SIGNED),
+                null,
+                List.of(
+                    Instruction.of(Opcode.CALL_VALUE, 0, 0, 0, 0),
+                    Instruction.of(Opcode.LOCAL_STORE_GLOBAL, 0, 0),
+                    Instruction.of(Opcode.HALT)),
+                List.of()))));
+  }
+
   static FunctionBody statusEntry(int id, long status) {
     return new FunctionBody(
         id,

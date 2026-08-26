@@ -3,6 +3,7 @@ package com.typeobject.wheeler.runtime;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.arithmeticArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.artifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.booleanParameterArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.cyclicHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.conditionalArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dormantUnsupportedHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.dynamicIoArtifact;
@@ -16,6 +17,7 @@ import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.outputArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.parameterHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.parameterVoidHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.scalarGlobalArtifact;
+import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.selfCallingHelperArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.stateCheckArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.uncheckedBackwardBranchArtifact;
 import static com.typeobject.wheeler.runtime.ScalarAotArtifacts.utf8IoArtifact;
@@ -194,9 +196,6 @@ final class LinuxX8664ScalarAotCompilerTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> LinuxX8664ScalarAotCompiler.lower(dormantUnsupportedHelperArtifact()));
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> LinuxX8664ScalarAotCompiler.lower(forwardHelperArtifact()));
 
     Fixture fixture = fixture(stackArtifact, stackParameter.runtimeText());
     byte[] image = ElfImage.build(
@@ -216,6 +215,48 @@ final class LinuxX8664ScalarAotCompilerTest {
         fixture.plan().identity());
     assertEquals(
         "38b9e08e56f24613c57b667e5d368aa7a34617814f82292b4222d3537410484e",
+        verified.prev());
+    if (nativeLinuxHost()) {
+      Process process = new ProcessBuilder(writeExecutable(image).toString()).start();
+      assertTrue(process.waitFor(Duration.ofSeconds(5).toMillis(), TimeUnit.MILLISECONDS));
+      assertEquals(73, process.exitValue());
+      assertArrayEquals(
+          LinuxX8664EntryShim.successOutput(), process.getInputStream().readAllBytes());
+      assertEquals(0, process.getErrorStream().readAllBytes().length);
+    }
+  }
+
+  @Test
+  void lowersAcyclicForwardHelperCalls() throws Exception {
+    byte[] artifact = forwardHelperArtifact();
+    var lowered = LinuxX8664ScalarAotCompiler.lower(artifact);
+
+    assertEquals(73, lowered.processStatus());
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(cyclicHelperArtifact()));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> LinuxX8664ScalarAotCompiler.lower(selfCallingHelperArtifact()));
+
+    Fixture fixture = fixture(artifact, lowered.runtimeText());
+    byte[] image = ElfImage.build(
+        fixture.plan(), fixture.abi(), fixture.capsule(), lowered.runtimeText(), 0);
+    ElfImage.VerifiedImage verified = ElfImage.verify(image, fixture.plan(), fixture.abi());
+    assertEquals(
+        "9920c68d45d4a1ec1870cf62950cb8c08ba25549c9c28dffe3ae9c14367e21e4",
+        identity(artifact));
+    assertEquals(
+        "d731526c670d251e0b2d65e22a33615c5b43743b2bea968ad0fd4634a3ffdd00",
+        lowered.runtimeIdentity());
+    assertEquals(
+        "7a348327fb9386bb1899edefd0d6da3c8095dc4a238a1d1bf547143645008d8f",
+        fixture.capsule().identity());
+    assertEquals(
+        "c76d9538d1ea8bf1e584cab8276fb2ac6cef23440a59ff432d555f8b60305589",
+        fixture.plan().identity());
+    assertEquals(
+        "d6365e30ee0494041b65304508d6b49eee45591b66774e8a3caffaa47aaa0271",
         verified.prev());
     if (nativeLinuxHost()) {
       Process process = new ProcessBuilder(writeExecutable(image).toString()).start();

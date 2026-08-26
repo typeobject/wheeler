@@ -45,6 +45,7 @@ public final class ScalarAotProgram {
     for (FunctionBody function : program.functions()) {
       validateFunction(program, function, dynamicIo, outputBearing);
     }
+    validateCallGraph(program);
     if (entry.parameterCount() == 2) {
       return new ScalarAotProgram(program, null, null, true);
     }
@@ -414,8 +415,8 @@ public final class ScalarAotProgram {
     int target = Math.toIntExact(instruction.operands().get(0));
     int argumentBase = Math.toIntExact(instruction.operands().get(1));
     int argumentCount = Math.toIntExact(instruction.operands().get(2));
-    if (target < 0 || target >= owner.id()) {
-      throw new IllegalArgumentException("Scalar AOT call target is not a prior helper");
+    if (target < 0 || target >= program.entryFunctionId()) {
+      throw new IllegalArgumentException("Scalar AOT call target is not a helper");
     }
     FunctionBody callee = program.function(target);
     if (argumentCount != callee.parameterCount()
@@ -436,6 +437,34 @@ public final class ScalarAotProgram {
         throw new IllegalArgumentException("Scalar AOT call destination is not signed");
       }
     }
+  }
+
+  private static void validateCallGraph(Program program) {
+    int[] states = new int[program.functions().size()];
+    for (FunctionBody function : program.functions()) {
+      validateCallGraph(program, function.id(), states);
+    }
+  }
+
+  private static void validateCallGraph(Program program, int functionId, int[] states) {
+    if (states[functionId] == 2) {
+      return;
+    }
+    if (states[functionId] == 1) {
+      throw new IllegalArgumentException("Scalar AOT call graph contains a cycle");
+    }
+
+    states[functionId] = 1;
+    for (Instruction instruction : program.function(functionId).forward()) {
+      if (instruction.opcode() == Opcode.CALL_VALUE
+          || instruction.opcode() == Opcode.CALL_VOID) {
+        validateCallGraph(
+            program,
+            Math.toIntExact(instruction.operands().get(0)),
+            states);
+      }
+    }
+    states[functionId] = 2;
   }
 
   private static Evaluation evaluate(
