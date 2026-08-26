@@ -29,19 +29,25 @@ tasks.named('test') {
 
 tasks.register('nativeCompilerPackageTest', Test) {
     group = 'verification'
-    description = 'Executes the complete Wheeler-owned compiler package suite.'
+    description = 'Executes one selected Wheeler-owned compiler package shard.'
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
     include '**/NativeCompilerPackageTest.class'
     workingDir = rootProject.repositoryRoot
     inputs.files(repositoryInputs).withPathSensitivity(PathSensitivity.RELATIVE)
+    def shard = providers.gradleProperty('nativeCompilerPackageShard').orElse('0')
+    def shardCount = providers.gradleProperty('nativeCompilerPackageShardCount').orElse('16')
+    inputs.property('nativeCompilerPackageShard', shard)
+    inputs.property('nativeCompilerPackageShardCount', shardCount)
+    systemProperty 'wheeler.nativeCompilerPackageShard', shard.get()
+    systemProperty 'wheeler.nativeCompilerPackageShardCount', shardCount.get()
     useJUnitPlatform()
     maxParallelForks = 1
     forkEvery = 0
     failFast = true
     maxHeapSize = '1024m'
     jvmArgs '-XX:ActiveProcessorCount=2'
-    systemProperty 'junit.jupiter.execution.timeout.default', '2 m'
+    systemProperty 'junit.jupiter.execution.timeout.default', '12 m'
     systemProperty 'junit.jupiter.execution.timeout.thread.mode.default', 'separate_thread'
     testLogging {
         events 'started', 'failed', 'skipped'

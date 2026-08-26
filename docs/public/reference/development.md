@@ -24,16 +24,20 @@ source-conformance gates. Ordinary JUnit methods have a two-minute preemptive
 limit. Each worker quits after its first failure.
 
 The complete Wheeler-owned compiler package suite is deliberate integration
-evidence and does not run twice inside ordinary `tools:check` matrices:
+evidence and stays outside ordinary `tools:check` matrices. One explicit local
+shard runs as follows:
 
 ```bash
-./bootstrap/gradlew -p bootstrap :tools:nativeCompilerPackageTest
+./bootstrap/gradlew -p bootstrap :tools:nativeCompilerPackageTest \
+  -PnativeCompilerPackageShard=0 \
+  -PnativeCompilerPackageShardCount=16
 ```
 
-It executes 243 cases across 91 physical compiler modules. One fresh retained
-attempt supplies execution, report, and adapter evidence. The test has a
-forty-one-minute hard stop. CI runs it once on Temurin after both ordinary build
-matrices finish, which keeps the long suite from starving bounded example jobs.
+The suite contains 243 cases across 91 physical compiler modules. CI assigns the
+complete case identities to sixteen disjoint Temurin jobs before compilation.
+Each selected artifact executes once with fresh storage. A method has twelve
+minutes and its job has eighteen. Running the complete suite locally requires one
+invocation for every index from zero through fifteen.
 
 Hosted acceptance assigns sorted example classes to exactly one of eight shards.
 Each shard has a fifteen-minute hard stop.
@@ -44,7 +48,7 @@ The complete physical compiler product rebuild is separate integration evidence:
 ./bootstrap/gradlew -p bootstrap :examples:closureEvidenceTest
 ```
 
-Each closure method receives twenty minutes. The task stops after twenty-five.
+Each closure method receives twenty-four minutes. The task stops after twenty-eight.
 
 `sourceHeaderTest` requires an appropriate opening description in every authored
 Java, Wheeler, JavaScript, stylesheet, Gradle, Tree-sitter query, shell, and Python

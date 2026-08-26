@@ -90,8 +90,12 @@ jobs:
 
   native-compiler-package:
     needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 18
     permissions:
       contents: read
 
@@ -104,10 +108,12 @@ jobs:
         distribution: temurin
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
-    - name: Execute the complete native compiler package suite once
+    - name: Execute one preselected native compiler package shard
       run: >-
         ./bootstrap/gradlew -p bootstrap --no-daemon --max-workers 2
         :tools:nativeCompilerPackageTest
+        -PnativeCompilerPackageShard=${{ matrix.shard }}
+        -PnativeCompilerPackageShardCount=16
 
   examples:
     strategy:

@@ -33,7 +33,8 @@ The current Wheeler-native path can parse, plan, and classify the complete
 379-module compiler closure with 1,893 imports and a 177,822-byte module manifest.
 Its native identity run completes in 74,201,056 transitions. The native compiler
 package separately compiles 91 production modules through bounded physical source
-graphs and executes 243 cases. The source path preserves typed Boolean-local
+graphs and executes 243 cases. CI assigns those complete case identities to sixteen
+disjoint shards before compilation. The source path preserves typed Boolean-local
 results behind signed equality guards. Signed- and Boolean-result calls with
 three through seven named arguments resolve mixed signed and Boolean locals
 before exact signature matching. Boolean locals also pass through ordinary void
