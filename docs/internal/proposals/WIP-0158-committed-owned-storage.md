@@ -47,7 +47,7 @@ UTF-8 validation, buffer reads, map probes, host output, region accounting, kind
 
 ## Evidence
 
-The complete core suite covers committed updates, persistent snapshots, map updates, UTF-8 freeze, drop, exact rewind, malformed writes, allocation limits, observations, and task snapshots. The bounded bootstrap-manifest test accepts the current 177,378-byte graph of 379 modules and 1,883 imports in exactly 73,964,449 committed transitions.
+The complete core suite covers committed updates, persistent snapshots, map updates, UTF-8 freeze, drop, exact rewind, malformed writes, allocation limits, observations, and task snapshots. The bounded bootstrap-manifest test accepts the current 177,466-byte graph of 379 modules and 1,885 imports in exactly 74,021,533 committed transitions.
 
 A same-worktree alternating comparison used `NativeCompilerResolvedReturnCallKindsPhysicalProductExampleTest`. The committed implementation completed in 230.90 seconds. The immediately following persistent baseline completed in 462.28 seconds. Both produced the exact stage-0 artifact. The host was under sustained load, so the wall-time ratio is evidence of removed allocation pressure, not a portable performance promise.
 

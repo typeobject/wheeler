@@ -49,6 +49,50 @@ final class NativeCompilerMixedCallArgumentsExampleTest {
   }
 
   @Test
+  void compilesImportedMixedBooleanThreeArgumentCallsByteForByte() throws Exception {
+    String dependency = """
+        module example.mixed_boolean_three_dependency;
+        classical class MixedBooleanThreeDependency {
+          public boolean select(long value, boolean selected, boolean fallback) {
+            if (value == 0) {
+              return selected;
+            }
+            return fallback;
+          }
+        }
+        """;
+    String root = """
+        module example.mixed_boolean_three;
+        import example.mixed_boolean_three_dependency;
+        classical class MixedBooleanThree {
+          public boolean relay(long value, boolean selected, boolean fallback) {
+            boolean result = select(value, selected, fallback);
+            return result;
+          }
+        }
+        """;
+    var compiler = NativeModuleCompilerHarness.program();
+    byte[] actual = NativeModuleCompilerHarness.compile(compiler, List.of(dependency), root);
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            Map.of(
+                "MixedBooleanThreeDependency.w", dependency,
+                "MixedBooleanThree.w", root),
+            "example.mixed_boolean_three"));
+
+    assertArrayEquals(expected, actual);
+    String signedDependency = """
+        module example.mixed_boolean_three_dependency;
+        classical class MixedBooleanThreeDependency {
+          public long select(long value, boolean selected, boolean fallback) {
+            return value;
+          }
+        }
+        """;
+    NativeModuleCompilerHarness.assertTrap(compiler, List.of(signedDependency), root);
+  }
+
+  @Test
   void compilesMixedFourArgumentCallsByteForByte() throws Exception {
     String source = """
         module example.mixed_four;
@@ -135,6 +179,75 @@ final class NativeCompilerMixedCallArgumentsExampleTest {
         """;
 
     assertLocalLibrary(source, "example.mixed_wide");
+  }
+
+  @Test
+  void compilesMixedBooleanFourThroughSevenArgumentCallsByteForByte() throws Exception {
+    String source = """
+        module example.mixed_boolean_wide;
+        classical class MixedBooleanWide {
+          private boolean four(long a, boolean b, long c, boolean d) {
+            return b;
+          }
+
+          private boolean five(long a, boolean b, long c, boolean d, long e) {
+            return d;
+          }
+
+          private boolean six(long a, boolean b, long c, boolean d, long e, boolean f) {
+            return f;
+          }
+
+          private boolean seven(
+            long a,
+            boolean b,
+            long c,
+            boolean d,
+            long e,
+            boolean f,
+            long g
+          ) {
+            return b;
+          }
+
+          public boolean relayFour(long a, boolean b, long c, boolean d) {
+            boolean result = four(a, b, c, d);
+            return result;
+          }
+
+          public boolean relayFive(long a, boolean b, long c, boolean d, long e) {
+            boolean result = five(a, b, c, d, e);
+            return result;
+          }
+
+          public boolean relaySix(
+            long a,
+            boolean b,
+            long c,
+            boolean d,
+            long e,
+            boolean f
+          ) {
+            boolean result = six(a, b, c, d, e, f);
+            return result;
+          }
+
+          public boolean relaySeven(
+            long a,
+            boolean b,
+            long c,
+            boolean d,
+            long e,
+            boolean f,
+            long g
+          ) {
+            boolean result = seven(a, b, c, d, e, f, g);
+            return result;
+          }
+        }
+        """;
+
+    assertLocalLibrary(source, "example.mixed_boolean_wide");
   }
 
   private static void assertLocalLibrary(String source, String module) throws Exception {

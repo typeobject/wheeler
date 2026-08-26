@@ -20,6 +20,7 @@ import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
+import wheeler.compiler.wide_local_calls;
 
 classical class LocalResolution {
   private long resolutionLocalCount(
@@ -113,7 +114,9 @@ classical class LocalResolution {
       }
 
       if (wideLocalCallStatement(opcode)) {
-        return true;
+        if (booleanWideLocalCall(opcode)) {} else {
+          return true;
+        }
       }
 
       if (twoArgumentCallStatement(opcode)) {
@@ -155,6 +158,10 @@ classical class LocalResolution {
     }
 
     if (twoArgumentBooleanSignedCall(opcode)) {
+      return true;
+    }
+
+    if (booleanWideLocalCall(opcode)) {
       return true;
     }
 

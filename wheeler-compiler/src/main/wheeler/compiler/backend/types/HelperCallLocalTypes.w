@@ -61,6 +61,13 @@ classical class HelperCallLocalTypes {
     long sixthSourceType,
     long seventhSourceType
   ) {
+    if (scalarResultCallStatement(opcode)) {
+      resultType = TYPE_SIGNED;
+      if (booleanResultCallStatement(opcode)) {
+        resultType = TYPE_BOOLEAN;
+      }
+    }
+
     if (earlyUtf8Call(opcode)) {
       cursor = writeSignedLocalType(output, cursor);
       cursor = writeSignedLocalType(output, cursor);

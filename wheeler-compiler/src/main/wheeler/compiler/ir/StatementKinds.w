@@ -275,6 +275,16 @@ classical class StatementKinds {
   public const long STATEMENT_LOCAL_CALL_SEVEN_LOCALS_NAMED = 921;
   /// Parameter less-than guard returning checked local addition.
   public const long STATEMENT_IF_SIGNED_LT_RETURN_ADD_NAMED = 934;
+  /// Boolean local initialized by three prior scalar helper arguments.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_NAMED = 940;
+  /// Boolean local initialized by four prior scalar helper arguments.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_FOUR_LOCALS_NAMED = 941;
+  /// Boolean local initialized by five prior scalar helper arguments.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_FIVE_LOCALS_NAMED = 942;
+  /// Boolean local initialized by six prior scalar helper arguments.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_SIX_LOCALS_NAMED = 943;
+  /// Boolean local initialized by seven prior scalar helper arguments.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_SEVEN_LOCALS_NAMED = 944;
   /// Checked global addition.
   public const long STATEMENT_UPDATE_ADD = 1040;
   /// Checked global subtraction.

@@ -10,6 +10,7 @@ import wheeler.compiler.statement_kinds;
 import wheeler.compiler.three_argument_calls;
 import wheeler.compiler.tokens;
 import wheeler.compiler.two_argument_call_kinds;
+import wheeler.compiler.wide_local_calls;
 
 classical class CallForms {
   /// Returns the first argument token in a two-argument scalar call.
@@ -45,27 +46,32 @@ classical class CallForms {
       return true;
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_FIVE_LOCALS_NAMED) {
+    return packedWideLocalCall(opcode);
+  }
+
+  /// Checks whether one statement initializes a Boolean local from a helper.
+  public boolean booleanResultCallStatement(long opcode) {
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_NAMED) {
       return true;
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_SIX_LOCALS_NAMED) {
+    if (oneArgumentBooleanCall(opcode)) {
       return true;
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_SEVEN_LOCALS_NAMED) {
+    if (oneArgumentBooleanSignedCall(opcode)) {
       return true;
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_FIVE_LOCALS) {
+    if (twoArgumentBooleanCall(opcode)) {
       return true;
     }
 
-    if (opcode == STATEMENT_LOCAL_CALL_SIX_LOCALS) {
+    if (twoArgumentBooleanSignedCall(opcode)) {
       return true;
     }
 
-    return opcode == STATEMENT_LOCAL_CALL_SEVEN_LOCALS;
+    return booleanWideLocalCall(opcode);
   }
 
   /// Checks whether one statement initializes a local from a scalar helper.

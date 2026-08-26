@@ -73,6 +73,26 @@ classical class HelperValueKinds {
       return true;
     }
 
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_FOUR_LOCALS_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_FIVE_LOCALS_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_SIX_LOCALS_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_SEVEN_LOCALS_NAMED) {
+      return true;
+    }
+
     if (opcode < STATEMENT_LOCAL_CALL_NAMED) {
       return false;
     }

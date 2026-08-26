@@ -61,7 +61,7 @@ classical class WideLocalCallResolution {
       argument += 1;
     }
 
-    return resolvedWideLocalCall(arity);
+    return resolvedWideLocalCall(arity, booleanWideLocalCall(opcode));
   }
 
   private long packWideLocalSources(

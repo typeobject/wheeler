@@ -508,7 +508,12 @@ classical class ScalarHelperTables {
 
     if (wideLocalCallStatement(opcode)) {
       long arity = wideLocalCallArity(opcode);
-      if (candidate.kind == signedScalarHelperKind(arity)) {
+      long expectedKind = signedScalarHelperKind(arity);
+      if (booleanWideLocalCall(opcode)) {
+        expectedKind = booleanScalarHelperKind(arity);
+      }
+
+      if (candidate.kind == expectedKind) {
         return candidate.parameterCount == arity;
       }
 

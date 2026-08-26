@@ -175,6 +175,12 @@ classical class ResolvedStatements {
   public const long STATEMENT_LOCAL_CALL_SIX_LOCALS = 30464;
   /// Names a resolved local initialized by a seven-argument scalar call.
   public const long STATEMENT_LOCAL_CALL_SEVEN_LOCALS = 30720;
+  /// Names a resolved Boolean local initialized by a five-argument scalar call.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_FIVE_LOCALS = 393472;
+  /// Names a resolved Boolean local initialized by a six-argument scalar call.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_SIX_LOCALS = 393473;
+  /// Names a resolved Boolean local initialized by a seven-argument scalar call.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_SEVEN_LOCALS = 393474;
   /// Starts resolved parameter less-than guards returning checked local addition.
   public const long STATEMENT_IF_SIGNED_LT_RETURN_ADD_BASE = 32000;
   /// Starts resolved equality guards returning a prior Boolean local.

@@ -295,8 +295,11 @@ classical class CallResolution {
     long previousCount,
     long opcode
   ) {
+    boolean booleanResult = opcode == STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_NAMED;
     if (opcode == STATEMENT_LOCAL_CALL_THREE_LOCALS_NAMED) {} else {
-      return opcode;
+      if (booleanResult) {} else {
+        return opcode;
+      }
     }
 
     long first = resolvePriorScalarDeclaration(
@@ -326,7 +329,12 @@ classical class CallResolution {
     if (-1 < first) {
       if (-1 < second) {
         if (-1 < third) {
-          return STATEMENT_LOCAL_CALL_THREE_LOCALS_BASE + third;
+          long base = STATEMENT_LOCAL_CALL_THREE_LOCALS_BASE;
+          if (booleanResult) {
+            base = STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_BASE;
+          }
+
+          return base + third;
         }
       }
     }
@@ -343,8 +351,11 @@ classical class CallResolution {
     long previousCount,
     long opcode
   ) {
+    boolean booleanResult = opcode == STATEMENT_LOCAL_BOOLEAN_CALL_FOUR_LOCALS_NAMED;
     if (opcode == STATEMENT_LOCAL_CALL_FOUR_LOCALS_NAMED) {} else {
-      return opcode;
+      if (booleanResult) {} else {
+        return opcode;
+      }
     }
 
     long first = resolvePriorScalarDeclaration(
@@ -383,8 +394,12 @@ classical class CallResolution {
       if (-1 < second) {
         if (-1 < third) {
           if (-1 < fourth) {
-            return STATEMENT_LOCAL_CALL_FOUR_LOCALS_BASE + third * LOCAL_VALUE_CALL_SOURCE_COUNT
-              + fourth;
+            long base = STATEMENT_LOCAL_CALL_FOUR_LOCALS_BASE;
+            if (booleanResult) {
+              base = STATEMENT_LOCAL_BOOLEAN_CALL_FOUR_LOCALS_BASE;
+            }
+
+            return base + third * LOCAL_VALUE_CALL_SOURCE_COUNT + fourth;
           }
         }
       }

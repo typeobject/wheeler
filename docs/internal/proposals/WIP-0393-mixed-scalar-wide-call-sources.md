@@ -38,7 +38,7 @@ No opcode, operand, local, instruction, or artifact bound changes.
 
 Three-argument calls retain the third source in the resolved statement identity. Four-argument calls retain the third and fourth sources there. Five- through seven-argument calls retain four source digits in the primary operand and the remainder in the secondary operand. Signed and Boolean locals share the same bounded source index domain. Local types still select `LOCAL_MOVE` and prove the callee signature.
 
-The source modules now describe these as scalar call arguments rather than signed call arguments. Result type remains signed. Boolean-result wide calls are outside this WIP.
+The source modules now describe these as scalar call arguments rather than signed call arguments. Result type remains signed here. WIP-0394 adds the disjoint Boolean-result family.
 
 ## Evidence
 
@@ -48,7 +48,7 @@ The imported three-argument fixture passes `long, boolean, boolean` to a public 
 
 The local four-argument fixture passes `long, boolean, boolean, long`. The wide fixture independently compiles five, six, and seven arguments with alternating signed and Boolean types. Every helper and caller retains the exact parameter column.
 
-The complete physical closure remains 379 modules, 1,883 imports, and 177,378 canonical manifest bytes. Native validation halts after 73,964,449 committed transitions. Wheeler SHA-256 consumes the same manifest in 33,948,356 transitions.
+The complete physical closure remains 379 modules, 1,885 imports, and 177,466 canonical manifest bytes. Native validation halts after 74,021,533 committed transitions. Wheeler SHA-256 consumes the same manifest in 33,974,230 transitions.
 
 ## Acceptance
 

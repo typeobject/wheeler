@@ -18,32 +18,57 @@ classical class WideLocalCalls {
   /// Names the first source stored in the trailing packed operand.
   private const long WIDE_LOCAL_TRAILING_SOURCE = 4;
 
-  /// Returns the unresolved statement kind for an exact named arity.
+  /// Returns the unresolved statement kind for an exact named arity and result type.
   public long namedWideLocalCallKind(
     borrow utf8 source,
     borrow mut words tokenStarts,
-    long statementStart
+    long statementStart,
+    boolean booleanResult
   ) {
     long arity = 3;
     long cursor = statementStart + 10;
     while (arity < MAX_WIDE_LOCAL_CALL_ARGUMENTS) limit MAX_WIDE_LOCAL_CALL_ARGUMENTS {
       if (utf8Scalar(source, tokenStarts[cursor]) == PUNCTUATION_COMMA) {} else {
-        return wideLocalCallKind(arity);
+        return wideLocalCallKind(arity, booleanResult);
       }
 
       if (identifierStart(utf8Scalar(source, tokenStarts[cursor + 1]))) {} else {
-        return wideLocalCallKind(arity);
+        return wideLocalCallKind(arity, booleanResult);
       }
 
       arity += 1;
       cursor += 2;
     }
 
-    return wideLocalCallKind(arity);
+    return wideLocalCallKind(arity, booleanResult);
   }
 
   /// Returns one exact unresolved wide-local statement kind.
-  public long wideLocalCallKind(long arity) {
+  public long wideLocalCallKind(long arity, boolean booleanResult) {
+    if (booleanResult) {
+      if (arity == 3) {
+        return STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_NAMED;
+      }
+
+      if (arity == 4) {
+        return STATEMENT_LOCAL_BOOLEAN_CALL_FOUR_LOCALS_NAMED;
+      }
+
+      if (arity == 5) {
+        return STATEMENT_LOCAL_BOOLEAN_CALL_FIVE_LOCALS_NAMED;
+      }
+
+      if (arity == 6) {
+        return STATEMENT_LOCAL_BOOLEAN_CALL_SIX_LOCALS_NAMED;
+      }
+
+      if (arity == MAX_WIDE_LOCAL_CALL_ARGUMENTS) {
+        return STATEMENT_LOCAL_BOOLEAN_CALL_SEVEN_LOCALS_NAMED;
+      }
+
+      return -1;
+    }
+
     if (arity == 3) {
       return STATEMENT_LOCAL_CALL_THREE_LOCALS_NAMED;
     }
@@ -68,7 +93,23 @@ classical class WideLocalCalls {
   }
 
   /// Returns one exact resolved wide-local statement identity.
-  public long resolvedWideLocalCall(long arity) {
+  public long resolvedWideLocalCall(long arity, boolean booleanResult) {
+    if (booleanResult) {
+      if (arity == 5) {
+        return STATEMENT_LOCAL_BOOLEAN_CALL_FIVE_LOCALS;
+      }
+
+      if (arity == 6) {
+        return STATEMENT_LOCAL_BOOLEAN_CALL_SIX_LOCALS;
+      }
+
+      if (arity == MAX_WIDE_LOCAL_CALL_ARGUMENTS) {
+        return STATEMENT_LOCAL_BOOLEAN_CALL_SEVEN_LOCALS;
+      }
+
+      return -1;
+    }
+
     if (arity == 5) {
       return STATEMENT_LOCAL_CALL_FIVE_LOCALS;
     }
@@ -90,7 +131,15 @@ classical class WideLocalCalls {
       return true;
     }
 
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_FIVE_LOCALS_NAMED) {
+      return true;
+    }
+
     if (opcode == STATEMENT_LOCAL_CALL_SIX_LOCALS_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_SIX_LOCALS_NAMED) {
       return true;
     }
 
@@ -98,7 +147,15 @@ classical class WideLocalCalls {
       return true;
     }
 
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_SEVEN_LOCALS_NAMED) {
+      return true;
+    }
+
     if (opcode == STATEMENT_LOCAL_CALL_FIVE_LOCALS) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_FIVE_LOCALS) {
       return true;
     }
 
@@ -106,7 +163,48 @@ classical class WideLocalCalls {
       return true;
     }
 
-    return opcode == STATEMENT_LOCAL_CALL_SEVEN_LOCALS;
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_SIX_LOCALS) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_CALL_SEVEN_LOCALS) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_BOOLEAN_CALL_SEVEN_LOCALS;
+  }
+
+  /// Checks whether one wide-local call returns Boolean.
+  public boolean booleanWideLocalCall(long opcode) {
+    if (threeArgumentBooleanCall(opcode)) {
+      return true;
+    }
+
+    if (fourArgumentBooleanCall(opcode)) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_FIVE_LOCALS_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_SIX_LOCALS_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_SEVEN_LOCALS_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_FIVE_LOCALS) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_SIX_LOCALS) {
+      return true;
+    }
+
+    return opcode == STATEMENT_LOCAL_BOOLEAN_CALL_SEVEN_LOCALS;
   }
 
   /// Returns the exact argument count, or minus one.
@@ -123,7 +221,15 @@ classical class WideLocalCalls {
       return 5;
     }
 
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_FIVE_LOCALS_NAMED) {
+      return 5;
+    }
+
     if (opcode == STATEMENT_LOCAL_CALL_FIVE_LOCALS) {
+      return 5;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_FIVE_LOCALS) {
       return 5;
     }
 
@@ -131,7 +237,15 @@ classical class WideLocalCalls {
       return 6;
     }
 
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_SIX_LOCALS_NAMED) {
+      return 6;
+    }
+
     if (opcode == STATEMENT_LOCAL_CALL_SIX_LOCALS) {
+      return 6;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_SIX_LOCALS) {
       return 6;
     }
 
@@ -139,7 +253,15 @@ classical class WideLocalCalls {
       return MAX_WIDE_LOCAL_CALL_ARGUMENTS;
     }
 
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_SEVEN_LOCALS_NAMED) {
+      return MAX_WIDE_LOCAL_CALL_ARGUMENTS;
+    }
+
     if (opcode == STATEMENT_LOCAL_CALL_SEVEN_LOCALS) {
+      return MAX_WIDE_LOCAL_CALL_ARGUMENTS;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_SEVEN_LOCALS) {
       return MAX_WIDE_LOCAL_CALL_ARGUMENTS;
     }
 

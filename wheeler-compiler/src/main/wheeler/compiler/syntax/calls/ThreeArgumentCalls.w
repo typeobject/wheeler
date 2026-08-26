@@ -1,21 +1,30 @@
-//! Classifies the bounded three-local scalar helper call.
+//! Classifies bounded three-local scalar helper calls.
 
 module wheeler.compiler.three_argument_calls;
 
 import wheeler.compiler.statement_kinds;
 
 classical class ThreeArgumentCalls {
-  /// Packs the third resolved source into the statement identity.
+  /// Packs the third signed-result call source into the statement identity.
   public const long STATEMENT_LOCAL_CALL_THREE_LOCALS_BASE = 32768;
-  /// Bounds the packed third source by the canonical local window.
+  /// Packs the third Boolean-result call source into the statement identity.
+  public const long STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_BASE = 33024;
+  /// Bounds one packed source by the canonical local window.
   private const long THREE_ARGUMENT_LOCAL_SOURCE_COUNT = 256;
-  /// Names the exclusive end of packed three-local calls.
+  /// Names the exclusive end of packed signed-result calls.
   private const long STATEMENT_LOCAL_CALL_THREE_LOCALS_LIMIT
     = STATEMENT_LOCAL_CALL_THREE_LOCALS_BASE + THREE_ARGUMENT_LOCAL_SOURCE_COUNT;
+  /// Names the exclusive end of packed Boolean-result calls.
+  private const long STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_LIMIT
+    = STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_BASE + THREE_ARGUMENT_LOCAL_SOURCE_COUNT;
 
-  /// Checks for the unresolved or resolved three-local call identity.
+  /// Checks for an unresolved or resolved three-local call identity.
   public boolean threeArgumentCallStatement(long opcode) {
     if (opcode == STATEMENT_LOCAL_CALL_THREE_LOCALS_NAMED) {
+      return true;
+    }
+
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_NAMED) {
       return true;
     }
 
@@ -23,7 +32,28 @@ classical class ThreeArgumentCalls {
       return false;
     }
 
-    return opcode < STATEMENT_LOCAL_CALL_THREE_LOCALS_LIMIT;
+    if (opcode < STATEMENT_LOCAL_CALL_THREE_LOCALS_LIMIT) {
+      return true;
+    }
+
+    if (opcode < STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_LIMIT;
+  }
+
+  /// Checks whether one three-local call returns Boolean.
+  public boolean threeArgumentBooleanCall(long opcode) {
+    if (opcode == STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_NAMED) {
+      return true;
+    }
+
+    if (opcode < STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_BASE) {
+      return false;
+    }
+
+    return opcode < STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_LIMIT;
   }
 
   /// Returns the first argument token of one three-local call.
@@ -49,6 +79,14 @@ classical class ThreeArgumentCalls {
 
     if (opcode < STATEMENT_LOCAL_CALL_THREE_LOCALS_LIMIT) {
       return opcode - STATEMENT_LOCAL_CALL_THREE_LOCALS_BASE;
+    }
+
+    if (opcode < STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_BASE) {
+      return -1;
+    }
+
+    if (opcode < STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_LIMIT) {
+      return opcode - STATEMENT_LOCAL_BOOLEAN_CALL_THREE_LOCALS_BASE;
     }
 
     return -1;

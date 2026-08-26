@@ -124,22 +124,74 @@ classical class HelperCalls {
     }
 
     if (helperKind == HELPER_SIGNED_THREE) {
+      if (threeArgumentBooleanCall(opcode)) {
+        return false;
+      }
+
       return threeArgumentCallStatement(opcode);
     }
 
+    if (helperKind == HELPER_BOOLEAN_SIGNED_THREE) {
+      return threeArgumentBooleanCall(opcode);
+    }
+
     if (helperKind == HELPER_SIGNED_FOUR) {
+      if (fourArgumentBooleanCall(opcode)) {
+        return false;
+      }
+
       return fourArgumentCallStatement(opcode);
     }
 
+    if (helperKind == HELPER_BOOLEAN_SIGNED_FOUR) {
+      return fourArgumentBooleanCall(opcode);
+    }
+
     if (helperKind == HELPER_SIGNED_FIVE) {
+      if (booleanWideLocalCall(opcode)) {
+        return false;
+      }
+
+      return wideLocalCallArity(opcode) == 5;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_FIVE) {
+      if (booleanWideLocalCall(opcode)) {} else {
+        return false;
+      }
+
       return wideLocalCallArity(opcode) == 5;
     }
 
     if (helperKind == HELPER_SIGNED_SIX) {
+      if (booleanWideLocalCall(opcode)) {
+        return false;
+      }
+
+      return wideLocalCallArity(opcode) == 6;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_SIX) {
+      if (booleanWideLocalCall(opcode)) {} else {
+        return false;
+      }
+
       return wideLocalCallArity(opcode) == 6;
     }
 
     if (helperKind == HELPER_SIGNED_SEVEN) {
+      if (booleanWideLocalCall(opcode)) {
+        return false;
+      }
+
+      return wideLocalCallArity(opcode) == 7;
+    }
+
+    if (helperKind == HELPER_BOOLEAN_SIGNED_SEVEN) {
+      if (booleanWideLocalCall(opcode)) {} else {
+        return false;
+      }
+
       return wideLocalCallArity(opcode) == 7;
     }
 

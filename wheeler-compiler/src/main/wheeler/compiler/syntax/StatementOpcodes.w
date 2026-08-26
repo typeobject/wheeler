@@ -574,7 +574,7 @@ classical class StatementOpcodes {
                   if (
                     identifierStart(utf8Scalar(source, tokenStarts[secondComma + 1]))
                   ) {
-                    return namedWideLocalCallKind(source, tokenStarts, statementStart);
+                    return namedWideLocalCallKind(source, tokenStarts, statementStart, false);
                   }
                 }
 
@@ -744,6 +744,21 @@ classical class StatementOpcodes {
         } else {
           if (booleanSecondArgumentNamed) {} else {
             secondArgumentSigned = true;
+          }
+        }
+
+        if (booleanFirstArgumentNamed) {
+          if (booleanSecondArgumentNamed) {
+            long secondDelimiter = utf8Scalar(source, tokenStarts[secondArgumentToken + 1]);
+            if (secondDelimiter == PUNCTUATION_COMMA) {
+              if (
+                identifierStart(utf8Scalar(source, tokenStarts[secondArgumentToken + 2]))
+              ) {
+                return namedWideLocalCallKind(source, tokenStarts, statementStart, true);
+              }
+
+              return -1;
+            }
           }
         }
 
