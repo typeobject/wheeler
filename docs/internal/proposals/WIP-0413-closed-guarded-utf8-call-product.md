@@ -46,7 +46,7 @@ No bound changes. The module remains below 256 locals and 4,096 instructions per
 
 The compiler package manifest identity remains `939e0e2994c11157b73386901ba3185e5ab5573987686aebb95d0c88410c07c7`. Its 3,169,026-byte source archive has SHA-256 `1b212dff6eea82adb63b3b0fe9608f69366915458da80d2839cd732898b649c5`.
 
-Removing the two broad token-module imports leaves the bootstrap graph at 379 modules and 1,891 imports. The canonical module manifest is 177,746 bytes with SHA-256 `99bf546e1868a8fe3b688101cd348c8762a2680f49982e5dc0bbff56cc25b90c`. Native validation halts after 74,162,601 committed transitions.
+Removing the two broad token-module imports leaves the bootstrap graph at 379 modules and 1,891 imports. The canonical module manifest is 177,746 bytes with SHA-256 `99bf546e1868a8fe3b688101cd348c8762a2680f49982e5dc0bbff56cc25b90c`. Native validation halts after 74,162,601 committed transitions. Wheeler-native SHA-256 consumes the same bytes in 34,021,960 transitions and matches the independent host digest.
 
 ## Acceptance
 

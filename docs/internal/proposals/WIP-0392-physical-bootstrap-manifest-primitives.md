@@ -51,7 +51,7 @@ At this WIP, the physical compiler closure contained 379 modules and 1,893 impor
 
 The former 74,000,000 host guard rejected the enlarged complete closure before it halted. The evidence guard is now 75,000,000 transitions. This changes no Wheeler semantic limit. It leaves a bounded host cancellation margin above the exact retained result.
 
-Wheeler-native SHA-256 consumes the current manifest in exactly 34,034,110 transitions and matches the independent host digest.
+Wheeler-native SHA-256 consumes the current manifest in exactly 34,021,960 transitions and matches the independent host digest.
 
 ## Failure boundary
 
