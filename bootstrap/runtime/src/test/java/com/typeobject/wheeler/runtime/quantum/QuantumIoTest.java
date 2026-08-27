@@ -164,6 +164,7 @@ final class QuantumIoTest {
   private static final class BlockingJob implements QuantumJob {
     private final CountDownLatch awaiting = new CountDownLatch(1);
     private final CountDownLatch canceled = new CountDownLatch(1);
+    private final CountDownLatch cancellationObserved = new CountDownLatch(1);
     private final AtomicInteger cancellations = new AtomicInteger();
 
     @Override
@@ -180,6 +181,14 @@ final class QuantumIoTest {
     public boolean cancel() {
       cancellations.incrementAndGet();
       canceled.countDown();
+      try {
+        if (!cancellationObserved.await(1, TimeUnit.SECONDS)) {
+          throw new QuantumExecutionException("cancellation was not observed");
+        }
+      } catch (InterruptedException interrupted) {
+        Thread.currentThread().interrupt();
+        throw new QuantumExecutionException("cancellation was interrupted");
+      }
       return true;
     }
 
@@ -194,6 +203,7 @@ final class QuantumIoTest {
         Thread.currentThread().interrupt();
         throw new QuantumExecutionException("blocking job interrupted");
       }
+      cancellationObserved.countDown();
       throw new QuantumExecutionException("blocking job canceled");
     }
   }

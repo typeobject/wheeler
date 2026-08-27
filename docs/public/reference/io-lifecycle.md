@@ -239,10 +239,12 @@ order.
 cancellation propagation, completion, and reap as one I/O operation. Construction
 allocates no provider job. Queued cancellation therefore allocates none.
 
-After target allocation, cancellation records acknowledged partial cancellation
-or uncertainty through the ordinary completion vocabulary. Circuit descriptions
-and measured classical results may cross the I/O fabric. A `qreg` has no path into
-classical buffers, files, maps, or remote advertisements.
+After target allocation, one cancellation attempt owns the provider verdict.
+Completion waits for that attempt to return before recording acknowledged partial
+cancellation or uncertainty. Observing the target's cancellation effect does not
+race ahead of its acknowledgement. Circuit descriptions and measured classical
+results may cross the I/O fabric. A `qreg` has no path into classical buffers,
+files, maps, or remote advertisements.
 
 ## Receipt chain
 

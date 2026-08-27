@@ -5,6 +5,7 @@ import com.typeobject.wheeler.runtime.io.IoProviderResult;
 import com.typeobject.wheeler.runtime.io.IoRequest;
 import java.time.Duration;
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -30,46 +31,22 @@ public final class QuantumIo {
       throw new IllegalArgumentException("quantum I/O timeout must be between 1 ms and 1 day");
     }
     long work = work(submission);
-    AtomicBoolean cancellationRequested = new AtomicBoolean();
-    AtomicBoolean cancellationAccepted = new AtomicBoolean();
-    AtomicReference<QuantumJob> job = new AtomicReference<>();
-    Runnable cancel = () -> {
-      cancellationRequested.set(true);
-      QuantumJob active = job.get();
-      if (active != null) {
-        try {
-          cancellationAccepted.set(active.cancel());
-        } catch (RuntimeException ignored) {
-          cancellationAccepted.set(false);
-        }
-      }
-    };
+    Cancellation cancellation = new Cancellation();
     return IoRequest.prepare(
         "quantum:" + submission.identity(),
         work,
-        () -> execute(
-            target,
-            submission,
-            timeout,
-            cancellationRequested,
-            cancellationAccepted,
-            job,
-            cancel,
-            work),
+        () -> execute(target, submission, timeout, cancellation, work),
         () -> {},
-        cancel::run);
+        cancellation::request);
   }
 
   private static IoProviderResult<QuantumResult> execute(
       QuantumTarget target,
       QuantumSubmission submission,
       Duration timeout,
-      AtomicBoolean cancellationRequested,
-      AtomicBoolean cancellationAccepted,
-      AtomicReference<QuantumJob> job,
-      Runnable cancel,
+      Cancellation cancellation,
       long work) {
-    if (cancellationRequested.get()) {
+    if (cancellation.requested()) {
       return IoProviderResult.canceledBeforeEffect("quantum-canceled-before-submission");
     }
     QuantumJob submitted;
@@ -78,11 +55,11 @@ public final class QuantumIo {
     } catch (RuntimeException failure) {
       return IoProviderResult.failure(failureDetail("quantum-submit", failure), 0);
     }
-    if (!job.compareAndSet(null, submitted)) {
+    if (!cancellation.publish(submitted)) {
       return IoProviderResult.uncertain("quantum-job-publication-race", 0);
     }
-    if (cancellationRequested.get()) {
-      cancel.run();
+    if (cancellation.requested()) {
+      cancellation.request();
     }
     try {
       QuantumResult result = submitted.await(timeout);
@@ -91,11 +68,17 @@ public final class QuantumIo {
       }
       return IoProviderResult.success(result, work);
     } catch (RuntimeException failure) {
-      if (cancellationRequested.get()) {
+      if (cancellation.requested()) {
+        cancellation.request();
         String detail = bounded("quantum-cancel:" + submitted.id());
-        return cancellationAccepted.get()
-            ? IoProviderResult.canceledAfterPartial(detail, 1)
-            : IoProviderResult.uncertain(detail, 0);
+        try {
+          return cancellation.awaitAccepted()
+              ? IoProviderResult.canceledAfterPartial(detail, 1)
+              : IoProviderResult.uncertain(detail, 0);
+        } catch (InterruptedException interrupted) {
+          Thread.currentThread().interrupt();
+          return IoProviderResult.uncertain(detail, 0);
+        }
       }
       return IoProviderResult.failure(failureDetail("quantum-await", failure), 0);
     }
@@ -120,5 +103,41 @@ public final class QuantumIo {
 
   private static String bounded(String detail) {
     return detail.length() <= 256 ? detail : detail.substring(0, 256);
+  }
+
+  private static final class Cancellation {
+    private final AtomicBoolean requested = new AtomicBoolean();
+    private final AtomicBoolean started = new AtomicBoolean();
+    private final AtomicBoolean accepted = new AtomicBoolean();
+    private final CountDownLatch finished = new CountDownLatch(1);
+    private final AtomicReference<QuantumJob> job = new AtomicReference<>();
+
+    private boolean publish(QuantumJob submitted) {
+      return job.compareAndSet(null, submitted);
+    }
+
+    private boolean requested() {
+      return requested.get();
+    }
+
+    private void request() {
+      requested.set(true);
+      QuantumJob active = job.get();
+      if (active == null || !started.compareAndSet(false, true)) {
+        return;
+      }
+      try {
+        accepted.set(active.cancel());
+      } catch (RuntimeException ignored) {
+        accepted.set(false);
+      } finally {
+        finished.countDown();
+      }
+    }
+
+    private boolean awaitAccepted() throws InterruptedException {
+      finished.await();
+      return accepted.get();
+    }
   }
 }
