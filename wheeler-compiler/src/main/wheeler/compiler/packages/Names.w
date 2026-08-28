@@ -4,24 +4,36 @@ module wheeler.compiler.packages.names;
 
 classical class Names {
   private boolean lowercase(long scalar) {
-    if (96 < scalar) {
-      return scalar < 123;
+    if (scalar < 97) {
+      return false;
+    }
+
+    if (scalar < 123) {
+      return true;
     }
 
     return false;
   }
 
   private boolean uppercase(long scalar) {
-    if (64 < scalar) {
-      return scalar < 91;
+    if (scalar < 65) {
+      return false;
+    }
+
+    if (scalar < 91) {
+      return true;
     }
 
     return false;
   }
 
   private boolean digit(long scalar) {
-    if (47 < scalar) {
-      return scalar < 58;
+    if (scalar < 48) {
+      return false;
+    }
+
+    if (scalar < 58) {
+      return true;
     }
 
     return false;
@@ -29,16 +41,175 @@ classical class Names {
 
   private boolean moduleStart(long scalar) {
     boolean lower = lowercase(scalar);
-    if (lower) {
+    if (lower == true) {
       return true;
     }
 
     boolean upper = uppercase(scalar);
-    if (upper) {
+    if (upper == true) {
       return true;
     }
 
     return scalar == 95;
+  }
+
+  private long moduleStartState(long scalar) {
+    long invalid = 0;
+    long following = 2;
+    boolean allowed = moduleStart(scalar);
+    if (allowed == true) {
+      return following;
+    }
+
+    return invalid;
+  }
+
+  private long moduleFollowingState(long scalar) {
+    long invalid = 0;
+    long segmentStart = 1;
+    long following = 2;
+    boolean identifier = moduleStart(scalar);
+    if (identifier == true) {
+      return following;
+    }
+
+    boolean numeric = digit(scalar);
+    if (numeric == true) {
+      return following;
+    }
+
+    if (scalar == 46) {
+      return segmentStart;
+    }
+
+    return invalid;
+  }
+
+  private long moduleNameState(long scalar, long state) {
+    long invalid = 0;
+    long segmentStart = 1;
+    long startState = moduleStartState(scalar);
+    long followingState = moduleFollowingState(scalar);
+    if (state == invalid) {
+      return invalid;
+    }
+
+    if (state == segmentStart) {
+      return startState;
+    }
+
+    return followingState;
+  }
+
+  private long workspaceStartState(long scalar) {
+    long invalid = 0;
+    long value = 2;
+    boolean letter = lowercase(scalar);
+    if (letter == true) {
+      return value;
+    }
+
+    boolean numeric = digit(scalar);
+    if (numeric == true) {
+      return value;
+    }
+
+    return invalid;
+  }
+
+  private long workspaceFollowingState(long scalar) {
+    long invalid = 0;
+    long needValue = 1;
+    long value = 2;
+    boolean letter = lowercase(scalar);
+    if (letter == true) {
+      return value;
+    }
+
+    boolean numeric = digit(scalar);
+    if (numeric == true) {
+      return value;
+    }
+
+    if (scalar == 45) {
+      return needValue;
+    }
+
+    if (scalar == 46) {
+      return needValue;
+    }
+
+    return invalid;
+  }
+
+  private long workspaceNameState(long scalar, long state) {
+    long invalid = 0;
+    long needValue = 1;
+    long firstValue = 3;
+    long firstState = packageStartState(scalar);
+    long startState = workspaceStartState(scalar);
+    long followingState = workspaceFollowingState(scalar);
+    if (state == invalid) {
+      return invalid;
+    }
+
+    if (state == firstValue) {
+      return firstState;
+    }
+
+    if (state == needValue) {
+      return startState;
+    }
+
+    return followingState;
+  }
+
+  private long packageStartState(long scalar) {
+    long invalid = 0;
+    long following = 2;
+    boolean letter = lowercase(scalar);
+    if (letter == true) {
+      return following;
+    }
+
+    return invalid;
+  }
+
+  private long packageFollowingState(long scalar) {
+    long invalid = 0;
+    long segmentStart = 1;
+    long following = 2;
+    boolean letter = lowercase(scalar);
+    if (letter == true) {
+      return following;
+    }
+
+    boolean numeric = digit(scalar);
+    if (numeric == true) {
+      return following;
+    }
+
+    if (scalar == 46) {
+      return segmentStart;
+    }
+
+    return invalid;
+  }
+
+  private long packageNameState(long scalar, long state) {
+    long invalid = 0;
+    long segmentStart = 1;
+    long startState = packageStartState(scalar);
+    long followingState = packageFollowingState(scalar);
+    if (state == invalid) {
+      return invalid;
+    }
+
+    if (state == segmentStart) {
+      return startState;
+    }
+
+    return followingState;
   }
 
   /// Checks whether `moduleName` satisfies the canonical profile.
@@ -49,42 +220,16 @@ classical class Names {
 
     long cursor = start;
     long end = start + length;
-    boolean segmentStart = true;
+    long state = 1;
     while (cursor < end) limit 4096 {
       long scalar = utf8Scalar(source, cursor);
-      if (segmentStart) {
-        boolean startScalar = moduleStart(scalar);
-        if (startScalar) {
-          segmentStart = false;
-        } else {
-          return false;
-        }
-      } else {
-        boolean identifierScalar = moduleStart(scalar);
-        if (identifierScalar) {
-          segmentStart = false;
-        } else {
-          boolean numeric = digit(scalar);
-          if (numeric) {
-            segmentStart = false;
-          } else {
-            if (scalar == 46) {
-              segmentStart = true;
-            } else {
-              return false;
-            }
-          }
-        }
-      }
-
-      cursor += utf8Width(source, cursor);
+      long width = utf8Width(source, cursor);
+      long nextState = moduleNameState(scalar, state);
+      state = nextState;
+      cursor += width;
     }
 
-    if (segmentStart) {
-      return false;
-    }
-
-    return true;
+    return state == 2;
   }
 
   /// Checks whether `workspaceName` satisfies the canonical profile.
@@ -95,49 +240,16 @@ classical class Names {
 
     long cursor = start;
     long end = start + length;
-    boolean needValue = true;
+    long state = 3;
     while (cursor < end) limit 4096 {
       long scalar = utf8Scalar(source, cursor);
-      boolean letter = lowercase(scalar);
-      boolean numeric = digit(scalar);
-      if (needValue) {
-        if (letter) {
-          needValue = false;
-        } else {
-          if (numeric) {
-            needValue = false;
-          } else {
-            return false;
-          }
-        }
-      } else {
-        if (letter) {
-          needValue = false;
-        } else {
-          if (numeric) {
-            needValue = false;
-          } else {
-            if (scalar == 45) {
-              needValue = true;
-            } else {
-              if (scalar == 46) {
-                needValue = true;
-              } else {
-                return false;
-              }
-            }
-          }
-        }
-      }
-
-      cursor += utf8Width(source, cursor);
+      long width = utf8Width(source, cursor);
+      long nextState = workspaceNameState(scalar, state);
+      state = nextState;
+      cursor += width;
     }
 
-    if (needValue) {
-      return false;
-    }
-
-    return lowercase(utf8Scalar(source, start));
+    return state == 2;
   }
 
   /// Checks whether `packageName` satisfies the canonical profile.
@@ -148,41 +260,15 @@ classical class Names {
 
     long cursor = start;
     long end = start + length;
-    boolean segmentStart = true;
+    long state = 1;
     while (cursor < end) limit 4096 {
       long scalar = utf8Scalar(source, cursor);
-      if (segmentStart) {
-        boolean letter = lowercase(scalar);
-        if (letter) {
-          segmentStart = false;
-        } else {
-          return false;
-        }
-      } else {
-        boolean followingLetter = lowercase(scalar);
-        if (followingLetter) {
-          segmentStart = false;
-        } else {
-          boolean numeric = digit(scalar);
-          if (numeric) {
-            segmentStart = false;
-          } else {
-            if (scalar == 46) {
-              segmentStart = true;
-            } else {
-              return false;
-            }
-          }
-        }
-      }
-
-      cursor += utf8Width(source, cursor);
+      long width = utf8Width(source, cursor);
+      long nextState = packageNameState(scalar, state);
+      state = nextState;
+      cursor += width;
     }
 
-    if (segmentStart) {
-      return false;
-    }
-
-    return true;
+    return state == 2;
   }
 }

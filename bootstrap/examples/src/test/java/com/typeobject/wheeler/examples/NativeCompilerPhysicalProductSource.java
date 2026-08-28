@@ -55,6 +55,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.one_argument_calls",
       "wheeler.compiler.opcode_kinds",
       "wheeler.compiler.packages.manifest_tokens",
+      "wheeler.compiler.packages.names",
       "wheeler.compiler.resolved_boolean_literal_assertions",
       "wheeler.compiler.resolved_boolean_literal_comparisons",
       "wheeler.compiler.resolved_early_comparison_kinds",

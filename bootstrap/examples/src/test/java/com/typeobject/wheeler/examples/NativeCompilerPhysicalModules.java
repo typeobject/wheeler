@@ -106,6 +106,7 @@ final class NativeCompilerPhysicalModules {
         physical(
             "compiler/packages/PackageManifestTokens.w",
             "packages.manifest_tokens"),
+        physical("compiler/packages/Names.w", "packages.names"),
         physical(
             "compiler/closure/layouts/AggregateSourceProjection.w",
             "closure.aggregate_source_projection"),
