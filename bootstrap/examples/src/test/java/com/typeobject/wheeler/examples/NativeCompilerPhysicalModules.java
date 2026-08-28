@@ -104,6 +104,9 @@ final class NativeCompilerPhysicalModules {
         physical("compiler/syntax/calls/VoidCallSourceKinds.w", "void_call_source_kinds"),
         physical("compiler/resolution/returns/WideReturnSources.w", "wide_return_sources"),
         physical(
+            "compiler/packages/PackageManifestTokens.w",
+            "packages.manifest_tokens"),
+        physical(
             "compiler/closure/layouts/AggregateSourceProjection.w",
             "closure.aggregate_source_projection"),
         physical(

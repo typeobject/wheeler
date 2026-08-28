@@ -11,11 +11,16 @@ classical class ManifestTokens {
     long token
   ) {
     long cursor = starts[token];
-    long end = cursor + lengths[token];
+    long length = lengths[token];
+    long end = cursor + length;
     long hash = 0;
     while (cursor < end) limit 16 {
-      hash = hash * 31 + utf8Scalar(source, cursor);
-      cursor += utf8Width(source, cursor);
+      long scalar = utf8Scalar(source, cursor);
+      long width = utf8Width(source, cursor);
+      long product = hash * 31;
+      long nextHash = product + scalar;
+      hash = nextHash;
+      cursor += width;
     }
 
     return hash;
@@ -29,7 +34,8 @@ classical class ManifestTokens {
     long token,
     long hash
   ) {
-    return tokenHash(source, starts, lengths, token) == hash;
+    long actual = tokenHash(source, starts, lengths, token);
+    return actual == hash;
   }
 
   /// Checks whether `tokenText` denotes the same canonical value.
@@ -40,26 +46,45 @@ classical class ManifestTokens {
     long left,
     long right
   ) {
-    if (lengths[left] < lengths[right]) {
+    long leftLength = lengths[left];
+    long rightLength = lengths[right];
+    if (leftLength < rightLength) {
       return false;
     }
 
-    if (lengths[right] < lengths[left]) {
+    if (rightLength < leftLength) {
       return false;
     }
 
+    long leftStart = starts[left];
+    long rightStart = starts[right];
+    boolean same = true;
     long offset = 0;
-    while (offset < lengths[left]) limit 4096 {
-      if (
-        utf8Scalar(source, starts[left] + offset) == utf8Scalar(source, starts[right] + offset)
-      ) {
-        offset += 1;
-      } else {
-        return false;
+    while (offset < leftLength) limit 4096 {
+      long leftIndex = leftStart + offset;
+      long rightIndex = rightStart + offset;
+      long leftScalar = utf8Scalar(source, leftIndex);
+      long rightScalar = utf8Scalar(source, rightIndex);
+      if (leftScalar < rightScalar) {
+        same = false;
       }
+
+      if (rightScalar < leftScalar) {
+        same = false;
+      }
+
+      offset += 1;
     }
 
-    return true;
+    return same;
+  }
+
+  private long minimumLength(long left, long right) {
+    if (left < right) {
+      return left;
+    }
+
+    return right;
   }
 
   /// Compares `tokenText` under canonical byte ordering.
@@ -70,35 +95,32 @@ classical class ManifestTokens {
     long left,
     long right
   ) {
+    long leftLength = lengths[left];
+    long rightLength = lengths[right];
+    long leftStart = starts[left];
+    long rightStart = starts[right];
+    long comparison = leftLength - rightLength;
     long offset = 0;
-    long commonLength = lengths[left];
-    if (lengths[right] < commonLength) {
-      commonLength = lengths[right];
-    }
-
+    long commonLength = minimumLength(leftLength, rightLength);
+    long reverse = commonLength;
     while (offset < commonLength) limit 4096 {
-      long leftScalar = utf8Scalar(source, starts[left] + offset);
-      long rightScalar = utf8Scalar(source, starts[right] + offset);
+      reverse -= 1;
+      long leftIndex = leftStart + reverse;
+      long rightIndex = rightStart + reverse;
+      long leftScalar = utf8Scalar(source, leftIndex);
+      long rightScalar = utf8Scalar(source, rightIndex);
       if (leftScalar < rightScalar) {
-        return -1;
+        comparison = -1;
       }
 
       if (rightScalar < leftScalar) {
-        return 1;
+        comparison = 1;
       }
 
       offset += 1;
     }
 
-    if (lengths[left] < lengths[right]) {
-      return -1;
-    }
-
-    if (lengths[right] < lengths[left]) {
-      return 1;
-    }
-
-    return 0;
+    return comparison;
   }
 
   /// Computes the stable hash inside one quoted token.
@@ -108,12 +130,19 @@ classical class ManifestTokens {
     borrow mut words lengths,
     long token
   ) {
-    long cursor = starts[token] + 1;
-    long end = starts[token] + lengths[token] - 1;
+    long start = starts[token];
+    long length = lengths[token];
+    long cursor = start + 1;
+    long endOffset = length - 1;
+    long end = start + endOffset;
     long hash = 0;
     while (cursor < end) limit 32 {
-      hash = hash * 31 + utf8Scalar(source, cursor);
-      cursor += utf8Width(source, cursor);
+      long scalar = utf8Scalar(source, cursor);
+      long width = utf8Width(source, cursor);
+      long product = hash * 31;
+      long nextHash = product + scalar;
+      hash = nextHash;
+      cursor += width;
     }
 
     return hash;
@@ -121,11 +150,19 @@ classical class ManifestTokens {
 
   /// Checks whether one token is a quoted ASCII value.
   public boolean quoted(borrow mut words kinds, borrow mut words lengths, long token) {
-    if (kinds[token] == 6) {
-      return 2 < lengths[token];
+    long kind = kinds[token];
+    long length = lengths[token];
+    long quotedKind = 6;
+    long minimumLength = 2;
+    if (kind < quotedKind) {
+      return false;
     }
 
-    return false;
+    if (quotedKind < kind) {
+      return false;
+    }
+
+    return minimumLength < length;
   }
 
   /// Checks whether one token is a YAML mapping colon.
@@ -135,11 +172,28 @@ classical class ManifestTokens {
     borrow mut words starts,
     long token
   ) {
-    if (kinds[token] == 3) {
-      return utf8Scalar(source, starts[token]) == 58;
+    long kind = kinds[token];
+    long start = starts[token];
+    long scalar = utf8Scalar(source, start);
+    long punctuationKind = 3;
+    long colon = 58;
+    if (kind < punctuationKind) {
+      return false;
     }
 
-    return false;
+    if (punctuationKind < kind) {
+      return false;
+    }
+
+    if (scalar < colon) {
+      return false;
+    }
+
+    if (colon < scalar) {
+      return false;
+    }
+
+    return true;
   }
 
   /// Checks whether one token is a YAML sequence dash.
@@ -149,11 +203,28 @@ classical class ManifestTokens {
     borrow mut words starts,
     long token
   ) {
-    if (kinds[token] == 3) {
-      return utf8Scalar(source, starts[token]) == 45;
+    long kind = kinds[token];
+    long start = starts[token];
+    long scalar = utf8Scalar(source, start);
+    long punctuationKind = 3;
+    long dash = 45;
+    if (kind < punctuationKind) {
+      return false;
     }
 
-    return false;
+    if (punctuationKind < kind) {
+      return false;
+    }
+
+    if (scalar < dash) {
+      return false;
+    }
+
+    if (dash < scalar) {
+      return false;
+    }
+
+    return true;
   }
 
 }

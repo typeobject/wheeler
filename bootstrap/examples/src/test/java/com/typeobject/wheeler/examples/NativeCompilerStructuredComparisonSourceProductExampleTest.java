@@ -450,7 +450,12 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
 
   @Test
   void emitsUtf8ProjectionDeclarationsInsideALoop() throws Exception {
-    assertArtifact(utf8LoopProjectionSource());
+    String projections = utf8LoopProjectionSource();
+    assertArtifact(projections);
+    assertArtifact(projections.replace(
+        "long width = utf8Width(source, index);",
+        "long secondIndex = index + sourceStart;\n"
+            + "      long width = utf8Scalar(source, secondIndex);"));
   }
 
   @Test
@@ -485,6 +490,9 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
     assertArtifact(lessThan.replace(
         "if (index < sourceStart)",
         "if (index == sourceStart)"));
+    assertArtifact(lessThan.replace(
+        "if (index < sourceStart)",
+        "if (index == 0)"));
   }
 
   @Test
@@ -492,6 +500,59 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
     assertNoArtifact(localRightGuardSource().replace(
         "if (index < sourceStart)",
         "if (index < same)"));
+  }
+
+  @Test
+  void emitsReverseUtf8ComparisonLoop() throws Exception {
+    assertArtifact(SOURCE.replace(
+        "    long index = 0;\n"
+            + "    while (index < length) limit MAX_SOURCE_BYTES {\n"
+            + "      long kind = rows[512 + index];\n"
+            + "      boolean one = kind == 1;\n"
+            + "      assert(-1 < kind);\n"
+            + "      assert(index < length);\n"
+            + "      assert(one);\n"
+            + "      setByte(output, index, source[sourceStart + index]);\n"
+            + "      index += 1;\n"
+            + "    }\n",
+        "    long comparison = 0;\n"
+            + "    long offset = 0;\n"
+            + "    long reverse = length;\n"
+            + "    while (offset < length) limit MAX_SOURCE_BYTES {\n"
+            + "      reverse -= 1;\n"
+            + "      long leftIndex = sourceStart + reverse;\n"
+            + "      long rightIndex = sourceStart + offset;\n"
+            + "      long leftScalar = utf8Scalar(source, leftIndex);\n"
+            + "      long rightScalar = utf8Scalar(source, rightIndex);\n"
+            + "      if (leftScalar < rightScalar) {\n"
+            + "        comparison = -1;\n"
+            + "      }\n\n"
+            + "      if (rightScalar < leftScalar) {\n"
+            + "        comparison = 1;\n"
+            + "      }\n\n"
+            + "      offset += 1;\n"
+            + "    }\n").replace(
+                "borrow byteview source,",
+                "borrow utf8 source,").replace(
+                    "    return length;\n",
+                    "    return comparison;\n"));
+  }
+
+  @Test
+  void emitsNegativeSignedAssignmentInsideALoopGuard() throws Exception {
+    String assignment = SOURCE.replace(
+        "    long index = 0;\n",
+        "    long selected = 0;\n"
+            + "    long index = 0;\n").replace(
+                "      long kind = rows[512 + index];\n",
+                "      if (index < sourceStart) {\n"
+                    + "        selected = -1;\n"
+                    + "      }\n\n"
+                    + "      long kind = rows[512 + index];\n").replace(
+                        "    return length;\n",
+                        "    return selected;\n");
+
+    assertArtifact(assignment);
   }
 
   @Test

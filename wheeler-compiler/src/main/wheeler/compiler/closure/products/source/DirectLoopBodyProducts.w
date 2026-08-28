@@ -676,7 +676,7 @@ classical class DirectLoopBodyProducts {
                     statementValid = false;
                   } else {
                     if (
-                      signedNumberWidth(source, tokenKinds, tokenStarts, assignmentSourceToken) != 1
+                      signedNumberWidth(source, tokenKinds, tokenStarts, assignmentSourceToken) < 1
                     ) {
                       statementValid = false;
                     } else {

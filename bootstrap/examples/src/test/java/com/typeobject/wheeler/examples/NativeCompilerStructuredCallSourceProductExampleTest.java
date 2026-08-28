@@ -44,6 +44,18 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
   }
 
   @Test
+  void emitsAValueCallBeforeARootLoop() throws Exception {
+    String source = SOURCE.replace(
+        "    long index = 0;\n",
+        "    long result = recurse(value);\n"
+            + "    long index = 0;\n").replace(
+                "\n    long result = recurse(value);\n    return result;",
+                "\n    return result;");
+
+    assertArtifact(source, 1, 1, 0);
+  }
+
+  @Test
   void forwardsAValueCallResultDirectly() throws Exception {
     assertArtifact(SOURCE.replace(
         "    long result = recurse(value);\n"
