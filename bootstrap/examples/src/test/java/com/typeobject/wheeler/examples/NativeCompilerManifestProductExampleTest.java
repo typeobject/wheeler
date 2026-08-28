@@ -51,6 +51,12 @@ final class NativeCompilerManifestProductExampleTest {
 
   @Tag("closure-evidence")
   @Test
+  void retainsManifestAssertionClassifier() throws Exception {
+    assertCountedPhysical(ASSERTIONS, ASSERTIONS_MODULE);
+  }
+
+  @Tag("closure-evidence")
+  @Test
   void compilesManifestSyntaxThroughDirectProducts() throws Exception {
     var module = NativeCompilerArchiveClosureProgram.PHYSICAL_MANIFEST_MODULE;
     Program productProgram = NativeCompilerPhysicalPrograms.comparable(
@@ -68,6 +74,26 @@ final class NativeCompilerManifestProductExampleTest {
     CompilerMachineRunner.runWithoutRewindHistory(machine);
 
     assertEquals("wheeler.compiler.closure.manifest_syntax", module.name());
+    assertArrayEquals(expected, Arrays.copyOf(machine.hostOutput(), expected.length));
+    assertEquals(expected.length, machine.global("physicalModuleProductLength"));
+  }
+
+  private static void assertCountedPhysical(String path, String moduleName) throws Exception {
+    var module = NativeCompilerPhysicalSelection.comparable(moduleName);
+    byte[] expected = new BytecodeWriter().write(
+        new WheelerCompiler().compileLibraryModuleFiles(
+            CompilerSources.moduleClosure(module.name()), module.name()));
+    var productProgram = NativeCompilerPhysicalPrograms.comparable(module);
+    byte[] archive = CompilerSources.packageArchive();
+    byte[] manifest = CompilerSources.bootstrapModuleManifest().canonicalBytes();
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        productProgram,
+        framed(archive, manifest),
+        expected.length + 1_048_576);
+
+    CompilerMachineRunner.runWithoutRewindHistory(machine);
+
+    assertEquals(path, module.path());
     assertArrayEquals(expected, Arrays.copyOf(machine.hostOutput(), expected.length));
     assertEquals(expected.length, machine.global("physicalModuleProductLength"));
   }

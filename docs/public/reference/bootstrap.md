@@ -43,8 +43,8 @@ bootstrap-profile classifiers are dependency-free physical owners that compile
 byte for byte without synthetic loop state. Signed helper-result classification has
 its own bounded owner and complete six-source native test plan. Guarded UTF-8 call
 syntax follows the same direct path with fixed local token checks. Physical linker
-evidence compares 106 selected artifacts with stage 0 and closes every relocation.
-Its executable subset contains 278 functions and 10,751 instructions. The complete
+evidence compares 107 selected artifacts with stage 0 and closes every relocation.
+Its executable subset contains 279 functions and 10,754 instructions. The complete
 compiler has not reached a fixed point.
 
 ## Platform ABI and native image plans

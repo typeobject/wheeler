@@ -20,6 +20,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.call_arguments",
       "wheeler.compiler.call_forms",
       "wheeler.compiler.closure.aggregate_source_projection",
+      "wheeler.compiler.closure.manifest_assertions",
       "wheeler.compiler.closure.manifest_syntax",
       "wheeler.compiler.closure.reversible_token_coordinates",
       "wheeler.compiler.core_parsing",

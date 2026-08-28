@@ -106,6 +106,9 @@ final class NativeCompilerPhysicalModules {
         physical(
             "compiler/closure/layouts/AggregateSourceProjection.w",
             "closure.aggregate_source_projection"),
+        physical(
+            "compiler/closure/syntax/ManifestAssertions.w",
+            "closure.manifest_assertions"),
         physical("compiler/closure/ManifestSyntax.w", "closure.manifest_syntax"),
         physical(
             "compiler/closure/products/source/coordinates/ReversibleTokenCoordinates.w",
