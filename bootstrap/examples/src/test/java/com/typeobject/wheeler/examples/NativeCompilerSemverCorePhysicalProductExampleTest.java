@@ -12,13 +12,13 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/** Native evidence for the direct semantic-version scalar product. */
-final class NativeCompilerSemverScalarsPhysicalProductExampleTest {
+/** Native evidence for the direct semantic-version core product. */
+final class NativeCompilerSemverCorePhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
-  void compilesSemverScalarsByteForByte() throws Exception {
+  void compilesSemverCoreByteForByte() throws Exception {
     var module = NativeCompilerPhysicalSelection.comparable(
-        "wheeler.compiler.packages.semver_scalars");
+        "wheeler.compiler.packages.semver_core_validation");
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(
             CompilerSources.moduleClosure(module.name()), module.name()));

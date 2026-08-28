@@ -108,7 +108,7 @@ final class NativeCompilerPhysicalModules {
             "packages.manifest_tokens"),
         physical("compiler/packages/Names.w", "packages.names"),
         physical("compiler/packages/Paths.w", "packages.paths"),
-        physical("compiler/packages/SemverScalars.w", "packages.semver_scalars"),
+        physical("compiler/packages/SemverCoreValidation.w", "packages.semver_core_validation"),
         physical(
             "compiler/closure/layouts/AggregateSourceProjection.w",
             "closure.aggregate_source_projection"),

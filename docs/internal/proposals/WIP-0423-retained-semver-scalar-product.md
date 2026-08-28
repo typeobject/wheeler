@@ -2,14 +2,14 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implemented |
+| Status | Superseded |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-28 |
 | Updated | 2026-08-28 |
 | Area | Self-hosting, semantic versions, scalar classification |
 | Depends on | WIP-0049, WIP-0416, WIP-0422 |
 | Supersedes | Private scalar classifiers in `Semver.w` |
-| Superseded by | None |
+| Superseded by | WIP-0424 semantic-version core validation product |
 
 ## Summary
 
