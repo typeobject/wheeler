@@ -80,6 +80,20 @@ classical class LoopInstructionProducts {
     return opcode + bias;
   }
 
+  private long rebaseUtf8Operand(long operand, long boundary, long bias) {
+    long text = operand / 256;
+    long index = operand % 256;
+    if (boundary < text + 1) {
+      text += bias;
+    }
+
+    if (boundary < index + 1) {
+      index += bias;
+    }
+
+    return text * 256 + index;
+  }
+
   private void rebaseBodyProduct(long body, long boundary, long bias, borrow mut words bodyRows) {
     long localBase = bodyRows[BODY_LOCAL_BASE_ROW + body];
     set(bodyRows, BODY_LOCAL_BASE_ROW + body, localBase + bias);
@@ -123,16 +137,25 @@ classical class LoopInstructionProducts {
       bufferOperand = true;
     }
 
-    if (bufferOperand) {
-      set(
-        bodyRows,
-        BODY_OPERAND_ROW + body,
-        rebaseLoopBufferOperand(opcode, operand, boundary, bias)
-      );
+    boolean utf8Operand = opcode == BODY_UTF8_SCALAR;
+    if (opcode == BODY_UTF8_WIDTH) {
+      utf8Operand = true;
+    }
+
+    if (utf8Operand) {
+      set(bodyRows, BODY_OPERAND_ROW + body, rebaseUtf8Operand(operand, boundary, bias));
     } else {
-      if (bodyRows[BODY_OPERAND_KIND_ROW + body] == OPERAND_LOCAL) {
-        if (boundary < operand + 1) {
-          set(bodyRows, BODY_OPERAND_ROW + body, operand + bias);
+      if (bufferOperand) {
+        set(
+          bodyRows,
+          BODY_OPERAND_ROW + body,
+          rebaseLoopBufferOperand(opcode, operand, boundary, bias)
+        );
+      } else {
+        if (bodyRows[BODY_OPERAND_KIND_ROW + body] == OPERAND_LOCAL) {
+          if (boundary < operand + 1) {
+            set(bodyRows, BODY_OPERAND_ROW + body, operand + bias);
+          }
         }
       }
     }

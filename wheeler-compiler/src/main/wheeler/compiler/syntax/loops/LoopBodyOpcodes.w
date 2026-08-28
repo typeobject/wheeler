@@ -41,4 +41,8 @@ classical class LoopBodyOpcodes {
   public const long BODY_WORDS_GET_OFFSET = 35072;
   /// Copies one byte-view value through a local-plus-local read index.
   public const long BODY_BYTEVIEW_TO_BYTES_COPY_SUM = 35073;
+  /// Reads one UTF-8 scalar through a signed byte index.
+  public const long BODY_UTF8_SCALAR = 35074;
+  /// Reads one UTF-8 scalar width through a signed byte index.
+  public const long BODY_UTF8_WIDTH = 35075;
 }

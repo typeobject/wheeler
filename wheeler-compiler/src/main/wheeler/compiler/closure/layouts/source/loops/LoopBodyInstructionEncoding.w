@@ -28,6 +28,14 @@ classical class LoopBodyInstructionEncoding {
       );
     }
 
+    if (opcode == BODY_UTF8_SCALAR) {
+      return new LoopBodyInstructionExtent(4, 104, true);
+    }
+
+    if (opcode == BODY_UTF8_WIDTH) {
+      return new LoopBodyInstructionExtent(4, 104, true);
+    }
+
     boolean bufferGet = opcode == BODY_WORDS_GET;
     if (opcode == BODY_BYTES_GET) {
       bufferGet = true;
@@ -183,6 +191,14 @@ classical class LoopBodyInstructionEncoding {
       return offsetBodyLocalCount(opcode, operand);
     }
 
+    if (opcode == BODY_UTF8_SCALAR) {
+      return 4;
+    }
+
+    if (opcode == BODY_UTF8_WIDTH) {
+      return 4;
+    }
+
     boolean bufferGet = opcode == BODY_WORDS_GET;
     if (opcode == BODY_BYTES_GET) {
       bufferGet = true;
@@ -279,6 +295,48 @@ classical class LoopBodyInstructionEncoding {
 
     if (offsetBodyOpcode(opcode)) {
       return writeOffsetBodyInstruction(output, cursor, localBase, opcode, operand);
+    }
+
+    long utf8Opcode = -1;
+    if (opcode == BODY_UTF8_SCALAR) {
+      utf8Opcode = OPCODE_UTF8_SCALAR;
+    }
+
+    if (opcode == BODY_UTF8_WIDTH) {
+      utf8Opcode = OPCODE_UTF8_WIDTH;
+    }
+
+    if (-1 < utf8Opcode) {
+      long text = operand / 256;
+      long index = operand % 256;
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_MOVE,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, text, U64);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_MOVE,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, index, U64);
+      cursor = writeInstructionHeader(output, cursor, utf8Opcode, INSTRUCTION_FORM_TERNARY);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase, U64);
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 1, U64);
+      cursor = writeInstructionHeader(
+        output,
+        cursor,
+        OPCODE_LOCAL_MOVE,
+        INSTRUCTION_FORM_BINARY
+      );
+      cursor = writeUnsignedLittleEndian(output, cursor, localBase + 3, U64);
+      return writeUnsignedLittleEndian(output, cursor, localBase + 2, U64);
     }
 
     boolean bufferGet = opcode == BODY_WORDS_GET;

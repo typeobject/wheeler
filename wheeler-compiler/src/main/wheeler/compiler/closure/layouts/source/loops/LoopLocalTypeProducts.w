@@ -142,6 +142,18 @@ classical class LoopLocalTypeProducts {
       }
     }
 
+    if (opcode == BODY_UTF8_SCALAR) {
+      if (localOffset == 0) {
+        localType = TYPE_UTF8_BORROW;
+      }
+    }
+
+    if (opcode == BODY_UTF8_WIDTH) {
+      if (localOffset == 0) {
+        localType = TYPE_UTF8_BORROW;
+      }
+    }
+
     long bufferType = TYPE_WORDS_BORROW;
     if (opcode == BODY_BYTES_GET) {
       bufferType = TYPE_BYTES_BORROW;

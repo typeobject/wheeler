@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.direct_loop_body_products;
 
 import wheeler.compiler.boolean_tokens;
+import wheeler.compiler.closure.direct_statement_coordinates;
 import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_values;
 import wheeler.compiler.closure.loop_buffer_operands;
@@ -14,6 +15,7 @@ import wheeler.compiler.resolved_statements;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
+import wheeler.compiler.type_codes;
 
 classical class DirectLoopBodyProducts {
   private const long LITERAL_INDEX_OFFSET_SCALE = 131072;
@@ -29,6 +31,139 @@ classical class DirectLoopBodyProducts {
     long operand,
     boolean valid
   ) {}
+
+  private record Utf8LoopProjection(
+    long opcode,
+    long operand,
+    boolean recognized,
+    boolean valid
+  ) {}
+
+  private Utf8LoopProjection resolveUtf8LoopProjection(
+    borrow utf8 source,
+    long token,
+    long owner,
+    long ordinal,
+    long valueCount,
+    borrow mut words valueRows,
+    long semanticCount,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    long initializer = tokenHash(source, tokenStarts, tokenLengths, token);
+    long opcode = BODY_UTF8_SCALAR;
+    boolean recognized = initializer == TOKEN_UTF8_SCALAR;
+    if (initializer == TOKEN_UTF8_WIDTH) {
+      opcode = BODY_UTF8_WIDTH;
+      recognized = true;
+    }
+
+    if (recognized == false) {
+      return new Utf8LoopProjection(0, 0, false, false);
+    }
+
+    if (semanticCount < token + 7) {
+      return new Utf8LoopProjection(0, 0, true, false);
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, token + 1, PUNCTUATION_OPEN_PAREN) == false
+    ) {
+      return new Utf8LoopProjection(0, 0, true, false);
+    }
+
+    if (tokenKinds[token + 2] != 1) {
+      return new Utf8LoopProjection(0, 0, true, false);
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, token + 3, PUNCTUATION_COMMA) == false
+    ) {
+      return new Utf8LoopProjection(0, 0, true, false);
+    }
+
+    if (tokenKinds[token + 4] != 1) {
+      return new Utf8LoopProjection(0, 0, true, false);
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, token + 5, PUNCTUATION_CLOSE_PAREN) == false
+    ) {
+      return new Utf8LoopProjection(0, 0, true, false);
+    }
+
+    if (
+      punctuationAt(source, tokenKinds, tokenStarts, token + 6, PUNCTUATION_SEMICOLON) == false
+    ) {
+      return new Utf8LoopProjection(0, 0, true, false);
+    }
+
+    LoopBodyValue text = resolveLoopBodyValue(
+      source,
+      tokenStarts[token + 2],
+      tokenLengths[token + 2],
+      owner,
+      ordinal,
+      valueCount,
+      valueRows
+    );
+    LoopBodyValue index = resolveLoopBodyValue(
+      source,
+      tokenStarts[token + 4],
+      tokenLengths[token + 4],
+      owner,
+      ordinal,
+      valueCount,
+      valueRows
+    );
+    if (text.valid == false) {
+      return new Utf8LoopProjection(0, 0, true, false);
+    }
+
+    if (index.valid == false) {
+      return new Utf8LoopProjection(0, 0, true, false);
+    }
+
+    long textType = directBufferLocalType(
+      source,
+      owner,
+      text.local,
+      valueCount,
+      valueRows,
+      semanticCount,
+      tokenStarts,
+      tokenLengths
+    );
+    if (textType != TYPE_UTF8_BORROW) {
+      return new Utf8LoopProjection(0, 0, true, false);
+    }
+
+    if (
+      signedLoopBodyLocal(
+        source,
+        owner,
+        index.local,
+        valueCount,
+        valueRows,
+        semanticCount,
+        tokenStarts,
+        tokenLengths
+      ) == false
+    ) {
+      return new Utf8LoopProjection(0, 0, true, false);
+    }
+
+    if (255 < text.local) {
+      return new Utf8LoopProjection(0, 0, true, false);
+    }
+
+    if (255 < index.local) {
+      return new Utf8LoopProjection(0, 0, true, false);
+    }
+
+    return new Utf8LoopProjection(opcode, text.local * 256 + index.local, true, true);
+  }
 
   /// Resolves one declaration, assertion, buffer operation, assignment, or update.
   public DirectLoopBodyProduct resolveDirectLoopBodyProduct(
@@ -124,131 +259,155 @@ classical class DirectLoopBodyProducts {
             }
 
             long sourceToken = token + 3;
-            if (tokenKinds[sourceToken] == 1) {
-              LoopBodyValue sourceValue = resolveLoopBodyValue(
-                source,
-                tokenStarts[sourceToken],
-                tokenLengths[sourceToken],
-                owner,
-                ordinal,
-                valueCount,
-                valueRows
-              );
-              if (sourceValue.valid) {
-                if (
-                  punctuationAt(
-                    source,
-                    tokenKinds,
-                    tokenStarts,
-                    sourceToken + 1,
-                    PUNCTUATION_OPEN_SQUARE
-                  )
-                ) {
-                  long indexToken = sourceToken + 2;
-                  long indexOffset = 0;
-                  boolean offsetIndex = false;
+            Utf8LoopProjection utf8Projection = resolveUtf8LoopProjection(
+              source,
+              sourceToken,
+              owner,
+              ordinal,
+              valueCount,
+              valueRows,
+              semanticCount,
+              tokenKinds,
+              tokenStarts,
+              tokenLengths
+            );
+            if (utf8Projection.recognized) {
+              if (utf8Projection.valid) {
+                localBase = declaration.local - 3;
+                opcode = utf8Projection.opcode;
+                operand = utf8Projection.operand;
+              } else {
+                statementValid = false;
+              }
+            } else {
+              if (tokenKinds[sourceToken] == 1) {
+                LoopBodyValue sourceValue = resolveLoopBodyValue(
+                  source,
+                  tokenStarts[sourceToken],
+                  tokenLengths[sourceToken],
+                  owner,
+                  ordinal,
+                  valueCount,
+                  valueRows
+                );
+                if (sourceValue.valid) {
                   if (
-                    signedNumberWidth(source, tokenKinds, tokenStarts, indexToken) == 1
+                    punctuationAt(
+                      source,
+                      tokenKinds,
+                      tokenStarts,
+                      sourceToken + 1,
+                      PUNCTUATION_OPEN_SQUARE
+                    )
                   ) {
+                    long indexToken = sourceToken + 2;
+                    long indexOffset = 0;
+                    boolean offsetIndex = false;
                     if (
-                      signedNumberValid(source, tokenStarts, tokenLengths, indexToken)
+                      signedNumberWidth(source, tokenKinds, tokenStarts, indexToken) == 1
                     ) {
+                      if (
+                        signedNumberValid(source, tokenStarts, tokenLengths, indexToken)
+                      ) {
+                        if (
+                          punctuationAt(
+                            source,
+                            tokenKinds,
+                            tokenStarts,
+                            indexToken + 1,
+                            PUNCTUATION_PLUS
+                          )
+                        ) {
+                          indexOffset = parsedSignedNumber(
+                            source,
+                            tokenStarts,
+                            tokenLengths,
+                            indexToken
+                          );
+                          if (indexOffset < 0) {
+                            statementValid = false;
+                          } else {
+                            indexToken += 2;
+                            offsetIndex = true;
+                          }
+                        }
+                      }
+                    }
+
+                    LoopBodyValue indexValue = resolveLoopBodyValue(
+                      source,
+                      tokenStarts[indexToken],
+                      tokenLengths[indexToken],
+                      owner,
+                      ordinal,
+                      valueCount,
+                      valueRows
+                    );
+                    if (indexValue.valid) {
                       if (
                         punctuationAt(
                           source,
                           tokenKinds,
                           tokenStarts,
                           indexToken + 1,
-                          PUNCTUATION_PLUS
+                          PUNCTUATION_CLOSE_SQUARE
                         )
                       ) {
-                        indexOffset = parsedSignedNumber(
-                          source,
-                          tokenStarts,
-                          tokenLengths,
-                          indexToken
-                        );
-                        if (indexOffset < 0) {
-                          statementValid = false;
-                        } else {
-                          indexToken += 2;
-                          offsetIndex = true;
-                        }
-                      }
-                    }
-                  }
-
-                  LoopBodyValue indexValue = resolveLoopBodyValue(
-                    source,
-                    tokenStarts[indexToken],
-                    tokenLengths[indexToken],
-                    owner,
-                    ordinal,
-                    valueCount,
-                    valueRows
-                  );
-                  if (indexValue.valid) {
-                    if (
-                      punctuationAt(
-                        source,
-                        tokenKinds,
-                        tokenStarts,
-                        indexToken + 1,
-                        PUNCTUATION_CLOSE_SQUARE
-                      )
-                    ) {
-                      LoopBufferOperand read = resolveLoopBufferReadOperand(
-                        source,
-                        owner,
-                        sourceValue.local,
-                        indexValue.local,
-                        valueCount,
-                        valueRows,
-                        semanticCount,
-                        tokenStarts,
-                        tokenLengths
-                      );
-                      if (read.valid) {
-                        localBase = localBase - 1;
-                        if (0 < read.operand / 65536) {
-                          localBase -= 1;
-                        }
-
-                        if (offsetIndex) {
-                          localBase -= 2;
-                        }
-
-                        long sourceType = loopBodyValueType(
+                        LoopBufferOperand read = resolveLoopBufferReadOperand(
                           source,
                           owner,
                           sourceValue.local,
+                          indexValue.local,
                           valueCount,
                           valueRows,
                           semanticCount,
                           tokenStarts,
                           tokenLengths
                         );
-                        opcode = BODY_WORDS_GET;
-                        if (sourceType == TOKEN_BYTES) {
-                          opcode = BODY_BYTES_GET;
-                        }
-
-                        if (sourceType == TOKEN_BYTEVIEW) {
-                          opcode = BODY_BYTEVIEW_GET;
-                        }
-
-                        operand = read.operand;
-                        if (offsetIndex) {
-                          if (MAX_LITERAL_INDEX_OFFSET < indexOffset) {
-                            statementValid = false;
+                        if (read.valid) {
+                          localBase = localBase - 1;
+                          if (0 < read.operand / 65536) {
+                            localBase -= 1;
                           }
 
-                          if (opcode == BODY_WORDS_GET) {
-                            opcode = BODY_WORDS_GET_OFFSET;
-                            operand += indexOffset * LITERAL_INDEX_OFFSET_SCALE;
-                          } else {
-                            statementValid = false;
+                          if (offsetIndex) {
+                            localBase -= 2;
                           }
+
+                          long sourceType = loopBodyValueType(
+                            source,
+                            owner,
+                            sourceValue.local,
+                            valueCount,
+                            valueRows,
+                            semanticCount,
+                            tokenStarts,
+                            tokenLengths
+                          );
+                          opcode = BODY_WORDS_GET;
+                          if (sourceType == TOKEN_BYTES) {
+                            opcode = BODY_BYTES_GET;
+                          }
+
+                          if (sourceType == TOKEN_BYTEVIEW) {
+                            opcode = BODY_BYTEVIEW_GET;
+                          }
+
+                          operand = read.operand;
+                          if (offsetIndex) {
+                            if (MAX_LITERAL_INDEX_OFFSET < indexOffset) {
+                              statementValid = false;
+                            }
+
+                            if (opcode == BODY_WORDS_GET) {
+                              opcode = BODY_WORDS_GET_OFFSET;
+                              operand += indexOffset * LITERAL_INDEX_OFFSET_SCALE;
+                            } else {
+                              statementValid = false;
+                            }
+                          }
+                        } else {
+                          statementValid = false;
                         }
                       } else {
                         statementValid = false;
@@ -257,42 +416,42 @@ classical class DirectLoopBodyProducts {
                       statementValid = false;
                     }
                   } else {
-                    statementValid = false;
+                    if (
+                      signedLoopBodyLocal(
+                        source,
+                        owner,
+                        sourceValue.local,
+                        valueCount,
+                        valueRows,
+                        semanticCount,
+                        tokenStarts,
+                        tokenLengths
+                      )
+                    ) {
+                      opcode = STATEMENT_LOCAL_LONG_COPY_BASE + sourceValue.local;
+                      operandKind = OPERAND_LOCAL;
+                      operand = sourceValue.local;
+                    } else {
+                      statementValid = false;
+                    }
                   }
                 } else {
+                  statementValid = false;
+                }
+              } else {
+                if (
+                  signedNumberWidth(source, tokenKinds, tokenStarts, sourceToken) != 1
+                ) {
+                  statementValid = false;
+                } else {
                   if (
-                    signedLoopBodyLocal(
-                      source,
-                      owner,
-                      sourceValue.local,
-                      valueCount,
-                      valueRows,
-                      semanticCount,
-                      tokenStarts,
-                      tokenLengths
-                    )
+                    signedNumberValid(source, tokenStarts, tokenLengths, sourceToken)
                   ) {
-                    opcode = STATEMENT_LOCAL_LONG_COPY_BASE + sourceValue.local;
-                    operandKind = OPERAND_LOCAL;
-                    operand = sourceValue.local;
+                    opcode = STATEMENT_LOCAL_LONG;
+                    operand = parsedSignedNumber(source, tokenStarts, tokenLengths, sourceToken);
                   } else {
                     statementValid = false;
                   }
-                }
-              } else {
-                statementValid = false;
-              }
-            } else {
-              if (
-                signedNumberWidth(source, tokenKinds, tokenStarts, sourceToken) != 1
-              ) {
-                statementValid = false;
-              } else {
-                if (signedNumberValid(source, tokenStarts, tokenLengths, sourceToken)) {
-                  opcode = STATEMENT_LOCAL_LONG;
-                  operand = parsedSignedNumber(source, tokenStarts, tokenLengths, sourceToken);
-                } else {
-                  statementValid = false;
                 }
               }
             }

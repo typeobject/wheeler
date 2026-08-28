@@ -449,6 +449,21 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
+  void emitsUtf8ProjectionDeclarationsInsideALoop() throws Exception {
+    assertArtifact(utf8LoopProjectionSource());
+  }
+
+  @Test
+  void rejectsMalformedUtf8LoopProjectionSources() throws Exception {
+    assertNoArtifact(utf8LoopProjectionSource().replace(
+        "borrow utf8 source,",
+        "borrow byteview source,"));
+    assertNoArtifact(utf8LoopProjectionSource().replace(
+        "utf8Width(source, index)",
+        "utf8Width(source, 0)"));
+  }
+
+  @Test
   void emitsOneNestedLoopInsideTheStructuredWindow() throws Exception {
     String nested = SOURCE.replace(
         "      setByte(output, index, source[sourceStart + index]);\n",
@@ -530,11 +545,13 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
     int body = source.indexOf("{", source.indexOf("copyOffset("));
     int maxSourceBytes = maxSourceBytesUse(source);
     int parameterCount = source.contains("boolean result") ? 6 : 5;
+    int sourceType = source.contains("borrow utf8 source") ? 8 : 13;
     Program driver = driver(
         body,
         matchingClose(source, body) - body + 1,
         maxSourceBytes,
-        parameterCount);
+        parameterCount,
+        sourceType);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
@@ -563,17 +580,34 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
     int body = source.indexOf("{", source.indexOf("copyOffset("));
     int maxSourceBytes = maxSourceBytesUse(source);
     int parameterCount = source.contains("boolean result") ? 6 : 5;
+    int sourceType = source.contains("borrow utf8 source") ? 8 : 13;
     Program driver = driver(
         body,
         matchingClose(source, body) - body + 1,
         maxSourceBytes,
-        parameterCount);
+        parameterCount,
+        sourceType);
     VirtualMachine machine = new VirtualMachine(
         driver, source.getBytes(StandardCharsets.UTF_8), 32_768);
 
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
     assertEquals(0, machine.global("valid"));
     assertEquals(0, machine.global("artifactLength"));
+  }
+
+  private static String utf8LoopProjectionSource() {
+    return SOURCE.replace(
+        "borrow byteview source,",
+        "borrow utf8 source,").replace(
+            "      long kind = rows[512 + index];\n",
+            "      long scalar = utf8Scalar(source, index);\n"
+                + "      long width = utf8Width(source, index);\n"
+                + "      long kind = rows[512 + index];\n").replace(
+                    "      assert(-1 < kind);\n",
+                    "      assert(-1 < kind);\n"
+                        + "      assert(0 < width);\n").replace(
+                            "      setByte(output, index, source[sourceStart + index]);\n",
+                            "      setByte(output, index, scalar);\n");
   }
 
   private static int maxSourceBytesUse(String source) {
@@ -588,7 +622,8 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
       int bodyStart,
       int bodyLength,
       int maxSourceBytes,
-      int parameterCount) throws Exception {
+      int parameterCount,
+      int sourceType) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.local_structured_source_module_compiler"));
@@ -634,7 +669,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             set(symbolResolved, 0, 1);
             set(signatureTypes, 0, 0);
             set(signatureTypes, 4096, 0);
-            set(signatureTypes, 8192, 13);
+            set(signatureTypes, 8192, %d);
             set(signatureTypes, 1, 0);
             set(signatureTypes, 4097, 1);
             set(signatureTypes, 8193, 1);
@@ -720,6 +755,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             bodyStart,
             bodyLength,
             maxSourceBytes,
+            sourceType,
             parameterCount,
             parameterCount));
     return new WheelerCompiler().compileModuleFiles(

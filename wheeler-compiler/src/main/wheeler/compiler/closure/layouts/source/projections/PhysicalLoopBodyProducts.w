@@ -337,6 +337,43 @@ classical class PhysicalLoopBodyProducts {
       return offset * 131072 + offsetBorrowed * 65536 + offsetSource * 256 + offsetIndex;
     }
 
+    boolean utf8Projection = opcode == BODY_UTF8_SCALAR;
+    if (opcode == BODY_UTF8_WIDTH) {
+      utf8Projection = true;
+    }
+
+    if (utf8Projection) {
+      long text = packedLocal(
+        owner,
+        operand / 256,
+        statementCount,
+        statementRows,
+        valueCount,
+        valueRows,
+        statementLocalRows,
+        statementPhysicalStarts
+      );
+      long index = packedLocal(
+        owner,
+        operand % 256,
+        statementCount,
+        statementRows,
+        valueCount,
+        valueRows,
+        statementLocalRows,
+        statementPhysicalStarts
+      );
+      if (text < 0) {
+        return -1;
+      }
+
+      if (index < 0) {
+        return -1;
+      }
+
+      return text * 256 + index;
+    }
+
     boolean read = opcode == BODY_WORDS_GET;
     if (opcode == BODY_BYTES_GET) {
       read = true;
@@ -705,6 +742,14 @@ classical class PhysicalLoopBodyProducts {
         }
 
         if (opcode == BODY_BYTEVIEW_TO_BYTES_COPY_SUM) {
+          bufferOperand = true;
+        }
+
+        if (opcode == BODY_UTF8_SCALAR) {
+          bufferOperand = true;
+        }
+
+        if (opcode == BODY_UTF8_WIDTH) {
           bufferOperand = true;
         }
 
