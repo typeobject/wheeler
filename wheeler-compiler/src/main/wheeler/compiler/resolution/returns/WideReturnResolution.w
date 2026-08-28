@@ -2,6 +2,7 @@
 
 module wheeler.compiler.wide_return_resolution;
 
+import wheeler.compiler.forwarded_helper_result_statements;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.wide_return_sources;

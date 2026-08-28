@@ -33,6 +33,7 @@ import wheeler.compiler.resolved_local_less_than_kinds;
 import wheeler.compiler.resolved_local_literal_comparisons;
 import wheeler.compiler.resolved_local_loop_kinds;
 import wheeler.compiler.resolved_local_pair_assertions;
+import wheeler.compiler.resolved_local_result_kinds;
 import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.resolved_local_updates;
 import wheeler.compiler.resolved_return_call_kinds;

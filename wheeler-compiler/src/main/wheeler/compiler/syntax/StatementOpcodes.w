@@ -10,6 +10,7 @@ import wheeler.compiler.conditionals;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.identifier_starts;
 import wheeler.compiler.keyword_tokens;
+import wheeler.compiler.signed_return_statements;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;

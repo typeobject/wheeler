@@ -2,7 +2,7 @@
 
 module wheeler.compiler.named_return_arithmetic_kinds;
 
-import wheeler.compiler.statement_kinds;
+import wheeler.compiler.signed_return_statements;
 
 classical class NamedReturnArithmeticKinds {
   /// Checks for a signed helper return with a literal right operand.

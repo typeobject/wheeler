@@ -9,11 +9,6 @@ classical class NativeCompilerResolvedReturnCallTests {
     assert(true);
   }
 
-  test void classifiesSevenArgumentReturnCall() {
-    boolean present = resolvedReturnHelperCall(29952);
-    assert(present);
-  }
-
   test void decodesSevenArgumentReturnCallArity() {
     long arity = returnHelperCallArity(29952);
     assert(arity == 7);

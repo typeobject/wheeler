@@ -9,13 +9,13 @@ import java.nio.ByteOrder;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/** Native evidence for direct imported Boolean and UTF-8 helper-result products. */
-final class NativeCompilerHelperResultKindsPhysicalProductExampleTest {
+/** Native evidence for the direct imported signed helper-result product. */
+final class NativeCompilerSignedHelperResultKindsPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
-  void retainsHelperResultKindsAndRelocatesClassifiers() throws Exception {
+  void retainsSignedHelperResultKindsAndRelocatesClassifiers() throws Exception {
     var module = NativeCompilerPhysicalSelection.callable(
-        "wheeler.compiler.helper_result_kinds");
+        "wheeler.compiler.signed_helper_result_kinds");
     var expectedProgram = new WheelerCompiler().compileLibraryModuleFiles(
         CompilerSources.moduleClosure(module.name()), module.name());
     var localFunctions = expectedProgram.functions().stream()
@@ -24,7 +24,7 @@ final class NativeCompilerHelperResultKindsPhysicalProductExampleTest {
     long expectedInstructions = localFunctions.stream()
         .mapToLong(function -> function.forward().size() + function.inverse().size())
         .sum();
-    assertEquals(2, localFunctions.size());
+    assertEquals(1, localFunctions.size());
 
     var productProgram = NativeCompilerPhysicalPrograms.callable(module);
     var manifest = CompilerSources.bootstrapModuleManifest();
@@ -39,8 +39,8 @@ final class NativeCompilerHelperResultKindsPhysicalProductExampleTest {
     assertEquals(localFunctions.size(), machine.global("physicalRetainedFunctionCount"));
     assertEquals(expectedInstructions, machine.global("physicalRetainedInstructionCount"));
     assertEquals(1, machine.global("physicalCallableProductCount"));
-    assertEquals(5, machine.global("physicalCallableRelocationCount"));
-    assertEquals(5, machine.global("physicalResolvedCallableTargetCount"));
+    assertEquals(0, machine.global("physicalCallableRelocationCount"));
+    assertEquals(0, machine.global("physicalResolvedCallableTargetCount"));
   }
 
   private static byte[] framed(byte[] archive, byte[] manifest) {

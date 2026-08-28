@@ -1,8 +1,8 @@
-//! Classifies resolved scalar helper returns that forward one call result.
+//! Decodes resolved scalar helper returns that forward one call result.
 
 module wheeler.compiler.resolved_return_call_kinds;
 
-import wheeler.compiler.resolved_statements;
+import wheeler.compiler.forwarded_helper_result_statements;
 
 classical class ResolvedReturnCallKinds {
   private const long RESOLVED_SOURCE_COUNT = 256;
@@ -20,55 +20,6 @@ classical class ResolvedReturnCallKinds {
   public const long RETURN_HELPER_CALL_TWO_SOURCE_OFFSET = 256;
   /// Caps final scalar-result forwarding without coupling it to helper parameter capacity.
   public const long MAX_FORWARDED_SCALAR_ARGUMENTS = 7;
-
-  /// Checks whether one resolved return forwards a scalar helper call.
-  public boolean resolvedReturnHelperCall(long opcode) {
-    if (opcode < STATEMENT_RETURN_HELPER_CALL_BASE) {
-      return false;
-    }
-
-    if (opcode < RETURN_HELPER_CALL_END) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_RETURN_HELPER_CALL_ZERO) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_RETURN_HELPER_CALL_FIVE) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_RETURN_HELPER_CALL_SIX) {
-      return true;
-    }
-
-    if (opcode == STATEMENT_RETURN_HELPER_CALL_SEVEN) {
-      return true;
-    }
-
-    if (opcode < STATEMENT_RETURN_HELPER_CALL_TWO_BASE) {
-      return false;
-    }
-
-    if (opcode < RETURN_HELPER_CALL_TWO_END) {
-      return true;
-    }
-
-    if (opcode < STATEMENT_RETURN_HELPER_CALL_THREE_BASE) {
-      return false;
-    }
-
-    if (opcode < RETURN_HELPER_CALL_THREE_END) {
-      return true;
-    }
-
-    if (opcode < STATEMENT_RETURN_HELPER_CALL_FOUR_BASE) {
-      return false;
-    }
-
-    return opcode < RETURN_HELPER_CALL_FOUR_END;
-  }
 
   /// Returns the call arity, or minus one when the opcode is not this family.
   public long returnHelperCallArity(long opcode) {

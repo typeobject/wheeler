@@ -10,6 +10,7 @@ import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.encoding;
+import wheeler.compiler.forwarded_helper_result_kinds;
 import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_signatures;

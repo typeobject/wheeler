@@ -2,6 +2,7 @@
 
 module wheeler.compiler.scalar_return_call_resolution;
 
+import wheeler.compiler.forwarded_helper_result_statements;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.source_scalars;

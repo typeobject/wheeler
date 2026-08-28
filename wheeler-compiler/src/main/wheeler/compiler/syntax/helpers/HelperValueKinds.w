@@ -3,6 +3,7 @@
 module wheeler.compiler.helper_value_kinds;
 
 import wheeler.compiler.borrowed_intrinsic_kinds;
+import wheeler.compiler.signed_return_statements;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.void_call_source_kinds;
 

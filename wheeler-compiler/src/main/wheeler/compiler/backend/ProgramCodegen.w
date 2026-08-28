@@ -13,6 +13,7 @@ import wheeler.compiler.ir;
 import wheeler.compiler.local_opcodes;
 import wheeler.compiler.named_return_arithmetic_kinds;
 import wheeler.compiler.opcodes;
+import wheeler.compiler.resolved_local_result_kinds;
 import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.resolved_long_operations;
 import wheeler.compiler.result_slot_codegen;

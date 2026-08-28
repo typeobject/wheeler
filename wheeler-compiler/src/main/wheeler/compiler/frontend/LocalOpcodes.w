@@ -39,6 +39,7 @@ import wheeler.compiler.resolved_local_updates;
 import wheeler.compiler.resolved_long_operations;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.resolved_statements;
+import wheeler.compiler.signed_return_statements;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.two_argument_call_kinds;

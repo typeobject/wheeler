@@ -179,6 +179,15 @@ targets:
       - "src/test/wheeler/compiler/returns/NativeCompilerEarlyReturnSourceTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilerforwardedhelperresultkindtests"
+    root: "src/test/wheeler/compiler/returns/forwarded/NativeCompilerForwardedHelperResultKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_forwarded_helper_result_kinds"
+    sources:
+      - "src/main/wheeler/compiler/syntax/returns/forwarded/ForwardedHelperResultKinds.w"
+      - "src/main/wheeler/compiler/syntax/returns/forwarded/ForwardedHelperResultStatements.w"
+      - "src/test/wheeler/compiler/returns/forwarded/NativeCompilerForwardedHelperResultKindTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerfourargumentcalltests"
     root: "src/test/wheeler/compiler/calls/NativeCompilerFourArgumentCallTests.w"
     module: "wheeler.compiler.tests.native_compiler_four_argument_calls"
@@ -205,6 +214,7 @@ targets:
       - "src/main/wheeler/compiler/syntax/calls/VoidCallSourceKinds.w"
       - "src/main/wheeler/compiler/syntax/helpers/HelperValueKinds.w"
       - "src/main/wheeler/compiler/syntax/intrinsics/BorrowedIntrinsicKinds.w"
+      - "src/main/wheeler/compiler/syntax/returns/signed/SignedReturnStatements.w"
       - "src/test/wheeler/compiler/helpers/NativeCompilerHelperValueKindTests.w"
     test: true
   - kind: "tool"
@@ -332,8 +342,8 @@ targets:
     root: "src/test/wheeler/compiler/returns/NativeCompilerNamedReturnArithmeticKindTests.w"
     module: "wheeler.compiler.tests.native_compiler_named_return_arithmetic_kinds"
     sources:
-      - "src/main/wheeler/compiler/ir/StatementKinds.w"
       - "src/main/wheeler/compiler/syntax/returns/NamedReturnArithmeticKinds.w"
+      - "src/main/wheeler/compiler/syntax/returns/signed/SignedReturnStatements.w"
       - "src/test/wheeler/compiler/returns/NativeCompilerNamedReturnArithmeticKindTests.w"
     test: true
   - kind: "tool"
@@ -555,11 +565,21 @@ targets:
       - "src/test/wheeler/compiler/assertions/NativeCompilerResolvedLocalPairAssertionTests.w"
     test: true
   - kind: "tool"
+    name: "nativecompilerresolvedlocalresultkindtests"
+    root: "src/test/wheeler/compiler/returns/signed/NativeCompilerResolvedLocalResultKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_resolved_local_result_kinds"
+    sources:
+      - "src/main/wheeler/compiler/syntax/returns/signed/ResolvedLocalResultKinds.w"
+      - "src/main/wheeler/compiler/syntax/returns/signed/ResolvedLocalReturnStatements.w"
+      - "src/test/wheeler/compiler/returns/signed/NativeCompilerResolvedLocalResultKindTests.w"
+    test: true
+  - kind: "tool"
     name: "nativecompilerresolvedlocalreturntests"
     root: "src/test/wheeler/compiler/returns/NativeCompilerResolvedLocalReturnTests.w"
     module: "wheeler.compiler.tests.native_compiler_resolved_local_returns"
     sources:
       - "src/main/wheeler/compiler/syntax/returns/ResolvedLocalReturns.w"
+      - "src/main/wheeler/compiler/syntax/returns/signed/ResolvedLocalReturnStatements.w"
       - "src/test/wheeler/compiler/returns/NativeCompilerResolvedLocalReturnTests.w"
     test: true
   - kind: "tool"
@@ -585,8 +605,8 @@ targets:
     root: "src/test/wheeler/compiler/returns/NativeCompilerResolvedReturnCallTests.w"
     module: "wheeler.compiler.tests.native_compiler_resolved_return_calls"
     sources:
-      - "src/main/wheeler/compiler/ir/ResolvedStatements.w"
       - "src/main/wheeler/compiler/syntax/returns/ResolvedReturnCallKinds.w"
+      - "src/main/wheeler/compiler/syntax/returns/forwarded/ForwardedHelperResultStatements.w"
       - "src/test/wheeler/compiler/returns/NativeCompilerResolvedReturnCallTests.w"
     test: true
   - kind: "tool"
@@ -596,6 +616,7 @@ targets:
     sources:
       - "src/main/wheeler/compiler/ir/StatementKinds.w"
       - "src/main/wheeler/compiler/resolution/returns/ReturnOpcodeKinds.w"
+      - "src/main/wheeler/compiler/syntax/returns/signed/SignedReturnStatements.w"
       - "src/test/wheeler/compiler/returns/opcodes/NativeCompilerReturnOpcodeKindTests.w"
     test: true
   - kind: "tool"
@@ -606,6 +627,18 @@ targets:
       - "src/main/wheeler/compiler/closure/products/source/coordinates/ReversibleTokenCoordinates.w"
       - "src/main/wheeler/compiler/syntax/tokens/SourceScalars.w"
       - "src/test/wheeler/compiler/closure/NativeCompilerReversibleTokenTests.w"
+    test: true
+  - kind: "tool"
+    name: "nativecompilersignedhelperresultkindtests"
+    root: "src/test/wheeler/compiler/helpers/NativeCompilerSignedHelperResultKindTests.w"
+    module: "wheeler.compiler.tests.native_compiler_signed_helper_result_kinds"
+    sources:
+      - "src/main/wheeler/compiler/syntax/helpers/SignedHelperResultKinds.w"
+      - "src/main/wheeler/compiler/syntax/intrinsics/BorrowedIntrinsicKinds.w"
+      - "src/main/wheeler/compiler/syntax/returns/forwarded/ForwardedHelperResultStatements.w"
+      - "src/main/wheeler/compiler/syntax/returns/signed/ResolvedLocalReturnStatements.w"
+      - "src/main/wheeler/compiler/syntax/returns/signed/SignedReturnStatements.w"
+      - "src/test/wheeler/compiler/helpers/NativeCompilerSignedHelperResultKindTests.w"
     test: true
   - kind: "tool"
     name: "nativecompilerspinetests"

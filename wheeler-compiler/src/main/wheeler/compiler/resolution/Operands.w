@@ -45,6 +45,7 @@ import wheeler.compiler.resolved_local_loop_kinds;
 import wheeler.compiler.resolved_local_loop_operands;
 import wheeler.compiler.resolved_local_updates;
 import wheeler.compiler.return_expressions;
+import wheeler.compiler.signed_return_statements;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.three_argument_calls;

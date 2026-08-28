@@ -11,6 +11,7 @@ import wheeler.compiler.conditionals;
 import wheeler.compiler.early_comparison_forms;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.encoding;
+import wheeler.compiler.forwarded_helper_result_kinds;
 import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.literal_comparison_operations;
 import wheeler.compiler.local_opcodes;

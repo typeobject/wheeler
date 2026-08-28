@@ -33,7 +33,7 @@ shard runs as follows:
   -PnativeCompilerPackageShardCount=16
 ```
 
-The suite contains 243 cases across 91 physical compiler modules. CI assigns the
+The suite fills the 255-case profile across 97 physical compiler modules. CI assigns the
 complete case identities to sixteen disjoint Temurin jobs before compilation.
 Each selected artifact executes once with fresh storage. A method has twelve
 minutes and its job has eighteen. Running the complete suite locally requires one

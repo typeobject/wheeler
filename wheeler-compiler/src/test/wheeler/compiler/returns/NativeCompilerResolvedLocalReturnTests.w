@@ -14,11 +14,6 @@ classical class NativeCompilerResolvedLocalReturnTests {
     assert(present);
   }
 
-  test void checksSignedReturnMembership() {
-    boolean present = resolvedSignedLocalReturn(14591);
-    assert(present);
-  }
-
   test void checksBooleanReturnSource() {
     long source = resolvedLocalReturnSource(14592);
     assert(source == 0);

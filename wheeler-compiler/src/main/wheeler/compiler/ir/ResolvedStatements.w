@@ -143,10 +143,6 @@ classical class ResolvedStatements {
   public const long STATEMENT_IF_SIGNED_LT_RETURN_LONG_BASE = 27136;
   /// Starts resolved parameter less-than guards returning checked subtraction.
   public const long STATEMENT_IF_SIGNED_LT_RETURN_SUB_BASE = 27392;
-  /// Starts resolved scalar helper returns forwarding a one-argument call result.
-  public const long STATEMENT_RETURN_HELPER_CALL_BASE = 27648;
-  /// Names a resolved scalar helper return forwarding a zero-argument call result.
-  public const long STATEMENT_RETURN_HELPER_CALL_ZERO = 27904;
   /// Starts resolved parameter less-than guards returning checked remainder.
   public const long STATEMENT_IF_SIGNED_LT_RETURN_REMAINDER_BASE = 28160;
   /// Starts resolved helper-call guards forwarding another one-argument Boolean call.
@@ -157,18 +153,6 @@ classical class ResolvedStatements {
   public const long STATEMENT_IF_SIGNED_EQ_RETURN_LOCAL_BASE = 28928;
   /// Starts resolved less-than guards returning a prior signed local.
   public const long STATEMENT_IF_SIGNED_LT_RETURN_LOCAL_BASE = 29184;
-  /// Starts resolved scalar helper returns forwarding a two-argument call result.
-  public const long STATEMENT_RETURN_HELPER_CALL_TWO_BASE = 65536;
-  /// Starts resolved scalar helper returns forwarding a three-argument call result.
-  public const long STATEMENT_RETURN_HELPER_CALL_THREE_BASE = 16777216;
-  /// Starts resolved scalar helper returns forwarding a four-argument call result.
-  public const long STATEMENT_RETURN_HELPER_CALL_FOUR_BASE = 33554432;
-  /// Names a resolved scalar helper return forwarding a five-argument call result.
-  public const long STATEMENT_RETURN_HELPER_CALL_FIVE = 29440;
-  /// Names a resolved scalar helper return forwarding a six-argument call result.
-  public const long STATEMENT_RETURN_HELPER_CALL_SIX = 29696;
-  /// Names a resolved scalar helper return forwarding a seven-argument call result.
-  public const long STATEMENT_RETURN_HELPER_CALL_SEVEN = 29952;
   /// Names a resolved local initialized by a five-argument scalar call.
   public const long STATEMENT_LOCAL_CALL_FIVE_LOCALS = 30208;
   /// Names a resolved local initialized by a six-argument scalar call.

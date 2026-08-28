@@ -2,6 +2,7 @@
 
 module wheeler.compiler.return_opcode_kinds;
 
+import wheeler.compiler.signed_return_statements;
 import wheeler.compiler.statement_kinds;
 
 classical class ReturnOpcodeKinds {

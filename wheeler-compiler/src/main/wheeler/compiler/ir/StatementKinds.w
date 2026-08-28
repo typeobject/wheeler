@@ -123,34 +123,10 @@ classical class StatementKinds {
   public const long STATEMENT_IF_LOCAL_LT_LITERAL_ASSIGN_NAMED = 825;
   /// Signed local initialized by a zero-argument helper call.
   public const long STATEMENT_LOCAL_CALL_NAMED = 826;
-  /// Signed literal return from a helper.
-  public const long STATEMENT_RETURN_LONG = 827;
-  /// Signed return from a helper parameter.
-  public const long STATEMENT_RETURN_LOCAL_NAMED = 828;
   /// Signed local initialized by a one-argument helper call.
   public const long STATEMENT_LOCAL_CALL_ARGUMENT_NAMED = 829;
-  /// Signed helper return adding a literal to its parameter.
-  public const long STATEMENT_RETURN_LOCAL_ADD_NAMED = 830;
-  /// Signed helper return subtracting a literal from its parameter.
-  public const long STATEMENT_RETURN_LOCAL_SUB_NAMED = 831;
-  /// Signed helper return multiplying its parameter by a literal.
-  public const long STATEMENT_RETURN_LOCAL_MUL_NAMED = 832;
-  /// Signed helper return dividing its parameter by a literal.
-  public const long STATEMENT_RETURN_LOCAL_DIV_NAMED = 833;
-  /// Signed helper return taking its parameter modulo a literal.
-  public const long STATEMENT_RETURN_LOCAL_MOD_NAMED = 834;
   /// Signed local initialized by passing a prior local to a helper.
   public const long STATEMENT_LOCAL_CALL_LOCAL_ARGUMENT_NAMED = 835;
-  /// Signed helper return adding its parameter to itself.
-  public const long STATEMENT_RETURN_LOCAL_ADD_LOCAL_NAMED = 836;
-  /// Signed helper return subtracting its parameter from itself.
-  public const long STATEMENT_RETURN_LOCAL_SUB_LOCAL_NAMED = 837;
-  /// Signed helper return multiplying its parameter by itself.
-  public const long STATEMENT_RETURN_LOCAL_MUL_LOCAL_NAMED = 838;
-  /// Signed helper return dividing its parameter by itself.
-  public const long STATEMENT_RETURN_LOCAL_DIV_LOCAL_NAMED = 839;
-  /// Signed helper return reducing its parameter modulo itself.
-  public const long STATEMENT_RETURN_LOCAL_MOD_LOCAL_NAMED = 840;
   /// Signed local initialized by two literal helper arguments.
   public const long STATEMENT_LOCAL_CALL_TWO_ARGUMENT_NAMED = 841;
   /// Two-argument helper call with a prior local first.
@@ -175,10 +151,6 @@ classical class StatementKinds {
   public const long STATEMENT_LOCAL_BOOLEAN_CALL_TWO_SECOND_LOCAL_NAMED = 851;
   /// Boolean result call with two prior-local arguments.
   public const long STATEMENT_LOCAL_BOOLEAN_CALL_TWO_LOCALS_NAMED = 852;
-  /// Signed helper return XORing its parameter with a literal.
-  public const long STATEMENT_RETURN_LOCAL_XOR_NAMED = 853;
-  /// Signed helper return XORing two parameters.
-  public const long STATEMENT_RETURN_LOCAL_XOR_LOCAL_NAMED = 854;
   /// Boolean helper return negating one parameter or prior local.
   public const long STATEMENT_RETURN_BOOLEAN_NOT_NAMED = 855;
   /// Boolean helper return comparing one local with a literal.
@@ -189,10 +161,6 @@ classical class StatementKinds {
   public const long STATEMENT_LOCAL_LONG_AND_NAMED = 858;
   /// AND declaration over two signed locals.
   public const long STATEMENT_LOCAL_LONG_AND_LOCALS_NAMED = 859;
-  /// Signed helper return ANDing one local with a literal.
-  public const long STATEMENT_RETURN_LOCAL_AND_NAMED = 860;
-  /// Signed helper return ANDing two locals.
-  public const long STATEMENT_RETURN_LOCAL_AND_LOCAL_NAMED = 861;
   /// Inequality declaration over two prior locals.
   public const long STATEMENT_LOCAL_BOOLEAN_NE_NAMED = 862;
   /// Signed-local inequality with a literal right operand.

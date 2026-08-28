@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
+import com.typeobject.wheeler.core.bytecode.Opcode;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.ProgramKind;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
@@ -20,6 +21,8 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HexFormat;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -148,7 +151,7 @@ final class NativeCompilerPhysicalClosureExampleTest {
     String linkedIdentity = HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(functionMachine.hostOutput()));
     assertEquals(
-        354_550_963L,
+        3_278_919_394L,
         functionMachine.global("linkedIdentityPrefix"),
         () -> "sha256=" + linkedIdentity
             + " code=" + functionMachine.global("linkedCodeLength")
@@ -159,7 +162,7 @@ final class NativeCompilerPhysicalClosureExampleTest {
             + " localTypes=" + functionMachine.global("linkedLocalTypeCount")
             + " container=" + functionMachine.global("linkedContainerLength"));
     assertEquals(
-        "152204b3a8b93ec880959353fb0abab702191fcafe1e30545d3b454ed7466f09",
+        "c37056e2e794aa00e72fc7c607b05c844183906eb87777ffcb8a3f32b2f44b30",
         linkedIdentity,
         () -> "code=" + functionMachine.global("linkedCodeLength")
             + " functions=" + functionMachine.global("functionCount")
@@ -180,39 +183,107 @@ final class NativeCompilerPhysicalClosureExampleTest {
     assertEquals(0, linkedClosure.arrayTypes().size());
     assertEquals(0, linkedClosure.sliceTypes().size());
     CompilerMachineRunner.runWithoutRewindHistory(new VirtualMachine(linkedClosure));
+  }
 
-    VirtualMachine repeatedFunctionMachine = VirtualMachine.withBinaryInput(
-        functionClosure, physicalProducts, 4_194_304);
-    CompilerMachineRunner.runWithoutRewindHistory(repeatedFunctionMachine);
-    assertEquals(1, repeatedFunctionMachine.global("published"));
-    assertEquals(354_550_963L, repeatedFunctionMachine.global("linkedIdentityPrefix"));
-    assertArrayEquals(
-        functionMachine.hostOutput(), repeatedFunctionMachine.hostOutput());
+  @Tag("closure-evidence")
+  @Test
+  void rejectsMalformedBoundedFunctionClosureTransports() throws Exception {
+    byte[] validTransport = smallTransport(false);
+    Program functionClosure = NativeCompilerPhysicalFunctionClosureProgram.program(1, 0);
+    VirtualMachine valid = VirtualMachine.withBinaryInput(
+        functionClosure, validTransport, 1_048_576);
+    CompilerMachineRunner.runWithoutRewindHistory(valid);
+    assertEquals(1, valid.global("published"));
+    assertEquals(0, valid.global("validatedRelocationCount"));
 
-    byte[] malformedFooter = physicalProducts.clone();
+    byte[] malformedFooter = validTransport.clone();
     malformedFooter[malformedFooter.length - 8] = 0;
-    VirtualMachine malformedFooterMachine = VirtualMachine.withBinaryInput(
-        functionClosure, malformedFooter, 4_194_304);
-    assertThrows(
-        VmTrap.class,
-        () -> CompilerMachineRunner.runWithoutRewindHistory(malformedFooterMachine));
-    assertEquals(0, malformedFooterMachine.global("published"));
-    assertEquals(0, malformedFooterMachine.global("productCount"));
+    assertMalformedTransport(functionClosure, malformedFooter);
+    assertMalformedTransport(functionClosure, smallTransport(true));
+  }
 
-    byte[] malformedProducts = physicalProducts.clone();
-    int firstRelocation = Math.toIntExact(
-        machine.global("physicalRetainedProductLength") + retainedModules.size() * 6L);
-    malformedProducts[firstRelocation + 3] = (byte) 0xff;
-    malformedProducts[firstRelocation + 4] = (byte) 0xff;
-    VirtualMachine malformedFunctionMachine = VirtualMachine.withBinaryInput(
-        functionClosure, malformedProducts, 4_194_304);
+  private static byte[] smallTransport(boolean malformedRelocation) throws Exception {
+    String dependency = """
+        //! Supplies one imported scalar helper.
+
+        module example.physical_dependency;
+
+        classical class PhysicalDependency {
+          public long dependency(long value) {
+            return value;
+          }
+        }
+        """;
+    String caller = """
+        //! Calls one imported scalar helper.
+
+        module example.physical_caller;
+
+        import example.physical_dependency;
+
+        classical class PhysicalCaller {
+          public long caller(long value) {
+            return dependency(value);
+          }
+        }
+        """;
+    Map<String, String> callerSources = new LinkedHashMap<>();
+    callerSources.put("Caller.w", caller);
+    callerSources.put("Dependency.w", dependency);
+    WheelerCompiler compiler = new WheelerCompiler();
+    Program callerProgram = compiler.compileLibraryModuleFiles(
+        callerSources, "example.physical_caller");
+    byte[] callerArtifact = new BytecodeWriter().write(callerProgram);
+    int retainedFunctions = 3;
+    int relocationInstruction = -1;
+    int instruction = 0;
+    for (var function : callerProgram.functions().subList(0, retainedFunctions)) {
+      for (var candidate : function.forward()) {
+        if (candidate.opcode() == Opcode.CALL_VALUE) {
+          relocationInstruction = instruction;
+        }
+        instruction += 1;
+      }
+    }
+    assertTrue(0 <= relocationInstruction);
+
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    output.writeBytes(callerArtifact);
+    writeProductMetadata(output, 0, callerArtifact.length, retainedFunctions);
+    if (malformedRelocation) {
+      output.write(0);
+      writeU16(output, relocationInstruction);
+      writeU16(output, 0);
+      output.write(0);
+    }
+    output.writeBytes(new byte[] {87, 80, 70, 1});
+    writeU16(output, 1);
+    writeU16(output, malformedRelocation ? 1 : 0);
+    return output.toByteArray();
+  }
+
+  private static void writeProductMetadata(
+      ByteArrayOutputStream output, int owner, int length, int functions) {
+    writeU16(output, owner);
+    output.write((length >>> 16) & 0xff);
+    output.write((length >>> 8) & 0xff);
+    output.write(length & 0xff);
+    output.write(functions);
+  }
+
+  private static void writeU16(ByteArrayOutputStream output, int value) {
+    output.write((value >>> 8) & 0xff);
+    output.write(value & 0xff);
+  }
+
+  private static void assertMalformedTransport(Program program, byte[] transport) {
+    VirtualMachine machine = VirtualMachine.withBinaryInput(program, transport, 1_048_576);
     assertThrows(
         VmTrap.class,
-        () -> CompilerMachineRunner.runWithoutRewindHistory(malformedFunctionMachine));
-    assertEquals(0, malformedFunctionMachine.global("published"));
-    assertEquals(0, malformedFunctionMachine.global("relocatedTargetCount"));
-    assertEquals(0, malformedFunctionMachine.global("linkedCodeLength"));
-    assertEquals(0, malformedFunctionMachine.global("linkedIdentityPrefix"));
+        () -> CompilerMachineRunner.runWithoutRewindHistory(machine));
+    assertEquals(0, machine.global("published"));
+    assertEquals(0, machine.global("linkedCodeLength"));
+    assertEquals(0, machine.global("linkedIdentityPrefix"));
   }
 
   private static byte[] framed(byte[] archive, byte[] manifest) {

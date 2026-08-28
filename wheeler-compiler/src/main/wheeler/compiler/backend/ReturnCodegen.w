@@ -16,6 +16,7 @@ import wheeler.compiler.resolved_early_comparison_kinds;
 import wheeler.compiler.resolved_early_result_kinds;
 import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.return_call_codegen;
+import wheeler.compiler.signed_return_statements;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.type_codes;

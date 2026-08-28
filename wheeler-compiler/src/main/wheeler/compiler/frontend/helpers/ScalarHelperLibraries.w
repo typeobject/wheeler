@@ -33,6 +33,7 @@ import wheeler.compiler.resolved_local_loop_kinds;
 import wheeler.compiler.resolved_long_operations;
 import wheeler.compiler.scalar_helper_tables;
 import wheeler.compiler.sequences;
+import wheeler.compiler.signed_helper_result_kinds;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
