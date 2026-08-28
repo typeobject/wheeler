@@ -2,49 +2,9 @@
 
 module wheeler.compiler.packages.semver;
 
+import wheeler.compiler.packages.semver_scalars;
+
 classical class Semver {
-  private boolean digit(long scalar) {
-    if (47 < scalar) {
-      return scalar < 58;
-    }
-
-    return false;
-  }
-
-  private boolean upper(long scalar) {
-    if (64 < scalar) {
-      return scalar < 91;
-    }
-
-    return false;
-  }
-
-  private boolean lower(long scalar) {
-    if (96 < scalar) {
-      return scalar < 123;
-    }
-
-    return false;
-  }
-
-  private boolean identifierScalar(long scalar) {
-    boolean numeric = digit(scalar);
-    if (numeric) {
-      return true;
-    }
-
-    boolean uppercase = upper(scalar);
-    if (uppercase) {
-      return true;
-    }
-
-    boolean lowercase = lower(scalar);
-    if (lowercase) {
-      return true;
-    }
-
-    return scalar == 45;
-  }
 
   private boolean validCore(borrow utf8 source, long start, long length) {
     long cursor = start;
@@ -55,7 +15,7 @@ classical class Semver {
     long value = 0;
     while (cursor < end) limit 64 {
       long scalar = utf8Scalar(source, cursor);
-      boolean numeric = digit(scalar);
+      boolean numeric = semverDigit(scalar);
       if (numeric) {
         long valueDigit = scalar - 48;
         if (digits == 0) {
@@ -132,13 +92,13 @@ classical class Semver {
         first = 0;
         numericPart = true;
       } else {
-        boolean allowed = identifierScalar(scalar);
+        boolean allowed = semverIdentifierScalar(scalar);
         if (allowed) {
           if (partLength == 0) {
             first = scalar;
           }
 
-          boolean numeric = digit(scalar);
+          boolean numeric = semverDigit(scalar);
           if (numeric) {
             partLength += 1;
           } else {
@@ -252,7 +212,7 @@ classical class Semver {
   private boolean numericIdentifier(borrow utf8 source, long start, long end) {
     long cursor = start;
     while (cursor < end) limit 64 {
-      if (digit(utf8Scalar(source, cursor)) == false) {
+      if (semverDigit(utf8Scalar(source, cursor)) == false) {
         return false;
       }
 
