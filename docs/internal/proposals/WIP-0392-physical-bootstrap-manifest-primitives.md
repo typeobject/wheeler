@@ -70,7 +70,7 @@ Metadata fragment loops and quoted identity loops remain in `ManifestSyntax.w`. 
 
 ## Evidence
 
-`NativeCompilerManifestProductExampleTest` reads both checked-in sources. Its focused tests compile each source through the physical Wheeler recovery compiler and through stage 0, compare complete artifacts, and require the qualified production function plus canonical `$library` entry. WIP-0415 later retains `ManifestAssertions.w` in the counted body archive and final linked closure.
+`NativeCompilerManifestProductExampleTest` reads both checked-in sources. Its focused tests compile each source through the physical Wheeler recovery compiler and through stage 0, compare complete artifacts, and require the qualified production function plus canonical `$library` entry. WIP-0415 later retains `ManifestAssertions.w` in the counted body archive and final linked closure. WIP-0416 follows for `ManifestProfile.w` after direct conditional products admit Boolean source children.
 
 The `manifest.primitive` tag selects one three-source physical target. Sixteen native cases execute assertion success, each ASCII digit and letter boundary, each punctuation verdict, and each out-of-range fallback verdict. Every case stays below the 255-transition coverage bound and all sixteen pass through `NativePackageTestRunner`. The canonical report identity is `49c8f35ceda3ca897810bed62cce4b52699a30aa5a29ec376bc58a0763c01f0e`. WIP-0394 supplies the mixed Boolean-result and Boolean void-call paths used by the target. At this evidence boundary the complete compiler package covered 91 production modules and 243 cases.
 

@@ -448,7 +448,13 @@ classical class DirectConditionalReturnProducts {
 
       childResultType = directRelationResultType(childRelation.operation, childRelation.leftType);
       if (childResultType != TYPE_SIGNED) {
-        return invalidConditionalReturn(35);
+        if (childResultType != TYPE_BOOLEAN) {
+          return invalidConditionalReturn(35);
+        }
+
+        if (childRelation.kind != RESULT_RELATION_SOURCE) {
+          return invalidConditionalReturn(35);
+        }
       }
 
       if (

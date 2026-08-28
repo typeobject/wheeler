@@ -51,8 +51,9 @@ final class NativeCompilerManifestProductExampleTest {
 
   @Tag("closure-evidence")
   @Test
-  void retainsManifestAssertionClassifier() throws Exception {
+  void retainsManifestMetadataClassifiers() throws Exception {
     assertCountedPhysical(ASSERTIONS, ASSERTIONS_MODULE);
+    assertCountedPhysical(PROFILE, PROFILE_MODULE);
   }
 
   @Tag("closure-evidence")

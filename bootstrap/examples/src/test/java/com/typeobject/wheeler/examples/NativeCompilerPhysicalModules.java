@@ -109,6 +109,9 @@ final class NativeCompilerPhysicalModules {
         physical(
             "compiler/closure/syntax/ManifestAssertions.w",
             "closure.manifest_assertions"),
+        physical(
+            "compiler/closure/syntax/ManifestProfile.w",
+            "closure.manifest_profile"),
         physical("compiler/closure/ManifestSyntax.w", "closure.manifest_syntax"),
         physical(
             "compiler/closure/products/source/coordinates/ReversibleTokenCoordinates.w",
