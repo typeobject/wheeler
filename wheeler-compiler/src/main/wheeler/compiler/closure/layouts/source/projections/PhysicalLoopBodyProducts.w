@@ -15,6 +15,8 @@ classical class PhysicalLoopBodyProducts {
   private const long FAILURE_BODY_VALUE_OPERAND = 5;
   private const long FAILURE_BODY_WIDTH = 1;
   private const long FAILURE_NONE = 0;
+  private const long NESTED_EQ_LOCAL = 5;
+  private const long NESTED_LT_LOCAL = 6;
   private const long MAX_STATEMENTS = 4096;
   private const long NESTED_COUNT_LIMIT = 4096;
   private const long OPERAND_LOCAL = 1;
@@ -883,12 +885,40 @@ classical class PhysicalLoopBodyProducts {
           valid = false;
         }
 
+        long mappedRight = stagedNested[NESTED_CONDITION_LITERAL_ROW + nested];
+        long nestedKind = stagedNested[NESTED_KIND_ROW + nested];
+        boolean localRight = nestedKind == NESTED_EQ_LOCAL;
+        if (nestedKind == NESTED_LT_LOCAL) {
+          localRight = true;
+        }
+
+        if (localRight) {
+          mappedRight = physicalLocal(
+            statementRows[nestedStatement],
+            mappedRight,
+            statementCount,
+            statementRows,
+            valueCount,
+            valueRows,
+            statementLocalRows,
+            stagedPhysicalStarts
+          );
+          if (mappedRight < 0) {
+            if (failureNested < 0) {
+              failureNested = nested;
+            }
+
+            valid = false;
+          }
+        }
+
         if (nestedPhysicalBase < 0) {
           nestedPhysicalBase = statementPhysicalStarts[nestedStatement];
         }
 
         if (valid) {
           set(stagedNested, NESTED_CONDITION_LOCAL_ROW + nested, mappedNested);
+          set(stagedNested, NESTED_CONDITION_LITERAL_ROW + nested, mappedRight);
           set(stagedNested, NESTED_LOCAL_BASE_ROW + nested, nestedPhysicalBase);
         }
       }

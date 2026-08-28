@@ -479,6 +479,22 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
+  void emitsLocalRightGuardsWithBooleanLiteralAssignment() throws Exception {
+    String lessThan = localRightGuardSource();
+    assertArtifact(lessThan);
+    assertArtifact(lessThan.replace(
+        "if (index < sourceStart)",
+        "if (index == sourceStart)"));
+  }
+
+  @Test
+  void rejectsNonSignedLocalRightGuard() throws Exception {
+    assertNoArtifact(localRightGuardSource().replace(
+        "if (index < sourceStart)",
+        "if (index < same)"));
+  }
+
+  @Test
   void emitsOneNestedLoopInsideTheStructuredWindow() throws Exception {
     String nested = SOURCE.replace(
         "      setByte(output, index, source[sourceStart + index]);\n",
@@ -579,7 +595,8 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
       int end = Math.min(function.forward().size(), frame.programCounter() + 2);
       throw new AssertionError(
           function.name() + " instruction=" + frame.programCounter()
-              + " nearby=" + function.forward().subList(start, end),
+              + " nearby=" + function.forward().subList(start, end)
+              + " plan=" + machine.snapshot().records().getLast(),
           exception);
     }
 
@@ -634,6 +651,22 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
                 "      assert(-1 < kind);\n",
                 "      assert(-1 < kind);\n"
                     + "      assert(-1 < nextHash);\n");
+  }
+
+  private static String localRightGuardSource() {
+    return SOURCE.replace(
+        "public long copyOffset(",
+        "public boolean copyOffset(").replace(
+            "    long index = 0;\n",
+            "    boolean same = true;\n"
+                + "    long index = 0;\n").replace(
+                    "      long kind = rows[512 + index];\n",
+                    "      if (index < sourceStart) {\n"
+                        + "        same = false;\n"
+                        + "      }\n\n"
+                        + "      long kind = rows[512 + index];\n").replace(
+                            "    return length;\n",
+                            "    return same;\n");
   }
 
   private static int maxSourceBytesUse(String source) {

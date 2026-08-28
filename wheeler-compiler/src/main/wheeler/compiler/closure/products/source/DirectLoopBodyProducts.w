@@ -580,13 +580,22 @@ classical class DirectLoopBodyProducts {
                 }
 
                 long assignmentSourceToken = token + 2;
-                if (tokenKinds[assignmentSourceToken] == 1) {
-                  long assignmentHash = tokenHash(
-                    source,
-                    tokenStarts,
-                    tokenLengths,
-                    assignmentSourceToken
-                  );
+                long assignmentHash = tokenHash(
+                  source,
+                  tokenStarts,
+                  tokenLengths,
+                  assignmentSourceToken
+                );
+                boolean namedOrBooleanAssignment = tokenKinds[assignmentSourceToken] == 1;
+                if (assignmentHash == TOKEN_TRUE) {
+                  namedOrBooleanAssignment = true;
+                }
+
+                if (assignmentHash == TOKEN_FALSE) {
+                  namedOrBooleanAssignment = true;
+                }
+
+                if (namedOrBooleanAssignment) {
                   if (targetBoolean) {
                     if (assignmentHash == TOKEN_TRUE) {
                       opcode = BODY_ASSIGN_BOOLEAN_LITERAL_BASE + target.local;

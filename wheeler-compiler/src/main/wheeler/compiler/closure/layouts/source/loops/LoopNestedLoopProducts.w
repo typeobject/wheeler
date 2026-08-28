@@ -26,6 +26,8 @@ classical class LoopNestedLoopProducts {
   private const long LOOP_STATEMENT_ORDINAL_ROW = 512;
   private const long MAX_CODE_BYTES = 262144;
   private const long MAX_STATEMENTS = 4096;
+  private const long NESTED_EQ_LOCAL = 5;
+  private const long NESTED_LT_LOCAL = 6;
   private const long NESTED_CONDITION_LITERAL_ROW = 12288;
   private const long NESTED_CONDITION_LOCAL_ROW = 8192;
   private const long NESTED_KIND_ROW = 4096;
@@ -294,7 +296,9 @@ classical class LoopNestedLoopProducts {
             return new NestedLoopInstructionPlan(0, 0, false);
           }
 
+          long nestedKind = nestedRows[NESTED_KIND_ROW + nested];
           long nestedConditionLocal = nestedRows[NESTED_CONDITION_LOCAL_ROW + nested];
+          long nestedConditionRight = nestedRows[NESTED_CONDITION_LITERAL_ROW + nested];
           long nestedLocalBase = nestedRows[NESTED_LOCAL_BASE_ROW + nested];
           if (physicalCoordinates == false) {
             nestedConditionLocal = rebaseLocalForStatement(
@@ -305,6 +309,28 @@ classical class LoopNestedLoopProducts {
               loopLocalBases,
               statementRows
             );
+            if (nestedKind == NESTED_EQ_LOCAL) {
+              nestedConditionRight = rebaseLocalForStatement(
+                nestedConditionRight,
+                statement,
+                loopCount,
+                loopRows,
+                loopLocalBases,
+                statementRows
+              );
+            }
+
+            if (nestedKind == NESTED_LT_LOCAL) {
+              nestedConditionRight = rebaseLocalForStatement(
+                nestedConditionRight,
+                statement,
+                loopCount,
+                loopRows,
+                loopLocalBases,
+                statementRows
+              );
+            }
+
             nestedLocalBase += frameBiasForStatement(
               statement,
               loopCount,
@@ -326,9 +352,9 @@ classical class LoopNestedLoopProducts {
             callWindowRows,
             callInstructionStarts,
             callCode,
-            nestedRows[NESTED_KIND_ROW + nested],
+            nestedKind,
             nestedConditionLocal,
-            nestedRows[NESTED_CONDITION_LITERAL_ROW + nested],
+            nestedConditionRight,
             nestedLocalBase,
             instructionBase + 7 + bodyInstructions,
             /* publish= */ false,
@@ -560,7 +586,9 @@ classical class LoopNestedLoopProducts {
         } else {
           long nested = nestedAtStatement(statement, nestedCount, nestedRows);
           assert(-1 < nested);
+          long nestedKind = nestedRows[NESTED_KIND_ROW + nested];
           long nestedConditionLocal = nestedRows[NESTED_CONDITION_LOCAL_ROW + nested];
+          long nestedConditionRight = nestedRows[NESTED_CONDITION_LITERAL_ROW + nested];
           long nestedLocalBase = nestedRows[NESTED_LOCAL_BASE_ROW + nested];
           if (physicalCoordinates == false) {
             nestedConditionLocal = rebaseLocalForStatement(
@@ -571,6 +599,28 @@ classical class LoopNestedLoopProducts {
               loopLocalBases,
               statementRows
             );
+            if (nestedKind == NESTED_EQ_LOCAL) {
+              nestedConditionRight = rebaseLocalForStatement(
+                nestedConditionRight,
+                statement,
+                loopCount,
+                loopRows,
+                loopLocalBases,
+                statementRows
+              );
+            }
+
+            if (nestedKind == NESTED_LT_LOCAL) {
+              nestedConditionRight = rebaseLocalForStatement(
+                nestedConditionRight,
+                statement,
+                loopCount,
+                loopRows,
+                loopLocalBases,
+                statementRows
+              );
+            }
+
             nestedLocalBase += frameBiasForStatement(
               statement,
               loopCount,
@@ -592,9 +642,9 @@ classical class LoopNestedLoopProducts {
             callWindowRows,
             callInstructionStarts,
             callCode,
-            nestedRows[NESTED_KIND_ROW + nested],
+            nestedKind,
             nestedConditionLocal,
-            nestedRows[NESTED_CONDITION_LITERAL_ROW + nested],
+            nestedConditionRight,
             nestedLocalBase,
             instructionBase + 7 + bodyInstructions,
             true,

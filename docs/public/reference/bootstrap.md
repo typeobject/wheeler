@@ -31,7 +31,7 @@ is neither a Wheeler fixed point nor an independent derivation.
 
 The current Wheeler-native path can parse, plan, and classify the complete
 387-module compiler closure with 1,931 imports and a 181,926-byte module manifest.
-Its native identity run completes in 75,749,156 transitions. The native compiler
+Its native identity run completes in 75,749,210 transitions. The native compiler
 package separately compiles 97 production modules through bounded physical source
 graphs and executes the complete 255-case profile. CI assigns those case identities
 to sixteen disjoint shards before compilation. The source path preserves typed Boolean-local

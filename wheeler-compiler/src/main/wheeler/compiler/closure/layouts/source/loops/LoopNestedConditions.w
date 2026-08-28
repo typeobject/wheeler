@@ -146,13 +146,46 @@ classical class LoopNestedConditions {
           valid = false;
         }
 
-        if (signedNumberWidth(source, tokenKinds, tokenStarts, literalToken) != 1) {
-          valid = false;
-        } else {
-          if (signedNumberValid(source, tokenStarts, tokenLengths, literalToken)) {
-            literal = parsedSignedNumber(source, tokenStarts, tokenLengths, literalToken);
-          } else {
+        if (tokenKinds[literalToken] == 1) {
+          LoopBodyValue right = resolveLoopBodyValue(
+            source,
+            tokenStarts[literalToken],
+            tokenLengths[literalToken],
+            owner,
+            ordinal,
+            valueCount,
+            valueRows
+          );
+          if (right.valid == false) {
             valid = false;
+          } else {
+            if (
+              signedLoopBodyLocal(
+                source,
+                owner,
+                right.local,
+                valueCount,
+                valueRows,
+                tokenCount,
+                tokenStarts,
+                tokenLengths
+              ) == false
+            ) {
+              valid = false;
+            }
+
+            literal = right.local;
+            kind += 4;
+          }
+        } else {
+          if (signedNumberWidth(source, tokenKinds, tokenStarts, literalToken) != 1) {
+            valid = false;
+          } else {
+            if (signedNumberValid(source, tokenStarts, tokenLengths, literalToken)) {
+              literal = parsedSignedNumber(source, tokenStarts, tokenLengths, literalToken);
+            } else {
+              valid = false;
+            }
           }
         }
       }
