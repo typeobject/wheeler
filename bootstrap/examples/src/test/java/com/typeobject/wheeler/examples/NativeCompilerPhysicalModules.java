@@ -145,7 +145,10 @@ final class NativeCompilerPhysicalModules {
         physical("compiler/syntax/calls/void/VoidCallSourceForms.w", "void_call_source_forms"),
         physical("compiler/syntax/calls/VoidCallSourceWidths.w", "void_call_source_widths"),
         physical("compiler/syntax/calls/VoidCallWidths.w", "void_call_widths"),
-        physical("compiler/syntax/calls/WideLocalCalls.w", "wide_local_calls"));
+        physical("compiler/syntax/calls/WideLocalCalls.w", "wide_local_calls"),
+        physical(
+            "compiler/packages/SemverPrereleaseValidation.w",
+            "packages.semver_prerelease_validation"));
   }
 
   private static NativeCompilerArchiveClosureProgram.PhysicalModule physical(
