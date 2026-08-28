@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.loop_body_instruction_encoding;
 
+import wheeler.compiler.closure.loop_arithmetic_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_offset_instruction_encoding;
 import wheeler.compiler.encoding;
@@ -34,6 +35,14 @@ classical class LoopBodyInstructionEncoding {
 
     if (opcode == BODY_UTF8_WIDTH) {
       return new LoopBodyInstructionExtent(4, 104, true);
+    }
+
+    if (arithmeticBodyOpcode(opcode)) {
+      return new LoopBodyInstructionExtent(
+        arithmeticBodyInstructionCount(opcode),
+        arithmeticBodyInstructionLength(opcode),
+        true
+      );
     }
 
     boolean bufferGet = opcode == BODY_WORDS_GET;
@@ -199,6 +208,10 @@ classical class LoopBodyInstructionEncoding {
       return 4;
     }
 
+    if (arithmeticBodyOpcode(opcode)) {
+      return arithmeticBodyLocalCount(opcode);
+    }
+
     boolean bufferGet = opcode == BODY_WORDS_GET;
     if (opcode == BODY_BYTES_GET) {
       bufferGet = true;
@@ -304,6 +317,17 @@ classical class LoopBodyInstructionEncoding {
 
     if (opcode == BODY_UTF8_WIDTH) {
       utf8Opcode = OPCODE_UTF8_WIDTH;
+    }
+
+    if (arithmeticBodyOpcode(opcode)) {
+      return writeArithmeticBodyInstruction(
+        output,
+        cursor,
+        localBase,
+        opcode,
+        operandKind,
+        operand
+      );
     }
 
     if (-1 < utf8Opcode) {

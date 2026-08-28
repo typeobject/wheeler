@@ -454,6 +454,21 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
+  void emitsArithmeticDeclarationsInsideALoop() throws Exception {
+    assertArtifact(arithmeticLoopDeclarationSource());
+  }
+
+  @Test
+  void rejectsUnsupportedArithmeticLoopDeclarationSources() throws Exception {
+    assertNoArtifact(arithmeticLoopDeclarationSource().replace(
+        "index * 31",
+        "index * kind"));
+    assertNoArtifact(arithmeticLoopDeclarationSource().replace(
+        "product + kind",
+        "product + 1"));
+  }
+
+  @Test
   void rejectsMalformedUtf8LoopProjectionSources() throws Exception {
     assertNoArtifact(utf8LoopProjectionSource().replace(
         "borrow utf8 source,",
@@ -608,6 +623,17 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
                         + "      assert(0 < width);\n").replace(
                             "      setByte(output, index, source[sourceStart + index]);\n",
                             "      setByte(output, index, scalar);\n");
+  }
+
+  private static String arithmeticLoopDeclarationSource() {
+    return SOURCE.replace(
+        "      long kind = rows[512 + index];\n",
+        "      long kind = rows[512 + index];\n"
+            + "      long product = index * 31;\n"
+            + "      long nextHash = product + kind;\n").replace(
+                "      assert(-1 < kind);\n",
+                "      assert(-1 < kind);\n"
+                    + "      assert(-1 < nextHash);\n");
   }
 
   private static int maxSourceBytesUse(String source) {

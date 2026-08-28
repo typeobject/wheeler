@@ -45,4 +45,8 @@ classical class LoopBodyOpcodes {
   public const long BODY_UTF8_SCALAR = 35074;
   /// Reads one UTF-8 scalar width through a signed byte index.
   public const long BODY_UTF8_WIDTH = 35075;
+  /// Starts checked multiplication declarations with literal right operands.
+  public const long BODY_LONG_MUL_LITERAL_BASE = 35328;
+  /// Starts checked addition declarations with prior-local right operands.
+  public const long BODY_LONG_ADD_LOCAL_BASE = 35584;
 }
