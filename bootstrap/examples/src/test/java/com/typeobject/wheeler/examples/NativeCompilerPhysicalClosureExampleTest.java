@@ -151,7 +151,7 @@ final class NativeCompilerPhysicalClosureExampleTest {
     String linkedIdentity = HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(functionMachine.hostOutput()));
     assertEquals(
-        20_592_310L,
+        750_700_513L,
         functionMachine.global("linkedIdentityPrefix"),
         () -> "sha256=" + linkedIdentity
             + " code=" + functionMachine.global("linkedCodeLength")
@@ -162,7 +162,7 @@ final class NativeCompilerPhysicalClosureExampleTest {
             + " localTypes=" + functionMachine.global("linkedLocalTypeCount")
             + " container=" + functionMachine.global("linkedContainerLength"));
     assertEquals(
-        "013a36b669707f89add1c615558cdeb593460ebdc24e264caff6d37fb8b8877f",
+        "2cbec7e1bedc1c39753c557b4bf38fc367e1fb72c904aaf1c6759ebc70b880df",
         linkedIdentity,
         () -> "code=" + functionMachine.global("linkedCodeLength")
             + " functions=" + functionMachine.global("functionCount")
