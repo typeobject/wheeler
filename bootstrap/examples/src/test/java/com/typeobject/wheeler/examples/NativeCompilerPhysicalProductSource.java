@@ -54,6 +54,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.named_signed_return_kinds",
       "wheeler.compiler.one_argument_calls",
       "wheeler.compiler.opcode_kinds",
+      "wheeler.compiler.packages.canonical_coordinates",
       "wheeler.compiler.packages.manifest_tokens",
       "wheeler.compiler.packages.names",
       "wheeler.compiler.packages.paths",

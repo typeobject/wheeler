@@ -2,45 +2,11 @@
 
 module wheeler.compiler.packages.canonical;
 
+import wheeler.compiler.packages.canonical_coordinates;
 import wheeler.compiler.packages.manifest_tokens;
 
 classical class PackageCanonical {
   private const long MAX_PACKAGE_MANIFEST_BYTES = 262144;
-
-  private long lineEnd(borrow utf8 source, long start) {
-    long cursor = start;
-    while (cursor < bufferLength(source)) limit MAX_PACKAGE_MANIFEST_BYTES {
-      if (utf8Scalar(source, cursor) == 10) {
-        return cursor;
-      }
-
-      cursor += utf8Width(source, cursor);
-    }
-
-    return cursor;
-  }
-
-  private boolean exactIndent(
-    borrow utf8 source,
-    long lineStart,
-    long tokenStart,
-    long expected
-  ) {
-    if (tokenStart == lineStart + expected) {} else {
-      return false;
-    }
-
-    long cursor = lineStart;
-    while (cursor < tokenStart) limit 6 {
-      if (utf8Scalar(source, cursor) == 32) {} else {
-        return false;
-      }
-
-      cursor += 1;
-    }
-
-    return true;
-  }
 
   private boolean plainLine(
     borrow utf8 source,
@@ -61,7 +27,7 @@ classical class PackageCanonical {
       }
     }
 
-    if (exactIndent(source, lineStart, starts[first], indent)) {} else {
+    if (canonicalExactIndent(source, lineStart, starts[first], indent)) {} else {
       return false;
     }
 
@@ -119,7 +85,7 @@ classical class PackageCanonical {
       }
     }
 
-    if (exactIndent(source, lineStart, starts[first], indent)) {} else {
+    if (canonicalExactIndent(source, lineStart, starts[first], indent)) {} else {
       return false;
     }
 
@@ -234,7 +200,7 @@ classical class PackageCanonical {
     long line = 0;
     long section = 0;
     while (cursor < sourceLength) limit MAX_PACKAGE_MANIFEST_BYTES {
-      long end = lineEnd(source, cursor);
+      long end = canonicalLineEnd(source, cursor);
       if (cursor < end) {} else {
         return false;
       }

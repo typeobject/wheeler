@@ -108,6 +108,9 @@ final class NativeCompilerPhysicalModules {
             "packages.manifest_tokens"),
         physical("compiler/packages/Names.w", "packages.names"),
         physical("compiler/packages/Paths.w", "packages.paths"),
+        physical(
+            "compiler/packages/canonical/PackageCanonicalCoordinates.w",
+            "packages.canonical_coordinates"),
         physical("compiler/packages/semver/SemverCoreValidation.w", "packages.semver_core_validation"),
         physical("compiler/packages/semver/SemverCoordinates.w", "packages.semver_coordinates"),
         physical(
