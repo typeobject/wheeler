@@ -440,45 +440,77 @@ classical class DirectLoopBodyProducts {
                       }
                     } else {
                       if (
-                        signedLoopBodyLocal(
+                        punctuationAt(
                           source,
-                          owner,
-                          sourceValue.local,
-                          valueCount,
-                          valueRows,
-                          semanticCount,
+                          tokenKinds,
                           tokenStarts,
-                          tokenLengths
-                        )
+                          sourceToken + 1,
+                          PUNCTUATION_SEMICOLON
+                        ) == false
                       ) {
-                        opcode = STATEMENT_LOCAL_LONG_COPY_BASE + sourceValue.local;
-                        operandKind = OPERAND_LOCAL;
-                        operand = sourceValue.local;
-                      } else {
                         statementValid = false;
+                      }
+
+                      if (statementValid) {
+                        if (
+                          signedLoopBodyLocal(
+                            source,
+                            owner,
+                            sourceValue.local,
+                            valueCount,
+                            valueRows,
+                            semanticCount,
+                            tokenStarts,
+                            tokenLengths
+                          )
+                        ) {
+                          opcode = STATEMENT_LOCAL_LONG_COPY_BASE + sourceValue.local;
+                          operandKind = OPERAND_LOCAL;
+                          operand = sourceValue.local;
+                        } else {
+                          statementValid = false;
+                        }
                       }
                     }
                   } else {
                     statementValid = false;
                   }
                 } else {
-                  if (
-                    signedNumberWidth(source, tokenKinds, tokenStarts, sourceToken) != 1
-                  ) {
+                  long numberWidth = signedNumberWidth(
+                    source,
+                    tokenKinds,
+                    tokenStarts,
+                    sourceToken
+                  );
+                  if (numberWidth != 1) {
                     statementValid = false;
                   } else {
                     if (
-                      signedNumberValid(source, tokenStarts, tokenLengths, sourceToken)
-                    ) {
-                      opcode = STATEMENT_LOCAL_LONG;
-                      operand = parsedSignedNumber(
+                      punctuationAt(
                         source,
+                        tokenKinds,
                         tokenStarts,
-                        tokenLengths,
-                        sourceToken
-                      );
-                    } else {
+                        sourceToken + numberWidth,
+                        PUNCTUATION_SEMICOLON
+                      ) == false
+                    ) {
                       statementValid = false;
+                    }
+
+                    if (statementValid) {
+                      if (
+                        signedNumberValid(source, tokenStarts, tokenLengths, sourceToken)
+                      ) {
+                        opcode = STATEMENT_LOCAL_LONG;
+                        operand = parsedSignedNumber(
+                          source,
+                          tokenStarts,
+                          tokenLengths,
+                          sourceToken
+                        );
+                      } else {
+                        statementValid = false;
+                      }
                     }
                   }
                 }

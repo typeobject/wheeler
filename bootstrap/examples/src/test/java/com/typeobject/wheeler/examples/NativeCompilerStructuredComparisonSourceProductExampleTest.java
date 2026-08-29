@@ -471,6 +471,12 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
     assertNoArtifact(arithmeticLoopDeclarationSource().replace(
         "product + kind",
         "product + 1"));
+    assertNoArtifact(arithmeticLoopDeclarationSource().replace(
+        "index * 31",
+        "index - 1"));
+    assertNoArtifact(arithmeticLoopDeclarationSource().replace(
+        "product + kind",
+        "product - kind"));
   }
 
   @Test

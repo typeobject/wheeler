@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-28 |
-| Updated | 2026-08-28 |
+| Updated | 2026-08-29 |
 | Area | Self-hosting, structured loops, signed arithmetic, instruction encoding |
 | Depends on | WIP-0049, WIP-0052, WIP-0417 |
 | Supersedes | Accidental copy lowering for arithmetic declarations in loop bodies |
@@ -36,7 +36,7 @@ The structured source path needs a closed arithmetic owner before it can compile
 
 `ArithmeticLoopDeclarations.w` owns source recognition and logical operands. It accepts only `RESULT_RELATION_BINARY` with `LOCAL_MUL`, or `RESULT_RELATION_BINARY_SOURCES` with `LOCAL_ADD`. A multiplication with a local right operand and an addition with a literal right operand are recognized as unsupported forms and fail closed. They cannot fall through to copy lowering.
 
-`DirectLoopBodyProducts.w` delegates arithmetic recognition to that focused owner. The split keeps the general resolver at 776 lines.
+`DirectLoopBodyProducts.w` delegates arithmetic recognition to that focused owner. WIP-0427 also requires the token after a scalar local or literal fallback to be the statement semicolon. Operators outside the focused owner therefore fail instead of entering copy or constant lowering.
 
 `LoopArithmeticInstructionEncoding.w` owns measurement and bytes. Each declaration emits:
 
@@ -53,7 +53,7 @@ Physical projection maps the left coordinate encoded in the opcode and a local r
 
 `NativeCompilerStructuredComparisonSourceProductExampleTest` compiles one loop containing an indexed read, literal multiplication, two-local addition, assertions over the result, buffer output, and the loop update. The complete source-local artifact matches stage 0 byte for byte.
 
-Two negative fixtures change multiplication to a local right operand and addition to a literal right operand. Both forms trap before artifact length, code, identity, or publication changes.
+Four negative fixtures change multiplication to a local right operand, addition to a literal right operand, and both expressions to subtraction. Every form traps before artifact length, code, identity, or publication changes.
 
 Existing copy, update, assertion, buffer, UTF-8, call, and nested-control loop products retain their opcode ranges.
 
@@ -76,7 +76,7 @@ Reject an unsupported relation kind, wrong operation, non-signed source, unknown
 - [x] Logical left and right coordinates map and rebase independently.
 - [x] Measurement, local width, and code emission have one focused owner.
 - [x] The positive artifact matches stage 0 byte for byte.
-- [x] Both negative fixtures publish no artifact.
+- [x] Unsupported operand and operator fixtures publish no artifact.
 - [x] General resolver and encoder files remain below 1,000 lines.
 - [x] Manifest, archive, SHA-256, and dependent locks name the focused owners.
 
@@ -92,10 +92,11 @@ A signed 64-bit literal leaves no lossless coordinate field. The opcode column a
 
 ### Admit every arithmetic operation at once
 
-Each operation and operand family needs exact negative evidence. This WIP closes the two forms required by bounded token hashing and leaves the remaining matrix explicit.
+Each operation and operand family needs exact negative evidence. This WIP closes the two forms required by bounded token hashing. WIP-0427 closes the scalar fallback, so the remaining matrix is rejected rather than guessed.
 
 ## References
 
 - [WIP-0049](WIP-0049-bounded-native-source-product-compilation.md)
 - [WIP-0052](WIP-0052-bounded-native-structured-loop-products.md)
 - [WIP-0417](WIP-0417-utf8-loop-projection-products.md)
+- [WIP-0427](WIP-0427-retained-semver-identifier-comparison-product.md)

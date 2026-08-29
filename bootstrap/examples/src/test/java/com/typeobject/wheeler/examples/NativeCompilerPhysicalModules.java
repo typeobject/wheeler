@@ -149,7 +149,10 @@ final class NativeCompilerPhysicalModules {
         physical("compiler/syntax/calls/WideLocalCalls.w", "wide_local_calls"),
         physical(
             "compiler/packages/SemverPrereleaseValidation.w",
-            "packages.semver_prerelease_validation"));
+            "packages.semver_prerelease_validation"),
+        physical(
+            "compiler/packages/SemverIdentifierComparison.w",
+            "packages.semver_identifier_comparison"));
   }
 
   private static NativeCompilerArchiveClosureProgram.PhysicalModule physical(

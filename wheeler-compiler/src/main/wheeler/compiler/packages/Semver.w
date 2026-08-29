@@ -3,7 +3,7 @@
 module wheeler.compiler.packages.semver;
 
 import wheeler.compiler.packages.semver_coordinates;
-import wheeler.compiler.packages.semver_core_validation;
+import wheeler.compiler.packages.semver_identifier_comparison;
 import wheeler.compiler.packages.semver_prerelease_validation;
 
 classical class Semver {
@@ -15,76 +15,6 @@ classical class Semver {
   /// Checks whether `constraint` satisfies the canonical profile.
   public boolean validConstraint(borrow utf8 source, long start, long length) {
     return semverValidConstraint(source, start, length);
-  }
-
-  private boolean numericIdentifier(borrow utf8 source, long start, long end) {
-    long cursor = start;
-    while (cursor < end) limit 64 {
-      if (semverDigit(utf8Scalar(source, cursor)) == false) {
-        return false;
-      }
-
-      cursor += utf8Width(source, cursor);
-    }
-
-    return true;
-  }
-
-  private long compareIdentifier(
-    borrow utf8 source,
-    long leftStart,
-    long leftEnd,
-    long rightStart,
-    long rightEnd
-  ) {
-    boolean leftNumeric = numericIdentifier(source, leftStart, leftEnd);
-    boolean rightNumeric = numericIdentifier(source, rightStart, rightEnd);
-    if (leftNumeric) {
-      if (rightNumeric == false) {
-        return -1;
-      }
-
-      long leftLength = leftEnd - leftStart;
-      long rightLength = rightEnd - rightStart;
-      if (leftLength < rightLength) {
-        return -1;
-      }
-
-      if (rightLength < leftLength) {
-        return 1;
-      }
-    } else {
-      if (rightNumeric) {
-        return 1;
-      }
-    }
-
-    long left = leftStart;
-    long right = rightStart;
-    while (left < leftEnd) limit 64 {
-      if (right < rightEnd) {
-        long leftScalar = utf8Scalar(source, left);
-        long rightScalar = utf8Scalar(source, right);
-        if (leftScalar < rightScalar) {
-          return -1;
-        }
-
-        if (rightScalar < leftScalar) {
-          return 1;
-        }
-
-        left += utf8Width(source, left);
-        right += utf8Width(source, right);
-      } else {
-        return 1;
-      }
-    }
-
-    if (right < rightEnd) {
-      return -1;
-    }
-
-    return 0;
   }
 
   /// Compares two valid canonical releases under semantic-version precedence.
@@ -132,7 +62,7 @@ classical class Semver {
       if (right < rightDocumentEnd) {
         long leftEnd = semverIdentifierEnd(source, left, leftDocumentEnd);
         long rightEnd = semverIdentifierEnd(source, right, rightDocumentEnd);
-        long comparison = compareIdentifier(source, left, leftEnd, right, rightEnd);
+        long comparison = semverCompareIdentifier(source, left, leftEnd, right, rightEnd);
         if (comparison == 0) {
           left = leftEnd + 1;
           right = rightEnd + 1;
