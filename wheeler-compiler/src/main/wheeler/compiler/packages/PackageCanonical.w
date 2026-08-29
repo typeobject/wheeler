@@ -3,6 +3,7 @@
 module wheeler.compiler.packages.canonical;
 
 import wheeler.compiler.packages.canonical_coordinates;
+import wheeler.compiler.packages.canonical_indent;
 import wheeler.compiler.packages.canonical_lines;
 import wheeler.compiler.packages.manifest_tokens;
 
@@ -60,40 +61,11 @@ classical class PackageCanonical {
       }
 
       long lineTokens = token - first;
-      long indent = 0;
-      if (line < 2) {
-        indent = 0;
-      } else {
-        if (line < 5) {
-          indent = 2;
-        } else {
-          if (line == 5) {
-            indent = 0;
-            section = 1;
-          } else {
-            long hash = tokenHash(source, starts, lengths, first);
-            if (hash == 2626680644436426025) {
-              indent = 0;
-              section = 2;
-            } else {
-              if (hash == 2597989917310390198) {
-                indent = 0;
-                section = 3;
-              } else {
-                if (kinds[first] == 3) {
-                  if (lineTokens == 2) {
-                    indent = 6;
-                  } else {
-                    indent = 2;
-                  }
-                } else {
-                  indent = 4;
-                }
-              }
-            }
-          }
-        }
-      }
+      long hash = tokenHash(source, starts, lengths, first);
+      long firstKind = kinds[first];
+      long nextSection = canonicalManifestSection(line, hash, section);
+      long indent = canonicalManifestIndent(line, hash, firstKind, lineTokens);
+      section = nextSection;
 
       boolean indentValid = canonicalExactIndent(source, cursor, starts[first], indent);
       if (indentValid == false) {
