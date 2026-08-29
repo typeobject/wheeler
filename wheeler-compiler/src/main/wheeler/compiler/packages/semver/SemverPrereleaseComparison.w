@@ -48,6 +48,20 @@ classical class SemverPrereleaseComparison {
     return left;
   }
 
+  private long projectedIdentifierEnd(borrow utf8 source, long start, long end) {
+    return semverIdentifierEnd(source, start, end);
+  }
+
+  private long identifierComparison(
+    borrow utf8 source,
+    long leftStart,
+    long leftEnd,
+    long rightStart,
+    long rightEnd
+  ) {
+    return semverCompareIdentifier(source, leftStart, leftEnd, rightStart, rightEnd);
+  }
+
   private long identifierTailComparison(
     long comparison,
     long left,
@@ -97,9 +111,9 @@ classical class SemverPrereleaseComparison {
       rightDocumentEnd
     );
     while (left < scanEnd) limit 64 {
-      long leftEnd = semverIdentifierEnd(source, left, leftDocumentEnd);
-      long rightEnd = semverIdentifierEnd(source, right, rightDocumentEnd);
-      long nextComparison = semverCompareIdentifier(source, left, leftEnd, right, rightEnd);
+      long leftEnd = projectedIdentifierEnd(source, left, leftDocumentEnd);
+      long rightEnd = projectedIdentifierEnd(source, right, rightDocumentEnd);
+      long nextComparison = identifierComparison(source, left, leftEnd, right, rightEnd);
       long nextLeft = leftEnd;
       long nextRight = rightEnd;
       nextLeft += 1;

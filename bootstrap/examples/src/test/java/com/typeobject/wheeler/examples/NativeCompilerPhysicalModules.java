@@ -155,7 +155,10 @@ final class NativeCompilerPhysicalModules {
             "packages.semver_identifier_comparison"),
         physical(
             "compiler/packages/semver/SemverCoreComparison.w",
-            "packages.semver_core_comparison"));
+            "packages.semver_core_comparison"),
+        physical(
+            "compiler/packages/semver/SemverPrereleaseComparison.w",
+            "packages.semver_prerelease_comparison"));
   }
 
   private static NativeCompilerArchiveClosureProgram.PhysicalModule physical(
