@@ -5,6 +5,11 @@ module wheeler.compiler.packages.canonical_lines;
 import wheeler.compiler.packages.canonical_line_kinds;
 
 classical class PackageCanonicalLines {
+  private long rowValue(borrow mut words rows, long index) {
+    long value = rows[index];
+    return value;
+  }
+
   private boolean plainBaseShape(
     borrow utf8 source,
     borrow mut words kinds,
@@ -12,18 +17,24 @@ classical class PackageCanonicalLines {
     borrow mut words lengths,
     long first
   ) {
-    long keyEnd = starts[first] + lengths[first];
-    boolean adjacentColon = starts[first + 1] == keyEnd;
+    long one = 1;
+    long colonIndex = first + one;
+    long keyStart = rowValue(starts, first);
+    long keyLength = rowValue(lengths, first);
+    long keyEnd = keyStart + keyLength;
+    long colonStart = rowValue(starts, colonIndex);
+    boolean adjacentColon = colonStart == keyEnd;
     if (adjacentColon == false) {
       return false;
     }
 
-    boolean punctuationKind = kinds[first + 1] == 3;
+    long colonKind = rowValue(kinds, colonIndex);
+    boolean punctuationKind = colonKind == 3;
     if (punctuationKind == false) {
       return false;
     }
 
-    if (utf8Scalar(source, starts[first + 1]) == 58) {
+    if (utf8Scalar(source, colonStart) == 58) {
       return true;
     }
 
@@ -36,9 +47,15 @@ classical class PackageCanonicalLines {
     borrow mut words lengths,
     long first
   ) {
-    long colonEnd = starts[first + 1] + lengths[first + 1];
-    long valueStart = colonEnd + 1;
-    boolean adjacentValue = starts[first + 2] == valueStart;
+    long one = 1;
+    long colonIndex = first + one;
+    long valueIndex = colonIndex + one;
+    long colonStart = rowValue(starts, colonIndex);
+    long colonLength = rowValue(lengths, colonIndex);
+    long colonEnd = colonStart + colonLength;
+    long valueStart = colonEnd + one;
+    long actualValueStart = rowValue(starts, valueIndex);
+    boolean adjacentValue = actualValueStart == valueStart;
     if (adjacentValue == false) {
       return false;
     }
@@ -55,8 +72,15 @@ classical class PackageCanonicalLines {
     borrow mut words lengths,
     long first
   ) {
-    long finalStart = starts[first + 2] + lengths[first + 2];
-    if (starts[first + 3] == finalStart) {
+    long one = 1;
+    long colonIndex = first + one;
+    long valueIndex = colonIndex + one;
+    long finalIndex = valueIndex + one;
+    long valueStart = rowValue(starts, valueIndex);
+    long valueLength = rowValue(lengths, valueIndex);
+    long finalStart = valueStart + valueLength;
+    long actualFinalStart = rowValue(starts, finalIndex);
+    if (actualFinalStart == finalStart) {
       return true;
     }
 
@@ -137,9 +161,14 @@ classical class PackageCanonicalLines {
     borrow mut words lengths,
     long first
   ) {
-    long dashEnd = starts[first] + lengths[first];
-    long valueStart = dashEnd + 1;
-    boolean adjacentValue = starts[first + 1] == valueStart;
+    long one = 1;
+    long valueIndex = first + one;
+    long dashStart = rowValue(starts, first);
+    long dashLength = rowValue(lengths, first);
+    long dashEnd = dashStart + dashLength;
+    long valueStart = dashEnd + one;
+    long actualValueStart = rowValue(starts, valueIndex);
+    boolean adjacentValue = actualValueStart == valueStart;
     if (adjacentValue == false) {
       return false;
     }
@@ -157,20 +186,29 @@ classical class PackageCanonicalLines {
     borrow mut words lengths,
     long first
   ) {
-    long keyEnd = starts[first + 1] + lengths[first + 1];
-    boolean adjacentColon = starts[first + 2] == keyEnd;
+    long one = 1;
+    long keyIndex = first + one;
+    long colonIndex = keyIndex + one;
+    long fieldIndex = colonIndex + one;
+    long keyStart = rowValue(starts, keyIndex);
+    long keyLength = rowValue(lengths, keyIndex);
+    long keyEnd = keyStart + keyLength;
+    long colonStart = rowValue(starts, colonIndex);
+    boolean adjacentColon = colonStart == keyEnd;
     if (adjacentColon == false) {
       return false;
     }
 
-    boolean colon = utf8Scalar(source, starts[first + 2]) == 58;
+    boolean colon = utf8Scalar(source, colonStart) == 58;
     if (colon == false) {
       return false;
     }
 
-    long colonEnd = starts[first + 2] + lengths[first + 2];
-    long fieldStart = colonEnd + 1;
-    boolean adjacentField = starts[first + 3] == fieldStart;
+    long colonLength = rowValue(lengths, colonIndex);
+    long colonEnd = colonStart + colonLength;
+    long fieldStart = colonEnd + one;
+    long actualFieldStart = rowValue(starts, fieldIndex);
+    boolean adjacentField = actualFieldStart == fieldStart;
     if (adjacentField == false) {
       return false;
     }
@@ -234,12 +272,14 @@ classical class PackageCanonicalLines {
     borrow mut words starts,
     long first
   ) {
-    boolean punctuationKind = kinds[first] == 3;
+    long firstKind = rowValue(kinds, first);
+    boolean punctuationKind = firstKind == 3;
     if (punctuationKind == false) {
       return false;
     }
 
-    if (utf8Scalar(source, starts[first]) == 45) {
+    long firstStart = rowValue(starts, first);
+    if (utf8Scalar(source, firstStart) == 45) {
       return true;
     }
 
@@ -276,7 +316,9 @@ classical class PackageCanonicalLines {
     }
 
     long finalToken = canonicalFinalLineToken(first, lineTokens);
-    long finalEnd = starts[finalToken] + lengths[finalToken];
+    long finalStart = rowValue(starts, finalToken);
+    long finalLength = rowValue(lengths, finalToken);
+    long finalEnd = finalStart + finalLength;
     if (finalEnd == lineEnd) {
       return true;
     }
