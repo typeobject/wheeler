@@ -3,174 +3,11 @@
 module wheeler.compiler.packages.canonical;
 
 import wheeler.compiler.packages.canonical_coordinates;
+import wheeler.compiler.packages.canonical_lines;
 import wheeler.compiler.packages.manifest_tokens;
 
 classical class PackageCanonical {
   private const long MAX_PACKAGE_MANIFEST_BYTES = 262144;
-
-  private boolean plainLine(
-    borrow utf8 source,
-    borrow mut words kinds,
-    borrow mut words starts,
-    borrow mut words lengths,
-    long first,
-    long lineTokens,
-    long lineStart,
-    long lineEnd,
-    long indent
-  ) {
-    if (lineTokens == 2) {} else {
-      if (lineTokens == 3) {} else {
-        if (lineTokens == 4) {} else {
-          return false;
-        }
-      }
-    }
-
-    if (canonicalExactIndent(source, lineStart, starts[first], indent)) {} else {
-      return false;
-    }
-
-    long keyEnd = starts[first] + lengths[first];
-    if (starts[first + 1] == keyEnd) {} else {
-      return false;
-    }
-
-    if (kinds[first + 1] == 3) {} else {
-      return false;
-    }
-
-    if (utf8Scalar(source, starts[first + 1]) == 58) {} else {
-      return false;
-    }
-
-    long finalToken = first + 1;
-    if (2 < lineTokens) {
-      long colonEnd = starts[first + 1] + lengths[first + 1];
-      if (starts[first + 2] == colonEnd + 1) {} else {
-        return false;
-      }
-
-      if (utf8Scalar(source, colonEnd) == 32) {} else {
-        return false;
-      }
-
-      finalToken = first + 2;
-      if (lineTokens == 4) {
-        if (starts[first + 3] == starts[first + 2] + lengths[first + 2]) {} else {
-          return false;
-        }
-
-        finalToken = first + 3;
-      }
-    }
-
-    return starts[finalToken] + lengths[finalToken] == lineEnd;
-  }
-
-  private boolean dashedLine(
-    borrow utf8 source,
-    borrow mut words kinds,
-    borrow mut words starts,
-    borrow mut words lengths,
-    long first,
-    long lineTokens,
-    long lineStart,
-    long lineEnd,
-    long indent
-  ) {
-    if (lineTokens == 2) {} else {
-      if (lineTokens == 4) {} else {
-        return false;
-      }
-    }
-
-    if (canonicalExactIndent(source, lineStart, starts[first], indent)) {} else {
-      return false;
-    }
-
-    if (kinds[first] == 3) {} else {
-      return false;
-    }
-
-    if (utf8Scalar(source, starts[first]) == 45) {} else {
-      return false;
-    }
-
-    long dashEnd = starts[first] + lengths[first];
-    if (starts[first + 1] == dashEnd + 1) {} else {
-      return false;
-    }
-
-    if (utf8Scalar(source, dashEnd) == 32) {} else {
-      return false;
-    }
-
-    long finalToken = first + 1;
-    if (lineTokens == 4) {
-      long keyEnd = starts[first + 1] + lengths[first + 1];
-      if (starts[first + 2] == keyEnd) {} else {
-        return false;
-      }
-
-      if (utf8Scalar(source, starts[first + 2]) == 58) {} else {
-        return false;
-      }
-
-      long colonEnd = starts[first + 2] + lengths[first + 2];
-      if (starts[first + 3] == colonEnd + 1) {} else {
-        return false;
-      }
-
-      if (utf8Scalar(source, colonEnd) == 32) {} else {
-        return false;
-      }
-
-      finalToken = first + 3;
-    }
-
-    return starts[finalToken] + lengths[finalToken] == lineEnd;
-  }
-
-  private boolean canonicalLine(
-    borrow utf8 source,
-    borrow mut words kinds,
-    borrow mut words starts,
-    borrow mut words lengths,
-    long first,
-    long lineTokens,
-    long lineStart,
-    long lineEnd,
-    long indent
-  ) {
-    if (kinds[first] == 3) {
-      if (utf8Scalar(source, starts[first]) == 45) {
-        return dashedLine(
-          source,
-          kinds,
-          starts,
-          lengths,
-          first,
-          lineTokens,
-          lineStart,
-          lineEnd,
-          indent
-        );
-      }
-    }
-
-    return plainLine(
-      source,
-      kinds,
-      starts,
-      lengths,
-      first,
-      lineTokens,
-      lineStart,
-      lineEnd,
-      indent
-    );
-  }
 
   /// Accepts only the exact spaces, indentation, line breaks, and final newline.
   ///
@@ -258,19 +95,25 @@ classical class PackageCanonical {
         }
       }
 
-      if (
-        canonicalLine(
-          source,
-          kinds,
-          starts,
-          lengths,
-          first,
-          lineTokens,
-          cursor,
-          end,
-          indent
-        )
-      ) {} else {
+      boolean indentValid = canonicalExactIndent(source, cursor, starts[first], indent);
+      if (indentValid == false) {
+        return false;
+      }
+
+      boolean shapeValid = canonicalLineShape(
+        source,
+        kinds,
+        starts,
+        lengths,
+        first,
+        lineTokens
+      );
+      if (shapeValid == false) {
+        return false;
+      }
+
+      boolean endValid = canonicalLineEndMatches(starts, lengths, first, lineTokens, end);
+      if (endValid == false) {
         return false;
       }
 
