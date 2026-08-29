@@ -513,6 +513,32 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
   }
 
   @Test
+  void rejectsAConditionalAfterLocalWordProjectionCalls() throws Exception {
+    String source = """
+        module example.structured_call;
+
+        classical class StructuredCall {
+          private long rowValue(borrow mut words values, long index) {
+            long value = values[index];
+            return value;
+          }
+
+          public boolean recurse(borrow mut words values, long index) {
+            long value = rowValue(values, index);
+            boolean expected = value == 3;
+            if (expected == false) {
+              return false;
+            }
+
+            return true;
+          }
+        }
+        """;
+
+    assertRejected(source, 2, 10, 1);
+  }
+
+  @Test
   void emitsARootBorrowedWordProjection() throws Exception {
     String source = """
         module example.structured_call;
@@ -614,10 +640,8 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
       int start = Math.max(0, frame.programCounter() - 8);
       int end = Math.min(function.forward().size(), frame.programCounter() + 2);
       var nearby = function.forward().subList(start, end);
-      long target = function.forward().get(frame.programCounter() - 4).operands().getFirst();
       throw new AssertionError(
           function.name() + " instruction=" + frame.programCounter()
-              + " target=" + driver.functions().get((int) target).name()
               + " nearby=" + nearby,
           exception);
     }

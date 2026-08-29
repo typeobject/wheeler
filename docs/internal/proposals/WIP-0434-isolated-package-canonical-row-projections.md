@@ -41,7 +41,7 @@ This WIP does not claim byte equality for `PackageCanonicalLines.w`. WIP-0433 re
 
 ## Evidence
 
-`NativeCompilerPackageCanonicalLinesExampleTest` executes plain and dashed key-value lines through the normalized row owner. It checks exact final coordinates, an invalid count, and an invalid final end.
+`NativeCompilerPackageCanonicalLinesExampleTest` executes plain and dashed key-value lines through the normalized row owner. It checks exact final coordinates, an invalid count, and an invalid final end. `NativeCompilerStructuredCallSourceProductExampleTest` fixes the remaining local-row-call conditional as an explicit no-artifact case.
 
 The complete 121-product closure remains unchanged at 397 functions and 14,272 instructions. Its 429,128-byte executable identity remains `f76cc6a95bb90a6a33096d6ad5eed26f0b4798becab890d5f27310509a917298`.
 
