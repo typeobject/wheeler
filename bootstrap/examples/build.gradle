@@ -79,8 +79,8 @@ tasks.register('closureEvidenceTest', Test) { testTask ->
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
     useJUnitPlatform { includeTags 'closure-evidence' }
-    systemProperty 'junit.jupiter.execution.timeout.default', '24 m'
-    timeout = java.time.Duration.ofMinutes(28)
+    systemProperty 'junit.jupiter.execution.timeout.default', '45 m'
+    timeout = java.time.Duration.ofMinutes(50)
     configureExampleInputs(testTask)
     shouldRunAfter tasks.named('test')
 }

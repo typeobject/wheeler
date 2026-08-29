@@ -2,6 +2,7 @@
 
 module wheeler.compiler.packages.semver;
 
+import wheeler.compiler.packages.semver_coordinates;
 import wheeler.compiler.packages.semver_core_validation;
 import wheeler.compiler.packages.semver_prerelease_validation;
 
@@ -14,58 +15,6 @@ classical class Semver {
   /// Checks whether `constraint` satisfies the canonical profile.
   public boolean validConstraint(borrow utf8 source, long start, long length) {
     return semverValidConstraint(source, start, length);
-  }
-
-  private long coreComponent(borrow utf8 source, long start, long length, long component) {
-    long cursor = start;
-    long end = start + length;
-    long current = 0;
-    long value = 0;
-    while (cursor < end) limit 64 {
-      long scalar = utf8Scalar(source, cursor);
-      if (scalar == 45) {
-        cursor = end;
-      } else {
-        if (scalar == 46) {
-          current += 1;
-        } else {
-          if (current == component) {
-            value = value * 10 + scalar - 48;
-          }
-        }
-
-        cursor += utf8Width(source, cursor);
-      }
-    }
-
-    return value;
-  }
-
-  private long prereleaseStart(borrow utf8 source, long start, long length) {
-    long cursor = start;
-    long end = start + length;
-    while (cursor < end) limit 64 {
-      if (utf8Scalar(source, cursor) == 45) {
-        return cursor + 1;
-      }
-
-      cursor += utf8Width(source, cursor);
-    }
-
-    return end;
-  }
-
-  private long identifierEnd(borrow utf8 source, long start, long end) {
-    long cursor = start;
-    while (cursor < end) limit 64 {
-      if (utf8Scalar(source, cursor) == 46) {
-        return cursor;
-      }
-
-      cursor += utf8Width(source, cursor);
-    }
-
-    return end;
   }
 
   private boolean numericIdentifier(borrow utf8 source, long start, long end) {
@@ -148,8 +97,8 @@ classical class Semver {
   ) {
     long component = 0;
     while (component < 3) limit 3 {
-      long leftValue = coreComponent(source, leftStart, leftLength, component);
-      long rightValue = coreComponent(source, rightStart, rightLength, component);
+      long leftValue = semverCoreComponent(source, leftStart, leftLength, component);
+      long rightValue = semverCoreComponent(source, rightStart, rightLength, component);
       if (leftValue < rightValue) {
         return -1;
       }
@@ -163,8 +112,8 @@ classical class Semver {
 
     long leftDocumentEnd = leftStart + leftLength;
     long rightDocumentEnd = rightStart + rightLength;
-    long left = prereleaseStart(source, leftStart, leftLength);
-    long right = prereleaseStart(source, rightStart, rightLength);
+    long left = semverPrereleaseStart(source, leftStart, leftLength);
+    long right = semverPrereleaseStart(source, rightStart, rightLength);
     boolean leftStable = left == leftDocumentEnd;
     boolean rightStable = right == rightDocumentEnd;
     if (leftStable) {
@@ -181,8 +130,8 @@ classical class Semver {
 
     while (left < leftDocumentEnd) limit 64 {
       if (right < rightDocumentEnd) {
-        long leftEnd = identifierEnd(source, left, leftDocumentEnd);
-        long rightEnd = identifierEnd(source, right, rightDocumentEnd);
+        long leftEnd = semverIdentifierEnd(source, left, leftDocumentEnd);
+        long rightEnd = semverIdentifierEnd(source, right, rightDocumentEnd);
         long comparison = compareIdentifier(source, left, leftEnd, right, rightEnd);
         if (comparison == 0) {
           left = leftEnd + 1;

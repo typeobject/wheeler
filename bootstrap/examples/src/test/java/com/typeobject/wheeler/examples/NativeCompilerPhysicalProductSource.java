@@ -57,6 +57,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.packages.manifest_tokens",
       "wheeler.compiler.packages.names",
       "wheeler.compiler.packages.paths",
+      "wheeler.compiler.packages.semver_coordinates",
       "wheeler.compiler.packages.semver_core_validation",
       "wheeler.compiler.packages.semver_prerelease_validation",
       "wheeler.compiler.resolved_boolean_literal_assertions",

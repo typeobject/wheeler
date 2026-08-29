@@ -109,6 +109,7 @@ final class NativeCompilerPhysicalModules {
         physical("compiler/packages/Names.w", "packages.names"),
         physical("compiler/packages/Paths.w", "packages.paths"),
         physical("compiler/packages/SemverCoreValidation.w", "packages.semver_core_validation"),
+        physical("compiler/packages/SemverCoordinates.w", "packages.semver_coordinates"),
         physical(
             "compiler/closure/layouts/AggregateSourceProjection.w",
             "closure.aggregate_source_projection"),
