@@ -27,7 +27,7 @@ class NativeLockExampleTest {
             "Names.w", CompilerSources.read("compiler/packages/Names.w"),
             "NativeLock.w", Files.readString(root.resolve("NativeLock.w")),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
-            "Semver.w", CompilerSources.read("compiler/packages/Semver.w")),
+            "Semver.w", CompilerSources.read("compiler/packages/semver/Semver.w")),
         "wheeler.conformance.packages.lock_main");
     String a = "a".repeat(64);
     String b = "b".repeat(64);

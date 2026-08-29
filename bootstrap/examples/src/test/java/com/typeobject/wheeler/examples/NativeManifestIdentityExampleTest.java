@@ -74,7 +74,7 @@ final class NativeManifestIdentityExampleTest {
             "ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w"),
             "Names.w", CompilerSources.read("compiler/packages/Names.w"),
             "Paths.w", CompilerSources.read("compiler/packages/Paths.w"),
-            "Semver.w", CompilerSources.read("compiler/packages/Semver.w"),
+            "Semver.w", CompilerSources.read("compiler/packages/semver/Semver.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
             "Sha256.w", CoreSources.read("crypto/Sha256.w")),
         "wheeler.conformance.packages.manifest_identity");

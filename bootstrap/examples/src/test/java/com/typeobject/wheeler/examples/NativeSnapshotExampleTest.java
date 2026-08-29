@@ -86,7 +86,7 @@ final class NativeSnapshotExampleTest {
         Map.of(
             "NativeSnapshot.w", Files.readString(FIXTURE),
             "Snapshot.w", PackageSources.read("packages/repository/Snapshot.w"),
-            "Semver.w", CompilerSources.read("compiler/packages/Semver.w"),
+            "Semver.w", CompilerSources.read("compiler/packages/semver/Semver.w"),
             "ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w"),
             "ManifestEmitter.w", PackageSources.read("packages/manifest/ManifestEmitter.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w")),

@@ -60,7 +60,7 @@ class NativeManifestExampleTest {
             "NativeManifest.w", Files.readString(root.resolve("NativeManifest.w")),
             "Paths.w", CompilerSources.read("compiler/packages/Paths.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
-            "Semver.w", CompilerSources.read("compiler/packages/Semver.w")),
+            "Semver.w", CompilerSources.read("compiler/packages/semver/Semver.w")),
         "wheeler.conformance.packages.main");
     assertEquals(MANIFEST, new com.typeobject.wheeler.packageformat.PackageManifestParser()
         .parse(MANIFEST).canonicalText());

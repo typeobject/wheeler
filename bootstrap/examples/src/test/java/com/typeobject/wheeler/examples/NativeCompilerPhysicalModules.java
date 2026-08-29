@@ -108,8 +108,8 @@ final class NativeCompilerPhysicalModules {
             "packages.manifest_tokens"),
         physical("compiler/packages/Names.w", "packages.names"),
         physical("compiler/packages/Paths.w", "packages.paths"),
-        physical("compiler/packages/SemverCoreValidation.w", "packages.semver_core_validation"),
-        physical("compiler/packages/SemverCoordinates.w", "packages.semver_coordinates"),
+        physical("compiler/packages/semver/SemverCoreValidation.w", "packages.semver_core_validation"),
+        physical("compiler/packages/semver/SemverCoordinates.w", "packages.semver_coordinates"),
         physical(
             "compiler/closure/layouts/AggregateSourceProjection.w",
             "closure.aggregate_source_projection"),
@@ -148,11 +148,14 @@ final class NativeCompilerPhysicalModules {
         physical("compiler/syntax/calls/VoidCallWidths.w", "void_call_widths"),
         physical("compiler/syntax/calls/WideLocalCalls.w", "wide_local_calls"),
         physical(
-            "compiler/packages/SemverPrereleaseValidation.w",
+            "compiler/packages/semver/SemverPrereleaseValidation.w",
             "packages.semver_prerelease_validation"),
         physical(
-            "compiler/packages/SemverIdentifierComparison.w",
-            "packages.semver_identifier_comparison"));
+            "compiler/packages/semver/SemverIdentifierComparison.w",
+            "packages.semver_identifier_comparison"),
+        physical(
+            "compiler/packages/semver/SemverCoreComparison.w",
+            "packages.semver_core_comparison"));
   }
 
   private static NativeCompilerArchiveClosureProgram.PhysicalModule physical(

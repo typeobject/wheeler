@@ -66,7 +66,7 @@ final class NativeLockIdentityExampleTest {
             "NativeLockIdentity.w", Files.readString(FIXTURE),
             "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
             "Lock.w", PackageSources.read("packages/resolution/Lock.w"),
-            "Semver.w", CompilerSources.read("compiler/packages/Semver.w"),
+            "Semver.w", CompilerSources.read("compiler/packages/semver/Semver.w"),
             "Names.w", CompilerSources.read("compiler/packages/Names.w"),
             "ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),

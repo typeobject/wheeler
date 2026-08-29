@@ -264,7 +264,7 @@ Expected result: four operations charge 23 work units, every terminal completion
 
 ### `NativeSnapshot.w`
 
-Files: [`NativeSnapshot.w`](../../wheeler-conformance/src/main/wheeler/packages/NativeSnapshot.w) + [`packages/repository/Snapshot.w`](../../wheeler-package/src/main/wheeler/packages/repository/Snapshot.w) + [`Semver.w`](../../wheeler-compiler/src/main/wheeler/compiler/packages/Semver.w).
+Files: [`NativeSnapshot.w`](../../wheeler-conformance/src/main/wheeler/packages/NativeSnapshot.w) + [`packages/repository/Snapshot.w`](../../wheeler-package/src/main/wheeler/packages/repository/Snapshot.w) + [`Semver.w`](../../wheeler-compiler/src/main/wheeler/compiler/packages/semver/Semver.w).
 
 Covers: Strict schema-1 repository snapshot layout, empty snapshots, caller-owned coordinate rows, lowercase content identities, package ordering, full stable and prerelease semantic-version precedence, exact canonical republication, independent stage-0 decoding, and full VM rewind.
 

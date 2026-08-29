@@ -81,7 +81,7 @@ final class NativeArchiveIdentityExampleTest {
             Map.entry("Names.w", CompilerSources.read("compiler/packages/Names.w")),
             Map.entry("Paths.w", CompilerSources.read("compiler/packages/Paths.w")),
             Map.entry("Scanner.w", CompilerSources.read("lexer/Scanner.w")),
-            Map.entry("Semver.w", CompilerSources.read("compiler/packages/Semver.w")),
+            Map.entry("Semver.w", CompilerSources.read("compiler/packages/semver/Semver.w")),
             Map.entry("Sha256.w", CoreSources.read("crypto/Sha256.w"))),
         "wheeler.conformance.packages.archive_identity");
   }

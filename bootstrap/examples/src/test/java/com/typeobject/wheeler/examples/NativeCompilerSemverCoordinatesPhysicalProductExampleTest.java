@@ -41,7 +41,7 @@ final class NativeCompilerSemverCoordinatesPhysicalProductExampleTest {
 
   @Test
   void executesBoundedSemverCoordinates() throws Exception {
-    String coordinates = CompilerSources.read("compiler/packages/SemverCoordinates.w");
+    String coordinates = CompilerSources.read("compiler/packages/semver/SemverCoordinates.w");
     String root = """
         module example.semver_coordinates;
 
