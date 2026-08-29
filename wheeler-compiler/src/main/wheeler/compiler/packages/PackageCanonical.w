@@ -5,6 +5,7 @@ module wheeler.compiler.packages.canonical;
 import wheeler.compiler.packages.canonical_coordinates;
 import wheeler.compiler.packages.canonical_indent;
 import wheeler.compiler.packages.canonical_lines;
+import wheeler.compiler.packages.canonical_profile;
 import wheeler.compiler.packages.manifest_tokens;
 
 classical class PackageCanonical {
@@ -20,18 +21,12 @@ classical class PackageCanonical {
     borrow mut words lengths,
     long count
   ) {
+    boolean bounded = canonicalManifestBounds(source);
+    if (bounded == false) {
+      return false;
+    }
+
     long sourceLength = bufferLength(source);
-    if (0 < sourceLength) {} else {
-      return false;
-    }
-
-    if (sourceLength < MAX_PACKAGE_MANIFEST_BYTES + 1) {} else {
-      return false;
-    }
-
-    if (utf8Scalar(source, sourceLength - 1) == 10) {} else {
-      return false;
-    }
 
     long cursor = 0;
     long token = 0;
@@ -93,10 +88,6 @@ classical class PackageCanonical {
       line += 1;
     }
 
-    if (token == count) {
-      return section == 3;
-    }
-
-    return false;
+    return canonicalManifestComplete(token, count, section);
   }
 }

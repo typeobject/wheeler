@@ -117,6 +117,9 @@ final class NativeCompilerPhysicalModules {
         physical(
             "compiler/packages/canonical/PackageCanonicalIndent.w",
             "packages.canonical_indent"),
+        physical(
+            "compiler/packages/canonical/PackageCanonicalProfile.w",
+            "packages.canonical_profile"),
         physical("compiler/packages/semver/SemverCoreValidation.w", "packages.semver_core_validation"),
         physical("compiler/packages/semver/SemverCoordinates.w", "packages.semver_coordinates"),
         physical(
