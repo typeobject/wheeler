@@ -10,6 +10,7 @@ import com.typeobject.wheeler.core.vm.VmTrap;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -51,17 +52,14 @@ class NativeManifestExampleTest {
   @Test
   void wheelerParsesTheSameCanonicalManifestAsStageZero() throws Exception {
     Path root = Path.of("../wheeler-conformance/src/main/wheeler/packages");
+    Map<String, String> modules = new LinkedHashMap<>(
+        CompilerSources.moduleClosure("wheeler.compiler.packages.manifest"));
+    modules.put(
+        "ManifestEmitter.w", PackageSources.read("packages/manifest/ManifestEmitter.w"));
+    modules.put("NativeManifest.w", Files.readString(root.resolve("NativeManifest.w")));
+    modules.put("Scanner.w", CompilerSources.read("lexer/Scanner.w"));
     Program program = new WheelerCompiler().compileModuleFiles(
-        Map.of(
-            "ManifestEmitter.w", PackageSources.read("packages/manifest/ManifestEmitter.w"),
-            "Manifest.w", CompilerSources.read("compiler/packages/PackageManifest.w"),
-            "ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w"),
-            "Names.w", CompilerSources.read("compiler/packages/Names.w"),
-            "NativeManifest.w", Files.readString(root.resolve("NativeManifest.w")),
-            "Paths.w", CompilerSources.read("compiler/packages/Paths.w"),
-            "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
-            "Semver.w", CompilerSources.read("compiler/packages/semver/Semver.w")),
-        "wheeler.conformance.packages.main");
+        modules, "wheeler.conformance.packages.main");
     assertEquals(MANIFEST, new com.typeobject.wheeler.packageformat.PackageManifestParser()
         .parse(MANIFEST).canonicalText());
     VirtualMachine machine = vm(program, MANIFEST);

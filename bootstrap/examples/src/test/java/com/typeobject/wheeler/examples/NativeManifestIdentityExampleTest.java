@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.HexFormat;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -66,18 +67,14 @@ final class NativeManifestIdentityExampleTest {
   }
 
   private static Program program() throws Exception {
+    Map<String, String> modules = new LinkedHashMap<>(
+        CompilerSources.moduleClosure("wheeler.compiler.packages.manifest"));
+    modules.put("ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"));
+    modules.put("NativeManifestIdentity.w", Files.readString(FIXTURE));
+    modules.put("Scanner.w", CompilerSources.read("lexer/Scanner.w"));
+    modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     return new WheelerCompiler().compileModuleFiles(
-        Map.of(
-            "NativeManifestIdentity.w", Files.readString(FIXTURE),
-            "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
-            "Manifest.w", CompilerSources.read("compiler/packages/PackageManifest.w"),
-            "ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w"),
-            "Names.w", CompilerSources.read("compiler/packages/Names.w"),
-            "Paths.w", CompilerSources.read("compiler/packages/Paths.w"),
-            "Semver.w", CompilerSources.read("compiler/packages/semver/Semver.w"),
-            "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
-            "Sha256.w", CoreSources.read("crypto/Sha256.w")),
-        "wheeler.conformance.packages.manifest_identity");
+        modules, "wheeler.conformance.packages.manifest_identity");
   }
 
   private static String twoTargets() {

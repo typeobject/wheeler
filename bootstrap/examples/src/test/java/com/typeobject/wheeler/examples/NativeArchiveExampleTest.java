@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -25,21 +26,15 @@ class NativeArchiveExampleTest {
   @Test
   void wheelerInspectsOuterAndEntryDigestCheckedArchive() throws Exception {
     Path root = Path.of("../wheeler-conformance/src/main/wheeler/packages");
-    Map<String, String> modules = Map.ofEntries(
-            Map.entry("Archive.w", PackageSources.read("packages/archive/Archive.w")),
-            Map.entry("Binary.w", CoreSources.read("encoding/Binary.w")),
-            Map.entry("FixedBinary.w", CoreSources.read("encoding/FixedBinary.w")),
-            Map.entry(
-                "PackageCanonical.w",
-                CompilerSources.read("compiler/packages/PackageCanonical.w")),
-            Map.entry("Manifest.w", CompilerSources.read("compiler/packages/PackageManifest.w")),
-            Map.entry("ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w")),
-            Map.entry("Names.w", CompilerSources.read("compiler/packages/Names.w")),
-            Map.entry("NativeArchive.w", Files.readString(root.resolve("NativeArchive.w"))),
-            Map.entry("Paths.w", CompilerSources.read("compiler/packages/Paths.w")),
-            Map.entry("Scanner.w", CompilerSources.read("lexer/Scanner.w")),
-            Map.entry("Semver.w", CompilerSources.read("compiler/packages/semver/Semver.w")),
-            Map.entry("Sha256.w", CoreSources.read("crypto/Sha256.w")));
+    Map<String, String> modules = new LinkedHashMap<>(
+        CompilerSources.moduleClosure("wheeler.compiler.packages.canonical"));
+    modules.putAll(CompilerSources.moduleClosure("wheeler.compiler.packages.manifest"));
+    modules.put("Archive.w", PackageSources.read("packages/archive/Archive.w"));
+    modules.put("Binary.w", CoreSources.read("encoding/Binary.w"));
+    modules.put("FixedBinary.w", CoreSources.read("encoding/FixedBinary.w"));
+    modules.put("NativeArchive.w", Files.readString(root.resolve("NativeArchive.w")));
+    modules.put("Scanner.w", CompilerSources.read("lexer/Scanner.w"));
+    modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     Program inspector = new WheelerCompiler().compileModuleFiles(
         modules, "wheeler.conformance.packages.archive_main");
     Map<String, String> provenanceModules = new HashMap<>(modules);

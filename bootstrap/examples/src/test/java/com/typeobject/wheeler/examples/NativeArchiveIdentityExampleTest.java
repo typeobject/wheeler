@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.HexFormat;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -66,24 +67,18 @@ final class NativeArchiveIdentityExampleTest {
   }
 
   private static Program program() throws Exception {
+    Map<String, String> modules = new LinkedHashMap<>(
+        CompilerSources.moduleClosure("wheeler.compiler.packages.canonical"));
+    modules.putAll(CompilerSources.moduleClosure("wheeler.compiler.packages.manifest"));
+    modules.put("Archive.w", PackageSources.read("packages/archive/Archive.w"));
+    modules.put("Binary.w", CoreSources.read("encoding/Binary.w"));
+    modules.put("ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"));
+    modules.put("FixedBinary.w", CoreSources.read("encoding/FixedBinary.w"));
+    modules.put("NativeArchiveIdentity.w", Files.readString(FIXTURE));
+    modules.put("Scanner.w", CompilerSources.read("lexer/Scanner.w"));
+    modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     return new WheelerCompiler().compileModuleFiles(
-        Map.ofEntries(
-            Map.entry("NativeArchiveIdentity.w", Files.readString(FIXTURE)),
-            Map.entry("Archive.w", PackageSources.read("packages/archive/Archive.w")),
-            Map.entry("Binary.w", CoreSources.read("encoding/Binary.w")),
-            Map.entry("ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w")),
-            Map.entry("FixedBinary.w", CoreSources.read("encoding/FixedBinary.w")),
-            Map.entry(
-                "PackageCanonical.w",
-                CompilerSources.read("compiler/packages/PackageCanonical.w")),
-            Map.entry("Manifest.w", CompilerSources.read("compiler/packages/PackageManifest.w")),
-            Map.entry("ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w")),
-            Map.entry("Names.w", CompilerSources.read("compiler/packages/Names.w")),
-            Map.entry("Paths.w", CompilerSources.read("compiler/packages/Paths.w")),
-            Map.entry("Scanner.w", CompilerSources.read("lexer/Scanner.w")),
-            Map.entry("Semver.w", CompilerSources.read("compiler/packages/semver/Semver.w")),
-            Map.entry("Sha256.w", CoreSources.read("crypto/Sha256.w"))),
-        "wheeler.conformance.packages.archive_identity");
+        modules, "wheeler.conformance.packages.archive_identity");
   }
 
   private static VirtualMachine vm(Program program, byte[] source) {

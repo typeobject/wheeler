@@ -2,6 +2,7 @@
 
 module wheeler.compiler.packages.manifest;
 
+import wheeler.compiler.packages.manifest_kinds;
 import wheeler.compiler.packages.manifest_tokens;
 import wheeler.compiler.packages.names;
 import wheeler.compiler.packages.paths;
@@ -119,74 +120,6 @@ classical class Manifest {
     return false;
   }
 
-  private long booleanToken(
-    borrow utf8 source,
-    borrow mut words starts,
-    borrow mut words lengths,
-    long token
-  ) {
-    long hash = tokenHash(source, starts, lengths, token);
-    if (hash == 3569038) {
-      return 1;
-    }
-
-    if (hash == 97196323) {
-      return 0;
-    }
-
-    return -1;
-  }
-
-  private long targetKind(
-    borrow utf8 source,
-    borrow mut words kinds,
-    borrow mut words starts,
-    borrow mut words lengths,
-    long token
-  ) {
-    if (quoted(kinds, lengths, token)) {
-      long hash = quotedHash(source, starts, lengths, token);
-      if (hash == 2733284766595777) {
-        return 1;
-      }
-
-      if (hash == 98950456507) {
-        return 2;
-      }
-
-      if (hash == 3565976) {
-        return 3;
-      }
-    }
-
-    return 0;
-  }
-
-  private long dependencyKind(
-    borrow utf8 source,
-    borrow mut words kinds,
-    borrow mut words starts,
-    borrow mut words lengths,
-    long token
-  ) {
-    if (quoted(kinds, lengths, token)) {
-      long hash = quotedHash(source, starts, lengths, token);
-      if (hash == 3255221479) {
-        return 1;
-      }
-
-      if (hash == 84736749587766587) {
-        return 2;
-      }
-
-      if (hash == 94094958) {
-        return 3;
-      }
-    }
-
-    return 0;
-  }
-
   private boolean rowCapacity(borrow mut words rows, long row, long width) {
     long finalColumn = row * width + width - 1;
     return finalColumn < bufferLength(rows);
@@ -253,7 +186,7 @@ classical class Manifest {
     if (cursor + 12 < count) {
       if (dashAt(source, kinds, starts, cursor)) {
         if (key(source, kinds, starts, lengths, count, cursor + 1, 3292052)) {
-          long kind = targetKind(source, kinds, starts, lengths, cursor + 3);
+          long kind = manifestTargetKind(source, kinds, starts, lengths, cursor + 3);
           if (0 < kind) {
             if (key(source, kinds, starts, lengths, count, cursor + 4, 3373707)) {
               if (quoted(kinds, lengths, cursor + 6)) {
@@ -383,7 +316,7 @@ classical class Manifest {
                         if (
                           key(source, kinds, starts, lengths, count, next, 3556498)
                         ) {
-                          long test = booleanToken(source, starts, lengths, next + 2);
+                          long test = manifestBooleanToken(source, starts, lengths, next + 2);
                           if (-1 < test) {
                             if (kind == 2) {
                               if (test == 1) {
@@ -430,7 +363,7 @@ classical class Manifest {
     if (cursor + 9 < count) {
       if (dashAt(source, kinds, starts, cursor)) {
         if (key(source, kinds, starts, lengths, count, cursor + 1, 3292052)) {
-          long kind = dependencyKind(source, kinds, starts, lengths, cursor + 3);
+          long kind = manifestDependencyKind(source, kinds, starts, lengths, cursor + 3);
           if (0 < kind) {
             if (key(source, kinds, starts, lengths, count, cursor + 4, 3373707)) {
               if (quoted(kinds, lengths, cursor + 6)) {
