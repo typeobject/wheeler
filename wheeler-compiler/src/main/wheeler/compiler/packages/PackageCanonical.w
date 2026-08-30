@@ -6,6 +6,7 @@ import wheeler.compiler.packages.canonical_coordinates;
 import wheeler.compiler.packages.canonical_indent;
 import wheeler.compiler.packages.canonical_lines;
 import wheeler.compiler.packages.canonical_profile;
+import wheeler.compiler.packages.canonical_token_window;
 import wheeler.compiler.packages.manifest_tokens;
 
 classical class PackageCanonical {
@@ -38,23 +39,13 @@ classical class PackageCanonical {
         return false;
       }
 
-      if (token < count) {} else {
-        return false;
-      }
-
-      if (starts[token] < end) {} else {
-        return false;
-      }
-
       long first = token;
-      while (token < count) limit MAX_PACKAGE_MANIFEST_BYTES {
-        if (starts[token] < end) {
-          token += 1;
-        } else {
-          break;
-        }
+      long nextToken = canonicalLineTokenEnd(starts, token, count, end);
+      if (first < nextToken) {} else {
+        return false;
       }
 
+      token = nextToken;
       long lineTokens = token - first;
       long hash = tokenHash(source, starts, lengths, first);
       long firstKind = kinds[first];

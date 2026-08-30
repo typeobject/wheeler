@@ -58,6 +58,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.packages.canonical_indent",
       "wheeler.compiler.packages.canonical_line_kinds",
       "wheeler.compiler.packages.canonical_profile",
+      "wheeler.compiler.packages.canonical_token_state",
       "wheeler.compiler.packages.manifest_tokens",
       "wheeler.compiler.packages.names",
       "wheeler.compiler.packages.paths",
