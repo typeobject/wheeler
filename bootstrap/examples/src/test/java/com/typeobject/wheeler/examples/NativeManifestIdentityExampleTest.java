@@ -62,6 +62,30 @@ final class NativeManifestIdentityExampleTest {
     assertEquals(initial, machine.snapshot());
 
     assertNoIdentity(program, MANIFEST.replace("schema: 1", "schema: 2").getBytes(StandardCharsets.UTF_8));
+    assertNoIdentity(
+        program,
+        MANIFEST.replace("dependencies: []", "dependencies:")
+            .getBytes(StandardCharsets.UTF_8));
+    assertNoIdentity(
+        program,
+        MANIFEST.replace("dependencies: []", "dependencies: [")
+            .getBytes(StandardCharsets.UTF_8));
+    assertNoIdentity(
+        program,
+        MANIFEST.replace("dependencies: []", "dependencies: ]")
+            .getBytes(StandardCharsets.UTF_8));
+    assertNoIdentity(
+        program,
+        MANIFEST.replace("capabilities: []", "capabilities:")
+            .getBytes(StandardCharsets.UTF_8));
+    assertNoIdentity(
+        program,
+        MANIFEST.replace("capabilities: []", "capabilities: [")
+            .getBytes(StandardCharsets.UTF_8));
+    assertNoIdentity(
+        program,
+        MANIFEST.replace("capabilities: []", "capabilities: ]")
+            .getBytes(StandardCharsets.UTF_8));
     assertNoIdentity(program, twoTargets().getBytes(StandardCharsets.UTF_8));
     assertNoIdentity(program, new byte[1025]);
   }

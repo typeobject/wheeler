@@ -2,6 +2,7 @@
 
 module wheeler.compiler.packages.manifest;
 
+import wheeler.compiler.packages.manifest_brackets;
 import wheeler.compiler.packages.manifest_kinds;
 import wheeler.compiler.packages.manifest_rows;
 import wheeler.compiler.packages.manifest_tokens;
@@ -98,23 +99,6 @@ classical class Manifest {
     if (token + 1 < count) {
       if (keywordAt(source, starts, lengths, token, hash)) {
         return colonAt(source, kinds, starts, token + 1);
-      }
-    }
-
-    return false;
-  }
-
-  private boolean punctuation(
-    borrow utf8 source,
-    borrow mut words kinds,
-    borrow mut words starts,
-    long count,
-    long token,
-    long scalar
-  ) {
-    if (token < count) {
-      if (kinds[token] == 3) {
-        return utf8Scalar(source, starts[token]) == scalar;
       }
     }
 
@@ -588,13 +572,28 @@ classical class Manifest {
 
     cursor += 2;
     long dependencyCount = 0;
-    if (punctuation(source, kinds, starts, count, cursor, 91)) {
-      if (punctuation(source, kinds, starts, count, cursor + 1, 93)) {
-        cursor += 2;
-      } else {
-        return new ManifestResult.Error(starts[cursor]);
+    if (cursor == count) {
+      return new ManifestResult.Error(0);
+    }
+
+    boolean emptyDependencies = false;
+    if (cursor < count) {
+      if (manifestOpenBracketAt(source, kinds, starts, cursor)) {
+        long dependencyCloseToken = cursor + 1;
+        if (dependencyCloseToken < count) {
+          if (manifestCloseBracketAt(source, kinds, starts, dependencyCloseToken)) {
+            cursor += 2;
+            emptyDependencies = true;
+          } else {
+            return new ManifestResult.Error(starts[cursor]);
+          }
+        } else {
+          return new ManifestResult.Error(starts[cursor]);
+        }
       }
-    } else {
+    }
+
+    if (emptyDependencies == false) {
       long previousDependencyToken = -1;
       boolean parsingDependencies = true;
       while (parsingDependencies) limit 512 {
@@ -660,13 +659,28 @@ classical class Manifest {
 
     cursor += 2;
     long capabilityCount = 0;
-    if (punctuation(source, kinds, starts, count, cursor, 91)) {
-      if (punctuation(source, kinds, starts, count, cursor + 1, 93)) {
-        cursor += 2;
-      } else {
-        return new ManifestResult.Error(starts[cursor]);
+    if (cursor == count) {
+      return new ManifestResult.Error(0);
+    }
+
+    boolean emptyCapabilities = false;
+    if (cursor < count) {
+      if (manifestOpenBracketAt(source, kinds, starts, cursor)) {
+        long capabilityCloseToken = cursor + 1;
+        if (capabilityCloseToken < count) {
+          if (manifestCloseBracketAt(source, kinds, starts, capabilityCloseToken)) {
+            cursor += 2;
+            emptyCapabilities = true;
+          } else {
+            return new ManifestResult.Error(starts[cursor]);
+          }
+        } else {
+          return new ManifestResult.Error(starts[cursor]);
+        }
       }
-    } else {
+    }
+
+    if (emptyCapabilities == false) {
       long previousCapabilityName = -1;
       long previousCapabilityPath = -1;
       while (cursor < count) limit 512 {
