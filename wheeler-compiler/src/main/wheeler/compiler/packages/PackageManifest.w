@@ -3,6 +3,7 @@
 module wheeler.compiler.packages.manifest;
 
 import wheeler.compiler.packages.manifest_kinds;
+import wheeler.compiler.packages.manifest_rows;
 import wheeler.compiler.packages.manifest_tokens;
 import wheeler.compiler.packages.names;
 import wheeler.compiler.packages.paths;
@@ -118,11 +119,6 @@ classical class Manifest {
     }
 
     return false;
-  }
-
-  private boolean rowCapacity(borrow mut words rows, long row, long width) {
-    long finalColumn = row * width + width - 1;
-    return finalColumn < bufferLength(rows);
   }
 
   private boolean selectorCoversRoot(
@@ -249,10 +245,9 @@ classical class Manifest {
                                     }
 
                                     if (
-                                      rowCapacity(
+                                      manifestSourceRowCapacity(
                                         sourceRows,
-                                        sourceOffset + sourceCount,
-                                        SOURCE_ROW_WIDTH
+                                        sourceOffset + sourceCount
                                       ) == false
                                     ) {
                                       return invalid;
@@ -520,7 +515,7 @@ classical class Manifest {
     while (parsingTargets) limit 512 {
       if (cursor < count) {
         if (dashAt(source, kinds, starts, cursor)) {
-          if (rowCapacity(targetRows, targetCount, TARGET_ROW_WIDTH) == false) {
+          if (manifestTargetRowCapacity(targetRows, targetCount) == false) {
             return new ManifestResult.Error(starts[cursor]);
           }
 
@@ -605,9 +600,7 @@ classical class Manifest {
       while (parsingDependencies) limit 512 {
         if (cursor < count) {
           if (dashAt(source, kinds, starts, cursor)) {
-            if (
-              rowCapacity(dependencyRows, dependencyCount, DEPENDENCY_ROW_WIDTH) == false
-            ) {
+            if (manifestDependencyRowCapacity(dependencyRows, dependencyCount) == false) {
               return new ManifestResult.Error(starts[cursor]);
             }
 
@@ -677,9 +670,7 @@ classical class Manifest {
       long previousCapabilityName = -1;
       long previousCapabilityPath = -1;
       while (cursor < count) limit 512 {
-        if (
-          rowCapacity(capabilityRows, capabilityCount, CAPABILITY_ROW_WIDTH) == false
-        ) {
+        if (manifestCapabilityRowCapacity(capabilityRows, capabilityCount) == false) {
           return new ManifestResult.Error(starts[cursor]);
         }
 

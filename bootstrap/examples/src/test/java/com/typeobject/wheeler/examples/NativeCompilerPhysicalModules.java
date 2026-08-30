@@ -138,7 +138,10 @@ final class NativeCompilerPhysicalModules {
         physical(
             "compiler/closure/products/source/coordinates/ReversibleTokenCoordinates.w",
             "closure.reversible_token_coordinates"),
-        physical("compiler/backend/core/CoreParsing.w", "core_parsing"));
+        physical("compiler/backend/core/CoreParsing.w", "core_parsing"),
+        physical(
+            "compiler/packages/manifest/PackageManifestRows.w",
+            "packages.manifest_rows"));
   }
 
   static List<NativeCompilerArchiveClosureProgram.PhysicalModule> importedCallableProducts() {
