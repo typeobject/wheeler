@@ -186,7 +186,10 @@ final class NativeCompilerPhysicalModules {
         physical("compiler/packages/semver/Semver.w", "packages.semver"),
         physical(
             "compiler/packages/manifest/PackageManifestKinds.w",
-            "packages.manifest_kinds"));
+            "packages.manifest_kinds"),
+        physical(
+            "compiler/packages/manifest/PackageManifestKeys.w",
+            "packages.manifest_keys"));
   }
 
   private static NativeCompilerArchiveClosureProgram.PhysicalModule physical(

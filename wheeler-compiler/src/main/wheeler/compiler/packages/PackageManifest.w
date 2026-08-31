@@ -3,6 +3,7 @@
 module wheeler.compiler.packages.manifest;
 
 import wheeler.compiler.packages.manifest_brackets;
+import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_kinds;
 import wheeler.compiler.packages.manifest_rows;
 import wheeler.compiler.packages.manifest_tokens;
@@ -87,24 +88,6 @@ classical class Manifest {
     return new QuotedRange(starts[token] + 1, lengths[token] - 2);
   }
 
-  private boolean key(
-    borrow utf8 source,
-    borrow mut words kinds,
-    borrow mut words starts,
-    borrow mut words lengths,
-    long count,
-    long token,
-    long hash
-  ) {
-    if (token + 1 < count) {
-      if (keywordAt(source, starts, lengths, token, hash)) {
-        return colonAt(source, kinds, starts, token + 1);
-      }
-    }
-
-    return false;
-  }
-
   private boolean selectorCoversRoot(
     borrow utf8 source,
     borrow mut words starts,
@@ -165,10 +148,14 @@ classical class Manifest {
     TargetParse invalid = new TargetParse(false, cursor, 0, 0, 0, 0, sourceOffset, 0, 0);
     if (cursor + 12 < count) {
       if (dashAt(source, kinds, starts, cursor)) {
-        if (key(source, kinds, starts, lengths, count, cursor + 1, 3292052)) {
+        if (
+          manifestKeyAt(source, kinds, starts, lengths, count, cursor + 1, 3292052)
+        ) {
           long kind = manifestTargetKind(source, kinds, starts, lengths, cursor + 3);
           if (0 < kind) {
-            if (key(source, kinds, starts, lengths, count, cursor + 4, 3373707)) {
+            if (
+              manifestKeyAt(source, kinds, starts, lengths, count, cursor + 4, 3373707)
+            ) {
               if (quoted(kinds, lengths, cursor + 6)) {
                 boolean validName = validWorkspaceName(
                   source,
@@ -177,7 +164,7 @@ classical class Manifest {
                 );
                 if (validName) {
                   if (
-                    key(source, kinds, starts, lengths, count, cursor + 7, 3506402)
+                    manifestKeyAt(source, kinds, starts, lengths, count, cursor + 7, 3506402)
                   ) {
                     if (quoted(kinds, lengths, cursor + 9)) {
                       boolean validRoot = validLogicalPath(
@@ -190,7 +177,15 @@ classical class Manifest {
                         long sourceCount = 0;
                         long next = cursor + 10;
                         if (
-                          key(source, kinds, starts, lengths, count, next, 3226183276)
+                          manifestKeyAt(
+                            source,
+                            kinds,
+                            starts,
+                            lengths,
+                            count,
+                            next,
+                            3226183276
+                          )
                         ) {
                           if (quoted(kinds, lengths, next + 2)) {
                             boolean validModule = validModuleName(
@@ -205,8 +200,15 @@ classical class Manifest {
                             moduleToken = next + 2;
                             next += 3;
                             if (
-                              key(source, kinds, starts, lengths, count, next, 105352305592)
-                                == false
+                              manifestKeyAt(
+                                source,
+                                kinds,
+                                starts,
+                                lengths,
+                                count,
+                                next,
+                                105352305592
+                              ) == false
                             ) {
                               return invalid;
                             }
@@ -293,7 +295,7 @@ classical class Manifest {
                         }
 
                         if (
-                          key(source, kinds, starts, lengths, count, next, 3556498)
+                          manifestKeyAt(source, kinds, starts, lengths, count, next, 3556498)
                         ) {
                           long test = manifestBooleanToken(source, starts, lengths, next + 2);
                           if (-1 < test) {
@@ -341,10 +343,14 @@ classical class Manifest {
     DependencyParse invalid = new DependencyParse(false, cursor, 0, 0, 0);
     if (cursor + 9 < count) {
       if (dashAt(source, kinds, starts, cursor)) {
-        if (key(source, kinds, starts, lengths, count, cursor + 1, 3292052)) {
+        if (
+          manifestKeyAt(source, kinds, starts, lengths, count, cursor + 1, 3292052)
+        ) {
           long kind = manifestDependencyKind(source, kinds, starts, lengths, cursor + 3);
           if (0 < kind) {
-            if (key(source, kinds, starts, lengths, count, cursor + 4, 3373707)) {
+            if (
+              manifestKeyAt(source, kinds, starts, lengths, count, cursor + 4, 3373707)
+            ) {
               if (quoted(kinds, lengths, cursor + 6)) {
                 boolean validName = validPackageName(
                   source,
@@ -353,7 +359,15 @@ classical class Manifest {
                 );
                 if (validName) {
                   if (
-                    key(source, kinds, starts, lengths, count, cursor + 7, 107725790424)
+                    manifestKeyAt(
+                      source,
+                      kinds,
+                      starts,
+                      lengths,
+                      count,
+                      cursor + 7,
+                      107725790424
+                    )
                   ) {
                     if (quoted(kinds, lengths, cursor + 9)) {
                       boolean validVersion = validConstraint(
@@ -394,9 +408,13 @@ classical class Manifest {
     CapabilityParse invalid = new CapabilityParse(false, cursor, 0, 0);
     if (cursor + 6 < count) {
       if (dashAt(source, kinds, starts, cursor)) {
-        if (key(source, kinds, starts, lengths, count, cursor + 1, 3373707)) {
+        if (
+          manifestKeyAt(source, kinds, starts, lengths, count, cursor + 1, 3373707)
+        ) {
           if (quoted(kinds, lengths, cursor + 3)) {
-            if (key(source, kinds, starts, lengths, count, cursor + 4, 3433509)) {
+            if (
+              manifestKeyAt(source, kinds, starts, lengths, count, cursor + 4, 3433509)
+            ) {
               if (quoted(kinds, lengths, cursor + 6)) {
                 boolean validPath = validLogicalPath(
                   source,
@@ -427,17 +445,17 @@ classical class Manifest {
       return false;
     }
 
-    boolean valid = key(source, kinds, starts, lengths, count, 0, 3386979745);
+    boolean valid = manifestKeyAt(source, kinds, starts, lengths, count, 0, 3386979745);
     if (valid) {
       valid = tokenHash(source, starts, lengths, 2) == 49;
     }
 
     if (valid) {
-      valid = key(source, kinds, starts, lengths, count, 3, 102272152646);
+      valid = manifestKeyAt(source, kinds, starts, lengths, count, 3, 102272152646);
     }
 
     if (valid) {
-      valid = key(source, kinds, starts, lengths, count, 5, 3373707);
+      valid = manifestKeyAt(source, kinds, starts, lengths, count, 5, 3373707);
     }
 
     if (valid) {
@@ -449,7 +467,7 @@ classical class Manifest {
     }
 
     if (valid) {
-      valid = key(source, kinds, starts, lengths, count, 8, 107725790424);
+      valid = manifestKeyAt(source, kinds, starts, lengths, count, 8, 107725790424);
     }
 
     if (valid) {
@@ -461,7 +479,7 @@ classical class Manifest {
     }
 
     if (valid) {
-      valid = key(source, kinds, starts, lengths, count, 11, 102769789353);
+      valid = manifestKeyAt(source, kinds, starts, lengths, count, 11, 102769789353);
     }
 
     if (valid) {
@@ -469,7 +487,7 @@ classical class Manifest {
     }
 
     if (valid) {
-      valid = key(source, kinds, starts, lengths, count, 14, 105835905282);
+      valid = manifestKeyAt(source, kinds, starts, lengths, count, 14, 105835905282);
     }
 
     return valid;
@@ -565,7 +583,7 @@ classical class Manifest {
     }
 
     if (
-      key(source, kinds, starts, lengths, count, cursor, 2626680644436426025) == false
+      manifestKeyAt(source, kinds, starts, lengths, count, cursor, 2626680644436426025) == false
     ) {
       return new ManifestResult.Error(starts[cursor]);
     }
@@ -652,7 +670,7 @@ classical class Manifest {
     }
 
     if (
-      key(source, kinds, starts, lengths, count, cursor, 2597989917310390198) == false
+      manifestKeyAt(source, kinds, starts, lengths, count, cursor, 2597989917310390198) == false
     ) {
       return new ManifestResult.Error(starts[cursor]);
     }

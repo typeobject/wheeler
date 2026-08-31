@@ -60,6 +60,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.packages.canonical_profile",
       "wheeler.compiler.packages.canonical_token_state",
       "wheeler.compiler.packages.manifest_brackets",
+      "wheeler.compiler.packages.manifest_keys",
       "wheeler.compiler.packages.manifest_kinds",
       "wheeler.compiler.packages.manifest_tokens",
       "wheeler.compiler.packages.names",
