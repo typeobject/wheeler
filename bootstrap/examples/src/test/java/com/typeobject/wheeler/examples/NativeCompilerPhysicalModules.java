@@ -156,7 +156,10 @@ final class NativeCompilerPhysicalModules {
             "packages.manifest_selector_prefix"),
         physical(
             "compiler/packages/manifest/PackageManifestSelectorCompletion.w",
-            "packages.manifest_selector_completion"));
+            "packages.manifest_selector_completion"),
+        physical(
+            "compiler/packages/manifest/PackageManifestHeaderState.w",
+            "packages.manifest_header_state"));
   }
 
   static List<NativeCompilerArchiveClosureProgram.PhysicalModule> importedCallableProducts() {

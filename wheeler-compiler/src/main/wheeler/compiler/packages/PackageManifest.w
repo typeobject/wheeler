@@ -3,6 +3,7 @@
 module wheeler.compiler.packages.manifest;
 
 import wheeler.compiler.packages.manifest_brackets;
+import wheeler.compiler.packages.manifest_header_state;
 import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_kinds;
 import wheeler.compiler.packages.manifest_ranges;
@@ -408,13 +409,14 @@ classical class Manifest {
     borrow mut words lengths,
     long count
   ) {
-    if (count < 35) {
+    if (manifestHeaderTokenCount(count) == false) {
       return false;
     }
 
     boolean valid = manifestKeyAt(source, kinds, starts, lengths, count, 0, 3386979745);
     if (valid) {
-      valid = tokenHash(source, starts, lengths, 2) == 49;
+      long versionHash = tokenHash(source, starts, lengths, 2);
+      valid = manifestFormatVersion(versionHash);
     }
 
     if (valid) {
