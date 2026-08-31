@@ -6,6 +6,7 @@ import wheeler.compiler.packages.manifest_brackets;
 import wheeler.compiler.packages.manifest_header_name;
 import wheeler.compiler.packages.manifest_header_preamble;
 import wheeler.compiler.packages.manifest_header_release;
+import wheeler.compiler.packages.manifest_header_tail;
 import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_kinds;
 import wheeler.compiler.packages.manifest_ranges;
@@ -422,15 +423,7 @@ classical class Manifest {
     }
 
     if (valid) {
-      valid = manifestKeyAt(source, kinds, starts, lengths, count, 11, 102769789353);
-    }
-
-    if (valid) {
-      valid = quoted(kinds, lengths, 13);
-    }
-
-    if (valid) {
-      valid = manifestKeyAt(source, kinds, starts, lengths, count, 14, 105835905282);
+      valid = manifestHeaderTailValid(source, kinds, starts, lengths, count);
     }
 
     return valid;
