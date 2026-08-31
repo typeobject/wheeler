@@ -30,8 +30,8 @@ This supplies routine reproduction of the current alternate implementation. It
 is neither a Wheeler fixed point nor an independent derivation.
 
 The current Wheeler-native path can parse, plan, and classify the complete
-415-module compiler closure with 1,973 imports and a 191,002-byte module manifest.
-Its native identity run completes in 80,464,120 transitions. The native compiler
+416-module compiler closure with 1,974 imports and a 191,291-byte module manifest.
+Its native identity run completes in 80,624,517 transitions. The native compiler
 package separately compiles 97 production modules through bounded physical source
 graphs and executes the complete 255-case profile. CI assigns those case identities
 to sixteen disjoint shards before compilation. The source path preserves typed Boolean-local
@@ -43,15 +43,15 @@ bootstrap-profile classifiers are dependency-free physical owners that compile
 byte for byte without synthetic loop state. Signed helper-result classification has
 its own bounded owner and complete six-source native test plan. Guarded UTF-8 call
 syntax follows the same direct path with fixed local token checks. Physical linker
-evidence compares 138 selected artifacts with stage 0 and closes every relocation.
+evidence compares 139 selected artifacts with stage 0 and closes every relocation.
 Package-manifest kind calls resolve to retained token policy. Fixed target, source,
 dependency, and capability row bounds now have one retained scalar owner.
 Sequence brackets use a separate direct source owner. Mapping keys retain their
 keyword and colon calls against token policy. Selector scalar state, call-free
 prefix traversal, range completion, and their composing facade are retained.
-Quoted range coordinates, header scalar state, format preamble, header name,
-header release, and header-tail validation have retained owners. The executable
-subset contains 427 functions and 15,227 instructions. The complete compiler has not reached a fixed
+Quoted range coordinates, header scalar state, all four header fields, and their
+composing facade have retained owners. The executable subset contains 428
+functions and 15,298 instructions. The complete compiler has not reached a fixed
 point.
 
 ## Platform ABI and native image plans

@@ -3,10 +3,7 @@
 module wheeler.compiler.packages.manifest;
 
 import wheeler.compiler.packages.manifest_brackets;
-import wheeler.compiler.packages.manifest_header_name;
-import wheeler.compiler.packages.manifest_header_preamble;
-import wheeler.compiler.packages.manifest_header_release;
-import wheeler.compiler.packages.manifest_header_tail;
+import wheeler.compiler.packages.manifest_header;
 import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_kinds;
 import wheeler.compiler.packages.manifest_ranges;
@@ -405,30 +402,6 @@ classical class Manifest {
     return invalid;
   }
 
-  private boolean validHeader(
-    borrow utf8 source,
-    borrow mut words kinds,
-    borrow mut words starts,
-    borrow mut words lengths,
-    long count
-  ) {
-    boolean valid = manifestHeaderPreambleValid(source, kinds, starts, lengths, count);
-
-    if (valid) {
-      valid = manifestHeaderNameValid(source, kinds, starts, lengths, count);
-    }
-
-    if (valid) {
-      valid = manifestHeaderReleaseValid(source, kinds, starts, lengths, count);
-    }
-
-    if (valid) {
-      valid = manifestHeaderTailValid(source, kinds, starts, lengths, count);
-    }
-
-    return valid;
-  }
-
   /// Parses every canonical collection row that fits the caller-owned tables.
   public ManifestResult parseManifest(
     borrow utf8 source,
@@ -441,7 +414,7 @@ classical class Manifest {
     borrow mut words dependencyRows,
     borrow mut words capabilityRows
   ) {
-    if (validHeader(source, kinds, starts, lengths, count) == false) {
+    if (manifestHeaderValid(source, kinds, starts, lengths, count) == false) {
       return new ManifestResult.Error(0);
     }
 
