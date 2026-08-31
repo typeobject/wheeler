@@ -62,6 +62,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.packages.manifest_brackets",
       "wheeler.compiler.packages.manifest_header_name",
       "wheeler.compiler.packages.manifest_header_preamble",
+      "wheeler.compiler.packages.manifest_header_release",
       "wheeler.compiler.packages.manifest_header_state",
       "wheeler.compiler.packages.manifest_keys",
       "wheeler.compiler.packages.manifest_kinds",

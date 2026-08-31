@@ -213,7 +213,10 @@ final class NativeCompilerPhysicalModules {
             "packages.manifest_header_preamble"),
         physical(
             "compiler/packages/manifest/header/PackageManifestHeaderName.w",
-            "packages.manifest_header_name"));
+            "packages.manifest_header_name"),
+        physical(
+            "compiler/packages/manifest/header/PackageManifestHeaderRelease.w",
+            "packages.manifest_header_release"));
   }
 
   private static NativeCompilerArchiveClosureProgram.PhysicalModule physical(

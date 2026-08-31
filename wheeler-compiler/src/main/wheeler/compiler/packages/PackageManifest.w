@@ -5,6 +5,7 @@ module wheeler.compiler.packages.manifest;
 import wheeler.compiler.packages.manifest_brackets;
 import wheeler.compiler.packages.manifest_header_name;
 import wheeler.compiler.packages.manifest_header_preamble;
+import wheeler.compiler.packages.manifest_header_release;
 import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_kinds;
 import wheeler.compiler.packages.manifest_ranges;
@@ -417,15 +418,7 @@ classical class Manifest {
     }
 
     if (valid) {
-      valid = manifestKeyAt(source, kinds, starts, lengths, count, 8, 107725790424);
-    }
-
-    if (valid) {
-      valid = quoted(kinds, lengths, 10);
-    }
-
-    if (valid) {
-      valid = validRelease(source, starts[10] + 1, lengths[10] - 2);
+      valid = manifestHeaderReleaseValid(source, kinds, starts, lengths, count);
     }
 
     if (valid) {
