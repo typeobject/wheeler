@@ -43,12 +43,11 @@ bootstrap-profile classifiers are dependency-free physical owners that compile
 byte for byte without synthetic loop state. Signed helper-result classification has
 its own bounded owner and complete six-source native test plan. Guarded UTF-8 call
 syntax follows the same direct path with fixed local token checks. Physical linker
-evidence compares 126 selected artifacts with stage 0 and closes every relocation.
+evidence compares 127 selected artifacts with stage 0 and closes every relocation.
 Package-manifest kind calls resolve to retained token policy. Fixed target, source,
 dependency, and capability row bounds now have one retained scalar owner.
-Sequence brackets have a separate stage-0 owner and remain outside the physical
-set after fail-closed source composition. The executable subset contains 411
-functions and 14,625 instructions. The complete compiler has not reached a fixed
+Sequence brackets use a separate owner retained through direct structured source
+products. The executable subset contains 413 functions and 14,717 instructions. The complete compiler has not reached a fixed
 point.
 
 ## Platform ABI and native image plans

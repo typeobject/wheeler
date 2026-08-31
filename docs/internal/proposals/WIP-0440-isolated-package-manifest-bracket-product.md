@@ -2,14 +2,14 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implemented |
+| Status | Superseded |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-30 |
 | Updated | 2026-08-30 |
 | Area | Self-hosting, package manifests, source products |
 | Depends on | WIP-0049, WIP-0439 |
 | Supersedes | Generic private punctuation checks in `PackageManifest.w` |
-| Superseded by | None |
+| Superseded by | WIP-0441 |
 
 ## Summary
 
@@ -27,11 +27,11 @@ The old `(source, kinds, starts, count, token, scalar)` helper is gone. It admit
 
 Stage 0 executes the split owner and the complete package parser. Focused physical attempts covered the original bounded five-parameter shape, named scalar projections, early bound rejection, and the final four-parameter bracket-only shape. Each failed in structured module composition at `requireMinimalProgram` before artifact publication.
 
-The owner therefore remains outside `NativeCompilerPhysicalModules`. The failure does not change the 126-product set, retain a partial prefix, or claim byte equality. The next source-product change must admit this isolated bracket shape without special-casing package policy.
+The owner therefore remains outside `NativeCompilerPhysicalModules`. The failure does not change the 126-product set, retain a partial prefix, or claim byte equality. WIP-0441 subsequently routes this isolated shape through direct structured source products without special-casing package policy.
 
 ## Evidence
 
-`NativeCompilerPackageManifestBracketsExampleTest` executes opening, closing, wrong-scalar, and wrong-kind cases. `NativeManifestIdentityExampleTest` rejects missing, opening-only, and closing-only dependency and capability sequences. Manifest and archive examples parse and hash complete metadata through the split owner. The adjacent retained row product still compiles byte for byte from the enlarged archive and manifest.
+The executable case in `NativeCompilerPackageManifestBracketsPhysicalProductExampleTest` covers opening, closing, wrong-scalar, and wrong-kind behavior. `NativeManifestIdentityExampleTest` rejects missing, opening-only, and closing-only dependency and capability sequences. Manifest and archive examples parse and hash complete metadata through the split owner. The adjacent retained row product still compiles byte for byte from the enlarged archive and manifest.
 
 The selected set remains at 102 comparable products and 24 callable products. Its last complete closure evidence retains 106 non-empty module products, 411 functions, and 14,625 forward-plus-inverse instructions. It contains 347,192 code bytes, 11,287 local-type rows, 663 source strings, and 538 unique strings. The 440,416-byte executable identity remains `bbb6496215bcd38ee32ad9cf8fd6dd0d9274eb7369bd6767d398513af2c3cacc`.
 
@@ -52,7 +52,7 @@ Reject an out-of-range opening or closing coordinate, wrong token kind, wrong sc
 - [x] Token bounds precede every bracket projection.
 - [x] Complete and malformed sequence forms execute.
 - [x] The physical attempt fails before artifact publication.
-- [x] The selected physical set remains at 126 products.
+- [x] The selected physical set remained at 126 products for this boundary.
 - [x] Manifest, archive, SHA-256, and locks name the split source.
 
 ## Rejected alternatives

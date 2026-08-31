@@ -141,7 +141,10 @@ final class NativeCompilerPhysicalModules {
         physical("compiler/backend/core/CoreParsing.w", "core_parsing"),
         physical(
             "compiler/packages/manifest/PackageManifestRows.w",
-            "packages.manifest_rows"));
+            "packages.manifest_rows"),
+        physical(
+            "compiler/packages/manifest/PackageManifestBrackets.w",
+            "packages.manifest_brackets"));
   }
 
   static List<NativeCompilerArchiveClosureProgram.PhysicalModule> importedCallableProducts() {
