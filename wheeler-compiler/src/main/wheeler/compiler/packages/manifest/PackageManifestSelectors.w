@@ -2,6 +2,7 @@
 
 module wheeler.compiler.packages.manifest_selectors;
 
+import wheeler.compiler.packages.manifest_selector_completion;
 import wheeler.compiler.packages.manifest_selector_prefix;
 import wheeler.compiler.packages.manifest_selector_state;
 
@@ -25,12 +26,12 @@ classical class PackageManifestSelectors {
       return false;
     }
 
-    if (lengthKind == 1) {
-      return manifestSelectorComplete(lengthKind, 0);
-    }
-
-    long nextRootIndex = rootStart + selectorLength;
-    long nextRootScalar = utf8Scalar(source, nextRootIndex);
-    return manifestSelectorComplete(lengthKind, nextRootScalar);
+    boolean complete = manifestSelectorRangeComplete(
+      source,
+      lengthKind,
+      rootStart,
+      selectorLength
+    );
+    return complete;
   }
 }

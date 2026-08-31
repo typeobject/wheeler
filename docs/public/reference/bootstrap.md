@@ -30,8 +30,8 @@ This supplies routine reproduction of the current alternate implementation. It
 is neither a Wheeler fixed point nor an independent derivation.
 
 The current Wheeler-native path can parse, plan, and classify the complete
-409-module compiler closure with 1,957 imports and a 188,651-byte module manifest.
-Its native identity run completes in 79,336,184 transitions. The native compiler
+410-module compiler closure with 1,958 imports and a 188,974-byte module manifest.
+Its native identity run completes in 79,464,145 transitions. The native compiler
 package separately compiles 97 production modules through bounded physical source
 graphs and executes the complete 255-case profile. CI assigns those case identities
 to sixteen disjoint shards before compilation. The source path preserves typed Boolean-local
@@ -43,14 +43,15 @@ bootstrap-profile classifiers are dependency-free physical owners that compile
 byte for byte without synthetic loop state. Signed helper-result classification has
 its own bounded owner and complete six-source native test plan. Guarded UTF-8 call
 syntax follows the same direct path with fixed local token checks. Physical linker
-evidence compares 131 selected artifacts with stage 0 and closes every relocation.
+evidence compares 132 selected artifacts with stage 0 and closes every relocation.
 Package-manifest kind calls resolve to retained token policy. Fixed target, source,
 dependency, and capability row bounds now have one retained scalar owner.
 Sequence brackets use a separate direct source owner. Mapping keys retain their
-keyword and colon calls against token policy. Selector scalar state and call-free
-prefix traversal are retained, while imported range completion remains outside
-the physical set. Quoted range coordinates have a retained scalar owner. The
-executable subset contains 420 functions and 14,875 instructions. The complete compiler has not reached a fixed
+keyword and colon calls against token policy. Selector scalar state, call-free
+prefix traversal, and range completion are retained, while their composing range
+owner remains outside the physical set. Quoted range coordinates have a retained
+scalar owner. The executable subset contains 420 functions and 14,883
+instructions. The complete compiler has not reached a fixed
 point.
 
 ## Platform ABI and native image plans

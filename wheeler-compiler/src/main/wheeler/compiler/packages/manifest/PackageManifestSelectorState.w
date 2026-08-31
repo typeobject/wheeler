@@ -33,12 +33,4 @@ classical class PackageManifestSelectorState {
     return true;
   }
 
-  /// Completes an equal selector or one directory-prefix selector.
-  public boolean manifestSelectorComplete(long lengthKind, long nextRootScalar) {
-    if (lengthKind == 1) {
-      return true;
-    }
-
-    return nextRootScalar == 47;
-  }
 }

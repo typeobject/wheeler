@@ -63,6 +63,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.packages.manifest_keys",
       "wheeler.compiler.packages.manifest_kinds",
       "wheeler.compiler.packages.manifest_ranges",
+      "wheeler.compiler.packages.manifest_selector_completion",
       "wheeler.compiler.packages.manifest_selector_prefix",
       "wheeler.compiler.packages.manifest_selector_state",
       "wheeler.compiler.packages.manifest_tokens",

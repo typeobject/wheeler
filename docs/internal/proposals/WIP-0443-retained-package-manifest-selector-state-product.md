@@ -9,7 +9,7 @@
 | Area | Self-hosting, package manifests, physical closure bounds |
 | Depends on | WIP-0049, WIP-0052, WIP-0442 |
 | Supersedes | Private duplicated selector loops in `PackageManifest.w` and the 128-product owner bound |
-| Superseded by | None |
+| Superseded by | WIP-0445 for prefix traversal and WIP-0446 for completion policy |
 
 ## Summary
 
@@ -17,9 +17,9 @@ Split source-selector traversal into range and scalar-state owners. Retain `Pack
 
 ## Selector state
 
-`manifestSelectorLengthKind` classifies a selector longer than its root as minus one, a proper prefix as zero, and equal length as one. `manifestSelectorSame` carries one fail-closed equality bit across each scalar pair. `manifestSelectorComplete` accepts equal ranges or a proper prefix followed by slash.
+`manifestSelectorLengthKind` classifies a selector longer than its root as minus one, a proper prefix as zero, and equal length as one. `manifestSelectorSame` carries one fail-closed equality bit across each scalar pair. WIP-0446 later moved completion and next-root projection into their own retained owner.
 
-`PackageManifestSelectors.w` owns UTF-8 traversal over caller-projected interior ranges. It calls length policy once, equality state once per iteration, and completion once after traversal. `PackageManifest.w` names token rows, interior starts, and interior lengths before making that call. Its former two-loop selector helper is gone.
+`PackageManifestSelectors.w` originally owned UTF-8 traversal over caller-projected interior ranges. WIP-0445 later moved traversal to a call-free prefix owner. `PackageManifest.w` names token rows, interior starts, and interior lengths before making the range call. Its former two-loop selector helper is gone.
 
 The range owner executes equal, directory-prefix, longer, mismatched, and nonseparator forms under stage 0. Its direct physical attempts first rejected compound row projections and arithmetic call operands. After those were removed, composition reached the imported call inside the UTF-8 loop and still published no artifact. The range owner remains unselected.
 
@@ -31,7 +31,7 @@ Artifact 129 exhausted the 128-word physical-owner column before the first produ
 
 ## Evidence
 
-`NativeCompilerPackageManifestSelectorStatePhysicalProductExampleTest` executes every length kind, preserved and failed equality, equal completion, slash completion, and nonseparator rejection. Its physical case compares the complete state artifact byte for byte with stage 0.
+`NativeCompilerPackageManifestSelectorStatePhysicalProductExampleTest` executes every length kind and preserved and failed equality. WIP-0446 carries completion cases. The state physical case compares the complete current artifact byte for byte with stage 0.
 
 `NativeCompilerPackageManifestSelectorsExampleTest` executes the unselected range owner. Manifest and archive examples parse complete source selectors through the split path.
 

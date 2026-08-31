@@ -153,7 +153,10 @@ final class NativeCompilerPhysicalModules {
             "packages.manifest_ranges"),
         physical(
             "compiler/packages/manifest/PackageManifestSelectorPrefix.w",
-            "packages.manifest_selector_prefix"));
+            "packages.manifest_selector_prefix"),
+        physical(
+            "compiler/packages/manifest/PackageManifestSelectorCompletion.w",
+            "packages.manifest_selector_completion"));
   }
 
   static List<NativeCompilerArchiveClosureProgram.PhysicalModule> importedCallableProducts() {

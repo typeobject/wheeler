@@ -8,18 +8,20 @@ import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/** Native evidence for package-manifest selector scalar state. */
-final class NativeCompilerPackageManifestSelectorStatePhysicalProductExampleTest {
-  private static final String MODULE = "wheeler.compiler.packages.manifest_selector_state";
+/** Native evidence for package-manifest selector completion. */
+final class NativeCompilerPackageManifestSelectorCompletionPhysicalProductExampleTest {
+  private static final String MODULE =
+      "wheeler.compiler.packages.manifest_selector_completion";
 
   @Tag("closure-evidence")
   @Test
-  void compilesManifestSelectorStateByteForByte() throws Exception {
+  void compilesManifestSelectorCompletionByteForByte() throws Exception {
     var module = NativeCompilerPhysicalSelection.comparable(MODULE);
     byte[] expected = new BytecodeWriter().write(
         new WheelerCompiler().compileLibraryModuleFiles(
@@ -39,29 +41,27 @@ final class NativeCompilerPackageManifestSelectorStatePhysicalProductExampleTest
   }
 
   @Test
-  void executesLengthAndEqualityStates() throws Exception {
+  void executesEqualPrefixAndNonseparatorCompletion() throws Exception {
     var sources = new LinkedHashMap<>(CompilerSources.moduleClosure(MODULE));
-    sources.put("PackageManifestSelectorStateExample.w", """
-        module example.package_manifest_selector_state;
+    sources.put("PackageManifestSelectorCompletionExample.w", """
+        module example.package_manifest_selector_completion;
 
-        import wheeler.compiler.packages.manifest_selector_state;
+        import wheeler.compiler.packages.manifest_selector_completion;
 
-        classical class PackageManifestSelectorStateExample {
-          entry void main() {
-            assert(manifestSelectorLengthKind(3, 2) == -1);
-            assert(manifestSelectorLengthKind(2, 3) == 0);
-            assert(manifestSelectorLengthKind(3, 3) == 1);
-            assert(manifestSelectorSame(true, 97, 97));
-            assert(manifestSelectorSame(true, 96, 97) == false);
-            assert(manifestSelectorSame(true, 98, 97) == false);
-            assert(manifestSelectorSame(false, 97, 97) == false);
+        classical class PackageManifestSelectorCompletionExample {
+          entry void main(borrow utf8 source) {
+            assert(manifestSelectorRangeComplete(source, 1, 0, 3));
+            assert(manifestSelectorRangeComplete(source, 0, 4, 3));
+            assert(manifestSelectorRangeComplete(source, 0, 13, 3) == false);
           }
         }
         """);
     var program = new WheelerCompiler().compileModuleFiles(
-        sources, "example.package_manifest_selector_state");
+        sources, "example.package_manifest_selector_completion");
 
-    new VirtualMachine(program).run();
+    new VirtualMachine(
+        program,
+        "src src/Main srcx".getBytes(StandardCharsets.US_ASCII)).run();
   }
 
   private static byte[] framed(byte[] archive, byte[] manifest) {
