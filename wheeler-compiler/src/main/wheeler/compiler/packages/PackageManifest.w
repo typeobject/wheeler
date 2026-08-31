@@ -3,6 +3,7 @@
 module wheeler.compiler.packages.manifest;
 
 import wheeler.compiler.packages.manifest_brackets;
+import wheeler.compiler.packages.manifest_header_name;
 import wheeler.compiler.packages.manifest_header_preamble;
 import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_kinds;
@@ -412,15 +413,7 @@ classical class Manifest {
     boolean valid = manifestHeaderPreambleValid(source, kinds, starts, lengths, count);
 
     if (valid) {
-      valid = manifestKeyAt(source, kinds, starts, lengths, count, 5, 3373707);
-    }
-
-    if (valid) {
-      valid = quoted(kinds, lengths, 7);
-    }
-
-    if (valid) {
-      valid = validPackageName(source, starts[7] + 1, lengths[7] - 2);
+      valid = manifestHeaderNameValid(source, kinds, starts, lengths, count);
     }
 
     if (valid) {
