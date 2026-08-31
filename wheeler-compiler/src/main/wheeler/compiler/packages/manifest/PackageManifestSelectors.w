@@ -2,9 +2,11 @@
 
 module wheeler.compiler.packages.manifest_selectors;
 
+import wheeler.compiler.packages.manifest_selector_prefix;
 import wheeler.compiler.packages.manifest_selector_state;
 
 classical class PackageManifestSelectors {
+
   /// Checks whether one selector range equals or contains a root range.
   public boolean manifestSelectorRangeCoversRoot(
     borrow utf8 source,
@@ -18,17 +20,7 @@ classical class PackageManifestSelectors {
       return false;
     }
 
-    boolean same = true;
-    long offset = 0;
-    while (offset < selectorLength) limit 4096 {
-      long selectorIndex = selectorStart + offset;
-      long rootIndex = rootStart + offset;
-      long selectorScalar = utf8Scalar(source, selectorIndex);
-      long rootScalar = utf8Scalar(source, rootIndex);
-      same = manifestSelectorSame(same, selectorScalar, rootScalar);
-      offset += 1;
-    }
-
+    boolean same = manifestSelectorPrefixSame(source, selectorStart, selectorLength, rootStart);
     if (same == false) {
       return false;
     }
