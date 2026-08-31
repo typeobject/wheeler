@@ -206,7 +206,7 @@ final class NativeCompilerArchiveClosureProgram {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 6676520, /* allocations= */ 99);
+            region columns = new region(/* bytes= */ 6677544, /* allocations= */ 99);
             words archivePathStarts = allocate(columns, MAX_MODULES);
             words archivePathLengths = allocate(columns, MAX_MODULES);
             words archiveDataStarts = allocate(columns, MAX_MODULES);
@@ -270,7 +270,7 @@ final class NativeCompilerArchiveClosureProgram {
             words physicalAggregates = allocate(columns, /* length= */ 832);
             words physicalCalls = allocate(columns, /* length= */ 1024);
             words physicalResultTypes = allocate(columns, /* length= */ 4096);
-            words physicalOwners = allocate(columns, /* length= */ 128);
+            words physicalOwners = allocate(columns, /* length= */ 256);
             words physicalImportedRows = allocate(columns, /* length= */ 114689);
             bytes physicalProductSource = allocateBytes(columns, /* length= */ 32768);
             words callableProductNameStarts = allocate(columns, /* length= */ 4096);

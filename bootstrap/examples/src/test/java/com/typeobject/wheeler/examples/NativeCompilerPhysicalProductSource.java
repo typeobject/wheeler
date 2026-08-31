@@ -62,6 +62,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.packages.manifest_brackets",
       "wheeler.compiler.packages.manifest_keys",
       "wheeler.compiler.packages.manifest_kinds",
+      "wheeler.compiler.packages.manifest_selector_state",
       "wheeler.compiler.packages.manifest_tokens",
       "wheeler.compiler.packages.names",
       "wheeler.compiler.packages.paths",
@@ -134,7 +135,7 @@ final class NativeCompilerPhysicalProductSource {
     return """
         if (closure.moduleCount == PHYSICAL_CLOSURE_MODULE_COUNT) {
           long physicalProduct = 0;
-          while (physicalProduct < PHYSICAL_MODULE_COUNT) limit 128 {
+          while (physicalProduct < PHYSICAL_MODULE_COUNT) limit 256 {
             long physicalOwner = physicalOwners[physicalProduct];
             physicalModuleOwner = physicalOwner;
             boolean directSourceModule = moduleCallableCounts[physicalOwner] == 0;

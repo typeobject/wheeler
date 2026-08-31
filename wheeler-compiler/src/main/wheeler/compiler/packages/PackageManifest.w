@@ -6,6 +6,7 @@ import wheeler.compiler.packages.manifest_brackets;
 import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_kinds;
 import wheeler.compiler.packages.manifest_rows;
+import wheeler.compiler.packages.manifest_selectors;
 import wheeler.compiler.packages.manifest_tokens;
 import wheeler.compiler.packages.names;
 import wheeler.compiler.packages.paths;
@@ -86,53 +87,6 @@ classical class Manifest {
 
   private QuotedRange range(borrow mut words starts, borrow mut words lengths, long token) {
     return new QuotedRange(starts[token] + 1, lengths[token] - 2);
-  }
-
-  private boolean selectorCoversRoot(
-    borrow utf8 source,
-    borrow mut words starts,
-    borrow mut words lengths,
-    long selectorToken,
-    long rootToken
-  ) {
-    long selectorStart = starts[selectorToken] + 1;
-    long selectorLength = lengths[selectorToken] - 2;
-    long rootStart = starts[rootToken] + 1;
-    long rootLength = lengths[rootToken] - 2;
-    if (selectorLength < rootLength) {
-      long offset = 0;
-      while (offset < selectorLength) limit 4096 {
-        if (
-          utf8Scalar(source, selectorStart + offset) == utf8Scalar(source, rootStart + offset)
-        ) {
-          offset += 1;
-        } else {
-          return false;
-        }
-      }
-
-      return utf8Scalar(source, rootStart + selectorLength) == 47;
-    }
-
-    if (selectorLength == rootLength) {
-      long equalOffset = 0;
-      while (equalOffset < selectorLength) limit 4096 {
-        if (
-          utf8Scalar(source, selectorStart + equalOffset) == utf8Scalar(
-            source,
-            rootStart + equalOffset
-          )
-        ) {
-          equalOffset += 1;
-        } else {
-          return false;
-        }
-      }
-
-      return true;
-    }
-
-    return false;
   }
 
   private TargetParse parseTarget(
@@ -253,12 +207,22 @@ classical class Manifest {
                                       }
                                     }
 
-                                    boolean covers = selectorCoversRoot(
+                                    long selectorToken = next + 1;
+                                    long rootToken = cursor + 9;
+                                    long selectorTokenStart = starts[selectorToken];
+                                    long selectorTokenLength = lengths[selectorToken];
+                                    long rootTokenStart = starts[rootToken];
+                                    long rootTokenLength = lengths[rootToken];
+                                    long selectorStart = selectorTokenStart + 1;
+                                    long selectorLength = selectorTokenLength - 2;
+                                    long rootStart = rootTokenStart + 1;
+                                    long rootLength = rootTokenLength - 2;
+                                    boolean covers = manifestSelectorRangeCoversRoot(
                                       source,
-                                      starts,
-                                      lengths,
-                                      next + 1,
-                                      cursor + 9
+                                      selectorStart,
+                                      selectorLength,
+                                      rootStart,
+                                      rootLength
                                     );
                                     if (covers) {
                                       rootCovered = true;

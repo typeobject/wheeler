@@ -151,7 +151,7 @@ final class NativeCompilerPhysicalClosureExampleTest {
     String linkedIdentity = HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(functionMachine.hostOutput()));
     assertEquals(
-        2_814_185_085L,
+        1_827_224_324L,
         functionMachine.global("linkedIdentityPrefix"),
         () -> "sha256=" + linkedIdentity
             + " code=" + functionMachine.global("linkedCodeLength")
@@ -162,7 +162,7 @@ final class NativeCompilerPhysicalClosureExampleTest {
             + " localTypes=" + functionMachine.global("linkedLocalTypeCount")
             + " container=" + functionMachine.global("linkedContainerLength"));
     assertEquals(
-        "a7bd0e7d27b878169258f7a70ae274db8b17b51e2ab3ed8e0a095c1409bf4bf0",
+        "6ce93b04b6ea829dbc5108b2e4a665bfc51ace12e9bfaf2b2895f8186c555701",
         linkedIdentity,
         () -> "code=" + functionMachine.global("linkedCodeLength")
             + " functions=" + functionMachine.global("functionCount")
@@ -298,6 +298,8 @@ final class NativeCompilerPhysicalClosureExampleTest {
   private static void assertPhysicalProductOwners(BootstrapModuleManifest manifest) {
     var modules = new ArrayList<>(NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES);
     modules.addAll(NativeCompilerArchiveClosureProgram.PHYSICAL_CALLABLE_MODULES);
+    assertTrue(128 < modules.size());
+    assertTrue(modules.size() <= 256);
     for (NativeCompilerArchiveClosureProgram.PhysicalModule module : modules) {
       int owner = NativeCompilerPhysicalSelection.owner(module);
       BootstrapModuleManifest.Module manifestModule = manifest.modules().get(owner);
