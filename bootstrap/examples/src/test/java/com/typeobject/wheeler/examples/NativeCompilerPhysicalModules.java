@@ -201,7 +201,10 @@ final class NativeCompilerPhysicalModules {
             "packages.manifest_kinds"),
         physical(
             "compiler/packages/manifest/PackageManifestKeys.w",
-            "packages.manifest_keys"));
+            "packages.manifest_keys"),
+        physical(
+            "compiler/packages/manifest/PackageManifestSelectors.w",
+            "packages.manifest_selectors"));
   }
 
   private static NativeCompilerArchiveClosureProgram.PhysicalModule physical(
