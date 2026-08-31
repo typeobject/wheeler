@@ -5,6 +5,7 @@ module wheeler.compiler.packages.manifest;
 import wheeler.compiler.packages.manifest_brackets;
 import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_kinds;
+import wheeler.compiler.packages.manifest_ranges;
 import wheeler.compiler.packages.manifest_rows;
 import wheeler.compiler.packages.manifest_selectors;
 import wheeler.compiler.packages.manifest_tokens;
@@ -86,7 +87,9 @@ classical class Manifest {
   private record CapabilityParse(boolean valid, long next, long nameToken, long pathToken) {}
 
   private QuotedRange range(borrow mut words starts, borrow mut words lengths, long token) {
-    return new QuotedRange(starts[token] + 1, lengths[token] - 2);
+    long start = manifestQuotedStart(starts, token);
+    long length = manifestQuotedLength(lengths, token);
+    return new QuotedRange(start, length);
   }
 
   private TargetParse parseTarget(

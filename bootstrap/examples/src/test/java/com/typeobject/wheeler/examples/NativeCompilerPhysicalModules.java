@@ -147,7 +147,10 @@ final class NativeCompilerPhysicalModules {
             "packages.manifest_brackets"),
         physical(
             "compiler/packages/manifest/PackageManifestSelectorState.w",
-            "packages.manifest_selector_state"));
+            "packages.manifest_selector_state"),
+        physical(
+            "compiler/packages/manifest/PackageManifestRanges.w",
+            "packages.manifest_ranges"));
   }
 
   static List<NativeCompilerArchiveClosureProgram.PhysicalModule> importedCallableProducts() {
