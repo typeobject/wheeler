@@ -16,6 +16,7 @@ import wheeler.compiler.packages.manifest_rows;
 import wheeler.compiler.packages.manifest_selectors;
 import wheeler.compiler.packages.manifest_target_name;
 import wheeler.compiler.packages.manifest_target_prefix;
+import wheeler.compiler.packages.manifest_target_root;
 import wheeler.compiler.packages.manifest_tokens;
 import wheeler.compiler.packages.names;
 import wheeler.compiler.packages.paths;
@@ -122,153 +123,146 @@ classical class Manifest {
         cursor
       );
       if (validName) {
-        if (
-          manifestKeyAt(source, kinds, starts, lengths, count, cursor + 7, 3506402)
-        ) {
-          if (quoted(kinds, lengths, cursor + 9)) {
-            boolean validRoot = validLogicalPath(
-              source,
-              starts[cursor + 9] + 1,
-              lengths[cursor + 9] - 2
-            );
-            if (validRoot) {
-              long moduleToken = -1;
-              long sourceCount = 0;
-              long next = cursor + 10;
+        boolean validRoot = manifestTargetRootValid(
+          source,
+          kinds,
+          starts,
+          lengths,
+          count,
+          cursor
+        );
+        if (validRoot) {
+          long moduleToken = -1;
+          long sourceCount = 0;
+          long next = cursor + 10;
+          if (
+            manifestKeyAt(source, kinds, starts, lengths, count, next, 3226183276)
+          ) {
+            if (quoted(kinds, lengths, next + 2)) {
+              boolean validModule = validModuleName(
+                source,
+                starts[next + 2] + 1,
+                lengths[next + 2] - 2
+              );
+              if (validModule == false) {
+                return invalid;
+              }
+
+              moduleToken = next + 2;
+              next += 3;
               if (
-                manifestKeyAt(source, kinds, starts, lengths, count, next, 3226183276)
+                manifestKeyAt(source, kinds, starts, lengths, count, next, 105352305592) == false
               ) {
-                if (quoted(kinds, lengths, next + 2)) {
-                  boolean validModule = validModuleName(
-                    source,
-                    starts[next + 2] + 1,
-                    lengths[next + 2] - 2
-                  );
-                  if (validModule == false) {
-                    return invalid;
-                  }
+                return invalid;
+              }
 
-                  moduleToken = next + 2;
-                  next += 3;
-                  if (
-                    manifestKeyAt(source, kinds, starts, lengths, count, next, 105352305592)
-                      == false
-                  ) {
-                    return invalid;
-                  }
-
-                  next += 2;
-                  long previousSourceToken = -1;
-                  boolean rootCovered = false;
-                  boolean scanning = true;
-                  while (scanning) limit 1024 {
-                    if (next + 1 < count) {
-                      if (dashAt(source, kinds, starts, next)) {
-                        if (quoted(kinds, lengths, next + 1)) {
-                          boolean validSource = validLogicalPath(
-                            source,
-                            starts[next + 1] + 1,
-                            lengths[next + 1] - 2
-                          );
-                          if (validSource == false) {
-                            return invalid;
-                          }
-
-                          if (
-                            manifestSourceRowCapacity(sourceRows, sourceOffset + sourceCount)
-                              == false
-                          ) {
-                            return invalid;
-                          }
-
-                          if (-1 < previousSourceToken) {
-                            long sourceOrder = compareTokenText(
-                              source,
-                              starts,
-                              lengths,
-                              previousSourceToken,
-                              next + 1
-                            );
-                            boolean sourcesOrdered = sourceOrder < 0;
-                            if (sourcesOrdered == false) {
-                              return invalid;
-                            }
-                          }
-
-                          long selectorToken = next + 1;
-                          long rootToken = cursor + 9;
-                          long selectorTokenStart = starts[selectorToken];
-                          long selectorTokenLength = lengths[selectorToken];
-                          long rootTokenStart = starts[rootToken];
-                          long rootTokenLength = lengths[rootToken];
-                          long selectorStart = selectorTokenStart + 1;
-                          long selectorLength = selectorTokenLength - 2;
-                          long rootStart = rootTokenStart + 1;
-                          long rootLength = rootTokenLength - 2;
-                          boolean covers = manifestSelectorRangeCoversRoot(
-                            source,
-                            selectorStart,
-                            selectorLength,
-                            rootStart,
-                            rootLength
-                          );
-                          if (covers) {
-                            rootCovered = true;
-                          }
-
-                          long sourceBase = (sourceOffset + sourceCount) * SOURCE_ROW_WIDTH;
-                          set(sourceRows, sourceBase, starts[next + 1] + 1);
-                          set(sourceRows, sourceBase + 1, lengths[next + 1] - 2);
-                          sourceCount += 1;
-                          previousSourceToken = next + 1;
-                          next += 2;
-                        } else {
-                          scanning = false;
-                        }
-                      } else {
-                        scanning = false;
+              next += 2;
+              long previousSourceToken = -1;
+              boolean rootCovered = false;
+              boolean scanning = true;
+              while (scanning) limit 1024 {
+                if (next + 1 < count) {
+                  if (dashAt(source, kinds, starts, next)) {
+                    if (quoted(kinds, lengths, next + 1)) {
+                      boolean validSource = validLogicalPath(
+                        source,
+                        starts[next + 1] + 1,
+                        lengths[next + 1] - 2
+                      );
+                      if (validSource == false) {
+                        return invalid;
                       }
+
+                      if (
+                        manifestSourceRowCapacity(sourceRows, sourceOffset + sourceCount) == false
+                      ) {
+                        return invalid;
+                      }
+
+                      if (-1 < previousSourceToken) {
+                        long sourceOrder = compareTokenText(
+                          source,
+                          starts,
+                          lengths,
+                          previousSourceToken,
+                          next + 1
+                        );
+                        boolean sourcesOrdered = sourceOrder < 0;
+                        if (sourcesOrdered == false) {
+                          return invalid;
+                        }
+                      }
+
+                      long selectorToken = next + 1;
+                      long rootToken = cursor + 9;
+                      long selectorTokenStart = starts[selectorToken];
+                      long selectorTokenLength = lengths[selectorToken];
+                      long rootTokenStart = starts[rootToken];
+                      long rootTokenLength = lengths[rootToken];
+                      long selectorStart = selectorTokenStart + 1;
+                      long selectorLength = selectorTokenLength - 2;
+                      long rootStart = rootTokenStart + 1;
+                      long rootLength = rootTokenLength - 2;
+                      boolean covers = manifestSelectorRangeCoversRoot(
+                        source,
+                        selectorStart,
+                        selectorLength,
+                        rootStart,
+                        rootLength
+                      );
+                      if (covers) {
+                        rootCovered = true;
+                      }
+
+                      long sourceBase = (sourceOffset + sourceCount) * SOURCE_ROW_WIDTH;
+                      set(sourceRows, sourceBase, starts[next + 1] + 1);
+                      set(sourceRows, sourceBase + 1, lengths[next + 1] - 2);
+                      sourceCount += 1;
+                      previousSourceToken = next + 1;
+                      next += 2;
                     } else {
                       scanning = false;
                     }
-                  }
-
-                  if (sourceCount == 0) {
-                    return invalid;
-                  }
-
-                  if (rootCovered == false) {
-                    return invalid;
+                  } else {
+                    scanning = false;
                   }
                 } else {
+                  scanning = false;
+                }
+              }
+
+              if (sourceCount == 0) {
+                return invalid;
+              }
+
+              if (rootCovered == false) {
+                return invalid;
+              }
+            } else {
+              return invalid;
+            }
+          }
+
+          if (manifestKeyAt(source, kinds, starts, lengths, count, next, 3556498)) {
+            long test = manifestBooleanToken(source, starts, lengths, next + 2);
+            if (-1 < test) {
+              if (kind == 2) {
+                if (test == 1) {
                   return invalid;
                 }
               }
 
-              if (
-                manifestKeyAt(source, kinds, starts, lengths, count, next, 3556498)
-              ) {
-                long test = manifestBooleanToken(source, starts, lengths, next + 2);
-                if (-1 < test) {
-                  if (kind == 2) {
-                    if (test == 1) {
-                      return invalid;
-                    }
-                  }
-
-                  return new TargetParse(
-                    true,
-                    next + 3,
-                    kind,
-                    cursor + 6,
-                    cursor + 9,
-                    moduleToken,
-                    sourceOffset,
-                    sourceCount,
-                    test
-                  );
-                }
-              }
+              return new TargetParse(
+                true,
+                next + 3,
+                kind,
+                cursor + 6,
+                cursor + 9,
+                moduleToken,
+                sourceOffset,
+                sourceCount,
+                test
+              );
             }
           }
         }

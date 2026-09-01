@@ -243,7 +243,10 @@ final class NativeCompilerPhysicalModules {
             "packages.manifest_target_prefix"),
         physical(
             "compiler/packages/manifest/target/PackageManifestTargetName.w",
-            "packages.manifest_target_name"));
+            "packages.manifest_target_name"),
+        physical(
+            "compiler/packages/manifest/target/PackageManifestTargetRoot.w",
+            "packages.manifest_target_root"));
   }
 
   private static NativeCompilerArchiveClosureProgram.PhysicalModule physical(
