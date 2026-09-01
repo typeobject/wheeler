@@ -3,6 +3,7 @@
 module wheeler.compiler.packages.manifest;
 
 import wheeler.compiler.packages.manifest_brackets;
+import wheeler.compiler.packages.manifest_capability_prefix;
 import wheeler.compiler.packages.manifest_dependency_name;
 import wheeler.compiler.packages.manifest_dependency_prefix;
 import wheeler.compiler.packages.manifest_dependency_version;
@@ -353,27 +354,27 @@ classical class Manifest {
     long cursor
   ) {
     CapabilityParse invalid = new CapabilityParse(false, cursor, 0, 0);
-    if (cursor + 6 < count) {
-      if (dashAt(source, kinds, starts, cursor)) {
-        if (
-          manifestKeyAt(source, kinds, starts, lengths, count, cursor + 1, 3373707)
-        ) {
-          if (quoted(kinds, lengths, cursor + 3)) {
-            if (
-              manifestKeyAt(source, kinds, starts, lengths, count, cursor + 4, 3433509)
-            ) {
-              if (quoted(kinds, lengths, cursor + 6)) {
-                boolean validPath = validLogicalPath(
-                  source,
-                  starts[cursor + 6] + 1,
-                  lengths[cursor + 6] - 2
-                );
-                if (validPath) {
-                  return new CapabilityParse(true, cursor + 7, cursor + 3, cursor + 6);
-                }
-              }
-            }
-          }
+    boolean validPrefix = manifestCapabilityPrefixValid(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      cursor
+    );
+    if (validPrefix == false) {
+      return invalid;
+    }
+
+    if (manifestKeyAt(source, kinds, starts, lengths, count, cursor + 4, 3433509)) {
+      if (quoted(kinds, lengths, cursor + 6)) {
+        boolean validPath = validLogicalPath(
+          source,
+          starts[cursor + 6] + 1,
+          lengths[cursor + 6] - 2
+        );
+        if (validPath) {
+          return new CapabilityParse(true, cursor + 7, cursor + 3, cursor + 6);
         }
       }
     }

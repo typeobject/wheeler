@@ -231,7 +231,10 @@ final class NativeCompilerPhysicalModules {
             "packages.manifest_dependency_name"),
         physical(
             "compiler/packages/manifest/dependency/PackageManifestDependencyVersion.w",
-            "packages.manifest_dependency_version"));
+            "packages.manifest_dependency_version"),
+        physical(
+            "compiler/packages/manifest/capability/PackageManifestCapabilityPrefix.w",
+            "packages.manifest_capability_prefix"));
   }
 
   private static NativeCompilerArchiveClosureProgram.PhysicalModule physical(
