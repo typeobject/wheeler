@@ -3,6 +3,7 @@
 module wheeler.compiler.packages.manifest;
 
 import wheeler.compiler.packages.manifest_brackets;
+import wheeler.compiler.packages.manifest_dependency_name;
 import wheeler.compiler.packages.manifest_dependency_prefix;
 import wheeler.compiler.packages.manifest_header;
 import wheeler.compiler.packages.manifest_keys;
@@ -315,28 +316,29 @@ classical class Manifest {
       return invalid;
     }
 
-    if (manifestKeyAt(source, kinds, starts, lengths, count, cursor + 4, 3373707)) {
-      if (quoted(kinds, lengths, cursor + 6)) {
-        boolean validName = validPackageName(
+    boolean validName = manifestDependencyNameValid(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      cursor
+    );
+    if (validName == false) {
+      return invalid;
+    }
+
+    if (
+      manifestKeyAt(source, kinds, starts, lengths, count, cursor + 7, 107725790424)
+    ) {
+      if (quoted(kinds, lengths, cursor + 9)) {
+        boolean validVersion = validConstraint(
           source,
-          starts[cursor + 6] + 1,
-          lengths[cursor + 6] - 2
+          starts[cursor + 9] + 1,
+          lengths[cursor + 9] - 2
         );
-        if (validName) {
-          if (
-            manifestKeyAt(source, kinds, starts, lengths, count, cursor + 7, 107725790424)
-          ) {
-            if (quoted(kinds, lengths, cursor + 9)) {
-              boolean validVersion = validConstraint(
-                source,
-                starts[cursor + 9] + 1,
-                lengths[cursor + 9] - 2
-              );
-              if (validVersion) {
-                return new DependencyParse(true, cursor + 10, kind, cursor + 6, cursor + 9);
-              }
-            }
-          }
+        if (validVersion) {
+          return new DependencyParse(true, cursor + 10, kind, cursor + 6, cursor + 9);
         }
       }
     }
