@@ -222,7 +222,10 @@ final class NativeCompilerPhysicalModules {
             "packages.manifest_header_tail"),
         physical(
             "compiler/packages/manifest/header/PackageManifestHeader.w",
-            "packages.manifest_header"));
+            "packages.manifest_header"),
+        physical(
+            "compiler/packages/manifest/dependency/PackageManifestDependencyPrefix.w",
+            "packages.manifest_dependency_prefix"));
   }
 
   private static NativeCompilerArchiveClosureProgram.PhysicalModule physical(
