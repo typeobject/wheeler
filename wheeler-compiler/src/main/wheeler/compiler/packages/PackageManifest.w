@@ -3,6 +3,7 @@
 module wheeler.compiler.packages.manifest;
 
 import wheeler.compiler.packages.manifest_brackets;
+import wheeler.compiler.packages.manifest_capability_path;
 import wheeler.compiler.packages.manifest_capability_prefix;
 import wheeler.compiler.packages.manifest_dependency_name;
 import wheeler.compiler.packages.manifest_dependency_prefix;
@@ -366,20 +367,19 @@ classical class Manifest {
       return invalid;
     }
 
-    if (manifestKeyAt(source, kinds, starts, lengths, count, cursor + 4, 3433509)) {
-      if (quoted(kinds, lengths, cursor + 6)) {
-        boolean validPath = validLogicalPath(
-          source,
-          starts[cursor + 6] + 1,
-          lengths[cursor + 6] - 2
-        );
-        if (validPath) {
-          return new CapabilityParse(true, cursor + 7, cursor + 3, cursor + 6);
-        }
-      }
+    boolean validPath = manifestCapabilityPathValid(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      cursor
+    );
+    if (validPath == false) {
+      return invalid;
     }
 
-    return invalid;
+    return new CapabilityParse(true, cursor + 7, cursor + 3, cursor + 6);
   }
 
   /// Parses every canonical collection row that fits the caller-owned tables.
