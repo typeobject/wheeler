@@ -5,6 +5,7 @@ module wheeler.compiler.packages.manifest;
 import wheeler.compiler.packages.manifest_brackets;
 import wheeler.compiler.packages.manifest_dependency_name;
 import wheeler.compiler.packages.manifest_dependency_prefix;
+import wheeler.compiler.packages.manifest_dependency_version;
 import wheeler.compiler.packages.manifest_header;
 import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_kinds;
@@ -328,22 +329,19 @@ classical class Manifest {
       return invalid;
     }
 
-    if (
-      manifestKeyAt(source, kinds, starts, lengths, count, cursor + 7, 107725790424)
-    ) {
-      if (quoted(kinds, lengths, cursor + 9)) {
-        boolean validVersion = validConstraint(
-          source,
-          starts[cursor + 9] + 1,
-          lengths[cursor + 9] - 2
-        );
-        if (validVersion) {
-          return new DependencyParse(true, cursor + 10, kind, cursor + 6, cursor + 9);
-        }
-      }
+    boolean validVersion = manifestDependencyVersionValid(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      cursor
+    );
+    if (validVersion == false) {
+      return invalid;
     }
 
-    return invalid;
+    return new DependencyParse(true, cursor + 10, kind, cursor + 6, cursor + 9);
   }
 
   private CapabilityParse parseCapability(
