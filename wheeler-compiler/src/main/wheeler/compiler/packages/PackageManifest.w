@@ -15,12 +15,12 @@ import wheeler.compiler.packages.manifest_ranges;
 import wheeler.compiler.packages.manifest_rows;
 import wheeler.compiler.packages.manifest_selectors;
 import wheeler.compiler.packages.manifest_target_coordinates;
+import wheeler.compiler.packages.manifest_target_module;
 import wheeler.compiler.packages.manifest_target_name;
 import wheeler.compiler.packages.manifest_target_prefix;
 import wheeler.compiler.packages.manifest_target_root;
 import wheeler.compiler.packages.manifest_target_test;
 import wheeler.compiler.packages.manifest_tokens;
-import wheeler.compiler.packages.names;
 import wheeler.compiler.packages.paths;
 import wheeler.compiler.packages.semver;
 
@@ -144,16 +144,14 @@ classical class Manifest {
             manifestKeyAt(source, kinds, starts, lengths, count, moduleKeyToken, 3226183276)
           ) {
             moduleToken = manifestTargetModuleToken(cursor);
-            if (quoted(kinds, lengths, moduleToken)) {
-              boolean validModule = validModuleName(
-                source,
-                starts[moduleToken] + 1,
-                lengths[moduleToken] - 2
-              );
-              if (validModule == false) {
-                return invalid;
-              }
-
+            boolean validModule = manifestTargetModuleValid(
+              source,
+              kinds,
+              starts,
+              lengths,
+              moduleToken
+            );
+            if (validModule) {
               long sourcesKeyToken = manifestTargetSourcesKeyToken(cursor);
               if (
                 manifestKeyAt(
