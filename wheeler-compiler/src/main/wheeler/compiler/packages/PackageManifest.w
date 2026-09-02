@@ -19,6 +19,7 @@ import wheeler.compiler.packages.manifest_target_name;
 import wheeler.compiler.packages.manifest_target_prefix;
 import wheeler.compiler.packages.manifest_target_root;
 import wheeler.compiler.packages.manifest_target_source;
+import wheeler.compiler.packages.manifest_target_source_coordinates;
 import wheeler.compiler.packages.manifest_target_test;
 import wheeler.compiler.packages.manifest_tokens;
 import wheeler.compiler.packages.semver;
@@ -213,8 +214,10 @@ classical class Manifest {
                       }
 
                       long sourceBase = (sourceOffset + sourceCount) * SOURCE_ROW_WIDTH;
-                      set(sourceRows, sourceBase, starts[selectorToken] + 1);
-                      set(sourceRows, sourceBase + 1, lengths[selectorToken] - 2);
+                      long selectorStart = manifestTargetSourceStart(starts, selectorToken);
+                      long selectorLength = manifestTargetSourceLength(lengths, selectorToken);
+                      set(sourceRows, sourceBase, selectorStart);
+                      set(sourceRows, sourceBase + 1, selectorLength);
                       sourceCount += 1;
                       previousSourceToken = selectorToken;
                       next = manifestTargetNextSourceRowToken(next);
