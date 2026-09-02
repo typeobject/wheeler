@@ -137,40 +137,50 @@ classical class Manifest {
         if (validRoot) {
           long moduleToken = -1;
           long sourceCount = 0;
-          long next = cursor + 10;
+          long moduleKeyToken = manifestTargetModuleKeyToken(cursor);
+          long next = moduleKeyToken;
           if (
-            manifestKeyAt(source, kinds, starts, lengths, count, next, 3226183276)
+            manifestKeyAt(source, kinds, starts, lengths, count, moduleKeyToken, 3226183276)
           ) {
-            if (quoted(kinds, lengths, next + 2)) {
+            moduleToken = manifestTargetModuleToken(cursor);
+            if (quoted(kinds, lengths, moduleToken)) {
               boolean validModule = validModuleName(
                 source,
-                starts[next + 2] + 1,
-                lengths[next + 2] - 2
+                starts[moduleToken] + 1,
+                lengths[moduleToken] - 2
               );
               if (validModule == false) {
                 return invalid;
               }
 
-              moduleToken = next + 2;
-              next += 3;
+              long sourcesKeyToken = manifestTargetSourcesKeyToken(cursor);
               if (
-                manifestKeyAt(source, kinds, starts, lengths, count, next, 105352305592) == false
+                manifestKeyAt(
+                  source,
+                  kinds,
+                  starts,
+                  lengths,
+                  count,
+                  sourcesKeyToken,
+                  105352305592
+                ) == false
               ) {
                 return invalid;
               }
 
-              next += 2;
+              next = manifestTargetFirstSourceRowToken(cursor);
               long previousSourceToken = -1;
               boolean rootCovered = false;
               boolean scanning = true;
               while (scanning) limit 1024 {
                 if (next + 1 < count) {
                   if (dashAt(source, kinds, starts, next)) {
-                    if (quoted(kinds, lengths, next + 1)) {
+                    long selectorToken = manifestTargetSelectorToken(next);
+                    if (quoted(kinds, lengths, selectorToken)) {
                       boolean validSource = validLogicalPath(
                         source,
-                        starts[next + 1] + 1,
-                        lengths[next + 1] - 2
+                        starts[selectorToken] + 1,
+                        lengths[selectorToken] - 2
                       );
                       if (validSource == false) {
                         return invalid;
@@ -188,7 +198,7 @@ classical class Manifest {
                           starts,
                           lengths,
                           previousSourceToken,
-                          next + 1
+                          selectorToken
                         );
                         boolean sourcesOrdered = sourceOrder < 0;
                         if (sourcesOrdered == false) {
@@ -196,7 +206,6 @@ classical class Manifest {
                         }
                       }
 
-                      long selectorToken = next + 1;
                       long selectorTokenStart = starts[selectorToken];
                       long selectorTokenLength = lengths[selectorToken];
                       long rootTokenStart = starts[rootToken];
@@ -217,11 +226,11 @@ classical class Manifest {
                       }
 
                       long sourceBase = (sourceOffset + sourceCount) * SOURCE_ROW_WIDTH;
-                      set(sourceRows, sourceBase, starts[next + 1] + 1);
-                      set(sourceRows, sourceBase + 1, lengths[next + 1] - 2);
+                      set(sourceRows, sourceBase, starts[selectorToken] + 1);
+                      set(sourceRows, sourceBase + 1, lengths[selectorToken] - 2);
                       sourceCount += 1;
-                      previousSourceToken = next + 1;
-                      next += 2;
+                      previousSourceToken = selectorToken;
+                      next = manifestTargetNextSourceRowToken(next);
                     } else {
                       scanning = false;
                     }
@@ -246,7 +255,8 @@ classical class Manifest {
           }
 
           if (manifestKeyAt(source, kinds, starts, lengths, count, next, 3556498)) {
-            long test = manifestBooleanToken(source, starts, lengths, next + 2);
+            long testToken = manifestTargetTestToken(next);
+            long test = manifestBooleanToken(source, starts, lengths, testToken);
             if (-1 < test) {
               if (kind == 2) {
                 if (test == 1) {
@@ -256,7 +266,7 @@ classical class Manifest {
 
               return new TargetParse(
                 true,
-                next + 3,
+                manifestTargetNextToken(next),
                 kind,
                 nameToken,
                 rootToken,

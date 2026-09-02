@@ -50,6 +50,14 @@ final class NativeCompilerPackageManifestTargetCoordinatesPhysicalProductExample
           entry void main() {
             assert(manifestTargetNameToken(4) == 10);
             assert(manifestTargetRootToken(4) == 13);
+            assert(manifestTargetModuleKeyToken(4) == 14);
+            assert(manifestTargetModuleToken(4) == 16);
+            assert(manifestTargetSourcesKeyToken(4) == 17);
+            assert(manifestTargetFirstSourceRowToken(4) == 19);
+            assert(manifestTargetSelectorToken(19) == 20);
+            assert(manifestTargetNextSourceRowToken(19) == 21);
+            assert(manifestTargetTestToken(21) == 23);
+            assert(manifestTargetNextToken(21) == 24);
           }
         }
         """);
