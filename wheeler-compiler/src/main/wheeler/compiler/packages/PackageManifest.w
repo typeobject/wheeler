@@ -14,6 +14,7 @@ import wheeler.compiler.packages.manifest_kinds;
 import wheeler.compiler.packages.manifest_ranges;
 import wheeler.compiler.packages.manifest_rows;
 import wheeler.compiler.packages.manifest_selectors;
+import wheeler.compiler.packages.manifest_target_coordinates;
 import wheeler.compiler.packages.manifest_target_name;
 import wheeler.compiler.packages.manifest_target_prefix;
 import wheeler.compiler.packages.manifest_target_root;
@@ -113,6 +114,8 @@ classical class Manifest {
   ) {
     TargetParse invalid = new TargetParse(false, cursor, 0, 0, 0, 0, sourceOffset, 0, 0);
     long kind = manifestTargetPrefixKind(source, kinds, starts, lengths, count, cursor);
+    long nameToken = manifestTargetNameToken(cursor);
+    long rootToken = manifestTargetRootToken(cursor);
     if (0 < kind) {
       boolean validName = manifestTargetNameValid(
         source,
@@ -194,7 +197,6 @@ classical class Manifest {
                       }
 
                       long selectorToken = next + 1;
-                      long rootToken = cursor + 9;
                       long selectorTokenStart = starts[selectorToken];
                       long selectorTokenLength = lengths[selectorToken];
                       long rootTokenStart = starts[rootToken];
@@ -256,8 +258,8 @@ classical class Manifest {
                 true,
                 next + 3,
                 kind,
-                cursor + 6,
-                cursor + 9,
+                nameToken,
+                rootToken,
                 moduleToken,
                 sourceOffset,
                 sourceCount,

@@ -159,7 +159,10 @@ final class NativeCompilerPhysicalModules {
             "packages.manifest_selector_completion"),
         physical(
             "compiler/packages/manifest/PackageManifestHeaderState.w",
-            "packages.manifest_header_state"));
+            "packages.manifest_header_state"),
+        physical(
+            "compiler/packages/manifest/target/PackageManifestTargetCoordinates.w",
+            "packages.manifest_target_coordinates"));
   }
 
   static List<NativeCompilerArchiveClosureProgram.PhysicalModule> importedCallableProducts() {
