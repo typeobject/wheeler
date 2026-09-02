@@ -18,6 +18,7 @@ import wheeler.compiler.packages.manifest_target_coordinates;
 import wheeler.compiler.packages.manifest_target_name;
 import wheeler.compiler.packages.manifest_target_prefix;
 import wheeler.compiler.packages.manifest_target_root;
+import wheeler.compiler.packages.manifest_target_test;
 import wheeler.compiler.packages.manifest_tokens;
 import wheeler.compiler.packages.names;
 import wheeler.compiler.packages.paths;
@@ -258,10 +259,9 @@ classical class Manifest {
             long testToken = manifestTargetTestToken(next);
             long test = manifestBooleanToken(source, starts, lengths, testToken);
             if (-1 < test) {
-              if (kind == 2) {
-                if (test == 1) {
-                  return invalid;
-                }
+              boolean testAllowed = manifestTargetTestAllowed(kind, test);
+              if (testAllowed == false) {
+                return invalid;
               }
 
               return new TargetParse(
