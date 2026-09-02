@@ -141,7 +141,14 @@ classical class Manifest {
           long moduleKeyToken = manifestTargetModuleKeyToken(cursor);
           long next = moduleKeyToken;
           if (
-            manifestKeyAt(source, kinds, starts, lengths, count, moduleKeyToken, 3226183276)
+            manifestTargetModulePresent(
+              source,
+              kinds,
+              starts,
+              lengths,
+              count,
+              moduleKeyToken
+            )
           ) {
             moduleToken = manifestTargetModuleToken(cursor);
             boolean validModule = manifestTargetModuleValid(
@@ -154,14 +161,13 @@ classical class Manifest {
             if (validModule) {
               long sourcesKeyToken = manifestTargetSourcesKeyToken(cursor);
               if (
-                manifestKeyAt(
+                manifestTargetSourcesPresent(
                   source,
                   kinds,
                   starts,
                   lengths,
                   count,
-                  sourcesKeyToken,
-                  105352305592
+                  sourcesKeyToken
                 ) == false
               ) {
                 return invalid;
@@ -244,7 +250,7 @@ classical class Manifest {
             }
           }
 
-          if (manifestKeyAt(source, kinds, starts, lengths, count, next, 3556498)) {
+          if (manifestTargetTestPresent(source, kinds, starts, lengths, count, next)) {
             long testToken = manifestTargetTestToken(next);
             long test = manifestBooleanToken(source, starts, lengths, testToken);
             if (-1 < test) {

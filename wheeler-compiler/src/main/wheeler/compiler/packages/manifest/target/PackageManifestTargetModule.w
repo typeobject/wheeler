@@ -2,10 +2,33 @@
 
 module wheeler.compiler.packages.manifest_target_module;
 
+import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_tokens;
 import wheeler.compiler.packages.names;
 
 classical class PackageManifestTargetModule {
+  /// Checks whether the optional `module` field starts at one token.
+  public boolean manifestTargetModulePresent(
+    borrow utf8 source,
+    borrow mut words kinds,
+    borrow mut words starts,
+    borrow mut words lengths,
+    long count,
+    long keyToken
+  ) {
+    long keyHash = 3226183276;
+    boolean present = manifestKeyAt(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      keyToken,
+      keyHash
+    );
+    return present;
+  }
+
   /// Checks one quoted module-name token.
   public boolean manifestTargetModuleValid(
     borrow utf8 source,

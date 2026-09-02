@@ -1,14 +1,11 @@
 package com.typeobject.wheeler.examples;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
-import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -19,23 +16,32 @@ final class NativeCompilerPackageManifestTargetTestPhysicalProductExampleTest {
 
   @Tag("closure-evidence")
   @Test
-  void compilesManifestTargetTestPolicyByteForByte() throws Exception {
-    var module = NativeCompilerPhysicalSelection.comparable(MODULE);
-    byte[] expected = new BytecodeWriter().write(
-        new WheelerCompiler().compileLibraryModuleFiles(
-            CompilerSources.moduleClosure(module.name()), module.name()));
+  void retainsManifestTargetTestAndRelocatesKey() throws Exception {
+    var module = NativeCompilerPhysicalSelection.callable(MODULE);
+    var expected = new WheelerCompiler().compileLibraryModuleFiles(
+        CompilerSources.moduleClosure(module.name()), module.name());
+    long expectedFunctions = 0;
+    long expectedInstructions = 0;
+    for (var function : expected.functions()) {
+      if (function.name().startsWith(module.name() + "::")) {
+        expectedFunctions += 1;
+        expectedInstructions += function.forward().size();
+        expectedInstructions += function.inverse().size();
+      }
+    }
     var machine = VirtualMachine.withBinaryInput(
-        NativeCompilerPhysicalPrograms.comparable(module),
+        NativeCompilerPhysicalPrograms.callable(module),
         framed(
             CompilerSources.packageArchive(),
             CompilerSources.bootstrapModuleManifest().canonicalBytes()),
-        expected.length + 1_048_576);
+        1_048_576);
 
     CompilerMachineRunner.runWithoutRewindHistory(machine);
 
-    assertEquals(1, machine.global("published"));
-    assertArrayEquals(expected, Arrays.copyOf(machine.hostOutput(), expected.length));
-    assertEquals(expected.length, machine.global("physicalModuleProductLength"));
+    assertEquals(expectedFunctions, machine.global("physicalRetainedFunctionCount"));
+    assertEquals(expectedInstructions, machine.global("physicalRetainedInstructionCount"));
+    assertEquals(1, machine.global("physicalCallableRelocationCount"));
+    assertEquals(1, machine.global("physicalResolvedCallableTargetCount"));
   }
 
   @Test

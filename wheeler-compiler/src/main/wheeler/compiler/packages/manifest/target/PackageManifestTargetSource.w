@@ -2,11 +2,34 @@
 
 module wheeler.compiler.packages.manifest_target_source;
 
+import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_selectors;
 import wheeler.compiler.packages.manifest_tokens;
 import wheeler.compiler.packages.paths;
 
 classical class PackageManifestTargetSource {
+  /// Checks whether the required sources field starts at one token.
+  public boolean manifestTargetSourcesPresent(
+    borrow utf8 source,
+    borrow mut words kinds,
+    borrow mut words starts,
+    borrow mut words lengths,
+    long count,
+    long keyToken
+  ) {
+    long keyHash = 105352305592;
+    boolean present = manifestKeyAt(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      keyToken,
+      keyHash
+    );
+    return present;
+  }
+
   /// Checks one quoted logical-path selector token.
   public boolean manifestTargetSourceValid(
     borrow utf8 source,

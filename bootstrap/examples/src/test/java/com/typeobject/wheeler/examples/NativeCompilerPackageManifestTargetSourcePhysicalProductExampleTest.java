@@ -39,8 +39,8 @@ final class NativeCompilerPackageManifestTargetSourcePhysicalProductExampleTest 
 
     assertEquals(expectedFunctions, machine.global("physicalRetainedFunctionCount"));
     assertEquals(expectedInstructions, machine.global("physicalRetainedInstructionCount"));
-    assertEquals(4, machine.global("physicalCallableRelocationCount"));
-    assertEquals(4, machine.global("physicalResolvedCallableTargetCount"));
+    assertEquals(5, machine.global("physicalCallableRelocationCount"));
+    assertEquals(5, machine.global("physicalResolvedCallableTargetCount"));
   }
 
   private static byte[] framed(byte[] archive, byte[] manifest) {

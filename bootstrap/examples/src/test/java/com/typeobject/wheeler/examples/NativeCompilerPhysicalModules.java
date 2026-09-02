@@ -164,9 +164,6 @@ final class NativeCompilerPhysicalModules {
             "compiler/packages/manifest/target/PackageManifestTargetCoordinates.w",
             "packages.manifest_target_coordinates"),
         physical(
-            "compiler/packages/manifest/target/PackageManifestTargetTest.w",
-            "packages.manifest_target_test"),
-        physical(
             "compiler/packages/manifest/target/PackageManifestTargetSourceCoordinates.w",
             "packages.manifest_target_source_coordinates"));
   }
@@ -261,7 +258,10 @@ final class NativeCompilerPhysicalModules {
             "packages.manifest_target_module"),
         physical(
             "compiler/packages/manifest/target/PackageManifestTargetSource.w",
-            "packages.manifest_target_source"));
+            "packages.manifest_target_source"),
+        physical(
+            "compiler/packages/manifest/target/PackageManifestTargetTest.w",
+            "packages.manifest_target_test"));
   }
 
   private static NativeCompilerArchiveClosureProgram.PhysicalModule physical(
