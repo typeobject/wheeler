@@ -3,8 +3,10 @@
 module wheeler.compiler.packages.manifest;
 
 import wheeler.compiler.packages.manifest_brackets;
+import wheeler.compiler.packages.manifest_capability_coordinates;
 import wheeler.compiler.packages.manifest_capability_path;
 import wheeler.compiler.packages.manifest_capability_prefix;
+import wheeler.compiler.packages.manifest_dependency_coordinates;
 import wheeler.compiler.packages.manifest_dependency_name;
 import wheeler.compiler.packages.manifest_dependency_prefix;
 import wheeler.compiler.packages.manifest_dependency_version;
@@ -317,7 +319,10 @@ classical class Manifest {
       return invalid;
     }
 
-    return new DependencyParse(true, cursor + 10, kind, cursor + 6, cursor + 9);
+    long nameToken = manifestDependencyNameToken(cursor);
+    long versionToken = manifestDependencyVersionToken(cursor);
+    long next = manifestDependencyNextToken(cursor);
+    return new DependencyParse(true, next, kind, nameToken, versionToken);
   }
 
   private CapabilityParse parseCapability(
@@ -353,7 +358,10 @@ classical class Manifest {
       return invalid;
     }
 
-    return new CapabilityParse(true, cursor + 7, cursor + 3, cursor + 6);
+    long nameToken = manifestCapabilityNameToken(cursor);
+    long pathToken = manifestCapabilityPathToken(cursor);
+    long next = manifestCapabilityNextToken(cursor);
+    return new CapabilityParse(true, next, nameToken, pathToken);
   }
 
   /// Parses every canonical collection row that fits the caller-owned tables.
@@ -512,10 +520,26 @@ classical class Manifest {
 
             long dependencyBase = dependencyCount * DEPENDENCY_ROW_WIDTH;
             set(dependencyRows, dependencyBase, dependency.kind);
-            set(dependencyRows, dependencyBase + 1, starts[dependency.nameToken] + 1);
-            set(dependencyRows, dependencyBase + 2, lengths[dependency.nameToken] - 2);
-            set(dependencyRows, dependencyBase + 3, starts[dependency.versionToken] + 1);
-            set(dependencyRows, dependencyBase + 4, lengths[dependency.versionToken] - 2);
+            long dependencyNameStart = manifestDependencyValueStart(
+              starts,
+              dependency.nameToken
+            );
+            long dependencyNameLength = manifestDependencyValueLength(
+              lengths,
+              dependency.nameToken
+            );
+            long dependencyVersionStart = manifestDependencyValueStart(
+              starts,
+              dependency.versionToken
+            );
+            long dependencyVersionLength = manifestDependencyValueLength(
+              lengths,
+              dependency.versionToken
+            );
+            set(dependencyRows, dependencyBase + 1, dependencyNameStart);
+            set(dependencyRows, dependencyBase + 2, dependencyNameLength);
+            set(dependencyRows, dependencyBase + 3, dependencyVersionStart);
+            set(dependencyRows, dependencyBase + 4, dependencyVersionLength);
             dependencyCount += 1;
             previousDependencyToken = dependency.nameToken;
             cursor = dependency.next;
@@ -606,10 +630,26 @@ classical class Manifest {
         }
 
         long capabilityBase = capabilityCount * CAPABILITY_ROW_WIDTH;
-        set(capabilityRows, capabilityBase, starts[capability.nameToken] + 1);
-        set(capabilityRows, capabilityBase + 1, lengths[capability.nameToken] - 2);
-        set(capabilityRows, capabilityBase + 2, starts[capability.pathToken] + 1);
-        set(capabilityRows, capabilityBase + 3, lengths[capability.pathToken] - 2);
+        long capabilityNameStart = manifestCapabilityValueStart(
+          starts,
+          capability.nameToken
+        );
+        long capabilityNameLength = manifestCapabilityValueLength(
+          lengths,
+          capability.nameToken
+        );
+        long capabilityPathStart = manifestCapabilityValueStart(
+          starts,
+          capability.pathToken
+        );
+        long capabilityPathLength = manifestCapabilityValueLength(
+          lengths,
+          capability.pathToken
+        );
+        set(capabilityRows, capabilityBase, capabilityNameStart);
+        set(capabilityRows, capabilityBase + 1, capabilityNameLength);
+        set(capabilityRows, capabilityBase + 2, capabilityPathStart);
+        set(capabilityRows, capabilityBase + 3, capabilityPathLength);
         capabilityCount += 1;
         previousCapabilityName = capability.nameToken;
         previousCapabilityPath = capability.pathToken;

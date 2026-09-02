@@ -165,7 +165,13 @@ final class NativeCompilerPhysicalModules {
             "packages.manifest_target_coordinates"),
         physical(
             "compiler/packages/manifest/target/PackageManifestTargetSourceCoordinates.w",
-            "packages.manifest_target_source_coordinates"));
+            "packages.manifest_target_source_coordinates"),
+        physical(
+            "compiler/packages/manifest/dependency/PackageManifestDependencyCoordinates.w",
+            "packages.manifest_dependency_coordinates"),
+        physical(
+            "compiler/packages/manifest/capability/PackageManifestCapabilityCoordinates.w",
+            "packages.manifest_capability_coordinates"));
   }
 
   static List<NativeCompilerArchiveClosureProgram.PhysicalModule> importedCallableProducts() {
