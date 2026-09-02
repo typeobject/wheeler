@@ -19,9 +19,9 @@ import wheeler.compiler.packages.manifest_target_module;
 import wheeler.compiler.packages.manifest_target_name;
 import wheeler.compiler.packages.manifest_target_prefix;
 import wheeler.compiler.packages.manifest_target_root;
+import wheeler.compiler.packages.manifest_target_source;
 import wheeler.compiler.packages.manifest_target_test;
 import wheeler.compiler.packages.manifest_tokens;
-import wheeler.compiler.packages.paths;
 import wheeler.compiler.packages.semver;
 
 classical class Manifest {
@@ -175,16 +175,14 @@ classical class Manifest {
                 if (next + 1 < count) {
                   if (dashAt(source, kinds, starts, next)) {
                     long selectorToken = manifestTargetSelectorToken(next);
-                    if (quoted(kinds, lengths, selectorToken)) {
-                      boolean validSource = validLogicalPath(
-                        source,
-                        starts[selectorToken] + 1,
-                        lengths[selectorToken] - 2
-                      );
-                      if (validSource == false) {
-                        return invalid;
-                      }
-
+                    boolean validSource = manifestTargetSourceValid(
+                      source,
+                      kinds,
+                      starts,
+                      lengths,
+                      selectorToken
+                    );
+                    if (validSource) {
                       if (
                         manifestSourceRowCapacity(sourceRows, sourceOffset + sourceCount) == false
                       ) {

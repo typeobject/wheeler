@@ -100,6 +100,7 @@ class NativeManifestExampleTest {
     assertTraps(program, MANIFEST.replace("name: \"demo.base\"", "name: \"demo.-base\""));
     assertTraps(program, MANIFEST.replace("root: \"src/App.w\"", "root: \"../App.w\""));
     assertTraps(program, MANIFEST.replace("module: \"demo.app\"", "module: \"demo.-app\""));
+    assertTraps(program, MANIFEST.replace("- \"src/Helper.w\"", "- \"../Helper.w\""));
     assertTraps(program, MANIFEST.replace("- \"src/App.w\"", "- \"src/Aardvark.w\""));
     assertTraps(
         program,
