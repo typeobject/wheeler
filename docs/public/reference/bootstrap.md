@@ -31,7 +31,7 @@ is neither a Wheeler fixed point nor an independent derivation.
 
 The current Wheeler-native path can parse, plan, and classify the complete
 428-module compiler closure with 2,011 imports and a 196,306-byte module manifest.
-Its native identity run completes in 83,467,781 transitions. The native compiler
+Its native identity run completes in 83,467,594 transitions. The native compiler
 package separately compiles 97 production modules through bounded physical source
 graphs and executes the complete 255-case profile. CI assigns those case identities
 to sixteen disjoint shards before compilation. The source path preserves typed Boolean-local
@@ -51,7 +51,7 @@ keyword and colon calls against token policy. Selector scalar state, call-free
 prefix traversal, range completion, and their composing facade are retained.
 Quoted range coordinates, complete header composition, dependency and capability
 fields, complete target-row coordinates, target test policy, optional module
-names, and source-selector paths have retained owners. The executable subset contains 449 functions and 16,036 instructions. The complete compiler has not reached a fixed
+names, source-selector paths, strict order, and root coverage have retained owners. The executable subset contains 451 functions and 16,098 instructions. The complete compiler has not reached a fixed
 point.
 
 ## Platform ABI and native image plans

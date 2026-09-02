@@ -13,7 +13,6 @@ import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_kinds;
 import wheeler.compiler.packages.manifest_ranges;
 import wheeler.compiler.packages.manifest_rows;
-import wheeler.compiler.packages.manifest_selectors;
 import wheeler.compiler.packages.manifest_target_coordinates;
 import wheeler.compiler.packages.manifest_target_module;
 import wheeler.compiler.packages.manifest_target_name;
@@ -190,33 +189,24 @@ classical class Manifest {
                       }
 
                       if (-1 < previousSourceToken) {
-                        long sourceOrder = compareTokenText(
+                        boolean sourcesOrdered = manifestTargetSourcesOrdered(
                           source,
                           starts,
                           lengths,
                           previousSourceToken,
                           selectorToken
                         );
-                        boolean sourcesOrdered = sourceOrder < 0;
                         if (sourcesOrdered == false) {
                           return invalid;
                         }
                       }
 
-                      long selectorTokenStart = starts[selectorToken];
-                      long selectorTokenLength = lengths[selectorToken];
-                      long rootTokenStart = starts[rootToken];
-                      long rootTokenLength = lengths[rootToken];
-                      long selectorStart = selectorTokenStart + 1;
-                      long selectorLength = selectorTokenLength - 2;
-                      long rootStart = rootTokenStart + 1;
-                      long rootLength = rootTokenLength - 2;
-                      boolean covers = manifestSelectorRangeCoversRoot(
+                      boolean covers = manifestTargetSourceCoversRoot(
                         source,
-                        selectorStart,
-                        selectorLength,
-                        rootStart,
-                        rootLength
+                        starts,
+                        lengths,
+                        selectorToken,
+                        rootToken
                       );
                       if (covers) {
                         rootCovered = true;
