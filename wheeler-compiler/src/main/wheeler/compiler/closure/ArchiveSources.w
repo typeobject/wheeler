@@ -8,11 +8,11 @@ import wheeler.crypto.sha256;
 classical class ArchiveSources {
   private const long ARCHIVE_DIGEST_BYTES = 32;
   private const long ARCHIVE_HASH_ARENA_BYTES = 600000;
-  private const long ARCHIVE_INDEX_ARENA_BYTES = 16456;
-  private const long ENTRY_COUNT_LIMIT = 513;
+  private const long ARCHIVE_INDEX_ARENA_BYTES = 32840;
+  private const long ENTRY_COUNT_LIMIT = 1025;
   private const long ENTRY_HEADER_BYTES = 12;
   private const long MAX_ARCHIVE_BYTES = 16777216;
-  private const long MAX_ARCHIVE_ENTRIES = 512;
+  private const long MAX_ARCHIVE_ENTRIES = 1024;
   private const long MAX_MANIFEST_BYTES = 262144;
   private const long MAX_PATH_BYTES = 4096;
 

@@ -146,7 +146,7 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 
 - [x] Core ranged SHA-256 admits every block in a 16 MiB physical evidence file.
 - [x] `compiler/closure/ArchiveSources.w` validates the outer archive digest, every entry digest, canonical sorted paths, complete framing, and exact path/data offsets before publishing any column.
-- [x] Archive source columns admit 512 entries. A 513th entry fails before hashing or mutation.
+- [x] Archive source columns admit 1,024 entries. Entry 1,025 fails before hashing or mutation; WIP-0478 widens only archive columns.
 - [x] `PackageTarget.w` parses the complete canonical package manifest and binds one untested `compiler` tool target to the bootstrap root module and source path. Noncanonical layout and another target kind publish nothing.
 - [x] Package syntax, names, paths, semantic versions, and manifest parsing moved under `compiler/packages`. The package library consumes those compiler-owned modules instead of carrying another parser.
 - [x] Three-entry evidence checks physical path and payload offsets. Damaged outer evidence preserves caller columns.

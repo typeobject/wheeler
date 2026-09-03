@@ -47,13 +47,13 @@ final class NativeCompilerArchiveSourcesExampleTest {
   }
 
   @Test
-  void admitsFiveHundredTwelveEntriesAndRejectsTheNextBeforePublication() throws Exception {
+  void admitsOneThousandTwentyFourEntriesAndRejectsTheNextBeforePublication() throws Exception {
     Program indexer = capacityIndexer();
-    VirtualMachine accepted = VirtualMachine.withBinaryInput(indexer, archive(entries(512)), 1);
+    VirtualMachine accepted = VirtualMachine.withBinaryInput(indexer, archive(entries(1024)), 1);
     CompilerMachineRunner.runWithoutRewindHistory(accepted);
     assertArrayEquals(new byte[] {1}, accepted.hostOutput());
 
-    VirtualMachine rejected = VirtualMachine.withBinaryInput(indexer, archive(entries(513)), 1);
+    VirtualMachine rejected = VirtualMachine.withBinaryInput(indexer, archive(entries(1025)), 1);
     CompilerMachineRunner.runWithoutRewindHistory(rejected);
     assertArrayEquals(new byte[1], rejected.hostOutput());
   }
@@ -72,11 +72,11 @@ final class NativeCompilerArchiveSourcesExampleTest {
 
         classical class ArchiveIndexExample {
           entry void main(borrow byteview source, borrow mut bytes output) {
-            region arena = new region(/* bytes= */ 16456, /* allocations= */ 4);
-            words pathStarts = allocate(arena, 512);
-            words pathLengths = allocate(arena, 512);
-            words dataStarts = allocate(arena, 512);
-            words dataLengths = allocate(arena, 512);
+            region arena = new region(/* bytes= */ 32840, /* allocations= */ 4);
+            words pathStarts = allocate(arena, 1024);
+            words pathLengths = allocate(arena, 1024);
+            words dataStarts = allocate(arena, 1024);
+            words dataLengths = allocate(arena, 1024);
             set(pathStarts, 0, 77);
             ArchiveSourceIndexResult indexed = indexArchiveSources(
               source,
@@ -124,11 +124,11 @@ final class NativeCompilerArchiveSourcesExampleTest {
 
         classical class ArchiveCapacityExample {
           entry void main(borrow byteview source, borrow mut bytes output) {
-            region arena = new region(/* bytes= */ 16456, /* allocations= */ 4);
-            words pathStarts = allocate(arena, 512);
-            words pathLengths = allocate(arena, 512);
-            words dataStarts = allocate(arena, 512);
-            words dataLengths = allocate(arena, 512);
+            region arena = new region(/* bytes= */ 32840, /* allocations= */ 4);
+            words pathStarts = allocate(arena, 1024);
+            words pathLengths = allocate(arena, 1024);
+            words dataStarts = allocate(arena, 1024);
+            words dataLengths = allocate(arena, 1024);
             set(pathStarts, 0, 77);
             ArchiveSourceIndexResult indexed = indexArchiveSources(
               source,
@@ -139,7 +139,7 @@ final class NativeCompilerArchiveSourcesExampleTest {
             );
             match (indexed) {
               case ArchiveSourceIndexResult.Value(ArchiveSourceIndex index) {
-                assert(index.entryCount == 512);
+                assert(index.entryCount == 1024);
                 setByte(output, 0, 1);
               }
               case ArchiveSourceIndexResult.Error(long offset) {

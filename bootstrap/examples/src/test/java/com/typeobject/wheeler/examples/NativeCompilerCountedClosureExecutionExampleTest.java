@@ -280,6 +280,7 @@ final class NativeCompilerCountedClosureExecutionExampleTest {
 
         classical class CountedClosureExecutionExample {
           private const long MAX_ARCHIVE_BYTES = 16777216;
+          private const long MAX_ARCHIVE_ENTRIES = 1024;
           private const long MAX_EXTERNALS = 64;
           private const long MAX_IMPORTS = 3072;
           private const long MAX_MANIFEST_BYTES = 262144;
@@ -310,11 +311,11 @@ final class NativeCompilerCountedClosureExecutionExampleTest {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 186000, /* allocations= */ 23);
-            words archivePathStarts = allocate(columns, MAX_MODULES);
-            words archivePathLengths = allocate(columns, MAX_MODULES);
-            words archiveDataStarts = allocate(columns, MAX_MODULES);
-            words archiveDataLengths = allocate(columns, MAX_MODULES);
+            region columns = new region(/* bytes= */ 202384, /* allocations= */ 23);
+            words archivePathStarts = allocate(columns, MAX_ARCHIVE_ENTRIES);
+            words archivePathLengths = allocate(columns, MAX_ARCHIVE_ENTRIES);
+            words archiveDataStarts = allocate(columns, MAX_ARCHIVE_ENTRIES);
+            words archiveDataLengths = allocate(columns, MAX_ARCHIVE_ENTRIES);
             words externalStarts = allocate(columns, MAX_EXTERNALS);
             words externalLengths = allocate(columns, MAX_EXTERNALS);
             words moduleStarts = allocate(columns, MAX_MODULES);
