@@ -15,10 +15,9 @@ import wheeler.compiler.packages.manifest_ranges;
 import wheeler.compiler.packages.manifest_rows;
 import wheeler.compiler.packages.manifest_sections;
 import wheeler.compiler.packages.manifest_target_coordinates;
+import wheeler.compiler.packages.manifest_target_head;
 import wheeler.compiler.packages.manifest_target_module;
 import wheeler.compiler.packages.manifest_target_name;
-import wheeler.compiler.packages.manifest_target_prefix;
-import wheeler.compiler.packages.manifest_target_root;
 import wheeler.compiler.packages.manifest_target_source;
 import wheeler.compiler.packages.manifest_target_source_coordinates;
 import wheeler.compiler.packages.manifest_target_test;
@@ -115,164 +114,144 @@ classical class Manifest {
     long sourceOffset
   ) {
     TargetParse invalid = new TargetParse(false, cursor, 0, 0, 0, 0, sourceOffset, 0, 0);
-    long kind = manifestTargetPrefixKind(source, kinds, starts, lengths, count, cursor);
+    long kind = manifestTargetHeadKind(source, kinds, starts, lengths, count, cursor);
     long nameToken = manifestTargetNameToken(cursor);
     long rootToken = manifestTargetRootToken(cursor);
     if (0 < kind) {
-      boolean validName = manifestTargetNameValid(
-        source,
-        kinds,
-        starts,
-        lengths,
-        count,
-        cursor
-      );
-      if (validName) {
-        boolean validRoot = manifestTargetRootValid(
+      long moduleToken = -1;
+      long sourceCount = 0;
+      long moduleKeyToken = manifestTargetModuleKeyToken(cursor);
+      long next = moduleKeyToken;
+      if (
+        manifestTargetModulePresent(
           source,
           kinds,
           starts,
           lengths,
           count,
-          cursor
+          moduleKeyToken
+        )
+      ) {
+        moduleToken = manifestTargetModuleToken(cursor);
+        boolean validModule = manifestTargetModuleValid(
+          source,
+          kinds,
+          starts,
+          lengths,
+          moduleToken
         );
-        if (validRoot) {
-          long moduleToken = -1;
-          long sourceCount = 0;
-          long moduleKeyToken = manifestTargetModuleKeyToken(cursor);
-          long next = moduleKeyToken;
+        if (validModule) {
+          long sourcesKeyToken = manifestTargetSourcesKeyToken(cursor);
           if (
-            manifestTargetModulePresent(
+            manifestTargetSourcesPresent(
               source,
               kinds,
               starts,
               lengths,
               count,
-              moduleKeyToken
-            )
+              sourcesKeyToken
+            ) == false
           ) {
-            moduleToken = manifestTargetModuleToken(cursor);
-            boolean validModule = manifestTargetModuleValid(
-              source,
-              kinds,
-              starts,
-              lengths,
-              moduleToken
-            );
-            if (validModule) {
-              long sourcesKeyToken = manifestTargetSourcesKeyToken(cursor);
-              if (
-                manifestTargetSourcesPresent(
+            return invalid;
+          }
+
+          next = manifestTargetFirstSourceRowToken(cursor);
+          long previousSourceToken = -1;
+          boolean rootCovered = false;
+          boolean scanning = true;
+          while (scanning) limit 1024 {
+            if (next + 1 < count) {
+              if (dashAt(source, kinds, starts, next)) {
+                long selectorToken = manifestTargetSelectorToken(next);
+                boolean validSource = manifestTargetSourceValid(
                   source,
                   kinds,
                   starts,
                   lengths,
-                  count,
-                  sourcesKeyToken
-                ) == false
-              ) {
-                return invalid;
-              }
+                  selectorToken
+                );
+                if (validSource) {
+                  if (
+                    manifestSourceRowCapacity(sourceRows, sourceOffset + sourceCount) == false
+                  ) {
+                    return invalid;
+                  }
 
-              next = manifestTargetFirstSourceRowToken(cursor);
-              long previousSourceToken = -1;
-              boolean rootCovered = false;
-              boolean scanning = true;
-              while (scanning) limit 1024 {
-                if (next + 1 < count) {
-                  if (dashAt(source, kinds, starts, next)) {
-                    long selectorToken = manifestTargetSelectorToken(next);
-                    boolean validSource = manifestTargetSourceValid(
+                  if (-1 < previousSourceToken) {
+                    boolean sourcesOrdered = manifestTargetSourcesOrdered(
                       source,
-                      kinds,
                       starts,
                       lengths,
+                      previousSourceToken,
                       selectorToken
                     );
-                    if (validSource) {
-                      if (
-                        manifestSourceRowCapacity(sourceRows, sourceOffset + sourceCount) == false
-                      ) {
-                        return invalid;
-                      }
-
-                      if (-1 < previousSourceToken) {
-                        boolean sourcesOrdered = manifestTargetSourcesOrdered(
-                          source,
-                          starts,
-                          lengths,
-                          previousSourceToken,
-                          selectorToken
-                        );
-                        if (sourcesOrdered == false) {
-                          return invalid;
-                        }
-                      }
-
-                      boolean covers = manifestTargetSourceCoversRoot(
-                        source,
-                        starts,
-                        lengths,
-                        selectorToken,
-                        rootToken
-                      );
-                      if (covers) {
-                        rootCovered = true;
-                      }
-
-                      long sourceBase = (sourceOffset + sourceCount) * SOURCE_ROW_WIDTH;
-                      long selectorStart = manifestTargetSourceStart(starts, selectorToken);
-                      long selectorLength = manifestTargetSourceLength(lengths, selectorToken);
-                      set(sourceRows, sourceBase, selectorStart);
-                      set(sourceRows, sourceBase + 1, selectorLength);
-                      sourceCount += 1;
-                      previousSourceToken = selectorToken;
-                      next = manifestTargetNextSourceRowToken(next);
-                    } else {
-                      scanning = false;
+                    if (sourcesOrdered == false) {
+                      return invalid;
                     }
-                  } else {
-                    scanning = false;
                   }
+
+                  boolean covers = manifestTargetSourceCoversRoot(
+                    source,
+                    starts,
+                    lengths,
+                    selectorToken,
+                    rootToken
+                  );
+                  if (covers) {
+                    rootCovered = true;
+                  }
+
+                  long sourceBase = (sourceOffset + sourceCount) * SOURCE_ROW_WIDTH;
+                  long selectorStart = manifestTargetSourceStart(starts, selectorToken);
+                  long selectorLength = manifestTargetSourceLength(lengths, selectorToken);
+                  set(sourceRows, sourceBase, selectorStart);
+                  set(sourceRows, sourceBase + 1, selectorLength);
+                  sourceCount += 1;
+                  previousSourceToken = selectorToken;
+                  next = manifestTargetNextSourceRowToken(next);
                 } else {
                   scanning = false;
                 }
-              }
-
-              if (sourceCount == 0) {
-                return invalid;
-              }
-
-              if (rootCovered == false) {
-                return invalid;
+              } else {
+                scanning = false;
               }
             } else {
-              return invalid;
+              scanning = false;
             }
           }
 
-          if (manifestTargetTestPresent(source, kinds, starts, lengths, count, next)) {
-            long testToken = manifestTargetTestToken(next);
-            long test = manifestBooleanToken(source, starts, lengths, testToken);
-            if (-1 < test) {
-              boolean testAllowed = manifestTargetTestAllowed(kind, test);
-              if (testAllowed == false) {
-                return invalid;
-              }
-
-              return new TargetParse(
-                true,
-                manifestTargetNextToken(next),
-                kind,
-                nameToken,
-                rootToken,
-                moduleToken,
-                sourceOffset,
-                sourceCount,
-                test
-              );
-            }
+          if (sourceCount == 0) {
+            return invalid;
           }
+
+          if (rootCovered == false) {
+            return invalid;
+          }
+        } else {
+          return invalid;
+        }
+      }
+
+      if (manifestTargetTestPresent(source, kinds, starts, lengths, count, next)) {
+        long testToken = manifestTargetTestToken(next);
+        long test = manifestBooleanToken(source, starts, lengths, testToken);
+        if (-1 < test) {
+          boolean testAllowed = manifestTargetTestAllowed(kind, test);
+          if (testAllowed == false) {
+            return invalid;
+          }
+
+          return new TargetParse(
+            true,
+            manifestTargetNextToken(next),
+            kind,
+            nameToken,
+            rootToken,
+            moduleToken,
+            sourceOffset,
+            sourceCount,
+            test
+          );
         }
       }
     }
