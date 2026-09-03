@@ -254,6 +254,9 @@ final class NativeCompilerPhysicalModules {
             "compiler/packages/manifest/capability/PackageManifestCapabilityPath.w",
             "packages.manifest_capability_path"),
         physical(
+            "compiler/packages/manifest/capability/PackageManifestCapability.w",
+            "packages.manifest_capability"),
+        physical(
             "compiler/packages/manifest/target/PackageManifestTargetPrefix.w",
             "packages.manifest_target_prefix"),
         physical(

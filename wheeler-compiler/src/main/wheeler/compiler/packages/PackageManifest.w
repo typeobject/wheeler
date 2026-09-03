@@ -2,9 +2,9 @@
 
 module wheeler.compiler.packages.manifest;
 
+import wheeler.compiler.packages.manifest_capability;
 import wheeler.compiler.packages.manifest_capability_coordinates;
 import wheeler.compiler.packages.manifest_capability_path;
-import wheeler.compiler.packages.manifest_capability_prefix;
 import wheeler.compiler.packages.manifest_dependency;
 import wheeler.compiler.packages.manifest_dependency_coordinates;
 import wheeler.compiler.packages.manifest_dependency_name;
@@ -316,7 +316,7 @@ classical class Manifest {
     long cursor
   ) {
     CapabilityParse invalid = new CapabilityParse(false, cursor, 0, 0);
-    boolean validPrefix = manifestCapabilityPrefixValid(
+    boolean valid = manifestCapabilityRowValid(
       source,
       kinds,
       starts,
@@ -324,19 +324,7 @@ classical class Manifest {
       count,
       cursor
     );
-    if (validPrefix == false) {
-      return invalid;
-    }
-
-    boolean validPath = manifestCapabilityPathValid(
-      source,
-      kinds,
-      starts,
-      lengths,
-      count,
-      cursor
-    );
-    if (validPath == false) {
+    if (valid == false) {
       return invalid;
     }
 
