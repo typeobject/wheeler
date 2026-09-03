@@ -281,6 +281,9 @@ final class NativeCompilerPhysicalModules {
             "compiler/packages/manifest/target/source/PackageManifestTargetSourceRow.w",
             "packages.manifest_target_source_row"),
         physical(
+            "compiler/packages/manifest/target/source/PackageManifestTargetSourceSequence.w",
+            "packages.manifest_target_source_sequence"),
+        physical(
             "compiler/packages/manifest/target/PackageManifestTargetTest.w",
             "packages.manifest_target_test"),
         physical(

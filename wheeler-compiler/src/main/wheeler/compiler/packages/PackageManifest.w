@@ -22,6 +22,7 @@ import wheeler.compiler.packages.manifest_target_name;
 import wheeler.compiler.packages.manifest_target_source;
 import wheeler.compiler.packages.manifest_target_source_coordinates;
 import wheeler.compiler.packages.manifest_target_source_row;
+import wheeler.compiler.packages.manifest_target_source_sequence;
 import wheeler.compiler.packages.manifest_target_tail;
 import wheeler.compiler.packages.manifest_tokens;
 import wheeler.compiler.packages.semver;
@@ -161,17 +162,15 @@ classical class Manifest {
               return invalid;
             }
 
-            if (-1 < previousSourceToken) {
-              boolean sourcesOrdered = manifestTargetSourcesOrdered(
-                source,
-                starts,
-                lengths,
-                previousSourceToken,
-                selectorToken
-              );
-              if (sourcesOrdered == false) {
-                return invalid;
-              }
+            boolean ordered = manifestTargetSourceFollows(
+              source,
+              starts,
+              lengths,
+              previousSourceToken,
+              selectorToken
+            );
+            if (ordered == false) {
+              return invalid;
             }
 
             boolean covers = manifestTargetSourceCoversRoot(
