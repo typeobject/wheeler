@@ -52,4 +52,18 @@ classical class PackageManifestTargetCoordinates {
   public long manifestTargetNextToken(long testKeyToken) {
     return testKeyToken + 3;
   }
+
+  /// Returns the first byte inside one quoted target value.
+  public long manifestTargetValueStart(borrow mut words starts, long token) {
+    long tokenStart = starts[token];
+    long valueStart = tokenStart + 1;
+    return valueStart;
+  }
+
+  /// Returns the byte count inside one quoted target value.
+  public long manifestTargetValueLength(borrow mut words lengths, long token) {
+    long tokenLength = lengths[token];
+    long valueLength = tokenLength - 2;
+    return valueLength;
+  }
 }

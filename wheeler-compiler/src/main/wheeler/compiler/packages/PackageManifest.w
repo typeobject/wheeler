@@ -420,14 +420,20 @@ classical class Manifest {
           }
 
           long targetBase = targetCount * TARGET_ROW_WIDTH;
+          long targetNameStart = manifestTargetValueStart(starts, target.nameToken);
+          long targetNameLength = manifestTargetValueLength(lengths, target.nameToken);
+          long targetRootStart = manifestTargetValueStart(starts, target.rootToken);
+          long targetRootLength = manifestTargetValueLength(lengths, target.rootToken);
           set(targetRows, targetBase + TARGET_KIND, target.kind);
-          set(targetRows, targetBase + TARGET_NAME_START, starts[target.nameToken] + 1);
-          set(targetRows, targetBase + TARGET_NAME_LENGTH, lengths[target.nameToken] - 2);
-          set(targetRows, targetBase + TARGET_ROOT_START, starts[target.rootToken] + 1);
-          set(targetRows, targetBase + TARGET_ROOT_LENGTH, lengths[target.rootToken] - 2);
+          set(targetRows, targetBase + TARGET_NAME_START, targetNameStart);
+          set(targetRows, targetBase + TARGET_NAME_LENGTH, targetNameLength);
+          set(targetRows, targetBase + TARGET_ROOT_START, targetRootStart);
+          set(targetRows, targetBase + TARGET_ROOT_LENGTH, targetRootLength);
           if (-1 < target.moduleToken) {
-            set(targetRows, targetBase + TARGET_MODULE_START, starts[target.moduleToken] + 1);
-            set(targetRows, targetBase + TARGET_MODULE_LENGTH, lengths[target.moduleToken] - 2);
+            long targetModuleStart = manifestTargetValueStart(starts, target.moduleToken);
+            long targetModuleLength = manifestTargetValueLength(lengths, target.moduleToken);
+            set(targetRows, targetBase + TARGET_MODULE_START, targetModuleStart);
+            set(targetRows, targetBase + TARGET_MODULE_LENGTH, targetModuleLength);
           } else {
             set(targetRows, targetBase + TARGET_MODULE_START, 0);
             set(targetRows, targetBase + TARGET_MODULE_LENGTH, 0);

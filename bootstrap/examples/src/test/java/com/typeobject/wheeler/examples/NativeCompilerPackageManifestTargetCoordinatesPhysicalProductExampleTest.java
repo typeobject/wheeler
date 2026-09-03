@@ -48,6 +48,11 @@ final class NativeCompilerPackageManifestTargetCoordinatesPhysicalProductExample
 
         classical class PackageManifestTargetCoordinatesExample {
           entry void main() {
+            region arena = new region(16, 2);
+            words starts = allocate(arena, 1);
+            words lengths = allocate(arena, 1);
+            set(starts, 0, 41);
+            set(lengths, 0, 13);
             assert(manifestTargetNameToken(4) == 10);
             assert(manifestTargetRootToken(4) == 13);
             assert(manifestTargetModuleKeyToken(4) == 14);
@@ -58,6 +63,11 @@ final class NativeCompilerPackageManifestTargetCoordinatesPhysicalProductExample
             assert(manifestTargetNextSourceRowToken(19) == 21);
             assert(manifestTargetTestToken(21) == 23);
             assert(manifestTargetNextToken(21) == 24);
+            assert(manifestTargetValueStart(starts, 0) == 42);
+            assert(manifestTargetValueLength(lengths, 0) == 11);
+            drop(lengths);
+            drop(starts);
+            drop(arena);
           }
         }
         """);
