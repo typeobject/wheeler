@@ -36,4 +36,40 @@ classical class PackageManifestCapabilityPath {
     boolean pathValid = validLogicalPath(source, pathStart, pathLength);
     return pathValid;
   }
+
+  /// Returns lexical order between adjacent capability names.
+  public long manifestCapabilityNameOrder(
+    borrow utf8 source,
+    borrow mut words starts,
+    borrow mut words lengths,
+    long previousNameToken,
+    long currentNameToken
+  ) {
+    long order = compareTokenText(
+      source,
+      starts,
+      lengths,
+      previousNameToken,
+      currentNameToken
+    );
+    return order;
+  }
+
+  /// Checks strict lexical order between paths for equal capability names.
+  public boolean manifestCapabilityPathsOrdered(
+    borrow utf8 source,
+    borrow mut words starts,
+    borrow mut words lengths,
+    long previousPathToken,
+    long currentPathToken
+  ) {
+    long order = compareTokenText(
+      source,
+      starts,
+      lengths,
+      previousPathToken,
+      currentPathToken
+    );
+    return order < 0;
+  }
 }

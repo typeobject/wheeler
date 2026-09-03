@@ -407,14 +407,13 @@ classical class Manifest {
           }
 
           if (-1 < previousTargetToken) {
-            long targetOrder = compareTokenText(
+            boolean targetsOrdered = manifestTargetNamesOrdered(
               source,
               starts,
               lengths,
               previousTargetToken,
               target.nameToken
             );
-            boolean targetsOrdered = targetOrder < 0;
             if (targetsOrdered == false) {
               return new ManifestResult.Error(starts[target.nameToken]);
             }
@@ -505,14 +504,13 @@ classical class Manifest {
             }
 
             if (-1 < previousDependencyToken) {
-              long dependencyOrder = compareTokenText(
+              boolean dependenciesOrdered = manifestDependencyNamesOrdered(
                 source,
                 starts,
                 lengths,
                 previousDependencyToken,
                 dependency.nameToken
               );
-              boolean dependenciesOrdered = dependencyOrder < 0;
               if (dependenciesOrdered == false) {
                 return new ManifestResult.Error(starts[dependency.nameToken]);
               }
@@ -606,7 +604,7 @@ classical class Manifest {
         }
 
         if (-1 < previousCapabilityName) {
-          long capabilityOrder = compareTokenText(
+          long capabilityOrder = manifestCapabilityNameOrder(
             source,
             starts,
             lengths,
@@ -614,17 +612,19 @@ classical class Manifest {
             capability.nameToken
           );
           if (capabilityOrder == 0) {
-            capabilityOrder = compareTokenText(
+            boolean pathsOrdered = manifestCapabilityPathsOrdered(
               source,
               starts,
               lengths,
               previousCapabilityPath,
               capability.pathToken
             );
+            if (pathsOrdered == false) {
+              return new ManifestResult.Error(starts[capability.nameToken]);
+            }
           }
 
-          boolean capabilitiesOrdered = capabilityOrder < 0;
-          if (capabilitiesOrdered == false) {
+          if (0 < capabilityOrder) {
             return new ManifestResult.Error(starts[capability.nameToken]);
           }
         }

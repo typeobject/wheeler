@@ -36,4 +36,16 @@ classical class PackageManifestDependencyName {
     boolean nameValid = validPackageName(source, nameStart, nameLength);
     return nameValid;
   }
+
+  /// Checks strict lexical order between adjacent dependency names.
+  public boolean manifestDependencyNamesOrdered(
+    borrow utf8 source,
+    borrow mut words starts,
+    borrow mut words lengths,
+    long previousToken,
+    long currentToken
+  ) {
+    long order = compareTokenText(source, starts, lengths, previousToken, currentToken);
+    return order < 0;
+  }
 }

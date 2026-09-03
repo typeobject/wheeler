@@ -97,7 +97,10 @@ class NativeManifestExampleTest {
     assertTraps(program, MANIFEST.replace("schema: 1", "schema: 2"));
     assertTraps(program, MANIFEST.replace("kind: \"tool\"", "kind: \"plugin\""));
     assertTraps(program, MANIFEST.replace("kind: \"tool\"", "kind: \"library\""));
+    assertTraps(program, MANIFEST.replace("name: \"tool\"", "name: \"aardvark\""));
     assertTraps(program, MANIFEST.replace("name: \"demo.base\"", "name: \"demo.-base\""));
+    assertTraps(program, MANIFEST.replace("name: \"demo.extra\"", "name: \"demo.aaa\""));
+    assertTraps(program, MANIFEST.replace("name: \"logs\"", "name: \"fixture\""));
     assertTraps(program, MANIFEST.replace("root: \"src/App.w\"", "root: \"../App.w\""));
     assertTraps(program, MANIFEST.replace("module: \"demo.app\"", "modulx: \"demo.app\""));
     assertTraps(program, MANIFEST.replace("module: \"demo.app\"", "module: \"demo.-app\""));

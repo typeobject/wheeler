@@ -36,4 +36,16 @@ classical class PackageManifestTargetName {
     boolean nameValid = validWorkspaceName(source, nameStart, nameLength);
     return nameValid;
   }
+
+  /// Checks strict lexical order between adjacent target names.
+  public boolean manifestTargetNamesOrdered(
+    borrow utf8 source,
+    borrow mut words starts,
+    borrow mut words lengths,
+    long previousToken,
+    long currentToken
+  ) {
+    long order = compareTokenText(source, starts, lengths, previousToken, currentToken);
+    return order < 0;
+  }
 }
