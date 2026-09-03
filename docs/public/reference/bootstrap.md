@@ -45,7 +45,7 @@ its own bounded owner and complete six-source native test plan. Guarded UTF-8 ca
 syntax follows the same direct path with fixed local token checks. Native archive
 indexing, module binding, and closure planning admit 1,024 source entries while
 compiler graph tables remain bounded at 512 modules. Physical linker evidence compares
-160 selected artifacts with stage 0 and closes every relocation.
+161 selected artifacts with stage 0 and closes every relocation.
 Package-manifest kind calls resolve to retained token policy. Fixed target, source,
 dependency, and capability row bounds now have one retained scalar owner.
 Sequence brackets use a separate direct source owner. Mapping keys retain their
@@ -53,7 +53,7 @@ keyword and colon calls against token policy. Selector scalar state, call-free
 prefix traversal, range completion, and their composing facade are retained.
 Quoted range coordinates, complete header composition, dependency and capability
 fields, complete target-row coordinates, target test policy, optional module
-names, source-selector paths, strict order, root coverage, source-row coordinates, target-tail keys, dependency coordinates, capability coordinates, collection ordering, target value coordinates, top-level collection sections, empty-section classification, complete dependency rows, complete capability rows, required target heads, and required target tails have retained owners. The executable subset contains 479 functions and 16,646 instructions. The complete compiler has not reached a fixed
+names, source-selector paths, strict order, root coverage, source-row coordinates, target-tail keys, dependency coordinates, capability coordinates, collection ordering, target value coordinates, top-level collection sections, empty-section classification, complete dependency rows, complete capability rows, required target heads, required target tails, and present modular heads have retained owners. The executable subset contains 480 functions and 16,688 instructions. The complete compiler has not reached a fixed
 point.
 
 ## Platform ABI and native image plans

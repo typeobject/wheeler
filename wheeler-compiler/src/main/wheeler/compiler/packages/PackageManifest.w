@@ -17,6 +17,7 @@ import wheeler.compiler.packages.manifest_sections;
 import wheeler.compiler.packages.manifest_target_coordinates;
 import wheeler.compiler.packages.manifest_target_head;
 import wheeler.compiler.packages.manifest_target_module;
+import wheeler.compiler.packages.manifest_target_module_head;
 import wheeler.compiler.packages.manifest_target_name;
 import wheeler.compiler.packages.manifest_target_source;
 import wheeler.compiler.packages.manifest_target_source_coordinates;
@@ -122,112 +123,92 @@ classical class Manifest {
       long sourceCount = 0;
       long moduleKeyToken = manifestTargetModuleKeyToken(cursor);
       long next = moduleKeyToken;
-      if (
-        manifestTargetModulePresent(
+      if (manifestTargetModulePresent(source, kinds, starts, lengths, count, moduleKeyToken)) {
+        moduleToken = manifestTargetModuleToken(cursor);
+        long sourcesKeyToken = manifestTargetSourcesKeyToken(cursor);
+        boolean validModuleHead = manifestTargetModuleHeadValid(
           source,
           kinds,
           starts,
           lengths,
           count,
-          moduleKeyToken
-        )
-      ) {
-        moduleToken = manifestTargetModuleToken(cursor);
-        boolean validModule = manifestTargetModuleValid(
-          source,
-          kinds,
-          starts,
-          lengths,
-          moduleToken
+          moduleToken,
+          sourcesKeyToken
         );
-        if (validModule) {
-          long sourcesKeyToken = manifestTargetSourcesKeyToken(cursor);
-          if (
-            manifestTargetSourcesPresent(
-              source,
-              kinds,
-              starts,
-              lengths,
-              count,
-              sourcesKeyToken
-            ) == false
-          ) {
-            return invalid;
-          }
+        if (validModuleHead == false) {
+          return invalid;
+        }
 
-          next = manifestTargetFirstSourceRowToken(cursor);
-          long previousSourceToken = -1;
-          boolean rootCovered = false;
-          boolean scanning = true;
-          while (scanning) limit 1024 {
-            if (next + 1 < count) {
-              if (dashAt(source, kinds, starts, next)) {
-                long selectorToken = manifestTargetSelectorToken(next);
-                boolean validSource = manifestTargetSourceValid(
-                  source,
-                  kinds,
-                  starts,
-                  lengths,
-                  selectorToken
-                );
-                if (validSource) {
-                  if (
-                    manifestSourceRowCapacity(sourceRows, sourceOffset + sourceCount) == false
-                  ) {
-                    return invalid;
-                  }
+        next = manifestTargetFirstSourceRowToken(cursor);
+        long previousSourceToken = -1;
+        boolean rootCovered = false;
+        boolean scanning = true;
+        while (scanning) limit 1024 {
+          if (next + 1 < count) {
+            if (dashAt(source, kinds, starts, next)) {
+              long selectorToken = manifestTargetSelectorToken(next);
+              boolean validSource = manifestTargetSourceValid(
+                source,
+                kinds,
+                starts,
+                lengths,
+                selectorToken
+              );
+              if (validSource) {
+                if (
+                  manifestSourceRowCapacity(sourceRows, sourceOffset + sourceCount) == false
+                ) {
+                  return invalid;
+                }
 
-                  if (-1 < previousSourceToken) {
-                    boolean sourcesOrdered = manifestTargetSourcesOrdered(
-                      source,
-                      starts,
-                      lengths,
-                      previousSourceToken,
-                      selectorToken
-                    );
-                    if (sourcesOrdered == false) {
-                      return invalid;
-                    }
-                  }
-
-                  boolean covers = manifestTargetSourceCoversRoot(
+                if (-1 < previousSourceToken) {
+                  boolean sourcesOrdered = manifestTargetSourcesOrdered(
                     source,
                     starts,
                     lengths,
-                    selectorToken,
-                    rootToken
+                    previousSourceToken,
+                    selectorToken
                   );
-                  if (covers) {
-                    rootCovered = true;
+                  if (sourcesOrdered == false) {
+                    return invalid;
                   }
-
-                  long sourceBase = (sourceOffset + sourceCount) * SOURCE_ROW_WIDTH;
-                  long selectorStart = manifestTargetSourceStart(starts, selectorToken);
-                  long selectorLength = manifestTargetSourceLength(lengths, selectorToken);
-                  set(sourceRows, sourceBase, selectorStart);
-                  set(sourceRows, sourceBase + 1, selectorLength);
-                  sourceCount += 1;
-                  previousSourceToken = selectorToken;
-                  next = manifestTargetNextSourceRowToken(next);
-                } else {
-                  scanning = false;
                 }
+
+                boolean covers = manifestTargetSourceCoversRoot(
+                  source,
+                  starts,
+                  lengths,
+                  selectorToken,
+                  rootToken
+                );
+                if (covers) {
+                  rootCovered = true;
+                }
+
+                long sourceBase = (sourceOffset + sourceCount) * SOURCE_ROW_WIDTH;
+                long selectorStart = manifestTargetSourceStart(starts, selectorToken);
+                long selectorLength = manifestTargetSourceLength(lengths, selectorToken);
+                set(sourceRows, sourceBase, selectorStart);
+                set(sourceRows, sourceBase + 1, selectorLength);
+                sourceCount += 1;
+                previousSourceToken = selectorToken;
+                next = manifestTargetNextSourceRowToken(next);
               } else {
                 scanning = false;
               }
             } else {
               scanning = false;
             }
+          } else {
+            scanning = false;
           }
+        }
 
-          if (sourceCount == 0) {
-            return invalid;
-          }
+        if (sourceCount == 0) {
+          return invalid;
+        }
 
-          if (rootCovered == false) {
-            return invalid;
-          }
-        } else {
+        if (rootCovered == false) {
           return invalid;
         }
       }
