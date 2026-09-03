@@ -56,8 +56,8 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
     assertAll(
         "physical declaration products",
-        () -> assertEquals(2_068, machine.global("symbolCount")),
-        () -> assertEquals(1_563, machine.global("callableCount")));
+        () -> assertEquals(2_091, machine.global("symbolCount")),
+        () -> assertEquals(1_741, machine.global("callableCount")));
     assertTrue(machine.global("callableParameterCount") > 1_000);
     assertTrue(machine.global("borrowedParameterCount") > 0);
     assertTrue(machine.global("mutableParameterCount") > 0);
@@ -111,6 +111,30 @@ final class NativeCompilerArchiveClosureExampleTest {
         () -> CompilerMachineRunner.runWithoutRewindHistory(rejected));
     assertArrayEquals(new byte[1], rejected.hostOutput());
     assertEquals(0, rejected.global("published"));
+  }
+
+  @Test
+  void joinsOneManifestModuleAcrossOneThousandTwentyFourArchiveEntries() throws Exception {
+    byte[] source = "module demo.main;\n\nclassical class Main {}\n"
+        .getBytes(StandardCharsets.UTF_8);
+    Map<String, byte[]> entries = new LinkedHashMap<>();
+    for (int index = 0; index < 1023; index++) {
+      entries.put("padding/P%04d.w".formatted(index), new byte[0]);
+    }
+    entries.put("src/Main.w", source);
+    byte[] archive = wideArchive(entries);
+    Program program = NativeCompilerPhysicalPrograms.metadata();
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
+        program,
+        framed(archive, smallManifest(source)),
+        1);
+
+    runClosure(machine, program);
+
+    assertArrayEquals(new byte[] {1}, machine.hostOutput());
+    assertEquals(1, machine.global("moduleCount"));
+    assertEquals(1024, machine.global("archiveEntryCount"));
+    assertEquals(1, machine.global("published"));
   }
 
   @Test
@@ -748,6 +772,28 @@ final class NativeCompilerArchiveClosureExampleTest {
             capabilities: []
             """.formatted(target)),
         Map.of("src/Main.w", source));
+  }
+
+  private static byte[] wideArchive(Map<String, byte[]> entries) {
+    return new PackageArchive().encode(
+        new PackageManifestParser().parse("""
+            schema: 1
+            package:
+              name: "demo.archive"
+              version: "1.0.0"
+              profile: "bootstrap-1"
+            targets:
+              - kind: "tool"
+                name: "compiler"
+                root: "src/Main.w"
+                module: "demo.main"
+                sources:
+                  - "src/Main.w"
+                test: false
+            dependencies: []
+            capabilities: []
+            """),
+        entries);
   }
 
   private static void repairOuterDigest(byte[] archive) throws Exception {

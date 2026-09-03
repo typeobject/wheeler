@@ -10,7 +10,7 @@ classical class ClosurePlans {
   private const long MAX_LOCAL_MODULES = 512;
   private const long MAX_EXTERNAL_MODULES = 64;
   private const long MAX_IMPORTS = 3072;
-  private const long MAX_ARCHIVE_ENTRIES = 512;
+  private const long MAX_ARCHIVE_ENTRIES = 1024;
   private const long MAX_SOURCE_BYTES = 32768;
   private const long PLAN_ARENA_BYTES = 53248;
   private const long SOURCE_ARENA_BYTES = 32768;

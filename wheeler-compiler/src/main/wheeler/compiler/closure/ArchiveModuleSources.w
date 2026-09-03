@@ -8,7 +8,7 @@ import wheeler.compiler.closure.module_manifest;
 
 classical class ArchiveModuleSources {
   private const long MAX_LOCAL_MODULES = 512;
-  private const long MAX_ARCHIVE_ENTRIES = 512;
+  private const long MAX_ARCHIVE_ENTRIES = 1024;
   private const long MAX_SOURCE_BYTES = 32768;
   private const long SOURCE_ENTRY_ARENA_BYTES = 4096;
 

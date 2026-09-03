@@ -43,8 +43,9 @@ bootstrap-profile classifiers are dependency-free physical owners that compile
 byte for byte without synthetic loop state. Signed helper-result classification has
 its own bounded owner and complete six-source native test plan. Guarded UTF-8 call
 syntax follows the same direct path with fixed local token checks. Native archive
-indexing admits 1,024 source entries while compiler graph tables remain bounded at
-512 modules. Physical linker evidence compares 158 selected artifacts with stage 0 and closes every relocation.
+indexing, module binding, and closure planning admit 1,024 source entries while
+compiler graph tables remain bounded at 512 modules. Physical linker evidence compares
+158 selected artifacts with stage 0 and closes every relocation.
 Package-manifest kind calls resolve to retained token policy. Fixed target, source,
 dependency, and capability row bounds now have one retained scalar owner.
 Sequence brackets use a separate direct source owner. Mapping keys retain their
