@@ -30,8 +30,8 @@ This supplies routine reproduction of the current alternate implementation. It
 is neither a Wheeler fixed point nor an independent derivation.
 
 The current Wheeler-native path can parse, plan, and classify the complete
-433-module compiler closure with 2,019 imports and a 198,092-byte module manifest.
-Its native identity run completes in 84,065,622 transitions. The native compiler
+434-module compiler closure with 2,021 imports and a 198,458-byte module manifest.
+Its native identity run completes in 84,329,890 transitions. The native compiler
 package separately compiles 97 production modules through bounded physical source
 graphs and executes the complete 255-case profile. CI assigns those case identities
 to sixteen disjoint shards before compilation. The source path preserves typed Boolean-local
@@ -43,7 +43,7 @@ bootstrap-profile classifiers are dependency-free physical owners that compile
 byte for byte without synthetic loop state. Signed helper-result classification has
 its own bounded owner and complete six-source native test plan. Guarded UTF-8 call
 syntax follows the same direct path with fixed local token checks. Physical linker
-evidence compares 156 selected artifacts with stage 0 and closes every relocation.
+evidence compares 157 selected artifacts with stage 0 and closes every relocation.
 Package-manifest kind calls resolve to retained token policy. Fixed target, source,
 dependency, and capability row bounds now have one retained scalar owner.
 Sequence brackets use a separate direct source owner. Mapping keys retain their
@@ -51,7 +51,7 @@ keyword and colon calls against token policy. Selector scalar state, call-free
 prefix traversal, range completion, and their composing facade are retained.
 Quoted range coordinates, complete header composition, dependency and capability
 fields, complete target-row coordinates, target test policy, optional module
-names, source-selector paths, strict order, root coverage, source-row coordinates, target-tail keys, dependency coordinates, capability coordinates, collection ordering, target value coordinates, top-level collection sections, and empty-section classification have retained owners. The executable subset contains 475 functions and 16,415 instructions. The complete compiler has not reached a fixed
+names, source-selector paths, strict order, root coverage, source-row coordinates, target-tail keys, dependency coordinates, capability coordinates, collection ordering, target value coordinates, top-level collection sections, empty-section classification, and complete dependency rows have retained owners. The executable subset contains 476 functions and 16,480 instructions. The complete compiler has not reached a fixed
 point.
 
 ## Platform ABI and native image plans

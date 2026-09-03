@@ -5,10 +5,9 @@ module wheeler.compiler.packages.manifest;
 import wheeler.compiler.packages.manifest_capability_coordinates;
 import wheeler.compiler.packages.manifest_capability_path;
 import wheeler.compiler.packages.manifest_capability_prefix;
+import wheeler.compiler.packages.manifest_dependency;
 import wheeler.compiler.packages.manifest_dependency_coordinates;
 import wheeler.compiler.packages.manifest_dependency_name;
-import wheeler.compiler.packages.manifest_dependency_prefix;
-import wheeler.compiler.packages.manifest_dependency_version;
 import wheeler.compiler.packages.manifest_empty_section;
 import wheeler.compiler.packages.manifest_header;
 import wheeler.compiler.packages.manifest_kinds;
@@ -290,32 +289,15 @@ classical class Manifest {
     long cursor
   ) {
     DependencyParse invalid = new DependencyParse(false, cursor, 0, 0, 0);
-    long kind = manifestDependencyPrefix(source, kinds, starts, lengths, count, cursor);
+    long kind = manifestDependencyRowKind(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      cursor
+    );
     if (kind < 1) {
-      return invalid;
-    }
-
-    boolean validName = manifestDependencyNameValid(
-      source,
-      kinds,
-      starts,
-      lengths,
-      count,
-      cursor
-    );
-    if (validName == false) {
-      return invalid;
-    }
-
-    boolean validVersion = manifestDependencyVersionValid(
-      source,
-      kinds,
-      starts,
-      lengths,
-      count,
-      cursor
-    );
-    if (validVersion == false) {
       return invalid;
     }
 

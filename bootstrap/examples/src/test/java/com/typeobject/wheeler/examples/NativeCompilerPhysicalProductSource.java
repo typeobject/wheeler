@@ -63,6 +63,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.packages.manifest_capability_coordinates",
       "wheeler.compiler.packages.manifest_capability_path",
       "wheeler.compiler.packages.manifest_capability_prefix",
+      "wheeler.compiler.packages.manifest_dependency",
       "wheeler.compiler.packages.manifest_dependency_coordinates",
       "wheeler.compiler.packages.manifest_dependency_name",
       "wheeler.compiler.packages.manifest_dependency_prefix",
