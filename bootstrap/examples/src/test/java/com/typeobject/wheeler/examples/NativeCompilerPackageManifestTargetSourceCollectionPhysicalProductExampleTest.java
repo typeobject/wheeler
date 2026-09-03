@@ -10,12 +10,12 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /** Native physical evidence for target source-selector sequence and coverage state. */
-final class NativeCompilerPackageManifestTargetSourceSequencePhysicalProductExampleTest {
-  private static final String MODULE = "wheeler.compiler.packages.manifest_target_source_sequence";
+final class NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest {
+  private static final String MODULE = "wheeler.compiler.packages.manifest_target_source_collection";
 
   @Tag("closure-evidence")
   @Test
-  void retainsManifestTargetSourceSequenceAndRelocatesCollectionPolicy() throws Exception {
+  void retainsManifestTargetSourceCollectionAndRelocatesScalarPolicy() throws Exception {
     var module = NativeCompilerPhysicalSelection.callable(MODULE);
     var expected = new WheelerCompiler().compileLibraryModuleFiles(
         CompilerSources.moduleClosure(module.name()), module.name());

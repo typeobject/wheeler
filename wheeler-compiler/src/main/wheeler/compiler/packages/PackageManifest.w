@@ -20,9 +20,9 @@ import wheeler.compiler.packages.manifest_target_module;
 import wheeler.compiler.packages.manifest_target_module_head;
 import wheeler.compiler.packages.manifest_target_name;
 import wheeler.compiler.packages.manifest_target_source;
+import wheeler.compiler.packages.manifest_target_source_collection;
 import wheeler.compiler.packages.manifest_target_source_coordinates;
 import wheeler.compiler.packages.manifest_target_source_row;
-import wheeler.compiler.packages.manifest_target_source_sequence;
 import wheeler.compiler.packages.manifest_target_tail;
 import wheeler.compiler.packages.manifest_tokens;
 import wheeler.compiler.packages.semver;
@@ -123,6 +123,7 @@ classical class Manifest {
     if (0 < kind) {
       long moduleToken = -1;
       long sourceCount = 0;
+      boolean rootCovered = false;
       long moduleKeyToken = manifestTargetModuleKeyToken(cursor);
       long next = moduleKeyToken;
       if (manifestTargetModulePresent(source, kinds, starts, lengths, count, moduleKeyToken)) {
@@ -143,7 +144,6 @@ classical class Manifest {
 
         next = manifestTargetFirstSourceRowToken(cursor);
         long previousSourceToken = -1;
-        boolean rootCovered = false;
         boolean scanning = true;
         while (scanning) limit 1024 {
           boolean validSource = manifestTargetSourceRowValid(
@@ -195,13 +195,16 @@ classical class Manifest {
           }
         }
 
-        if (sourceCount == 0) {
-          return invalid;
-        }
+      }
 
-        if (rootCovered == false) {
-          return invalid;
-        }
+      boolean sourcesPresent = -1 < moduleToken;
+      boolean sourceCollectionComplete = manifestTargetSourceCollectionComplete(
+        sourcesPresent,
+        sourceCount,
+        rootCovered
+      );
+      if (sourceCollectionComplete == false) {
+        return invalid;
       }
 
       long test = manifestTargetTestValue(

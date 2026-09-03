@@ -93,7 +93,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.packages.manifest_target_source",
       "wheeler.compiler.packages.manifest_target_source_coordinates",
       "wheeler.compiler.packages.manifest_target_source_row",
-      "wheeler.compiler.packages.manifest_target_source_sequence",
+      "wheeler.compiler.packages.manifest_target_source_collection",
       "wheeler.compiler.packages.manifest_target_tail",
       "wheeler.compiler.packages.manifest_target_test",
       "wheeler.compiler.packages.manifest_tokens",

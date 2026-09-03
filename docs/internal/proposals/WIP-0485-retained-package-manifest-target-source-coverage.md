@@ -9,7 +9,7 @@
 | Area | Self-hosting, package manifests, source selectors |
 | Depends on | WIP-0467, WIP-0484 |
 | Supersedes | Inline root-coverage accumulation |
-| Superseded by | None |
+| Superseded by | WIP-0486 |
 
 ## Summary
 
@@ -23,7 +23,7 @@ Retain source-list root-coverage accumulation beside source-sequence admission. 
 
 ## Physical evidence
 
-`NativeCompilerPackageManifestTargetSourceSequencePhysicalProductExampleTest` compiles both sequence functions from the canonical source archive and compares their complete function and instruction prefixes with stage 0. The sequence artifact retains its one imported ordering relocation; coverage accumulation is owner-local.
+The successor `NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest` compiles both sequence functions from the canonical source archive and compares their complete function and instruction prefixes with stage 0. The sequence artifact retains its one imported ordering relocation; coverage accumulation is owner-local.
 
 `NativeManifestExampleTest` exercises both state transitions. The canonical fixture covers the root in its first row and preserves coverage across a non-covering second row. A second canonical fixture begins with a non-covering selector and covers the root in its later row. A list that never covers the root still traps.
 

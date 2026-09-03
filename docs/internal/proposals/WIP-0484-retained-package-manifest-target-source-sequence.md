@@ -9,7 +9,7 @@
 | Area | Self-hosting, package manifests, source selectors |
 | Depends on | WIP-0467, WIP-0483 |
 | Supersedes | Inline first-row and adjacent-row ordering dispatch |
-| Superseded by | None |
+| Superseded by | WIP-0486 |
 
 ## Summary
 
@@ -23,7 +23,7 @@ The aggregate parser still owns the previous-token state because that state adva
 
 ## Physical evidence
 
-`NativeCompilerPackageManifestTargetSourceSequencePhysicalProductExampleTest` compiles the retained owner from the canonical archive and compares its function and instruction totals with stage 0. Its one imported-call relocation resolves to strict source-selector ordering.
+The successor `NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest` compiles the retained policy from the canonical archive and compares its function and instruction totals with stage 0. Its one imported-call relocation resolves to strict source-selector ordering.
 
 `NativeManifestExampleTest` accepts a canonical two-selector sequence and rejects the reversed pair. The first-row path executes without reading a predecessor.
 

@@ -1,10 +1,10 @@
-//! Composes first-row and adjacent-row source-selector ordering.
+//! Composes package-manifest target source-collection policy.
 
-module wheeler.compiler.packages.manifest_target_source_sequence;
+module wheeler.compiler.packages.manifest_target_source_collection;
 
 import wheeler.compiler.packages.manifest_target_source;
 
-classical class PackageManifestTargetSourceSequence {
+classical class PackageManifestTargetSourceCollection {
   /// Accepts a first selector or checks strict order after its predecessor.
   public boolean manifestTargetSourceFollows(
     borrow utf8 source,
@@ -33,5 +33,20 @@ classical class PackageManifestTargetSourceSequence {
       return true;
     }
     return current;
+  }
+
+  /// Checks that a present source list is nonempty and covers the root.
+  public boolean manifestTargetSourceCollectionComplete(
+    boolean present,
+    long count,
+    boolean rootCovered
+  ) {
+    if (present == false) {
+      return true;
+    }
+    if (count == 0) {
+      return false;
+    }
+    return rootCovered;
   }
 }
