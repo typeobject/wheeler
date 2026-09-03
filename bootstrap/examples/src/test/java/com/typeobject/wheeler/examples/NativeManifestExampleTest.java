@@ -93,6 +93,12 @@ class NativeManifestExampleTest {
     new com.typeobject.wheeler.packageformat.PackageManifestParser()
         .parse(larger.hostOutput());
     assertTraps(program, manifestWithTargets(9));
+    assertTraps(
+        program,
+        manifestWithTargets(1).replace("dependencies: []", "dependencies: ["));
+    assertTraps(
+        program,
+        manifestWithTargets(1).replace("capabilities: []", "capabilities: ["));
 
     assertTraps(program, MANIFEST.replace("schema: 1", "schema: 2"));
     assertTraps(program, MANIFEST.replace("kind: \"tool\"", "kind: \"plugin\""));

@@ -270,7 +270,10 @@ final class NativeCompilerPhysicalModules {
             "packages.manifest_target_test"),
         physical(
             "compiler/packages/manifest/section/PackageManifestSections.w",
-            "packages.manifest_sections"));
+            "packages.manifest_sections"),
+        physical(
+            "compiler/packages/manifest/section/PackageManifestEmptySection.w",
+            "packages.manifest_empty_section"));
   }
 
   private static NativeCompilerArchiveClosureProgram.PhysicalModule physical(

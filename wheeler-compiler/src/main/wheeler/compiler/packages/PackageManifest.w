@@ -2,7 +2,6 @@
 
 module wheeler.compiler.packages.manifest;
 
-import wheeler.compiler.packages.manifest_brackets;
 import wheeler.compiler.packages.manifest_capability_coordinates;
 import wheeler.compiler.packages.manifest_capability_path;
 import wheeler.compiler.packages.manifest_capability_prefix;
@@ -10,6 +9,7 @@ import wheeler.compiler.packages.manifest_dependency_coordinates;
 import wheeler.compiler.packages.manifest_dependency_name;
 import wheeler.compiler.packages.manifest_dependency_prefix;
 import wheeler.compiler.packages.manifest_dependency_version;
+import wheeler.compiler.packages.manifest_empty_section;
 import wheeler.compiler.packages.manifest_header;
 import wheeler.compiler.packages.manifest_kinds;
 import wheeler.compiler.packages.manifest_ranges;
@@ -471,20 +471,20 @@ classical class Manifest {
     }
 
     boolean emptyDependencies = false;
-    if (cursor < count) {
-      if (manifestOpenBracketAt(source, kinds, starts, cursor)) {
-        long dependencyCloseToken = cursor + 1;
-        if (dependencyCloseToken < count) {
-          if (manifestCloseBracketAt(source, kinds, starts, dependencyCloseToken)) {
-            cursor += 2;
-            emptyDependencies = true;
-          } else {
-            return new ManifestResult.Error(starts[cursor]);
-          }
-        } else {
-          return new ManifestResult.Error(starts[cursor]);
-        }
-      }
+    long dependencySectionKind = manifestEmptySectionKind(
+      source,
+      kinds,
+      starts,
+      count,
+      cursor
+    );
+    if (dependencySectionKind < 0) {
+      return new ManifestResult.Error(starts[cursor]);
+    }
+
+    if (dependencySectionKind == 1) {
+      cursor += 2;
+      emptyDependencies = true;
     }
 
     if (emptyDependencies == false) {
@@ -573,20 +573,20 @@ classical class Manifest {
     }
 
     boolean emptyCapabilities = false;
-    if (cursor < count) {
-      if (manifestOpenBracketAt(source, kinds, starts, cursor)) {
-        long capabilityCloseToken = cursor + 1;
-        if (capabilityCloseToken < count) {
-          if (manifestCloseBracketAt(source, kinds, starts, capabilityCloseToken)) {
-            cursor += 2;
-            emptyCapabilities = true;
-          } else {
-            return new ManifestResult.Error(starts[cursor]);
-          }
-        } else {
-          return new ManifestResult.Error(starts[cursor]);
-        }
-      }
+    long capabilitySectionKind = manifestEmptySectionKind(
+      source,
+      kinds,
+      starts,
+      count,
+      cursor
+    );
+    if (capabilitySectionKind < 0) {
+      return new ManifestResult.Error(starts[cursor]);
+    }
+
+    if (capabilitySectionKind == 1) {
+      cursor += 2;
+      emptyCapabilities = true;
     }
 
     if (emptyCapabilities == false) {
