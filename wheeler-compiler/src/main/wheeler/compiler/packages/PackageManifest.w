@@ -11,10 +11,10 @@ import wheeler.compiler.packages.manifest_dependency_name;
 import wheeler.compiler.packages.manifest_dependency_prefix;
 import wheeler.compiler.packages.manifest_dependency_version;
 import wheeler.compiler.packages.manifest_header;
-import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_kinds;
 import wheeler.compiler.packages.manifest_ranges;
 import wheeler.compiler.packages.manifest_rows;
+import wheeler.compiler.packages.manifest_sections;
 import wheeler.compiler.packages.manifest_target_coordinates;
 import wheeler.compiler.packages.manifest_target_module;
 import wheeler.compiler.packages.manifest_target_name;
@@ -459,7 +459,7 @@ classical class Manifest {
     }
 
     if (
-      manifestKeyAt(source, kinds, starts, lengths, count, cursor, 2626680644436426025) == false
+      manifestDependenciesPresent(source, kinds, starts, lengths, count, cursor) == false
     ) {
       return new ManifestResult.Error(starts[cursor]);
     }
@@ -561,7 +561,7 @@ classical class Manifest {
     }
 
     if (
-      manifestKeyAt(source, kinds, starts, lengths, count, cursor, 2597989917310390198) == false
+      manifestCapabilitiesPresent(source, kinds, starts, lengths, count, cursor) == false
     ) {
       return new ManifestResult.Error(starts[cursor]);
     }
