@@ -278,6 +278,9 @@ final class NativeCompilerPhysicalModules {
             "compiler/packages/manifest/target/PackageManifestTargetTest.w",
             "packages.manifest_target_test"),
         physical(
+            "compiler/packages/manifest/target/PackageManifestTargetTail.w",
+            "packages.manifest_target_tail"),
+        physical(
             "compiler/packages/manifest/section/PackageManifestSections.w",
             "packages.manifest_sections"),
         physical(

@@ -20,7 +20,7 @@ import wheeler.compiler.packages.manifest_target_module;
 import wheeler.compiler.packages.manifest_target_name;
 import wheeler.compiler.packages.manifest_target_source;
 import wheeler.compiler.packages.manifest_target_source_coordinates;
-import wheeler.compiler.packages.manifest_target_test;
+import wheeler.compiler.packages.manifest_target_tail;
 import wheeler.compiler.packages.manifest_tokens;
 import wheeler.compiler.packages.semver;
 
@@ -232,27 +232,27 @@ classical class Manifest {
         }
       }
 
-      if (manifestTargetTestPresent(source, kinds, starts, lengths, count, next)) {
-        long testToken = manifestTargetTestToken(next);
-        long test = manifestBooleanToken(source, starts, lengths, testToken);
-        if (-1 < test) {
-          boolean testAllowed = manifestTargetTestAllowed(kind, test);
-          if (testAllowed == false) {
-            return invalid;
-          }
-
-          return new TargetParse(
-            true,
-            manifestTargetNextToken(next),
-            kind,
-            nameToken,
-            rootToken,
-            moduleToken,
-            sourceOffset,
-            sourceCount,
-            test
-          );
-        }
+      long test = manifestTargetTestValue(
+        source,
+        kinds,
+        starts,
+        lengths,
+        count,
+        kind,
+        next
+      );
+      if (-1 < test) {
+        return new TargetParse(
+          true,
+          manifestTargetNextToken(next),
+          kind,
+          nameToken,
+          rootToken,
+          moduleToken,
+          sourceOffset,
+          sourceCount,
+          test
+        );
       }
     }
 

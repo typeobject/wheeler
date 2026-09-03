@@ -112,6 +112,7 @@ class NativeManifestExampleTest {
     assertTraps(program, MANIFEST.replace("module: \"demo.app\"", "module: \"demo.-app\""));
     assertTraps(program, MANIFEST.replace("sources:", "sourcez:"));
     assertTraps(program, MANIFEST.replace("test: true", "tests: true"));
+    assertTraps(program, MANIFEST.replace("test: true", "test: maybe"));
     assertTraps(program, MANIFEST.replace("dependencies:", "dependencyz:"));
     assertTraps(program, MANIFEST.replace("capabilities:", "capabilityz:"));
     assertTraps(program, MANIFEST.replace("- \"src/Helper.w\"", "- \"../Helper.w\""));
