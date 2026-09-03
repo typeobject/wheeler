@@ -21,6 +21,7 @@ import wheeler.compiler.packages.manifest_target_module_head;
 import wheeler.compiler.packages.manifest_target_name;
 import wheeler.compiler.packages.manifest_target_source;
 import wheeler.compiler.packages.manifest_target_source_coordinates;
+import wheeler.compiler.packages.manifest_target_source_row;
 import wheeler.compiler.packages.manifest_target_tail;
 import wheeler.compiler.packages.manifest_tokens;
 import wheeler.compiler.packages.semver;
@@ -144,61 +145,54 @@ classical class Manifest {
         boolean rootCovered = false;
         boolean scanning = true;
         while (scanning) limit 1024 {
-          if (next + 1 < count) {
-            if (dashAt(source, kinds, starts, next)) {
-              long selectorToken = manifestTargetSelectorToken(next);
-              boolean validSource = manifestTargetSourceValid(
+          boolean validSource = manifestTargetSourceRowValid(
+            source,
+            kinds,
+            starts,
+            lengths,
+            count,
+            next
+          );
+          if (validSource) {
+            long selectorToken = manifestTargetSelectorToken(next);
+            if (
+              manifestSourceRowCapacity(sourceRows, sourceOffset + sourceCount) == false
+            ) {
+              return invalid;
+            }
+
+            if (-1 < previousSourceToken) {
+              boolean sourcesOrdered = manifestTargetSourcesOrdered(
                 source,
-                kinds,
                 starts,
                 lengths,
+                previousSourceToken,
                 selectorToken
               );
-              if (validSource) {
-                if (
-                  manifestSourceRowCapacity(sourceRows, sourceOffset + sourceCount) == false
-                ) {
-                  return invalid;
-                }
-
-                if (-1 < previousSourceToken) {
-                  boolean sourcesOrdered = manifestTargetSourcesOrdered(
-                    source,
-                    starts,
-                    lengths,
-                    previousSourceToken,
-                    selectorToken
-                  );
-                  if (sourcesOrdered == false) {
-                    return invalid;
-                  }
-                }
-
-                boolean covers = manifestTargetSourceCoversRoot(
-                  source,
-                  starts,
-                  lengths,
-                  selectorToken,
-                  rootToken
-                );
-                if (covers) {
-                  rootCovered = true;
-                }
-
-                long sourceBase = (sourceOffset + sourceCount) * SOURCE_ROW_WIDTH;
-                long selectorStart = manifestTargetSourceStart(starts, selectorToken);
-                long selectorLength = manifestTargetSourceLength(lengths, selectorToken);
-                set(sourceRows, sourceBase, selectorStart);
-                set(sourceRows, sourceBase + 1, selectorLength);
-                sourceCount += 1;
-                previousSourceToken = selectorToken;
-                next = manifestTargetNextSourceRowToken(next);
-              } else {
-                scanning = false;
+              if (sourcesOrdered == false) {
+                return invalid;
               }
-            } else {
-              scanning = false;
             }
+
+            boolean covers = manifestTargetSourceCoversRoot(
+              source,
+              starts,
+              lengths,
+              selectorToken,
+              rootToken
+            );
+            if (covers) {
+              rootCovered = true;
+            }
+
+            long sourceBase = (sourceOffset + sourceCount) * SOURCE_ROW_WIDTH;
+            long selectorStart = manifestTargetSourceStart(starts, selectorToken);
+            long selectorLength = manifestTargetSourceLength(lengths, selectorToken);
+            set(sourceRows, sourceBase, selectorStart);
+            set(sourceRows, sourceBase + 1, selectorLength);
+            sourceCount += 1;
+            previousSourceToken = selectorToken;
+            next = manifestTargetNextSourceRowToken(next);
           } else {
             scanning = false;
           }

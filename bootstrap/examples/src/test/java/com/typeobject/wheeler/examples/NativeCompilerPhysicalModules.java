@@ -164,7 +164,7 @@ final class NativeCompilerPhysicalModules {
             "compiler/packages/manifest/target/PackageManifestTargetCoordinates.w",
             "packages.manifest_target_coordinates"),
         physical(
-            "compiler/packages/manifest/target/PackageManifestTargetSourceCoordinates.w",
+            "compiler/packages/manifest/target/source/PackageManifestTargetSourceCoordinates.w",
             "packages.manifest_target_source_coordinates"),
         physical(
             "compiler/packages/manifest/dependency/PackageManifestDependencyCoordinates.w",
@@ -275,8 +275,11 @@ final class NativeCompilerPhysicalModules {
             "compiler/packages/manifest/target/module/PackageManifestTargetModuleHead.w",
             "packages.manifest_target_module_head"),
         physical(
-            "compiler/packages/manifest/target/PackageManifestTargetSource.w",
+            "compiler/packages/manifest/target/source/PackageManifestTargetSource.w",
             "packages.manifest_target_source"),
+        physical(
+            "compiler/packages/manifest/target/source/PackageManifestTargetSourceRow.w",
+            "packages.manifest_target_source_row"),
         physical(
             "compiler/packages/manifest/target/PackageManifestTargetTest.w",
             "packages.manifest_target_test"),
