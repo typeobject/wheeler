@@ -180,9 +180,7 @@ classical class Manifest {
               selectorToken,
               rootToken
             );
-            if (covers) {
-              rootCovered = true;
-            }
+            rootCovered = manifestTargetSourceRootCovered(rootCovered, covers);
 
             long sourceBase = (sourceOffset + sourceCount) * SOURCE_ROW_WIDTH;
             long selectorStart = manifestTargetSourceStart(starts, selectorToken);

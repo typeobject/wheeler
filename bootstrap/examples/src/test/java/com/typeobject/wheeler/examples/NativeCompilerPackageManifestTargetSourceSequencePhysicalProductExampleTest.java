@@ -9,13 +9,13 @@ import java.nio.ByteOrder;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/** Native physical evidence for target source-selector sequence policy. */
+/** Native physical evidence for target source-selector sequence and coverage state. */
 final class NativeCompilerPackageManifestTargetSourceSequencePhysicalProductExampleTest {
   private static final String MODULE = "wheeler.compiler.packages.manifest_target_source_sequence";
 
   @Tag("closure-evidence")
   @Test
-  void retainsManifestTargetSourceSequenceAndRelocatesOrderPolicy() throws Exception {
+  void retainsManifestTargetSourceSequenceAndRelocatesCollectionPolicy() throws Exception {
     var module = NativeCompilerPhysicalSelection.callable(MODULE);
     var expected = new WheelerCompiler().compileLibraryModuleFiles(
         CompilerSources.moduleClosure(module.name()), module.name());

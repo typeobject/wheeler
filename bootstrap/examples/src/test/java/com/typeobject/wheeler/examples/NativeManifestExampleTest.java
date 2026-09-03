@@ -80,6 +80,15 @@ class NativeManifestExampleTest {
     }
     assertEquals(initial, machine.snapshot());
 
+    String lateRootCoverage = MANIFEST.replace(
+        "      - \"src/App.w\"\n      - \"src/Helper.w\"",
+        "      - \"src/Aardvark.w\"\n      - \"src/App.w\"");
+    assertEquals(lateRootCoverage, new com.typeobject.wheeler.packageformat.PackageManifestParser()
+        .parse(lateRootCoverage).canonicalText());
+    VirtualMachine lateRoot = vm(program, lateRootCoverage);
+    lateRoot.run();
+    assertEquals(2, lateRoot.global("targetSourceCount"));
+
     String eightTargets = manifestWithTargets(8);
     VirtualMachine larger = vm(program, eightTargets);
     larger.run();

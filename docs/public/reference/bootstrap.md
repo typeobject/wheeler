@@ -53,7 +53,7 @@ keyword and colon calls against token policy. Selector scalar state, call-free
 prefix traversal, range completion, and their composing facade are retained.
 Quoted range coordinates, complete header composition, dependency and capability
 fields, complete target-row coordinates, target test policy, optional module
-names, source-selector paths, strict order, root coverage, source-row coordinates, target-tail keys, dependency coordinates, capability coordinates, collection ordering, target value coordinates, top-level collection sections, empty-section classification, complete dependency rows, complete capability rows, required target heads, required target tails, present modular heads, source-row syntax, and source-sequence admission have retained owners. The executable subset contains 482 functions and 16,755 instructions. The complete compiler has not reached a fixed
+names, source-selector paths, strict order, root coverage, source-row coordinates, target-tail keys, dependency coordinates, capability coordinates, collection ordering, target value coordinates, top-level collection sections, empty-section classification, complete dependency rows, complete capability rows, required target heads, required target tails, present modular heads, source-row syntax, source-sequence admission, and source-root-coverage accumulation have retained owners. The executable subset contains 483 functions and 16,764 instructions. The complete compiler has not reached a fixed
 point.
 
 ## Platform ABI and native image plans

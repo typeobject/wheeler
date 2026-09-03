@@ -26,4 +26,12 @@ classical class PackageManifestTargetSourceSequence {
     );
     return ordered;
   }
+
+  /// Preserves earlier root coverage or admits current coverage.
+  public boolean manifestTargetSourceRootCovered(boolean covered, boolean current) {
+    if (covered == true) {
+      return true;
+    }
+    return current;
+  }
 }
