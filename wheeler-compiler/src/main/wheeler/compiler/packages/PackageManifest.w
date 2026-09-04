@@ -20,7 +20,6 @@ import wheeler.compiler.packages.manifest_target_module;
 import wheeler.compiler.packages.manifest_target_module_head;
 import wheeler.compiler.packages.manifest_target_name;
 import wheeler.compiler.packages.manifest_target_source_collection;
-import wheeler.compiler.packages.manifest_target_source_row;
 import wheeler.compiler.packages.manifest_target_tail;
 import wheeler.compiler.packages.manifest_tokens;
 import wheeler.compiler.packages.semver;
@@ -144,7 +143,7 @@ classical class Manifest {
         long previousSourceToken = -1;
         boolean scanning = true;
         while (scanning) limit 1024 {
-          boolean validSource = manifestTargetSourceRowValid(
+          long followingSource = manifestTargetSourceFollowingRow(
             source,
             kinds,
             starts,
@@ -152,7 +151,7 @@ classical class Manifest {
             count,
             next
           );
-          if (validSource) {
+          if (-1 < followingSource) {
             long selectorToken = manifestTargetSourceEntryProduct(
               source,
               starts,
@@ -177,7 +176,7 @@ classical class Manifest {
 
             sourceCount += 1;
             previousSourceToken = selectorToken;
-            next = manifestTargetNextSourceRowToken(next);
+            next = followingSource;
           } else {
             scanning = false;
           }

@@ -6,8 +6,34 @@ import wheeler.compiler.packages.manifest_rows;
 import wheeler.compiler.packages.manifest_target_coordinates;
 import wheeler.compiler.packages.manifest_target_source;
 import wheeler.compiler.packages.manifest_target_source_coordinates;
+import wheeler.compiler.packages.manifest_target_source_row;
 
 classical class PackageManifestTargetSourceCollection {
+  /// Returns the following row token, or a negative value at the collection tail.
+  public long manifestTargetSourceFollowingRow(
+    borrow utf8 source,
+    borrow mut words kinds,
+    borrow mut words starts,
+    borrow mut words lengths,
+    long count,
+    long rowToken
+  ) {
+    boolean valid = manifestTargetSourceRowValid(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      rowToken
+    );
+    if (valid == false) {
+      return -1;
+    }
+
+    long next = manifestTargetNextSourceRowToken(rowToken);
+    return next;
+  }
+
   /// Accepts a first selector or checks strict order after its predecessor.
   public boolean manifestTargetSourceFollows(
     borrow utf8 source,
