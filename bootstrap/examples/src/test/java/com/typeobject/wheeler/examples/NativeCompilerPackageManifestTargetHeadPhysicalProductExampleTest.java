@@ -9,7 +9,7 @@ import java.nio.ByteOrder;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/** Native physical evidence for required package-manifest target head fields. */
+/** Native physical evidence for required target-head validation and publication. */
 final class NativeCompilerPackageManifestTargetHeadPhysicalProductExampleTest {
   private static final String MODULE = "wheeler.compiler.packages.manifest_target_head";
 
@@ -39,8 +39,8 @@ final class NativeCompilerPackageManifestTargetHeadPhysicalProductExampleTest {
 
     assertEquals(expectedFunctions, machine.global("physicalRetainedFunctionCount"));
     assertEquals(expectedInstructions, machine.global("physicalRetainedInstructionCount"));
-    assertEquals(3, machine.global("physicalCallableRelocationCount"));
-    assertEquals(3, machine.global("physicalResolvedCallableTargetCount"));
+    assertEquals(7, machine.global("physicalCallableRelocationCount"));
+    assertEquals(7, machine.global("physicalResolvedCallableTargetCount"));
   }
 
   private static byte[] framed(byte[] archive, byte[] manifest) {

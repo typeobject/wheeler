@@ -9,7 +9,7 @@
 | Area | Self-hosting, package manifests, target rows |
 | Depends on | WIP-0462, WIP-0469, WIP-0478, WIP-0479 |
 | Supersedes | Inline composition of required target head fields |
-| Superseded by | None |
+| Superseded by | WIP-0495 target-row publication |
 
 ## Summary
 
@@ -20,6 +20,8 @@ Retain one physical owner for the required `kind`, `name`, and `root` fields at 
 `manifestTargetHeadKind` returns the positive target kind only when all three required fields validate at their canonical token coordinates. It returns zero for a truncated prefix, an unknown target kind, a malformed or unordered name, or an invalid logical root path.
 
 `PackageManifest.w` delegates that verdict before inspecting optional module, source, or test fields. It retains the target-name policy import only for ordering complete target rows; prefix and root field composition belong exclusively to `PackageManifestTargetHead.w`.
+
+WIP-0495 extends the same owner with publication of the kind, name range, and root range after complete-row admission.
 
 ## Physical evidence
 

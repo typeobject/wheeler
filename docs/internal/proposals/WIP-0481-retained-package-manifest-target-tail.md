@@ -9,7 +9,7 @@
 | Area | Self-hosting, package manifests, target rows |
 | Depends on | WIP-0463, WIP-0464, WIP-0480 |
 | Supersedes | Inline composition of the required target test field |
-| Superseded by | None |
+| Superseded by | WIP-0495 target-row publication |
 
 ## Summary
 
@@ -20,6 +20,8 @@ Retain one physical owner for the required `test` field at the tail of every pac
 `manifestTargetTestValue` requires the canonical `test` key at the caller's tail coordinate, projects its value coordinate, decodes only `true` or `false`, and applies target-kind policy. It returns zero or one for an admitted row and minus one for a missing key, malformed Boolean, or enabled library test.
 
 `PackageManifest.w` delegates the complete verdict before constructing `TargetParse`. It retains target coordinates only to advance beyond an admitted tail; key presence, Boolean decoding, and kind policy no longer form nested parser branches.
+
+WIP-0495 extends this owner with separate modular and nonmodular tail-publication products. The split keeps optional module projection out of direct conditional lowering.
 
 ## Physical evidence
 

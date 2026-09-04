@@ -327,30 +327,35 @@ classical class Manifest {
             }
           }
 
-          long targetBase = targetCount * TARGET_ROW_WIDTH;
-          long targetNameStart = manifestTargetValueStart(starts, target.nameToken);
-          long targetNameLength = manifestTargetValueLength(lengths, target.nameToken);
-          long targetRootStart = manifestTargetValueStart(starts, target.rootToken);
-          long targetRootLength = manifestTargetValueLength(lengths, target.rootToken);
-          set(targetRows, targetBase + TARGET_KIND, target.kind);
-          set(targetRows, targetBase + TARGET_NAME_START, targetNameStart);
-          set(targetRows, targetBase + TARGET_NAME_LENGTH, targetNameLength);
-          set(targetRows, targetBase + TARGET_ROOT_START, targetRootStart);
-          set(targetRows, targetBase + TARGET_ROOT_LENGTH, targetRootLength);
+          long targetRow = manifestTargetHeadRowProduct(
+            starts,
+            lengths,
+            targetRows,
+            targetCount,
+            target.kind,
+            target.nameToken,
+            target.rootToken
+          );
           if (-1 < target.moduleToken) {
-            long targetModuleStart = manifestTargetValueStart(starts, target.moduleToken);
-            long targetModuleLength = manifestTargetValueLength(lengths, target.moduleToken);
-            set(targetRows, targetBase + TARGET_MODULE_START, targetModuleStart);
-            set(targetRows, targetBase + TARGET_MODULE_LENGTH, targetModuleLength);
+            targetCount = manifestModularTargetTailRowProduct(
+              starts,
+              lengths,
+              targetRows,
+              targetRow,
+              target.moduleToken,
+              target.sourceOffset,
+              target.sourceCount,
+              target.test
+            );
           } else {
-            set(targetRows, targetBase + TARGET_MODULE_START, 0);
-            set(targetRows, targetBase + TARGET_MODULE_LENGTH, 0);
+            targetCount = manifestNonmodularTargetTailRowProduct(
+              targetRows,
+              targetRow,
+              target.sourceOffset,
+              target.sourceCount,
+              target.test
+            );
           }
-
-          set(targetRows, targetBase + TARGET_SOURCE_OFFSET, target.sourceOffset);
-          set(targetRows, targetBase + TARGET_SOURCE_COUNT, target.sourceCount);
-          set(targetRows, targetBase + TARGET_TEST, target.test);
-          targetCount += 1;
           sourceCount += target.sourceCount;
           previousTargetToken = target.nameToken;
           cursor = target.next;
