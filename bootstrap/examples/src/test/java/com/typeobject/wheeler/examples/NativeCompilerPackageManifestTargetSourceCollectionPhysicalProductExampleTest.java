@@ -9,13 +9,13 @@ import java.nio.ByteOrder;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/** Native physical evidence for target source-selector sequence and coverage state. */
+/** Native physical evidence for target source-collection entry admission. */
 final class NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest {
   private static final String MODULE = "wheeler.compiler.packages.manifest_target_source_collection";
 
   @Tag("closure-evidence")
   @Test
-  void retainsManifestTargetSourceCollectionAndRelocatesScalarPolicy() throws Exception {
+  void retainsManifestTargetSourceCollectionAndClosesItsImports() throws Exception {
     var module = NativeCompilerPhysicalSelection.callable(MODULE);
     var expected = new WheelerCompiler().compileLibraryModuleFiles(
         CompilerSources.moduleClosure(module.name()), module.name());
@@ -39,8 +39,8 @@ final class NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductEx
 
     assertEquals(expectedFunctions, machine.global("physicalRetainedFunctionCount"));
     assertEquals(expectedInstructions, machine.global("physicalRetainedInstructionCount"));
-    assertEquals(1, machine.global("physicalCallableRelocationCount"));
-    assertEquals(1, machine.global("physicalResolvedCallableTargetCount"));
+    assertEquals(3, machine.global("physicalCallableRelocationCount"));
+    assertEquals(3, machine.global("physicalResolvedCallableTargetCount"));
   }
 
   private static byte[] framed(byte[] archive, byte[] manifest) {

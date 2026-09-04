@@ -155,21 +155,16 @@ classical class Manifest {
             next
           );
           if (validSource) {
-            long selectorToken = manifestTargetSelectorToken(next);
-            if (
-              manifestSourceRowCapacity(sourceRows, sourceOffset + sourceCount) == false
-            ) {
-              return invalid;
-            }
-
-            boolean ordered = manifestTargetSourceFollows(
+            long selectorToken = manifestTargetSourceEntryProduct(
               source,
               starts,
               lengths,
-              previousSourceToken,
-              selectorToken
+              next,
+              sourceRows,
+              sourceOffset + sourceCount,
+              previousSourceToken
             );
-            if (ordered == false) {
+            if (selectorToken < 0) {
               return invalid;
             }
 

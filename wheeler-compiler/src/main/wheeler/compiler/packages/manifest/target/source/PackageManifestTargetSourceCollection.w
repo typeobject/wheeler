@@ -2,6 +2,8 @@
 
 module wheeler.compiler.packages.manifest_target_source_collection;
 
+import wheeler.compiler.packages.manifest_rows;
+import wheeler.compiler.packages.manifest_target_coordinates;
 import wheeler.compiler.packages.manifest_target_source;
 
 classical class PackageManifestTargetSourceCollection {
@@ -48,5 +50,35 @@ classical class PackageManifestTargetSourceCollection {
       return false;
     }
     return rootCovered;
+  }
+
+  /// Admits one source entry and returns its selector token.
+  public long manifestTargetSourceEntryProduct(
+    borrow utf8 source,
+    borrow mut words starts,
+    borrow mut words lengths,
+    long rowToken,
+    borrow mut words sourceRows,
+    long sourceIndex,
+    long previousToken
+  ) {
+    long selectorToken = manifestTargetSelectorToken(rowToken);
+    boolean capacity = manifestSourceRowCapacity(sourceRows, sourceIndex);
+    if (capacity == false) {
+      return -1;
+    }
+
+    boolean ordered = manifestTargetSourceFollows(
+      source,
+      starts,
+      lengths,
+      previousToken,
+      selectorToken
+    );
+    if (ordered == false) {
+      return -1;
+    }
+
+    return selectorToken;
   }
 }
