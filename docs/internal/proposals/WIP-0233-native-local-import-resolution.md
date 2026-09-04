@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, compiler, and package maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, source plans, module graph |
 | Depends on | WIP-0009, WIP-0018, WIP-0232 |
 | Supersedes | Native source plans without import resolution |
-| Superseded by | WIP-0234 canonical import order |
+| Superseded by | None |
+| Follow-up | WIP-0234 canonical import order |
 
 ## Summary
 

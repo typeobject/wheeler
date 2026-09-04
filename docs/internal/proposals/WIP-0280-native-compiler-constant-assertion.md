@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, coverage, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, compiler testing, semantic coverage |
 | Depends on | WIP-0020, WIP-0279 |
 | Supersedes | Structural-only native compiler spine test |
-| Superseded by | WIP-0281 native compiler arithmetic coverage |
+| Superseded by | None |
+| Follow-up | WIP-0281 native compiler arithmetic coverage |
 
 ## Summary
 

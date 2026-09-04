@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and native backend maintainers |
 | Created | 2026-08-26 |
-| Updated | 2026-08-26 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, call graphs, function layout |
 | Depends on | WIP-0008, WIP-0026, WIP-0379, WIP-0395 |
 | Supersedes | Prior-function-only scalar AOT calls |
-| Superseded by | WIP-0397 for graph width, WIP-0401 for recursion |
+| Superseded by | None |
+| Follow-up | WIP-0397 for graph width, WIP-0401 for recursion |
 
 ## Summary
 

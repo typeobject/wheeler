@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, coverage, testing, and self-hosting maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Semantic coverage, native execution, self-hosting |
 | Depends on | WIP-0286 |
 | Supersedes | Linear entry-function native coverage projection |
-| Superseded by | WIP-0288 native inverse coverage |
+| Superseded by | None |
+| Follow-up | WIP-0288 native inverse coverage |
 
 ## Summary
 

@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, runtime, tools, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package archives, external source graphs |
 | Depends on | WIP-0302 |
 | Supersedes | Two-entry native archive authority |
-| Superseded by | WIP-0307 native four-source archive import |
+| Superseded by | None |
+| Follow-up | WIP-0307 native four-source archive import |
 
 ## Summary
 

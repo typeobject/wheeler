@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and native I/O maintainers |
 | Created | 2026-08-17 |
-| Updated | 2026-08-17 |
+| Updated | 2026-09-04 |
 | Area | Native I/O, RNIC transfer, completion |
 | Depends on | WIP-0032, WIP-0128 |
 | Supersedes | Native writes outside the portable request lifecycle |
-| Superseded by | WIP-0130 for one-sided reads, followed by atomic, peer, and persistence stages |
+| Superseded by | None |
+| Follow-up | WIP-0130 for one-sided reads, followed by atomic, peer, and persistence stages |
 
 ## Summary
 

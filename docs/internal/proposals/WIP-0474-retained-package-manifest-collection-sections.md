@@ -23,7 +23,7 @@ The parser advances section cursors, recognizes empty brackets, iterates rows, a
 
 ## Physical route
 
-The section owner has two functions and two imported calls. It takes the direct imported structured-source path and enters the callable product suffix. Its source route is explicit; signature-only synthesis cannot replace it.
+The section owner has two functions and two imported calls. It takes the direct imported structured-source path and enters the callable product suffix. Its source route is explicit. Signature-only synthesis cannot replace it.
 
 ## Evidence
 
@@ -56,7 +56,7 @@ Reject a misspelled section key before bracket recognition, row iteration, or mu
 
 ### Fold section keys into row prefixes
 
-Section keys delimit collections; row prefixes validate members. Combining them would give row policy ownership of parser-level state.
+Section keys delimit collections. Row prefixes validate members. Combining them would give row policy ownership of parser-level state.
 
 ### Keep hashes in the parser
 

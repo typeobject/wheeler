@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and conformance maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, diagnostics, execution failures |
 | Depends on | WIP-0018, WIP-0203, WIP-0214 |
 | Supersedes | Caller-supplied native failure diagnostics |
-| Superseded by | WIP-0216 transported test descriptors |
+| Superseded by | None |
+| Follow-up | WIP-0216 transported test descriptors |
 
 ## Summary
 

@@ -6,7 +6,9 @@ Wheeler is pre-release, but changes are welcome when they preserve one semantic 
 
 1. Read the relevant [Wheeler Improvement Proposal](docs/internal/proposals/index.mdx).
 2. Keep reference documentation limited to implemented behavior.
-3. Run the complete local gate:
+3. Match verification to the change. For proposal organization or prose, run the
+   [short documentation gate](docs/internal/proposals/index.mdx#checks). Run the
+   complete local gate for an implementation series before final review:
 
 ```bash
 export JAVA_HOME="$(brew --prefix openjdk)/libexec/openjdk.jdk/Contents/Home"
@@ -22,7 +24,7 @@ Run the bounded closure evidence task when a patch changes the physical compiler
 ./bootstrap/gradlew -p bootstrap :examples:closureEvidenceTest
 ```
 
-The ordinary gate gives each JUnit method two minutes. Hosted CI also caps each deterministic example shard at fifteen minutes. The closure task is explicit because its end-to-end methods may each use twenty minutes, and the task stops after twenty-five minutes.
+The ordinary gate gives each JUnit method two minutes. Hosted CI also caps each deterministic example shard at fifteen minutes. The explicit closure task allows forty-five minutes per method and fifty minutes for the task. `bootstrap/examples/build.gradle` owns those deadlines. Do not run closure evidence for documentation-only changes.
 
 ## Patch rules
 
@@ -34,6 +36,7 @@ The ordinary gate gives each JUnit method two minutes. Hosted CI also caps each 
 - Keep provider objects, credentials, and generated SDK types outside canonical bytecode.
 - Update examples and current reference pages with behavior changes.
 - Update an Implementing WIP's checklist in the patch that supplies the evidence.
+- Use the [proposal workflow](docs/internal/proposals/workflow.md). Keep routine refactors in the owning checklist rather than allocating a WIP per helper. Keep detailed milestone evidence out of umbrella checklists.
 - Use small commits whose message states the completed feature.
 - Run `wheeler format --check .`. Canonical `/* parameter= */ value` comments label adjacent ambiguous literals without pretending comments are named-argument syntax.
 - After changing a workspace package, rebuild its `.wpk`, replace that archive identity in every exact dependent lock, and run one locked dependent command before pushing.

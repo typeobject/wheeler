@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, coverage, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, native testing, source discovery |
 | Depends on | WIP-0205, WIP-0225, WIP-0248 |
 | Supersedes | WIP-0248 parameterless declaration bound |
-| Superseded by | Native test metadata discovery |
+| Superseded by | None |
+| Follow-up | Native test metadata discovery |
 
 ## Summary
 

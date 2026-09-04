@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-16 |
-| Updated | 2026-08-16 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting compiler, control flow, return products |
 | Depends on | WIP-0049, WIP-0054, WIP-0055, WIP-0056, WIP-0069 |
 | Supersedes | Parser projection for one-arm root conditional returns |
-| Superseded by | WIP-0075 for signed computed children |
+| Superseded by | None |
+| Follow-up | WIP-0075 for signed computed children |
 
 ## Summary
 

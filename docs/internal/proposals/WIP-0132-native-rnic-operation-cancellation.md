@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and native I/O maintainers |
 | Created | 2026-08-17 |
-| Updated | 2026-08-17 |
+| Updated | 2026-09-04 |
 | Area | Native I/O, RNIC cancellation, lifecycle |
 | Depends on | WIP-0032, WIP-0128, WIP-0129, WIP-0130, WIP-0131 |
 | Supersedes | Association-wide cancellation without operation identity |
-| Superseded by | WIP-0133 for peer and persistence evidence |
+| Superseded by | None |
+| Follow-up | WIP-0133 for peer and persistence evidence |
 
 ## Summary
 

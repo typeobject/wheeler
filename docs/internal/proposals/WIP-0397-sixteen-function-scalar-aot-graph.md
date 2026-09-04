@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and native backend maintainers |
 | Created | 2026-08-26 |
-| Updated | 2026-08-26 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, function bounds, call depth |
 | Depends on | WIP-0008, WIP-0026, WIP-0387, WIP-0396 |
 | Supersedes | Eight-function scalar AOT graph ceiling |
-| Superseded by | WIP-0398 for graph width, WIP-0400 for frame bounds |
+| Superseded by | None |
+| Follow-up | WIP-0398 for graph width, WIP-0400 for frame bounds |
 
 ## Summary
 

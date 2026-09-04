@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package archives, package locks |
 | Depends on | WIP-0275 |
 | Supersedes | Structural lock evidence without native archive evidence |
-| Superseded by | WIP-0295 native locked archive source projection |
+| Superseded by | None |
+| Follow-up | WIP-0295 native locked archive source projection |
 
 ## Summary
 

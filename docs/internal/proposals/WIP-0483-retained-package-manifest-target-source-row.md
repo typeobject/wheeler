@@ -17,11 +17,11 @@ Retain one physical owner for the syntactic and scalar policy of a package targe
 
 ## Contract
 
-`manifestTargetSourceRowValid` projects the selector coordinate, rejects an out-of-range row before token reads, requires the canonical sequence dash, and validates one quoted logical-path selector. It returns false for collection termination and malformed rows; the caller decides whether termination is valid from the number of rows already consumed.
+`manifestTargetSourceRowValid` projects the selector coordinate, rejects an out-of-range row before token reads, requires the canonical sequence dash, and validates one quoted logical-path selector. It returns false for collection termination and malformed rows. The caller decides whether termination is valid from the number of rows already consumed.
 
 Ordering, root coverage, source-table capacity, and publication remain in the collection loop. They depend on prior rows or caller-owned storage and do not belong to one-row syntax.
 
-The target directory had again reached its ten-file ceiling. The source policy, source coordinates, and new row composer now live under `target/source/`; their module names and public contracts remain unchanged.
+The target directory had again reached its ten-file ceiling. The source policy, source coordinates, and new row composer now live under `target/source/`. Their module names and public contracts remain unchanged.
 
 ## Physical evidence
 
@@ -29,7 +29,7 @@ The target directory had again reached its ten-file ceiling. The source policy, 
 
 `NativeManifestExampleTest` executes two canonical selectors and empty nonmodular source sets. It rejects escaping paths, malformed row shape, non-covering roots, and reverse lexical order through the delegated loop.
 
-The selected physical set is now 112 comparable products and 50 callable products. A fresh closure run retained 142 non-empty module products, 481 functions, and 16,734 forward-plus-inverse instructions. The linked closure contains 398,992 code bytes, 13,432 local-type rows, 805 source strings, and 644 unique strings. Its 510,456-byte executable has SHA-256 `b71b3d4f00ae33aa4f55a998daf88e938de08462d80f34d80084a6afd605949a`; the closure checksum is `3_072_015_695L`.
+The selected physical set is now 112 comparable products and 50 callable products. A fresh closure run retained 142 non-empty module products, 481 functions, and 16,734 forward-plus-inverse instructions. The linked closure contains 398,992 code bytes, 13,432 local-type rows, 805 source strings, and 644 unique strings. Its 510,456-byte executable has SHA-256 `b71b3d4f00ae33aa4f55a998daf88e938de08462d80f34d80084a6afd605949a`. The closure checksum is `3_072_015_695L`.
 
 ## Bootstrap identities
 

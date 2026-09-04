@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and native runtime maintainers |
 | Created | 2026-08-25 |
-| Updated | 2026-08-25 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, execution bounds, trap parity |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0381, WIP-0386 |
 | Supersedes | Per-evaluation call budgets and structurally bounded native execution |
-| Superseded by | WIP-0388 for 4,096-iteration local loop bounds |
+| Superseded by | None |
+| Follow-up | WIP-0388 for 4,096-iteration local loop bounds |
 
 ## Summary
 

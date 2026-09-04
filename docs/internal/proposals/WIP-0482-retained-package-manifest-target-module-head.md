@@ -13,7 +13,7 @@
 
 ## Summary
 
-Retain one physical owner for the module value and required `sources` key of a modular package target. Optional-field presence remains in the aggregate parser; malformed present fields now share one modular-head verdict.
+Retain one physical owner for the module value and required `sources` key of a modular package target. Optional-field presence remains in the aggregate parser. Malformed present fields now share one modular-head verdict.
 
 ## Contract
 
@@ -21,7 +21,7 @@ Retain one physical owner for the module value and required `sources` key of a m
 
 The absent branch remains distinct: a nonmodular target proceeds directly from the optional module coordinate to its required test tail. This keeps omission separate from invalid presence without a signed transport or caller-owned state.
 
-The target directory had reached its ten-file layout ceiling. `PackageManifestTargetModule.w` and the new composer now live under `target/module/`; module names and public contracts remain unchanged.
+The target directory had reached its ten-file layout ceiling. `PackageManifestTargetModule.w` and the new composer now live under `target/module/`. Module names and public contracts remain unchanged.
 
 ## Physical evidence
 
@@ -29,7 +29,7 @@ The target directory had reached its ten-file layout ceiling. `PackageManifestTa
 
 `NativeManifestExampleTest` executes modular and nonmodular targets. It rejects a misspelled module key, invalid module grammar, a misspelled sources key, invalid selectors, unsorted selectors, and selectors that do not cover the target root.
 
-The selected physical set is now 112 comparable products and 49 callable products. A fresh closure run retained 141 non-empty module products, 480 functions, and 16,688 forward-plus-inverse instructions. The linked closure contains 397,856 code bytes, 13,386 local-type rows, 802 source strings, and 642 unique strings. Its 508,976-byte executable has SHA-256 `9663e2cd91d976e5233c74bb47eece950e9d8d4a56a1276eb17c4ca00e5e2710`; the closure checksum is `2_523_128_525L`.
+The selected physical set is now 112 comparable products and 49 callable products. A fresh closure run retained 141 non-empty module products, 480 functions, and 16,688 forward-plus-inverse instructions. The linked closure contains 397,856 code bytes, 13,386 local-type rows, 802 source strings, and 642 unique strings. Its 508,976-byte executable has SHA-256 `9663e2cd91d976e5233c74bb47eece950e9d8d4a56a1276eb17c4ca00e5e2710`. The closure checksum is `2_523_128_525L`.
 
 ## Bootstrap identities
 

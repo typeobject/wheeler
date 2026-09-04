@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and package maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, package identity, descriptor framing |
 | Depends on | WIP-0018, WIP-0195, WIP-0218 |
 | Supersedes | Per-descriptor manifest identity fields |
-| Superseded by | WIP-0220 native manifest hashing |
+| Superseded by | None |
+| Follow-up | WIP-0220 native manifest hashing |
 
 ## Summary
 

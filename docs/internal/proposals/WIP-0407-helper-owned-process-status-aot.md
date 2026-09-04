@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and native backend maintainers |
 | Created | 2026-08-26 |
-| Updated | 2026-08-26 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, process status, helper state |
 | Depends on | WIP-0001, WIP-0008, WIP-0026, WIP-0390, WIP-0405 |
 | Supersedes | Entry-only mutation of scalar global zero |
-| Superseded by | WIP-0409 for capsule binding |
+| Superseded by | None |
+| Follow-up | WIP-0409 for capsule binding |
 
 ## Summary
 

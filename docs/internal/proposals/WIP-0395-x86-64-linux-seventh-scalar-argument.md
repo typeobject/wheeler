@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and native backend maintainers |
 | Created | 2026-08-26 |
-| Updated | 2026-08-26 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, x86-64 calls, stack arguments |
 | Depends on | WIP-0008, WIP-0026, WIP-0380, WIP-0383, WIP-0386 |
 | Supersedes | Six-register scalar AOT call ceiling |
-| Superseded by | WIP-0396 for function order, WIP-0399 for argument width |
+| Superseded by | None |
+| Follow-up | WIP-0396 for function order, WIP-0399 for argument width |
 
 ## Summary
 

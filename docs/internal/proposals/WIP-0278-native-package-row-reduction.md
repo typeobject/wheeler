@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, package, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package testing, reports |
 | Depends on | WIP-0277 |
 | Supersedes | Java combination of canonical native target rows |
-| Superseded by | Native external import source binding |
+| Superseded by | None |
+| Follow-up | Native external import source binding |
 
 ## Summary
 

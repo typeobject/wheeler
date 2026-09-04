@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and conformance maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, artifact execution, terminal outcomes |
 | Depends on | WIP-0018, WIP-0202 |
 | Supersedes | None |
-| Superseded by | WIP-0206 complete bounded global outcomes |
+| Superseded by | None |
+| Follow-up | WIP-0206 complete bounded global outcomes |
 
 ## Summary
 

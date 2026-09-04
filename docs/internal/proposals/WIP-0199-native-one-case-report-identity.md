@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and conformance maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, semantic reports, Java-free execution |
 | Depends on | WIP-0018, WIP-0195, WIP-0198 |
 | Supersedes | None |
-| Superseded by | WIP-0201 counted multi-case report framing |
+| Superseded by | None |
+| Follow-up | WIP-0201 counted multi-case report framing |
 
 ## Summary
 

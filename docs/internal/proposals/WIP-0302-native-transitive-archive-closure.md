@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, tools, compiler, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package commands, dependency graphs |
 | Depends on | WIP-0301 |
 | Supersedes | Direct-only native archive selection |
-| Superseded by | WIP-0306 native four-entry archives |
+| Superseded by | None |
+| Follow-up | WIP-0306 native four-entry archives |
 
 ## Summary
 

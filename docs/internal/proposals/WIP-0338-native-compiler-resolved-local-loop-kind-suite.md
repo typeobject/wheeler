@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0337 |
 | Supersedes | Product-only resolved local-loop classification evidence |
-| Superseded by | WIP-0339 native 20 KiB test-manifest bound |
+| Superseded by | None |
+| Follow-up | WIP-0339 native 20 KiB test-manifest bound |
 
 ## Summary
 

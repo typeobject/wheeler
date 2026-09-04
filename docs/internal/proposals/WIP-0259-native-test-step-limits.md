@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, native testing, bounded execution |
 | Depends on | WIP-0258 |
 | Supersedes | Rejection of canonical `limits(...)` metadata |
-| Superseded by | WIP-0260 native test tag selection |
+| Superseded by | None |
+| Follow-up | WIP-0260 native test tag selection |
 
 ## Summary
 

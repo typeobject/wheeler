@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, package, and linker maintainers |
 | Created | 2026-08-14 |
-| Updated | 2026-08-14 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting compiler, imported calls, relocation |
 | Depends on | WIP-0045, WIP-0048, WIP-0057 |
 | Supersedes | Imported call integration in WIP-0057 |
-| Superseded by | WIP-0060 for artifact stubs, WIP-0061 for qualified spelling, WIP-0139 for loan normalization and local-call filtering |
+| Superseded by | None |
+| Follow-up | WIP-0060 for artifact stubs, WIP-0061 for qualified spelling, WIP-0139 for loan normalization and local-call filtering |
 
 ## Summary
 

@@ -1,586 +1,81 @@
-# Wheeler Improvement Proposals and implementation records
+# Wheeler proposals
 
-> **Maintainer document.** This index is not part of the public website.
+> **Maintainer documentation.** Proposals do not enter the public website.
 
-A Wheeler Improvement Proposal, or WIP, records a decision that is too large for an issue or pull request. It explains the problem, sets the rules, assigns ownership, chooses a design, and says how the work will be tested and adopted.
+Start with [open work](roadmap.md) to find an unfinished contract. For the
+self-hosting effort, read [the status and evidence map](self-hosting-status.md)
+before choosing another compiler slice.
 
-WIPs are Wheeler's long-term decision record. A `WIP-NNNN` number identifies a proposal. It does not mean the work is currently underway. Proposals may describe planned, accepted, or active work. Guides and reference pages describe features that work today, so they must not present an unfinished WIP as current behavior.
+## Catalog
 
-## When to write a WIP
+Each numbered record appears once in these topic catalogs. Entries keep their
+original numbers and filenames. Related work belongs in references, not in
+several competing indexes.
 
-Write a WIP for a change to:
-
-- source syntax, types, proof rules, or visible behavior.
-- reversibility, retained history, uncomputation, or irreversible effects.
-- the VM instruction set, memory model, scheduler, concurrency, transactions, or synchronization.
-- bytecode containers, loaders, verification, versioning, or compatibility.
-- quantum state, gates, measurement, simulation, or hardware backends.
-- the trusted computing base for proofs or program checks.
-- ownership shared by the compiler, runtime, tools, or modules.
-- determinism, limits, safety, security, diagnostics, or failure behavior.
-- a compatibility removal or migration that crosses several modules or tools.
-
-A local refactor, small bug fix, test, documentation correction, or private optimization does not need a WIP. Write one only when the change affects one of these contracts.
-
-## Statuses
-
-| Status | Meaning |
+| Topic | Contents |
 | --- | --- |
-| Draft | The author is still shaping the problem and design. |
-| Review | The proposal is ready for review of its meaning, implementation, and migration. |
-| Accepted | Maintainers approved the decision, but implementation has not started. |
-| Implementing | Work is underway, and the progress checklist must stay current. |
-| Implemented | Tests, documentation, migration, and required deletion are complete. |
-| Superseded | A later WIP replaces all or part of this decision. |
-| Withdrawn | The proposal will not move forward. |
+| [Compiler products and bootstrap](catalog/compiler.md) | Source lowering, semantic products, linking, publication, and recovery seeds |
+| [Retained package-manifest products](catalog/manifests.md) | Canonical syntax, semantic versions, selectors, and row publication |
+| [Native testing and compiler suites](catalog/testing.md) | Native discovery, execution, coverage, reports, and package gates |
+| [Packages and resolution](catalog/packages.md) | Package instances, locks, archives, repositories, and distribution |
+| [Runtime, I/O, and native platforms](catalog/platform.md) | Quantum and hybrid execution, host effects, native images, and releases |
+| [Language and semantics](catalog/language.md) | Types, ownership, proofs, control flow, and the shared IR |
+| [Tools and applications](catalog/tooling.md) | Formatting, documentation, test contracts, tutorials, and applications |
 
-Only maintainers may change a WIP to **Accepted**, **Implemented**, **Superseded**, or **Withdrawn**. A major change to the meaning or architecture sends an accepted proposal back to **Review**.
+The catalog is a finding aid. A WIP owns its status and contract. Checked-in code,
+tests, and current reference manuals establish implemented behavior. A count of
+completed records is not a measure of language coverage or bootstrap completion.
 
-## How to create a proposal
+## Read a record
 
-1. Copy [the template](TEMPLATE.md) to `WIP-NNNN-short-title.md`. Use the next unused four-digit number.
-2. Fill in every metadata field, including owners, dates, and dependencies.
-3. Write the summary, motivation, and use cases before choosing opcodes, classes, or APIs.
-4. Define the semantic model and its invariants. When state can change, explain forward and reverse behavior.
-5. Keep the proposal focused on one main decision with an acceptance suite that can finish on its own.
-6. Change the status to **Review** and ask each affected owner for feedback.
-7. Resolve every open question, or give it an owner and decision date.
-8. After acceptance, implement the design in reviewable stages. Update the progress checklist in the same pull requests.
-9. Update the current reference docs after the feature works.
-10. Mark the proposal **Implemented** only when tests, docs, migration, and required deletion are done.
+- **Draft, Review, Accepted, Implementing:** a decision or implementation still
+  needs work. The [roadmap](roadmap.md) lists every such record.
+- **Implemented:** the record's bounded acceptance gate completed. Its parent
+  contract may still be open.
+- **Superseded:** another numbered decision replaces the whole contract. Follow
+  `Superseded by` to the replacement.
+- **Withdrawn:** the proposal will not proceed. Its number remains reserved.
 
-Once a proposal leaves **Draft**, its number and filename stay fixed. A Draft may be renamed or split before review when its scope is wrong. Update every link in the same change, do not reuse another proposal's number, and do not leave a redirect file that creates two sources of truth. Git keeps the old history. Never reuse the number of a withdrawn proposal. When a later decision replaces a reviewed proposal, keep both files and connect them through `Supersedes` and `Superseded by`.
+`Follow-up` names extensions, narrower replacements, ownership moves, and work
+still needed. It does not mean that the entire earlier decision is obsolete.
+Older records used `Superseded by` for both meanings. Those forward references
+now use `Follow-up` unless the record itself is Superseded.
 
-`Depends on` lists hard implementation requirements. Put related but nonblocking work in References. Status shows how mature the decision is, not how urgent the work is.
+Artifact hashes, closure populations, transition counts, and test durations in
+completed records are **milestone evidence**. They identify the inputs measured
+then. Do not update old receipts to claim that every historical archive matches
+today's lockfiles. Put the current evidence location in the status map and keep
+exact pins in executable tests and locks.
 
-## Design expectations
+## Change the proposal set
 
-A Wheeler proposal should:
+Read [the proposal workflow](workflow.md). Use [the design template](TEMPLATE.md)
+for a new contract and [the implementation-record template](RECORD-TEMPLATE.md)
+only when a bounded stage needs a separate decision or acceptance boundary.
 
-- define visible behavior before choosing an encoding or Java API.
-- name one owner for each piece of mutable state.
-- separate operations that are truly reversible from operations that need saved history.
-- explain measurement, I/O, exceptions, allocation, thread interaction, and other irreversible boundaries.
-- define scheduling and replay order when concurrency changes.
-- cover malformed input, resource limits, and history exhaustion.
-- explain bytecode and stored-state compatibility when a representation changes.
-- keep classical reversal, quantum behavior, and proof claims separate.
-- include executable laws or conformance fixtures for important rules.
-- name obsolete code, formats, and compatibility paths that must be removed.
+A local refactor, helper extraction, test, documentation fix, or private
+optimization usually needs a patch, not another WIP. Update the owning checklist
+instead. Split a WIP when its parts have distinct owners, failure boundaries, or
+acceptance gates. Do not split it merely to assign a number to each function.
 
-Write "Not applicable" and give a reason for sections that do not apply. Split work that can be accepted, implemented, or rolled back alone. Put final API reference in the manual after implementation. Keep task planning in issues.
+Keep contracts in their WIPs, current cross-cutting status in the status map,
+and detailed execution history in the implementation records and Git. Parent
+WIPs should not grow a second copy of every child's evidence report.
 
-## Cross-proposal IR invariant
+## Checks
 
-Every WIP must preserve one Wheeler intermediate-language model. Canonical `.wbc` 1.0 is the only semantic artifact. It contains the closed typed IR needed by the selected target: classical register and region bodies, reversible relations and inverse bodies, ordered hybrid workflows, backend-neutral quantum regions, effects, ownership, proofs, and bounds.
+The short proposal gate checks catalog coverage, titles, statuses, metadata,
+dependency cycles, replacement links, open-work coverage, and repository links:
 
-WIP-0029 may add non-executable generic typed bodies as a versioned library section inside `.wbc`. Those bodies do not create a separate source-template or host-object authority.
+```bash
+./bootstrap/gradlew -p bootstrap :tools:test \
+  --tests '*ProposalIndexTest' \
+  --tests '*InternalDocumentationTest' \
+  --tests '*DocumentationStyleTest'
+./bootstrap/gradlew -p bootstrap :tools:wheeler --args='check-docs docs'
+```
 
-"Reversible IR" does not mean every operation is bijective. Each operation declares one explicit relation:
-
-- an intrinsic or checked inverse for information-preserving classical work.
-- bounded logged history for destructive work that supports VM rewind but has no intrinsic inverse.
-- an explicit barrier for irreversible host observation.
-- an exact finite permutation for coherent classical lifting.
-- an adjoint-bearing semantic region for unitary quantum work.
-- an explicit measurement, reset, target, or workflow transition when information crosses domains.
-
-Source syntax, generic specialization, class evidence, tests, proofs, packages, native lowering, and documentation must keep those differences. No WIP may treat rewind as inverse, replay as physical reversal, compensation as uncomputation, a provider circuit as semantic IR, or an unchecked annotation as proof. Host ASTs, JVM bytecode, LLVM IR, native objects, and provider payloads are derived implementation data. Verified Wheeler IR remains authoritative.
-
-## Proposals
-
-| WIP | Status | Decision | Area |
-| --- | --- | --- | --- |
-| [WIP-0001](WIP-0001-reversible-bytecode-and-machine-state.md) | Implemented | Reversible bytecode and machine-state contract | VM, bytecode, artifacts, history |
-| [WIP-0002](WIP-0002-unified-classical-quantum-semantics.md) | Implemented | Unified classical and quantum semantics | Language, hybrid execution, quantum IR |
-| [WIP-0003](WIP-0003-quantum-target-and-qiskit-backend.md) | Implemented | Quantum target contract and OpenQASM interoperability | Targets, OpenQASM, simulators, hardware |
-| [WIP-0004](WIP-0004-hybrid-jobs-history-and-replay.md) | Implemented | Hybrid jobs, history, and replay | Runtime, jobs, transactions, replay |
-| [WIP-0005](WIP-0005-wheeler-source-language.md) | Implemented | Wheeler source language profile | Language, compiler, ergonomics |
-| [WIP-0006](WIP-0006-concrete-syntax-tooling-and-teaching.md) | Implemented | Concrete syntax, editor tooling, and teaching profile | Parser, Tree-sitter, documentation |
-| [WIP-0007](WIP-0007-self-hosting-compiler-and-bootstrap.md) | Implementing | Self-hosting compiler and reproducible bootstrap | Compiler, language, trust chain |
-| [WIP-0008](WIP-0008-java-free-runtime-and-native-bootstrap.md) | Draft | Java-free runtime and native bootstrap | Runtime, native code, distribution |
-| [WIP-0009](WIP-0009-wheeler-package-and-build-system.md) | Implementing | Wheeler package and build system | Packages, builds, registry, tooling |
-| [WIP-0010](WIP-0010-executable-application-portfolio.md) | Draft | Executable application portfolio | Examples, conformance, applications |
-| [WIP-0011](WIP-0011-integrated-proofs-and-certificates.md) | Draft | Integrated proofs and certificates | Language, proofs, trusted kernel |
-| [WIP-0012](WIP-0012-wheeler-standard-library.md) | Draft | Wheeler standard library | Types, collections, quantum resources |
-| [WIP-0013](WIP-0013-typed-frames-control-flow-and-storage.md) | Implementing | Typed frames, control flow, and bounded storage | Types, VM, storage, bootstrap |
-| [WIP-0014](WIP-0014-bounded-certified-program-synthesis.md) | Draft | Bounded certified program synthesis | Finite types, synthesis, quantum search, proofs, packages |
-| [WIP-0015](WIP-0015-certified-adversarial-schedule-exploration.md) | Draft | Certified adversarial schedule exploration | Protocol models, concurrency, replay, proofs |
-| [WIP-0016](WIP-0016-nonconfigurable-source-formatter.md) | Draft | One nonconfigurable source formatter with documentation enforcement | Source formatting, documentation, editor and build tooling |
-| [WIP-0017](WIP-0017-compile-time-constants-and-finite-enums.md) | Implementing | Compile-time constants and finite enums | Named values, finite types, reversible and coherent semantics |
-| [WIP-0018](WIP-0018-integrated-deterministic-testing.md) | Draft | Integrated deterministic testing | Test declarations, runners, fixtures, replay, quantum and proof assertions |
-| [WIP-0019](WIP-0019-integrated-documentation-publication.md) | Implementing | Integrated documentation publication | Wheeler API docs, safe static rendering, Javadoc, links and search |
-| [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md) | Draft | Semantic coverage and evidence accounting | Classical, reversible, quantum, workflow and proof coverage |
-| [WIP-0021](WIP-0021-uniform-call-and-assertion-syntax.md) | Implemented | Uniform call and assertion syntax | Source syntax, assertions, reversible and quantum evidence, typed test doubles |
-| [WIP-0022](WIP-0022-package-instances-and-resolution.md) | Draft | Package instances and deterministic target graphs | Packages, resolver, modules, lockfiles |
-| [WIP-0023](WIP-0023-recipe-repositories-and-reproducible-builds.md) | Draft | Recipe repositories and reproducible package revisions | Repositories, revisions, provenance, publication |
-| [WIP-0024](WIP-0024-system-package-exports.md) | Draft | Canonical install images and system-package export | Debian, RPM, distribution tooling |
-| [WIP-0025](WIP-0025-native-ffi-and-system-integration.md) | Draft | Native ABI descriptors, FFI, and system capabilities | Language, runtime, native ABI, packages |
-| [WIP-0026](WIP-0026-self-contained-native-executables.md) | Draft | Self-contained platform-native Wheeler executables | Native images, ELF, Mach-O, PE, embedded WBC |
-| [WIP-0028](WIP-0028-deterministic-ownership-borrowing-and-regions.md) | Draft | Deterministic ownership, borrowing, regions, and no implicit tracing GC | Ownership, borrowing, memory, regions, destruction |
-| [WIP-0029](WIP-0029-parametric-polymorphism-and-bounded-specialization.md) | Draft | Parametric polymorphism, kinds, const generics, and bounded specialization | Types, generics, kinds, specialization |
-| [WIP-0030](WIP-0030-coherent-type-classes-and-associated-types.md) | Draft | Coherent type classes, associated types, instances, and laws | Classes, evidence, laws, packages |
-| [WIP-0031](WIP-0031-reversible-quantum-and-effect-polymorphism.md) | Draft | Effect-, reversible-, coherent-, and unitary-polymorphic callables | Effects, callables, reversibility, quantum operations |
-| [WIP-0032](WIP-0032-unified-io-fabric-and-durability-receipts.md) | Draft | Unified asynchronous I/O fabric, operation graphs, and durability receipts | I/O, storage, networking, RDMA, durability, quantum workflows |
-| [WIP-0033](WIP-0033-typed-coherent-values-and-reversible-embeddings.md) | Draft | Typed coherent values and explicit reversible embeddings | Language, types, coherent values, quantum IR, proofs |
-| [WIP-0034](WIP-0034-structured-uncomputation-and-clean-ancilla-scopes.md) | Draft | Structured uncomputation and clean ancilla scopes | Language, ownership, uncomputation, ancillas, quantum IR |
-| [WIP-0035](WIP-0035-reversible-and-coherent-control-flow.md) | Draft | Reversible and coherent control flow | Language, control flow, reversibility, coherent control, proofs |
-| [WIP-0036](WIP-0036-symbolic-resource-contracts-and-compositional-cost-evidence.md) | Draft | Symbolic resource contracts and compositional cost evidence | Language, resource bounds, proofs, quantum planning, diagnostics |
-| [WIP-0037](WIP-0037-hierarchical-semantic-routine-graphs.md) | Draft | Hierarchical semantic routine graphs and verified transformations | IR, bytecode, routines, transformations, resource analysis, tooling |
-| [WIP-0038](WIP-0038-regular-instruction-forms-and-extension-registry.md) | Implemented | Regular instruction forms and extension registry | Bytecode, VM, verifier, compiler, extensions, tooling |
-| [WIP-0039](WIP-0039-deterministic-structured-task-machine-and-global-rewind.md) | Draft | Deterministic structured task machine and global rewind | VM, structured tasks, scheduling, atomics, rewind |
-| [WIP-0040](WIP-0040-explicit-schedule-witnesses-for-reversible-task-scopes.md) | Draft | Explicit schedule witnesses for reversible task scopes | Language inverse, task witnesses, shared atomics |
-| [WIP-0041](WIP-0041-reversible-result-slots-and-explicit-presence-values.md) | Draft | Reversible result slots and explicit presence values | Language, returns, ownership, coherent values |
-| [WIP-0042](WIP-0042-first-principles-reversible-and-quantum-tutorials.md) | Draft | First-principles reversible and quantum computing tutorials | Tutorials, pedagogy, executable examples, quantum foundations |
-| [WIP-0043](WIP-0043-bounded-generic-compiler-module-graph-execution.md) | Implemented | Bounded generic compiler module graph execution | Self-hosting, modules, linking, graph execution |
-| [WIP-0044](WIP-0044-counted-native-compiler-closure-execution.md) | Implementing | Counted native compiler closure execution | Self-hosting, module closure, linking, bootstrap |
-| [WIP-0045](WIP-0045-counted-native-module-symbol-products.md) | Implementing | Counted native module symbol products | Self-hosting, symbols, module linking, compiler products |
-| [WIP-0046](WIP-0046-counted-native-aggregate-layout-products.md) | Implementing | Counted native aggregate layout products | Self-hosting, aggregates, layouts, compiler products |
-| [WIP-0047](WIP-0047-counted-native-callable-bytecode-products.md) | Implementing | Counted native callable bytecode products | Self-hosting, callable bodies, relocation, compiler products |
-| [WIP-0048](WIP-0048-canonical-native-product-linker.md) | Implementing | Canonical native product linker | Self-hosting, canonical linking, bytecode emission, bootstrap |
-| [WIP-0049](WIP-0049-bounded-native-source-product-compilation.md) | Implementing | Bounded native source-product compilation | Self-hosting, source lowering, module products, aggregates |
-| [WIP-0050](WIP-0050-native-aggregate-source-lowering.md) | Implemented | Native aggregate source lowering | Self-hosting, aggregates, ownership, relocation, compiler products |
-| [WIP-0051](WIP-0051-native-aggregate-frontend-products.md) | Implementing | Native aggregate frontend products | Self-hosting, frontend products, aggregate lowering, bootstrap |
-| [WIP-0052](WIP-0052-bounded-native-structured-loop-products.md) | Implemented | Bounded native structured-loop products | Self-hosting, structured control flow, callable products, bootstrap |
-| [WIP-0053](WIP-0053-auditable-bootstrap-seed-chain.md) | Draft | Auditable bootstrap seed chain | Bootstrap, provenance, recovery releases, build system |
-| [WIP-0054](WIP-0054-native-source-product-artifact-integration.md) | Implementing | Native source-product artifact integration | Self-hosting, source products, artifact emission, bootstrap closure |
-| [WIP-0055](WIP-0055-source-ordered-callable-coordinate-products.md) | Implemented | Source-ordered callable coordinate products | Self-hosting, callable layout, local types, structured control flow |
-| [WIP-0056](WIP-0056-measured-source-statement-local-products.md) | Implemented | Measured source statement local products | Self-hosting, source products, local types, structured control flow |
-| [WIP-0057](WIP-0057-source-call-relocation-and-ownership-coordinate-products.md) | Implemented | Source call, relocation, and ownership coordinate products | Self-hosting, calls, relocation, ownership, callable layout |
-| [WIP-0058](WIP-0058-nested-source-call-window-products.md) | Implemented | Nested source call window products | Self-hosting, structured control flow, calls, callable layout |
-| [WIP-0059](WIP-0059-imported-source-call-target-products.md) | Implemented | Imported source call target products | Self-hosting, imported calls, relocation, package products |
-| [WIP-0060](WIP-0060-imported-call-stub-and-relocation-products.md) | Implemented | Imported call stub and relocation products | Self-hosting, imported calls, bytecode, relocation |
-| [WIP-0061](WIP-0061-qualified-imported-source-calls.md) | Implemented | Qualified imported source calls | Self-hosting, imported calls, module names, resolution |
-| [WIP-0062](WIP-0062-atomic-source-call-link-publication.md) | Implemented | Atomic source-call link publication | Self-hosting, imported calls, linker, publication |
-| [WIP-0063](WIP-0063-generated-inverse-coordinate-products.md) | Implemented | Generated inverse coordinate products | Self-hosting, generated inverses, callable coordinates |
-| [WIP-0064](WIP-0064-reversible-source-product-evidence.md) | Implemented | Reversible source-product evidence | Self-hosting, reversible source, ownership, proofs |
-| [WIP-0065](WIP-0065-reversible-call-and-result-portfolio.md) | Implemented | Reversible call and result portfolio | Self-hosting, reversible calls, result slots |
-| [WIP-0066](WIP-0066-boolean-reversible-result-slots.md) | Implemented | Boolean reversible result slots | Reversible source, Boolean results, result slots |
-| [WIP-0067](WIP-0067-exact-physical-loop-value-products.md) | Implemented | Exact physical loop-value products | Self-hosting, loop products, local coordinates |
-| [WIP-0068](WIP-0068-callable-free-source-product-artifacts.md) | Implemented | Callable-free source-product artifacts | Self-hosting, artifact emission, physical closure |
-| [WIP-0069](WIP-0069-exact-scalar-return-expression-products.md) | Implemented | Exact scalar return-expression products | Self-hosting, scalar lowering, return products |
-| [WIP-0070](WIP-0070-exact-scalar-declaration-products.md) | Implemented | Exact scalar declaration products | Self-hosting, scalar lowering, declaration products |
-| [WIP-0071](WIP-0071-exact-root-byte-mutation-products.md) | Implemented | Exact root byte-mutation products | Self-hosting, byte buffers, root statements |
-| [WIP-0072](WIP-0072-exact-root-byte-projection-products.md) | Implemented | Exact root byte-projection products | Self-hosting, byte buffers, calls, scalar returns |
-| [WIP-0073](WIP-0073-exact-root-conditional-return-products.md) | Implemented | Exact root conditional-return products | Self-hosting, control flow, return products |
-| [WIP-0074](WIP-0074-direct-conditional-classifier-adoption.md) | Implemented | Direct conditional-classifier adoption | Self-hosting, physical closure, migration |
-| [WIP-0075](WIP-0075-exact-computed-conditional-return-products.md) | Implemented | Exact computed conditional-return products | Self-hosting, control flow, signed returns |
-| [WIP-0076](WIP-0076-direct-range-decoder-adoption.md) | Implemented | Direct range-decoder adoption | Self-hosting, physical closure, migration |
-| [WIP-0077](WIP-0077-exact-constant-return-products.md) | Implemented | Exact constant-return products | Self-hosting, constants, return products |
-| [WIP-0078](WIP-0078-bounded-direct-conditional-lookups.md) | Implemented | Bounded direct-conditional lookups | Self-hosting, bounded planning, closure execution |
-| [WIP-0079](WIP-0079-exact-signed-literal-return-products.md) | Implemented | Exact signed-literal return products | Self-hosting, scalar literals, return products |
-| [WIP-0080](WIP-0080-exact-root-boolean-declaration-products.md) | Implemented | Exact root Boolean declaration products | Self-hosting, Boolean values, declaration products |
-| [WIP-0081](WIP-0081-direct-leaf-assignment-classifier-adoption.md) | Implemented | Direct leaf assignment-classifier adoption | Self-hosting, physical closure, migration |
-| [WIP-0082](WIP-0082-exact-boolean-equality-products.md) | Implemented | Exact Boolean equality products | Self-hosting, Boolean values, scalar relations |
-| [WIP-0083](WIP-0083-zero-allocation-unobserved-transitions.md) | Implemented | Zero-allocation unobserved transitions | Virtual machine, native closure, evidence deadlines |
-| [WIP-0084](WIP-0084-direct-comparison-classifier-adoption.md) | Implemented | Direct comparison-classifier adoption | Self-hosting, physical closure, migration |
-| [WIP-0085](WIP-0085-root-task-state-specialization.md) | Implemented | Root task state specialization | Virtual machine, task state, native closure |
-| [WIP-0086](WIP-0086-direct-named-scalar-classifier-adoption.md) | Implemented | Direct named scalar-classifier adoption | Self-hosting, physical closure, migration |
-| [WIP-0087](WIP-0087-bounded-direct-product-publication.md) | Implemented | Bounded direct-product publication | Self-hosting, direct products, evidence deadlines |
-| [WIP-0088](WIP-0088-direct-comparison-operand-classifier-adoption.md) | Implemented | Direct comparison-operand classifier adoption | Self-hosting, physical closure, migration |
-| [WIP-0089](WIP-0089-direct-signed-return-classifier-adoption.md) | Implemented | Direct signed return-classifier adoption | Self-hosting, physical closure, migration |
-| [WIP-0090](WIP-0090-direct-arithmetic-return-classifier-adoption.md) | Implemented | Direct arithmetic return-classifier adoption | Self-hosting, physical closure, migration |
-| [WIP-0091](WIP-0091-direct-literal-condition-classifier-adoption.md) | Implemented | Direct literal-condition classifier adoption | Self-hosting, physical closure, migration |
-| [WIP-0092](WIP-0092-direct-conditional-value-classifier-adoption.md) | Implemented | Direct conditional-value classifier adoption | Self-hosting, physical closure, migration |
-| [WIP-0093](WIP-0093-direct-assertion-range-decoder-adoption.md) | Implemented | Direct assertion range-decoder adoption | Self-hosting, physical closure, migration |
-| [WIP-0094](WIP-0094-direct-local-assignment-range-adoption.md) | Implemented | Direct local-assignment range adoption | Self-hosting, physical closure, migration |
-| [WIP-0095](WIP-0095-direct-boolean-declaration-classifier-adoption.md) | Implemented | Direct Boolean declaration-classifier adoption | Self-hosting, physical closure, migration |
-| [WIP-0096](WIP-0096-direct-local-loop-classifier-adoption.md) | Implemented | Direct local-loop classifier adoption | Self-hosting, physical closure, migration |
-| [WIP-0097](WIP-0097-projection-free-direct-physical-routing.md) | Implemented | Projection-free direct physical routing | Self-hosting, physical closure, source authority |
-| [WIP-0098](WIP-0098-early-callable-free-archive-publication.md) | Implemented | Early callable-free archive publication | Self-hosting, physical closure, bounded storage |
-| [WIP-0099](WIP-0099-exact-boolean-literal-return-products.md) | Implemented | Exact Boolean literal return products | Self-hosting, scalar products, Boolean semantics |
-| [WIP-0100](WIP-0100-direct-local-loop-form-adoption.md) | Implemented | Direct local-loop form adoption | Self-hosting, physical closure, loop semantics |
-| [WIP-0101](WIP-0101-direct-boolean-return-classifier-adoption.md) | Implemented | Direct Boolean return-classifier adoption | Self-hosting, physical closure, Boolean calls |
-| [WIP-0102](WIP-0102-compact-empty-imported-target-views.md) | Implemented | Compact empty imported-target views | Self-hosting, call products, bounded storage |
-| [WIP-0103](WIP-0103-direct-conditional-operand-decoder-adoption.md) | Implemented | Direct conditional-operand decoder adoption | Self-hosting, physical closure, conditional operands |
-| [WIP-0104](WIP-0104-direct-local-return-decoder-adoption.md) | Implemented | Direct local-return decoder adoption | Self-hosting, physical closure, return decoding |
-| [WIP-0105](WIP-0105-sparse-zero-owned-buffer-pages.md) | Implemented | Sparse zero owned-buffer pages | Virtual machine, owned storage, closure performance |
-| [WIP-0106](WIP-0106-direct-local-update-decoder-adoption.md) | Implemented | Direct local-update decoder adoption | Self-hosting, physical closure, update decoding |
-| [WIP-0107](WIP-0107-direct-return-opcode-selector-adoption.md) | Implemented | Direct return-opcode selector adoption | Self-hosting, physical closure, return selection |
-| [WIP-0108](WIP-0108-direct-boolean-token-classifier-adoption.md) | Implemented | Direct Boolean token-classifier adoption | Self-hosting, physical closure, lexical products |
-| [WIP-0109](WIP-0109-direct-identifier-start-classifier-adoption.md) | Implemented | Direct identifier-start classifier adoption | Self-hosting, physical closure, lexical products |
-| [WIP-0110](WIP-0110-direct-call-argument-source-classifier-adoption.md) | Implemented | Direct call-argument source-classifier adoption | Self-hosting, physical closure, call arguments |
-| [WIP-0111](WIP-0111-direct-one-argument-call-classifier-adoption.md) | Implemented | Direct one-argument call-classifier adoption | Self-hosting, physical closure, call syntax |
-| [WIP-0112](WIP-0112-direct-three-argument-call-syntax-adoption.md) | Implemented | Direct three-argument call-syntax adoption | Self-hosting, physical closure, call syntax |
-| [WIP-0113](WIP-0113-direct-two-argument-call-classifier-adoption.md) | Implemented | Direct two-argument call-classifier adoption | Self-hosting, physical closure, call syntax |
-| [WIP-0114](WIP-0114-direct-resolved-local-conditional-classifier-adoption.md) | Implemented | Direct resolved local-conditional classifier adoption | Self-hosting, physical closure, conditionals |
-| [WIP-0115](WIP-0115-root-committed-transition-dispatch.md) | Implemented | Root committed-transition dispatch | Virtual machine, root task, physical closure |
-| [WIP-0116](WIP-0116-direct-resolved-local-conditional-source-adoption.md) | Implemented | Direct resolved local-conditional source adoption | Self-hosting, physical closure, conditionals |
-| [WIP-0117](WIP-0117-direct-early-return-result-classifier-adoption.md) | Implemented | Direct early-return result-classifier adoption | Self-hosting, physical closure, guard returns |
-| [WIP-0118](WIP-0118-direct-void-call-source-classifier-adoption.md) | Implemented | Direct void-call source-classifier adoption | Self-hosting, physical closure, call syntax |
-| [WIP-0119](WIP-0119-direct-early-return-source-decoder-adoption.md) | Implemented | Direct early-return source-decoder adoption | Self-hosting, physical closure, guard returns |
-| [WIP-0120](WIP-0120-direct-resolved-void-call-adoption.md) | Implemented | Direct resolved void-call adoption | Self-hosting, physical closure, call syntax |
-| [WIP-0121](WIP-0121-direct-assignment-call-column-adoption.md) | Implemented | Direct assignment-call column adoption | Self-hosting, physical closure, call assignment |
-| [WIP-0122](WIP-0122-direct-assignment-call-arity-adoption.md) | Implemented | Direct assignment-call arity adoption | Self-hosting, physical closure, call assignment |
-| [WIP-0123](WIP-0123-exact-call-conditioned-literal-return-products.md) | Implemented | Exact call-conditioned literal-return products | Self-hosting, calls, conditionals, physical closure |
-| [WIP-0124](WIP-0124-direct-call-argument-encoding-adoption.md) | Implemented | Direct call-argument encoding adoption | Self-hosting, physical closure, call arguments |
-| [WIP-0125](WIP-0125-lazy-committed-root-status-publication.md) | Implemented | Lazy committed root-status publication | Virtual machine, root task, physical closure |
-| [WIP-0126](WIP-0126-direct-named-local-conditional-adoption.md) | Implemented | Direct named local-conditional adoption | Self-hosting, physical closure, conditionals |
-| [WIP-0127](WIP-0127-direct-resolved-forwarding-call-decoder-adoption.md) | Implemented | Direct resolved forwarding-call decoder adoption | Self-hosting, physical closure, forwarded calls |
-| [WIP-0128](WIP-0128-native-rnic-registration-authority.md) | Implemented | Native RNIC registration authority | Native I/O, RNIC registration, ownership |
-| [WIP-0129](WIP-0129-native-rnic-one-sided-write-completion.md) | Implemented | Native RNIC one-sided write completion | Native I/O, RNIC transfer, completion |
-| [WIP-0130](WIP-0130-native-rnic-one-sided-read-completion.md) | Implemented | Native RNIC one-sided read completion | Native I/O, RNIC transfer, completion |
-| [WIP-0131](WIP-0131-native-rnic-compare-and-swap-completion.md) | Implemented | Native RNIC compare-and-swap completion | Native I/O, RNIC atomics, completion |
-| [WIP-0132](WIP-0132-native-rnic-operation-cancellation.md) | Implemented | Native RNIC operation cancellation | Native I/O, RNIC cancellation, lifecycle |
-| [WIP-0133](WIP-0133-native-rnic-peer-and-persistence-evidence.md) | Implemented | Native RNIC peer and persistence evidence | Native I/O, RNIC peer protocol, persistence |
-| [WIP-0134](WIP-0134-single-pass-committed-vm-storage.md) | Implemented | Single-pass committed VM storage | Virtual machine, committed execution, self-hosting evidence |
-| [WIP-0135](WIP-0135-exact-call-conditioned-constant-return-products.md) | Implemented | Exact call-conditioned constant-return products | Self-hosting, calls, conditionals, scalar products |
-| [WIP-0136](WIP-0136-exact-call-conditioned-signed-literal-products.md) | Implemented | Exact call-conditioned signed-literal products | Self-hosting, calls, conditionals, source ordering |
-| [WIP-0137](WIP-0137-direct-helper-signature-adoption.md) | Implemented | Direct helper-signature adoption | Self-hosting, physical closure, helper signatures |
-| [WIP-0138](WIP-0138-direct-borrowed-intrinsic-shape-adoption.md) | Implemented | Direct borrowed-intrinsic shape adoption | Self-hosting, physical closure, borrowed intrinsics |
-| [WIP-0139](WIP-0139-structured-imported-call-product-foundations.md) | Implemented | Structured imported-call product foundations | Self-hosting, imported calls, source products, relocation |
-| [WIP-0140](WIP-0140-direct-void-call-syntax-physical-product.md) | Implemented | Direct void-call syntax physical product | Self-hosting, physical closure, imported structured calls |
-| [WIP-0141](WIP-0141-direct-assignment-call-width-products.md) | Implemented | Direct assignment-call width products | Self-hosting, physical closure, call assignment |
-| [WIP-0142](WIP-0142-direct-void-call-form-and-width-products.md) | Implemented | Direct void-call form and width products | Self-hosting, physical closure, void calls |
-| [WIP-0143](WIP-0143-direct-early-comparison-form-product.md) | Implemented | Direct early-comparison form product | Self-hosting, physical closure, early comparisons |
-| [WIP-0144](WIP-0144-private-structured-instruction-target-staging.md) | Implemented | Private structured instruction-target staging | Self-hosting, relocation, bounded storage, evidence runtime |
-| [WIP-0145](WIP-0145-sparse-structured-instruction-target-publication.md) | Implemented | Sparse structured instruction-target publication | Self-hosting, relocation, bounded publication |
-| [WIP-0146](WIP-0146-sparse-imported-target-publication.md) | Implemented | Sparse imported-target publication | Self-hosting, imported targets, bounded publication |
-| [WIP-0147](WIP-0147-sparse-source-call-target-table-publication.md) | Implemented | Sparse source-call target-table publication | Self-hosting, source calls, bounded publication |
-| [WIP-0148](WIP-0148-sparse-referenced-call-target-publication.md) | Implemented | Sparse referenced call-target publication | Self-hosting, source calls, qualifiers, bounded publication |
-| [WIP-0149](WIP-0149-direct-assignment-call-kind-product.md) | Implemented | Direct assignment-call kind product | Self-hosting, physical closure, call assignment |
-| [WIP-0150](WIP-0150-sparse-source-value-publication.md) | Implemented | Sparse source-value publication | Self-hosting, source values, bounded publication |
-| [WIP-0151](WIP-0151-sparse-loop-body-publication.md) | Implemented | Sparse loop-body publication | Self-hosting, loop bodies, local coordinates, bounded publication |
-| [WIP-0153](WIP-0153-sparse-source-loop-publication.md) | Implemented | Sparse source-loop publication | Self-hosting, source statements, loops, bounded publication |
-| [WIP-0154](WIP-0154-sparse-source-block-publication.md) | Implemented | Sparse source-block publication | Self-hosting, source statements, block trees, bounded publication |
-| [WIP-0155](WIP-0155-sparse-physical-loop-publication.md) | Implemented | Sparse physical-loop publication | Self-hosting, physical loops, local types, bounded publication |
-| [WIP-0156](WIP-0156-sparse-source-call-layout-publication.md) | Implemented | Sparse source-call layout publication | Self-hosting, source calls, local widths, bounded publication |
-| [WIP-0157](WIP-0157-sparse-call-emission-publication.md) | Implemented | Sparse call-emission publication | Self-hosting, call emission, relocation, bounded publication |
-| [WIP-0158](WIP-0158-committed-owned-storage.md) | Implemented | Committed owned storage | Virtual machine, owned storage, committed execution, self-hosting evidence |
-| [WIP-0159](WIP-0159-sparse-callable-composition-publication.md) | Implemented | Sparse callable-composition publication | Self-hosting, callable composition, local types, bounded publication |
-| [WIP-0160](WIP-0160-sparse-callable-coordinate-publication.md) | Implemented | Sparse callable-coordinate publication | Self-hosting, callable coordinates, bounded publication |
-| [WIP-0161](WIP-0161-sparse-call-instruction-publication.md) | Implemented | Sparse call-instruction publication | Self-hosting, call coordinates, bounded publication |
-| [WIP-0162](WIP-0162-sparse-callable-return-publication.md) | Implemented | Sparse callable-return publication | Self-hosting, callable returns, bounded publication |
-| [WIP-0163](WIP-0163-sparse-reversible-evidence-publication.md) | Implemented | Sparse reversible-evidence publication | Self-hosting, reversible artifacts, proofs, relocations, bounded publication |
-| [WIP-0164](WIP-0164-sparse-compiled-function-publication.md) | Implemented | Sparse compiled-function publication | Self-hosting, compiled artifacts, functions, instructions, bounded publication |
-| [WIP-0165](WIP-0165-bounded-source-artifact-publication.md) | Implemented | Bounded source-artifact publication | Self-hosting, source artifacts, bounded publication |
-| [WIP-0166](WIP-0166-sparse-archive-source-index-publication.md) | Implemented | Sparse archive-source index publication | Self-hosting, package archives, source index, bounded publication |
-| [WIP-0167](WIP-0167-bounded-structured-artifact-publication.md) | Implemented | Bounded structured-artifact publication | Self-hosting, structured artifacts, direction selection, bounded publication |
-| [WIP-0168](WIP-0168-direct-call-form-physical-product.md) | Implemented | Direct call-form physical product | Self-hosting, physical closure, call forms |
-| [WIP-0169](WIP-0169-direct-helper-result-kind-physical-product.md) | Implemented | Direct helper-result kind physical product | Self-hosting, physical closure, helper results |
-| [WIP-0170](WIP-0170-direct-helper-value-kind-physical-product.md) | Implemented | Direct helper-value kind physical product | Self-hosting, physical closure, helper values |
-| [WIP-0171](WIP-0171-direct-void-call-operand-physical-product.md) | Implemented | Direct void-call operand physical product | Self-hosting, physical closure, void-call operands |
-| [WIP-0172](WIP-0172-direct-assignment-call-operand-physical-product.md) | Implemented | Direct assignment-call operand physical product | Self-hosting, physical closure, assignment-call operands |
-| [WIP-0173](WIP-0173-sparse-source-aggregate-publication.md) | Implemented | Sparse source-aggregate publication | Self-hosting, aggregate frontend, bounded publication |
-| [WIP-0174](WIP-0174-sparse-counted-aggregate-projection.md) | Implemented | Sparse counted-aggregate projection | Self-hosting, counted aggregate layouts, bounded publication |
-| [WIP-0175](WIP-0175-sparse-aggregate-operation-publication.md) | Implemented | Sparse aggregate-operation publication | Self-hosting, aggregate operations, resolved operands, bounded publication |
-| [WIP-0176](WIP-0176-sparse-aggregate-target-publication.md) | Implemented | Sparse aggregate-target publication | Self-hosting, aggregate constructors, projections, bounded publication |
-| [WIP-0177](WIP-0177-sparse-aggregate-frontend-binding-publication.md) | Implemented | Sparse aggregate frontend-binding publication | Self-hosting, aggregate frontend, placeholder placement, bounded publication |
-| [WIP-0178](WIP-0178-sparse-primitive-placeholder-projection.md) | Implemented | Sparse primitive-placeholder projection | Self-hosting, aggregate composition, primitive placeholders, bounded publication |
-| [WIP-0179](WIP-0179-sparse-aggregate-instruction-composition.md) | Implemented | Sparse aggregate-instruction composition | Self-hosting, aggregate composition, functions, instructions, bounded publication |
-| [WIP-0180](WIP-0180-sparse-nominal-projection-publication.md) | Implemented | Sparse nominal-projection publication | Self-hosting, nominal carriers, aggregate compilation, bounded publication |
-| [WIP-0181](WIP-0181-sparse-aggregate-body-product-transfer.md) | Implemented | Sparse aggregate body-product transfer | Self-hosting, aggregate body compilation, bounded publication |
-| [WIP-0182](WIP-0182-sparse-aggregate-expression-values.md) | Implemented | Sparse aggregate-expression values | Self-hosting, aggregate expressions, frontend values, bounded publication |
-| [WIP-0183](WIP-0183-sparse-aggregate-owner-publication.md) | Implemented | Sparse aggregate-owner publication | Self-hosting, aggregate owners, structural values, bounded publication |
-| [WIP-0184](WIP-0184-sparse-aggregate-ownership-projection.md) | Implemented | Sparse aggregate ownership projection | Self-hosting, aggregate ownership, operand relocation, bounded publication |
-| [WIP-0185](WIP-0185-sparse-ownership-coordinate-publication.md) | Implemented | Sparse ownership-coordinate publication | Self-hosting, ownership coordinates, source and decoded evidence |
-| [WIP-0186](WIP-0186-sparse-local-nominal-carrier-rewrite.md) | Implemented | Sparse local nominal-carrier rewrite | Self-hosting, local nominal carriers, source rewrite, bounded publication |
-| [WIP-0187](WIP-0187-sparse-nominal-reference-publication.md) | Implemented | Sparse nominal-reference publication | Self-hosting, nominal references, generated stubs, bounded publication |
-| [WIP-0188](WIP-0188-sparse-loop-instruction-staging.md) | Implemented | Sparse loop-instruction staging | Self-hosting, loop instructions, body products, bounded staging |
-| [WIP-0189](WIP-0189-sparse-aggregate-operation-staging.md) | Implemented | Sparse aggregate-operation staging | Self-hosting, aggregate operations, private staging, bounded work |
-| [WIP-0190](WIP-0190-bounded-qualified-call-width-publication.md) | Implemented | Bounded qualified-call width publication | Self-hosting, qualified calls, statement widths, bounded publication |
-| [WIP-0191](WIP-0191-available-callable-dependency-products.md) | Implemented | Available callable dependency products | Self-hosting, callable products, dependency views, nominal isolation |
-| [WIP-0192](WIP-0192-bounded-direct-result-type-publication.md) | Implemented | Bounded direct result-type publication | Self-hosting, direct statements, result types, bounded publication |
-| [WIP-0193](WIP-0193-terminal-aggregate-operation-failure.md) | Implemented | Terminal aggregate-operation failure | Self-hosting, aggregate syntax, failure atomicity, bounded execution |
-| [WIP-0194](WIP-0194-native-test-shard-assignment.md) | Implemented | Native test shard assignment | Native testing, deterministic sharding, Java-free execution |
-| [WIP-0195](WIP-0195-native-test-case-identity.md) | Implemented | Native test-case identity | Native testing, case identity, Java-free execution |
-| [WIP-0196](WIP-0196-native-test-summary-reduction.md) | Implemented | Native test summary reduction | Native testing, canonical reduction, Java-free execution |
-| [WIP-0197](WIP-0197-runtime-test-selection-authority.md) | Implemented | Runtime test-selection authority | Native testing, runtime library, conformance cutover |
-| [WIP-0198](WIP-0198-runtime-test-summary-authority.md) | Implemented | Runtime test-summary authority | Native testing, runtime library, canonical reduction |
-| [WIP-0199](WIP-0199-native-one-case-report-identity.md) | Implemented | Native one-case report identity | Native testing, semantic reports, Java-free execution |
-| [WIP-0200](WIP-0200-native-empty-report-identity.md) | Implemented | Native empty-report identity | Native testing, semantic reports, zero-case execution |
-| [WIP-0201](WIP-0201-bounded-native-multi-case-reports.md) | Implemented | Bounded native multi-case reports | Native testing, semantic reports, canonical reduction |
-| [WIP-0202](WIP-0202-runtime-artifact-execution-authority.md) | Implemented | Runtime artifact execution authority | Native execution, test runners, coverage |
-| [WIP-0203](WIP-0203-native-test-artifact-outcomes.md) | Implemented | Native test artifact outcomes | Native testing, artifact execution, terminal outcomes |
-| [WIP-0204](WIP-0204-native-test-execution-identity.md) | Implemented | Native test execution identity | Native testing, execution results, semantic identity |
-| [WIP-0205](WIP-0205-native-test-coverage-identity.md) | Implemented | Native test coverage identity | Native testing, semantic coverage, report composition |
-| [WIP-0206](WIP-0206-complete-native-artifact-outcomes.md) | Implemented | Complete native artifact outcomes | Native testing, artifact execution, result composition |
-| [WIP-0207](WIP-0207-native-test-artifact-metadata.md) | Implemented | Native test artifact metadata | Native testing, verified artifacts, report composition |
-| [WIP-0208](WIP-0208-native-artifact-execution-identity.md) | Implemented | Native artifact execution identity | Native testing, artifact execution, identity composition |
-| [WIP-0209](WIP-0209-native-one-case-test-runner.md) | Implemented | Native one-case test runner | Native testing, semantic reports, runner composition |
-| [WIP-0210](WIP-0210-native-failing-test-reports.md) | Implemented | Native failing test reports | Native testing, failure diagnostics, semantic reports |
-| [WIP-0211](WIP-0211-native-two-case-test-runner.md) | Implemented | Native two-case test runner | Native testing, multi-case execution, canonical reduction |
-| [WIP-0212](WIP-0212-native-runner-case-identities.md) | Implemented | Native runner case identities | Native testing, case discovery, identity composition |
-| [WIP-0213](WIP-0213-native-runner-shard-selection.md) | Implemented | Native runner shard selection | Native testing, shard selection, execution scheduling |
-| [WIP-0214](WIP-0214-native-runner-summary-publication.md) | Implemented | Native runner summary publication | Native testing, report summaries, publication |
-| [WIP-0215](WIP-0215-native-test-failure-diagnostics.md) | Implemented | Native test failure diagnostics | Native testing, diagnostics, execution failures |
-| [WIP-0216](WIP-0216-native-runner-descriptor-frames.md) | Implemented | Native runner descriptor frames | Native testing, descriptor discovery, source identity |
-| [WIP-0217](WIP-0217-runtime-test-runner-authority.md) | Implemented | Runtime test runner authority | Native testing, runtime ownership, conformance boundaries |
-| [WIP-0218](WIP-0218-bounded-native-descriptor-runner.md) | Implemented | Bounded native descriptor runner | Native testing, bounded scheduling, report composition |
-| [WIP-0219](WIP-0219-shared-runner-manifest-identity.md) | Implemented | Shared runner manifest identity | Native testing, package identity, descriptor framing |
-| [WIP-0220](WIP-0220-native-runner-manifest-hashing.md) | Implemented | Native runner manifest hashing | Native testing, package manifests, identity provenance |
-| [WIP-0221](WIP-0221-native-test-manifest-selection.md) | Implemented | Native test manifest selection | Native testing, package manifests, target selection |
-| [WIP-0222](WIP-0222-native-target-source-identity.md) | Implemented | Native target source identity | Native testing, target sources, case discovery |
-| [WIP-0223](WIP-0223-native-target-source-plan-validation.md) | Implemented | Native target source-plan validation | Native testing, target sources, canonical framing |
-| [WIP-0224](WIP-0224-native-target-source-utf8.md) | Implemented | Native target source UTF-8 validation | Native testing, target sources, UTF-8 |
-| [WIP-0225](WIP-0225-native-case-discovery-order.md) | Implemented | Native case discovery order | Native testing, case discovery, canonical order |
-| [WIP-0226](WIP-0226-native-root-lock-provenance.md) | Implemented | Native root lock provenance | Native testing, package locks, provenance |
-| [WIP-0227](WIP-0227-native-single-source-selection.md) | Implemented | Native single-source selection | Native testing, package manifests, source selection |
-| [WIP-0228](WIP-0228-native-multi-source-selection.md) | Implemented | Native multi-source selection | Native testing, package manifests, source selection |
-| [WIP-0229](WIP-0229-native-runnable-target-root.md) | Implemented | Native runnable target root | Native testing, package manifests, runnable targets |
-| [WIP-0230](WIP-0230-native-root-module-binding.md) | Implemented | Native root module binding | Native testing, package manifests, module identity |
-| [WIP-0231](WIP-0231-native-source-module-declarations.md) | Implemented | Native source module declarations | Native testing, source plans, module syntax |
-| [WIP-0232](WIP-0232-native-source-module-uniqueness.md) | Implemented | Native source module uniqueness | Native testing, source plans, module graph |
-| [WIP-0233](WIP-0233-native-local-import-resolution.md) | Implemented | Native local import resolution | Native testing, source plans, module graph |
-| [WIP-0234](WIP-0234-native-canonical-import-order.md) | Implemented | Native canonical import order | Native testing, source plans, module graph |
-| [WIP-0235](WIP-0235-native-import-cycle-rejection.md) | Implemented | Native import cycle rejection | Native testing, source plans, module graph |
-| [WIP-0236](WIP-0236-native-source-test-execution.md) | Implemented | Native source test execution | Self-hosting, native testing, source compilation |
-| [WIP-0237](WIP-0237-native-compiled-test-reports.md) | Implemented | Native compiled test reports | Self-hosting, native testing, report authority |
-| [WIP-0238](WIP-0238-native-two-source-test-compilation.md) | Implemented | Native two-source test compilation | Self-hosting, native testing, module compilation |
-| [WIP-0239](WIP-0239-native-three-source-test-compilation.md) | Implemented | Native three-source test compilation | Self-hosting, native testing, module compilation |
-| [WIP-0240](WIP-0240-native-source-compilation-authority.md) | Implemented | Native source compilation authority | Self-hosting, native testing, compiler dispatch |
-| [WIP-0241](WIP-0241-native-four-source-test-compilation.md) | Implemented | Native four-source test compilation | Self-hosting, native testing, module compilation |
-| [WIP-0242](WIP-0242-native-five-source-test-compilation.md) | Implemented | Native five-source test compilation | Self-hosting, native testing, module compilation |
-| [WIP-0243](WIP-0243-native-six-source-test-compilation.md) | Implemented | Native six-source test compilation | Self-hosting, native testing, module compilation |
-| [WIP-0244](WIP-0244-native-seven-source-test-compilation.md) | Implemented | Native seven-source test compilation | Self-hosting, native testing, module compilation |
-| [WIP-0245](WIP-0245-native-eight-source-test-compilation.md) | Implemented | Native eight-source test compilation | Self-hosting, native testing, module compilation |
-| [WIP-0246](WIP-0246-native-entry-case-identity.md) | Implemented | Native entry-case identity | Self-hosting, native testing, case discovery |
-| [WIP-0247](WIP-0247-native-parameterless-test-discovery.md) | Implemented | Native parameterless test discovery | Self-hosting, native testing, source discovery |
-| [WIP-0248](WIP-0248-native-counted-test-discovery.md) | Implemented | Native counted test discovery | Self-hosting, native testing, source discovery |
-| [WIP-0249](WIP-0249-native-parameter-row-discovery.md) | Implemented | Native parameter-row discovery | Self-hosting, native testing, source discovery |
-| [WIP-0250](WIP-0250-single-pass-artifact-verification.md) | Implemented | Single-pass artifact verification | Self-hosting, native runtime, test execution |
-| [WIP-0251](WIP-0251-native-artifact-function-binding.md) | Implemented | Native artifact function binding | Self-hosting, native testing, artifact authorization |
-| [WIP-0252](WIP-0252-native-artifact-row-binding.md) | Implemented | Native artifact row binding | Self-hosting, native testing, artifact authorization |
-| [WIP-0253](WIP-0253-native-parameterless-test-compilation.md) | Implemented | Native parameterless test compilation | Self-hosting, native testing, source compilation |
-| [WIP-0254](WIP-0254-native-imported-test-compilation.md) | Implemented | Native imported test compilation | Self-hosting, native testing, source compilation |
-| [WIP-0255](WIP-0255-native-counted-test-compilation.md) | Implemented | Native counted test compilation | Self-hosting, native testing, source compilation |
-| [WIP-0256](WIP-0256-native-test-lowering-authority.md) | Implemented | Native test lowering authority | Self-hosting, native testing, compiler structure |
-| [WIP-0257](WIP-0257-native-parameter-row-compilation.md) | Implemented | Native parameter-row compilation | Self-hosting, native testing, source compilation |
-| [WIP-0258](WIP-0258-native-bare-test-metadata-profile.md) | Implemented | Native bare test metadata profile | Self-hosting, native testing, metadata validation |
-| [WIP-0259](WIP-0259-native-test-step-limits.md) | Implemented | Native test step limits | Self-hosting, native testing, bounded execution |
-| [WIP-0260](WIP-0260-native-test-tag-selection.md) | Implemented | Native test tag selection | Self-hosting, native testing, selection |
-| [WIP-0261](WIP-0261-native-test-descriptor-construction.md) | Implemented | Native test descriptor construction | Self-hosting, native testing, descriptor authority |
-| [WIP-0262](WIP-0262-native-one-source-package-test-gate.md) | Implemented | Native one-source package test gate | Self-hosting, package testing, native invocation |
-| [WIP-0263](WIP-0263-native-package-case-names.md) | Implemented | Native package case names | Self-hosting, native testing, case identity |
-| [WIP-0264](WIP-0264-native-fixed-import-package-test-gate.md) | Implemented | Native fixed-import package test gate | Self-hosting, package testing, local imports |
-| [WIP-0265](WIP-0265-native-multi-target-package-test-gate.md) | Implemented | Native multi-target package test gate | Self-hosting, package testing, target selection |
-| [WIP-0266](WIP-0266-native-multi-target-tag-gate.md) | Implemented | Native multi-target tag gate | Self-hosting, package testing, tag selection |
-| [WIP-0267](WIP-0267-native-package-tag-existence.md) | Implemented | Native package tag existence | Self-hosting, package testing, tag authority |
-| [WIP-0268](WIP-0268-native-package-test-report-identity.md) | Implemented | Native package test-report identity | Self-hosting, package testing, report reduction |
-| [WIP-0269](WIP-0269-native-dependency-lock-structure.md) | Implemented | Native dependency lock structure | Self-hosting, package locks, native testing |
-| [WIP-0270](WIP-0270-native-direct-dependency-binding.md) | Implemented | Native direct dependency binding | Self-hosting, package locks, native testing |
-| [WIP-0271](WIP-0271-native-stable-dependency-versions.md) | Implemented | Native stable dependency versions | Self-hosting, package locks, native testing |
-| [WIP-0272](WIP-0272-native-prerelease-dependency-versions.md) | Implemented | Native prerelease dependency versions | Self-hosting, package locks, native testing |
-| [WIP-0273](WIP-0273-native-lock-edge-closure.md) | Implemented | Native lock edge closure | Self-hosting, package locks, native testing |
-| [WIP-0274](WIP-0274-native-lock-graph-validation.md) | Implemented | Native lock graph validation | Self-hosting, package locks, native testing |
-| [WIP-0275](WIP-0275-native-locked-package-test-gate.md) | Implemented | Native locked package test gate | Self-hosting, package testing, package locks |
-| [WIP-0276](WIP-0276-native-package-case-rows.md) | Implemented | Native package case rows | Self-hosting, package testing, reports |
-| [WIP-0277](WIP-0277-canonical-native-target-rows.md) | Implemented | Canonical native target rows | Self-hosting, package testing, reports |
-| [WIP-0278](WIP-0278-native-package-row-reduction.md) | Implemented | Native package row reduction | Self-hosting, package testing, reports |
-| [WIP-0279](WIP-0279-native-compiler-package-suite.md) | Implemented | Native compiler package suite | Self-hosting, compiler, package testing |
-| [WIP-0280](WIP-0280-native-compiler-constant-assertion.md) | Implemented | Native compiler constant assertion | Self-hosting, compiler testing, semantic coverage |
-| [WIP-0281](WIP-0281-native-compiler-arithmetic-coverage.md) | Implemented | Native compiler arithmetic coverage | Self-hosting, compiler testing, semantic coverage |
-| [WIP-0282](WIP-0282-native-compiler-scalar-arithmetic.md) | Implemented | Native compiler scalar arithmetic | Self-hosting, compiler testing, semantic coverage |
-| [WIP-0283](WIP-0283-bounded-native-bitwise-coverage.md) | Implemented | Bounded native bitwise coverage | Self-hosting, compiler testing, semantic coverage |
-| [WIP-0284](WIP-0284-native-compiler-constant-suite.md) | Implemented | Native compiler constant suite | Self-hosting, compiler testing, package reports |
-| [WIP-0285](WIP-0285-native-compiler-callable-suite.md) | Implemented | Native compiler callable suite | Self-hosting, compiler testing, imported callables |
-| [WIP-0286](WIP-0286-native-interpreter-layout-authority.md) | Implemented | Native interpreter layout authority | Native runtime, interpreter maintenance |
-| [WIP-0287](WIP-0287-native-call-branch-coverage.md) | Implemented | Native call and branch coverage | Semantic coverage, native execution, self-hosting |
-| [WIP-0288](WIP-0288-native-inverse-coverage.md) | Implemented | Native inverse coverage | Semantic coverage, generated inverses, native execution |
-| [WIP-0289](WIP-0289-native-test-json.md) | Implemented | Native test JSON | Native testing, report adapters, Java retirement |
-| [WIP-0290](WIP-0290-native-test-terminal.md) | Implemented | Native test terminal | Native testing, report adapters, Java retirement |
-| [WIP-0291](WIP-0291-native-test-junit.md) | Implemented | Native test JUnit XML | Native testing, CI adapters, Java retirement |
-| [WIP-0292](WIP-0292-native-compiler-syntax-suite.md) | Implemented | Native compiler syntax suite | Self-hosting, compiler testing, physical source coverage |
-| [WIP-0293](WIP-0293-native-compiler-call-syntax-suite.md) | Implemented | Native compiler call syntax suite | Self-hosting, compiler testing, imported callables |
-| [WIP-0294](WIP-0294-native-locked-archive-provenance.md) | Implemented | Native locked archive provenance | Self-hosting, package archives, package locks |
-| [WIP-0295](WIP-0295-native-locked-archive-source.md) | Implemented | Native locked archive source projection | Self-hosting, package archives, external source provenance |
-| [WIP-0296](WIP-0296-native-external-source-plan.md) | Implemented | Native external source-plan composition | Self-hosting, external imports, source plans |
-| [WIP-0297](WIP-0297-native-external-import-compilation.md) | Implemented | Native external import compilation | Self-hosting, external imports, native test compilation |
-| [WIP-0298](WIP-0298-native-package-external-import.md) | Implemented | Native package external import | Self-hosting, package commands, external imports |
-| [WIP-0299](WIP-0299-native-two-source-archive-import.md) | Implemented | Native two-source archive import | Self-hosting, package commands, external module graphs |
-| [WIP-0300](WIP-0300-native-two-package-import.md) | Implemented | Native two-package import | Self-hosting, package commands, dependency graphs |
-| [WIP-0301](WIP-0301-native-archive-dependency-binding.md) | Implemented | Native archive dependency binding | Self-hosting, package archives, dependency graphs |
-| [WIP-0302](WIP-0302-native-transitive-archive-closure.md) | Implemented | Native transitive archive closure | Self-hosting, package commands, dependency graphs |
-| [WIP-0303](WIP-0303-native-test-manifest-bound.md) | Implemented | Native test manifest bound | Self-hosting, package tests, transport limits |
-| [WIP-0304](WIP-0304-native-compiler-type-kind-suite.md) | Implemented | Native compiler type-kind suite | Self-hosting, compiler testing, imported callables |
-| [WIP-0305](WIP-0305-native-compiler-call-arity-suite.md) | Implemented | Native compiler call-arity suite | Self-hosting, compiler testing, imported callables |
-| [WIP-0306](WIP-0306-native-four-entry-archives.md) | Implemented | Native four-entry archives | Self-hosting, package archives, external source graphs |
-| [WIP-0307](WIP-0307-native-four-source-archive-import.md) | Implemented | Native four-source archive import | Self-hosting, package commands, external source graphs |
-| [WIP-0308](WIP-0308-native-external-source-plan-bound.md) | Implemented | Native external source-plan bound | Self-hosting, package commands, external source graphs |
-| [WIP-0309](WIP-0309-native-transitive-source-plan-bound.md) | Implemented | Native transitive source-plan bound | Self-hosting, package commands, dependency graphs |
-| [WIP-0310](WIP-0310-native-multi-helper-entry-programs.md) | Implemented | Native multi-helper entry programs | Self-hosting, compiler frontend, code generation |
-| [WIP-0311](WIP-0311-native-compiler-call-width-suite.md) | Implemented | Native compiler call-width suite | Self-hosting, compiler package tests |
-| [WIP-0312](WIP-0312-native-compiler-call-operand-suite.md) | Implemented | Native compiler call-operand suite | Self-hosting, compiler package tests |
-| [WIP-0313](WIP-0313-native-compiler-void-call-operand-suite.md) | Implemented | Native compiler void-call operand suite | Self-hosting, compiler package tests |
-| [WIP-0314](WIP-0314-native-255-transition-coverage.md) | Implemented | Native 255-transition coverage | Runtime, semantic coverage, native testing |
-| [WIP-0315](WIP-0315-native-compiler-void-call-width-suite.md) | Implemented | Native compiler void-call width suite | Self-hosting, compiler package tests |
-| [WIP-0316](WIP-0316-native-compiler-void-call-source-width-suite.md) | Implemented | Native compiler void-call source-width suite | Self-hosting, compiler package tests |
-| [WIP-0317](WIP-0317-native-compiler-void-call-source-form-suite.md) | Implemented | Native compiler void-call source-form suite | Self-hosting, compiler package tests |
-| [WIP-0318](WIP-0318-native-test-manifest-bound.md) | Implemented | Native test manifest bound | Self-hosting, package tests, transport limits |
-| [WIP-0319](WIP-0319-native-compiler-void-call-kind-suite.md) | Implemented | Native compiler void-call kind suite | Self-hosting, compiler package tests |
-| [WIP-0320](WIP-0320-native-compiler-call-column-suite.md) | Implemented | Native compiler call-column suite | Self-hosting, compiler package tests |
-| [WIP-0321](WIP-0321-native-compiler-call-kind-suite.md) | Implemented | Native compiler call-kind suite | Self-hosting, compiler package tests |
-| [WIP-0322](WIP-0322-native-compiler-helper-parameter-suite.md) | Implemented | Native compiler helper-parameter suite | Self-hosting, compiler package tests |
-| [WIP-0323](WIP-0323-native-compiler-helper-signature-suite.md) | Implemented | Native compiler helper-signature suite | Self-hosting, compiler package tests |
-| [WIP-0324](WIP-0324-native-compiler-wide-return-source-suite.md) | Implemented | Native compiler wide-return source suite | Self-hosting, compiler package tests |
-| [WIP-0325](WIP-0325-native-compiler-instruction-form-suite.md) | Implemented | Native compiler instruction-form suite | Self-hosting, compiler package tests |
-| [WIP-0326](WIP-0326-native-compiler-opcode-kind-suite.md) | Implemented | Native compiler opcode-kind suite | Self-hosting, compiler package tests |
-| [WIP-0327](WIP-0327-native-single-imported-helper-ownership.md) | Implemented | Native single imported helper ownership | Self-hosting, compiler linking, package tests |
-| [WIP-0328](WIP-0328-native-128-case-test-profile.md) | Implemented | Native 128-case test profile | Native testing, reports, package execution |
-| [WIP-0329](WIP-0329-native-compiler-resolved-local-return-suite.md) | Implemented | Native compiler resolved local-return suite | Self-hosting, compiler package tests |
-| [WIP-0330](WIP-0330-native-256-constant-owner-profile.md) | Implemented | Native 256-constant owner profile | Self-hosting, package tests, compiler limits |
-| [WIP-0331](WIP-0331-native-16k-test-manifest-bound.md) | Implemented | Native 16 KiB test-manifest bound | Native testing, manifests, package execution |
-| [WIP-0332](WIP-0332-native-compiler-resolved-local-equality-suite.md) | Implemented | Native compiler resolved local-equality suite | Self-hosting, compiler package tests |
-| [WIP-0333](WIP-0333-native-compiler-resolved-local-inequality-suite.md) | Implemented | Native compiler resolved local-inequality suite | Self-hosting, compiler package tests |
-| [WIP-0334](WIP-0334-native-compiler-resolved-local-assignment-suite.md) | Implemented | Native compiler resolved local-assignment suite | Self-hosting, compiler package tests |
-| [WIP-0335](WIP-0335-native-compiler-resolved-local-operation-suites.md) | Implemented | Native compiler resolved local-operation suites | Self-hosting, compiler package tests |
-| [WIP-0336](WIP-0336-native-compiler-resolved-local-loop-form-suite.md) | Implemented | Native compiler resolved local-loop form suite | Self-hosting, compiler package tests |
-| [WIP-0337](WIP-0337-native-compiler-resolved-local-loop-operand-suite.md) | Implemented | Native compiler resolved local-loop operand suite | Self-hosting, compiler package tests |
-| [WIP-0338](WIP-0338-native-compiler-resolved-local-loop-kind-suite.md) | Implemented | Native compiler resolved local-loop kind suite | Self-hosting, compiler package tests |
-| [WIP-0339](WIP-0339-native-20k-test-manifest-bound.md) | Implemented | Native 20 KiB test-manifest bound | Native testing, manifests, package execution |
-| [WIP-0340](WIP-0340-native-compiler-resolved-local-less-than-suite.md) | Implemented | Native compiler resolved local less-than suite | Self-hosting, compiler package tests |
-| [WIP-0341](WIP-0341-native-compiler-local-literal-comparison-suite.md) | Implemented | Native compiler local-literal comparison suite | Self-hosting, compiler package tests |
-| [WIP-0342](WIP-0342-native-compiler-resolved-assertion-suite.md) | Implemented | Native compiler resolved assertion suite | Self-hosting, compiler package tests |
-| [WIP-0343](WIP-0343-native-compiler-resolved-early-comparison-suite.md) | Implemented | Native compiler resolved early-comparison suite | Self-hosting, compiler package tests |
-| [WIP-0344](WIP-0344-native-compiler-resolved-early-result-suite.md) | Implemented | Native compiler resolved early-result suite | Self-hosting, compiler package tests |
-| [WIP-0345](WIP-0345-native-24k-test-manifest-bound.md) | Implemented | Native 24 KiB test-manifest bound | Native testing, manifests, package execution |
-| [WIP-0346](WIP-0346-native-compiler-resolved-return-call-suite.md) | Implemented | Native compiler resolved return-call suite | Self-hosting, compiler package tests |
-| [WIP-0347](WIP-0347-native-compiler-terminal-return-profile.md) | Implemented | Native compiler terminal return profile | Self-hosting, compiler package tests |
-| [WIP-0348](WIP-0348-native-255-case-test-profile.md) | Implemented | Native 255-case test profile | Native testing, reports, package execution |
-| [WIP-0349](WIP-0349-native-compiler-named-return-suite.md) | Implemented | Native compiler named return suite | Self-hosting, compiler package tests |
-| [WIP-0350](WIP-0350-native-28k-test-manifest-bound.md) | Implemented | Native 28 KiB test-manifest bound | Native testing, manifests, package execution |
-| [WIP-0351](WIP-0351-native-compiler-conditional-value-suite.md) | Implemented | Native compiler conditional value suite | Self-hosting, compiler package tests |
-| [WIP-0352](WIP-0352-native-compiler-conditional-classifier-suite.md) | Implemented | Native compiler conditional classifier suite | Self-hosting, compiler package tests |
-| [WIP-0353](WIP-0353-native-40k-source-plan-bound.md) | Implemented | Native 40 KiB source-plan bound | Native testing, source plans, package execution |
-| [WIP-0354](WIP-0354-native-compiler-conditional-mapping-suite.md) | Implemented | Native compiler conditional mapping suite | Self-hosting, compiler package tests |
-| [WIP-0355](WIP-0355-native-32k-test-manifest-bound.md) | Implemented | Native 32 KiB test-manifest bound | Native testing, manifests, package execution |
-| [WIP-0356](WIP-0356-native-compiler-local-update-suite.md) | Implemented | Native compiler local update suite | Self-hosting, compiler package tests |
-| [WIP-0357](WIP-0357-native-compiler-comparison-suite.md) | Implemented | Native compiler comparison suite | Self-hosting, compiler package tests |
-| [WIP-0358](WIP-0358-native-36k-test-manifest-bound.md) | Implemented | Native 36 KiB test-manifest bound | Native testing, manifests, package execution |
-| [WIP-0359](WIP-0359-native-compiler-call-classifier-suite.md) | Implemented | Native compiler call classifier suite | Self-hosting, compiler package tests |
-| [WIP-0360](WIP-0360-native-128-target-report-profile.md) | Implemented | Native 128-target report profile | Native testing, package reports, package commands |
-| [WIP-0361](WIP-0361-native-compiler-early-return-kind-suite.md) | Implemented | Native compiler early-return kind suite | Self-hosting, compiler package tests |
-| [WIP-0362](WIP-0362-native-40k-test-manifest-bound.md) | Implemented | Native 40 KiB test-manifest bound | Native testing, manifests, package execution |
-| [WIP-0363](WIP-0363-native-compiler-borrowed-intrinsic-shape-suite.md) | Implemented | Native compiler borrowed-intrinsic shape suite | Self-hosting, compiler package tests, borrowed storage |
-| [WIP-0364](WIP-0364-native-compiler-helper-value-suite.md) | Implemented | Native compiler helper-value suite | Self-hosting, compiler package tests, helper syntax |
-| [WIP-0365](WIP-0365-nested-helper-owner-graph-execution.md) | Implemented | Nested helper-owner graph execution | Self-hosting, module graphs, helper linking, compiler package tests |
-| [WIP-0366](WIP-0366-native-compiler-call-argument-opcodes.md) | Implemented | Native compiler call-argument opcodes | Self-hosting, compiler package tests, call ABI |
-| [WIP-0367](WIP-0367-reversible-helper-owner-execution.md) | Implemented | Reversible helper-owner execution | Self-hosting, module graphs, generated inverses, native coverage |
-| [WIP-0368](WIP-0368-platform-abi-and-native-image-identities.md) | Implemented | Platform ABI and native image identities | Native bootstrap, platform ABI, image identity, host effects |
-| [WIP-0369](WIP-0369-canonical-application-capsules.md) | Implemented | Canonical application capsules | Native bootstrap, application capsules, package receipts, immutable resources |
-| [WIP-0370](WIP-0370-application-capsule-inspection.md) | Implemented | Application capsule inspection | Native bootstrap, capsule inspection, bytecode verification, root binding |
-| [WIP-0371](WIP-0371-embedded-application-capsule-startup.md) | Implemented | Embedded application capsule startup | Native bootstrap, embedded VM, capsule startup, capabilities, host I/O |
-| [WIP-0372](WIP-0372-canonical-elf-capsule-images.md) | Implemented | Canonical ELF capsule images | Native bootstrap, ELF64, capsule segments, locators, unsigned PREV |
-| [WIP-0373](WIP-0373-physical-elf-image-command.md) | Implemented | Physical native image commands | Native bootstrap, ELF, Mach-O, and PE commands, physical inputs, atomic publication |
-| [WIP-0374](WIP-0374-canonical-mach-o-capsule-images.md) | Implemented | Canonical Mach-O capsule images | Native bootstrap, arm64 Mach-O, capsule segments, entry state, unsigned PREV |
-| [WIP-0375](WIP-0375-canonical-pe-capsule-images.md) | Implemented | Canonical PE capsule images | Native bootstrap, PE32+, capsule sections, entry RVA, unsigned PREV |
-| [WIP-0376](WIP-0376-x86-64-linux-native-entry-shim.md) | Implemented | x86-64 Linux native entry shim | Native bootstrap, Linux entry, ELF locator, host services |
-| [WIP-0377](WIP-0377-native-image-release-records.md) | Implemented | Native image release records | Native release, unsigned PREV, signing, reproducibility |
-| [WIP-0378](WIP-0378-x86-64-linux-scalar-aot.md) | Implemented | x86-64 Linux scalar AOT | Native bootstrap, AOT lowering, x86-64 Linux, process status |
-| [WIP-0379](WIP-0379-x86-64-linux-scalar-helper-calls.md) | Implemented | x86-64 Linux scalar helper calls | Native bootstrap, AOT lowering, x86-64 calls, scalar helpers |
-| [WIP-0380](WIP-0380-x86-64-linux-scalar-call-arguments.md) | Implemented | x86-64 Linux scalar call arguments | Native bootstrap, AOT lowering, x86-64 call ABI, scalar parameters |
-| [WIP-0381](WIP-0381-x86-64-linux-bounded-scalar-loops.md) | Implemented | x86-64 Linux bounded scalar loops | Native bootstrap, AOT lowering, x86-64 control flow, bounded loops |
-| [WIP-0382](WIP-0382-x86-64-linux-scalar-state-checks.md) | Implemented | x86-64 Linux scalar state checks | Native bootstrap, AOT lowering, scalar state, assertions, execution traps |
-| [WIP-0383](WIP-0383-x86-64-linux-void-helper-calls.md) | Implemented | x86-64 Linux void helper calls | Native bootstrap, AOT lowering, void helpers, assertion boundaries |
-| [WIP-0384](WIP-0384-x86-64-linux-constant-byte-output.md) | Implemented | x86-64 Linux constant byte output | Native bootstrap, AOT lowering, byte output, Linux host services |
-| [WIP-0385](WIP-0385-x86-64-linux-dynamic-byte-io.md) | Implemented | x86-64 Linux dynamic byte I/O | Native bootstrap, AOT lowering, standard input, dynamic byte output |
-| [WIP-0386](WIP-0386-x86-64-linux-borrowed-byte-helpers.md) | Implemented | x86-64 Linux borrowed byte helpers | Native bootstrap, AOT lowering, byte borrows, helper calls |
-| [WIP-0387](WIP-0387-x86-64-linux-scalar-execution-bound.md) | Implemented | x86-64 Linux scalar execution bound | Native bootstrap, AOT lowering, execution bounds, trap parity |
-| [WIP-0388](WIP-0388-x86-64-linux-4096-iteration-byte-loops.md) | Implemented | x86-64 Linux 4,096-iteration byte loops | Native bootstrap, AOT lowering, bounded loops, byte I/O |
-| [WIP-0389](WIP-0389-x86-64-linux-strict-utf8-input.md) | Implemented | x86-64 Linux strict UTF-8 input | Native bootstrap, AOT lowering, UTF-8, application input |
-| [WIP-0390](WIP-0390-x86-64-linux-shared-scalar-globals.md) | Implemented | x86-64 Linux shared scalar globals | Native bootstrap, AOT lowering, scalar state, helper calls |
-| [WIP-0391](WIP-0391-boolean-local-equality-guard-returns.md) | Implemented | Boolean-local equality guard returns | Self-hosting, source lowering, typed control flow |
-| [WIP-0392](WIP-0392-physical-bootstrap-manifest-primitives.md) | Implemented | Physical bootstrap manifest primitives | Self-hosting, bootstrap manifests, physical source closure |
-| [WIP-0393](WIP-0393-mixed-scalar-wide-call-sources.md) | Implemented | Mixed scalar wide-call sources | Self-hosting, compiler frontend, typed calls |
-| [WIP-0394](WIP-0394-mixed-boolean-wide-call-results.md) | Implemented | Mixed Boolean wide-call results | Self-hosting, compiler frontend, Boolean calls, package evidence |
-| [WIP-0395](WIP-0395-x86-64-linux-seventh-scalar-argument.md) | Implemented | x86-64 Linux seventh scalar argument | Native bootstrap, AOT lowering, x86-64 calls, stack arguments |
-| [WIP-0396](WIP-0396-order-independent-scalar-aot-calls.md) | Implemented | Order-independent scalar AOT calls | Native bootstrap, AOT lowering, call graphs, function layout |
-| [WIP-0397](WIP-0397-sixteen-function-scalar-aot-graph.md) | Implemented | Sixteen-function scalar AOT graph | Native bootstrap, AOT lowering, function bounds, call depth |
-| [WIP-0398](WIP-0398-compiler-width-scalar-aot-graph.md) | Implemented | Compiler-width scalar AOT graph | Native bootstrap, AOT lowering, compiler profile, function bounds |
-| [WIP-0399](WIP-0399-compiler-width-scalar-aot-arguments.md) | Implemented | Compiler-width scalar AOT arguments | Native bootstrap, AOT lowering, compiler profile, stack arguments |
-| [WIP-0400](WIP-0400-compiler-frame-scalar-aot-bounds.md) | Implemented | Compiler-frame scalar AOT bounds | Native bootstrap, AOT lowering, compiler profile, frame bounds |
-| [WIP-0401](WIP-0401-bounded-recursive-scalar-aot-calls.md) | Implemented | Bounded recursive scalar AOT calls | Native bootstrap, AOT lowering, recursion, call depth |
-| [WIP-0402](WIP-0402-boolean-result-scalar-aot-helpers.md) | Implemented | Boolean-result scalar AOT helpers | Native bootstrap, AOT lowering, Boolean calls, typed results |
-| [WIP-0403](WIP-0403-scalar-global-instruction-aot.md) | Implemented | Scalar global instruction AOT | Native bootstrap, AOT lowering, scalar globals, checked updates |
-| [WIP-0404](WIP-0404-scalar-global-replacement-aot.md) | Implemented | Scalar global replacement AOT | Native bootstrap, AOT lowering, global state, logged replacement |
-| [WIP-0405](WIP-0405-directional-scalar-aot-calls.md) | Implemented | Directional scalar AOT calls | Native bootstrap, AOT lowering, reversible calls, inverse bodies |
-| [WIP-0406](WIP-0406-forward-control-marker-aot.md) | Implemented | Forward control marker AOT | Native bootstrap, AOT lowering, checkpoint, commit, forward execution |
-| [WIP-0407](WIP-0407-helper-owned-process-status-aot.md) | Implemented | Helper-owned process status AOT | Native bootstrap, AOT lowering, process status, helper state |
-| [WIP-0408](WIP-0408-reversible-scalar-result-slot-aot.md) | Implemented | Reversible scalar result-slot AOT | Native bootstrap, AOT lowering, reversible calls, result slots |
-| [WIP-0409](WIP-0409-exact-native-capsule-binding.md) | Implemented | Exact native capsule binding | Native bootstrap, AOT startup, capsules, capability binding |
-| [WIP-0410](WIP-0410-cryptographic-elf-repository-authorization.md) | Implemented | Cryptographic ELF repository authorization | Native release, ELF, Ed25519, repository trust |
-| [WIP-0411](WIP-0411-closed-assignment-and-wide-call-products.md) | Implemented | Closed assignment and wide-call source products | Self-hosting, source products, imported calls, physical closure |
-| [WIP-0412](WIP-0412-preselected-compiler-package-shards.md) | Implemented | Preselected compiler package shards | Native testing, deterministic sharding, compiler package, CI |
-| [WIP-0413](WIP-0413-closed-guarded-utf8-call-product.md) | Implemented | Closed guarded UTF-8 call product | Self-hosting, source products, token syntax, physical closure |
-| [WIP-0414](WIP-0414-bounded-signed-helper-result-owner.md) | Implemented | Bounded signed helper-result ownership | Self-hosting, helper syntax, compiler package tests, physical closure |
-| [WIP-0415](WIP-0415-retained-manifest-assertion-product.md) | Implemented | Retained manifest assertion product | Self-hosting, source products, manifest validation, physical closure |
-| [WIP-0416](WIP-0416-boolean-source-conditional-return-products.md) | Implemented | Boolean-source conditional return products | Self-hosting, structured source products, Boolean returns, physical closure |
-| [WIP-0417](WIP-0417-utf8-loop-projection-products.md) | Implemented | UTF-8 loop projection products | Self-hosting, structured loops, UTF-8 projections, local types |
-| [WIP-0418](WIP-0418-focused-loop-arithmetic-declarations.md) | Implemented | Focused loop arithmetic declarations | Self-hosting, structured loops, signed arithmetic, instruction encoding |
-| [WIP-0419](WIP-0419-local-right-nested-loop-guards.md) | Implemented | Local-right nested loop guards | Self-hosting, structured loops, nested guards, Boolean assignment |
-| [WIP-0420](WIP-0420-retained-package-manifest-token-product.md) | Implemented | Retained package-manifest token product | Self-hosting, package manifests, structured source products |
-| [WIP-0421](WIP-0421-retained-package-name-product.md) | Implemented | Retained package-name product | Self-hosting, package names, bounded state machines |
-| [WIP-0422](WIP-0422-retained-package-path-product.md) | Implemented | Retained package-path product | Self-hosting, package paths, bounded state machines |
-| [WIP-0423](WIP-0423-retained-semver-scalar-product.md) | Superseded | Retained semantic-version scalar product | Self-hosting, semantic versions, scalar classification |
-| [WIP-0424](WIP-0424-retained-semver-core-validation-product.md) | Implemented | Retained semantic-version core validation product | Self-hosting, semantic versions, bounded validation |
-| [WIP-0425](WIP-0425-retained-semver-prerelease-validation-product.md) | Implemented | Retained semantic-version prerelease validation product | Self-hosting, semantic versions, imported call products |
-| [WIP-0426](WIP-0426-retained-semver-coordinate-product.md) | Implemented | Retained semantic-version coordinate product | Self-hosting, semantic versions, bounded coordinates |
-| [WIP-0427](WIP-0427-retained-semver-identifier-comparison-product.md) | Implemented | Retained semantic-version identifier comparison product | Self-hosting, semantic versions, precedence |
-| [WIP-0428](WIP-0428-retained-semver-core-comparison-product.md) | Implemented | Retained semantic-version core comparison product | Self-hosting, semantic versions, precedence |
-| [WIP-0429](WIP-0429-retained-semver-prerelease-comparison-product.md) | Implemented | Retained semantic-version prerelease comparison product | Self-hosting, semantic versions, precedence |
-| [WIP-0430](WIP-0430-retained-semver-release-comparison-product.md) | Implemented | Retained semantic-version release comparison product | Self-hosting, semantic versions, precedence |
-| [WIP-0431](WIP-0431-retained-semver-facade-product.md) | Implemented | Retained semantic-version facade product | Self-hosting, semantic versions, package API |
-| [WIP-0432](WIP-0432-retained-package-canonical-coordinate-product.md) | Implemented | Retained package-canonical coordinate product | Self-hosting, package manifests, bounded coordinates |
-| [WIP-0433](WIP-0433-retained-package-canonical-line-kind-product.md) | Implemented | Retained package-canonical line-kind product | Self-hosting, package manifests, canonical lines |
-| [WIP-0434](WIP-0434-isolated-package-canonical-row-projections.md) | Implemented | Isolated package-canonical row projections | Self-hosting, package manifests, source products |
-| [WIP-0435](WIP-0435-retained-package-canonical-indent-product.md) | Implemented | Retained package-canonical indent product | Self-hosting, package manifests, canonical sections |
-| [WIP-0436](WIP-0436-retained-package-canonical-profile-product.md) | Implemented | Retained package-canonical profile product | Self-hosting, package manifests, canonical profile |
-| [WIP-0437](WIP-0437-retained-package-canonical-token-state-product.md) | Implemented | Retained package-canonical token-state product | Self-hosting, package manifests, token windows |
-| [WIP-0438](WIP-0438-retained-package-manifest-kind-product.md) | Implemented | Retained package-manifest kind product | Self-hosting, package manifests, scalar classification |
-| [WIP-0439](WIP-0439-retained-package-manifest-row-product.md) | Implemented | Retained package-manifest row product | Self-hosting, package manifests, bounded row layout |
-| [WIP-0440](WIP-0440-isolated-package-manifest-bracket-product.md) | Superseded | Isolated package-manifest bracket product | Self-hosting, package manifests, source products |
-| [WIP-0441](WIP-0441-retained-package-manifest-bracket-product.md) | Implemented | Retained package-manifest bracket product | Self-hosting, package manifests, structured source products |
-| [WIP-0442](WIP-0442-retained-package-manifest-key-product.md) | Implemented | Retained package-manifest key product | Self-hosting, package manifests, imported call products |
-| [WIP-0443](WIP-0443-retained-package-manifest-selector-state-product.md) | Implemented | Retained package-manifest selector-state product | Self-hosting, package manifests, physical closure bounds |
-| [WIP-0444](WIP-0444-retained-package-manifest-range-product.md) | Implemented | Retained package-manifest range product | Self-hosting, package manifests, token coordinates |
-| [WIP-0445](WIP-0445-retained-package-manifest-selector-prefix-product.md) | Implemented | Retained package-manifest selector-prefix product | Self-hosting, package manifests, UTF-8 traversal |
-| [WIP-0446](WIP-0446-retained-package-manifest-selector-completion-product.md) | Implemented | Retained package-manifest selector-completion product | Self-hosting, package manifests, selector boundaries |
-| [WIP-0447](WIP-0447-retained-package-manifest-selector-product.md) | Implemented | Retained package-manifest selector product | Self-hosting, package manifests, callable products |
-| [WIP-0448](WIP-0448-retained-package-manifest-header-state-product.md) | Implemented | Retained package-manifest header-state product | Self-hosting, package manifests, header validation |
-| [WIP-0449](WIP-0449-retained-package-manifest-header-preamble-product.md) | Implemented | Retained package-manifest header-preamble product | Self-hosting, package manifests, callable products |
-| [WIP-0450](WIP-0450-retained-package-manifest-header-name-product.md) | Implemented | Retained package-manifest header-name product | Self-hosting, package manifests, callable products |
-| [WIP-0451](WIP-0451-retained-package-manifest-header-release-product.md) | Implemented | Retained package-manifest header-release product | Self-hosting, package manifests, callable products |
-| [WIP-0452](WIP-0452-retained-package-manifest-header-tail-product.md) | Implemented | Retained package-manifest header-tail product | Self-hosting, package manifests, callable products |
-| [WIP-0453](WIP-0453-retained-package-manifest-header-product.md) | Implemented | Retained package-manifest header product | Self-hosting, package manifests, callable products |
-| [WIP-0454](WIP-0454-retained-package-manifest-dependency-prefix-product.md) | Implemented | Retained package-manifest dependency-prefix product | Self-hosting, package manifests, dependency rows |
-| [WIP-0455](WIP-0455-retained-package-manifest-dependency-name-product.md) | Implemented | Retained package-manifest dependency-name product | Self-hosting, package manifests, dependency rows |
-| [WIP-0456](WIP-0456-retained-package-manifest-dependency-version-product.md) | Implemented | Retained package-manifest dependency-version product | Self-hosting, package manifests, dependency rows |
-| [WIP-0457](WIP-0457-retained-package-manifest-capability-prefix-product.md) | Implemented | Retained package-manifest capability-prefix product | Self-hosting, package manifests, capability rows |
-| [WIP-0458](WIP-0458-retained-package-manifest-capability-path-product.md) | Implemented | Retained package-manifest capability-path product | Self-hosting, package manifests, capability rows |
-| [WIP-0459](WIP-0459-retained-package-manifest-target-prefix-product.md) | Implemented | Retained package-manifest target-prefix product | Self-hosting, package manifests, target rows |
-| [WIP-0460](WIP-0460-retained-package-manifest-target-name-product.md) | Implemented | Retained package-manifest target-name product | Self-hosting, package manifests, target rows |
-| [WIP-0461](WIP-0461-retained-package-manifest-target-root-product.md) | Implemented | Retained package-manifest target-root product | Self-hosting, package manifests, target rows |
-| [WIP-0462](WIP-0462-retained-package-manifest-target-coordinate-product.md) | Implemented | Retained package-manifest target-coordinate product | Self-hosting, package manifests, target rows |
-| [WIP-0463](WIP-0463-retained-package-manifest-target-row-coordinates.md) | Implemented | Retained package-manifest target-row coordinates | Self-hosting, package manifests, target rows |
-| [WIP-0464](WIP-0464-retained-package-manifest-target-test-product.md) | Implemented | Retained package-manifest target-test product | Self-hosting, package manifests, target rows |
-| [WIP-0465](WIP-0465-retained-package-manifest-target-module-product.md) | Implemented | Retained package-manifest target-module product | Self-hosting, package manifests, target rows |
-| [WIP-0466](WIP-0466-retained-package-manifest-target-source-product.md) | Implemented | Retained package-manifest target-source product | Self-hosting, package manifests, target rows |
-| [WIP-0467](WIP-0467-retained-package-manifest-target-source-policy.md) | Implemented | Retained package-manifest target-source policy | Self-hosting, package manifests, target rows |
-| [WIP-0468](WIP-0468-retained-package-manifest-target-source-coordinates.md) | Implemented | Retained package-manifest target-source coordinates | Self-hosting, package manifests, target rows |
-| [WIP-0469](WIP-0469-retained-package-manifest-target-field-keys.md) | Implemented | Retained package-manifest target-field keys | Self-hosting, package manifests, target rows |
-| [WIP-0470](WIP-0470-retained-package-manifest-dependency-coordinates.md) | Implemented | Retained package-manifest dependency coordinates | Self-hosting, package manifests, dependency rows |
-| [WIP-0471](WIP-0471-retained-package-manifest-capability-coordinates.md) | Implemented | Retained package-manifest capability coordinates | Self-hosting, package manifests, capability rows |
-| [WIP-0472](WIP-0472-retained-package-manifest-row-ordering.md) | Implemented | Retained package-manifest row ordering | Self-hosting, package manifests, collection rows |
-| [WIP-0473](WIP-0473-retained-package-manifest-target-value-coordinates.md) | Implemented | Retained package-manifest target-value coordinates | Self-hosting, package manifests, target rows |
-| [WIP-0474](WIP-0474-retained-package-manifest-collection-sections.md) | Implemented | Retained package-manifest collection sections | Self-hosting, package manifests, collection sections |
-| [WIP-0475](WIP-0475-retained-package-manifest-empty-sections.md) | Implemented | Retained package-manifest empty sections | Self-hosting, package manifests, collection sections |
-| [WIP-0476](WIP-0476-retained-package-manifest-dependency-rows.md) | Implemented | Retained package-manifest dependency rows | Self-hosting, package manifests, dependency rows |
-| [WIP-0477](WIP-0477-retained-package-manifest-capability-rows.md) | Implemented | Retained package-manifest capability rows | Self-hosting, package manifests, capability rows |
-| [WIP-0478](WIP-0478-expanded-native-archive-source-index.md) | Implemented | Expanded native archive-source index | Self-hosting, package archives, source provenance |
-| [WIP-0479](WIP-0479-widened-native-archive-module-binding.md) | Implemented | Widened native archive-module binding | Self-hosting, closure planning, source provenance |
-| [WIP-0480](WIP-0480-retained-package-manifest-target-head.md) | Implemented | Retained package-manifest target head | Self-hosting, package manifests, target rows |
-| [WIP-0481](WIP-0481-retained-package-manifest-target-tail.md) | Implemented | Retained package-manifest target tail | Self-hosting, package manifests, target rows |
-| [WIP-0482](WIP-0482-retained-package-manifest-target-module-head.md) | Implemented | Retained package-manifest target module head | Self-hosting, package manifests, target rows |
-| [WIP-0483](WIP-0483-retained-package-manifest-target-source-row.md) | Implemented | Retained package-manifest target source row | Self-hosting, package manifests, source selectors |
-| [WIP-0484](WIP-0484-retained-package-manifest-target-source-sequence.md) | Implemented | Retained package-manifest target source sequence | Self-hosting, package manifests, source selectors |
-| [WIP-0485](WIP-0485-retained-package-manifest-target-source-coverage.md) | Implemented | Retained package-manifest target source coverage | Self-hosting, package manifests, source selectors |
-| [WIP-0486](WIP-0486-retained-package-manifest-target-source-collection.md) | Implemented | Retained package-manifest target source collection | Self-hosting, package manifests, source selectors |
-| [WIP-0487](WIP-0487-retained-package-manifest-target-source-entry.md) | Implemented | Retained package-manifest target source entry | Self-hosting, package manifests, source selectors |
-| [WIP-0488](WIP-0488-retained-package-manifest-target-source-coverage-composition.md) | Implemented | Retained package-manifest target source coverage composition | Self-hosting, package manifests, source selectors |
-| [WIP-0489](WIP-0489-retained-package-manifest-target-completion.md) | Implemented | Retained package-manifest target completion | Self-hosting, package manifests, targets |
-| [WIP-0490](WIP-0490-exact-root-word-mutation-products.md) | Implemented | Exact root word-mutation products | Self-hosting compiler, word buffers, root statements |
-| [WIP-0491](WIP-0491-retained-package-manifest-target-source-entry-publication.md) | Implemented | Retained package-manifest target source-entry publication | Self-hosting, package manifests, source selectors |
-| [WIP-0492](WIP-0492-retained-package-manifest-target-source-row-traversal.md) | Implemented | Retained package-manifest target source-row traversal | Self-hosting, package manifests, source selectors |
-| [WIP-0493](WIP-0493-retained-package-manifest-dependency-row-publication.md) | Implemented | Retained package-manifest dependency-row publication | Self-hosting, package manifests, dependency rows |
-| [WIP-0494](WIP-0494-retained-package-manifest-capability-row-publication.md) | Implemented | Retained package-manifest capability-row publication | Self-hosting, package manifests, capability rows |
-| [WIP-0495](WIP-0495-retained-package-manifest-target-row-publication.md) | Implemented | Retained package-manifest target-row publication | Self-hosting, package manifests, target rows |
+Keep every authored file below 1,000 lines. A prose paragraph must remain short
+enough to review as one argument. Wrapping a twenty-kilobyte progress report onto
+more lines does not fix it. Documentation-only organization does not require a
+physical compiler closure run.

@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, bytecode, and proof maintainers |
 | Created | 2026-08-15 |
-| Updated | 2026-08-15 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting compiler, generated inverses, callable coordinates |
 | Depends on | WIP-0038, WIP-0041, WIP-0055, WIP-0057 |
 | Supersedes | Generated-inverse integration split from WIP-0055 |
-| Superseded by | WIP-0064 owns ownership, proof, and physical source integration |
+| Superseded by | None |
+| Follow-up | WIP-0064 owns ownership, proof, and physical source integration |
 
 ## Summary
 

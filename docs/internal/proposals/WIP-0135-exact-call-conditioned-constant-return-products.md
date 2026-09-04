@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-18 |
-| Updated | 2026-08-18 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting compiler, calls, conditionals, scalar products |
 | Depends on | WIP-0049, WIP-0054, WIP-0056, WIP-0057, WIP-0062, WIP-0077, WIP-0123 |
 | Supersedes | Signed-constant child gap in WIP-0123 |
-| Superseded by | WIP-0136 extends the product to signed literal children |
+| Superseded by | None |
+| Follow-up | WIP-0136 extends the product to signed literal children |
 
 ## Summary
 

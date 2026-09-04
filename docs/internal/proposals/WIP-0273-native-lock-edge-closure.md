@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package locks, native testing |
 | Depends on | WIP-0272 |
 | Supersedes | Native lock dependency names without package targets |
-| Superseded by | WIP-0274 lock graph validation |
+| Superseded by | None |
+| Follow-up | WIP-0274 lock graph validation |
 
 ## Summary
 

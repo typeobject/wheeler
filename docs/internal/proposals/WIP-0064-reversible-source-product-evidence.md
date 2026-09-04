@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, ownership, proof, and bootstrap maintainers |
 | Created | 2026-08-15 |
-| Updated | 2026-08-15 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting compiler, reversible source, ownership, proofs |
 | Depends on | WIP-0041, WIP-0054, WIP-0057, WIP-0063 |
 | Supersedes | Ownership, proof, and physical adoption split from WIP-0063 |
-| Superseded by | WIP-0065 owns the wider call and result portfolio |
+| Superseded by | None |
+| Follow-up | WIP-0065 owns the wider call and result portfolio |
 
 ## Summary
 

@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and package maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, package manifests, identity provenance |
 | Depends on | WIP-0009, WIP-0018, WIP-0219 |
 | Supersedes | Host-supplied runner manifest digests |
-| Superseded by | WIP-0221 native test-target selection |
+| Superseded by | None |
+| Follow-up | WIP-0221 native test-target selection |
 
 ## Summary
 

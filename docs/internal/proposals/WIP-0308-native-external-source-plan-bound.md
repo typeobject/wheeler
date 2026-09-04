@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, tools, compiler, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package commands, external source graphs |
 | Depends on | WIP-0307 |
 | Supersedes | Four-module native external source transport |
-| Superseded by | WIP-0309 native transitive source-plan bound |
+| Superseded by | None |
+| Follow-up | WIP-0309 native transitive source-plan bound |
 
 ## Summary
 

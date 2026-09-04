@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-02 |
-| Updated | 2026-09-02 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package manifests, target rows |
 | Depends on | WIP-0463, WIP-0464, WIP-0480 |
 | Supersedes | Inline composition of the required target test field |
-| Superseded by | WIP-0495 target-row publication |
+| Superseded by | None |
+| Follow-up | WIP-0495 target-row publication |
 
 ## Summary
 
@@ -19,7 +20,7 @@ Retain one physical owner for the required `test` field at the tail of every pac
 
 `manifestTargetTestValue` requires the canonical `test` key at the caller's tail coordinate, projects its value coordinate, decodes only `true` or `false`, and applies target-kind policy. It returns zero or one for an admitted row and minus one for a missing key, malformed Boolean, or enabled library test.
 
-`PackageManifest.w` delegates the complete verdict before constructing `TargetParse`. It retains target coordinates only to advance beyond an admitted tail; key presence, Boolean decoding, and kind policy no longer form nested parser branches.
+`PackageManifest.w` delegates the complete verdict before constructing `TargetParse`. It retains target coordinates only to advance beyond an admitted tail. Key presence, Boolean decoding, and kind policy no longer form nested parser branches.
 
 WIP-0495 extends this owner with separate modular and nonmodular tail-publication products. The split keeps optional module projection out of direct conditional lowering.
 
@@ -29,7 +30,7 @@ WIP-0495 extends this owner with separate modular and nonmodular tail-publicatio
 
 `NativeManifestExampleTest` executes true and false test fields through modular and nonmodular rows. It rejects a misspelled key, a non-Boolean scalar, and an enabled library test through the same delegated path.
 
-The selected physical set is now 112 comparable products and 48 callable products. A fresh closure run retained 140 non-empty module products, 479 functions, and 16,646 forward-plus-inverse instructions. The linked closure contains 396,840 code bytes, 13,343 local-type rows, 799 source strings, and 640 unique strings. Its 507,616-byte executable has SHA-256 `3aeabd2d4f81ab0dd78c4cf9638c40981d8fcba451a4797b0f842d1097df90da`; the closure checksum is `988_462_381L`.
+The selected physical set is now 112 comparable products and 48 callable products. A fresh closure run retained 140 non-empty module products, 479 functions, and 16,646 forward-plus-inverse instructions. The linked closure contains 396,840 code bytes, 13,343 local-type rows, 799 source strings, and 640 unique strings. Its 507,616-byte executable has SHA-256 `3aeabd2d4f81ab0dd78c4cf9638c40981d8fcba451a4797b0f842d1097df90da`. The closure checksum is `988_462_381L`.
 
 ## Bootstrap identities
 
@@ -63,7 +64,7 @@ The parser must also retain the admitted test value. A signed scalar carries bot
 
 ### Treat a missing test key as false
 
-The field is required by canonical package syntax. Defaulting it would admit a second wire representation.
+Canonical package syntax requires the field. Defaulting it would admit a second wire representation.
 
 ## References
 

@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-17 |
-| Updated | 2026-08-17 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting compiler, physical closure, call arguments |
 | Depends on | WIP-0049, WIP-0054, WIP-0056, WIP-0069, WIP-0073, WIP-0077 |
 | Supersedes | Parser projection for `CallArguments.w` |
-| Superseded by | WIP-0366 native compiler call-argument opcodes |
+| Superseded by | None |
+| Follow-up | WIP-0366 native compiler call-argument opcodes |
 
 ## Summary
 

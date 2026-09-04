@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and native runtime maintainers |
 | Created | 2026-08-25 |
-| Updated | 2026-08-25 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, bounded loops, byte I/O |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0381, WIP-0385, WIP-0387 |
 | Supersedes | The 255-iteration scalar AOT loop profile |
-| Superseded by | WIP-0389 for strict UTF-8 input traversal |
+| Superseded by | None |
+| Follow-up | WIP-0389 for strict UTF-8 input traversal |
 
 ## Summary
 

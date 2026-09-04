@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, native testing, case identity |
 | Depends on | WIP-0261, WIP-0262 |
 | Supersedes | Declaration-only display names for package invocation |
-| Superseded by | Full native package report parity |
+| Superseded by | None |
+| Follow-up | Full native package report parity |
 
 ## Summary
 

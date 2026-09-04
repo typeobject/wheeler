@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, package, and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Native testing, manifests, package execution |
 | Depends on | WIP-0358, WIP-0361 |
 | Supersedes | Native 36,864-byte test-manifest bound |
-| Superseded by | WIP-0363 native compiler borrowed-intrinsic shape suite |
+| Superseded by | None |
+| Follow-up | WIP-0363 native compiler borrowed-intrinsic shape suite |
 
 ## Summary
 

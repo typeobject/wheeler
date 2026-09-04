@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and conformance maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, report summaries, publication |
 | Depends on | WIP-0018, WIP-0198, WIP-0213 |
 | Supersedes | Identity-only two-case runner output |
-| Superseded by | WIP-0215 runtime-owned failure diagnostics |
+| Superseded by | None |
+| Follow-up | WIP-0215 runtime-owned failure diagnostics |
 
 ## Summary
 

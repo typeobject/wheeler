@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, linker, and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, module graphs, helper linking, compiler package tests |
 | Depends on | WIP-0043, WIP-0143, WIP-0343, WIP-0364 |
 | Supersedes | Deferred helper counts for nested executable-owner chains |
-| Superseded by | WIP-0366 native compiler call-argument opcodes |
+| Superseded by | None |
+| Follow-up | WIP-0366 native compiler call-argument opcodes |
 
 ## Summary
 

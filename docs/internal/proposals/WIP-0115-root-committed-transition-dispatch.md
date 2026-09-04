@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler VM and bootstrap maintainers |
 | Created | 2026-08-16 |
-| Updated | 2026-08-16 |
+| Updated | 2026-09-04 |
 | Area | Virtual machine, root task, native closure execution |
 | Depends on | WIP-0039, WIP-0044, WIP-0083, WIP-0085 |
 | Supersedes | Runnable-set selection during root-only committed transitions |
-| Superseded by | A completed WIP-0039 task-tree scheduler |
+| Superseded by | None |
+| Follow-up | A completed WIP-0039 task-tree scheduler |
 
 ## Summary
 

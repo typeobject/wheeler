@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and native runtime maintainers |
 | Created | 2026-08-25 |
-| Updated | 2026-08-25 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, byte borrows, helper calls |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0379, WIP-0385 |
 | Supersedes | Entry-only native byte access |
-| Superseded by | WIP-0387 for execution, WIP-0396 for order, WIP-0399 for width |
+| Superseded by | None |
+| Follow-up | WIP-0387 for execution, WIP-0396 for order, WIP-0399 for width |
 
 ## Summary
 

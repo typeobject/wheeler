@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and conformance maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, semantic reports, runner composition |
 | Depends on | WIP-0018, WIP-0020, WIP-0205, WIP-0208 |
 | Supersedes | Host composition of one passing native test report |
-| Superseded by | WIP-0210 passing and failing report composition |
+| Superseded by | None |
+| Follow-up | WIP-0210 passing and failing report composition |
 
 ## Summary
 

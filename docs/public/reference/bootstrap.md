@@ -29,32 +29,27 @@ Ordinary acceptance begins by rebuilding the alternate Java seed from source:
 This supplies routine reproduction of the current alternate implementation. It
 is neither a Wheeler fixed point nor an independent derivation.
 
-The current Wheeler-native path can parse, plan, and classify the complete
-435-module compiler closure with 2,023 imports and a 198,824-byte module manifest.
-Its native identity run completes in 84,469,529 transitions. The native compiler
-package separately compiles 97 production modules through bounded physical source
-graphs and executes the complete 255-case profile. CI assigns those case identities
-to sixteen disjoint shards before compilation. The source path preserves typed Boolean-local
-results behind signed equality guards. Signed- and Boolean-result calls with
-three through seven named arguments resolve mixed signed and Boolean locals
-before exact signature matching. Boolean locals also pass through ordinary void
-calls in helper and entry bodies. The checked-in metadata assertion and
-bootstrap-profile classifiers are dependency-free physical owners that compile
-byte for byte without synthetic loop state. Signed helper-result classification has
-its own bounded owner and complete six-source native test plan. Guarded UTF-8 call
-syntax follows the same direct path with fixed local token checks. Native archive
-indexing, module binding, and closure planning admit 1,024 source entries while
-compiler graph tables remain bounded at 512 modules. Physical linker evidence compares
-163 selected artifacts with stage 0 and closes every relocation.
-Package-manifest kind calls resolve to retained token policy. Fixed target, source,
-dependency, and capability row bounds now have one retained scalar owner.
-Sequence brackets use a separate direct source owner. Mapping keys retain their
-keyword and colon calls against token policy. Selector scalar state, call-free
-prefix traversal, range completion, and their composing facade are retained.
-Quoted range coordinates, complete header composition, dependency and capability
-fields, complete target-row coordinates, target test policy, optional module
-names, source-selector paths, strict order, root coverage, source-row coordinates, target-tail keys, dependency coordinates, capability coordinates, collection ordering, target value coordinates, top-level collection sections, empty-section classification, complete dependency rows, complete capability rows, required target heads, required target tails, present modular heads, source-row syntax, source-sequence admission, root-coverage accumulation, collection completion, per-entry capacity and ordering admission, root-coverage composition, target completion, source-entry row publication, source-row traversal, dependency-row publication, capability-row publication, and target-row publication are retained. The executable subset contains 492 functions and 17,212 instructions. Direct root products emit exact typed byte and word-buffer mutations through one owner. The complete compiler has not reached a fixed
-point.
+Three different paths provide native evidence today:
+
+- The bounded package compiler discovers, compiles, and executes source-backed
+  cases from exact plans of at most eight modules. CI selects compiler package
+  cases by complete identity before compilation and reduces canonical reports.
+- The counted physical-product path binds the compiler graph to digest-checked
+  archive ranges. It compiles selected modules without dependency source and
+  links their retained functions through validated identity-based relocations.
+  The archive index admits 1,024 entries. The module graph remains bounded at
+  512 local modules, 64 externals, and 3,072 imports.
+- The scalar AOT path executes a verified subset on x86-64 Linux. Stage 0 still
+  owns that backend. Native execution does not imply self-hosted compilation.
+
+Retained package-manifest products cover lexical and canonical policy, names,
+paths, semantic versions, headers, target fields, selector admission and coverage,
+collection policy, and row publication. Complete parser coordination and the
+remaining compiler modules still need physical product integration.
+
+The evidence tests derive their graph and archive from checked-in source, compare
+selected products with stage 0, verify the linked container, and pin its identity.
+Those subset checks do not establish a complete compiler fixed point.
 
 ## Platform ABI and native image plans
 

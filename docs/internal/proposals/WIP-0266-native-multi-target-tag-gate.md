@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package testing, tag selection |
 | Depends on | WIP-0260, WIP-0265 |
 | Supersedes | Empty-tag-only multi-target native gating |
-| Superseded by | WIP-0267 native package tag existence |
+| Superseded by | None |
+| Follow-up | WIP-0267 native package tag existence |
 
 ## Summary
 

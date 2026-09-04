@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0340 |
 | Supersedes | Product-only local-literal comparison evidence |
-| Superseded by | WIP-0342 native compiler resolved assertion suite |
+| Superseded by | None |
+| Follow-up | WIP-0342 native compiler resolved assertion suite |
 
 ## Summary
 

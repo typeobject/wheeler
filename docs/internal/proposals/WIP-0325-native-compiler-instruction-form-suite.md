@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0324 |
 | Supersedes | Product-only instruction-form evidence |
-| Superseded by | WIP-0326 native compiler opcode-kind suite |
+| Superseded by | None |
+| Follow-up | WIP-0326 native compiler opcode-kind suite |
 
 ## Summary
 

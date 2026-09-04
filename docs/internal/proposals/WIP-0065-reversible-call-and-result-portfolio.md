@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, linker, and reversible runtime maintainers |
 | Created | 2026-08-15 |
-| Updated | 2026-08-15 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting compiler, reversible calls, result slots |
 | Depends on | WIP-0041, WIP-0057, WIP-0060, WIP-0064 |
 | Supersedes | Broad call and result portfolio split from WIP-0064 |
-| Superseded by | WIP-0066 owns Boolean reversible result slots |
+| Superseded by | None |
+| Follow-up | WIP-0066 owns Boolean reversible result slots |
 
 ## Summary
 

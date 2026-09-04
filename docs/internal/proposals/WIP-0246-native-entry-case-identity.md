@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, package, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, native testing, case discovery |
 | Depends on | WIP-0212, WIP-0225, WIP-0237, WIP-0245 |
 | Supersedes | Caller-selected source-mode case names |
-| Superseded by | WIP-0247 native parameterless test discovery |
+| Superseded by | None |
+| Follow-up | WIP-0247 native parameterless test discovery |
 
 ## Summary
 

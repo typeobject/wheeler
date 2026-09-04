@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package locks, native testing |
 | Depends on | WIP-0273 |
 | Supersedes | Edge-closed but unchecked native lock graphs |
-| Superseded by | WIP-0275 locked package gate, then archive-source binding |
+| Superseded by | None |
+| Follow-up | WIP-0275 locked package gate, then archive-source binding |
 
 ## Summary
 

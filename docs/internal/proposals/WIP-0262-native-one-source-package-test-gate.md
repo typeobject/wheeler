@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package testing, native invocation |
 | Depends on | WIP-0261 |
 | Supersedes | Example-only native test invocation for the fixed profile |
-| Superseded by | WIP-0263 package case names and WIP-0264 fixed local imports |
+| Superseded by | None |
+| Follow-up | WIP-0263 package case names and WIP-0264 fixed local imports |
 
 ## Summary
 

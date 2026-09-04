@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, coverage, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, compiler testing, semantic coverage |
 | Depends on | WIP-0281 |
 | Supersedes | Addition-only native compiler arithmetic coverage |
-| Superseded by | WIP-0283 bounded native bitwise coverage |
+| Superseded by | None |
+| Follow-up | WIP-0283 bounded native bitwise coverage |
 
 ## Summary
 

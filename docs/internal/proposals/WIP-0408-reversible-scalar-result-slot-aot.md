@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and native backend maintainers |
 | Created | 2026-08-26 |
-| Updated | 2026-08-26 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, reversible calls, result slots |
 | Depends on | WIP-0001, WIP-0008, WIP-0026, WIP-0041, WIP-0401, WIP-0405 |
 | Supersedes | Scalar AOT rejection of implicit result-slot functions |
-| Superseded by | WIP-0409 for capsule-bound runtime identity |
+| Superseded by | None |
+| Follow-up | WIP-0409 for capsule-bound runtime identity |
 
 ## Summary
 

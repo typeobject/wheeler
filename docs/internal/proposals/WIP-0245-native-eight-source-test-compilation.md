@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, package, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, native testing, module compilation |
 | Depends on | WIP-0235, WIP-0244 |
 | Supersedes | WIP-0244 seven-source compiler bound |
-| Superseded by | WIP-0246 entry identity and WIP-0279 physical compiler package suite |
+| Superseded by | None |
+| Follow-up | WIP-0246 entry identity and WIP-0279 physical compiler package suite |
 
 ## Summary
 

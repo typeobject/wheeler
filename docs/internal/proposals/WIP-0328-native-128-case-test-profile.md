@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, package, and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Native testing, reports, package execution |
 | Depends on | WIP-0327 |
 | Supersedes | The 64-case native test and package profile |
-| Superseded by | WIP-0329 local returns, WIP-0347 terminal profile, then WIP-0348 255 cases |
+| Superseded by | None |
+| Follow-up | WIP-0329 local returns, WIP-0347 terminal profile, then WIP-0348 255 cases |
 
 ## Summary
 

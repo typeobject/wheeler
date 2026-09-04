@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and testing maintainers |
 | Created | 2026-08-24 |
-| Updated | 2026-08-24 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, compiler package tests, call ABI |
 | Depends on | WIP-0310, WIP-0323, WIP-0365 |
 | Supersedes | Product-only typed call-argument opcode evidence |
-| Superseded by | WIP-0367 reversible helper-owner execution |
+| Superseded by | None |
+| Follow-up | WIP-0367 reversible helper-owner execution |
 
 ## Summary
 

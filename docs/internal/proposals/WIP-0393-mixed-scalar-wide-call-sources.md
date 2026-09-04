@@ -1,10 +1,16 @@
 # WIP-0393: Mixed scalar wide-call sources
 
 | Field | Value |
-|---|---|
+| --- | --- |
 | Status | Implemented |
+| Owners | Wheeler compiler and bootstrap maintainers |
+| Created | 2026-08-25 |
+| Updated | 2026-09-04 |
+| Area | Self-hosting, compiler frontend, typed calls |
 | Depends on | WIP-0007, WIP-0310, WIP-0366 |
 | Supersedes | Signed-only source lookup for three- through seven-argument value calls |
+| Superseded by | None |
+| Follow-up | WIP-0394 Boolean wide-call results |
 
 ## Problem
 

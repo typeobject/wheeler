@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and native I/O maintainers |
 | Created | 2026-08-17 |
-| Updated | 2026-08-17 |
+| Updated | 2026-09-04 |
 | Area | Native I/O, RNIC registration, ownership |
 | Depends on | WIP-0032 |
 | Supersedes | Unbounded host-owned RNIC registration handles |
-| Superseded by | WIP-0129 for one-sided write completion, followed by later peer and persistence stages |
+| Superseded by | None |
+| Follow-up | WIP-0129 for one-sided write completion, followed by later peer and persistence stages |
 
 ## Summary
 

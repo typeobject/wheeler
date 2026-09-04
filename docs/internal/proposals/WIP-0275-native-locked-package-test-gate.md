@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package testing, package locks |
 | Depends on | WIP-0274 |
 | Supersedes | Dependency-free-only native package test invocation |
-| Superseded by | WIP-0276 native case rows, WIP-0294 native locked archive provenance, and WIP-0298 native package external import |
+| Superseded by | None |
+| Follow-up | WIP-0276 native case rows, WIP-0294 native locked archive provenance, and WIP-0298 native package external import |
 
 ## Summary
 

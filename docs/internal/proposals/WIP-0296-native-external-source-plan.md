@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, runtime, compiler, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, external imports, source plans |
 | Depends on | WIP-0295 |
 | Supersedes | Locked archive entry projection without plan composition |
-| Superseded by | WIP-0297 native external import compilation |
+| Superseded by | None |
+| Follow-up | WIP-0297 native external import compilation |
 
 ## Summary
 

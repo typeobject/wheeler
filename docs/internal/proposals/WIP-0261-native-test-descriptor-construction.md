@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, native testing, descriptor authority |
 | Depends on | WIP-0248, WIP-0249, WIP-0260 |
 | Supersedes | Caller-supplied descriptor names for native source mode |
-| Superseded by | WIP-0262 package gate and WIP-0263 package case names |
+| Superseded by | None |
+| Follow-up | WIP-0262 package gate and WIP-0263 package case names |
 
 ## Summary
 

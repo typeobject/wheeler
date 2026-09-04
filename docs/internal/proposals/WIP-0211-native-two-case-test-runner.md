@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and conformance maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, multi-case execution, canonical reduction |
 | Depends on | WIP-0018, WIP-0201, WIP-0210 |
 | Supersedes | One-case-only native runner composition |
-| Superseded by | WIP-0212 native case-identity derivation |
+| Superseded by | None |
+| Follow-up | WIP-0212 native case-identity derivation |
 
 ## Summary
 

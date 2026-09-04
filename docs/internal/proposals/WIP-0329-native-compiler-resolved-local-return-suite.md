@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0328 |
 | Supersedes | Product-only resolved local-return evidence |
-| Superseded by | WIP-0330 native 256-constant owner profile |
+| Superseded by | None |
+| Follow-up | WIP-0330 native 256-constant owner profile |
 
 ## Summary
 

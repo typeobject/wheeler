@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, package, and conformance maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, descriptor discovery, source identity |
 | Depends on | WIP-0018, WIP-0212, WIP-0215 |
 | Supersedes | Fixture-coded two-case metadata and source identities |
-| Superseded by | WIP-0217 canonical runtime runner authority |
+| Superseded by | None |
+| Follow-up | WIP-0217 canonical runtime runner authority |
 
 ## Summary
 

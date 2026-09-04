@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler VM and bootstrap maintainers |
 | Created | 2026-08-16 |
-| Updated | 2026-08-16 |
+| Updated | 2026-09-04 |
 | Area | Virtual machine, task state, native closure execution |
 | Depends on | WIP-0039, WIP-0044, WIP-0083 |
 | Supersedes | Map-backed storage for the current root-only task profile |
-| Superseded by | A completed WIP-0039 task-tree store |
+| Superseded by | None |
+| Follow-up | A completed WIP-0039 task-tree store |
 
 ## Summary
 

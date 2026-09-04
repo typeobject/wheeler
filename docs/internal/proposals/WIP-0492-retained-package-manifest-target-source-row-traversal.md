@@ -25,11 +25,11 @@ A malformed source row follows the same closed path as before: source traversal 
 
 ## Physical evidence
 
-`NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest` compiles all six collection functions from the canonical archive and compares their complete function and instruction prefixes with stage 0. Eight imported-call relocations resolve exactly. The two new edges bind source-row syntax and source-row stride; the prior six bind selector projection, row capacity, strict order, root coverage, selector start, and selector length.
+`NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest` compiles all six collection functions from the canonical archive and compares their complete function and instruction prefixes with stage 0. Eight imported-call relocations resolve exactly. The two new edges bind source-row syntax and source-row stride. The prior six bind selector projection, row capacity, strict order, root coverage, selector start, and selector length.
 
 `NativeManifestExampleTest` compares parsed target and source products with stage 0. Valid first and later source rows advance to the exact required test tail. Malformed source keys, empty lists, duplicate or reversed selectors, and absent root coverage remain fail-closed.
 
-The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 487 functions, and 16,900 forward-plus-inverse instructions. The linked closure contains 403,056 code bytes, 13,602 local-type rows, 813 source strings, and 651 unique strings. Its 516,056-byte executable has SHA-256 `4d22361d2cda600b7dca502f4826235fbf087bc1fc925edc1a1f1aec49830417`; the closure checksum is `1_294_087_709L`.
+The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 487 functions, and 16,900 forward-plus-inverse instructions. The linked closure contains 403,056 code bytes, 13,602 local-type rows, 813 source strings, and 651 unique strings. Its 516,056-byte executable has SHA-256 `4d22361d2cda600b7dca502f4826235fbf087bc1fc925edc1a1f1aec49830417`. The closure checksum is `1_294_087_709L`.
 
 ## Bootstrap identities
 

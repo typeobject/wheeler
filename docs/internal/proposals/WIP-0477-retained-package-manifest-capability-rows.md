@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-02 |
-| Updated | 2026-09-02 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package manifests, capability rows |
 | Depends on | WIP-0049, WIP-0434, WIP-0471 |
 | Supersedes | Direct capability prefix and path composition in `PackageManifest.w` |
-| Superseded by | WIP-0494 capability-row publication |
+| Superseded by | None |
+| Follow-up | WIP-0494 capability-row publication |
 
 ## Summary
 

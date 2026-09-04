@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, compiler, package, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, native testing, artifact authorization |
 | Depends on | WIP-0230, WIP-0249, WIP-0250 |
 | Supersedes | Caller-selected transported test function identity |
-| Superseded by | WIP-0252 native artifact row binding |
+| Superseded by | None |
+| Follow-up | WIP-0252 native artifact row binding |
 
 ## Summary
 

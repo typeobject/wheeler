@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, package, and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package tests, compiler limits |
 | Depends on | WIP-0017, WIP-0329 |
 | Supersedes | Native 64-constant dependency admission |
-| Superseded by | WIP-0331 native 16 KiB test-manifest bound |
+| Superseded by | None |
+| Follow-up | WIP-0331 native 16 KiB test-manifest bound |
 
 ## Summary
 

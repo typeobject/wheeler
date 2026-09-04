@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, compiler, and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Runtime, semantic coverage, native testing |
 | Depends on | WIP-0288 |
 | Supersedes | WIP-0283 128-transition bound |
-| Superseded by | Complete bounded semantic coverage |
+| Superseded by | None |
+| Follow-up | Complete bounded semantic coverage |
 
 ## Summary
 

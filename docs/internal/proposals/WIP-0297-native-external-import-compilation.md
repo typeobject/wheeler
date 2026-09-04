@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, runtime, compiler, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, external imports, native test compilation |
 | Depends on | WIP-0296 |
 | Supersedes | Composed external source plans without runner authorization |
-| Superseded by | WIP-0298 native package external import |
+| Superseded by | None |
+| Follow-up | WIP-0298 native package external import |
 
 ## Summary
 

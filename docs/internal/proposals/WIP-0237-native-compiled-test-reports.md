@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, native testing, report authority |
 | Depends on | WIP-0018, WIP-0217, WIP-0235, WIP-0236 |
 | Supersedes | WIP-0236 fixed source-execution conformance frame |
-| Superseded by | WIP-0238 native two-source test compilation |
+| Superseded by | None |
+| Follow-up | WIP-0238 native two-source test compilation |
 
 ## Summary
 

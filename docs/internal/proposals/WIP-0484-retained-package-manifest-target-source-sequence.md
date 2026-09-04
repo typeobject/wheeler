@@ -5,15 +5,16 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-02 |
-| Updated | 2026-09-02 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package manifests, source selectors |
 | Depends on | WIP-0467, WIP-0483 |
 | Supersedes | Inline first-row and adjacent-row ordering dispatch |
-| Superseded by | WIP-0486 |
+| Superseded by | None |
+| Follow-up | WIP-0486 |
 
 ## Summary
 
-Retain one physical owner for source-selector sequence admission. The first valid selector needs no predecessor; each later selector must follow its predecessor in strict lexical order.
+Retain one physical owner for source-selector sequence admission. The first valid selector needs no predecessor. Each later selector must follow its predecessor in strict lexical order.
 
 ## Contract
 
@@ -27,7 +28,7 @@ The successor `NativeCompilerPackageManifestTargetSourceCollectionPhysicalProduc
 
 `NativeManifestExampleTest` accepts a canonical two-selector sequence and rejects the reversed pair. The first-row path executes without reading a predecessor.
 
-The selected physical set is now 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 482 functions, and 16,755 forward-plus-inverse instructions. The linked closure contains 399,496 code bytes, 13,455 local-type rows, 808 source strings, and 646 unique strings. Its 511,216-byte executable has SHA-256 `bb0102b56028986cb196bf0f2279e46d3aaa953243f6a78b78415a973caf8701`; the closure checksum is `3_137_405_621L`.
+The selected physical set is now 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 482 functions, and 16,755 forward-plus-inverse instructions. The linked closure contains 399,496 code bytes, 13,455 local-type rows, 808 source strings, and 646 unique strings. Its 511,216-byte executable has SHA-256 `bb0102b56028986cb196bf0f2279e46d3aaa953243f6a78b78415a973caf8701`. The closure checksum is `3_137_405_621L`.
 
 ## Bootstrap identities
 

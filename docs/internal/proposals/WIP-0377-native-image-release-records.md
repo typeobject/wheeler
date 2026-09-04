@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler native, package, security, and release maintainers |
 | Created | 2026-08-25 |
-| Updated | 2026-08-25 |
+| Updated | 2026-09-04 |
 | Area | Native release, unsigned PREV, signing, reproducibility |
 | Depends on | WIP-0023, WIP-0024, WIP-0026, WIP-0368, WIP-0372, WIP-0374, WIP-0375 |
 | Supersedes | Signing fields inside native build identity |
-| Superseded by | WIP-0410 for detached ELF authorization |
+| Superseded by | None |
+| Follow-up | WIP-0410 for detached ELF authorization |
 
 ## Summary
 

@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, package, and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Native testing, source plans, package execution |
 | Depends on | WIP-0309, WIP-0352 |
 | Supersedes | Native 32,768-byte source-plan bound |
-| Superseded by | WIP-0354 native compiler conditional mapping suite |
+| Superseded by | None |
+| Follow-up | WIP-0354 native compiler conditional mapping suite |
 
 ## Summary
 

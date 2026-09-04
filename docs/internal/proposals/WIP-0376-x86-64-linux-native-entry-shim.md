@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and platform maintainers |
 | Created | 2026-08-25 |
-| Updated | 2026-08-25 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, Linux entry, ELF locator, host services |
 | Depends on | WIP-0008, WIP-0026, WIP-0368, WIP-0372, WIP-0373 |
 | Supersedes | None |
-| Superseded by | WIP-0409 for scalar AOT startup |
+| Superseded by | None |
+| Follow-up | WIP-0409 for scalar AOT startup |
 
 ## Summary
 

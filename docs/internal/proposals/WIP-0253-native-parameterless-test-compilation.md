@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, native testing, source compilation |
 | Depends on | WIP-0237, WIP-0247, WIP-0252 |
 | Supersedes | Transported artifacts for one parameterless root test |
-| Superseded by | WIP-0254 native imported test compilation |
+| Superseded by | None |
+| Follow-up | WIP-0254 native imported test compilation |
 
 ## Summary
 

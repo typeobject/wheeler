@@ -13,7 +13,7 @@
 
 ## Summary
 
-Make the retained target-tail product consume the source-collection verdict. The aggregate parser now computes the verdict and passes it to target completion; it no longer owns the branch between source traversal and the required test tail.
+Make the retained target-tail product consume the source-collection verdict. The aggregate parser now computes the verdict and passes it to target completion. It no longer owns the branch between source traversal and the required test tail.
 
 ## Contract
 
@@ -27,7 +27,7 @@ The caller returns a target only when the resulting test value is nonnegative. N
 
 `NativeManifestExampleTest` executes modular and nonmodular success paths. Its malformed portfolio rejects an explicit empty source list and a source list without root coverage through the completion gate. Existing malformed and disallowed test-tail cases remain rejected.
 
-The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 486 functions, and 16,845 forward-plus-inverse instructions. The linked closure contains 401,656 code bytes, 13,546 local-type rows, 812 source strings, and 650 unique strings. Its 514,296-byte executable has SHA-256 `3ea72b137fab88589960add2cee8d178bd20f0b2a99af15ba3753b4b2e72e5c4`; the closure checksum is `1_051_142_931L`.
+The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 486 functions, and 16,845 forward-plus-inverse instructions. The linked closure contains 401,656 code bytes, 13,546 local-type rows, 812 source strings, and 650 unique strings. Its 514,296-byte executable has SHA-256 `3ea72b137fab88589960add2cee8d178bd20f0b2a99af15ba3753b4b2e72e5c4`. The closure checksum is `1_051_142_931L`.
 
 ## Bootstrap identities
 

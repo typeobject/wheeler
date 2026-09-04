@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, linker, bootstrap, package, and conformance maintainers |
 | Created | 2026-08-07 |
-| Updated | 2026-08-07 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, modules, linking, graph execution |
 | Depends on | WIP-0007, WIP-0017, WIP-0028 |
 | Supersedes | The topology-specific execution work remaining in WIP-0007 |
-| Superseded by | WIP-0044 closure execution, WIP-0356 36 KiB linked slots, then WIP-0365 nested helper owners |
+| Superseded by | None |
+| Follow-up | WIP-0044 closure execution, WIP-0356 36 KiB linked slots, then WIP-0365 nested helper owners |
 
 ## Summary
 

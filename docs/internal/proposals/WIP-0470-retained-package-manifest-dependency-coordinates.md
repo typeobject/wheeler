@@ -23,7 +23,7 @@ The three token projections are fixed offsets from a validated dependency row cu
 
 ## Physical route
 
-The owner has five call-free functions and takes the direct structured-source path. It is retained in the comparable prefix. `NativeCompilerPhysicalProductSource` names its source explicitly; signature synthesis cannot stand in for the file.
+The owner has five call-free functions and takes the direct structured-source path. It is retained in the comparable prefix. `NativeCompilerPhysicalProductSource` names its source explicitly. Signature synthesis cannot stand in for the file.
 
 ## Evidence
 

@@ -15,7 +15,7 @@
 
 The native compiler shall consume the canonical compiler package closure without an arity-shaped frame. WIP-0043 proved graph-complete execution for the seven-source recovery frame. This WIP replaces that transport bound with counted closure tables already validated by bootstrap evidence.
 
-The target is the physical compiler closure, not an intermediate collection of larger tuples. The current closure has 376 local modules and 1,872 imports. Native closure metadata already admits 512 local modules, sixty-four externals, 3,072 imports, and 262,144 canonical manifest bytes. Package-target validation admits 512 targets, 8,192 source selectors, 512 dependencies, 512 capabilities, and 131,072 tokens within the same manifest-byte ceiling. The compiler shall use those facts instead of reconstructing another graph format.
+The target is the physical compiler closure, not an intermediate collection of larger tuples. The [self-hosting status map](self-hosting-status.md) points to the current graph and physical evidence. Native closure metadata already admits 512 local modules, sixty-four externals, 3,072 imports, and 262,144 canonical manifest bytes. Package-target validation admits 512 targets, 8,192 source selectors, 512 dependencies, 512 capabilities, and 131,072 tokens within the same manifest-byte ceiling. The compiler shall use those facts instead of reconstructing another graph format.
 
 ## Problem
 
@@ -146,12 +146,12 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 
 - [x] Core ranged SHA-256 admits every block in a 16 MiB physical evidence file.
 - [x] `compiler/closure/ArchiveSources.w` validates the outer archive digest, every entry digest, canonical sorted paths, complete framing, and exact path/data offsets before publishing any column.
-- [x] Archive source columns admit 1,024 entries. Entry 1,025 fails before hashing or mutation; WIP-0478 widens archive columns and WIP-0479 carries their coordinates through closure planning.
+- [x] Archive source columns admit 1,024 entries. Entry 1,025 fails before hashing or mutation. WIP-0478 widens archive columns and WIP-0479 carries their coordinates through closure planning.
 - [x] `PackageTarget.w` parses the complete canonical package manifest and binds one untested `compiler` tool target to the bootstrap root module and source path. Noncanonical layout and another target kind publish nothing.
 - [x] Package syntax, names, paths, semantic versions, and manifest parsing moved under `compiler/packages`. The package library consumes those compiler-owned modules instead of carrying another parser.
 - [x] Three-entry evidence checks physical path and payload offsets. Damaged outer evidence preserves caller columns.
 - [x] `compiler/closure/ModuleManifest.w` owns canonical syntax, binding, root, cycle, and reachability validation. Conformance identity publication calls that owner.
-- [x] `ArchiveModuleSources.w` joins all 375 physical compiler modules to exact digest-matching archive ranges. A mismatched source identity leaves publication untouched.
+- [x] `ArchiveModuleSources.w` joins every manifest-selected physical compiler module to exact digest-matching archive ranges. A mismatched source identity leaves publication untouched.
 - [x] The manifest parser materializes counted module, external, import-owner, and resolved-target columns through 512 modules and 3,072 imports.
 - [x] `ClosurePlan.w` publishes archive source ranges, first-import offsets, direct-import counts, import ranks, leaf-first order, and executable-owner bits only after complete validation.
 - [x] A 257-module chain plans and classifies with its root last. The complete physical compiler closure plans and classifies without truncation.
@@ -161,7 +161,7 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 - [x] Counted callable products and `GraphExecutor.w` replace packed arity-specific execution facts. The small seven-node bridge remains a differential fixture, not a production executor.
 - [x] `ActiveSourceSlots.w` owns eight active linked sources, exact 32,768-byte publication, generation-checked leases, lowest-slot reuse, deterministic exhaustion, and byte destruction on release.
 - [x] `ClosureSchedule.w` stages every source in leaf-first order, transfers no archive loan, releases each lease after staging, and publishes per-module slot generations only after the complete pass. The 257-module chain reaches generation 257.
-- [x] WIP-0045 owns semantic module products. Scalar compilation transfers validated declarations and values instead of retaining linked source. The callable phase publishes 1,121 typed physical compiler signatures and body ranges. WIP-0049 now compiles complete primitive local classes against imported signatures without dependency bodies.
+- [x] WIP-0045 owns semantic module products. Scalar compilation transfers validated declarations and values instead of retaining linked source. The callable phase publishes typed physical compiler signatures and body ranges. The graph-derived evidence test owns their current counts. WIP-0049 now compiles complete primitive local classes against imported signatures without dependency bodies.
 - [x] WIP-0105 represents unwritten owned-buffer pages sparsely without changing logical quotas, snapshots, rewind, or observations.
 - [x] WIP-0115 dispatches committed transitions through the implemented root-task profile without a singleton runnable-set search.
 - [x] WIP-0123 closes exact local Boolean call-conditioned literal returns. WIP-0125 removes transient task-status writes from successful committed root transitions. Complete selected physical evidence with 62 callable-bearing direct routes passes in 18 minutes and 43 seconds under the fixed deadline.
@@ -173,7 +173,7 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 
 - The counted closure executor reproduces every seven-frame differential byte for byte.
 - A 257-module chain crosses the former native closure boundary and publishes correctly.
-- The current 376-module compiler closure plans without truncation.
+- The complete manifest-selected compiler closure plans without truncation.
 - Module and import order are invariant under archive-entry permutation.
 - Invalid archive, manifest, source identity, root, offset, cycle, or bound publishes nothing.
 - Active work slots cannot be read after release or stale generation.

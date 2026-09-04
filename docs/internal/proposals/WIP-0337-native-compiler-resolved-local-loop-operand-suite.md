@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0336 |
 | Supersedes | Product-only resolved local-loop operand evidence |
-| Superseded by | WIP-0338 native compiler resolved local-loop kind suite |
+| Superseded by | None |
+| Follow-up | WIP-0338 native compiler resolved local-loop kind suite |
 
 ## Summary
 

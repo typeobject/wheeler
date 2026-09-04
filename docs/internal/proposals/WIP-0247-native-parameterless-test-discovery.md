@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, coverage, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, native testing, source discovery |
 | Depends on | WIP-0205, WIP-0225, WIP-0231, WIP-0246 |
 | Supersedes | Caller-provided names for one transported root test |
-| Superseded by | WIP-0248 native counted test discovery |
+| Superseded by | None |
+| Follow-up | WIP-0248 native counted test discovery |
 
 ## Summary
 

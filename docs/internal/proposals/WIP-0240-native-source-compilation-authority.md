@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, native testing, compiler dispatch |
 | Depends on | WIP-0237, WIP-0238, WIP-0239 |
 | Supersedes | Runner-local source extraction and fixed-arity dispatch |
-| Superseded by | WIP-0241 native four-source test compilation |
+| Superseded by | None |
+| Follow-up | WIP-0241 native four-source test compilation |
 
 ## Summary
 

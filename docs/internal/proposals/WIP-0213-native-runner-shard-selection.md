@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and conformance maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, shard selection, execution scheduling |
 | Depends on | WIP-0018, WIP-0197, WIP-0212 |
 | Supersedes | Unconditional two-case native execution |
-| Superseded by | WIP-0214 identity and summary publication |
+| Superseded by | None |
+| Follow-up | WIP-0214 identity and summary publication |
 
 ## Summary
 

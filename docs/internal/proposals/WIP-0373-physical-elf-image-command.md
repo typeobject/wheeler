@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler native, runtime, package, tooling, and security maintainers |
 | Created | 2026-08-24 |
-| Updated | 2026-08-25 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, ELF, Mach-O, and PE commands, physical inputs, atomic publication |
 | Depends on | WIP-0008, WIP-0026, WIP-0368, WIP-0370, WIP-0372, WIP-0374, WIP-0375 |
 | Supersedes | In-memory-only native image adapter demonstrations |
-| Superseded by | WIP-0409 for capsule-bound scalar AOT publication, WIP-0410 for detached ELF signing |
+| Superseded by | None |
+| Follow-up | WIP-0409 for capsule-bound scalar AOT publication, WIP-0410 for detached ELF signing |
 
 ## Summary
 

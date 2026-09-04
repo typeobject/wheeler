@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, and native backend maintainers |
 | Created | 2026-08-26 |
-| Updated | 2026-08-26 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, compiler profile, stack arguments |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0395, WIP-0398 |
 | Supersedes | Seven-argument scalar AOT call ceiling |
-| Superseded by | WIP-0401 for recursion |
+| Superseded by | None |
+| Follow-up | WIP-0401 for recursion |
 
 ## Summary
 

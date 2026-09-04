@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and native backend maintainers |
 | Created | 2026-08-26 |
-| Updated | 2026-08-26 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, global state, logged replacement |
 | Depends on | WIP-0008, WIP-0026, WIP-0390, WIP-0403 |
 | Supersedes | Load-and-store substitution for scalar global replacement |
-| Superseded by | WIP-0407 for status ownership, WIP-0409 for capsule binding |
+| Superseded by | None |
+| Follow-up | WIP-0407 for status ownership, WIP-0409 for capsule binding |
 
 ## Summary
 

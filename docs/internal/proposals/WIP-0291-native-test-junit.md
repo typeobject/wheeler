@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, testing, package, and tool maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, CI adapters, Java retirement |
 | Depends on | WIP-0290 |
 | Supersedes | Java JUnit XML rendering for native package tests |
-| Superseded by | Java-free workspace report composition |
+| Superseded by | None |
+| Follow-up | Java-free workspace report composition |
 
 ## Summary
 

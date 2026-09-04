@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, native testing, source compilation |
 | Depends on | WIP-0245, WIP-0253 |
 | Supersedes | WIP-0253 one-source compilation bound |
-| Superseded by | WIP-0255 native counted test compilation |
+| Superseded by | None |
+| Follow-up | WIP-0255 native counted test compilation |
 
 ## Summary
 

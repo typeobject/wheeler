@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, coverage, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, compiler testing, semantic coverage |
 | Depends on | WIP-0282 |
 | Supersedes | Sixty-four-transition compiler package coverage |
-| Superseded by | WIP-0314 native 255-transition coverage |
+| Superseded by | None |
+| Follow-up | WIP-0314 native 255-transition coverage |
 
 ## Summary
 

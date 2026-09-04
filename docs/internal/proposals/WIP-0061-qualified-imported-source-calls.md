@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and module-product maintainers |
 | Created | 2026-08-14 |
-| Updated | 2026-08-14 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting compiler, module names, imported calls |
 | Depends on | WIP-0045, WIP-0059, WIP-0060 |
 | Supersedes | Qualified-call acceptance in WIP-0059 |
-| Superseded by | WIP-0062 for atomic closure publication |
+| Superseded by | None |
+| Follow-up | WIP-0062 for atomic closure publication |
 
 ## Summary
 

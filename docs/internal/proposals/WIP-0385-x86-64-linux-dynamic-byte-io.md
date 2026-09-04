@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, and native maintainers |
 | Created | 2026-08-25 |
-| Updated | 2026-08-25 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, standard input, dynamic byte output |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0384 |
 | Supersedes | Constant-only application output as the complete AOT I/O profile |
-| Superseded by | WIP-0386 for helper byte access |
+| Superseded by | None |
+| Follow-up | WIP-0386 for helper byte access |
 
 ## Summary
 

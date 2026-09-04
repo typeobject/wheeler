@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package testing, tag authority |
 | Depends on | WIP-0266 |
 | Supersedes | Stage-0 package-wide unknown-tag authority for the native profile |
-| Superseded by | Native package report reduction |
+| Superseded by | None |
+| Follow-up | Native package report reduction |
 
 ## Summary
 

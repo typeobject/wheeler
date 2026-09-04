@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler package, build, compiler, security, and release maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-08-24 |
+| Updated | 2026-09-04 |
 | Area | Packages, modules, builds, registry, tooling |
 | Depends on | WIP-0007, WIP-0008 |
 | Supersedes | None |
@@ -190,7 +190,15 @@ Resolution:
 
 A locked build does not re-resolve. If a locked archive disappears or has different bytes, the build fails. It does not choose a convenient replacement.
 
-WIP-0294 adds Wheeler-native archive provenance at the test boundary. The package authority validates canonical archive framing and entry digests, hashes the complete archive and embedded manifest, and binds both identities plus the manifest package name to one exact lock row. WIP-0295 projects one exact checked path and source range from that archive. WIP-0296 composes that entry into a canonical package-qualified source plan. WIP-0297 authorizes, compiles, and executes one external test import natively. WIP-0298 carries that path through `wheeler test` for one exact vendored direct dependency. WIP-0299 closes the same path over both entries of one bounded archive and an external-to-external import edge. WIP-0300 transports complete archives from two direct package namespaces. WIP-0301 binds each archive manifest's normal dependency names to its exact lock-row edges. WIP-0302 follows one such edge to compile a bounded transitive archive closure without granting transitive imports to root source. WIP-0303 raises the native test-manifest transport ceiling to 8,192 bytes without widening locks or source plans. WIP-0318 raises that ceiling to 12,288 bytes when the checked-in compiler suite exhausts it. WIP-0306 validates up to four canonical archive entries. WIP-0307 carries all four entries through native package compilation and execution. WIP-0308 fills the eight-source compiler plan with one local root and seven modules from two complete archives. WIP-0309 fills the same bound through one exact external-to-external lock edge without granting transitive root imports. WIP-0330 admits the compiler's full 256-constant class bound in one native dependency source and proves its terminal constant through package execution. WIP-0331 raises the exhausted native test-manifest ceiling to 16,384 bytes without widening locks or source plans. WIP-0339 raises the same isolated boundary to 20,480 bytes when the physical compiler suite exhausts it again. WIP-0345 raises it to 24,576 bytes after the suite reaches 20,094 bytes. WIP-0348 raises the separately exhausted case and report profile to its one-byte terminal count of 255. WIP-0350 raises the manifest boundary to 28,672 bytes when the compiler suite exhausts 24 KiB. WIP-0353 raises the independently exhausted complete source-plan boundary to 40,960 bytes while retaining eight sources and 32,768 bytes per source. WIP-0355 raises the manifest boundary to 32,768 bytes after the compiler suite reaches 27,933 bytes. WIP-0358 raises it to 36,864 bytes after the suite reaches 31,924 bytes. WIP-0360 raises the separately exhausted native package-report profile to 128 targets. WIP-0362 raises the manifest boundary to 40,960 bytes after the compiler suite reaches 35,162 bytes.
+The native test path validates archive framing and entry digests, binds archive
+and manifest identities to exact lock rows, and projects only authorized source
+ranges. Bounded transitive archive compilation preserves direct root visibility.
+It does not make transitive dependencies ambient import providers.
+
+The [package catalog](catalog/packages.md) records archive and lock integration.
+The [native testing catalog](catalog/testing.md) records source-plan, manifest,
+case, coverage, and report bounds. Those are distinct profiles. Raising one does
+not widen the others or establish a complete native resolver.
 
 The initial resolver may require one version of each package identity in a final graph. Multiple-version support requires explicit type and resource identity rules and is deferred until demonstrated necessary.
 

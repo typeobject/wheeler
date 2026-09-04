@@ -13,7 +13,7 @@
 
 ## Summary
 
-Give the target source collection one retained owner. Sequence admission, existential root-coverage accumulation, and final collection validity now live in `PackageManifestTargetSourceCollection.w`; the narrower sequence file is gone.
+Give the target source collection one retained owner. Sequence admission, existential root-coverage accumulation, and final collection validity now live in `PackageManifestTargetSourceCollection.w`. The narrower sequence file is gone.
 
 ## Contract
 
@@ -29,7 +29,7 @@ The aggregate parser owns token traversal and row mutation. It calls collection 
 
 `NativeManifestExampleTest` accepts an absent collection on a nonmodular target, preserves first-row coverage, accepts later-row coverage, and rejects a present empty collection. Reversed selectors and complete non-coverage still trap before target publication.
 
-The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 484 functions, and 16,780 forward-plus-inverse instructions. The linked closure contains 400,056 code bytes, 13,476 local-type rows, 810 source strings, and 648 unique strings. Its 512,144-byte executable has SHA-256 `73855c7af7f07dca69f39ac9ae96b5c978d9f83a1f4d33859340e7ff67baa707`; the closure checksum is `1_938_119_802L`.
+The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 484 functions, and 16,780 forward-plus-inverse instructions. The linked closure contains 400,056 code bytes, 13,476 local-type rows, 810 source strings, and 648 unique strings. Its 512,144-byte executable has SHA-256 `73855c7af7f07dca69f39ac9ae96b5c978d9f83a1f4d33859340e7ff67baa707`. The closure checksum is `1_938_119_802L`.
 
 ## Bootstrap identities
 
@@ -60,7 +60,7 @@ They are scalar policy over one source-list lifetime and neither publishes data.
 
 ### Treat zero rows as absence
 
-The grammar distinguishes an omitted optional collection from an explicitly present empty collection. A modular target promises sources; an empty promise is malformed.
+The grammar distinguishes an omitted optional collection from an explicitly present empty collection. A modular target promises sources. An empty promise is malformed.
 
 ### Move row mutation into scalar policy
 

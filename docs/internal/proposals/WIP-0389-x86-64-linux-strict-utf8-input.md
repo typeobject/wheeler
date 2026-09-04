@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and native runtime maintainers |
 | Created | 2026-08-25 |
-| Updated | 2026-08-25 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, UTF-8, application input |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0386, WIP-0387, WIP-0388 |
 | Supersedes | Raw-byte-only scalar AOT input inspection |
-| Superseded by | WIP-0390 for shared scalar state |
+| Superseded by | None |
+| Follow-up | WIP-0390 for shared scalar state |
 
 ## Summary
 

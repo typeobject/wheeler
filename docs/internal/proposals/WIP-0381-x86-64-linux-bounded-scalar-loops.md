@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and runtime maintainers |
 | Created | 2026-08-25 |
-| Updated | 2026-08-25 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, x86-64 control flow, bounded loops |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0380 |
 | Supersedes | Forward-only scalar AOT control flow as the complete branch profile |
-| Superseded by | WIP-0388 for the 4,096-iteration profile |
+| Superseded by | None |
+| Follow-up | WIP-0388 for the 4,096-iteration profile |
 
 ## Summary
 

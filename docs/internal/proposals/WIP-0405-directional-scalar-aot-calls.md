@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and native backend maintainers |
 | Created | 2026-08-26 |
-| Updated | 2026-08-26 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, reversible calls, inverse bodies |
 | Depends on | WIP-0001, WIP-0008, WIP-0026, WIP-0401, WIP-0404 |
 | Supersedes | Forward-body-only scalar AOT function admission |
-| Superseded by | WIP-0407 for status ownership, WIP-0408 for result-slot directions, WIP-0409 for capsule binding |
+| Superseded by | None |
+| Follow-up | WIP-0407 for status ownership, WIP-0408 for result-slot directions, WIP-0409 for capsule binding |
 
 ## Summary
 

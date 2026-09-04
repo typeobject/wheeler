@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and self-hosting maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native runtime, interpreter maintenance |
 | Depends on | WIP-0285 |
 | Supersedes | Interpreter-local layout helpers |
-| Superseded by | WIP-0287 native call and branch coverage |
+| Superseded by | None |
+| Follow-up | WIP-0287 native call and branch coverage |
 
 ## Summary
 

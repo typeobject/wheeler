@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, package, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package tests, transport limits |
 | Depends on | WIP-0302 |
 | Supersedes | 4,096-byte native test manifest transport |
-| Superseded by | WIP-0318 12,288-byte native test manifest bound |
+| Superseded by | None |
+| Follow-up | WIP-0318 12,288-byte native test manifest bound |
 
 ## Summary
 

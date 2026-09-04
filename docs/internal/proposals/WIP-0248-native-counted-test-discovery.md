@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, native testing, source discovery |
 | Depends on | WIP-0218, WIP-0225, WIP-0247 |
 | Supersedes | WIP-0247 one-declaration discovery bound |
-| Superseded by | WIP-0249 native parameter-row discovery |
+| Superseded by | None |
+| Follow-up | WIP-0249 native parameter-row discovery |
 
 ## Summary
 

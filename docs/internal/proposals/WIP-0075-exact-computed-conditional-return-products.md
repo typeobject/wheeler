@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-16 |
-| Updated | 2026-08-16 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting compiler, control flow, signed returns |
 | Depends on | WIP-0054, WIP-0069, WIP-0073, WIP-0074 |
 | Supersedes | Boolean-literal-only child restriction in WIP-0073 |
-| Superseded by | WIP-0077 for standalone signed constant children |
+| Superseded by | None |
+| Follow-up | WIP-0077 for standalone signed constant children |
 
 ## Summary
 

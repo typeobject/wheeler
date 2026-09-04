@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and native runtime maintainers |
 | Created | 2026-08-25 |
-| Updated | 2026-08-25 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, scalar state, helper calls |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0382, WIP-0387, WIP-0389 |
 | Supersedes | The one-global scalar AOT process-status profile |
-| Superseded by | WIPs 0403 and 0404 for direct global instructions, WIP-0407 for status ownership |
+| Superseded by | None |
+| Follow-up | WIPs 0403 and 0404 for direct global instructions, WIP-0407 for status ownership |
 
 ## Summary
 

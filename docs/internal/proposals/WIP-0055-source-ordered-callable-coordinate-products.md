@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, bytecode, and bootstrap maintainers |
 | Created | 2026-08-14 |
-| Updated | 2026-08-14 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting compiler, callable layout, local types, structured control flow |
 | Depends on | WIP-0047, WIP-0052 |
 | Supersedes | Distributed callable-local rebasing in WIP-0054 |
-| Superseded by | WIP-0063 owns generated inverse integration |
+| Superseded by | None |
+| Follow-up | WIP-0063 owns generated inverse integration |
 
 ## Summary
 

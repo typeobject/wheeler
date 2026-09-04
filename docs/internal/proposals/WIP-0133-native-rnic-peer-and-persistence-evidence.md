@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and native I/O maintainers |
 | Created | 2026-08-17 |
-| Updated | 2026-08-17 |
+| Updated | 2026-09-04 |
 | Area | Native I/O, RNIC peer protocol, persistence |
 | Depends on | WIP-0032, WIP-0128, WIP-0129, WIP-0132 |
 | Supersedes | Native RNIC completion used as peer or persistence evidence |
-| Superseded by | Qualified concrete RNIC backends and power-interruption conformance |
+| Superseded by | None |
+| Follow-up | Qualified concrete RNIC backends and power-interruption conformance |
 
 ## Summary
 

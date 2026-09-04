@@ -29,7 +29,7 @@ The entry product takes seven arguments. Imported results bind to named locals b
 
 `NativeManifestExampleTest` executes the integrated path. Canonical first and later rows pass, while a reversed pair fails before coverage and row mutation. Existing exact-capacity evidence for `manifestSourceRowCapacity` remains authoritative for the terminal source-table coordinate.
 
-The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 485 functions, and 16,818 forward-plus-inverse instructions. The linked closure contains 400,992 code bytes, 13,515 local-type rows, 811 source strings, and 649 unique strings. Its 513,368-byte executable has SHA-256 `c09523f036fda61b61c82b051ad3bbf37e5e63ea41f23e94c795693d65d986f8`; the closure checksum is `3_230_999_536L`.
+The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 485 functions, and 16,818 forward-plus-inverse instructions. The linked closure contains 400,992 code bytes, 13,515 local-type rows, 811 source strings, and 649 unique strings. Its 513,368-byte executable has SHA-256 `c09523f036fda61b61c82b051ad3bbf37e5e63ea41f23e94c795693d65d986f8`. The closure checksum is `3_230_999_536L`.
 
 ## Bootstrap identities
 

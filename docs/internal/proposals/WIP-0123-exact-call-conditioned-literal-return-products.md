@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-17 |
-| Updated | 2026-08-17 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting compiler, calls, conditionals, physical closure |
 | Depends on | WIP-0049, WIP-0054, WIP-0056, WIP-0057, WIP-0062, WIP-0073, WIP-0099 |
 | Supersedes | Parser projection for root helper-call conditions with literal returns |
-| Superseded by | WIP-0135 extends the product to signed constant children |
+| Superseded by | None |
+| Follow-up | WIP-0135 extends the product to signed constant children |
 
 ## Summary
 

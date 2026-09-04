@@ -19,7 +19,7 @@ Split optional target module-name validation into `PackageManifestTargetModule.w
 
 A target may omit `module`. Presence therefore remains a parser decision: a missing key advances directly to `test`, while a present but malformed field rejects the row. Once present, `manifestTargetModuleValid` requires a quoted token, projects its interior through named locals, and applies canonical module-name grammar.
 
-The caller obtains the key and value coordinates from the WIP-0463 owner before any read. Passing the value coordinate avoids repeating unsupported large cursor additions in the callable product. `PackageManifest.w` no longer imports the broad name authority; only the focused module owner does.
+The caller obtains the key and value coordinates from the WIP-0463 owner before any read. Passing the value coordinate avoids repeating unsupported large cursor additions in the callable product. `PackageManifest.w` no longer imports the broad name authority. Only the focused module owner does.
 
 ## Physical route
 
@@ -35,7 +35,7 @@ The selected set contains 110 comparable products and 40 callable products. It r
 
 ## Bootstrap identities
 
-The compiler graph contains 427 modules, two externals, and 2,009 imports. Its 195,945-byte canonical manifest has SHA-256 `20ef9892048bb87fd9f7a806cfea8d5be0d6050ae4d61076739fa31b0194e95a`. Native validation halts after 83,146,794 transitions; the explicit evidence ceiling is 84,000,000. Wheeler SHA-256 consumes the same bytes in 37,499,640 transitions.
+The compiler graph contains 427 modules, two externals, and 2,009 imports. Its 195,945-byte canonical manifest has SHA-256 `20ef9892048bb87fd9f7a806cfea8d5be0d6050ae4d61076739fa31b0194e95a`. Native validation halts after 83,146,794 transitions. The explicit evidence ceiling is 84,000,000. Wheeler SHA-256 consumes the same bytes in 37,499,640 transitions.
 
 The package manifest identity remains `fa7fed6c0057fff3255316b8e027b5dc998d99f3a277f3d39be24431ee1dc7e9`. The 3,266,031-byte compiler archive has SHA-256 `df3394d1c4a72278a66190d22838352aa2dded8adb7dd3ce3794db7325ed5ef9`. Every dependent lock names that archive.
 

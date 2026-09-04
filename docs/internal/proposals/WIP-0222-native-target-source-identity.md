@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and package maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, target sources, case discovery |
 | Depends on | WIP-0009, WIP-0018, WIP-0195, WIP-0221 |
 | Supersedes | Per-descriptor source identity inputs |
-| Superseded by | WIP-0223 native source-plan validation |
+| Superseded by | None |
+| Follow-up | WIP-0223 native source-plan validation |
 
 ## Summary
 

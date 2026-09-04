@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, native testing, source compilation |
 | Depends on | WIP-0249, WIP-0255, WIP-0256 |
 | Supersedes | Transported artifacts for bounded scalar parameter rows |
-| Superseded by | Native test metadata compilation |
+| Superseded by | None |
+| Follow-up | Native test metadata compilation |
 
 ## Summary
 

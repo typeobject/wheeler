@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package testing, local imports |
 | Depends on | WIP-0245, WIP-0262 |
 | Supersedes | One-source-only native package gating |
-| Superseded by | WIP-0265 multi-target gating, then general imports and locked dependencies |
+| Superseded by | None |
+| Follow-up | WIP-0265 multi-target gating, then general imports and locked dependencies |
 
 ## Summary
 

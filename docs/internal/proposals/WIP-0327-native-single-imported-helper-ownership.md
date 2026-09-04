@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, compiler linking, package tests |
 | Depends on | WIP-0326 |
 | Supersedes | Root-qualified one-helper imports |
-| Superseded by | WIP-0328 native 128-case test profile |
+| Superseded by | None |
+| Follow-up | WIP-0328 native 128-case test profile |
 
 ## Summary
 

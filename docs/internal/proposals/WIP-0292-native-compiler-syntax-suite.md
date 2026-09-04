@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, package, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, compiler testing, physical source coverage |
 | Depends on | WIP-0291 |
 | Supersedes | One-target native compiler package suite |
-| Superseded by | WIP-0293 native compiler call syntax suite |
+| Superseded by | None |
+| Follow-up | WIP-0293 native compiler call syntax suite |
 
 ## Summary
 

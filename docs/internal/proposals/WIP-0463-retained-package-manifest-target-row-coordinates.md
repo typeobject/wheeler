@@ -13,16 +13,16 @@
 
 ## Summary
 
-Complete the retained target-coordinate owner. Module metadata, source selectors, and the trailing test field now use named projections from `PackageManifestTargetCoordinates.w`; the parser no longer advances a target row with unexplained literals.
+Complete the retained target-coordinate owner. Module metadata, source selectors, and the trailing test field now use named projections from `PackageManifestTargetCoordinates.w`. The parser no longer advances a target row with unexplained literals.
 
 ## Target-row coordinates
 
 The owner projects ten coordinates:
 
-- quoted target name and root values;
-- optional module key and value;
-- source-selector key and first row;
-- one row's selector and successor;
+- quoted target name and root values.
+- optional module key and value.
+- source-selector key and first row.
+- one row's selector and successor.
 - test value and target-row successor.
 
 Fixed fields take the target cursor. Repeated source rows take the current row cursor. The test projections take the test-key cursor because a modular target has a variable number of selectors. Each function performs one checked signed addition in the ordinary source profile.

@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, package, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, compiler testing, imported callables |
 | Depends on | WIP-0304 |
 | Supersedes | Eighteen-case native compiler package suite |
-| Superseded by | Additional native compiler source partitions |
+| Superseded by | None |
+| Follow-up | Additional native compiler source partitions |
 
 ## Summary
 

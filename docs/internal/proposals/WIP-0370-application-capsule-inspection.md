@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, bytecode, package, native, and tooling maintainers |
 | Created | 2026-08-24 |
-| Updated | 2026-08-24 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, capsule inspection, bytecode verification, root binding |
 | Depends on | WIP-0008, WIP-0026, WIP-0369 |
 | Supersedes | Ad hoc capsule dumps and partial WBC checks |
-| Superseded by | WIP-0371 for embedded startup, WIP-0409 for scalar AOT startup |
+| Superseded by | None |
+| Follow-up | WIP-0371 for embedded startup, WIP-0409 for scalar AOT startup |
 
 ## Summary
 

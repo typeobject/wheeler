@@ -19,9 +19,9 @@ Move capability coordinate projection, four-column row publication, and count ad
 
 `manifestCapabilityRowProduct` receives a row that has already passed capacity, syntax, path, and ordering checks. It projects quoted name and path starts and lengths before mutation. It then publishes, in order:
 
-1. capability name start;
-2. capability name length;
-3. capability path start; and
+1. Capability name start.
+2. Capability name length.
+3. Capability path start.
 4. capability path length.
 
 All destination indexes are named scalar locals. The function returns the next row index only after all four word mutations. The parser installs that result as `capabilityCount`, then advances predecessor and token state.
@@ -34,7 +34,7 @@ Capacity remains a caller precondition so an exhausted table fails before parsin
 
 `NativeManifestExampleTest` compares every capability row and count with stage 0. Canonical repeated-name rows preserve both quoted ranges. Malformed prefixes, names, paths, ordering, and section boundaries remain fail-closed.
 
-The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 489 functions, and 17,032 forward-plus-inverse instructions. The linked closure contains 406,496 code bytes, 13,738 local-type rows, 815 source strings, and 653 unique strings. Its 520,280-byte executable has SHA-256 `343cfa917d32d2fc4c74bda1bf7857106b7d08f11ba2ade66af8a7115b9cfa2d`; the closure checksum is `876_411_537L`.
+The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 489 functions, and 17,032 forward-plus-inverse instructions. The linked closure contains 406,496 code bytes, 13,738 local-type rows, 815 source strings, and 653 unique strings. Its 520,280-byte executable has SHA-256 `343cfa917d32d2fc4c74bda1bf7857106b7d08f11ba2ade66af8a7115b9cfa2d`. The closure checksum is `876_411_537L`.
 
 ## Bootstrap identities
 
@@ -71,7 +71,7 @@ The existing parser rejects exhaustion before reading the candidate row. Retaini
 
 ### Mutate as each coordinate resolves
 
-A later failed imported call would expose a partial row. Projection is a read phase; publication begins only after all four values exist.
+A later failed imported call would expose a partial row. Projection is a read phase. Publication begins only after all four values exist.
 
 ### Share the dependency publisher
 

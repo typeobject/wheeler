@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package archives, dependency graphs |
 | Depends on | WIP-0300 |
 | Supersedes | Archive identity without archive-to-lock edge binding |
-| Superseded by | WIP-0302 native transitive archive closure |
+| Superseded by | None |
+| Follow-up | WIP-0302 native transitive archive closure |
 
 ## Summary
 

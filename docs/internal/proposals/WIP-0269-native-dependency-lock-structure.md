@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package locks, native testing |
 | Depends on | WIP-0226 |
 | Supersedes | Dependency-free-only native lock parsing |
-| Superseded by | WIP-0270 direct dependency binding |
+| Superseded by | None |
+| Follow-up | WIP-0270 direct dependency binding |
 
 ## Summary
 

@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and runtime maintainers |
 | Created | 2026-08-25 |
-| Updated | 2026-08-25 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, x86-64 call ABI, scalar parameters |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0379 |
 | Supersedes | Zero-argument-only scalar helper calls as the complete AOT call profile |
-| Superseded by | WIP-0396 for function order, WIP-0399 for argument width |
+| Superseded by | None |
+| Follow-up | WIP-0396 for function order, WIP-0399 for argument width |
 
 ## Summary
 

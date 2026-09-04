@@ -13,7 +13,7 @@
 
 ## Summary
 
-Raise the native package-archive source index from 512 to 1,024 entries. The compiler package had filled the old boundary; one additional self-hosting source would otherwise fail before target selection.
+Raise the native package-archive source index from 512 to 1,024 entries. The compiler package had filled the old boundary. One additional self-hosting source would otherwise fail before target selection.
 
 ## Bounds
 
@@ -52,7 +52,7 @@ Reject entry 1,025 before digest work, scratch publication, target selection, or
 
 ### Raise every module table
 
-Archive entries include test sources and other target files; the selected compiler graph does not. Coupling both ceilings would spend memory without admitting a larger graph.
+Archive entries include test sources and other target files. The selected compiler graph does not. Coupling both ceilings would spend memory without admitting a larger graph.
 
 ### Add one slot
 

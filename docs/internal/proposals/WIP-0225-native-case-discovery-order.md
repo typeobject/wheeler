@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and package maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, case discovery, canonical order |
 | Depends on | WIP-0018, WIP-0195, WIP-0224 |
 | Supersedes | Unordered native descriptor inputs |
-| Superseded by | WIP-0226 native root lock provenance |
+| Superseded by | None |
+| Follow-up | WIP-0226 native root lock provenance |
 
 ## Summary
 

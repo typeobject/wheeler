@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-02 |
-| Updated | 2026-09-02 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package manifests, target rows |
 | Depends on | WIP-0462, WIP-0469, WIP-0478, WIP-0479 |
 | Supersedes | Inline composition of required target head fields |
-| Superseded by | WIP-0495 target-row publication |
+| Superseded by | None |
+| Follow-up | WIP-0495 target-row publication |
 
 ## Summary
 
@@ -19,7 +20,7 @@ Retain one physical owner for the required `kind`, `name`, and `root` fields at 
 
 `manifestTargetHeadKind` returns the positive target kind only when all three required fields validate at their canonical token coordinates. It returns zero for a truncated prefix, an unknown target kind, a malformed or unordered name, or an invalid logical root path.
 
-`PackageManifest.w` delegates that verdict before inspecting optional module, source, or test fields. It retains the target-name policy import only for ordering complete target rows; prefix and root field composition belong exclusively to `PackageManifestTargetHead.w`.
+`PackageManifest.w` delegates that verdict before inspecting optional module, source, or test fields. It retains the target-name policy import only for ordering complete target rows. Prefix and root field composition belong exclusively to `PackageManifestTargetHead.w`.
 
 WIP-0495 extends the same owner with publication of the kind, name range, and root range after complete-row admission.
 
@@ -29,7 +30,7 @@ WIP-0495 extends the same owner with publication of the kind, name range, and ro
 
 `NativeManifestExampleTest` exercises modular and nonmodular rows and rejects unknown kinds, unordered names, escaping roots, malformed optional fields, and over-capacity collections through the delegated parser path.
 
-The selected physical set is now 112 comparable products and 47 callable products. A fresh closure run retained 139 non-empty module products, 478 functions, and 16,589 forward-plus-inverse instructions. The linked closure contains 395,440 code bytes, 13,288 local-type rows, 796 source strings, and 638 unique strings. Its 505,856-byte executable has SHA-256 `44e503b4acba2b6bb606fe6fa0699e74332911f2a478e2981dc4585e387199ff`; the closure checksum is `1_155_859_380L`.
+The selected physical set is now 112 comparable products and 47 callable products. A fresh closure run retained 139 non-empty module products, 478 functions, and 16,589 forward-plus-inverse instructions. The linked closure contains 395,440 code bytes, 13,288 local-type rows, 796 source strings, and 638 unique strings. Its 505,856-byte executable has SHA-256 `44e503b4acba2b6bb606fe6fa0699e74332911f2a478e2981dc4585e387199ff`. The closure checksum is `1_155_859_380L`.
 
 ## Bootstrap identities
 

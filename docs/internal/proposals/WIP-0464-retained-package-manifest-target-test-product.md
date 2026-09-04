@@ -17,7 +17,7 @@ Split target test policy into `PackageManifestTargetTest.w`. The owner admits te
 
 ## Test policy
 
-`manifestTargetTestAllowed` accepts a decoded target kind and canonical Boolean value. It first derives whether testing is disabled. A library returns that value; every other admitted kind returns true. The manifest parser has already rejected unknown kinds and malformed Boolean tokens.
+`manifestTargetTestAllowed` accepts a decoded target kind and canonical Boolean value. It first derives whether testing is disabled. A library returns that value. Every other admitted kind returns true. The manifest parser has already rejected unknown kinds and malformed Boolean tokens.
 
 This form removes the nested kind-and-value branch from `PackageManifest.w`. More importantly, it states the policy without a comparison expression in a conditional return. The source-product profile retains one Boolean declaration, one signed equality guard, one preserved Boolean return, and one final Boolean literal return. No package-specific lowering rule is involved.
 

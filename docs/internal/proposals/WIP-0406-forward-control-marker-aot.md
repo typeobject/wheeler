@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and native backend maintainers |
 | Created | 2026-08-26 |
-| Updated | 2026-08-26 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, checkpoint, commit, forward execution |
 | Depends on | WIP-0001, WIP-0008, WIP-0026, WIP-0404, WIP-0405 |
 | Supersedes | Rejection of forward-only checkpoint and commit markers |
-| Superseded by | WIP-0409 for capsule binding |
+| Superseded by | None |
+| Follow-up | WIP-0409 for capsule binding |
 
 ## Summary
 

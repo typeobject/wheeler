@@ -5,17 +5,18 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, bytecode, bootstrap, and conformance maintainers |
 | Created | 2026-08-08 |
-| Updated | 2026-08-08 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, callable bodies, relocation, compiler products |
 | Depends on | WIP-0038, WIP-0041, WIP-0044, WIP-0045, WIP-0046 |
 | Supersedes | Callable bytecode relocation work in WIP-0045 |
-| Superseded by | Final artifact emission moved to WIP-0048 |
+| Superseded by | None |
+| Follow-up | Final artifact emission moved to WIP-0048 |
 
 ## Summary
 
 The native compiler shall link callable bodies from canonical bytecode products. Each source-local `.wbc` product is decoded into bounded function descriptors, local type windows, and instruction ranges. Calls and type references are then relocated against completed scalar, callable, and aggregate identities. Dependency source is neither retained nor flattened.
 
-WIP-0045 owns source callable signatures and source-local compilation. WIP-0046 owns aggregate layouts and ownership products. This WIP owns validated callable products and relocation. WIP-0048 owns final ID assignment and canonical `.wbc` emission.
+WIP-0045 owns source callable signatures. WIP-0049 owns source-local compilation. WIP-0046 owns aggregate layouts and ownership products. This WIP owns validated callable products and relocation. WIP-0048 owns final ID assignment and canonical `.wbc` emission.
 
 ## Problem
 

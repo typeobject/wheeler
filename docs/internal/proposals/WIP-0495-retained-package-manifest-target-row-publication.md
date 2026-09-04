@@ -1,9 +1,13 @@
 # WIP-0495: Retained package-manifest target-row publication
 
 | Field | Value |
-|---|---|
+| --- | --- |
 | Status | Implemented |
-| Scope | Self-hosting, package manifests, target rows |
+| Owners | Wheeler compiler and bootstrap maintainers |
+| Created | 2026-09-04 |
+| Updated | 2026-09-04 |
+| Area | Self-hosting, package manifests, target rows |
+| Depends on | WIP-0480, WIP-0481, WIP-0490 |
 | Supersedes | Aggregate target-row mutation in `PackageManifest.w` |
 | Superseded by | None |
 
@@ -19,7 +23,7 @@ Target publication must follow complete parsing, source admission, coverage, cap
 
 The tail owner separates modular and nonmodular publication. `manifestModularTargetTailRowProduct` projects the module range and publishes the source window and test bit. `manifestNonmodularTargetTailRowProduct` publishes zero module coordinates and the same required tail. Each function advances the target count only after all five tail columns are written.
 
-The split keeps each retained callable within the established eight-parameter profile and removes conditional coordinate projection from direct source lowering. `PackageManifest.w` retains grammar, failure ordering, and caller-owned table allocation; it no longer knows the target column layout.
+The split keeps each retained callable within the established eight-parameter profile and removes conditional coordinate projection from direct source lowering. `PackageManifest.w` retains grammar, failure ordering, and caller-owned table allocation. It no longer knows the target column layout.
 
 ## Evidence
 
@@ -27,6 +31,6 @@ The split keeps each retained callable within the established eight-parameter pr
 
 The compiler graph contains 440 modules, two externals, and 2,041 imports. Its 201,241-byte canonical manifest has SHA-256 `bed7f66b032cb5d043401cfaf5b6ce865f7cd96ba30ee76fa38d9c7d2fe3796f`. Native validation halts after 85,833,470 transitions under the 86,000,000-transition evidence ceiling. Wheeler SHA-256 halts after 38,516,186 transitions.
 
-The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 492 functions, and 17,212 forward-plus-inverse instructions. The linked closure contains 411,160 code bytes, 13,923 local-type rows, 818 source strings, and 656 unique strings. Its 526,056-byte executable has SHA-256 `b1690da2b44c4580bf783671cda6cd8d190d3c089663dfb8bc9a4600125c94a8`; the closure checksum is `2_976_452_002L`.
+The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 492 functions, and 17,212 forward-plus-inverse instructions. The linked closure contains 411,160 code bytes, 13,923 local-type rows, 818 source strings, and 656 unique strings. Its 526,056-byte executable has SHA-256 `b1690da2b44c4580bf783671cda6cd8d190d3c089663dfb8bc9a4600125c94a8`. The closure checksum is `2_976_452_002L`.
 
 The compiler archive contains 517 entries and 3,289,733 bytes. Its SHA-256 is `e6a0d670ecd399de00f59cbcd78206876e76ddfa9cac16d06fbf4f8d9b3d5762`. Every dependent lock names that archive.

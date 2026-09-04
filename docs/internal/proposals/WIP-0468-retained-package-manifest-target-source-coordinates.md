@@ -13,7 +13,7 @@
 
 ## Summary
 
-Retain the two quoted-interior projections used to publish target source rows. `PackageManifestTargetSourceCoordinates.w` owns the start and length arithmetic; `PackageManifest.w` stores only the returned coordinates.
+Retain the two quoted-interior projections used to publish target source rows. `PackageManifestTargetSourceCoordinates.w` owns the start and length arithmetic. `PackageManifest.w` stores only the returned coordinates.
 
 ## Coordinates
 
@@ -23,7 +23,7 @@ WIP-0467 proves selector validity before these projections run. The parser compu
 
 ## Physical route
 
-The coordinate owner has no imports and takes the direct structured-source path. It is retained as comparable artifact 111; the prior 110 comparable artifacts keep their order. The target-source policy advances to callable artifact 152. Physical source routing names the coordinate module explicitly, so no signature-only source replaces it.
+The coordinate owner has no imports and takes the direct structured-source path. It is retained as comparable artifact 111. The prior 110 comparable artifacts keep their order. The target-source policy advances to callable artifact 152. Physical source routing names the coordinate module explicitly, so no signature-only source replaces it.
 
 ## Evidence
 

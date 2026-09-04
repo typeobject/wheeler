@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-31 |
-| Updated | 2026-08-31 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package manifests, physical closure bounds |
 | Depends on | WIP-0049, WIP-0052, WIP-0442 |
 | Supersedes | Private duplicated selector loops in `PackageManifest.w` and the 128-product owner bound |
-| Superseded by | WIP-0445 for prefix traversal and WIP-0446 for completion policy |
+| Superseded by | None |
+| Follow-up | WIP-0445 for prefix traversal and WIP-0446 for completion policy |
 
 ## Summary
 

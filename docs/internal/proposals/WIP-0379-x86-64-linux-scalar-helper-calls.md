@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and runtime maintainers |
 | Created | 2026-08-25 |
-| Updated | 2026-08-25 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, x86-64 calls, scalar helpers |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0378 |
 | Supersedes | Single-function scalar AOT as the complete call boundary |
-| Superseded by | WIP-0380 for arguments, WIP-0396 for order, WIP-0401 for recursion, WIP-0402 for Boolean results |
+| Superseded by | None |
+| Follow-up | WIP-0380 for arguments, WIP-0396 for order, WIP-0401 for recursion, WIP-0402 for Boolean results |
 
 ## Summary
 

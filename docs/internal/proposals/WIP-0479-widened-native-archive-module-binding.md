@@ -17,7 +17,7 @@ Carry WIP-0478's 1,024-entry archive bound through module-source binding and clo
 
 ## Contract
 
-`joinArchiveModuleSources` scans at most 1,024 canonical archive entries for each of at most 512 manifest modules. It publishes only the matching entry coordinate for each module; no per-entry table is added to the module arena. `planClosureStructure` accepts every published entry coordinate from zero through 1,023 while retaining the independent 512-module graph bound.
+`joinArchiveModuleSources` scans at most 1,024 canonical archive entries for each of at most 512 manifest modules. It publishes only the matching entry coordinate for each module. No per-entry table is added to the module arena. `planClosureStructure` accepts every published entry coordinate from zero through 1,023 while retaining the independent 512-module graph bound.
 
 The join still requires one and only one path match, an exact source digest, a source no larger than 32 KiB, and complete caller-owned columns. Closure planning still copies only selected module ranges into its 512-row scratch tables.
 
@@ -29,7 +29,7 @@ The selected physical set remains 112 comparable products and 46 callable produc
 
 ## Bootstrap identities
 
-The compiler graph remains 435 modules, two externals, and 2,023 imports. Its 198,824-byte canonical manifest has SHA-256 `448c6dc03d9df710be48c9beecb30464e318df9a38714fb6c7ad0de7a83d5ea1`. Native validation halts after 84,469,541 transitions; Wheeler SHA-256 halts after 38,050,718 transitions.
+The compiler graph remains 435 modules, two externals, and 2,023 imports. Its 198,824-byte canonical manifest has SHA-256 `448c6dc03d9df710be48c9beecb30464e318df9a38714fb6c7ad0de7a83d5ea1`. Native validation halts after 84,469,541 transitions. Wheeler SHA-256 halts after 38,050,718 transitions.
 
 The package manifest identity remains `fa7fed6c0057fff3255316b8e027b5dc998d99f3a277f3d39be24431ee1dc7e9`. The 3,280,355-byte compiler archive has SHA-256 `f4f8fa2cf28dcfbac49dd78f918b0a7702b7aec242ffe953463c6f9c7b271b1c`. Every dependent lock names that archive.
 
@@ -54,7 +54,7 @@ Moving one source below entry 512 hides the stale bound and makes unrelated path
 
 ### Allocate 1,024 module rows
 
-Archive entries are not modules. A sparse package may carry test fixtures or unselected Wheeler files; only manifest modules consume graph rows.
+Archive entries are not modules. A sparse package may carry test fixtures or unselected Wheeler files. Only manifest modules consume graph rows.
 
 ### Drop the plan guard
 

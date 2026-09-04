@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package testing, target selection |
 | Depends on | WIP-0262, WIP-0264 |
 | Supersedes | Single-test-target native package gating |
-| Superseded by | WIP-0266 multi-target tags and WIP-0268 package report identity |
+| Superseded by | None |
+| Follow-up | WIP-0266 multi-target tags and WIP-0268 package report identity |
 
 ## Summary
 

@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, testing, and proof maintainers |
 | Created | 2026-08-24 |
-| Updated | 2026-08-24 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, module graphs, generated inverses, proof names, native coverage |
 | Depends on | WIP-0001, WIP-0276, WIP-0310, WIP-0365 |
 | Supersedes | Product-only reversible-token coordinate evidence |
-| Superseded by | Broader physical compiler package suites |
+| Superseded by | None |
+| Follow-up | Broader physical compiler package suites |
 
 ## Summary
 

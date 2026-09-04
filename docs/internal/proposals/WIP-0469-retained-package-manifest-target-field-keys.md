@@ -17,13 +17,13 @@ Move the three target-tail key verdicts to their field owners. Module, source, a
 
 ## Field keys
 
-`manifestTargetModulePresent` checks the optional `module` key at the coordinate supplied by WIP-0463. A false verdict leaves the target nonmodular; malformed module content still rejects after presence succeeds.
+`manifestTargetModulePresent` checks the optional `module` key at the coordinate supplied by WIP-0463. A false verdict leaves the target nonmodular. Malformed module content still rejects after presence succeeds.
 
 `manifestTargetSourcesPresent` checks the required `sources` key after a valid module field. Its false verdict rejects before selector iteration or row mutation.
 
 `manifestTargetTestPresent` checks the required `test` key at the first token after the optional source list. Its false verdict rejects before Boolean parsing and kind policy.
 
-Each owner names the key hash in a local before the imported call. This source shape is accepted by both stage 0 and the bounded structured-source compiler. Documentation quotes the literal `module` spelling so the archive scanner sees exactly one source module declaration.
+Each owner names the key hash in a local before the imported call. Both stage 0 and the bounded structured-source compiler accept this source shape. Documentation quotes the literal `module` spelling so the archive scanner sees exactly one source module declaration.
 
 ## Physical route
 

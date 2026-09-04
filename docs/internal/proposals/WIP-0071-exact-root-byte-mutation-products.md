@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-16 |
-| Updated | 2026-08-16 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting compiler, byte buffers, root statements |
 | Depends on | WIP-0049, WIP-0054, WIP-0067, WIP-0070 |
 | Supersedes | Parser projection for root `setByte` statements |
-| Superseded by | WIP-0490 root word-mutation products |
+| Superseded by | None |
+| Follow-up | WIP-0490 root word-mutation products |
 
 ## Summary
 

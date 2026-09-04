@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and conformance maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, case identity, Java-free execution |
 | Depends on | WIP-0018, WIP-0194 |
 | Supersedes | None |
-| Superseded by | WIP-0197 runtime library ownership |
+| Superseded by | None |
+| Follow-up | WIP-0197 runtime library ownership |
 
 ## Summary
 

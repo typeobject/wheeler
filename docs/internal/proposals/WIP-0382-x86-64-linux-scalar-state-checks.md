@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and runtime maintainers |
 | Created | 2026-08-25 |
-| Updated | 2026-08-25 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, scalar state, assertions, execution traps |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0381 |
 | Supersedes | Write-only status state and arithmetic-only trap naming |
-| Superseded by | WIP-0390 for shared helper-visible scalar globals |
+| Superseded by | None |
+| Follow-up | WIP-0390 for shared helper-visible scalar globals |
 
 ## Summary
 

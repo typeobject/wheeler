@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and package maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, package locks, provenance |
 | Depends on | WIP-0009, WIP-0018, WIP-0220, WIP-0225 |
 | Supersedes | Native test transports without lock provenance |
-| Superseded by | WIP-0227 source selection and WIP-0269 dependency lock structure |
+| Superseded by | None |
+| Follow-up | WIP-0227 source selection and WIP-0269 dependency lock structure |
 
 ## Summary
 

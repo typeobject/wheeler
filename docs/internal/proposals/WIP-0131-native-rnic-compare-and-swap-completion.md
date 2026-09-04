@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and native I/O maintainers |
 | Created | 2026-08-17 |
-| Updated | 2026-08-17 |
+| Updated | 2026-09-04 |
 | Area | Native I/O, RNIC atomics, completion |
 | Depends on | WIP-0032, WIP-0128, WIP-0129, WIP-0130 |
 | Supersedes | Native RNIC atomics outside the portable request lifecycle |
-| Superseded by | WIP-0132 for operation cancellation, followed by peer and persistence stages |
+| Superseded by | None |
+| Follow-up | WIP-0132 for operation cancellation, followed by peer and persistence stages |
 
 ## Summary
 

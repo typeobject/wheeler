@@ -13,7 +13,7 @@
 
 ## Summary
 
-Emit exact root `set(words, index, value);` statements from direct structured source products. Generalize the byte-only mutation owner into `DirectBufferMutationProducts.w`; byte and word writes now share syntax, value resolution, physical-local planning, type publication, and instruction emission.
+Emit exact root `set(words, index, value);` statements from direct structured source products. Generalize the byte-only mutation owner into `DirectBufferMutationProducts.w`. Byte and word writes now share syntax, value resolution, physical-local planning, type publication, and instruction emission.
 
 ## Source form
 

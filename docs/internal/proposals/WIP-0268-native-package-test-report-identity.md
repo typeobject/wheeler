@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package testing, report reduction |
 | Depends on | WIP-0265 |
 | Supersedes | Unreduced lists of native target report identities |
-| Superseded by | Native case rows, then WIP-0360 128-target reports |
+| Superseded by | None |
+| Follow-up | Native case rows, then WIP-0360 128-target reports |
 
 ## Summary
 

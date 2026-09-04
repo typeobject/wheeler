@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, coverage, and reversible-semantics maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Semantic coverage, generated inverses, native execution |
 | Depends on | WIP-0287 |
 | Supersedes | Forward-only native coverage direction |
-| Superseded by | Native rewind coverage |
+| Superseded by | None |
+| Follow-up | Native rewind coverage |
 
 ## Summary
 

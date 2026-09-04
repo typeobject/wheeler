@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-18 |
-| Updated | 2026-08-18 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting compiler, physical closure, early comparisons |
 | Depends on | WIP-0049, WIP-0054, WIP-0057, WIP-0139, WIP-0140 |
 | Supersedes | Signature-stub physical routing for `EarlyComparisonForms.w` |
-| Superseded by | WIP-0365 nested helper-owner graph execution |
+| Superseded by | None |
+| Follow-up | WIP-0365 nested helper-owner graph execution |
 
 ## Summary
 

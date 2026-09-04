@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and runtime maintainers |
 | Created | 2026-08-25 |
-| Updated | 2026-08-25 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, void helpers, assertion boundaries |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0382 |
 | Supersedes | Signed-result-only helpers as the complete scalar AOT call profile |
-| Superseded by | WIP-0396 for function order, WIP-0399 for argument width |
+| Superseded by | None |
+| Follow-up | WIP-0396 for function order, WIP-0399 for argument width |
 
 ## Summary
 

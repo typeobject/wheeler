@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-16 |
-| Updated | 2026-08-16 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting compiler, Boolean values, declaration products |
 | Depends on | WIP-0054, WIP-0056, WIP-0069, WIP-0070 |
 | Supersedes | Parser projection for root Boolean declarations |
-| Superseded by | WIP-0082 for Boolean source-source equality |
+| Superseded by | None |
+| Follow-up | WIP-0082 for Boolean source-source equality |
 
 ## Summary
 

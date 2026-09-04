@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, self-hosting, and conformance maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, compiler frontend, code generation |
 | Depends on | WIP-0305 |
 | Supersedes | One-helper native entry profile |
-| Superseded by | WIP-0311 native compiler call-width suite |
+| Superseded by | None |
+| Follow-up | WIP-0311 native compiler call-width suite |
 
 ## Summary
 

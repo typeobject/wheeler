@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, package, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package testing, reports |
 | Depends on | WIP-0268, WIP-0275 |
 | Supersedes | Native summary parity followed by Java package discovery and execution |
-| Superseded by | WIP-0277 canonical target rows, then external import binding and compiler suite migration |
+| Superseded by | None |
+| Follow-up | WIP-0277 canonical target rows, then external import binding and compiler suite migration |
 
 ## Summary
 

@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, native testing, selection |
 | Depends on | WIP-0258, WIP-0259 |
 | Supersedes | Native rejection of canonical test tags |
-| Superseded by | WIP-0261 native test descriptor construction |
+| Superseded by | None |
+| Follow-up | WIP-0261 native test descriptor construction |
 
 ## Summary
 

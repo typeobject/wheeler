@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, native testing, metadata validation |
 | Depends on | WIP-0249, WIP-0257 |
 | Supersedes | Implicit acceptance of unimplemented test metadata |
-| Superseded by | WIP-0259 native limits and WIP-0260 native tags |
+| Superseded by | None |
+| Follow-up | WIP-0259 native limits and WIP-0260 native tags |
 
 ## Summary
 

@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, package, and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Native testing, manifests, package execution |
 | Depends on | WIP-0355, WIP-0357 |
 | Supersedes | Native 32,768-byte test-manifest bound |
-| Superseded by | WIP-0359 call classifiers, then WIP-0362 native 40 KiB manifests |
+| Superseded by | None |
+| Follow-up | WIP-0359 call classifiers, then WIP-0362 native 40 KiB manifests |
 
 ## Summary
 

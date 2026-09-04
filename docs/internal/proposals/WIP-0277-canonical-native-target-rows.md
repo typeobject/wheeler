@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, package, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package testing, reports |
 | Depends on | WIP-0276 |
 | Supersedes | Descriptor-order native row publication |
-| Superseded by | WIP-0278 native package row reduction |
+| Superseded by | None |
+| Follow-up | WIP-0278 native package row reduction |
 
 ## Summary
 

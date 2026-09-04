@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, package, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, compiler testing, imported callables |
 | Depends on | WIP-0292 |
 | Supersedes | Fourteen-case native compiler package suite |
-| Superseded by | WIP-0304 native compiler type-kind suite |
+| Superseded by | None |
+| Follow-up | WIP-0304 native compiler type-kind suite |
 
 ## Summary
 

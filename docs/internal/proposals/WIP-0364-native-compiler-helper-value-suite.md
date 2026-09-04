@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, compiler package tests, helper syntax |
 | Depends on | WIP-0363 |
 | Supersedes | Product-only helper-value classifier evidence |
-| Superseded by | WIP-0365 nested helper-owner graph execution |
+| Superseded by | None |
+| Follow-up | WIP-0365 nested helper-owner graph execution |
 
 ## Summary
 

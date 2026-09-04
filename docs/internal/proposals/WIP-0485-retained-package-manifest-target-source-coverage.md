@@ -5,15 +5,16 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-03 |
-| Updated | 2026-09-03 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package manifests, source selectors |
 | Depends on | WIP-0467, WIP-0484 |
 | Supersedes | Inline root-coverage accumulation |
-| Superseded by | WIP-0486 |
+| Superseded by | None |
+| Follow-up | WIP-0486 |
 
 ## Summary
 
-Retain source-list root-coverage accumulation beside source-sequence admission. A target is covered once any validated selector covers its root; later non-covering selectors cannot clear that verdict.
+Retain source-list root-coverage accumulation beside source-sequence admission. A target is covered once any validated selector covers its root. Later non-covering selectors cannot clear that verdict.
 
 ## Contract
 
@@ -23,11 +24,11 @@ Retain source-list root-coverage accumulation beside source-sequence admission. 
 
 ## Physical evidence
 
-The successor `NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest` compiles both sequence functions from the canonical source archive and compares their complete function and instruction prefixes with stage 0. The sequence artifact retains its one imported ordering relocation; coverage accumulation is owner-local.
+The successor `NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest` compiles both sequence functions from the canonical source archive and compares their complete function and instruction prefixes with stage 0. The sequence artifact retains its one imported ordering relocation. Coverage accumulation is owner-local.
 
 `NativeManifestExampleTest` exercises both state transitions. The canonical fixture covers the root in its first row and preserves coverage across a non-covering second row. A second canonical fixture begins with a non-covering selector and covers the root in its later row. A list that never covers the root still traps.
 
-The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 483 functions, and 16,764 forward-plus-inverse instructions. The linked closure contains 399,696 code bytes, 13,463 local-type rows, 809 source strings, and 647 unique strings. Its 511,584-byte executable has SHA-256 `848d71b7d0aec9bd7bb72b6d3cf2449048497ac4f41108e560e13807f725c54a`; the closure checksum is `2_223_862_199L`.
+The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 483 functions, and 16,764 forward-plus-inverse instructions. The linked closure contains 399,696 code bytes, 13,463 local-type rows, 809 source strings, and 647 unique strings. Its 511,584-byte executable has SHA-256 `848d71b7d0aec9bd7bb72b6d3cf2449048497ac4f41108e560e13807f725c54a`. The closure checksum is `2_223_862_199L`.
 
 ## Bootstrap identities
 

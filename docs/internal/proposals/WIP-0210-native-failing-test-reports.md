@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and conformance maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, failure diagnostics, semantic reports |
 | Depends on | WIP-0018, WIP-0203, WIP-0209 |
 | Supersedes | Pass-only native artifact report composition |
-| Superseded by | WIP-0211 shared multi-case row composition |
+| Superseded by | None |
+| Follow-up | WIP-0211 shared multi-case row composition |
 
 ## Summary
 

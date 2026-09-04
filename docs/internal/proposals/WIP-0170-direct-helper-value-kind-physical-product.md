@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-18 |
-| Updated | 2026-08-18 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting compiler, physical closure, helper values |
 | Depends on | WIP-0049, WIP-0139, WIP-0169 |
 | Supersedes | Signature-stub routing for `HelperValueKinds.w` |
-| Superseded by | WIP-0364 native compiler helper-value suite |
+| Superseded by | None |
+| Follow-up | WIP-0364 native compiler helper-value suite |
 
 ## Summary
 

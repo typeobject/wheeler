@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and conformance maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, runtime ownership, conformance boundaries |
 | Depends on | WIP-0018, WIP-0202, WIP-0216 |
 | Supersedes | Conformance-owned two-case scheduling and reduction |
-| Superseded by | WIP-0218 counted descriptor scheduling |
+| Superseded by | None |
+| Follow-up | WIP-0218 counted descriptor scheduling |
 
 ## Summary
 

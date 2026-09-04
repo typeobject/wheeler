@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, package, and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Native testing, package reports, package commands |
 | Depends on | WIP-0268, WIP-0359 |
 | Supersedes | Native 64-target package report profile |
-| Superseded by | WIP-0361 native compiler early-return kind suite |
+| Superseded by | None |
+| Follow-up | WIP-0361 native compiler early-return kind suite |
 
 ## Summary
 

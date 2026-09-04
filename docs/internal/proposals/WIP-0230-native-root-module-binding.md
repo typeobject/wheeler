@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, compiler, and package maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, package manifests, module identity |
 | Depends on | WIP-0009, WIP-0018, WIP-0229 |
 | Supersedes | Unchecked native target module fields |
-| Superseded by | WIP-0231 canonical source module declarations |
+| Superseded by | None |
+| Follow-up | WIP-0231 canonical source module declarations |
 
 ## Summary
 

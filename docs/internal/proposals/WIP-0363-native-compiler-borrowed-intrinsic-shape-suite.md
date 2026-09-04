@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, compiler package tests, borrowed storage |
 | Depends on | WIP-0362 |
 | Supersedes | Product-only borrowed-intrinsic shape evidence |
-| Superseded by | WIP-0364 native compiler helper-value suite |
+| Superseded by | None |
+| Follow-up | WIP-0364 native compiler helper-value suite |
 
 ## Summary
 

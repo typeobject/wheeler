@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, and native maintainers |
 | Created | 2026-08-25 |
-| Updated | 2026-08-25 |
+| Updated | 2026-09-04 |
 | Area | Native bootstrap, AOT lowering, x86-64 Linux, process status |
 | Depends on | WIP-0007, WIP-0008, WIP-0026, WIP-0368, WIP-0372, WIP-0376 |
 | Supersedes | Fixed-status native entry probes as AOT evidence |
-| Superseded by | WIPs 0379 through 0409 |
+| Superseded by | None |
+| Follow-up | WIPs 0379 through 0409 |
 
 ## Summary
 

@@ -19,10 +19,10 @@ Move dependency coordinate projection, five-column row publication, and count ad
 
 `manifestDependencyRowProduct` receives a row that has already passed capacity, syntax, semantic-version, and ordering checks. It projects quoted name and version starts and lengths before mutation. It then publishes, in order:
 
-1. dependency kind;
-2. name start;
-3. name length;
-4. version start; and
+1. Dependency kind.
+2. Name start.
+3. Name length.
+4. Version start.
 5. version length.
 
 All destination indexes are named scalar locals. The function returns the next row index only after all five word mutations. The parser installs that result as `dependencyCount`, then advances predecessor and token state.
@@ -35,7 +35,7 @@ Capacity remains a caller precondition so an exhausted table still fails before 
 
 `NativeManifestExampleTest` compares every dependency row and count with stage 0. Canonical multiple-row input preserves kind and both quoted ranges. Malformed prefixes, names, semantic versions, order, and section boundaries remain fail-closed.
 
-The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 488 functions, and 16,970 forward-plus-inverse instructions. The linked closure contains 404,880 code bytes, 13,674 local-type rows, 814 source strings, and 652 unique strings. Its 518,288-byte executable has SHA-256 `6a172144c82caa704443cf851f791d6b603f149984ad09683401478c484c12f0`; the closure checksum is `1_779_900_740L`.
+The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 488 functions, and 16,970 forward-plus-inverse instructions. The linked closure contains 404,880 code bytes, 13,674 local-type rows, 814 source strings, and 652 unique strings. Its 518,288-byte executable has SHA-256 `6a172144c82caa704443cf851f791d6b603f149984ad09683401478c484c12f0`. The closure checksum is `1_779_900_740L`.
 
 ## Bootstrap identities
 
@@ -72,7 +72,7 @@ The existing parser rejects exhaustion before reading the candidate row. Retaini
 
 ### Mutate as each coordinate resolves
 
-A later failed imported call would expose a partial row. Projection is a read phase; publication begins only after all four values exist.
+A later failed imported call would expose a partial row. Projection is a read phase. Publication begins only after all four values exist.
 
 ### Return no count product
 

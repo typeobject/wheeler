@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, testing, and package maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-24 |
+| Updated | 2026-09-04 |
 | Area | Native testing, reports, package execution |
 | Depends on | WIP-0328, WIP-0347 |
 | Supersedes | Native 128-case test profile |
-| Superseded by | WIP-0349 native compiler named return suite |
+| Superseded by | None |
+| Follow-up | WIP-0349 native compiler named return suite |
 
 ## Summary
 

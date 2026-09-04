@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, tools, and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0312, WIP-0314 |
 | Supersedes | Standalone void-call operand evidence |
-| Superseded by | WIP-0315 native compiler void-call width suite |
+| Superseded by | None |
+| Follow-up | WIP-0315 native compiler void-call width suite |
 
 ## Summary
 

@@ -13,7 +13,7 @@
 
 ## Summary
 
-Move source-selector root-coverage composition behind the retained collection boundary. The aggregate parser now passes selector, root, and accumulated state to one function; it no longer imports scalar source policy directly.
+Move source-selector root-coverage composition behind the retained collection boundary. The aggregate parser now passes selector, root, and accumulated state to one function. It no longer imports scalar source policy directly.
 
 ## Contract
 
@@ -29,7 +29,7 @@ Removing the aggregate parser's direct source-policy import leaves the collectio
 
 `NativeManifestExampleTest` executes both accumulator transitions. Its primary modular target covers the root in the first selector and preserves that state through the second. The late-coverage fixture begins negative and becomes positive on its second selector. Complete non-coverage still traps at collection completion.
 
-The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 486 functions, and 16,838 forward-plus-inverse instructions. The linked closure contains 401,496 code bytes, 13,541 local-type rows, 812 source strings, and 650 unique strings. Its 514,112-byte executable has SHA-256 `02f042d5fd0f22a0f12070958158ac9de4433b66bc68c09c762621fb3391fd6a`; the closure checksum is `49_300_181L`.
+The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 486 functions, and 16,838 forward-plus-inverse instructions. The linked closure contains 401,496 code bytes, 13,541 local-type rows, 812 source strings, and 650 unique strings. Its 514,112-byte executable has SHA-256 `02f042d5fd0f22a0f12070958158ac9de4433b66bc68c09c762621fb3391fd6a`. The closure checksum is `49_300_181L`.
 
 ## Bootstrap identities
 

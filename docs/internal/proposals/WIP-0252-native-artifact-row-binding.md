@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, compiler, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, native testing, artifact authorization |
 | Depends on | WIP-0249, WIP-0250, WIP-0251 |
 | Supersedes | Function-only authorization for parameterized artifacts |
-| Superseded by | WIP-0253 native parameterless test compilation |
+| Superseded by | None |
+| Follow-up | WIP-0253 native parameterless test compilation |
 
 ## Summary
 

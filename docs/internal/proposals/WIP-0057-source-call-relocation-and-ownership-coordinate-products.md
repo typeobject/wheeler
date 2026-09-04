@@ -10,7 +10,7 @@
 | Depends on | WIP-0045, WIP-0047, WIP-0055, WIP-0056 |
 | Supersedes | Call and ownership coordinate work embedded in WIP-0055 and WIP-0056 |
 | Superseded by | None |
-| Follow-ups | WIP-0058, WIP-0059 |
+| Follow-up | WIP-0058, WIP-0059 |
 
 ## Summary
 

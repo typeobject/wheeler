@@ -19,11 +19,11 @@ Publish admitted source-selector rows inside the retained collection owner. `man
 
 Entry publication is ordered:
 
-1. project the selector token from the source row;
-2. reject exhausted row capacity;
-3. reject a selector that does not strictly follow its predecessor;
-4. project the quoted selector start and length;
-5. write both columns at the admitted source index; and
+1. Project the selector token from the source row.
+2. Reject exhausted row capacity.
+3. Reject a selector that does not strictly follow its predecessor.
+4. Project the quoted selector start and length.
+5. Write both columns at the admitted source index.
 6. return the selector token for coverage and traversal state.
 
 No row byte changes before capacity and ordering succeed. The first selector remains predecessor-free. The second column uses a named adjacent-index local, keeping the mutation inside the exact direct root word-write profile established by WIP-0490.
@@ -36,7 +36,7 @@ The parser increments `sourceCount` only after a nonnegative retained result. A 
 
 `NativeManifestExampleTest` compares every published target and source row with stage 0 for modular and nonmodular targets. It retains first and later selectors while rejecting explicit empty, malformed, duplicate, reversed, and non-covering source collections.
 
-The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 486 functions, and 16,873 forward-plus-inverse instructions. The linked closure contains 402,392 code bytes, 13,572 local-type rows, 812 source strings, and 650 unique strings. Its 515,136-byte executable has SHA-256 `81bd0cb1335a2964d3cb6e1295a109145b173ccb569b57c7ab929fc46afed525`; the closure checksum is `2_176_650_417L`.
+The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 486 functions, and 16,873 forward-plus-inverse instructions. The linked closure contains 402,392 code bytes, 13,572 local-type rows, 812 source strings, and 650 unique strings. Its 515,136-byte executable has SHA-256 `81bd0cb1335a2964d3cb6e1295a109145b173ccb569b57c7ab929fc46afed525`. The closure checksum is `2_176_650_417L`.
 
 ## Bootstrap identities
 

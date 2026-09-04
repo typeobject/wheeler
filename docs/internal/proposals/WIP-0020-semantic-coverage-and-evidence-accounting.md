@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler compiler, VM, runtime, quantum, proof, package, test, and tools maintainers |
 | Created | 2026-07-18 |
-| Updated | 2026-07-18 |
+| Updated | 2026-09-04 |
 | Area | Source and bytecode coverage, inverse and rewind accounting, quantum evidence, report merging, thresholds |
 | Depends on | WIP-0001, WIP-0002, WIP-0004, WIP-0005, WIP-0009, WIP-0011, WIP-0013, WIP-0015, WIP-0018 |
 | Supersedes | None |
@@ -315,8 +315,23 @@ Quantum targets own execution evidence, not coverage interpretation. The proof k
 - [x] The accepted profile rejects duplicate and malformed identities, mismatched artifact or result lineage, stale target evidence, a 65,536th report row, oversized diagnostics, quantum results above eight MiB, and exhausted execution or event limits before report publication or continuation mutation. General source-map stripping remains.
 - [x] `SemanticCoveragePolicy` binds sorted direction and opcode exclusions plus bounded minimum-point and per-point hit thresholds into one identity. Evaluation reports every exclusion, threshold, included and excluded count, pass result, base coverage identity, and policy identity. Changing any semantic axis changes policy and evaluation identities. Caller set order does not.
 - [x] `SemanticCoverageRenderer` emits deterministic terminal, JSON, LCOV, Cobertura XML, and static website views. Every adapter carries the canonical report identity and names source lines, source branches, proof obligations, quantum state, and empirical targets as unsupported. LCOV and Cobertura use explicit synthetic bytecode coordinates instead of forging source mappings. Rendering changes neither canonical bytes nor identity.
-- [x] A self-hosted compiler test run emits source-through-native coverage without Java collection. `NativeModuleCompiler.w` compiles the assertion fixture to canonical `.wbc`. `NativeCoverageRun.w` executes it through the canonical runtime `ArtifactExecution.w` operation, retains the runner-owned opcode trace, derives bounded point fragments through `BootstrapCoverageFragments.w`, and reduces the exact measured prefix through `CoverageReducer.reduceRange`. The Java harness transports bytes and compares one fixed report. It constructs no observer, transition row, sort key, report prefix, or report suffix. The admitted package-test trace now covers `LOCAL_CONST`, `LOCAL_MOVE`, `LOCAL_EQ`, `LOCAL_ADD`, `LOCAL_SUB`, `LOCAL_MUL`, `LOCAL_DIV`, `LOCAL_MOD`, `LOCAL_AND`, `LOCAL_XOR`, `LOCAL_LT`, `CALL`, `CALL_VALUE`, `CALL_RESULT_SLOT`, `CALL_VOID`, `JUMP_IF_ZERO`, `RESULT_FILL_BINARY`, `RETURN`, `RETURN_VALUE`, `RETURN_RESULT_SLOT`, `EXPECT_TRUE`, and `HALT`. WIP-0280 uses `LOCAL_EQ` to check a physical compiler constant. WIP-0281 adds checked arithmetic over that value through `LOCAL_ADD`. WIP-0282 extends the case through subtraction, multiplication, division, and remainder. WIP-0283 adds bitwise and ordered comparison events and raises the exact reducer bound to 128 rows. WIP-0314 raises complete native fragment and reduction framing to its one-byte terminal count of 255 rows. An opcode outside the admitted coverage profile still traps before report publication and leaves the complete output untouched. Fresh interpreter storage and teardown are therefore shared with the emerging native test runner rather than copied into conformance. WIP-0205 also reproduces the stage-0 domain-separated identity of that canonical report inside the runtime. WIP-0286 separates interpreter layout from the execution loop. WIP-0287 records physical function identifiers, function-local instruction ordinals, and taken or fallthrough conditional outcomes. WIP-0288 carries forward and inverse direction through native call frames and reproduces stage-zero generated-inverse coverage. WIP-0367 adds exact result-slot call, fill, and return names while executing a physical reversible compiler helper. Native history-rewind events remain open.
-- [x] `reference/coverage.md` documents successful classical transition points and adjacent path edges, validated source and generated-body relations, proof stages, explicit policy, adapters, report identities, and current runner integration. It excludes compound-condition and match-arm denominators, trapped attempts, attempt lineage, quantum structure, and Wheeler-written reduction.
+- [x] Bounded native compiler tests emit source-through-runtime coverage without
+  Java collection. `NativeModuleCompiler.w` compiles the source,
+  `ArtifactExecution.w` owns fresh execution and teardown, and the runtime derives
+  and reduces measured transition fragments. The host harness transports bytes
+  and compares reports. It does not construct semantic rows or identities.
+
+  The admitted profile includes scalar arithmetic, comparisons, direct and
+  result-slot calls, branches, assertions, returns, and halt. Unknown coverage
+  opcodes fail before publication. WIP-0287 adds exact function and instruction
+  coordinates, WIP-0288 distinguishes forward and inverse frames, WIP-0314 raises
+  the bounded report to 255 transitions, and WIP-0367 exercises result-slot
+  coverage through a physical compiler helper. Native history-rewind events
+  remain open. See the [testing catalog](catalog/testing.md) for milestone evidence.
+- [x] `reference/coverage.md` documents implemented transition points, path edges,
+  source and generated-body relations, proof stages, policy, adapters, identities,
+  and bounded native reduction. Compound-condition and match-arm denominators,
+  trapped-attempt lineage, and general quantum structure remain outside that profile.
 
 ## Alternatives
 

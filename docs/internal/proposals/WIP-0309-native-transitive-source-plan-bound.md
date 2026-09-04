@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler package, tools, compiler, runtime, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package commands, dependency graphs |
 | Depends on | WIP-0308 |
 | Supersedes | Two-module native transitive archive evidence |
-| Superseded by | WIP-0353 native 40 KiB source-plan bound |
+| Superseded by | None |
+| Follow-up | WIP-0353 native 40 KiB source-plan bound |
 
 ## Summary
 

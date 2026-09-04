@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and package maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-04 |
 | Area | Native testing, target sources, canonical framing |
 | Depends on | WIP-0009, WIP-0018, WIP-0222 |
 | Supersedes | Opaque runner target-source plans |
-| Superseded by | WIP-0224 strict target-source UTF-8 |
+| Superseded by | None |
+| Follow-up | WIP-0224 strict target-source UTF-8 |
 
 ## Summary
 

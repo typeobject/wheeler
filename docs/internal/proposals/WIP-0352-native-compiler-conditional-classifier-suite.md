@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-08-23 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0351 |
 | Supersedes | Product-only conditional range evidence |
-| Superseded by | WIP-0353 native 40 KiB source-plan bound |
+| Superseded by | None |
+| Follow-up | WIP-0353 native 40 KiB source-plan bound |
 
 ## Summary
 
