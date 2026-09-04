@@ -5,6 +5,7 @@ module wheeler.compiler.packages.manifest_target_source_collection;
 import wheeler.compiler.packages.manifest_rows;
 import wheeler.compiler.packages.manifest_target_coordinates;
 import wheeler.compiler.packages.manifest_target_source;
+import wheeler.compiler.packages.manifest_target_source_coordinates;
 
 classical class PackageManifestTargetSourceCollection {
   /// Accepts a first selector or checks strict order after its predecessor.
@@ -72,7 +73,7 @@ classical class PackageManifestTargetSourceCollection {
     return rootCovered;
   }
 
-  /// Admits one source entry and returns its selector token.
+  /// Admits and publishes one source entry, then returns its selector token.
   public long manifestTargetSourceEntryProduct(
     borrow utf8 source,
     borrow mut words starts,
@@ -99,6 +100,12 @@ classical class PackageManifestTargetSourceCollection {
       return -1;
     }
 
+    long sourceBase = sourceIndex * 2;
+    long nextSource = sourceBase + 1;
+    long selectorStart = manifestTargetSourceStart(starts, selectorToken);
+    long selectorLength = manifestTargetSourceLength(lengths, selectorToken);
+    set(sourceRows, sourceBase, selectorStart);
+    set(sourceRows, nextSource, selectorLength);
     return selectorToken;
   }
 }
