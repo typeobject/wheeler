@@ -9,7 +9,7 @@
 | Area | Self-hosting compiler, byte buffers, root statements |
 | Depends on | WIP-0049, WIP-0054, WIP-0067, WIP-0070 |
 | Supersedes | Parser projection for root `setByte` statements |
-| Superseded by | None |
+| Superseded by | WIP-0490 root word-mutation products |
 
 ## Summary
 
@@ -43,7 +43,7 @@ Extra arguments, expressions, literals, missing punctuation, and trailing tokens
 
 ## Value and type products
 
-`DirectByteMutationProducts.w` resolves each operand against the latest visible source value and maps it through `StructuredSourceCoordinates.w`.
+`DirectBufferMutationProducts.w` resolves each operand against the latest visible source value and maps it through `StructuredSourceCoordinates.w`. WIP-0490 generalized the owner and removed its byte-only identity.
 
 - `owner` must retain `bytes` or borrowed `bytes` type
 - `index` must retain signed type

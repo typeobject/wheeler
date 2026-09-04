@@ -1,6 +1,6 @@
-//! Emits exact root byte-buffer mutation products.
+//! Emits exact root buffer-mutation products.
 
-module wheeler.compiler.closure.direct_byte_mutation_products;
+module wheeler.compiler.closure.direct_buffer_mutation_products;
 
 import wheeler.compiler.closure.direct_statement_coordinates;
 import wheeler.compiler.closure.loop_body_layouts;
@@ -14,12 +14,12 @@ import wheeler.compiler.storage_opcodes;
 import wheeler.compiler.tokens;
 import wheeler.compiler.type_codes;
 
-classical class DirectByteMutationProducts {
+classical class DirectBufferMutationProducts {
   private const long MAX_CODE_BYTES = 262144;
   private const long U64 = ENCODING_WIDTH_U64;
 
-  /// Reports one exact byte mutation instruction and type extent.
-  public record DirectByteMutationProduct(long next, long typeCount, boolean valid) {}
+  /// Reports one exact buffer mutation instruction and type extent.
+  public record DirectBufferMutationProduct(long next, long typeCount, boolean valid) {}
 
   private boolean commaAt(
     borrow utf8 source,
@@ -30,14 +30,15 @@ classical class DirectByteMutationProducts {
     return punctuationAt(source, tokenKinds, tokenStarts, token, PUNCTUATION_COMMA);
   }
 
-  /// Writes one complete `setByte(owner, index, value);` source product.
-  public DirectByteMutationProduct writeDirectByteMutation(
+  /// Writes one complete `set` or `setByte` buffer mutation source product.
+  public DirectBufferMutationProduct writeDirectBufferMutation(
     borrow utf8 source,
     long token,
     long tokenCount,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
+    boolean wordMutation,
     long owner,
     long ordinal,
     long statementCount,
@@ -57,53 +58,53 @@ classical class DirectByteMutationProducts {
     assert(typeCount < 4094);
     assert(bufferLength(output) == MAX_CODE_BYTES);
     if (token < 0) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     if (tokenCount < token + 9) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     if (253 < localBase) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     if (
       punctuationAt(source, tokenKinds, tokenStarts, token + 1, PUNCTUATION_OPEN_PAREN) == false
     ) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     if (tokenKinds[token + 2] != 1) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     if (commaAt(source, token + 3, tokenKinds, tokenStarts) == false) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     if (tokenKinds[token + 4] != 1) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     if (commaAt(source, token + 5, tokenKinds, tokenStarts) == false) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     if (tokenKinds[token + 6] != 1) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     if (
       punctuationAt(source, tokenKinds, tokenStarts, token + 7, PUNCTUATION_CLOSE_PAREN) == false
     ) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     if (
       punctuationAt(source, tokenKinds, tokenStarts, token + 8, PUNCTUATION_SEMICOLON) == false
     ) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     LoopBodyValue buffer = resolveLoopBodyValue(
@@ -134,15 +135,15 @@ classical class DirectByteMutationProducts {
       valueRows
     );
     if (buffer.valid == false) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     if (index.valid == false) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     if (value.valid == false) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     long bufferType = directBufferLocalType(
@@ -155,9 +156,19 @@ classical class DirectByteMutationProducts {
       tokenStarts,
       tokenLengths
     );
-    if (bufferType != TYPE_BYTES) {
-      if (bufferType != TYPE_BYTES_BORROW) {
-        return new DirectByteMutationProduct(0, 0, false);
+    long mutationOpcode = OPCODE_BYTES_SET;
+    if (wordMutation) {
+      mutationOpcode = OPCODE_WORDS_SET;
+      if (bufferType != TYPE_WORDS) {
+        if (bufferType != TYPE_WORDS_BORROW) {
+          return new DirectBufferMutationProduct(0, 0, false);
+        }
+      }
+    } else {
+      if (bufferType != TYPE_BYTES) {
+        if (bufferType != TYPE_BYTES_BORROW) {
+          return new DirectBufferMutationProduct(0, 0, false);
+        }
       }
     }
 
@@ -173,7 +184,7 @@ classical class DirectByteMutationProducts {
         tokenLengths
       ) == false
     ) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     if (
@@ -188,7 +199,7 @@ classical class DirectByteMutationProducts {
         tokenLengths
       ) == false
     ) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     long bufferLocal = physicalValueLocal(
@@ -222,19 +233,19 @@ classical class DirectByteMutationProducts {
       statementPhysicalStarts
     );
     if (bufferLocal < 0) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     if (indexLocal < 0) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     if (valueLocal < 0) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     if (MAX_CODE_BYTES - 104 < cursor) {
-      return new DirectByteMutationProduct(0, 0, false);
+      return new DirectBufferMutationProduct(0, 0, false);
     }
 
     long next = writeInstructionHeader(
@@ -251,7 +262,7 @@ classical class DirectByteMutationProducts {
     next = writeInstructionHeader(output, next, OPCODE_LOCAL_MOVE, INSTRUCTION_FORM_BINARY);
     next = writeUnsignedLittleEndian(output, next, localBase + 2, U64);
     next = writeUnsignedLittleEndian(output, next, valueLocal, U64);
-    next = writeInstructionHeader(output, next, OPCODE_BYTES_SET, INSTRUCTION_FORM_TERNARY);
+    next = writeInstructionHeader(output, next, mutationOpcode, INSTRUCTION_FORM_TERNARY);
     next = writeUnsignedLittleEndian(output, next, localBase, U64);
     next = writeUnsignedLittleEndian(output, next, localBase + 1, U64);
     next = writeUnsignedLittleEndian(output, next, localBase + 2, U64);
@@ -268,6 +279,6 @@ classical class DirectByteMutationProducts {
       offset += 1;
     }
 
-    return new DirectByteMutationProduct(next, typeCount, true);
+    return new DirectBufferMutationProduct(next, typeCount, true);
   }
 }

@@ -217,6 +217,22 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
+  void emitsRootWordMutationProducts() throws Exception {
+    assertArtifact(SOURCE.replace(
+        "    while (index < length) limit MAX_SOURCE_BYTES {\n",
+        "    set(rows, index, length);\n"
+            + "    while (index < length) limit MAX_SOURCE_BYTES {\n"));
+  }
+
+  @Test
+  void rejectsRootWordMutationWithByteOwner() throws Exception {
+    assertNoArtifact(SOURCE.replace(
+        "    while (index < length) limit MAX_SOURCE_BYTES {\n",
+        "    set(output, index, length);\n"
+            + "    while (index < length) limit MAX_SOURCE_BYTES {\n"));
+  }
+
+  @Test
   void emitsRootByteProjectionProducts() throws Exception {
     assertArtifact(SOURCE.replace(
         "    long index = 0;\n",

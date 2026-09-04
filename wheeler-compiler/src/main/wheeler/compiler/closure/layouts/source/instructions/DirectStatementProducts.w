@@ -3,7 +3,7 @@
 module wheeler.compiler.closure.direct_statement_products;
 
 import wheeler.compiler.closure.direct_boolean_declaration_products;
-import wheeler.compiler.closure.direct_byte_mutation_products;
+import wheeler.compiler.closure.direct_buffer_mutation_products;
 import wheeler.compiler.closure.direct_call_conditional_returns;
 import wheeler.compiler.closure.direct_conditional_return_products;
 import wheeler.compiler.closure.direct_long_declaration_products;
@@ -409,14 +409,20 @@ classical class DirectStatementProducts {
                     statementValid = false;
                   }
                 } else {
+                  boolean wordMutation = hash == TOKEN_SET;
+                  boolean bufferMutation = wordMutation;
                   if (hash == TOKEN_SET_BYTE) {
-                    DirectByteMutationProduct mutation = writeDirectByteMutation(
+                    bufferMutation = true;
+                  }
+                  if (bufferMutation) {
+                    DirectBufferMutationProduct mutation = writeDirectBufferMutation(
                       source,
                       token,
                       semanticCount,
                       tokenKinds,
                       tokenStarts,
                       tokenLengths,
+                      wordMutation,
                       owner,
                       statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement],
                       statementCount,
