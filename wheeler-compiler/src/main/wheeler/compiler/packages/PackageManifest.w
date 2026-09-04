@@ -529,28 +529,14 @@ classical class Manifest {
           }
         }
 
-        long capabilityBase = capabilityCount * CAPABILITY_ROW_WIDTH;
-        long capabilityNameStart = manifestCapabilityValueStart(
+        capabilityCount = manifestCapabilityRowProduct(
           starts,
-          capability.nameToken
-        );
-        long capabilityNameLength = manifestCapabilityValueLength(
           lengths,
-          capability.nameToken
+          capability.nameToken,
+          capability.pathToken,
+          capabilityRows,
+          capabilityCount
         );
-        long capabilityPathStart = manifestCapabilityValueStart(
-          starts,
-          capability.pathToken
-        );
-        long capabilityPathLength = manifestCapabilityValueLength(
-          lengths,
-          capability.pathToken
-        );
-        set(capabilityRows, capabilityBase, capabilityNameStart);
-        set(capabilityRows, capabilityBase + 1, capabilityNameLength);
-        set(capabilityRows, capabilityBase + 2, capabilityPathStart);
-        set(capabilityRows, capabilityBase + 3, capabilityPathLength);
-        capabilityCount += 1;
         previousCapabilityName = capability.nameToken;
         previousCapabilityPath = capability.pathToken;
         cursor = capability.next;

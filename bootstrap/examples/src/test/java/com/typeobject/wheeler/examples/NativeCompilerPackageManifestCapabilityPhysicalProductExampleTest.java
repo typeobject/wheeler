@@ -9,7 +9,7 @@ import java.nio.ByteOrder;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/** Native physical evidence for complete package-manifest capability rows. */
+/** Native physical evidence for package-manifest capability validation and publication. */
 final class NativeCompilerPackageManifestCapabilityPhysicalProductExampleTest {
   private static final String MODULE = "wheeler.compiler.packages.manifest_capability";
 
@@ -39,8 +39,8 @@ final class NativeCompilerPackageManifestCapabilityPhysicalProductExampleTest {
 
     assertEquals(expectedFunctions, machine.global("physicalRetainedFunctionCount"));
     assertEquals(expectedInstructions, machine.global("physicalRetainedInstructionCount"));
-    assertEquals(2, machine.global("physicalCallableRelocationCount"));
-    assertEquals(2, machine.global("physicalResolvedCallableTargetCount"));
+    assertEquals(6, machine.global("physicalCallableRelocationCount"));
+    assertEquals(6, machine.global("physicalResolvedCallableTargetCount"));
   }
 
   private static byte[] framed(byte[] archive, byte[] manifest) {

@@ -9,7 +9,7 @@
 | Area | Self-hosting, package manifests, capability rows |
 | Depends on | WIP-0049, WIP-0434, WIP-0471 |
 | Supersedes | Direct capability prefix and path composition in `PackageManifest.w` |
-| Superseded by | None |
+| Superseded by | WIP-0494 capability-row publication |
 
 ## Summary
 
@@ -64,7 +64,7 @@ That would preserve the split-brain policy this slice removes and bypass physica
 
 ### Move publication into the validator
 
-Caller-owned tables and counters are parser state. Mutating them would couple grammar to storage layout.
+This was the WIP-0477 boundary. WIP-0494 later moved the fixed four-column layout and count commit into a separate retained row product after exact root word mutations became available.
 
 ## References
 
