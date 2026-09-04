@@ -19,7 +19,6 @@ import wheeler.compiler.packages.manifest_target_head;
 import wheeler.compiler.packages.manifest_target_module;
 import wheeler.compiler.packages.manifest_target_module_head;
 import wheeler.compiler.packages.manifest_target_name;
-import wheeler.compiler.packages.manifest_target_source;
 import wheeler.compiler.packages.manifest_target_source_collection;
 import wheeler.compiler.packages.manifest_target_source_coordinates;
 import wheeler.compiler.packages.manifest_target_source_row;
@@ -168,14 +167,14 @@ classical class Manifest {
               return invalid;
             }
 
-            boolean covers = manifestTargetSourceCoversRoot(
+            rootCovered = manifestTargetSourceCoverage(
               source,
               starts,
               lengths,
               selectorToken,
-              rootToken
+              rootToken,
+              rootCovered
             );
-            rootCovered = manifestTargetSourceRootCovered(rootCovered, covers);
 
             long sourceBase = (sourceOffset + sourceCount) * SOURCE_ROW_WIDTH;
             long selectorStart = manifestTargetSourceStart(starts, selectorToken);

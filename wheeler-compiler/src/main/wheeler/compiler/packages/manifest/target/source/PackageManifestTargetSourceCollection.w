@@ -37,6 +37,26 @@ classical class PackageManifestTargetSourceCollection {
     return current;
   }
 
+  /// Updates root coverage from one admitted selector.
+  public boolean manifestTargetSourceCoverage(
+    borrow utf8 source,
+    borrow mut words starts,
+    borrow mut words lengths,
+    long selectorToken,
+    long rootToken,
+    boolean covered
+  ) {
+    boolean current = manifestTargetSourceCoversRoot(
+      source,
+      starts,
+      lengths,
+      selectorToken,
+      rootToken
+    );
+    boolean result = manifestTargetSourceRootCovered(covered, current);
+    return result;
+  }
+
   /// Checks that a present source list is nonempty and covers the root.
   public boolean manifestTargetSourceCollectionComplete(
     boolean present,
