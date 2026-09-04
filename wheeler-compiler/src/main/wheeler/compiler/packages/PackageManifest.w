@@ -430,29 +430,15 @@ classical class Manifest {
               }
             }
 
-            long dependencyBase = dependencyCount * DEPENDENCY_ROW_WIDTH;
-            set(dependencyRows, dependencyBase, dependency.kind);
-            long dependencyNameStart = manifestDependencyValueStart(
+            dependencyCount = manifestDependencyRowProduct(
               starts,
-              dependency.nameToken
-            );
-            long dependencyNameLength = manifestDependencyValueLength(
               lengths,
-              dependency.nameToken
+              dependency.kind,
+              dependency.nameToken,
+              dependency.versionToken,
+              dependencyRows,
+              dependencyCount
             );
-            long dependencyVersionStart = manifestDependencyValueStart(
-              starts,
-              dependency.versionToken
-            );
-            long dependencyVersionLength = manifestDependencyValueLength(
-              lengths,
-              dependency.versionToken
-            );
-            set(dependencyRows, dependencyBase + 1, dependencyNameStart);
-            set(dependencyRows, dependencyBase + 2, dependencyNameLength);
-            set(dependencyRows, dependencyBase + 3, dependencyVersionStart);
-            set(dependencyRows, dependencyBase + 4, dependencyVersionLength);
-            dependencyCount += 1;
             previousDependencyToken = dependency.nameToken;
             cursor = dependency.next;
           } else {

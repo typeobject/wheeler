@@ -9,7 +9,7 @@
 | Area | Self-hosting, package manifests, dependency rows |
 | Depends on | WIP-0049, WIP-0434, WIP-0470 |
 | Supersedes | Direct dependency prefix, name, and version composition in `PackageManifest.w` |
-| Superseded by | None |
+| Superseded by | WIP-0493 dependency-row publication |
 
 ## Summary
 
@@ -64,7 +64,7 @@ Ordering compares adjacent rows and belongs to collection policy. One-row valida
 
 ### Move publication into the validator
 
-Caller-owned tables and counters are parser state. Mutating them would couple reusable row grammar to storage layout.
+This was the WIP-0476 boundary. WIP-0493 later moved the fixed five-column layout and count commit into a separate retained row product after exact root word mutations became available.
 
 ## References
 

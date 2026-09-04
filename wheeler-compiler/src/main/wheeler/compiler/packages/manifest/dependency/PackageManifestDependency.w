@@ -2,6 +2,7 @@
 
 module wheeler.compiler.packages.manifest_dependency;
 
+import wheeler.compiler.packages.manifest_dependency_coordinates;
 import wheeler.compiler.packages.manifest_dependency_name;
 import wheeler.compiler.packages.manifest_dependency_prefix;
 import wheeler.compiler.packages.manifest_dependency_version;
@@ -46,5 +47,33 @@ classical class PackageManifestDependency {
     }
 
     return kind;
+  }
+
+  /// Publishes one validated dependency row and returns the next row index.
+  public long manifestDependencyRowProduct(
+    borrow mut words starts,
+    borrow mut words lengths,
+    long kind,
+    long nameToken,
+    long versionToken,
+    borrow mut words rows,
+    long row
+  ) {
+    long base = row * 5;
+    long nameStartColumn = base + 1;
+    long nameLengthColumn = base + 2;
+    long versionStartColumn = base + 3;
+    long versionLengthColumn = base + 4;
+    long nameStart = manifestDependencyValueStart(starts, nameToken);
+    long nameLength = manifestDependencyValueLength(lengths, nameToken);
+    long versionStart = manifestDependencyValueStart(starts, versionToken);
+    long versionLength = manifestDependencyValueLength(lengths, versionToken);
+    set(rows, base, kind);
+    set(rows, nameStartColumn, nameStart);
+    set(rows, nameLengthColumn, nameLength);
+    set(rows, versionStartColumn, versionStart);
+    set(rows, versionLengthColumn, versionLength);
+    long next = row + 1;
+    return next;
   }
 }
