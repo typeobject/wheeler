@@ -9,13 +9,13 @@ import java.nio.ByteOrder;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/** Native physical evidence for the required package-manifest target test tail. */
+/** Native physical evidence for package-manifest target completion and its test tail. */
 final class NativeCompilerPackageManifestTargetTailPhysicalProductExampleTest {
   private static final String MODULE = "wheeler.compiler.packages.manifest_target_tail";
 
   @Tag("closure-evidence")
   @Test
-  void retainsManifestTargetTailAndRelocatesTestPolicy() throws Exception {
+  void retainsManifestTargetCompletionAndRelocatesTestPolicy() throws Exception {
     var module = NativeCompilerPhysicalSelection.callable(MODULE);
     var expected = new WheelerCompiler().compileLibraryModuleFiles(
         CompilerSources.moduleClosure(module.name()), module.name());

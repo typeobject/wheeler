@@ -197,10 +197,6 @@ classical class Manifest {
         sourceCount,
         rootCovered
       );
-      if (sourceCollectionComplete == false) {
-        return invalid;
-      }
-
       long test = manifestTargetTestValue(
         source,
         kinds,
@@ -208,7 +204,8 @@ classical class Manifest {
         lengths,
         count,
         kind,
-        next
+        next,
+        sourceCollectionComplete
       );
       if (-1 < test) {
         return new TargetParse(
