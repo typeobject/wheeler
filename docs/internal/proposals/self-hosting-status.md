@@ -75,9 +75,10 @@ publishing a target row. The caller still validates the required test tail.
 Complete target parsing and the remaining collection loops stay open, including
 failure offsets, validation order, and unchanged rejected rows.
 
-Archive emission now uses the module-name ranges bound by declaration products.
-It does not rediscover `module ` in raw comments or literals. Class-name and
-imported-value use discovery still need the corresponding lexical products.
+Archive emission uses lexical module and class names from declaration products.
+The four name columns publish together after the complete pass. Callable and
+callable-free emission validate name extents without raw-text rediscovery.
+Imported-value use discovery still needs the corresponding lexical products.
 
 After manifest composition, the remaining physical compiler modules must enter
 the same product route. Final linking and the fixed-point comparison remain

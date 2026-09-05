@@ -14,77 +14,33 @@ classical class ArchiveStructuredSourceModuleCompiler {
   private const long MAX_PARAMETERS = 16384;
   private const long MAX_SIGNATURE_TYPES = 4096;
 
-  private record ClassNameRange(long start, long length, boolean valid) {}
-
   private record NameUseRange(long start, boolean valid) {}
 
-  private boolean classPrefix(borrow byteview source, long start) {
-    boolean valid = true;
-    if (source[start] != 99) {
-      valid = false;
-    }
-
-    if (source[start + 1] != 108) {
-      valid = false;
-    }
-
-    if (source[start + 2] != 97) {
-      valid = false;
-    }
-
-    if (source[start + 3] != 115) {
-      valid = false;
-    }
-
-    if (source[start + 4] != 115) {
-      valid = false;
-    }
-
-    if (source[start + 5] != 105) {
-      valid = false;
-    }
-
-    if (source[start + 6] != 99) {
-      valid = false;
-    }
-
-    if (source[start + 7] != 97) {
-      valid = false;
-    }
-
-    if (source[start + 8] != 108) {
-      valid = false;
-    }
-
-    if (source[start + 9] != 32) {
-      valid = false;
-    }
-
-    if (source[start + 10] != 99) {
-      valid = false;
-    }
-
-    if (source[start + 11] != 108) {
-      valid = false;
-    }
-
-    if (source[start + 12] != 97) {
-      valid = false;
-    }
-
-    if (source[start + 13] != 115) {
-      valid = false;
-    }
-
-    if (source[start + 14] != 115) {
-      valid = false;
-    }
-
-    if (source[start + 15] != 32) {
-      valid = false;
-    }
-
-    return valid;
+  private void requireArchiveSourceNames(
+    borrow byteview archive,
+    long sourceStart,
+    long sourceLength,
+    borrow byteview moduleNames,
+    long moduleNameStart,
+    long moduleNameLength,
+    long classNameStart,
+    long classNameLength
+  ) {
+    assert(-1 < sourceStart);
+    assert(sourceStart < bufferLength(archive) + 1);
+    assert(0 < sourceLength);
+    assert(sourceLength < 32769);
+    assert(sourceLength < bufferLength(archive) - sourceStart + 1);
+    assert(-1 < moduleNameStart);
+    assert(moduleNameStart < bufferLength(moduleNames) + 1);
+    assert(0 < moduleNameLength);
+    assert(moduleNameLength < 257);
+    assert(moduleNameLength < bufferLength(moduleNames) - moduleNameStart + 1);
+    assert(classNameStart < sourceStart + sourceLength);
+    assert(sourceStart < classNameStart + 1);
+    assert(0 < classNameLength);
+    assert(classNameLength < 257);
+    assert(classNameLength < sourceStart + sourceLength - classNameStart + 1);
   }
 
   private boolean identifierByte(long value) {
@@ -172,41 +128,6 @@ classical class ArchiveStructuredSourceModuleCompiler {
     return 0;
   }
 
-  private ClassNameRange sourceClassName(
-    borrow byteview source,
-    long sourceStart,
-    long sourceLength
-  ) {
-    long selectedStart = 0;
-    long selectedLength = 0;
-    long matches = 0;
-    long cursor = sourceStart;
-    long sourceEnd = sourceStart + sourceLength;
-    while (cursor + 16 < sourceEnd) limit 32768 {
-      if (classPrefix(source, cursor)) {
-        long nameStart = cursor + 16;
-        long nameLength = 0;
-        while (nameStart + nameLength < sourceEnd) limit 256 {
-          if (identifierByte(source[nameStart + nameLength])) {
-            nameLength += 1;
-          } else {
-            break;
-          }
-        }
-
-        if (0 < nameLength) {
-          selectedStart = nameStart;
-          selectedLength = nameLength;
-          matches += 1;
-        }
-      }
-
-      cursor += 1;
-    }
-
-    return new ClassNameRange(selectedStart, selectedLength, matches == 1);
-  }
-
   private NameUseRange sourceNameUse(
     borrow byteview source,
     long sourceStart,
@@ -284,6 +205,8 @@ classical class ArchiveStructuredSourceModuleCompiler {
     borrow byteview moduleNames,
     long moduleNameStart,
     long moduleNameLength,
+    long classNameStart,
+    long classNameLength,
     long firstCallable,
     long callableCount,
     borrow mut words callableBodyStarts,
@@ -304,13 +227,13 @@ classical class ArchiveStructuredSourceModuleCompiler {
     borrow mut bytes artifact,
     borrow mut bytes identity
   ) {
+    requireArchiveSourceNames(
+      archive, sourceStart, sourceLength, moduleNames,
+      moduleNameStart, moduleNameLength, classNameStart, classNameLength
+    );
     if (callableCount == 0) {
       return compileCallableFreeArchiveModule(
-        archive,
-        sourceStart,
-        sourceLength,
-        artifact,
-        identity
+        archive, classNameStart, classNameLength, artifact, identity
       );
     }
 
@@ -334,6 +257,8 @@ classical class ArchiveStructuredSourceModuleCompiler {
       moduleNames,
       moduleNameStart,
       moduleNameLength,
+      classNameStart,
+      classNameLength,
       firstCallable,
       callableCount,
       /* importedTargetCount= */ 0,
@@ -383,13 +308,11 @@ classical class ArchiveStructuredSourceModuleCompiler {
 
   private SourceProductArtifactPlan compileCallableFreeArchiveModule(
     borrow byteview archive,
-    long sourceStart,
-    long sourceLength,
+    long classNameStart,
+    long classNameLength,
     borrow mut bytes artifact,
     borrow mut bytes identity
   ) {
-    ClassNameRange className = sourceClassName(archive, sourceStart, sourceLength);
-    assert(className.valid);
     region empty = new region(/* bytes= */ 140000, /* allocations= */ 9);
     words callables = allocate(empty, /* length= */ 320);
     words parameterCounts = allocate(empty, /* length= */ 64);
@@ -404,8 +327,8 @@ classical class ArchiveStructuredSourceModuleCompiler {
     set(stringStarts, 0, 0);
     set(stringLengths, 0, 8);
     set(stringStarts, 1, 8);
-    set(stringLengths, 1, className.length);
-    long stringBytes = copyRange(archive, className.start, className.length, strings, 8);
+    set(stringLengths, 1, classNameLength);
+    long stringBytes = copyRange(archive, classNameStart, classNameLength, strings, 8);
     SourceProductArtifactPlan result = publishClassicalSourceModuleArtifact(
       /* callableCount= */ 0,
       callables,
@@ -437,7 +360,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     return result;
   }
 
-  /// Publishes an archive module against bound module-name bytes and a closed imported target view.
+  /// Publishes an archive module from bound declaration names and a closed imported target view.
   public SourceProductArtifactPlan compileStructuredArchiveModuleWithTargetView(
     borrow byteview archive,
     long sourceStart,
@@ -446,6 +369,8 @@ classical class ArchiveStructuredSourceModuleCompiler {
     borrow byteview moduleNames,
     long moduleNameStart,
     long moduleNameLength,
+    long classNameStart,
+    long classNameLength,
     long firstCallable,
     long callableCount,
     long importedTargetCount,
@@ -478,16 +403,12 @@ classical class ArchiveStructuredSourceModuleCompiler {
     borrow mut bytes artifact,
     borrow mut bytes identity
   ) {
-    assert(-1 < sourceStart);
-    assert(0 < sourceLength);
-    assert(sourceLength < 32769);
+    requireArchiveSourceNames(
+      archive, sourceStart, sourceLength, moduleNames,
+      moduleNameStart, moduleNameLength, classNameStart, classNameLength
+    );
     assert(-1 < moduleOwner);
     assert(moduleOwner < 512);
-    assert(-1 < moduleNameStart);
-    assert(moduleNameStart < bufferLength(moduleNames) + 1);
-    assert(0 < moduleNameLength);
-    assert(moduleNameLength < 257);
-    assert(moduleNameLength < bufferLength(moduleNames) - moduleNameStart + 1);
     assert(-1 < firstCallable);
     assert(-1 < callableCount);
     assert(callableCount < MAX_CALLABLES + 1);
@@ -511,16 +432,9 @@ classical class ArchiveStructuredSourceModuleCompiler {
     assert(bufferLength(identity) == 32);
     if (callableCount == 0) {
       return compileCallableFreeArchiveModule(
-        archive,
-        sourceStart,
-        sourceLength,
-        artifact,
-        identity
+        archive, classNameStart, classNameLength, artifact, identity
       );
     }
-
-    ClassNameRange className = sourceClassName(archive, sourceStart, sourceLength);
-    assert(className.valid);
     region sourceArena = new region(/* bytes= */ 32768, /* allocations= */ 1);
     bytes sourceBytes = allocateBytes(sourceArena, sourceLength);
     long copiedSourceLength = copyRange(
@@ -576,8 +490,8 @@ classical class ArchiveStructuredSourceModuleCompiler {
     set(stringLengths, 0, 8);
     stringCursor += 8;
     set(stringStarts, 1, stringCursor);
-    set(stringLengths, 1, className.length);
-    stringCursor = copyRange(archive, className.start, className.length, strings, stringCursor);
+    set(stringLengths, 1, classNameLength);
+    stringCursor = copyRange(archive, classNameStart, classNameLength, strings, stringCursor);
 
     long signatureTypeCount = 0;
     long callable = 0;

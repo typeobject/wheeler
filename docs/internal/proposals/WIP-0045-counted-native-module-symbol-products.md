@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, package, bootstrap, and conformance maintainers |
 | Created | 2026-08-08 |
-| Updated | 2026-08-08 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, symbols, module linking, compiler products |
 | Depends on | WIP-0007, WIP-0017, WIP-0028, WIP-0044 |
 | Supersedes | None |
@@ -72,6 +72,8 @@ ModuleProduct {
     first_symbol[module_count]
     symbol_count[module_count]
     imported_public_count[module_count]
+    module_name_range[module_count]
+    class_name_range[module_count]
 
     owner[symbol_count]
     kind[symbol_count]
@@ -83,6 +85,27 @@ ModuleProduct {
 ```
 
 An edge does not own another copy of the symbols. It names a completed dependency module and records the visible product count at the dependent's import rank. External package products require the same representation plus a locked package identity.
+
+## Declaration names
+
+`ModuleSymbols.w` retains the module and class names from its existing lexical
+header pass. Each name has an absolute archive start and a byte length. The four
+512-entry columns share the declaration transaction. Invalid headers, malformed
+constants, and noncanonical column capacities leave every caller name column
+unchanged, including names from earlier modules in the private pass.
+
+Class-name coordinates come from the validated `classical class` prefix. Comments
+and whitespace do not define another class. The source lease may disappear after
+indexing because the immutable archive owns the named bytes. Archive emission
+consumes these facts instead of searching raw source for declaration words.
+The emitter checks that the class range stays inside its owning source and fits
+its existing 256-byte name profile, including callable-free products.
+
+`NativeCompilerDeclarationNamesExampleTest` compares every active and inactive
+name cell, rejects malformed second declarations without publishing the first,
+and checks full VM rewind. Archive-name tests compare complete artifacts and
+reject invalid or first-excess extents before publication. These changes do not
+widen the source-lease or identifier grammar profiles.
 
 ## Symbol identity
 
@@ -188,6 +211,11 @@ The seven-frame executor remains differential conformance evidence until step 9.
 - [x] Reversible value products publish the fixed two-local result-slot width. Void and ordinary value products publish zero.
 - [x] Compiled source-local body products decode their canonical function table and publish exact function count and maximum local-register count.
 - [x] Closure-wide counted function rows publish exact compiled local limits and artifact ranks.
+- [x] Module and class names use lexical archive coordinates, not raw-text rediscovery.
+  All four name columns publish only after complete declaration indexing.
+- [x] Name tests check every active and untouched cell, malformed later modules,
+  exact column capacities, and rewind. Archive tests check callable and
+  callable-free products, the 256-byte name boundary, and source-local extents.
 - [ ] Ambiguity, privacy, type, and unresolved diagnostics carry stable candidate identities.
 - [x] Counted scalar closures compile without a seven-node plan.
 - [x] `compileCallableModuleProductWithImports` compiles imported primitive calls from signature products alone by appending deterministic nonexecuted recursive stubs. Stub generation accepts no dependency-source argument. The retained local prefix excludes stubs and compiler-added entries.

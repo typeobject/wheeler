@@ -21,8 +21,8 @@ classical class CountedModuleSymbols {
   private const long MAX_IMPORTS = 3072;
   private const long MAX_LOCAL_MODULES = 512;
   private const long MAX_SOURCE_BYTES = 32768;
-  private const long SYMBOL_ARENA_BYTES = 2060000;
-  private const long TOKEN_ARENA_BYTES = 98320;
+  private const long SYMBOL_ARENA_BYTES = 2068192;
+  private const long TOKEN_ARENA_BYTES = 98336;
 
   /// Names one scalar constant symbol.
   public const long MODULE_SYMBOL_CONSTANT = 1;
@@ -44,6 +44,8 @@ classical class CountedModuleSymbols {
     borrow mut words moduleSymbolCounts,
     borrow mut words moduleProductNameStarts,
     borrow mut words moduleProductNameLengths,
+    borrow mut words classNameStarts,
+    borrow mut words classNameLengths,
     borrow mut words moduleImportedSymbolCounts,
     borrow mut words edgeSymbolCounts,
     borrow mut words symbolOwners,
@@ -68,6 +70,14 @@ classical class CountedModuleSymbols {
     }
 
     if (bufferLength(moduleProductNameLengths) == MAX_LOCAL_MODULES) {} else {
+      return false;
+    }
+
+    if (bufferLength(classNameStarts) == MAX_LOCAL_MODULES) {} else {
+      return false;
+    }
+
+    if (bufferLength(classNameLengths) == MAX_LOCAL_MODULES) {} else {
       return false;
     }
 
@@ -195,6 +205,7 @@ classical class CountedModuleSymbols {
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
     borrow mut words moduleRange,
+    borrow mut words classRange,
     borrow mut words symbolOwners,
     borrow mut words symbolStarts,
     borrow mut words symbolLengths,
@@ -227,6 +238,9 @@ classical class CountedModuleSymbols {
       return -1;
     }
 
+    long classToken = body + 2;
+    set(classRange, 0, tokenStarts[classToken]);
+    set(classRange, 1, tokenLengths[classToken]);
     long declaration = stateEnd(source, tokenStarts, tokenLengths, body + 4, tokenCount);
     if (-1 < declaration) {} else {
       return -1;
@@ -357,10 +371,10 @@ classical class CountedModuleSymbols {
     return symbolCount;
   }
 
-  /// Stages every source once and publishes compact scalar products after the complete pass.
+  /// Stages each source once, then publishes declaration names and scalar products.
   ///
   /// One edge receives its dependency's public-symbol count only after that dependency has
-  /// completed. Symbol names remain immutable ranges in the validated archive.
+  /// completed. Module, class, and symbol names remain validated immutable archive ranges.
   public CountedModuleSymbolPlan indexCountedModuleSymbols(
     borrow byteview archive,
     borrow byteview manifest,
@@ -376,6 +390,8 @@ classical class CountedModuleSymbols {
     borrow mut words moduleSymbolCounts,
     borrow mut words moduleProductNameStarts,
     borrow mut words moduleProductNameLengths,
+    borrow mut words classNameStarts,
+    borrow mut words classNameLengths,
     borrow mut words moduleImportedSymbolCounts,
     borrow mut words edgeSymbolCounts,
     borrow mut words symbolOwners,
@@ -396,6 +412,8 @@ classical class CountedModuleSymbols {
         moduleSymbolCounts,
         moduleProductNameStarts,
         moduleProductNameLengths,
+        classNameStarts,
+        classNameLengths,
         moduleImportedSymbolCounts,
         edgeSymbolCounts,
         symbolOwners,
@@ -419,11 +437,13 @@ classical class CountedModuleSymbols {
     words activeLengths = allocate(slotArena, ACTIVE_SOURCE_SLOT_COUNT);
     words live = allocate(slotArena, ACTIVE_SOURCE_SLOT_COUNT);
     assert(initializeActiveSourceSlots(storage, owners, generations, activeLengths, live));
-    region symbolArena = new region(/* bytes= */ SYMBOL_ARENA_BYTES, /* allocations= */ 16);
+    region symbolArena = new region(/* bytes= */ SYMBOL_ARENA_BYTES, /* allocations= */ 18);
     words scratchFirstSymbols = allocate(symbolArena, MAX_LOCAL_MODULES);
     words scratchSymbolCounts = allocate(symbolArena, MAX_LOCAL_MODULES);
     words scratchModuleNameStarts = allocate(symbolArena, MAX_LOCAL_MODULES);
     words scratchModuleNameLengths = allocate(symbolArena, MAX_LOCAL_MODULES);
+    words scratchClassNameStarts = allocate(symbolArena, MAX_LOCAL_MODULES);
+    words scratchClassNameLengths = allocate(symbolArena, MAX_LOCAL_MODULES);
     words scratchImportedCounts = allocate(symbolArena, MAX_LOCAL_MODULES);
     words scratchEdgeCounts = allocate(symbolArena, MAX_IMPORTS);
     words scratchOwners = allocate(symbolArena, MAX_CLOSURE_SYMBOLS);
@@ -543,11 +563,12 @@ classical class CountedModuleSymbols {
         )
       );
       utf8 activeSource = freezeUtf8(activeBytes);
-      region tokenArena = new region(/* bytes= */ TOKEN_ARENA_BYTES, /* allocations= */ 4);
+      region tokenArena = new region(/* bytes= */ TOKEN_ARENA_BYTES, /* allocations= */ 5);
       words tokenKinds = allocate(tokenArena, MAX_COMPILER_TOKENS);
       words tokenStarts = allocate(tokenArena, MAX_COMPILER_TOKENS);
       words tokenLengths = allocate(tokenArena, MAX_COMPILER_TOKENS);
       words moduleRange = allocate(tokenArena, 2);
+      words classRange = allocate(tokenArena, 2);
       set(scratchFirstSymbols, module, symbolCount);
       long localSymbols = indexModuleConstants(
         archive,
@@ -560,6 +581,7 @@ classical class CountedModuleSymbols {
         tokenStarts,
         tokenLengths,
         moduleRange,
+        classRange,
         scratchOwners,
         scratchStarts,
         scratchLengths,
@@ -572,6 +594,8 @@ classical class CountedModuleSymbols {
       requireMetadata(-1 < localSymbols);
       set(scratchModuleNameStarts, module, sourceStart + moduleRange[0]);
       set(scratchModuleNameLengths, module, moduleRange[1]);
+      set(scratchClassNameStarts, module, sourceStart + classRange[0]);
+      set(scratchClassNameLengths, module, classRange[1]);
       symbolCount += localSymbols;
       requireMetadata(symbolCount < MAX_CLOSURE_SYMBOLS + 1);
       set(scratchSymbolCounts, module, localSymbols);
@@ -581,6 +605,7 @@ classical class CountedModuleSymbols {
       requireMetadata(
         releaseActiveSource(selected, storage, owners, generations, activeLengths, live)
       );
+      drop(classRange);
       drop(moduleRange);
       drop(tokenLengths);
       drop(tokenStarts);
@@ -598,6 +623,8 @@ classical class CountedModuleSymbols {
       set(moduleSymbolCounts, publishedModule, scratchSymbolCounts[publishedModule]);
       set(moduleProductNameStarts, publishedModule, scratchModuleNameStarts[publishedModule]);
       set(moduleProductNameLengths, publishedModule, scratchModuleNameLengths[publishedModule]);
+      set(classNameStarts, publishedModule, scratchClassNameStarts[publishedModule]);
+      set(classNameLengths, publishedModule, scratchClassNameLengths[publishedModule]);
       set(moduleImportedSymbolCounts, publishedModule, scratchImportedCounts[publishedModule]);
       publishedModule += 1;
     }
@@ -639,6 +666,8 @@ classical class CountedModuleSymbols {
     drop(scratchOwners);
     drop(scratchEdgeCounts);
     drop(scratchImportedCounts);
+    drop(scratchClassNameLengths);
+    drop(scratchClassNameStarts);
     drop(scratchModuleNameLengths);
     drop(scratchModuleNameStarts);
     drop(scratchSymbolCounts);

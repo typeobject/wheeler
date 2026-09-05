@@ -1,5 +1,7 @@
 package com.typeobject.wheeler.examples;
 
+import java.nio.charset.StandardCharsets;
+
 /** Balanced source-range helpers for native compiler fixtures. */
 final class SourceRanges {
   private SourceRanges() {}
@@ -14,6 +16,15 @@ final class SourceRanges {
       }
     }
     throw new IllegalArgumentException("unclosed source range");
+  }
+
+  static int utf8Offset(String source, int charOffset) {
+    return source.substring(0, charOffset).getBytes(StandardCharsets.UTF_8).length;
+  }
+
+  static int utf8Length(String source, int charOffset, int charLength) {
+    return source.substring(charOffset, charOffset + charLength)
+        .getBytes(StandardCharsets.UTF_8).length;
   }
 
   static long unsigned(byte[] bytes, int offset, int width) {

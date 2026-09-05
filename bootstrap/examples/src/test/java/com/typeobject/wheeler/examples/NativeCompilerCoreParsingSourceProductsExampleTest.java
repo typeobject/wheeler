@@ -23,7 +23,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
   void derivesBothCallableStatementBlockLoopAndValueWindows() throws Exception {
     String source = CompilerSources.read(SOURCE_PATH);
     Program compiledProgram = NativeCompilerCoreParsingSourceProductsProgram.program(source);
-    VirtualMachine machine = new VirtualMachine(
+    VirtualMachine machine = VirtualMachine.withBinaryInput(
         compiledProgram, source.getBytes(StandardCharsets.UTF_8), 262_144);
     CompilerMachineRunner.runWithoutRewindHistory(machine);
     assertEquals(1, machine.global("blockValid"));

@@ -207,7 +207,7 @@ final class NativeCompilerArchiveClosureProgram {
               cursor += 1;
             }
 
-            region columns = new region(/* bytes= */ 6693928, /* allocations= */ 99);
+            region columns = new region(/* bytes= */ 6702120, /* allocations= */ 101);
             words archivePathStarts = allocate(columns, MAX_ARCHIVE_ENTRIES);
             words archivePathLengths = allocate(columns, MAX_ARCHIVE_ENTRIES);
             words archiveDataStarts = allocate(columns, MAX_ARCHIVE_ENTRIES);
@@ -237,6 +237,8 @@ final class NativeCompilerArchiveClosureProgram {
             words moduleSymbolCounts = allocate(columns, MAX_MODULES);
             words moduleProductNameStarts = allocate(columns, MAX_MODULES);
             words moduleProductNameLengths = allocate(columns, MAX_MODULES);
+            words classNameStarts = allocate(columns, MAX_MODULES);
+            words classNameLengths = allocate(columns, MAX_MODULES);
             words moduleImportedSymbolCounts = allocate(columns, MAX_MODULES);
             words edgeSymbolCounts = allocate(columns, MAX_IMPORTS);
             words symbolOwners = allocate(columns, MAX_SYMBOLS);
@@ -397,6 +399,8 @@ final class NativeCompilerArchiveClosureProgram {
                   moduleSymbolCounts,
                   moduleProductNameStarts,
                   moduleProductNameLengths,
+                  classNameStarts,
+                  classNameLengths,
                   moduleImportedSymbolCounts,
                   edgeSymbolCounts,
                   symbolOwners,
@@ -890,6 +894,8 @@ final class NativeCompilerArchiveClosureProgram {
             drop(symbolOwners);
             drop(edgeSymbolCounts);
             drop(moduleImportedSymbolCounts);
+            drop(classNameLengths);
+            drop(classNameStarts);
             drop(moduleProductNameLengths);
             drop(moduleProductNameStarts);
             drop(moduleSymbolCounts);

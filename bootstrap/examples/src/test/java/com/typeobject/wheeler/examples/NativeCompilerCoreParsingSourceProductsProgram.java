@@ -12,10 +12,16 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
   static Program program(String source) throws Exception {
     String module = "wheeler.compiler.core_parsing";
     int moduleStart = source.indexOf(module + ";");
-    return program(source, moduleStart, module.length());
+    return program(source, SourceRanges.utf8Offset(source, moduleStart), module.length());
   }
 
   static Program program(String source, long moduleStart, long moduleLength) throws Exception {
+    return program(source, moduleStart, moduleLength,
+        SourceRanges.utf8Offset(source, source.indexOf("CoreParsing")), 11);
+  }
+
+  static Program program(String source, long moduleStart, long moduleLength,
+      long classStart, long classLength) throws Exception {
     int firstName = source.indexOf("compactCompilerTokens(");
     int secondName = source.indexOf("discardLeadingTokens(");
     int firstBody = source.indexOf("{", firstName);
@@ -128,8 +134,8 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
           state long firstLoopOwner = 0;
           state long secondLoopOwner = 0;
 
-          entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 21801536, /* allocations= */ 68);
+          entry void main(borrow byteview rawInput, borrow mut bytes output) {
+            region products = new region(/* bytes= */ 21834304, /* allocations= */ 69);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -185,6 +191,14 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             bytes archiveArtifact = allocateBytes(archivePublication, /* length= */ 32768);
             bytes archiveIdentity = allocateBytes(archivePublication, /* length= */ 32);
             bytes binarySource = allocateBytes(products, /* length= */ 32768);
+            bytes sourceBytes = allocateBytes(products, bufferLength(rawInput));
+            long sourceByte = 0;
+            while (sourceByte < bufferLength(rawInput)) limit 32768 {
+              setByte(binarySource, sourceByte, rawInput[sourceByte]);
+              setByte(sourceBytes, sourceByte, rawInput[sourceByte]);
+              sourceByte += 1;
+            }
+            utf8 input = freezeUtf8(sourceBytes);
             words importedRows = allocate(products, /* length= */ 114689);
             words importedNameStarts = allocate(products, /* length= */ 16384);
             words globalFirstParameters = allocate(products, /* length= */ 4096);
@@ -559,12 +573,6 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
 
               structuredArtifactValid = 1;
             }
-            long sourceByte = 0;
-            while (sourceByte < bufferLength(input)) limit 32768 {
-              setByte(binarySource, sourceByte, utf8Scalar(input, sourceByte));
-              sourceByte += 1;
-            }
-
             set(importedRows, 0, 1);
             set(importedRows, 1, %d);
             set(importedRows, 2, 19);
@@ -605,6 +613,8 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
               binarySource,
               MODULE_NAME_START,
               MODULE_NAME_LENGTH,
+              CLASS_NAME_START,
+              CLASS_NAME_LENGTH,
               /* firstCallable= */ 0,
               /* callableCount= */ 2,
               bodyStarts,
@@ -766,6 +776,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             drop(globalFirstParameters);
             drop(importedNameStarts);
             drop(importedRows);
+            drop(input);
             drop(binarySource);
             drop(archiveIdentity);
             drop(archiveArtifact);
@@ -811,17 +822,23 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
           }
         }
         """.formatted(
-            firstBody,
-            firstLength,
-            secondBody,
-            secondLength,
-            limitName,
-            limitName,
-            limitName,
-            firstName,
-            secondName)
-        .replace("MODULE_NAME_START", Long.toString(moduleStart))
-        .replace("MODULE_NAME_LENGTH", Long.toString(moduleLength)));
+            SourceRanges.utf8Offset(source, firstBody),
+            SourceRanges.utf8Length(source, firstBody, firstLength),
+            SourceRanges.utf8Offset(source, secondBody),
+            SourceRanges.utf8Length(source, secondBody, secondLength),
+            SourceRanges.utf8Offset(source, limitName),
+            SourceRanges.utf8Offset(source, limitName),
+            SourceRanges.utf8Offset(source, limitName),
+            SourceRanges.utf8Offset(source, firstName),
+            SourceRanges.utf8Offset(source, secondName))
+        .replace("MODULE_NAME_START", word(moduleStart))
+        .replace("MODULE_NAME_LENGTH", word(moduleLength))
+        .replace("CLASS_NAME_START", word(classStart))
+        .replace("CLASS_NAME_LENGTH", word(classLength)));
     return new WheelerCompiler().compileModuleFiles(sources, "example.core_parsing_source_products");
+  }
+
+  private static String word(long value) {
+    return value == Long.MIN_VALUE ? "(-9223372036854775807 - 1)" : Long.toString(value);
   }
 }

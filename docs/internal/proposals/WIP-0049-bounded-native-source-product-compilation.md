@@ -244,16 +244,22 @@ inverse lowering. Complete parser integration also remains open.
 
 ### Archive name products
 
-Archive emission consumes the module-name window already bound by declaration
-products. The raw `module ` scan and its range carrier are gone. Local and
-imported call paths use the same closed name bytes. Comments and header
-whitespace cannot supply another module identity. Invalid name extents reject
-before artifact or identity publication. `NativeCompilerArchiveModuleNamesExampleTest`
-checks complete artifact bytes and every rejected output cell.
+Archive emission consumes module and class names from the declaration pass's
+lexical archive ranges. The raw declaration scans and their range carriers are
+gone. Local, imported, and callable-free paths use the same closed name facts.
+The emitter validates source-local class extents and the existing 256-byte name
+bound before artifact or identity publication. Comments and header whitespace
+do not supply another declaration identity.
 
-Class-name discovery and imported-value use discovery still search raw source.
-Replacing those searches with lexical products remains part of this contract.
-They are not evidence of complete source-independent naming.
+`NativeCompilerArchiveNamesExampleTest` compares complete artifacts and every
+rejected output cell. `NativeCompilerEmptyArchiveNamesExampleTest` covers both
+callable-free paths, foreign source ranges, and the last admitted and first
+excess class-name lengths. The CoreParsing fixture now accepts binary input and
+copies exact bytes before freezing its UTF-8 source. UTF-8 comment coordinates
+there do not widen the counted source lease's separate ASCII profile.
+
+Imported-value use discovery still searches raw source. Replacing that search
+with lexical products remains part of this contract.
 
 ## Acceptance
 

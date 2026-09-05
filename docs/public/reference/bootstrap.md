@@ -63,9 +63,10 @@ remain valid for nonmodular targets. Present empty lists reject. Complete target
 parsing, the remaining collection loops, and other compiler modules still need
 physical product integration.
 
-Archive emission takes module-name ranges from declaration products. It does not
-infer module identity from words in comments or string literals. Class-name and
-imported-value use discovery still need lexical-product integration.
+Archive emission takes module and class names from lexical declaration products.
+It checks class-name extents inside the owning source before publishing callable
+or callable-free artifacts. Comments do not define another declaration identity.
+Imported-value use discovery still needs lexical-product integration.
 
 The evidence tests derive their graph and archive from checked-in source.
 Comparable products match stage 0 byte for byte. Every selected imported-call

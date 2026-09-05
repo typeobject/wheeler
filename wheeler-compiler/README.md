@@ -59,8 +59,9 @@ special-case source topologies:
    direct-import values. Callable products retain exact signatures, body ranges,
    effects, parameter types, and loan modes without keeping dependency source.
 6. Structured compilation lowers selected source bodies into canonical module
-   artifacts. Archive emission consumes the already bound module-name range.
-   Comments and header whitespace cannot replace that identity.
+   artifacts. Archive emission consumes lexical module and class-name ranges
+   from declaration products. Comments do not define another declaration identity.
+   Callable-free products use the same checked source-local class-name ranges.
 7. The linker resolves stable callable and aggregate identities, rebases code
    and type windows, deduplicates strings, and emits a verified canonical
    container before publishing its identity.
@@ -177,12 +178,16 @@ Run commands from the repository root with the supported JDK on `PATH`.
 ```sh
 ./bootstrap/gradlew -p bootstrap :examples:test \
   --tests '*NativeCompilerPackageManifestSourceCollectionExampleTest' \
-  --tests '*NativeCompilerArchiveModuleNamesExampleTest' \
+  --tests '*NativeCompilerArchiveNamesExampleTest' \
+  --tests '*NativeCompilerDeclarationNamesExampleTest' \
+  --tests '*NativeCompilerEmptyArchiveNamesExampleTest' \
   --tests '*NativeManifestExampleTest' --no-daemon
 ```
 
 These focused tests exercise exact row cells, rejected publication, diagnostics,
-capacity boundaries, rewind, and bound archive names. The combined physical test
+capacity boundaries, rewind, and bound archive names. Name tests check complete
+callable and callable-free artifacts, untouched declaration columns, and rejected
+name ranges without an archive traversal. The combined physical test
 also compares the complete coordinate artifact and relocated collection/tail
 bodies against independent stage-0 compilation:
 
