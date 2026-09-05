@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-04 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, source selectors |
 | Depends on | WIP-0467, WIP-0485, WIP-0487 |
 | Supersedes | Aggregate-parser coverage projection and accumulation |
@@ -13,7 +13,10 @@
 
 ## Summary
 
-Move source-selector root-coverage composition behind the retained collection boundary. The aggregate parser now passes selector, root, and accumulated state to one function. It no longer imports scalar source policy directly.
+Move root-coverage composition behind the retained collection boundary.
+`manifestTargetSourceCoverage` joins the selector, root, and accumulated verdict.
+WIP-0049 now calls it privately from complete source-list traversal. The aggregate
+parser carries neither coverage state nor a direct source-policy import.
 
 ## Contract
 

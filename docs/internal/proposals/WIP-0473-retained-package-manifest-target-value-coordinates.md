@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-02 |
-| Updated | 2026-09-02 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, target rows |
 | Depends on | WIP-0049, WIP-0444, WIP-0463, WIP-0471 |
 | Supersedes | Inline target name, root, and module range arithmetic in `PackageManifest.w` |
@@ -27,7 +27,12 @@ The existing call-free target-coordinate product gains two functions and stays i
 
 ## Evidence
 
-`NativeCompilerPackageManifestTargetCoordinatesPhysicalProductExampleTest` compares the twelve-function retained library with stage 0 and executes token and value projections against caller-owned word tables. `NativeManifestExampleTest` executes modular and nonmodular target publication through the completed owner.
+`NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest`
+now compares the complete coordinate artifact in the combined target pass.
+`NativeCompilerPackageManifestCoordinatesExampleTest` executes its token and
+value projections against caller-owned tables. `NativeManifestExampleTest`
+executes modular and nonmodular publication. The receipts below record the
+twelve-function milestone.
 
 The selected set contains 112 comparable products and 42 callable products. It retains 134 non-empty module products, 472 functions, and 16,324 forward-plus-inverse instructions. The linked closure contains 389,008 code bytes, 13,021 local-type rows, 780 source strings, and 627 unique strings. Its 497,512-byte executable has SHA-256 `c8a3edc93bcdee19c824e12506b05ce3d95f0f1c70931597414f1ac04320ac30`.
 

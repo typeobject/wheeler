@@ -7,35 +7,87 @@ import wheeler.compiler.packages.manifest_target_coordinates;
 import wheeler.compiler.packages.manifest_target_source;
 import wheeler.compiler.packages.manifest_target_source_coordinates;
 import wheeler.compiler.packages.manifest_target_source_row;
+import wheeler.compiler.packages.manifest_tokens;
 
 classical class PackageManifestTargetSourceCollection {
-  /// Returns the following row token, or a negative value at the collection tail.
-  public long manifestTargetSourceFollowingRow(
+  /// Publishes a nonempty, ordered, root-covering source list after a validated module head.
+  /// Returns the next source-row index, or minus one without committing a count.
+  /// Admitted rows remain on rejection. The caller still validates the target tail.
+  public long manifestTargetSourceCollectionProduct(
     borrow utf8 source,
     borrow mut words kinds,
     borrow mut words starts,
     borrow mut words lengths,
     long count,
-    long rowToken
+    long targetCursor,
+    borrow mut words sourceRows,
+    long sourceOffset
   ) {
-    boolean valid = manifestTargetSourceRowValid(
-      source,
-      kinds,
-      starts,
-      lengths,
-      count,
-      rowToken
-    );
+    long next = manifestTargetFirstSourceRowToken(targetCursor);
+    long rootToken = manifestTargetRootToken(targetCursor);
+    long sourceIndex = sourceOffset;
+    long sourceCount = 0;
+    boolean rootCovered = false;
+    boolean valid = true;
+    // One terminal probe follows at most 1,024 published selectors.
+    while (next < count) limit 1025 {
+      long destination = sourceIndex;
+      if (sourceCount == 1024) {
+        // A negative row disables publication but still allows the terminal probe.
+        destination = -1;
+      }
+      long selectorToken = manifestTargetSourceEntryProduct(
+        source, kinds, starts, lengths, count, next, sourceRows, destination
+      );
+      boolean admitted = true;
+      if (selectorToken < 1) {
+        admitted = false;
+        next = count;
+      }
+      if (selectorToken < 0) {
+        valid = false;
+      }
+      if (admitted) {
+        boolean covered = manifestTargetSourceCoverage(
+          source, starts, lengths, selectorToken, rootToken, rootCovered
+        );
+        rootCovered = covered;
+        sourceIndex += 1;
+        sourceCount += 1;
+        long following = manifestTargetNextSourceRowToken(next);
+        next = following;
+      }
+    }
+
+    long result = completedSourceCount(sourceIndex, sourceCount, rootCovered, valid);
+    return result;
+  }
+
+  private long completedSourceCount(long next, long count, boolean covered, boolean valid) {
     if (valid == false) {
       return -1;
     }
-
-    long next = manifestTargetNextSourceRowToken(rowToken);
+    if (count == 0) {
+      return -1;
+    }
+    if (covered == false) {
+      return -1;
+    }
     return next;
   }
 
+  /// The first row follows the sources colon. Later rows follow a quoted selector.
+  private long previousSelectorToken(borrow mut words kinds, long rowToken) {
+    long previous = rowToken - 1;
+    long kind = kinds[previous];
+    if (kind == 6) {
+      return previous;
+    }
+    return -1;
+  }
+
   /// Accepts a first selector or checks strict order after its predecessor.
-  public boolean manifestTargetSourceFollows(
+  private boolean manifestTargetSourceFollows(
     borrow utf8 source,
     borrow mut words starts,
     borrow mut words lengths,
@@ -57,7 +109,7 @@ classical class PackageManifestTargetSourceCollection {
   }
 
   /// Preserves earlier root coverage or admits current coverage.
-  public boolean manifestTargetSourceRootCovered(boolean covered, boolean current) {
+  private boolean manifestTargetSourceRootCovered(boolean covered, boolean current) {
     if (covered == true) {
       return true;
     }
@@ -65,7 +117,7 @@ classical class PackageManifestTargetSourceCollection {
   }
 
   /// Updates root coverage from one admitted selector.
-  public boolean manifestTargetSourceCoverage(
+  private boolean manifestTargetSourceCoverage(
     borrow utf8 source,
     borrow mut words starts,
     borrow mut words lengths,
@@ -84,37 +136,32 @@ classical class PackageManifestTargetSourceCollection {
     return result;
   }
 
-  /// Checks that a present source list is nonempty and covers the root.
-  public boolean manifestTargetSourceCollectionComplete(
-    boolean present,
-    long count,
-    boolean rootCovered
-  ) {
-    if (present == false) {
-      return true;
-    }
-    if (count == 0) {
-      return false;
-    }
-    return rootCovered;
-  }
-
-  /// Admits and publishes one source entry, then returns its selector token.
-  public long manifestTargetSourceEntryProduct(
+  /// Returns a published selector, zero at a non-row tail, or minus one on rejection.
+  private long manifestTargetSourceEntryProduct(
     borrow utf8 source,
+    borrow mut words kinds,
     borrow mut words starts,
     borrow mut words lengths,
+    long count,
     long rowToken,
     borrow mut words sourceRows,
-    long sourceIndex,
-    long previousToken
+    long sourceIndex
   ) {
+    boolean rowPresent = dashAt(source, kinds, starts, rowToken);
+    if (rowPresent == false) {
+      return 0;
+    }
+    boolean valid = manifestTargetSourceRowValid(source, kinds, starts, lengths, count, rowToken);
+    if (valid == false) {
+      return -1;
+    }
     long selectorToken = manifestTargetSelectorToken(rowToken);
     boolean capacity = manifestSourceRowCapacity(sourceRows, sourceIndex);
     if (capacity == false) {
       return -1;
     }
 
+    long previousToken = previousSelectorToken(kinds, rowToken);
     boolean ordered = manifestTargetSourceFollows(
       source,
       starts,

@@ -12,6 +12,8 @@ classical class NativeManifest {
   state long profileLength = 0;
   state long versionLength = 0;
   state long targetCount = 0;
+  state long targetCellsWritten = 0;
+  state long sourceCellsWritten = 0;
   state long targetSourceCount = 0;
   state long dependencyCount = 0;
   state long dependencyCellsWritten = 0;
@@ -73,6 +75,8 @@ classical class NativeManifest {
       dependencyRows,
       capabilityRows
     );
+    targetCellsWritten = writtenCells(targetRows, 80);
+    sourceCellsWritten = writtenCells(sourceRows, 64);
     firstDependencyKind = dependencyRows[0];
     dependencyCellsWritten = writtenCells(dependencyRows, 40);
     capabilityCellsWritten = writtenCells(capabilityRows, 32);

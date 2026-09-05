@@ -108,7 +108,6 @@ classical class Manifest {
     if (0 < kind) {
       long moduleToken = -1;
       long sourceCount = 0;
-      boolean rootCovered = false;
       long moduleKeyToken = manifestTargetModuleKeyToken(cursor);
       long next = moduleKeyToken;
       if (manifestTargetModulePresent(source, kinds, starts, lengths, count, moduleKeyToken)) {
@@ -127,57 +126,24 @@ classical class Manifest {
           return invalid;
         }
 
-        next = manifestTargetFirstSourceRowToken(cursor);
-        long previousSourceToken = -1;
-        boolean scanning = true;
-        while (scanning) limit 1024 {
-          long followingSource = manifestTargetSourceFollowingRow(
-            source,
-            kinds,
-            starts,
-            lengths,
-            count,
-            next
-          );
-          if (-1 < followingSource) {
-            long selectorToken = manifestTargetSourceEntryProduct(
-              source,
-              starts,
-              lengths,
-              next,
-              sourceRows,
-              sourceOffset + sourceCount,
-              previousSourceToken
-            );
-            if (selectorToken < 0) {
-              return invalid;
-            }
-
-            rootCovered = manifestTargetSourceCoverage(
-              source,
-              starts,
-              lengths,
-              selectorToken,
-              rootToken,
-              rootCovered
-            );
-
-            sourceCount += 1;
-            previousSourceToken = selectorToken;
-            next = followingSource;
-          } else {
-            scanning = false;
-          }
+        long nextSourceRow = manifestTargetSourceCollectionProduct(
+          source,
+          kinds,
+          starts,
+          lengths,
+          count,
+          cursor,
+          sourceRows,
+          sourceOffset
+        );
+        if (nextSourceRow < 0) {
+          return invalid;
         }
 
+        sourceCount = nextSourceRow - sourceOffset;
+        next = manifestTargetSourceTailToken(cursor, sourceCount);
       }
 
-      boolean sourcesPresent = -1 < moduleToken;
-      boolean sourceCollectionComplete = manifestTargetSourceCollectionComplete(
-        sourcesPresent,
-        sourceCount,
-        rootCovered
-      );
       long test = manifestTargetTestValue(
         source,
         kinds,
@@ -185,8 +151,7 @@ classical class Manifest {
         lengths,
         count,
         kind,
-        next,
-        sourceCollectionComplete
+        next
       );
       if (-1 < test) {
         return new TargetParse(

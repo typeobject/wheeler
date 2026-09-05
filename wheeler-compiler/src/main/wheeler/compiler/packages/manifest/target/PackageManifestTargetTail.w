@@ -7,7 +7,7 @@ import wheeler.compiler.packages.manifest_target_coordinates;
 import wheeler.compiler.packages.manifest_target_test;
 
 classical class PackageManifestTargetTail {
-  /// Returns the test Boolean when the source collection and required tail are valid.
+  /// Returns the test Boolean for a valid required tail and target kind.
   public long manifestTargetTestValue(
     borrow utf8 source,
     borrow mut words kinds,
@@ -15,13 +15,8 @@ classical class PackageManifestTargetTail {
     borrow mut words lengths,
     long count,
     long kind,
-    long keyToken,
-    boolean sourceCollectionComplete
+    long keyToken
   ) {
-    if (sourceCollectionComplete == false) {
-      return -1;
-    }
-
     boolean present = manifestTargetTestPresent(
       source,
       kinds,

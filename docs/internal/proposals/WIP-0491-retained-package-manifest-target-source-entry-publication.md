@@ -5,15 +5,20 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-04 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, source selectors |
 | Depends on | WIP-0468, WIP-0487, WIP-0490 |
 | Supersedes | Aggregate-parser source-row publication |
 | Superseded by | None |
+| Follow-up | WIP-0049 source-list traversal and count commits |
 
 ## Summary
 
-Publish admitted source-selector rows inside the retained collection owner. `manifestTargetSourceEntryProduct` now performs capacity and order checks, projects the selector range, writes both row columns, and returns the admitted selector token. The aggregate parser retains traversal counters but no longer imports source-coordinate policy or mutates source rows.
+Publish admitted selectors inside the retained collection owner.
+`manifestTargetSourceEntryProduct` checks capacity and order, projects the range,
+and writes both columns before returning its token. WIP-0049 now keeps that entry
+private, derives its predecessor from consecutive token rows, and owns complete
+source-list traversal. The aggregate parser no longer carries source-loop state.
 
 ## Contract
 
@@ -28,13 +33,18 @@ Entry publication is ordered:
 
 No row byte changes before capacity and ordering succeed. The first selector remains predecessor-free. The second column uses a named adjacent-index local, keeping the mutation inside the exact direct root word-write profile established by WIP-0490.
 
-The parser increments `sourceCount` only after a nonnegative retained result. A rejected product therefore cannot expose a partial count or continue into coverage composition.
+The collection increments its private count only after a positive selector
+result. Rejection cannot advance that count or continue into coverage composition.
+The parser commits the returned count only after complete list admission.
 
 ## Physical evidence
 
 `NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest` compiles all five collection functions from the canonical archive and compares their complete function and instruction prefixes with stage 0. Six imported-call relocations resolve exactly: selector-token projection, row capacity, strict ordering, root-range coverage, selector start, and selector length. Both word mutations are owner-local instructions.
 
-`NativeManifestExampleTest` compares every published target and source row with stage 0 for modular and nonmodular targets. It retains first and later selectors while rejecting explicit empty, malformed, duplicate, reversed, and non-covering source collections.
+`NativeCompilerPackageManifestSourceCollectionExampleTest` compares every source
+table cell. `NativeManifestExampleTest` checks round trips, exact failure offsets,
+and admitted prefixes for modular and nonmodular targets. Empty, malformed,
+duplicate, reversed, and non-covering collections remain rejected.
 
 The physical set remains 112 comparable products and 51 callable products. A fresh closure run retained 143 non-empty module products, 486 functions, and 16,873 forward-plus-inverse instructions. The linked closure contains 402,392 code bytes, 13,572 local-type rows, 812 source strings, and 650 unique strings. Its 515,136-byte executable has SHA-256 `81bd0cb1335a2964d3cb6e1295a109145b173ccb569b57c7ab929fc46afed525`. The closure checksum is `2_176_650_417L`.
 

@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-03 |
-| Updated | 2026-09-03 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, source selectors |
 | Depends on | WIP-0483, WIP-0484, WIP-0485 |
 | Supersedes | Split source-sequence owner and inline collection completion |
 | Superseded by | None |
+| Follow-up | WIP-0049 complete source-list composition |
 
 ## Summary
 
@@ -19,13 +20,22 @@ Give the target source collection one retained owner. Sequence admission, existe
 
 A target without a module has no source collection and passes collection completion. A modular target has a present collection and must publish at least one source row whose selector covers the target root. Strict adjacent ordering remains independent of coverage: every row must follow its predecessor even after root coverage becomes true.
 
-`manifestTargetSourceCollectionComplete` receives the presence bit, published row count, and accumulated coverage verdict. Absence returns true. Presence with zero rows returns false. Every other present collection returns its coverage verdict.
+This stage exposed `manifestTargetSourceCollectionComplete` to join the presence,
+count, and coverage verdicts. WIP-0049 now performs that check inside complete
+source-list traversal. The separate verdict function is gone. Nonmodular targets
+bypass the collection product rather than passing an absence flag.
 
-The aggregate parser owns token traversal and row mutation. It calls collection completion after scanning and before target-tail parsing. A failure returns the unchanged invalid target product.
+`manifestTargetSourceCollectionProduct` owns traversal and source-row mutation.
+It returns a count only for a nonempty, ordered, root-covering list. Admitted
+prefixes remain on failure without publishing the target row.
 
 ## Physical evidence
 
-`NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest` compiles all three collection functions from the canonical archive and compares complete stage-0 products. The one imported-call relocation remains the strict-order call into source-selector policy. Coverage accumulation and collection completion are owner-local.
+The original three-function pass resolved one imported ordering call.
+`NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest`
+now compares complete collection and tail bodies after relocation, plus the
+complete target-coordinate artifact. The identities below record the original
+ownership milestone.
 
 `NativeManifestExampleTest` accepts an absent collection on a nonmodular target, preserves first-row coverage, accepts later-row coverage, and rejects a present empty collection. Reversed selectors and complete non-coverage still trap before target publication.
 
@@ -64,7 +74,8 @@ The grammar distinguishes an omitted optional collection from an explicitly pres
 
 ### Move row mutation into scalar policy
 
-Collection policy decides admission. The aggregate parser still owns caller-provided columns and publishes only after every row verdict succeeds.
+That separation bounded this stage. WIP-0491 moved row mutation into the retained
+entry, and WIP-0049 moved traversal and count commits into the collection owner.
 
 ## References
 

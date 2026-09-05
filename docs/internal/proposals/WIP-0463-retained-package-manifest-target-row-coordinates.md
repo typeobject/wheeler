@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-01 |
-| Updated | 2026-09-01 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, target rows |
 | Depends on | WIP-0049, WIP-0462 |
 | Supersedes | Inline module, selector, and test coordinates in `PackageManifest.w` |
@@ -31,7 +31,11 @@ Fixed fields take the target cursor. Repeated source rows take the current row c
 
 ## Evidence
 
-`NativeCompilerPackageManifestTargetCoordinatesPhysicalProductExampleTest` executes all ten projections. Its closure-evidence case compiles the enlarged owner from the canonical archive and compares the emitted library byte for byte with stage 0. Complete manifest and archive tests continue to exercise modular, nonmodular, malformed, ordered, and root-covering target rows.
+`NativeCompilerPackageManifestCoordinatesExampleTest` executes the token and
+value projections. `NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest`
+compares the coordinate artifact byte for byte in the combined target pass.
+Manifest tests retain modular, nonmodular, malformed, ordered, and root-covering
+rows. The identities below describe the ten-projection milestone.
 
 The selected set remains 109 comparable products and 39 callable products. It retains 128 non-empty module products, 446 functions, and 15,941 forward-plus-inverse instructions. The linked closure contains 379,496 code bytes, 12,565 local-type rows, 742 source strings, and 595 unique strings. Its 482,688-byte executable has SHA-256 `48029988769a1fee26f5e085e15f08d884cab31d0f3b2515a776b1871fe9b4d2`.
 

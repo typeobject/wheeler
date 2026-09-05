@@ -22,19 +22,7 @@ final class NativeCompilerCoreParsingSourceProductsExampleTest {
   @Test
   void derivesBothCallableStatementBlockLoopAndValueWindows() throws Exception {
     String source = CompilerSources.read(SOURCE_PATH);
-    int firstBody = source.indexOf("{", source.indexOf("compactCompilerTokens("));
-    int secondBody = source.indexOf("{", source.indexOf("discardLeadingTokens("));
-    int limitName = source.indexOf("limit MAX_COMPILER_TOKENS") + "limit ".length();
-    int firstName = source.indexOf("compactCompilerTokens(");
-    int secondName = source.indexOf("discardLeadingTokens(");
-    Program compiledProgram = NativeCompilerCoreParsingSourceProductsProgram.program(
-        firstBody,
-        SourceRanges.matchingClose(source, firstBody) - firstBody + 1,
-        secondBody,
-        SourceRanges.matchingClose(source, secondBody) - secondBody + 1,
-        limitName,
-        firstName,
-        secondName);
+    Program compiledProgram = NativeCompilerCoreParsingSourceProductsProgram.program(source);
     VirtualMachine machine = new VirtualMachine(
         compiledProgram, source.getBytes(StandardCharsets.UTF_8), 262_144);
     CompilerMachineRunner.runWithoutRewindHistory(machine);

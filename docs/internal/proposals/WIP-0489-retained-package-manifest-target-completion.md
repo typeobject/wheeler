@@ -5,17 +5,22 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-04 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, targets |
 | Depends on | WIP-0481, WIP-0486, WIP-0488 |
 | Supersedes | Aggregate-parser target completion branch |
 | Superseded by | None |
+| Follow-up | WIP-0049 collection-owned completion |
 
 ## Summary
 
-Make the retained target-tail product consume the source-collection verdict. The aggregate parser now computes the verdict and passes it to target completion. It no longer owns the branch between source traversal and the required test tail.
+This stage made the target tail consume a source-collection verdict. WIP-0049
+now completes traversal inside the collection owner. A failed list returns
+before tail parsing, so the redundant Boolean argument and verdict carrier are
+gone. The required ordering remains: finish the source list before reading the
+test field.
 
-## Contract
+## Original contract
 
 `manifestTargetTestValue` accepts `sourceCollectionComplete` as its eighth and final argument. A false verdict returns the negative invalid marker before probing the test key, token, Boolean value, or target-kind policy. A true verdict admits the existing required-tail checks unchanged.
 
@@ -23,7 +28,10 @@ The caller returns a target only when the resulting test value is nonnegative. N
 
 ## Physical evidence
 
-`NativeCompilerPackageManifestTargetTailPhysicalProductExampleTest` compiles the complete target-tail owner from the canonical archive and compares its full function and instruction prefixes with stage 0. Its four imported-call relocations still resolve exactly. The new completion gate is owner-local and precedes every imported call.
+The original tail pass resolved four imported calls.
+`NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest`
+now compares complete collection and tail bodies after relocation in one pass.
+The receipts below describe the earlier completion-argument stage.
 
 `NativeManifestExampleTest` executes modular and nonmodular success paths. Its malformed portfolio rejects an explicit empty source list and a source list without root coverage through the completion gate. Existing malformed and disallowed test-tail cases remain rejected.
 

@@ -5,17 +5,22 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-04 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, source selectors |
 | Depends on | WIP-0483, WIP-0486, WIP-0491 |
 | Supersedes | Aggregate-parser source-row recognition and stride |
 | Superseded by | None |
+| Follow-up | WIP-0049 complete source-list traversal |
 
 ## Summary
 
-Move source-row recognition and cursor advancement behind the retained collection boundary. The aggregate parser now asks `manifestTargetSourceFollowingRow` for the next token. It no longer imports source-row syntax or advances a source cursor directly.
+This stage moved row recognition and cursor advancement behind
+`manifestTargetSourceFollowingRow`. WIP-0049 now owns the complete traversal and
+has removed that adapter. The collection's private entry distinguishes a
+non-row tail from a malformed candidate. Only an admitted selector advances the
+source cursor and count. The parser derives the target tail from that count.
 
-## Contract
+## Original contract
 
 `manifestTargetSourceFollowingRow` receives the current candidate row token. It first calls `manifestTargetSourceRowValid` over the bounded token columns. A non-source row returns the negative tail marker without advancing. A valid source row calls `manifestTargetNextSourceRowToken` and returns the exact following token.
 

@@ -33,6 +33,14 @@ classical class PackageManifestTargetCoordinates {
     return cursor + 15;
   }
 
+  /// Returns the tail coordinate after an admitted modular source collection.
+  public long manifestTargetSourceTailToken(long cursor, long sourceCount) {
+    long first = cursor + 15;
+    long span = sourceCount * 2;
+    long next = first + span;
+    return next;
+  }
+
   /// Returns the quoted selector coordinate for one source row.
   public long manifestTargetSelectorToken(long rowToken) {
     return rowToken + 1;

@@ -37,6 +37,27 @@ final class NativeCompilerPackageManifestCoordinatesExampleTest {
         """);
   }
 
+  @Test
+  void executesTargetCoordinatesAndCompletedSourceSpans() throws Exception {
+    assertCoordinates("wheeler.compiler.packages.manifest_target_coordinates", """
+        assert(manifestTargetNameToken(4) == 10);
+        assert(manifestTargetRootToken(4) == 13);
+        assert(manifestTargetModuleKeyToken(4) == 14);
+        assert(manifestTargetModuleToken(4) == 16);
+        assert(manifestTargetSourcesKeyToken(4) == 17);
+        assert(manifestTargetFirstSourceRowToken(4) == 19);
+        assert(manifestTargetSourceTailToken(4, 0) == 19);
+        assert(manifestTargetSourceTailToken(4, 1) == 21);
+        assert(manifestTargetSourceTailToken(4, 1024) == 2067);
+        assert(manifestTargetSelectorToken(19) == 20);
+        assert(manifestTargetNextSourceRowToken(19) == 21);
+        assert(manifestTargetTestToken(21) == 23);
+        assert(manifestTargetNextToken(21) == 24);
+        assert(manifestTargetValueStart(starts, 0) == 42);
+        assert(manifestTargetValueLength(lengths, 0) == 11);
+        """);
+  }
+
   private static void assertCoordinates(String module, String assertions) throws Exception {
     var sources = new LinkedHashMap<>(CompilerSources.moduleClosure(module));
     sources.put("ManifestCoordinates.w", """

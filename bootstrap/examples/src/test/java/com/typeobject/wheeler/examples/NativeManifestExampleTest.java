@@ -138,6 +138,73 @@ class NativeManifestExampleTest {
   }
 
   @Test
+  void sourceCollectionsPreserveTargetOffsetsAndAdmittedPrefixes() throws Exception {
+    Program program = program();
+    String firstTarget = "- kind: \"deployable\"";
+    String selectors = "      - \"src/App.w\"\n      - \"src/Helper.w\"";
+    assertSourceFailure(program, MANIFEST.replace(selectors, ""), firstTarget, 0, 0);
+    assertSourceFailure(program, MANIFEST.replace(selectors, "      - App"), firstTarget, 0, 0);
+    assertSourceFailure(program, MANIFEST.replace("- \"src/Helper.w\"", "-"), firstTarget, 1, 0);
+    assertSourceFailure(program, MANIFEST.replace("- \"src/Helper.w\"", "- \"../Helper.w\""),
+        firstTarget, 1, 0);
+    assertSourceFailure(program, MANIFEST.replace("- \"src/Helper.w\"", "- \"src/App.w\""),
+        firstTarget, 1, 0);
+    assertSourceFailure(program, MANIFEST.replace(selectors,
+        "      - \"src/Helper.w\"\n      - \"src/App.w\""), firstTarget, 1, 0);
+    assertSourceFailure(program, MANIFEST.replace("- \"src/App.w\"", "- \"src/Aardvark.w\""),
+        firstTarget, 2, 0);
+    assertSourceFailure(program, MANIFEST.replaceFirst("test: true", "test: maybe"),
+        firstTarget, 2, 0);
+
+    String twoCollections = MANIFEST.replace("    root: \"src/Tool.w\"",
+        "    root: \"a/Tool.w\"\n    module: \"demo.tool\"\n"
+            + "    sources:\n      - \"a/Tool.w\"");
+    VirtualMachine accepted = vm(program, twoCollections);
+    accepted.run();
+    assertEquals(3, accepted.global("targetSourceCount"));
+    assertEquals(6, accepted.global("sourceCellsWritten"));
+    assertEquals(twoCollections, new String(accepted.hostOutput(), StandardCharsets.UTF_8));
+    assertEquals(twoCollections, new com.typeobject.wheeler.packageformat.PackageManifestParser()
+        .parse(twoCollections).canonicalText());
+    assertSourceFailure(program, twoCollections.replace("- \"a/Tool.w\"", "- \"b/Tool.w\""),
+        "- kind: \"tool\"", 3, 9);
+    assertSourceFailure(program, twoCollections.replace("      - \"a/Tool.w\"", ""),
+        "- kind: \"tool\"", 2, 9);
+  }
+
+  @Test
+  void sourceCapacityRejectsBeforePublishingTheTarget() throws Exception {
+    Program program = program();
+    StringBuilder selectors = new StringBuilder();
+    for (int index = 0; index < 32; index++) {
+      selectors.append("      - \"src/A%02d.w\"\n".formatted(index));
+    }
+    String full = MANIFEST.replace("root: \"src/App.w\"", "root: \"src/A00.w\"")
+        .replace("      - \"src/App.w\"\n      - \"src/Helper.w\"\n", selectors);
+    VirtualMachine accepted = vm(program, full);
+    accepted.run();
+    assertEquals(32, accepted.global("targetSourceCount"));
+    assertEquals(64, accepted.global("sourceCellsWritten"));
+    assertEquals(full, new String(accepted.hostOutput(), StandardCharsets.UTF_8));
+    String excess = full.replaceFirst("    test: true", "      - \"src/A32.w\"\n    test: true");
+    assertSourceFailure(program, excess, "- kind: \"deployable\"", 32, 0);
+  }
+
+  private static void assertSourceFailure(
+      Program program, String source, String target, int selectors, int targetCells) {
+    int offset = source.indexOf(target);
+    assertTrue(0 <= offset);
+    VirtualMachine machine = vm(program, source);
+    assertThrows(VmTrap.class, machine::run);
+    assertEquals(offset, machine.global("parseErrorOffset"));
+    assertEquals(selectors * 2, machine.global("sourceCellsWritten"));
+    assertEquals(targetCells, machine.global("targetCellsWritten"));
+    assertEquals(0, machine.global("targetSourceCount"));
+    assertEquals(0, machine.global("targetCount"));
+    assertArrayEquals(new byte[source.getBytes(StandardCharsets.UTF_8).length], machine.hostOutput());
+  }
+
+  @Test
   void dependencyAdmissionPreservesKindsAndDiagnosticPrecedence() throws Exception {
     Program program = program();
     String[] kinds = {"normal", "development", "build"};

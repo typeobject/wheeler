@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-01 |
-| Updated | 2026-09-01 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, target rows |
 | Depends on | WIP-0049, WIP-0459, WIP-0461 |
 | Supersedes | Fixed target coordinates in `PackageManifest.w` |
@@ -23,7 +23,10 @@ Attempts to retain optional module syntax and target test policy were rejected. 
 
 ## Evidence
 
-`NativeCompilerPackageManifestTargetCoordinatesPhysicalProductExampleTest` compares the emitted library byte for byte with stage 0 and executes both projections. Manifest behavior executes through the retained coordinates.
+`NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest`
+compares the coordinate library byte for byte with stage 0 in the combined target
+pass. `NativeCompilerPackageManifestCoordinatesExampleTest` executes the
+projections against caller-owned tables. The standalone coordinate pass is gone.
 
 The selected set contains 109 comparable products and 39 callable products. The linked closure retains 128 non-empty module products, 438 functions, and 15,909 forward-plus-inverse instructions. It contains 378,728 code bytes, 12,525 local-type rows, 734 source strings, and 587 unique strings. The 480,752-byte executable closure has SHA-256 `30987305ab15b9f58787c05611ae40d02be0f9ca580fd462d69ff3e122d85697`.
 

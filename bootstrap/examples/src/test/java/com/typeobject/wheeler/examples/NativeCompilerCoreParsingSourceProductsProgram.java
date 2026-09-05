@@ -9,14 +9,20 @@ import java.util.Map;
 final class NativeCompilerCoreParsingSourceProductsProgram {
   private NativeCompilerCoreParsingSourceProductsProgram() {}
 
-  static Program program(
-      int firstBody,
-      int firstLength,
-      int secondBody,
-      int secondLength,
-      int limitName,
-      int firstName,
-      int secondName) throws Exception {
+  static Program program(String source) throws Exception {
+    String module = "wheeler.compiler.core_parsing";
+    int moduleStart = source.indexOf(module + ";");
+    return program(source, moduleStart, module.length());
+  }
+
+  static Program program(String source, long moduleStart, long moduleLength) throws Exception {
+    int firstName = source.indexOf("compactCompilerTokens(");
+    int secondName = source.indexOf("discardLeadingTokens(");
+    int firstBody = source.indexOf("{", firstName);
+    int secondBody = source.indexOf("{", secondName);
+    int firstLength = SourceRanges.matchingClose(source, firstBody) - firstBody + 1;
+    int secondLength = SourceRanges.matchingClose(source, secondBody) - secondBody + 1;
+    int limitName = source.indexOf("limit MAX_COMPILER_TOKENS") + "limit ".length();
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_statement_products"));
@@ -123,7 +129,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
           state long secondLoopOwner = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 21834336, /* allocations= */ 70);
+            region products = new region(/* bytes= */ 21801536, /* allocations= */ 68);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -175,8 +181,9 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             bytes identity = allocateBytes(products, /* length= */ 32);
             bytes structuredArtifact = allocateBytes(products, /* length= */ 32768);
             bytes structuredIdentity = allocateBytes(products, /* length= */ 32);
-            bytes archiveArtifact = allocateBytes(products, /* length= */ 32768);
-            bytes archiveIdentity = allocateBytes(products, /* length= */ 32);
+            region archivePublication = new region(/* bytes= */ 32800, /* allocations= */ 2);
+            bytes archiveArtifact = allocateBytes(archivePublication, /* length= */ 32768);
+            bytes archiveIdentity = allocateBytes(archivePublication, /* length= */ 32);
             bytes binarySource = allocateBytes(products, /* length= */ 32768);
             words importedRows = allocate(products, /* length= */ 114689);
             words importedNameStarts = allocate(products, /* length= */ 16384);
@@ -595,6 +602,9 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
               /* sourceStart= */ 0,
               bufferLength(input),
               /* moduleOwner= */ 0,
+              binarySource,
+              MODULE_NAME_START,
+              MODULE_NAME_LENGTH,
               /* firstCallable= */ 0,
               /* callableCount= */ 2,
               bodyStarts,
@@ -757,7 +767,9 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             drop(importedNameStarts);
             drop(importedRows);
             drop(binarySource);
-            drop(archiveIdentity); drop(archiveArtifact);
+            drop(archiveIdentity);
+            drop(archiveArtifact);
+            drop(archivePublication);
             drop(structuredIdentity); drop(structuredArtifact);
             drop(identity); drop(artifact);
             drop(functionNameIds); drop(parameterCounts);
@@ -807,7 +819,9 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             limitName,
             limitName,
             firstName,
-            secondName));
+            secondName)
+        .replace("MODULE_NAME_START", Long.toString(moduleStart))
+        .replace("MODULE_NAME_LENGTH", Long.toString(moduleLength)));
     return new WheelerCompiler().compileModuleFiles(sources, "example.core_parsing_source_products");
   }
 }

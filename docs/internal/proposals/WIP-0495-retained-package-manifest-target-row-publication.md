@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-04 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, target rows |
 | Depends on | WIP-0480, WIP-0481, WIP-0490 |
 | Supersedes | Aggregate target-row mutation in `PackageManifest.w` |
@@ -27,7 +27,11 @@ The split keeps each retained callable within the established eight-parameter pr
 
 ## Evidence
 
-`NativeCompilerPackageManifestTargetHeadPhysicalProductExampleTest` compiles the head owner from its physical archive range and resolves seven imported calls. `NativeCompilerPackageManifestTargetTailPhysicalProductExampleTest` compiles both tail products and resolves six imported calls. `NativeManifestExampleTest` covers modular and nonmodular rows, source windows, test bits, ordering failures, and malformed input against stage 0.
+`NativeCompilerPackageManifestTargetHeadPhysicalProductExampleTest` compiles the
+head owner and resolves seven imported calls. The tail's six imported calls now
+share the collection pass in `NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest`,
+which compares complete relocated bodies. `NativeManifestExampleTest` covers
+modular and nonmodular rows, source windows, test bits, ordering, and malformed input.
 
 The compiler graph contains 440 modules, two externals, and 2,041 imports. Its 201,241-byte canonical manifest has SHA-256 `bed7f66b032cb5d043401cfaf5b6ce865f7cd96ba30ee76fa38d9c7d2fe3796f`. Native validation halts after 85,833,470 transitions under the 86,000,000-transition evidence ceiling. Wheeler SHA-256 halts after 38,516,186 transitions.
 

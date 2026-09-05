@@ -68,10 +68,16 @@ layout and first-excess evidence. It does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with
 arguments. That lowering boundary remains in WIP-0049.
 
-`PackageManifest.w` still coordinates complete parsing. The next acceptance
-boundary is complete target and collection composition through retained products,
-including failure offsets, validation order, and unchanged output on rejection.
-Extracting another helper is useful only when it closes part of that boundary.
+`PackageManifest.w` still coordinates complete parsing. Source-list traversal,
+ordering, coverage, and count commits now share one collection product. It keeps
+admitted selector prefixes on failure without committing the collection count or
+publishing a target row. The caller still validates the required test tail.
+Complete target parsing and the remaining collection loops stay open, including
+failure offsets, validation order, and unchanged rejected rows.
+
+Archive emission now uses the module-name ranges bound by declaration products.
+It does not rediscover `module ` in raw comments or literals. Class-name and
+imported-value use discovery still need the corresponding lexical products.
 
 After manifest composition, the remaining physical compiler modules must enter
 the same product route. Final linking and the fixed-point comparison remain

@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-02 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, target rows |
 | Depends on | WIP-0463, WIP-0464, WIP-0480 |
 | Supersedes | Inline composition of the required target test field |
@@ -26,7 +26,9 @@ WIP-0495 extends this owner with separate modular and nonmodular tail-publicatio
 
 ## Physical evidence
 
-`NativeCompilerPackageManifestTargetTailPhysicalProductExampleTest` compiles the retained owner from the canonical archive and compares its function and instruction totals with stage 0. Four imported-call relocations resolve: key presence, value coordinates, Boolean decoding, and test policy.
+The original tail pass resolved key presence, value coordinates, Boolean
+decoding, and test policy. `NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest`
+now compares full collection and tail bodies after relocation in one archive pass.
 
 `NativeManifestExampleTest` executes true and false test fields through modular and nonmodular rows. It rejects a misspelled key, a non-Boolean scalar, and an enabled library test through the same delegated path.
 

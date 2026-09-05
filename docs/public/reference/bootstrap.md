@@ -56,8 +56,16 @@ collection policy, and row publication. Dependency and capability entry products
 check capacity before field validation and ordering. They publish complete rows
 before advancing counts and preserve exact failure offsets. Dependencies sort by
 name. Capabilities sort by name, then path. Rejected rows leave storage untouched.
-Complete parser coordination and the remaining compiler modules still need
+The source-list product owns traversal, ordering, coverage, and count commits for
+up to 1,024 selectors per target. Failed collections retain admitted selector
+prefixes, but publish neither a collection count nor a target row. Absent lists
+remain valid for nonmodular targets. Present empty lists reject. Complete target
+parsing, the remaining collection loops, and other compiler modules still need
 physical product integration.
+
+Archive emission takes module-name ranges from declaration products. It does not
+infer module identity from words in comments or string literals. Class-name and
+imported-value use discovery still need lexical-product integration.
 
 The evidence tests derive their graph and archive from checked-in source.
 Comparable products match stage 0 byte for byte. Every selected imported-call

@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, module-product, aggregate, ownership, and bootstrap maintainers |
 | Created | 2026-08-09 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, source lowering, module products, aggregate products, bootstrap |
 | Depends on | WIP-0013, WIP-0028, WIP-0044, WIP-0045, WIP-0046, WIP-0047, WIP-0048 |
 | Supersedes | None |
@@ -216,9 +216,23 @@ rather than clearing or copying full capacities. The
   three capacity/coordinate artifacts byte for byte and both entry owners'
   complete frames and relocated instructions with stage 0. A valid but misbound
   imported target must fail comparison.
-- [ ] Complete target and collection composition through retained products.
-  The aggregate parser still owns iteration, target capacity, table allocation,
-  and complete manifest publication.
+- [x] `manifestTargetSourceCollectionProduct` owns source-list traversal, row
+  admission, ordering, coverage, and the next source-row count. It admits 1,024
+  selectors and makes one terminal probe. A first-excess selector returns failure
+  without publishing that row. Admitted prefixes remain on rejection, but the
+  caller commits a count only after a nonempty collection covers its root.
+- [x] The parser's source loop, predecessor, coverage state, and separate
+  completion verdict are gone. The required tail receives no redundant completion flag.
+  Source-table tests compare every cell, including partial capacity and preceding
+  collections. Parser tests retain exact target-start diagnostics and distinguish
+  admitted source prefixes from unpublished target rows.
+- [x] One physical pass compares the collection and tail bodies after all 17
+  imported calls resolve, plus the complete target-coordinate artifact. It
+  replaces the two standalone coordinate and tail passes.
+- [ ] Complete target and remaining collection composition through retained
+  products.
+  The aggregate parser still owns target parsing, target/dependency/capability
+  iteration, target capacity, and complete manifest publication.
 
 Entry signatures and retained calls now both admit eight values.
 [WIP-0496](WIP-0496-eight-argument-retained-source-calls.md) covers root and loop
@@ -227,6 +241,19 @@ before argument, width, code, relocation, or artifact publication. The bounded
 helper compiler retains its separate seven-argument profile. Generated inverses
 still reject argument-bearing calls. Their transfer and cleanup sequences need
 inverse lowering. Complete parser integration also remains open.
+
+### Archive name products
+
+Archive emission consumes the module-name window already bound by declaration
+products. The raw `module ` scan and its range carrier are gone. Local and
+imported call paths use the same closed name bytes. Comments and header
+whitespace cannot supply another module identity. Invalid name extents reject
+before artifact or identity publication. `NativeCompilerArchiveModuleNamesExampleTest`
+checks complete artifact bytes and every rejected output cell.
+
+Class-name discovery and imported-value use discovery still search raw source.
+Replacing those searches with lexical products remains part of this contract.
+They are not evidence of complete source-independent naming.
 
 ## Acceptance
 
