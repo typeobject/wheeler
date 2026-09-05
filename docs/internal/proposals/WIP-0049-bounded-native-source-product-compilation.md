@@ -197,26 +197,32 @@ rather than clearing or copying full capacities. The
 
 ### Manifest composition
 
-- [x] The retained dependency owner validates every field before strict name
-  ordering. Its scalar admission verdict preserves the dependency kind and
-  distinguishes malformed rows from duplicate or unordered names. The parser's
-  `DependencyParse` carrier, wrapper, and direct ordering import are gone.
-- [x] Dependency evidence compares complete frame metadata and instructions
-  after identity relocation, not just function and instruction counts. Native
-  manifest cases pin all three kinds, field-before-order diagnostic precedence,
-  exact offsets, and unchanged rejected rows and output.
-- [x] Capability admission validates fields before comparing names, then paths
-  for equal names. First rows need no prior coordinates. Malformed rows retain
-  row-start diagnostics, while duplicate or unordered pairs report the current
-  name. The parser's `CapabilityParse` carrier, wrapper, and ordering import are
-  gone. Capacity still precedes admission, and publication follows it.
-- [x] Capability evidence compares complete frames and relocated instructions
-  with stage 0 and resolves all ten imported calls. Native cases cover first-row
-  admission, equal names with ordered paths, duplicate and unordered pairs,
-  field-before-order diagnostics, and untouched rejected rows and output.
-- [ ] Complete target, dependency, and capability collection composition through
-  retained products. The aggregate parser still owns iteration, capacity checks,
-  table allocation, and complete manifest publication.
+- [x] `manifestDependencyEntryProduct` and `manifestCapabilityEntryProduct` own
+  complete entry publication. Each checks capacity, validates every field, checks
+  adjacent ordering, projects coordinates, and publishes the row before returning
+  the next count. Zero reports disorder. Minus one reports malformed input or
+  exhausted capacity. The parser preserves name and row-start diagnostic offsets.
+- [x] Preceding coordinates come from the consecutive row grammar. First rows
+  need no predecessor. The parser's carriers, wrappers, ordering imports, and
+  predecessor state are gone. Admission is private to each retained owner.
+- [x] Capacity predicates reject negative indexes and compare against the number
+  of complete rows. They do not multiply unchecked indexes. Partial rows and
+  signed-overflow cases reject without touching caller storage.
+- [x] Entry tests compare every published coordinate and every sentinel-filled
+  rejected or trailing cell. They cover all dependency kinds, capability pair
+  ordering, field-before-order diagnostics, capacity-before-order rejection,
+  and count commits. Manifest regressions pin exact offsets and unchanged output.
+- [x] One focused physical test replaces five archive passes. It compares all
+  three capacity/coordinate artifacts byte for byte and both entry owners'
+  complete frames and relocated instructions with stage 0. A valid but misbound
+  imported target must fail comparison.
+- [ ] Complete target and collection composition through retained products.
+  The aggregate parser still owns iteration, target capacity, table allocation,
+  and complete manifest publication.
+
+Entry signatures fit eight parameters. Individual retained calls still admit
+only seven arguments. Complete parser integration must close that separate call
+boundary rather than infer it from signature admission.
 
 ## Acceptance
 

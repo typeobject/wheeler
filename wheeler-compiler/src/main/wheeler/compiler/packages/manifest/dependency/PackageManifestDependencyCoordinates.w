@@ -18,6 +18,14 @@ classical class PackageManifestDependencyCoordinates {
     return cursor + 10;
   }
 
+  /// Returns the preceding row's name token, or minus one for the first row.
+  public long manifestDependencyPreviousNameToken(long cursor, long row) {
+    if (row < 1) {
+      return -1;
+    }
+    return cursor - 4;
+  }
+
   /// Returns the first byte inside one quoted dependency value.
   public long manifestDependencyValueStart(borrow mut words starts, long token) {
     long tokenStart = starts[token];

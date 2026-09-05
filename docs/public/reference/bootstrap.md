@@ -44,9 +44,10 @@ Three different paths provide native evidence today:
 
 Retained package-manifest products cover lexical and canonical policy, names,
 paths, semantic versions, headers, target fields, selector admission and coverage,
-collection policy, and row publication. Retained dependency and capability
-admission validate fields before ordering and preserve exact failure offsets.
-Dependencies sort by name. Capabilities sort by name, then path.
+collection policy, and row publication. Dependency and capability entry products
+check capacity before field validation and ordering. They publish complete rows
+before advancing counts and preserve exact failure offsets. Dependencies sort by
+name. Capabilities sort by name, then path. Rejected rows leave storage untouched.
 Complete parser coordination and the remaining compiler modules still need
 physical product integration.
 

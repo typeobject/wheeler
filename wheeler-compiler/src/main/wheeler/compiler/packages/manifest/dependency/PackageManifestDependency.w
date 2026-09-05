@@ -6,10 +6,11 @@ import wheeler.compiler.packages.manifest_dependency_coordinates;
 import wheeler.compiler.packages.manifest_dependency_name;
 import wheeler.compiler.packages.manifest_dependency_prefix;
 import wheeler.compiler.packages.manifest_dependency_version;
+import wheeler.compiler.packages.manifest_rows;
 
 classical class PackageManifestDependency {
   /// Admits one row, returning its kind, zero for disorder, or minus one when malformed.
-  public long manifestDependencyRowAdmission(
+  private long manifestDependencyRowAdmission(
     borrow utf8 source,
     borrow mut words kinds,
     borrow mut words starts,
@@ -64,6 +65,51 @@ classical class PackageManifestDependency {
     }
 
     return kind;
+  }
+
+  /// Publishes one complete entry, returning its next row, zero for disorder, or minus one on error.
+  /// The cursor follows the preceding admitted row. Row zero starts a collection.
+  public long manifestDependencyEntryProduct(
+    borrow utf8 source,
+    borrow mut words kinds,
+    borrow mut words starts,
+    borrow mut words lengths,
+    long count,
+    long cursor,
+    borrow mut words rows,
+    long row
+  ) {
+    boolean capacity = manifestDependencyRowCapacity(rows, row);
+    if (capacity == false) {
+      return -1;
+    }
+
+    long previousNameToken = manifestDependencyPreviousNameToken(cursor, row);
+    long kind = manifestDependencyRowAdmission(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      cursor,
+      previousNameToken
+    );
+    if (kind < 1) {
+      return kind;
+    }
+
+    long nameToken = manifestDependencyNameToken(cursor);
+    long versionToken = manifestDependencyVersionToken(cursor);
+    long next = manifestDependencyRowProduct(
+      starts,
+      lengths,
+      kind,
+      nameToken,
+      versionToken,
+      rows,
+      row
+    );
+    return next;
   }
 
   /// Publishes one validated dependency row and returns the next row index.

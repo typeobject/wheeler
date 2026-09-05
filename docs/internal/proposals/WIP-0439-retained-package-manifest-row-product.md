@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-30 |
-| Updated | 2026-08-30 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package manifests, bounded row layout |
 | Depends on | WIP-0049, WIP-0052, WIP-0438 |
 | Supersedes | Generic private row-capacity arithmetic in `PackageManifest.w` |
@@ -19,19 +19,19 @@ Split target, target-source, dependency, and capability row-capacity checks into
 
 `manifestTargetRowCapacity` admits one complete ten-column target row. `manifestSourceRowCapacity` admits one complete two-column target-source row. Dependency and capability checks do the same for five- and four-column rows.
 
-Each function multiplies the row ordinal by its format width, names the final column, reads output capacity once, and accepts only an in-range final column. The first row, exact final row, and first overflowing row execute for every width.
+The original functions multiplied the row ordinal by its format width and checked the final column. That assumed a nonnegative, bounded ordinal. WIP-0049 now rejects negative indexes and divides capacity by the fixed width before comparing row counts. No unchecked multiplication remains.
 
-`PackageManifest.w` calls the matching function at all four publication sites. The generic width parameter and its private arithmetic are gone. Width constants still define public row layout and storage offsets. Capacity policy now has one closed owner.
+`PackageManifest.w` initially called the matching function at all four publication sites. WIP-0049 now delegates dependency and capability checks to their complete entry products. The generic width parameter and its private arithmetic are gone. Width constants still define public row layout and storage offsets. Capacity policy now has one closed owner.
 
 ## Physical shape
 
 The first split kept a generic `(rows, row, width)` function. Stage 0 executed it, but physical source compilation rejected its local-by-local multiplication before artifact publication. Retaining that form would have overstated evidence.
 
-The format admits only four widths. Specializing them turns every multiplication into a local-by-literal product already covered by the physical source path. The final owner retains four functions and 60 forward-plus-inverse instructions without imports or relocations.
+The format admits only four widths. Specializing them turns every multiplication into a local-by-literal product already covered by the physical source path. The original owner retained four functions and 60 forward-plus-inverse instructions without imports or relocations.
 
 ## Evidence
 
-`NativeCompilerPackageManifestRowsPhysicalProductExampleTest` compares the complete artifact byte for byte with stage 0. Its executable fixture covers the first, exact final, and first overflowing row for all four layouts.
+`NativeCompilerPackageManifestEntryPhysicalProductExampleTest` now compares the capacity and coordinate artifacts with stage 0 in one archive pass. `NativeCompilerPackageManifestRowsExampleTest` covers partial and complete rows, negative indexes, and signed multiplication overflow for all four layouts. It verifies unchanged storage and complete rewind.
 
 The manifest and archive examples parse complete package metadata through the split owner. The selected set contains 102 comparable products and 24 callable products. The linked closure retains 106 non-empty module products, 411 functions, and 14,625 forward-plus-inverse instructions. It contains 347,192 code bytes, 11,287 local-type rows, 663 source strings, and 538 unique strings. The 440,416-byte executable closure has SHA-256 `bbb6496215bcd38ee32ad9cf8fd6dd0d9274eb7369bd6767d398513af2c3cacc`.
 

@@ -5,18 +5,18 @@ module wheeler.compiler.packages.manifest_capability;
 import wheeler.compiler.packages.manifest_capability_coordinates;
 import wheeler.compiler.packages.manifest_capability_path;
 import wheeler.compiler.packages.manifest_capability_prefix;
+import wheeler.compiler.packages.manifest_rows;
 
 classical class PackageManifestCapability {
   /// Returns one for admission, zero for disorder, or minus one for a malformed row.
-  public long manifestCapabilityRowAdmission(
+  private long manifestCapabilityRowAdmission(
     borrow utf8 source,
     borrow mut words kinds,
     borrow mut words starts,
     borrow mut words lengths,
     long count,
     long cursor,
-    long previousNameToken,
-    long previousPathToken
+    long previousCursor
   ) {
     boolean validPrefix = manifestCapabilityPrefixValid(
       source,
@@ -42,10 +42,11 @@ classical class PackageManifestCapability {
       return -1;
     }
 
-    if (previousNameToken < 0) {
+    if (previousCursor < 0) {
       return 1;
     }
 
+    long previousNameToken = manifestCapabilityNameToken(previousCursor);
     long nameToken = manifestCapabilityNameToken(cursor);
     long nameOrder = manifestCapabilityNameOrder(
       source,
@@ -63,6 +64,7 @@ classical class PackageManifestCapability {
       return 0;
     }
 
+    long previousPathToken = manifestCapabilityPathToken(previousCursor);
     long pathToken = manifestCapabilityPathToken(cursor);
     boolean pathsOrdered = manifestCapabilityPathsOrdered(
       source,
@@ -76,6 +78,43 @@ classical class PackageManifestCapability {
     }
 
     return 1;
+  }
+
+  /// Publishes one complete entry, returning its next row, zero for disorder, or minus one on error.
+  /// The cursor follows the preceding admitted row. Row zero starts a collection.
+  public long manifestCapabilityEntryProduct(
+    borrow utf8 source,
+    borrow mut words kinds,
+    borrow mut words starts,
+    borrow mut words lengths,
+    long count,
+    long cursor,
+    borrow mut words rows,
+    long row
+  ) {
+    boolean capacity = manifestCapabilityRowCapacity(rows, row);
+    if (capacity == false) {
+      return -1;
+    }
+
+    long previousCursor = manifestCapabilityPreviousRowToken(cursor, row);
+    long admission = manifestCapabilityRowAdmission(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      cursor,
+      previousCursor
+    );
+    if (admission < 1) {
+      return admission;
+    }
+
+    long nameToken = manifestCapabilityNameToken(cursor);
+    long pathToken = manifestCapabilityPathToken(cursor);
+    long next = manifestCapabilityRowProduct(starts, lengths, nameToken, pathToken, rows, row);
+    return next;
   }
 
   /// Publishes one validated capability row and returns the next row index.

@@ -13,7 +13,7 @@
 
 ## Summary
 
-Move capability coordinate projection, four-column row publication, and count advancement into the retained capability owner. The aggregate parser still owns collection capacity, adjacent name-and-path ordering, and diagnostics, but no longer lays out accepted capability rows itself.
+Move capability coordinate projection, four-column row publication, and count advancement into the retained capability owner. At this milestone, the parser kept capacity, ordering, and diagnostics. WIP-0049 now composes capacity, admission, and publication in `manifestCapabilityEntryProduct`.
 
 ## Contract
 
@@ -22,15 +22,15 @@ Move capability coordinate projection, four-column row publication, and count ad
 1. Capability name start.
 2. Capability name length.
 3. Capability path start.
-4. capability path length.
+4. Capability path length.
 
-All destination indexes are named scalar locals. The function returns the next row index only after all four word mutations. The parser installs that result as `capabilityCount`, then advances predecessor and token state.
+All destination indexes are named scalar locals. The function returns the next row index only after all four word mutations. The entry product passes that result to the parser, which installs `capabilityCount` and advances its token cursor.
 
 Capacity remains a caller precondition so an exhausted table fails before parsing or ordering the candidate row. Imported coordinate calls bind before the first write, so unresolved projection cannot leave a partial row.
 
 ## Physical evidence
 
-`NativeCompilerPackageManifestCapabilityPhysicalProductExampleTest` compiles both capability-owner functions from the canonical archive and compares their complete function and instruction prefixes with stage 0. Six imported-call relocations resolve exactly: prefix and path validation plus four coordinate projections.
+The milestone compared both capability-owner functions with stage 0 and resolved six imported calls: two validators and four coordinate projections. Current physical evidence lives in `NativeCompilerPackageManifestEntryPhysicalProductExampleTest`. The combined pass also checks complete entry composition.
 
 `NativeManifestExampleTest` compares every capability row and count with stage 0. Canonical repeated-name rows preserve both quoted ranges. Malformed prefixes, names, paths, ordering, and section boundaries remain fail-closed.
 
@@ -67,7 +67,7 @@ That leaves validated capability products as token bundles and keeps storage lay
 
 ### Check capacity only inside publication
 
-The existing parser rejects exhaustion before reading the candidate row. Retaining that order avoids speculative syntax and ordering work at a terminal capacity failure.
+Capacity must precede candidate-row work. WIP-0049 preserves that order inside the entry product, before private admission and the existing row publisher.
 
 ### Mutate as each coordinate resolves
 

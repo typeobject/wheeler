@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-02 |
-| Updated | 2026-09-02 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting, package manifests, dependency rows |
 | Depends on | WIP-0049, WIP-0444, WIP-0454, WIP-0456 |
 | Supersedes | Inline dependency token and quoted-range arithmetic in `PackageManifest.w` |
@@ -19,15 +19,15 @@ Split dependency row coordinates from parser control flow. `PackageManifestDepen
 
 The three token projections are fixed offsets from a validated dependency row cursor. The two value projections read a caller-owned token table and remove quote framing through named scalar locals. They do not validate row grammar, allocate a value, mutate a row, or advance parser state.
 
-`parseDependency` runs the retained prefix, name, and version verdicts before requesting token coordinates. `parseManifest` requests quoted ranges only after capacity and strict name order succeed, then publishes the five-word row and advances aggregate state.
+The original parser requested coordinates after field validation and quoted ranges after capacity and ordering checks. WIP-0049 now composes those steps in `manifestDependencyEntryProduct`. Its preceding-name projection returns minus one for the first row and `cursor - 4` for consecutive rows.
 
 ## Physical route
 
-The owner has five call-free functions and takes the direct structured-source path. It is retained in the comparable prefix. `NativeCompilerPhysicalProductSource` names its source explicitly. Signature synthesis cannot stand in for the file.
+This milestone retained five call-free functions through the direct structured-source path. It is retained in the comparable prefix. `NativeCompilerPhysicalProductSource` names its source explicitly. Signature synthesis cannot stand in for the file.
 
 ## Evidence
 
-`NativeCompilerPackageManifestDependencyCoordinatesPhysicalProductExampleTest` compares the retained library with stage 0 and executes all five projections against caller-owned word tables. `NativeManifestExampleTest` executes nonempty and empty dependency collections through the split owner.
+`NativeCompilerPackageManifestEntryPhysicalProductExampleTest` now compares the retained library with stage 0 in the combined entry pass. `NativeCompilerPackageManifestCoordinatesExampleTest` executes current and preceding coordinates against caller-owned tables. `NativeManifestExampleTest` covers nonempty and empty dependency collections.
 
 WIP-0470 and WIP-0471 are accepted as one row-coordinate closure. The selected set contains 112 comparable products and 42 callable products. It retains 134 non-empty module products, 466 functions, and 16,242 forward-plus-inverse instructions. The linked closure contains 386,968 code bytes, 12,915 local-type rows, 774 source strings, and 621 unique strings. Its 494,312-byte executable has SHA-256 `c6058c98df2ec5f1cefb5afe61ee32d6e01800f96ca0d2602b59868ed0c0c76a`.
 

@@ -13,7 +13,7 @@
 
 ## Summary
 
-Move dependency coordinate projection, five-column row publication, and count advancement into the retained dependency owner. The aggregate parser still owns collection capacity, adjacent-row ordering, and diagnostics, but no longer lays out accepted dependency rows itself.
+Move dependency coordinate projection, five-column row publication, and count advancement into the retained dependency owner. At this milestone, the parser kept capacity, ordering, and diagnostics. WIP-0049 now composes capacity, admission, and publication in `manifestDependencyEntryProduct`.
 
 ## Contract
 
@@ -23,15 +23,15 @@ Move dependency coordinate projection, five-column row publication, and count ad
 2. Name start.
 3. Name length.
 4. Version start.
-5. version length.
+5. Version length.
 
-All destination indexes are named scalar locals. The function returns the next row index only after all five word mutations. The parser installs that result as `dependencyCount`, then advances predecessor and token state.
+All destination indexes are named scalar locals. The function returns the next row index only after all five word mutations. The entry product passes that result to the parser, which installs `dependencyCount` and advances its token cursor.
 
 Capacity remains a caller precondition so an exhausted table still fails before parsing or ordering the candidate row. No mutation runs on that path. Imported coordinate calls bind before the first write, so unresolved projection cannot leave a partial row.
 
 ## Physical evidence
 
-`NativeCompilerPackageManifestDependencyPhysicalProductExampleTest` compiles both dependency-owner functions from the canonical archive and compares their complete function and instruction prefixes with stage 0. Seven imported-call relocations resolve exactly: prefix, name, and version validation plus four coordinate projections.
+The milestone compared both dependency-owner functions with stage 0 and resolved seven imported calls: three validators and four coordinate projections. Current physical evidence lives in `NativeCompilerPackageManifestEntryPhysicalProductExampleTest`. The combined pass also checks complete entry composition.
 
 `NativeManifestExampleTest` compares every dependency row and count with stage 0. Canonical multiple-row input preserves kind and both quoted ranges. Malformed prefixes, names, semantic versions, order, and section boundaries remain fail-closed.
 
@@ -68,7 +68,7 @@ That leaves validated dependency products as token bundles and keeps storage lay
 
 ### Check capacity only inside publication
 
-The existing parser rejects exhaustion before reading the candidate row. Retaining that order avoids speculative syntax and ordering work at a terminal capacity failure.
+Capacity must precede candidate-row work. WIP-0049 preserves that order inside the entry product, before private admission and the existing row publisher.
 
 ### Mutate as each coordinate resolves
 

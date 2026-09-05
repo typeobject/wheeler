@@ -335,46 +335,31 @@ classical class Manifest {
     }
 
     if (emptyDependencies == false) {
-      long previousDependencyToken = -1;
       boolean parsingDependencies = true;
       while (parsingDependencies) limit 512 {
         if (cursor < count) {
           if (dashAt(source, kinds, starts, cursor)) {
-            if (manifestDependencyRowCapacity(dependencyRows, dependencyCount) == false) {
-              return new ManifestResult.Error(starts[cursor]);
-            }
-
-            long dependencyKind = manifestDependencyRowAdmission(
+            long nextDependencyRow = manifestDependencyEntryProduct(
               source,
               kinds,
               starts,
               lengths,
               count,
               cursor,
-              previousDependencyToken
-            );
-            if (dependencyKind < 0) {
-              return new ManifestResult.Error(starts[cursor]);
-            }
-
-            long dependencyNameToken = manifestDependencyNameToken(cursor);
-            if (dependencyKind == 0) {
-              return new ManifestResult.Error(starts[dependencyNameToken]);
-            }
-
-            long dependencyVersionToken = manifestDependencyVersionToken(cursor);
-            long dependencyNext = manifestDependencyNextToken(cursor);
-            dependencyCount = manifestDependencyRowProduct(
-              starts,
-              lengths,
-              dependencyKind,
-              dependencyNameToken,
-              dependencyVersionToken,
               dependencyRows,
               dependencyCount
             );
-            previousDependencyToken = dependencyNameToken;
-            cursor = dependencyNext;
+            if (nextDependencyRow < 0) {
+              return new ManifestResult.Error(starts[cursor]);
+            }
+
+            if (nextDependencyRow == 0) {
+              long dependencyNameToken = manifestDependencyNameToken(cursor);
+              return new ManifestResult.Error(starts[dependencyNameToken]);
+            }
+
+            dependencyCount = nextDependencyRow;
+            cursor = manifestDependencyNextToken(cursor);
           } else {
             parsingDependencies = false;
           }
@@ -418,45 +403,28 @@ classical class Manifest {
     }
 
     if (emptyCapabilities == false) {
-      long previousCapabilityName = -1;
-      long previousCapabilityPath = -1;
       while (cursor < count) limit 512 {
-        if (manifestCapabilityRowCapacity(capabilityRows, capabilityCount) == false) {
-          return new ManifestResult.Error(starts[cursor]);
-        }
-
-        long capabilityAdmission = manifestCapabilityRowAdmission(
+        long nextCapabilityRow = manifestCapabilityEntryProduct(
           source,
           kinds,
           starts,
           lengths,
           count,
           cursor,
-          previousCapabilityName,
-          previousCapabilityPath
-        );
-        if (capabilityAdmission < 0) {
-          return new ManifestResult.Error(starts[cursor]);
-        }
-
-        long capabilityNameToken = manifestCapabilityNameToken(cursor);
-        if (capabilityAdmission == 0) {
-          return new ManifestResult.Error(starts[capabilityNameToken]);
-        }
-
-        long capabilityPathToken = manifestCapabilityPathToken(cursor);
-        long capabilityNext = manifestCapabilityNextToken(cursor);
-        capabilityCount = manifestCapabilityRowProduct(
-          starts,
-          lengths,
-          capabilityNameToken,
-          capabilityPathToken,
           capabilityRows,
           capabilityCount
         );
-        previousCapabilityName = capabilityNameToken;
-        previousCapabilityPath = capabilityPathToken;
-        cursor = capabilityNext;
+        if (nextCapabilityRow < 0) {
+          return new ManifestResult.Error(starts[cursor]);
+        }
+
+        if (nextCapabilityRow == 0) {
+          long capabilityNameToken = manifestCapabilityNameToken(cursor);
+          return new ManifestResult.Error(starts[capabilityNameToken]);
+        }
+
+        capabilityCount = nextCapabilityRow;
+        cursor = manifestCapabilityNextToken(cursor);
       }
 
       if (capabilityCount == 0) {

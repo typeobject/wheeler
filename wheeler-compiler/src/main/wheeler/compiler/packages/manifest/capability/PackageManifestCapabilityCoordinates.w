@@ -18,6 +18,14 @@ classical class PackageManifestCapabilityCoordinates {
     return cursor + 7;
   }
 
+  /// Returns the preceding row cursor, or minus one for the first row.
+  public long manifestCapabilityPreviousRowToken(long cursor, long row) {
+    if (row < 1) {
+      return -1;
+    }
+    return cursor - 7;
+  }
+
   /// Returns the first byte inside one quoted capability value.
   public long manifestCapabilityValueStart(borrow mut words starts, long token) {
     long tokenStart = starts[token];

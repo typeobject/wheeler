@@ -14,7 +14,7 @@
 
 ## Summary
 
-This milestone retained complete capability-row validation outside the package-manifest parser. `PackageManifestCapability.w` composed canonical prefix and path policy into one Boolean verdict. WIP-0494 later added row publication. WIP-0049 now replaces that verdict with `manifestCapabilityRowAdmission`, which also owns adjacent name-and-path ordering.
+This milestone retained complete capability-row validation outside the package-manifest parser. `PackageManifestCapability.w` composed canonical prefix and path policy into one Boolean verdict. WIP-0494 later added row publication. WIP-0049 now keeps admission private and composes complete publication through `manifestCapabilityEntryProduct`.
 
 ## Row contract
 
@@ -28,7 +28,7 @@ The row owner has one function and two imported calls. It takes the direct impor
 
 ## Evidence
 
-`NativeCompilerPackageManifestCapabilityPhysicalProductExampleTest` compares the retained function and instructions with stage 0 and closes both relocations. `NativeManifestExampleTest` executes canonical capability rows and rejects malformed names, paths, prefixes, and ordering through the composed verdict.
+The milestone compared the retained function and instructions with stage 0 and closed both relocations. Current physical evidence lives in `NativeCompilerPackageManifestEntryPhysicalProductExampleTest`. `NativeManifestExampleTest` executes canonical capability rows and rejects malformed names, paths, prefixes, and ordering through the composed verdict.
 
 The selected set contains 112 comparable products and 46 callable products. It retains 138 non-empty module products, 477 functions, and 16,524 forward-plus-inverse instructions. The linked closure contains 393,864 code bytes, 13,226 local-type rows, 793 source strings, and 636 unique strings. Its 503,896-byte executable has SHA-256 `d3f642dffffe10df2ca614339619361f1f451bf85596cdbd9ebd868d31bdf175`.
 
@@ -57,7 +57,7 @@ Reject the row before extracting coordinates when its prefix or path fails. Reje
 
 ### Fold adjacent ordering into row validation
 
-This was the WIP-0477 boundary. WIP-0049 now admits the previous name and path within the eight-parameter profile. The prefix and path owners remain independently reusable. The obsolete Boolean verdict, parser carrier, and wrapper are gone.
+This was the WIP-0477 boundary. WIP-0049 now derives preceding coordinates inside the entry owner. The prefix and path owners remain independently reusable. The obsolete Boolean verdict, parser carrier, wrapper, and predecessor state are gone.
 
 ### Duplicate path validation in the parser
 

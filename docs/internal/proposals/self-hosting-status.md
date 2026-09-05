@@ -50,16 +50,18 @@ The retained package-manifest owners cover tokens, names, paths, semantic
 versions, canonical framing, header fields, collection keys, row capacities,
 ordering policy, dependency and capability validation, target field policy,
 source-selector admission and coverage, and row publication. Dependency and
-capability admission compose field validation and adjacent ordering. Dependencies
-require strictly increasing names. Capabilities allow equal names only when paths
-increase strictly. Both preserve distinct malformed-row and ordering diagnostics.
+capability entry products own capacity, field validation, adjacent ordering, row
+publication, and count commits. Dependencies require strictly increasing names.
+Capabilities allow equal names only when paths increase strictly. Both preserve
+distinct malformed-row and ordering diagnostics. Capacity checks reject negative
+and overflowing row indexes. Entry tests compare every written and untouched cell.
 The whole-closure test compares complete frames and relocated instructions with
-stage 0 for every selected callable product.
-It also compares the complete comparable artifact prefix byte for byte. Counts
+stage 0 for every selected callable product. It also compares the complete
+comparable artifact prefix byte for byte. Counts
 remain capacity checks, not substitutes for body parity.
 
 `PackageManifest.w` still coordinates complete parsing. The next acceptance
-boundary is complete row and collection composition through retained products,
+boundary is complete target and collection composition through retained products,
 including failure offsets, validation order, and unchanged output on rejection.
 Extracting another helper is useful only when it closes part of that boundary.
 

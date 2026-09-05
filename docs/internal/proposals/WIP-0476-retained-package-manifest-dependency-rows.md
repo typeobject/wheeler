@@ -14,13 +14,13 @@
 
 ## Summary
 
-Retain complete dependency-row validation outside the package-manifest parser. `PackageManifestDependency.w` composes prefix, name, and semantic-version policy and returns the validated dependency kind.
+This milestone retained dependency-row validation outside the package-manifest parser. `PackageManifestDependency.w` composed prefix, name, and semantic-version policy and returned the validated dependency kind. WIP-0049 now keeps admission private and composes complete publication through `manifestDependencyEntryProduct`.
 
 ## Row contract
 
-`manifestDependencyRowKind` returns zero for a malformed row. A positive result is the canonical dependency kind supplied by prefix policy after both quoted fields pass their dedicated validators.
+At this milestone, `manifestDependencyRowKind` returned zero for a malformed row. A positive result carried the canonical dependency kind after both quoted fields passed their dedicated validators.
 
-The parser keeps row iteration, capacity, ordering, coordinate projection, publication, and diagnostics. It no longer imports dependency prefix or version policy directly. It retains the name owner only for adjacent-row ordering.
+The parser kept row iteration, capacity, ordering, coordinate projection, publication, and diagnostics. It stopped importing dependency prefix and version policy but retained the name owner for adjacent-row ordering.
 
 ## Physical route
 
@@ -28,7 +28,7 @@ The row owner has one function and three imported calls. It takes the direct imp
 
 ## Evidence
 
-`NativeCompilerPackageManifestDependencyPhysicalProductExampleTest` compares the retained function and instructions with stage 0 and closes all three relocations. `NativeManifestExampleTest` executes canonical dependency rows and rejects malformed names, semantic versions, prefixes, and ordering through the composed verdict.
+The milestone compared the retained function and instructions with stage 0 and closed all three relocations. Current physical evidence lives in `NativeCompilerPackageManifestEntryPhysicalProductExampleTest`. `NativeManifestExampleTest` executes canonical dependency rows and rejects malformed names, semantic versions, prefixes, and ordering through the composed verdict.
 
 The selected set contains 112 comparable products and 45 callable products. It retains 137 non-empty module products, 476 functions, and 16,480 forward-plus-inverse instructions. The linked closure contains 392,800 code bytes, 13,182 local-type rows, 790 source strings, and 634 unique strings. Its 502,504-byte executable has SHA-256 `01ecdbc24e7452b8ef14bf8d7931e9d4862c4473ab3a17708952e4609b83340a`.
 
