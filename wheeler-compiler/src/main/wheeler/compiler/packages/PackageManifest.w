@@ -7,7 +7,6 @@ import wheeler.compiler.packages.manifest_capability_coordinates;
 import wheeler.compiler.packages.manifest_capability_path;
 import wheeler.compiler.packages.manifest_dependency;
 import wheeler.compiler.packages.manifest_dependency_coordinates;
-import wheeler.compiler.packages.manifest_dependency_name;
 import wheeler.compiler.packages.manifest_empty_section;
 import wheeler.compiler.packages.manifest_header;
 import wheeler.compiler.packages.manifest_kinds;
@@ -85,14 +84,6 @@ classical class Manifest {
     long sourceOffset,
     long sourceCount,
     long test
-  ) {}
-
-  private record DependencyParse(
-    boolean valid,
-    long next,
-    long kind,
-    long nameToken,
-    long versionToken
   ) {}
 
   private record CapabilityParse(boolean valid, long next, long nameToken, long pathToken) {}
@@ -216,33 +207,6 @@ classical class Manifest {
     }
 
     return invalid;
-  }
-
-  private DependencyParse parseDependency(
-    borrow utf8 source,
-    borrow mut words kinds,
-    borrow mut words starts,
-    borrow mut words lengths,
-    long count,
-    long cursor
-  ) {
-    DependencyParse invalid = new DependencyParse(false, cursor, 0, 0, 0);
-    long kind = manifestDependencyRowKind(
-      source,
-      kinds,
-      starts,
-      lengths,
-      count,
-      cursor
-    );
-    if (kind < 1) {
-      return invalid;
-    }
-
-    long nameToken = manifestDependencyNameToken(cursor);
-    long versionToken = manifestDependencyVersionToken(cursor);
-    long next = manifestDependencyNextToken(cursor);
-    return new DependencyParse(true, next, kind, nameToken, versionToken);
   }
 
   private CapabilityParse parseCapability(
@@ -410,42 +374,37 @@ classical class Manifest {
               return new ManifestResult.Error(starts[cursor]);
             }
 
-            DependencyParse dependency = parseDependency(
+            long dependencyKind = manifestDependencyRowAdmission(
               source,
               kinds,
               starts,
               lengths,
               count,
-              cursor
+              cursor,
+              previousDependencyToken
             );
-            if (dependency.valid == false) {
+            if (dependencyKind < 0) {
               return new ManifestResult.Error(starts[cursor]);
             }
 
-            if (-1 < previousDependencyToken) {
-              boolean dependenciesOrdered = manifestDependencyNamesOrdered(
-                source,
-                starts,
-                lengths,
-                previousDependencyToken,
-                dependency.nameToken
-              );
-              if (dependenciesOrdered == false) {
-                return new ManifestResult.Error(starts[dependency.nameToken]);
-              }
+            long dependencyNameToken = manifestDependencyNameToken(cursor);
+            if (dependencyKind == 0) {
+              return new ManifestResult.Error(starts[dependencyNameToken]);
             }
 
+            long dependencyVersionToken = manifestDependencyVersionToken(cursor);
+            long dependencyNext = manifestDependencyNextToken(cursor);
             dependencyCount = manifestDependencyRowProduct(
               starts,
               lengths,
-              dependency.kind,
-              dependency.nameToken,
-              dependency.versionToken,
+              dependencyKind,
+              dependencyNameToken,
+              dependencyVersionToken,
               dependencyRows,
               dependencyCount
             );
-            previousDependencyToken = dependency.nameToken;
-            cursor = dependency.next;
+            previousDependencyToken = dependencyNameToken;
+            cursor = dependencyNext;
           } else {
             parsingDependencies = false;
           }

@@ -10,7 +10,7 @@
 | Depends on | WIP-0049, WIP-0434, WIP-0470 |
 | Supersedes | Direct dependency prefix, name, and version composition in `PackageManifest.w` |
 | Superseded by | None |
-| Follow-up | WIP-0493 dependency-row publication |
+| Follow-up | WIP-0493 dependency-row publication, WIP-0049 dependency admission |
 
 ## Summary
 
@@ -61,7 +61,12 @@ The parser must publish the dependency kind. A Boolean would require a second pr
 
 ### Move ordering into row validation
 
-Ordering compares adjacent rows and belongs to collection policy. One-row validation has no previous coordinate.
+The original one-row validator had no previous coordinate. WIP-0049's manifest
+composition work later replaced `manifestDependencyRowKind` with
+`manifestDependencyRowAdmission`, which accepts the previous name token. It
+returns minus one for a malformed row, zero for disorder, or the admitted kind.
+Field validation still precedes ordering, so the parser retains the same error
+offsets. The old validator and parser wrapper no longer exist.
 
 ### Move publication into the validator
 

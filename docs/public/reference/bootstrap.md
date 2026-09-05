@@ -44,8 +44,10 @@ Three different paths provide native evidence today:
 
 Retained package-manifest products cover lexical and canonical policy, names,
 paths, semantic versions, headers, target fields, selector admission and coverage,
-collection policy, and row publication. Complete parser coordination and the
-remaining compiler modules still need physical product integration.
+collection policy, and row publication. Retained dependency admission validates
+all fields before checking name order and preserves exact failure offsets.
+Complete parser coordination and the remaining compiler modules still need
+physical product integration.
 
 The evidence tests derive their graph and archive from checked-in source, compare
 selected products with stage 0, verify the linked container, and pin its identity.

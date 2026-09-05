@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.examples;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -51,15 +52,7 @@ class NativeManifestExampleTest {
 
   @Test
   void wheelerParsesTheSameCanonicalManifestAsStageZero() throws Exception {
-    Path root = Path.of("../wheeler-conformance/src/main/wheeler/packages");
-    Map<String, String> modules = new LinkedHashMap<>(
-        CompilerSources.moduleClosure("wheeler.compiler.packages.manifest"));
-    modules.put(
-        "ManifestEmitter.w", PackageSources.read("packages/manifest/ManifestEmitter.w"));
-    modules.put("NativeManifest.w", Files.readString(root.resolve("NativeManifest.w")));
-    modules.put("Scanner.w", CompilerSources.read("lexer/Scanner.w"));
-    Program program = new WheelerCompiler().compileModuleFiles(
-        modules, "wheeler.conformance.packages.main");
+    Program program = program();
     assertEquals(MANIFEST, new com.typeobject.wheeler.packageformat.PackageManifestParser()
         .parse(MANIFEST).canonicalText());
     VirtualMachine machine = vm(program, MANIFEST);
@@ -73,6 +66,10 @@ class NativeManifestExampleTest {
     assertEquals(2, machine.global("targetCount"));
     assertEquals(2, machine.global("targetSourceCount"));
     assertEquals(2, machine.global("dependencyCount"));
+    assertEquals(10, machine.global("dependencyCellsWritten"));
+    assertEquals(1, machine.global("firstDependencyKind"));
+    assertEquals(2, machine.global("lastDependencyKind"));
+    assertEquals(-1, machine.global("parseErrorOffset"));
     assertEquals(2, machine.global("capabilityCount"));
     assertEquals(MANIFEST, new String(machine.hostOutput(), StandardCharsets.UTF_8));
     while (machine.historySize() > 0) {
@@ -136,6 +133,68 @@ class NativeManifestExampleTest {
         MANIFEST.replace(
             "      - \"src/App.w\"\n      - \"src/Helper.w\"",
             "      - \"src/Helper.w\"\n      - \"src/App.w\""));
+  }
+
+  @Test
+  void dependencyAdmissionPreservesKindsAndDiagnosticPrecedence() throws Exception {
+    Program program = program();
+    String[] kinds = {"normal", "development", "build"};
+    for (int index = 0; index < kinds.length; index++) {
+      String source = MANIFEST.replace("kind: \"normal\"", "kind: \"" + kinds[index] + "\"");
+      VirtualMachine machine = vm(program, source);
+      machine.run();
+      assertEquals(index + 1, machine.global("firstDependencyKind"));
+      assertEquals(2, machine.global("dependencyCount"));
+      assertEquals(10, machine.global("dependencyCellsWritten"));
+      assertEquals(source, new String(machine.hostOutput(), StandardCharsets.UTF_8));
+    }
+
+    String firstRow = "- kind: \"normal\"";
+    String secondRow = "- kind: \"development\"";
+    assertDependencyFailure(program,
+        MANIFEST.replace("kind: \"normal\"", "kind: \"unknown\""),
+        "- kind: \"unknown\"", 0);
+    assertDependencyFailure(program,
+        MANIFEST.replace("demo.base", "demo.-base"), firstRow, 0);
+    assertDependencyFailure(program,
+        MANIFEST.replace("^1.0.0", "^01.0.0"), firstRow, 0);
+    assertDependencyFailure(program,
+        MANIFEST.replace("demo.extra", "demo.-extra"), secondRow, 1);
+    assertDependencyFailure(program,
+        MANIFEST.replace("~2.1.0", "~02.1.0"), secondRow, 1);
+    assertDependencyFailure(program,
+        MANIFEST.replace(secondRow, "- type: \"development\""),
+        "- type: \"development\"", 1);
+
+    String duplicate = MANIFEST.replace("demo.extra", "demo.base");
+    String unordered = MANIFEST.replace("demo.extra", "demo.aaa");
+    assertDependencyFailure(program, duplicate, "\"demo.base\"", 1);
+    assertDependencyFailure(program, unordered, "\"demo.aaa\"", 1);
+    assertDependencyFailure(program,
+        duplicate.replace("~2.1.0", "~02.1.0"), secondRow, 1);
+    assertDependencyFailure(program,
+        unordered.replace("~2.1.0", "~02.1.0"), secondRow, 1);
+  }
+
+  private static void assertDependencyFailure(
+      Program program, String source, String diagnosticToken, int admittedRows) {
+    VirtualMachine machine = vm(program, source);
+    assertThrows(VmTrap.class, machine::run);
+    assertEquals(source.lastIndexOf(diagnosticToken), machine.global("parseErrorOffset"));
+    assertEquals(admittedRows * 5, machine.global("dependencyCellsWritten"));
+    assertEquals(0, machine.global("dependencyCount"));
+    assertArrayEquals(new byte[source.getBytes(StandardCharsets.UTF_8).length], machine.hostOutput());
+  }
+
+  private static Program program() throws Exception {
+    Path root = Path.of("../wheeler-conformance/src/main/wheeler/packages");
+    Map<String, String> modules = new LinkedHashMap<>(
+        CompilerSources.moduleClosure("wheeler.compiler.packages.manifest"));
+    modules.put(
+        "ManifestEmitter.w", PackageSources.read("packages/manifest/ManifestEmitter.w"));
+    modules.put("NativeManifest.w", Files.readString(root.resolve("NativeManifest.w")));
+    modules.put("Scanner.w", CompilerSources.read("lexer/Scanner.w"));
+    return new WheelerCompiler().compileModuleFiles(modules, "wheeler.conformance.packages.main");
   }
 
   private static String manifestWithTargets(int count) {

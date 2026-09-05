@@ -1,6 +1,8 @@
 package com.typeobject.wheeler.examples;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
@@ -9,13 +11,13 @@ import java.nio.ByteOrder;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/** Native physical evidence for package-manifest dependency validation and publication. */
+/** Native physical evidence for dependency admission and publication. */
 final class NativeCompilerPackageManifestDependencyPhysicalProductExampleTest {
   private static final String MODULE = "wheeler.compiler.packages.manifest_dependency";
 
   @Tag("closure-evidence")
   @Test
-  void retainsManifestDependencyAndRelocatesFieldPolicy() throws Exception {
+  void retainsDependencyAdmissionAndRelocatesFieldAndOrderingPolicy() throws Exception {
     var module = NativeCompilerPhysicalSelection.callable(MODULE);
     var expected = new WheelerCompiler().compileLibraryModuleFiles(
         CompilerSources.moduleClosure(module.name()), module.name());
@@ -39,8 +41,17 @@ final class NativeCompilerPackageManifestDependencyPhysicalProductExampleTest {
 
     assertEquals(expectedFunctions, machine.global("physicalRetainedFunctionCount"));
     assertEquals(expectedInstructions, machine.global("physicalRetainedInstructionCount"));
-    assertEquals(7, machine.global("physicalCallableRelocationCount"));
-    assertEquals(7, machine.global("physicalResolvedCallableTargetCount"));
+    assertEquals(9, machine.global("physicalCallableRelocationCount"));
+    assertEquals(9, machine.global("physicalResolvedCallableTargetCount"));
+    byte[] transport = machine.hostOutput();
+    NativeCompilerPhysicalProductAssertions.assertSingleCallable(MODULE, expected, transport);
+
+    byte[] misbound = transport.clone();
+    int lastTarget = misbound.length - 9;
+    assertTrue(0 < Byte.toUnsignedInt(misbound[lastTarget]));
+    misbound[lastTarget] -= 1;
+    assertThrows(AssertionError.class,
+        () -> NativeCompilerPhysicalProductAssertions.assertSingleCallable(MODULE, expected, misbound));
   }
 
   private static byte[] framed(byte[] archive, byte[] manifest) {

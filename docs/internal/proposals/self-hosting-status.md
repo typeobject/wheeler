@@ -39,16 +39,20 @@ bound. A limit belongs to one boundary, not to Wheeler as a language.
 
 ## Current retained boundary
 
-The last completed physical-product milestone is
+The row-publication series ends at
 [WIP-0495](WIP-0495-retained-package-manifest-target-row-publication.md).
-It records the measured compiler graph, selected product population, executable
-identity, archive identity, and lock updates. It does not claim the complete
-compiler closure.
+Its identities describe that milestone. Current graph, archive, and executable
+pins live in the evidence tests below. Subsequent private composition work stays
+in [WIP-0049's checklist](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+unless it needs a separate contract.
 
 The retained package-manifest owners cover tokens, names, paths, semantic
 versions, canonical framing, header fields, collection keys, row capacities,
 ordering policy, dependency and capability validation, target field policy,
-source-selector admission and coverage, and row publication.
+source-selector admission and coverage, and row publication. Dependency admission
+also composes complete field validation and strict adjacent-name ordering. It
+preserves the distinction between malformed-row and unordered-name diagnostics.
+Its physical test compares complete frames and relocated instructions with stage 0.
 
 `PackageManifest.w` still coordinates complete parsing. The next acceptance
 boundary is complete row and collection composition through retained products,

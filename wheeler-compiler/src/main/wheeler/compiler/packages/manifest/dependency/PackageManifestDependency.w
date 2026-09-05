@@ -1,4 +1,4 @@
-//! Composes one package-manifest dependency row verdict.
+//! Admits and publishes package-manifest dependency rows.
 
 module wheeler.compiler.packages.manifest_dependency;
 
@@ -8,18 +8,19 @@ import wheeler.compiler.packages.manifest_dependency_prefix;
 import wheeler.compiler.packages.manifest_dependency_version;
 
 classical class PackageManifestDependency {
-  /// Returns the dependency kind for one complete row, or zero when the row is malformed.
-  public long manifestDependencyRowKind(
+  /// Admits one row, returning its kind, zero for disorder, or minus one when malformed.
+  public long manifestDependencyRowAdmission(
     borrow utf8 source,
     borrow mut words kinds,
     borrow mut words starts,
     borrow mut words lengths,
     long count,
-    long cursor
+    long cursor,
+    long previousNameToken
   ) {
     long kind = manifestDependencyPrefix(source, kinds, starts, lengths, count, cursor);
     if (kind < 1) {
-      return 0;
+      return -1;
     }
 
     boolean validName = manifestDependencyNameValid(
@@ -31,7 +32,7 @@ classical class PackageManifestDependency {
       cursor
     );
     if (validName == false) {
-      return 0;
+      return -1;
     }
 
     boolean validVersion = manifestDependencyVersionValid(
@@ -43,6 +44,22 @@ classical class PackageManifestDependency {
       cursor
     );
     if (validVersion == false) {
+      return -1;
+    }
+
+    if (previousNameToken < 0) {
+      return kind;
+    }
+
+    long nameToken = manifestDependencyNameToken(cursor);
+    boolean ordered = manifestDependencyNamesOrdered(
+      source,
+      starts,
+      lengths,
+      previousNameToken,
+      nameToken
+    );
+    if (ordered == false) {
       return 0;
     }
 

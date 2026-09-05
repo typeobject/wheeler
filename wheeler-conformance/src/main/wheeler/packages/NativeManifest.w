@@ -14,6 +14,10 @@ classical class NativeManifest {
   state long targetCount = 0;
   state long targetSourceCount = 0;
   state long dependencyCount = 0;
+  state long dependencyCellsWritten = 0;
+  state long firstDependencyKind = 0;
+  state long lastDependencyKind = 0;
+  state long parseErrorOffset = -1;
   state long capabilityCount = 0;
   state long firstTargetNameLength = 0;
   state long lastTargetNameLength = 0;
@@ -56,6 +60,15 @@ classical class NativeManifest {
       dependencyRows,
       capabilityRows
     );
+    firstDependencyKind = dependencyRows[0];
+    long dependencyCell = 0;
+    while (dependencyCell < 40) limit 40 {
+      if (dependencyRows[dependencyCell] != 0) {
+        dependencyCellsWritten += 1;
+      }
+      dependencyCell += 1;
+    }
+
     match (parsed) {
       case ManifestResult.Value(ManifestModel manifest) {
         nameStart = manifest.name.start;
@@ -70,6 +83,7 @@ classical class NativeManifest {
         lastTargetNameLength = targetRows[(targetCount - 1) * TARGET_ROW_WIDTH
           + TARGET_NAME_LENGTH];
         if (0 < dependencyCount) {
+          lastDependencyKind = dependencyRows[(dependencyCount - 1) * DEPENDENCY_ROW_WIDTH];
           lastDependencyNameLength = dependencyRows[(dependencyCount - 1) * DEPENDENCY_ROW_WIDTH
             + 2];
         }
@@ -82,6 +96,7 @@ classical class NativeManifest {
         emittedLength = emitCanonical(source, starts, lengths, count, canonical);
       }
       case ManifestResult.Error(long parseOffset) {
+        parseErrorOffset = parseOffset;
         assert(finalCursor == 1);
       }
     }

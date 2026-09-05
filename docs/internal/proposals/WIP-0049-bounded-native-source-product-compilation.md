@@ -195,6 +195,20 @@ rather than clearing or copying full capacities. The
 
 - [ ] WIP-0048 emits the complete physical compiler closure from those products.
 
+### Manifest composition
+
+- [x] The retained dependency owner validates every field before strict name
+  ordering. Its scalar admission verdict preserves the dependency kind and
+  distinguishes malformed rows from duplicate or unordered names. The parser's
+  `DependencyParse` carrier, wrapper, and direct ordering import are gone.
+- [x] Dependency evidence compares complete frame metadata and instructions
+  after identity relocation, not just function and instruction counts. Native
+  manifest cases pin all three kinds, field-before-order diagnostic precedence,
+  exact offsets, and unchanged rejected rows and output.
+- [ ] Complete target, dependency, and capability collection composition through
+  retained products. The aggregate parser still owns iteration, capacity checks,
+  table allocation, and complete manifest publication.
+
 ## Acceptance
 
 - Primitive imported-call fixtures compile without dependency bodies.
