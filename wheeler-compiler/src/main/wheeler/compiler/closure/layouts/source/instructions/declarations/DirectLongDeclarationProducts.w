@@ -139,7 +139,7 @@ classical class DirectLongDeclarationProducts {
       return new DirectLongDeclarationProduct(projection.next, 4, projection.typeCount, true);
     }
 
-    boolean utf8ScalarInitializer = tokenHash(source, tokenStarts, tokenLengths, sourceToken)
+    boolean utf8ScalarInitializer = sourceTokenCode(source, tokenStarts, tokenLengths, sourceToken)
       == TOKEN_UTF8_SCALAR;
     if (utf8ScalarInitializer) {
       DirectUtf8ScalarProduct utf8Projection = writeDirectUtf8Scalar(
@@ -178,7 +178,7 @@ classical class DirectLongDeclarationProducts {
     boolean bufferLengthInitializer = false;
     if (tokenKinds[sourceToken] == 1) {
       if (
-        tokenHash(source, tokenStarts, tokenLengths, sourceToken) == TOKEN_BUFFER_LENGTH
+        sourceTokenCode(source, tokenStarts, tokenLengths, sourceToken) == TOKEN_BUFFER_LENGTH
       ) {
         bufferLengthInitializer = punctuationAt(
           source,

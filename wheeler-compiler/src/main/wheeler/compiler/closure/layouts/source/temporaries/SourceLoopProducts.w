@@ -175,7 +175,7 @@ classical class SourceLoopProducts {
     }
 
     if (
-      tokenHash(source, tokenStarts, tokenLengths, closeCondition + 1) != TOKEN_LIMIT
+      sourceTokenCode(source, tokenStarts, tokenLengths, closeCondition + 1) != TOKEN_LIMIT
     ) {
       return invalidSourceLoopHeader();
     }
@@ -560,7 +560,7 @@ classical class SourceLoopProducts {
     long statement = 0;
     while (statement < statementCount) limit MAX_STATEMENTS {
       long startToken = statementTokens[statement];
-      if (tokenHash(source, tokenStarts, tokenLengths, startToken) == TOKEN_WHILE) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, startToken) == TOKEN_WHILE) {
         long child = stagedStatements[STATEMENT_FIRST_CHILD_ROW + statement];
         boolean loopValid = true;
         if (child < 0) {

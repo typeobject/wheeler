@@ -167,7 +167,7 @@ final class NativeCompilerPhysicalClosureExampleTest {
     String linkedIdentity = HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(functionMachine.hostOutput()));
     assertEquals(
-        391_920_920L,
+        46_006_703L,
         functionMachine.global("linkedIdentityPrefix"),
         () -> "sha256=" + linkedIdentity
             + " code=" + functionMachine.global("linkedCodeLength")
@@ -178,7 +178,7 @@ final class NativeCompilerPhysicalClosureExampleTest {
             + " localTypes=" + functionMachine.global("linkedLocalTypeCount")
             + " container=" + functionMachine.global("linkedContainerLength"));
     assertEquals(
-        "175c3d18cfea5e18a3fd34226a1409a3d7d4c5b3c07f191607a68506f2c345ca",
+        "02be01af8a1da8d98e48bd44e18afa9cf0d09c278ee07f61a95ebb0b4e53e2a0",
         linkedIdentity,
         () -> "code=" + functionMachine.global("linkedCodeLength")
             + " functions=" + functionMachine.global("functionCount")
@@ -340,12 +340,17 @@ final class NativeCompilerPhysicalClosureExampleTest {
     try {
       CompilerMachineRunner.runWithoutRewindHistory(machine);
     } catch (VmTrap trap) {
-      var frames = machine.snapshot().selectedFrames().stream()
+      var snapshot = machine.snapshot();
+      var frames = snapshot.selectedFrames().stream()
           .map(frame -> program.function(frame.functionId()).name() + "@" + frame.programCounter())
           .toList();
+      long liveBytes = snapshot.regions().stream().mapToLong(region -> region.usedBytes()).sum();
       throw new AssertionError(
           "Counted closure trapped for physical owner "
-              + machine.global("physicalModuleOwner") + " in " + frames,
+              + machine.global("physicalModuleOwner") + " in " + frames
+              + "; regions=" + snapshot.regions().size()
+              + " buffers=" + snapshot.buffers().size() + " liveBytes=" + liveBytes
+              + " lastRegion=" + snapshot.regions().getLast(),
           trap);
     }
   }

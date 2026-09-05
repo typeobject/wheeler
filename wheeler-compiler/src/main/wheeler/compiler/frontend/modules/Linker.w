@@ -106,11 +106,11 @@ classical class ModuleLinker {
       return false;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, bodyStart) == TOKEN_CLASSICAL) {} else {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, bodyStart) == TOKEN_CLASSICAL) {} else {
       return false;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, bodyStart + 1) == TOKEN_CLASS) {} else {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, bodyStart + 1) == TOKEN_CLASS) {} else {
       return false;
     }
 
@@ -135,7 +135,7 @@ classical class ModuleLinker {
   ) {
     long cursor = 0;
     while (cursor < bodyStart) limit MAX_COMPILER_TOKENS {
-      if (tokenHash(source, tokenStarts, tokenLengths, cursor) == TOKEN_IMPORT) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, cursor) == TOKEN_IMPORT) {
         return false;
       }
 
@@ -163,7 +163,7 @@ classical class ModuleLinker {
     long selectedStart = 0;
     long selectedLength = 0;
     while (cursor < rootBody) limit MAX_COMPILER_TOKENS {
-      if (tokenHash(rootSource, rootStarts, rootLengths, cursor) == TOKEN_IMPORT) {
+      if (sourceTokenCode(rootSource, rootStarts, rootLengths, cursor) == TOKEN_IMPORT) {
         importCount += 1;
         long name = cursor + 1;
         long semicolon = name;
@@ -332,7 +332,7 @@ classical class ModuleLinker {
     long cursor = firstDeclaration;
     long exportedCount = 0;
     while (cursor < memberStart) limit MAX_CLASS_CONSTANTS {
-      long visibility = tokenHash(source, tokenStarts, tokenLengths, cursor);
+      long visibility = sourceTokenCode(source, tokenStarts, tokenLengths, cursor);
       if (visibility == TOKEN_PUBLIC) {
         exportedCount += 1;
       } else {
@@ -379,7 +379,7 @@ classical class ModuleLinker {
     long declaration = firstDeclaration;
     while (declaration < memberStart) limit MAX_CLASS_CONSTANTS {
       if (
-        tokenHash(importedSource, importedStarts, importedLengths, declaration) == TOKEN_PRIVATE
+        sourceTokenCode(importedSource, importedStarts, importedLengths, declaration) == TOKEN_PRIVATE
       ) {
         long name = constantNameToken(
           importedSource,
@@ -835,7 +835,7 @@ classical class ModuleLinker {
       if (plan.importedStart < tokenStart + 1) {
         if (tokenStart < importedEnd) {
           if (
-            tokenHash(importedSource, tokenStarts, tokenLengths, tokenCursor) == TOKEN_PUBLIC
+            sourceTokenCode(importedSource, tokenStarts, tokenLengths, tokenCursor) == TOKEN_PUBLIC
           ) {
             outputCursor = copyLinkedAscii(
               importedSource,

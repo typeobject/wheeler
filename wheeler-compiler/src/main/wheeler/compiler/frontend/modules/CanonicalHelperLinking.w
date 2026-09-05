@@ -41,7 +41,7 @@ classical class CanonicalHelperLinking {
       if (start < tokenStart + 1) {
         if (tokenStart < sourceEnd) {
           if (
-            tokenHash(source, tokenStarts, tokenLengths, tokenCursor) == TOKEN_PUBLIC
+            sourceTokenCode(source, tokenStarts, tokenLengths, tokenCursor) == TOKEN_PUBLIC
           ) {
             outputCursor = copyLinkedAscii(
               source,

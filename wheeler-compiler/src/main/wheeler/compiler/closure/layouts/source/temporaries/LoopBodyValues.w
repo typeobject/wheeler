@@ -51,7 +51,7 @@ classical class LoopBodyValues {
 
     long localBase = declaration.local - 1;
     long valueToken = token + 3;
-    long literal = tokenHash(source, tokenStarts, tokenLengths, valueToken);
+    long literal = sourceTokenCode(source, tokenStarts, tokenLengths, valueToken);
     if (literal == TOKEN_TRUE) {
       return new LoopBooleanDeclaration(localBase, BODY_BOOLEAN_LITERAL, 1, true);
     }
@@ -677,13 +677,13 @@ classical class LoopBodyValues {
     );
   }
 
-  /// Reports whether one token hash names a supported buffer write intrinsic.
-  public boolean loopBufferSetToken(long hash) {
-    if (hash == TOKEN_SET) {
+  /// Reports whether one word code names a supported buffer write intrinsic.
+  public boolean loopBufferSetToken(long wordCode) {
+    if (wordCode == TOKEN_SET) {
       return true;
     }
 
-    return hash == TOKEN_SET_BYTE;
+    return wordCode == TOKEN_SET_BYTE;
   }
 
   /// Reports whether one source local carries an explicit borrow mode.
@@ -723,13 +723,13 @@ classical class LoopBodyValues {
       tokenLengths
     );
     if (1 < nameToken) {
-      if (tokenHash(source, tokenStarts, tokenLengths, nameToken - 2) == TOKEN_BORROW) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, nameToken - 2) == TOKEN_BORROW) {
         return true;
       }
     }
 
     if (2 < nameToken) {
-      if (tokenHash(source, tokenStarts, tokenLengths, nameToken - 3) == TOKEN_BORROW) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, nameToken - 3) == TOKEN_BORROW) {
         return true;
       }
     }
@@ -737,7 +737,7 @@ classical class LoopBodyValues {
     return false;
   }
 
-  /// Returns the source type token hash for one unique callable local.
+  /// Returns the source type word code for one unique callable local.
   public long loopBodyValueType(
     borrow utf8 source,
     long owner,
@@ -777,6 +777,6 @@ classical class LoopBodyValues {
       return -1;
     }
 
-    return tokenHash(source, tokenStarts, tokenLengths, nameToken - 1);
+    return sourceTokenCode(source, tokenStarts, tokenLengths, nameToken - 1);
   }
 }

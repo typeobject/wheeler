@@ -100,7 +100,7 @@ classical class ReturnExpressions {
       );
     }
 
-    long literal = tokenHash(source, tokenStarts, tokenLengths, rightToken);
+    long literal = sourceTokenCode(source, tokenStarts, tokenLengths, rightToken);
     if (literal == TOKEN_TRUE) {
       return new ReturnExpressionResolution(opcode, 1, false, true, true);
     }

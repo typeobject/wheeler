@@ -114,6 +114,18 @@ bounded helper compiler below.
 
 ### Package-manifest composition
 
+`compiler/syntax/tokens/words/SourceWords.w` classifies 58 fixed source words by
+exact, length-bearing ASCII lanes. `Tokens.w` checks token-column windows before
+projecting those ranges. Keyword, Boolean, primitive-type, intrinsic, and native
+test-metadata consumers no longer use token hashes. The thirteen-byte vocabulary
+bound does not shorten identifiers or source leases. Constant-prefix admission
+rejects unindexed fields before declaration-name publication and consumes every
+leading state declaration.
+
+Automatic test discovery still lacks complete member-front admission. Unknown
+fronts can disappear into a zero-test report. WIP-0498 owns that gap. Exact word
+classification does not validate a class body.
+
 `compiler/packages/manifest/words/PackageManifestWords.w` classifies fixed words by exact
 length and two base-128 ASCII lanes. Token policy projects scanner ranges into
 that owner. Keys, kinds, Booleans, schema version, and canonical layout share its

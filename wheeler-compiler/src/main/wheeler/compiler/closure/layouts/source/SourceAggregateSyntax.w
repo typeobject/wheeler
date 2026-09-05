@@ -4,7 +4,9 @@ module wheeler.compiler.closure.source_aggregate_syntax;
 
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
+import wheeler.compiler.source_words;
 import wheeler.compiler.tokens;
+import wheeler.compiler.type_codes;
 
 classical class SourceAggregateSyntax {
   private const long MAX_AGGREGATES = 64;
@@ -36,19 +38,6 @@ classical class SourceAggregateSyntax {
     }
 
     return utf8Scalar(source, tokenStarts[token]) == expected;
-  }
-
-  /// Computes the bounded bootstrap hash of one exact source range.
-  public long rangeHash(borrow utf8 source, long start, long length) {
-    long cursor = start;
-    long end = start + length;
-    long hash = 0;
-    while (cursor < end) limit 256 {
-      hash = (hash & TOKEN_HASH_INPUT_MASK) * 31 + utf8Scalar(source, cursor);
-      cursor += utf8Width(source, cursor);
-    }
-
-    return hash;
   }
 
   /// Compares two exact UTF-8 source ranges.
@@ -262,7 +251,7 @@ classical class SourceAggregateSyntax {
     long declaration
   ) {
     if (0 < declaration) {
-      long modifier = tokenHash(source, tokenStarts, tokenLengths, declaration - 1);
+      long modifier = sourceTokenCode(source, tokenStarts, tokenLengths, declaration - 1);
       if (modifier == TOKEN_PUBLIC) {
         return tokenStarts[declaration - 1];
       }
@@ -283,7 +272,7 @@ classical class SourceAggregateSyntax {
     long declaration
   ) {
     if (0 < declaration) {
-      long modifier = tokenHash(source, tokenStarts, tokenLengths, declaration - 1);
+      long modifier = sourceTokenCode(source, tokenStarts, tokenLengths, declaration - 1);
       if (modifier == TOKEN_PUBLIC) {
         return 1;
       }
@@ -324,7 +313,7 @@ classical class SourceAggregateSyntax {
       return new StructuralType(0, 0, 0, true, false);
     }
 
-    long element = primitiveType(rangeHash(source, start, open));
+    long element = primitiveType(sourceWordCode(source, start, open));
     if (element == 1) {} else {
       if (element == 2) {} else {
         if (element == 14) {} else {
@@ -364,45 +353,35 @@ classical class SourceAggregateSyntax {
     return new StructuralType(2, element, arrayLength, true, true);
   }
 
-  /// Maps one exact primitive type hash to its bytecode code.
-  public long primitiveType(long typeHash) {
-    if (typeHash == 3327612) {
-      return 1;
+  /// Maps an admitted primitive word code to its bytecode type.
+  public long primitiveType(long code) {
+    if (code == TOKEN_LONG) {
+      return TYPE_SIGNED;
     }
-
-    if (typeHash == 90259024936) {
-      return 2;
+    if (code == TOKEN_BOOLEAN) {
+      return TYPE_BOOLEAN;
     }
-
-    if (typeHash == 3360171764) {
-      return 3;
+    if (code == TOKEN_REGION) {
+      return TYPE_REGION;
     }
-
-    if (typeHash == 113318569) {
-      return 4;
+    if (code == TOKEN_WORDS) {
+      return TYPE_WORDS;
     }
-
-    if (typeHash == 94224491) {
-      return 5;
+    if (code == TOKEN_BYTES) {
+      return TYPE_BYTES;
     }
-
-    if (typeHash == 99132996960) {
-      return 6;
+    if (code == TOKEN_LONGMAP) {
+      return TYPE_LONG_MAP;
     }
-
-    if (typeHash == 3600241) {
-      return 7;
+    if (code == TOKEN_UTF8) {
+      return TYPE_UTF8;
     }
-
-    if (typeHash == 11018295213) {
-      return 13;
+    if (code == TOKEN_BYTEVIEW) {
+      return TYPE_BYTE_VIEW;
     }
-
-    if (typeHash == 2135970) {
-      return 14;
+    if (code == TOKEN_DONE) {
+      return TYPE_DONE;
     }
-
     return -1;
   }
-
 }

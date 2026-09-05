@@ -74,7 +74,7 @@ final class NativeCompilerSelfSourceExampleTest {
   }
 
   @Test
-  void hashesTheCompleteBoundedIdentifier() throws Exception {
+  void resolvesTheCompleteBoundedIdentifier() throws Exception {
     String acceptedName = "A".repeat(256);
     String source = "module examples.long_name; classical class LongName { "
         + "public const long " + acceptedName + " = 40; "
@@ -527,7 +527,7 @@ final class NativeCompilerSelfSourceExampleTest {
         "compiler/syntax/booleans/BooleanTokens.w",
         "wheeler.compiler.boolean_tokens");
     assertEquals(
-        "wheeler.compiler.boolean_tokens::booleanTokenHash",
+        "wheeler.compiler.boolean_tokens::booleanTokenCode",
         decoded.functions().getFirst().name());
     assertEquals("$library", decoded.functions().getLast().name());
   }

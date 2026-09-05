@@ -4,6 +4,7 @@ module wheeler.compiler.closure.resolved_loop_products;
 
 import wheeler.compiler.closure.imported_constant_values;
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.tokens;
 import wheeler.compiler.type_codes;
 import wheeler.lexer.scanner;
@@ -213,7 +214,7 @@ classical class ResolvedLoopProducts {
       return false;
     }
 
-    return tokenHash(source, tokenStarts, tokenLengths, nameToken - 1) == 3327612;
+    return sourceTokenCode(source, tokenStarts, tokenLengths, nameToken - 1) == TOKEN_LONG;
   }
 
   private ResolvedOperand resolveOperand(

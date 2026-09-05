@@ -2,47 +2,34 @@
 
 module wheeler.compiler.tokens;
 
-import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.source_scalars;
+import wheeler.compiler.source_words;
 import wheeler.lexer.scanner;
 
 classical class Tokens {
-  /// Names the byte width of `rotateRight32`.
-  public const long ROTATE_RIGHT_32_NAME_BYTES = 13;
-  /// Names the prefix width used for bounded `rotateRight32` hashing.
-  public const long ROTATE_RIGHT_32_PREFIX_BYTES = 6;
-  /// Names the stable prefix hash for `rotateRight32`.
-  public const long TOKEN_ROTATE_RIGHT_32_PREFIX = 3369786715;
-  /// Names the stable suffix hash for `rotateRight32`.
-  public const long TOKEN_ROTATE_RIGHT_32_SUFFIX = 75879696731;
-  /// Computes the stable hash of one bounded source token.
-  public long tokenHash(
+  /// Returns an exact source-word code, or zero for unknown words and invalid windows.
+  public long sourceTokenCode(
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
     long token
   ) {
-    long cursor = tokenStarts[token];
-    long end = cursor + tokenLengths[token];
-    long hash = 0;
-    while (cursor < end) limit MAX_TOKEN_HASH_SCALARS {
-      hash = (hash & TOKEN_HASH_INPUT_MASK) * 31 + utf8Scalar(source, cursor);
-      cursor += utf8Width(source, cursor);
+    if (token < 0) {
+      return 0;
     }
-
-    return hash;
-  }
-
-  private long tokenRangeHash(borrow utf8 source, long start, long length) {
-    long cursor = start;
-    long end = start + length;
-    long hash = 0;
-    while (cursor < end) limit 8 {
-      hash = (hash & TOKEN_HASH_INPUT_MASK) * 31 + utf8Scalar(source, cursor);
-      cursor += utf8Width(source, cursor);
+    long lastStartToken = bufferLength(tokenStarts) - 1;
+    if (lastStartToken < token) {
+      return 0;
     }
-
-    return hash;
+    long lastLengthToken = bufferLength(tokenLengths) - 1;
+    if (lastLengthToken < token) {
+      return 0;
+    }
+    long start = tokenStarts[token];
+    long length = tokenLengths[token];
+    long code = sourceWordCode(source, start, length);
+    return code;
   }
 
   /// Checks one token against the exact `rotateRight32` intrinsic name.
@@ -52,20 +39,8 @@ classical class Tokens {
     borrow mut words tokenLengths,
     long token
   ) {
-    if (tokenLengths[token] == ROTATE_RIGHT_32_NAME_BYTES) {
-      long start = tokenStarts[token];
-      if (
-        tokenRangeHash(source, start, ROTATE_RIGHT_32_PREFIX_BYTES) == TOKEN_ROTATE_RIGHT_32_PREFIX
-      ) {
-        return tokenRangeHash(
-          source,
-          start + ROTATE_RIGHT_32_PREFIX_BYTES,
-          ROTATE_RIGHT_32_NAME_BYTES - ROTATE_RIGHT_32_PREFIX_BYTES
-        ) == TOKEN_ROTATE_RIGHT_32_SUFFIX;
-      }
-    }
-
-    return false;
+    long code = sourceTokenCode(source, tokenStarts, tokenLengths, token);
+    return code == TOKEN_ROTATE_RIGHT_32;
   }
 
   /// Checks one token against an exact punctuation scalar.

@@ -15,8 +15,4 @@ classical class CompilerTokenLimits {
   public const long MAX_QUALIFIED_NAME_TOKENS = 64;
   /// Caps UTF-8 bytes compared in one module or import name.
   public const long MAX_QUALIFIED_NAME_BYTES = 256;
-  /// Caps hashing at the accepted 256-byte identifier ceiling.
-  public const long MAX_TOKEN_HASH_SCALARS = 256;
-  /// Keeps one hash multiplication within the positive signed range.
-  public const long TOKEN_HASH_INPUT_MASK = 288230376151711743;
 }

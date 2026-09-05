@@ -12,7 +12,7 @@ import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 
 classical class ExecutableOwnerKinds {
-  private const long EXECUTABLE_KIND_ARENA_BYTES = 98400;
+  public const long EXECUTABLE_KIND_ARENA_BYTES = 98400;
 
   /// Carries one validated module and its complete scalar-helper count, when applicable.
   public record ExecutableOwnerKind(
@@ -73,6 +73,38 @@ classical class ExecutableOwnerKinds {
     words tokenStarts = allocate(scratch, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(scratch, MAX_COMPILER_TOKENS);
     words module = allocate(scratch, 2);
+    ExecutableOwnerKind result = classifyExecutableOwnerWithScratch(
+      source, tokenKinds, tokenStarts, tokenLengths, module
+    );
+    drop(module);
+    drop(tokenLengths);
+    drop(tokenStarts);
+    drop(tokenKinds);
+    drop(scratch);
+    return result;
+  }
+
+  /// Reuses caller-private token columns and a two-word module-name scratch pair.
+  /// Short columns reject before scanning. Only the returned kind is a publication product.
+  public ExecutableOwnerKind classifyExecutableOwnerWithScratch(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    borrow mut words module
+  ) {
+    if (bufferLength(tokenKinds) < MAX_COMPILER_TOKENS) {
+      return new ExecutableOwnerKind(0, 0, 0, false, false);
+    }
+    if (bufferLength(tokenStarts) < MAX_COMPILER_TOKENS) {
+      return new ExecutableOwnerKind(0, 0, 0, false, false);
+    }
+    if (bufferLength(tokenLengths) < MAX_COMPILER_TOKENS) {
+      return new ExecutableOwnerKind(0, 0, 0, false, false);
+    }
+    if (bufferLength(module) < 2) {
+      return new ExecutableOwnerKind(0, 0, 0, false, false);
+    }
     long tokenCount = scanSemanticTokens(source, tokenKinds, tokenStarts, tokenLengths);
     ExecutableOwnerKind result = new ExecutableOwnerKind(0, 0, 0, false, false);
     if (-1 < tokenCount) {
@@ -192,11 +224,6 @@ classical class ExecutableOwnerKinds {
       }
     }
 
-    drop(module);
-    drop(tokenLengths);
-    drop(tokenStarts);
-    drop(tokenKinds);
-    drop(scratch);
     return result;
   }
 }

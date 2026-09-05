@@ -197,11 +197,11 @@ classical class ModuleHeaders {
       return -1;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, 0) == TOKEN_CLASSICAL) {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, 0) == TOKEN_CLASSICAL) {
       return 0;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, 0) == TOKEN_MODULE) {} else {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, 0) == TOKEN_MODULE) {} else {
       return -1;
     }
 
@@ -221,7 +221,7 @@ classical class ModuleHeaders {
         return -1;
       }
 
-      if (tokenHash(source, tokenStarts, tokenLengths, cursor) == TOKEN_IMPORT) {} else {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, cursor) == TOKEN_IMPORT) {} else {
         break;
       }
 
@@ -254,11 +254,11 @@ classical class ModuleHeaders {
     }
 
     if (cursor < count) {
-      if (tokenHash(source, tokenStarts, tokenLengths, cursor) == TOKEN_IMPORT) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, cursor) == TOKEN_IMPORT) {
         return -1;
       }
 
-      if (tokenHash(source, tokenStarts, tokenLengths, cursor) == TOKEN_CLASSICAL) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, cursor) == TOKEN_CLASSICAL) {
         return cursor;
       }
     }
@@ -336,7 +336,7 @@ classical class ModuleHeaders {
       long cursor = moduleEnd + 1;
       while (cursor < dependentBody) limit MAX_MODULE_IMPORTS {
         if (
-          tokenHash(dependentSource, dependentStarts, dependentLengths, cursor) == TOKEN_IMPORT
+          sourceTokenCode(dependentSource, dependentStarts, dependentLengths, cursor) == TOKEN_IMPORT
         ) {
           long importEnd = qualifiedNameEnd(
             dependentSource,

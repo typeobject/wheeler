@@ -195,6 +195,30 @@ rather than clearing or copying full capacities. The
 
 - [ ] WIP-0048 emits the complete physical compiler closure from those products.
 
+### Source-word admission
+
+[WIP-0497](WIP-0497-exact-source-word-admission.md) replaces token hashes with exact
+word codes across compiler and native test-source consumers. The shared
+vocabulary has 58 spellings. Sentinel-prefixed ASCII lanes retain length and
+order without collisions. Unknown words return zero, and the thirteen-byte word
+bound does not shorten identifiers or source leases.
+
+The consolidated pass compares complete Boolean and long-word artifacts and all
+short-word and range-classifier bodies after two imported calls resolve.
+Declaration tests reject all six reproduced keyword aliases before any name
+publication. The scalar pass now consumes every leading state declaration and
+rejects unindexed fields instead of silently ending the constant prefix.
+
+Closure classification reuses one token arena across all source leases. The
+512-module fixture consumes 524 buffer identities, including host buffers and
+caller columns. First and later header failures leave every caller owner cell
+unchanged. The scanner, live-byte budget, and lifetime buffer limit do not grow.
+
+[WIP-0498](WIP-0498-native-test-member-front-admission.md) remains open. Automatic
+discovery can still ignore a malformed member front and publish a zero-test
+report. Exact word classification and explicit-descriptor rejection do not close
+that grammar boundary.
+
 ### Manifest composition
 
 - [x] Manifest words use exact length and two base-128 ASCII lanes, not polynomial

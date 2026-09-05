@@ -87,16 +87,16 @@ classical class SourceCallableResultProducts {
       return -1;
     }
 
-    long resultHash = tokenHash(source, tokenStarts, tokenLengths, open - 2);
-    if (resultHash == TOKEN_VOID) {
+    long resultWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, open - 2);
+    if (resultWordCode == TOKEN_VOID) {
       return 0;
     }
 
-    if (resultHash == TOKEN_LONG) {
+    if (resultWordCode == TOKEN_LONG) {
       return TYPE_SIGNED;
     }
 
-    if (resultHash == TOKEN_BOOLEAN) {
+    if (resultWordCode == TOKEN_BOOLEAN) {
       return TYPE_BOOLEAN;
     }
 

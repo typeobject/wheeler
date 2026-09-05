@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.source_aggregate_operations;
 
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
 
@@ -11,8 +12,6 @@ classical class SourceAggregateOperations {
   private const long MAX_ARGUMENTS = 1024;
   private const long MAX_OPERATIONS = 256;
   private const long OPERATION_ROWS = 2048;
-  private const long TOKEN_NEW = 108960;
-  private const long TOKEN_SLICE = 109526418;
 
   /// Reports the exact aggregate syntax-product extent.
   public record SourceAggregateOperationPlan(
@@ -205,8 +204,8 @@ classical class SourceAggregateOperations {
     long argumentCount = 0;
     long cursor = 0;
     while (cursor < semanticCount) limit MAX_COMPILER_TOKENS {
-      long hash = tokenHash(source, tokenStarts, tokenLengths, cursor);
-      if (hash == TOKEN_NEW) {
+      long wordCode = sourceTokenCode(source, tokenStarts, tokenLengths, cursor);
+      if (wordCode == TOKEN_NEW) {
         boolean framed = cursor + 2 < semanticCount;
         long typeStart = 0;
         long typeLength = 0;
@@ -324,7 +323,7 @@ classical class SourceAggregateOperations {
           }
         }
       } else {
-        if (hash == TOKEN_SLICE) {
+        if (wordCode == TOKEN_SLICE) {
           if (cursor + 1 < semanticCount) {
             if (punctuationAt(source, tokenKinds, tokenStarts, cursor + 1, 40)) {
               long sliceClose = closingToken(

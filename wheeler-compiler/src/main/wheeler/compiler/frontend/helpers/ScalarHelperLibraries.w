@@ -614,7 +614,7 @@ classical class ScalarHelperLibraries {
     long start
   ) {
     long returnTypeToken = start;
-    long visibility = tokenHash(source, tokenStarts, tokenLengths, start);
+    long visibility = sourceTokenCode(source, tokenStarts, tokenLengths, start);
     if (visibility == TOKEN_PUBLIC) {
       returnTypeToken += 1;
     } else {
@@ -623,7 +623,7 @@ classical class ScalarHelperLibraries {
       }
     }
 
-    long returnType = tokenHash(source, tokenStarts, tokenLengths, returnTypeToken);
+    long returnType = sourceTokenCode(source, tokenStarts, tokenLengths, returnTypeToken);
     if (returnType == TOKEN_LONG) {} else {
       if (returnType == TOKEN_BOOLEAN) {} else {
         if (returnType == TOKEN_UTF8) {} else {

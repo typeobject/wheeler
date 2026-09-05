@@ -175,7 +175,7 @@ classical class LoopForms {
     }
 
     if (
-      tokenHash(source, tokenStarts, tokenLengths, closeCondition + 1) == TOKEN_LIMIT
+      sourceTokenCode(source, tokenStarts, tokenLengths, closeCondition + 1) == TOKEN_LIMIT
     ) {} else {
       return -1;
     }

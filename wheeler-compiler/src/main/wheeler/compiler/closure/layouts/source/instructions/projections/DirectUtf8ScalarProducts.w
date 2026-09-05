@@ -63,7 +63,7 @@ classical class DirectUtf8ScalarProducts {
       return invalidProjection();
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, token) != TOKEN_UTF8_SCALAR) {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, token) != TOKEN_UTF8_SCALAR) {
       return invalidProjection();
     }
 

@@ -636,8 +636,8 @@ classical class Operands {
     }
 
     if (resolvedLocalAssignmentBoolean(opcode)) {
-      long assignmentHash = tokenHash(source, tokenStarts, tokenLengths, statementStart + 2);
-      if (assignmentHash == TOKEN_TRUE) {
+      long assignmentWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 2);
+      if (assignmentWordCode == TOKEN_TRUE) {
         return 1;
       }
 
@@ -747,7 +747,7 @@ classical class Operands {
     }
 
     if (booleanLiteral) {
-      long literal = tokenHash(source, tokenStarts, tokenLengths, operandToken);
+      long literal = sourceTokenCode(source, tokenStarts, tokenLengths, operandToken);
       if (literal == TOKEN_TRUE) {
         return 1;
       }

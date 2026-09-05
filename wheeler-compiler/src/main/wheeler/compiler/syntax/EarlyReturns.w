@@ -40,8 +40,8 @@ classical class EarlyReturnForms {
       return -1;
     }
 
-    long returned = tokenHash(source, tokenStarts, tokenLengths, returnToken);
-    if (booleanTokenHash(returned)) {
+    long returned = sourceTokenCode(source, tokenStarts, tokenLengths, returnToken);
+    if (booleanTokenCode(returned)) {
       return 1;
     }
 
@@ -125,7 +125,7 @@ classical class EarlyReturnForms {
     }
 
     if (
-      tokenHash(source, tokenStarts, tokenLengths, statementStart + 8) == TOKEN_RETURN
+      sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 8) == TOKEN_RETURN
     ) {} else {
       return -1;
     }
@@ -326,7 +326,7 @@ classical class EarlyReturnForms {
     }
 
     if (
-      tokenHash(source, tokenStarts, tokenLengths, closeCondition + 2) == TOKEN_RETURN
+      sourceTokenCode(source, tokenStarts, tokenLengths, closeCondition + 2) == TOKEN_RETURN
     ) {} else {
       return -1;
     }

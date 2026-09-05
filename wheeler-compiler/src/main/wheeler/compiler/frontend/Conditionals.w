@@ -104,7 +104,7 @@ classical class Conditionals {
     long opcode
   ) {
     long literalToken = localLiteralAssignmentComparisonToken(statementStart, opcode);
-    long literal = tokenHash(source, tokenStarts, tokenLengths, literalToken);
+    long literal = sourceTokenCode(source, tokenStarts, tokenLengths, literalToken);
     if (literal == TOKEN_TRUE) {
       return true;
     }
@@ -132,7 +132,7 @@ classical class Conditionals {
     }
 
     long literalWidth = 1;
-    long literal = tokenHash(source, tokenStarts, tokenLengths, literalToken);
+    long literal = sourceTokenCode(source, tokenStarts, tokenLengths, literalToken);
     boolean booleanLiteral = literal == TOKEN_TRUE;
     if (literal == TOKEN_FALSE) {
       booleanLiteral = true;
@@ -211,7 +211,7 @@ classical class Conditionals {
       return -1;
     }
 
-    long assigned = tokenHash(source, tokenStarts, tokenLengths, targetToken + 2);
+    long assigned = sourceTokenCode(source, tokenStarts, tokenLengths, targetToken + 2);
     if (assigned == TOKEN_TRUE) {} else {
       if (assigned == TOKEN_FALSE) {} else {
         return -1;

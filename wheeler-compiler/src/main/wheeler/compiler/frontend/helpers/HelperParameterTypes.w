@@ -24,13 +24,13 @@ classical class HelperParameterTypes {
     borrow mut words tokenLengths,
     long cursor
   ) {
-    long typeHash = tokenHash(source, tokenStarts, tokenLengths, cursor);
+    long typeWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, cursor);
     long type = TYPE_SIGNED;
     long nameToken = cursor + 1;
-    if (typeHash == TOKEN_BOOLEAN) {
+    if (typeWordCode == TOKEN_BOOLEAN) {
       type = TYPE_BOOLEAN;
     } else {
-      if (typeHash == TOKEN_LONG) {
+      if (typeWordCode == TOKEN_LONG) {
         if (
           punctuationAt(source, tokenKinds, tokenStarts, cursor + 1, PUNCTUATION_OPEN_SQUARE)
         ) {
@@ -68,18 +68,18 @@ classical class HelperParameterTypes {
           nameToken = cursor + 4;
         }
       } else {
-        if (typeHash == TOKEN_BORROW) {} else {
+        if (typeWordCode == TOKEN_BORROW) {} else {
           return invalidParameter();
         }
 
         long borrowedTypeToken = cursor + 1;
-        boolean mutable = tokenHash(source, tokenStarts, tokenLengths, borrowedTypeToken)
+        boolean mutable = sourceTokenCode(source, tokenStarts, tokenLengths, borrowedTypeToken)
           == TOKEN_MUT;
         if (mutable) {
           borrowedTypeToken += 1;
         }
 
-        long borrowedType = tokenHash(source, tokenStarts, tokenLengths, borrowedTypeToken);
+        long borrowedType = sourceTokenCode(source, tokenStarts, tokenLengths, borrowedTypeToken);
         type = 0;
         if (borrowedType == TOKEN_UTF8) {
           if (mutable) {

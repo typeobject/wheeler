@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, source-product, and bootstrap maintainers |
 | Created | 2026-08-26 |
-| Updated | 2026-08-26 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, source products, token syntax, physical closure |
 | Depends on | WIP-0049, WIP-0163, WIP-0411 |
 | Supersedes | The unlinked `EarlyUtf8CallForms.w` probe |
@@ -15,7 +15,8 @@
 
 The physical compiler now lowers `EarlyUtf8CallForms.w` directly from its immutable archive range. All sixteen source functions and 613 forward-plus-inverse instructions match stage 0 byte for byte. The resulting artifact carries no projected dependency source, verifier stub, or unresolved relocation.
 
-The old source shape coupled one fixed seventeen-token form to the general token-hash module. It also hid arithmetic and call arguments inside compound expressions that the closed source-product profile could not represent. The owner now checks its fixed punctuation and `return` keyword locally. General token hashing remains in `Tokens.w`. A fixed grammar word no longer drags that module's number parser into this product.
+The old source shape coupled one fixed seventeen-token form to the general token-hash module. It also hid arithmetic and call arguments inside compound expressions that the closed source-product profile could not represent. The owner now checks its fixed punctuation and `return` keyword locally. WIP-0497 now owns generic exact word classification. This fixed grammar word
+still needs neither that vocabulary nor `Tokens.w`'s number parser.
 
 ## Source shape
 
@@ -30,7 +31,7 @@ Each predicate binds token coordinates, token kinds, punctuation values, and cal
 
 `punctuationAt` is private to this fixed syntax owner. It checks token kind before reading one scalar. `returnTokenAt` first requires six bytes and then checks the ASCII scalars in order. Neither helper scans beyond the supplied token range. Comments and whitespace remain the scanner's concern.
 
-This is not a second token lexer. The functions recognize one fixed source form already owned by this module. Generic token equality, hashing, number parsing, and scanner policy remain elsewhere.
+This is not a second token lexer. The functions recognize one fixed source form already owned by this module. Generic token equality, word classification, number parsing, and scanner policy remain elsewhere.
 
 ## Failure boundary
 
@@ -64,7 +65,8 @@ Removing the two broad token-module imports leaves the bootstrap graph at 379 mo
 
 ### Pull in the complete token module
 
-Rejected. `EarlyUtf8CallForms.w` needs one punctuation predicate and one fixed keyword. Pulling in number parsing, rotate-name hashing, token equality, and signed literal decoding would widen the selected closure without serving this syntax owner.
+Rejected. `EarlyUtf8CallForms.w` needs one punctuation predicate and one fixed keyword. Pulling in the generic vocabulary, token equality, and signed literal decoding
+would widen the selected closure without serving this syntax owner.
 
 ### Keep compound source expressions
 

@@ -267,9 +267,9 @@ classical class DirectScalarRelations {
   ) {
     if (-1 < leftToken) {
       if (leftToken + 1 < tokenCount) {
-        long literalHash = tokenHash(source, tokenStarts, tokenLengths, leftToken);
-        boolean booleanLiteral = literalHash == TOKEN_TRUE;
-        if (literalHash == TOKEN_FALSE) {
+        long literalWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, leftToken);
+        boolean booleanLiteral = literalWordCode == TOKEN_TRUE;
+        if (literalWordCode == TOKEN_FALSE) {
           booleanLiteral = true;
         }
 
@@ -287,7 +287,7 @@ classical class DirectScalarRelations {
           }
 
           long literalValue = 0;
-          if (literalHash == TOKEN_TRUE) {
+          if (literalWordCode == TOKEN_TRUE) {
             literalValue = 1;
           }
 

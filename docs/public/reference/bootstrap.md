@@ -75,6 +75,12 @@ Direct statements and loop limits resolve constants against packed name bytes.
 They do not search raw source for a representative use. Unused names cannot alias
 the module header, and invalid matching products cannot hide behind valid ones.
 
+Source keywords, Boolean literals, primitive types, intrinsics, and native test
+metadata now use exact word codes instead of token hashes. The fixed vocabulary
+contains 58 spellings and does not limit identifier length. This corrects lexical
+admission, not complete class-member validation. Automatic test discovery can
+still ignore malformed member fronts, a separate open frontend boundary.
+
 The evidence tests derive their graph and archive from checked-in source.
 Comparable products match stage 0 byte for byte. Every selected imported-call
 product matches complete frame metadata and forward/inverse instructions after

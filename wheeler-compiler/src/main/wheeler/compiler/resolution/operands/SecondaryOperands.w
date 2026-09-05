@@ -67,12 +67,12 @@ classical class SecondaryOperands {
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     if (localLiteralAssignmentConditional(sourceOpcode)) {
       long literalToken = localLiteralAssignmentComparisonToken(statementStart, sourceOpcode);
-      long assignmentLiteralHash = tokenHash(source, tokenStarts, tokenLengths, literalToken);
-      if (assignmentLiteralHash == TOKEN_TRUE) {
+      long assignmentLiteralWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, literalToken);
+      if (assignmentLiteralWordCode == TOKEN_TRUE) {
         return 1;
       }
 
-      if (assignmentLiteralHash == TOKEN_FALSE) {
+      if (assignmentLiteralWordCode == TOKEN_FALSE) {
         return 0;
       }
 
@@ -488,7 +488,7 @@ classical class SecondaryOperands {
       }
 
       if (twoArgumentBooleanCall(opcode)) {
-        long literal = tokenHash(source, tokenStarts, tokenLengths, secondToken);
+        long literal = sourceTokenCode(source, tokenStarts, tokenLengths, secondToken);
         if (literal == TOKEN_TRUE) {
           return 1;
         }

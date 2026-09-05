@@ -23,7 +23,6 @@ classical class CountedModuleCallables {
   private const long MAX_IMPORTS = 3072;
   private const long MAX_LOCAL_MODULES = 512;
   private const long TOKEN_ARENA_BYTES = 98320;
-  private const long TOKEN_RECORD = 3360058449;
 
   /// Describes one completely published closure-wide callable table.
   public record CountedModuleCallablePlan(
@@ -196,7 +195,7 @@ classical class CountedModuleCallables {
         long nextDeclaration = closeBody + 1;
         if (nextDeclaration + 1 < tokenCount) {
           if (
-            tokenHash(source, tokenStarts, tokenLengths, nextDeclaration) == TOKEN_REVERSE
+            sourceTokenCode(source, tokenStarts, tokenLengths, nextDeclaration) == TOKEN_REVERSE
           ) {
             if (
               punctuationAt(
@@ -232,7 +231,7 @@ classical class CountedModuleCallables {
           }
 
           if (
-            tokenHash(source, tokenStarts, tokenLengths, nameToken - 1) == TOKEN_RECORD
+            sourceTokenCode(source, tokenStarts, tokenLengths, nameToken - 1) == TOKEN_RECORD
           ) {
             callable = false;
           }
@@ -301,7 +300,7 @@ classical class CountedModuleCallables {
 
           long visibility = 0;
           if (
-            tokenHash(source, tokenStarts, tokenLengths, declarationStart) == TOKEN_PUBLIC
+            sourceTokenCode(source, tokenStarts, tokenLengths, declarationStart) == TOKEN_PUBLIC
           ) {
             visibility = 1;
           }
@@ -328,7 +327,7 @@ classical class CountedModuleCallables {
           long resultSlotWidth = 0;
           if (header.effects / 2 % 2 == 1) {
             if (
-              tokenHash(source, tokenStarts, tokenLengths, header.resultTypeToken) == TOKEN_VOID
+              sourceTokenCode(source, tokenStarts, tokenLengths, header.resultTypeToken) == TOKEN_VOID
             ) {} else {
               resultSlotWidth = 2;
             }

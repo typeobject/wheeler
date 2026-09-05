@@ -131,17 +131,20 @@ classical class CountedModuleSymbols {
       return -1;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, cursor) == TOKEN_STATE) {} else {
-      return cursor;
-    }
-
+    boolean inState = false;
     while (cursor < count) limit MAX_COMPILER_TOKENS {
-      if (tokenLengths[cursor] == 1) {
-        if (utf8Scalar(source, tokenStarts[cursor]) == PUNCTUATION_SEMICOLON) {
-          return cursor + 1;
+      if (inState == false) {
+        if (sourceTokenCode(source, tokenStarts, tokenLengths, cursor) == TOKEN_STATE) {
+          inState = true;
+        } else {
+          return cursor;
         }
       }
-
+      if (tokenLengths[cursor] == 1) {
+        if (utf8Scalar(source, tokenStarts[cursor]) == PUNCTUATION_SEMICOLON) {
+          inState = false;
+        }
+      }
       cursor += 1;
     }
 
@@ -271,12 +274,12 @@ classical class CountedModuleSymbols {
           return -1;
         }
 
-        long visibilityHash = tokenHash(source, tokenStarts, tokenLengths, declaration);
+        long visibilityWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, declaration);
         long visibility = -1;
-        if (visibilityHash == TOKEN_PUBLIC) {
+        if (visibilityWordCode == TOKEN_PUBLIC) {
           visibility = 1;
         } else {
-          if (visibilityHash == TOKEN_PRIVATE) {
+          if (visibilityWordCode == TOKEN_PRIVATE) {
             visibility = 0;
           }
         }
@@ -329,6 +332,10 @@ classical class CountedModuleSymbols {
       } else {
         indexing = false;
       }
+    }
+
+    if (constantPrefixComplete(source, tokenStarts, tokenLengths, declaration, tokenCount)) {} else {
+      return -1;
     }
 
     long evaluatedDeclaration = firstDeclaration;

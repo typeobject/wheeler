@@ -99,9 +99,9 @@ classical class DirectBooleanDeclarationProducts {
     }
 
     long sourceToken = token + 3;
-    long sourceHash = tokenHash(source, tokenStarts, tokenLengths, sourceToken);
-    boolean literal = sourceHash == TOKEN_TRUE;
-    if (sourceHash == TOKEN_FALSE) {
+    long sourceWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, sourceToken);
+    boolean literal = sourceWordCode == TOKEN_TRUE;
+    if (sourceWordCode == TOKEN_FALSE) {
       literal = true;
     }
 
@@ -122,7 +122,7 @@ classical class DirectBooleanDeclarationProducts {
       }
 
       long value = 0;
-      if (sourceHash == TOKEN_TRUE) {
+      if (sourceWordCode == TOKEN_TRUE) {
         value = 1;
       }
 

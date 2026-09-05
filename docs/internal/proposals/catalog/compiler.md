@@ -167,3 +167,5 @@ Each record appears in one catalog. Cross-cutting work links its other owners fr
 | [WIP-0419](../WIP-0419-local-right-nested-loop-guards.md) | Implemented | Local-right nested loop guards |
 | [WIP-0490](../WIP-0490-exact-root-word-mutation-products.md) | Implemented | Exact root word-mutation products |
 | [WIP-0496](../WIP-0496-eight-argument-retained-source-calls.md) | Implemented | Eight-argument retained source calls |
+| [WIP-0497](../WIP-0497-exact-source-word-admission.md) | Draft | Exact source-word admission |
+| [WIP-0498](../WIP-0498-native-test-member-front-admission.md) | Draft | Native test member-front admission |

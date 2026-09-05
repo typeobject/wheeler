@@ -12,8 +12,6 @@ classical class CallableSignatureProducts {
   public const long MAX_CALLABLE_PARAMETERS = 64;
   /// Caps all parameter products in one closure.
   public const long MAX_CLOSURE_PARAMETERS = 16384;
-  private const long TOKEN_COHERENT = 2825335909666;
-  private const long TOKEN_TEST = 3556498;
 
   /// Counts parameters in one structurally validated callable header.
   public long parameterCount(
@@ -73,7 +71,7 @@ classical class CallableSignatureProducts {
     long nameToken
   ) {
     long cursor = declarationStart;
-    long first = tokenHash(source, tokenStarts, tokenLengths, cursor);
+    long first = sourceTokenCode(source, tokenStarts, tokenLengths, cursor);
     if (first == TOKEN_PUBLIC) {
       cursor += 1;
     } else {
@@ -85,7 +83,7 @@ classical class CallableSignatureProducts {
     long effects = 0;
     boolean scanning = true;
     while (scanning) limit 4 {
-      long modifier = tokenHash(source, tokenStarts, tokenLengths, cursor);
+      long modifier = sourceTokenCode(source, tokenStarts, tokenLengths, cursor);
       if (modifier == TOKEN_ENTRY) {
         effects += 1;
         cursor += 1;
@@ -152,14 +150,14 @@ classical class CallableSignatureProducts {
 
       long typeToken = segmentStart;
       long mode = 0;
-      if (tokenHash(source, tokenStarts, tokenLengths, typeToken) == TOKEN_BORROW) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, typeToken) == TOKEN_BORROW) {
         mode = 1;
         typeToken += 1;
         if (typeToken < nameToken) {} else {
           return -1;
         }
 
-        if (tokenHash(source, tokenStarts, tokenLengths, typeToken) == TOKEN_MUT) {
+        if (sourceTokenCode(source, tokenStarts, tokenLengths, typeToken) == TOKEN_MUT) {
           mode = 2;
           typeToken += 1;
         }

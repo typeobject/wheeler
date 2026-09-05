@@ -8,30 +8,8 @@ import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
 import wheeler.runtime.testing.runners.test_source_plan;
-import wheeler.runtime.testing.runners.test_source_tokens;
 
 classical class TestSourceLowering {
-  private const long TOKEN_ENTRY = 96667762;
-  private const long TOKEN_ENTRY_BYTES = 5;
-  private const long TOKEN_TEST = 3556498;
-  private const long TOKEN_TEST_BYTES = 4;
-  private const long TOKEN_VOID_BYTES = 4;
-
-  private boolean tokenMatchesHash(
-    borrow utf8 source,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long token,
-    long length,
-    long hash
-  ) {
-    if (tokenLengths[token] != length) {
-      return false;
-    }
-
-    return boundedSourceTokenHash(source, tokenStarts, tokenLengths, token) == hash;
-  }
-
   private boolean tokenMatchesRange(
     borrow utf8 source,
     borrow mut words tokenStarts,
@@ -204,24 +182,10 @@ classical class TestSourceLowering {
     long token = 0;
     while (token + 4 < tokenCount) limit MAX_COMPILER_TOKENS {
       if (
-        tokenMatchesHash(
-          source,
-          tokenStarts,
-          tokenLengths,
-          token,
-          TOKEN_TEST_BYTES,
-          TOKEN_TEST
-        )
+        sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_TEST
       ) {
         if (
-          tokenMatchesHash(
-            source,
-            tokenStarts,
-            tokenLengths,
-            token + 1,
-            TOKEN_VOID_BYTES,
-            TOKEN_VOID
-          )
+          sourceTokenCode(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID
         ) {
           if (
             tokenMatchesRange(
@@ -288,24 +252,10 @@ classical class TestSourceLowering {
     long token = 0;
     while (token + 8 < tokenCount) limit MAX_COMPILER_TOKENS {
       if (
-        tokenMatchesHash(
-          source,
-          tokenStarts,
-          tokenLengths,
-          token,
-          TOKEN_TEST_BYTES,
-          TOKEN_TEST
-        )
+        sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_TEST
       ) {
         if (
-          tokenMatchesHash(
-            source,
-            tokenStarts,
-            tokenLengths,
-            token + 1,
-            TOKEN_VOID_BYTES,
-            TOKEN_VOID
-          )
+          sourceTokenCode(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID
         ) {
           if (
             tokenMatchesRange(
@@ -395,24 +345,10 @@ classical class TestSourceLowering {
     long token = 0;
     while (token + 4 < tokenCount) limit MAX_COMPILER_TOKENS {
       if (
-        tokenMatchesHash(
-          source,
-          tokenStarts,
-          tokenLengths,
-          token,
-          TOKEN_ENTRY_BYTES,
-          TOKEN_ENTRY
-        )
+        sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_ENTRY
       ) {
         if (
-          tokenMatchesHash(
-            source,
-            tokenStarts,
-            tokenLengths,
-            token + 1,
-            TOKEN_VOID_BYTES,
-            TOKEN_VOID
-          )
+          sourceTokenCode(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID
         ) {
           long entryStart = tokenStarts[token];
           while (inputCursor < entryStart) limit MAX_TEST_SOURCE_BYTES {
@@ -441,24 +377,10 @@ classical class TestSourceLowering {
       }
 
       if (
-        tokenMatchesHash(
-          source,
-          tokenStarts,
-          tokenLengths,
-          token,
-          TOKEN_TEST_BYTES,
-          TOKEN_TEST
-        )
+        sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_TEST
       ) {
         if (
-          tokenMatchesHash(
-            source,
-            tokenStarts,
-            tokenLengths,
-            token + 1,
-            TOKEN_VOID_BYTES,
-            TOKEN_VOID
-          )
+          sourceTokenCode(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID
         ) {
           long testStart = tokenStarts[token];
           while (inputCursor < testStart) limit MAX_TEST_SOURCE_BYTES {
@@ -565,24 +487,10 @@ classical class TestSourceLowering {
     long token = 0;
     while (token + 8 < tokenCount) limit MAX_COMPILER_TOKENS {
       if (
-        tokenMatchesHash(
-          source,
-          tokenStarts,
-          tokenLengths,
-          token,
-          TOKEN_ENTRY_BYTES,
-          TOKEN_ENTRY
-        )
+        sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_ENTRY
       ) {
         if (
-          tokenMatchesHash(
-            source,
-            tokenStarts,
-            tokenLengths,
-            token + 1,
-            TOKEN_VOID_BYTES,
-            TOKEN_VOID
-          )
+          sourceTokenCode(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID
         ) {
           long entryStart = tokenStarts[token];
           while (inputCursor < entryStart) limit MAX_TEST_SOURCE_BYTES {
@@ -611,24 +519,10 @@ classical class TestSourceLowering {
       }
 
       if (
-        tokenMatchesHash(
-          source,
-          tokenStarts,
-          tokenLengths,
-          token,
-          TOKEN_TEST_BYTES,
-          TOKEN_TEST
-        )
+        sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_TEST
       ) {
         if (
-          tokenMatchesHash(
-            source,
-            tokenStarts,
-            tokenLengths,
-            token + 1,
-            TOKEN_VOID_BYTES,
-            TOKEN_VOID
-          )
+          sourceTokenCode(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID
         ) {
           long testStart = tokenStarts[token];
           while (inputCursor < testStart) limit MAX_TEST_SOURCE_BYTES {

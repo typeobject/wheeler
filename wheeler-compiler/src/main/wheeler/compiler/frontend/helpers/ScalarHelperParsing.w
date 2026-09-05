@@ -78,7 +78,7 @@ classical class ScalarHelperParsing {
     long token
   ) {
     long declaration = token;
-    long first = tokenHash(source, tokenStarts, tokenLengths, declaration);
+    long first = sourceTokenCode(source, tokenStarts, tokenLengths, declaration);
     if (first == TOKEN_PUBLIC) {
       declaration += 1;
     } else {
@@ -87,11 +87,11 @@ classical class ScalarHelperParsing {
       }
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, declaration) == TOKEN_REV) {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, declaration) == TOKEN_REV) {
       declaration += 1;
     }
 
-    long result = tokenHash(source, tokenStarts, tokenLengths, declaration);
+    long result = sourceTokenCode(source, tokenStarts, tokenLengths, declaration);
     if (result == TOKEN_VOID) {
       return true;
     }
@@ -543,7 +543,7 @@ classical class ScalarHelperParsing {
         return invalidTable();
       }
     } else {
-      if (tokenHash(source, tokenStarts, tokenLengths, classClose) == TOKEN_ENTRY) {} else {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, classClose) == TOKEN_ENTRY) {} else {
         return invalidTable();
       }
     }

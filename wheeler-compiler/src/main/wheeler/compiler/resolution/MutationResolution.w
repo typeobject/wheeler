@@ -93,9 +93,9 @@ classical class MutationResolution {
       }
 
       if (literalAssignment) {
-        long assignmentHash = tokenHash(source, tokenStarts, tokenLengths, statementStart + 2);
+        long assignmentWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 2);
         if (resolvedLocalAssignmentBoolean(opcode)) {
-          if (booleanTokenHash(assignmentHash)) {
+          if (booleanTokenCode(assignmentWordCode)) {
             return new MutationOperand(0, false, true);
           }
         }
@@ -216,13 +216,13 @@ classical class MutationResolution {
         return -1;
       }
 
-      long assignmentRightHash = tokenHash(
+      long assignmentRightWordCode = sourceTokenCode(
         source,
         tokenStarts,
         tokenLengths,
         statementStart + 2
       );
-      if (booleanTokenHash(assignmentRightHash)) {
+      if (booleanTokenCode(assignmentRightWordCode)) {
         return STATEMENT_LOCAL_ASSIGN_BOOLEAN_LITERAL_BASE + booleanTarget;
       }
 

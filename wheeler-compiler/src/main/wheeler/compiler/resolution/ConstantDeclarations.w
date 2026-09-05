@@ -12,7 +12,6 @@ classical class ConstantDeclarations {
   public const long MAX_CLASS_CONSTANTS = 256;
   /// Caps expression parentheses in the recovery compiler profile.
   public const long MAX_CONSTANT_EXPRESSION_DEPTH = 32;
-  private const long TOKEN_CONST = 94844771;
 
   private boolean scalarAt(
     borrow utf8 source,
@@ -36,7 +35,7 @@ classical class ConstantDeclarations {
     long declarationStart
   ) {
     long token = declarationStart;
-    long visibility = tokenHash(source, tokenStarts, tokenLengths, token);
+    long visibility = sourceTokenCode(source, tokenStarts, tokenLengths, token);
     if (visibility == TOKEN_PUBLIC) {
       token += 1;
     } else {
@@ -45,7 +44,7 @@ classical class ConstantDeclarations {
       }
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_CONST) {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_CONST) {
       return token;
     }
 
@@ -80,7 +79,7 @@ classical class ConstantDeclarations {
     long declarationStart
   ) {
     long constant = constantToken(source, tokenStarts, tokenLengths, declarationStart);
-    return tokenHash(source, tokenStarts, tokenLengths, constant + 1) == TOKEN_LONG;
+    return sourceTokenCode(source, tokenStarts, tokenLengths, constant + 1) == TOKEN_LONG;
   }
 
   /// Finds the semicolon after one nonempty, balanced initializer.
@@ -100,7 +99,7 @@ classical class ConstantDeclarations {
       return -1;
     }
 
-    long type = tokenHash(source, tokenStarts, tokenLengths, constant + 1);
+    long type = sourceTokenCode(source, tokenStarts, tokenLengths, constant + 1);
     boolean scalar = type == TOKEN_LONG;
     if (type == TOKEN_BOOLEAN) {
       scalar = true;
@@ -157,13 +156,53 @@ classical class ConstantDeclarations {
     return -1;
   }
 
+  /// Rejects an unindexed field before the next member's parameters or body.
+  /// Columns and scalar boundaries belong to the semantic scanner.
+  public boolean constantPrefixComplete(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long declaration,
+    long tokenCount
+  ) {
+    if (declaration < 0) {
+      return false;
+    }
+    if (declaration < tokenCount) {} else {
+      return false;
+    }
+    if (scalarAt(source, tokenStarts, tokenLengths, declaration, PUNCTUATION_CLOSE_BRACE)) {
+      return true;
+    }
+    long cursor = declaration;
+    while (cursor < tokenCount) limit MAX_COMPILER_TOKENS {
+      if (scalarAt(source, tokenStarts, tokenLengths, cursor, PUNCTUATION_ASSIGN)) {
+        return false;
+      }
+      if (scalarAt(source, tokenStarts, tokenLengths, cursor, PUNCTUATION_SEMICOLON)) {
+        return false;
+      }
+      if (scalarAt(source, tokenStarts, tokenLengths, cursor, PUNCTUATION_CLOSE_BRACE)) {
+        return false;
+      }
+      if (scalarAt(source, tokenStarts, tokenLengths, cursor, PUNCTUATION_OPEN_PAREN)) {
+        return true;
+      }
+      if (scalarAt(source, tokenStarts, tokenLengths, cursor, PUNCTUATION_OPEN_BRACE)) {
+        return true;
+      }
+      cursor += 1;
+    }
+    return false;
+  }
+
   /// Returns the first declaration after optional signed state.
   public long firstConstantDeclaration(
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths
   ) {
-    if (tokenHash(source, tokenStarts, tokenLengths, 4) == TOKEN_STATE) {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, 4) == TOKEN_STATE) {
       long value = 8;
       long width = 1;
       if (utf8Scalar(source, tokenStarts[value]) == PUNCTUATION_MINUS) {

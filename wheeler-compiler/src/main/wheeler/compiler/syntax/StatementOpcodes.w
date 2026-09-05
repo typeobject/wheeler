@@ -26,7 +26,7 @@ classical class StatementOpcodes {
     borrow mut words tokenLengths,
     long statementStart
   ) {
-    long keyword = tokenHash(source, tokenStarts, tokenLengths, statementStart);
+    long keyword = sourceTokenCode(source, tokenStarts, tokenLengths, statementStart);
     if (keyword == TOKEN_SET) {
       return STATEMENT_SET_WORD_NAMED;
     }
@@ -44,7 +44,7 @@ classical class StatementOpcodes {
     }
 
     if (keyword == TOKEN_BYTES) {
-      long bytesInitializer = tokenHash(source, tokenStarts, tokenLengths, statementStart + 3);
+      long bytesInitializer = sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 3);
       if (bytesInitializer == TOKEN_ALLOCATE_BYTES) {
         return STATEMENT_LOCAL_BYTES_ALLOCATE_NAMED;
       }
@@ -58,8 +58,8 @@ classical class StatementOpcodes {
 
     if (keyword == TOKEN_ASSERT) {
       long assertExpression = statementStart + 2;
-      long assertHash = tokenHash(source, tokenStarts, tokenLengths, assertExpression);
-      if (booleanTokenHash(assertHash)) {
+      long assertWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, assertExpression);
+      if (booleanTokenCode(assertWordCode)) {
         return STATEMENT_ASSERT_BOOLEAN;
       }
 
@@ -105,8 +105,8 @@ classical class StatementOpcodes {
     }
 
     if (keyword == TOKEN_RETURN) {
-      long returnedHash = tokenHash(source, tokenStarts, tokenLengths, statementStart + 1);
-      if (booleanTokenHash(returnedHash)) {
+      long returnedWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 1);
+      if (booleanTokenCode(returnedWordCode)) {
         return STATEMENT_RETURN_BOOLEAN;
       }
 
@@ -118,27 +118,27 @@ classical class StatementOpcodes {
       if (identifierStart(returnedScalar)) {
         long returnOperator = utf8Scalar(source, tokenStarts[statementStart + 2]);
         if (returnOperator == PUNCTUATION_OPEN_PAREN) {
-          if (returnedHash == TOKEN_BUFFER_LENGTH) {
+          if (returnedWordCode == TOKEN_BUFFER_LENGTH) {
             return STATEMENT_RETURN_BUFFER_LENGTH_NAMED;
           }
 
-          if (returnedHash == TOKEN_FREEZE_UTF8) {
+          if (returnedWordCode == TOKEN_FREEZE_UTF8) {
             return STATEMENT_RETURN_FREEZE_UTF8_NAMED;
           }
 
-          if (returnedHash == TOKEN_UTF8_SCALAR) {
+          if (returnedWordCode == TOKEN_UTF8_SCALAR) {
             return STATEMENT_RETURN_UTF8_SCALAR_NAMED;
           }
 
-          if (returnedHash == TOKEN_UTF8_WIDTH) {
+          if (returnedWordCode == TOKEN_UTF8_WIDTH) {
             return STATEMENT_RETURN_UTF8_WIDTH_NAMED;
           }
 
-          if (returnedHash == TOKEN_MAP_GET) {
+          if (returnedWordCode == TOKEN_MAP_GET) {
             return STATEMENT_RETURN_MAP_GET_NAMED;
           }
 
-          if (returnedHash == TOKEN_MAP_HAS) {
+          if (returnedWordCode == TOKEN_MAP_HAS) {
             return STATEMENT_RETURN_MAP_HAS_NAMED;
           }
 
@@ -155,13 +155,13 @@ classical class StatementOpcodes {
         if (returnOperator == PUNCTUATION_ASSIGN) {
           long secondOperator = utf8Scalar(source, tokenStarts[statementStart + 3]);
           if (secondOperator == PUNCTUATION_ASSIGN) {
-            long returnEqualityHash = tokenHash(
+            long returnEqualityWordCode = sourceTokenCode(
               source,
               tokenStarts,
               tokenLengths,
               statementStart + 4
             );
-            if (booleanTokenHash(returnEqualityHash)) {
+            if (booleanTokenCode(returnEqualityWordCode)) {
               return STATEMENT_RETURN_BOOLEAN_EQ_LITERAL_NAMED;
             }
 
@@ -177,13 +177,13 @@ classical class StatementOpcodes {
         if (returnOperator == PUNCTUATION_BANG) {
           long inequalityOperator = utf8Scalar(source, tokenStarts[statementStart + 3]);
           if (inequalityOperator == PUNCTUATION_ASSIGN) {
-            long returnInequalityHash = tokenHash(
+            long returnInequalityWordCode = sourceTokenCode(
               source,
               tokenStarts,
               tokenLengths,
               statementStart + 4
             );
-            if (booleanTokenHash(returnInequalityHash)) {
+            if (booleanTokenCode(returnInequalityWordCode)) {
               return STATEMENT_RETURN_BOOLEAN_NE_LITERAL_NAMED;
             }
 
@@ -269,7 +269,7 @@ classical class StatementOpcodes {
     if (keyword == TOKEN_IF) {
       long conditionOperator = utf8Scalar(source, tokenStarts[statementStart + 3]);
       if (conditionOperator == PUNCTUATION_OPEN_PAREN) {
-        long helperCallReturned = tokenHash(
+        long helperCallReturned = sourceTokenCode(
           source,
           tokenStarts,
           tokenLengths,
@@ -330,8 +330,8 @@ classical class StatementOpcodes {
           bodyStart += 2;
         }
 
-        if (tokenHash(source, tokenStarts, tokenLengths, bodyStart) == TOKEN_RETURN) {
-          long returned = tokenHash(source, tokenStarts, tokenLengths, bodyStart + 1);
+        if (sourceTokenCode(source, tokenStarts, tokenLengths, bodyStart) == TOKEN_RETURN) {
+          long returned = sourceTokenCode(source, tokenStarts, tokenLengths, bodyStart + 1);
           if (lessThanComparison) {
             if (returned == TOKEN_TRUE) {
               return STATEMENT_IF_SIGNED_LT_RETURN_TRUE_NAMED;
@@ -413,7 +413,7 @@ classical class StatementOpcodes {
             );
           }
 
-          long assigned = tokenHash(source, tokenStarts, tokenLengths, bodyStart + 2);
+          long assigned = sourceTokenCode(source, tokenStarts, tokenLengths, bodyStart + 2);
           boolean booleanAssignment = assigned == TOKEN_TRUE;
           if (assigned == TOKEN_FALSE) {
             booleanAssignment = true;
@@ -530,25 +530,25 @@ classical class StatementOpcodes {
         }
 
         if (initializerOperator == PUNCTUATION_OPEN_PAREN) {
-          long initializerHash = tokenHash(
+          long initializerWordCode = sourceTokenCode(
             source,
             tokenStarts,
             tokenLengths,
             statementStart + 3
           );
-          if (initializerHash == TOKEN_BUFFER_LENGTH) {
+          if (initializerWordCode == TOKEN_BUFFER_LENGTH) {
             return STATEMENT_LOCAL_BUFFER_LENGTH_NAMED;
           }
 
-          if (initializerHash == TOKEN_UTF8_SCALAR) {
+          if (initializerWordCode == TOKEN_UTF8_SCALAR) {
             return STATEMENT_LOCAL_UTF8_SCALAR_NAMED;
           }
 
-          if (initializerHash == TOKEN_UTF8_WIDTH) {
+          if (initializerWordCode == TOKEN_UTF8_WIDTH) {
             return STATEMENT_LOCAL_UTF8_WIDTH_NAMED;
           }
 
-          if (initializerHash == TOKEN_MAP_GET) {
+          if (initializerWordCode == TOKEN_MAP_GET) {
             return STATEMENT_LOCAL_MAP_GET_NAMED;
           }
 
@@ -665,16 +665,16 @@ classical class StatementOpcodes {
 
     if (keyword == TOKEN_BOOLEAN) {
       if (utf8Scalar(source, tokenStarts[statementStart + 3]) == PUNCTUATION_BANG) {
-        long negated = tokenHash(source, tokenStarts, tokenLengths, statementStart + 4);
-        if (booleanTokenHash(negated)) {
+        long negated = sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 4);
+        if (booleanTokenCode(negated)) {
           return STATEMENT_LOCAL_BOOLEAN_NOT;
         }
 
         return STATEMENT_LOCAL_BOOLEAN_NOT_NAMED;
       }
 
-      long booleanInitializer = tokenHash(source, tokenStarts, tokenLengths, statementStart + 3);
-      if (booleanTokenHash(booleanInitializer)) {
+      long booleanInitializer = sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 3);
+      if (booleanTokenCode(booleanInitializer)) {
         return STATEMENT_LOCAL_BOOLEAN;
       }
 
@@ -690,14 +690,14 @@ classical class StatementOpcodes {
           return STATEMENT_LOCAL_BOOLEAN_CALL_NAMED;
         }
 
-        long firstArgumentHash = tokenHash(
+        long firstArgumentWordCode = sourceTokenCode(
           source,
           tokenStarts,
           tokenLengths,
           firstArgumentToken
         );
         boolean booleanFirstArgumentNamed = identifierStart(firstArgumentScalar);
-        boolean firstArgumentBoolean = booleanTokenHash(firstArgumentHash);
+        boolean firstArgumentBoolean = booleanTokenCode(firstArgumentWordCode);
         boolean firstArgumentSigned = false;
         long booleanCallFirstWidth = 1;
         if (firstArgumentBoolean) {
@@ -731,14 +731,14 @@ classical class StatementOpcodes {
 
         long secondArgumentToken = delimiterToken + 1;
         long secondArgumentScalar = utf8Scalar(source, tokenStarts[secondArgumentToken]);
-        long secondArgumentHash = tokenHash(
+        long secondArgumentWordCode = sourceTokenCode(
           source,
           tokenStarts,
           tokenLengths,
           secondArgumentToken
         );
         boolean booleanSecondArgumentNamed = identifierStart(secondArgumentScalar);
-        boolean secondArgumentBoolean = booleanTokenHash(secondArgumentHash);
+        boolean secondArgumentBoolean = booleanTokenCode(secondArgumentWordCode);
         boolean secondArgumentSigned = false;
         if (secondArgumentBoolean) {
           booleanSecondArgumentNamed = false;

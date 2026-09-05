@@ -52,7 +52,7 @@ classical class DirectLoopBodyProducts {
     borrow mut words tokenStarts,
     borrow mut words tokenLengths
   ) {
-    long initializer = tokenHash(source, tokenStarts, tokenLengths, token);
+    long initializer = sourceTokenCode(source, tokenStarts, tokenLengths, token);
     long opcode = BODY_UTF8_SCALAR;
     boolean recognized = initializer == TOKEN_UTF8_SCALAR;
     if (initializer == TOKEN_UTF8_WIDTH) {
@@ -198,8 +198,8 @@ classical class DirectLoopBodyProducts {
     long operandKind = OPERAND_LITERAL;
     long operand = 0;
     if (statementValid) {
-      long statementHash = tokenHash(source, tokenStarts, tokenLengths, token);
-      if (statementHash == TOKEN_BOOLEAN) {
+      long statementWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, token);
+      if (statementWordCode == TOKEN_BOOLEAN) {
         if (tokenKinds[token + 1] != 1) {
           statementValid = false;
         }
@@ -232,7 +232,7 @@ classical class DirectLoopBodyProducts {
           }
         }
       } else {
-        if (statementHash == TOKEN_LONG) {
+        if (statementWordCode == TOKEN_LONG) {
           if (tokenKinds[token + 1] != 1) {
             statementValid = false;
           }
@@ -518,9 +518,9 @@ classical class DirectLoopBodyProducts {
             }
           }
         } else {
-          long bufferHash = tokenHash(source, tokenStarts, tokenLengths, token);
-          boolean bufferStatement = bufferHash == TOKEN_SET;
-          if (bufferHash == TOKEN_SET_BYTE) {
+          long bufferWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, token);
+          boolean bufferStatement = bufferWordCode == TOKEN_SET;
+          if (bufferWordCode == TOKEN_SET_BYTE) {
             bufferStatement = true;
           }
 
@@ -544,7 +544,7 @@ classical class DirectLoopBodyProducts {
               statementValid = false;
             }
           } else {
-            if (tokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_ASSERT) {
+            if (sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_ASSERT) {
               LoopAssertion assertion = resolveLoopAssertion(
                 source,
                 token,
@@ -612,28 +612,28 @@ classical class DirectLoopBodyProducts {
                 }
 
                 long assignmentSourceToken = token + 2;
-                long assignmentHash = tokenHash(
+                long assignmentWordCode = sourceTokenCode(
                   source,
                   tokenStarts,
                   tokenLengths,
                   assignmentSourceToken
                 );
                 boolean namedOrBooleanAssignment = tokenKinds[assignmentSourceToken] == 1;
-                if (assignmentHash == TOKEN_TRUE) {
+                if (assignmentWordCode == TOKEN_TRUE) {
                   namedOrBooleanAssignment = true;
                 }
 
-                if (assignmentHash == TOKEN_FALSE) {
+                if (assignmentWordCode == TOKEN_FALSE) {
                   namedOrBooleanAssignment = true;
                 }
 
                 if (namedOrBooleanAssignment) {
                   if (targetBoolean) {
-                    if (assignmentHash == TOKEN_TRUE) {
+                    if (assignmentWordCode == TOKEN_TRUE) {
                       opcode = BODY_ASSIGN_BOOLEAN_LITERAL_BASE + target.local;
                       operand = 1;
                     } else {
-                      if (assignmentHash == TOKEN_FALSE) {
+                      if (assignmentWordCode == TOKEN_FALSE) {
                         opcode = BODY_ASSIGN_BOOLEAN_LITERAL_BASE + target.local;
                         operand = 0;
                       } else {

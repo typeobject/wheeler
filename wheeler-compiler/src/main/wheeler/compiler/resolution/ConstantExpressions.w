@@ -304,12 +304,12 @@ classical class ConstantExpressions {
       );
     }
 
-    long hash = tokenHash(source, tokenStarts, tokenLengths, cursor);
-    if (hash == TOKEN_TRUE) {
+    long wordCode = sourceTokenCode(source, tokenStarts, tokenLengths, cursor);
+    if (wordCode == TOKEN_TRUE) {
       return new ExpressionValue(1, cursor + 1, false, true);
     }
 
-    if (hash == TOKEN_FALSE) {
+    if (wordCode == TOKEN_FALSE) {
       return new ExpressionValue(0, cursor + 1, false, true);
     }
 

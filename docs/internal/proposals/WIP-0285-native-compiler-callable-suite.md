@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, coverage, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, compiler testing, imported callables |
 | Depends on | WIP-0284 |
 | Supersedes | Constant-only native compiler spine imports |
@@ -16,13 +16,17 @@
 
 Compile and execute a physical imported compiler function in every native compiler package case.
 
-The spine replaces `LoopKinds.w` with `BooleanTokens.w`. That production module owns two constants and `booleanTokenHash(long)`. Every focused case calls the imported function with the canonical `true` token hash before checking its owner-specific constant. The Boolean-token case consists solely of the callable check.
+The spine replaces `LoopKinds.w` with `BooleanTokens.w`. That production module owns two word codes and `booleanTokenCode(long)`. Every
+focused case calls the imported function with the admitted `true` code before
+checking its owner-specific constant. The Boolean-token case consists solely of the callable check.
 
-The fixed package adapter now admits one public signed or Boolean function in a constant import module. It still rejects multiple functions, entries, tests, and modules with no public constants.
+The recorded adapter admitted one public signed or Boolean function in a
+constant import module. Later callable-suite contracts widen that profile. This
+record does not cap today's adapter.
 
 ## Callable graph
 
-Every selected declaration references `booleanTokenHash`. This matters because the recovery graph compiler treats executable imports as live dependency products. Leaving the function unreferenced would not prove mixed constant and callable graph composition.
+Every selected declaration references `booleanTokenCode`. This matters because the recovery graph compiler treats executable imports as live dependency products. Leaving the function unreferenced would not prove mixed constant and callable graph composition.
 
 The imported function executes its equality guard and early Boolean return. Native traces therefore add:
 
@@ -34,11 +38,18 @@ The imported function executes its equality guard and early Boolean return. Nati
 
 ## Package profile
 
-`NativePackageTestRunner.fixedImportProfile` counts exact public constants and scalar functions. One imported module may carry 1 through 64 signed constants and at most one public signed or Boolean function. Native compilation remains the semantic authority for signatures, bodies, graph edges, types, and call resolution.
+The acceptance profile allowed 1 through 64 signed constants and at most one
+public signed or Boolean function per import. `NativePackageTestRunner` owns the
+current adapter admission. Native compilation remains the semantic authority for
+signatures, bodies, graph edges, types, and call resolution.
 
 The adapter does not whitelist `BooleanTokens.w` by path or module. It enforces the bounded structural profile used by this suite.
 
-## Evidence
+## Recorded evidence
+
+These identities describe the original acceptance. WIP-0497 renames the predicate
+and removes hash-only lexical admission without moving the two Boolean codes.
+Current tests and locks own current identities.
 
 `wheeler test wheeler-compiler --format json` publishes seven selected and seven passed native rows. The combined report identity is `e1e34a0b79920ede1b4b1041bf30a9ea63c99ea4c75c3391c55d9be89ded272f`.
 

@@ -68,6 +68,19 @@ layout and first-excess evidence. It does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with
 arguments. That lowering boundary remains in WIP-0049.
 
+[WIP-0497](WIP-0497-exact-source-word-admission.md) replaces source-keyword hashes
+with exact codes for 58 words. This includes Boolean literals, primitive types,
+intrinsics, and test metadata. Two length-bearing ASCII lanes admit the fixed
+vocabulary without limiting identifier length. Declaration tests reject all six
+reproduced keyword aliases before publishing names. One physical pass compares
+the Boolean and long-word artifacts and complete short-word and range-classifier
+bodies after two imported calls resolve.
+
+[WIP-0498](WIP-0498-native-test-member-front-admission.md) owns a separate frontend
+gap. Automatic discovery still ignores some malformed member fronts and can
+publish a successful zero-test report. Explicit descriptors detect the missing
+cases, but they do not validate the source grammar.
+
 Manifest token policy now uses exact word codes. The old hashes admitted malformed
 spellings such as `trvF`, `topM`, and `tetU`. Tests reject those aliases, long
 unknown words, and invalid extents without losing row diagnostics. The combined

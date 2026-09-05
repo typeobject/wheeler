@@ -106,7 +106,7 @@ classical class HelperParser {
       return absent;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, entryStart) == TOKEN_THEOREM) {} else {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, entryStart) == TOKEN_THEOREM) {} else {
       return absent;
     }
 
@@ -114,11 +114,11 @@ classical class HelperParser {
       return absent;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, entryStart + 2) == TOKEN_PROVES) {} else {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, entryStart + 2) == TOKEN_PROVES) {} else {
       return absent;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, entryStart + 3) == TOKEN_INVERSE) {} else {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, entryStart + 3) == TOKEN_INVERSE) {} else {
       return absent;
     }
 
@@ -164,7 +164,7 @@ classical class HelperParser {
     long memberStart = layout.memberStart;
     long helperKind = HELPER_VOID;
     long voidToken = memberStart;
-    long visibility = tokenHash(source, tokenStarts, tokenLengths, voidToken);
+    long visibility = sourceTokenCode(source, tokenStarts, tokenLengths, voidToken);
     if (visibility == TOKEN_PUBLIC) {
       voidToken += 1;
     } else {
@@ -173,12 +173,12 @@ classical class HelperParser {
       }
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, voidToken) == TOKEN_REV) {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, voidToken) == TOKEN_REV) {
       helperKind = HELPER_REVERSIBLE;
       voidToken += 1;
     }
 
-    long helperType = tokenHash(source, tokenStarts, tokenLengths, voidToken);
+    long helperType = sourceTokenCode(source, tokenStarts, tokenLengths, voidToken);
     if (helperType == TOKEN_VOID) {} else {
       if (helperType == TOKEN_LONG) {
         if (helperKind == HELPER_VOID) {
@@ -226,7 +226,7 @@ classical class HelperParser {
     long secondParameterToken = -1;
     long closeParameters = nameToken + 2;
     if (helperKind == HELPER_SIGNED) {
-      if (tokenHash(source, tokenStarts, tokenLengths, closeParameters) == TOKEN_LONG) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, closeParameters) == TOKEN_LONG) {
         parameterToken = nameToken + 3;
         if (tokenKinds[parameterToken] == 1) {} else {
           return new MinimalProgramResult.Error(0);
@@ -242,7 +242,7 @@ classical class HelperParser {
           punctuationAt(source, tokenKinds, tokenStarts, closeParameters, PUNCTUATION_COMMA)
         ) {
           if (
-            tokenHash(source, tokenStarts, tokenLengths, closeParameters + 1) == TOKEN_LONG
+            sourceTokenCode(source, tokenStarts, tokenLengths, closeParameters + 1) == TOKEN_LONG
           ) {
             secondParameterToken = closeParameters + 2;
             if (tokenKinds[secondParameterToken] == 1) {} else {
@@ -273,7 +273,7 @@ classical class HelperParser {
     }
 
     if (helperKind == HELPER_REVERSIBLE_SIGNED) {
-      if (tokenHash(source, tokenStarts, tokenLengths, closeParameters) == TOKEN_LONG) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, closeParameters) == TOKEN_LONG) {
         parameterToken = nameToken + 3;
         if (tokenKinds[parameterToken] == 1) {} else {
           return new MinimalProgramResult.Error(0);
@@ -289,7 +289,7 @@ classical class HelperParser {
           punctuationAt(source, tokenKinds, tokenStarts, closeParameters, PUNCTUATION_COMMA)
         ) {
           if (
-            tokenHash(source, tokenStarts, tokenLengths, closeParameters + 1) == TOKEN_LONG
+            sourceTokenCode(source, tokenStarts, tokenLengths, closeParameters + 1) == TOKEN_LONG
           ) {
             secondParameterToken = closeParameters + 2;
             if (tokenKinds[secondParameterToken] == 1) {} else {
@@ -320,7 +320,7 @@ classical class HelperParser {
     }
 
     if (helperKind == HELPER_BOOLEAN) {
-      long booleanParameterType = tokenHash(source, tokenStarts, tokenLengths, closeParameters);
+      long booleanParameterType = sourceTokenCode(source, tokenStarts, tokenLengths, closeParameters);
       boolean booleanParameter = booleanParameterType == TOKEN_BOOLEAN;
       boolean signedBooleanParameter = booleanParameterType == TOKEN_LONG;
       boolean acceptedBooleanParameter = booleanParameter;
@@ -361,7 +361,7 @@ classical class HelperParser {
         }
 
         if (
-          tokenHash(source, tokenStarts, tokenLengths, closeParameters + 1) == expectedParameterType
+          sourceTokenCode(source, tokenStarts, tokenLengths, closeParameters + 1) == expectedParameterType
         ) {
           secondParameterToken = closeParameters + 2;
           if (tokenKinds[secondParameterToken] == 1) {} else {
@@ -655,8 +655,8 @@ classical class HelperParser {
 
     long preReverseStatement = -1;
     if (helperKind == HELPER_REVERSIBLE) {
-      long reverseHash = tokenHash(source, tokenStarts, tokenLengths, afterCalls);
-      if (reverseHash == TOKEN_REVERSE) {} else {
+      long reverseWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, afterCalls);
+      if (reverseWordCode == TOKEN_REVERSE) {} else {
         long preReverseWidth = statementWidth(
           source,
           tokenKinds,
@@ -693,7 +693,7 @@ classical class HelperParser {
       );
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, afterCalls) == TOKEN_REVERSE) {} else {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, afterCalls) == TOKEN_REVERSE) {} else {
       return new MinimalProgramResult.Error(0);
     }
 

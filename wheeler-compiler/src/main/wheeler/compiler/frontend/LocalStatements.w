@@ -124,7 +124,7 @@ classical class LocalStatements {
       );
       if (-1 < assignmentSourceLocal) {
         if (-1 < targetLocal) {
-          long assigned = tokenHash(source, tokenStarts, tokenLengths, targetToken + 2);
+          long assigned = sourceTokenCode(source, tokenStarts, tokenLengths, targetToken + 2);
           return resolvedLocalLiteralAssignmentOpcode(
             assignmentSourceLocal,
             booleanCondition,

@@ -458,14 +458,14 @@ classical class Statements {
           PUNCTUATION_OPEN_PAREN
         )
       ) {
-        long assertBooleanHash = tokenHash(
+        long assertBooleanWordCode = sourceTokenCode(
           source,
           tokenStarts,
           tokenLengths,
           statementStart + 2
         );
-        boolean acceptedBoolean = assertBooleanHash == TOKEN_TRUE;
-        if (assertBooleanHash == TOKEN_FALSE) {
+        boolean acceptedBoolean = assertBooleanWordCode == TOKEN_TRUE;
+        if (assertBooleanWordCode == TOKEN_FALSE) {
           acceptedBoolean = true;
         }
 
@@ -510,14 +510,14 @@ classical class Statements {
         if (
           punctuationAt(source, tokenKinds, tokenStarts, statementStart + 2, PUNCTUATION_BANG)
         ) {
-          long assertNegatedHash = tokenHash(
+          long assertNegatedWordCode = sourceTokenCode(
             source,
             tokenStarts,
             tokenLengths,
             statementStart + 3
           );
-          boolean acceptedNegated = assertNegatedHash == TOKEN_TRUE;
-          if (assertNegatedHash == TOKEN_FALSE) {
+          boolean acceptedNegated = assertNegatedWordCode == TOKEN_TRUE;
+          if (assertNegatedWordCode == TOKEN_FALSE) {
             acceptedNegated = true;
           }
 
@@ -763,13 +763,13 @@ classical class Statements {
               return -1;
             }
 
-            long negatedLiteralHash = tokenHash(
+            long negatedLiteralWordCode = sourceTokenCode(
               source,
               tokenStarts,
               tokenLengths,
               statementStart + 4
             );
-            if (negatedLiteralHash == TOKEN_TRUE) {
+            if (negatedLiteralWordCode == TOKEN_TRUE) {
               if (
                 punctuationAt(
                   source,
@@ -783,7 +783,7 @@ classical class Statements {
               }
             }
 
-            if (negatedLiteralHash == TOKEN_FALSE) {
+            if (negatedLiteralWordCode == TOKEN_FALSE) {
               if (
                 punctuationAt(
                   source,

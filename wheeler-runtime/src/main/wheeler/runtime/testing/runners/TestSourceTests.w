@@ -2,6 +2,7 @@
 
 module wheeler.runtime.testing.runners.test_source_tests;
 
+import wheeler.compiler.boolean_tokens;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.source_scalars;
@@ -10,16 +11,11 @@ import wheeler.lexer.scanner;
 import wheeler.runtime.testing.runners.test_discovered_descriptors;
 import wheeler.runtime.testing.runners.test_source_metadata;
 import wheeler.runtime.testing.runners.test_source_plan;
-import wheeler.runtime.testing.runners.test_source_tokens;
 import wheeler.runtime.testing.test_limits;
 
 classical class TestSourceTests {
   private const long MAX_CASES = MAX_TEST_CASES;
   private const long MAX_TAGS = 64;
-  private const long TOKEN_CASES = 94432067;
-  private const long TOKEN_FALSE = 97196323;
-  private const long TOKEN_TEST = 3556498;
-  private const long TOKEN_TRUE = 3569038;
 
   /// Reports the discovered case count and complete descriptor match.
   public record SourceTestDiscovery(long count, boolean matched) {}
@@ -190,10 +186,10 @@ classical class TestSourceTests {
       return new SourceTestRows(0, false, 0);
     }
 
-    long typeHash = boundedSourceTokenHash(source, tokenStarts, tokenLengths, declaration + 4);
-    boolean longRows = typeHash == TOKEN_LONG;
+    long typeWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, declaration + 4);
+    boolean longRows = typeWordCode == TOKEN_LONG;
     if (longRows == false) {
-      if (typeHash != TOKEN_BOOLEAN) {
+      if (typeWordCode != TOKEN_BOOLEAN) {
         return new SourceTestRows(0, false, 0);
       }
     }
@@ -210,7 +206,7 @@ classical class TestSourceTests {
     }
 
     if (
-      boundedSourceTokenHash(source, tokenStarts, tokenLengths, declaration + 7) != TOKEN_CASES
+      sourceTokenCode(source, tokenStarts, tokenLengths, declaration + 7) != TOKEN_CASES
     ) {
       return new SourceTestRows(0, false, 0);
     }
@@ -243,11 +239,11 @@ classical class TestSourceTests {
         value = parsedSignedNumber(source, tokenStarts, tokenLengths, cursor);
         cursor += width;
       } else {
-        long valueHash = boundedSourceTokenHash(source, tokenStarts, tokenLengths, cursor);
-        if (valueHash == TOKEN_TRUE) {
+        long valueWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, cursor);
+        if (valueWordCode == TOKEN_TRUE) {
           value = 1;
         } else {
-          if (valueHash != TOKEN_FALSE) {
+          if (valueWordCode != TOKEN_FALSE) {
             return new SourceTestRows(rowCount, false, 0);
           }
         }
@@ -295,10 +291,10 @@ classical class TestSourceTests {
     long prior = 0;
     while (prior + 2 < nameToken) limit MAX_COMPILER_TOKENS {
       if (
-        boundedSourceTokenHash(source, tokenStarts, tokenLengths, prior) == TOKEN_TEST
+        sourceTokenCode(source, tokenStarts, tokenLengths, prior) == TOKEN_TEST
       ) {
         if (
-          boundedSourceTokenHash(source, tokenStarts, tokenLengths, prior + 1) == TOKEN_VOID
+          sourceTokenCode(source, tokenStarts, tokenLengths, prior + 1) == TOKEN_VOID
         ) {
           if (sameTokenText(source, tokenStarts, tokenLengths, prior + 2, nameToken)) {
             return false;
@@ -369,10 +365,10 @@ classical class TestSourceTests {
     long token = 0;
     while (token + 4 < tokenCount) limit MAX_COMPILER_TOKENS {
       if (
-        boundedSourceTokenHash(source, tokenStarts, tokenLengths, token) == TOKEN_TEST
+        sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_TEST
       ) {
         if (
-          boundedSourceTokenHash(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID
+          sourceTokenCode(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID
         ) {
           if (uniqueTestName(source, tokenStarts, tokenLengths, token + 2) == false) {
             supported = false;
@@ -492,7 +488,7 @@ classical class TestSourceTests {
 
             long caseKind = 2;
             if (
-              boundedSourceTokenHash(source, tokenStarts, tokenLengths, token + 4) == TOKEN_BOOLEAN
+              sourceTokenCode(source, tokenStarts, tokenLengths, token + 4) == TOKEN_BOOLEAN
             ) {
               caseKind = 3;
             }

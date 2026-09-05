@@ -190,20 +190,20 @@ classical class DirectCallConditionalReturns {
       return invalid(13);
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, childToken) != TOKEN_RETURN) {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, childToken) != TOKEN_RETURN) {
       return invalid(14);
     }
 
     long childValueToken = childToken + 1;
     long childValueWidth = 1;
-    long literalHash = tokenHash(source, tokenStarts, tokenLengths, childValueToken);
+    long literalWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, childValueToken);
     long callKind = CALL_CONDITION_TRUE_BOOLEAN;
     long childValue = 1;
-    if (literalHash == TOKEN_FALSE) {
+    if (literalWordCode == TOKEN_FALSE) {
       callKind = CALL_CONDITION_FALSE_BOOLEAN;
       childValue = 0;
     } else {
-      if (literalHash != TOKEN_TRUE) {
+      if (literalWordCode != TOKEN_TRUE) {
         long numberWidth = signedNumberWidth(source, tokenKinds, tokenStarts, childValueToken);
         if (0 < numberWidth) {
           if (

@@ -1,7 +1,9 @@
 package com.typeobject.wheeler.examples;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.typeobject.wheeler.compiler.CompilerException;
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
@@ -153,6 +155,34 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
     assertEquals(61, machine.global("firstCaseOwner"));
   }
 
+  @Test
+  void rejectsPrimitiveAliasesWithoutChangingAnyAggregateRowAndRewinds() throws Exception {
+    Program product = program();
+    for (String word : new String[] {"long", "boolean", "byteview", "Done"}) {
+      char[] spelling = word.toCharArray();
+      spelling[spelling.length - 2]++;
+      spelling[spelling.length - 1] -= 31;
+      String alias = new String(spelling);
+      assertEquals(word.hashCode(), alias.hashCode());
+      String source = "module example.alias_type; classical class Root { public record Broken("
+          + alias + " value) {} }";
+      assertThrows(CompilerException.class, () -> new WheelerCompiler().compileLibraryModuleFiles(
+          Map.of("Broken.w", source), "example.alias_type"));
+      var machine = new VirtualMachine(product, source.getBytes(StandardCharsets.UTF_8));
+      var initial = machine.snapshot();
+      machine.run();
+      assertEquals(0, machine.global("productValid"));
+      // Invalid plans report private staging counts, while every caller row stays unchanged.
+      assertEquals(1, machine.global("aggregateCount"));
+      assertEquals(0, machine.global("caseCount"));
+      assertEquals(1, machine.global("memberCount"));
+      while (machine.historySize() > 0) {
+        machine.rewindOne();
+      }
+      assertEquals(initial, machine.snapshot());
+    }
+  }
+
   private static VirtualMachine machine(String source) throws Exception {
     return new VirtualMachine(program(), source.getBytes(StandardCharsets.UTF_8));
   }
@@ -285,6 +315,11 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
               cases,
               members
             );
+            if (product.valid == false) {
+              requireUnpublishedRows(aggregates, 64, 91);
+              requireUnpublishedRows(cases, 0, 61);
+              requireUnpublishedRows(members, 0, 73);
+            }
             if (product.valid) {
               ProjectedSourceAggregatePlan projected = projectSourceAggregateLayouts(
                 input,
@@ -466,6 +501,16 @@ final class NativeCompilerSourceAggregateProductsExampleTest {
             drop(cases);
             drop(aggregates);
             drop(rows);
+          }
+
+          private void requireUnpublishedRows(borrow mut words rows, long marked, long sentinel) {
+            long row = 0;
+            while (row < bufferLength(rows)) limit 2048 {
+              long expected = 0;
+              if (row == marked) { expected = sentinel; }
+              assert(rows[row] == expected);
+              row += 1;
+            }
           }
         }
         """);

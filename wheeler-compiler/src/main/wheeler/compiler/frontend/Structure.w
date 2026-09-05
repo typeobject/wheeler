@@ -37,10 +37,10 @@ classical class Structure {
     borrow mut words tokenLengths,
     long entryStart
   ) {
-    if (tokenHash(source, tokenStarts, tokenLengths, entryStart) == TOKEN_ENTRY) {
-      if (tokenHash(source, tokenStarts, tokenLengths, entryStart + 1) == TOKEN_VOID) {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, entryStart) == TOKEN_ENTRY) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, entryStart + 1) == TOKEN_VOID) {
         if (
-          tokenHash(source, tokenStarts, tokenLengths, entryStart + 2) == TOKEN_MAIN
+          sourceTokenCode(source, tokenStarts, tokenLengths, entryStart + 2) == TOKEN_MAIN
         ) {
           if (
             punctuationAt(
@@ -139,8 +139,8 @@ classical class Structure {
           return -1;
         }
       } else {
-        long rightHash = tokenHash(source, tokenStarts, tokenLengths, rightToken);
-        if (booleanTokenHash(rightHash) == false) {
+        long rightWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, rightToken);
+        if (booleanTokenCode(rightWordCode) == false) {
           return -1;
         }
       }
@@ -235,7 +235,7 @@ classical class Structure {
     }
 
     if (statementKind == STATEMENT_RETURN_BOOLEAN) {
-      long returned = tokenHash(source, tokenStarts, tokenLengths, statementStart + 1);
+      long returned = sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 1);
       boolean valid = returned == TOKEN_TRUE;
       if (returned == TOKEN_FALSE) {
         valid = true;
@@ -586,13 +586,13 @@ classical class Structure {
         }
       } else {
         if (booleanTwoArgumentCall) {
-          long firstArgumentHash = tokenHash(
+          long firstArgumentWordCode = sourceTokenCode(
             source,
             tokenStarts,
             tokenLengths,
             statementStart + 5
           );
-          if (booleanTokenHash(firstArgumentHash) == false) {
+          if (booleanTokenCode(firstArgumentWordCode) == false) {
             return -1;
           }
         } else {
@@ -628,8 +628,8 @@ classical class Structure {
         }
       } else {
         if (booleanTwoArgumentCall) {
-          long secondArgumentHash = tokenHash(source, tokenStarts, tokenLengths, commaToken + 1);
-          if (booleanTokenHash(secondArgumentHash) == false) {
+          long secondArgumentWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, commaToken + 1);
+          if (booleanTokenCode(secondArgumentWordCode) == false) {
             return -1;
           }
         } else {
@@ -765,8 +765,8 @@ classical class Structure {
 
       long argumentWidth = 1;
       if (statementKind == STATEMENT_LOCAL_BOOLEAN_CALL_ARGUMENT_NAMED) {
-        long argumentHash = tokenHash(source, tokenStarts, tokenLengths, statementStart + 5);
-        if (booleanTokenHash(argumentHash) == false) {
+        long argumentWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 5);
+        if (booleanTokenCode(argumentWordCode) == false) {
           return -1;
         }
       } else {

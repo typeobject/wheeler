@@ -202,15 +202,15 @@ classical class DirectStatementProducts {
             semanticCount,
             tokenStarts
           );
-          long rootHash = 0;
+          long rootWordCode = 0;
           if (-1 < rootToken) {
-            rootHash = tokenHash(source, tokenStarts, tokenLengths, rootToken);
+            rootWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, rootToken);
           }
 
           long childCount = statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement];
           boolean productStatement = childCount == 0;
           if (childCount == 1) {
-            if (rootHash == TOKEN_IF) {
+            if (rootWordCode == TOKEN_IF) {
               productStatement = true;
             } else {
               set(functionPrefixesComplete, owner, 0);
@@ -224,11 +224,11 @@ classical class DirectStatementProducts {
             long productStart = cursor;
             long productInstructions = 0;
             long productTypeStart = typeCount;
-            long hash = rootHash;
+            long wordCode = rootWordCode;
             boolean preserveStatementWidth = false;
             long statementCall = callAtStatement(statement, callCount, callStatements);
             boolean selectedCall = -1 < statementCall;
-            if (hash == TOKEN_IF) {
+            if (wordCode == TOKEN_IF) {
               if (0 < reversibleCallableCount) {
                 statementValid = false;
               }
@@ -336,7 +336,7 @@ classical class DirectStatementProducts {
                 }
               }
             } else {
-              if (hash == TOKEN_BOOLEAN) {
+              if (wordCode == TOKEN_BOOLEAN) {
                 DirectBooleanDeclarationProduct booleanDeclaration = writeDirectBooleanDeclaration(
                   source,
                   symbolNames,
@@ -375,7 +375,7 @@ classical class DirectStatementProducts {
                   statementValid = false;
                 }
               } else {
-                if (hash == TOKEN_LONG) {
+                if (wordCode == TOKEN_LONG) {
                   DirectLongDeclarationProduct declaration = writeDirectLongDeclaration(
                     source,
                     symbolNames,
@@ -414,9 +414,9 @@ classical class DirectStatementProducts {
                     statementValid = false;
                   }
                 } else {
-                  boolean wordMutation = hash == TOKEN_SET;
+                  boolean wordMutation = wordCode == TOKEN_SET;
                   boolean bufferMutation = wordMutation;
-                  if (hash == TOKEN_SET_BYTE) {
+                  if (wordCode == TOKEN_SET_BYTE) {
                     bufferMutation = true;
                   }
                   if (bufferMutation) {
@@ -450,7 +450,7 @@ classical class DirectStatementProducts {
                       statementValid = false;
                     }
                   } else {
-                    if (hash == TOKEN_ASSERT) {
+                    if (wordCode == TOKEN_ASSERT) {
                       long ordinal = statementRows[LOOP_STATEMENT_ORDINAL_ROW + statement];
                       LoopAssertion assertion = resolveLoopAssertion(
                         source,
@@ -557,7 +557,7 @@ classical class DirectStatementProducts {
                         }
                       }
                     } else {
-                      if (hash == TOKEN_RETURN) {
+                      if (wordCode == TOKEN_RETURN) {
                         DirectScalarRelationProduct relation = resolveDirectReturnRelation(
                           source,
                           symbolNames,
@@ -711,7 +711,7 @@ classical class DirectStatementProducts {
             }
 
             if (selectedCall) {
-              if (hash != TOKEN_IF) {
+              if (wordCode != TOKEN_IF) {
                 statementValid = true;
               }
 

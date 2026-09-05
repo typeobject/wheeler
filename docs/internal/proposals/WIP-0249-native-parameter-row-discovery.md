@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, runtime, coverage, and testing maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, native testing, source discovery |
 | Depends on | WIP-0205, WIP-0225, WIP-0248 |
 | Supersedes | WIP-0248 parameterless declaration bound |
@@ -36,7 +36,11 @@ The complete discovered case count must equal the complete descriptor count. Dec
 
 `TestSourceTests.w` accepts exactly one named `long` or `boolean` parameter, a closing parenthesis, the `cases` token, an opening parenthesis, one through 64 scalar rows, and a closing parenthesis.
 
-Long rows use the compiler's canonical signed-number width, validation, and decoder. Boolean rows accept only exact `false` and `true` token hashes. The runtime rejects empty rows, trailing commas, unsupported parameter types, malformed values, duplicate values, and rows beyond the 64-case runner bound.
+Long rows use the compiler's canonical signed-number width, validation, and
+decoder. Boolean rows consume exact `false` and `true` word codes under
+[WIP-0497](WIP-0497-exact-source-word-admission.md). Empty rows, trailing commas,
+unsupported parameter types, malformed values, and duplicates reject. This record
+accepted a 64-case profile. WIP-0348 owns its later expansion to 255 cases.
 
 The scanner's token columns remain the syntax authority. Comments, strings, and raw source substrings cannot create rows.
 
@@ -44,7 +48,10 @@ The scanner's token columns remain the syntax authority. Comments, strings, and 
 
 The runtime compares each row against every completely framed descriptor. It requires exact target bytes, `::`, exact declaration bytes, `[`, one or two canonical decimal ordinal digits, and `]`.
 
-The 64-case profile makes every ordinal one or two digits. Leading zeroes and value-derived suffixes fail the exact length and byte checks. Each discovered row must match exactly one descriptor.
+The original 64-case profile used one or two ordinal digits. The current
+255-case profile also admits three. Leading zeroes and value-derived suffixes
+fail the exact length and byte checks. Each discovered row must match exactly one
+descriptor.
 
 Parameterless declarations retain the unsuffixed name from WIP-0248. Duplicate declaration names reject before row matching.
 

@@ -212,11 +212,11 @@ classical class DirectConditionalReturnProducts {
         return invalidConditionalReturn(39);
       }
 
-      long booleanHash = tokenHash(source, tokenStarts, tokenLengths, rightToken);
-      if (booleanHash == TOKEN_TRUE) {
+      long booleanWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, rightToken);
+      if (booleanWordCode == TOKEN_TRUE) {
         right = 1;
       } else {
-        if (booleanHash != TOKEN_FALSE) {
+        if (booleanWordCode != TOKEN_FALSE) {
           return invalidConditionalReturn(40);
         }
       }
@@ -341,7 +341,7 @@ classical class DirectConditionalReturnProducts {
       return invalidConditionalReturn(19);
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, childToken) != TOKEN_RETURN) {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, childToken) != TOKEN_RETURN) {
       return invalidConditionalReturn(20);
     }
 
@@ -398,14 +398,14 @@ classical class DirectConditionalReturnProducts {
       return invalidConditionalReturn(34);
     }
 
-    long literalHash = tokenHash(source, tokenStarts, tokenLengths, childToken + 1);
-    boolean literalChild = literalHash == TOKEN_TRUE;
-    if (literalHash == TOKEN_FALSE) {
+    long literalWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, childToken + 1);
+    boolean literalChild = literalWordCode == TOKEN_TRUE;
+    if (literalWordCode == TOKEN_FALSE) {
       literalChild = true;
     }
 
     long literal = 0;
-    if (literalHash == TOKEN_TRUE) {
+    if (literalWordCode == TOKEN_TRUE) {
       literal = 1;
     }
 

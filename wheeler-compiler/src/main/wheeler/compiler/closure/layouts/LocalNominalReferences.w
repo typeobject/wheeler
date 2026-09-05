@@ -4,6 +4,7 @@ module wheeler.compiler.closure.local_nominal_references;
 
 import wheeler.compiler.closure.source_aggregate_syntax;
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
 
@@ -12,7 +13,6 @@ classical class LocalNominalReferences {
   private const long MAX_AGGREGATES = 64;
   private const long MAX_REFERENCES = 512;
   private const long REFERENCE_ROWS = 1536;
-  private const long TOKEN_NEW = 108960;
 
   /// Reports local nominal references in canonical source order.
   public record LocalNominalReferencePlan(long referenceCount, boolean valid) {}
@@ -114,7 +114,7 @@ classical class LocalNominalReferences {
         }
 
         if (0 < token) {
-          if (tokenHash(source, tokenStarts, tokenLengths, token - 1) == TOKEN_NEW) {
+          if (sourceTokenCode(source, tokenStarts, tokenLengths, token - 1) == TOKEN_NEW) {
             typePosition = true;
           }
         }

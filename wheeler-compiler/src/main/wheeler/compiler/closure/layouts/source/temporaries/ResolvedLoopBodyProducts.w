@@ -84,11 +84,11 @@ classical class ResolvedLoopBodyProducts {
       return false;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, childToken) != TOKEN_RETURN) {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, childToken) != TOKEN_RETURN) {
       return false;
     }
 
-    long literal = tokenHash(source, tokenStarts, tokenLengths, childToken + 1);
+    long literal = sourceTokenCode(source, tokenStarts, tokenLengths, childToken + 1);
     boolean supportedReturn = literal == TOKEN_TRUE;
     if (literal == TOKEN_FALSE) {
       supportedReturn = true;
@@ -163,7 +163,7 @@ classical class ResolvedLoopBodyProducts {
               );
               if (-1 < parentToken) {
                 if (
-                  tokenHash(source, tokenStarts, tokenLengths, parentToken) == TOKEN_IF
+                  sourceTokenCode(source, tokenStarts, tokenLengths, parentToken) == TOKEN_IF
                 ) {
                   matches += 1;
                 }
@@ -349,11 +349,11 @@ classical class ResolvedLoopBodyProducts {
             if (controlToken < 0) {
               valid = false;
             } else {
-              long controlHash = tokenHash(source, tokenStarts, tokenLengths, controlToken);
-              if (controlHash == TOKEN_WHILE) {
+              long controlWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, controlToken);
+              if (controlWordCode == TOKEN_WHILE) {
                 set(stagedPhysicalWidths, statement, 5);
               } else {
-                if (controlHash != TOKEN_IF) {
+                if (controlWordCode != TOKEN_IF) {
                   valid = false;
                 } else {
                   LoopNestedCondition control = resolveLoopNestedCondition(

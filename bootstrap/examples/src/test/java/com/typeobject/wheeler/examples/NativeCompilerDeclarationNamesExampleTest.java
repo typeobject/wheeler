@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.typeobject.wheeler.compiler.CompilerException;
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
@@ -14,7 +15,10 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /** Exact declaration-name publication before source leases disappear. */
 final class NativeCompilerDeclarationNamesExampleTest {
@@ -41,12 +45,27 @@ final class NativeCompilerDeclarationNamesExampleTest {
 
   @Test
   void publishesBothHeaderNamesAndLeavesEveryInactiveCellUntouched() throws Exception {
-    Fixture fixture = fixture(RIGHT, 512, 512);
+    assertNamesPublished(fixture(RIGHT, 512, 512), 2);
+  }
+
+  @Test
+  void indexesConstantsAfterEveryStateAndAdmitsFollowingMembers() throws Exception {
+    String states = "state long first = 0; state long second = 1; state long third = 2; ";
+    String constant = "public const long VALUE = 2;";
+    assertNamesPublished(fixture(RIGHT.replace(constant, states + constant), 512, 512), 2);
+    for (String member : new String[] {"", "public long read() { return 2; }",
+        "public record Pair(long value) {}"}) {
+      assertNamesPublished(fixture(RIGHT.replace(constant, member), 512, 512), 1);
+    }
+  }
+
+  private static void assertNamesPublished(Fixture fixture, long symbols) {
     VirtualMachine machine = fixture.machine();
     var initial = machine.snapshot();
     machine.run();
     assertEquals(1, machine.global("published"));
     assertEquals(2, machine.global("generation"));
+    assertEquals(symbols, machine.global("symbolCount"));
     long[] expected = new long[2048];
     Arrays.fill(expected, -7);
     expected[0] = fixture.input().indexOf("example.left;");
@@ -78,6 +97,20 @@ final class NativeCompilerDeclarationNamesExampleTest {
         RIGHT.substring(0, RIGHT.indexOf("ActualRight"))}) {
       assertUnpublished(fixture(rejected, 512, 512));
     }
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @ValueSource(strings = {"module", "import", "classical", "class", "public", "const"})
+  void rejectsKeywordHashAliasesBeforePublishingAnyDeclarationName(String word) throws Exception {
+    char[] spelling = word.toCharArray();
+    spelling[spelling.length - 2]++;
+    spelling[spelling.length - 1] -= 31;
+    String alias = new String(spelling);
+    String rejected = RIGHT.replaceAll("\\b" + word + "\\b", alias);
+    assertEquals(word.hashCode(), alias.hashCode());
+    assertThrows(CompilerException.class, () -> new WheelerCompiler().compileLibraryModuleFiles(
+        Map.of("Left.w", LEFT, "Right.w", rejected), "example.right"), alias);
+    assertUnpublished(fixture(rejected, 512, 512));
   }
 
   @Test
@@ -128,6 +161,7 @@ final class NativeCompilerDeclarationNamesExampleTest {
         classical class DeclarationNames {
           state long published = 0;
           state long generation = 0;
+          state long symbolCount = 0;
 
           private void initialize(borrow mut words column) {
             long row = 0;
@@ -197,6 +231,7 @@ final class NativeCompilerDeclarationNamesExampleTest {
             assert(indexed.moduleCount == 2);
             assert(indexed.peakActiveSources == 1);
             generation = indexed.finalGeneration;
+            symbolCount = indexed.symbolCount;
             long cursor = emit(moduleStarts, output, 0);
             cursor = emit(moduleLengths, output, cursor);
             cursor = emit(classStarts, output, cursor);

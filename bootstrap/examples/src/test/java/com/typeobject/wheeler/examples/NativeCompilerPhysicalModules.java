@@ -91,6 +91,7 @@ final class NativeCompilerPhysicalModules {
         physical("compiler/verification/ResultSlotVerifier.w", "result_slot_verifier"),
         physical("compiler/resolution/returns/ReturnOpcodeKinds.w", "return_opcode_kinds"),
         physical("compiler/syntax/tokens/SourceScalars.w", "source_scalars"),
+        physical("compiler/syntax/tokens/words/SourceLongWords.w", "source_long_words"),
         physical("compiler/ir/StatementKinds.w", "statement_kinds"),
         physical(
             "compiler/syntax/returns/signed/SignedReturnStatements.w",
@@ -183,6 +184,8 @@ final class NativeCompilerPhysicalModules {
             "compiler/syntax/helpers/SignedHelperResultKinds.w",
             "signed_helper_result_kinds"),
         physical("compiler/syntax/helpers/HelperValueKinds.w", "helper_value_kinds"),
+        physical("compiler/syntax/tokens/words/SourceShortWords.w", "source_short_words"),
+        physical("compiler/syntax/tokens/words/SourceWords.w", "source_words"),
         physical("compiler/syntax/calls/void/VoidCallOperands.w", "void_call_operands"),
         physical("compiler/frontend/calls/VoidCallSyntax.w", "void_call_syntax"),
         physical("compiler/syntax/calls/void/VoidCallSourceForms.w", "void_call_source_forms"),

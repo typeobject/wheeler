@@ -122,7 +122,7 @@ classical class ImportedHelpers {
     long count = 0;
     long exported = 0;
     while (cursor < closeToken) limit MAX_IMPORTED_SCALAR_HELPERS {
-      long visibility = tokenHash(importedSource, importedStarts, importedLengths, cursor);
+      long visibility = sourceTokenCode(importedSource, importedStarts, importedLengths, cursor);
       if (visibility == TOKEN_PUBLIC) {
         exported += 1;
       } else {

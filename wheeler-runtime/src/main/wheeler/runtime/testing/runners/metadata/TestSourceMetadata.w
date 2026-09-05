@@ -3,19 +3,15 @@
 module wheeler.runtime.testing.runners.test_source_metadata;
 
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
-import wheeler.runtime.testing.runners.test_source_tokens;
 
 classical class TestSourceMetadata {
   private const long MAX_DECLARED_LIMIT = 4000000;
   private const long MAX_TAG_BYTES = 128;
   private const long MAX_TAGS = 64;
-  private const long TOKEN_HISTORY = 95416214676;
-  private const long TOKEN_LIMITS = 3192269848;
-  private const long TOKEN_STEPS = 109761319;
-  private const long TOKEN_TAGS = 3552281;
 
   /// Reports validated metadata, selection, and the effective step bound.
   public record SourceTestMetadata(boolean supported, boolean selected, long stepLimit) {}
@@ -141,7 +137,7 @@ classical class TestSourceMetadata {
     }
 
     if (
-      boundedSourceTokenHash(source, tokenStarts, tokenLengths, start) != TOKEN_LIMITS
+      sourceTokenCode(source, tokenStarts, tokenLengths, start) != TOKEN_LIMITS
     ) {
       return new SourceTestMetadata(false, false, 0);
     }
@@ -158,7 +154,7 @@ classical class TestSourceMetadata {
       PUNCTUATION_OPEN_PAREN
     );
     if (
-      boundedSourceTokenHash(source, tokenStarts, tokenLengths, start + 2) != TOKEN_STEPS
+      sourceTokenCode(source, tokenStarts, tokenLengths, start + 2) != TOKEN_STEPS
     ) {
       valid = false;
     }
@@ -184,7 +180,7 @@ classical class TestSourceMetadata {
     }
 
     if (
-      boundedSourceTokenHash(source, tokenStarts, tokenLengths, start + 6) != TOKEN_HISTORY
+      sourceTokenCode(source, tokenStarts, tokenLengths, start + 6) != TOKEN_HISTORY
     ) {
       valid = false;
     }
@@ -274,7 +270,7 @@ classical class TestSourceMetadata {
     long tagCount = 0;
     if (cursor < tokenCount) {
       if (
-        boundedSourceTokenHash(source, tokenStarts, tokenLengths, cursor) == TOKEN_TAGS
+        sourceTokenCode(source, tokenStarts, tokenLengths, cursor) == TOKEN_TAGS
       ) {
         if (cursor + 3 < tokenCount) {} else {
           return new SourceTestMetadata(false, false, 0);

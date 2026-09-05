@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.typeobject.wheeler.compiler.CompilerException;
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
 import com.typeobject.wheeler.core.bytecode.Program;
@@ -405,6 +406,32 @@ final class NativeCompiledTestRunnerExampleTest {
     assertArrayEquals(explicit, discovered);
     assertEquals(1, discovered[32]);
     assertEquals(1, discovered[34]);
+  }
+
+  @Test
+  void rejectsAliasesAgainstDeclaredNativeTestDescriptors() throws Exception {
+    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
+    for (String word : List.of("test", "void", "tags", "limits", "steps", "history",
+        "cases", "boolean", "true", "false")) {
+      String original = List.of("cases", "boolean", "true", "false").contains(word)
+          ? PARAMETERIZED_TESTS : TAGGED_TESTS;
+      char[] spelling = word.toCharArray();
+      spelling[spelling.length - 2]++;
+      spelling[spelling.length - 1] -= 31;
+      String alias = new String(spelling);
+      assertEquals(word.hashCode(), alias.hashCode());
+      String rejected = original.replaceAll("(?<![.])\\b" + word + "\\b", alias);
+      assertThrows(CompilerException.class, () -> new WheelerCompiler().compilePackageTests(
+          Map.of("Test.w", rejected), Map.of(), "pkg.test"), alias);
+      var sources = List.of(new NativeTestSourcePlan.Source("src/Test.w", rejected));
+      List<String> names = original.equals(PARAMETERIZED_TESTS)
+          ? List.of("test::flags[0]", "test::flags[1]", "test::longs[0]", "test::longs[1]", "test::longs[2]")
+          : List.of("test::alpha", "test::beta");
+      var cases = names.stream().map(name -> new NamedArtifact(name, new byte[0])).toList();
+      var invalid = VirtualMachine.withBinaryInput(runner, descriptors(MANIFEST, sources, cases), 39);
+      assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(invalid), alias);
+      assertArrayEquals(new byte[39], invalid.hostOutput());
+    }
   }
 
   @Test

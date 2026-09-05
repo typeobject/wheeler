@@ -72,9 +72,9 @@ classical class OwnedUtf8CopyLoops {
     long statementStart
   ) {
     if (
-      tokenHash(source, tokenStarts, tokenLengths, statementStart + 9) == TOKEN_SET_BYTE
+      sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 9) == TOKEN_SET_BYTE
     ) {
-      return tokenHash(source, tokenStarts, tokenLengths, statementStart + 15) == TOKEN_UTF8_SCALAR;
+      return sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 15) == TOKEN_UTF8_SCALAR;
     }
 
     return false;
@@ -158,7 +158,7 @@ classical class OwnedUtf8CopyLoops {
     }
 
     if (
-      tokenHash(source, tokenStarts, tokenLengths, statementStart + 6) == TOKEN_LIMIT
+      sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 6) == TOKEN_LIMIT
     ) {} else {
       return -1;
     }
@@ -180,7 +180,7 @@ classical class OwnedUtf8CopyLoops {
     }
 
     if (
-      tokenHash(source, tokenStarts, tokenLengths, statementStart + 9) == TOKEN_SET_BYTE
+      sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 9) == TOKEN_SET_BYTE
     ) {} else {
       return -1;
     }
@@ -224,7 +224,7 @@ classical class OwnedUtf8CopyLoops {
     }
 
     if (
-      tokenHash(source, tokenStarts, tokenLengths, statementStart + 15) == TOKEN_UTF8_SCALAR
+      sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 15) == TOKEN_UTF8_SCALAR
     ) {} else {
       return -1;
     }

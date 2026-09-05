@@ -223,14 +223,14 @@ classical class BooleanDeclarationWidths {
           return -1;
         }
 
-        // `true` and `false` use the same stable token hash as every keyword.
-        long booleanLiteralHash = tokenHash(
+        // Boolean literals use the shared exact source-word classifier.
+        long booleanLiteralWordCode = sourceTokenCode(
           source,
           tokenStarts,
           tokenLengths,
           statementStart + 3
         );
-        if (booleanLiteralHash == TOKEN_TRUE) {
+        if (booleanLiteralWordCode == TOKEN_TRUE) {
           if (
             punctuationAt(
               source,
@@ -244,7 +244,7 @@ classical class BooleanDeclarationWidths {
           }
         }
 
-        if (booleanLiteralHash == TOKEN_FALSE) {
+        if (booleanLiteralWordCode == TOKEN_FALSE) {
           if (
             punctuationAt(
               source,

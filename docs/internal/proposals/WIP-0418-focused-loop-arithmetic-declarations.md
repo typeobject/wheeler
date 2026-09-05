@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-28 |
-| Updated | 2026-08-29 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, structured loops, signed arithmetic, instruction encoding |
 | Depends on | WIP-0049, WIP-0052, WIP-0417 |
 | Supersedes | Accidental copy lowering for arithmetic declarations in loop bodies |
@@ -25,7 +25,9 @@ long product = hash * 31;
 
 fell through to local-copy handling. The compiler could therefore publish code that copied `hash` and ignored the multiplication. A following two-local addition had the same ambiguity.
 
-The structured source path needs a closed arithmetic owner before it can compile bounded token hashing. Silent fallback is worse than rejection.
+Bounded token hashing originally exposed this arithmetic gap. WIP-0497 replaces
+that hash admission, but the direct arithmetic contract remains. Unsupported
+forms must reject rather than fall back silently.
 
 ## Design
 
@@ -92,7 +94,7 @@ A signed 64-bit literal leaves no lossless coordinate field. The opcode column a
 
 ### Admit every arithmetic operation at once
 
-Each operation and operand family needs exact negative evidence. This WIP closes the two forms required by bounded token hashing. WIP-0427 closes the scalar fallback, so the remaining matrix is rejected rather than guessed.
+Each operation and operand family needs exact negative evidence. This WIP closes the two forms that bounded token hashing first required. WIP-0427 closes the scalar fallback, so the remaining matrix is rejected rather than guessed.
 
 ## References
 

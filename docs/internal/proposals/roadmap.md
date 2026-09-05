@@ -28,6 +28,8 @@ refer to the required products, not a demand that every umbrella finish first.
 | [WIP-0049](WIP-0049-bounded-native-source-product-compilation.md) | Compile every physical module from local source and dependency products |
 | [WIP-0051](WIP-0051-native-aggregate-frontend-products.md) | Replace remaining fixture-projected frontend values with physical source products |
 | [WIP-0054](WIP-0054-native-source-product-artifact-integration.md) | Join those products to artifact emission for the entire compiler |
+| [WIP-0497](WIP-0497-exact-source-word-admission.md) | Review exact source-word admission and its verified migration |
+| [WIP-0498](WIP-0498-native-test-member-front-admission.md) | Admit class-member fronts before automatic test discovery can publish an empty report |
 
 Keep the distinction between implementation and evidence. WIP-0049 owns source
 lowering, WIP-0054 owns its artifact integration, and WIP-0048 owns final linking.

@@ -9,6 +9,8 @@ import wheeler.compiler.closure.imported_nominal_stubs;
 import wheeler.compiler.closure.source_aggregate_layouts;
 import wheeler.compiler.closure.source_aggregate_syntax;
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.keyword_tokens;
+import wheeler.compiler.source_words;
 import wheeler.compiler.tokens;
 import wheeler.lexer.scanner;
 
@@ -19,9 +21,6 @@ classical class SourceAggregateProducts {
   private const long MAX_CASES = 128;
   private const long MAX_MEMBERS = 256;
   private const long MEMBER_ROWS = 2048;
-  private const long TOKEN_CASE = 3046192;
-  private const long TOKEN_RECORD = 3360058449;
-  private const long TOKEN_VARIANT = 107610968197;
 
   /// Reports the exact source-local aggregate, case, and member extents.
   public record SourceAggregateProductPlan(
@@ -83,7 +82,7 @@ classical class SourceAggregateProducts {
     long memberCount = 0;
     long cursor = 0;
     while (cursor < semanticCount) limit MAX_COMPILER_TOKENS {
-      long declarationKind = tokenHash(source, tokenStarts, tokenLengths, cursor);
+      long declarationKind = sourceTokenCode(source, tokenStarts, tokenLengths, cursor);
       if (declarationKind == TOKEN_RECORD) {
         boolean recordValid = aggregateCount < MAX_AGGREGATES;
         if (semanticCount < cursor + 6) {
@@ -270,7 +269,7 @@ classical class SourceAggregateProducts {
 
             if (variantValid) {
               if (
-                tokenHash(source, tokenStarts, tokenLengths, caseCursor) != TOKEN_CASE
+                sourceTokenCode(source, tokenStarts, tokenLengths, caseCursor) != TOKEN_CASE
               ) {
                 variantValid = false;
               }
@@ -488,8 +487,8 @@ classical class SourceAggregateProducts {
             }
           }
         } else {
-          long typeHash = rangeHash(source, resolvedTypeStart, resolvedTypeLength);
-          long resolvedPrimitive = primitiveType(typeHash);
+          long word = sourceWordCode(source, resolvedTypeStart, resolvedTypeLength);
+          long resolvedPrimitive = primitiveType(word);
           if (resolvedPrimitive < 0) {
             valid = false;
           } else {

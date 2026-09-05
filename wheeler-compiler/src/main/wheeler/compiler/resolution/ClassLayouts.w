@@ -31,8 +31,8 @@ classical class ClassLayouts {
     borrow mut words tokenStarts,
     borrow mut words tokenLengths
   ) {
-    if (tokenHash(source, tokenStarts, tokenLengths, 0) == TOKEN_CLASSICAL) {
-      if (tokenHash(source, tokenStarts, tokenLengths, 1) == TOKEN_CLASS) {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, 0) == TOKEN_CLASSICAL) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, 1) == TOKEN_CLASS) {
         if (tokenKinds[2] == 1) {
           if (tokenLengths[2] < 257) {
             if (
@@ -60,11 +60,11 @@ classical class ClassLayouts {
       return -1;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, stateStart) == TOKEN_STATE) {} else {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, stateStart) == TOKEN_STATE) {} else {
       return -1;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, stateStart + 1) == TOKEN_LONG) {} else {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, stateStart + 1) == TOKEN_LONG) {} else {
       return -1;
     }
 
@@ -182,7 +182,7 @@ classical class ClassLayouts {
       return invalidLayout();
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, bodyStart) == TOKEN_STATE) {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, bodyStart) == TOKEN_STATE) {
       long stateFirstEnd = stateEnd(
         source,
         tokenKinds,
@@ -230,7 +230,7 @@ classical class ClassLayouts {
     }
 
     if (
-      tokenHash(source, tokenStarts, tokenLengths, constantFirstMember) == TOKEN_STATE
+      sourceTokenCode(source, tokenStarts, tokenLengths, constantFirstMember) == TOKEN_STATE
     ) {
       long constantFirstEnd = stateEnd(
         source,

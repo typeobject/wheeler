@@ -125,7 +125,7 @@ classical class SharedDeclarations {
         return false;
       }
 
-      long visibility = tokenHash(rootSource, rootStarts, rootLengths, rootDeclaration);
+      long visibility = sourceTokenCode(rootSource, rootStarts, rootLengths, rootDeclaration);
       boolean shareable = visibility == TOKEN_PRIVATE;
       if (visibility == TOKEN_PUBLIC) {
         shareable = true;
@@ -177,7 +177,7 @@ classical class SharedDeclarations {
     long shared = 0;
     while (importedDeclaration < importedMember) limit MAX_CLASS_CONSTANTS {
       if (
-        tokenHash(importedSource, importedStarts, importedLengths, importedDeclaration)
+        sourceTokenCode(importedSource, importedStarts, importedLengths, importedDeclaration)
           == TOKEN_PRIVATE
       ) {} else {
         break;

@@ -353,8 +353,8 @@ classical class SourceValueProducts {
                 }
               }
 
-              long statementHash = tokenHash(source, tokenStarts, tokenLengths, statementToken);
-              boolean indexedBufferCopy = loopBufferSetToken(statementHash);
+              long statementWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, statementToken);
+              boolean indexedBufferCopy = loopBufferSetToken(statementWordCode);
 
               if (indexedBufferCopy) {
                 indexedBufferCopy = punctuationAt(
@@ -504,8 +504,8 @@ classical class SourceValueProducts {
           }
 
           if (-1 < statementToken) {
-            long valueHash = tokenHash(source, tokenStarts, tokenLengths, statementToken);
-            if (valueHash == TOKEN_IF) {
+            long valueWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, statementToken);
+            if (valueWordCode == TOKEN_IF) {
               if (statementRows[4096 + statement] == functionRootBlock) {
                 if (statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement] == 1) {
                   localWidth = 3;
@@ -518,7 +518,7 @@ classical class SourceValueProducts {
               }
             }
 
-            if (valueHash == TOKEN_LONG) {
+            if (valueWordCode == TOKEN_LONG) {
               SourceReversibleResultRelation initializerRelation = sourceScalarRelation(
                 source,
                 statementToken + 3,
@@ -540,14 +540,14 @@ classical class SourceValueProducts {
               }
             }
 
-            if (valueHash == TOKEN_BOOLEAN) {
+            if (valueWordCode == TOKEN_BOOLEAN) {
               if (-1 < statementCall) {
                 localWidth = callRows[512 + statementCall] * 2 + 2;
                 resultLocal = localBase + localWidth - 1;
               }
             }
 
-            if (valueHash == TOKEN_ASSERT) {
+            if (valueWordCode == TOKEN_ASSERT) {
               LoopAssertion assertion = resolveLoopAssertion(
                 source,
                 statementToken,
@@ -568,7 +568,7 @@ classical class SourceValueProducts {
               }
             }
 
-            if (valueHash == TOKEN_RETURN) {
+            if (valueWordCode == TOKEN_RETURN) {
               if (opcode == STATEMENT_RETURN_HELPER_CALL_NAMED) {
                 long returnArity = -1;
                 long returnCallMatches = 0;

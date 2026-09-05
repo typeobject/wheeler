@@ -4,6 +4,7 @@ module wheeler.compiler.closure.plan;
 
 import wheeler.compiler.closure.manifest_assertions;
 import wheeler.compiler.closure.module_manifest;
+import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.graphs.executable_owner_kinds;
 
 classical class ClosurePlans {
@@ -14,6 +15,7 @@ classical class ClosurePlans {
   private const long MAX_SOURCE_BYTES = 32768;
   private const long PLAN_ARENA_BYTES = 53248;
   private const long SOURCE_ARENA_BYTES = 32768;
+  private const long CLASSIFICATION_ARENA_BYTES = MAX_LOCAL_MODULES * 8 + EXECUTABLE_KIND_ARENA_BYTES;
 
   /// Identifies the active prefix of every validated closure-plan column.
   public record CountedClosurePlan(
@@ -214,6 +216,7 @@ classical class ClosurePlans {
   /// Classifies each module from its validated immutable archive source range.
   ///
   /// The caller's executable-owner column changes only after every source validates.
+  /// One private token arena serves the entire pass without consuming new buffer IDs per module.
   public void classifyClosureExecutableOwners(
     borrow byteview archive,
     borrow byteview manifest,
@@ -224,8 +227,12 @@ classical class ClosurePlans {
     borrow mut words sourceLengths,
     borrow mut words executableOwners
   ) {
-    region resultArena = new region(/* bytes= */ 4096, /* allocations= */ 1);
+    region resultArena = new region(/* bytes= */ CLASSIFICATION_ARENA_BYTES, /* allocations= */ 5);
     words scratchOwners = allocate(resultArena, MAX_LOCAL_MODULES);
+    words tokenKinds = allocate(resultArena, MAX_COMPILER_TOKENS);
+    words tokenStarts = allocate(resultArena, MAX_COMPILER_TOKENS);
+    words tokenLengths = allocate(resultArena, MAX_COMPILER_TOKENS);
+    words moduleName = allocate(resultArena, 2);
     long module = 0;
     while (module < plan.moduleCount) limit MAX_LOCAL_MODULES {
       long sourceStart = sourceStarts[module];
@@ -240,7 +247,9 @@ classical class ClosurePlans {
       }
 
       utf8 source = freezeUtf8(sourceBytes);
-      ExecutableOwnerKind kind = classifyExecutableOwner(source);
+      ExecutableOwnerKind kind = classifyExecutableOwnerWithScratch(
+        source, tokenKinds, tokenStarts, tokenLengths, moduleName
+      );
       requireMetadata(kind.valid);
       requireMetadata(
         sameModuleName(
@@ -272,6 +281,10 @@ classical class ClosurePlans {
 
     }
 
+    drop(moduleName);
+    drop(tokenLengths);
+    drop(tokenStarts);
+    drop(tokenKinds);
     drop(scratchOwners);
     drop(resultArena);
   }

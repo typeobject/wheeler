@@ -102,12 +102,12 @@ classical class LoopNestedConditions {
         valid = false;
       }
 
-      long literalHash = tokenHash(source, tokenStarts, tokenLengths, literalToken);
+      long literalWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, literalToken);
       boolean booleanLiteral = kind == 1;
-      if (literalHash == TOKEN_TRUE) {
+      if (literalWordCode == TOKEN_TRUE) {
         literal = 1;
       } else {
-        if (literalHash == TOKEN_FALSE) {
+        if (literalWordCode == TOKEN_FALSE) {
           literal = 0;
         } else {
           booleanLiteral = false;

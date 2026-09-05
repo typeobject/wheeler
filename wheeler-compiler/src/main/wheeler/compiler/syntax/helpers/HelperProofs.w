@@ -50,7 +50,7 @@ classical class HelperProofs {
     long declaration
   ) {
     long modifier = declaration;
-    long visibility = tokenHash(source, tokenStarts, tokenLengths, modifier);
+    long visibility = sourceTokenCode(source, tokenStarts, tokenLengths, modifier);
     if (visibility == TOKEN_PUBLIC) {
       modifier += 1;
     } else {
@@ -59,7 +59,7 @@ classical class HelperProofs {
       }
     }
 
-    return tokenHash(source, tokenStarts, tokenLengths, modifier) == TOKEN_REV;
+    return sourceTokenCode(source, tokenStarts, tokenLengths, modifier) == TOKEN_REV;
   }
 
   /// Returns the token after one attached inverse proof.
@@ -78,7 +78,7 @@ classical class HelperProofs {
       return start;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, start) == TOKEN_THEOREM) {} else {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, start) == TOKEN_THEOREM) {} else {
       return start;
     }
 
@@ -90,11 +90,11 @@ classical class HelperProofs {
       return -1;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, start + 2) == TOKEN_PROVES) {} else {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, start + 2) == TOKEN_PROVES) {} else {
       return -1;
     }
 
-    if (tokenHash(source, tokenStarts, tokenLengths, start + 3) == TOKEN_INVERSE) {} else {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, start + 3) == TOKEN_INVERSE) {} else {
       return -1;
     }
 
