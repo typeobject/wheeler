@@ -59,7 +59,10 @@ name. Capabilities sort by name, then path. Rejected rows leave storage untouche
 The source-list product owns traversal, ordering, coverage, and count commits for
 up to 1,024 selectors per target. Failed collections retain admitted selector
 prefixes, but publish neither a collection count nor a target row. Absent lists
-remain valid for nonmodular targets. Present empty lists reject. Complete target
+remain valid for nonmodular targets. Present empty lists reject. Fixed manifest
+words now use exact classification, not polynomial hash equality. Malformed
+aliases cannot impersonate keys, kinds, or Booleans. Lock, workspace, and snapshot
+readers share exact word admission without a hash-only compatibility path. Complete target
 admission returns a validated tail coordinate after head, module, collection,
 and test checks. The parser derives row fields without a target-result carrier.
 Target capacity, adjacent ordering, publication orchestration, the remaining

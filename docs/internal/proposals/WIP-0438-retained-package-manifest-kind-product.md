@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-30 |
-| Updated | 2026-08-30 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, scalar classification |
 | Depends on | WIP-0049, WIP-0052, WIP-0420 |
 | Supersedes | Private kind decoders in `PackageManifest.w` |
@@ -17,15 +17,20 @@ Split canonical Boolean, target-kind, and dependency-kind decoding into `Package
 
 ## Kind policy
 
-`manifestBooleanToken` maps `true` to one, `false` to zero, and every other token to minus one. It hashes token text once.
+`manifestBooleanToken` maps `true` to one, `false` to zero, and every other token
+to minus one. WIP-0049 restored that contract with exact word classification.
+The former polynomial hash accepted `trvF` as `true`.
 
-`manifestTargetKind` admits quoted `deployable`, `library`, and `tool` values as kinds one through three. `manifestDependencyKind` admits quoted `normal`, `development`, and `build` values on the same ordinal range. Both reject nonquoted input before hashing its payload. Unknown quoted values remain kind zero.
+`manifestTargetKind` admits quoted `deployable`, `library`, and `tool` values as kinds one through three. `manifestDependencyKind` admits quoted `normal`, `development`, and `build` values on the same ordinal range. Both reject nonquoted input before classifying its payload. Unknown quoted values
+remain kind zero, including hash aliases such as `topM` and long unknown words.
 
 The numeric products remain unchanged from the package-manifest parser. Moving them gives each spelling table one owner and removes 72 lines of private policy from `PackageManifest.w`.
 
 ## Physical product
 
-The owner retains three functions and 122 forward-plus-inverse instructions. One Boolean hash call and each decoder's quoted-shape and quoted-hash calls produce five imported relocations. Every relocation resolves to `PackageManifestTokens.w`. No dependency source or signature-only stub enters the linked product.
+The original artifact retained three functions and 122 instructions. Current
+Boolean classification and each decoder's quoted-shape and quoted-word calls
+still produce five imported relocations. Every relocation resolves to `PackageManifestTokens.w`. No dependency source or signature-only stub enters the linked product.
 
 The selected set contains 101 comparable products and 24 callable products. The linked closure retains 105 non-empty module products, 407 functions, and 14,565 forward-plus-inverse instructions. It contains 345,688 code bytes, 11,219 local-type rows, 657 source strings, and 533 unique strings. The 438,168-byte executable closure has SHA-256 `670540626edab03e1f4b67c736e273885b80241e36fd328a19c9f6e761f64cf5`.
 
@@ -37,7 +42,9 @@ The package manifest identity remains `fa7fed6c0057fff3255316b8e027b5dc998d99f3a
 
 ## Evidence
 
-`NativeCompilerPackageManifestKindsPhysicalProductExampleTest` executes every accepted target and dependency spelling plus both Boolean values. Its physical case compares the complete owner artifact with stage 0, retains exact function and instruction counts, and requires all five callable relocations to resolve.
+`NativeCompilerPackageManifestWordsExampleTest` executes every spelling, quoted
+and unquoted forms, hash aliases, and long unknown values. [WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+owns the combined physical pass that replaces the standalone kind fixture.
 
 `NativeManifestExampleTest`, `NativeManifestIdentityExampleTest`, `NativeArchiveExampleTest`, and `NativeArchiveIdentityExampleTest` derive current compiler module closures instead of copying dependency lists. They parse, hash, inspect, and reject complete manifest and archive fixtures through the split parser.
 
@@ -64,13 +71,15 @@ Reject a nonquoted kind, unknown spelling, unresolved token-policy target, stale
 
 That leaves token policy inseparable from row-heavy target and dependency parsing and cannot retain the closed scalar product.
 
-### Hash nonquoted values
+### Decode nonquoted kinds
 
-Token kind is part of canonical manifest syntax. Hash equality must not turn an identifier into a quoted kind.
+Token kind is part of canonical syntax. Word equality must not turn an identifier
+into a quoted kind.
 
-### Duplicate token hashing
+### Duplicate word classification
 
-The retained token owner already defines exact UTF-8 traversal and quoted boundaries. A second implementation would split canonical policy and remove relocation evidence.
+The token owner defines exact spellings and quoted boundaries. A second table
+would split canonical policy and remove relocation evidence.
 
 ## References
 

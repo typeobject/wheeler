@@ -20,14 +20,13 @@ class NativeWorkspaceExampleTest {
   void wheelerParsesAndCanonicalizesABoundedWorkspace() throws Exception {
     Path root = Path.of("../wheeler-conformance/src/main/wheeler/packages");
     Program program = new WheelerCompiler().compileModuleFiles(
-        Map.of(
+        PackageSources.withMetadataTokens(Map.of(
             "ManifestEmitter.w", PackageSources.read("packages/manifest/ManifestEmitter.w"),
-            "ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w"),
             "Names.w", CompilerSources.read("compiler/packages/Names.w"),
             "NativeWorkspace.w", Files.readString(root.resolve("NativeWorkspace.w")),
             "Paths.w", CompilerSources.read("compiler/packages/Paths.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
-            "Workspace.w", PackageSources.read("packages/workspace/Workspace.w")),
+            "Workspace.w", PackageSources.read("packages/workspace/Workspace.w"))),
         "wheeler.conformance.packages.workspace_main");
     String canonical = """
         schema: 1
@@ -80,6 +79,10 @@ class NativeWorkspaceExampleTest {
     new WorkspaceManifestParser().parse(larger.hostOutput());
     assertTraps(program, workspaceWithMembers(17));
 
+    NativeMetadataAssertions.assertHashAliasesRejected(program, canonical,
+        bytes -> new WorkspaceManifestParser().parse(bytes),
+        "schema", "workspace", "name", "profile", "members", "path");
+    assertTraps(program, canonical.replace("schema: 1", "schema: 1111111111111111"));
     assertTraps(program, canonical.replace("schema: 1", "schema: 2"));
     assertTraps(program, canonical.replace("members:", "plugins:"));
     assertTraps(program, canonical.replace("demo-workspace", "Demo"));

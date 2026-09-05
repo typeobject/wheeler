@@ -99,6 +99,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.packages.manifest_target_tail",
       "wheeler.compiler.packages.manifest_target_test",
       "wheeler.compiler.packages.manifest_tokens",
+      "wheeler.compiler.packages.manifest_words",
       "wheeler.compiler.packages.names",
       "wheeler.compiler.packages.paths",
       "wheeler.compiler.packages.semver",

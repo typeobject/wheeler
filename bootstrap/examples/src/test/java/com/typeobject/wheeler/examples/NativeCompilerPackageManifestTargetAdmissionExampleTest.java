@@ -39,6 +39,8 @@ final class NativeCompilerPackageManifestTargetAdmissionExampleTest {
     for (String invalid : new String[] {
         valid.replace("kind:", "type:"),
         valid.replace("\"tool\"", "\"other\""),
+        valid.replace("\"tool\"", "\"topM\""),
+        valid.replace("\"tool\"", "\"" + "x".repeat(256) + "\""),
         valid.replace("\"main\"", "\"\""),
         valid.replace("root: \"src/App.w\"", "root: \"../App.w\""),
         valid.replace("\"demo.main\"", "\"bad..module\""),
@@ -56,6 +58,9 @@ final class NativeCompilerPackageManifestTargetAdmissionExampleTest {
         valid.replace("test: false\n", ""),
         valid.replace("test: false", "test:"),
         valid.replace("test: false", "test: TRUE"),
+        valid.replace("test: false", "test: faltF"),
+        valid.replace("test: false", "tetU: false"),
+        valid.replace("test: false", "test: " + "x".repeat(256)),
         valid.replace("test: false", "test: \"false\""),
         valid.replace("test: false", "run: false"),
         target("library", true, "src/App.w").replace("test: false", "test: true")

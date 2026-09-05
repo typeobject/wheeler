@@ -3,8 +3,10 @@
 module wheeler.packages.workspace;
 
 import wheeler.compiler.packages.manifest_tokens;
+import wheeler.compiler.packages.manifest_words;
 import wheeler.compiler.packages.names;
 import wheeler.compiler.packages.paths;
+import wheeler.packages.metadata_tokens;
 
 classical class Workspace {
   /// Carries scalar ranges and counts for one validated workspace.
@@ -22,24 +24,6 @@ classical class Workspace {
     case Error(long offset);
   }
 
-  private boolean key(
-    borrow utf8 source,
-    borrow mut words kinds,
-    borrow mut words starts,
-    borrow mut words lengths,
-    long count,
-    long token,
-    long hash
-  ) {
-    if (token + 1 < count) {
-      if (keywordAt(source, starts, lengths, token, hash)) {
-        return colonAt(source, kinds, starts, token + 1);
-      }
-    }
-
-    return false;
-  }
-
   private boolean memberValid(
     borrow utf8 source,
     borrow mut words kinds,
@@ -50,7 +34,7 @@ classical class Workspace {
   ) {
     if (cursor + 6 < count) {
       if (dashAt(source, kinds, starts, cursor)) {
-        if (key(source, kinds, starts, lengths, count, cursor + 1, 3373707)) {
+        if (metadataKeyAt(source, kinds, starts, lengths, count, cursor + 1, WORD_NAME)) {
           if (quoted(kinds, lengths, cursor + 3)) {
             boolean validName = validWorkspaceName(
               source,
@@ -58,7 +42,7 @@ classical class Workspace {
               lengths[cursor + 3] - 2
             );
             if (validName) {
-              if (key(source, kinds, starts, lengths, count, cursor + 4, 3433509)) {
+              if (metadataKeyAt(source, kinds, starts, lengths, count, cursor + 4, WORD_PATH)) {
                 if (quoted(kinds, lengths, cursor + 6)) {
                   return validWorkspacePath(
                     source,
@@ -155,17 +139,17 @@ classical class Workspace {
       return false;
     }
 
-    boolean valid = key(source, kinds, starts, lengths, count, 0, 3386979745);
+    boolean valid = metadataKeyAt(source, kinds, starts, lengths, count, 0, WORD_SCHEMA);
     if (valid) {
-      valid = tokenHash(source, starts, lengths, 2) == 49;
+      valid = metadataTokenEquals(source, starts, lengths, 2, WORD_SCHEMA_VERSION);
     }
 
     if (valid) {
-      valid = key(source, kinds, starts, lengths, count, 3, 104652281998485);
+      valid = metadataKeyAt(source, kinds, starts, lengths, count, 3, METADATA_WORD_WORKSPACE);
     }
 
     if (valid) {
-      valid = key(source, kinds, starts, lengths, count, 5, 3373707);
+      valid = metadataKeyAt(source, kinds, starts, lengths, count, 5, WORD_NAME);
     }
 
     if (valid) {
@@ -177,7 +161,7 @@ classical class Workspace {
     }
 
     if (valid) {
-      valid = key(source, kinds, starts, lengths, count, 8, 102769789353);
+      valid = metadataKeyAt(source, kinds, starts, lengths, count, 8, WORD_PROFILE);
     }
 
     if (valid) {
@@ -189,7 +173,7 @@ classical class Workspace {
     }
 
     if (valid) {
-      valid = key(source, kinds, starts, lengths, count, 11, 99733129497);
+      valid = metadataKeyAt(source, kinds, starts, lengths, count, 11, METADATA_WORD_MEMBERS);
     }
 
     return valid;

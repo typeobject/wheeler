@@ -114,6 +114,15 @@ bounded helper compiler below.
 
 ### Package-manifest composition
 
+`compiler/packages/manifest/words/PackageManifestWords.w` classifies fixed words by exact
+length and two base-128 ASCII lanes. Token policy projects scanner ranges into
+that owner. Keys, kinds, Booleans, schema version, and canonical layout share its
+word codes. Polynomial hash aliases no longer impersonate canonical spellings.
+Unknown words return zero. The twelve-byte vocabulary bound does not limit names,
+paths, quoted values, or the language's identifiers. Lock, workspace, and snapshot
+readers reuse these codes through `wheeler.packages.metadata_tokens`. Their
+format-specific negative codes do not widen the compiler's fixed vocabulary.
+
 Dependency and capability entry products own capacity checks, complete field
 validation, adjacent ordering, and row publication. They return the next count
 only after writing a complete accepted row. Malformed fields take precedence over
@@ -197,6 +206,7 @@ bodies against independent stage-0 compilation:
 ```sh
 ./bootstrap/gradlew -p bootstrap :examples:closureEvidenceTest \
   --tests '*NativeCompilerPackageManifestTargetAdmissionPhysicalProductExampleTest' \
+  --tests '*NativeCompilerPackageManifestWordsPhysicalProductExampleTest' \
   --no-daemon
 ```
 

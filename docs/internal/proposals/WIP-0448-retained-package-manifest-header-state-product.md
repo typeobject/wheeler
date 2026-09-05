@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-31 |
-| Updated | 2026-08-31 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, header validation |
 | Depends on | WIP-0049, WIP-0052, WIP-0447 |
 | Supersedes | Private header-count and format-version literals in `PackageManifest.w` |
@@ -19,13 +19,22 @@ Split fixed package-header token capacity and format-version policy into `Packag
 
 `manifestHeaderTokenCount` rejects fewer than 35 tokens, the minimum fixed header plus one collection row. It uses local-left comparison and literal conditional returns so its physical result does not depend on unsupported literal-left source comparison.
 
-`manifestFormatVersion` accepts only token hash 49, the canonical scalar `1`. The parser computes that hash through the retained token owner and passes the named result to header state. Header key order, quoting, package name, release, and profile validation remain in the parser.
+`manifestFormatVersion` now accepts only `WORD_SCHEMA_VERSION`, the exact word
+code for scalar `1`. WIP-0049 replaced the old hash input. The preamble classifies
+the token and passes that code to header state. Other header owners validate key
+order, quoting, package name, release, and profile.
 
-The retained module contains two functions and 13 forward-plus-inverse instructions. It has no imports, loops, calls, or relocations.
+The original artifact contained two functions and 13 instructions without imports.
+The current owner imports the shared schema-version word code. The combined
+physical pass compares its complete callable bodies after function-ID rebinding.
+The current owner imports the shared word constant and remains call-free.
 
 ## Evidence
 
-`NativeCompilerPackageManifestHeaderStatePhysicalProductExampleTest` executes the final short count, first accepted count, adjacent format hash, and accepted format hash. Its physical case compares the complete artifact byte for byte with stage 0. Manifest examples parse and identify the complete header through the split path.
+`NativeCompilerPackageManifestWordsExampleTest` executes the count boundary,
+accepted word code, unknown code, and rejected old hash value. [WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+owns the combined physical pass that replaces the standalone header-state fixture.
+The following identities record the original milestone.
 
 The selected set contains 108 comparable products and 26 callable products. The linked closure retains 114 non-empty module products, 423 functions, and 14,938 forward-plus-inverse instructions. It contains 354,704 code bytes, 11,572 local-type rows, 691 source strings, and 558 unique strings. The 450,680-byte executable closure has SHA-256 `4ee0a0eb3b07b5f8938a658c4f1ab3400a0b0a3c1e2cd48a16a6eb148ad675ac`.
 
@@ -37,7 +46,7 @@ The package manifest identity remains `fa7fed6c0057fff3255316b8e027b5dc998d99f3a
 
 ## Failure boundary
 
-Reject fewer than 35 tokens or any format hash other than 49. Reject literal-left physical comparison, stale graph identity, archive mismatch, or closure mismatch before publication.
+Reject fewer than 35 tokens or any word code other than `WORD_SCHEMA_VERSION`. Reject literal-left physical comparison, stale graph identity, archive mismatch, or closure mismatch before publication.
 
 ## Acceptance
 
@@ -58,9 +67,10 @@ Reject fewer than 35 tokens or any format hash other than 49. Reject literal-lef
 
 Key, token, package-name, release, and profile checks cross several callable owners. Scalar state is independently retainable and keeps the next composition bounded.
 
-### Duplicate format hashing
+### Duplicate schema-version classification
 
-The token owner already computes the stable hash. Header state owns only accepted format policy.
+The token owner identifies the exact word. Header state owns only accepted
+schema-version policy.
 
 ## References
 

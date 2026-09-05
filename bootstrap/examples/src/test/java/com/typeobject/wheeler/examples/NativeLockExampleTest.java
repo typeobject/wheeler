@@ -20,14 +20,13 @@ class NativeLockExampleTest {
   void wheelerParsesAndCanonicalizesABoundedLock() throws Exception {
     Path root = Path.of("../wheeler-conformance/src/main/wheeler/packages");
     Program program = new WheelerCompiler().compileModuleFiles(
-        Map.of(
+        PackageSources.withMetadataTokens(Map.of(
             "Lock.w", PackageSources.read("packages/resolution/Lock.w"),
             "ManifestEmitter.w", PackageSources.read("packages/manifest/ManifestEmitter.w"),
-            "ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w"),
             "Names.w", CompilerSources.read("compiler/packages/Names.w"),
             "NativeLock.w", Files.readString(root.resolve("NativeLock.w")),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
-            "Semver.w", CompilerSources.read("compiler/packages/semver/Semver.w")),
+            "Semver.w", CompilerSources.read("compiler/packages/semver/Semver.w"))),
         "wheeler.conformance.packages.lock_main");
     String a = "a".repeat(64);
     String b = "b".repeat(64);
@@ -90,6 +89,11 @@ class NativeLockExampleTest {
     assertEquals(0, emptyMachine.global("packageCount"));
     new PackageLockParser().parse(emptyMachine.hostOutput());
 
+    NativeMetadataAssertions.assertHashAliasesRejected(program, canonical,
+        bytes -> new PackageLockParser().parse(bytes),
+        "schema", "root", "packages", "name", "version", "repository", "snapshot",
+        "archive", "manifest", "dependencies");
+    assertTraps(program, canonical.replace("schema: 3", "schema: 1111111111111111"));
     assertTraps(program, canonical.replace("schema: 3", "schema: 2"));
     assertTraps(program, canonical.replace(a, "A" + a.substring(1)));
     assertTraps(

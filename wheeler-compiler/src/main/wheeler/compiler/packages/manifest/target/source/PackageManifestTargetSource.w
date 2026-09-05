@@ -5,6 +5,7 @@ module wheeler.compiler.packages.manifest_target_source;
 import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_selectors;
 import wheeler.compiler.packages.manifest_tokens;
+import wheeler.compiler.packages.manifest_words;
 import wheeler.compiler.packages.paths;
 
 classical class PackageManifestTargetSource {
@@ -17,7 +18,7 @@ classical class PackageManifestTargetSource {
     long count,
     long keyToken
   ) {
-    long keyHash = 105352305592;
+    long sourcesWord = WORD_SOURCES;
     boolean present = manifestKeyAt(
       source,
       kinds,
@@ -25,7 +26,7 @@ classical class PackageManifestTargetSource {
       lengths,
       count,
       keyToken,
-      keyHash
+      sourcesWord
     );
     return present;
   }

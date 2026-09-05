@@ -2,12 +2,11 @@
 
 module wheeler.compiler.packages.canonical_indent;
 
-classical class PackageCanonicalIndent {
-  private const long DEPENDENCIES_HASH = 2626680644436426025;
-  private const long DEVELOPMENT_DEPENDENCIES_HASH = 2597989917310390198;
+import wheeler.compiler.packages.manifest_words;
 
+classical class PackageCanonicalIndent {
   /// Advances the canonical section at its three exact headers.
-  public long canonicalManifestSection(long line, long hash, long current) {
+  public long canonicalManifestSection(long line, long word, long current) {
     if (line < 5) {
       return current;
     }
@@ -16,11 +15,11 @@ classical class PackageCanonicalIndent {
       return 1;
     }
 
-    if (hash == DEPENDENCIES_HASH) {
+    if (word == WORD_DEPENDENCIES) {
       return 2;
     }
 
-    if (hash == DEVELOPMENT_DEPENDENCIES_HASH) {
+    if (word == WORD_CAPABILITIES) {
       return 3;
     }
 
@@ -28,7 +27,7 @@ classical class PackageCanonicalIndent {
   }
 
   /// Returns the exact indent for one canonical line kind.
-  public long canonicalManifestIndent(long line, long hash, long firstKind, long lineTokens) {
+  public long canonicalManifestIndent(long line, long word, long firstKind, long lineTokens) {
     if (line < 2) {
       return 0;
     }
@@ -41,11 +40,11 @@ classical class PackageCanonicalIndent {
       return 0;
     }
 
-    if (hash == DEPENDENCIES_HASH) {
+    if (word == WORD_DEPENDENCIES) {
       return 0;
     }
 
-    if (hash == DEVELOPMENT_DEPENDENCIES_HASH) {
+    if (word == WORD_CAPABILITIES) {
       return 0;
     }
 

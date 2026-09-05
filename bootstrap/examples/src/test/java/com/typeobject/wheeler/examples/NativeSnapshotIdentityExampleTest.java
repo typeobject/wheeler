@@ -69,14 +69,13 @@ final class NativeSnapshotIdentityExampleTest {
 
   private static Program program() throws Exception {
     return new WheelerCompiler().compileModuleFiles(
-        Map.of(
+        PackageSources.withMetadataTokens(Map.of(
             "NativeSnapshotIdentity.w", Files.readString(FIXTURE),
             "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
             "Snapshot.w", PackageSources.read("packages/repository/Snapshot.w"),
             "Semver.w", CompilerSources.read("compiler/packages/semver/Semver.w"),
-            "ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
-            "Sha256.w", CoreSources.read("crypto/Sha256.w")),
+            "Sha256.w", CoreSources.read("crypto/Sha256.w"))),
         "wheeler.conformance.packages.snapshot_identity");
   }
 

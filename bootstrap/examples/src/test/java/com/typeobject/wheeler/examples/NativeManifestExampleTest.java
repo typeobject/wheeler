@@ -191,6 +191,37 @@ class NativeManifestExampleTest {
   }
 
   @Test
+  void rejectsWordHashAliasesAndLongUnknownWordsBeforePublication() throws Exception {
+    Program program = program();
+    String firstTarget = "- kind: \"deployable\"";
+    for (String tail : new String[] {"test: trvF", "tetU: true", "test: " + "x".repeat(256)}) {
+      String source = MANIFEST.replaceFirst("test: true", tail);
+      assertStageZeroRejects(source);
+      assertSourceFailure(program, source, firstTarget, 2, 0);
+    }
+    String kindAlias = MANIFEST.replace("kind: \"tool\"", "kind: \"topM\"");
+    assertStageZeroRejects(kindAlias);
+    assertSourceFailure(program, kindAlias, "- kind: \"topM\"", 2, 9);
+    String longKind = MANIFEST.replace("\"deployable\"", "\"" + "x".repeat(256) + "\"");
+    assertStageZeroRejects(longKind);
+    assertTargetFailure(program, longKind, longKind.indexOf("- kind:"), 0, 0);
+    String headerAlias = MANIFEST.replace("schema:", "schenB:");
+    assertStageZeroRejects(headerAlias);
+    assertTargetFailure(program, headerAlias, 0, 0, 0);
+    String dependencyAlias = MANIFEST.replace("kind: \"normal\"", "kind: \"normbM\"");
+    assertStageZeroRejects(dependencyAlias);
+    assertDependencyFailure(program, dependencyAlias, "- kind: \"normbM\"", 0);
+    String pathAlias = MANIFEST.replace("path: \"logs\"", "pauI: \"logs\"");
+    assertStageZeroRejects(pathAlias);
+    assertCapabilityFailure(program, pathAlias, "- name: \"logs\"", 1);
+  }
+
+  private static void assertStageZeroRejects(String source) {
+    assertThrows(com.typeobject.wheeler.packageformat.PackageFormatException.class,
+        () -> new com.typeobject.wheeler.packageformat.PackageManifestParser().parse(source));
+  }
+
+  @Test
   void sourceCapacityRejectsBeforePublishingTheTarget() throws Exception {
     Program program = program();
     StringBuilder selectors = new StringBuilder();

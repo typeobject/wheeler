@@ -73,6 +73,9 @@ final class NativeSnapshotExampleTest {
     assertThrows(VmTrap.class, overflow::run);
     assertArrayEquals(new byte[nine.length], overflow.hostOutput());
 
+    NativeMetadataAssertions.assertHashAliasesRejected(program, snapshot.canonicalText(),
+        RepositorySnapshot::parse, "schema", "releases", "package", "version", "archive", "manifest");
+
     byte[] noncanonical = snapshot.canonicalText()
         .replace("schema: 1", "schema:  1")
         .getBytes(StandardCharsets.UTF_8);
@@ -83,13 +86,12 @@ final class NativeSnapshotExampleTest {
 
   private static Program program() throws Exception {
     return new WheelerCompiler().compileModuleFiles(
-        Map.of(
+        PackageSources.withMetadataTokens(Map.of(
             "NativeSnapshot.w", Files.readString(FIXTURE),
             "Snapshot.w", PackageSources.read("packages/repository/Snapshot.w"),
             "Semver.w", CompilerSources.read("compiler/packages/semver/Semver.w"),
-            "ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w"),
             "ManifestEmitter.w", PackageSources.read("packages/manifest/ManifestEmitter.w"),
-            "Scanner.w", CompilerSources.read("lexer/Scanner.w")),
+            "Scanner.w", CompilerSources.read("lexer/Scanner.w"))),
         "wheeler.conformance.packages.snapshot");
   }
 

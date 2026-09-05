@@ -68,6 +68,15 @@ layout and first-excess evidence. It does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with
 arguments. That lowering boundary remains in WIP-0049.
 
+Manifest token policy now uses exact word codes. The old hashes admitted malformed
+spellings such as `trvF`, `topM`, and `tetU`. Tests reject those aliases, long
+unknown words, and invalid extents without losing row diagnostics. The combined
+pass compares the complete word artifact and every body from five consumer
+modules after nine imported calls resolve. Refreshed archive and retained-closure checks pass.
+Lock, workspace, and snapshot readers also use exact words. Their separate tests
+reject field-key aliases before host publication and restore the initial state on
+rewind. This does not place those readers in the retained compiler product set.
+
 `PackageManifest.w` still coordinates complete parsing. Source-list traversal,
 ordering, coverage, and row publication share one collection product. Complete
 target admission now joins the head, optional module, collection, and test tail.

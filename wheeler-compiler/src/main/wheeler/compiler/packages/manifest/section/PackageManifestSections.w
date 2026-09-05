@@ -3,6 +3,7 @@
 module wheeler.compiler.packages.manifest_sections;
 
 import wheeler.compiler.packages.manifest_keys;
+import wheeler.compiler.packages.manifest_words;
 
 classical class PackageManifestSections {
   /// Checks whether the dependencies section starts at one token.
@@ -14,15 +15,9 @@ classical class PackageManifestSections {
     long count,
     long keyToken
   ) {
-    long keyHash = 2626680644436426025;
+    long dependenciesWord = WORD_DEPENDENCIES;
     boolean present = manifestKeyAt(
-      source,
-      kinds,
-      starts,
-      lengths,
-      count,
-      keyToken,
-      keyHash
+      source, kinds, starts, lengths, count, keyToken, dependenciesWord
     );
     return present;
   }
@@ -36,15 +31,9 @@ classical class PackageManifestSections {
     long count,
     long keyToken
   ) {
-    long keyHash = 2597989917310390198;
+    long capabilitiesWord = WORD_CAPABILITIES;
     boolean present = manifestKeyAt(
-      source,
-      kinds,
-      starts,
-      lengths,
-      count,
-      keyToken,
-      keyHash
+      source, kinds, starts, lengths, count, keyToken, capabilitiesWord
     );
     return present;
   }

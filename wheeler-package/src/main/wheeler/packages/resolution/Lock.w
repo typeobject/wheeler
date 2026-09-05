@@ -3,8 +3,10 @@
 module wheeler.packages.lock;
 
 import wheeler.compiler.packages.manifest_tokens;
+import wheeler.compiler.packages.manifest_words;
 import wheeler.compiler.packages.names;
 import wheeler.compiler.packages.semver;
+import wheeler.packages.metadata_tokens;
 
 classical class Lock {
   /// Carries scalar ranges and collection counts for one validated lock.
@@ -14,24 +16,6 @@ classical class Lock {
   public variant LockResult {
     case Value(LockModel lock);
     case Error(long offset);
-  }
-
-  private boolean key(
-    borrow utf8 source,
-    borrow mut words kinds,
-    borrow mut words starts,
-    borrow mut words lengths,
-    long count,
-    long token,
-    long hash
-  ) {
-    if (token + 1 < count) {
-      if (keywordAt(source, starts, lengths, token, hash)) {
-        return colonAt(source, kinds, starts, token + 1);
-      }
-    }
-
-    return false;
   }
 
   private boolean punctuation(
@@ -101,7 +85,7 @@ classical class Lock {
   ) {
     if (cursor + 20 < count) {
       if (dashAt(source, kinds, starts, cursor)) {
-        if (key(source, kinds, starts, lengths, count, cursor + 1, 3373707)) {
+        if (metadataKeyAt(source, kinds, starts, lengths, count, cursor + 1, WORD_NAME)) {
           if (quoted(kinds, lengths, cursor + 3)) {
             boolean validName = validPackageName(
               source,
@@ -110,7 +94,7 @@ classical class Lock {
             );
             if (validName) {
               if (
-                key(source, kinds, starts, lengths, count, cursor + 4, 107725790424)
+                metadataKeyAt(source, kinds, starts, lengths, count, cursor + 4, WORD_VERSION)
               ) {
                 if (quoted(kinds, lengths, cursor + 6)) {
                   boolean validVersion = validRelease(
@@ -120,65 +104,65 @@ classical class Lock {
                   );
                   if (validVersion) {
                     if (
-                      key(
+                      metadataKeyAt(
                         source,
                         kinds,
                         starts,
                         lengths,
                         count,
                         cursor + 7,
-                        3103442239675210
+                        METADATA_WORD_REPOSITORY
                       )
                     ) {
                       if (hexDigest(source, kinds, starts, lengths, cursor + 9)) {
                         if (
-                          key(
+                          metadataKeyAt(
                             source,
                             kinds,
                             starts,
                             lengths,
                             count,
                             cursor + 10,
-                            3264460019140
+                            METADATA_WORD_SNAPSHOT
                           )
                         ) {
                           if (hexDigest(source, kinds, starts, lengths, cursor + 12)) {
                             if (
-                              key(
+                              metadataKeyAt(
                                 source,
                                 kinds,
                                 starts,
                                 lengths,
                                 count,
                                 cursor + 13,
-                                89446211778
+                                METADATA_WORD_ARCHIVE
                               )
                             ) {
                               if (
                                 hexDigest(source, kinds, starts, lengths, cursor + 15)
                               ) {
                                 if (
-                                  key(
+                                  metadataKeyAt(
                                     source,
                                     kinds,
                                     starts,
                                     lengths,
                                     count,
                                     cursor + 16,
-                                    3088212110895
+                                    METADATA_WORD_MANIFEST
                                   )
                                 ) {
                                   if (
                                     hexDigest(source, kinds, starts, lengths, cursor + 18)
                                   ) {
-                                    return key(
+                                    return metadataKeyAt(
                                       source,
                                       kinds,
                                       starts,
                                       lengths,
                                       count,
                                       cursor + 19,
-                                      2626680644436426025
+                                      WORD_DEPENDENCIES
                                     );
                                   }
                                 }
@@ -335,16 +319,16 @@ classical class Lock {
       return new LockResult.Error(0);
     }
 
-    if (key(source, kinds, starts, lengths, count, 0, 3386979745) == false) {
+    if (metadataKeyAt(source, kinds, starts, lengths, count, 0, WORD_SCHEMA) == false) {
       return new LockResult.Error(0);
     }
 
-    boolean schemaThree = tokenHash(source, starts, lengths, 2) == 51;
+    boolean schemaThree = metadataTokenEquals(source, starts, lengths, 2, METADATA_WORD_SCHEMA_THREE);
     if (schemaThree == false) {
       return new LockResult.Error(starts[2]);
     }
 
-    if (key(source, kinds, starts, lengths, count, 3, 3506402) == false) {
+    if (metadataKeyAt(source, kinds, starts, lengths, count, 3, WORD_ROOT) == false) {
       return new LockResult.Error(starts[3]);
     }
 
@@ -352,7 +336,7 @@ classical class Lock {
       return new LockResult.Error(starts[5]);
     }
 
-    if (key(source, kinds, starts, lengths, count, 6, 3170436732141) == false) {
+    if (metadataKeyAt(source, kinds, starts, lengths, count, 6, METADATA_WORD_PACKAGES) == false) {
       return new LockResult.Error(starts[6]);
     }
 

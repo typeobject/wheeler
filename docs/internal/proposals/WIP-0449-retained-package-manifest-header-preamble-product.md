@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-31 |
-| Updated | 2026-08-31 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, callable products |
 | Depends on | WIP-0049, WIP-0052, WIP-0448 |
 | Supersedes | Format preamble composition in `PackageManifest.w` |
@@ -17,11 +17,16 @@ Split format and package-map preamble validation into `PackageManifestHeaderPrea
 
 ## Preamble validation
 
-`manifestHeaderPreambleValid` checks the minimum token count, the `format` key, format token hash, accepted format version, and the `package` mapping opener. It fails after the first rejected condition. Name, release, profile, and target validation remain in the parser for later bounded products.
+`manifestHeaderPreambleValid` checks token capacity, the `schema` key, schema
+version `1`, and the `package` opener. It fails after the first rejected condition.
+WIP-0049 replaced hash comparisons with exact word codes. Other retained owners
+now validate name, release, profile, and complete target admission.
 
-Every literal token coordinate and key hash binds to a named local before an imported call. The first physical attempt passed literals directly to the seven-argument key call and failed before publication. Named operands use the established imported-call source form and preserve exact stage-0 code.
+Every token coordinate and word code binds to a named local before an imported call. The first physical attempt passed literals directly to the seven-argument key call and failed before publication. Named operands use the established imported-call source form and preserve exact stage-0 code.
 
-The retained module contains one function and 83 forward-plus-inverse instructions. Five relocations resolve to header count, two key checks, token hashing, and format-version policy.
+The original artifact contained one function and 83 instructions. Five relocations
+now resolve to header count, two key checks, exact token classification, and
+format-version policy. The following identities record the original milestone.
 
 ## Evidence
 
@@ -57,11 +62,12 @@ Thirteen imported calls combined literal operands, token projections, and value 
 
 ### Pass literal call operands
 
-Stage 0 accepts them, but the physical imported-call source profile requires named prior locals. Naming the coordinates and hashes closes the exact product.
+Stage 0 accepts them, but the physical imported-call source profile requires named prior locals. Naming coordinates and word codes closes the exact product.
 
-### Duplicate token hashing
+### Duplicate word classification
 
-The retained token owner remains the sole hash implementation. The preamble resolves it normally.
+The token owner identifies exact spellings. The preamble resolves that product
+instead of copying its policy.
 
 ## References
 

@@ -47,10 +47,10 @@ classical class PackageCanonical {
 
       token = nextToken;
       long lineTokens = token - first;
-      long hash = tokenHash(source, starts, lengths, first);
+      long word = manifestTokenWord(source, starts, lengths, first);
       long firstKind = kinds[first];
-      long nextSection = canonicalManifestSection(line, hash, section);
-      long indent = canonicalManifestIndent(line, hash, firstKind, lineTokens);
+      long nextSection = canonicalManifestSection(line, word, section);
+      long indent = canonicalManifestIndent(line, word, firstKind, lineTokens);
       section = nextSection;
 
       boolean indentValid = canonicalExactIndent(source, cursor, starts[first], indent);

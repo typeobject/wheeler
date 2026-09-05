@@ -5,6 +5,7 @@ module wheeler.compiler.packages.manifest_dependency_prefix;
 import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_kinds;
 import wheeler.compiler.packages.manifest_tokens;
+import wheeler.compiler.packages.manifest_words;
 
 classical class PackageManifestDependencyPrefix {
   /// Returns the dependency kind, or zero for an invalid row prefix.
@@ -28,7 +29,7 @@ classical class PackageManifestDependencyPrefix {
     }
 
     long typeKeyToken = cursor + 1;
-    long typeKeyHash = 3292052;
+    long kindWord = WORD_KIND;
     boolean typeKey = manifestKeyAt(
       source,
       kinds,
@@ -36,7 +37,7 @@ classical class PackageManifestDependencyPrefix {
       lengths,
       count,
       typeKeyToken,
-      typeKeyHash
+      kindWord
     );
     if (typeKey == false) {
       return 0;

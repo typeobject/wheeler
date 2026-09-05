@@ -4,6 +4,7 @@ module wheeler.compiler.packages.manifest_capability_path;
 
 import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_tokens;
+import wheeler.compiler.packages.manifest_words;
 import wheeler.compiler.packages.paths;
 
 classical class PackageManifestCapabilityPath {
@@ -17,8 +18,8 @@ classical class PackageManifestCapabilityPath {
     long cursor
   ) {
     long keyToken = cursor + 4;
-    long keyHash = 3433509;
-    boolean pathKey = manifestKeyAt(source, kinds, starts, lengths, count, keyToken, keyHash);
+    long pathWord = WORD_PATH;
+    boolean pathKey = manifestKeyAt(source, kinds, starts, lengths, count, keyToken, pathWord);
     if (pathKey == false) {
       return false;
     }

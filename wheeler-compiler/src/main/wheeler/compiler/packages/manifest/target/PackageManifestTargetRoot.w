@@ -4,6 +4,7 @@ module wheeler.compiler.packages.manifest_target_root;
 
 import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_tokens;
+import wheeler.compiler.packages.manifest_words;
 import wheeler.compiler.packages.paths;
 
 classical class PackageManifestTargetRoot {
@@ -17,8 +18,8 @@ classical class PackageManifestTargetRoot {
     long cursor
   ) {
     long keyToken = cursor + 7;
-    long keyHash = 3506402;
-    boolean rootKey = manifestKeyAt(source, kinds, starts, lengths, count, keyToken, keyHash);
+    long rootWord = WORD_ROOT;
+    boolean rootKey = manifestKeyAt(source, kinds, starts, lengths, count, keyToken, rootWord);
     if (rootKey == false) {
       return false;
     }

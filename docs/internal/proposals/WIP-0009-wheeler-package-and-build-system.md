@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler package, build, compiler, security, and release maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-05 |
 | Area | Packages, modules, builds, registry, tooling |
 | Depends on | WIP-0007, WIP-0008 |
 | Supersedes | None |
@@ -418,6 +418,14 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 ## Progress
 
 - [x] The project replaced extensionless package, workspace, and lock metadata with `wheeler.package.yaml`, `wheeler.workspace.yaml`, and `wheeler.package.lock.yaml`. Stage-0 and native parsers moved in the same change. The old grammar and format detection paths are gone.
+- [x] Canonical metadata uses exact word admission, not polynomial hash equality.
+  The manifest compiler owns its fixed word codes. `packages/metadata/MetadataTokens.w`
+  reuses those positive codes and assigns nine negative codes to lock, workspace,
+  and snapshot spellings. Three copied key validators are gone. Every field-key
+  hash alias in the independent parser fixtures rejects before host publication
+  and rewinds exactly. Direct tests cover character mutations, UTF-8 coordinates,
+  partial columns, signed extremes, and unchanged caller rows. The source fixtures
+  derive compiler dependencies from imports instead of copying stale closures.
 - [x] Canonical `.wbc` provides a portable artifact identity for package outputs.
 - [x] WIP-0007 and WIP-0008 define compiler and native recovery requirements.
 - [x] Workspace, package, lock, archive, and build-plan schemas have strict stage-0 codecs. Plans bind compiler, source, package input, output, capability request, execution limit, and explicit grant identities. Sealed execution checks the active compiler, rederives the plan, rejects stale source and missing grants, and publishes exact verified outputs atomically. Isolated native memory and work enforcement remain.

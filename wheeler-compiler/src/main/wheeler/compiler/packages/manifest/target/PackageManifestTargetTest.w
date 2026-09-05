@@ -3,6 +3,7 @@
 module wheeler.compiler.packages.manifest_target_test;
 
 import wheeler.compiler.packages.manifest_keys;
+import wheeler.compiler.packages.manifest_words;
 
 classical class PackageManifestTargetTest {
   /// Checks whether the required test field starts at one token.
@@ -14,7 +15,7 @@ classical class PackageManifestTargetTest {
     long count,
     long keyToken
   ) {
-    long keyHash = 3556498;
+    long testWord = WORD_TEST;
     boolean present = manifestKeyAt(
       source,
       kinds,
@@ -22,7 +23,7 @@ classical class PackageManifestTargetTest {
       lengths,
       count,
       keyToken,
-      keyHash
+      testWord
     );
     return present;
   }

@@ -4,6 +4,7 @@ module wheeler.compiler.packages.manifest_target_name;
 
 import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_tokens;
+import wheeler.compiler.packages.manifest_words;
 import wheeler.compiler.packages.names;
 
 classical class PackageManifestTargetName {
@@ -17,8 +18,8 @@ classical class PackageManifestTargetName {
     long cursor
   ) {
     long keyToken = cursor + 4;
-    long keyHash = 3373707;
-    boolean nameKey = manifestKeyAt(source, kinds, starts, lengths, count, keyToken, keyHash);
+    long nameWord = WORD_NAME;
+    boolean nameKey = manifestKeyAt(source, kinds, starts, lengths, count, keyToken, nameWord);
     if (nameKey == false) {
       return false;
     }

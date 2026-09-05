@@ -197,6 +197,37 @@ rather than clearing or copying full capacities. The
 
 ### Manifest composition
 
+- [x] Manifest words use exact length and two base-128 ASCII lanes, not polynomial
+  hashes. `PackageManifestWords.w` owns the 23 fixed spellings and their word
+  codes. Token policy delegates exact classification and keeps token coordinates,
+  ordering, and punctuation. The twelve-byte vocabulary bound does not limit names, paths, or quoted
+  values. Words longer than twelve bytes return zero before reading their ranges.
+- [x] `tokenHash`, `quotedHash`, and `keywordAt` are gone from manifest policy.
+  Keys, Boolean and kind decoding, schema-version policy, and canonical layout
+  consume exact word codes. Key callers use shared constants. The key owner
+  checks lower bounds, column capacities, and identifier kind before reading text.
+- [x] Regressions reject `trvF`, `topM`, and `tetU`, which the old parser accepted
+  as `true`, `tool`, and `test`. Independent stage 0 rejects all three. Tests cover
+  every fixed word, mutations at every character, both lanes, leading NUL aliases,
+  non-ASCII candidates, long unknown values, signed extremes, and complete rewind.
+  Parser and admission tests preserve failure offsets and exact source prefixes.
+- [x] Fixed-word classification and token policy have separate source owners.
+  Three word groups stay inside the existing 255-local frame profile. The split
+  keeps the word artifact inside the unchanged 32,768-byte per-module buffer.
+  No general conditional-declaration, nested-loop, or inequality lowering changed.
+- [x] The combined word pass compares the complete word artifact and the indent,
+  header-state, token, key, and kind bodies after all nine imported calls resolve.
+  Constant-importing consumers use callable comparison so unrelated dependency
+  bodies cannot enter the oracle. The pass replaces five standalone physical
+  passes. The confirming archive and retained-closure run passes with the refreshed
+  declaration counts and executable identity.
+- [x] Lock, workspace, and snapshot readers no longer call the deleted hash APIs.
+  `wheeler.packages.metadata_tokens` reuses positive manifest word codes and owns
+  nine negative extension codes. Three copied key validators are gone. Shared
+  tests reject every field-key hash alias, check complete unpublished host output,
+  and rewind. Package-source fixtures derive compiler dependencies from imports.
+  These callers remain separate from retained compiler-product evidence.
+
 - [x] `manifestDependencyEntryProduct` and `manifestCapabilityEntryProduct` own
   complete entry publication. Each checks capacity, validates every field, checks
   adjacent ordering, projects coordinates, and publishes the row before returning

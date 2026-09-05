@@ -5,6 +5,7 @@ module wheeler.compiler.packages.manifest_header_preamble;
 import wheeler.compiler.packages.manifest_header_state;
 import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_tokens;
+import wheeler.compiler.packages.manifest_words;
 
 classical class PackageManifestHeaderPreamble {
   /// Checks token capacity, format version, and the package mapping opener.
@@ -21,7 +22,7 @@ classical class PackageManifestHeaderPreamble {
     }
 
     long formatToken = 0;
-    long formatHash = 3386979745;
+    long formatWord = WORD_SCHEMA;
     boolean formatKey = manifestKeyAt(
       source,
       kinds,
@@ -29,21 +30,21 @@ classical class PackageManifestHeaderPreamble {
       lengths,
       count,
       formatToken,
-      formatHash
+      formatWord
     );
     if (formatKey == false) {
       return false;
     }
 
     long versionToken = 2;
-    long versionHash = tokenHash(source, starts, lengths, versionToken);
-    boolean formatVersion = manifestFormatVersion(versionHash);
+    long versionWord = manifestTokenWord(source, starts, lengths, versionToken);
+    boolean formatVersion = manifestFormatVersion(versionWord);
     if (formatVersion == false) {
       return false;
     }
 
     long packageToken = 3;
-    long packageHash = 102272152646;
+    long packageWord = WORD_PACKAGE;
     boolean packageKey = manifestKeyAt(
       source,
       kinds,
@@ -51,7 +52,7 @@ classical class PackageManifestHeaderPreamble {
       lengths,
       count,
       packageToken,
-      packageHash
+      packageWord
     );
     return packageKey;
   }

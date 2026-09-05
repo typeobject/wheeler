@@ -4,6 +4,7 @@ module wheeler.compiler.packages.manifest_dependency_version;
 
 import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_tokens;
+import wheeler.compiler.packages.manifest_words;
 import wheeler.compiler.packages.semver;
 
 classical class PackageManifestDependencyVersion {
@@ -17,7 +18,7 @@ classical class PackageManifestDependencyVersion {
     long cursor
   ) {
     long keyToken = cursor + 7;
-    long keyHash = 107725790424;
+    long versionWord = WORD_VERSION;
     boolean versionKey = manifestKeyAt(
       source,
       kinds,
@@ -25,7 +26,7 @@ classical class PackageManifestDependencyVersion {
       lengths,
       count,
       keyToken,
-      keyHash
+      versionWord
     );
     if (versionKey == false) {
       return false;

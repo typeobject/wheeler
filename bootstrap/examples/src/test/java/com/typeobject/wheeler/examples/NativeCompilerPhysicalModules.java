@@ -104,8 +104,8 @@ final class NativeCompilerPhysicalModules {
         physical("compiler/syntax/calls/VoidCallSourceKinds.w", "void_call_source_kinds"),
         physical("compiler/resolution/returns/WideReturnSources.w", "wide_return_sources"),
         physical(
-            "compiler/packages/PackageManifestTokens.w",
-            "packages.manifest_tokens"),
+            "compiler/packages/manifest/words/PackageManifestWords.w",
+            "packages.manifest_words"),
         physical("compiler/packages/Names.w", "packages.names"),
         physical("compiler/packages/Paths.w", "packages.paths"),
         physical(
@@ -114,9 +114,6 @@ final class NativeCompilerPhysicalModules {
         physical(
             "compiler/packages/canonical/PackageCanonicalLineKinds.w",
             "packages.canonical_line_kinds"),
-        physical(
-            "compiler/packages/canonical/PackageCanonicalIndent.w",
-            "packages.canonical_indent"),
         physical(
             "compiler/packages/canonical/PackageCanonicalProfile.w",
             "packages.canonical_profile"),
@@ -157,9 +154,6 @@ final class NativeCompilerPhysicalModules {
         physical(
             "compiler/packages/manifest/PackageManifestSelectorCompletion.w",
             "packages.manifest_selector_completion"),
-        physical(
-            "compiler/packages/manifest/PackageManifestHeaderState.w",
-            "packages.manifest_header_state"),
         physical(
             "compiler/packages/manifest/target/PackageManifestTargetCoordinates.w",
             "packages.manifest_target_coordinates"),
@@ -211,6 +205,15 @@ final class NativeCompilerPhysicalModules {
             "compiler/packages/semver/SemverReleaseComparison.w",
             "packages.semver_release_comparison"),
         physical("compiler/packages/semver/Semver.w", "packages.semver"),
+        physical(
+            "compiler/packages/canonical/PackageCanonicalIndent.w",
+            "packages.canonical_indent"),
+        physical(
+            "compiler/packages/manifest/PackageManifestHeaderState.w",
+            "packages.manifest_header_state"),
+        physical(
+            "compiler/packages/PackageManifestTokens.w",
+            "packages.manifest_tokens"),
         physical(
             "compiler/packages/manifest/PackageManifestKinds.w",
             "packages.manifest_kinds"),

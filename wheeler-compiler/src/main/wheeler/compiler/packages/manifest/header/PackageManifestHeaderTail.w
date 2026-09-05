@@ -4,6 +4,7 @@ module wheeler.compiler.packages.manifest_header_tail;
 
 import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_tokens;
+import wheeler.compiler.packages.manifest_words;
 
 classical class PackageManifestHeaderTail {
   /// Checks the quoted profile field and target sequence opener.
@@ -15,7 +16,7 @@ classical class PackageManifestHeaderTail {
     long count
   ) {
     long profileKeyToken = 11;
-    long profileKeyHash = 102769789353;
+    long profileWord = WORD_PROFILE;
     boolean profileKey = manifestKeyAt(
       source,
       kinds,
@@ -23,7 +24,7 @@ classical class PackageManifestHeaderTail {
       lengths,
       count,
       profileKeyToken,
-      profileKeyHash
+      profileWord
     );
     if (profileKey == false) {
       return false;
@@ -36,7 +37,7 @@ classical class PackageManifestHeaderTail {
     }
 
     long targetsKeyToken = 14;
-    long targetsKeyHash = 105835905282;
+    long targetsWord = WORD_TARGETS;
     boolean targetsKey = manifestKeyAt(
       source,
       kinds,
@@ -44,7 +45,7 @@ classical class PackageManifestHeaderTail {
       lengths,
       count,
       targetsKeyToken,
-      targetsKeyHash
+      targetsWord
     );
     return targetsKey;
   }

@@ -3,17 +3,9 @@
 module wheeler.compiler.packages.manifest_kinds;
 
 import wheeler.compiler.packages.manifest_tokens;
+import wheeler.compiler.packages.manifest_words;
 
 classical class PackageManifestKinds {
-  private const long TRUE_HASH = 3569038;
-  private const long FALSE_HASH = 97196323;
-  private const long DEPLOYABLE_HASH = 2733284766595777;
-  private const long LIBRARY_HASH = 98950456507;
-  private const long TOOL_HASH = 3565976;
-  private const long NORMAL_HASH = 3255221479;
-  private const long DEVELOPMENT_HASH = 84736749587766587;
-  private const long BUILD_HASH = 94094958;
-
   /// Decodes one canonical Boolean token or returns minus one.
   public long manifestBooleanToken(
     borrow utf8 source,
@@ -21,12 +13,12 @@ classical class PackageManifestKinds {
     borrow mut words lengths,
     long token
   ) {
-    long hash = tokenHash(source, starts, lengths, token);
-    if (hash == TRUE_HASH) {
+    long word = manifestTokenWord(source, starts, lengths, token);
+    if (word == WORD_TRUE) {
       return 1;
     }
 
-    if (hash == FALSE_HASH) {
+    if (word == WORD_FALSE) {
       return 0;
     }
 
@@ -46,16 +38,16 @@ classical class PackageManifestKinds {
       return 0;
     }
 
-    long hash = quotedHash(source, starts, lengths, token);
-    if (hash == DEPLOYABLE_HASH) {
+    long word = manifestQuotedWord(source, starts, lengths, token);
+    if (word == WORD_DEPLOYABLE) {
       return 1;
     }
 
-    if (hash == LIBRARY_HASH) {
+    if (word == WORD_LIBRARY) {
       return 2;
     }
 
-    if (hash == TOOL_HASH) {
+    if (word == WORD_TOOL) {
       return 3;
     }
 
@@ -75,16 +67,16 @@ classical class PackageManifestKinds {
       return 0;
     }
 
-    long hash = quotedHash(source, starts, lengths, token);
-    if (hash == NORMAL_HASH) {
+    long word = manifestQuotedWord(source, starts, lengths, token);
+    if (word == WORD_NORMAL) {
       return 1;
     }
 
-    if (hash == DEVELOPMENT_HASH) {
+    if (word == WORD_DEVELOPMENT) {
       return 2;
     }
 
-    if (hash == BUILD_HASH) {
+    if (word == WORD_BUILD) {
       return 3;
     }
 

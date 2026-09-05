@@ -51,15 +51,14 @@ final class NativeWorkspaceIdentityExampleTest {
 
   private static Program program() throws Exception {
     return new WheelerCompiler().compileModuleFiles(
-        Map.of(
+        PackageSources.withMetadataTokens(Map.of(
             "NativeWorkspaceIdentity.w", Files.readString(FIXTURE),
             "Workspace.w", PackageSources.read("packages/workspace/Workspace.w"),
             "Names.w", CompilerSources.read("compiler/packages/Names.w"),
             "Paths.w", CompilerSources.read("compiler/packages/Paths.w"),
-            "ManifestTokens.w", CompilerSources.read("compiler/packages/PackageManifestTokens.w"),
             "Scanner.w", CompilerSources.read("lexer/Scanner.w"),
             "ContentIdentity.w", CoreSources.read("crypto/ContentIdentity.w"),
-            "Sha256.w", CoreSources.read("crypto/Sha256.w")),
+            "Sha256.w", CoreSources.read("crypto/Sha256.w"))),
         "wheeler.conformance.packages.workspace_identity");
   }
 

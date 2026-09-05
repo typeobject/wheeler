@@ -5,6 +5,7 @@ module wheeler.compiler.packages.manifest_target_prefix;
 import wheeler.compiler.packages.manifest_keys;
 import wheeler.compiler.packages.manifest_kinds;
 import wheeler.compiler.packages.manifest_tokens;
+import wheeler.compiler.packages.manifest_words;
 
 classical class PackageManifestTargetPrefix {
   /// Returns the target kind, or zero when the bounded row prefix is malformed.
@@ -28,7 +29,7 @@ classical class PackageManifestTargetPrefix {
     }
 
     long typeKeyToken = cursor + 1;
-    long typeKeyHash = 3292052;
+    long kindWord = WORD_KIND;
     boolean typeKey = manifestKeyAt(
       source,
       kinds,
@@ -36,7 +37,7 @@ classical class PackageManifestTargetPrefix {
       lengths,
       count,
       typeKeyToken,
-      typeKeyHash
+      kindWord
     );
     if (typeKey == false) {
       return 0;

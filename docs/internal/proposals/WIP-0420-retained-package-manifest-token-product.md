@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-28 |
-| Updated | 2026-08-28 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, structured source products |
 | Depends on | WIP-0049, WIP-0052, WIP-0417, WIP-0418, WIP-0419 |
 | Supersedes | Stage-0-only `ManifestTokens.w` product evidence |
@@ -13,7 +13,10 @@
 
 ## Summary
 
-Retain `wheeler.compiler.packages.manifest_tokens` as the 109th physical compiler product. Lower its bounded hashes, token equality, byte ordering, and punctuation predicates through the closed structured-source profile. Match the stage-0 artifact byte for byte before publication.
+This milestone retained `wheeler.compiler.packages.manifest_tokens` as the 109th
+physical compiler product. It lowered the original bounded hashes, token equality,
+byte ordering, and punctuation predicates, with complete stage-0 artifact parity.
+The current word policy below replaces those hashes.
 
 ## Problem
 
@@ -28,17 +31,27 @@ The package parser required `ManifestTokens.w`, but the module remained outside 
 
 The first rejected statement stopped the whole source product. Keeping a parallel bootstrap implementation would have hidden the gap instead of advancing self-hosting.
 
-## Source shape
+## Current token policy
 
-Token hashes now name scalar, width, multiplication, and addition products independently. Every update consumes one resolved local. Indexed lengths and starts are read once before use.
+WIP-0049 replaced manifest hashing with exact word codes. `tokenHash`,
+`quotedHash`, and `keywordAt` are gone. Length and two base-128 ASCII lanes
+identify each fixed spelling without collisions or arithmetic overflow. Unknown
+words return zero. This bound applies to the fixed vocabulary, not package names,
+paths, quoted values, or source identifiers.
+
+`PackageManifestWords.w` now owns fixed spellings. Token policy delegates through
+two imported calls and retains equality, ordering, and punctuation. The split
+keeps each artifact inside the existing 32,768-byte module buffer.
+
+## Retained comparison source
 
 `sameTokenText` compares equal-length ranges with a Boolean accumulator. Both local-right less-than guards clear the accumulator. The loop returns it after exhaustion.
 
 `compareTokenText` initializes its result with `leftLength - rightLength` and scans the common prefix from the end toward the beginning. A later write therefore corresponds to an earlier source scalar and wins. Equal prefixes retain the length delta. Callers consume only its sign. `minimumLength` keeps the loop bound exact without an assignment-bearing root conditional.
 
-Quoted-token hashing follows the same focused projection and arithmetic form. Quoted and punctuation predicates materialize indexed values before their conditionals. Their children are exact returns. Literal-left comparisons use named signed locals, preserving the direct relation contract.
-
-`keywordAt` names the `tokenHash` result before comparing it with the requested hash. The call product owns the signed result local. The following direct relation owns its Boolean result. No instruction is asked to publish two unrelated result types.
+Quoted and punctuation predicates materialize indexed values before their
+conditionals. Their children are exact returns. Literal-left comparisons use
+named signed locals, preserving the direct relation contract.
 
 ## Compiler change
 
@@ -48,7 +61,9 @@ The emitted assignment opcode, local width, and type rows are unchanged. This is
 
 ## Evidence
 
-`NativeCompilerPackageManifestTokensPhysicalProductExampleTest` compiles the archive source through the native physical pipeline, verifies the produced container, and compares all artifact bytes with stage 0.
+[WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+owns the combined exact-word physical pass. It replaces the standalone token
+fixture. The following receipts describe the original hash-based product.
 
 Focused structured-source fixtures cover:
 
@@ -61,7 +76,7 @@ Focused structured-source fixtures cover:
 
 The package-manifest token module contributes nine retained functions. The selected set now contains 92 comparable products and 17 callable products. The linked closure retains 89 non-empty module products, 289 functions, and 11,210 forward-plus-inverse instructions.
 
-## Bootstrap identities
+## Historical bootstrap identities
 
 The compiler graph remains at 387 modules, two externals, and 1,931 imports. Its 181,926-byte canonical manifest has SHA-256 `91a35e768288e0f090df2434f7edf23c82c607eb00a96d8eebce1463e12edc0c`. Native validation halts after 75,749,036 transitions. Wheeler SHA-256 consumes the same bytes in 34,817,790 transitions.
 
@@ -71,7 +86,7 @@ The package manifest identity remains `fa7fed6c0057fff3255316b8e027b5dc998d99f3a
 
 Reject malformed UTF-8 calls, unresolved source or index locals, non-UTF-8 text, non-signed indices, coordinates above 255, malformed signed literals, failed physical mapping, over-bound loop locals, malformed conditional children, invalid call products, or a non-verifying artifact before publication. Negative assignment does not weaken signed overflow checks.
 
-## Acceptance
+## Original acceptance
 
 - [x] Hash loops contain only focused projections, arithmetic declarations, assignments, and updates.
 - [x] Token equality and ordering preserve their bounded semantics without loop-body returns.

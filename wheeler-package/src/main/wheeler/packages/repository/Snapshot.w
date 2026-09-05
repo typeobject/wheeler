@@ -3,7 +3,9 @@
 module wheeler.packages.snapshot;
 
 import wheeler.compiler.packages.manifest_tokens;
+import wheeler.compiler.packages.manifest_words;
 import wheeler.compiler.packages.semver;
+import wheeler.packages.metadata_tokens;
 
 classical class RepositorySnapshots {
   /// Names the number of words in one snapshot release row.
@@ -45,24 +47,6 @@ classical class RepositorySnapshots {
     if (token < count) {
       if (kinds[token] == 3) {
         return utf8Scalar(source, starts[token]) == scalar;
-      }
-    }
-
-    return false;
-  }
-
-  private boolean key(
-    borrow utf8 source,
-    borrow mut words kinds,
-    borrow mut words starts,
-    borrow mut words lengths,
-    long count,
-    long token,
-    long hash
-  ) {
-    if (token + 1 < count) {
-      if (keywordAt(source, starts, lengths, token, hash)) {
-        return punctuation(source, kinds, starts, count, token + 1, 58);
       }
     }
 
@@ -188,7 +172,7 @@ classical class RepositorySnapshots {
       return invalid;
     }
 
-    if (key(source, kinds, starts, lengths, count, cursor + 1, 102272152646)) {} else {
+    if (metadataKeyAt(source, kinds, starts, lengths, count, cursor + 1, WORD_PACKAGE)) {} else {
       return invalid;
     }
 
@@ -219,7 +203,7 @@ classical class RepositorySnapshots {
     }
 
     long versionLine = packageEnd + 1;
-    if (key(source, kinds, starts, lengths, count, cursor + 4, 107725790424)) {} else {
+    if (metadataKeyAt(source, kinds, starts, lengths, count, cursor + 4, WORD_VERSION)) {} else {
       return invalid;
     }
 
@@ -250,7 +234,7 @@ classical class RepositorySnapshots {
     }
 
     long archiveLine = versionEnd + 1;
-    if (key(source, kinds, starts, lengths, count, cursor + 7, 89446211778)) {} else {
+    if (metadataKeyAt(source, kinds, starts, lengths, count, cursor + 7, METADATA_WORD_ARCHIVE)) {} else {
       return invalid;
     }
 
@@ -281,7 +265,7 @@ classical class RepositorySnapshots {
     }
 
     long manifestLine = archiveEnd + 1;
-    if (key(source, kinds, starts, lengths, count, cursor + 10, 3088212110895)) {} else {
+    if (metadataKeyAt(source, kinds, starts, lengths, count, cursor + 10, METADATA_WORD_MANIFEST)) {} else {
       return invalid;
     }
 
@@ -334,15 +318,15 @@ classical class RepositorySnapshots {
       return new SnapshotResult.Error(0);
     }
 
-    if (key(source, kinds, starts, lengths, count, 0, 3386979745)) {} else {
+    if (metadataKeyAt(source, kinds, starts, lengths, count, 0, WORD_SCHEMA)) {} else {
       return new SnapshotResult.Error(0);
     }
 
-    if (tokenHash(source, starts, lengths, 2) == 49) {} else {
+    if (metadataTokenEquals(source, starts, lengths, 2, WORD_SCHEMA_VERSION)) {} else {
       return new SnapshotResult.Error(starts[2]);
     }
 
-    if (key(source, kinds, starts, lengths, count, 3, 3229264107852)) {} else {
+    if (metadataKeyAt(source, kinds, starts, lengths, count, 3, METADATA_WORD_RELEASES)) {} else {
       return new SnapshotResult.Error(starts[3]);
     }
 
