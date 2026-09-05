@@ -40,6 +40,7 @@ final class NativeCompilerPackageManifestCoordinatesExampleTest {
   @Test
   void executesTargetCoordinatesAndCompletedSourceSpans() throws Exception {
     assertCoordinates("wheeler.compiler.packages.manifest_target_coordinates", """
+        assert(manifestTargetKindToken(4) == 7);
         assert(manifestTargetNameToken(4) == 10);
         assert(manifestTargetRootToken(4) == 13);
         assert(manifestTargetModuleKeyToken(4) == 14);
@@ -49,6 +50,15 @@ final class NativeCompilerPackageManifestCoordinatesExampleTest {
         assert(manifestTargetSourceTailToken(4, 0) == 19);
         assert(manifestTargetSourceTailToken(4, 1) == 21);
         assert(manifestTargetSourceTailToken(4, 1024) == 2067);
+        assert(manifestTargetTailToken(4, 0) == 14);
+        assert(manifestTargetSourceCount(4, 14) == 0);
+        long count = 1;
+        while (count < 1025) limit 1024 {
+          long tail = manifestTargetTailToken(4, count);
+          assert(tail == manifestTargetSourceTailToken(4, count));
+          assert(manifestTargetSourceCount(4, tail) == count);
+          count += 1;
+        }
         assert(manifestTargetSelectorToken(19) == 20);
         assert(manifestTargetNextSourceRowToken(19) == 21);
         assert(manifestTargetTestToken(21) == 23);

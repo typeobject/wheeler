@@ -17,16 +17,19 @@ import java.util.Map;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/** One archive pass compares collection traversal, tail policy, and target coordinates. */
-final class NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest {
+/** One archive pass compares complete target admission and its head, source, and tail owners. */
+final class NativeCompilerPackageManifestTargetAdmissionPhysicalProductExampleTest {
   @Tag("closure-evidence")
   @Test
-  void retainsSourceCollectionsAndTargetTailsWithExactCallTargets() throws Exception {
+  void retainsTargetAdmissionWithExactCallTargets() throws Exception {
     var coordinates = NativeCompilerPhysicalSelection.comparable(
         "wheeler.compiler.packages.manifest_target_coordinates");
     byte[] prefix = new BytecodeWriter().write(new WheelerCompiler().compileLibraryModuleFiles(
         CompilerSources.moduleClosure(coordinates.name()), coordinates.name()));
     var callable = List.of(
+        NativeCompilerPhysicalSelection.callable("wheeler.compiler.packages.manifest_target_admission"),
+        NativeCompilerPhysicalSelection.callable("wheeler.compiler.packages.manifest_target_head"),
+        NativeCompilerPhysicalSelection.callable("wheeler.compiler.packages.manifest_target_module_head"),
         NativeCompilerPhysicalSelection.callable(
             "wheeler.compiler.packages.manifest_target_source_collection"),
         NativeCompilerPhysicalSelection.callable("wheeler.compiler.packages.manifest_target_tail"));
@@ -52,11 +55,11 @@ final class NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductEx
     byte[] transport = machine.hostOutput();
     assertEquals(1, machine.global("published"));
     assertEquals(1, machine.global("physicalModuleProductCount"));
-    assertEquals(2, machine.global("physicalCallableProductCount"));
+    assertEquals(5, machine.global("physicalCallableProductCount"));
     assertEquals(prefix.length, machine.global("physicalModuleProductLength"));
     assertArrayEquals(prefix, Arrays.copyOf(transport, prefix.length));
-    assertEquals(17, machine.global("physicalCallableRelocationCount"));
-    assertEquals(17, machine.global("physicalResolvedCallableTargetCount"));
+    assertEquals(35, machine.global("physicalCallableRelocationCount"));
+    assertEquals(35, machine.global("physicalResolvedCallableTargetCount"));
     NativeCompilerPhysicalProductAssertions.assertCallables(manifest, references, transport);
   }
 }

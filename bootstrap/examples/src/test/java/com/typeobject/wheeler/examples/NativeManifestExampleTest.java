@@ -74,6 +74,7 @@ class NativeManifestExampleTest {
     assertEquals(2, machine.global("capabilityCount"));
     assertEquals(8, machine.global("capabilityCellsWritten"));
     assertEquals(MANIFEST, new String(machine.hostOutput(), StandardCharsets.UTF_8));
+    assertTargetTables(machine, MANIFEST);
     while (machine.historySize() > 0) {
       machine.rewindOne();
     }
@@ -156,20 +157,37 @@ class NativeManifestExampleTest {
     assertSourceFailure(program, MANIFEST.replaceFirst("test: true", "test: maybe"),
         firstTarget, 2, 0);
 
-    String twoCollections = MANIFEST.replace("    root: \"src/Tool.w\"",
-        "    root: \"a/Tool.w\"\n    module: \"demo.tool\"\n"
-            + "    sources:\n      - \"a/Tool.w\"");
+    String twoCollections = manifestWithTwoSourceCollections();
     VirtualMachine accepted = vm(program, twoCollections);
     accepted.run();
     assertEquals(3, accepted.global("targetSourceCount"));
     assertEquals(6, accepted.global("sourceCellsWritten"));
     assertEquals(twoCollections, new String(accepted.hostOutput(), StandardCharsets.UTF_8));
+    assertTargetTables(accepted, twoCollections);
     assertEquals(twoCollections, new com.typeobject.wheeler.packageformat.PackageManifestParser()
         .parse(twoCollections).canonicalText());
     assertSourceFailure(program, twoCollections.replace("- \"a/Tool.w\"", "- \"b/Tool.w\""),
         "- kind: \"tool\"", 3, 9);
     assertSourceFailure(program, twoCollections.replace("      - \"a/Tool.w\"", ""),
         "- kind: \"tool\"", 2, 9);
+  }
+
+  @Test
+  void targetAdmissionPreservesCapacityFieldAndOrderingPrecedence() throws Exception {
+    Program program = program();
+    String excess = manifestWithTargets(9)
+        .replace("kind: \"tool\"\n    name: \"tool08\"",
+            "kind: \"broken\"\n    name: \"tool00\"")
+        .replace("root: \"src/Tool08.w\"", "root: \"../bad\"");
+    assertSourceFailure(program, excess, "- kind: \"broken\"", 0, 40);
+
+    String disorder = manifestWithTwoSourceCollections()
+        .replace("name: \"tool\"", "name: \"app\"");
+    assertTargetFailure(program, disorder, disorder.lastIndexOf("\"app\""), 3, 9);
+    assertSourceFailure(program, disorder.replace("    test: true\ndependencies:",
+        "    test: maybe\ndependencies:"), "- kind: \"tool\"", 3, 9);
+    assertSourceFailure(program, disorder.replace("module: \"demo.tool\"",
+        "module: \"bad..tool\""), "- kind: \"tool\"", 2, 9);
   }
 
   @Test
@@ -192,7 +210,11 @@ class NativeManifestExampleTest {
 
   private static void assertSourceFailure(
       Program program, String source, String target, int selectors, int targetCells) {
-    int offset = source.indexOf(target);
+    assertTargetFailure(program, source, source.indexOf(target), selectors, targetCells);
+  }
+
+  private static void assertTargetFailure(
+      Program program, String source, int offset, int selectors, int targetCells) {
     assertTrue(0 <= offset);
     VirtualMachine machine = vm(program, source);
     assertThrows(VmTrap.class, machine::run);
@@ -334,6 +356,72 @@ class NativeManifestExampleTest {
     assertEquals(writtenCells, machine.global(collection + "CellsWritten"));
     assertEquals(0, machine.global(collection + "Count"));
     assertArrayEquals(new byte[source.getBytes(StandardCharsets.UTF_8).length], machine.hostOutput());
+  }
+
+  private static void assertTargetTables(VirtualMachine machine, String source) {
+    // Rewind only cleanup so the fixture's published tables remain inspectable.
+    int region = machine.snapshot().regions().stream()
+        .filter(row -> row.maxBytes() == 15360 && row.maxObjects() == 7)
+        .findFirst().orElseThrow().id();
+    while (machine.snapshot().buffers().stream()
+        .anyMatch(row -> row.regionId() == region
+            && (row.length() == 80 || row.length() == 64) && row.dropped())) {
+      machine.rewindOne();
+    }
+    var model = new com.typeobject.wheeler.packageformat.PackageManifestParser().parse(source);
+    long[] targets = new long[80];
+    long[] sources = new long[64];
+    int cursor = 0;
+    int row = 0;
+    int sourceCount = 0;
+    for (var target : model.targets()) {
+      cursor = source.indexOf("  - kind:", cursor);
+      assertTrue(0 <= cursor);
+      int base = row++ * 10;
+      targets[base] = switch (target.kind().keyword()) {
+        case "deployable" -> 1;
+        case "library" -> 2;
+        case "tool" -> 3;
+        default -> throw new AssertionError("unknown target kind");
+      };
+      targets[base + 1] = fieldStart(source, cursor, "name");
+      targets[base + 2] = target.name().length();
+      targets[base + 3] = fieldStart(source, cursor, "root");
+      targets[base + 4] = target.root().length();
+      targets[base + 7] = sourceCount;
+      targets[base + 9] = target.test() ? 1 : 0;
+      if (target.module() != null) {
+        targets[base + 5] = fieldStart(source, cursor, "module");
+        targets[base + 6] = target.module().length();
+        targets[base + 8] = target.sources().size();
+        for (String selector : target.sources()) {
+          int start = source.indexOf("- \"" + selector + "\"", cursor);
+          assertTrue(0 <= start);
+          sources[sourceCount * 2] = SourceRanges.utf8Offset(source, start + 3);
+          sources[sourceCount * 2 + 1] = selector.length();
+          sourceCount++;
+        }
+      }
+      cursor++;
+    }
+    for (long[] expected : new long[][] {targets, sources}) {
+      var actual = machine.snapshot().buffers().stream()
+          .filter(buffer -> buffer.regionId() == region && buffer.length() == expected.length)
+          .findFirst().orElseThrow().elements().stream().mapToLong(Long::longValue).toArray();
+      assertArrayEquals(expected, actual);
+    }
+  }
+
+  private static int fieldStart(String source, int cursor, String key) {
+    int start = source.indexOf(key + ": \"", cursor);
+    assertTrue(0 <= start);
+    return SourceRanges.utf8Offset(source, start + key.length() + 3);
+  }
+
+  private static String manifestWithTwoSourceCollections() {
+    return MANIFEST.replace("    root: \"src/Tool.w\"",
+        "    root: \"a/Tool.w\"\n    module: \"demo.tool\"\n"
+            + "    sources:\n      - \"a/Tool.w\"");
   }
 
   private static Program program() throws Exception {

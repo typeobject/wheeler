@@ -25,15 +25,20 @@ The owner projects ten coordinates:
 - one row's selector and successor.
 - test value and target-row successor.
 
-Fixed fields take the target cursor. Repeated source rows take the current row cursor. The test projections take the test-key cursor because a modular target has a variable number of selectors. Each function performs one checked signed addition in the ordinary source profile.
+Fixed fields take the target cursor. Repeated source rows take the current row
+cursor. Test projections take the test-key cursor because modular targets have
+variable source counts. Each of these ten projections performs one signed addition.
 
-`PackageManifest.w` names the module, source-key, selector, and test coordinates before calls or table reads. Selector order, root coverage, row publication, optional-module behavior, and target construction all consume the same projected values. No coordinate helper reads parser state or widens a buffer authority.
+Target admission, source collection, and publication name their coordinates
+before calls or table reads. Selector order, root coverage, and target construction
+consume those same projections. No coordinate helper reads parser state or widens
+a buffer authority.
 
 ## Evidence
 
 `NativeCompilerPackageManifestCoordinatesExampleTest` executes the token and
-value projections. `NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest`
-compares the coordinate artifact byte for byte in the combined target pass.
+value projections. [WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+owns the combined pass that compares the coordinate artifact byte for byte.
 Manifest tests retain modular, nonmodular, malformed, ordered, and root-covering
 rows. The identities below describe the ten-projection milestone.
 

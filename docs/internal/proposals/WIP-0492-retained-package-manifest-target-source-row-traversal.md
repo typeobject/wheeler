@@ -18,7 +18,8 @@ This stage moved row recognition and cursor advancement behind
 `manifestTargetSourceFollowingRow`. WIP-0049 now owns the complete traversal and
 has removed that adapter. The collection's private entry distinguishes a
 non-row tail from a malformed candidate. Only an admitted selector advances the
-source cursor and count. The parser derives the target tail from that count.
+source cursor and count. Complete target admission derives the tail from that
+count and validates it before returning to the parser.
 
 ## Original contract
 
@@ -30,7 +31,10 @@ A malformed source row follows the same closed path as before: source traversal 
 
 ## Physical evidence
 
-`NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest` compiles all six collection functions from the canonical archive and compares their complete function and instruction prefixes with stage 0. Eight imported-call relocations resolve exactly. The two new edges bind source-row syntax and source-row stride. The prior six bind selector projection, row capacity, strict order, root coverage, selector start, and selector length.
+The original six-function pass resolved eight imported calls. Source-row syntax
+and stride joined selector projection, capacity, ordering, coverage, selector
+start, and selector length. [WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+now compares complete collection bodies in its combined target pass.
 
 `NativeManifestExampleTest` compares parsed target and source products with stage 0. Valid first and later source rows advance to the exact required test tail. Malformed source keys, empty lists, duplicate or reversed selectors, and absent root coverage remain fail-closed.
 

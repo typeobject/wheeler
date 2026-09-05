@@ -32,10 +32,9 @@ prefixes remain on failure without publishing the target row.
 ## Physical evidence
 
 The original three-function pass resolved one imported ordering call.
-`NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest`
-now compares complete collection and tail bodies after relocation, plus the
-complete target-coordinate artifact. The identities below record the original
-ownership milestone.
+[WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+now compares complete collection bodies in its combined target pass. The
+identities below record the original ownership milestone.
 
 `NativeManifestExampleTest` accepts an absent collection on a nonmodular target, preserves first-row coverage, accepts later-row coverage, and rejects a present empty collection. Reversed selectors and complete non-coverage still trap before target publication.
 

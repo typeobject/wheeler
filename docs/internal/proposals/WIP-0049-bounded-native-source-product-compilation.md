@@ -226,13 +226,29 @@ rather than clearing or copying full capacities. The
   Source-table tests compare every cell, including partial capacity and preceding
   collections. Parser tests retain exact target-start diagnostics and distinguish
   admitted source prefixes from unpublished target rows.
-- [x] One physical pass compares the collection and tail bodies after all 17
-  imported calls resolve, plus the complete target-coordinate artifact. It
-  replaces the two standalone coordinate and tail passes.
-- [ ] Complete target and remaining collection composition through retained
-  products.
-  The aggregate parser still owns target parsing, target/dependency/capability
-  iteration, target capacity, and complete manifest publication.
+- [x] `manifestTargetAdmissionProduct` validates the token-column windows, target
+  head, optional module, complete source collection, and required test tail. Its
+  eight arguments include the source table and offset. It returns the validated
+  test-key token, or `-1` without committing a count. Earlier source rows remain
+  on rejection. A present empty list cannot impersonate an absent list.
+- [x] `TargetParse` and `parseTarget` are gone. The parser derives kind, name,
+  root, module, source count, test value, and next cursor from admitted token
+  coordinates. `manifestTargetSourceCount` requires an admitted tail, not an
+  arbitrary integer. Target capacity still precedes admission. Complete field
+  checks still precede target-name ordering and target-row publication.
+- [x] Admission tests cover every target kind, empty and absent lists, partial
+  capacity, malformed windows, signed extremes, exact prefixes, and full rewind.
+  Parser tests compare every target and source cell with the independent stage-0
+  model and preserve capacity, field, and ordering diagnostic precedence.
+- [x] `NativeCompilerPackageManifestTargetAdmissionPhysicalProductExampleTest`
+  compares the complete coordinate artifact and the admission, head, module
+  head, collection, and tail bodies after all 35 imported calls resolve. The
+  coordinate owner now uses direct structured products. This one pass replaces
+  the separate head, module-head, and collection passes.
+- [ ] Complete target publication and remaining collection composition through
+  retained products. The aggregate parser still owns target capacity, adjacent
+  target ordering, publication orchestration, target/dependency/capability
+  iteration, allocation, and complete manifest publication.
 
 Entry signatures and retained calls now both admit eight values.
 [WIP-0496](WIP-0496-eight-argument-retained-source-calls.md) covers root and loop

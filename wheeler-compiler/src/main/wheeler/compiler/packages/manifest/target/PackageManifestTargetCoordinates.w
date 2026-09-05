@@ -3,6 +3,11 @@
 module wheeler.compiler.packages.manifest_target_coordinates;
 
 classical class PackageManifestTargetCoordinates {
+  /// Returns the quoted target-kind token coordinate.
+  public long manifestTargetKindToken(long cursor) {
+    return cursor + 3;
+  }
+
   /// Returns the quoted target-name token coordinate.
   public long manifestTargetNameToken(long cursor) {
     return cursor + 6;
@@ -39,6 +44,26 @@ classical class PackageManifestTargetCoordinates {
     long span = sourceCount * 2;
     long next = first + span;
     return next;
+  }
+
+  /// Returns the required tail after an absent or admitted nonempty source list.
+  public long manifestTargetTailToken(long cursor, long sourceCount) {
+    if (sourceCount == 0) {
+      return cursor + 10;
+    }
+    long tail = manifestTargetSourceTailToken(cursor, sourceCount);
+    return tail;
+  }
+
+  /// Recovers the source count from a validated target's test-key coordinate.
+  public long manifestTargetSourceCount(long cursor, long tail) {
+    long span = tail - cursor;
+    if (span == 10) {
+      return 0;
+    }
+    long sourceSpan = span - 15;
+    long count = sourceSpan / 2;
+    return count;
   }
 
   /// Returns the quoted selector coordinate for one source row.

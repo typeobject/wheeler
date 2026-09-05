@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-04 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, source selectors |
 | Depends on | WIP-0468, WIP-0486 |
 | Supersedes | Inline source-row capacity and sequence admission |
@@ -15,7 +15,10 @@
 
 Move per-entry admission into the retained source-collection owner. `PackageManifest.w` no longer decides source-table capacity or adjacent-selector order itself.
 
-## Contract
+WIP-0049 now owns complete collection traversal. Entry admission is private and
+also owns syntax, predecessor derivation, and publication.
+
+## Original contract
 
 `manifestTargetSourceEntryProduct` accepts one syntactically valid source-row token, the previous selector token, and the caller-owned source table coordinate. It checks table capacity before comparing selector order. Failure returns minus one. Success returns the current selector token, which becomes the next row's predecessor.
 
@@ -25,7 +28,9 @@ The entry product takes seven arguments. Imported results bind to named locals b
 
 ## Physical evidence
 
-`NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest` compiles all four collection functions from the canonical archive and compares their complete function and instruction prefixes with stage 0. Three imported-call relocations resolve: selector-token projection, source-table capacity, and strict adjacent ordering.
+The original four-function pass resolved three imported calls: selector
+projection, table capacity, and strict ordering. [WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+now compares complete collection bodies in its combined target pass.
 
 `NativeManifestExampleTest` executes the integrated path. Canonical first and later rows pass, while a reversed pair fails before coverage and row mutation. Existing exact-capacity evidence for `manifestSourceRowCapacity` remains authoritative for the terminal source-table coordinate.
 

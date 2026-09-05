@@ -17,16 +17,19 @@ Retain fixed target name and root token projections in `PackageManifestTargetCoo
 
 ## Coordinates
 
-`manifestTargetNameToken` projects `cursor + 6`. `manifestTargetRootToken` projects `cursor + 9`. Keeping both values in one call-free owner removes repeated literals without coupling coordinate policy to nominal result construction.
+`manifestTargetNameToken` projects `cursor + 6`. `manifestTargetRootToken` projects
+`cursor + 9`. This stage kept both values in one call-free owner, without coupling
+coordinate policy to nominal result construction. WIP-0049 now uses the same
+owner for admitted target tails and source-count recovery.
 
 Attempts to retain optional module syntax and target test policy were rejected. Optional module owners failed structured archive publication at `compileStructuredArchiveModuleWithTargetView`. A call-free nested target-test owner failed minimal-program publication. The coordinate owner is the next exact physically supported boundary.
 
 ## Evidence
 
-`NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest`
-compares the coordinate library byte for byte with stage 0 in the combined target
-pass. `NativeCompilerPackageManifestCoordinatesExampleTest` executes the
-projections against caller-owned tables. The standalone coordinate pass is gone.
+[WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+owns the current combined target pass. It compares the coordinate library byte
+for byte with stage 0. `NativeCompilerPackageManifestCoordinatesExampleTest`
+executes the projections. The standalone coordinate pass is gone.
 
 The selected set contains 109 comparable products and 39 callable products. The linked closure retains 128 non-empty module products, 438 functions, and 15,909 forward-plus-inverse instructions. It contains 378,728 code bytes, 12,525 local-type rows, 734 source strings, and 587 unique strings. The 480,752-byte executable closure has SHA-256 `30987305ab15b9f58787c05611ae40d02be0f9ca580fd462d69ff3e122d85697`.
 

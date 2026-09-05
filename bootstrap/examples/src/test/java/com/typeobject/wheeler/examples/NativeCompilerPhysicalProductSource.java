@@ -84,6 +84,8 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.packages.manifest_selector_prefix",
       "wheeler.compiler.packages.manifest_selector_state",
       "wheeler.compiler.packages.manifest_selectors",
+      "wheeler.compiler.packages.manifest_target_admission",
+      "wheeler.compiler.packages.manifest_target_coordinates",
       "wheeler.compiler.packages.manifest_target_head",
       "wheeler.compiler.packages.manifest_target_module",
       "wheeler.compiler.packages.manifest_target_module_head",

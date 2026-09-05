@@ -269,6 +269,9 @@ final class NativeCompilerPhysicalModules {
             "compiler/packages/manifest/target/PackageManifestTargetHead.w",
             "packages.manifest_target_head"),
         physical(
+            "compiler/packages/manifest/target/PackageManifestTargetAdmission.w",
+            "packages.manifest_target_admission"),
+        physical(
             "compiler/packages/manifest/target/module/PackageManifestTargetModule.w",
             "packages.manifest_target_module"),
         physical(

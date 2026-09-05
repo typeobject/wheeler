@@ -23,12 +23,14 @@ Target name, root, and optional module policy establish quoted-token validity be
 
 ## Physical route
 
-The existing call-free target-coordinate product gains two functions and stays in the comparable prefix. Its direct structured-source route, product owner, and artifact count do not change.
+The coordinate product gained two functions while staying in the comparable
+prefix. WIP-0049 now routes the complete owner through direct structured products,
+including its conditional target-tail projections.
 
 ## Evidence
 
-`NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest`
-now compares the complete coordinate artifact in the combined target pass.
+[WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+owns the combined pass that compares the complete coordinate artifact.
 `NativeCompilerPackageManifestCoordinatesExampleTest` executes its token and
 value projections against caller-owned tables. `NativeManifestExampleTest`
 executes modular and nonmodular publication. The receipts below record the

@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-03 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, source selectors |
 | Depends on | WIP-0467, WIP-0484 |
 | Supersedes | Inline root-coverage accumulation |
@@ -20,11 +20,16 @@ Retain source-list root-coverage accumulation beside source-sequence admission. 
 
 `manifestTargetSourceRootCovered` accepts the accumulated verdict and the current selector's verdict. It returns true when the accumulator is true and otherwise returns the current verdict. The positive accumulator test is an explicit Boolean-literal comparison, the conditional form admitted by the retained structured-source profile.
 
-`PackageManifest.w` still computes range coverage through `manifestTargetSourceCoversRoot`, then delegates accumulation before advancing the previous-selector coordinate or publishing the source row. End-of-target validation requires the accumulated verdict whenever a source list is present.
+This stage composed range coverage and accumulation in `PackageManifest.w`.
+WIP-0049 now keeps both operations inside complete collection traversal. The
+aggregate parser carries no coverage state. Every present list must cover its
+root before target admission proceeds to the test tail.
 
 ## Physical evidence
 
-The successor `NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest` compiles both sequence functions from the canonical source archive and compares their complete function and instruction prefixes with stage 0. The sequence artifact retains its one imported ordering relocation. Coverage accumulation is owner-local.
+The original two-function pass retained one imported ordering call. Coverage
+accumulation remained owner-local. [WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+now compares complete collection bodies in its combined target pass.
 
 `NativeManifestExampleTest` exercises both state transitions. The canonical fixture covers the root in its first row and preserves coverage across a non-covering second row. A second canonical fixture begins with a non-covering selector and covers the root in its later row. A list that never covers the root still traps.
 

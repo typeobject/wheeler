@@ -39,7 +39,10 @@ The parser commits the returned count only after complete list admission.
 
 ## Physical evidence
 
-`NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest` compiles all five collection functions from the canonical archive and compares their complete function and instruction prefixes with stage 0. Six imported-call relocations resolve exactly: selector-token projection, row capacity, strict ordering, root-range coverage, selector start, and selector length. Both word mutations are owner-local instructions.
+The original five-function pass resolved six imported calls: selector projection,
+row capacity, ordering, root coverage, selector start, and selector length. Both
+word mutations remained owner-local. [WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+now compares complete collection bodies in its combined target pass.
 
 `NativeCompilerPackageManifestSourceCollectionExampleTest` compares every source
 table cell. `NativeManifestExampleTest` checks round trips, exact failure offsets,

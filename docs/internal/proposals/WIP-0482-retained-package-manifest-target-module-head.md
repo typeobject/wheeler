@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-02 |
-| Updated | 2026-09-02 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, target rows |
 | Depends on | WIP-0463, WIP-0465, WIP-0466, WIP-0480 |
 | Supersedes | Inline composition of a present module value and sources key |
@@ -13,7 +13,9 @@
 
 ## Summary
 
-Retain one physical owner for the module value and required `sources` key of a modular package target. Optional-field presence remains in the aggregate parser. Malformed present fields now share one modular-head verdict.
+Retain one physical owner for the module value and required `sources` key of a
+modular package target. Malformed present fields share one modular-head verdict.
+WIP-0049 now checks optional-field presence inside complete target admission.
 
 ## Contract
 
@@ -25,7 +27,10 @@ The target directory had reached its ten-file layout ceiling. `PackageManifestTa
 
 ## Physical evidence
 
-`NativeCompilerPackageManifestTargetModuleHeadPhysicalProductExampleTest` compiles the retained owner from the canonical archive and compares its function and instruction totals with stage 0. Two imported-call relocations resolve exactly: module-name validation and sources-key presence.
+The module head closes two imported calls: module-name validation and sources-key
+presence. [WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+compares its complete body in the combined target pass. The standalone
+module-head fixture is gone.
 
 `NativeManifestExampleTest` executes modular and nonmodular targets. It rejects a misspelled module key, invalid module grammar, a misspelled sources key, invalid selectors, unsorted selectors, and selectors that do not cover the target root.
 

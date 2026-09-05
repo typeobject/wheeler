@@ -126,13 +126,14 @@ root coverage. Its eight-argument product admits a nonempty collection of at mos
 collection may retain admitted row prefixes, but the parser commits no count.
 The first excess selector is not published.
 
-Explicitly empty source lists reject. Nonmodular targets may omit sources.
-Target coordinates derive the test-tail position from the admitted source count.
-The tail owner validates the test field. The aggregate parser still owns target
-capacity, target parsing, allocation, collection orchestration, and complete
-manifest publication. Full target composition remains
-[WIP-0049](../docs/internal/proposals/WIP-0049-bounded-native-source-product-compilation.md)
-work.
+`PackageManifestTargetAdmission.w` joins the head, optional module, source list,
+and test tail. It returns the validated test-key coordinate or `-1`. Explicitly
+empty lists reject. Nonmodular targets may omit sources. The parser derives row
+fields from admitted coordinates, without `TargetParse` or another result carrier.
+It still owns target capacity, adjacent ordering, publication orchestration,
+allocation, collection iteration, and complete manifest publication. Those
+remaining composition tasks belong to
+[WIP-0049](../docs/internal/proposals/WIP-0049-bounded-native-source-product-compilation.md).
 
 ## Bounded recovery compiler
 
@@ -195,7 +196,7 @@ bodies against independent stage-0 compilation:
 
 ```sh
 ./bootstrap/gradlew -p bootstrap :examples:closureEvidenceTest \
-  --tests '*NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest' \
+  --tests '*NativeCompilerPackageManifestTargetAdmissionPhysicalProductExampleTest' \
   --no-daemon
 ```
 

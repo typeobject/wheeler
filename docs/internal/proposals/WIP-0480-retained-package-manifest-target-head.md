@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-02 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, target rows |
 | Depends on | WIP-0462, WIP-0469, WIP-0478, WIP-0479 |
 | Supersedes | Inline composition of required target head fields |
@@ -18,15 +18,21 @@ Retain one physical owner for the required `kind`, `name`, and `root` fields at 
 
 ## Contract
 
-`manifestTargetHeadKind` returns the positive target kind only when all three required fields validate at their canonical token coordinates. It returns zero for a truncated prefix, an unknown target kind, a malformed or unordered name, or an invalid logical root path.
+`manifestTargetHeadKind` returns the positive target kind only when all three required fields validate at their canonical token coordinates. It returns zero for a truncated prefix, an unknown target kind, a malformed name, or an invalid logical root path.
 
-`PackageManifest.w` delegates that verdict before inspecting optional module, source, or test fields. It retains the target-name policy import only for ordering complete target rows. Prefix and root field composition belong exclusively to `PackageManifestTargetHead.w`.
+WIP-0049 now delegates that verdict through complete target admission before
+inspecting module, source, or test fields. `PackageManifest.w` retains the name
+policy import for ordering complete targets. Prefix and root field composition
+remain in `PackageManifestTargetHead.w`.
 
 WIP-0495 extends the same owner with publication of the kind, name range, and root range after complete-row admission.
 
 ## Physical evidence
 
-`NativeCompilerPackageManifestTargetHeadPhysicalProductExampleTest` selects the retained owner from the canonical compiler graph, compiles it from the 513-entry package archive, and compares its function and instruction totals with stage 0. The product closes three imported-call relocations: target prefix, target name, and target root.
+The original head pass closed three imported calls: prefix, name, and root
+validation. [WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+now compares complete head bodies in its combined target pass. The standalone
+head fixture is gone.
 
 `NativeManifestExampleTest` exercises modular and nonmodular rows and rejects unknown kinds, unordered names, escaping roots, malformed optional fields, and over-capacity collections through the delegated parser path.
 

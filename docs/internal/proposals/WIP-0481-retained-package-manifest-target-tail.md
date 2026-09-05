@@ -20,15 +20,17 @@ Retain one physical owner for the required `test` field at the tail of every pac
 
 `manifestTargetTestValue` requires the canonical `test` key at the caller's tail coordinate, projects its value coordinate, decodes only `true` or `false`, and applies target-kind policy. It returns zero or one for an admitted row and minus one for a missing key, malformed Boolean, or enabled library test.
 
-`PackageManifest.w` delegates the complete verdict before constructing `TargetParse`. It retains target coordinates only to advance beyond an admitted tail. Key presence, Boolean decoding, and kind policy no longer form nested parser branches.
+WIP-0049 now calls the tail validator from complete target admission. It removed
+`TargetParse` and returns the validated test-key coordinate instead. Key presence,
+Boolean decoding, and kind policy remain outside the aggregate parser.
 
 WIP-0495 extends this owner with separate modular and nonmodular tail-publication products. The split keeps optional module projection out of direct conditional lowering.
 
 ## Physical evidence
 
 The original tail pass resolved key presence, value coordinates, Boolean
-decoding, and test policy. `NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest`
-now compares full collection and tail bodies after relocation in one archive pass.
+decoding, and test policy. [WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+now compares the complete tail bodies in its combined target pass.
 
 `NativeManifestExampleTest` executes true and false test fields through modular and nonmodular rows. It rejects a misspelled key, a non-Boolean scalar, and an enabled library test through the same delegated path.
 

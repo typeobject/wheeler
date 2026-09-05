@@ -22,13 +22,19 @@ parser carries neither coverage state nor a direct source-policy import.
 
 `manifestTargetSourceCoverage` projects whether the admitted selector covers the target root, feeds that verdict to `manifestTargetSourceRootCovered`, and returns the accumulated result. Both calls bind before return. A previous positive verdict remains positive, a current positive verdict promotes a negative accumulator, and two negative verdicts remain negative.
 
-Entry admission still runs first. A rejected capacity or ordering product returns before coverage work. Source-row publication follows successful coverage composition, and collection completion checks the final accumulator after traversal.
+Entry admission still runs first. A rejected capacity or ordering product returns
+before coverage work. WIP-0491 moved publication into the admitted entry. Coverage
+composition follows that publication, and collection completion checks the final
+accumulator after traversal.
 
 Removing the aggregate parser's direct source-policy import leaves the collection owner as the only route from parser state to selector order and coverage policy.
 
 ## Physical evidence
 
-`NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest` compiles all five collection functions from the canonical archive and compares their complete function and instruction prefixes with stage 0. Four imported-call relocations resolve: selector-token projection, table capacity, strict order, and root-range coverage. Coverage accumulation is owner-local.
+The original five-function pass resolved four imported calls: selector projection,
+capacity, strict order, and root coverage. Accumulation remained owner-local.
+[WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+now compares complete collection bodies in its combined target pass.
 
 `NativeManifestExampleTest` executes both accumulator transitions. Its primary modular target covers the root in the first selector and preserves that state through the second. The late-coverage fixture begins negative and becomes positive on its second selector. Complete non-coverage still traps at collection completion.
 

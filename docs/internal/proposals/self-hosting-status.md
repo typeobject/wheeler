@@ -69,11 +69,13 @@ compiler's seven-argument profile. Generated inverses still reject calls with
 arguments. That lowering boundary remains in WIP-0049.
 
 `PackageManifest.w` still coordinates complete parsing. Source-list traversal,
-ordering, coverage, and count commits now share one collection product. It keeps
-admitted selector prefixes on failure without committing the collection count or
-publishing a target row. The caller still validates the required test tail.
-Complete target parsing and the remaining collection loops stay open, including
-failure offsets, validation order, and unchanged rejected rows.
+ordering, coverage, and row publication share one collection product. Complete
+target admission now joins the head, optional module, collection, and test tail.
+It returns the validated tail coordinate instead of an aggregate parser carrier.
+The parser derives row fields from that coordinate and the token tables. Rejected
+targets retain admitted selector prefixes but commit no count or target row.
+Target capacity, adjacent ordering, publication orchestration, and the remaining
+collection loops stay open. Tests preserve exact offsets and every row cell.
 
 Archive emission uses lexical module and class names from declaration products.
 The four name columns publish together after the complete pass. Callable and

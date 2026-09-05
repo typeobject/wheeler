@@ -29,8 +29,8 @@ The caller returns a target only when the resulting test value is nonnegative. N
 ## Physical evidence
 
 The original tail pass resolved four imported calls.
-`NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest`
-now compares complete collection and tail bodies after relocation in one pass.
+[WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+now compares the collection and tail bodies in its combined target pass.
 The receipts below describe the earlier completion-argument stage.
 
 `NativeManifestExampleTest` executes modular and nonmodular success paths. Its malformed portfolio rejects an explicit empty source list and a source list without root coverage through the completion gate. Existing malformed and disallowed test-tail cases remain rejected.

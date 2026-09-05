@@ -23,15 +23,20 @@ Target publication must follow complete parsing, source admission, coverage, cap
 
 The tail owner separates modular and nonmodular publication. `manifestModularTargetTailRowProduct` projects the module range and publishes the source window and test bit. `manifestNonmodularTargetTailRowProduct` publishes zero module coordinates and the same required tail. Each function advances the target count only after all five tail columns are written.
 
-The split keeps each retained callable within the established eight-parameter profile and removes conditional coordinate projection from direct source lowering. `PackageManifest.w` retains grammar, failure ordering, and caller-owned table allocation. It no longer knows the target column layout.
+The split keeps each retained callable within the established eight-parameter
+profile and avoids conditional module projection during publication. WIP-0049
+now owns complete target admission. `PackageManifest.w` retains capacity,
+adjacent ordering, publication orchestration, and caller-owned table allocation.
+It no longer knows the target column layout.
 
 ## Evidence
 
-`NativeCompilerPackageManifestTargetHeadPhysicalProductExampleTest` compiles the
-head owner and resolves seven imported calls. The tail's six imported calls now
-share the collection pass in `NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest`,
-which compares complete relocated bodies. `NativeManifestExampleTest` covers
-modular and nonmodular rows, source windows, test bits, ordering, and malformed input.
+The head owner resolves seven imported calls, and the tail resolves six.
+[WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+compares their complete relocated bodies in its combined target pass.
+`NativeManifestExampleTest` compares every target and source cell, including
+unused storage. It preserves modular and nonmodular rows, test bits, ordering,
+and malformed-input behavior.
 
 The compiler graph contains 440 modules, two externals, and 2,041 imports. Its 201,241-byte canonical manifest has SHA-256 `bed7f66b032cb5d043401cfaf5b6ce865f7cd96ba30ee76fa38d9c7d2fe3796f`. Native validation halts after 85,833,470 transitions under the 86,000,000-transition evidence ceiling. Wheeler SHA-256 halts after 38,516,186 transitions.
 

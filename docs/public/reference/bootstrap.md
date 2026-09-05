@@ -60,8 +60,10 @@ The source-list product owns traversal, ordering, coverage, and count commits fo
 up to 1,024 selectors per target. Failed collections retain admitted selector
 prefixes, but publish neither a collection count nor a target row. Absent lists
 remain valid for nonmodular targets. Present empty lists reject. Complete target
-parsing, the remaining collection loops, and other compiler modules still need
-physical product integration.
+admission returns a validated tail coordinate after head, module, collection,
+and test checks. The parser derives row fields without a target-result carrier.
+Target capacity, adjacent ordering, publication orchestration, the remaining
+collection loops, and other compiler modules still need physical integration.
 
 Archive emission takes module and class names from lexical declaration products.
 It checks class-name extents inside the owning source before publishing callable

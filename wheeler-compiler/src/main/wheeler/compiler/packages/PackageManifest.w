@@ -12,12 +12,10 @@ import wheeler.compiler.packages.manifest_kinds;
 import wheeler.compiler.packages.manifest_ranges;
 import wheeler.compiler.packages.manifest_rows;
 import wheeler.compiler.packages.manifest_sections;
+import wheeler.compiler.packages.manifest_target_admission;
 import wheeler.compiler.packages.manifest_target_coordinates;
 import wheeler.compiler.packages.manifest_target_head;
-import wheeler.compiler.packages.manifest_target_module;
-import wheeler.compiler.packages.manifest_target_module_head;
 import wheeler.compiler.packages.manifest_target_name;
-import wheeler.compiler.packages.manifest_target_source_collection;
 import wheeler.compiler.packages.manifest_target_tail;
 import wheeler.compiler.packages.manifest_tokens;
 import wheeler.compiler.packages.semver;
@@ -73,102 +71,10 @@ classical class Manifest {
     case Error(long offset);
   }
 
-  private record TargetParse(
-    boolean valid,
-    long next,
-    long kind,
-    long nameToken,
-    long rootToken,
-    long moduleToken,
-    long sourceOffset,
-    long sourceCount,
-    long test
-  ) {}
-
   private QuotedRange range(borrow mut words starts, borrow mut words lengths, long token) {
     long start = manifestQuotedStart(starts, token);
     long length = manifestQuotedLength(lengths, token);
     return new QuotedRange(start, length);
-  }
-
-  private TargetParse parseTarget(
-    borrow utf8 source,
-    borrow mut words kinds,
-    borrow mut words starts,
-    borrow mut words lengths,
-    long count,
-    long cursor,
-    borrow mut words sourceRows,
-    long sourceOffset
-  ) {
-    TargetParse invalid = new TargetParse(false, cursor, 0, 0, 0, 0, sourceOffset, 0, 0);
-    long kind = manifestTargetHeadKind(source, kinds, starts, lengths, count, cursor);
-    long nameToken = manifestTargetNameToken(cursor);
-    long rootToken = manifestTargetRootToken(cursor);
-    if (0 < kind) {
-      long moduleToken = -1;
-      long sourceCount = 0;
-      long moduleKeyToken = manifestTargetModuleKeyToken(cursor);
-      long next = moduleKeyToken;
-      if (manifestTargetModulePresent(source, kinds, starts, lengths, count, moduleKeyToken)) {
-        moduleToken = manifestTargetModuleToken(cursor);
-        long sourcesKeyToken = manifestTargetSourcesKeyToken(cursor);
-        boolean validModuleHead = manifestTargetModuleHeadValid(
-          source,
-          kinds,
-          starts,
-          lengths,
-          count,
-          moduleToken,
-          sourcesKeyToken
-        );
-        if (validModuleHead == false) {
-          return invalid;
-        }
-
-        long nextSourceRow = manifestTargetSourceCollectionProduct(
-          source,
-          kinds,
-          starts,
-          lengths,
-          count,
-          cursor,
-          sourceRows,
-          sourceOffset
-        );
-        if (nextSourceRow < 0) {
-          return invalid;
-        }
-
-        sourceCount = nextSourceRow - sourceOffset;
-        next = manifestTargetSourceTailToken(cursor, sourceCount);
-      }
-
-      long test = manifestTargetTestValue(
-        source,
-        kinds,
-        starts,
-        lengths,
-        count,
-        kind,
-        next
-      );
-      if (-1 < test) {
-        return new TargetParse(
-          true,
-          manifestTargetNextToken(next),
-          kind,
-          nameToken,
-          rootToken,
-          moduleToken,
-          sourceOffset,
-          sourceCount,
-          test
-        );
-      }
-    }
-
-    return invalid;
   }
 
   /// Parses every canonical collection row that fits the caller-owned tables.
@@ -199,7 +105,7 @@ classical class Manifest {
             return new ManifestResult.Error(starts[cursor]);
           }
 
-          TargetParse target = parseTarget(
+          long tail = manifestTargetAdmissionProduct(
             source,
             kinds,
             starts,
@@ -209,55 +115,63 @@ classical class Manifest {
             sourceRows,
             sourceCount
           );
-          if (target.valid == false) {
+          if (tail < 0) {
             return new ManifestResult.Error(starts[cursor]);
           }
 
+          long nameToken = manifestTargetNameToken(cursor);
           if (-1 < previousTargetToken) {
             boolean targetsOrdered = manifestTargetNamesOrdered(
               source,
               starts,
               lengths,
               previousTargetToken,
-              target.nameToken
+              nameToken
             );
             if (targetsOrdered == false) {
-              return new ManifestResult.Error(starts[target.nameToken]);
+              return new ManifestResult.Error(starts[nameToken]);
             }
           }
 
+          long kindToken = manifestTargetKindToken(cursor);
+          long kind = manifestTargetKind(source, kinds, starts, lengths, kindToken);
+          long rootToken = manifestTargetRootToken(cursor);
+          long targetSourceCount = manifestTargetSourceCount(cursor, tail);
+          long testToken = manifestTargetTestToken(tail);
+          long test = manifestBooleanToken(source, starts, lengths, testToken);
           long targetRow = manifestTargetHeadRowProduct(
             starts,
             lengths,
             targetRows,
             targetCount,
-            target.kind,
-            target.nameToken,
-            target.rootToken
+            kind,
+            nameToken,
+            rootToken
           );
-          if (-1 < target.moduleToken) {
+          if (targetSourceCount != 0) {
+            long moduleToken = manifestTargetModuleToken(cursor);
             targetCount = manifestModularTargetTailRowProduct(
               starts,
               lengths,
               targetRows,
               targetRow,
-              target.moduleToken,
-              target.sourceOffset,
-              target.sourceCount,
-              target.test
+              moduleToken,
+              sourceCount,
+              targetSourceCount,
+              test
             );
           } else {
             targetCount = manifestNonmodularTargetTailRowProduct(
               targetRows,
               targetRow,
-              target.sourceOffset,
-              target.sourceCount,
-              target.test
+              sourceCount,
+              targetSourceCount,
+              test
             );
           }
-          sourceCount += target.sourceCount;
-          previousTargetToken = target.nameToken;
-          cursor = target.next;
+          sourceCount += targetSourceCount;
+          previousTargetToken = nameToken;
+          cursor = manifestTargetNextToken(tail);
         } else {
           parsingTargets = false;
         }

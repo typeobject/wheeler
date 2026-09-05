@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-09-02 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting, package manifests, source selectors |
 | Depends on | WIP-0467, WIP-0483 |
 | Supersedes | Inline first-row and adjacent-row ordering dispatch |
@@ -16,7 +16,10 @@
 
 Retain one physical owner for source-selector sequence admission. The first valid selector needs no predecessor. Each later selector must follow its predecessor in strict lexical order.
 
-## Contract
+WIP-0049 now derives predecessor coordinates inside complete collection
+traversal. The aggregate parser carries no source-ordering state.
+
+## Original contract
 
 `manifestTargetSourceFollows` returns true for the first selector, represented by a negative previous-token coordinate. For every later selector it delegates strict quoted-token order to the retained source policy. Equality and reversal fail.
 
@@ -24,7 +27,9 @@ The aggregate parser still owns the previous-token state because that state adva
 
 ## Physical evidence
 
-The successor `NativeCompilerPackageManifestTargetSourceCollectionPhysicalProductExampleTest` compiles the retained policy from the canonical archive and compares its function and instruction totals with stage 0. Its one imported-call relocation resolves to strict source-selector ordering.
+The original sequence pass resolved one imported ordering call.
+[WIP-0049](WIP-0049-bounded-native-source-product-compilation.md#manifest-composition)
+owns the combined target pass that now compares complete collection bodies.
 
 `NativeManifestExampleTest` accepts a canonical two-selector sequence and rejects the reversed pair. The first-row path executes without reading a predecessor.
 
