@@ -52,7 +52,10 @@ ordering policy, dependency and capability validation, target field policy,
 source-selector admission and coverage, and row publication. Dependency admission
 also composes complete field validation and strict adjacent-name ordering. It
 preserves the distinction between malformed-row and unordered-name diagnostics.
-Its physical test compares complete frames and relocated instructions with stage 0.
+The whole-closure test now compares complete frames and relocated instructions
+with stage 0 for every selected callable product, not just dependency admission.
+It also compares the complete comparable artifact prefix byte for byte. Counts
+remain capacity checks, not substitutes for body parity.
 
 `PackageManifest.w` still coordinates complete parsing. The next acceptance
 boundary is complete row and collection composition through retained products,

@@ -104,6 +104,13 @@ Callable bytecode products do not set a bootstrap bit. Promotion still requires 
 - [x] `CompiledFunctionProducts.w` validates canonical directories, function descriptors, type windows, contiguous code, and instruction framing.
 - [x] Unknown opcodes and noncontiguous function code trap before publication.
 - [x] Native function, instruction, and maximum-local counts match independent Java program objects.
+- [x] Every selected physical callable product matches stage 0 in complete frame
+  metadata and forward/inverse instructions. The comparison binds source-local
+  IDs and imported relocation identities to the reference function IDs. It does
+  not discard call operands or accept matching counts as body evidence.
+- [x] Fast negative controls reject changed instructions and local types with
+  unchanged counts, changed inverse bodies, misbound calls, missing products,
+  duplicate owners, malformed extents, and invalid relocation windows or order.
 - [x] `FunctionProductIdentities.w` binds signature, ordered direct dependencies, aggregate product, ownership product, exact local types, forward code, inverse code, flags, parameters, and locals under `wheeler-callable-body-product-1`. An independent Java digest matches.
 - [x] `LocalCallRelocations.w` resolves every source-local call and uncall operand to a validated function and copies its stable signature identity. Unknown local targets publish no relocations or body identity.
 - [x] `ImportedCallRelocations.w` distinguishes cross-module calls in a linked product, requires a public target, and copies its stable signature identity. Private targets publish nothing.
@@ -120,6 +127,22 @@ Callable bytecode products do not set a bootstrap bit. Promotion still requires 
 - [x] WIP-0048 emits complete canonical multi-module `.wbc` fixtures byte for byte, including mixed-owner calls, aggregates, globals, proofs, and reversible result slots.
 - [ ] WIP-0049 compiles every physical source-local body and excludes all compile-time scaffolding.
 - [ ] The complete physical compiler closure compiles from semantic products.
+
+## Differential evidence
+
+`NativeCompilerPhysicalClosureExampleTest` compares the complete comparable
+artifact prefix byte for byte, then checks every selected imported-call product
+through `NativeCompilerPhysicalProductAssertions`. The linker still validates
+all relocations, emits the closure, and checks its pinned identity and execution.
+These are complementary checks, not interchangeable success criteria.
+
+A failed callable comparison preserves `products.wpf` and the canonical module
+manifest in the test's reported temporary directory. Use them to diagnose the
+mismatch without rebuilding the physical products. Normal evidence runs always
+compile fresh source. Saved diagnostics cannot replace that gate.
+
+The selected set remains a compiler subset. Whole-compiler compilation, stage
+parity, and recovery cutover remain open in WIP-0007 and WIP-0008.
 
 ## Rejected alternatives
 

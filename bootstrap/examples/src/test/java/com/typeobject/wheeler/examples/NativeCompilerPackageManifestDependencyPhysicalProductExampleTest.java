@@ -8,6 +8,7 @@ import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Map;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -30,11 +31,12 @@ final class NativeCompilerPackageManifestDependencyPhysicalProductExampleTest {
         expectedInstructions += function.inverse().size();
       }
     }
+    var manifest = CompilerSources.bootstrapModuleManifest();
     var machine = VirtualMachine.withBinaryInput(
         NativeCompilerPhysicalPrograms.callable(module),
         framed(
             CompilerSources.packageArchive(),
-            CompilerSources.bootstrapModuleManifest().canonicalBytes()),
+            manifest.canonicalBytes()),
         1_048_576);
 
     CompilerMachineRunner.runWithoutRewindHistory(machine);
@@ -44,14 +46,15 @@ final class NativeCompilerPackageManifestDependencyPhysicalProductExampleTest {
     assertEquals(9, machine.global("physicalCallableRelocationCount"));
     assertEquals(9, machine.global("physicalResolvedCallableTargetCount"));
     byte[] transport = machine.hostOutput();
-    NativeCompilerPhysicalProductAssertions.assertSingleCallable(MODULE, expected, transport);
+    var references = Map.of(MODULE, expected);
+    NativeCompilerPhysicalProductAssertions.assertCallables(manifest, references, transport);
 
     byte[] misbound = transport.clone();
     int lastTarget = misbound.length - 9;
     assertTrue(0 < Byte.toUnsignedInt(misbound[lastTarget]));
     misbound[lastTarget] -= 1;
     assertThrows(AssertionError.class,
-        () -> NativeCompilerPhysicalProductAssertions.assertSingleCallable(MODULE, expected, misbound));
+        () -> NativeCompilerPhysicalProductAssertions.assertCallables(manifest, references, misbound));
   }
 
   private static byte[] framed(byte[] archive, byte[] manifest) {

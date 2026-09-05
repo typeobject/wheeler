@@ -49,9 +49,11 @@ all fields before checking name order and preserves exact failure offsets.
 Complete parser coordination and the remaining compiler modules still need
 physical product integration.
 
-The evidence tests derive their graph and archive from checked-in source, compare
-selected products with stage 0, verify the linked container, and pin its identity.
-Those subset checks do not establish a complete compiler fixed point.
+The evidence tests derive their graph and archive from checked-in source.
+Comparable products match stage 0 byte for byte. Every selected imported-call
+product matches complete frame metadata and forward/inverse instructions after
+identity relocation. The tests also verify the linked container and pin its
+identity. These subset checks do not establish a complete compiler fixed point.
 
 ## Platform ABI and native image plans
 

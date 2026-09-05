@@ -15,8 +15,11 @@ import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import com.typeobject.wheeler.packageformat.BootstrapModuleManifest;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,9 +28,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.CleanupMode;
+import org.junit.jupiter.api.io.TempDir;
 
 /** Native evidence for exact physical compiler products and linked closure bytes. */
 final class NativeCompilerPhysicalClosureExampleTest {
+  @TempDir(cleanup = CleanupMode.ON_SUCCESS)
+  Path evidence;
+
   @Tag("closure-evidence")
   @Test
   void compilesPhysicalModuleProductsByteForByte() throws Exception {
@@ -47,9 +55,13 @@ final class NativeCompilerPhysicalClosureExampleTest {
     var retainedModules = new ArrayList<>(
         NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES);
     retainedModules.addAll(NativeCompilerArchiveClosureProgram.PHYSICAL_CALLABLE_MODULES);
+    Map<String, Program> expectedCallables = new LinkedHashMap<>();
     for (NativeCompilerArchiveClosureProgram.PhysicalModule module : retainedModules) {
       Program compiled = new WheelerCompiler().compileLibraryModuleFiles(
           CompilerSources.moduleClosure(module.name()), module.name());
+      if (NativeCompilerArchiveClosureProgram.PHYSICAL_CALLABLE_MODULES.contains(module)) {
+        expectedCallables.put(module.name(), compiled);
+      }
       long moduleFunctions = 0;
       for (var function : compiled.functions()) {
         if (function.name().startsWith(module.name() + "::")) {
@@ -63,6 +75,8 @@ final class NativeCompilerPhysicalClosureExampleTest {
         expectedRetainedProducts += 1;
       }
     }
+    assertEquals(NativeCompilerArchiveClosureProgram.PHYSICAL_CALLABLE_MODULES.size(),
+        expectedCallables.size());
     var rootModule = NativeCompilerArchiveClosureProgram.PHYSICAL_MODULES.getLast();
     Program rootArtifact = new WheelerCompiler().compileLibraryModuleFiles(
         CompilerSources.moduleClosure(rootModule.name()), rootModule.name());
@@ -113,6 +127,8 @@ final class NativeCompilerPhysicalClosureExampleTest {
     assertEquals(
         expectedRetainedInstructions,
         machine.global("physicalRetainedInstructionCount"));
+
+    assertCallableProducts(manifest, expectedCallables, physicalProducts);
 
     Program functionClosure = NativeCompilerPhysicalFunctionClosureProgram.program(
         retainedModules.size(),
@@ -200,6 +216,18 @@ final class NativeCompilerPhysicalClosureExampleTest {
     malformedFooter[malformedFooter.length - 8] = 0;
     assertMalformedTransport(functionClosure, malformedFooter);
     assertMalformedTransport(functionClosure, smallTransport(true));
+  }
+
+  private void assertCallableProducts(
+      BootstrapModuleManifest manifest, Map<String, Program> expected, byte[] products)
+      throws IOException {
+    try {
+      NativeCompilerPhysicalProductAssertions.assertCallables(manifest, expected, products);
+    } catch (AssertionError | RuntimeException failure) {
+      Files.write(evidence.resolve("products.wpf"), products);
+      Files.write(evidence.resolve("modules.yaml"), manifest.canonicalBytes());
+      throw new AssertionError("Callable product mismatch. Inspect " + evidence, failure);
+    }
   }
 
   private static byte[] smallTransport(boolean malformedRelocation) throws Exception {
