@@ -205,6 +205,15 @@ rather than clearing or copying full capacities. The
   after identity relocation, not just function and instruction counts. Native
   manifest cases pin all three kinds, field-before-order diagnostic precedence,
   exact offsets, and unchanged rejected rows and output.
+- [x] Capability admission validates fields before comparing names, then paths
+  for equal names. First rows need no prior coordinates. Malformed rows retain
+  row-start diagnostics, while duplicate or unordered pairs report the current
+  name. The parser's `CapabilityParse` carrier, wrapper, and ordering import are
+  gone. Capacity still precedes admission, and publication follows it.
+- [x] Capability evidence compares complete frames and relocated instructions
+  with stage 0 and resolves all ten imported calls. Native cases cover first-row
+  admission, equal names with ordered paths, duplicate and unordered pairs,
+  field-before-order diagnostics, and untouched rejected rows and output.
 - [ ] Complete target, dependency, and capability collection composition through
   retained products. The aggregate parser still owns iteration, capacity checks,
   table allocation, and complete manifest publication.

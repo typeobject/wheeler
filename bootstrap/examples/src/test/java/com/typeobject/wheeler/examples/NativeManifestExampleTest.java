@@ -3,6 +3,7 @@ package com.typeobject.wheeler.examples;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
@@ -71,6 +72,7 @@ class NativeManifestExampleTest {
     assertEquals(2, machine.global("lastDependencyKind"));
     assertEquals(-1, machine.global("parseErrorOffset"));
     assertEquals(2, machine.global("capabilityCount"));
+    assertEquals(8, machine.global("capabilityCellsWritten"));
     assertEquals(MANIFEST, new String(machine.hostOutput(), StandardCharsets.UTF_8));
     while (machine.historySize() > 0) {
       machine.rewindOne();
@@ -176,13 +178,94 @@ class NativeManifestExampleTest {
         unordered.replace("~2.1.0", "~02.1.0"), secondRow, 1);
   }
 
+  @Test
+  void capabilityAdmissionUsesNameThenPathOrderAfterFieldValidation() throws Exception {
+    Program program = program();
+    String sameName = MANIFEST.replace("name: \"logs\"", "name: \"fixture\"");
+    String orderedPaths = sameName.replace("test-data", "a-data");
+    VirtualMachine accepted = vm(program, orderedPaths);
+    accepted.run();
+    assertEquals(2, accepted.global("capabilityCount"));
+    assertEquals(8, accepted.global("capabilityCellsWritten"));
+    assertEquals(orderedPaths, new String(accepted.hostOutput(), StandardCharsets.UTF_8));
+    assertEquals(orderedPaths, new com.typeobject.wheeler.packageformat.PackageManifestParser()
+        .parse(orderedPaths).canonicalText());
+
+    String firstRow = "- name: \"fixture\"";
+    String secondRow = "- name: \"logs\"";
+    assertCapabilityFailure(program,
+        MANIFEST.replace(firstRow, "- namx: \"fixture\""), "- namx: \"fixture\"", 0);
+    assertCapabilityFailure(program,
+        MANIFEST.replace(firstRow, "- name: fixture"), "- name: fixture", 0);
+    assertCapabilityFailure(program,
+        MANIFEST.replace(firstRow, "- name: \"\""), "- name: \"\"", 0);
+    assertCapabilityFailure(program,
+        MANIFEST.replace("path: \"test-data\"", "path: \"../test-data\""), firstRow, 0);
+    assertCapabilityFailure(program,
+        MANIFEST.replace(secondRow, "- name: \"\""), "- name: \"\"", 1);
+    assertCapabilityFailure(program,
+        MANIFEST.replace("path: \"logs\"", "path: \"../logs\""), secondRow, 1);
+    assertCapabilityFailure(program,
+        MANIFEST.replace("path: \"logs\"", "patx: \"logs\""), secondRow, 1);
+
+    assertCapabilityFailure(program, sameName, "\"fixture\"", 1);
+    assertCapabilityFailure(program,
+        sameName.replace("path: \"logs\"", "path: \"test-data\""), "\"fixture\"", 1);
+    String descending = MANIFEST.replace("name: \"logs\"", "name: \"aardvark\"");
+    assertCapabilityFailure(program, descending, "\"aardvark\"", 1);
+    assertCapabilityFailure(program,
+        descending.replace("path: \"logs\"", "path: \"../logs\""),
+        "- name: \"aardvark\"", 1);
+    assertCapabilityFailure(program,
+        sameName.replace("path: \"logs\"", "path: \"../logs\""), firstRow, 1);
+  }
+
+  @Test
+  void capabilityCapacityRejectsBeforePairOrdering() throws Exception {
+    Program program = program();
+    StringBuilder source = new StringBuilder(MANIFEST.substring(0, MANIFEST.indexOf("targets:")));
+    source.append("""
+        targets:
+          - kind: "library"
+            name: "main"
+            root: "src/Main.w"
+            test: false
+        dependencies: []
+        capabilities:
+        """);
+    for (int row = 0; row < 8; row++) {
+      source.append("  - name: \"cap").append(row).append("\"\n    path: \"data\"\n");
+    }
+    String full = source.toString();
+    VirtualMachine accepted = vm(program, full);
+    accepted.run();
+    assertEquals(8, accepted.global("capabilityCount"));
+    assertEquals(32, accepted.global("capabilityCellsWritten"));
+    assertEquals(full, new String(accepted.hostOutput(), StandardCharsets.UTF_8));
+
+    String excess = full + "  - name: \"cap7\"\n    path: \"data\"\n";
+    assertCapabilityFailure(program, excess, "- name: \"cap7\"", 8);
+  }
+
   private static void assertDependencyFailure(
       Program program, String source, String diagnosticToken, int admittedRows) {
+    assertRowFailure(program, source, diagnosticToken, "dependency", admittedRows * 5);
+  }
+
+  private static void assertCapabilityFailure(
+      Program program, String source, String diagnosticToken, int admittedRows) {
+    assertRowFailure(program, source, diagnosticToken, "capability", admittedRows * 4);
+  }
+
+  private static void assertRowFailure(
+      Program program, String source, String diagnosticToken, String collection, int writtenCells) {
+    int offset = source.lastIndexOf(diagnosticToken);
+    assertTrue(0 <= offset, "diagnostic token must occur in the fixture");
     VirtualMachine machine = vm(program, source);
     assertThrows(VmTrap.class, machine::run);
-    assertEquals(source.lastIndexOf(diagnosticToken), machine.global("parseErrorOffset"));
-    assertEquals(admittedRows * 5, machine.global("dependencyCellsWritten"));
-    assertEquals(0, machine.global("dependencyCount"));
+    assertEquals(offset, machine.global("parseErrorOffset"));
+    assertEquals(writtenCells, machine.global(collection + "CellsWritten"));
+    assertEquals(0, machine.global(collection + "Count"));
     assertArrayEquals(new byte[source.getBytes(StandardCharsets.UTF_8).length], machine.hostOutput());
   }
 

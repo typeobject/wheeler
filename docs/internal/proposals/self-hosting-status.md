@@ -49,11 +49,12 @@ unless it needs a separate contract.
 The retained package-manifest owners cover tokens, names, paths, semantic
 versions, canonical framing, header fields, collection keys, row capacities,
 ordering policy, dependency and capability validation, target field policy,
-source-selector admission and coverage, and row publication. Dependency admission
-also composes complete field validation and strict adjacent-name ordering. It
-preserves the distinction between malformed-row and unordered-name diagnostics.
-The whole-closure test now compares complete frames and relocated instructions
-with stage 0 for every selected callable product, not just dependency admission.
+source-selector admission and coverage, and row publication. Dependency and
+capability admission compose field validation and adjacent ordering. Dependencies
+require strictly increasing names. Capabilities allow equal names only when paths
+increase strictly. Both preserve distinct malformed-row and ordering diagnostics.
+The whole-closure test compares complete frames and relocated instructions with
+stage 0 for every selected callable product.
 It also compares the complete comparable artifact prefix byte for byte. Counts
 remain capacity checks, not substitutes for body parity.
 

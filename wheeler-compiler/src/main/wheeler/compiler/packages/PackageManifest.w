@@ -4,7 +4,6 @@ module wheeler.compiler.packages.manifest;
 
 import wheeler.compiler.packages.manifest_capability;
 import wheeler.compiler.packages.manifest_capability_coordinates;
-import wheeler.compiler.packages.manifest_capability_path;
 import wheeler.compiler.packages.manifest_dependency;
 import wheeler.compiler.packages.manifest_dependency_coordinates;
 import wheeler.compiler.packages.manifest_empty_section;
@@ -85,8 +84,6 @@ classical class Manifest {
     long sourceCount,
     long test
   ) {}
-
-  private record CapabilityParse(boolean valid, long next, long nameToken, long pathToken) {}
 
   private QuotedRange range(borrow mut words starts, borrow mut words lengths, long token) {
     long start = manifestQuotedStart(starts, token);
@@ -207,33 +204,6 @@ classical class Manifest {
     }
 
     return invalid;
-  }
-
-  private CapabilityParse parseCapability(
-    borrow utf8 source,
-    borrow mut words kinds,
-    borrow mut words starts,
-    borrow mut words lengths,
-    long count,
-    long cursor
-  ) {
-    CapabilityParse invalid = new CapabilityParse(false, cursor, 0, 0);
-    boolean valid = manifestCapabilityRowValid(
-      source,
-      kinds,
-      starts,
-      lengths,
-      count,
-      cursor
-    );
-    if (valid == false) {
-      return invalid;
-    }
-
-    long nameToken = manifestCapabilityNameToken(cursor);
-    long pathToken = manifestCapabilityPathToken(cursor);
-    long next = manifestCapabilityNextToken(cursor);
-    return new CapabilityParse(true, next, nameToken, pathToken);
   }
 
   /// Parses every canonical collection row that fits the caller-owned tables.
@@ -455,55 +425,38 @@ classical class Manifest {
           return new ManifestResult.Error(starts[cursor]);
         }
 
-        CapabilityParse capability = parseCapability(
+        long capabilityAdmission = manifestCapabilityRowAdmission(
           source,
           kinds,
           starts,
           lengths,
           count,
-          cursor
+          cursor,
+          previousCapabilityName,
+          previousCapabilityPath
         );
-        if (capability.valid == false) {
+        if (capabilityAdmission < 0) {
           return new ManifestResult.Error(starts[cursor]);
         }
 
-        if (-1 < previousCapabilityName) {
-          long capabilityOrder = manifestCapabilityNameOrder(
-            source,
-            starts,
-            lengths,
-            previousCapabilityName,
-            capability.nameToken
-          );
-          if (capabilityOrder == 0) {
-            boolean pathsOrdered = manifestCapabilityPathsOrdered(
-              source,
-              starts,
-              lengths,
-              previousCapabilityPath,
-              capability.pathToken
-            );
-            if (pathsOrdered == false) {
-              return new ManifestResult.Error(starts[capability.nameToken]);
-            }
-          }
-
-          if (0 < capabilityOrder) {
-            return new ManifestResult.Error(starts[capability.nameToken]);
-          }
+        long capabilityNameToken = manifestCapabilityNameToken(cursor);
+        if (capabilityAdmission == 0) {
+          return new ManifestResult.Error(starts[capabilityNameToken]);
         }
 
+        long capabilityPathToken = manifestCapabilityPathToken(cursor);
+        long capabilityNext = manifestCapabilityNextToken(cursor);
         capabilityCount = manifestCapabilityRowProduct(
           starts,
           lengths,
-          capability.nameToken,
-          capability.pathToken,
+          capabilityNameToken,
+          capabilityPathToken,
           capabilityRows,
           capabilityCount
         );
-        previousCapabilityName = capability.nameToken;
-        previousCapabilityPath = capability.pathToken;
-        cursor = capability.next;
+        previousCapabilityName = capabilityNameToken;
+        previousCapabilityPath = capabilityPathToken;
+        cursor = capabilityNext;
       }
 
       if (capabilityCount == 0) {

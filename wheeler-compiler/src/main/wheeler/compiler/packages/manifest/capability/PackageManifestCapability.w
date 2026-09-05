@@ -1,4 +1,4 @@
-//! Composes one package-manifest capability row verdict.
+//! Admits and publishes package-manifest capability rows.
 
 module wheeler.compiler.packages.manifest_capability;
 
@@ -7,14 +7,16 @@ import wheeler.compiler.packages.manifest_capability_path;
 import wheeler.compiler.packages.manifest_capability_prefix;
 
 classical class PackageManifestCapability {
-  /// Checks one complete capability row at a validated token coordinate.
-  public boolean manifestCapabilityRowValid(
+  /// Returns one for admission, zero for disorder, or minus one for a malformed row.
+  public long manifestCapabilityRowAdmission(
     borrow utf8 source,
     borrow mut words kinds,
     borrow mut words starts,
     borrow mut words lengths,
     long count,
-    long cursor
+    long cursor,
+    long previousNameToken,
+    long previousPathToken
   ) {
     boolean validPrefix = manifestCapabilityPrefixValid(
       source,
@@ -25,7 +27,7 @@ classical class PackageManifestCapability {
       cursor
     );
     if (validPrefix == false) {
-      return false;
+      return -1;
     }
 
     boolean validPath = manifestCapabilityPathValid(
@@ -37,10 +39,43 @@ classical class PackageManifestCapability {
       cursor
     );
     if (validPath == false) {
-      return false;
+      return -1;
     }
 
-    return true;
+    if (previousNameToken < 0) {
+      return 1;
+    }
+
+    long nameToken = manifestCapabilityNameToken(cursor);
+    long nameOrder = manifestCapabilityNameOrder(
+      source,
+      starts,
+      lengths,
+      previousNameToken,
+      nameToken
+    );
+    if (nameOrder < 0) {
+      return 1;
+    }
+
+    boolean sameName = nameOrder == 0;
+    if (sameName == false) {
+      return 0;
+    }
+
+    long pathToken = manifestCapabilityPathToken(cursor);
+    boolean pathsOrdered = manifestCapabilityPathsOrdered(
+      source,
+      starts,
+      lengths,
+      previousPathToken,
+      pathToken
+    );
+    if (pathsOrdered == false) {
+      return 0;
+    }
+
+    return 1;
   }
 
   /// Publishes one validated capability row and returns the next row index.

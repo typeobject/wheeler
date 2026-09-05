@@ -10,17 +10,17 @@
 | Depends on | WIP-0049, WIP-0434, WIP-0471 |
 | Supersedes | Direct capability prefix and path composition in `PackageManifest.w` |
 | Superseded by | None |
-| Follow-up | WIP-0494 capability-row publication |
+| Follow-up | WIP-0494 capability-row publication, WIP-0049 row admission |
 
 ## Summary
 
-Retain complete capability-row validation outside the package-manifest parser. `PackageManifestCapability.w` composes canonical prefix and path policy into one Boolean verdict.
+This milestone retained complete capability-row validation outside the package-manifest parser. `PackageManifestCapability.w` composed canonical prefix and path policy into one Boolean verdict. WIP-0494 later added row publication. WIP-0049 now replaces that verdict with `manifestCapabilityRowAdmission`, which also owns adjacent name-and-path ordering.
 
 ## Row contract
 
-`manifestCapabilityRowValid` first validates the dash, `name`, quoted name, and `path` key sequence. It then validates the quoted capability path. A row is valid only when both retained owners accept it.
+At this milestone, `manifestCapabilityRowValid` first validated the dash, `name`, quoted name, and `path` key sequence. It then validated the quoted capability path. A row was valid only when both retained owners accepted it.
 
-The parser keeps row iteration, capacity, adjacent name-and-path ordering, coordinate projection, publication, and diagnostics. It no longer imports capability-prefix policy directly. It retains the path owner for adjacent-row ordering.
+The parser kept row iteration, capacity, adjacent name-and-path ordering, coordinate projection, publication, and diagnostics. It stopped importing capability-prefix policy directly but retained the path owner for adjacent-row ordering.
 
 ## Physical route
 
@@ -57,7 +57,7 @@ Reject the row before extracting coordinates when its prefix or path fails. Reje
 
 ### Fold adjacent ordering into row validation
 
-Ordering needs a previous name and path. One-row grammar has neither and must remain independently reusable.
+This was the WIP-0477 boundary. WIP-0049 now admits the previous name and path within the eight-parameter profile. The prefix and path owners remain independently reusable. The obsolete Boolean verdict, parser carrier, and wrapper are gone.
 
 ### Duplicate path validation in the parser
 

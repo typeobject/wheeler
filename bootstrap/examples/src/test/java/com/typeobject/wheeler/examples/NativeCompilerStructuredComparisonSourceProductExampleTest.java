@@ -384,6 +384,21 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
   }
 
   @Test
+  void emitsSignedThenBooleanConditionalAdmissionProducts() throws Exception {
+    String conditional = SOURCE.replace(
+        "    assert(-1 < length);\n",
+        "    if (length < 0) {\n"
+            + "      return 1;\n"
+            + "    }\n"
+            + "    boolean same = length == 0;\n"
+            + "    if (same == false) {\n"
+            + "      return 0;\n"
+            + "    }\n");
+
+    assertArtifact(conditional);
+  }
+
+  @Test
   void rejectsMultipleConditionalReturnChildren() throws Exception {
     String malformed = SOURCE.replace(
         "public long copyOffset(",

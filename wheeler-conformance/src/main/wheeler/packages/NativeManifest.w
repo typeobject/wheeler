@@ -19,12 +19,25 @@ classical class NativeManifest {
   state long lastDependencyKind = 0;
   state long parseErrorOffset = -1;
   state long capabilityCount = 0;
+  state long capabilityCellsWritten = 0;
   state long firstTargetNameLength = 0;
   state long lastTargetNameLength = 0;
   state long lastDependencyNameLength = 0;
   state long lastCapabilityNameLength = 0;
   state long emittedLength = 0;
   state long finalCursor = 0;
+
+  private long writtenCells(borrow mut words rows, long count) {
+    long written = 0;
+    long index = 0;
+    while (index < count) limit 80 {
+      if (rows[index] != 0) {
+        written += 1;
+      }
+      index += 1;
+    }
+    return written;
+  }
 
   /// Runs the bounded `NativeManifest` fixture.
   ///
@@ -61,13 +74,8 @@ classical class NativeManifest {
       capabilityRows
     );
     firstDependencyKind = dependencyRows[0];
-    long dependencyCell = 0;
-    while (dependencyCell < 40) limit 40 {
-      if (dependencyRows[dependencyCell] != 0) {
-        dependencyCellsWritten += 1;
-      }
-      dependencyCell += 1;
-    }
+    dependencyCellsWritten = writtenCells(dependencyRows, 40);
+    capabilityCellsWritten = writtenCells(capabilityRows, 32);
 
     match (parsed) {
       case ManifestResult.Value(ManifestModel manifest) {
