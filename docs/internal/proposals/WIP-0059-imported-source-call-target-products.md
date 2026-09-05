@@ -10,7 +10,7 @@
 | Depends on | WIP-0045, WIP-0048, WIP-0057 |
 | Supersedes | Imported call integration in WIP-0057 |
 | Superseded by | None |
-| Follow-up | WIP-0060 for artifact stubs, WIP-0061 for qualified spelling, WIP-0139 for loan normalization and local-call filtering |
+| Follow-up | WIP-0060 for artifact stubs, WIP-0061 for qualified spelling, WIP-0139 for loan normalization and local-call filtering, WIP-0496 for eight-argument calls |
 
 ## Summary
 
@@ -50,6 +50,9 @@ The module call scanner checks locals first. It checks only admitted dependency 
 - 256 calls per module
 - seven parameters per admitted call
 - 32 identity bytes per target
+
+These are the original bounds. [WIP-0496](WIP-0496-eight-argument-retained-source-calls.md)
+raises retained call arity to eight without reopening dependency source.
 
 ## Implementation
 

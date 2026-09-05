@@ -220,9 +220,13 @@ rather than clearing or copying full capacities. The
   The aggregate parser still owns iteration, target capacity, table allocation,
   and complete manifest publication.
 
-Entry signatures fit eight parameters. Individual retained calls still admit
-only seven arguments. Complete parser integration must close that separate call
-boundary rather than infer it from signature admission.
+Entry signatures and retained calls now both admit eight values.
+[WIP-0496](WIP-0496-eight-argument-retained-source-calls.md) covers root and loop
+calls, qualified imported targets, exact mixed scalar/loan types, and rejection
+before argument, width, code, relocation, or artifact publication. The bounded
+helper compiler retains its separate seven-argument profile. Generated inverses
+still reject argument-bearing calls. Their transfer and cleanup sequences need
+inverse lowering. Complete parser integration also remains open.
 
 ## Acceptance
 

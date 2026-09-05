@@ -4,10 +4,11 @@ module wheeler.compiler.closure.source_call_instruction_products;
 
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
+import wheeler.compiler.closure.source_call_argument_layouts;
 import wheeler.compiler.closure.source_call_layout_products;
 
 classical class SourceCallInstructionProducts {
-  private const long CALL_COUNT_LIMIT = 256;
+  private const long CALL_COUNT_LIMIT = SOURCE_CALL_COUNT_LIMIT;
   private const long DIRECT_COUNT_LIMIT = 4096;
   private const long LOOP_COUNT_LIMIT = 256;
   private const long MAX_CODE_BYTES = 262144;
@@ -111,6 +112,19 @@ classical class SourceCallInstructionProducts {
         if (statementCount - 1 < callStatements[checkedCall]) {
           valid = false;
         }
+      }
+
+      if (validSourceCallKind(callRows[256 + checkedCall]) == false) {
+        valid = false;
+      }
+
+      long arity = callArgumentCounts[checkedCall];
+      if (arity < 0) {
+        valid = false;
+      }
+
+      if (SOURCE_CALL_ARITY_LIMIT < arity) {
+        valid = false;
       }
 
       checkedCall += 1;

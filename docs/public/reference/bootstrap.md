@@ -42,6 +42,14 @@ Three different paths provide native evidence today:
 - The scalar AOT path executes a verified subset on x86-64 Linux. Stage 0 still
   owns that backend. Native execution does not imply self-hosted compilation.
 
+The retained source route admits eight ordered identifier arguments in ordinary
+root and loop calls, including qualified imports. Mixed scalar and admitted buffer-loan
+arguments retain exact types. Its 256 call rows share 2,048 argument entries per
+module. A ninth argument rejects before argument or artifact publication. The
+separate bounded helper compiler still admits at most seven arguments per call.
+Generated inverses still reject argument-bearing calls. These are implementation
+bounds, not language arity rules.
+
 Retained package-manifest products cover lexical and canonical policy, names,
 paths, semantic versions, headers, target fields, selector admission and coverage,
 collection policy, and row publication. Dependency and capability entry products

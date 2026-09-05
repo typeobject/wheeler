@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.qualified_source_call_products;
 
 import wheeler.compiler.closure.callable_signature_products;
+import wheeler.compiler.closure.source_call_argument_layouts;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.module_linker;
 import wheeler.compiler.source_scalars;
@@ -11,7 +12,7 @@ import wheeler.compiler.tokens;
 classical class QualifiedSourceCallProducts {
   private const long CALL_ROWS = 1024;
   private const long MAX_CALLABLES = 4096;
-  private const long MAX_CALLS = 256;
+  private const long MAX_CALLS = SOURCE_CALL_COUNT_LIMIT;
   private const long MAX_NAME_BYTES = 1048576;
   private const long PUNCTUATION_UNDERSCORE = 95;
   private const long TOKEN_ARENA_BYTES = 98320;
@@ -223,7 +224,7 @@ classical class QualifiedSourceCallProducts {
                 valid = false;
               }
 
-              if (7 < arity) {
+              if (SOURCE_CALL_ARITY_LIMIT < arity) {
                 valid = false;
               }
 

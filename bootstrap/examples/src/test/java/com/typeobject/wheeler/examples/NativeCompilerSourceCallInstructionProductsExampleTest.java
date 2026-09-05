@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 final class NativeCompilerSourceCallInstructionProductsExampleTest {
   @Test
   void plansCallsAcrossDirectAndLoopProductsInSourceOrder() throws Exception {
-    VirtualMachine machine = new VirtualMachine(program(false), new byte[0]);
+    VirtualMachine machine = new VirtualMachine(program(false, 0), new byte[0]);
 
     machine.run();
 
@@ -30,7 +30,7 @@ final class NativeCompilerSourceCallInstructionProductsExampleTest {
 
   @Test
   void retainsNestedStartsForLoopCoordinatePublication() throws Exception {
-    VirtualMachine machine = new VirtualMachine(program(true), new byte[0]);
+    VirtualMachine machine = new VirtualMachine(program(true, 0), new byte[0]);
 
     machine.run();
 
@@ -41,7 +41,31 @@ final class NativeCompilerSourceCallInstructionProductsExampleTest {
     assertEquals(0, machine.global("earlyCodeStart"));
   }
 
-  private static Program program(boolean nested) throws Exception {
+  @Test
+  void plansEightArgumentWindowsInSourceOrder() throws Exception {
+    VirtualMachine machine = new VirtualMachine(program(false, 8), new byte[0]);
+    machine.run();
+    assertEquals(1, machine.global("valid"));
+    assertEquals(35, machine.global("instructionCount"));
+    assertEquals(864, machine.global("length"));
+    assertEquals(25, machine.global("lateInstruction"));
+    assertEquals(448, machine.global("lateCodeStart"));
+    assertEquals(416, machine.global("lateLength"));
+    assertEquals(448, machine.global("earlyLength"));
+  }
+
+  @Test
+  void rejectsInvalidAritiesBeforePublishingAnyWindow() throws Exception {
+    for (int arity : new int[] {-1, 9}) {
+      VirtualMachine machine = new VirtualMachine(program(false, arity), new byte[0]);
+      machine.run();
+      assertEquals(0, machine.global("valid"));
+      assertEquals(77, machine.global("lateInstruction"));
+      assertEquals(88, machine.global("lateCodeStart"));
+    }
+  }
+
+  private static Program program(boolean nested, int arity) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.source_call_instruction_products"));
@@ -63,7 +87,7 @@ final class NativeCompilerSourceCallInstructionProductsExampleTest {
 
           entry void main(borrow utf8 input) {
             assert(bufferLength(input) == 0);
-            region rows = new region(/* bytes= */ 509952, /* allocations= */ 11);
+            region rows = new region(/* bytes= */ 503808, /* allocations= */ 9);
             words calls = allocate(rows, /* length= */ 1024);
             words callStatements = allocate(rows, /* length= */ 256);
             words callArgumentCounts = allocate(rows, /* length= */ 256);
@@ -73,8 +97,8 @@ final class NativeCompilerSourceCallInstructionProductsExampleTest {
             words loopWindows = allocate(rows, /* length= */ 768);
             words instructionStarts = allocate(rows, /* length= */ 256);
             words callWindows = allocate(rows, /* length= */ 768);
-            words unusedA = allocate(rows, /* length= */ 1);
-            words unusedB = allocate(rows, /* length= */ 1);
+            set(callArgumentCounts, 0, ARITY);
+            set(callArgumentCounts, 1, ARITY);
             set(calls, 256, 0);
             set(calls, 257, 1);
             set(callStatements, 0, 3);
@@ -120,6 +144,19 @@ final class NativeCompilerSourceCallInstructionProductsExampleTest {
             );
             if (plan.valid) {
               valid = 1;
+            } else {
+              long row = 0;
+              while (row < 768) limit 768 {
+                long expectedWindow = 0;
+                if (row == 0) { expectedWindow = 88; }
+                assert(callWindows[row] == expectedWindow);
+                if (row < 256) {
+                  long expectedStart = 0;
+                  if (row == 0) { expectedStart = 77; }
+                  assert(instructionStarts[row] == expectedStart);
+                }
+                row += 1;
+              }
             }
             instructionCount = plan.instructionCount;
             length = plan.length;
@@ -129,8 +166,6 @@ final class NativeCompilerSourceCallInstructionProductsExampleTest {
             earlyCodeStart = callWindows[1];
             lateLength = callWindows[512];
             earlyLength = callWindows[513];
-            drop(unusedB);
-            drop(unusedA);
             drop(callWindows);
             drop(instructionStarts);
             drop(loopWindows);
@@ -143,7 +178,8 @@ final class NativeCompilerSourceCallInstructionProductsExampleTest {
             drop(rows);
           }
         }
-        """.replace("NESTED_BLOCK", nested ? "1" : "0"));
+        """.replace("NESTED_BLOCK", nested ? "1" : "0")
+            .replace("ARITY", Integer.toString(arity)));
     return new WheelerCompiler().compileModuleFiles(
         sources, "example.source_call_instruction_products");
   }

@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.source_module_product_artifact;
 
+import wheeler.compiler.closure.source_call_argument_layouts;
 import wheeler.compiler.closure.source_product_artifact;
 import wheeler.compiler.encoding;
 import wheeler.compiler.opcodes;
@@ -395,7 +396,7 @@ classical class SourceModuleProductArtifact {
       long stubEffect = stubEffects[stubTarget];
       assert(-1 < stubFirstParameter);
       assert(-1 < stubParameterCount);
-      assert(stubParameterCount < 8);
+      assert(stubParameterCount < SOURCE_CALL_ARITY_LIMIT + 1);
       assert(stubFirstParameter < 16384 - stubParameterCount + 1);
       boolean stubResultTypeValid = stubResultType == 0;
       if (stubResultType == TYPE_SIGNED) {
@@ -462,7 +463,7 @@ classical class SourceModuleProductArtifact {
       }
 
       long stubParameter = 0;
-      while (stubParameter < stubParameterCount) limit 7 {
+      while (stubParameter < stubParameterCount) limit SOURCE_CALL_ARITY_LIMIT {
         writeUnsigned(
           sectionArchive,
           functionTypeStart + typeOffset * 4,

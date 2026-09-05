@@ -4,6 +4,7 @@ module wheeler.compiler.closure.source_call_argument_products;
 
 import wheeler.compiler.closure.direct_statement_coordinates;
 import wheeler.compiler.closure.loop_body_values;
+import wheeler.compiler.closure.source_call_argument_layouts;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.module_linker;
@@ -12,11 +13,10 @@ import wheeler.compiler.tokens;
 import wheeler.compiler.type_codes;
 
 classical class SourceCallArgumentProducts {
-  private const long ARGUMENT_COUNT_LIMIT = 1792;
-  private const long ARGUMENT_TYPE_ROW = 1792;
-  private const long CALL_COUNT_LIMIT = 256;
+  private const long CALL_COUNT_LIMIT = SOURCE_CALL_COUNT_LIMIT;
+  private const long STAGING_BYTES =
+    MAX_COMPILER_TOKENS * 24 + CALL_COUNT_LIMIT * 16 + SOURCE_CALL_ARGUMENT_ROWS * 16;
   private const long CALL_ROWS = 1024;
-  private const long MAX_ARGUMENTS_PER_CALL = 7;
   private const long MAX_STATEMENTS = 4096;
   private const long MAX_VALUES = 1024;
   private const long STATEMENT_ROWS = 28672;
@@ -158,17 +158,17 @@ classical class SourceCallArgumentProducts {
     assert(bufferLength(valueRows) == VALUE_ROWS);
     assert(bufferLength(callArgumentStarts) == CALL_COUNT_LIMIT);
     assert(bufferLength(callArgumentCounts) == CALL_COUNT_LIMIT);
-    assert(bufferLength(argumentRows) == 3584);
-    assert(bufferLength(argumentValueProducts) == 3584);
+    assert(bufferLength(argumentRows) == SOURCE_CALL_ARGUMENT_ROWS);
+    assert(bufferLength(argumentValueProducts) == SOURCE_CALL_ARGUMENT_ROWS);
 
-    region staging = new region(/* bytes= */ 159744, /* allocations= */ 7);
+    region staging = new region(/* bytes= */ STAGING_BYTES, /* allocations= */ 7);
     words tokenKinds = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenStarts = allocate(staging, MAX_COMPILER_TOKENS);
     words tokenLengths = allocate(staging, MAX_COMPILER_TOKENS);
     words stagedStarts = allocate(staging, CALL_COUNT_LIMIT);
     words stagedCounts = allocate(staging, CALL_COUNT_LIMIT);
-    words stagedArguments = allocate(staging, /* length= */ 3584);
-    words stagedValues = allocate(staging, /* length= */ 3584);
+    words stagedArguments = allocate(staging, SOURCE_CALL_ARGUMENT_ROWS);
+    words stagedValues = allocate(staging, SOURCE_CALL_ARGUMENT_ROWS);
     long tokenCount = scanSemanticTokens(source, tokenKinds, tokenStarts, tokenLengths);
     boolean valid = -1 < tokenCount;
     long argumentCount = 0;
@@ -188,11 +188,11 @@ classical class SourceCallArgumentProducts {
         valid = false;
       }
 
-      if (MAX_ARGUMENTS_PER_CALL < arity) {
+      if (SOURCE_CALL_ARITY_LIMIT < arity) {
         valid = false;
       }
 
-      if (ARGUMENT_COUNT_LIMIT - argumentCount < arity) {
+      if (SOURCE_CALL_ARGUMENT_LIMIT - argumentCount < arity) {
         valid = false;
       }
 
@@ -224,7 +224,7 @@ classical class SourceCallArgumentProducts {
 
           long argument = 0;
           long token = open + 1;
-          while (argument < arity) limit MAX_ARGUMENTS_PER_CALL {
+          while (argument < arity) limit SOURCE_CALL_ARITY_LIMIT {
             if (tokenCount - 1 < token) {
               valid = false;
             }
@@ -277,9 +277,9 @@ classical class SourceCallArgumentProducts {
                   }
 
                   set(stagedArguments, argumentCount, valueRows[3072 + selectedValue]);
-                  set(stagedArguments, ARGUMENT_TYPE_ROW + argumentCount, type);
+                  set(stagedArguments, SOURCE_CALL_ARGUMENT_TYPE_ROW + argumentCount, type);
                   set(stagedValues, argumentCount, selectedValue);
-                  set(stagedValues, ARGUMENT_TYPE_ROW + argumentCount, 0);
+                  set(stagedValues, SOURCE_CALL_ARGUMENT_TYPE_ROW + argumentCount, 0);
                 }
               }
             }
@@ -318,18 +318,18 @@ classical class SourceCallArgumentProducts {
       }
 
       long publishedArgument = 0;
-      while (publishedArgument < argumentCount) limit ARGUMENT_COUNT_LIMIT {
+      while (publishedArgument < argumentCount) limit SOURCE_CALL_ARGUMENT_LIMIT {
         set(argumentRows, publishedArgument, stagedArguments[publishedArgument]);
         set(
           argumentRows,
-          ARGUMENT_TYPE_ROW + publishedArgument,
-          stagedArguments[ARGUMENT_TYPE_ROW + publishedArgument]
+          SOURCE_CALL_ARGUMENT_TYPE_ROW + publishedArgument,
+          stagedArguments[SOURCE_CALL_ARGUMENT_TYPE_ROW + publishedArgument]
         );
         set(argumentValueProducts, publishedArgument, stagedValues[publishedArgument]);
         set(
           argumentValueProducts,
-          ARGUMENT_TYPE_ROW + publishedArgument,
-          stagedValues[ARGUMENT_TYPE_ROW + publishedArgument]
+          SOURCE_CALL_ARGUMENT_TYPE_ROW + publishedArgument,
+          stagedValues[SOURCE_CALL_ARGUMENT_TYPE_ROW + publishedArgument]
         );
         publishedArgument += 1;
       }

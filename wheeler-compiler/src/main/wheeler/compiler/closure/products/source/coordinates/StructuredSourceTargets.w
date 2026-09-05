@@ -1,4 +1,4 @@
-//! Resolves structured signature types and stable local target identities.
+//! Validates structured target tables and resolves local signatures and identities.
 
 module wheeler.compiler.closure.structured_source_targets;
 
@@ -9,6 +9,35 @@ classical class StructuredSourceTargets {
 
   /// Reports one complete local target name and signature table.
   public record LocalStructuredTargetPlan(long parameterCount, boolean valid) {}
+
+  /// Checks imported target storage before source-product allocation or publication.
+  public void requireStructuredImportedTargetBuffers(
+    borrow mut words targetRows,
+    borrow mut words parameterRows,
+    borrow byteview names,
+    borrow byteview identities,
+    borrow byteview qualifierNames,
+    borrow mut words qualifierStarts,
+    borrow mut words qualifierLengths,
+    borrow mut words qualifierRanks
+  ) {
+    long targetWords = bufferLength(targetRows);
+    assert(targetWords == 32768);
+    long parameterWords = bufferLength(parameterRows);
+    assert(parameterWords == 32768);
+    long nameBytes = bufferLength(names);
+    assert(nameBytes == 1048576);
+    long identityBytes = bufferLength(identities);
+    assert(identityBytes == 131072);
+    long qualifierBytes = bufferLength(qualifierNames);
+    assert(qualifierBytes == 1048576);
+    long startRows = bufferLength(qualifierStarts);
+    assert(4095 < startRows);
+    long lengthRows = bufferLength(qualifierLengths);
+    assert(4095 < lengthRows);
+    long rankRows = bufferLength(qualifierRanks);
+    assert(4095 < rankRows);
+  }
 
   /// Publishes local target names, signatures, effects, and stable identities.
   public LocalStructuredTargetPlan materializeLocalStructuredTargets(

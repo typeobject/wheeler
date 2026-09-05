@@ -166,3 +166,4 @@ Each record appears in one catalog. Cross-cutting work links its other owners fr
 | [WIP-0418](../WIP-0418-focused-loop-arithmetic-declarations.md) | Implemented | Focused loop arithmetic declarations |
 | [WIP-0419](../WIP-0419-local-right-nested-loop-guards.md) | Implemented | Local-right nested loop guards |
 | [WIP-0490](../WIP-0490-exact-root-word-mutation-products.md) | Implemented | Exact root word-mutation products |
+| [WIP-0496](../WIP-0496-eight-argument-retained-source-calls.md) | Implemented | Eight-argument retained source calls |

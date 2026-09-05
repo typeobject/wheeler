@@ -60,6 +60,14 @@ stage 0 for every selected callable product. It also compares the complete
 comparable artifact prefix byte for byte. Counts
 remain capacity checks, not substitutes for body parity.
 
+Ordinary retained calls now admit eight ordered identifiers across root, loop,
+and qualified imported calls. Signed and Boolean values and UTF-8, byte-view,
+mutable-byte, and mutable-word loans retain exact types and defining-value coordinates.
+[WIP-0496](WIP-0496-eight-argument-retained-source-calls.md) owns the shared call
+layout and first-excess evidence. It does not widen the separate bounded helper
+compiler's seven-argument profile. Generated inverses still reject calls with
+arguments. That lowering boundary remains in WIP-0049.
+
 `PackageManifest.w` still coordinates complete parsing. The next acceptance
 boundary is complete target and collection composition through retained products,
 including failure offsets, validation order, and unchanged output on rejection.

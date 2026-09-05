@@ -2,12 +2,11 @@
 
 module wheeler.compiler.closure.source_call_layout_products;
 
+import wheeler.compiler.closure.source_call_argument_layouts;
 import wheeler.compiler.type_codes;
 
 classical class SourceCallLayoutProducts {
-  private const long ARGUMENT_COUNT_LIMIT = 1792;
-  private const long ARGUMENT_TYPE_ROW = 1792;
-  private const long CALL_COUNT_LIMIT = 256;
+  private const long CALL_COUNT_LIMIT = SOURCE_CALL_COUNT_LIMIT;
   private const long CALL_ROWS = 1024;
   private const long CALL_VOID = 0;
   /// Names a Boolean helper call guarding an exact `return false;` child.
@@ -22,7 +21,6 @@ classical class SourceCallLayoutProducts {
   private const long CALL_FORWARD_SIGNED = 3;
   private const long CALL_VALUE_BOOLEAN = 2;
   private const long CALL_VALUE_SIGNED = 1;
-  private const long MAX_ARGUMENTS_PER_CALL = 7;
   private const long MAX_SIGNATURE_TYPES = 4096;
   private const long MAX_STATEMENTS = 4096;
 
@@ -101,7 +99,7 @@ classical class SourceCallLayoutProducts {
   public long sourceCallInstructionCount(long kind, long arity) {
     assert(validSourceCallKind(kind));
     assert(-1 < arity);
-    assert(arity < MAX_ARGUMENTS_PER_CALL + 1);
+    assert(arity < SOURCE_CALL_ARITY_LIMIT + 1);
     if (kind == CALL_VOID) {
       if (arity == 0) {
         return 1;
@@ -121,7 +119,7 @@ classical class SourceCallLayoutProducts {
   public long sourceCallLength(long kind, long arity) {
     assert(validSourceCallKind(kind));
     assert(-1 < arity);
-    assert(arity < MAX_ARGUMENTS_PER_CALL + 1);
+    assert(arity < SOURCE_CALL_ARITY_LIMIT + 1);
     if (kind == CALL_VOID) {
       if (arity == 0) {
         return 16;
@@ -145,7 +143,7 @@ classical class SourceCallLayoutProducts {
   public long sourceCallLocalCount(long kind, long arity) {
     assert(validSourceCallKind(kind));
     assert(-1 < arity);
-    assert(arity < MAX_ARGUMENTS_PER_CALL + 1);
+    assert(arity < SOURCE_CALL_ARITY_LIMIT + 1);
     if (kind == CALL_VOID) {
       return arity * 2;
     }
@@ -185,7 +183,7 @@ classical class SourceCallLayoutProducts {
     assert(bufferLength(callStatements) == CALL_COUNT_LIMIT);
     assert(bufferLength(callArgumentStarts) == CALL_COUNT_LIMIT);
     assert(bufferLength(callArgumentCounts) == CALL_COUNT_LIMIT);
-    assert(bufferLength(arguments) == 3584);
+    assert(bufferLength(arguments) == SOURCE_CALL_ARGUMENT_ROWS);
     assert(-1 < targetCount);
     assert(targetCount < MAX_SIGNATURE_TYPES + 1);
     assert(bufferLength(targetParameterStarts) == MAX_SIGNATURE_TYPES);
@@ -234,12 +232,22 @@ classical class SourceCallLayoutProducts {
         valid = false;
       }
 
-      if (MAX_ARGUMENTS_PER_CALL < arity) {
+      if (SOURCE_CALL_ARITY_LIMIT < arity) {
         valid = false;
       }
 
-      if (ARGUMENT_COUNT_LIMIT - firstArgument < arity) {
+      if (firstArgument < 0) {
         valid = false;
+      }
+
+      if (SOURCE_CALL_ARGUMENT_LIMIT < firstArgument) {
+        valid = false;
+      }
+
+      if (valid) {
+        if (SOURCE_CALL_ARGUMENT_LIMIT - firstArgument < arity) {
+          valid = false;
+        }
       }
 
       long kind = -1;
@@ -256,18 +264,31 @@ classical class SourceCallLayoutProducts {
         valid = false;
       }
 
-      long argument = 0;
-      while (argument < arity) limit MAX_ARGUMENTS_PER_CALL {
-        long expectedType = targetParameterTypes[targetParameterStarts[target] + argument];
-        if (expectedType < 0) {
+      if (valid) {
+        long firstParameter = targetParameterStarts[target];
+        if (firstParameter < 0) {
           valid = false;
         }
 
-        if (arguments[ARGUMENT_TYPE_ROW + firstArgument + argument] != expectedType) {
+        if (16384 - arity < firstParameter) {
           valid = false;
         }
 
-        argument += 1;
+        if (valid) {
+          long argument = 0;
+          while (argument < arity) limit SOURCE_CALL_ARITY_LIMIT {
+            long expectedType = targetParameterTypes[firstParameter + argument];
+            if (expectedType < 1) {
+              valid = false;
+            }
+
+            if (arguments[SOURCE_CALL_ARGUMENT_TYPE_ROW + firstArgument + argument] != expectedType) {
+              valid = false;
+            }
+
+            argument += 1;
+          }
+        }
       }
 
       if (valid) {
@@ -301,7 +322,10 @@ classical class SourceCallLayoutProducts {
         }
       }
 
-      argumentEnd = firstArgument + arity;
+      if (valid) {
+        argumentEnd = firstArgument + arity;
+      }
+
       call += 1;
     }
 

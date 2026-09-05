@@ -6,6 +6,7 @@ import wheeler.compiler.closure.direct_statement_coordinates;
 import wheeler.compiler.closure.loop_body_instruction_encoding;
 import wheeler.compiler.closure.loop_body_layouts;
 import wheeler.compiler.closure.loop_body_values;
+import wheeler.compiler.closure.source_call_argument_layouts;
 import wheeler.compiler.closure.source_reversible_result_relations;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.keyword_tokens;
@@ -587,7 +588,7 @@ classical class SourceValueProducts {
                   if (returnArity < 0) {
                     valid = false;
                   } else {
-                    if (7 < returnArity) {
+                    if (SOURCE_CALL_ARITY_LIMIT < returnArity) {
                       valid = false;
                     } else {
                       localWidth = returnArity * 2 + 1;
@@ -634,6 +635,22 @@ classical class SourceValueProducts {
                       resultLocal = -1;
                     }
                   }
+                }
+              }
+            }
+          }
+
+          if (-1 < statementCall) {
+            if (callRows[statementCall] == statementStart) {
+              long callArity = callRows[512 + statementCall];
+              if (callArity < 0) {
+                valid = false;
+              } else {
+                if (SOURCE_CALL_ARITY_LIMIT < callArity) {
+                  valid = false;
+                } else {
+                  localWidth = callArity * 2;
+                  resultLocal = -1;
                 }
               }
             }

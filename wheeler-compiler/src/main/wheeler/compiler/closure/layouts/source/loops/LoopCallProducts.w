@@ -3,6 +3,7 @@
 module wheeler.compiler.closure.loop_call_products;
 
 import wheeler.compiler.call_arguments;
+import wheeler.compiler.closure.source_call_argument_layouts;
 import wheeler.compiler.closure.source_call_layout_products;
 import wheeler.compiler.encoding;
 import wheeler.compiler.encoding_widths;
@@ -10,10 +11,7 @@ import wheeler.compiler.opcodes;
 import wheeler.compiler.type_codes;
 
 classical class LoopCallProducts {
-  private const long ARGUMENT_COUNT_LIMIT = 1792;
-  private const long ARGUMENT_ROWS = 3584;
-  private const long ARGUMENT_TYPE_ROW = 1792;
-  private const long CALL_COUNT_LIMIT = 256;
+  private const long CALL_COUNT_LIMIT = SOURCE_CALL_COUNT_LIMIT;
   private const long CALL_KIND_ROW = 256;
   private const long CALL_TARGET_ROW = 768;
   private const long CALL_ROWS = 1024;
@@ -23,7 +21,6 @@ classical class LoopCallProducts {
   private const long IDENTITY_BYTES = 32;
   private const long LOCAL_TYPE_COUNT_LIMIT = 4096;
   private const long LOCAL_TYPE_ROWS = 12288;
-  private const long MAX_ARGUMENTS_PER_CALL = 7;
   private const long MAX_CODE_BYTES = 262144;
   private const long RELOCATION_IDENTITY_BYTES = 8192;
   private const long RELOCATION_ROWS = 768;
@@ -54,9 +51,9 @@ classical class LoopCallProducts {
     long localBase
   ) {
     long argument = 0;
-    while (argument < arity) limit MAX_ARGUMENTS_PER_CALL {
+    while (argument < arity) limit SOURCE_CALL_ARITY_LIMIT {
       long valueProduct = argumentValueProducts[firstArgument + argument];
-      long valueOffset = argumentValueProducts[ARGUMENT_TYPE_ROW + firstArgument + argument];
+      long valueOffset = argumentValueProducts[SOURCE_CALL_ARGUMENT_TYPE_ROW + firstArgument + argument];
       if (valueProduct < 0) {
         return false;
       }
@@ -73,16 +70,20 @@ classical class LoopCallProducts {
         return false;
       }
 
-      long source = valuePhysicalStarts[valueProduct] + valueOffset;
-      long sourceType = argumentRows[ARGUMENT_TYPE_ROW + firstArgument + argument];
-      if (source < 0) {
+      long valueStart = valuePhysicalStarts[valueProduct];
+      if (valueStart < 0) {
         return false;
       }
 
-      if (localBase - 1 < source) {
+      if (localBase - 1 < valueStart) {
         return false;
       }
 
+      if (localBase - valueStart - 1 < valueOffset) {
+        return false;
+      }
+
+      long sourceType = argumentRows[SOURCE_CALL_ARGUMENT_TYPE_ROW + firstArgument + argument];
       if (sourceType < 1) {
         return false;
       }
@@ -108,7 +109,7 @@ classical class LoopCallProducts {
     long localBase
   ) {
     long argument = 0;
-    while (argument < arity) limit MAX_ARGUMENTS_PER_CALL {
+    while (argument < arity) limit SOURCE_CALL_ARITY_LIMIT {
       cursor = writeInstructionHeader(
         output,
         cursor,
@@ -117,7 +118,7 @@ classical class LoopCallProducts {
       );
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + argument, U64);
       long valueProduct = argumentValueProducts[firstArgument + argument];
-      long valueOffset = argumentValueProducts[ARGUMENT_TYPE_ROW + firstArgument + argument];
+      long valueOffset = argumentValueProducts[SOURCE_CALL_ARGUMENT_TYPE_ROW + firstArgument + argument];
       cursor = writeUnsignedLittleEndian(
         output,
         cursor,
@@ -128,8 +129,8 @@ classical class LoopCallProducts {
     }
 
     argument = 0;
-    while (argument < arity) limit MAX_ARGUMENTS_PER_CALL {
-      long sourceType = argumentRows[ARGUMENT_TYPE_ROW + firstArgument + argument];
+    while (argument < arity) limit SOURCE_CALL_ARITY_LIMIT {
+      long sourceType = argumentRows[SOURCE_CALL_ARGUMENT_TYPE_ROW + firstArgument + argument];
       cursor = writeInstructionHeader(
         output,
         cursor,
@@ -258,8 +259,8 @@ classical class LoopCallProducts {
     borrow mut words argumentRows
   ) {
     long argument = 0;
-    while (argument < arity) limit MAX_ARGUMENTS_PER_CALL {
-      long type = argumentRows[ARGUMENT_TYPE_ROW + firstArgument + argument];
+    while (argument < arity) limit SOURCE_CALL_ARITY_LIMIT {
+      long type = argumentRows[SOURCE_CALL_ARGUMENT_TYPE_ROW + firstArgument + argument];
       set(stagedTypes, typeCursor, owner);
       set(stagedTypes, 4096 + typeCursor, localBase + argument);
       set(stagedTypes, 8192 + typeCursor, type);
@@ -268,8 +269,8 @@ classical class LoopCallProducts {
     }
 
     argument = 0;
-    while (argument < arity) limit MAX_ARGUMENTS_PER_CALL {
-      long transferType = argumentRows[ARGUMENT_TYPE_ROW + firstArgument + argument];
+    while (argument < arity) limit SOURCE_CALL_ARITY_LIMIT {
+      long transferType = argumentRows[SOURCE_CALL_ARGUMENT_TYPE_ROW + firstArgument + argument];
       set(stagedTypes, typeCursor, owner);
       set(stagedTypes, 4096 + typeCursor, localBase + arity + argument);
       set(stagedTypes, 8192 + typeCursor, transferType);
@@ -311,7 +312,7 @@ classical class LoopCallProducts {
     return typeCursor;
   }
 
-  /// Emits typed zero- through seven-argument calls and relocations atomically.
+  /// Emits typed zero- through eight-argument calls and relocations atomically.
   public LoopCallPlan writeLoopCallProducts(
     long callCount,
     borrow mut words callRows,
@@ -343,8 +344,8 @@ classical class LoopCallProducts {
     assert(bufferLength(callArgumentCounts) == CALL_COUNT_LIMIT);
     assert(bufferLength(callStatements) == CALL_COUNT_LIMIT);
     assert(bufferLength(callInstructionStarts) == CALL_COUNT_LIMIT);
-    assert(bufferLength(argumentRows) == ARGUMENT_ROWS);
-    assert(bufferLength(argumentValueProducts) == ARGUMENT_ROWS);
+    assert(bufferLength(argumentRows) == SOURCE_CALL_ARGUMENT_ROWS);
+    assert(bufferLength(argumentValueProducts) == SOURCE_CALL_ARGUMENT_ROWS);
     assert(bufferLength(valuePhysicalStarts) == VALUE_COUNT_LIMIT);
     assert(-1 < targetCount);
     assert(targetCount < TARGET_COUNT_LIMIT + 1);
@@ -444,12 +445,22 @@ classical class LoopCallProducts {
         valid = false;
       }
 
-      if (MAX_ARGUMENTS_PER_CALL < arity) {
+      if (SOURCE_CALL_ARITY_LIMIT < arity) {
         valid = false;
       }
 
-      if (ARGUMENT_COUNT_LIMIT - firstArgument < arity) {
+      if (firstArgument < 0) {
         valid = false;
+      }
+
+      if (SOURCE_CALL_ARGUMENT_LIMIT < firstArgument) {
+        valid = false;
+      }
+
+      if (valid) {
+        if (SOURCE_CALL_ARGUMENT_LIMIT - firstArgument < arity) {
+          valid = false;
+        }
       }
 
       if (valid) {
@@ -463,7 +474,7 @@ classical class LoopCallProducts {
           valid = false;
         }
 
-        if (TARGET_PARAMETER_ROWS - firstParameter < arity) {
+        if (TARGET_PARAMETER_ROWS - arity < firstParameter) {
           valid = false;
         }
 
@@ -479,6 +490,10 @@ classical class LoopCallProducts {
             localBase
           );
         }
+      }
+
+      if (valid == false) {
+        return new LoopCallPlan(0, 0, 0, 0, false);
       }
 
       long selectedLocalCount = sourceCallLocalCount(kind, arity);

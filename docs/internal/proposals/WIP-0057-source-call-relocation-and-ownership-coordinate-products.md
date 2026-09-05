@@ -5,12 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, linker, and ownership maintainers |
 | Created | 2026-08-14 |
-| Updated | 2026-08-14 |
+| Updated | 2026-09-04 |
 | Area | Self-hosting compiler, calls, relocation, ownership, callable layout |
 | Depends on | WIP-0045, WIP-0047, WIP-0055, WIP-0056 |
 | Supersedes | Call and ownership coordinate work embedded in WIP-0055 and WIP-0056 |
 | Superseded by | None |
-| Follow-up | WIP-0058, WIP-0059 |
+| Follow-up | WIP-0058, WIP-0059, WIP-0496 |
 
 ## Summary
 
@@ -89,7 +89,10 @@ Decoded instruction ownership remains independent verification evidence. It must
 - 32,768 instructions per callable
 - 8,192 ownership events per module
 
-All rows use fixed caller-provided buffers. No pass allocates per call or per event.
+These are the original admission bounds. [WIP-0496](WIP-0496-eight-argument-retained-source-calls.md)
+raises retained calls to eight arguments and owns the shared argument-table layout.
+The module-wide table still has 256 call rows. All rows use fixed caller-provided
+buffers. No pass allocates per call or per event.
 
 ## Migration
 

@@ -16,6 +16,7 @@ import wheeler.compiler.closure.qualified_source_call_products;
 import wheeler.compiler.closure.referenced_source_call_targets;
 import wheeler.compiler.closure.resolved_loop_body_products;
 import wheeler.compiler.closure.resolved_loop_products;
+import wheeler.compiler.closure.source_call_argument_layouts;
 import wheeler.compiler.closure.source_call_argument_products;
 import wheeler.compiler.closure.source_call_instruction_products;
 import wheeler.compiler.closure.source_call_layout_products;
@@ -37,6 +38,7 @@ classical class StructuredSourceModuleCompiler {
   private const long MAX_CALLABLES = 64;
   private const long MAX_LOOPS = 256;
   private const long MAX_STATEMENTS = 4096;
+  private const long PRODUCT_ARENA_BYTES = 4967424 + SOURCE_CALL_ARGUMENT_ROWS * 16;
 
   /// Publishes one verified artifact against closed imported target products.
   public SourceProductArtifactPlan compileStructuredSourceModuleWithTargets(
@@ -90,14 +92,16 @@ classical class StructuredSourceModuleCompiler {
     assert(importedTargetCount < 4097);
     assert(importedTargetCount < 4096 - callableCount + 1);
     if (0 < importedTargetCount) {
-      assert(bufferLength(importedTargetRows) == 32768);
-      assert(bufferLength(importedTargetParameterRows) == 32768);
-      assert(bufferLength(importedTargetNames) == 1048576);
-      assert(bufferLength(importedTargetIdentities) == 131072);
-      assert(bufferLength(importedTargetQualifierNames) == 1048576);
-      assert(4095 < bufferLength(importedTargetQualifierNameStarts));
-      assert(4095 < bufferLength(importedTargetQualifierNameLengths));
-      assert(4095 < bufferLength(importedTargetQualifierDependencyRanks));
+      requireStructuredImportedTargetBuffers(
+        importedTargetRows,
+        importedTargetParameterRows,
+        importedTargetNames,
+        importedTargetIdentities,
+        importedTargetQualifierNames,
+        importedTargetQualifierNameStarts,
+        importedTargetQualifierNameLengths,
+        importedTargetQualifierDependencyRanks
+      );
     }
 
     assert(bufferLength(bodyStarts) == 4096);
@@ -152,7 +156,7 @@ classical class StructuredSourceModuleCompiler {
     words targetEffects = allocate(targetEffectProducts, 4096);
     words retainedTargetEffects = allocate(targetEffectProducts, 4096);
 
-    region products = new region(/* bytes= */ 5024768, /* allocations= */ 65);
+    region products = new region(/* bytes= */ PRODUCT_ARENA_BYTES, /* allocations= */ 65);
     words blocks = allocate(products, 6144);
     words statements = allocate(products, 28672);
     words sourceConditions = allocate(products, 1536);
@@ -189,8 +193,8 @@ classical class StructuredSourceModuleCompiler {
     words callStatements = allocate(products, /* length= */ 256);
     words callArgumentStarts = allocate(products, /* length= */ 256);
     words callArgumentCounts = allocate(products, /* length= */ 256);
-    words callArguments = allocate(products, /* length= */ 3584);
-    words callArgumentValues = allocate(products, /* length= */ 3584);
+    words callArguments = allocate(products, SOURCE_CALL_ARGUMENT_ROWS);
+    words callArgumentValues = allocate(products, SOURCE_CALL_ARGUMENT_ROWS);
     words resolvedCalls = allocate(products, /* length= */ 1024);
     words callLocalWidths = allocate(products, /* length= */ 256);
     words callConditionalValues = allocate(products, /* length= */ 256);

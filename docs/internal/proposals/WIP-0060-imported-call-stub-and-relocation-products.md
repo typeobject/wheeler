@@ -10,7 +10,7 @@
 | Depends on | WIP-0048, WIP-0057, WIP-0059 |
 | Supersedes | Imported artifact-emission work in WIP-0059 |
 | Superseded by | None |
-| Follow-up | WIP-0062 for atomic closure publication |
+| Follow-up | WIP-0062 for atomic closure publication, WIP-0496 for eight-argument stubs |
 
 ## Summary
 
@@ -53,6 +53,10 @@ The stub has no executable semantic authority. The linker resolves the identity,
 - 256 locals per callable
 - 32,768 artifact bytes
 - 8,192 relocation events per archive
+
+These are the original bounds. [WIP-0496](WIP-0496-eight-argument-retained-source-calls.md)
+raises retained calls and their exact signature stubs to eight arguments. Stub
+exclusion and identity-based relocation are unchanged.
 
 ## Implementation
 

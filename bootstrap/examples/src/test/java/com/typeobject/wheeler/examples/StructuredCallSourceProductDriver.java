@@ -2,6 +2,7 @@ package com.typeobject.wheeler.examples;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -93,6 +94,27 @@ final class StructuredCallSourceProductDriver {
       int importedResultType,
       int callableEffect,
       SymbolProduct symbol) throws Exception {
+    int[] parameterTypes = new int[parameterCount];
+    Arrays.fill(parameterTypes, firstType);
+    if (1 < parameterCount) {
+      parameterTypes[1] = secondType;
+    }
+    int[] importedTypes = new int[parameterCount];
+    Arrays.fill(importedTypes, importedParameterType);
+    return driverWithParameters(
+        bodyStart, bodyLength, parameterTypes, imported, importedTypes,
+        importedResultType, callableEffect, symbol);
+  }
+
+  static Program driverWithParameters(
+      int bodyStart,
+      int bodyLength,
+      int[] parameterTypes,
+      boolean imported,
+      int[] importedTypes,
+      int importedResultType,
+      int callableEffect,
+      SymbolProduct symbol) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
     sources.putAll(CompilerSources.moduleClosure(
         "wheeler.compiler.closure.structured_source_module_compiler"));
@@ -122,6 +144,7 @@ final class StructuredCallSourceProductDriver {
           state long maxLocalCount = 0;
           state long relocationCount = 0;
           state long relocationTarget = 0;
+          state long relocationInstruction = -1;
           state long relocationOwner = -1;
           state long relocationIdentityByte = 0;
           state long retainedFunctionCount = 0;
@@ -130,7 +153,8 @@ final class StructuredCallSourceProductDriver {
           state long instructionFourSecondOperand = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 2936704, /* allocations= */ 21);
+            region publication = new region(/* bytes= */ 32800, /* allocations= */ 2);
+            region products = new region(/* bytes= */ 2903904, /* allocations= */ 19);
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words symbolOwners = allocate(products, /* length= */ 16384);
@@ -146,8 +170,8 @@ final class StructuredCallSourceProductDriver {
             words stringStarts = allocate(products, /* length= */ 256);
             words stringLengths = allocate(products, /* length= */ 256);
             words functionNameIds = allocate(products, /* length= */ 64);
-            bytes artifact = allocateBytes(products, /* length= */ 32768);
-            bytes identity = allocateBytes(products, /* length= */ 32);
+            bytes artifact = allocateBytes(publication, /* length= */ 32768);
+            bytes identity = allocateBytes(publication, /* length= */ 32);
             words importedRows = allocate(products, /* length= */ 32768);
             words importedParameterRows = allocate(products, /* length= */ 32768);
             bytes importedNames = allocateBytes(products, /* length= */ 1048576);
@@ -165,12 +189,7 @@ final class StructuredCallSourceProductDriver {
             SYMBOL_SETUP
             set(bodyStarts, 0, BODY_START);
             set(bodyLengths, 0, BODY_LENGTH);
-            set(signatureTypes, 0, 0);
-            set(signatureTypes, 4096, 0);
-            set(signatureTypes, 8192, FIRST_TYPE);
-            set(signatureTypes, 1, 0);
-            set(signatureTypes, 4097, 1);
-            set(signatureTypes, 8193, SECOND_TYPE);
+            SIGNATURE_SETUP
             set(parameterCounts, 0, PARAMETER_COUNT);
             set(callableEffects, 0, CALLABLE_EFFECT);
             writeAscii(strings, 0, "$library");
@@ -235,6 +254,7 @@ final class StructuredCallSourceProductDriver {
             relocationCount = plan.relocationCount;
             if (0 < plan.relocationCount) {
               relocationTarget = relocationRows[256];
+              relocationInstruction = relocationRows[0];
               relocationOwner = relocationOwners[0];
               relocationIdentityByte = relocationIdentities[0];
             }
@@ -330,6 +350,7 @@ final class StructuredCallSourceProductDriver {
             drop(importedRows);
             drop(identity);
             drop(artifact);
+            drop(publication);
             drop(functionNameIds);
             drop(stringLengths);
             drop(stringStarts);
@@ -350,9 +371,8 @@ final class StructuredCallSourceProductDriver {
         }
         """.replace("BODY_START", Integer.toString(bodyStart))
             .replace("BODY_LENGTH", Integer.toString(bodyLength))
-            .replace("PARAMETER_COUNT", Integer.toString(parameterCount))
-            .replace("FIRST_TYPE", Integer.toString(firstType))
-            .replace("SECOND_TYPE", Integer.toString(secondType))
+            .replace("PARAMETER_COUNT", Integer.toString(parameterTypes.length))
+            .replace("SIGNATURE_SETUP", signatureRows(parameterTypes))
             .replace("CALLABLE_EFFECT", Integer.toString(callableEffect))
             .replace("IMPORTED_COUNT", imported ? "2" : "0")
             .replace("IMPORTED_SETUP", imported
@@ -368,17 +388,15 @@ final class StructuredCallSourceProductDriver {
                     + "set(importedRows, 4097, 1);\n"
                     + "set(importedRows, 8193, 6);\n"
                     + "set(importedRows, 12289, 6);\n"
-                    + "set(importedRows, 16385, 1);\n"
+                    + "set(importedRows, 16385, IMPORTED_PARAMETER_COUNT);\n"
                     + "set(importedRows, 20481, IMPORTED_PARAMETER_COUNT);\n"
                     + "set(importedRows, 24577, IMPORTED_RESULT_TYPE);\n"
                     + "set(importedRows, 28673, " + callableEffect + ");\n"
-                    + "set(importedParameterRows, 0, IMPORTED_PARAMETER_TYPE);\n"
-                    + "set(importedParameterRows, 1, IMPORTED_PARAMETER_TYPE);\n"
+                    + importedParameterRows(importedTypes)
                     + "setByte(importedIdentities, 0, 42);\n"
                     + "setByte(importedIdentities, 32, 43);"
                 : "")
-            .replace("IMPORTED_PARAMETER_COUNT", Integer.toString(parameterCount))
-            .replace("IMPORTED_PARAMETER_TYPE", Integer.toString(importedParameterType))
+            .replace("IMPORTED_PARAMETER_COUNT", Integer.toString(importedTypes.length))
             .replace("IMPORTED_RESULT_TYPE", Integer.toString(importedResultType))
             .replace("SYMBOL_COUNT", symbol.present() ? "1" : "0")
             .replace("SYMBOL_SETUP", symbol.present()
@@ -393,4 +411,25 @@ final class StructuredCallSourceProductDriver {
         sources, "example.structured_call_source_product");
   }
 
+  private static String signatureRows(int[] types) {
+    StringBuilder rows = new StringBuilder();
+    for (int index = 0; index < types.length; index++) {
+      rows.append("set(signatureTypes, ").append(4096 + index).append(", ")
+          .append(index).append(");\n");
+      rows.append("set(signatureTypes, ").append(8192 + index).append(", ")
+          .append(types[index]).append(");\n");
+    }
+    return rows.toString();
+  }
+
+  private static String importedParameterRows(int[] types) {
+    StringBuilder rows = new StringBuilder();
+    for (int target = 0; target < 2; target++) {
+      for (int index = 0; index < types.length; index++) {
+        rows.append("set(importedParameterRows, ").append(target * types.length + index)
+            .append(", ").append(types[index]).append(");\n");
+      }
+    }
+    return rows.toString();
+  }
 }
