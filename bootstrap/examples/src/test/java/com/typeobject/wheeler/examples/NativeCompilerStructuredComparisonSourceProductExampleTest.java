@@ -672,13 +672,11 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
 
   private static void assertArtifact(String source) throws Exception {
     int body = source.indexOf("{", source.indexOf("copyOffset("));
-    int maxSourceBytes = maxSourceBytesUse(source);
     int parameterCount = source.contains("boolean result") ? 6 : 5;
     int sourceType = source.contains("borrow utf8 source") ? 8 : 13;
     Program driver = driver(
         body,
         matchingClose(source, body) - body + 1,
-        maxSourceBytes,
         parameterCount,
         sourceType);
     VirtualMachine machine = new VirtualMachine(
@@ -708,13 +706,11 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
 
   private static void assertNoArtifact(String source) throws Exception {
     int body = source.indexOf("{", source.indexOf("copyOffset("));
-    int maxSourceBytes = maxSourceBytesUse(source);
     int parameterCount = source.contains("boolean result") ? 6 : 5;
     int sourceType = source.contains("borrow utf8 source") ? 8 : 13;
     Program driver = driver(
         body,
         matchingClose(source, body) - body + 1,
-        maxSourceBytes,
         parameterCount,
         sourceType);
     VirtualMachine machine = new VirtualMachine(
@@ -767,18 +763,9 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
                             "    return same;\n");
   }
 
-  private static int maxSourceBytesUse(String source) {
-    int initializer = source.indexOf("long combined");
-    if (-1 < initializer) {
-      return source.indexOf("MAX_SOURCE_BYTES", initializer);
-    }
-    return source.indexOf("MAX_SOURCE_BYTES");
-  }
-
   private static Program driver(
       int bodyStart,
       int bodyLength,
-      int maxSourceBytes,
       int parameterCount,
       int sourceType) throws Exception {
     Map<String, String> sources = new LinkedHashMap<>();
@@ -819,7 +806,8 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             set(bodyStarts, 0, %d);
             set(bodyLengths, 0, %d);
             set(symbolOwners, 0, 0);
-            set(symbolStarts, 0, %d);
+            writeAscii(strings, 128, "MAX_SOURCE_BYTES");
+            set(symbolStarts, 0, 128);
             set(symbolLengths, 0, 16);
             set(symbolTypes, 0, 1);
             set(symbolValues, 0, 32768);
@@ -855,6 +843,7 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
             set(functionNameIds, 0, 2);
             SourceProductArtifactPlan plan = compileStructuredSourceModule(
               input,
+              /* symbolNames= */ strings,
               /* archiveSourceStart= */ 0,
               /* moduleOwner= */ 0,
               /* firstCallable= */ 0,
@@ -911,7 +900,6 @@ final class NativeCompilerStructuredComparisonSourceProductExampleTest {
         """.formatted(
             bodyStart,
             bodyLength,
-            maxSourceBytes,
             sourceType,
             parameterCount,
             parameterCount));

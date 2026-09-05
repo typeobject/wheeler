@@ -148,6 +148,7 @@ final class NativeCompilerStructuredByteProductsExampleTest {
             set(functionNameIds, 0, 2);
             SourceProductArtifactPlan plan = compileStructuredSourceModule(
               source,
+              /* symbolNames= */ strings,
               /* archiveSourceStart= */ 0,
               /* moduleOwner= */ 0,
               /* firstCallable= */ 0,

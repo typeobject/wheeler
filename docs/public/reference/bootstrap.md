@@ -66,7 +66,9 @@ physical product integration.
 Archive emission takes module and class names from lexical declaration products.
 It checks class-name extents inside the owning source before publishing callable
 or callable-free artifacts. Comments do not define another declaration identity.
-Imported-value use discovery still needs lexical-product integration.
+Direct statements and loop limits resolve constants against packed name bytes.
+They do not search raw source for a representative use. Unused names cannot alias
+the module header, and invalid matching products cannot hide behind valid ones.
 
 The evidence tests derive their graph and archive from checked-in source.
 Comparable products match stage 0 byte for byte. Every selected imported-call

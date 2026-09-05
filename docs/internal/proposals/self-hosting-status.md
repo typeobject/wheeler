@@ -78,7 +78,10 @@ failure offsets, validation order, and unchanged rejected rows.
 Archive emission uses lexical module and class names from declaration products.
 The four name columns publish together after the complete pass. Callable and
 callable-free emission validate name extents without raw-text rediscovery.
-Imported-value use discovery still needs the corresponding lexical products.
+Constant lookup compares lexical uses with packed name bytes, not guessed local
+source offsets. Direct statements and loop limits share the bounded comparison.
+Unused constants cannot alias the module-header prefix. Duplicate, unresolved,
+and nonsigned matching products reject before publication.
 
 After manifest composition, the remaining physical compiler modules must enter
 the same product route. Final linking and the fixed-point comparison remain

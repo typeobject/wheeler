@@ -29,6 +29,7 @@ classical class DirectScalarRelations {
   /// Resolves one complete identifier-led relation without reading dependency source.
   public DirectScalarRelationProduct resolveDirectScalarRelation(
     borrow utf8 source,
+    borrow byteview symbolNames,
     long leftToken,
     long tokenCount,
     borrow mut words tokenKinds,
@@ -154,6 +155,7 @@ classical class DirectScalarRelations {
 
     DirectReturnConstant constant = resolveDirectReturnConstant(
       source,
+      symbolNames,
       moduleOwner,
       tokenStarts[relation.rightToken],
       tokenLengths[relation.rightToken],
@@ -240,6 +242,7 @@ classical class DirectScalarRelations {
   /// Resolves one complete return relation with constant precedence on its left source.
   public DirectScalarRelationProduct resolveDirectReturnRelation(
     borrow utf8 source,
+    borrow byteview symbolNames,
     long leftToken,
     long tokenCount,
     borrow mut words tokenKinds,
@@ -350,6 +353,7 @@ classical class DirectScalarRelations {
 
     DirectReturnConstant constant = resolveDirectReturnConstant(
       source,
+      symbolNames,
       moduleOwner,
       tokenStarts[relation.leftToken],
       tokenLengths[relation.leftToken],
@@ -384,6 +388,7 @@ classical class DirectScalarRelations {
 
     return resolveDirectScalarRelation(
       source,
+      symbolNames,
       leftToken,
       tokenCount,
       tokenKinds,

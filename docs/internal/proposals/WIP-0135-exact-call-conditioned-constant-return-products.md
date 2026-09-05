@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-18 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting compiler, calls, conditionals, scalar products |
 | Depends on | WIP-0049, WIP-0054, WIP-0056, WIP-0057, WIP-0062, WIP-0077, WIP-0123 |
 | Supersedes | Signed-constant child gap in WIP-0123 |
@@ -33,7 +33,7 @@ This closes the remaining product needed to route `EarlyReturnKinds.w` directly.
 A nonliteral child is accepted only when `resolveDirectReturnConstant` finds exactly one product with:
 
 - the selected module owner
-- the exact source-anchored name
+- the exact lexical child name in the packed constant-name view
 - signed type
 - resolved value state
 - a bounded name range

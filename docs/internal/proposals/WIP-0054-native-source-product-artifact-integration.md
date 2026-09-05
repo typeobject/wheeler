@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, bytecode, linker, and bootstrap maintainers |
 | Created | 2026-08-13 |
-| Updated | 2026-08-15 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting compiler, source products, artifact emission, bootstrap closure |
 | Depends on | WIP-0045, WIP-0046, WIP-0047, WIP-0048, WIP-0049, WIP-0050, WIP-0051, WIP-0052, WIP-0055, WIP-0056, WIP-0057, WIP-0067 |
 | Supersedes | WIP-0052 physical-closure adoption tasks |
@@ -139,7 +139,7 @@ No fallback reparses source after one of these failures.
 - [x] WIP-0067 replaces inferred production loop rebasing with exact physical value, packed operand, nested-condition, and scratch-window products. Logical-coordinate rebasing remains only for isolated product fixtures. Bounded body, nested, loop, and direct-statement failure coordinates identify malformed products before publication.
 - [x] `AggregateSourceProjection.w` enters the physical archive through direct products. Its 8,096-byte artifact verifies and matches stage 0 byte for byte.
 - [x] WIP-0068 emits callable-free artifacts without parser projection or structured-product allocation. All 17 callable-free physical authorities produce byte-identical canonical library artifacts through one bounded route.
-- [x] WIP-0069 emits complete ordinary scalar return relations and rejects statement suffix loss. `TypeKinds.w` resolves its imported mask from an exact local source-anchored name product and matches stage 0 byte for byte.
+- [x] WIP-0069 emits complete ordinary scalar return relations and rejects statement suffix loss. `TypeKinds.w` resolves its imported mask from an exact name product and matches stage 0 byte for byte. WIP-0049 now supplies packed name bytes without raw source-use discovery.
 - [x] WIP-0070 emits complete signed scalar declaration relations and module-local constant products. All nine `WideReturnSources.w` callables match stage 0 byte for byte.
 - [x] WIP-0071 emits root byte-buffer mutations and simple constant initializers. All three `LocalTypeEncoding.w` callables match stage 0 byte for byte.
 - [x] WIP-0072 emits four-local root byte projections, signed comparison returns, typed byte-view arguments, and forwarded result calls. All seven `ResultSlotVerifier.w` callables match its 6,040-byte stage-0 artifact byte for byte.

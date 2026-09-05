@@ -14,8 +14,6 @@ classical class ArchiveStructuredSourceModuleCompiler {
   private const long MAX_PARAMETERS = 16384;
   private const long MAX_SIGNATURE_TYPES = 4096;
 
-  private record NameUseRange(long start, boolean valid) {}
-
   private void requireArchiveSourceNames(
     borrow byteview archive,
     long sourceStart,
@@ -41,30 +39,6 @@ classical class ArchiveStructuredSourceModuleCompiler {
     assert(0 < classNameLength);
     assert(classNameLength < 257);
     assert(classNameLength < sourceStart + sourceLength - classNameStart + 1);
-  }
-
-  private boolean identifierByte(long value) {
-    if (value == 95) {
-      return true;
-    }
-
-    if (47 < value) {
-      if (value < 58) {
-        return true;
-      }
-    }
-
-    if (64 < value) {
-      if (value < 91) {
-        return true;
-      }
-    }
-
-    if (96 < value) {
-      return value < 123;
-    }
-
-    return false;
   }
 
   private boolean nameBefore(
@@ -126,54 +100,6 @@ classical class ArchiveStructuredSourceModuleCompiler {
 
     assert(false);
     return 0;
-  }
-
-  private NameUseRange sourceNameUse(
-    borrow byteview source,
-    long sourceStart,
-    long sourceLength,
-    borrow byteview names,
-    long nameStart,
-    long nameLength
-  ) {
-    long selected = 0;
-    long matches = 0;
-    long candidate = sourceStart;
-    long sourceEnd = sourceStart + sourceLength;
-    while (candidate + nameLength < sourceEnd + 1) limit 32768 {
-      boolean same = true;
-      long offset = 0;
-      while (offset < nameLength) limit 256 {
-        if (source[candidate + offset] != names[nameStart + offset]) {
-          same = false;
-        }
-
-        offset += 1;
-      }
-
-      if (same) {
-        if (sourceStart < candidate) {
-          if (identifierByte(source[candidate - 1])) {
-            same = false;
-          }
-        }
-
-        if (candidate + nameLength < sourceEnd) {
-          if (identifierByte(source[candidate + nameLength])) {
-            same = false;
-          }
-        }
-      }
-
-      if (same) {
-        selected = candidate - sourceStart;
-        matches += 1;
-      }
-
-      candidate += 1;
-    }
-
-    return new NameUseRange(selected, matches == 1);
   }
 
   private long copyRange(
@@ -468,15 +394,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
     while (imported < importedCount) limit 16384 {
       long importedBase = 1 + imported * 7;
       set(symbolOwners, imported, moduleOwner);
-      NameUseRange nameUse = sourceNameUse(
-        archive,
-        sourceStart,
-        sourceLength,
-        importedNames,
-        importedNameStarts[imported],
-        importedRows[importedBase + 1]
-      );
-      set(symbolStarts, imported, nameUse.start);
+      set(symbolStarts, imported, importedNameStarts[imported]);
       set(symbolLengths, imported, importedRows[importedBase + 1]);
       set(symbolTypes, imported, importedRows[importedBase + 2]);
       set(symbolValues, imported, importedRows[importedBase + 3]);
@@ -588,6 +506,7 @@ classical class ArchiveStructuredSourceModuleCompiler {
 
     SourceProductArtifactPlan result = compileStructuredSourceModuleWithTargets(
       source,
+      importedNames,
       /* archiveSourceStart= */ 0,
       moduleOwner,
       /* firstCallable= */ 0,

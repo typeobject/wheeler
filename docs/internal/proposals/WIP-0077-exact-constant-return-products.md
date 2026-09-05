@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-16 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting compiler, constants, return products |
 | Depends on | WIP-0054, WIP-0069, WIP-0075 |
 | Supersedes | Local-only source relation for ordinary signed returns |
@@ -34,7 +34,11 @@ The parser route could lower this source, but the closed product route could not
 
 ## Relation kind
 
-`RESULT_RELATION_CONSTANT` names one signed value from an exact constant product. `DirectScalarRelations.w` resolves the source-anchored identifier through owner, length, type, value, and resolution rows. It requires one signed match and rejects ambiguous, unresolved, nonsigned, or non-source relation forms.
+`RESULT_RELATION_CONSTANT` names one signed value from an exact constant product.
+`DirectScalarRelations.w` resolves the lexical identifier through packed name
+bytes and owner, length, type, value, and resolution rows. WIP-0049 removed the
+local source-use mapping. Resolution requires one signed match and rejects
+ambiguous, unresolved, nonsigned, or non-source relation forms.
 
 Constant lookup precedes local lookup. A module constant therefore keeps the existing precedence over a same-named source value.
 
@@ -114,6 +118,7 @@ Rejected. Reversible publication requires presence and payload result slots plus
 
 ## References
 
+- [WIP-0049](WIP-0049-bounded-native-source-product-compilation.md)
 - [WIP-0054](WIP-0054-native-source-product-artifact-integration.md)
 - [WIP-0069](WIP-0069-exact-scalar-return-expression-products.md)
 - [WIP-0075](WIP-0075-exact-computed-conditional-return-products.md)

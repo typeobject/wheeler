@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.resolved_loop_products;
 
+import wheeler.compiler.closure.imported_constant_values;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.tokens;
 import wheeler.compiler.type_codes;
@@ -113,7 +114,7 @@ classical class ResolvedLoopProducts {
     borrow utf8 source,
     long start,
     long length,
-    long archiveSourceStart,
+    borrow byteview symbolNames,
     long moduleOwner,
     long tokenCount,
     borrow mut words tokenKinds,
@@ -155,23 +156,33 @@ classical class ResolvedLoopProducts {
 
     long selected = -1;
     long matches = 0;
+    boolean valid = true;
     long symbol = 0;
     while (symbol < symbolCount) limit SYMBOL_COUNT_LIMIT {
       if (symbolOwners[symbol] == moduleOwner) {
-        if (symbolTypes[symbol] == TYPE_SIGNED) {
-          if (symbolResolved[symbol] == 1) {
-            long symbolStart = symbolStarts[symbol] - archiveSourceStart;
-            if (
-              sameRange(source, start, length, symbolStart, symbolLengths[symbol])
-            ) {
-              selected = symbolValues[symbol];
-              matches += 1;
-            }
+        if (
+          matchesConstantName(
+            source, start, length,
+            symbolNames, symbolStarts[symbol], symbolLengths[symbol]
+          )
+        ) {
+          selected = symbolValues[symbol];
+          matches += 1;
+          if (symbolTypes[symbol] != TYPE_SIGNED) {
+            valid = false;
+          }
+
+          if (symbolResolved[symbol] != 1) {
+            valid = false;
           }
         }
       }
 
       symbol += 1;
+    }
+
+    if (valid == false) {
+      return new ResolvedLimit(0, false);
     }
 
     if (matches != 1) {
@@ -304,7 +315,7 @@ classical class ResolvedLoopProducts {
   /// Resolves signed loop operands and republishes source-independent loop rows atomically.
   public ResolvedLoopProductPlan materializeResolvedLoopProducts(
     borrow utf8 source,
-    long archiveSourceStart,
+    borrow byteview symbolNames,
     long moduleOwner,
     long loopCount,
     borrow mut words sourceConditionRows,
@@ -321,7 +332,6 @@ classical class ResolvedLoopProducts {
     borrow mut words resolvedConditionRows,
     borrow mut words resolvedLoopRows
   ) {
-    assert(-1 < archiveSourceStart);
     assert(-1 < moduleOwner);
     assert(moduleOwner < 512);
     assert(-1 < loopCount);
@@ -475,7 +485,7 @@ classical class ResolvedLoopProducts {
           source,
           limitStart,
           limitLength,
-          archiveSourceStart,
+          symbolNames,
           moduleOwner,
           semanticCount,
           tokenKinds,

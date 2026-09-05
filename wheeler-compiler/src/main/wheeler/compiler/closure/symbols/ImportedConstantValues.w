@@ -11,6 +11,60 @@ classical class ImportedConstantValues {
   private const long IMPORTED_CONSTANT_NAME_BYTES = 1048576;
   private const long IMPORTED_CONSTANT_ROW_WIDTH = 7;
 
+  /// Matches one ASCII source token against an independently owned constant name.
+  public boolean matchesConstantName(
+    borrow utf8 source,
+    long start,
+    long length,
+    borrow byteview names,
+    long nameStart,
+    long nameLength
+  ) {
+    if (start < 0) {
+      return false;
+    }
+
+    if (length < 1) {
+      return false;
+    }
+
+    if (256 < length) {
+      return false;
+    }
+
+    if (bufferLength(source) - length < start) {
+      return false;
+    }
+
+    if (nameStart < 0) {
+      return false;
+    }
+
+    if (nameLength != length) {
+      return false;
+    }
+
+    if (bufferLength(names) - length < nameStart) {
+      return false;
+    }
+
+    long offset = 0;
+    while (offset < length) limit 256 {
+      long value = names[nameStart + offset];
+      if (127 < value) {
+        return false;
+      }
+
+      if (utf8Scalar(source, start + offset) != value) {
+        return false;
+      }
+
+      offset += 1;
+    }
+
+    return true;
+  }
+
   /// Copies packed imported names so consumers do not reopen dependency source.
   public long writeDirectImportedValueNames(
     borrow byteview archive,

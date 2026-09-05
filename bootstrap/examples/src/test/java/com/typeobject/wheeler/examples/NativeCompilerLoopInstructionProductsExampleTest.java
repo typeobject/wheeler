@@ -195,7 +195,7 @@ final class NativeCompilerLoopInstructionProductsExampleTest {
             assert(bodyPlan.valid);
             ResolvedLoopProductPlan resolvedPlan = materializeResolvedLoopProducts(
               input,
-              /* archiveSourceStart= */ 0,
+              /* symbolNames= */ callCode,
               /* moduleOwner= */ 0,
               loopPlan.loopCount,
               sourceConditions,

@@ -69,6 +69,7 @@ classical class DirectConditionalReturnProducts {
   /// Writes one exact `if (left op right) { return literal; }` product.
   public DirectConditionalReturnProduct writeDirectConditionalReturn(
     borrow utf8 source,
+    borrow byteview symbolNames,
     long token,
     long tokenCount,
     borrow mut words tokenKinds,
@@ -223,6 +224,7 @@ classical class DirectConditionalReturnProducts {
       if (tokenKinds[rightToken] == 1) {
         DirectReturnConstant constant = resolveDirectReturnConstant(
           source,
+          symbolNames,
           moduleOwner,
           tokenStarts[rightToken],
           tokenLengths[rightToken],
@@ -420,6 +422,7 @@ classical class DirectConditionalReturnProducts {
     if (literalChild == false) {
       DirectScalarRelationProduct childRelation = resolveDirectReturnRelation(
         source,
+        symbolNames,
         childToken + 1,
         tokenCount,
         tokenKinds,

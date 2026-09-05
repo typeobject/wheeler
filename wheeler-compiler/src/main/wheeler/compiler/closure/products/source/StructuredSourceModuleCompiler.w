@@ -43,6 +43,7 @@ classical class StructuredSourceModuleCompiler {
   /// Publishes one verified artifact against closed imported target products.
   public SourceProductArtifactPlan compileStructuredSourceModuleWithTargets(
     borrow utf8 source,
+    borrow byteview symbolNames,
     long archiveSourceStart,
     long moduleOwner,
     long firstCallable,
@@ -536,7 +537,7 @@ classical class StructuredSourceModuleCompiler {
     assert(physicalBodyPlan.valid);
     ResolvedLoopProductPlan resolvedPlan = materializeResolvedLoopProducts(
       source,
-      archiveSourceStart,
+      symbolNames,
       moduleOwner,
       loopPlan.loopCount,
       sourceConditions,
@@ -607,6 +608,7 @@ classical class StructuredSourceModuleCompiler {
 
     DirectStatementPlan directPlan = materializeDirectStatementProducts(
       source,
+      symbolNames,
       moduleOwner,
       reversibleCallableCount,
       callableCount,

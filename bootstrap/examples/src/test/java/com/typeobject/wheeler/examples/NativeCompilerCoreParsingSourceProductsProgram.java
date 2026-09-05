@@ -357,7 +357,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             }
             ResolvedLoopProductPlan resolvedPlan = materializeResolvedLoopProducts(
               input,
-              0,
+              binarySource,
               0,
               loopPlan.loopCount,
               conditions,
@@ -379,6 +379,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             }
             DirectStatementPlan directPlan = materializeDirectStatementProducts(
               input,
+              binarySource,
               /* moduleOwner= */ 0,
               /* reversibleCallableCount= */ 0,
               /* functionCount= */ 2,
@@ -533,6 +534,7 @@ final class NativeCompilerCoreParsingSourceProductsProgram {
             }
             SourceProductArtifactPlan structuredPlan = compileStructuredSourceModule(
               input,
+              binarySource,
               /* archiveSourceStart= */ 0,
               /* moduleOwner= */ 0,
               /* firstCallable= */ 0,

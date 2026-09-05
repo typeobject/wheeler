@@ -35,6 +35,7 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
         SOURCE.getBytes(StandardCharsets.UTF_8),
         1);
 
+    var initial = machine.snapshot();
     machine.run();
 
     assertEquals(1, machine.global("valid"));
@@ -53,6 +54,21 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
     assertEquals(3, machine.global("secondLimit"));
     assertEquals(1, machine.global("firstBodyCount"));
     assertEquals(1, machine.global("secondBodyCount"));
+    while (machine.historySize() > 0) {
+      machine.rewindOne();
+    }
+    assertEquals(initial, machine.snapshot());
+  }
+
+  @Test
+  void resolvesPackedNamesWithoutDeclarationsOrUniqueTextOccurrences() throws Exception {
+    String source = "// café 𝄞 SECOND_LIMIT SECOND_LIMIT\n"
+        + SOURCE.replace("private const long SECOND_LIMIT = 3;", "// imported value");
+    VirtualMachine machine = new VirtualMachine(
+        program(source, Mutation.NONE), source.getBytes(StandardCharsets.UTF_8), 1);
+    machine.run();
+    assertEquals(1, machine.global("valid"));
+    assertEquals(3, machine.global("secondLimit"));
   }
 
   @Test
@@ -87,7 +103,14 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
         Mutation.WRONG_LIMIT_TYPE,
         Mutation.DUPLICATE_LIMIT,
         Mutation.UNRESOLVED_LIMIT,
-        Mutation.EXCESSIVE_LIMIT
+        Mutation.EXCESSIVE_LIMIT,
+        Mutation.DUPLICATE_WRONG_TYPE,
+        Mutation.DUPLICATE_UNRESOLVED,
+        Mutation.FOREIGN_OWNER,
+        Mutation.NEGATIVE_NAME_START,
+        Mutation.EXCESSIVE_NAME_START,
+        Mutation.TRUNCATED_NAME,
+        Mutation.MISMATCHED_NAME
     }) {
       VirtualMachine machine = new VirtualMachine(
           program(SOURCE, mutation),
@@ -106,18 +129,26 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
     assertEquals(0, machine.global("loopCount"));
     assertEquals(91, machine.global("firstLeftOperand"));
     assertEquals(92, machine.global("firstLimit"));
+    assertEquals(3840, machine.global("unchangedCells"));
   }
 
   private static Program program(String source, Mutation mutation) throws Exception {
     int bodyStart = source.indexOf("{", source.indexOf("nested("));
     int bodyEnd = matchingClose(source, bodyStart) + 1;
-    int limitNameStart = source.indexOf("SECOND_LIMIT");
+    long limitNameStart = switch (mutation) {
+      case NEGATIVE_NAME_START -> Long.MIN_VALUE;
+      case EXCESSIVE_NAME_START -> Long.MAX_VALUE;
+      case TRUNCATED_NAME -> 21;
+      default -> 16;
+    };
     int symbolType = mutation == Mutation.WRONG_LIMIT_TYPE ? 2 : 1;
     int symbolValue = mutation == Mutation.EXCESSIVE_LIMIT ? 16_777_217 : 3;
     int symbolResolved = mutation == Mutation.UNRESOLVED_LIMIT ? 0 : 1;
-    int symbolCount = mutation == Mutation.MISSING_LIMIT
-        ? 0
-        : mutation == Mutation.DUPLICATE_LIMIT ? 2 : 1;
+    int symbolCount = switch (mutation) {
+      case MISSING_LIMIT -> 0;
+      case DUPLICATE_LIMIT, DUPLICATE_WRONG_TYPE, DUPLICATE_UNRESOLVED -> 2;
+      default -> 1;
+    };
     String valueMutation = mutation == Mutation.DUPLICATE_VALUE
         ? "set(values, 1024, values[1025]);\n"
             + "set(values, 2048, values[2049]);\n"
@@ -159,9 +190,12 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
           state long secondLimit = 0;
           state long firstBodyCount = 0;
           state long secondBodyCount = 0;
+          state long unchangedCells = 0;
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 1511936, /* allocations= */ 18);
+            region products = new region(/* bytes= */ 1511968, /* allocations= */ 19);
+            bytes symbolNames = allocateBytes(products, 32);
+            writeAscii(symbolNames, 16, "%s");
             words bodyStarts = allocate(products, /* length= */ 4096);
             words bodyLengths = allocate(products, /* length= */ 4096);
             words blocks = allocate(products, /* length= */ 6144);
@@ -182,20 +216,29 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
             words symbolResolved = allocate(products, /* length= */ 16384);
             set(bodyStarts, 0, %d);
             set(bodyLengths, 0, %d);
-            set(resolvedConditions, 512, 91);
-            set(resolvedLoops, 1024, 92);
-            set(symbolOwners, 0, 0);
-            set(symbolStarts, 0, %d);
+            long conditionCell = 0;
+            while (conditionCell < 1536) limit 1536 {
+              set(resolvedConditions, conditionCell, 91);
+              conditionCell += 1;
+            }
+            long loopCell = 0;
+            while (loopCell < 2304) limit 2304 {
+              set(resolvedLoops, loopCell, 92);
+              loopCell += 1;
+            }
+            set(symbolOwners, 0, %d);
+            long nameStart = %s;
+            set(symbolStarts, 0, nameStart);
             set(symbolLengths, 0, 12);
             set(symbolTypes, 0, %d);
             set(symbolValues, 0, %d);
             set(symbolResolved, 0, %d);
             set(symbolOwners, 1, 0);
-            set(symbolStarts, 1, %d);
+            set(symbolStarts, 1, nameStart);
             set(symbolLengths, 1, 12);
-            set(symbolTypes, 1, 1);
+            set(symbolTypes, 1, %d);
             set(symbolValues, 1, 3);
-            set(symbolResolved, 1, 1);
+            set(symbolResolved, 1, %d);
             SourceBlockProductPlan blockPlan = materializeSourceBlockProducts(
               input,
               /* archiveSourceStart= */ 0,
@@ -244,7 +287,7 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
             assert(loopPlan.valid);
             ResolvedLoopProductPlan resolvedPlan = materializeResolvedLoopProducts(
               input,
-              /* archiveSourceStart= */ 0,
+              symbolNames,
               /* moduleOwner= */ 0,
               loopPlan.loopCount,
               sourceConditions,
@@ -279,6 +322,20 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
             secondLimit = resolvedLoops[1025];
             firstBodyCount = resolvedLoops[1792];
             secondBodyCount = resolvedLoops[1793];
+            conditionCell = 0;
+            while (conditionCell < 1536) limit 1536 {
+              if (resolvedConditions[conditionCell] == 91) {
+                unchangedCells += 1;
+              }
+              conditionCell += 1;
+            }
+            loopCell = 0;
+            while (loopCell < 2304) limit 2304 {
+              if (resolvedLoops[loopCell] == 92) {
+                unchangedCells += 1;
+              }
+              loopCell += 1;
+            }
             setOutputLength(output, 0);
             drop(symbolResolved);
             drop(symbolValues);
@@ -298,17 +355,22 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
             drop(blocks);
             drop(bodyLengths);
             drop(bodyStarts);
+            drop(symbolNames);
             drop(products);
           }
         }
         """.formatted(
-            bodyStart,
-            bodyEnd - bodyStart,
-            limitNameStart,
+            mutation == Mutation.MISMATCHED_NAME ? "SECOND_LIMIX" : "SECOND_LIMIT",
+            SourceRanges.utf8Offset(source, bodyStart),
+            SourceRanges.utf8Length(source, bodyStart, bodyEnd - bodyStart),
+            mutation == Mutation.FOREIGN_OWNER ? 1 : 0,
+            limitNameStart == Long.MIN_VALUE
+                ? "-9223372036854775807 - 1" : Long.toString(limitNameStart),
             symbolType,
             symbolValue,
             symbolResolved,
-            limitNameStart,
+            mutation == Mutation.DUPLICATE_WRONG_TYPE ? 2 : 1,
+            mutation == Mutation.DUPLICATE_UNRESOLVED ? 0 : 1,
             valueMutation,
             symbolCount));
     return new WheelerCompiler().compileModuleFiles(
@@ -322,7 +384,14 @@ final class NativeCompilerResolvedLoopProductsExampleTest {
     WRONG_LIMIT_TYPE,
     DUPLICATE_LIMIT,
     UNRESOLVED_LIMIT,
-    EXCESSIVE_LIMIT
+    EXCESSIVE_LIMIT,
+    DUPLICATE_WRONG_TYPE,
+    DUPLICATE_UNRESOLVED,
+    FOREIGN_OWNER,
+    NEGATIVE_NAME_START,
+    EXCESSIVE_NAME_START,
+    TRUNCATED_NAME,
+    MISMATCHED_NAME
   }
 
   private static int matchingClose(String source, int open) {

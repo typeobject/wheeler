@@ -258,8 +258,28 @@ excess class-name lengths. The CoreParsing fixture now accepts binary input and
 copies exact bytes before freezing its UTF-8 source. UTF-8 comment coordinates
 there do not widen the counted source lease's separate ASCII profile.
 
-Imported-value use discovery still searches raw source. Replacing that search
-with lexical products remains part of this contract.
+Constant lookup now consumes the packed name bytes from
+`ImportedConstantValues.w`. `symbolStarts` indexes that name view, not local
+source or an archive-adjusted source offset. Direct declarations, relations,
+returns, call-conditioned children, and loop limits compare their lexical use
+with the same checked name product. Matching retains the 256-byte ASCII name
+bound and selected-owner, signed-type, resolution, and uniqueness checks.
+Loop limits count every matching name before checking type and resolution.
+An invalid duplicate cannot disappear behind a valid signed product.
+
+The archive compiler no longer searches for a representative source use.
+`sourceNameUse`, `identifierByte`, and `NameUseRange` are gone. An absent imported
+name cannot fall back to source offset zero and impersonate a local named `mod`
+through the `module` header prefix. Unused products need no local source spelling.
+
+`NativeCompilerArchiveConstantNamesExampleTest` compares complete artifacts for
+that regression, repeated names, UTF-8 comment coordinates, root declarations,
+conditional children, loop limits, and the last admitted name length. It checks
+every rejected artifact and identity cell. The name-product fixture covers
+mismatches, partial windows, signed extremes, untouched names, and full rewind.
+Loop-product fixtures check every unpublished row cell and full rewind.
+Remaining statement forms, complete target composition, and compiler-wide
+physical integration remain open.
 
 ## Acceptance
 

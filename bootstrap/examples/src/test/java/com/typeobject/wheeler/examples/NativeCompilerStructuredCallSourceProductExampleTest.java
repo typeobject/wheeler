@@ -114,8 +114,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
         """;
     int bodyStart = source.indexOf("{", source.indexOf("recurse("));
     int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
-    int symbolStart = source.indexOf("RESULT", source.indexOf("return"));
-    SymbolProduct result = new SymbolProduct(symbolStart, "RESULT".length(), 1, 4, 1);
+    SymbolProduct result = new SymbolProduct("RESULT", 1, 4, 1);
     Program driver = driverWithSymbol(
         bodyStart, bodyLength, 1, 2, 0, true, 2, 2, 0, result);
     VirtualMachine machine = new VirtualMachine(
@@ -134,8 +133,7 @@ final class NativeCompilerStructuredCallSourceProductExampleTest {
             "classical class StructuredCall {\n  private const boolean RESULT = true;");
     int bodyStart = source.indexOf("{", source.indexOf("recurse("));
     int bodyLength = SourceRanges.matchingClose(source, bodyStart) - bodyStart + 1;
-    int symbolStart = source.indexOf("RESULT", source.indexOf("return"));
-    SymbolProduct result = new SymbolProduct(symbolStart, "RESULT".length(), 2, 1, 1);
+    SymbolProduct result = new SymbolProduct("RESULT", 2, 1, 1);
     Program driver = driverWithSymbol(
         bodyStart, bodyLength, 1, 2, 0, false, 1, 1, 0, result);
     VirtualMachine machine = new VirtualMachine(

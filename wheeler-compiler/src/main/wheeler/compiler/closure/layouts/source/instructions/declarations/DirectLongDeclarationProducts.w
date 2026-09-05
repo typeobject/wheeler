@@ -39,6 +39,7 @@ classical class DirectLongDeclarationProducts {
   /// Writes one complete root signed declaration initializer.
   public DirectLongDeclarationProduct writeDirectLongDeclaration(
     borrow utf8 source,
+    borrow byteview symbolNames,
     long token,
     long tokenCount,
     borrow mut words tokenKinds,
@@ -304,6 +305,7 @@ classical class DirectLongDeclarationProducts {
 
     DirectReturnConstant constant = resolveDirectReturnConstant(
       source,
+      symbolNames,
       moduleOwner,
       tokenStarts[sourceToken],
       tokenLengths[sourceToken],
@@ -317,6 +319,7 @@ classical class DirectLongDeclarationProducts {
     );
     DirectScalarRelationProduct initializer = resolveDirectScalarRelation(
       source,
+      symbolNames,
       sourceToken,
       tokenCount,
       tokenKinds,

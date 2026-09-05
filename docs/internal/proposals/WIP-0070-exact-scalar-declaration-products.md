@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-16 |
-| Updated | 2026-08-16 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting compiler, scalar lowering, declaration products |
 | Depends on | WIP-0049, WIP-0054, WIP-0069 |
 | Supersedes | First-token projection of scalar declaration initializers |
@@ -55,7 +55,10 @@ Literal and copied-local declarations retain their two-local, two-instruction fo
 
 `ImportedConstantValues.w` appends the selected module's own scalar products after its direct dependency products. It retains declaration order, type, value, resolution, module identity, and an archive-owned name coordinate.
 
-The archive compiler copies every selected name before it freezes local source. Structured compilation compares the initializer token with that local source-anchored name. It never reads dependency source. Multiple local uses of one constant resolve through the same product.
+WIP-0049 now passes the packed name bytes into structured compilation instead
+of reconstructing local source-use coordinates. The initializer token compares
+against that independent name view. It never reads dependency source. Multiple
+local uses of one constant resolve through the same product.
 
 The packed table remains bounded at 16,384 rows and 1 MiB of copied names. Local products enter only direct source-product compilation. Legacy projected modules retain their prior dependency view.
 

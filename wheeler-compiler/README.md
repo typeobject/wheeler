@@ -62,6 +62,8 @@ special-case source topologies:
    artifacts. Archive emission consumes lexical module and class-name ranges
    from declaration products. Comments do not define another declaration identity.
    Callable-free products use the same checked source-local class-name ranges.
+   Constant lookup compares lexical uses with packed names, without reconstructing
+   local source offsets or reopening dependency source.
 7. The linker resolves stable callable and aggregate identities, rebases code
    and type windows, deduplicates strings, and emits a verified canonical
    container before publishing its identity.

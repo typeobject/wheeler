@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-18 |
-| Updated | 2026-08-18 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting compiler, physical closure, helper signatures |
 | Depends on | WIP-0049, WIP-0054, WIP-0056, WIP-0073, WIP-0077, WIP-0079 |
 | Supersedes | Parser projection for `HelperSignatures.w` |
@@ -32,7 +32,11 @@ The remaining predicates classify:
 - Boolean result kinds
 - Boolean parameter kinds
 
-Every condition uses one source-anchored constant product from `HelperAbi.w`. Every child is an exact signed or Boolean literal return. Final returns remain source ordered. No host range, bit field, generated switch, or copied dependency source replaces the named helper families.
+Every condition uses one closed constant product from `HelperAbi.w`. WIP-0049 now
+compares the lexical condition operand with packed name bytes, without mapping
+that name back into local source. Every child is an exact signed or Boolean
+literal return. Final returns remain source ordered. No host range, bit field,
+generated switch, or copied dependency source replaces the named helper families.
 
 ## Boundaries
 

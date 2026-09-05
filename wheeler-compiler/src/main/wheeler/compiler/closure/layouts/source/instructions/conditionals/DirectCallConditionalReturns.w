@@ -89,6 +89,7 @@ classical class DirectCallConditionalReturns {
   /// Validates one exact `if (helper(args)) { return scalar; }` product.
   public DirectCallConditionalReturn directCallConditionalReturn(
     borrow utf8 source,
+    borrow byteview symbolNames,
     long token,
     long tokenCount,
     borrow mut words tokenKinds,
@@ -217,6 +218,7 @@ classical class DirectCallConditionalReturns {
         } else {
           DirectReturnConstant constant = resolveDirectReturnConstant(
             source,
+            symbolNames,
             moduleOwner,
             tokenStarts[childValueToken],
             tokenLengths[childValueToken],

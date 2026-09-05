@@ -2,6 +2,7 @@
 
 module wheeler.compiler.closure.direct_scalar_encoding;
 
+import wheeler.compiler.closure.imported_constant_values;
 import wheeler.compiler.closure.module_symbols;
 import wheeler.compiler.closure.source_reversible_result_relations;
 import wheeler.compiler.encoding;
@@ -82,22 +83,10 @@ classical class DirectScalarEncoding {
     return kind == RESULT_RELATION_LITERAL;
   }
 
-  private boolean sameSourceName(borrow utf8 source, long left, long right, long length) {
-    long offset = 0;
-    while (offset < length) limit 256 {
-      if (utf8Scalar(source, left + offset) != utf8Scalar(source, right + offset)) {
-        return false;
-      }
-
-      offset += 1;
-    }
-
-    return true;
-  }
-
-  /// Resolves one imported constant from a local source-anchored name product.
+  /// Resolves one constant against its packed name bytes, not a source-use coordinate.
   public DirectReturnConstant resolveDirectReturnConstant(
     borrow utf8 source,
+    borrow byteview symbolNames,
     long moduleOwner,
     long tokenStart,
     long tokenLength,
@@ -128,25 +117,20 @@ classical class DirectScalarEncoding {
     long symbol = 0;
     while (symbol < symbolCount) limit 16384 {
       if (symbolOwners[symbol] == moduleOwner) {
-        if (symbolLengths[symbol] == tokenLength) {
-          long symbolStart = symbolStarts[symbol];
-          boolean bounded = -1 < symbolStart;
-          if (bufferLength(source) - tokenLength < symbolStart) {
-            bounded = false;
+        if (
+          matchesConstantName(
+            source, tokenStart, tokenLength,
+            symbolNames, symbolStarts[symbol], symbolLengths[symbol]
+          )
+        ) {
+          matches += 1;
+          selected = symbolValues[symbol];
+          if (symbolResolved[symbol] != 1) {
+            valid = false;
           }
 
-          if (bounded) {
-            if (sameSourceName(source, tokenStart, symbolStart, tokenLength)) {
-              matches += 1;
-              selected = symbolValues[symbol];
-              if (symbolResolved[symbol] != 1) {
-                valid = false;
-              }
-
-              if (symbolTypes[symbol] != MODULE_SYMBOL_SIGNED) {
-                valid = false;
-              }
-            }
+          if (symbolTypes[symbol] != MODULE_SYMBOL_SIGNED) {
+            valid = false;
           }
         }
       }

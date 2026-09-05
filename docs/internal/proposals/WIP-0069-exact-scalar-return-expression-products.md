@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-15 |
-| Updated | 2026-08-16 |
+| Updated | 2026-09-05 |
 | Area | Self-hosting compiler, scalar lowering, return products |
 | Depends on | WIP-0049, WIP-0054, WIP-0067 |
 | Supersedes | First-token projection of ordinary return expressions |
@@ -15,7 +15,7 @@
 
 Lower complete ordinary scalar return expressions from source products. The compiler now emits exact read, constant, binary-operation, result, and terminal-return windows before it publishes a callable artifact.
 
-`TypeKinds.w` enters the physical archive through this route. Its imported descriptor mask resolves from one exact local source-anchored name product. The resulting 568-byte artifact matches stage 0 byte for byte.
+`TypeKinds.w` entered the physical archive through this route. Its imported descriptor mask resolved through an exact name product. The 568-byte milestone artifact matched stage 0 byte for byte.
 
 ## Problem
 
@@ -65,10 +65,13 @@ A binary return reads the left operand into the first local. It reads or materia
 
 - the selected physical module owner
 - the right operand's exact local source spelling and length
-- one archive-owned local source coordinate for that spelling
+- one bounded coordinate in the packed constant-name view
 - a resolved signed scalar type
 
-The archive compiler creates that source-anchored name product before it freezes the local module. The return product never reads dependency source and never compares a reconstructed dependency spelling.
+The original archive path mapped that name to a local source use. WIP-0049 now
+passes the packed name view directly and removes the raw-text search. The return
+product compares its lexical operand with those independent bytes. It never
+reads dependency source.
 
 A closed compile-time constant shadows a same-named local on the right, matching stage 0. Without a constant product, the compiler resolves the latest visible source value.
 
@@ -82,7 +85,7 @@ The helper rejects destinations above local 255, three-local windows above local
 
 - [x] Ordinary source returns retain their canonical read and terminal return.
 - [x] Source-immediate and source-source binary returns publish exact three-local windows.
-- [x] Imported signed constants resolve from exact local source-anchored name products.
+- [x] Imported signed constants resolve from exact closed name products.
 - [x] Unsupported or truncated binary returns publish no artifact.
 - [x] Reversible source, binary-immediate, and binary-source relations retain byte parity.
 - [x] `TypeKinds.w` matches its 568-byte stage-0 artifact byte for byte.
@@ -98,7 +101,7 @@ Rejected. A structurally valid artifact can still omit source semantics.
 
 ### Recover imported names from dependency source
 
-Rejected. The archive already carries resolved constant products and exact local use coordinates.
+Rejected. The archive already carries resolved constant products and exact names.
 
 ### Treat an imported constant as a source local
 

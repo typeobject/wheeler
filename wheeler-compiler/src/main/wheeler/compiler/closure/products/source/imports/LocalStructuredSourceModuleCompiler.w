@@ -9,6 +9,7 @@ classical class LocalStructuredSourceModuleCompiler {
   /// Publishes one verified local-only artifact without scalar-helper reparsing.
   public SourceProductArtifactPlan compileStructuredSourceModule(
     borrow utf8 source,
+    borrow byteview symbolNames,
     long archiveSourceStart,
     long moduleOwner,
     long firstCallable,
@@ -49,6 +50,7 @@ classical class LocalStructuredSourceModuleCompiler {
     words callableEffects = allocate(emptyTargets, /* length= */ 4096);
     SourceProductArtifactPlan result = compileStructuredSourceModuleWithTargets(
       source,
+      symbolNames,
       archiveSourceStart,
       moduleOwner,
       firstCallable,

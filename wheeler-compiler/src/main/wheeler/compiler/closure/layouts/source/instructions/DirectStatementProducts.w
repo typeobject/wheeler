@@ -50,6 +50,7 @@ classical class DirectStatementProducts {
   /// Emits roots in source order.
   public DirectStatementPlan materializeDirectStatementProducts(
     borrow utf8 source,
+    borrow byteview symbolNames,
     long moduleOwner,
     long reversibleCallableCount,
     long functionCount,
@@ -236,6 +237,7 @@ classical class DirectStatementProducts {
                 if (statementValid) {
                   DirectCallConditionalReturn callConditional = directCallConditionalReturn(
                     source,
+                    symbolNames,
                     token,
                     semanticCount,
                     tokenKinds,
@@ -286,6 +288,7 @@ classical class DirectStatementProducts {
                 if (statementValid) {
                   DirectConditionalReturnProduct conditional = writeDirectConditionalReturn(
                     source,
+                    symbolNames,
                     token,
                     semanticCount,
                     tokenKinds,
@@ -336,6 +339,7 @@ classical class DirectStatementProducts {
               if (hash == TOKEN_BOOLEAN) {
                 DirectBooleanDeclarationProduct booleanDeclaration = writeDirectBooleanDeclaration(
                   source,
+                  symbolNames,
                   token,
                   semanticCount,
                   tokenKinds,
@@ -374,6 +378,7 @@ classical class DirectStatementProducts {
                 if (hash == TOKEN_LONG) {
                   DirectLongDeclarationProduct declaration = writeDirectLongDeclaration(
                     source,
+                    symbolNames,
                     token,
                     semanticCount,
                     tokenKinds,
@@ -555,6 +560,7 @@ classical class DirectStatementProducts {
                       if (hash == TOKEN_RETURN) {
                         DirectScalarRelationProduct relation = resolveDirectReturnRelation(
                           source,
+                          symbolNames,
                           token + 1,
                           semanticCount,
                           tokenKinds,

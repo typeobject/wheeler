@@ -35,6 +35,7 @@ classical class DirectBooleanDeclarationProducts {
   /// Writes one complete root Boolean declaration initializer.
   public DirectBooleanDeclarationProduct writeDirectBooleanDeclaration(
     borrow utf8 source,
+    borrow byteview symbolNames,
     long token,
     long tokenCount,
     borrow mut words tokenKinds,
@@ -155,6 +156,7 @@ classical class DirectBooleanDeclarationProducts {
 
     DirectScalarRelationProduct initializer = resolveDirectScalarRelation(
       source,
+      symbolNames,
       sourceToken,
       tokenCount,
       tokenKinds,

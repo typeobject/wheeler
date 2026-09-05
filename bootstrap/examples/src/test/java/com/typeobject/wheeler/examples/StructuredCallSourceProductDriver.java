@@ -8,13 +8,19 @@ import java.util.Map;
 
 /** Builds native structured-call source-product fixtures. */
 final class StructuredCallSourceProductDriver {
-  record SymbolProduct(int start, int length, int type, long value, int resolved) {
+  record SymbolProduct(String name, int type, long value, int resolved) {
+    SymbolProduct {
+      if (!name.isEmpty() && !name.matches("[A-Za-z_][A-Za-z0-9_]{0,255}")) {
+        throw new IllegalArgumentException("invalid fixture constant name");
+      }
+    }
+
     static SymbolProduct none() {
-      return new SymbolProduct(-1, 0, 0, 0, 0);
+      return new SymbolProduct("", 0, 0, 0);
     }
 
     boolean present() {
-      return 0 <= start;
+      return !name.isEmpty();
     }
   }
 
@@ -204,6 +210,7 @@ final class StructuredCallSourceProductDriver {
             set(functionNameIds, 0, 2);
             SourceProductArtifactPlan plan = compileStructuredSourceModuleWithTargets(
               input,
+              /* symbolNames= */ strings,
               /* archiveSourceStart= */ 0,
               /* moduleOwner= */ 0,
               /* firstCallable= */ 0,
@@ -400,9 +407,10 @@ final class StructuredCallSourceProductDriver {
             .replace("IMPORTED_RESULT_TYPE", Integer.toString(importedResultType))
             .replace("SYMBOL_COUNT", symbol.present() ? "1" : "0")
             .replace("SYMBOL_SETUP", symbol.present()
-                ? "set(symbolOwners, 0, 0);\n"
-                    + "set(symbolStarts, 0, " + symbol.start() + ");\n"
-                    + "set(symbolLengths, 0, " + symbol.length() + ");\n"
+                ? "writeAscii(strings, 128, \"" + symbol.name() + "\");\n"
+                    + "set(symbolOwners, 0, 0);\n"
+                    + "set(symbolStarts, 0, 128);\n"
+                    + "set(symbolLengths, 0, " + symbol.name().length() + ");\n"
                     + "set(symbolTypes, 0, " + symbol.type() + ");\n"
                     + "set(symbolValues, 0, " + symbol.value() + ");\n"
                     + "set(symbolResolved, 0, " + symbol.resolved() + ");"
