@@ -4,6 +4,8 @@ import static com.typeobject.wheeler.examples.NativeTestRunnerInput.descriptor;
 import static com.typeobject.wheeler.examples.NativeTestRunnerInput.descriptors;
 import static com.typeobject.wheeler.examples.NativeTestRunnerInput.discoveredDescriptors;
 import static com.typeobject.wheeler.examples.NativeTestRunnerInput.execute;
+import static com.typeobject.wheeler.examples.NativeTestSourceFixtures.MANIFEST;
+import static com.typeobject.wheeler.examples.NativeTestSourceFixtures.TAGGED_TESTS;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -18,29 +20,10 @@ import com.typeobject.wheeler.examples.NativeTestRunnerInput.NamedArtifact;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 
 /** Canonical report evidence for source compiled by the native test runner. */
 final class NativeCompiledTestRunnerExampleTest {
-  private static final String MANIFEST = """
-      schema: 1
-      package:
-        name: "pkg"
-        version: "1.0.0"
-        profile: "bootstrap-1"
-      targets:
-        - kind: "deployable"
-          name: "test"
-          root: "src/Test.w"
-          module: "pkg.test"
-          sources:
-            - "src/Test.w"
-          test: true
-      dependencies: []
-      capabilities: []
-      """;
   private static final String TWO_SOURCE_MANIFEST = MANIFEST.replace(
       "      - \"src/Test.w\"",
       "      - \"src/A.w\"\n      - \"src/Test.w\"");
@@ -110,18 +93,6 @@ final class NativeCompiledTestRunnerExampleTest {
         test void flags(boolean input) cases(false, true) {
           assert(true);
         }
-      }
-      """;
-  private static final String TAGGED_TESTS = """
-      module pkg.test;
-      classical class TaggedTests {
-        test void alpha() tags(fast, unit.core) limits(steps = 512, history = 1) {
-          assert(true);
-        }
-        test void beta() tags(slow) {
-          assert(true);
-        }
-        entry void main() { assert(false); }
       }
       """;
   private static final String IMPORTED = """
@@ -328,6 +299,8 @@ final class NativeCompiledTestRunnerExampleTest {
 
     assertEquals(32_768, parameterless.getBytes(StandardCharsets.UTF_8).length);
     assertEquals(32_768, parameterized.getBytes(StandardCharsets.UTF_8).length);
+    new WheelerCompiler().compilePackageTests(Map.of("src/Test.w", parameterless), Map.of(), "pkg.test");
+    new WheelerCompiler().compilePackageTests(Map.of("src/Test.w", parameterized), Map.of(), "pkg.test");
 
     byte[] parameterlessReport = execute(
         runner,
@@ -745,62 +718,6 @@ final class NativeCompiledTestRunnerExampleTest {
   }
 
   @Test
-  void admitsTwoHundredFiftyFiveDiscoveredCasesAndRejectsTheNext() throws Exception {
-    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
-    byte[] acceptedInput = metadataOnlyDiscoveredTests(255);
-    byte[] report = execute(runner, acceptedInput);
-    assertEquals(255, Byte.toUnsignedInt(report[32]));
-    assertEquals(0, report[33]);
-
-    byte[] rejectedInput = metadataOnlyDiscoveredTests(256);
-    VirtualMachine rejected = VirtualMachine.withBinaryInput(runner, rejectedInput, 39);
-    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(rejected));
-    assertArrayEquals(new byte[39], rejected.hostOutput());
-  }
-
-  @Test
-  void admitsTwoHundredFiftyFiveNativeParameterRows() throws Exception {
-    Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
-    byte[] parameterReport = execute(runner, metadataOnlyParameterRows(255));
-
-    assertEquals(255, Byte.toUnsignedInt(parameterReport[32]));
-    assertEquals(0, parameterReport[33]);
-  }
-
-  @Test
-  @Timeout(value = 2, unit = TimeUnit.MINUTES)
-  void executesFirstHalfOfTerminalDiscoveredCases() throws Exception {
-    byte[] executedReport = execute(
-        NativeCoverageRunExampleTest.nativeTestRunner(),
-        shard(discoveredTests(255), 0, 2));
-
-    assertEquals(117, Byte.toUnsignedInt(executedReport[32]));
-    assertEquals(117, Byte.toUnsignedInt(executedReport[34]));
-    assertEquals(0, executedReport[36]);
-  }
-
-  @Test
-  @Timeout(value = 2, unit = TimeUnit.MINUTES)
-  void executesSecondHalfOfTerminalDiscoveredCases() throws Exception {
-    byte[] executedReport = execute(
-        NativeCoverageRunExampleTest.nativeTestRunner(),
-        shard(discoveredTests(255), 1, 2));
-
-    assertEquals(138, Byte.toUnsignedInt(executedReport[32]));
-    assertEquals(138, Byte.toUnsignedInt(executedReport[34]));
-    assertEquals(0, executedReport[36]);
-  }
-
-  private static byte[] shard(byte[] input, int index, int count) {
-    byte[] sharded = input.clone();
-    sharded[0] = (byte) index;
-    sharded[1] = (byte) (index >>> 8);
-    sharded[2] = (byte) count;
-    sharded[3] = (byte) (count >>> 8);
-    return sharded;
-  }
-
-  @Test
   void rejectsCallerNamedNativeEntryCases() throws Exception {
     Program runner = NativeCoverageRunExampleTest.nativeTestRunner();
     byte[] input = sourceDescriptor(PASSING, new byte[0]);
@@ -852,58 +769,12 @@ final class NativeCompiledTestRunnerExampleTest {
     assertEquals(expectedFailures, compiledReport[36]);
   }
 
-  private static byte[] metadataOnlyParameterRows(int count) {
-    StringBuilder source = new StringBuilder("""
-        module pkg.test;
-        classical class BoundedRows {
-          test void rows(long input) cases(
-        """);
-    for (int index = 0; index < count; index++) {
-      if (0 < index) {
-        source.append(", ");
-      }
-      source.append(index);
-    }
-    source.append(") { assert(true); }\n}\n");
-    return metadataOnlyDiscoveredTests(source.toString());
-  }
-
-  private static byte[] discoveredTests(int count) {
-    StringBuilder source = new StringBuilder("""
-        module pkg.test;
-        classical class BoundedTests {
-        """);
-    for (int index = 0; index < count; index++) {
-      source.append("  test void case")
-          .append(index / 100)
-          .append(index / 10 % 10)
-          .append(index % 10)
-          .append("() { assert(true); }\n");
-    }
-    source.append("}\n");
-    return discoveredDescriptors(
-        MANIFEST,
-        List.of(new NativeTestSourcePlan.Source("src/Test.w", source.toString())),
-        List.of());
-  }
-
-  private static byte[] metadataOnlyDiscoveredTests(int count) {
-    return metadataOnlyDiscoveredTests(discoveredTests(count));
-  }
-
-  private static byte[] metadataOnlyDiscoveredTests(String source) {
-    return metadataOnlyDiscoveredTests(discoveredDescriptors(
-        MANIFEST,
-        List.of(new NativeTestSourcePlan.Source("src/Test.w", source)),
-        List.of()));
-  }
-
   private static String paddedSource(String selectedDeclaration) {
     String padding = "    //" + "x".repeat(5_000) + "\n";
     String source = """
         module pkg.test;
         classical class FullSource {
-          entry void ignored() {
+          entry void main() {
         %s    assert(false);
           }
           test void peer() {
@@ -918,11 +789,6 @@ final class NativeCompiledTestRunnerExampleTest {
             padding);
     int terminalPadding = 32_768 - source.length() - 3;
     return source + "//" + "x".repeat(terminalPadding) + "\n";
-  }
-
-  private static byte[] metadataOnlyDiscoveredTests(byte[] input) {
-    input[input.length - 1] = (byte) 252;
-    return input;
   }
 
   private static byte[] sourceDescriptor(String source, byte[] artifact) {

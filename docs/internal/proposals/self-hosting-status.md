@@ -23,6 +23,11 @@ The counted closure uses a separate graph profile. Its 512-module bound must not
 be described as an eight-source limit, and archive intake has its own 1,024-entry
 bound. A limit belongs to one boundary, not to Wheeler as a language.
 
+Native passing execution and report identities now bind actual classical
+transition counts rather than zero. [WIP-0500](WIP-0500-native-classical-step-identities.md)
+compares complete 255-case reports against independent stage-0 execution across
+four disjoint identity shards. This does not close the compiler or recovery gates.
+
 ## Pipeline ownership
 
 | Boundary | Owning contract | Completion evidence |

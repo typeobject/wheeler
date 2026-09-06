@@ -103,6 +103,7 @@ result-slot or single-root VM support does not imply these broader contracts.
 | [WIP-0019](WIP-0019-integrated-documentation-publication.md) | Wheeler-owned generation of the canonical documentation bundle |
 | [WIP-0020](WIP-0020-semantic-coverage-and-evidence-accounting.md) | Remove superseded semantic coverage authorities |
 | [WIP-0042](WIP-0042-first-principles-reversible-and-quantum-tutorials.md) | Executable lesson gates, staged curriculum acceptance, and reader-reviewed publication |
+| [WIP-0500](WIP-0500-native-classical-step-identities.md) | Current archive and lock evidence for retained native classical execution counts |
 
 ## Keep this map useful
 

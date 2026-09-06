@@ -7,10 +7,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.BytecodeWriter;
+import com.typeobject.wheeler.core.bytecode.BytecodeReader;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import com.typeobject.wheeler.packageformat.PackageManifestParser;
+import com.typeobject.wheeler.runtime.SemanticCoverage;
+import com.typeobject.wheeler.runtime.WheelerRuntime;
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -410,25 +413,15 @@ final class NativeCoverageRunExampleTest {
 
   @Test
   void nativeArtifactExecutionIdentityMatchesStageZero() throws Exception {
-    byte[] artifact = new BytecodeWriter().write(new WheelerCompiler().compile(GLOBAL_SUBJECT));
+    Program reference = new WheelerCompiler().compile(GLOBAL_SUBJECT);
+    byte[] artifact = new BytecodeWriter().write(reference);
     VirtualMachine machine = VirtualMachine.withBinaryInput(
         artifactExecutionIdentity(), artifact, 32);
     CompilerMachineRunner.runWithoutRewindHistory(machine);
 
-    MessageDigest digest = MessageDigest.getInstance("SHA-256");
-    digestField(digest, "wheeler.test-execution/1");
-    digestField(digest, "GlobalSubject");
-    digestField(digest, "CLASSICAL");
-    digestInteger(digest, 2);
-    digestField(digest, "first");
-    digestInteger(digest, 7);
-    digestField(digest, "second");
-    digestInteger(digest, -4);
-    digestInteger(digest, 0);
-    digestInteger(digest, 0);
-    digestInteger(digest, 0);
-    digestInteger(digest, 0);
-    assertArrayEquals(digest.digest(), machine.hostOutput());
+    var execution = new WheelerRuntime().execute(reference, null);
+    assertArrayEquals(HexFormat.of().parseHex(NativeTestReportOracle.executionIdentity(execution)),
+        machine.hostOutput());
   }
 
   @Test
@@ -663,13 +656,7 @@ final class NativeCoverageRunExampleTest {
     digestInteger(report, 1);
     digestCasePrefix(report, artifact, source);
     if (passing) {
-      digestField(report, "PASS");
-      digestField(report, "");
-      digestField(report, "");
-      digestInteger(report, 1);
-      digestInteger(report, 0);
-      digestField(report, passExecutionIdentity());
-      digestField(report, passCoverageIdentity());
+      digestPassingOutcome(report, artifact);
     } else {
       digestField(report, "FAIL");
       digestField(report, diagnosticCode);
@@ -715,13 +702,7 @@ final class NativeCoverageRunExampleTest {
   private static void digestPassingCase(MessageDigest report, byte[] artifact)
       throws Exception {
     digestCasePrefix(report, artifact, SUBJECT);
-    digestField(report, "PASS");
-    digestField(report, "");
-    digestField(report, "");
-    digestInteger(report, 1);
-    digestInteger(report, 0);
-    digestField(report, passExecutionIdentity());
-    digestField(report, passCoverageIdentity());
+    digestPassingOutcome(report, artifact);
   }
 
   private static void digestFailedCase(
@@ -770,33 +751,20 @@ final class NativeCoverageRunExampleTest {
     MessageDigest report = reportPrefix();
     digestField(report, HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(artifact)));
-    digestField(report, "PASS");
-    digestField(report, "");
-    digestField(report, "");
-    digestInteger(report, 1);
-    digestInteger(report, 0);
-    digestField(report, passExecutionIdentity());
-    digestField(report, passCoverageIdentity());
+    digestPassingOutcome(report, artifact);
     return report.digest();
   }
 
-  private static String passExecutionIdentity() throws Exception {
-    MessageDigest execution = MessageDigest.getInstance("SHA-256");
-    digestField(execution, "wheeler.test-execution/1");
-    digestField(execution, "CoverageSubject");
-    digestField(execution, "CLASSICAL");
-    digestInteger(execution, 0);
-    digestInteger(execution, 0);
-    digestInteger(execution, 0);
-    digestInteger(execution, 0);
-    digestInteger(execution, 0);
-    return HexFormat.of().formatHex(execution.digest());
-  }
-
-  private static String passCoverageIdentity() throws Exception {
-    MessageDigest coverage = MessageDigest.getInstance("SHA-256");
-    coverage.update("wheeler-transition-coverage-1\0".getBytes(StandardCharsets.UTF_8));
-    return HexFormat.of().formatHex(coverage.digest(EXPECTED));
+  private static void digestPassingOutcome(MessageDigest report, byte[] artifact) throws Exception {
+    var coverage = new SemanticCoverage();
+    var execution = new WheelerRuntime().executeObserved(new BytecodeReader().read(artifact), coverage);
+    digestField(report, "PASS");
+    digestField(report, "");
+    digestField(report, "");
+    digestInteger(report, coverage.successfulAssertions());
+    digestInteger(report, execution.workflowSteps());
+    digestField(report, NativeTestReportOracle.executionIdentity(execution));
+    digestField(report, coverage.identity());
   }
 
   private static void digestCasePrefix(
@@ -873,7 +841,7 @@ final class NativeCoverageRunExampleTest {
         modules, "wheeler.conformance.testing.runners.native_one_case_test_runner");
   }
 
-  private static Program artifactExecutionIdentity() throws Exception {
+  static Program artifactExecutionIdentity() throws Exception {
     var modules = runtimeModules();
     modules.put("Sha256.w", CoreSources.read("crypto/Sha256.w"));
     modules.put(

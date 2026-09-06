@@ -223,7 +223,7 @@ classical class TestArtifactReport {
     setByte(output, cursor, /* pass= */ 0);
     cursor += 1;
     cursor = writeSigned(countAssertions(trace, outcome.steps), output, cursor);
-    cursor = writeSigned(/* workflowSteps= */ 0, output, cursor);
+    cursor = writeSigned(outcome.steps, output, cursor);
 
     drop(coverageIdentity);
     drop(coverageReport);

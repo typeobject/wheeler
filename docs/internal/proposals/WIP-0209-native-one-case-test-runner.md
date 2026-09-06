@@ -5,12 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and conformance maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-06 |
 | Area | Native testing, semantic reports, runner composition |
 | Depends on | WIP-0018, WIP-0020, WIP-0205, WIP-0208 |
 | Supersedes | Host composition of one passing native test report |
 | Superseded by | None |
-| Follow-up | WIP-0210 passing and failing report composition |
+| Follow-up | WIP-0210 passing and failing reports, WIP-0500 retained classical transition counts |
 
 ## Summary
 
@@ -53,7 +53,9 @@ The conformance executable fixes package `pkg`, version `1`, target `test`, and 
 
 `NativeCoverageRunExampleTest` compiles `CoverageSubject` through the Wheeler-native module compiler and passes the resulting artifact directly to the Wheeler runner.
 
-Java independently derives artifact SHA-256, the complete stage-0 execution identity, domain-separated coverage identity, successful assertion count, and final profile-2 report transcript. The native runner reproduces all 32 report bytes.
+The original Java oracle derived artifact SHA-256, coverage identity, assertion count, and the final profile-2 report transcript. Its execution transcript hard-coded zero steps. That receipt did not establish execution-count parity.
+
+[WIP-0500](WIP-0500-native-classical-step-identities.md) replaces the zero assumption with actual stage-0 execution and retained native counts. Current complete reports compare both the execution identity and passing-row count. The archive identities below remain historical receipts.
 
 The runtime archive contains 167,971 bytes with SHA-256 `97935fcdf5576c9501f99ee9b4e348a25bbd33a5068218d48a7705161155d12d`. Its schema-3 lock retains root manifest identity `42cb579e63bea46fd92ce5da3789f9b491b35537a43d50d07fca8139657c3ad5`.
 

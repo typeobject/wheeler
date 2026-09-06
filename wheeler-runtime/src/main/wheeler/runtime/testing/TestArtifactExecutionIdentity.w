@@ -123,7 +123,7 @@ classical class TestArtifactExecutionIdentity {
     setByte(frame, cursor + 2, /* jobCountLow= */ 0);
     setByte(frame, cursor + 3, /* jobCountHigh= */ 0);
     cursor += 4;
-    cursor = writeSigned(/* workflowSteps= */ 0, frame, cursor);
+    cursor = writeSigned(outcome.steps, frame, cursor);
     setByte(frame, cursor, /* outputLength0= */ 0);
     setByte(frame, cursor + 1, /* outputLength1= */ 0);
     setByte(frame, cursor + 2, /* outputLength2= */ 0);

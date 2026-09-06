@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler language, compiler, runtime, package, proof, quantum, and tools maintainers |
 | Created | 2026-07-18 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-06 |
 | Area | Test declarations, deterministic runners, fixtures, reports, replay, quantum and reversible assertions |
 | Depends on | WIP-0001, WIP-0002, WIP-0004, WIP-0005, WIP-0007, WIP-0009, WIP-0011, WIP-0013 |
 | Supersedes | None |
@@ -286,7 +286,7 @@ JUnit adapters consume semantic reports during migration. They do not discover W
   Complete native case rows replace Java discovery and outcome policy for admitted
   package commands. The [testing](catalog/testing.md) and
   [package](catalog/packages.md) catalogs retain the migration and bound changes.
-- [x] Terminal 255-case discovery, parameter-row admission, execution, and case-256 rejection have separate evidence methods. Complete execution is split by canonical case identity into disjoint 117- and 138-case shards. Each selected artifact runs once with fresh storage, and each method remains inside the two-minute host bound. Wheeler's semantic step limits remain authoritative.
+- [x] Terminal 255-case discovery, parameter-row admission, execution, and case-256 rejection have separate evidence methods. Four disjoint canonical-identity shards execute every case with fresh storage and the complete source. Each method retains the two-minute host bound. WIP-0500 compares complete reports against actual stage-0 execution, including retained classical transition counts. Wheeler's semantic step limits remain authoritative.
 - [x] The physical compiler package suite runs through the dedicated
   `:tools:nativeCompilerPackageTest` task. WIP-0412 partitions complete case
   identities into sixteen disjoint shards and selects before compilation. Ordinary

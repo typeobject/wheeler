@@ -160,3 +160,4 @@ Each record appears in one catalog. Cross-cutting work links its other owners fr
 | [WIP-0366](../WIP-0366-native-compiler-call-argument-opcodes.md) | Implemented | Native compiler call-argument opcodes |
 | [WIP-0367](../WIP-0367-reversible-helper-owner-execution.md) | Implemented | Reversible helper-owner execution |
 | [WIP-0412](../WIP-0412-preselected-compiler-package-shards.md) | Implemented | Preselected compiler package shards |
+| [WIP-0500](../WIP-0500-native-classical-step-identities.md) | Draft | Native classical step identities |

@@ -5,19 +5,20 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
+import com.typeobject.wheeler.core.bytecode.ProgramKind;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
+import com.typeobject.wheeler.runtime.ExecutionResult;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.MessageDigest;
+import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import org.junit.jupiter.api.Test;
 
 /** Differential evidence for runtime-owned profile-2 execution identities. */
@@ -50,23 +51,11 @@ final class NativeTestExecutionIdentityExampleTest {
   }
 
   private static byte[] expected(Execution value) throws Exception {
-    MessageDigest digest = MessageDigest.getInstance("SHA-256");
-    field(digest, "wheeler.test-execution/1");
-    field(digest, value.program());
-    field(digest, List.of("CLASSICAL", "QUANTUM", "HYBRID").get(value.kind()));
-    Map<String, Long> globals = new TreeMap<>(value.globals());
-    integer(digest, globals.size());
-    globals.forEach((name, scalar) -> {
-      field(digest, name);
-      integer(digest, scalar);
-    });
-    integer(digest, value.measurements().size());
-    value.measurements().forEach(item -> integer(digest, item));
-    integer(digest, value.jobs().size());
-    value.jobs().forEach(item -> field(digest, item));
-    integer(digest, value.workflowSteps());
-    bytes(digest, value.output());
-    return digest.digest();
+    ProgramKind kind = List.of(ProgramKind.CLASSICAL, ProgramKind.QUANTUM, ProgramKind.HYBRID)
+        .get(value.kind());
+    var result = new ExecutionResult(value.program(), kind, value.globals(),
+        value.measurements(), value.jobs(), value.workflowSteps(), value.output());
+    return HexFormat.of().parseHex(NativeTestReportOracle.executionIdentity(result));
   }
 
   private static byte[] frame(Execution value) {
@@ -109,19 +98,6 @@ final class NativeTestExecutionIdentityExampleTest {
   private static void writeLong(ByteArrayOutputStream output, long value) {
     output.writeBytes(ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN)
         .putLong(value).array());
-  }
-
-  private static void field(MessageDigest digest, String value) {
-    bytes(digest, value.getBytes(StandardCharsets.UTF_8));
-  }
-
-  private static void bytes(MessageDigest digest, byte[] value) {
-    integer(digest, value.length);
-    digest.update(value);
-  }
-
-  private static void integer(MessageDigest digest, long value) {
-    digest.update(ByteBuffer.allocate(8).putLong(value).array());
   }
 
   private static void assertRejected(byte[] input) throws Exception {

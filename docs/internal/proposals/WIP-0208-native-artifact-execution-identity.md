@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler runtime and conformance maintainers |
 | Created | 2026-08-21 |
-| Updated | 2026-08-21 |
+| Updated | 2026-09-06 |
 | Area | Native testing, artifact execution, identity composition |
 | Depends on | WIP-0018, WIP-0204, WIP-0206, WIP-0207 |
 | Supersedes | Host composition of native artifact execution identities |
 | Superseded by | None |
+| Follow-up | WIP-0500 retained classical transition counts |
 
 ## Summary
 
@@ -17,9 +18,9 @@ Compose a byte-identical profile-2 execution identity directly from one successf
 
 `TestArtifactExecutionIdentity.w` joins WIP-0206 values with WIP-0207 artifact metadata, builds the normalized WIP-0204 frame in private storage, and invokes the runtime execution-identity operation. No host reconstructs the global map.
 
-## Admitted execution profile
+## Milestone execution profile
 
-The current Wheeler interpreter admits one classical artifact result with:
+The original composition encoded one classical artifact result with:
 
 - verified manifest program name and kind
 - zero through eight named signed globals
@@ -28,9 +29,9 @@ The current Wheeler interpreter admits one classical artifact result with:
 - zero workflow steps
 - empty program output
 
-These are restrictions on native artifact execution, not omissions from the identity schema. `TestExecutionIdentity.w` continues to cover nonempty measurements, jobs, workflow steps, output, and all three kinds when those values are available.
+The zero-step field did not match actual stage-0 classical execution. [WIP-0500](WIP-0500-native-classical-step-identities.md) replaces it with the retained native transition count. Measurement, job, and output restrictions remain separate. `TestExecutionIdentity.w` supports those fields and all three kinds when their owners provide them.
 
-## Composition
+## Original composition
 
 The operation first validates outcome success, global capacity, artifact kind, metadata lengths, and agreement between artifact and outcome global counts. It measures an exact normalized frame, allocates only that frame inside a 2,396-byte region, then emits:
 
@@ -50,9 +51,9 @@ The conformance executable executes exactly once, retains its private trace unti
 
 ## Evidence
 
-`NativeCoverageRunExampleTest` compiles `GlobalSubject` with signed globals `first = 7` and `second = -4`. Java independently hashes the complete stage-0 transcript for program `GlobalSubject`, kind `CLASSICAL`, both sorted globals, empty measurement and job lists, zero workflow steps, and empty output.
+The original `NativeCoverageRunExampleTest` compiled `GlobalSubject` with signed globals `first = 7` and `second = -4`. Its oracle hashed a constructed transcript with zero steps, not an actual stage-0 execution result. The milestone native path reproduced those 32 bytes.
 
-The native artifact path reproduces all 32 bytes.
+WIP-0500 replaces that assumption with actual stage-0 execution and checks terminal, call, result, and inverse transitions. The archive identities below remain historical receipts.
 
 The runtime archive contains 160,586 bytes with SHA-256 `8d5eedeb34c82dab9aa0d9eb5f9a4bc3f850bfad5663244210b258688a8f5fb5`. Its schema-3 lock retains root manifest identity `42cb579e63bea46fd92ce5da3789f9b491b35537a43d50d07fca8139657c3ad5`.
 

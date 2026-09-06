@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.examples;
 
+import static com.typeobject.wheeler.examples.NativeTestReportOracle.reportIdentity;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -7,13 +8,13 @@ import com.typeobject.wheeler.compiler.WheelerCompiler;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
+import com.typeobject.wheeler.examples.NativeTestReportOracle.ReportCase;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.MessageDigest;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,12 +32,7 @@ final class NativeTestReportIdentityExampleTest {
 
   @Test
   void reproducesTheEmptyStageZeroReport() throws Exception {
-    MessageDigest digest = MessageDigest.getInstance("SHA-256");
-    field(digest, "wheeler.test-report/2");
-    field(digest, RUNNER);
-    integer(digest, 0);
-
-    assertArrayEquals(digest.digest(), execute(emptyFrame()));
+    assertArrayEquals(reportIdentity(RUNNER, List.of()), execute(emptyFrame()));
   }
 
   @Test
@@ -48,8 +44,8 @@ final class NativeTestReportIdentityExampleTest {
         "wheeler.compiler", "0.1.0", "self::rejects", CASE, SOURCE,
         "", 1, "WTEST002", "runtime trap α", 1, 0, "", "");
 
-    assertArrayEquals(expected(pass), execute(frame(pass)));
-    assertArrayEquals(expected(fail), execute(frame(fail)));
+    assertArrayEquals(reportIdentity(RUNNER, List.of(pass)), execute(frame(pass)));
+    assertArrayEquals(reportIdentity(RUNNER, List.of(fail)), execute(frame(fail)));
   }
 
   @Test
@@ -61,14 +57,14 @@ final class NativeTestReportIdentityExampleTest {
         "pkg", "1", "beta", identityText(20), SOURCE, "", 1,
         "WTEST002", "trap", 0, 0, "", "");
 
-    assertArrayEquals(expected(List.of(alpha, beta)), execute(frame(List.of(beta, alpha))));
+    assertArrayEquals(reportIdentity(RUNNER, List.of(alpha, beta)), execute(frame(List.of(beta, alpha))));
     assertRejected(frame(List.of(alpha, beta, alpha)));
   }
 
   @Test
   void admitsTwoHundredFiftyFiveReportRowsAndRejectsTheNext() throws Exception {
     List<ReportCase> accepted = boundedCases(255);
-    assertArrayEquals(expected(accepted), execute(frame(accepted)));
+    assertArrayEquals(reportIdentity(RUNNER, accepted), execute(frame(accepted)));
     assertRejected(frame(boundedCases(256)));
   }
 
@@ -108,35 +104,6 @@ final class NativeTestReportIdentityExampleTest {
           COVERAGE));
     }
     return List.copyOf(cases);
-  }
-
-  private static byte[] expected(ReportCase value) throws Exception {
-    return expected(List.of(value));
-  }
-
-  private static byte[] expected(List<ReportCase> values) throws Exception {
-    MessageDigest digest = MessageDigest.getInstance("SHA-256");
-    field(digest, "wheeler.test-report/2");
-    field(digest, RUNNER);
-    integer(digest, values.size());
-    for (ReportCase value : values.stream()
-        .sorted(java.util.Comparator.comparing(ReportCase::caseIdentity))
-        .toList()) {
-      field(digest, value.packageName());
-      field(digest, value.packageVersion());
-      field(digest, value.targetName());
-      field(digest, value.caseIdentity());
-      field(digest, value.sourceIdentity());
-      field(digest, value.artifactIdentity());
-      field(digest, value.status() == 0 ? "PASS" : "FAIL");
-      field(digest, value.diagnosticCode());
-      field(digest, value.diagnosticMessage());
-      integer(digest, value.assertions());
-      integer(digest, value.workflowSteps());
-      field(digest, value.executionIdentity());
-      field(digest, value.coverageIdentity());
-    }
-    return digest.digest();
   }
 
   private static byte[] emptyFrame() {
@@ -194,16 +161,6 @@ final class NativeTestReportIdentityExampleTest {
     return output.toByteArray();
   }
 
-  private static void field(MessageDigest digest, String value) {
-    byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
-    integer(digest, bytes.length);
-    digest.update(bytes);
-  }
-
-  private static void integer(MessageDigest digest, long value) {
-    digest.update(ByteBuffer.allocate(8).putLong(value).array());
-  }
-
   private static String identityText(int value) {
     return "%064x".formatted(value);
   }
@@ -243,19 +200,4 @@ final class NativeTestReportIdentityExampleTest {
         sources, "wheeler.conformance.testing.native_test_report_identity");
     return compiledProgram;
   }
-
-  private record ReportCase(
-      String packageName,
-      String packageVersion,
-      String targetName,
-      String caseIdentity,
-      String sourceIdentity,
-      String artifactIdentity,
-      int status,
-      String diagnosticCode,
-      String diagnosticMessage,
-      long assertions,
-      long workflowSteps,
-      String executionIdentity,
-      String coverageIdentity) {}
 }

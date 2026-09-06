@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler runtime, testing, and package maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-09-05 |
+| Updated | 2026-09-06 |
 | Area | Native testing, reports, package execution |
 | Depends on | WIP-0328, WIP-0347 |
 | Supersedes | Native 128-case test profile |
@@ -52,7 +52,9 @@ nor comments, and long comments cannot exhaust a keyword loop.
 
 ## Boundary evidence
 
-`NativeCompiledTestRunnerExampleTest` discovers and publishes exactly 255 parameterless tests, discovers 255 parameter rows, compiles and executes 255 fresh artifacts, and rejects case 256 with untouched output. It also lowers and executes parameterless and parameterized cases from exact 32,768-byte physical sources. Each source crosses 4,096-byte entry, peer, preserved, and terminal spans. Byte 32,769 rejects before execution and leaves output untouched.
+`NativeTestCaseBoundaryExampleTest` discovers and publishes exactly 255 parameterless tests, discovers 255 parameter rows, and rejects 256 in each domain with untouched output. Four disjoint identity shards compile and execute all 255 fresh artifacts. Each invocation retains the complete source and the two-minute host deadline. Independent stage-0 execution supplies each complete expected report under [WIP-0500](WIP-0500-native-classical-step-identities.md).
+
+`NativeCompiledTestRunnerExampleTest` lowers and executes parameterless and parameterized cases from exact 32,768-byte physical sources. Independent stage 0 admits both fixtures. Each source crosses 4,096-byte entry, peer, preserved, and terminal spans. Byte 32,769 rejects before execution and leaves output untouched.
 
 `NativeTestReportBoundExampleTest` reduces, identifies, and renders 255 complete rows through JSON, terminal, and JUnit adapters. Row 256 rejects before publication.
 

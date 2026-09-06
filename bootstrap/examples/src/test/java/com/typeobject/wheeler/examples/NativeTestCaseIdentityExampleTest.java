@@ -12,7 +12,7 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.MessageDigest;
+import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -32,7 +32,9 @@ final class NativeTestCaseIdentityExampleTest {
         "compiler::suite.case[17]",
         "a".repeat(255)
     }) {
-      assertArrayEquals(expected(name), execute(frame(MANIFEST, SOURCE, name)));
+      byte[] expected = HexFormat.of().parseHex(
+          NativeTestReportOracle.caseIdentity(MANIFEST, SOURCE, name));
+      assertArrayEquals(expected, execute(frame(MANIFEST, SOURCE, name)));
     }
   }
 
@@ -48,21 +50,6 @@ final class NativeTestCaseIdentityExampleTest {
     assertRejected(uppercase);
     assertRejected(empty);
     assertRejected(trailing);
-  }
-
-  private static byte[] expected(String name) throws Exception {
-    MessageDigest digest = MessageDigest.getInstance("SHA-256");
-    field(digest, "wheeler.test-case/1");
-    field(digest, MANIFEST);
-    field(digest, name);
-    field(digest, SOURCE);
-    return digest.digest();
-  }
-
-  private static void field(MessageDigest digest, String value) {
-    byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
-    digest.update(ByteBuffer.allocate(Long.BYTES).putLong(bytes.length).array());
-    digest.update(bytes);
   }
 
   private static byte[] frame(String manifest, String source, String name) {
