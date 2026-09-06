@@ -38,7 +38,9 @@ classical class Structure {
     long entryStart
   ) {
     if (sourceTokenCode(source, tokenStarts, tokenLengths, entryStart) == TOKEN_ENTRY) {
-      if (sourceTokenCode(source, tokenStarts, tokenLengths, entryStart + 1) == TOKEN_VOID) {
+      if (
+        sourceTokenCode(source, tokenStarts, tokenLengths, entryStart + 1) == TOKEN_VOID
+      ) {
         if (
           sourceTokenCode(source, tokenStarts, tokenLengths, entryStart + 2) == TOKEN_MAIN
         ) {
@@ -628,7 +630,12 @@ classical class Structure {
         }
       } else {
         if (booleanTwoArgumentCall) {
-          long secondArgumentWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, commaToken + 1);
+          long secondArgumentWordCode = sourceTokenCode(
+            source,
+            tokenStarts,
+            tokenLengths,
+            commaToken + 1
+          );
           if (booleanTokenCode(secondArgumentWordCode) == false) {
             return -1;
           }
@@ -765,7 +772,12 @@ classical class Structure {
 
       long argumentWidth = 1;
       if (statementKind == STATEMENT_LOCAL_BOOLEAN_CALL_ARGUMENT_NAMED) {
-        long argumentWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 5);
+        long argumentWordCode = sourceTokenCode(
+          source,
+          tokenStarts,
+          tokenLengths,
+          statementStart + 5
+        );
         if (booleanTokenCode(argumentWordCode) == false) {
           return -1;
         }

@@ -723,13 +723,17 @@ classical class LoopBodyValues {
       tokenLengths
     );
     if (1 < nameToken) {
-      if (sourceTokenCode(source, tokenStarts, tokenLengths, nameToken - 2) == TOKEN_BORROW) {
+      if (
+        sourceTokenCode(source, tokenStarts, tokenLengths, nameToken - 2) == TOKEN_BORROW
+      ) {
         return true;
       }
     }
 
     if (2 < nameToken) {
-      if (sourceTokenCode(source, tokenStarts, tokenLengths, nameToken - 3) == TOKEN_BORROW) {
+      if (
+        sourceTokenCode(source, tokenStarts, tokenLengths, nameToken - 3) == TOKEN_BORROW
+      ) {
         return true;
       }
     }

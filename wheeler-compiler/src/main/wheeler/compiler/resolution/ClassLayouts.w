@@ -64,7 +64,9 @@ classical class ClassLayouts {
       return -1;
     }
 
-    if (sourceTokenCode(source, tokenStarts, tokenLengths, stateStart + 1) == TOKEN_LONG) {} else {
+    if (
+      sourceTokenCode(source, tokenStarts, tokenLengths, stateStart + 1) == TOKEN_LONG
+    ) {} else {
       return -1;
     }
 

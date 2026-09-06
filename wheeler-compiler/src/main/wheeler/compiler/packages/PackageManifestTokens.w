@@ -30,14 +30,17 @@ classical class ManifestTokens {
     if (start < 0) {
       return 0;
     }
+
     if (length < 3) {
       return 0;
     }
+
     long capacity = bufferLength(source);
     long lastStart = capacity - length;
     if (lastStart < start) {
       return 0;
     }
+
     long interiorStart = start + 1;
     long interiorLength = length - 2;
     long word = manifestRangeWord(source, interiorStart, interiorLength);
@@ -57,9 +60,11 @@ classical class ManifestTokens {
     if (leftLength < rightLength) {
       return false;
     }
+
     if (rightLength < leftLength) {
       return false;
     }
+
     long leftStart = starts[left];
     long rightStart = starts[right];
     boolean same = true;
@@ -72,11 +77,14 @@ classical class ManifestTokens {
       if (leftScalar < rightScalar) {
         same = false;
       }
+
       if (rightScalar < leftScalar) {
         same = false;
       }
+
       offset += 1;
     }
+
     return same;
   }
 
@@ -84,6 +92,7 @@ classical class ManifestTokens {
     if (left < right) {
       return left;
     }
+
     return right;
   }
 
@@ -112,11 +121,14 @@ classical class ManifestTokens {
       if (leftScalar < rightScalar) {
         comparison = -1;
       }
+
       if (rightScalar < leftScalar) {
         comparison = 1;
       }
+
       offset += 1;
     }
+
     return comparison;
   }
 
@@ -129,9 +141,11 @@ classical class ManifestTokens {
     if (kind < quotedKind) {
       return false;
     }
+
     if (quotedKind < kind) {
       return false;
     }
+
     return minimumLength < length;
   }
 
@@ -150,15 +164,19 @@ classical class ManifestTokens {
     if (kind < punctuationKind) {
       return false;
     }
+
     if (punctuationKind < kind) {
       return false;
     }
+
     if (scalar < colon) {
       return false;
     }
+
     if (colon < scalar) {
       return false;
     }
+
     return true;
   }
 
@@ -177,15 +195,19 @@ classical class ManifestTokens {
     if (kind < punctuationKind) {
       return false;
     }
+
     if (punctuationKind < kind) {
       return false;
     }
+
     if (scalar < dash) {
       return false;
     }
+
     if (dash < scalar) {
       return false;
     }
+
     return true;
   }
 }

@@ -150,14 +150,18 @@ classical class CallableSignatureProducts {
 
       long typeToken = segmentStart;
       long mode = 0;
-      if (sourceTokenCode(source, tokenStarts, tokenLengths, typeToken) == TOKEN_BORROW) {
+      if (
+        sourceTokenCode(source, tokenStarts, tokenLengths, typeToken) == TOKEN_BORROW
+      ) {
         mode = 1;
         typeToken += 1;
         if (typeToken < nameToken) {} else {
           return -1;
         }
 
-        if (sourceTokenCode(source, tokenStarts, tokenLengths, typeToken) == TOKEN_MUT) {
+        if (
+          sourceTokenCode(source, tokenStarts, tokenLengths, typeToken) == TOKEN_MUT
+        ) {
           mode = 2;
           typeToken += 1;
         }

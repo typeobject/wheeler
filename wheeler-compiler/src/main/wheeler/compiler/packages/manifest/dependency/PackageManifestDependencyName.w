@@ -19,7 +19,15 @@ classical class PackageManifestDependencyName {
   ) {
     long keyToken = cursor + 4;
     long nameWord = WORD_NAME;
-    boolean nameKey = manifestKeyAt(source, kinds, starts, lengths, count, keyToken, nameWord);
+    boolean nameKey = manifestKeyAt(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      keyToken,
+      nameWord
+    );
     if (nameKey == false) {
       return false;
     }

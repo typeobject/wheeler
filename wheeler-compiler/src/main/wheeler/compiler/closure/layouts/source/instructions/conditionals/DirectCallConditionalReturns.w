@@ -190,7 +190,9 @@ classical class DirectCallConditionalReturns {
       return invalid(13);
     }
 
-    if (sourceTokenCode(source, tokenStarts, tokenLengths, childToken) != TOKEN_RETURN) {
+    if (
+      sourceTokenCode(source, tokenStarts, tokenLengths, childToken) != TOKEN_RETURN
+    ) {
       return invalid(14);
     }
 

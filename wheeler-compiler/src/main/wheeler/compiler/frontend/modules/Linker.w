@@ -106,11 +106,15 @@ classical class ModuleLinker {
       return false;
     }
 
-    if (sourceTokenCode(source, tokenStarts, tokenLengths, bodyStart) == TOKEN_CLASSICAL) {} else {
+    if (
+      sourceTokenCode(source, tokenStarts, tokenLengths, bodyStart) == TOKEN_CLASSICAL
+    ) {} else {
       return false;
     }
 
-    if (sourceTokenCode(source, tokenStarts, tokenLengths, bodyStart + 1) == TOKEN_CLASS) {} else {
+    if (
+      sourceTokenCode(source, tokenStarts, tokenLengths, bodyStart + 1) == TOKEN_CLASS
+    ) {} else {
       return false;
     }
 
@@ -163,7 +167,9 @@ classical class ModuleLinker {
     long selectedStart = 0;
     long selectedLength = 0;
     while (cursor < rootBody) limit MAX_COMPILER_TOKENS {
-      if (sourceTokenCode(rootSource, rootStarts, rootLengths, cursor) == TOKEN_IMPORT) {
+      if (
+        sourceTokenCode(rootSource, rootStarts, rootLengths, cursor) == TOKEN_IMPORT
+      ) {
         importCount += 1;
         long name = cursor + 1;
         long semicolon = name;
@@ -379,7 +385,8 @@ classical class ModuleLinker {
     long declaration = firstDeclaration;
     while (declaration < memberStart) limit MAX_CLASS_CONSTANTS {
       if (
-        sourceTokenCode(importedSource, importedStarts, importedLengths, declaration) == TOKEN_PRIVATE
+        sourceTokenCode(importedSource, importedStarts, importedLengths, declaration)
+          == TOKEN_PRIVATE
       ) {
         long name = constantNameToken(
           importedSource,

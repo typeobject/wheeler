@@ -136,9 +136,7 @@ classical class TestSourceMetadata {
       return new SourceTestMetadata(true, selected, MAX_INTERPRETED_STEPS);
     }
 
-    if (
-      sourceTokenCode(source, tokenStarts, tokenLengths, start) != TOKEN_LIMITS
-    ) {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, start) != TOKEN_LIMITS) {
       return new SourceTestMetadata(false, false, 0);
     }
 
@@ -153,9 +151,7 @@ classical class TestSourceMetadata {
       start + 1,
       PUNCTUATION_OPEN_PAREN
     );
-    if (
-      sourceTokenCode(source, tokenStarts, tokenLengths, start + 2) != TOKEN_STEPS
-    ) {
+    if (sourceTokenCode(source, tokenStarts, tokenLengths, start + 2) != TOKEN_STEPS) {
       valid = false;
     }
 
@@ -269,9 +265,7 @@ classical class TestSourceMetadata {
     long cursor = start;
     long tagCount = 0;
     if (cursor < tokenCount) {
-      if (
-        sourceTokenCode(source, tokenStarts, tokenLengths, cursor) == TOKEN_TAGS
-      ) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, cursor) == TOKEN_TAGS) {
         if (cursor + 3 < tokenCount) {} else {
           return new SourceTestMetadata(false, false, 0);
         }

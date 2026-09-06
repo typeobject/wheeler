@@ -19,7 +19,15 @@ classical class PackageManifestTargetRoot {
   ) {
     long keyToken = cursor + 7;
     long rootWord = WORD_ROOT;
-    boolean rootKey = manifestKeyAt(source, kinds, starts, lengths, count, keyToken, rootWord);
+    boolean rootKey = manifestKeyAt(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      keyToken,
+      rootWord
+    );
     if (rootKey == false) {
       return false;
     }

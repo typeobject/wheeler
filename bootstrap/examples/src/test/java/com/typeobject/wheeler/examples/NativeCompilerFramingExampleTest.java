@@ -32,10 +32,7 @@ final class NativeCompilerFramingExampleTest {
   void compilesCanonicalHelperValueKindsByteForByte() throws Exception {
     Program decoded = NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary(
         "compiler/syntax/helpers/HelperValueKinds.w",
-        "wheeler.compiler.helper_value_kinds",
-        "compiler/syntax/intrinsics/BorrowedIntrinsicKinds.w",
-        "compiler/ir/StatementKinds.w",
-        "compiler/syntax/calls/VoidCallSourceKinds.w");
+        "wheeler.compiler.helper_value_kinds");
     assertEquals(
         1,
         decoded.functions().stream()

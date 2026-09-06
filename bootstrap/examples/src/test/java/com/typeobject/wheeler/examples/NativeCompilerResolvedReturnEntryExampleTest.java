@@ -1,18 +1,13 @@
 package com.typeobject.wheeler.examples;
 
-import static com.typeobject.wheeler.examples.NativeCompilerPhysicalEntryAssertions.assertPhysicalEntry;
+import static com.typeobject.wheeler.examples.NativeCompilerPhysicalEntryAssertions.assertCompilerEntry;
 
-import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 /** Proves physical resolved return owners through native entry artifacts. */
 final class NativeCompilerResolvedReturnEntryExampleTest {
   @Test
   void compilesPhysicalNamedReturnArithmeticKindsIntoEntryByteForByte() throws Exception {
-    String opcodes = CompilerSources.read("compiler/ir/StatementKinds.w");
-    String kinds = CompilerSources.read(
-        "compiler/syntax/returns/NamedReturnArithmeticKinds.w");
     String root = """
         module example.named_return_arithmetic_kinds_entry;
         import wheeler.compiler.named_return_arithmetic_kinds;
@@ -25,17 +20,11 @@ final class NativeCompilerResolvedReturnEntryExampleTest {
           }
         }
         """;
-    assertPhysicalEntry(
-        List.of(opcodes, kinds),
-        Map.of("Opcodes.w", opcodes, "Kinds.w", kinds, "Entry.w", root),
-        root,
-        "example.named_return_arithmetic_kinds_entry");
+    assertCompilerEntry(root);
   }
 
   @Test
   void compilesPhysicalNamedBooleanReturnKindsIntoEntryByteForByte() throws Exception {
-    String opcodes = CompilerSources.read("compiler/ir/StatementKinds.w");
-    String kinds = CompilerSources.read("compiler/syntax/returns/NamedBooleanReturnKinds.w");
     String root = """
         module example.named_boolean_return_kinds_entry;
         import wheeler.compiler.named_boolean_return_kinds;
@@ -50,17 +39,11 @@ final class NativeCompilerResolvedReturnEntryExampleTest {
           }
         }
         """;
-    assertPhysicalEntry(
-        List.of(opcodes, kinds),
-        Map.of("Opcodes.w", opcodes, "Kinds.w", kinds, "Entry.w", root),
-        root,
-        "example.named_boolean_return_kinds_entry");
+    assertCompilerEntry(root);
   }
 
   @Test
   void compilesPhysicalNamedSignedReturnKindsIntoEntryByteForByte() throws Exception {
-    String opcodes = CompilerSources.read("compiler/ir/StatementKinds.w");
-    String kinds = CompilerSources.read("compiler/syntax/returns/NamedSignedReturnKinds.w");
     String root = """
         module example.named_signed_return_kinds_entry;
         import wheeler.compiler.named_signed_return_kinds;
@@ -75,18 +58,11 @@ final class NativeCompilerResolvedReturnEntryExampleTest {
           }
         }
         """;
-    assertPhysicalEntry(
-        List.of(opcodes, kinds),
-        Map.of("Opcodes.w", opcodes, "Kinds.w", kinds, "Entry.w", root),
-        root,
-        "example.named_signed_return_kinds_entry");
+    assertCompilerEntry(root);
   }
 
   @Test
   void compilesPhysicalNamedReturnComparisonOperandsIntoEntryByteForByte() throws Exception {
-    String opcodes = CompilerSources.read("compiler/ir/StatementKinds.w");
-    String operands = CompilerSources.read(
-        "compiler/syntax/returns/NamedReturnComparisonOperands.w");
     String root = """
         module example.named_return_comparison_operands_entry;
         import wheeler.compiler.named_return_comparison_operands;
@@ -97,17 +73,11 @@ final class NativeCompilerResolvedReturnEntryExampleTest {
           }
         }
         """;
-    assertPhysicalEntry(
-        List.of(opcodes, operands),
-        Map.of("Opcodes.w", opcodes, "Operands.w", operands, "Entry.w", root),
-        root,
-        "example.named_return_comparison_operands_entry");
+    assertCompilerEntry(root);
   }
 
   @Test
   void compilesPhysicalEarlyReturnSourcesIntoEntryByteForByte() throws Exception {
-    String opcodes = CompilerSources.read("compiler/ir/ResolvedStatements.w");
-    String sources = CompilerSources.read("compiler/syntax/returns/EarlyReturnSources.w");
     String root = """
         module example.early_return_sources_entry;
         import wheeler.compiler.early_return_sources;
@@ -120,18 +90,11 @@ final class NativeCompilerResolvedReturnEntryExampleTest {
           }
         }
         """;
-    assertPhysicalEntry(
-        List.of(opcodes, sources),
-        Map.of("Opcodes.w", opcodes, "Sources.w", sources, "Entry.w", root),
-        root,
-        "example.early_return_sources_entry");
+    assertCompilerEntry(root);
   }
 
   @Test
   void compilesPhysicalResolvedEarlyResultKindsIntoEntryByteForByte() throws Exception {
-    String opcodes = CompilerSources.read("compiler/ir/ResolvedStatements.w");
-    String kinds = CompilerSources.read(
-        "compiler/syntax/returns/ResolvedEarlyResultKinds.w");
     String root = """
         module example.resolved_early_result_kinds_entry;
         import wheeler.compiler.resolved_early_result_kinds;
@@ -156,20 +119,14 @@ final class NativeCompilerResolvedReturnEntryExampleTest {
           }
         }
         """;
-    assertPhysicalEntry(
-        List.of(opcodes, kinds),
-        Map.of("Opcodes.w", opcodes, "Kinds.w", kinds, "Entry.w", root),
-        root,
-        "example.resolved_early_result_kinds_entry");
+    assertCompilerEntry(root);
   }
 
   @Test
   void compilesPhysicalResolvedReturnCallKindsIntoEntryByteForByte() throws Exception {
-    String opcodes = CompilerSources.read("compiler/ir/ResolvedStatements.w");
-    String kinds = CompilerSources.read(
-        "compiler/syntax/returns/ResolvedReturnCallKinds.w");
     String root = """
         module example.resolved_return_call_kinds_entry;
+        import wheeler.compiler.forwarded_helper_result_kinds;
         import wheeler.compiler.resolved_return_call_kinds;
         classical class ResolvedReturnCallKindsEntry {
           entry void main() {
@@ -188,18 +145,11 @@ final class NativeCompilerResolvedReturnEntryExampleTest {
           }
         }
         """;
-    assertPhysicalEntry(
-        List.of(opcodes, kinds),
-        Map.of("Opcodes.w", opcodes, "Kinds.w", kinds, "Entry.w", root),
-        root,
-        "example.resolved_return_call_kinds_entry");
+    assertCompilerEntry(root);
   }
 
   @Test
   void compilesPhysicalResolvedEarlyComparisonKindsIntoEntryByteForByte() throws Exception {
-    String opcodes = CompilerSources.read("compiler/ir/ResolvedStatements.w");
-    String kinds = CompilerSources.read(
-        "compiler/syntax/returns/ResolvedEarlyComparisonKinds.w");
     String root = """
         module example.resolved_early_comparison_kinds_entry;
         import wheeler.compiler.resolved_early_comparison_kinds;
@@ -212,10 +162,6 @@ final class NativeCompilerResolvedReturnEntryExampleTest {
           }
         }
         """;
-    assertPhysicalEntry(
-        List.of(opcodes, kinds),
-        Map.of("Opcodes.w", opcodes, "Kinds.w", kinds, "Entry.w", root),
-        root,
-        "example.resolved_early_comparison_kinds_entry");
+    assertCompilerEntry(root);
   }
 }

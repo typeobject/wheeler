@@ -13,18 +13,22 @@ classical class SourceWords {
     if (start < 0) {
       return 0;
     }
+
     if (length < 1) {
       return 0;
     }
+
     long maximumWordLength = 13;
     if (maximumWordLength < length) {
       return 0;
     }
+
     long capacity = bufferLength(source);
     long lastStart = capacity - length;
     if (lastStart < start) {
       return 0;
     }
+
     long head = 1;
     long tail = 1;
     long offset = 0;
@@ -43,6 +47,7 @@ classical class SourceWords {
         offset = length;
       }
     }
+
     long word = completedSourceWord(head, tail, ascii);
     return word;
   }
@@ -52,6 +57,7 @@ classical class SourceWords {
     if (lastHeadOffset < offset) {
       return head;
     }
+
     long prefix = head * 128;
     return prefix + scalar;
   }
@@ -60,6 +66,7 @@ classical class SourceWords {
     if (offset < 8) {
       return tail;
     }
+
     long prefix = tail * 128;
     return prefix + scalar;
   }
@@ -68,11 +75,13 @@ classical class SourceWords {
     if (ascii == false) {
       return 0;
     }
+
     long unknown = 0;
     long shortWord = sourceShortWordCode(head, tail);
     if (unknown < shortWord) {
       return shortWord;
     }
+
     long longWord = sourceLongWordCode(head, tail);
     return longWord;
   }

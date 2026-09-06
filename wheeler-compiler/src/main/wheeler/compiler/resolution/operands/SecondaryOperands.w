@@ -67,7 +67,12 @@ classical class SecondaryOperands {
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
     if (localLiteralAssignmentConditional(sourceOpcode)) {
       long literalToken = localLiteralAssignmentComparisonToken(statementStart, sourceOpcode);
-      long assignmentLiteralWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, literalToken);
+      long assignmentLiteralWordCode = sourceTokenCode(
+        source,
+        tokenStarts,
+        tokenLengths,
+        literalToken
+      );
       if (assignmentLiteralWordCode == TOKEN_TRUE) {
         return 1;
       }

@@ -34,9 +34,12 @@ final class NativeModuleCompilerHarness {
     return compile(compiler, List.of(imported), root);
   }
 
+  static VirtualMachine writer(Program compiler, List<String> imported, String root) {
+    return VirtualMachine.withBinaryInput(compiler, frame(imported, root), OUTPUT_CAPACITY);
+  }
+
   static byte[] compile(Program compiler, List<String> imported, String root) {
-    VirtualMachine writer = VirtualMachine.withBinaryInput(
-        compiler, frame(imported, root), OUTPUT_CAPACITY);
+    VirtualMachine writer = writer(compiler, imported, root);
     CompilerMachineRunner.runWithoutRewindHistory(writer);
     assertEquals(1, writer.global("published"));
     return writer.hostOutput();
@@ -47,8 +50,7 @@ final class NativeModuleCompilerHarness {
   }
 
   static void assertTrap(Program compiler, List<String> imported, String root) {
-    VirtualMachine writer = VirtualMachine.withBinaryInput(
-        compiler, frame(imported, root), OUTPUT_CAPACITY);
+    VirtualMachine writer = writer(compiler, imported, root);
     assertThrows(
         VmTrap.class,
         () -> CompilerMachineRunner.runWithoutRewindHistory(writer));

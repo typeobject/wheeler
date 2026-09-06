@@ -4,6 +4,7 @@ module wheeler.compiler.imported_helpers;
 
 import wheeler.compiler.class_constants;
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.constant_declarations;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.helper_proofs;
 import wheeler.compiler.keyword_tokens;
@@ -211,6 +212,87 @@ classical class ImportedHelpers {
     return invalidFacts();
   }
 
+  private long sharedHelperConstantBytes(
+    borrow utf8 importedSource,
+    borrow mut words importedKinds,
+    borrow mut words importedStarts,
+    borrow mut words importedLengths,
+    long firstDeclaration,
+    long memberStart,
+    borrow utf8 rootSource,
+    borrow mut words rootKinds,
+    borrow mut words rootStarts,
+    borrow mut words rootLengths,
+    long rootBody,
+    long rootMember,
+    long rootCount
+  ) {
+    long rootFirst = rootBody + 4;
+    if (rootMember < rootFirst) {
+      return -1;
+    }
+
+    if (rootMember < rootCount) {} else {
+      return -1;
+    }
+
+    long skipped = 0;
+    long declaration = firstDeclaration;
+    while (declaration < memberStart) limit MAX_CLASS_CONSTANTS {
+      long next = constantDeclarationEnd(
+        importedSource,
+        importedStarts,
+        importedLengths,
+        declaration,
+        memberStart
+      );
+      if (declaration < next) {} else {
+        return -1;
+      }
+
+      boolean shared = sharedPrivateDeclaration(
+        importedSource,
+        importedKinds,
+        importedStarts,
+        importedLengths,
+        declaration,
+        next,
+        rootSource,
+        rootKinds,
+        rootStarts,
+        rootLengths,
+        rootFirst,
+        rootMember
+      );
+      if (shared) {
+        long end = importedStarts[next - 1] + importedLengths[next - 1];
+        skipped += end - importedStarts[declaration];
+      } else {
+        if (
+          privateConstantNamesHidden(
+            importedSource,
+            importedStarts,
+            importedLengths,
+            declaration,
+            next,
+            rootSource,
+            rootKinds,
+            rootStarts,
+            rootLengths,
+            rootBody,
+            rootCount
+          )
+        ) {} else {
+          return -1;
+        }
+      }
+
+      declaration = next;
+    }
+
+    return skipped;
+  }
+
   private LinkPlan planResolvedHelperImportMode(
     borrow utf8 importedSource,
     borrow utf8 rootSource,
@@ -297,6 +379,7 @@ classical class ImportedHelpers {
                 );
                 long closeToken = importedCount - 1;
                 long rootMemberStart = -1;
+                long sharedBytes = 0;
                 if (sharedConstants) {
                   long rootFirstDeclaration = rootBody + 4;
                   rootMemberStart = classMemberStart(
@@ -307,7 +390,7 @@ classical class ImportedHelpers {
                     rootFirstDeclaration,
                     rootCount
                   );
-                  long sharedEnd = sharedPrivatePrefixEnd(
+                  sharedBytes = sharedHelperConstantBytes(
                     importedSource,
                     importedKinds,
                     importedStarts,
@@ -318,12 +401,11 @@ classical class ImportedHelpers {
                     rootKinds,
                     rootStarts,
                     rootLengths,
-                    rootFirstDeclaration,
-                    rootMemberStart
+                    rootBody,
+                    rootMemberStart,
+                    rootCount
                   );
-                  if (sharedEnd == memberStart) {
-                    firstDeclaration = memberStart;
-                  } else {
+                  if (0 < sharedBytes) {} else {
                     firstDeclaration = closeToken + 1;
                   }
                 }
@@ -352,19 +434,23 @@ classical class ImportedHelpers {
                       }
 
                       if (-1 < constantExports) {
-                        boolean constantsHidden = privateConstantNamesHidden(
-                          importedSource,
-                          importedStarts,
-                          importedLengths,
-                          firstDeclaration,
-                          memberStart,
-                          rootSource,
-                          rootKinds,
-                          rootStarts,
-                          rootLengths,
-                          rootBody,
-                          rootCount
-                        );
+                        boolean constantsHidden = sharedConstants;
+                        if (sharedConstants == false) {
+                          constantsHidden = privateConstantNamesHidden(
+                            importedSource,
+                            importedStarts,
+                            importedLengths,
+                            firstDeclaration,
+                            memberStart,
+                            rootSource,
+                            rootKinds,
+                            rootStarts,
+                            rootLengths,
+                            rootBody,
+                            rootCount
+                          );
+                        }
+
                         if (constantsHidden) {
                           HelperFacts helpers = helperFacts(
                             importedSource,
@@ -400,7 +486,7 @@ classical class ImportedHelpers {
                               );
                               long exported = constantExports + helpers.exportedCount;
                               long linkedLength = bufferLength(rootSource) + importedLength
-                                - removed + exported;
+                                - removed + exported - sharedBytes;
                               if (linkedLength < MAX_LINKED_SOURCE_BYTES + 1) {
                                 result = new LinkPlan(
                                   importedStart,
@@ -453,7 +539,7 @@ classical class ImportedHelpers {
     return planResolvedHelperImportMode(importedSource, rootSource, expectedImportCount, false);
   }
 
-  /// Plans one helper dependency after dropping an identical private constant prefix.
+  /// Plans one helper dependency after dropping exact shared private declarations.
   public LinkPlan planSharedResolvedHelperImport(
     borrow utf8 importedSource,
     borrow utf8 rootSource,

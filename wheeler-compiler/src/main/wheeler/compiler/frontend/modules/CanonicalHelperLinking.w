@@ -4,9 +4,11 @@ module wheeler.compiler.canonical_helper_linking;
 
 import wheeler.compiler.class_constants;
 import wheeler.compiler.compiler_token_limits;
+import wheeler.compiler.constant_declarations;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.module_headers;
 import wheeler.compiler.module_linker;
+import wheeler.compiler.shared_declarations;
 import wheeler.compiler.tokens;
 
 classical class CanonicalHelperLinking {
@@ -73,6 +75,108 @@ classical class CanonicalHelperLinking {
       outputCursor
     );
     return new ImportedRangeCopy(outputCursor, privatized, -1 < outputCursor);
+  }
+
+  private ImportedRangeCopy copyConstantRange(
+    borrow utf8 importedSource,
+    borrow mut words importedKinds,
+    borrow mut words importedStarts,
+    borrow mut words importedLengths,
+    long importedFirst,
+    long importedMember,
+    borrow utf8 rootSource,
+    borrow mut words rootKinds,
+    borrow mut words rootStarts,
+    borrow mut words rootLengths,
+    long rootFirst,
+    long rootMember,
+    LinkPlan plan,
+    borrow mut bytes output,
+    long outputStart
+  ) {
+    long cursor = outputStart;
+    long sourceCursor = plan.importedStart;
+    long privatized = 0;
+    long declaration = importedFirst;
+    while (declaration < importedMember) limit MAX_CLASS_CONSTANTS {
+      long next = constantDeclarationEnd(
+        importedSource,
+        importedStarts,
+        importedLengths,
+        declaration,
+        importedMember
+      );
+      if (declaration < next) {} else {
+        return new ImportedRangeCopy(-1, privatized, false);
+      }
+
+      long declarationStart = importedStarts[declaration];
+      if (plan.importedStart < declarationStart + 1) {
+        long declarationEnd = importedStarts[next - 1] + importedLengths[next - 1];
+        cursor = copyLinkedAscii(
+          importedSource,
+          sourceCursor,
+          declarationStart - sourceCursor,
+          output,
+          cursor
+        );
+        if (-1 < cursor) {} else {
+          return new ImportedRangeCopy(-1, privatized, false);
+        }
+
+        boolean shared = sharedPrivateDeclaration(
+          importedSource,
+          importedKinds,
+          importedStarts,
+          importedLengths,
+          declaration,
+          next,
+          rootSource,
+          rootKinds,
+          rootStarts,
+          rootLengths,
+          rootFirst,
+          rootMember
+        );
+        if (shared == false) {
+          if (plan.privatizeExports) {
+            if (
+              sourceTokenCode(importedSource, importedStarts, importedLengths, declaration)
+                == TOKEN_PUBLIC
+            ) {
+              writeAscii(output, cursor, "private");
+              cursor += PRIVATE_VISIBILITY_BYTES;
+              declarationStart += importedLengths[declaration];
+              privatized += 1;
+            }
+          }
+
+          cursor = copyLinkedAscii(
+            importedSource,
+            declarationStart,
+            declarationEnd - declarationStart,
+            output,
+            cursor
+          );
+          if (-1 < cursor) {} else {
+            return new ImportedRangeCopy(-1, privatized, false);
+          }
+        }
+
+        sourceCursor = declarationEnd;
+      }
+
+      declaration = next;
+    }
+
+    cursor = copyLinkedAscii(
+      importedSource,
+      sourceCursor,
+      importedStarts[importedMember] - sourceCursor,
+      output,
+      cursor
+    );
+    return new ImportedRangeCopy(cursor, privatized, -1 < cursor);
   }
 
   /// Writes one helper import with all constants before all executable members.
@@ -176,14 +280,20 @@ classical class CanonicalHelperLinking {
                       output,
                       0
                     );
-                    ImportedRangeCopy constants = copyImportedRange(
+                    ImportedRangeCopy constants = copyConstantRange(
                       importedSource,
+                      importedKinds,
                       importedStarts,
                       importedLengths,
-                      importedCount,
-                      plan.importedStart,
-                      importedMemberStart - plan.importedStart,
-                      plan.privatizeExports,
+                      importedFirst,
+                      importedMember,
+                      rootSource,
+                      rootKinds,
+                      rootStarts,
+                      rootLengths,
+                      rootFirst,
+                      rootMember,
+                      plan,
                       output,
                       cursor
                     );

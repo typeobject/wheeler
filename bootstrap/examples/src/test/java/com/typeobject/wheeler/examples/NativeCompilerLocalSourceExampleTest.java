@@ -1,6 +1,5 @@
 package com.typeobject.wheeler.examples;
 
-import static com.typeobject.wheeler.examples.NativeCompilerSelfSourceExampleTest.assertCompilerLibrary;
 import static com.typeobject.wheeler.examples.NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -15,8 +14,7 @@ class NativeCompilerLocalSourceExampleTest {
         "syntax/assignments/NamedLocalAssignmentKinds.w",
         "named_local_assignment_kinds",
         "localAssignmentSourceStatement",
-        2,
-        "compiler/ir/StatementKinds.w");
+        2);
   }
 
   @Test
@@ -25,9 +23,7 @@ class NativeCompilerLocalSourceExampleTest {
         "syntax/locals/NamedLongOperations.w",
         "named_long_operations",
         "namedLongLiteralBase",
-        6,
-        "compiler/ir/ResolvedStatements.w",
-        "compiler/ir/StatementKinds.w");
+        6);
   }
 
   @Test
@@ -36,8 +32,7 @@ class NativeCompilerLocalSourceExampleTest {
         "syntax/updates/NamedLocalUpdateKinds.w",
         "named_local_update_kinds",
         "localUpdateSourceStatement",
-        2,
-        "compiler/ir/StatementKinds.w");
+        2);
   }
 
   @Test
@@ -55,8 +50,7 @@ class NativeCompilerLocalSourceExampleTest {
         "syntax/loops/ResolvedLocalLoopForms.w",
         "resolved_local_loop_forms",
         "localWhileConditionBit",
-        5,
-        "compiler/syntax/LoopKinds.w");
+        5);
   }
 
   @Test
@@ -65,9 +59,7 @@ class NativeCompilerLocalSourceExampleTest {
         "syntax/loops/ResolvedLocalLoopKinds.w",
         "resolved_local_loop_kinds",
         "resolvedLocalWhile",
-        2,
-        "compiler/syntax/LoopKinds.w",
-        "compiler/ir/ResolvedStatements.w");
+        2);
   }
 
   @Test
@@ -76,9 +68,7 @@ class NativeCompilerLocalSourceExampleTest {
         "syntax/loops/ResolvedLocalLoopOperands.w",
         "resolved_local_loop_operands",
         "resolvedLocalWhileTarget",
-        3,
-        "compiler/syntax/LoopKinds.w",
-        "compiler/ir/ResolvedStatements.w");
+        3);
   }
 
   @Test
@@ -200,13 +190,13 @@ class NativeCompilerLocalSourceExampleTest {
 
   @Test
   void compilesCanonicalResolvedLocalReturnsByteForByte() throws Exception {
-    Program decoded = assertCompilerLibrary(
+    Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/returns/ResolvedLocalReturns.w",
         "wheeler.compiler.resolved_local_returns");
     assertEquals(
         "wheeler.compiler.resolved_local_returns::resolvedLocalReturn",
         decoded.functions().getFirst().name());
-    assertEquals(4, decoded.functions().size());
+    assertEquals(3, decoded.functions().size());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 
@@ -214,16 +204,11 @@ class NativeCompilerLocalSourceExampleTest {
       String logicalPath,
       String moduleName,
       String firstFunction,
-      int functionCount,
-      String... dependencyPaths)
+      int functionCount)
       throws Exception {
-    if (dependencyPaths.length == 0) {
-      dependencyPaths = new String[] {"compiler/ir/ResolvedStatements.w"};
-    }
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/" + logicalPath,
-        "wheeler.compiler." + moduleName,
-        dependencyPaths);
+        "wheeler.compiler." + moduleName);
     assertEquals(
         "wheeler.compiler." + moduleName + "::" + firstFunction,
         decoded.functions().getFirst().name());

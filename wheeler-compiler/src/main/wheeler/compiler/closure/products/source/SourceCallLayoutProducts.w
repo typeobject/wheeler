@@ -282,7 +282,9 @@ classical class SourceCallLayoutProducts {
               valid = false;
             }
 
-            if (arguments[SOURCE_CALL_ARGUMENT_TYPE_ROW + firstArgument + argument] != expectedType) {
+            if (
+              arguments[SOURCE_CALL_ARGUMENT_TYPE_ROW + firstArgument + argument] != expectedType
+            ) {
               valid = false;
             }
 

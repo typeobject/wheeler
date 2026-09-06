@@ -36,20 +36,35 @@ classical class PackageManifestTargetSourceCollection {
         // A negative row disables publication but still allows the terminal probe.
         destination = -1;
       }
+
       long selectorToken = manifestTargetSourceEntryProduct(
-        source, kinds, starts, lengths, count, next, sourceRows, destination
+        source,
+        kinds,
+        starts,
+        lengths,
+        count,
+        next,
+        sourceRows,
+        destination
       );
       boolean admitted = true;
       if (selectorToken < 1) {
         admitted = false;
         next = count;
       }
+
       if (selectorToken < 0) {
         valid = false;
       }
+
       if (admitted) {
         boolean covered = manifestTargetSourceCoverage(
-          source, starts, lengths, selectorToken, rootToken, rootCovered
+          source,
+          starts,
+          lengths,
+          selectorToken,
+          rootToken,
+          rootCovered
         );
         rootCovered = covered;
         sourceIndex += 1;
@@ -67,12 +82,15 @@ classical class PackageManifestTargetSourceCollection {
     if (valid == false) {
       return -1;
     }
+
     if (count == 0) {
       return -1;
     }
+
     if (covered == false) {
       return -1;
     }
+
     return next;
   }
 
@@ -83,6 +101,7 @@ classical class PackageManifestTargetSourceCollection {
     if (kind == 6) {
       return previous;
     }
+
     return -1;
   }
 
@@ -113,6 +132,7 @@ classical class PackageManifestTargetSourceCollection {
     if (covered == true) {
       return true;
     }
+
     return current;
   }
 
@@ -151,10 +171,19 @@ classical class PackageManifestTargetSourceCollection {
     if (rowPresent == false) {
       return 0;
     }
-    boolean valid = manifestTargetSourceRowValid(source, kinds, starts, lengths, count, rowToken);
+
+    boolean valid = manifestTargetSourceRowValid(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      rowToken
+    );
     if (valid == false) {
       return -1;
     }
+
     long selectorToken = manifestTargetSelectorToken(rowToken);
     boolean capacity = manifestSourceRowCapacity(sourceRows, sourceIndex);
     if (capacity == false) {

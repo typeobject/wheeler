@@ -23,6 +23,7 @@ classical class PackageManifestDependencyCoordinates {
     if (row < 1) {
       return -1;
     }
+
     return cursor - 4;
   }
 

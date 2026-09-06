@@ -609,9 +609,9 @@ final class NativeCompilerNestedHelperEntryExampleTest {
 
   @Test
   void compilesPhysicalResolvedLocalReturnsIntoEntryByteForByte() throws Exception {
-    String returns = CompilerSources.read("compiler/syntax/returns/ResolvedLocalReturns.w");
     String root = """
         module example.resolved_local_return_entry;
+        import wheeler.compiler.resolved_local_result_kinds;
         import wheeler.compiler.resolved_local_returns;
         classical class ResolvedLocalReturnEntry {
           entry void main() {
@@ -624,13 +624,7 @@ final class NativeCompilerNestedHelperEntryExampleTest {
           }
         }
         """;
-    Program compiler = NativeModuleCompilerHarness.program();
-    byte[] artifact = NativeModuleCompilerHarness.compile(compiler, List.of(returns), root);
-    byte[] expected = new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
-        Map.of("Returns.w", returns, "Entry.w", root),
-        "example.resolved_local_return_entry"));
-    assertArrayEquals(expected, artifact);
-    new VirtualMachine(new BytecodeReader().read(artifact)).run();
+    NativeCompilerPhysicalEntryAssertions.assertCompilerEntry(root);
   }
 
   @Test

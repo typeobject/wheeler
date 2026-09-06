@@ -163,8 +163,12 @@ classical class ResolvedLoopProducts {
       if (symbolOwners[symbol] == moduleOwner) {
         if (
           matchesConstantName(
-            source, start, length,
-            symbolNames, symbolStarts[symbol], symbolLengths[symbol]
+            source,
+            start,
+            length,
+            symbolNames,
+            symbolStarts[symbol],
+            symbolLengths[symbol]
           )
         ) {
           selected = symbolValues[symbol];

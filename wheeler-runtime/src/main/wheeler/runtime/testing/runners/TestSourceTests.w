@@ -290,9 +290,7 @@ classical class TestSourceTests {
   ) {
     long prior = 0;
     while (prior + 2 < nameToken) limit MAX_COMPILER_TOKENS {
-      if (
-        sourceTokenCode(source, tokenStarts, tokenLengths, prior) == TOKEN_TEST
-      ) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, prior) == TOKEN_TEST) {
         if (
           sourceTokenCode(source, tokenStarts, tokenLengths, prior + 1) == TOKEN_VOID
         ) {
@@ -364,9 +362,7 @@ classical class TestSourceTests {
     boolean supported = true;
     long token = 0;
     while (token + 4 < tokenCount) limit MAX_COMPILER_TOKENS {
-      if (
-        sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_TEST
-      ) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_TEST) {
         if (
           sourceTokenCode(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID
         ) {

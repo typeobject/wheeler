@@ -154,12 +154,22 @@ classical class ArchiveStructuredSourceModuleCompiler {
     borrow mut bytes identity
   ) {
     requireArchiveSourceNames(
-      archive, sourceStart, sourceLength, moduleNames,
-      moduleNameStart, moduleNameLength, classNameStart, classNameLength
+      archive,
+      sourceStart,
+      sourceLength,
+      moduleNames,
+      moduleNameStart,
+      moduleNameLength,
+      classNameStart,
+      classNameLength
     );
     if (callableCount == 0) {
       return compileCallableFreeArchiveModule(
-        archive, classNameStart, classNameLength, artifact, identity
+        archive,
+        classNameStart,
+        classNameLength,
+        artifact,
+        identity
       );
     }
 
@@ -330,8 +340,14 @@ classical class ArchiveStructuredSourceModuleCompiler {
     borrow mut bytes identity
   ) {
     requireArchiveSourceNames(
-      archive, sourceStart, sourceLength, moduleNames,
-      moduleNameStart, moduleNameLength, classNameStart, classNameLength
+      archive,
+      sourceStart,
+      sourceLength,
+      moduleNames,
+      moduleNameStart,
+      moduleNameLength,
+      classNameStart,
+      classNameLength
     );
     assert(-1 < moduleOwner);
     assert(moduleOwner < 512);
@@ -358,9 +374,14 @@ classical class ArchiveStructuredSourceModuleCompiler {
     assert(bufferLength(identity) == 32);
     if (callableCount == 0) {
       return compileCallableFreeArchiveModule(
-        archive, classNameStart, classNameLength, artifact, identity
+        archive,
+        classNameStart,
+        classNameLength,
+        artifact,
+        identity
       );
     }
+
     region sourceArena = new region(/* bytes= */ 32768, /* allocations= */ 1);
     bytes sourceBytes = allocateBytes(sourceArena, sourceLength);
     long copiedSourceLength = copyRange(

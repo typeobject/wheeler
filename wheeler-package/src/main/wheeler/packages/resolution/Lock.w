@@ -85,7 +85,9 @@ classical class Lock {
   ) {
     if (cursor + 20 < count) {
       if (dashAt(source, kinds, starts, cursor)) {
-        if (metadataKeyAt(source, kinds, starts, lengths, count, cursor + 1, WORD_NAME)) {
+        if (
+          metadataKeyAt(source, kinds, starts, lengths, count, cursor + 1, WORD_NAME)
+        ) {
           if (quoted(kinds, lengths, cursor + 3)) {
             boolean validName = validPackageName(
               source,
@@ -94,7 +96,15 @@ classical class Lock {
             );
             if (validName) {
               if (
-                metadataKeyAt(source, kinds, starts, lengths, count, cursor + 4, WORD_VERSION)
+                metadataKeyAt(
+                  source,
+                  kinds,
+                  starts,
+                  lengths,
+                  count,
+                  cursor + 4,
+                  WORD_VERSION
+                )
               ) {
                 if (quoted(kinds, lengths, cursor + 6)) {
                   boolean validVersion = validRelease(
@@ -319,16 +329,26 @@ classical class Lock {
       return new LockResult.Error(0);
     }
 
-    if (metadataKeyAt(source, kinds, starts, lengths, count, 0, WORD_SCHEMA) == false) {
+    if (
+      metadataKeyAt(source, kinds, starts, lengths, count, 0, WORD_SCHEMA) == false
+    ) {
       return new LockResult.Error(0);
     }
 
-    boolean schemaThree = metadataTokenEquals(source, starts, lengths, 2, METADATA_WORD_SCHEMA_THREE);
+    boolean schemaThree = metadataTokenEquals(
+      source,
+      starts,
+      lengths,
+      2,
+      METADATA_WORD_SCHEMA_THREE
+    );
     if (schemaThree == false) {
       return new LockResult.Error(starts[2]);
     }
 
-    if (metadataKeyAt(source, kinds, starts, lengths, count, 3, WORD_ROOT) == false) {
+    if (
+      metadataKeyAt(source, kinds, starts, lengths, count, 3, WORD_ROOT) == false
+    ) {
       return new LockResult.Error(starts[3]);
     }
 
@@ -336,7 +356,9 @@ classical class Lock {
       return new LockResult.Error(starts[5]);
     }
 
-    if (metadataKeyAt(source, kinds, starts, lengths, count, 6, METADATA_WORD_PACKAGES) == false) {
+    if (
+      metadataKeyAt(source, kinds, starts, lengths, count, 6, METADATA_WORD_PACKAGES) == false
+    ) {
       return new LockResult.Error(starts[6]);
     }
 

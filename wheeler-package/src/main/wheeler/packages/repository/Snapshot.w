@@ -172,7 +172,9 @@ classical class RepositorySnapshots {
       return invalid;
     }
 
-    if (metadataKeyAt(source, kinds, starts, lengths, count, cursor + 1, WORD_PACKAGE)) {} else {
+    if (
+      metadataKeyAt(source, kinds, starts, lengths, count, cursor + 1, WORD_PACKAGE)
+    ) {} else {
       return invalid;
     }
 
@@ -203,7 +205,9 @@ classical class RepositorySnapshots {
     }
 
     long versionLine = packageEnd + 1;
-    if (metadataKeyAt(source, kinds, starts, lengths, count, cursor + 4, WORD_VERSION)) {} else {
+    if (
+      metadataKeyAt(source, kinds, starts, lengths, count, cursor + 4, WORD_VERSION)
+    ) {} else {
       return invalid;
     }
 
@@ -234,7 +238,9 @@ classical class RepositorySnapshots {
     }
 
     long archiveLine = versionEnd + 1;
-    if (metadataKeyAt(source, kinds, starts, lengths, count, cursor + 7, METADATA_WORD_ARCHIVE)) {} else {
+    if (
+      metadataKeyAt(source, kinds, starts, lengths, count, cursor + 7, METADATA_WORD_ARCHIVE)
+    ) {} else {
       return invalid;
     }
 
@@ -265,7 +271,17 @@ classical class RepositorySnapshots {
     }
 
     long manifestLine = archiveEnd + 1;
-    if (metadataKeyAt(source, kinds, starts, lengths, count, cursor + 10, METADATA_WORD_MANIFEST)) {} else {
+    if (
+      metadataKeyAt(
+        source,
+        kinds,
+        starts,
+        lengths,
+        count,
+        cursor + 10,
+        METADATA_WORD_MANIFEST
+      )
+    ) {} else {
       return invalid;
     }
 
@@ -326,7 +342,9 @@ classical class RepositorySnapshots {
       return new SnapshotResult.Error(starts[2]);
     }
 
-    if (metadataKeyAt(source, kinds, starts, lengths, count, 3, METADATA_WORD_RELEASES)) {} else {
+    if (
+      metadataKeyAt(source, kinds, starts, lengths, count, 3, METADATA_WORD_RELEASES)
+    ) {} else {
       return new SnapshotResult.Error(starts[3]);
     }
 

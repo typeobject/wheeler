@@ -139,8 +139,12 @@ classical class DirectLongDeclarationProducts {
       return new DirectLongDeclarationProduct(projection.next, 4, projection.typeCount, true);
     }
 
-    boolean utf8ScalarInitializer = sourceTokenCode(source, tokenStarts, tokenLengths, sourceToken)
-      == TOKEN_UTF8_SCALAR;
+    boolean utf8ScalarInitializer = sourceTokenCode(
+      source,
+      tokenStarts,
+      tokenLengths,
+      sourceToken
+    ) == TOKEN_UTF8_SCALAR;
     if (utf8ScalarInitializer) {
       DirectUtf8ScalarProduct utf8Projection = writeDirectUtf8Scalar(
         source,

@@ -84,7 +84,9 @@ classical class ResolvedLoopBodyProducts {
       return false;
     }
 
-    if (sourceTokenCode(source, tokenStarts, tokenLengths, childToken) != TOKEN_RETURN) {
+    if (
+      sourceTokenCode(source, tokenStarts, tokenLengths, childToken) != TOKEN_RETURN
+    ) {
       return false;
     }
 
@@ -349,7 +351,12 @@ classical class ResolvedLoopBodyProducts {
             if (controlToken < 0) {
               valid = false;
             } else {
-              long controlWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, controlToken);
+              long controlWordCode = sourceTokenCode(
+                source,
+                tokenStarts,
+                tokenLengths,
+                controlToken
+              );
               if (controlWordCode == TOKEN_WHILE) {
                 set(stagedPhysicalWidths, statement, 5);
               } else {

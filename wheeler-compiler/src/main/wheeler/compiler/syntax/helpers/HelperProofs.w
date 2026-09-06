@@ -94,7 +94,9 @@ classical class HelperProofs {
       return -1;
     }
 
-    if (sourceTokenCode(source, tokenStarts, tokenLengths, start + 3) == TOKEN_INVERSE) {} else {
+    if (
+      sourceTokenCode(source, tokenStarts, tokenLengths, start + 3) == TOKEN_INVERSE
+    ) {} else {
       return -1;
     }
 

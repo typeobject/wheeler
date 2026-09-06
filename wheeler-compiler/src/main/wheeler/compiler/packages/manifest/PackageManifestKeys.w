@@ -19,38 +19,47 @@ classical class PackageManifestKeys {
     if (token < 0) {
       return false;
     }
+
     if (count < 2) {
       return false;
     }
+
     long lastKey = count - 2;
     if (lastKey < token) {
       return false;
     }
+
     long kindCapacity = bufferLength(kinds);
     if (kindCapacity < count) {
       return false;
     }
+
     long startCapacity = bufferLength(starts);
     if (startCapacity < count) {
       return false;
     }
+
     long lengthCapacity = bufferLength(lengths);
     if (lengthCapacity < count) {
       return false;
     }
+
     if (expectedWord == 0) {
       return false;
     }
+
     long kind = kinds[token];
     boolean identifier = kind == 1;
     if (identifier == false) {
       return false;
     }
+
     long word = manifestTokenWord(source, starts, lengths, token);
     boolean sameWord = word == expectedWord;
     if (sameWord == false) {
       return false;
     }
+
     long colonToken = token + 1;
     boolean colon = colonAt(source, kinds, starts, colonToken);
     return colon;

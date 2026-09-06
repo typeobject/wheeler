@@ -34,7 +34,9 @@ classical class Workspace {
   ) {
     if (cursor + 6 < count) {
       if (dashAt(source, kinds, starts, cursor)) {
-        if (metadataKeyAt(source, kinds, starts, lengths, count, cursor + 1, WORD_NAME)) {
+        if (
+          metadataKeyAt(source, kinds, starts, lengths, count, cursor + 1, WORD_NAME)
+        ) {
           if (quoted(kinds, lengths, cursor + 3)) {
             boolean validName = validWorkspaceName(
               source,
@@ -42,7 +44,9 @@ classical class Workspace {
               lengths[cursor + 3] - 2
             );
             if (validName) {
-              if (metadataKeyAt(source, kinds, starts, lengths, count, cursor + 4, WORD_PATH)) {
+              if (
+                metadataKeyAt(source, kinds, starts, lengths, count, cursor + 4, WORD_PATH)
+              ) {
                 if (quoted(kinds, lengths, cursor + 6)) {
                   return validWorkspacePath(
                     source,
@@ -145,7 +149,15 @@ classical class Workspace {
     }
 
     if (valid) {
-      valid = metadataKeyAt(source, kinds, starts, lengths, count, 3, METADATA_WORD_WORKSPACE);
+      valid = metadataKeyAt(
+        source,
+        kinds,
+        starts,
+        lengths,
+        count,
+        3,
+        METADATA_WORD_WORKSPACE
+      );
     }
 
     if (valid) {

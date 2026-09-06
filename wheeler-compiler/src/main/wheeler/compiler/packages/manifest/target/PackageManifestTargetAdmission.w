@@ -24,7 +24,13 @@ classical class PackageManifestTargetAdmission {
     long sourceOffset
   ) {
     boolean bounded = targetInputValid(
-      kinds, starts, lengths, count, cursor, sourceRows, sourceOffset
+      kinds,
+      starts,
+      lengths,
+      count,
+      cursor,
+      sourceRows,
+      sourceOffset
     );
     if (bounded == false) {
       return -1;
@@ -36,7 +42,14 @@ classical class PackageManifestTargetAdmission {
     }
 
     long sourceEnd = optionalSourceCollection(
-      source, kinds, starts, lengths, count, cursor, sourceRows, sourceOffset
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      cursor,
+      sourceRows,
+      sourceOffset
     );
     if (sourceEnd < 0) {
       return -1;
@@ -64,33 +77,41 @@ classical class PackageManifestTargetAdmission {
     if (cursor < 0) {
       return false;
     }
+
     if (count < 0) {
       return false;
     }
+
     long kindCapacity = bufferLength(kinds);
     if (kindCapacity < count) {
       return false;
     }
+
     long startCapacity = bufferLength(starts);
     if (startCapacity < count) {
       return false;
     }
+
     long lengthCapacity = bufferLength(lengths);
     if (lengthCapacity < count) {
       return false;
     }
+
     long remaining = count - cursor;
     if (remaining < 13) {
       return false;
     }
+
     if (sourceOffset < 0) {
       return false;
     }
+
     long slots = bufferLength(sourceRows);
     long rows = slots / 2;
     if (rows < sourceOffset) {
       return false;
     }
+
     return true;
   }
 
@@ -105,7 +126,14 @@ classical class PackageManifestTargetAdmission {
     long sourceOffset
   ) {
     long moduleKey = manifestTargetModuleKeyToken(cursor);
-    boolean modular = manifestTargetModulePresent(source, kinds, starts, lengths, count, moduleKey);
+    boolean modular = manifestTargetModulePresent(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      moduleKey
+    );
     if (modular == false) {
       return sourceOffset;
     }
@@ -113,14 +141,27 @@ classical class PackageManifestTargetAdmission {
     long moduleToken = manifestTargetModuleToken(cursor);
     long sourcesKey = manifestTargetSourcesKeyToken(cursor);
     boolean valid = manifestTargetModuleHeadValid(
-      source, kinds, starts, lengths, count, moduleToken, sourcesKey
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      moduleToken,
+      sourcesKey
     );
     if (valid == false) {
       return -1;
     }
 
     long next = manifestTargetSourceCollectionProduct(
-      source, kinds, starts, lengths, count, cursor, sourceRows, sourceOffset
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      cursor,
+      sourceRows,
+      sourceOffset
     );
     return next;
   }

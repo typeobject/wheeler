@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.compiler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.typeobject.wheeler.core.bytecode.Opcode;
 import java.nio.file.Files;
@@ -126,26 +127,31 @@ class SourceReadabilityTest {
   void nativeStatementIdentitiesHaveBoundedSingleOwners() throws Exception {
     String tokens = Files.readString(Path.of(
         "src/main/wheeler/compiler/frontend/Tokens.w"));
-    String kinds = Files.readString(Path.of(
-        "src/main/wheeler/compiler/ir/StatementKinds.w"));
-    String loopKinds = Files.readString(Path.of(
-        "src/main/wheeler/compiler/syntax/LoopKinds.w"));
-    String resolved = Files.readString(Path.of(
-        "src/main/wheeler/compiler/ir/ResolvedStatements.w"));
-
     assertEquals(java.util.Map.of(), statementIdentities(tokens));
-    assertEquals(144, statementIdentities(kinds).size());
-    assertEquals(6, statementIdentities(loopKinds).size());
-    assertEquals(96, statementIdentities(resolved).size());
-    assertEquals(246, statementIdentities(kinds + loopKinds + resolved).size());
 
     Path root = Path.of("../wheeler-compiler/src/main/wheeler/compiler");
     StringBuilder allSources = new StringBuilder();
+    var owners = new java.util.TreeSet<String>();
     try (var paths = Files.walk(root)) {
       for (Path source : paths.filter(path -> path.toString().endsWith(".w")).sorted().toList()) {
-        allSources.append(Files.readString(source));
+        String text = Files.readString(source);
+        var identities = statementIdentities(text);
+        if (!identities.isEmpty()) {
+          owners.add(root.relativize(source).toString());
+          assertTrue(identities.size() <= 256, source + " exceeds the scalar-constant profile");
+        }
+        allSources.append(text);
       }
     }
+    assertEquals(java.util.Set.of(
+        "frontend/Conditionals.w", "ir/ResolvedStatements.w", "ir/StatementKinds.w",
+        "syntax/LoopKinds.w", "syntax/calls/FourArgumentCalls.w", "syntax/calls/ThreeArgumentCalls.w",
+        "syntax/calls/VoidCallKinds.w", "syntax/calls/VoidCallSourceKinds.w",
+        "syntax/calls/assignment/AssignmentCallIdentities.w", "syntax/conditionals/EarlyUtf8CallForms.w",
+        "syntax/intrinsics/BorrowedIntrinsicKinds.w", "syntax/intrinsics/OwnedStorageForms.w",
+        "syntax/loops/OwnedUtf8CopyLoops.w", "syntax/returns/forwarded/ForwardedHelperResultStatements.w",
+        "syntax/returns/signed/ResolvedLocalReturnStatements.w", "syntax/returns/signed/SignedReturnStatements.w"),
+        owners);
     var allStatements = statementIdentities(allSources.toString());
     assertEquals(324, allStatements.size());
     assertEquals(324, new java.util.HashSet<>(allStatements.values()).size());

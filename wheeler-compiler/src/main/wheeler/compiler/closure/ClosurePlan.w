@@ -15,7 +15,8 @@ classical class ClosurePlans {
   private const long MAX_SOURCE_BYTES = 32768;
   private const long PLAN_ARENA_BYTES = 53248;
   private const long SOURCE_ARENA_BYTES = 32768;
-  private const long CLASSIFICATION_ARENA_BYTES = MAX_LOCAL_MODULES * 8 + EXECUTABLE_KIND_ARENA_BYTES;
+  private const long CLASSIFICATION_ARENA_BYTES = MAX_LOCAL_MODULES * 8
+    + EXECUTABLE_KIND_ARENA_BYTES;
 
   /// Identifies the active prefix of every validated closure-plan column.
   public record CountedClosurePlan(
@@ -248,7 +249,11 @@ classical class ClosurePlans {
 
       utf8 source = freezeUtf8(sourceBytes);
       ExecutableOwnerKind kind = classifyExecutableOwnerWithScratch(
-        source, tokenKinds, tokenStarts, tokenLengths, moduleName
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        moduleName
       );
       requireMetadata(kind.valid);
       requireMetadata(

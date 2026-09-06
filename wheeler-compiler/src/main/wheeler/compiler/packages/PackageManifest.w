@@ -169,6 +169,7 @@ classical class Manifest {
               test
             );
           }
+
           sourceCount += targetSourceCount;
           previousTargetToken = nameToken;
           cursor = manifestTargetNextToken(tail);
@@ -197,13 +198,7 @@ classical class Manifest {
     }
 
     boolean emptyDependencies = false;
-    long dependencySectionKind = manifestEmptySectionKind(
-      source,
-      kinds,
-      starts,
-      count,
-      cursor
-    );
+    long dependencySectionKind = manifestEmptySectionKind(source, kinds, starts, count, cursor);
     if (dependencySectionKind < 0) {
       return new ManifestResult.Error(starts[cursor]);
     }
@@ -265,13 +260,7 @@ classical class Manifest {
     }
 
     boolean emptyCapabilities = false;
-    long capabilitySectionKind = manifestEmptySectionKind(
-      source,
-      kinds,
-      starts,
-      count,
-      cursor
-    );
+    long capabilitySectionKind = manifestEmptySectionKind(source, kinds, starts, count, cursor);
     if (capabilitySectionKind < 0) {
       return new ManifestResult.Error(starts[cursor]);
     }

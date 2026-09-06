@@ -18,14 +18,17 @@ classical class Tokens {
     if (token < 0) {
       return 0;
     }
+
     long lastStartToken = bufferLength(tokenStarts) - 1;
     if (lastStartToken < token) {
       return 0;
     }
+
     long lastLengthToken = bufferLength(tokenLengths) - 1;
     if (lastLengthToken < token) {
       return 0;
     }
+
     long start = tokenStarts[token];
     long length = tokenLengths[token];
     long code = sourceWordCode(source, start, length);

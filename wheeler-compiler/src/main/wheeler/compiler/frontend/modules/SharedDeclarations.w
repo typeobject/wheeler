@@ -98,7 +98,8 @@ classical class SharedDeclarations {
     return true;
   }
 
-  private boolean declarationAppearsInRoot(
+  /// Matches one admitted private constant against complete root constant tokens.
+  public boolean sharedPrivateDeclaration(
     borrow utf8 importedSource,
     borrow mut words importedKinds,
     borrow mut words importedStarts,
@@ -112,6 +113,13 @@ classical class SharedDeclarations {
     long rootFirst,
     long rootMember
   ) {
+    if (
+      sourceTokenCode(importedSource, importedStarts, importedLengths, importedStart)
+        == TOKEN_PRIVATE
+    ) {} else {
+      return false;
+    }
+
     long rootDeclaration = rootFirst;
     while (rootDeclaration < rootMember) limit MAX_CLASS_CONSTANTS {
       long rootNext = constantDeclarationEnd(
@@ -195,7 +203,7 @@ classical class SharedDeclarations {
       }
 
       if (
-        declarationAppearsInRoot(
+        sharedPrivateDeclaration(
           importedSource,
           importedKinds,
           importedStarts,

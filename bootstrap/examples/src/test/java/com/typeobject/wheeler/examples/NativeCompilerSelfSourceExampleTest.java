@@ -14,10 +14,9 @@ import com.typeobject.wheeler.core.vm.MachineStatus;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import org.junit.jupiter.api.Test;
 
 /** Differential evidence for compiler modules accepted by the Wheeler-native compiler. */
@@ -561,8 +560,7 @@ final class NativeCompilerSelfSourceExampleTest {
   void compilesCanonicalBorrowedIntrinsicShapesByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/frontend/intrinsics/BorrowedIntrinsicShapes.w",
-        "wheeler.compiler.borrowed_intrinsic_shapes",
-        "compiler/syntax/intrinsics/BorrowedIntrinsicKinds.w");
+        "wheeler.compiler.borrowed_intrinsic_shapes");
     assertEquals(
         "wheeler.compiler.borrowed_intrinsic_shapes::borrowedMutation",
         decoded.functions().getFirst().name());
@@ -576,8 +574,7 @@ final class NativeCompilerSelfSourceExampleTest {
   void compilesCanonicalThreeArgumentCallsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/calls/ThreeArgumentCalls.w",
-        "wheeler.compiler.three_argument_calls",
-        "compiler/ir/StatementKinds.w");
+        "wheeler.compiler.three_argument_calls");
     assertEquals(
         "wheeler.compiler.three_argument_calls::threeArgumentCallStatement",
         decoded.functions().getFirst().name());
@@ -588,8 +585,7 @@ final class NativeCompilerSelfSourceExampleTest {
   void compilesCanonicalFourArgumentCallsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/calls/FourArgumentCalls.w",
-        "wheeler.compiler.four_argument_calls",
-        "compiler/ir/StatementKinds.w");
+        "wheeler.compiler.four_argument_calls");
     assertEquals(
         "wheeler.compiler.four_argument_calls::fourArgumentCallStatement",
         decoded.functions().getFirst().name());
@@ -600,10 +596,7 @@ final class NativeCompilerSelfSourceExampleTest {
   void compilesCanonicalCallArgumentOpcodesByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/backend/calls/CallArguments.w",
-        "wheeler.compiler.call_arguments",
-        "compiler/ir/Opcodes.w",
-        "compiler/ir/StorageOpcodes.w",
-        "compiler/ir/TypeCodes.w");
+        "wheeler.compiler.call_arguments");
     assertEquals(
         "wheeler.compiler.call_arguments::callSourceType",
         decoded.functions().getFirst().name());
@@ -617,9 +610,7 @@ final class NativeCompilerSelfSourceExampleTest {
   void compilesCanonicalVoidCallSourceWidthsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/calls/VoidCallSourceWidths.w",
-        "wheeler.compiler.void_call_source_widths",
-        "compiler/syntax/calls/VoidCallKinds.w",
-        "compiler/syntax/calls/VoidCallSourceKinds.w");
+        "wheeler.compiler.void_call_source_widths");
     assertEquals(
         1,
         decoded.functions().stream()
@@ -647,8 +638,7 @@ final class NativeCompilerSelfSourceExampleTest {
   void compilesCanonicalVoidCallWidthsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/calls/VoidCallWidths.w",
-        "wheeler.compiler.void_call_widths",
-        "compiler/syntax/calls/VoidCallKinds.w");
+        "wheeler.compiler.void_call_widths");
     assertEquals(
         "wheeler.compiler.void_call_kinds::voidCallStatement",
         decoded.functions().getFirst().name());
@@ -694,8 +684,7 @@ final class NativeCompilerSelfSourceExampleTest {
   void compilesCanonicalReturnOpcodeKindsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/resolution/returns/ReturnOpcodeKinds.w",
-        "wheeler.compiler.return_opcode_kinds",
-        "compiler/ir/StatementKinds.w");
+        "wheeler.compiler.return_opcode_kinds");
     assertEquals(
         "wheeler.compiler.return_opcode_kinds::signedAmbiguousOpcode",
         decoded.functions().getFirst().name());
@@ -706,8 +695,7 @@ final class NativeCompilerSelfSourceExampleTest {
   void compilesCanonicalEarlyReturnResultKindsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/EarlyReturnResultKinds.w",
-        "wheeler.compiler.early_return_result_kinds",
-        "compiler/ir/StatementKinds.w");
+        "wheeler.compiler.early_return_result_kinds");
     assertEquals(
         "wheeler.compiler.early_return_result_kinds::helperGuardResultSigned",
         decoded.functions().getFirst().name());
@@ -921,29 +909,15 @@ final class NativeCompilerSelfSourceExampleTest {
   static Program assertImportedConstantCompilerLibrary(
       String logicalPath,
       String moduleName) throws Exception {
-    return assertImportedConstantCompilerLibrary(
-        logicalPath,
-        moduleName,
-        "compiler/ir/ResolvedStatements.w");
-  }
-
-  static Program assertImportedConstantCompilerLibrary(
-      String logicalPath,
-      String moduleName,
-      String... dependencyPaths) throws Exception {
     Program compiler = NativeModuleCompilerHarness.program();
-    List<String> dependencies = new ArrayList<>();
-    Map<String, String> sources = new LinkedHashMap<>();
-    for (String dependencyPath : dependencyPaths) {
-      String dependency = CompilerSources.read(dependencyPath);
-      dependencies.add(dependency);
-      sources.put(dependencyPath, dependency);
-    }
-    String root = CompilerSources.read(logicalPath);
-    sources.put(logicalPath, root);
+    Map<String, String> sources = CompilerSources.moduleClosure(moduleName);
+    Map<String, String> dependencies = new TreeMap<>(sources);
+    String root = dependencies.remove(logicalPath);
+    assertEquals(CompilerSources.read(logicalPath), root);
 
-    byte[] artifact = NativeModuleCompilerHarness.compile(compiler, dependencies, root);
     Program expected = new WheelerCompiler().compileLibraryModuleFiles(sources, moduleName);
+    byte[] artifact = NativeModuleCompilerHarness.compile(
+        compiler, List.copyOf(dependencies.values()), root);
     assertArrayEquals(new BytecodeWriter().write(expected), artifact);
     return new BytecodeReader().read(artifact);
   }

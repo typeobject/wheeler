@@ -19,7 +19,15 @@ classical class PackageManifestCapabilityPath {
   ) {
     long keyToken = cursor + 4;
     long pathWord = WORD_PATH;
-    boolean pathKey = manifestKeyAt(source, kinds, starts, lengths, count, keyToken, pathWord);
+    boolean pathKey = manifestKeyAt(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      keyToken,
+      pathWord
+    );
     if (pathKey == false) {
       return false;
     }
@@ -46,13 +54,7 @@ classical class PackageManifestCapabilityPath {
     long previousNameToken,
     long currentNameToken
   ) {
-    long order = compareTokenText(
-      source,
-      starts,
-      lengths,
-      previousNameToken,
-      currentNameToken
-    );
+    long order = compareTokenText(source, starts, lengths, previousNameToken, currentNameToken);
     return order;
   }
 
@@ -64,13 +66,7 @@ classical class PackageManifestCapabilityPath {
     long previousPathToken,
     long currentPathToken
   ) {
-    long order = compareTokenText(
-      source,
-      starts,
-      lengths,
-      previousPathToken,
-      currentPathToken
-    );
+    long order = compareTokenText(source, starts, lengths, previousPathToken, currentPathToken);
     return order < 0;
   }
 }

@@ -327,7 +327,8 @@ classical class CountedModuleCallables {
           long resultSlotWidth = 0;
           if (header.effects / 2 % 2 == 1) {
             if (
-              sourceTokenCode(source, tokenStarts, tokenLengths, header.resultTypeToken) == TOKEN_VOID
+              sourceTokenCode(source, tokenStarts, tokenLengths, header.resultTypeToken)
+                == TOKEN_VOID
             ) {} else {
               resultSlotWidth = 2;
             }

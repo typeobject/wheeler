@@ -181,9 +181,7 @@ classical class TestSourceLowering {
     long loweredLength = -1;
     long token = 0;
     while (token + 4 < tokenCount) limit MAX_COMPILER_TOKENS {
-      if (
-        sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_TEST
-      ) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_TEST) {
         if (
           sourceTokenCode(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID
         ) {
@@ -251,9 +249,7 @@ classical class TestSourceLowering {
     long loweredLength = -1;
     long token = 0;
     while (token + 8 < tokenCount) limit MAX_COMPILER_TOKENS {
-      if (
-        sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_TEST
-      ) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_TEST) {
         if (
           sourceTokenCode(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID
         ) {
@@ -344,9 +340,7 @@ classical class TestSourceLowering {
     long selected = 0;
     long token = 0;
     while (token + 4 < tokenCount) limit MAX_COMPILER_TOKENS {
-      if (
-        sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_ENTRY
-      ) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_ENTRY) {
         if (
           sourceTokenCode(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID
         ) {
@@ -376,9 +370,7 @@ classical class TestSourceLowering {
         }
       }
 
-      if (
-        sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_TEST
-      ) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_TEST) {
         if (
           sourceTokenCode(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID
         ) {
@@ -486,9 +478,7 @@ classical class TestSourceLowering {
     long selected = 0;
     long token = 0;
     while (token + 8 < tokenCount) limit MAX_COMPILER_TOKENS {
-      if (
-        sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_ENTRY
-      ) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_ENTRY) {
         if (
           sourceTokenCode(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID
         ) {
@@ -518,9 +508,7 @@ classical class TestSourceLowering {
         }
       }
 
-      if (
-        sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_TEST
-      ) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_TEST) {
         if (
           sourceTokenCode(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID
         ) {

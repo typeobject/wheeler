@@ -57,13 +57,16 @@ classical class PackageManifestWords {
     if (start < 0) {
       return 0;
     }
+
     if (length < 1) {
       return 0;
     }
+
     long maximumWordLength = 12;
     if (maximumWordLength < length) {
       return 0;
     }
+
     long capacity = bufferLength(source);
     long lastStart = capacity - length;
     if (lastStart < start) {
@@ -98,6 +101,7 @@ classical class PackageManifestWords {
     if (lastHeadOffset < offset) {
       return head;
     }
+
     long prefix = head * 128;
     return prefix + scalar;
   }
@@ -106,6 +110,7 @@ classical class PackageManifestWords {
     if (offset < 8) {
       return tail;
     }
+
     long prefix = tail * 128;
     return prefix + scalar;
   }
@@ -114,15 +119,18 @@ classical class PackageManifestWords {
     if (ascii == false) {
       return 0;
     }
+
     long unknownWord = 0;
     long header = headerAndTargetWord(length, head, tail);
     if (unknownWord < header) {
       return header;
     }
+
     long collection = collectionAndTestWord(length, head, tail);
     if (unknownWord < collection) {
       return collection;
     }
+
     long value = kindAndVersionWord(length, head, tail);
     return value;
   }
@@ -133,17 +141,33 @@ classical class PackageManifestWords {
     long schemaLength = 6;
     long schemaHead = 3978164795105;
     long schemaTail = 0;
-    boolean schema = matchesManifestWord(length, head, tail, schemaLength, schemaHead, schemaTail);
+    boolean schema = matchesManifestWord(
+      length,
+      head,
+      tail,
+      schemaLength,
+      schemaHead,
+      schemaTail
+    );
     if (schema == true) {
       return WORD_SCHEMA;
     }
+
     long packageLength = 7;
     long packageHead = 495940904973285;
     long packageTail = 0;
-    boolean package = matchesManifestWord(length, head, tail, packageLength, packageHead, packageTail);
+    boolean package = matchesManifestWord(
+      length,
+      head,
+      tail,
+      packageLength,
+      packageHead,
+      packageTail
+    );
     if (package == true) {
       return WORD_PACKAGE;
     }
+
     long nameLength = 4;
     long nameHead = 232290021;
     long nameTail = 0;
@@ -151,27 +175,52 @@ classical class PackageManifestWords {
     if (name == true) {
       return WORD_NAME;
     }
+
     long versionLength = 7;
     long versionHead = 522470666434542;
     long versionTail = 0;
-    boolean version = matchesManifestWord(length, head, tail, versionLength, versionHead, versionTail);
+    boolean version = matchesManifestWord(
+      length,
+      head,
+      tail,
+      versionLength,
+      versionHead,
+      versionTail
+    );
     if (version == true) {
       return WORD_VERSION;
     }
+
     long profileLength = 7;
     long profileHead = 496528231396965;
     long profileTail = 0;
-    boolean profile = matchesManifestWord(length, head, tail, profileLength, profileHead, profileTail);
+    boolean profile = matchesManifestWord(
+      length,
+      head,
+      tail,
+      profileLength,
+      profileHead,
+      profileTail
+    );
     if (profile == true) {
       return WORD_PROFILE;
     }
+
     long targetsLength = 7;
     long targetsHead = 513537109228147;
     long targetsTail = 0;
-    boolean targets = matchesManifestWord(length, head, tail, targetsLength, targetsHead, targetsTail);
+    boolean targets = matchesManifestWord(
+      length,
+      head,
+      tail,
+      targetsLength,
+      targetsHead,
+      targetsTail
+    );
     if (targets == true) {
       return WORD_TARGETS;
     }
+
     long kindLength = 4;
     long kindHead = 226129764;
     long kindTail = 0;
@@ -179,6 +228,7 @@ classical class PackageManifestWords {
     if (kind == true) {
       return WORD_KIND;
     }
+
     long rootLength = 4;
     long rootHead = 240908276;
     long rootTail = 0;
@@ -186,6 +236,7 @@ classical class PackageManifestWords {
     if (root == true) {
       return WORD_ROOT;
     }
+
     return 0;
   }
 
@@ -193,17 +244,33 @@ classical class PackageManifestWords {
     long moduleLength = 6;
     long moduleHead = 3775219463781;
     long moduleTail = 0;
-    boolean module = matchesManifestWord(length, head, tail, moduleLength, moduleHead, moduleTail);
+    boolean module = matchesManifestWord(
+      length,
+      head,
+      tail,
+      moduleLength,
+      moduleHead,
+      moduleTail
+    );
     if (module == true) {
       return WORD_MODULE;
     }
+
     long sourcesLength = 7;
     long sourcesHead = 509620927394547;
     long sourcesTail = 0;
-    boolean sources = matchesManifestWord(length, head, tail, sourcesLength, sourcesHead, sourcesTail);
+    boolean sources = matchesManifestWord(
+      length,
+      head,
+      tail,
+      sourcesLength,
+      sourcesHead,
+      sourcesTail
+    );
     if (sources == true) {
       return WORD_SOURCES;
     }
+
     long testLength = 4;
     long testHead = 244939252;
     long testTail = 0;
@@ -211,24 +278,37 @@ classical class PackageManifestWords {
     if (test == true) {
       return WORD_TEST;
     }
+
     long dependenciesLength = 12;
     long dependenciesHead = 56743073674769134;
     long dependenciesTail = 209351411;
     boolean dependencies = matchesManifestWord(
-      length, head, tail, dependenciesLength, dependenciesHead, dependenciesTail
+      length,
+      head,
+      tail,
+      dependenciesLength,
+      dependenciesHead,
+      dependenciesTail
     );
     if (dependencies == true) {
       return WORD_DEPENDENCIES;
     }
+
     long capabilitiesLength = 12;
     long capabilitiesHead = 56162530436478569;
     long capabilitiesTail = 245002995;
     boolean capabilities = matchesManifestWord(
-      length, head, tail, capabilitiesLength, capabilitiesHead, capabilitiesTail
+      length,
+      head,
+      tail,
+      capabilitiesLength,
+      capabilitiesHead,
+      capabilitiesTail
     );
     if (capabilities == true) {
       return WORD_CAPABILITIES;
     }
+
     long pathLength = 4;
     long pathHead = 236485224;
     long pathTail = 0;
@@ -236,20 +316,37 @@ classical class PackageManifestWords {
     if (path == true) {
       return WORD_PATH;
     }
+
     long trueLength = 4;
     long trueHead = 245152485;
     long trueTail = 0;
-    boolean trueValue = matchesManifestWord(length, head, tail, trueLength, trueHead, trueTail);
+    boolean trueValue = matchesManifestWord(
+      length,
+      head,
+      tail,
+      trueLength,
+      trueHead,
+      trueTail
+    );
     if (trueValue == true) {
       return WORD_TRUE;
     }
+
     long falseLength = 5;
     long falseHead = 27585624549;
     long falseTail = 0;
-    boolean falseValue = matchesManifestWord(length, head, tail, falseLength, falseHead, falseTail);
+    boolean falseValue = matchesManifestWord(
+      length,
+      head,
+      tail,
+      falseLength,
+      falseHead,
+      falseTail
+    );
     if (falseValue == true) {
       return WORD_FALSE;
     }
+
     return 0;
   }
 
@@ -258,18 +355,32 @@ classical class PackageManifestWords {
     long deployableHead = 56743075556258018;
     long deployableTail = 13925;
     boolean deployable = matchesManifestWord(
-      length, head, tail, deployableLength, deployableHead, deployableTail
+      length,
+      head,
+      tail,
+      deployableLength,
+      deployableHead,
+      deployableTail
     );
     if (deployable == true) {
       return WORD_DEPLOYABLE;
     }
+
     long libraryLength = 7;
     long libraryHead = 478623343081849;
     long libraryTail = 0;
-    boolean library = matchesManifestWord(length, head, tail, libraryLength, libraryHead, libraryTail);
+    boolean library = matchesManifestWord(
+      length,
+      head,
+      tail,
+      libraryLength,
+      libraryHead,
+      libraryTail
+    );
     if (library == true) {
       return WORD_LIBRARY;
     }
+
     long toolLength = 4;
     long toolHead = 245102572;
     long toolTail = 0;
@@ -277,22 +388,37 @@ classical class PackageManifestWords {
     if (tool == true) {
       return WORD_TOOL;
     }
+
     long normalLength = 6;
     long normalHead = 3809608429804;
     long normalTail = 0;
-    boolean normal = matchesManifestWord(length, head, tail, normalLength, normalHead, normalTail);
+    boolean normal = matchesManifestWord(
+      length,
+      head,
+      tail,
+      normalLength,
+      normalHead,
+      normalTail
+    );
     if (normal == true) {
       return WORD_NORMAL;
     }
+
     long developmentLength = 11;
     long developmentHead = 56743279829186669;
     long developmentTail = 1668980;
     boolean development = matchesManifestWord(
-      length, head, tail, developmentLength, developmentHead, developmentTail
+      length,
+      head,
+      tail,
+      developmentLength,
+      developmentHead,
+      developmentTail
     );
     if (development == true) {
       return WORD_DEVELOPMENT;
     }
+
     long buildLength = 5;
     long buildHead = 26553775716;
     long buildTail = 0;
@@ -300,29 +426,43 @@ classical class PackageManifestWords {
     if (build == true) {
       return WORD_BUILD;
     }
+
     long schemaVersionLength = 1;
     long schemaVersionHead = 49;
     long schemaVersionTail = 0;
     boolean schemaVersion = matchesManifestWord(
-      length, head, tail, schemaVersionLength, schemaVersionHead, schemaVersionTail
+      length,
+      head,
+      tail,
+      schemaVersionLength,
+      schemaVersionHead,
+      schemaVersionTail
     );
     if (schemaVersion == true) {
       return WORD_SCHEMA_VERSION;
     }
+
     return 0;
   }
 
   private boolean matchesManifestWord(
-    long length, long head, long tail, long expectedLength, long expectedHead, long expectedTail
+    long length,
+    long head,
+    long tail,
+    long expectedLength,
+    long expectedHead,
+    long expectedTail
   ) {
     boolean sameLength = length == expectedLength;
     if (sameLength == false) {
       return false;
     }
+
     boolean sameHead = head == expectedHead;
     if (sameHead == false) {
       return false;
     }
+
     return tail == expectedTail;
   }
 

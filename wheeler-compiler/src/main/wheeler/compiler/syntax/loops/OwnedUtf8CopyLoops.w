@@ -74,7 +74,8 @@ classical class OwnedUtf8CopyLoops {
     if (
       sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 9) == TOKEN_SET_BYTE
     ) {
-      return sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 15) == TOKEN_UTF8_SCALAR;
+      return sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 15)
+        == TOKEN_UTF8_SCALAR;
     }
 
     return false;

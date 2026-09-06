@@ -636,7 +636,12 @@ classical class Operands {
     }
 
     if (resolvedLocalAssignmentBoolean(opcode)) {
-      long assignmentWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 2);
+      long assignmentWordCode = sourceTokenCode(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart + 2
+      );
       if (assignmentWordCode == TOKEN_TRUE) {
         return 1;
       }

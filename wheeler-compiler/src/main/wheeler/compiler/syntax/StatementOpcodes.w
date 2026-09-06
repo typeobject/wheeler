@@ -44,7 +44,12 @@ classical class StatementOpcodes {
     }
 
     if (keyword == TOKEN_BYTES) {
-      long bytesInitializer = sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 3);
+      long bytesInitializer = sourceTokenCode(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart + 3
+      );
       if (bytesInitializer == TOKEN_ALLOCATE_BYTES) {
         return STATEMENT_LOCAL_BYTES_ALLOCATE_NAMED;
       }
@@ -105,7 +110,12 @@ classical class StatementOpcodes {
     }
 
     if (keyword == TOKEN_RETURN) {
-      long returnedWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 1);
+      long returnedWordCode = sourceTokenCode(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart + 1
+      );
       if (booleanTokenCode(returnedWordCode)) {
         return STATEMENT_RETURN_BOOLEAN;
       }
@@ -330,7 +340,9 @@ classical class StatementOpcodes {
           bodyStart += 2;
         }
 
-        if (sourceTokenCode(source, tokenStarts, tokenLengths, bodyStart) == TOKEN_RETURN) {
+        if (
+          sourceTokenCode(source, tokenStarts, tokenLengths, bodyStart) == TOKEN_RETURN
+        ) {
           long returned = sourceTokenCode(source, tokenStarts, tokenLengths, bodyStart + 1);
           if (lessThanComparison) {
             if (returned == TOKEN_TRUE) {
@@ -673,7 +685,12 @@ classical class StatementOpcodes {
         return STATEMENT_LOCAL_BOOLEAN_NOT_NAMED;
       }
 
-      long booleanInitializer = sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 3);
+      long booleanInitializer = sourceTokenCode(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart + 3
+      );
       if (booleanTokenCode(booleanInitializer)) {
         return STATEMENT_LOCAL_BOOLEAN;
       }

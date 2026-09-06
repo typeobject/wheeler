@@ -168,31 +168,48 @@ classical class ConstantDeclarations {
     if (declaration < 0) {
       return false;
     }
+
     if (declaration < tokenCount) {} else {
       return false;
     }
-    if (scalarAt(source, tokenStarts, tokenLengths, declaration, PUNCTUATION_CLOSE_BRACE)) {
+
+    if (
+      scalarAt(source, tokenStarts, tokenLengths, declaration, PUNCTUATION_CLOSE_BRACE)
+    ) {
       return true;
     }
+
     long cursor = declaration;
     while (cursor < tokenCount) limit MAX_COMPILER_TOKENS {
       if (scalarAt(source, tokenStarts, tokenLengths, cursor, PUNCTUATION_ASSIGN)) {
         return false;
       }
+
       if (scalarAt(source, tokenStarts, tokenLengths, cursor, PUNCTUATION_SEMICOLON)) {
         return false;
       }
-      if (scalarAt(source, tokenStarts, tokenLengths, cursor, PUNCTUATION_CLOSE_BRACE)) {
+
+      if (
+        scalarAt(source, tokenStarts, tokenLengths, cursor, PUNCTUATION_CLOSE_BRACE)
+      ) {
         return false;
       }
-      if (scalarAt(source, tokenStarts, tokenLengths, cursor, PUNCTUATION_OPEN_PAREN)) {
+
+      if (
+        scalarAt(source, tokenStarts, tokenLengths, cursor, PUNCTUATION_OPEN_PAREN)
+      ) {
         return true;
       }
-      if (scalarAt(source, tokenStarts, tokenLengths, cursor, PUNCTUATION_OPEN_BRACE)) {
+
+      if (
+        scalarAt(source, tokenStarts, tokenLengths, cursor, PUNCTUATION_OPEN_BRACE)
+      ) {
         return true;
       }
+
       cursor += 1;
     }
+
     return false;
   }
 

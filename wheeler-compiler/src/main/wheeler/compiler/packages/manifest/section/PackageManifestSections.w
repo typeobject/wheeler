@@ -17,7 +17,13 @@ classical class PackageManifestSections {
   ) {
     long dependenciesWord = WORD_DEPENDENCIES;
     boolean present = manifestKeyAt(
-      source, kinds, starts, lengths, count, keyToken, dependenciesWord
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      keyToken,
+      dependenciesWord
     );
     return present;
   }
@@ -33,7 +39,13 @@ classical class PackageManifestSections {
   ) {
     long capabilitiesWord = WORD_CAPABILITIES;
     boolean present = manifestKeyAt(
-      source, kinds, starts, lengths, count, keyToken, capabilitiesWord
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      keyToken,
+      capabilitiesWord
     );
     return present;
   }

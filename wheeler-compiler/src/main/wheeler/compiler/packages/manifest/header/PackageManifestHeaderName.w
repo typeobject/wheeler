@@ -18,7 +18,15 @@ classical class PackageManifestHeaderName {
   ) {
     long keyToken = 5;
     long nameWord = WORD_NAME;
-    boolean nameKey = manifestKeyAt(source, kinds, starts, lengths, count, keyToken, nameWord);
+    boolean nameKey = manifestKeyAt(
+      source,
+      kinds,
+      starts,
+      lengths,
+      count,
+      keyToken,
+      nameWord
+    );
     if (nameKey == false) {
       return false;
     }

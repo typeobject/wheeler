@@ -37,12 +37,15 @@ classical class MetadataTokens {
     if (length != expectedLength) {
       return false;
     }
+
     if (start < 0) {
       return false;
     }
+
     if (bufferLength(source) - length < start) {
       return false;
     }
+
     long offset = 0;
     while (offset < length) limit 12 {
       long wanted = head % 128;
@@ -52,11 +55,14 @@ classical class MetadataTokens {
         wanted = tail % 128;
         tail = tail / 128;
       }
+
       if (utf8Scalar(source, start + offset) != wanted) {
         return false;
       }
+
       offset += 1;
     }
+
     return true;
   }
 
@@ -71,47 +77,61 @@ classical class MetadataTokens {
     if (expected == 0) {
       return false;
     }
+
     if (expected < METADATA_WORD_SCHEMA_THREE) {
       return false;
     }
+
     if (token < 0) {
       return false;
     }
+
     if (bufferLength(starts) - 1 < token) {
       return false;
     }
+
     if (bufferLength(lengths) - 1 < token) {
       return false;
     }
+
     if (0 < expected) {
       return manifestTokenWord(source, starts, lengths, token) == expected;
     }
+
     long start = starts[token];
     long length = lengths[token];
     if (expected == METADATA_WORD_WORKSPACE) {
       return additionalWordEquals(source, start, length, 9, 56162535287338999, 101);
     }
+
     if (expected == METADATA_WORD_MEMBERS) {
       return additionalWordEquals(source, start, length, 7, 509719678251757, 0);
     }
+
     if (expected == METADATA_WORD_PACKAGES) {
       return additionalWordEquals(source, start, length, 8, 65187012658393328, 0);
     }
+
     if (expected == METADATA_WORD_REPOSITORY) {
       return additionalWordEquals(source, start, length, 10, 63001257102291698, 15602);
     }
+
     if (expected == METADATA_WORD_SNAPSHOT) {
       return additionalWordEquals(source, start, length, 8, 65793982278956915, 0);
     }
+
     if (expected == METADATA_WORD_ARCHIVE) {
       return additionalWordEquals(source, start, length, 7, 448285552212321, 0);
     }
+
     if (expected == METADATA_WORD_MANIFEST) {
       return additionalWordEquals(source, start, length, 8, 65811467881656557, 0);
     }
+
     if (expected == METADATA_WORD_RELEASES) {
       return additionalWordEquals(source, start, length, 8, 65187424962818802, 0);
     }
+
     return additionalWordEquals(source, start, length, 1, 51, 0);
   }
 
@@ -128,27 +148,35 @@ classical class MetadataTokens {
     if (token < 0) {
       return false;
     }
+
     if (count < 2) {
       return false;
     }
+
     if (count - 2 < token) {
       return false;
     }
+
     if (bufferLength(kinds) < count) {
       return false;
     }
+
     if (bufferLength(starts) < count) {
       return false;
     }
+
     if (bufferLength(lengths) < count) {
       return false;
     }
+
     if (kinds[token] != 1) {
       return false;
     }
+
     if (metadataTokenEquals(source, starts, lengths, token, expected) == false) {
       return false;
     }
+
     return colonAt(source, kinds, starts, token + 1);
   }
 }

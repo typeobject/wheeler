@@ -114,7 +114,9 @@ classical class LocalNominalReferences {
         }
 
         if (0 < token) {
-          if (sourceTokenCode(source, tokenStarts, tokenLengths, token - 1) == TOKEN_NEW) {
+          if (
+            sourceTokenCode(source, tokenStarts, tokenLengths, token - 1) == TOKEN_NEW
+          ) {
             typePosition = true;
           }
         }

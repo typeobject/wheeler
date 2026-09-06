@@ -341,7 +341,9 @@ classical class DirectConditionalReturnProducts {
       return invalidConditionalReturn(19);
     }
 
-    if (sourceTokenCode(source, tokenStarts, tokenLengths, childToken) != TOKEN_RETURN) {
+    if (
+      sourceTokenCode(source, tokenStarts, tokenLengths, childToken) != TOKEN_RETURN
+    ) {
       return invalidConditionalReturn(20);
     }
 

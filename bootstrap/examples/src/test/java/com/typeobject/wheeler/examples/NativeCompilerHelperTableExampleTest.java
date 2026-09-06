@@ -34,8 +34,7 @@ final class NativeCompilerHelperTableExampleTest {
   void compilesCanonicalHelperSignaturesByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/helpers/HelperSignatures.w",
-        "wheeler.compiler.helper_signatures",
-        "compiler/syntax/helpers/HelperAbi.w");
+        "wheeler.compiler.helper_signatures");
     assertEquals(
         "wheeler.compiler.helper_signatures::parameterCountForHelper",
         decoded.functions().getFirst().name());

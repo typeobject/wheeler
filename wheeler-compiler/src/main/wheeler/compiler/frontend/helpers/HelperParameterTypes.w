@@ -79,7 +79,12 @@ classical class HelperParameterTypes {
           borrowedTypeToken += 1;
         }
 
-        long borrowedType = sourceTokenCode(source, tokenStarts, tokenLengths, borrowedTypeToken);
+        long borrowedType = sourceTokenCode(
+          source,
+          tokenStarts,
+          tokenLengths,
+          borrowedTypeToken
+        );
         type = 0;
         if (borrowedType == TOKEN_UTF8) {
           if (mutable) {

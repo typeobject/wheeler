@@ -51,6 +51,7 @@ classical class PackageManifestTargetCoordinates {
     if (sourceCount == 0) {
       return cursor + 10;
     }
+
     long tail = manifestTargetSourceTailToken(cursor, sourceCount);
     return tail;
   }
@@ -61,6 +62,7 @@ classical class PackageManifestTargetCoordinates {
     if (span == 10) {
       return 0;
     }
+
     long sourceSpan = span - 15;
     long count = sourceSpan / 2;
     return count;

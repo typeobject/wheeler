@@ -8,6 +8,7 @@ classical class PackageManifestRows {
     if (row < 0) {
       return false;
     }
+
     long capacity = bufferLength(rows);
     long completeRows = capacity / 10;
     return row < completeRows;
@@ -18,6 +19,7 @@ classical class PackageManifestRows {
     if (row < 0) {
       return false;
     }
+
     long capacity = bufferLength(rows);
     long completeRows = capacity / 2;
     return row < completeRows;
@@ -28,6 +30,7 @@ classical class PackageManifestRows {
     if (row < 0) {
       return false;
     }
+
     long capacity = bufferLength(rows);
     long completeRows = capacity / 5;
     return row < completeRows;
@@ -38,6 +41,7 @@ classical class PackageManifestRows {
     if (row < 0) {
       return false;
     }
+
     long capacity = bufferLength(rows);
     long completeRows = capacity / 4;
     return row < completeRows;

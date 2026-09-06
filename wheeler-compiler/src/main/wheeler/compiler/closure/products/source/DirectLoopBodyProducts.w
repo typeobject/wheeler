@@ -544,7 +544,9 @@ classical class DirectLoopBodyProducts {
               statementValid = false;
             }
           } else {
-            if (sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_ASSERT) {
+            if (
+              sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_ASSERT
+            ) {
               LoopAssertion assertion = resolveLoopAssertion(
                 source,
                 token,

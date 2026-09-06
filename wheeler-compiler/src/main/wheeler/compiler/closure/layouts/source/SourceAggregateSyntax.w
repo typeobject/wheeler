@@ -358,30 +358,39 @@ classical class SourceAggregateSyntax {
     if (code == TOKEN_LONG) {
       return TYPE_SIGNED;
     }
+
     if (code == TOKEN_BOOLEAN) {
       return TYPE_BOOLEAN;
     }
+
     if (code == TOKEN_REGION) {
       return TYPE_REGION;
     }
+
     if (code == TOKEN_WORDS) {
       return TYPE_WORDS;
     }
+
     if (code == TOKEN_BYTES) {
       return TYPE_BYTES;
     }
+
     if (code == TOKEN_LONGMAP) {
       return TYPE_LONG_MAP;
     }
+
     if (code == TOKEN_UTF8) {
       return TYPE_UTF8;
     }
+
     if (code == TOKEN_BYTEVIEW) {
       return TYPE_BYTE_VIEW;
     }
+
     if (code == TOKEN_DONE) {
       return TYPE_DONE;
     }
+
     return -1;
   }
 }

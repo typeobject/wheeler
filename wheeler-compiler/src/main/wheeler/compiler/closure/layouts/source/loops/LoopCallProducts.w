@@ -53,7 +53,8 @@ classical class LoopCallProducts {
     long argument = 0;
     while (argument < arity) limit SOURCE_CALL_ARITY_LIMIT {
       long valueProduct = argumentValueProducts[firstArgument + argument];
-      long valueOffset = argumentValueProducts[SOURCE_CALL_ARGUMENT_TYPE_ROW + firstArgument + argument];
+      long valueOffset = argumentValueProducts[SOURCE_CALL_ARGUMENT_TYPE_ROW + firstArgument
+        + argument];
       if (valueProduct < 0) {
         return false;
       }
@@ -118,7 +119,8 @@ classical class LoopCallProducts {
       );
       cursor = writeUnsignedLittleEndian(output, cursor, localBase + argument, U64);
       long valueProduct = argumentValueProducts[firstArgument + argument];
-      long valueOffset = argumentValueProducts[SOURCE_CALL_ARGUMENT_TYPE_ROW + firstArgument + argument];
+      long valueOffset = argumentValueProducts[SOURCE_CALL_ARGUMENT_TYPE_ROW + firstArgument
+        + argument];
       cursor = writeUnsignedLittleEndian(
         output,
         cursor,

@@ -119,8 +119,12 @@ classical class DirectScalarEncoding {
       if (symbolOwners[symbol] == moduleOwner) {
         if (
           matchesConstantName(
-            source, tokenStart, tokenLength,
-            symbolNames, symbolStarts[symbol], symbolLengths[symbol]
+            source,
+            tokenStart,
+            tokenLength,
+            symbolNames,
+            symbolStarts[symbol],
+            symbolLengths[symbol]
           )
         ) {
           matches += 1;

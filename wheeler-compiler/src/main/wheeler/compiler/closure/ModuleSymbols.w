@@ -140,11 +140,13 @@ classical class CountedModuleSymbols {
           return cursor;
         }
       }
+
       if (tokenLengths[cursor] == 1) {
         if (utf8Scalar(source, tokenStarts[cursor]) == PUNCTUATION_SEMICOLON) {
           inState = false;
         }
       }
+
       cursor += 1;
     }
 
@@ -274,7 +276,12 @@ classical class CountedModuleSymbols {
           return -1;
         }
 
-        long visibilityWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, declaration);
+        long visibilityWordCode = sourceTokenCode(
+          source,
+          tokenStarts,
+          tokenLengths,
+          declaration
+        );
         long visibility = -1;
         if (visibilityWordCode == TOKEN_PUBLIC) {
           visibility = 1;
@@ -334,7 +341,9 @@ classical class CountedModuleSymbols {
       }
     }
 
-    if (constantPrefixComplete(source, tokenStarts, tokenLengths, declaration, tokenCount)) {} else {
+    if (
+      constantPrefixComplete(source, tokenStarts, tokenLengths, declaration, tokenCount)
+    ) {} else {
       return -1;
     }
 

@@ -560,7 +560,9 @@ classical class SourceLoopProducts {
     long statement = 0;
     while (statement < statementCount) limit MAX_STATEMENTS {
       long startToken = statementTokens[statement];
-      if (sourceTokenCode(source, tokenStarts, tokenLengths, startToken) == TOKEN_WHILE) {
+      if (
+        sourceTokenCode(source, tokenStarts, tokenLengths, startToken) == TOKEN_WHILE
+      ) {
         long child = stagedStatements[STATEMENT_FIRST_CHILD_ROW + statement];
         boolean loopValid = true;
         if (child < 0) {

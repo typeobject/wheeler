@@ -14,8 +14,8 @@ import wheeler.compiler.type_codes;
 
 classical class SourceCallArgumentProducts {
   private const long CALL_COUNT_LIMIT = SOURCE_CALL_COUNT_LIMIT;
-  private const long STAGING_BYTES =
-    MAX_COMPILER_TOKENS * 24 + CALL_COUNT_LIMIT * 16 + SOURCE_CALL_ARGUMENT_ROWS * 16;
+  private const long STAGING_BYTES = MAX_COMPILER_TOKENS * 24 + CALL_COUNT_LIMIT * 16
+    + SOURCE_CALL_ARGUMENT_ROWS * 16;
   private const long CALL_ROWS = 1024;
   private const long MAX_STATEMENTS = 4096;
   private const long MAX_VALUES = 1024;

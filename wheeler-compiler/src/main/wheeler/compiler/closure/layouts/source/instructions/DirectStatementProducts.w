@@ -419,6 +419,7 @@ classical class DirectStatementProducts {
                   if (wordCode == TOKEN_SET_BYTE) {
                     bufferMutation = true;
                   }
+
                   if (bufferMutation) {
                     DirectBufferMutationProduct mutation = writeDirectBufferMutation(
                       source,

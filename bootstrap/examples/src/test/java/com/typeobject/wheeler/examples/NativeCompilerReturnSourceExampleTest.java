@@ -12,8 +12,7 @@ final class NativeCompilerReturnSourceExampleTest {
   void compilesCanonicalNamedComparisonKindsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/comparisons/NamedComparisonKinds.w",
-        "wheeler.compiler.named_comparison_kinds",
-        "compiler/ir/StatementKinds.w");
+        "wheeler.compiler.named_comparison_kinds");
     assertEquals(
         "wheeler.compiler.named_comparison_kinds::returnComparisonStatement",
         decoded.functions().getFirst().name());
@@ -62,8 +61,7 @@ final class NativeCompilerReturnSourceExampleTest {
       throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
         "compiler/syntax/returns/" + fileName,
-        "wheeler.compiler." + moduleName,
-        "compiler/ir/StatementKinds.w");
+        "wheeler.compiler." + moduleName);
     assertEquals(
         "wheeler.compiler." + moduleName + "::" + firstFunction,
         decoded.functions().getFirst().name());

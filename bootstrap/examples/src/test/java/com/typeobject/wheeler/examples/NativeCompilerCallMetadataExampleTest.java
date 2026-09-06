@@ -109,8 +109,7 @@ final class NativeCompilerCallMetadataExampleTest {
   void compilesCanonicalAssignmentCallAritiesByteForByte() throws Exception {
     Program decoded = NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary(
         "compiler/syntax/calls/assignment/AssignmentCallArities.w",
-        "wheeler.compiler.assignment_call_arities",
-        "compiler/syntax/calls/assignment/AssignmentCallIdentities.w");
+        "wheeler.compiler.assignment_call_arities");
     assertEquals(
         "wheeler.compiler.assignment_call_arities::assignmentCallArity",
         decoded.functions().getFirst().name());
@@ -121,8 +120,7 @@ final class NativeCompilerCallMetadataExampleTest {
   void compilesCanonicalAssignmentCallColumnsByteForByte() throws Exception {
     Program decoded = NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary(
         "compiler/syntax/calls/assignment/AssignmentCallColumns.w",
-        "wheeler.compiler.assignment_call_columns",
-        "compiler/syntax/calls/assignment/AssignmentCallIdentities.w");
+        "wheeler.compiler.assignment_call_columns");
     assertEquals(
         "wheeler.compiler.assignment_call_columns::sourceKind",
         decoded.functions().getFirst().name());
@@ -156,9 +154,7 @@ final class NativeCompilerCallMetadataExampleTest {
   void compilesCanonicalAssignmentCallLocalWidthsByteForByte() throws Exception {
     Program decoded = NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary(
         "compiler/syntax/calls/assignment/AssignmentCallLocalWidths.w",
-        "wheeler.compiler.assignment_call_local_widths",
-        "compiler/syntax/calls/assignment/AssignmentCallArities.w",
-        "compiler/syntax/calls/assignment/AssignmentCallIdentities.w");
+        "wheeler.compiler.assignment_call_local_widths");
     assertEquals(
         "wheeler.compiler.assignment_call_local_widths::assignmentCallLocalCount",
         decoded.functions().get(1).name());
@@ -169,9 +165,7 @@ final class NativeCompilerCallMetadataExampleTest {
   void compilesCanonicalAssignmentCallInstructionWidthsByteForByte() throws Exception {
     Program decoded = NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary(
         "compiler/syntax/calls/assignment/AssignmentCallInstructionWidths.w",
-        "wheeler.compiler.assignment_call_instruction_widths",
-        "compiler/syntax/calls/assignment/AssignmentCallArities.w",
-        "compiler/syntax/calls/assignment/AssignmentCallIdentities.w");
+        "wheeler.compiler.assignment_call_instruction_widths");
     assertEquals(
         "wheeler.compiler.assignment_call_instruction_widths::assignmentCallInstructionCount",
         decoded.functions().get(1).name());
@@ -182,9 +176,7 @@ final class NativeCompilerCallMetadataExampleTest {
   void compilesCanonicalAssignmentCallCodeWidthsByteForByte() throws Exception {
     Program decoded = NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary(
         "compiler/syntax/calls/assignment/AssignmentCallCodeWidths.w",
-        "wheeler.compiler.assignment_call_code_widths",
-        "compiler/syntax/calls/assignment/AssignmentCallArities.w",
-        "compiler/syntax/calls/assignment/AssignmentCallIdentities.w");
+        "wheeler.compiler.assignment_call_code_widths");
     assertEquals(
         "wheeler.compiler.assignment_call_code_widths::assignmentCallCodeLength",
         decoded.functions().get(1).name());
@@ -273,9 +265,7 @@ final class NativeCompilerCallMetadataExampleTest {
   void compilesCanonicalVoidCallSourceFormsByteForByte() throws Exception {
     Program decoded = NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary(
         "compiler/syntax/calls/void/VoidCallSourceForms.w",
-        "wheeler.compiler.void_call_source_forms",
-        "compiler/syntax/calls/VoidCallKinds.w",
-        "compiler/syntax/calls/VoidCallSourceKinds.w");
+        "wheeler.compiler.void_call_source_forms");
     assertEquals("$library", decoded.functions().getLast().name());
   }
 
@@ -286,7 +276,7 @@ final class NativeCompilerCallMetadataExampleTest {
         "wheeler.compiler.resolved_return_call_kinds");
 
     assertEquals(
-        "wheeler.compiler.resolved_return_call_kinds::resolvedReturnHelperCall",
+        "wheeler.compiler.resolved_return_call_kinds::returnHelperCallArity",
         decoded.functions().getFirst().name());
     assertEquals("$library", decoded.functions().getLast().name());
   }

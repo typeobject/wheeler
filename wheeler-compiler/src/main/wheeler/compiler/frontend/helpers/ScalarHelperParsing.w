@@ -543,7 +543,9 @@ classical class ScalarHelperParsing {
         return invalidTable();
       }
     } else {
-      if (sourceTokenCode(source, tokenStarts, tokenLengths, classClose) == TOKEN_ENTRY) {} else {
+      if (
+        sourceTokenCode(source, tokenStarts, tokenLengths, classClose) == TOKEN_ENTRY
+      ) {} else {
         return invalidTable();
       }
     }

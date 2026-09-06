@@ -64,8 +64,7 @@ final class NativeStaticStepPolicyExampleTest {
   @Test
   void retainsTheCompletePhysicalStaticStepPolicyArtifact() throws Exception {
     var program = NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary(
-        "compiler/verification/StaticStepOpcodes.w", "wheeler.compiler.static_step_opcodes",
-        "compiler/ir/Opcodes.w", "compiler/ir/StorageOpcodes.w");
+        "compiler/verification/StaticStepOpcodes.w", "wheeler.compiler.static_step_opcodes");
     assertEquals(4, program.functions().size());
   }
 }

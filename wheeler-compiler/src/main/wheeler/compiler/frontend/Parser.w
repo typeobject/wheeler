@@ -34,8 +34,12 @@ classical class Parser {
     long token = 0;
     while (token + 2 < count) limit MAX_COMPILER_TOKENS {
       if (sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_ENTRY) {
-        if (sourceTokenCode(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID) {
-          if (sourceTokenCode(source, tokenStarts, tokenLengths, token + 2) == TOKEN_MAIN) {
+        if (
+          sourceTokenCode(source, tokenStarts, tokenLengths, token + 1) == TOKEN_VOID
+        ) {
+          if (
+            sourceTokenCode(source, tokenStarts, tokenLengths, token + 2) == TOKEN_MAIN
+          ) {
             return true;
           }
         }

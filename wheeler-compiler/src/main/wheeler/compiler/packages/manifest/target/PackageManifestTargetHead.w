@@ -22,26 +22,12 @@ classical class PackageManifestTargetHead {
       return 0;
     }
 
-    boolean validName = manifestTargetNameValid(
-      source,
-      kinds,
-      starts,
-      lengths,
-      count,
-      cursor
-    );
+    boolean validName = manifestTargetNameValid(source, kinds, starts, lengths, count, cursor);
     if (validName == false) {
       return 0;
     }
 
-    boolean validRoot = manifestTargetRootValid(
-      source,
-      kinds,
-      starts,
-      lengths,
-      count,
-      cursor
-    );
+    boolean validRoot = manifestTargetRootValid(source, kinds, starts, lengths, count, cursor);
     if (validRoot == false) {
       return 0;
     }

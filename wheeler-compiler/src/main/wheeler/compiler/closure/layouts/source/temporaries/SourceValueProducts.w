@@ -353,7 +353,12 @@ classical class SourceValueProducts {
                 }
               }
 
-              long statementWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, statementToken);
+              long statementWordCode = sourceTokenCode(
+                source,
+                tokenStarts,
+                tokenLengths,
+                statementToken
+              );
               boolean indexedBufferCopy = loopBufferSetToken(statementWordCode);
 
               if (indexedBufferCopy) {
@@ -504,7 +509,12 @@ classical class SourceValueProducts {
           }
 
           if (-1 < statementToken) {
-            long valueWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, statementToken);
+            long valueWordCode = sourceTokenCode(
+              source,
+              tokenStarts,
+              tokenLengths,
+              statementToken
+            );
             if (valueWordCode == TOKEN_IF) {
               if (statementRows[4096 + statement] == functionRootBlock) {
                 if (statementRows[LOOP_STATEMENT_CHILD_COUNT_ROW + statement] == 1) {

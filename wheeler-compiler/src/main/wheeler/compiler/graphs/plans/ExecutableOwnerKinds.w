@@ -75,7 +75,11 @@ classical class ExecutableOwnerKinds {
     words tokenLengths = allocate(scratch, MAX_COMPILER_TOKENS);
     words module = allocate(scratch, 2);
     ExecutableOwnerKind result = classifyExecutableOwnerWithScratch(
-      source, tokenKinds, tokenStarts, tokenLengths, module
+      source,
+      tokenKinds,
+      tokenStarts,
+      tokenLengths,
+      module
     );
     drop(module);
     drop(tokenLengths);
@@ -97,15 +101,19 @@ classical class ExecutableOwnerKinds {
     if (bufferLength(tokenKinds) < MAX_COMPILER_TOKENS) {
       return new ExecutableOwnerKind(0, 0, 0, false, false);
     }
+
     if (bufferLength(tokenStarts) < MAX_COMPILER_TOKENS) {
       return new ExecutableOwnerKind(0, 0, 0, false, false);
     }
+
     if (bufferLength(tokenLengths) < MAX_COMPILER_TOKENS) {
       return new ExecutableOwnerKind(0, 0, 0, false, false);
     }
+
     if (bufferLength(module) < 2) {
       return new ExecutableOwnerKind(0, 0, 0, false, false);
     }
+
     long tokenCount = scanSemanticTokens(source, tokenKinds, tokenStarts, tokenLengths);
     ExecutableOwnerKind result = new ExecutableOwnerKind(0, 0, 0, false, false);
     if (-1 < tokenCount) {

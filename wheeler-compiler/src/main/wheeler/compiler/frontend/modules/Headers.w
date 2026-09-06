@@ -258,7 +258,9 @@ classical class ModuleHeaders {
         return -1;
       }
 
-      if (sourceTokenCode(source, tokenStarts, tokenLengths, cursor) == TOKEN_CLASSICAL) {
+      if (
+        sourceTokenCode(source, tokenStarts, tokenLengths, cursor) == TOKEN_CLASSICAL
+      ) {
         return cursor;
       }
     }
@@ -336,7 +338,8 @@ classical class ModuleHeaders {
       long cursor = moduleEnd + 1;
       while (cursor < dependentBody) limit MAX_MODULE_IMPORTS {
         if (
-          sourceTokenCode(dependentSource, dependentStarts, dependentLengths, cursor) == TOKEN_IMPORT
+          sourceTokenCode(dependentSource, dependentStarts, dependentLengths, cursor)
+            == TOKEN_IMPORT
         ) {
           long importEnd = qualifiedNameEnd(
             dependentSource,

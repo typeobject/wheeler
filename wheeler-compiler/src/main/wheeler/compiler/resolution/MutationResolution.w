@@ -93,7 +93,12 @@ classical class MutationResolution {
       }
 
       if (literalAssignment) {
-        long assignmentWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, statementStart + 2);
+        long assignmentWordCode = sourceTokenCode(
+          source,
+          tokenStarts,
+          tokenLengths,
+          statementStart + 2
+        );
         if (resolvedLocalAssignmentBoolean(opcode)) {
           if (booleanTokenCode(assignmentWordCode)) {
             return new MutationOperand(0, false, true);

@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, linker, bootstrap, package, and conformance maintainers |
 | Created | 2026-08-07 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-06 |
 | Area | Self-hosting, modules, linking, graph execution |
 | Depends on | WIP-0007, WIP-0017, WIP-0028 |
 | Supersedes | The topology-specific execution work remaining in WIP-0007 |
@@ -34,7 +34,7 @@ This does not scale to the physical compiler closure. Real module graphs contain
 - Execute every acyclic graph accepted by the bound.
 - Resolve constants before members that consume them.
 - Preserve public direct imports and privatize only transitive exposure.
-- Drop only byte-identical duplicate declarations.
+- Drop duplicate private constants only after exact token comparison.
 - Keep constants before executable members in the synthetic class.
 - Preserve helper owner identity and canonical function order.
 - Publish nothing until the final linked source compiles and verifies.
@@ -122,6 +122,10 @@ A same-name mismatch fails. A private name used directly by the root fails. Two 
 
 Constants remain ahead of functions. Inserting a helper at the class opening brace after constants already exist is invalid, even if a later formatter could make the text look less guilty.
 
+`ImportedHelpers.w` checks the complete constant section, not just its leading shared prefix. `SharedDeclarations.w` owns exact comparison after visibility. The planner measures matching private declaration spans. `CanonicalHelperLinking.w` omits those same spans and keeps intervening private constants, public tails, and surrounding whitespace. Constant copying rewrites only the leading visibility token. A constant named `public` remains a name.
+
+Unshared private declarations still undergo root-use checks. Equal evaluated values do not authorize merging different declarations. The link-plan representation, allocation budget, and source limits do not change.
+
 ## Determinism
 
 The planner uses module names and root-header import order as authority. The executor uses the recorded leaf-first order and root import ranks. Equal plans and equal source bytes produce equal synthetic source and equal `.wbc` bytes.
@@ -163,7 +167,7 @@ Compatibility wrappers are not retained. During migration the driver may dispatc
 - [x] Two- through seven-module planners validate exact graph facts without topology classification.
 - [x] Every admitted legacy topology has differential frame-order evidence.
 - [x] `graphs/plans/GraphExecutor.w` handles redundant direct leaves and one public constant leaf shared by two direct constant dependents.
-- [x] Shared helper planning drops an exact private prefix against an existing public or private declaration.
+- [x] Shared helper planning drops exact private declarations against existing public or private constants, including interleaved sharing and retained tails.
 - [x] `graphs/plans/SourceTable.w` owns physical and linked source slots in one counted fixed-slot arena.
 - [x] The generic executor selects every source from the counted table. Planned-loan and planned-source wrappers are deleted.
 - [x] `graphs/plans/GraphExecutor.w` executes every validated two- through seven-module constant graph by leaf-first edges and dependency-aware root-import rank. This includes forests, redundant direct edges, the three-root shared leaf, and both admitted shared diamonds. Exact private-prefix comparison removes repeated leaves.
@@ -181,6 +185,14 @@ Compatibility wrappers are not retained. During migration the driver may dispatc
 - [x] Redundant direct helpers, shared helper leaves, shared helper diamonds, and nonprefix shared owners retain each exact helper group once across frame rotations.
 - [x] Graph execution order, helper-member filtering, owner metadata, source storage, and execution have focused files below 1,000 lines.
 - [x] Raising graph transport beyond seven modules is split into WIP-0044.
+
+## Shared-constant evidence
+
+`NativeCompilerSharedHelperConstantsExampleTest` compares complete artifacts with independent stage 0 across both frame orders. It covers leading, trailing, and interleaved sharing, retained private gaps, public tails, and keyword-spelled names. It executes and rewinds each accepted artifact.
+
+Changed literals, types, and token-distinct equivalent expressions reject without native artifact publication. Private-tail exposure and conflicting public exports also reject. Both source columns admit constant 256 and reject 257 before publication. Small planning and emission fixtures compare every output byte and fully rewind success and rejection. The large count fixtures run without history.
+
+The physical resolved-local-return and resolved-return-call entry fixtures also compare complete artifacts and execute them. Their inputs now come from actual module closures rather than stale lists of constant owners. This remains bounded helper-graph evidence, not full compiler composition or a self-hosting fixed point.
 
 ## Acceptance
 

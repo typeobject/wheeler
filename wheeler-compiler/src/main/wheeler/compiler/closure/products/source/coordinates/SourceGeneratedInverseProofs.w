@@ -259,7 +259,9 @@ classical class SourceGeneratedInverseProofs {
     long token = 0;
     while (valid) limit 1 {
       while (token < tokenCount) limit MAX_COMPILER_TOKENS {
-        if (sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_THEOREM) {
+        if (
+          sourceTokenCode(source, tokenStarts, tokenLengths, token) == TOKEN_THEOREM
+        ) {
           if (tokenCount < token + 8) {
             valid = false;
             break;
@@ -271,7 +273,9 @@ classical class SourceGeneratedInverseProofs {
           }
 
           boolean formValid = tokenKinds[token + 1] == 1;
-          if (sourceTokenCode(source, tokenStarts, tokenLengths, token + 2) != TOKEN_PROVES) {
+          if (
+            sourceTokenCode(source, tokenStarts, tokenLengths, token + 2) != TOKEN_PROVES
+          ) {
             formValid = false;
           }
 

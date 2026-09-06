@@ -8,7 +8,6 @@ final class NativeCompilerLocalTypeEncodingSourceExampleTest {
   void compilesCanonicalLocalTypeEncodingByteForByte() throws Exception {
     NativeCompilerSelfSourceExampleTest.assertImportedConstantCompilerLibrary(
         "compiler/backend/types/LocalTypeEncoding.w",
-        "wheeler.compiler.local_type_encoding",
-        "compiler/ir/TypeCodes.w");
+        "wheeler.compiler.local_type_encoding");
   }
 }
