@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler language, compiler, bytecode, quantum, proof, and tooling maintainers |
 | Created | 2026-07-18 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-05 |
 | Area | Named values, finite types, constant evaluation, reversible and coherent semantics |
 | Depends on | WIP-0001, WIP-0005, WIP-0006 |
 | Supersedes | None |
@@ -372,6 +372,11 @@ Promotion follows WIP-0007. The identity modules start with executable compiler 
 ## Testing and acceptance
 
 - [x] Signed literals and arithmetic, Boolean comparison and negation, forward references, imported unqualified constants, and qualified constants evaluate exactly in compiler and execution fixtures.
+- [x] Scalar assembly preserves the signed minimum in decimal, hexadecimal, and
+  binary literals, including decimal separators. `SourceIntegerLiteralTest`
+  executes each spelling, restores the full VM snapshot on rewind, and rejects
+  the first magnitude beyond each signed endpoint. The assembler parses the
+  signed text directly rather than requiring its positive magnitude to fit.
 - [x] Constant overflow, division by zero, depth exhaustion, dependency cycles, imported ambiguity, private qualification, and duplicate names produce stable compiler diagnostics before artifact publication. Invalid rotate remains a runtime arithmetic trap in the current nonconstant intrinsic profile.
 - [x] Constant use folds before bytecode publication. The fixture declares four constants but emits only its one authored state global, executes with no initializer function or runtime symbol lookup, and rewinds only ordinary instructions.
 - [x] Reordering independent forward-referenced constant declarations leaves canonical `.wbc` byte-identical.

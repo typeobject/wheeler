@@ -222,9 +222,9 @@ abstract class SourceStatementParser extends SourceTokenCursor {
         radix = 2;
         magnitude = magnitude.substring(2);
       }
-      long value = Long.parseLong(magnitude.replace("_", ""), radix);
-      return negative ? Math.negateExact(value) : value;
-    } catch (ArithmeticException | NumberFormatException exception) {
+      String signed = (negative ? "-" : "") + magnitude.replace("_", "");
+      return Long.parseLong(signed, radix);
+    } catch (NumberFormatException exception) {
       throw new CompilerException(line, "invalid 64-bit integer: " + text);
     }
   }
