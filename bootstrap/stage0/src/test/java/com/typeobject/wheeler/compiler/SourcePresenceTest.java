@@ -10,6 +10,7 @@ import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.bytecode.ValueType;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 /** Conformance tests for compiler-owned completion and closed presence values. */
@@ -44,6 +45,34 @@ final class SourcePresenceTest {
     VirtualMachine machine = new VirtualMachine(decoded);
     machine.run();
     assertEquals(1, machine.snapshot().selectedFrames().size());
+  }
+
+  @Test
+  void linksCompletionTypesAcrossModuleApis() {
+    Program program = new WheelerCompiler().compileModuleFiles(Map.of(
+        "Types.w", """
+            module types;
+            classical class Types {
+              public record Receipt(Done completion) {}
+              public Done complete(Done value) { return value; }
+            }
+            """,
+        "Main.w", """
+            module main;
+            import types;
+            classical class Main {
+              entry void main() {
+                Receipt first = new Receipt(complete(done));
+                Receipt second = new Receipt(done);
+                assert(first == second);
+              }
+            }
+            """), "main");
+    VirtualMachine machine = new VirtualMachine(program);
+    var initial = machine.snapshot();
+    machine.run();
+    while (machine.historySize() > 0) { machine.rewindOne(); }
+    assertEquals(initial, machine.snapshot());
   }
 
   @Test

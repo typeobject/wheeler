@@ -71,12 +71,10 @@ final class SourceValueTypeParser {
                 new VariantCase("Holding", List.of(new RecordField("value", payload)))),
             element.line()));
       }
-    } else {
-      boolean qualified = elementName.indexOf("::") >= 0;
-      if (!knownType.test(elementName)
-          && (!modular || (!qualified && !isNominalName(elementName)))) {
-        SourceTokenCursor.fail(element, "expected declared " + description);
-      }
+    } else if (elementName.equals("void")) {
+      SourceTokenCursor.fail(element, "void is not a value type");
+    } else if (!modular && !knownType.test(elementName)) {
+      SourceTokenCursor.fail(element, "expected declared " + description);
     }
     if (!cursor.match(Type.LEFT_BRACKET)) {
       return elementName;
@@ -160,10 +158,6 @@ final class SourceValueTypeParser {
     }
     String element = payload.substring(0, bracket);
     return element.equals("long") || element.equals("boolean") || element.equals("Done");
-  }
-
-  private static boolean isNominalName(String name) {
-    return !name.isEmpty() && name.charAt(0) >= 'A' && name.charAt(0) <= 'Z';
   }
 
   private static boolean isStorageView(String name) {

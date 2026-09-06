@@ -42,6 +42,24 @@ and identities. Private staging may survive a rejected later front. Caller
 publication must not change. Preserve the existing source, token, case, and
 package-plan bounds.
 
+## Stage-0 admission
+
+`compilePackageTests` links the parsed module set before selecting tests. An
+empty suite no longer bypasses result, parameter, or nominal-field binding.
+Test roots permit zero or one entry. Executable, library, and dependency entry
+rules remain distinct.
+
+Modular nominal references reach the linker without a capitalization gate.
+Lowercase forward, recursive, and imported names remain legal. Public API
+checks recognize qualified local private types. The linker also admits the
+existing `Done` primitive. Bare `void` is result-only, while a qualified name can
+refer to a declared variant named `void`.
+
+`SourceModuleAdmissionTest` covers empty suites, unbound names, void value
+positions, lowercase references, and qualified private API exposure.
+`SourcePresenceTest` checks linked completion values through execution and
+rewind. These are stage-0 gates, not native compiler parity.
+
 ## Evidence
 
 - Reproduce both malformed tagged declarations against independent stage 0 and
@@ -56,6 +74,7 @@ package-plan bounds.
 
 ## Acceptance
 
+- [x] Stage-0 type binding and void value rejection precede empty test selection.
 - [ ] Member-front ownership and rejection precedence are explicit.
 - [ ] Native discovery consumes admitted fronts rather than raw keyword searches.
 - [ ] Both alias regressions reject before any caller publication.

@@ -141,6 +141,7 @@ public final class WheelerCompiler {
       String rootModule) {
     Map<String, SourceProgram> parsed =
         parsePackageModuleFiles(rootSources, dependencySources, rootModule);
+    new SourceModuleLinker().validateTests(parsed, rootModule);
     SourceProgram root = parsed.get(rootModule);
     return root.functions().stream()
         .filter(SourceModel.Function::test)

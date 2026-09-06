@@ -24,18 +24,26 @@ final class SourceModuleLinker {
   private static final Set<String> FUNCTION_REFERENCES =
       Set.of("invoke", "reverse", "call_value", "call_void");
   private static final Set<String> PRIMITIVE_TYPES = Set.of(
-      "void", "long", "boolean", "region", "words", "bytes", "byteview", "utf8", "longmap");
+      "void", "long", "boolean", "Done", "region", "words", "bytes", "byteview", "utf8", "longmap");
+
+  private enum RootKind {
+    EXECUTABLE, LIBRARY, TESTS
+  }
 
   SourceProgram link(Map<String, SourceProgram> modules, String rootName) {
-    return link(modules, rootName, true);
+    return link(modules, rootName, RootKind.EXECUTABLE);
   }
 
   SourceProgram linkLibrary(Map<String, SourceProgram> modules, String rootName) {
-    return link(modules, rootName, false);
+    return link(modules, rootName, RootKind.LIBRARY);
+  }
+
+  void validateTests(Map<String, SourceProgram> modules, String rootName) {
+    link(modules, rootName, RootKind.TESTS);
   }
 
   private SourceProgram link(
-      Map<String, SourceProgram> modules, String rootName, boolean executable) {
+      Map<String, SourceProgram> modules, String rootName, RootKind rootKind) {
     if (modules.isEmpty() || modules.size() > MAX_MODULES) {
       fail("module set must contain between 1 and " + MAX_MODULES + " modules");
     }
@@ -54,7 +62,7 @@ final class SourceModuleLinker {
 
     for (String moduleName : order) {
       validateModule(
-          moduleName, modules.get(moduleName), moduleName.equals(rootName), executable);
+          moduleName, modules.get(moduleName), moduleName.equals(rootName), rootKind);
     }
 
     List<RecordDefinition> records = new ArrayList<>();
@@ -141,7 +149,7 @@ final class SourceModuleLinker {
   }
 
   private static void validateModule(
-      String expectedName, SourceProgram module, boolean root, boolean executable) {
+      String expectedName, SourceProgram module, boolean root, RootKind rootKind) {
     if (module.moduleName() == null || !module.moduleName().equals(expectedName)) {
       fail("module key/declaration mismatch for " + expectedName);
     }
@@ -149,13 +157,26 @@ final class SourceModuleLinker {
       fail("source modules currently require the classical domain: " + expectedName);
     }
     long entries = module.functions().stream().filter(Function::entry).count();
-    long expectedEntries = root && executable ? 1 : 0;
-    if (entries != expectedEntries) {
-      fail(root
-          ? executable
-              ? "root module must declare exactly one entry method"
-              : "library root module cannot declare an entry method: " + expectedName
-          : "dependency module cannot declare an entry method: " + expectedName);
+    if (root) {
+      switch (rootKind) {
+        case EXECUTABLE -> {
+          if (entries != 1) {
+            fail("root module must declare exactly one entry method");
+          }
+        }
+        case LIBRARY -> {
+          if (entries != 0) {
+            fail("library root module cannot declare an entry method: " + expectedName);
+          }
+        }
+        case TESTS -> {
+          if (entries > 1) {
+            fail("test root module may declare at most one entry method: " + expectedName);
+          }
+        }
+      }
+    } else if (entries != 0) {
+      fail("dependency module cannot declare an entry method: " + expectedName);
     }
     for (RecordDefinition record : module.records()) {
       if (record.exported()) {
@@ -188,8 +209,10 @@ final class SourceModuleLinker {
     if (PRIMITIVE_TYPES.contains(type)) {
       return;
     }
+    String ownQualifier = module.moduleName() + "::";
+    String localName = type.startsWith(ownQualifier) ? type.substring(ownQualifier.length()) : type;
     RecordDefinition local = module.records().stream()
-        .filter(record -> record.name().equals(type))
+        .filter(record -> record.name().equals(localName))
         .findFirst()
         .orElse(null);
     if (local != null) {
@@ -199,7 +222,7 @@ final class SourceModuleLinker {
       return;
     }
     VariantDefinition variant = module.variants().stream()
-        .filter(candidate -> candidate.name().equals(type))
+        .filter(candidate -> candidate.name().equals(localName))
         .findFirst()
         .orElse(null);
     if (variant != null) {
