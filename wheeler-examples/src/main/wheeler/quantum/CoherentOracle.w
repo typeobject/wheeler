@@ -1,4 +1,4 @@
-//! The same finite modular permutation executes classically and coherently.
+//! Checks classical addition and a width-bounded coherent oracle.
 hybrid class CoherentOracle {
   state long value = 0;
   state long measured = 0;

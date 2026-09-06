@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler language, compiler, runtime, quantum, proof, package, and documentation maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-17 |
+| Updated | 2026-09-05 |
 | Area | Examples, conformance, applications, teaching |
 | Depends on | WIP-0001, WIP-0002, WIP-0003, WIP-0004, WIP-0005, WIP-0006 |
 | Supersedes | None |
@@ -73,7 +73,7 @@ The repository currently executes these bounded fixtures:
 - `LongMap.w`: region-owned fixed-capacity signed symbol map.
 - `modules/ModuleMain.w` plus `Arithmetic.w`, `Collections.w`, and `Results.w`: exact package source set with private helpers, public function/record/closed-variant/fixed-array/slice linking over scalar and nominal values, and an imported exhaustive match.
 - `Utf8Lexer.w` plus `lexer/Parser.w` and `lexer/Scanner.w`: manifest-bound scanner/parser modules over explicit UTF-8 input and bounded byte output.
-- `CoherentOracle.w`: finite modular addition and controlled marking over classical and coherent state.
+- `CoherentOracle.w`: checked classical addition, width-bounded coherent addition, and controlled marking.
 - `QFT.w`: unitary execution and generated adjoint.
 - `QFTProof.w`: executable inverse law.
 - `QuantumOptimizer.w`: repeated observations, classical acceptance, commit, and replay.
@@ -82,6 +82,17 @@ The repository currently executes these bounded fixtures:
 - `SurfaceCode.w`: static correction kernel and dynamic-target boundary.
 
 These files are starting points. Their names remain stable when richer implementations preserve the same teaching role. Otherwise a new fixture gets a distinct name and contract.
+
+## First-use evidence
+
+The repository README owns one Counter package command and its expected output.
+The quickstart check extracts both fences and runs the checked-in wrapper from
+the repository root. It requires `count = 0` after fifteen VM transitions. The
+CI workflow configures this check on Linux and macOS with JDK 26.
+
+This command exercises generated inverse execution, not history rewind. It does
+not run the whole portfolio or establish self-hosting. The README capability
+table links separate contracts and checks for those claims.
 
 ## Reversible systems applications
 

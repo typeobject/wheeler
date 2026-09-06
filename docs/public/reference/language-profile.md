@@ -61,9 +61,23 @@ entry void main() { }
 `Done` is the one-value completion type, and `done` is its value. `void` carries no
 value across a call.
 
-The present `rev`, `coherent rev`, and `unitary` source forms take no arguments and
-return `void`. Ordinary methods accept the supported scalar, aggregate, owner, and
-loan parameters.
+`coherent rev` and `unitary` methods take no arguments and return `void`.
+Reversible `void` methods also take no arguments. Ordinary methods accept the
+supported scalar, aggregate, owner, and loan parameters.
+
+Reversible `long` and `boolean` results use checked result slots. The accepted
+relations return a scalar constant or a preserved scalar parameter. Signed
+results also admit selected binary operations over preserved parameters and
+constants, with an optional matching local binding. For example:
+
+```wheeler
+rev long add(long left, long right) { return left + right; }
+```
+
+The inverse checks the held result before restoring slot vacancy. This bounded
+profile does not admit arbitrary reversible bodies, owner results, or control
+flow. [Result-slot source tests](https://github.com/typeobject/wheeler/blob/master/bootstrap/stage0/src/test/java/com/typeobject/wheeler/compiler/ReversibleResultSlotSourceTest.java)
+cover both accepted relations and rejected forms.
 
 A parameterized test accepts one `long` or `boolean` parameter and an inline
 `cases(...)` list of 1 through 1,024 unique values. A test may carry at most 64

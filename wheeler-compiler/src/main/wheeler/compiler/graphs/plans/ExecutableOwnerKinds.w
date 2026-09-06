@@ -12,6 +12,7 @@ import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
 
 classical class ExecutableOwnerKinds {
+  /// Reserves scanner columns, a module-name pair, and allocation overhead.
   public const long EXECUTABLE_KIND_ARENA_BYTES = 98400;
 
   /// Carries one validated module and its complete scalar-helper count, when applicable.

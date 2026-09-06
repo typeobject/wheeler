@@ -10,6 +10,9 @@ event, and its account must name the inputs that made it possible.
 
 ## Local acceptance
 
+The [README quickstart](https://github.com/typeobject/wheeler#quickstart) runs one small example.
+The commands below run the broader development gates, not the first-use path.
+
 Use JDK 26 and the checked-in Gradle wrapper:
 
 ```bash
@@ -48,7 +51,7 @@ The complete physical compiler product rebuild is separate integration evidence:
 ./bootstrap/gradlew -p bootstrap :examples:closureEvidenceTest
 ```
 
-Each closure method receives twenty-four minutes. The task stops after twenty-eight.
+Each closure method receives forty-five minutes. The task stops after fifty.
 
 `sourceHeaderTest` requires an appropriate opening description in every authored
 Java, Wheeler, JavaScript, stylesheet, Gradle, Tree-sitter query, shell, and Python
@@ -227,6 +230,15 @@ Maintainers follow these rules:
 - keep credentials and provider objects outside canonical artifacts and persisted
   language values.
 - accept each major feature through its full gate before promotion.
+
+## Follow one compiler change
+
+A reversible scalar result gives a short path through the bootstrap:
+
+1. [SourceResultParser](https://github.com/typeobject/wheeler/blob/master/bootstrap/stage0/src/main/java/com/typeobject/wheeler/compiler/SourceResultParser.java) checks the declaration shape. [ClassicalLowerer](https://github.com/typeobject/wheeler/blob/master/bootstrap/stage0/src/main/java/com/typeobject/wheeler/compiler/ClassicalLowerer.java) emits the typed result-slot relation.
+2. [BytecodeVerifier](https://github.com/typeobject/wheeler/blob/master/bootstrap/core/src/main/java/com/typeobject/wheeler/core/bytecode/BytecodeVerifier.java) checks the artifact. [VmPreflight](https://github.com/typeobject/wheeler/blob/master/bootstrap/core/src/main/java/com/typeobject/wheeler/core/vm/VmPreflight.java) validates each operation before the VM changes state.
+3. [ReversibleResultSlotSourceTest](https://github.com/typeobject/wheeler/blob/master/bootstrap/stage0/src/test/java/com/typeobject/wheeler/compiler/ReversibleResultSlotSourceTest.java) checks source, bytecode, execution, and rejection. [ReversibleResultSlotTest](https://github.com/typeobject/wheeler/blob/master/bootstrap/core/src/test/java/com/typeobject/wheeler/core/vm/ReversibleResultSlotTest.java) checks the machine relation and protected state.
+4. Update the [language profile](language-profile.md) and [artifact contract](bytecode.md) with the supported relation and its limits. Add native evidence before claiming the same behavior on a Wheeler-written path.
 
 ## Module direction
 

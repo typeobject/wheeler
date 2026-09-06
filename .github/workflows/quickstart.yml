@@ -1,0 +1,42 @@
+# Executes the README command from a fresh checkout without the full acceptance suites.
+name: README quickstart
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'README.md'
+      - 'bootstrap/**'
+      - 'wheeler-*/**'
+      - '.github/workflows/quickstart.yml'
+  pull_request:
+    branches: [ "master" ]
+    paths:
+      - 'README.md'
+      - 'bootstrap/**'
+      - 'wheeler-*/**'
+      - '.github/workflows/quickstart.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  quickstart:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 26
+        uses: actions/setup-java@v4
+        with:
+          java-version: '26'
+          distribution: temurin
+      - name: Check the quickstart contract reader
+        run: python3 -m unittest discover -s bootstrap/scripts -p 'test_readme_quickstart.py'
+      - name: Execute the documented quickstart
+        run: python3 bootstrap/scripts/check-readme-quickstart.py

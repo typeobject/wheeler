@@ -38,6 +38,9 @@ vendor/
 logs/
 *.log
 
+# Python test helpers
+__pycache__/
+
 # Code coverage
 jacoco/
 
