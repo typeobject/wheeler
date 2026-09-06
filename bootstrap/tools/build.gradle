@@ -12,18 +12,12 @@ def repositoryInputs = fileTree(rootProject.repositoryRoot) {
     include 'bootstrap/README.md'
     include 'docs/**/*.md'
     include 'docs/**/*.mdx'
-    include 'wheeler-compiler/README.md'
-    include 'wheeler-conformance/README.md'
-    include 'wheeler-examples/README.md'
-    include 'wheeler-compiler/src/main/wheeler/**/*.w'
-    include 'wheeler-core/src/main/wheeler/**/*.w'
-    include 'wheeler-examples/src/main/wheeler/**/*.w'
-    include 'wheeler-package/src/main/wheeler/**/*.w'
-    include 'wheeler-runtime/src/main/wheeler/**/*.w'
+    include 'wheeler-*/README.md'
 }
 tasks.named('test') {
     workingDir rootProject.repositoryRoot
-    inputs.files(repositoryInputs).withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.files(repositoryInputs, rootProject.canonicalPackageInputs)
+        .withPathSensitivity(PathSensitivity.RELATIVE)
     exclude '**/NativeCompilerPackageTest.class'
 }
 
@@ -34,7 +28,8 @@ tasks.register('nativeCompilerPackageTest', Test) {
     classpath = sourceSets.test.runtimeClasspath
     include '**/NativeCompilerPackageTest.class'
     workingDir = rootProject.repositoryRoot
-    inputs.files(repositoryInputs).withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.files(repositoryInputs, rootProject.canonicalPackageInputs)
+        .withPathSensitivity(PathSensitivity.RELATIVE)
     def shard = providers.gradleProperty('nativeCompilerPackageShard').orElse('0')
     def shardCount = providers.gradleProperty('nativeCompilerPackageShardCount').orElse('16')
     inputs.property('nativeCompilerPackageShard', shard)

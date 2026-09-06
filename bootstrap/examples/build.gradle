@@ -6,26 +6,9 @@ dependencies {
     testImplementation project(':package')
 }
 
-def repository = rootProject.repositoryRoot
-def conformanceRoot = new File(repository, 'wheeler-conformance')
-def wheelerRoot = new File(repository, 'wheeler-examples')
 def configureExampleInputs = { Test testTask ->
-    testTask.workingDir wheelerRoot
-    testTask.inputs.files(
-        fileTree(new File(wheelerRoot, 'src/main/wheeler')) { include '**/*.w' },
-        fileTree(new File(repository, 'wheeler-compiler/src/main/wheeler')) {
-            include '**/*.w'
-        },
-        fileTree(new File(conformanceRoot, 'src/main/wheeler')) {
-            include '**/*.w'
-        },
-        fileTree(new File(repository, 'wheeler-core/src/main/wheeler')) { include '**/*.w' },
-        fileTree(new File(repository, 'wheeler-package/src/main/wheeler')) { include '**/*.w' },
-        fileTree(new File(repository, 'wheeler-runtime/src/main/wheeler')) { include '**/*.w' },
-        new File(conformanceRoot, 'wheeler.package.yaml'),
-        new File(conformanceRoot, 'wheeler.package.lock.yaml'),
-        new File(wheelerRoot, 'wheeler.package.yaml'),
-        new File(wheelerRoot, 'wheeler.package.lock.yaml'))
+    testTask.workingDir new File(rootProject.repositoryRoot, 'wheeler-examples')
+    testTask.inputs.files(rootProject.canonicalPackageInputs)
         .withPathSensitivity(PathSensitivity.RELATIVE)
 }
 

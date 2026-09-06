@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler package, build, compiler, security, and release maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-09-05 |
+| Updated | 2026-09-06 |
 | Area | Packages, modules, builds, registry, tooling |
 | Depends on | WIP-0007, WIP-0008 |
 | Supersedes | None |
@@ -444,6 +444,12 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
 - [x] Stage-0 plan execution derives `wheeler-build-input-1` from the workspace, compiler, profile, and complete node. Output is reused only when every node has an exact verified schema-1 input, PREV, and length record. Each cached `.wbc` is decoded independently. Any miss rebuilds the full closed tree. A different verified PREV goes to deterministic quarantine and stops publication. Bounded cache collection removes malformed or unreferenced records without following links. Cache state cannot become resolver or build authority. Recipe revisions, variants, and native tool axes remain for WIP-0023.
 - [x] Local locks bind one exact repository snapshot identity, package archive identity, canonical manifest identity, dependency edge set, and root manifest identity. Resolution and builds perform no live lookup once that lock and verified vendor closure are present. Identity-preserving mirrors and signed network snapshots remain.
 - [x] The root workspace, canonical core, compiler, runtime, package-codec packages, and examples form an executable stage-0 workspace. Workspace commands rebuild member archives in memory and require each identity to match the committed lock. No checked-in vendor tree or undeclared source path is used.
+- [x] `CanonicalWorkspaceLockTest` rebuilds every member archive before target
+  compilation and validates each root manifest and locked dependency closure.
+  The gate catches root-manifest drift that consumer archive checks cannot cover.
+  Host test inputs include workspace metadata, package manifests, locks, and both
+  main and test source roots. Full workspace build and artifact-manifest commands
+  remain integration gates.
 - [x] Wheeler-written `crypto/Sha256.w` now matches independent digest vectors over bounded binary input and supplies the content-identity primitive required by native lock/plan/archive verification. `crypto/ContentIdentity.w` centralizes bounded binary ownership, strict UTF-8 freezing, output-capacity checking, and complete post-validation digest publication for textual metadata.
 - [x] `NativeSnapshotIdentity.w` freezes bounded binary input into strict UTF-8, validates the complete canonical coordinate view, and only then publishes its Wheeler-computed SHA-256. Empty and populated identities agree with stage 0. Malformed or over-capacity views do not get a digest merely for turning up.
 - [x] `NativeLockIdentity.w` applies the same validate-then-hash rule to bounded schema-3 locks. Empty and one-package lock identities match stage 0 with exact rewind. Malformed, second-package, and oversized inputs publish no identity.

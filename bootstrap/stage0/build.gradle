@@ -7,10 +7,8 @@ def wheelerRoot = new File(rootProject.repositoryRoot, 'wheeler-compiler')
 tasks.named('test') {
     workingDir wheelerRoot
     inputs.files(
-        fileTree(new File(wheelerRoot, 'src/main/wheeler')) { include '**/*.w' },
+        rootProject.canonicalPackageInputs,
         new File(rootProject.repositoryRoot,
-            'tree-sitter-wheeler/test/corpus/contextual_names.txt'),
-        new File(wheelerRoot, 'wheeler.package.yaml'),
-        new File(wheelerRoot, 'wheeler.package.lock.yaml'))
+            'tree-sitter-wheeler/test/corpus/contextual_names.txt'))
         .withPathSensitivity(PathSensitivity.RELATIVE)
 }

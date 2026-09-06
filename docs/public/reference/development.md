@@ -24,7 +24,9 @@ export PATH="$JAVA_HOME/bin:$PATH"
 Java compilation enables every `javac` lint warning and treats warnings as
 errors. `check` runs JUnit, creates JaCoCo reports for tested modules, and runs
 source-conformance gates. Ordinary JUnit methods have a two-minute preemptive
-limit. Each worker quits after its first failure.
+limit. Each worker quits after its first failure. Compiler, tool, and example
+tasks track the same workspace metadata, package manifests, locks, and main and
+test source roots. A lock-only change invalidates their cached checks.
 
 The complete Wheeler-owned compiler package suite is deliberate integration
 evidence and stays outside ordinary `tools:check` matrices. One explicit local
@@ -42,8 +44,17 @@ Each selected artifact executes once with fresh storage. A method has twelve
 minutes and its job has eighteen. Running the complete suite locally requires one
 invocation for every index from zero through fifteen.
 
-Hosted acceptance assigns sorted example classes to exactly one of eight shards.
-Each shard has a fifteen-minute hard stop.
+Hosted acceptance assigns sorted example classes to exactly one of thirty-two
+shards and runs at most eight jobs at once. Each shard retains its fifteen-minute
+hard stop. All shards must pass. This host partition does not change Wheeler case
+identities or execution bounds.
+
+Run one example shard locally with:
+
+```bash
+./bootstrap/gradlew -p bootstrap :examples:test \
+  -PexampleTestShard=0 -PexampleTestShardCount=32
+```
 
 The complete physical compiler product rebuild is separate integration evidence:
 
@@ -59,7 +70,7 @@ file. `sourceLayoutTest` permits at most ten Wheeler files in one physical sourc
 directory. Generated parser and site files are outside the authored set.
 
 `treeSitterTest` installs the pinned CLI, regenerates the parser, runs the syntax
-corpus, and compiles editor queries.
+and highlight fixtures, parses maintained sources, and compiles editor queries.
 
 ## Prose kept fit for service
 

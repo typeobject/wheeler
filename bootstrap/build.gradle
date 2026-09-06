@@ -3,6 +3,14 @@ ext.repositoryRoot = rootDir.parentFile
 ext.maxWheelerSourceFilesPerDirectory = 10
 ext.maxAuthoredCodeLines = 1000
 
+// Shared package inputs for compiler, tool, and example acceptance.
+ext.canonicalPackageInputs = fileTree(repositoryRoot) {
+    include 'wheeler.workspace.yaml'
+    include 'wheeler-*/wheeler.package.yaml'
+    include 'wheeler-*/wheeler.package.lock.yaml'
+    include 'wheeler-*/src/**/wheeler/**/*.w'
+}
+
 allprojects {
     group = 'com.typeobject.wheeler'
     version = '0.1.0-SNAPSHOT'

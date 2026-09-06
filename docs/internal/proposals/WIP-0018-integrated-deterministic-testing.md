@@ -287,6 +287,11 @@ JUnit adapters consume semantic reports during migration. They do not discover W
   package commands. The [testing](catalog/testing.md) and
   [package](catalog/packages.md) catalogs retain the migration and bound changes.
 - [x] Terminal 255-case discovery, parameter-row admission, execution, and case-256 rejection have separate evidence methods. Four disjoint canonical-identity shards execute every case with fresh storage and the complete source. Each method retains the two-minute host bound. WIP-0500 compares complete reports against actual stage-0 execution, including retained classical transition counts. Wheeler's semantic step limits remain authoritative.
+- [x] Hosted JUnit acceptance partitions the complete sorted class inventory into
+  thirty-two jobs, with at most eight active at once. The fifteen-minute task and
+  two-minute method deadlines remain unchanged. Smaller batches address observed
+  aggregate timeouts without dropping later tests. This host-only partition does not replace
+  native case-identity sharding or establish full self-hosting.
 - [x] The physical compiler package suite runs through the dedicated
   `:tools:nativeCompilerPackageTest` task. WIP-0412 partitions complete case
   identities into sixteen disjoint shards and selects before compilation. Ordinary
