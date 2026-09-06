@@ -299,7 +299,7 @@ class SourceProfileNegativeTest {
                 + "entry void main() { } }"));
 
     assertTrue(bare.getMessage().contains("expected declared method return type"));
-    assertTrue(voidSlot.getMessage().contains("expected declared Slot payload type"));
+    assertTrue(voidSlot.getMessage().contains("void is not a value type"));
     assertTrue(owner.getMessage().contains("Slot payload cannot be an owner or loan"));
     assertTrue(loan.getMessage().contains("Slot payload cannot be an owner or loan"));
     assertTrue(unknown.getMessage().contains("expected declared Slot payload type"));
