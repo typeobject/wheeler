@@ -6,7 +6,9 @@ module.exports = grammar({
   name: 'wheeler',
 
   extras: $ => [/[\s\uFEFF\u2060\u200B]/, $.line_comment, $.block_comment],
-  word: $ => $.identifier,
+  word: $ => $._identifier_word,
+  // Later punctuation distinguishes an inverse from a name or nominal type.
+  conflicts: $ => [[$.reverse_statement, $.identifier]],
 
   rules: {
     source_file: $ => seq(
@@ -404,7 +406,8 @@ module.exports = grammar({
     number_literal: _ => token(/[0-9][0-9_]*\.[0-9][0-9_]*(?:[eE][+-]?[0-9]+)?/),
     ascii_literal: _ => token(/"[\x20-\x21\x23-\x7e]*"/),
     type_identifier: _ => /[A-Za-z_][A-Za-z0-9_]*/,
-    identifier: _ => /[A-Za-z_][A-Za-z0-9_]*/,
+    identifier: $ => choice($._identifier_word, 'reverse'),
+    _identifier_word: _ => /[A-Za-z_][A-Za-z0-9_]*/,
     line_comment: _ => token(seq('//', /[^\n]*/)),
     block_comment: _ => token(seq('/*', /[^*]*\*+([^/*][^*]*\*+)*/, '/')),
   },

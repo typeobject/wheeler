@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler language and compiler maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-28 |
+| Updated | 2026-09-06 |
 | Area | Language, compiler, ergonomics, diagnostics |
 | Depends on | WIP-0001, WIP-0002 |
 | Supersedes | None |
@@ -146,11 +146,15 @@ Each later profile must update this WIP or a successor with syntax, semantics, m
 
 ### Parsing strategy
 
-The initial parser is a small source-located parser for the accepted profile, not a permissive Java parser followed by silent dropping of unsupported nodes. It rejects multiple declarations per line and unsupported nested control flow with an actionable diagnostic. When expressions and statements outgrow it, a token and grammar implementation can take its place without changing accepted source semantics.
+The token parser retains source locations and passes admitted syntax to semantic owners. The editor grammar tracks parser-owned forms. It does not implement name binding, ownership checks, or proof rules.
 
 ### Naming and dispatch
 
 Names resolve statically within the class. An entry call to a `unitary` method becomes a quantum-region application. A call to a classical method becomes a classical invocation. `reverse` selects the corresponding inverse or adjoint. `q.apply(method)` selects coherent lifting and requires a `coherent rev` target.
+
+`reverse` remains a name in admitted binding, assignment, type, and call positions. Later punctuation distinguishes those uses from an inverse call or block. Tree-sitter retains both parses until that punctuation resolves the choice. It must not turn an inverse introducer into an identifier blacklist.
+
+The contextual-name corpus covers parameters, local stores, nominal carriers, ordinary calls, inverse calls, and reverse blocks. `SourceContextualNamesTest` compiles the same inputs, compares their formatted artifacts, executes them, and fully rewinds each run. The highlight fixture requires variable colors on local names and control-keyword colors on both inverse forms.
 
 ### Java relationship
 
@@ -210,7 +214,7 @@ The parser bounds source bytes, lines, declarations, methods, statements, regist
 - [x] Counter compiles and executes forward and inverse.
 - [x] QFT followed by its generated adjoint restores the input state.
 - [x] One `coherent rev` method gives matching classical and quantum basis behavior.
-- [x] Every checked-in `.w` file compiles and executes in CI.
+- [x] The original source-language portfolio compiled and executed in CI. Current acceptance uses the root build and proposal-specific suites.
 - [x] Current language reference contains no temporary declaration syntax.
 
 ## Alternatives

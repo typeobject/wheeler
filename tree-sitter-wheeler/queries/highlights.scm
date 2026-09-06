@@ -1,10 +1,13 @@
 ; Wheeler semantic highlighting captures for editors; these do not define validity.
 (line_comment) @comment
 (block_comment) @comment
+(local_declaration name: (identifier) @variable)
+(assignment_statement left: (identifier) @variable)
 
 ["classical" "quantum" "hybrid" "module" "import" "class" "record" "variant" "enum" "const" "case" "match" "theorem" "proves" "inverse" "adjoint" "equivalent" "steps" "state" "qreg" "new" "void"] @keyword
 ["long" "boolean" "region" "words" "bytes" "byteview" "longmap" "utf8" "Done" "Slot"] @type.builtin
-["entry" "rev" "coherent" "unitary" "reverse" "assert" "if" "else" "while" "for" "limit" "break" "continue" "return"] @keyword.control
+["entry" "rev" "coherent" "unitary" "assert" "if" "else" "while" "for" "limit" "break" "continue" "return"] @keyword.control
+(reverse_statement "reverse" @keyword.control)
 (parameter_ownership) @keyword.modifier
 (visibility_modifier) @keyword.modifier
 (method_modifier) @keyword.modifier

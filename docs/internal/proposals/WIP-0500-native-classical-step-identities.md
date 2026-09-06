@@ -46,7 +46,7 @@ The same suite admits 255 parameter rows and rejects 256. These are native runne
 - [x] Independent execution replaces the zero-count fixture assumptions.
 - [x] Complete 255-case native reports match independent stage-0 transcripts.
 - [x] Current documentation, source gates, archive identities, and affected locks agree.
-- [ ] The isolated change is committed and pushed without unfinished compiler work.
+- [x] The isolated change is committed and pushed without unfinished compiler work.
 
 ## Remaining work
 

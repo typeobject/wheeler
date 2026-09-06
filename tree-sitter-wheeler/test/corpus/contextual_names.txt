@@ -1,0 +1,185 @@
+==================
+Reverse names and inverse calls
+==================
+
+classical class Names {
+  state long count = 2;
+
+  rev void step() { count += 1; }
+
+  long value(long reverse) {
+    reverse -= 1;
+    return reverse;
+  }
+
+  entry void main() {
+    long reverse = 2;
+    reverse = value(reverse);
+    assert(reverse == 1);
+    reverse step();
+    reverse { step(); }
+    assert(count == 0);
+  }
+}
+
+---
+
+(source_file
+  (class_declaration
+    (computation_domain)
+    (identifier)
+    (class_body
+      (member_declaration
+        (state_declaration
+          (identifier)
+          (constant_expression
+            (expression
+              (integer_literal)))))
+      (member_declaration
+        (method_declaration
+          (method_modifier)
+          (identifier)
+          (parameter_list)
+          (block
+            (statement
+              (assignment_statement
+                (identifier)
+                (expression
+                  (integer_literal)))))))
+      (member_declaration
+        (method_declaration
+          (value_type)
+          (identifier)
+          (parameter_list
+            (parameter
+              (value_type)
+              (identifier)))
+          (block
+            (statement
+              (assignment_statement
+                (identifier)
+                (expression
+                  (integer_literal))))
+            (statement
+              (return_statement
+                (expression
+                  (identifier)))))))
+      (member_declaration
+        (method_declaration
+          (method_modifier)
+          (identifier)
+          (parameter_list)
+          (block
+            (statement
+              (local_declaration
+                (value_type)
+                (identifier)
+                (expression
+                  (integer_literal))))
+            (statement
+              (assignment_statement
+                (identifier)
+                (expression
+                  (call_expression
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (identifier)))))))
+            (statement
+              (assert_statement
+                (expression
+                  (binary_expression
+                    (expression
+                      (identifier))
+                    (expression
+                      (integer_literal))))))
+            (statement
+              (reverse_statement
+                (call_expression
+                  (identifier))))
+            (statement
+              (reverse_statement
+                (block
+                  (statement
+                    (call_statement
+                      (call_expression
+                        (identifier)))))))
+            (statement
+              (assert_statement
+                (expression
+                  (binary_expression
+                    (expression
+                      (identifier))
+                    (expression
+                      (integer_literal))))))))))))
+
+==================
+Reverse nominal type and binding
+==================
+
+classical class Types {
+  variant reverse { case Value(long value); }
+
+  entry void main() {
+    reverse held = new reverse.Value(3);
+    match (held) {
+      case reverse.Value(long value) { assert(value == 3); }
+    }
+  }
+}
+
+---
+
+(source_file
+  (class_declaration
+    (computation_domain)
+    (identifier)
+    (class_body
+      (member_declaration
+        (variant_declaration
+          (identifier)
+          (variant_case_declaration
+            (identifier)
+            (record_component
+              (value_type)
+              (identifier)))))
+      (member_declaration
+        (method_declaration
+          (method_modifier)
+          (identifier)
+          (parameter_list)
+          (block
+            (statement
+              (local_declaration
+                (value_type
+                  (type_identifier))
+                (identifier)
+                (expression
+                  (record_creation
+                    (value_type
+                      (type_identifier))
+                    (identifier)
+                    (argument_list
+                      (expression
+                        (integer_literal)))))))
+            (statement
+              (match_statement
+                (expression
+                  (identifier))
+                (match_case
+                  (value_type
+                    (type_identifier))
+                  (identifier)
+                  (parameter_list
+                    (parameter
+                      (value_type)
+                      (identifier)))
+                  (block
+                    (statement
+                      (assert_statement
+                        (expression
+                          (binary_expression
+                            (expression
+                              (identifier))
+                            (expression
+                              (integer_literal))))))))))))))))
