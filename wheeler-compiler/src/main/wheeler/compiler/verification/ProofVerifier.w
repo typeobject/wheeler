@@ -4,6 +4,7 @@ module wheeler.compiler.proof_verifier;
 import wheeler.compiler.closure.generated_inverse_products;
 import wheeler.compiler.opcodes;
 import wheeler.compiler.proof_rules;
+import wheeler.compiler.static_step_opcodes;
 import wheeler.core.encoding.binary;
 
 classical class ProofVerifier {
@@ -13,34 +14,6 @@ classical class ProofVerifier {
     }
 
     return right < left;
-  }
-
-  private boolean forbiddenStaticStepOpcode(long opcode) {
-    if (opcode == OPCODE_CALL) {
-      return true;
-    }
-
-    if (opcode == OPCODE_CALL_VALUE) {
-      return true;
-    }
-
-    if (opcode == OPCODE_CALL_VOID) {
-      return true;
-    }
-
-    if (opcode == OPCODE_CALL_RESULT_SLOT) {
-      return true;
-    }
-
-    if (opcode == OPCODE_UNCALL_RESULT_SLOT) {
-      return true;
-    }
-
-    if (opcode == OPCODE_JUMP) {
-      return true;
-    }
-
-    return opcode == OPCODE_JUMP_IF_ZERO;
   }
 
   private long instructionCount(borrow byteview artifact, long start, long length) {
@@ -168,7 +141,7 @@ classical class ProofVerifier {
       }
 
       long opcode = readUnsigned(artifact, cursor, 2);
-      if (forbiddenStaticStepOpcode(opcode)) {
+      if (staticStepOpcodeAllowed(opcode) == false) {
         return -1;
       }
 
@@ -273,7 +246,7 @@ classical class ProofVerifier {
       }
 
       if (rule == PROOF_STATIC_STEP_BOUND) {
-        long staticBound = readUnsigned(artifact, proofRow + 16, 8);
+        long staticBound = readSigned(artifact, proofRow + 16);
         if (staticBound < 1) {
           return 0;
         }

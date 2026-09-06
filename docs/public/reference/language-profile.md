@@ -269,11 +269,13 @@ theorem addBound proves steps(add, 4);
 | `GENERATED_INVERSE` | Rebuild the inverse from the accepted reversible opcodes. |
 | `GENERATED_ADJOINT` | Reverse gate order and invert every semantic operation. |
 | `CIRCUIT_EQUIVALENCE` | Cancel adjacent inverse operations for two circuits on one register. |
-| `STATIC_STEP_BOUND` | Count one straight-line body with no calls or branches. |
+| `STATIC_STEP_BOUND` | Bound forward-body VM transitions using an explicit opcode allowlist, with no calls or branches. |
 
 These certificates establish their stated structural rules. They do not establish
 hardware fidelity, a general matrix identity, or every behavior of a named
-algorithm.
+algorithm. The [static step rule](bytecode.md#static-step-bounds) includes terminal
+instructions and excludes every call form. Its unit is a VM instruction
+transition, not elapsed time or a quantum operation.
 
 ## Quantum regions
 

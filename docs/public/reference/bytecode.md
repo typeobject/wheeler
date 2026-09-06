@@ -191,6 +191,23 @@ The kernel rebuilds generated bodies or performs the named finite check. Unknown
 rules, missing subjects, changed bodies, malformed arguments, and duplicate names
 reject the artifact. Proof metadata cannot weaken ordinary verification.
 
+### Static step bounds
+
+`STATIC_STEP_BOUND` bounds VM instruction transitions in one invocation of the
+subject's forward body. The count includes its terminal instruction, but not the
+caller's invocation instruction. It does not bound wall-clock time, work inside
+one instruction, provider latency, circuit gates, or physical operations.
+
+The rule uses explicit opcode admission. All six call forms, including `UNCALL`
+and both result-slot calls, and both jump forms reject. Counting the caller's
+instructions cannot account for callee bodies. New opcodes require a kernel
+policy decision before they can enter this rule.
+
+The signed bound must be positive, at least the forward instruction count, and
+no greater than the program's runtime step ceiling. A rejected instruction may
+stop execution earlier. A certificate neither removes runtime limits nor proves
+that the invocation succeeds. Native artifact-profile restrictions still apply.
+
 ## Quantum and workflow records
 
 Quantum instructions use a provider-neutral form:

@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler language, type-system, proof, compiler, bytecode, and tooling maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-28 |
+| Updated | 2026-09-05 |
 | Area | Language, proofs, contracts, certificates, trusted kernel |
 | Depends on | WIP-0001, WIP-0002, WIP-0005, WIP-0007 |
 | Supersedes | None |
@@ -371,6 +371,49 @@ Each fixture first lands as an executable law if necessary, then gains a formal 
 - [ ] Kernel limits fail closed without partially proved artifacts.
 - [ ] Self-hosted stages produce byte-identical proof metadata and verify their own required compiler certificates.
 - [ ] `wheeler` packages, locks, verifies, documents, and publishes proof-bearing APIs without hidden host tools.
+
+## Static-step correction
+
+The September review supplied an inverse-call counterexample. Complete artifact
+verification reproduced it in both checkers. A body containing `UNCALL` and a
+terminal instruction claimed two transitions but executed four. The Java
+kernel's denylist also omitted the result-slot call family.
+
+`StaticStepRule` now makes an exhaustive Java opcode decision without a default.
+`StaticStepOpcodes.w` names each admitted native opcode. Unknown numeric values
+reject, including gaps between assigned identities. Neither checker counts a
+callee by counting only its caller. The old denylists are gone. Native proof
+arguments use signed decoding, so negative certificates reject without integer
+overflow in the verifier.
+
+`StaticStepProofTest` checks the complete binary counterexample, exact and
+insufficient bounds, the program ceiling, malformed signed arguments, and all
+75 registered opcode decisions. `NativeStaticStepProofExampleTest` checks all
+six call forms and both branches in otherwise valid artifacts. It also checks
+bad subjects, names, rules, truncation, signed extremes, and full rewind.
+
+`NativeStaticStepPolicyExampleTest` covers every registered opcode, neighboring
+numeric gaps, signed extremes, and complete native policy artifact comparison.
+The native profile admits 61 fixed-transition identities. The Java rule admits
+67. NOP, swap, logged set, checkpoint, commit, and output-length instructions
+remain outside the native artifact profile. This correction does not widen it.
+
+An isolated mutation run admitted `UNCALL` in both policies. Both complete
+artifact regressions failed. Restoring the policies restored their rejection
+results. The confirming run passed all 103 core tests, the native proof corpus,
+the physical archive join, and the locked 562-byte manifest consumer.
+
+The isolated correction has 447 compiler modules and 2,093 imports. Native
+archive intake reports 2,101 symbols and 1,780 callables. Its 3,326,805-byte
+compiler archive has SHA-256
+`2728db03bfe7bfb321c9ac1288c0a346acadbb71d57b46a3ac0c26c0fb8cb4b0`.
+The dependent locks also name the measured package manifest. Current tests and
+locks, not this receipt, govern later revisions.
+
+These certificates bound forward-body VM transitions, including termination,
+not elapsed time, provider work, or physical quantum operations. They do not
+prove successful execution or compose nested calls. General kernel terms and
+resource proofs remain open.
 
 ## Alternatives
 
