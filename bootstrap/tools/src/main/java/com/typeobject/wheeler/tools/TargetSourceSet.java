@@ -9,7 +9,9 @@ import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 /** Canonical target-source collection shared by local and locked package builds. */
@@ -59,9 +61,9 @@ final class TargetSourceSet {
     return Map.copyOf(result);
   }
 
-  private static Map<String, byte[]> selectedEntries(
+  private static SortedMap<String, byte[]> selectedEntries(
       PackageManifest.Target target, Map<String, byte[]> entries) {
-    Map<String, byte[]> selected = new TreeMap<>();
+    SortedMap<String, byte[]> selected = new TreeMap<>();
     for (String selector : target.sources()) {
       byte[] exact = entries.get(selector);
       if (exact != null) {
@@ -80,7 +82,7 @@ final class TargetSourceSet {
       }
     }
     source(target.root(), selected);
-    return Map.copyOf(selected);
+    return Collections.unmodifiableSortedMap(selected);
   }
 
   private static byte[] source(String path, Map<String, byte[]> entries) {

@@ -435,6 +435,15 @@ The `Io` fabric grants scheduling only. Resource authority remains target- and p
   - Linked APIs include qualified functions, records, closed variants, fixed arrays, slices, and exhaustive matches.
   - Root shadowing, private APIs, cycles, and unreachable local source fail closed.
   - Native build execution and stable binary-library linkage remain.
+- [x] `TargetSourceSet` preserves sorted logical paths through binary source
+  framing. An unordered immutable-map copy previously changed source identities,
+  build inputs, and test shard assignments across fresh JVMs. The selected view
+  now retains its sorted-map contract. `TargetSourceSetTest` compares complete
+  framing for 33 sources across input rotations, directory selectors, exact
+  selectors, and overlapping selections. Four fresh JVMs reproduce the independent
+  input identity. Nonmodular targets retain raw source bytes. Missing roots and
+  malformed UTF-8 still reject. Complete 497-target workspace plans also match
+  across two fresh driver invocations. Old unordered identities have no alias.
 - [x] The stage-0 resolver selects one version per package with deterministic backtracking. A 10,000-unit total-work budget bounds the search. Root and dependency profiles must match exactly. Still-valid exact lock selections are preferred, while targeted and full update modes are explicit. Development dependencies apply only to the root and never propagate. Cycles are rejected. Stable ranges ignore prereleases unless the requirement names one.
 - [x] Physical catalogs, exact vendor trees, and immutable local file publication and fetch are bounded and integrity-checked. The closed YAML repository policy records trust order, identity, enabled state, file transport, and sorted namespace authority. XDG fallback and override paths are explicit. Relative overrides are diagnosed and ignored. Policy updates are atomic, publication defaults to `local`, and exact fetch uses the first authoritative match.
 - [x] WIP-0410 applies the same explicit repository trust policy to detached native ELF releases. Domain-separated Ed25519 authorization binds the complete unsigned record and image bytes. An enabled repository and exact trusted key are required before signing-record publication.
