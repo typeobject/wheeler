@@ -5,7 +5,7 @@
 | Status | Draft |
 | Owners | Wheeler language, library, compiler, runtime, quantum, proof, package, and documentation maintainers |
 | Created | 2026-07-17 |
-| Updated | 2026-07-28 |
+| Updated | 2026-09-06 |
 | Area | Standard library, types, collections, quantum resources, host capabilities |
 | Depends on | WIP-0002, WIP-0005, WIP-0007, WIP-0009 |
 | Supersedes | None |
@@ -483,6 +483,8 @@ Filesystem and network libraries contribute domain types and adapters over that 
   Entry code can receive strict UTF-8 or immutable binary `byteview` input. It can publish a bounded byte-output prefix with checked rewind. Below the library, `wheeler.core.encoding.binary` provides bounded nonnegative little-endian reads and writes, ASCII identity checks, and eight-byte layout alignment.
 
   `crypto/Sha256.w` computes provider-free SHA-256 for empty, text, binary, and one- or two-block padding fixtures. It uses checked `LOCAL_AND` and `LOCAL_ROTR32`, explicit region scratch, and checked subrange hashing.
+
+  `NativeSha256ExampleTest` also hashes the current physical compiler manifest. It compares all 32 output bytes with an independent digest and requires termination within the fixed per-byte budget. The exact transition receipt changes with the manifest. It measures VM transitions, not elapsed time.
 
   The entryless `wheeler.core` package exports a signed FIFO over an exclusive word-buffer borrow with explicit `Full` and `Empty` results. It also exports signed-map operations, four-array and two-slice reductions, and immutable UTF-8 metrics and scalar inspection over nonescaping borrows. `WorkQueue.w`, `LongMap.w`, `FixedArrays.w`, and `FrozenUtf8.w` use that exact locked archive.
 
