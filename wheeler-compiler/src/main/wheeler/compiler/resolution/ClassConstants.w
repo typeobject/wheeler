@@ -10,6 +10,9 @@ import wheeler.compiler.statement_kinds;
 import wheeler.compiler.tokens;
 
 classical class ClassConstants {
+  /// Holds one token index for every admitted class constant.
+  private const long CLASS_CONSTANT_NAME_BYTES = MAX_CLASS_CONSTANTS * 8;
+
   /// Describes one typed lookup without reserving a scalar sentinel.
   public record ConstantResolution(long value, boolean found, boolean valid) {}
 
@@ -37,31 +40,19 @@ classical class ClassConstants {
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
-    long firstDeclaration,
-    long declarationStart,
-    long tokenCount
+    borrow mut words names,
+    long count,
+    long assertedName
   ) {
-    long assertedName = constantNameToken(source, tokenStarts, tokenLengths, declarationStart);
-    long prior = firstDeclaration;
-    while (prior < declarationStart) limit MAX_CLASS_CONSTANTS {
+    long prior = 0;
+    while (prior < count) limit MAX_CLASS_CONSTANTS {
       if (
-        sameTokenText(
-          source,
-          tokenStarts,
-          tokenLengths,
-          constantNameToken(source, tokenStarts, tokenLengths, prior),
-          assertedName
-        )
+        sameTokenText(source, tokenStarts, tokenLengths, names[prior], assertedName)
       ) {
         return true;
       }
 
-      long next = constantDeclarationEnd(source, tokenStarts, tokenLengths, prior, tokenCount);
-      if (prior < next) {} else {
-        return false;
-      }
-
-      prior = next;
+      prior += 1;
     }
 
     return false;
@@ -133,7 +124,6 @@ classical class ClassConstants {
     long memberStart
   ) {
     long cursor = firstDeclaration;
-    long count = 0;
     while (cursor < memberStart) limit MAX_CLASS_CONSTANTS {
       ExpressionResolution resolution = evaluateLocalConstant(
         source,
@@ -163,32 +153,25 @@ classical class ClassConstants {
       }
 
       cursor = next;
-      count += 1;
     }
 
     return cursor == memberStart;
   }
 
-  /// Returns the first nonconstant member after complete declaration validation.
-  public long classMemberStart(
+  private long constantHeadersEnd(
     borrow utf8 source,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
     long firstDeclaration,
-    long tokenCount
+    long tokenCount,
+    borrow mut words names
   ) {
     long cursor = firstDeclaration;
     long count = 0;
     while (count < MAX_CLASS_CONSTANTS) limit MAX_CLASS_CONSTANTS {
       if (constantToken(source, tokenStarts, tokenLengths, cursor) < 0) {
-        if (
-          expressionsValid(source, tokenStarts, tokenLengths, firstDeclaration, cursor)
-        ) {
-          return cursor;
-        }
-
-        return -1;
+        return cursor;
       }
 
       if (
@@ -202,22 +185,57 @@ classical class ClassConstants {
         return -1;
       }
 
-      if (
-        duplicateName(source, tokenStarts, tokenLengths, firstDeclaration, cursor, tokenCount)
-      ) {
+      long name = constantNameToken(source, tokenStarts, tokenLengths, cursor);
+      if (duplicateName(source, tokenStarts, tokenLengths, names, count, name)) {
         return -1;
       }
 
+      set(names, count, name);
       cursor = next;
       count += 1;
     }
 
     if (constantToken(source, tokenStarts, tokenLengths, cursor) < 0) {
-      if (
-        expressionsValid(source, tokenStarts, tokenLengths, firstDeclaration, cursor)
-      ) {
-        return cursor;
-      }
+      return cursor;
+    }
+
+    return -1;
+  }
+
+  /// Returns the first nonconstant member after complete declaration validation.
+  public long classMemberStart(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long firstDeclaration,
+    long tokenCount
+  ) {
+    if (constantToken(source, tokenStarts, tokenLengths, firstDeclaration) < 0) {
+      return firstDeclaration;
+    }
+
+    region scratch = new region(/* bytes= */ CLASS_CONSTANT_NAME_BYTES, /* allocations= */ 1);
+    words names = allocate(scratch, MAX_CLASS_CONSTANTS);
+    long result = constantHeadersEnd(
+      source,
+      tokenKinds,
+      tokenStarts,
+      tokenLengths,
+      firstDeclaration,
+      tokenCount,
+      names
+    );
+    drop(names);
+    drop(scratch);
+    if (result < 0) {
+      return -1;
+    }
+
+    if (
+      expressionsValid(source, tokenStarts, tokenLengths, firstDeclaration, result)
+    ) {
+      return result;
     }
 
     return -1;

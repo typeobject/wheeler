@@ -401,6 +401,35 @@ ceilings. Removing the complete-prefix scan admits the first excess declaration.
 These checks do not establish complete native package execution or compiler
 fixed-point evidence.
 
+## Native declaration admission
+
+`classMemberStart` keeps prior name-token coordinates while admitting constant
+headers. Duplicate checks compare those coordinates instead of reparsing each
+preceding declaration. A header enters the private index only after its shape,
+extent, and name checks pass. The subsequent value-validation pass retains its
+evaluation order and all existing budgets.
+
+An empty prefix allocates nothing. A nonempty prefix uses one private 256-word
+buffer in a 2,048-byte region. Successful and rejected admission returns drop
+that scratch storage. Header traversal releases it before value validation.
+No cache outlives the call. This index belongs to complete declaration admission,
+not the allocation-free name-presence query above.
+
+`NativeCompilerConstantAdmissionExampleTest` checks distinct, case-sensitive,
+keyword-spelled, and maximum-length names. Duplicates across scalar types,
+visibility, and distant rows reject without publishing a member coordinate or
+changing caller columns. Small accepted and rejected runs fully rewind. The
+large fixture admits 256 declarations, rejects declaration 257 and late
+duplicates, and bounds admission by 140 million history-free VM transitions.
+Restoring prefix rescans exceeds that ceiling. Ignoring a duplicate publishes
+an invalid member coordinate and fails the rejection check.
+
+The isolated helper-value-kind runner diagnostic still executes only one
+selected case. Its compilation/report work fell from 791,268,567 to 520,711,360
+VM transitions with the same complete 70,214-byte input. This is not complete
+package-shard acceptance or a change to execution deadlines. Classifier scratch
+reuse still covers all 512 mixed source leases with 524 buffers.
+
 ## Testing and acceptance
 
 - [x] Signed literals and arithmetic, Boolean comparison and negation, forward references, imported unqualified constants, and qualified constants evaluate exactly in compiler and execution fixtures.
