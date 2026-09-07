@@ -223,32 +223,48 @@ classical class ClassConstants {
     return -1;
   }
 
-  /// Checks whether the class-constant prefix already owns one member name.
+  /// Checks exact name presence after the complete bounded prefix scan.
+  /// Initializer values and duplicate-name admission belong to their callers.
   public boolean classConstantNameExists(
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
     long assertedName
   ) {
-    ConstantResolution signed = resolveClassConstant(
+    long firstDeclaration = firstConstantDeclaration(source, tokenStarts, tokenLengths);
+    long memberStart = constantPrefixEnd(
       source,
       tokenStarts,
       tokenLengths,
-      assertedName,
-      true
+      firstDeclaration,
+      MAX_COMPILER_TOKENS
     );
-    if (signed.found) {
-      return true;
+    if (memberStart < firstDeclaration) {
+      return false;
     }
 
-    ConstantResolution booleanValue = resolveClassConstant(
-      source,
-      tokenStarts,
-      tokenLengths,
-      assertedName,
-      false
-    );
-    return booleanValue.found;
+    long cursor = firstDeclaration;
+    while (cursor < memberStart) limit MAX_CLASS_CONSTANTS {
+      long name = constantNameToken(source, tokenStarts, tokenLengths, cursor);
+      if (sameTokenText(source, tokenStarts, tokenLengths, name, assertedName)) {
+        return true;
+      }
+
+      long next = constantDeclarationEnd(
+        source,
+        tokenStarts,
+        tokenLengths,
+        cursor,
+        memberStart
+      );
+      if (cursor < next) {} else {
+        return false;
+      }
+
+      cursor = next;
+    }
+
+    return false;
   }
 
   /// Checks whether one exact class constant has the requested scalar type.

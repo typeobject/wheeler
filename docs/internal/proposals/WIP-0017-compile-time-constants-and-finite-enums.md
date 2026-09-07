@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler language, compiler, bytecode, quantum, proof, and tooling maintainers |
 | Created | 2026-07-18 |
-| Updated | 2026-09-05 |
+| Updated | 2026-09-07 |
 | Area | Named values, finite types, constant evaluation, reversible and coherent semantics |
 | Depends on | WIP-0001, WIP-0005, WIP-0006 |
 | Supersedes | None |
@@ -368,6 +368,34 @@ Promotion follows WIP-0007. The identity modules start with executable compiler 
 - [x] Tree-sitter nodes, highlighting, corpus fixtures, and the fixed formatter contract cover both declarations.
 - [x] `compiler/ir/Opcodes.w`, `compiler/ir/StorageOpcodes.w`, `compiler/ir/TypeCodes.w`, and `compiler/ir/ProofRules.w` own opcode, type, and proof identities. They also own interpreter limits. `compiler/ir/OpcodeKinds.w` owns membership checks. The bounded Wheeler verifier and interpreter no longer dispatch on raw numeric literals.
 - [ ] Duplicate stage-0 tables and migration shims are deleted at compiler promotion/cutover.
+
+## Native name lookup
+
+`ClassConstants.w::classConstantNameExists` checks the complete bounded prefix,
+then compares exact names. It no longer evaluates an initializer to consume only
+its `found` bit or retries the same search for a different expected type. Lookup
+allocates no private buffers and adds no cache, source table, or arena.
+
+Presence is not admission. A lexically present name stays present when its
+initializer is invalid or a duplicate prevents class admission. A malformed or
+257-declaration prefix reports absence even when its first name matches.
+`classMemberStart` still checks declarations, duplicates, and initializer values.
+Typed resolution retains the evaluation, dependency, and expression-depth limits.
+
+`NativeCompilerClassConstantNamesExampleTest` compares explicit presence results
+with typed resolution. It covers both scalar types, visibility, keyword-spelled
+names, forward references, cycles, wrong-type values, duplicates, optional state,
+and malformed complete prefixes. Source columns stay unchanged. Small runs and
+the 257-byte name-comparison rejection restore their complete snapshots.
+
+The count boundary checks first, last, and absent names at 256 declarations and
+rejects declaration 257. A separate history-free fixture bounds sixteen queries
+through a 64-constant forward dependency chain by four million VM transitions.
+All lookup-only fixtures retain seven buffers: the source and six scanner/test
+columns. Restoring initializer evaluation breaks both allocation and transition
+ceilings. Removing the complete-prefix scan admits the first excess declaration.
+These checks do not establish complete native package execution or compiler
+fixed-point evidence.
 
 ## Testing and acceptance
 
