@@ -58,36 +58,6 @@ classical class ClassConstants {
     return false;
   }
 
-  private long constantPrefixEnd(
-    borrow utf8 source,
-    borrow mut words tokenStarts,
-    borrow mut words tokenLengths,
-    long firstDeclaration,
-    long tokenCount
-  ) {
-    long cursor = firstDeclaration;
-    long count = 0;
-    while (count < MAX_CLASS_CONSTANTS) limit MAX_CLASS_CONSTANTS {
-      if (constantToken(source, tokenStarts, tokenLengths, cursor) < 0) {
-        return cursor;
-      }
-
-      long next = constantDeclarationEnd(source, tokenStarts, tokenLengths, cursor, tokenCount);
-      if (cursor < next) {} else {
-        return -1;
-      }
-
-      cursor = next;
-      count += 1;
-    }
-
-    if (constantToken(source, tokenStarts, tokenLengths, cursor) < 0) {
-      return cursor;
-    }
-
-    return -1;
-  }
-
   private ExpressionResolution evaluateLocalConstant(
     borrow utf8 source,
     borrow mut words tokenStarts,

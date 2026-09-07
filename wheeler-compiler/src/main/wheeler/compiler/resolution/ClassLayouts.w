@@ -12,6 +12,16 @@ import wheeler.compiler.tokens;
 classical class ClassLayouts {
   private record StateInitialValue(long value, boolean valid) {}
 
+  /// Separates constant ranges from the optional state before executable members.
+  public record ClassPrelude(
+    long constantStart,
+    long constantEnd,
+    long memberStart,
+    long stateStart,
+    long stateEnd,
+    boolean valid
+  ) {}
+
   /// Carries one validated class prefix into entry and helper parsing.
   public record ClassLayout(
     long memberStart,
@@ -59,6 +69,10 @@ classical class ClassLayouts {
 
   private ClassLayout invalidLayout() {
     return new ClassLayout(0, 0, 0, 0, false);
+  }
+
+  private ClassPrelude invalidPrelude() {
+    return new ClassPrelude(0, 0, 0, -1, -1, false);
   }
 
   private long classBodyStart(
@@ -120,6 +134,15 @@ classical class ClassLayouts {
       return -1;
     }
 
+    return scalarInitializerEnd(source, tokenStarts, tokenLengths, stateStart + 4, tokenCount);
+  }
+
+  private long singleStateValueEnd(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    long stateStart
+  ) {
     long initializer = stateStart + 4;
     long width = signedNumberWidth(source, tokenKinds, tokenStarts, initializer);
     if (width < 1) {
@@ -130,18 +153,7 @@ classical class ClassLayouts {
       }
     }
 
-    long semicolon = initializer + width;
-    if (semicolon < tokenCount) {} else {
-      return -1;
-    }
-
-    if (
-      punctuationAt(source, tokenKinds, tokenStarts, semicolon, PUNCTUATION_SEMICOLON)
-    ) {
-      return semicolon + 1;
-    }
-
-    return -1;
+    return initializer + width + 1;
   }
 
   private StateInitialValue stateInitialValue(
@@ -204,67 +216,103 @@ classical class ClassLayouts {
     return new ClassLayout(memberStart, name, initial.value, 1, true);
   }
 
-  /// Resolves constants before or after one optional signed state declaration.
-  public ClassLayout resolveClassLayout(
+  /// Locates one bounded constant/state envelope without binding names or values.
+  /// Final linked class validation owns duplicate names, values, and global metadata.
+  public ClassPrelude resolveClassPrelude(
     borrow utf8 source,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
+    long firstDeclaration,
     long tokenCount
   ) {
-    set(tokenKinds, COMPILER_GLOBAL_NAME_TOKEN, 0);
-    set(tokenStarts, COMPILER_GLOBAL_NAME_TOKEN, 0);
-    set(tokenLengths, COMPILER_GLOBAL_NAME_TOKEN, 0);
-    long bodyStart = classBodyStart(source, tokenKinds, tokenStarts, tokenLengths);
-    if (bodyStart < 0) {
-      return invalidLayout();
+    if (tokenCount < 1) {
+      return invalidPrelude();
     }
 
-    if (sourceTokenCode(source, tokenStarts, tokenLengths, bodyStart) == TOKEN_STATE) {
+    if (MAX_COMPILER_TOKENS < tokenCount) {
+      return invalidPrelude();
+    }
+
+    if (firstDeclaration < 0) {
+      return invalidPrelude();
+    }
+
+    if (firstDeclaration < tokenCount) {} else {
+      return invalidPrelude();
+    }
+
+    if (bufferLength(tokenKinds) < MAX_COMPILER_TOKENS) {
+      return invalidPrelude();
+    }
+
+    if (bufferLength(tokenStarts) < MAX_COMPILER_TOKENS) {
+      return invalidPrelude();
+    }
+
+    if (bufferLength(tokenLengths) < MAX_COMPILER_TOKENS) {
+      return invalidPrelude();
+    }
+
+    if (
+      sourceTokenCode(source, tokenStarts, tokenLengths, firstDeclaration) == TOKEN_STATE
+    ) {
       long stateFirstEnd = stateEnd(
         source,
         tokenKinds,
         tokenStarts,
         tokenLengths,
-        bodyStart,
+        firstDeclaration,
         tokenCount
       );
       if (stateFirstEnd < 0) {
-        return invalidLayout();
+        return invalidPrelude();
       }
 
-      long stateFirstMember = classMemberStart(
+      long stateFirstMember = constantPrefixEnd(
         source,
-        tokenKinds,
         tokenStarts,
         tokenLengths,
         stateFirstEnd,
         tokenCount
       );
       if (stateFirstMember < 0) {
-        return invalidLayout();
+        return invalidPrelude();
       }
 
-      return finishStateLayout(
-        source,
-        tokenKinds,
-        tokenStarts,
-        tokenLengths,
-        bodyStart,
-        stateFirstMember
+      if (stateFirstMember < tokenCount) {} else {
+        return invalidPrelude();
+      }
+
+      if (
+        sourceTokenCode(source, tokenStarts, tokenLengths, stateFirstMember) == TOKEN_STATE
+      ) {
+        return invalidPrelude();
+      }
+
+      return new ClassPrelude(
+        stateFirstEnd,
+        stateFirstMember,
+        stateFirstMember,
+        firstDeclaration,
+        stateFirstEnd,
+        true
       );
     }
 
-    long constantFirstMember = classMemberStart(
+    long constantFirstMember = constantPrefixEnd(
       source,
-      tokenKinds,
       tokenStarts,
       tokenLengths,
-      bodyStart,
+      firstDeclaration,
       tokenCount
     );
     if (constantFirstMember < 0) {
-      return invalidLayout();
+      return invalidPrelude();
+    }
+
+    if (constantFirstMember < tokenCount) {} else {
+      return invalidPrelude();
     }
 
     if (
@@ -279,23 +327,97 @@ classical class ClassLayouts {
         tokenCount
       );
       if (constantFirstEnd < 0) {
-        return invalidLayout();
+        return invalidPrelude();
+      }
+
+      if (constantFirstEnd < tokenCount) {} else {
+        return invalidPrelude();
       }
 
       if (constantToken(source, tokenStarts, tokenLengths, constantFirstEnd) < 0) {} else {
-        return invalidLayout();
+        return invalidPrelude();
       }
 
+      if (
+        sourceTokenCode(source, tokenStarts, tokenLengths, constantFirstEnd) == TOKEN_STATE
+      ) {
+        return invalidPrelude();
+      }
+
+      return new ClassPrelude(
+        firstDeclaration,
+        constantFirstMember,
+        constantFirstEnd,
+        constantFirstMember,
+        constantFirstEnd,
+        true
+      );
+    }
+
+    return new ClassPrelude(
+      firstDeclaration,
+      constantFirstMember,
+      constantFirstMember,
+      -1,
+      -1,
+      true
+    );
+  }
+
+  /// Resolves constants before or after one optional signed state declaration.
+  public ClassLayout resolveClassLayout(
+    borrow utf8 source,
+    borrow mut words tokenKinds,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long tokenCount
+  ) {
+    set(tokenKinds, COMPILER_GLOBAL_NAME_TOKEN, 0);
+    set(tokenStarts, COMPILER_GLOBAL_NAME_TOKEN, 0);
+    set(tokenLengths, COMPILER_GLOBAL_NAME_TOKEN, 0);
+    long bodyStart = classBodyStart(source, tokenKinds, tokenStarts, tokenLengths);
+    ClassPrelude prelude = resolveClassPrelude(
+      source,
+      tokenKinds,
+      tokenStarts,
+      tokenLengths,
+      bodyStart,
+      tokenCount
+    );
+    if (prelude.valid == false) {
+      return invalidLayout();
+    }
+
+    if (-1 < prelude.stateStart) {
+      long valueEnd = singleStateValueEnd(source, tokenKinds, tokenStarts, prelude.stateStart);
+      if (valueEnd == prelude.stateEnd) {} else {
+        return invalidLayout();
+      }
+    }
+
+    long constantEnd = classMemberStart(
+      source,
+      tokenKinds,
+      tokenStarts,
+      tokenLengths,
+      prelude.constantStart,
+      tokenCount
+    );
+    if (constantEnd == prelude.constantEnd) {} else {
+      return invalidLayout();
+    }
+
+    if (-1 < prelude.stateStart) {
       return finishStateLayout(
         source,
         tokenKinds,
         tokenStarts,
         tokenLengths,
-        constantFirstMember,
-        constantFirstEnd
+        prelude.stateStart,
+        prelude.memberStart
       );
     }
 
-    return new ClassLayout(constantFirstMember, 0, 0, 0, true);
+    return new ClassLayout(prelude.memberStart, 0, 0, 0, true);
   }
 }

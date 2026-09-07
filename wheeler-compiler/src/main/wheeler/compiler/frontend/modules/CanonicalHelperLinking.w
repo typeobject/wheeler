@@ -3,11 +3,13 @@
 module wheeler.compiler.canonical_helper_linking;
 
 import wheeler.compiler.class_constants;
+import wheeler.compiler.class_layouts;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.constant_declarations;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.module_headers;
 import wheeler.compiler.module_linker;
+import wheeler.compiler.module_qualifications;
 import wheeler.compiler.shared_declarations;
 import wheeler.compiler.tokens;
 
@@ -198,16 +200,6 @@ classical class CanonicalHelperLinking {
       return -1;
     }
 
-    long qualifications = qualificationCount(
-      importedSource,
-      plan.importedModuleStart,
-      plan.importedModuleLength,
-      rootSource
-    );
-    if (qualifications == plan.qualificationCount) {} else {
-      return -1;
-    }
-
     region scratch = new region(/* bytes= */ HELPER_LINK_SCRATCH_BYTES, /* allocations= */ 8);
     words importedKinds = allocate(scratch, MAX_COMPILER_TOKENS);
     words importedStarts = allocate(scratch, MAX_COMPILER_TOKENS);
@@ -224,6 +216,29 @@ classical class CanonicalHelperLinking {
       importedLengths
     );
     long rootCount = scanSemanticTokens(rootSource, rootKinds, rootStarts, rootLengths);
+    long qualifications = qualificationCount(
+      importedSource,
+      plan.importedModuleStart,
+      plan.importedModuleLength,
+      rootSource,
+      rootKinds,
+      rootStarts,
+      rootLengths,
+      rootCount
+    );
+    if (qualifications < 0) {
+      rootCount = -1;
+    }
+
+    if (qualifications == plan.qualificationCount) {} else {
+      rootCount = -1;
+    }
+
+    ImportedQualification moduleName = new ImportedQualification(
+      plan.importedModuleStart,
+      plan.importedModuleLength,
+      qualifications
+    );
     long result = -1;
     if (-1 < importedCount) {
       if (-1 < rootCount) {
@@ -255,7 +270,7 @@ classical class CanonicalHelperLinking {
               importedFirst,
               importedCount
             );
-            long rootMember = classMemberStart(
+            ClassPrelude rootPrelude = resolveClassPrelude(
               rootSource,
               rootKinds,
               rootStarts,
@@ -263,22 +278,30 @@ classical class CanonicalHelperLinking {
               rootFirst,
               rootCount
             );
+            rootFirst = rootPrelude.constantStart;
+            long rootMember = rootPrelude.constantEnd;
             if (importedFirst < importedMember + 1) {
               if (importedMember < importedCount - 1) {
-                if (rootFirst < rootMember + 1) {
+                if (rootPrelude.valid) {
                   if (rootMember < rootCount) {
                     long importedMemberStart = importedStarts[importedMember];
-                    long rootMemberStart = rootStarts[rootMember];
+                    long rootMemberStart = rootStarts[rootPrelude.memberStart];
                     long importedEnd = plan.importedStart + plan.importedLength;
-                    long cursor = copyLinkedRootAscii(
-                      importedSource,
-                      plan.importedModuleStart,
-                      plan.importedModuleLength,
-                      rootSource,
+                    QualifiedRootWindow head = new QualifiedRootWindow(
                       0,
                       plan.rootInsertion,
-                      output,
-                      0
+                      0,
+                      rootCount
+                    );
+                    long cursor = copyLinkedRootAscii(
+                      importedSource,
+                      moduleName,
+                      rootSource,
+                      rootKinds,
+                      rootStarts,
+                      rootLengths,
+                      head,
+                      output
                     );
                     ImportedRangeCopy constants = copyConstantRange(
                       importedSource,
@@ -298,15 +321,21 @@ classical class CanonicalHelperLinking {
                       cursor
                     );
                     cursor = constants.cursor;
-                    cursor = copyLinkedRootAscii(
-                      importedSource,
-                      plan.importedModuleStart,
-                      plan.importedModuleLength,
-                      rootSource,
+                    QualifiedRootWindow middle = new QualifiedRootWindow(
                       plan.rootInsertion,
                       rootMemberStart - plan.rootInsertion,
-                      output,
-                      cursor
+                      cursor,
+                      rootCount
+                    );
+                    cursor = copyLinkedRootAscii(
+                      importedSource,
+                      moduleName,
+                      rootSource,
+                      rootKinds,
+                      rootStarts,
+                      rootLengths,
+                      middle,
+                      output
                     );
                     ImportedRangeCopy members = copyImportedRange(
                       importedSource,
@@ -320,15 +349,21 @@ classical class CanonicalHelperLinking {
                       cursor
                     );
                     cursor = members.cursor;
-                    cursor = copyLinkedRootAscii(
-                      importedSource,
-                      plan.importedModuleStart,
-                      plan.importedModuleLength,
-                      rootSource,
+                    QualifiedRootWindow tail = new QualifiedRootWindow(
                       rootMemberStart,
                       bufferLength(rootSource) - rootMemberStart,
-                      output,
-                      cursor
+                      cursor,
+                      rootCount
+                    );
+                    cursor = copyLinkedRootAscii(
+                      importedSource,
+                      moduleName,
+                      rootSource,
+                      rootKinds,
+                      rootStarts,
+                      rootLengths,
+                      tail,
+                      output
                     );
                     long privatized = constants.privatized + members.privatized;
                     boolean copied = constants.valid;

@@ -13,7 +13,6 @@ import com.typeobject.wheeler.core.vm.MachineStatus;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
 import java.nio.charset.StandardCharsets;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -94,7 +93,7 @@ final class NativeCompilerSharedHelperConstantsExampleTest {
     String expected = root.substring(0, insertion)
         + " private const long GAP = 3;  private long helper() { return GAP; } "
         + root.substring(insertion);
-    Program probe = sharedLinkProbe();
+    Program probe = NativeSourceLinkFixture.sharedHelperProgram();
     for (boolean accepted : List.of(true, false)) {
       String source = accepted ? imported : imported.replace("TAIL = 8", "TAIL = 9");
       var writer = NativeModuleCompilerHarness.writer(probe, List.of(source), root);
@@ -108,6 +107,41 @@ final class NativeCompilerSharedHelperConstantsExampleTest {
         assertArrayEquals(new byte[32768], writer.hostOutput());
         assertEquals(0, writer.global("published"));
       }
+      while (writer.historySize() > 0) {
+        writer.rewindOne();
+      }
+      assertEquals(initial, writer.snapshot());
+    }
+  }
+
+  @Test
+  void preservesQuotedAndCommentedQualificationsAcrossStateInsertionWindows() throws Exception {
+    String imported = "module example.imported; classical class Imported { "
+        + "private const long BASE = 7; private const long GAP = 3; "
+        + "private const long TAIL = 8; public long helper() { return GAP; } }";
+    String constants = "private const long BASE = 7; private const long TAIL = 8; ";
+    String state = "state long observed = 0; ";
+    String body = "entry void main() { region arena = new region(32, 1); "
+        + "bytes text = allocateBytes(arena, 32); writeAscii(text, 0, \"example.imported::BASE\");\n"
+        + "// example.imported::BASE myexample.imported::BASE\n".repeat(70)
+        + "long value = example.imported::helper(); drop(text); drop(arena); assert(value == 3); } }";
+    Program probe = NativeSourceLinkFixture.sharedHelperProgram();
+    for (boolean stateFirst : List.of(false, true)) {
+      String prefix = "module example.root; import example.imported; classical class Root { "
+          + (stateFirst ? state + constants : constants + state);
+      String root = prefix + body;
+      new WheelerCompiler().compileModuleFiles(
+          Map.of("Imported.w", imported, "Root.w", root), "example.root");
+      int insertion = stateFirst ? prefix.length() : prefix.indexOf("state long");
+      String expected = prefix.substring(0, insertion) + " private const long GAP = 3;  "
+          + prefix.substring(insertion) + "private long helper() { return GAP; } "
+          + body.replace("long value = example.imported::helper();", "long value = helper();");
+      var writer = NativeModuleCompilerHarness.writer(probe, List.of(imported), root);
+      var initial = writer.snapshot();
+      writer.run();
+      assertEquals(MachineStatus.HALTED, writer.status());
+      assertEquals(1, writer.global("published"));
+      assertArrayEquals(expected.getBytes(StandardCharsets.UTF_8), writer.hostOutput());
       while (writer.historySize() > 0) {
         writer.rewindOne();
       }
@@ -133,7 +167,7 @@ final class NativeCompilerSharedHelperConstantsExampleTest {
     String tail = "private const long TAIL = 8;";
     String helper = "public long helper(){return TAIL;} ";
     String entry = "entry void main(){long value=helper();assert(value==8);} }";
-    Program probe = sharedLinkProbe();
+    Program probe = NativeSourceLinkFixture.sharedHelperProgram();
     String importedConstants = importedBoundary ? unique + tail : tail;
     String rootConstants = importedBoundary ? tail : unique + tail;
     String imported = "module example.imported;classical class Imported {"
@@ -153,65 +187,6 @@ final class NativeCompilerSharedHelperConstantsExampleTest {
     assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(rejected));
     assertArrayEquals(new byte[32768], rejected.hostOutput());
     assertEquals(0, rejected.global("published"));
-  }
-
-  private static Program sharedLinkProbe() throws Exception {
-    var modules = new LinkedHashMap<>(CompilerSources.moduleClosure("wheeler.compiler.imported_helpers"));
-    modules.putAll(CompilerSources.moduleClosure("wheeler.compiler.canonical_helper_linking"));
-    CoreSources.addBinaryClosure(modules);
-    modules.put("SharedLinkProbe.w", """
-        module example.shared_link_probe;
-        import wheeler.compiler.canonical_helper_linking;
-        import wheeler.compiler.imported_helpers;
-        import wheeler.compiler.module_linker;
-        import wheeler.core.encoding.binary;
-        classical class SharedLinkProbe {
-          state long published = 0;
-          private void copyWindow(borrow byteview input, long start, borrow mut bytes output) {
-            long index = 0;
-            while (index < bufferLength(output)) limit 32768 {
-              setByte(output, index, input[start + index]);
-              index += 1;
-            }
-          }
-          entry void main(borrow byteview input, borrow mut bytes output) {
-            assert(readUnsigned(input, 0, 4) == 1);
-            long importedLength = readUnsigned(input, 4, 4);
-            long rootStart = 8 + importedLength;
-            long rootLength = bufferLength(input) - rootStart;
-            assert(0 < importedLength);
-            assert(importedLength < 32769);
-            assert(0 < rootLength);
-            assert(rootLength < 32769);
-            region sources = new region(/* bytes= */ 65536, /* allocations= */ 2);
-            bytes importedBytes = allocateBytes(sources, importedLength);
-            bytes rootBytes = allocateBytes(sources, rootLength);
-            copyWindow(input, 8, importedBytes);
-            copyWindow(input, rootStart, rootBytes);
-            utf8 imported = freezeUtf8(importedBytes);
-            utf8 root = freezeUtf8(rootBytes);
-            LinkPlan plan = planSharedResolvedHelperImport(imported, root, 1);
-            assert(plan.valid);
-            region emission = new region(/* bytes= */ 36864, /* allocations= */ 1);
-            bytes linked = allocateBytes(emission, plan.linkedLength);
-            long written = writeCanonicalHelperImport(imported, root, plan, linked);
-            assert(written == plan.linkedLength);
-            long index = 0;
-            while (index < written) limit 36864 {
-              setByte(output, index, linked[index]);
-              index += 1;
-            }
-            setOutputLength(output, written);
-            published = 1;
-            drop(linked);
-            drop(emission);
-            drop(root);
-            drop(imported);
-            drop(sources);
-          }
-        }
-        """);
-    return new WheelerCompiler().compileModuleFiles(modules, "example.shared_link_probe");
   }
 
   private static byte[] expected(Sources source) {

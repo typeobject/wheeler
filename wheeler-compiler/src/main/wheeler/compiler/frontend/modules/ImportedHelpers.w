@@ -3,6 +3,7 @@
 module wheeler.compiler.imported_helpers;
 
 import wheeler.compiler.class_constants;
+import wheeler.compiler.class_layouts;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.constant_declarations;
 import wheeler.compiler.helper_abi;
@@ -10,6 +11,7 @@ import wheeler.compiler.helper_proofs;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.module_headers;
 import wheeler.compiler.module_linker;
+import wheeler.compiler.module_qualifications;
 import wheeler.compiler.shared_declarations;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
@@ -224,10 +226,16 @@ classical class ImportedHelpers {
     borrow mut words rootStarts,
     borrow mut words rootLengths,
     long rootBody,
-    long rootMember,
-    long rootCount
+    ClassPrelude rootPrelude,
+    long rootCount,
+    ImportedQualification moduleName
   ) {
-    long rootFirst = rootBody + 4;
+    if (rootPrelude.valid == false) {
+      return -1;
+    }
+
+    long rootFirst = rootPrelude.constantStart;
+    long rootMember = rootPrelude.constantEnd;
     if (rootMember < rootFirst) {
       return -1;
     }
@@ -265,6 +273,31 @@ classical class ImportedHelpers {
         rootMember
       );
       if (shared) {
+        long name = constantNameToken(
+          importedSource,
+          importedStarts,
+          importedLengths,
+          declaration
+        );
+        QualifiedNameSpan nameSpan = new QualifiedNameSpan(
+          importedStarts[name],
+          importedLengths[name]
+        );
+        if (
+          qualifiedPrivateNameUsed(
+            importedSource,
+            moduleName,
+            nameSpan,
+            rootSource,
+            rootKinds,
+            rootStarts,
+            rootLengths,
+            rootCount
+          )
+        ) {
+          return -1;
+        }
+
         long end = importedStarts[next - 1] + importedLengths[next - 1];
         skipped += end - importedStarts[declaration];
       } else {
@@ -378,18 +411,35 @@ classical class ImportedHelpers {
                   importedCount
                 );
                 long closeToken = importedCount - 1;
-                long rootMemberStart = -1;
+                ClassPrelude rootPrelude = resolveClassPrelude(
+                  rootSource,
+                  rootKinds,
+                  rootStarts,
+                  rootLengths,
+                  rootBody + 4,
+                  rootCount
+                );
+                if (rootPrelude.valid == false) {
+                  firstDeclaration = closeToken + 1;
+                }
+
+                long qualifications = qualificationCount(
+                  importedSource,
+                  importedModule[0],
+                  importedModule[1],
+                  rootSource,
+                  rootKinds,
+                  rootStarts,
+                  rootLengths,
+                  rootCount
+                );
+                ImportedQualification moduleName = new ImportedQualification(
+                  importedModule[0],
+                  importedModule[1],
+                  qualifications
+                );
                 long sharedBytes = 0;
                 if (sharedConstants) {
-                  long rootFirstDeclaration = rootBody + 4;
-                  rootMemberStart = classMemberStart(
-                    rootSource,
-                    rootKinds,
-                    rootStarts,
-                    rootLengths,
-                    rootFirstDeclaration,
-                    rootCount
-                  );
                   sharedBytes = sharedHelperConstantBytes(
                     importedSource,
                     importedKinds,
@@ -402,8 +452,9 @@ classical class ImportedHelpers {
                     rootStarts,
                     rootLengths,
                     rootBody,
-                    rootMemberStart,
-                    rootCount
+                    rootPrelude,
+                    rootCount,
+                    moduleName
                   );
                   if (0 < sharedBytes) {} else {
                     firstDeclaration = closeToken + 1;
@@ -467,18 +518,12 @@ classical class ImportedHelpers {
                             rootCount
                           );
                           if (helpers.valid) {
-                            long qualifications = qualificationCount(
-                              importedSource,
-                              importedModule[0],
-                              importedModule[1],
-                              rootSource
-                            );
                             if (-1 < qualifications) {
                               long importedStart = importedStarts[firstDeclaration];
                               long importedLength = importedStarts[closeToken] - importedStart;
-                              long rootInsertion = rootStarts[rootBody + 3] + 1;
+                              long rootInsertion = rootStarts[rootPrelude.constantStart];
                               if (sharedConstants) {
-                                rootInsertion = rootStarts[rootMemberStart];
+                                rootInsertion = rootStarts[rootPrelude.constantEnd];
                               }
 
                               long removed = qualifications * (

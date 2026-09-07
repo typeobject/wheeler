@@ -29,6 +29,11 @@ final class NativeSourceFrontFixture {
 
   static Program program(List<String> owners, int capacity, String globals, String body)
       throws Exception {
+    return program(owners, capacity, globals, body, false);
+  }
+
+  static Program program(List<String> owners, int capacity, String globals, String body,
+      boolean byteOutput) throws Exception {
     var imports = new TreeSet<>(owners);
     imports.add("wheeler.compiler.module_linker");
     Map<String, String> sources = new LinkedHashMap<>();
@@ -41,7 +46,7 @@ final class NativeSourceFrontFixture {
         %s
         classical class SourceFrontProbe {
           %s
-          entry void main(borrow utf8 source) {
+          entry void main(borrow utf8 source%s) {
             region arena = new region(/* bytes= */ %d, /* allocations= */ 6);
             words kinds = allocate(arena, %d);
             words starts = allocate(arena, %d);
@@ -75,7 +80,8 @@ final class NativeSourceFrontFixture {
             drop(arena);
           }
         }
-        """.formatted(importText, globals, Math.multiplyExact(48, capacity), capacity, capacity,
+        """.formatted(importText, globals, byteOutput ? ", borrow mut bytes output" : "",
+            Math.multiplyExact(48, capacity), capacity, capacity,
             capacity, capacity, capacity, capacity, capacity, capacity, body, capacity, capacity));
     return new WheelerCompiler().compileModuleFiles(sources, "example.source_front_probe");
   }

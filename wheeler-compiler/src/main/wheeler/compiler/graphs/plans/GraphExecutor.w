@@ -13,6 +13,7 @@ import wheeler.compiler.graphs.source_table;
 import wheeler.compiler.helper_owners;
 import wheeler.compiler.imported_helpers;
 import wheeler.compiler.module_linker;
+import wheeler.compiler.module_qualifications;
 
 classical class BoundedGraphPlanExecutor {
   private const long MAX_GRAPH_NODES = 7;

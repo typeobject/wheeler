@@ -2,6 +2,7 @@
 
 module wheeler.compiler.compiler_graphs;
 
+import wheeler.compiler.canonical_helper_linking;
 import wheeler.compiler.compiler_core;
 import wheeler.compiler.compiler_graph_five;
 import wheeler.compiler.compiler_graph_four;
@@ -13,6 +14,7 @@ import wheeler.compiler.graphs.small_structures;
 import wheeler.compiler.helper_owners;
 import wheeler.compiler.imported_helpers;
 import wheeler.compiler.module_linker;
+import wheeler.compiler.module_qualifications;
 
 classical class CompilerGraphs {
   /// Carries private graph-compilation bounds across the driver boundary.
@@ -51,13 +53,27 @@ classical class CompilerGraphs {
     boolean importedHelpers = false;
     if (plan.valid) {} else {
       plan = planResolvedHelperImport(importedSource, rootSource, /* expectedImportCount= */ 1);
+      if (plan.valid) {} else {
+        plan = planSharedResolvedHelperImport(
+          importedSource,
+          rootSource,
+          /* expectedImportCount= */ 1
+        );
+      }
+
       importedHelpers = plan.valid;
     }
 
     assert(plan.valid);
     region linkedArena = new region(/* bytes= */ MAX_LINKED_SOURCE_BYTES, /* allocations= */ 1);
     bytes linkedBytes = allocateBytes(linkedArena, plan.linkedLength);
-    long written = writeConstantImport(importedSource, rootSource, plan, linkedBytes);
+    long written = 0;
+    if (importedHelpers) {
+      written = writeCanonicalHelperImport(importedSource, rootSource, plan, linkedBytes);
+    } else {
+      written = writeConstantImport(importedSource, rootSource, plan, linkedBytes);
+    }
+
     assert(written == plan.linkedLength);
     utf8 linkedSource = freezeUtf8(linkedBytes);
     GraphCompilation compiled = new GraphCompilation(0, 0);

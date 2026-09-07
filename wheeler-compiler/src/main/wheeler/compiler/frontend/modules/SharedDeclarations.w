@@ -2,47 +2,13 @@
 
 module wheeler.compiler.shared_declarations;
 
-import wheeler.compiler.class_constants;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.constant_declarations;
 import wheeler.compiler.keyword_tokens;
+import wheeler.compiler.module_qualifications;
 import wheeler.compiler.tokens;
 
 classical class SharedDeclarations {
-  private boolean tokenRangesEqual(
-    borrow utf8 leftSource,
-    long leftStart,
-    long leftLength,
-    borrow utf8 rightSource,
-    long rightStart,
-    long rightLength
-  ) {
-    if (leftLength == rightLength) {} else {
-      return false;
-    }
-
-    long cursor = 0;
-    while (cursor < leftLength) limit MAX_QUALIFIED_NAME_BYTES {
-      if (
-        utf8Scalar(leftSource, leftStart + cursor) == utf8Scalar(rightSource, rightStart + cursor)
-      ) {} else {
-        return false;
-      }
-
-      if (utf8Width(leftSource, leftStart + cursor) == 1) {} else {
-        return false;
-      }
-
-      if (utf8Width(rightSource, rightStart + cursor) == 1) {} else {
-        return false;
-      }
-
-      cursor += 1;
-    }
-
-    return true;
-  }
-
   private boolean declarationTokensEqual(
     borrow utf8 leftSource,
     borrow mut words leftKinds,
@@ -80,7 +46,7 @@ classical class SharedDeclarations {
       }
 
       if (
-        tokenRangesEqual(
+        rangesEqual(
           leftSource,
           leftStarts[leftToken],
           leftLengths[leftToken],
@@ -166,7 +132,7 @@ classical class SharedDeclarations {
     return false;
   }
 
-  /// Returns the first nonshared imported declaration or `-1` when none is shared.
+  /// Returns the first nonshared declaration or `-1` for absent or private-qualified sharing.
   public long sharedPrivatePrefixEnd(
     borrow utf8 importedSource,
     borrow mut words importedKinds,
@@ -179,7 +145,9 @@ classical class SharedDeclarations {
     borrow mut words rootStarts,
     borrow mut words rootLengths,
     long rootFirst,
-    long rootMember
+    long rootMember,
+    long rootCount,
+    ImportedQualification moduleName
   ) {
     long importedDeclaration = importedFirst;
     long shared = 0;
@@ -219,6 +187,31 @@ classical class SharedDeclarations {
         )
       ) {} else {
         break;
+      }
+
+      long name = constantNameToken(
+        importedSource,
+        importedStarts,
+        importedLengths,
+        importedDeclaration
+      );
+      QualifiedNameSpan nameSpan = new QualifiedNameSpan(
+        importedStarts[name],
+        importedLengths[name]
+      );
+      if (
+        qualifiedPrivateNameUsed(
+          importedSource,
+          moduleName,
+          nameSpan,
+          rootSource,
+          rootKinds,
+          rootStarts,
+          rootLengths,
+          rootCount
+        )
+      ) {
+        return -1;
       }
 
       importedDeclaration = importedNext;

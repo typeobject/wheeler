@@ -3,10 +3,12 @@
 module wheeler.compiler.module_linker;
 
 import wheeler.compiler.class_constants;
+import wheeler.compiler.class_layouts;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.constant_declarations;
 import wheeler.compiler.keyword_tokens;
 import wheeler.compiler.module_headers;
+import wheeler.compiler.module_qualifications;
 import wheeler.compiler.shared_declarations;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.tokens;
@@ -16,12 +18,6 @@ classical class ModuleLinker {
   private const long LINKER_SCRATCH_ARENA_BYTES = 196640;
   private const long LINKER_TOKEN_ARENA_BYTES = 98304;
 
-  /// Caps the first native linked-source slice.
-  public const long MAX_LINKED_SOURCE_BYTES = 36864;
-  /// Caps canonical qualification rewrites in one linked root.
-  public const long MAX_LINKED_QUALIFICATIONS = 64;
-  /// Names the two-byte canonical module separator.
-  public const long QUALIFICATION_SEPARATOR_BYTES = 2;
   /// Names the byte width of the canonical private visibility token.
   public const long PRIVATE_VISIBILITY_BYTES = 7;
 
@@ -211,115 +207,6 @@ classical class ModuleLinker {
     }
 
     return new ImportRange(0, 0, false);
-  }
-
-  /// Compares two bounded ASCII source ranges.
-  public boolean rangesEqual(
-    borrow utf8 leftSource,
-    long leftStart,
-    long leftLength,
-    borrow utf8 rightSource,
-    long rightStart,
-    long rightLength
-  ) {
-    if (leftLength == rightLength) {} else {
-      return false;
-    }
-
-    long cursor = 0;
-    while (cursor < leftLength) limit MAX_QUALIFIED_NAME_BYTES {
-      if (
-        utf8Scalar(leftSource, leftStart + cursor) == utf8Scalar(rightSource, rightStart + cursor)
-      ) {} else {
-        return false;
-      }
-
-      if (utf8Width(leftSource, leftStart + cursor) == 1) {} else {
-        return false;
-      }
-
-      if (utf8Width(rightSource, rightStart + cursor) == 1) {} else {
-        return false;
-      }
-
-      cursor += 1;
-    }
-
-    return true;
-  }
-
-  private boolean qualificationAt(
-    borrow utf8 importedSource,
-    long moduleStart,
-    long moduleLength,
-    borrow utf8 rootSource,
-    long rootStart
-  ) {
-    if (
-      rootStart + moduleLength + QUALIFICATION_SEPARATOR_BYTES - 1 < bufferLength(rootSource)
-    ) {} else {
-      return false;
-    }
-
-    long cursor = 0;
-    while (cursor < moduleLength) limit MAX_QUALIFIED_NAME_BYTES {
-      if (utf8Width(importedSource, moduleStart + cursor) == 1) {} else {
-        return false;
-      }
-
-      if (utf8Width(rootSource, rootStart + cursor) == 1) {} else {
-        return false;
-      }
-
-      if (
-        utf8Scalar(importedSource, moduleStart + cursor) == utf8Scalar(
-          rootSource,
-          rootStart + cursor
-        )
-      ) {} else {
-        return false;
-      }
-
-      cursor += 1;
-    }
-
-    if (utf8Scalar(rootSource, rootStart + moduleLength) == PUNCTUATION_COLON) {} else {
-      return false;
-    }
-
-    return utf8Scalar(rootSource, rootStart + moduleLength + QUALIFICATION_SEPARATOR_BYTES - 1)
-      == PUNCTUATION_COLON;
-  }
-
-  /// Counts canonical qualifications of one imported module in a root source.
-  public long qualificationCount(
-    borrow utf8 importedSource,
-    long moduleStart,
-    long moduleLength,
-    borrow utf8 rootSource
-  ) {
-    long rootCursor = 0;
-    long count = 0;
-    while (rootCursor < bufferLength(rootSource)) limit MAX_LINKED_SOURCE_BYTES {
-      if (utf8Width(rootSource, rootCursor) == 1) {} else {
-        return -1;
-      }
-
-      if (
-        qualificationAt(importedSource, moduleStart, moduleLength, rootSource, rootCursor)
-      ) {
-        count += 1;
-        if (MAX_LINKED_QUALIFICATIONS < count) {
-          return -1;
-        }
-
-        rootCursor += moduleLength + QUALIFICATION_SEPARATOR_BYTES;
-      } else {
-        rootCursor += 1;
-      }
-    }
-
-    return count;
   }
 
   /// Counts public declarations in one validated constant prefix.
@@ -533,20 +420,36 @@ classical class ModuleLinker {
                     firstDeclaration,
                     importedCount
                   );
-                  if (deduplicateSharedPrefix) {
-                    long rootFirstDeclaration = rootBody + 4;
-                    long rootMemberStart = rootCount - 1;
-                    if (trailingSharedDeclarations) {
-                      rootMemberStart = classMemberStart(
-                        rootSource,
-                        rootKinds,
-                        rootStarts,
-                        rootLengths,
-                        rootFirstDeclaration,
-                        rootCount
-                      );
-                    }
+                  ClassPrelude rootPrelude = resolveClassPrelude(
+                    rootSource,
+                    rootKinds,
+                    rootStarts,
+                    rootLengths,
+                    rootBody + 4,
+                    rootCount
+                  );
+                  if (rootPrelude.valid == false) {
+                    firstDeclaration = memberStart;
+                  }
 
+                  long qualifications = qualificationCount(
+                    importedSource,
+                    importedModule[0],
+                    importedModule[1],
+                    rootSource,
+                    rootKinds,
+                    rootStarts,
+                    rootLengths,
+                    rootCount
+                  );
+                  ImportedQualification moduleName = new ImportedQualification(
+                    importedModule[0],
+                    importedModule[1],
+                    qualifications
+                  );
+                  if (deduplicateSharedPrefix) {
+                    long rootFirstDeclaration = rootPrelude.constantStart;
+                    long rootMemberStart = rootPrelude.constantEnd;
                     long sharedEnd = sharedPrivatePrefixEnd(
                       importedSource,
                       importedKinds,
@@ -559,7 +462,9 @@ classical class ModuleLinker {
                       rootStarts,
                       rootLengths,
                       rootFirstDeclaration,
-                      rootMemberStart
+                      rootMemberStart,
+                      rootCount,
+                      moduleName
                     );
                     if (-1 < sharedEnd) {
                       firstDeclaration = sharedEnd;
@@ -605,19 +510,13 @@ classical class ModuleLinker {
                           if (privateHidden) {
                             long importedStart = importedStarts[firstDeclaration];
                             long importedLength = importedStarts[memberStart] - importedStart;
-                            long rootInsertion = rootStarts[rootBody + 3] + 1;
+                            long rootInsertion = rootStarts[rootPrelude.constantStart];
                             if (trailingSharedDeclarations) {
                               if (-1 < sharedRootInsertion) {
                                 rootInsertion = sharedRootInsertion;
                               }
                             }
 
-                            long qualifications = qualificationCount(
-                              importedSource,
-                              importedModule[0],
-                              importedModule[1],
-                              rootSource
-                            );
                             if (-1 < qualifications) {
                               long removed = qualifications * (
                                 importedModule[1] + QUALIFICATION_SEPARATOR_BYTES
@@ -856,6 +755,20 @@ classical class ModuleLinker {
             sourceCursor = tokenStart + tokenLengths[tokenCursor];
             privatized += 1;
           }
+
+          long next = constantDeclarationEnd(
+            importedSource,
+            tokenStarts,
+            tokenLengths,
+            tokenCursor,
+            tokenCount
+          );
+          if (tokenCursor < next) {} else {
+            privatized = -1;
+            break;
+          }
+
+          tokenCursor = next - 1;
         }
       }
 
@@ -881,39 +794,6 @@ classical class ModuleLinker {
     return outputCursor;
   }
 
-  /// Copies one root range while removing canonical imported-module qualifiers.
-  public long copyLinkedRootAscii(
-    borrow utf8 importedSource,
-    long moduleStart,
-    long moduleLength,
-    borrow utf8 rootSource,
-    long rootStart,
-    long rootLength,
-    borrow mut bytes output,
-    long outputStart
-  ) {
-    long rootCursor = rootStart;
-    long rootEnd = rootStart + rootLength;
-    long outputCursor = outputStart;
-    while (rootCursor < rootEnd) limit MAX_LINKED_SOURCE_BYTES {
-      if (utf8Width(rootSource, rootCursor) == 1) {} else {
-        return -1;
-      }
-
-      if (
-        qualificationAt(importedSource, moduleStart, moduleLength, rootSource, rootCursor)
-      ) {
-        rootCursor += moduleLength + QUALIFICATION_SEPARATOR_BYTES;
-      } else {
-        setByte(output, outputCursor, utf8Scalar(rootSource, rootCursor));
-        rootCursor += 1;
-        outputCursor += 1;
-      }
-    }
-
-    return outputCursor;
-  }
-
   /// Writes one previously validated synthetic source into exact caller storage.
   public long writeConstantImport(
     borrow utf8 importedSource,
@@ -929,44 +809,68 @@ classical class ModuleLinker {
       return -1;
     }
 
+    region scratch = new region(/* bytes= */ LINKER_TOKEN_ARENA_BYTES, /* allocations= */ 3);
+    words rootKinds = allocate(scratch, MAX_COMPILER_TOKENS);
+    words rootStarts = allocate(scratch, MAX_COMPILER_TOKENS);
+    words rootLengths = allocate(scratch, MAX_COMPILER_TOKENS);
+    long rootCount = scanSemanticTokens(rootSource, rootKinds, rootStarts, rootLengths);
     long qualifications = qualificationCount(
       importedSource,
       plan.importedModuleStart,
       plan.importedModuleLength,
-      rootSource
-    );
-    if (qualifications == plan.qualificationCount) {} else {
-      return -1;
-    }
-
-    long cursor = copyLinkedRootAscii(
-      importedSource,
-      plan.importedModuleStart,
-      plan.importedModuleLength,
       rootSource,
-      0,
-      plan.rootInsertion,
-      output,
-      0
+      rootKinds,
+      rootStarts,
+      rootLengths,
+      rootCount
     );
-    if (cursor < 0) {
-      return -1;
+    long result = -1;
+    if (-1 < qualifications) {
+      if (qualifications == plan.qualificationCount) {
+        ImportedQualification moduleName = new ImportedQualification(
+          plan.importedModuleStart,
+          plan.importedModuleLength,
+          qualifications
+        );
+        QualifiedRootWindow first = new QualifiedRootWindow(0, plan.rootInsertion, 0, rootCount);
+        long cursor = copyLinkedRootAscii(
+          importedSource,
+          moduleName,
+          rootSource,
+          rootKinds,
+          rootStarts,
+          rootLengths,
+          first,
+          output
+        );
+        if (-1 < cursor) {
+          cursor = copyImportedDeclarations(importedSource, plan, output, cursor);
+          if (-1 < cursor) {
+            QualifiedRootWindow tail = new QualifiedRootWindow(
+              plan.rootInsertion,
+              bufferLength(rootSource) - plan.rootInsertion,
+              cursor,
+              rootCount
+            );
+            result = copyLinkedRootAscii(
+              importedSource,
+              moduleName,
+              rootSource,
+              rootKinds,
+              rootStarts,
+              rootLengths,
+              tail,
+              output
+            );
+          }
+        }
+      }
     }
 
-    cursor = copyImportedDeclarations(importedSource, plan, output, cursor);
-    if (cursor < 0) {
-      return -1;
-    }
-
-    return copyLinkedRootAscii(
-      importedSource,
-      plan.importedModuleStart,
-      plan.importedModuleLength,
-      rootSource,
-      plan.rootInsertion,
-      bufferLength(rootSource) - plan.rootInsertion,
-      output,
-      cursor
-    );
+    drop(rootLengths);
+    drop(rootStarts);
+    drop(rootKinds);
+    drop(scratch);
+    return result;
   }
 }

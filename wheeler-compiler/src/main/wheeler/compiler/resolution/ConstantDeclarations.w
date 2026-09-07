@@ -115,10 +115,57 @@ classical class ConstantDeclarations {
       return -1;
     }
 
-    long expression = constant + 4;
+    return scalarInitializerEnd(source, tokenStarts, tokenLengths, constant + 4, tokenCount);
+  }
+
+  /// Locates a nonempty scalar initializer without evaluating its expression.
+  /// Rejects member braces and incomplete token windows before reporting the semicolon tail.
+  public long scalarInitializerEnd(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long expression,
+    long tokenCount
+  ) {
+    if (expression < 0) {
+      return -1;
+    }
+
+    if (tokenCount < 1) {
+      return -1;
+    }
+
+    if (tokenCount - 1 < expression) {
+      return -1;
+    }
+
+    if (MAX_COMPILER_TOKENS < tokenCount) {
+      return -1;
+    }
+
+    if (bufferLength(tokenStarts) < tokenCount) {
+      return -1;
+    }
+
+    if (bufferLength(tokenLengths) < tokenCount) {
+      return -1;
+    }
+
     long cursor = expression;
     long depth = 0;
     while (cursor < tokenCount) limit MAX_COMPILER_TOKENS {
+      if (
+        scalarAt(source, tokenStarts, tokenLengths, cursor, PUNCTUATION_OPEN_BRACE)
+      ) {
+        return -1;
+      }
+
+      if (
+        scalarAt(source, tokenStarts, tokenLengths, cursor, PUNCTUATION_CLOSE_BRACE)
+      ) {
+        return -1;
+      }
+
       if (
         scalarAt(source, tokenStarts, tokenLengths, cursor, PUNCTUATION_OPEN_PAREN)
       ) {
@@ -211,6 +258,86 @@ classical class ConstantDeclarations {
     }
 
     return false;
+  }
+
+  /// Returns the end of a bounded constant prefix without binding names or values.
+  /// Scanner columns own token contents and source coordinates within the counted window.
+  public long constantPrefixEnd(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long firstDeclaration,
+    long tokenCount
+  ) {
+    if (tokenCount < 0) {
+      return -1;
+    }
+
+    if (MAX_COMPILER_TOKENS < tokenCount) {
+      return -1;
+    }
+
+    if (firstDeclaration < 0) {
+      return -1;
+    }
+
+    if (tokenCount < firstDeclaration) {
+      return -1;
+    }
+
+    if (bufferLength(tokenStarts) < tokenCount) {
+      return -1;
+    }
+
+    if (bufferLength(tokenLengths) < tokenCount) {
+      return -1;
+    }
+
+    long cursor = firstDeclaration;
+    long count = 0;
+    while (count < MAX_CLASS_CONSTANTS) limit MAX_CLASS_CONSTANTS {
+      if (cursor == tokenCount) {
+        return cursor;
+      }
+
+      if (cursor + 1 == tokenCount) {
+        if (sourceTokenCode(source, tokenStarts, tokenLengths, cursor) == TOKEN_CONST) {
+          return -1;
+        }
+
+        return cursor;
+      }
+
+      if (constantToken(source, tokenStarts, tokenLengths, cursor) < 0) {
+        return cursor;
+      }
+
+      long next = constantDeclarationEnd(source, tokenStarts, tokenLengths, cursor, tokenCount);
+      if (cursor < next) {} else {
+        return -1;
+      }
+
+      cursor = next;
+      count += 1;
+    }
+
+    if (cursor == tokenCount) {
+      return cursor;
+    }
+
+    if (cursor + 1 == tokenCount) {
+      if (sourceTokenCode(source, tokenStarts, tokenLengths, cursor) == TOKEN_CONST) {
+        return -1;
+      }
+
+      return cursor;
+    }
+
+    if (constantToken(source, tokenStarts, tokenLengths, cursor) < 0) {
+      return cursor;
+    }
+
+    return -1;
   }
 
   /// Returns the first declaration after optional signed state.

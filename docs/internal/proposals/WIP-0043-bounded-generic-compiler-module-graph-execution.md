@@ -122,9 +122,11 @@ A same-name mismatch fails. A private name used directly by the root fails. Two 
 
 Constants remain ahead of functions. Inserting a helper at the class opening brace after constants already exist is invalid, even if a later formatter could make the text look less guilty.
 
-`ImportedHelpers.w` checks the complete constant section, not just its leading shared prefix. `SharedDeclarations.w` owns exact comparison after visibility. The planner measures matching private declaration spans. `CanonicalHelperLinking.w` omits those same spans and keeps intervening private constants, public tails, and surrounding whitespace. Constant copying rewrites only the leading visibility token. A constant named `public` remains a name.
+`ImportedHelpers.w` checks the complete constant section, not just its leading shared prefix. `SharedDeclarations.w` owns exact comparison after visibility. The planner measures matching private declaration spans. `CanonicalHelperLinking.w` omits those same spans and keeps intervening private constants, public tails, and surrounding whitespace.
 
-Unshared private declarations still undergo root-use checks. Equal evaluated values do not authorize merging different declarations. The link-plan representation, allocation budget, and source limits do not change.
+Both constant writers walk declaration boundaries and rewrite only leading visibility. A constant named `public` remains a name, including uses in another initializer. The flat writer no longer scans arbitrary body tokens for that spelling.
+
+Unshared private declarations still undergo root-use checks. Equal evaluated values do not authorize merging different declarations. Sharing a local declaration does not export the imported private name. A qualified reference to that private owner still fails before artifact publication.
 
 ## Determinism
 
@@ -200,12 +202,61 @@ The one-helper composition in WIP-0499 also admits an unused helper beside an
 imported constant. Complete artifact comparison retains both the imported helper
 and the root entry. This replaces an obsolete unsupported-import expectation.
 
-The same join with root class state remains open. An independent stage-0 source
-with `state long value = 0` and `value = ANSWER` passes. Native linking inserts
-the imported helper before that state declaration, then rejects the linked
-source at `requireMinimalProgram`. Root-prelude planning and copying must retain
-the state before imported executable members. The global-call and unused-helper
-receipts do not establish that ordering.
+`ClassLayouts.w` now separates the constant range, state range, and executable
+insertion point. `ClassPrelude` carries all five coordinates and validity without
+evaluating initializers or publishing global metadata. Constants may precede or
+follow one state declaration. Split constant sections and a second state fail.
+
+The linker inserts ordinary constants at the constant start and shared tails at
+the constant end. Helpers follow the entire prelude, including state. The
+single-import path uses the canonical helper writer for shared helper plans.
+Constant-only edges retain the same constant boundary in a larger graph.
+
+`ConstantDeclarations.w` owns the counted constant-prefix locator and shared
+initializer extent. Qualified initializers survive syntax location before
+canonical name rewriting. Final layout checks the complete initializer tail
+before value admission. Arithmetic and parenthesized state initializers remain
+lowering work. The compiler must reject them, not discard their suffixes.
+
+Focused tests compare every prelude coordinate and scanner column. They cover
+both orders, malformed fronts, 256 and 257 declarations or name bytes, 32 and 33
+parentheses, and the complete 4,096-token window with spare backing storage.
+Small cases fully rewind. Large count and token cases run without history.
+Imported-state fixtures compare complete stage-0 artifacts, preserve helper and
+root identities, execute the global result, and rewind the emitted program.
+
+## Token-owned qualifications
+
+`ModuleQualifications.w` counts and copies qualified names from scanner tokens.
+A namespace match starts at a complete identifier and cannot begin after a dot
+or scope separator. Comments and quoted text are not references. The old byte
+substring search and duplicate ASCII comparator are gone.
+
+This prevents `myexamples.constants::BASE` from becoming a local `myBASE` while
+linking `examples.constants`. Shared private-name checks use the same namespace
+matcher as measurement and copying. They reject qualified private access even
+when an identical local declaration exists. Bare local references retain their
+own binding.
+
+The helper writer reuses its scanner columns. The flat constant writer owns
+three private 4,096-row root columns. Privatization adds three imported columns.
+Tests measure both allocation profiles and verify that all writer scratch is
+released before host publication. Qualification products allocate no buffers and
+leave their scanner columns unchanged. The 64-reference and 36 KiB linked-source
+limits remain separate from physical-source, graph, argument, and evaluator
+limits.
+
+Complete source comparisons preserve quoted namespace text and seventy matching
+comments while rewriting the actual call. Whole and disjoint copies use nonzero
+destinations and preserve inactive bytes. Invalid windows reject before writes.
+Capacity failure and a split qualification may retain private staging bytes.
+Both failures fully rewind. The enclosing linker still owns artifact publication.
+The complete 36 KiB copy and byte 36,865 rejection run without history.
+
+Private-access and namespace-alias fixtures reject without artifact publication
+and fully rewind the compiler. A constant-fed helper edge retains a constant
+named `public` across both state and frame orders. These are bounded graph and source products. They do not establish native
+compilation of these owners or a self-hosting fixed point.
 
 ## Acceptance
 
