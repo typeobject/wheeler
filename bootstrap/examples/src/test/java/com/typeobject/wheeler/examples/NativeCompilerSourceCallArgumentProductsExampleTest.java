@@ -12,41 +12,49 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
 /** Exact argument columns, pooled capacity, and atomic rejection evidence. */
 final class NativeCompilerSourceCallArgumentProductsExampleTest {
-  private static final String[] PARAMETERS = {
-      "long first", "boolean flag", "borrow utf8 text", "borrow byteview view",
-      "borrow mut words cells", "borrow mut bytes data", "long count", "boolean last"
+  private static final int ARITY = 64;
+  private static final int ARGUMENT_LIMIT = 256 * ARITY;
+  private static final int ARGUMENT_WORDS = ARGUMENT_LIMIT * 2;
+  private static final int OUTPUT_WORDS = 256 * 2 + ARGUMENT_WORDS * 2;
+  private static final String[] TYPES = {
+      "long", "boolean", "borrow utf8", "borrow byteview", "borrow mut words", "borrow mut bytes"
   };
-  private static final int[] TYPES = {1, 2, 8, 13, 10, 11, 1, 2};
-  private static final int[] ORDER = {7, 0, 5, 2, 6, 1, 4, 3};
-  private static final int OUTPUT_WORDS = 256 * 2 + 4096 * 2;
+  private static final int[] TYPE_CODES = {1, 2, 8, 13, 10, 11};
+  private static final String[] PARAMETERS = IntStream.range(0, ARITY)
+      .mapToObj(index -> TYPES[index % TYPES.length] + " value" + index).toArray(String[]::new);
+  private static final int[] ORDER = IntStream.range(0, ARITY).map(index -> (index * 17 + 63) % ARITY)
+      .toArray();
   private static final long SENTINEL = -7;
 
   @Test
   void bindsTypedArgumentsToDefiningValues() throws Exception {
-    assertBinding(1, arguments(), 8, true);
+    assertBinding(1, arguments(), ARITY, true);
   }
 
   @Test
   void fillsBothCompleteArgumentTables() throws Exception {
-    // Repeat one validated call-site range to isolate the product arena bound.
-    // This is not a claim that 256 source calls fit every other compiler pool.
-    assertBinding(256, arguments(), 8, true);
+    // Repeating a call-site range isolates this arena from token and code limits.
+    assertBinding(256, arguments(), ARITY, true);
   }
 
   @Test
-  void rejectsANinthArgumentBeforePublishingAnyCall() throws Exception {
-    assertBinding(1, arguments() + ", first", 9, false);
-    assertBinding(2, arguments() + ", first", 9, false);
+  void rejectsArgumentSixtyFiveBeforePublishingAnyCall() throws Exception {
+    assertBinding(1, arguments() + ", value0", ARITY + 1, false);
+    assertBinding(2, arguments() + ", value0", ARITY + 1, false);
   }
 
   @Test
-  void rejectsUnknownEighthArgumentsWithoutPublishingTheAdmittedPrefix() throws Exception {
-    assertBinding(1, arguments().replace("view", "missing"), 8, false);
-    assertBinding(2, arguments().replace("view", "missing"), 8, false);
+  void rejectsUnknownFinalArgumentsWithoutPublishingTheAdmittedPrefix() throws Exception {
+    String missing = IntStream.range(0, ARITY).mapToObj(index -> index == ARITY - 1
+        ? "missing" : "value" + ORDER[index]).collect(Collectors.joining(", "));
+    assertBinding(1, missing, ARITY, false);
+    assertBinding(2, missing, ARITY, false);
   }
 
   private static void assertBinding(int calls, String lastArguments, int lastArity, boolean accepted)
@@ -58,19 +66,19 @@ final class NativeCompilerSourceCallArgumentProductsExampleTest {
     CompilerMachineRunner.runWithoutRewindHistory(machine);
     assertEquals(accepted ? 1 : 0, machine.global("valid"));
     assertEquals(accepted ? calls : 0, machine.global("callCount"));
-    assertEquals(accepted ? calls * 8 : 0, machine.global("argumentCount"));
+    assertEquals(accepted ? calls * ARITY : 0, machine.global("argumentCount"));
     long[] expected = new long[OUTPUT_WORDS];
     Arrays.fill(expected, SENTINEL);
     if (accepted) {
       for (int call = 0; call < calls; call++) {
-        expected[call] = call * 8;
-        expected[256 + call] = 8;
-        for (int argument = 0; argument < 8; argument++) {
-          int row = call * 8 + argument;
+        expected[call] = call * ARITY;
+        expected[256 + call] = ARITY;
+        for (int argument = 0; argument < ARITY; argument++) {
+          int row = call * ARITY + argument;
           expected[512 + row] = ORDER[argument];
-          expected[512 + 2048 + row] = TYPES[ORDER[argument]];
-          expected[512 + 4096 + row] = ORDER[argument];
-          expected[512 + 4096 + 2048 + row] = 0;
+          expected[512 + ARGUMENT_LIMIT + row] = TYPE_CODES[ORDER[argument] % TYPES.length];
+          expected[512 + ARGUMENT_WORDS + row] = ORDER[argument];
+          expected[512 + ARGUMENT_WORDS + ARGUMENT_LIMIT + row] = 0;
         }
       }
     }
@@ -82,9 +90,7 @@ final class NativeCompilerSourceCallArgumentProductsExampleTest {
   }
 
   private static String arguments() {
-    return String.join(", ", Arrays.stream(ORDER)
-        .mapToObj(index -> PARAMETERS[index].substring(PARAMETERS[index].lastIndexOf(' ') + 1))
-        .toList());
+    return Arrays.stream(ORDER).mapToObj(index -> "value" + index).collect(Collectors.joining(", "));
   }
 
   private static Program program(String source, int calls, int lastArity) throws Exception {
@@ -112,13 +118,15 @@ final class NativeCompilerSourceCallArgumentProductsExampleTest {
         import wheeler.compiler.encoding;
 
         classical class SourceCallArgumentProductsExample {
+          private const long ARGUMENT_TABLE_WORDS = ARGUMENT_WORD_COUNT;
+          private const long PRODUCT_BYTES = 301056 + ARGUMENT_TABLE_WORDS * 16;
           state long valid = 0;
           state long callCount = 0;
           state long argumentCount = 0;
 
           private void fill(borrow mut words rows) {
             long row = 0;
-            while (row < bufferLength(rows)) limit 4096 {
+            while (row < bufferLength(rows)) limit ARGUMENT_TABLE_WORDS {
               set(rows, row, -7);
               row += 1;
             }
@@ -126,7 +134,7 @@ final class NativeCompilerSourceCallArgumentProductsExampleTest {
 
           private long publish(borrow mut words rows, borrow mut bytes output, long cursor) {
             long row = 0;
-            while (row < bufferLength(rows)) limit 4096 {
+            while (row < bufferLength(rows)) limit ARGUMENT_TABLE_WORDS {
               cursor = writeSignedLittleEndian(output, cursor, rows[row], 8);
               row += 1;
             }
@@ -134,21 +142,21 @@ final class NativeCompilerSourceCallArgumentProductsExampleTest {
           }
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
-            region products = new region(/* bytes= */ 366592, /* allocations= */ 8);
+            region products = new region(/* bytes= */ PRODUCT_BYTES, /* allocations= */ 8);
             words calls = allocate(products, 1024);
             words callStatements = allocate(products, 256);
             words statements = allocate(products, 28672);
             words values = allocate(products, 7168);
             words argumentStarts = allocate(products, 256);
             words argumentCounts = allocate(products, 256);
-            words arguments = allocate(products, 4096);
-            words argumentValues = allocate(products, 4096);
+            words arguments = allocate(products, ARGUMENT_TABLE_WORDS);
+            words argumentValues = allocate(products, ARGUMENT_TABLE_WORDS);
             VALUE_SETUP
             long call = 0;
             while (call < CALL_COUNT) limit 256 {
               set(calls, call, CALL_START);
               set(calls, 256 + call, 6);
-              set(calls, 512 + call, 8);
+              set(calls, 512 + call, ARITY);
               call += 1;
             }
             set(calls, CALL_COUNT - 1, LAST_START);
@@ -158,7 +166,7 @@ final class NativeCompilerSourceCallArgumentProductsExampleTest {
             fill(arguments);
             fill(argumentValues);
             SourceCallArgumentPlan plan = materializeSourceCallArgumentProducts(
-              input, 0, CALL_COUNT, calls, callStatements, 1, statements, 8, values,
+              input, 0, CALL_COUNT, calls, callStatements, 1, statements, ARITY, values,
               argumentStarts, argumentCounts, arguments, argumentValues
             );
             if (plan.valid) {
@@ -186,7 +194,9 @@ final class NativeCompilerSourceCallArgumentProductsExampleTest {
             .replace("CALL_COUNT", Integer.toString(calls))
             .replace("CALL_START", Integer.toString(source.indexOf("target(")))
             .replace("LAST_START", Integer.toString(source.indexOf("broken(")))
-            .replace("LAST_ARITY", Integer.toString(lastArity)));
+            .replace("LAST_ARITY", Integer.toString(lastArity))
+            .replace("ARITY", Integer.toString(ARITY))
+            .replace("ARGUMENT_WORD_COUNT", Integer.toString(ARGUMENT_WORDS)));
     return new WheelerCompiler().compileModuleFiles(sources, "example.source_call_argument_products");
   }
 }

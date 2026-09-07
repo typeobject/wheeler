@@ -17,6 +17,7 @@ classical class CallableSourceComposition {
   private const long LOOP_WINDOW_ROWS = 768;
   private const long MAX_CALLABLES = 64;
   private const long MAX_CODE_BYTES = 262144;
+  private const long MAX_FRAME_LOCALS = 256;
   private const long MAX_PRODUCTS = 4096;
   private const long MAX_TYPES = 4096;
   private const long SOURCE_STATEMENT_ORDINAL_ROW = 8192;
@@ -424,7 +425,7 @@ classical class CallableSourceComposition {
       set(stagedCallables, 192 + callable, typeCount);
       long local = 0;
       boolean selectingType = true;
-      while (selectingType) limit 256 {
+      while (selectingType) limit MAX_FRAME_LOCALS {
         long code = -1;
         long signatureCode = typeCodeAt(callable, local, signatureTypeCount, signatureTypes);
         long directCodeType = typeCodeAt(callable, local, directTypeCount, directTypes);
@@ -472,6 +473,9 @@ classical class CallableSourceComposition {
           }
 
           local += 1;
+          if (local == MAX_FRAME_LOCALS) {
+            selectingType = false;
+          }
         }
       }
 

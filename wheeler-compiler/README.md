@@ -98,15 +98,15 @@ not establish native lowering for every compiler body.
 
 ### Retained calls
 
-Ordinary root and loop calls admit zero through eight ordered identifier
+Ordinary root and loop calls admit zero through 64 ordered identifier
 arguments, including qualified imports. Signed and Boolean values, UTF-8 and
 byte-view loans, and mutable byte and word loans keep exact types.
 `compiler/closure/layouts/source/calls/SourceCallArgumentLayouts.w` owns 256 calls and two
-4,096-word argument tables. Each column holds 2,048 arguments. Binding, final
+32,768-word argument tables. Each column holds 16,384 arguments. Binding, final
 returns, typed layout, code planning, loop emission, and imported stubs use the
 same profile.
 
-A ninth argument or mismatched type rejects before publication. Filling the
+Argument 65 or a mismatched type rejects before publication. Filling the
 argument tables does not prove simultaneous admission at every other capacity.
 Generated inverses still reject argument-bearing calls. Their transfer and
 cleanup inverses remain open work. This profile does not widen the separate

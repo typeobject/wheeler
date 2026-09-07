@@ -40,14 +40,15 @@ final class NativeCompilerLoopCallProductsExampleTest {
   @Test
   void rejectsBadArgumentRowsAndTargetWindowsBeforePublication() throws Exception {
     for (String mutation : new String[] {
-        "set(arguments, 2049, 1);",
+        "set(arguments, ARGUMENT_TYPE_ROW + 1, 1);",
         "set(argumentValues, 1, 1024);",
-        "set(valueStarts, 1, 9223372036854775807); set(argumentValues, 2049, 1);",
+        "set(valueStarts, 1, 9223372036854775807); set(argumentValues, ARGUMENT_TYPE_ROW + 1, 1);",
         "set(valueStarts, 1, -9223372036854775807 - 1);",
-        "set(argumentValues, 2049, 15);",
-        "set(callArgumentCounts, 1, 9);",
+        "set(argumentValues, ARGUMENT_TYPE_ROW + 1, 15);",
+        "set(callArgumentCounts, 1, 65);",
         "set(callArgumentCounts, 1, -1);",
         "set(callArgumentStarts, 1, -9223372036854775807 - 1);",
+        "set(callArgumentStarts, 1, 16384);",
         "set(targetParameterStarts, 4, 16384);",
         "set(targetParameterStarts, 4, -9223372036854775807 - 1);"
     }) {
@@ -96,6 +97,9 @@ final class NativeCompilerLoopCallProductsExampleTest {
         import wheeler.compiler.closure.loop_call_products;
 
         classical class LoopCallProductsExample {
+          private const long ARGUMENT_TYPE_ROW = 16384;
+          private const long ARGUMENT_WORDS = ARGUMENT_TYPE_ROW * 2;
+          private const long PRODUCT_BYTES = 534528 + ARGUMENT_WORDS * 16;
           state long valid = 0;
           state long instructionCount = 0;
           state long length = 0;
@@ -132,14 +136,14 @@ final class NativeCompilerLoopCallProductsExampleTest {
 
           entry void main(borrow utf8 input, borrow mut bytes output) {
             assert(bufferLength(input) == 0);
-            region products = new region(/* bytes= */ 600064, /* allocations= */ 19);
+            region products = new region(/* bytes= */ PRODUCT_BYTES, /* allocations= */ 19);
             words calls = allocate(products, 1024);
             words callArgumentStarts = allocate(products, 256);
             words callArgumentCounts = allocate(products, 256);
             words callStatements = allocate(products, 256);
             words callInstructionStarts = allocate(products, 256);
-            words arguments = allocate(products, 4096);
-            words argumentValues = allocate(products, 4096);
+            words arguments = allocate(products, ARGUMENT_WORDS);
+            words argumentValues = allocate(products, ARGUMENT_WORDS);
             words valueStarts = allocate(products, 1024);
             bytes identities = allocateBytes(products, 131072);
             words targetParameterStarts = allocate(products, 4096);
@@ -253,8 +257,8 @@ final class NativeCompilerLoopCallProductsExampleTest {
             set(callArgumentCounts, 0, 1);
             set(callArgumentStarts, 1, 1);
             set(callArgumentCounts, 1, 1);
-            set(arguments, 2048, 1);
-            set(arguments, 2049, 2);
+            set(arguments, ARGUMENT_TYPE_ROW, 1);
+            set(arguments, ARGUMENT_TYPE_ROW + 1, 2);
             set(argumentValues, 1, 1);
             set(valueStarts, 0, 3);
             set(valueStarts, 1, 5);

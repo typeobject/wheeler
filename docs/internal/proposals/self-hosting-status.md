@@ -65,11 +65,17 @@ stage 0 for every selected callable product. It also compares the complete
 comparable artifact prefix byte for byte. Counts
 remain capacity checks, not substitutes for body parity.
 
-Ordinary retained calls now admit eight ordered identifiers across root, loop,
+Ordinary retained calls now admit 64 ordered identifiers across root, loop,
 and qualified imported calls. Signed and Boolean values and UTF-8, byte-view,
 mutable-byte, and mutable-word loans retain exact types and defining-value coordinates.
-[WIP-0496](WIP-0496-eight-argument-retained-source-calls.md) owns the shared call
-layout and first-excess evidence. It does not widen the separate bounded helper
+[WIP-0502](WIP-0502-sixty-four-argument-retained-source-calls.md) extends the shared
+call layout beyond WIP-0496's eight-argument milestone. Nine-, 55-, and 64-argument
+bodies match independent artifacts. Wide signed calls execute through an
+independent wrapper and rewind. The entry-product regression follows 29 imported
+targets, and the archive pass binds all 451 modules. This does not compile the
+complete value-planning or frame-composition owners natively. Canonical locks and
+the workspace build pass. Hosted acceptance for the wider profile remains open.
+This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with
 arguments. That lowering boundary remains in WIP-0049.
 

@@ -42,21 +42,28 @@ final class NativeCompilerSourceCallInstructionProductsExampleTest {
   }
 
   @Test
-  void plansEightArgumentWindowsInSourceOrder() throws Exception {
-    VirtualMachine machine = new VirtualMachine(program(false, 8), new byte[0]);
-    machine.run();
-    assertEquals(1, machine.global("valid"));
-    assertEquals(35, machine.global("instructionCount"));
-    assertEquals(864, machine.global("length"));
-    assertEquals(25, machine.global("lateInstruction"));
-    assertEquals(448, machine.global("lateCodeStart"));
-    assertEquals(416, machine.global("lateLength"));
-    assertEquals(448, machine.global("earlyLength"));
+  void plansWideArgumentWindowsInSourceOrder() throws Exception {
+    for (int arity : new int[] {8, 55, 64}) {
+      VirtualMachine machine = new VirtualMachine(program(false, arity), new byte[0]);
+      var initial = machine.snapshot();
+      machine.run();
+      assertEquals(1, machine.global("valid"));
+      assertEquals(arity * 4 + 3, machine.global("instructionCount"));
+      assertEquals(arity * 96 + 96, machine.global("length"));
+      assertEquals(arity * 2 + 9, machine.global("lateInstruction"));
+      assertEquals(arity * 48 + 64, machine.global("lateCodeStart"));
+      assertEquals(arity * 48 + 32, machine.global("lateLength"));
+      assertEquals(arity * 48 + 64, machine.global("earlyLength"));
+      while (machine.historySize() > 0) {
+        machine.rewindOne();
+      }
+      assertEquals(initial, machine.snapshot());
+    }
   }
 
   @Test
   void rejectsInvalidAritiesBeforePublishingAnyWindow() throws Exception {
-    for (int arity : new int[] {-1, 9}) {
+    for (int arity : new int[] {-1, 65}) {
       VirtualMachine machine = new VirtualMachine(program(false, arity), new byte[0]);
       machine.run();
       assertEquals(0, machine.global("valid"));

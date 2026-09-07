@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, module-product, aggregate, ownership, and bootstrap maintainers |
 | Created | 2026-08-09 |
-| Updated | 2026-09-05 |
+| Updated | 2026-09-07 |
 | Area | Self-hosting, source lowering, module products, aggregate products, bootstrap |
 | Depends on | WIP-0013, WIP-0028, WIP-0044, WIP-0045, WIP-0046, WIP-0047, WIP-0048 |
 | Supersedes | None |
@@ -135,6 +135,22 @@ The recovery profile keeps the accepted bounds:
 - 16 MiB closure artifact archive.
 
 Generated declarations and stubs count against the source and temporary function limits. They do not increase retained closure counts.
+
+### Complete frame admission
+
+The wide-call fixture exposed two checks that stopped before the existing
+256-local boundary. `SourceValueProducts.w` compared the final local count with
+255, although its statement checks allowed 256. `CallableSourceComposition.w`
+then needed a 257th loop iteration to find the empty slot after a full frame.
+
+Both owners now use an explicit 256-local window. Type composition stops after
+the last slot and still requires every input type row to be consumed. A 64-argument
+void call after 32 signed declarations fills all 256 locals. Adding one Boolean
+assertion needs local 257 and rejects before artifact publication. The complete
+admitted artifact matches stage 0. A separate type-composition fixture fills all
+four input pools, rejects an unconsumed local 256, gaps, and duplicate origins,
+and checks every output cell. Small accepted and rejected compositions rewind.
+This corrects frame admission, not the separate call-arity contract in [WIP-0502](WIP-0502-sixty-four-argument-retained-source-calls.md).
 
 ## Failure behavior
 

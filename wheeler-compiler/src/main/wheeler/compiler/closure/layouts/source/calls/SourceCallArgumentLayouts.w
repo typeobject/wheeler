@@ -6,7 +6,7 @@ classical class SourceCallArgumentLayouts {
   /// Maximum source-call rows in one module product.
   public const long SOURCE_CALL_COUNT_LIMIT = 256;
   /// Maximum ordered identifier arguments in one retained call.
-  public const long SOURCE_CALL_ARITY_LIMIT = 8;
+  public const long SOURCE_CALL_ARITY_LIMIT = 64;
   /// Capacity of each argument column across all source calls.
   public const long SOURCE_CALL_ARGUMENT_LIMIT = SOURCE_CALL_COUNT_LIMIT * SOURCE_CALL_ARITY_LIMIT;
   /// Start of the type or defining-value offset column.

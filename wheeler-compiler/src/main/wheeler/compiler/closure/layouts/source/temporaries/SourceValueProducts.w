@@ -22,6 +22,7 @@ classical class SourceValueProducts {
   private const long FUNCTION_LOCAL_ROWS = 64;
   private const long MAX_CALLABLES = 4096;
   private const long MAX_LOCAL_CALLABLES = 64;
+  private const long MAX_FRAME_LOCALS = 256;
   private const long MAX_STATEMENTS = 4096;
   private const long MAX_VALUES = 1024;
   private const long SOURCE_STATEMENT_ROWS = 24576;
@@ -670,7 +671,7 @@ classical class SourceValueProducts {
             valid = false;
           }
 
-          if (MAX_LOCAL_CALLABLES * 4 < localBase + localWidth) {
+          if (MAX_FRAME_LOCALS < localBase + localWidth) {
             valid = false;
           }
 
@@ -712,7 +713,7 @@ classical class SourceValueProducts {
         }
       }
 
-      if (255 < localBase) {
+      if (MAX_FRAME_LOCALS < localBase) {
         valid = false;
         if (failureCode == 0) {
           failureFunction = localFunction;

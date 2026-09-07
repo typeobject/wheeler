@@ -48,10 +48,10 @@ It includes calls, callee bodies, executed inverse bodies, and termination.
 It excludes work performed by the outer native interpreter. It is not elapsed time
 or a proof bound. Native execution and report identities bind this retained count.
 
-The retained source route admits eight ordered identifier arguments in ordinary
+The retained source route admits 64 ordered identifier arguments in ordinary
 root and loop calls, including qualified imports. Mixed scalar and admitted buffer-loan
-arguments retain exact types. Its 256 call rows share 2,048 argument entries per
-module. A ninth argument rejects before argument or artifact publication. The
+arguments retain exact types. Its 256 call rows share 16,384 argument entries per
+column. Argument 65 rejects before argument or artifact publication. The
 separate bounded helper compiler still admits at most seven arguments per call.
 Generated inverses still reject argument-bearing calls. These are implementation
 bounds, not language arity rules.

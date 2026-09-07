@@ -56,7 +56,7 @@ final class NativeCompilerArchiveClosureExampleTest {
     assertEquals(manifest.modules().size(), machine.global("rootGeneration"));
     assertAll(
         "physical declaration products",
-        () -> assertEquals(2_108, machine.global("symbolCount")),
+        () -> assertEquals(2_110, machine.global("symbolCount")),
         () -> assertEquals(1_812, machine.global("callableCount")));
     assertTrue(machine.global("callableParameterCount") > 1_000);
     assertTrue(machine.global("borrowedParameterCount") > 0);

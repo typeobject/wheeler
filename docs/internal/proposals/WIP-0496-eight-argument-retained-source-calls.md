@@ -5,11 +5,12 @@
 | Status | Implemented |
 | Owners | Wheeler compiler maintainers |
 | Created | 2026-09-04 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-07 |
 | Area | Retained source-call lowering |
 | Depends on | WIP-0049, WIP-0057, WIP-0059, WIP-0060 |
 | Supersedes | None |
 | Superseded by | None |
+| Follow-up | WIP-0502 |
 
 ## Boundary
 
@@ -90,6 +91,11 @@ unchanged 4,096-token scanner arena, which counts comments before compaction.
 - [x] Old argument extents and redundant test scaffolding are removed.
 
 ## Remaining work
+
+[WIP-0502](WIP-0502-sixty-four-argument-retained-source-calls.md) extends the
+ordinary retained profile to cover the compiler's wider signatures. The counts
+and ninth-argument rejections above describe this eight-argument milestone.
+They are not current source-profile pins.
 
 Complete target and collection composition, every physical compiler body, final
 linking, and stage-1/stage-2 equality remain open in the parent contracts. This

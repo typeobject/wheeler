@@ -36,33 +36,37 @@ final class NativeCompilerSourceCallLayoutProductsExampleTest {
     machine.run();
 
     assertEquals(0, machine.global("valid"));
-    assertEquals(2, machine.global("firstWidth"));
+    assertEquals(4, machine.global("firstWidth"));
     assertEquals(91, machine.global("firstKind"));
     assertEquals(92, machine.global("firstCallWidth"));
   }
 
   @Test
-  void validatesEightArgumentsAtTheLastCompleteTargetWindow() throws Exception {
-    VirtualMachine machine = new VirtualMachine(program(false, 8, 16376, ""), new byte[0]);
-    CompilerMachineRunner.runWithoutRewindHistory(machine);
-    assertEquals(1, machine.global("valid"));
-    assertEquals(20, machine.global("localTypeCount"));
-    assertEquals(18, machine.global("firstWidth"));
+  void validatesWideArgumentsAtTheLastCompleteTargetWindow() throws Exception {
+    for (int arity : new int[] {8, 55, 64}) {
+      VirtualMachine machine = new VirtualMachine(program(false, arity, 16384 - arity, ""), new byte[0]);
+      CompilerMachineRunner.runWithoutRewindHistory(machine);
+      assertEquals(1, machine.global("valid"));
+      assertEquals(arity * 2 + 4, machine.global("localTypeCount"));
+      assertEquals(arity * 2 + 2, machine.global("firstWidth"));
+    }
   }
 
   @Test
-  void rejectsNinthArgumentsAndInvalidIndexesBeforeReadingTypes() throws Exception {
-    VirtualMachine excess = new VirtualMachine(program(false, 9, 0, ""), new byte[0]);
+  void rejectsExcessArgumentsAndInvalidIndexesBeforeReadingTypes() throws Exception {
+    VirtualMachine excess = new VirtualMachine(program(false, 65, 0, ""), new byte[0]);
     CompilerMachineRunner.runWithoutRewindHistory(excess);
     assertEquals(0, excess.global("valid"));
     for (String mutation : new String[] {
         "set(sourceCalls, 768, 4096);",
         "set(argumentStarts, 0, -9223372036854775807 - 1);",
         "set(targetParameterStarts, 0, -9223372036854775807 - 1);",
-        "set(targetParameterStarts, 0, 16377);",
-        "set(targetParameterTypes, 7, 2);"
+        "set(argumentStarts, 0, 1);",
+        "set(argumentStarts, 0, 16321);",
+        "set(targetParameterStarts, 0, 16321);",
+        "set(targetParameterTypes, 63, 2);"
     }) {
-      VirtualMachine machine = new VirtualMachine(program(false, 8, 0, mutation), new byte[0]);
+      VirtualMachine machine = new VirtualMachine(program(false, 64, 0, mutation), new byte[0]);
       CompilerMachineRunner.runWithoutRewindHistory(machine);
       assertEquals(0, machine.global("valid"), mutation);
     }
@@ -79,6 +83,9 @@ final class NativeCompilerSourceCallLayoutProductsExampleTest {
         import wheeler.compiler.closure.source_call_layout_products;
 
         classical class SourceCallLayoutProductsExample {
+          private const long ARGUMENT_TYPE_ROW = 16384;
+          private const long ARGUMENT_WORDS = ARGUMENT_TYPE_ROW * 2;
+          private const long ROW_BYTES = 516096 + ARGUMENT_WORDS * 8;
           state long valid = 0;
           state long callCount = 0;
           state long localTypeCount = 0;
@@ -93,12 +100,12 @@ final class NativeCompilerSourceCallLayoutProductsExampleTest {
 
           entry void main(borrow utf8 input) {
             assert(bufferLength(input) == 0);
-            region rows = new region(/* bytes= */ 548864, /* allocations= */ 13);
+            region rows = new region(/* bytes= */ ROW_BYTES, /* allocations= */ 13);
             words sourceCalls = allocate(rows, /* length= */ 1024);
             words callStatements = allocate(rows, /* length= */ 256);
             words argumentStarts = allocate(rows, /* length= */ 256);
             words argumentCounts = allocate(rows, /* length= */ 256);
-            words arguments = allocate(rows, /* length= */ 4096);
+            words arguments = allocate(rows, /* length= */ ARGUMENT_WORDS);
             words targetParameterStarts = allocate(rows, /* length= */ 4096);
             words targetParameterCounts = allocate(rows, /* length= */ 4096);
             words targetParameterTypes = allocate(rows, /* length= */ 16384);
@@ -123,12 +130,12 @@ final class NativeCompilerSourceCallLayoutProductsExampleTest {
             set(targetParameterStarts, 0, PARAMETER_START);
             set(targetParameterCounts, 0, ARITY);
             long argument = 0;
-            while (argument < ARITY) limit 9 {
-              set(arguments, 2048 + argument, 1);
+            while (argument < ARITY) limit 65 {
+              set(arguments, ARGUMENT_TYPE_ROW + argument, 1);
               set(targetParameterTypes, PARAMETER_START + argument, 1);
               argument += 1;
             }
-            set(arguments, 2048 + ARITY - 1, ARGUMENT_TYPE);
+            set(arguments, ARGUMENT_TYPE_ROW + ARITY - 1, ACTUAL_ARGUMENT_TYPE);
             set(targetResultTypes, 0, 1);
             set(targetResultTypes, 1, 2);
             set(statements, 0, 3);
@@ -204,8 +211,8 @@ final class NativeCompilerSourceCallLayoutProductsExampleTest {
             drop(rows);
           }
         }
-        """.replace("ARGUMENT_TYPE", mismatch ? "2" : "1")
-            .replace("FIRST_WIDTH", mismatch ? "2" : Integer.toString(arity * 2 + 2))
+        """.replace("ACTUAL_ARGUMENT_TYPE", mismatch ? "2" : "1")
+            .replace("FIRST_WIDTH", Integer.toString(arity * 2 + 2))
             .replace("ARITY", Integer.toString(arity))
             .replace("PARAMETER_START", Integer.toString(parameterStart))
             .replace("MUTATION", mutation));
