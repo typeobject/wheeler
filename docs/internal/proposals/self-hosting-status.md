@@ -101,9 +101,10 @@ Complete artifacts and false-comparison traps match stage 0. Typed parameters,
 lexical precedence, compiler publication, and rewind retain focused evidence.
 General Boolean expressions and direct global literal-call arguments remain open.
 
-Hosted acceptance at `34b255f84` completed 51 of 52 jobs successfully. Native
-package row 1 exhausted its unchanged twelve-minute method deadline. Successful
-rows from other commits do not complete that package gate.
+Hosted run `34150655780` at `a6384a6f6` passes all 52 jobs, including all sixteen
+native compiler-package shards. The twelve-minute method deadlines and case-identity
+partition remain unchanged. This supplies same-commit package acceptance, not
+complete physical compiler lowering or the WIP-0498 nominal-runner join.
 
 Manifest token policy now uses exact word codes. The old hashes admitted malformed
 spellings such as `trvF`, `topM`, and `tetU`. Tests reject those aliases, long

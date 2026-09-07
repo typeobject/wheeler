@@ -111,7 +111,9 @@ The renamed package target passes all three native cases. It uses admitted named
 call arguments and separate Boolean-local negation. It does not widen Boolean
 assertion syntax. The seven spine cases pass too. Their case and source identities
 match the complete canonical manifest, not a substituted one-target manifest.
-The complete 255-case package still requires same-commit hosted acceptance.
+Hosted run `34150655780` passes all sixteen native package shards at `a6384a6f6`,
+with all 255 case identities in the unchanged partition. All 52 jobs pass on that
+commit. The package gate does not establish a compiler fixed point.
 
 The original minimum source also passes through the locked compiler and coverage
 consumer. All 568 artifact bytes and 772 coverage bytes match the independent
