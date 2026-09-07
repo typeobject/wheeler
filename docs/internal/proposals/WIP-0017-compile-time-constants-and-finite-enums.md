@@ -455,7 +455,10 @@ publication.
 for state initializers, local declarations, scalar helper results and arguments,
 constant expressions, and imported constants. Both unqualified and qualified
 imports initialize state. Small successful and rejected compiler runs restore
-the complete snapshot. Every emitted program executes and fully rewinds.
+the complete snapshot. Every emitted program executes and fully rewinds. The
+former `Overflow` negative fixture now has an exact positive artifact and rewind
+check. Its negative counterpart rejects the first value below the minimum,
+not the minimum itself.
 
 Constant subtraction now executes only its selected arithmetic operation.
 `MAX - MAX` and `MIN - MIN` produce zero without an unused addition overflowing

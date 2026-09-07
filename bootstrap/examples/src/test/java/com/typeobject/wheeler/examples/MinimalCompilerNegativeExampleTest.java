@@ -53,7 +53,7 @@ class MinimalCompilerNegativeExampleTest {
     VirtualMachine signedOverflow = new VirtualMachine(
         writerProgram,
         ("classical class Overflow { "
-            + "state long value = -9223372036854775808; "
+            + "state long value = -9223372036854775809; "
             + "entry void main() { } }")
             .getBytes(StandardCharsets.UTF_8),
         1024);

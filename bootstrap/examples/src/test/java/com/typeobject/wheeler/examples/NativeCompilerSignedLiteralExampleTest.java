@@ -12,6 +12,7 @@ import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.MachineStatus;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -106,8 +107,21 @@ final class NativeCompilerSignedLiteralExampleTest {
           Map.of("Numbers.w", imported, "Root.w", root), "example.root");
       byte[] actual = NativeModuleCompilerHarness.compile(compiler, imported, root);
       assertArrayEquals(new BytecodeWriter().write(expected), actual);
-      assertExecution(new BytecodeReader().read(actual), Long.MIN_VALUE);
+      assertExecution(new BytecodeReader().read(actual), "observed", Long.MIN_VALUE);
     }
+  }
+
+  @Test
+  void acceptsTheFormerMinimumRejectionWithCompleteArtifactAndRewind() throws Exception {
+    String source = "classical class Overflow { state long value = -9223372036854775808; "
+        + "entry void main() { } }";
+    byte[] expected = new WheelerCompiler().compileToBytecode(source);
+    var writer = new VirtualMachine(CompilerSources.minimalCompilerProgram(),
+        source.getBytes(StandardCharsets.UTF_8), 1024);
+    CompilerMachineRunner.runWithoutRewindHistory(writer);
+    assertEquals(MachineStatus.HALTED, writer.status());
+    assertArrayEquals(expected, writer.hostOutput());
+    assertExecution(new BytecodeReader().read(writer.hostOutput()), "value", Long.MIN_VALUE);
   }
 
   @Test
@@ -140,16 +154,16 @@ final class NativeCompilerSignedLiteralExampleTest {
     CompilerMachineRunner.runWithoutRewindHistory(writer);
     assertEquals(MachineStatus.HALTED, writer.status());
     assertArrayEquals(expected, writer.hostOutput(), source);
-    assertExecution(new BytecodeReader().read(writer.hostOutput()), result);
+    assertExecution(new BytecodeReader().read(writer.hostOutput()), "observed", result);
   }
 
-  private static void assertExecution(Program program, long result) {
+  private static void assertExecution(Program program, String global, long result) {
     assertEquals(1, program.globals().size());
     var machine = new VirtualMachine(program);
     var initial = machine.snapshot();
     machine.run();
     assertEquals(MachineStatus.HALTED, machine.status());
-    assertEquals(result, machine.global("observed"));
+    assertEquals(result, machine.global(global));
     rewind(machine);
     assertEquals(initial, machine.snapshot());
   }
