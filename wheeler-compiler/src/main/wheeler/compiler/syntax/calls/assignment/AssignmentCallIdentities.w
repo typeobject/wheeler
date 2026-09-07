@@ -45,4 +45,8 @@ classical class AssignmentCallIdentities {
   public const long STATEMENT_ASSIGN_CALL_SEVEN_BASE = 41792;
   /// Ends all resolved call-assignment target columns.
   public const long ASSIGNMENT_CALL_END = 42048;
+  /// Begins resolved calls assigned to the retained signed class state.
+  public const long STATEMENT_GLOBAL_ASSIGN_CALL_BASE = 42048;
+  /// Ends the eight global call-assignment arities without widening local columns.
+  public const long GLOBAL_ASSIGNMENT_CALL_END = 42056;
 }

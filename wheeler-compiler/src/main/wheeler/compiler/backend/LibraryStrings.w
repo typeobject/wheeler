@@ -11,11 +11,12 @@ classical class LibraryStrings {
   private const long CLASS_NAME = 0;
   private const long FIRST_HELPER = 1;
   private const long MAX_HELPERS = MAX_SCALAR_HELPERS;
-  private const long MAX_STRING_COUNT = MAX_HELPERS + 3;
+  private const long MAX_STRING_COUNT = MAX_HELPERS + 4;
 
   /// Defines immutable bounded library string-table plans.
   public record LibraryStringPlan(
     long nameIndex,
+    long globalIndex,
     long[23] helperIndices,
     long entryIndex,
     long proofIndex,
@@ -64,6 +65,10 @@ classical class LibraryStrings {
     return program.helperCount + 2;
   }
 
+  private long globalCandidate(MinimalProgram program) {
+    return program.helperCount + 2 + program.proofCount;
+  }
+
   private long mainScalar(long index) {
     if (index == 0) {
       return 109;
@@ -107,6 +112,10 @@ classical class LibraryStrings {
       return program.name.length;
     }
 
+    if (candidate == globalCandidate(program)) {
+      return program.global.length;
+    }
+
     if (candidate == entryCandidate(program)) {
       if (program.library) {
         return 8;
@@ -145,6 +154,10 @@ classical class LibraryStrings {
   ) {
     if (candidate == CLASS_NAME) {
       return utf8Scalar(source, program.name.start + index);
+    }
+
+    if (candidate == globalCandidate(program)) {
+      return utf8Scalar(source, program.global.start + index);
     }
 
     if (candidate == entryCandidate(program)) {
@@ -270,8 +283,16 @@ classical class LibraryStrings {
     SourceRange rootModule,
     HelperOwners owners
   ) {
-    long stringCount = program.helperCount + 2 + program.proofCount;
+    long stringCount = program.helperCount + 2 + program.proofCount + program.globalCount;
     long valid = 1;
+    if (program.globalCount < 0) {
+      valid = 0;
+    }
+
+    if (1 < program.globalCount) {
+      valid = 0;
+    }
+
     if (0 < program.helperCount) {} else {
       valid = 0;
     }
@@ -616,8 +637,21 @@ classical class LibraryStrings {
       );
     }
 
+    long globalIndex = 0;
+    if (program.globalCount == 1) {
+      globalIndex = candidateIndex(
+        source,
+        program,
+        rootModule,
+        owners,
+        globalCandidate(program),
+        stringCount
+      );
+    }
+
     return new LibraryStringPlan(
       candidateIndex(source, program, rootModule, owners, CLASS_NAME, stringCount),
+      globalIndex,
       helperIndices,
       candidateIndex(
         source,
@@ -641,6 +675,12 @@ classical class LibraryStrings {
   ) {
     if (stringIndex == plan.nameIndex) {
       return CLASS_NAME;
+    }
+
+    if (program.globalCount == 1) {
+      if (stringIndex == plan.globalIndex) {
+        return globalCandidate(program);
+      }
     }
 
     long helper = 0;

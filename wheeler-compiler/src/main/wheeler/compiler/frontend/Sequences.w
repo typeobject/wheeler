@@ -2,7 +2,7 @@
 
 module wheeler.compiler.sequences;
 
-import wheeler.compiler.class_constants;
+import wheeler.compiler.class_layouts;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.helper_abi;
 import wheeler.compiler.ir;
@@ -117,7 +117,7 @@ classical class StatementSequences {
       return true;
     }
 
-    return classConstantNameExists(source, tokenStarts, tokenLengths, statementStart + 1) == false;
+    return classValueNameExists(source, tokenStarts, tokenLengths, statementStart + 1) == false;
   }
 
   /// Resolves one ordered source sequence without publishing partial results.

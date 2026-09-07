@@ -117,7 +117,11 @@ classical class ScalarHelperParsing {
     long count,
     ClassLayout layout
   ) {
-    if (layout.globalCount == 0) {} else {
+    if (layout.globalCount < 0) {
+      return invalidTable();
+    }
+
+    if (1 < layout.globalCount) {
       return invalidTable();
     }
 

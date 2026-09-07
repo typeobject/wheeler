@@ -2,9 +2,12 @@
 
 module wheeler.compiler.helper_calls;
 
+import wheeler.compiler.assignment_call_arities;
+import wheeler.compiler.assignment_call_kinds;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.four_argument_calls;
 import wheeler.compiler.helper_abi;
+import wheeler.compiler.helper_signatures;
 import wheeler.compiler.ir;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.source_scalars;
@@ -53,24 +56,31 @@ classical class HelperCalls {
     return false;
   }
 
-  /// Reports whether one scalar result call names the sole bounded helper.
-  public boolean resultCallNamesHelper(
+  /// Projects the exact target token of a declaration or assignment result call.
+  public long resultCallTargetToken(
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
-    long nameToken,
     long callStart
   ) {
     long opcode = statementOpcode(source, tokenStarts, tokenLengths, callStart);
-    if (scalarResultCallStatement(opcode)) {
-      return sameTokenText(source, tokenStarts, tokenLengths, nameToken, callStart + 3);
+    if (assignmentCallSourceStatement(opcode)) {
+      return callStart + 2;
     }
 
-    return false;
+    if (scalarResultCallStatement(opcode)) {
+      return callStart + 3;
+    }
+
+    return -1;
   }
 
   /// Checks one resolved scalar call against the helper parameter and result types.
   public boolean resolvedResultCallValid(long opcode, long helperKind) {
+    if (assignmentCallStatement(opcode)) {
+      return helperKind == signedScalarHelperKind(assignmentCallArity(opcode));
+    }
+
     if (helperKind == HELPER_SIGNED) {
       return opcode == STATEMENT_LOCAL_CALL_NAMED;
     }

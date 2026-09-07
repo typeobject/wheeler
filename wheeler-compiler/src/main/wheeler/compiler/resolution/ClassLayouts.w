@@ -21,6 +21,42 @@ classical class ClassLayouts {
     boolean valid
   ) {}
 
+  /// Matches the retained class-state name without treating an absent slot as source offset zero.
+  public boolean namesClassState(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long name
+  ) {
+    if (bufferLength(tokenStarts) < COMPILER_GLOBAL_NAME_TOKEN + 1) {
+      return false;
+    }
+
+    if (bufferLength(tokenLengths) < COMPILER_GLOBAL_NAME_TOKEN + 1) {
+      return false;
+    }
+
+    if (tokenLengths[COMPILER_GLOBAL_NAME_TOKEN] < 1) {
+      return false;
+    }
+
+    return sameTokenText(source, tokenStarts, tokenLengths, COMPILER_GLOBAL_NAME_TOKEN, name);
+  }
+
+  /// Checks one name against admitted class constants and the retained class state.
+  public boolean classValueNameExists(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long name
+  ) {
+    if (classConstantNameExists(source, tokenStarts, tokenLengths, name)) {
+      return true;
+    }
+
+    return namesClassState(source, tokenStarts, tokenLengths, name);
+  }
+
   private ClassLayout invalidLayout() {
     return new ClassLayout(0, 0, 0, 0, false);
   }

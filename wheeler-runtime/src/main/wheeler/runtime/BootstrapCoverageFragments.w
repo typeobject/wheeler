@@ -27,6 +27,14 @@ classical class BootstrapCoverageFragments {
       return 10;
     }
 
+    if (opcode == OPCODE_LOCAL_LOAD_GLOBAL) {
+      return 17;
+    }
+
+    if (opcode == OPCODE_LOCAL_STORE_GLOBAL) {
+      return 18;
+    }
+
     if (opcode == OPCODE_LOCAL_EQ) {
       return 8;
     }
@@ -101,6 +109,10 @@ classical class BootstrapCoverageFragments {
 
     if (opcode == OPCODE_JUMP_IF_ZERO) {
       return 12;
+    }
+
+    if (opcode == OPCODE_EXPECT_EQ) {
+      return 9;
     }
 
     if (opcode == OPCODE_EXPECT_TRUE) {
@@ -232,6 +244,16 @@ classical class BootstrapCoverageFragments {
       return cursor + 10;
     }
 
+    if (opcode == OPCODE_LOCAL_LOAD_GLOBAL) {
+      writeAscii(output, cursor, "LOCAL_LOAD_GLOBAL");
+      return cursor + 17;
+    }
+
+    if (opcode == OPCODE_LOCAL_STORE_GLOBAL) {
+      writeAscii(output, cursor, "LOCAL_STORE_GLOBAL");
+      return cursor + 18;
+    }
+
     if (opcode == OPCODE_LOCAL_EQ) {
       writeAscii(output, cursor, "LOCAL_EQ");
       return cursor + 8;
@@ -325,6 +347,11 @@ classical class BootstrapCoverageFragments {
     if (opcode == OPCODE_JUMP_IF_ZERO) {
       writeAscii(output, cursor, "JUMP_IF_ZERO");
       return cursor + 12;
+    }
+
+    if (opcode == OPCODE_EXPECT_EQ) {
+      writeAscii(output, cursor, "EXPECT_EQ");
+      return cursor + 9;
     }
 
     if (opcode == OPCODE_EXPECT_TRUE) {

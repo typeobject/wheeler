@@ -1,4 +1,4 @@
-//! Encodes typed helper calls assigned into existing signed locals.
+//! Encodes typed helper calls assigned into existing signed locals or class state.
 
 module wheeler.compiler.assignment_call_codegen;
 
@@ -32,6 +32,10 @@ classical class AssignmentCallCodegen {
     long sixthType,
     long seventhType
   ) {
+    if (assignmentCallStatement(opcode) == false) {
+      return -1;
+    }
+
     long arity = assignmentCallArity(opcode);
     if (arity < 0) {
       return -1;
@@ -79,7 +83,12 @@ classical class AssignmentCallCodegen {
     cursor = writeUnsignedLittleEndian(output, cursor, argumentBase, U64);
     cursor = writeUnsignedLittleEndian(output, cursor, arity, U64);
     cursor = writeUnsignedLittleEndian(output, cursor, result, U64);
-    cursor = writeInstructionHeader(output, cursor, OPCODE_LOCAL_MOVE, FORM_BINARY);
+    long store = OPCODE_LOCAL_MOVE;
+    if (globalAssignmentCallStatement(opcode)) {
+      store = OPCODE_LOCAL_STORE_GLOBAL;
+    }
+
+    cursor = writeInstructionHeader(output, cursor, store, FORM_BINARY);
     cursor = writeUnsignedLittleEndian(output, cursor, assignmentCallTarget(opcode), U64);
     return writeUnsignedLittleEndian(output, cursor, result, U64);
   }

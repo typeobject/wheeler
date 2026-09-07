@@ -881,8 +881,8 @@ final class NativeCompilerSelfSourceExampleTest {
 
   static void assertNoPublication(Program compiler, String source) {
     VirtualMachine writer = nativeWriter(compiler, source);
-    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(writer));
-    assertArrayEquals(new byte[OUTPUT_CAPACITY], writer.hostOutput());
+    assertThrows(VmTrap.class, () -> CompilerMachineRunner.runWithoutRewindHistory(writer), source);
+    assertArrayEquals(new byte[OUTPUT_CAPACITY], writer.hostOutput(), source);
   }
 
   private static String wideBooleanHelper(String name) {

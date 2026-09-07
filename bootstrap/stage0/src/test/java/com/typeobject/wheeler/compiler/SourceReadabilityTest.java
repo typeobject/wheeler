@@ -153,8 +153,8 @@ class SourceReadabilityTest {
         "syntax/returns/signed/ResolvedLocalReturnStatements.w", "syntax/returns/signed/SignedReturnStatements.w"),
         owners);
     var allStatements = statementIdentities(allSources.toString());
-    assertEquals(324, allStatements.size());
-    assertEquals(324, new java.util.HashSet<>(allStatements.values()).size());
+    assertEquals(325, allStatements.size());
+    assertEquals(325, new java.util.HashSet<>(allStatements.values()).size());
   }
 
   @Test

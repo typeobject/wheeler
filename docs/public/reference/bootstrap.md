@@ -56,6 +56,13 @@ separate bounded helper compiler still admits at most seven arguments per call.
 Generated inverses still reject argument-bearing calls. These are implementation
 bounds, not language arity rules.
 
+The bounded helper compiler can assign a signed call result to its existing
+class-state slot. These calls admit zero through seven signed arguments. A prior
+wrong-type or ambiguous local name rejects instead of falling back to state.
+Helper selection, canonical names, and entry emission keep the destination global.
+This does not provide general global tables, nominal test-body compilation, or
+an inverse for argument-bearing calls.
+
 Retained package-manifest products cover lexical and canonical policy, names,
 paths, semantic versions, headers, target fields, selector admission and coverage,
 collection policy, and row publication. Dependency and capability entry products

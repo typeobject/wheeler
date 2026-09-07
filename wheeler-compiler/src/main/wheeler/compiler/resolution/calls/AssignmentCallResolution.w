@@ -1,4 +1,4 @@
-//! Resolves bounded helper calls assigned into existing signed locals.
+//! Resolves bounded helper calls assigned into existing signed locals or class state.
 
 module wheeler.compiler.assignment_call_resolution;
 
@@ -6,7 +6,9 @@ import wheeler.compiler.assignment_call_arities;
 import wheeler.compiler.assignment_call_identities;
 import wheeler.compiler.assignment_call_kinds;
 import wheeler.compiler.assignment_call_syntax;
+import wheeler.compiler.class_layouts;
 import wheeler.compiler.local_resolution;
+import wheeler.compiler.tokens;
 
 classical class AssignmentCallResolution {
   private const long FIRST_PACKED_SOURCE_COUNT = 4;
@@ -45,6 +47,22 @@ classical class AssignmentCallResolution {
       return opcode;
     }
 
+    long names = priorDeclarationNameCount(
+      source,
+      tokenStarts,
+      tokenLengths,
+      previousStarts,
+      previousCount,
+      statementStart
+    );
+    if (names < 0) {
+      return -1;
+    }
+
+    if (1 < names) {
+      return -1;
+    }
+
     long target = resolvePriorDeclaration(
       source,
       tokenStarts,
@@ -54,8 +72,16 @@ classical class AssignmentCallResolution {
       statementStart,
       true
     );
-    if (target < 0) {
-      return -1;
+    boolean global = false;
+    if (names == 0) {
+      global = namesClassState(source, tokenStarts, tokenLengths, statementStart);
+      if (global == false) {
+        return -1;
+      }
+    } else {
+      if (target < 0) {
+        return -1;
+      }
     }
 
     long arity = assignmentCallArity(opcode);
@@ -76,6 +102,10 @@ classical class AssignmentCallResolution {
       }
 
       argument += 1;
+    }
+
+    if (global) {
+      return resolvedGlobalAssignmentCall(arity);
     }
 
     return resolvedAssignmentCall(arity, target);

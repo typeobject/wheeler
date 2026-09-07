@@ -4,6 +4,7 @@ module wheeler.compiler.local_resolution;
 
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_forms;
+import wheeler.compiler.closure.source_aggregate_syntax;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.early_return_kinds;
@@ -241,6 +242,90 @@ classical class LocalResolution {
     }
 
     return booleanLocal;
+  }
+
+  /// Counts exact prior parameter and primitive declaration names before type filtering.
+  public long priorDeclarationNameCount(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    borrow mut words previousStarts,
+    long previousCount,
+    long assertedName
+  ) {
+    if (previousCount < 0) {
+      return -1;
+    }
+
+    if (MAX_HELPER_RESOLUTION_STARTS < previousCount) {
+      return -1;
+    }
+
+    if (bufferLength(previousStarts) < previousCount) {
+      return -1;
+    }
+
+    if (assertedName < 0) {
+      return -1;
+    }
+
+    if (assertedName < bufferLength(tokenStarts)) {} else {
+      return -1;
+    }
+
+    if (assertedName < bufferLength(tokenLengths)) {} else {
+      return -1;
+    }
+
+    long matches = 0;
+    long previous = 0;
+    while (previous < previousCount) limit MAX_HELPER_RESOLUTION_STARTS {
+      long start = previousStarts[previous];
+      long name = -1;
+      if (start < 0) {
+        if (start < 1 - MAX_COMPILER_TOKENS * 2) {
+          return -1;
+        }
+
+        name = 0 - start;
+        if (BOOLEAN_PARAMETER_TOKEN_BIAS < name) {
+          name -= BOOLEAN_PARAMETER_TOKEN_BIAS;
+        }
+      } else {
+        if (0 < start) {
+          if (start < bufferLength(tokenStarts) - 1) {} else {
+            return -1;
+          }
+
+          if (start < bufferLength(tokenLengths) - 1) {} else {
+            return -1;
+          }
+
+          long type = primitiveType(sourceTokenCode(source, tokenStarts, tokenLengths, start));
+          if (0 < type) {
+            name = start + 1;
+          }
+        }
+      }
+
+      if (-1 < name) {
+        if (bufferLength(tokenStarts) < name + 1) {
+          return -1;
+        }
+
+        if (bufferLength(tokenLengths) < name + 1) {
+          return -1;
+        }
+
+        if (sameTokenText(source, tokenStarts, tokenLengths, name, assertedName)) {
+          matches += 1;
+        }
+      }
+
+      previous += 1;
+    }
+
+    return matches;
   }
 
   /// Resolves one source name through the bounded typed declaration history.

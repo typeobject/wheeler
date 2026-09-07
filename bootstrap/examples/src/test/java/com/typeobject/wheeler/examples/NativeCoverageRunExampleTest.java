@@ -85,9 +85,11 @@ final class NativeCoverageRunExampleTest {
       """;
   private static final String UNSUPPORTED_SUBJECT = """
       classical class UnsupportedCoverageSubject {
-        state long value = 0;
         entry void main() {
-          value = 1;
+          long index = 0;
+          while (index < 1) limit 1 {
+            index += 1;
+          }
         }
       }
       """;

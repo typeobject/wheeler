@@ -505,7 +505,7 @@ classical class ProgramCodegen {
       );
     }
 
-    if (HELPER_REVERSIBLE < helperAt(program, 0).kind) {
+    if (program.helperCallCount == 0) {
       return writeSequence(
         output,
         cursor,
@@ -516,9 +516,9 @@ classical class ProgramCodegen {
         entryBody(program),
         false,
         0,
-        emptyHelperCallIdentities(),
-        emptyHelperCallIdentities(),
-        0,
+        program.entryCallStatements,
+        program.entryCallFunctions,
+        program.entryCallCount,
         0
       );
     }

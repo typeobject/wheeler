@@ -30,6 +30,7 @@ refer to the required products, not a demand that every umbrella finish first.
 | [WIP-0054](WIP-0054-native-source-product-artifact-integration.md) | Join those products to artifact emission for the entire compiler |
 | [WIP-0497](WIP-0497-exact-source-word-admission.md) | Review exact source-word admission and its verified migration |
 | [WIP-0498](WIP-0498-native-test-member-front-admission.md) | Admit class-member fronts before automatic test discovery can publish an empty report |
+| [WIP-0499](WIP-0499-native-global-call-assignments.md) | Verify signed global call assignments and unchanged mixed scalar test execution |
 
 Keep the distinction between implementation and evidence. WIP-0049 owns source
 lowering, WIP-0054 owns its artifact integration, and WIP-0048 owns final linking.

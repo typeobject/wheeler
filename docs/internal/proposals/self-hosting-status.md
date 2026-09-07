@@ -86,6 +86,14 @@ gap. Automatic discovery still ignores some malformed member fronts and can
 publish a successful zero-test report. Explicit descriptors detect the missing
 cases, but they do not validate the source grammar.
 
+[WIP-0499](WIP-0499-native-global-call-assignments.md) adds signed call assignments
+into the bounded helper compiler's existing class-state slot. Exact local-name
+precedence prevents wrong-type or duplicate locals from falling back to globals.
+Helper selection, canonical strings, frame planning, and emission preserve the
+same destination. Complete artifacts compare for zero through seven arguments
+and a 23-helper entry. This does not supply WIP-0498's test projection or the
+full mixed nominal compiler join.
+
 Manifest token policy now uses exact word codes. The old hashes admitted malformed
 spellings such as `trvF`, `topM`, and `tetU`. Tests reject those aliases, long
 unknown words, and invalid extents without losing row diagnostics. The combined

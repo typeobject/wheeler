@@ -168,6 +168,10 @@ profile. Its limits are not the retained source-product limits.
 - Scalar value calls, void calls, and final forwarding calls admit their tested
   forms through seven arguments. Eight arguments reject on this route, even
   though signature storage has sixteen slots.
+- Signed call assignments with zero through seven signed arguments may target
+  an existing signed local or the single class-state slot. Wrong-type and
+  duplicate local names prevent global fallback. Scalar helper tables retain
+  that state, its initial value, and its canonical name through entry emission.
 - Calls preserve exact primitive types and use canonical moves or reborrows.
   Narrow buffer, UTF-8, map, allocation, freeze, and destruction forms have
   dedicated typed resolvers. Unsupported forms publish no artifact.

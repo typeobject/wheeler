@@ -7,6 +7,7 @@ import wheeler.compiler.body_parser;
 import wheeler.compiler.borrowed_intrinsic_kinds;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.class_constants;
+import wheeler.compiler.class_layouts;
 import wheeler.compiler.compiler_program_limits;
 import wheeler.compiler.compiler_token_limits;
 import wheeler.compiler.conditionals;
@@ -402,6 +403,10 @@ classical class ScalarHelperLibraries {
     long[16] parameterTypes,
     long parameterCount
   ) {
+    if (sequence.valid == false) {
+      return false;
+    }
+
     if (intrinsicSourcesValid(sequence, parameterTypes, parameterCount)) {} else {
       return false;
     }
@@ -687,7 +692,7 @@ classical class ScalarHelperLibraries {
       }
 
       long parameterName = parsedParameter.nameToken;
-      if (classConstantNameExists(source, tokenStarts, tokenLengths, parameterName)) {
+      if (classValueNameExists(source, tokenStarts, tokenLengths, parameterName)) {
         return invalidHelper();
       }
 

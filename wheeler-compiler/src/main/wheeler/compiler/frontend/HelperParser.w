@@ -412,14 +412,14 @@ classical class HelperParser {
     }
 
     if (0 < parameterToken) {
-      if (classConstantNameExists(source, tokenStarts, tokenLengths, parameterToken)) {
+      if (classValueNameExists(source, tokenStarts, tokenLengths, parameterToken)) {
         return new MinimalProgramResult.Error(0);
       }
     }
 
     if (0 < secondParameterToken) {
       if (
-        classConstantNameExists(source, tokenStarts, tokenLengths, secondParameterToken)
+        classValueNameExists(source, tokenStarts, tokenLengths, secondParameterToken)
       ) {
         return new MinimalProgramResult.Error(0);
       }
@@ -599,9 +599,14 @@ classical class HelperParser {
         }
 
         set(statementStarts, MAX_HELPER_RESOLUTION_STARTS + resultEntryCount, entryCursor);
-        if (
-          resultCallNamesHelper(source, tokenStarts, tokenLengths, nameToken, entryCursor)
-        ) {
+        long callTarget = resultCallTargetToken(source, tokenStarts, tokenLengths, entryCursor);
+        if (-1 < callTarget) {
+          if (
+            sameTokenText(source, tokenStarts, tokenLengths, nameToken, callTarget) == false
+          ) {
+            return new MinimalProgramResult.Error(0);
+          }
+
           resultCallCount += 1;
         }
 

@@ -75,6 +75,10 @@ classical class AssignmentCallArities {
       return MAX_ASSIGNMENT_CALL_ARGUMENTS;
     }
 
+    if (opcode < GLOBAL_ASSIGNMENT_CALL_END) {
+      return opcode - STATEMENT_GLOBAL_ASSIGN_CALL_BASE;
+    }
+
     return -1;
   }
 }

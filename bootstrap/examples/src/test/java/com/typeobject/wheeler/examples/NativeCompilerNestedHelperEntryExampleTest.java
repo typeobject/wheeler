@@ -1,5 +1,6 @@
 package com.typeobject.wheeler.examples;
 
+import static com.typeobject.wheeler.examples.NativeCompilerPhysicalEntryAssertions.assertCompilerEntry;
 import static com.typeobject.wheeler.examples.NativeCompilerPhysicalEntryAssertions.assertPhysicalEntry;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
@@ -16,14 +17,6 @@ import org.junit.jupiter.api.Test;
 final class NativeCompilerNestedHelperEntryExampleTest {
   @Test
   void compilesPhysicalAssignmentCallKindsIntoEntryByteForByte() throws Exception {
-    String identities = CompilerSources.read(
-        "compiler/syntax/calls/assignment/AssignmentCallIdentities.w");
-    String arities = CompilerSources.read(
-        "compiler/syntax/calls/assignment/AssignmentCallArities.w");
-    String columns = CompilerSources.read(
-        "compiler/syntax/calls/assignment/AssignmentCallColumns.w");
-    String kinds = CompilerSources.read(
-        "compiler/syntax/calls/assignment/AssignmentCallKinds.w");
     String root = """
         module example.assignment_call_kind_entry;
         import wheeler.compiler.assignment_call_kinds;
@@ -33,26 +26,28 @@ final class NativeCompilerNestedHelperEntryExampleTest {
             boolean resolved = assignmentCallStatement(41834);
             long opcode = resolvedAssignmentCall(7, 42);
             long target = assignmentCallTarget(41834);
+            long first = resolvedGlobalAssignmentCall(0);
+            long last = resolvedGlobalAssignmentCall(7);
+            boolean global = globalAssignmentCallStatement(42055);
+            long globalTarget = assignmentCallTarget(42055);
+            long sourceTarget = assignmentCallTarget(933);
+            long excessTarget = assignmentCallTarget(42056);
+            long excessArity = resolvedGlobalAssignmentCall(8);
             assert(source);
             assert(resolved);
             assert(opcode == 41834);
             assert(target == 42);
+            assert(first == 42048);
+            assert(last == 42055);
+            assert(global);
+            assert(globalTarget == 0);
+            assert(sourceTarget == -1);
+            assert(excessTarget == -1);
+            assert(excessArity == -1);
           }
         }
         """;
-    Program compiler = NativeModuleCompilerHarness.program();
-    byte[] artifact = NativeModuleCompilerHarness.compile(
-        compiler, List.of(identities, arities, columns, kinds), root);
-    byte[] expected = new BytecodeWriter().write(new WheelerCompiler().compileModuleFiles(
-        Map.of(
-            "Identities.w", identities,
-            "Arities.w", arities,
-            "Columns.w", columns,
-            "Kinds.w", kinds,
-            "Entry.w", root),
-        "example.assignment_call_kind_entry"));
-    assertArrayEquals(expected, artifact);
-    new VirtualMachine(new BytecodeReader().read(artifact)).run();
+    assertCompilerEntry(root);
   }
 
   @Test

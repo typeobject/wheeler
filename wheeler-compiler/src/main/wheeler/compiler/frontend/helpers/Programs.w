@@ -2,6 +2,7 @@
 
 module wheeler.compiler.helper_programs;
 
+import wheeler.compiler.assignment_call_kinds;
 import wheeler.compiler.call_argument_sources;
 import wheeler.compiler.call_forms;
 import wheeler.compiler.class_layouts;
@@ -270,7 +271,12 @@ classical class HelperPrograms {
     long statement = 0;
     while (statement < sequence.count) limit MAX_MINIMAL_STATEMENTS {
       long opcode = sequence.opcodes[statement];
-      if (scalarResultCallStatement(opcode)) {
+      boolean call = scalarResultCallStatement(opcode);
+      if (assignmentCallStatement(opcode)) {
+        call = true;
+      }
+
+      if (call) {
         if (resolvedResultCallValid(opcode, helperKind) == false) {
           return false;
         }

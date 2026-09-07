@@ -232,6 +232,46 @@ classical class Codegen {
     long instructionBase,
     long callFunction
   ) {
+    long voidCallCursor = writeVoidCallStatement(
+      output,
+      cursor,
+      opcode,
+      operand,
+      secondaryOperand,
+      localBase,
+      callFunction,
+      TYPE_SIGNED,
+      TYPE_SIGNED,
+      TYPE_SIGNED,
+      TYPE_SIGNED,
+      TYPE_SIGNED,
+      TYPE_SIGNED,
+      TYPE_SIGNED
+    );
+    if (-1 < voidCallCursor) {
+      return voidCallCursor;
+    }
+
+    long assignmentCursor = writeAssignmentCallStatement(
+      output,
+      cursor,
+      opcode,
+      operand,
+      secondaryOperand,
+      localBase,
+      callFunction,
+      TYPE_SIGNED,
+      TYPE_SIGNED,
+      TYPE_SIGNED,
+      TYPE_SIGNED,
+      TYPE_SIGNED,
+      TYPE_SIGNED,
+      TYPE_SIGNED
+    );
+    if (-1 < assignmentCursor) {
+      return assignmentCursor;
+    }
+
     long valueCallCursor = writeSignedScalarValueCallStatement(
       output,
       cursor,

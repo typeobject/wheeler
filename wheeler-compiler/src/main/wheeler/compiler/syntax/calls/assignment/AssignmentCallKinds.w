@@ -22,7 +22,26 @@ classical class AssignmentCallKinds {
       return false;
     }
 
-    return opcode < ASSIGNMENT_CALL_END;
+    return opcode < GLOBAL_ASSIGNMENT_CALL_END;
+  }
+
+  /// Checks whether one resolved call stores into the retained signed class state.
+  public boolean globalAssignmentCallStatement(long opcode) {
+    if (opcode < STATEMENT_GLOBAL_ASSIGN_CALL_BASE) {
+      return false;
+    }
+
+    return opcode < GLOBAL_ASSIGNMENT_CALL_END;
+  }
+
+  /// Returns one resolved global call-assignment identity.
+  public long resolvedGlobalAssignmentCall(long arity) {
+    long base = resolvedBase(arity);
+    if (base < 0) {
+      return -1;
+    }
+
+    return arity + STATEMENT_GLOBAL_ASSIGN_CALL_BASE;
   }
 
   /// Returns one resolved call-assignment identity.
@@ -32,6 +51,10 @@ classical class AssignmentCallKinds {
     }
 
     long base = resolvedBase(arity);
+    if (base < 0) {
+      return -1;
+    }
+
     if (target < RESOLVED_ASSIGNMENT_CALL_TARGET_COUNT) {
       return target + base;
     }
@@ -39,11 +62,20 @@ classical class AssignmentCallKinds {
     return -1;
   }
 
-  /// Returns the existing signed-local target of one resolved call assignment.
+  /// Returns the local column or bound class-state ordinal of one resolved assignment.
   public long assignmentCallTarget(long opcode) {
     long arity = assignmentCallArity(opcode);
     if (arity < 0) {
       return -1;
+    }
+
+    if (opcode < STATEMENT_ASSIGN_CALL_ZERO_BASE) {
+      return -1;
+    }
+
+    long globalBase = opcode - arity;
+    if (globalBase == STATEMENT_GLOBAL_ASSIGN_CALL_BASE) {
+      return 0;
     }
 
     long base = resolvedBase(arity);

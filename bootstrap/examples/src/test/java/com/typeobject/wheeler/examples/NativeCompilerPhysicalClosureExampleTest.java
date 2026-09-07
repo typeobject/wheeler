@@ -98,6 +98,7 @@ final class NativeCompilerPhysicalClosureExampleTest {
 
     runClosure(machine, program);
     byte[] physicalProducts = machine.hostOutput();
+    Files.write(evidence.resolve("physical-products.bin"), physicalProducts);
     assertArrayEquals(
         expected.toByteArray(),
         Arrays.copyOf(physicalProducts, expected.size()));
@@ -164,10 +165,11 @@ final class NativeCompilerPhysicalClosureExampleTest {
             < functionMachine.global("linkedSourceStringCount"));
     assertTrue(0 < functionMachine.global("linkedStringSectionLength"));
     assertEquals(24, functionMachine.global("linkedManifestLength"));
+    Files.write(evidence.resolve("linked-closure.wbc"), functionMachine.hostOutput());
     String linkedIdentity = HexFormat.of().formatHex(
         MessageDigest.getInstance("SHA-256").digest(functionMachine.hostOutput()));
     assertEquals(
-        46_006_703L,
+        1_023_706_572L,
         functionMachine.global("linkedIdentityPrefix"),
         () -> "sha256=" + linkedIdentity
             + " code=" + functionMachine.global("linkedCodeLength")
@@ -178,7 +180,7 @@ final class NativeCompilerPhysicalClosureExampleTest {
             + " localTypes=" + functionMachine.global("linkedLocalTypeCount")
             + " container=" + functionMachine.global("linkedContainerLength"));
     assertEquals(
-        "02be01af8a1da8d98e48bd44e18afa9cf0d09c278ee07f61a95ebb0b4e53e2a0",
+        "3d0485cc7e055749fee99bae2c977b6f772dee7c21a1d67395e55feaba5d1b92",
         linkedIdentity,
         () -> "code=" + functionMachine.global("linkedCodeLength")
             + " functions=" + functionMachine.global("functionCount")

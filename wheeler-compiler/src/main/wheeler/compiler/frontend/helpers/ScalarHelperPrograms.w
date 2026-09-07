@@ -19,26 +19,32 @@ classical class ScalarHelperPrograms {
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
     ResolvedScalarHelperTable resolved,
-    StatementSequence entry,
-    long[64] entryCallStatements,
-    long[64] entryCallFunctions,
-    long entryCallCount,
+    HelperBody entry,
+    ClassLayout layout,
     boolean library
   ) {
     SourceRange name = new SourceRange(tokenStarts[2], tokenLengths[2]);
     SourceRange absent = new SourceRange(0, 0);
+    SourceRange global = absent;
+    if (layout.globalCount == 1) {
+      global = new SourceRange(
+        tokenStarts[layout.globalNameToken],
+        tokenLengths[layout.globalNameToken]
+      );
+    }
+
     MinimalProgram result = new MinimalProgram(
       name,
-      absent,
-      0,
-      0,
-      entry.count,
+      global,
+      layout.globalCount,
+      layout.initialValue,
+      entry.statementCount,
       entry.opcodes,
       entry.operands,
       entry.secondaryOperands,
-      entryCallStatements,
-      entryCallFunctions,
-      entryCallCount,
+      entry.callStatements,
+      entry.callFunctions,
+      entry.callCount,
       resolved.helperCount,
       resolved.first,
       resolved.second,
@@ -107,7 +113,7 @@ classical class ScalarHelperPrograms {
     );
   }
 
-  private MinimalProgramResult entryProgram(
+  private ResolvedHelperBody resolveEntryBody(
     borrow utf8 source,
     borrow mut words tokenKinds,
     borrow mut words tokenStarts,
@@ -125,7 +131,7 @@ classical class ScalarHelperPrograms {
       entryStart
     );
     if (bodyStart < 1) {
-      return new MinimalProgramResult.Error(0);
+      return new ResolvedHelperBody(emptyHelperBody(), false);
     }
 
     BodyScan statements = scanBody(
@@ -137,13 +143,13 @@ classical class ScalarHelperPrograms {
       bodyStart
     );
     if (statements.valid) {} else {
-      return new MinimalProgramResult.Error(0);
+      return new ResolvedHelperBody(emptyHelperBody(), false);
     }
 
     if (
       punctuationAt(source, tokenKinds, tokenStarts, statements.end, PUNCTUATION_CLOSE_BRACE)
     ) {} else {
-      return new MinimalProgramResult.Error(0);
+      return new ResolvedHelperBody(emptyHelperBody(), false);
     }
 
     if (
@@ -155,11 +161,11 @@ classical class ScalarHelperPrograms {
         PUNCTUATION_CLOSE_BRACE
       )
     ) {} else {
-      return new MinimalProgramResult.Error(0);
+      return new ResolvedHelperBody(emptyHelperBody(), false);
     }
 
     if (count == statements.end + 2) {} else {
-      return new MinimalProgramResult.Error(0);
+      return new ResolvedHelperBody(emptyHelperBody(), false);
     }
 
     CallSites calls = collectCallSites(
@@ -170,7 +176,7 @@ classical class ScalarHelperPrograms {
       statements.count
     );
     if (calls.valid) {} else {
-      return new MinimalProgramResult.Error(0);
+      return new ResolvedHelperBody(emptyHelperBody(), false);
     }
 
     StatementSequence sequence = parseStatementSequence(
@@ -181,7 +187,7 @@ classical class ScalarHelperPrograms {
       statements.count
     );
     if (sequence.valid) {} else {
-      return new MinimalProgramResult.Error(0);
+      return new ResolvedHelperBody(emptyHelperBody(), false);
     }
 
     HelperBody unresolvedEntry = new HelperBody(
@@ -200,21 +206,7 @@ classical class ScalarHelperPrograms {
       emptyHelperCallIdentities(),
       calls.count
     );
-    ResolvedHelperBody resolvedEntry = resolveEntryCalls(source, unresolvedEntry, helpers);
-    if (resolvedEntry.valid) {} else {
-      return new MinimalProgramResult.Error(0);
-    }
-
-    return program(
-      tokenStarts,
-      tokenLengths,
-      helpers,
-      sequence,
-      calls.statements,
-      resolvedEntry.body.callFunctions,
-      calls.count,
-      false
-    );
+    return resolveEntryCalls(source, unresolvedEntry, helpers);
   }
 
   /// Builds one resolved program from one through twenty-three scalar helpers.
@@ -244,30 +236,10 @@ classical class ScalarHelperPrograms {
     if (
       punctuationAt(source, tokenKinds, tokenStarts, parsed.nextToken, PUNCTUATION_CLOSE_BRACE)
     ) {
-      StatementSequence empty = new StatementSequence(
-        0,
-        emptyStatementOpcodes(),
-        emptyStatementOperands(),
-        emptyStatementOperands(),
-        true
-      );
-      return program(
-        tokenStarts,
-        tokenLengths,
-        resolved,
-        empty,
-        emptyHelperCallIdentities(),
-        emptyHelperCallIdentities(),
-        0,
-        true
-      );
+      return program(tokenStarts, tokenLengths, resolved, emptyHelperBody(), layout, true);
     }
 
-    if (resolved.helperCount == 1) {
-      return new MinimalProgramResult.Error(0);
-    }
-
-    return entryProgram(
+    ResolvedHelperBody entry = resolveEntryBody(
       source,
       tokenKinds,
       tokenStarts,
@@ -277,5 +249,10 @@ classical class ScalarHelperPrograms {
       parsed.nextToken,
       resolved
     );
+    if (entry.valid) {} else {
+      return new MinimalProgramResult.Error(0);
+    }
+
+    return program(tokenStarts, tokenLengths, resolved, entry.body, layout, false);
   }
 }

@@ -333,6 +333,7 @@ classical class CompilerCore {
     long stringsLength = strings.encodedLength;
     if (useLibraryStrings) {
       nameIndex = libraryStrings.nameIndex;
+      globalIndex = libraryStrings.globalIndex;
       helperIndex = libraryStrings.helperIndices[0];
       mainIndex = libraryStrings.entryIndex;
       proofIndex = libraryStrings.proofIndex;
