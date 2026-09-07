@@ -297,6 +297,12 @@ JUnit adapters consume semantic reports during migration. They do not discover W
   identities into sixteen disjoint shards and selects before compilation. Ordinary
   tools checks exclude that launcher. The package manifest and native case
   inventory own the current population, not a copied count in this WIP.
+- [x] `NativePackageTestRunner` checks host interruption before each interpreter
+  transition. Cancellation exits without returning its private report buffer and
+  preserves the interrupt flag. `NativeRunnerCancellationTest` covers pending
+  interruption, cancellation during execution, and uninterrupted completion.
+  Host cancellation is not Wheeler rewind. No semantic limit or test deadline
+  changes with this check.
 - [x] Bounded canonical dotted tags attach to test declarations, survive modular linking, and sort in descriptor metadata. Repeated `--tag` filters select the intersection without an ambient registry.
 - [x] Optional `limits(steps = N, history = M)` metadata survives modular linking and rewrites only that case artifact's verified machine ceilings before hashing and execution.
 - [x] The first source-declared lifecycle fixture profile names four distinct zero-argument `void` functions in `fixtures(suite_acquire = ..., case_acquire = ..., case_release = ..., suite_release = ...)`. The compiler resolves exact artifact function identities. The runner executes the phases around one unparameterized case in that order and attempts both releases after pass, assertion failure, runtime trap, or case-release failure.

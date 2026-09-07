@@ -24,6 +24,7 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 
 /** Invokes native source discovery, compilation, and reporting for the fixed package profile. */
 final class NativePackageTestRunner {
@@ -308,6 +309,9 @@ final class NativePackageTestRunner {
   static byte[] execute(Program program, byte[] input, int outputCapacity) {
     VirtualMachine machine = VirtualMachine.withBinaryInput(program, input, outputCapacity);
     while (machine.status() != MachineStatus.HALTED) {
+      if (Thread.currentThread().isInterrupted()) {
+        throw new CancellationException("Native test execution interrupted");
+      }
       machine.stepWithoutRewindHistory();
     }
     return machine.hostOutput();
