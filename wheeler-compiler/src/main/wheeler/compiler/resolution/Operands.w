@@ -690,15 +690,15 @@ classical class Operands {
       return -1;
     }
 
-    if (opcode == STATEMENT_LOCAL_LONG_NAMED) {
+    if (sourceOpcode == STATEMENT_LOCAL_LONG_NAMED) {
       return 0;
     }
 
-    if (opcode == STATEMENT_LOCAL_BOOLEAN_NAMED) {
+    if (sourceOpcode == STATEMENT_LOCAL_BOOLEAN_NAMED) {
       return 0;
     }
 
-    if (opcode == STATEMENT_LOCAL_BOOLEAN_NOT_NAMED) {
+    if (sourceOpcode == STATEMENT_LOCAL_BOOLEAN_NOT_NAMED) {
       return 0;
     }
 

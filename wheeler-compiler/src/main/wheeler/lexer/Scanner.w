@@ -9,6 +9,9 @@ classical class Scanner {
   /// Defines immutable `ScanDiagnostic` values for this module.
   public record ScanDiagnostic(long code, long offset, long line, long column) {}
 
+  /// Carries a signed integer without reserving any value as an error sentinel.
+  public record NumberValue(long value, boolean valid) {}
+
   /// Defines the closed `ScanResult` cases exported by this module.
   public variant ScanResult {
     case Value(long count);
@@ -114,8 +117,31 @@ classical class Scanner {
     return -1;
   }
 
-  /// Parses one bounded decimal, hexadecimal, or binary integer token.
-  public long parseNumber(borrow utf8 source, long start, long end) {
+  /// Decodes an unsigned token extent under its separately supplied source sign.
+  /// The extent must start on a UTF-8 scalar boundary. Digits and separators share 64 steps.
+  public NumberValue parseSignedNumber(
+    borrow utf8 source,
+    long start,
+    long end,
+    boolean negative
+  ) {
+    if (start < 0) {
+      return new NumberValue(0, false);
+    }
+
+    if (start < end) {} else {
+      return new NumberValue(0, false);
+    }
+
+    if (bufferLength(source) < end) {
+      return new NumberValue(0, false);
+    }
+
+    long minimum = -9223372036854775807;
+    if (negative) {
+      minimum -= 1;
+    }
+
     long radix = 10;
     long cursor = start;
     if (cursor + 1 < end) {
@@ -142,26 +168,40 @@ classical class Scanner {
       } else {
         long digit = numberDigit(scalar);
         if (digit < 0) {
-          return -1;
+          return new NumberValue(0, false);
         }
 
         if (digit < radix) {} else {
-          return -1;
+          return new NumberValue(0, false);
         }
 
-        long limitValue = (9223372036854775807 - digit) / radix;
-        if (limitValue < value) {
-          return -1;
+        long limitValue = (minimum + digit) / radix;
+        if (value < limitValue) {
+          return new NumberValue(0, false);
         }
 
-        value = value * radix + digit;
+        value = value * radix - digit;
         digits += 1;
         cursor += utf8Width(source, cursor);
       }
     }
 
-    if (0 < digits) {
-      return value;
+    if (digits == 0) {
+      return new NumberValue(0, false);
+    }
+
+    if (negative == false) {
+      value = 0 - value;
+    }
+
+    return new NumberValue(value, true);
+  }
+
+  /// Decodes a nonnegative integer, or returns minus one outside that domain.
+  public long parseNumber(borrow utf8 source, long start, long end) {
+    NumberValue number = parseSignedNumber(source, start, end, false);
+    if (number.valid) {
+      return number.value;
     }
 
     return -1;

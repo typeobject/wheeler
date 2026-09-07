@@ -111,25 +111,75 @@ classical class Tokens {
     return -1;
   }
 
-  /// Checks one signed integer token for canonical syntax.
+  private boolean numberTokenWindowValid(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long token
+  ) {
+    if (token < 0) {
+      return false;
+    }
+
+    if (token < bufferLength(tokenStarts)) {} else {
+      return false;
+    }
+
+    if (token < bufferLength(tokenLengths)) {} else {
+      return false;
+    }
+
+    long start = tokenStarts[token];
+    long length = tokenLengths[token];
+    if (start < 0) {
+      return false;
+    }
+
+    if (length < 1) {
+      return false;
+    }
+
+    return start < bufferLength(source) - length + 1;
+  }
+
+  private NumberValue signedTokenNumber(
+    borrow utf8 source,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths,
+    long token
+  ) {
+    if (numberTokenWindowValid(source, tokenStarts, tokenLengths, token) == false) {
+      return new NumberValue(0, false);
+    }
+
+    long magnitudeToken = token;
+    boolean negative = utf8Scalar(source, tokenStarts[token]) == PUNCTUATION_MINUS;
+    if (negative) {
+      if (tokenLengths[token] == 1) {} else {
+        return new NumberValue(0, false);
+      }
+
+      magnitudeToken += 1;
+      if (
+        numberTokenWindowValid(source, tokenStarts, tokenLengths, magnitudeToken) == false
+      ) {
+        return new NumberValue(0, false);
+      }
+    }
+
+    long end = tokenStarts[magnitudeToken] + tokenLengths[magnitudeToken];
+    return parseSignedNumber(source, tokenStarts[magnitudeToken], end, negative);
+  }
+
+  /// Checks a signed integer in scanner-owned columns without evaluating other tokens.
   public boolean signedNumberValid(
     borrow utf8 source,
     borrow mut words tokenStarts,
     borrow mut words tokenLengths,
     long token
   ) {
-    long magnitudeToken = token;
-    if (utf8Scalar(source, tokenStarts[token]) == PUNCTUATION_MINUS) {
-      magnitudeToken += 1;
-    }
-
-    long end = tokenStarts[magnitudeToken] + tokenLengths[magnitudeToken];
-    long magnitude = parseNumber(source, tokenStarts[magnitudeToken], end);
-    if (magnitude < 0) {
-      return false;
-    }
-
-    return true;
+    NumberValue number = signedTokenNumber(source, tokenStarts, tokenLengths, token);
+    return number.valid;
   }
 
   /// Decodes one signed integer token after canonical syntax validation.
@@ -139,15 +189,8 @@ classical class Tokens {
     borrow mut words tokenLengths,
     long token
   ) {
-    long magnitudeToken = token;
-    long sign = 1;
-    if (utf8Scalar(source, tokenStarts[token]) == PUNCTUATION_MINUS) {
-      magnitudeToken += 1;
-      sign = -1;
-    }
-
-    long end = tokenStarts[magnitudeToken] + tokenLengths[magnitudeToken];
-    long magnitude = parseNumber(source, tokenStarts[magnitudeToken], end);
-    return sign * magnitude;
+    NumberValue number = signedTokenNumber(source, tokenStarts, tokenLengths, token);
+    assert(number.valid);
+    return number.value;
   }
 }

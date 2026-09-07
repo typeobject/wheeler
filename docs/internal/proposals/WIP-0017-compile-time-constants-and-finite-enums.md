@@ -430,6 +430,46 @@ VM transitions with the same complete 70,214-byte input. This is not complete
 package-shard acceptance or a change to execution deadlines. Classifier scratch
 reuse still covers all 512 mixed source leases with 524 buffers.
 
+## Native literal decoding
+
+`Scanner.w::parseSignedNumber` accumulates a negative value under the supplied
+source sign. Both signed endpoints fit without first constructing the positive
+magnitude of the minimum. `NumberValue` separates validity from all 64 value bits.
+The nonnegative `parseNumber` projection shares that decoder and retains minus
+one as its out-of-domain result for the declaration-parser example.
+
+Decimal, hexadecimal, binary, and separator syntax keep the existing 64-iteration
+bound. Radix prefixes and the separate minus token do not consume digit steps.
+Invalid extents reject before source access. Scanner-owned token columns retain
+their coordinate authority. Validation checks both columns and the magnitude
+extent before decoding, and unchecked invalid decoding traps rather than emitting
+a sentinel as a literal. Numeric decoding allocates no private buffers.
+
+`NativeIntegerDecodingExampleTest` covers both endpoints, first excess values,
+malformed digits, UTF-8 coordinates, signed-extreme windows, short columns, and
+the shared digit/separator limit. Accepted and rejected queries preserve caller
+columns and fully rewind. The first excess loop iteration traps without caller
+publication.
+
+`NativeCompilerSignedLiteralExampleTest` compares complete artifacts with stage 0
+for state initializers, local declarations, scalar helper results and arguments,
+constant expressions, and imported constants. Both unqualified and qualified
+imports initialize state. Small successful and rejected compiler runs restore
+the complete snapshot. Every emitted program executes and fully rewinds.
+
+Constant subtraction now executes only its selected arithmetic operation.
+`MAX - MAX` and `MIN - MIN` produce zero without an unused addition overflowing
+first. Resolved local-name operands no longer enter numeric decoding. Constant
+lookup order, step charging, dependency depth, and checked arithmetic stay with
+the existing evaluator. Direct global calls with literal arguments remain a
+separate call-lowering boundary, not part of this numeric receipt. Global ordering
+assertions also remain outside this receipt. They reject even with an initializer
+of minus one. The signed state fixtures use admitted equality assertions.
+
+Restoring the positive-only ceiling, the unused addition, or the resolved-opcode
+name fallback breaks the corresponding complete-artifact regression. These
+checks do not establish full physical compiler compilation or a fixed point.
+
 ## Testing and acceptance
 
 - [x] Signed literals and arithmetic, Boolean comparison and negation, forward references, imported unqualified constants, and qualified constants evaluate exactly in compiler and execution fixtures.

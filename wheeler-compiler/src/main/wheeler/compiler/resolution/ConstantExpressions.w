@@ -566,9 +566,11 @@ classical class ConstantExpressions {
           if (right.valid) {
             if (left.signed) {
               if (right.signed) {
-                long value = left.value + right.value;
+                long value = 0;
                 if (scalar == PUNCTUATION_MINUS) {
                   value = left.value - right.value;
+                } else {
+                  value = left.value + right.value;
                 }
 
                 left = new ExpressionValue(value, right.next, true, true);

@@ -21,8 +21,10 @@ class-state destination or select its helper consistently.
 
 This stage extends the bounded scalar-helper compiler, not the eight-argument
 retained source route. A call with zero through seven signed arguments may store
-its signed result into the existing class-state slot. The slot remains a global.
-Projection must not rename it into a local or remove retained declarations.
+its signed result into the existing class-state slot. Arguments in this
+assignment-call profile are identifiers. Literal arguments remain available to
+admitted declaration calls, not direct global assignments. The slot remains a
+global. Projection must not rename it into a local or remove retained declarations.
 
 Member-front admission and test projection remain in WIP-0498. Nominal bodies,
 proof compilation, general global tables, and argument-bearing inverse lowering
