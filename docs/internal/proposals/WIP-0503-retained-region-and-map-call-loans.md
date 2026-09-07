@@ -106,8 +106,15 @@ still report missing API comments in existing test and conformance sources.
 
 ## Remaining work
 
-Hosted native-package acceptance must pass on this change's commit. WIP-0502's
-accepted run at `76b211806` does not cover these compiler inputs.
+Hosted run 34165634909 at `6fb3f3d2f` fails the canonical source formatter gate.
+The three new calls in `argumentType` need one argument per line. Native package
+rows were skipped. The formatting repair leaves all 6,954,288 compiler executable
+bytes unchanged, but changes the archive to 3,376,184 bytes and SHA-256
+`d5d9bac8442b5d2e4fb36ae512a9b97257e82f509780c3daad4ca15407ca70d5`.
+The repaired graph takes 88,834,648 transitions under the same ceiling.
+
+Hosted native-package acceptance must pass on the repaired inputs. WIP-0502's
+accepted run at `76b211806` does not cover this change.
 
 WIP-0049 and WIP-0054 still own source-product and aggregate artifact composition.
 The aggregate helper currently returns a primitive artifact and separate composed
@@ -116,5 +123,5 @@ would not produce the complete nominal artifact. Qualified forwarded returns
 also remain outside this source profile. WIP-0057 owns their complete-window
 admission. A signed-only control fails independently of storage types.
 
-Do not remove the nominal test's
-declarations or replace its selected body to bypass that join.
+Do not remove the nominal test's declarations or replace its selected body to
+bypass that join.

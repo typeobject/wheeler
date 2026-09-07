@@ -140,7 +140,14 @@ classical class SourceCallArgumentProducts {
     borrow mut words tokenLengths
   ) {
     long sourceType = loopBodyValueType(
-      source, owner, local, valueCount, valueRows, tokenCount, tokenStarts, tokenLengths
+      source,
+      owner,
+      local,
+      valueCount,
+      valueRows,
+      tokenCount,
+      tokenStarts,
+      tokenLengths
     );
     if (sourceType == TOKEN_LONG) {
       return TYPE_SIGNED;
@@ -157,7 +164,14 @@ classical class SourceCallArgumentProducts {
 
     if (storageLoan) {
       boolean borrowed = borrowedLoopBodyLocal(
-        source, owner, local, valueCount, valueRows, tokenCount, tokenStarts, tokenLengths
+        source,
+        owner,
+        local,
+        valueCount,
+        valueRows,
+        tokenCount,
+        tokenStarts,
+        tokenLengths
       );
       if (borrowed == false) {
         return -1;
@@ -171,7 +185,14 @@ classical class SourceCallArgumentProducts {
     }
 
     return directBufferLocalType(
-      source, owner, local, valueCount, valueRows, tokenCount, tokenStarts, tokenLengths
+      source,
+      owner,
+      local,
+      valueCount,
+      valueRows,
+      tokenCount,
+      tokenStarts,
+      tokenLengths
     );
   }
 
