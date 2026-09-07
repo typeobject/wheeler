@@ -23,7 +23,6 @@ import wheeler.compiler.owned_utf8_copy_loops;
 import wheeler.compiler.resolved_boolean_literal_assertions;
 import wheeler.compiler.resolved_boolean_literal_comparisons;
 import wheeler.compiler.resolved_early_result_kinds;
-import wheeler.compiler.resolved_less_than_assertions;
 import wheeler.compiler.resolved_literal_comparison_kinds;
 import wheeler.compiler.resolved_local_assignments;
 import wheeler.compiler.resolved_local_conditional_kinds;
@@ -39,6 +38,7 @@ import wheeler.compiler.resolved_local_updates;
 import wheeler.compiler.resolved_long_operations;
 import wheeler.compiler.resolved_return_call_kinds;
 import wheeler.compiler.resolved_statements;
+import wheeler.compiler.signed_ordering_kinds;
 import wheeler.compiler.signed_return_statements;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
@@ -250,15 +250,11 @@ classical class LocalOpcodes {
       return 4;
     }
 
-    if (resolvedLocalLessThanAssertion(opcode)) {
+    if (signedOrderingStatement(opcode)) {
       return 3;
     }
 
-    if (resolvedLiteralLessThanAssertion(opcode)) {
-      return 3;
-    }
-
-    if (opcode == STATEMENT_ASSERT_LONG_LT_NAMED) {
+    if (opcode == STATEMENT_ASSERT_SIGNED_LT) {
       return 3;
     }
 
@@ -695,11 +691,7 @@ classical class LocalOpcodes {
       return 104;
     }
 
-    if (resolvedLocalLessThanAssertion(opcode)) {
-      return 96;
-    }
-
-    if (resolvedLiteralLessThanAssertion(opcode)) {
+    if (signedOrderingStatement(opcode)) {
       return 96;
     }
 

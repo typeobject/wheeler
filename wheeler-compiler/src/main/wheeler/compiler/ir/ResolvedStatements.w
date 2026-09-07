@@ -51,8 +51,6 @@ classical class ResolvedStatements {
   public const long STATEMENT_ASSERT_LONG_PAIR_BASE = 7680;
   /// Starts resolved equality assertions over prior Boolean locals.
   public const long STATEMENT_ASSERT_BOOLEAN_PAIR_BASE = 7936;
-  /// Starts resolved less-than assertions over prior signed locals.
-  public const long STATEMENT_ASSERT_LONG_LT_BASE = 8192;
   /// Starts resolved negated local conditions guarding global addition.
   public const long STATEMENT_IF_NOT_LOCAL_ADD_BASE = 8448;
   /// Starts resolved negated local conditions guarding global subtraction.
@@ -171,8 +169,6 @@ classical class ResolvedStatements {
   public const long STATEMENT_IF_SIGNED_EQ_RETURN_BOOLEAN_LOCAL_BASE = 32512;
   /// Starts resolved bounded signed-local while loops.
   public const long STATEMENT_LOCAL_WHILE_BASE = 18688;
-  /// Starts resolved signed-local less-than assertions against literals.
-  public const long STATEMENT_ASSERT_LONG_LT_LITERAL_BASE = 24832;
   /// Starts resolved Boolean-local equality declarations against literals.
   public const long STATEMENT_LOCAL_BOOLEAN_EQ_LITERAL_BASE = 25088;
   /// Starts resolved Boolean-local inequality declarations against literals.

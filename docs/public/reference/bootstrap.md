@@ -63,6 +63,13 @@ Helper selection, canonical names, and entry emission keep the destination globa
 This does not provide general global tables, nominal test-body compilation, or
 an inverse for argument-bearing calls.
 
+Direct signed less-than assertions accept literals, folded constants, prior signed
+locals or parameters, and the existing state slot on either side. Both operands
+retain their complete signed value or slot index. Native encoding evaluates each
+once in source order. False comparisons compile and trap before later mutation.
+This does not supply general Boolean expressions or direct global literal-call
+arguments.
+
 Retained package-manifest products cover lexical and canonical policy, names,
 paths, semantic versions, headers, target fields, selector admission and coverage,
 collection policy, and row publication. Dependency and capability entry products

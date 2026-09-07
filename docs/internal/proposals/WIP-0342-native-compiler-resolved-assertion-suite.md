@@ -5,14 +5,19 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and testing maintainers |
 | Created | 2026-08-23 |
-| Updated | 2026-09-04 |
+| Updated | 2026-09-07 |
 | Area | Self-hosting, compiler package tests |
 | Depends on | WIP-0341 |
 | Supersedes | Product-only resolved assertion evidence |
 | Superseded by | None |
-| Follow-up | WIP-0343 native compiler resolved early-comparison suite |
+| Follow-up | WIP-0343 native compiler resolved early-comparison suite, WIP-0501 native signed ordering assertions |
 
 ## Summary
+
+These identities describe the original nine-case milestone. [WIP-0501](WIP-0501-native-signed-ordering-assertions.md)
+replaces the three less-than cases with `NativeCompilerSignedOrderingKindTests`.
+Its target is `nativecompilersignedorderingkindtests`. The Boolean and pair
+owners remain separate. The old less-than source and target are gone.
 
 Execute every public query in the three physical resolved assertion owners through native compiler package cases:
 

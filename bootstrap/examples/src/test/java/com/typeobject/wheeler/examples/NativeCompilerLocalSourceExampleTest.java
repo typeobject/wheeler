@@ -165,14 +165,14 @@ class NativeCompilerLocalSourceExampleTest {
   }
 
   @Test
-  void compilesCanonicalResolvedLessThanAssertionsByteForByte() throws Exception {
+  void compilesCanonicalSignedOrderingKindsByteForByte() throws Exception {
     Program decoded = assertImportedConstantCompilerLibrary(
-        "compiler/syntax/assertions/ResolvedLessThanAssertions.w",
-        "wheeler.compiler.resolved_less_than_assertions");
+        "compiler/syntax/assertions/SignedOrderingKinds.w",
+        "wheeler.compiler.signed_ordering_kinds");
     assertEquals(
-        "wheeler.compiler.resolved_less_than_assertions::resolvedLocalLessThanAssertion",
+        "wheeler.compiler.signed_ordering_kinds::signedOrderingKind",
         decoded.functions().getFirst().name());
-    assertEquals(4, decoded.functions().size());
+    assertEquals(8, decoded.functions().size());
     assertEquals("$library", decoded.functions().getLast().name());
   }
 

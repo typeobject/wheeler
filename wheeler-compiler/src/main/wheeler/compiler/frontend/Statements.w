@@ -20,6 +20,7 @@ import wheeler.compiler.named_local_assignment_kinds;
 import wheeler.compiler.named_local_conditional_kinds;
 import wheeler.compiler.named_local_update_kinds;
 import wheeler.compiler.named_long_operations;
+import wheeler.compiler.signed_ordering_syntax;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
@@ -253,6 +254,22 @@ classical class Statements {
       );
     }
 
+    if (statementKind == STATEMENT_ASSERT_SIGNED_LT) {
+      SignedOrderingFront front = signedOrderingFront(
+        source,
+        tokenKinds,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        MAX_COMPILER_TOKENS
+      );
+      if (front.valid) {
+        return front.nextToken - statementStart;
+      }
+
+      return -1;
+    }
+
     if (statementKind == STATEMENT_ASSERT_LITERAL_EQ) {
       return literalEqualityStatementWidth(
         source,
@@ -272,10 +289,6 @@ classical class Statements {
       signedAssertion = true;
     }
 
-    if (statementKind == STATEMENT_ASSERT_LONG_LT_NAMED) {
-      signedAssertion = true;
-    }
-
     if (signedAssertion) {
       if (
         punctuationAt(
@@ -292,10 +305,6 @@ classical class Statements {
             acceptedName = true;
           }
 
-          if (statementKind == STATEMENT_ASSERT_LONG_LT_NAMED) {
-            acceptedName = true;
-          }
-
           if (
             sameTokenText(
               source,
@@ -309,44 +318,6 @@ classical class Statements {
           }
 
           if (acceptedName) {
-            if (statementKind == STATEMENT_ASSERT_LONG_LT_NAMED) {
-              if (
-                punctuationAt(
-                  source,
-                  tokenKinds,
-                  tokenStarts,
-                  statementStart + 3,
-                  PUNCTUATION_LESS_THAN
-                )
-              ) {
-                if (tokenKinds[statementStart + 4] == 1) {
-                  if (
-                    punctuationAt(
-                      source,
-                      tokenKinds,
-                      tokenStarts,
-                      statementStart + 5,
-                      PUNCTUATION_CLOSE_PAREN
-                    )
-                  ) {
-                    if (
-                      punctuationAt(
-                        source,
-                        tokenKinds,
-                        tokenStarts,
-                        statementStart + 6,
-                        PUNCTUATION_SEMICOLON
-                      )
-                    ) {
-                      return 7;
-                    }
-                  }
-                }
-              }
-
-              return -1;
-            }
-
             if (
               punctuationAt(
                 source,

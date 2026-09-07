@@ -14,7 +14,6 @@ import wheeler.compiler.owned_storage_codegen;
 import wheeler.compiler.owned_utf8_copy_codegen;
 import wheeler.compiler.owned_utf8_copy_loops;
 import wheeler.compiler.resolved_boolean_literal_assertions;
-import wheeler.compiler.resolved_less_than_assertions;
 import wheeler.compiler.resolved_literal_comparison_kinds;
 import wheeler.compiler.resolved_local_conditional_kinds;
 import wheeler.compiler.resolved_local_conditional_operands;
@@ -22,6 +21,8 @@ import wheeler.compiler.resolved_local_conditional_sources;
 import wheeler.compiler.resolved_local_loop_kinds;
 import wheeler.compiler.resolved_local_pair_assertions;
 import wheeler.compiler.resolved_statements;
+import wheeler.compiler.signed_ordering_encoding;
+import wheeler.compiler.signed_ordering_kinds;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 
@@ -124,25 +125,14 @@ classical class StructuredStatementEncoding {
       );
     }
 
-    if (resolvedLocalLessThanAssertion(opcode)) {
-      return writeLocalPairAssertion(
+    if (signedOrderingStatement(opcode)) {
+      return writeSignedOrderingAssertion(
         output,
         cursor,
-        opcode - STATEMENT_ASSERT_LONG_LT_BASE,
+        opcode,
         operand,
-        localBase,
-        OPCODE_LOCAL_LT
-      );
-    }
-
-    if (resolvedLiteralLessThanAssertion(opcode)) {
-      return writeLocalLiteralAssertion(
-        output,
-        cursor,
-        resolvedLiteralLessThanAssertionSource(opcode),
-        operand,
-        localBase,
-        OPCODE_LOCAL_LT
+        secondaryOperand,
+        localBase
       );
     }
 

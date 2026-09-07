@@ -114,7 +114,7 @@ final class NativeCompilerPhysicalProductSource {
       "wheeler.compiler.resolved_boolean_literal_comparisons",
       "wheeler.compiler.resolved_early_comparison_kinds",
       "wheeler.compiler.resolved_early_result_kinds",
-      "wheeler.compiler.resolved_less_than_assertions",
+      "wheeler.compiler.signed_ordering_kinds",
       "wheeler.compiler.resolved_literal_comparison_kinds",
       "wheeler.compiler.resolved_local_assignments",
       "wheeler.compiler.resolved_local_conditional_kinds",

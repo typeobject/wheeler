@@ -10,6 +10,7 @@ import wheeler.compiler.conditionals;
 import wheeler.compiler.early_utf8_call_forms;
 import wheeler.compiler.identifier_starts;
 import wheeler.compiler.keyword_tokens;
+import wheeler.compiler.signed_ordering_syntax;
 import wheeler.compiler.signed_return_statements;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
@@ -62,6 +63,10 @@ classical class StatementOpcodes {
     }
 
     if (keyword == TOKEN_ASSERT) {
+      if (signedOrderingCandidate(source, tokenStarts, tokenLengths, statementStart)) {
+        return STATEMENT_ASSERT_SIGNED_LT;
+      }
+
       long assertExpression = statementStart + 2;
       long assertWordCode = sourceTokenCode(source, tokenStarts, tokenLengths, assertExpression);
       if (booleanTokenCode(assertWordCode)) {
@@ -95,10 +100,6 @@ classical class StatementOpcodes {
         ) {
           return STATEMENT_ASSERT_EQ;
         }
-      }
-
-      if (utf8Scalar(source, tokenStarts[statementStart + 3]) == PUNCTUATION_LESS_THAN) {
-        return STATEMENT_ASSERT_LONG_LT_NAMED;
       }
 
       long assertedRight = utf8Scalar(source, tokenStarts[statementStart + 5]);

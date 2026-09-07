@@ -35,7 +35,7 @@ final class NativeBootstrapModulesIdentityExampleTest {
   void validatesThePhysicalBoundedCompilerClosure() throws Exception {
     BootstrapModuleManifest manifest = CompilerSources.bootstrapModuleManifest();
 
-    assertEquals(206_803, manifest.canonicalBytes().length);
+    assertEquals(208_489, manifest.canonicalBytes().length);
     VirtualMachine machine = vm(program(), manifest.canonicalBytes());
     long transitions = 0;
     while (machine.status() != MachineStatus.HALTED
@@ -44,14 +44,40 @@ final class NativeBootstrapModulesIdentityExampleTest {
       transitions += 1;
     }
 
-    assertEquals(88_842_112, transitions);
     assertEquals(MachineStatus.HALTED, machine.status());
+    assertEquals(88_834_564, transitions);
     assertArrayEquals(MessageDigest.getInstance("SHA-256").digest(manifest.canonicalBytes()),
         machine.hostOutput());
-    assertEquals(448, machine.global("moduleCount"));
+    assertEquals(451, machine.global("moduleCount"));
     assertEquals(2, machine.global("externalCount"));
-    assertEquals(2_117, machine.global("importCount"));
+    assertEquals(2_141, machine.global("importCount"));
     assertEquals(1, machine.global("published"));
+  }
+
+  @Test
+  void bindsPrefixAndLastByteNamesWithoutWeakeningOrderOrReachability() throws Exception {
+    Program program = program();
+    String prefix = "_" + "a".repeat(124) + "0";
+    List<String> names = List.of(prefix, prefix + "a", prefix + "ba", prefix + "bb");
+    List<Module> modules = new ArrayList<>();
+    for (int index = 0; index < names.size(); index++) {
+      modules.add(new Module(names.get(index), "src/M" + index + ".w", IDENTITY, List.of()));
+    }
+    modules.add(new Module("root", "src/Root.w", IDENTITY, names));
+    var manifest = new BootstrapModuleManifest("bootstrap-1", "root", List.of(), modules);
+    assertIdentity(program, manifest, 5, 0, 4, true);
+    String text = manifest.canonicalText();
+    String quotedLast = "\"" + names.getLast() + "\"";
+    assertNoIdentity(program, text.replace(quotedLast, "\"" + names.getLast() + "c\"")
+        .getBytes(StandardCharsets.UTF_8));
+    String last = "      - \"" + names.getLast() + "\"\n";
+    assertNoIdentity(program, text.replace(last, "      - \"" + prefix + "bc\"\n")
+        .getBytes(StandardCharsets.UTF_8));
+    assertNoIdentity(program, text.replace(last, "      - \"" + names.get(2) + "\"\n")
+        .getBytes(StandardCharsets.UTF_8));
+    String firstPair = "      - \"" + names.get(0) + "\"\n      - \"" + names.get(1) + "\"\n";
+    String reversedPair = "      - \"" + names.get(1) + "\"\n      - \"" + names.get(0) + "\"\n";
+    assertNoIdentity(program, text.replace(firstPair, reversedPair).getBytes(StandardCharsets.UTF_8));
   }
 
   @Test
@@ -349,8 +375,13 @@ final class NativeBootstrapModulesIdentityExampleTest {
 
   private static void assertNoIdentity(Program program, byte[] source) {
     VirtualMachine machine = vm(program, source);
+    var initial = machine.snapshot();
     assertThrows(VmTrap.class, machine::run);
     assertArrayEquals(new byte[32], machine.hostOutput());
     assertEquals(0, machine.global("published"));
+    while (machine.historySize() > 0) {
+      machine.rewindOne();
+    }
+    assertEquals(initial, machine.snapshot());
   }
 }

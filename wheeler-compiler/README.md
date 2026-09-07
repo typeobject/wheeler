@@ -172,6 +172,12 @@ profile. Its limits are not the retained source-product limits.
   an existing signed local or the single class-state slot. Wrong-type and
   duplicate local names prevent global fallback. Scalar helper tables retain
   that state, its initial value, and its canonical name through entry emission.
+- Direct signed `<` assertions admit literal or folded constant values, prior
+  signed locals or parameters, and the class-state slot on either side. Each
+  operand keeps a full signed word and its own origin. Three temporaries and
+  four instructions preserve left-to-right evaluation. False assertions compile
+  and trap before later mutation. Other comparison expressions remain separate
+  lowering work.
 - Calls preserve exact primitive types and use canonical moves or reborrows.
   Narrow buffer, UTF-8, map, allocation, freeze, and destruction forms have
   dedicated typed resolvers. Unsupported forms publish no artifact.

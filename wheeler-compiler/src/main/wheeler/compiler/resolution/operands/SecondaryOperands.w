@@ -2,6 +2,7 @@
 
 module wheeler.compiler.secondary_operands;
 
+import wheeler.compiler.assertion_resolution;
 import wheeler.compiler.assignment_call_kinds;
 import wheeler.compiler.assignment_call_resolution;
 import wheeler.compiler.boolean_tokens;
@@ -65,6 +66,20 @@ classical class SecondaryOperands {
       previousCount
     );
     long sourceOpcode = statementOpcode(source, tokenStarts, tokenLengths, statementStart);
+    if (sourceOpcode == STATEMENT_ASSERT_SIGNED_LT) {
+      ResolvedAssertion assertion = resolveAssertion(
+        source,
+        tokenStarts,
+        tokenLengths,
+        statementStart,
+        previousStarts,
+        previousCount,
+        sourceOpcode
+      );
+      assert(assertion.valid);
+      return assertion.secondaryOperand;
+    }
+
     if (localLiteralAssignmentConditional(sourceOpcode)) {
       long literalToken = localLiteralAssignmentComparisonToken(statementStart, sourceOpcode);
       long assignmentLiteralWordCode = sourceTokenCode(

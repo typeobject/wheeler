@@ -26,7 +26,6 @@ import wheeler.compiler.named_comparison_kinds;
 import wheeler.compiler.owned_storage_forms;
 import wheeler.compiler.owned_utf8_copy_loops;
 import wheeler.compiler.resolved_early_result_kinds;
-import wheeler.compiler.resolved_less_than_assertions;
 import wheeler.compiler.resolved_literal_comparison_kinds;
 import wheeler.compiler.resolved_local_conditional_kinds;
 import wheeler.compiler.resolved_local_copy_kinds;
@@ -34,7 +33,9 @@ import wheeler.compiler.resolved_local_loop_kinds;
 import wheeler.compiler.resolved_long_operations;
 import wheeler.compiler.scalar_helper_tables;
 import wheeler.compiler.sequences;
+import wheeler.compiler.signed_assertion_values;
 import wheeler.compiler.signed_helper_result_kinds;
+import wheeler.compiler.signed_ordering_kinds;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
@@ -145,7 +146,7 @@ classical class ScalarHelperLibraries {
     return activeBytes < 0;
   }
 
-  private boolean intrinsicSourcesValid(
+  private boolean helperSourcesValid(
     StatementSequence sequence,
     long[16] parameterTypes,
     long parameterCount
@@ -157,6 +158,30 @@ classical class ScalarHelperLibraries {
     long statement = 0;
     while (statement < sequence.count) limit MAX_MINIMAL_STATEMENTS {
       long opcode = sequence.opcodes[statement];
+      if (signedOrderingStatement(opcode)) {
+        if (
+          signedAssertionParameterValid(
+            signedOrderingLeftKind(opcode),
+            sequence.operands[statement],
+            parameterTypes,
+            parameterCount
+          )
+        ) {} else {
+          return false;
+        }
+
+        if (
+          signedAssertionParameterValid(
+            signedOrderingRightKind(opcode),
+            sequence.secondaryOperands[statement],
+            parameterTypes,
+            parameterCount
+          )
+        ) {} else {
+          return false;
+        }
+      }
+
       boolean bufferLength = opcode == STATEMENT_RETURN_BUFFER_LENGTH;
       if (opcode == STATEMENT_LOCAL_BUFFER_LENGTH) {
         bufferLength = true;
@@ -407,7 +432,7 @@ classical class ScalarHelperLibraries {
       return false;
     }
 
-    if (intrinsicSourcesValid(sequence, parameterTypes, parameterCount)) {} else {
+    if (helperSourcesValid(sequence, parameterTypes, parameterCount)) {} else {
       return false;
     }
 
@@ -433,6 +458,10 @@ classical class ScalarHelperLibraries {
         }
 
         if (voidOpcode == STATEMENT_ASSERT_LOCAL_BOOLEAN) {
+          write = true;
+        }
+
+        if (signedOrderingStatement(voidOpcode)) {
           write = true;
         }
 
@@ -542,11 +571,7 @@ classical class ScalarHelperLibraries {
           validPrelude = true;
         }
 
-        if (resolvedLocalLessThanAssertion(earlyOpcode)) {
-          validPrelude = true;
-        }
-
-        if (resolvedLiteralLessThanAssertion(earlyOpcode)) {
+        if (signedOrderingStatement(earlyOpcode)) {
           validPrelude = true;
         }
 

@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.typeobject.wheeler.compiler.WheelerCompiler;
-import com.typeobject.wheeler.core.bytecode.Instruction;
 import com.typeobject.wheeler.core.bytecode.Program;
 import com.typeobject.wheeler.core.vm.VirtualMachine;
 import com.typeobject.wheeler.core.vm.VmTrap;
@@ -34,7 +33,7 @@ final class NativeCompilerGlobalCallEncodingExampleTest {
       var body = artifact.function(artifact.entryFunctionId()).forward();
       int helper = artifact.functions().stream().filter(f -> f.id() != artifact.entryFunctionId())
           .findFirst().orElseThrow().id();
-      byte[] expected = encode(body.subList(arity * 2, body.size() - 1));
+      byte[] expected = NativeInstructionBytes.encode(body.subList(arity * 2, body.size() - 1));
       long first = 0;
       long last = 0;
       for (int argument = 0; argument < arity; argument++) {
@@ -57,17 +56,6 @@ final class NativeCompilerGlobalCallEncodingExampleTest {
       while (machine.historySize() > 0) { machine.rewindOne(); }
       assertEquals(initial, machine.snapshot());
     }
-  }
-
-  private static byte[] encode(List<Instruction> instructions) {
-    var bytes = ByteBuffer.allocate(instructions.stream().mapToInt(Instruction::encodedLength).sum())
-        .order(ByteOrder.LITTLE_ENDIAN);
-    for (var instruction : instructions) {
-      bytes.putShort((short) instruction.opcode().code()).putShort((short) instruction.operands().size())
-          .putInt(instruction.encodedLength());
-      for (long operand : instruction.operands()) { bytes.putLong(operand); }
-    }
-    return bytes.array();
   }
 
   private static byte[] input(long arity, long first, long last, long helper) {

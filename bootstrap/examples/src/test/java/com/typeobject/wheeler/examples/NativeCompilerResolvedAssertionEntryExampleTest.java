@@ -33,29 +33,28 @@ final class NativeCompilerResolvedAssertionEntryExampleTest {
   }
 
   @Test
-  void compilesPhysicalResolvedLessThanAssertionsIntoEntryByteForByte() throws Exception {
-    String opcodes = CompilerSources.read("compiler/ir/ResolvedStatements.w");
-    String assertions = CompilerSources.read(
-        "compiler/syntax/assertions/ResolvedLessThanAssertions.w");
+  void compilesPhysicalSignedOrderingKindsIntoEntryByteForByte() throws Exception {
+    String assertions = CompilerSources.read("compiler/syntax/assertions/SignedOrderingKinds.w");
     String root = """
-        module example.resolved_less_than_assertions_entry;
-        import wheeler.compiler.resolved_less_than_assertions;
-        classical class ResolvedLessThanAssertionsEntry {
+        module example.signed_ordering_entry;
+        import wheeler.compiler.signed_ordering_kinds;
+        classical class SignedOrderingEntry {
           entry void main() {
-            boolean local = resolvedLocalLessThanAssertion(8447);
-            boolean literal = resolvedLiteralLessThanAssertion(25087);
-            long source = resolvedLiteralLessThanAssertionSource(25087);
+            long code = signedOrderingKind(1, 2);
+            boolean present = signedOrderingStatement(code);
+            long left = signedOrderingLeftKind(code);
+            long right = signedOrderingRightKind(code);
+            boolean local = signedOrderingValueValid(left, 255);
+            assert(present);
             assert(local);
-            assert(literal);
-            assert(source == 255);
+            assert(left == 1);
+            assert(right == 2);
           }
         }
         """;
     assertPhysicalEntry(
-        List.of(opcodes, assertions),
-        Map.of("Opcodes.w", opcodes, "Assertions.w", assertions, "Entry.w", root),
-        root,
-        "example.resolved_less_than_assertions_entry");
+        List.of(assertions), Map.of("Assertions.w", assertions, "Entry.w", root), root,
+        "example.signed_ordering_entry");
   }
 
   @Test

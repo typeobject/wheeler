@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler and bootstrap maintainers |
 | Created | 2026-08-16 |
-| Updated | 2026-08-16 |
+| Updated | 2026-09-07 |
 | Area | Self-hosting compiler, physical closure, migration |
 | Depends on | WIP-0049, WIP-0054, WIP-0069, WIP-0073, WIP-0087 |
 | Supersedes | Parser projection for three resolved Boolean and assertion range modules |
@@ -14,6 +14,11 @@
 ## Summary
 
 Route three related resolved range decoders through direct source products.
+
+The receipts below describe the original three owners. [WIP-0501](WIP-0501-native-signed-ordering-assertions.md)
+replaces only the less-than owner's local-index ranges with two origin-tagged
+operand words. Its current physical check retains both Boolean owners and the
+complete signed ordering owner in one archive pass.
 
 - `ResolvedBooleanLiteralAssertions.w` produces two functions and 15 instructions in 1,064 bytes.
 - `ResolvedBooleanLiteralComparisons.w` produces four functions and 46 instructions in 2,152 bytes.

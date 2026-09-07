@@ -23,7 +23,7 @@ classical class BootstrapModuleManifestParser {
   ) {}
 
   private boolean moduleByte(long scalar, boolean first) {
-    boolean valid = scalar == 95;
+    boolean valid = false;
     if (64 < scalar) {
       valid = scalar < 91;
     }
@@ -50,12 +50,9 @@ classical class BootstrapModuleManifestParser {
   private long consumeModuleName(borrow byteview source, long cursor) {
     long start = cursor;
     boolean first = true;
-    while (cursor < bufferLength(source)) limit 128 {
-      long scalar = source[cursor];
-      if (scalar == 34) {
-        break;
-      }
-
+    requireMetadata(cursor < bufferLength(source));
+    long scalar = source[cursor];
+    while (scalar != 34) limit 128 {
       if (scalar == 46) {
         requireMetadata(first == false);
         first = true;
@@ -65,6 +62,8 @@ classical class BootstrapModuleManifestParser {
       }
 
       cursor += 1;
+      requireMetadata(cursor < bufferLength(source));
+      scalar = source[cursor];
     }
 
     requireMetadata(start < cursor);
@@ -97,7 +96,7 @@ classical class BootstrapModuleManifestParser {
     return true;
   }
 
-  private boolean orderedAfter(
+  private long compareModuleNames(
     borrow byteview source,
     long previous,
     long previousLength,
@@ -111,18 +110,28 @@ classical class BootstrapModuleManifestParser {
 
     long index = 0;
     while (index < common) limit 128 {
-      if (source[previous + index] < source[current + index]) {
-        return true;
+      long previousByte = source[previous + index];
+      long currentByte = source[current + index];
+      if (previousByte < currentByte) {
+        return -1;
       }
 
-      if (source[current + index] < source[previous + index]) {
-        return false;
+      if (currentByte < previousByte) {
+        return 1;
       }
 
       index += 1;
     }
 
-    return previousLength < currentLength;
+    if (previousLength < currentLength) {
+      return -1;
+    }
+
+    if (currentLength < previousLength) {
+      return 1;
+    }
+
+    return 0;
   }
 
   private long consumeSourcePath(borrow byteview source, long cursor) {
@@ -198,15 +207,18 @@ classical class BootstrapModuleManifestParser {
     long high = count;
     while (low < high) limit MAX_LOCAL_MODULES {
       long middle = (low + high) / 2;
-      if (
-        sameText(source, starts[middle], lengths[middle], candidate, candidateLength)
-      ) {
+      long order = compareModuleNames(
+        source,
+        starts[middle],
+        lengths[middle],
+        candidate,
+        candidateLength
+      );
+      if (order == 0) {
         return middle;
       }
 
-      if (
-        orderedAfter(source, starts[middle], lengths[middle], candidate, candidateLength)
-      ) {
+      if (order < 0) {
         low = middle + 1;
       } else {
         high = middle;
@@ -358,13 +370,13 @@ classical class BootstrapModuleManifestParser {
         );
         if (0 < parsedExternals) {
           requireMetadata(
-            orderedAfter(
+            compareModuleNames(
               source,
               externalStarts[parsedExternals - 1],
               externalLengths[parsedExternals - 1],
               nameStart,
               nameLength
-            )
+            ) < 0
           );
         }
 
@@ -398,13 +410,13 @@ classical class BootstrapModuleManifestParser {
       long moduleLength = cursor - moduleStart;
       if (0 < parsedModules) {
         requireMetadata(
-          orderedAfter(
+          compareModuleNames(
             source,
             moduleStarts[parsedModules - 1],
             moduleLengths[parsedModules - 1],
             moduleStart,
             moduleLength
-          )
+          ) < 0
         );
       }
 
@@ -463,13 +475,13 @@ classical class BootstrapModuleManifestParser {
           long importLength = cursor - importStart;
           if (0 < moduleImportCount) {
             requireMetadata(
-              orderedAfter(
+              compareModuleNames(
                 source,
                 edgeStarts[parsedImports - 1],
                 edgeLengths[parsedImports - 1],
                 importStart,
                 importLength
-              )
+              ) < 0
             );
           }
 

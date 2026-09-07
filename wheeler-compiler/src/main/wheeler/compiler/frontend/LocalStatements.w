@@ -32,7 +32,6 @@ import wheeler.compiler.named_long_operations;
 import wheeler.compiler.one_argument_calls;
 import wheeler.compiler.owned_storage_forms;
 import wheeler.compiler.owned_storage_operands;
-import wheeler.compiler.resolved_less_than_assertions;
 import wheeler.compiler.resolved_local_assignments;
 import wheeler.compiler.resolved_local_conditional_kinds;
 import wheeler.compiler.resolved_local_equality_kinds;
@@ -46,6 +45,7 @@ import wheeler.compiler.resolved_long_operations;
 import wheeler.compiler.resolved_statements;
 import wheeler.compiler.return_expressions;
 import wheeler.compiler.scalar_return_call_resolution;
+import wheeler.compiler.signed_ordering_kinds;
 import wheeler.compiler.signed_return_statements;
 import wheeler.compiler.source_scalars;
 import wheeler.compiler.statement_kinds;
@@ -949,8 +949,8 @@ classical class LocalStatements {
       return -1 < operand;
     }
 
-    if (resolvedLocalLessThanAssertion(opcode)) {
-      return -1 < operand;
+    if (signedOrderingStatement(opcode)) {
+      return signedOrderingValueValid(signedOrderingLeftKind(opcode), operand);
     }
 
     if (resolvedLocalConditionalAssignmentValue(opcode)) {

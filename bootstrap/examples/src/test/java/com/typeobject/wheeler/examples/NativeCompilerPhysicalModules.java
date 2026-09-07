@@ -55,7 +55,7 @@ final class NativeCompilerPhysicalModules {
         physical("compiler/syntax/booleans/ResolvedBooleanLiteralComparisons.w", "resolved_boolean_literal_comparisons"),
         physical("compiler/syntax/returns/ResolvedEarlyComparisonKinds.w", "resolved_early_comparison_kinds"),
         physical("compiler/syntax/returns/ResolvedEarlyResultKinds.w", "resolved_early_result_kinds"),
-        physical("compiler/syntax/assertions/ResolvedLessThanAssertions.w", "resolved_less_than_assertions"),
+        physical("compiler/syntax/assertions/SignedOrderingKinds.w", "signed_ordering_kinds"),
         physical("compiler/syntax/conditionals/ResolvedLiteralComparisonKinds.w", "resolved_literal_comparison_kinds"),
         physical("compiler/syntax/assignments/ResolvedLocalAssignments.w", "resolved_local_assignments"),
         physical("compiler/syntax/conditionals/ResolvedLocalConditionalKinds.w", "resolved_local_conditional_kinds"),

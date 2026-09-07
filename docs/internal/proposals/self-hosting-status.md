@@ -94,6 +94,17 @@ same destination. Complete artifacts compare for zero through seven arguments
 and a 23-helper entry. This does not supply WIP-0498's test projection or the
 full mixed nominal compiler join.
 
+[WIP-0501](WIP-0501-native-signed-ordering-assertions.md) gives direct signed `<`
+assertions two full-width operand words with independent literal, local, or global
+origins. The original minimum-state source now compiles with its assertion intact.
+Complete artifacts and false-comparison traps match stage 0. Typed parameters,
+lexical precedence, compiler publication, and rewind retain focused evidence.
+General Boolean expressions and direct global literal-call arguments remain open.
+
+Hosted acceptance at `34b255f84` completed 51 of 52 jobs successfully. Native
+package row 1 exhausted its unchanged twelve-minute method deadline. Successful
+rows from other commits do not complete that package gate.
+
 Manifest token policy now uses exact word codes. The old hashes admitted malformed
 spellings such as `trvF`, `topM`, and `tetU`. Tests reject those aliases, long
 unknown words, and invalid extents without losing row diagnostics. The combined

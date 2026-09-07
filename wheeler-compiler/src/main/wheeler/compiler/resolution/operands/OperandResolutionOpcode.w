@@ -80,7 +80,7 @@ classical class OperandResolutionOpcode {
       ambiguousTypedStatement = true;
     }
 
-    if (opcode == STATEMENT_ASSERT_LONG_LT_NAMED) {
+    if (opcode == STATEMENT_ASSERT_SIGNED_LT) {
       ambiguousTypedStatement = true;
     }
 

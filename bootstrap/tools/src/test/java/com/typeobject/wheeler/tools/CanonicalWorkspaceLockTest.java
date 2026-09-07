@@ -1,6 +1,7 @@
 package com.typeobject.wheeler.tools;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -9,6 +10,7 @@ import com.typeobject.wheeler.packageformat.PackageArchive;
 import com.typeobject.wheeler.packageformat.PackageArchive.DecodedPackage;
 import com.typeobject.wheeler.packageformat.PackageLock;
 import com.typeobject.wheeler.packageformat.PackageLockParser;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -29,6 +31,9 @@ final class CanonicalWorkspaceLockTest {
     List<PackageProject> projects = new ArrayList<>();
     for (var member : workspace.manifest().members()) {
       PackageProject project = PackageProject.load(root.resolve(member.path()));
+      assertArrayEquals(project.manifest().canonicalText().getBytes(StandardCharsets.UTF_8),
+          Files.readAllBytes(project.root().resolve(PackageProject.MANIFEST_NAME)),
+          project.manifest().name() + " must bind the same raw manifest in native consumers");
       DecodedPackage archive = codec.decode(project.archive());
       assertEquals(project.manifest().identity(), archive.manifest().identity());
       assertNull(archives.put(archive.manifest().name(), archive));

@@ -5,18 +5,27 @@ module wheeler.compiler.assertion_resolution;
 import wheeler.compiler.class_constants;
 import wheeler.compiler.local_resolution;
 import wheeler.compiler.resolved_statements;
+import wheeler.compiler.signed_assertion_values;
+import wheeler.compiler.signed_ordering_kinds;
+import wheeler.compiler.signed_ordering_syntax;
 import wheeler.compiler.statement_kinds;
 
 classical class AssertionResolution {
   /// Carries one optional assertion after exact typed-name resolution.
-  public record ResolvedAssertion(long opcode, long operand, boolean applies, boolean valid) {}
+  public record ResolvedAssertion(
+    long opcode,
+    long operand,
+    long secondaryOperand,
+    boolean applies,
+    boolean valid
+  ) {}
 
   private ResolvedAssertion notApplicable() {
-    return new ResolvedAssertion(0, 0, false, true);
+    return new ResolvedAssertion(0, 0, 0, false, true);
   }
 
   private ResolvedAssertion invalid() {
-    return new ResolvedAssertion(0, 0, true, false);
+    return new ResolvedAssertion(0, 0, 0, true, false);
   }
 
   private ResolvedAssertion signedEquality(
@@ -38,7 +47,13 @@ classical class AssertionResolution {
       true
     );
     if (-1 < right) {
-      return new ResolvedAssertion(STATEMENT_ASSERT_LONG_PAIR_BASE + left, right, true, true);
+      return new ResolvedAssertion(
+        STATEMENT_ASSERT_LONG_PAIR_BASE + left,
+        right,
+        0,
+        true,
+        true
+      );
     }
 
     ConstantResolution constant = resolveClassConstant(
@@ -52,6 +67,7 @@ classical class AssertionResolution {
       return new ResolvedAssertion(
         STATEMENT_ASSERT_LOCAL_LONG_BASE + left,
         constant.value,
+        0,
         true,
         true
       );
@@ -79,7 +95,13 @@ classical class AssertionResolution {
       false
     );
     if (-1 < right) {
-      return new ResolvedAssertion(STATEMENT_ASSERT_BOOLEAN_PAIR_BASE + left, right, true, true);
+      return new ResolvedAssertion(
+        STATEMENT_ASSERT_BOOLEAN_PAIR_BASE + left,
+        right,
+        0,
+        true,
+        true
+      );
     }
 
     ConstantResolution constant = resolveClassConstant(
@@ -93,6 +115,7 @@ classical class AssertionResolution {
       return new ResolvedAssertion(
         STATEMENT_ASSERT_BOOLEAN_LITERAL_BASE + left,
         constant.value,
+        0,
         true,
         true
       );
@@ -166,49 +189,43 @@ classical class AssertionResolution {
     borrow mut words previousStarts,
     long previousCount
   ) {
-    long left = resolvePriorDeclaration(
+    SignedAssertionValue left = resolveSignedAssertionValue(
       source,
       tokenStarts,
       tokenLengths,
       previousStarts,
       previousCount,
-      statementStart + 2,
-      true
+      statementStart + 2
     );
-    if (left < 0) {
+    if (left.valid == false) {
       return invalid();
     }
 
-    long right = resolvePriorDeclaration(
+    long rightToken = signedOrderingRightToken(
+      source,
+      tokenStarts,
+      tokenLengths,
+      statementStart
+    );
+    SignedAssertionValue right = resolveSignedAssertionValue(
       source,
       tokenStarts,
       tokenLengths,
       previousStarts,
       previousCount,
-      statementStart + 4,
-      true
+      rightToken
     );
-    if (-1 < right) {
-      return new ResolvedAssertion(STATEMENT_ASSERT_LONG_LT_BASE + left, right, true, true);
+    if (right.valid == false) {
+      return invalid();
     }
 
-    ConstantResolution constant = resolveClassConstant(
-      source,
-      tokenStarts,
-      tokenLengths,
-      statementStart + 4,
+    return new ResolvedAssertion(
+      signedOrderingKind(left.kind, right.kind),
+      left.value,
+      right.value,
+      true,
       true
     );
-    if (constant.valid) {
-      return new ResolvedAssertion(
-        STATEMENT_ASSERT_LONG_LT_LITERAL_BASE + left,
-        constant.value,
-        true,
-        true
-      );
-    }
-
-    return invalid();
   }
 
   /// Resolves one named scalar equality or ordering assertion.
@@ -232,7 +249,7 @@ classical class AssertionResolution {
       );
     }
 
-    if (sourceOpcode == STATEMENT_ASSERT_LONG_LT_NAMED) {
+    if (sourceOpcode == STATEMENT_ASSERT_SIGNED_LT) {
       return ordering(
         source,
         tokenStarts,

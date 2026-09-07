@@ -22,7 +22,6 @@ import wheeler.compiler.owned_utf8_copy_loops;
 import wheeler.compiler.resolved_boolean_literal_assertions;
 import wheeler.compiler.resolved_boolean_literal_comparisons;
 import wheeler.compiler.resolved_early_result_kinds;
-import wheeler.compiler.resolved_less_than_assertions;
 import wheeler.compiler.resolved_literal_comparison_kinds;
 import wheeler.compiler.resolved_local_assignments;
 import wheeler.compiler.resolved_local_conditional_kinds;
@@ -37,6 +36,7 @@ import wheeler.compiler.resolved_local_result_kinds;
 import wheeler.compiler.resolved_local_returns;
 import wheeler.compiler.resolved_local_updates;
 import wheeler.compiler.resolved_return_call_kinds;
+import wheeler.compiler.signed_ordering_kinds;
 import wheeler.compiler.statement_kinds;
 import wheeler.compiler.statement_opcodes;
 import wheeler.compiler.three_argument_calls;
@@ -369,13 +369,7 @@ classical class StatementLocalTypes {
       return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
     }
 
-    if (resolvedLocalLessThanAssertion(opcode)) {
-      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
-      cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
-      return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);
-    }
-
-    if (resolvedLiteralLessThanAssertion(opcode)) {
+    if (signedOrderingStatement(opcode)) {
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
       cursor = writeUnsignedLittleEndian(output, cursor, TYPE_SIGNED, 4);
       return writeUnsignedLittleEndian(output, cursor, TYPE_BOOLEAN, 4);

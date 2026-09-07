@@ -5,7 +5,7 @@
 | Status | Implementing |
 | Owners | Wheeler compiler, bootstrap, package, and conformance maintainers |
 | Created | 2026-08-07 |
-| Updated | 2026-08-07 |
+| Updated | 2026-09-07 |
 | Area | Self-hosting, module closure, linking, bootstrap |
 | Depends on | WIP-0007, WIP-0009, WIP-0043 |
 | Supersedes | None |
@@ -168,6 +168,26 @@ Compatibility wrappers do not remain in production. The seven-frame path stays o
 - [x] WIP-0134 indexes operand roles directly, fuses immutable frame updates, and consumes owned-storage preflight once. A same-host `ResolvedReturnCallKinds.w` route falls from 286.44 to 273.59 seconds with byte-identical output.
 - [x] WIP-0158 gives no-history owned buffers private committed chunks while preserving persistent snapshots and rewind boundaries. The same focused physical route remains byte-identical and falls to 230.90 seconds under sustained host load.
 - [ ] The complete physical compiler closure compiles.
+
+### Metadata lookup maintenance
+
+Module lookup compares validated names once per binary-search probe. The same
+three-way comparison enforces canonical module, external, and import order.
+It compares bytes and then lengths, without a hash shortcut or scratch cache.
+Source-path equality retains its separate 256-byte window.
+
+The name scanner admits all 128 name bytes without charging the closing quote
+against those iterations. The former loop rejected the last admitted byte
+because it needed another iteration to find that quote. Prefix-related names,
+a difference at byte 128, underscores, and digits bind exactly. Unknown names,
+duplicate imports, reversed prefix order, and byte 129 reject before identity
+publication. Small accepted and rejected inputs retain full rewind checks.
+
+The signed-ordering graph exposed the duplicate lookup work. The 451-module,
+2,141-import graph took 89,933,896 transitions before this maintenance. The
+updated parser takes 88,834,564 under the unchanged 89-million ceiling. This
+measures graph admission and identity, not native compilation of those modules.
+The owning bootstrap test retains the current input and transition assertions.
 
 ## Acceptance
 

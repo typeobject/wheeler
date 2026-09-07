@@ -64,7 +64,7 @@ classical class StatementKinds {
   /// Equality assertion over two prior locals.
   public const long STATEMENT_ASSERT_LOCAL_PAIR_NAMED = 796;
   /// Less-than assertion over prior signed locals.
-  public const long STATEMENT_ASSERT_LONG_LT_NAMED = 797;
+  public const long STATEMENT_ASSERT_SIGNED_LT = 797;
   /// Negated local condition guarding global addition.
   public const long STATEMENT_IF_NOT_LOCAL_ADD_NAMED = 798;
   /// Negated local condition guarding global subtraction.
