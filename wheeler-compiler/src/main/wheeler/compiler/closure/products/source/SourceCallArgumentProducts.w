@@ -129,6 +129,52 @@ classical class SourceCallArgumentProducts {
     return selected;
   }
 
+  private long argumentType(
+    borrow utf8 source,
+    long owner,
+    long local,
+    long valueCount,
+    borrow mut words valueRows,
+    long tokenCount,
+    borrow mut words tokenStarts,
+    borrow mut words tokenLengths
+  ) {
+    long sourceType = loopBodyValueType(
+      source, owner, local, valueCount, valueRows, tokenCount, tokenStarts, tokenLengths
+    );
+    if (sourceType == TOKEN_LONG) {
+      return TYPE_SIGNED;
+    }
+
+    if (sourceType == TOKEN_BOOLEAN) {
+      return TYPE_BOOLEAN;
+    }
+
+    boolean storageLoan = sourceType == TOKEN_REGION;
+    if (sourceType == TOKEN_LONGMAP) {
+      storageLoan = true;
+    }
+
+    if (storageLoan) {
+      boolean borrowed = borrowedLoopBodyLocal(
+        source, owner, local, valueCount, valueRows, tokenCount, tokenStarts, tokenLengths
+      );
+      if (borrowed == false) {
+        return -1;
+      }
+
+      if (sourceType == TOKEN_REGION) {
+        return TYPE_REGION_BORROW;
+      }
+
+      return TYPE_LONG_MAP_BORROW;
+    }
+
+    return directBufferLocalType(
+      source, owner, local, valueCount, valueRows, tokenCount, tokenStarts, tokenLengths
+    );
+  }
+
   /// Publishes ordered identifier arguments, exact types, and defining values atomically.
   public SourceCallArgumentPlan materializeSourceCallArgumentProducts(
     borrow utf8 source,
@@ -245,7 +291,7 @@ classical class SourceCallArgumentProducts {
                 if (selectedValue < 0) {
                   valid = false;
                 } else {
-                  long sourceType = loopBodyValueType(
+                  long type = argumentType(
                     source,
                     owner,
                     valueRows[3072 + selectedValue],
@@ -255,25 +301,8 @@ classical class SourceCallArgumentProducts {
                     tokenStarts,
                     tokenLengths
                   );
-                  long type = TYPE_SIGNED;
-                  if (sourceType == TOKEN_BOOLEAN) {
-                    type = TYPE_BOOLEAN;
-                  } else {
-                    if (sourceType != TOKEN_LONG) {
-                      type = directBufferLocalType(
-                        source,
-                        owner,
-                        valueRows[3072 + selectedValue],
-                        valueCount,
-                        valueRows,
-                        tokenCount,
-                        tokenStarts,
-                        tokenLengths
-                      );
-                      if (type < 0) {
-                        valid = false;
-                      }
-                    }
+                  if (type < 0) {
+                    valid = false;
                   }
 
                   set(stagedArguments, argumentCount, valueRows[3072 + selectedValue]);

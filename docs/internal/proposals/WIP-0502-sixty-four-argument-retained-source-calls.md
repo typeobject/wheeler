@@ -8,6 +8,7 @@
 | Updated | 2026-09-07 |
 | Area | Retained source-call lowering |
 | Depends on | WIP-0049, WIP-0496 |
+| Follow-up | WIP-0503 |
 | Supersedes | None |
 | Superseded by | None |
 
@@ -113,6 +114,14 @@ source and matches all 568 artifact bytes. Its coverage consumer matches all
 772 report bytes, seven tested transitions, and final state seven. This checks
 the existing consumer path, not wide-call execution or complete compiler composition.
 
+### Hosted acceptance
+
+Run [34159406697](https://github.com/typeobject/wheeler/actions/runs/34159406697)
+passed all 52 jobs on `76b21180613d4fd2c41a7af76b54785b51340701`. All sixteen native
+compiler-package rows executed `testsOnePhysicalCompilerShardNatively` under the
+unchanged twelve-minute method deadline. These results bind this milestone, not
+later loan-typing changes.
+
 ## Acceptance
 
 - [x] One production profile owns all retained argument extents.
@@ -126,12 +135,13 @@ the existing consumer path, not wide-call execution or complete compiler composi
 
 ## Remaining work
 
-Hosted native-package acceptance must pass on this change's commit. The accepted
-sixteen-row run at `a6384a6f6` does not cover these new compiler inputs.
-
 [WIP-0049](WIP-0049-bounded-native-source-product-compilation.md) still owns
-complete physical compiler composition. Retained region and map arguments still
-fail type binding, independently of arity. This stage removes one known call
-boundary. It does not compile the 55-parameter aggregate owner, repair general
+complete physical compiler composition. Region and map arguments failed type
+binding at this milestone. [WIP-0503](WIP-0503-retained-region-and-map-call-loans.md)
+extends that loan profile. Qualified imported initializer and void calls have
+artifact evidence. Qualified forwarded returns still reject, including a control with only signed
+parameters. Arity admission does not remove that source-shape boundary.
+
+This stage does not compile the 55-parameter aggregate owner, repair general
 returns, finish WIP-0498's intact nominal test runner, or establish stage equality,
 recovery, and Java-free operation.

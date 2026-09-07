@@ -67,14 +67,27 @@ remain capacity checks, not substitutes for body parity.
 
 Ordinary retained calls now admit 64 ordered identifiers across root, loop,
 and qualified imported calls. Signed and Boolean values and UTF-8, byte-view,
-mutable-byte, and mutable-word loans retain exact types and defining-value coordinates.
+mutable-byte, mutable-word, mutable-region, and mutable-map loans retain exact
+types and defining-value coordinates.
 [WIP-0502](WIP-0502-sixty-four-argument-retained-source-calls.md) extends the shared
 call layout beyond WIP-0496's eight-argument milestone. Nine-, 55-, and 64-argument
 bodies match independent artifacts. Wide signed calls execute through an
 independent wrapper and rewind. The entry-product regression follows 29 imported
 targets, and the archive pass binds all 451 modules. This does not compile the
 complete value-planning or frame-composition owners natively. Canonical locks and
-the workspace build pass. Hosted acceptance for the wider profile remains open.
+the workspace build pass for `76b211806`. Hosted run 34159406697 passes all 52
+jobs on that commit, including all sixteen native compiler-package rows. That
+acceptance does not cover the later storage-loan changes.
+
+[WIP-0503](WIP-0503-retained-region-and-map-call-loans.md) adds exact region and map
+loan binding without widening buffer operations. Local and imported artifacts
+match stage 0. A native-produced caller invokes an independent callee that
+allocates through its region loan and mutates its map loan. The complete execution
+rewinds. Owned storage arguments and qualified forwarded returns remain separate
+gaps. Qualified initializer and void calls pass. A signed-only forwarded control
+also rejects. Local physical, archive, and workspace checks pass. Hosted package
+acceptance for these loan inputs remains open.
+
 This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with
 arguments. That lowering boundary remains in WIP-0049.

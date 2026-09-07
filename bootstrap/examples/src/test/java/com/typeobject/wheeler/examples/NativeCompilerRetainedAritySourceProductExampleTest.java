@@ -138,16 +138,14 @@ final class NativeCompilerRetainedAritySourceProductExampleTest {
   }
 
   @Test
-  void retainsTheSeparateRegionAndMapArgumentAdmissionGap() throws Exception {
+  void compilesTheFormerRegionAndMapArgumentRejectionsByteForByte() throws Exception {
     for (int type : new int[] {12, 9}) {
       int[] types = types(64);
       types[63] = type;
       String storage = type == 12 ? "region" : "longmap";
       String source = source(64, "long", "return recurse(" + arguments(64) + ");")
           .replace("boolean p63", "borrow mut " + storage + " p63");
-      new WheelerCompiler().compileLibraryModuleFiles(
-          Map.of("Call.w", source), NativeRetainedCallFixture.MODULE);
-      NativeRetainedCallFixture.assertRejected(source, false, types, types, 1, 0);
+      NativeRetainedCallFixture.assertLocal(source, types);
     }
   }
 

@@ -43,7 +43,7 @@ final class NativeRetainedCallFixture {
     return new BytecodeReader().read(machine.hostOutput());
   }
 
-  static void assertImported(String source, String target, int[] types, int resultType)
+  static Program assertImported(String source, String target, int[] types, int resultType)
       throws Exception {
     Probe probe = machine(source, true, types, types, resultType, 0);
     VirtualMachine machine = probe.machine();
@@ -88,6 +88,7 @@ final class NativeRetainedCallFixture {
       callInstruction++;
     }
     assertEquals(callInstruction, machine.global("relocationInstruction"));
+    return new BytecodeReader().read(machine.hostOutput());
   }
 
   private static void run(Probe probe, String source) {

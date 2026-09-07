@@ -154,6 +154,17 @@ Rejected. Emitted code has no source statement identity and cannot publish state
 
 Rejected. Decoded ownership verifies an artifact. It cannot replace the source product that authorized local allocation and relocation.
 
+## Remaining call fronts
+
+WIP-0502 extends the retained arity to 64. WIP-0503 adds mutable region and map
+loans without treating them as buffers. Neither closes qualified forwarded
+returns. `return dep.alpha::remote(number);` passes stage 0 with a direct public
+dependency but fails retained value planning. The same control with storage
+loans also rejects. Qualified imported initializer and void calls pass.
+
+A repair must validate the complete return window. Finding one call inside a
+statement does not authorize dropping arithmetic or other tokens after it.
+
 ## References
 
 - [WIP-0045](WIP-0045-counted-native-module-symbol-products.md)

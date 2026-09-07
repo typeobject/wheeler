@@ -172,3 +172,4 @@ Each record appears in one catalog. Cross-cutting work links its other owners fr
 | [WIP-0499](../WIP-0499-native-global-call-assignments.md) | Draft | Native global call assignments |
 | [WIP-0501](../WIP-0501-native-signed-ordering-assertions.md) | Draft | Native signed ordering assertions |
 | [WIP-0502](../WIP-0502-sixty-four-argument-retained-source-calls.md) | Draft | Sixty-four-argument retained source calls |
+| [WIP-0503](../WIP-0503-retained-region-and-map-call-loans.md) | Draft | Retained region and map call loans |

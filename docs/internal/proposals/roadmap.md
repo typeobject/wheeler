@@ -32,7 +32,8 @@ refer to the required products, not a demand that every umbrella finish first.
 | [WIP-0498](WIP-0498-native-test-member-front-admission.md) | Admit class-member fronts before automatic test discovery can publish an empty report |
 | [WIP-0499](WIP-0499-native-global-call-assignments.md) | Verify signed global call assignments and unchanged mixed scalar test execution |
 | [WIP-0501](WIP-0501-native-signed-ordering-assertions.md) | Resolve signed assertion operands without local-only identity ranges |
-| [WIP-0502](WIP-0502-sixty-four-argument-retained-source-calls.md) | Review the wider call profile and verify same-commit native-package acceptance |
+| [WIP-0502](WIP-0502-sixty-four-argument-retained-source-calls.md) | Review the wider call profile and its same-commit package acceptance |
+| [WIP-0503](WIP-0503-retained-region-and-map-call-loans.md) | Bind retained storage loans without widening buffer operations |
 
 Keep the distinction between implementation and evidence. WIP-0049 owns source
 lowering, WIP-0054 owns its artifact integration, and WIP-0048 owns final linking.
