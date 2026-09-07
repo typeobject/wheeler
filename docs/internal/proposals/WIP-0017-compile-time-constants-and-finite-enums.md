@@ -388,6 +388,10 @@ names, forward references, cycles, wrong-type values, duplicates, optional state
 and malformed complete prefixes. Source columns stay unchanged. Small runs and
 the 257-byte name-comparison rejection restore their complete snapshots.
 
+Every probe supplies the full 4,096-row token columns required by constant lookup.
+Assertions bind that capacity to `MAX_COMPILER_TOKENS`. Short scanner fixtures
+cannot stand in for this implicit full-window API, even when their source fits.
+
 The count boundary checks first, last, and absent names at 256 declarations and
 rejects declaration 257. A separate history-free fixture bounds sixteen queries
 through a 64-constant forward dependency chain by four million VM transitions.

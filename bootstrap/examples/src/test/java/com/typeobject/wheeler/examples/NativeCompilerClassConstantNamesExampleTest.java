@@ -22,8 +22,7 @@ final class NativeCompilerClassConstantNamesExampleTest {
 
   @Test
   void separatesPresenceFromTypeInitializerAndDuplicateAdmissionAndRewinds() throws Exception {
-    Program program = NativeSourceFrontFixture.program(
-        List.of(OWNER, "wheeler.compiler.constant_declarations"), 128, """
+    Program program = sourceProgram("""
         state long present = 0;
         state long typed = 0;
         state long prefixValid = 0;
@@ -66,7 +65,7 @@ final class NativeCompilerClassConstantNamesExampleTest {
 
   @Test
   void performsRepeatedPresentAndAbsentLookupsWithoutPrivateAllocations() throws Exception {
-    Program program = lookupProgram(128, """
+    Program program = lookupProgram("""
         long repetition = 0;
         while (repetition < 16) limit 16 {
           %s
@@ -84,7 +83,7 @@ final class NativeCompilerClassConstantNamesExampleTest {
 
   @Test
   void boundsNameOnlyWorkWithoutEvaluatingAForwardDependencyChain() throws Exception {
-    Program program = lookupProgram(1024, """
+    Program program = lookupProgram("""
         long repetition = 0;
         while (repetition < 16) limit 16 {
           %s
@@ -112,7 +111,7 @@ final class NativeCompilerClassConstantNamesExampleTest {
   @Test
   void checksTheCompletePrefixBeforeAcceptingFirstOrLastNamesAtTheCountBoundary()
       throws Exception {
-    Program program = lookupProgram(4096, LOOKUP);
+    Program program = lookupProgram(LOOKUP);
     var declarations = new StringBuilder();
     for (int constant = 0; constant < 256; constant++) {
       declarations.append("const long N").append(constant).append(" = ").append(constant).append(';');
@@ -128,7 +127,7 @@ final class NativeCompilerClassConstantNamesExampleTest {
 
   @Test
   void keepsTheNameComparisonLimitAndRewindsARejectedExcessName() throws Exception {
-    Program program = lookupProgram(128, LOOKUP);
+    Program program = lookupProgram(LOOKUP);
     String name = "N".repeat(257);
     var machine = new VirtualMachine(program,
         source("const long " + name + " = 17;", name).getBytes(StandardCharsets.UTF_8));
@@ -148,8 +147,17 @@ final class NativeCompilerClassConstantNamesExampleTest {
 
   private record Probe(String declarations, String name, int present, int typed, int prefixValid) {}
 
-  private static Program lookupProgram(int capacity, String body) throws Exception {
-    return NativeSourceFrontFixture.program(List.of(OWNER), capacity, "state long present = 0;", body);
+  private static Program lookupProgram(String body) throws Exception {
+    return sourceProgram("state long present = 0;", body);
+  }
+
+  private static Program sourceProgram(String globals, String body) throws Exception {
+    return NativeSourceFrontFixture.program(List.of(OWNER,
+        "wheeler.compiler.constant_declarations", "wheeler.compiler.compiler_token_limits"),
+        4096, globals, """
+        assert(bufferLength(starts) == MAX_COMPILER_TOKENS);
+        assert(bufferLength(lengths) == MAX_COMPILER_TOKENS);
+        """ + body);
   }
 
   private static String source(String declarations, String name) {
