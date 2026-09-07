@@ -818,11 +818,6 @@ class NativeImportedConstantExampleTest {
     assertTrap(
         compiler,
         "module examples.constants; classical class Constants { "
-            + "public const long ANSWER = 42; public void helper() { } }",
-        root);
-    assertTrap(
-        compiler,
-        "module examples.constants; classical class Constants { "
             + "private const long HIDDEN = 40; public const long ANSWER = HIDDEN + 2; }",
         root.replace("long value = ANSWER;", "long HIDDEN = 0; long value = ANSWER;"));
     assertTrap(

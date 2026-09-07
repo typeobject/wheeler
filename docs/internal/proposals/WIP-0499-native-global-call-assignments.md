@@ -79,10 +79,18 @@ order, method/state name sharing, and different global string positions. A
 23-helper global entry passes. Helper 24, state slot two, and argument eight
 reject natively without publication even though stage 0 admits those sources.
 
-The same class checks missing destinations, unknown helper calls, wrong result
-and argument types, duplicate names, and class-state shadows. Small accepted and
-rejected compiler runs restore their complete initial snapshots. Separate
-coverage comparisons bind complete native reports to independent stage-0 traces.
+`NativeImportedHelperPresenceExampleTest` checks a constant import with an unused
+void or signed helper. It compares the complete artifact, both function names,
+and execution rewind with stage 0. The void source previously appeared as an
+unsupported-import rejection. Unified one-helper composition admits it without
+discarding its body. The remaining malformed-import checks keep their publication
+assertions.
+
+The global-call fixture also checks missing destinations, unknown helper calls,
+wrong result and argument types, duplicate names, and class-state shadows. Small
+accepted and rejected compiler runs restore their complete initial snapshots.
+Separate coverage comparisons bind complete native reports to independent
+stage-0 traces.
 
 `NativeCompilerGlobalCallBindingExampleTest` checks counted windows, signed
 extremes, wrong-type precedence, local columns 255/256, every global arity, and
@@ -131,5 +139,9 @@ and selection, rather than an empty-selection substitute.
 
 This stage does not close WIP-0049 or WIP-0498. Full nominal and global products,
 complete frontend admission, diagnostic parity, compiler fixed-point evidence,
-native recovery, and Java-free operation remain open. Draft status remains until
-maintainers review this contract and its evidence.
+native recovery, and Java-free operation remain open. A separate imported-helper
+fixture with root class state still rejects at the minimal compiler boundary.
+Its linked source places the imported helper before the root state declaration.
+WIP-0043 owns that root-prelude join. The unused-helper receipt above does not
+cover it. Draft status remains until maintainers review this contract and its
+evidence.

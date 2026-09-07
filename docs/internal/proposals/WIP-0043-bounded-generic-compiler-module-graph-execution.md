@@ -5,7 +5,7 @@
 | Status | Implemented |
 | Owners | Wheeler compiler, linker, bootstrap, package, and conformance maintainers |
 | Created | 2026-08-07 |
-| Updated | 2026-09-06 |
+| Updated | 2026-09-07 |
 | Area | Self-hosting, modules, linking, graph execution |
 | Depends on | WIP-0007, WIP-0017, WIP-0028 |
 | Supersedes | The topology-specific execution work remaining in WIP-0007 |
@@ -193,6 +193,19 @@ Compatibility wrappers are not retained. During migration the driver may dispatc
 Changed literals, types, and token-distinct equivalent expressions reject without native artifact publication. Private-tail exposure and conflicting public exports also reject. Both source columns admit constant 256 and reject 257 before publication. Small planning and emission fixtures compare every output byte and fully rewind success and rejection. The large count fixtures run without history.
 
 The physical resolved-local-return and resolved-return-call entry fixtures also compare complete artifacts and execute them. Their inputs now come from actual module closures rather than stale lists of constant owners. This remains bounded helper-graph evidence, not full compiler composition or a self-hosting fixed point.
+
+## Root state ordering
+
+The one-helper composition in WIP-0499 also admits an unused helper beside an
+imported constant. Complete artifact comparison retains both the imported helper
+and the root entry. This replaces an obsolete unsupported-import expectation.
+
+The same join with root class state remains open. An independent stage-0 source
+with `state long value = 0` and `value = ANSWER` passes. Native linking inserts
+the imported helper before that state declaration, then rejects the linked
+source at `requireMinimalProgram`. Root-prelude planning and copying must retain
+the state before imported executable members. The global-call and unused-helper
+receipts do not establish that ordering.
 
 ## Acceptance
 
