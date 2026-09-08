@@ -86,7 +86,7 @@ allocates through its region loan and mutates its map loan. The complete executi
 rewinds. Owned storage arguments remain excluded. Local physical, archive, and
 workspace checks pass. The formatting repair at `7e63b4721` passes 51 hosted jobs,
 but native shard 15 exceeds the unchanged twelve-minute method deadline in run
-34166510984. Hosted package acceptance for these loan inputs remains open.
+34166510984. Those jobs do not establish package acceptance.
 
 [WIP-0504](WIP-0504-complete-retained-call-statement-windows.md) validates complete
 ordinary call windows and removes the second qualified-call width pass. Qualified
@@ -104,6 +104,14 @@ serialized result-type prefix, not an extra frame local. Complete type tables
 and reconstructed artifacts preserve that distinction. Independent typed callers
 execute the restored callees and rewind. This does not supply complete nominal
 source artifacts or repair the intact mixed-member runner.
+
+Hosted run [34180345032](https://github.com/typeobject/wheeler/actions/runs/34180345032)
+on `f78ead83f` passes all 52 jobs, including all sixteen native compiler-package
+rows. Each row executes the selected test method under the unchanged twelve-minute
+deadline. This supplies same-commit package acceptance for the committed storage,
+call-window, and carrier changes. It does not cover the unfinished member-front
+overlay, complete compiler composition, or a fixed point. Shard 15 passes this
+run, but that does not explain the two predecessor timeouts.
 
 This does not widen the separate bounded helper
 compiler's seven-argument profile. Generated inverses still reject calls with
